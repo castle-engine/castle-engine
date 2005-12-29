@@ -1,10 +1,10 @@
-var SPoz:Integer;
+var SPoz: Integer;
 begin
- SPoz:=1;
- result[0]:=StrToFloat(NextToken(s,SPoz));
- result[1]:=StrToFloat(NextToken(s,SPoz));
- result[2]:=StrToFloat(NextToken(s,SPoz));
- Check(NextToken(s,SPoz) = '', 'expected end of string in Vector*FromStr');
+ SPoz := 1;
+ result[0] := StrToFloat(NextToken(s, SPoz));
+ result[1] := StrToFloat(NextToken(s, SPoz));
+ result[2] := StrToFloat(NextToken(s, SPoz));
+ Check(NextToken(s, SPoz) = '', 'expected end of string in Vector*FromStr');
 
  (* ta funkcje moznaby tez zrealizowac jako jedna z trzech wersji
    DeFormat(s, '%.single. %.single. %.single.', [@result[0], @result[1], @result[2]]);
