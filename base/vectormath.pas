@@ -18,40 +18,46 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Ten modul to masa operacji na wektorach, macierzach i roznych
-  elementach geometrycznych (2d i 3d) reprezentowanych jako jakies
-  wektory, macierze i skalary. Takze kolizje na tych obiektach.
-  Takze elementarne funkcje do operacji na kolorach RGB (ktore
-  przeciez tez sa wektorami).)
+{ @abstract(A lot of operations on vectors and matrices.
+  This includes operations on geometric objects (2D and 3D)
+  that can be represented as some vectors, matrices and scalar values.
+  Various collision-checking routines for these geometric objects.
+  Also functions to operate on RGB colors (these are vectors too, after all).)
 
-  Reprezentacja tworow geometrycznych :
+  Representation of geometric objects in this unit :
 
   @unorderedList(
     @item(
-      Trojkaty reprezentujemy jako TTriangle<point-type>, punkty trojkata musza byc
-      nie-wspolliniowe (a wiec, w szczegolnosci, parami rozne)
-      (NIE akceptuemy zdegenerowanych trojkatow,
-      trojkat musi wyznaczac 1-znacznie plaszczyzne, na tym sie opieram
-      w implementacji wielu funkcji;
-      jedyna funkcja w tym module ktora jest gwarantowana ze poradzi sobie
-      ze zdegenrowanymi trojkatami to IsValidTriangle(), ktore wlasnie
-      sprawdza czy trojkat jest zdegenerowany).
+      Triangle is a @code(TTriangle<point-type>) type.
+      Where @code(<point-type>) is such suffix that vector type
+      @code(TVector<point-type>) exists. For example, we have
+      TVector3Single type that represents a point in 3D space,
+      so you can use TTriangle3Single to represent triangle in 3D space.
+      There are also 2D triangles like TTriangle2Single and TTriangle2Double.
 
-      <point-type> to taki przyrostek ze istnieje typ TVector<point-type>,
-      <point-type> okresla wiec czym sa punkty trojkata. Np. trojkaty
-      TTriangle3Single, TTriangle3Double to trojkaty 3d reprezentowane z rozna
-      dokladnoscia, TTriangle2Single/Double to trojkaty 2d.
+      Triangle's three points must not be collinear,
+      i.e. routines in this unit generally don't accept "degenerated" triangles
+      that are not really triangles. So 3D triangle must unambiguously
+      define some plane in the 3D space. The only function in this unit
+      that is able to handle "degenerated" triangles is IsValidTriangle,
+      which is exactly used to check whether the triangle is degenerated.
 
-      Kazdy taki trojkat ("taki" w sensie niezdegenerowany) wyznacza plaszczyzne,
-      wiec takze swoj wektor normalny. Wektor normalny znormalizowany trojkata
-      nazywam Tri[angle]Normal, natomiast nieznormalizowany (tzn. niekoniecznie
-      znormalizowany) nazywam Tri[angle]Dir. To nowa konwencja nazewnictwa
-      (maj 2003) wiec pewnie w wielu miejscach jest w tym momencie lamana.)
+      Since every valid triangle unambiguously determines some plane in the
+      3D space, it also determines it's normal vector. In this unit,
+      when dealing with normal vectors, I use two names:
+      @unorderedList(
+        @itemSpacing Compact
+        @item(@italic(TriangleNormal) means that this is the normalized
+          (i.e. scaled to length 1.0) normal vector.)
+        @item(@italic(TriangleDir) means that this is not necessarily
+          normalized normal vector.)
+      ))
 
     @item(
-      Plaszczyzna 3d to wektor TVector4* (wektor [A, B, C, D] wyznacza plaszczyzne
-      punktow spelniajacych rownanie Ax+By+Cz+D = 0, przynajmniej jedno sposrod
-      A, B, C musi byc <>0).
+      Plane 3D is a vector TVector4*. Such vector [A, B, C, D]
+      defines a surface that consists of all points satisfying equation
+      @code(A * x + B * y + C * z + D = 0). At least one of A, B, C must be
+      different than zero.
 
       Wektor [A, B, C] nazywam w wielu miejscach PlaneDir, NIE PlaneNormal,
       bo ta nazwa czasem blednie sugerowalaby ze wymagany jest wektor
@@ -208,8 +214,6 @@
 unit VectorMath;
 
 {
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
   TODO: MultMatrixPointNoTranslation should be implemented less clumsy
 }
 
