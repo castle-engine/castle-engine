@@ -228,7 +228,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
          klopotliwe;) }
        Exists:=
          {$ifdef ODCINEK_COLLISION}
-         TrySimplePlaneOdcinekIntersection(PlaneIntersect, IntrT,
+         TrySimplePlaneSegmentIntersection(PlaneIntersect, IntrT,
            i, MiddlePoint[i], FirstBoxIntr, Pos2)
          {$else}
          TrySimplePlaneRayIntersection(PlaneIntersect, IntrT,
@@ -323,8 +323,8 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
         sie rekurencyjnie (np. zeby nie przekazac FirstBoxIntr) bo to 
         spowodowaloby ze zmienna IgnoreMarginAtStart powinna byc (byc moze)
         ustawiona na false. }
-      {$ifdef ODCINEK_COLLISION}                        
-      OdcinekCollision(Intersection, Pos1, Pos2, 
+      {$ifdef SEGMENT_COLLISION}                        
+      SegmentCollision(Intersection, Pos1, Pos2, 
         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif} 
         ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, 
         ItemsToIgnoreFunc);
@@ -348,7 +348,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
   end;
 
 begin
- {$ifdef ODCINEK_COLLISION}
+ {$ifdef SEGMENT_COLLISION}
  RayVector := VectorSubtract(Pos2, Pos1);
  {$endif}
  if IsLeaf then result := DoLeaf else result := DoNotLeaf;
