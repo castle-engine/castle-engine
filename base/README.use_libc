@@ -1,0 +1,63 @@
+The meaning of compilation-time symbol USE_LIBC,
+that I use in many places in UNIX-specific code:
+
+If it is defined, all UNIX-specific code depends on unit "Libc". 
+If it is not defined, the same code depends on units
+BaseUnix and Unix (available only in FPC 1.9.x) and maybe others,
+even more UNIX-version-specific.
+
+Why such complication ?
+
+While it's clear why I should use Unix and BaseUnix units instead of
+Libc (see some comments about UNIX RTL layout
+[http://www.stack.nl/~marcov/unixrtl.pdf]), there are also reasons why
+I sometimes want to use Libc unit:
+
+1) If you're writing code only for Linux (not just for "various
+   UNIXes") then incompatibilities between various Libc versions can be
+   ignored. It's true that even on various Linuxes there *are* various
+   Libc versions that are incompatible, but in practice this can be
+   simply ignored, and I am just assuming that "user will have fairly
+   recent libc version". All Linux programs written in C assume this
+   anyway.
+
+2) This was the only way to compile some of my Linux-code with Kylix.
+   I don't care about keeping my units compatible with Kylix anymore,
+   but historically it was important.
+
+3) Most important:
+
+   This is the easiest way to write code that will compile and work
+   both under FPC 1.0.10 (last stable FPC release) and FPC 1.9.x
+   (development releases). That's because in FPC 1.0.10 UNIX RTL was a
+   mess: basically, instead of units BaseUnix and Unix there was unit
+   named Linux but it was supposed to work on *any UNIX*, not only on
+   Linux. Already-mentioned document [http://www.stack.nl/~marcov/unixrtl.pdf]
+   describes this in more detail.
+
+   Compatibility with FPC 1.0.10 (latest stable FPC release) must be
+   kept until FPC 2.0 (next stable release) will be officially
+   finished, because time has shown that FPC 1.9.x releases still
+   suffer from some problems (that are not present in FPC 1.0.10). Of
+   course, FPC 1.0.10 also has some problems that are already fixed in
+   FPC 1.9.x, but these are just "known problems" for me and I can
+   avoid them. So I want to keep my code compileable with *both* FPC
+   1.0.10 and FPC 1.9.x.
+   
+   2005-01-04 note: actually, FPC 1.9.6 is so stable that I may change
+   my mind and drop 1.0.10 support even before official FPC 2.0
+   is released. We'll see.
+
+When compiling with FPC 1.0.10 for Linux, USE_LIBC must be defined.
+When compiling with FPC 1.9.x for Linux, USE_LIBC may be defined
+but don't have to.
+When compiling with FPC 1.9.x for other UNIXes, USE_LIBC must not
+be defined (because Libc unit is actually Linux-specific).
+Probably it will not be ever possible to compile my programs using
+FPC 1.0.10 for other UNIXes than Linux.
+
+All modules that check for USE_LIBC should include kambiconf.inc
+at the beginning, so you can control existence of USE_LIBC from
+there.
+
+Michalis.

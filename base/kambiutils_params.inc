@@ -1,0 +1,210 @@
+{
+  Copyright 2002-2004 Michalis Kamburelis.
+
+  This file is part of "Kambi's base Pascal units".
+
+  "Kambi's base Pascal units" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi's base Pascal units" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi's base Pascal units"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Command-line parameters utilities }
+
+{$ifdef read_interface}
+
+type EInvalidParams = class(EWithHiddenClassName);
+
+{ sprawdz czy ParamCount [= >= <=] ParamValue. Jesli nie, wyjatek EInvalidParams
+  z odpowiednim komunikatem bledu. }
+procedure ParamCountEqual(ParamValue:integer);
+procedure ParamCountEqGreater(ParamValue:integer);
+procedure ParamCountEqLesser(ParamValue:integer);
+
+function ParCount:integer;
+function ParStr(nr:integer):string;
+{ ShiftPars = przesun parametry w lewo, 
+  np. dla Shift=1 tracisz ParStr(0),
+    nowe ParStr(0) = stare ParStr(1),
+    nowe ParStr(1) = stare ParStr(2), itd. 
+  ParCount maleje o Shift. Shift nie moze byc ujemny, a wiec nie mozna 
+  odzyskiwac raz usunietych parametrow. NON-REENTRANT. }
+procedure ShiftPars(Shift:Cardinal  {$ifdef DEFPARS}=1{$endif}); overload;
+{ ParDelete = usun parametr nr ParNumber.
+   (numer wzgledem aktualnego przesuniecia, tzn. jesli chcesz usunac ParStr(2)
+    zrob ParDelete(2). Jesli chcesz usunac ParamStr(2) - musisz bawic sie w
+    GetShiftPars)
+  Usuwa okreslony parametr. Juz nigdy nie zostanie on zwrocony przez ParStr(). }
+procedure ParDelete(ParNumber:integer);
+
+{ robi ParDelete(i) + sprawdza czy ciagle i<=ParCount (else EInvalidParam)
+  + zwraca ParStr(i); }
+function ParDeleteAndGetNext(i:integer):string;
+
+{ przydatna do automatycznego testowania kodu ktory operuje na parametrach.
+  Ustawia ParStr(0..ParCount) na sa (tak, tak - ustawia tez parametr nr 0).
+  Ustawia ParCount na ilosc elementow sa + 1. }
+procedure SetPars(const sa:array of string);
+
+{ czy ktorys z parametrow ParStr(FirstPar) .. ParStr(LastPar)
+  jest rowny ktoremus z sarr ? Jezeli nie podasz FirstPar i LastPar
+  o zostana przyjete jako 1,ParCount. }
+function IsPresentInPars(const sarr:array of string; IgnoreCase:boolean; FirstPar, LastPar:Cardinal):boolean; overload;
+function IsPresentInPars(const sarr:array of string; IgnoreCase:boolean):boolean; overload;
+{ IsHelpPresentInPars = IsPresentInPars(['-?', '-h', '--help'], false) }
+function IsHelpPresentInPars:boolean;
+
+ { na poczatku ParCount i ParStr dzialaja jak ich Odpowiedniki ParamXxx.
+   Ale po wykonaniu ShiftPars(1) wartosci zwracane przez ParStr i ParCount sa
+    przesuniete o 1 w lewo w stosunku do ParamXxx.
+   Ponadto po wykonaniu ParDelete okreslony paranetr znika i nigdy nie zostanie 
+    juz zwrocony przez ParStr.
+   Jest to czesto bardzo wygodne.
+   Chyba cos w tym rodzaju jest zrobione w jakims standardowym module C++
+    (ew. standardowym pod linuxem).
+   PAMIETAJ o niebezpieczenstwach - np. nigdy nie polegaj ze ParStr(1)
+    to pierwszy parametr - mysl o nim jako o pierwszym nieprzetworzonym
+    jeszcze parametrze !}
+
+{ sprawdza  czy ParCount [= >= <=] ParamValue. Jesli nie, wyjatek EInvalidParams
+  z odpowiednim komunikatem bledu. (niestety, kara za mozliwosc wykonywania
+  ParDelete/Shift/SetPars (a wiec za mozliwosc swobodnej zmiany parametrow) 
+  jest fakt ze te funkcje nie moga wypisac dokladnie ILE parametrow oczekiwano,
+  bo przeciez ilosc parametrow Pars mogla ulec zmianie od czasu rozpoczecia
+  programu. Moga jedynie wypisac ILE parametrow brakuje/jest za duzo. }
+procedure ParCountEqual(ParamValue:integer);
+procedure ParCountEqGreater(ParamValue:integer);
+procedure ParCountEqLesser(ParamValue:integer);
+  
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+var 
+  { parametry z niektorymi pousuwanymi przez ParDelete/ParShift.
+    inicjowane w initialization na podstawie ParamCount/Str }    
+  Parameters:TDynStringArray;
+
+function ParametersCountString(Count:Integer; const MiddleStr:string):string; overload;
+begin
+ result:=IntToStr(Count);
+ if Count=1 then
+  result:=result +MiddleStr +' parameter' else
+  result:=result +MiddleStr +' parameters';
+end;
+
+function ParametersCountString(Count:Integer):string; overload;
+begin
+ result:=ParametersCountString(Count, '');
+end;
+
+procedure ParamCountEqual(ParamValue:integer);
+begin
+ if not (ParamValue = ParamCount) then
+  raise EInvalidParams.Create('Expected exactly '+ParametersCountString(ParamValue));
+end;
+
+procedure ParamCountEqGreater(ParamValue:integer);
+begin
+ if not (ParamCount >= ParamValue) then
+  raise EInvalidParams.Create('Expected at least '+ParametersCountString(ParamValue));
+end;
+
+procedure ParamCountEqLesser(ParamValue:integer);
+begin
+ if not (ParamCount <= ParamValue) then
+  raise EInvalidParams.Create('Expected at most '+ParametersCountString(ParamValue));
+end;
+
+function ParCount:integer;
+begin result:=Parameters.High end;
+
+function ParStr(nr:integer):string;
+begin result:=Parameters[nr] end;
+
+procedure ShiftPars(Shift:Cardinal {=1});
+var i:Cardinal;
+begin
+ {sorry - no co jak co ale to mozna zrobic szybciej}
+ for i:=1 to Shift do ParDelete(0);
+end;
+
+procedure ParDelete(ParNumber:integer);
+begin
+ Parameters.Delete(ParNumber, 1);
+end;
+
+function ParDeleteAndGetNext(i:integer):string;
+begin
+ ParDelete(i);
+ if i>ParCount then raise EInvalidParams.Create('Unexpected end of params');
+ result:=ParStr(i);
+end;
+
+procedure SetPars(const sa:array of string);
+begin
+ Parameters.SetLength(0);
+ Parameters.AppendArray(sa);
+end;
+
+function IsPresentInPars(const sarr:array of string; IgnoreCase:boolean; FirstPar, LastPar:Cardinal):boolean;
+var i,j:integer;
+begin
+ for i:=1 to ParamCount do
+  for j:=0 to High(sarr) do
+   if SAnsiSame(ParamStr(i), sarr[j], IgnoreCase) then
+    begin result:=true; exit end;
+ result:=false;
+end;
+
+function IsPresentInPars(const sarr:array of string; IgnoreCase:boolean):boolean;
+begin result:=IsPresentInPars(sarr, IgnoreCase, 1, ParCount) end;
+
+function IsHelpPresentInPars:boolean;
+const HelpPars:array[0..2]of string = ('-?', '-h', '--help');
+begin result:=IsPresentInPars(HelpPars, false) end;
+
+procedure ParCountEqual(ParamValue:integer);
+begin
+ if ParamValue <> ParCount then
+ begin
+  if ParamValue < ParCount then
+   raise EInvalidParams.Create('Expected ' +ParametersCountString(ParCount-ParamValue, ' less')) else
+   raise EInvalidParams.Create('Expected ' +ParametersCountString(ParamValue-ParCount, ' more'));
+ end;
+end;
+
+procedure ParCountEqGreater(ParamValue:integer);
+begin
+ if ParamValue > ParCount then
+  raise EInvalidParams.Create('Expected ' +ParametersCountString(ParamValue-ParCount, ' more'));
+end;
+
+procedure ParCountEqLesser(ParamValue:integer);
+begin
+ if ParamValue < ParCount then
+  raise EInvalidParams.Create('Expected ' +ParametersCountString(ParCount-ParamValue, ' less'));
+end;
+
+procedure InitializationParams;
+var i:Integer;
+begin
+ Parameters:=TDynStringArray.Create(ParamCount+1);
+ for i:=0 to ParamCount do Parameters[i]:=ParamStr(i);
+end;
+
+procedure FinalizationParams;
+begin
+ FreeAndNil(Parameters);
+end;
+
+{$endif read_implementation}

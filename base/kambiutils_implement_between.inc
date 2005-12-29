@@ -1,0 +1,1 @@
+begin result:=(vBegin<=a) and (a<=vend) end;
