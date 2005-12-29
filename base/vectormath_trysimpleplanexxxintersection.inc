@@ -1,5 +1,5 @@
 {
-  Copyright 2003,2004 Michalis Kamburelis.
+  Copyright 2003-2005 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -21,134 +21,134 @@
 { Ray ---------------------------------------------------------------------- }
 
 {$define TrySimplePlaneRayIntersection_IMPLEMENT:=
-var MaybeT:TYPE_SCALAR;
+var MaybeT: TYPE_SCALAR;
 begin
- result:=not IsLineParallelToSimplePlane(RayVector, PlaneConstCoord);
+ result := not IsLineParallelToSimplePlane(RayVector, PlaneConstCoord);
  if result then
  begin
   MaybeT:=(PlaneConstValue-Ray0[PlaneConstCoord]) / RayVector[PlaneConstCoord];
-  result:=MaybeT>=0;
+  result := MaybeT >= 0;
   if result then 
   begin
-   {$ifdef HAS_T}T:=MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection:=VectorAdd(Ray0, VectorScale(RayVector, MaybeT));{$endif}
+   {$ifdef HAS_T}T := MaybeT;{$endif}
+   {$ifdef HAS_INTR}Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));{$endif}
   end; 
  end;
 end;}
 
-function TrySimplePlaneRayIntersection(var Intersection:TYPE_VECTOR3;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Ray0, RayVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneRayIntersection(var Intersection: TYPE_VECTOR3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Ray0, RayVector: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
 TrySimplePlaneRayIntersection_IMPLEMENT
 {$undef HAS_INTR}
 
-function TrySimplePlaneRayIntersection(var Intersection:TYPE_VECTOR3; var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Ray0, RayVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneRayIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Ray0, RayVector: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
 {$define HAS_T}
 TrySimplePlaneRayIntersection_IMPLEMENT
 {$undef HAS_T}
 {$undef HAS_INTR}
 
-function TrySimplePlaneRayIntersection(var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Ray0, RayVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneRayIntersection(var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Ray0, RayVector: TYPE_VECTOR3): boolean;
 {$define HAS_T}
 TrySimplePlaneRayIntersection_IMPLEMENT  
 {$undef HAS_T}
 
 {$undef TrySimplePlaneRayIntersection_IMPLEMENT}
 
-{ OdcinekDir ------------------------------------------------------------ } 
+{ SegmentDir ------------------------------------------------------------ } 
 
-{$define TrySimplePlaneOdcinekDirIntersection_IMPLEMENT:=
-var MaybeT:TYPE_SCALAR;
+{$define TrySimplePlaneSegmentDirIntersection_IMPLEMENT:=
+var MaybeT: TYPE_SCALAR;
 begin
- result:=not IsLineParallelToSimplePlane(OdcVector, PlaneConstCoord);
+ result := not IsLineParallelToSimplePlane(SegmentVector, PlaneConstCoord);
  if result then
  begin
-  MaybeT:=(PlaneConstValue-Odc0[PlaneConstCoord]) / OdcVector[PlaneConstCoord];
-  result:=(MaybeT>=0) and (MaybeT<=1);
+  MaybeT:=(PlaneConstValue-Segment0[PlaneConstCoord]) / SegmentVector[PlaneConstCoord];
+  result:=(MaybeT >= 0) and (MaybeT <= 1);
   if result then 
   begin
-   {$ifdef HAS_T}T:=MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection:=VectorAdd(Odc0, VectorScale(OdcVector, MaybeT));{$endif}
+   {$ifdef HAS_T}T := MaybeT;{$endif}
+   {$ifdef HAS_INTR}Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));{$endif}
   end; 
  end;
 end;}
 
-function TrySimplePlaneOdcinekDirIntersection(var Intersection:TYPE_VECTOR3;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Odc0, OdcVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
-TrySimplePlaneOdcinekDirIntersection_IMPLEMENT
+TrySimplePlaneSegmentDirIntersection_IMPLEMENT
 {$undef HAS_INTR}
 
-function TrySimplePlaneOdcinekDirIntersection(var Intersection:TYPE_VECTOR3; var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Odc0, OdcVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
 {$define HAS_T}
-TrySimplePlaneOdcinekDirIntersection_IMPLEMENT
+TrySimplePlaneSegmentDirIntersection_IMPLEMENT
 {$undef HAS_T}
 {$undef HAS_INTR}
 
-function TrySimplePlaneOdcinekDirIntersection(var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Odc0, OdcVector:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentDirIntersection(var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 {$define HAS_T}
-TrySimplePlaneOdcinekDirIntersection_IMPLEMENT  
+TrySimplePlaneSegmentDirIntersection_IMPLEMENT  
 {$undef HAS_T}  
 
-{$undef TrySimplePlaneOdcinekDirIntersection_IMPLEMENT}
+{$undef TrySimplePlaneSegmentDirIntersection_IMPLEMENT}
 
-{ Odcinek ----------------------------------------------------------------- }
+{ Segment ----------------------------------------------------------------- }
 
-{$define TrySimplePlaneOdcinekIntersection_IMPLEMENT:=
-var MaybeT:TYPE_SCALAR;
-    Odc0:TYPE_VECTOR3 absolute Pos1;
-    OdcVector:TYPE_VECTOR3;
+{$define TrySimplePlaneSegmentIntersection_IMPLEMENT:=
+var MaybeT: TYPE_SCALAR;
+    Segment0: TYPE_VECTOR3 absolute Pos1;
+    SegmentVector: TYPE_VECTOR3;
 begin
- OdcVector:=VectorSubtract(Pos2, Pos1);
+ SegmentVector := VectorSubtract(Pos2, Pos1);
  
- result:=not IsLineParallelToSimplePlane(OdcVector, PlaneConstCoord);
+ result := not IsLineParallelToSimplePlane(SegmentVector, PlaneConstCoord);
  if result then
  begin
-  MaybeT:=(PlaneConstValue-Odc0[PlaneConstCoord]) / OdcVector[PlaneConstCoord];
-  result:=(MaybeT>=0) and (MaybeT<=1);
+  MaybeT:=(PlaneConstValue-Segment0[PlaneConstCoord]) / SegmentVector[PlaneConstCoord];
+  result:=(MaybeT >= 0) and (MaybeT <= 1);
   if result then 
   begin
-   {$ifdef HAS_T}T:=MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection:=VectorAdd(Odc0, VectorScale(OdcVector, MaybeT));{$endif}
+   {$ifdef HAS_T}T := MaybeT;{$endif}
+   {$ifdef HAS_INTR}Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));{$endif}
   end; 
  end;
 end;}
 
-function TrySimplePlaneOdcinekIntersection(var Intersection:TYPE_VECTOR3;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Pos1, Pos2:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentIntersection(var Intersection: TYPE_VECTOR3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Pos1, Pos2: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
-TrySimplePlaneOdcinekIntersection_IMPLEMENT
+TrySimplePlaneSegmentIntersection_IMPLEMENT
 {$undef HAS_INTR}
 
-function TrySimplePlaneOdcinekIntersection(var Intersection:TYPE_VECTOR3; var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Pos1, Pos2:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Pos1, Pos2: TYPE_VECTOR3): boolean;
 {$define HAS_INTR}
 {$define HAS_T}
-TrySimplePlaneOdcinekIntersection_IMPLEMENT
+TrySimplePlaneSegmentIntersection_IMPLEMENT
 {$undef HAS_T}
 {$undef HAS_INTR}
 
-function TrySimplePlaneOdcinekIntersection(var T:TYPE_SCALAR;
-  const PlaneConstCoord:integer; const PlaneConstValue:TYPE_SCALAR;
-  const Pos1, Pos2:TYPE_VECTOR3):boolean;
+function TrySimplePlaneSegmentIntersection(var T: TYPE_SCALAR;
+  const PlaneConstCoord: integer; const PlaneConstValue: TYPE_SCALAR;
+  const Pos1, Pos2: TYPE_VECTOR3): boolean;
 {$define HAS_T}
-TrySimplePlaneOdcinekIntersection_IMPLEMENT  
+TrySimplePlaneSegmentIntersection_IMPLEMENT  
 {$undef HAS_T}  
 
-{$undef TrySimplePlaneOdcinekIntersection_IMPLEMENT}
+{$undef TrySimplePlaneSegmentIntersection_IMPLEMENT}
 
 { eof ------------------------------------------------------------ }
