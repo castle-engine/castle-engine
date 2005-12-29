@@ -28,7 +28,7 @@
 
   @unorderedList(
     @item(
-      Triangle is a @code(TTriangle<point-type>) type.
+      @italic(Triangle) is a @code(TTriangle<point-type>) type.
       Where @code(<point-type>) is such suffix that vector type
       @code(TVector<point-type>) exists. For example, we have
       TVector3Single type that represents a point in 3D space,
@@ -47,56 +47,62 @@
       when dealing with normal vectors, I use two names:
       @unorderedList(
         @itemSpacing Compact
-        @item(@italic(TriangleNormal) means that this is the normalized
-          (i.e. scaled to length 1.0) normal vector.)
-        @item(@italic(TriangleDir) means that this is not necessarily
-          normalized normal vector.)
+        @item(@italic(@noAutoLink(TriangleNormal))
+          means that this is the normalized (i.e. scaled to length 1.0)
+          normal vector.)
+        @item(@italic(@noAutoLink(TriangleDir))
+          means that this is not necessarily normalized normal vector.)
       ))
 
     @item(
-      Plane 3D is a vector TVector4*. Such vector [A, B, C, D]
+      @italic(Plane in 3D space) is a vector TVector4*. Such vector [A, B, C, D]
       defines a surface that consists of all points satisfying equation
       @code(A * x + B * y + C * z + D = 0). At least one of A, B, C must be
       different than zero.
 
-      Wektor [A, B, C] nazywam w wielu miejscach PlaneDir, NIE PlaneNormal,
-      bo ta nazwa czasem blednie sugerowalaby ze wymagany jest wektor
-      dlugosci 1 (narzucilem sobie ta konwencje niedawno - maj 2003 - wiec
-      pewnie jeszcze w wielu miejscach przez jakis czas konwencja ta bedzie zlamana).
-      Gdzieniegdze mowie o znormalizowanym Plane i wtedy rzeczywiscie mamy
-      PlaneNormal, nie tylko PlaneDir, ktory ma dlugosc 1
-      (ale generalnie plane nie musi byc znormalizowany dla procedurek w tym
-      module).)
+      Vector [A, B, C] is called PlaneDir in many places.
+      Or PlaneNormal when it's guaranteed (or required to be) normalized,
+      i.e. scaled to have length 1.)
 
     @item(
-      Linia 3d to line0: TVector3* i lineVector: TVector3* (wyznacza linie line0 +
-      r*lineVector dla r przebiegajacego wszystkie liczby rzeczywiste,
-      lineVector musi byc wektorem niezerowym).)
+      @italic(Line in 3D space) is represented by two 3D vectors:
+      Line0 and LineVector. They determine a line consisting of all
+      points that can be calculated as @code(Line0 + R * LineVector)
+      where R is any real value.
+
+      LineVector must not be a zero vector.)
 
     @item(
-      Linia 2d to czasem line0, lineVector: TVector2* jak w przypadku linii 3d
-      a czasem TVector3* (w tym ostatnim przypadku mamy A, B, C i linia to
-      punkty dla ktorych A*x + B*y + C = 0, przy czym przynajmniej jedno
-      sposrod A, B <> 0).)
+      @italic(Line in 2D space) is sometimes represented as 2D vectors
+      Line0 and LineVector (analogously like line in 3D).
+
+      And sometimes it's represented as a 3-items vector,
+      like TVector3Single (for [A, B, C] line consists of all
+      points satisfying @code(A * x + B * y + C = 0)).
+      At least one of A, B must be different than zero.)
 
     @item(
-      Tzw. tunnel to bryla powstala przez przesuniecie kuli wzdluz odcinka.
-      To taki cylinder o zaokraglonych kulistych koncach.
-      Tunnel reprezentujemy jako punkty Tunnel1, Tunnel2 (razem odcinek) i
-      TunnelRadius.)
+      A @italic(tunnel) is an object that you get by moving a sphere
+      along the line segment. In other words, this is like a cylinder,
+      but ended with a hemispheres. The tunnel is represented in this
+      unit as two points Tunnel1, Tunnel2 (this defines a line segment)
+      and a TunnelRadius.)
 
     @item(
-      Promien (polprosta) to to samo co linia tyle ze r musi byc nieujemne,
-      tzn. promien to Ray0: TVector3* i RayVector: TVector3* i wyznacza to
-      polprosta Ray0 + r*RayVector dla r przebiegajacego wszystkie
-      nieujemne liczby rzeczywiste, RayVector musi byc wektorem niezerowym.)
+      A @italic(ray) is defined just like a line: two vectors Ray0 and RayVector,
+      RayVector must be nonzero.
+      Ray consists of all points @code(Line0 + R * LineVector)
+      for R being any real value >= 0.)
 
     @item(
-      SimplePlane to plaszczyzna rownolegla do jednej z podstawowych plaszczyzn
-      ukladu wspolrzednych, tzn. plaszczyzna w jednej z 3 postaci :
-      X = Const, Y = Count lub Z = Const. Taka plaszczyzne reprezentujemy jako
-      PlaneConstCoord = 0, 1 lub 2 i PlaneConstValue. Plaszczyzna
-      taka odpowiada plaszczyznie ogolnej Plane: Vector4 takiej ze
+      A @italic(simple plane in 3D) is a plane parallel to one of
+      the three basic planes. This is a plane defined by the equation
+      @code(X = Const) or @code(Y = Count) or @code(Z = Const).
+      Such plane is represented as PlaneConstCoord integer value equal
+      to 0, 1 or 2 and PlaneConstValue.
+
+      Note that you can always represent the same plane using a more
+      general plane 3D equation, just take
 
 @preformatted(
   Plane[0..2 / PlaneConstCoord] = 0,
@@ -104,21 +110,22 @@
   Plane[3] = PlaneConstValue.
 )
 
-      Na plaszczyznie takiej mozna bardzo szybko wykonywac wiele operacji
-      (ma trywialny wektor normalny itp.).)
+      On such "simple plane" we can perform many calculations
+      much faster.)
 
     @item(
-      Odcinek to dwa rozne punkty Pos1 i Pos2. Gdzieniegdzie faworyzujemy
-      punkt Pos1 jako "poczatek" odcinka, ale zawsze jest to wyraznie
-      zaznaczane w interfejsie.
+      A @italic(line segment) is represented by two points Pos1 and Pos2.
+      For some routines the order of points Pos1 and Pos2 is significant
+      (but this is always explicitly stated in the interface, so don't worry).
 
-      OdcinekDir jest jak promien ale z gornym ograniczeniem na skalar :
-      to Odc0 i OdcVector, odcinek = punkty Odc0 + OdcVector*t dla t in [0..1].
-      Musi byc OdcVector<>(0, 0, 0).
+      Sometimes line segment is also represented as 
+      SegmentDir jest jak promien ale z gornym ograniczeniem na skalar :
+      to Segment0 i SegmentVector, Segment = punkty Segment0 + SegmentVector*t dla t in [0..1].
+      Musi byc SegmentVector<>(0, 0, 0).
 
-      Konwersja miedzy normalnym odcinkiem a OdcinekDir jest elementarna
-      (to tylko jedno odejmowanie/dodawanie aby otrzymac OdcVector/Pos2,
-      Pos1 == Odc0).)
+      Konwersja miedzy normalnym odcinkiem a SegmentDir jest elementarna
+      (to tylko jedno odejmowanie/dodawanie aby otrzymac SegmentVector/Pos2,
+      Pos1 == Segment0).)
   )
 
   Przy opisie powyzszych typow podalem pewne ograniczenia,
@@ -148,9 +155,9 @@
   nie jest zbyt wygodne. Musialbym tu napisac MASE rzeczy zeby wtedy wszystko
   bylo wygodne. Ponadto mamy teraz dosc naturalne konwersje miedzy roznymi
   obiektami - np. tunel w naturalny sposob okresla dwie swoje koncowe sfery
-  i swoj odcinek (tunel = Tunnel1, Tunnel2, TunnelRaidius;
+  i swoj Segment (tunel = Tunnel1, Tunnel2, TunnelRaidius;
   jesli chce cos zrobic ze sfera na poczatku tunelu to pisze Tunnel1, TunnelRadius.
-  Zapis Tunnel1, Tunnel2 daje mi odcinek. Itd.), podczas gdy gdyby odcinek,
+  Zapis Tunnel1, Tunnel2 daje mi Segment. Itd.), podczas gdy gdyby Segment,
   sfera i tunel byly osobnymi rekordami to wyciagniecie z tunelu jednej z jego
   sfer oznaczaloby kilka zbednych przypisan zmiennych
   (cos w rodzaju Sphere.Center := Tunnel.Point1; Sphere.Radius := Tunnel.Radius).
@@ -166,14 +173,14 @@
   nie zwracaja wyliczonego juz punktu przeciecia ale zamiast tego zwracaja
   skalar "t". Odpowiedni punkt przeciecia mozna obliczyc dla odcinkaDir, linii
   i promienia jako Xxx0 + XxxVector * t gdzie Xxx = Odc/Line/Ray.
-  Dla odcinka zwyklego mozna sobie wyliczyc OdcVector jako Pos2-Pos1.
+  Dla odcinka zwyklego mozna sobie wyliczyc SegmentVector jako Pos2-Pos1.
   Dla promieni wiadomo ze t >= 0, dla odcinkow wiadomo ze 0 <= t <= 1.
   Poslugujac sie t mozna czesto zaoszczedzic sporo czasu - majac t od razu
   mamy wyznacznik odleglosci przeciecia od Odc/Line/Ray0 (jesli liczymy kilka
   przeciec to wiemy ze najlblizej do Odc/Line/Ray0 ma to z najblizszym t),
   nie jest tez bez znaczenia ze wewnetrznie procedury moga sprawdzic
   czy przeciecie lini odcinka z plane lezy w odcinku sprawdzajac po prostu czy
-  t in [0...1] (nie musza w tym celu uzywac IsPointOnOdcinekLineWithinOdcinek).
+  t in [0...1] (nie musza w tym celu uzywac IsPointOnSegmentLineWithinSegment).
   Dzieki powyzszym dwom zaletom czesto mozna w ogole zaniechac obliczania
   punktu przeciecia jako Xxx0 + XxxVector * t gdy wiemy ze to przeciecie nas
   nie interesuje. No i jest nieznacznie szybciej kopiowac sobie skalar niz
@@ -534,7 +541,7 @@ function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single; overloa
 
 { zwraca (1-v2part) * v1 + v2part * v2 czyli cos jak srednia wazona z dwoch wektorow.
   v2part musi byc z przedzialu <0, 1>.
-  Mozna o tym myslec jako : wez odcinek z punktu v1 do v2, punkt 0 to v1 potem
+  Mozna o tym myslec jako : wez Segment z punktu v1 do v2, punkt 0 to v1 potem
   rosnie do v2 gdzie staje sie = 1, niniejsza funkcja zwraca punkt na tym odcinku
   wielkosci v2part. }
 function Mix2Vectors(const v1, v2: TVector3Single;
@@ -558,7 +565,10 @@ procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
 {$ifndef DELPHI}
 procedure NormalizeTo1st(var v: TVector3Single); overload;
 procedure NormalizeTo1st(var v: TVector3Double); overload;
+
+{ @noAutoLinkHere }
 function Normalized(const v: TVector3Single): TVector3Single; overload;
+{ @noAutoLinkHere }
 function Normalized(const v: TVector3Double): TVector3Double; overload;
 
 { This normalizes Plane by scaling all *four* coordinates of Plane
@@ -904,7 +914,7 @@ function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Double):
   Wpp. zwraca Intersection (lub t takie ze Intersection moze byc obliczone
   jako Line0 + LineVector*t). Ta ostatnia metoda pozwala nam w szczegolnosci
   miec z tego wprost implementacje TryRayPlaneIntersection i
-  TryRayOdcinekDirIntersection (ktore polegaja tylko na nalozeniu pewnych
+  TryRaySegmentDirIntersection (ktore polegaja tylko na nalozeniu pewnych
   ograniczen na t). }
 function TryPlaneLineIntersection(var intersection: TVector3Single;
   const plane: TVector4Single; const line0, lineVector: TVector3Single): boolean; overload;
@@ -937,44 +947,44 @@ function TrySimplePlaneRayIntersection(var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
 
-{ zwraca false i nie modyfikuje intersection jezeli odcinek rownolegly z plane
-  lub odcinek nie moze trafic w plane (bo musialby byc dluzszy w jedna lub
+{ zwraca false i nie modyfikuje intersection jezeli Segment rownolegly z plane
+  lub Segment nie moze trafic w plane (bo musialby byc dluzszy w jedna lub
   druga strone) }
-function TrySimplePlaneOdcinekDirIntersection(var Intersection: TVector3Single;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekDirIntersection(var Intersection: TVector3Double;
+  const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Odc0, OdcVector: TVector3Double): boolean; overload;
-function TrySimplePlaneOdcinekDirIntersection(var Intersection: TVector3Single; var T: Single;
+  const Segment0, SegmentVector: TVector3Double): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Single; var T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekDirIntersection(var Intersection: TVector3Double; var T: Double;
+  const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Double; var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Odc0, OdcVector: TVector3Double): boolean; overload;
-function TrySimplePlaneOdcinekDirIntersection(var T: Single;
+  const Segment0, SegmentVector: TVector3Double): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekDirIntersection(var T: Double;
+  const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Odc0, OdcVector: TVector3Double): boolean; overload;
+  const Segment0, SegmentVector: TVector3Double): boolean; overload;
 
-function TrySimplePlaneOdcinekIntersection(var Intersection: TVector3Single;
+function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekIntersection(var Intersection: TVector3Double;
+function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
-function TrySimplePlaneOdcinekIntersection(var Intersection: TVector3Single; var T: Single;
+function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Single; var T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekIntersection(var Intersection: TVector3Double; var T: Double;
+function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Double; var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
-function TrySimplePlaneOdcinekIntersection(var T: Single;
+function TrySimplePlaneSegmentIntersection(var T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneOdcinekIntersection(var T: Double;
+function TrySimplePlaneSegmentIntersection(var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
 
@@ -994,25 +1004,25 @@ function TryPlaneRayIntersection(var Intersection: TVector3Single; var T: Single
 function TryPlaneRayIntersection(var Intersection: TVector3Double; var T: Double;
   const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
 
-function TryPlaneOdcinekDirIntersection(var Intersection: TVector3Single;
-  const Plane: TVector4Single; const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TryPlaneOdcinekDirIntersection(var Intersection: TVector3Double;
-  const Plane: TVector4Double; const Odc0, OdcVector: TVector3Double): boolean; overload;
-function TryPlaneOdcinekDirIntersection(var Intersection: TVector3Single; var T: Single;
-  const Plane: TVector4Single; const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TryPlaneOdcinekDirIntersection(var Intersection: TVector3Double; var T: Double;
-  const Plane: TVector4Double; const Odc0, OdcVector: TVector3Double): boolean; overload;
+function TryPlaneSegmentDirIntersection(var Intersection: TVector3Single;
+  const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TryPlaneSegmentDirIntersection(var Intersection: TVector3Double;
+  const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
+function TryPlaneSegmentDirIntersection(var Intersection: TVector3Single; var T: Single;
+  const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TryPlaneSegmentDirIntersection(var Intersection: TVector3Double; var T: Double;
+  const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
 
-function IsPointOnOdcinekLineWithinOdcinek(const intersection, pos1, pos2: TVector3Single): boolean; overload;
-function IsPointOnOdcinekLineWithinOdcinek(const intersection, pos1, pos2: TVector3Double): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Single): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Double): boolean; overload;
 
 { w nazwie jest podkleslone _Different_ Points zebys pamietal zeby zapewnic
   ze p1 i p2 to rozne punkty - inaczej nie bedzie mozna wyznaczyc prostej ! }
 function LineOfTwoDifferentPoints2d(const p1, p2: TVector2Single): TVector3Single; overload;
 function LineOfTwoDifferentPoints2d(const p1, p2: TVector2Double): TVector3Double; overload;
 
-function PointToOdcinekDistanceSqr(const point, pos1, pos2: TVector3Single): Single; overload;
-function PointToOdcinekDistanceSqr(const point, pos1, pos2: TVector3Double): Double; overload;
+function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Single): Single; overload;
+function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Double): Double; overload;
 
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3Single;
   const TunnelRadius: Single; const SphereCenter: TVector3Single;
@@ -1026,9 +1036,9 @@ function IsSpheresCollision(const Sphere1Center: TVector3Single; const Sphere1Ra
 function IsSpheresCollision(const Sphere1Center: TVector3Double; const Sphere1Radius: Double;
   const Sphere2Center: TVector3Double; const Sphere2Radius: Double): boolean; overload;
 
-function IsOdcinekSphereCollision(const pos1, pos2, SphereCenter: TVector3Single;
+function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Single;
   const SphereRadius: Single): boolean; overload;
-function IsOdcinekSphereCollision(const pos1, pos2, SphereCenter: TVector3Double;
+function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Double;
   const SphereRadius: Double): boolean; overload;
 
 { cos do trojkatow TTriangle** ------------------------------------------------- }
@@ -1095,15 +1105,15 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Double;
 
 { sprawdzanie kolizji z trojkatem. Mozesz podac razem z trojkatem jego TriPlane,
   jeslu juz go masz wyliczonego. }
-function IsTriangleOdcinekCollision(const Tri: TTriangle3Single;
+function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
   const TriPlane: TVector4Single;
   const pos1, pos2: TVector3Single): boolean; overload;
-function IsTriangleOdcinekCollision(const Tri: TTriangle3Double;
+function IsTriangleSegmentCollision(const Tri: TTriangle3Double;
   const TriPlane: TVector4Double;
   const pos1, pos2: TVector3Double): boolean; overload;
-function IsTriangleOdcinekCollision(const Tri: TTriangle3Single;
+function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
   const pos1, pos2: TVector3Single): boolean; overload;
-function IsTriangleOdcinekCollision(const Tri: TTriangle3Double;
+function IsTriangleSegmentCollision(const Tri: TTriangle3Double;
   const pos1, pos2: TVector3Double): boolean; overload;
 
 function IsTriangleSphereCollision(const Tri: TTriangle3Single;
@@ -1120,28 +1130,28 @@ function IsTriangleSphereCollision(const Tri: TTriangle3Double;
 { przeciecie promienia z odcinkiem. Mozesz podac TriPlane jesli masz juz
   wyliczone; zwraca false i nie modyfikuje Intersection jezeli nie ma
   przeciecia, wpp. zwraca true i ustawia Intersection. }
-function TryTriangleOdcinekCollision(var Intersection: TVector3Single;
+function TryTriangleSegmentCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TryTriangleOdcinekCollision(var Intersection: TVector3Double;
+function TryTriangleSegmentCollision(var Intersection: TVector3Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
 
 { przeciecie promienia z odcinkiemDir. Mozesz podac TriPlane jesli masz juz
   wyliczone; zwraca false i nie modyfikuje Intersection (ani T) jezeli nie ma
   przeciecia, wpp. zwraca true i ustawia Intersection (i T). }
-function TryTriangleOdcinekDirCollision(var Intersection: TVector3Single;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TryTriangleOdcinekDirCollision(var Intersection: TVector3Double;
+  const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Odc0, OdcVector: TVector3Double): boolean; overload;
-function TryTriangleOdcinekDirCollision(var Intersection: TVector3Single; var T: Single;
+  const Segment0, SegmentVector: TVector3Double): boolean; overload;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3Single; var T: Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Odc0, OdcVector: TVector3Single): boolean; overload;
-function TryTriangleOdcinekDirCollision(var Intersection: TVector3Double; var T: Double;
+  const Segment0, SegmentVector: TVector3Single): boolean; overload;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3Double; var T: Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Odc0, OdcVector: TVector3Double): boolean; overload;
+  const Segment0, SegmentVector: TVector3Double): boolean; overload;
 
 { przeciecie promienia z trojkatem. Mozesz podac TriPlane jesli masz juz
   wyliczone zwraca false i nie modyfikuje Intersection jezeli nie ma

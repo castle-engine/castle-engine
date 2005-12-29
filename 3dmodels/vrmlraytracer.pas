@@ -767,7 +767,7 @@ const
 
   function IsLightShadowed(const ItemIndex: Integer; const ItemPoint: TVector3Single;
     const LightSourceIndiceIndex: Integer; LightSourcePoint: TVector3Single): boolean;
-  { ta funkcja liczy shadow ray (a w zasadzie odcinek). Zwraca true jezeli
+  { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
     LightSourceIndiceIndex to indeks to tablicy LightsIndices[].
@@ -789,7 +789,7 @@ const
    begin
     CachedShadower := Octree.OctreeItems.Pointers[CachedShadowerIndex];
     Inc(Octree.DirectCollisionTestsCounter);
-    if IsTriangleOdcinekCollision(CachedShadower.Triangle,
+    if IsTriangleSegmentCollision(CachedShadower.Triangle,
       CachedShadower.TriangleNormPlane, ItemPoint, LightSourcePoint) then
      Exit(true);
 
@@ -807,7 +807,7 @@ const
    OctreeIgnorer := TOctreeIgnore_Transparent_And_OneItem.Create(
      LightsIndices.Items[LightSourceIndiceIndex]);
    try
-    ShadowerIndex := Octree.OdcinekCollision(ItemPoint, LightSourcePoint, false,
+    ShadowerIndex := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
       ItemIndex, true, OctreeIgnorer.IgnoreItem);
     result := ShadowerIndex <> NoItemIndex;
     {$ifdef PATHTR_USES_SHADOW_CACHE}

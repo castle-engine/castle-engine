@@ -56,7 +56,7 @@ unit VRMLTriangleOctree;
   wielokrotnego sprawdzania przeciecia tego samego trojkata z tym samym
   promieniem na skutek tego ze jeden trojkat moze trafic do wielu lisci.
 
-  Kiedys zamiast MailboxSavedTag mialem MailboxState (empty, ray lub odcinek)
+  Kiedys zamiast MailboxSavedTag mialem MailboxState (empty, ray lub segment)
   i MailboxVector1, MailboxVector2 (:TVector3Single) ktore razem okreslaly
   co jest zapamietane w Mailboxie za pomoca 6*SizeOf(Single) + SizeOf(enum) =
   = 7*4 = 28 bajtow. Teraz to wszystko zamienilem na MailboxSaveTag: Int64
@@ -84,7 +84,7 @@ const
 { TOctreeItem  ------------------------------------------------------------ }
 
 type
-  TOctreeItemMailboxState = (msEmpty, msRay, msOdcinekDir);
+  TOctreeItemMailboxState = (msEmpty, msRay, msSegmentDir);
   TCollisionCount = Int64;
 
   { NIGDY nie modyfikuj tego rekordu bezposrednio - on moze byc ustalany
@@ -110,7 +110,7 @@ type
     { MailboxSavedTag okresla tag elementu z ktorym mamy zapamietane przeciecie
       w MailboxIsIntersection i MailboxIntersection i MailboxIntersectionT.
       Aby wszystko dzialalo 100%
-      poprawnie zakladamy ze kazdy odcinek i kazdy promien z jakim bedziemy
+      poprawnie zakladamy ze kazdy segment i kazdy promien z jakim bedziemy
       testowali kolizje z octree beda mialy inne tagi i zaden z nich nie bedzie
       mial taga = -1. W praktyce oznacza to ze nastepujace zachowanie jest
       poprawne : inicjujemy kazdemu nowemu elementowi OctreeItem MailboxSavedTag
@@ -135,9 +135,9 @@ function CreateOctreeItem(const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer): TOctreeItem;
 
 { Sprawdzaj przeciecia z elementem octree item tylko przez
-  TryOctreeItemRay/Odcinek Collision zeby umozliwic uzywanie metody
+  TryOctreeItemRay/Segment Collision zeby umozliwic uzywanie metody
   skrzynek pocztowych do zapamietywania ostatnio badanego przeciecia
-  (co moze sprawic ze Ray/OdcinekCollision beda dzialac duzo szybciej dla
+  (co moze sprawic ze Ray/SegmentCollision beda dzialac duzo szybciej dla
   scen gdzie jeden octree item bedzie czesto trafial do wielu lisci).
 
   Zwieksza o jeden DirectCollisionTestsCounter jezeli wykonalismy rzeczywisty
@@ -146,7 +146,7 @@ function CreateOctreeItem(const Triangle: TTriangle3Single;
 
   Jezeli nie jest zdefiniowane OCTREE_ITEM_USE_MAILBOX to nigdy nie uzywa
   skrzynki i zawsze inkrementuje DirectCollisionTestsCounter. }
-function TryOctreeItemOdcinekDirCollision(var Intersection: TVector3Single;
+function TryOctreeItemSegmentDirCollision(var Intersection: TVector3Single;
   var T: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
@@ -204,7 +204,7 @@ type
       ReturnClosestIntersection) to musisz uwazac zeby jakis subnode nie wykryl
       przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie. }
     function SphereCollision(const pos: TVector3Single; const Radius: Single): integer; overload;
-    function OdcinekCollision(var Intersection: TVector3Single;
+    function SegmentCollision(var Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
@@ -233,15 +233,15 @@ type
     { zwroci NextFreeRayOdcTag i zrobi Inc(NextFreeRayOdcTag).
       Uzywaj tego aby przydzielic nowy tag. Uzywanie tej funkcji przy okazji
       zapobiega potencjalnie blednej sytuacji :
-        TreeRoot.OdcinekColision(..., NextFreeRayOdcTag, ...)
+        TreeRoot.SegmentColision(..., NextFreeRayOdcTag, ...)
         Inc(NextFreeRayOdcTag);
       Powyzszy kod bedzie ZAZWYCZAJ dzialal - ale spowoduje on ze nie bedzie
-      mozna uzywac Odcinek/RayCollision na tym samym TVRMLTriangleOctree gdy juz
+      mozna uzywac Segment/RayCollision na tym samym TVRMLTriangleOctree gdy juz
       jestesmy w trakcie badania kolizji. Np. callbacki w rodzaju
       TOctreeItemIgnoreFunc nie beda mogly wywolywac kolizji. Innymi slowy,
-      taki zapis uczynilby Odcinek/RayCollision non-reentrant. A to na dluzsza
+      taki zapis uczynilby Segment/RayCollision non-reentrant. A to na dluzsza
       mete zawsze jest klopotliwe. Natomiast robienie Inc(NextFreeRayOdcTag);
-      przed faktycznym wejsciem do funkcji TreeRoot.OdcinekColision
+      przed faktycznym wejsciem do funkcji TreeRoot.SegmentColision
       usuwa ten blad. Uzywajac funkcji AssignNewRayOdcTag automatycznie
       to robimy. }
     function AssignNewRayOdcTag: Int64;
@@ -275,15 +275,15 @@ type
       ShapeNode: TNodeGeneralShape; MatNum: integer);
 
     { you can use variable below for testing purposes. It is increemented each
-      time SphereCollision or OdcinekCollision or RayCollision makes a direct
+      time SphereCollision or SegmentCollision or RayCollision makes a direct
       collision test, that is when some single triangle is tested for collision
-      with a sphere, odcinek or ray. When we use octree we expect that this
+      with a sphere, line segment or ray. When we use octree we expect that this
       number will be small. }
     DirectCollisionTestsCounter: TCollisionCount; { = 0 }
 
     {Ponizej mamy najwazniejsze procedury ktore wykorzystuja cala
        strukture jaka zbudowalismy zeby efektywnie badac kolizje.
-     OdcinekCollision bada czy odcinek nie przecina zadnego elementu drzewa
+     SegmentCollision bada czy segment nie przecina zadnego elementu drzewa
      SphereCollision bada czy sfera nie zawiera w sobie choc czesci jakiegos
        elementu drzewa.
      RayCollision bada przeciecie promienia z drzewem.
@@ -291,13 +291,13 @@ type
        jesli nie ma kolizji lub indeks do tablicy OctreeItems
        na element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
        zwrocic jesli jest ich wiele ?". SphereCollision zwraca ktorykolwiek,
-       podobnie jak Ray/OdcinekCollision gdy (not ReturnClosestIntersection).
+       podobnie jak Ray/SegmentCollision gdy (not ReturnClosestIntersection).
        Gdy ReturnClosestIntersection = true to RayCollision zwraca przeciecie
-       najblizsze Ray0, OdcinekCollision najblizsze pos1.
+       najblizsze Ray0, SegmentCollision najblizsze pos1.
        (pamietaj ze placisz czasem wykonania
        za przekazanie ReturnClosestIntersection = true, wiec unikaj tego).
 
-     Odcinek/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
+     Segment/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
        OctreeItemIndexToIgnore, podaj OctreeItemIndexToIgnore = NoItemIndex
        aby uwzglednial wszystkie elementy (przydatne przy rekurencyjnym
        ray-tracingu gdy nie chcesz zeby promien odbity/zalamany/cienia omylkowo trafil na
@@ -327,24 +327,24 @@ type
        ktorych uzywalem do zasadniczych testow na rayhunterze
        maja gdzeniegdzie tak nieprawidlowo zbudowane sciany.
     }
-    function OdcinekCollision(var Intersection: TVector3Single;
+    function SegmentCollision(var Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
-    function OdcinekCollision(const pos1, pos2: TVector3Single;
+    function SegmentCollision(const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
-    function OdcinekCollision(var Intersection: TVector3Single;
+    function SegmentCollision(var Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean
       {ItemsToIgnoreFunc = nil}): integer; overload;
-    function OdcinekCollision(const pos1, pos2: TVector3Single;
+    function SegmentCollision(const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean
@@ -376,7 +376,7 @@ type
       {ItemsToIgnoreFunc = nil}): integer; overload;
 
     { This checks if move between OldPos and ProposedNewPos is possible,
-      by checking is odcinek between OldPos and ProposedNewPos free
+      by checking is segment between OldPos and ProposedNewPos free
       and sphere (with radius CameraRadius) ProposedNewPos is free.
 
       CameraRadius must obviously be > 0.
@@ -491,7 +491,7 @@ begin
  {$endif}
 end;
 
-function TryOctreeItemOdcinekDirCollision(var Intersection: TVector3Single; var T: Single;
+function TryOctreeItemSegmentDirCollision(var Intersection: TVector3Single; var T: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -509,7 +509,7 @@ begin
  begin
  {$endif}
 
-  result := TryTriangleOdcinekDirCollision(Intersection, T,
+  result := TryTriangleSegmentDirCollision(Intersection, T,
     OctreeItem.Triangle, OctreeItem.TriangleNormPlane,
     Odc0, OdcVector);
   Inc(DirectCollisionTestsCounter);
@@ -669,16 +669,16 @@ begin
  end;
 end;
 
-function TTriangleOctreeNode.OdcinekCollision(var Intersection: TVector3Single;
+function TTriangleOctreeNode.SegmentCollision(var Intersection: TVector3Single;
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-{$define ODCINEK_COLLISION}
-{$I vrmltriangleoctree_rayodcinekcollisions.inc}
-{$undef ODCINEK_COLLISION}
+{$define SEGMENT_COLLISION}
+{$I vrmltriangleoctree_raysegmentcollisions.inc}
+{$undef SEGMENT_COLLISION}
 
 function TTriangleOctreeNode.RayCollision(var Intersection: TVector3Single;
   const Ray0, RayVector: TVector3Single;
@@ -687,7 +687,7 @@ function TTriangleOctreeNode.RayCollision(var Intersection: TVector3Single;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-{$I vrmltriangleoctree_rayodcinekcollisions.inc}
+{$I vrmltriangleoctree_raysegmentcollisions.inc}
 
 { TVRMLTriangleOctree -------------------------------------------------------------- }
 
@@ -728,50 +728,50 @@ end;
 
 { wszystkie deklaracje *Collision przekazywane do TreeRoot -------------------- }
 
-function TVRMLTriangleOctree.OdcinekCollision(var Intersection: TVector3Single;
+function TVRMLTriangleOctree.SegmentCollision(var Intersection: TVector3Single;
   const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 begin
- result := TreeRoot.OdcinekCollision(Intersection, pos1, pos2,
+ result := TreeRoot.SegmentCollision(Intersection, pos1, pos2,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
 end;
 
-function TVRMLTriangleOctree.OdcinekCollision(const pos1, pos2: TVector3Single;
+function TVRMLTriangleOctree.SegmentCollision(const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 var dummy: TVector3Single;
 begin
- result := TreeRoot.OdcinekCollision(dummy, pos1, pos2,
+ result := TreeRoot.SegmentCollision(dummy, pos1, pos2,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
 end;
 
-function TVRMLTriangleOctree.OdcinekCollision(var Intersection: TVector3Single;
+function TVRMLTriangleOctree.SegmentCollision(var Intersection: TVector3Single;
   const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean
   {ItemsToIgnoreFunc = nil}): integer;
 begin
- result := TreeRoot.OdcinekCollision(Intersection, pos1, pos2,
+ result := TreeRoot.SegmentCollision(Intersection, pos1, pos2,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil);
 end;
 
-function TVRMLTriangleOctree.OdcinekCollision(const pos1, pos2: TVector3Single;
+function TVRMLTriangleOctree.SegmentCollision(const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean
   {ItemsToIgnoreFunc = nil}): integer;
 var dummy: TVector3Single;
 begin
- result := TreeRoot.OdcinekCollision(dummy, pos1, pos2,
+ result := TreeRoot.SegmentCollision(dummy, pos1, pos2,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil);
 end;
@@ -836,7 +836,7 @@ function TVRMLTriangleOctree.MoveAllowedSimple(
   const CameraRadius: Single): boolean;
 begin
  Result :=
-   (OdcinekCollision(OldPos, ProposedNewPos, false, NoItemIndex, false) = NoItemIndex) and
+   (SegmentCollision(OldPos, ProposedNewPos, false, NoItemIndex, false) = NoItemIndex) and
    (SphereCollision(ProposedNewPos, CameraRadius) = NoItemIndex);
 end;
 
@@ -888,7 +888,7 @@ begin
  if Result then NewPos := ProposedNewPos;
  Exit; }
 
- BlockerIndex := OdcinekCollision(OldPos, ProposedNewPos,
+ BlockerIndex := SegmentCollision(OldPos, ProposedNewPos,
    true { return closest blocker }, NoItemIndex, false);
  if BlockerIndex = NoItemIndex then
  begin
@@ -982,7 +982,7 @@ begin
        VectorSubtract(LightPos, LightedPoint),
        RenderDir,
        LightedPointPlane)) and
-   (Octree.OdcinekCollision(LightedPoint, LightPos,
+   (Octree.SegmentCollision(LightedPoint, LightPos,
        false, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
        TOctreeIgnore_Transparent.IgnoreItem) = NoItemIndex);
 end;

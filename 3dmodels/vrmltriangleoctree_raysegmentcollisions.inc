@@ -18,18 +18,18 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ implementacja funkcji OdcinekCollision i RayCollision w jednym kodzie.
-  Implementujac odcinek zdefiniuj ODCINEK_COLLISION zebysmy mogli
+{ implementacja funkcji SegmentCollision i RayCollision w jednym kodzie.
+  Implementujac segment zdefiniuj SEGMENT_COLLISION zebysmy mogli
   w odpowiednich miejscach uzyc specyficznego tylko dla Odcinka lub tylko
   dla Promienia kawalka kodu.
 
-  Roznice w obsludze OdcinekCollision :
+  Roznice w obsludze SegmentCollision :
   - zasadniczo, dla poprawnosci dzialania wystarczylo
-    a) uzywac TryTriangleOdcinekDirCollision do testowania bezposrednich przeciec
-       trojkat-odcinek w DoLeaf (zamiast TryTriangleRayCollision).
-    b) schodzic rekurencyjnie w DoNotLeaf przez OdcinekCollision (zamiast
+    a) uzywac TryTriangleSegmentDirCollision do testowania bezposrednich przeciec
+       trojkat-segment w DoLeaf (zamiast TryTriangleRayCollision).
+    b) schodzic rekurencyjnie w DoNotLeaf przez SegmentCollision (zamiast
        przez RayCollision)
-    W kazdym innym przypadku mozna traktowac odcinek Pos1, Pos2
+    W kazdym innym przypadku mozna traktowac segment Pos1, Pos2
     jak promien dla ktorego Ray0 = Pos1, RayVector = Pos2-Pos1.
     
   - ale natuaralnie tracilibysmy wtedy sporo dla optymalnosci.
@@ -59,9 +59,9 @@
 {$define OCTREE_ITEM_TRIANGLE := TriangleSingle}
 {$define OCTREE_ITEM_TRI_NORM_PLANE := TriNormPlaneSingle}
 
-{ Ray/OdcinekCollision starts : --------------------------------------------- }
+{ Ray/SegmentCollision starts : --------------------------------------------- }
      
-{$ifdef ODCINEK_COLLISION}
+{$ifdef SEGMENT_COLLISION}
 var Ray0: TYPE_VECTOR3 absolute Pos1;
     RayVector: TYPE_VECTOR3;
 {$endif}
@@ -71,8 +71,8 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
     function TryTriangleCollision(var Intersection: TYPE_VECTOR3; var IntrT: TYPE_SCALAR; ItemIndiceNumber: Integer): boolean;
     begin
      result:=
-       {$ifdef ODCINEK_COLLISION}
-       TryOctreeItemOdcinekDirCollision(Intersection, IntrT, 
+       {$ifdef SEGMENT_COLLISION}
+       TryOctreeItemSegmentDirCollision(Intersection, IntrT, 
          Items[ItemIndiceNumber]^, Pos1, RayVector, 
          {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
          ParentTree.DirectCollisionTestsCounter)
@@ -227,7 +227,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
          Boxa (a nie ZANIM promien wszedl do naszego Boxa, co byloby tu troche
          klopotliwe;) }
        Exists:=
-         {$ifdef ODCINEK_COLLISION}
+         {$ifdef SEGMENT_COLLISION}
          TrySimplePlaneSegmentIntersection(PlaneIntersect, IntrT,
            i, MiddlePoint[i], FirstBoxIntr, Pos2)
          {$else}

@@ -269,7 +269,7 @@ begin
    one point on this line by assuming that Point[NonZeroIndex] = 0. }
  Line0[NonZeroIndex] := 0;
  RestOf3dCoords(NonZeroIndex, Index1, Index2);
- 
+
  { Now we must solve
      Plane0[Index1] * Line0[Index1] + Plane0[Index2] * Line0[Index2] + Plane0[3] = 0
      Plane1[Index1] * Line0[Index1] + Plane1[Index2] * Line0[Index2] + Plane1[3] = 0
@@ -633,28 +633,28 @@ begin
  end;
 end;
 
-function TryPlaneOdcinekDirIntersection(var Intersection: TYPE_VECTOR3;
-  const Plane: TYPE_VECTOR4; const Odc0, OdcVector: TYPE_VECTOR3): boolean;
+function TryPlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3;
+  const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin
- result := TryPlaneLineIntersection(MaybeT, Plane, Odc0, OdcVector) and
+ result := TryPlaneLineIntersection(MaybeT, Plane, Segment0, SegmentVector) and
    (MaybeT >= 0) and (MaybeT <= 1);
- if result then Intersection := VectorAdd(Odc0, VectorScale(OdcVector, MaybeT));
+ if result then Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));
 end;
 
-function TryPlaneOdcinekDirIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
-  const Plane: TYPE_VECTOR4; const Odc0, OdcVector: TYPE_VECTOR3): boolean;
+function TryPlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+  const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin
- result := TryPlaneLineIntersection(MaybeT, Plane, Odc0, OdcVector) and
+ result := TryPlaneLineIntersection(MaybeT, Plane, Segment0, SegmentVector) and
    (MaybeT >= 0) and (MaybeT <= 1);
  if result then
  begin
-  // Intersection := VectorAdd(Odc0, VectorScale(OdcVector, MaybeT));
+  // Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));
   // powyzsza instrukcja zapisana ponizej w 3 linijkach dziala nieco szybciej:
-  Intersection := OdcVector;
+  Intersection := SegmentVector;
   VectorScaleTo1st(Intersection, MaybeT);
-  VectorAddTo1st(Intersection, Odc0);
+  VectorAddTo1st(Intersection, Segment0);
 
   t := MaybeT;
  end;
@@ -662,7 +662,7 @@ end;
 
 (*$I VectorMath_TrySimplePlaneXxxIntersection.inc*)
 
-function IsPointOnOdcinekLineWithinOdcinek(const intersection, pos1, pos2: TYPE_VECTOR3): boolean;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TYPE_VECTOR3): boolean;
 var vecSizes: TYPE_VECTOR3;
     c, i: integer;
 begin
@@ -702,11 +702,11 @@ begin
    Sqr(Sphere1Radius+Sphere2Radius);
 end;
 
-function PointToOdcinekDistanceSqr(const point, pos1, pos2: TYPE_VECTOR3): TYPE_SCALAR;
+function PointToSegmentDistanceSqr(const point, pos1, pos2: TYPE_VECTOR3): TYPE_SCALAR;
 var Closest: TYPE_VECTOR3;
 begin
  Closest := PointOnLineClosestToPoint(pos1, VectorSubtract(pos2, pos1), point);
- if IsPointOnOdcinekLineWithinOdcinek(Closest, pos1, pos2) then
+ if IsPointOnSegmentLineWithinSegment(Closest, pos1, pos2) then
   result := PointsDistanceSqr(Closest, point) else
   result := KambiUtils.min(PointsDistanceSqr(pos1, point),
                       PointsDistanceSqr(pos2, point));
@@ -716,11 +716,11 @@ function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TYPE_VECTOR3;
   const TunnelRadius: TYPE_SCALAR; const SphereCenter: TYPE_VECTOR3;
   const SphereRadius: TYPE_SCALAR): boolean;
 begin
- result := PointToOdcinekDistanceSqr(SphereCenter, Tunnel1, Tunnel2)<=
+ result := PointToSegmentDistanceSqr(SphereCenter, Tunnel1, Tunnel2)<=
    Sqr(SphereRadius+TunnelRadius);
 end;
 
-function IsOdcinekSphereCollision(const pos1, pos2, SphereCenter: TYPE_VECTOR3;
+function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TYPE_VECTOR3;
   const SphereRadius: TYPE_SCALAR): boolean;
 var SphereRadiusSqr: TYPE_SCALAR;
     Intersect: TYPE_VECTOR3;
@@ -731,7 +731,7 @@ begin
  if not result then
  begin
   Intersect := PointOnLineClosestToPoint(pos1, VectorSubtract(pos2, pos1), SphereCenter);
-  result := IsPointOnOdcinekLineWithinOdcinek(Intersect, pos1, pos2) and
+  result := IsPointOnSegmentLineWithinSegment(Intersect, pos1, pos2) and
     (PointsDistanceSqr(Intersect, SphereCenter) <= SphereRadiusSqr);
  end;
 end;
@@ -941,12 +941,12 @@ begin
  end;
 end;}
 
-{$define TryTriangleOdcinekDirCollision_IMPLEMENT:=
+{$define TryTriangleSegmentDirCollision_IMPLEMENT:=
 var MaybeIntersection: TYPE_VECTOR3;
     MaybeT: TYPE_SCALAR;
     TriDir: TYPE_VECTOR3 absolute TriPlane;
 begin
- result := TryPlaneOdcinekDirIntersection(MaybeIntersection, MaybeT, TriPlane, Odc0, OdcVector) and
+ result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
  if result then
  begin
@@ -955,41 +955,41 @@ begin
  end;
 end;}
 
-function IsTriangleOdcinekCollision(const Tri: TYPE_TRIANGLE3;
+function IsTriangleSegmentCollision(const Tri: TYPE_TRIANGLE3;
   const TriPlane: TYPE_VECTOR4; const pos1, pos2: TYPE_VECTOR3): boolean;
 var lineVector, MaybeIntersection: TYPE_VECTOR3;
     TriDir: TYPE_VECTOR3 absolute TriPlane;
 begin
  lineVector := VectorSubtract(pos2, pos1);
  result := TryPlaneLineIntersection(MaybeIntersection, TriPlane, pos1, lineVector) and
-           IsPointOnOdcinekLineWithinOdcinek(MaybeIntersection, pos1, pos2) and
+           IsPointOnSegmentLineWithinSegment(MaybeIntersection, pos1, pos2) and
            IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
 end;
 
-function IsTriangleOdcinekCollision(const Tri: TYPE_TRIANGLE3; const pos1, pos2: TYPE_VECTOR3): boolean;
+function IsTriangleSegmentCollision(const Tri: TYPE_TRIANGLE3; const pos1, pos2: TYPE_VECTOR3): boolean;
 begin
- result := IsTriangleOdcinekCollision(Tri, TrianglePlane(Tri), pos1, pos2);
+ result := IsTriangleSegmentCollision(Tri, TrianglePlane(Tri), pos1, pos2);
 end;
 
-function TryTriangleOdcinekCollision(var Intersection: TYPE_VECTOR3;
+function TryTriangleSegmentCollision(var Intersection: TYPE_VECTOR3;
   const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
   const pos1, pos2: TYPE_VECTOR3): boolean;
 begin
- result := TryTriangleOdcinekDirCollision(Intersection, Tri, TriPlane,
+ result := TryTriangleSegmentDirCollision(Intersection, Tri, TriPlane,
    Pos1, VectorSubtract(Pos2, Pos1));
 end;
 
-function TryTriangleOdcinekDirCollision(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+function TryTriangleSegmentDirCollision(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
   const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Odc0, OdcVector: TYPE_VECTOR3): boolean;
+  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 {$define HAS_T}
-TryTriangleOdcinekDirCollision_IMPLEMENT
+TryTriangleSegmentDirCollision_IMPLEMENT
 {$undef HAS_T}
 
-function TryTriangleOdcinekDirCollision(var Intersection: TYPE_VECTOR3;
+function TryTriangleSegmentDirCollision(var Intersection: TYPE_VECTOR3;
   const Tri: TYPE_TRIANGLE3; const TriPlane: TYPE_VECTOR4;
-  const Odc0, OdcVector: TYPE_VECTOR3): boolean;
-TryTriangleOdcinekDirCollision_IMPLEMENT
+  const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
+TryTriangleSegmentDirCollision_IMPLEMENT
 
 function IsTriangleSphereCollision(const Tri: TYPE_TRIANGLE3;
   const TriPlane: TYPE_VECTOR4;
