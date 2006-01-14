@@ -48,7 +48,7 @@
       between some OSes).)
 
     @item(They somehow complement standard set of routines in SysUtils.
-      See e.g. @link(GetTickCount), @link(ProcTimerNow) in kambiutils_time.inc.
+      See e.g. @link(GetTickCount), @link(ProcessTimerNow) in kambiutils_time.inc.
       See e.g. @link(UserConfigFile), @link(ProgramDataPath)
       and other things in kambiutils_filenames.inc and kambiutils_files.inc,
       that returns some filenames / pathnames that should be used

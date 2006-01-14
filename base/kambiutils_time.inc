@@ -62,37 +62,38 @@ const
   Czesto uzywam takiego formatu. }
 function DateTimeToAtStr(DateTime: TDateTime): string;
 
-{ ProcTimer Begin i End. -------------------------------------------------------
+{ ------------------------------------------------------------
+  @section(Process Timer)
 
-  ProcTimerEnd podaje czas jaki uplynal od ostatniego wywolania
-  ProcTimer Begin w sekundach. (zawsze zrob tak zeby przed TimerEnd wystapilo
+  ProcessTimerEnd podaje czas jaki uplynal od ostatniego wywolania
+  ProcessTimer Begin w sekundach. (zawsze zrob tak zeby przed TimerEnd wystapilo
   gdzies TimerBegin). Stara sie mierzyc czas jaki system spedzil TYLKO na tym
   procesie wiec nie dokonuje faktycznego pomiaru czasu. Tzn. tak brzmi teoria -
   pod windowsem nie ma takiej fajnej procedury clock() z Libc wiec uzywamy
   prostego GetTickCount ktore de facto mierzy uplyw czasu rzeczywistego.
   "Proc" jest skrotem od "Process".
 
-  Z definicji ProcTimerBegin/End sa NON-REENTRANT. Aby skonstruowac je w obrebie
+  Z definicji ProcessTimerBegin/End sa NON-REENTRANT. Aby skonstruowac je w obrebie
   pojedynczego watku, a wiec aby pomiar byl reentrant, uzywaj
-  ProcTimerNow : aby pobrac faktyczny stan timera
-  ProcTimerDiff(a, b) : aby wykonac odejmowanie a-b (ProcTimerDiff wykonuje
+  ProcessTimerNow : aby pobrac faktyczny stan timera
+  ProcessTimerDiff(a, b) : aby wykonac odejmowanie a-b (ProcessTimerDiff wykonuje
      nie tylko a-b, np. pod Windowsem TimerDiff uwzglednia fakt ze GetTickCount
      moze sie przewinac i o ile przewiniecie sie nie bylo zbyt duze zwraca i
-     tak dobry wynik. Ale mysl o ProcTimerDiff(a, b) jako o a-b).
-  wynik ProcTimerDiff jest przedzialem , w jednostkach TTimerResult. aby zamienic
-    go na sekundy podziel go przez ProcTimersPerSec.
+     tak dobry wynik. Ale mysl o ProcessTimerDiff(a, b) jako o a-b).
+  wynik ProcessTimerDiff jest przedzialem , w jednostkach TTimerResult. aby zamienic
+    go na sekundy podziel go przez ProcessTimersPerSec.
 
   Jakiej rozdzielczosci uzywa timer ? No coz, zalezy od OSa i od implementacji.
-  Patrz stala ProcTimersPerSec ponizej.
+  Patrz stala ProcessTimersPerSec ponizej.
 }
 
 type
-  TProcTimerResult =
-    {$ifdef UNIX} clock_t { with and without USE_LIBC } {$endif}
+  TProcessTimerResult =
+    {$ifdef UNIX} clock_t {$endif}
     {$ifdef WIN32} DWord {$endif};
 
 const
-  ProcTimersPerSec
+  ProcessTimersPerSec
     {$ifdef UNIX}
       {$ifdef USE_LIBC}
         : function: clock_t = Libc.CLK_TCK
@@ -108,10 +109,10 @@ const
     {$endif}
     {$ifdef WIN32} = 1000 { Using GetLastError } {$endif};
 
-function ProcTimerNow: TProcTimerResult;
-function ProcTimerDiff(a, b: TProcTimerResult): TProcTimerResult;
-procedure ProcTimerBegin;
-function ProcTimerEnd: Double;
+function ProcessTimerNow: TProcessTimerResult;
+function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
+procedure ProcessTimerBegin;
+function ProcessTimerEnd: Double;
 
 { -----------------------------------------------------------------------------
 
@@ -120,7 +121,7 @@ function ProcTimerEnd: Double;
     (no need to emphasize that "performance")
   - PerfTimer should never return false, instead it should fall back
     on GetTickCount
-  - integrate PerfTimer with ProcTimer, to use the same functions.
+  - integrate PerfTimer with ProcessTimer, to use the same functions.
 
   performance timer : wywolaj dwa razy, odejmij roznice a otrzymasz
   czas jaki uplynal z b.duza dokladnoscia (miejmy nadzieje).
@@ -243,7 +244,7 @@ end;
 { cross-platform process timery ---------------------------------------------- }
 
 {$ifdef UNIX}
-function ProcTimerNow: TProcTimerResult;
+function ProcessTimerNow: TProcessTimerResult;
 var Dummy: tms;
 begin
  { See /c/mojepasy/console.testy/test_times/RESULTS,
@@ -258,26 +259,37 @@ begin
  Result := {$ifdef USE_LIBC} times {$else} FpTimes {$endif} (Dummy);
 end;
 
-function ProcTimerDiff(a, b: TProcTimerResult): TProcTimerResult;
+function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
- Result := a - b
+ Result := a - b;
 end;
 {$endif UNIX}
 
 {$ifdef WIN32}
-function ProcTimerNow: TProcTimerResult;
-begin result := GetTickCount end;
+function ProcessTimerNow: TProcessTimerResult;
+begin
+  Result := GetTickCount;
+end;
 
-function ProcTimerDiff(a, b: TProcTimerResult): TProcTimerResult;
-begin result := TimeTickDiff(b, a) end;
+function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
+begin
+  Result := TimeTickDiff(b, a);
+end;
 {$endif WIN32}
 
-var LastProcTimerBegin: TProcTimerResult;
-procedure ProcTimerBegin;
-begin  LastProcTimerBegin := ProcTimerNow  end;
+var
+  LastProcessTimerBegin: TProcessTimerResult;
 
-function ProcTimerEnd: Double;
-begin  result := ProcTimerDiff(ProcTimerNow, LastProcTimerBegin)/ProcTimersPerSec;  end;
+procedure ProcessTimerBegin;
+begin
+  LastProcessTimerBegin := ProcessTimerNow
+end;
+
+function ProcessTimerEnd: Double;
+begin
+  Result := ProcessTimerDiff(ProcessTimerNow, LastProcessTimerBegin)
+    / ProcessTimersPerSec;
+end;
 
 { performance timer ---------------------------------------------------------- }
 
