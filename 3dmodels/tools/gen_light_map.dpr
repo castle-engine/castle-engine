@@ -86,10 +86,10 @@ begin
   SceneOctree := Scene.CreateTriangleOctree('Building octree');
 
   { render to Image }
-  ProcTimerBegin;
+  ProcessTimerBegin;
   QuadLightMapTo1st(Image, LightSet.Lights, SceneOctree, Quad,
     RenderDir, 'Rendering');
-  Writeln(Format('Rendering done in %f seconds.', [ProcTimerEnd]));
+  Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 
   SaveImage(Image, OutImageFilename);
  finally
