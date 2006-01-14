@@ -1,0 +1,119 @@
+Translation (to English and to pasdoc) state of my units:
+
+------------------------------------------------------------
+"D" means "Done" means that it is in English and processed by pasdoc,
+and once @section and @groupBegin/End/With will be implemented in pasdoc,
+all will be perfect.
+
+"|" means "abstract done" -- unit's abstract and description is "done"
+(in English, and pasdoc-compat once @section and @groupBegin/End/With
+will be implemented).
+
+"-" means none of the above...
+
+  3dgraph/
+-   backgroundbase.pas
+-   boxes3d.pas
+D   convexhullunit.pas
+-   keys.pas
+-   matrixnavigation.pas
+D   polynomials.pas
+-   spacefillingcurves.pas
+-   spheresampling.pas
+
+  3dmodels/
+-   illummodels.pas
+-   kambioctree.pas
+-   normalscalculator.pas
+D   object3dasvrml.pas
+D   object3dgeo.pas
+D   object3dobj.pas
+-   object3dschunks.pas
+-   object3dsmaterial.pas
+-   object3ds.pas
+-   triangulator.pas
+-   vrmlfields.pas
+-   vrmlflatscene.pas
+-   vrmllexer.pas
+-   vrmllightmap.pas
+-   vrmllightset.pas
+D   vrmlnodesdetailoptions.pas
+-   vrmlnodes.pas
+-   vrmlraytracer.pas
+D   vrmlshapestateoctree.pas
+-   vrmlshapestate.pas
+-   vrmltriangleoctree.pas
+
+  3dmodels.gl/
+-   backgroundgl.pas
+-   object3dopengl.pas
+-   vrmlflatscenegl.pas
+-   vrmllightsetgl.pas
+-   vrmlopenglrenderer.pas
+
+  audio/
+D   alutils.pas
+-   openal.pas
+D   soundwav.pas
+
+  base/
+-   areas.pas
+-   enumeratefiles.pas
+D   intrects.pas
+-   KambiClassUtils.pas
+-   kambiutils.pas
+D   kambizlib.pas
+D   kambizstream.pas
+-   mathexprlexer.pas
+-   mathexprparser.pas
+-   mathexpr.pas
+-   parsingpars.pas
+-   progressconsole.pas
+-   progressunit.pas
+-   rects.pas - (almost done, but the comments must be generally updated and this unit possibly may be removed ?)
+|   vectormath.pas
+
+  fonts/
+-   win32/windowsfonts.pas
+D   win32/winfontconvert.pas
+D   bmpfontstypes.pas
+D   font2pascalunit.pas
+-   ttfontstypes.pas
+
+  images/
+-   Images.pas
+D   kambipasjpeg_error_mgrs.pas
+D   kambipasjpeg.pas
+D   kambipasjpeg_stream_mgrs.pas
+-   kambipng.pas
+-   kambipngutils.pas
+
+  opengl/
+-   win32/glwindowwinapimenu.pas
+D   win32/openglwindowsfonts.pas
+-   unix/xf86vmode.pas
+-   unix/xlibutils.pas
+-   curve.pas
+D   glw_demo.pas
+-   glwindow.pas
+-   glwininputs.pas
+-   glwinmessages.pas
+-   glwinmodes.pas
+D   glw_navigated.pas
+D   glw_win.pas
+-   kambiglutils.pas
+-   kambiglut.pas
+-   openglbmpfonts.pas
+-   openglfonts.pas
+-   openglh.pas
+-   openglttfonts.pas
+-   progressgl.pas
+-   timemessages.pas
+
+------------------------------------------------------------
+Units that are not intended to be processed by pasdoc:
+
+"D" means "Done" means simply that their comments are in English.
+
+D AllKambi*Units
+D BFNT_* and TTF_* units in fonts/
