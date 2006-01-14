@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -476,8 +476,8 @@ var
     or Math.SameValue. Well, unfortunately they have to be so large,
     to always detect collisions.
 
-    You can change the variables below (but always keep them >= 0). 
-    
+    You can change the variables below (but always keep them >= 0).
+
     @groupBegin }
     SingleEqualityEpsilon: Single   = 0.0000001;
     DoubleEqualityEpsilon: Double   = 0.0000001;
