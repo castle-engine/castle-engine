@@ -114,108 +114,109 @@
       much faster.)
 
     @item(
-      A @italic(line segment) is represented by two points Pos1 and Pos2.
+      A @italic(line segment) (often referred to as just @italic(segment))
+      is represented by two points Pos1 and Pos2.
       For some routines the order of points Pos1 and Pos2 is significant
       (but this is always explicitly stated in the interface, so don't worry).
 
-      Sometimes line segment is also represented as 
-      SegmentDir jest jak promien ale z gornym ograniczeniem na skalar :
-      to Segment0 i SegmentVector, Segment = punkty Segment0 + SegmentVector*t dla t in [0..1].
-      Musi byc SegmentVector<>(0, 0, 0).
+      Sometimes line segment is also represented as
+      Segment0 and SegmentVector, this consists of all points
+      @code(Segment0 + SegmentVector * t) for t in [0..1].
+      SegmentVector must not be a zero vector.
 
-      Konwersja miedzy normalnym odcinkiem a SegmentDir jest elementarna
-      (to tylko jedno odejmowanie/dodawanie aby otrzymac SegmentVector/Pos2,
-      Pos1 == Segment0).)
+      Conversion between the two representations above is trivial,
+      just take Pos1 = Segment0 and Pos2 = Segment0 + SegmentVector.)
+
+    @item(
+      On 2005-03 functions that work with frustum were added.
+      Frustum is represented as @link(TFrustum) type,
+      which is just 6 plane equations.)
   )
 
-  Przy opisie powyzszych typow podalem pewne ograniczenia,
-  np. trojkat nie moze byc zdegenerowany a RayVector promienia nie moze byc
-  =(0, 0, 0). Te ograniczenia generalnie NIE SA sprawdzane i przekazanie
-  nieprawidlowych wartosci przy definiowaniu tych tworow geometrycznych
-  (np. podanie zdegenerowanego trojkata) to ciezki blad ktory prowadzi do
-  nieokreslonego zachowania sie programu - nic nie gwarantuje ze jakas funkcja
-  rzuci jakis wyjatek ! Byc moze zwroci bledny wynik ! Byc moze zrobi
-  Access Violation (chociaz to raczej malo prawdopodobne w tego rodzaju
-  module z funkcjami operujacymi na prostych typach) !
+  In descriptions of geometric objects above, I often
+  stated some requirements, e.g. the triangle must not be "degenerated"
+  to a line segment, RayVector must not be a zero vector, etc.
+  You should note that these requirements are generally @italic(not checked)
+  by routines in this unit (for the sake of speed) and passing
+  wrong values to many of the routines may lead to serious bugs
+  --- maybe the function will raise some arithmetic exception,
+  maybe it will return some nonsensible result. In other words: when
+  calling these functions, always make sure that values you pass
+  satisfy the requirements.
 
-  Dlaczego nie opakowac wszystkich powyzszych sfer, linii, promieni, tuneli,
-  odcinkow, simple planes i calej reszty w rekordy ?
-  W tej chwili jezeli jakas procedura chce cos zrobic np. z odcinkiem to
-  deklarauje dwie zmienne typu vector3, jezeli chce cos zrobic ze sfera to
-  deklaruje zmienna SphereCenter: vector i SphereRadius: scalar.
-  I tak dalej. Dlaczego nie stworzyc typu
+  (However, wrong input values should never lead to some serious
+  bugs like access violations or range check errors ---
+  in cases when it would be possible, we safeguard against this.
+  That's because sometimes you simply cannot guarantee for 100%
+  that input values are correct, because of floating-point precision
+  problems -- see below.)
 
+  As for floating-point precision:
+  @unorderedList(
+    @item(Well, floating-point inaccuracy is, as always, a problem.
+      This unit always uses FloatsEqual
+      and variables SingleEpsilonEquality, DoubleEpsilonEquality
+      and ExtendedEpsilonEquality when comparison of floating-point
+      values is needed. In some cases you may be able to adjust these
+      variables to somewhat fine-tune the comparisons.)
+
+    @item(For collision-detecting routines, the general strategy
+      in case of uncertainty (when we're not sure whether there
+      is a collision or the objects are just very very close to each other)
+      is to say that there @italic(is a collision).
+
+      This means that we may detect a collision when in fact the precise
+      mathematical calculation says that there is no collision.
+
+      This approach should be suitable for most use cases.)
+  )
+
+  A design question about this unit: Right now I must declare two variables
+  to define a sphere (like @code(SphereCenter: vector; SphereRadius: scalar;))
+  Why not wrap all the geometric objects (spheres, lines, rays, tunnels etc.)
+  inside some records ? For example, define a sphere as
 @longcode(#
   TSphere = record Center: vector; Radius: scalar; end;
 #)
 
-  ? Odpowiedz : mialbym tutaj wtedy MASE takich typow. A kazdy taki typ
-  chcialby miec funkcje za pomoca ktorej moglbym go skonstruowac,
-  bo deklarowanie za kazdym razem rekordu kiedy chcesz przekazac sfere
-  nie jest zbyt wygodne. Musialbym tu napisac MASE rzeczy zeby wtedy wszystko
-  bylo wygodne. Ponadto mamy teraz dosc naturalne konwersje miedzy roznymi
-  obiektami - np. tunel w naturalny sposob okresla dwie swoje koncowe sfery
-  i swoj Segment (tunel = Tunnel1, Tunnel2, TunnelRaidius;
-  jesli chce cos zrobic ze sfera na poczatku tunelu to pisze Tunnel1, TunnelRadius.
-  Zapis Tunnel1, Tunnel2 daje mi Segment. Itd.), podczas gdy gdyby Segment,
-  sfera i tunel byly osobnymi rekordami to wyciagniecie z tunelu jednej z jego
-  sfer oznaczaloby kilka zbednych przypisan zmiennych
-  (cos w rodzaju Sphere.Center := Tunnel.Point1; Sphere.Radius := Tunnel.Radius).
-  W sumie zyskiwalbym troche czasu na przekazywaniu parametrow (gdyby
-  rzeczy byly bardziej opakowane w strukturki moglbym miec mniej parametrow)
-  ale tracilbym ten czas na przepisywanie wektorow na potrzeby konwersji.
-  No i tracilbym wygode, jak juz napisalem wyzej. Wiec w sumie nie warto
-  tu opakowywac wszystkiego w osobne typy. Przekazywanie wszystkiego
-  w postaci rozbitej na parametry daje mi elastycznosc.
+  The answer: this is not so good idea, because it would create
+  a lot of such types into unit, and I would have to implement
+  simple functions that construct and convert between these
+  types. Consider e.g. when I have a tunnel (given
+  as Tunnel1, Tunnel2 points and TunnelRadius vector)
+  and I want to "extract" the properties of the sphere at the 1st end
+  of this tunnel. Right now, it's simple: just consider
+  Tunnel1 as a sphere center, and TunnelRadius is obviously a sphere radius.
+  Computer doesn't have to actually do anything, you just have to think
+  in a different way about Tunnel1 and TunnelRadius.
+  But if I would have tunnel wrapped in a type like @code(TTunnel)
+  and a sphere wrapped in a type like @code(TSphere), then I would
+  have to actually implement this trivial conversion. And then doing
+  such trivial conversion at run-time would take some time,
+  because you have to copy 6 floating-point values.
+  This would be a very serious waste of time at run-time.
+  Well, on the other hand, routines could take less parameters
+  (e.g. only 1 parameter @code(TTunnel), instead of three vector parameters),
+  but (overall) we would still loose a lot of time.
 
-  W wielu miejscach gdy mam zwrocic kolizje z odcinkiem, odcinkiemDir, linia
-  lub promieniem pozwalam sobie stworzyc wersje prymitywane tych metod ktore
-  nie zwracaja wyliczonego juz punktu przeciecia ale zamiast tego zwracaja
-  skalar "t". Odpowiedni punkt przeciecia mozna obliczyc dla odcinkaDir, linii
-  i promienia jako Xxx0 + XxxVector * t gdzie Xxx = Odc/Line/Ray.
-  Dla odcinka zwyklego mozna sobie wyliczyc SegmentVector jako Pos2-Pos1.
-  Dla promieni wiadomo ze t >= 0, dla odcinkow wiadomo ze 0 <= t <= 1.
-  Poslugujac sie t mozna czesto zaoszczedzic sporo czasu - majac t od razu
-  mamy wyznacznik odleglosci przeciecia od Odc/Line/Ray0 (jesli liczymy kilka
-  przeciec to wiemy ze najlblizej do Odc/Line/Ray0 ma to z najblizszym t),
-  nie jest tez bez znaczenia ze wewnetrznie procedury moga sprawdzic
-  czy przeciecie lini odcinka z plane lezy w odcinku sprawdzajac po prostu czy
-  t in [0...1] (nie musza w tym celu uzywac IsPointOnSegmentLineWithinSegment).
-  Dzieki powyzszym dwom zaletom czesto mozna w ogole zaniechac obliczania
-  punktu przeciecia jako Xxx0 + XxxVector * t gdy wiemy ze to przeciecie nas
-  nie interesuje. No i jest nieznacznie szybciej kopiowac sobie skalar niz
-  wektor okreslajacy punkt (= 3 skalary).
+  In many places where I have to return collision with
+  a line segment, a line or a ray there are alternative versions
+  that return just a scalar "T" instead of a calculated point.
+  The actual collision point can be calculated then like
+  @code(Ray0 + T * RayVector). Of course for rays you can be sure
+  that T is >= 0, for line segments you can be sure that
+  0 <= T <= 1. The "T" is often useful, because it allows
+  you to easily calculate collision point, and also the distance
+  to the collision (you can e.g. compare T1 and T2 to compare which
+  collision is closer, and when your RayVector is normalized then
+  the T gives you the exact distance). Thanks to this you can often
+  entirely avoid calculating the actual collision point
+  (@code(Ray0 + T * RayVector)).
 
-  W kwestii procedur sprawdzajacych kolizje : jak zawsze jest problem
-  dokladnosci obliczen zmiennoprzec. Procedury w tym module
-
-  @orderedList(
-    @item(
-      wszystkie uzywaja FloatsEqual do porownywania wartosci zmiennoprzec.,
-      ew. niektore uzywaja wprost zdefiniowanych tu zmiennych *EpsilonEquality)
-    @item(
-      ew. niedokladnosci rozstrzygane sa na korzysc kolizji. Tzn. moze sie okazac
-      ze te procedury wykaza kolizje podczas gdy jej nie bylo (ale bylo
-      NAPRAWDE blisko) ale nie zdarzy sie ze nie wykaza kolizji podczas gdy
-      ona byla.)
-  )
-
-  Ten modul NIE uzywa modulu OpenGLa, nie jest w zaden
-  sposob, nawet w kwestii nazw, zwiazany z OpenGL'em. Kiedys sporo
-  rzeczy w niniejszym module bylo w OpenGLTypes ale czulem ze nie jest
-  dobrze zeby programy nie uzywajace OpenGL'a odwolywaly sie do typow
-  w rodzaju GLfloat, tym samym opierajac dokladnosc swoich operacji
-  zmiennoprzec. na dokladnosci implementacji OpenGL'a na danym
-  systemie.
-
-  This module should compile with FPC and Delphi. But it will miss
+  This unit compiles with FPC and Delphi. But it will miss
   most things when compiled with Delphi. Because it compiles with Delphi,
   Images unit (that depends on some simplest things from this unit)
   can be compiled with Delphi too.
-
-  2005-03: functions that work with frustum added.
-  Frustum is represented as @link(TFrustum) type,
-  which is just 6 plane equations.
 }
 
 unit VectorMath;
@@ -232,11 +233,13 @@ uses SysUtils, KambiUtils;
 
 {$define read_interface}
 
-{ wszystkie typy powinny pakowac sie dobrze i "packed" nie powinno byc
-  potrzebne, ale tez nie zaszkodzi. Wymagamy tutaj packed chocby po to
-  zeby niektore nasze typy dobrze mapowaly sie na typy OpenGL'a. }
+{ Most types below are packed anyway, so the "packed" keyword below
+  is often not needed (but it doesn't hurt). The fact that types
+  below are packed is useful to easily map some of them to
+  OpenGL, OpenAL types etc. }
 
 type
+  { }
   TVector2Single = packed array [0..1] of Single;     PVector2Single = ^TVector2Single;
   TVector2Double = packed array [0..1] of Double;     PVector2Double = ^TVector2Double;
   TVector2Extended = packed array [0..1] of Extended; PVector2Extended = ^TVector2Extended;
@@ -275,12 +278,19 @@ type
   TTriangle3Double = packed array[0..2]of TVector3Double;     PTriangle3Double = ^TTriangle3Double;
   TTriangle3Extended = packed array[0..2]of TVector3Extended; PTriangle3Extended = ^TTriangle3Extended;
 
-  { zasady indeksowania macierzy sa takie same jak w OpenGL'u.
-    Pierwszy indeks to numer kolumny, gdzie kolumna lewa ma numer zero,
-    drugi indeks to numer wiersza w tej kolumnie, gdzie gorny wiersz ma numer
-    zero. Jak widac, macierze nie sa zadeklarowane wprost jako 2-wymiarowe
-    tablice (array [0..3, 0..3] of Single) ale jako 1-wymiarowe tablice wektorow
-    (array[0..3]of TVector3Single), co jest niekiedy wygodne. }
+  { Matrices types.
+
+    The indexing rules of these types are the same as indexing rules
+    for matrix types of OpenGL. I.e. the 1st index specifies the column
+    (where the leftmost column is numbered zero), 2nd index specifies the row
+    (where the uppermost row is numbered zero).
+
+    As you can see, matrices below are not declared explicitly
+    as 2-dimensional arrays (like @code(array [0..3, 0..3] of Single)),
+    but they are 1-dimensional arrays of vectors.
+    This is sometimes useful and comfortable.
+
+    @groupBegin }
   TMatrix2Single = packed array[0..1]of TVector2Single;    PMatrix2Single = ^TMatrix2Single;
   TMatrix2Double = packed array[0..1]of TVector2Double;    PMatrix2Double = ^TMatrix2Double;
   TMatrix2Longint = packed array[0..1]of TVector2Longint;  PMatrix2Longint = ^TMatrix2Longint;
@@ -292,9 +302,11 @@ type
   TMatrix4Single = packed array[0..3]of TVector4Single;    PMatrix4Single = ^TMatrix4Single;
   TMatrix4Double = packed array[0..3]of TVector4Double;    PMatrix4Double = ^TMatrix4Double;
   TMatrix4Longint = packed array[0..3]of TVector4Longint;  PMatrix4Longint = ^TMatrix4Longint;
+  { @groupEnd }
 
-  { tablice "nieskonczone" (wygodne do type-castow) }
+  { The "infinite" arrays, useful for some type-casting hacks }
 
+  { }
   TArray_Vector3Double = packed array[0..MaxInt div SizeOf(TVector3Double)-1]of TVector3Double;
   PArray_Vector3Double = ^TArray_Vector3Double;
   TArray_Vector3Byte = packed array[0..MaxInt div SizeOf(TVector3Byte)-1]of TVector3Byte;
@@ -304,12 +316,14 @@ type
   TArray_Vector2Cardinal = packed array[0..MaxInt div SizeOf(TVector2Cardinal)-1]of TVector2Cardinal;
   PArray_Vector2Cardinal = ^TArray_Vector2Cardinal;
 
-  { dyn arrays (jednoczesnie definiuja tablice nieskonczone dla innych typow) }
+  { Dynamic arrays (using my TDynArray template),
+    and some more "infinite" arrays defined by the way. }
 
+  { }
   TDynArrayItem_1 = TVector3Single;
   PDynArrayItem_1 = PVector3Single;
   {$define DYNARRAY_1_IS_STRUCT}
-  {$I DynArray_1.inc}
+  {$I dynarray_1.inc}
   TArray_Vector3Single = TInfiniteArray_1;
   PArray_Vector3Single = PInfiniteArray_1;
   TDynVector3SingleArray = TDynArray_1;
@@ -317,7 +331,7 @@ type
   TDynArrayItem_2 = TVector2Single;
   PDynArrayItem_2 = PVector2Single;
   {$define DYNARRAY_2_IS_STRUCT}
-  {$I DynArray_2.inc}
+  {$I dynarray_2.inc}
   TArray_Vector2Single = TInfiniteArray_2;
   PArray_Vector2Single = PInfiniteArray_2;
   TDynVector2SingleArray = TDynArray_2;
@@ -325,7 +339,7 @@ type
   TDynArrayItem_3 = TVector3Cardinal;
   PDynArrayItem_3 = PVector3Cardinal;
   {$define DYNARRAY_3_IS_STRUCT}
-  {$I DynArray_3.inc}
+  {$I dynarray_3.inc}
   TArray_Vector3Cardinal = TInfiniteArray_3;
   PArray_Vector3Cardinal = PInfiniteArray_3;
   TDynVector3CardinalArray = TDynArray_3;
@@ -342,8 +356,9 @@ type
   {$I DynArray_4.inc}
   *)
 
-  { wyjatki }
+  { Exceptions }
 
+  { }
   EVectorMathInvalidOp = class(Exception);
 
 const
@@ -382,7 +397,9 @@ const
   { Some colors.
     3-item colors are in RGB format,
     4-item colors have additional 4th component always at maximum
-    (1.0 for floats, 255 for bytes etc.) }
+    (1.0 for floats, 255 for bytes etc.)
+
+    @groupBegin }
   Black3Byte  : TVector3Byte = (  0,   0,   0);
   Red3Byte    : TVector3Byte = (255,   0,   0);
   Green3Byte  : TVector3Byte = (  0, 255,   0);
@@ -394,8 +411,10 @@ const
   Green4Byte  : TVector4Byte = (  0, 255,   0, 255);
   Blue4Byte   : TVector4Byte = (  0,   0, 255, 255);
   White4Byte  : TVector4Byte = (255, 255, 255, 255);
+  { @groupEnd }
 
-  { Standard 16 colors }
+  { Standard 16 colors.
+    @groupBegin }
   Black3Single        : TVector3Single = (   0,    0,    0);
   Blue3Single         : TVector3Single = (   0,    0,  0.6);
   Green3Single        : TVector3Single = (   0,  0.6,    0);
@@ -412,15 +431,21 @@ const
   LightMagenta3Single : TVector3Single = (   1,  0.3,    1);
   Yellow3Single       : TVector3Single = (   1,    1,  0.3);
   White3Single        : TVector3Single = (   1,    1,    1);
-  { Some additional colors }
+  { @groupEnd }
+
+  { Some additional colors.
+    @groupBegin }
   Gray3Single         : TVector3Single = ( 0.5,  0.5,  0.5);
   DarkGreen3Single    : TVector3Single = (   0,  0.3,    0);
   DarkBrown3Single    : TVector3Single = (0.63, 0.15,    0);
   Orange3Single       : TVector3Single = (   1,  0.5,    0);
+  { @groupEnd }
 
   { 4-components versions of 3Single colors above.
-    Just for your comfort (and some small speed gain),
-    as opposed to calling Vector4Single(Xxx3Single) all the time.}
+    Just for your comfort (and some small speed gain sometimes),
+    as opposed to calling Vector4Single(Xxx3Single) all the time.
+
+    @groupBegin }
   Black4Single        : TVector4Single = (   0,    0,    0, 1);
   Blue4Single         : TVector4Single = (   0,    0,  0.6, 1);
   Green4Single        : TVector4Single = (   0,  0.6,    0, 1);
@@ -437,22 +462,29 @@ const
   LightMagenta4Single : TVector4Single = (   1,  0.3,    1, 1);
   Yellow4Single       : TVector4Single = (   1,    1,  0.3, 1);
   White4Single        : TVector4Single = (   1,    1,    1, 1);
+  { @groupEnd }
 
-{ FloatsEqual ----------------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(FloatsEqual and related things) }
 
 var
-  { wartosci rozniace sie o mniej niz EqualityEpsilon beda uznawane przez
-    FloatEqual, a wiec i przez wszystkie procedury VectorMath, za rowne.
-    Mozesz zauwazyc ze ponizsze Epsilony sa dosc duze, w porownaniu
-    chocby z epsilonami w KambiUtils/Math.SameValue . No coz, aby kolizje
-    byly porzadnie wylapywane te wartosci niestety musza byc dosc duze.
+  { Values that differ less than given *EqualityEpsilon are assumed
+    as equal by FloatsEqual (and so by all other routines in this unit).
 
-    Jesli chcesz mozesz zmienic watosci ponizszych zmiennych, byle nie robic
-    tego naraz z wielu watkow itp. }
+    Note that initial *EqualityEpsilon values are quite large,
+    if you compare them with the epsilons used by KambiUtils.SameValue
+    or Math.SameValue. Well, unfortunately they have to be so large,
+    to always detect collisions.
+
+    You can change the variables below (but always keep them >= 0). 
+    
+    @groupBegin }
     SingleEqualityEpsilon: Single   = 0.0000001;
     DoubleEqualityEpsilon: Double   = 0.0000001;
   ExtendedEqualityEpsilon: Extended = 0.0000001;
+  { @groupEnd }
 
+{ }
 function FloatsEqual(const f1, f2: Single): boolean; overload;
 function FloatsEqual(const f1, f2: Double): boolean; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
