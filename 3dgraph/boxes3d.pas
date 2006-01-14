@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -18,15 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Prosty modulik definiujacy typ TBox3d definiujacy
-  prostopadloscian 3d o bokach rownoleglych do plaszczyzn x = 0,
-  y = 0 i z = 0. Bardzo latwo zaimplementowac na tym typie mase
-  geometrycznych procedurek i wlasnie to jest zrobione w tym
-  module.)
-
+{ Type TBox3d (rectangular prism with all sides
+  parallel to basic planes X = 0, Y = 0 and Z = 0) and many operations on it.
   This is sometimes called AABB, "axis-aligned bounding box".
-}
 
+  This is a handy type, because it's easy to implement many
+  operations on it in a fast manner.
+}
 unit Boxes3d;
 
 interface
@@ -34,7 +32,14 @@ interface
 uses VectorMath, SysUtils, KambiUtils;
 
 type
-  { pierwszy element ma mniejsze wspolrzedne, drugi - wieksze }
+  { First point always has all the smaller coords, second point has all
+    the larger coords. I.e. always
+@preformatted(
+  Box[0, 0] <= Box[1, 0] and
+  Box[0, 1] <= Box[1, 1] and
+  Box[0, 2] <= Box[1, 2]
+)
+    The only exception is the special value EmptyBox3d. }
   TBox3d = array[0..1]of TVector3Single;
 
   TObjectBBox = class
@@ -43,20 +48,31 @@ type
   end;
 
 const
-  {specjalna wartosc typu TBoundingBox ktora oznacza ze nie ma
-   bounding box. Jest gwarantowane ze kazda inna wartosc typu
-   TBoundingBox zachowuje porzadek.}
-  EmptyBox3d: TBox3d = ((0, 0, 0),(-1, -1, -1));
+  { Special value for TBox3d meaning "bounding box doesn't exist".
+    This is used when the object has no points, so bounding box
+    doesn't exist. }
+  EmptyBox3d: TBox3d = ((0, 0, 0), (-1, -1, -1));
 
+{ Check is box empty.
+  You can think of this function as "compare Box with EmptyBox3d".
+
+  But actually it works a little faster, by utilizing the assumption
+  that EmptyBox3d is the only allowed value that breaks
+  Box[0, 0] <= Box[1, 0] rule. }
 function IsEmptyBox3d(const Box: TBox3d): boolean;
 
 function Box3d(const p0, p1: TVector3Single): TBox3d;
 function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
 
-{BoundingboxMiddle, AvgSize i MaxSize rzucaja wyjatek gdy BoundingBox jest Empty }
+{ These functions calculate the middle point, average size and max size
+  of given bounding box. When given Box is empty (IsEmptyBox3d),
+  they raise some exception.
+
+  @groupBegin }
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
 function Box3dAvgSize(const Box: TBox3d): Single;
 function Box3dMaxSize(const box: TBox3d): Single;
+{ @groupEnd }
 
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
    and increases Box[1, 0], Box[1, 1], Box[1, 2] by Expand.
@@ -75,10 +91,13 @@ procedure BoxExpandTo1st(var Box: TBox3d; const Expand: Single); overload;
   that it doesn't make Box empty. }
 procedure BoxExpandTo1st(var box: TBox3d; const Expand: TVector3Single); overload;
 
-{czy punkt inside box ? (jezeli box jest empty to zaden punkt nie jest
- w jego srodku)}
+{ Check is the point inside the box.
+  Always false if Box is empty (obviously, no point is inside an empty box).
+
+  @groupBegin }
 function Box3dPointInside(const pt: TVector3Single; const box: TBox3d): boolean; overload;
 function Box3dPointInside(const pt: TVector3Double; const box: TBox3d): boolean; overload;
+{ @groupEnd }
 
 function Box3dCubeAroundPoint(const pt: TVector3Single; CubeSize: Single): TBox3d;
 

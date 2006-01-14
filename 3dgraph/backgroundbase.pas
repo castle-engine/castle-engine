@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -18,12 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Ten modul definiuje zasadnicze typy i operacje potrzebne do realizacji
-  modulu @link(BackgroundGL) (ktory zalezy od OpenGLa) i do realizacji wezla
-  @link(TNodeBackground) (ktory jest w 3dmodels/ i ktory zalezy od roznych modulow
-  VRMLa ale NIE zalezy od OpenGLa - chwilowo tym modulem jest @link(VRMLNodes),
-  ale to moze kiedys ulec zmianie).)
-}
+{ Base definitions for 3D backgrounds (cubes with different texture on each
+  side). These are used in OpenGL programs (see unit BackgroundGL)
+  and for VRML TNodeBackground. }
 
 unit BackgroundBase;
 

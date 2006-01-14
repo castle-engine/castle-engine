@@ -12,8 +12,8 @@ will be implemented).
 "-" means none of the above...
 
   3dgraph/
--   backgroundbase.pas
--   boxes3d.pas
+|   backgroundbase.pas
+|   boxes3d.pas
 D   convexhullunit.pas
 -   keys.pas
 -   matrixnavigation.pas
@@ -60,7 +60,7 @@ D   soundwav.pas
 -   areas.pas
 -   enumeratefiles.pas
 D   intrects.pas
--   KambiClassUtils.pas
+-   kambiclassutils.pas
 -   kambiutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
