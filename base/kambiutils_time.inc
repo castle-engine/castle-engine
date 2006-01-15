@@ -62,7 +62,7 @@ const
   Czesto uzywam takiego formatu. }
 function DateTimeToAtStr(DateTime: TDateTime): string;
 
-{ ------------------------------------------------------------
+{ ------------------------------------------------------------------------------
   @section(Process Timer)
 
   ProcessTimerEnd podaje czas jaki uplynal od ostatniego wywolania
@@ -88,6 +88,7 @@ function DateTimeToAtStr(DateTime: TDateTime): string;
 }
 
 type
+  { }
   TProcessTimerResult =
     {$ifdef UNIX} clock_t {$endif}
     {$ifdef WIN32} DWord {$endif};
