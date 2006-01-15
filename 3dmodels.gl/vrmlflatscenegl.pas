@@ -18,16 +18,16 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(@link(TVRMLFlatSceneGL) class.)
-
-  TODO --- demo that roSeparateShapeStates is great (better than roNone
-  and roSceneAsAWhole) when you change only small part of an object
-  at runtime and you're calling ChangedShapeState because change is very local.
-}
+{ @abstract(@link(TVRMLFlatSceneGL) class.) }
 
 unit VRMLFlatSceneGL;
 
 {$I openglmac.inc}
+
+{ TODO --- demo that roSeparateShapeStates is great (better than roNone
+  and roSceneAsAWhole) when you change only small part of an object
+  at runtime and you're calling ChangedShapeState because change is very local.
+}
 
 { RenderFrustum tests each ShapeState for collision with given Frustum
   before rendering this ShapeState. It can use ShapeState.BoundingBox
@@ -104,19 +104,19 @@ type
     { Build separate OpenGL display list for each @link(TVRMLShapeState)
       on list @link(TVRMLFlatScene.ShapeStates). Use this if
 
-      1) you will change from time to time only some small parts of
-         the scene (since this will allow to rebuild, on changing, only
-         some small display lists, as opposed to roSceneAsAWhole,
-         that has to rebuild large display list even if the change
-         is very local).
+      @orderedList(
+        @item(you will change from time to time only some small parts of
+          the scene (since this will allow to rebuild, on changing, only
+          some small display lists, as opposed to roSceneAsAWhole,
+          that has to rebuild large display list even if the change
+          is very local).)
 
-      and/or
-
-      2) you know that usually user will not see the whole scene,
+        @item(and/or you know that usually user will not see the whole scene,
          only a small part of it.
          See TestShapeStateVisibility parameter of @link(TVRMLFlatSceneGL.Render)
          and @link(TVRMLFlatSceneGL.RenderFrustum) and
-         @link(TVRMLFlatSceneGL.RenderFrustumOctree).
+         @link(TVRMLFlatSceneGL.RenderFrustumOctree).)
+       )
     }
     roSeparateShapeStates
   );

@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(@link(TVRMLTriangleOctree) class -- octree that provides
+{ @abstract(@link(TVRMLTriangleOctree) class --- octree that provides
   hierarchical tree of all triangles in a VRML scene.)
 
   Dokladniej, mozemy

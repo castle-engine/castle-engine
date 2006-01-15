@@ -16,38 +16,38 @@ will be implemented).
 |   boxes3d.pas
 D   convexhullunit.pas
 D   keys.pas
--   matrixnavigation.pas
+|   matrixnavigation.pas
 D   polynomials.pas
--   spacefillingcurves.pas
+|   spacefillingcurves.pas
 -   spheresampling.pas
 
   3dmodels/
 -   illummodels.pas
--   kambioctree.pas
+|   kambioctree.pas
 -   normalscalculator.pas
 D   object3dasvrml.pas
 D   object3dgeo.pas
 D   object3dobj.pas
--   object3dschunks.pas
--   object3dsmaterial.pas
+|   object3dschunks.pas
+|   object3dsmaterial.pas
 -   object3ds.pas
--   triangulator.pas
--   vrmlfields.pas
--   vrmlflatscene.pas
+|   triangulator.pas
+|   vrmlfields.pas
+|   vrmlflatscene.pas
 -   vrmllexer.pas
--   vrmllightmap.pas
+|   vrmllightmap.pas
 -   vrmllightset.pas
 D   vrmlnodesdetailoptions.pas
 -   vrmlnodes.pas
--   vrmlraytracer.pas
+|   vrmlraytracer.pas
 D   vrmlshapestateoctree.pas
--   vrmlshapestate.pas
+|   vrmlshapestate.pas
 -   vrmltriangleoctree.pas
 
   3dmodels.gl/
 -   backgroundgl.pas
--   object3dopengl.pas
--   vrmlflatscenegl.pas
+|   object3dopengl.pas
+|   vrmlflatscenegl.pas
 -   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
 

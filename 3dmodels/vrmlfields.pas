@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(VRML fields -- @link(TVRMLField) class and descendants.) }
+{ @abstract(VRML fields --- @link(TVRMLField) class and descendants.) }
 
 unit VRMLFields;
 
