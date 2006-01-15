@@ -91,7 +91,7 @@ D   kambipngutils.pas
   opengl/
 D   win32/glwindowwinapimenu.pas
 D   win32/openglwindowsfonts.pas
--   unix/xf86vmode.pas
+D   unix/xf86vmode.pas
 -   unix/xlibutils.pas
 -   curve.pas
 D   glw_demo.pas
