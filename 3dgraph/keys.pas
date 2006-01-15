@@ -18,21 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Stale klawiszy, K_xxx, uzywane w @link(GLWindow).)
-
-  Ale ten modul jest niezalezny od modulu @link(GLWindow)
-  (a wiec takze od rzeczy takich jak moduly Xlib czy gluta).
-  Niedobra konsekwencja takiego rozwiazania jest fakt ze nie moglismy
-  tu napisac konwersji z kodow klawiszy Xlib, WinAPI czy gluta bo to
-  wymagaloby od nas uzywania modulow ktore nie zawsze sa dostepne
-  (musielibysmy w szczegolnosci wiedziec na jakiej implementacji dziala
-  aktualnie @link(GLWindow)).
-
-  Ale za to mozemy dzieki temu utrzymac ten modul w katalogu
-  3dgraph/ a wiec takze modul MatrixNavigation (ktory potrzebuje
-  tych stalych klawiszy a jednoczesnie probuje pozostac w katalogu
-  3dgraph/) (zamiast przenosic sie do wyspecjalizowanego katalogu
-  opengl/).
+{ Key constants used in GLWindow unit.
 
   Specjalna wartosc klawisza K_None oznacza "zaden klawisz".
   Stala K_None ma podobne zastosowanie jak specjalna wartosc wskaznika : nil;
@@ -64,6 +50,26 @@
 
 unit Keys;
 
+{ Design notes:
+  Although this unit is made for cooperation with GLWindow unit,
+  it @italic(doesn't depend on GLWindow unit).
+
+  Advantage: we can keep this unit in @code(3dgraph) group,
+  i.e. units that don't depend on OpenGL. This means that also
+  unit MatrixNavigation (that must use unit Keys) can stay in this group.
+  This is good, because it makes important unit MatrixNavigation more
+  generally-usable.
+
+  Disadvantage: because this unit doesn't depend on GLWindow unit,
+  it doesn't know what implementation of GLWindow unit
+  (Xlib, glut, gtk, WinAPI -- see GLWINDOW_xxx defines in GLWindow unit) is used.
+  It also can't use platform-specific units like Xlib, or WinAPI.
+  On one hand, this is good (because this unit is simple and portable),
+  on the other hand, we can't implement in this unit any conversion
+  from WinAPI / XLib / Gtk key codes -> to K_Xxx constants.
+  Such conversion has to be done in GLWindow unit implementation.
+}
+
 interface
 
 uses KambiUtils;
@@ -86,7 +92,7 @@ const
 
   K_Shift = 16;
   K_Ctrl = 17;
-  K_Alt = 18; { = Windows.VK_MENU }
+  K_Alt = 18;
 
   K_Escape = Ord(CharEscape);
   K_Space = Ord(' ');
@@ -101,8 +107,8 @@ const
   K_Insert = 45;
   K_Delete = 46;
 
-  K_Plus  = 107; { = Windows.VK_ADD }
-  K_Minus = 109; { = Windows.VK_SUBTRACT }
+  K_Plus  = 107;
+  K_Minus = 109;
 
   K_0 = Ord('0');
   K_1 = Ord('1');
@@ -160,9 +166,15 @@ const
 
 function KeyToStr(key: TKey): string;
 
-{ modifiers ---------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(Key modifiers) }
 
 type
+  { Modifier keys are keys that, when pressed, modify the meaning of
+    other keys. Of course, this is actually just a convention.
+    The actual interpretation is left up to the final program
+    -- there you have to decide when and how modifiers affect the
+    meaning of other keys. }
   TModifierKey = (mkCtrl, mkShift, mkAlt);
   TModifierKeys = set of TModifierKey;
 
