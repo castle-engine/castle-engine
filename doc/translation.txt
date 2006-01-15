@@ -48,7 +48,7 @@ D   vrmlshapestateoctree.pas
 -   backgroundgl.pas
 |   object3dopengl.pas
 |   vrmlflatscenegl.pas
--   vrmllightsetgl.pas
+|   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
 
   audio/
@@ -58,7 +58,7 @@ D   soundwav.pas
 
   base/
 -   areas.pas
--   enumeratefiles.pas
+|   enumeratefiles.pas
 D   intrects.pas
 -   kambiclassutils.pas
 -   kambiutils.pas
