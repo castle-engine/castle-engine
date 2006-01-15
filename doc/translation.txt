@@ -101,7 +101,7 @@ D   glw_demo.pas
 -   glwinmodes.pas
 D   glw_navigated.pas
 D   glw_win.pas
--   kambiglutils.pas
+|   kambiglutils.pas
 -   kambiglut.pas
 -   openglbmpfonts.pas
 -   openglfonts.pas

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -24,8 +24,6 @@
   OpenGL programming. This unit does not assume that you
   initialized OpenGL in any particular way (e.g. using
   GLWindow, Glut, SDL, or whatever).
-  If you know what glu library is, then you can think of this unit
-  as "my glu".
 }
 
 unit KambiGLUtils;
