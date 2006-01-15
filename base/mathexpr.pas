@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2004 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -58,7 +58,7 @@ uses SysUtils, Math, KambiUtils, KambiClassUtils;
 {$define read_interface}
 
 type
-  TVariableValueFunc = function(const variable_name:string):Float;
+  TVariableValueFunc = function(const variable_name: string): Float;
 
   TMathExpr = class
   public
@@ -84,49 +84,49 @@ type
       if it is needed to force generating proper exceptions.
 
       @noAutoLinkHere }
-    function Value(varfunc:TVariableValueFunc):Float; virtual; abstract;
+    function Value(varfunc: TVariableValueFunc): Float; virtual; abstract;
 
     { TryValue podstawia pod return_value wartosc value(varfunc)
       CHYBA ze wystapil wyjatek w czasie obliczania value (bo np.
       wyrazenie jest nieprawidlowe dla takiego podstawienia zmiennej).
       Wtedy nie zmienia return_value i zwraca false. }
-    function TryValue(varfunc:TVariableValueFunc; var return_value:Float):boolean;
+    function TryValue(varfunc: TVariableValueFunc; var return_value: Float): boolean;
 
     { output expression }
-    function ToString:string; virtual; abstract;
+    function ToString: string; virtual; abstract;
   end;
 
-  TEvalMathExprFunc = function(a,b:Float):Float;
+  TEvalMathExprFunc = function(a, b: Float): Float;
 
   TObjectsListItem_1 = TMathExpr;
   {$I ObjectsList_1.inc}
   TMathExprList = class(TObjectsList_1)
     { Evaluate evaluates expressions [a1, a2 ... an] as
-      EvalTwoExpr(an, ... evalTwoExpr(a3,evalTwoExpr(a1,a2)) ..,)
+      EvalTwoExpr(an, ... evalTwoExpr(a3, evalTwoExpr(a1, a2)) ..,)
       It evaluetes from left to right using operation EvalTwoFunc.
       List MUST have at least one item.  }
-    function Evaluate(EvalTwoExpr:TEvalMathExprFunc;
-      VarFunc:TVariableValueFunc):Float;
+    function Evaluate(EvalTwoExpr: TEvalMathExprFunc;
+      VarFunc: TVariableValueFunc): Float;
   end;
 
   TMathConst = class(TMathExpr)
   private
-    FValue:Float;
+    FValue: Float;
   public
-    constructor Create(avalue:Float);
-    property ConstValue:Float read fvalue;
-    function Value(varfunc:TVariableValueFunc):Float; override;
-    function ToString:string; override;
+    constructor Create(avalue: Float);
+    property ConstValue: Float read fvalue;
+    function Value(varfunc: TVariableValueFunc): Float; override;
+    function ToString: string; override;
   end;
 
   TMathVar = class(TMathExpr)
   private
-    fname:string;
+    fname: string;
   public
-    constructor Create(const aname:string);
-    property Name:string read fname;
-    function Value(varfunc:TVariableValueFunc):Float; override;
-    function ToString:string; override;
+    constructor Create(const aname: string);
+    property Name: string read fname;
+    function Value(varfunc: TVariableValueFunc): Float; override;
+    function ToString: string; override;
   end;
 
   { When you are extending TFunctionKind type, remember that you
@@ -169,16 +169,16 @@ const
     { 0 oznacza ze liczba argumentow moze byc dowolna,
       -n oznacza ze musi byc >= n.
       So e.g. ArgsCount = -1 means "any non-zero number of arguments".  }
-    ArgsCount:integer;
+    ArgsCount: integer;
 
     { Long name for user, possibly with spaces, parenthesis and other
       funny chars. }
-    Name:string;
+    Name: string;
 
     { FunctionName: name of this function for use in expressions
       like "function_name(arg_1, arg_2 ... , arg_n)".
       Empty string ('') if no such name for this function. }
-    FunctionName:string;
+    FunctionName: string;
 
     { InfixOperatorName: name of this function for use in expressions
       like "arg_1 InfixOperatorName arg_2 ... arg_n".
@@ -204,10 +204,10 @@ const
           like ^ and > that always take 2 arguments.)
 
         @item(
-          Function may have both FunctionName<>'' and InfixOperatorName<>''.
+          Function may have both FunctionName <> '' and InfixOperatorName <> ''.
           E.g. fkPower can be used as "Power(3, 1.5)" or "3 ^ 1.5".)
       ) }
-    InfixOperatorName:string;
+    InfixOperatorName: string;
   end =
   ( (ArgsCount:-1; Name:'add (+)';      FunctionName:''; InfixOperatorName:'+'),
     (ArgsCount:-1; Name:'subtract (-)'; FunctionName:''; InfixOperatorName:'-'),
@@ -263,24 +263,24 @@ type
   TMathFunction = class(TMathExpr)
   { TMathFunction frees his arguments = objects }
   private
-    ffunckind:TFunctionKind;
-    FArgs:TMathExprList;
-    procedure CreateFinish(afuncKind:TFunctionKind);
+    ffunckind: TFunctionKind;
+    FArgs: TMathExprList;
+    procedure CreateFinish(afuncKind: TFunctionKind);
   public
     { AArgs contents are COPIED from AArgs, i.e. AArgs object is not
       referenced by this object. But items on AArags are not copied
       recursively, we copy references from AArags items. }
-    constructor Create(AFuncKind:TFunctionKind; AArgs:TMathExprList); overload;
-    constructor Create(AFuncKind:TFunctionKind; const AArgs:array of TMathExpr); overload;
+    constructor Create(AFuncKind: TFunctionKind; AArgs: TMathExprList); overload;
+    constructor Create(AFuncKind: TFunctionKind; const AArgs: array of TMathExpr); overload;
     destructor Destroy; override;
 
-    property FuncKind:TFunctionKind read FFuncKind;
+    property FuncKind: TFunctionKind read FFuncKind;
     { contents of Args are read-only ! }
-    property Args:TMathExprList read FArgs;
-    function ArgsCount:integer;
+    property Args: TMathExprList read FArgs;
+    function ArgsCount: integer;
 
-    function Value(varfunc:TVariableValueFunc):Float; override;
-    function ToString:string; override;
+    function Value(varfunc: TVariableValueFunc): Float; override;
+    function ToString: string; override;
   end;
 
 { exceptions ------------------------------------------------------------ }
@@ -288,27 +288,27 @@ type
   EWrongMathExpr = class(Exception);
   EWrongMathFunction = class(EWrongMathExpr);
   EUndefinedVariable = class(EWrongMathExpr)
-    constructor Create(const VariableName:string);
+    constructor Create(const VariableName: string);
   end;
 
 { global funcs ---------------------------------------------------------- }
 
-function AddFloat(a,b:Float):Float;
-function SubtractFloat(a,b:Float):Float;
-function MultiplyFloat(a,b:Float):Float;
-function DivideFloat(a,b:Float):Float;
+function AddFloat(a, b: Float): Float;
+function SubtractFloat(a, b: Float): Float;
+function MultiplyFloat(a, b: Float): Float;
+function DivideFloat(a, b: Float): Float;
 
-{ funkcja ReturnVariableX zwraca SingleVariable gdy VariableName=SingleVariableName,
+{ funkcja ReturnVariableX zwraca SingleVariable gdy VariableName = SingleVariableName,
   wpp. rzuca wyjatek EUndefinedVariable. Przydatne i wygodne gdy chcesz napisac
   prosty program ktory uzywa Expression z tylko jedna zmienna, i nie przeszkadza
   ci ze SingleVariable[Name] to zmienne globalne (wiec mozesz naraz uzywac
   tylko jednego wyrazenia z ReturnSingleVariable). }
-var SingleVariable:Float;
-    SingleVariableName:string = 'x';
-function ReturnSingleVariable(const VariableName:string):Float;
+var SingleVariable: Float;
+    SingleVariableName: string = 'x';
+function ReturnSingleVariable(const VariableName: string): Float;
 { ReturnNoVariable zawsze rzuca wyjatek EUndefinedVariable, bez wzgledu na
   VariableName. Przydatne gdy chcesz obliczyc wartosc wyrazenia bez zmiennych. }
-function ReturnNoVariable(const VariableName:string):Float;
+function ReturnNoVariable(const VariableName: string): Float;
 
 {$undef read_interface}
 
@@ -325,23 +325,23 @@ const
 
 { TMathExpr -------------------------------------------------------------------------- }
 
-function TMathExpr.TryValue(varfunc:TVariableValueFunc; var return_value:Float):boolean;
+function TMathExpr.TryValue(varfunc: TVariableValueFunc; var return_value: Float): boolean;
 begin
  try
-  return_value:=value(varfunc);
-  result:=true;
- except result:=false end;
+  return_value := value(varfunc);
+  result := true;
+ except result := false end;
 end;
 
 { TMathExprList ------------------------------------------------------------ }
 
-function TMathExprList.Evaluate(EvalTwoExpr:TEvalMathExprFunc;
-  VarFunc:TVariableValueFunc):Float;
-var i:integer;
+function TMathExprList.Evaluate(EvalTwoExpr: TEvalMathExprFunc;
+  VarFunc: TVariableValueFunc): Float;
+var i: integer;
 begin
- Result:=Items[0].value(varfunc);
- for i:=1 to Count-1 do
-  Result:=EvalTwoExpr(Result, Items[i].Value(VarFunc));
+ Result := Items[0].value(varfunc);
+ for i := 1 to Count-1 do
+  Result := EvalTwoExpr(Result, Items[i].Value(VarFunc));
 end;
 
 { TMathConst ----------------------------------------------------------------- }
@@ -349,15 +349,15 @@ end;
 constructor TMathConst.Create(avalue: Float);
 begin
  inherited Create;
- fvalue:=avalue;
+ fvalue := avalue;
 end;
 
 function TMathConst.value(varfunc: TVariableValueFunc): Float;
-begin result:=fvalue end;
+begin result := fvalue end;
 
-function TMathConst.ToString:string;
+function TMathConst.ToString: string;
 begin
- result:=Format('%g', [ConstValue]);
+ result := Format('%g', [ConstValue]);
 end;
 
 { TMathVar --------------------------------------------------------------------------- }
@@ -365,128 +365,128 @@ end;
 constructor TMathVar.Create(const aName: string);
 begin
  inherited Create;
- fName:=aName;
+ fName := aName;
 end;
 
 function TMathVar.value(varfunc: TVariableValueFunc): Float;
 begin
  if Assigned(varfunc) then
-  result:=varfunc(Name) else
+  result := varfunc(Name) else
   raise Exception.Create('Variable '''+Name+''' undefined.');
 end;
 
-function TMathVar.ToString:string;
+function TMathVar.ToString: string;
 begin
- result:=Name;
+ result := Name;
 end;
 
 { TMathFunction ------------------------------------------------------------------------ }
 
-procedure TMathFunction.CreateFinish(afuncKind:TFunctionKind);
-var reqArgsCount:integer; { requested (by FunctionKinds table) ArgsCount }
+procedure TMathFunction.CreateFinish(afuncKind: TFunctionKind);
+var reqArgsCount: integer; { requested (by FunctionKinds table) ArgsCount }
 begin
- ffuncKind:=afuncKind;
- reqArgsCount:=FunctionKinds[ffuncKind].ArgsCount;
- if reqArgsCount>0 then
+ ffuncKind := afuncKind;
+ reqArgsCount := FunctionKinds[ffuncKind].ArgsCount;
+ if reqArgsCount > 0 then
  begin
-  if reqArgsCount<>ArgsCount then
+  if reqArgsCount <> ArgsCount then
    raise EWrongMathFunction.CreateFmt(SMathFuncArgsCountMustEqual, [FunctionKinds[ffuncKind].Name, reqArgsCount]);
  end else
- if reqArgsCount<0 then
+ if reqArgsCount < 0 then
  begin
-  if Abs(reqArgsCount)>ArgsCount then
+  if Abs(reqArgsCount) > ArgsCount then
    raise EWrongMathFunction.CreateFmt(SMathFuncArgsCountMustGreaterEq, [FunctionKinds[ffuncKind].Name, Abs(reqArgsCount)]);
  end;
 end;
 
-constructor TMathFunction.Create(afuncKind: TFunctionKind; AArgs:TMathExprList);
+constructor TMathFunction.Create(afuncKind: TFunctionKind; AArgs: TMathExprList);
 begin
  inherited Create;
- FArgs:=TMathExprList.CreateFromList(AArgs);
+ FArgs := TMathExprList.CreateFromList(AArgs);
  CreateFinish(afuncKind);
 end;
 
-constructor TMathFunction.Create(afuncKind: TFunctionKind; const AArgs:array of TMathExpr);
-var i:integer;
+constructor TMathFunction.Create(afuncKind: TFunctionKind; 
+  const AArgs: array of TMathExpr);
 begin
  inherited Create;
- FArgs:=TMathExprList.CreateFromArray(AArgs);
+ FArgs := TMathExprList.CreateFromArray(AArgs);
  CreateFinish(afuncKind);
 end;
 
 destructor TMathFunction.Destroy;
-var i:integer;
+var i: integer;
 begin
- for i:=0 to ArgsCount-1 do FArgs[i].Free;
+ for i := 0 to ArgsCount-1 do FArgs[i].Free;
  FArgs.free;
  inherited;
 end;
 
-function TMathFunction.ArgsCount:integer;
-begin result:=FArgs.Count end;
+function TMathFunction.ArgsCount: integer;
+begin result := FArgs.Count end;
 
 function TMathFunction.Value(varfunc: TVariableValueFunc): Float;
 
-  function ArgValue(argNum:cardinal):Float;
-  begin result:=FArgs[argnum].value(varfunc) end;
+  function ArgValue(argNum: cardinal): Float;
+  begin result := FArgs[argnum].value(varfunc) end;
 
-  function boolValue(argNum:cardinal):boolean;
-  begin result:=ArgValue(argNum)<>0 end;
+  function boolValue(argNum: cardinal): boolean;
+  begin result := ArgValue(argNum) <> 0 end;
 
-const boolTo01:array[boolean]of Float = (0, 1);
+const boolTo01: array[boolean]of Float = (0, 1);
 
 begin
  case ffuncKind of
-  fkAdd:      Result:=FArgs.Evaluate(addFloat, varfunc);
-  fkSubtract: Result:=FArgs.Evaluate(subtractFloat, varfunc);
-  fkMultiply: Result:=FArgs.Evaluate(multiplyFloat, varfunc);
-  fkDivide:   Result:=FArgs.Evaluate(divideFloat, varfunc);
-  fkNegate:   Result:=-ArgValue(0);
-  fkModulo:   Result:=ArgValue(0) - Floor(ArgValue(0)/ArgValue(1)) * ArgValue(1);
+  fkAdd:      Result := FArgs.Evaluate(addFloat, varfunc);
+  fkSubtract: Result := FArgs.Evaluate(subtractFloat, varfunc);
+  fkMultiply: Result := FArgs.Evaluate(multiplyFloat, varfunc);
+  fkDivide:   Result := FArgs.Evaluate(divideFloat, varfunc);
+  fkNegate:   Result := -ArgValue(0);
+  fkModulo:   Result := ArgValue(0) - Floor(ArgValue(0)/ArgValue(1)) * ArgValue(1);
 
-  fkSin:   Result:=Sin(ArgValue(0));
-  fkCos:   Result:=Cos(ArgValue(0));
-  fkTan:   Result:=Tan(ArgValue(0));
-  fkCotan: Result:=Cotan(ArgValue(0));
+  fkSin:   Result := Sin(ArgValue(0));
+  fkCos:   Result := Cos(ArgValue(0));
+  fkTan:   Result := Tan(ArgValue(0));
+  fkCotan: Result := Cotan(ArgValue(0));
 
   fkSinH:   Result:=  SinH(ArgValue(0));
   fkCosH:   Result:=  CosH(ArgValue(0));
   fkTanH:   Result:=  TanH(ArgValue(0));
-  fkCotanH: Result:=1/TanH(ArgValue(0));
+  fkCotanH: Result := 1/TanH(ArgValue(0));
 
-  fkArcSin:   Result:=ArcSin(ArgValue(0));
-  fkArcCos:   Result:=ArcCos(ArgValue(0));
-  fkArcTan:   Result:=ArcTan(ArgValue(0));
-  fkArcCotan: Result:=ArcCot(ArgValue(0));
+  fkArcSin:   Result := ArcSin(ArgValue(0));
+  fkArcCos:   Result := ArcCos(ArgValue(0));
+  fkArcTan:   Result := ArcTan(ArgValue(0));
+  fkArcCotan: Result := ArcCot(ArgValue(0));
 
-  fkLog2:   Result:=Log2(ArgValue(0));
+  fkLog2:   Result := Log2(ArgValue(0));
   fkLn:
   begin
    Writeln('now we will call Ln with ', ArgValue(0));
-   Result:=Ln(ArgValue(0));
+   Result := Ln(ArgValue(0));
   end;
-  fkLog:    Result:=Logn(ArgValue(0), ArgValue(1));
-  fkPower2: Result:=Power(2, ArgValue(0));
-  fkExp:    Result:=Exp(ArgValue(0));
-  fkPower:  Result:=GeneralPower(ArgValue(0), ArgValue(1));
+  fkLog:    Result := Logn(ArgValue(0), ArgValue(1));
+  fkPower2: Result := Power(2, ArgValue(0));
+  fkExp:    Result := Exp(ArgValue(0));
+  fkPower:  Result := GeneralPower(ArgValue(0), ArgValue(1));
 
-  fkSqr:   Result:=Sqr(ArgValue(0));
-  fkSqrt:  Result:=Sqrt(ArgValue(0));
-  fkSgn:   Result:=Sign(ArgValue(0));
-  fkAbs:   Result:=Abs(ArgValue(0));
-  fkCeil:  Result:=Ceil(ArgValue(0));
-  fkFloor: Result:=Floor(ArgValue(0));
+  fkSqr:   Result := Sqr(ArgValue(0));
+  fkSqrt:  Result := Sqrt(ArgValue(0));
+  fkSgn:   Result := Sign(ArgValue(0));
+  fkAbs:   Result := Abs(ArgValue(0));
+  fkCeil:  Result := Ceil(ArgValue(0));
+  fkFloor: Result := Floor(ArgValue(0));
 
-  fkGreater:   Result:=boolTo01[ArgValue(0)>ArgValue(1)];
-  fkLesser:    Result:=boolTo01[ArgValue(0)<ArgValue(1)];
-  fkGreaterEq: Result:=boolTo01[ArgValue(0)>=ArgValue(1)];
-  fkLesserEq:  Result:=boolTo01[ArgValue(0)<=ArgValue(1)];
-  fkEqual:     Result:=boolTo01[ArgValue(0)=ArgValue(1)];
-  fkNotEqual:  Result:=boolTo01[ArgValue(0)<>ArgValue(1)];
+  fkGreater:   Result := boolTo01[ArgValue(0) > ArgValue(1)];
+  fkLesser:    Result := boolTo01[ArgValue(0) < ArgValue(1)];
+  fkGreaterEq: Result := boolTo01[ArgValue(0) >= ArgValue(1)];
+  fkLesserEq:  Result := boolTo01[ArgValue(0) <= ArgValue(1)];
+  fkEqual:     Result := boolTo01[ArgValue(0) = ArgValue(1)];
+  fkNotEqual:  Result := boolTo01[ArgValue(0) <> ArgValue(1)];
 
-  fkOr:  Result:=boolTo01[boolValue(0) or boolValue(1)];
-  fkAnd: Result:=boolTo01[boolValue(0) and boolValue(1)];
-  fkNot: Result:=boolTo01[not boolValue(0)];
+  fkOr:  Result := boolTo01[boolValue(0) or boolValue(1)];
+  fkAnd: Result := boolTo01[boolValue(0) and boolValue(1)];
+  fkNot: Result := boolTo01[not boolValue(0)];
 
   else raise Exception.Create('Ou ! Function '+FunctionKinds[ffuncKind].Name+' not implemented !');
  end;
@@ -495,20 +495,20 @@ begin
  ClearExceptions(true);
 end;
 
-function TMathFunction.ToString:string;
+function TMathFunction.ToString: string;
 
   { FArgs[i].ToString, wrapped in () if it's TMathFunction and InfixOper. }
-  function ArgToString(i:Integer):string;
+  function ArgToString(i: Integer): string;
   begin
-   Result:=FArgs[i].ToString;
+   Result := FArgs[i].ToString;
    if (FArgs[i] is TMathFunction) and
       (FunctionKinds[TMathFunction(FArgs[i]).FuncKind].
         InfixOperatorName<> '') then
-    Result:='('+Result+')';
+    Result := '('+Result+')';
   end;
 
-var i:Integer;
-    NegatedConst:TMathConst;
+var i: Integer;
+    NegatedConst: TMathConst;
 begin
  if FuncKind = fkNegate then
  begin
@@ -518,29 +518,29 @@ begin
      with TMathConst with negated Value.
      If not, I would be undertain here whether to wrap
      FArgs[0].ToString inside () when FArgs[0] is TMathConst. }
-   NegatedConst:=TMathConst.Create(-TMathConst(FArgs[0]).ConstValue);
+   NegatedConst := TMathConst.Create(-TMathConst(FArgs[0]).ConstValue);
    try
-    Result:=NegatedConst.ToString;
+    Result := NegatedConst.ToString;
    finally NegatedConst.Free end;
   end else
-   Result:='-' + ArgToString(0);
+   Result := '-' + ArgToString(0);
  end else
  if FunctionKinds[FuncKind].InfixOperatorName <> '' then
  begin
-  Result:='';
-  for i:=0 to FArgs.Count-1 do
+  Result := '';
+  for i := 0 to FArgs.Count-1 do
   begin
    Result += ArgToString(i);
-   if i<FArgs.Count-1 then
+   if i < FArgs.Count-1 then
     Result += ' ' +FunctionKinds[FuncKind].InfixOperatorName +' ';
   end;
  end else
  begin
-  Result:=FunctionKinds[FuncKind].FunctionName +'(';
-  for i:=0 to FArgs.Count-1 do
+  Result := FunctionKinds[FuncKind].FunctionName +'(';
+  for i := 0 to FArgs.Count-1 do
   begin
    Result += FArgs[i].ToString; { no need to use here ArgToString(i) }
-   if i<FArgs.Count-1 then Result += ',';
+   if i < FArgs.Count-1 then Result += ',';
   end;
   Result += ')';
  end;
@@ -548,26 +548,26 @@ end;
 
 { EUndefinedVariable ----------------------------------------------- }
 
-constructor EUndefinedVariable.Create(const VariableName:string);
+constructor EUndefinedVariable.Create(const VariableName: string);
 begin
  inherited Create('Undefined variable : '''+VariableName+'''');
 end;
 
 { inne funkcje ------------------------------------------------------------------- }
 
-function AddFloat(a,b:Float):Float; begin result:=a+b end;
-function SubtractFloat(a,b:Float):Float; begin result:=a-b end;
-function MultiplyFloat(a,b:Float):Float; begin result:=a*b end;
-function DivideFloat(a,b:Float):Float; begin result:=a/b end;
+function AddFloat(a, b: Float): Float; begin result := a+b end;
+function SubtractFloat(a, b: Float): Float; begin result := a-b end;
+function MultiplyFloat(a, b: Float): Float; begin result := a*b end;
+function DivideFloat(a, b: Float): Float; begin result := a/b end;
 
-function ReturnSingleVariable(const VariableName:string):Float;
+function ReturnSingleVariable(const VariableName: string): Float;
 begin
  if SameText(VariableName, SingleVariableName) then
-  result:=SingleVariable else
+  result := SingleVariable else
   raise EUndefinedVariable.Create(VariableName);
 end;
 
-function ReturnNoVariable(const VariableName:string):Float;
+function ReturnNoVariable(const VariableName: string): Float;
 begin
  raise EUndefinedVariable.Create(VariableName);
 end;
