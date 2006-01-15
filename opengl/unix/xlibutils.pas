@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -20,7 +20,7 @@
 
 { @abstract(Various helper things for Xlib.)
 
-  One thing must be mentioned here: in initialization of this unit
+  In initialization of this unit
   we register our own Xlib ErrorHandler that doesn't halt the program
   in case of error. It raises @link(EXlibError) with appropriate Message.
   This allows to use ObjectPascal exceptions to handle Xlib errors,
@@ -38,41 +38,14 @@ unit XlibUtils;
 
 interface
 
-uses Xlib, {$ifdef FPC} X, XUtil, {$endif} SysUtils, KambiUtils;
+uses Xlib, X, XUtil, SysUtils, KambiUtils;
 
 const
   XlibDLL = 'libX11.so';
   XmuDLL = 'libXmu.so';
 
 type
-  {$ifdef FPC}
   XBool = Xlib.TBool;
-  {$else}
-  XBool = LongBool; { w Xlib.pas Bool jest zdefiniowany jako LongInt
-               co jest poprawne ale niezbyt wygodne do uzycia w Pascalu.
-               W moich headerach bede wiec uzywal XBool na okreslenie
-               tego samego typu ale interpretowanego przez kompilator
-               jako typ logiczny (a wiec porzadnie). }
-
-  { w fpc typy X11 sa zdefiniowane konsekwentnie z T na poczatku. Pod kylixem nie. }
-  TXStandardColormap = XStandardColormap;
-  TVisualID = VisualID;
-  TXID = XID;
-  TWindow = Window;
-  TXKeyEvent = XKeyEvent;
-  TXConfigureEvent = XConfigureEvent;
-  TAtom = Atom;
-  TXSizeHints = XSizeHints;
-  TXSetWindowAttributes = XSetWindowAttributes;
-  TXTextProperty = XTextProperty;
-  TXClassHint = XClassHint;
-  TXWMHints = XWMHints;
-  TXEvent = XEvent;
-  TXButtonPressedEvent = XButtonPressedEvent;
-  TXButtonReleasedEvent = XButtonReleasedEvent;
-  TXMotionEvent = XMotionEvent;
-  TXGCValues = XGCValues;
-  {$endif}
 
   TXStandardColormap_Array = array[0..High(Word)]of TXStandardColormap;
   PXStandardColormap_Array = ^TXStandardColormap_Array;
@@ -81,12 +54,6 @@ const
   { XBool, tzn. Xlib.Bool pod Delphi lub XBool pod FPC }
   XBool_true = {$ifdef DELPHI} Ord {$endif} (true);
   XBool_false = {$ifdef DELPHI} Ord {$endif} (false);
-
-{$ifdef FPC}
-  { Below added by Kambi for FPC.
-    FPC Xlib headers lack these constants (at least I hadn't found them) }
-  {$I XLibUtils_Xatoms.inc}
-{$endif FPC}
 
 { xutil.h (XLibDLL) ------------------------------------------------------ }
 
@@ -114,7 +81,8 @@ function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
 
 { some mine things ------------------------------------------------------------- }
 
-type EXlibError = class(Exception);
+type
+  EXlibError = class(Exception);
 
 implementation
 
