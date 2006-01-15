@@ -41,6 +41,7 @@ interface
 uses Xlib, X, XUtil, SysUtils, KambiUtils;
 
 const
+  { }
   XlibDLL = 'libX11.so';
   XmuDLL = 'libXmu.so';
 
@@ -51,12 +52,16 @@ type
   PXStandardColormap_Array = ^TXStandardColormap_Array;
 
 const
-  { XBool, tzn. Xlib.Bool pod Delphi lub XBool pod FPC }
-  XBool_true = {$ifdef DELPHI} Ord {$endif} (true);
-  XBool_false = {$ifdef DELPHI} Ord {$endif} (false);
+  XBool_true = true;
+  XBool_false = false;
 
-{ xutil.h (XLibDLL) ------------------------------------------------------ }
+type
+  EXlibError = class(Exception);
 
+{ ---------------------------------------------------------------------------- }
+{ @section(xutil.h (XLibDLL)) }
+
+{ }
 function XSetStandardProperties(dpy: PDisplay; win: TWindow; window_name: pchar;
   icon_name: pchar; icon_pixmap: TPixmap; argv: PPChar; argc: Integer;
   hints: PXSizeHints): integer; cdecl; external XLibDLL;
@@ -68,28 +73,26 @@ procedure XSetWMProperties_Pascal(Display: PDisplay; W: TWindow;
   WindowName: PXTextProperty; IconName: PXTextProperty;
   NormalHints: PXSizeHints; WMHints: PXWMHints; ClassHints: PXClassHint);
 
-{ xlib.h (XLibDLL) -------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(xlib.h (XLibDLL)) }
 
+{ }
 function XParseGeometry(parsestring: PChar; x_return, y_return: PInteger;
   width_return, height_return: PLongWord): integer; cdecl; external XlibDLL;
 
-{ Xmu/StdCmap.h (XmuDLL) ---------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(Xmu/StdCmap.h (XmuDLL)) }
 
+{ }
 function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
   AVisualid: TVisualID; depth: Longword; AProperty: TAtom; replace, retain: XBool)
   :TStatus; cdecl; external XmuDLL;
 
-{ some mine things ------------------------------------------------------------- }
-
-type
-  EXlibError = class(Exception);
-
 implementation
 
-{ --------------- }
-
-type TArray_PChar = packed array[0..High(Word)]of PChar;
-     PArray_PChar=^TArray_PChar;
+type
+  TArray_PChar = packed array[0..High(Word)]of PChar;
+  PArray_PChar=^TArray_PChar;
 
 procedure CreateArgCV(var argc_ret: Longint; var argv_ret: PPChar);
 { Na podstawie ParamCount i ParamStr konstruujemy argc i argv
@@ -158,7 +161,8 @@ begin
 
  if error.minor_code <> 0 then
  begin
-{ sorry - jak zrobic ponizsze ? Skad wziac ExtensionName ?? Wiem ze ono jest
+
+{ TODO: jak zrobic ponizsze ? Skad wziac ExtensionName ?? Wiem ze ono jest
   zakodowane w request_code. }
 {  XGetErrorDatabaseText(display, 'XRequest',
     PChar(ExtensionName +'.' +IntToStr(error.minor_code)),
