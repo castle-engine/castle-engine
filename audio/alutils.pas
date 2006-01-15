@@ -41,11 +41,6 @@
 
 unit ALUtils;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 { Define symbol USE_ALUT to make Begin/EndAL be implemented using
   alutInit/Exit. BeginAL will then always behave like CheckForAlut = true
   (so user must have proper alut library installed, or alut functions

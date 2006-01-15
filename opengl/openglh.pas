@@ -86,11 +86,6 @@
 
 unit OpenGLh;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 {******************************************************************************}
 {                                                                              }
 {       Borland Delphi Runtime Library                                         }

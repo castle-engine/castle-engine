@@ -90,10 +90,6 @@
 
 unit GLWinMessages;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
 { TODO
   - przydalby sie jeszcze kursor dla MessageInput[Query]
   - this should be implemented on top of GLWinModes.TGLModeFrozenScreen,

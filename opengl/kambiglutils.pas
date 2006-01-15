@@ -30,11 +30,6 @@
 
 unit KambiGLUtils;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 { TODO
   - check loading textures with alpha channel,
     some higher-level versions of LoadGLTextures seem to not support it

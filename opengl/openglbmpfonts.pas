@@ -31,11 +31,6 @@
 
 unit OpenGLBmpFonts;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 {$I openglmac.inc}
 
 interface

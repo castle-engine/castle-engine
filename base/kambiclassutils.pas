@@ -68,11 +68,6 @@
 
 unit KambiClassUtils;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 { TODO - napisac klase TStreamReaderMediator :
   ta klasa (podklasa TStream ? Niekoniecznie !) bedzie zapewniala metode
   do odczytywania strumienia. Bedzie ona pobierala jako arg. strumien

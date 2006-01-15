@@ -218,12 +218,6 @@
 
 unit VRMLNodes;
 
-
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 {
   Known problems:
   - MFString field with strings not enclosed in double quotes will

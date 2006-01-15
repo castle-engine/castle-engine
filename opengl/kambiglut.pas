@@ -43,11 +43,6 @@
 
 unit KambiGlut;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 (*
   Type translation :
     unsigned int = LongWord

@@ -78,11 +78,6 @@
 
 unit KambiPng;
 
-{
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-
 {$I kambiconf.inc}
 {$I pngconf.inc}
 

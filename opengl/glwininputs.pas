@@ -37,10 +37,6 @@
 unit GLWinInputs;
 
 {
-  TODO: make sure docs look good in pasdoc
-  TODO: translate docs to English
-}
-{
   TODO
   - Input i InputAnyKey powinny byc scalone w jedno,
     razem z ich callbackami, przynajmniej OnDraw.
