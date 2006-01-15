@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -18,26 +18,28 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(This is a Pascal wrapper for Xxf86vm library.)
-
+{ This is a Pascal wrapper for Xxf86vm library.
   This library allows changing screen resolution under X11.
 
   Note that libXxf86vm is usually (at least on my Debian testing)
   distributed only as static library (".a" instead of ".so").
-  So $linklib Xxf86vm usually links you to static library.
+  So @code($linklib Xxf86vm) usually links you to static library.
   (this is of course no reason to worry, I just thought I may say it here...)
 
-  Original C header is in X11/include/extensions/xf86vmode.h
+  Original C header is in @code(X11/include/extensions/xf86vmode.h) .
   Translation done by Kambi by hand and using some regexps.
   Primitive types translation:
-    short = SmallInt;
-    unsigned short = Word;
-    int = long = LongInt;
-    unsigned int = unsigned long = LongWord;
-    float = Single;
-    double = Double;
-    Bool = LongBool;
+@preformatted(
+  short = SmallInt;
+  unsigned short = Word;
+  int = long = LongInt;
+  unsigned int = unsigned long = LongWord;
+  float = Single;
+  double = Double;
+  Bool = LongBool;
+)
 
+@preformatted(
  ------------------------------------------------------------------------
 
  $Xorg: xf86vmode.h,v 1.3 2000/08/18 04:05:46 coskrey Exp $
@@ -52,10 +54,10 @@
  OTHER DEALINGS IN THE SOFTWARE.
 
  THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION
+)
 }
 
 unit XF86VMode;
-
 
 {$ifdef VER1_0_10}
   {$FATAL This unit cannot be safely
@@ -72,6 +74,7 @@ uses Xlib, X, XUtil;
 {$define vmdecl := cdecl; external}
 
 const
+  { }
   X_XF86VidModeQueryVersion      = 0;
   X_XF86VidModeGetModeLine       = 1;
   X_XF86VidModeModModeLine       = 2;
@@ -150,14 +153,12 @@ type
     c_private: PLongInt;
   end;
     PXF86VidModeModeInfo =  ^TXF86VidModeModeInfo;
+   { PPXF86VidModeModeInfo can be also treated as PArray_PXF86VidModeModeInfo }
    PPXF86VidModeModeInfo =  ^PXF86VidModeModeInfo;
   PPPXF86VidModeModeInfo = ^PPXF86VidModeModeInfo;
 
   TArray_PXF86VidModeModeInfo = array[0..High(Word)] of PXF86VidModeModeInfo;
   PArray_PXF86VidModeModeInfo = ^TArray_PXF86VidModeModeInfo;
-
-  { PPXF86VidModeModeInfo mozna traktowac wygodniej jako
-    PArray_PXF86VidModeModeInfo }
 
   TXF86VidModeSyncRange = record
     hi: Single;
@@ -177,25 +178,27 @@ type
   PXF86VidModeMonitor = ^TXF86VidModeMonitor;
 
   TXF86VidModeNotifyEvent = record
-    c_type: LongInt;                    { of event }
-    serial: LongInt;            { # of last request processed by server }
-    send_event: LongBool;               { true if this came from a SendEvent req }
-    display: PDisplay;          { Display the event was read from }
-    root: TWindow;              { root window of event screen }
-    state: LongInt;                     { What happened }
-    kind: LongInt;                      { What happened }
-    forced: LongBool;           { extents of new region }
-    time: TTime;                        { event timestamp }
+    c_type: LongInt;                    {< of event }
+    serial: LongInt;            {< # of last request processed by server }
+    send_event: LongBool;               {< true if this came from a SendEvent req }
+    display: PDisplay;          {< Display the event was read from }
+    root: TWindow;              {< root window of event screen }
+    state: LongInt;                     {< What happened }
+    kind: LongInt;                      {< What happened }
+    forced: LongBool;           {< extents of new region }
+    time: TTime;                        {< event timestamp }
   end;
 
   TXF86VidModeGamma = record
-    red: Single;                        { Red Gamma value }
-    green: Single;              { Green Gamma value }
-    blue: Single;                       { Blue Gamma value }
+    red: Single;                        {< Red Gamma value }
+    green: Single;              {< Green Gamma value }
+    blue: Single;                       {< Blue Gamma value }
   end;
   PXF86VidModeGamma = ^TXF86VidModeGamma;
 
-{ macros }
+{ Macros: }
+
+{ }
 function XF86VidModeSelectNextMode(dpy: PDisplay; screen: LongInt): LongBool;
 function XF86VidModeSelectPrevMode(dpy: PDisplay; screen: LongInt): LongBool;
 
