@@ -61,10 +61,10 @@ D   soundwav.pas
 |   enumeratefiles.pas
 D   intrects.pas
 |   kambiclassutils.pas
--   kambiutils.pas
+|   kambiutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
--   mathexprlexer.pas
+D   mathexprlexer.pas
 -   mathexprparser.pas
 -   mathexpr.pas
 -   parsingpars.pas

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -60,7 +60,7 @@ interface
 
 uses MathExpr, MathExprLexer, Math;
 
-{ Creates and returns instance of TMathExpr, that represents parsed tree 
+{ Creates and returns instance of TMathExpr, that represents parsed tree
   of expression in S. }
 function ParseMathExpr(const S: string): TMathExpr;
 
@@ -89,9 +89,9 @@ const
 function ParseMathExpr(const S: string): TMathExpr;
 var Lexer: TMathLexer;
 
-  const operatory_multi = [tokRazy, tokDziel, tokUp, tokModulo];
+  const operatory_multi = [tokMultiply, tokDivide, tokPower, tokModulo];
         operatory_addy = [tokPlus, tokMinus];
-        operatory_relac = [tokWieksze, tokMniejsze, tokWiekszeRowne, tokMniejszeRowne, tokRowne, tokNieRowne];
+        operatory_relac = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
   function binaryOper(tok: TToken): TFunctionKind;
   begin
@@ -99,18 +99,19 @@ var Lexer: TMathLexer;
     tokPlus: result := fkAdd;
     tokMinus: result := fkSubtract;
 
-    tokRazy: result := fkMultiply;
-    tokDziel: result := fkDivide;
-    tokUp: result := fkPower;
+    tokMultiply: result := fkMultiply;
+    tokDivide: result := fkDivide;
+    tokPower: result := fkPower;
     tokModulo: result := fkModulo;
 
-    tokWieksze: result := fkGreater;
-    tokMniejsze: result := fkLesser;
-    tokWiekszeRowne: result := fkGreaterEq;
-    tokMniejszeRowne: result := fkLesserEq;
-    tokRowne: result := fkEqual;
-    tokNieRowne: result := fkNotEqual;
-    else raise EMathParserError.Create(Lexer, 'internal error : token not a binary operator');
+    tokGreater: result := fkGreater;
+    tokLesser: result := fkLesser;
+    tokGreaterEqual: result := fkGreaterEq;
+    tokLesserEqual: result := fkLesserEq;
+    tokEqual: result := fkEqual;
+    tokNotEqual: result := fkNotEqual;
+    else raise EMathParserError.Create(Lexer,
+      'internal error : token not a binary operator');
    end
   end;
 
@@ -159,8 +160,8 @@ var Lexer: TMathLexer;
    result := nil;
    try
     case Lexer.token of
-     tokVariable: begin Lexer.nexttoken; result := TMathVar.Create(Lexer.token_string) end;
-     tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.token_float) end;
+     tokVariable: begin Lexer.nexttoken; result := TMathVar.Create(Lexer.TokenString) end;
+     tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.TokenFloat) end;
      tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [czynnik]) end;
      tokLParen: begin
         Lexer.nexttoken;
@@ -169,7 +170,7 @@ var Lexer: TMathLexer;
         Lexer.nexttoken;
        end;
      tokFuncName: begin
-        fk := Lexer.token_funckind;
+        fk := Lexer.TokenFunctionKind;
         Lexer.nexttoken;
         fparams := TMathExprList.Create;
         try
@@ -209,7 +210,7 @@ begin
   result := nil;
   try
    result := wyrazenie_math;
-   checkTokenIs(tokKoniec, SErrKoniecExpected);
+   CheckTokenIs(tokEnd, SErrKoniecExpected);
   except result.Free; raise end;
  finally Lexer.Free end;
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2004 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -18,10 +18,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Lekser wyrazenia matematycznego, na uzytek @link(MathExprParser).)
+{ @abstract(Lexer of mathematical expression, for MathExprParser.)
 
-  Specyfikacja tokenow jakie lekser generuje jest podana w dokumentacji
-  @link(MathExprParser). }
+  For specification of tokens that this lexer understands,
+  see documentation of MathExprParser unit. }
 
 unit MathExprLexer;
 
@@ -30,69 +30,80 @@ interface
 uses KambiUtils, MathExpr, SysUtils, Math;
 
 type
-  TToken = (tokKoniec,
-    tokConst, { wartosc w token_float }
-    tokVariable, { nazwa w token_string }
-    tokFuncName, { funkcja w token_funckind }
+  TToken = (tokEnd,
+    tokConst, {< Value of given constant will be in w TMathLexer.TokenFloat. }
+    tokVariable, {< Name of given variable will be in TMathLexer.TokenString. }
+    tokFuncName, {< Function kind of given function will be in TMathLexer.TokenFunctionKind. }
+
     tokMinus, tokPlus,
-    tokRazy, tokDziel, tokUp, tokModulo,
-    tokWieksze, tokMniejsze, tokWiekszeRowne, tokMniejszeRowne, tokRowne, tokNieRowne,
+
+    tokMultiply, tokDivide, tokPower, tokModulo,
+
+    tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual,
+
     tokLParen, tokRParen, tokComma, tokLQaren, tokRQaren);
 
   TMathLexer = class
   private
-    ftoken: TToken;
-    ftoken_float: float;
-    ftoken_string: string;
-    ftoken_funckind: TFunctionKind;
+    FToken: TToken;
+    FTokenFloat: Float;
+    FTokenString: string;
+    FTokenFunctionKind: TFunctionKind;
 
-    ftext_pos: integer;
-    ftext: string;
+    FTextPos: Integer;
+    FText: string;
   public
     { @noAutoLinkHere }
-    property token:TToken read ftoken;
-    
-    property token_string:string read ftoken_string;
-    property token_float:float read ftoken_float;
-    property token_funckind:TFunctionKind read ftoken_funckind;
+    property Token: TToken read FToken;
 
-    property text_pos:integer read ftext_pos; { aktualna pozycja leksera w stringu text }
-    property text:string read ftext; { tekst czytany przez leksera }
+    property TokenString: string read FTokenString;
+    property TokenFloat: Float read FTokenFloat;
+    property TokenFunctionKind: TFunctionKind read FTokenFunctionKind;
 
-    { NextToken przesuwa sie na nastepny token (uaktualniajac pola token i
-      ew. token_float, token_string) i zwraca pole token.
-      Jesli w pewnym momencie token bedzie tokKoniec to juz zawsze bedzie
-      tokKoniec i wywolywanie NextToken tego nie zmieni. }
-    function NextToken:TToken;
+    { Position of lexer in the @link(Text) string. }
+    property TextPos: Integer read FTextPos;
 
-    constructor Create(const atext:string);
+    { Text that this lexer reads.
+      @noAutoLinkHere }
+    property Text: string read FText;
+
+    { NextToken moves to next token (updating fields @link(Token),
+      and eventually TokenFloat, TokenString and TokenFunctionKind)
+      and returns the value of field @link(Token).
+
+      When @link(Token) is tokEnd, then NextToken doesn't do anything,
+      i.e. @link(Token) will remain tokEnd forever. }
+    function NextToken: TToken;
+
+    constructor Create(const AText: string);
   end;
 
   { A common class for EMathLexerError and EMathParserError }
   EMathSyntaxError = class(EWrongMathExpr)
   private
-    FLexerTextPos:Integer;
-    FLexerText:string;
+    FLexerTextPos: Integer;
+    FLexerText: string;
   public
     { Those things are copied from Lexer at exception creation.
       We do not copy reference to Lexer since this would be too dangerous
       in usual situation (you would have to be always sure that you will
       not access it before you Freed it; too troublesome, usually) }
-    property LexerTextPos:Integer read FLexerTextPos;
-    property LexerText:string read FLexerText;
-    constructor Create(Lexer:TMathLexer; const s:string);
-    constructor CreateFmt(Lexer:TMathLexer; const s:string; const args:array of const);
+    property LexerTextPos: Integer read FLexerTextPos;
+    property LexerText: string read FLexerText;
+    constructor Create(Lexer: TMathLexer; const s: string);
+    constructor CreateFmt(Lexer: TMathLexer; const s: string;
+      const args: array of const);
   end;
 
   EMathLexerError = class(EMathSyntaxError);
 
 implementation
 
-function Int64Power(base:integer; power:cardinal):int64;
+function Int64Power(base: Integer; power: Cardinal): Int64;
 begin
- result:=1;
- while power>0 do begin
-  result:=result*base;
+ result := 1;
+ while power > 0 do begin
+  result := result*base;
   Dec(power);
  end;
 end;
@@ -100,8 +111,8 @@ end;
 constructor TMathLexer.Create(const atext: string);
 begin
  inherited Create;
- ftext:=atext;
- ftext_pos:=1;
+ ftext := atext;
+ fTextPos := 1;
  NextToken;
 end;
 
@@ -111,128 +122,128 @@ const
   digits = ['0'..'9'];
   litery = ['a'..'z', 'A'..'Z', '_'];
 
-  function ReadSimpleToken:boolean;
+  function ReadSimpleToken: boolean;
   const
     { kolejnosc w toks_strs MA znaczenie - pierwszy zostanie dopasowany string dluzszy,
       wiec aby Lexer pracowal zachlannnie stringi dluzsze musza byc pierwsze. }
     toks_strs : array[0..16] of string=
      ('<>', '<=', '>=', '<', '>', '=', '+', '-', '*', '/', ',', '(', ')', '^', '[', ']', '%');
     toks_tokens : array[0..High(toks_strs)]of TToken =
-     (tokNieRowne, tokMniejszeRowne, tokWiekszeRowne, tokMniejsze, tokWieksze,
-      tokRowne, tokPlus, tokMinus, tokRazy, tokDziel, tokComma, tokLParen, tokRParen,
-      tokUp, tokLQaren,tokRQaren, tokModulo);
-  var i:integer;
+     (tokNotEqual, tokLesserEqual, tokGreaterEqual, tokLesser, tokGreater,
+      tokEqual, tokPlus, tokMinus, tokMultiply, tokDivide, tokComma, tokLParen, tokRParen,
+      tokPower, tokLQaren, tokRQaren, tokModulo);
+  var i: integer;
   begin
-   for i:=0 to High(toks_strs) do
-    if Copy(text, text_pos, Length(toks_strs[i])) = toks_strs[i] then
+   for i := 0 to High(toks_strs) do
+    if Copy(text, TextPos, Length(toks_strs[i])) = toks_strs[i] then
     begin
-     ftoken:=toks_tokens[i];
-     Inc(ftext_pos,Length(toks_strs[i]));
-     result:=true;
+     ftoken := toks_tokens[i];
+     Inc(fTextPos, Length(toks_strs[i]));
+     result := true;
      exit;
     end;
-   result:=false;
+   result := false;
   end;
 
-  function ReadConstant:boolean;
+  function ReadConstant: boolean;
   { czytaj constant od aktualnego miejsca (a wiec uaktualnij
-    ftoken i ftoken_float). Zwraca false jesli nie stoimy na constant. }
-  var digitsCount:cardinal;
-      val:Int64;
+    ftoken i fTokenFloat). Zwraca false jesli nie stoimy na constant. }
+  var digitsCount: cardinal;
+      val: Int64;
   begin
-   result:=text[ftext_pos] in digits;
+   result := text[fTextPos] in digits;
    if not result then exit;
 
-   ftoken:=tokConst;
-   val:=DigitAsByte(text[ftext_pos]);
-   Inc(ftext_pos);
-   while SCharIs(text,ftext_pos,digits) do
+   ftoken := tokConst;
+   val := DigitAsByte(text[fTextPos]);
+   Inc(fTextPos);
+   while SCharIs(text, fTextPos, digits) do
    begin
-    val:=10*val+DigitAsByte(text[ftext_pos]);
-    Inc(ftext_pos);
+    val := 10*val+DigitAsByte(text[fTextPos]);
+    Inc(fTextPos);
    end;
-   ftoken_float:=val;
+   fTokenFloat := val;
 
    { czytaj czesc ulamkowa }
-   if SCharIs(text,ftext_pos,'.') then
+   if SCharIs(text, fTextPos, '.') then
    begin
-    Inc(ftext_pos);
-    if not SCharIs(text,ftext_pos,digits) then
+    Inc(fTextPos);
+    if not SCharIs(text, fTextPos, digits) then
      raise EMathLexerError.Create(Self, 'digit expected');
-    digitsCount:=1;
-    val:=DigitAsByte(text[ftext_pos]);
-    Inc(ftext_pos);
-    while SCharIs(text,ftext_pos,digits) do
+    digitsCount := 1;
+    val := DigitAsByte(text[fTextPos]);
+    Inc(fTextPos);
+    while SCharIs(text, fTextPos, digits) do
     begin
-     val:=10*val+DigitAsByte(text[ftext_pos]);
+     val := 10*val+DigitAsByte(text[fTextPos]);
      Inc(digitsCount);
-     Inc(ftext_pos);
+     Inc(fTextPos);
     end;
-    ftoken_float:=ftoken_float + (val / Int64Power(10, digitsCount));
+    fTokenFloat := fTokenFloat + (val / Int64Power(10, digitsCount));
    end;
   end;
 
-  function ReadIdentifier:string;
+  function ReadIdentifier: string;
   { czytaj identyfikator - to znaczy, czytaj nazwe zmiennej co do ktorej nie
     jestesmy pewni czy nie jest przypadkiem nazwa funkcji. Uwaga - powinien
-    zbadac kazdy znak, poczynajac od text[ftext_pos], czy rzeczywiscie
+    zbadac kazdy znak, poczynajac od text[fTextPos], czy rzeczywiscie
     nalezy do identChars.
 
     Always returns non-empty string (length >= 1) }
   const identStartChars = litery;
         identChars = identStartChars + digits;
-  var startPos:integer;
+  var startPos: integer;
   begin
-   if not (text[ftext_pos] in identStartChars) then
+   if not (text[fTextPos] in identStartChars) then
     raise EMathLexerError.Create(Self, 'wrong token');
-   startPos:=ftext_pos;
-   Inc(ftext_pos);
-   while SCharIs(text, ftext_pos, identChars) do Inc(ftext_pos);
-   result:=CopyPos(text, startPos, ftext_pos-1);
+   startPos := fTextPos;
+   Inc(fTextPos);
+   while SCharIs(text, fTextPos, identChars) do Inc(fTextPos);
+   result := CopyPos(text, startPos, fTextPos-1);
   end;
 
 const
   consts_str: array[0..1]of string = ('pi', 'enat');
-  consts_values: array[0..High(consts_str)]of float = (pi,enatural);
-var p:integer;
-    fk:TFunctionKind;
+  consts_values: array[0..High(consts_str)]of float = (pi, enatural);
+var p: integer;
+    fk: TFunctionKind;
 begin
- while SCharIs(text,text_pos,whiteChars) do Inc(ftext_pos);
- if text_pos>Length(text) then
-  ftoken:=tokKoniec else
+ while SCharIs(text, TextPos, whiteChars) do Inc(fTextPos);
+ if TextPos > Length(text) then
+  ftoken := tokEnd else
  begin
   if not ReadSimpleToken then
   if not ReadConstant then
   begin
    { jest to zmienna, nazwa funkcji lub stalej }
-   ftoken:=tokVariable;
-   ftoken_string:=ReadIdentifier;
+   ftoken := tokVariable;
+   fTokenString := ReadIdentifier;
 
    { sprawdzamy czy jest to nazwa funkcji }
-   for fk:=Low(TFunctionKind) to High(TFunctionKind) do
+   for fk := Low(TFunctionKind) to High(TFunctionKind) do
    begin
-    if SameText(FunctionKinds[fk].FunctionName, ftoken_string) then
+    if SameText(FunctionKinds[fk].FunctionName, fTokenString) then
     begin
-     ftoken:=tokFuncName;
-     ftoken_funckind:=fk;
+     ftoken := tokFuncName;
+     fTokenFunctionKind := fk;
      break;
     end;
    end;
 
    { jesli nie jest to nazwa funkcji sprawdzamy czy jest to nazwa stalej }
-   if ftoken=tokVariable then
+   if ftoken = tokVariable then
    begin
-    p:=ArrayPosText(ftoken_string, consts_str);
-    if p>=0 then
+    p := ArrayPosText(fTokenString, consts_str);
+    if p >= 0 then
     begin
-     ftoken:=tokConst;
-     ftoken_float:=consts_values[p];
+     ftoken := tokConst;
+     fTokenFloat := consts_values[p];
     end;
    end;
 
   end;
  end;
- result:=token;
+ result := token;
 end;
 
 { EMathSyntaxError --------------------------------------- }
@@ -240,11 +251,12 @@ end;
 constructor EMathSyntaxError.Create(Lexer: TMathLexer; const s: string);
 begin
  inherited Create(s);
- FLexerTextPos:=Lexer.Text_Pos;
- FLexerText:=Lexer.Text;
+ FLexerTextPos := Lexer.TextPos;
+ FLexerText := Lexer.Text;
 end;
 
-constructor EMathSyntaxError.CreateFmt(Lexer: TMathLexer; const s: string; const args: array of const);
+constructor EMathSyntaxError.CreateFmt(Lexer: TMathLexer; const s: string;
+  const args: array of const);
 begin
  Create(Lexer, Format(s, args))
 end;
@@ -253,32 +265,32 @@ end.
 
 (*
 ---------------------------------------------------------------
-testy leksera :
+tests of lexer :
 
-function ParseMathExpr(const s:string):TMathExpr;
-var lekser:TMathLekser;
+function ParseMathExpr(const s: string): TMathExpr;
+var lekser: TMathLekser;
 begin
- lekser:=TMathLekser.Create(s);
+ lekser := TMathLekser.Create(s);
  repeat
   case lekser.token of
-   tokConst: Writeln('const ',lekser.token_float);
-   tokVariable: Writeln('var ',lekser.token_string);
-   tokFuncName: Writeln('funkcja nr ',ord(lekser.token_funckind));
+   tokConst: Writeln('const ',lekser.TokenFloat);
+   tokVariable: Writeln('var ',lekser.TokenString);
+   tokFuncName: Writeln('funkcja nr ',ord(lekser.TokenFunctionKind));
    tokMinus: Writeln('-');
    tokPlus: Writeln('+');
-   tokRazy: Writeln('*');
-   tokDziel: Writeln('/');
+   tokMultiply: Writeln('*');
+   tokDivide: Writeln('/');
    tokLParen: Writeln('(');
    tokRParen: Writeln(')');
    tokComma: Writeln(',');
-   tokKoniec: Writeln('koniec');
+   tokEnd: Writeln('koniec');
    else Writeln('wrong token');
   end;
   lekser.nexttoken;
- until lekser.token=tokKoniec;
+ until lekser.token = tokEnd;
  lekser.free;
 
- result:=TMathConst.Create(10);
+ result := TMathConst.Create(10);
 end;
 
 --------------------------------------------
