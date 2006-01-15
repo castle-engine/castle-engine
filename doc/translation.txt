@@ -70,7 +70,7 @@ D   mathexprlexer.pas
 -   parsingpars.pas
 -   progressconsole.pas
 |   progressunit.pas
--   rects.pas - (almost done, but the comments must be generally updated and this unit possibly may be removed ?)
+D   rects.pas
 |   vectormath.pas
 
   fonts/
