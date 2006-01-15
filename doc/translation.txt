@@ -89,7 +89,7 @@ D   kambipasjpeg_stream_mgrs.pas
 D   kambipngutils.pas
 
   opengl/
--   win32/glwindowwinapimenu.pas
+D   win32/glwindowwinapimenu.pas
 D   win32/openglwindowsfonts.pas
 -   unix/xf86vmode.pas
 -   unix/xlibutils.pas

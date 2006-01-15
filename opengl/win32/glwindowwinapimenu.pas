@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -18,56 +18,66 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Helper unit for WINAPI GLWindow implementation.)
+{ @abstract(Helper unit for GLWindow implementation of menu-related things
+  under WinAPI.)
 
-  It converts menu structure from classes in GLWindowMenu to WinAPI menu
+  It converts menu structure from classes in glwindowmenu.inc to WinAPI menu
   (HMenu handle).
 
   Let me elaborate here a little about how menu shortcuts are handled
   when GLWindow is implemented on top of WinAPI:
 
-  A. 1st thing to realize is that WinAPI is stupid and AFAIK you simply
-     can't explicitly say to WinAPI : this menu item's key shortcut
-     is xxx.
+  @orderedList(
+    @item(
+      1st thing to realize is that WinAPI is stupid and AFAIK you simply
+      can't explicitly say to WinAPI : this menu item's key shortcut
+      is xxx.
 
-     Instead you have to do two things:
-     1. When creating menu item, specify it's caption as
-        "Real caption" + CharTab + "textual description of menu's key shortcut"
+      Instead you have to do two things:
 
-     2. Create accelerator table (e.g. with CreateAcceleratorTable)
-        that specifies associations "key shortcuts" -> "command numbers to
-        be returned by WM_COMMAND".
+      @orderedList(
+        @item(
+          When creating menu item, specify it's caption as
+          "Real caption" + CharTab + "textual description of menu's key shortcut")
 
-        Then you have to use that accelerator table in your message loop
-        using TranslateAccelerators. This will actually translate WM_KEYDOWN
-        messages to WM_COMMAND.
+        @item(
+          Create accelerator table (e.g. with CreateAcceleratorTable)
+          that specifies associations "key shortcuts" -> "command numbers to
+          be returned by WM_COMMAND".
 
-     What's stupid with this ?
-     It's stupid because there actually need not be any connection
-     between what "textual description of menu's key shortcut"
-     you gave in 1 and what actual key shortcuts you associate
-     with which commands in 2.
-     You can easily specify no or inccorrect textual key descriptions for
-     some menu items. Moreover you can create "textual descriptions"
-     in non-standard way, e.g. some programs name Ctrl + O shortcut
-     as 'Ctrl+o' and some as 'Ctrl+O'.
+          Then you have to use that accelerator table in your message loop
+          using TranslateAccelerators. This will actually translate WM_KEYDOWN
+          messages to WM_COMMAND.)
+      )
 
-  B. OK, so what I'm doing with it ?
+      What's stupid about this ?
+      It's stupid because there actually need not be any connection
+      between what "textual description of menu's key shortcut"
+      you gave in 1 and what actual key shortcuts you associate
+      with which commands in 2.
+      You can easily specify none or inccorrect textual key descriptions for
+      some menu items. Moreover you can create "textual descriptions"
+      in non-standard way, e.g. some programs name Ctrl + O shortcut
+      as 'Ctrl+o' and some as 'Ctrl+O'.)
 
-     Well, in this particular case stupidity of WinAPI means that I have
-     less work. That's because I already implemented mechanism to
-     create textual key descriptions in TMenuItem.KeyString
-     and I already created mechanism to translate key downs to
-     appropriately translate key presses to menu items.
-     I had to do this because my GLWindow unit must at least basically
-     work when implemented on top of glut or Xlib, where I don't have
-     a concept of a "menu item with key shortcut" available.
+    @item(
+      OK, so what I'm doing with it ?
 
-     So what I'm doing ?
-     I'm doing A.1 in this unit using my TMenuItem.KeyString, and
-     I'm ignoring A.2 (i.e. I'm doing equivalent things myself in GLWindow unit,
-     not using any WinAPI accelerator tables).
-  }
+      Well, in this particular case stupidity of WinAPI means that I have
+      less work. That's because I already implemented mechanism to
+      create textual key descriptions in TMenuItem.KeyString
+      and I already created mechanism to translate key downs to
+      appropriately translate key presses to menu items.
+      I had to do this because my GLWindow unit must at least basically
+      work when implemented on top of glut or Xlib, where I don't have
+      a concept of a "menu item with key shortcut" available.
+
+      So what I'm doing ?
+      I'm doing 1.1 in this unit using my TMenuItem.KeyString, and
+      I'm ignoring 1.2 (i.e. I'm doing equivalent things myself in GLWindow unit,
+      not using any WinAPI accelerator tables).)
+  )
+}
 
 unit GLWindowWinAPIMenu;
 
@@ -126,7 +136,7 @@ function WindowsMenuFromGLWindowMenu(Menu: TMenu; MenuBar: boolean): HMenu;
     end;
    end;
 
-   SetLength(Result, ResultPos - 1);  
+   SetLength(Result, ResultPos - 1);
   end;
 
   procedure AppendGLMenu(Menu: TMenu);
