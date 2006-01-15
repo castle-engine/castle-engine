@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(This unit provides OpenGL fonts from Windows installed TrueType fonts.)
+{ This unit provides OpenGL fonts from Windows installed TrueType fonts.
 
   Implementation details: we create Windows font using unit WindowsFonts,
   then convert it to TTrueTypeFont/TBmpFont using unit WinFontConvert,
@@ -28,8 +28,8 @@
 
 unit OpenGLWindowsFonts;
 
-{ sorry - I implemented an alternative approach, using Windows fonts +
-  wglUseFontXxx, anf it will be combined as an option into this unit
+{ TODO: I implemented an alternative approach, using Windows fonts +
+  wglUseFontXxx, and it will be combined as an option into this unit
   in the future. }
 { $define USE_WGL}
 
@@ -102,6 +102,7 @@ begin
 end;
 
 { TGLWindowsBitmapFont ---------------------------------------- }
+
 { This is almost identical to implementation of TGLWindowsOutlineFont.
   It's bad that I created this by some copy&pasting, I should merge
   implementation of TGLWindowsOutlineFont and TGLWindowsBitmapFont.
