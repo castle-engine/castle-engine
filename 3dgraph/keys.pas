@@ -20,30 +20,25 @@
 
 { Key constants used in GLWindow unit.
 
-  Specjalna wartosc klawisza K_None oznacza "zaden klawisz".
-  Stala K_None ma podobne zastosowanie jak specjalna wartosc wskaznika : nil;
-  w wielu miejscach zamiast robic dwa parametry
-@preformatted(
-  czyUzycKlawisz: boolean; klawisz: TKlawisz;
-)
-  wystarczy tylko parametr klawisz: TKlawisz i specyfikacja ze K_none
-  oznacza "nie uzywaj".).
+  Some properties of K_Xxx constants that are guaranteed:
 
-  Stale K_A .. K_Z sa rowne 'A' .. 'Z' i stale K_0 .. K_9 sa rowne '0'..'9',
-  ta zaleznosc bedzie zawsze prawdziwa. Stale K_NUMPADx i K_Fx sa
-  ulozone ciagle, na tym tez mozna polegac.
-  Zawsze K_None = TKey(0) (tzn. bez wzgledu na to jakim typem jest TKey,
-  reprezentacja wewn. K_None = 0), na podobnej zasadzie
-  zawsze K_Escape, K_Backsp, K_Tab, K_Enter beda rowne odpowiednim
-  stalym CharEscape, CharBacksp itd.
+  K_None is a very special key value, see it's description for more.
+  It's guaranteed that K_None constant is always equal to zero.
 
-  Kod na zewnatrz tego modulu NIE MOZE polegac na fakcie ze TKey ma
-  rozmiar 1 bajta i ze jest w ogole typem integer (a nie np. enumerated).
-  Ale na pewno zawsze bedzie typem przeliczalnym (ordinal).
+  Constants K_A .. K_Z are guaranteed to be always equal to
+  TKey('A') .. TKey('Z') and constants K_0 .. K_9 are
+  guaranteed to be always equal to TKey('0') .. TKey('9').
+  Also K_F1 .. K_F12 (function keys) are guaranteed to be always nicely ordered
+  (i.e. K_F2 = K_F1 + 1, K_F3 = K_F2 + 1 and so on).
+  Also K_Escape, K_BackSpace, K_Tab, K_Enter are guaranteed to be always equal
+  to CharEscape, CharBackSpace, CharTab, CharEnter (well, typecasted to
+  TKey type).
 
-  W miare mozliwosci nalezy unikac uzywania typow TKeysBooleans i
-  TKeysBytes - kiedy zmienie ten typ na cos wiekszego niz Byte bedzie trzeba te
-  rzeczy robic inaczej, wtedy zlikwiduje ten typ.
+  No other thing is guaranteed, so you shouldn't assume too much about
+  constants K_Xxx when writing your code.
+  Also, you should try to not assume that TKey size is 1 byte.
+  Also, try to be prepared that maybe one day TKey type
+  will be changed to be an enumerated type (not a simple Byte).
 
   @noAutoLinkHere
 }
@@ -84,6 +79,17 @@ type
   PKeysBytes = ^TKeysBytes;
 
 const
+  { K_None is a very special value of type TKey. It means "no key",
+    and is generally useful in similar situations when "nil" value
+    is useful for Pointer types: to indicate some special "invalid"
+    or "nonexisting" value. E.g. instead of
+      @longCode# Key: TKey; ValidKey: boolean; #
+    you can use just
+      @longCode# Key: TKey; #
+    and say that "Key = K_None means that key is not a valid key".
+
+    It's guaranteed that K_None constant is always equal to zero.
+    It's not a nice programming practice, but you can depend on it. }
   K_None = 0;
 
   K_BackSpace = Ord(CharBackSpace);
@@ -181,12 +187,16 @@ type
 const
   ModifierKeyToKey: array[TModifierKey]of TKey = (K_Ctrl, K_Shift, K_Alt);
 
-{ ModifiersDown : spakowane wartosci KeysDown[K_Ctrl], KeysDown[K_Shift]
-  itd. - KeysDown dla wszystkich TModifierKeys, czyli dla wszystkich
-  ModifierKeyToKey.
-  Wersja ze wskaznikiem zwraca [] gdy podasz nil, wpp. liczy result j.w. }
+{ @abstract(This "packs" values like KeysDown[K_Ctrl], KeysDown[K_Shift] etc.
+  -- KeysDown for all TModifierKey.)
+
+  Version with "PKeysBooleans" parameter returns [] (empty set)
+  when KeysDown = nil. This may be useful sometimes.
+
+  @groupBegin }
 function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys; overload;
 function ModifiersDown(KeysDown: PKeysBooleans): TModifierKeys; overload;
+{ @groupEnd }
 
 function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
 
