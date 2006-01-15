@@ -60,7 +60,7 @@ D   soundwav.pas
 -   areas.pas
 |   enumeratefiles.pas
 D   intrects.pas
--   kambiclassutils.pas
+|   kambiclassutils.pas
 -   kambiutils.pas
 D   kambizlib.pas
 D   kambizstream.pas

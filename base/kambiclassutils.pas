@@ -20,71 +20,81 @@
 
 { @abstract(Kambi class utilities.)
 
-  This unit contains Kambi's functions, procedures and classes for dealing
-  with non-visual classes. Basically, it can be considered as the extension
-  of Classes unit from RTL. It contains many wrappers for classes that
-  are defined in the Classes unit (especially for TStream) but it also
-  defines some basic useful classes made entirely on my own.
-  It also contains mamy non-class functions that deal with some classes
-  defined in Classes.
-  Note : things not dealing with classes should be rather defined in KambiUtils.
+  This unit contains stuff for dealing with non-visual classes.
+  Basically, it can be considered as the extension of Classes unit from RTL.
+  It contains many wrappers for classes that are defined in the Classes unit
+  and also defines some basic useful classes made entirely on my own.
+  It also contains many global functions that deal with some classes
+  defined in Classes unit.
 
-  This module is working under Delphi (Linux/Win) and FPC (Linux/Win)
-  (but Delphi+Linux compatibility may be dropped at some point).
+  Some notes about TStream descendants :
+  @unorderedList(
+    @item(
+      I call a stream "purely sequential" (or just "sequential")
+      if it allows only reading and/or writing of data
+      and does not allow free "Seek" calls,
+      in particular --- it does not allow Seek to move back in a stream.)
 
-  Notes about TStream descendants :
-  - in this module and in others I will call a stream "purely sequential"
-    or just "sequential" if it allows only reading and/or writing of data
-    and does not allow free "Seek" calls,
-    in particular - it does not allow Seek to move back in a stream.
+    @item(
+      I call a stream "growing" if it's read-only and it's purely sequential
+      and it's Size property is useless. In other words, when you read
+      a "growing" stream, you don't know when it ends, until you reach the end.
+      You just have to read data until Read returns 0.)
 
-  - stream is "growing" if it can only be read and if it is purely sequential
-    and if its Size property is useless. In other words, that is the kind
-    of stream that you cannot say _when_ it ends until you reach the end.
-    You just have to read data and wait until Read returns 0.
+    @item(Some question related to "growing" streams:
 
-    (note : reading the Borland's help it's not clear whether after
-      ReadCount := Stream.Read(Buf, Count)
-    one should test
-      ReadCount = 0
-    or rather the test
-      ReadCount < Count
-    is sufficient. In other words, if Read can't read exactly Count bytes but it
-    can read *some* bytes (more than zero) : can we then be sure we're standing
-    at the end of a stream ? Or maybe we should rather call Read once again and
-    only if this time ReadCount = 0 we are sure it's the end of stream ?
-    Answer : test "ReadCount = 0" is good. Test "ReadCount < Count" is not
-    sufficient in many cases (i.e. with many TStream descendants,
-    e.g. with THandleStream when handle is stdin (i.e. StdinStream
-    defined in this module is "growing") or with net socket streams).
+      Reading the Borland's help it's not clear whether after
+        @longCode# ReadCount := Stream.Read(Buf, Count) #
+      one should test
+        @longCode# ReadCount = 0 #
+      or rather the test
+        @longCode# ReadCount < Count #
+      is sufficient.
 
-    This question was occuring only with "growing" streams - in non-growing
-    one can test whether Position >= Stream. And, thinking about
-    implementating of such stream, one can be relatively sure that the test
-    "ReadCount < Count" will BE sufficient in this case. But of course one
-    should never depend on that.
-    )
+      In other words, if Read can't read exactly Count bytes but it
+      can read @italic(some) bytes (more than zero) :
+      can we then be sure we're standing at the end of a stream ?
+      Or maybe we should call Read once again and only if this time
+      ReadCount = 0 we are sure it's the end of stream ?
+      Answer : test "ReadCount = 0" is good. Test "ReadCount < Count" is not
+      sufficient in many cases (e.g. with THandleStream when handle is
+      stdin (so StdinStream defined in this unit is "growing")
+      or with net socket streams).
+
+      This question occurs only when you have to deal with "growing" streams
+      --- with non-growing streams you can always test whether
+      Stream.Position <= Stream.Size. And, thinking about
+      implementation of various non-growing streams,
+      one can be relatively sure that the test "ReadCount < Count"
+      will be @italic(usually) sufficient.)
+  )
 }
 
 unit KambiClassUtils;
 
-{ TODO - napisac klase TStreamReaderMediator :
+{ TODO:
+  TStreamReaderMediator class :
   ta klasa (podklasa TStream ? Niekoniecznie !) bedzie zapewniala metode
   do odczytywania strumienia. Bedzie ona pobierala jako arg. strumien
   TStream z ktorego odczyt ma posredniczyc i umozliwiala odczyt
   z tego strumienia dodajac wlasne funkcje :
-    - przede wszystkim, nieograniczony bufor Unget. A wiec cofanie swojej
-      pozycji w strumieniu o ten 1 czy ilestam bajtow bedzie zawsze mozliwe,
-      co nie jest prawda dla samego TStream.
-    Ta klasa powinna miec metody ReadUpto_xxx ktorych dzialanie bedzie
+
+  - przede wszystkim, nieograniczony bufor Unget. A wiec cofanie swojej
+    pozycji w strumieniu o ten 1 czy ilestam bajtow bedzie zawsze mozliwe,
+    co nie jest prawda dla samego TStream.
+
+  - Ta klasa powinna miec metody ReadUpto_xxx ktorych dzialanie bedzie
     analogiczne to tych w tym module ale te metody beda robic backEndingChar
     na posredniku i beda mogly zawsze dzialac.
-    - CurrentLine i CurrentColumn, jako inny sposob wyrazania Position :
-      to bedzie pomocne.
- bedzie przydatna do TPascalLexer i TVRMLLexer ktore w tym momencie cierpia :
-   uzywaja bezposrednio typu TStream, robiac na Seek(-1, soFromPosition)
-   i nie majac informacji o CurrentLine i CurrentColumn.
- Nalezy taka rzecz zrobic ogolnie.
+
+  - CurrentLine i CurrentColumn, jako inny sposob wyrazania Position :
+    to bedzie pomocne.
+
+  To bedzie przydatna do TPascalLexer i TVRMLLexer ktore w tym momencie cierpia :
+  uzywaja bezposrednio typu TStream, robiac na Seek(-1, soFromPosition)
+  i nie majac informacji o CurrentLine i CurrentColumn.
+
+  Nalezy taka rzecz zrobic ogolnie.
 }
 
 {$I kambiconf.inc}
@@ -94,7 +104,8 @@ interface
 
 uses Classes, SysUtils, KambiUtils, IniFiles;
 
-{ Text reading ------------------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(Text reading) }
 
 type
   { TTextReader reads given Stream line by line.
@@ -130,7 +141,8 @@ type
     function Eof: boolean;
   end;
 
-{ TIniFile replacement ---------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TIniFile related) }
 
 type
   { TIniFile with minor enhancements. }
@@ -138,12 +150,12 @@ type
   private
     FUpdateOnDestroy: boolean;
   public
-    { clears all sections in ini file, therefore deleting all info in ini file }
+    { Clears all sections in ini file, therefore deleting all info in ini file. }
     procedure Clear;
 
-    { If true UpdateFile will be automatically called on Destroy;
+    { If true UpdateFile will be automatically called on Destroy.
       Useless under Delphi, useful under Kylix,
-      sorry- I don't know how about multiplatform FPC's TIniFile. }
+      TODO: I don't know how about multiplatform FPC's TIniFile. }
     property UpdateOnDestroy: boolean
       read FUpdateOnDestroy write FUpdateOnDestroy;
 
@@ -151,26 +163,28 @@ type
     destructor Destroy; override;
   end;
 
-{ TObjectsList_Abstract ---------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TObjectsList_Abstract) }
 
 type
+  { }
   TObjectsList_Abstract = class
     procedure FreeContents; virtual; abstract;
-    { jezeli Self <> nil to robi FreeContents i wtedy swoje Destroy. }
+    { If Self <> nil then call FreeContents and Destroy. }
     procedure FreeWithContents;
   end;
 
-{ be careful - pass only TObjectsList_Abstract descendants ! }
+{ Equivalent to FreeAndNil, but calls FreeWithContents instead of Free.
+  Be careful --- pass here only TObjectsList_Abstract descendants ! }
 procedure FreeWithContentsAndNil(var Obj);
 
-{ TStrings helpers ------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TStrings related) }
 
-{sorry -untested}
-function StringsPos(const ToSearch: string; AStrings: TStrings; IgnoreCase: boolean {$IFDEF DEFPARS}=true{$ENDIF}): integer; overload;
+{ Add some strings to TStrings }
+procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
 
-{ StringsAdd - add some strings to TStrings }
-procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string {$IFDEF DEFPARS}='dummy'{$ENDIF}); overload;
-{ AddStrArrayToStrings - add all strings from string array to TStrings object }
+{ Add all strings from string array to TStrings object }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
 
 { wersje z IniFile : zapisuja klucze o nazwach Count i ItemXxx gdzie Xxx to numer stringa
@@ -193,10 +207,16 @@ procedure AddPathsFromPathList(slist: TStrings; const pathlist: string);
 { zwraca wszystkie stringi z slist sklejone separatorem. }
 function StringsSeparated(slist: TStrings; const separator: string): string;
 
-{wygodne obejscie malej niekompatybilnosci klasy TStringList FPC i Delphi :
- w FPC zawsze dziala jakby CaseSensitive = true, w Delphi mozna
- zmieniac property CaseSensitive, domyslne jest false (a wiec dziala inaczej
- niz w FPC). [...] [...] }
+{ This is supposed to be TStringList that is case sensitive.
+
+  TODO: In FPC >= 2.0.0 TStringList.CaseSensitive property
+  was added. However, TStringList.CaseSensitive should always be left
+  false (because of a bug, see
+  [http://www.freepascal.org/bugs/showrec.php3?ID=4698]).
+  So with FPC 2.0.0 and 2.0.2 we can't have CaseSensitive TStringList.
+
+  I use this type to mark the places in my code that are vulnerable
+  to this FPC bug. }
 type
   {$ifdef FPC}
   TStringListCaseSens = TStringList;
@@ -226,7 +246,8 @@ procedure Strings_AddCamelotProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 
-{ TStream helpers ----------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TStream related) }
 
 { AppendStream : skopiuj cala zawartosc strumienia OwnedSourceStream do
   DestStream. Potem zrob OwnedSourceStream.Free (czyli OwnedSourceStream
@@ -540,29 +561,32 @@ type
     destructor Destroy; override;
   end;
 
-{ TCollection helpers ----------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TCollection related) }
 
 {$ifdef DELPHI}
 procedure CollectionSetCount(Collection: TCollection; NewCount: integer);
 {$endif}
 
-{ TComponent helpers --------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(TComponent related) }
 
-{ if Component = nil then it will do
+{ If Component = nil then it will do
     Component := ComponentClass.Create(Owner); }
 procedure CreateIfNeeded(var Component: TComponent;
   ComponentClass: TComponentClass; Owner: TComponent);
 
-{ ---------------------------------------------------------------------------
-  Variables to read/write standard input/output using TStream classes.
-  Initialized and finalized in this unit. }
+{ ---------------------------------------------------------------------------- }
+{ @section(Variables to read/write standard input/output using TStream classes.
+  Initialized and finalized in this unit.) }
 
 var
   { Under Win32 when program is a GUI program then some
     of the variables below may be nil (although that may
     be <> nil, even for GUI program, e.g. if user has
     run our GUI program like
-      cat something | my_program).
+      @preformatted cat something | my_program
+    ).
 
     Note that you can't simultaneously read from StdInStream
     and StdInReader (see comments at TTextReader class). }
@@ -702,20 +726,6 @@ begin
 end;
 
 { TStrings helpers ------------------------------------------------------- }
-
-function StringsPos(const ToSearch: string; AStrings: TStrings; IgnoreCase: boolean): integer;
-var S: string;
-begin
- if IgnoreCase then
- begin
-  S := AnsiUpperCase(ToSearch);
-  for result := 0 to AStrings.Count-1 do
-   if S = AnsiUpperCase(AStrings[result]) then exit;
- end else
-  for result := 0 to AStrings.Count-1 do
-   if ToSearch = AStrings[result] then exit;
- result := -1;
-end;
 
 procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string);
 var i: integer;
