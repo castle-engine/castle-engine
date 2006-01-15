@@ -74,19 +74,19 @@ D   rects.pas
 |   vectormath.pas
 
   fonts/
--   win32/windowsfonts.pas
+|   win32/windowsfonts.pas
 D   win32/winfontconvert.pas
 D   bmpfontstypes.pas
 D   font2pascalunit.pas
 -   ttfontstypes.pas
 
   images/
--   Images.pas
+-   images.pas
 D   kambipasjpeg_error_mgrs.pas
 D   kambipasjpeg.pas
 D   kambipasjpeg_stream_mgrs.pas
 -   kambipng.pas
--   kambipngutils.pas
+D   kambipngutils.pas
 
   opengl/
 -   win32/glwindowwinapimenu.pas

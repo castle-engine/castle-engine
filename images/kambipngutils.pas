@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's images Pascal units".
 
@@ -20,8 +20,9 @@
 
 { @abstract(Some utilities to deal with PNGs and libpng.)
 
-  They should not be in KambiPng unit, KambiPng unit should be clean library
-  binding.
+  I don't put these things inside KambiPng unit, because KambiPng unit
+  should contain only the things present in libpng,
+  not some additional related utilities.
 }
 
 unit KambiPngUtils;
@@ -35,19 +36,24 @@ uses SysUtils, KambiPng;
 type
   ELibPngNotAvailable = class(Exception);
 
-{ Functions SO_xxx below return the version of used libpng library
+{ Functions SO_Xxx return the version of used libpng library
   (taken by querying png_access_version_number).
   They raise ELibPngNotAvailable exception if libpng library
   was not available (not KambiPngInited) or if version of libpng
   library is incompatible with interface defined in KamiPng unit.
 
   So these functions actually not only return version of libpng,
-  they also check is libpng available (and in proper version). }
+  they also check is libpng available (and has the proper version).
+
+  The three Integer functions should always match the first
+  3 components of SO_PNG_LIBPNG_VER_STRING.
+
+  @groupBegin }
 function SO_PNG_LIBPNG_VER_STRING: PChar;
-{ These should match the first 3 components of SO_PNG_LIBPNG_VER_STRING: }
-function SO_PNG_LIBPNG_VER_MAJOR: integer;
-function SO_PNG_LIBPNG_VER_MINOR: integer;
-function SO_PNG_LIBPNG_VER_RELEASE: integer;
+function SO_PNG_LIBPNG_VER_MAJOR: Integer;
+function SO_PNG_LIBPNG_VER_MINOR: Integer;
+function SO_PNG_LIBPNG_VER_RELEASE: Integer;
+{ @groupEnd }
 
 { Use all functions below ONLY when KambiPngInited = true
   (often comfortable way to check KambiPngInited is to call
@@ -94,8 +100,8 @@ begin
   raise ELibPngNotAvailable.Create('LibPng is not available');
 
  if fSO_VER_MAJOR <> 1 then
-  raise ELibPngNotAvailable.CreateFmt('LibPng major version is %d,' +
-    ' but 1 is required -- cannot use available LibPng library', [fSO_VER_MAJOR]);
+  raise ELibPngNotAvailable.CreateFmt('LibPng major version is %d, ' +
+    'but 1 is required -- cannot use available LibPng library', [fSO_VER_MAJOR]);
 end;
 
 function SO_PNG_LIBPNG_VER_STRING: PChar;
@@ -297,30 +303,30 @@ end;
 function PngColorTypeToStr(PngColorType: longint): string;
 begin
  case PngColorType of
-  PNG_COLOR_TYPE_GRAY        :result:='Gray';
-  PNG_COLOR_TYPE_GRAY_ALPHA  :result:='Gray with alpha';
-  PNG_COLOR_TYPE_PALETTE     :result:='Paletted';
-  PNG_COLOR_TYPE_RGB         :result:='RGB';
-  PNG_COLOR_TYPE_RGB_ALPHA   :result:='RGB with alpha';
-  else result:='unknown';
+  PNG_COLOR_TYPE_GRAY        :result := 'Gray';
+  PNG_COLOR_TYPE_GRAY_ALPHA  :result := 'Gray with alpha';
+  PNG_COLOR_TYPE_PALETTE     :result := 'Paletted';
+  PNG_COLOR_TYPE_RGB         :result := 'RGB';
+  PNG_COLOR_TYPE_RGB_ALPHA   :result := 'RGB with alpha';
+  else result := 'unknown';
  end;
 end;
 
 function PngInterlaceTypeToStr(PngInterlaceType: longint): string;
 begin
  case PngInterlaceType of
-  PNG_INTERLACE_NONE  :result:='None';
-  PNG_INTERLACE_ADAM7 :result:='Adam7';
-  else result:='unknown';
+  PNG_INTERLACE_NONE  :result := 'None';
+  PNG_INTERLACE_ADAM7 :result := 'Adam7';
+  else result := 'unknown';
  end;
 end;
 
 function PngTextCompressionToStr(PngTextCompression: longint): string;
 begin
  case PngTextCompression of
-  PNG_TEXT_COMPRESSION_NONE: result:='None';
-  PNG_TEXT_COMPRESSION_zTXT: result:='zTXT';
-  else result:='unknown';
+  PNG_TEXT_COMPRESSION_NONE: result := 'None';
+  PNG_TEXT_COMPRESSION_zTXT: result := 'zTXT';
+  else result := 'unknown';
  end;
 end;
 
