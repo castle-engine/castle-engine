@@ -840,6 +840,7 @@ procedure ProjectionGLOrtho(left, right, bottom, top: TGLdouble); overload; { ne
 { @section(Helpers for polygon stipple) }
 
 const
+  { }
   HalftoneStipple: TPolygonStipple=
   ( $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
     $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
