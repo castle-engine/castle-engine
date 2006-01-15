@@ -93,7 +93,7 @@ D   win32/glwindowwinapimenu.pas
 D   win32/openglwindowsfonts.pas
 D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
--   curve.pas
+D   curve.pas
 D   glw_demo.pas
 -   glwindow.pas
 -   glwininputs.pas

@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(3d curve class TCurve and many basic descendants.) 
+{ @abstract(3d curve class TCurve and many basic descendants.)
   @noAutoLinkHere }
 
 unit Curve;
@@ -42,7 +42,7 @@ type
     FTBegin, FTEnd: Float;
   public
     { TBegin/End determine the valid range of t.
-      Must be TBegin <= TEnd. 
+      Must be TBegin <= TEnd.
       @groupBegin }
     property TBegin: Float read FTBegin;
     property TEnd: Float read FTEnd;
@@ -51,7 +51,7 @@ type
     { This is the most important method that must be defined in subclasses.
       This determines the exact shape of the curve. }
     function Point(const t: Float): TVector3Single; virtual; abstract;
-    
+
     { Here t is specified as @code(TBegin + i/Segments* (TEnd-TBegin)) }
     function PointOfSegment(i, Segments: Cardinal): TVector3Single;
 
@@ -61,10 +61,13 @@ type
       that will be really smooth.
 
       OpenGL commands:
-      This method calls glBegin(GL_LINE_STRIP);
-      Then it calls glVertexv(PointOfSegment(i, Segments)) for i in [0; Segments]
-      (yes, this means that it calls glVertex Segments+1 times).
-      Then this method calls glEnd. }
+      @orderedList(
+        @item(This method calls glBegin(GL_LINE_STRIP);)
+        @item(Then it calls glVertexv(PointOfSegment(i, Segments))
+          for i in [0; Segments]
+          (yes, this means that it calls glVertex Segments+1 times).)
+        @item(Then this method calls glEnd.)
+      ) }
     procedure Render(Segments: Cardinal);
 
     { Curve should fit inside this BoundingBox.
@@ -87,7 +90,7 @@ type
   public
     function Point(const t: Float): TVector3Single; override;
 
-    { XFunction, YFunction, ZFunction are functions based on variable 't'. 
+    { XFunction, YFunction, ZFunction are functions based on variable 't'.
       @groupBegin }
     property XFunction: TMathExpr read FXFunction;
     property YFunction: TMathExpr read FYFunction;
@@ -108,6 +111,7 @@ type
     constructor Create(const ATBegin, ATEnd: Float;
       AXFunction, AYFunction, AZFunction: TMathExpr
       { ASegmentsForBoundingBox = 100 } ); overload;
+    { }
     destructor Destroy; override;
   end;
 
@@ -182,7 +186,7 @@ type
   {$I objectslist_1.inc}
   TControlPointsCurvesList = TObjectsList_1;
 
-  { @abstract(This is a class for curves that pass exactly through 
+  { @abstract(This is a class for curves that pass exactly through
     ControlPoints.)
     I.e. for each ControlPoint[i] there exists some value Ti
     that Point(Ti) = ControlPoint[i] and
@@ -244,9 +248,10 @@ type
     destructor Destroy; override;
   end;
 
-  { Same as TNaturalCubicSplineCurve_Abstract, only it's
+  { @abstract(Same as TNaturalCubicSplineCurve_Abstract, only it's
     Closed when ControlPoints first and last are the same
-    (i.e. VectorsEqual(ControlPoints[0], ControlPoints[ControlPoints.Count-1])).
+    (i.e. VectorsEqual(ControlPoints[0], ControlPoints[ControlPoints.Count-1])).)
+
     This is the most sensible non-abstract implementation of
     NaturalCubicSplineCurve. }
   TNaturalCubicSplineCurve = class(TNaturalCubicSplineCurve_Abstract)
