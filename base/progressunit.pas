@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -18,9 +18,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(This unit implements functionality of "progress bar".)
+{ @abstract(This unit implements functionality (but not the user interface)
+  of a "progress bar".)
 
-  It is something that can be shown to user to indicate progress
+  "Progress bar" is something that can be shown to user to indicate progress
   of some lenghty operation. The simplest example of use is
 
   @longcode(#
@@ -38,42 +39,44 @@ finally Progress.Fini; end;
 
   (Embedding code in "try ... finally ... end" is not required,
   but is strongly suggested. Rule of thumb says to always call
- Progress.Fini when you called Progress.Init.)
+  Progress.Fini when you called Progress.Init.)
 
   And remember to call (usually somewhere at the beginning of your
-  program) some procedure to set UserInterface of progress --
+  program) some procedure to set Progress.UserInterface ---
   e.g. set this to ProgressConsoleInterface from ProgressConsole unit
   to have progress bar displayed on console (StdErr, to be more precise).
 
   This unit by itself does not provide any interface to show such progress
-  bar. Instead, you must assign UserInterface property of Progress object
-  to some object implementing such user interface. E.g. see my units
-    @link(ProgressGL) -- show progress bar in OpenGL window
-    @link(ProgressVideo) -- show progress bar on console using Video unit
-    @link(ProgressConsole) -- show progress bar on StdErr
-    @link(ProgressF) -- show progress using Delphi form
+  bar. Instead, you must assign Progress.UserInterface property
+  to some object implementing such user interface. E.g. I have units
+  @unorderedList(
+    @item(ProgressGL --- show progress bar in OpenGL window)
+    @item(ProgressConsole --- show progress bar on StdErr)
+    @item(ProgressVideo --- show progress bar on console using Video unit)
+    @item(ProgressF --- show progress using Delphi form)
+  )
 
   This way any unit that implements some lengthy operation can call
   appropriate functions of @link(Progress) object, and final program
   can choose how it wants to show that progress to user (in console ?
-  in OpenGL window ? etc.). E.g. in unit Images my function ResizeImage
+  in OpenGL window ? etc.). E.g. in unit @link(Images) my function ResizeImage
   calls Progress.Init, Progress.Step and Progress.Fini when resizing
   an image (because it may take a while when resized image is really big).
   So ResizeImage makes "progress of operation" available.
   But ResizeImage does not require that this progress will be shown
-  in any particular way -- you can show progress of ResizeImage in console,
+  in any particular way --- you can show progress of ResizeImage in console,
   or in OpenGL window, or in Delphi VCL form etc.
 
   So this unit implements only the base functionality of "progress bar",
   not specific to any interface. One important non-obvious functionality
-  of class @link(TProgress) is that even if you're calling @link(TProgress.Step)
-  very often, @link(TProgressUserInterface.Update) is *not* called too often.
+  of class TProgress is that even if you're calling @link(TProgress.Step)
+  very often, @link(TProgressUserInterface.Update) is @italic(not) called too often.
   This means that you can set @link(TProgress.Max) to very large value
   and you don't have to worry that @link(TProgressUserInterface.Update) will
   be called too often. See documenatation of @link(TProgress.UpdatePart)
   and @link(TProgress.UpdateTicks) for more info.
 
-  This unit creates one object of class @link(TProgress), @link(Progress).
+  This unit creates one object of class @link(TProgress) : @link(Progress).
   But it is possible to create other objects of this class.
   So you can use more than one @link(TProgress) object at once, if you need
   (e.g. from different threads, each @link(TProgress) object displaying
@@ -82,7 +85,7 @@ finally Progress.Fini; end;
 
 unit ProgressUnit;
 
-{ Only for testing }
+{ Define this only for testing }
 { $define TESTING_PROGRESS_DELAY}
 
 interface
@@ -91,6 +94,7 @@ uses
   SysUtils, KambiUtils;
 
 const
+  { }
   DefaultUpdatePart = {$ifdef TESTING_PROGRESS_DELAY} 100000000 {$else} 100 {$endif};
   DefaultUpdateTicks = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 250 {$endif};
 
@@ -189,7 +193,7 @@ type
   end;
 
 var
-  { created in initialization, freed in finalization
+  { Created in initialization, freed in finalization.
     @noAutoLinkHere }
   Progress: TProgress;
 
