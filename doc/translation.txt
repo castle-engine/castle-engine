@@ -106,7 +106,7 @@ D   glw_win.pas
 -   openglbmpfonts.pas
 -   openglfonts.pas
 -   openglh.pas
--   openglttfonts.pas
+D   openglttfonts.pas
 -   progressgl.pas
 -   timemessages.pas
 
