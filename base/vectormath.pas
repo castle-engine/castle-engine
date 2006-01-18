@@ -570,6 +570,7 @@ function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function VLerp(const a: Single; V1, V2: TVector2Integer): TVector2Single; overload;
 function VLerp(const a: Single; V1, V2: TVector2Single): TVector2Single; overload;
 function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single; overload;
+function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single; overload;
 
 { zwraca (1-v2part) * v1 + v2part * v2 czyli cos jak srednia wazona z dwoch wektorow.
   v2part musi byc z przedzialu <0, 1>.
@@ -1841,6 +1842,14 @@ begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
  result[2] := V1[2] + a*(V2[2]-V1[2]);
+end;
+
+function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single;
+begin
+ result[0] := V1[0] + a*(V2[0]-V1[0]);
+ result[1] := V1[1] + a*(V2[1]-V1[1]);
+ result[2] := V1[2] + a*(V2[2]-V1[2]);
+ result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
 
 function Mix2Vectors(const v1, v2: TVector3Single; const v2part: Single): TVector3Single;
