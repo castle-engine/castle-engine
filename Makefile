@@ -199,12 +199,17 @@ clean:
 	      3dmodels.gl/examples/simpleViewModel_2 \
 	      3dmodels.gl/examples/simpleViewModel_2.exe \
 	      3dmodels.gl/examples/simpleViewModel \
-	      3dmodels.gl/examples/simpleViewModel.exe
+	      3dmodels.gl/examples/simpleViewModel.exe \
+	      3dmodels.gl/examples/demo_animation \
+	      3dmodels.gl/examples/demo_animation.exe
 	rm -Rf packages/unix/lib/ packages/unix/kambi_units.pas \
 	  packages/win32/lib/ packages/win32/kambi_units.pas
 
 cleanmore: clean
-	find . -type f '(' -iname '*~' -or -iname '*.~???' ')' -exec rm -f '{}' ';'
+	find . -type f '(' -iname '*~' -or \
+	                   -iname '*.~???' -or \
+			   -iname '*.blend1' \
+			')' -exec rm -f '{}' ';'
 
 clean_special_allunits:
 	rm -f $(ALL_ALLUNITS_FILES)

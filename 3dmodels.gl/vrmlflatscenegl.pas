@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -71,6 +71,8 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLFlatScene, VRMLOpenGLRenderer, OpenGLh, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree;
+
+{$define read_interface}
 
 type
   { This is used by @link(TVRMLFlatSceneGL.Optimization) to describe
@@ -592,20 +594,42 @@ type
   end;
 
 { Parses and removes from ParStr(1)..ParStr(ParCount)
-  parameter --renderer-optimization, and sets RendererOptimization
+  parameter @--renderer-optimization, and sets RendererOptimization
   to the value specified by user.
-  See view3dscene documentation for description. }
+  See view3dscene documentation
+  [http://camelot.homedns.org/~michalis/view3dscene.php] for description. }
 procedure RendererOptimizationOptionsParse(
   var RendererOptimization: TGLRendererOptimization);
 
 { Describe what parameters parse RendererOptimizationOptionsParse.
   This is nice to use e.g. in help text (e.g. the one printed in response
-  to "--help" command-line parameter). }
+  to "@--help" command-line parameter). }
 function RendererOptimizationOptionsHelp: string;
+
+type
+  TObjectsListItem_1 = TVRMLFlatSceneGL;
+  {$I objectslist_1.inc}
+  TVRMLFlatSceneGLsList = class(TObjectsList_1)
+    procedure CloseGLAll;
+  end;
+
+{$undef read_interface}
 
 implementation
 
 uses ParsingPars;
+
+{$define read_implementation}
+{$I objectslist_1.inc}
+
+procedure TVRMLFlatSceneGLsList.CloseGLAll;
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do Items[I].CloseGL;
+end;
+
+{ ------------------------------------------------------------ }
 
 { Notes about GL_COMPILE_AND_EXECUTE mode for glNewList:
 
@@ -1306,7 +1330,7 @@ end;
 procedure RendererOptimizationOptionsParse(
   var RendererOptimization: TGLRendererOptimization);
 const
-  Options:array[0..0] of TOption =
+  Options: array[0..0] of TOption =
   ( (Short: #0; Long: 'renderer-optimization'; Argument: oaRequired)
   );
 begin

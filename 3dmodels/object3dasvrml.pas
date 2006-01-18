@@ -61,7 +61,7 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 
 implementation
 
-uses Object3dGEO, Object3ds, Object3dOBJ, KambiUtils;
+uses Object3dGEO, Object3ds, Object3dOBJ, KambiUtils, VRMLCameraUtils;
 
 function ToVRMLName(const s: string): string;
 const

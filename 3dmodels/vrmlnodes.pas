@@ -1970,7 +1970,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, Triangulator, Object3dAsVRML, KambiZStream;
+  Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

@@ -340,7 +340,7 @@ type
 
 implementation
 
-uses VRMLFields;
+uses VRMLFields, VRMLCameraUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}

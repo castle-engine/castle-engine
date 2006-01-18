@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -37,7 +37,7 @@ type
 
 { fields base classes ------------------------------------------------------ }
 
-  TVRMLField = class
+  TVRMLField = class(TPersistent)
   private
     fName: string;
   protected
@@ -49,20 +49,49 @@ type
     { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
       tzn. zawsze Name musi byc zdefiniowane.
       (w tym module mozemy gdzieniegdzie uzywac wewnetrznie takich obiektow,
-      np. pozwolilo to nam bardzo wygodnie zapisac TMultiField.Parse.) }
+      np. pozwolilo to nam bardzo wygodnie zapisac TVRMLMultField.Parse.) }
     property Name: string read fName;
+
     constructor Create(const AName: string);
+
     { Parse : init Self properties from Lexer. Must be redefined in each
       field class. }
     procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
+
     { O ile not EqualsDefaultValue to kazde pole bedzie zapisane jako jedna lub
       wiecej linii.
       (notka wewnetrzna dla implementacji tego modulu - nie probuj nigdy
       zapisac pol ktorych Name = '') }
     procedure SaveToStream(Stream: TStream; const Indent: string);
+
     { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
       aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
     function EqualsDefaultValue: boolean; virtual;
+
+    { @true if the SecondValue object has exactly the same type and properties.
+      For this class, this returns just (SecondValue.Name = Name).
+
+      All descendants (that add some property that should be compared)
+      should override this like
+
+@longCode(#
+  Result := (inherited Equals(SecondValue)) and
+    (SecondValue is TMyType) and
+    (TMyType(SecondValue).MyProperty = MyProperty);
+#)
+
+      For varius floating-point fields in this unit:
+      the decision is that they perform *exact* comparison,
+      not some comparison using some EpsilongEquality etc.
+      But don't depend on it --- it may change in the future.
+
+      Note that this *doesn't* compare the default values of two fields
+      instances. This compare only the current values of two fields
+      instances, and eventually some other properties that affect
+      parsing (like names for TSFEnum and TSFBitMask) or allowed
+      future values (like TSFFloat.MustBeNonnegative).
+    }
+    function Equals(SecondValue: TVRMLField): boolean; virtual;
   end;
 
   TObjectsListItem_2 = TVRMLField;
@@ -100,6 +129,8 @@ type
   TObjectsListItem_1 = TVRMLSingleField;
   {$I ObjectsList_1.inc}
   TVRMLSingleFieldsList = TObjectsList_1;
+
+  EVRMLMultFieldDifferentCount = class(Exception);
 
   {pamietaj - lista MF fields moze miec zero elementow !
    MultFields w destruktorze zwalniaja wszystkie swoje RawItems.
@@ -145,6 +176,9 @@ type
       (a nie tylko jakis wskaznik do niej) bo obiekt Item moze zostac
       niedlugo zniszczony. }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
+
+    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
+    procedure CheckCountEqual(SecondValue: TVRMLMultField);
   protected
     { nie ma potrzeby definiowania SaveToStreamValue w podklasach,
         zdefiniuj tylko RawItemToString(i) ktore zamienia RawItems[i]
@@ -163,13 +197,16 @@ type
     { kazda podklasa musi w konstruktorze utworzyc sobie ta tablice
       (w destruktorze my samy juz zajmiemy sie zwalnianiem tej tablicy) }
     RawItems: TDynArrayBase;
+
     { po prostu RawItems.Count }
     function Count: integer;
+
     { wszystkie elementy jakie beda trafiac do RawItemsAdd beda tej klasy.
       Nie jest tu zdefiniowana zaleznosc miedzy elementami tej klasy a
       elementami tablicy RawItems - musisz w kazdej podklasie okreslic
       ta zaleznosc definiujac RawItemsAdd. }
     property ItemClass: TVRMLSingleFieldClass read fItemClass;
+
     { nie ma potrzeby definiowania Parse w zadnej podklasie pola MF.
       Tutejsze Parse dziala dla kazdego pola typu MF, uzywajac Parse
       klasy ItemClass. }
@@ -177,6 +214,11 @@ type
 
     constructor Create(const AName: string);
     destructor Destroy; override;
+
+    { In addition to inherited(Equals), this also checks that
+      Count and ItemClass are equal. All descendants must check
+      for equality every item on SecondValue.Items[I] and Items[I]. }
+    function Equals(SecondValue: TVRMLField): boolean; override;
   end;
 
 { single value fields ----------------------------------------------------- }
@@ -229,6 +271,10 @@ type
     constructor Create(const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
     destructor Destroy; override;
+
+    function Equals(SecondValue: TVRMLField): boolean; override;
+
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFBool = class(TVRMLSimpleSingleField)
@@ -241,6 +287,8 @@ type
     constructor Create(const AName: string; const AValue: boolean);
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFColor = class(TVRMLSimpleSingleField)
@@ -253,6 +301,9 @@ type
     constructor Create(const AName: string; const AValue: TVector3Single);
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFColor);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFEnum = class(TVRMLSingleField)
@@ -272,6 +323,8 @@ type
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFFloat = class(TVRMLSimpleSingleField)
@@ -293,6 +346,9 @@ type
     constructor Create(const AName: string; const AValue: Single; AMustBeNonnegative: boolean); overload;
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFFloat);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFImage = class(TVRMLSimpleSingleField)
@@ -321,6 +377,10 @@ type
     destructor Destroy; override;
 
     procedure Parse(Lexer: TVRMLLexer); override;
+
+    function Equals(SecondValue: TVRMLField): boolean; override;
+
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFLong = class(TVRMLSimpleSingleField)
@@ -340,6 +400,8 @@ type
     constructor Create(const AName: string; const AValue: Longint; AMustBeNonnegative: boolean); overload;
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFMatrix = class(TVRMLSimpleSingleField)
@@ -349,6 +411,9 @@ type
     Matrix: TMatrix4Single;
     constructor Create(const AName: string; const AMatrix: TMatrix4Single);
     procedure Parse(Lexer: TVRMLLexer); override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFRotation = class(TVRMLSimpleSingleField)
@@ -363,6 +428,9 @@ type
     procedure Parse(Lexer: TVRMLLexer); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFString = class(TVRMLSimpleSingleField)
@@ -375,6 +443,8 @@ type
     constructor Create(const AName: string; const AValue: string);
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFVec2f = class(TVRMLSimpleSingleField)
@@ -387,6 +457,9 @@ type
     constructor Create(const AName: string; const AValue: TVector2Single);
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TSFVec3f = class(TVRMLSimpleSingleField)
@@ -399,19 +472,26 @@ type
     constructor Create(const AName: string; const AValue: TVector3Single);
     procedure Parse(Lexer: TVRMLLexer); override;
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
+    procedure Assign(Source: TPersistent); override;
   end;
 
-{ multiple value fields ---------------------------------------------------
-  (wewnetrzny komentarz : pola DefaultValue* : pole DefaultValuesCount
-     moze miec w tej chwili trzy wartosci : -1 (nie ma (nie jest znana) domyslnej
-     wartosci dla pola), 0 (domyslna wartosc pola to 0 elementow), 1 (domylna
-     wartosc pola to 1 element o wartosci DefaultValue).
-   Pola multi nie maja CreateUndefined - gdyby mialy to w CreateUndefined
-     ustawialibysmy DefaultValuesCount na -1. A tak cala inicjacje pol
-     DefaultValue* robimy w normalnym konstruktorze Create.
-  )
-}
+{ ---------------------------------------------------------------------------- }
+{ @section(Multiple value fields) }
 
+{ Internal comment for DefaultValue* field:
+
+  pole DefaultValuesCount
+  moze miec w tej chwili trzy wartosci : -1 (nie ma (nie jest znana) domyslnej
+  wartosci dla pola), 0 (domyslna wartosc pola to 0 elementow), 1 (domylna
+  wartosc pola to 1 element o wartosci DefaultValue).
+
+  Pola multi nie maja CreateUndefined - gdyby mialy to w CreateUndefined
+  ustawialibysmy DefaultValuesCount na -1. A tak cala inicjacje pol
+  DefaultValue* robimy w normalnym konstruktorze Create. }
+
+  { }
   TMFColor = class(TVRMLMultField)
   private
     DefaultValuesCount: integer;
@@ -423,6 +503,10 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of TVector3Single);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFColor);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TMFLong = class(TVRMLMultField)
@@ -445,6 +529,8 @@ type
     constructor CreateMFLong(const AName: string; const InitialContent: array of Longint;
       const ASaveToStreamLineUptoNegative: boolean);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TMFVec2f = class(TVRMLMultField)
@@ -458,6 +544,10 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of TVector2Single);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TMFVec3f = class(TVRMLMultField)
@@ -471,6 +561,10 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of TVector3Single);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TMFFloat = class(TVRMLMultField)
@@ -484,6 +578,10 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of Single);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+    procedure Assign(Source: TPersistent); override;
   end;
 
   TMFString = class(TVRMLMultField)
@@ -497,27 +595,9 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of string);
     function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
-
-const
-  { nie mozesz zmieniac ponizszych stalych, ich definicja jako wlasnie takie
-    jest przeciez czescia jezyka VRMLa. Ale mozesz uzywac w wielu miejscach
-    ponizszych stalych aby zapisywac cos elegancko (i uniknac potencjalnych
-    pomylek przy wpisywaniu wartosci ponizszych stalych) }
-  StdVRMLCamPos: TVector3Single = (0, 0, 1);
-  StdVRMLCamDir: TVector3Single = (0, 0, -1);
-  StdVRMLCamUp: TVector3Single = (0, 1, 0);
-
-{ Zamien CamDir i CamUp na orientation VRMLa 1.0.
-  Orientation VRMLa wyraza CamDir i CamUp podajac wektor 4 elementowy
-  (SFRotation) ktorego pierwsze 3 pola to Axis a czwarte pole to Angle.
-  Obroc standardowe Dir i Up VRMLa w/g Axis o kat Angle a otrzymasz
-  CamDir i CamUp. Zadaniem jest wyliczyc wlasnie takie Orientation dla
-  zadanych juz CamDir i CamUp. Podane CamDir / Up musza byc prostopadle
-  i niezerowe, ich dlugosci sa bez znaczenia. }
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single; overload;
-procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  var OrientAxis: TVector3Single; var OrientRadAngle: Single); overload;
 
 {$undef read_interface}
 
@@ -549,7 +629,14 @@ begin
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
-begin result := false end;
+begin
+ result := false;
+end;
+
+function TVRMLField.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := SecondValue.Name = Name;
+end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
 
@@ -672,6 +759,25 @@ begin
  result := true;
 end;
 
+function TVRMLMultField.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TVRMLMultField) and
+   (TVRMLMultField(SecondValue).Count = Count) and
+   (TVRMLMultField(SecondValue).ItemClass = ItemClass);
+end;
+
+procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
+begin
+ if SecondValue.RawItems.Count <> RawItems.Count then
+  raise EVRMLMultFieldDifferentCount.CreateFmt(
+    'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+    [ Name,
+      SecondValue.Name,
+      RawItems.Count,
+      SecondValue.RawItems.Count ]);
+end;
+
 { --------------------------------------------------------------------------
   all fields names (lines below are convenient to expand with regular expr.) :
 SFBitMask
@@ -716,7 +822,7 @@ begin
  Lexer.NextToken;
 end;
 
-{ single value fields (simple ones) ---------------------------------------- }
+{ TSFBool -------------------------------------------------------------------- }
 
 constructor TSFBool.Create(const AName: string; const AValue: boolean);
 begin
@@ -755,6 +861,27 @@ begin
  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
+function TSFBool.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFBool) and
+   (TSFBool(SecondValue).Value = Value);
+end;
+
+procedure TSFBool.Assign(Source: TPersistent);
+begin
+ if Source is TSFBool then
+ begin
+  FName              := TSFBool(Source).Name;
+  DefaultValue       := TSFBool(Source).DefaultValue;
+  DefaultValueExists := TSFBool(Source).DefaultValueExists;
+  Value              := TSFBool(Source).Value;
+ end else
+  inherited;
+end;
+
+{ TSFColor ------------------------------------------------------------------- }
+
 constructor TSFColor.Create(const AName: string; const AValue: TVector3Single);
 begin
  CreateUndefined(AName);
@@ -775,6 +902,32 @@ begin
                               and (DefaultValue[1] = Value[1])
                               and (DefaultValue[2] = Value[2]);
 end;
+
+function TSFColor.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFColor) and
+   CompareMem(@TSFColor(SecondValue).Value, @Value, SizeOf(Value));
+end;
+
+procedure TSFColor.AssignLerp(const A: Single; Value1, Value2: TSFColor);
+begin
+ Value := VLerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFColor.Assign(Source: TPersistent);
+begin
+ if Source is TSFColor then
+ begin
+  FName              := TSFColor(Source).Name;
+  DefaultValue       := TSFColor(Source).DefaultValue;
+  DefaultValueExists := TSFColor(Source).DefaultValueExists;
+  Value              := TSFColor(Source).Value;
+ end else
+  inherited;
+end;
+
+{ TSFFloat ------------------------------------------------------------------- }
 
 procedure TSFFloat.SetValue(const AValue: Single);
 begin
@@ -808,6 +961,34 @@ begin
  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
+function TSFFloat.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFFloat) and
+   (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
+   (TSFFloat(SecondValue).Value = Value);
+end;
+
+procedure TSFFloat.AssignLerp(const A: Single; Value1, Value2: TSFFloat);
+begin
+ Value := Lerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFFloat.Assign(Source: TPersistent);
+begin
+ if Source is TSFFloat then
+ begin
+  FName              := TSFFloat(Source).Name;
+  DefaultValue       := TSFFloat(Source).DefaultValue;
+  DefaultValueExists := TSFFloat(Source).DefaultValueExists;
+  FValue             := TSFFloat(Source).Value;
+  FMustBeNonnegative := TSFFloat(Source).MustBeNonnegative;
+ end else
+  inherited;
+end;
+
+{ TSFImage ------------------------------------------------------------------- }
+
 constructor TSFImage.Create(const AName: string; const AValue: TImage);
 begin
  CreateUndefined(AName);
@@ -830,10 +1011,11 @@ procedure TSFImage.Parse(Lexer: TVRMLLexer);
    Value := NewValue;
   end;
 
-var w, h, comp, pixel: LongWord;
-    i: Cardinal;
-    RGBPixels: PArray_Vector3Byte;
-    AlphaPixels: PArray_Vector4Byte;
+var
+  w, h, comp, pixel: LongWord;
+  i: Cardinal;
+  RGBPixels: PArray_Vector3Byte;
+  AlphaPixels: PArray_Vector4Byte;
 begin
  { Note that we should never let Value to be nil too long,
    because even if this method exits with exception, Value should
@@ -950,6 +1132,27 @@ begin
  end;
 end;
 
+function TSFImage.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFImage) and
+   { TODO: compare values
+   (TSFImage(SecondValue).Value = Value) }true;
+end;
+
+procedure TSFImage.Assign(Source: TPersistent);
+begin
+ if Source is TSFImage then
+ begin
+  FName := TSFImage(Source).Name;
+  FreeAndNil(Value);
+  Value := TSFImage(Source).Value.MakeCopy;
+ end else
+  inherited;
+end;
+
+{ TSFLong -------------------------------------------------------------------- }
+
 procedure TSFLong.SetValue(const AValue: Longint);
 begin
  if MustBeNonnegative then
@@ -986,6 +1189,29 @@ begin
  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
+function TSFLong.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFLong) and
+   (TSFLong(SecondValue).MustBeNonnegative = MustBeNonnegative) and
+   (TSFLong(SecondValue).Value = Value);
+end;
+
+procedure TSFLong.Assign(Source: TPersistent);
+begin
+ if Source is TSFLong then
+ begin
+  FName              := TSFLong(Source).Name;
+  DefaultValue       := TSFLong(Source).DefaultValue;
+  DefaultValueExists := TSFLong(Source).DefaultValueExists;
+  FValue             := TSFLong(Source).Value;
+  FMustBeNonnegative := TSFLong(Source).MustBeNonnegative;
+ end else
+  inherited;
+end;
+
+{ TSFMatrix ------------------------------------------------------------------ }
+
 constructor TSFMatrix.Create(const AName: string; const AMatrix: TMatrix4Single);
 begin
  CreateUndefined(AName);
@@ -1006,7 +1232,35 @@ begin
                   Indent +IndentIncrement +VectorToRawStr(Matrix[3]) );
 end;
 
-constructor TSFRotation.Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
+function TSFMatrix.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFMatrix) and
+   CompareMem(@TSFMatrix(SecondValue).Matrix, @Matrix, SizeOf(Matrix));
+end;
+
+procedure TSFMatrix.AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
+begin
+ Matrix[0] := VLerp(A, Value1.Matrix[0], Value2.Matrix[0]);
+ Matrix[1] := VLerp(A, Value1.Matrix[1], Value2.Matrix[1]);
+ Matrix[2] := VLerp(A, Value1.Matrix[2], Value2.Matrix[2]);
+ Matrix[3] := VLerp(A, Value1.Matrix[3], Value2.Matrix[3]);
+end;
+
+procedure TSFMatrix.Assign(Source: TPersistent);
+begin
+ if Source is TSFMatrix then
+ begin
+  FName  := TSFMatrix(Source).Name;
+  Matrix := TSFMatrix(Source).Matrix;
+ end else
+  inherited;
+end;
+
+{ TSFRotation ---------------------------------------------------------------- }
+
+constructor TSFRotation.Create(const AName: string;
+  const AnAxis: TVector3Single; const ARotationRad: Single);
 begin
  CreateUndefined(AName);
  Axis := AnAxis;
@@ -1037,6 +1291,33 @@ begin
  result := RotatePointAroundAxisRad(RotationRad, pt, Axis);
 end;
 
+function TSFRotation.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFRotation) and
+   CompareMem(@TSFRotation(SecondValue).Axis, @Axis, SizeOf(Axis)) and
+   (TSFRotation(SecondValue).RotationRad = RotationRad);
+end;
+
+procedure TSFRotation.AssignLerp(const A: Single; Value1, Value2: TSFRotation);
+begin
+ Axis        := VLerp(A, Value1.Axis, Value2.Axis);
+ RotationRad :=  Lerp(A, Value1.RotationRad, Value2.RotationRad);
+end;
+
+procedure TSFRotation.Assign(Source: TPersistent);
+begin
+ if Source is TSFRotation then
+ begin
+  FName       := TSFRotation(Source).Name;
+  Axis        := TSFRotation(Source).Axis;
+  RotationRad := TSFRotation(Source).RotationRad;
+ end else
+  inherited;
+end;
+
+{ TSFString ------------------------------------------------------------------ }
+
 constructor TSFString.Create(const AName: string; const AValue: string);
 begin
  CreateUndefined(AName);
@@ -1062,6 +1343,27 @@ begin
  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
+function TSFString.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFString) and
+   (TSFString(SecondValue).Value = Value);
+end;
+
+procedure TSFString.Assign(Source: TPersistent);
+begin
+ if Source is TSFString then
+ begin
+  FName              := TSFString(Source).Name;
+  DefaultValue       := TSFString(Source).DefaultValue;
+  DefaultValueExists := TSFString(Source).DefaultValueExists;
+  Value              := TSFString(Source).Value;
+ end else
+  inherited;
+end;
+
+{ TSFVec2f ------------------------------------------------------------------- }
+
 constructor TSFVec2f.Create(const AName: string; const AValue: TVector2Single);
 begin
  CreateUndefined(AName);
@@ -1081,6 +1383,32 @@ begin
  result := DefaultValueExists and (DefaultValue[0] = Value[0])
                               and (DefaultValue[1] = Value[1]);
 end;
+
+function TSFVec2f.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFVec2f) and
+   CompareMem(@TSFVec2f(SecondValue).Value, @Value, SizeOf(Value));
+end;
+
+procedure TSFVec2f.AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
+begin
+ Value := VLerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFVec2f.Assign(Source: TPersistent);
+begin
+ if Source is TSFVec2f then
+ begin
+  FName              := TSFVec2f(Source).Name;
+  DefaultValue       := TSFVec2f(Source).DefaultValue;
+  DefaultValueExists := TSFVec2f(Source).DefaultValueExists;
+  Value              := TSFVec2f(Source).Value;
+ end else
+  inherited;
+end;
+
+{ TSFVec3f ------------------------------------------------------------------- }
 
 constructor TSFVec3f.Create(const AName: string; const AValue: TVector3Single);
 begin
@@ -1103,7 +1431,31 @@ begin
                               and (DefaultValue[2] = Value[2]);
 end;
 
-{ SFBitMask ------------------------------------------------------------ }
+function TSFVec3f.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFVec3f) and
+   CompareMem(@TSFVec3f(SecondValue).Value, @Value, SizeOf(Value));
+end;
+
+procedure TSFVec3f.AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
+begin
+ Value := VLerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFVec3f.Assign(Source: TPersistent);
+begin
+ if Source is TSFVec3f then
+ begin
+  FName              := TSFVec3f(Source).Name;
+  DefaultValue       := TSFVec3f(Source).DefaultValue;
+  DefaultValueExists := TSFVec3f(Source).DefaultValueExists;
+  Value              := TSFVec3f(Source).Value;
+ end else
+  inherited;
+end;
+
+{ TSFBitMask ------------------------------------------------------------ }
 
 constructor TSFBitMask.Create(const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
@@ -1205,6 +1557,29 @@ begin
  end;
 end;
 
+function TSFBitMask.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFBitMask) and
+   (TSFBitMask(SecondValue).FFlagNames.Equals(FFlagNames)) and
+   (TSFBitMask(SecondValue).FFlags = FFlags) and
+   (TSFBitMask(SecondValue).AllString = AllString) and
+   (TSFBitMask(SecondValue).NoneString = NoneString);
+end;
+
+procedure TSFBitMask.Assign(Source: TPersistent);
+begin
+ if Source is TSFBitMask then
+ begin
+  FName       := TSFBitMask(Source).Name;
+  FAllString  := TSFBitMask(Source).AllString;
+  FNoneString := TSFBitMask(Source).NoneString;
+  FFlags      := TSFBitMask(Source).FFlags;
+  FFlagNames.Assign(TSFBitMask(Source).FFlagNames);
+ end else
+  inherited;
+end;
+
 { TSFEnum ----------------------------------------------------------------- }
 
 constructor TSFEnum.Create(const AName: string; const AEnumNames: array of string; const AValue: integer);
@@ -1250,6 +1625,27 @@ begin
  result := DefaultValueExists and (DefaultValue = Value)
 end;
 
+function TSFEnum.Equals(SecondValue: TVRMLField): boolean;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TSFEnum) and
+   (TSFEnum(SecondValue).FEnumNames.Equals(FEnumNames)) and
+   (TSFEnum(SecondValue).Value = Value);
+end;
+
+procedure TSFEnum.Assign(Source: TPersistent);
+begin
+ if Source is TSFEnum then
+ begin
+  FName              := TSFEnum(Source).Name;
+  DefaultValue       := TSFEnum(Source).DefaultValue;
+  DefaultValueExists := TSFEnum(Source).DefaultValueExists;
+  Value              := TSFEnum(Source).Value;
+  FEnumNames.Assign(TSFEnum(Source).FEnumNames);
+ end else
+  inherited;
+end;
+
 { multiple value fields ----------------------------------------------------- }
 
 {$define IMPLEMENT_MF_CLASS:=
@@ -1279,6 +1675,18 @@ procedure TMF_CLASS.RawItemsAdd(Item: TVRMLSingleField);
 begin
  Items.AppendItem(TMF_CLASS_ITEM(Item).Value);
 end;
+
+procedure TMF_CLASS.Assign(Source: TPersistent);
+begin
+ if Source is TMF_CLASS then
+ begin
+  FName              := TMF_CLASS(Source).Name;
+  DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
+  DefaultValue       := TMF_CLASS(Source).DefaultValue;
+  Items.Assign(TMF_CLASS(Source).Items);
+ end else
+  inherited;
+end;
 }
 
 { dla niektorych klas MF nie bedzie mialo znaczenia ktorej wersji
@@ -1301,20 +1709,47 @@ end;
   uzywam wersji "=" (bo jest bezpieczniejsza na typach).
 }
 
-{$define IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_EQUALITY_OP:=
+{$define IMPLEMENT_MF_CLASS_USING_EQUALITY_OP:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
  result:=((DefaultValuesCount = 0) and (Count = 0)) or
          ((DefaultValuesCount = 1) and (Count = 1) and (DefaultValue = Items.Items[0]));
 end;
+
+function TMF_CLASS.Equals(SecondValue: TVRMLField): boolean;
+var
+  I: Integer;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TMF_CLASS);
+
+ if Result then
+  for I := 0 to Items.Count - 1 do
+   if not (TMF_CLASS(SecondValue).Items.Items[I] = Items.Items[I]) then
+    Exit(false);
+end;
 }
 
-{$define IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_COMPARE_MEM:=
+{$define IMPLEMENT_MF_CLASS_USING_COMPARE_MEM:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
  result:=((DefaultValuesCount = 0) and (Count = 0)) or
          ((DefaultValuesCount = 1) and (Count = 1) and
            CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
+end;
+
+function TMF_CLASS.Equals(SecondValue: TVRMLField): boolean;
+var
+  I: Integer;
+begin
+ Result := (inherited Equals(SecondValue)) and
+   (SecondValue is TMF_CLASS);
+
+ if Result then
+  for I := 0 to Items.Count - 1 do
+   if not CompareMem(@TMF_CLASS(SecondValue).Items.Items[I], @Items.Items[I],
+     SizeOf(TMF_STATIC_ITEM)) then
+    Exit(false);
 end;
 }
 
@@ -1323,45 +1758,56 @@ end;
 {$define TMF_CLASS_ITEM := TSFColor}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_COMPARE_MEM
+IMPLEMENT_MF_CLASS_USING_COMPARE_MEM
 
 {$define TMF_CLASS := TMFLong}
 {$define TMF_STATIC_ITEM := Longint}
 {$define TMF_CLASS_ITEM := TSFLong}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynLongintArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_EQUALITY_OP
+IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
 {$define TMF_CLASS := TMFVec2f}
 {$define TMF_STATIC_ITEM := TVector2Single}
 {$define TMF_CLASS_ITEM := TSFVec2f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2SingleArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_COMPARE_MEM
+IMPLEMENT_MF_CLASS_USING_COMPARE_MEM
 
 {$define TMF_CLASS := TMFVec3f}
 {$define TMF_STATIC_ITEM := TVector3Single}
 {$define TMF_CLASS_ITEM := TSFVec3f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_COMPARE_MEM
+IMPLEMENT_MF_CLASS_USING_COMPARE_MEM
 
 {$define TMF_CLASS := TMFFloat}
 {$define TMF_STATIC_ITEM := Single}
 {$define TMF_CLASS_ITEM := TSFFloat}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynSingleArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_EQUALITY_OP
+IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
 {$define TMF_CLASS := TMFString}
 {$define TMF_STATIC_ITEM := string}
 {$define TMF_CLASS_ITEM := TSFString}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynStringArray}
 IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_EQUALITY_OP
+IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
 function TMFColor.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
+
+procedure TMFColor.AssignLerp(const A: Single; Value1, Value2: TMFColor);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
 
 function TMFLong.RawItemToString(ItemNum: integer): string;
 begin result := IntToStr(Items.Items[ItemNum]) end;
@@ -1369,11 +1815,44 @@ begin result := IntToStr(Items.Items[ItemNum]) end;
 function TMFVec2f.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
 
+procedure TMFVec2f.AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+
 function TMFVec3f.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
 
+procedure TMFVec3f.AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+
 function TMFFloat.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
+
+procedure TMFFloat.AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
 
 function TMFString.RawItemToString(ItemNum: integer): string;
 begin result := StringToVRMLStringToken(Items.Items[ItemNum]) end;
@@ -1392,166 +1871,6 @@ begin
  if SaveToStreamLineUptoNegative then
   result := Items.Items[ItemNum] < 0 else
   result := inherited;
-end;
-
-{ global functions ----------------------------------------------------- }
-
-procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  var OrientAxis: TVector3Single; var OrientRadAngle: Single);
-{ Poczatkowo byl tutaj kod based on Stephen Chenney's ANSI C code orient.c.
-  Byl w nim bledzik (patrz testUnits.Test_VRMLFields - TestOrints[4])
-  i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
-  i zapisalem tutaj rzeczy po swojemu, i ku mojej radosci nie mam tego bledu.
-
-  Tutejsze funkcje lokalne operujace na kwaternionach zamierzam
-  odseparowac kiedys, jak tylko bede chcial gdzies jeszcze uzyc kwaternionow.
-
-  Niniejszym ustalam sobie ze jesli gdzies potraktuje kwaternion jako wektor
-  4 x skalar to bede mial na mysli ze pierwsze trzy skladowe okreslaja wektor
-  a ostatnia skladowa - kat, albo (ogolniej) ze pierwsze trzy skladowe
-  to wspolczynniki przy i, j, k a ostatnia skladowa to czesc rzeczywista.
-  Widzialem rozne konwencje tego, ale bede sie trzymal powyzszego bo
-  - tak jest podawane SFRotation VRMLa (ktore nie jest kwaternionem ale
-    jest podobne)
-  - tak bylo podawane na PGK gdzie pierwszy raz zobaczylem kwaternion
-
-  Pomysl na ta funkcje: mamy CamDir i CamUp. Zeby je zamienic na
-  orientation VRMLa, czyli axis i angle obrotu standardowego dir
-  (0, 0, -1) i standardowego up (0, 1, 0), wyobrazamy sobie jaka transformacje
-  musielibysmy zrobic standardowym dir/up zeby zamienic je na nasze CamDir/Up.
-  1) najpierw bierzemy wektor prostop. do standardowego dir i CamDir.
-     Obracamy sie wokol niego zeby standardowe dir nalozylo sie na CamDir.
-  2) Teraz obracamy sie wokol CamDir tak zeby standardowe up (ktore juz
-     zostalo obrocone przez transformacje pierwsza) nalozylo sie na CamUp.
-     Mozemy to zrobic bo CamDir i CamUp sa prostopadle i maja dlugosc 1,
-     podobnie jak standardowe dir i up.
-  Zlozenie tych dwoch transformacji to jest nasza szukana transformacja.
-
-  Jedyny problem jaki pozostaje to czym jest transformacja ? Jezeli mowimy
-  o macierzy to jest prosto, macierze dwoch obrotow umiemy skonstruowac
-  i wymnozyc ale na koncu dostajemy macierz. A chcemy miec axis+angle.
-  A wiec quaternion.
-  Moznaby to zrobic inaczej (np. wyciagnac z matrix quaternion lub
-  wyciagajac z matrix katy eulera i konwertujac je na quaternion)
-  ale najwygodniej jest skorzystac tutaj z mozliwosci mnozenia kwaternionow:
-  przemnoz quaterniony obrotu q*p a orztymasz quaternion ktory za pomoca
-  jednego obrotu wyraza zlozenie dwoch obrotow, p i q (najpierw p, potem q).
-  To jest wlasnie idea z kodu Stephen Chenney's "orient.c".
-}
-
-  type
-    TQuaternion = record vect_part: TVector3Single; real_part: Single end;
-
-  function AxisAngleCos_To_Quaternion(const Axis: TVector3Single;
-    const angle_cos: Single): TQuaternion;
-  { zamien Axis i angle_cos na kwaternion odpowiedniego obrotu.
-    Jezeli Axis jest znormalizowane to kwaternion tez wyjdzie znormalizowany. }
-  var sin_half_angle, cos_half_angle, AngleRad: Float;
-  begin
-   {* The quaternion requires half angles. *}
-   AngleRad := ArcCos(Clamped(angle_cos, -1.0, 1.0));
-   SinCos(AngleRad/2, sin_half_angle, cos_half_angle);
-
-   result.vect_part := VectorScale(axis, sin_half_angle);
-   result.real_part := cos_half_angle;
-  end;
-
-  function QQMul(const q1, q2: TQuaternion): TQuaternion;
-  { mnozenie dwoch kwaternionow (dowolnych) }
-  begin
-   result.real_part := q1.real_part * q2.real_part - VectorDotProduct(q1.vect_part, q2.vect_part);
-   result.vect_part := VectorProduct(q1.vect_part, q2.vect_part);
-   VectorAddTo1st(result.vect_part, VectorScale(q1.vect_part, q2.real_part));
-   VectorAddTo1st(result.vect_part, VectorScale(q2.vect_part, q1.real_part));
-  end;
-
-  procedure Quaternion_To_AxisAngle(const q: TQuaternion; var axis: TVector3Single;
-    var angle: Single);
-  { q musi byc znormalizowanym kwaternionem obrotu,
-    tzn. <sin(alfa/2)*normalized(wektor), cos(alfa/2)> }
-  var half_angle, sin_half_angle: Single;
-  begin
-   half_angle := ArcCos(q.real_part);
-   sin_half_angle := Sin(half_angle);
-   angle := half_angle * 2;
-   if IsZero(sin_half_angle) then
-   begin
-    { Jezeli IsZero(sin_half_angle) to znaczy ze q.vect_part = ZeroVector.
-      Wiec skoro q jest znormalizowany to Sqr(q.real_part) = 1 a wiec
-      q.real_part = -1 lub 1. A wiec Cos(Angle/2) = -1 lub 1 a wiec
-      Angle/2 = Pi * k dla k calkowitych. A wiec Angle = 2k * Pi a wiec
-      Angle jest rownowazne zero. (Angle = 2Pi czy -2Pi to przeciez to samo
-      co Angle = 0).
-
-      Jesli Angle = 2k * Pi to wszystko ok bo to znaczy ze Angle jest
-      rownowazny 0 a wiec Axis ktore chcemy wyliczyc jest bez znaczenia.
-      Ustawiamy wtedy Axis na cokolwiek (ale NIE na wektor zerowy
-      (jak to bylo w oryginalnym kodzie orient.c), ustawianie wektora zerowego
-      jest bez sensu, nigdy nie mozna jako Axis dawac wektora zerowego.).
-
-      Wpp. (jezeli IsZero(sin_half_angle) ale nie IsZero(Angle)) to wykrylismy
-      blad, to znaczy ze quaternion wcale nie byl ladnym znorm. quaternionem
-      obrotu. }
-    if IsZero(Angle) then
-     Axis := Vector3Single(0, 0, 1) else
-     raise EVectorMathInvalidOp.Create('Invalid quaternion in Quaternion_To_AxisAngle');
-   end else
-    Axis := VectorScale(q.vect_part, 1/sin_half_angle);
-  end;
-
-  function Quaternion_Rotate(q: TQuaternion; const Point: TVector3Single): TVector3Single;
-  { q to znormalizowany kwaternion obrotu. Wynik: punkt Point odwrocony o
-    kwaternion, zgodnie ze wzorkiem q * P * q^(-1) gdzie P = <Point, 0> }
-  var PointQuat, ResultQuat: TQuaternion;
-  begin
-   PointQuat.real_part := 0.0;
-   PointQuat.vect_part := Point;
-
-   ResultQuat := QQMul(q, PointQuat);
-   { q := q^(-1). Poniewaz wiemy ze q jest znormalizowany to mozemy obliczyc
-     q^(-1) prosto jako wartosc sprzezona do q. }
-   VectorNegateTo1st(q.vect_part);
-   ResultQuat := QQMul(ResultQuat, q);
-
-   result := ResultQuat.vect_part;
-  end;
-
-var Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
-    Rot1Quat, Rot2Quat, OrientQuat: TQuaternion;
-    Rot1CosAngle, Rot2CosAngle: Single;
-begin
- NormalizeTo1st(CamDir);
- NormalizeTo1st(CamUp);
-
- { evaluate Rot1Quat }
- Rot1Axis := Normalized( VectorProduct(StdVRMLCamDir, CamDir) );
- Rot1CosAngle := VectorDotProduct(StdVRMLCamDir, CamDir);
- Rot1Quat := AxisAngleCos_To_Quaternion(Rot1Axis, Rot1CosAngle);
-
- { evaluate Rot2Quat }
- StdCamUpAfterRot1 := Quaternion_Rotate(Rot1Quat, StdVRMLCamUp);
- { wiemy ze Rot2Axis to CamDir lub -CamDir. Wyznaczamy je jednak w tak
-   prosty sposob bo nie przychodzi mi teraz do glowy inny sposob jak rozpoznac
-   czy powinnismy tu wziac CamDir czy -CamDir (chodzi o to zeby pozniej obrot
-   o Rot2CosAngle byl w dobra strone) }
- Rot2Axis := Normalized( VectorProduct(StdCamUpAfterRot1, CamUp) );
- Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
- Rot2Quat := AxisAngleCos_To_Quaternion(Rot2Axis, Rot2CosAngle);
-
- { evaluate OrientQuat = zlozenie Rot1 i Rot2 (tak, kolejnosc mnozenia QQMul musi
-   byc odwrotna) }
- OrientQuat := QQMul(Rot2Quat, Rot1Quat);
-
- { Extract the axis and angle from the quaternion. }
- Quaternion_To_AxisAngle(OrientQuat, OrientAxis, OrientRadAngle);
-end;
-
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
-var OrientAxis: TVector3Single;
-    OrientAngle: Single;
-begin
- CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
- result := Vector4Single(OrientAxis, OrientAngle);
 end;
 
 end.

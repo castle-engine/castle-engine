@@ -43,6 +43,7 @@ D   vrmlnodesdetailoptions.pas
 D   vrmlshapestateoctree.pas
 |   vrmlshapestate.pas
 -   vrmltriangleoctree.pas
+|   vrmlcamerautils.pas
 
   3dmodels.gl/
 -   backgroundgl.pas
@@ -50,6 +51,7 @@ D   vrmlshapestateoctree.pas
 |   vrmlflatscenegl.pas
 |   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
+D   vrmlglanimation.pas
 
   audio/
 D   alutils.pas
