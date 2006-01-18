@@ -2367,30 +2367,33 @@ type
     function ActiveCount: integer;
     property Active[Index: integer]: TGLWindow read GetActive;
 
-    {OnIdle bedzie wywolywane gdy window system nie przesle nam zadnych
-       message'ow i w zwiazku z tym bedziemy wolni. Naczelnym celem
-       OnIdle jest aby w aplikacji zmuszonej do czestego odmalowywania sie
-       na ekranie OnIdle bylo wykonywane mniej wiecej tak czesto co OnDraw
-       (tzn. nie 1 do 1, ale proporcjonalnie tak czesto). W zwiazku z tym
-       jezeli nie mamy do siebie zadnych message'ow ale musimy sie
-       odmalowac to wtedy OnIdle ZOSTANIE wywolane (nie wiem czy tak
-       jest pod glutem; chyba pod glutem OnIdle jest wywolane tylko
-       gdy nie musielismy sie odmalowac czyli potencjalnie OnIdle
-       moze wtedy zachodzic za rzadko).
-     Wiec jesli w kolko mamy posylane do siebie zdarzenia OnDrawGL -
-       to pomiedzy nimi zawsze zmieszcza sie z pewna czestotliwoscia
-       zdarzenia OnIdleGL. Jednoczesnie, nie odmalowujemy sie w kazdym
-       obrocie petli - odmalowujemy sie tylko gdy nie mamy do siebie
-       zadnych zdarzen (to tak jak glut; jest faktem ze jezeli
-       aplikacja nie nadaza z przetwarzaniem nadchodzacych message'y
-       to nalezy cala sile skupic na ich przetwarzaniu a nie
-       utrudniac sobie prace zmuszajac sie do przemalowywania okienka
-       mimo ze mamy jakies message'y do obsluzenia).
-     W szczegolnosci, to jest odpowiednie miejsce aby robic
-       badanie KeysDown[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
-       robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
-     Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
-       (tzn.pomiedzy Init a Close jakiegos okienka). }
+    { OnIdle bedzie wywolywane gdy window system nie przesle nam zadnych
+      message'ow i w zwiazku z tym bedziemy wolni. Naczelnym celem
+      OnIdle jest aby w aplikacji zmuszonej do czestego odmalowywania sie
+      na ekranie OnIdle bylo wykonywane mniej wiecej tak czesto co OnDraw
+      (tzn. nie 1 do 1, ale proporcjonalnie tak czesto). W zwiazku z tym
+      jezeli nie mamy do siebie zadnych message'ow ale musimy sie
+      odmalowac to wtedy OnIdle ZOSTANIE wywolane (nie wiem czy tak
+      jest pod glutem; chyba pod glutem OnIdle jest wywolane tylko
+      gdy nie musielismy sie odmalowac czyli potencjalnie OnIdle
+      moze wtedy zachodzic za rzadko).
+      
+      Wiec jesli w kolko mamy posylane do siebie zdarzenia OnDrawGL -
+      to pomiedzy nimi zawsze zmieszcza sie z pewna czestotliwoscia
+      zdarzenia OnIdleGL. Jednoczesnie, nie odmalowujemy sie w kazdym
+      obrocie petli - odmalowujemy sie tylko gdy nie mamy do siebie
+      zadnych zdarzen (to tak jak glut; jest faktem ze jezeli
+      aplikacja nie nadaza z przetwarzaniem nadchodzacych message'y
+      to nalezy cala sile skupic na ich przetwarzaniu a nie
+      utrudniac sobie prace zmuszajac sie do przemalowywania okienka
+      mimo ze mamy jakies message'y do obsluzenia).
+      
+      W szczegolnosci, to jest odpowiednie miejsce aby robic
+      badanie KeysDown[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
+      robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
+      
+      Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
+      (tzn.pomiedzy Init a Close jakiegos okienka). }
     property OnIdle: TIdleFunc read FOnIdle write FOnIdle; { = nil }
     { OnTimer : podobnie jak glutTimerFunc. To zdarzenie jest uruchamiane
       co TimerMilisec milesekund lub wiecej (tzn. nie ma gwarancji ze zdarzenie
