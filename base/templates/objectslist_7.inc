@@ -40,7 +40,7 @@
     Arr: PArray_TObject;
     fCount,
     { capacity = na ile obiektow naprawde jest zaalokowana pamiec }
-    fCapacity: integer; 
+    fCapacity: integer;
     function GetItem(i: integer): TObjectsListItem_7;
     procedure SetItem(i: integer; Item: TObjectsListItem_7);
     procedure SetCount(value: integer);
@@ -54,25 +54,31 @@
     procedure NeededCapacityForOneMore;
 
     procedure InsertArrayPtr(Index: integer; A: PArray_TObject; ACount: Integer);
+
+    function GetFirst: TObjectsListItem_7;
+    procedure SetFirst(const Value: TObjectsListItem_7);
+    function GetLast: TObjectsListItem_7;
+    procedure SetLast(const Value: TObjectsListItem_7);
   public
     property Items[i: integer]:TObjectsListItem_7 read GetItem write SetItem; default;
-    
+
     {ustawianie Counta : zmniejszanie oznacza kasowanie koncowych elementow,
      zwiekszanie - dodawanie nil'i}
-    property Count: integer read fCount write SetCount;
+    property Count: Integer read fCount write SetCount;
+
+    { Shortcut for Count - 1. Yes, when Count = 0, High is -1. }
+    function High: Integer;
 
     property Capacity: integer read fCapacity write SetCapacity;
 
-    { obserwatory ------------------------------------------------------------ }
-    
-    { index 0 }
-    function First: TObjectsListItem_7; 
-    
-    { index Count-1 }
-    function Last: TObjectsListItem_7; 
+    { Shortcut for Items[0]. }
+    property First: TObjectsListItem_7 read GetFirst write SetFirst;
+
+    { Shortcut for Items[Count-1]. }
+    property Last: TObjectsListItem_7 read GetLast write SetLast;
 
     { dodawanie ---------------------------------------- }
-    
+
     { }
     procedure Insert(Index: integer; Item: TObjectsListItem_7);
     procedure InsertArray(Index: integer; const A: array of TObjectsListItem_7);
@@ -92,54 +98,54 @@
     function IndexOf(Item: TObjectsListItem_7): integer; overload;
 
     { usuwanie ------------------------------------------------------------ }
-    
+
     { }
     procedure Delete(Index: integer); overload;
-    
+
     { Robi IndexOf i Delete(integer), jezeli znalazl. Zwraca czy znalazl
       (czyli czy zrobil Delete(integer)). }
     function Delete(Item: TObjectsListItem_7): boolean; overload;
-    
+
     { DeleteAll robi Delete(integer) dopoki IndexOf znajduje.
       Zwraca ile elementow usunal (czyli o ile zmalalo Count). }
     function DeleteAll(Item: TObjectsListItem_7): integer;
-    
+
     { dla kazdego obiektu na liscie kasuje wszystkie jego nastepujace duplikaty }
     procedure DeleteDuplicates;
-    
+
     { Equivalent to doing Count := 0 }
     procedure Clear;
 
     { przesuwanie, zmienianie }
     procedure Exchange(index1, index2: integer);
     procedure Move(oldIndex, newIndex: integer);
-    
+
     { zamieni wszystkie wystapienia OldItem na NewItem }
     procedure ReplaceAll(OldItem, NewItem: TObjectsListItem_7);
 
     { ------------------------------------------------------------
       rzeczy ktore robia gdzies Free obiektom na liscie }
-    
+
     { }
     procedure FreeAndNil(Index: integer);
-    
+
     { robi jakby Clear tyle ze wszystkim wyrzucanym obiektom robi najpierw .Free.
       Jesli nie masz pewnosci - upewnij sie najpierw ze na liscie nie ma
       duplikatow przez DeleteDuplicates }
     procedure FreeContents; override;
-    
+
     {procedure FreeWithContents; in _Abstract}
 
-    constructor Create; 
-    
-    { Inits list contents with InitialItems. 
+    constructor Create;
+
+    { Inits list contents with InitialItems.
       This is just a shortcut for Create + AddArray(InitialItems). }
-    constructor CreateFromArray(const InitialItems: array of TObjectsListItem_7); 
-    
-    { Similiar to CreateFromArray: shortcut for 
+    constructor CreateFromArray(const InitialItems: array of TObjectsListItem_7);
+
+    { Similiar to CreateFromArray: shortcut for
       Create + AddList(InitialItems) }
-    constructor CreateFromList(InitialItems: TObjectsList_7); 
-    
+    constructor CreateFromList(InitialItems: TObjectsList_7);
+
     destructor Destroy; override;
   end;
 
@@ -193,11 +199,30 @@ begin
  fCount := value;
 end;
 
-function TObjectsList_7.First: TObjectsListItem_7;
-begin result := Items[0] end;
+function TObjectsList_7.High: Integer;
+begin
+ Result := Count - 1;
+end;
 
-function TObjectsList_7.Last: TObjectsListItem_7;
-begin result := Items[Count-1] end;
+function TObjectsList_7.GetFirst: TObjectsListItem_7;
+begin
+ Result := Items[0];
+end;
+
+procedure TObjectsList_7.SetFirst(const Value: TObjectsListItem_7);
+begin
+ Items[0] := Value;
+end;
+
+function TObjectsList_7.GetLast: TObjectsListItem_7;
+begin
+ Result := Items[Count-1];
+end;
+
+procedure TObjectsList_7.SetLast(const Value: TObjectsListItem_7);
+begin
+ Items[Count-1] := Value;
+end;
 
 procedure TObjectsList_7.NeededCapacityForOneMore;
 begin
@@ -207,11 +232,11 @@ end;
 procedure TObjectsList_7.Insert(Index: integer; Item: TObjectsListItem_7);
 var i: integer;
 begin
- { Simple (not optimized) implementation would be: 
+ { Simple (not optimized) implementation would be:
      InsertArrayPtr(Index, @Item, 1); }
- 
+
  {$ifopt R+} CheckInsertIndex(Index, 'Insert'); {$endif}
- 
+
  if Capacity = Count then NeededCapacityForOneMore;
  for i := Count downto Index+1 do Arr[i] := Arr[i-1];
  Arr[Index] := Item;
@@ -238,10 +263,10 @@ begin
   Arr[i] := Arr[i - ACount];
 
  { copy A contents to Arr }
- { Not optimized version: 
+ { Not optimized version:
      for i := Index + ACount - 1 downto Index do Arr[i] := A[i - Index]; }
  { SizeOf(Pointer) should be SizeOf(TObject) actually, but "SizeOf(TObject)"
-   does not compile with FPC 1.0.10 (bug, not present in FPC 1.0.6). 
+   does not compile with FPC 1.0.10 (bug, not present in FPC 1.0.6).
    It's the same thing, anyway. }
  System.Move(A[0], Arr[Index], ACount*SizeOf(Pointer));
 end;
@@ -249,7 +274,7 @@ end;
 procedure TObjectsList_7.InsertArray(Index: integer;
   const A: array of TObjectsListItem_7);
 begin
- InsertArrayPtr(Index, @A, High(A)+1);
+ InsertArrayPtr(Index, @A, System.High(A)+1);
 end;
 
 procedure TObjectsList_7.InsertList(Index: integer; List: TObjectsList_7);
@@ -387,7 +412,7 @@ begin
  AddArray(InitialItems);
 end;
 
-constructor TObjectsList_7.CreateFromList(InitialItems: TObjectsList_7); 
+constructor TObjectsList_7.CreateFromList(InitialItems: TObjectsList_7);
 begin
  Create();
  AddList(InitialItems);
