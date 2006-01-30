@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2005 Michalis Kamburelis.
+  Copyright 2000-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -68,7 +68,7 @@ function RandomString: string;
   StringReplaceAllTo1st opakowuje bardzo czeste zastosowanie
   StringReplace. }
 procedure StringReplaceAllTo1st(var s: string; const fromPat, toPat: string;
-  IgnoreCase: boolean {$ifdef DEFPARS} =true {$endif}); overload;
+  IgnoreCase: boolean = true); overload;
 
 { BreakLine : bierze s i wstawia w nim znaki nl tak zeby kazda linia
   w stringu miala maksymalnie MaxCol znakow. String s przy tym moze
@@ -78,7 +78,7 @@ procedure StringReplaceAllTo1st(var s: string; const fromPat, toPat: string;
   Stara sie wstawic nl na ostatnim przed MaxCol znakiem onbreakChars (znak
   sposrod breakChars zostaje przy tym skasowany).}
 function BreakLine(const s: string; MaxCol: integer;
-  onbreakChars: TSetOfChars {$ifdef DEFPARS}=whitespaces{$endif}): string; overload;
+  onbreakChars: TSetOfChars = WhiteSpaces): string; overload;
 
 { Returns S with all chars in ExcludedChars deleted. }
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
@@ -110,8 +110,12 @@ function CharPos(c: char; const s: string): integer;
 
 { CharsPos : znajdz dowolny sposrod znakow chars w stringu s.
   Czyli to samo co FirstDelimiter ale z parametrem jako TSetOfChars i duzo bardziej
-  sensowna nazwa. BackPos dziala w tyl, zwracaja 0 jesli nie znajda. }
+  sensowna nazwa. BackPos dziala w tyl.
+  CharsPosEx searches starting from Offset char.
+  Zwracaja 0 jesli nie znajda. }
 function CharsPos(const chars: TSetOfChars; const s: string): integer;
+function CharsPosEx(const chars: TSetOfChars; const s: string; 
+  Offset: Integer): integer;
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 
 { BackPos jak Pos, ale znajduje ostatnie wystapienie. }
@@ -126,9 +130,9 @@ function FirstDelimiter(const Delimiters, S: string): Integer;
 function SEnding(const s: string; P: integer): string;
 
 function IsPrefix(const Prefix, S: string;
-  IgnoreCase: boolean {$ifdef DEFPARS}=true{$endif}): boolean; overload;
+  IgnoreCase: boolean = true): boolean; overload;
 function IsSuffix(const Suffix, S: string;
-  IgnoreCase: boolean {$ifdef DEFPARS}=true{$endif}): boolean; overload;
+  IgnoreCase: boolean = true): boolean; overload;
 
 { If IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
@@ -177,7 +181,7 @@ procedure DeletePos(var S: string; StartPoz, EndPoz: Integer);
   Note: it's *much* easier to use CreateTokens instead of this procedure.
   This procedure has just a bit more functionality. }
 function NextToken(const s: string; var SeekPos: integer;
-  const TokenDelims: TSetOfChars {$ifdef DEFPARS}=WhiteSpaces{$endif}): string;
+  const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
 { NextTokenOnce umozliwia przekazanie parametru SeekPos by value.
@@ -185,8 +189,8 @@ function NextToken(const s: string; var SeekPos: integer;
   Oczywiscie, nie jest to dobre rozwiazanie jezeli chcemy znalezc wszystkie tokeny
   w stringu - ale jezeli zalezy nam tylko na jednym tokenie (jesli SeekPos = 1 to bedzie
   to pierwszy token) to ta procedura bedzie wygodniejsza od NextToken . }
-function NextTokenOnce(const s: string; SeekPos: integer {$ifdef DEFPARS}=1{$ENDIf};
-  const TokenDelims: TSetOfChars {$ifdef DEFPARS}=WhiteSpaces{$endif}): string;
+function NextTokenOnce(const s: string; SeekPos: integer = 1;
+  const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
 { Returns TDynStringArray with tokens extracted from s.
@@ -194,7 +198,8 @@ function NextTokenOnce(const s: string; SeekPos: integer {$ifdef DEFPARS}=1{$END
   TokenDelims are not contained in resulting items.
   E.g. CreateTokens('foo, bar', [' ', ',']) returns TDynStringArray
   with 2 items: 'foo' and 'bar'. }
-function CreateTokens(const s: string; const TokenDelims: TSetOfChars): TDynStringArray;
+function CreateTokens(const s: string;
+  const TokenDelims: TSetOfChars = WhiteSpaces): TDynStringArray;
 
 { NextTokenRestr to troche bardziej zaawansowane NextToken.
 
@@ -219,8 +224,8 @@ function CreateTokens(const s: string; const TokenDelims: TSetOfChars): TDynStri
   Przyklady pochodza wprost z rzeczy do ktorej uzywalem tej procedury : do parsowania
     argumentow HTMLowych tagow. }
 function NextTokenRestr(const s: string; var SeekPos: integer;
-  const TokenDelims: TSetOfChars {$ifdef DEFPARS}=WhiteSpaces {$endif};
-  const RestrAreas: TSetOfChars {$ifdef DEFPARS}=['''','"'] {$endif}): string; overload;
+  const TokenDelims: TSetOfChars = WhiteSpaces;
+  const RestrAreas: TSetOfChars = ['''','"']): string; overload;
 
 { FindPos : mocno rozbudowana procedura Pos (kiedys pod nazwa PosX) .
   Szuka SubTekst w Copy(Tekst, StartPoz, Dlugosc) i zwraca pozycje (wzgledem calego Tekstu,
@@ -318,9 +323,9 @@ type
   - niezgodnosci data z format. Pamietaj ze wtedy niektore sposrod
   args moga byc zmienione a niektore nie. }
 procedure DeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean {$ifdef DEFPARS} = true {$endif}); overload;
+  const args: array of pointer; IgnoreCase: boolean = true); overload;
 function TryDeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean {$ifdef DEFPARS} = true {$endif}): integer; overload;
+  const args: array of pointer; IgnoreCase: boolean = true): integer; overload;
 
 { FileFilter jest w postaci 'xxxx|name1.ext1;name2.ext2' albo
   'name1.ext1;name2.ext2' gdzie xxxx to moze byc cokolwiek (nie zawierajace |),
@@ -445,9 +450,9 @@ type
   EUnknownPercentFormat = class(Exception);
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
-  ErrorOnUnknownPercentFormat: boolean {$ifdef DEFPARS} =true{$endif};
-  PercentChar: char {$ifdef DEFPARS} ='%'{$endif};
-  IgnoreCase: boolean {$ifdef DEFPARS} =false {$endif}): string; overload;
+  ErrorOnUnknownPercentFormat: boolean = true;
+  PercentChar: char ='%';
+  IgnoreCase: boolean = false): string; overload;
 
 function AnsiUpperCaseChar(C: char): char;
 function AnsiLowerCaseChar(C: char): char;
@@ -483,11 +488,11 @@ function IntToStrPoz(n: Int64; poz: Byte; minLength: Cardinal): string; overload
   MinLength means to left-pad with zeros if necessary.
   You can supply a value for zero digit (default '0'), one digit (default '1')
   and minus sign (default '-'). }
-function IntToStr2(n: Int64; minLength: Cardinal {$ifdef DEFPARS}=1{$endif}): string; overload;
+function IntToStr2(n: Int64; minLength: Cardinal = 1): string; overload;
 function IntToStr2(n: Int64; MinLength: Cardinal;
   ZeroDigit, OneDigit, MinusSign: char): string; overload;
 { wypisuje n zapisana heksadecymalnie (w ukladnie 16-stkowym) }
-function IntToStr16(n: Int64; minLength: Cardinal {$ifdef DEFPARS}=1{$endif}): string; overload;
+function IntToStr16(n: Int64; minLength: Cardinal = 1): string; overload;
 function ToStr(const args: array of const): string;
 function VarRecToStr(const v: TVarRec): string;
 
@@ -724,6 +729,14 @@ begin
  result := 0;
 end;
 
+function CharsPosEx(const Chars: TSetOfChars; const S: string; 
+  Offset: Integer): integer;
+begin
+ for Result := Offset to Length(S) do
+   if S[Result] in Chars then Exit;
+ Result := 0;
+end;
+
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
  for result := Length(s) downto 1 do
@@ -821,7 +834,8 @@ begin
  Delete(S, StartPoz, EndPoz - StartPoz + 1);
 end;
 
-function NextToken(const s: string; var SeekPos: integer; const TokenDelims: TSetOfChars): string;
+function NextToken(const s: string; var SeekPos: integer;
+  const TokenDelims: TSetOfChars): string;
 var TokStart: integer;
 begin
  repeat
@@ -838,12 +852,14 @@ begin
                  TokenDelim ! }
 end;
 
-function NextTokenOnce(const s: string; SeekPos: integer; const TokenDelims: TSetOfChars): string;
+function NextTokenOnce(const s: string; SeekPos: integer;
+  const TokenDelims: TSetOfChars): string;
 begin
  result := Nexttoken(S, SeekPos, TokenDelims);
 end;
 
-function CreateTokens(const s: string; const TokenDelims: TSetOfChars): TDynStringArray;
+function CreateTokens(const s: string;
+  const TokenDelims: TSetOfChars): TDynStringArray;
 var SeekPos: Integer;
     Token: string;
 begin
