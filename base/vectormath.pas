@@ -315,6 +315,8 @@ type
   PArray_Vector4Byte = ^TArray_Vector4Byte;
   TArray_Vector2Cardinal = packed array[0..MaxInt div SizeOf(TVector2Cardinal)-1]of TVector2Cardinal;
   PArray_Vector2Cardinal = ^TArray_Vector2Cardinal;
+  TArray_Vector2Extended = packed array[0..MaxInt div SizeOf(TVector2Extended)-1]of TVector2Extended;
+  PArray_Vector2Extended = ^TArray_Vector2Extended;
 
   { Dynamic arrays (using my TDynArray template),
     and some more "infinite" arrays defined by the way. }
