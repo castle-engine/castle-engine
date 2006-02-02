@@ -34,6 +34,19 @@ procedure ParamCountEqGreater(ParamValue: integer);
 procedure ParamCountEqLesser(ParamValue: integer);
 { @groupEnd }
 
+type
+  TParametersArray = class(TDynStringArray)
+    { sprawdza  czy High [= >= <=] ParamValue. Jesli nie, wyjatek EInvalidParams
+      z odpowiednim komunikatem bledu. (niestety, kara za mozliwosc
+      modyfikacji parametrow przechowywanych w obiektach tej klasy
+      jest fakt ze te funkcje nie moga wypisac dokladnie ILE parametrow oczekiwano,
+      bo przeciez ilosc parametrow mogla ulec zmianie od czasu rozpoczecia
+      programu. Moga jedynie wypisac ILE parametrow brakuje/jest za duzo. }
+    procedure CheckHigh(ParamValue: integer);
+    procedure CheckHighAtLeast(ParamValue: integer);
+    procedure CheckHighAtMost(ParamValue: integer);
+  end;
+
 var
   { At the initialization of this unit, Parameters are initialized to
     simply ParamStr(0) ... ParamStr(ParamCount). This means that
@@ -55,10 +68,10 @@ var
         modify passed argv --- they remove parts of command-line that
         were already parsed.)
     )
-    
+
     @noAutoLinkHere
   }
-  Parameters: TDynStringArray;
+  Parameters: TParametersArray;
 
 { These routines are only for compat with many of my old code.
   New code should use directly Parameters methods and properties.
@@ -102,16 +115,6 @@ function IsPresentInPars(const sarr: array of string;
 
 { IsHelpPresentInPars = IsPresentInPars(['-?', '-h', '--help'], false) }
 function IsHelpPresentInPars: boolean;
-
-{ sprawdza  czy ParCount [= >= <=] ParamValue. Jesli nie, wyjatek EInvalidParams
-  z odpowiednim komunikatem bledu. (niestety, kara za mozliwosc wykonywania
-  ParDelete/Shift/SetPars (a wiec za mozliwosc swobodnej zmiany parametrow)
-  jest fakt ze te funkcje nie moga wypisac dokladnie ILE parametrow oczekiwano,
-  bo przeciez ilosc parametrow Pars mogla ulec zmianie od czasu rozpoczecia
-  programu. Moga jedynie wypisac ILE parametrow brakuje/jest za duzo. }
-procedure ParCountEqual(ParamValue: integer);
-procedure ParCountEqGreater(ParamValue: integer);
-procedure ParCountEqLesser(ParamValue: integer);
 
 {$endif read_interface}
 
@@ -194,33 +197,37 @@ function IsHelpPresentInPars: boolean;
 const HelpPars: array[0..2]of string = ('-?', '-h', '--help');
 begin result := IsPresentInPars(HelpPars, false) end;
 
-procedure ParCountEqual(ParamValue: integer);
+procedure TParametersArray.CheckHigh(ParamValue: integer);
 begin
- if ParamValue <> ParCount then
+ if ParamValue <> High then
  begin
-  if ParamValue < ParCount then
-   raise EInvalidParams.Create('Expected ' +ParametersCountString(ParCount-ParamValue, ' less')) else
-   raise EInvalidParams.Create('Expected ' +ParametersCountString(ParamValue-ParCount, ' more'));
+  if ParamValue < High then
+   raise EInvalidParams.Create('Expected ' +
+     ParametersCountString(High-ParamValue, ' less')) else
+   raise EInvalidParams.Create('Expected ' +
+     ParametersCountString(ParamValue-High, ' more'));
  end;
 end;
 
-procedure ParCountEqGreater(ParamValue: integer);
+procedure TParametersArray.CheckHighAtLeast(ParamValue: integer);
 begin
- if ParamValue > ParCount then
-  raise EInvalidParams.Create('Expected ' +ParametersCountString(ParamValue-ParCount, ' more'));
+ if ParamValue > High then
+  raise EInvalidParams.Create('Expected ' +
+    ParametersCountString(ParamValue-High, ' more'));
 end;
 
-procedure ParCountEqLesser(ParamValue: integer);
+procedure TParametersArray.CheckHighAtMost(ParamValue: integer);
 begin
- if ParamValue < ParCount then
-  raise EInvalidParams.Create('Expected ' +ParametersCountString(ParCount-ParamValue, ' less'));
+ if ParamValue < High then
+  raise EInvalidParams.Create('Expected ' +
+    ParametersCountString(High-ParamValue, ' less'));
 end;
 
 procedure InitializationParams;
 var
   I: Integer;
 begin
- Parameters := TDynStringArray.Create(ParamCount + 1);
+ Parameters := TParametersArray.Create(ParamCount + 1);
  for I := 0 to ParamCount do Parameters[i] := ParamStr(i);
 end;
 
