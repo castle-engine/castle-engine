@@ -25,8 +25,7 @@
   @definitionList(
     @itemLabel Parameter
     @item(Command-line parameters are given directly by the OS to our
-      program. Implementation of this unit obtains them from
-      @link(ParStr) and @link(ParCount).)
+      program. Implementation of this unit obtains them from @link(Parameters).)
 
     @itemLabel Option
     @item(Options are encoded by the user as parameters.
@@ -58,7 +57,7 @@
 
   @unorderedList(
     @item(Trudniej sie pomylic, nie trzeba juz pisac tych
-      wszystkich ParDelete(i), ParDeleteAndGetNext(i), Inc(i).)
+      wszystkich Parameters.Delete(i, 1), ParDeleteAndGetNext(i), Inc(i).)
 
     @item(Uwzglednianie takich rzeczy jak specjalny parametr '@--' jest juz
       automatyczne i nie powoduje komplikacji w kodzie programu.)
@@ -144,9 +143,9 @@ uses SysUtils, VectorMath, KambiUtils;
       parametrach funkcji; getLongOpts tak dzialaly bo chcialy byc mozliwie podobne
       do oryginalnych getopts ktore dzialaly tylko na short oprtions, mi na tym
       podobienstwie nie zalezalo)
-    - chcialem uzywac ParStr/ParCount z mojego myUtils zamiast ParamStr/ParamCount
-      lub argv/argc. Wole moje ParStr/ParCount bo one pozwalaja mi wygodnie usuwac
-      opcje przez ParDelete/ParShift itp. (co nie jest mozliwe pod Param* i
+    - chcialem uzywac @link(Parameters) z mojego KambiUtils zamiast ParamStr/ParamCount
+      lub argv/argc. Wole moje @link(Parameters) bo one pozwalaja mi wygodnie usuwac
+      opcje przez Parameters.Delete etc. (co nie jest mozliwe pod Param* i
       co jest mozliwe ale niewygodne (i nie pod kazdym Pascalem/platforma)
       z argv/c)
     - chcialem tez miec mozliwosc podawania argumentow dla opcji jako
@@ -163,7 +162,7 @@ uses SysUtils, VectorMath, KambiUtils;
       po prostu dlatego ze zrobilem to juz wiele razy, takze programy Radiance'a
       biora w ten sposob wektory (jako 3 osobne parametry))
 
-  Funkcja ParsePars parsuje opcje zawarte w parametrach ParStr/ParCount.
+  Funkcja ParsePars parsuje opcje zawarte w parametrach @link(Parameters).
     Krotkie opcje moga byc podawane po kilka w jednym parametrze,
     poprzedzone "-" (ale tylko ostatnia opcja w takim wypadku moze miec argument).
     Kazda long option musi byc podana osobno i poprzedzona "--".
@@ -180,11 +179,13 @@ uses SysUtils, VectorMath, KambiUtils;
         --long-option Argument
         -<short-options-without-args>s Argument
         No i mozliwe sa takze te same postacie co dla oaOptional.
-        Obydwie postacie dla oaRequired oznaczaja obecnosc _dwoch_ parametrow w ParStr().
+        Obydwie postacie dla oaRequired oznaczaja obecnosc _dwoch_ parametrow 
+        w @link(Parameters).
       oaRequired?Separate oznacza ze mozliwe sa nastepujace postacie :
         --long-option Argument1 Argument2 ... Argument?
         -<short-options-without-args>s Argument1 Argument2 ... Argument?
-        Obydwie te postacie oznaczaja obecnosc ?+1 parametrow w ParStr().
+        Obydwie te postacie oznaczaja obecnosc ?+1 parametrow w
+        @link(Parameters).
 
   Wszystkie parametry zaczynajace sie od "-" (razem z ew. argumentami ich opcji)
     zostana przez ta funkcje odczytane i poslane do OptionProc. Jezeli wystapi
@@ -198,7 +199,7 @@ uses SysUtils, VectorMath, KambiUtils;
     (w rodzaju '-=argument', '--=argument') => EInvalidParams.
   Tutaj od razu uwaga : opcja '-' bedzie pozostawiona w spokoju,
     tzn. nie spowoduje wyjatku EInvalidParams, nie moze zostac w zaden sposob
-    przekazana do OptionProc i nie bedzie tez usunieta przez ParDelete.
+    przekazana do OptionProc i nie bedzie tez usunieta przez Parameters.Delete.
     Moznaby myslec ze skoro zapisy '-=argument' i '--=argument' traktujemy
     jako bledy ("empty option") to podobnie nalezaloby potraktowac '-',
     ale robimy tu wyjatek i traktujemy '-' jako zwykly parametr, nie-opcje,
@@ -217,28 +218,28 @@ uses SysUtils, VectorMath, KambiUtils;
     takiego stringa jak "--".)
 
   Opcje (razem ze swoimi ew. argumentami) (oraz pierwszy parametr "--")
-    zostana usuniete z parametrow przez ParDelete
-    (nie jest zdefiniwane w ktorym momencie - przed wywolaniem OptionProc
-    dla tego argumentu, po, czy moze nawet dopiero po wywolaniu wszystkich
-    OptionProc ? To dlatego ze w przypadku gdy short options beda kombinowane
-    i podawane w postaci jednego parametru to byloby raczej ze szkoda
-    dla programisty polegac na jakimkolwiek schemacie usuwania parametrow;
-    kod w srodku OptionProc nie moze w zaden sposob operowac (nawet czytac,
-    skoro to w ktorym momencie ParsePars usunie sparsowane parametry nie jest
-    zdefiniowane) parametrow w ParStr/ParCount, tym bardzi nie moze tez
-    ich usuwac przez ParDelete; nie moze tez wywolywac ParsePars jako ze
-    ParsePars samo operuje na ParStr/Count; jest chyba jasne ze ParsePars
-    jest NON-REENTRANT i nigdy nie bedzie reentrant bo samo kasowanie argumentow
-    z ParStr/Count nigdy nie bedzie reentrant).
+  zostana usuniete z parametrow przez Parameters.Delete
+  (nie jest zdefiniwane w ktorym momencie - przed wywolaniem OptionProc
+  dla tego argumentu, po, czy moze nawet dopiero po wywolaniu wszystkich
+  OptionProc ? To dlatego ze w przypadku gdy short options beda kombinowane
+  i podawane w postaci jednego parametru to byloby raczej ze szkoda
+  dla programisty polegac na jakimkolwiek schemacie usuwania parametrow;
+  kod w srodku OptionProc nie moze w zaden sposob operowac (nawet czytac,
+  skoro to w ktorym momencie ParsePars usunie sparsowane parametry nie jest
+  zdefiniowane) parametrow w @link(Parameters), tym bardzi nie moze tez
+  ich usuwac przez Parameters.Delete; nie moze tez wywolywac ParsePars jako ze
+  ParsePars samo operuje na @link(Parameters); jest chyba jasne ze ParsePars
+  jest NON-REENTRANT i nigdy nie bedzie reentrant bo samo kasowanie argumentow
+  z @link(Parameters) nigdy nie bedzie reentrant).
 
   Pozostale parametry (nie zaczynajace sie od "-" i nie bedace zadnymi
-    argumentami i nie bedace "--") nie beda ruszane. Parametry za pierwszym
-    "--" nigdy nie beda ruszane. Po wywolaniu ParsePars powinienes wiec
-    przegladnac ParStr/ParCount i odczytac te pozostale "zwykle" argumenty
-    programu.
+  argumentami i nie bedace "--") nie beda ruszane. Parametry za pierwszym
+  "--" nigdy nie beda ruszane. Po wywolaniu ParsePars powinienes wiec
+  przegladnac @link(Parameters) i odczytac te pozostale "zwykle" argumenty
+  programu.
 
-  Notka: ParStr(0) nigdy nie jest ruszany ani czytany. ParsePars parsuje
-    tylko parametry 1..ParCount.
+  Notka: Parameters[0] nigdy nie jest ruszany ani czytany. ParsePars parsuje
+  tylko parametry 1..Parameters.High.
 
   Specjalny przypadek : gdy ParseOnlyKnownLongOptions = true funkcja
   ParsePars dziala nieco inaczej.
@@ -252,7 +253,7 @@ uses SysUtils, VectorMath, KambiUtils;
       zero --kot --pies
      (zero to paremetr zerowy, zawsze ignorowany, wiec bez znaczenia)
      to --kot zostanie rozpoznany, poslany do OptionProc i usuniety z
-     parametrow przez ParDelete natomiast --pies spokojnie zostanie potraktowany
+     parametrow przez Parameters.Delete natomiast --pies spokojnie zostanie potraktowany
      jakby w ogole nie byl zadna dluga opcja. Po zakonczeniu ParseProc
      parametry beda wiec wygladaly tak:
        zero --pies
@@ -651,8 +652,8 @@ procedure ParsePars(Options: POption_Array; OptionsCount: Integer; OptionProc: T
     zwrocona opcja. W przypadku oaRequired[*Separate] moze/musi odczytac
     dalsze parametry zeby postac argument/argumenty opcji.
     Zasada jest taka ze ta procedura zajmuje sie TYLKO parametrem s.
-    Ona nie wchodzi na inne ParStr(), zreszta w ogole nie wie dla jakiego
-    i ParStr(i) = s.
+    Ona nie wchodzi na inne Parameters[], zreszta w ogole nie wie dla jakiego
+    I zachodzi Parameters[I] = s.
   }
   var ParamShortStr: string;
       i: Integer;
@@ -678,41 +679,42 @@ begin
  SimpleShortOptions := TDynIntegerArray.Create;
  try
 
-  while i <= ParCount do
+  while i <= Parameters.High do
   begin
-   if ParStr(i) = '--' then
+   if Parameters[i] = '--' then
    begin
-    if not ParseOnlyKnownLongOptions then ParDelete(i);
+    if not ParseOnlyKnownLongOptions then Parameters.Delete(i, 1);
     Break
    end;
 
    Assert(SimpleShortOptions.Length = 0);
 
-   { evaluate OptionNum; Ustaw je na numer w Params jezeli ParStr(i) to opcja
+   { evaluate OptionNum; Ustaw je na numer w Params jezeli Parameters[i] to opcja
      (w tym przypadku musisz tez ustalic OptionName), wpp. (jesli to nie opcja
      i mozemy ja pominac) ustal OptionNum na -1.
 
-     Warunek Length(ParStr(i)) > 1 w linijce ponizej gwarantuje nam ze parametr
-     '-' uznamy za nie-opcje (zamiast np. powodowac wyjatek "empty option") }
+     Warunek Length(Parameters[i]) > 1 w linijce ponizej gwarantuje nam 
+     ze parametr '-' uznamy za nie-opcje (zamiast np. powodowac wyjatek 
+     "empty option") }
    OptionNum := -1;
-   if SCharIs(ParStr(i), 1, '-') and (Length(ParStr(i)) > 1) then
+   if SCharIs(Parameters[i], 1, '-') and (Length(Parameters[i]) > 1) then
    begin
-    if SCharIs(ParStr(i), 2, '-') then
+    if SCharIs(Parameters[i], 2, '-') then
     begin
-     OptionNum := ParseLongParameter(ParStr(i), HasArgument, Argument);
+     OptionNum := ParseLongParameter(Parameters[i], HasArgument, Argument);
      if OptionNum <> -1 then OptionName := '--'+Options[OptionNum].Long;
     end else
     if not ParseOnlyKnownLongOptions then
     begin
-     OptionNum := ParseShortParameter(ParStr(i), HasArgument, Argument, SimpleShortOptions);
+     OptionNum := ParseShortParameter(Parameters[i], HasArgument, Argument, SimpleShortOptions);
      OptionName := '-'+Options[OptionNum].Short;
     end;
    end;
 
-   { OptionNum = -1 oznacza ze z jakiegos powodu ParStr(i) jednak NIE przedstawia
-     soba zadnej opcji i powinnismy postepowac dalej jakby ParStr(i) byl
+   { OptionNum = -1 oznacza ze z jakiegos powodu Parameters[i] jednak NIE przedstawia
+     soba zadnej opcji i powinnismy postepowac dalej jakby Parameters[i] byl
      normalnym parametrem, nie-opcja. W praktyce bylo nam to potrzebne
-     bo gdy ParseOnlyKnownLongOptions = true to fakt ze chcemy dany ParStr(i)
+     bo gdy ParseOnlyKnownLongOptions = true to fakt ze chcemy dany Parameters[i]
      mozemy czasem odkryc dosc pozno, np. bedac w wywolaniu ParseLongParameter. }
 
    if OptionNum <> -1 then
@@ -730,7 +732,7 @@ begin
 
     { teraz zajmij sie opcja OptionNum o nazwie OptionName }
 
-    ParDelete(i);
+    Parameters.Delete(i, 1);
     SeparateArgs := EmptySeparateArgs;
 
     { upewnij sie ze HasArgument ma dopuszczalna wartosc. Odczytaj argumenty
@@ -738,11 +740,11 @@ begin
 
     if (Options[OptionNum].Argument = oaRequired) and (not HasArgument) then
     begin
-     if i > ParCount then
+     if i > Parameters.High then
       raise EMissingOptionArgument.Create('Missing argument for option '+OptionName);
      HasArgument := true;
-     Argument := ParStr(i);
-     ParDelete(i);
+     Argument := Parameters[i];
+     Parameters.Delete(i, 1);
     end else
     if (Options[OptionNum].Argument = oaNone) and HasArgument then
      raise EExcessiveOptionArgument.Create('Excessive argument for option '+OptionName) else
@@ -756,12 +758,12 @@ begin
 
      for j := 1 to OptionSeparateArgumentToCount(Options[OptionNum].Argument) do
      begin
-      if i > ParCount then
+      if i > Parameters.High then
        raise EMissingOptionArgument.CreateFmt('Not enough arguments for option %s, '+
          'this option needs %d arguments but we have only %d', [OptionName,
          OptionSeparateArgumentToCount(Options[OptionNum].Argument), j-1]);
-      SeparateArgs[j] := ParStr(i);
-      ParDelete(i);
+      SeparateArgs[j] := Parameters[i];
+      Parameters.Delete(i, 1);
      end;
     end;
 

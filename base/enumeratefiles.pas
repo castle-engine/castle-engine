@@ -266,33 +266,36 @@ function EnumFilesWritelnZero(const Mask: string; Attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Options: TEnumFilesOptions): Cardinal; overload;
 
-{ Robi tak: najpierw wymaga zeby ParCount >= 1. (jesli nie, exception "expected
-  at least one file mask"). Potem dla kazdego ParStr(i) gdzie i = 1..ParCount
-  wykonuje EnumFiles(ParStr(i), ...) gdzie ... sa brane z podanych parametrow.
-  Jezeli jakies ParStr(i) zwroci 0 to pisze ze "No files matching ...".
+{ Robi tak: najpierw wymaga zeby Parameters.High >= 1.
+  (jesli nie, exception "expected
+  at least one file mask").
+  Potem dla kazdego Parameters[1] ... Parameters[Parameters.High]
+  wykonuje EnumFiles(Parameters[I], ...) gdzie ... sa brane z podanych parametrow.
+  Jezeli jakies Parameters[I] zwroci 0 to pisze ze "No files matching ...".
   Wyniki wszystkich EnumFiles sumuje i (zanim zwroci go jako swoj result)
   jesli na koncu otrzyma cos > 0 to wypisuje "xxx files processed".
 
-  Wnioski: jezeli wiesz ze teraz w parametrach ParStr(1) .. ParStr(ParCount)
+  Wnioski: jezeli wiesz ze teraz w parametrach
+  Parameters[1] ... Parameters[Parameters.High]
   masz maski plikow (i powinienes miec przynajmniej jeden taki parametr
   w reku) to mozesz uzyc tej funkcji aby jednoczesnie wykonac iterowanie
-  po ParStr(...) i wykonywanie odpowiednich EnumFiles na kazdym parametrze
+  po Parameters i wykonywanie odpowiednich EnumFiles na kazdym parametrze
   (i wypisywanie odpowiednich informacji o wyniku wszystkich EnumFiles).
 
   O ile samo w sobie to zadanie nie jest zbyt ambitne to najwazniejsza
   rzecza jaka daje ta funkcja jest ze beda wypisywane przez InfoWrite
   komunikaty dla usera ktore powiedza mu
-    1) jezeli jakis ParStr() nie byl Mask pasujaca do czegokolwiek
-       (a wiec, w szczegolnosci, sam ParStr() nie byl tez gotowa nazwa zadnego
-       istniejacego pliku)
+    1) jezeli jakis Parameters[I] nie byl Mask pasujaca do czegokolwiek
+       (a wiec, w szczegolnosci, sam Parameters[I] nie byl tez gotowa
+       nazwa zadnego istniejacego pliku)
     2) ile w sumie plikow zostalo przetworzonych przez wszystkie wywolania
        EnumFiles.
   Zwracam uwage ze na pewno ta funkcja wypisze min 1 komunikat :
-  albo ze "xxx files processed" albo (gdyby ParCount = 1 i ParStr(1)
+  albo ze "xxx files processed" albo (gdyby Parameters.High = 1 i Parameters[1]
   nie pasowalo) ze "No files matching". (no, o ile nie wyjdzie z wyjatkiem
   oczywiscie).
 }
-function EnumFilesWritelnParStr(Attr: integer;
+function EnumFilesWritelnParameters(Attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Options: TEnumFilesOptions): Cardinal; overload;
 
@@ -573,19 +576,19 @@ begin
  if result = 0 then InfoWrite(Format(SEFW_NoMatching, [Mask]));
 end;
 
-function EnumFilesWritelnParStr(Attr: integer;
+function EnumFilesWritelnParameters(Attr: integer;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Options: TEnumFilesOptions): Cardinal;
 var i: Integer;
 begin
- if ParCount = 0 then
+ if Parameters.High = 0 then
   raise EInvalidParams.Create('Expected at least one filename-mask as parameter');
 
  result := 0;
 
- for i := 1 to ParCount do
+ for i := 1 to Parameters.High do
  begin
-  result := result + EnumFilesWritelnZero(ParStr(i), Attr,
+  result := result + EnumFilesWritelnZero(Parameters[i], Attr,
     FileProc, FileProcData, Options);
  end;
 

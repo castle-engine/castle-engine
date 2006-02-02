@@ -1,4 +1,7 @@
-var tmp:TT;
+var
+  Tmp: TT;
 begin
- tmp:=a; a:=b; b:=tmp;
+  Tmp := A;
+  A := B;
+  B := Tmp;
 end;
