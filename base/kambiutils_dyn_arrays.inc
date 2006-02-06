@@ -182,6 +182,7 @@ type
 {$define DYNARRAY_14_USE_EQUALITY_OP}
 {$define DYNARRAY_15_USE_EQUALITY_OP}
 {$define DYNARRAY_15_IS_INIT_FINI_TYPE}
+{$define DYNARRAY_16_USE_EQUALITY_OP}
 type
   TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below}      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
   TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}  TDynIntegerArray  = TDynArray_2 ; TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
@@ -305,10 +306,10 @@ begin SetLength(Length+LenChange) end;
 procedure TDynArrayBase.SwapItems(Index1, Index2: integer);
 var p1, p2: PByte;
 begin
- {$I NoRQCheckBegin.inc}
+ {$I norqcheckbegin.inc}
  p1 := Pointer(TPointerSInt(A) + Index1*ItemSize);
  p2 := Pointer(TPointerSInt(A) + Index2*ItemSize);
- {$I NoRQCheckEnd.inc}
+ {$I norqcheckend.inc}
  move(p1^, SwapItemsBuf^, ItemSize);
  move(p2^, p1^, ItemSize);
  move(SwapItemsBuf^, p2^, ItemSize);
