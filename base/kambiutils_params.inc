@@ -45,6 +45,13 @@ type
     procedure CheckHigh(ParamValue: integer);
     procedure CheckHighAtLeast(ParamValue: integer);
     procedure CheckHighAtMost(ParamValue: integer);
+
+    { Assign Parameters value from Argc and Argv.
+      This is extremely useful if you use libraries that
+      require Argc and Argv and modify passed Argc and Argv.
+      (Like glutInit, MPI_Init, and so on).
+      Then you can load Parameters again from resulting Argc and Argv. }
+    procedure AssignArgCV(Argc: Integer; Argv: PPChar);
   end;
 
 var
@@ -221,6 +228,16 @@ begin
  if ParamValue < High then
   raise EInvalidParams.Create('Expected ' +
     ParametersCountString(High-ParamValue, ' less'));
+end;
+
+procedure TParametersArray.AssignArgCV(Argc: Integer; Argv: PPChar);
+var
+  Argv_Array: PArray_PChar absolute Argv;
+  I: Integer;
+begin
+  Count := Argc;
+  for I := 0 to Count - 1 do
+    Items[I] := Argv_Array[I];
 end;
 
 procedure InitializationParams;
