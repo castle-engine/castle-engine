@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -52,7 +52,7 @@
   )
 
   Pewne zalety uzywania w ogole funkcji do parsowania parametrow (w rodzaju
-  getopts czy mojego ParsePars) ponad robieniem parsowania argumentow za kazdym
+  getopts czy mojego ParseParameters) ponad robieniem parsowania argumentow za kazdym
   razem recznie w programie:
 
   @unorderedList(
@@ -123,7 +123,7 @@
   Takie nazewnictwo jest konsekwentne z getopts i z Pascalowymi ParamStr/Count.
 }
 
-unit ParsingPars;
+unit ParseParametersUnit;
 
 {$I kambiconf.inc}
 
@@ -137,7 +137,7 @@ uses SysUtils, VectorMath, KambiUtils;
     modulu GetOpts z FPC i innych. Zasadniczymi powodami dla ktorych chcialem
     napisac ta funkcje (zamiast uzywac czy przynajmniej opakowac jakas wersje
     getopts) bylo:
-    - chcialem zeby ParsePars sygnalizowalo bledy przez wyjatki
+    - chcialem zeby ParseParameters sygnalizowalo bledy przez wyjatki
     - chcialem podawac short options i long options w jednej tablicy
       (zamiast, jak w getopts, podawac short i long options osobno w osobnych
       parametrach funkcji; getLongOpts tak dzialaly bo chcialy byc mozliwie podobne
@@ -162,7 +162,7 @@ uses SysUtils, VectorMath, KambiUtils;
       po prostu dlatego ze zrobilem to juz wiele razy, takze programy Radiance'a
       biora w ten sposob wektory (jako 3 osobne parametry))
 
-  Funkcja ParsePars parsuje opcje zawarte w parametrach @link(Parameters).
+  Funkcja ParseParameters parsuje opcje zawarte w parametrach @link(Parameters).
     Krotkie opcje moga byc podawane po kilka w jednym parametrze,
     poprzedzone "-" (ale tylko ostatnia opcja w takim wypadku moze miec argument).
     Kazda long option musi byc podana osobno i poprzedzona "--".
@@ -207,13 +207,13 @@ uses SysUtils, VectorMath, KambiUtils;
     oznacza stdin lub stdout. Tak wiec obie wersje pustych parametrow, '-'
     i '--' (patrz nizej) traktujemy wyjatkowo.
 
-  Specjalny parametr "--" bedzie przez ParsePars zawsze czytany i usuwany z
+  Specjalny parametr "--" bedzie przez ParseParameters zawsze czytany i usuwany z
     Pars i bedzie oznaczal ze wszystkie nastepne parametry NIE sa
     parametrami Params, nawet jesli zaczynaja sie od znaku "-".
-    W ten sposob, parametr "--" bedzie oznaczal dla ParsePars ze skonczyly
+    W ten sposob, parametr "--" bedzie oznaczal dla ParseParameters ze skonczyly
     sie juz parametry ktore ma parsowac i moze zakonczyc dzialanie (pamietaj
     ze wobec tego podanie DWOCH parametrow "--" "--" spowoduje ze drugi
-    z nich pozostanie w Pars po wywolaniu ParsePars(); to jest _dobrze_,
+    z nich pozostanie w Pars po wywolaniu ParseParameters(); to jest _dobrze_,
     bo to umozliwia userowi podanie jako parametr do mojego programu nawet
     takiego stringa jak "--".)
 
@@ -225,31 +225,31 @@ uses SysUtils, VectorMath, KambiUtils;
   i podawane w postaci jednego parametru to byloby raczej ze szkoda
   dla programisty polegac na jakimkolwiek schemacie usuwania parametrow;
   kod w srodku OptionProc nie moze w zaden sposob operowac (nawet czytac,
-  skoro to w ktorym momencie ParsePars usunie sparsowane parametry nie jest
+  skoro to w ktorym momencie ParseParameters usunie sparsowane parametry nie jest
   zdefiniowane) parametrow w @link(Parameters), tym bardzi nie moze tez
-  ich usuwac przez Parameters.Delete; nie moze tez wywolywac ParsePars jako ze
-  ParsePars samo operuje na @link(Parameters); jest chyba jasne ze ParsePars
+  ich usuwac przez Parameters.Delete; nie moze tez wywolywac ParseParameters jako ze
+  ParseParameters samo operuje na @link(Parameters); jest chyba jasne ze ParseParameters
   jest NON-REENTRANT i nigdy nie bedzie reentrant bo samo kasowanie argumentow
   z @link(Parameters) nigdy nie bedzie reentrant).
 
   Pozostale parametry (nie zaczynajace sie od "-" i nie bedace zadnymi
   argumentami i nie bedace "--") nie beda ruszane. Parametry za pierwszym
-  "--" nigdy nie beda ruszane. Po wywolaniu ParsePars powinienes wiec
+  "--" nigdy nie beda ruszane. Po wywolaniu ParseParameters powinienes wiec
   przegladnac @link(Parameters) i odczytac te pozostale "zwykle" argumenty
   programu.
 
-  Notka: Parameters[0] nigdy nie jest ruszany ani czytany. ParsePars parsuje
+  Notka: Parameters[0] nigdy nie jest ruszany ani czytany. ParseParameters parsuje
   tylko parametry 1..Parameters.High.
 
   Specjalny przypadek : gdy ParseOnlyKnownLongOptions = true funkcja
-  ParsePars dziala nieco inaczej.
+  ParseParameters dziala nieco inaczej.
   1) Wszystkie krotkie opcje sa ignorowane (tzn. parametry zaczynajace sie
      od '-' ale nie od '--' sa traktowane jako nieopcje, w zwiazku z czym
      wartosci Options[].Short sa kompletnie bez znaczenia)
   2) Wszystkie dlugie opcje ktore nie sa rozpoznane sa ignorowane.
      OptionProc jest wywolywane tylko dla znanych dlugich opcji.
      Np. jezeli w Options mamy specyfikacje dlugiej opcji --kot i nie mamy
-     --pies to wywolanie ParsePars dla parametrow rownych
+     --pies to wywolanie ParseParameters dla parametrow rownych
       zero --kot --pies
      (zero to paremetr zerowy, zawsze ignorowany, wiec bez znaczenia)
      to --kot zostanie rozpoznany, poslany do OptionProc i usuniety z
@@ -262,18 +262,18 @@ uses SysUtils, VectorMath, KambiUtils;
   3) Specjalny parametr '--' takze ciagle bedzie wychwytywany i oznaczac
      bedzie koniec opcji. Tyle ze tym razem nie bedziemy go kasowac.
   Do czego to sie moze przydac ? Mianowicie przydaje sie to gdy chcemy
-    napisac cos w rodzaju TGLWindow.ParsePars ktore parsuje _niektore_
+    napisac cos w rodzaju TGLWindow.ParseParameters ktore parsuje _niektore_
     znane sobie parametry (np. --geometry, --fullscreen) a inne parametry
     (jak np. --cam-pos dla view3dscene) zostawia w spokoju. W ten sposob
     parsowanie parametrow mozna rozbic wykonujac je w kilku zupelnie roznych
     miejscach, np. view3dscene parsuje parametry w czterech miejscach :
-    najpierw w TGLWindow.ParsePars, potem wywoluje MultiNavigatorParsePars
-    i LightsKindParsePars (wszystkie te trzy funkcje uzywaja ParsePars
-    z ParseOnlyKnownLongOptions = true), potem samo wywoluje ParsePars
+    najpierw w TGLWindow.ParseParameters, potem wywoluje MultiNavigatorParseParameters
+    i LightsKindParseParameters (wszystkie te trzy funkcje uzywaja ParseParameters
+    z ParseOnlyKnownLongOptions = true), potem samo wywoluje ParseParameters
     z ParseOnlyKnownLongOptions = false (a wiec dopiero na samym koncu
     nieznane long options sa wychwycone).
   Takie podejscie ma jedno istotne niebezpieczenstwo: poniewaz wykonujac
-    nie-ostateczne ParsePars (np. jak to w TGLWindow) nie znamy specyfikacji
+    nie-ostateczne ParseParameters (np. jak to w TGLWindow) nie znamy specyfikacji
     wszystkich opcji wiec omylkowo mozemy rozpoznac nasza opcje
     w srodku argumentow opcji view3dscene. Np. przyjmijmy ze
     view3dscene ma opcje --three-strings ktory ma oaRequired3Separate.
@@ -284,7 +284,7 @@ uses SysUtils, VectorMath, KambiUtils;
     Podczas gdy powinno byc tak ze --three-strings dostaje 3 argumenty
     --geometry, 800x600 i foo a potem view3dscene dostaje zwykle parametry
     bar, ala, kot. Widzimy wiec ze bledna interpretacja parametrow nawet nie
-    spowodowala bledow w zadnym ParsePars (nawet jesli na pewno --three-strings
+    spowodowala bledow w zadnym ParseParameters (nawet jesli na pewno --three-strings
     lub view3dscene zorientuja sie ze dostali glupoty zamiast argumentow).
     Ten problem dziala na podobnej zasadzie jak SReplacePatterns :
     nie mozesz wykonac SReplacePatters zamieniajac po kolei najpierw jeden
@@ -302,7 +302,7 @@ uses SysUtils, VectorMath, KambiUtils;
   Nie mozna bylo tego samego zrobic dla krotkich opcji (i miec cos w rodzaju
     ParseOnlyKnownOptions) bo usuwanie ze srodka kombinowanych opcji
     powodowaloby dodatkowe problemy. Np. niech -a ma oaRequired a -b ma oaNone.
-    Wywolanie pierwszego ParsePars ktore wie tylko o -a a potem drugiego
+    Wywolanie pierwszego ParseParameters ktore wie tylko o -a a potem drugiego
     ktore wie tylko o -b dla
       -ab argument
     zwroci -a z argumentem 'argument' a potem -b, podczas gdy powinno dac blad.
@@ -381,7 +381,7 @@ const
   EmptySeparateArgs: TSeparateArgs = ('','','', '','','', '','','');
 
 type
-  { Gdy ta funkcja bedzie wywolywana z funkcji ParsePars to znaczenie parametrow bedzie
+  { Gdy ta funkcja bedzie wywolywana z funkcji ParseParameters to znaczenie parametrow bedzie
     nastepujace :
 
       OptionNum = bedzie numer opcji z tablicy Options (zero-based).
@@ -405,7 +405,7 @@ type
       beda rowne ''. Jesli Options[ParamNum].Argument nie byl rowny oaRequired?Separate
       to wszystkie SeparateArgs[] beda rowne '' (czyli SeparateArgs = EmptySeparateArgs).
 
-      Data = OptionProcData podane do ParsePars
+      Data = OptionProcData podane do ParseParameters
   }
   TOptionProc = procedure (OptionNum: Integer; HasArgument: boolean;
     const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
@@ -438,20 +438,20 @@ type
   TOption_Array = TInfiniteArray_2;
   POption_Array = PInfiniteArray_2;
 
-procedure ParsePars(
+procedure ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   OptionProc: TOptionProc; OptionProcData: Pointer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
-procedure ParsePars(
+procedure ParseParameters(
   const Options: array of TOption;
   OptionProc: TOptionProc; OptionProcData: Pointer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
-procedure ParsePars(
+procedure ParseParameters(
   Options: TDynOptionArray;
   OptionProc: TOptionProc; OptionProcData: Pointer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif}); overload;
 
-{ Jeszcze inna wersja ParsePars, o nieco innym interfejsie }
+{ Jeszcze inna wersja ParseParameters, o nieco innym interfejsie }
 
 type
   TParsedOption = record
@@ -469,11 +469,11 @@ type
   {$I DynArray_1.inc}
   TDynParsedOptionArray = TDynArray_1;
 
-function ParsePars(
+function ParseParameters(
   const Options: array of TOption;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
   : TDynParsedOptionArray; overload;
-function ParsePars(
+function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   ParseOnlyKnownLongOptions: boolean {$ifdef DEFPARS} =false {$endif})
   : TDynParsedOptionArray; overload;
@@ -530,24 +530,24 @@ end;
 {$I DynArray_1.inc}
 {$I DynArray_2.inc}
 
-procedure ParsePars(const Options: array of TOption; OptionProc: TOptionProc;
+procedure ParseParameters(const Options: array of TOption; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
- ParsePars(@Options, High(Options)+1, OptionProc, OptionProcData,
+ ParseParameters(@Options, High(Options)+1, OptionProc, OptionProcData,
    ParseOnlyKnownLongOptions);
 end;
 
-procedure ParsePars(Options: TDynOptionArray; OptionProc: TOptionProc;
+procedure ParseParameters(Options: TDynOptionArray; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
- ParsePars(Options.Items, Options.Count, OptionProc, OptionProcData,
+ ParseParameters(Options.Items, Options.Count, OptionProc, OptionProcData,
    ParseOnlyKnownLongOptions);
 end;
 
 procedure SplitLongParameter(const s: string; var ParamLong: string;
   var HasArgument: boolean; var Argument: string; PrefixLength: Integer);
 { zadany s musi sie zaczynac od PrefixLength znakow ktore sa ignorowane
-  (dla "prawdziwej" long option z definicji ParsePars PrefixLength musi byc
+  (dla "prawdziwej" long option z definicji ParseParameters PrefixLength musi byc
   2 i musza one byc rowne '--').
   Rozbija parametr na nazwe parametru (nie zawierajaca znaku '=', rozna od '',
     bedzie wyjatek EInvalidParams w tym rzadkim przypadku gdy
@@ -584,7 +584,7 @@ begin
   raise EInvalidParams.Create('Invalid empty parameter "'+s+'"');
 end;
 
-procedure ParsePars(Options: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
+procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 
   function ParseLongParameter(const s: string; var HasArgument: boolean;
@@ -788,23 +788,23 @@ begin
  LastItem.SeparateArgs := SeparateArgs;
 end;
 
-function ParsePars(
+function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   ParseOnlyKnownLongOptions: boolean)
   : TDynParsedOptionArray;
 begin
  result := TDynParsedOptionArray.Create;
  try
-  ParsePars(Options, OptionsCount, ParseNextParam, result,
+  ParseParameters(Options, OptionsCount, ParseNextParam, result,
     ParseOnlyKnownLongOptions);
  except result.Free; raise end;
 end;
 
-function ParsePars(
+function ParseParameters(
   const Options: array of TOption; ParseOnlyKnownLongOptions: boolean)
   : TDynParsedOptionArray;
 begin
- result := ParsePars(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
+ result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
 
 { some simple helper utilities ---------------------------------------------- }
