@@ -135,7 +135,7 @@ begin
 
  glw.OnMenuCommand := MenuCommand;
  glw.OnResize := Resize;
- glw.ParsePars;
+ glw.ParseParameters;
  glw.Width := 300;
  glw.Height := 300;
  glw.DepthBufferBits := 0;

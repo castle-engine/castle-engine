@@ -68,7 +68,7 @@ begin
   glw.OnResize := Resize2D;
   glw.Width := 300;
   glw.Height := 300;
-  glw.ParsePars;
+  glw.ParseParameters;
   glw.DepthBufferBits := 0;
   glw.Caption := 'Test changing MainMenu';
 

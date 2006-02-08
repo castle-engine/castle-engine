@@ -59,7 +59,7 @@
       and other in kambiutils_params.inc.
 
       They are also used in my unit to parse command-line
-      options @link(ParsingPars).)
+      options @link(ParseParametersUnit).)
 
     @item(Some basic algorithms, e.g. @link(Sort) in kambiutils_basic_algorithms.inc)
 

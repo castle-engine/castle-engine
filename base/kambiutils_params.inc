@@ -68,7 +68,7 @@ var
 
       @item(You can modify contents of Parameters. This is very useful for
         routines that parse command-line paramaters (like my unit
-        ParsingPars) --- they can simply remove from Paramaters
+        ParseParametersUnit) --- they can simply remove from Paramaters
         the items that are already handled.
 
         This is similar to the idea how glut and many other C libraries

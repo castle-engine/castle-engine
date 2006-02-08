@@ -21,7 +21,7 @@ uses
   mathexpr,
   mathexprlexer,
   mathexprparser,
-  parsingpars,
+  parseparametersunit,
   progressconsole,
   progressunit,
   rects

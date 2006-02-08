@@ -110,7 +110,7 @@ begin
 end;
 
 begin
- glw.ParsePars;
+ glw.ParseParameters;
 
  glw.OnInit := Init;
  glw.OnClose := Close;
