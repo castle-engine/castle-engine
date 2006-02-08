@@ -178,8 +178,8 @@ clean:
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
 	     -print \
 	     | xargs rm -f
-	rm -f base/examples/demo_parsingpars \
-	      base/examples/demo_parsingpars.exe \
+	rm -f base/examples/demo_parseparameters \
+	      base/examples/demo_parseparameters.exe \
 	      base/examples/demo_textreader \
 	      base/examples/demo_textreader.exe \
 	      base/examples/kambi_calc \
