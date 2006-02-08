@@ -64,7 +64,7 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, KambiUtils, OpenAL, Classes, SoundWAV, ParsingPars;
+uses SysUtils, KambiUtils, OpenAL, Classes, SoundWAV, ParseParametersUnit;
 
 { ---------------------------------------------------------------------------- }
 { @section(OpenAL device used by TryBeginAL and BeginAL) }
@@ -91,8 +91,8 @@ var
     that your program will require only one OpenAL context at any time. }
   ALCDevice: string = BestALCDevice;
 
-{ This parses parameters in ParStr and interprets and removes
-  recognized options. Internally it uses ParsePars with
+{ This parses parameters in @link(Parameters) and interprets and removes
+  recognized options. Internally it uses ParseParameters with
   ParseOnlyKnownLongOptions = @true. Recognized options :
 
   @definitionList(
@@ -429,7 +429,7 @@ const
     (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
   );
 begin
- ParsePars(OpenALOptions, OpenALOptionProc, nil, true);
+ ParseParameters(OpenALOptions, OpenALOptionProc, nil, true);
 end;
 
 function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;

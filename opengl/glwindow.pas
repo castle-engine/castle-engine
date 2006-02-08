@@ -32,7 +32,7 @@
       global variable glw :TGLWindow.)
 
     @item(Assign glw properties and callbacks like OnDraw, OnResize,
-      Width, Height, Caption. Often you will want to use ParsePars method
+      Width, Height, Caption. Often you will want to use ParseParameters method
       to allow user to control your TGLWindow initial settings using
       command-line options.)
 
@@ -680,27 +680,27 @@ const
   POS_SCREEN_CENTER = -1000000;
 
 type
-  TGLWindowParseParam = (ppGeometry, ppScreenGeometry);
-  TGLWindowParseParams = set of TGLWindowParseParam;
-  PGLWindowParseParams = ^TGLWindowParseParams;
+  TGLWindowParseOption = (poGeometry, poScreenGeometry);
+  TGLWindowParseOptions = set of TGLWindowParseOption;
+  PGLWindowParseOptions = ^TGLWindowParseOptions;
 
 const
   { Constant below contains all "normal" command-line options,
     that most programs using GLWindow should be able to handle
     without any problems.
 
-    In other words, most programs calling @link(TGLWindow.ParsePars)
+    In other words, most programs calling @link(TGLWindow.ParseParameters)
     method can safely pass as the 1st parameter this constant,
-    StandardParsePars.
-    Or they can simply call overloaded version of TGLWindow.ParsePars
+    StandardParseOptions.
+    Or they can simply call overloaded version of TGLWindow.ParseParameters
     that doesn't take any parameters, it is always equivalent to
-    calling TGLWindow.ParsePars(StandardParsePars).
+    calling TGLWindow.ParseParameters(StandardParseOptions).
 
     In case you are not sure what precisely >> "normal" command-line options <<
     mean: well, I'm unsure too. If that bothers you, just don't
     use this constant and always specify list of parameters
-    for TGLWindow.ParsePars explicitly. }
-  StandardParsePars: TGLWindowParseParams = [ppGeometry, ppScreenGeometry];
+    for TGLWindow.ParseParameters explicitly. }
+  StandardParseOptions: TGLWindowParseOptions = [poGeometry, poScreenGeometry];
 
 type
   TGLWindow = class;
@@ -1963,47 +1963,54 @@ type
     procedure InitLoop; overload;
     procedure InitLoop(const ACaption: string; AOnDraw: TDrawFunc); overload;
 
-    { Parsing params ------------------------------------------------------- }
-    { Parse some parameters from ParStr(1..ParCount). Delete parameters processed
-      by ParDelete. Arguments to this proc tell which parameters are allowed
-        ppGeometry :
-          allowed parameters are
+    { Parsing parameters ------------------------------------------------------- }
+
+    { Parse some parameters from Parameters[1]..Parameters[Parameters.High].
+      Delete processed parameters from @link(Parameters).
+      Arguments to this proc tell which options are allowed:
+
+        poGeometry :
+          allowed options are
           --fullscreen (ustawia Fullscreen := true)
           --geometry followed by param WIDTHxHEIGHTsXOFFsYOFF
             gdzie WIDTH, HEIGHT sa liczbami calkowitymi, XOFF, YOFF sa liczbami
             calkowitymi z opcjonalnym znakiem.
             (ustawia Fullscreen := false i Width, Height, Left, Top odpowednio
              - patrz 'man X' po opis co mozna wyrazic parametrem -geometry)
-        ppScreenGeometry
+
+        poScreenGeometry
           --fullscreen-custom WIDTHxHEIGHT (ustawia Fullscreen = true,
              VideoResize := true, VideResizeWidth/Height inicjuje i robi VideoChange)
-      Multiple params of the same kind are allowed, for example two params
-        --fullscreen --geometry 100x100+0+0 are allowed. Each of them will
-        have appropriate effect - in the above example, --fullscreen param
-        will be useless (it will be "overriden" by --geometry param that
-        comes later). This is to allow flexible calling my programs from
-        shell scripts etc.
-      Jezeli parametry sa zle (np. ppGeometry in AllowedPars i zly format
-        parametru za --geometry lub brak parametru za --geometry) ->
-        -> wyjatek EInvalidParams.
-      Wersja 2-argumentowa zwraca jakie grupy parametrow zostaly odczytane
-        i zinterpretowane. Np. jezeli ppGeometry in SpecifiedPars to
-        wiesz ze user podal window size i position i nie powinnismy juz
-        sami tego ustawiac. Chociaz zazwyczaj wystarczy po prostu ustawic
-        w programie Width/Height/Left/Top i potem wywolac ParsePars i wtedy
-        juz nie trzeba przejmowac sie czy ppGeometry bylo czy nie bylo
-        w SpecifiedPars. }
-    procedure ParsePars({ AllowedPars = StandardParsePars }); overload;
-    procedure ParsePars(const AllowedPars: TGLWindowParseParams); overload;
-    procedure ParsePars(const AllowedPars: TGLWindowParseParams;
-      var SpecifiedPars: TGLWindowParseParams); overload;
 
-    { Returns help text for options in AllowedPars.
-      The idea is that if you call @code(ParsePars(AllowedPars))
+      Multiple options of the same kind are allowed, for example two options
+      --fullscreen --geometry 100x100+0+0 are allowed. Each of them will
+      have appropriate effect - in the above example, --fullscreen param
+      will be useless (it will be "overriden" by --geometry param that
+      comes later). This is to allow flexible calling my programs from
+      shell scripts etc.
+
+      Jezeli parametry sa zle (np. poGeometry in AllowedOptions i zly format
+      parametru za --geometry lub brak parametru za --geometry) ->
+      -> wyjatek EInvalidParams.
+
+      Wersja 2-argumentowa zwraca jakie grupy parametrow zostaly odczytane
+      i zinterpretowane. Np. jezeli poGeometry in SpecifiedOptions to
+      wiesz ze user podal window size i position i nie powinnismy juz
+      sami tego ustawiac. Chociaz zazwyczaj wystarczy po prostu ustawic
+      w programie Width/Height/Left/Top i potem wywolac ParseParameters i wtedy
+      juz nie trzeba przejmowac sie czy poGeometry bylo czy nie bylo
+      w SpecifiedOptions. }
+    procedure ParseParameters({ AllowedOptions = StandardParseOptions }); overload;
+    procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions); overload;
+    procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions;
+      var SpecifiedOptions: TGLWindowParseOptions); overload;
+
+    { Returns help text for options in AllowedOptions.
+      The idea is that if you call @code(ParseParameters(AllowedOptions))
       in your program then you should also show your users somwhere
       (e.g. in response to "--help" option) the list of allowed
-      options obtained by @code(ParsedParsHelp(AllowedPars))
-      (i.e. with the same value of AllowedPars).
+      options obtained by @code(ParseParametersHelp(AllowedOptions))
+      (i.e. with the same value of AllowedOptions).
 
       Returned string may be multiline, but it does not contain
       the trailing newline (newline char after the last line).
@@ -2017,7 +2024,8 @@ type
       to comfortably use the output of this function as a whole
       paragraph (separated from the rest of your "--help" text
       by e.g. empty lines around). }
-    class function ParsedParsHelp(const AllowedPars: TGLWindowParseParams;
+    class function ParseParametersHelp(
+      const AllowedOptions: TGLWindowParseOptions;
       AddHeader: boolean): string;
 
     { dialog boxes using GUI ------------------------------------------------ }
@@ -2377,7 +2385,7 @@ type
       jest pod glutem; chyba pod glutem OnIdle jest wywolane tylko
       gdy nie musielismy sie odmalowac czyli potencjalnie OnIdle
       moze wtedy zachodzic za rzadko).
-      
+
       Wiec jesli w kolko mamy posylane do siebie zdarzenia OnDrawGL -
       to pomiedzy nimi zawsze zmieszcza sie z pewna czestotliwoscia
       zdarzenia OnIdleGL. Jednoczesnie, nie odmalowujemy sie w kazdym
@@ -2387,11 +2395,11 @@ type
       to nalezy cala sile skupic na ich przetwarzaniu a nie
       utrudniac sobie prace zmuszajac sie do przemalowywania okienka
       mimo ze mamy jakies message'y do obsluzenia).
-      
+
       W szczegolnosci, to jest odpowiednie miejsce aby robic
       badanie KeysDown[] klawiszy (chyba ze nasluch na OnKeyDown wystarcza),
       robic animacje zmieniajac jakies zmienne i wywolywac PostRedisplay.
-      
+
       Mozesz tez zmieniac wartosc tej  zmiennej w czasie dzialania programu
       (tzn.pomiedzy Init a Close jakiegos okienka). }
     property OnIdle: TIdleFunc read FOnIdle write FOnIdle; { = nil }
@@ -2557,7 +2565,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParsingPars
+uses ParseParametersUnit
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
@@ -3215,11 +3223,11 @@ begin
  glwm.Loop;
 end;
 
-{ TGLWindow ParsePars ------------------------------------------------------- }
+{ TGLWindow ParseParameters -------------------------------------------------- }
 
 type
   TOptionProcData = record
-    SpecifiedPars: TGLWindowParseParams;
+    SpecifiedOptions: TGLWindowParseOptions;
     glwin: TGLWindow;
   end;
   POptionProcData = ^TOptionProcData;
@@ -3329,7 +3337,7 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData.SpecifiedPars, ppGeometry);
+ Include(ProcData.SpecifiedOptions, poGeometry);
  case OptionNum of
   0: ProcData.glwin.FullScreen := true;
   1: ApplyGeometryParam(Argument);
@@ -3360,14 +3368,14 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData.SpecifiedPars, ppScreenGeometry);
+ Include(ProcData.SpecifiedOptions, poScreenGeometry);
  case OptionNum of
   0: ApplyFullScreenCustomParam(Argument);
  end;
 end;
 
-procedure TGLWindow.ParsePars(const AllowedPars: TGLWindowParseParams;
-   var SpecifiedPars: TGLWindowParseParams);
+procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions;
+   var SpecifiedOptions: TGLWindowParseOptions);
 
 const
   GeometryOptions: array[0..1]of TOption =
@@ -3375,7 +3383,7 @@ const
     (short:#0; Long:'geometry'; Argument: oaRequired) );
   ScreenGeometryOptions: array[0..0]of TOption =
   ( (Short:#0; Long:'fullscreen-custom'; Argument: oaRequired) );
-  OptionsForParam: array[TGLWindowParseParam] of
+  OptionsForParam: array[TGLWindowParseOption] of
     record
       pOptions: POption_Array;
       Count: Integer;
@@ -3388,49 +3396,50 @@ const
   );
 
 var Data: TOptionProcData;
-    ParamKind: TGLWindowParseParam;
+    ParamKind: TGLWindowParseOption;
 begin
- Data.SpecifiedPars:=[];
+ Data.SpecifiedOptions := [];
  Data.glwin := Self;
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do
-  if ParamKind in AllowedPars then
-   ParsingPars.ParsePars(OptionsForParam[ParamKind].pOptions,
+  if ParamKind in AllowedOptions then
+   ParseParametersUnit.ParseParameters(OptionsForParam[ParamKind].pOptions,
      OptionsForParam[ParamKind].Count,
      OptionsForParam[ParamKind].OptionProc, @Data, true);
 
- SpecifiedPars := Data.SpecifiedPars;
+ SpecifiedOptions := Data.SpecifiedOptions;
 end;
 
-procedure TGLWindow.ParsePars(const AllowedPars: TGLWindowParseParams);
-var dummy: TGLWindowParseParams;
+procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions);
+var dummy: TGLWindowParseOptions;
 begin
- ParsePars(AllowedPars, dummy);
+ ParseParameters(AllowedOptions, dummy);
 end;
 
-procedure TGLWindow.ParsePars();
+procedure TGLWindow.ParseParameters();
 begin
- ParsePars(StandardParsePars);
+ ParseParameters(StandardParseOptions);
 end;
 
-class function TGLWindow.ParsedParsHelp(const AllowedPars: TGLWindowParseParams;
+class function TGLWindow.ParseParametersHelp(
+  const AllowedOptions: TGLWindowParseOptions;
   AddHeader: boolean): string;
 const
-  HelpForParam: array[TGLWindowParseParam] of string =
+  HelpForParam: array[TGLWindowParseOption] of string =
   ('  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' +nl+
    '                        Set initial window size and/or position' +nl+
    '  --fullscreen          Set initial window size to cover whole screen',
    '  --fullscreen-custom WIDTHxHEIGHT' +nl+
    '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
    '                        then set initial window size to cover whole screen');
-var ParamKind: TGLWindowParseParam;
+var ParamKind: TGLWindowParseOption;
 begin
  if AddHeader then
   result := 'Window options:' else
   result := '';
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do
-  if ParamKind in AllowedPars then
+  if ParamKind in AllowedOptions then
   begin
    if result <> '' then result += nl;
    result += HelpForParam[ParamKind];

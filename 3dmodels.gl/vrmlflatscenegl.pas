@@ -593,7 +593,7 @@ type
     property Attrib_UseFog: boolean read GetAttrib_UseFog write SetAttrib_UseFog;
   end;
 
-{ Parses and removes from ParStr(1)..ParStr(ParCount)
+{ Parses and removes from Parameters[1]..Parameters.High
   parameter @--renderer-optimization, and sets RendererOptimization
   to the value specified by user.
   See view3dscene documentation
@@ -601,7 +601,7 @@ type
 procedure RendererOptimizationOptionsParse(
   var RendererOptimization: TGLRendererOptimization);
 
-{ Describe what parameters parse RendererOptimizationOptionsParse.
+{ Describe what parameters are parsed by RendererOptimizationOptionsParse.
   This is nice to use e.g. in help text (e.g. the one printed in response
   to "@--help" command-line parameter). }
 function RendererOptimizationOptionsHelp: string;
@@ -617,7 +617,7 @@ type
 
 implementation
 
-uses ParsingPars;
+uses ParseParametersUnit;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1334,7 +1334,7 @@ const
   ( (Short: #0; Long: 'renderer-optimization'; Argument: oaRequired)
   );
 begin
- ParsePars(Options, OptionProc, @RendererOptimization, true);
+ ParseParameters(Options, OptionProc, @RendererOptimization, true);
 end;
 
 function RendererOptimizationOptionsHelp: string;
