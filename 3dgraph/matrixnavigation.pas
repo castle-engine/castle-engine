@@ -299,7 +299,7 @@ type
       eksperymentalnie. }
     property MoveSpeed: Single read FMoveSpeed; { =1 }
     property MoveVertSpeed: Single read FMoveVertSpeed; { =1 }
-    property RotateSpeed: Single read FRotateSpeed; { =3 (w stopniach) }
+    property RotateSpeed: Single read FRotateSpeed write FRotateSpeed; { =3 (w stopniach) }
 
     { Dlugosc wektora Dir (mnozona zawsze przez Move[Vert]Speed) okresla
         szybkosc przesuwania sie (w przod, tyl, gore, dol i strafe'y).
