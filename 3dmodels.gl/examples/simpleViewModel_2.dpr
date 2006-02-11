@@ -84,7 +84,8 @@ end;
 procedure Resize(glwin: TGLWindow);
 
   procedure UpdateNavigatorProjectionMatrix;
-  var ProjectionMatrix: TMatrix4f;
+  var
+    ProjectionMatrix: TMatrix4f;
   begin
    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
    Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
