@@ -2208,7 +2208,7 @@ type
     Navigator: TMatrixNavigator; { =nil }
     OwnsNavigator: boolean; { =true }
 
-    { jezeli not UseNavigator albo Navigator <> nil to to okienko bedzie sie
+    { jezeli not UseNavigator albo Navigator = nil to to okienko bedzie sie
       zachowywalo jakby wcale nie bylo TGLWindowNavigated. Wszystkie metody Event*
       beda wywolywaly po prostu inherited; i nic wiecej nie beda robic }
     UseNavigator: boolean; { =true }
