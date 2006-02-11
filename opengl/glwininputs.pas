@@ -71,7 +71,7 @@ function Input(glwin: TGLWindow;
   AnswerDefault: string {$ifdef DEFPARS} = ''{$endif};
   MinLength: Integer {$ifdef DEFPARS} = 0{$endif};
   MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  const AnswerAllowedChars: TChars {$ifdef DEFPARS} = AllChars{$endif}
+  const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
   ): string;
   
 { Czeka na nacisniecie dowolnego klawisza aby wyjsc,
@@ -109,7 +109,7 @@ type
     { input params }
     dlBGImage: TGLuint;
     MinLength, MaxLength: Integer;
-    AnswerAllowedChars: TChars;
+    AnswerAllowedChars: TSetOfChars;
     Font: TGLBitmapFont_Abstract;
     ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
     
@@ -159,7 +159,7 @@ function Input(glwin: TGLWindow;
   AnswerDefault: string {$ifdef DEFPARS} = ''{$endif};
   MinLength: Integer {$ifdef DEFPARS} = 0{$endif};
   MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  const AnswerAllowedChars: TChars {$ifdef DEFPARS} = AllChars{$endif}
+  const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
   ): string;
 var SavedMode: TGLMode;
     Data: TGLWinInputData;
