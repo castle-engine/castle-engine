@@ -55,8 +55,7 @@
       on particular OS to read/write some data.)
 
     @item(Things to process command-line options.
-      See @link(ParStr), @link(ParCount), @link(ParDelete), @link(ShiftPars)
-      and other in kambiutils_params.inc.
+      See @link(Parameters) in kambiutils_params.inc.
 
       They are also used in my unit to parse command-line
       options @link(ParseParametersUnit).)
