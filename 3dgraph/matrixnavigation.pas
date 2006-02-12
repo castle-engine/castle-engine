@@ -215,7 +215,7 @@ type
     procedure SetCameraUp(const Value: TVector3Single);
 
     { Private things related to frustum ---------------------------- }
-    
+
     FProjectionMatrix: TMatrix4Single;
     FFrustum: TFrustum;
     procedure RecalculateFrustum;
@@ -235,7 +235,7 @@ type
 
     { @abstract(DoMoveAllowed will be used when user will move in the scene,
       i.e. when user will want to change CameraPos.)
-      
+
       ProposedNewPos is the position where the user wants to move
       (current user position is always stored in CameraPos,
       so you can calculate move direction by ProposedNewPos-CameraPos).
@@ -373,7 +373,7 @@ type
 
     { This is recalculated based on @link(ProjectionMatrix) and @link(Matrix)
       whenever one of these properties change.
-      This specifies the viewing frustum derived from these properties. 
+      This specifies the viewing frustum derived from these properties.
       Be sure to set @link(ProjectionMatrix) before using this. }
     property Frustum: TFrustum read FFrustum;
   end;
@@ -583,7 +583,7 @@ begin
  Key_HomeUp := K_Home;
  Key_MoveSpeedInc := K_Plus;
  Key_MoveSpeedDec := K_Minus;
- 
+
  FProjectionMatrix := IdentityMatrix4Single;
 end;
 
