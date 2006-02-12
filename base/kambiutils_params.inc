@@ -46,6 +46,12 @@ type
     procedure CheckHighAtLeast(ParamValue: integer);
     procedure CheckHighAtMost(ParamValue: integer);
 
+    { Deletes item I, checks whether I is still <= High,
+      returns Parameters[I].
+      @raises(EInvalidParam If there is no Items[I] after previous item
+        I was deleted.) }
+    function DeleteAndGetNext(I: Integer): string;
+
     { Assign Parameters value from Argc and Argv.
       This is extremely useful if you use libraries that
       require Argc and Argv and modify passed Argc and Argv.
@@ -80,41 +86,9 @@ var
   }
   Parameters: TParametersArray;
 
-{ These routines are only for compat with many of my old code.
-  New code should use directly Parameters methods and properties.
-
-  ShiftPars = przesun parametry w lewo,
-  np. dla Shift = 1 tracisz ParStr(0),
-    nowe ParStr(0) = stare ParStr(1),
-    nowe ParStr(1) = stare ParStr(2), itd.
-  ParCount maleje o Shift. Shift nie moze byc ujemny, a wiec nie mozna
-  odzyskiwac raz usunietych parametrow. NON-REENTRANT.
-
-  ParDelete = usun parametr nr ParNumber.
-   (numer wzgledem aktualnego przesuniecia, tzn. jesli chcesz usunac ParStr(2)
-    zrob ParDelete(2). Jesli chcesz usunac ParamStr(2) - musisz bawic sie w
-    GetShiftPars)
-  Usuwa okreslony parametr. Juz nigdy nie zostanie on zwrocony przez ParStr().
-
-  @groupBegin }
-function ParCount: integer;
-function ParStr(nr: integer): string;
-procedure ShiftPars(Shift: Cardinal = 1); overload;
-procedure ParDelete(ParNumber: integer);
-{ @groupEnd }
-
-{ robi ParDelete(i) + sprawdza czy ciagle i <= ParCount (else EInvalidParam)
-  + zwraca ParStr(i); }
-function ParDeleteAndGetNext(i: integer): string;
-
-{ przydatna do automatycznego testowania kodu ktory operuje na parametrach.
-  Ustawia ParStr(0..ParCount) na sa (tak, tak - ustawia tez parametr nr 0).
-  Ustawia ParCount na ilosc elementow sa + 1. }
-procedure SetPars(const sa: array of string);
-
 { czy ktorys z parametrow ParStr(FirstPar) .. ParStr(LastPar)
   jest rowny ktoremus z sarr ? Jezeli nie podasz FirstPar i LastPar
-  o zostana przyjete jako 1, ParCount. }
+  to zostana przyjete jako 1, ParCount. }
 function IsPresentInPars(const sarr: array of string;
   IgnoreCase: boolean; FirstPar, LastPar: Cardinal): boolean; overload;
 function IsPresentInPars(const sarr: array of string;
@@ -143,51 +117,26 @@ end;
 procedure ParamCountEqual(ParamValue: integer);
 begin
  if not (ParamValue = ParamCount) then
-  raise EInvalidParams.Create('Expected exactly '+ParametersCountString(ParamValue));
+  raise EInvalidParams.Create('Expected exactly ' +
+    ParametersCountString(ParamValue));
 end;
 
 procedure ParamCountEqGreater(ParamValue: integer);
 begin
  if not (ParamCount >= ParamValue) then
-  raise EInvalidParams.Create('Expected at least '+ParametersCountString(ParamValue));
+  raise EInvalidParams.Create('Expected at least ' +
+    ParametersCountString(ParamValue));
 end;
 
 procedure ParamCountEqLesser(ParamValue: integer);
 begin
  if not (ParamCount <= ParamValue) then
-  raise EInvalidParams.Create('Expected at most '+ParametersCountString(ParamValue));
+  raise EInvalidParams.Create('Expected at most ' +
+    ParametersCountString(ParamValue));
 end;
 
-function ParCount: integer;
-begin result := Parameters.High end;
-
-function ParStr(nr: integer): string;
-begin result := Parameters[nr] end;
-
-procedure ShiftPars(Shift: Cardinal {=1});
-begin
- Parameters.Delete(0, Shift);
-end;
-
-procedure ParDelete(ParNumber: integer);
-begin
- Parameters.Delete(ParNumber, 1);
-end;
-
-function ParDeleteAndGetNext(i: integer): string;
-begin
- ParDelete(i);
- if i > ParCount then raise EInvalidParams.Create('Unexpected end of params');
- result := ParStr(i);
-end;
-
-procedure SetPars(const sa: array of string);
-begin
- Parameters.SetLength(0);
- Parameters.AppendArray(sa);
-end;
-
-function IsPresentInPars(const sarr: array of string; IgnoreCase: boolean; FirstPar, LastPar: Cardinal): boolean;
+function IsPresentInPars(const sarr: array of string;
+  IgnoreCase: boolean; FirstPar, LastPar: Cardinal): boolean;
 var i, j: integer;
 begin
  for i := 1 to ParamCount do
@@ -197,8 +146,9 @@ begin
  result := false;
 end;
 
-function IsPresentInPars(const sarr: array of string; IgnoreCase: boolean): boolean;
-begin result := IsPresentInPars(sarr, IgnoreCase, 1, ParCount) end;
+function IsPresentInPars(const sarr: array of string;
+  IgnoreCase: boolean): boolean;
+begin result := IsPresentInPars(sarr, IgnoreCase, 1, Parameters.High) end;
 
 function IsHelpPresentInPars: boolean;
 const HelpPars: array[0..2]of string = ('-?', '-h', '--help');
@@ -225,9 +175,9 @@ end;
 
 procedure TParametersArray.CheckHighAtMost(ParamValue: integer);
 begin
- if ParamValue < High then
-  raise EInvalidParams.Create('Expected ' +
-    ParametersCountString(High-ParamValue, ' less'));
+  if ParamValue < High then
+    raise EInvalidParams.Create('Expected ' +
+      ParametersCountString(High-ParamValue, ' less'));
 end;
 
 procedure TParametersArray.AssignArgCV(Argc: Integer; Argv: PPChar);
@@ -238,6 +188,13 @@ begin
   Count := Argc;
   for I := 0 to Count - 1 do
     Items[I] := Argv_Array[I];
+end;
+
+function TParametersArray.DeleteAndGetNext(I: Integer): string;
+begin
+  Delete(I, 1);
+  if I > High then raise EInvalidParams.Create('Unexpected end of params');
+  Result := Parameters[I];
 end;
 
 procedure InitializationParams;

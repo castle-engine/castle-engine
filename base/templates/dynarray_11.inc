@@ -164,6 +164,10 @@
       DYNARRAY_11_IS_INIT_FINI_TYPE). }
     procedure Assign(Source: TDynArray_11);
 
+    { This is equivalent to @code(Count := 0) and then
+      @code(AppendArray(NewItems)). }
+    procedure AssignArray(const NewItems: array of TDynArrayItem_11);
+
     {$ifdef DYNARRAY_11_USE_EQUALITY}
     function EqualItems(const Item1, Item2: TDynArrayItem_11): boolean;
     function Equal(DynArr: TDynArray_11): boolean; overload;
@@ -315,6 +319,12 @@ begin
    {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} Items^[0],
    Length * SizeOf(TDynArrayItem_11));
  {$endif}
+end;
+
+procedure TDynArray_11.AssignArray(const NewItems: array of TDynArrayItem_11);
+begin
+  Count := 0;
+  AppendArray(NewItems);
 end;
 
 {$ifdef DYNARRAY_11_USE_EQUALITY}
