@@ -102,9 +102,10 @@ var
     @itemLabel @--print-audio-devices
     @item(
       Use ALC_ENUMERATION_EXT to print all available OpenAL audio devices
-      to stdout. If this extension is not present, write something
-      like "Enumerating audio devices not supported by your OpenAL"
-      to stdout too.
+      to stdout (uses InfoWrite, so on Windows when program is GUI, it will
+      make a dialog box).     
+      If this extension is not present, write something
+      like "Enumerating audio devices not supported by your OpenAL".
 
       Then do ProgramBreak.)
   )
@@ -370,19 +371,20 @@ procedure CheckALC(const situation: string); forward;
 
 procedure OpenALOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var DefaultDeviceName: string;
-    pDeviceList: PChar;
-    DeviceList: TDynStringArray;
-    i, DefaultDeviceNum: Integer;
+var
+  Message, DefaultDeviceName: string;
+  pDeviceList: PChar;
+  DeviceList: TDynStringArray;
+  i, DefaultDeviceNum: Integer;
 begin
  case OptionNum of
   0: ALCDevice := Argument;
   1: begin
       if not ALInited then
-       Writeln('OpenAL is not available - cannot print available audio devices') else
+       Message := 'OpenAL is not available - cannot print available audio devices' else
       if not alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT') then
-       Writeln('Your OpenAL implementation does not support getting the list '+
-         'of available audio devices (ALC_ENUMERATION_EXT extension not present).') else
+       Message := 'Your OpenAL implementation does not support getting the list '+
+         'of available audio devices (ALC_ENUMERATION_EXT extension not present).' else
       begin
        DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
        DefaultDeviceNum := -1;
@@ -402,19 +404,22 @@ begin
          Inc(pDeviceList);
         end;
 
-        Writeln(DeviceList.Count, ' available audio devices:');
+        Message := Format('%d available audio devices:', [DeviceList.Count]) + nl;
         for i := 0 to DeviceList.Count-1 do
         begin
-         Write('  ', DeviceList[i]);
-         if i = DefaultDeviceNum then Write(' (default OpenAL device)');
-         Writeln;
+         Message += '  ' + DeviceList[i];
+         if i = DefaultDeviceNum then Message += ' (default OpenAL device)';
+         Message += nl;
         end;
 
         if DefaultDeviceNum = -1 then
-         Writeln('Default OpenAL device name is "', DefaultDeviceName, '" but this device '+
-           'was not listed as available device. Bug in OpenAL ?');
+         Message += 'Default OpenAL device name is "' + DefaultDeviceName +
+           '" but this device was not listed as available device. ' +
+           'Bug in OpenAL ?';
        finally DeviceList.Free end;
       end;
+      
+      InfoWrite(Message);
 
       ProgramBreak;
      end;
