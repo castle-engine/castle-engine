@@ -190,8 +190,8 @@
         <UnitName Value="MathExpr"/>
       </Item37>
       <Item38>
-        <Filename Value="../../base/parsingpars.pas"/>
-        <UnitName Value="ParsingPars"/>
+        <Filename Value="../../base/parseparametersunit.pas"/>
+        <UnitName Value="ParseParametersUnit"/>
       </Item38>
       <Item39>
         <Filename Value="../../base/progressconsole.pas"/>
@@ -290,17 +290,21 @@
         <UnitName Value="Curve"/>
       </Item62>
       <Item63>
-        <Filename Value="../../opengl/openglbmpfonts.pas"/>
-        <UnitName Value="OpenGLBmpFonts"/>
+        <Filename Value="../../opengl/kambiglutils.pas"/>
+        <UnitName Value="KambiGLUtils"/>
       </Item63>
       <Item64>
-        <Filename Value="../../opengl/openglh.pas"/>
-        <UnitName Value="OpenGLh"/>
+        <Filename Value="../../opengl/openglbmpfonts.pas"/>
+        <UnitName Value="OpenGLBmpFonts"/>
       </Item64>
       <Item65>
+        <Filename Value="../../opengl/openglh.pas"/>
+        <UnitName Value="OpenGLh"/>
+      </Item65>
+      <Item66>
         <Filename Value="../../opengl/openglttfonts.pas"/>
         <UnitName Value="OpenGLTTFonts"/>
-      </Item65>
+      </Item66>
       <Item67>
         <Filename Value="../../opengl/unix/xf86vmode.pas"/>
         <UnitName Value="XF86VMode"/>
@@ -309,10 +313,6 @@
         <Filename Value="../../opengl/unix/xlibutils.pas"/>
         <UnitName Value="XlibUtils"/>
       </Item68>
-      <Item66>
-        <Filename Value="../../opengl/kambiglutils.pas"/>
-        <UnitName Value="KambiGLUtils"/>
-      </Item66>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
