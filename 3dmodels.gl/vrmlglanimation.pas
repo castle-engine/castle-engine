@@ -36,7 +36,7 @@ type
     of walking man.
 
     Of course two given objects must be "structurally equal"
-    -- the same nodes hierarchy, the same names of nodes,
+    --- the same nodes hierarchy, the same names of nodes,
     the same values of all fields (with the exception of fields
     that are interpolated: SFColor, SFFloat, SFMatrix,
     SFRotation, SFVec2f, SFVec3f and equivalent MFXxx fields).
