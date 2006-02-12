@@ -61,11 +61,11 @@
   sie "czysto", po drodze wychodzac wykonujac wszystkie sekcje finally...end.
   Jest gwarantowane (i musisz tego przestrzegac w swoich programach)
   ze NIC nie przechwyci i nie zatrzyma tego TCodeBreakera.
-  Patrz console.testy/breakProgram/ po demo tego.
+  Patrz @noAutoLink(@code(console.testy/breakProgram/)) po demo tego.
 
   Wiec jestem niezwykle szczesliwy.
   Pojawia sie jednak pewna skaza na niebsklonie mojego szczescia :
-  Delphi+Win32. W razie niewylapanego wyjatku wyswietla ono p a s k u d n e
+  Delphi+Win32. W razie niewylapanego wyjatku wyswietla ono @bold(paskudne)
   okienko Windowsa - "program popelnil blad, skontaktuj sie z dostawca itp.
   bzdury". Wyjatkowo dezorientujace dla usera ktory nie wie ze to po prostu
   niewylapany wyjatek i program jest OK. Niestety, Delphi wyswietla to
@@ -94,24 +94,41 @@ function ExceptMessage(E: TObject; ExceptAddr: Pointer {$ifdef DEFPARS} = nil {$
 { OutputException = ErrorWrite(ExceptMessage(E)); Taki wygodny skrot }
 procedure OutputException(E: TObject; ExceptAddr: Pointer {$ifdef DEFPARS} = nil {$endif}); overload;
 
-{ jesli value to Halt(0), jesli not Value to Halt(1) (jak typowe programy).
-  To samo co Halt(Ord(not Value)) ale bezpieczniejsze. }
+{ If Value then Halt(0), else Halt(1).
+
+  It is the standard convention of command-line programs to
+  exit with code 0 on success and <> 0 on failure.
+  Or (for some programs like `test') exit with code 0 to indicate true result
+  and <> 0 to indicate false result.
+  So you will probably want to pass here some boolean variable
+  indicating "Success" or "TestPassed". }
 procedure HaltBool(Value: boolean);
 
-var HaltCodeOnException: Integer = 1;
+var
+  HaltCodeOnException: Integer = 1;
 
-{ HaltOnException wylapuje wszelkie wyjatki, robi OutputException()
-  i Halt(HaltCode) (wyjatek: on BreakProgram it does simply
-  Halt(BreakProgram(E).ExitCode)).
+{ This calls Proc and catches all exceptions inside Proc,
+  and in case of exception in Proc it does OutputException and
+  Halt(HaltCode). The result is that HaltOnException doesn't
+  raise any exception, never. It always deals with exceptions inside
+  Proc itself.
 
-  Chyba ze jest zdefiniowany DEBUG - wtedy HaltOnException
-  po prostu wywoluje proc i przepuszcza ew. wyjatki.
+  For the special exception class @link(BreakProgram), it does simply
+  Halt(BreakProgram(E).ExitCode)) (no OutputException in this case).
 
-  Nie ma potrzeby tego uzywac nigdy poza Delphi+Win32, patrz komentarze
-  na poczatku tego pliku, KambiUtils_program_exit.inc.
+  When symbol DEBUG is defined, then HaltOnException works differently
+  --- it just calls Proc (and doesn't catch any exceptions).
 
-  Wersja 1-argumetowa jako HaltCode uzywa HaltCodeOnException.  }
+  This is particularly useful under Delphi/Win32. There main program
+  should @italic(never) exit with exception. Because such exception
+  (because of Delphi stupidity ?) shows ugly Windows
+  dialog box saying something like "Program exited unexpectedly,
+  contain with author etc. bullshit". There is no way for me to avoid
+  this dialog box, even by my own ExceptProc.
+  See comments at the beginning of this file @ccode(kambiutils_program_exit.inc). }
 procedure HaltOnException(proc: TProcedure); overload;
+
+{ This is just like HaltOnException(HaltCodeOnException). }
 procedure HaltOnException(proc: TProcedure; HaltCode: integer); overload;
 
 type
@@ -212,7 +229,7 @@ var ExceptProc: TExceptProc absolute System.ExceptProc;
 {$endif}
 var OldExceptProc: TExceptProc;
 
-procedure KambiUtils_ExceptProc(ExceptObject: TObject; 
+procedure KambiUtils_ExceptProc(ExceptObject: TObject;
   ExceptAddr: Pointer
   {$ifdef FPC}
     {$ifdef VER1_9_6} ; Frame: Pointer
@@ -225,7 +242,7 @@ begin
 
  OutputException(ExceptObject, ExceptAddr);
  {$ifdef DEBUG}
- OldExceptProc(ExceptObject, ExceptAddr 
+ OldExceptProc(ExceptObject, ExceptAddr
    {$ifdef FPC}
      {$ifdef VER1_9_6} ,Frame
      {$else} ,FrameCount, Frame
