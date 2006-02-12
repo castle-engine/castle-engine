@@ -48,7 +48,7 @@ type
 
     { Deletes item I, checks whether I is still <= High,
       returns Parameters[I].
-      @raises(EInvalidParam If there is no Items[I] after previous item
+      @raises(EInvalidParams If there is no Items[I] after previous item
         I was deleted.) }
     function DeleteAndGetNext(I: Integer): string;
 
