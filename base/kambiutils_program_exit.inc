@@ -125,7 +125,7 @@ var
   dialog box saying something like "Program exited unexpectedly,
   contain with author etc. bullshit". There is no way for me to avoid
   this dialog box, even by my own ExceptProc.
-  See comments at the beginning of this file @ccode(kambiutils_program_exit.inc). }
+  See comments at the beginning of this file @code(kambiutils_program_exit.inc). }
 procedure HaltOnException(proc: TProcedure); overload;
 
 { This is just like HaltOnException(HaltCodeOnException). }
