@@ -44,9 +44,20 @@ type
   may raise @link(EExeNameNotAvailable). }
 function ExeName: string;
 
+{$ifdef DELPHI}
+{ This is copied from FPC RTL. }
+{ See FPC ApplicationName documentation. }
+Function ApplicationName : String;
+
+Type
+  TGetAppNameEvent  = Function : String;
+
+Var
+  OnGetApplicationName : TGetAppNameEvent;
+{$endif}
+
 { Returns *something like* basename of our executable file.
-  This does not contain path of our executable,
-  under Win32 this does not contain last extension ('.exe').
+  This does not contain path and extension of our executable.
 
   Under UNIXes this may be only the name of user-defined bash
   alias that was used to call our program, or user-defined symlink,
@@ -57,7 +68,9 @@ function ExeName: string;
   identify our program. E.g. useful when you're writing
   error message on console, when UNIX standard is to always prefix
   error message with ProgramName + ': ', like
-  'cp: invalid file name'. }
+  'cp: invalid file name'. 
+  
+  Right now this is simply equivalent to FPC's ApplicationName. }
 function ProgramName: string;
 
 { Basically, returns true if file exists. So what's the difference between
@@ -288,9 +301,9 @@ function IsSymLink(const f: TSearchRec): boolean; overload;
 {$endif}
 
 { User's home directory, with trailing PathDelim.
-  
+
   Taken from $HOME, unless $HOME = '' or is not defined,
-  then I'm trying to take this from user-database by real-uid. 
+  then I'm trying to take this from user-database by real-uid.
   This is what bash does (more-or-less, when home directory does
   not exist strange things happen), that's what programs should
   do according to `info libc' and my (Kambi's) preferences. }
@@ -483,6 +496,18 @@ begin
  Result := FExeName;
 end;
 
+{$ifdef DELPHI}
+{ Copied from FPC RTL }
+Function ApplicationName : String;
+
+begin
+  If Assigned(OnGetApplicationName) then
+    Result:=OnGetApplicationName()
+  else
+    Result:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
+end;
+{$endif}
+
 function ProgramName_Other(const ParamStr0: string): string;
 begin
  Result :=
@@ -492,7 +517,8 @@ end;
 
 function ProgramName: string;
 begin
- Result := ProgramName_Other(ParamStr(0));
+  Result := ApplicationName;
+  { Result := ProgramName_Other(ParamStr(0)); }
 end;
 
 function NormalFileExists(const FileName: string): boolean;
