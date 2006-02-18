@@ -54,7 +54,6 @@
 
 {$ifdef read_interface}
 
-type
   TDim2Array = class
   private
     P:PDim2ArrayItem;
