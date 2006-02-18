@@ -37,8 +37,10 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Kambi units."/>
-    <License Value="GNU GPL >= 2"/>
+    <Description Value="Kambi units.
+"/>
+    <License Value="GNU GPL >= 2
+"/>
     <Version Major="1"/>
     <Files Count="68">
       <Item1>
@@ -322,7 +324,7 @@
       </Item1>
     </RequiredPkgs>
     <UsageOptions>
-      <IncludePath Value="../../base/"/>
+      <IncludePath Value="../../base/;../../base/templates/"/>
       <UnitPath Value="$(PkgOutDir)/"/>
     </UsageOptions>
     <PublishOptions>
