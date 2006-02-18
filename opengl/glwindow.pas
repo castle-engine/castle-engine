@@ -1428,7 +1428,7 @@ type
       very big. And this means that after pressing "g" user sees 1. first,
       it takes some time to regenerate the model 2. second, after regenerating
       the model there is a sudden jump in the amount the object is rotated
-      (because FpcCompSpeed is big). And the second thing is bad.
+      (because FpsCompSpeed is big). And the second thing is bad.
       It can avoided by putting Scene.PrepareRender(true) after OnKeyDown,
       OnMouseDown etc. But the simplest (and more elegant) way
       is to put Scene.PrepareRender(true) only in OnBeforeDraw. }
@@ -1930,9 +1930,9 @@ type
       dla dwa razy wolniejszego FpsCompSpeed = 2.0, i tak dalej
       - FpsCompSpeed jest odwrotnie proporcjonalne do "chwilowego FpsFrameTime".
 
-      sorry - przemyslec to:
-      Ponadto FpsCompSpeed zamiast FpsFrameTime bierze tak naprawde
-      Clamped(FpsFrameTime, 1.0, 100.0).
+      FpsCompSpeed is @italic(not) clamped in any way to some "sensible range"
+      (it used to be clamped to (1.0, 100.0) but that was just bad idea).
+      FpsCompSpeed just measures how much rendering last frame lasted.
 
       Uzyteczne do robienia czegos time-based, przede wszystkim w OnIdle.
       (Zmiana wszystkich zmiennych w OnIdle powinna byc time-based,
@@ -1952,7 +1952,7 @@ type
       na pierwsza klatke, ktora czesto powoduje konstrukcje jakichs
       display list i w rezultacie trwa nieproporcjonalnie dlugo w porownaniu
       do nastepnych klatek (tutaj wlasnie przydaje sie wywolanie metod
-      w rodzaju TVRMLFlatSceneGL.PrepareRender w OnInit).
+      w rodzaju TVRMLFlatSceneGL.PrepareRender w OnInit or OnBeforeDraw).
     }
     property FpsCompSpeed: Single read FFpsCompSpeed;
 
@@ -2180,38 +2180,58 @@ type
     constructor Create;
   end;
 
-  { klasa TGLWindowNavigated ma pole Navigator: TMatrixNavigator i robi
-      pare rzeczy zwiazanych z obsluga navigatora.
-    1) Po pierwsze, pole Navigator jest swobodne do odczytu i zapisu.
-      Mozesz w dowolnym momencie wymieniac uzywany tutaj Navigator.
-      Domyslnie Navigator = nil.
-      W Destroy klasy jezeli OwnsNavigator (domyslnie true) robimy Navigator.Free.
-    2) W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
-      zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
-      tylko Navigator <> nil i UseNavigator = true.
-      Acha, w EventInit wlaczamy FpsActive i nie mozesz ich nigdzie wylaczyc
-      zebysmy w EventIdle mogli przekazac do Navigator.Idle nasze FpsCompSpeed
-    3) metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
-      ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
-      ona po prostu PostRediplay. (Jezeli chcesz robic cos innego w reakcji
-      na MatrixChanged to naturalnie nie musisz uzywac PostRedisplayOnMatrixChanged)
-    Typowe uzycie tej klasy :
-     - na poczatku programu
-         glw.Navigator := TMatrix<...>.Create(glw.PostRedisplayOnMatrixChanged);
-         glw.Navigator.Init(...)
-     - w OnDraw uzyj gdzies glMult/LoadMatrix(glw.Navigator.Matrix)
-    I juz. }
+  { This class has a @link(Navigator) property (TMatrixNavigator instance)
+    and handles some usual things related to using @link(TMatrixNavigator)
+    instance with TGLWindow window.
+
+    @orderedList(
+      @item(
+        Po pierwsze, pole Navigator jest swobodne do odczytu i zapisu.
+        Mozesz w dowolnym momencie wymieniac uzywany tutaj Navigator.
+        Domyslnie Navigator = nil.
+        W Destroy klasy jezeli OwnsNavigator (domyslnie true) robimy
+        Navigator.Free.)
+      @item(
+        W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
+        zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
+        tylko Navigator <> nil i UseNavigator = true.
+        Acha, w EventInit wlaczamy FpsActive i nie mozesz ich nigdzie wylaczyc
+        zebysmy w EventIdle mogli przekazac do Navigator.Idle nasze FpsCompSpeed.)
+      @item(
+        Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
+        ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
+        ona po prostu PostRediplay. (Jezeli chcesz robic cos innego w reakcji
+        na MatrixChanged to naturalnie nie musisz uzywac
+        PostRedisplayOnMatrixChanged.))
+    )
+
+    Typical use of this class:
+    @orderedList(
+      @item(na poczatku programu
+@longCode(#
+  glw.Navigator := TMatrix<...>.Create(glw.PostRedisplayOnMatrixChanged);
+  glw.Navigator.Init(...);
+#))
+      @item(w OnDraw uzyj gdzies glMultMatrix/glLoadMatrix(glw.Navigator.Matrix))
+    )
+    And that's all. }
   TGLWindowNavigated = class(TGLWindowDemo)
   private
+    FOwnsNavigator: boolean;
+    FUseNavigator: boolean;
     function ReallyUseNavigator: boolean;
   public
-    Navigator: TMatrixNavigator; { =nil }
-    OwnsNavigator: boolean; { =true }
+    { Initially is nil. }
+    Navigator: TMatrixNavigator;
+
+    property OwnsNavigator: boolean
+      read FOwnsNavigator write FOwnsNavigator default true;
 
     { jezeli not UseNavigator albo Navigator = nil to to okienko bedzie sie
       zachowywalo jakby wcale nie bylo TGLWindowNavigated. Wszystkie metody Event*
       beda wywolywaly po prostu inherited; i nic wiecej nie beda robic }
-    UseNavigator: boolean; { =true }
+    property UseNavigator: boolean
+      read FUseNavigator write FUseNavigator default true;
 
     { skroty dla pisania TMatrixExaminer(Navigator) i TMatrixWalker(Navigator).
       W wersji DEBUG uzywaja operatora "as" ale w wersji RELEASE uzywaja
@@ -3544,12 +3564,9 @@ begin
  { ((PerfTime-Fps_RenderStartTime)/PerfTimerFreq) = jaka czesc sekundy
    renderowala sie ostatnia klatka. Zeby byl zgodni z poprzednia definicja
    FpsCompSpeed, jezeli klatka sie renderowala 1/50 sekundy to
-   ma byc FpcCompSpeed 1, i wyliczamy wartosc FpsCompSpeed przymujac ze
-   te dwie liczby sa proporcjonalne i robiac Clamped do pewnych
-   sensownych wartosci (to Clamped powoduje ze przyjmujemy ze
-   min ilosc frames per second (frame-time) na pewno jest pomiedzy 1 a 100). }
- FFpsCompSpeed:=
-   Clamped( ((PerfTime-Fps_RenderStartTime)/PerfTimerFreq), 0.01, 1.0) * 50;
+   ma byc FpsCompSpeed 1, i wyliczamy wartosc FpsCompSpeed przymujac ze
+   te dwie liczby sa proporcjonalne. }
+ FFpsCompSpeed:= ((PerfTime - Fps_RenderStartTime) / PerfTimerFreq) * 50;
 
  NowTick := GetTickCount;
  if ((NowTick-Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
