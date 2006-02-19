@@ -380,6 +380,8 @@ type
 
 implementation
 
+uses Math;
+
 { TMatrixNavigator ------------------------------------------------------------ }
 
 procedure TMatrixNavigator.MatrixChanged;
@@ -705,19 +707,29 @@ begin
    begin RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90) end;
 
   { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-    MatrixChanged - zmienilismy swoje walsciwosci, moze sa one np. gdzies
+    MatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
     wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
-    Move*Speed ?. }
+    Move*Speed ?.
+
+    How to apply CompSpeed here ?
+    I can't just ignore CompSpeed, but I can't also write
+      FMoveSpeed *= 1.1 * CompSpeed;
+    What I want is such (pl: ci±g³a) function that e.g.
+      F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
+    I.e. CompSpeed = 2 should work just like doing the same change twice.
+    So F is FMoveSpeed * Power(1.1, CompSpeed)
+    Easy!
+  }
   if KeysDown[Key_MoveSpeedInc] then
   begin
-   FMoveSpeed *= 1.1;
-   FMoveVertSpeed *= 1.1;
+   FMoveSpeed *= Power(1.1, CompSpeed);
+   FMoveVertSpeed *= Power(1.1, CompSpeed);
    MatrixChanged;
   end;
   if KeysDown[Key_MoveSpeedDec] then
   begin
-   FMoveSpeed /= 1.1;
-   FMoveVertSpeed /= 1.1;
+   FMoveSpeed /= Power(1.1, CompSpeed);
+   FMoveVertSpeed /= Power(1.1, CompSpeed);
    MatrixChanged;
   end;
  end else
