@@ -37,7 +37,7 @@ const
   ScenesCount = 100;
 
   { How fast animation frames change. }
-  AnimationSpeed = 0.4;
+  AnimationSpeed = 1.0;
 
 var
   Animation: TVRMLGLAnimation;
@@ -88,13 +88,13 @@ end;
 var
   CamPos, CamDir, CamUp: TVector3Single;
 begin
- ParCountEqual(2);
+ Parameters.CheckHigh(2);
  try
   VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
   Animation := TVRMLGLAnimation.Create(
-    LoadAsVRML(ParStr(1), false), true,
-    LoadAsVRML(ParStr(2), false), true,
+    LoadAsVRML(Parameters[1], false), true,
+    LoadAsVRML(Parameters[2], false), true,
     ScenesCount,
     roSceneAsAWhole);
 
