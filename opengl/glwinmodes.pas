@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -81,8 +81,9 @@ type
     oldMenuActive: boolean;
     oldMainMenu: TMenu;
     { TGLWindowDemo attributes }
-    oldSwapfullscr_charkey, oldClose_charkey: char;
-    oldMeasureFPS: boolean;
+    oldSwapFullScreen_Key: TKey;
+    oldClose_charkey: char;
+    oldFpsShowOnCaption: boolean;
     { TGLWindowNavigated attributes }
     oldUseNavigator: boolean;
 
@@ -122,7 +123,8 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMenuActive: boolean;
-  NewSwapfullscr_charkey, NewClose_charkey: char; NewMeasureFPS, NewUseNavigator: boolean);
+  NewSwapFullScreen_Key: TKey;
+  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 
 { SetStdNoCloseGLWindowState dziala jak SetStandardGLWindowState
   ale ustawia zawsze oldClose_charkey na #0 i NewCloseQuery
@@ -133,7 +135,8 @@ procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMenuActive: boolean;
-  NewSwapfullscr_charkey: char; NewMeasureFPS, NewUseNavigator: boolean);
+  NewSwapFullScreen_Key: TKey;
+  NewFpsShowOnCaption, NewUseNavigator: boolean);
 
 { GL Mode ---------------------------------------------------------------- }
 
@@ -299,9 +302,9 @@ begin
 
  if glwin is TGLWindowDemo then
  begin
-  result.oldSwapfullscr_charkey := TGLWindowDemo(glwin).Swapfullscr_charkey;
+  result.oldSwapFullScreen_Key := TGLWindowDemo(glwin).SwapFullScreen_Key;
   result.oldClose_charkey := TGLWindowDemo(glwin).Close_charkey;
-  result.oldMeasureFPS := TGLWindowDemo(glwin).measureFPS;
+  result.oldFpsShowOnCaption := TGLWindowDemo(glwin).FpsShowOnCaption;
  end;
 
  if glwin is TGLWindowNavigated then
@@ -320,9 +323,9 @@ begin
 
  if glwin is TGLWindowDemo then
  begin
-  TGLWindowDemo(glwin).Swapfullscr_charkey := State.oldSwapfullscr_charkey;
+  TGLWindowDemo(glwin).SwapFullScreen_Key := State.oldSwapFullScreen_Key;
   TGLWindowDemo(glwin).Close_charkey := State.oldClose_charkey;
-  TGLWindowDemo(glwin).measureFPS := State.oldMeasureFPS;
+  TGLWindowDemo(glwin).FpsShowOnCaption := State.oldFpsShowOnCaption;
  end;
 
  if glwin is TGLWindowNavigated then
@@ -333,7 +336,8 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMenuActive: boolean;
-  NewSwapfullscr_charkey, NewClose_charkey: char; NewMeasureFPS, NewUseNavigator: boolean);
+  NewSwapFullScreen_Key: TKey;
+  NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
  glwin.SetCallbacksState(DefaultCallbacksState);
  glwin.OnDraw := @NewDraw;
@@ -348,9 +352,9 @@ begin
 
  if glwin is TGLWindowDemo then
  begin
-  TGLWindowDemo(glwin).Swapfullscr_charkey := NewSwapfullscr_charkey;
+  TGLWindowDemo(glwin).SwapFullScreen_Key := NewSwapFullScreen_Key;
   TGLWindowDemo(glwin).Close_charkey := NewClose_charkey;
-  TGLWindowDemo(glwin).measureFPS := NewMeasureFPS;
+  TGLWindowDemo(glwin).FpsShowOnCaption := NewFpsShowOnCaption;
  end;
 
  if glwin is TGLWindowNavigated then
@@ -363,13 +367,14 @@ procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
   NewMenuActive: boolean;
-  NewSwapfullscr_charkey: char; NewMeasureFPS, NewUseNavigator: boolean);
+  NewSwapFullScreen_Key: TKey;
+  NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
  SetStandardGLWindowState(glwin,
    NewDraw, CloseQuery_Ignore, NewResize,
    NewUserData, NewAutoRedisplay, NewFPSActive,
    NewMenuActive,
-   NewSwapfullscr_charkey, #0, NewMeasureFPS, NewUseNavigator);
+   NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigator);
 end;
 
 { GL Mode ---------------------------------------------------------------- }
@@ -498,7 +503,7 @@ begin
  glwin.FlushRedisplay;
 
  SetStdNoCloseGLWindowState(AGLWindow, FrozenImageDraw, Resize2D,
-   Self, false, false, AGLWindow.FPSActive, #0, false, false);
+   Self, false, false, AGLWindow.FPSActive, K_None, false, false);
 
  { setup our 2d projection. We must do it before SaveScreen }
  glwin.EventResize;

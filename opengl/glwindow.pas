@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -560,7 +560,7 @@ unit GLWindow;
       and parts of things that I'm doing now in InitImplDepend
       should be done on such changes.
       This way I should be able to react to fullscreen changes
-      forced by user (using window manager, not Ctrl+F) really cleanly.
+      forced by user (using window manager, not F11) really cleanly.
 
   general:
   - napisac jakies programy ktore sprawdzilyby ze
@@ -2107,7 +2107,7 @@ type
 
     @orderedList(
       @item(
-        Przechwytuje wcisniecia swapfullscr_key
+        Przechwytuje wcisniecia SwapFullScreen_Key
         i wtedy przestawia okno z trybu windowed na fullscreen i z powrotem.
         (robi to wykonujac Close, zmieniajac FFullscreen a potem Init ! wiec pamietaj
         aby napisac dobrze OnInit / OnClose).
@@ -2115,7 +2115,7 @@ type
         FullScreen bedzie okreslal poczatkowy stan a jesli fullScreen = false
         to left/top/width/height beda okreslac rozmiar na jaki okno bedzie
         kazdorazowo ustawiane przy wychodzeniu z FullScreen.)
-        (robi to tylko jesli swapfullscr_key <> #0))
+        (robi to tylko jesli SwapFullScreen_Key <> K_None))
 
       @item(
         Automatycznie wychodzi (robi Close) gdy user wcisnie Escape
@@ -2126,7 +2126,7 @@ type
         uaktualnia tytul okienka poprzez FpsToCaption. (Juz poprawione -
         to jest robione w EventIdle, dziala niezaleznie od OnTimer okienka, od
         glwm.OnTimer i glwm.TimerMilisec.)
-        (wykonuje to tylko jesli ustawisz measureFPS = true).)
+        (wykonuje to tylko jesli ustawisz FpsShowOnCaption = true).)
     )
 
     Innymi slowy, robi to co dla wiekszosci demek OpenGLa jest przyjemna
@@ -2148,18 +2148,31 @@ type
     fSwappingFullscr: boolean;
     lastFPSOutputTick: DWORD;
     FFPSBaseCaption: string;
+    FFpsShowOnCaption: boolean;
+    FSwapFullScreen_Key: TKey;
+    FClose_CharKey: char;
   public
-    { modyfikuj ponizsze swobodnie PRZED wywolaniem Init. }
-    MeasureFPS : boolean; { = true }
-    { modyfikuj ponizsze swobodnie PRZED ale i PO wywolaniu Init.
-      Czyli kiedy chcesz. }
-    Swapfullscr_charkey, { = CtrlF }
-    Close_charkey : char; { = CharEscape }
+    { Whether to show current FPS (frames per second) on window's Caption.
+      You can modify this property only @italic(before calling @link(Init).) }
+    property FpsShowOnCaption: boolean
+      read FFpsShowOnCaption write FFpsShowOnCaption default true;
 
-    { When MeasureFPS, you should not use Caption.
+    { Key to use to switch between FullScreen and not FullScreen.
+      Set to K_None to disable this functionality.
+      You can freely modify it at any time, even after calling @link(Init). }
+    property SwapFullScreen_Key: TKey
+      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_F11;
+
+    { Key to use to close the window.
+      Set to #0 to disable this functionality.
+      You can freely modify it at any time, even after calling @link(Init). }
+    property Close_CharKey: char
+      read FClose_CharKey write FClose_CharKey default CharEscape;
+
+    { When FpsShowOnCaption, you should not use Caption.
       Instead use FPSBaseCaption.
       It will be inited from Caption at EventInit.
-      I know, it's a problem. Well, if in doubt, just turn off MeasureFPS. }
+      I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
     property FPSBaseCaption: string read FFPSBaseCaption write FFPSBaseCaption;
 
     { w czasie OnInit / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
@@ -2174,8 +2187,9 @@ type
     procedure EventIdle; override;
     function AllowsProcessMessageSuspend: boolean; override;
 
-    procedure SetDemoOptions(Aswapfullscr_charkey, Aclose_charkey: char;
-      AmeasureFPS: boolean);
+    procedure SetDemoOptions(ASwapFullScreen_Key: TKey;
+      AClose_CharKey: char;
+      AFpsShowOnCaption: boolean);
 
     constructor Create;
   end;
@@ -3707,7 +3721,7 @@ begin
   ten timer moze sobie dzialac w sposob zupelnie przezroczysty dla okienka,
   ktore moze swobodnie modyfikowac swoje OnTimer, glwm.OnTimer,
   glwm.TimerMilisec. }
- if measureFPS and
+ if FpsShowOnCaption and
     ((lastFPSOutputTick = 0) or
      (TimeTickDiff(lastFPSOutputTick, GetTickCount) >= FpsOutputMilisec)) then
  begin
@@ -3718,14 +3732,14 @@ end;
 
 function TGLWindowDemo.AllowsProcessMessageSuspend: boolean;
 begin
- result := (inherited AllowsProcessMessageSuspend) and (not measureFPS)
+ result := (inherited AllowsProcessMessageSuspend) and (not FpsShowOnCaption)
 end;
 
 procedure TGLWindowDemo.EventInit;
 begin
  if not SwappingFullscr then
  begin
-  if measureFPS then
+  if FpsShowOnCaption then
   begin
    { init frames per second write in timer }
    FpsActive := true;
@@ -3747,30 +3761,31 @@ end;
 
 procedure TGLWindowDemo.EventKeyDown(Key: TKey; c: char);
 begin
- if (c <> #0) and (c = close_charkey) then
-  Close else
- if (c <> #0) and (c = swapfullscr_charkey) then
-  SwapFullScreen else
-  inherited;
-    { nie wywoluj inherited jesli to byl klawisz close_key lub
-      swapfullscr_key bo te klawisze zmienily okienko na tyle ze mozna
-      podejrzewac ze wcisniecie klawisza mozna juz uznac za nieaktualne. }
+ if (c <> #0) and (c = Close_CharKey) then
+   Close else
+ if (Key <> K_None) and (Key = SwapFullScreen_Key) then
+   SwapFullScreen else
+   inherited;
+   { nie wywoluj inherited jesli to byl klawisz Close_CharKey lub
+     SwapFullScreen_Key bo te klawisze zmienily okienko na tyle ze mozna
+     podejrzewac ze wcisniecie klawisza mozna juz uznac za nieaktualne. }
 end;
 
-procedure TGLWindowDemo.SetDemoOptions(Aswapfullscr_charkey, Aclose_charkey: char;
-  AmeasureFPS: boolean);
+procedure TGLWindowDemo.SetDemoOptions(ASwapFullScreen_Key: TKey;
+  AClose_CharKey: char;
+  AFpsShowOnCaption: boolean);
 begin
- swapfullscr_charkey := Aswapfullscr_charkey;
- close_charkey := Aclose_charkey;
- measureFPS := AmeasureFPS;
+  SwapFullScreen_Key := ASwapFullScreen_Key;
+  Close_CharKey := AClose_CharKey;
+  FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
 constructor TGLWindowDemo.Create;
 begin
- inherited;
- close_charkey := CharEscape;
- swapfullscr_charkey := CtrlF;
- measureFPS := true;
+  inherited;
+  Close_CharKey := CharEscape;
+  SwapFullScreen_Key := K_F11;
+  FpsShowOnCaption := true;
 end;
 
 { TGLWindowNavigated ------------------------------------------------------------------ }

@@ -742,7 +742,7 @@ begin
  {3 faza :
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
  SetStdNoCloseGLWindowState(glwin, drawMessg, resizeMessg, nil, false,
-   true, false, #0, false, false);
+   true, false, K_None, false, false);
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
   OnMouseDown := @mouseDownMessg;
