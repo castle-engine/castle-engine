@@ -180,7 +180,7 @@ begin
   Data.AnswerY0 := AnswerY0;
 
   SetStdNoCloseGLWindowState(glwin, DrawGL, nil, @Data, false,
-    false, false, #0, false, false);
+    false, false, K_None, false, false);
   glwin.OnKeyDown := KeyDown;
   
   repeat glwm.ProcessMessage(true) until Data.Answered;
@@ -230,7 +230,7 @@ begin
 
   try
    SetStdNoCloseGLWindowState(glwin, DrawGLAnyKey, nil, @Data,
-     false, false, false, #0, false, false);
+     false, false, false, K_None, false, false);
    glwin.OnKeyDown := KeyDownAnyKey;
 
    glRasterPos2i(RasterX, RasterY);
