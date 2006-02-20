@@ -132,7 +132,7 @@ end;
 
 procedure TProgressGLInterface.Update(Progress: TProgress);
 begin
- glwm.ProcessMessage(false);
+ glwm.ProcessAllMessages;
 end;
 
 procedure TProgressGLInterface.Fini(Progress: TProgress);
