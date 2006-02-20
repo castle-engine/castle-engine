@@ -301,7 +301,9 @@ procedure TGeneralIndexedRenderer.Render;
    if Render_Materials = imOverall then Renderer.Render_BindMaterial(0);
   end;
 
-var startIndex, endIndex, faceNumber: integer;
+var 
+  startIndex, endIndex, faceNumber: integer;
+  UseLockArrays: boolean;
 begin
  {initialize most important thing we will use with indexed nodes :
   vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit
@@ -310,7 +312,16 @@ begin
  try
   glVertexPointer(3, GL_FLOAT, 0, State.LastNodes.Coordinate3.FdPoint.Items.Items);
   glEnableClientState(GL_VERTEX_ARRAY);
-  if GL_EXT_compiled_vertex_array then
+  
+  { See 
+    [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+    for description of GL_EXT_compiled_vertex_array.
+    
+    Note that I can't use it when last Coordinate3 had no nodes
+    (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+  UseLockArrays := GL_EXT_compiled_vertex_array and 
+    (State.LastNodes.Coordinate3.FdPoint.Items.Count <> 0);
+  if UseLockArrays then
    glLockArraysEXT(0, State.LastNodes.Coordinate3.FdPoint.Items.Count);
 
   {initialize rendering}
@@ -349,7 +360,7 @@ begin
    TextureFini;
   end;
 
-  if GL_EXT_compiled_vertex_array then
+  if UseLockArrays then
    glUnlockArraysEXT;
  finally glPopClientAttrib; end;
 end;
