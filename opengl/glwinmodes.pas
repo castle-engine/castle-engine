@@ -216,10 +216,6 @@ type
           Check(not glwin.Closed, ...).)
       )
 
-      Co do obiektu savedMode to w ModeGLEnter jest on tworzony a w ModeGLExit
-      niszczony i ustawiana na nil i to jest wszystko co mozesz o nim wiedziec
-      z zewntarz tego modulu.
-
       @noAutoLinkHere }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield);
 
