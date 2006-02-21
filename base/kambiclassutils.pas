@@ -246,6 +246,9 @@ procedure Strings_AddCamelotProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 
+{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug. }
+procedure Strings_SetText(SList: TStrings; const S: string);
+
 { ---------------------------------------------------------------------------- }
 { @section(TStream related) }
 
@@ -854,6 +857,13 @@ procedure Strings_AddCamelotProgramHelpSuffix(
 begin
   Strings_AddSplittedString(Strings,
     SCamelotProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
+end;
+
+procedure Strings_SetText(SList: TStrings; const S: string);
+begin
+  if Length(S) = 1 then
+    SList.Text := S + LineEnding else
+    SList.Text := S;
 end;
 
 { TStream helpers -------------------------------------------------------- }

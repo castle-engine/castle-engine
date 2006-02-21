@@ -231,17 +231,19 @@ begin
  result := TextHeight('y')-TextHeight('a');
 end;
 
-procedure TGLBitmapFont_Abstract.BreakLines(const unbroken: string; broken: TStrings; maxLineWidth: integer);
+procedure TGLBitmapFont_Abstract.BreakLines(const unbroken: string;
+  broken: TStrings; maxLineWidth: integer);
 var unbrokenlist: TStringList;
 begin
  unbrokenlist := TStringList.Create;
  try
-  unbrokenlist.Text := unbroken;
+  Strings_SetText(unbrokenlist, unbroken);
   BreakLines(unbrokenlist, broken, maxLineWidth);
  finally unbrokenlist.Free end;
 end;
 
-procedure TGLBitmapFont_Abstract.BreakLines(unbroken, broken: TStrings; maxLineWidth: integer);
+procedure TGLBitmapFont_Abstract.BreakLines(unbroken, broken: TStrings;
+  maxLineWidth: integer);
 var i, firstToBreak: integer;
 begin
  firstToBreak := broken.count;
@@ -249,7 +251,8 @@ begin
  BreakLines(broken, maxLineWidth, firstToBreak);
 end;
 
-procedure TGLBitmapFont_Abstract.BreakLines(broken: TStrings; maxLineWidth: integer; firstToBreak: integer);
+procedure TGLBitmapFont_Abstract.BreakLines(broken: TStrings;
+  maxLineWidth: integer; firstToBreak: integer);
 var i, j: integer;
     linew: integer;
     p: integer;

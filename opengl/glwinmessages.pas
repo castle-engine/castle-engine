@@ -868,7 +868,7 @@ var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
-  textlist.text := s;
+  Strings_SetText(textlist, s);
   MessageOK(glwin, textlist, textalign);
  finally textlist.free end;
 end;
@@ -920,7 +920,7 @@ begin
    if (c <> #0) and
       (c in id.answerAllowedChars) and
       ((id.answerMaxLen = 0) or (length(md.SAdditional) < id.answerMaxLen)) then
-    md.SetSAdditional(glwin, md.SAdditional+c);
+     md.SetSAdditional(glwin, md.SAdditional+c);
  end;
 end;
 
@@ -931,7 +931,7 @@ var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
-  textlist.text := s;
+  Strings_SetText(textlist, s);
   result := MessageInput(glwin, textlist, textalign, answerDefault, answerMinLen,
      answerMaxLen, answerAllowedChars);
  finally textlist.free end;
@@ -959,7 +959,7 @@ var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
-  textlist.text := s;
+  Strings_SetText(textlist, s);
   result := MessageInputQuery(glwin, textlist, answer, textalign, answerMinLen,
      answerMaxLen, answerAllowedChars);
  finally textlist.free end;
@@ -1016,7 +1016,7 @@ var textlist: TStringList;
 begin
  textlist := TStringList.Create;
  try
-  textlist.text := s;
+  Strings_SetText(textlist, s);
   result := MessageChar(glwin, textlist, AllowedChars, ClosingInfo, textalign);
  finally textlist.free end;
 end;
