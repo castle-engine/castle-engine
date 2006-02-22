@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -301,26 +301,44 @@ type
     property MoveVertSpeed: Single read FMoveVertSpeed; { =1 }
     property RotateSpeed: Single read FRotateSpeed write FRotateSpeed; { =3 (w stopniach) }
 
-    { Dlugosc wektora Dir (mnozona zawsze przez Move[Vert]Speed) okresla
-        szybkosc przesuwania sie (w przod, tyl, gore, dol i strafe'y).
-      Gdy bedziesz ustawial cameraDir, cameraUp zostanie dostosowany aby byl
-        prostopadly do cameraDir. Gdyby bedziesz ustawial cameraUp, to
-        cameraDir bedzie dostosowany (ale bez obaw - dlugosc cameraDir,
-        ktora okresla szybkosc poruszania sie, zostanie zachowana). }
-    property CameraPos: TVector3Single read FCameraPos write SetCameraPos; { = HomeCameraPos }
-    property CameraDir: TVector3Single read FCameraDir write SetCameraDir; { = HomeCameraDir }
-    property CameraUp : TVector3Single read FCameraUp  write SetCameraUp;  { = HomeCameraUp }
+    { Camera position, looking direction and up vector.
 
-    { jezeli RotatesAroundHomeUp to obroty (na Key_Left/RightRot sa robione
-      wokol wektora HomeUp. Jezeli not RotatesAroundHomeUp to obroty sa robione
-      wokol wektora Up. W rezultacie przy RotatesAroundHomeUp poczucie pionu
+      Initially (after creating this object) they are equal to initial
+      values of HomeCameraPos, HomeCameraDir, HomeCameraUp.
+      Also @link(Init) and @link(Home) methods reset them to respective
+      HomeCameraXxx values.
+
+      The length of CameraDir vector @bold(is significant) ---
+      together with MoveSpeed and MoveVertSpeed it determines
+      the moving speed.
+
+      When setting CameraDir, CameraUp will always be automatically
+      adjusted to be orthogonal to CameraDir. And vice versa ---
+      when setting CameraUp, CameraDir will be adjusted.
+      But don't worry, the lengths of adjusted CameraUp or CameraDir
+      will always be preserved.
+
+      @groupBegin }
+    property CameraPos: TVector3Single read FCameraPos write SetCameraPos;
+    property CameraDir: TVector3Single read FCameraDir write SetCameraDir;
+    property CameraUp : TVector3Single read FCameraUp  write SetCameraUp;
+    { @groupEnd }
+
+    { If PreferHomeUp then various operations are done with respect
+      to HomeCameraUp, otherwise they are done with
+      respect to current CameraUp (that can be different than HomeCameraUp,
+      e.g. after using Key_UpRotate, Key_DownRotate --- raise / bow your head).
+      Currently this affects rotations (keys Key_LeftRot and Key_RightRot)
+      and vertical moving (keys Key_UpMove and Key_DownMove).
+
+      Polish: W rezultacie przy PreferHomeUp poczucie pionu
       jest jakby silniejsze dla usera bo nawet jesli zadziera/pochyla glowe
-      (klawiszami Key_Up/DownRotate) to wektor pionu pozostaje taki sam.
-      Podczas gdy z not RotatesAroundHomeUp wektor pionu moze sie latwo
+      to wektor pionu pozostaje taki sam.
+      Podczas gdy z not PreferHomeUp wektor pionu moze sie latwo
       zmieniac, np. wlasnie klawisze Key_Up/DownRotate zmieniaja wektor CameraUp
       a wiec takze wektor wokol ktorego sa robione obroty.
 
-      Podejscie pierwsze (RotatesAroundHomeUp = true) jest wygodniejsze dla usera
+      Podejscie pierwsze (PreferHomeUp = true) jest wygodniejsze dla usera
       jesli ogladana scena jest "silnie zorientowana" wokol wektora HomeUp.
       Natomiast jesli scena nie ma zbyt silnego poczucia pionu (np. jakas scena
       w kosmosie gdzie trudno powiedziec gdzie gora a gdzie dol) lub gdy
@@ -328,12 +346,9 @@ type
       tylko wektor HomeUp, np. w view3dscene zgadujemy go jako (0, 1, 0) bo
       taka jest konwencja w VRMLu ale to tylko konwencja, robiac scene mozna
       sobie ustawic pion dowolnie. Ja sam preferuje przeciez ustawianie
-      pionu w (0, 0, 1)) - wtedy lepiej uzyc RotatesAroundHomeUp = false zeby user
-      mial szanse swobodnie zmieniac pion.
-
-      W przyszlosci byc moze jeszcze jakies klawisze (nie tylko Left/RightRot)
-      beda roznie dzialaly w zaleznosci od RotatesAroundHomeUp. }
-    RotatesAroundHomeUp: boolean; { = true }
+      pionu w (0, 0, 1)) --- wtedy lepiej uzyc PreferHomeUp = false zeby user
+      mial szanse swobodnie zmieniac pion. }
+    PreferHomeUp: boolean; { = true }
 
     { ustawianie home camery.
       homeCameraUp bedzie automatycznie poprawione  tak zeby wektory
@@ -570,7 +585,7 @@ begin
  FMoveSpeed := 1;
  FMoveVertSpeed := 1;
  FRotateSpeed := 3;
- RotatesAroundHomeUp := true;
+ PreferHomeUp := true;
 
  Key_Forward := K_Up;
  Key_Backward := K_Down;
@@ -612,27 +627,50 @@ end;
 
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
-  procedure Move(speed: Single);
-  var ProposedNewPos, NewPos: TVector3Single;
+  procedure Move(const MoveVector: TVector3Single);
+  var
+    ProposedNewPos, NewPos: TVector3Single;
   begin
-   ProposedNewPos := VectorAdd(CameraPos, VectorScale(CameraDir, Speed));
-   if DoMoveAllowed(ProposedNewPos, NewPos) then CameraPos := NewPos;
+    ProposedNewPos := VectorAdd(CameraPos, MoveVector);
+    if DoMoveAllowed(ProposedNewPos, NewPos) then CameraPos := NewPos;
+  end;
+
+  procedure MoveHorizontal(const Multiply: Integer = 1);
+  begin
+    Move(VectorScale(CameraDir, MoveSpeed * CompSpeed * Multiply));
+  end;
+
+  procedure MoveVertical(const Multiply: Integer = 1);
+
+    procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
+    begin
+      Move(VectorScale(PreferredUpVector,
+        { VectorLen(CameraDir) / VectorLen(PreferredUpVector) * }
+        Sqrt(VectorLenSqr(CameraDir) / VectorLenSqr(PreferredUpVector)) *
+        MoveVertSpeed * CompSpeed * Multiply));
+    end;
+
+  begin
+    if PreferHomeUp then
+      MoveVerticalCore(HomeCameraUp) else
+      MoveVerticalCore(CameraUp);
   end;
 
   procedure RotateAroundHomeUp(AngleDeg: Single);
   var Axis: TVector3Single;
   begin
-   {nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
-      obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
-      stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
-      jest homeCameraUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
-      wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
-      daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
-      jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
-    Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
-      (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
-      wzgledem nas) musze czasami obracac sie wokol homeCameraUp, a czasem
-      wokol -homeCameraUp.
+   { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
+     obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
+     stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
+     jest homeCameraUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
+     wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
+     daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
+     jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
+
+     Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
+     (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
+     wzgledem nas) musze czasami obracac sie wokol homeCameraUp, a czasem
+     wokol -homeCameraUp.
    }
    if AngleRadBetweenVectors(CameraUp, HomeCameraUp) > Pi/2 then
     Axis := VectorNegate(HomeCameraUp) else
@@ -646,7 +684,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
   procedure RotateAroundUp(AngleDeg: Single);
   begin
-   {W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle !}
+   { W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle ! }
    CameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, CameraUp);
   end;
 
@@ -665,7 +703,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-   if RotatesAroundHomeUp then
+   if PreferHomeUp then
    begin
     if KeysDown[Key_RightRot] then RotateAroundHomeUp(-RotateSpeed * CompSpeed * SpeedScale);
     if KeysDown[Key_LeftRot] then RotateAroundHomeUp(RotateSpeed * CompSpeed * SpeedScale);
@@ -687,8 +725,8 @@ begin
  begin
   CheckRotates(1.0);
 
-  if KeysDown[Key_Forward] then Move(MoveSpeed * CompSpeed);
-  if KeysDown[Key_Backward] then Move(-MoveSpeed * CompSpeed);
+  if KeysDown[Key_Forward] then MoveHorizontal;
+  if KeysDown[Key_Backward] then MoveHorizontal(-1);
 
   { do strafe'ow musimy uzywac RotateAroundUp, bez wzgledu na to czego
     uzywamy do normalnych obrotow (na *rot). To dlatego ze gdy camDir
@@ -697,14 +735,20 @@ begin
     (tylko ich rzuty na plaszczyzne wyznaczana przez wektor homeUp beda
     prostopadle). Musimy do tego uzyc RotateAroundUp. }
   if KeysDown[Key_RightStrafe] then
-   begin RotateAroundUp(-90); Move(MoveSpeed * CompSpeed); RotateAroundUp(90); end;
+   begin RotateAroundUp(-90); MoveHorizontal; RotateAroundUp(90); end;
   if KeysDown[Key_LeftStrafe] then
-   begin RotateAroundUp(90); Move(MoveSpeed * CompSpeed); RotateAroundUp(-90); end;
+   begin RotateAroundUp(90); MoveHorizontal; RotateAroundUp(-90); end;
 
+  { A simple implementation of Key_UpMove was
+      RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
+    Similarly, simple implementation of Key_DownMove was
+      RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
+    But this is not good, because when PreferHomeUp, we want to move along the
+    CameraHomeUp. }
   if KeysDown[Key_UpMove] then
-   begin RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90) end;
+    MoveVertical;
   if KeysDown[Key_DownMove] then
-   begin RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90) end;
+    MoveVertical(-1);
 
   { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
     MatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
