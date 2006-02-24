@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -85,13 +85,12 @@ begin
    Box3dMaxSize(Scene.BoundingBox) * 3.0);
 end;
 
-var i: Integer;
 begin
- ParCountEqual(1);
+ Parameters.CheckHigh(1);
  try
   VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(ParStr(1), true),
+  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(Parameters[1], true),
     true, roSceneAsAWhole);
 
   Scene.WritelnSceneInfo(true, true);

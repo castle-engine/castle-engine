@@ -15,5 +15,5 @@ uses KambiUtils, MathExprParser;
 
 begin
  { testing :  Writeln('Expression is ',E.ToString); }
- Writeln(EvalConstMathExpr(ParStr(1)): 10: 10);
+ Writeln(EvalConstMathExpr(Parameters[1]): 10: 10);
 end.

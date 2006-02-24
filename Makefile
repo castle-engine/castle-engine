@@ -9,9 +9,13 @@
 #   info --
 #     Some information about what this Makefile sees, how will it work etc.
 #
+#   examples --
+#     Compile all examples and tools (things inside examples/ and tools/
+#     subdirectories)
+#
 #   clean --
 #     Delete FPC 1.0.x Win32 trash (*.ppw, *.ow), FPC trash, Delphi trash,
-#     binaries of programs in examples/ subdirectories,
+#     binaries of example programs,
 #     also FPC compiled trash in packages/*/lib/
 #
 # Not-so-commonly-useful targets:
@@ -159,6 +163,33 @@ opengl/allkambiopenglunits.pas:
   (write-unit-all-units-in-dir \"opengl/\" \"AllKambiOpenGLUnits\") \
   (save-buffer))"
 
+# examples and tools -----------------------------------------------------------
+
+EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
+  base/examples/demo_textreader \
+  base/examples/kambi_calc \
+  opengl/examples/glWinEvents \
+  opengl/examples/menu_test_alternative \
+  opengl/examples/menuTest \
+  opengl/examples/test_glwindow_gtk_mix \
+  3dmodels/examples/many2vrml \
+  3dmodels/tools/gen_light_map \
+  3dmodels.gl/examples/simpleViewModel_2 \
+  3dmodels.gl/examples/simpleViewModel \
+  3dmodels.gl/examples/demo_animation
+
+EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES)
+EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES))
+EXAMPLES_SOURCE_FILES := $(addsuffix .dpr,$(EXAMPLES_BASE_NAMES))
+
+examples:
+	cd ../; $(foreach SOURCE,$(EXAMPLES_SOURCE_FILES),\
+	  fpc -dRELEASE @kambi.cfg units/$(SOURCE) && ) true
+
+.PHONY: cleanexamples
+cleanexamples:
+	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
+
 # information ------------------------------------------------------------
 
 .PHONY: info
@@ -172,36 +203,12 @@ info:
 
 .PHONY: clean cleanmore cleanall clean_special_allunits
 
-clean:
+clean: cleanexamples
 	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
 	     -print \
 	     | xargs rm -f
-	rm -f base/examples/demo_parseparameters \
-	      base/examples/demo_parseparameters.exe \
-	      base/examples/demo_textreader \
-	      base/examples/demo_textreader.exe \
-	      base/examples/kambi_calc \
-	      base/examples/kambi_calc.exe \
-	      opengl/examples/glWinEvents \
-	      opengl/examples/glWinEvents.exe \
-	      opengl/examples/menu_test_alternative \
-	      opengl/examples/menu_test_alternative.exe \
-	      opengl/examples/menuTest \
-	      opengl/examples/menuTest.exe \
-	      opengl/examples/test_glwindow_gtk_mix \
-	      opengl/examples/test_glwindow_gtk_mix.exe \
-	      3dmodels/examples/many2vrml \
-	      3dmodels/examples/many2vrml.exe \
-	      3dmodels/tools/gen_light_map \
-	      3dmodels/tools/gen_light_map.exe \
-	      3dmodels.gl/examples/simpleViewModel_2 \
-	      3dmodels.gl/examples/simpleViewModel_2.exe \
-	      3dmodels.gl/examples/simpleViewModel \
-	      3dmodels.gl/examples/simpleViewModel.exe \
-	      3dmodels.gl/examples/demo_animation \
-	      3dmodels.gl/examples/demo_animation.exe
 	rm -Rf packages/unix/lib/ packages/unix/kambi_units.pas \
 	  packages/win32/lib/ packages/win32/kambi_units.pas
 

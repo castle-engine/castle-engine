@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -101,21 +101,22 @@ begin
 end;
 
 function MoveAllowed(Navigator: TMatrixWalker;
-  const ProposedNewPos: TVector3Single; var NewPos: TVector3Single): boolean;
+  const ProposedNewPos: TVector3Single; var NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.DefaultTriangleOctree.MoveAllowed(
    Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius);
 end;
 
 var
-  i: Integer;
+  //i: Integer;
   CamPos, CamDir, CamUp: TVector3Single;
 begin
- ParCountEqual(1);
+ Parameters.CheckHigh(1);
  try
   VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(ParStr(1), true),
+  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(Parameters[1], true),
     true, {roSceneAsAWhole}roSeparateShapeStates);
 
   Scene.WritelnSceneInfo(true, true);

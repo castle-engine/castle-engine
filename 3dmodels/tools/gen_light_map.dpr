@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -32,11 +32,11 @@ program gen_light_map;
 uses SysUtils, KambiUtils, VectorMath, VRMLNodes, VRMLLightSet, VRMLFlatScene,
   VRMLLightMap, Images, VRMLTriangleOctree, ProgressUnit, ProgressConsole;
 
-function ReadParsVectorTo1st(i: Integer): TVector3Single;
+function ReadParametersVectorTo1st(i: Integer): TVector3Single;
 begin
- result[0] := StrToFloat(ParStr(i));
- result[1] := StrToFloat(ParStr(i+1));
- result[2] := StrToFloat(ParStr(i+2));
+ result[0] := StrToFloat(Parameters[i]);
+ result[1] := StrToFloat(Parameters[i+1]);
+ result[2] := StrToFloat(Parameters[i+2]);
 end;
 
 var
@@ -55,13 +55,13 @@ var
 
 begin
  { parse params }
- ParCountEqual(4 + 3*5);
- SceneFileName := ParStr(1);
- OutImageFileName := ParStr(2);
- ImageSizeX := StrToInt(ParStr(3));
- ImageSizeY := StrToInt(ParStr(4));
- for i := 0 to 3 do Quad[i] := ReadParsVectorTo1st(5 + i*3);
- RenderDir := ReadParsVectorTo1st(5 + 4*3);
+ Parameters.CheckHigh(4 + 3*5);
+ SceneFileName := Parameters[1];
+ OutImageFileName := Parameters[2];
+ ImageSizeX := StrToInt(Parameters[3]);
+ ImageSizeY := StrToInt(Parameters[4]);
+ for i := 0 to 3 do Quad[i] := ReadParametersVectorTo1st(5 + i*3);
+ RenderDir := ReadParametersVectorTo1st(5 + 4*3);
 
  Image := nil;
 
