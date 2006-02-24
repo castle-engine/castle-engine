@@ -206,7 +206,7 @@ type
     var NewPos: TVector3Single;
     const BecauseOfGravity: boolean): boolean;
 
-  { See @link(TMatrixWalker.OnFallenDown). }
+  { See @link(TMatrixWalker.OnFalledDown). }
   TFalledDownNotifyFunc = procedure (Navigator: TMatrixNavigator;
     const FallenHeight: Single) of object;
 
