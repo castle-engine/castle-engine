@@ -576,7 +576,8 @@ type
   public
     function Items: TDynSingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of Single);
+    constructor Create(const AName: string; 
+      const InitialContent: array of Single);
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }

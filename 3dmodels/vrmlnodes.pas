@@ -1602,8 +1602,8 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
-    property FdGroundAngle: TMFFloat index 0 read GetFieldAsMFFloat; { [0, Pi/2] }
-    property FdGroundColor: TMFColor index 1 read GetFieldAsMFColor; { [0, 1] }
+    property FdGroundAngle: TMFFloat index 0 read GetFieldAsMFFloat;
+    property FdGroundColor: TMFColor index 1 read GetFieldAsMFColor;
     property FdBackUrl: TMFString index 2 read GetFieldAsMFString;
     property FdBottomUrl: TMFString index 3 read GetFieldAsMFString;
     property FdFrontUrl: TMFString index 4 read GetFieldAsMFString;
@@ -1667,6 +1667,16 @@ type
     function QuadricStacks: Cardinal;
     function QuadricSlices: Cardinal;
     function RectDivisions: Cardinal;
+  end;
+
+  TNodeNavigationInfo = class(TVRMLNode)
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    property FdAvatarSize: TMFFloat index 0 read GetFieldAsMFFloat;
+    property FdHeadlight: TSFBool index 1 read GetFieldAsSFBool;
+    property FdSpeed: TSFFloat index 2 read GetFieldAsSFFloat;
+    property FdType: TMFString index 3 read GetFieldAsMFString;
+    property FdVisibilityLimit: TSFFloat index 4 read GetFieldAsSFFloat;
   end;
 
 { very very special node --------------------------------------------------- }
@@ -3778,6 +3788,21 @@ end;}
 {$undef TRIANGULATION_DETAIL_FIELD_STRING}
 {$undef TRIANGULATION_DETAIL_FUNC}
 
+constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]));
+  Fields.Add(TSFBool.Create('headlight', true));
+  Fields.Add(TSFFloat.Create('speed', 1.0));
+  Fields.Add(TMFString.Create('type', ['WALK', 'ANY']));
+  Fields.Add(TSFFloat.Create('visibilityLimit', 0.0));
+end;
+
+class function TNodeNavigationInfo.ClassNodeTypeName: string;
+begin
+  Result := 'NavigationInfo';
+end;
+
 { TNodeUnknown ---------------------------------------------------------------- }
 
 function TNodeUnknown.NodeTypeName: string;
@@ -4140,7 +4165,8 @@ initialization
    TNodeDirectionalLight, TNodePointLight, TNodeSpotLight,
    TNodeGroup, TNodeSeparator, TNodeSwitch, TNodeTransformSeparator,
    TNodeWWWAnchor,
-   TNodeWWWInline, TNodeFog, TNodeBackground, TNodeKambiTriangulation]);
+   TNodeWWWInline, TNodeFog, TNodeBackground, TNodeKambiTriangulation,
+   TNodeNavigationInfo]);
 finalization
  FreeAndNil(NodesManager);
 end.
