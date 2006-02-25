@@ -28,6 +28,7 @@ uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 
 const
   DefaultFallingDownStartSpeed = 0.1;
+  DefaultGrowingSpeed = 1.0;
 
 type
   { }
@@ -208,7 +209,10 @@ type
 
   { See @link(TMatrixWalker.OnFalledDown). }
   TFalledDownNotifyFunc = procedure (Navigator: TMatrixNavigator;
-    const FallenHeight: Single) of object;
+    const FallenHeight: Single);
+
+  TGetCameraHeight = procedure (Navigator: TMatrixNavigator;
+    var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single);
 
   { Walking (DOOM-like moving) over the model.
     Camera is defined by it's position, looking direction
@@ -219,6 +223,7 @@ type
     FHomeCameraPos, FHomeCameraDir, FHomeCameraUp: TVector3Single;
 
     FMoveSpeed, FMoveVertSpeed, FRotateSpeed: Single;
+    FPreferHomeUp: boolean;
 
     procedure SetCameraPos(const Value: TVector3Single);
     procedure SetCameraDir(const Value: TVector3Single);
@@ -233,17 +238,28 @@ type
 
     { Private things related to gravity ---------------------------- }
 
-    FCameraHeight: Single;
-
+    FCameraPreferredHeight: Single;
     FIsFallingDown: boolean;
     FFallingDownStartPos: TVector3Single;
     FOnFalledDown: TFalledDownNotifyFunc;
     FFallingDownStartSpeed: Single;
     FFallingDownSpeed: Single;
     FGravity: boolean;
+    FOnGetCameraHeight: TGetCameraHeight;
+    FGrowingSpeed: Single;
+    { This is used by FallingDownEffect to temporary modify Matrix result
+      by rotating CameraUp around CameraDir. In degress. }
+    Fde_CameraUpRotate: Single;
+    { This is used by FallingDownEffect to consistently rotate us.
+      This is either -1, 0 or +1. }
+    Fde_RotateHorizontal: Integer; 
+    FFallingDownEffect: boolean;
   protected
     { }
     procedure MatrixChanged; override;
+
+    procedure DoGetCameraHeight(
+      var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single); virtual;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
@@ -382,7 +398,8 @@ type
       sobie ustawic pion dowolnie. Ja sam preferuje przeciez ustawianie
       pionu w (0, 0, 1)) --- wtedy lepiej uzyc PreferHomeUp = false zeby user
       mial szanse swobodnie zmieniac pion. }
-    PreferHomeUp: boolean; { = true }
+    property PreferHomeUp: boolean
+      read FPreferHomeUp write FPreferHomeUp default true;
 
     { ustawianie home camery.
       homeCameraUp bedzie automatycznie poprawione  tak zeby wektory
@@ -403,11 +420,15 @@ type
       Uwaga - klawisz Key_HomeUp nie wywoluje ponizszej metody Home, on
       tylko ustawia CameraUp := HomeCameraUp (nie resetuje CameraPos i Dir). }
     procedure Init(const AHomeCameraPos, AHomeCameraDir,
-      AHomeCameraUp: TVector3Single); overload;
-    { alternatywny Init. Wylicza HomeCameraPos, HomeCameraDir, HomeCameraUp
-      takie zeby obiekt w box byl "dobrze widoczny" (cokolwiek by to nie mialo
-      oznaczac) }
+      AHomeCameraUp: TVector3Single;
+      const ACameraPreferredHeight: Single); overload;
+
+    { Alternatywny Init. Wylicza HomeCameraPos, HomeCameraDir, HomeCameraUp
+      i CameraPreferredHeight takie zeby obiekt w box byl "dobrze widoczny"
+      (cokolwiek by to nie mialo oznaczac) i zeby CameraPreferredHeight
+      zachowywalo sie "rozsadnie". }
     procedure Init(const box: TBox3d); overload;
+
     procedure Home;
 
     { Things related to frustum ---------------------------------------- }
@@ -439,27 +460,51 @@ type
     property Gravity: boolean
       read FGravity write FGravity default false;
 
-    { When @link(Gravity) is on, the CameraPos tries to stay CameraHeight
+    { When @link(Gravity) is on, CameraPos tries to stay CameraPreferredHeight
       above the ground. Temporary it may be lower (player can
       shortly "duck" when he falls from high).
 
       You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(Gravity) ! 
-      
-      TODO: unused for now. }
-    property CameraHeight: Single
-      read FCameraHeight write FCameraHeight default 0.0;
+      behavior of some things related to @link(Gravity),
+      and also you should set OnGetCameraHeight. }
+    property CameraPreferredHeight: Single
+      read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
+
+    { Assign here the callback (or override DoGetCameraHeight)
+      to say what is the current height of camera above the ground.
+      This should be calculated like collision of ray from CameraPos
+      in direction -HomeCameraUp with the scene.
+
+      This event returns IsAboveTheGround: bolean (set to @false
+      to indicate that the ray doesn't hit the scene at all,
+      so the camera is not above the ground at all) and
+      SqrHeightAboveTheGround (meaningfull only if IsAboveTheGround;
+      this is the Sqr(height of camera above the ground)).
+
+      Implementation of DoGetCameraHeight in this class
+      initializes IsAboveTheGround to @false and then calls
+      OnGetCameraHeight, if assigned. }
+    property OnGetCameraHeight: TGetCameraHeight
+      read FOnGetCameraHeight
+      write FOnGetCameraHeight;
 
     { This is called when camera was falling down for some time,
       and suddenly stopped (this means that camera "hit the ground").
-      Of course this is used only when @link(Gravity) is true.
+      Of course this is used only when @link(Gravity) is @true
+      (it can also be called shortly after you changed
+      @link(Gravity) from @true to @false, so don't simply assert
+      here that @link(Gravity) is @true).
 
       It can be useful in games to do some things
       (maybe basing on FallenHeight parameter passed to this callback)
       like lowering player's health and/or making some effects (displaying
-      "blackout" or playing sound like "Ouh!" etc.). 
-      
-      TODO: should work but untested. }
+      "blackout" or playing sound like "Ouh!" etc.).
+
+      TODO: should work but untested. 
+      Test (like szklane_lasy:
+        if spadanie_speed > graczPoleW div 2 then DoBlackOut(Red3Single);
+      )
+      }
     property OnFalledDown: TFalledDownNotifyFunc
       read FOnFalledDown write FOnFalledDown;
 
@@ -483,7 +528,27 @@ type
       read FFallingDownStartSpeed write FFallingDownStartSpeed
       default DefaultFallingDownStartSpeed;
 
+    { When @link(Gravity) works and camera height above the ground
+      is less than CameraPreferredHeight, then we try to "grow",
+      i.e. camera position increases along the HomeCameraUp
+      so that camera height above the ground is closer to
+      CameraPreferredHeight. This property (together with length of
+      CameraDir, that always determines every moving speed)
+      determines the speed of this growth. }
+    property GrowingSpeed: Single
+      read FGrowingSpeed write FGrowingSpeed
+      default DefaultGrowingSpeed;
+
     property IsFallingDown: boolean read FIsFallingDown;
+
+    { This triggers a nice effect when falling down from high.
+      Camera dir rotates slightly, and camera up temporary rotates
+      around camera up. This makes nice visual effect, so usually
+      you will want this.
+
+      Of course this is meaningfull only when @link(Gravity) works. }
+    property FallingDownEffect: boolean
+      read FFallingDownEffect write FFallingDownEffect default true;
   end;
 
 implementation
@@ -682,7 +747,10 @@ begin
  FMoveVertSpeed := 1;
  FRotateSpeed := 3;
  FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
- PreferHomeUp := true;
+ FPreferHomeUp := true;
+ FGravity := false;
+ FGrowingSpeed := DefaultGrowingSpeed;
+ FFallingDownEffect := true;
 
  Key_Forward := K_Up;
  Key_Backward := K_Down;
@@ -703,7 +771,14 @@ end;
 
 function TMatrixWalker.Matrix: TMatrix4Single;
 begin
- result := LookDirMatrix(CameraPos, CameraDir, CameraUp);
+  { Yes, below we compare Fde_CameraUpRotate with 0.0 using normal
+    (precise) <> operator. Don't worry --- Fde_Stabilize in Idle
+    will take care of eventually setting Fde_CameraUpRotate to 
+    a precise 0.0. }
+  if Fde_CameraUpRotate <> 0.0 then
+    Result := LookDirMatrix(CameraPos, CameraDir,
+      RotatePointAroundAxisDeg(Fde_CameraUpRotate, CameraUp, CameraDir)) else
+    Result := LookDirMatrix(CameraPos, CameraDir, CameraUp);
 end;
 
 function TMatrixWalker.RotationOnlyMatrix: TMatrix4Single;
@@ -720,6 +795,14 @@ begin
   Result := true;
   NewPos := ProposedNewPos;
  end;
+end;
+
+procedure TMatrixWalker.DoGetCameraHeight(
+  var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single);
+begin
+  IsAboveTheGround := false;
+  if Assigned(OnGetCameraHeight) then
+    OnGetCameraHeight(Self, IsAboveTheGround, SqrHeightAboveTheGround);
 end;
 
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
@@ -763,7 +846,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
       MoveVerticalCore(CameraUp);
   end;
 
-  procedure RotateAroundHomeUp(AngleDeg: Single);
+  procedure RotateAroundHomeUp(const AngleDeg: Single);
   var Axis: TVector3Single;
   begin
    { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
@@ -789,10 +872,17 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
    MatrixChanged;
   end;
 
-  procedure RotateAroundUp(AngleDeg: Single);
+  procedure RotateAroundUp(const AngleDeg: Single);
   begin
    { W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle ! }
    CameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, CameraUp);
+  end;
+
+  procedure RotateHorizontal(const AngleDeg: Single);
+  begin
+    if PreferHomeUp then
+      RotateAroundHomeUp(AngleDeg) else
+      RotateAroundUp(AngleDeg);
   end;
 
   procedure RotateVertical(AngleDeg: Single);
@@ -810,85 +900,122 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-   if PreferHomeUp then
-   begin
-    if KeysDown[Key_RightRot] then RotateAroundHomeUp(-RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown[Key_LeftRot] then RotateAroundHomeUp(RotateSpeed * CompSpeed * SpeedScale);
-   end else
-   begin
-    if KeysDown[Key_RightRot] then RotateAroundUp(-RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown[Key_LeftRot] then RotateAroundUp(RotateSpeed * CompSpeed * SpeedScale);
-   end;
+    if KeysDown[Key_RightRot] then RotateHorizontal(-RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown[Key_LeftRot] then RotateHorizontal(RotateSpeed * CompSpeed * SpeedScale);
 
-   if KeysDown[Key_UpRotate] then RotateVertical(RotateSpeed * CompSpeed * SpeedScale);
-   if KeysDown[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown[Key_UpRotate] then RotateVertical(RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
   end;
 
   { Things related to gravity --- jumping, taking into account
-    falling down and keeping CameraHeight above the ground. }
+    falling down and keeping CameraPreferredHeight above the ground. }
   procedure GravityIdle;
+  var
+    IsAboveTheGround: boolean;
+    SqrHeightAboveTheGround: Single;
+
   const
     Jumping = false;
 
     function TryJump: boolean;
     begin
-      Result := false; { TODO --- see szklane_lasy }
+      Result := Jumping; 
 
-      (*
-      result:=false;
-      if Podskakuje then
+      if Result then
       begin
-       result:=true;
-       WysokoscPodskoku:=WysokoscPodskoku + SilaPodskoku;
-       if (WysokoscPodskoku > MaxWysokoscPodskoku) or (SilaPodskoku <= 0) then
-        Podskakuje:=false else
-       begin
-        RuchZ(SilaPodskoku,false);
-        SilaPodskoku:=SilaPodskoku - TimeBasedIntChange(15);
-       end;
+        { TODO --- from szklane_lasy. Restore this.
+        WysokoscPodskoku:=WysokoscPodskoku + SilaPodskoku;
+        if (WysokoscPodskoku > MaxWysokoscPodskoku) or (SilaPodskoku <= 0) then
+          Jumping := false else
+        begin
+         RuchZ(SilaPodskoku,false);
+         SilaPodskoku:=SilaPodskoku - TimeBasedIntChange(15);
+        end;
+        }
       end;
-      *)
     end;
 
-    function TryGrow: boolean;
+    function CameraPreferredHeightMargin: Single;
     begin
-      Result := false; { TODO --- see szklane_lasy }
+      { I tried using here something smaller like
+        SingleEqualityEpsilon, but this was not good. }
+      Result := CameraPreferredHeight * 0.01;
+    end;
 
-      (*
-      {rosnij, tzn. stan na podlodze, jesli jest pod toba i wychodzi ze jestes za nisko
-       (taki stan moze byc wynikiem np. liliputa lub konca flying). Zwroc true jezeli
-       rosles (a wiec nie bylo potrzeby Spadania w tej turze, przynajmniej przed ta funkcja
-       (bo moze urosnac czasem za duzo; to nic, w nasteppnej turze bedzie wtedy spadal)).  }
-      var powinienUrosnac:integer;
+    { If our height above the ground is < CameraPreferredHeight
+      then we try to "grow".
+
+      (this may happen because of many things --- e.g. user code
+      just changed CameraPreferredHeight to something larger
+      (because e.g. "duck mode" ended), or we just ended falling dowm
+      from high). }
+    function TryGrow: boolean;
+    var
+      GrowingVectorLength: Single;
+    begin
+      Result :=
+        IsAboveTheGround and
+        (SqrHeightAboveTheGround <
+          Sqr(CameraPreferredHeight - CameraPreferredHeightMargin));
+
+      if Result then
       begin
-       result:=false;
-       powinienUrosnac:=wysokoscPostaci - wysGlowyNadZiemia(wysokoscPostaci);
-       if powinienUrosnac>marginesSciany then
-       begin
-        {ponizej nakladamy kaganiec na rosniecie - nie moze urosnac za duze,
-         bo zauwazmy ze w TrySpadaj moze spasc za duzo. Gdyby mogl i spasc i urosnac
-         za duzo pojawialaby sie sytuacja ze gracz podskakuje w miejscu bo
-         na zmiane wykrywamy ze trzeba spasc  i rosnac. }
-        RuchZ(KambiUtils.min(graczPoleW div 10,powinienUrosnac),true);
-        result:=true;
-       end;
+        { calculate GrowingVectorLength }
+        { Well, we have to resign here from operating on Sqrs,
+          we need actual values. }
+        GrowingVectorLength := Min(
+          VectorLen(CameraDir) * GrowingSpeed * CompSpeed,
+          CameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
+
+        Move(VectorAdjustToLength(HomeCameraUp, GrowingVectorLength), true);
       end;
-      *)
     end;
 
     function TryFallingDown: boolean;
-    { TODO --- finish, see szklane_lasy }
+
+      { Return +1 or -1, randomly. }
+      function RandomPlusMinus: Integer;
+      begin
+        Result := Random(2);
+        if Result = 0 then
+          Result := -1;
+      end;
+
     const
-      CamRotateDeviation = 1;
+      Fde_VerticalRotateDeviation = 1.0;
+      Fde_HorizontalRotateDeviation = 0.3;
     var
       CameraPosBefore: TVector3Single;
+      SqrFallingDownVectorLength: Single;
     begin
       Result := false;
-      if Jumping then
+
+      { Note that if we got here, then TryGrow returned false,
+        which means that (assuming OnGetCameraHeight is correctly assigned)
+        we are not above the ground, or
+          SqrHeightAboveTheGround >=
+            Sqr(CameraPreferredHeight - CameraPreferredHeightMargin)
+        However we check here for something stronger:
+          SqrHeightAboveTheGround >
+            Sqr(CameraPreferredHeight + CameraPreferredHeightMargin)
+
+        This is important, because this way we avoid the unpleasant
+        "bouncing" effect when in one Idle we decide that camera
+        is falling down, in next Idle we decide that it's growing,
+        in next Idle it falls down again etc. In TryGrow we try
+        to precisely set our CameraPos, so that it hits exactly
+        at CameraPreferredHeight -- which means that after TryGrow,
+        in next Idle TryGrow should not cause growing and TryFallingDown
+        should not cause falling down. }
+      if IsAboveTheGround and
+         (SqrHeightAboveTheGround <=
+           Sqr(CameraPreferredHeight + CameraPreferredHeightMargin)) then
       begin
         FIsFallingDown := false;
         Exit;
       end;
+
+      Result := true;
 
       { Make sure that FallingDownSpeed is initialized.
         When IsFallingDown, we know it's initialized (because setting
@@ -900,10 +1027,21 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
       { try to fall down }
       CameraPosBefore := CameraPos;
 
-      if Move(VectorScale(HomeCameraUp, -
-        { VectorLen(CameraDir) / VectorLen(HomeCameraUp) * }
-        Sqrt(VectorLenSqr(CameraDir) / VectorLenSqr(HomeCameraUp)) *
-        FFallingDownSpeed * CompSpeed), true) and
+      { calculate SqrFallingDownVectorLength.
+        Note that we make sure that SqrFallingDownVectorLength is no longer
+        than SqrHeightAboveTheGround --- this way we avoid the problem
+        that when FFallingDownSpeed would get very big,
+        we couldn't fall down any more (while in fact we should then fall down
+        very quickly). }
+      SqrFallingDownVectorLength :=
+        VectorLenSqr(CameraDir) * Sqr(FFallingDownSpeed * CompSpeed);
+      if IsAboveTheGround and
+         (SqrFallingDownVectorLength > SqrHeightAboveTheGround) then
+        SqrFallingDownVectorLength := SqrHeightAboveTheGround;
+
+      if Move(VectorScale(HomeCameraUp,
+         - Sqrt(SqrFallingDownVectorLength /
+             VectorLenSqr(HomeCameraUp))), true) and
         (not VectorsPerfectlyEqual(CameraPos, CameraPosBefore)) then
       begin
         FIsFallingDown := true;
@@ -915,71 +1053,58 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
           - changing FallingDownSpeed below is "acceleration"
           And both acceleration and velocity must be time-based. }
         FFallingDownSpeed *= Power(13/12, CompSpeed);
+
+        { This is where we do FallingDownEffect }
+        if FallingDownEffect and
+           (FFallingDownSpeed > FallingDownStartSpeed * 3) then
+        begin
+          if FFallingDownSpeed > FallingDownStartSpeed * 5 then
+          begin
+            if Fde_RotateHorizontal = 0 then
+              Fde_RotateHorizontal := RandomPlusMinus;
+            RotateAroundHomeUp(Fde_RotateHorizontal * 
+              Fde_HorizontalRotateDeviation * CompSpeed);
+          end;
+
+          if Fde_CameraUpRotate < 0 then
+            Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
+          if Fde_CameraUpRotate > 0 then
+            Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed else
+            Fde_CameraUpRotate := RandomPlusMinus * 
+                                  Fde_VerticalRotateDeviation * CompSpeed;
+                                  
+          MatrixChanged;
+        end;
       end else
         FIsFallingDown := false;
-(*
-        { TODO: restore this:
-        if FallingDownSpeed > CameraHeight div 8 then
-        begin
-          if spadanie_speed>graczPoleW div 3 then
-            ZmienKier(Round(RandomPlusMinus* Random(3)* glw.FpsCompSpeed));
-          if CamRotate<0 then CamRotate:=CamRotate - CamRotateDeviation*glw.FpsCompSpeed else
-          if CamRotate>0 then CamRotate:=CamRotate + CamRotateDeviation*glw.FpsCompSpeed else
-            CamRotate:=RandomPlusMinus* CamRotateDeviation* glw.FpsCompSpeed;
-        end;
-        }
-
-       RuchZ(-KambiUtils.min(spadanie_speed,
-                          wysGlowyNadZiemia(spadanie_speed) - marginesSciany),true);
-         { powyzej jest to min() bo spadanie_speed moze byc duze
-           i w rezultacie powyzszy RuchZ moglby nie przesunac gracza w ogole
-           mimo ze wysokoscNog > 0.
-
-           Jednoczesnie, prawa liczba jest wieksza niz wysokoscNog co pozwoli
-           nam na lekkie sprezynowanie gracza, tzn. gdy spadnie z duzej wysokosci
-           - ugna sie pod nim nogi.
-
-           sorry - powyzsze mozna by bylo wykonac prostym
-           RuchZ(-spadanie_speed, true); gdyby ruch byl sprytny i ruszal
-           sie "w danym kierunku tyle ile mozna"; to z kolei mozna by zaimplementowac
-           gdyby odpowiednio rozszerzyc modul Collisions. Przy okazji, to rozszerzenie
-           nadawaloby sie tez do wykorzystania w wysGlowyNadZiemia.
-         }
-       if not wysGlowyNadZiemiaGreater(wysokoscPostaci) then
-       begin
-        {acha ! to znaczy ze wlasnie skonczyl spadac.
-         W tym momencie wielkosc spadanie_speed mowi nam jak dlugo spadal.}
-        if spadanie_speed > graczPoleW div 2 then DoBlackOut(Red3Single);
-        {sorry - tu moznaby modyfikowac jego Zycie, czy Zywotnosc, gdy juz
-         zrobimy graczowi taki wskaznik}
-       end else
-       begin
-         ... { This is already restored ... }
-       end;
-       result:=true; *)
     end;
 
-    procedure StabilizeCameraHeight;
+    procedure Fde_Stabilize;
+    const
+      Fde_VerticalRotateNormalization = 7;
+    var
+      Change: Single;
     begin
-      { TODO --- see szklane_lasy }
+      { Bring Fde_Xxx vars back to normal (zero) values. }
+      
+      Fde_RotateHorizontal := 0;
 
-      (*
-      {ta procedura bedzie wywolywana gdy gracz bedzie spokojnie sobie stal
-       na ziemi. Nie bedzie w trakcie zadnego podskoku ani nie bedzie spadal ani nie
-       bedzie rosl. Wiec w tej procedurze ma chwile oddechu i moze ustabilizowac
-       swoje zmienne. }
-      const CamRotateNormalization = 7;
+      if Fde_CameraUpRotate <> 0.0 then
       begin
-       {prostuj CamRotate}
-       if CamRotate<0 then
-        CamRotate:=KambiUtils.min(CamRotate + CamRotateNormalization*glw.FpsCompSpeed, 0.0) else
-       if CamRotate>0 then
-        CamRotate:=KambiUtils.max(CamRotate - CamRotateNormalization*glw.FpsCompSpeed, 0.0);
+        { Note that we try to immediately bring CameraUpRotate to
+          range (-360, 360) here. E.g. no need to gradually bring back
+          CameraUpRotate from 360.0 to 0.0 --- this doesn't cause
+          any interesting visual effect (and the only reason for
+          CameraUpRotate is a visual effect)... }
+        Change := Trunc(Abs(Fde_CameraUpRotate) / 360.0) * 360.0 +
+          Fde_VerticalRotateNormalization * CompSpeed;
 
-       {spadanie_speed moze wrocic do normalnego stanu poczatkowego}
-       spadanie_speed:=spadanie_speed_normal;
+        if Fde_CameraUpRotate < 0 then
+          Fde_CameraUpRotate := Min(Fde_CameraUpRotate + Change, 0.0) else
+          Fde_CameraUpRotate := Max(Fde_CameraUpRotate - Change, 0.0);
+
+        MatrixChanged;
       end;
-      *)
     end;
 
   var
@@ -988,10 +1113,19 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
     OldIsFallingDown := IsFallingDown;
 
     if Gravity and PreferHomeUp then
+    begin
+      { calculate IsAboveTheGround, SqrHeightAboveTheGround }
+      DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+
       if not TryJump then
         if not TryGrow then
           if not TryFallingDown then
-            StabilizeCameraHeight;
+            Fde_Stabilize;
+    end else
+    begin
+      FIsFallingDown := false;
+      Fde_Stabilize;
+    end;
 
     if OldIsFallingDown and (not IsFallingDown) and Assigned(OnFalledDown) then
       OnFalledDown(Self, PointsDistance(CameraPos, FFallingDownStartPos));
@@ -1001,7 +1135,7 @@ var ModsDown: TModifierKeys;
 begin
  ModsDown := ModifiersDown(KeysDown);
 
- if ModsDown=[] then
+ if ModsDown = [] then
  begin
   CheckRotates(1.0);
 
@@ -1106,9 +1240,12 @@ begin
  result := true;
 end;
 
-procedure TMatrixWalker.Init(const AHomeCameraPos, AHomeCameraDir, AHomeCameraUp: TVector3Single);
+procedure TMatrixWalker.Init(
+  const AHomeCameraPos, AHomeCameraDir, AHomeCameraUp: TVector3Single;
+  const ACameraPreferredHeight: Single);
 begin
  SetCameraHome_LookDir(AHomeCameraPos, AHomeCameraDir, AHomeCameraUp);
+ FCameraPreferredHeight := ACameraPreferredHeight;
  Home;
 end;
 
@@ -1119,14 +1256,14 @@ begin
  if IsEmptyBox3d(Box) then
   Init(Vector3Single(0, 0, 0),
        Vector3Single(0, 0, -1),
-       Vector3Single(0, 1, 0)) else
+       Vector3Single(0, 1, 0), 0.0 { whatever }) else
  begin
   AvgSize := Box3dAvgSize(Box);
   Pos[0] := Box[0, 0]-AvgSize;
-  Pos[1]:=(Box[0, 1]+Box[1, 1])/2;
-  Pos[2]:=(Box[0, 2]+Box[1, 2])/2;
+  Pos[1] := (Box[0, 1]+Box[1, 1])/2;
+  Pos[2] := (Box[0, 2]+Box[1, 2])/2;
   Init(Pos, VectorAdjustToLength(UnitVector3Single[0], AvgSize*0.1),
-    UnitVector3Single[2]);
+    UnitVector3Single[2], AvgSize * 0.1);
  end;
 end;
 
@@ -1148,7 +1285,10 @@ begin
 end;
 
 procedure TMatrixWalker.SetCameraPos(const Value: TVector3Single);
-begin FCameraPos := Value; MatrixChanged; end;
+begin
+  FCameraPos := Value;
+  MatrixChanged;
+end;
 
 procedure TMatrixWalker.SetCameraDir(const Value: TVector3Single);
 begin

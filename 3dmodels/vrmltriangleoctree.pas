@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -281,51 +281,57 @@ type
       number will be small. }
     DirectCollisionTestsCounter: TCollisionCount; { = 0 }
 
-    {Ponizej mamy najwazniejsze procedury ktore wykorzystuja cala
-       strukture jaka zbudowalismy zeby efektywnie badac kolizje.
-     SegmentCollision bada czy segment nie przecina zadnego elementu drzewa
-     SphereCollision bada czy sfera nie zawiera w sobie choc czesci jakiegos
-       elementu drzewa.
-     RayCollision bada przeciecie promienia z drzewem.
-     Procedury zwracaja -1 (co preferujemy wyrazac jako NoItemIndex)
-       jesli nie ma kolizji lub indeks do tablicy OctreeItems
-       na element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
-       zwrocic jesli jest ich wiele ?". SphereCollision zwraca ktorykolwiek,
-       podobnie jak Ray/SegmentCollision gdy (not ReturnClosestIntersection).
-       Gdy ReturnClosestIntersection = true to RayCollision zwraca przeciecie
-       najblizsze Ray0, SegmentCollision najblizsze pos1.
-       (pamietaj ze placisz czasem wykonania
-       za przekazanie ReturnClosestIntersection = true, wiec unikaj tego).
+    { Ponizej mamy najwazniejsze procedury ktore wykorzystuja cala
+      strukture jaka zbudowalismy zeby efektywnie badac kolizje.
 
-     Segment/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
-       OctreeItemIndexToIgnore, podaj OctreeItemIndexToIgnore = NoItemIndex
-       aby uwzglednial wszystkie elementy (przydatne przy rekurencyjnym
-       ray-tracingu gdy nie chcesz zeby promien odbity/zalamany/cienia omylkowo trafil na
-       powierzchnie z ktorej wlasnie "wychodzisz" - mozna by bylo temu
-       zaradzic tez przez nieznacznie przesuwanie Ray0, ale niniejsza metoda
-       jest duzo bardziej elegancka). OctreeItemIndexToIgnore to
-       naturalnie indeks do tablicy OctreeItems, podobnie jak wynik wszystkich
-       tych funkcji *Collision i podobnie jak elementy TTriangleOctreeNode.ItemsIndices[]
-     Uwzgledniaja tez ze na pewno nie ma przeciecia z elementami dla
-       ktorych ItemsToIgnoreFunc zwroci true (mozesz przekazac nil
-       aby nie ignorowac nic na podstawie ItemsToIgnoreFunc).
-     Ponadto jesli podasz IgnoreMarginAtStart to beda ignorowac przeciecia ktore
-       zdarzyly sie *bardzo* blisko Ray0 (lub Pos1). W ten sposob raytracer
-       bedzie w stanie poradzic sobie nawet ze scenami ktore maja nieprawidlowo
-       zdefiniowane (czesciowo zachodzace na siebie) polygony. Takie polygony
-       normalnie generowalyby zbedne cienie (zaslanialyby sie nawzajem).
-       Pozornie podajac IgnoreMarginAtStart = true raytracer moglby czesto
-       nie podawac juz OctreeItemIndexToIgnore (tzn. podac je = NoItemIndex),
-       bo przeciez po to sie zazwyczaj podaje OctreeItemIndexToIgnore.
-       Ale prawda jest taka ze IgnoreMarginAtStart nie daje 100% pewnosci
-       ze unikniemy kolizji z elementem od ktorego zaczelismy (bo on przeciez
-       tylko unika pewnego *malego* marginesu wokol Ray0). W rezultacie
-       i tak nalezy uzywac OctreeItemIndexToIgnore. To raczej podawanie
-       IgnoreMarginAtStart = true jest zbedne, ale niestety jest to pozadane
-       i daje dobre efekty gdy przychodzi do nieprawidlowo zbudowanych scen.
-       A nawet sibenik.3ds i office.mgf.wrl a wiec sceny zrobione niby porzadnie
-       ktorych uzywalem do zasadniczych testow na rayhunterze
-       maja gdzeniegdzie tak nieprawidlowo zbudowane sciany.
+      SegmentCollision bada czy segment nie przecina zadnego elementu drzewa
+
+      SphereCollision bada czy sfera nie zawiera w sobie choc czesci jakiegos
+      elementu drzewa.
+
+      RayCollision bada przeciecie promienia z drzewem.
+
+      Procedury zwracaja -1 (co preferujemy wyrazac jako NoItemIndex)
+      jesli nie ma kolizji lub indeks do tablicy OctreeItems
+      na element z ktorym jest kolizja. Pytanie brzmi "ktore przeciecie
+      zwrocic jesli jest ich wiele ?". SphereCollision zwraca ktorykolwiek,
+      podobnie jak Ray/SegmentCollision gdy (not ReturnClosestIntersection).
+      Gdy ReturnClosestIntersection = true to RayCollision zwraca przeciecie
+      najblizsze Ray0, SegmentCollision najblizsze pos1.
+      (pamietaj ze placisz czasem wykonania
+      za przekazanie ReturnClosestIntersection = true, wiec unikaj tego).
+
+      Segment/RayCollision uwzgledniaja ze na pewno NIE MA przeciecia z elementem
+      OctreeItemIndexToIgnore, podaj OctreeItemIndexToIgnore = NoItemIndex
+      aby uwzglednial wszystkie elementy (przydatne przy rekurencyjnym
+      ray-tracingu gdy nie chcesz zeby promien odbity/zalamany/cienia omylkowo trafil na
+      powierzchnie z ktorej wlasnie "wychodzisz" - mozna by bylo temu
+      zaradzic tez przez nieznacznie przesuwanie Ray0, ale niniejsza metoda
+      jest duzo bardziej elegancka). OctreeItemIndexToIgnore to
+      naturalnie indeks do tablicy OctreeItems, podobnie jak wynik wszystkich
+      tych funkcji *Collision i podobnie jak elementy TTriangleOctreeNode.ItemsIndices[]
+
+      Uwzgledniaja tez ze na pewno nie ma przeciecia z elementami dla
+      ktorych ItemsToIgnoreFunc zwroci true (mozesz przekazac nil
+      aby nie ignorowac nic na podstawie ItemsToIgnoreFunc).
+
+      Ponadto jesli podasz IgnoreMarginAtStart to beda ignorowac przeciecia ktore
+      zdarzyly sie *bardzo* blisko Ray0 (lub Pos1). W ten sposob raytracer
+      bedzie w stanie poradzic sobie nawet ze scenami ktore maja nieprawidlowo
+      zdefiniowane (czesciowo zachodzace na siebie) polygony. Takie polygony
+      normalnie generowalyby zbedne cienie (zaslanialyby sie nawzajem).
+      Pozornie podajac IgnoreMarginAtStart = true raytracer moglby czesto
+      nie podawac juz OctreeItemIndexToIgnore (tzn. podac je = NoItemIndex),
+      bo przeciez po to sie zazwyczaj podaje OctreeItemIndexToIgnore.
+      Ale prawda jest taka ze IgnoreMarginAtStart nie daje 100% pewnosci
+      ze unikniemy kolizji z elementem od ktorego zaczelismy (bo on przeciez
+      tylko unika pewnego *malego* marginesu wokol Ray0). W rezultacie
+      i tak nalezy uzywac OctreeItemIndexToIgnore. To raczej podawanie
+      IgnoreMarginAtStart = true jest zbedne, ale niestety jest to pozadane
+      i daje dobre efekty gdy przychodzi do nieprawidlowo zbudowanych scen.
+      A nawet sibenik.3ds i office.mgf.wrl a wiec sceny zrobione niby porzadnie
+      ktorych uzywalem do zasadniczych testow na rayhunterze
+      maja gdzeniegdzie tak nieprawidlowo zbudowane sciany.
     }
     function SegmentCollision(var Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
@@ -409,13 +415,24 @@ type
       So you should not assume that NewPos is not modified when it returns
       with false.
 
-      @seealso(TMatrixWalker.DoMoveAllowed 
+      @seealso(TMatrixWalker.DoMoveAllowed
         TMatrixWalker.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
       var NewPos: TVector3Single;
       const CameraRadius: Single): boolean;
+
+    { For given camera position and up vector, calculate camera height
+      above the ground. This is comfortable for cooperation with
+      TMatrixWalker.OnGetCameraHeight.
+
+      This simply checks collision of a ray from
+      CameraPos in direction -HomeCameraUp, and sets IsAboveTheGround
+      and SqrHeightAboveTheGround as needed. }
+    procedure GetCameraHeight(
+      const CameraPos, HomeCameraUp: TVector3Single;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 
     constructor Create(const ARootBox: TBox3d); overload;
     constructor Create(AMaxDepth, AMaxLeafItemsCount: integer;
@@ -901,6 +918,19 @@ begin
    Result := MoveAlongTheBlocker(BlockerIndex);
  end else
   Result := MoveAlongTheBlocker(BlockerIndex);
+end;
+
+procedure TVRMLTriangleOctree.GetCameraHeight(
+  const CameraPos, HomeCameraUp: TVector3Single;
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+var
+  GroundIntersection: TVector3Single;
+begin
+  IsAboveTheGround := RayCollision(GroundIntersection,
+    CameraPos, VectorNegate(HomeCameraUp), true, NoItemIndex, false)
+    <> NoItemIndex;
+  if IsAboveTheGround then
+    SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
 end;
 
 { Create/Destroy ------------------------------------------------------------ }

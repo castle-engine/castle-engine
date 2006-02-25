@@ -143,7 +143,7 @@ begin
   Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
   Glw.NavWalker.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp);
+    CamUp, 0.0 { unused, we don't use Gravity here });
 
   { init collision detection }
   if IsEmptyBox3d(Scene.BoundingBox) then
