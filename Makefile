@@ -11,7 +11,8 @@
 #
 #   examples --
 #     Compile all examples and tools (things inside examples/ and tools/
-#     subdirectories)
+#     subdirectories). Note that you can also compile each example separately,
+#     just run appropriate xxx_compile.sh scripts.
 #
 #   clean --
 #     Delete FPC 1.0.x Win32 trash (*.ppw, *.ow), FPC trash, Delphi trash,
@@ -180,11 +181,10 @@ EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES)
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES))
-EXAMPLES_SOURCE_FILES := $(addsuffix .dpr,$(EXAMPLES_BASE_NAMES))
 
+.PHONY: examples
 examples:
-	cd ../; $(foreach SOURCE,$(EXAMPLES_SOURCE_FILES),\
-	  fpc -dRELEASE @kambi.cfg units/$(SOURCE) && ) true
+	cd ../; $(foreach NAME,$(EXAMPLES_BASE_NAMES),units/$(NAME)_compile.sh && ) true
 
 .PHONY: cleanexamples
 cleanexamples:
