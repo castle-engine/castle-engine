@@ -30,6 +30,7 @@ const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
   DefaultHeadBobbing = 0.1;
+  DefaultCrouchHeight = 0.5;
 
 type
   { }
@@ -244,6 +245,7 @@ type
     FKey_MoveSpeedInc: TKey;
     FKey_MoveSpeedDec: TKey;
     FKey_Jump: TKey;
+    FKey_Crouch: TKey;
 
     { Private things related to frustum ---------------------------- }
 
@@ -280,6 +282,7 @@ type
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
+    FCrouchHeight: Single;
   protected
     { }
     procedure MatrixChanged; override;
@@ -359,10 +362,10 @@ type
     { }
     property Key_Forward: TKey read FKey_Forward write FKey_Forward default K_Up;
     property Key_Backward: TKey read FKey_Backward write FKey_Backward default K_Down;
-    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot default K_Right;
     property Key_LeftRot: TKey read FKey_LeftRot write FKey_LeftRot default K_Left;
-    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe default K_Z;
-    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe default K_X;
+    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot default K_Right;
+    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe default K_Comma;
+    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe default K_Period;
     property Key_UpRotate: TKey read FKey_UpRotate write FKey_UpRotate default K_PgUp;
     property Key_DownRotate: TKey read FKey_DownRotate write FKey_DownRotate default K_PgDown;
     property Key_UpMove: TKey read FKey_UpMove write FKey_UpMove default K_Insert;
@@ -378,8 +381,11 @@ type
       read FKey_MoveSpeedDec write FKey_MoveSpeedDec default K_Minus;
     { @groupEnd }
 
-    { Note that jumping works only when @link(Gravity) works. }
+    { Note that jumping and crouching works only when @link(Gravity) works.
+      @groupBegin }
     property Key_Jump: TKey read FKey_Jump write FKey_Jump default K_A;
+    property Key_Crouch: TKey read FKey_Crouch write FKey_Crouch default K_Z;
+    { @groupEnd }
 
     { General stuff ----------------------------------------------------- }
 
@@ -499,6 +505,7 @@ type
       @unorderedList(
         @item(It uses OnGetCameraHeight to get camera height above the ground.)
         @item(It allows player to jump. See Key_Jump, IsJumping, MaxJumpHeight.)
+        @item(It allows player to crouch. See Key_Crouch, CrouchHeight.)
         @item(It tries to keep CameraPos above the ground on
           CameraPreferredHeight height.)
         @item(When current height is too small --- CameraPos is moved up.
@@ -630,6 +637,11 @@ type
       Of course this is meaningfull only when @link(Gravity) works. }
     property HeadBobbing: Single
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
+
+    { This defines the preferred height of camera when crouching.
+      This is always mutiplied to CameraPreferredHeight. }
+    property CrouchHeight: Single
+      read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
   end;
 
 implementation
@@ -834,13 +846,14 @@ begin
   FFallingDownEffect := true;
   FIsJumping := false;
   FHeadBobbing := DefaultHeadBobbing;
+  FCrouchHeight := DefaultCrouchHeight;
 
   Key_Forward := K_Up;
   Key_Backward := K_Down;
-  Key_RightRot := K_Right;
   Key_LeftRot := K_Left;
-  Key_RightStrafe := K_X;
-  Key_LeftStrafe := K_Z;
+  Key_RightRot := K_Right;
+  Key_LeftStrafe := K_Comma;
+  Key_RightStrafe := K_Period;
   Key_UpRotate := K_PgUp;
   Key_DownRotate := K_PgDown;
   Key_UpMove := K_Insert;
@@ -849,6 +862,7 @@ begin
   Key_MoveSpeedInc := K_Plus;
   Key_MoveSpeedDec := K_Minus;
   Key_Jump := K_A;
+  Key_Crouch := K_Z;
 
   FProjectionMatrix := IdentityMatrix4Single;
 end;
@@ -939,20 +953,25 @@ var
 
   { This is CameraPreferredHeight slightly modified by head bobbing. }
   function RealCameraPreferredHeight: Single;
+  var
+    BobbingModifier: Single;
   begin
+    Result := CameraPreferredHeight;
+
+    if KeysDown[Key_Crouch] then
+      Result *= CrouchHeight;
+
     if UseHeadBobbing then
     begin
-      Result := Frac(HeadBobbingPosition);
+      BobbingModifier := Frac(HeadBobbingPosition);
 
-      if Result <= 0.5 then
-        Result := MapRange(Result, 0.0, 0.5, -1, +1) else
-        Result := MapRange(Result, 0.5, 1.0, +1, -1);
+      if BobbingModifier <= 0.5 then
+        BobbingModifier := MapRange(BobbingModifier, 0.0, 0.5, -1, +1) else
+        BobbingModifier := MapRange(BobbingModifier, 0.5, 1.0, +1, -1);
 
-      Result *= CameraPreferredHeight * HeadBobbing;
-    end else
-      Result := 0.0;
-
-    Result += CameraPreferredHeight;
+      BobbingModifier *= Result * HeadBobbing;
+      Result += BobbingModifier;
+    end else;
   end;
 
   { Multiply must be +1 or -1 }
