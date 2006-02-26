@@ -495,8 +495,25 @@ type
       related to gravity. This is meaningfull only when PreferHomeUp
       is @true. Gravity always drags the camera down to -HomeCameraUp.
 
-      TODO: write docs based when GravityIdle implementation
-      will be finished.
+      Summary of things done by gravity:
+      @unorderedList(
+        @item(It uses OnGetCameraHeight to get camera height above the ground.)
+        @item(It allows player to jump. See Key_Jump, IsJumping, MaxJumpHeight.)
+        @item(It tries to keep CameraPos above the ground on
+          CameraPreferredHeight height.)
+        @item(When current height is too small --- CameraPos is moved up.
+          See GrowingSpeed.)
+        @item(When current height is too large --- we're falling down.
+          See IsFallingDown, OnFalledDown, FallingDownStartSpeed,
+          FallingDownEffect.)
+        @item(It does head bobbing. See HeadBobbing.)
+      )
+
+      While there are many properties allowing you to control
+      gravity behavior, most of them have initial values that should be
+      sensible in all cases. The only things that you really want to take
+      care of are: OnGetCameraHeight and CameraPreferredHeight.
+      Everything else will work auto-magically.
 
       @noAutoLinkHere }
     property Gravity: boolean
@@ -572,17 +589,6 @@ type
       read FFallingDownStartSpeed write FFallingDownStartSpeed
       default DefaultFallingDownStartSpeed;
 
-    { When @link(Gravity) works and camera height above the ground
-      is less than CameraPreferredHeight, then we try to "grow",
-      i.e. camera position increases along the HomeCameraUp
-      so that camera height above the ground is closer to
-      CameraPreferredHeight. This property (together with length of
-      CameraDir, that always determines every moving speed)
-      determines the speed of this growth. }
-    property GrowingSpeed: Single
-      read FGrowingSpeed write FGrowingSpeed
-      default DefaultGrowingSpeed;
-
     property IsFallingDown: boolean read FIsFallingDown;
 
     { This triggers a nice effect when falling down from high.
@@ -593,6 +599,17 @@ type
       Of course this is meaningfull only when @link(Gravity) works. }
     property FallingDownEffect: boolean
       read FFallingDownEffect write FFallingDownEffect default true;
+
+    { When @link(Gravity) works and camera height above the ground
+      is less than CameraPreferredHeight, then we try to "grow",
+      i.e. camera position increases along the HomeCameraUp
+      so that camera height above the ground is closer to
+      CameraPreferredHeight. This property (together with length of
+      CameraDir, that always determines every moving speed)
+      determines the speed of this growth. }
+    property GrowingSpeed: Single
+      read FGrowingSpeed write FGrowingSpeed
+      default DefaultGrowingSpeed;
 
     { How high can you jump ? Note that setting CameraPreferredHeight
       also sets this. }
