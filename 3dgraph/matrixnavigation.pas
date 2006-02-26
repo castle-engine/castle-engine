@@ -27,8 +27,9 @@ interface
 uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 
 const
-  DefaultFallingDownStartSpeed = 0.1;
+  DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
+  DefaultHeadBobbing = 0.1;
 
 type
   { }
@@ -229,6 +230,21 @@ type
     procedure SetCameraDir(const Value: TVector3Single);
     procedure SetCameraUp(const Value: TVector3Single);
 
+    FKey_Forward: TKey;
+    FKey_Backward: TKey;
+    FKey_RightRot: TKey;
+    FKey_LeftRot: TKey;
+    FKey_RightStrafe: TKey;
+    FKey_LeftStrafe: TKey;
+    FKey_UpRotate: TKey;
+    FKey_DownRotate: TKey;
+    FKey_UpMove: TKey;
+    FKey_DownMove: TKey;
+    FKey_HomeUp: TKey;
+    FKey_MoveSpeedInc: TKey;
+    FKey_MoveSpeedDec: TKey;
+    FKey_Jump: TKey;
+
     { Private things related to frustum ---------------------------- }
 
     FProjectionMatrix: TMatrix4Single;
@@ -239,6 +255,8 @@ type
     { Private things related to gravity ---------------------------- }
 
     FCameraPreferredHeight: Single;
+    procedure SetCameraPreferredHeight(const Value: Single);
+
     FIsFallingDown: boolean;
     FFallingDownStartPos: TVector3Single;
     FOnFalledDown: TFalledDownNotifyFunc;
@@ -252,8 +270,16 @@ type
     Fde_CameraUpRotate: Single;
     { This is used by FallingDownEffect to consistently rotate us.
       This is either -1, 0 or +1. }
-    Fde_RotateHorizontal: Integer; 
+    Fde_RotateHorizontal: Integer;
     FFallingDownEffect: boolean;
+
+    FMaxJumpHeight: Single;
+    FIsJumping: boolean;
+    FJumpHeight: Single;
+    FJumpPower: Single;
+
+    FHeadBobbing: Single;
+    HeadBobbingPosition: Single;
   protected
     { }
     procedure MatrixChanged; override;
@@ -321,25 +347,41 @@ type
       var NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual;
 
-    { klawisze --------------------------------------------------------- }
+    { Keys --------------------------------------------------------- }
 
-    {sorry - przydaloby sie rozwiazac tu sprawe z modifiers jakos bardziej
+    { TODO: przydaloby sie rozwiazac tu sprawe z modifiers jakos bardziej
       elegancko. Kazdy klawisz to powinien byc kod + flagi modifierow.
       W tej chwili klawisze wszystkie ponizsze klawisze dzialaja gdy
       wszystkie modifiery sa OFF, za wyjatkiem Key_Right/LeftRot i
       KeyUp/DownRotate ktore uzyskuja specjalne znaczenie gdy dziala modifier
       Ctrl : obracaja 10 razy wolniej. }
 
-    Key_Forward, Key_Backward, { = K_Up, K_Down }
-    Key_RightRot, Key_LeftRot, { = K_Right, K_Left }
-    Key_RightStrafe, Key_LeftStrafe, { = K_Z, K_X }
-    Key_UpRotate, Key_DownRotate, { = K_PgUp, K_PgDown }
-    Key_UpMove, Key_DownMove, { = K_Insert, K_Delete }
-    Key_HomeUp, { = K_Home }
-    {Key_MoveSpeed* zmieniaja MoveSpeed i MoveVertSpeed jednoczesnie }
-    Key_MoveSpeedInc, Key_MoveSpeedDec { = K_Plus, K_Minus } :TKey;
+    { }
+    property Key_Forward: TKey read FKey_Forward write FKey_Forward default K_Up;
+    property Key_Backward: TKey read FKey_Backward write FKey_Backward default K_Down;
+    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot default K_Right;
+    property Key_LeftRot: TKey read FKey_LeftRot write FKey_LeftRot default K_Left;
+    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe default K_Z;
+    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe default K_X;
+    property Key_UpRotate: TKey read FKey_UpRotate write FKey_UpRotate default K_PgUp;
+    property Key_DownRotate: TKey read FKey_DownRotate write FKey_DownRotate default K_PgDown;
+    property Key_UpMove: TKey read FKey_UpMove write FKey_UpMove default K_Insert;
+    property Key_DownMove: TKey read FKey_DownMove write FKey_DownMove default K_Delete;
+    property Key_HomeUp: TKey read FKey_HomeUp write FKey_HomeUp default K_Home;
 
-    { wlasciwosci ----------------------------------------------------- }
+    { Note that Key_MoveSpeedInc and Key_MoveSpeedDec change
+      both MoveSpeed and MoveVertSpeed.
+      @groupBegin }
+    property Key_MoveSpeedInc: TKey
+      read FKey_MoveSpeedInc write FKey_MoveSpeedInc default K_Plus;
+    property Key_MoveSpeedDec: TKey
+      read FKey_MoveSpeedDec write FKey_MoveSpeedDec default K_Minus;
+    { @groupEnd }
+
+    { Note that jumping works only when @link(Gravity) works. }
+    property Key_Jump: TKey read FKey_Jump write FKey_Jump default K_A;
+
+    { General stuff ----------------------------------------------------- }
 
     { move*Speed sa na poczatku rowne 1 zebys mogl userowi wyswietlac
       te zmienne jako jakas "szybkosc" gdzie 1 oznacza ruch w/g dlugosci
@@ -466,9 +508,11 @@ type
 
       You should set this to something greater than zero to get sensible
       behavior of some things related to @link(Gravity),
-      and also you should set OnGetCameraHeight. }
+      and also you should set OnGetCameraHeight.
+
+      Setting this sets also MaxJumpHeight to CameraPreferredHeight. }
     property CameraPreferredHeight: Single
-      read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
+      read FCameraPreferredHeight write SetCameraPreferredHeight default 0.0;
 
     { Assign here the callback (or override DoGetCameraHeight)
       to say what is the current height of camera above the ground.
@@ -500,7 +544,7 @@ type
       like lowering player's health and/or making some effects (displaying
       "blackout" or playing sound like "Ouh!" etc.).
 
-      TODO: should work but untested. 
+      TODO: should work but untested.
       Test (like szklane_lasy:
         if spadanie_speed > graczPoleW div 2 then DoBlackOut(Red3Single);
       )
@@ -549,6 +593,26 @@ type
       Of course this is meaningfull only when @link(Gravity) works. }
     property FallingDownEffect: boolean
       read FFallingDownEffect write FFallingDownEffect default true;
+
+    { How high can you jump ? Note that setting CameraPreferredHeight
+      also sets this. }
+    property MaxJumpHeight: Single
+      read FMaxJumpHeight write FMaxJumpHeight default 0.0;
+
+    { Camera is in the middle of a "jump" move right now. }
+    property IsJumping: boolean read FIsJumping;
+
+    { When you move horizontally, you get "head bobbing" effect
+      --- camera position slightly changes it's vertical position,
+      going a little up, then a little down, then a little up again etc.
+
+      This property mutiplied by CameraPreferredHeight
+      says how much head bobbing can move you along HomeCameraUp.
+      Set this to 0 to disable head bobbing.
+
+      Of course this is meaningfull only when @link(Gravity) works. }
+    property HeadBobbing: Single
+      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
   end;
 
 implementation
@@ -709,11 +773,11 @@ end;
 
 procedure TMatrixExaminer.SetModelBox(const Value: TBox3d);
 begin
- FModelBox := Value;
- if IsEmptyBox3d(FModelBox) then
-  FModelBoxMiddle := Vector3Single(0, 0, 0) { any dummy value } else
-  FModelBoxMiddle := Box3dMiddle(FModelBox);
- MatrixChanged;
+  FModelBox := Value;
+  if IsEmptyBox3d(FModelBox) then
+    FModelBoxMiddle := Vector3Single(0, 0, 0) { any dummy value } else
+    FModelBoxMiddle := Box3dMiddle(FModelBox);
+  MatrixChanged;
 end;
 
 { TMatrixExaminer Key* methods ---------------------------------------- }
@@ -738,42 +802,45 @@ end;
 constructor TMatrixWalker.Create(
   const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
 begin
- inherited;
- FHomeCameraPos := Vector3Single(0, 0, 0);  FCameraPos := HomeCameraPos;
- FHomeCameraDir := Vector3Single(0, 0, -1); FCameraDir := HomeCameraDir;
- FHomeCameraUp  := Vector3Single(0, 1, 0);  FCameraUp  := HomeCameraUp;
+  inherited;
+  FHomeCameraPos := Vector3Single(0, 0, 0);  FCameraPos := HomeCameraPos;
+  FHomeCameraDir := Vector3Single(0, 0, -1); FCameraDir := HomeCameraDir;
+  FHomeCameraUp  := Vector3Single(0, 1, 0);  FCameraUp  := HomeCameraUp;
 
- FMoveSpeed := 1;
- FMoveVertSpeed := 1;
- FRotateSpeed := 3;
- FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
- FPreferHomeUp := true;
- FGravity := false;
- FGrowingSpeed := DefaultGrowingSpeed;
- FFallingDownEffect := true;
+  FMoveSpeed := 1;
+  FMoveVertSpeed := 1;
+  FRotateSpeed := 3;
+  FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
+  FPreferHomeUp := true;
+  FGravity := false;
+  FGrowingSpeed := DefaultGrowingSpeed;
+  FFallingDownEffect := true;
+  FIsJumping := false;
+  FHeadBobbing := DefaultHeadBobbing;
 
- Key_Forward := K_Up;
- Key_Backward := K_Down;
- Key_RightRot := K_Right;
- Key_LeftRot := K_Left;
- Key_RightStrafe := K_X;
- Key_LeftStrafe := K_Z;
- Key_UpRotate := K_PgUp;
- Key_DownRotate := K_PgDown;
- Key_UpMove := K_Insert;
- Key_DownMove := K_Delete;
- Key_HomeUp := K_Home;
- Key_MoveSpeedInc := K_Plus;
- Key_MoveSpeedDec := K_Minus;
+  Key_Forward := K_Up;
+  Key_Backward := K_Down;
+  Key_RightRot := K_Right;
+  Key_LeftRot := K_Left;
+  Key_RightStrafe := K_X;
+  Key_LeftStrafe := K_Z;
+  Key_UpRotate := K_PgUp;
+  Key_DownRotate := K_PgDown;
+  Key_UpMove := K_Insert;
+  Key_DownMove := K_Delete;
+  Key_HomeUp := K_Home;
+  Key_MoveSpeedInc := K_Plus;
+  Key_MoveSpeedDec := K_Minus;
+  Key_Jump := K_A;
 
- FProjectionMatrix := IdentityMatrix4Single;
+  FProjectionMatrix := IdentityMatrix4Single;
 end;
 
 function TMatrixWalker.Matrix: TMatrix4Single;
 begin
   { Yes, below we compare Fde_CameraUpRotate with 0.0 using normal
     (precise) <> operator. Don't worry --- Fde_Stabilize in Idle
-    will take care of eventually setting Fde_CameraUpRotate to 
+    will take care of eventually setting Fde_CameraUpRotate to
     a precise 0.0. }
   if Fde_CameraUpRotate <> 0.0 then
     Result := LookDirMatrix(CameraPos, CameraDir,
@@ -807,6 +874,18 @@ end;
 
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
+  { Like Move, but you pass here final ProposedNewPos }
+  function MoveTo(const ProposedNewPos: TVector3Single;
+    const BecauseOfGravity: boolean): boolean;
+  var
+    NewPos: TVector3Single;
+  begin
+    Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
+    if Result then
+      { Note that setting CameraPos automatically calls MatrixChanged }
+      CameraPos := NewPos;
+  end;
+
   { Tries to move CameraPos to CameraPos + MoveVector.
     Returns DoMoveAllowed result. So if it returns @false,
     you know that CameraPos didn't change (on the other hand,
@@ -815,18 +894,66 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
     maybe it changed to something different). }
   function Move(const MoveVector: TVector3Single;
     const BecauseOfGravity: boolean): boolean;
-  var
-    ProposedNewPos, NewPos: TVector3Single;
   begin
-    ProposedNewPos := VectorAdd(CameraPos, MoveVector);
-    Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
-    if Result then
-      { Note that setting CameraPos automatically calls MatrixChanged }
-      CameraPos := NewPos;
+    Result := MoveTo(VectorAdd(CameraPos, MoveVector), BecauseOfGravity);
   end;
 
-  procedure MoveHorizontal(const Multiply: Integer = 1);
+var
+  { This is initally false. It's used by MoveHorizontal while head bobbing,
+    to avoid updating HeadBobbingPosition more than once in the same Idle call.
+
+    Updating it more than once is bad --- try e.g. holding Key_Forward
+    with one of the strafe keys: you move and it's very noticeable
+    that HeadBobbing seems faster. That's because
+    when holding both Key_Forward and Key_StrafeRight, you shouldn't
+    do HeadBobbing twice in one Idle --- you should do it only Sqrt(2).
+    When you will also hold Key_RotateRight at the same time --- situation
+    gets a little complicated...
+
+    The good solution seems to just do head bobbing only once.
+    In some special cases this means that head bobbing will be done
+    *less often* than it should be, but this doesn't hurt. }
+  HeadBobbingAlreadyDone: boolean;
+
+  function UseHeadBobbing: boolean;
   begin
+    Result := Gravity and PreferHomeUp and (HeadBobbing <> 0.0);
+  end;
+
+  { This is CameraPreferredHeight slightly modified by head bobbing. }
+  function RealCameraPreferredHeight: Single;
+  begin
+    if UseHeadBobbing then
+    begin
+      Result := Frac(HeadBobbingPosition);
+
+      if Result <= 0.5 then
+        Result := MapRange(Result, 0.0, 0.5, -1, +1) else
+        Result := MapRange(Result, 0.5, 1.0, +1, -1);
+
+      Result *= CameraPreferredHeight * HeadBobbing;
+    end else
+      Result := 0.0;
+
+    Result += CameraPreferredHeight;
+  end;
+
+  { Multiply must be +1 or -1 }
+  procedure MoveHorizontal(const Multiply: Integer = 1);
+  const
+    HeadBobbingDistance = 20.0;
+  begin
+    { Update HeadBobbingPosition }
+    if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
+    begin
+      { I increase HeadBobbingPosition such that
+        HeadBobbingPosition increase of 1
+        means that player moved horizontally by
+          VectorLen(CameraDir) * MoveSpeed * HeadBobbingDistance. }
+      HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
+      HeadBobbingAlreadyDone := true;
+    end;
+
     Move(VectorScale(CameraDir, MoveSpeed * CompSpeed * Multiply), false);
   end;
 
@@ -907,42 +1034,57 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
     if KeysDown[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
   end;
 
+  function RealCameraPreferredHeightMargin: Single;
+  begin
+    { I tried using here something smaller like
+      SingleEqualityEpsilon, but this was not good. }
+    Result := RealCameraPreferredHeight * 0.01;
+  end;
+
   { Things related to gravity --- jumping, taking into account
-    falling down and keeping CameraPreferredHeight above the ground. }
+    falling down and keeping RealCameraPreferredHeight above the ground. }
   procedure GravityIdle;
   var
     IsAboveTheGround: boolean;
     SqrHeightAboveTheGround: Single;
 
-  const
-    Jumping = false;
-
     function TryJump: boolean;
+    var
+      ThisJumpHeight: Single;
     begin
-      Result := Jumping; 
+      Result := IsJumping;
 
       if Result then
       begin
-        { TODO --- from szklane_lasy. Restore this.
-        WysokoscPodskoku:=WysokoscPodskoku + SilaPodskoku;
-        if (WysokoscPodskoku > MaxWysokoscPodskoku) or (SilaPodskoku <= 0) then
-          Jumping := false else
+        { jump. This means:
+          1. update FJumpHeight and FJumpPower and move CameraPos
+          2. or set FIsJumping to false when jump ends }
+
+        ThisJumpHeight := VectorLen(CameraDir) * FJumpPower * CompSpeed;
+        FJumpHeight += ThisJumpHeight;
+
+        if FJumpHeight > MaxJumpHeight then
+          FIsJumping := false else
         begin
-         RuchZ(SilaPodskoku,false);
-         SilaPodskoku:=SilaPodskoku - TimeBasedIntChange(15);
+          { do jumping }
+          Move(VectorAdjustToLength(HomeCameraUp, ThisJumpHeight), false);
+
+          { Initially it was my intention to decrease FJumpPower
+            at each point. But this doesn't make any nice visible effect,
+            moreover it can't guarentee that every jump will sooner or later
+            reach MaxJumpHeight. And we want for every jump to
+            sooner or later reach MaxJumpHeight.
+
+            FJumpPower *= Power(0.95, CompSpeed);
+
+            So the line above is commented out, and jumping is done with
+            constant speed FJumpPower. So every jump sooner or later reaches
+            MaxJumpHeight. }
         end;
-        }
       end;
     end;
 
-    function CameraPreferredHeightMargin: Single;
-    begin
-      { I tried using here something smaller like
-        SingleEqualityEpsilon, but this was not good. }
-      Result := CameraPreferredHeight * 0.01;
-    end;
-
-    { If our height above the ground is < CameraPreferredHeight
+    { If our height above the ground is < RealCameraPreferredHeight
       then we try to "grow".
 
       (this may happen because of many things --- e.g. user code
@@ -956,7 +1098,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
       Result :=
         IsAboveTheGround and
         (SqrHeightAboveTheGround <
-          Sqr(CameraPreferredHeight - CameraPreferredHeightMargin));
+          Sqr(RealCameraPreferredHeight - RealCameraPreferredHeightMargin));
 
       if Result then
       begin
@@ -965,7 +1107,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
           we need actual values. }
         GrowingVectorLength := Min(
           VectorLen(CameraDir) * GrowingSpeed * CompSpeed,
-          CameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
+          RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
 
         Move(VectorAdjustToLength(HomeCameraUp, GrowingVectorLength), true);
       end;
@@ -994,22 +1136,22 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
         which means that (assuming OnGetCameraHeight is correctly assigned)
         we are not above the ground, or
           SqrHeightAboveTheGround >=
-            Sqr(CameraPreferredHeight - CameraPreferredHeightMargin)
+            Sqr(RealCameraPreferredHeight - RealCameraPreferredHeightMargin)
         However we check here for something stronger:
           SqrHeightAboveTheGround >
-            Sqr(CameraPreferredHeight + CameraPreferredHeightMargin)
+            Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)
 
         This is important, because this way we avoid the unpleasant
         "bouncing" effect when in one Idle we decide that camera
         is falling down, in next Idle we decide that it's growing,
         in next Idle it falls down again etc. In TryGrow we try
         to precisely set our CameraPos, so that it hits exactly
-        at CameraPreferredHeight -- which means that after TryGrow,
+        at RealCameraPreferredHeight -- which means that after TryGrow,
         in next Idle TryGrow should not cause growing and TryFallingDown
         should not cause falling down. }
       if IsAboveTheGround and
          (SqrHeightAboveTheGround <=
-           Sqr(CameraPreferredHeight + CameraPreferredHeightMargin)) then
+           Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
       begin
         FIsFallingDown := false;
         Exit;
@@ -1062,7 +1204,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
           begin
             if Fde_RotateHorizontal = 0 then
               Fde_RotateHorizontal := RandomPlusMinus;
-            RotateAroundHomeUp(Fde_RotateHorizontal * 
+            RotateAroundHomeUp(Fde_RotateHorizontal *
               Fde_HorizontalRotateDeviation * CompSpeed);
           end;
 
@@ -1070,9 +1212,9 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
             Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
           if Fde_CameraUpRotate > 0 then
             Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed else
-            Fde_CameraUpRotate := RandomPlusMinus * 
+            Fde_CameraUpRotate := RandomPlusMinus *
                                   Fde_VerticalRotateDeviation * CompSpeed;
-                                  
+
           MatrixChanged;
         end;
       end else
@@ -1086,7 +1228,7 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
       Change: Single;
     begin
       { Bring Fde_Xxx vars back to normal (zero) values. }
-      
+
       Fde_RotateHorizontal := 0;
 
       if Fde_CameraUpRotate <> 0.0 then
@@ -1131,72 +1273,112 @@ procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
       OnFalledDown(Self, PointsDistance(CameraPos, FFallingDownStartPos));
   end;
 
-var ModsDown: TModifierKeys;
+  procedure Jump;
+  var
+    IsAboveTheGround: boolean;
+    SqrHeightAboveTheGround: Single;
+  begin
+    if IsJumping or IsFallingDown or (not (Gravity and PreferHomeUp)) then Exit;
+
+    { Merely checking for IsFallingDown is not enough, because IsFallingDown
+      may be triggered with some latency. E.g. consider user that holds
+      Key_Jump key down: whenever jump will end (in GravityIdle),
+      KeysDown[Key_Jump] = true will cause another jump to be immediately
+      (before IsFallingDown will be set to true) initiated.
+      This is of course bad, because user holding Key_Jump key down
+      would be able to jump to any height. The only good thing to do
+      is to check whether player really has some ground beneath his feet
+      to be able to jump. }
+
+    { calculate IsAboveTheGround, SqrHeightAboveTheGround }
+    DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+
+    if (not IsAboveTheGround) or
+       (SqrHeightAboveTheGround >
+          Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
+      Exit;
+
+    FIsJumping := true;
+    FJumpHeight := 0.0;
+    FJumpPower := 0.8;
+  end;
+
+var
+  ModsDown: TModifierKeys;
 begin
- ModsDown := ModifiersDown(KeysDown);
+  ModsDown := ModifiersDown(KeysDown);
 
- if ModsDown = [] then
- begin
-  CheckRotates(1.0);
+  HeadBobbingAlreadyDone := false;
 
-  if KeysDown[Key_Forward] then MoveHorizontal;
-  if KeysDown[Key_Backward] then MoveHorizontal(-1);
-
-  { do strafe'ow musimy uzywac RotateAroundUp, bez wzgledu na to czego
-    uzywamy do normalnych obrotow (na *rot). To dlatego ze gdy camDir
-    jest pochylony (tzn. nie jest prostopadly do HomeUp) to obrocenie
-    camDir o 90 wokol homeUp NIE da wektora prostopadlego do camDir
-    (tylko ich rzuty na plaszczyzne wyznaczana przez wektor homeUp beda
-    prostopadle). Musimy do tego uzyc RotateAroundUp. }
-  if KeysDown[Key_RightStrafe] then
-   begin RotateAroundUp(-90); MoveHorizontal; RotateAroundUp(90); end;
-  if KeysDown[Key_LeftStrafe] then
-   begin RotateAroundUp(90); MoveHorizontal; RotateAroundUp(-90); end;
-
-  { A simple implementation of Key_UpMove was
-      RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
-    Similarly, simple implementation of Key_DownMove was
-      RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
-    But this is not good, because when PreferHomeUp, we want to move along the
-    CameraHomeUp. }
-  if KeysDown[Key_UpMove] then
-    MoveVertical( 1);
-  if KeysDown[Key_DownMove] then
-    MoveVertical(-1);
-
-  { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-    MatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
-    wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
-    Move*Speed ?.
-
-    How to apply CompSpeed here ?
-    I can't just ignore CompSpeed, but I can't also write
-      FMoveSpeed *= 1.1 * CompSpeed;
-    What I want is such (pl: ci±g³a) function that e.g.
-      F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
-    I.e. CompSpeed = 2 should work just like doing the same change twice.
-    So F is FMoveSpeed * Power(1.1, CompSpeed)
-    Easy!
-  }
-  if KeysDown[Key_MoveSpeedInc] then
+  if ModsDown = [] then
   begin
-   FMoveSpeed *= Power(1.1, CompSpeed);
-   FMoveVertSpeed *= Power(1.1, CompSpeed);
-   MatrixChanged;
-  end;
-  if KeysDown[Key_MoveSpeedDec] then
-  begin
-   FMoveSpeed /= Power(1.1, CompSpeed);
-   FMoveVertSpeed /= Power(1.1, CompSpeed);
-   MatrixChanged;
-  end;
- end else
- if ModsDown = [mkCtrl] then
- begin
-  CheckRotates(0.1);
- end;
+    CheckRotates(1.0);
 
- GravityIdle;
+    if KeysDown[Key_Forward] then MoveHorizontal;
+    if KeysDown[Key_Backward] then MoveHorizontal(-1);
+
+    { do strafe'ow musimy uzywac RotateAroundUp, bez wzgledu na to czego
+      uzywamy do normalnych obrotow (na *rot). To dlatego ze gdy camDir
+      jest pochylony (tzn. nie jest prostopadly do HomeUp) to obrocenie
+      camDir o 90 wokol homeUp NIE da wektora prostopadlego do camDir
+      (tylko ich rzuty na plaszczyzne wyznaczana przez wektor homeUp beda
+      prostopadle). Musimy do tego uzyc RotateAroundUp. }
+    if KeysDown[Key_RightStrafe] then
+      begin RotateAroundUp(-90); MoveHorizontal; RotateAroundUp(90); end;
+    if KeysDown[Key_LeftStrafe] then
+      begin RotateAroundUp(90); MoveHorizontal; RotateAroundUp(-90); end;
+
+    { A simple implementation of Key_UpMove was
+        RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
+      Similarly, simple implementation of Key_DownMove was
+        RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
+      But this is not good, because when PreferHomeUp, we want to move along the
+      CameraHomeUp. }
+    if KeysDown[Key_UpMove] then
+      MoveVertical( 1);
+    if KeysDown[Key_DownMove] then
+      MoveVertical(-1);
+
+    { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
+      MatrixChanged - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
+      wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
+      Move*Speed ?.
+
+      How to apply CompSpeed here ?
+      I can't just ignore CompSpeed, but I can't also write
+        FMoveSpeed *= 1.1 * CompSpeed;
+      What I want is such (pl: ci±g³a) function that e.g.
+        F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
+      I.e. CompSpeed = 2 should work just like doing the same change twice.
+      So F is FMoveSpeed * Power(1.1, CompSpeed)
+      Easy!
+    }
+    if KeysDown[Key_MoveSpeedInc] then
+    begin
+      FMoveSpeed *= Power(1.1, CompSpeed);
+      FMoveVertSpeed *= Power(1.1, CompSpeed);
+      MatrixChanged;
+    end;
+
+    if KeysDown[Key_MoveSpeedDec] then
+    begin
+      FMoveSpeed /= Power(1.1, CompSpeed);
+      FMoveVertSpeed /= Power(1.1, CompSpeed);
+      MatrixChanged;
+    end;
+
+    { Key_Jump quialifies better to be handled inside KeyDown,
+      but we don't have KeyDown in MatrixWalker. Maybe later it will
+      be moved to KeyDown. }
+    if KeysDown[Key_Jump] then
+      Jump;
+  end else
+  if ModsDown = [mkCtrl] then
+  begin
+    CheckRotates(0.1);
+  end;
+
+  GravityIdle;
 end;
 
 procedure TMatrixWalker.Home;
@@ -1245,7 +1427,7 @@ procedure TMatrixWalker.Init(
   const ACameraPreferredHeight: Single);
 begin
  SetCameraHome_LookDir(AHomeCameraPos, AHomeCameraDir, AHomeCameraUp);
- FCameraPreferredHeight := ACameraPreferredHeight;
+ CameraPreferredHeight := ACameraPreferredHeight;
  Home;
 end;
 
@@ -1319,6 +1501,12 @@ procedure TMatrixWalker.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
  FProjectionMatrix := Value;
  RecalculateFrustum;
+end;
+
+procedure TMatrixWalker.SetCameraPreferredHeight(const Value: Single);
+begin
+  FCameraPreferredHeight := Value;
+  FMaxJumpHeight := Value;
 end;
 
 end.
