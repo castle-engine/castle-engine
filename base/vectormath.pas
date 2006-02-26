@@ -668,7 +668,9 @@ procedure VectorNegateTo1st(var v: TVector3Single); overload;
 procedure VectorNegateTo1st(var v: TVector3Double); overload;
 
 { przeskaluj wektor tak zeby mial zadana dlugosc.
-  (tak, Normalized moznaby wyrazic jako VectorAdjustToLength(,1))}
+  (tak, Normalized moznaby wyrazic jako VectorAdjustToLength(,1)).
+  VecLen may be negative, then we will additionally negate the
+  direction of the vector. }
 function VectorAdjustToLength(const v: TVector3Single; VecLen: Single): TVector3Single; overload;
 function VectorAdjustToLength(const v: TVector3Double; VecLen: Double): TVector3Double; overload;
 procedure VectorAdjustToLengthTo1st(var v: TVector3Single; VecLen: Single); overload;
