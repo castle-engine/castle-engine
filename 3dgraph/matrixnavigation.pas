@@ -29,7 +29,12 @@ uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
-  DefaultHeadBobbing = 0.1;
+  { TODO: This was 0.1, now it's 0.0 (no head bobbing).
+    Adjust head bobbing so that it works sensibly in all situations
+    -- view3dscene ParkKambi.wrl, view3dscene castle_with_lights_and_camera.wrl,
+       view3dscene basic_castle_final.wrl, castle basic_castle_final.wrl.
+    Then enable it for view3dscene and castle. }
+  DefaultHeadBobbing = 0.0;
   DefaultCrouchHeight = 0.5;
 
 type
