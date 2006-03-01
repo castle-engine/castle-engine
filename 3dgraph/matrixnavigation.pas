@@ -1101,7 +1101,7 @@ var
           1. update FJumpHeight and FJumpPower and move CameraPos
           2. or set FIsJumping to false when jump ends }
 
-        ThisJumpHeight := VectorLen(CameraDir) * FJumpPower * CompSpeed;
+        ThisJumpHeight := MaxJumpHeight * FJumpPower * CompSpeed;
         FJumpHeight += ThisJumpHeight;
 
         if FJumpHeight > MaxJumpHeight then
@@ -1341,7 +1341,7 @@ var
 
     FIsJumping := true;
     FJumpHeight := 0.0;
-    FJumpPower := 0.8;
+    FJumpPower := 0.18;
   end;
 
 var
