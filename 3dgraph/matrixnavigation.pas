@@ -36,6 +36,7 @@ const
     Then enable it for view3dscene and castle. }
   DefaultHeadBobbing = 0.0;
   DefaultCrouchHeight = 0.5;
+  DefaultMaxJumpHeight = 1.0;
 
 type
   { }
@@ -262,8 +263,6 @@ type
     { Private things related to gravity ---------------------------- }
 
     FCameraPreferredHeight: Single;
-    procedure SetCameraPreferredHeight(const Value: Single);
-
     FIsFallingDown: boolean;
     FFallingDownStartPos: TVector3Single;
     FOnFalledDown: TFalledDownNotifyFunc;
@@ -471,16 +470,21 @@ type
     { ustawia wektory Home camery i robi Home, tzn. ustawia
       wektory CameraPos/Dir/Up na ich odpowiedniki z przedrostkiem "Home".
       Uwaga - klawisz Key_HomeUp nie wywoluje ponizszej metody Home, on
-      tylko ustawia CameraUp := HomeCameraUp (nie resetuje CameraPos i Dir). }
+      tylko ustawia CameraUp := HomeCameraUp (nie resetuje CameraPos i Dir).
+
+      It will also call CorrectCameraPreferredHeight(ACameraRadius),
+      because this is important thing that's too easy to otherwise forget.
+      Just pass ACameraRadius = 0.0 if you don't really want this. }
     procedure Init(const AHomeCameraPos, AHomeCameraDir,
       AHomeCameraUp: TVector3Single;
-      const ACameraPreferredHeight: Single); overload;
+      const ACameraPreferredHeight: Single;
+      const ACameraRadius: Single); overload;
 
     { Alternatywny Init. Wylicza HomeCameraPos, HomeCameraDir, HomeCameraUp
       i CameraPreferredHeight takie zeby obiekt w box byl "dobrze widoczny"
       (cokolwiek by to nie mialo oznaczac) i zeby CameraPreferredHeight
       zachowywalo sie "rozsadnie". }
-    procedure Init(const box: TBox3d); overload;
+    procedure Init(const box: TBox3d; const ACameraRadius: Single); overload;
 
     procedure Home;
 
@@ -535,13 +539,42 @@ type
       above the ground. Temporary it may be lower (player can
       shortly "duck" when he falls from high).
 
+      This must always be >= 0.
       You should set this to something greater than zero to get sensible
       behavior of some things related to @link(Gravity),
       and also you should set OnGetCameraHeight.
 
-      Setting this sets also MaxJumpHeight to CameraPreferredHeight. }
+      See CorrectCameraPreferredHeight for important property
+      of CameraPreferredHeight that you should keep. }
     property CameraPreferredHeight: Single
-      read FCameraPreferredHeight write SetCameraPreferredHeight default 0.0;
+      read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
+
+    { This procedure corrects CameraPreferredHeight based on your CameraRadius.
+
+      Exactly what and why is done: if you do any kind of collision
+      detection with some CameraRadius, then
+      you should make sure that CameraPreferredHeight
+      (and CameraPreferredHeight * CrouchHeight) are >= of your
+      CameraRadius, otherwise strange effects may happen when crouching.
+      Actually, CrouchHeight must be < 1, so the condition
+      "CameraPreferredHeight * CrouchHeight >= CameraRadius is enough.
+
+      Reasoning: otherwise this class would "want camera to fall down"
+      (because we will always be higher than CameraPreferredHeight)
+      but your OnMoveAllowed would not allow it (because CameraRadius
+      would not allow it). Note that this class doesn't keep value
+      of your CameraRadius, because collision detection
+      is (by design) never done by this class --- it's always
+      delegated to OnGetCameraHeight and OnMoveAllowed.
+      Also, it's not exactly forced *how* you should force this
+      condition to hold. Sometimes the good solution is to adjust
+      CameraRadius, not to adjust CameraPreferredHeight.
+
+      Anyway, this method will make sure that this condition
+      holds by eventually adjusting (making larger) CameraPreferredHeight.
+      Note that for CameraRadius = 0.0 this will always leave
+      CameraPreferredHeight as it is. }
+    procedure CorrectCameraPreferredHeight(const CameraRadius: Single);
 
     { Assign here the callback (or override DoGetCameraHeight)
       to say what is the current height of camera above the ground.
@@ -623,10 +656,15 @@ type
       read FGrowingSpeed write FGrowingSpeed
       default DefaultGrowingSpeed;
 
-    { How high can you jump ? Note that setting CameraPreferredHeight
-      also sets this. }
+    { How high can you jump ?
+      The max jump distance is calculated as
+      MaxJumpHeight * CameraPreferredHeight, see MaxJumpDistance. }
     property MaxJumpHeight: Single
-      read FMaxJumpHeight write FMaxJumpHeight default 0.0;
+      read FMaxJumpHeight write FMaxJumpHeight default DefaultMaxJumpHeight;
+
+    { Returns just MaxJumpHeight * CameraPreferredHeight,
+      see MaxJumpHeight for explanation. }
+    function MaxJumpDistance: Single;
 
     { Camera is in the middle of a "jump" move right now. }
     property IsJumping: boolean read FIsJumping;
@@ -644,10 +682,16 @@ type
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
 
     { This defines the preferred height of camera when crouching.
-      This is always mutiplied to CameraPreferredHeight. }
+      This is always mutiplied to CameraPreferredHeight.
+      This should always be < 1. }
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
   end;
+
+{ See TMatrixWalker.CorrectCameraPreferredHeight.
+  This is a global version, sometimes may be useful. }
+procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
+  const CameraRadius: Single; const CrouchHeight: Single);
 
 implementation
 
@@ -852,6 +896,7 @@ begin
   FIsJumping := false;
   FHeadBobbing := DefaultHeadBobbing;
   FCrouchHeight := DefaultCrouchHeight;
+  FMaxJumpHeight := DefaultMaxJumpHeight;
 
   Key_Forward := K_Up;
   Key_Backward := K_Down;
@@ -1101,10 +1146,10 @@ var
           1. update FJumpHeight and FJumpPower and move CameraPos
           2. or set FIsJumping to false when jump ends }
 
-        ThisJumpHeight := MaxJumpHeight * FJumpPower * CompSpeed;
+        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed;
         FJumpHeight += ThisJumpHeight;
 
-        if FJumpHeight > MaxJumpHeight then
+        if FJumpHeight > MaxJumpDistance then
           FIsJumping := false else
         begin
           { do jumping }
@@ -1113,14 +1158,14 @@ var
           { Initially it was my intention to decrease FJumpPower
             at each point. But this doesn't make any nice visible effect,
             moreover it can't guarentee that every jump will sooner or later
-            reach MaxJumpHeight. And we want for every jump to
-            sooner or later reach MaxJumpHeight.
+            reach MaxJumpDistance. And we want for every jump to
+            sooner or later reach MaxJumpDistance.
 
             FJumpPower *= Power(0.95, CompSpeed);
 
             So the line above is commented out, and jumping is done with
             constant speed FJumpPower. So every jump sooner or later reaches
-            MaxJumpHeight. }
+            MaxJumpDistance. }
         end;
       end;
     end;
@@ -1147,6 +1192,7 @@ var
         { Well, we have to resign here from operating on Sqrs,
           we need actual values. }
         GrowingVectorLength := Min(
+          { TODO --- use CameraPreferredHeight here ? }
           VectorLen(CameraDir) * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
 
@@ -1465,28 +1511,30 @@ end;
 
 procedure TMatrixWalker.Init(
   const AHomeCameraPos, AHomeCameraDir, AHomeCameraUp: TVector3Single;
-  const ACameraPreferredHeight: Single);
+  const ACameraPreferredHeight: Single;
+  const ACameraRadius: Single);
 begin
  SetCameraHome_LookDir(AHomeCameraPos, AHomeCameraDir, AHomeCameraUp);
  CameraPreferredHeight := ACameraPreferredHeight;
+ CorrectCameraPreferredHeight(ACameraRadius);
  Home;
 end;
 
-procedure TMatrixWalker.Init(const Box: TBox3d);
+procedure TMatrixWalker.Init(const Box: TBox3d; const ACameraRadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
  if IsEmptyBox3d(Box) then
   Init(Vector3Single(0, 0, 0),
        Vector3Single(0, 0, -1),
-       Vector3Single(0, 1, 0), 0.0 { whatever }) else
+       Vector3Single(0, 1, 0), 0.0 { whatever }, ACameraRadius) else
  begin
   AvgSize := Box3dAvgSize(Box);
   Pos[0] := Box[0, 0]-AvgSize;
   Pos[1] := (Box[0, 1]+Box[1, 1])/2;
   Pos[2] := (Box[0, 2]+Box[1, 2])/2;
   Init(Pos, VectorAdjustToLength(UnitVector3Single[0], AvgSize*0.1),
-    UnitVector3Single[2], AvgSize * 0.1);
+    UnitVector3Single[2], AvgSize * 0.1, ACameraRadius);
  end;
 end;
 
@@ -1544,10 +1592,33 @@ begin
  RecalculateFrustum;
 end;
 
-procedure TMatrixWalker.SetCameraPreferredHeight(const Value: Single);
+procedure TMatrixWalker.CorrectCameraPreferredHeight(const CameraRadius: Single);
 begin
-  FCameraPreferredHeight := Value;
-  FMaxJumpHeight := Value;
+  MatrixNavigation.CorrectCameraPreferredHeight(
+    FCameraPreferredHeight, CameraRadius, CrouchHeight);
+end;
+
+function TMatrixWalker.MaxJumpDistance: Single;
+begin
+  Result := MaxJumpHeight * CameraPreferredHeight;
+end;
+
+{ global ------------------------------------------------------------ }
+
+procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
+  const CameraRadius: Single; const CrouchHeight: Single);
+var
+  NewCameraPreferredHeight: Single;
+begin
+  { CameraPreferredHeight * CrouchHeight should be >= CameraRadius,
+    so CameraPreferredHeight shoud be >= CameraRadius / CrouchHeight.
+    I make it even a little larger (that's the reason for "* 1.01") to be
+    sure to avoid floating-point rounding errors. }
+
+  NewCameraPreferredHeight := 1.01 * CameraRadius / CrouchHeight;
+
+  if CameraPreferredHeight < NewCameraPreferredHeight then
+    CameraPreferredHeight := NewCameraPreferredHeight;
 end;
 
 end.
