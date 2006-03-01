@@ -1679,6 +1679,13 @@ type
     property FdVisibilityLimit: TSFFloat index 4 read GetFieldAsSFFloat;
   end;
 
+  TNodeWorldInfo = class(TVRMLNode)
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    property FdInfo: TMFString index 0 read GetFieldAsMFString;
+    property FdTitle: TSFString index 1 read GetFieldAsSFString;
+  end;
+
 { very very special node --------------------------------------------------- }
 
   (* @abstract(TNodeUnknown represents a node with an unrecognized type.)
@@ -3803,6 +3810,18 @@ begin
   Result := 'NavigationInfo';
 end;
 
+constructor TNodeWorldInfo.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Fields.Add(TMFString.Create('info', []));
+  Fields.Add(TSFString.Create('title', ''));
+end;
+
+class function TNodeWorldInfo.ClassNodeTypeName: string;
+begin
+  Result := 'WorldInfo';
+end;
+
 { TNodeUnknown ---------------------------------------------------------------- }
 
 function TNodeUnknown.NodeTypeName: string;
@@ -4166,7 +4185,7 @@ initialization
    TNodeGroup, TNodeSeparator, TNodeSwitch, TNodeTransformSeparator,
    TNodeWWWAnchor,
    TNodeWWWInline, TNodeFog, TNodeBackground, TNodeKambiTriangulation,
-   TNodeNavigationInfo]);
+   TNodeNavigationInfo, TNodeWorldInfo]);
 finalization
  FreeAndNil(NodesManager);
 end.
