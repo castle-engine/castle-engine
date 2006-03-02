@@ -73,11 +73,10 @@ type
     { zgloszone messages. Mniejsze numery to starsze messagy (to znaczy ze nowe
       message'y sa dopisywane na koncu) }
     Messages: TDynMessageStructArray;
-    messageFont: TGLBitmapFont_Abstract;
     FHorizMessgPosition: THorizPosition;
     FVertMessgPosition: TVertPosition;
     FDisplayPixelWidth: integer;
-
+    FMessageFont: TGLBitmapFont_Abstract;
     procedure PostRedisplayMessages;
   public
     { ile messagy mo¿e byc maksymalnie na ekranie }
@@ -125,6 +124,10 @@ type
       do rzeczywistych pixeli).}
     procedure Draw2d(GLMaxX, GLMaxY, PixelWidth, PixelHeight: integer);
 
+    { Font used to draw messages. Read-only for now, in the future
+      you should be allowed to change it. }
+    property MessageFont: TGLBitmapFont_Abstract read FMessageFont;
+
     { konstrukctor i destruktor musza byc uruchomione w tym kontekscie
       OpenGL'a w ktorym pozniej maja wyswietlac message'y. (typowo -
       w glw.OnInit / OnClose. }
@@ -160,12 +163,12 @@ begin
  FVertMessgPosition := AVertMessgPosition;
  FDisplayPixelWidth := ADisplayPixelWidth;
 
- messageFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+ FMessageFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
 destructor TTimeMessagesManager.Destroy;
 begin
- FreeAndNil(messageFont);
+ FreeAndNil(FMessageFont);
 
  FreeAndNil(Messages);
  inherited;
