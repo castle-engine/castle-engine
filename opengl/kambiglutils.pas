@@ -523,7 +523,7 @@ procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
   MinFilter, MagFilter, WrapS, WrapT: TGLEnum;
   TextureProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}); overload;
 
-{ laduj jedna texture. Najpierw generuje jej numer przez 
+{ laduj jedna texture. Najpierw generuje jej numer przez
   @code(glGenTextures(1, @@result)).
   Nie przejmuj sie przy tym czy UNPACK_ALIGNMENT jest dobry, sami tu o to
   zadbamy (a potem przywrocimy go do poczatkowego stanu) (jesli tylko bedzie
@@ -624,6 +624,12 @@ procedure glColorv(const v: TVector3ub); overload;
 procedure glColorv(const v: TVector4b); overload;
 procedure glColorv(const v: TVector4ub); overload;
 procedure glNormalv(const v: TVector3b); overload;
+
+procedure glTranslatev(const V: TVector3f); overload;
+procedure glTranslatev(const V: TVector3d); overload;
+
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
+procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
@@ -1641,10 +1647,16 @@ end;
 { ---------------------------------------------------- }
 
 procedure glColorv(const v: TVector3b);  begin glColor3bv(@v); end;
-procedure glColorv(const v: TVector3ub);  begin glColor3ubv(@v); end;
+procedure glColorv(const v: TVector3ub); begin glColor3ubv(@v); end;
 procedure glColorv(const v: TVector4b);  begin glColor4bv(@v); end;
-procedure glColorv(const v: TVector4ub);  begin glColor4ubv(@v); end;
+procedure glColorv(const v: TVector4ub); begin glColor4ubv(@v); end;
 procedure glNormalv(const v: TVector3b); begin glNormal3bv(@v); end;
+
+procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
+procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2]); end;
+
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
+procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); begin glRotated(Angle, V[0], V[1], V[2]); end;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 

@@ -88,14 +88,12 @@ begin
 end;
     
 constructor TVRMLLightSet.Create(ARootNode:TVRMLNode; AOwnsRootNode:boolean);
-var i:Integer;
 begin
  inherited Create;
  FRootNode:=ARootNode;
  FOwnsRootNode:=AOwnsRootNode;
  
- for i:=0 to HighTraverseStateLastNodes do
-  StateDefaultNodes.Nodes[i]:=TraverseStateLastNodesClasses[i].Create('', '');
+ TraverseState_CreateNodes(StateDefaultNodes);
  
  FLights:=TDynActiveLightArray.Create;
  
@@ -103,11 +101,10 @@ begin
 end;
 
 destructor TVRMLLightSet.Destroy; 
-var i:Integer;
 begin 
  if OwnsRootNode then FreeAndNil(FRootNode);
  FLights.Free; 
- for i:=0 to HighTraverseStateLastNodes do StateDefaultNodes.Nodes[i].Free; 
+ TraverseState_FreeAndNilNodes(StateDefaultNodes);
  inherited;
 end;
 

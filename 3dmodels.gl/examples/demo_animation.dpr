@@ -104,7 +104,7 @@ begin
   { init Glw.Navigator }
   Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
   Glw.NavWalker.Init(CamPos, VectorAdjustToLength(CamDir,
-    Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp);
+    Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp, 0.0, 0.0);
 
   Glw.AutoRedisplay := true;
   Glw.OnInit := Init;

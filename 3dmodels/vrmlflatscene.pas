@@ -348,7 +348,6 @@ uses VRMLFields, VRMLCameraUtils;
 { TVRMLFlatScene ----------------------------------------------------------- }
 
 constructor TVRMLFlatScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
-var i: Integer;
 begin
  inherited Create;
  FRootNode := ARootNode;
@@ -358,16 +357,14 @@ begin
  FOwnsDefaultShapeStateOctree := true;
 
  FShapeStates := TVRMLShapeStatesList.Create;
- for i := 0 to HighTraverseStateLastNodes do
-  StateDefaultNodes.Nodes[i] := TraverseStateLastNodesClasses[i].Create('', '');
+ TraverseState_CreateNodes(StateDefaultNodes);
 
  ChangedAll;
 end;
 
 destructor TVRMLFlatScene.Destroy;
-var i: Integer;
 begin
- for i := 0 to HighTraverseStateLastNodes do StateDefaultNodes.Nodes[i].Free;
+ TraverseState_FreeAndNilNodes(StateDefaultNodes);
  ShapeStates.FreeWithContents;
 
  if OwnsDefaultTriangleOctree then FreeAndNil(FDefaultTriangleOctree);

@@ -109,7 +109,7 @@ begin
   Glw.NavWalker.Init(Box3dMiddle(scene.BoundingBox),
       VectorAdjustToLength(Vector3Single(1, 0, 0),
         Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-      Vector3Single(0, 1, 0));
+      Vector3Single(0, 1, 0), 0.0, 0.0);
 
   Glw.OnInit := Init;
   Glw.OnClose := Close;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -73,7 +73,7 @@
 
   - W tej chwili o VRML'a 97 troszczy sie tylko lekser,
     a i to jeszcze nieskonczone, wiec zaden plik w VRML'u 97 nie bedzie
-    odczytany i zrozumiany. sorry.
+    odczytany i zrozumiany. TODO.
 
     Chociaz w wielu miejscach uzywam specyfikacji VRMLa 97
     - zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
@@ -232,7 +232,7 @@ unit VRMLNodes;
     since not enclosing strings in double quotes is something totally
     useless.
 
-  Sorry (TODO list):
+  TODO:
   - Of course VRML 97
 }
 
@@ -310,7 +310,7 @@ type
     (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
     licza sie tylko obroty i skalowania).
 
-    sorry - TransfLocation/Direction nie jest zbyt eleganckim rozwiazaniem
+    TODO: TransfLocation/Direction nie jest zbyt eleganckim rozwiazaniem
 
     NIGDY nie konstruuj tego rekordu recznie - on moze byc modyfikowany tylko
     w TDynActiveLightArray.AddLight  }
@@ -353,6 +353,7 @@ type
   TVRMLGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
+    OwnsLastNodes: boolean;
     procedure CommonCreate;
   public
     { nie, ParentsCount elementow Last* NIE odzwierciedla faktu ze sa one
@@ -369,7 +370,30 @@ type
     CurrTextureMatrix: TMatrix4Single;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
-    constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes);
+    constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
+
+    { Standard create, with standard initial LastNodes state.
+
+      This is equivalent to creating last nodes like
+      @longCode(#  TraverseState_CreateNodes(StateDefaultNodes) #)
+      then creating this object with
+      @longCode(#  Create(StateDefaultNodes) #)
+      When this object will be freed, such implicitly created StateDefaultNodes
+      will be also freed (using TraverseState_FreeAndNilNodes).
+
+      Note: while this constructor seems very comfortable, in some cases
+      it's not useful, exactly because it frees at the end used StateDefaultNodes.
+      Consider e.g. TVRMLFlatScene, that has to traverse all nodes and
+      store the traversing result in a flat list: this means that it must
+      save various TVRMLGraphTraverseState instances, that may have
+      references to nodes from StateDefaultNodes. So it must have independent
+      StateDefaultNodes field that "lives" for the whole lifetime
+      of TVRMLFlatScene and is passed to each TVRMLGraphTraverseState.Create call.
+
+      If you don't understand the note above then don't worry,
+      you're probably fine with using this parameter-less constructor :) }
+    constructor Create; overload;
+
     destructor Destroy; override;
   end;
 
@@ -390,25 +414,6 @@ type
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
-
-    { za kazdym razem gdy chcemy przechodzic graf VRMLa Traverse
-      iteruja po dzieciach o indeksach od FirstChild do LastChild,
-      gdzie zmienne FirstChild i LastChild zostaly otrzymane wywolujac
-      ChildrenToEnter.
-
-      Domyslnie zwracane jest 0, ChildrenCount-1 a wiec bedzie wchodzil
-      we wszystkie children. Pokryj ta metode jesli z danego node'a
-      nie ma wchodzic w children - np. dla Switcha (ktory wybiera jedno/
-      wszystkie/zadne dziecko na podstawie swojego pola) lub LODa
-      (ktory wybiera jedno sposrod swoich dzieci na podstawie swojego
-      pola i pozcji viewera).
-
-      Iteracja bedzie robiona instrukcja
-        "for i := max(FirstChild, 0) to min(LastChild, ChildrenCount-1)"
-      (lub czyms rownowaznym, naturalnie) wiec jezeli FirstChild > LastChild
-      lub FirstChild > ChildrenCount-1 lub LastChild < 0 to nie
-      bedziemy wchodzic w zadne children. }
-    procedure ChildrenToEnter(var FirstChild, LastChild: integer); virtual;
 
     { w tej klasie te metody nie nie robia, w podklasach mozna za ich
       pomoca zmodyfikowac nieco zachowanie state'a podczas przechodzenia
@@ -669,6 +674,25 @@ type
       stalej wartosci NodeTypeName). }
     class function ClassNodeTypeName: string; virtual;
 
+    { za kazdym razem gdy chcemy przechodzic graf VRMLa Traverse
+      iteruja po dzieciach o indeksach od FirstChild do LastChild,
+      gdzie zmienne FirstChild i LastChild zostaly otrzymane wywolujac
+      ChildrenToEnter.
+
+      Domyslnie zwracane jest 0, ChildrenCount-1 a wiec bedzie wchodzil
+      we wszystkie children. Pokryj ta metode jesli z danego node'a
+      nie ma wchodzic w children - np. dla Switcha (ktory wybiera jedno/
+      wszystkie/zadne dziecko na podstawie swojego pola) lub LODa
+      (ktory wybiera jedno sposrod swoich dzieci na podstawie swojego
+      pola i pozcji viewera).
+
+      Iteracja bedzie robiona instrukcja
+        "for i := max(FirstChild, 0) to min(LastChild, ChildrenCount-1)"
+      (lub czyms rownowaznym, naturalnie) wiec jezeli FirstChild > LastChild
+      lub FirstChild > ChildrenCount-1 lub LastChild < 0 to nie
+      bedziemy wchodzic w zadne children. }
+    procedure ChildrenToEnter(var FirstChild, LastChild: integer); virtual;
+
     { przejdz po tym nodzie i wszystkich subnode'ach i dla wszystkich
       node'ow z klasy NodeClass wywolaj TraversingFunc z odpowiednim
       aktualnym State.
@@ -692,6 +716,16 @@ type
       (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
     procedure Traverse(State: TVRMLGraphTraverseState; NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc); virtual;
+
+    { This is like @link(Traverse), but it automatically handles
+      creating and destroying of TVRMLGraphTraverseState and it's LastNodes.
+
+      This is comfortable --- but see comments at
+      TVRMLGraphTraverseState.Create: if you want to save for later
+      State instances obtained during traversing,
+      than you shouldn't use this. }
+    procedure TraverseFromDefaultState(
+      NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
 
     { enumerate all our children of some class. Recursively.
       Zwroci do proc() takze sam obiekt na ktorym EnumNodes zostalo
@@ -1083,7 +1117,7 @@ type
   end;
 
   TNodeLOD = class(TVRMLNode)
-    {sorry - tu proc SetChildrenToEnterFromDistanceToViewer}
+    {TODO: tu proc SetChildrenToEnterFromDistanceToViewer}
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     procedure ChildrenToEnter(var FirstChild, LastChild: integer); override;
@@ -1235,7 +1269,7 @@ type
 
       TextureImage class is always in (TRGBImage, TAlphaImage)
       po prostu dlatego ze takie sa formaty akceptowane w KambiGLUtils.
-      sorry - to nie jest eleganckie, przeciez nie chcemy zeby OpenGL
+      TODO: to nie jest eleganckie, przeciez nie chcemy zeby OpenGL
       wplywal na ten modul nawet w taki subtelny sposob.   }
     function TextureImage: TImage;
     function IsTextureImage: boolean; { = not TextureImage.IsNull }
@@ -1562,7 +1596,7 @@ type
 
       LoadInlined(false) will be called automatically in BeforeTraverse.
 
-      Acha --- sorry : naturalnie tylko FdName jako nazwa pliku na lokalnym
+      Acha --- TODO : naturalnie tylko FdName jako nazwa pliku na lokalnym
       systemie plikow jest obslugiwana chwilowo. W ogole, generalnie
       to fajnie byloby gdyby TVRMLScene.Create przyjmowalo URL a nie
       filename albo jeszcze lepiej gdyby miec strumien TURLDataStream
@@ -1693,7 +1727,7 @@ type
     If we approach some node with not recognized name we create TNodeUnknown.
     TNodeUnknown has very special Parse method.
     We want to use "fields" and "isA" VRML 1.0 extensibility features here.
-    (sorry - these extensibility features are not implemented yet;
+    (TODO - these extensibility features are not implemented yet;
      for now all unrecognized nodes are of kind 1))
     We have three cases :
 
@@ -1877,6 +1911,12 @@ var
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream; const PrecedingComment: string); overload;
 procedure SaveToVRMLFile(Node: TVRMLNode; const Filename, PrecedingComment: string); overload;
 
+{ Create and assign all State.Nodes. }
+procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
+
+{ Free and nil all State.Nodes. }
+procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
+
 const
   VRMLCameraKindToStr: array[TVRMLCameraKind]of string =
   ('Orthographic', 'Perspective');
@@ -1934,25 +1974,27 @@ const
   TEXWRAP_REPEAT = 0;
   TEXWRAP_CLAMP = 1;
 
-{ sorry - these Detail parameters below should depend on object's distance
+{ TODO: these Detail parameters below should depend on object's distance
   from viewer. But there is a problem : we need those parameters defined
   when implementing Vertices/TrianglesCount and Triangulate. }
 var
   { cylinder, cone, sphere and disk slices/stacks (slices for all objects
-      must be equal to perfectly "match" when objects are connected
-      (e.g. sphere connected with cylinder). Stacks and RectDivisions
-      nie sa do tego zmuszone ale i tak nie ma zadnego sensownego powodu
-      zeby z gory mowic ze dana bryla potrzebuje mniej stacks a inna wiecej).
-    For the meaning of Detail_Quadric* consts look at definition of glu
-      quadric functions (it is not guaranteed that our code will use this
-      functions but we will always honour this Detail parameters in the same way).
-    For the meaning of Detail_RectDivisions (used only in Cube for now) look
-      at KambiGLUtils.DrawGLPlane.
+    must be equal to perfectly "match" when objects are connected
+    (e.g. sphere connected with cylinder). Stacks and RectDivisions
+    nie sa do tego zmuszone ale i tak nie ma zadnego sensownego powodu
+    zeby z gory mowic ze dana bryla potrzebuje mniej stacks a inna wiecej).
 
-    For now, you can change these variables only _before_ using _anything_
+    For the meaning of Detail_Quadric* consts look at definition of glu
+    quadric functions (it is not guaranteed that our code will use this
+    functions but we will always honour this Detail parameters in the same way).
+
+    For the meaning of Detail_RectDivisions (used only in Cube for now) look
+    at KambiGLUtils.DrawGLPlane.
+
+    For now, you can change these variables only @italic(before using anything)
     from this module.
 
-    This variables _must_ always honour Min values listed below. }
+    These variables @italic(must) always honour Min values listed below. }
   Detail_QuadricSlices: Cardinal = 30;
   Detail_QuadricStacks: Cardinal = 20;
   Detail_RectDivisions: Cardinal = 2;
@@ -2002,7 +2044,7 @@ uses
   be absolute. If RelPath is absolute, result is RelPath.
   Else the result is an absolute path calculated by combining RelPath
   with BasePath. }
-{ sorry - zaimplementowac ta funkcje porzadnie i przerzucic do KambiUtils.
+{ TODO: zaimplementowac ta funkcje porzadnie i przerzucic do KambiUtils.
   Na razie to jest takie "zazwyczaj dziala". }
 function CombinePaths(const BasePath, RelPath: string): string; forward;
 
@@ -2039,33 +2081,49 @@ end;
 
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
- inherited Create;
- ActiveLights := TDynActiveLightArray.Create;
+  inherited Create;
+  ActiveLights := TDynActiveLightArray.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
 begin
- CommonCreate;
+  CommonCreate;
 
- CurrMatrix := Source.CurrMatrix;
- CurrTextureMatrix := Source.CurrTextureMatrix;
- FLastNodes := Source.FLastNodes;
- ActiveLights.AppendDynArray(Source.ActiveLights);
+  CurrMatrix := Source.CurrMatrix;
+  CurrTextureMatrix := Source.CurrTextureMatrix;
+  FLastNodes := Source.FLastNodes;
+  OwnsLastNodes := false;
+
+  ActiveLights.AppendDynArray(Source.ActiveLights);
 end;
 
 constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseStateLastNodes);
 begin
- CommonCreate;
+  CommonCreate;
 
- CurrMatrix := IdentityMatrix4Single;
- CurrTextureMatrix := IdentityMatrix4Single;
- FLastNodes := ADefaultLastNodes;
+  CurrMatrix := IdentityMatrix4Single;
+  CurrTextureMatrix := IdentityMatrix4Single;
+  FLastNodes := ADefaultLastNodes;
+  OwnsLastNodes := false;
+end;
+
+constructor TVRMLGraphTraverseState.Create;
+begin
+  CommonCreate;
+
+  CurrMatrix := IdentityMatrix4Single;
+  CurrTextureMatrix := IdentityMatrix4Single;
+  TraverseState_CreateNodes(FLastNodes);
+  OwnsLastNodes := true;
 end;
 
 destructor TVRMLGraphTraverseState.Destroy;
 begin
- ActiveLights.Free;
- inherited;
+  if OwnsLastNodes then
+    TraverseState_FreeAndNilNodes(FLastNodes);
+
+  ActiveLights.Free;
+  inherited;
 end;
 
 { TVRMLNode ------------------------------------------------------------------- }
@@ -2178,6 +2236,17 @@ begin
 
  LastNodesIndex := TraverseStateLastNodesIndex;
  if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
+end;
+
+procedure TVRMLNode.TraverseFromDefaultState(
+  NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
+var
+  InitialState: TVRMLGraphTraverseState;
+begin
+  InitialState := TVRMLGraphTraverseState.Create;
+  try
+    Traverse(InitialState, NodeClass, TraversingFunc);
+  finally InitialState.Free end;
 end;
 
 function TVRMLNode.NodeTypeName: string;
@@ -2738,7 +2807,7 @@ end;
 
 procedure TNodeLOD.ChildrenToEnter(var FirstChild, LastChild: integer);
 begin
- {sorry - powinnismy tu uzywac odleglosci od viewera ? Problem.
+ { TODO: powinnismy tu uzywac odleglosci od viewera ? Problem.
    dla renderowania jest problem z wrzucaniem tego na display liste.
    dla boundingBoxa
      Wybrac ostatnie SubNode bo bedzie je nalatwiej obliczac ?
@@ -3355,7 +3424,7 @@ begin
  { niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
    uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-   sorry- byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
+   TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
  CamPos := MultMatrixPoint(CamTransform, CamPos);
  CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
  CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
@@ -3830,8 +3899,8 @@ begin
 end;
 
 procedure TNodeUnknown.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-{sorry - tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
- VRMlNonFatalError tez nie trzeba zawsze rzucac. }
+{ TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
+  VRMlNonFatalError tez nie trzeba zawsze rzucac. }
 var level: integer;
 begin
  { w przypadku TNodeUnknown musimy fAllowedChildren i fParseAllowedChildren
@@ -4151,6 +4220,22 @@ begin
  finally Stream.Free end;
 end;
 
+procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
+var
+  I: Integer;
+begin
+  for I := 0 to HighTraverseStateLastNodes do
+    StateNodes.Nodes[I] := TraverseStateLastNodesClasses[i].Create('', '');
+end;
+
+procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
+var
+  I: Integer;
+begin
+  for I := 0 to HighTraverseStateLastNodes do
+    FreeAndNil(StateNodes.Nodes[i]);
+end;
+
 { miscellaneous  ------------------------------------------------------------ }
 
 function CombinePaths(const BasePath, RelPath: string): string;
@@ -4161,7 +4246,7 @@ begin
  if IsPathAbsoluteOnDrive(RelPath) then
   result := BasePath[1] +DriveDelim +RelPath else
  {$endif}
-  {sorry - ponizej jest miejsce ktore jest zrobione nieporzadnie}
+  { TODO: ponizej jest miejsce ktore jest zrobione nieporzadnie }
   result := InclPathDelim(BasePath)+RelPath;
 end;
 
