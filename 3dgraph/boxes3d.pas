@@ -156,7 +156,12 @@ procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
   box3d bo jego scianki niekoniecznie sa rownolegle do plaszczyzn
   x = 0, y = 0 i z = 0) i oblicza bounding box obejmujace tak otrzymany
   prostopadloscian. }
-function BoundingBoxTransform(const bbox: TBox3d; const Matrix: TMatrix4Single): TBox3d;
+function BoundingBoxTransform(const bbox: TBox3d;
+  const Matrix: TMatrix4Single): TBox3d;
+
+{ Move Box. Does nothing if Box is empty. }
+function Box3dTranslate(const Box: TBox3d;
+  const Translation: TVector3Single): TBox3d;
 
 function Box3dToNiceStr(const box: TBox3d): string;
 
@@ -200,6 +205,8 @@ function FrustumBox3dCollisionPossibleSimple(const Frustum: TFrustum;
   SphereRadiusSqr = 0 and SphereCenter is undefined if Box is empty. }
 procedure Box3dBoundingSphere(const Box3d: TBox3d;
   var SphereCenter: TVector3Single; var SphereRadiusSqr: Single);
+
+function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
 
 implementation
 
@@ -510,6 +517,17 @@ begin
  result := CalculateBoundingBox(@boxpoints, 8, 0);
 end;
 
+function Box3dTranslate(const Box: TBox3d;
+  const Translation: TVector3Single): TBox3d;
+begin
+  if not IsEmptyBox3d(Box) then
+  begin
+    Result[0] := VectorAdd(Box[0], Translation);
+    Result[1] := VectorAdd(Box[1], Translation);
+  end else
+    Result := EmptyBox3d;
+end;
+
 function Box3dToNiceStr(const box: TBox3d): string;
 begin
  if IsEmptyBox3d(box) then
@@ -786,6 +804,16 @@ begin
   SphereCenter := Box3dMiddle(Box3d);
   SphereRadiusSqr := PointsDistanceSqr(SphereCenter, Box3d[0]);
  end;
+end;
+
+function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
+begin
+  Result :=
+    (not IsEmptyBox3d(Box1)) and
+    (not IsEmptyBox3d(Box2)) and
+    (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
+    (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1]))) and
+    (not ((Box1[1, 2] < Box2[0, 2]) or (Box2[1, 2] < Box1[0, 2])));
 end;
 
 end.
