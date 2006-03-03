@@ -397,7 +397,8 @@ type
     destructor Destroy; override;
   end;
 
-  TTraversingFunc = procedure (node: TVRMLNode; State: TVRMLGraphTraverseState) of object;
+  TTraversingFunc = procedure (Node: TVRMLNode;
+    State: TVRMLGraphTraverseState) of object;
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
@@ -530,11 +531,18 @@ type
     property Parents[i: integer]:TVRMLNode read GetParentsItem;
     function ParentsCount: integer;
 
-    {bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
-     ze WSZYSTKICH list Parents[].Children i robi Destroy.
-     Tym samym robi nam Free robiac to czego normalne Free nie robi :
-     martwiac sie o Parents. Jezeli chcesz usunac node ze srodka hierarchii
-     VRMLa - to jest dobra metoda zeby to zrobic. }
+    { Seeks @link(Parents) list for parent named ParentNodeName,
+      returns it's index. Returns -1 if not found.
+
+      Use TryFindParentNodeByName if you want to seek non-direct
+      parents too. }
+    function IndexOfDirectParentNode(const ParentNodeName: string): Integer;
+
+    { bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
+      ze WSZYSTKICH list Parents[].Children i robi Destroy.
+      Tym samym robi nam Free robiac to czego normalne Free nie robi :
+      martwiac sie o Parents. Jezeli chcesz usunac node ze srodka hierarchii
+      VRMLa - to jest dobra metoda zeby to zrobic. }
     procedure FreeRemovingFromAllParents;
 
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
@@ -795,7 +803,7 @@ type
       jesli znalazl tam gdzies node Node. }
     function HasParent(Node: TVRMLNode): boolean;
 
-    { sprawdza czy istnieje w grafie VRMl'a zaczepionym w danym punkcie
+    { sprawdza czy istnieje w grafie VRML'a zaczepionym w danym punkcie
       node Node. Znaczenie seekOnlyInActiveNodes jak zwykle. }
     function IsNodePresent(Node: TVRMLNode; seekOnlyInActiveNodes: boolean): boolean;
 
@@ -2199,6 +2207,14 @@ begin
    wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
  end;
  Self.Destroy;
+end;
+
+function TVRMLNode.IndexOfDirectParentNode(const ParentNodeName: string): Integer;
+begin
+  for Result := 0 to ParentsCount - 1 do
+    if Parents[Result].NodeName = ParentNodeName then
+      Exit;
+  Result := -1;
 end;
 
 procedure TVRMLNode.ChildrenToEnter(var FirstChild, LastChild: integer);
