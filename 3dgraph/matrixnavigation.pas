@@ -286,7 +286,10 @@ type
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
+    function UseHeadBobbing: boolean;
+    
     FCrouchHeight: Single;
+    FIsCrouching: boolean;
   protected
     { }
     procedure MatrixChanged; override;
@@ -686,6 +689,14 @@ type
       This should always be < 1. }
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
+
+    { Is player crouching right now ? }
+    property IsCrouching: boolean read FIsCrouching;
+    
+    { This is CameraPreferredHeight slightly modified by head bobbing
+      and crouch. It can be useful for collision detection
+      between camera and something. }
+    function RealCameraPreferredHeight: Single;
   end;
 
 { See TMatrixWalker.CorrectCameraPreferredHeight.
@@ -953,6 +964,34 @@ begin
     OnGetCameraHeight(Self, IsAboveTheGround, SqrHeightAboveTheGround);
 end;
 
+function TMatrixWalker.UseHeadBobbing: boolean;
+begin
+  Result := Gravity and PreferHomeUp and (HeadBobbing <> 0.0);
+end;
+
+function TMatrixWalker.RealCameraPreferredHeight: Single;
+var
+  BobbingModifier: Single;
+begin
+  Result := CameraPreferredHeight;
+
+  if IsCrouching then
+    Result *= CrouchHeight;
+
+  if UseHeadBobbing then
+  begin
+    BobbingModifier := Frac(HeadBobbingPosition);
+
+    if BobbingModifier <= 0.5 then
+      BobbingModifier := MapRange(BobbingModifier, 0.0, 0.5, -1, +1) else
+      BobbingModifier := MapRange(BobbingModifier, 0.5, 1.0, +1, -1);
+
+    BobbingModifier *= Result * HeadBobbing;
+    Result += BobbingModifier;
+  end else;
+end;
+
+
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
   { Like Move, but you pass here final ProposedNewPos }
@@ -995,34 +1034,6 @@ var
     In some special cases this means that head bobbing will be done
     *less often* than it should be, but this doesn't hurt. }
   HeadBobbingAlreadyDone: boolean;
-
-  function UseHeadBobbing: boolean;
-  begin
-    Result := Gravity and PreferHomeUp and (HeadBobbing <> 0.0);
-  end;
-
-  { This is CameraPreferredHeight slightly modified by head bobbing. }
-  function RealCameraPreferredHeight: Single;
-  var
-    BobbingModifier: Single;
-  begin
-    Result := CameraPreferredHeight;
-
-    if KeysDown[Key_Crouch] then
-      Result *= CrouchHeight;
-
-    if UseHeadBobbing then
-    begin
-      BobbingModifier := Frac(HeadBobbingPosition);
-
-      if BobbingModifier <= 0.5 then
-        BobbingModifier := MapRange(BobbingModifier, 0.0, 0.5, -1, +1) else
-        BobbingModifier := MapRange(BobbingModifier, 0.5, 1.0, +1, -1);
-
-      BobbingModifier *= Result * HeadBobbing;
-      Result += BobbingModifier;
-    end else;
-  end;
 
   { Multiply must be +1 or -1 }
   procedure MoveHorizontal(const Multiply: Integer = 1);
@@ -1396,6 +1407,8 @@ begin
   ModsDown := ModifiersDown(KeysDown);
 
   HeadBobbingAlreadyDone := false;
+
+  FIsCrouching := KeysDown[Key_Crouch];
 
   if ModsDown = [] then
   begin
