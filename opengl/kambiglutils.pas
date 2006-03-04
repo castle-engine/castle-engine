@@ -894,17 +894,20 @@ procedure VerticalGLLine(x, y1, y2: TGLfloat);
 
 { DrawGLBorderedRectangle :
   Rysuje prostokat, wypelniony (GL_POLYGON) jednym kolorem i obrysowany
-    (GL_LINE_LOOP) drugim. Uwagi co do kolejnosci vertexow : taka sama
-    jak w glRectf. Req one attrib stack place, because it makes sure
-    that polygon mode FRONT_AND_BACK is GL_FILL.
+  (GL_LINE_LOOP) drugim. Uwagi co do kolejnosci vertexow : taka sama
+  jak w glRectf. Req one attrib stack place, because it makes sure
+  that polygon mode FRONT_AND_BACK is GL_FILL.
+
   Ze stanu OpenGL'a zmienia tylko current color.
+
   DrawGLRectBorder : wszystko j.w. ale rysuje tylko obrysowanie
-    i nie wymaga attrib stack place, uzywa aktualnego koloru OpenGLa.
+  i nie wymaga attrib stack place, uzywa aktualnego koloru OpenGLa.
+
   Wersja ze stipple ustawia wlasne stipple (robi glPolygonStipple +
-    glEnable(GL_POLYGON_STIPPLE) o ile Stipple <> nil i robi
-    glDisable(GL_POLYGON_STIPPLE) jesli Stipple = nil, oczywiscie
-    wszystko w odpowiednim push/pop attribow.
-    Req one attrib stack place) }
+  glEnable(GL_POLYGON_STIPPLE) o ile Stipple <> nil i robi
+  glDisable(GL_POLYGON_STIPPLE) jesli Stipple = nil, oczywiscie
+  wszystko w odpowiednim push/pop attribow.
+  Req one attrib stack place) }
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f); overload;
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
