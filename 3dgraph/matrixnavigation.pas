@@ -287,18 +287,18 @@ type
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
     function UseHeadBobbing: boolean;
-    
+
     FCrouchHeight: Single;
     FIsCrouching: boolean;
   protected
     { }
     procedure MatrixChanged; override;
-
-    procedure DoGetCameraHeight(
-      var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single); virtual;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
+
+    procedure DoGetCameraHeight(
+      var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single); virtual;
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
@@ -692,7 +692,7 @@ type
 
     { Is player crouching right now ? }
     property IsCrouching: boolean read FIsCrouching;
-    
+
     { This is CameraPreferredHeight slightly modified by head bobbing
       and crouch. It can be useful for collision detection
       between camera and something. }
