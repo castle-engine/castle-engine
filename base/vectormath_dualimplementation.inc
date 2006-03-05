@@ -440,7 +440,7 @@ begin
  Scale := v2[mc] / v1[mc];
  RestOf3dCoords(mc, c1, c2);
  result := FloatsEqual(v1[c1] * Scale, v2[c1]) and
-          FloatsEqual(v1[c2] * Scale, v2[c2]);
+           FloatsEqual(v1[c2] * Scale, v2[c2]);
 end;
 
 procedure MakeVectorsAngleOnTheirPlane(var v1: TYPE_VECTOR3;
