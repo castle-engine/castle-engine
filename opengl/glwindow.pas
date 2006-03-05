@@ -610,7 +610,8 @@ uses
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation;
+  KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
+  RaysWindow;
 
 {$define read_interface}
 
@@ -1599,9 +1600,14 @@ type
        mysz zostanie zlapana i wszystkie komunikaty myszy (OnMouseMove, OnMouseUp)
        beda przekazywane az do wywolania OnMouseUp ktore zwolni wszystkie przyciski
        myszy. W rezultacie mysz moze przyjmowac pozycje spoza (0, 0, width, height) -
-       moze wychodzic dowolnie daleko w dowolna strone (takze na wartosci ujemne !) }
-    property OnMouseDown :TMouseUpDownFunc read FMouseDown write FMouseDown; { = nil }
-    property OnMouseUp :TMouseUpDownFunc read FMouseUp write FMouseUp; { = nil }
+       moze wychodzic dowolnie daleko w dowolna strone (takze na wartosci ujemne !)
+
+       @groupBegin }
+    property OnMouseDown :TMouseUpDownFunc
+      read FMouseDown write FMouseDown {default nil};
+    property OnMouseUp :TMouseUpDownFunc
+      read FMouseUp write FMouseUp {default nil};
+    { @groupEnd }
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
       w glwm.Active[] w momencie gdy zajdzie zdarzenie obiektu glwm -
@@ -2260,6 +2266,31 @@ type
     procedure EventKeyDown(key: TKey; c: char); override;
     procedure EventIdle; override;
     function AllowsProcessMessageSuspend: boolean; override;
+
+    { Calculate a ray picked by WindowX, WindowY position on the window.
+      Use this only when Navigator <> nil and Navigator is TMatrixWalker.
+
+      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+
+      WindowX, WindowY are given in the same style as MouseX, MouseY:
+      WindowX = 0 is left, WindowY = 0 is top.
+
+      This uses @link(PrimaryRay) call
+
+      @noAutoLinkHere }
+    procedure Ray(const WindowX, WindowY: Integer;
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      var Ray0, RayVector: TVector3Single);
+
+    { Calculate a ray corresponding to current Navigator
+      (must be TMatrixWalker instance) settings and MouseX, MouseY
+      position on the screen.
+
+      This is actually just a shortcut for @link(Ray),
+      passing MouseX, MouseY as WindowX, WindowY. }
+    procedure MousePickedRay(
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      var Ray0, RayVector: TVector3Single);
 
     constructor Create;
     destructor Destroy; override;
@@ -3855,6 +3886,28 @@ NAV_AS_IMPLEMENT
 {$undef NAV_NAME}
 {$undef TMATRIX_CAST}
 {$undef NAV_AS_IMPLEMENT}
+
+
+procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  var Ray0, RayVector: TVector3Single);
+var
+  Nav: TMatrixWalker;
+begin
+  Nav := Navigator as TMatrixWalker;
+  Ray0 := Nav.CameraPos;
+  RayVector := PrimaryRay(WindowX, Height - WindowY,
+    Width, Height,
+    Nav.CameraPos, Nav.CameraDir, Nav.CameraUp,
+    ViewAngleDegX, ViewAngleDegY);
+end;
+
+procedure TGLWindowNavigated.MousePickedRay(
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  var Ray0, RayVector: TVector3Single);
+begin
+  Ray(MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
 
 { TGLWindowsList ------------------------------------------------------------ }
 

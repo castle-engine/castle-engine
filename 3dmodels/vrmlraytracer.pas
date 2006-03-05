@@ -24,91 +24,24 @@ unit VRMLRayTracer;
 
 {$I kambiconf.inc}
 
-{sorry - zrobic dla classic shadow cache
-       - zrobic dla classic uzywanie roznych space filling curves
+{ TODO:
+  - for classic raytracer do shadow cache
+  - for classic raytracer use various space filling curves
+  - now that FPC inline is stable and cross-unit, use it to inline
+    various things from VectorMath. Check speed.
 }
 
-{ zdefiniuj PATHTR_USES_SHADOW_CACHE aby Path tracer uzywal shadow cache.
-  Zysk czasowy jest dosc niewielki, czasami nawet jest nieznaczna strata
-  (patrz 3dmodels/rayhunter-demos/raporty/shadow-cache),
-  ale mysle ze warto - dla dobrych scen zysk moze byc rzedu ponad 110%. }
+{ Define PATHTR_USES_SHADOW_CACHE to make path tracing use shadow cache.
+  Speed gain is small (sometimes it's even a little worse with
+  shadow cache (see /win/3dmodels/rayhunter-demos/raporty/shadow-cache)),
+  but in general it's a good idea. For appropriate scenes, speed gain
+  is more than 110%. }
 {$define PATHTR_USES_SHADOW_CACHE}
 
 interface
 
-uses VectorMath, Images, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
-
-{ majac dany kat ostroslupa widzenia kamery FirstViewAngleDeg i
-    stosunek wymiarow rzutni SecondToFirstRatio oblicz drugi kat
-    (tzn. tak aby otrzymana potem w PrimaryRay i RayTraceTo1st rzutnia
-    miala wlasnie takie proporcje).
-  W wersji Deg oba katy (zadany i otrzymany) sa w stopniach, w wersji Rad
-    w radianach. }
-function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg,
-  SecondToFirstRatio: Single): Single;
-function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
-  SecondToFirstRatio: Single): Single;
-
-{ Rzutnia. Rzutnia sluzy do obliczania promieni pierwotnych dla zadanego
-    polozenia kamery i katow ViewAngleXY i rozmiarow ekranu i pozycji
-    na tym ekranie.
-  Mozesz zauwazyc ze caly ten obiekt to tylko dwie metody : konstruktor
-    i funkcja generujaca promien pierowtny. To rozdzielenie jest bardzo
-    wazne - w konstruktorze inicjujemy atrybuty Rzutnia* i poprawiamy
-    CamUp (zeby na pewno byl prostop. do CamDrection) i obie te rzeczy
-    w sumie marnuja troszeczke czasu. W PrimaryRay() juz wykorzystujemy
-    te obliczone wlasciwosci. W rezultacie raytracery moga zyskac troche
-    czasu inicjujac rzutnie tylko raz, na poczatku, a potem dla kazdego
-    pixela korzystac z tej samej rzutni i pytac sie jej tylko o kolejne
-    PrimaryRay. }
-type
-  TRzutnia = class
-  private
-    FRzutniaZ, FRzutniaWidth, FRzutniaHeight: Single;
-    FCamPosition, FCamDirection, FCamUp: TVector3Single;
-    FViewAngleDegX, FViewAngleDegY: Single;
-  public
-    property RzutniaZ: Single read FRzutniaZ;
-    property RzutniaWidth: Single read FRzutniaWidth;
-    property RzutniaHeight: Single read FRzutniaHeight;
-    { CamPosition/Direction i ViewAngle* beda identyczne z podanymi
-      w konstruktorze, natomiast CamUp bedzie poprawione tak zeby na pewno
-      bylo prostopadle do CamDirection (mozesz z tego skorzystac i po
-      utworzeniu rzutni wziac juz poprawiony CamUp). }
-    property CamPosition: TVector3Single read FCamPosition;
-    property CamDirection: TVector3Single read FCamDirection;
-    property CamUp: TVector3Single read FCamUp;
-    property ViewAngleDegX: Single read FViewAngleDegX;
-    property ViewAngleDegY: Single read FViewAngleDegY;
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      AViewAngleDegX, AViewAngleDegY: Single);
-
-    { x, y sa liczone od lewej do dolu. Jezeli X, Y sa calkowite i w zakresach
-      X = 0..ScreenWidth-1 (lewa..prawa), Y = 0..ScreenHeight-1 (dol..gora)
-      to wynikiem bedzie promien przechodzacy dokladnie przez srodek odpowiedniego
-      pixela na rzutni, ale mozna podawac dowolne X, Y. Np. jezeli chcemy wziac
-      kilka losowych probek z pixela PixX, PixY to mozemy kilkakrotnie
-      poprosic o promien dla (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5).
-
-      Zwraca RayVector promienia, Ray0 masz przeciez w CamPosition. }
-    function PrimaryRay(const x, y: Single;
-      const ScreenWidth, ScreenHeight: Integer)
-      :TVector3Single;
-  end;
-
-{ Oblicz promien pierwotny na podstawie ulozenia kamery i ViewAngleXY.
-  Ta funkcja tworzy rzutnie, pyta ja o jeden PrimaryRay i zwraca go.
-  Jak juz napisalem przy TRzutnia to jest bardzo nieefektywne zachowanie
-  wiec czesto bedziesz chcial uzyc typu TRzutnia a nie tej funkcji ale
-  czasem rzeczywiscie nie zalezy ci na czasie - np. do wykonania mechanizmu
-  picking (jaki obiekt jest wyswietlany na pixlu ekranu x, y ?) -
-  takie picking bedzie poprawne o ile oryginalny rysunek ktory widzi user
-  byl wykonany z dokladnie takimi samymi ustawieniami perspektywy -
-  no i do picking wystarczy nam pozniej wysledzenie tego jednego promienia
-  wiec rzeczywiscie nie ma sensu pieprzyc sie z klasa TRzutnia. }
-function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
+uses VectorMath, Images, RaysWindow,
+  VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -240,7 +173,7 @@ type
   Uzywamy lokalnego modelu oswietlenia zdefiniowanego w funkcjach
     VRML97* w IllumModels, patrz tam po komentarze. Po pewne szczegoly
     patrz tez rayhunter.php.  }
-procedure ClassicRayTracerTo1st(const Image: TImage; 
+procedure ClassicRayTracerTo1st(const Image: TImage;
   Octree: TVRMLTriangleOctree;
   const CamPosition, CamDirection, CamUp: TVector3Single;
   const ViewAngleDegX, ViewAngleDegY: Single;
@@ -319,7 +252,7 @@ procedure ClassicRayTracerTo1st(const Image: TImage;
     [Non]PrimarySamplesCount zeby dac jakiekolwiek rezultaty.
     Podaj tutaj 1 lub wiecej aby miec typowego path tracera.
     Dla wartosci rownej 1 rezultaty sa juz dobre. }
-procedure PathTracerTo1st(const Image: TImage; 
+procedure PathTracerTo1st(const Image: TImage;
   Octree: TVRMLTriangleOctree;
   const CamPosition, CamDirection, CamUp: TVector3Single;
   const ViewAngleDegX, ViewAngleDegY: Single;
@@ -343,98 +276,6 @@ implementation
 uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
-
-{ AdjustViewAngle*ToAspectRatio ---------------------------------------- }
-
-function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad, SecondToFirstRatio: Single): Single;
-begin
- { naiwny blad jaki kiedys popelnilem chcac to policzyc (chociaz wtedy jeszcze
-   nie bylo to opakowane w ta funkcje) to bylo zastosowanie wzorku
-     result := FirstViewAngle * SecondToFirstRatio;
-   ktory wychodzil z zupelnie blednego zalozenia ze stosunek miar katow x/y
-   jest taki jak stosunek wymiarow rzutni x/y. Elementarny blad !
-
-   Majac dane dwa katy , a i b, i wymiary rzutni x, y mamy
-     tg(a/2) = (x/2)/d
-     tg(b/2) = (y/2)/d
-   gdzie d to odleglosc od rzutni (ktora sie zaraz skroci i nie bedzie potrzebna).
-   Mamy z tego ze
-     tg(a/2) / tg(b/2) = x/y
-   a wiec stosunek TANGENSOW katow jest taki jak stosunek wymiarow rzutni
-   (zreszta widac to w PrimaryRay_Core_Prepare gdzie obliczamy rzutnie z katow)
-   (TANGENSOW, a nie samych KATOW !!).
-
-   Odpowiednio przeksztalcajac powyzsza zaleznosc otrzymujemy poprawny
-   wzor pozwalajacy nam wyliczyc b majac dane a i stosunek y/x -
-   ten wzor jest zapisany ponizej w kodzie. }
- result := ArcTan( Tan(FirstViewAngleRad/2) * SecondToFirstRatio) * 2;
-end;
-
-function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg, SecondToFirstRatio: Single): Single;
-begin
- result := RadToDeg( AdjustViewAngleRadToAspectRatio( DegToRad(FirstViewAngleDeg),
-   SecondToFirstRatio));
-end;
-
-{ TRzutnia ------------------------------------------------------------ }
-
-constructor TRzutnia.Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  AViewAngleDegX, AViewAngleDegY: Single);
-const RzutniaDistance = 1;  { dowolna stala > 0, moze kiedys na cos sie przyda }
-begin
- inherited Create;
-
- FCamPosition := ACamPosition;
- FCamDirection := ACamDirection;
- FCamUp := ACamUp;
- FViewAngleDegX := AViewAngleDegX;
- FViewAngleDegY := AViewAngleDegY;
-
- { popraw CamUp }
- MakeVectorsAngleOnTheirPlane(FCamUp, FCamDirection, 90);
-
- { oblicz rzutnie pomijajac Cam* i przyjmujac ze kamera jest
-   w punkcie (0, 0, 0) skierowana w (0, 0, -1) i ma up w (0, 1, 0) }
- FRzutniaZ := -RzutniaDistance;
- { wiemy ze szerokosc rzutni / 2 / Abs(RzutniaZ) = tg (ViewAngleX / 2).
-   Wiec szerokosc rzutni = tg(ViewAngleX / 2) * Abs(RzutniaZ) * 2;
-   podobnie wysokosc rzutni = tg(ViewAngleY / 2) * Abs(RzutniaZ) * 2; }
- FRzutniaWidth := Tan(DegToRad(ViewAngleDegX) / 2) * Abs(RzutniaZ) * 2;
- FRzutniaHeight := Tan(DegToRad(ViewAngleDegY) / 2) * Abs(RzutniaZ) * 2;
-end;
-
-function TRzutnia.PrimaryRay(const x, y: Single;
-  const ScreenWidth, ScreenHeight: Integer): TVector3Single;
-begin
- { wyznacz kierunek promienia pierwotnego.
-   X z zakresu 0..ScreenWidth-1 ma dawac promienie dokladnie przez srodek
-   pixela na rzutni, analogicznie Y. }
- result[0] := MapRange(x+0.5, 0, ScreenWidth , -RzutniaWidth /2, RzutniaWidth /2);
- result[1] := MapRange(y+0.5, 0, ScreenHeight, -RzutniaHeight/2, RzutniaHeight/2);
- result[2] := RzutniaZ;
-
- { uwzglednij teraz Cam* transformujac odpowiednio promien.
-   Zwracam uwage ze nie uwzgledniamy tu przesuniecia CamPosition
-   (wtedy traktowalibysmy RayVector jako punkt na polprostej promienia,
-   a nie jako kierunek. Wiec musielibysmy wtedy od RayVector z powrotem
-   odjac CamPosition, zupelnie bez sensu skoro mozemy je juz teraz pominac). }
- result := MultMatrixPoint(
-   TransformToCoordsNoScaleMatrix(ZeroVector3Single,
-     VectorProduct(CamDirection, CamUp),
-     CamUp,
-     VectorNegate(CamDirection)), result);
-end;
-
-function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
-var Rzutnia: TRzutnia;
-begin
- Rzutnia := TRzutnia.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
- try
-  result := Rzutnia.PrimaryRay(x, y, ScreenWidth, ScreenHeight);
- finally Rzutnia.Free end;
-end;
 
 { RayVector calculations ---------------------------------------- }
 
@@ -493,7 +334,7 @@ end;
 
 { ClassicRayTracer -------------------------------------------------------------- }
 
-procedure ClassicRayTracerTo1st(const Image: TImage; 
+procedure ClassicRayTracerTo1st(const Image: TImage;
   Octree: TVRMLTriangleOctree;
   const CamPosition, CamDirection, CamUp: TVector3Single;
   const ViewAngleDegX, ViewAngleDegY: Single;
@@ -613,12 +454,12 @@ var FogType: Integer;
       FogNode, FogTransformedVisibilityRange, FogType);
   end;
 
-var Rzutnia: TRzutnia;
+var RaysWindow: TRaysWindow;
 
   procedure DoPixel(const x, y: Cardinal);
   begin
    Image.SetColorRGB(x, y,
-     Trace(CamPosition, Rzutnia.PrimaryRay(x, y, Image.Width, Image.Height),
+     Trace(CamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
        InitialDepth, NoItemIndex, false));
   end;
 
@@ -627,10 +468,10 @@ var PixCoord: TVector2Cardinal;
 begin
  FogType := VRML97FogType(FogNode);
 
- Rzutnia := nil;
+ RaysWindow := nil;
  SFCurve := nil;
  try
-  Rzutnia := TRzutnia.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+  RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
 
   { uzywanie jakichkolwiek space filling curves nie ma teraz znaczenia dla
     classic ray tracera, bo classic ray tracer nie uzywa shadow cache ani
@@ -659,7 +500,7 @@ begin
   end;
 
  finally
-  Rzutnia.Free;
+  RaysWindow.Free;
   SFCurve.Free;
  end;
 end;
@@ -707,7 +548,7 @@ end;
    rosyjska ruletka.
 }
 
-procedure PathTracerTo1st(const Image: TImage; 
+procedure PathTracerTo1st(const Image: TImage;
   Octree: TVRMLTriangleOctree;
   const CamPosition, CamDirection, CamUp: TVector3Single;
   const ViewAngleDegX, ViewAngleDegY: Single;
@@ -1136,7 +977,7 @@ const
     VectorAddTo1st(result, TraceNonEmissivePart);
   end;
 
-var Rzutnia: TRzutnia;
+var RaysWindow: TRaysWindow;
 
   procedure DoPixel(const x, y: Cardinal);
   var PixColor, PrimaryRayVector: TVector3Single;
@@ -1148,7 +989,7 @@ var Rzutnia: TRzutnia;
     { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
       i ten promien NIE jest losowany na rzutni w zakresie pixela
       x, y ale przechodzi dokladnie przez srodek pixela x, y. }
-    PrimaryRayVector := Rzutnia.PrimaryRay(x, y, Image.Width, Image.Height);
+    PrimaryRayVector := RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height);
     PixColor := Trace(CamPosition, PrimaryRayVector, MinDepth,
       NoItemIndex, false, false);
    end else
@@ -1156,7 +997,7 @@ var Rzutnia: TRzutnia;
     PixColor := ZeroVector3Single;
     for SampleNum := 0 to PrimarySamplesCount-1 do
     begin
-     PrimaryRayVector := Rzutnia.PrimaryRay(x + Random - 0.5, y + Random - 0.5,
+     PrimaryRayVector := RaysWindow.PrimaryRay(x + Random - 0.5, y + Random - 0.5,
        Image.Width, Image.Height);
      VectorAddTo1st(PixColor, Trace(CamPosition, PrimaryRayVector, MinDepth,
        NoItemIndex, false, false) );
@@ -1182,7 +1023,7 @@ begin
  { zainicjuj na nil'e, zeby moc napisac proste try..finally }
  LightsIndices := nil;
  {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache := nil; {$endif}
- Rzutnia := nil;
+ RaysWindow := nil;
  SFCurve := nil;
  try
   { evaluate LightIndices }
@@ -1199,8 +1040,8 @@ begin
   ShadowCache.SetAll(NoItemIndex);
   {$endif}
 
-  { evaluate Rzutnia }
-  Rzutnia := TRzutnia.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+  { evaluate RaysWindow }
+  RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
 
   { evaluate SFCurve }
   SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
@@ -1226,24 +1067,10 @@ begin
 
  finally
   SFCurve.Free;
-  Rzutnia.Free;
+  RaysWindow.Free;
   {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache.Free; {$endif}
   LightsIndices.Free;
  end;
 end;
 
 end.
-
-(*
-  OLD COMM :
-     (tak, pamietam ze OpenGL'owa kamera jest standardowo skierowana
-     w (0, 0, -1) ale to przeciez nie ma tutaj znaczenia)
-
-  OLD CODE
- { wyznaczam odleglosc rzutni na podstawie wielkosci Octree.TreeRoot.Box,
-   w ten sposob dlugosci wektorow RayVector promieni pierwotnych beda
-   wieksze dla wiekszych scen i mniejsze dla mniejszych co (miejmy nadzieje)
-   sprawi ze unikniemy pewnych bledow numerycznych zwiazanych z precyzja obliczen.
-   Pamietaj ze RzutniaZ jest ujemne - chcemy zeby }
- RzutniaZ := -Box3dAvgSize(Octree.TreeRoot.Box)/100;
-*)
