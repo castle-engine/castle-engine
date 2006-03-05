@@ -55,7 +55,14 @@ type
     Until the things mentioned above are done, this class allows you
     to somehow create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
-    acceptable solution. }
+    acceptable solution.
+    
+    TODO: textures should be shared by all constructed scenes,
+    not loaded and kept separately. Right now for larger ScenesCount
+    it's impossible to use a scene with some textures, because textures
+    get loaded many times and eat a *lot* of memory. Both in my space
+    and in OpenGL lib space. VRMLOpenGLRenderer is flexible in this regard,
+    VRMLFlatSceneGL must be also made flexible and this class must use it. }
   TVRMLGLAnimation = class
   private
     FScenes: TVRMLFlatSceneGLsList;
