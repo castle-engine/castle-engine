@@ -338,48 +338,27 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
     function SegmentCollision(const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
-    function SegmentCollision(var Intersection: TVector3Single;
-      const pos1, pos2: TVector3Single;
-      const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
-      const IgnoreMarginAtStart: boolean
-      {ItemsToIgnoreFunc = nil}): integer; overload;
-    function SegmentCollision(const pos1, pos2: TVector3Single;
-      const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
-      const IgnoreMarginAtStart: boolean
-      {ItemsToIgnoreFunc = nil}): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
 
-    function SphereCollision(const pos: TVector3Single; const Radius: Single): integer;
+    function SphereCollision(const pos: TVector3Single;
+      const Radius: Single): integer;
 
     function RayCollision(var Intersection: TVector3Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
-    function RayCollision(var Intersection: TVector3Single;
-      const Ray0, RayVector: TVector3Single;
-      const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
-      const IgnoreMarginAtStart: boolean
-      {ItemsToIgnoreFunc = nil}): integer; overload;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
-      const ReturnClosestIntersection: boolean;
-      const OctreeItemIndexToIgnore: integer;
-      const IgnoreMarginAtStart: boolean
-      {ItemsToIgnoreFunc = nil}): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
 
     { This checks if move between OldPos and ProposedNewPos is possible,
       by checking is segment between OldPos and ProposedNewPos free
@@ -769,31 +748,8 @@ begin
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
 end;
 
-function TVRMLTriangleOctree.SegmentCollision(var Intersection: TVector3Single;
-  const pos1, pos2: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean
-  {ItemsToIgnoreFunc = nil}): integer;
-begin
- result := TreeRoot.SegmentCollision(Intersection, pos1, pos2,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil);
-end;
-
-function TVRMLTriangleOctree.SegmentCollision(const pos1, pos2: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean
-  {ItemsToIgnoreFunc = nil}): integer;
-var dummy: TVector3Single;
-begin
- result := TreeRoot.SegmentCollision(dummy, pos1, pos2,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil);
-end;
-
-function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single; const Radius: Single): integer;
+function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single;
+  const Radius: Single): integer;
 begin
  result := TreeRoot.SphereCollision(pos, Radius);
 end;
@@ -807,7 +763,7 @@ function TVRMLTriangleOctree.RayCollision(var Intersection: TVector3Single;
 begin
  result := TreeRoot.RayCollision(Intersection, Ray0, RayVector,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc)
+   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
 end;
 
 function TVRMLTriangleOctree.RayCollision(const Ray0, RayVector: TVector3Single;
@@ -820,30 +776,6 @@ begin
  result := TreeRoot.RayCollision(dummy, Ray0, RayVector,
    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
-end;
-
-function TVRMLTriangleOctree.RayCollision(var Intersection: TVector3Single;
-  const Ray0, RayVector: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean
-  {ItemsToIgnoreFunc = nil}): integer;
-begin
- result := TreeRoot.RayCollision(Intersection, Ray0, RayVector,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil)
-end;
-
-function TVRMLTriangleOctree.RayCollision(const Ray0, RayVector: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean
-  {ItemsToIgnoreFunc = nil}): integer;
-var dummy: TVector3Single;
-begin
- result := TreeRoot.RayCollision(dummy, Ray0, RayVector,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, nil);
 end;
 
 { TVRMLTriangleOctree.MoveAllowed methods ---------------------------------------- }
