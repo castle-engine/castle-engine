@@ -171,9 +171,21 @@ procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
 { TryBoxRayClosestIntersection znajduje przeciecie Boxa z promieniem
   najblizsze do Ray0, traktujac Box jako szesc wielokatow (tzn.
   przeciecie musi sie znalezc na ktoryms z bokow, nawet jezeli Ray0
-  jest w srodku Boxa).  }
-function TryBoxRayClosestIntersection(var Intersection: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
+  jest w srodku Boxa).
+
+  Returns also IntersectionDistance, which is the distance to the Intersection
+  relative to RayVector (i.e. Intersection is always = Ray0 +
+  IntersectionDistance * RayVector). }
+function TryBoxRayClosestIntersection(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryBoxRayClosestIntersection(
+  var Intersection: TVector3Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryBoxRayClosestIntersection(
+  var IntersectionDistance: Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
 
 { TryBoxRayEntrance traktuje Box jako zamknieta bryle - jezeli Ray0
   jest na zewnatrz Boxa to odpowiedz jest taka sama jak
@@ -548,54 +560,80 @@ end;
 procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); CLAMP_IMPLEMENTATION
 procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); CLAMP_IMPLEMENTATION
 
-function TryBoxRayClosestIntersection(var Intersection: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
-var IntrProposed: boolean absolute result;
-    { SqrDistanceToIntr = Sqr(distance from Ray0 to Intersection) }
-    SqrDistanceToIntr: Single;
+function TryBoxRayClosestIntersection(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
+  const Box: TBox3d;
+  const Ray0, RayVector: TVector3Single): boolean;
+var
+  IntrProposed: boolean absolute result;
 
-  procedure ProposeBoxIntr(const PlaneConstCoord: integer; const PlaneConstValue: Single);
-  var NowIntr: TVector3Single;
-      SqrDistanceToNowIntr: Single;
-      c1, c2: integer;
+  procedure ProposeBoxIntr(const PlaneConstCoord: integer;
+    const PlaneConstValue: Single);
+  var
+    NowIntersection: TVector3Single;
+    NowIntersectionDistance: Single;
+    c1, c2: integer;
   begin
-   if TrySimplePlaneRayIntersection(NowIntr, PlaneConstCoord, PlaneConstValue,
-     Ray0, RayVector) then
-   begin
-    RestOf3dCoords(PlaneConstCoord, c1, c2);
-    if Between(NowIntr[c1], Box[0, c1], Box[1, c1]) and
-       Between(NowIntr[c2], Box[0, c2], Box[1, c2]) then
+    if TrySimplePlaneRayIntersection(NowIntersection, NowIntersectionDistance,
+      PlaneConstCoord, PlaneConstValue, Ray0, RayVector) then
     begin
-     SqrDistanceToNowIntr := PointsDistanceSqr(Ray0, NowIntr);
-     if (not IntrProposed) or
-        (SqrDistanceToNowIntr < SqrDistanceToIntr) then
-     begin
-      IntrProposed := true;
-      Intersection := NowIntr;
-      SqrDistanceToIntr := SqrDistanceToNowIntr;
-     end;
+      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      if Between(NowIntersection[c1], Box[0, c1], Box[1, c1]) and
+         Between(NowIntersection[c2], Box[0, c2], Box[1, c2]) then
+      begin
+        if (not IntrProposed) or
+           (NowIntersectionDistance < IntersectionDistance) then
+        begin
+          IntrProposed := true;
+          Intersection := NowIntersection;
+          IntersectionDistance := NowIntersectionDistance;
+        end;
+      end;
     end;
-   end;
   end;
 
-var i: integer;
+var
+  I: integer;
 begin
- IntrProposed := false;
- for i := 0 to 2 do
- begin
-  { wykorzystujemy ponizej fakt ze jezeli Ray0[i] < Box[0, i] to na pewno
-    promien ktory przecinalby scianke Box[1, i] pudelka przecinalby najpierw
-    tez inna scianke. Wiec jezeli Ray0[i] < Box[0, i] to nie musimy sprawdzac
-    przeciecia z plaszczyzna Box[1, i]. }
-  if Ray0[i] < Box[0, i] then
-   ProposeBoxIntr(i, Box[0, i]) else
-  if Ray0[i] > Box[1, i] then
-   ProposeBoxIntr(i, Box[1, i]) else
+  IntrProposed := false;
+  for I := 0 to 2 do
   begin
-   ProposeBoxIntr(i, Box[0, i]);
-   ProposeBoxIntr(i, Box[1, i]);
+    { wykorzystujemy ponizej fakt ze jezeli Ray0[i] < Box[0, i] to na pewno
+      promien ktory przecinalby scianke Box[1, i] pudelka przecinalby najpierw
+      tez inna scianke. Wiec jezeli Ray0[i] < Box[0, i] to nie musimy sprawdzac
+      przeciecia z plaszczyzna Box[1, i]. }
+    if Ray0[i] < Box[0, i] then
+      ProposeBoxIntr(i, Box[0, i]) else
+    if Ray0[i] > Box[1, i] then
+      ProposeBoxIntr(i, Box[1, i]) else
+    begin
+      ProposeBoxIntr(i, Box[0, i]);
+      ProposeBoxIntr(i, Box[1, i]);
+    end;
   end;
- end;
+end;
+
+function TryBoxRayClosestIntersection(
+  var Intersection: TVector3Single;
+  const Box: TBox3d;
+  const Ray0, RayVector: TVector3Single): boolean;
+var
+  IntersectionDistance: Single;
+begin
+  Result := TryBoxRayClosestIntersection(
+    Intersection, IntersectionDistance, Box, Ray0, RayVector);
+end;
+
+function TryBoxRayClosestIntersection(
+  var IntersectionDistance: Single;
+  const Box: TBox3d;
+  const Ray0, RayVector: TVector3Single): boolean;
+var
+  Intersection: TVector3Single;
+begin
+  Result := TryBoxRayClosestIntersection(
+    Intersection, IntersectionDistance, Box, Ray0, RayVector);
 end;
 
 function TryBoxRayEntrance(var Entrance: TVector3Single;
