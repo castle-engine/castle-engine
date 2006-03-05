@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -31,7 +31,7 @@
        przez RayCollision)
     W kazdym innym przypadku mozna traktowac segment Pos1, Pos2
     jak promien dla ktorego Ray0 = Pos1, RayVector = Pos2-Pos1.
-    
+
   - ale natuaralnie tracilibysmy wtedy sporo dla optymalnosci.
     O ile DoLeaf nie mozna juz zoptymalizowac w jakis specyficzny dla
     odcinka sposob o tyle DoNotLeaf mozna zoptymalizowac znacznie :
@@ -60,70 +60,77 @@
 {$define OCTREE_ITEM_TRI_NORM_PLANE := TriNormPlaneSingle}
 
 { Ray/SegmentCollision starts : --------------------------------------------- }
-     
+
 {$ifdef SEGMENT_COLLISION}
-var Ray0: TYPE_VECTOR3 absolute Pos1;
-    RayVector: TYPE_VECTOR3;
+var
+  Ray0: TYPE_VECTOR3 absolute Pos1;
+  RayVector: TYPE_VECTOR3;
 {$endif}
 
   function DoLeaf: integer;
 
-    function TryTriangleCollision(var Intersection: TYPE_VECTOR3; var IntrT: TYPE_SCALAR; ItemIndiceNumber: Integer): boolean;
+    function TryTriangleCollision(
+      var Intersection: TYPE_VECTOR3;
+      var IntersectionDistance: TYPE_SCALAR;
+      ItemIndiceNumber: Integer): boolean;
     begin
-     result:=
-       {$ifdef SEGMENT_COLLISION}
-       TryOctreeItemSegmentDirCollision(Intersection, IntrT, 
-         Items[ItemIndiceNumber]^, Pos1, RayVector, 
-         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-         ParentTree.DirectCollisionTestsCounter)
-       {$else}
-       TryOctreeItemRayCollision(Intersection, IntrT, 
-         Items[ItemIndiceNumber]^, Ray0, RayVector, 
-         {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
-         ParentTree.DirectCollisionTestsCounter)
-       {$endif} 
+      Result:=
+        {$ifdef SEGMENT_COLLISION}
+        TryOctreeItemSegmentDirCollision(Intersection, IntersectionDistance,
+          Items[ItemIndiceNumber]^, Pos1, RayVector,
+          {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+          ParentTree.DirectCollisionTestsCounter)
+        {$else}
+        TryOctreeItemRayCollision(Intersection, IntersectionDistance,
+          Items[ItemIndiceNumber]^, Ray0, RayVector,
+          {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+          ParentTree.DirectCollisionTestsCounter)
+        {$endif}
     end;
 
     { makro ITERATE_INTERSECTIONS iteruje zmienna Iterate_ItemNum po tablicy
       Items i wywoluje makro ON_INTERSECTION_FOUND gdy Iterate_ItemNum
       wskazuje na trojkat z ktorym jest przeciecie.
-      Podczas wywolywania ON_INTERSECTION_FOUND zmienna Iterate_Intersection
-      jest ustawiona na wyliczony punkt kolizji.
+
+      Podczas wywolywania ON_INTERSECTION_FOUND zmienne Iterate_Intersection
+      and Iterate_IntersectionDistance are set to calculated intersection point.
     }
     {$define ITERATE_INTERSECTIONS:=
     for Iterate_ItemNumber := 0 to ItemsCount-1 do
     begin
-     if TryTriangleCollision(Iterate_Intersection, Iterate_IntersectionT, Iterate_ItemNumber) and
-        ( OctreeItemIndexToIgnore <> ItemsIndices[Iterate_ItemNumber] ) and
-        ( (not IgnoreMarginAtStart) or
-          (not VectorsEqual(Iterate_Intersection, Ray0)) ) and
-        ( (not Assigned(ItemsToIgnoreFunc)) or
-          (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[Iterate_ItemNumber])) ) then
-      ON_INTERSECTION_FOUND
+      if TryTriangleCollision(Iterate_Intersection, Iterate_IntersectionDistance,
+           Iterate_ItemNumber) and
+         ( OctreeItemIndexToIgnore <> ItemsIndices[Iterate_ItemNumber] ) and
+         ( (not IgnoreMarginAtStart) or
+           (not VectorsEqual(Iterate_Intersection, Ray0)) ) and
+         ( (not Assigned(ItemsToIgnoreFunc)) or
+           (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[Iterate_ItemNumber])) ) then
+       ON_INTERSECTION_FOUND
     end;}
 
   var Iterate_ItemNumber: integer;
       Iterate_Intersection: TYPE_VECTOR3;
-      Iterate_IntersectionT, ClosestIntrT: TYPE_SCALAR;
+      Iterate_IntersectionDistance: TYPE_SCALAR;
   begin
    if ReturnClosestIntersection then
    begin
-    result := NoItemIndex;
-    ClosestIntrT := MaxSingle; { <- not really needed, but disables compiler warning }
+    Result := NoItemIndex;
+
     {$define ON_INTERSECTION_FOUND := begin
-     if (result = NoItemIndex) or (Iterate_IntersectionT < ClosestIntrT) then
+     if (Result = NoItemIndex) or
+        (Iterate_IntersectionDistance < IntersectionDistance) then
      begin
-      result := ItemsIndices[Iterate_ItemNumber];
-      Intersection := Iterate_Intersection;
-      ClosestIntrT := Iterate_IntersectionT;
+      Result := ItemsIndices[Iterate_ItemNumber];
+      Intersection         := Iterate_Intersection;
+      IntersectionDistance := Iterate_IntersectionDistance;
      end;
     end;}
     ITERATE_INTERSECTIONS
    end else
    begin
     {$define ON_INTERSECTION_FOUND := begin
-      Intersection := Iterate_Intersection;
-      // ClosestIntrT := Iterate_IntersectionT; <- zbedne
+      Intersection         := Iterate_Intersection;
+      IntersectionDistance := Iterate_IntersectionDistance;
       Exit(ItemsIndices[Iterate_ItemNumber]);
     end;}
     ITERATE_INTERSECTIONS
@@ -155,7 +162,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
         PlaneIntersectsCount moze byc <= 3.}
     PlaneIntersects: array[0..2]of record
       Exists: boolean;
-      IntrT: TYPE_SCALAR;
+      PlaneIntersectionDistance: TYPE_SCALAR;
     end;
     ExistingPlaneIntersectsCount: integer;
 
@@ -201,14 +208,14 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
              malutkich bledow. Teraz tez nasz promien zostanie po zlej stronie.
           Rozwiazaniem obydwu problemow jest przejsc na ta strone StartSubnode[i]
           gdzie wskazuje RayVector.
-        
+
           Tego typu przypadki naprawde sie zdarzaja i niniejszy kod jest
           potrzebny. Nie trzeba tu zreszta bledu obliczen faktycznego : zwroc
           uwage na to ze gry FirstBoxIntr jest dokladnie na srodku Plane to nawet
           bezbledne obliczenia doprowadzaja nas do zlego zachowania :
           jest wtedy przeciecie z Plane, a SubnodeWithPoint klasyfikuje
           wspolrzedna zawsze na true.
-        
+
           Najprosciej mozna takie przypadki sprawdzic wchodzac
           z walkerem na scene : on domyslnie ustawia CamPosition na dokladnym
           srodku Boxa sceny co jest rowne TreeRoot.MiddlePoint. A wiec wejdz
@@ -228,10 +235,10 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
          klopotliwe;) }
        Exists:=
          {$ifdef SEGMENT_COLLISION}
-         TrySimplePlaneSegmentIntersection(PlaneIntersect, IntrT,
+         TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,
            i, MiddlePoint[i], FirstBoxIntr, Pos2)
          {$else}
-         TrySimplePlaneRayIntersection(PlaneIntersect, IntrT,
+         TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
            i, MiddlePoint[i], FirstBoxIntr, RayVector)
          {$endif}
            and Box3dPointInside(PlaneIntersect, Box);
@@ -255,9 +262,9 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
      {wyznacz c1 i c2, ew. wrzucajac juz pierwsze przeciecie do SortedPlaneIntersects}
      if ExistingPlaneIntersectsCount = 3 then
      begin
-      cm := IndexMin(PlaneIntersects[0].IntrT,
-                     PlaneIntersects[1].IntrT,
-                     PlaneIntersects[2].IntrT);
+      cm := IndexMin(PlaneIntersects[0].PlaneIntersectionDistance,
+                     PlaneIntersects[1].PlaneIntersectionDistance,
+                     PlaneIntersects[2].PlaneIntersectionDistance);
       RestOf3dCoords(cm, c1, c2);
       NextIntersect(cm);
      end else
@@ -273,8 +280,8 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
          NextIntersect(c1) else
          NextIntersect(c2);
       2: begin
-         if PlaneIntersects[c1].IntrT <
-            PlaneIntersects[c2].IntrT then
+         if PlaneIntersects[c1].PlaneIntersectionDistance <
+            PlaneIntersects[c2].PlaneIntersectionDistance then
           begin NextIntersect(c1); NextIntersect(c2) end else
           begin NextIntersect(c2); NextIntersect(c1) end;
         end;
@@ -301,7 +308,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
 
   var i: integer;
   begin
-   if not TryBoxRayEntrance(FirstBoxIntr, Box, Ray0, RayVector) then 
+   if not TryBoxRayEntrance(FirstBoxIntr, Box, Ray0, RayVector) then
      Exit(NoItemIndex);
    StartSubnode := SubnodeWithPoint(FirstBoxIntr);
 
@@ -311,7 +318,7 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
 
    { szukamy najblizszego Intersection wchodzac w SubNodes. Zauwazmy ze
      w calym DoNotLeaf zawsze dzialamy jakby ReturnClosestIntersection = true
-     za wyjatkiem malego szczegoliku ponizej przy "if result <> nil ...". }
+     za wyjatkiem malego szczegoliku ponizej przy "if result <> NoItemIndex ...". }
    result := NoItemIndex;
    for i := 0 to SubnodesToCheckCount - 1 do
    begin
@@ -320,21 +327,21 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
       SubnodesToCheck[i, 1],
       SubnodesToCheck[i, 2]]).
       { jest ponizej bardzo wazne zebysmy nie zmienili Pos1 ani Ray0 wywolujac
-        sie rekurencyjnie (np. zeby nie przekazac FirstBoxIntr) bo to 
+        sie rekurencyjnie (np. zeby nie przekazac FirstBoxIntr) bo to
         spowodowaloby ze zmienna IgnoreMarginAtStart powinna byc (byc moze)
         ustawiona na false. }
-      {$ifdef SEGMENT_COLLISION}                        
-      SegmentCollision(Intersection, Pos1, Pos2, 
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif} 
-        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, 
+      {$ifdef SEGMENT_COLLISION}
+      SegmentCollision(Intersection, IntersectionDistance, Pos1, Pos2,
+        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
         ItemsToIgnoreFunc);
       {$else}
-      RayCollision(Intersection, Ray0, RayVector, 
-        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif} 
-        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, 
+      RayCollision(Intersection, IntersectionDistance, Ray0, RayVector,
+        {$ifdef OCTREE_ITEM_USE_MAILBOX} RayOdcTag, {$endif}
+        ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
         ItemsToIgnoreFunc);
       {$endif}
-        
+
     { musimy sie tu upewnic ze zwrocone Intersection jest rzeczywiscie
       w pytanym SubnodesToCheck[i]. Jezeli nie to znaczy ze to przeciecie
       nalezy do innego subnodea'a i to on je zwroci (a my nie powinnismy
@@ -348,9 +355,9 @@ var Ray0: TYPE_VECTOR3 absolute Pos1;
   end;
 
 begin
- {$ifdef SEGMENT_COLLISION}
- RayVector := VectorSubtract(Pos2, Pos1);
- {$endif}
- if IsLeaf then result := DoLeaf else result := DoNotLeaf;
+  {$ifdef SEGMENT_COLLISION}
+  RayVector := VectorSubtract(Pos2, Pos1);
+  {$endif}
+  if IsLeaf then Result := DoLeaf else Result := DoNotLeaf;
 end;
 

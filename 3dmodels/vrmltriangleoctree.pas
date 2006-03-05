@@ -108,7 +108,7 @@ type
 
     {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { MailboxSavedTag okresla tag elementu z ktorym mamy zapamietane przeciecie
-      w MailboxIsIntersection i MailboxIntersection i MailboxIntersectionT.
+      w MailboxIsIntersection i MailboxIntersection i MailboxIntersectionDistance.
       Aby wszystko dzialalo 100%
       poprawnie zakladamy ze kazdy segment i kazdy promien z jakim bedziemy
       testowali kolizje z octree beda mialy inne tagi i zaden z nich nie bedzie
@@ -119,7 +119,7 @@ type
     MailboxSavedTag: Int64;
     MailboxIsIntersection: boolean;
     MailboxIntersection: TVector3Single;
-    MailboxIntersectionT: Single;
+    MailboxIntersectionDistance: Single;
     {$endif}
   end;
   POctreeItem = ^TOctreeItem;
@@ -146,12 +146,16 @@ function CreateOctreeItem(const Triangle: TTriangle3Single;
 
   Jezeli nie jest zdefiniowane OCTREE_ITEM_USE_MAILBOX to nigdy nie uzywa
   skrzynki i zawsze inkrementuje DirectCollisionTestsCounter. }
-function TryOctreeItemSegmentDirCollision(var Intersection: TVector3Single;
-  var T: Single;
+function TryOctreeItemSegmentDirCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
-function TryOctreeItemRayCollision(var Intersection: TVector3Single; var T: Single;
+
+function TryOctreeItemRayCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -181,7 +185,8 @@ type
       ParentTree.OctreeItems[ItemsIndices[ItemIndex]] }
     property Items[ItemIndex: integer]: POctreeItem read GetItems;
 
-    { definicja tych proc - patrz metody o tych samych nazwach w TVRMLTriangleOctree.
+    { definicja tych proc - patrz metody o tych samych nazwach w
+      TVRMLTriangleOctree.
 
       Dodatkowo nalezy tu dodac ze na skutek tego ze duze trojkaty moge znalezc
       sie w wielu subnode'ach naraz powinienes wiedziec ze ponizsze procedury
@@ -203,15 +208,22 @@ type
       w kolejnosci ktora ma nam zapewnic poprawna implementacje
       ReturnClosestIntersection) to musisz uwazac zeby jakis subnode nie wykryl
       przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie. }
-    function SphereCollision(const pos: TVector3Single; const Radius: Single): integer; overload;
-    function SegmentCollision(var Intersection: TVector3Single;
+    function SphereCollision(const pos: TVector3Single;
+      const Radius: Single): integer; overload;
+
+    function SegmentCollision(
+      var Intersection: TVector3Single;
+      var IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
-    function RayCollision(var Intersection: TVector3Single;
+
+    function RayCollision(
+      var Intersection: TVector3Single;
+      var IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
@@ -332,14 +344,39 @@ type
       A nawet sibenik.3ds i office.mgf.wrl a wiec sceny zrobione niby porzadnie
       ktorych uzywalem do zasadniczych testow na rayhunterze
       maja gdzeniegdzie tak nieprawidlowo zbudowane sciany.
+
+      @param(IntersectionDistance
+        For RayCollision:
+        Returned IntersectionDistance is the distance along the RayVector:
+        smaller IntersectionDistance, closer to Ray0.
+        IntersectionDistance is always >= 0.
+        Intersection is always equal to Ray0 + RayVector * IntersectionDistance.
+
+        For SegmentCollision: analogously,
+        IntersectionDistance is along Pos2 - Pos1.
+        IntersectionDistance is always in 0...1.
+        Intersectio is always equal to Pos1 + (Pos2 - Pos1) * IntersectionDistance.
+      )
     }
-    function SegmentCollision(var Intersection: TVector3Single;
+    function SegmentCollision(
+      var Intersection: TVector3Single;
+      var IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
-    function SegmentCollision(const pos1, pos2: TVector3Single;
+
+    function SegmentCollision(
+      var Intersection: TVector3Single;
+      const pos1, pos2: TVector3Single;
+      const ReturnClosestIntersection: boolean;
+      const OctreeItemIndexToIgnore: integer;
+      const IgnoreMarginAtStart: boolean;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+
+    function SegmentCollision(
+      const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
@@ -348,12 +385,23 @@ type
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single): integer;
 
-    function RayCollision(var Intersection: TVector3Single;
+    function RayCollision(
+      var Intersection: TVector3Single;
+      var IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+
+    function RayCollision(
+      var Intersection: TVector3Single;
+      const Ray0, RayVector: TVector3Single;
+      const ReturnClosestIntersection: boolean;
+      const OctreeItemIndexToIgnore: integer;
+      const IgnoreMarginAtStart: boolean;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -487,7 +535,9 @@ begin
  {$endif}
 end;
 
-function TryOctreeItemSegmentDirCollision(var Intersection: TVector3Single; var T: Single;
+function TryOctreeItemSegmentDirCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -498,14 +548,15 @@ begin
   result := OctreeItem.MailboxIsIntersection;
   if result then
   begin
-   Intersection := OctreeItem.MailboxIntersection;
-   T := OctreeItem.MailboxIntersectionT;
+   Intersection         := OctreeItem.MailboxIntersection;
+   IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
   end;
  end else
  begin
  {$endif}
 
-  result := TryTriangleSegmentDirCollision(Intersection, T,
+  Result := TryTriangleSegmentDirCollision(
+    Intersection, IntersectionDistance,
     OctreeItem.Triangle, OctreeItem.TriangleNormPlane,
     Odc0, OdcVector);
   Inc(DirectCollisionTestsCounter);
@@ -518,15 +569,17 @@ begin
    MailboxIsIntersection := result;
    if result then
    begin
-    MailboxIntersection := Intersection;
-    MailboxIntersectionT := T;
+    MailboxIntersection         := Intersection;
+    MailboxIntersectionDistance := IntersectionDistance;
    end;
   end;
  end;
  {$endif}
 end;
 
-function TryOctreeItemRayCollision(var Intersection: TVector3Single; var T: Single;
+function TryOctreeItemRayCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -541,14 +594,15 @@ begin
   result := OctreeItem.MailboxIsIntersection;
   if result then
   begin
-   Intersection := OctreeItem.MailboxIntersection;
-   T := OctreeItem.MailboxIntersectionT;
+   Intersection         := OctreeItem.MailboxIntersection;
+   IntersectionDistance := OctreeItem.MailboxIntersectionDistance;
   end;
  end else
  begin
  {$endif}
 
-  result := TryTriangleRayCollision(Intersection, T,
+  result := TryTriangleRayCollision(
+    Intersection, IntersectionDistance,
     OctreeItem.Triangle, OctreeItem.TriangleNormPlane,
     Ray0, RayVector);
   Inc(DirectCollisionTestsCounter);
@@ -561,8 +615,8 @@ begin
    MailboxIsIntersection := result;
    if result then
    begin
-    MailboxIntersection := Intersection;
-    MailboxIntersectionT := T;
+    MailboxIntersection         := Intersection;
+    MailboxIntersectionDistance := IntersectionDistance;
    end;
   end;
  end;
@@ -665,7 +719,9 @@ begin
  end;
 end;
 
-function TTriangleOctreeNode.SegmentCollision(var Intersection: TVector3Single;
+function TTriangleOctreeNode.SegmentCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
@@ -676,7 +732,9 @@ function TTriangleOctreeNode.SegmentCollision(var Intersection: TVector3Single;
 {$I vrmltriangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
 
-function TTriangleOctreeNode.RayCollision(var Intersection: TVector3Single;
+function TTriangleOctreeNode.RayCollision(
+  var Intersection: TVector3Single;
+  var IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
@@ -724,29 +782,45 @@ end;
 
 { wszystkie deklaracje *Collision przekazywane do TreeRoot -------------------- }
 
-function TVRMLTriangleOctree.SegmentCollision(var Intersection: TVector3Single;
+{$define SegmentCollision_CommonParams :=
   const pos1, pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-begin
- result := TreeRoot.SegmentCollision(Intersection, pos1, pos2,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
-end;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
+}
 
-function TVRMLTriangleOctree.SegmentCollision(const pos1, pos2: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-var dummy: TVector3Single;
+{$define SegmentCollision_Implementation :=
 begin
- result := TreeRoot.SegmentCollision(dummy, pos1, pos2,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
-end;
+  Result := TreeRoot.SegmentCollision(Intersection, IntersectionDistance,
+    Pos1, Pos2,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+    ItemsToIgnoreFunc);
+end;}
+
+  function TVRMLTriangleOctree.SegmentCollision(
+    var Intersection: TVector3Single;
+    var IntersectionDistance: Single;
+    SegmentCollision_CommonParams): integer;
+  SegmentCollision_Implementation
+
+  function TVRMLTriangleOctree.SegmentCollision(
+    var Intersection: TVector3Single;
+    SegmentCollision_CommonParams): integer;
+  var
+    IntersectionDistance: Single;
+  SegmentCollision_Implementation
+
+  function TVRMLTriangleOctree.SegmentCollision(
+    SegmentCollision_CommonParams): integer;
+  var
+    Intersection: TVector3Single;
+    IntersectionDistance: Single;
+  SegmentCollision_Implementation
+
+{$undef SegmentCollision_CommonParams}
+{$undef SegmentCollision_Implementation}
 
 function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single;
   const Radius: Single): integer;
@@ -754,29 +828,45 @@ begin
  result := TreeRoot.SphereCollision(pos, Radius);
 end;
 
-function TVRMLTriangleOctree.RayCollision(var Intersection: TVector3Single;
+{$define RayCollision_CommonParams :=
   const Ray0, RayVector: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const OctreeItemIndexToIgnore: integer;
   const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-begin
- result := TreeRoot.RayCollision(Intersection, Ray0, RayVector,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
-end;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc
+}
 
-function TVRMLTriangleOctree.RayCollision(const Ray0, RayVector: TVector3Single;
-  const ReturnClosestIntersection: boolean;
-  const OctreeItemIndexToIgnore: integer;
-  const IgnoreMarginAtStart: boolean;
-  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
-var dummy: TVector3Single;
+{$define RayCollision_Implementation :=
 begin
- result := TreeRoot.RayCollision(dummy, Ray0, RayVector,
-   {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
-   ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart, ItemsToIgnoreFunc);
-end;
+  Result := TreeRoot.RayCollision(Intersection, IntersectionDistance,
+    Ray0, RayVector,
+    {$ifdef OCTREE_ITEM_USE_MAILBOX} AssignNewRayOdcTag, {$endif}
+    ReturnClosestIntersection, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+    ItemsToIgnoreFunc);
+end;}
+
+  function TVRMLTriangleOctree.RayCollision(
+    var Intersection: TVector3Single;
+    var IntersectionDistance: Single;
+    RayCollision_CommonParams): integer;
+  RayCollision_Implementation
+
+  function TVRMLTriangleOctree.RayCollision(
+    var Intersection: TVector3Single;
+    RayCollision_CommonParams): integer;
+  var
+    IntersectionDistance: Single;
+  RayCollision_Implementation
+
+  function TVRMLTriangleOctree.RayCollision(
+    RayCollision_CommonParams): integer;
+  var
+    Intersection: TVector3Single;
+    IntersectionDistance: Single;
+  RayCollision_Implementation
+
+{$undef RayCollision_CommonParams}
+{$undef RayCollision_Implementation}
 
 { TVRMLTriangleOctree.MoveAllowed methods ---------------------------------------- }
 
