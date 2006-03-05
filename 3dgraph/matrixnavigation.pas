@@ -433,7 +433,8 @@ type
       to HomeCameraUp, otherwise they are done with
       respect to current CameraUp (that can be different than HomeCameraUp,
       e.g. after using Key_UpRotate, Key_DownRotate --- raise / bow your head).
-      Currently this affects rotations (keys Key_LeftRot and Key_RightRot)
+      Currently this affects horizontal moving (forward, backward, strafe),
+      rotations (keys Key_LeftRot and Key_RightRot)
       and vertical moving (keys Key_UpMove and Key_DownMove).
 
       Polish: W rezultacie przy PreferHomeUp poczucie pionu
@@ -469,6 +470,16 @@ type
       AHomeCameraUp: TVector3Single);
     procedure SetCameraHome_LookAt(const AHomeCameraPos, AHomeCameraCenter,
       AHomeCameraUp: TVector3Single);
+
+    { This returns CameraDir vector rotated such that it is
+      orthogonal to HomeCameraUp. This way it returns CameraDir projected
+      on the initial horizontal plane, which neutralizes such things
+      like raising / bowing your head.
+
+      Note that when CameraDir and HomeCameraUp are parallel,
+      this just returns current CameraDir --- because in such case
+      we can't project CameraDir on the horizontal plane. }
+    function CameraDirInHomePlane: TVector3Single;
 
     { ustawia wektory Home camery i robi Home, tzn. ustawia
       wektory CameraPos/Dir/Up na ich odpowiedniki z przedrostkiem "Home".
@@ -1039,6 +1050,8 @@ var
   procedure MoveHorizontal(const Multiply: Integer = 1);
   const
     HeadBobbingDistance = 20.0;
+  var
+    Direction: TVector3Single;
   begin
     { Update HeadBobbingPosition }
     if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
@@ -1050,8 +1063,12 @@ var
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
+    
+    if PreferHomeUp then
+      Direction := CameraDirInHomePlane else
+      Direction := CameraDir;
 
-    Move(VectorScale(CameraDir, MoveSpeed * CompSpeed * Multiply), false);
+    Move(VectorScale(Direction, MoveSpeed * CompSpeed * Multiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -1417,16 +1434,10 @@ begin
     if KeysDown[Key_Forward] then MoveHorizontal;
     if KeysDown[Key_Backward] then MoveHorizontal(-1);
 
-    { do strafe'ow musimy uzywac RotateAroundUp, bez wzgledu na to czego
-      uzywamy do normalnych obrotow (na *rot). To dlatego ze gdy camDir
-      jest pochylony (tzn. nie jest prostopadly do HomeUp) to obrocenie
-      camDir o 90 wokol homeUp NIE da wektora prostopadlego do camDir
-      (tylko ich rzuty na plaszczyzne wyznaczana przez wektor homeUp beda
-      prostopadle). Musimy do tego uzyc RotateAroundUp. }
     if KeysDown[Key_RightStrafe] then
-      begin RotateAroundUp(-90); MoveHorizontal; RotateAroundUp(90); end;
+      begin RotateHorizontal(-90); MoveHorizontal; RotateHorizontal(90); end;
     if KeysDown[Key_LeftStrafe] then
-      begin RotateAroundUp(90); MoveHorizontal; RotateAroundUp(-90); end;
+      begin RotateHorizontal(90); MoveHorizontal; RotateHorizontal(-90); end;
 
     { A simple implementation of Key_UpMove was
         RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
@@ -1614,6 +1625,14 @@ end;
 function TMatrixWalker.MaxJumpDistance: Single;
 begin
   Result := MaxJumpHeight * CameraPreferredHeight;
+end;
+
+function TMatrixWalker.CameraDirInHomePlane: TVector3Single;
+begin
+  Result := CameraDir;
+
+  if not VectorsParallel(Result, HomeCameraUp) then
+    MakeVectorsAngleOnTheirPlane(Result, HomeCameraUp, 90);
 end;
 
 { global ------------------------------------------------------------ }
