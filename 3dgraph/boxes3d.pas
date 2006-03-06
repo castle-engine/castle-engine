@@ -64,14 +64,17 @@ function IsEmptyBox3d(const Box: TBox3d): boolean;
 function Box3d(const p0, p1: TVector3Single): TBox3d;
 function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
 
-{ These functions calculate the middle point, average size and max size
-  of given bounding box. When given Box is empty (IsEmptyBox3d),
-  they raise some exception.
+{ These functions calculate the middle point, average size, max size
+  and particular sizes of given bounding box.
+  When given Box is empty (IsEmptyBox3d), they raise some exception.
 
   @groupBegin }
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
 function Box3dAvgSize(const Box: TBox3d): Single;
 function Box3dMaxSize(const box: TBox3d): Single;
+function Box3dSizeX(const box: TBox3d): Single;
+function Box3dSizeY(const box: TBox3d): Single;
+function Box3dSizeZ(const box: TBox3d): Single;
 { @groupEnd }
 
 { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by Expand
@@ -242,7 +245,7 @@ end;
 
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
 begin
- Check(not IsEmptyBox3d(Box), 'empty box 3d - no middle point');
+ Check(not IsEmptyBox3d(Box), 'Empty box 3d - no middle point');
  {petla for i := 0 to 2 rozwinieta aby zyskac tycityci na czasie}
  result[0] := (Box[0, 0]+Box[1, 0])/2;
  result[1] := (Box[0, 1]+Box[1, 1])/2;
@@ -251,7 +254,7 @@ end;
 
 function Box3dAvgSize(const Box: TBox3d): Single;
 begin
- Check(not IsEmptyBox3d(Box), 'empty box 3d - no average size');
+ Check(not IsEmptyBox3d(Box), 'Empty box 3d - no average size');
  {korzystamy z faktu ze Box3d ma wierzcholki uporzadkowane
   i w zwiazku z tym w roznicach ponizej nie musimy robic abs() }
  result := ((Box[1, 0]-Box[0, 0]) +
@@ -262,9 +265,27 @@ end;
 function Box3dMaxSize(const box: TBox3d): Single;
 var sizes: TVector3Single;
 begin
- Check(not IsEmptyBox3d(Box), 'empty box 3d - no maximum size');
+ Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
  sizes := Box3dSizes(box);
  result := sizes[MaxVectorCoord(sizes)];
+end;
+
+function Box3dSizeX(const box: TBox3d): Single;
+begin
+  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  Result := Box[1, 0] - Box[0, 0];
+end;
+
+function Box3dSizeY(const box: TBox3d): Single;
+begin
+  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  Result := Box[1, 1] - Box[0, 1];
+end;
+
+function Box3dSizeZ(const box: TBox3d): Single;
+begin
+  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  Result := Box[1, 2] - Box[0, 2];
 end;
 
 function Box3dCubeAroundPoint(const pt: TVector3Single; cubeSize: Single): TBox3d;
