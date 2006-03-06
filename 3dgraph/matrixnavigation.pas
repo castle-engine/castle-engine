@@ -216,10 +216,10 @@ type
     const BecauseOfGravity: boolean): boolean;
 
   { See @link(TMatrixWalker.OnFalledDown). }
-  TFalledDownNotifyFunc = procedure (Navigator: TMatrixNavigator;
+  TFalledDownNotifyFunc = procedure (Navigator: TMatrixWalker;
     const FallenHeight: Single);
 
-  TGetCameraHeight = procedure (Navigator: TMatrixNavigator;
+  TGetCameraHeight = procedure (Navigator: TMatrixWalker;
     var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single);
 
   { Walking (DOOM-like moving) over the model.
