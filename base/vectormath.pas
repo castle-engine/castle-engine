@@ -680,6 +680,8 @@ procedure VectorAdjustToLengthTo1st(var v: TVector3Double; VecLen: Double); over
   (contrary to VectorLenSqr). }
 function VectorLen(const v: TVector3Single): Single; overload;
 function VectorLen(const v: TVector3Double): Double; overload;
+function VectorLen(const v: TVector2Single): Single; overload;
+function VectorLen(const v: TVector2Double): Double; overload;
 function VectorLen(const v: TVector3Byte): Single; overload;
 
 { This returns Sqr(VectorLen(v)). As everyone knows,
@@ -702,6 +704,8 @@ function VectorLen(const v: TVector3Byte): Single; overload;
   value, while VectorLen must return floating-point value. }
 function VectorLenSqr(const v: TVector3Single): Single; overload;
 function VectorLenSqr(const v: TVector3Double): Double; overload;
+function VectorLenSqr(const v: TVector2Single): Single; overload;
+function VectorLenSqr(const v: TVector2Double): Double; overload;
 function VectorLenSqr(const v: TVector3Byte): Integer; overload;
 
 { iloczyn wektorowy dwoch wektorow, czyli wektor prostopadly do nich obu.

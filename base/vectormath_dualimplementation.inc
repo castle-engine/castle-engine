@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -86,12 +86,22 @@ end;
 
 function VectorLen(const v: TYPE_VECTOR3): TYPE_SCALAR;
 begin
- result := Sqrt(VectorLenSqr(v))
+  Result := Sqrt(VectorLenSqr(v));
 end;
 
 function VectorLenSqr(const v: TYPE_VECTOR3): TYPE_SCALAR;
 begin
- result := sqr(v[0]) + sqr(v[1]) + sqr(v[2]);
+  Result := Sqr(v[0]) + Sqr(v[1]) + Sqr(v[2]);
+end;
+
+function VectorLen(const v: TYPE_VECTOR2): TYPE_SCALAR;
+begin
+  Result := Sqrt(VectorLenSqr(v));
+end;
+
+function VectorLenSqr(const v: TYPE_VECTOR2): TYPE_SCALAR;
+begin
+  Result := Sqr(v[0]) + Sqr(v[1]);
 end;
 
 function VectorExpEachPos(const v: TYPE_VECTOR3; const Exp: TYPE_SCALAR): TYPE_VECTOR3;
