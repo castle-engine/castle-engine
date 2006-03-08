@@ -785,20 +785,24 @@ function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 
 { PlaneDirInDirection - taka banalna procedurka - dla zadanego
-    Plane (albo jako PlaneDir albo jako czworka Plane, ale to bez znaczenia
-    bo i tak Plane[3] jest bez znaczenia) zwroci PlaneDir albo -PlaneDir,
-    w zaleznosci od tego w ktora strone Plane wskazuje Direction - to znaczy
-    patrzac na Plane jako na podzial przestrzeni na dwie polprzestrzenie,
-    zwroci taki wektor ze bedzie normalny do plaszczyzny i bedzie wskazywal
-    w ta sama polprzestrzen co Direction.
+  Plane (albo jako PlaneDir albo jako czworka Plane, ale to bez znaczenia
+  bo i tak Plane[3] jest bez znaczenia) zwroci PlaneDir albo -PlaneDir,
+  w zaleznosci od tego w ktora strone Plane wskazuje Direction - to znaczy
+  patrzac na Plane jako na podzial przestrzeni na dwie polprzestrzenie,
+  zwroci taki wektor ze bedzie normalny do plaszczyzny i bedzie wskazywal
+  w ta sama polprzestrzen co Direction.
+
   Jezeli Direction jest rownolegle do Plane (czyli prostopadle do PlaneDir)
-    to zwroci PlaneDir (wtedy powinno byc ci obojetne w ktora strone
-    normal zwroci).
+  to zwroci PlaneDir (wtedy powinno byc ci obojetne w ktora strone
+  normal zwroci).
+
   Zwraca dokladnie PlaneDir lub -PlaneDir, wiec jezeli np. Plane byl
-    znormalizowany to zwrocony PlaneDir lub -PlaneDir tez bedzie.
+  znormalizowany to zwrocony PlaneDir lub -PlaneDir tez bedzie.
+
   PlaneDirNotInDirection dziala jak PlaneDirInDirection(Plane, -Direction).
+
   To jedna z tych funkcji ktorych implementacja jest w dwoch linijkach a komentarz
-    jest duzo dluzszy...  }
+  jest duzo dluzszy...  }
 function PlaneDirInDirection(const Plane: TVector4Single; const Direction: TVector3Single): TVector3Single; overload;
 function PlaneDirInDirection(const PlaneDir, Direction: TVector3Single): TVector3Single; overload;
 function PlaneDirInDirection(const Plane: TVector4Double; const Direction: TVector3Double): TVector3Double; overload;
@@ -891,10 +895,21 @@ function VectorsParallel(const v1, v2: TVector3Double): boolean; overload;
     mimo ze wydaje sie ze razem ze zmiana kolejnosci wektorow powinno
     sie zmienic kat na przeciwny.
   Dlugosc wektora v1 jest zachowywana. }
-procedure MakeVectorsAngleOnTheirPlane(var v1: TVector3Single;
+procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single; AngleDeg: Single); overload;
-procedure MakeVectorsAngleOnTheirPlane(var v1: TVector3Double;
+procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Double;
   const v2: TVector3Double; AngleDeg: Double); overload;
+procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Single;
+  const v2: TVector3Single; AngleRad: Single); overload;
+procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Double;
+  const v2: TVector3Double; AngleRad: Double); overload;
+
+{ This is a shortcut (that may be calculated faster)
+  for MakeVectorsAngleDefOnTheirPlane(v1, v2, 90). }
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
+  const v2: TVector3Single); overload;
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
+  const v2: TVector3Double); overload;
 
 { zwraca wektor prostopadly do v. Jesli v jest niezerowy to wynik tez bedzie
   niezerowy. Uzywa do tego prostej sztuczki : dwa wektory 3d sa prostopadle
@@ -1239,19 +1254,21 @@ function Polygon2dArea(const Verts: array of TVector2Single): Single; overload;
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
 
 { pare funkcji *To*Str --------------------------------------------------------
+
   Funckje ToNiceStr uzywaja FloatToNiceStr ktore robi
-    Format('%'+FloatNiceFormat, [f]) a wiec zmieniajac FloatNiceFormat
-    mozesz kontrolowac z jaka dokladnoscia floaty beda wypisywane.
-    Chcac zachowac pewien luz nie zamierzam okreslac dokladnie w interfejsie
-    tego modulu w jaki sposob te funkcje wypisuja dany typ. Funkcje ktore
-    moga zwracac string z newline'ami mozesz rozpoznac po parametrze
-    "LineIndent" - takie funkcje nie umieszczaja nigdy nl na samym koncu i
-    poczatku stringa !
+  Format('%'+FloatNiceFormat, [f]) a wiec zmieniajac FloatNiceFormat
+  mozesz kontrolowac z jaka dokladnoscia floaty beda wypisywane.
+  Chcac zachowac pewien luz nie zamierzam okreslac dokladnie w interfejsie
+  tego modulu w jaki sposob te funkcje wypisuja dany typ. Funkcje ktore
+  moga zwracac string z newline'ami mozesz rozpoznac po parametrze
+  "LineIndent" - takie funkcje nie umieszczaja nigdy nl na samym koncu i
+  poczatku stringa !
+
   Funkcja FloatToRawStr wypisuje dokladna wartosc floata, uzywajac notacji
-     wykladniczej jesli trzeba. Funkcje ToRawStr uzywaja FloatToRawStr
-     i wypisuja po prostu ciag liczb rozdzielonych spacjami.
-     W ten sposob sa one dobre jesli chcesz
-     zapisac dokladna wartosc wektora czy czegos w pliku.
+  wykladniczej jesli trzeba. Funkcje ToRawStr uzywaja FloatToRawStr
+  i wypisuja po prostu ciag liczb rozdzielonych spacjami.
+  W ten sposob sa one dobre jesli chcesz
+  zapisac dokladna wartosc wektora czy czegos w pliku.
 }
 
 var FloatNiceFormat: string = 'f';
@@ -1310,32 +1327,42 @@ function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
 function MatrixDet2x2(const a, b, c, d: Single): Single;
 
 { TransformTo/FromCoords zamieniaja uklad wspolrzednych - punkty przemnozone
-    przez te macierze beda mogly byc podawane w innym ukladzie wspolrzednych
-    i mnozenie przez ta macierz bedzie je tlumaczylo na nasz uklad wspolrzednych.
+  przez te macierze beda mogly byc podawane w innym ukladzie wspolrzednych
+  i mnozenie przez ta macierz bedzie je tlumaczylo na nasz uklad wspolrzednych.
+
   Parametry New/Old X/Y/Z/Origin podaja jak sie ma nowy uklad wspolrzednych
-    (punktow mnozonych przez ta macierz) do oryginalnego ukladu wspolrzednych
-    (tzn. tego w ktorym bedziemy dostawac wyniki mnozenia <ta macierz> * <punkt>.
+  (punktow mnozonych przez ta macierz) do oryginalnego ukladu wspolrzednych
+  (tzn. tego w ktorym bedziemy dostawac wyniki mnozenia <ta macierz> * <punkt>.
+
   Roznica miedzy To a From polega na tym jak podajemy parametry :
-  W wersji To parametry New* podaja jak wyglada nowy uklad wsporzednych
-    widziany w punktu widzenia starego. Tzn. to co w starym (oryginalnym)
-    ukladzie wspolrzednych jest widoczne jako NewOrigin bedzie w nowym
-    ukladzie widoczne (0, 0, 0). To co w oryginalnym ukladzie jest NewY
-    bedzie w nowym ukldzie (1, 0, 0) itd. (NewZ bedzie (0, 0, 1) wiec mozesz
-    zauwazyc ze te procedury sa zupelnie nieczule na to z jakim ukladem
-    (prawo- czy lewo- skretnym) masz do czynienia).
-  W wersji From parametry Old* mowia na odwrot: jak jest widziany stary
-    (oryginalny) uklad z punktu widzenia starego : to co w oryginalnym
-    ukldzie jest punktem (0, 0, 0) bedzie musialo byc w nowym ukladzie wyrazone
-    jako OldOrigin itd.
-    Wersje From pozwalaja w naturalny sposob implementowac funkcje w rodzaju
-    LookAtMatrix (bo w nich tez podajac np. pozycje kamery podajemy tak
-    naprawde ze ma byc zrobiona taka transformacja zeby punkt = pozycja kamery
-    stal sie punktem 0, 0, 0 w oryginalnym ukladzie)
+  @unorderedList(
+    @item(
+      W wersji To parametry New* podaja jak wyglada nowy uklad wsporzednych
+      widziany w punktu widzenia starego. Tzn. to co w starym (oryginalnym)
+      ukladzie wspolrzednych jest widoczne jako NewOrigin bedzie w nowym
+      ukladzie widoczne (0, 0, 0). To co w oryginalnym ukladzie jest NewY
+      bedzie w nowym ukldzie (1, 0, 0) itd. (NewZ bedzie (0, 0, 1) wiec mozesz
+      zauwazyc ze te procedury sa zupelnie nieczule na to z jakim ukladem
+      (prawo- czy lewo- skretnym) masz do czynienia).)
+
+    @item(
+      W wersji From parametry Old* mowia na odwrot: jak jest widziany stary
+      (oryginalny) uklad z punktu widzenia starego : to co w oryginalnym
+      ukldzie jest punktem (0, 0, 0) bedzie musialo byc w nowym ukladzie wyrazone
+      jako OldOrigin itd.
+
+      Wersje From pozwalaja w naturalny sposob implementowac funkcje w rodzaju
+      LookAtMatrix (bo w nich tez podajac np. pozycje kamery podajemy tak
+      naprawde ze ma byc zrobiona taka transformacja zeby punkt = pozycja kamery
+      stal sie punktem 0, 0, 0 w oryginalnym ukladzie).)
+  )
+
   W kwestii opcjonalnego [NoScale] w nazwie : TAK, dlugosci wektorow
-    Old/NewX/Y/Z sa wazne - one beda odpowiadac wektorom (1, 0, 0), (0, 1, 0) i (0, 0, 1)
-    a wiec wektorom jednostkowym. W ten sposob mozna wiec zrobic skalowanie.
+  Old/NewX/Y/Z sa wazne - one beda odpowiadac wektorom (1, 0, 0), (0, 1, 0) i (0, 0, 1)
+  a wiec wektorom jednostkowym. W ten sposob mozna wiec zrobic skalowanie.
+
   Uzyj wersji NoScale aby wektory Old/NewX/Y/Z byly automatycznie
-    normalizowane, w ten sposob nie bedzie skalowania. }
+  normalizowane, w ten sposob nie bedzie skalowania. }
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3Single): TMatrix4Single; overload;
 function TransformToCoordsMatrix(const NewOrigin,
@@ -1355,13 +1382,15 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Double): TMatrix4Single; overload;
 
 { LookAt/Dir dzialaja zgodnie z prawoskretnym ukladem wspolrz.
-    Transformuja scene tak zeby kamera z punktu (0, 0, 0) patrzaca w kierunku
-    (0, 0, -1) i o pionie (0, 1, 0) widziala taka scene jakby stala w miejscu
-    Eye sceny, patrzyla na punkt Center sceny (lub wzdluz kierunku Dir)
-    i miala wektor pionu Up.
+  Transformuja scene tak zeby kamera z punktu (0, 0, 0) patrzaca w kierunku
+  (0, 0, -1) i o pionie (0, 1, 0) widziala taka scene jakby stala w miejscu
+  Eye sceny, patrzyla na punkt Center sceny (lub wzdluz kierunku Dir)
+  i miala wektor pionu Up.
+
   Podobnie jak w gluLookAt i jak w wielu moich funkcjach tak i tutaj nie
-    musisz podawac up prostopadlego do Dir (albo do Center-Eye).
-    W razie potrzeby funkcja sobie wewnetrznie poprawi Up.
+  musisz podawac up prostopadlego do Dir (albo do Center-Eye).
+  W razie potrzeby funkcja sobie wewnetrznie poprawi Up.
+
   Dlugosci Dir i Up nie maja znaczenia (podobnie jak odleglosc Center-Eye). }
 function LookAtMatrix(const Eye, Center, Up: TVector3Single): TMatrix4Single; overload;
 function LookAtMatrix(const Eye, Center, Up: TVector3Double): TMatrix4Single; overload;
@@ -2617,7 +2646,7 @@ var
 begin
  InsidePlanesCount := 0;
 
- { The login goes like this:
+ { The logic goes like this:
      if sphere is on the "outside" of *any* of 6 planes, result is NoCollision
      if sphere is on the "inside" of *all* 6 planes, result is InsideFrustum
      else SomeCollisionPossible.

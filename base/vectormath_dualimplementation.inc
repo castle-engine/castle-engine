@@ -453,21 +453,41 @@ begin
            FloatsEqual(v1[c2] * Scale, v2[c2]);
 end;
 
-procedure MakeVectorsAngleOnTheirPlane(var v1: TYPE_VECTOR3;
+procedure MakeVectorsAngleDegOnTheirPlane(var v1: TYPE_VECTOR3;
   const v2: TYPE_VECTOR3; AngleDeg: TYPE_SCALAR);
 var rotAxis: TYPE_VECTOR3;
     v1len: TYPE_SCALAR;
 begin
- (* dostosuj v1 tak zeby pomiedzy nim o wektorem v2 =
-    byl kat AngleDeg. Robimy to tak : v1 i v2 wyznaczaja plaszczyzne,
-    czyli jej wektor normalny rotAxis. Potem obroc wektor v2 o -Angle wokol
-    rotAxis - otrzymasz szukany wektor lezacy na tej samej plaszczyznie
-    co v2. Muisz obrocic o -Angle bo w interfejsie piszemy ze chcemy
-    miec sytuacje gdzie z obrot v1 wokol VectorProduct(v1, v2) da v2
-    a my tutaj obracamy przeciez v2. *)
- v1len := VectorLen(v1);
- rotAxis := VectorProduct(v1, v2);
- v1 := VectorAdjustToLength(RotatePointAroundAxisDeg(-AngleDeg, v2, rotAxis), v1len);
+  (* dostosuj v1 tak zeby pomiedzy nim o wektorem v2 =
+     byl kat AngleDeg. Robimy to tak : v1 i v2 wyznaczaja plaszczyzne,
+     czyli jej wektor normalny rotAxis. Potem obroc wektor v2 o -Angle wokol
+     rotAxis - otrzymasz szukany wektor lezacy na tej samej plaszczyznie
+     co v2. Muisz obrocic o -Angle bo w interfejsie piszemy ze chcemy
+     miec sytuacje gdzie z obrot v1 wokol VectorProduct(v1, v2) da v2
+     a my tutaj obracamy przeciez v2. *)
+  v1len := VectorLen(v1);
+  rotAxis := VectorProduct(v1, v2);
+  v1 := VectorAdjustToLength(
+    RotatePointAroundAxisDeg(-AngleDeg, v2, rotAxis), v1len);
+end;
+
+procedure MakeVectorsAngleRadOnTheirPlane(var v1: TYPE_VECTOR3;
+  const v2: TYPE_VECTOR3; AngleRad: TYPE_SCALAR);
+var rotAxis: TYPE_VECTOR3;
+    v1len: TYPE_SCALAR;
+begin
+  v1len := VectorLen(v1);
+  rotAxis := VectorProduct(v1, v2);
+  v1 := VectorAdjustToLength(
+    RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
+end;
+
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TYPE_VECTOR3;
+  const v2: TYPE_VECTOR3);
+begin
+  { TODO: can we speed this up ?
+    For Pi/2, we can do just v1 := VectorProduct of sthg and adjust v1 length. }
+  MakeVectorsAngleRadOnTheirPlane(v1, v2, Pi/2);
 end;
 
 function AnyPerpVector(const v: TYPE_VECTOR3): TYPE_VECTOR3;
