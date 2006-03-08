@@ -37,6 +37,7 @@ const
   DefaultHeadBobbing = 0.0;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
+  DefaultMinAngleRadFromHomeUp = { 10 degress } Pi / 18;
 
 type
   { }
@@ -253,6 +254,8 @@ type
     FKey_Jump: TKey;
     FKey_Crouch: TKey;
 
+    FMinAngleRadFromHomeUp: Single;
+
     { Private things related to frustum ---------------------------- }
 
     FProjectionMatrix: TMatrix4Single;
@@ -434,8 +437,10 @@ type
       respect to current CameraUp (that can be different than HomeCameraUp,
       e.g. after using Key_UpRotate, Key_DownRotate --- raise / bow your head).
       Currently this affects horizontal moving (forward, backward, strafe),
-      rotations (keys Key_LeftRot and Key_RightRot)
+      horizontal rotations (keys Key_LeftRot and Key_RightRot)
       and vertical moving (keys Key_UpMove and Key_DownMove).
+      Also vertical rotations are bounded by MinAngleRadFromHomeUp
+      when PreferHomeUp.
 
       Polish: W rezultacie przy PreferHomeUp poczucie pionu
       jest jakby silniejsze dla usera bo nawet jesli zadziera/pochyla glowe
@@ -501,6 +506,21 @@ type
     procedure Init(const box: TBox3d; const ACameraRadius: Single); overload;
 
     procedure Home;
+
+    { This sets the minimal angle (in radians) between HomeCameraUp
+      and CameraDir, and also between -HomeCameraUp and CameraDir.
+      This way vertical rotations (like Key_UpRotate,
+      Key_DownRotate) are "bounded" to not allow player to do something
+      strange, i.e. bow your head too much and raise your head too much.
+
+      This is used only when PreferHomeUp is @true and when it's <> 0.0.
+
+      This must be always between 0 and Pi/2. Value of Pi/2 will effectively
+      disallow vertical rotations (although you should rather do this in
+      a "cleaner way" by setting Key_UpRotate and Key_DownRotate to K_None). }
+    property MinAngleRadFromHomeUp: Single
+      read FMinAngleRadFromHomeUp write FMinAngleRadFromHomeUp
+      default DefaultMinAngleRadFromHomeUp;
 
     { Things related to frustum ---------------------------------------- }
 
@@ -919,6 +939,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FCrouchHeight := DefaultCrouchHeight;
   FMaxJumpHeight := DefaultMaxJumpHeight;
+  FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
 
   Key_Forward := K_Up;
   Key_Backward := K_Down;
@@ -1063,7 +1084,7 @@ var
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
-    
+
     if PreferHomeUp then
       Direction := CameraDirInHomePlane else
       Direction := CameraDir;
@@ -1127,13 +1148,54 @@ var
   end;
 
   procedure RotateVertical(AngleDeg: Single);
-  var Side: TVector3Single;
+  var
+    Side: TVector3Single;
+    AngleRad: Single;
+
+    procedure DoRealRotate;
+    begin
+      { Rotate CameraUp around Side }
+      FCameraUp := RotatePointAroundAxisRad(AngleRad, CameraUp,  Side);
+      { Rotate CameraDir around Side }
+      FCameraDir := RotatePointAroundAxisRad(AngleRad, CameraDir, Side);
+    end;
+
+  var
+    AngleRadBetween: Single;
   begin
-   Side := VectorProduct(CameraDir, CameraUp);
-   {obroc cameraDir i Up wokolo wektora Side}
-   FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Side);
-   FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp,  Side);
-   MatrixChanged;
+    AngleRad := DegToRad(AngleDeg);
+
+    if PreferHomeUp and (MinAngleRadFromHomeUp <> 0.0) then
+    begin
+      Side := VectorProduct(CameraDir, HomeCameraUp);
+      if IsZeroVector(Side) then
+      begin
+        { Brutally adjust CameraDir and CameraUp to be correct.
+          This should happen only if your code was changing values of
+          PreferHomeUp and MinAngleRadFromHomeUp at runtime.
+          E.g. first you let CameraDir and CameraUp to be incorrect,
+          and then you set PreferHomeUp to @true and MinAngleRadFromHomeUp
+          to > 0 --- and suddenly we find that CameraUp can be temporarily bad. }
+        FCameraDir := HomeCameraDir;
+        FCameraUp := HomeCameraUp;
+      end else
+      begin
+        { Calculate AngleRadBetween, and possibly adjust AngleRad. }
+        AngleRadBetween := AngleRadBetweenVectors(CameraDir, HomeCameraUp);
+        if AngleRadBetween - AngleRad < MinAngleRadFromHomeUp then
+          AngleRad := AngleRadBetween - MinAngleRadFromHomeUp else
+        if AngleRadBetween - AngleRad > Pi - MinAngleRadFromHomeUp then
+          AngleRad := AngleRadBetween - (Pi - MinAngleRadFromHomeUp);
+
+        DoRealRotate;
+      end;
+    end else
+    begin
+      Side := VectorProduct(CameraDir, CameraUp);
+      DoRealRotate;
+    end;
+
+    MatrixChanged;
   end;
 
   procedure CheckRotates(SpeedScale: Single);
@@ -1444,7 +1506,8 @@ begin
       Similarly, simple implementation of Key_DownMove was
         RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
       But this is not good, because when PreferHomeUp, we want to move along the
-      CameraHomeUp. }
+      CameraHomeUp. (Also later note: RotateVertical is now bounded by
+      MinAngleRadFromHomeUp). }
     if KeysDown[Key_UpMove] then
       MoveVertical( 1);
     if KeysDown[Key_DownMove] then
@@ -1568,7 +1631,7 @@ begin
  FHomeCameraPos := AHomeCameraPos;
  FHomeCameraDir := AHomeCameraDir;
  FHomeCameraUp := AHomeCameraUp;
- MakeVectorsAngleOnTheirPlane(FHomeCameraUp, FHomeCameraDir, 90);
+ MakeVectorsOrthoOnTheirPlane(FHomeCameraUp, FHomeCameraDir);
  MatrixChanged;
 end;
 
@@ -1588,14 +1651,14 @@ end;
 procedure TMatrixWalker.SetCameraDir(const Value: TVector3Single);
 begin
  FCameraDir := Value;
- MakeVectorsAngleOnTheirPlane(FCameraUp, FCameraDir, 90);
+ MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
  MatrixChanged;
 end;
 
 procedure TMatrixWalker.SetCameraUp(const Value: TVector3Single);
 begin
  FCameraUp := Value;
- MakeVectorsAngleOnTheirPlane(FCameraDir, FCameraUp, 90);
+ MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
  MatrixChanged;
 end;
 
@@ -1632,7 +1695,7 @@ begin
   Result := CameraDir;
 
   if not VectorsParallel(Result, HomeCameraUp) then
-    MakeVectorsAngleOnTheirPlane(Result, HomeCameraUp, 90);
+    MakeVectorsOrthoOnTheirPlane(Result, HomeCameraUp);
 end;
 
 { global ------------------------------------------------------------ }
