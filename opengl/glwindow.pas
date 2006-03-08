@@ -1936,9 +1936,9 @@ type
       dla dwa razy wolniejszego FpsCompSpeed = 2.0, i tak dalej
       - FpsCompSpeed jest odwrotnie proporcjonalne do "chwilowego FpsFrameTime".
 
-      FpsCompSpeed is @italic(not) clamped in any way to some "sensible range"
-      (it used to be clamped to (1.0, 100.0) but that was just bad idea).
       FpsCompSpeed just measures how much rendering last frame lasted.
+      In other words, this is the amount the time that elapsed
+      during rendering of last frame, where "50" is equivalent to "1 second".
 
       Uzyteczne do robienia czegos time-based, przede wszystkim w OnIdle.
       (Zmiana wszystkich zmiennych w OnIdle powinna byc time-based,
