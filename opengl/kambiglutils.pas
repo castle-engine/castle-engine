@@ -889,8 +889,16 @@ procedure KamGLPolygonStipple(mask: PPolygonStipple);
 
 procedure SetGLEnabled(value: TGLenum; isEnabled: boolean);
 
-{ glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd; }
+{ Draw vertical line using OpenGL.
+  This is just a shortcut for
+  @longCode(#
+    glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
+  #) }
 procedure VerticalGLLine(x, y1, y2: TGLfloat);
+
+{ Draw horizontal line using OpenGL.
+  @seealso VerticalGLLine }
+procedure HorizontalGLLine(x1, x2, y: TGLfloat);
 
 { DrawGLBorderedRectangle :
   Rysuje prostokat, wypelniony (GL_POLYGON) jednym kolorem i obrysowany
@@ -1906,6 +1914,11 @@ end;
 procedure VerticalGLLine(x, y1, y2: TGLfloat);
 begin
  glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
+end;
+
+procedure HorizontalGLLine(x1, x2, y: TGLfloat);
+begin
+ glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
 end;
 
 {$define DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION:=
