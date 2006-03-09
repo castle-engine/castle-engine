@@ -114,6 +114,7 @@
       If you will pass here text as TStringList object, you can
       be sure that contents of this object will *not* be modified
       in any way.)
+  )
 
   Call MessageXxx functions only when glwin.Closed = false.
   Note that MessageXxx will do glwin.MakeCurrent (probably more than once).
