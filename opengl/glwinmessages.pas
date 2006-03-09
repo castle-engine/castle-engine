@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -68,7 +68,6 @@
   jest poprawne i skuteczne, a przy tym proste.
 
   Ladne rzeczy zrobione :
-  - stringi sa automatycznie lamane (jesli okienko bedzie za waskie)
   - user moze resizowac okienko gdy jest  wyswietlane message
     (o ile ResizeAllowed = raAllowed, oczywiscie) i stringi beda automatycznie
     przelamanane na nowo, takze stringi Additional i ClosingInfo beda lamane !
@@ -86,6 +85,39 @@
   implements glwm.ProcessMessage routine. For now this means
   that GLWindow unit must not work on top of glut (GLWINDOW_GLUT
   must not be defined while compiling GLWindow).
+
+  Comments for all MessageXxx functions:
+
+  In the text given as parameter (as "const s: string"):
+  @unorderedList(
+    @item(
+      New line characters (specified e.g. as @link(KambiUtils.nl))
+      inside string will be properly
+      handled, i.e. they will force new line when displaying.
+
+      Remember that if text consists many lines, it's better to pass
+      it as "array of string" (instead of one string with newlines inside).
+      (Note that when passing "array of string" it's undefined whether
+      newline characters inside strings will be properly handled !).)
+
+    @item(
+      When displaying text we will always break long lines that don't
+      fit in the window. We will try to break text only at spaces
+      and tab characters. This will work correctly for all fonts
+      (see @link(MessageFont) variable), even if font is not
+      fixed-character-width font.
+
+      So don't worry about breaking long text lines,
+      this unit will handle it.)
+
+    @item(
+      If you will pass here text as TStringList object, you can
+      be sure that contents of this object will *not* be modified
+      in any way.)
+
+  Call MessageXxx functions only when glwin.Closed = false.
+  Note that MessageXxx will do glwin.MakeCurrent (probably more than once).
+  Calling MessageXxx requires one free place on OpenGL attrib stack.
 *)
 
 unit GLWinMessages;
@@ -108,52 +140,25 @@ type
     @link(GLWinMessages) unit. }
   TTextAlign = (taLeft, taMiddle, taRight);
 
-{ Comments for all MessageXxx functions:
-
-  In the text given as parameter (as "const s: string"):
-  - New line characters (KambiUtils.nl) inside string will be properly
-    handled, i.e. they will force new line when displaying.
-
-    Remember that if text consists many lines, it's better to pass
-    it as "array of string" (instead of one string with newlines inside).
-    (Note that when passing "array of string" it's undefined whether
-    newline characters inside strings will be properly handled !)
-
-  - When displaying text we will always break long lines that don't
-    fit in the window. We will try to break text only at spaces
-    and tab characters. This will work correctly for all fonts
-    (see @link(MessageFont) variable), even if font is not
-    fixed-character-width font.
-
-  - If you will pass here text as TStringList object, you can
-    be sure that contents of this object will *not* be modified
-    in any way.
-
-  pl: Wszystkie parametry wszystkiego sa chyba jasne.
-  Call MessageXxx functions only when glwin.Closed = false.
-  Note that MessageXxx will do glwin.MakeCurrent (probably more than
-  once).
-  Calling MessageXxx requires one free place on OpenGL attrib stack. }
-
 procedure MessageOK(glwin: TGLWindow; const s: string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}); overload;
+  textalign: TTextAlign = taMiddle); overload;
 procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}); overload;
+  textalign: TTextAlign = taMiddle); overload;
 procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}); overload;
+  textalign: TTextAlign = taMiddle); overload;
 
 function MessageInput(glwin: TGLWindow; const s: string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif};
-  const answerDefault: string {$ifdef DEFPARS} = ''{$endif};
-  answerMinLen: integer {$ifdef DEFPARS} = 0{$endif};
-  answerMaxLen: integer {$ifdef DEFPARS} = 0{$endif}; { 0 oznacza ze nie ma maxLen }
-  const answerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif} ): string; overload;
+  textalign: TTextAlign = taMiddle;
+  const answerDefault: string = '';
+  answerMinLen: integer = 0;
+  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  const answerAllowedChars: TSetOfChars = AllChars): string; overload;
 function MessageInput(glwin: TGLWindow; textlist: TStringList;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif};
-  const answerDefault: string {$ifdef DEFPARS} = ''{$endif};
-  answerMinLen: integer {$ifdef DEFPARS} = 0{$endif};
-  answerMaxLen: integer {$ifdef DEFPARS} = 0{$endif}; { 0 oznacza ze nie ma maxLen }
-  const answerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif} ): string; overload;
+  textalign: TTextAlign = taMiddle;
+  const answerDefault: string = '';
+  answerMinLen: integer = 0;
+  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  const answerAllowedChars: TSetOfChars = AllChars): string; overload;
 
 { MessageInputQuery pozwala wyjsc userowi przez escape, w przeciwienstwie
   do MessageInput. MessageInputQuery zwraca true i ustawia odpowiednio wartosc answer
@@ -163,34 +168,34 @@ function MessageInput(glwin: TGLWindow; textlist: TStringList;
   zmiennej answer spelnia ta role. }
 function MessageInputQuery(glwin: TGLWindow; const s: string;
   var answer: string; textalign: TTextAlign;
-  answerMinLen: integer {$ifdef DEFPARS} = 0{$endif};
-  answerMaxLen: integer {$ifdef DEFPARS} = 0{$endif}; { 0 oznacza ze nie ma maxLen }
-  const answerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif} ): boolean; overload;
+  answerMinLen: integer = 0;
+  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
 function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
-  answerMinLen: integer {$ifdef DEFPARS} = 0{$endif};
-  answerMaxLen: integer {$ifdef DEFPARS} = 0{$endif}; { 0 oznacza ze nie ma maxLen }
-  const answerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif} ): boolean; overload;
+  answerMinLen: integer = 0;
+  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
 
 function MessageChar(glwin: TGLWindow; const s: string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string; { = '' oznacza ze nie ma (nie wypisywac) closing info }
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): char; overload;
+  textalign: TTextAlign = taMiddle): char; overload;
 function MessageChar(glwin: TGLWindow;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): char; overload;
+  textalign: TTextAlign = taMiddle): char; overload;
 function MessageChar(glwin: TGLWindow;  textlist: TStringList;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): char; overload;
+  textalign: TTextAlign = taMiddle): char; overload;
 
 function MessageYesNo(glwin: TGLWindow; const s: string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): boolean; overload;
+  textalign: TTextAlign = taMiddle): boolean; overload;
 function MessageYesNo(glwin: TGLWindow;  const SArray: array of string;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): boolean; overload;
+  textalign: TTextAlign = taMiddle): boolean; overload;
 function MessageYesNo(glwin: TGLWindow;  textlist: TStringList;
-  textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif}): boolean; overload;
+  textalign: TTextAlign = taMiddle): boolean; overload;
 
 { MessageInputCardinal : taki maly skrot do MessageInput z answerMinLength = 1
   i AllowedChars = ['0'..'9']. Taka konfiguracja wymusza na userze wprowadzenie
@@ -280,7 +285,7 @@ uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
 const
   DrawMessg_BoxMargin = 10;
   DrawMessg_WindMargin = 10;
-  DrawMessg_ScrollBarWholeWidth = 14;
+  DrawMessg_ScrollBarWholeWidth = 20;
 
 { TMessageData ------------------------------------------------------------ }
 
@@ -303,12 +308,13 @@ type
     { Maximum of Font.MaxTextWidth(Broken_Xxx) for all visible Broken_Xxx.
       Calculated in every ResizeMessg. }
     MaxLineWidth: integer;
-    { Sum of all visible Broken_Xxx.Count.
-      Calculated in every ResizeMessg.  }
-    AllLinesCount: integer;
-    { linie w calosci widoczne na ekranie (przydatne do obslugi page up / down).
+    { Sum of all Broken_MessgText.Count + Broken_SAdditional.Count.
+      In other words, all lines that are scrolled by the scrollbar. }
+    AllScrolledLinesCount: integer;
+    { linie w calosci widoczne na ekranie (przydatne do obslugi page up / down),
+      sposrod linii scrolled by the scrollbar (MessgText and SAdditional).
       Calculated in every ResizeMessg. }
-    VisibleLinesCount: integer;
+    VisibleScrolledLinesCount: integer;
 
     { shiftY = o ile pixeli w gore przesunac caly napis. Przechowywane w
       formacie float zeby umozliwic time-based zmiane w idleMessg.
@@ -319,15 +325,18 @@ type
     property FloatShiftY: Single read FFloatshiftY;
     procedure SetFloatShiftY(glwin: TGLWindow; newValue: Single);
 
-    minShiftY, maxShiftY: integer;   { minimalne i maksymalne sensowne wartosci dla shiftY }
-    notprettyMaxShiftY: integer;     { normalne min/maxShiftY dba zeby na ekranie zawsze
-                 bylo mozliwie duzo linii, zeby nie bylo tak ze zostaje na samym dole ekranu
-                 tylko malo linii poczatkowych linii albo tylko malo koncowych linii
-                 na samej gorze ekranu a reszta recta jest pusta.
-                 Zakres minShiftY .. notprettyMaxShiftY zmienia ten punkt widzenia.
-                 W ten sposob minShiftY w tym zakresie jest proporcjonalne to
-                 pozycji pierwszej widocznej linii w AllLinesCount.
-                 (co jest nam potrzebne przy rysowaniu ScrollBara) }
+    { minimalne i maksymalne sensowne wartosci dla shiftY }
+    minShiftY, maxShiftY: integer;
+
+    { normalne min/maxShiftY dba zeby na ekranie zawsze
+      bylo mozliwie duzo linii, zeby nie bylo tak ze zostaje na samym dole ekranu
+      tylko malo linii poczatkowych linii albo tylko malo koncowych linii
+      na samej gorze ekranu a reszta recta jest pusta.
+      Zakres minShiftY .. notprettyMaxShiftY zmienia ten punkt widzenia.
+      W ten sposob minShiftY w tym zakresie jest proporcjonalne to
+      pozycji pierwszej widocznej linii w AllScrolledLinesCount.
+      (co jest nam potrzebne przy rysowaniu ScrollBara) }
+    notprettyMaxShiftY: integer;
 
     { rzeczy zwiazane ze ScrollBarem; na poczatku ScrollBarVisible := false;
       potem jest uaktualniane w drawMessg na false lub true;
@@ -367,6 +376,12 @@ type
     procedure SetSAdditional(glwin: TGLWindow; const value: string);
 
     UserData: Pointer;
+
+    { Calculate height in pixels needed to draw ClosingInfo.
+      Returns 0 if ClosingInfo = ''. Uses ClosingInfo and Broken_ClosingInfo
+      (and of course Font), so be sure to init these things before
+      calling this. }
+    function ClosingInfoBoxHeight: Integer;
   end;
 
 function TMessageData.ShiftY: integer;
@@ -391,12 +406,25 @@ begin
  glwin.EventResize; { zeby zlamal SAdditional }
 end;
 
+function TMessageData.ClosingInfoBoxHeight: Integer;
+begin
+  if ClosingInfo <> '' then
+  begin
+    Result := 2 * DrawMessg_BoxMargin +
+      Font.RowHeight * Broken_ClosingInfo.Count +
+      1 { width of horizontal line };
+  end else
+    Result := 0;
+end;
+
 { GLWinMessage callbacks -------------------------------------------------- }
 
 procedure ResizeMessg(glwin: TGLWindow);
-var md: TMessageData;
-    { width at which we should break our string lists md.Broken_Xxx }
-    BreakWidth: integer;
+var
+  MD: TMessageData;
+  { width at which we should break our string lists md.Broken_Xxx }
+  BreakWidth: integer;
+  WindowScrolledHeight: Integer;
 begin
  glViewport(0, 0, glwin.Width, glwin.Height);
  ProjectionGLOrtho(0, glwin.Width, 0, glwin.Height);
@@ -412,22 +440,20 @@ begin
 
  with md do
  begin
-  { evaluate MaxLineWidth and AllLinesCount }
+  { evaluate MaxLineWidth and AllScrolledLinesCount }
 
   { evaluate Broken_MessgText }
   Broken_MessgText.Clear;
   font.BreakLines(MessgText, Broken_MessgText,  BreakWidth);
   MaxLineWidth := font.MaxTextWidth(Broken_MessgText);
-  AllLinesCount := Broken_MessgText.count;
+  AllScrolledLinesCount := Broken_MessgText.count;
 
   if ClosingInfo <> '' then
   begin
    { evaluate Broken_ClosingInfo }
    Broken_ClosingInfo.Clear;
    Font.BreakLines(ClosingInfo, Broken_ClosingInfo, BreakWidth);
-   if Broken_ClosingInfo.count = 0 then Broken_ClosingInfo.Add('');
    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_ClosingInfo));
-   AllLinesCount := AllLinesCount + Broken_ClosingInfo.count;
   end;
 
   if DrawAdditional then
@@ -435,29 +461,41 @@ begin
    { evaluate Broken_SAdditional }
    Broken_SAdditional.Clear;
    Font.BreakLines(SAdditional, Broken_SAdditional, BreakWidth);
+   { It's our intention that if DrawAdditional then *always*
+     at least 1 line of additional (even if it's empty) will be shown.
+     That's because SAdditional is the editable text for the user,
+     so there should be indication of "empty line". }
    if Broken_SAdditional.count = 0 then Broken_SAdditional.Add('');
    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_SAdditional));
-   AllLinesCount := AllLinesCount + Broken_SAdditional.count;
+   AllScrolledLinesCount += Broken_SAdditional.count;
   end;
 
-  { Now we have MaxLineWidth and AllLinesCount calculated }
+  { Now we have MaxLineWidth and AllScrolledLinesCount calculated }
 
-  { evaluate VisibleLinesCount, ScrollBarVisible }
-  VisibleLinesCount := Clamped(
-    (glwin.Height -DrawMessg_BoxMargin*2
-                  -DrawMessg_WindMargin*2) div Font.RowHeight,
-    0, AllLinesCount);
-  ScrollBarVisible := VisibleLinesCount < AllLinesCount;
+  { Calculate WindowScrolledHeight --- number of pixels that are controlled
+    by the scrollbar. }
+  WindowScrolledHeight := glwin.Height
+    - DrawMessg_BoxMargin * 2
+    - DrawMessg_WindMargin * 2
+    - ClosingInfoBoxHeight;
+
+  { evaluate VisibleScrolledLinesCount, ScrollBarVisible }
+
+  VisibleScrolledLinesCount := Clamped(WindowScrolledHeight div Font.RowHeight,
+    0, AllScrolledLinesCount);
+  ScrollBarVisible := VisibleScrolledLinesCount < AllScrolledLinesCount;
   { if ScrollBarVisible changed from true to false then we must make
     sure that ScrollBarDragging is false. }
   if not ScrollBarVisible then
    ScrollBarDragging := false;
 
-  minShiftY := - Font.RowHeight * (AllLinesCount-VisibleLinesCount);
-  maxShiftY := 0; { maxShiftY jest stale ale to nic; wszystko bedziemy pisac
-     tak jakby maxShiftY tez moglo sie zmieniac - byc moze kiedys zrobimy
-     z tej mozliwosci uzytek. }
-  notprettyMaxShiftY := minShiftY + Font.RowHeight*AllLinesCount;
+  minShiftY := -Font.RowHeight *
+    (AllScrolledLinesCount - VisibleScrolledLinesCount);
+  { maxShiftY jest stale ale to nic; wszystko bedziemy pisac
+    tak jakby maxShiftY tez moglo sie zmieniac - byc moze kiedys zrobimy
+    z tej mozliwosci uzytek. }
+  maxShiftY := 0;
+  notprettyMaxShiftY := minShiftY + Font.RowHeight * AllScrolledLinesCount;
 
   { min / maxShift mogly sie zmienic wiec trzeba sie upewnic ze shiftY ciagle jest
     w odpowiednim zakresie }
@@ -466,12 +504,15 @@ begin
 end;
 
 procedure KeyDownMessg(glwin: TGLWindow; key: TKey; c: char);
-var md: TMessageData;
+var
+  md: TMessageData;
+  PageHeight: Single;
 begin
  md := TMessageData(glwin.userdata);
+ PageHeight := md.VisibleScrolledLinesCount * md.Font.RowHeight;
  case key of
-  K_PgUp:   md.setFloatShiftY(glwin, md.shiftY-md.VisibleLinesCount*md.Font.RowHeight);
-  K_PgDown: md.setFloatShiftY(glwin, md.shiftY+md.VisibleLinesCount*md.Font.RowHeight);
+  K_PgUp:   md.setFloatShiftY(glwin, md.shiftY - PageHeight);
+  K_PgDown: md.setFloatShiftY(glwin, md.shiftY + PageHeight);
   K_Home:   md.setFloatShiftY(glwin, md.minShiftY);
   K_End:    md.setFloatShiftY(glwin, md.maxShiftY);
   else
@@ -614,11 +655,10 @@ begin
    IntRect(0, 0, glwin.Width, glwin.Height),
    Min(md.MaxLineWidth + BoxMargin*2 + RealScrollBarWholeWidth,
      glwin.Width - WindMargin*2),
-   Min(md.AllLinesCount * md.Font.RowHeight + BoxMargin * 2,
+   Min(MD.AllScrolledLinesCount * MD.Font.RowHeight +
+       BoxMargin * 2 +
+       MD.ClosingInfoBoxHeight,
      glwin.Height - WindMargin*2));
-
- InnerRect := GrowRect(MessageRect, -BoxMargin);
- InnerRect[1, 0] -= RealScrollBarWholeWidth;
 
  { draw MessageRect (using MessageRectStipple, MessageCols.RectCol,
    MessageCols.RectBorderCol) }
@@ -630,6 +670,30 @@ begin
  DrawGLBorderedRectangle(MessageRect,
    Vector4f(MessageCols.RectCol), Vector4f(MessageCols.RectBorderCol));
  glDisable(GL_POLYGON_STIPPLE);
+
+ { Now draw MD.Broken_ClosingInfo. After this, make MessageRect
+   smaller as appropriate. }
+ if MD.ClosingInfo <> '' then
+ begin
+   glLoadIdentity;
+   glTranslatef(MessageRect[0, 0] + BoxMargin, MessageRect[0, 1] + BoxMargin, 0);
+   glColorv(MessageCols.ClosingInfoCol);
+   DrawStrings(MD.Broken_ClosingInfo, taRight);
+
+   MessageRect[0, 1] += BoxMargin +
+     MD.Font.RowHeight * MD.Broken_ClosingInfo.Count +
+     BoxMargin;
+
+   glLoadIdentity;
+   glColorv(MessageCols.RectBorderCol);
+   HorizontalGLLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
+
+   MessageRect[0, 1] +=  1 { width of horizontal line };
+ end;
+
+ { Calculate InnerRect now }
+ InnerRect := GrowRect(MessageRect, -BoxMargin);
+ InnerRect[1, 0] -= RealScrollBarWholeWidth;
 
  { teraz rysuj ScrollBar }
  if md.ScrollBarVisible then
@@ -643,7 +707,7 @@ begin
     ScrollBarLength, 0);
   md.przewVisY1 := MessageRect[0, 1] + ScrollBarMargin +
     max(0, ScrollBarVisibleBegin -
-      (md.visibleLinesCount / md.AllLinesCount)*ScrollBarLength);
+      (md.VisibleScrolledLinesCount / md.AllScrolledLinesCount)*ScrollBarLength);
   md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
 
   glLoadIdentity;
@@ -670,15 +734,9 @@ begin
  glLoadIdentity;
  glTranslatef(0, md.shiftY, 0);
 
- { rysuj md.Broken_ClosingInfo, broken_SAdditional i Broken_MessgText.
+ { rysuj md.broken_SAdditional i Broken_MessgText.
    Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
  glTranslatef(InnerRect[0, 0], InnerRect[0, 1], 0);
-
- if md.ClosingInfo <> '' then
- begin
-  glColorv(messageCols.ClosingInfoCol);
-  DrawStrings(md.Broken_ClosingInfo, taRight);
- end;
 
  if md.drawAdditional then
  begin
@@ -792,7 +850,7 @@ begin
    MessgText := textlist;
    { contents of Broken_xxx will be initialized in resizeMessg(),
      as well as few other MessageData fields like MaxLineWidth or
-     AllLinesCount }
+     AllScrolledLinesCount }
    Broken_MessgText := TStringList.Create;
    Broken_ClosingInfo := TStringList.Create;
    Broken_SAdditional := TStringList.Create;
@@ -846,14 +904,15 @@ begin
    messageUserdata, AClosingInfo, false, dummy);
 end;
 
-{ MessageOK function with callbacks ------------------------------------------------ }
+{ MessageOK function with callbacks ------------------------------------------ }
 
 procedure KeyDownMessgOK(glwin: TGLWindow; key: TKey; c: char);
 begin
  if c = #13 then TMessageData(glwin.UserData).answered := true;
 end;
 
-procedure MessageOK(glwin: TGLWindow;  const SArray: array of string; textalign: TTextAlign {$ifdef DEFPARS} = taMiddle{$endif});
+procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
+  textalign: TTextAlign = taMiddle);
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
@@ -873,13 +932,14 @@ begin
  finally textlist.free end;
 end;
 
-procedure MessageOK(glwin: TGLWindow;  textlist: TStringList; textalign: TTextAlign);
+procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
+  textalign: TTextAlign);
 begin
  GLWinMessage_NoAdditional(glwin, textlist, textalign, KeyDownMessgOK,
    nil, '[Enter]');
 end;
 
-{ MessageInput function with callbacks --------------------------------------------- }
+{ MessageInput function with callbacks --------------------------------------- }
 
 type
   TInputData = record
@@ -987,7 +1047,7 @@ begin
  if result then answer := SAdditional;
 end;
 
-{ MessageChar functions with callbacks -------------------------------------------------- }
+{ MessageChar functions with callbacks --------------------------------------- }
 
 type
   TCharData = record
@@ -1043,7 +1103,7 @@ begin
  result := chardata.answer;
 end;
 
-{ MessageYesNo ktore jest po prostu realizowane przez MessageChar ---------------- }
+{ MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }
 
 const
   {sorry - to be localized ?}
@@ -1073,7 +1133,7 @@ begin
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
-{ MessageInputCardinal ---------------------------------------- }
+{ MessageInputCardinal ------------------------------------------------------- }
 
 function MessageInputCardinal(glwin: TGLWindow; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal;
@@ -1109,7 +1169,7 @@ begin
   Value := StrHexToInt(ValueStr);
 end;
 
-{ MessageInputQueryFloat ---------------------------------------- }
+{ MessageInputQueryFloat ----------------------------------------------------- }
 
 function MessageInputQueryFloat(glwin: TGLWindow; const Title: string;
   var Value: Float; TextAlign: TTextAlign): boolean;
