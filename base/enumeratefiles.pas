@@ -159,16 +159,17 @@ type
   wlasnie sprawdzic wynik EnumFiles <> 0 aby cos takiego wypisac).
 
   Some notes:
-  - Pamietaj ze Windowsowe funkcje FindFirst/NextFile sa oczywiscie [...]owe i
-     w zwiazku z tym zawieraja bledy (nazywane 'nietypowa funkcjonalnoscia') :
-     szukanie '*.txt' pod windowsem spowoduje tak naprawde szukanie maski
-     '*.txt*' tyle ze koncowy ciag * nie moze zawierac kropki (innymi slowy
-     *.txt nie oznacza "pliki z ostatnim rozszerzeniem txt" ale "pliki z ostatnim
-     rozszerzeniem zaczynajacym sie od txt".
-    sorry : zrobic obejscie tego gowna - czyli zrobic wlasne FindFirst/Next(File)
-            i samemu dopasowywac maski.
-    sorry : zrobic tez obsluge miltiple-masks w formacie : Mask1+PathSep+Mask2 itp..
-            w rezultacie np. *.exe;*.tpu;*.~*
+  - Pamietaj ze Windowsowe funkcje FindFirst/NextFile sa oczywiscie glupie i
+    w zwiazku z tym zawieraja bledy (nazywane 'nietypowa funkcjonalnoscia') :
+    szukanie '*.txt' pod windowsem spowoduje tak naprawde szukanie maski
+    '*.txt*' tyle ze koncowy ciag * nie moze zawierac kropki (innymi slowy
+    *.txt nie oznacza "pliki z ostatnim rozszerzeniem txt" ale "pliki z ostatnim
+    rozszerzeniem zaczynajacym sie od txt".
+
+    TODO: workaround this stupidity - czyli zrobic wlasne FindFirst/Next(File)
+          i samemu dopasowywac maski.
+    TODO: zrobic tez obsluge miltiple-masks w formacie : Mask1+PathSep+Mask2 itp..
+          w rezultacie np. *.exe;*.tpu;*.~*
 
   - jak napisalem przy EnumFiles_Core, implementacja polega na fakcie ze
     sym-linki sa uznawane przez FindFirst/Next za pliki systemowe (faSysFile).
@@ -490,7 +491,7 @@ begin
   FileInfos := TDynEnumeratedFileInfoArray.Create;
   try
    Result := EnumFiles_NonReadAllFirst(Mask, Attr,
-     FileProc_AddToFileInfos, FileInfos,
+     {$ifdef FPC_OBJFPC} @ {$endif} FileProc_AddToFileInfos, FileInfos,
      eoSymlinks in Options,
      eoRecursive in Options,
      eoDirContentsLast in Options);
@@ -544,8 +545,9 @@ function EnumFilesObj(const Mask: string; Attr: integer;
 var FileMethodWrapper: TEnumFileMethodWrapper;
 begin
  FileMethodWrapper.Contents := FileMethod;
- Result := EnumFiles(Mask, Attr, EnumFileProcToMethod, @FileMethodWrapper,
-   Options);
+ Result := EnumFiles(Mask, Attr,
+   {$ifdef FPC_OBJFPC} @ {$endif} EnumFileProcToMethod,
+   @FileMethodWrapper, Options);
 end;
 
 { EnumFilesWriteln* ---------------------------------------------------------- }
