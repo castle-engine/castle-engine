@@ -67,7 +67,7 @@ begin
    raise EInvalidPCX.Create('Only 256 coloured (8 bits per pixel) PCX images with Planes = 1'
      +' are implemented, sorry');
 
-  height := height-x0; {uwzgledniamy tutaj, ze moze byc np. x0, y0=(1, 1) } { sorry - check it }
+  height := height-x0; {uwzgledniamy tutaj, ze moze byc np. x0, y0=(1, 1) } { TODO: test it }
   width := width-y0;
  end;
 
