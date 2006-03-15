@@ -114,7 +114,7 @@ function CharPos(c: char; const s: string): integer;
   CharsPosEx searches starting from Offset char.
   Zwracaja 0 jesli nie znajda. }
 function CharsPos(const chars: TSetOfChars; const s: string): integer;
-function CharsPosEx(const chars: TSetOfChars; const s: string; 
+function CharsPosEx(const chars: TSetOfChars; const s: string;
   Offset: Integer): integer;
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 
@@ -279,7 +279,6 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 
 function FileToString(const fname: string): string;
 procedure StringToFile(const fname, contents: string);
-
 
 type
   EDeformatError = class(Exception);
@@ -729,7 +728,7 @@ begin
  result := 0;
 end;
 
-function CharsPosEx(const Chars: TSetOfChars; const S: string; 
+function CharsPosEx(const Chars: TSetOfChars; const S: string;
   Offset: Integer): integer;
 begin
  for Result := Offset to Length(S) do
