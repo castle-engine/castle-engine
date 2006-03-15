@@ -93,7 +93,7 @@ begin
       if MaxColVal <> 255 then
       begin
        for x := 0 to (Result.Width*3)-1 do
-        PByteArray(line)[x] := Integer(PByteArray(line)[x])*255 div MaxColVal;
+        PByteArray(line)^[x] := Integer(PByteArray(line)^[x])*255 div MaxColVal;
       end;
      end;
     end else
@@ -108,9 +108,9 @@ begin
        begin
         {Zawsze odczytany wynik rzutujemy na Integer zeby pomnozony * 255 nie wyszedl
          poza swoj zakres. Zamieniamy go na zakres 0..255, dzielac przez MaxColVal. }
-        line[x, 0]:=(Integer(ppmline[x*6  ])*256+ppmline[x*6+1])*255 div MaxColVal;
-        line[x, 1]:=(Integer(ppmline[x*6+2])*256+ppmline[x*6+3])*255 div MaxColVal;
-        line[x, 2]:=(Integer(ppmline[x*6+4])*256+ppmline[x*6+5])*255 div MaxColVal;
+        line^[x, 0]:=(Integer(ppmline^[x*6  ])*256+ppmline^[x*6+1])*255 div MaxColVal;
+        line^[x, 1]:=(Integer(ppmline^[x*6+2])*256+ppmline^[x*6+3])*255 div MaxColVal;
+        line^[x, 2]:=(Integer(ppmline^[x*6+4])*256+ppmline^[x*6+5])*255 div MaxColVal;
        end;
       end;
      finally FreeMem(ppmline) end;
@@ -122,9 +122,9 @@ begin
      line := Result.RowPtr(y);
      for x := 0 to result.Width-1 do
      begin
-      line[x, 0] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
-      line[x, 1] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
-      line[x, 2] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
+      line^[x, 0] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
+      line^[x, 1] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
+      line^[x, 2] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
      end;
     end;
    end;
@@ -154,7 +154,7 @@ begin
   begin
    for x := 0 to img.Width-1 do
    begin
-    WriteStr(Stream, Format('%d %d %d ', [line[x, 0], line[x, 1], line[x, 2]]));
+    WriteStr(Stream, Format('%d %d %d ', [line^[x, 0], line^[x, 1], line^[x, 2]]));
 
     {linia powinna miec maksymalnie 70 znakow. Acha.
      Kazdy nasz pixel to max 4(liczba 0..255 + spacja) * 3 = 12 znakow.

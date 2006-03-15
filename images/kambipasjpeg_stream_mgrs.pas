@@ -114,11 +114,11 @@ begin
   end;
   src := passtream_source_ptr (cinfo^.src);
   {override pub's method pointers}
-  src^.pub.init_source := init_source;
-  src^.pub.fill_input_buffer := fill_input_buffer;
-  src^.pub.skip_input_data := skip_input_data;
-  src^.pub.resync_to_restart := jpeg_resync_to_restart; {use default method}
-  src^.pub.term_source := term_source;
+  src^.pub.init_source := {$ifdef FPC_OBJFPC} @ {$endif} init_source;
+  src^.pub.fill_input_buffer := {$ifdef FPC_OBJFPC} @ {$endif} fill_input_buffer;
+  src^.pub.skip_input_data := {$ifdef FPC_OBJFPC} @ {$endif} skip_input_data;
+  src^.pub.resync_to_restart := {$ifdef FPC_OBJFPC} @ {$endif} jpeg_resync_to_restart; {use default method}
+  src^.pub.term_source := {$ifdef FPC_OBJFPC} @ {$endif} term_source;
   {define our fields}
   src^.infile := infile;
   src^.pub.bytes_in_buffer := 0;   {forces fill_input_buffer on first read}
@@ -191,9 +191,9 @@ begin
   end;
   dest := passtream_dest_ptr (cinfo^.dest);
   {override pub's method pointers}
-  dest^.pub.init_destination := init_destination;
-  dest^.pub.empty_output_buffer := empty_output_buffer;
-  dest^.pub.term_destination := term_destination;
+  dest^.pub.init_destination := {$ifdef FPC_OBJFPC} @ {$endif} init_destination;
+  dest^.pub.empty_output_buffer := {$ifdef FPC_OBJFPC} @ {$endif} empty_output_buffer;
+  dest^.pub.term_destination := {$ifdef FPC_OBJFPC} @ {$endif} term_destination;
   {define our fields}
   dest^.outfile := outfile;
 end;

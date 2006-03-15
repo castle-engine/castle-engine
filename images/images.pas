@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's images Pascal units".
 
@@ -241,7 +241,7 @@ type
   TImage = class
   private
     FWidth, FHeight: Cardinal;
-    procedure NotImplemented(const MethodName: string);
+    procedure NotImplemented(const AMethodName: string);
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -821,25 +821,32 @@ const
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
   ( ( FormatName: 'BMP, Windows Bitmap';
       ExtsCount: 1; Exts: ('bmp','','');
-      LoadRGB: LoadBMP; SaveRGB: SaveBMP),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP; 
+      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP),
     ( FormatName: 'PNG, Portable Network Graphic';
       ExtsCount: 1; Exts: ('png','','');
-      LoadRGB: LoadPNG; SaveRGB: SavePNG),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG; 
+      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG),
     ( FormatName: 'JFIF, JPEG File Interchange Format';
       ExtsCount: 2; Exts: ('jpg','jpeg','');
-      LoadRGB: LoadJPEG; SaveRGB: SaveJPEG),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG; 
+      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveJPEG),
     ( FormatName: 'PCX Image';
       ExtsCount: 1; Exts: ('pcx','','');
-      LoadRGB: LoadPCX; SaveRGB: nil),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX; 
+      SaveRGB: nil),
     ( FormatName: 'PPM, Portable Pixel Map';
       ExtsCount: 1; Exts: ('ppm','','');
-      LoadRGB: LoadPPM; SaveRGB: SavePPM),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM; 
+      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePPM),
     ( FormatName: 'IPLab Image';
       ExtsCount: 1; Exts: ('ipl','','');
-      LoadRGB: LoadIPL; SaveRGB: nil),
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL; 
+      SaveRGB: nil),
     ( FormatName: 'RGBE (RGB+Exponent) Image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      LoadRGB: LoadRGBEToByteRGB; SaveRGB: SaveRGBEFromByteRGB)
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB; 
+      SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveRGBEFromByteRGB)
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
@@ -1173,9 +1180,9 @@ begin
  Result := PointerAdd(RawPixels, PixelSize * (Width * Y));
 end;
 
-procedure TImage.NotImplemented(const MethodName: string);
+procedure TImage.NotImplemented(const AMethodName: string);
 begin
- raise EInternalError.Create(MethodName +
+ raise EInternalError.Create(AMethodName +
    ' method not implemented for this TImage descendant');
 end;
 
@@ -1371,7 +1378,7 @@ end;
 
 procedure TImage.Grayscale;
 begin
- ModulateRGB(ColorGrayscaleByte);
+ ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGrayscaleByte);
 end;
 
 {$ifdef FPC}
@@ -1379,9 +1386,9 @@ end;
 procedure TImage.ConvertToChannelRGB(Channel: Integer);
 begin
  case Channel of
-  0: ModulateRGB(ColorRedConvertByte);
-  1: ModulateRGB(ColorGreenConvertByte);
-  2: ModulateRGB(ColorBlueConvertByte);
+  0: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorRedConvertByte);
+  1: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGreenConvertByte);
+  2: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorBlueConvertByte);
   else raise EInternalError.Create(
     'ConvertToChannelRGB: Channel must be 0, 1 or 2');
  end;
@@ -1390,9 +1397,9 @@ end;
 procedure TImage.StripToChannelRGB(Channel: Integer);
 begin
  case Channel of
-  0: ModulateRGB(ColorRedStripByte);
-  1: ModulateRGB(ColorGreenStripByte);
-  2: ModulateRGB(ColorBlueStripByte);
+  0: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorRedStripByte);
+  1: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorGreenStripByte);
+  2: ModulateRGB({$ifdef FPC_OBJFPC} @ {$endif} ColorBlueStripByte);
   else raise EInternalError.Create(
     'StripToChannelRGB: Channel must be 0, 1 or 2');
  end;
@@ -1469,10 +1476,10 @@ begin
 
  for i := 1 to Width * Height do
  begin
-  s := (Map[0] + Map[1] + Map[2]) / 255 / 3;
-  Res[0] := Round(s * White[0] + (1-s) * Black[0]);
-  Res[1] := Round(s * White[1] + (1-s) * Black[1]);
-  Res[2] := Round(s * White[2] + (1-s) * Black[2]);
+  s := (Map^[0] + Map^[1] + Map^[2]) / 255 / 3;
+  Res^[0] := Round(s * White^[0] + (1-s) * Black^[0]);
+  Res^[1] := Round(s * White^[1] + (1-s) * Black^[1]);
+  Res^[2] := Round(s * White^[2] + (1-s) * Black^[2]);
   Inc(Map);
   Inc(White);
   Inc(Black);

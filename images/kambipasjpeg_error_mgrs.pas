@@ -142,10 +142,10 @@ end;
 function jpeg_pascal_error (var err : pascal_error_mgr) : jpeg_error_mgr_ptr;
 begin
  jpeg_std_error(err.pub);
- err.pub.error_exit := error_exit;
- err.pub.output_message := output_message;
+ err.pub.error_exit := {$ifdef FPC_OBJFPC} @ {$endif} error_exit;
+ err.pub.output_message := {$ifdef FPC_OBJFPC} @ {$endif} output_message;
  { Kambi+, register ours format_message }
- err.pub.format_message := format_message;
+ err.pub.format_message := {$ifdef FPC_OBJFPC} @ {$endif} format_message;
  result:=@err;
 end;
 

@@ -106,13 +106,16 @@ begin
  png_ptr := nil;
  try
   png_ptr := png_create_read_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList, our_png_error_fn, our_png_warning_fn);
+    WarningsList, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_read_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
-  png_set_read_fn(png_ptr, Stream, our_png_read_fn);
+  png_set_read_fn(png_ptr, Stream, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_read_fn);
 
   { TODO -- uzyj tu png_set_read_status_fn aby miec progressa }
 
@@ -206,13 +209,17 @@ begin
  png_ptr := nil;
  try
   png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList, our_png_error_fn, our_png_warning_fn);
+    WarningsList, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_write_struct failed');
 
   info_ptr := png_create_info_struct(png_ptr);
   Check( info_ptr <> nil, 'png_create_info_struct failed');
 
-  png_set_write_fn(png_ptr, Stream, our_png_write_fn, our_png_flush_fn);
+  png_set_write_fn(png_ptr, Stream, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_write_fn, 
+    {$ifdef FPC_OBJFPC} @ {$endif} our_png_flush_fn);
 
   { TODO -- uzyj tu png_set_write_status_fn aby miec progressa }
 

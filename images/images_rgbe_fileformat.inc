@@ -54,8 +54,8 @@ var LoadResult: TImage absolute result;
 
     procedure ReadRLECompressedScanlineChannel(Pixel: PByteArray);
     { odczytaj z aktualnego strumienia skompresowany RLE ciag bajtow.
-      Kolejne bajty beda zapisywane do Pixel[0], Pixel[4], Pixel[8] itd.,
-      az do Pixel[(LoadResult.Width-1)*4]. }
+      Kolejne bajty beda zapisywane do Pixel^[0], Pixel^[4], Pixel^[8] itd.,
+      az do Pixel^[(LoadResult.Width-1)*4]. }
     var i: Integer;
         x: Cardinal;
         ByteMarker, ByteRepeat: byte;
@@ -68,23 +68,23 @@ var LoadResult: TImage absolute result;
       begin
        Stream.ReadBuffer(ByteRepeat, SizeOf(Byte));
        for i := 1 to ByteMarker-128 do
-        begin Pixel[x*4] := ByteRepeat; Inc(x) end;
+        begin Pixel^[x*4] := ByteRepeat; Inc(x) end;
       end else
       begin
        if ByteMarker = 0 then
         raise EInvalidRGBE.Create('ByteMarker starting RLE run is = 0');
        for i := 1 to ByteMarker do
-        begin Stream.ReadBuffer(Pixel[x*4], SizeOf(Byte)); Inc(x) end;
+        begin Stream.ReadBuffer(Pixel^[x*4], SizeOf(Byte)); Inc(x) end;
       end;
      end;
     end;
 
     procedure ReadOldRLECompressedScanline;
-    { Wiemy ze pierwszy pixel zostal juz odczytany do RGBERow[0].
+    { Wiemy ze pierwszy pixel zostal juz odczytany do RGBERow^[0].
       Odczytujemy reszte. DoneCount okresla ile pixeli juz zapisalimy
-      do RGBERow, zawsze RGBERow[DoneCount-1] to ostatni zapisany
+      do RGBERow, zawsze RGBERow^[DoneCount-1] to ostatni zapisany
       pixel (wiec jesli znajdziemy gdzies pixel z trzema mantysami = 1
-      kazacy nam "powtarzac" to musimy powtarzac wlasnie RGBERow[DoneCount-1].) }
+      kazacy nam "powtarzac" to musimy powtarzac wlasnie RGBERow^[DoneCount-1].) }
     var RepeatCount, DoneCount, ShiftRepeatCount, i: Cardinal;
 	RepeatPixel: TVector4Byte;
     begin
@@ -93,17 +93,17 @@ var LoadResult: TImage absolute result;
        pod rzad bedziemy zwiekszali ShiftRepeatCount o 8. }
      while DoneCount < LoadResult.Width do
      begin
-      Stream.ReadBuffer(RGBERow[DoneCount], SizeOf(TVector4Byte));
-      if (RGBERow[DoneCount, 0] = 1) and
-         (RGBERow[DoneCount, 1] = 1) and
-	 (RGBERow[DoneCount, 2] = 1) then
+      Stream.ReadBuffer(RGBERow^[DoneCount], SizeOf(TVector4Byte));
+      if (RGBERow^[DoneCount, 0] = 1) and
+         (RGBERow^[DoneCount, 1] = 1) and
+	 (RGBERow^[DoneCount, 2] = 1) then
       begin
-       RepeatPixel := RGBERow[DoneCount-1];
-       RepeatCount := LongWord(RGBERow[DoneCount, 3]) shl ShiftRepeatCount;
+       RepeatPixel := RGBERow^[DoneCount-1];
+       RepeatCount := LongWord(RGBERow^[DoneCount, 3]) shl ShiftRepeatCount;
        ShiftRepeatCount := ShiftRepeatCount + 8;
        for i := 1 to RepeatCount do
        begin
-        RGBERow[DoneCount] := RepeatPixel;
+        RGBERow^[DoneCount] := RepeatPixel;
 	Inc(DoneCount);
        end;
       end else
@@ -117,17 +117,17 @@ var LoadResult: TImage absolute result;
   var i: Integer;
   begin
    { na pewno result.Width > 0 wiec w scanline jest min 1 pixel i mamy
-     zawsze dostapne RGBERow[0] }
-   Stream.ReadBuffer(RGBERow[0], SizeOf(RGBERow[0]));
-   if CompressedLineMarker(RGBERow[0]) then
+     zawsze dostapne RGBERow^[0] }
+   Stream.ReadBuffer(RGBERow^[0], SizeOf(RGBERow^[0]));
+   if CompressedLineMarker(RGBERow^[0]) then
    begin
-    for i := 0 to 3 do ReadRLECompressedScanlineChannel(@(RGBERow[0, i]));
+    for i := 0 to 3 do ReadRLECompressedScanlineChannel(@(RGBERow^[0, i]));
    end else
    begin
     { file is not RLE compressed or is RLE compressed using old fashion
       (three mantisas = 1). Moglbym odczytac tu pierwsza wersje pliku
       (gdyby nie zalezalo mi nawet na zabezpieczeniu sie przed wersja
-      druga) prostym Stream.ReadBuffer(RGBERow[0]^, 4*(LoadResult.Width-1));
+      druga) prostym Stream.ReadBuffer(RGBERow^[0]^, 4*(LoadResult.Width-1));
 
       Tym niemniej w koncu zaimplementowalem stare RLE. }
     ReadOldRLECompressedScanline;
@@ -172,7 +172,7 @@ begin
      ReadRGBERow(RGBERow);
      ImageRow := PArray_Vector3Byte(Result.RowPtr(y));
      for x := 0 to result.Width-1 do
-      ImageRow[x] := Vector3Byte( VectorRGBETo3Single(RGBERow[x]) )
+      ImageRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) )
     end;
    finally FreeMemNiling(Pointer(RGBERow)) end;
   end else

@@ -722,7 +722,7 @@ begin
   if @callback = nil then
     Exit;
   {set method}
-  progress^.pub.progress_monitor := progress_monitor;
+  progress^.pub.progress_monitor := {$ifdef FPC_OBJFPC} @ {$endif} progress_monitor;
   {set fields}
   progress^.proc := callback;
   progress^.percent_done := -1;

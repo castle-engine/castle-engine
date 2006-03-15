@@ -68,9 +68,9 @@ var fhead: TBitmapFileHeader;
   procedure PutPaletteColor(paletteIndex: integer; var rgb3: TVector3Byte);
   { ustaw rgb3 na kolor numer paletteIndex wziety z palety }
   begin
-   rgb3[0] := palette[paletteIndex].red;
-   rgb3[1] := palette[paletteIndex].green;
-   rgb3[2] := palette[paletteIndex].blue;
+   rgb3[0] := palette^[paletteIndex].red;
+   rgb3[1] := palette^[paletteIndex].green;
+   rgb3[2] := palette^[paletteIndex].blue;
   end;
 
   procedure WriteRow(rgbrow: PArray_Vector3Byte; bmprow: PByteArray);
@@ -90,37 +90,37 @@ var fhead: TBitmapFileHeader;
    case ihead.biBitCount of
     1: for rgbi := 0 to ihead.biWidth-1 do
        begin
-        PutPaletteColor((bmprow[bmpi] shr (7-(rgbi mod 8)) ) and 1, rgbrow[rgbi]);
+        PutPaletteColor((bmprow^[bmpi] shr (7-(rgbi mod 8)) ) and 1, rgbrow^[rgbi]);
         if (rgbi+1) mod 8 = 0 then Inc(bmpi);
        end;
     4: begin
         for bmpi := 0 to rowLength-2 do
         begin
-         PutPaletteColor(bmprow[bmpi] and $F0 shr 4, rgbrow[bmpi*2]);
-         PutPaletteColor(bmprow[bmpi] and $F, rgbrow[bmpi*2+1]);
+         PutPaletteColor(bmprow^[bmpi] and $F0 shr 4, rgbrow^[bmpi*2]);
+         PutPaletteColor(bmprow^[bmpi] and $F, rgbrow^[bmpi*2+1]);
         end;
         { gdy bmpi = rowLength - 1 musimy uwazac : kolumna bmpi*2 na pewno
           jest w bitmapie, ale kolumna bmp*2+1 moze byc juz poza bitmapa }
         bmpi := rowLength-1;
-        PutPaletteColor(bmprow[bmpi] and $F0 shr 4, rgbrow[bmpi*2]);
+        PutPaletteColor(bmprow^[bmpi] and $F0 shr 4, rgbrow^[bmpi*2]);
         if bmpi*2+1 < ihead.biWidth then
-         PutPaletteColor(bmprow[bmpi] and $F, rgbrow[bmpi*2+1]);
+         PutPaletteColor(bmprow^[bmpi] and $F, rgbrow^[bmpi*2+1]);
        end;
     8: for bmpi := 0 to rowLength-1 do
-        PutPaletteColor(bmprow[bmpi], rgbrow[bmpi]);
+        PutPaletteColor(bmprow^[bmpi], rgbrow^[bmpi]);
     16:for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow[rgbi, 0] := FiveBitsToByte((PArray_Word(bmprow)[rgbi] and $7C00) shr 10);
-        rgbrow[rgbi, 1] := FiveBitsToByte((PArray_Word(bmprow)[rgbi] and $03E0) shr 5);
-        rgbrow[rgbi, 2] := FiveBitsToByte(PArray_Word(bmprow)[rgbi] and $001F);
+        rgbrow^[rgbi, 0] := FiveBitsToByte((PArray_Word(bmprow)^[rgbi] and $7C00) shr 10);
+        rgbrow^[rgbi, 1] := FiveBitsToByte((PArray_Word(bmprow)^[rgbi] and $03E0) shr 5);
+        rgbrow^[rgbi, 2] := FiveBitsToByte(PArray_Word(bmprow)^[rgbi] and $001F);
        end;
     24:{ bmprow in 24 bit bitmap have almost the same format as rgbrow  -
          we only have to swap bgr to rgb }
        for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow[rgbi, 0] := PArray_RGB_BMP24(bmprow)[rgbi].r;
-        rgbrow[rgbi, 1] := PArray_RGB_BMP24(bmprow)[rgbi].g;
-        rgbrow[rgbi, 2] := PArray_RGB_BMP24(bmprow)[rgbi].b;
+        rgbrow^[rgbi, 0] := PArray_RGB_BMP24(bmprow)^[rgbi].r;
+        rgbrow^[rgbi, 1] := PArray_RGB_BMP24(bmprow)^[rgbi].g;
+        rgbrow^[rgbi, 2] := PArray_RGB_BMP24(bmprow)^[rgbi].b;
        end;
     32: ;
    end;
@@ -272,9 +272,9 @@ begin
    row := rowdata;
    for i := 0 to img.Width - 1 do
    begin
-    row.r := p[0];
-    row.g := p[1];
-    row.b := p[2];
+    row^.r := p^[0];
+    row^.g := p^[1];
+    row^.b := p^[2];
     Inc(p);
     Inc(row);
    end;
