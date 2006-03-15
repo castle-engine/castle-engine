@@ -179,7 +179,7 @@ uses SysUtils, VectorMath, KambiUtils;
         --long-option Argument
         -<short-options-without-args>s Argument
         No i mozliwe sa takze te same postacie co dla oaOptional.
-        Obydwie postacie dla oaRequired oznaczaja obecnosc _dwoch_ parametrow 
+        Obydwie postacie dla oaRequired oznaczaja obecnosc _dwoch_ parametrow
         w @link(Parameters).
       oaRequired?Separate oznacza ze mozliwe sa nastepujace postacie :
         --long-option Argument1 Argument2 ... Argument?
@@ -527,8 +527,8 @@ begin
 end;
 {$endif}
 
-{$I DynArray_1.inc}
-{$I DynArray_2.inc}
+{$I dynarray_1.inc}
+{$I dynarray_2.inc}
 
 procedure ParseParameters(const Options: array of TOption; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
@@ -540,7 +540,8 @@ end;
 procedure ParseParameters(Options: TDynOptionArray; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
- ParseParameters(Options.Items, Options.Count, OptionProc, OptionProcData,
+ ParseParameters(Options.ItemsArray, Options.Count,
+   OptionProc, OptionProcData,
    ParseOnlyKnownLongOptions);
 end;
 
@@ -605,7 +606,7 @@ procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionP
   begin
    SplitLongParameter(s, ParamLong, HasArgument, Argument, 2);
    for i := 0 to OptionsCount-1 do
-    if Options[i].Long = ParamLong then
+    if Options^[i].Long = ParamLong then
      begin result := i; Exit; end;
 
    if ParseOnlyKnownLongOptions then
@@ -626,7 +627,7 @@ procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionP
     raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, ['#0 (null char)', Parameter]);
 
    for result := 0 to OptionsCount-1 do
-    if Options[result].Short = c then Exit;
+    if Options^[result].Short = c then Exit;
 
    raise EInvalidShortOption.CreateFmt(SInvalidShortOpt, [c, Parameter]);
   end;
@@ -641,9 +642,9 @@ procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionP
     podane razem z ostatnia opcja (czyli z opcja zwracana pod nazwa).
     Te proste opcje zostaly "skombinowane" razem z ostatnia opcja w
     jednym parametrze. W rezultacie nazywam je "prostymi" bo one nie moga
-    miec argumentu - Options[].Argument tych opcji moze byc tylko oaNone
+    miec argumentu - Options^[].Argument tych opcji moze byc tylko oaNone
     lub oaOptional. Ta procedura NIE sprawdza ze to sie zgadza
-    tak jak w ogole nie sprawdza zadnego Options[].Argument, takze
+    tak jak w ogole nie sprawdza zadnego Options^[].Argument, takze
     dla ostatniej (zwracanej pod nazwa) opcji nie sprawdza - moze wiec
     zwrocic opcje oaNone z HasArgument albo oaRequired[*Separate] z
     not HasArgument.
@@ -693,8 +694,8 @@ begin
      (w tym przypadku musisz tez ustalic OptionName), wpp. (jesli to nie opcja
      i mozemy ja pominac) ustal OptionNum na -1.
 
-     Warunek Length(Parameters[i]) > 1 w linijce ponizej gwarantuje nam 
-     ze parametr '-' uznamy za nie-opcje (zamiast np. powodowac wyjatek 
+     Warunek Length(Parameters[i]) > 1 w linijce ponizej gwarantuje nam
+     ze parametr '-' uznamy za nie-opcje (zamiast np. powodowac wyjatek
      "empty option") }
    OptionNum := -1;
    if SCharIs(Parameters[i], 1, '-') and (Length(Parameters[i]) > 1) then
@@ -702,12 +703,12 @@ begin
     if SCharIs(Parameters[i], 2, '-') then
     begin
      OptionNum := ParseLongParameter(Parameters[i], HasArgument, Argument);
-     if OptionNum <> -1 then OptionName := '--'+Options[OptionNum].Long;
+     if OptionNum <> -1 then OptionName := '--'+Options^[OptionNum].Long;
     end else
     if not ParseOnlyKnownLongOptions then
     begin
      OptionNum := ParseShortParameter(Parameters[i], HasArgument, Argument, SimpleShortOptions);
-     OptionName := '-'+Options[OptionNum].Short;
+     OptionName := '-'+Options^[OptionNum].Short;
     end;
    end;
 
@@ -722,9 +723,9 @@ begin
     { najpierw zajmij sie SimpleShortOptions }
     for k := 0 to SimpleShortOptions.Length-1 do
     begin
-     if not (Options[SimpleShortOptions[k]].Argument in [oaNone, oaOptional]) then
+     if not (Options^[SimpleShortOptions[k]].Argument in [oaNone, oaOptional]) then
       raise EMissingOptionArgument.Create('Missing argument for short option -'+
-        Options[SimpleShortOptions[k]].Short +'; when combining short options only the last '+
+        Options^[SimpleShortOptions[k]].Short +'; when combining short options only the last '+
         'option can have an argument');
      OptionProc(SimpleShortOptions[k], false, '', EmptySeparateArgs, OptionProcData);
     end;
@@ -738,7 +739,7 @@ begin
     { upewnij sie ze HasArgument ma dopuszczalna wartosc. Odczytaj argumenty
       podane jako osobne paranetry dla oaRequired i oaRequired?Separate. }
 
-    if (Options[OptionNum].Argument = oaRequired) and (not HasArgument) then
+    if (Options^[OptionNum].Argument = oaRequired) and (not HasArgument) then
     begin
      if i > Parameters.High then
       raise EMissingOptionArgument.Create('Missing argument for option '+OptionName);
@@ -746,22 +747,22 @@ begin
      Argument := Parameters[i];
      Parameters.Delete(i, 1);
     end else
-    if (Options[OptionNum].Argument = oaNone) and HasArgument then
+    if (Options^[OptionNum].Argument = oaNone) and HasArgument then
      raise EExcessiveOptionArgument.Create('Excessive argument for option '+OptionName) else
-    if Options[OptionNum].Argument in OptionArgumentsRequiredSeparate then
+    if Options^[OptionNum].Argument in OptionArgumentsRequiredSeparate then
     begin
      if HasArgument then
       raise EExcessiveOptionArgument.CreateFmt('Option %s requires %d arguments, '+
         'you cannot give them using the form --option=argument, you must give '+
         'all the arguments as separate parameters', [OptionName,
-        OptionSeparateArgumentToCount(Options[OptionNum].Argument) ]);
+        OptionSeparateArgumentToCount(Options^[OptionNum].Argument) ]);
 
-     for j := 1 to OptionSeparateArgumentToCount(Options[OptionNum].Argument) do
+     for j := 1 to OptionSeparateArgumentToCount(Options^[OptionNum].Argument) do
      begin
       if i > Parameters.High then
        raise EMissingOptionArgument.CreateFmt('Not enough arguments for option %s, '+
          'this option needs %d arguments but we have only %d', [OptionName,
-         OptionSeparateArgumentToCount(Options[OptionNum].Argument), j-1]);
+         OptionSeparateArgumentToCount(Options^[OptionNum].Argument), j-1]);
       SeparateArgs[j] := Parameters[i];
       Parameters.Delete(i, 1);
      end;
@@ -782,10 +783,10 @@ var ParsedArray: TDynParsedOptionArray absolute Data;
 begin
  ParsedArray.IncLength;
  LastItem := ParsedArray.Pointers[ParsedArray.High];
- LastItem.OptionNum := OptionNum;
- LastItem.HasArgument := HasArgument;
- LastItem.Argument := Argument;
- LastItem.SeparateArgs := SeparateArgs;
+ LastItem^.OptionNum := OptionNum;
+ LastItem^.HasArgument := HasArgument;
+ LastItem^.Argument := Argument;
+ LastItem^.SeparateArgs := SeparateArgs;
 end;
 
 function ParseParameters(
@@ -795,7 +796,8 @@ function ParseParameters(
 begin
  result := TDynParsedOptionArray.Create;
  try
-  ParseParameters(Options, OptionsCount, ParseNextParam, result,
+  ParseParameters(Options, OptionsCount, 
+    {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
     ParseOnlyKnownLongOptions);
  except result.Free; raise end;
 end;

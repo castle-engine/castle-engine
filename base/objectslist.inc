@@ -60,7 +60,8 @@
     function GetLast: TObjectsListItem;
     procedure SetLast(const Value: TObjectsListItem);
   public
-    property Items[i: integer]:TObjectsListItem read GetItem write SetItem; default;
+    property Items[i: integer]: TObjectsListItem
+      read GetItem write SetItem; default;
 
     {ustawianie Counta : zmniejszanie oznacza kasowanie koncowych elementow,
      zwiekszanie - dodawanie nil'i}
@@ -172,13 +173,13 @@ end;
 function TObjectsList.GetItem(i: integer): TObjectsListItem;
 begin
  {$ifopt R+} CheckIndex(i, 'GetItem'); {$endif}
- result := TObjectsListItem(Arr[i])
+ result := TObjectsListItem(Arr^[i])
 end;
 
 procedure TObjectsList.SetItem(i: integer; Item: TObjectsListItem);
 begin
  {$ifopt R+} CheckIndex(i, 'SetItem'); {$endif}
- Arr[i] := Item
+ Arr^[i] := Item
 end;
 
 procedure TObjectsList.SetCapacity(value: integer);
@@ -195,7 +196,7 @@ begin
   Capacity := value;
 
  if value > Count then
-  for i := Count to value-1 do Arr[i] := nil;
+  for i := Count to value-1 do Arr^[i] := nil;
  fCount := value;
 end;
 
@@ -238,8 +239,8 @@ begin
  {$ifopt R+} CheckInsertIndex(Index, 'Insert'); {$endif}
 
  if Capacity = Count then NeededCapacityForOneMore;
- for i := Count downto Index+1 do Arr[i] := Arr[i-1];
- Arr[Index] := Item;
+ for i := Count downto Index+1 do Arr^[i] := Arr^[i-1];
+ Arr^[Index] := Item;
  Inc(fCount);
 end;
 
@@ -260,15 +261,15 @@ begin
 
  { move Arr contents }
  for i := Count-1 downto Index + ACount do
-  Arr[i] := Arr[i - ACount];
+  Arr^[i] := Arr^[i - ACount];
 
  { copy A contents to Arr }
  { Not optimized version:
-     for i := Index + ACount - 1 downto Index do Arr[i] := A[i - Index]; }
+     for i := Index + ACount - 1 downto Index do Arr^[i] := A^[i - Index]; }
  { SizeOf(Pointer) should be SizeOf(TObject) actually, but "SizeOf(TObject)"
    does not compile with FPC 1.0.10 (bug, not present in FPC 1.0.6).
    It's the same thing, anyway. }
- System.Move(A[0], Arr[Index], ACount*SizeOf(Pointer));
+ System.Move(A^[0], Arr^[Index], ACount*SizeOf(Pointer));
 end;
 
 procedure TObjectsList.InsertArray(Index: integer;
@@ -300,7 +301,7 @@ end;
 function TObjectsList.IndexOf(Item: TObjectsListItem; StartIndex: integer): integer;
 begin
  for result := StartIndex to Count-1 do
-  if Item = Arr[result] then exit;
+  if Item = Arr^[result] then exit;
  result := -1;
 end;
 
@@ -311,7 +312,7 @@ procedure TObjectsList.Delete(Index: integer);
 var i: integer;
 begin
  {$ifopt R+} CheckIndex(Index, 'Delete'); {$endif}
- for i := Index to Count-2 do Arr[i] := Arr[i+1];
+ for i := Index to Count-2 do Arr^[i] := Arr^[i+1];
  Dec(fCount);
  if Count <= Capacity div 2 then Capacity := Count;
 end;
@@ -362,9 +363,9 @@ var tmp: TObject;
 begin
  {$ifopt R+} CheckIndex(index1, 'Exchange');
              CheckIndex(index2, 'Exchange'); {$endif}
- tmp := Arr[index1];
- Arr[index1] := Arr[index2];
- Arr[index2] := tmp;
+ tmp := Arr^[index1];
+ Arr^[index1] := Arr^[index2];
+ Arr^[index2] := tmp;
 end;
 
 procedure TObjectsList.Move(oldIndex, newIndex: integer);
@@ -373,15 +374,15 @@ var Item: TObject;
 begin
  {$ifopt R+} CheckIndex(oldIndex, 'Move');
              CheckIndex(newIndex, 'Move'); {$endif}
- Item := Arr[oldIndex];
+ Item := Arr^[oldIndex];
  if oldIndex < newIndex then
  begin
-  for i := oldIndex to newIndex-1 do Arr[i] := Arr[i+1];
+  for i := oldIndex to newIndex-1 do Arr^[i] := Arr^[i+1];
  end else
  begin
-  for i := oldIndex downto newIndex+1 do Arr[i] := Arr[i-1];
+  for i := oldIndex downto newIndex+1 do Arr^[i] := Arr^[i-1];
  end;
- Arr[newIndex] := Item;
+ Arr^[newIndex] := Item;
 end;
 
 procedure TObjectsList.ReplaceAll(OldItem, NewItem: TObjectsListItem);
@@ -391,12 +392,12 @@ begin
 end;
 
 procedure TObjectsList.FreeAndNil(Index: integer);
-begin SysUtils.FreeAndNil(Arr[Index]) end;
+begin SysUtils.FreeAndNil(Arr^[Index]) end;
 
 procedure TObjectsList.FreeContents;
 var i: integer;
 begin
- for i := 0 to Count-1 do Arr[i].Free;
+ for i := 0 to Count-1 do Arr^[i].Free;
  Clear;
 end;
 

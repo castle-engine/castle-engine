@@ -1249,11 +1249,11 @@ end;
 function TBufferedReadStream.PeekChar: Integer;
 begin
  if BufferPos < BufferEnd then
-  Result := Buffer[BufferPos] else
+  Result := Buffer^[BufferPos] else
  begin
   FillBuffer;
   if BufferPos < BufferEnd then
-   Result := Buffer[BufferPos] else
+   Result := Buffer^[BufferPos] else
    Result := -1;
  end;
 end;
@@ -1262,7 +1262,7 @@ function TBufferedReadStream.ReadChar: Integer;
 begin
  if BufferPos < BufferEnd then
  begin
-  Result := Buffer[BufferPos];
+  Result := Buffer^[BufferPos];
   Inc(BufferPos);
   Inc(FPosition);
  end else
@@ -1270,7 +1270,7 @@ begin
   FillBuffer;
   if BufferPos < BufferEnd then
   begin
-   Result := Buffer[BufferPos];
+   Result := Buffer^[BufferPos];
    Inc(BufferPos);
    Inc(FPosition);
   end else

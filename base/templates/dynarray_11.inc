@@ -115,7 +115,9 @@
     procedure SetValues(ItemNum: integer; const Item: TDynArrayItem_11);
     {$endif}
     function GetPointers(ItemNum: integer): PDynArrayItem_11;
-    function GetItems: PInfiniteArray_11;
+    function GetItems:
+      {$ifdef FPC_OBJFPC} PDynArrayItem_11 {$else} PInfiniteArray_11 {$endif};
+    function GetItemsArray: PInfiniteArray_11;
   private
     { Helpers to implement Sort() }
     Sort_IsSmallerFunc: TDynArrayItemIsSmallerFunc_11;
@@ -127,15 +129,34 @@
     constructor Create; overload;
     constructor Create(InitialLength: Integer); overload;
 
-    { @noAutoLinkHere }
-    property Items: PInfiniteArray_11 read GetItems;
+    { This is a comfortable Items property, that allows you to both read and
+      write items in this array.
+
+      Note that it has different types:
+      for Delphi (and FPC Delphi mode) it has PInfiniteArray_11 type,
+      for ObjFpc mode is has PDynArrayItem_11.
+      This way you can always access items like @code(Items[Index])
+      (no need to write @code(Items^[Index])).
+
+      @noAutoLinkHere }
+    property Items: {$ifdef FPC_OBJFPC} PDynArrayItem_11 {$else}
+      PInfiniteArray_11 {$endif} read GetItems;
+
+    { This is like @link(Items), but it has always (both for FPC ObjFpc
+      mode and Delphi) type PInfiniteArray_11. This means that you
+      can always read/write items like @code(ItemsArray^[Index]).
+      Under ObjFpc you will not be able to write
+      @code(ItemsArray[Index]) (i.e. omit this ^ character). }
+    property ItemsArray: PInfiniteArray_11 read GetItemsArray;
 
     { @noAutoLinkHere }
-    property Pointers[ItemNum: integer]:PDynArrayItem_11 read GetPointers; {$ifdef DYNARRAY_11_IS_STRUCT} default; {$endif}
+    property Pointers[ItemNum: integer]: PDynArrayItem_11 read GetPointers;
+      {$ifdef DYNARRAY_11_IS_STRUCT} default; {$endif}
 
     {$ifndef DYNARRAY_11_IS_STRUCT}
     { @noAutoLinkHere }
-    property Values[ItemNum: integer]:TDynArrayItem_11 read GetValues write SetValues; default;
+    property Values[ItemNum: integer]: TDynArrayItem_11
+      read GetValues write SetValues; default;
     {$endif}
 
     {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
@@ -239,23 +260,30 @@ begin
  inherited Create(SizeOf(TDynArrayItem_11), InitialLength);
 end;
 
-function TDynArray_11.GetItems: PInfiniteArray_11;
+function TDynArray_11.GetItems:
+  {$ifdef FPC_OBJFPC} PDynArrayItem_11 {$else} PInfiniteArray_11 {$endif};
 begin
- result := PInfiniteArray_11(A);
+  Result :=
+    {$ifdef FPC_OBJFPC} PDynArrayItem_11 {$else} PInfiniteArray_11 {$endif} (A);
+end;
+
+function TDynArray_11.GetItemsArray: PInfiniteArray_11;
+begin
+  Result := PInfiniteArray_11(A);
 end;
 
 function TDynArray_11.GetPointers(ItemNum: integer): PDynArrayItem_11;
 begin
- result := @(Items^[ItemNum]);
+ result := @(Items[ItemNum]);
 end;
 
 {$ifndef DYNARRAY_11_IS_STRUCT}
 function TDynArray_11.GetValues(ItemNum: integer): TDynArrayItem_11;
-begin result := Items^[ItemNum] end;
+begin result := Items[ItemNum] end;
 
 procedure TDynArray_11.SetValues(ItemNum: integer; const Item: TDynArrayItem_11);
 begin
- Items^[ItemNum] := Item;
+ Items[ItemNum] := Item;
 end;
 {$endif}
 
@@ -265,13 +293,13 @@ var oldlen, i: integer;
 begin
  if NewLength < Length then
  begin
-  for i := NewLength to Length-1 do Finalize(Items^[i]);
+  for i := NewLength to Length-1 do Finalize(Items[i]);
   inherited SetLength(NewLength);
  end else
  begin
   oldlen := Length;
   inherited SetLength(NewLength);
-  for i := oldlen to NewLength-1 do Initialize(Items^[i]);
+  for i := oldlen to NewLength-1 do Initialize(Items[i]);
  end;
 end;
 {$endif}
@@ -279,7 +307,7 @@ end;
 procedure TDynArray_11.AppendItem(const Item: TDynArrayItem_11);
 begin
  IncLength;
- Items^[Length-1] := Item;
+ Items[Length-1] := Item;
 end;
 
 procedure TDynArray_11.AppendArray(const NewItems: array of TDynArrayItem_11;
@@ -289,7 +317,7 @@ begin
  OldLen := Length;
  SetLength(Length + NewItemsAddCount);
  for i := 0 to NewItemsAddCount-1 do
-  Items^[OldLen+i] := NewItems[i];
+  Items[OldLen+i] := NewItems[i];
 end;
 
 procedure TDynArray_11.AppendArray(const NewItems: array of TDynArrayItem_11);
@@ -299,7 +327,7 @@ end;
 
 procedure TDynArray_11.AppendDynArray(Arr: TDynArray_11);
 begin
- AppendArray(Arr.Items^, Arr.Count);
+ AppendArray(Arr.ItemsArray^, Arr.Count);
 end;
 
 procedure TDynArray_11.Assign(Source: TDynArray_11);
@@ -311,12 +339,12 @@ begin
  {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
  { We're copying one-by-one, so that Initialize/Finalize
    of items is properly called. }
- for i := 0 to Source.Length-1 do Items^[i] := Source.Items^[i];
+ for i := 0 to Source.Length-1 do Items[i] := Source.Items[i];
  {$else}
  { In this case we can copy memory fast, using Move }
  System.Move(
-   {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} Source.Items^[0],
-   {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} Items^[0],
+   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Source.Items[0],
+   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[0],
    Length * SizeOf(TDynArrayItem_11));
  {$endif}
 end;
@@ -344,7 +372,7 @@ end;
 
 function TDynArray_11.Equal(DynArr: TDynArray_11): boolean;
 begin
- result := Equal(DynArr.Items^, DynArr.Count);
+ result := Equal(DynArr.ItemsArray^, DynArr.Count);
 end;
 
 function TDynArray_11.Equal(const Arr: array of TDynArrayItem_11): boolean;
@@ -359,7 +387,7 @@ begin
  if ArrCount <> Length then begin result := false; Exit end;
 
  for i := 0 to ArrCount-1 do
-  if not EqualItems(Arr[i], Items^[i]) then
+  if not EqualItems(Arr[i], Items[i]) then
    begin result := false; Exit end;
 
  result := true;
@@ -368,7 +396,7 @@ end;
 function TDynArray_11.IndexOf(const Item: TDynArrayItem_11): integer;
 begin
  for Result := 0 to High do
-  if EqualItems(Items^[Result], Item) then Exit;
+  if EqualItems(Items[Result], Item) then Exit;
  Result := -1;
 end;
 
@@ -378,7 +406,7 @@ begin
  if BeginIndex < 0 then BeginIndex := 0;
  if EndIndex > High then EndIndex := High;
  for Result := BeginIndex to EndIndex do
-  if EqualItems(Items^[Result], Item) then Exit;
+  if EqualItems(Items[Result], Item) then Exit;
  Result := -1;
 end;
 {$endif}
@@ -388,7 +416,7 @@ var i: integer;
 begin
  {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
  for i := Index to Index + DelCount - 1 do
-  Finalize(Items^[i]);
+  Finalize(Items[i]);
  {$endif}
 
  { This copies elements from Index+Count .. Length-1
@@ -396,10 +424,10 @@ begin
    copying (Move), so it doesn't care about Initialize/Finalize.
    This way it's fast. }
  for i := Index to Length - 1 - DelCount do
-  { Instead of Items^[i] := Items^[i + DelCount]; }
+  { Instead of Items[i] := Items[i + DelCount]; }
   System.Move(
-    {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} Items^[i+DelCount],
-    {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} Items^[i],
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i+DelCount],
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i],
     SizeOf(TDynArrayItem_11));
 
  { Decrease Length without doing Finalize on the tail of the array. }
@@ -410,8 +438,8 @@ procedure TDynArray_11.Insert(Index: integer; const Item: TDynArrayItem_11);
 var i: integer;
 begin
  IncLength;
- for i := High downto Index+1 do Items^[i] := Items^[i-1];
- Items^[Index] := Item;
+ for i := High downto Index+1 do Items[i] := Items[i-1];
+ Items[Index] := Item;
 end;
 
 procedure TDynArray_11.SetAll(const Item: TDynArrayItem_11);
@@ -424,7 +452,7 @@ var
   {$endif}
 begin
  {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
- for i := 0 to Length-1 do Items^[i] := Item;
+ for i := 0 to Length-1 do Items[i] := Item;
  {$else}
  case SizeOf(TDynArrayItem_11) of
   1: System.FillChar(Items^, Count, ItemAsByte);
@@ -433,7 +461,7 @@ begin
   4: FillDWord(Items^, Count, ItemAsDWord);
   {$endif}
   else
-    for i := 0 to Length-1 do Items^[i] := Item;
+    for i := 0 to Length-1 do Items[i] := Item;
  end;
  {$endif}
 end;
@@ -477,7 +505,8 @@ procedure TDynArray_11.Sort(IsSmallerFunc: TDynArrayItemIsSmallerFunc_11;
 begin
  Sort_IsSmallerFunc := IsSmallerFunc;
  KambiUtils.SortByObject(Items, SizeOf(TDynArrayItem_11),
-   Self.Propagate_IsSmallerFunc, FirstIndex, LastIndex,
+   {$ifdef FPC_OBJFPC} @ {$endif} Self.Propagate_IsSmallerFunc,
+   FirstIndex, LastIndex,
    CountToUseSimpleSort);
 end;
 
@@ -488,7 +517,8 @@ procedure TDynArray_11.SortByObject(
 begin
  Sort_IsSmallerFuncByObject := IsSmallerFunc;
  KambiUtils.SortByObject(Items, SizeOf(TDynArrayItem_11),
-   Self.Propagate_IsSmallerFuncByObject, FirstIndex, LastIndex,
+   {$ifdef FPC_OBJFPC} @ {$endif} Self.Propagate_IsSmallerFuncByObject,
+   FirstIndex, LastIndex,
    CountToUseSimpleSort);
 end;
 

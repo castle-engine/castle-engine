@@ -319,15 +319,15 @@ begin
  Line0[Index2] := - Sum_3 / Sum_Index2;
 
  { Note we have
-     PlaneWithNonZeroIndex1[Index1] * Line0[Index1] +
-     PlaneWithNonZeroIndex1[Index2] * Line0[Index2] +
-     PlaneWithNonZeroIndex1[3] = 0
+     PlaneWithNonZeroIndex1^[Index1] * Line0[Index1] +
+     PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+     PlaneWithNonZeroIndex1^[3] = 0
    All is known except Line0[Index1],
-   PlaneWithNonZeroIndex1[Index1] is for sure <> 0. }
+   PlaneWithNonZeroIndex1^[Index1] is for sure <> 0. }
  Line0[Index1] := -
-   (PlaneWithNonZeroIndex1[Index2] * Line0[Index2] +
-    PlaneWithNonZeroIndex1[3]) /
-   PlaneWithNonZeroIndex1[Index1];
+   (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
+    PlaneWithNonZeroIndex1^[3]) /
+   PlaneWithNonZeroIndex1^[Index1];
 end;
 
 function ThreePlanesIntersectionPoint(

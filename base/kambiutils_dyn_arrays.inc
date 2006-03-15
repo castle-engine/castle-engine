@@ -375,7 +375,7 @@ function TDynCardinalArray.BigSum: Int64;
 var i: integer;
 begin
  result := 0;
- for i := 0 to Length-1 do result := result + Items^[i];
+ for i := 0 to Length-1 do result := result + Items[i];
 end;
 
 { TDynBooleanArray ------------------------------------------------------------ }

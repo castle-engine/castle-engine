@@ -187,7 +187,7 @@ var
 begin
   Count := Argc;
   for I := 0 to Count - 1 do
-    Items[I] := Argv_Array[I];
+    Items[I] := Argv_Array^[I];
 end;
 
 function TParametersArray.DeleteAndGetNext(I: Integer): string;

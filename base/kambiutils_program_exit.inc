@@ -272,7 +272,7 @@ end;
 procedure InitializationProgramExit;
 begin
  OldExceptProc := ExceptProc;
- ExceptProc := KambiUtils_ExceptProc;
+ ExceptProc := {$ifdef FPC_OBJFPC} @ {$endif} KambiUtils_ExceptProc;
 end;
 
 procedure FinalizationProgramExit;
