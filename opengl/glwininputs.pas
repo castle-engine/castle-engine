@@ -51,7 +51,8 @@ unit GLWinInputs;
 
 interface
 
-uses OpenGLh, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images;
+uses OpenGLh, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
+  KambiStringUtils;
 
 { Dziala w petli (glwm.ProcessMessage) i wyswietla
   zlapany obrazek (musisz podac ScreenX0, Y0 = taka pozycja rastera ze jest

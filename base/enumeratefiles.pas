@@ -304,6 +304,8 @@ function EnumFilesWritelnParameters(Attr: integer;
 
 implementation
 
+uses KambiFilesUtils;
+
 {$define read_implementation}
 {$I dynarray_1.inc}
 

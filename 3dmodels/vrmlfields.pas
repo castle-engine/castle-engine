@@ -25,7 +25,7 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images;
+  Images, KambiStringUtils;
 
 {$define read_interface}
 

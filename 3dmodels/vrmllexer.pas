@@ -325,6 +325,8 @@ function StringToVRMLStringToken(const s: string): string;
 
 implementation
 
+uses KambiStringUtils;
+
 const
   VRMLFirstLineTerm = [#10, #13];
 

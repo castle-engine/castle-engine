@@ -503,6 +503,8 @@ implementation
 
 {$define read_implementation}
 
+uses KambiStringUtils;
+
 {$ifdef FPC}
 procedure Initialize(var v: TOption); overload;
 begin

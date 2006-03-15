@@ -134,7 +134,8 @@ unit GLWinMessages;
 
 interface
 
-uses Classes, GLWindow, KambiGLUtils, OpenGLh, KambiUtils, OpenGLFonts;
+uses Classes, GLWindow, KambiGLUtils, OpenGLh, KambiUtils, OpenGLFonts,
+  KambiStringUtils;
 
 type
   { Specifies text alignment for MessageXxx functions in

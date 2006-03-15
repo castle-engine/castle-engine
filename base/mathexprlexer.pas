@@ -99,6 +99,8 @@ type
 
 implementation
 
+uses KambiStringUtils;
+
 function Int64Power(base: Integer; power: Cardinal): Int64;
 begin
  result := 1;

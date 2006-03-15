@@ -70,6 +70,8 @@ type
 
 implementation
 
+uses KambiStringUtils, KambiFilesUtils;
+
 {$define read_implementation}
 {$I DynArray_1.inc}
 

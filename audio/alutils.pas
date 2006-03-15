@@ -359,7 +359,7 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 implementation
 
-uses VectorMath;
+uses VectorMath, KambiStringUtils;
 
 {$define read_implementation}
 

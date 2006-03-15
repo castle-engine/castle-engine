@@ -74,6 +74,8 @@ D   mathexprlexer.pas
 |   progressunit.pas
 D   rects.pas
 |   vectormath.pas
+|   kambifilesutils.pas
+|   kambistringutils.pas
 
   fonts/
 |   win32/windowsfonts.pas

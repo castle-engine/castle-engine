@@ -1133,6 +1133,9 @@ procedure glListIBase(base: TGLint); OPENGL_CALL
 implementation
 
 {$define read_implementation}
+
+uses KambiFilesUtils;
+
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
 

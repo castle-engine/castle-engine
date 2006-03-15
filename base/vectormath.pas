@@ -1642,7 +1642,7 @@ function FrustumSphereCollisionPossibleSimple(const Frustum: TFrustum;
 
 implementation
 
-uses Math;
+uses Math, KambiStringUtils;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

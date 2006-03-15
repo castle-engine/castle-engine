@@ -611,7 +611,7 @@ uses
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
-  RaysWindow;
+  RaysWindow, KambiStringUtils, KambiFilesUtils;
 
 {$define read_interface}
 

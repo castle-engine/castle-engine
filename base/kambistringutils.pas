@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @section(Operations on strings.)
+{ Operations on strings.
 
   Also some operations on chars and PChars.
   And various convertions strings<->numbers.
@@ -44,7 +44,11 @@
   )
 }
 
-{$ifdef read_interface}
+unit KambiStringUtils;
+
+interface
+
+uses Variants, SysUtils, KambiUtils;
 
 type
   { }
@@ -566,9 +570,9 @@ const
 
 function DescribeKey(c: char): string;
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
+uses KambiFilesUtils;
 
 function RandomString: string;
 var i: integer;
@@ -1745,4 +1749,4 @@ begin
  end;
 end;
 
-{$endif read_implementation}
+end.

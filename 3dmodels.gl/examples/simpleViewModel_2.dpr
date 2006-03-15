@@ -51,7 +51,7 @@ program simpleViewModel_2;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
-  ProgressUnit, ProgressConsole;
+  ProgressUnit, ProgressConsole, KambiFilesUtils;
 
 var
   Scene: TVRMLFlatSceneGL;

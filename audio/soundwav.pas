@@ -74,6 +74,8 @@ const
 
 implementation
 
+uses KambiStringUtils;
+
 { TSoundWAV ------------------------------------------------------------ }
 
 constructor TSoundWAV.CreateFromStream(Stream: TStream);

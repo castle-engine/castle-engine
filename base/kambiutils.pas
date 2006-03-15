@@ -23,9 +23,6 @@
   This unit defines many many various basic utilities.
 
   @unorderedList(
-    @item(Operating on strings (e.g. @link(DeFormat), @link(NextToken) ---
-      see things in kambiutils_string.inc include file).)
-
     @item(Base @link(TDynArrayBase) class and many TDyn*Array classes
       implementing TDynArrayBase descendants that can store base Pascal types
       (Integers, strings, floats etc.).)
@@ -49,10 +46,7 @@
 
     @item(They somehow complement standard set of routines in SysUtils.
       See e.g. @link(GetTickCount), @link(ProcessTimerNow) in kambiutils_time.inc.
-      See e.g. @link(UserConfigFile), @link(ProgramDataPath)
-      and other things in kambiutils_filenames.inc and kambiutils_files.inc,
-      that returns some filenames / pathnames that should be used
-      on particular OS to read/write some data.)
+      See e.g. things in kambiutils_filenames.inc.)
 
     @item(Things to process command-line options.
       See @link(Parameters) in kambiutils_params.inc.
@@ -71,14 +65,6 @@
     @item(@link(TDynLib) class to handle dynamic libraries in a way
       more comfortable (for me) than standard routines available
       in DynLibs, Dl or some OS-specific units like Libc or Windows.)
-
-    @item(Functions to help cross-platform programs to know
-      where to read/write files:
-      @unorderedList(
-        @item(UserConfigFile and UserConfigPath -- user config files)
-        @item(GetTempFname and GetTempDir -- temporary files)
-        @item(ProgramDataPath -- installed program's data files)
-      ))
 
     @item(Some others...)
   )
@@ -195,8 +181,6 @@ type
 {$I kambiutils_os_specific.inc}
 {$I kambiutils_time.inc}
 {$I kambiutils_math.inc}
-{$I kambiutils_string.inc}
-{$I kambiutils_files.inc}
 {$I kambiutils_filenames.inc}
 {$I kambiutils_os_error.inc}
 {$I kambiutils_pointers.inc}
@@ -206,6 +190,8 @@ type
 {$undef read_interface}
 
 implementation
+
+uses KambiStringUtils, KambiFilesUtils;
 
 {$define read_implementation}
 
@@ -217,8 +203,6 @@ implementation
 {$I kambiutils_bits.inc}
 {$I kambiutils_time.inc}
 {$I kambiutils_math.inc}
-{$I kambiutils_string.inc}
-{$I kambiutils_files.inc}
 {$I kambiutils_filenames.inc}
 {$I kambiutils_os_specific.inc}
 {$I kambiutils_os_error.inc}
@@ -232,12 +216,10 @@ initialization
  InitializationProgramExit;
  InitializationParams;
  InitializationOSSpecific;
- InitializationFiles;
 
  Randomize; { required by e.g. GetTempFname }
  DecimalSeparator := '.';
 finalization
- FinalizationFiles;
  FinalizationOSSpecific;
  FinalizationParams;
  FinalizationProgramExit;

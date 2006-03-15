@@ -102,7 +102,7 @@ unit KambiClassUtils;
 
 interface
 
-uses Classes, SysUtils, KambiUtils, IniFiles;
+uses Classes, SysUtils, KambiUtils, IniFiles, KambiStringUtils;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
@@ -604,7 +604,7 @@ uses
     {$ifdef USE_LIBC} Libc {$else} BaseUnix, Unix {$endif}
   {$endif}
   {$ifdef WIN32} Windows {$endif}
-  , StrUtils;
+  , StrUtils, KambiFilesUtils;
 
 { TTextReader ---------------------------------------------------------------- }
 

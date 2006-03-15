@@ -46,6 +46,8 @@ type
 
 implementation
 
+uses KambiFilesUtils;
+
 { TObject3dGEO ---------------------------------------------------------------- }
 
 constructor TObject3dGEO.Create(const fname:string);

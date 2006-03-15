@@ -25,7 +25,7 @@
 program glWinEvents;
 
 uses SysUtils, KambiUtils, KambiGLUtils, OpenGLh, TimeMessages, GLWindow,
-  GLW_demo, Keys;
+  GLW_demo, Keys, KambiStringUtils;
 
 var TimeMsg: TTimeMessagesManager;
 

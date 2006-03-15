@@ -204,7 +204,7 @@ const
 
 implementation
 
-uses KambiUtils, KambiClassUtils;
+uses KambiUtils, KambiClassUtils, KambiStringUtils;
 
 { TGLBitmapFont_Abstract ------------------------------------------------------}
 

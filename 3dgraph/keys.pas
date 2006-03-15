@@ -67,7 +67,7 @@ unit Keys;
 
 interface
 
-uses KambiUtils;
+uses KambiUtils, KambiStringUtils;
 
 type
   { }

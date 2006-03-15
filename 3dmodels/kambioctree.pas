@@ -445,6 +445,8 @@ function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean
 
 implementation
 
+uses KambiStringUtils;
+
 {$I kambioctreemacros.inc}
 
 { TOctreeNode ------------------------------------------------------------ }

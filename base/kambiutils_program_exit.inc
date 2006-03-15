@@ -180,9 +180,9 @@ begin
   Message := '';
 
  if (E is EWithHiddenClassName) and (Message<>'') then
-  result :=  ProgramName +': ' +Message else
+  result := ProgramName +': ' +Message else
  begin
-  result :=  ProgramName +': Exception ' +E.ClassName;
+  result := ProgramName +': Exception ' +E.ClassName;
   {$ifdef DEBUG}
   if ExceptAddr<>nil then
    result := result +' (at address 0x'+IntToStr16(PtrUInt(ExceptAddr))+')';

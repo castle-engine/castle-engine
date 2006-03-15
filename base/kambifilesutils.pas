@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -18,9 +18,28 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Operations on files }
+{ Operations on files.
 
-{$ifdef read_interface}
+  Include functions to help cross-platform programs to know
+  where to read/write files:
+  @unorderedList(
+    @item(UserConfigFile and UserConfigPath -- user config files)
+    @item(GetTempFname and GetTempDir -- temporary files)
+    @item(ProgramDataPath -- installed program's data files)
+  )
+}
+unit KambiFilesUtils;
+
+{$I kambiconf.inc}
+
+interface
+
+uses
+  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef UNIX}
+    {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, {$endif}
+  {$endif}
+  SysUtils, KambiUtils;
 
 type
   EExeNameNotAvailable = class(Exception);
@@ -467,9 +486,9 @@ procedure SafeRewrite(var f: file; const filename: string;
   opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
 procedure SafeRewrite(var f: text; const filename: string); overload;
 
-{$endif read_interface}
+implementation
 
-{$ifdef read_implementation}
+uses KambiStringUtils;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -1059,7 +1078,7 @@ begin
  except on e: Exception do ShowFileException(e,filename) end;
 end;
 
-procedure InitializationFiles;
+procedure DoInitialization;
 begin
  { inicjalizacja FExeName }
 
@@ -1098,8 +1117,6 @@ begin
  {$ifdef WIN32} FExeName := ParamStr(0) {$endif};
 end;
 
-procedure FinalizationFiles;
-begin
-end;
-
-{$endif read_implementation}
+initialization
+  DoInitialization;
+end.
