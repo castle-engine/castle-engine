@@ -222,96 +222,104 @@ initialization
 
  if ALInited then
  begin
+  {$ifdef FPC_OBJFPC}
+    {$define ProcVarCast := Pointer}
+  {$else}
+    {$define ProcVarCast := @}
+  {$endif}
+
   { alXxx functions ---------------------------------------- }
-  @alEnable := ALLibrary.Symbol('alEnable');
-  @alDisable := ALLibrary.Symbol('alDisable');
-  @alIsEnabled := ALLibrary.Symbol('alIsEnabled');
-  {$ifndef OLD_OPENAL} @alHint := ALLibrary.Symbol('alHint'); {$endif}
-  @alGetBooleanv := ALLibrary.Symbol('alGetBooleanv');
-  @alGetIntegerv := ALLibrary.Symbol('alGetIntegerv');
-  @alGetFloatv := ALLibrary.Symbol('alGetFloatv');
-  @alGetDoublev := ALLibrary.Symbol('alGetDoublev');
-  @alGetString := ALLibrary.Symbol('alGetString');
-  @alGetBoolean := ALLibrary.Symbol('alGetBoolean');
-  @alGetInteger := ALLibrary.Symbol('alGetInteger');
-  @alGetFloat := ALLibrary.Symbol('alGetFloat');
-  @alGetDouble := ALLibrary.Symbol('alGetDouble');
-  @alGetError := ALLibrary.Symbol('alGetError');
-  @alIsExtensionPresent := ALLibrary.Symbol('alIsExtensionPresent');
-  @alGetProcAddress := ALLibrary.Symbol('alGetProcAddress');
-  @alGetEnumValue := ALLibrary.Symbol('alGetEnumValue');
-  @alListenerf := ALLibrary.Symbol('alListenerf');
-  @alListeneri := ALLibrary.Symbol('alListeneri');
-  @alListener3f := ALLibrary.Symbol('alListener3f');
-  @alListenerfv := ALLibrary.Symbol('alListenerfv');
-  @alGetListeneri := ALLibrary.Symbol('alGetListeneri');
-  @alGetListenerf := ALLibrary.Symbol('alGetListenerf');
-  {$ifndef OLD_OPENAL} @alGetListeneriv := ALLibrary.Symbol('alGetListeneriv'); {$endif}
-  @alGetListenerfv := ALLibrary.Symbol('alGetListenerfv');
-  @alGetListener3f := ALLibrary.Symbol('alGetListener3f');
-  @alGenSources := ALLibrary.Symbol('alGenSources');
-  @alDeleteSources := ALLibrary.Symbol('alDeleteSources');
-  @alIsSource := ALLibrary.Symbol('alIsSource');
-  @alSourcei := ALLibrary.Symbol('alSourcei');
-  @alSourcef := ALLibrary.Symbol('alSourcef');
-  @alSource3f := ALLibrary.Symbol('alSource3f');
-  @alSourcefv := ALLibrary.Symbol('alSourcefv');
-  @alGetSourcei := ALLibrary.Symbol('alGetSourcei');
-  {$ifndef OLD_OPENAL} @alGetSourceiv := ALLibrary.Symbol('alGetSourceiv'); {$endif}
-  @alGetSourcef := ALLibrary.Symbol('alGetSourcef');
-  @alGetSourcefv := ALLibrary.Symbol('alGetSourcefv');
-  @alGetSource3f := ALLibrary.Symbol('alGetSource3f');
-  @alSourcePlayv := ALLibrary.Symbol('alSourcePlayv');
-  @alSourceStopv := ALLibrary.Symbol('alSourceStopv');
-  @alSourceRewindv := ALLibrary.Symbol('alSourceRewindv');
-  @alSourcePausev := ALLibrary.Symbol('alSourcePausev');
-  @alSourcePlay := ALLibrary.Symbol('alSourcePlay');
-  @alSourcePause := ALLibrary.Symbol('alSourcePause');
-  @alSourceRewind := ALLibrary.Symbol('alSourceRewind');
-  @alSourceStop := ALLibrary.Symbol('alSourceStop');
-  @alGenBuffers := ALLibrary.Symbol('alGenBuffers');
-  @alDeleteBuffers := ALLibrary.Symbol('alDeleteBuffers');
-  @alIsBuffer := ALLibrary.Symbol('alIsBuffer');
-  @alBufferData := ALLibrary.Symbol('alBufferData');
-  @alGetBufferi := ALLibrary.Symbol('alGetBufferi');
-  @alGetBufferf := ALLibrary.Symbol('alGetBufferf');
-  {$ifndef OLD_OPENAL} @alGetBufferiv := ALLibrary.Symbol('alGetBufferiv'); {$endif}
-  {$ifndef OLD_OPENAL} @alGetBufferfv := ALLibrary.Symbol('alGetBufferfv'); {$endif}
-  @alSourceQueueBuffers := ALLibrary.Symbol('alSourceQueueBuffers');
-  @alSourceUnqueueBuffers := ALLibrary.Symbol('alSourceUnqueueBuffers');
-  {$ifndef OLD_OPENAL} @alQueuei := ALLibrary.Symbol('alQueuei'); {$endif}
-  @alDopplerFactor := ALLibrary.Symbol('alDopplerFactor');
-  @alDopplerVelocity := ALLibrary.Symbol('alDopplerVelocity');
-  @alDistanceModel := ALLibrary.Symbol('alDistanceModel');
+  ProcVarCast(alEnable) := ALLibrary.Symbol('alEnable');
+  ProcVarCast(alDisable) := ALLibrary.Symbol('alDisable');
+  ProcVarCast(alIsEnabled) := ALLibrary.Symbol('alIsEnabled');
+  {$ifndef OLD_OPENAL} ProcVarCast(alHint) := ALLibrary.Symbol('alHint'); {$endif}
+  ProcVarCast(alGetBooleanv) := ALLibrary.Symbol('alGetBooleanv');
+  ProcVarCast(alGetIntegerv) := ALLibrary.Symbol('alGetIntegerv');
+  ProcVarCast(alGetFloatv) := ALLibrary.Symbol('alGetFloatv');
+  ProcVarCast(alGetDoublev) := ALLibrary.Symbol('alGetDoublev');
+  ProcVarCast(alGetString) := ALLibrary.Symbol('alGetString');
+  ProcVarCast(alGetBoolean) := ALLibrary.Symbol('alGetBoolean');
+  ProcVarCast(alGetInteger) := ALLibrary.Symbol('alGetInteger');
+  ProcVarCast(alGetFloat) := ALLibrary.Symbol('alGetFloat');
+  ProcVarCast(alGetDouble) := ALLibrary.Symbol('alGetDouble');
+  ProcVarCast(alGetError) := ALLibrary.Symbol('alGetError');
+  ProcVarCast(alIsExtensionPresent) := ALLibrary.Symbol('alIsExtensionPresent');
+  ProcVarCast(alGetProcAddress) := ALLibrary.Symbol('alGetProcAddress');
+  ProcVarCast(alGetEnumValue) := ALLibrary.Symbol('alGetEnumValue');
+  ProcVarCast(alListenerf) := ALLibrary.Symbol('alListenerf');
+  ProcVarCast(alListeneri) := ALLibrary.Symbol('alListeneri');
+  ProcVarCast(alListener3f) := ALLibrary.Symbol('alListener3f');
+  ProcVarCast(alListenerfv) := ALLibrary.Symbol('alListenerfv');
+  ProcVarCast(alGetListeneri) := ALLibrary.Symbol('alGetListeneri');
+  ProcVarCast(alGetListenerf) := ALLibrary.Symbol('alGetListenerf');
+  {$ifndef OLD_OPENAL} ProcVarCast(alGetListeneriv) := ALLibrary.Symbol('alGetListeneriv'); {$endif}
+  ProcVarCast(alGetListenerfv) := ALLibrary.Symbol('alGetListenerfv');
+  ProcVarCast(alGetListener3f) := ALLibrary.Symbol('alGetListener3f');
+  ProcVarCast(alGenSources) := ALLibrary.Symbol('alGenSources');
+  ProcVarCast(alDeleteSources) := ALLibrary.Symbol('alDeleteSources');
+  ProcVarCast(alIsSource) := ALLibrary.Symbol('alIsSource');
+  ProcVarCast(alSourcei) := ALLibrary.Symbol('alSourcei');
+  ProcVarCast(alSourcef) := ALLibrary.Symbol('alSourcef');
+  ProcVarCast(alSource3f) := ALLibrary.Symbol('alSource3f');
+  ProcVarCast(alSourcefv) := ALLibrary.Symbol('alSourcefv');
+  ProcVarCast(alGetSourcei) := ALLibrary.Symbol('alGetSourcei');
+  {$ifndef OLD_OPENAL} ProcVarCast(alGetSourceiv) := ALLibrary.Symbol('alGetSourceiv'); {$endif}
+  ProcVarCast(alGetSourcef) := ALLibrary.Symbol('alGetSourcef');
+  ProcVarCast(alGetSourcefv) := ALLibrary.Symbol('alGetSourcefv');
+  ProcVarCast(alGetSource3f) := ALLibrary.Symbol('alGetSource3f');
+  ProcVarCast(alSourcePlayv) := ALLibrary.Symbol('alSourcePlayv');
+  ProcVarCast(alSourceStopv) := ALLibrary.Symbol('alSourceStopv');
+  ProcVarCast(alSourceRewindv) := ALLibrary.Symbol('alSourceRewindv');
+  ProcVarCast(alSourcePausev) := ALLibrary.Symbol('alSourcePausev');
+  ProcVarCast(alSourcePlay) := ALLibrary.Symbol('alSourcePlay');
+  ProcVarCast(alSourcePause) := ALLibrary.Symbol('alSourcePause');
+  ProcVarCast(alSourceRewind) := ALLibrary.Symbol('alSourceRewind');
+  ProcVarCast(alSourceStop) := ALLibrary.Symbol('alSourceStop');
+  ProcVarCast(alGenBuffers) := ALLibrary.Symbol('alGenBuffers');
+  ProcVarCast(alDeleteBuffers) := ALLibrary.Symbol('alDeleteBuffers');
+  ProcVarCast(alIsBuffer) := ALLibrary.Symbol('alIsBuffer');
+  ProcVarCast(alBufferData) := ALLibrary.Symbol('alBufferData');
+  ProcVarCast(alGetBufferi) := ALLibrary.Symbol('alGetBufferi');
+  ProcVarCast(alGetBufferf) := ALLibrary.Symbol('alGetBufferf');
+  {$ifndef OLD_OPENAL} ProcVarCast(alGetBufferiv) := ALLibrary.Symbol('alGetBufferiv'); {$endif}
+  {$ifndef OLD_OPENAL} ProcVarCast(alGetBufferfv) := ALLibrary.Symbol('alGetBufferfv'); {$endif}
+  ProcVarCast(alSourceQueueBuffers) := ALLibrary.Symbol('alSourceQueueBuffers');
+  ProcVarCast(alSourceUnqueueBuffers) := ALLibrary.Symbol('alSourceUnqueueBuffers');
+  {$ifndef OLD_OPENAL} ProcVarCast(alQueuei) := ALLibrary.Symbol('alQueuei'); {$endif}
+  ProcVarCast(alDopplerFactor) := ALLibrary.Symbol('alDopplerFactor');
+  ProcVarCast(alDopplerVelocity) := ALLibrary.Symbol('alDopplerVelocity');
+  ProcVarCast(alDistanceModel) := ALLibrary.Symbol('alDistanceModel');
 
   { alcXxx functions ---------------------------------------- }
-  @alcCreateContext := ALLibrary.Symbol('alcCreateContext');
-  @alcMakeContextCurrent := ALLibrary.Symbol('alcMakeContextCurrent');
-  @alcProcessContext := ALLibrary.Symbol('alcProcessContext');
-  @alcSuspendContext := ALLibrary.Symbol('alcSuspendContext');
-  @alcDestroyContext := ALLibrary.Symbol('alcDestroyContext');
-  @alcGetError := ALLibrary.Symbol('alcGetError');
-  @alcGetCurrentContext := ALLibrary.Symbol('alcGetCurrentContext');
-  @alcOpenDevice := ALLibrary.Symbol('alcOpenDevice');
-  @alcCloseDevice := ALLibrary.Symbol('alcCloseDevice');
-  @alcIsExtensionPresent := ALLibrary.Symbol('alcIsExtensionPresent');
-  @alcGetProcAddress := ALLibrary.Symbol('alcGetProcAddress');
-  @alcGetEnumValue := ALLibrary.Symbol('alcGetEnumValue');
-  @alcGetContextsDevice := ALLibrary.Symbol('alcGetContextsDevice');
-  @alcGetString := ALLibrary.Symbol('alcGetString');
-  @alcGetIntegerv := ALLibrary.Symbol('alcGetIntegerv');
+  ProcVarCast(alcCreateContext) := ALLibrary.Symbol('alcCreateContext');
+  ProcVarCast(alcMakeContextCurrent) := ALLibrary.Symbol('alcMakeContextCurrent');
+  ProcVarCast(alcProcessContext) := ALLibrary.Symbol('alcProcessContext');
+  ProcVarCast(alcSuspendContext) := ALLibrary.Symbol('alcSuspendContext');
+  ProcVarCast(alcDestroyContext) := ALLibrary.Symbol('alcDestroyContext');
+  ProcVarCast(alcGetError) := ALLibrary.Symbol('alcGetError');
+  ProcVarCast(alcGetCurrentContext) := ALLibrary.Symbol('alcGetCurrentContext');
+  ProcVarCast(alcOpenDevice) := ALLibrary.Symbol('alcOpenDevice');
+  ProcVarCast(alcCloseDevice) := ALLibrary.Symbol('alcCloseDevice');
+  ProcVarCast(alcIsExtensionPresent) := ALLibrary.Symbol('alcIsExtensionPresent');
+  ProcVarCast(alcGetProcAddress) := ALLibrary.Symbol('alcGetProcAddress');
+  ProcVarCast(alcGetEnumValue) := ALLibrary.Symbol('alcGetEnumValue');
+  ProcVarCast(alcGetContextsDevice) := ALLibrary.Symbol('alcGetContextsDevice');
+  ProcVarCast(alcGetString) := ALLibrary.Symbol('alcGetString');
+  ProcVarCast(alcGetIntegerv) := ALLibrary.Symbol('alcGetIntegerv');
 
-  ALUTInited:={$ifdef ALUT_IN_AL_LIB} true {$else} false {$endif};
+  ALUTInited := {$ifdef ALUT_IN_AL_LIB} true {$else} false {$endif};
   if ALUTInited then
   begin
    { alutXxx functions ---------------------------------------- }
-   @alutInit := ALLibrary.Symbol('alutInit');
-   @alutExit := ALLibrary.Symbol('alutExit');
-   @alutLoadWAV := ALLibrary.Symbol('alutLoadWAV');
-   @alutLoadWAVFile := ALLibrary.Symbol('alutLoadWAVFile');
-   @alutLoadWAVMemory := ALLibrary.Symbol('alutLoadWAVMemory');
-   @alutUnloadWAV := ALLibrary.Symbol('alutUnloadWAV');
+   ProcVarCast(alutInit) := ALLibrary.Symbol('alutInit');
+   ProcVarCast(alutExit) := ALLibrary.Symbol('alutExit');
+   ProcVarCast(alutLoadWAV) := ALLibrary.Symbol('alutLoadWAV');
+   ProcVarCast(alutLoadWAVFile) := ALLibrary.Symbol('alutLoadWAVFile');
+   ProcVarCast(alutLoadWAVMemory) := ALLibrary.Symbol('alutLoadWAVMemory');
+   ProcVarCast(alutUnloadWAV) := ALLibrary.Symbol('alutUnloadWAV');
   end;
+
+  {$undef FPC_OBJFPC}
  end;
 finalization
  ALInited := false;

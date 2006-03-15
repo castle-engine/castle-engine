@@ -434,7 +434,8 @@ const
     (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
   );
 begin
- ParseParameters(OpenALOptions, OpenALOptionProc, nil, true);
+ ParseParameters(OpenALOptions, 
+   {$ifdef FPC_OBJFPC} @ {$endif} OpenALOptionProc, nil, true);
 end;
 
 function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
@@ -660,7 +661,7 @@ end;
 procedure CheckAL(const situation: string);
 var err: TALenum;
 begin
- err := alGetError;
+ err := alGetError();
  if err <> AL_NO_ERROR then raise EALError.Create(err,
    'OpenAL error AL_xxx at '+situation+' : '+alGetString(err));
 end;
