@@ -2795,7 +2795,7 @@ const
            );
   );
 
-  Char123 : packed record { '{' = #123 }
+  Char123 : packed record { #123 }
     Info:TBFNTCharInfo;
     Data:packed array[0..55]of Byte;
   end =

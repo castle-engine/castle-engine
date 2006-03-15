@@ -145,7 +145,7 @@ end;
 
 function BFNTCharRowByteLength(BFNTChar: PBFNTChar): Cardinal;
 begin
- Result := BFNTCharRowByteLength(BFNTChar.Info.Width, BFNTChar.Info.Alignment);
+ Result := BFNTCharRowByteLength(BFNTChar^.Info.Width, BFNTChar^.Info.Alignment);
 end;
 
 end.

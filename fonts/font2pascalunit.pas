@@ -36,7 +36,7 @@ procedure Font2Pascal(const TTFont:TTrueTypeFont;
 procedure Font2Pascal(const TTFont:TTrueTypeFont;
   const UnitName, PrecedingComment, FontConstantName:string;
   const OutFileName:string); overload;
-  
+
 { @noAutoLinkHere }
 procedure Font2Pascal(const BmpFont:TBmpFont;
   const UnitName, PrecedingComment, FontConstantName:string; Stream:TStream);
@@ -77,7 +77,11 @@ begin
   ' ':CharName:='space = ';
   '}':CharName:='right curly brace = ';
   else
-   if c in [' '..#255] then CharName:=''''+c+''' = ' else CharName:='';
+   (* Avoid C = '{' or '}', to not activate accidentaly
+      ObjFpc nested comments feature. *)
+   if c in ([' '..#255] - ['{', '}']) then
+     CharName:=''''+c+''' = ' else
+     CharName:='';
  end;
 
  WriteStr(Stream, Format('  Char%d : packed record { %s#%d }' +nl,

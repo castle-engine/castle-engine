@@ -2213,7 +2213,7 @@ const
     )
   );
 
-  Char123 : packed record { '{' = #123 }
+  Char123 : packed record { #123 }
     Info : TTTFCharInfo;
     Items : array[0..95] of TTTFCharItem;
   end =
