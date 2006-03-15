@@ -39,7 +39,7 @@ documentation, so don't hesitate to email me with such requests.
 
 @section(2 SectionCompilingFPC Compiling these units with FPC)
 
-Latest stable version of FPC is always advised.x
+Latest stable version of FPC is always advised.
 See [http://www.camelot.homedns.org/~michalis/sources.php#section_fpc]
 for more comments about FPC versions allowed.
 
