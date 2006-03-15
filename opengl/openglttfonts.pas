@@ -220,9 +220,9 @@ var i, poz,
          Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
                      punkt nastepnej linii lub pierwszy punkt polygonu }
         end;
-        {sorry - zrobic opcje ktora pozwoli na robienie tu krzywych beziera,
-         jesli kiedys bedziesz potrzebowal BARDZO dokladnie wyrenderowac
-         jakas literke (np. w duzym powiekszeniu) }
+        { TODO:  zrobic opcje ktora pozwoli na robienie tu krzywych beziera,
+          jesli kiedys bedziesz potrzebowal BARDZO dokladnie wyrenderowac
+          jakas literke (np. w duzym powiekszeniu) }
      end;
     end;
     gluTessEndContour(tobj);
@@ -298,8 +298,8 @@ begin
           Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
                       punkt nastepnej linii lub pierwszy punkt polygonu }
          end;
-         {sorry - robic tu krzywe beziera jezeli kiedys bede potrzebowal
-          takiej dokladnosci?}
+         { TODO:  robic tu krzywe beziera jezeli kiedys bede potrzebowal
+           takiej dokladnosci? }
       end;
      end;
 

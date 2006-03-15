@@ -75,9 +75,7 @@ unit KambiGLUtils;
   gpc jest tu madry i ma konstrukcje "protected var" ktora znaczy wlasnie
   "const koniecznie przez referencje".
   Chwilowo po prostu te deklaracje sa realizowane nie przez export ale przez
-  wywolanie posrednie w implementacji pod FPC+linux - sorry, ale to nie moje sorry.
-  (notka : FPC z CVS ma tez jakis problem, chwilowo go obchodze
-  tez korzystajac z IMPLEMENT_OPENGL_STUBS.)
+  wywolanie posrednie.
 }
 {$define IMPLEMENT_OPENGL_STUBS}
 
@@ -2053,7 +2051,7 @@ procedure DrawArrow(grotThickness, grotLength: TGLfloat);
 begin
  grotLength := 2*grotLength; { mapuj grotLength na zakres 0..2 }
 
- {sorry - tutaj powinienes przelaczac glEdgeFlag }
+ { TODO: tutaj powinienes przelaczac glEdgeFlag }
 
  glBegin(GL_TRIANGLES);
   glVertex2f(0, 2);
@@ -2164,8 +2162,8 @@ begin
  xstep:=(x2-x1) / (DetailLevelX + 1);
  ystep:=(y2-y1) / (DetailLevelY + 1);
 
- {sorry - zrobic aby wybor normalnego wektora dzialal bez wzgledu
-   na to czy x1 <= x2 i y1 <= y2.}
+ { TODO: zrobic aby wybor normalnego wektora dzialal bez wzgledu
+   na to czy x1 <= x2 i y1 <= y2. }
 
  v[constCoord] := constValue;
 

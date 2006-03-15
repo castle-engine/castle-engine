@@ -142,7 +142,7 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
     end;
 
   function InterceptedSystemKey(key: integer): boolean;
-  begin result:={sorry-alt (key = K_Alt) or }(key = K_F10) end;
+  begin result := { TODO-alt: (key = K_Alt) or }(key = K_F10) end;
 
   procedure Handle_WM_KEYDOWN;
   { Notka:
@@ -257,9 +257,9 @@ begin
     begin
      fLeft := LongWord_rec(lParm).LoSmallint;
      fTop := LongWord_rec(lParm).HiSmallint;
-     {sorry - przerobic to na glViewport ? po co wywolywac tu OnResize ktore
-      moze robic tu mnostwo rzeczy ktore przeciez nie sa potrzebne, bo tak
-      naprawde nie zmienil sie size tylko position ?}
+     { TODO: przerobic to na glViewport ? po co wywolywac tu OnResize ktore
+       moze robic tu mnostwo rzeczy ktore przeciez nie sa potrzebne, bo tak
+       naprawde nie zmienil sie size tylko position ? }
      DoResize(fWidth, fHeight, false);
      Exit;
     end;
@@ -276,7 +276,7 @@ begin
   WM_ERASEBKGND: begin
      if IsWindowEnabled(H_Wnd) then
       redisplayPosted := true else
-      {sorry - ponizsze ulegnie zmianie jezeli wprowadze wlasne okienka modalne}
+      { TODO:  ponizsze ulegnie zmianie jezeli wprowadze wlasne okienka modalne }
       { jezeli nie jestesmy Enabled to moze znaczyc tylko ze zostalo
         uruchomione okienko modalne blokujace nasze okienko (np. Windows.MessageBox).
         W takiej sytuacji nie mozemy polegac na mechanizmie ustawiania
@@ -486,7 +486,7 @@ begin
    rzeczywiscie to co chcemy, a w przypadku AccumBufferBits nie bylismy nawet w stanie
    powiedziec tego co trzeba ChoosePixelFormat.
 
-   sorry - na dluzsza mete dobrym rozwiazaniem bedzie tu zaimplementowanie samemu
+   TODO:  na dluzsza mete dobrym rozwiazaniem bedzie tu zaimplementowanie samemu
    przegladania dostepnych pixel formats i wybierania samemu najlepszego pixel format. }
  DescribePixelFormat(h_Dc, PixelFormat, SizeOf(pfd), pfd);
  CheckRequestedBufferAttributes('ChoosePixelFormat',
@@ -662,7 +662,7 @@ function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
 var Struct: TChooseColor;
     CustomColors: array[0..15]of TColorRef;
 begin
- { init CustomColors to all blacks; sorry - I should use a static table for this
+ { init CustomColors to all blacks; TODO: I should use a static table for this
    (and put a comment in GLWindow to say that custom colors are preserved in win dialog) }
  FillChar(CustomColors, SizeOf(CustomColors), 0);
 

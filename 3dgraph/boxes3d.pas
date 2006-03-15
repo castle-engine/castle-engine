@@ -343,7 +343,7 @@ function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3d;
 
-{ sorry - sprawdzic - czy jest realny sens w implementowaniu tu
+{ TODO: sprawdzic - czy jest realny sens w implementowaniu tu
   algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
   3/2*n zamiast 2*n ? }
 

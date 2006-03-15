@@ -32,24 +32,24 @@ type
 { FaceIndices[0]..FaceIndices[FaceIndicesCount-1] zawieraja indeksy
   do tablicy Vertices. Te indeksy okreslaja kolejne wierzcholki sciany,
   niekoniecznie convex.
-    
+
   TriangulateFace rozbija face na trojkaty, dla kazdego trojkata wywolujac
-  TriangulatorProc z drugim parametrem = TriangulatorProcData a 
+  TriangulatorProc z drugim parametrem = TriangulatorProcData a
   pierwszym parametrem ustawionym na indeksy do tablicy FaceIndices[]
-  ktore utworza dany trojkat (zwracamy indeksy a nie gotowe wektory z tablicy 
-  Vertices (ani nawet indkesy do Vertices[]) zeby program mogl nie tylko 
-  wyciagnac sobie z tablic Vertices[FaceIndices[]] wektory ale takze byc 
+  ktore utworza dany trojkat (zwracamy indeksy a nie gotowe wektory z tablicy
+  Vertices (ani nawet indkesy do Vertices[]) zeby program mogl nie tylko
+  wyciagnac sobie z tablic Vertices[FaceIndices[]] wektory ale takze byc
   moze z innych tablic wyciagnac informacje towarzyszace dla wierzcholka,
   a do tego moze byc potrzebny nie tylko indeks do Vertices ale wrecz
   indeks do FaceIndices - patrz np. w rendererze dla IndexedFaceSet.)
   Indeksy te sa zwiekszone o AddToIndices (moze byc ujemne) (to jest
   wygodne gdy FaceIndices to wskaznik do srodka jakiejs tablicy).
-    
-  Generowane trojkaty maja taka sama orientacje (normal z CCW) jak 
+
+  Generowane trojkaty maja taka sama orientacje (normal z CCW) jak
   oryginalny polygon - tzn. normale wyliczone np. IndexedPolygonNormal
   na non-convex face beda dobre dla trojkatow po triangulacji tej face
   przez TriangulateFace.
-    
+
   Nie powinienes uzywac tej procedury gdy WIESZ ze face jest convex -
   wtedy mozna przeciez rozbic face na trojkaty bardzo latwo. Uzywaj
   tej proc gdy rzeczywiscie face moze byc non-convex - jesli wiesz ze
@@ -63,24 +63,24 @@ procedure TriangulateFace(FaceIndices: PArray_Longint; FaceIndicesCount: integer
   One tez zapewniaja konsekwentna orientacje trojkatow (w przypadku TriangleStrip
   liczy sie orientacja pierwszych trzech wierzcholkow, tzn. kolejno dostajemy
   v0-v1-v2, v2-v1-v3, v2-v3-v4, v4-v3-v5 itd., podobnie jak w OpenGLu).
-  Zwracam uwage ze TriangleStrip ma po prostu jednoznacznie wyznaczona 
-  triangulacje i nie ma w jego przypadku sensu rozwazanie czy jest convex czy 
+  Zwracam uwage ze TriangleStrip ma po prostu jednoznacznie wyznaczona
+  triangulacje i nie ma w jego przypadku sensu rozwazanie czy jest convex czy
   non-convex. }
-procedure TriangulateConvexFace(FaceIndicesCount: integer; 
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer; 
-  AddToIndices: Longint);  
-procedure TriangulateTriangleStrip(IndicesCount: integer; 
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer; 
+procedure TriangulateConvexFace(FaceIndicesCount: integer;
+  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
+  AddToIndices: Longint);
+procedure TriangulateTriangleStrip(IndicesCount: integer;
+  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
   AddToIndices: Longint);
 
 implementation
 
-{$define DEFINE_NEW_TRIANGLE_PROC := 
+{$define DEFINE_NEW_TRIANGLE_PROC :=
 procedure NewTriangle(const p0,p1,p2: Longint);
 begin
  TriangulatorProc(Vector3Longint(
-   p0+AddToIndices, 
-   p1+AddToIndices, 
+   p0+AddToIndices,
+   p1+AddToIndices,
    p2+AddToIndices), TriangulatorProcData);
 end;}
 
@@ -88,24 +88,24 @@ end;}
 
 { TriangulateFace non-convex napisane na podstawie face2tri.C w C++ ze
   zrodel w mgflib. Przepisalem na Pascala, dostosowalem do wlasnych parametrow,
-  skrocilem zapis w wielu miejscach, ale ciagle zasadniczy algorytm nie ulegl 
+  skrocilem zapis w wielu miejscach, ale ciagle zasadniczy algorytm nie ulegl
   zadnym zmianom.
-  
+
   Chwilowo nie zglebilem zupelnie do konca idei "jak i dlaczego to dziala".
-  Postaram sie zmienic ten fakt jak najszybciej i wtedy znikna ponizsze 
-  "sorry". }
+  Postaram sie zmienic ten fakt jak najszybciej i wtedy znikna ponizsze
+  "TODO". }
 
 procedure TriangulateFace(FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
   TriangulatorProcData: Pointer; AddToIndices: Longint);
   DEFINE_NEW_TRIANGLE_PROC
-    
+
   {$define VertsCount := FaceIndicesCount}
   function Verts(i: Longint): TVector3Single;
   begin
    result := Vertices^[FaceIndices^[i]];
   end;
-  
+
 var ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
     Corners, Start, MaxLenIndex, i, p0, p1, p2: Longint;
     d, MaxLen: Single;
@@ -129,10 +129,10 @@ begin
   Center := ZeroVector3Single;
   for i := 0 to VertsCount-1 do VectorAddTo1st(Center, Verts(i));
   VectorScaleTo1st(Center, 1/VertsCount);
-  
+
   { wyznacz punkt sposrod Verts[] najbardziej odlegly od Center.
     MaxLen to jego odleglosc od Center, MaxLenIndex to jego index w Verts[].
-    sorry - czy tu PointDistanceSqr nie wystarczy ? }
+    TODO - czy tu PointDistanceSqr nie wystarczy ? }
   MaxLenIndex := 0;
   MaxLen := PointsDistance(Center, Verts(0));
   for i := 1 to VertsCount-1 do
@@ -150,7 +150,7 @@ begin
   if p1=0 then p0 := VertsCount-1 else p0 := p1-1;
   p2 := (p1+1) mod VertsCount;
 
-  {sorry - czy tu negate potrzebne ?}
+  { TODO - czy tu negate potrzebne ? }
   ConvexNormal := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
 
   Corners := VertsCount;
@@ -171,7 +171,7 @@ begin
 
      if p0=Start then break;
 
-     {sorry - czy tu negate potrzebne ?}
+     { TODO - czy tu negate potrzebne ? }
      nn := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
      d := PointsDistance(nn, ConvexNormal);
 
@@ -187,12 +187,12 @@ begin
        Empty := Empty and not (
          (VectorDotProduct(E1, VectorSubtract(Verts(i), Verts(p0))) <= - SingleEqualityEpsilon) and
          (VectorDotProduct(E2, VectorSubtract(Verts(i), Verts(p1))) <= - SingleEqualityEpsilon) and
-         (VectorDotProduct(E3, VectorSubtract(Verts(i), Verts(p2))) <= - SingleEqualityEpsilon) 
+         (VectorDotProduct(E3, VectorSubtract(Verts(i), Verts(p2))) <= - SingleEqualityEpsilon)
          );
       end;
     until (d <= 1.0) and Empty;
 
-{ sorry - w graz.mgf.wrl jest ten blad i mimo to wszystko dziala ok 
+{ TODO - w graz.mgf.wrl jest ten blad i mimo to wszystko dziala ok
   gdy zakomentarzowalem ponizszy check ?
     if p0=Start then raise Exception.Create('misbuilt polygonal face');}
 
@@ -207,17 +207,17 @@ end;
 
 { proste Triangulate ---------------------------------------------------------- }
 
-procedure TriangulateConvexFace(FaceIndicesCount: integer; 
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer; 
-  AddToIndices: Longint);  
-  DEFINE_NEW_TRIANGLE_PROC  
+procedure TriangulateConvexFace(FaceIndicesCount: integer;
+  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
+  AddToIndices: Longint);
+  DEFINE_NEW_TRIANGLE_PROC
 var i: integer;
 begin
  for i := 0 to FaceIndicesCount-3 do NewTriangle(0, i+1, i+2);
-end;  
+end;
 
-procedure TriangulateTriangleStrip(IndicesCount: integer; 
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer; 
+procedure TriangulateTriangleStrip(IndicesCount: integer;
+  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
   AddToIndices: Longint);
   DEFINE_NEW_TRIANGLE_PROC
 var i: integer;
@@ -231,6 +231,6 @@ begin
    NewTriangle(i+1, i  , i+2) else
    NewTriangle(i  , i+1, i+2);
  end;
-end;      
+end;
 
 end.

@@ -29,12 +29,14 @@ const
   ShellDLL = 'shell32.dll';
 
 { OneInstanceCode wykona MainProgram i zwroci true jezeli w momencie wywolania
-    w systemie nie bedzie w systemie operacyjnym juz wykonywany kod o
-    identyfikatorze CodeIdent. Wpp. zwroci false.
+  w systemie nie bedzie w systemie operacyjnym juz wykonywany kod o
+  identyfikatorze CodeIdent. Wpp. zwroci false.
+
   Jest to wiec podstawowa funkcja aby robic aplikacje One-Instance jak edytorek,
-    ale moze tez sluzyc to robienia jakichs innych sztuczek i program
-    w ogole nie musi byc GUI.
-  sorry - jak zrealizowac to pod Linuxem ? }
+  ale moze tez sluzyc to robienia jakichs innych sztuczek i program
+  w ogole nie musi byc GUI.
+
+  TODO: jak zrealizowac to pod Linuxem ? }
 function OneInstanceCode(MainProgram:TProcedure; CodeIdent:string):boolean; overload;
 { Same thing as OneInstanceCode(MainProgram, ProgramName + '_one_instance_mutex') }
 function OneInstanceCode(MainProgram:TProcedure):boolean; overload;
@@ -152,7 +154,7 @@ function MessageDescr(const Mesg:TMsg):string; overload;
 function MessageDescr(hWnd: HWND; MessageNum: UINT; wParm: WPARAM; lParm: LPARAM):string; overload;
 
 { poprawione deklaracje z WinAPI }
-function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint; 
+function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint;
   stdcall; external userDLL name 'ChangeDisplaySettingsA';
 
 { This is useful for debugging ChangeDisplaySettings result. }
@@ -604,7 +606,7 @@ begin
    WM_USER : begin MsgName:='WM_USER'; end;
  end;
 
- { sorry - it's probably FPC 1.0.x bug that forces me to include this
+ { TODO: it's probably FPC 1.0.x bug that forces me to include this
    NoRQCheckBegin/End here, test with FPC 1.9.3 }
  {$I NoRQCheckBegin.inc}
  result:=Format('Message %s (number %d) to window %d. WParam %d, LParam %d.',
@@ -632,8 +634,8 @@ procedure InitializationOSSpecific;
 begin
 end;
 
-procedure FinalizationOSSpecific; 
-begin 
+procedure FinalizationOSSpecific;
+begin
 end;
 
 {$endif read_implementation}

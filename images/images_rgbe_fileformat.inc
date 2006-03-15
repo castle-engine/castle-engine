@@ -152,11 +152,11 @@ begin
   if line='FORMAT=32-bit_rle_xyze' then xyzFormat := true;
  until line = '';
 
- Check(not xyzFormat, 'sorry - reading XYZE images not implemented yet. '+
+ Check(not xyzFormat, 'TODO: reading XYZE images not implemented yet. '+
    'Use ra_xyze (from Radiance programs) to convert this image to rgbe.');
 
  { read resolution string. As many other programs (ximage, ImageMagick's display)
-   we don't support any other resolution than -Y * +X * - sorry }
+   we don't support any other resolution than -Y * +X * - TODO }
  line := StreamReadUpto_NotEOS(Stream, [#10]);
  DeFormat(line, '-Y %d +X %d', [@RGBEHeight, @RGBEWidth], false);
 

@@ -64,7 +64,7 @@ begin
    warningow czy czegos takiego. Moduly jpeg'a moga tylko zaladowac obrazek
    lub rzucic wyjatek. }
    
-{ sorry - jak tylko bedzie potrzeba i okazja, zrobi sie jednak jakis mechanizm
+{ TODO: jak tylko bedzie potrzeba i okazja, zrobi sie jednak jakis mechanizm
   wypuszczania tych warningow na zewnatrz, np. zmienna OnJpegWarning }
 
 (*

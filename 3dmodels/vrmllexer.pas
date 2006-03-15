@@ -165,7 +165,7 @@ type
       Nie mozesz na nim operowac kiedy juz zainicjowales lexera !
       Ale mozesz np. sprawdzic jego Position aby wiedziec gdzie mniej
       wiecej bylismy w strumieniu gdy wystapil blad lexera.
-      (sorry - reconsider this after implementing INCLUDE keyword)}
+      (TODO - reconsider this after implementing INCLUDE keyword)}
     property Stream: TPeekCharStream read FStream;
 
     { jedyna wersje VRML'a dopuszczalne przez jakiekolwiek specyfikacje
@@ -184,7 +184,8 @@ type
     { jezeli VRMLVersion = 1.0 to na pewno TokenKeyword in VRML10Keywords.
       Innymi slowy, gdy czytamy VRML 1.0 np. string "PROTO" zostanie potraktowany
       jako token Name, nie keyword. I tak jest dobrze.
-      sorry - gdy tylko zaimplementujemy INCLUDE handling, bedzie mozna
+
+      TODO: gdy tylko zaimplementujemy INCLUDE handling, bedzie mozna
       polegac na fakcie ze nigdy TokenKeyword = vkINCLUDE (no, tzn, gdy
       Token <> vtKeyword TokenKeyword jest ciagle undefined wiec wtedy wszystko
       jest mozliwe) }
@@ -258,7 +259,8 @@ type
       to something sensible. It is just some information
       "carried with" the lexer. We will use it when we parse nodes.
       Look at TVRMLNode node for a description of this field.
-      sorry - when we implement INCLUDE handling here, what shall we do with
+
+      TODO: when we implement INCLUDE handling here, what shall we do with
         this ? Probably nothing - text INCLUDEd will have same WWWBasePath
         as main file (this is sensible because INCLUDE is not limited to
         contain some nodes or anything like that - it must only contain
@@ -290,7 +292,7 @@ type
       valid for the lifetime of the exception; it must be valid only for
       constructing the exception, later it can be Freed etc.)
 
-      sorry - when implementing INCLUDE keyword, specify here what Lexer
+      TODO: when implementing INCLUDE keyword, specify here what Lexer
       should be given: do we require here to get Lexer reading it's Stream
       (not posredniczacy ?)
     }
@@ -300,7 +302,7 @@ type
     { Lexer object must be valid only for this call; look at
       EVRMLLexerError.Create for more detailed comment.
 
-      sorry - same as EVRMLLexerError.Create }
+      TODO: same as EVRMLLexerError.Create }
     constructor Create(Lexer: TVRMLLexer; const s: string);
   end;
 
@@ -328,7 +330,7 @@ const
 
   { utf8 specific constants below }
   VRMLWhitespaces = [
-    {sorry - in VRML 2.0 we should have here a comma ',' too}
+    { TODO: in VRML 2.0 we should have here a comma ',' too }
     ' ',#9, #10, #13];
   VRMLLineTerm = [#10, #13];
   VRMLNoWhitespaces = AllChars - VRMLWhitespaces;
@@ -336,7 +338,7 @@ const
     on page 24. }
   VRMLNameChars = AllChars - [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']',
     '\', '{', '}',
-    '(', ')', '|' {sorry - last three should be here only in VRML 1.0}];
+    '(', ')', '|' { TODO: last three should be here only in VRML 1.0 }];
   VRMLNameFirstChars = VRMLNameChars - ['0'..'9', '-','+'];
 
   VRMLTokenNames: array[TVRMLToken]of string = (
@@ -410,7 +412,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
   procedure ReadFloatOrInteger(FirstChar: char);
   const NoDigits = AllChars - ['0'..'9'];
         NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
-  {sorry - octal notation not implemented (i simply forgot about it)}
+  { TODO: octal notation not implemented (i simply forgot about it) }
 
     procedure ReadAfterE(const AlreadyRead: string);
     var CharAfterE: char;

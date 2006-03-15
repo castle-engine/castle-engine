@@ -453,7 +453,7 @@ var Mode: TGLModeFrozenScreen;
 begin
  Mode := TGLModeFrozenScreen(glwin.UserData);
 
- { sorry - I should build display list with this in each FrozenImageResize
+ { TODO:  I should build display list with this in each FrozenImageResize
    (glwin.Width, glwin.Height may change with time). }
 
  if (glwin.Width > Mode.ScreenImage.Width) or

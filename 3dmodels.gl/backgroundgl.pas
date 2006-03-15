@@ -288,7 +288,7 @@ var CubeSize, CubeSize2: Single;
     RenderUpper/LowerStack do not need upper/lower angle: it is implicitly
     understood to be the zenith/nadir.
 
-    sorry - ustalic we wszystkich Render*Stack ze sciany do wewnatrz sa
+    TODO: ustalic we wszystkich Render*Stack ze sciany do wewnatrz sa
     zawsze CCW (albo na odwrot) i uzyc backface culling ? Czy cos na
     tym zyskamy ?
   }
@@ -463,7 +463,7 @@ begin
       RenderStack(SkyColorModulated(i)  , SkyAngle[i-1],
                   SkyColorModulated(i+1), SkyAngle[i]);
      end;
-     {sorry - jesli ostatni stack ma SkyAngle bliskie Pi to powinnismy renderowac
+     { TODO: jesli ostatni stack ma SkyAngle bliskie Pi to powinnismy renderowac
        juz ostatni stack przy uzyciu RenderLowerStack. }
      if SkyAngle[SkyAngleCount-1] <= GroundHighestAngle then
       RenderLowerStack(

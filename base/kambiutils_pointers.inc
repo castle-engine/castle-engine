@@ -116,7 +116,7 @@ function CheckIsMemCharFilled(const Data; Size: Integer; AChar: Char): Integer;
 var i: Integer;
     p: PChar;
 begin
- {sorry - hmm, taka optymalizacje jak w IsMemCharFilled moznaby tu zrobic,
+ { TODO: hmm, taka optymalizacje jak w IsMemCharFilled moznaby tu zrobic,
    idac po 32 lub 16.}
  p := @Data;
  for i := 0 to Size-1 do

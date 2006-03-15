@@ -232,9 +232,9 @@ procedure TGeneralIndexedRenderer.Render;
   procedure NormalsInit;
   { setup Render_Normals variable }
   begin
-   {sorry - not all normal bindings are supported,
-    we Generate Normals if normalBinding is not supported.
-    Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
+   { TODO: not all normal bindings are supported,
+     we Generate Normals if normalBinding is not supported.
+     Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
 
    Render_Normals := inGenerate;
 
@@ -295,13 +295,13 @@ procedure TGeneralIndexedRenderer.Render;
        Render_Materials := imUseSpecifiedPerFaceIndexed;
    end;
 
-   {sorry - we handle all material bindings, but we handle BIND_PER_PART
+   { TODO: we handle all material bindings, but we handle BIND_PER_PART
      and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 
    if Render_Materials = imOverall then Renderer.Render_BindMaterial(0);
   end;
 
-var 
+var
   startIndex, endIndex, faceNumber: integer;
   UseLockArrays: boolean;
 begin
@@ -312,14 +312,14 @@ begin
  try
   glVertexPointer(3, GL_FLOAT, 0, State.LastNodes.Coordinate3.FdPoint.Items.Items);
   glEnableClientState(GL_VERTEX_ARRAY);
-  
-  { See 
+
+  { See
     [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
     for description of GL_EXT_compiled_vertex_array.
-    
+
     Note that I can't use it when last Coordinate3 had no nodes
     (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-  UseLockArrays := GL_EXT_compiled_vertex_array and 
+  UseLockArrays := GL_EXT_compiled_vertex_array and
     (State.LastNodes.Coordinate3.FdPoint.Items.Count <> 0);
   if UseLockArrays then
    glLockArraysEXT(0, State.LastNodes.Coordinate3.FdPoint.Items.Count);
@@ -548,7 +548,7 @@ procedure TIndexedTriangleMeshRenderer.Render_Face(startIndex, endIndex: integer
   var Tri: TTriangle3Single;
       Norm: TVector3Single;
   begin
-   {sorry - for IndexedTriangleMesh we always generate flat normals}
+   { TODO: for IndexedTriangleMesh we always generate flat normals }
    if Render_Normals = inGenerate then
    begin
     Tri[0] := Render_GetVertex(v1);

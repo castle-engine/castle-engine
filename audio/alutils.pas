@@ -808,7 +808,7 @@ begin
  {$ifdef WIN32}
  for i := 1 to n do
  begin
-//sorry  alSourcei(sources^, AL_MAX_DISTANCE, );
+//TODO:  alSourcei(sources^, AL_MAX_DISTANCE, );
   alSourceVector3f(sources^, AL_DIRECTION, ZeroVector3Single);
   alSourcef(sources^, AL_CONE_OUTER_GAIN, 0);
   Inc(sources);

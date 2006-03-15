@@ -821,31 +821,31 @@ const
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
   ( ( FormatName: 'BMP, Windows Bitmap';
       ExtsCount: 1; Exts: ('bmp','','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP),
     ( FormatName: 'PNG, Portable Network Graphic';
       ExtsCount: 1; Exts: ('png','','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG),
     ( FormatName: 'JFIF, JPEG File Interchange Format';
       ExtsCount: 2; Exts: ('jpg','jpeg','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveJPEG),
     ( FormatName: 'PCX Image';
       ExtsCount: 1; Exts: ('pcx','','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX;
       SaveRGB: nil),
     ( FormatName: 'PPM, Portable Pixel Map';
       ExtsCount: 1; Exts: ('ppm','','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePPM),
     ( FormatName: 'IPLab Image';
       ExtsCount: 1; Exts: ('ipl','','');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL;
       SaveRGB: nil),
     ( FormatName: 'RGBE (RGB+Exponent) Image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB; 
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveRGBEFromByteRGB)
   );
 
@@ -929,7 +929,7 @@ type
 function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardinal;
   UnscaledImageProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}): TRGBImage; overload;
 
-{ sorry - zrobic LoadImageGuess ktore zgaduje format na podstawie
+{ TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
 
 type
@@ -1063,20 +1063,22 @@ type
   zapisywac - sejwuje do formatu DefaultSaveImageFormat.
 
   TRGBEImage - jezeli image format (zapisany implicite w FileName lub TypeExt)
-    = ifRGBE to zapisze obrazek uzywajac SaveRGBE(Img, fname),
-    a wiec precyzja zawarta w wewnetrznym formacie ikRGBE bedzie zapisana
-    w formacie pliku ifRGBE.
+  = ifRGBE to zapisze obrazek uzywajac SaveRGBE(Img, fname),
+  a wiec precyzja zawarta w wewnetrznym formacie ikRGBE bedzie zapisana
+  w formacie pliku ifRGBE.
+
   Jezeli image format <> ifRGBE to skonwertuje obrazek do RGB
-    (uzywajac TRGBEImage.ToRGBImage) i zapisze uzywajac SaveImage(TRGBImage,..).
-    Wiec precyzja zawarta w wewnetrznym formacie ikRGBE nie bedzie
-    zapisana w pliku, bo formaty inne niz ifRGBE nie pozwalaja na to.
-  sorry - zrobic jakas ladniejsza forme, uwzgledniajaca fakt ze byc
-    moze kiedys zrobie jeszcze jakis format pliku (if) / lub obrazka
-    w pamieci (ik) ktore uznawalbym za precyzyjne na poziomie float.
+  (uzywajac TRGBEImage.ToRGBImage) i zapisze uzywajac SaveImage(TRGBImage,..).
+  Wiec precyzja zawarta w wewnetrznym formacie ikRGBE nie bedzie
+  zapisana w pliku, bo formaty inne niz ifRGBE nie pozwalaja na to.
+
+  TODO: zrobic jakas ladniejsza forme, uwzgledniajaca fakt ze byc
+  moze kiedys zrobie jeszcze jakis format pliku (if) / lub obrazka
+  w pamieci (ik) ktore uznawalbym za precyzyjne na poziomie float.
 
   TAlphaImage -  chwilowo Format musi wtedy byc = ifPNG,
   zapisze wtedy obrazek z alpha. Wpp. rzuci wyjatek Exception.
-  sorry - do it nicer, z podobnymi parametrami jak przy LoadImage.  }
+  TODO: do it nicer, z podobnymi parametrami jak przy LoadImage.  }
 procedure SaveImage(const img: TImage; const Format: TImageFormat; Stream: TStream); overload;
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TImage; const fname: string); overload;

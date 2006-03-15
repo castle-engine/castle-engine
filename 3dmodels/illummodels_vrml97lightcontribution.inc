@@ -37,8 +37,8 @@ begin
  
  if (not LightNode.FdOn.Value) then Exit(ZeroVector3Single);
  
- {sorry - arg dla attenuation powinien byc w ukladzie transformacji swiatla.
-  aaargh - czy to znaczy ze musze implementowac InvertTransformation ?}
+ { TODO: arg dla attenuation powinien byc w ukladzie transformacji swiatla.
+   aaargh - czy to znaczy ze musze implementowac InvertTransformation ? }
  if LightNode is TNodeGeneralPositionalLight then
  begin
   if PosLightNode.DistanceNeededForAttenuation then
@@ -91,7 +91,7 @@ begin
    zbyt duzy wplyw na kolor (bo kolor ambient to jest cos juz
    ZUPELNIE nierealistycznego w takim prostym modelu oswietlenia),
    chcemy raczej zeby dominowaly komponenty diffuse i specular. }
- { Factors := ambient factor, sorry }
+ { Factors := ambient factor, TODO }
  Factors := ZeroVector3Single;
  
  { Factors += diffuse factor } 

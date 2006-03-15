@@ -45,11 +45,12 @@
    wylaczone.
 
   TDim2Array.Create(x,y) zwraca obiekt zarzadzajacy 2 - wymiarowa tablica
-   [0..x-1, 0..y-1]. Rozmiary tablicy nie moga byc zmieniane (nie ma czegos
-   takiego jak SetLength,
-   sorry - trzebaby to sensownie zdefiniowac dla tablic 2-dim i wtedy zrobic)
-   ale rozmiar podajesz wywolujac konstruktor (wiec mozesz go najpierw wyliczyc
-   z jakichs zmiennych itp.).
+  [0..x-1, 0..y-1]. Rozmiary tablicy nie moga byc zmieniane (nie ma czegos
+  takiego jak SetLength,
+   
+  TODO: trzebaby to sensownie zdefiniowac dla tablic 2-dim i wtedy zrobic)
+  ale rozmiar podajesz wywolujac konstruktor (wiec mozesz go najpierw wyliczyc
+  z jakichs zmiennych itp.).
 }
 
 {$ifdef read_interface}

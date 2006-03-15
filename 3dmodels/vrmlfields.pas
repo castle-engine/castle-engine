@@ -1034,7 +1034,7 @@ begin
 
  Value.Null;
 
- { sorry - we convert here 1 and 2 components to 3 and 4 (that is,
+ { TODO: we convert here 1 and 2 components to 3 and 4 (that is,
    we convert grayscale to RGB). This is a limitation of our Images unit. }
 
  w := ParseLongWord(Lexer);

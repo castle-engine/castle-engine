@@ -94,7 +94,7 @@ var T: TTriangle3Single;
   end;
 
 begin
- Assert(not OverTriangulate); {sorry - OverTriangulate not used here so not impl yet}
+ Assert(not OverTriangulate); { TODO: OverTriangulate not used here so not impl yet}
 
  for i := 0 to 2 do T[i, constCoord] := constCoordValue;
  RestOf3dCoords(constCoord, c1, c2);
@@ -153,7 +153,7 @@ var BottomPt, TopPt: TVector3Single;
 
 LOOP_OVER_CIRCLE_DECLARE
 begin
- Assert(not OverTriangulate); {sorry - OverTriangulate not used here so not impl yet}
+ Assert(not OverTriangulate); { TODO: OverTriangulate not used here so not impl yet }
 
  if State.LastNodes.MaterialBinding.FdValue.Value in
    [BIND_PER_PART, BIND_PER_PART_INDEXED] then
@@ -231,7 +231,7 @@ var BottomPt, TopPt: TVector3Single;
 
 LOOP_OVER_CIRCLE_DECLARE
 begin
- Assert(not OverTriangulate); {sorry - OverTriangulate not used here so not impl yet}
+ Assert(not OverTriangulate); { TODO: OverTriangulate not used here so not impl yet }
 
  if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
   begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
@@ -319,7 +319,7 @@ begin
    BIND_DEFAULT, BIND_OVERALL: faceMatNum := 0;
    BIND_PER_PART, BIND_PER_FACE: faceMatNum := faceNumber;
    BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED: faceMatNum := FdMaterialIndex.Items.Items[faceNumber];
-   {sorry - we don't support here materials per vertex or per vertex indexed}
+   { TODO: we don't support here materials per vertex or per vertex indexed }
    else faceMatNum := 0;
   end;
   Triangulate_Face(startIndex, endIndex, faceMatNum);

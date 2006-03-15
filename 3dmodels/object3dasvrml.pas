@@ -116,9 +116,9 @@ function LoadOBJAsVRML(const filename: string): TVRMLNode;
 
 const
   { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
-    bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo
-    szybko.
-    sorry - powinienes unikac uzywania tego, zrob tu tak jak w Load3dsAsVRML.}
+    bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
+
+    TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3dsAsVRML.}
   ALLOWED_INDICES_ARRAYS_OVERFLOWS = 100;
 
 var obj: TObject3dOBJ;
@@ -186,7 +186,7 @@ begin
       faces.FdTextureCoordIndex.Items.AppendArray(fourIndices);
      end;
      Inc(i);
-    until (i >= obj.Faces.Count) or 
+    until (i >= obj.Faces.Count) or
       (FacesWithTexCoords <> obj.Faces.Items[i].HasTexCoords);
 
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
@@ -272,7 +272,7 @@ var WWWBasePath: string;
     camera.FdPosition.Value :=  scene.Cameras[i].CamPos;
     camera.FdOrientation.Value :=  CamDirUp2Orient(scene.Cameras[i].CamDir,
       scene.Cameras[i].CamUp);
-    {sorry - pozostale pola VRMLa ustalac, wykorzystac pozostale pola kamery 3ds }
+    { TODO: pozostale pola VRMLa ustalac, wykorzystac pozostale pola kamery 3ds }
    end;
   end;
 
@@ -351,7 +351,7 @@ begin
 
      tmp := TNodeTexture2Transform.Create('',WWWBasePath);
      materialGroup.AddChild(tmp);
-     TNodeTexture2Transform(tmp).FdScaleFactor.Value := 
+     TNodeTexture2Transform(tmp).FdScaleFactor.Value :=
        Vector2Single(obj3ds.Materials[i].TextureMap1.UScale,
                      obj3ds.Materials[i].TextureMap1.VScale);
     end;
@@ -440,8 +440,8 @@ begin
 end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
-const 
-  Extensions: array[0..5]of string = 
+const
+  Extensions: array[0..5]of string =
   ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz');
 begin
  if AllowStdIn and (FileName = '-') then

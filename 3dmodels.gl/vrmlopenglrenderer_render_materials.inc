@@ -65,7 +65,8 @@ begin
     Render_Material_ForcedLightDisable:=false;
    end;
 
-   { sorry VRML97 - Ambient materialu bedziesz musial brac z DiffuseColor * AmbientIntensity }
+   { TODO: VRML97 - Ambient materialu bedziesz musial brac 
+     z DiffuseColor * AmbientIntensity }
    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, 
      Vector4f(ColorModulated(AmbientColor3Single(MatNum)), Opacity(MatNum)));
    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, 

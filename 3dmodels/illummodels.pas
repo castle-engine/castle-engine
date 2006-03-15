@@ -33,13 +33,13 @@ uses VectorMath, VRMLNodes, VRMLTriangleOctree, Math, KambiUtils;
   To jest normalny model osw. Phonga. Pewne rzeczy ktore sa (niektore tylko
   chwilowo) zaimplementowane niezgodnie z ta specyfikacja to :
   - zle uwzgledniamy attenuation swiatel ktore sa umieszczone pod jakas
-    transformacja (sorry-todo)
+    transformacja (TODO)
   - skupienie spot light liczymy troche inaczej bo mamy do dyspozycji inne
     dane (mamy pola z VRMLa 1.0 ktore okreslaja spot inaczej niz w VRMLu 97).
     Uzywamy wiec dla spota rownan uzywanych w OpenGLu.
   - nie obliczamy AmbientFactor w LightContribution bo nie mamy ambientIntensity
     z VRMLa 97 w light nodes a jest ono niezbedne zeby rownanie dzialalo sensownie.
-    (sorry-todo, dodac ambientIntensity do swiatel i odkomentarzowac w
+    (TODO: dodac ambientIntensity do swiatel i odkomentarzowac w
     VRML97LightContribution kod realizujacy AmbientFactor)
   - w VRML97EmissionColor jezeli not LightingCalculationOn to
     robimy cos speszial, zupelnie niezgodnie z modelem oswietlenia - bierzemy

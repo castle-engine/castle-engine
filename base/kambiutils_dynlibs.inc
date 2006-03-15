@@ -147,7 +147,7 @@ end;
 class function TDynLib.Load(const AName:string; CheckResult:boolean):TDynLib;
 
   function LoadLibraryGlobally(AName:PChar):TDynLibHandle;
-  { sorry - under UNIX (Linux, more specifically, since I don't use this code
+  { TODO: under UNIX (Linux, more specifically, since I don't use this code
     with any other UNIX yet) I must load with RTLD_GLOBAL, else GLU crashes
     (it seems GLU requires that someone else loads GL symbols for it ?
     I really don't know. TO BE FIXED.) }

@@ -613,7 +613,7 @@ const
     o transparency = 1. Wpp. zwraca false.
     LightSourceIndiceIndex to indeks to tablicy LightsIndices[].
     ItemIndex to indeks do, jak zwykle, Octree.OctreeItems[]. }
-  { sorry - transparent objects should scale light color instead of just
+  { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var OctreeIgnorer: TOctreeIgnore_Transparent_And_OneItem;
       ShadowerIndex: Integer;
@@ -675,7 +675,7 @@ const
         var PdfValue: Single): boolean;
       var TransmittedRayVector: TVector3Single;
           EtaFrom, EtaTo: Single;
-      const ETA_CONST = 1.3; {sorry - tu tez uzywam ETA_CONST, jak w Classic }
+      const ETA_CONST = 1.3; { TODO: tu tez uzywam ETA_CONST, jak w Classic }
       begin
        if Odd(MinDepth-Depth) then
         begin EtaFrom := 1; EtaTo := ETA_CONST end else
@@ -718,11 +718,11 @@ const
           swiatla * ilosc swiatel = wlasnie direct illumination, uwzgledniajace
           ze rozne swiatla maja rozna powierzchnie i swieca z rozna intensywnoscia.
       }
-      {sorry - better approach : (102), czyli losuj punkt na zrodle swiatla
-               ze wzgledu na jego solid angle.
-             - jeszcze lepiej : (103), czyli losuj swiatlo w taki sposob ze
-               swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
-               brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
+      { TODO: better approach : (102), czyli losuj punkt na zrodle swiatla
+              ze wzgledu na jego solid angle.
+        TODO: jeszcze lepiej : (103), czyli losuj swiatlo w taki sposob ze
+              swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
+              brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
       var LightSource: POctreeItem;
           LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
           LightSourceIndex: Integer; { indeks do Octree.OctreeItems[] }
@@ -855,8 +855,8 @@ const
         dlatego w diffuse mamy cosinus). Wszystko dlatego ze te cosinusy sie
         skracaja.
 
-        Podobnie dla specular - mam nadzieje ! Specular jeszcze nie jest zbyt
-        dobrze przetestowane... - sorry
+        Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze 
+        nie jest zbyt dobrze przetestowane...
 
         W rezultacie kompletnie ignoruje PdfValue (otrzymywane w wyniku
         RandomUnitHemispeherePoint) i BRDF'a - po prostu akurat taki rozklad PDF'ow

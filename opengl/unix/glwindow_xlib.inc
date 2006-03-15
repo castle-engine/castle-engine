@@ -186,17 +186,18 @@ begin
      'cannot grab the pointer');
 
   { W fullscreen nie realizujemy sizeHints (ktore zapewniaja realizacje
-     funkcji ResizeAllowed <> raAllowed). ALE w fullscreen nigdy okno nie moze
-     byc resized (wiec nie potrzeba nam sizeHints zeby to powiedziec...)
-     wiec ok.
+    funkcji ResizeAllowed <> raAllowed). ALE w fullscreen nigdy okno nie moze
+    byc resized (wiec nie potrzeba nam sizeHints zeby to powiedziec...)
+    wiec ok.
+
     Podobnie, w fullscreen nie realizujemy wmDeleteWindow ktore zapewnia
-     realizacje uslugi OnCloseQuery. ALE w fullscreen user nie moze
-     powiedziec window-managerowi ze chce zamknac to okno skoro window
-     manager niemal nie wie o istnieniu naszego okna (grabbed klawisze,
-     mysz, nasze okno bez ramki) wiec ok. }
-   {sorry- kiedy juz zrobisz fullscreen bez Grabow i override_redirecta
+    realizacje uslugi OnCloseQuery. ALE w fullscreen user nie moze
+    powiedziec window-managerowi ze chce zamknac to okno skoro window
+    manager niemal nie wie o istnieniu naszego okna (grabbed klawisze,
+    mysz, nasze okno bez ramki) wiec ok. }
+  { TODO: kiedy juz zrobisz fullscreen bez Grabow i override_redirecta
     to chyba WM_DELETE_WINDOW pojdzie do fullscreen ?}
-   {sorry - zrobic fullscreen bez Grabow (i ew. override_redirect) }
+  { TODO: zrobic fullscreen bez Grabow (i ew. override_redirect) }
  end else
  begin
   { only set window title and handle wm_delete_events if in windowed mode }
@@ -393,8 +394,8 @@ begin
    parentwinXID, XRootWindow(glwm.display, glwm.screen),
    {event.x, event.y,}0, 0, @fLeft, @fTop, @dummy_win);
 
-   { chwilowo, po prostu left i top pod GLWINDOW_XLIB oznaczaja rog okienka
-     RAZEM z ramka, wbrew temu co napisalem w interfejsie... sorry }
+   { TODO: chwilowo, po prostu left i top pod GLWINDOW_XLIB oznaczaja rog okienka
+     RAZEM z ramka, wbrew temu co napisalem w interfejsie... }
  DoResize(event.width, event.height, false);
 end;
 
@@ -601,9 +602,9 @@ begin
  result.vtotal := ModeLine.vtotal;
  result.flags := ModeLine.flags;
  result.privsize := 0;
- {sorry - should I try to copy privsize here somehow ?
-  sorry - should we in TryVideoChange and VideoReset and here do something
-   with c_private fields ? Manual is unclear to me...}
+ { TODO: should I try to copy privsize here somehow ?
+   TODO: should we in TryVideoChange and VideoReset and here do something
+   with c_private fields ? Manual is unclear to me... }
 end;
 
 function TGLWindowsManager.TryVideoChange: boolean;
@@ -643,7 +644,7 @@ begin
    if (not VideoResize) or
       ((modes[i]^.hdisplay = VideoResizeWidth) and
        (modes[i]^.vdisplay = VideoResizeHeight)) then
-       {sorry - jak tu dopasowac BitsPerPixel}
+       { TODO: jak tu dopasowac BitsPerPixel }
     bestMode := i;
 
   if bestmode < 0 then exit(false);

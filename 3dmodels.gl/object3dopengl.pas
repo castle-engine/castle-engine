@@ -184,8 +184,8 @@ procedure Render3DSTrimesh(Trimesh: TTrimesh3ds; useTexture2d: boolean);
       LoadTextureMap(TextureMap1);
 
       {aplikuj odpowiednia macierz tekstury}
-      {sorry - powinnismy tu jeszcze uzyc U/VOffset ale nie mam na to zadnego
-       testu a nie wiem co robic najpierw - offset czy scale}
+      { TODO: powinnismy tu jeszcze uzyc U/VOffset ale nie mam na to zadnego
+        testu a nie wiem co robic najpierw - offset czy scale }
       glMatrixMode(GL_TEXTURE);
       glLoadIdentity;
       glScalef(TextureMap1.UScale, TextureMap1.VScale, 1);
@@ -264,7 +264,7 @@ end;
 
 procedure Render3DS(Scene: TScene3ds; useTexture2d: boolean);
 
-(*sorry
+(* TODO:
 { ustaw parametry glLight* swiatla OpenGL'a numer glightnum
   (tzn. gllightnum = 0 oznacza GL_LIGHT0). Ustaw tez enabled/disabled tego
   swiatla. }

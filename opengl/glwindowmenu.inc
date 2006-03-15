@@ -193,7 +193,7 @@
       separated both TMenuItemKey and TMenuItemChecked classes,
       then I would be forced to create additional TMenuItemKeyChecked
       class. }
-    { sorry - change these to writeable }
+    { TODO:  change these to writeable }
     property CharKey: char read FCharKey; { = #0 }
     property Key: TKey read FKey; { = K_None }
 

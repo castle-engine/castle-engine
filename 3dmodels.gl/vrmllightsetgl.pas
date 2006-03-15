@@ -275,7 +275,7 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
     LightColorMultIntensity3f:=ColorModulatorSingle(LightColorMultIntensity3f);
    LightColorMultIntensity4f := Vector4f(LightColorMultIntensity3f, 1);
 
-   { sorry VRML97 - light ambient color powinienes brac z LightColor *
+   { TODO: VRML97 - light ambient color powinienes brac z LightColor *
      LightAmbientIntensity, tzn. do ambient jest specjalne intensity. }
    glLightv(glLightNum, GL_AMBIENT, LightColorMultIntensity4f);
    glLightv(glLightNum, GL_DIFFUSE, LightColorMultIntensity4f);

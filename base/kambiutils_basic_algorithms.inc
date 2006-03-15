@@ -110,8 +110,8 @@ const
   function (const a,b:<typ>): boolean [of object]; gdzie <typ> to typ elementow
   tablicy.
 
-  sorry - chwilowo ArrStride nie moze byc ujemne (to moze czasem pozwolic na pewne sztuczki).
-  sorry - zrobic tez wersje ktora zamiast ArrRecordSize pobiera SwapItemsFunc.
+  TODO: chwilowo ArrStride nie moze byc ujemne (to moze czasem pozwolic na pewne sztuczki).
+  TODO: zrobic tez wersje ktora zamiast ArrRecordSize pobiera SwapItemsFunc.
 
   @noAutoLinkHere
 }

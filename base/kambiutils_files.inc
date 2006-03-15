@@ -68,8 +68,8 @@ Var
   identify our program. E.g. useful when you're writing
   error message on console, when UNIX standard is to always prefix
   error message with ProgramName + ': ', like
-  'cp: invalid file name'. 
-  
+  'cp: invalid file name'.
+
   Right now this is simply equivalent to FPC's ApplicationName. }
 function ProgramName: string;
 
@@ -360,7 +360,8 @@ type EFileExists=class(Exception);
 { kopiuj Source na Dest plik, w razie bledu - exception.
   Jesli not CanOverwrite to i plik istnieje wyrzuca exception EFileExists,
   jesli CanOverwrite to robi overwrite pliku dest jesli juz istnial.
-  sorry - niech FileCopy kopiuje tez directory }
+
+  TODO: niech FileCopy kopiuje tez directory }
 procedure FileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean);
 { j.w. ale zwraca false zamiast rzucac exception jesli sie nie udalo }
 function TryFileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean): boolean;
@@ -384,7 +385,7 @@ function TryFileCopy(const SourceFname, DestFname: string; CanOverwrite: boolean
   Nie wiem jak wyglada tu sytuacja gdy nie uzywam libc (USE_LIBC symbol
   not defined), but I will assume that this situation is also undefined.
 
-  sorry - przenoszenia katalogow nie zrobilem jeszcze (no, w pewnych przypadkach
+  TODO: przenoszenia katalogow nie zrobilem jeszcze (no, w pewnych przypadkach
   mogloby zadzialac ale to sliskie i niedodefiniowane teraz rzeczy). Na razie
   uzywaj FileMove tylko do plikow. }
 procedure FileMove(const SourceFname, DestFname: string; CanOverwrite: boolean {$ifdef DEFPARS}=False{$endif}); overload;
@@ -929,9 +930,9 @@ begin
 
  KambiOSCheck( MoveFile(PChar(SourceFname), PChar(DestFname)), 'MoveFile');
 
- {sorry - zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach}
+ { TODO: zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach }
 {$else}
- {sorry-zrobic zeby mozna bylo move directory z override'm}
+ { TODO: zrobic zeby mozna bylo move directory z override'm }
  if {$ifdef USE_LIBC} __rename {$else} FpRename {$endif}
    (PChar(SourceFname), PChar(DestFname)) = -1 then
   if Errno = {$ifdef USE_LIBC} EXDEV {$else} ESysEXDEV {$endif} then

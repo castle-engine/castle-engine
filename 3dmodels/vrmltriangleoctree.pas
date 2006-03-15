@@ -507,7 +507,7 @@ type
      na samym poczatku bo moze przeciez zaoszczedzic sporo czasu)
   2) ze droga pomiedzy Light a LightedPoint jest wolna w Octree
      (za wyjatkiem obiektow pol-przezroczystych ktore sa po prostu ignorowane
-     - to jest uproszczenie, sorry, ale w tym momencie te elementy po prostu
+     - TODO: to jest uproszczenie, ale w tym momencie te elementy po prostu
      w ogole nie blokuja swiatla)
   3) oraz ze swiatlo jest po tej samej stronie LightedPointPlane co RenderDir.
 
@@ -727,10 +727,10 @@ begin
   Exit(NoItemIndex);
  end else
  begin
-  { sorry - traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
-      SubNode'ow niz rzeczywiscie musimy. Kolizje ze sfera nie sa specjalnie
-      wykorzystywane (jak dotad tylko malfunction ich uzywa) wiec nie sa
-      zbytnio zoptymalizowane. }
+  { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
+    SubNode'ow niz rzeczywiscie musimy. Kolizje ze sfera nie sa specjalnie
+    wykorzystywane (jak dotad tylko malfunction ich uzywa) wiec nie sa
+    zbytnio zoptymalizowane. }
   result := NoItemIndex;
   OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
   OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );

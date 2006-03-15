@@ -35,7 +35,7 @@ unit KambiPasJpeg;
   inmemory is always treated as false under Unix and / or FPC -
   because FPC+Linux / Kylix / FPC+Win32 compiled applications
   go crazy and crash when they try to handle large jpegs with
-  inmemory=true. Sorry, I don't know why, I know only that this
+  inmemory=true. TODO: I don't know why, I know only that this
   code has been really prepared for Delphi+Win32 and that's
   the reason why something may not work under FPC / Linux.
 

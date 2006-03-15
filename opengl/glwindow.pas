@@ -134,7 +134,7 @@
   (like SetDemoOptions in TGLWindowDemo and UseNavigator in TGLWindowNavigator)
   and you have to turn them off/on when using GLWinModes
   (mentioned TGLWindowDemo and TGLWindowNavigator are already handled in
-  GLWinModes). sorry, TODO: I shall do some virtual methods in TGLWindow
+  GLWinModes). TODO: I shall do some virtual methods in TGLWindow
   to make this easy.
 
   pl:
@@ -1227,7 +1227,7 @@ type
       nam jakie BitsPerPixel otrzymalismy.
       Aby naprawde zmienic BitsPerPixel z duza szansa uzywaj raczej glwm.DisplayChange
 
-      sorry - uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
+      TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
       interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
       wymagane WindowBitsPerPixel, ponadto nie powinnismy zmieniac WindowBitsPerPixel
       po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits. }
@@ -1359,7 +1359,7 @@ type
       will give you some depth buffer anyway).
       They will just use more resources than they should.
 
-      sorry - test that, what really happens on my system when I do that,
+      TODO:  test that, what really happens on my system when I do that,
       i.e. set DepthBufferBits := 0 and try to use depth buffer (enable depth
       test) ? I'm unable to test it right now to 0 because i get EDivByZero.
     }
@@ -1375,7 +1375,7 @@ type
       red, green, blue i alpha. }
     AccumBufferBits: TVector4Cardinal; { = (0, 0, 0, 0) }
 
-    (* sorry - zrobic od razu
+    (* TODO: zrobic od razu
          IndexBufferBits: Cardinal; = ????
          IndexedColorBuffer: boolean; { = false }
     *)
@@ -1772,7 +1772,7 @@ type
       because in destructor of this object we call Close, to be sure
       that window is closed.
 
-      sorry - zrobic param boolean CloseFromDestroyQuitWhenLastWindowClosed ?
+      TODO: zrobic param boolean CloseFromDestroyQuitWhenLastWindowClosed ?
       As for now Close from destructor is called always with
       QuitWhenLastWindowClosed = true.
 

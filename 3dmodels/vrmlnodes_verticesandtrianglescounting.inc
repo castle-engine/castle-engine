@@ -27,10 +27,10 @@
 {$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}  
 
 function TNodeAsciiText.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0;{sorry} end;
+begin result:=0;{TODO} end;
 
 function TNodeAsciiText.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0;{sorry} end;
+begin result:=0;{TODO} end;
 
 function TNodeCone.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin

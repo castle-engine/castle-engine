@@ -62,9 +62,13 @@ uses
   SysUtils, KambiUtils;
 
 const
-  { sorry-to oczywiscie nie powina byc stala;
-    ConsoleWidth to szerokosc konsoli jaka mozemy zapisac NIE ROBIAC
-    AUTOMATYCZNEGO PRZEJSCIA DO NOWEJ LINII. }
+  { This is the width of the console that we can write without automatically
+    moving to the next line.
+
+    Of course, this shouldn't be a constant,
+    but actually there is no way here to do anything better.
+    I can't use here any console/video/terminal functions,
+    because this unit is supposed to work only with bare StdErr. }
   ConsoleWidth = 60;
 
 procedure Write(const s: string);
@@ -75,7 +79,7 @@ begin System.Writeln(ErrOutput, s); end;
 
 { realizacja procedur progressa  ------------------------------------------------}
 
-procedure TProgressConsoleInterface.Init(Progress: TProgress); 
+procedure TProgressConsoleInterface.Init(Progress: TProgress);
 var LeftSpace, RightSpace: integer;
 begin
  if Length(Progress.Title) > ConsoleWidth-2 then
@@ -96,7 +100,7 @@ begin
  KropeczkiWritten := 0;
 end;
 
-procedure TProgressConsoleInterface.Update(Progress: TProgress); 
+procedure TProgressConsoleInterface.Update(Progress: TProgress);
 var KropeczkiNow: integer;
 begin
  KropeczkiNow := Progress.Position*ConsoleWidth div Progress.Max;
@@ -107,7 +111,7 @@ begin
  end;
 end;
 
-procedure TProgressConsoleInterface.Fini(Progress: TProgress); 
+procedure TProgressConsoleInterface.Fini(Progress: TProgress);
 begin
  Writeln('');
 end;

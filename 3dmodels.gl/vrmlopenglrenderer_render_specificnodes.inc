@@ -34,7 +34,7 @@
 
   - Wszystkie wywolania ladujace poszczegolne vertexy OpenGL'owi
     musza byc robione przez DoGLVertex lub DoGLArrayElement.
-    sorry - AsciiText, Cone, Cube, Cylinder, Sphere - nie uzywaja
+    TODO: AsciiText, Cone, Cube, Cylinder, Sphere - nie uzywaja
     DoBeforeGLVertex w tej chwili, a powinny.
 }
 
@@ -42,8 +42,8 @@
 
 procedure RenderAsciiText(Node: TNodeAsciiText);
 
-  { StringPos* ignore last FontStyle Size, just assume that 
-    CurrentFont has right size. 
+  { StringPos* ignore last FontStyle Size, just assume that
+    CurrentFont has right size.
   }
 
   function StringPosX(i: integer): TGLfloat;
@@ -76,12 +76,12 @@ begin
  for i := 0 to Node.FdString.Count-1 do
  begin
   glPushMatrix;
-    glScalef(yscale{sorry-use here FdWidth}, 1, 1);
-    
-    { sorry - when using justification <> LEFT I should also 
+    glScalef(yscale{TODO:use here FdWidth}, 1, 1);
+
+    { TODO: when using justification <> LEFT I should also
       change texOriginX here }
     glTranslatef(StringPosX(i), StringPosY(i), 0);
-    
+
     { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
       popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
     if Render_TexCoordsNeeded then
@@ -228,12 +228,12 @@ end;
 procedure RenderPointSet(Node: TNodePointSet);
 var i, startIndex, numPoints: integer;
 begin
- {sorry - use here Last :
-  Normal, NormalBinding, TextureCoordinate2, Texture2}
+ { TODO: use here Last :
+   Normal, NormalBinding, TextureCoordinate2, Texture2}
 
- Render_BindMaterial(0);{sorry}
+ Render_BindMaterial(0);{TODO}
 
- {sorry- for now, we always draw points unlit}
+ {TODO: for now, we always draw points unlit}
  glPushAttrib(GL_LIGHTING_BIT);
  glDisable(GL_LIGHTING);
 

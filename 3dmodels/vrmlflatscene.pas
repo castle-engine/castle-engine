@@ -702,33 +702,33 @@ begin
     RootNode.TryFindNodeTransform(InitialState, TNodeFog, TVRMLNode(FFogNode),
       FogTransform) then
   begin
-   {sorry - nie mamy jak tutaj obliczyc FFogTransformedVisibilityRange
-    uwzgledniajac skalowanie w transformacji FogTransform bo przeciez
-    skalowanie moze byc rozne w rozne strony. Dopiero teraz zorientowalem
-    sie o co chodzi : zamiast FFogTransformedVisibilityRange powinnismy
-    sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
-    Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
-    do coordinate space node'u mgly, podobnie jak pozycje kamery,
-    obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
-    bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
-    I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
-    a mniej w drugim. Fajne.
+   { TODO: nie mamy jak tutaj obliczyc FFogTransformedVisibilityRange
+     uwzgledniajac skalowanie w transformacji FogTransform bo przeciez
+     skalowanie moze byc rozne w rozne strony. Dopiero teraz zorientowalem
+     sie o co chodzi : zamiast FFogTransformedVisibilityRange powinnismy
+     sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
+     Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
+     do coordinate space node'u mgly, podobnie jak pozycje kamery,
+     obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
+     bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
+     I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
+     a mniej w drugim. Fajne.
 
-    Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
-    nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
-    przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
-     mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
-    ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
+     Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
+     nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
+     przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
+      mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
+     ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
 
-    Tymczasem uzywam wiec prostego rozwiazania : wyliczam
-    FFogTransformedVisibilityRange na podstawie sredniej skali zawartej
-    w transformacji FogTransform (trzy wspolczynniki skalowania mam w
-    FogTransform[0, 0], FogTransform[1, 1], FogTransform[2, 2], biore ich
-    srednia arytmetyczna i to jest "srednia skala").
+     Tymczasem uzywam wiec prostego rozwiazania : wyliczam
+     FFogTransformedVisibilityRange na podstawie sredniej skali zawartej
+     w transformacji FogTransform (trzy wspolczynniki skalowania mam w
+     FogTransform[0, 0], FogTransform[1, 1], FogTransform[2, 2], biore ich
+     srednia arytmetyczna i to jest "srednia skala").
 
-    A wiec FFogTransformedVisibilityRange jest niepoprawne
-    ale nie likwiduje tego parametru. Gdy sie zdecyduje, zastapie go czyms
-    w rodzaju FogInvertedTransform: TMatrix4Single.
+     A wiec FFogTransformedVisibilityRange jest niepoprawne
+     ale nie likwiduje tego parametru. Gdy sie zdecyduje, zastapie go czyms
+     w rodzaju FogInvertedTransform: TMatrix4Single.
    }
    FFogTransformedVisibilityRange :=
      ((FogTransform[0, 0] + FogTransform[1, 1] + FogTransform[2, 2])/3) *

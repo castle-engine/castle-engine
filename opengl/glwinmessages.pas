@@ -245,8 +245,8 @@ type
   end;
 
 const
-  {sorry - tymczasowa wada starych wersji FPC uniemozliwia mi tu uzywanie
-   ladnych nazw dla kolorow}
+  { TODO: tymczasowa wada starych wersji FPC uniemozliwia mi tu uzywanie
+    ladnych nazw dla kolorow }
   GLWinMessageColors_Standard: TGLWinMessageColors =
   ( RectCol: (0, 0, 0);               { = Black3f }
     RectBorderCol: (1, 1, 0.33);       { = Yellow3f }
@@ -835,11 +835,11 @@ begin
    zostaja utworzone z zapisanym na stale odpowiednim pixel-mode). }
  messageData := TMessageData.Create;
  try
-  {sorry - problem : chcielibysmy tutaj zeby SaveScreen zawsze dzialalo, bez
-   wzgledu na ustawienia GL_PACK_xxx. Moglibysmy ustawiac wlasne GL_PACK
-   ale lepszym wyjsciem byloby gdyby
-   SaveScreen_noflush dzialalo zawsze tak samo, bez wzgledu na ustawienia
-   GL_PACK_xxx. }
+  { TODO: problem : chcielibysmy tutaj zeby SaveScreen zawsze dzialalo, bez
+    wzgledu na ustawienia GL_PACK_xxx. Moglibysmy ustawiac wlasne GL_PACK
+    ale lepszym wyjsciem byloby gdyby
+    SaveScreen_noflush dzialalo zawsze tak samo, bez wzgledu na ustawienia
+    GL_PACK_xxx. }
   with messageData do
   begin
    OnUserKeyDown := messageOnUserKeyDown;
@@ -1113,7 +1113,7 @@ end;
 { MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }
 
 const
-  {sorry - to be localized ?}
+  { TODO: to be localized ? }
   MessageYesNo_YesLetter = 'y';
   MessageYesNo_NoLetter = 'n';
   MessageYesNo_ClosingInfo = '[Y]es/[N]o';

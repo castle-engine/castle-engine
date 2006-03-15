@@ -240,7 +240,7 @@ begin
   StrCopy(@LogFont.lfFaceName, PChar(FontName));
   InternalInfo.UserEnumProc := EnumProc;
   EnumFontFamiliesEx(Dc, {$ifdef FPC}@{$endif}LogFont,
-    {sorry - temporary, I just make this unchecked} @
+    { TODO: temporary, I just make this unchecked } @
     EnumFontFamExProc_ByObject,
     Integer(@InternalInfo), 0);
  finally ReleaseDC(0, DC) end;

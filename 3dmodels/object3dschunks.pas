@@ -161,8 +161,8 @@ begin
  begin
   Stream.ReadBuffer(h, SizeOf(h));
   hEnd:=Stream.Position -SizeOf(TChunkHeader) + h.len;
-  {sorry - we ignore gamma correction entirely so we don't distinct
-   gamma corrected and not corrected colors}
+  { TODO: we ignore gamma correction entirely so we don't distinct
+    gamma corrected and not corrected colors }
   case h.id of
    CHUNK_RGBF, CHUNK_RGBF_GAMMA:
      begin

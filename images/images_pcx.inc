@@ -65,7 +65,7 @@ begin
    raise EInvalidPCX.Create('Invalid PNG file header, manufacturer <> 10 or encoding <> 1');
   if (bitsPerPixel <> 8) or (planes <> 1) then
    raise EInvalidPCX.Create('Only 256 coloured (8 bits per pixel) PCX images with Planes = 1'
-     +' are implemented, sorry');
+     +' are implemented, TODO');
 
   height := height-x0; {uwzgledniamy tutaj, ze moze byc np. x0, y0=(1, 1) } { TODO: test it }
   width := width-y0;

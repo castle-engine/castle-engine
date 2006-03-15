@@ -239,7 +239,7 @@ end;
 
 procedure TGLWindow.MainMenuChangedImplDepend;
 begin
- {sorry - I should do this recursively ?}
+ { TODO: I should do this recursively ? }
  glutDestroyMenu(glutGetMenu());
  InitMainMenu;
 end;

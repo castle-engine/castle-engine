@@ -29,7 +29,7 @@ uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Object3dsChunks
 {$define read_interface}
 
 const
-  { sorry - I don't know default 3ds material parameters; below I just
+  { TODO: I don't know default 3ds material parameters; below I just
     use some default OpenGL and VRML 1.0 values. }
   Default3dsMatAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
   Default3dsMatDiffuse: TVector4Single = (0.8, 0.8, 0.8, 1.0);

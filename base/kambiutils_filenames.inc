@@ -179,7 +179,7 @@ begin
  if IsPathAbsolute(fname) then
   Result:=ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
     fname) else
- { sorry - WIN32 - chyba nie trzeba uwzgledniac tu
+ { TODO: WIN32 - chyba nie trzeba uwzgledniac tu
    IsPathAbsoluteOnDrive(fname) ? }
   Result:=fname;
 end;

@@ -244,7 +244,7 @@ begin
  Clamp(x, MinX, MaxX);
 
  { evaluate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
-   sorry - nalezoloby pomyslec o wykorzystaniu faktu
+   TODO: nalezoloby pomyslec o wykorzystaniu faktu
    ze czesto wiadomo iz wezly x[i] sa rownoodlegle. }
  KMin := 1;
  KMax := FX.High;

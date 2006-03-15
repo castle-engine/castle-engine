@@ -82,7 +82,7 @@ var fhead: TBitmapFileHeader;
       ponizej bezdiemy chcieli ja mnozyc przez 255 !) mapuje na zakres 0..255}
      result := fivebits*255 div 31;
     end;
-  
+
   var bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
   begin
    bmpi := 0;
@@ -139,13 +139,13 @@ begin
   with ihead do
   begin
    { check removed - ImageMagick can write such wrong bitmaps (but they are
-     really wrong ! 
-     - TotalCommander's internal view 
-     - and Windows2k code to show bmps on desktop 
-     - and GIMP 
+     really wrong !
+     - TotalCommander's internal view
+     - and Windows2k code to show bmps on desktop
+     - and GIMP
      all fail trying to open them.)
-     sorry - we should do some warning here.
-     
+     TODO: we should do some warning here.
+
      if biSize <> SizeOf(TBitmapInfoHeader) then
       raise EInvalidBMP.CreateFmt('wrong size of a bitmap header - should be %d, is %d',
         [SizeOf(TBitmapInfoHeader), biSize]);
@@ -170,7 +170,7 @@ begin
     paletteSize := biClrUsed;
 
    if biCompression <> BI_RGB then
-    raise EInvalidBMP.Create('sorry - RLE compressed and bitfields bitmaps not implemented yet');
+    raise EInvalidBMP.Create('TODO: RLE compressed and bitfields bitmaps not implemented yet');
 
    palette := nil;
    rowdata := nil;

@@ -117,7 +117,7 @@ function ProcessTimerEnd: Double;
 
 { -----------------------------------------------------------------------------
 
-  sorry
+  TODO:
   - performance timer should be changed : function names should be changed
     (no need to emphasize that "performance")
   - PerfTimer should never return false, instead it should fall back

@@ -501,7 +501,7 @@ const
 begin
  dir := CamDir;
 
- { sorry - poniewaz nie mam prawdziwej specyfikacji 3dsa cala ta funkcja
+ { TODO: poniewaz nie mam prawdziwej specyfikacji 3dsa cala ta funkcja
    to czyste zgadywanie. Zgadywaniem jest Std3dsCamUp, zgadywaniem jest
    ze CamBank dziala tak a nie inaczej. Ale generowane kamery wygladaja
    sensownie i tak samo jak dla view3ds.
@@ -524,7 +524,7 @@ begin
  inherited;
 
  {init defaults}
- Enabled := true; {sorry - we could read this from 3ds file}
+ Enabled := true; { TODO: we could read this from 3ds file }
 
  {szukamy chunka LIGHT}
  while Stream.Position < ObjectEndPos do

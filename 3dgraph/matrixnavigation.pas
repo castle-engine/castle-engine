@@ -177,8 +177,10 @@ type
       pozostale wartosci ustawi na ich defaultowe wartosci jakie maja
       zaraz po utworzeniu obiektu.
       Innymi slowy zrobi SetModelBox + Home. (czasem mozesz chciec
-      wykonac samo SetModelBox zamiast Init, przyklad - patrz sgk_shadows) }
-    {sorry-zrobic parametr MoveAmountDefaultZero: boolean, przyda sie w sgk_shadows}
+      wykonac samo SetModelBox zamiast Init, przyklad - patrz sgk_shadows)
+
+      TODO: zrobic parametr MoveAmountDefaultZero: boolean,
+      przyda sie w sgk_shadows }
     procedure Init(const AModelBox: TBox3d);
     procedure Home;
 
@@ -194,11 +196,13 @@ type
     procedure Move(coord: integer; const MoveDistance: Single);
 
     { klawisze ---------------------------------------- }
-    {sorry - tak samo jak TMatrixWalker, przydaloby sie moc podawac
+
+    { TODO: tak samo jak TMatrixWalker, przydaloby sie moc podawac
       tutaj za jednym zamachem char+TKey+modifiers zamiast tylko char
       lub tylko TKey.
       W tym momencie klawisze Keys_Move dzialaja gdy ModifiersDown = [mkCtrl],
       a pozostale klawisze gdy ModifiersDown = []. }
+
     Keys_Move: T3BoolKeys; { = ((K_Left, K_Right), (K_Down, K_Up), (K_PgDown, K_PgUp)) }
     Keys_Rotate: T3BoolKeys; { = ((K_Up, K_Down), (K_Left, K_Right), (K_PgDown, K_PgUp)) }
     Key_ScaleLarger: TKey; { = K_Plus }

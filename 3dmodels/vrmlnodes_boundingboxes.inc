@@ -55,7 +55,7 @@ begin
  maxRowWidth := 0;
  for i := 0 to FdString.Count-1 do
   maxRowWidth := KambiUtils.max(maxRowWidth,
-    TTFontTextWidth(ttfont, FdString.Items.Items[i])*yscale{sorry-use here FdWidth});
+    TTFontTextWidth(ttfont, FdString.Items.Items[i])*yscale{TODO:use here FdWidth});
 
  maxy := rowh-descend;
  miny := -(FdString.Count-1)*FdSpacing.Value*rowh - descend;
@@ -131,7 +131,7 @@ begin
    Vector3Single(+FdRadius.Value, +FdRadius.Value, +FdRadius.Value) );
 end;
 
-{sorry- TNodeSphere, Cylinder, Cone.BoundingBox moze dac wiekszy box niz trzeba. }
+{ TODO: TNodeSphere, Cylinder, Cone.BoundingBox moze dac wiekszy box niz trzeba. }
 
 { TNodeGeneralIndexed -------------------------------------------------------- }
 
