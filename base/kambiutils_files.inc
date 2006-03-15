@@ -419,12 +419,6 @@ procedure ChangeDir(const NewDir: string);
   ze nie istnieje plik o tej nazwie. }
 function FnameAutoInc(const fname_pattern: string): string;
 
-{ usun katalog DirName - jesli jest niepusty, to usun takze cala jego
-  zawartosc ! Chyba nie musze mowic ze to jest BARDZO niebezpieczna dla usera
-  funkcja. DirName moze ale musi miec na koncu PathDelim.
-  W razie problemu - exception. }
-procedure RemoveNonEmptyDir(const DirName: string);
-
 { Zwroc katalog nadrzedny do katalogu DirName.
   DirName moze byc absolutna sciezka, ale nie musi.
   Dirname moze ale nie musi zawierac koncowego PathDelim.
@@ -994,25 +988,6 @@ begin
   if not FileExists(result) then exit;
   Inc(i);
  until false;
-end;
-
-{ RemoveNonEmptyDir -------------------------------------------------------- }
-
-  procedure Remove_Internal(
-    const FileInfo: TEnumeratedFileInfo; Data: Pointer);
-  begin
-   if SpecialDirName(FileInfo.SearchRec.Name) then exit;
-
-   if (FileInfo.SearchRec.attr and faDirectory)<>0 then
-    CheckRemoveDir(FileInfo.FullFileName) else
-    CheckDeleteFile(FileInfo.FullFileName);
-  end;
-
-procedure RemoveNonEmptyDir(const DirName: string);
-begin
- EnumFiles(InclPathDelim(DirName)+'*', RegularFileAttr or faDirectory,
-   @Remove_Internal, nil, [eoSymlinks, eoRecursive, eoDirContentsLast]);
- CheckRemoveDir(Dirname);
 end;
 
 { Note: the only things here that makes this function belong to

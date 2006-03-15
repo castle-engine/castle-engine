@@ -207,8 +207,6 @@ type
 
 implementation
 
-uses EnumerateFiles;
-
 {$define read_implementation}
 
 {$I kambiutils_basic_algorithms.inc}
