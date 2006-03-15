@@ -117,7 +117,8 @@ begin
  list_drawProgressBG := Window.SaveScreenToDispList;
 
  {init our state}
- SetStdNoCloseGLWindowState(Window, DisplayProgress, nil, Progress, true,
+ SetStdNoCloseGLWindowState(Window,
+   {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil, Progress, true,
    Window.FPSActive, false, K_None, false, false);
  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 

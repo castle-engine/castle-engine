@@ -32,7 +32,7 @@ begin
    end else
    if i=0 then raise Exception.Create(
      'LoadGLTextures : pierwsza tekstura musi miec podana nazwe pliku !');
-   LoadGLGeneratedTexture(texturyArray[i], pTextureImage, 
+   LoadGLGeneratedTexture(texturyArray^[i], pTextureImage, 
      GetMinFilter(i), GetMagFilter(i) LOAD_GL_GENERATED_TEXTURE_POST_PARAMETERS);
   end;
 

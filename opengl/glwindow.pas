@@ -1840,9 +1840,11 @@ type
       use KambiGLUtils.SaveScreenXxx_noflush instead of these. }
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
-    function SaveScreen(xpos, ypos, width, height: integer): TRGBImage; overload;
+    function SaveScreen( const xpos, ypos, SavedAreaWidth,
+      SavedAreaHeight: integer): TRGBImage; overload;
     function SaveScreenToDispList: TGLuint; overload;
-    function SaveScreenToDispList(xpos, ypos, width, height: integer): TGLuint; overload;
+    function SaveScreenToDispList(const xpos, ypos, SavedAreaWidth,
+      SavedAreaHeight: integer): TGLuint; overload;
 
     {$ifndef GLWINDOW_GLUT}
     { This asks user where to save the file (using @link(FileDialog),
@@ -2404,7 +2406,7 @@ type
       This will take care of calling DoSelfTimer and DoActiveWindowsTimer
       at the appropriate times. It will use and update LastDoTimerTime,
       you shouldn't read or write LastDoTimerTime yourself. }
-    procedure MaybeDoTimer(var LastDoTimerTime: TMilisecTime);
+    procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
   public
     { jesli VideoResize to zmieni rozmiar ekranu na VideoResizeWidth /
       VideoResizeHeight wywolaniem VideoChange; wpp. ustawi defaultowy
@@ -3184,17 +3186,22 @@ begin
  end;
 end;
 
-function TGLWindow.SaveScreen(xpos, ypos, width, height: integer): TRGBImage;
+function TGLWindow.SaveScreen(
+  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TRGBImage;
+var
+  ReadBuffer: TGLenum;
 begin
- if DoubleBuffer then
- begin
-  EventDraw;
-  Result := SaveScreen_noflush(xpos, ypos, width, height, GL_BACK);
- end else
- begin
-  FlushRedisplay;
-  Result := SaveScreen_noflush(xpos, ypos, width, height, GL_FRONT);
- end;
+  if DoubleBuffer then
+  begin
+    EventDraw;
+    ReadBuffer := GL_BACK;
+  end else
+  begin
+    FlushRedisplay;
+    ReadBuffer := GL_FRONT;
+  end;
+  Result := SaveScreen_noflush(xpos, ypos,
+    SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
 function TGLWindow.SaveScreenToDispList: TGLuint;
@@ -3210,17 +3217,22 @@ begin
  end;
 end;
 
-function TGLWindow.SaveScreenToDispList(xpos, ypos, width, height: integer): TGLuint;
+function TGLWindow.SaveScreenToDispList(
+  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLuint;
+var
+  ReadBuffer: TGLenum;
 begin
- if DoubleBuffer then
- begin
-  EventDraw;
-  Result := SaveScreenToDispList_noflush(xpos, ypos, width, height, GL_BACK);
- end else
- begin
-  FlushRedisplay;
-  Result := SaveScreenToDispList_noflush(xpos, ypos, width, height, GL_FRONT);
- end;
+  if DoubleBuffer then
+  begin
+    EventDraw;
+    ReadBuffer := GL_BACK;
+  end else
+  begin
+    FlushRedisplay;
+    ReadBuffer := GL_FRONT;
+  end;
+  Result := SaveScreenToDispList_noflush(xpos, ypos,
+    SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
 {$ifndef GLWINDOW_GLUT}
@@ -3257,18 +3269,18 @@ procedure TGLWindow.SetCallbacksState(const Callbacks: TGLWindowCallbacks);
 begin
  with Callbacks do
  begin
-  OnMouseMove := @MouseMove;
-  OnMouseDown := @MouseDown;
-  OnMouseUp := @MouseUp;
-  OnKeyDown := @KeyDown;
-  OnKeyUp := @KeyUp;
-  OnBeforeDraw := @BeforeDraw;
-  OnDraw := @Draw;
-  OnCloseQuery := @CloseQuery;
-  OnResize := @Resize;
-  OnIdle := @Idle;
-  OnTimer := @Timer;
-  OnMenuCommand := @MenuCommand;
+  OnMouseMove := MouseMove;
+  OnMouseDown := MouseDown;
+  OnMouseUp := MouseUp;
+  OnKeyDown := KeyDown;
+  OnKeyUp := KeyUp;
+  OnBeforeDraw := BeforeDraw;
+  OnDraw := Draw;
+  OnCloseQuery := CloseQuery;
+  OnResize := Resize;
+  OnIdle := Idle;
+  OnTimer := Timer;
+  OnMenuCommand := MenuCommand;
  end;
 end;
 
@@ -3278,7 +3290,7 @@ end;
 procedure TGLWindow.InitLoop(const ACaption: string; AOnDraw: TDrawFunc);
 begin
  FCaption := ACaption;
- OnDraw := @AOnDraw;
+ OnDraw := AOnDraw;
  InitLoop;
 end;
 
@@ -3366,7 +3378,7 @@ var ProcData: POptionProcData absolute Data;
     end;
 
   begin
-   ProcData.glwin.FullScreen := false;
+   ProcData^.glwin.FullScreen := false;
    try
     sizeSpecified := false;
     positionSpecified := false;
@@ -3382,17 +3394,17 @@ var ProcData: POptionProcData absolute Data;
     {ok, now we can apply what we have}
     if sizeSpecified then
     begin
-     ProcData.glwin.Width := parWidth;
-     ProcData.glwin.Height := parHeight;
+     ProcData^.glwin.Width := parWidth;
+     ProcData^.glwin.Height := parHeight;
     end;
     if positionSpecified then
     begin
      if xoffPlus then
-      ProcData.glwin.Left := parXoff else
-      ProcData.glwin.Left := glwm.ScreenWidth-parXoff-parWidth;
+      ProcData^.glwin.Left := parXoff else
+      ProcData^.glwin.Left := glwm.ScreenWidth-parXoff-parWidth;
      if yoffPlus then
-      ProcData.glwin.Top := parYoff else
-      ProcData.glwin.Top := glwm.ScreenHeight-parYoff-parHeight;
+      ProcData^.glwin.Top := parYoff else
+      ProcData^.glwin.Top := glwm.ScreenHeight-parYoff-parHeight;
     end;
 
    except
@@ -3402,9 +3414,9 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData.SpecifiedOptions, poGeometry);
+ Include(ProcData^.SpecifiedOptions, poGeometry);
  case OptionNum of
-  0: ProcData.glwin.FullScreen := true;
+  0: ProcData^.glwin.FullScreen := true;
   1: ApplyGeometryParam(Argument);
  end;
 end;
@@ -3416,7 +3428,7 @@ var ProcData: POptionProcData absolute Data;
   procedure ApplyFullScreenCustomParam(const option: string);
   var p: integer;
   begin
-   ProcData.glwin.FullScreen := true;
+   ProcData^.glwin.FullScreen := true;
    try
     p := CharsPos(['x','X'], option);
     if p = 0 then
@@ -3433,7 +3445,7 @@ var ProcData: POptionProcData absolute Data;
   end;
 
 begin
- Include(ProcData.SpecifiedOptions, poScreenGeometry);
+ Include(ProcData^.SpecifiedOptions, poScreenGeometry);
  case OptionNum of
   0: ApplyFullScreenCustomParam(Argument);
  end;
@@ -3454,10 +3466,12 @@ const
       Count: Integer;
       OptionProc: TOptionProc;
     end =
-  ( (pOptions:@GeometryOptions; Count: High(GeometryOptions)+1;
-     OptionProc: GeometryOptionProc),
-    (pOptions:@ScreenGeometryOptions; Count: High(ScreenGeometryOptions)+1;
-     OptionProc: ScreenGeometryOptionProc)
+  ( ( pOptions: @GeometryOptions;
+      Count: High(GeometryOptions)+1;
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} GeometryOptionProc),
+    ( pOptions: @ScreenGeometryOptions;
+      Count: High(ScreenGeometryOptions) + 1;
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc)
   );
 
 var Data: TOptionProcData;
@@ -3994,14 +4008,14 @@ begin
  for i := 0 to ActiveCount-1 do Active[i].DoTimer;
 end;
 
-procedure TGLWindowsManager.MaybeDoTimer(var LastDoTimerTime: TMilisecTime);
+procedure TGLWindowsManager.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var Now: TMilisecTime;
 begin
  Now := GetTickCount;
- if ((LastDoTimerTime = 0) or
-     (MilisecTimesSubtract(Now, LastDoTimerTime) >= FTimerMilisec)) then
+ if ((ALastDoTimerTime = 0) or
+     (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
  begin
-  LastDoTimerTime := Now;
+  ALastDoTimerTime := Now;
   DoSelfTimer;
   DoActiveWindowsTimer;
  end;

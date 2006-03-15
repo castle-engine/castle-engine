@@ -325,18 +325,30 @@ function Vector4ub(x, y, z, w: TGLubyte): TVector4ub; overload;
 function Vector4ub(const f4: TVector4f): TVector4ub; overload;
 
 const
-  Vector3fPoint: function(const v: TVector4f): TVector3f = VectorMath.Vector3SinglePoint;
-  Vector3fCut: function(const v: TVector4f): TVector3f = VectorMath.Vector3SingleCut;
+  Vector3fPoint: function(const v: TVector4f): TVector3f =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Vector3SinglePoint;
+
+  Vector3fCut: function(const v: TVector4f): TVector3f =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Vector3SingleCut;
 
 { Normal3f zwraca jak Vector3f ale od razu normalizuje wartosci x, y, z }
 function Normal3f(x, y: TGLfloat; z: TGLfloat {$IFDEF DEFPARS}=0{$ENDIF}): TVector3f; overload;
 
 const
-  Vector3fFromStr: function (const s: string): TVector3Single = VectorMath.Vector3SingleFromStr;
-  Vector3dFromStr: function (const s: string): TVector3Double = VectorMath.Vector3DoubleFromStr;
-  Triangle3d: function(const t: TTriangle3Single): TTriangle3Double = VectorMath.Triangle3Double;
-  BWColor3fvTo1st: procedure(v: PVector3Single) = VectorMath.BWColor3SinglevTo1st;
-  BWColor3ubvTo1st: procedure(v: PVector3Byte) = VectorMath.BWColor3BytevTo1st;
+  Vector3fFromStr: function (const s: string): TVector3Single =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Vector3SingleFromStr;
+
+  Vector3dFromStr: function (const s: string): TVector3Double =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Vector3DoubleFromStr;
+
+  Triangle3d: function(const t: TTriangle3Single): TTriangle3Double =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Triangle3Double;
+
+  BWColor3fvTo1st: procedure(v: PVector3Single) =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.BWColor3SinglevTo1st;
+
+  BWColor3ubvTo1st: procedure(v: PVector3Byte) =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.BWColor3BytevTo1st;
 
 {$endif}
 

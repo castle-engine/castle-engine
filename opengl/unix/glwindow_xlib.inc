@@ -641,7 +641,8 @@ begin
   bestmode := -1;
   for i := 0 to modesCount-1 do
    if (not VideoResize) or
-      ((modes[i]^.hdisplay = VideoResizeWidth) and (modes[i]^.vdisplay = VideoResizeHeight)) then
+      ((modes[i]^.hdisplay = VideoResizeWidth) and
+       (modes[i]^.vdisplay = VideoResizeHeight)) then
        {sorry - jak tu dopasowac BitsPerPixel}
     bestMode := i;
 

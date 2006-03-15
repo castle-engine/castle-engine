@@ -104,15 +104,15 @@ begin
  argc_ret := ParamCount+1;
  GetMem(Pointer(argv),(argc_ret+1)*SizeOf(PChar));
  for i := 0 to ParamCount do
-  argv[i] := StrNew(PChar(ParamStr(i))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
- argv[argc_ret] := nil; { ostatni element tablicy argv[] powinien byc ustawiony na nil }
+  argv^[i] := StrNew(PChar(ParamStr(i))); { KOPIUJEMY ParamStr do nowego PChara- tak najbezpieczniej }
+ argv^[argc_ret] := nil; { ostatni element tablicy argv[] powinien byc ustawiony na nil }
 end;
 
 procedure DestroyArgV(var argv_ret: PPChar);
 var i: integer;
     argv: PArray_PChar absolute argv_ret;
 begin
- for i := 0 to ParamCount do StrDispose(argv[i]);
+ for i := 0 to ParamCount do StrDispose(argv^[i]);
  FreeMemNiling(Pointer(argv));
 end;
 
@@ -150,16 +150,16 @@ function XlibErrorHandler_RaiseEXlibError(display: PDisplay; error: PXErrorEvent
 var error_name_buf, major_request_name_buf :array[0..1023]of char;
     s: string;
 begin
- XGetErrorText(display, error.error_code, @error_name_buf, SizeOf(error_name_buf));
- XGetErrorDatabaseText(display, 'XRequest', PChar(IntToStr(error.request_code)),
+ XGetErrorText(display, error^.error_code, @error_name_buf, SizeOf(error_name_buf));
+ XGetErrorDatabaseText(display, 'XRequest', PChar(IntToStr(error^.request_code)),
    '(not found in X database)',
    @major_request_name_buf, SizeOf(major_request_name_buf));
 
  s := Format('Xlib error ''%s'' (%d) at request ''%s'' (%d)',
-   [PChar(@error_name_buf), error.error_code,
-    PChar(@major_request_name_buf), error.request_code]);
+   [PChar(@error_name_buf), error^.error_code,
+    PChar(@major_request_name_buf), error^.request_code]);
 
- if error.minor_code <> 0 then
+ if error^.minor_code <> 0 then
  begin
 
 { TODO: jak zrobic ponizsze ? Skad wziac ExtensionName ?? Wiem ze ono jest
@@ -171,7 +171,7 @@ begin
   s += Format(' (extension request ''%s'' (%d)',
     [PChar(@ext_request_name_buf), error.minor_code]);
 }
-  s += Format(' (extension request (%d)', [error.minor_code]);
+  s += Format(' (extension request (%d)', [error^.minor_code]);
  end;
 
  raise EXlibError.Create(s);

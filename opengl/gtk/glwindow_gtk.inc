@@ -325,7 +325,7 @@ SIGNAL_WINDOW_BEGIN
    (with WindowManager decorations, that's how
    gdk_window_get_root_origin works).
    Reasons -- the same as in GLWindow_xlib.inc. }
- gdk_window_get_root_origin(GTK_WIDGET(WindowGtk).window, @LeftGtk, @TopGtk);
+ gdk_window_get_root_origin(GTK_WIDGET(WindowGtk)^.window, @LeftGtk, @TopGtk);
  Left := LeftGtk;
  Top := TopGtk;
  { for the sake of gtk, I can't tell that I "handled" this in any way }
@@ -345,7 +345,7 @@ function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;
   no DoResize will be called. And that's good -- there's no point in calling
   DoResize when only Left/Top changed. }
 SIGNAL_GLAREA_BEGIN
- DoResize(Event.Width, Event.Height, false);
+ DoResize(Event^.Width, Event^.Height, false);
  { for the sake of gtk, I can't tell that I "handled" this in any way }
  Result := false;
 SIGNAL_GLAREA_END;
@@ -362,7 +362,7 @@ function signal_key_press_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
 var Key: TKey;
     CharKey: char;
 SIGNAL_WINDOW_BEGIN
- case Event.KeyVal of
+ case Event^.KeyVal of
   GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
   GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
   GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
@@ -371,7 +371,7 @@ SIGNAL_WINDOW_BEGIN
   GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
   else
   begin
-   Key := GdkKeysymToKey(Event.KeyVal);
+   Key := GdkKeysymToKey(Event^.KeyVal);
 
    {$ifdef WIN32}
    { It seems that GTK 1.3 for win32 cannot translate GDK_KEY_Escape and
@@ -392,8 +392,8 @@ SIGNAL_WINDOW_BEGIN
    { note: testing is Event.Length = 1 not only makes sure that we can
      safely take Event.TheString[0] as a whole CharKey,
      but it also makes sure that this is not something MBCS encoded. }
-   if Event.Length = 1 then
-    CharKey := Event.{$ifdef GLWINDOW_GTK_2} _string {$else} TheString {$endif} [0] else
+   if Event^.Length = 1 then
+    CharKey := Event^.{$ifdef GLWINDOW_GTK_2} _string {$else} TheString {$endif} [0] else
     CharKey := #0;
 
    if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
@@ -419,7 +419,7 @@ function signal_key_release_event(AWindowGtk: PGtkWindow; Event: PGdkEventKey;
   data: gpointer): gboolean; cdecl;
 var Key: TKey;
 SIGNAL_WINDOW_BEGIN
- case Event.KeyVal of
+ case Event^.KeyVal of
   GDK_KEY_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
   GDK_KEY_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
   GDK_KEY_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
@@ -427,7 +427,7 @@ SIGNAL_WINDOW_BEGIN
   GDK_KEY_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
   GDK_KEY_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
   else begin
-   Key := GdkKeysymToKey(Event.KeyVal);
+   Key := GdkKeysymToKey(Event^.KeyVal);
    if Key <> K_None then DoKeyUp(Key);
   end;
  end;
@@ -441,28 +441,28 @@ function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButto
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
- Result := (Event.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
+ Result := (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
    = GDK_BUTTON_PRESS) and
-   ButtonNumberToMouseButton(Event.button, mb);
+   ButtonNumberToMouseButton(Event^.button, mb);
  if Result then
-  DoMouseDown(Round(Event.x), Round(Event.y), mb);
+  DoMouseDown(Round(Event^.x), Round(Event^.y), mb);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
- Result := (Event.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
+ Result := (Event^.{$ifdef GLWINDOW_GTK_2} _type {$else} TheType {$endif}
    = GDK_BUTTON_RELEASE) and
-   ButtonNumberToMouseButton(Event.button, mb);
+   ButtonNumberToMouseButton(Event^.button, mb);
  if Result then
-  DoMouseUp(Round(Event.x), Round(Event.y), mb);
+  DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
- DoMouseMove(Round(Event.x), Round(Event.y));
+ DoMouseMove(Round(Event^.x), Round(Event^.y));
  Result := true;
 SIGNAL_GLAREA_END;
 
@@ -566,7 +566,7 @@ end;
 procedure TGLWindow.FlushRedisplay;
 begin
  {$ifdef GLWINDOW_GTK_2}
- gdk_window_process_updates(GTK_WIDGET(WindowGtk).Window, true);
+ gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, true);
  {$else}
  { I don't know how to implement it efficiently under GTK 1.x
    -- maybe it's not possible ?
@@ -1055,15 +1055,15 @@ type
 
 procedure signal_dialog_ok_clicked(AWidget: PGtkWidget; Data: PDialogData); cdecl;
 begin
- Data.Answered := true;
- Data.Answer := true;
+ Data^.Answered := true;
+ Data^.Answer := true;
 end;
 
 procedure signal_dialog_cancel_clicked(AWidget: PGtkWidget;
   Data: PDialogData); cdecl;
 begin
- Data.Answered := true;
- Data.Answer := false;
+ Data^.Answered := true;
+ Data^.Answer := false;
 end;
 
 function signal_dialog_delete_event(AWidget: PGtkWidget; Event: PGdkEventKey;
@@ -1117,7 +1117,7 @@ begin
  try
   gtk_file_selection_set_filename(Dialog, PChar(FileName));
   Result := RunGtkDialog(PGtkWindow(Dialog),
-    Dialog.ok_button, Dialog.cancel_button);
+    Dialog^.ok_button, Dialog^.cancel_button);
   if Result then
    FileName := gtk_file_selection_get_filename(Dialog);
  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
@@ -1131,14 +1131,14 @@ begin
  Dialog := PGtkColorSelectionDialog(gtk_color_selection_dialog_new('Choose color'));
  try
   for i := 0 to 2 do GtkColor[i] := Color[i];
-  gtk_color_selection_set_color(PGtkColorSelection(Dialog.colorsel), @GtkColor);
+  gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
 
   Result := RunGtkDialog(PGtkWindow(Dialog),
-    Dialog.ok_button, Dialog.cancel_button);
+    Dialog^.ok_button, Dialog^.cancel_button);
 
   if Result then
   begin
-   gtk_color_selection_get_color(PGtkColorSelection(Dialog.colorsel), @GtkColor);
+   gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
    for i := 0 to 2 do Color[i] := GtkColor[i];
   end;
  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
@@ -1201,7 +1201,8 @@ begin
      after calling DoDraw in signal_expose_event.
    }
    GlobalIdleHandle :=
-     gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE, GlobalIdle, nil);
+     gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE, 
+       {$ifdef FPC_OBJFPC} @ {$endif} GlobalIdle, nil);
   end else
   begin
    gtk_idle_remove(GlobalIdleHandle);

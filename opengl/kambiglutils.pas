@@ -1619,7 +1619,7 @@ end;
 procedure CheckGLErrors(const AdditionalComment: string);
 var ErrorCode: TGLenum;
 begin
- ErrorCode := glGetError;
+ ErrorCode := glGetError();
  if ErrorCode <> GL_NO_ERROR then
   raise EOpenGLError.Create(ErrorCode, AdditionalComment);
 end;
@@ -2083,7 +2083,7 @@ function NewGLUQuadric(
   orientation: TGLenum {$ifdef DEFPARS} = GLU_OUTSIDE {$endif};
   drawStyle: TGLenum {$ifdef DEFPARS} = GLU_FILL {$endif}): PGLUQuadric;
 begin
- result := gluNewQuadric;
+ result := gluNewQuadric();
  Check(result <> nil, 'gluNewQuadric');
  gluQuadricCallback(result, GLU_ERROR, @ReportGLError);
  gluQuadricTexture(result, texture);

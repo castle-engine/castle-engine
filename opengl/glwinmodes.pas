@@ -336,9 +336,9 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
  glwin.SetCallbacksState(DefaultCallbacksState);
- glwin.OnDraw := @NewDraw;
- glwin.OnCloseQuery := @NewCloseQuery;
- glwin.OnResize := @NewResize;
+ glwin.OnDraw := NewDraw;
+ glwin.OnCloseQuery := NewCloseQuery;
+ glwin.OnResize := NewResize;
  {glwin.Caption := leave current value}
  glwin.Userdata := NewUserdata;
  glwin.AutoRedisplay := NewAutoRedisplay;
@@ -367,7 +367,7 @@ procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
  SetStandardGLWindowState(glwin,
-   NewDraw, CloseQuery_Ignore, NewResize,
+   NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
    NewUserData, NewAutoRedisplay, NewFPSActive,
    NewMenuActive,
    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigator);
@@ -498,7 +498,9 @@ begin
    (because we want that glwin.FlushRedisplay calls original OnDraw). }
  glwin.FlushRedisplay;
 
- SetStdNoCloseGLWindowState(AGLWindow, FrozenImageDraw, Resize2D,
+ SetStdNoCloseGLWindowState(AGLWindow,
+   {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw, 
+   {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    Self, false, false, AGLWindow.FPSActive, K_None, false, false);
 
  { setup our 2d projection. We must do it before SaveScreen }

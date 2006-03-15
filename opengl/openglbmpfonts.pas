@@ -75,13 +75,13 @@ begin
 
  for i := 0 to 255 do
  begin
-  Znak := BmpFont[Chr(i)];
-  glPixelStorei(GL_UNPACK_ALIGNMENT, Znak.Info.Alignment);
+  Znak := BmpFont^[Chr(i)];
+  glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
   glNewList(i+base, GL_COMPILE);
-  glBitmap(Znak.Info.Width, Znak.Info.Height,
-           Znak.Info.XOrig, Znak.Info.YOrig,
-           Znak.Info.XMove, Znak.Info.YMove,
-           @Znak.Data);
+  glBitmap(Znak^.Info.Width, Znak^.Info.Height,
+           Znak^.Info.XOrig, Znak^.Info.YOrig,
+           Znak^.Info.XMove, Znak^.Info.YMove,
+           @Znak^.Data);
   glEndList;
  end;
  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
@@ -109,7 +109,7 @@ var i: integer;
 begin
  Result := 0;
  for i := 1 to length(s) do
-  Result := Result + Round(BmpFont[s[i]].Info.XMove);
+  Result := Result + Round(BmpFont^[s[i]]^.Info.XMove);
 end;
 
 function TGLBitmapFont.TextHeight(const s: string): integer;
@@ -120,8 +120,9 @@ begin
  maxY := 0;
  for i := 1 to length(s) do
  begin
-  minY := min(minY, -Round(BmpFont[s[i]].Info.YOrig));
-  maxY := max(maxY, BmpFont[s[i]].Info.Height - Round(BmpFont[s[i]].Info.YOrig));
+  minY := min(minY, -Round(BmpFont^[s[i]]^.Info.YOrig));
+  maxY := max(maxY, BmpFont^[s[i]]^.Info.Height -
+              Round(BmpFont^[s[i]]^.Info.YOrig));
  end;
  result := maxY-minY;
 end;

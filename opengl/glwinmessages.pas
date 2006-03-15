@@ -390,7 +390,7 @@ begin result := Round(FloatShiftY) end;
 
 procedure TMessageData.SetFloatShiftY(glwin: TGLWindow; newValue: Single);
 begin
- Clamp(newValue, Single(minShiftY), Single(maxShiftY));
+ Clamp(newValue, minShiftY, maxShiftY);
  if newValue <> FloatShiftY then
  begin
   FFloatShiftY := newValue;
@@ -800,7 +800,9 @@ begin
 
  {3 faza :
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
- SetStdNoCloseGLWindowState(glwin, drawMessg, resizeMessg, nil, false,
+ SetStdNoCloseGLWindowState(glwin,
+   {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
+   {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg, nil, false,
    true, false, K_None, false, false);
  with glwin do begin
   OnMouseMove := @mouseMoveMessg;
@@ -936,7 +938,8 @@ end;
 procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign);
 begin
- GLWinMessage_NoAdditional(glwin, textlist, textalign, KeyDownMessgOK,
+ GLWinMessage_NoAdditional(glwin, textlist, textalign,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgOK,
    nil, '[Enter]');
 end;
 
@@ -962,26 +965,26 @@ begin
 
  case c of
   CharEnter:
-    if Length(md.SAdditional) >= id.answerMinLen then
+    if Length(md.SAdditional) >= id^.answerMinLen then
      md.answered := true else
      MessageOk(glwin, Format('You must enter at least %d characters.',
-       [id.answerMinLen]), taMiddle);
+       [id^.answerMinLen]), taMiddle);
   CharBackSpace :
     begin
      if md.SAdditional <> '' then
       md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
     end;
   CharEscape:
-    if id.userCanCancel then
+    if id^.userCanCancel then
     begin
-     id.answerCancelled := true;
+     id^.answerCancelled := true;
      md.answered := true;
     end;
   else
    if (c <> #0) and
-      (c in id.answerAllowedChars) and
-      ((id.answerMaxLen = 0) or (length(md.SAdditional) < id.answerMaxLen)) then
-     md.SetSAdditional(glwin, md.SAdditional+c);
+      (c in id^.answerAllowedChars) and
+      ((id^.answerMaxLen = 0) or (length(md.SAdditional) < id^.answerMaxLen)) then
+     md.SetSAdditional(glwin, md.SAdditional + c);
  end;
 end;
 
@@ -1009,8 +1012,9 @@ begin
  inputdata.userCanCancel := false;
  inputdata.answerCancelled := false;
  result := answerDefault;
- GLWinMessage(glwin, textlist, textalign, KeyDownMessgInput,
-    @inputdata, '', true, result);
+ GLWinMessage(glwin, textlist, textalign, 
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
+   @inputdata, '', true, result);
 end;
 
 function MessageInputQuery(glwin: TGLWindow; const s: string;
@@ -1042,8 +1046,9 @@ begin
   GLWinMessage zmienna answer bo jezeli not result to nie chcemy zmieniac
   answer. }
  SAdditional := answer;
- GLWinMessage(glwin, textlist, textalign, KeyDownMessgInput,
-    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
+ GLWinMessage(glwin, textlist, textalign, 
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
+   @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
  if result then answer := SAdditional;
 end;
@@ -1064,10 +1069,10 @@ begin
  md := TMessageData(glwin.UserData);
  cd := PCharData(md.userdata);
 
- if c in cd.AllowedChars then
+ if c in cd^.AllowedChars then
  begin
   md.answered := true;
-  cd.answer := c;
+  cd^.answer := c;
  end;
 end;
 
@@ -1099,7 +1104,8 @@ function MessageChar(glwin: TGLWindow; textlist: TStringList;
 var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
- GLWinMessage_NoAdditional(glwin, textlist, textalign, KeyDownMessgChar,
+ GLWinMessage_NoAdditional(glwin, textlist, textalign, 
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar,
    @chardata, ClosingInfo);
  result := chardata.answer;
 end;
