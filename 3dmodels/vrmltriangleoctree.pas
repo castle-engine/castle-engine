@@ -487,13 +487,15 @@ type
 
   TOctreeIgnore_Transparent = class
     { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0. }
-    class function IgnoreItem(Octree: TVRMLTriangleOctree; OctreeItemIndex: Integer): boolean;
+    class function IgnoreItem(Octree: TVRMLTriangleOctree;
+      OctreeItemIndex: Integer): boolean;
   end;
 
   TOctreeIgnore_Transparent_And_OneItem = class
     OneItemIndex: Integer;
     { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0. }
-    function IgnoreItem(Octree: TVRMLTriangleOctree; OctreeItemIndex: Integer): boolean;
+    function IgnoreItem(Octree: TVRMLTriangleOctree;
+      OctreeItemIndex: Integer): boolean;
     constructor Create(AOneItemIndex: Integer);
   end;
 
@@ -646,7 +648,7 @@ procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
    if IsBox3dPlaneCollision(subnode.Box,
-     ParentTree.OctreeItems[ItemIndex].TriangleNormPlane) then
+     ParentTree.OctreeItems.Items[ItemIndex].TriangleNormPlane) then
     subnode.AddItem(ItemIndex);
     { wpp. przypadku na pewno caly trojkat jest poza Box'em.
       W sumie wrzucamy trojkat tylko jesli zachodza obydwa warunki :
@@ -678,13 +680,13 @@ begin
     Bardzo potrzebne zwlaszcza gdy mamy np. prostokat ulozony dokladnie w/g
     linii podzialu subnode'a (przyklad : MaterialTest.wrl) }
   OSIS_Box[0, i] := KambiUtils.min(
-    PItem.Triangle[0, i],
-    PItem.Triangle[1, i],
-    PItem.Triangle[2, i]) - SingleEqualityEpsilon;
+    PItem^.Triangle[0, i],
+    PItem^.Triangle[1, i],
+    PItem^.Triangle[2, i]) - SingleEqualityEpsilon;
   OSIS_Box[1, i] := KambiUtils.max(
-    PItem.Triangle[0, i],
-    PItem.Triangle[1, i],
-    PItem.Triangle[2, i]) + SingleEqualityEpsilon;
+    PItem^.Triangle[0, i],
+    PItem^.Triangle[1, i],
+    PItem^.Triangle[2, i]) + SingleEqualityEpsilon;
  end;
  OCTREE_STEP_INTO_SUBNODES
 end;
@@ -701,7 +703,8 @@ end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
 
-function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single; const Radius: Single): integer;
+function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single;
+  const Radius: Single): integer;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
@@ -717,8 +720,8 @@ begin
   for i := 0 to ItemsIndices.High do
   begin
    Inc(ParentTree.DirectCollisionTestsCounter);
-   if IsTriangleSphereCollision(Items[i].Triangle,
-     Items[i].TriangleNormPlane, pos, Radius) then
+   if IsTriangleSphereCollision(Items[i]^.Triangle,
+     Items[i]^.TriangleNormPlane, pos, Radius) then
     Exit(ItemsIndices[i]);
   end;
   Exit(NoItemIndex);
@@ -927,7 +930,7 @@ function TVRMLTriangleOctree.MoveAllowed(
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
-   PlanePtr := @OctreeItems[BlockerIndex].TriangleNormPlane;
+   PlanePtr := @OctreeItems.Items[BlockerIndex].TriangleNormPlane;
    PlaneNormalPtr := PVector3Single(PlanePtr);
 
    { project ProposedNewPos on a plane of blocking object }
@@ -1014,7 +1017,7 @@ class function TOctreeIgnore_Transparent.IgnoreItem(Octree: TVRMLTriangleOctree;
 var ItemPtr: POctreeItem;
 begin
  ItemPtr := @(Octree.OctreeItems.Items[OctreeItemIndex]);
- result := ItemPtr.State.LastNodes.Material.Transparency(ItemPtr.MatNum)
+ result := ItemPtr^.State.LastNodes.Material.Transparency(ItemPtr^.MatNum)
    > SingleEqualityEpsilon;
 end;
 
@@ -1023,7 +1026,7 @@ var ItemPtr: POctreeItem;
 begin
  if OctreeItemIndex = OneItemIndex then Exit(true);
  ItemPtr := @(Octree.OctreeItems.Items[OctreeItemIndex]);
- result := ItemPtr.State.LastNodes.Material.Transparency(ItemPtr.MatNum)
+ result := ItemPtr^.State.LastNodes.Material.Transparency(ItemPtr^.MatNum)
    > SingleEqualityEpsilon;
 end;
 
@@ -1060,13 +1063,15 @@ begin
     VectorAdjustToLength(Light.TransfNormDirection,
       3 * Box3dMaxSize(Octree.TreeRoot.Box) ) ) else
   LightPos := Light.TransfLocation;
+
  Result := (VectorsSamePlaneDirections(
        VectorSubtract(LightPos, LightedPoint),
        RenderDir,
        LightedPointPlane)) and
    (Octree.SegmentCollision(LightedPoint, LightPos,
-       false, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
-       TOctreeIgnore_Transparent.IgnoreItem) = NoItemIndex);
+     false, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
+     {$ifdef FPC_OBJFPC} @ {$endif} TOctreeIgnore_Transparent.IgnoreItem)
+     = NoItemIndex);
 end;
 
 end.

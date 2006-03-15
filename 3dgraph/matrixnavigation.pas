@@ -827,21 +827,21 @@ begin
   begin
    for i := 0 to 2 do
    begin
-    if KeysDown[Keys_Move[i, true ]] then Move(i, +move_change);
-    if KeysDown[Keys_Move[i, false]] then Move(i, -move_change);
+    if KeysDown^[Keys_Move[i, true ]] then Move(i, +move_change);
+    if KeysDown^[Keys_Move[i, false]] then Move(i, -move_change);
    end;
   end else
   if ModsDown=[] then
   begin
    for i := 0 to 2 do
    begin
-    if KeysDown[Keys_Rotate[i, true]]  then Rotate(i, +rot_speed_change);
-    if KeysDown[Keys_Rotate[i, false]] then Rotate(i, -rot_speed_change);
+    if KeysDown^[Keys_Rotate[i, true]]  then Rotate(i, +rot_speed_change);
+    if KeysDown^[Keys_Rotate[i, false]] then Rotate(i, -rot_speed_change);
    end;
   end;
 
-  if KeysDown[Key_ScaleLarger] then Scale(scale_change);
-  if KeysDown[Key_ScaleSmaller] then Scale(1/scale_change);
+  if KeysDown^[Key_ScaleLarger] then Scale(scale_change);
+  if KeysDown^[Key_ScaleSmaller] then Scale(1/scale_change);
  end;
 end;
 
@@ -1203,11 +1203,11 @@ var
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-    if KeysDown[Key_RightRot] then RotateHorizontal(-RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown[Key_LeftRot] then RotateHorizontal(RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_RightRot] then RotateHorizontal(-RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_LeftRot] then RotateHorizontal(RotateSpeed * CompSpeed * SpeedScale);
 
-    if KeysDown[Key_UpRotate] then RotateVertical(RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_UpRotate] then RotateVertical(RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
   end;
 
   function RealCameraPreferredHeightMargin: Single;
@@ -1487,18 +1487,18 @@ begin
 
   HeadBobbingAlreadyDone := false;
 
-  FIsCrouching := KeysDown[Key_Crouch];
+  FIsCrouching := KeysDown^[Key_Crouch];
 
   if ModsDown = [] then
   begin
     CheckRotates(1.0);
 
-    if KeysDown[Key_Forward] then MoveHorizontal;
-    if KeysDown[Key_Backward] then MoveHorizontal(-1);
+    if KeysDown^[Key_Forward] then MoveHorizontal;
+    if KeysDown^[Key_Backward] then MoveHorizontal(-1);
 
-    if KeysDown[Key_RightStrafe] then
+    if KeysDown^[Key_RightStrafe] then
       begin RotateHorizontal(-90); MoveHorizontal; RotateHorizontal(90); end;
-    if KeysDown[Key_LeftStrafe] then
+    if KeysDown^[Key_LeftStrafe] then
       begin RotateHorizontal(90); MoveHorizontal; RotateHorizontal(-90); end;
 
     { A simple implementation of Key_UpMove was
@@ -1508,9 +1508,9 @@ begin
       But this is not good, because when PreferHomeUp, we want to move along the
       CameraHomeUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromHomeUp). }
-    if KeysDown[Key_UpMove] then
+    if KeysDown^[Key_UpMove] then
       MoveVertical( 1);
-    if KeysDown[Key_DownMove] then
+    if KeysDown^[Key_DownMove] then
       MoveVertical(-1);
 
     { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
@@ -1527,14 +1527,14 @@ begin
       So F is FMoveSpeed * Power(1.1, CompSpeed)
       Easy!
     }
-    if KeysDown[Key_MoveSpeedInc] then
+    if KeysDown^[Key_MoveSpeedInc] then
     begin
       FMoveSpeed *= Power(1.1, CompSpeed);
       FMoveVertSpeed *= Power(1.1, CompSpeed);
       MatrixChanged;
     end;
 
-    if KeysDown[Key_MoveSpeedDec] then
+    if KeysDown^[Key_MoveSpeedDec] then
     begin
       FMoveSpeed /= Power(1.1, CompSpeed);
       FMoveVertSpeed /= Power(1.1, CompSpeed);
@@ -1544,7 +1544,7 @@ begin
     { Key_Jump quialifies better to be handled inside KeyDown,
       but we don't have KeyDown in MatrixWalker. Maybe later it will
       be moved to KeyDown. }
-    if KeysDown[Key_Jump] then
+    if KeysDown^[Key_Jump] then
       Jump;
   end else
   if ModsDown = [mkCtrl] then

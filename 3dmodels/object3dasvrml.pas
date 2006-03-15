@@ -149,7 +149,7 @@ begin
    i := 0;
    while i < obj.Faces.Count do
    begin
-    FacesWithTexCoords := obj.Faces[i].HasTexCoords;
+    FacesWithTexCoords := obj.Faces.Items[i].HasTexCoords;
 
     (* przed kazda grupa IndexedFaceSet dodajemy node Texture2. Jezeli ta grupa
        scian ma texture coords to dajemy jej
@@ -172,21 +172,22 @@ begin
     {zapisujemy Faces dopoki (FacesWithTexCoords = obj.Faces[i].HasTexCoords).
      Na pewno mamy przed soba przynajmniej jedno takie face. }
     repeat
-     fourIndices[0] := obj.Faces[i].VertIndices[0];
-     fourIndices[1] := obj.Faces[i].VertIndices[1];
-     fourIndices[2] := obj.Faces[i].VertIndices[2];
+     fourIndices[0] := obj.Faces.Items[i].VertIndices[0];
+     fourIndices[1] := obj.Faces.Items[i].VertIndices[1];
+     fourIndices[2] := obj.Faces.Items[i].VertIndices[2];
      fourIndices[3] := -1;
      faces.FdCoordIndex.Items.AppendArray(fourIndices);
      if FacesWithTexCoords then
      begin
-      fourIndices[0] := obj.Faces[i].TexCoordIndices[0];
-      fourIndices[1] := obj.Faces[i].TexCoordIndices[1];
-      fourIndices[2] := obj.Faces[i].TexCoordIndices[2];
+      fourIndices[0] := obj.Faces.Items[i].TexCoordIndices[0];
+      fourIndices[1] := obj.Faces.Items[i].TexCoordIndices[1];
+      fourIndices[2] := obj.Faces.Items[i].TexCoordIndices[2];
       fourIndices[3] := -1;
       faces.FdTextureCoordIndex.Items.AppendArray(fourIndices);
      end;
      Inc(i);
-    until (i >= obj.Faces.Count) or (FacesWithTexCoords <> obj.Faces[i].HasTexCoords);
+    until (i >= obj.Faces.Count) or 
+      (FacesWithTexCoords <> obj.Faces.Items[i].HasTexCoords);
 
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
     faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := 4;
@@ -245,8 +246,8 @@ var WWWBasePath: string;
   var i: integer;
   begin
    i := StartFace+1;
-   while (i < FacesCount) and (Faces[i].FaceMaterialIndex =
-     Faces[StartFace].FaceMaterialIndex) do
+   while (i < FacesCount) and (Faces^[i].FaceMaterialIndex =
+     Faces^[StartFace].FaceMaterialIndex) do
     Inc(i);
    result := i-StartFace;
   end;
@@ -371,7 +372,7 @@ begin
     trimeshGroup.AddChild(trimeshCoords);
     trimeshCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
     for j := 0 to trimesh3ds.VertsCount-1 do
-     trimeshCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts[j].Pos;
+     trimeshCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts^[j].Pos;
 
     { zapisz TextureCoordinate2 jesli je mamy }
     if trimesh3ds.HasTexCoords then
@@ -380,14 +381,14 @@ begin
      trimeshGroup.AddChild(trimeshTexCoords);
      trimeshTexCoords.FdPoint.Items.SetLength(trimesh3ds.VertsCount);
      for j := 0 to trimesh3ds.VertsCount-1 do
-      trimeshTexCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts[j].TexCoord;
+      trimeshTexCoords.FdPoint.Items.Items[j] := trimesh3ds.Verts^[j].TexCoord;
     end;
 
     { zapisz faces }
     j := 0;
     while j < trimesh3ds.FacesCount do
     begin
-     FaceMaterialNum := trimesh3ds.Faces[j].FaceMaterialIndex;
+     FaceMaterialNum := trimesh3ds.Faces^[j].FaceMaterialIndex;
      facesSep := TNodeSeparator.Create('',WWWBasePath);
      trimeshGroup.AddChild(facesSep);
 
@@ -416,9 +417,9 @@ begin
      begin
       with indexedFacesNode.FdCoordIndex.Items do
       begin
-       Items[FaceNum*4  ] := trimesh3ds.Faces[j].VertsIndices[0];
-       Items[FaceNum*4+1] := trimesh3ds.Faces[j].VertsIndices[1];
-       Items[FaceNum*4+2] := trimesh3ds.Faces[j].VertsIndices[2];
+       Items[FaceNum*4  ] := trimesh3ds.Faces^[j].VertsIndices[0];
+       Items[FaceNum*4+1] := trimesh3ds.Faces^[j].VertsIndices[1];
+       Items[FaceNum*4+2] := trimesh3ds.Faces^[j].VertsIndices[2];
        Items[FaceNum*4+3] := -1;
       end;
       Inc(j);

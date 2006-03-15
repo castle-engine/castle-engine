@@ -103,7 +103,7 @@ procedure TriangulateFace(FaceIndices: PArray_Longint; FaceIndicesCount: integer
   {$define VertsCount := FaceIndicesCount}
   function Verts(i: Longint): TVector3Single;
   begin
-   result := Vertices[FaceIndices[i]];
+   result := Vertices^[FaceIndices^[i]];
   end;
   
 var ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -329,7 +329,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
   begin
    ReadVertsCount;
    for i := 0 to VertsCount-1 do
-    Stream.ReadBuffer(Verts[i].Pos, SizeOf(Verts[i].Pos));
+    Stream.ReadBuffer(Verts^[i].Pos, SizeOf(Verts^[i].Pos));
   end;
 
   procedure ReadMaplist(chunkEnd: Int64);
@@ -338,7 +338,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
    FHasTexCoords := true;
    ReadVertsCount;
    for i := 0 to VertsCount-1 do
-    Stream.ReadBuffer(Verts[i].TexCoord, SizeOf(Verts[i].TexCoord));
+    Stream.ReadBuffer(Verts^[i].TexCoord, SizeOf(Verts^[i].TexCoord));
    Stream.Position := chunkEnd; { skip subchunks }
   end;
 
@@ -358,9 +358,9 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
       Stream.ReadBuffer(FaceNum, SizeOf(FaceNum));
       Check3dsFile(FaceNum < FacesCount,
         'Invalid face number for material '+MatName);
-      Check3dsFile(Faces[FaceNum].FaceMaterialIndex = -1,
+      Check3dsFile(Faces^[FaceNum].FaceMaterialIndex = -1,
         'Duplicate material specification for face');
-      Faces[FaceNum].FaceMaterialIndex := MatIndex;
+      Faces^[FaceNum].FaceMaterialIndex := MatIndex;
      end;
     end;
 
@@ -374,7 +374,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3ds;
    Stream.ReadBuffer(FFacesCount, SizeOf(FFacesCount));
    Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
    for i := 0 to FacesCount-1 do
-   with Faces[i] do
+   with Faces^[i] do
    begin
     {init face}
     Stream.ReadBuffer(Word3, SizeOf(Word3));
@@ -437,7 +437,7 @@ begin
  Stream.Position := ObjectEndPos;
 
  fBoundingBox := CalculateBoundingBox(
-   @Verts[0].Pos, VertsCount, SizeOf(TVertex3ds));
+   @Verts^[0].Pos, VertsCount, SizeOf(TVertex3ds));
 end;
 
 destructor TTrimesh3ds.Destroy;

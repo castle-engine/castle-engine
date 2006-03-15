@@ -160,7 +160,7 @@ begin
  {nie musimy sprawdzac czy indexNum jest dobry -
    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
    0..VertIndices.Count-1 }
- result := CoordIndex[indexNum];
+ result := CoordIndex^[indexNum];
 end;
 
 function TNodeGeneralIndexed.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -169,11 +169,11 @@ begin
  Calculator := TGI_BBox_Calculator.Create;
  try
   Calculator.LastCoordinate3 := State.LastNodes.Coordinate3;
-  Calculator.CoordIndex := FdCoordIndex.Items.Items;
+  Calculator.CoordIndex := FdCoordIndex.Items.ItemsArray;
   result := CalculateBoundingBoxFromIndices(
-    Calculator.GetIndex,
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
     FdCoordIndex.Count,
-    Calculator.GetVertexFromIndex,
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
     State.CurrMatrix);
  finally Calculator.Free end;
 end;
@@ -184,11 +184,11 @@ begin
  Calculator := TGI_BBox_Calculator.Create;
  try
   Calculator.LastCoordinate3 := State.LastNodes.Coordinate3;
-  Calculator.CoordIndex := FdCoordIndex.Items.Items;
+  Calculator.CoordIndex := FdCoordIndex.Items.ItemsArray;
   result := CalculateBoundingBoxFromIndices(
-    Calculator.GetIndex,
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
     FdCoordIndex.Count,
-    Calculator.GetVertexFromIndex);
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
  finally Calculator.Free end;
 end;
 
@@ -214,7 +214,8 @@ begin
   Calculator.Verts := State.LastNodes.Coordinate3.FdPoint;
   Calculator.indexOffset := startIndex;
   Calculator.PMatrix := @State.CurrMatrix;
-  result := CalculateBoundingBox(Calculator.GetVertex, numPoints);
+  result := CalculateBoundingBox(
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertex, numPoints);
  finally Calculator.Free end;
 end;
 

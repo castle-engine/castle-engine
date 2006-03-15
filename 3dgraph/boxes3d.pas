@@ -347,7 +347,8 @@ function CalculateBoundingBox(
   algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
   3/2*n zamiast 2*n ? }
 
-  function find_extremum(chooseFunc: TChoose1From2_Single; coord: integer): Single;
+  function find_extremum(chooseFunc: TChoose1From2_Single; 
+    coord: integer): Single;
   var i: integer;
   begin
    result := GetVertex(0)[coord];
@@ -362,12 +363,12 @@ begin
   exit
  end;
 
- result[0, 0] := find_extremum(min_Single, 0);
- result[0, 1] := find_extremum(min_Single, 1);
- result[0, 2] := find_extremum(min_Single, 2);
- result[1, 0] := find_extremum(max_Single, 0);
- result[1, 1] := find_extremum(max_Single, 1);
- result[1, 2] := find_extremum(max_Single, 2);
+ result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 0);
+ result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 1);
+ result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 2);
+ result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 0);
+ result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 1);
+ result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 2);
 end;
 
 type
@@ -400,7 +401,8 @@ begin
  try
   Calculator.VertsStride := VertsStride;
   Calculator.Verts := Verts;
-  result := CalculateBoundingBox(Calculator.GetVertexNotTransform, VertsCount);
+  result := CalculateBoundingBox(
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
  finally Calculator.Free end;
 end;
 
@@ -415,7 +417,8 @@ begin
   Calculator.VertsStride := VertsStride;
   Calculator.Verts := Verts;
   Calculator.PMatrix := @Transform;
-  result := CalculateBoundingBox(Calculator.GetVertexTransform, VertsCount);
+  result := CalculateBoundingBox(
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
  finally Calculator.Free end;
 end;
 
@@ -452,12 +455,12 @@ begin
   exit;
  end;
 
- result[0, 0] := find_extremum(min_Single, 0);
- result[0, 1] := find_extremum(min_Single, 1);
- result[0, 2] := find_extremum(min_Single, 2);
- result[1, 0] := find_extremum(max_Single, 0);
- result[1, 1] := find_extremum(max_Single, 1);
- result[1, 2] := find_extremum(max_Single, 2);
+ result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 0);
+ result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 1);
+ result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 2);
+ result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 0);
+ result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 1);
+ result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 2);
 end;
 
 type
@@ -485,7 +488,7 @@ begin
   result := CalculateBoundingBoxFromIndices(
     GetVertIndex,
     VertsIndicesCount,
-    Calculator.GetTransformed);
+    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetTransformed);
  finally Calculator.Free end;
 end;
 
@@ -538,7 +541,7 @@ var i, j: integer;
 begin
  for i := 0 to 7 do
   for j := 0 to 2 do
-   PArray_Vector3Single(allpoints)[i][j] := box[kombinacje[i, j], j];
+   PArray_Vector3Single(allpoints)^[i][j] := box[kombinacje[i, j], j];
 end;
 
 function BoundingBoxTransform(const bbox: TBox3d; const Matrix: TMatrix4Single): TBox3d;

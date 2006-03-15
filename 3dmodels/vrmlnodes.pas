@@ -1911,7 +1911,8 @@ procedure VRMLNonFatalError_Ignore(const s: string);
 type
   TVRMLNonFatalErrorProc = procedure(const s: string);
 var
-  VRMLNonFatalError: TVRMLNonFatalErrorProc = VRMLNonFatalError_RaiseEVRMLError;
+  VRMLNonFatalError: TVRMLNonFatalErrorProc =
+    {$ifdef FPC_OBJFPC} @ {$endif} VRMLNonFatalError_RaiseEVRMLError;
 
 { SaveToVRMLFile writes whole VRML file (with signature '#VRML V1.0 ascii'
   and '# '+PrecedingComment, if PrecedingComment <> '') with RootNode =
@@ -2419,8 +2420,8 @@ end;
 
     procedure TTryFindNodeStateObj.TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
     begin
-     PNode^:=ANode;
-     PState^:=TVRMLGraphTraverseState.CreateCopy(AState);
+     PNode^ := ANode;
+     PState^ := TVRMLGraphTraverseState.CreateCopy(AState);
      raise BreakTryFindNodeState.Create;
     end;
 
@@ -2434,7 +2435,8 @@ begin
   try
    Obj.PNode := @Node;
    Obj.PState := @State;
-   Traverse(InitialState, NodeClass, Obj.TraverseFunc);
+   Traverse(InitialState, NodeClass,
+     {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
    result := false;
   except
    on BreakTryFindNodeState do result := true;
@@ -2451,11 +2453,11 @@ end;
 
     procedure TTryFindNodeTransformObj.TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
     begin
-     PNode^:=ANode;
+     PNode^ := ANode;
      { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
        w TryFindNodeState trzeba tutaj kopiowac cale state,
        w TryFindNodeTransform wystarczy skopiowac transformacje. }
-     PTransform^:=AState.CurrMatrix;
+     PTransform^ := AState.CurrMatrix;
      raise BreakTryFindNodeState.Create;
     end;
 
@@ -2469,7 +2471,8 @@ begin
   try
    Obj.PNode := @Node;
    Obj.PTransform := @Transform;
-   Traverse(InitialState, NodeClass, Obj.TraverseFunc);
+   Traverse(InitialState, NodeClass,
+     {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
    result := false;
   except
    on BreakTryFindNodeState do result := true;
@@ -2568,7 +2571,8 @@ var C: TNodeCounter;
 begin
  C := TNodeCounter.Create;
  try
-  EnumNodes(NodeClass, C.CountNode, countOnlyActiveNodes);
+  EnumNodes(NodeClass,
+    {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode, countOnlyActiveNodes);
   result := C.Counter;
  finally C.Free end;
 end;
@@ -2786,7 +2790,7 @@ end;
 function TNodeFontStyle.TTF_Font: PTrueTypeFont;
 const
   Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
-  (              {  {[],                          [italic],                            [bold],                      [italic, bold] }
+  (              {   [],                          [italic],                            [bold],                      [italic, bold] }
     {serif}      ( ((@TTF_BitstreamVeraSerif),   (@TTF_BitstreamVeraSerif_Italic)),    ((@TTF_BitstreamVeraSerif_Bold),    (@TTF_BitstreamVeraSerif_Bold_Italic)) ),
     {sans}       ( ((@TTF_BitstreamVeraSans),    (@TTF_BitstreamVeraSans_Italic)),     ((@TTF_BitstreamVeraSans_Bold),     (@TTF_BitstreamVeraSans_Bold_Italic)) ),
     {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
@@ -3973,7 +3977,7 @@ begin
  if Registered.IndexOf(NodeClass.ClassNodeTypeName) <> -1 then
   raise ENodesManagerError.Create('Class type name '+NodeClass.ClassNodeTypeName+
     ' was already registered in TNodesManager');
- Registered.AddObject(NodeClass.ClassNodeTypeName, Pointer(NodeClass));
+ Registered.AddObject(NodeClass.ClassNodeTypeName, TObject(Pointer(NodeClass)));
 end;
 
 procedure TNodesManager.RegisterNodeClasses(const NodeClasses: array of TVRMLNodeClass);

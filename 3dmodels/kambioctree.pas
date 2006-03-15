@@ -276,7 +276,7 @@ type
     function SubnodeWithPoint(const P: TVector3Single):
       TOctreeSubnodeIndex; overload;
 
-    procedure SubnodesWithBox(const Box: TBox3d;
+    procedure SubnodesWithBox(const ABox: TBox3d;
       var SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
   end;
 
@@ -593,7 +593,7 @@ SubnodeWithPoint_IMPLEMENT
 
 {$undef SubnodeWithPoint_IMPLEMENT}
 
-procedure TOctreeNode.SubnodesWithBox(const Box: TBox3d;
+procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3d;
   var SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 var i: Integer;
 begin
@@ -601,9 +601,9 @@ begin
  begin
   SubnodeLow[i] := false;
   SubnodeHigh[i] := true;
-  if Box[0, i] >= MiddlePoint[i] then
+  if ABox[0, i] >= MiddlePoint[i] then
    SubnodeLow[i] := true else
-  if Box[1, i] < MiddlePoint[i] then
+  if ABox[1, i] < MiddlePoint[i] then
    SubnodeHigh[i] := false;
  end;
 end;

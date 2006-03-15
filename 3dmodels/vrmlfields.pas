@@ -576,7 +576,7 @@ type
   public
     function Items: TDynSingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; 
+    constructor Create(const AName: string;
       const InitialContent: array of Single);
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField): boolean; override;
@@ -1052,9 +1052,9 @@ begin
        for i := 0 to w*h-1 do
        begin
         pixel := ParseLongWord(Lexer);
-        RGBPixels[i, 0] := pixel and $FF;
-        RGBPixels[i, 1] := pixel and $FF;
-        RGBPixels[i, 2] := pixel and $FF;
+        RGBPixels^[i, 0] := pixel and $FF;
+        RGBPixels^[i, 1] := pixel and $FF;
+        RGBPixels^[i, 2] := pixel and $FF;
        end;
       end;
    2: begin
@@ -1063,10 +1063,10 @@ begin
        for i := 0 to w*h-1 do
        begin
         pixel := ParseLongWord(Lexer);
-        AlphaPixels[i, 0] := (pixel shr 8) and $FF;
-        AlphaPixels[i, 1] := (pixel shr 8) and $FF;
-        AlphaPixels[i, 2] := (pixel shr 8) and $FF;
-        AlphaPixels[i, 3] := pixel and $FF;
+        AlphaPixels^[i, 0] := (pixel shr 8) and $FF;
+        AlphaPixels^[i, 1] := (pixel shr 8) and $FF;
+        AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
+        AlphaPixels^[i, 3] := pixel and $FF;
        end;
       end;
    3: begin
@@ -1075,9 +1075,9 @@ begin
        for i := 0 to w*h-1 do
        begin
         pixel := ParseLongWord(Lexer);
-        RGBPixels[i, 0] := (pixel shr 16) and $FF;
-        RGBPixels[i, 1] := (pixel shr 8) and $FF;
-        RGBPixels[i, 2] := pixel and $FF;
+        RGBPixels^[i, 0] := (pixel shr 16) and $FF;
+        RGBPixels^[i, 1] := (pixel shr 8) and $FF;
+        RGBPixels^[i, 2] := pixel and $FF;
        end;
       end;
    4: begin
@@ -1086,10 +1086,10 @@ begin
        for i := 0 to w*h-1 do
        begin
         pixel := ParseLongWord(Lexer);
-        AlphaPixels[i, 0] := (pixel shr 24) and $FF;
-        AlphaPixels[i, 1] := (pixel shr 16) and $FF;
-        AlphaPixels[i, 2] := (pixel shr 8) and $FF;
-        AlphaPixels[i, 3] := pixel and $FF;
+        AlphaPixels^[i, 0] := (pixel shr 24) and $FF;
+        AlphaPixels^[i, 1] := (pixel shr 16) and $FF;
+        AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
+        AlphaPixels^[i, 3] := pixel and $FF;
        end;
       end;
    else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
@@ -1114,7 +1114,7 @@ begin
   begin
    for i := 0 to Value.Width*Value.Height-1 do
    begin
-    rgb := PArray_Vector3Byte(TRGBImage(Value).RGBPixels)[i];
+    rgb := PArray_Vector3Byte(TRGBImage(Value).RGBPixels)^[i];
     pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
     WriteStr(Stream, Format('0x%.6x ', [pixel]));
    end;
@@ -1123,7 +1123,7 @@ begin
   begin
    for i := 0 to Value.Width*Value.Height-1 do
    begin
-    rgba := PArray_Vector4Byte(TAlphaImage(Value).AlphaPixels)[i];
+    rgba := PArray_Vector4Byte(TAlphaImage(Value).AlphaPixels)^[i];
     pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
     WriteStr(Stream, Format('0x%.8x ', [pixel]));
    end;
@@ -1649,8 +1649,23 @@ end;
 
 { multiple value fields ----------------------------------------------------- }
 
+{ Note that because of FPC 2.0.2 bug, code below will not compile
+  with FPC 2.0.2 in objfpc mode. For objfpc mode I would have to
+  change below Items.Items[I] to Items.ItemsArray^[I],
+  i.e. Items property of my dynamic array classes will not work
+  correctly in objfpc mode in FPC 2.0.2.
+  Fixed in FPC 2.0.3 and 2.1.1 (revision 2911).
+}
+
+{$ifdef FPC_OBJFPC}
+  {$ifdef VER2_0_2}
+    {$fatal This code will not compile with FPC 2.0.2 in objfpc mode}
+  {$endif}
+{$endif}
+
 {$define IMPLEMENT_MF_CLASS:=
-constructor TMF_CLASS.Create(const AName: string; const InitialContent: array of TMF_STATIC_ITEM);
+constructor TMF_CLASS.Create(const AName: string;
+  const InitialContent: array of TMF_STATIC_ITEM);
 begin
  inherited Create(AName);
 
@@ -1658,7 +1673,8 @@ begin
  RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
  Items.AppendArray(InitialContent);
 
- (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue jesli DefaultValuesCount = 1 *)
+ (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
+    jesli DefaultValuesCount = 1 *)
  case High(InitialContent)+1 of
   0: DefaultValuesCount := 0;
   1: begin
@@ -1714,7 +1730,8 @@ end;
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
  result:=((DefaultValuesCount = 0) and (Count = 0)) or
-         ((DefaultValuesCount = 1) and (Count = 1) and (DefaultValue = Items.Items[0]));
+         ((DefaultValuesCount = 1) and (Count = 1) and
+          (DefaultValue = Items.Items[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField): boolean;
