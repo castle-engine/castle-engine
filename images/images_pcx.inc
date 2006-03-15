@@ -76,22 +76,27 @@ begin
  Stream.ReadBuffer(palette, SizeOf(palette));
  Stream.Position := 128;
 
- { TODO -- czy to jest ok ze idziemy od 0 do height /width 
+ { TODO -- czy to jest ok ze idziemy od 0 do height /width
    zamiast do height -1 /width-1 ? }
 
  result := TRGBImage.Create(head.width+1, head.height+1);
 
  {czytamy zasadnicza zawartosc :}
- for y := head.Height downto 0 do
+ for y := Result.Height - 1 downto 0 do
  begin
   x := 0;
-  while x <= head.Width do
+  while x < Result.Width do
   begin
    Stream.ReadBuffer(bajt, 1);
    if bajt < 192 then
     begin PalettePut(x, y, bajt); Inc(x) end else
     begin
-     num_end_byte := x+bajt-192-1;
+     { I must secure here: num_end_byte is max Result.Width - 1.
+       Otherwise my program could do wrong memory access when
+       given invalid image, and this is not acceptable.
+       I have a sample of such invalid image (see
+       /win/images/format_tests/pcx/ANATHE_256.PCX). }
+     num_end_byte := Min(x + bajt - 192 - 1, Result.Width - 1);
      Stream.ReadBuffer(bajt, 1);
      while x <= num_end_byte do begin PalettePut(x, y, bajt); Inc(x); end;
     end;
