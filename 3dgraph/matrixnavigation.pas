@@ -647,13 +647,7 @@ type
       It can be useful in games to do some things
       (maybe basing on FallenHeight parameter passed to this callback)
       like lowering player's health and/or making some effects (displaying
-      "blackout" or playing sound like "Ouh!" etc.).
-
-      TODO: should work but untested.
-      Test (like szklane_lasy:
-        if spadanie_speed > graczPoleW div 2 then DoBlackOut(Red3Single);
-      )
-      }
+      "blackout" or playing sound like "Ouh!" etc.). }
     property OnFalledDown: TFalledDownNotifyFunc
       read FOnFalledDown write FOnFalledDown;
 
@@ -1412,6 +1406,8 @@ var
              VectorLenSqr(HomeCameraUp))), true) and
         (not VectorsPerfectlyEqual(CameraPos, CameraPosBefore)) then
       begin
+        if not IsFallingDown then
+          FFallingDownStartPos := CameraPosBefore;
         FIsFallingDown := true;
 
         { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
