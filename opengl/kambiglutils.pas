@@ -1087,7 +1087,8 @@ procedure SwitchGLTo2dScreen(proc: TProcIntData; data: integer);
     w Idle zmniejszaj BlackOutIntensity (o ile jest >0),
     w dowolnym momencie aby wywolac blackouta zrob BlackOutIntensity := 1
       i ustaw BlackOutColor}
-procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f; const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
+procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
+  const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
 
 { Returns multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
@@ -2370,36 +2371,47 @@ procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
   Gdy skala powoli spada do zera, kolor coraz bardziej dazy do (0, 0, 0).
   Gdy skala = 0 caly ekran bedzie czarny, bez wzgledu na wartosc K.
 
-  Ta idea jest uzywana tak : gdy zaczyna sie BlackOut (czyli BlackOutIntensity = 1),
-  skala zmienia sie od 1 ... do 0 z K = BlackOutColor (tym samym swiat staje sie
-  zabarwiony BlackOutColor i dazy do czerni). Potem skala zmienia
-  sie od 0.. do 1 z kolorem White (tym samym swiat wedruje od czerni do swojego
-  normalnego koloru).
+  Ta idea jest uzywana tak :
+  - BlackOutIntensity between 1 and FullWhiteEnd:
+    Scale is constant 1 and K is BlackOutColor.
+    So the world color is modulated to BlackOutColor.
+  - BlackOutIntensity between FullWhiteEnd and FullBlack:
+    Scale changes from 1 to MinScale, with K = BlackOutColor.
+    So the world color changes from modulated to BlackOutColor to absolute
+    black.
+  - BlackOutIntensity between FullBlack and 0:
+    Scale changes from MinScale to 1, with K = White.
+    So the world color changes from pure black screen to normal.
 
-  fullBlack to wlasnie ta pozycja na skali 1..0 ze w tym momencie gracz
+  FullBlack to wlasnie ta pozycja na skali 1..0 ze w tym momencie gracz
   widzi zupelna ciemnosc (kazdy kolor jest zamieniony na Black3d).
   Im wieksze, tym krotsze jest przechodzenie
   od BlackOutColor do Black3f w porownaniu z przechodzeniem
   od Black3f do White3f (czyli normalnych kolorow wszystkiego).}
 
-const fullBlack = 0.3;
+const
+  FullWhiteEnd = 0.9;
+  FullBlack = 0.3;
+  MinScale = 0.5;
 begin
- if BlackOutIntensity > 0 then
- begin
-  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-  if BlackOutIntensity > fullBlack then
-   glColorv( VectorScale( BlackOutColor,
-     (BlackOutIntensity-fullBlack) / (1 - fullBlack)
-     {mapuj 1..fullBlack na 1..0 })) else
-   glColorv( VectorScale( White3Single,
-     1 - BlackOutIntensity/fullBlack
-     {mapuj fullBlack..0 na 0..1}));
-  glRectf(x1, y1, x2, y2);
-  glDisable(GL_BLEND);
-  glPopAttrib;
- end;
+  if BlackOutIntensity > 0 then
+  begin
+    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
+      glEnable(GL_BLEND);
+        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+
+        if BlackOutIntensity > FullWhiteEnd then
+          glColorv(BlackOutColor) else
+        if BlackOutIntensity > FullBlack then
+          glColorv( VectorScale( BlackOutColor,
+            MapRange(BlackOutIntensity, FullWhiteEnd, FullBlack, 1, MinScale))) else
+          glColorv( VectorScale( White3Single,
+            MapRange(BlackOutIntensity, FullBlack, 0, MinScale, 1)));
+
+        glRectf(x1, y1, x2, y2);
+      glDisable(GL_BLEND);
+    glPopAttrib;
+  end;
 end;
 
 function GLCapsString: string;
