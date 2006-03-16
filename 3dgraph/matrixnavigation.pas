@@ -1492,7 +1492,11 @@ var
     end;
 
     if OldIsFallingDown and (not IsFallingDown) and Assigned(OnFalledDown) then
-      OnFalledDown(Self, PointsDistance(CameraPos, FFallingDownStartPos));
+      { Note that I project CameraPos and FFallingDownStartPos
+        onto HomeCameraUp vector to calculate FalledHeight. }
+      OnFalledDown(Self, PointsDistance(
+        PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, CameraPos),
+        PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, FFallingDownStartPos)));
   end;
 
   procedure Jump;
