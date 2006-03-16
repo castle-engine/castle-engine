@@ -100,7 +100,14 @@ begin
  UpdateNavigatorProjectionMatrix;
 end;
 
-function MoveAllowed(Navigator: TMatrixWalker;
+type
+  TDummy = class
+    class function MoveAllowed(Navigator: TMatrixWalker;
+      const ProposedNewPos: TVector3Single; var NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+  end;
+
+class function TDummy.MoveAllowed(Navigator: TMatrixWalker;
   const ProposedNewPos: TVector3Single; var NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -143,14 +150,14 @@ begin
   Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
   Glw.NavWalker.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp, 
+    CamUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
   { init collision detection }
   if IsEmptyBox3d(Scene.BoundingBox) then
    CameraRadius := 1.0 { any non-zero dummy value } else
    CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
-  Glw.NavWalker.OnMoveAllowed := MoveAllowed;
+  Glw.NavWalker.OnMoveAllowed := TDummy.MoveAllowed;
 
   { allow the scene to use it's own lights }
   Scene.Attrib_UseLights := true;

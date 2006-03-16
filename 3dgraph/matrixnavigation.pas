@@ -213,14 +213,15 @@ type
   TMoveAllowedFunc = function(Navigator: TMatrixWalker;
     const ProposedNewPos: TVector3Single;
     var NewPos: TVector3Single;
-    const BecauseOfGravity: boolean): boolean;
+    const BecauseOfGravity: boolean): boolean of object;
 
   { See @link(TMatrixWalker.OnFalledDown). }
   TFalledDownNotifyFunc = procedure (Navigator: TMatrixWalker;
-    const FallenHeight: Single);
+    const FallenHeight: Single) of object;
 
   TGetCameraHeight = procedure (Navigator: TMatrixWalker;
-    var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single);
+    var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single)
+    of object;
 
   { Walking (DOOM-like moving) over the model.
     Camera is defined by it's position, looking direction
