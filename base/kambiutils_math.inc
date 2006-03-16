@@ -114,6 +114,36 @@ function max(const a, b, c: Double): Double; overload;
 function max(const a, b, c: Extended): Extended; overload;
 {$endif}
 
+{ These work like @code(A := Min(A, B)).
+  But they are a (very little) faster, since they avoid all the mem copying
+  work when A is equal to Min(A, B).
+  @noAutoLinkHere
+  @groupBegin }
+procedure MinTo1st(var a: Int64   ; const b: Int64   ); overload;
+procedure MinTo1st(var a: Integer ; const b: Integer ); overload;
+procedure MinTo1st(var a: Cardinal; const b: Cardinal); overload;
+procedure MinTo1st(var a: Single  ; const b: Single  ); overload;
+procedure MinTo1st(var a: Double  ; const b: Double  ); overload;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MinTo1st(var a: Extended; const b: Extended); overload;
+{$endif}
+{ @groupEnd }
+
+{ These work like @code(A := Max(A, B)).
+  But they are a (very little) faster, since they avoid all the mem copying
+  work when A is equal to Max(A, B).
+  @noAutoLinkHere
+  @groupBegin }
+procedure MaxTo1st(var a: Int64   ; const b: Int64   ); overload;
+procedure MaxTo1st(var a: Integer ; const b: Integer ); overload;
+procedure MaxTo1st(var a: Cardinal; const b: Cardinal); overload;
+procedure MaxTo1st(var a: Single  ; const b: Single  ); overload;
+procedure MaxTo1st(var a: Double  ; const b: Double  ); overload;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MaxTo1st(var a: Extended; const b: Extended); overload;
+{$endif}
+{ @groupEnd }
+
 { zwraca indeks (0, 1 lub 2) maximum / minimum}
 function IndexMax(const a0, a1, a2: Double): Integer; overload;
 function IndexMin(const a0, a1, a2: Double): Integer; overload;
@@ -232,8 +262,8 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
 
   Jak widac oba zakresy moga byc rosnace, moga byc oba malejace a moze byc
   jeden malejacy a jeden rosnacy - zawsze zadanie ma 1 wynik dzieki powyzszej
-  definicji. 
-  
+  definicji.
+
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
@@ -283,7 +313,7 @@ function GeneralPower(const Base, Exponent: Float): Float;
   na podstawie Jcl8087 unit i JEDI code help - patrz Get8087ControlWord function.
 
   Control Word :
-  
+
 @preformatted(
   15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
    ?  ?  ?| i| r  r| p  p| ?  ?| e  e  e  e  e  e
@@ -431,6 +461,24 @@ function min(const a, b: Extended): Extended; {$Include KambiUtils_implement_min
 function max(const a, b: Extended): Extended; {$Include KambiUtils_implement_max2.inc}
 function min(const a, b, c: Extended): Extended; {$Include KambiUtils_implement_min3.inc}
 function max(const a, b, c: Extended): Extended; {$Include KambiUtils_implement_max3.inc}
+{$endif}
+
+procedure MinTo1st(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;
+procedure MinTo1st(var a: Integer ; const b: Integer ); begin if B < A then A := B end;
+procedure MinTo1st(var a: Cardinal; const b: Cardinal); begin if B < A then A := B end;
+procedure MinTo1st(var a: Single  ; const b: Single  ); begin if B < A then A := B end;
+procedure MinTo1st(var a: Double  ; const b: Double  ); begin if B < A then A := B end;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MinTo1st(var a: Extended; const b: Extended); begin if B < A then A := B end;
+{$endif}
+
+procedure MaxTo1st(var a: Int64   ; const b: Int64   ); begin if B > A then A := B end;
+procedure MaxTo1st(var a: Integer ; const b: Integer ); begin if B > A then A := B end;
+procedure MaxTo1st(var a: Cardinal; const b: Cardinal); begin if B > A then A := B end;
+procedure MaxTo1st(var a: Single  ; const b: Single  ); begin if B > A then A := B end;
+procedure MaxTo1st(var a: Double  ; const b: Double  ); begin if B > A then A := B end;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure MaxTo1st(var a: Extended; const b: Extended); begin if B > A then A := B end;
 {$endif}
 
 function IndexMax(const a0, a1, a2: Double): Integer;
