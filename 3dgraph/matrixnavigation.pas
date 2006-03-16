@@ -722,7 +722,8 @@ type
 
     { This defines the preferred height of camera when crouching.
       This is always mutiplied to CameraPreferredHeight.
-      This should always be < 1. }
+      This should always be <= 1 (CrouchHeight = 1 effectively disables
+      crouching, it's better to do this setting Key_Crouch to K_None). }
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
 
