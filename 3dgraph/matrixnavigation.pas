@@ -206,6 +206,27 @@ type
     CharKey_StopRotating: char; { = ' ' }
   end;
 
+const
+  { Default values of Key_Xxx properties of TMatrixWalker.
+    @groupBegin }
+  WalkerDefaultKey_Forward = K_Up;
+  WalkerDefaultKey_Backward = K_Down;
+  WalkerDefaultKey_LeftRot = K_Left;
+  WalkerDefaultKey_RightRot = K_Right;
+  WalkerDefaultKey_LeftStrafe = K_Comma;
+  WalkerDefaultKey_RightStrafe = K_Period;
+  WalkerDefaultKey_UpRotate = K_PgUp;
+  WalkerDefaultKey_DownRotate = K_PgDown;
+  WalkerDefaultKey_UpMove = K_Insert;
+  WalkerDefaultKey_DownMove = K_Delete;
+  WalkerDefaultKey_HomeUp = K_Home;
+  WalkerDefaultKey_MoveSpeedInc = K_Plus;
+  WalkerDefaultKey_MoveSpeedDec = K_Minus;
+  WalkerDefaultKey_Jump = K_A;
+  WalkerDefaultKey_Crouch = K_Z;
+  { @groupEnd }
+
+type
   TMatrixWalker = class;
 
   { See @link(TMatrixWalker.DoMoveAllowed) and
@@ -370,31 +391,46 @@ type
       Ctrl : obracaja 10 razy wolniej. }
 
     { }
-    property Key_Forward: TKey read FKey_Forward write FKey_Forward default K_Up;
-    property Key_Backward: TKey read FKey_Backward write FKey_Backward default K_Down;
-    property Key_LeftRot: TKey read FKey_LeftRot write FKey_LeftRot default K_Left;
-    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot default K_Right;
-    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe default K_Comma;
-    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe default K_Period;
-    property Key_UpRotate: TKey read FKey_UpRotate write FKey_UpRotate default K_PgUp;
-    property Key_DownRotate: TKey read FKey_DownRotate write FKey_DownRotate default K_PgDown;
-    property Key_UpMove: TKey read FKey_UpMove write FKey_UpMove default K_Insert;
-    property Key_DownMove: TKey read FKey_DownMove write FKey_DownMove default K_Delete;
-    property Key_HomeUp: TKey read FKey_HomeUp write FKey_HomeUp default K_Home;
+    property Key_Forward: TKey read FKey_Forward write FKey_Forward
+      default WalkerDefaultKey_Forward;
+    property Key_Backward: TKey read FKey_Backward write FKey_Backward
+      default WalkerDefaultKey_Backward;
+    property Key_LeftRot: TKey read FKey_LeftRot write FKey_LeftRot
+      default WalkerDefaultKey_LeftRot;
+    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot
+      default WalkerDefaultKey_RightRot;
+    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe
+      default WalkerDefaultKey_LeftStrafe;
+    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe
+      default WalkerDefaultKey_RightStrafe;
+    property Key_UpRotate: TKey read FKey_UpRotate write FKey_UpRotate
+      default WalkerDefaultKey_UpRotate;
+    property Key_DownRotate: TKey read FKey_DownRotate write FKey_DownRotate
+      default WalkerDefaultKey_DownRotate;
+    property Key_UpMove: TKey read FKey_UpMove write FKey_UpMove
+      default WalkerDefaultKey_UpMove;
+    property Key_DownMove: TKey read FKey_DownMove write FKey_DownMove
+      default WalkerDefaultKey_DownMove;
+    property Key_HomeUp: TKey read FKey_HomeUp write FKey_HomeUp
+      default WalkerDefaultKey_HomeUp;
 
     { Note that Key_MoveSpeedInc and Key_MoveSpeedDec change
       both MoveSpeed and MoveVertSpeed.
       @groupBegin }
     property Key_MoveSpeedInc: TKey
-      read FKey_MoveSpeedInc write FKey_MoveSpeedInc default K_Plus;
+      read FKey_MoveSpeedInc write FKey_MoveSpeedInc
+      default WalkerDefaultKey_MoveSpeedInc;
     property Key_MoveSpeedDec: TKey
-      read FKey_MoveSpeedDec write FKey_MoveSpeedDec default K_Minus;
+      read FKey_MoveSpeedDec write FKey_MoveSpeedDec
+      default WalkerDefaultKey_MoveSpeedDec;
     { @groupEnd }
 
     { Note that jumping and crouching works only when @link(Gravity) works.
       @groupBegin }
-    property Key_Jump: TKey read FKey_Jump write FKey_Jump default K_A;
-    property Key_Crouch: TKey read FKey_Crouch write FKey_Crouch default K_Z;
+    property Key_Jump: TKey read FKey_Jump write FKey_Jump
+      default WalkerDefaultKey_Jump;
+    property Key_Crouch: TKey read FKey_Crouch write FKey_Crouch
+      default WalkerDefaultKey_Crouch;
     { @groupEnd }
 
     { General stuff ----------------------------------------------------- }
@@ -947,21 +983,21 @@ begin
   FMaxJumpHeight := DefaultMaxJumpHeight;
   FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
 
-  Key_Forward := K_Up;
-  Key_Backward := K_Down;
-  Key_LeftRot := K_Left;
-  Key_RightRot := K_Right;
-  Key_LeftStrafe := K_Comma;
-  Key_RightStrafe := K_Period;
-  Key_UpRotate := K_PgUp;
-  Key_DownRotate := K_PgDown;
-  Key_UpMove := K_Insert;
-  Key_DownMove := K_Delete;
-  Key_HomeUp := K_Home;
-  Key_MoveSpeedInc := K_Plus;
-  Key_MoveSpeedDec := K_Minus;
-  Key_Jump := K_A;
-  Key_Crouch := K_Z;
+  Key_Forward := WalkerDefaultKey_Forward;
+  Key_Backward := WalkerDefaultKey_Backward;
+  Key_LeftRot := WalkerDefaultKey_LeftRot;
+  Key_RightRot := WalkerDefaultKey_RightRot;
+  Key_LeftStrafe := WalkerDefaultKey_LeftStrafe;
+  Key_RightStrafe := WalkerDefaultKey_RightStrafe;
+  Key_UpRotate := WalkerDefaultKey_UpRotate;
+  Key_DownRotate := WalkerDefaultKey_DownRotate;
+  Key_UpMove := WalkerDefaultKey_UpMove;
+  Key_DownMove := WalkerDefaultKey_DownMove;
+  Key_HomeUp := WalkerDefaultKey_HomeUp;
+  Key_MoveSpeedInc := WalkerDefaultKey_MoveSpeedInc;
+  Key_MoveSpeedDec := WalkerDefaultKey_MoveSpeedDec;
+  Key_Jump := WalkerDefaultKey_Jump;
+  Key_Crouch := WalkerDefaultKey_Crouch;
 
   FProjectionMatrix := IdentityMatrix4Single;
 end;
