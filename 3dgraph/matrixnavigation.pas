@@ -29,12 +29,7 @@ uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
-  { TODO: This was 0.1, now it's 0.0 (no head bobbing).
-    Adjust head bobbing so that it works sensibly in all situations
-    -- view3dscene ParkKambi.wrl, view3dscene castle_with_lights_and_camera.wrl,
-       view3dscene basic_castle_final.wrl, castle basic_castle_final.wrl.
-    Then enable it for view3dscene and castle. }
-  DefaultHeadBobbing = 0.0;
+  DefaultHeadBobbing = 0.1;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
   DefaultMinAngleRadFromHomeUp = { 10 degress } Pi / 18;
@@ -587,18 +582,27 @@ type
     property CameraPreferredHeight: Single
       read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
 
-    { This procedure corrects CameraPreferredHeight based on your CameraRadius.
+    { This procedure corrects CameraPreferredHeight based on your CameraRadius
+      and on current HeadBobbing.
 
       Exactly what and why is done: if you do any kind of collision
       detection with some CameraRadius, then
-      you should make sure that CameraPreferredHeight
-      (and CameraPreferredHeight * CrouchHeight) are >= of your
-      CameraRadius, otherwise strange effects may happen when crouching.
-      Actually, CrouchHeight must be < 1, so the condition
-      "CameraPreferredHeight * CrouchHeight >= CameraRadius is enough.
+      you should make sure that RealCameraPreferredHeight is always >= of your
+      CameraRadius, otherwise strange effects may happen when crouching
+      or when head bobbing forces camera to go down.
+
+      Exactly, the required equation is
+@preformatted(
+  MinimumRealCameraPreferredHeight :=
+    CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing);
+)
+      and always must be
+@preformatted(
+  MinimumRealCameraPreferredHeight >= RealCameraPreferredHeight
+)
 
       Reasoning: otherwise this class would "want camera to fall down"
-      (because we will always be higher than CameraPreferredHeight)
+      (because we will always be higher than RealCameraPreferredHeight)
       but your OnMoveAllowed would not allow it (because CameraRadius
       would not allow it). Note that this class doesn't keep value
       of your CameraRadius, because collision detection
@@ -714,6 +718,8 @@ type
       This property mutiplied by CameraPreferredHeight
       says how much head bobbing can move you along HomeCameraUp.
       Set this to 0 to disable head bobbing.
+      This must always be < 1.0. For sensible effects, this should
+      be rather close to 0.0.
 
       Of course this is meaningfull only when @link(Gravity) works. }
     property HeadBobbing: Single
@@ -737,7 +743,7 @@ type
 { See TMatrixWalker.CorrectCameraPreferredHeight.
   This is a global version, sometimes may be useful. }
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
-  const CameraRadius: Single; const CrouchHeight: Single);
+  const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
 
 implementation
 
@@ -1022,11 +1028,23 @@ begin
       BobbingModifier := MapRange(BobbingModifier, 0.0, 0.5, -1, +1) else
       BobbingModifier := MapRange(BobbingModifier, 0.5, 1.0, +1, -1);
 
+    { Most game tutorials and codes advice that head bobbing be done with sinus,
+      as below. But actually I found that the visual difference between
+      sin-based head bobbing and linear-based (like above) head bobbing
+      is not noticeable, so I'm using linear-based right now (as it's
+      a little faster --- no trig calculation needed, although this
+      could be avoided with sinus lookup table).
+
+      If however you prefer sin-based head bobbing, uncomment line below
+      and comment out 3 lines "if BobbingModifier <= 0.5 then ...." above.
+
+    BobbingModifier := Sin(BobbingModifier * 2 * Pi);
+    }
+
     BobbingModifier *= Result * HeadBobbing;
     Result += BobbingModifier;
-  end else;
+  end;
 end;
-
 
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
@@ -1084,7 +1102,7 @@ var
       { I increase HeadBobbingPosition such that
         HeadBobbingPosition increase of 1
         means that player moved horizontally by
-          VectorLen(CameraDir) * MoveSpeed * HeadBobbingDistance. }
+          VectorLen(Direction) * MoveSpeed * HeadBobbingDistance. }
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
@@ -1351,16 +1369,42 @@ var
       CameraPosBefore := CameraPos;
 
       { calculate SqrFallingDownVectorLength.
+
         Note that we make sure that SqrFallingDownVectorLength is no longer
         than SqrHeightAboveTheGround --- this way we avoid the problem
         that when FFallingDownSpeed would get very big,
         we couldn't fall down any more (while in fact we should then fall down
-        very quickly). }
+        very quickly).
+
+        Actually, we even do more. We make sure that
+        FallingDownVectorLength is no longer than
+        (HeightAboveTheGround - RealCameraPreferredHeight).
+        Initially I wanted to do here
+          MinTo1st(SqrFallingDownVectorLength, SqrHeightAboveTheGround);
+        i.e. to allow camera to fall below RealCameraPreferredHeight.
+
+        But this didn't work like it should. Why ?
+        See above for the trick that I have to do with
+        RealCameraPreferredHeightMargin above (to not cause
+        "unpleasant bouncing" when swapping FallingDown and TryGrow).
+        If I could fall down here below RealCameraPreferredHeight then
+
+        1. It *will not* cause the desired "nice" effect (of automatically
+           "ducking" when falling down from high), because of comparison
+           (the one with RealCameraPreferredHeightMargin) above.
+
+        2. It *will* cause the undesired unpleasant swapping between
+           FallingDown and TryGrow.
+
+        So it's totally bad thing to do.
+
+        This means that I should limit myself to not fall down
+        below RealCameraPreferredHeight. And that's what I'm doing. }
       SqrFallingDownVectorLength :=
         VectorLenSqr(CameraDir) * Sqr(FFallingDownSpeed * CompSpeed);
-      if IsAboveTheGround and
-         (SqrFallingDownVectorLength > SqrHeightAboveTheGround) then
-        SqrFallingDownVectorLength := SqrHeightAboveTheGround;
+      if IsAboveTheGround then
+        MinTo1st(SqrFallingDownVectorLength,
+          Sqr(Sqrt(SqrHeightAboveTheGround) - RealCameraPreferredHeight));
 
       if Move(VectorScale(HomeCameraUp,
          - Sqrt(SqrFallingDownVectorLength /
@@ -1686,7 +1730,7 @@ end;
 procedure TMatrixWalker.CorrectCameraPreferredHeight(const CameraRadius: Single);
 begin
   MatrixNavigation.CorrectCameraPreferredHeight(
-    FCameraPreferredHeight, CameraRadius, CrouchHeight);
+    FCameraPreferredHeight, CameraRadius, CrouchHeight, HeadBobbing);
 end;
 
 function TMatrixWalker.MaxJumpDistance: Single;
@@ -1705,16 +1749,20 @@ end;
 { global ------------------------------------------------------------ }
 
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
-  const CameraRadius: Single; const CrouchHeight: Single);
+  const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
 var
   NewCameraPreferredHeight: Single;
 begin
-  { CameraPreferredHeight * CrouchHeight should be >= CameraRadius,
-    so CameraPreferredHeight shoud be >= CameraRadius / CrouchHeight.
+  { We have requirement that
+      CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing) >= CameraRadius
+    So
+      CameraPreferredHeight >= CameraRadius / (CrouchHeight * (1 - HeadBobbing));
+
     I make it even a little larger (that's the reason for "* 1.01") to be
     sure to avoid floating-point rounding errors. }
 
-  NewCameraPreferredHeight := 1.01 * CameraRadius / CrouchHeight;
+  NewCameraPreferredHeight := 1.01 * CameraRadius /
+    (CrouchHeight * (1 - HeadBobbing));
 
   if CameraPreferredHeight < NewCameraPreferredHeight then
     CameraPreferredHeight := NewCameraPreferredHeight;
