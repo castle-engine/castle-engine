@@ -314,6 +314,9 @@ type
 
     FCrouchHeight: Single;
     FIsCrouching: boolean;
+
+    FFallingOnTheGround: boolean;
+    FFallingOnTheGroundAngleIncrease: boolean;
   protected
     { }
     procedure MatrixChanged; override;
@@ -770,6 +773,11 @@ type
       and crouch. It can be useful for collision detection
       between camera and something. }
     function RealCameraPreferredHeight: Single;
+
+    { This makes a visual effect of camera falling down horizontally
+      on the ground. This works by gradually changing CameraUp such that
+      it gets orthogonal to HomeCameraUp. }
+    procedure FallOnTheGround;
   end;
 
 { See TMatrixWalker.CorrectCameraPreferredHeight.
@@ -1480,12 +1488,14 @@ var
         FIsFallingDown := false;
     end;
 
-    procedure Fde_Stabilize;
+    function TryFde_Stabilize: boolean;
     const
       Fde_VerticalRotateNormalization = 7;
     var
       Change: Single;
     begin
+      Result := (Fde_RotateHorizontal <> 0) or (Fde_CameraUpRotate <> 0);
+
       { Bring Fde_Xxx vars back to normal (zero) values. }
 
       Fde_RotateHorizontal := 0;
@@ -1508,6 +1518,32 @@ var
       end;
     end;
 
+    function TryFallingOnTheGround: boolean;
+    var
+      Angle, AngleRotate: Single;
+    begin
+      Result := FFallingOnTheGround;
+      if not Result then
+        Exit;
+
+      Angle := AngleRadBetweenVectors(CameraUp, HomeCameraUp);
+
+      if FloatsEqual(Angle, HalfPi) then
+      begin
+        { FallingOnTheGround effect stops here. }
+        FFallingOnTheGround := false;
+        Exit;
+      end;
+
+      AngleRotate := 0.1 * CompSpeed;
+      MinTo1st(AngleRotate, Abs(Angle - HalfPi));
+      if not FFallingOnTheGroundAngleIncrease then
+        AngleRotate := -AngleRotate;
+
+      CameraUp := RotatePointAroundAxisRad(AngleRotate, CameraUp,
+        CameraDirInHomePlane);
+    end;
+
   var
     OldIsFallingDown: boolean;
   begin
@@ -1521,11 +1557,16 @@ var
       if not TryJump then
         if not TryGrow then
           if not TryFallingDown then
-            Fde_Stabilize;
+            if not TryFde_Stabilize then
+              { Note that we don't do FallingOnTheGround effect until all
+                other effects (jumping, growing, falling on the ground
+                and stabilizing after falling on the ground) will finish
+                their work. }
+              TryFallingOnTheGround;
     end else
     begin
       FIsFallingDown := false;
-      Fde_Stabilize;
+      TryFde_Stabilize;
     end;
 
     if OldIsFallingDown and (not IsFallingDown) and Assigned(OnFalledDown) then
@@ -1782,6 +1823,23 @@ begin
 
   if not VectorsParallel(Result, HomeCameraUp) then
     MakeVectorsOrthoOnTheirPlane(Result, HomeCameraUp);
+end;
+
+procedure TMatrixWalker.FallOnTheGround;
+begin
+  FFallingOnTheGround := true;
+
+  { Mathematically reasoning, this should be smarter.
+    I mean that we should randomize FFallingOnTheGroundAngleIncrease
+    *only* if CameraUp is parallel to HomeCameraUp ?
+    Otherwise CameraUp could change through some strange path ?
+
+    But current effect seems to behave good in all situations...
+    In any case, CameraUp going through some strange path will only
+    be noticeable for a very short time, so I don't think that's a real
+    problem... unless I see some example when it looks bad. }
+
+  FFallingOnTheGroundAngleIncrease := Random(2) = 0;
 end;
 
 { global ------------------------------------------------------------ }

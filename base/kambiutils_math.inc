@@ -208,6 +208,8 @@ function Lerp(const a, l, h: Single): Single; overload;
 const
   enatural = 2.71828182845905;
   sqrt2 = 1.4142135623730950488016887242097;
+  { Pi/2. Taken from FPC sources, file rtl/inc/genmath.inc }
+  HalfPi = 1.57079632679489661923;
 
 { RoundUpToMultiply zaokragla value do najmniejszej wielokrotnosci
   multiplicatora wiekszej lub rownej value. }
