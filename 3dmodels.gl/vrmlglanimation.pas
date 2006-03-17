@@ -56,7 +56,7 @@ type
     to somehow create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
     acceptable solution.
-    
+
     TODO: textures should be shared by all constructed scenes,
     not loaded and kept separately. Right now for larger ScenesCount
     it's impossible to use a scene with some textures, because textures
@@ -83,22 +83,22 @@ type
       @raises(EModelsStructureDifferent
         When models in RootNode1 and RootNode2 are not structurally equal
         (see TVRMLGLAnimation comments for the precise meaning of
-        "structurally equal" models).) 
-        
+        "structurally equal" models).)
+
       @noAutoLinkHere }
     constructor Create(
       RootNode1: TVRMLNode; OwnsRootNode1: boolean;
       RootNode2: TVRMLNode; OwnsRootNode2: boolean;
       ScenesCount: Cardinal;
       AOptimization: TGLRendererOptimization);
-      
+
     { @noAutoLinkHere }
     destructor Destroy; override;
 
     { @noAutoLinkHere }
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
     function ScenesCount: Integer;
-    
+
     { Call CloseGL on every Scenes[] }
     procedure ScenesCloseGLAll;
   end;
@@ -195,11 +195,23 @@ constructor TVRMLGLAnimation.Create(
       if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else
       begin
        { These fields cannot be interpolated.
-         So check them for equality and copy to Result.Fields[I]. }
-       if not Model1.Fields[I].Equals(Model2.Fields[I]) then
-        raise EModelsStructureDifferent.CreateFmt(
-         'Fields "%s" (class "%s") are not equal',
-         [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
+         So check them for equality and copy to Result.Fields[I].
+
+         Some special fields like TNodeWWWInline.FdName do not
+         have to be equal, as they don't have any role for the
+         "real" meaning of the model. I mean, if TNodeWWWInline
+         children (loaded from pointed file) have the same structure,
+         then we're happy. And it's handy to allow this --- see e.g.
+         examples/models/gus_1_final.wrl and
+         examples/models/gus_2_final.wrl trick. }
+
+       if not (
+          ( (Model1 is TNodeWWWInline) and (Model1.Fields[I].Name = 'name') ) or
+          Model1.Fields[I].Equals(Model2.Fields[I]) 
+          ) then
+         raise EModelsStructureDifferent.CreateFmt(
+           'Fields "%s" (class "%s") are not equal',
+           [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
 
        Result.Fields[I].Assign(Model1.Fields[I]);
       end;

@@ -1,0 +1,12 @@
+#VRML V1.0 ascii
+
+Group {
+  PerspectiveCamera {
+    position -6.662933349609375 -6.718474864959717 -0.805617570877075
+    orientation 0.87782883644104 -0.338685989379883 -0.338686019182205 1.700732827186584
+  }
+  ShapeHints {
+    creaseAngle 2
+  }
+  WWWInline { name "gus_2.wrl" }
+}

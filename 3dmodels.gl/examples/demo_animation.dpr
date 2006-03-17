@@ -4,9 +4,11 @@
   that have identical structure. Effect: this will display nice animation
   that animates between 1st model and 2nd.
 
-  I prepared two sets of sample models in this directory. Try these commands
-    ./demo_animation sphere_1.wrl sphere_2.wrl
-    ./demo_animation raptor_1.wrl raptor_2.wrl
+  I prepared some sets of sample models in models/ subdirectory.
+  Try these commands
+    ./demo_animation models/sphere_1.wrl    models/sphere_2.wrl
+    ./demo_animation models/raptor_1.wrl    models/raptor_2.wrl
+    ./demo_animation models/gus_1_final.wrl models/gus_2_final.wrl
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys -- see view3dscene documentation,
