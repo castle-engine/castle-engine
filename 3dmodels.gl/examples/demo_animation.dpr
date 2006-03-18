@@ -6,9 +6,10 @@
 
   I prepared some sets of sample models in models/ subdirectory.
   Try these commands
-    ./demo_animation models/sphere_1.wrl    models/sphere_2.wrl
-    ./demo_animation models/raptor_1.wrl    models/raptor_2.wrl
-    ./demo_animation models/gus_1_final.wrl models/gus_2_final.wrl
+    ./demo_animation models/sphere_1.wrl             models/sphere_2.wrl
+    ./demo_animation models/raptor_1.wrl             models/raptor_2.wrl
+    ./demo_animation models/gus_1_final.wrl          models/gus_2_final.wrl
+    ./demo_animation models/cube_opening_1_final.wrl models/cube_opening_2_final.wrl
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys -- see view3dscene documentation,
