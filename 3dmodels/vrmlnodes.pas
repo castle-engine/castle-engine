@@ -603,6 +603,10 @@ type
       lub Texture2 zaraz po sparsowaniu ich. }
     property WWWBasePath: string read FWWWBasePath;
 
+    { This returns absolute path, assuming that RelativePath is relative
+      path from WWWBasePath or that RelativePath is already absolute. }
+    function PathFromWWWBasePath(const RelativePath: string): string;
+
     { Parse jest zaimplementowane ogolnie dla wszystkich TVRMLNode'ow
       za wyjatkiem node'a TNodeUnknown ktory redefiniuje ta metode.
       Parse ustala wartosci Fields, liste Children, WWWBasePath.
@@ -2046,18 +2050,6 @@ uses
 {$I objectslist_3.inc}
 {$I dynarray_1.inc}
 
-{ consts in this module ---------------------------------------------------- }
-
-{ Combines BasePath with RelPath. BasePath MUST be an absolute path,
-  on Windows it must contain at least drive specifier (like 'c:'),
-  on Unix it must begin with "/". RelPath can be relative and can
-  be absolute. If RelPath is absolute, result is RelPath.
-  Else the result is an absolute path calculated by combining RelPath
-  with BasePath. }
-{ TODO: zaimplementowac ta funkcje porzadnie i przerzucic do KambiUtils.
-  Na razie to jest takie "zazwyczaj dziala". }
-function CombinePaths(const BasePath, RelPath: string): string; forward;
-
 { TDynActiveLightArray --------------------------------------------------------- }
 
 function TDynActiveLightArray.IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
@@ -2301,6 +2293,17 @@ constructor TVRMLNode.CreateParse(const ANodeName: string; Lexer: TVRMLLexer; No
 begin
  Create(ANodeName, '');
  Parse(Lexer, NodeNameBinding);
+end;
+
+function TVRMLNode.PathFromWWWBasePath(const RelativePath: string): string;
+begin
+  { This is a workaround for Blender errorneous VRML 1.0 export.
+    Blender exports relative paths by prefixing them by "//"
+    (that's a general convention used internally by Blender, AFAIK).
+    Here I simply remove this "//". }
+  if IsPrefix('//', RelativePath) then
+    Result := CombinePaths(WWWBasePath, SEnding(RelativePath, 3)) else
+    Result := CombinePaths(WWWBasePath, RelativePath);
 end;
 
 procedure TVRMLNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -3165,7 +3168,7 @@ begin
  { sprobuj zaladowac teksture z pliku FdFilename }
  if FdFilename.Value <> '' then
  try
-  ReplaceTextureImage( LoadImage( CombinePaths(WWWBasePath, FdFilename.Value),
+  ReplaceTextureImage( LoadImage( PathFromWWWBasePath(FdFilename.Value),
     [TRGBImage, TAlphaImage], []) );
  except
   on E: Exception do
@@ -3196,7 +3199,7 @@ function TNodeTexture2.TextureDescription: string;
 begin
  if FdFilename.Value <> '' then
  begin
-  result := 'file "' +CombinePaths(WWWBasePath, FdFilename.Value) +'"';
+  result := 'file "' +PathFromWWWBasePath(FdFilename.Value) +'"';
   if not FdImage.Value.IsNull then result += ' (and '+InlinedDescr+')';
  end else
  if not FdImage.Value.IsNull then
@@ -3713,7 +3716,7 @@ begin
  begin
   if CanReload then RemoveAllChildren else exit;
  end;
- AddChild(LoadAsVRML(CombinePaths(WWWBasePath, FdName.Value), false));
+ AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
 end;
 
 procedure TNodeWWWInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -3786,7 +3789,7 @@ procedure TNodeBackground.ReloadBgImages;
    for i := 0 to Urls.Count-1 do
    begin
     try
-     FBgImages[bs] := LoadImage( CombinePaths(WWWBasePath, Urls.Items.Items[i]),
+     FBgImages[bs] := LoadImage( PathFromWWWBasePath(Urls.Items.Items[i]),
        AllowedBgImagesClasses, [], 0, 0);
      Break;
     except on E: Exception do {silence exception}; end;
@@ -4255,20 +4258,6 @@ var
 begin
   for I := 0 to HighTraverseStateLastNodes do
     FreeAndNil(StateNodes.Nodes[i]);
-end;
-
-{ miscellaneous  ------------------------------------------------------------ }
-
-function CombinePaths(const BasePath, RelPath: string): string;
-begin
- if IsPathAbsolute(RelPath) then
-  result := RelPath else
- {$ifdef WIN32}
- if IsPathAbsoluteOnDrive(RelPath) then
-  result := BasePath[1] +DriveDelim +RelPath else
- {$endif}
-  { TODO: ponizej jest miejsce ktore jest zrobione nieporzadnie }
-  result := InclPathDelim(BasePath)+RelPath;
 end;
 
 { unit init/fini ------------------------------------------------------------ }

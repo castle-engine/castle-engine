@@ -486,6 +486,19 @@ procedure SafeRewrite(var f: file; const filename: string;
   opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
 procedure SafeRewrite(var f: text; const filename: string); overload;
 
+{ Combines BasePath with RelPath. BasePath MUST be an absolute path,
+  on Windows it must contain at least drive specifier (like 'c:'),
+  on Unix it must begin with "/". RelPath can be relative and can
+  be absolute. If RelPath is absolute, result is RelPath.
+  Else the result is an absolute path calculated by combining RelPath
+  with BasePath.
+
+  TODO: this is implemented a little "sloppy" and, while it works,
+  the resulting absolute path is not always nice, e.g. it can look
+  like "/home/kambi/sources/../textures/img.png" instead of
+  "/home/kambi/textures/img.png". }
+function CombinePaths(const BasePath, RelPath: string): string;
+
 implementation
 
 uses KambiStringUtils;
@@ -1076,6 +1089,18 @@ begin
   AssignFile(f,filename);
   Rewrite(f);
  except on e: Exception do ShowFileException(e,filename) end;
+end;
+
+function CombinePaths(const BasePath, RelPath: string): string;
+begin
+ if IsPathAbsolute(RelPath) then
+  result := RelPath else
+ {$ifdef WIN32}
+ if IsPathAbsoluteOnDrive(RelPath) then
+  result := BasePath[1] +DriveDelim +RelPath else
+ {$endif}
+  { TODO: below is the "sloppy" thing. }
+  result := InclPathDelim(BasePath)+RelPath;
 end;
 
 procedure DoInitialization;
