@@ -1,0 +1,9 @@
+#VRML V1.0 ascii
+
+Group {
+  PerspectiveCamera {
+    position -2.732869863510132 -2.61075234413147 2.94332218170166
+    orientation 0.732075154781342 -0.312095612287521 -0.605526626110077 1.226867437362671
+  }
+  WWWInline { name "cube_opening_1.wrl" }
+}
