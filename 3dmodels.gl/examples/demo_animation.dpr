@@ -72,7 +72,7 @@ end;
 
 procedure Close(glwin: TGLWindow);
 begin
- Animation.ScenesCloseGLAll;
+ Animation.CloseGL;
 end;
 
 procedure Resize(glwin: TGLWindow);

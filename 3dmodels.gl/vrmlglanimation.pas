@@ -3,7 +3,7 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, VRMLNodes, VRMLFlatSceneGL;
+uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatSceneGL;
 
 type
   EModelsStructureDifferent = class(Exception)
@@ -55,18 +55,12 @@ type
     Until the things mentioned above are done, this class allows you
     to somehow create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
-    acceptable solution.
-
-    TODO: textures should be shared by all constructed scenes,
-    not loaded and kept separately. Right now for larger ScenesCount
-    it's impossible to use a scene with some textures, because textures
-    get loaded many times and eat a *lot* of memory. Both in my space
-    and in OpenGL lib space. VRMLOpenGLRenderer is flexible in this regard,
-    VRMLFlatSceneGL must be also made flexible and this class must use it. }
+    acceptable solution. }
   TVRMLGLAnimation = class
   private
     FScenes: TVRMLFlatSceneGLsList;
     function GetScenes(I: Integer): TVRMLFlatSceneGL;
+    Renderer: TVRMLOpenGLRenderer;
   public
     { Constructor.
       @param(RootNode1 Model describing first frame of animation.
@@ -99,12 +93,21 @@ type
     { @noAutoLinkHere }
     destructor Destroy; override;
 
-    { @noAutoLinkHere }
+    { You can read anything from Scenes below. But you cannot set some
+      things: don't set their scenes Attrib_ properties.
+
+      TODO: this will be allowed by making Attrib_ properties
+      in this class, that properly deal with our shared Renderer object.
+      Right now it was not needed anywhere.
+
+      @noAutoLinkHere }
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
     function ScenesCount: Integer;
 
-    { Call CloseGL on every Scenes[] }
-    procedure ScenesCloseGLAll;
+    { Close anything associated with current OpenGL context in this class.
+      This calls CloseGL on every Scenes[], and additionally may close
+      some other internal things here. }
+    procedure CloseGL;
   end;
 
 implementation
@@ -368,6 +371,12 @@ constructor TVRMLGLAnimation.Create(
     end;
   end;
 
+  function CreateOneScene(Node: TVRMLNode): TVRMLFlatSceneGL;
+  begin
+    Result := TVRMLFlatSceneGL.CreateProvidedRenderer(
+      Node, true, AOptimization, Renderer);
+  end;
+
 var
   I: Integer;
   RootNodesEqual: boolean;
@@ -391,25 +400,26 @@ begin
   FScenes := TVRMLFlatSceneGLsList.Create;
   FScenes.Count := ScenesCount;
 
+  Renderer := TVRMLOpenGLRenderer.Create;
+
   if RootNodesEqual then
   begin
     FScenes[0] := TVRMLFlatSceneGL.Create(RootNode1, true, AOptimization);
   end else
   begin
-    FScenes.First :=
-      TVRMLFlatSceneGL.Create(RootNode1, true, AOptimization);
-    FScenes.Last :=
-      TVRMLFlatSceneGL.Create(RootNode2, true, AOptimization);
+    FScenes.First := CreateOneScene(RootNode1);
+    FScenes.Last := CreateOneScene(RootNode2);
     for I := 1 to FScenes.Count - 2 do
-      FScenes[I] := TVRMLFlatSceneGL.Create(
-        VRMLModelLerp(I / FScenes.High, RootNode1, RootNode2),
-        true, AOptimization);
+      FScenes[I] := CreateOneScene(
+        VRMLModelLerp(I / FScenes.High, RootNode1, RootNode2));
   end;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
 begin
+  CloseGL;
   FreeWithContentsAndNil(FScenes);
+  FreeAndNil(Renderer);
   inherited;
 end;
 
@@ -423,9 +433,10 @@ begin
   Result := FScenes.Count;
 end;
 
-procedure TVRMLGLAnimation.ScenesCloseGLAll;
+procedure TVRMLGLAnimation.CloseGL;
 begin
   FScenes.CloseGLAll;
+  Renderer.UnprepareAll;
 end;
 
 end.

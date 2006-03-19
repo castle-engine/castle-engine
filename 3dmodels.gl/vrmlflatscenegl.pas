@@ -214,6 +214,14 @@ type
     FLastRender_RenderedShapeStatesCount: Cardinal;
     FLastRender_AllShapeStatesCount: Cardinal;
 
+    FUsingProvidedRenderer: boolean;
+
+    procedure CommonCreate(
+      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      AOptimization: TGLRendererOptimization;
+      AUsingProvidedRenderer: boolean;
+      AProvidedRenderer: TVRMLOpenGLRenderer);
+
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
@@ -307,6 +315,27 @@ type
     { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization);
+
+    { This is a very special constructor, that forces this class to use
+      provided AProvidedRenderer.
+
+      @italic(Don't use this unless you really know what you're doing!)
+      In all normal circumstances you should use normal @link(Create)
+      constructor, that will internally create and use internal renderer object.
+      If you use this constructor you will have to understand how internally
+      this class synchronizes itself with underlying Renderer object.
+
+      Once again, if you're not sure, then simply don't use this
+      constructor. It's for internal use --- namely it's internally used
+      by TVRMLGLAnimation, this way all scenes of the animation share
+      the same renderer which means that they also share the same
+      information about textures and images loaded into OpenGL.
+      And this is crucial for TVRMLGLAnimation, otherwise animation with
+      100 scenes would load the same texture to OpenGL 100 times. }
+    constructor CreateProvidedRenderer(
+      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      AOptimization: TGLRendererOptimization;
+      AProvidedRenderer: TVRMLOpenGLRenderer);
 
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -689,36 +718,58 @@ end;
 
 { TVRMLFlatSceneGL ---------------------------------------- }
 
+procedure TVRMLFlatSceneGL.CommonCreate(
+  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AOptimization: TGLRendererOptimization;
+  AUsingProvidedRenderer: boolean;
+  AProvidedRenderer: TVRMLOpenGLRenderer);
+begin
+  { inherited Create calls ChangedAll that is overriden in this class
+    and uses SSS_DisplayLists, RenderFrustumOctree_Visible, Optimization.
+    That's why I have to init them *before* "inherited Create" }
+
+  FOptimization := AOptimization;
+
+  if Optimization = roSeparateShapeStates then
+   SSS_DisplayLists := TDynGLuintArray.Create;
+
+  RenderFrustumOctree_Visible := TDynBooleanArray.Create;
+
+  inherited Create(ARootNode, AOwnsRootNode);
+
+  FAttrib_Blending := true;
+
+  FBackgroundSkySphereRadius := 1.0;
+  FBackgroundValid := false;
+  FBackground := nil;
+
+  FUsingProvidedRenderer := AUsingProvidedRenderer;
+
+  if FUsingProvidedRenderer then
+    Renderer := AProvidedRenderer else
+    Renderer := TVRMLOpenGLRenderer.Create;
+end;
+
 constructor TVRMLFlatSceneGL.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AOptimization: TGLRendererOptimization);
 begin
- { inherited Create calls ChangedAll that is overriden in this class
-   and uses SSS_DisplayLists, RenderFrustumOctree_Visible, Optimization.
-   That's why I have to init them *before* "inherited Create" }
+  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, false, nil);
+end;
 
- FOptimization := AOptimization;
-
- if Optimization = roSeparateShapeStates then
-  SSS_DisplayLists := TDynGLuintArray.Create;
-
- RenderFrustumOctree_Visible := TDynBooleanArray.Create;
-
- inherited Create(ARootNode, AOwnsRootNode);
-
- FAttrib_Blending := true;
-
- FBackgroundSkySphereRadius := 1.0;
- FBackgroundValid := false;
- FBackground := nil;
-
- Renderer := TVRMLOpenGLRenderer.Create;
+constructor TVRMLFlatSceneGL.CreateProvidedRenderer(
+  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AOptimization: TGLRendererOptimization; AProvidedRenderer: TVRMLOpenGLRenderer);
+begin
+  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, true, AProvidedRenderer);
 end;
 
 destructor TVRMLFlatSceneGL.Destroy;
 begin
  CloseGL;
 
- FreeAndNil(Renderer);
+ if not FUsingProvidedRenderer then
+   FreeAndNil(Renderer);
+
  FreeAndNil(SSS_DisplayLists);
  FreeAndNil(RenderFrustumOctree_Visible);
 
@@ -757,6 +808,9 @@ begin
     end;
  end;
 
+ { TODO: if FUsingProvidedRenderer then we should do something more detailed
+   then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
+   right now, so it's not implemented. }
  if Renderer <> nil then Renderer.UnprepareAll;
 end;
 
