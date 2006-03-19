@@ -112,7 +112,7 @@ uses KambiClassUtils, VectorMath, VRMLFields;
 constructor EModelsStructureDifferent.CreateFmt(const S: string;
   const Args: array of const);
 begin
- inherited CreateFmt('Models are structurally different: ' + S, Args);
+  inherited CreateFmt('Models are structurally different: ' + S, Args);
 end;
 
 { TVRMLGLAnimation ------------------------------------------------------------ }
@@ -123,6 +123,33 @@ constructor TVRMLGLAnimation.Create(
   ScenesCount: Cardinal;
   AOptimization: TGLRendererOptimization);
 
+  { This will just check that Model1 and Model2 are exactly equal.
+    That's useful, because then we know that we can simply copy given
+    node's reference instead of duplicating this object.
+    This way Model1 and Model2 and all models interpolated along the way
+    can share the same object reference. This is very good, because:
+
+    1. If nodes are equal then creating new object each
+       time would mean that I create a lot of objects with exactly the
+       same contents. So memory is wasted, without any good reason.
+
+    2. For nodes like Texture2, this is good because then the image
+       is loaded from the file only once. This means that memory is saved,
+       once again. This also means that in case when texture file doesn't
+       exist, user gets only 1 warning/error message (instead of getting
+       warning/error message for each duplicated TNodeTexture2 instance).
+
+    3. Also for nodes like Texture2, this means that if we use the same
+       VRMLOpenGLRenderer to render every model of the animation,
+       then VRMLOpenGLRenderer will recognize this and given texture
+       will be loaded only once for OpenGL. So loading time and
+       memory are saved *once again*  (otherwise OpenGL would allocate
+       internal copy of texture for each duplicated node, once again
+       wasting a lot of memory). }
+  function VRMLModelsEqual(const A: Single; Model1, Model2: TVRMLNode): boolean;
+  begin
+  end;
+
   { Linear interpolation between Model1 and Model2.
     A = 0 means Model1, A = 1 means Model2, A between 0 and 1 is lerp
     between Model1 and Model2. }
@@ -130,144 +157,144 @@ constructor TVRMLGLAnimation.Create(
   var
     I: Integer;
   begin
-   { Yes, Model1 and Model2 must have *exactly* the same classes. }
-   if Model1.ClassType <> Model2.ClassType then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different nodes classes: "%s" and "%s"',
-      [Model1.ClassName <> Model2.ClassName]);
-
-   if Model1.NodeName <> Model2.NodeName then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different names of nodes: "%s" and "%s"',
-      [Model1.NodeName, Model2.NodeName]);
-
-   if Model1.WWWBasePath <> Model2.WWWBasePath then
-    raise EModelsStructureDifferent.CreateFmt(
-      'Different WWWBasePath of nodes: "%s" and "%s"',
-      [Model1.WWWBasePath, Model2.WWWBasePath]);
-
-   Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
-     Model1.WWWBasePath);
-   try
-    if Model1.ChildrenCount <> Model2.ChildrenCount then
-     raise EModelsStructureDifferent.CreateFmt(
-       'Different number of children in nodes: "%d" and "%d"',
-       [Model1.ChildrenCount, Model2.ChildrenCount]);
-
-    { TODO: the code below doesn't deal efficiently with the situation when single
-      TVRMLNode is used as a child many times in one of the nodes.
-      (through VRML "USE" keyword). Code below will then unnecessarily
-      create copies of such things (wasting construction time and memory),
-      instead of reusing the same object reference. }
-    for I := 0 to Model1.ChildrenCount - 1 do
-     Result.AddChild(VRMLModelLerp(A, Model1.Children[I], Model2.Children[I]));
-
-    { Yes, the situation below can happen. *Usually* when we know
-      that Model1 and Model2 are equal classes then we know that
-      they have the same number of fields of the same type.
-      However, for TNodeUnknown, it's not that easy. Two different instances
-      of TNodeUnknown class may have completely different fields,
-      so we must safeguard against this. }
-    if Model1.Fields.Count <> Model2.Fields.Count then
-     raise EModelsStructureDifferent.CreateFmt(
-       'Different number of fields in nodes: "%d" and "%d"',
-       [Model1.Fields.Count, Model2.Fields.Count]);
-
-    { TODO: for TNodeUnknown, we should fill here Result.Fields. }
-
-    for I := 0 to Model1.Fields.Count - 1 do
-    begin
-     if Model1.Fields[I].ClassType <> Model2.Fields[I].ClassType then
+    { Yes, Model1 and Model2 must have *exactly* the same classes. }
+    if Model1.ClassType <> Model2.ClassType then
       raise EModelsStructureDifferent.CreateFmt(
-        'Different type of field number %d in nodes: "%s" and "%s"',
-        [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
+        'Different nodes classes: "%s" and "%s"',
+        [Model1.ClassName <> Model2.ClassName]);
 
-     try
-      if Model1.Fields[I] is TSFColor    then (Result.Fields[I] as TSFColor   ).AssignLerp(A, TSFColor   (Model1.Fields[I]), TSFColor   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TSFFloat    then (Result.Fields[I] as TSFFloat   ).AssignLerp(A, TSFFloat   (Model1.Fields[I]), TSFFloat   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TSFMatrix   then (Result.Fields[I] as TSFMatrix  ).AssignLerp(A, TSFMatrix  (Model1.Fields[I]), TSFMatrix  (Model2.Fields[I])) else
-      if Model1.Fields[I] is TSFRotation then (Result.Fields[I] as TSFRotation).AssignLerp(A, TSFRotation(Model1.Fields[I]), TSFRotation(Model2.Fields[I])) else
-      if Model1.Fields[I] is TSFVec2f    then (Result.Fields[I] as TSFVec2f   ).AssignLerp(A, TSFVec2f   (Model1.Fields[I]), TSFVec2f   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TSFVec3f    then (Result.Fields[I] as TSFVec3f   ).AssignLerp(A, TSFVec3f   (Model1.Fields[I]), TSFVec3f   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFColor    then (Result.Fields[I] as TMFColor   ).AssignLerp(A, TMFColor   (Model1.Fields[I]), TMFColor   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFVec2f    then (Result.Fields[I] as TMFVec2f   ).AssignLerp(A, TMFVec2f   (Model1.Fields[I]), TMFVec2f   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFVec3f    then (Result.Fields[I] as TMFVec3f   ).AssignLerp(A, TMFVec3f   (Model1.Fields[I]), TMFVec3f   (Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else
+    if Model1.NodeName <> Model2.NodeName then
+      raise EModelsStructureDifferent.CreateFmt(
+        'Different names of nodes: "%s" and "%s"',
+        [Model1.NodeName, Model2.NodeName]);
+
+    if Model1.WWWBasePath <> Model2.WWWBasePath then
+      raise EModelsStructureDifferent.CreateFmt(
+        'Different WWWBasePath of nodes: "%s" and "%s"',
+        [Model1.WWWBasePath, Model2.WWWBasePath]);
+
+    Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
+      Model1.WWWBasePath);
+    try
+      if Model1.ChildrenCount <> Model2.ChildrenCount then
+        raise EModelsStructureDifferent.CreateFmt(
+          'Different number of children in nodes: "%d" and "%d"',
+          [Model1.ChildrenCount, Model2.ChildrenCount]);
+
+      { TODO: the code below doesn't deal efficiently with the situation when single
+        TVRMLNode is used as a child many times in one of the nodes.
+        (through VRML "USE" keyword). Code below will then unnecessarily
+        create copies of such things (wasting construction time and memory),
+        instead of reusing the same object reference. }
+      for I := 0 to Model1.ChildrenCount - 1 do
+        Result.AddChild(VRMLModelLerp(A, Model1.Children[I], Model2.Children[I]));
+
+      { Yes, the situation below can happen. *Usually* when we know
+        that Model1 and Model2 are equal classes then we know that
+        they have the same number of fields of the same type.
+        However, for TNodeUnknown, it's not that easy. Two different instances
+        of TNodeUnknown class may have completely different fields,
+        so we must safeguard against this. }
+      if Model1.Fields.Count <> Model2.Fields.Count then
+        raise EModelsStructureDifferent.CreateFmt(
+          'Different number of fields in nodes: "%d" and "%d"',
+          [Model1.Fields.Count, Model2.Fields.Count]);
+
+      { TODO: for TNodeUnknown, we should fill here Result.Fields. }
+
+      for I := 0 to Model1.Fields.Count - 1 do
       begin
-       { These fields cannot be interpolated.
-         So check them for equality and copy to Result.Fields[I].
+        if Model1.Fields[I].ClassType <> Model2.Fields[I].ClassType then
+          raise EModelsStructureDifferent.CreateFmt(
+            'Different type of field number %d in nodes: "%s" and "%s"',
+            [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
 
-         Some special fields like TNodeWWWInline.FdName do not
-         have to be equal, as they don't have any role for the
-         "real" meaning of the model. I mean, if TNodeWWWInline
-         children (loaded from pointed file) have the same structure,
-         then we're happy. And it's handy to allow this --- see e.g.
-         examples/models/gus_1_final.wrl and
-         examples/models/gus_2_final.wrl trick. }
+        try
+          if Model1.Fields[I] is TSFColor    then (Result.Fields[I] as TSFColor   ).AssignLerp(A, TSFColor   (Model1.Fields[I]), TSFColor   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TSFFloat    then (Result.Fields[I] as TSFFloat   ).AssignLerp(A, TSFFloat   (Model1.Fields[I]), TSFFloat   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TSFMatrix   then (Result.Fields[I] as TSFMatrix  ).AssignLerp(A, TSFMatrix  (Model1.Fields[I]), TSFMatrix  (Model2.Fields[I])) else
+          if Model1.Fields[I] is TSFRotation then (Result.Fields[I] as TSFRotation).AssignLerp(A, TSFRotation(Model1.Fields[I]), TSFRotation(Model2.Fields[I])) else
+          if Model1.Fields[I] is TSFVec2f    then (Result.Fields[I] as TSFVec2f   ).AssignLerp(A, TSFVec2f   (Model1.Fields[I]), TSFVec2f   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TSFVec3f    then (Result.Fields[I] as TSFVec3f   ).AssignLerp(A, TSFVec3f   (Model1.Fields[I]), TSFVec3f   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TMFColor    then (Result.Fields[I] as TMFColor   ).AssignLerp(A, TMFColor   (Model1.Fields[I]), TMFColor   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TMFVec2f    then (Result.Fields[I] as TMFVec2f   ).AssignLerp(A, TMFVec2f   (Model1.Fields[I]), TMFVec2f   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TMFVec3f    then (Result.Fields[I] as TMFVec3f   ).AssignLerp(A, TMFVec3f   (Model1.Fields[I]), TMFVec3f   (Model2.Fields[I])) else
+          if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else
+          begin
+            { These fields cannot be interpolated.
+              So check them for equality and copy to Result.Fields[I].
 
-       if not (
-          ( (Model1 is TNodeWWWInline) and (Model1.Fields[I].Name = 'name') ) or
-          Model1.Fields[I].Equals(Model2.Fields[I]) 
-          ) then
-         raise EModelsStructureDifferent.CreateFmt(
-           'Fields "%s" (class "%s") are not equal',
-           [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
+              Some special fields like TNodeWWWInline.FdName do not
+              have to be equal, as they don't have any role for the
+              "real" meaning of the model. I mean, if TNodeWWWInline
+              children (loaded from pointed file) have the same structure,
+              then we're happy. And it's handy to allow this --- see e.g.
+              examples/models/gus_1_final.wrl and
+              examples/models/gus_2_final.wrl trick. }
 
-       Result.Fields[I].Assign(Model1.Fields[I]);
+            if not (
+               ( (Model1 is TNodeWWWInline) and (Model1.Fields[I].Name = 'name') ) or
+               Model1.Fields[I].Equals(Model2.Fields[I])
+               ) then
+              raise EModelsStructureDifferent.CreateFmt(
+                'Fields "%s" (class "%s") are not equal',
+                [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
+
+            Result.Fields[I].Assign(Model1.Fields[I]);
+          end;
+        except
+          { Translate EVRMLMultFieldDifferentCount exception
+            (may be raised by TVRMLMultField.AssignLerp above)
+            to EModelsStructureDifferent. }
+          on E: EVRMLMultFieldDifferentCount do
+            raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
+        end;
       end;
-     except
-      { Translate EVRMLMultFieldDifferentCount exception
-        (may be raised by TVRMLMultField.AssignLerp above)
-        to EModelsStructureDifferent. }
-      on E: EVRMLMultFieldDifferentCount do
-       raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
-     end;
+    except
+      FreeAndNil(Result);
+      raise;
     end;
-   except
-    FreeAndNil(Result);
-    raise;
-   end;
   end;
 
 var
   I: Integer;
 begin
- inherited Create;
+  inherited Create;
 
- Assert(ScenesCount >= 2);
+  Assert(ScenesCount >= 2);
 
- FScenes := TVRMLFlatSceneGLsList.Create;
- FScenes.Count := ScenesCount;
+  FScenes := TVRMLFlatSceneGLsList.Create;
+  FScenes.Count := ScenesCount;
 
- FScenes.First :=
-   TVRMLFlatSceneGL.Create(RootNode1, OwnsRootNode1, AOptimization);
- FScenes.Last :=
-   TVRMLFlatSceneGL.Create(RootNode2, OwnsRootNode2, AOptimization);
- for I := 1 to FScenes.Count - 2 do
-  FScenes[I] := TVRMLFlatSceneGL.Create(
-    VRMLModelLerp(I / FScenes.High, RootNode1, RootNode2),
-    true, AOptimization);
+  FScenes.First :=
+    TVRMLFlatSceneGL.Create(RootNode1, OwnsRootNode1, AOptimization);
+  FScenes.Last :=
+    TVRMLFlatSceneGL.Create(RootNode2, OwnsRootNode2, AOptimization);
+  for I := 1 to FScenes.Count - 2 do
+    FScenes[I] := TVRMLFlatSceneGL.Create(
+      VRMLModelLerp(I / FScenes.High, RootNode1, RootNode2),
+      true, AOptimization);
 end;
 
 destructor TVRMLGLAnimation.Destroy;
 begin
- FreeWithContentsAndNil(FScenes);
- inherited;
+  FreeWithContentsAndNil(FScenes);
+  inherited;
 end;
 
 function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLFlatSceneGL;
 begin
- Result := FScenes[I];
+  Result := FScenes[I];
 end;
 
 function TVRMLGLAnimation.ScenesCount: Integer;
 begin
- Result := FScenes.Count;
+  Result := FScenes.Count;
 end;
 
 procedure TVRMLGLAnimation.ScenesCloseGLAll;
 begin
- FScenes.CloseGLAll;
+  FScenes.CloseGLAll;
 end;
 
 end.
