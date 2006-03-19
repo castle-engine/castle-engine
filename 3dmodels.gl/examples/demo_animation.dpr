@@ -34,12 +34,6 @@ uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   KambiFilesUtils;
 
 const
-  { This is the number of animation frames constructed.
-    Increase this to get more smooth animation.
-    Note that this will also make animation run in longer time -- you
-    can balance this by changing also AnimationSpeed. }
-  ScenesCount = 100;
-
   { How fast animation frames change. }
   AnimationSpeed = 1.0;
 
@@ -58,10 +52,10 @@ begin
  glLoadMatrix(glw.Navigator.Matrix);
 
  RoundedAnimationPosition := Round(AnimationPosition);
- Pos := RoundedAnimationPosition mod ScenesCount;
+ Pos := RoundedAnimationPosition mod Animation.ScenesCount;
  { In the odd rounds, we run the same animation backwards. }
- if Odd(RoundedAnimationPosition div ScenesCount) then
-  Pos := ScenesCount - 1 - Pos;
+ if Odd(RoundedAnimationPosition div Animation.ScenesCount) then
+  Pos := Animation.ScenesCount - 1 - Pos;
  Animation.Scenes[Pos].Render(nil);
 end;
 
@@ -89,6 +83,13 @@ begin
    Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 3.0);
 end;
 
+const
+  { This is the number of animation frames constructed.
+    Increase this to get more smooth animation.
+    Note that this will also make animation run in longer time -- you
+    can balance this by changing also AnimationSpeed. }
+  ScenesCountWanted = 100;
+
 var
   CamPos, CamDir, CamUp: TVector3Single;
 begin
@@ -97,9 +98,9 @@ begin
   VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
   Animation := TVRMLGLAnimation.Create(
-    LoadAsVRML(Parameters[1], false), true,
-    LoadAsVRML(Parameters[2], false), true,
-    ScenesCount,
+    LoadAsVRML(Parameters[1], false),
+    LoadAsVRML(Parameters[2], false),
+    ScenesCountWanted,
     roSceneAsAWhole);
 
   { get camera from 1st scene in Animation }
