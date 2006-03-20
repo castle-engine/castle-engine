@@ -176,9 +176,6 @@ type
       (a nie tylko jakis wskaznik do niej) bo obiekt Item moze zostac
       niedlugo zniszczony. }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
-
-    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
-    procedure CheckCountEqual(SecondValue: TVRMLMultField);
   protected
     { nie ma potrzeby definiowania SaveToStreamValue w podklasach,
         zdefiniuj tylko RawItemToString(i) ktore zamienia RawItems[i]
@@ -214,6 +211,9 @@ type
 
     constructor Create(const AName: string);
     destructor Destroy; override;
+
+    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
+    procedure CheckCountEqual(SecondValue: TVRMLMultField);
 
     { In addition to inherited(Equals), this also checks that
       Count and ItemClass are equal. All descendants must check

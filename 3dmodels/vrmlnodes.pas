@@ -412,6 +412,7 @@ type
     FChildren, FParents: TVRMLNodesList;
     function GetChildrenItem(i: integer): TVRMLNode;
     function GetParentsItem(i: integer): TVRMLNode;
+    procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -512,8 +513,18 @@ type
       moga byc duplikaty i zdecydowanie nie powinnismy nigdzie niefrasobliwie
       "czyscic" tych list przez DeleteDuplicates;
 
+      You can also replace one children with another by writing
+      to this property, like @code(Children[I] := NewChildren;).
+      This works like a shortcut for
+      @code(RemoveChild(I); AddChild(I, NewChildren);).
+      But 1. it's more efficient; 2. it's safer --- if
+      Children[I] is already equal to NewChildren, then
+      first @code(RemoveChild(I);) would free this children and following
+      AddChild would be totally wrong.
+
       @noAutoLinkHere }
-    property Children[i: integer]:TVRMLNode read GetChildrenItem;
+    property Children[i: integer]: TVRMLNode
+      read GetChildrenItem write SetChildrenItem;
 
     function ChildrenCount: integer;
 
@@ -2169,12 +2180,35 @@ begin
 end;
 
 procedure TVRMLNode.RemoveChild(i: integer);
-var c: TVRMLNode;
+var
+  OldChild: TVRMLNode;
 begin
- c := FChildren[i];
- FChildren.Delete(i);
- c.FParents.Delete(Self);
- if c.FParents.Count = 0 then c.Free;
+  OldChild := FChildren[i];
+  FChildren.Delete(i);
+  OldChild.FParents.Delete(Self);
+  if OldChild.FParents.Count = 0 then OldChild.Free;
+end;
+
+procedure TVRMLNode.SetChildrenItem(I: Integer; Value: TVRMLNode);
+var
+  OldChild: TVRMLNode;
+begin
+  { Inefficient implementation: RemoveChild(I); AddChild(I, Value); }
+  
+  if Value <> FChildren[I] then
+  begin
+    Check( {is child allowed in AllowedChildren ?} AllowedChildren,
+      'Node '+NodeTypeName+' is not allowed to have child node of type '+
+      Value.NodeTypeName);
+
+    OldChild := FChildren[i];
+    FChildren[I] := Value;
+
+    OldChild.FParents.Delete(Self);
+    if OldChild.FParents.Count = 0 then OldChild.Free;
+
+    Value.FParents.Add(Self);
+  end;
 end;
 
 procedure TVRMLNode.RemoveAllChildren;

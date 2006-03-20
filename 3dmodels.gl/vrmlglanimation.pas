@@ -66,7 +66,7 @@ type
     FScenes: TVRMLFlatSceneGLsList;
     function GetScenes(I: Integer): TVRMLFlatSceneGL;
     Renderer: TVRMLOpenGLRenderer;
-    TimeBegin, TimeEnd: Single;
+    FTimeBegin, FTimeEnd: Single;
   public
     { Constructor.
 
@@ -131,6 +131,12 @@ type
       scene in the middle. If Time is < Times[0], this will be the first scene,
       if Time is > Times[High(Times)], this will be the last scene. }
     function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+    
+    { First and last time that you passed to constructor.
+      @groupBegin }
+    property TimeBegin: Single read FTimeBegin;
+    property TimeEnd: Single read FTimeEnd;
+    { @groupEnd }
   end;
 
 implementation
@@ -418,8 +424,8 @@ begin
 
   Renderer := TVRMLOpenGLRenderer.Create;
 
-  TimeBegin := ATimes[0];
-  TimeEnd := ATimes[High(ATimes)];
+  FTimeBegin := ATimes[0];
+  FTimeEnd := ATimes[High(ATimes)];
 
   { calculate FScenes contents now }
 
