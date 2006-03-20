@@ -9,7 +9,16 @@
     ./demo_animation models/sphere_1.wrl             models/sphere_2.wrl
     ./demo_animation models/raptor_1.wrl             models/raptor_2.wrl
     ./demo_animation models/gus_1_final.wrl          models/gus_2_final.wrl
+    ./demo_animation models/gus_2_final.wrl          models/gus_3_final.wrl
     ./demo_animation models/cube_opening_1_final.wrl models/cube_opening_2_final.wrl
+
+  You can also do an animation between 3 models,
+  e.g. you can see how gus_1_final.wrl changes to gus_2_final.wrl,
+  then gus_2_final.wrl changes to gus_3_final.wrl.
+  This is implemented in TVRMLGLAnimation class, it's just not available
+  from command-line right now (TODO: I'll do this after PGD compo stage 4)
+  --- right now you must go to "TVRMLGLAnimation.Create" line below in this file
+  and uncomment a couple of lines to see this working.
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys -- see view3dscene documentation,
@@ -94,6 +103,14 @@ begin
     Animation := TVRMLGLAnimation.Create(
       [LoadAsVRML(Parameters[1], false), LoadAsVRML(Parameters[2], false)],
       [0.0, 1.0],
+
+      { Uncomment this to get a demo of animation consisting of 3 models.
+      [ LoadAsVRML('models/gus_1_final.wrl', false),
+        LoadAsVRML('models/gus_2_final.wrl', false),
+        LoadAsVRML('models/gus_3_final.wrl', false) ],
+      [ 0.0, 0.666, 1.0 ],
+      }
+
       ScenesPerTime,
       roSceneAsAWhole);
 

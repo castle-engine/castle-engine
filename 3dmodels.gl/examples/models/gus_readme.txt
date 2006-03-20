@@ -28,3 +28,5 @@ gus_2.wrl:
   - go to frame 100
   - go to modifiers panel, apply every modifier like above
   - then export to gus_2.wrl
+gus_3.wrl:
+  - the same thing, but go to frame 200

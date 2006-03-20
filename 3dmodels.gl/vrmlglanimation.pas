@@ -101,7 +101,7 @@ type
 
       @noAutoLinkHere }
     constructor Create(
-      const RootNodes: array of TVRMLNode;
+      RootNodes: array of TVRMLNode;
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization); overload;
@@ -148,7 +148,7 @@ end;
 { TVRMLGLAnimation ------------------------------------------------------------ }
 
 constructor TVRMLGLAnimation.Create(
-  const RootNodes: array of TVRMLNode;
+  RootNodes: array of TVRMLNode;
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization);
@@ -403,6 +403,9 @@ constructor TVRMLGLAnimation.Create(
 var
   I: Integer;
   RootNodesEqual: boolean;
+  LastSceneIndex: Integer;
+  LastSceneRootNode: TVRMLNode;
+  SceneIndex: Integer;
 begin
   inherited Create;
 
@@ -418,36 +421,67 @@ begin
   TimeBegin := ATimes[0];
   TimeEnd := ATimes[High(ATimes)];
 
-  { TODO: below is ready only for High(RootNodes) = 1 for now.
-    I should allow animation to be defined by more than one model.
-    Internally all these models should be merged as far as possible. }
+  { calculate FScenes contents now }
 
-  { calculate FScenes contents now, also FBorderScenesIndexes contents }
+  { RootNodes[0] goes to FScenes[0], that's easy }
+  FScenes.Count := 1;
+  FScenes[0] := CreateOneScene(RootNodes[0]);
+  LastSceneIndex := 0;
+  LastSceneRootNode := RootNodes[0];
 
-  { Do VRMLModelsMerge,
-    calculate RootNodesEqual,
-    eventually change ScenesCount to 1 }
-  RootNodesEqual := VRMLModelsMerge(RootNodes[0], RootNodes[1]);
-  if RootNodesEqual then
+  for I := 1 to High(RootNodes) do
   begin
-    FScenes.Count := 1;
-    FScenes[0] := TVRMLFlatSceneGL.Create(RootNodes[0], true, AOptimization);
-    RootNodes[1].Free;
-  end else
-  begin
-    FScenes.Count := Max(2, Round((TimeEnd - TimeBegin) * ScenesPerTime));
-    FScenes.First := CreateOneScene(RootNodes[0]);
-    FScenes.Last := CreateOneScene(RootNodes[1]);
-    for I := 1 to FScenes.Count - 2 do
-      FScenes[I] := CreateOneScene(
-        VRMLModelLerp(I / FScenes.High, RootNodes[0], RootNodes[1]));
+    { Now add RootNodes[I] }
+
+    FScenes.Count := FScenes.Count +
+      Max(1, Round((ATimes[I] - ATimes[I-1]) * ScenesPerTime));
+
+    { Try to merge it with LastSceneRootNode.
+      Then initialize FScenes[LastSceneIndex + 1 to FScenes.High]. }
+    RootNodesEqual := VRMLModelsMerge(RootNodes[I], LastSceneRootNode);
+    if RootNodesEqual then
+    begin
+      { In this case I don't waste memory, and I'm simply reusing
+        LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
+        This way I have a series of the same instances of TVRMLFlatSceneGL
+        along the way. When freeing FScenes, we will be smart and
+        avoid deallocating the same pointer twice. }
+      FreeAndNil(RootNodes[I]);
+      for SceneIndex := LastSceneIndex + 1 to FScenes.High do
+        FScenes[SceneIndex] := FScenes[LastSceneIndex];
+    end else
+    begin
+      for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
+        FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
+          MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
+          LastSceneRootNode, RootNodes[I]));
+      FScenes.Last := CreateOneScene(RootNodes[I]);
+      LastSceneRootNode := RootNodes[I];
+    end;
+
+    LastSceneIndex := FScenes.High;
   end;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
+var
+  I: Integer;
 begin
   CloseGL;
-  FreeWithContentsAndNil(FScenes);
+
+  { Now we must note that we may have a sequences of the same scenes
+    on FScenes. So we must deallocate smartly, to avoid deallocating
+    the same pointer more than once. }
+  for I := 0 to FScenes.High - 1 do
+  begin
+    if FScenes[I] = FScenes[I+1] then
+      FScenes[I] := nil { set to nil, just for safety } else
+      FScenes.FreeAndNil(I);
+  end;
+  FScenes.FreeAndNil(FScenes.High);
+
+  FreeAndNil(FScenes);
+
   FreeAndNil(Renderer);
   inherited;
 end;
