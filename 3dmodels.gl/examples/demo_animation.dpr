@@ -1,24 +1,29 @@
 { Demo of TVRMLGLAnimation class.
 
-  Run this passing 2 command-line parameters: filenames of two 3D files
-  that have identical structure. Effect: this will display nice animation
-  that animates between 1st model and 2nd.
+  Run this passing an even number of command-line parameters.
+  Each parameters pair specifies scene filename, and position in time
+  of this scene. Scenes must be specified in increasing order of time.
+
+  Effect: this will display animation going from 1st scene to the 2nd,
+  then to the 3rd etc. to the last scene. And then it will
+  go back again to the 1st scene.
 
   I prepared some sets of sample models in models/ subdirectory.
-  Try these commands
-    ./demo_animation models/sphere_1.wrl             models/sphere_2.wrl
-    ./demo_animation models/raptor_1.wrl             models/raptor_2.wrl
-    ./demo_animation models/gus_1_final.wrl          models/gus_2_final.wrl
-    ./demo_animation models/gus_2_final.wrl          models/gus_3_final.wrl
-    ./demo_animation models/cube_opening_1_final.wrl models/cube_opening_2_final.wrl
+  Example commands with two scenes:
+    ./demo_animation models/sphere_1.wrl 0 models/sphere_2.wrl 1
+    ./demo_animation models/raptor_1.wrl 0 models/raptor_2.wrl 1
+    ./demo_animation models/gus_1_final.wrl 0 models/gus_2_final.wrl 1
+    ./demo_animation models/cube_opening_1_final.wrl 0 models/cube_opening_2_final.wrl 1
 
-  You can also do an animation between 3 models,
-  e.g. you can see how gus_1_final.wrl changes to gus_2_final.wrl,
-  then gus_2_final.wrl changes to gus_3_final.wrl.
-  This is implemented in TVRMLGLAnimation class, it's just not available
-  from command-line right now (TODO: I'll do this after PGD compo stage 4)
-  --- right now you must go to "TVRMLGLAnimation.Create" line below in this file
-  and uncomment a couple of lines to see this working.
+  Example command with more scenes:
+    ./demo_animation models/gus_1_final.wrl 0 \
+                     models/gus_2_final.wrl 1 \
+                     models/gus_3_final.wrl 1.5 \
+                     models/gus_2_final.wrl 2 \
+                     models/gus_1_final.wrl 3
+
+  This is all implemented in TVRMLGLAnimation class, see docs of this class
+  for precise description how things work.
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys -- see view3dscene documentation,
@@ -47,7 +52,7 @@ const
   AnimationSpeed = 0.01;
 
   { This is the number of animation frames constructed per one unit of time.
-    Increase this to get more smoother animation. }
+    Increase this to get smoother animation. }
   ScenesPerTime = 100;
 
 var
@@ -55,29 +60,25 @@ var
   AnimationTime: Float = 0.0;
 
 procedure Draw(glwin: TGLWindow);
-var
-  RenderTime: Single;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
-  RenderTime := Frac(AnimationTime);
-  If not Odd(Floor(AnimationTime)) then
-    { In the even rounds, we run the same animation backwards. }
-    RenderTime := 1 - RenderTime;
-
-  Animation.SceneFromTime(RenderTime).Render(nil);
+  Animation.SceneFromTime(AnimationTime).Render(nil);
 end;
 
 procedure Idle(glwin: TGLWindow);
 begin
   AnimationTime += AnimationSpeed * glwin.FpsCompSpeed;
+  if AnimationTime > Animation.TimeEnd then
+    AnimationTime := Animation.TimeBegin;
 end;
 
 procedure Init(glwin: TGLWindow);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+  AnimationTime := Animation.TimeBegin;
 end;
 
 procedure Close(glwin: TGLWindow);
@@ -95,24 +96,27 @@ end;
 
 var
   CamPos, CamDir, CamUp: TVector3Single;
+  AnimRootNodes: array of TVRMLNode;
+  AnimTimes: array of Single;
+  I: Integer;
 begin
-  Parameters.CheckHigh(2);
+  { parse parameters to AnimRootNodes and AnimTimes }
+  if Odd(Parameters.High) then
+    raise EInvalidParams.Create('You must supply even number of paramaters: ' +
+      '2 parameters "<scene> <time>" for each frame');
+  SetLength(AnimRootNodes, Parameters.High div 2);
+  SetLength(AnimTimes    , Parameters.High div 2);
+  for I := 0 to Parameters.High div 2 - 1 do
+  begin
+    AnimRootNodes[I] := LoadAsVRML(Parameters[(I+1) * 2 - 1], false);
+    AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
+  end;
+
   try
     VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
     Animation := TVRMLGLAnimation.Create(
-      [LoadAsVRML(Parameters[1], false), LoadAsVRML(Parameters[2], false)],
-      [0.0, 1.0],
-
-      { Uncomment this to get a demo of animation consisting of 3 models.
-      [ LoadAsVRML('models/gus_1_final.wrl', false),
-        LoadAsVRML('models/gus_2_final.wrl', false),
-        LoadAsVRML('models/gus_3_final.wrl', false) ],
-      [ 0.0, 0.666, 1.0 ],
-      }
-
-      ScenesPerTime,
-      roSceneAsAWhole);
+      AnimRootNodes, AnimTimes, ScenesPerTime, roSceneAsAWhole);
 
     { get camera from 1st scene in Animation }
     Animation.Scenes[0].GetPerspectiveCamera(CamPos, CamDir, CamUp);
