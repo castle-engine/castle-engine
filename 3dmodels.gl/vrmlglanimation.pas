@@ -10,32 +10,37 @@ type
     constructor CreateFmt(const S: string; const Args: array of const);
   end;
 
-  { This is an animation of VRML model by interpolating between two model
-    states.
+  { This is an animation of VRML model done by interpolating between
+    two or more model states.
 
     When constructing object of this class,
-    you must provide two VRML models that have exactly the same structure,
-    but possibly different values for various fields. For example,
-    first object may be a small sphere with blue color, the other
-    object may be a larger sphere with white color.
-    Then this class creates a list of @link(Scenes) such that
+    you must provide two or more VRML models that have exactly the same
+    structure, but possibly different values for various fields.
+    Each scene has an associated position in Time (Time is just a float number).
+    For constructor Scenes must be specified in increasing Time order.
+    For example, first object may be a small sphere with blue color, the other
+    object may be a larger sphere with white color, and the simplest
+    times are 0.0 for the 1st scene and 1.0 for the 2nd scene.
+
+    This class creates a list of @link(Scenes) such that
     @unorderedList(
       @itemSpacing Compact
       @item the first scene on the list is exactly the 1st object
-      @item the last scene on the list is exactly the 2nd object
+      @item the last scene on the list is exactly the last object
       @item(intermediate scenes are accordingly interpolated between
-        the first and last scene)
+        the two surrounding "predefined" by you scenes)
     )
 
-    In effect, the @link(Scenes) list is a list of scenes that,
+    In effect, the @link(Scenes) is a list of scenes that,
     when rendered, will display an animation of the 1st object smoothly
-    changing (morphing) into the 2nd object. In our example,
+    changing (morphing) into the 2nd object, then to the 3rd and so on,
+    until the last object. In our example,
     the blue sphere will grow larger and larger and will fade into the white
     color. Of course, any kind of models is allowed --- e.g. it can
     be a walking man at various stages, so in effect you get an animation
     of walking man.
 
-    Of course two given objects must be "structurally equal"
+    All given objects must be "structurally equal"
     --- the same nodes hierarchy, the same names of nodes,
     the same values of all fields (with the exception of fields
     that are interpolated: SFColor, SFFloat, SFMatrix,
@@ -53,7 +58,7 @@ type
     must store Blender animation data in VRML.
 
     Until the things mentioned above are done, this class allows you
-    to somehow create animations by simply making two or more VRML scenes
+    to create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
     acceptable solution. }
   TVRMLGLAnimation = class
@@ -61,23 +66,34 @@ type
     FScenes: TVRMLFlatSceneGLsList;
     function GetScenes(I: Integer): TVRMLFlatSceneGL;
     Renderer: TVRMLOpenGLRenderer;
+    TimeBegin, TimeEnd: Single;
   public
     { Constructor.
-      @param(RootNode1 Model describing first frame of animation.
-        It's owned by this class --- that's needed, because actually
-        we may do some operations on this model when building animation
-        (including even freeing RootNode1, if we will find that it's
-        actually equal to RootNode2))
-      @param(RootNode2 Model describing last frame of animation.
-        Analogous to RootNode1 --- it's owned by this class.)
-      @param(ScenesCount
-        This will set Scenes.Count, it must be >= 2
-        (RootNode1 always takes Scenes[0] and RootNode2 always takes
-        Scenes[Scenes.High]).
-        Note that if we will find that RootNode1 and RootNode2 are
-        exactly equal, we may change ScenesCount to 1.)
+
+      @param(RootNodes Models describing the "predefined" frames
+        of animation. They are all owned by this class --- that's needed,
+        because actually we may do some operations on these models when
+        building animation (including even freeing some RootNodes,
+        if we will find that they are equivalent to some other RootNodes).
+        They all must point to different objects.)
+
+      @param(Times Array specifying the point of time for each "predefined"
+        frame. Length of this array must equal to length of RootNodes array.)
+
+      @param(ScenesPerTime
+        This says how many scenes will be used for period of time equal to 1.0.
+        This will determine Scenes.Count.
+        RootNodes[0] always takes Scenes[0] and RootNodes[High(RootNodes)]
+        always takes Scenes[Scenes.High].
+
+        Note that if we will find that some nodes along the way are
+        exactly equal, we may drop scenes count between --- because if they are
+        both equal, we can simply render the same scene for some period
+        of time.)
+
       @param(AOptimization
         This is passed to TVRMLFlatSceneGL constructor, see there for docs.)
+
       @raises(EModelsStructureDifferent
         When models in RootNode1 and RootNode2 are not structurally equal
         (see TVRMLGLAnimation comments for the precise meaning of
@@ -85,10 +101,10 @@ type
 
       @noAutoLinkHere }
     constructor Create(
-      RootNode1: TVRMLNode;
-      RootNode2: TVRMLNode;
-      ScenesCount: Cardinal;
-      AOptimization: TGLRendererOptimization);
+      const RootNodes: array of TVRMLNode;
+      const ATimes: array of Single;
+      ScenesPerTime: Cardinal;
+      AOptimization: TGLRendererOptimization); overload;
 
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -108,11 +124,18 @@ type
       This calls CloseGL on every Scenes[], and additionally may close
       some other internal things here. }
     procedure CloseGL;
+
+    { This will return appropriate scene from @link(Scenes) based on given
+      Time. If Time is between given Times[0] .. Times[High(Times)]
+      when constructing this object, then this will be appropriate
+      scene in the middle. If Time is < Times[0], this will be the first scene,
+      if Time is > Times[High(Times)], this will be the last scene. }
+    function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
   end;
 
 implementation
 
-uses KambiClassUtils, VectorMath, VRMLFields;
+uses KambiClassUtils, VectorMath, VRMLFields, KambiUtils;
 
 { EModelsStructureDifferent --------------------------------------------------- }
 
@@ -125,9 +148,9 @@ end;
 { TVRMLGLAnimation ------------------------------------------------------------ }
 
 constructor TVRMLGLAnimation.Create(
-  RootNode1: TVRMLNode;
-  RootNode2: TVRMLNode;
-  ScenesCount: Cardinal;
+  const RootNodes: array of TVRMLNode;
+  const ATimes: array of Single;
+  ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization);
 
   { This will check that Model1 and Model2 are exactly equal,
@@ -383,35 +406,41 @@ var
 begin
   inherited Create;
 
-  Assert(ScenesCount >= 2);
+  Assert(High(RootNodes) = High(ATimes));
 
-  CheckVRMLModelsStructurallyEqual(RootNode1, RootNode2);
-
-  { do VRMLModelsMerge,
-    calculate RootNodesEqual,
-    eventually change ScenesCount to 1 }
-  RootNodesEqual := VRMLModelsMerge(RootNode1, RootNode2);
-  if RootNodesEqual then
-  begin
-    ScenesCount := 1;
-    FreeAndNil(RootNode2);
-  end;
+  for I := 1 to High(RootNodes) do
+    CheckVRMLModelsStructurallyEqual(RootNodes[0], RootNodes[I]);
 
   FScenes := TVRMLFlatSceneGLsList.Create;
-  FScenes.Count := ScenesCount;
 
   Renderer := TVRMLOpenGLRenderer.Create;
 
+  TimeBegin := ATimes[0];
+  TimeEnd := ATimes[High(ATimes)];
+
+  { TODO: below is ready only for High(RootNodes) = 1 for now.
+    I should allow animation to be defined by more than one model.
+    Internally all these models should be merged as far as possible. }
+
+  { calculate FScenes contents now, also FBorderScenesIndexes contents }
+
+  { Do VRMLModelsMerge,
+    calculate RootNodesEqual,
+    eventually change ScenesCount to 1 }
+  RootNodesEqual := VRMLModelsMerge(RootNodes[0], RootNodes[1]);
   if RootNodesEqual then
   begin
-    FScenes[0] := TVRMLFlatSceneGL.Create(RootNode1, true, AOptimization);
+    FScenes.Count := 1;
+    FScenes[0] := TVRMLFlatSceneGL.Create(RootNodes[0], true, AOptimization);
+    RootNodes[1].Free;
   end else
   begin
-    FScenes.First := CreateOneScene(RootNode1);
-    FScenes.Last := CreateOneScene(RootNode2);
+    FScenes.Count := Max(2, Round((TimeEnd - TimeBegin) * ScenesPerTime));
+    FScenes.First := CreateOneScene(RootNodes[0]);
+    FScenes.Last := CreateOneScene(RootNodes[1]);
     for I := 1 to FScenes.Count - 2 do
       FScenes[I] := CreateOneScene(
-        VRMLModelLerp(I / FScenes.High, RootNode1, RootNode2));
+        VRMLModelLerp(I / FScenes.High, RootNodes[0], RootNodes[1]));
   end;
 end;
 
@@ -437,6 +466,13 @@ procedure TVRMLGLAnimation.CloseGL;
 begin
   FScenes.CloseGLAll;
   Renderer.UnprepareAll;
+end;
+
+function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+begin
+  Result := FScenes[ Clamped(
+    Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High)),
+    0, FScenes.High) ];
 end;
 
 end.
