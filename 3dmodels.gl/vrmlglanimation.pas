@@ -11,10 +11,10 @@ type
   end;
 
   { This is an animation of VRML model done by interpolating between
-    two or more model states.
+    any number of model states.
 
     When constructing object of this class,
-    you must provide two or more VRML models that have exactly the same
+    you must provide one or more VRML models that have exactly the same
     structure, but possibly different values for various fields.
     Each scene has an associated position in Time (Time is just a float number).
     For constructor Scenes must be specified in increasing Time order.
@@ -39,6 +39,11 @@ type
     color. Of course, any kind of models is allowed --- e.g. it can
     be a walking man at various stages, so in effect you get an animation
     of walking man.
+
+    A special case when you pass only one scene to this class is allowed
+    (it may be handy in some situations). This will obviously produce
+    just a still result, i.e. resulting TVRMLGLAnimation will be just
+    a wrapper around single TVRMLFlatSceneGL instance.
 
     All given objects must be "structurally equal"
     --- the same nodes hierarchy, the same names of nodes,
@@ -574,30 +579,39 @@ var
   DivResult: SmallInt;
   ModResult: Word;
 begin
-  SceneNumber := Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High));
-
-  DivUnsignedMod(SceneNumber, FScenes.Count, DivResult, ModResult);
-
-  if TimeLoop then
+  if FScenes.Count = 1 then
   begin
-    if TimeBackwards and Odd(DivResult) then
-      SceneNumber := FScenes.High - ModResult else
-      SceneNumber := ModResult;
+    { In this case TimeBegin = TimeEnd, so it's better to not perform
+      any MapRange(Time, TimeBegin, TimeEnd, ...) calculation here
+      and just treat this as a special case. }
+    SceneNumber := 0;
   end else
   begin
-    if TimeBackwards then
+    SceneNumber := Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High));
+
+    DivUnsignedMod(SceneNumber, FScenes.Count, DivResult, ModResult);
+
+    if TimeLoop then
     begin
-      if (DivResult < 0) or (DivResult > 1) then
-        SceneNumber := 0 else
-      if DivResult = 1 then
-        SceneNumber := FScenes.High - ModResult;
-        { else DivResult = 0, so SceneNumber is already correct }
+      if TimeBackwards and Odd(DivResult) then
+        SceneNumber := FScenes.High - ModResult else
+        SceneNumber := ModResult;
     end else
     begin
-      if DivResult < 0 then
-        SceneNumber := 0 else
-      if DivResult > 0 then
-        SceneNumber := FScenes.High;
+      if TimeBackwards then
+      begin
+        if (DivResult < 0) or (DivResult > 1) then
+          SceneNumber := 0 else
+        if DivResult = 1 then
+          SceneNumber := FScenes.High - ModResult;
+          { else DivResult = 0, so SceneNumber is already correct }
+      end else
+      begin
+        if DivResult < 0 then
+          SceneNumber := 0 else
+        if DivResult > 0 then
+          SceneNumber := FScenes.High;
+      end;
     end;
   end;
 
