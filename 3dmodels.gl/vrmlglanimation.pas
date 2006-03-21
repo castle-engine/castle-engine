@@ -113,6 +113,13 @@ type
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization); overload;
 
+    constructor Create(
+      RootNodes: array of TVRMLNode;
+      const ATimes: array of Single;
+      ScenesPerTime: Cardinal;
+      AOptimization: TGLRendererOptimization;
+      ATimeLoop, ATimeBackwards: boolean); overload;
+
     { @noAutoLinkHere }
     destructor Destroy; override;
 
@@ -527,6 +534,18 @@ begin
 
     LastSceneIndex := FScenes.High;
   end;
+end;
+
+constructor TVRMLGLAnimation.Create(
+  RootNodes: array of TVRMLNode;
+  const ATimes: array of Single;
+  ScenesPerTime: Cardinal;
+  AOptimization: TGLRendererOptimization;
+  ATimeLoop, ATimeBackwards: boolean);
+begin
+  Create(RootNodes, ATimes, ScenesPerTime, AOptimization);
+  TimeLoop := ATimeLoop;
+  TimeBackwards := ATimeBackwards;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
