@@ -67,6 +67,8 @@ type
     function GetScenes(I: Integer): TVRMLFlatSceneGL;
     Renderer: TVRMLOpenGLRenderer;
     FTimeBegin, FTimeEnd: Single;
+    FTimeLoop: boolean;
+    FTimeBackwards: boolean;
   public
     { Constructor.
 
@@ -125,23 +127,73 @@ type
       some other internal things here. }
     procedure CloseGL;
 
-    { This will return appropriate scene from @link(Scenes) based on given
-      Time. If Time is between given Times[0] .. Times[High(Times)]
-      when constructing this object, then this will be appropriate
-      scene in the middle. If Time is < Times[0], this will be the first scene,
-      if Time is > Times[High(Times)], this will be the last scene. }
-    function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
-    
+    { Just a shortcut for TimeEnd - TimeBegin. }
+    function TimeDuration: Single;
+
     { First and last time that you passed to constructor.
+      In other words, Times[0] and Times[High(Times)].
       @groupBegin }
     property TimeBegin: Single read FTimeBegin;
     property TimeEnd: Single read FTimeEnd;
     { @groupEnd }
+
+    { This will return appropriate scene from @link(Scenes) based on given
+      Time. If Time is between given TimeBegin and TimeEnd,
+      then this will be appropriate scene in the middle.
+
+      For Time outside the range TimeBegin .. TimeEnd
+      behavior depends on TimeLoop and TimeBackwards properties:
+
+      @unorderedList(
+        @item(When not TimeLoop and not TimeBackwards then:
+
+          If Time is < TimeBegin, always the first scene will
+          be returned. If Time is > TimeEnd, always the last scene will
+          be returned.
+
+          So there will no real animation outside
+          TimeBegin .. TimeEnd timeline.)
+
+        @item(When not TimeLoop and TimeBackwards then:
+
+          If Time is < TimeBegin, always the first scene will
+          be returned. If Time is between TimeEnd and
+          TimeEnd + TimeDuration, then the animation
+          will be played backwards. When Time is > TimeEnd + TimeDuration,
+          again always the first scene will be returned.
+
+          So between TimeEnd and TimeEnd + TimeDuration
+          animation will be played backwards, and
+          there will no real animation outside
+          TimeBegin .. TimeEnd + TimeDuration timeline.)
+
+        @item(When TimeLoop and not TimeBackwards then:
+
+          Outside TimeBegin .. TimeEnd, animation will cycle.
+          This means that e.g. between TimeEnd and TimeEnd + TimeDuration
+          animation will be played just like between TimeBegin and TimeEnd.)
+
+        @item(When TimeLoop and TimeBackwardsm then:
+
+          Outside TimeBegin .. TimeEnd, animation will cycle.
+          Cycle between TimeEnd and TimeEnd + TimeDuration will
+          go backwards. Cycle between TimeEnd + TimeDuration
+          and TimeEnd + TimeDuration * 2 will again go forward.
+          And so on.)
+    }
+    function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+
+    { See SceneFromTime for description what this property does. }
+    property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
+
+    { See SceneFromTime for description what this property does. }
+    property TimeBackwards: boolean
+      read FTimeBackwards write FTimeBackwards default false;
   end;
 
 implementation
 
-uses KambiClassUtils, VectorMath, VRMLFields, KambiUtils;
+uses Math, KambiClassUtils, VectorMath, VRMLFields, KambiUtils;
 
 { EModelsStructureDifferent --------------------------------------------------- }
 
@@ -427,6 +479,9 @@ begin
   FTimeBegin := ATimes[0];
   FTimeEnd := ATimes[High(ATimes)];
 
+  FTimeLoop := true;
+  FTimeBackwards := false;
+
   { calculate FScenes contents now }
 
   { RootNodes[0] goes to FScenes[0], that's easy }
@@ -508,11 +563,45 @@ begin
   Renderer.UnprepareAll;
 end;
 
-function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+function TVRMLGLAnimation.TimeDuration: Single;
 begin
-  Result := FScenes[ Clamped(
-    Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High)),
-    0, FScenes.High) ];
+  Result := TimeEnd - TimeBegin;
+end;
+
+function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+var
+  SceneNumber: Integer;
+  DivResult: SmallInt;
+  ModResult: Word;
+begin
+  SceneNumber := Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High));
+
+  DivUnsignedMod(SceneNumber, FScenes.Count, DivResult, ModResult);
+
+  if TimeLoop then
+  begin
+    if TimeBackwards and Odd(DivResult) then
+      SceneNumber := FScenes.High - ModResult else
+      SceneNumber := ModResult;
+  end else
+  begin
+    if TimeBackwards then
+    begin
+      if (DivResult < 0) or (DivResult > 1) then
+        SceneNumber := 0 else
+      if DivResult = 1 then
+        SceneNumber := FScenes.High - ModResult;
+        { else DivResult = 0, so SceneNumber is already correct }
+    end else
+    begin
+      if DivResult < 0 then
+        SceneNumber := 0 else
+      if DivResult > 0 then
+        SceneNumber := FScenes.High;
+    end;
+  end;
+
+  Result := FScenes[SceneNumber];
 end;
 
 end.

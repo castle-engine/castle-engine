@@ -399,6 +399,21 @@ function ArcCot(x: Float): Float;
   n values, right ? }
 function SmallFactorial(n: Integer): Int64;
 
+{ Better DivMod version, in case Dividend may be < 0.
+  See fpc-devel thread "Math.DivMod results should be signed" on 2006-03-21. }
+procedure KamDivMod(Dividend: Integer; Divisor: Word;
+  var Result, Remainder: SmallInt);
+
+{ This is a special version of DivMod that always returns Remainder >= 0.
+
+  This is useful in case when Dividend < 0.
+  Standard DivMod (and Pascal div and mod operators) return then
+  Result rounded toward zero, and Remainder may be < 0.
+  This procedure will return Result rounded toward negative infinity,
+  and Remainder will always be >= 0. }
+procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
+  var Result: Smallint; var Remainder: Word);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -688,6 +703,29 @@ function SmallFactorial(n: Integer): Int64;
 begin
  Result := 1;
  while n > 1 do begin Result := Result * n; Dec(n) end;
+end;
+
+procedure KamDivMod(Dividend: Integer; Divisor: Word;
+  var Result, Remainder: SmallInt);
+var
+  UnsignedResult: Word absolute Result;
+  UnsignedRemainder: Word absolute Remainder;
+begin
+  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+end;
+
+procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
+  var Result: Smallint; var Remainder: Word);
+var
+  SignedRemainder: SmallInt;
+begin
+  KamDivMod(Dividend, Divisor, Result, SignedRemainder);
+  if SignedRemainder < 0 then
+  begin
+    Dec(Result);
+    Remainder := Divisor + SignedRemainder;
+  end else
+    Remainder := SignedRemainder;
 end;
 
 {$endif read_implementation}

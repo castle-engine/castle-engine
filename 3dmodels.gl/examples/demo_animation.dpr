@@ -15,12 +15,20 @@
     ./demo_animation models/gus_1_final.wrl 0 models/gus_2_final.wrl 1
     ./demo_animation models/cube_opening_1_final.wrl 0 models/cube_opening_2_final.wrl 1
 
+  Additional command-line options are:
+    --loop
+    --backwards
+    --no-loop
+    --no-backwards
+  For precise meaning, see TVRMLGLAnimation documentation.
+  In short, --loop causes animation to loop and --backwards causes
+  animation to go backward after going forward.
+  The default is --loop --no-backwards.
+
   Example command with more scenes:
     ./demo_animation models/gus_1_final.wrl 0 \
                      models/gus_2_final.wrl 1 \
-                     models/gus_3_final.wrl 1.5 \
-                     models/gus_2_final.wrl 2 \
-                     models/gus_1_final.wrl 3
+                     models/gus_3_final.wrl 1.5 --backwards
 
   This is all implemented in TVRMLGLAnimation class, see docs of this class
   for precise description how things work.
@@ -45,7 +53,7 @@ program demo_animation;
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation, VRMLGLAnimation,
-  KambiFilesUtils;
+  KambiFilesUtils, ParseParametersUnit;
 
 const
   { How fast animation frames change. }
@@ -70,8 +78,6 @@ end;
 procedure Idle(glwin: TGLWindow);
 begin
   AnimationTime += AnimationSpeed * glwin.FpsCompSpeed;
-  if AnimationTime > Animation.TimeEnd then
-    AnimationTime := Animation.TimeBegin;
 end;
 
 procedure Init(glwin: TGLWindow);
@@ -95,11 +101,39 @@ begin
 end;
 
 var
+  AnimTimeLoop: boolean = true;
+  AnimTimeBackwards: boolean = false;
+
+const
+  Options: array[0..3] of TOption =
+  (
+    (Short:  #0; Long: 'loop'; Argument: oaNone),
+    (Short:  #0; Long: 'backwards'; Argument: oaNone),
+    (Short:  #0; Long: 'no-loop'; Argument: oaNone),
+    (Short:  #0; Long: 'no-backwards'; Argument: oaNone)
+  );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: AnimTimeLoop := true;
+      1: AnimTimeBackwards := true;
+      2: AnimTimeLoop := false;
+      3: AnimTimeBackwards := false;
+      else raise EInternalError.Create('OptionProc');
+    end;
+  end;
+
+var
   CamPos, CamDir, CamUp: TVector3Single;
   AnimRootNodes: array of TVRMLNode;
   AnimTimes: array of Single;
   I: Integer;
 begin
+  Glw.ParseParameters(StandardParseOptions);
+  ParseParameters(Options, OptionProc, nil);
+
   { parse parameters to AnimRootNodes and AnimTimes }
   if Odd(Parameters.High) then
     raise EInvalidParams.Create('You must supply even number of paramaters: ' +
@@ -117,6 +151,8 @@ begin
 
     Animation := TVRMLGLAnimation.Create(
       AnimRootNodes, AnimTimes, ScenesPerTime, roSceneAsAWhole);
+    Animation.TimeLoop := AnimTimeLoop;
+    Animation.TimeBackwards := AnimTimeBackwards;
 
     { get camera from 1st scene in Animation }
     Animation.Scenes[0].GetPerspectiveCamera(CamPos, CamDir, CamUp);
