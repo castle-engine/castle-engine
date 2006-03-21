@@ -24,7 +24,7 @@
 
 {$ifdef USE_LIBC}
 { opakowanie na libc.strerror. Zazwyczaj argumentem bedzie ErrNo. }
-function mStrError(ErrNum:integer):string;
+function KamStrError(ErrNum:integer):string;
 
 procedure checkIsProcInDLL(const dllname,procname:string);
 {$endif USE_LIBC}
@@ -44,7 +44,7 @@ function KamReadLink(const FileName: string): string;
 {$ifdef read_implementation}
 
 {$ifdef USE_LIBC}
-function mStrError(ErrNum:integer):string;
+function KamStrError(ErrNum:integer):string;
 var buf:array[0..79]of char;
     p:PChar;
 begin
