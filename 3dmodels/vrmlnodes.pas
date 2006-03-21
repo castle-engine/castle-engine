@@ -1555,7 +1555,8 @@ type
 
   { A general class that can ce used as a separator, something that
     pushes and pops all attribs and matrices.
-    It is used in implementation of Separator, WWWAnchor and WWWInline.}
+    It is used in implementation of Separator and WWWAnchor.
+    Also WWWInline does the same work, when it's "separate" field is true. }
   TNodeGeneralSeparator = class(TVRMLNode)
   private
     OriginalState: TVRMLGraphTraverseState;
@@ -1609,9 +1610,13 @@ type
     sa one SubNode'ami WWWInline. Mozesz testowac ChildrenCount <> 0
     aby sprawdzic czy Inlined zostaly juz zaladowane. Mozesz
     zazadac ich natychmiastowego zaladowania uzywajac LoadInlined. }
-  TNodeWWWInline = class(TNodeGeneralSeparator)
+  TNodeWWWInline = class(TVRMLNode)
+  private
+    OriginalState: TVRMLGraphTraverseState;
+    BeforeTraversePushedState: boolean;
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     { Call LoadInlined to load Inlined NOW. If Inlined is already loaded,
       than : if CanReload = true Inlined will be freed and loaded again,
@@ -1633,6 +1638,7 @@ type
     property FdName: TSFString index 0 read GetFieldAsSFString;
     property FdBboxSize: TSFVec3f index 1 read GetFieldAsSFVec3f;
     property FdBboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
+    property FdSeparate: TSFBool index 3 read GetFieldAsSFBool;
   end;
 
   TNodeFog = class(TVRMLNode)
@@ -2194,7 +2200,7 @@ var
   OldChild: TVRMLNode;
 begin
   { Inefficient implementation: RemoveChild(I); AddChild(I, Value); }
-  
+
   if Value <> FChildren[I] then
   begin
     Check( {is child allowed in AllowedChildren ?} AllowedChildren,
@@ -3733,8 +3739,8 @@ begin
  Fields.Add(TSFString.Create('name', ''));
  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(0, 0, 0)));
  Fields.Add(TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0)));
- { we must set fParsingAllowedChildren because we inherit value
-   AllVRMLNodeKinds from TNodeSeparator }
+ Fields.Add(TSFBool.Create('separate', true));
+
  fParsingAllowedChildren := false;
  fAllowedChildren := true;
 end;
@@ -3756,7 +3762,29 @@ end;
 procedure TNodeWWWInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
  inherited;
+
+ { We save here BeforeTraversePushedState, to be safe in case
+   someone will change FdSeparate.Value between BeforeTraverse
+   and AfterTraverse. }
+ BeforeTraversePushedState := FdSeparate.Value;
+ if BeforeTraversePushedState then
+ begin
+   OriginalState := State;
+   State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+ end;
+
  LoadInlined(false);
+end;
+
+procedure TNodeWWWInline.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+ if BeforeTraversePushedState then
+ begin
+   FreeAndNil(State);
+   State := OriginalState;
+ end;
+
+ inherited;
 end;
 
 constructor TNodeFog.Create(const ANodeName: string; const AWWWBasePath: string);
