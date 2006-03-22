@@ -99,8 +99,7 @@ begin
  glColor3f(0, 0,0);
  glRasterPos2i(margines + 20,
    (glwin.Height - ProgressInterface.ProgressFont.TextHeight('M')) div 2);
- ProgressInterface.ProgressFont.Print(
-   Progress.Title +' '+ Progress.DescribePosition);
+ ProgressInterface.ProgressFont.Print(Progress.TitleWithPosition);
 end;
 
 { TProgressGLInterface  ------------------------------------------------ }

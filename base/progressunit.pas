@@ -127,6 +127,7 @@ type
 
     FTitle: string;
     FActive: boolean;
+    FUseDescribePosition: boolean;
   public
     property UserInterface: TProgressUserInterface
       read FUserInterface write FUserInterface;
@@ -151,10 +152,18 @@ type
 
     { This function returns something like Format('(%d / %d)', [Position, Max]).
       In other words, this is some text that describes current value of
-      Position and Max. It may be shown to the user,
-      e.g. ProgressGL and ProgressVideo and ProgressF display text
-        Title +' '+ DescribePosition }
+      Position and Max. It may be shown to the user, see also TitleWithPosition
+      and UseDescribePosition properties. }
     function DescribePosition: string;
+
+    { This should be used by UserInterface to determine whether to show
+      somewhere DescribePosition value. }
+    property UseDescribePosition: boolean
+      read FUseDescribePosition write FUseDescribePosition default true;
+
+    { This returns Title glued with DescribePosition,
+      or (when UseDescribePosition is @false), it returns just Title. }
+    function TitleWithPosition: string;
 
     { You can call Init only when Active = false.
       Init initializes Max, Title, sets Position to 0 and changes
@@ -202,6 +211,13 @@ implementation
 function TProgress.DescribePosition: string;
 begin
  Result := Format('(%d / %d)', [Position, Max]);
+end;
+
+function TProgress.TitleWithPosition: string;
+begin
+  Result := Title;
+  if UseDescribePosition then
+    Result := Result + ' ' + DescribePosition;
 end;
 
 procedure TProgress.Init(AMax: Cardinal; const ATitle: string);
@@ -274,6 +290,7 @@ begin
  UpdatePart := DefaultUpdatePart;
  UpdateTicks := DefaultUpdateTicks;
  FActive := false;
+ FUseDescribePosition := true;
 end;
 
 initialization
