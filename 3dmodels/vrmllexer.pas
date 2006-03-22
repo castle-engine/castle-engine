@@ -33,10 +33,7 @@
       DEF, EXTERNPROTO, FALSE, IS, NULL, PROTO, ROUTE, TO, TRUE,
       USE, eventIn, eventOut, exposedField, field.
 
-      For VRML 1.0 only small subset of these (DEF, USE, FALSE, TRUE)
-
-      Additional keyword INCLUDE (intended to exist in VRML 1.0 and 97)
-      is my (Kambi) extension.)
+      For VRML 1.0 only small subset of these (DEF, USE, FALSE, TRUE).)
 
     @itemLabel name
     @item(
@@ -69,24 +66,7 @@
     @item(string (form : "char*" where char is either not " or \" sequence))
   )
 
-  Notki:
-  @unorderedList(
-    @item VRML jest case-sensitive
-    @item(TODO: to jest dopiero planowane:
-      Obsluga keyword INCLUDE jest zaimplementowana juz w tym lekserze.
-      Znaczy to tyle ze obiekt TVRMLLexer nigdy nie bedzie stal na takim tokenie,
-      tzn. nigdy nie bedzie (Token = vtKeyword and TokenKeyword = vkINCLUDE).
-      Z punktu widzenia parsera wywolujacego NextToken, caly plik VRMLa
-      bedzie podany juz w postaci "resolved", tzn. wszystkie INCLUDE zostana
-      juz wstawione na miejsce : tam gdzie w pliku beda dwa tokeny
-      INCLUDE "plik.wrl" tam parser bedzie dostawal po kolei tokeny jakie
-      beda odczytywane z pliku "plik.wrl" (czyli lekser utworzy sobie na chwile
-      pomocniczy lekser do czytania pliku "plik.wrl" i bedzie zwracal tokeny
-      z tego pomocniczego leksera; kiedy pomocniczy lekser zwroci vtEnd
-      pomocniczy lekser zostanie zakonczony i bedziemy dalej czytac
-      nastepne tokeny (za INCLUDE "plik.wrl") przy pomocy zasadniczego leksera).
-    )
-  )
+  Remember that VRML is case-sensitive.
 *)
 
 unit VRMLLexer;
@@ -105,11 +85,10 @@ uses SysUtils, Classes, KambiUtils, KambiClassUtils, Math
 { specification of valid VRML 1.0 and 2.0 keywords }
 type
   TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
-    vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField,
-    vkINCLUDE);
+    vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField);
   TVRMLKeywords = set of TVRMLKeyword;
 const
-  VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE, vkINCLUDE];
+  VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
 
 { VRML lexer token }
 type
@@ -164,8 +143,7 @@ type
     { to po prostu strumien ktory dostalismy jako parametr konstruktora.
       Nie mozesz na nim operowac kiedy juz zainicjowales lexera !
       Ale mozesz np. sprawdzic jego Position aby wiedziec gdzie mniej
-      wiecej bylismy w strumieniu gdy wystapil blad lexera.
-      (TODO - reconsider this after implementing INCLUDE keyword)}
+      wiecej bylismy w strumieniu gdy wystapil blad lexera. }
     property Stream: TPeekCharStream read FStream;
 
     { jedyna wersje VRML'a dopuszczalne przez jakiekolwiek specyfikacje
@@ -183,12 +161,7 @@ type
     property Token: TVRMLToken read fToken;
     { jezeli VRMLVersion = 1.0 to na pewno TokenKeyword in VRML10Keywords.
       Innymi slowy, gdy czytamy VRML 1.0 np. string "PROTO" zostanie potraktowany
-      jako token Name, nie keyword. I tak jest dobrze.
-
-      TODO: gdy tylko zaimplementujemy INCLUDE handling, bedzie mozna
-      polegac na fakcie ze nigdy TokenKeyword = vkINCLUDE (no, tzn, gdy
-      Token <> vtKeyword TokenKeyword jest ciagle undefined wiec wtedy wszystko
-      jest mozliwe) }
+      jako token Name, nie keyword. I tak jest dobrze. }
     property TokenKeyword: TVRMLKeyword read fTokenKeyword;
     property TokenName: string read fTokenName;
     property TokenFloat: Float read fTokenFloat;
@@ -255,27 +228,10 @@ type
     constructor Create(AStream: TPeekCharStream; const AWWWBasePath: string);
     destructor Destroy; override;
 
-    (* this field is not used anywhere in the Lexer but it MUST be defined
+    { This field is not used anywhere in the Lexer but it MUST be defined
       to something sensible. It is just some information
       "carried with" the lexer. We will use it when we parse nodes.
-      Look at TVRMLNode node for a description of this field.
-
-      TODO: when we implement INCLUDE handling here, what shall we do with
-        this ? Probably nothing - text INCLUDEd will have same WWWBasePath
-        as main file (this is sensible because INCLUDE is not limited to
-        contain some nodes or anything like that - it must only contain
-        some tokens, e.g. following situation is possible:
-          file1.wrl contents:
-            #VRML V1.0 ascii
-            INCLUDE "file2.wrl" 0 color 1 0 0 }
-          file2.wrl contents:
-            PointLight { location 0 0
-        and "file1.wrl" is considered a valid VRML. I.e. nodes, and even
-        fields!, may be "broken" into multiple files using INCLUDE
-        keyword.
-        I should add this comments to kambi-vrml.php as soon as I implement
-        INCLUDE keyword handling.
-    *)
+      See TVRMLNode.WWWBasePath for a description of this field. }
     WWWBasePath: string;
   end;
 
@@ -290,12 +246,7 @@ type
     { Lexer object must be valid for this call, it is not needed when
       constructor call finished (i.e. Lexer reference don't need to be
       valid for the lifetime of the exception; it must be valid only for
-      constructing the exception, later it can be Freed etc.)
-
-      TODO: when implementing INCLUDE keyword, specify here what Lexer
-      should be given: do we require here to get Lexer reading it's Stream
-      (not posredniczacy ?)
-    }
+      constructing the exception, later it can be Freed etc.) }
     constructor Create(Lexer: TVRMLLexer; const s: string);
   end;
   EVRMLParserError = class(EVRMLError)
@@ -309,8 +260,7 @@ type
 const
   VRMLKeywords: array[TVRMLKeyword]of string = (
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
-    'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
-    'INCLUDE');
+    'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field');
 
 const
   { to jest pelna sygnatura VRML'a 1.0. Niniejszy lekser tego nie uzywa
