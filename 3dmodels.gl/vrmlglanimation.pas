@@ -134,6 +134,10 @@ type
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
     function ScenesCount: Integer;
 
+    { Prepare all scenes for rendering. This just calls
+      PrepareRender(DoPrepareBackground, DoPrepareBoundingBox) for all Scenes. }
+    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox: boolean);
+
     { Close anything associated with current OpenGL context in this class.
       This calls CloseGL on every Scenes[], and additionally may close
       some other internal things here. }
@@ -579,6 +583,15 @@ end;
 function TVRMLGLAnimation.ScenesCount: Integer;
 begin
   Result := FScenes.Count;
+end;
+
+procedure TVRMLGLAnimation.PrepareRender(
+  DoPrepareBackground, DoPrepareBoundingBox: boolean);
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox);
 end;
 
 procedure TVRMLGLAnimation.CloseGL;

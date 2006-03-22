@@ -361,8 +361,11 @@ type
       mniej wiecej tyle samo czasu co wszystkie nastepne.
 
       If DoPrepareBackground then it will call PrepareBackground too.
-      Then this function will make next call to Background proceed fast. }
-    procedure PrepareRender(DoPrepareBackground: boolean);
+      Then this function will make next call to Background proceed fast.
+
+      If DoPrepareBoundingBox then it will also make sure that call to
+      BoundingBox is fast. }
+    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox: boolean);
 
     { Render : probably the most important function in this class,
       often it is the reason why this class is used.
@@ -541,7 +544,7 @@ type
       on such situations as change in RootNode scene, changes to
       BackgroundSkySphereRadius, CloseGL, Attrib_ColorModulatorSingle/Byte.
 
-      PrepareBackground (and PrepareRender(true)) automatically validate this
+      PrepareBackground (and PrepareRender(true, ...)) automatically validate this
       cache.
 
       Remember that this cache is connected with the current OpenGL context.
@@ -999,7 +1002,8 @@ begin
  finally glEndList end;
 end;
 
-procedure TVRMLFlatSceneGL.PrepareRender(DoPrepareBackground: boolean);
+procedure TVRMLFlatSceneGL.PrepareRender(
+  DoPrepareBackground, DoPrepareBoundingBox: boolean);
 var ShapeStateNum: Integer;
 begin
  case Optimization of
@@ -1022,6 +1026,8 @@ begin
  end;
 
  if DoPrepareBackground then PrepareBackground;
+
+ if DoPrepareBoundingBox then BoundingBox; { ignore the result }
 end;
 
 procedure TVRMLFlatSceneGL.Render(
