@@ -223,6 +223,12 @@ procedure Box3dBoundingSphere(const Box3d: TBox3d;
 
 function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
 
+{ This is just like Boxes3dCollision, but it takes into account only
+  XY plane. I.e. it works like Box1 and Box2 are infinitely large in the
+  Z coordinate. Or, in other words, this actually checks collision
+  of 2D rectangles obtained by projecting both boxes on plane XY. }
+function Boxes3dXYCollision(const Box1, Box2: TBox3d): boolean;
+
 implementation
 
 function IsEmptyBox3d(const Box: TBox3d): boolean;
@@ -347,7 +353,7 @@ function CalculateBoundingBox(
   algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
   3/2*n zamiast 2*n ? }
 
-  function find_extremum(chooseFunc: TChoose1From2_Single; 
+  function find_extremum(chooseFunc: TChoose1From2_Single;
     coord: integer): Single;
   var i: integer;
   begin
@@ -876,6 +882,15 @@ begin
     (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
     (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1]))) and
     (not ((Box1[1, 2] < Box2[0, 2]) or (Box2[1, 2] < Box1[0, 2])));
+end;
+
+function Boxes3dXYCollision(const Box1, Box2: TBox3d): boolean;
+begin
+  Result :=
+    (not IsEmptyBox3d(Box1)) and
+    (not IsEmptyBox3d(Box2)) and
+    (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
+    (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1])));
 end;
 
 end.
