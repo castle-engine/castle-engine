@@ -1358,11 +1358,15 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
   )
 
   W kwestii opcjonalnego [NoScale] w nazwie : TAK, dlugosci wektorow
-  Old/NewX/Y/Z sa wazne - one beda odpowiadac wektorom (1, 0, 0), (0, 1, 0) i (0, 0, 1)
+  Old/NewX/Y/Z sa wazne - one beda odpowiadac wektorom
+  (1, 0, 0), (0, 1, 0) i (0, 0, 1)
   a wiec wektorom jednostkowym. W ten sposob mozna wiec zrobic skalowanie.
 
   Uzyj wersji NoScale aby wektory Old/NewX/Y/Z byly automatycznie
-  normalizowane, w ten sposob nie bedzie skalowania. }
+  normalizowane, w ten sposob nie bedzie skalowania. Speed remark:
+  note that NoScale versions call three times Normalized, so they
+  do 3 times Sqrt. Versions without "NoScale" don't do this, so they are
+  faster. }
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3Single): TMatrix4Single; overload;
 function TransformToCoordsMatrix(const NewOrigin,
