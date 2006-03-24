@@ -229,6 +229,24 @@ function Boxes3dCollision(const Box1, Box2: TBox3d): boolean;
   of 2D rectangles obtained by projecting both boxes on plane XY. }
 function Boxes3dXYCollision(const Box1, Box2: TBox3d): boolean;
 
+{ This calculates maximum Sqr(distance) of 8 box points to the (0, 0, 0)
+  point. This can be useful when you want to get bounding sphere,
+  centered in (0, 0, 0), around this Box. }
+function Box3dSqrRadius(const Box: TBox3d): Single;
+
+{ Just like Box3dSqrRadius, but this returns correct value
+  (not it's Sqr). Speed note: you pay here one Sqrt operation. }
+function Box3dRadius(const Box: TBox3d): Single;
+
+{ This is like projecting Box on XY plane (i.e. we just ignore Z
+  coords of Box points here), and then calculates maximum Sqr(distance)
+  in place XY of 4 Box corners to point (0, 0). }
+function Box3dXYSqrRadius(const Box: TBox3d): Single;
+
+{ Just like Box3dXYSqrRadius, but this returns correct value
+  (not it's Sqr). Speed note: you pay here one Sqrt operation. }
+function Box3dXYRadius(const Box: TBox3d): Single;
+
 implementation
 
 function IsEmptyBox3d(const Box: TBox3d): boolean;
@@ -891,6 +909,38 @@ begin
     (not IsEmptyBox3d(Box2)) and
     (not ((Box1[1, 0] < Box2[0, 0]) or (Box2[1, 0] < Box1[0, 0]))) and
     (not ((Box1[1, 1] < Box2[0, 1]) or (Box2[1, 1] < Box1[0, 1])));
+end;
+
+function Box3dSqrRadius(const Box: TBox3d): Single;
+begin
+  Result := Max(
+    Max(Max(VectorLenSqr(Vector3Single(Box[0, 0], Box[0, 1], Box[0, 2])),
+            VectorLenSqr(Vector3Single(Box[1, 0], Box[0, 1], Box[0, 2]))),
+        Max(VectorLenSqr(Vector3Single(Box[1, 0], Box[1, 1], Box[0, 2])),
+            VectorLenSqr(Vector3Single(Box[0, 0], Box[1, 1], Box[0, 2])))),
+    Max(Max(VectorLenSqr(Vector3Single(Box[0, 0], Box[0, 1], Box[1, 2])),
+            VectorLenSqr(Vector3Single(Box[1, 0], Box[0, 1], Box[1, 2]))),
+        Max(VectorLenSqr(Vector3Single(Box[1, 0], Box[1, 1], Box[1, 2])),
+            VectorLenSqr(Vector3Single(Box[0, 0], Box[1, 1], Box[1, 2])))));
+end;
+
+function Box3dRadius(const Box: TBox3d): Single;
+begin
+  Result := Sqrt(Box3dSqrRadius(Box));
+end;
+
+function Box3dXYSqrRadius(const Box: TBox3d): Single;
+begin
+  Result := Max(
+    Max(VectorLenSqr(Vector2Single(Box[0, 0], Box[0, 1])),
+        VectorLenSqr(Vector2Single(Box[1, 0], Box[0, 1]))),
+    Max(VectorLenSqr(Vector2Single(Box[1, 0], Box[1, 1])),
+        VectorLenSqr(Vector2Single(Box[0, 0], Box[1, 1]))));
+end;
+
+function Box3dXYRadius(const Box: TBox3d): Single;
+begin
+  Result := Sqrt(Box3dXYSqrRadius(Box));
 end;
 
 end.
