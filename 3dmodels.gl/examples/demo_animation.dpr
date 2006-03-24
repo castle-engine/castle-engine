@@ -3,6 +3,7 @@
   Run this passing an even number of command-line parameters.
   Each parameters pair specifies scene filename, and position in time
   of this scene. Scenes must be specified in increasing order of time.
+  Time is in seconds.
 
   Effect: this will display animation going from 1st scene to the 2nd,
   then to the 3rd etc. to the last scene. And then it will
@@ -56,9 +57,6 @@ uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow
   KambiFilesUtils, ParseParametersUnit;
 
 const
-  { How fast animation frames change. }
-  AnimationSpeed = 0.01;
-
   { This is the number of animation frames constructed per one unit of time.
     Increase this to get smoother animation. }
   ScenesPerTime = 100;
@@ -77,7 +75,7 @@ end;
 
 procedure Idle(glwin: TGLWindow);
 begin
-  AnimationTime += AnimationSpeed * glwin.FpsCompSpeed;
+  AnimationTime += glwin.FpsCompSpeed / 50;
 end;
 
 procedure Init(glwin: TGLWindow);
