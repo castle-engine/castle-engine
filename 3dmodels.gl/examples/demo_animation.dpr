@@ -95,7 +95,7 @@ begin
   glViewport(0, 0, glwin.Width, glwin.Height);
   ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
     Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 0.05,
-    Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 3.0);
+    Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 10.0);
 end;
 
 var

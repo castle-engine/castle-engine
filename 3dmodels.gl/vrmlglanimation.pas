@@ -146,6 +146,11 @@ type
     { Just a shortcut for TimeEnd - TimeBegin. }
     function TimeDuration: Single;
 
+    { This is TimeDuration * 2 if TimeBackwards, otherwise it's just
+      TimeDuration. In other words, this is the time of the one "full"
+      (forward + backward) animation. }
+    function TimeDurationWithBack: Single;
+
     { First and last time that you passed to constructor.
       In other words, Times[0] and Times[High(Times)].
       @groupBegin }
@@ -603,6 +608,13 @@ end;
 function TVRMLGLAnimation.TimeDuration: Single;
 begin
   Result := TimeEnd - TimeBegin;
+end;
+
+function TVRMLGLAnimation.TimeDurationWithBack: Single;
+begin
+  Result := TimeDuration;
+  if TimeBackwards then
+    Result *= 2;
 end;
 
 function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
