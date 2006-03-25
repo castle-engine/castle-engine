@@ -275,6 +275,8 @@ type
     FKey_Jump: TKey;
     FKey_Crouch: TKey;
 
+    FAllowSlowerRotations: boolean;
+
     FMinAngleRadFromHomeUp: Single;
 
     { Private things related to frustum ---------------------------- }
@@ -391,7 +393,7 @@ type
       W tej chwili klawisze wszystkie ponizsze klawisze dzialaja gdy
       wszystkie modifiery sa OFF, za wyjatkiem Key_Right/LeftRot i
       KeyUp/DownRotate ktore uzyskuja specjalne znaczenie gdy dziala modifier
-      Ctrl : obracaja 10 razy wolniej. }
+      Ctrl (see AllowSlowerRotations). }
 
     { }
     property Key_Forward: TKey read FKey_Forward write FKey_Forward
@@ -435,6 +437,13 @@ type
     property Key_Crouch: TKey read FKey_Crouch write FKey_Crouch
       default WalkerDefaultKey_Crouch;
     { @groupEnd }
+
+    { If @true then all rotation keys
+      (Key_RightRot, Key_LeftRot, Key_UpRotate, Key_DownRotate)
+      will work 10x slower when Ctrl modified is pressed. }
+    property AllowSlowerRotations: boolean
+      read FAllowSlowerRotations write FAllowSlowerRotations
+      default true;
 
     { General stuff ----------------------------------------------------- }
 
@@ -990,6 +999,7 @@ begin
   FCrouchHeight := DefaultCrouchHeight;
   FMaxJumpHeight := DefaultMaxJumpHeight;
   FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
+  FAllowSlowerRotations := true;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1674,7 +1684,7 @@ begin
     if KeysDown^[Key_Jump] then
       Jump;
   end else
-  if ModsDown = [mkCtrl] then
+  if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
   begin
     CheckRotates(0.1);
   end;
