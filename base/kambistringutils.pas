@@ -48,7 +48,9 @@ unit KambiStringUtils;
 
 interface
 
-uses Variants, SysUtils, KambiUtils;
+uses 
+  {$ifdef WIN32} Windows, {$endif}
+  Variants, SysUtils, KambiUtils;
 
 type
   { }
