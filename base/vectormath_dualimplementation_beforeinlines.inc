@@ -88,6 +88,7 @@ begin
  result[0] := v1[0] * Scalar;
  result[1] := v1[1] * Scalar;
  result[2] := v1[2] * Scalar;
+ result[3] := v1[3] * Scalar;
 end;
 
 procedure VectorScaleTo1st(var v1: TYPE_VECTOR2; const Scalar: TYPE_SCALAR);
