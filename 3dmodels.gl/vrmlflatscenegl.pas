@@ -868,7 +868,7 @@ begin
  FLastRender_RenderedShapeStatesCount := 0;
  FLastRender_AllShapeStatesCount := ShapeStates.Count;
 
- RenderBeginSimple;
+ RenderBeginProc;
  try
   glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   try
@@ -930,7 +930,7 @@ begin
    end;
 
   finally glPopAttrib end;
- finally RenderEndSimple end;
+ finally RenderEndProc end;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin(Mode: TGLenum);
