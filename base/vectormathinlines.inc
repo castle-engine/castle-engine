@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ don't use VectorMathInlines now - due to some bugs in fpc 1.0.10 
+{ don't use VectorMathInlines now - due to some bugs in fpc 1.0.10
   (not tested under 1.1 now so I hadn't even tried to separate these
   bugs and submit them) }
 { $define USE_VECTOR_MATH_INLINES}
@@ -29,9 +29,9 @@
   zarowno w deklaracjach funkcji w tym pliku sa de facto uzywane nazwy "_Inlined"
   i w kodzie ktory bedzie napisany po wlaczeniu tego pliku tez wszystkie
   uzycia tych funkcji beda widziane przez kompilator jako nazwy z "_Inlined".
-  W ten sposob kompilator nie bedzie chcial uzywac wersji tych funkcji 
-  z VectorMath (co mialoby miejsce bez tych deklaracji, bo tu i w VectorMath 
-  wiele rzeczy jest overloaded i kompilator chcialby robic cross-unit 
+  W ten sposob kompilator nie bedzie chcial uzywac wersji tych funkcji
+  z VectorMath (co mialoby miejsce bez tych deklaracji, bo tu i w VectorMath
+  wiele rzeczy jest overloaded i kompilator chcialby robic cross-unit
   overloading) }
 
 {$define VectorSubtract:=VectorSubtract_Inlined}
@@ -48,7 +48,7 @@
 {$define VectorMultEachPosTo1st:=VectorMultEachPosTo1st_Inlined}
 
 { --------------------------------------------------------------------------------
-  zasadniczy kod w makrze dual implementation } 
+  zasadniczy kod w makrze dual implementation }
 
 {$define VECTOR_MATH_INLINES_DUAL_IMPLEMENTATION:=
 function VectorSubtract(const v1,v2:TYPE_VECTOR2):TYPE_VECTOR2; inline; overload;
@@ -76,7 +76,7 @@ begin
  v1[1] -= v2[1];
  v1[2] -= v2[2];
 end;
-  
+
 function VectorAdd(const v1,v2:TYPE_VECTOR2):TYPE_VECTOR2; inline; overload;
 begin
  result[0]:=v1[0] + v2[0];
@@ -116,17 +116,25 @@ begin
  result[2]:=v1[2] * Scalar;
 end;
 
-procedure VectorScaleTo1st(var v1:TYPE_VECTOR2; Scalar:TYPE_SCALAR); inline; overload;
+procedure VectorScaleTo1st(var v1:TYPE_VECTOR2; const Scalar:TYPE_SCALAR); inline; overload;
 begin
  v1[0] *= Scalar;
  v1[1] *= Scalar;
 end;
 
-procedure VectorScaleTo1st(var v1:TYPE_VECTOR3; Scalar:TYPE_SCALAR); inline; overload;
+procedure VectorScaleTo1st(var v1:TYPE_VECTOR3; const Scalar:TYPE_SCALAR); inline; overload;
 begin
  v1[0] *= Scalar;
  v1[1] *= Scalar;
  v1[2] *= Scalar;
+end;
+
+procedure VectorScaleTo1st(var v1: TYPE_VECTOR4; const Scalar: TYPE_SCALAR); inline; overload;
+begin
+ v1[0] *= Scalar;
+ v1[1] *= Scalar;
+ v1[2] *= Scalar;
+ v1[3] *= Scalar;
 end;
 
 function VectorNegate(const v:TYPE_VECTOR2):TYPE_VECTOR2; inline; overload;
