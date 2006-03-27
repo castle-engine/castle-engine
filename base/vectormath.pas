@@ -752,13 +752,26 @@ procedure VectorExpEachPosTo1st(var v: TVector3Single; const Exp: Single); overl
 procedure VectorExpEachPosTo1st(var v: TVector3Double; const Exp: Double); overload;
 
 { zwraca cosinus kata pomiedzy wektorami. EVectorMathInvalidOp if v1 or v2
-  = (0, 0, 0) }
+  = (0, 0, 0).
+
+  Speed note: this costs you one Sqrt.
+  Better use CosAngleBetweenNormals when possible, this avoids Sqrt
+  (but assumes that arguments have length = 1). }
 function CosAngleBetweenVectors(const v1, v2: TVector3Single): Single; overload;
 function CosAngleBetweenVectors(const v1, v2: TVector3Double): Double; overload;
+function CosAngleBetweenNormals(const v1, v2: TVector3Single): Single; overload;
+function CosAngleBetweenNormals(const v1, v2: TVector3Double): Double; overload;
+
 { zwraca kat pomiedzy wektorami w radianach. Zawsze zwraca Pi>= kat >=0.
-  EVectorMathInvalidOp if v1 or v2 = (0, 0, 0) }
+  EVectorMathInvalidOp if v1 or v2 = (0, 0, 0).
+
+  Speed note: this costs you one ArcCos, and one Sqrt.
+  Better use AngleRadBetweenNormals when possible, this avoids Sqrt
+  (but assumes that arguments have length = 1). }
 function AngleRadBetweenVectors(const v1, v2: TVector3Single): Single; overload;
 function AngleRadBetweenVectors(const v1, v2: TVector3Double): Double; overload;
+function AngleRadBetweenNormals(const v1, v2: TVector3Single): Single; overload;
+function AngleRadBetweenNormals(const v1, v2: TVector3Double): Double; overload;
 
 { obroc punkt pt o angleDeg stopni wokol osi wyznaczonej przez wektor axisVec
   zaczepiony w punkcie (0, 0, 0). Zwroc wynik.

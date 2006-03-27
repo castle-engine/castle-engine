@@ -136,6 +136,16 @@ begin
  result := ArcCos(CosAngleBetweenVectors(v1, v2));
 end;
 
+function CosAngleBetweenNormals(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+begin
+ result := Clamped(VectorDotProduct(v1, v2), -1.0, 1.0);
+end;
+
+function AngleRadBetweenNormals(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+begin
+ result := ArcCos(CosAngleBetweenNormals(v1, v2));
+end;
+
 function Normalized(const v: TYPE_VECTOR3): TYPE_VECTOR3;
 begin result := v; NormalizeTo1st(result) end;
 

@@ -69,6 +69,10 @@ uses SysUtils, KambiUtils, VectorMath;
   smooth na 2 pozostalych. Albo np. na 2, 1, 1 (czyli dwie sciany smoothed
   ze soba, dwie pozostale flat).
 
+  Note that when creaseAngleRad >= Pi, this will be equivalent to
+  CreateSmoothNormals (in fact, it will call CreateSmoothNormals,
+  because CreateSmoothNormals works faster).
+
   (Pamietaj zwolnic pozniej zwrocony obiekt przez Free.) }
 function CreateNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
@@ -117,18 +121,23 @@ end;
 
 function CreateNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
-  creaseAngleRad: Single;
+  CreaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
-var faces: TDynFaceArray; { lista faces }
-    { Lista dlugosci vertices.Count ktorej kazdy element mowi do jakich
-        faces nalezy ten vertex (to znaczy podaje indeksy do tablicy faces[]).
-      Jezeli faces byly nieprawidlowe (w ktorym to przypadku staramy sie
-        w calym tym module zachowac mozliwie sensownie) to dany vertex moze
-        byc wiecej niz jeden raz na jednym faces - to nic, w tej tablicy
-        bedzie odpowiednie face wymienione tylko raz. }
-    verticesFaces: PArray_TDynIntegerArray;
+var
+  faces: TDynFaceArray; { lista faces }
 
-    normals: TDynVector3SingleArray absolute result;
+  { Lista dlugosci vertices.Count ktorej kazdy element mowi do jakich
+    faces nalezy ten vertex (to znaczy podaje indeksy do tablicy faces[]).
+
+    Jezeli faces byly nieprawidlowe (w ktorym to przypadku staramy sie
+    w calym tym module zachowac mozliwie sensownie) to dany vertex moze
+    byc wiecej niz jeden raz na jednym faces - to nic, w tej tablicy
+    bedzie odpowiednie face wymienione tylko raz. }
+  verticesFaces: PArray_TDynIntegerArray;
+
+  normals: TDynVector3SingleArray absolute result;
+
+  CosCreaseAngle: Single;
 
   procedure CalculateFacesAndVerticesFaces;
   var thisFace: PFace;
@@ -202,17 +211,25 @@ var faces: TDynFaceArray; { lista faces }
     { ustalane na poczatku na verticesFaces[vertexNum] }
     thisVertexFaces: TDynIntegerArray;
 
-    function FaceCanBeSmoothedWithFaces(faceNum: integer; faceNums: TDynIntegerArray): boolean;
+    function FaceCanBeSmoothedWithFaces(faceNum: integer;
+      faceNums: TDynIntegerArray): boolean;
     { czy sciana faceNum moze byc smooth razem ze wszystkimi scianami z faceNums ?
       To tutaj uwzgledniamy creaseAngleRad. faceNum  i faceNums[] to
       indeksy do tablicy thisVertexFaces. }
     var i: integer;
     begin
      for i := 0 to faceNums.Count-1 do
-      if AngleRadBetweenVectors(
-        faces.Items[thisVertexFaces[faceNum]].Normal,
-        faces.Items[thisVertexFaces[faceNums[i]]].Normal) >= creaseAngleRad then
-       exit(false);
+      { I want to check that
+          AngleRadBetweenNormals(...) >= CreaseAngleRad
+        so
+          ArcCos(CosAngleRadBetweenNormals(...)) >= CreaseAngleRad
+        so
+          CosAngleBetweenNormals(...) < CosCreaseAngle }
+      if CosAngleBetweenNormals(
+        faces.Items[thisVertexFaces.Items[faceNum]].Normal,
+        faces.Items[thisVertexFaces.Items[faceNums[i]]].Normal) <
+        CosCreaseAngle then
+       Exit(false);
      result := true;
     end;
 
@@ -267,6 +284,11 @@ var faces: TDynFaceArray; { lista faces }
 
 var i: integer;
 begin
+ if CreaseAngleRad >= Pi then
+   Exit(CreateSmoothNormals(coordIndex, vertices, FromCCW));
+
+ CosCreaseAngle := Cos(CreaseAngleRad);
+
  normals := nil;
  verticesFaces := nil;
  faces := nil;
@@ -324,17 +346,18 @@ begin
     StartIndex := i;
     while (i < coordIndex.Count) and (coordIndex.Items[i] >= 0) do Inc(i);
     FaceNormal := IndexedPolygonNormal(
-       @(coordIndex.Items[StartIndex]),
-       i-StartIndex,
-       Vertices.Items, Vector3Single(0, 0, 0));
+      @(coordIndex.Items[StartIndex]),
+      i-StartIndex,
+      Vertices.Items, Vector3Single(0, 0, 0));
     {dodaj FaceNormal do normali wszystkich punktow tej face}
     for j := StartIndex to i-1 do
-     VectorAddTo1st(VertNormals.Items[coordIndex.Items[j]], FaceNormal);
+      VectorAddTo1st(VertNormals.Items[coordIndex.Items[j]], FaceNormal);
 
     Inc(i);
    end;
 
-   for i := 0 to VertNormals.Count-1 do NormalizeTo1st(VertNormals.Items[i]);
+   for i := 0 to VertNormals.Count-1 do
+     NormalizeTo1st(VertNormals.Items[i]);
 
    for i := 0 to coordIndex.Count-1 do
     if coordIndex.Items[i] >= 0 then
