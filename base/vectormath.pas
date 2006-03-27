@@ -2198,26 +2198,59 @@ begin
 end;
 
 function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
+var
+  Divisor: Single;
 begin
- result := Vector3SinglePoint(MultMatrixVector(m, Vector4Single(pt)));
+  { Simple implementation:
+  Result := Vector3SinglePoint(MultMatrixVector(m, Vector4Single(pt))); }
+
+  Result[0] := M[0, 0] * Pt[0] + M[1, 0] * Pt[1] + M[2, 0] * Pt[2] + M[3, 0];
+  Result[1] := M[0, 1] * Pt[0] + M[1, 1] * Pt[1] + M[2, 1] * Pt[2] + M[3, 1];
+  Result[2] := M[0, 2] * Pt[0] + M[1, 2] * Pt[1] + M[2, 2] * Pt[2] + M[3, 2];
+
+  { It looks strange, but the check below usually pays off.
+
+    Tests: 17563680 calls of this proc within Creatures.PrepareRender
+    inside "The Castle", gprof says that time without this check
+    is 12.01 secs and with this checks it's 8.25.
+
+    Why ? Because in 99% of situations, the conditions "(M[0, 3] = 0) and ..."
+    is true. Because that's how all usual matrices in 3D graphics
+    (translation, rotation, scaling) look like.
+    So usually I pay 4 comparisons (exact comparisons, not things like
+    FloatsEqual) and I avoid 3 multiplications, 4 additions and
+    3 divisions. }
+
+  if not (
+    (M[0, 3] = 0) and
+    (M[1, 3] = 0) and
+    (M[2, 3] = 0) and
+    (M[3, 3] = 1)) then
+  begin
+    Divisor := M[0, 3] * Pt[0] + M[1, 3] * Pt[1] + M[2, 3] * Pt[2] + M[3, 3];
+
+    Result[0] /= Divisor;
+    Result[1] /= Divisor;
+    Result[2] /= Divisor;
+  end;
 end;
 
 function MultMatrixVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single;
 {var i, j: integer;}
 begin
- {
- for i := 0 to 3 do
- begin
-  result[i] := 0;
-  for j := 0 to 3 do result[i] := result[i] + m[j, i]*v[j];
- end;
+  {
+  for i := 0 to 3 do
+  begin
+   result[i] := 0;
+   for j := 0 to 3 do result[i] := result[i] + m[j, i]*v[j];
+  end;
 
- Code expanded for the sake of speed:}
+  Code expanded for the sake of speed:}
 
- Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2] + M[3, 0] * V[3];
- Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2] + M[3, 1] * V[3];
- Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2] + M[3, 2] * V[3];
- Result[3] := M[0, 3] * V[0] + M[1, 3] * V[1] + M[2, 3] * V[2] + M[3, 3] * V[3];
+  Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2] + M[3, 0] * V[3];
+  Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2] + M[3, 1] * V[3];
+  Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2] + M[3, 2] * V[3];
+  Result[3] := M[0, 3] * V[0] + M[1, 3] * V[1] + M[2, 3] * V[2] + M[3, 3] * V[3];
 end;
 
 function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
