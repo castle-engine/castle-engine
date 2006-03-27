@@ -354,14 +354,19 @@ Box3dPointInside_IMPLEMENT
 function Box3dPointInside(const pt: TVector3Double; const box: TBox3d): boolean;
 Box3dPointInside_IMPLEMENT
 
-{ min i max _Single przydadza sie nam ponizej do CalculateBoundingBox }
-  type TChoose1From2_Single= function(a, b: Single): Single;
+{ MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }
+type
+  TChooseOneTo1st_Single = procedure (var A: Single; const B: Single);
 
-  function max_Single(a, b: Single): Single;
-  begin if a > b then result := a else result := b end;
+procedure MaxSingleTo1st(var A: Single; const B: Single);
+begin
+  if A < B then A := B;
+end;
 
-  function min_Single(a, b: Single): Single;
-  begin if a < b then result := a else result := b end;
+procedure MinSingleTo1st(var A: Single; const B: Single);
+begin
+  if A > B then A := B;
+end;
 
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
@@ -371,13 +376,13 @@ function CalculateBoundingBox(
   algorytmu MinMax ktory znajduje min i max jednoczesnie w czasie
   3/2*n zamiast 2*n ? }
 
-  function find_extremum(chooseFunc: TChoose1From2_Single;
+  function find_extremum(ChooseFuncTo1st: TChooseOneTo1st_Single;
     coord: integer): Single;
   var i: integer;
   begin
    result := GetVertex(0)[coord];
    for i := 1 to VertsCount-1 do
-    result := ChooseFunc(result, GetVertex(i)[coord]);
+     ChooseFuncTo1st(Result, GetVertex(i)[coord]);
   end;
 
 begin
@@ -387,12 +392,12 @@ begin
   exit
  end;
 
- result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 0);
- result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 1);
- result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 2);
- result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 0);
- result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 1);
- result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 2);
+ result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 0);
+ result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 1);
+ result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 2);
+ result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 0);
+ result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 1);
+ result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 2);
 end;
 
 type
@@ -455,7 +460,8 @@ function CalculateBoundingBoxFromIndices(
   Zwracamy EmptyBox3d wtw. gdy firstIndex nie istnieje }
 var firstIndexNum: integer;
 
-  function find_extremum(chooseFunc: TChoose1From2_Single; coord: integer): Single;
+  function find_extremum(ChooseFuncTo1st: TChooseOneTo1st_Single;
+    coord: integer): Single;
   var indexNum, index: integer;
   begin
    result := GetVertex(GetVertIndex(firstIndexNum))[coord];
@@ -463,7 +469,7 @@ var firstIndexNum: integer;
    begin
     index := GetVertIndex(indexNum);
     if index >= 0 then
-     result := chooseFunc(result, GetVertex(index)[coord]);
+      ChooseFuncTo1st(Result, GetVertex(index)[coord]);
    end;
   end;
 
@@ -479,12 +485,12 @@ begin
   exit;
  end;
 
- result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 0);
- result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 1);
- result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} min_Single, 2);
- result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 0);
- result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 1);
- result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} max_Single, 2);
+ result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 0);
+ result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 1);
+ result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 2);
+ result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 0);
+ result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 1);
+ result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 2);
 end;
 
 type
@@ -517,35 +523,35 @@ begin
 end;
 
 function Box3dSum(const box1, box2: TBox3d): TBox3d;
-var k: integer;
 begin
- if IsEmptyBox3d(box1) then
-  result := box2 else
- if IsEmptyBox3d(box2) then
-  result := box1 else
- begin
-  for k := 0 to 2 do
+  if IsEmptyBox3d(box1) then
+    Result := box2 else
+  if IsEmptyBox3d(box2) then
+    Result := box1 else
   begin
-   result[0, k] := min(box1[0, k], box2[0, k]);
-   result[1, k] := max(box1[1, k], box2[1, k]);
+    result[0, 0] := min(box1[0, 0], box2[0, 0]);
+    result[1, 0] := max(box1[1, 0], box2[1, 0]);
+    result[0, 1] := min(box1[0, 1], box2[0, 1]);
+    result[1, 1] := max(box1[1, 1], box2[1, 1]);
+    result[0, 2] := min(box1[0, 2], box2[0, 2]);
+    result[1, 2] := max(box1[1, 2], box2[1, 2]);
   end;
- end;
 end;
 
 procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d);
-var k: integer;
 begin
- if IsEmptyBox3d(box2) then
-  exit else
- if IsEmptyBox3d(box1) then
-  box1 := box2 else
- begin
-  for k := 0 to 2 do
+  if IsEmptyBox3d(box2) then
+    Exit else
+  if IsEmptyBox3d(box1) then
+    box1 := box2 else
   begin
-   box1[0, k] := min(box1[0, k], box2[0, k]);
-   box1[1, k] := max(box1[1, k], box2[1, k]);
+    MinTo1st(box1[0, 0], box2[0, 0]);
+    MaxTo1st(box1[1, 0], box2[1, 0]);
+    MinTo1st(box1[0, 1], box2[0, 1]);
+    MaxTo1st(box1[1, 1], box2[1, 1]);
+    MinTo1st(box1[0, 2], box2[0, 2]);
+    MaxTo1st(box1[1, 2], box2[1, 2]);
   end;
- end;
 end;
 
 function Box3dSizes(const box: TBox3d): TVector3Single;
