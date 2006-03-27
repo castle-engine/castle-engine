@@ -317,7 +317,7 @@ end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
 begin
- System.FillChar(A^, SizeOf(ItemSize)*Length, FillValue);
+ System.FillChar(A^, ItemSize * Length, FillValue);
 end;
 
 procedure TDynArrayBase.Reverse;
