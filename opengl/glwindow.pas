@@ -712,13 +712,13 @@ type
   TMouseButtons = set of TMouseButton;
 
   TIdleFunc = procedure;
-  TGLWindowFunc = procedure(glwin: TGLWindow);
+  TGLWindowFunc = procedure(Glwin: TGLWindow);
   TDrawFunc = TGLWindowFunc;
-  TKeyFunc = procedure(glwin: TGLwindow; key: TKey);
-  TKeyCharFunc = procedure(glwin: TGLwindow; Key: TKey; c: char);
-  TMouseMoveFunc = procedure(glwin: TGLWindow; newX, newY: integer);
-  TMouseUpDownFunc = procedure(glwin: TGLWindow; btn: TMouseButton);
-  TMenuCommandFunc = procedure(glwin: TGLWindow; Item: TMenuItem);
+  TKeyFunc = procedure(Glwin: TGLWindow; Key: TKey);
+  TKeyCharFunc = procedure(Glwin: TGLWindow; Key: TKey; C: char);
+  TMouseMoveFunc = procedure(Glwin: TGLWindow; NewX, NewY: Integer);
+  TMouseUpDownFunc = procedure(Glwin: TGLWindow; Button: TMouseButton);
+  TMenuCommandFunc = procedure(Glwin: TGLWindow; Item: TMenuItem);
 
   TDynArrayItem_2 = TGLWindowFunc;
   PDynArrayItem_2 = ^TGLWindowFunc;
