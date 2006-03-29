@@ -235,9 +235,11 @@ function MessageInputQuerySingle(glwin: TGLWindow; const Title: string;
   jakas (jakakolwiek !) MessageXxx dziala. }
 type
   TGLWinMessageColors = record
-    { kolor wnetrza prostokata (albo stipple'a, jesli <> nil) }
-    RectCol,
-    { kolor ramki prostokata }
+    { Color of the inside area in the message rectangle
+      (or of the stipple, if it's <> nil).
+      If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
+    RectColor: TVector4f;
+    { Color of the frame of the rectangle. }
     RectBorderCol,
     ScrollBarCol,
     ClosingInfoCol,
@@ -249,7 +251,7 @@ const
   { TODO: tymczasowa wada starych wersji FPC uniemozliwia mi tu uzywanie
     ladnych nazw dla kolorow }
   GLWinMessageColors_Standard: TGLWinMessageColors =
-  ( RectCol: (0, 0, 0);               { = Black3f }
+  ( RectColor: (0, 0, 0, 1);               { = Black3f }
     RectBorderCol: (1, 1, 0.33);       { = Yellow3f }
     ScrollBarCol: (0.5, 0.5, 0.5);    { = Gray3f }
     ClosingInfoCol: (1, 1, 0.33);      { = Yellow3f }
@@ -257,7 +259,7 @@ const
     TextCol: (1, 1, 1)                { = White3f }
   );
   GLWinMessageColors_TypicalGUI: TGLWinMessageColors =
-  ( RectCol: (0.75, 0.75, 0.66);
+  ( RectColor: (0.75, 0.75, 0.66, 1);
     RectBorderCol: (0.87, 0.87, 0.81);
     ScrollBarCol: (0.87, 0.87, 0.81);
     ClosingInfoCol: (0.4, 0, 1);
@@ -662,15 +664,21 @@ begin
        MD.ClosingInfoBoxHeight,
      glwin.Height - WindMargin*2));
 
- { draw MessageRect (using MessageRectStipple, MessageCols.RectCol,
+ { draw MessageRect (using MessageRectStipple, MessageCols.RectColor,
    MessageCols.RectBorderCol) }
  if MessageRectStipple <> nil then
  begin
-  KamGLPolygonStipple(MessageRectStipple);
-  glEnable(GL_POLYGON_STIPPLE);
+   KamGLPolygonStipple(MessageRectStipple);
+   glEnable(GL_POLYGON_STIPPLE);
+ end;
+ if MessageCols.RectColor[3] <> 1.0 then
+ begin
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+   glEnable(GL_BLEND);
  end;
  DrawGLBorderedRectangle(MessageRect,
-   Vector4f(MessageCols.RectCol), Vector4f(MessageCols.RectBorderCol));
+   MessageCols.RectColor, Vector4f(MessageCols.RectBorderCol));
+ glDisable(GL_BLEND);
  glDisable(GL_POLYGON_STIPPLE);
 
  { Now draw MD.Broken_ClosingInfo. After this, make MessageRect
@@ -784,7 +792,8 @@ begin
    Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
  SavedMode := TGLMode.Create(glwin,
    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-   GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT);
+   GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
+   GL_COLOR_BUFFER_BIT);
 
  {2 faza :
    FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
@@ -1013,7 +1022,7 @@ begin
  inputdata.userCanCancel := false;
  inputdata.answerCancelled := false;
  result := answerDefault;
- GLWinMessage(glwin, textlist, textalign, 
+ GLWinMessage(glwin, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
    @inputdata, '', true, result);
 end;
@@ -1047,7 +1056,7 @@ begin
   GLWinMessage zmienna answer bo jezeli not result to nie chcemy zmieniac
   answer. }
  SAdditional := answer;
- GLWinMessage(glwin, textlist, textalign, 
+ GLWinMessage(glwin, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
@@ -1105,7 +1114,7 @@ function MessageChar(glwin: TGLWindow; textlist: TStringList;
 var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
- GLWinMessage_NoAdditional(glwin, textlist, textalign, 
+ GLWinMessage_NoAdditional(glwin, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar,
    @chardata, ClosingInfo);
  result := chardata.answer;
