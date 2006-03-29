@@ -161,9 +161,13 @@ type
     property UseDescribePosition: boolean
       read FUseDescribePosition write FUseDescribePosition default true;
 
-    { This returns Title glued with DescribePosition,
-      or (when UseDescribePosition is @false), it returns just Title. }
-    function TitleWithPosition: string;
+    { The intension is to return Title glued with DescribePosition,
+      or possibly ended with '...' (3 dots).
+      More precisely: if UseDescribePosition then
+      it returns Title glued with DescribePosition.
+      Else, if AddDots, it returns Title glued with '...'.
+      Else it returns just Title. }
+    function TitleWithPosition(const AddDots: boolean): string;
 
     { You can call Init only when Active = false.
       Init initializes Max, Title, sets Position to 0 and changes
@@ -213,11 +217,13 @@ begin
  Result := Format('(%d / %d)', [Position, Max]);
 end;
 
-function TProgress.TitleWithPosition: string;
+function TProgress.TitleWithPosition(const AddDots: boolean): string;
 begin
-  Result := Title;
   if UseDescribePosition then
-    Result := Result + ' ' + DescribePosition;
+    Result := Title + ' ' + DescribePosition else
+  if AddDots then
+    Result := Title + ' ...' else
+    Result := Title;
 end;
 
 procedure TProgress.Init(AMax: Cardinal; const ATitle: string);
