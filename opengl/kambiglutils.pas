@@ -1489,31 +1489,54 @@ end;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
   minFilter, magFilter: TGLenum);
 
-  procedure LoadMipmapped(const image: TImage);
-  var UnpackData: TUnpackNotAlignedData;
+  procedure glTexImage2DImage(Image: TImage);
   begin
-   BeforeUnpackImage(UnpackData, image);
-   try
-    with image do
-     gluBuild2DMipmaps(GL_TEXTURE_2D, Image.ColorComponentsCount,
-       Width, Height, ImageGLFormat(image), ImageGLType(image), RawPixels);
-   finally AfterUnpackImage(UnpackData, image) end;
+    glTexImage2D(GL_TEXTURE_2D, 0, Image.ColorComponentsCount,
+      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+      Image.RawPixels);
+  end;
+
+  procedure LoadMipmapped(const image: TImage);
+  var
+    UnpackData: TUnpackNotAlignedData;
+  begin
+    BeforeUnpackImage(UnpackData, image);
+    try
+      { I don't use GL_SGIS_generate_mipmap --- it causes me awful slowdowns
+        on castle basic_castle level (when looking at the tower).
+        Either I'm doing something wrong or this is inefficient
+        in NVidia OpenGL Linux impl. }
+      if { GL_SGIS_generate_mipmap } false then
+      begin
+        { hardware-accelerated mipmap generation.
+          Thanks go to Eric Grange for mentioning it on
+          [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
+          Documentation is on
+          [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+        glTexImage2DImage(Image);
+      end else
+      begin
+        gluBuild2DMipmaps(GL_TEXTURE_2D, Image.ColorComponentsCount,
+          Image.Width, Image.Height, ImageGLFormat(Image), ImageGLType(Image),
+          Image.RawPixels);
+      end;
+    finally AfterUnpackImage(UnpackData, image) end;
   end;
 
   procedure LoadNormal(const image: TImage);
-  var UnpackData: TUnpackNotAlignedData;
+  var
+    UnpackData: TUnpackNotAlignedData;
   begin
-   {nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre dla glTexImage2d,
-    musimy zadbac o jego aligment : bo co by bylo jesli tekstura ma szerokosc 1 lub 2 ?
-    Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
-    wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
-    niepodzielne na 4). }
-   BeforeUnpackImage(UnpackData, image);
-   try
-    with image do
-     glTexImage2D(GL_TEXTURE_2D, 0, Image.ColorComponentsCount,
-       Width, Height, 0, ImageGLFormat(image), ImageGLType(image), RawPixels);
-   finally AfterUnpackImage(UnpackData, image) end;
+    {nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre dla glTexImage2d,
+     musimy zadbac o jego aligment : bo co by bylo jesli tekstura ma szerokosc 1 lub 2 ?
+     Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
+     wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
+     niepodzielne na 4). }
+    BeforeUnpackImage(UnpackData, image);
+    try
+      glTexImage2DImage(Image);
+    finally AfterUnpackImage(UnpackData, image) end;
   end;
 
 const
