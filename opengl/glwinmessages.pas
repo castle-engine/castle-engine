@@ -224,62 +224,70 @@ function MessageInputQueryFloat(glwin: TGLWindow; const Title: string;
 function MessageInputQuerySingle(glwin: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign): boolean;
 
-{ wszystkie procedury w tym module sa re-entrant (bezpieczne do rekurencyjnego
-  wywolywania i w watkach) dopoki nie modyfikujesz ponizszych zmiennych.
-  Jezeli robisz watki - upewnij sie ze nie zmieniasz zadnych wartosci ponizej
-  dopoki jakas procedura dziala (zaden kod z tego unitu oprocz
-  inicjujacego nie zmienia tych zmiennych). Co do wywolan
-  rekurencyjnych (ktore gdzieniegdzie sobie tutaj wewnetrznie robie) albo
-  kodu rzeczy glwm.OnIdle (ktore beda wywolywane gdy MessageXxx bedzie realizowac
-  swoja petle komunikatow) to podobnie : nigdy nic ponizej nie zmieniaj dopoki
-  jakas (jakakolwiek !) MessageXxx dziala. }
 type
-  TGLWinMessageColors = record
+  TGLWinMessagesTheme = record
     { Color of the inside area in the message rectangle
       (or of the stipple, if it's <> nil).
       If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
     RectColor: TVector4f;
+
     { Color of the frame of the rectangle. }
-    RectBorderCol,
-    ScrollBarCol,
-    ClosingInfoCol,
-    AdditionalStrCol,
+    RectBorderCol: TVector3f;
+    ScrollBarCol: TVector3f;
+    ClosingInfoCol: TVector3f;
+    AdditionalStrCol: TVector3f;
     TextCol: TVector3f;
+
+    { Stipple (see OpenGL docs to know what it is).
+      Nil means "no stipple". }
+    RectStipple: PPolygonStipple;
+
+    { Font used by procedures in this unit.
+      Nil means "use default font".
+      This font doesn't have to be mono-spaced.  }
+    Font: TGLBitmapFont_Abstract;
   end;
 
 const
   { TODO: tymczasowa wada starych wersji FPC uniemozliwia mi tu uzywanie
     ladnych nazw dla kolorow }
-  GLWinMessageColors_Standard: TGLWinMessageColors =
+  GLWinMessagesTheme_Default: TGLWinMessagesTheme =
   ( RectColor: (0, 0, 0, 1);               { = Black3f }
     RectBorderCol: (1, 1, 0.33);       { = Yellow3f }
     ScrollBarCol: (0.5, 0.5, 0.5);    { = Gray3f }
     ClosingInfoCol: (1, 1, 0.33);      { = Yellow3f }
     AdditionalStrCol: (0.33, 1, 1);    { = LightCyan3f }
-    TextCol: (1, 1, 1)                { = White3f }
+    TextCol: (1, 1, 1);                { = White3f }
+    RectStipple: nil;
+    Font: nil;
   );
-  GLWinMessageColors_TypicalGUI: TGLWinMessageColors =
+
+  GLWinMessagesTheme_TypicalGUI: TGLWinMessagesTheme =
   ( RectColor: (0.75, 0.75, 0.66, 1);
     RectBorderCol: (0.87, 0.87, 0.81);
     ScrollBarCol: (0.87, 0.87, 0.81);
     ClosingInfoCol: (0.4, 0, 1);
     AdditionalStrCol: (0, 0.4, 0);
-    TextCol: (0, 0, 0)
+    TextCol: (0, 0, 0);
+    RectStipple: nil;
+    Font: nil;
   );
 
 var
-  { Stipple (see OpenGL docs to know what it is).
-    Nil (default) means "no stipple". }
-  MessageRectStipple: PPolygonStipple = nil;
+  { The way MessageXxx procedures in this unit are displayed.
+    By default it is equal to GLWinMessagesTheme_Default.
 
-  { Font used by procedures in this unit.
-    Nil (default) means "use default font".
-    This font doesn't have to be mono-spaced.  }
-  MessageFont: TGLBitmapFont_Abstract;
-
-  { Color palette used by procedures in this unit.
-    Default is GLWinMessageColors_Standard. }
-  MessageCols: TGLWinMessageColors;
+    Polish:
+    wszystkie procedury w tym module sa re-entrant (bezpieczne do rekurencyjnego
+    wywolywania i w watkach) dopoki nie modyfikujesz ponizszej zmiennej.
+    Jezeli robisz watki - upewnij sie ze nie zmieniasz wartosci ponizej
+    dopoki jakas procedura dziala (zaden kod z tego unitu oprocz
+    inicjujacego nie zmienia tych zmiennych). Co do wywolan
+    rekurencyjnych (ktore gdzieniegdzie sobie tutaj wewnetrznie robie) albo
+    kodu rzeczy glwm.OnIdle (ktore beda wywolywane gdy MessageXxx bedzie realizowac
+    swoja petle komunikatow) to podobnie : nigdy nie zmieniaj tej zmiennej
+    dopoki jakas (jakakolwiek !) MessageXxx dziala. }
+  GLWinMessagesTheme: TGLWinMessagesTheme;
 
 implementation
 
@@ -664,20 +672,22 @@ begin
        MD.ClosingInfoBoxHeight,
      glwin.Height - WindMargin*2));
 
- { draw MessageRect (using MessageRectStipple, MessageCols.RectColor,
-   MessageCols.RectBorderCol) }
- if MessageRectStipple <> nil then
+ { draw MessageRect (using
+   GLWinMessagesTheme.RectStipple,
+   GLWinMessagesTheme.RectColor,
+   GLWinMessagesTheme.RectBorderCol) }
+ if GLWinMessagesTheme.RectStipple <> nil then
  begin
-   KamGLPolygonStipple(MessageRectStipple);
+   KamGLPolygonStipple(GLWinMessagesTheme.RectStipple);
    glEnable(GL_POLYGON_STIPPLE);
  end;
- if MessageCols.RectColor[3] <> 1.0 then
+ if GLWinMessagesTheme.RectColor[3] <> 1.0 then
  begin
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_BLEND);
  end;
  DrawGLBorderedRectangle(MessageRect,
-   MessageCols.RectColor, Vector4f(MessageCols.RectBorderCol));
+   GLWinMessagesTheme.RectColor, Vector4f(GLWinMessagesTheme.RectBorderCol));
  glDisable(GL_BLEND);
  glDisable(GL_POLYGON_STIPPLE);
 
@@ -687,7 +697,7 @@ begin
  begin
    glLoadIdentity;
    glTranslatef(MessageRect[0, 0] + BoxMargin, MessageRect[0, 1] + BoxMargin, 0);
-   glColorv(MessageCols.ClosingInfoCol);
+   glColorv(GLWinMessagesTheme.ClosingInfoCol);
    DrawStrings(MD.Broken_ClosingInfo, taRight);
 
    MessageRect[0, 1] += BoxMargin +
@@ -695,7 +705,7 @@ begin
      BoxMargin;
 
    glLoadIdentity;
-   glColorv(MessageCols.RectBorderCol);
+   glColorv(GLWinMessagesTheme.RectBorderCol);
    HorizontalGLLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
 
    MessageRect[0, 1] +=  1 { width of horizontal line };
@@ -721,12 +731,12 @@ begin
   md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
 
   glLoadIdentity;
-  glColorv(messageCols.RectBorderCol);
+  glColorv(GLWinMessagesTheme.RectBorderCol);
   VerticalGLLine(md.ScrollBarRect[0, 0],
     md.ScrollBarRect[0, 1], md.ScrollBarRect[1, 1]);
 
   glLineWidth(ScrollBarInternalWidth);
-  glColorv(messageCols.ScrollBarCol);
+  glColorv(GLWinMessagesTheme.ScrollBarCol);
   VerticalGLLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
     md.przewVisY1, md.przewVisY2);
   glLineWidth(1);
@@ -750,11 +760,11 @@ begin
 
  if md.drawAdditional then
  begin
-  glColorv(messageCols.AdditionalStrCol);
+  glColorv(GLWinMessagesTheme.AdditionalStrCol);
   DrawStrings(md.Broken_SAdditional, md.align);
  end;
 
- glColorv(messageCols.TextCol);
+ glColorv(GLWinMessagesTheme.TextCol);
  DrawStrings(md.Broken_MessgText, md.align);
 
  glDisable(GL_SCISSOR_TEST);
@@ -793,7 +803,7 @@ begin
  SavedMode := TGLMode.Create(glwin,
    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
    GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
-   GL_COLOR_BUFFER_BIT);
+   GL_COLOR_BUFFER_BIT, false);
 
  {2 faza :
    FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
@@ -857,9 +867,9 @@ begin
     dlDrawBG := SaveScreenToDispList_noflush(GL_BACK) else
     dlDrawBG := SaveScreenToDispList_noflush(GL_FRONT);
    answered := false;
-   if messageFont = nil then
+   if GLWinMessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else
-    font := messageFont;
+    font := GLWinMessagesTheme.Font;
    MessgText := textlist;
    { contents of Broken_xxx will be initialized in resizeMessg(),
      as well as few other MessageData fields like MaxLineWidth or
@@ -896,7 +906,7 @@ begin
   messageData.Broken_MessgText.Free;
   messageData.Broken_ClosingInfo.Free;
   messageData.Broken_SAdditional.Free;
-  if messageFont = nil then messageData.font.Free;
+  if GLWinMessagesTheme.Font = nil then messageData.font.Free;
   ASAdditional := messageData.SAdditional;
   FreeAndNil(messageData);
 
@@ -1221,6 +1231,5 @@ end;
 { init / fini ---------------------------------------------------------------- }
 
 initialization
- MessageCols := GLWinMessageColors_Standard;
- MessageFont := nil;
+  GLWinMessagesTheme := GLWinMessagesTheme_Default;
 end.

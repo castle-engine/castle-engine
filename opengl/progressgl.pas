@@ -110,7 +110,7 @@ begin
    'TProgressGLInterface: You must assign Window before doing Init');
 
  SavedMode := TGLMode.Create(Window,
-   GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT);
+   GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false);
 
  {catch screen}
  list_drawProgressBG := Window.SaveScreenToDispList;

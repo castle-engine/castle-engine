@@ -65,7 +65,7 @@ unit GLWinModes;
 
 interface
 
-uses SysUtils, OpenGLh, GLWindow, KambiGLUtils, Images;
+uses SysUtils, OpenGLh, GLWindow, KambiGLUtils, Images, GLWinMessages;
 
 { GLWindowState --------------------------------------------------------- }
 
@@ -151,11 +151,15 @@ type
     oldPixelStoreUnpack: TPixelStoreUnpack;
     oldMatrixMode: TGLenum;
     oldWinWidth, oldWinHeight: integer;
+    oldGLWinMessagesTheme: TGLWinMessagesTheme;
+    FPushPopGLWinMessagesTheme: boolean;
   public
     { Enter / Exit mode:
 
       Create wykonuje save stanu OpenGL'a i stanu glwin do klasy TGLMode.
       Destroy przywraca caly zesejwowany stan.
+      If APushPopGLWinMessagesTheme then GLWinMessagesTheme is also
+      saved and restored.
 
       Szczegoly ktore niestety musza sie tutaj znalezc w interfejsie mimo ze
       zazwyczaj uzywajac tych procedur bedziesz chcial o tych szczegolach
@@ -217,7 +221,8 @@ type
       )
 
       @noAutoLinkHere }
-    constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield);
+    constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+      APushPopGLWinMessagesTheme: boolean);
 
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -274,6 +279,7 @@ type
 
       @noAutoLinkHere }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+      APushPopGLWinMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
 
     { @noAutoLinkHere }
@@ -375,7 +381,8 @@ end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield);
+constructor TGLMode.Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
+  APushPopGLWinMessagesTheme: boolean);
 var btn: TMouseButton;
 begin
  inherited Create;
@@ -387,6 +394,10 @@ begin
  oldWinState := GetGLWindowState(glwin);
  oldWinWidth := glwin.Width;
  oldWinHeight := glwin.Height;
+
+ FPushPopGLWinMessagesTheme := APushPopGLWinMessagesTheme;
+ if FPushPopGLWinMessagesTheme then
+   oldGLWinMessagesTheme := GLWinMessagesTheme;
 
  { udajemy ze wszystkie przyciski myszy jakie byly wcisniete sa puszczane.
    (pamietajmy ze przed EventXxx musi byc MakeCurrent) }
@@ -415,6 +426,9 @@ destructor TGLMode.Destroy;
 var btn: TMouseButton;
 begin
  SetGLWindowState(glwin, oldWinState);
+
+ if FPushPopGLWinMessagesTheme then
+   GLWinMessagesTheme := oldGLWinMessagesTheme;
 
  glwin.MakeCurrent;
 
@@ -486,9 +500,10 @@ begin
 end;
 
 constructor TGLModeFrozenScreen.Create(AGLWindow: TGLWindow;
-  AttribsToPush: TGLbitfield; APolygonStipple: PPolygonStipple);
+  AttribsToPush: TGLbitfield; APushPopGLWinMessagesTheme: boolean;
+  APolygonStipple: PPolygonStipple);
 begin
- inherited Create(AGLWindow, AttribsToPush);
+ inherited Create(AGLWindow, AttribsToPush, APushPopGLWinMessagesTheme);
 
  FPolygonStipple := APolygonStipple;
 
@@ -499,7 +514,7 @@ begin
  glwin.FlushRedisplay;
 
  SetStdNoCloseGLWindowState(AGLWindow,
-   {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw, 
+   {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    Self, false, false, AGLWindow.FPSActive, K_None, false, false);
 
