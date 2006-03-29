@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -50,8 +50,8 @@ uses KambiUtils, SysUtils;
 
 type
   TArea = record
-    left, bottom, width, height : real;
-    userdata : integer;
+    X0, Y0, Width, Height: Single;
+    UserData: Pointer;
   end;
   PArea = ^TArea;
 
@@ -59,110 +59,67 @@ type
   PDynArrayItem_1 = PArea;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynAreaArray = TDynArray_1;
 
-  TAreasManager = class
-  private
-    FAreas: TDynAreaArray;
-    function GetArea(nr: integer): PArea;
+  TDynAreaArray = class(TDynArray_1)
   public
-    property Areas[nr: integer]:PArea read GetArea;
-    function AreasCount: integer;
-
-    { dodaje ar do listy zarzadzanych Areas. Zwraca indeks jaki ar dostalo
-      w tablicy Areas. }
-    function NewArea(const ar: TArea): integer;
 
     { FindArea zwraca indeks piewszej area (sprawdzajac od KONCA tablicy Areas)
       ktora zawiere punkt o wspolrzednych x, y. Sprawdzanie wykonywane jest od
       konca w ten sposob traktujac obszary bardziej na koncu jako te bardziej
       na wierzchu.
+
       Zwraca -1 jesli nie znajdzie. }
-    function FindArea(x, y: real): integer;
-
-    { Delete all Areas }
-    procedure Clear;
-
-    constructor Create;
-    destructor Destroy; override;
+    function FindArea(const X, Y: Single): integer;
   end;
 
 { @noAutoLinkHere }
-function Area(left, bottom, width, height: real; userdata: integer): TArea;
+function Area(const X0, Y0, Width, Height: Single;
+  const UserData: Pointer = nil): TArea;
 
-function PointInArea(x, y: real; const ar: TArea): boolean;
+function PointInArea(const X, Y: Single; const Area: TArea): boolean;
 
 var
-  AreasMan: TAreasManager;
+  DefaultAreas: TDynAreaArray;
 
 {$undef read_interface}
 
 implementation
 
 {$define read_implementation}
-{$I DynArray_1.inc}
+{$I dynarray_1.inc}
 
-{ TAreasManager ------------------------------------------------------------ }
+{ TDynAreaArray -------------------------------------------------------------- }
 
-constructor TAreasManager.Create;
+function TDynAreaArray.FindArea(const X, Y: Single): integer;
 begin
- inherited;
- FAreas := TDynAreaArray.Create;
+  for Result := High downto 0 do
+    if PointInArea(X, Y, Items[Result]) then
+      Exit;
+  Result := -1;
 end;
 
-destructor TAreasManager.Destroy;
+{ global funcs --------------------------------------------------------------- }
+
+function Area(const X0, Y0, Width, Height: Single;
+  const UserData: Pointer): TArea;
 begin
- FreeAndNil(FAreas);
- inherited;
+  Result.X0 := X0;
+  Result.Y0 := Y0;
+  Result.Width := Width;
+  Result.Height := Height;
+  Result.UserData := UserData;
 end;
 
-function TAreasManager.GetArea(nr: integer): PArea;
-begin result := @FAreas.Items[nr] end;
-
-function TAreasManager.AreasCount: integer;
-begin result := FAreas.Length end;
-
-function TAreasManager.NewArea(const ar: TArea): integer;
+function PointInArea(const X, Y: Single; const Area: TArea): boolean;
 begin
- FAreas.IncLength;
- FAreas.Items[FAreas.High] := ar;
- result := FAreas.High;
+  Result := (X >= Area.X0) and (X <= Area.X0 + Area.Width) and
+            (Y >= Area.Y0) and (Y <= Area.Y0 + Area.Height);
 end;
 
-function TAreasManager.FindArea(x, y: real): integer;
-begin
- for result := FAreas.High downto 0 do
-  if PointInArea(x, y,FAreas.Items[result]) then exit;
- result := -1;
-end;
-
-procedure TAreasManager.Clear;
-begin
- FAreas.SetLength(0);
-end;
-
-{ global funcs ----------------------------------------------  }
-
-function Area(left, bottom, width, height: real; userdata: integer): TArea;
-begin
- result.left := left;
- result.bottom := bottom;
- result.width := width;
- result.height := height;
- result.userdata := userdata;
-end;
-
-function PointInArea(x, y: real; const ar: TArea): boolean;
-begin
- with ar do
-  result:=(x >= left) and (x <= left+width) and
-          (y >= bottom) and (y <= bottom+height);
-end;
-
-{ init / fini -------------------------------------------------- }
+{ initialization / finalization ---------------------------------------------- }
 
 initialization
- AreasMan := TAreasManager.Create;
+  DefaultAreas := TDynAreaArray.Create;
 finalization
- FreeAndNil(AreasMan);
+  FreeAndNil(DefaultAreas);
 end.
