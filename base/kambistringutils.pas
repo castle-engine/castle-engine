@@ -694,18 +694,12 @@ begin
   if Result[i] = FromChar then Result[i] := ToChar;
 end;
 
-function Chars(count: integer; c: char): string;
-begin
- setLength(result, count);
- fillChar(Pointer(result)^,count, c);
-end;
-
 function SPad(const s: string; len: integer; c: char): string;
 var lnow: integer;
 begin
  lnow := length(s);
  if lnow < len then
-  Result := Chars(len-lnow, c) + s else
+  Result := StringOfChar(c, len-lnow) + s else
   Result := s;
 end;
 
