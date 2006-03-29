@@ -200,6 +200,8 @@ begin
   GDK_KEY_Down: Result := K_Down;
   GDK_KEY_Insert: Result := K_Insert;
   GDK_KEY_Delete: Result := K_Delete;
+  GDK_KEY_BracketLeft: Result := K_LeftBracket;
+  GDK_KEY_BracketRight: Result := K_RightBracket;
 
   { It seems that win32 gtk (at least GTK 1.3) uses other consts for these keys.
     Note: I *cannot* convert here two GDK_xxx codes to one K_xxx
@@ -1201,7 +1203,7 @@ begin
      after calling DoDraw in signal_expose_event.
    }
    GlobalIdleHandle :=
-     gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE, 
+     gtk_idle_add_priority(G_PRIORITY_DEFAULT_IDLE,
        {$ifdef FPC_OBJFPC} @ {$endif} GlobalIdle, nil);
   end else
   begin

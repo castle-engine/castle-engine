@@ -113,10 +113,7 @@ const
   K_Insert = 45;
   K_Delete = 46;
 
-  K_Plus  = 107;
-  K_Minus = 109;
-
-  K_0 = Ord('0');
+  K_0 = Ord('0'); //< = 48
   K_1 = Ord('1');
   K_2 = Ord('2');
   K_3 = Ord('3');
@@ -125,9 +122,9 @@ const
   K_6 = Ord('6');
   K_7 = Ord('7');
   K_8 = Ord('8');
-  K_9 = Ord('9');
+  K_9 = Ord('9'); //< = 57
 
-  K_A = Ord('A');
+  K_A = Ord('A'); //< = 65
   K_B = Ord('B');
   K_C = Ord('C');
   K_D = Ord('D');
@@ -152,7 +149,13 @@ const
   K_W = Ord('W');
   K_X = Ord('X');
   K_Y = Ord('Y');
-  K_Z = Ord('Z');
+  K_Z = Ord('Z'); //< = 90
+
+  K_LeftBracket = 91;
+  K_RightBracket = 93;
+
+  K_Plus  = 107;
+  K_Minus = 109;
 
   K_F1 = 112;
   K_F2 = 113;
@@ -226,6 +229,8 @@ begin
   K_Down : result := 'Down';
   K_Insert : result := 'Insert';
   K_Delete : result := 'Delete';
+  K_LeftBracket : Result := '[';
+  K_RightBracket : Result := ']';
   K_Plus : result := 'Plus';
   K_Minus : result := 'Minus';
   K_Comma : result := 'Comma';

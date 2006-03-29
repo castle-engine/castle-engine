@@ -546,6 +546,8 @@ begin
  keySym_to_TKey0[XK_Space] := K_Space;
  keySym_to_TKey0[XK_comma] := K_comma;
  keySym_to_TKey0[XK_period] := K_period;
+ keySym_to_TKey0[XK_bracketleft] := K_LeftBracket;
+ keySym_to_TKey0[XK_bracketright] := K_RightBracket;
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
