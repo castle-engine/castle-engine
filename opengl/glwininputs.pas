@@ -165,7 +165,7 @@ function Input(glwin: TGLWindow;
 var SavedMode: TGLMode;
     Data: TGLWinInputData;
 begin
- SavedMode := TGLMode.Create(glwin, 0);
+ SavedMode := TGLMode.Create(glwin, 0, false);
  try
   if FlushGLWindow then glwin.FlushRedisplay;
   Data.dlBGImage := SaveScreenToDispList_noflush(ReadBuffer);
@@ -221,7 +221,7 @@ procedure InputAnyKey(glwin: TGLWindow; const Img: TImage; RasterX, RasterY: Int
 var Data: TInputAnyKeyData;
     savedMode: TGLMode;
 begin
- SavedMode := TGLMode.Create(glwin, GL_COLOR_BUFFER_BIT);
+ SavedMode := TGLMode.Create(glwin, GL_COLOR_BUFFER_BIT, false);
  try
   glDisable(GL_ALPHA_TEST);
 
