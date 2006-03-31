@@ -29,6 +29,13 @@ private
     Useful -- see at WM_ACTIVATE. }
   InCloseImplDepend: boolean;
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+
+  VK_LeftBracket_Exists, VK_RightBracket_Exists: boolean;
+  VK_LeftBracket, VK_RightBracket: Byte;
+
+  { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
+    available. }
+  function VirtualKeyToKey(VirtualKey: Byte): TKey;
 {$endif read_tglwindow_interface}
 
 {$ifdef read_tglwindowmanager_interface}
@@ -44,10 +51,14 @@ private
 
 {$ifdef read_implementation}
 
+{ TGLWindow ------------------------------------------------- }
+
 { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
   available. }
-function VirtualKeyToKey(VirtualKey: Byte): TKey;
+function TGLWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
 begin
+ { Tests: InfoWrite(Format('key %d', [VirtualKey])); }
+
  case VirtualKey of
   VK_BACK: Result := K_BackSpace;
   VK_TAB: Result := K_Tab;
@@ -76,11 +87,14 @@ begin
   Ord('0') .. Ord('9'): Result := K_0  + VirtualKey - Ord('0');
   Ord('A') .. Ord('Z'): Result := K_A  + VirtualKey - Ord('A');
   VK_F1    .. VK_F12  : Result := K_F1 + VirtualKey - VK_F1;
-  else Result := K_None;
+  else
+    if VK_LeftBracket_Exists and (VirtualKey = VK_LeftBracket) then
+      Result := K_LeftBracket else
+    if VK_RightBracket_Exists and (VirtualKey = VK_RightBracket) then
+      Result := K_RightBracket else
+      Result := K_None;
  end;
 end;
-
-{ TGLWindow ------------------------------------------------- }
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var glwin: TGLWindow;
@@ -113,7 +127,7 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
      WM_KILLFOCUS
      WM_DESTROY
      WM_NCDESTROY
-     
+
      WM_SIZE (yes, tested on Windows 2000 Prof, when running my progs
        with --fullscreen-custom, e.g. glcaps --fullscreen-custom 640x480
        or glplotter --fullscreen-custom 640x480)
@@ -170,6 +184,23 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
     CharKey := #0;
 
    Key := VirtualKeyToKey(wParm);
+
+   { We cannot depend that VK_OEM_4 is always "[" and VK_OEM_6 is always "]",
+     see http://www.tronan.com/macromachine/scripthelp/VK.htm.
+     On non-US keyboards, other keys may correspond to them.
+
+     So below we do a little trick: we check which virtual key corresponds to
+     left/right brackets, and we remember it. If my VirtualKeyToKey returned
+     K_None for this virtual key, then we can safely assume that in the future
+     (e.g. for next WM_KEYUP for this key) this virtual key always corresponds
+     to left/right bracket. }
+   if Key = K_None then
+   begin
+     case CharKey of
+       '[': begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := K_LeftBracket ; end;
+       ']': begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := K_RightBracket; end;
+     end;
+   end;
 
    if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
   end;
@@ -627,7 +658,7 @@ begin
   Struct.Flags := Struct.Flags or OFN_OVERWRITEPROMPT or OFN_PATHMUSTEXIST;
 
  { enter glwin mode }
- Mode := TGLModeFrozenScreen.Create(Self, 0, nil);
+ Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
  try
   if OpenDialog then
    Result := GetOpenFileName(@Struct) else
@@ -698,7 +729,7 @@ begin
    GLWindow class, it will be just a different class -
    distinguished by the hInstance parameter of TWndClass and
    CreateWindowEx). }
- WndClassName := 'GLWindow'; 
+ WndClassName := 'GLWindow';
 
  FillChar(WindowClass, SizeOf(WindowClass), 0);
  { style : redraw on size,  own DC for window }
@@ -807,7 +838,7 @@ begin
    Result := ChangeResult = DISP_CHANGE_SUCCESSFUL;
    { tests: InfoWrite('ChangeResult = '+ DispChangeToStr(ChangeResult)); }
    if Result then DisplaySettingsChanged := true;
-  end else 
+  end else
    Result := true; { we didn't do anything - well, then we succeded, right ? }
  end;
 end;
