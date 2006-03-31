@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
