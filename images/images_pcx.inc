@@ -96,7 +96,7 @@ begin
        given invalid image, and this is not acceptable.
        I have a sample of such invalid image (see
        /win/images/format_tests/pcx/ANATHE_256.PCX). }
-     num_end_byte := Min(x + bajt - 192 - 1, Result.Width - 1);
+     num_end_byte := KambiUtils.Min(x + bajt - 192 - 1, Result.Width - 1);
      Stream.ReadBuffer(bajt, 1);
      while x <= num_end_byte do begin PalettePut(x, y, bajt); Inc(x); end;
     end;
