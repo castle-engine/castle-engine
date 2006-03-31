@@ -33,6 +33,8 @@ const
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
   DefaultMinAngleRadFromHomeUp = { 10 degress } Pi / 18;
+  DefaultRotationHorizontalSpeed = 3.0;
+  DefaultRotationVerticalSpeed = 2.0;
 
 type
   { }
@@ -252,7 +254,8 @@ type
     FCameraPos, FCameraDir, FCameraUp,
     FHomeCameraPos, FHomeCameraDir, FHomeCameraUp: TVector3Single;
 
-    FMoveSpeed, FMoveVertSpeed, FRotateSpeed: Single;
+    FMoveSpeed, FMoveVertSpeed: Single;
+    FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferHomeUp: boolean;
 
     procedure SetCameraPos(const Value: TVector3Single);
@@ -455,7 +458,14 @@ type
       eksperymentalnie. }
     property MoveSpeed: Single read FMoveSpeed; { =1 }
     property MoveVertSpeed: Single read FMoveVertSpeed; { =1 }
-    property RotateSpeed: Single read FRotateSpeed write FRotateSpeed; { =3 (w stopniach) }
+
+    property RotationHorizontalSpeed: Single
+      read FRotationHorizontalSpeed write FRotationHorizontalSpeed
+      default DefaultRotationHorizontalSpeed;
+
+    property RotationVerticalSpeed: Single
+      read FRotationVerticalSpeed write FRotationVerticalSpeed
+      default DefaultRotationVerticalSpeed;
 
     { Camera position, looking direction and up vector.
 
@@ -988,7 +998,8 @@ begin
 
   FMoveSpeed := 1;
   FMoveVertSpeed := 1;
-  FRotateSpeed := 3;
+  FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
+  FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
   FPreferHomeUp := true;
   FGravity := false;
@@ -1275,11 +1286,15 @@ var
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-    if KeysDown^[Key_RightRot] then RotateHorizontal(-RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown^[Key_LeftRot] then RotateHorizontal(RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_RightRot] then RotateHorizontal(
+      -RotationHorizontalSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_LeftRot] then RotateHorizontal(
+      +RotationHorizontalSpeed * CompSpeed * SpeedScale);
 
-    if KeysDown^[Key_UpRotate] then RotateVertical(RotateSpeed * CompSpeed * SpeedScale);
-    if KeysDown^[Key_DownRotate] then RotateVertical(-RotateSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_UpRotate] then RotateVertical(
+      +RotationVerticalSpeed * CompSpeed * SpeedScale);
+    if KeysDown^[Key_DownRotate] then RotateVertical(
+      -RotationVerticalSpeed * CompSpeed * SpeedScale);
   end;
 
   function RealCameraPreferredHeightMargin: Single;
