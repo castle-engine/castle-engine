@@ -76,6 +76,9 @@ type
 function Area(const X0, Y0, Width, Height: Single;
   const UserData: Pointer = nil): TArea;
 
+{ TODO: unused anywhere, so untested. }
+function AreasSum(const Area1, Area2: TArea): TArea;
+
 function PointInArea(const X, Y: Single; const Area: TArea): boolean;
 
 var
@@ -108,6 +111,18 @@ begin
   Result.Width := Width;
   Result.Height := Height;
   Result.UserData := UserData;
+end;
+
+function AreasSum(const Area1, Area2: TArea): TArea;
+begin
+  Result.X0 := Min(Area1.X0, Area2.X0);
+  Result.Y0 := Min(Area1.Y0, Area2.Y0);
+  Result.Width := Max(
+    Area1.X0 + Area1.Width - Result.X0,
+    Area2.X0 + Area2.Width - Result.X0);
+  Result.Height := Max(
+    Area1.Y0 + Area1.Height - Result.Y0,
+    Area2.Y0 + Area2.Height - Result.Y0);
 end;
 
 function PointInArea(const X, Y: Single; const Area: TArea): boolean;
