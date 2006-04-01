@@ -1569,6 +1569,33 @@ var
         CameraDirInHomePlane);
     end;
 
+    procedure DoFalledDown;
+    var
+      BeginPos, EndPos, EndToBegin: TVector3Single;
+      Coord: Integer;
+    begin
+      if Assigned(OnFalledDown) then
+      begin
+        { Note that I project CameraPos and FFallingDownStartPos
+          onto HomeCameraUp vector to calculate FalledHeight. }
+        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, FFallingDownStartPos);
+        EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, CameraPos);
+        EndToBegin := VectorSubtract(BeginPos, EndPos);
+
+        { Now check that EndToBegin points in the same direction as HomeCameraUp.
+          If not, then EndPos is actually *higher* than BeginPos,
+          so we were not really falling down. That can happen, various growing
+          and jumping things can cause such "false flying". For OnFalledDown
+          only the real falling down (from somewhere higher to lower) should
+          be reported. }
+        Coord := MaxAbsVectorCoord(EndToBegin);
+        if (EndToBegin[Coord] >= 0) <> (HomeCameraUp[Coord] >= 0) then
+          Exit;
+
+        OnFalledDown(Self, VectorLen(EndToBegin));
+      end;
+    end;
+
   var
     OldIsFallingDown: boolean;
   begin
@@ -1594,12 +1621,8 @@ var
       TryFde_Stabilize;
     end;
 
-    if OldIsFallingDown and (not IsFallingDown) and Assigned(OnFalledDown) then
-      { Note that I project CameraPos and FFallingDownStartPos
-        onto HomeCameraUp vector to calculate FalledHeight. }
-      OnFalledDown(Self, PointsDistance(
-        PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, CameraPos),
-        PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, FFallingDownStartPos)));
+    if OldIsFallingDown and (not IsFallingDown) then
+      DoFalledDown;
   end;
 
   procedure Jump;
