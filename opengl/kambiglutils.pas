@@ -1489,78 +1489,99 @@ end;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
   minFilter, magFilter: TGLenum);
 
+  { Calls glTexImage2D for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    Takes care of Image size --- makes sure that image has the right size
+    (power of 2, within OpenGL required sizes). }
   procedure glTexImage2DImage(Image: TImage);
+
+    { This is like glTexImage2DImage, but it doesn't take care
+      of Image size. }
+    procedure Core(Image: TImage);
+    var
+      UnpackData: TUnpackNotAlignedData;
+    begin
+      { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
+        dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
+        jesli tekstura ma szerokosc 1 lub 2  ?
+        Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
+        wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
+        niepodzielne na 4). }
+      BeforeUnpackImage(UnpackData, Image);
+      try
+        glTexImage2D(GL_TEXTURE_2D, 0, Image.ColorComponentsCount,
+          Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+          Image.RawPixels);
+      finally AfterUnpackImage(UnpackData, Image) end;
+    end;
+
+  var
+    ImgGood: TImage;
   begin
-    glTexImage2D(GL_TEXTURE_2D, 0, Image.ColorComponentsCount,
-      Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
-      Image.RawPixels);
+    if IsTextureSized(Image) then
+      Core(Image) else
+    begin
+      ImgGood := ResizeToTextureSize(Image);
+      try
+        Core(ImgGood);
+      finally ImgGood.Free end;
+    end;
+  end;
+
+  { Calls gluBuild2DMipmaps for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
+    here. }
+  procedure gluBuild2DMipmapsImage(Image: TImage);
+  var
+    UnpackData: TUnpackNotAlignedData;
+  begin
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      gluBuild2DMipmaps(GL_TEXTURE_2D, Image.ColorComponentsCount,
+        Image.Width, Image.Height, ImageGLFormat(Image), ImageGLType(Image),
+        Image.RawPixels);
+    finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
   procedure LoadMipmapped(const image: TImage);
-  var
-    UnpackData: TUnpackNotAlignedData;
   begin
-    BeforeUnpackImage(UnpackData, image);
-    try
-      { I don't use GL_SGIS_generate_mipmap --- it causes me awful slowdowns
-        on castle basic_castle level (when looking at the tower).
-        Either I'm doing something wrong or this is inefficient
-        in NVidia OpenGL Linux impl. }
-      if { GL_SGIS_generate_mipmap } false then
-      begin
-        { hardware-accelerated mipmap generation.
-          Thanks go to Eric Grange for mentioning it on
-          [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
-          Documentation is on
-          [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
-        glTexImage2DImage(Image);
-      end else
-      begin
-        gluBuild2DMipmaps(GL_TEXTURE_2D, Image.ColorComponentsCount,
-          Image.Width, Image.Height, ImageGLFormat(Image), ImageGLType(Image),
-          Image.RawPixels);
-      end;
-    finally AfterUnpackImage(UnpackData, image) end;
+    if GL_SGIS_generate_mipmap then
+    begin
+      { hardware-accelerated mipmap generation.
+        Thanks go to Eric Grange for mentioning it on
+        [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
+        Documentation is on
+        [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+      glTexImage2DImage(Image);
+    end else
+    begin
+      gluBuild2DMipmapsImage(Image);
+    end;
   end;
 
   procedure LoadNormal(const image: TImage);
-  var
-    UnpackData: TUnpackNotAlignedData;
   begin
-    {nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre dla glTexImage2d,
-     musimy zadbac o jego aligment : bo co by bylo jesli tekstura ma szerokosc 1 lub 2 ?
-     Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
-     wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
-     niepodzielne na 4). }
-    BeforeUnpackImage(UnpackData, image);
-    try
-      glTexImage2DImage(Image);
-    finally AfterUnpackImage(UnpackData, image) end;
+    if GL_SGIS_generate_mipmap then
+      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
+    glTexImage2DImage(Image);
   end;
 
 const
   MIPMAP_FLAGS_ARRAY :array[0..3]of TGLenum =
-    (GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST,
-     GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
-var imgGood: TImage;
+  ( GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR );
 begin
- { bind the texture, set min and mag filters }
- glBindTexture(GL_TEXTURE_2D, texnum);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
- glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  { bind the texture, set min and mag filters }
+  glBindTexture(GL_TEXTURE_2D, texnum);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
- { give the texture data }
- if ArrayPosCard(minFilter, MIPMAP_FLAGS_ARRAY) >= 0 then
-  LoadMipmapped(image) else
- if IsTextureSized(image) then
-  LoadNormal(image) else
- begin
-  imgGood := ResizeToTextureSize(image);
-  try
-   LoadNormal(imgGood);
-  finally imgGood.Free end;
- end;
+  { give the texture data }
+  if ArrayPosCard(minFilter, MIPMAP_FLAGS_ARRAY) >= 0 then
+    LoadMipmapped(Image) else
+    LoadNormal(Image);
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
