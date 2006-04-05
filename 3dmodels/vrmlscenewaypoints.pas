@@ -25,7 +25,7 @@ unit VRMLSceneWaypoints;
 
 interface
 
-uses KambiUtils, KambiClassUtils, VectorMath, Boxes3d, VRMLNodes;
+uses SysUtils, KambiUtils, KambiClassUtils, VectorMath, Boxes3d, VRMLNodes;
 
 {$define read_interface}
 
@@ -113,6 +113,9 @@ type
     property Waypoints: TSceneWaypointsList read FWaypoints;
   end;
 
+  ESectorNotInitialized = class(Exception);
+  EWaypointNotInitialized = class(Exception);
+
   TObjectsListItem_2 = TSceneSector;
   {$I objectslist_2.inc}
   TSceneSectorsList = class(TObjectsList_2)
@@ -138,7 +141,10 @@ type
       Sector.IsPointInsideMargin(Waypoint.Position, SectorsBoxesMargin)
       is true. The SectorsBoxesMargin is needed to avoid any kind of
       uncertainty when the waypoint's position is at the very border
-      of the sector. }
+      of the sector.
+
+      @raises ESectorNotInitialized When some sector is nil.
+      @raises EWaypointNotInitialized When some waypoint is nil. }
     procedure LinkToWaypoints(Waypoints: TSceneWaypointsList;
       const SectorsBoxesMargin: Single);
   end;
@@ -147,7 +153,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses KambiStringUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -333,12 +339,25 @@ var
   W: TSceneWaypoint;
   SectorIndex, WaypointIndex: Integer;
 begin
+  { Note that this method is usually the first to be called after doing
+    things like ExtractBoundingBoxes or ExtractPosotions,
+    so we try here to make nice error messages when some sector
+    or waypoint is not initialized yet (i.e. = nil). }
+
   for SectorIndex := 0 to High do
   begin
     S := Items[SectorIndex];
+    if S = nil then
+      raise ESectorNotInitialized.CreateFmt('Sector %d not initialized',
+        [SectorIndex]);
+
     for WaypointIndex := 0 to Waypoints.High do
     begin
       W := Waypoints[WaypointIndex];
+      if W = nil then
+        raise EWaypointNotInitialized.CreateFmt('Waypoint %d not initialized',
+          [WaypointIndex]);
+
       if S.IsPointInsideMargin(W.Position, SectorsBoxesMargin) then
       begin
         S.Waypoints.Add(W);
