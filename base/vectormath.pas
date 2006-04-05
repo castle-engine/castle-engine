@@ -863,6 +863,13 @@ function PointsDistanceSqr(const v1, v2: TVector3Double): Double; overload;
 function PointsDistanceSqr(const v1, v2: TVector2Single): Single; overload;
 function PointsDistanceSqr(const v1, v2: TVector2Double): Double; overload;
 
+{ Distance between 3D points projected on Z = 0 plane (i.e. Z coord
+  of points is just ignored.)
+  @groupBegin }
+function PointsDistanceXYSqr(const v1, v2: TVector3Single): Single; overload;
+function PointsDistanceXYSqr(const v1, v2: TVector3Double): Double; overload;
+{ @groupEnd }
+
 { czy dwa wektory sa rowne ? Uzywa FloatsEqual. }
 function VectorsEqual(const v1, v2: TVector3Single): boolean; overload;
 function VectorsEqual(const v1, v2: TVector3Double): boolean; overload;

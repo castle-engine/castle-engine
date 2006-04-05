@@ -405,6 +405,11 @@ begin
  result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
+function PointsDistanceXYSqr(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+begin
+  Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
+end;
+
 function VectorsEqual(const v1, v2: TYPE_VECTOR3): boolean;
 begin
  result := FloatsEqual(v1[0], v2[0]) and
