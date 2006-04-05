@@ -18,7 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ }
+{ @abstract(For user-oriented description what are sectors and waypoints,
+  when they should be used etc. see the README file with
+  my game "The Castle".) }
 unit VRMLSceneWaypoints;
 
 interface
