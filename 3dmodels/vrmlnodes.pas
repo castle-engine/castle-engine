@@ -846,7 +846,7 @@ type
   end;
 
   TObjectsListItem_3 = TVRMLNode;
-  {$I ObjectsList_3.inc}
+  {$I objectslist_3.inc}
   TVRMLNodesList = class(TObjectsList_3);
 
 { specific VRML nodes. ----------------------------------------------------

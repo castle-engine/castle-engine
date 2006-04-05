@@ -31,6 +31,8 @@ interface
 
 uses VectorMath, SysUtils, KambiUtils;
 
+{$define read_interface}
+
 type
   { First point always has all the smaller coords, second point has all
     the larger coords. I.e. always
@@ -41,6 +43,7 @@ type
 )
     The only exception is the special value EmptyBox3d. }
   TBox3d = array[0..1]of TVector3Single;
+  PBox3d = ^TBox3d;
 
   TObjectBBox = class
   public
@@ -93,6 +96,9 @@ procedure BoxExpandTo1st(var Box: TBox3d; const Expand: Single); overload;
   Note that Expand may be negative, but then you must be sure
   that it doesn't make Box empty. }
 procedure BoxExpandTo1st(var box: TBox3d; const Expand: TVector3Single); overload;
+
+function BoxExpand(var Box: TBox3d; const Expand: Single): TBox3d; overload;
+function BoxExpand(var box: TBox3d; const Expand: TVector3Single): TBox3d; overload;
 
 { Check is the point inside the box.
   Always false if Box is empty (obviously, no point is inside an empty box).
@@ -247,7 +253,21 @@ function Box3dXYSqrRadius(const Box: TBox3d): Single;
   (not it's Sqr). Speed note: you pay here one Sqrt operation. }
 function Box3dXYRadius(const Box: TBox3d): Single;
 
+type
+  TDynArrayItem_1 = TBox3d;
+  PDynArrayItem_1 = PBox3d;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$I dynarray_1.inc}
+  TArray_Box3d = TInfiniteArray_1;
+  PArray_Box3d = PInfiniteArray_1;
+  TDynBox3dArray = TDynArray_1;
+
+{$undef read_interface}
+
 implementation
+
+{$define read_implementation}
+{$I dynarray_1.inc}
 
 function IsEmptyBox3d(const Box: TBox3d): boolean;
 begin
@@ -338,6 +358,28 @@ begin
  Box[1, 0] += Expand[0];
  Box[1, 1] += Expand[1];
  Box[1, 2] += Expand[2];
+end;
+
+function BoxExpand(var Box: TBox3d; const Expand: Single): TBox3d;
+begin
+  Result[0, 0] := Box[0, 0] - Expand;
+  Result[0, 1] := Box[0, 1] - Expand;
+  Result[0, 2] := Box[0, 2] - Expand;
+
+  Result[1, 0] := Box[1, 0] + Expand;
+  Result[1, 1] := Box[1, 1] + Expand;
+  Result[1, 2] := Box[1, 2] + Expand;
+end;
+
+function BoxExpand(var box: TBox3d; const Expand: TVector3Single): TBox3d;
+begin
+  Result[0, 0] := Box[0, 0] - Expand[0];
+  Result[0, 1] := Box[0, 1] - Expand[1];
+  Result[0, 2] := Box[0, 2] - Expand[2];
+
+  Result[1, 0] := Box[1, 0] + Expand[0];
+  Result[1, 1] := Box[1, 1] + Expand[1];
+  Result[1, 2] := Box[1, 2] + Expand[2];
 end;
 
 {$define Box3dPointInside_IMPLEMENT:=
