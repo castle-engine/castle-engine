@@ -147,6 +147,35 @@ type
       @raises EWaypointNotInitialized When some waypoint is nil. }
     procedure LinkToWaypoints(Waypoints: TSceneWaypointsList;
       const SectorsBoxesMargin: Single);
+
+    { Returns sector with given point (using IsPointInside of each sector).
+      Returns nil if no such sector. }
+    function SectorWithPoint(const Point: TVector3Single): TSceneSector;
+
+    { This sets Waypoints contents to the list of waypoints
+      that must be passed to travel from sector SectorBegin to SectorEnd.
+
+      Special cases: when either SectorBegin or SectorEnd are nil
+      (this can easily happen if you pass here results
+      of SectorWithPoint method), or when SectorBegin = SectorEnd,
+      or when there is no possible way, it returns @false and
+      just clears Waypoints (i.e. sets Waypoints.Count to 0).
+
+      Otherwise (if a way is found) it returns @true and sets
+      Waypoints items as appropriate. The order of Waypoints
+      is significant: starting from SectorBegin, you should
+      first travel to Waypoints[0], then to Waypoints[1] etc.
+      In this case for sure we have at least one Waypoint.
+
+      (So the result of this function is actually just a comfortable
+      thing, you can get the same result just checking
+      Waypoints.Count <> 0)
+
+      TODO: This should use breadth-first search.
+      Right now it uses depth-first search. For small sectors+waypoints
+      graphs it doesn't matter. }
+    class function FindWay(SectorBegin, SectorEnd: TSceneSector;
+      Waypoints: TSceneWaypointsList): boolean;
   end;
 
 {$undef read_interface}
@@ -365,6 +394,75 @@ begin
       end;
     end;
   end;
+end;
+
+function TSceneSectorsList.SectorWithPoint(const Point: TVector3Single):
+  TSceneSector;
+var
+  I: Integer;
+begin
+  for I := 0 to High do
+  begin
+    Result := Items[I];
+    if Result.IsPointInside(Point) then
+      Exit;
+  end;
+  Result := nil;
+end;
+
+class function TSceneSectorsList.FindWay(SectorBegin, SectorEnd: TSceneSector;
+  Waypoints: TSceneWaypointsList): boolean;
+var
+  { This is used to avoid falling into loops. }
+  SectorsVisited: TSceneSectorsList;
+
+  function FindWayToSectorEnd(SectorNow: TSceneSector;
+    SectorDistance: Integer): boolean;
+  var
+    WaypointIndex, SectorIndex: Integer;
+    W: TSceneWaypoint;
+  begin
+    if SectorsVisited.IndexOf(SectorNow) <> -1 then
+      Exit(false);
+    SectorsVisited.Add(SectorNow);
+
+    if SectorNow = SectorEnd then
+    begin
+      Waypoints.Count := SectorDistance;
+      Exit(true);
+    end;
+
+    for WaypointIndex := 0 to SectorNow.Waypoints.High do
+    begin
+      W := SectorNow.Waypoints[WaypointIndex];
+      for SectorIndex := 0 to W.Sectors.High do
+        if FindWayToSectorEnd(W.Sectors[SectorIndex], SectorDistance + 1) then
+        begin
+          Waypoints[SectorDistance] := W;
+          Exit(true);
+        end;
+    end;
+
+    Result := false;
+  end;
+
+begin
+  Waypoints.Count := 0;
+  if (SectorBegin = nil) or
+     (SectorEnd = nil) or
+     (SectorBegin = SectorEnd) then
+    Exit(false);
+
+  { Note that we know here that SectorBegin <> SectorEnd,
+    so the first call to FindWayToSectorEnd will not immediately
+    return with true, so Waypoints[0] will for sure be filled...
+    so Waypoints.Count will have to be > 0 in this case.
+    Just like I promised in the interface. }
+
+  SectorsVisited := TSceneSectorsList.Create;
+  try
+    Result := FindWayToSectorEnd(SectorBegin, 0);
+  finally SectorsVisited.Free end;
 end;
 
 end.
