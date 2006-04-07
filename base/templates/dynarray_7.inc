@@ -83,9 +83,14 @@
   function/procedure pointer (of object or not of object).
   This is required, because (in Delphi syntax mode at least) we have
   to write some things differently.
+  Also, this automatically defines DYNARRAY_7_USE_EQUALITY_OP.
 }
 
 {$ifdef read_interface}
+
+{$ifdef DYNARRAY_7_IS_FUNCTION}
+  {$define DYNARRAY_7_USE_EQUALITY_OP}
+{$endif}
 
 {$ifdef DYNARRAY_7_USE_EQUALITY_OP}
   {$ifdef DYNARRAY_7_USE_EQUALITY_COMPAREMEM}
@@ -204,6 +209,12 @@
       the range will be "clamped" as it should. }
     function IndexInRange(const Item: TDynArrayItem_7;
       BeginIndex, EndIndex: Integer): Integer;
+
+    { Searches for and deletes first item equal to Value. }
+    procedure DeleteFirstEqual(const Value: TDynArrayItem_7);
+
+    { Searches for and deletes all items equal to Value. }
+    procedure DeleteAllEqual(const Value: TDynArrayItem_7);
     {$endif}
 
 (*   TODO, as soon as this will be needed somewhere:
@@ -360,7 +371,9 @@ end;
 function TDynArray_7.EqualItems(const Item1, Item2: TDynArrayItem_7): boolean;
 begin
  {$ifdef DYNARRAY_7_USE_EQUALITY_OP}
- result:=(Item1 = Item2);
+ Result := (
+   {$ifdef DYNARRAY_7_IS_FUNCTION} @ {$endif} Item1 =
+   {$ifdef DYNARRAY_7_IS_FUNCTION} @ {$endif} Item2);
  {$else}
    {$ifdef DYNARRAY_7_USE_EQUALITY_COMPAREMEM}
    result := CompareMem(@Item1, @Item2, SizeOf(TDynArrayItem_7));
@@ -408,6 +421,28 @@ begin
  for Result := BeginIndex to EndIndex do
   if EqualItems(Items[Result], Item) then Exit;
  Result := -1;
+end;
+
+procedure TDynArray_7.DeleteFirstEqual(const Value: TDynArrayItem_7);
+var
+  I: Integer;
+begin
+  I := IndexOf(Value);
+  if I <> -1 then
+    Delete(I, 1);
+end;
+
+procedure TDynArray_7.DeleteAllEqual(const Value: TDynArrayItem_7);
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    if EqualItems(Items[I], Value) then
+      Delete(I, 1) else
+      Inc(I);
+  end;
 end;
 {$endif}
 

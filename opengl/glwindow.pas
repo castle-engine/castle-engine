@@ -729,7 +729,7 @@ type
   public
     { This calls all Items that are not nil.
       It passes them glwin parameter. }
-    procedure ExecuteAll(glwin: TGLWindow);
+    procedure ExecuteAll(Glwin: TGLWindow);
   end;
 
   { This record is useful to save the state of all callbacks

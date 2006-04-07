@@ -192,6 +192,22 @@ function MessageChar(glwin: TGLWindow;  textlist: TStringList;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle): char; overload;
 
+{ MessageKey displays message dialog, with text
+  taken from S (or SArray or TextList, depending on overloaded version
+  used) and waits for user to press any key (that is expressed
+  as Keys.TKey value).
+
+  @groupBegin }
+function MessageKey(Glwin: TGLWindow; const S: string;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+
+function MessageKey(Glwin: TGLWindow; const SArray: array of string;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+
+function MessageKey(Glwin: TGLWindow; TextList: TStringList;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+{ @groupEnd }
+
 function MessageYesNo(glwin: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle): boolean; overload;
 function MessageYesNo(glwin: TGLWindow;  const SArray: array of string;
@@ -1128,6 +1144,61 @@ begin
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar,
    @chardata, ClosingInfo);
  result := chardata.answer;
+end;
+
+{ MessageKey functions with callbacks --------------------------------------- }
+
+type
+  TMessageKeyData = record
+    Answer: TKey;
+  end;
+  PMessageKeyData = ^TMessageKeyData;
+
+procedure MessageKey_KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+var
+  MD: TMessageData;
+  KD: PMessageKeyData;
+begin
+  MD := TMessageData(Glwin.UserData);
+  KD := PMessageKeyData(MD.UserData);
+
+  MD.Answered := true;
+  KD^.Answer := Key;
+end;
+
+function MessageKey(Glwin: TGLWindow; const S: string;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    Strings_SetText(TextList, S);
+    Result := MessageKey(Glwin, TextList, ClosingInfo, TextAlign);
+  finally TextList.free end;
+end;
+
+function MessageKey(Glwin: TGLWindow; const SArray: array of string;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    AddStrArrayToStrings(SArray, TextList);
+    Result := MessageKey(Glwin, TextList, ClosingInfo, TextAlign);
+  finally TextList.Free end;
+end;
+
+function MessageKey(Glwin: TGLWindow; TextList: TStringList;
+  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
+var
+  MessageKeyData: TMessageKeyData;
+begin
+  GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
+    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown,
+    @MessageKeyData, ClosingInfo);
+  Result := MessageKeyData.Answer;
 end;
 
 { MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }
