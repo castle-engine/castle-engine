@@ -195,7 +195,7 @@ function MessageChar(glwin: TGLWindow;  textlist: TStringList;
 { MessageKey displays message dialog, with text
   taken from S (or SArray or TextList, depending on overloaded version
   used) and waits for user to press any key (that is expressed
-  as Keys.TKey value).
+  as Keys.TKey value). Never returns K_None.
 
   @groupBegin }
 function MessageKey(Glwin: TGLWindow; const S: string;
@@ -1162,8 +1162,11 @@ begin
   MD := TMessageData(Glwin.UserData);
   KD := PMessageKeyData(MD.UserData);
 
-  MD.Answered := true;
-  KD^.Answer := Key;
+  if Key <> K_None then
+  begin
+    MD.Answered := true;
+    KD^.Answer := Key;
+  end;
 end;
 
 function MessageKey(Glwin: TGLWindow; const S: string;
