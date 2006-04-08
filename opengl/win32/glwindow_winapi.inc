@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -30,8 +30,20 @@ private
   InCloseImplDepend: boolean;
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
-  VK_LeftBracket_Exists, VK_RightBracket_Exists: boolean;
-  VK_LeftBracket, VK_RightBracket: Byte;
+  VK_LeftBracket_Exists,
+  VK_RightBracket_Exists,
+  VK_Apostrophe_Exists,
+  VK_Semicolon_Exists,
+  VK_Slash_Exists,
+  VK_BackQuote_Exists,
+  VK_BackSlash_Exists: boolean;
+  VK_LeftBracket,
+  VK_RightBracket,
+  VK_Apostrophe,
+  VK_Semicolon,
+  VK_Slash,
+  VK_BackQuote,
+  VK_BackSlash: Byte;
 
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
@@ -53,9 +65,35 @@ private
 
 { TGLWindow ------------------------------------------------- }
 
+const
+  { Some constants missing from FPC's Windows unit. }
+  VK_OEM_1 = $BA;
+  VK_OEM_PLUS = $BB;
+  VK_OEM_COMMA = $BC;
+  VK_OEM_MINUS = $BD;
+  VK_OEM_PERIOD = $BE;
+  VK_OEM_2 = $BF;
+  VK_OEM_3 = $C0;
+  VK_OEM_4 = $DB;
+  VK_OEM_5 = $DC;
+  VK_OEM_6 = $DD;
+  VK_OEM_7 = $DE;
+  VK_OEM_8 = $DF;
+  VK_OEM_102 = $E2;
+
 { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
   available. }
 function TGLWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
+var
+  VirtualKeyToKeyResult: TKey absolute Result;
+
+  function VK_Stored(VK_Exists: boolean; VK_Value: Byte; K_Value: TKey): boolean;
+  begin
+    Result := VK_Exists and (VirtualKey = VK_Value);
+    if Result then
+      VirtualKeyToKeyResult := K_Value;
+  end;
+
 begin
  { Tests: InfoWrite(Format('key %d', [VirtualKey])); }
 
@@ -68,8 +106,8 @@ begin
   VK_MENU: Result := K_Alt;
   VK_ESCAPE: Result := K_Escape;
   VK_SPACE: Result := K_Space;
-  VK_PRIOR: Result := K_PgUp;
-  VK_NEXT: Result := K_PgDown;
+  VK_PRIOR: Result := K_PageUp;
+  VK_NEXT: Result := K_PageDown;
   VK_END: Result := K_End;
   VK_HOME: Result := K_Home;
   VK_LEFT: Result := K_Left;
@@ -78,22 +116,64 @@ begin
   VK_DOWN: Result := K_Down;
   VK_INSERT: Result := K_Insert;
   VK_DELETE: Result := K_Delete;
-  VK_ADD: Result := K_Plus;
-  VK_SUBTRACT: Result := K_Minus;
-
-  188: Result := K_Comma;
-  190: Result := K_Period;
+  VK_ADD: Result := K_Numpad_Plus;
+  VK_SUBTRACT: Result := K_Numpad_Minus;
+  VK_SNAPSHOT: Result := K_PrintScreen;
+  VK_NUMLOCK: Result := K_NumLock;
+  VK_SCROLL: Result := K_ScrollLock;
+  VK_CAPITAL: Result := K_CapsLock;
+  VK_PAUSE: Result := K_Pause;
+  VK_OEM_COMMA: Result := K_Comma;
+  VK_OEM_PERIOD: Result := K_Period;
+  VK_NUMPAD0: Result := K_Numpad_0;
+  VK_NUMPAD1: Result := K_Numpad_1;
+  VK_NUMPAD2: Result := K_Numpad_2;
+  VK_NUMPAD3: Result := K_Numpad_3;
+  VK_NUMPAD4: Result := K_Numpad_4;
+  VK_NUMPAD5: Result := K_Numpad_5;
+  VK_NUMPAD6: Result := K_Numpad_6;
+  VK_NUMPAD7: Result := K_Numpad_7;
+  VK_NUMPAD8: Result := K_Numpad_8;
+  VK_NUMPAD9: Result := K_Numpad_9;
+  VK_CLEAR: Result := K_Numpad_Begin;
+  VK_MULTIPLY: Result := K_Numpad_Multiply;
+  VK_DIVIDE: Result := K_Numpad_Divide;
+  VK_OEM_MINUS: Result := K_Minus_NotNumpad;
+  VK_OEM_PLUS: Result := K_Equal;
 
   Ord('0') .. Ord('9'): Result := K_0  + VirtualKey - Ord('0');
   Ord('A') .. Ord('Z'): Result := K_A  + VirtualKey - Ord('A');
   VK_F1    .. VK_F12  : Result := K_F1 + VirtualKey - VK_F1;
   else
-    if VK_LeftBracket_Exists and (VirtualKey = VK_LeftBracket) then
-      Result := K_LeftBracket else
-    if VK_RightBracket_Exists and (VirtualKey = VK_RightBracket) then
-      Result := K_RightBracket else
+    if not VK_Stored(VK_LeftBracket_Exists , VK_LeftBracket , K_LeftBracket ) then
+    if not VK_Stored(VK_RightBracket_Exists, VK_RightBracket, K_RightBracket) then
+    if not VK_Stored(VK_Apostrophe_Exists  , VK_Apostrophe  , K_Apostrophe  ) then
+    if not VK_Stored(VK_Semicolon_Exists   , VK_Semicolon   , K_Semicolon   ) then
+    if not VK_Stored(VK_Slash_Exists       , VK_Slash       , K_Slash       ) then
+    if not VK_Stored(VK_BackQuote_Exists   , VK_BackQuote   , K_BackQuote   ) then
+    if not VK_Stored(VK_BackSlash_Exists   , VK_BackSlash   , K_BackSlash   ) then
       Result := K_None;
  end;
+
+ { Note that GLWindow WinAPI will never generate KeyDown/Up with these keys:
+     K_Numpad_End;
+     K_Numpad_Down;
+     K_Numpad_PageDown;
+     K_Numpad_Left;
+     K_Numpad_Right;
+     K_Numpad_Home;
+     K_Numpad_Up;
+     K_Numpad_PageUp;
+     K_Numpad_Insert;
+     K_Numpad_Delete;
+     K_Numpad_Enter;
+   because (as far as I can see) they are undistinguishable from normal,
+   non-numpad key codes under WinAPI.
+
+   Note that it seems that VK_SNAPSHOT (K_PrintScreen) is never passed to
+   WM_KEYDOWN (although it's passed to WM_KEYUP; but there we ignore it,
+   because in our Keys[] table it's already up).
+   So you will never get KeyDown/Up with K_PrintScreen. }
 end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
@@ -197,8 +277,13 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
    if Key = K_None then
    begin
      case CharKey of
-       '[': begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := K_LeftBracket ; end;
-       ']': begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := K_RightBracket; end;
+       '[' : begin VK_LeftBracket_Exists  := true; VK_LeftBracket  := wParm; Key := K_LeftBracket ; end;
+       ']' : begin VK_RightBracket_Exists := true; VK_RightBracket := wParm; Key := K_RightBracket; end;
+       '''': begin VK_Apostrophe_Exists   := true; VK_Apostrophe   := wParm; Key := K_Apostrophe  ; end;
+       ';' : begin VK_Semicolon_Exists    := true; VK_Semicolon    := wParm; Key := K_Semicolon   ; end;
+       '/' : begin VK_Slash_Exists        := true; VK_Slash        := wParm; Key := K_Slash       ; end;
+       '`' : begin VK_BackQuote_Exists    := true; VK_BackQuote    := wParm; Key := K_BackQuote   ; end;
+       '\' : begin VK_BackSlash_Exists    := true; VK_BackSlash    := wParm; Key := K_BackSlash   ; end;
      end;
    end;
 
