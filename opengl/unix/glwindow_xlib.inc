@@ -514,40 +514,78 @@ const
 
 var b: byte;
 begin
- SetDisplayName(''); { zainicjuj DisplayName }
+  SetDisplayName(''); { zainicjuj DisplayName }
 
- { konstruuje tablice keySym_To_TKey0 i FF : }
- for b := Low(b) to High(b) do keySym_to_TKey0[b] := K_None;
- for b := Low(b) to High(b) do keySym_to_TKeyFF[b] := K_None;
+  { See ~/sources/fpc/latest/trunk/packages/extra/x11/keysym.pp }
 
- keySym_to_TKeyFF[XK_Page_Up and $FF] := K_PgUp;
- keySym_to_TKeyFF[XK_Page_Down and $FF] := K_PgDown;
- keySym_to_TKeyFF[XK_Home and $FF] := K_Home;
- keySym_to_TKeyFF[XK_End and $FF] := K_End;
- keySym_to_TKeyFF[XK_Left and $FF] := K_Left;
- keySym_to_TKeyFF[XK_Right and $FF] := K_Right;
- keySym_to_TKeyFF[XK_Up and $FF] := K_Up;
- keySym_to_TKeyFF[XK_Down and $FF] := K_Down;
- keySym_to_TKeyFF[XK_Delete and $FF] := K_Delete;
- keySym_to_TKeyFF[XK_Insert and $FF] := K_Insert;
- keySym_to_TKeyFF[XK_BackSpace and $FF] := K_BackSpace;
- keySym_to_TKeyFF[XK_Tab and $FF] := K_Tab;
- keySym_to_TKeyFF[XK_KP_Add and $FF] := K_Plus;
- keySym_to_TKeyFF[XK_KP_Subtract and $FF] := K_Minus;
- keySym_to_TKeyFF[XK_Escape and $FF] := K_Escape;
- keySym_to_TKeyFF[XK_Return and $FF] := K_Enter;
- for b := 0 to 11 do keySym_to_TKeyFF[(XK_F1+b) and $FF] := K_F1+b;
+  { konstruuje tablice keySym_To_TKey0 i FF : }
+  for b := Low(b) to High(b) do keySym_to_TKey0[b] := K_None;
+  for b := Low(b) to High(b) do keySym_to_TKeyFF[b] := K_None;
 
- for b := XK_0 to XK_9 do keySym_to_TKey0[b] := ord(b);
- for b := XK_a_lower to XK_z_lower do keySym_to_TKey0[b] := ord(UpCase(chr(b)));
- for b := XK_a_upper to XK_z_upper do keySym_to_TKey0[b] := b;
- keySym_to_TKey0[XK_plus] := K_Plus;
- keySym_to_TKey0[XK_minus] := K_Minus;
- keySym_to_TKey0[XK_Space] := K_Space;
- keySym_to_TKey0[XK_comma] := K_comma;
- keySym_to_TKey0[XK_period] := K_period;
- keySym_to_TKey0[XK_bracketleft] := K_LeftBracket;
- keySym_to_TKey0[XK_bracketright] := K_RightBracket;
+  keySym_to_TKeyFF[XK_Page_Up and $FF] := K_PageUp;
+  keySym_to_TKeyFF[XK_Page_Down and $FF] := K_PageDown;
+  keySym_to_TKeyFF[XK_Home and $FF] := K_Home;
+  keySym_to_TKeyFF[XK_End and $FF] := K_End;
+  keySym_to_TKeyFF[XK_Left and $FF] := K_Left;
+  keySym_to_TKeyFF[XK_Right and $FF] := K_Right;
+  keySym_to_TKeyFF[XK_Up and $FF] := K_Up;
+  keySym_to_TKeyFF[XK_Down and $FF] := K_Down;
+  keySym_to_TKeyFF[XK_Delete and $FF] := K_Delete;
+  keySym_to_TKeyFF[XK_Insert and $FF] := K_Insert;
+  keySym_to_TKeyFF[XK_BackSpace and $FF] := K_BackSpace;
+  keySym_to_TKeyFF[XK_Tab and $FF] := K_Tab;
+  keySym_to_TKeyFF[XK_KP_Add and $FF] := K_Numpad_Plus;
+  keySym_to_TKeyFF[XK_KP_Subtract and $FF] := K_Numpad_Minus;
+  keySym_to_TKeyFF[XK_Escape and $FF] := K_Escape;
+  keySym_to_TKeyFF[XK_Return and $FF] := K_Enter;
+  keySym_to_TKeyFF[XK_Print and $FF] := K_PrintScreen;
+  keySym_to_TKeyFF[XK_Caps_Lock and $FF] := K_CapsLock;
+  keySym_to_TKeyFF[XK_Scroll_Lock and $FF] := K_ScrollLock;
+  keySym_to_TKeyFF[XK_Num_Lock and $FF] := K_NumLock;
+  keySym_to_TKeyFF[XK_Pause and $FF] := K_Pause;
+
+  KeySym_To_TKeyFF[XK_KP_0 and $FF] := K_Numpad_0;
+  KeySym_To_TKeyFF[XK_KP_1 and $FF] := K_Numpad_1;
+  KeySym_To_TKeyFF[XK_KP_2 and $FF] := K_Numpad_2;
+  KeySym_To_TKeyFF[XK_KP_3 and $FF] := K_Numpad_3;
+  KeySym_To_TKeyFF[XK_KP_4 and $FF] := K_Numpad_4;
+  KeySym_To_TKeyFF[XK_KP_5 and $FF] := K_Numpad_5;
+  KeySym_To_TKeyFF[XK_KP_6 and $FF] := K_Numpad_6;
+  KeySym_To_TKeyFF[XK_KP_7 and $FF] := K_Numpad_7;
+  KeySym_To_TKeyFF[XK_KP_8 and $FF] := K_Numpad_8;
+  KeySym_To_TKeyFF[XK_KP_9 and $FF] := K_Numpad_9;
+  KeySym_To_TKeyFF[XK_KP_End and $FF] := K_Numpad_End;
+  KeySym_To_TKeyFF[XK_KP_Down and $FF] := K_Numpad_Down;
+  KeySym_To_TKeyFF[XK_KP_Next and $FF] := K_Numpad_PageDown;
+  KeySym_To_TKeyFF[XK_KP_Left and $FF] := K_Numpad_Left;
+  KeySym_To_TKeyFF[XK_KP_Begin and $FF] := K_Numpad_Begin;
+  KeySym_To_TKeyFF[XK_KP_Right and $FF] := K_Numpad_Right;
+  KeySym_To_TKeyFF[XK_KP_Home and $FF] := K_Numpad_Home;
+  KeySym_To_TKeyFF[XK_KP_Up and $FF] := K_Numpad_Up;
+  KeySym_To_TKeyFF[XK_KP_Prior and $FF] := K_Numpad_PageUp;
+  KeySym_To_TKeyFF[XK_KP_Insert and $FF] := K_Numpad_Insert;
+  KeySym_To_TKeyFF[XK_KP_Delete and $FF] := K_Numpad_Delete;
+  KeySym_To_TKeyFF[XK_KP_Enter and $FF] := K_Numpad_Enter;
+  KeySym_To_TKeyFF[XK_KP_Multiply and $FF] := K_Numpad_Multiply;
+  KeySym_To_TKeyFF[XK_KP_Divide and $FF] := K_Numpad_Divide;
+
+  for b := 0 to 11 do keySym_to_TKeyFF[(XK_F1+b) and $FF] := K_F1+b;
+
+  for b := XK_0 to XK_9 do keySym_to_TKey0[b] := ord(b);
+  for b := XK_a_lower to XK_z_lower do keySym_to_TKey0[b] := ord(UpCase(chr(b)));
+  for b := XK_a_upper to XK_z_upper do keySym_to_TKey0[b] := b;
+  keySym_to_TKey0[XK_Space] := K_Space;
+  keySym_to_TKey0[XK_comma] := K_comma;
+  keySym_to_TKey0[XK_period] := K_period;
+  keySym_to_TKey0[XK_bracketleft] := K_LeftBracket;
+  keySym_to_TKey0[XK_bracketright] := K_RightBracket;
+  KeySym_To_TKey0[XK_apostrophe] := K_Apostrophe;
+  KeySym_To_TKey0[XK_semicolon] := K_Semicolon;
+  KeySym_To_TKey0[XK_slash] := K_Slash;
+  KeySym_To_TKey0[XK_grave] := K_BackQuote;
+  KeySym_To_TKey0[XK_minus] := K_Minus_NotNumpad;
+  KeySym_To_TKey0[XK_equal] := K_Equal;
+  KeySym_To_TKey0[XK_backslash] := K_BackSlash;
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;

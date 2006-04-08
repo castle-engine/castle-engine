@@ -217,13 +217,13 @@ const
   WalkerDefaultKey_RightRot = K_Right;
   WalkerDefaultKey_LeftStrafe = K_Comma;
   WalkerDefaultKey_RightStrafe = K_Period;
-  WalkerDefaultKey_UpRotate = K_PgUp;
-  WalkerDefaultKey_DownRotate = K_PgDown;
+  WalkerDefaultKey_UpRotate = K_PageUp;
+  WalkerDefaultKey_DownRotate = K_PageDown;
   WalkerDefaultKey_UpMove = K_Insert;
   WalkerDefaultKey_DownMove = K_Delete;
   WalkerDefaultKey_HomeUp = K_Home;
-  WalkerDefaultKey_MoveSpeedInc = K_Plus;
-  WalkerDefaultKey_MoveSpeedDec = K_Minus;
+  WalkerDefaultKey_MoveSpeedInc = K_Numpad_Plus;
+  WalkerDefaultKey_MoveSpeedDec = K_Numpad_Minus;
   WalkerDefaultKey_Jump = K_A;
   WalkerDefaultKey_Crouch = K_Z;
   { @groupEnd }
@@ -830,9 +830,9 @@ begin result := false end;
 
 const
   DefaultKeys_Move: T3BoolKeys =
-    ((K_Left, K_Right), (K_Down, K_Up), (K_PgDown, K_PgUp));
+    ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp));
   DefaultKeys_Rotate: T3BoolKeys =
-    ((K_Up, K_Down), (K_Left, K_Right), (K_PgDown, K_PgUp));
+    ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp));
 
 constructor TMatrixExaminer.Create(
   const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
@@ -844,8 +844,8 @@ begin
  { default keys }
  Keys_Move := DefaultKeys_Move;
  Keys_Rotate := DefaultKeys_Rotate;
- Key_ScaleLarger := K_Plus;
- Key_ScaleSmaller := K_Minus;
+ Key_ScaleLarger := K_Numpad_Plus;
+ Key_ScaleSmaller := K_Numpad_Minus;
  Key_Home := K_Home;
  CharKey_StopRotating := ' ';
 end;

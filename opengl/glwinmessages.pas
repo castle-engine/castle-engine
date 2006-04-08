@@ -539,10 +539,10 @@ begin
  md := TMessageData(glwin.userdata);
  PageHeight := md.VisibleScrolledLinesCount * md.Font.RowHeight;
  case key of
-  K_PgUp:   md.setFloatShiftY(glwin, md.shiftY - PageHeight);
-  K_PgDown: md.setFloatShiftY(glwin, md.shiftY + PageHeight);
-  K_Home:   md.setFloatShiftY(glwin, md.minShiftY);
-  K_End:    md.setFloatShiftY(glwin, md.maxShiftY);
+  K_PageUp:   md.setFloatShiftY(glwin, md.shiftY - PageHeight);
+  K_PageDown: md.setFloatShiftY(glwin, md.shiftY + PageHeight);
+  K_Home:     md.setFloatShiftY(glwin, md.minShiftY);
+  K_End:      md.setFloatShiftY(glwin, md.maxShiftY);
   else
    if Assigned(md.OnUserKeyDown) then
     md.OnUserKeyDown(glwin, Key, c);
@@ -561,8 +561,8 @@ begin
 
  if PointInRect(mx, my, md.ScrollBarRect) then
  begin
-  if my < md.przewVisY1 then glwin.EventKeyDown(K_PgDown, #0) else
-  if my > md.przewVisY2 then glwin.EventKeyDown(K_PgUp, #0) else
+  if my < md.przewVisY1 then glwin.EventKeyDown(K_PageDown, #0) else
+  if my > md.przewVisY2 then glwin.EventKeyDown(K_PageUp, #0) else
   begin
    md.ScrollBarDragging := true;
   end;

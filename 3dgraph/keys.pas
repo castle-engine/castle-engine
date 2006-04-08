@@ -92,18 +92,29 @@ const
     It's not a nice programming practice, but you can depend on it. }
   K_None = 0;
 
-  K_BackSpace = Ord(CharBackSpace);
-  K_Tab = Ord(CharTab);
-  K_Enter = Ord(CharEnter);
-
+  K_PrintScreen = 1;
+  K_CapsLock = 2;
+  K_ScrollLock = 3;
+  K_NumLock = 4;
+  K_Pause = 5;
+  K_Apostrophe = 6;
+  K_Semicolon = 7;
+  K_BackSpace = Ord(CharBackSpace); //< = 8
+  K_Tab = Ord(CharTab); //< = 9
+  K_Slash = 10;
+  K_BackQuote = 11;
+  K_Minus_NotNumpad = 12;
+  K_Enter = Ord(CharEnter); //< = 13
+  K_Equal = 14;
+  K_BackSlash = 15;
   K_Shift = 16;
   K_Ctrl = 17;
   K_Alt = 18;
 
-  K_Escape = Ord(CharEscape);
-  K_Space = Ord(' ');
-  K_PgUp = 33;
-  K_PgDown = 34;
+  K_Escape = Ord(CharEscape); //< = 27
+  K_Space = Ord(' '); //< 32
+  K_PageUp = 33;
+  K_PageDown = 34;
   K_End = 35;
   K_Home = 36;
   K_Left = 37;
@@ -154,8 +165,8 @@ const
   K_LeftBracket = 91;
   K_RightBracket = 93;
 
-  K_Plus  = 107;
-  K_Minus = 109;
+  K_Numpad_Plus  = 107;
+  K_Numpad_Minus = 109;
 
   K_F1 = 112;
   K_F2 = 113;
@@ -169,6 +180,31 @@ const
   K_F10 = 121;
   K_F11 = 122;
   K_F12 = 123;
+
+  K_Numpad_0 = 140;
+  K_Numpad_1 = 141;
+  K_Numpad_2 = 142;
+  K_Numpad_3 = 143;
+  K_Numpad_4 = 144;
+  K_Numpad_5 = 145;
+  K_Numpad_6 = 146;
+  K_Numpad_7 = 147;
+  K_Numpad_8 = 148;
+  K_Numpad_9 = 149;
+  K_Numpad_End = 150;
+  K_Numpad_Down = 151;
+  K_Numpad_PageDown = 152;
+  K_Numpad_Left = 153;
+  K_Numpad_Begin = 154;
+  K_Numpad_Right = 155;
+  K_Numpad_Home = 156;
+  K_Numpad_Up = 157;
+  K_Numpad_PageUp = 158;
+  K_Numpad_Insert = 159;
+  K_Numpad_Delete = 160;
+  K_Numpad_Enter = 161;
+  K_Numpad_Multiply = 162;
+  K_Numpad_Divide = 163;
 
   K_Comma = 188;
   K_Period = 190;
@@ -210,35 +246,71 @@ uses SysUtils;
 function KeyToStr(key: TKey): string;
 begin
  case key of
-  K_None : result := 'None';
-  K_BackSpace : result := 'BackSpace';
-  K_Tab : result := 'Tab';
-  K_Enter : result := 'Enter';
-  K_Shift : result := 'Shift';
-  K_Ctrl : result := 'Ctrl';
-  K_Alt : result := 'Alt';
-  K_Escape : result := 'Escape';
-  K_Space : result := 'Space';
-  K_PgUp : result := 'PgUp';
-  K_PgDown : result := 'PgDown';
-  K_End : result := 'End';
-  K_Home : result := 'Home';
-  K_Left : result := 'Left';
-  K_Up : result := 'Up';
-  K_Right : result := 'Right';
-  K_Down : result := 'Down';
-  K_Insert : result := 'Insert';
-  K_Delete : result := 'Delete';
-  K_LeftBracket : Result := '[';
-  K_RightBracket : Result := ']';
-  K_Plus : result := 'Plus';
-  K_Minus : result := 'Minus';
-  K_Comma : result := 'Comma';
-  K_Period : result := 'Period';
+  K_None: result := 'None';
+  K_PrintScreen: Result := 'Print Screen';
+  K_CapsLock: Result := 'Caps Lock';
+  K_ScrollLock: Result := 'Scroll Lock';
+  K_NumLock: Result := 'Num Lock';
+  K_Pause: Result := 'Pause';
+  K_BackSpace: result := 'BackSpace';
+  K_Tab: result := 'Tab';
+  K_Enter: result := 'Enter';
+  K_Shift: result := 'Shift';
+  K_Ctrl: Result := 'Ctrl';
+  K_Alt: Result := 'Alt';
+  K_Escape: Result := 'Escape';
+  K_Space: Result := 'Space';
+  K_PageUp: Result := 'Page Up';
+  K_PageDown: Result := 'Page Down';
+  K_End: Result := 'End';
+  K_Home: Result := 'Home';
+  K_Left: Result := 'Left';
+  K_Up: Result := 'Up';
+  K_Right: Result := 'Right';
+  K_Down: Result := 'Down';
+  K_Insert: Result := 'Insert';
+  K_Delete: Result := 'Delete';
+  K_LeftBracket: Result := '[';
+  K_RightBracket: Result := ']';
+  K_Numpad_Plus: Result := 'Numpad Plus';
+  K_Numpad_Minus: Result := 'Numpad Minus';
+  K_Comma: Result := 'Comma';
+  K_Period: Result := 'Period';
+  K_Numpad_0: Result := 'Numpad 0';
+  K_Numpad_1: Result := 'Numpad 1';
+  K_Numpad_2: Result := 'Numpad 2';
+  K_Numpad_3: Result := 'Numpad 3';
+  K_Numpad_4: Result := 'Numpad 4';
+  K_Numpad_5: Result := 'Numpad 5';
+  K_Numpad_6: Result := 'Numpad 6';
+  K_Numpad_7: Result := 'Numpad 7';
+  K_Numpad_8: Result := 'Numpad 8';
+  K_Numpad_9: Result := 'Numpad 9';
+  K_Numpad_End: Result := 'Numpad End';
+  K_Numpad_Down: Result := 'Numpad Down';
+  K_Numpad_PageDown: Result := 'Numpad Page Down';
+  K_Numpad_Left: Result := 'Numpad Left';
+  K_Numpad_Begin: Result := 'Numpad Begin';
+  K_Numpad_Right: Result := 'Numpad Right';
+  K_Numpad_Home: Result := 'Numpad Home';
+  K_Numpad_Up: Result := 'Numpad Up';
+  K_Numpad_PageUp: Result := 'Numpad Page Up';
+  K_Numpad_Insert: Result := 'Numpad Insert';
+  K_Numpad_Delete: Result := 'Numpad Delete';
+  K_Numpad_Enter: Result := 'Numpad Enter';
+  K_Numpad_Multiply: Result := 'Numpad Multiply';
+  K_Numpad_Divide: Result := 'Numpad Divide';
+  K_Apostrophe: Result := 'Apostrophe';
+  K_Semicolon: Result := 'Semicolon';
+  K_Slash: Result := 'Slash';
+  K_BackQuote: Result := 'Backquote';
+  K_Minus_NotNumpad: Result := 'Minus (NotNumpad)';
+  K_Equal: Result := 'Equal';
+  K_BackSlash: Result := 'Backslash';
 
-  K_0 .. K_9 : result := IntToStr(key-K_0);
-  K_A .. K_Z : result := Chr( Ord('A')+key-K_A );
-  K_F1 .. K_F12 : result := 'F'+IntToStr(key-K_F1+1);
+  K_0 .. K_9: Result := IntToStr(key-K_0);
+  K_A .. K_Z: Result := Chr( Ord('A')+key-K_A );
+  K_F1 .. K_F12: Result := 'F'+IntToStr(key-K_F1+1);
 
   else result := '<unknown key>';
  end;

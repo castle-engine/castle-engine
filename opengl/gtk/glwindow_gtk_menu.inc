@@ -137,8 +137,8 @@ procedure TGLWindow.init_window_menu_bar;
 
        K_Escape: gdk_keyval := GDK_KEY_Escape;
        K_Space: gdk_keyval := GDK_KEY_Space;
-       K_PgUp: gdk_keyval := GDK_KEY_Page_Up;
-       K_PgDown: gdk_keyval := GDK_KEY_Page_Down;
+       K_PageUp: gdk_keyval := GDK_KEY_Page_Up;
+       K_PageDown: gdk_keyval := GDK_KEY_Page_Down;
        K_End: gdk_keyval := GDK_KEY_End;
        K_Home: gdk_keyval := GDK_KEY_Home;
        K_Left: gdk_keyval := GDK_KEY_Left;
@@ -148,8 +148,8 @@ procedure TGLWindow.init_window_menu_bar;
        K_Insert: gdk_keyval := GDK_KEY_Insert;
        K_Delete: gdk_keyval := GDK_KEY_Delete;
 
-       K_Plus: gdk_keyval := GDK_KEY_Plus;
-       K_Minus: gdk_keyval := GDK_KEY_Minus;
+       K_Numpad_Plus: gdk_keyval := GDK_KEY_Plus;
+       K_Numpad_Minus: gdk_keyval := GDK_KEY_Minus;
 
        K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Key - K_0;
        K_A .. K_Z: gdk_keyval := GDK_KEY_A + Key - K_A;

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -190,8 +190,8 @@ begin
 
   GDK_KEY_Escape: Result := K_Escape;
   GDK_KEY_Space: Result := K_Space;
-  GDK_KEY_Page_Up:  Result := K_PgUp;
-  GDK_KEY_Page_Down: Result := K_PgDown;
+  GDK_KEY_Page_Up:  Result := K_PageUp;
+  GDK_KEY_Page_Down: Result := K_PageDown;
   GDK_KEY_End: Result := K_End;
   GDK_KEY_Home: Result := K_Home;
   GDK_KEY_Left: Result := K_Left;
@@ -203,16 +203,27 @@ begin
   GDK_KEY_BracketLeft: Result := K_LeftBracket;
   GDK_KEY_BracketRight: Result := K_RightBracket;
 
-  { It seems that win32 gtk (at least GTK 1.3) uses other consts for these keys.
+  (*
+    It seems that win32 gtk (at least GTK 1.3) uses other consts for
+    numpad plus and minus.
+
     Note: I *cannot* convert here two GDK_xxx codes to one K_xxx
     code (e.g. write
-      GDK_plus_key, GDK_KP_Add: Result := K_Plus;
+      GDK_plus_key, GDK_KP_Add: Result := K_Numpad_Plus;
     ), this would lead to similiar problems as those described in
-    glwindow_private_modifiers_down.inc. }
-  {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_plus_key {$else} GDK_KEY_KP_Add {$endif}:
-     Result := K_Plus;
-  {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
-     Result := K_Minus;
+    glwindow_private_modifiers_down.inc.
+
+    For some time I had here this code:
+      {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_plus_key {$else} GDK_KEY_KP_Add {$endif}:
+         Result := K_Numpad_Plus;
+      {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
+         Result := K_Numpad_Minus;
+    but that's a hack only for GTK 1 under Windows
+    (and it collides with checking for K_Minus_NotNumpad below),
+    so I removed it.
+  *)
+  GDK_KEY_KP_Add: Result := K_Numpad_Plus;
+  GDK_KEY_KP_Subtract: Result := K_Numpad_Minus;
 
   GDK_KEY_0..GDK_KEY_9: Result := K_0 + GdkKeysym - GDK_KEY_0;
 
@@ -223,6 +234,43 @@ begin
 
   GDK_KEY_Comma: Result := K_Comma;
   GDK_KEY_Period: Result := K_Period;
+  GDK_KEY_Print: Result := K_PrintScreen;
+  GDK_KEY_Caps_Lock: Result := K_CapsLock;
+  GDK_KEY_Scroll_Lock: Result := K_ScrollLock;
+  GDK_KEY_Num_Lock: Result := K_NumLock;
+  GDK_KEY_Pause: Result := K_Pause;
+
+  GDK_KEY_KP_0: Result := K_Numpad_0;
+  GDK_KEY_KP_1: Result := K_Numpad_1;
+  GDK_KEY_KP_2: Result := K_Numpad_2;
+  GDK_KEY_KP_3: Result := K_Numpad_3;
+  GDK_KEY_KP_4: Result := K_Numpad_4;
+  GDK_KEY_KP_5: Result := K_Numpad_5;
+  GDK_KEY_KP_6: Result := K_Numpad_6;
+  GDK_KEY_KP_7: Result := K_Numpad_7;
+  GDK_KEY_KP_8: Result := K_Numpad_8;
+  GDK_KEY_KP_9: Result := K_Numpad_9;
+  GDK_KEY_KP_End: Result := K_Numpad_End;
+  GDK_KEY_KP_Down: Result := K_Numpad_Down;
+  GDK_KEY_KP_Next: Result := K_Numpad_PageDown;
+  GDK_KEY_KP_Left: Result := K_Numpad_Left;
+  GDK_KEY_KP_Begin: Result := K_Numpad_Begin;
+  GDK_KEY_KP_Right: Result := K_Numpad_Right;
+  GDK_KEY_KP_Home: Result := K_Numpad_Home;
+  GDK_KEY_KP_Up: Result := K_Numpad_Up;
+  GDK_KEY_KP_Prior: Result := K_Numpad_PageUp;
+  GDK_KEY_KP_Insert: Result := K_Numpad_Insert;
+  GDK_KEY_KP_Delete: Result := K_Numpad_Delete;
+  GDK_KEY_KP_Enter: Result := K_Numpad_Enter;
+  GDK_KEY_KP_Multiply: Result := K_Numpad_Multiply;
+  GDK_KEY_KP_Divide: Result := K_Numpad_Divide;
+  GDK_KEY_Apostrophe: Result := K_Apostrophe;
+  GDK_KEY_Semicolon: Result := K_Semicolon;
+  GDK_KEY_Slash: Result := K_Slash;
+  GDK_KEY_Grave: Result := K_BackQuote;
+  GDK_KEY_Minus: Result := K_Minus_NotNumpad;
+  GDK_KEY_Equal: Result := K_Equal;
+  GDK_KEY_BackSlash: Result := K_BackSlash;
 
   else Result := K_None;
  end;

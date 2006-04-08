@@ -642,8 +642,8 @@ const
 
   K_Escape = Keys.K_Escape;
   K_Space = Keys.K_Space;
-  K_PgUp = Keys.K_PgUp;
-  K_PgDown = Keys.K_PgDown;
+  K_PageUp = Keys.K_PageUp;
+  K_PageDown = Keys.K_PageDown;
   K_End = Keys.K_End;
   K_Home = Keys.K_Home;
   K_Left = Keys.K_Left;
@@ -653,8 +653,8 @@ const
   K_Insert = Keys.K_Insert;
   K_Delete = Keys.K_Delete;
 
-  K_Plus = Keys.K_Plus;
-  K_Minus = Keys.K_Minus;
+  K_Numpad_Plus = Keys.K_Numpad_Plus;
+  K_Numpad_Minus = Keys.K_Numpad_Minus;
 
   K_0 = Keys.K_0;  K_1 = Keys.K_1;  K_2 = Keys.K_2;  K_3 = Keys.K_3;
   K_4 = Keys.K_4;  K_5 = Keys.K_5;  K_6 = Keys.K_6;  K_7 = Keys.K_7;
