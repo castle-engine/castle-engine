@@ -61,8 +61,8 @@ begin
   'a'..'z': result := K_A + Ord(c)-Ord('a');
   'A'..'Z': result := K_A + Ord(c)-Ord('A');
   '0'..'9': result := K_0 + Ord(c)-Ord('0');
-  '+': result := K_Plus;
-  '-': result := K_Minus;
+  '+': result := K_Numpad_Plus;
+  '-': result := K_Numpad_Minus;
   ',': result := K_Comma;
   '.': result := K_Period;
   else result := K_None;
@@ -92,8 +92,8 @@ begin
   GLUT_KEY_UP:        Result := K_Up;
   GLUT_KEY_RIGHT:     Result := K_Right;
   GLUT_KEY_DOWN:      Result := K_Down;
-  GLUT_KEY_PAGE_UP:   Result := K_PgUp;
-  GLUT_KEY_PAGE_DOWN: Result := K_PgDown;
+  GLUT_KEY_PAGE_UP:   Result := K_PageUp;
+  GLUT_KEY_PAGE_DOWN: Result := K_PageDown;
   GLUT_KEY_HOME:      Result := K_Home;
   GLUT_KEY_END:       Result := K_End;
   GLUT_KEY_INSERT:    Result := K_Insert;
