@@ -200,10 +200,10 @@ type
       W tym momencie klawisze Keys_Move dzialaja gdy ModifiersDown = [mkCtrl],
       a pozostale klawisze gdy ModifiersDown = []. }
 
-    Keys_Move: T3BoolKeys; { = ((K_Left, K_Right), (K_Down, K_Up), (K_PgDown, K_PgUp)) }
-    Keys_Rotate: T3BoolKeys; { = ((K_Up, K_Down), (K_Left, K_Right), (K_PgDown, K_PgUp)) }
-    Key_ScaleLarger: TKey; { = K_Plus }
-    Key_ScaleSmaller: TKey; { = K_Minus }
+    Keys_Move: T3BoolKeys; { = ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp)) }
+    Keys_Rotate: T3BoolKeys; { = ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp)) }
+    Key_ScaleLarger: TKey; { = K_Numpad_Plus }
+    Key_ScaleSmaller: TKey; { = K_Numpad_Minus }
     Key_Home: TKey; { = K_Home }
     CharKey_StopRotating: char; { = ' ' }
   end;

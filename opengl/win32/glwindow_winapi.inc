@@ -138,7 +138,7 @@ begin
   VK_CLEAR: Result := K_Numpad_Begin;
   VK_MULTIPLY: Result := K_Numpad_Multiply;
   VK_DIVIDE: Result := K_Numpad_Divide;
-  VK_OEM_MINUS: Result := K_Minus_NotNumpad;
+  VK_OEM_MINUS: Result := K_Minus;
   VK_OEM_PLUS: Result := K_Equal;
 
   Ord('0') .. Ord('9'): Result := K_0  + VirtualKey - Ord('0');

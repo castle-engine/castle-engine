@@ -103,7 +103,7 @@ const
   K_Tab = Ord(CharTab); //< = 9
   K_Slash = 10;
   K_BackQuote = 11;
-  K_Minus_NotNumpad = 12;
+  K_Minus = 12;
   K_Enter = Ord(CharEnter); //< = 13
   K_Equal = 14;
   K_BackSlash = 15;
@@ -304,7 +304,7 @@ begin
   K_Semicolon: Result := 'Semicolon';
   K_Slash: Result := 'Slash';
   K_BackQuote: Result := 'Backquote';
-  K_Minus_NotNumpad: Result := 'Minus (NotNumpad)';
+  K_Minus: Result := 'Minus';
   K_Equal: Result := 'Equal';
   K_BackSlash: Result := 'Backslash';
 

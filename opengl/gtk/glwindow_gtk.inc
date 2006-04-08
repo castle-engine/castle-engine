@@ -219,7 +219,7 @@ begin
       {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
          Result := K_Numpad_Minus;
     but that's a hack only for GTK 1 under Windows
-    (and it collides with checking for K_Minus_NotNumpad below),
+    (and it collides with checking for K_Minus below),
     so I removed it.
   *)
   GDK_KEY_KP_Add: Result := K_Numpad_Plus;
@@ -268,7 +268,7 @@ begin
   GDK_KEY_Semicolon: Result := K_Semicolon;
   GDK_KEY_Slash: Result := K_Slash;
   GDK_KEY_Grave: Result := K_BackQuote;
-  GDK_KEY_Minus: Result := K_Minus_NotNumpad;
+  GDK_KEY_Minus: Result := K_Minus;
   GDK_KEY_Equal: Result := K_Equal;
   GDK_KEY_BackSlash: Result := K_BackSlash;
 

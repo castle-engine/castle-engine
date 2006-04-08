@@ -583,7 +583,7 @@ begin
   KeySym_To_TKey0[XK_semicolon] := K_Semicolon;
   KeySym_To_TKey0[XK_slash] := K_Slash;
   KeySym_To_TKey0[XK_grave] := K_BackQuote;
-  KeySym_To_TKey0[XK_minus] := K_Minus_NotNumpad;
+  KeySym_To_TKey0[XK_minus] := K_Minus;
   KeySym_To_TKey0[XK_equal] := K_Equal;
   KeySym_To_TKey0[XK_backslash] := K_BackSlash;
 end;
