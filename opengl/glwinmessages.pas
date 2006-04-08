@@ -353,6 +353,9 @@ type
     property FloatShiftY: Single read FFloatshiftY;
     procedure SetFloatShiftY(glwin: TGLWindow; newValue: Single);
 
+    procedure SetFloatShiftYPageDown(Glwin: TGLWindow);
+    procedure SetFloatShiftYPageUp(Glwin: TGLWindow);
+
     { minimalne i maksymalne sensowne wartosci dla shiftY }
     minShiftY, maxShiftY: integer;
 
@@ -423,6 +426,22 @@ begin
   FFloatShiftY := newValue;
   glwin.PostRedisplay;
  end;
+end;
+
+procedure TMessageData.SetFloatShiftYPageDown(Glwin: TGLWindow);
+var
+  PageHeight: Single;
+begin
+  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
+  SetFloatShiftY(Glwin, ShiftY + PageHeight);
+end;
+
+procedure TMessageData.SetFloatShiftYPageUp(Glwin: TGLWindow);
+var
+  PageHeight: Single;
+begin
+  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
+  SetFloatShiftY(Glwin, ShiftY - PageHeight);
 end;
 
 procedure TMessageData.SetSAdditional(glwin: TGLWindow; const value: string);
@@ -517,6 +536,11 @@ begin
   if not ScrollBarVisible then
    ScrollBarDragging := false;
 
+  { Note that when not ScrollBarVisible,
+    then VisibleScrolledLinesCount = AllScrolledLinesCount,
+    then minShiftY = 0
+    so minShiftY = maxShiftY,
+    so FloatShiftY will always be 0. }
   minShiftY := -Font.RowHeight *
     (AllScrolledLinesCount - VisibleScrolledLinesCount);
   { maxShiftY jest stale ale to nic; wszystko bedziemy pisac
@@ -534,19 +558,36 @@ end;
 procedure KeyDownMessg(glwin: TGLWindow; key: TKey; c: char);
 var
   md: TMessageData;
-  PageHeight: Single;
+  KeyHandled: boolean;
 begin
- md := TMessageData(glwin.userdata);
- PageHeight := md.VisibleScrolledLinesCount * md.Font.RowHeight;
- case key of
-  K_PageUp:   md.setFloatShiftY(glwin, md.shiftY - PageHeight);
-  K_PageDown: md.setFloatShiftY(glwin, md.shiftY + PageHeight);
-  K_Home:     md.setFloatShiftY(glwin, md.minShiftY);
-  K_End:      md.setFloatShiftY(glwin, md.maxShiftY);
-  else
-   if Assigned(md.OnUserKeyDown) then
-    md.OnUserKeyDown(glwin, Key, c);
- end;
+  md := TMessageData(glwin.userdata);
+
+  KeyHandled := false;
+
+  { if not ScrollBarVisible then there is no point in doing
+    md.setFloatShiftY (because always
+    minShiftY = maxShiftY = FloatShiftY = 0, see ResizeMessg comments).
+
+    This way I allow md.OnUserKeyDown to handle K_PageDown, K_PageUp,
+    K_Home and K_End keys. And this is very handy for MessageKey,
+    when it's used e.g. to allow user to choose any TKey.
+    Otherwise MessageKey would not be able to return
+    K_PageDown, K_PageUp, etc. keys. }
+  if MD.ScrollBarVisible then
+  begin
+    case Key of
+      K_PageUp:   begin md.setFloatShiftYPageUp(GlWin);         KeyHandled := true; end;
+      K_PageDown: begin md.setFloatShiftYPageDown(Glwin);       KeyHandled := true; end;
+      K_Home:     begin md.setFloatShiftY(glwin, md.minShiftY); KeyHandled := true; end;
+      K_End:      begin md.setFloatShiftY(glwin, md.maxShiftY); KeyHandled := true; end;
+    end;
+  end;
+
+  if not KeyHandled then
+  begin
+    if Assigned(md.OnUserKeyDown) then
+      md.OnUserKeyDown(glwin, Key, c);
+  end;
 end;
 
 procedure MouseDownMessg(glwin: TGLWindow; btn: TMouseButton);
@@ -561,8 +602,8 @@ begin
 
  if PointInRect(mx, my, md.ScrollBarRect) then
  begin
-  if my < md.przewVisY1 then glwin.EventKeyDown(K_PageDown, #0) else
-  if my > md.przewVisY2 then glwin.EventKeyDown(K_PageUp, #0) else
+  if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Glwin) else
+  if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Glwin) else
   begin
    md.ScrollBarDragging := true;
   end;
@@ -909,8 +950,10 @@ begin
   Podobnie, zainicjowanie Userdata := messageData oczywiscie
     wymaga aby messageData bylo juz ustalone. }
   glwin.Userdata := messageData;
-  resizeMessg(glwin);  { ustaw nasze projection matrix }
-  KeyDownMessg(glwin, K_Home, #0);  { ustaw nas na poczatku tekstu. }
+  { ustaw nasze projection matrix }
+  resizeMessg(glwin);
+  { ustaw nas na poczatku tekstu. }
+  MessageData.SetFloatShiftY(Glwin, MessageData.MinShiftY);
 
   {6 faza :
     Robimy wlasna petle, az do messageData.answered. }
