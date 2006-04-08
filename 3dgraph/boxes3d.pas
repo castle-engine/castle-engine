@@ -497,24 +497,13 @@ function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
   GetVertex: TGetVertexFromIndexFunc): TBox3d;
+var
+  { pozycja pierwszego nieujemnego indexu.
+    Zwracamy EmptyBox3d wtw. gdy firstIndex nie istnieje }
+  FirstIndexNum: integer;
 
-{ pozycja pierwszego nieujemnego indexu.
-  Zwracamy EmptyBox3d wtw. gdy firstIndex nie istnieje }
-var firstIndexNum: integer;
-
-  function find_extremum(ChooseFuncTo1st: TChooseOneTo1st_Single;
-    coord: integer): Single;
-  var indexNum, index: integer;
-  begin
-   result := GetVertex(GetVertIndex(firstIndexNum))[coord];
-   for indexNum := firstIndexNum+1 to VertsIndicesCount-1 do
-   begin
-    index := GetVertIndex(indexNum);
-    if index >= 0 then
-      ChooseFuncTo1st(Result, GetVertex(index)[coord]);
-   end;
-  end;
-
+  IndexNum, Index: integer;
+  ThisVertex: TVector3Single;
 begin
  {seek for firstIndex}
  firstIndexNum := 0;
@@ -527,12 +516,35 @@ begin
   exit;
  end;
 
- result[0, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 0);
- result[0, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 1);
- result[0, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MinSingleTo1st, 2);
- result[1, 0] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 0);
- result[1, 1] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 1);
- result[1, 2] := find_extremum({$ifdef FPC_OBJFPC} @ {$endif} MaxSingleTo1st, 2);
+ { Note that I do only one pass, getting all vertexes.
+
+   This is important, because GetVertex may be quite expensive
+   operation (in case of e.g. TVertTransform_Calculator.GetTransformed,
+   this is MultMatrixPoint for every vertex). At the beginning
+   I implemented this by caling 6 time find_extremum function,
+   and each call to find_extremum was iterating over every vertex.
+   This was obviously wrong, because this caused calling GetVertex
+   6 times more often than necessary. In some cases (like preparing
+   TVRMLGLAnimation in "The Castle") this can cause really significant
+   slowdown. }
+
+ ThisVertex := GetVertex(GetVertIndex(firstIndexNum));
+ Result[0] := ThisVertex;
+ Result[1] := ThisVertex;
+ for IndexNum := FirstIndexNum+1 to VertsIndicesCount - 1 do
+ begin
+   Index := GetVertIndex(IndexNum);
+   if Index >= 0 then
+   begin
+     ThisVertex := GetVertex(Index);
+     if ThisVertex[0] < Result[0, 0] then Result[0, 0] := ThisVertex[0];
+     if ThisVertex[1] < Result[0, 1] then Result[0, 1] := ThisVertex[1];
+     if ThisVertex[2] < Result[0, 2] then Result[0, 2] := ThisVertex[2];
+     if ThisVertex[0] > Result[1, 0] then Result[1, 0] := ThisVertex[0];
+     if ThisVertex[1] > Result[1, 1] then Result[1, 1] := ThisVertex[1];
+     if ThisVertex[2] > Result[1, 2] then Result[1, 2] := ThisVertex[2];
+   end;
+ end;
 end;
 
 type
