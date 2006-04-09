@@ -655,10 +655,14 @@ uses ParseParametersUnit;
 {$I objectslist_1.inc}
 
 procedure TVRMLFlatSceneGLsList.CloseGLAll;
+{ This may be called from various destructors,
+  so we are extra careful here and check Items[I] <> nil. }
 var
   I: Integer;
 begin
- for I := 0 to Count - 1 do Items[I].CloseGL;
+ for I := 0 to Count - 1 do
+   if Items[I] <> nil then
+     Items[I].CloseGL;
 end;
 
 { ------------------------------------------------------------ }

@@ -563,18 +563,21 @@ var
 begin
   CloseGL;
 
-  { Now we must note that we may have a sequences of the same scenes
-    on FScenes. So we must deallocate smartly, to avoid deallocating
-    the same pointer more than once. }
-  for I := 0 to FScenes.High - 1 do
+  if FScenes <> nil then
   begin
-    if FScenes[I] = FScenes[I+1] then
-      FScenes[I] := nil { set to nil, just for safety } else
-      FScenes.FreeAndNil(I);
-  end;
-  FScenes.FreeAndNil(FScenes.High);
+    { Now we must note that we may have a sequences of the same scenes
+      on FScenes. So we must deallocate smartly, to avoid deallocating
+      the same pointer more than once. }
+    for I := 0 to FScenes.High - 1 do
+    begin
+      if FScenes[I] = FScenes[I+1] then
+        FScenes[I] := nil { set to nil, just for safety } else
+        FScenes.FreeAndNil(I);
+    end;
+    FScenes.FreeAndNil(FScenes.High);
 
-  FreeAndNil(FScenes);
+    FreeAndNil(FScenes);
+  end;
 
   FreeAndNil(Renderer);
   inherited;
@@ -600,9 +603,14 @@ begin
 end;
 
 procedure TVRMLGLAnimation.CloseGL;
+{ Note that this is called from destructor, so we must be extra careful
+  here and check is everything <> nil before freeing it. }
 begin
-  FScenes.CloseGLAll;
-  Renderer.UnprepareAll;
+  if FScenes <> nil then
+    FScenes.CloseGLAll;
+
+  if Renderer <> nil then
+    Renderer.UnprepareAll;
 end;
 
 function TVRMLGLAnimation.TimeDuration: Single;
