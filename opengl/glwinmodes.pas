@@ -153,6 +153,7 @@ type
     oldWinWidth, oldWinHeight: integer;
     oldGLWinMessagesTheme: TGLWinMessagesTheme;
     FPushPopGLWinMessagesTheme: boolean;
+    FFakeMouseDown: boolean;
   public
     { Enter / Exit mode:
 
@@ -187,7 +188,8 @@ type
           W Enter wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
           wylaczane przez wywolanie glwin.EventMouseUp.
 
-          W Exit wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
+          If FakeMouseDown then
+          w Exit wszystkie aktualnie wcisniete klawisze myszki sa sztucznie
           wlaczane przez wywolanie glwin.EventMouseDown (juz PO przywroceniu
           oryginalnych callbackow okienka).
 
@@ -198,7 +200,16 @@ type
           sa rzeczywiscie wcisniete. To jest pozadane bo inaczej jezeli
           podmienisz callbacki dla myszki na wlasne to oryginalne callbacki
           okienka np. nigdy sie nie dowiedza ze user puscil klawisze myszki
-          w czasie gdy bylismy pomiedzy ModeGLEnter..Exit.)
+          w czasie gdy bylismy pomiedzy ModeGLEnter..Exit.
+
+          Often it may be useful to set FakeMouseDown to @false.
+          That's because if original callbacks do something in MouseDown (like
+          e.g. activate some click) then you don't want to generate
+          fake MouseDown by TGLMode.Destroy.
+          But this means that original callbacks have to be careful
+          and *never assume* that when some button is pressed
+          (because it's included in MousePressed, or has MouseUp generated for it)
+          then for sure there occured some MouseDown for it.)
 
         @item(
           Jezeli rozmiary okienka (Width, Height) ulegly zmianie pomiedzy Enter
@@ -226,6 +237,9 @@ type
 
     { @noAutoLinkHere }
     destructor Destroy; override;
+
+    property FakeMouseDown: boolean
+      read FFakeMouseDown write FFakeMouseDown default true;
   end;
 
 type
@@ -389,6 +403,8 @@ begin
 
  glwin := AGLWindow;
 
+ FFakeMouseDown := true;
+
  Check(not glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
  oldWinState := GetGLWindowState(glwin);
@@ -450,9 +466,10 @@ begin
 
  { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
    teraz }
- for btn := Low(btn) to High(btn) do
-  if btn in glwin.mousePressed then
-   glwin.EventMouseDown(btn);
+ if FakeMouseDown then
+   for btn := Low(btn) to High(btn) do
+     if btn in glwin.mousePressed then
+       glwin.EventMouseDown(btn);
 
  glwin.PostRedisplay;
 
