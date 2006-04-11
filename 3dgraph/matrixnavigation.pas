@@ -1096,6 +1096,14 @@ begin
 
   if UseHeadBobbing then
   begin
+    { HeadBobbingPosition = 0 means that head is at lowest position.
+      HeadBobbingPosition = 0.5 means that head is at highest position.
+      HeadBobbingPosition = 1.0 means that head is at lowest position again.
+
+      Larger HeadBobbingPosition work like Frac(HeadBobbingPosition)
+      (i.e. function HeadBobbingPosition -> BobbingModifier
+      is periodic with period = 1.0). }
+
     BobbingModifier := Frac(HeadBobbingPosition);
 
     if BobbingModifier <= 0.5 then
@@ -1609,6 +1617,43 @@ var
       end;
     end;
 
+    procedure HeadBobbingGoesDown;
+    const
+      HeadBobbingGoingDownSpeed = 0.1;
+    var
+      FracHeadBobbingPosition: Single;
+    begin
+      if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
+      begin
+        { If head bobbing is active, but player did not move during
+          this Idle call, and no gravity effect is in work
+          then player is standing still on the ground.
+
+          This means that his head bobbing should go down as far as
+          possible. This means that HeadBobbingPosition should
+          go to nearest integer value.
+
+          Note that we avoid changing HeadBobbingPosition by less
+          than SingleEqualityEpsilon, just to be on the safe side
+          and avoid any "corner cases", when HeadBobbingPosition
+          would switch between going up and down repeatedly. }
+        FracHeadBobbingPosition := Frac(HeadBobbingPosition);
+        if FracHeadBobbingPosition > 0.5 then
+        begin
+          if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
+            HeadBobbingPosition +=
+              Min(HeadBobbingGoingDownSpeed * CompSpeed,
+                1 - FracHeadBobbingPosition);
+        end else
+        begin
+          if FracHeadBobbingPosition > SingleEqualityEpsilon then
+            HeadBobbingPosition -=
+              Min(HeadBobbingGoingDownSpeed * CompSpeed,
+                FracHeadBobbingPosition);
+        end;
+      end;
+    end;
+
   var
     OldIsFallingDown: boolean;
   begin
@@ -1627,7 +1672,8 @@ var
                 other effects (jumping, growing, falling on the ground
                 and stabilizing after falling on the ground) will finish
                 their work. }
-              TryFallingOnTheGround;
+              if not TryFallingOnTheGround then
+                HeadBobbingGoesDown;
     end else
     begin
       FIsFallingDown := false;
