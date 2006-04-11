@@ -279,6 +279,7 @@ type
     FKey_Crouch: TKey;
 
     FAllowSlowerRotations: boolean;
+    FCheckModsDown: boolean;
 
     FMinAngleRadFromHomeUp: Single;
 
@@ -446,6 +447,17 @@ type
       will work 10x slower when Ctrl modified is pressed. }
     property AllowSlowerRotations: boolean
       read FAllowSlowerRotations write FAllowSlowerRotations
+      default true;
+
+    { If @true then all keys work only when no modifiers are pressed,
+      and additionally when Ctrl is pressed (and AllowSlowerRotations) then
+      rotation keys work 10x slower.
+
+      If @false then all keys work as usual, no matter what
+      modifiers are pressed. And rotation keys never work 10x slower
+      (AllowSlowerRotations is ignored). }
+    property CheckModsDown: boolean
+      read FCheckModsDown write FCheckModsDown
       default true;
 
     { General stuff ----------------------------------------------------- }
@@ -1011,6 +1023,7 @@ begin
   FMaxJumpHeight := DefaultMaxJumpHeight;
   FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
   FAllowSlowerRotations := true;
+  FCheckModsDown := true;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1664,7 +1677,7 @@ begin
 
   FIsCrouching := KeysDown^[Key_Crouch];
 
-  if ModsDown = [] then
+  if (not CheckModsDown) or (ModsDown = []) then
   begin
     CheckRotates(1.0);
 
