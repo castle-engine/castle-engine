@@ -537,7 +537,10 @@ begin
   BBox := BoundingBox;
   Write('Bounding box : ', Box3dToNiceStr(BBox));
   if not IsEmptyBox3d(BBox) then
-   Write(', average size : ',FloatToNiceStr(Box3dAvgSize(BBox)) );
+  begin
+    Write(', average size : ',FloatToNiceStr(Box3dAvgSize(BBox)) );
+    // Write(', radius : ',FloatToNiceStr(Box3dRadius(BBox)) );
+  end;
   Writeln;
  end;
 end;
