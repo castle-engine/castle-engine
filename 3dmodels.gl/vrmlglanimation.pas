@@ -135,8 +135,10 @@ type
     function ScenesCount: Integer;
 
     { Prepare all scenes for rendering. This just calls
-      PrepareRender(DoPrepareBackground, DoPrepareBoundingBox) for all Scenes. }
-    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox: boolean);
+      PrepareRender(...) for all Scenes. }
+    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+      DoPrepareTrianglesListNotOverTriangulate,
+      DoPrepareTrianglesListOverTriangulate: boolean);
 
     { Close anything associated with current OpenGL context in this class.
       This calls CloseGL on every Scenes[], and additionally may close
@@ -594,12 +596,16 @@ begin
 end;
 
 procedure TVRMLGLAnimation.PrepareRender(
-  DoPrepareBackground, DoPrepareBoundingBox: boolean);
+  DoPrepareBackground, DoPrepareBoundingBox,
+  DoPrepareTrianglesListNotOverTriangulate,
+  DoPrepareTrianglesListOverTriangulate: boolean);
 var
   I: Integer;
 begin
   for I := 0 to FScenes.High do
-    FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox);
+    FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+      DoPrepareTrianglesListNotOverTriangulate,
+      DoPrepareTrianglesListOverTriangulate);
 end;
 
 procedure TVRMLGLAnimation.CloseGL;

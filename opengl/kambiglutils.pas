@@ -1129,6 +1129,14 @@ procedure glFreeDisplayList(var list: TGLuint);
 procedure glListIBase(base: TGLint); OPENGL_CALL
   external openglDLL name 'glListBase';
 
+{ Set color buffer and depth buffer writeable or not writeable.
+  This is just a shortcut for
+  @longcode(#
+    glDepthMask(Writeable);
+    glColorMask(Writeable, Writeable, Writeable, Writeable);
+  #) }
+procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
+
 {$undef read_interface}
 
 implementation
@@ -2537,6 +2545,12 @@ begin
   glDeleteLists(list, 1);
   list := 0;
  end;
+end;
+
+procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
+begin
+  glDepthMask(Writeable);
+  glColorMask(Writeable, Writeable, Writeable, Writeable);
 end;
 
 initialization

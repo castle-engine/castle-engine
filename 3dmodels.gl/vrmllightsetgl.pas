@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2004 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -55,10 +55,10 @@ uses VectorMath, OpenGLh, KambiGLUtils, VRMLNodes, VRMLLightSet;
 
   If UseLightOnProperty than we will examine VRMLLight.LightNode.FdOn.Value
   and we will do glEnable/Disable(GL_LIGHT0 + glLightNum). If not,
-  we will always proceed just like VRMLLight.LightNode.FdOn.Value=true
+  we will always proceed just like VRMLLight.LightNode.FdOn.Value = true
   (but we will not call glEnable(GL_LIGHT0 + glLightNum)).
   We DO NOT have a separate procedure to do the behaviour with
-  UseLightOnProperty=false and separate with UseLightOnProperty=true
+  UseLightOnProperty = false and separate with UseLightOnProperty = true
   (something like a separate procedure glLightFromVRMLLightAssumeOn, and
   procedure named glLightFromVRMLLight always behaves like
   UseLightOnProperty = true) because this is so important property that we
@@ -75,8 +75,8 @@ uses VectorMath, OpenGLh, KambiGLUtils, VRMLNodes, VRMLLightSet;
   it sets GL_SPOT_CUTOFF to 180 and then it is undefined whether it
   will call glLight with Param in [GL_SPOT_DIRECTION, GL_SPOT_EXPONENT]
   because GL_SPOT_DIRECTION and GL_SPOT_EXPONENT meaningless if
-  GL_SPOT_CUTOFF = 180; moreover, if UseLightOnProperty=true and
-  light is off (VRMLLight.LightNode.FdOn.Value=false) then it is possible
+  GL_SPOT_CUTOFF = 180; moreover, if UseLightOnProperty = true and
+  light is off (VRMLLight.LightNode.FdOn.Value = false) then it is possible
   that this procedure will call glDisable(GL_LIGHT0 + glLightNum) and
   will not call ANY glLight*).
 
@@ -87,8 +87,8 @@ uses VectorMath, OpenGLh, KambiGLUtils, VRMLNodes, VRMLLightSet;
   ColorModulatorSingle may be nil. If not nil, it will be called to filter
   Light Color.
 }
-procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
-  UseLightOnProperty:boolean; ColorModulatorSingle:TColorModulatorSingleFunc);
+procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
+  UseLightOnProperty: boolean; ColorModulatorSingle: TColorModulatorSingleFunc);
 
 { glLightsFromVRML dla kazdego swiatla Lights[i] zrobi
     glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle)
@@ -109,14 +109,14 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
   nie jest istotny - ta procedura zdeterminuje go w pelni na podstawie
   dostepnych Lights.
 }
-procedure glLightsFromVRML(Lights:PArray_ActiveLight; LightsCount:Integer;
-  glLightNum1, glLightNum2:Integer; ColorModulatorSingle:TColorModulatorSingleFunc); overload;
-procedure glLightsFromVRML(Lights:TDynActiveLightArray;
-  glLightNum1, glLightNum2:Integer; ColorModulatorSingle:TColorModulatorSingleFunc); overload;
+procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
+  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
+procedure glLightsFromVRML(Lights: TDynActiveLightArray;
+  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
 
 (* To jest obiekt ktory umozliwia latwe zrobienie czegos takiego jak
    lightset.wrl w lets_take_a_walk, o ktorym napisalem na poczatku tego
-   modulu. This object creates Lights:TDynActiveLightArray object and loads
+   modulu. This object creates Lights: TDynActiveLightArray object and loads
    to it all lights available in traversed part of the given RootNode.
    E.g. given the VRML
      #VRML V1.0 ascii
@@ -137,12 +137,19 @@ procedure glLightsFromVRML(Lights:TDynActiveLightArray;
 type
   TVRMLLightSetGL = class(TVRMLLightSet)
   private
-    dlRenderLights:TGLuint; { =0 means "not initialized" }
-    FGLLightNum1, FGLLightNum2:Integer;
-    FColorModulatorSingle:TColorModulatorSingleFunc;
-    procedure SetGLLightNum1(Value:Integer);
-    procedure SetGLLightNum2(Value:Integer);
-    procedure SetColorModulatorSingle(Value:TColorModulatorSingleFunc);
+    dlRenderLights: TGLuint; { =0 means "not initialized" }
+    FGLLightNum1, FGLLightNum2: Integer;
+
+    { This is like GLLightNum2, but it's not -1.
+      Initialized by CalculateRealGLLightNum2.
+      Deinitialized in CloseGL (by setting this to invalid value = -1). }
+    RealGLLightNum2: Integer;
+    procedure CalculateRealGLLightNum2;
+
+    FColorModulatorSingle: TColorModulatorSingleFunc;
+    procedure SetGLLightNum1(Value: Integer);
+    procedure SetGLLightNum2(Value: Integer);
+    procedure SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
   public
     { recalculate Lights property (based on RootNode) and CloseGL
       (CloseGL must be called by this routine: if Lights changed then
@@ -161,19 +168,24 @@ type
       powinien byc funkcja ktora dla tego samego argumentu zawsze odpowiada
       to samo (nie kieruje sie np. aktualnym stanem jakiejs tam innej zmiennej
       w programie). }
-    property glLightNum1:Integer read FGLLightNum1 write SetGLLightNum1;
-    property glLightNum2:Integer read FGLLightNum2 write SetGLLightNum2;
-    property ColorModulatorSingle:TColorModulatorSingleFunc
+    property glLightNum1: Integer read FGLLightNum1 write SetGLLightNum1;
+    property glLightNum2: Integer read FGLLightNum2 write SetGLLightNum2;
+    property ColorModulatorSingle: TColorModulatorSingleFunc
       read FColorModulatorSingle write SetColorModulatorSingle; { = nil }
 
     { skrot do glLightsFromVRML(Lights, glLightNum1, glLightNum2,
-      ColorModulatorSingle). Ponadto pozwala ci uzyc glLightNum2=-1
+      ColorModulatorSingle). Ponadto pozwala ci uzyc glLightNum2 = -1
       aby powiedziec ze wszystkie swiatla do konca sa wolne
       (czyli glLightNum2= -1 znaczy to samo co glGet(GL_MAX_LIGHT)-1).
       Ponadto uzywa w srodku display listy.
 
       This function creates connection between this object and current gl context. }
     procedure RenderLights;
+
+    { This turns off all lights between glLightNum1 and glLightNum2
+      (when glLightNum2 = -1 then it's interpreted as glGet(GL_MAX_LIGHT)-1).
+      I.e. it calls glDisable(GL_LIGHTx) for them. }
+    procedure TurnLightsOff;
 
     { close any connection between this object and current gl context.
       After calling this, you can e.g. switch to another context and use
@@ -187,8 +199,8 @@ type
     { wartosci GLLightNum1, GLLightNum2 sa tak wazne ze wolalem nie ustawiac
       ich w konstruktorze na jakies defaultowe wartosci tylko wymagac od ciebie
       podania ich explicite przy konstruowaniu obiektu. }
-    constructor Create(ARootNode:TVRMLNode; AOwnsRootNode:boolean;
-      AGLLightNum1, AGLLightNum2:Integer);
+    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      AGLLightNum1, AGLLightNum2: Integer);
 
     { calls CloseGL }
     destructor Destroy; override;
@@ -198,25 +210,25 @@ implementation
 
 uses SysUtils, KambiUtils, Math;
 
-procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
-  UseLightOnProperty:boolean; ColorModulatorSingle:TColorModulatorSingleFunc);
+procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
+  UseLightOnProperty: boolean; ColorModulatorSingle: TColorModulatorSingleFunc);
 
   procedure glLightFromVRMLLightAssumeOn;
 
     { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
-    procedure SetupDirectionalLight(LightNode:TNodeDirectionalLight);
+    procedure SetupDirectionalLight(LightNode: TNodeDirectionalLight);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(VectorNegate(LightNode.FdDirection.Value), 0));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupPointLight(LightNode:TNodePointLight);
+    procedure SetupPointLight(LightNode: TNodePointLight);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupSpotLight(LightNode:TNodeSpotLight);
+    procedure SetupSpotLight(LightNode: TNodeSpotLight);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
 
@@ -225,10 +237,10 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
      glLightf(glLightNum, GL_SPOT_CUTOFF, RadToDeg(LightNode.FdCutOffAngle.Value));
     end;
 
-  var SetNoAttenuation:boolean;
-      Attenuat:TVector3Single;
-      LightColorMultIntensity3f:TVector3f;
-      LightColorMultIntensity4f:TVector4f;
+  var SetNoAttenuation: boolean;
+      Attenuat: TVector3Single;
+      LightColorMultIntensity3f: TVector3f;
+      LightColorMultIntensity4f: TVector4f;
   begin
    glPushMatrix;
    try
@@ -243,14 +255,14 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
     end;
 
     { setup attenuation for OpenGL light }
-    SetNoAttenuation:=true;
+    SetNoAttenuation := true;
 
     if (Light.LightNode is TNodeGeneralPositionalLight) then
     begin
-     Attenuat:=TNodeGeneralPositionalLight(Light.LightNode).FdAttenuation.Value;
+     Attenuat := TNodeGeneralPositionalLight(Light.LightNode).FdAttenuation.Value;
      if not IsZeroVector(Attenuat) then
      begin
-      SetNoAttenuation:=false;
+      SetNoAttenuation := false;
       glLightf(glLightNum, GL_CONSTANT_ATTENUATION, Attenuat[0]);
       glLightf(glLightNum, GL_LINEAR_ATTENUATION, Attenuat[1]);
       glLightf(glLightNum, GL_QUADRATIC_ATTENUATION, Attenuat[2]);
@@ -259,8 +271,8 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
 
     if SetNoAttenuation then
     begin
-     { lights with no Attenuation field or with Attenuation = (0,0,0)
-        get default Attenuation = (1,0,0) }
+     { lights with no Attenuation field or with Attenuation = (0, 0, 0)
+        get default Attenuation = (1, 0, 0) }
      glLightf(glLightNum, GL_CONSTANT_ATTENUATION, 1);
      glLightf(glLightNum, GL_LINEAR_ATTENUATION, 0);
      glLightf(glLightNum, GL_QUADRATIC_ATTENUATION, 0);
@@ -269,10 +281,10 @@ procedure glLightFromVRMLLight(glLightNum:Integer; const Light:TActiveLight;
    finally glPopMatrix end;
 
    { evaluate LightColorMultIntensity4f }
-   LightColorMultIntensity3f:= VectorScale(Light.LightNode.FdColor.Value,
+   LightColorMultIntensity3f := VectorScale(Light.LightNode.FdColor.Value,
      Light.LightNode.FdIntensity.Value);
    if Assigned(ColorModulatorSingle) then
-    LightColorMultIntensity3f:=ColorModulatorSingle(LightColorMultIntensity3f);
+    LightColorMultIntensity3f := ColorModulatorSingle(LightColorMultIntensity3f);
    LightColorMultIntensity4f := Vector4f(LightColorMultIntensity3f, 1);
 
    { TODO: VRML97 - light ambient color powinienes brac z LightColor *
@@ -297,29 +309,29 @@ begin
   glLightFromVRMLLightAssumeOn;
 end;
 
-procedure glLightsFromVRML(Lights:PArray_ActiveLight; LightsCount:Integer;
-  glLightNum1, glLightNum2:Integer; ColorModulatorSingle:TColorModulatorSingleFunc); overload;
-var i:Integer;
+procedure glLightsFromVRML(Lights: PArray_ActiveLight; LightsCount: Integer;
+  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
+var i: Integer;
 begin
  if LightsCount >= glLightNum2-glLightNum1+1  then
   begin
    { wykorzystujemy wszystkie dostepne swiatla OpenGLa }
-   for i:=0 to glLightNum2-glLightNum1 do
+   for i := 0 to glLightNum2-glLightNum1 do
     glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle);
   end else
   begin
    { jezeli nie zamierzamy wykorzystac wszystkich swiatel OpenGL to
      niewykorzystanym swiatlom robimy Disabled (a wykorzystywanym robimy
      to co wyzej) }
-   for i:=0 to LightsCount-1 do
+   for i := 0 to LightsCount-1 do
     glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle);
-   for i:=LightsCount to glLightNum2-glLightNum1 do
+   for i := LightsCount to glLightNum2-glLightNum1 do
     glDisable(GL_LIGHT0 + glLightNum1 + i);
   end;
 end;
 
-procedure glLightsFromVRML(Lights:TDynActiveLightArray;
-  glLightNum1, glLightNum2:Integer; ColorModulatorSingle:TColorModulatorSingleFunc); overload;
+procedure glLightsFromVRML(Lights: TDynActiveLightArray;
+  glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
 begin
  glLightsFromVRML(Lights.Items, Lights.Count, glLightNum1, glLightNum2,
    ColorModulatorSingle);
@@ -327,67 +339,99 @@ end;
 
 { TVRMLLightSetGL ------------------------------------------------------------ }
 
-procedure TVRMLLightSetGL.SetGLLightNum1(Value:Integer);
+procedure TVRMLLightSetGL.SetGLLightNum1(Value: Integer);
 begin
- if FGLLightNum1 <> Value then begin FGLLightNum1:=Value; CloseGL; end;
+  if FGLLightNum1 <> Value then
+  begin
+    FGLLightNum1 := Value;
+    CloseGL;
+  end;
 end;
 
-procedure TVRMLLightSetGL.SetGLLightNum2(Value:Integer);
+procedure TVRMLLightSetGL.SetGLLightNum2(Value: Integer);
 begin
- if FGLLightNum2 <> Value then begin FGLLightNum2:=Value; CloseGL; end;
+  if FGLLightNum2 <> Value then
+  begin
+    FGLLightNum2 := Value;
+    CloseGL;
+  end;
 end;
 
-procedure TVRMLLightSetGL.SetColorModulatorSingle(Value:TColorModulatorSingleFunc);
+procedure TVRMLLightSetGL.SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
 begin
- if @Value<>@FColorModulatorSingle then begin @FColorModulatorSingle:=@Value; CloseGL; end;
+  if @Value <> @FColorModulatorSingle then
+  begin
+    @FColorModulatorSingle := @Value;
+    CloseGL;
+  end;
 end;
 
 procedure TVRMLLightSetGL.CalculateLights;
 begin
- CloseGL;
- inherited;
+  CloseGL;
+  inherited;
+end;
+
+procedure TVRMLLightSetGL.CalculateRealGLLightNum2;
+begin
+  if RealGLLightNum2 = -1 then
+  begin
+    RealGLLightNum2 := GLLightNum2;
+    if RealGLLightNum2 = -1 then
+      RealGLLightNum2 := glGetInteger(GL_MAX_LIGHTS) - 1;
+  end;
 end;
 
 procedure TVRMLLightSetGL.RenderLights;
-var NowGLLightNum2:Integer;
 begin
- if dlRenderLights<>0 then
-  glCallList(dlRenderLights) else
- begin
-  dlRenderLights:=glGenLists(1);
+  if dlRenderLights = 0 then
+  begin
+    CalculateRealGLLightNum2;
 
-  if glLightNum2 = -1 then
-   NowGLLightNum2:=glGetInteger(GL_MAX_LIGHTS)-1 else
-   NowGLLightNum2:=glLightNum2;
+    dlRenderLights := glGenLists(1);
 
-  glNewList(dlRenderLights, GL_COMPILE_AND_EXECUTE);
-  try
-   glLightsFromVRML(Lights, glLightNum1, NowGLLightNum2, ColorModulatorSingle);
-  finally glEndList end;
- end;
+    { As usual, I don't use here GL_COMPILE_AND_EXECUTE (because this
+      can result in non-optimal display list). I use GL_COMPILE,
+      and then I just call this list. }
+
+    glNewList(dlRenderLights, GL_COMPILE);
+    try
+      glLightsFromVRML(Lights, glLightNum1, RealGLLightNum2,
+        ColorModulatorSingle);
+    finally glEndList end;
+  end;
+
+  glCallList(dlRenderLights);
+end;
+
+procedure TVRMLLightSetGL.TurnLightsOff;
+var
+  I: Integer;
+begin
+  CalculateRealGLLightNum2;
+  for I := GLLightNum1 to RealGLLightNum2 do
+    glDisable(GL_LIGHT0 + I);
 end;
 
 procedure TVRMLLightSetGL.CloseGL;
 begin
- if dlRenderLights<>0 then
- begin
-  glDeleteLists(dlRenderLights, 1);
-  dlRenderLights:=0;
- end;
+  glFreeDisplayList(dlRenderLights);
+  RealGLLightNum2 := -1;
 end;
 
-constructor TVRMLLightSetGL.Create(ARootNode:TVRMLNode; AOwnsRootNode:boolean;
-  AGLLightNum1, AGLLightNum2:Integer);
+constructor TVRMLLightSetGL.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AGLLightNum1, AGLLightNum2: Integer);
 begin
- inherited Create(ARootNode, AOwnsRootNode);
- FGLLightNum1:=AGLLightNum1;
- FGLLightNum2:=AGLLightNum2;
+  inherited Create(ARootNode, AOwnsRootNode);
+  FGLLightNum1 := AGLLightNum1;
+  FGLLightNum2 := AGLLightNum2;
+  RealGLLightNum2 := -1;
 end;
 
 destructor TVRMLLightSetGL.Destroy;
 begin
- CloseGL;
- inherited;
+  CloseGL;
+  inherited;
 end;
 
 end.

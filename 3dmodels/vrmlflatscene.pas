@@ -30,14 +30,25 @@ uses
 
 {$define read_interface}
 
-{ TVRMLFlatScene ----------------------------------------------------------- }
-
 type
-  { Internal helper type for TVRMLFlatScene }
-  TVRMLFlatSceneValidities = set of (fvBBox,
+  TDynArrayItem_1 = TTriangle3Single;
+  PDynArrayItem_1 = PTriangle3Single;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$I dynarray_1.inc}
+  TArray_Triangle3Single = TInfiniteArray_1;
+  PArray_Triangle3Single = PInfiniteArray_1;
+  TDynTriangle3SingleArray = TDynArray_1;
+
+  { Internal helper type for TVRMLFlatScene.
+    @exclude }
+  TVRMLFlatSceneValidity = (fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvFog);
+    fvFog,
+    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate);
+
+  { @exclude }
+  TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
 
   { This class represents a VRML scene (i.e. graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
@@ -95,7 +106,21 @@ type
     FDefaultTriangleOctree: TVRMLTriangleOctree;
     FOwnsDefaultTriangleOctree: boolean;
     FOwnsDefaultShapeStateOctree: boolean;
+
+    { If appropriate fvXxx is not in Validities, then
+      - free if needed appropriate FTrianglesList[] item
+      - calculate appropriate FTrianglesList[] item
+      - add appropriate fvXxx to Validities. }
+    procedure ValidateTrianglesList(OverTriangulate: boolean);
+    FTrianglesList:
+      array[boolean { OverTriangulate ?}] of TDynTriangle3SingleArray;
   public
+    { @noAutoLinkHere }
+    destructor Destroy; override;
+
+    { @noAutoLinkHere }
+    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+
     { ShapeStates contents are read-only from outside.
 
       Note that the only place where ShapeStates length is changed
@@ -320,11 +345,19 @@ type
     function FogNode: TNodeFog;
     function FogTransformedVisibilityRange: Single;
 
-    { @noAutoLinkHere }
-    destructor Destroy; override;
+    { This returns an array of all triangles of this scene.
+      I.e. it triangulates the scene, adding all non-degenerated
+      (see IsValidTriangles) triangles to the list.
 
-    { @noAutoLinkHere }
-    constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+      It's your responsibility what to do with resulting
+      object, when to free it etc. }
+    function CreateTrianglesList(OverTriangulate: boolean):
+      TDynTriangle3SingleArray;
+
+    { Just like CreateTrianglesList, but results of this function are cached,
+      and returned object is read-only for you. Don't modify it, don't free it. }
+    function TrianglesList(OverTriangulate: boolean):
+      TDynTriangle3SingleArray;
   end;
 
 { TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
@@ -344,6 +377,7 @@ uses VRMLFields, VRMLCameraUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
+{$I dynarray_1.inc}
 
 { TVRMLFlatScene ----------------------------------------------------------- }
 
@@ -364,6 +398,9 @@ end;
 
 destructor TVRMLFlatScene.Destroy;
 begin
+ FreeAndNil(FTrianglesList[false]);
+ FreeAndNil(FTrianglesList[true]);
+
  TraverseState_FreeAndNilNodes(StateDefaultNodes);
  ShapeStates.FreeWithContents;
 
@@ -753,6 +790,67 @@ function TVRMLFlatScene.FogTransformedVisibilityRange: Single;
 begin
  if not (fvFog in Validities) then ValidateFog;
  result := FFogTransformedVisibilityRange;
+end;
+
+{ triangles list ------------------------------------------------------------- }
+
+procedure TVRMLFlatScene.ValidateTrianglesList(OverTriangulate: boolean);
+var
+  ValidityValue: TVRMLFlatSceneValidity;
+begin
+  if OverTriangulate then
+    ValidityValue := fvTrianglesListOverTriangulate else
+    ValidityValue := fvTrianglesListNotOverTriangulate;
+  if not (ValidityValue in Validities) then
+  begin
+    FreeAndNil(FTrianglesList[OverTriangulate]);
+    FTrianglesList[OverTriangulate] := CreateTrianglesList(OverTriangulate);
+    Include(Validities, ValidityValue);
+  end;
+end;
+
+type
+  TTriangleAdder = class
+    TriangleList: TDynTriangle3SingleArray;
+    procedure AddTriangle(const Triangle: TTriangle3Single;
+      State: TVRMLGraphTraverseState;
+      ShapeNode: TNodeGeneralShape; MatNum: Integer);
+  end;
+
+  procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
+    State: TVRMLGraphTraverseState;
+    ShapeNode: TNodeGeneralShape; MatNum: Integer);
+  begin
+    if IsValidTriangle(Triangle) then
+      TriangleList.AppendItem(Triangle);
+  end;
+
+function TVRMLFlatScene.CreateTrianglesList(OverTriangulate: boolean):
+  TDynTriangle3SingleArray;
+var
+  I: Integer;
+  TriangleAdder: TTriangleAdder;
+begin
+  Result := TDynTriangle3SingleArray.Create;
+  try
+    Result.AllowedCapacityOverflow := TrianglesCount(false);
+    try
+      TriangleAdder := TTriangleAdder.Create;
+      try
+        TriangleAdder.TriangleList := Result;
+        for I := 0 to ShapeStates.Count - 1 do
+          ShapeStates[I].ShapeNode.Triangulate(
+            ShapeStates[I].State, OverTriangulate, TriangleAdder.AddTriangle);
+      finally FreeAndNil(TriangleAdder) end;
+    finally Result.AllowedCapacityOverflow := 4 end;
+  except Result.Free; raise end;
+end;
+
+function TVRMLFlatScene.TrianglesList(OverTriangulate: boolean):
+  TDynTriangle3SingleArray;
+begin
+  ValidateTrianglesList(OverTriangulate);
+  Result := FTrianglesList[OverTriangulate];
 end;
 
 end.

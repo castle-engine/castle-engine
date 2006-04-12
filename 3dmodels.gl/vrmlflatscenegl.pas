@@ -365,7 +365,9 @@ type
 
       If DoPrepareBoundingBox then it will also make sure that call to
       BoundingBox is fast. }
-    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox: boolean);
+    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+      DoPrepareTrianglesListNotOverTriangulate,
+      DoPrepareTrianglesListOverTriangulate: boolean);
 
     { Render : probably the most important function in this class,
       often it is the reason why this class is used.
@@ -509,6 +511,22 @@ type
     procedure ChangedAll; override;
     procedure ChangedShapeStateFields(ShapeStateNum: integer); override;
 
+    { Wykonaj w OpenGLu glBegin(<cos co rysuje cale polygony, np. TRIANGLES lub
+      QUADS>), pozniej iles razy glVertex(), pozniej glEnd.
+      (Mowie to w ten sposob zeby bylo jasne ze wszystko co podajemy do
+      OpenGLa to polygony zlozone z vertexow i zadnych dodatkowych informacji
+      do vertexa nie dodajemy).
+
+      Obiekty ktore renderujemy to shadow quads dla trojkatow Triangles
+      przetransformowanych przez TrianglesTransform. Pozycja swiatla
+      to CameraPos. Jesli Front = true to renderujemy tylko front facing
+      w strone CameraPos, wpp. tylko back facing.
+
+      Uses TrianglesList(false) (so you may prefer to prepare it
+      before, e.g. by calling PrepareRender with
+      DoPrepareTrianglesListNonOverTriangulate = true). }
+    procedure RenderShadowQuads(const LightPos, CameraPos: TVector3Single;
+      const TrianglesTransform: TMatrix4Single; Front: boolean);
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -1007,7 +1025,9 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.PrepareRender(
-  DoPrepareBackground, DoPrepareBoundingBox: boolean);
+  DoPrepareBackground, DoPrepareBoundingBox,
+  DoPrepareTrianglesListNotOverTriangulate,
+  DoPrepareTrianglesListOverTriangulate: boolean);
 var ShapeStateNum: Integer;
 begin
  case Optimization of
@@ -1032,6 +1052,12 @@ begin
  if DoPrepareBackground then PrepareBackground;
 
  if DoPrepareBoundingBox then BoundingBox; { ignore the result }
+
+ if DoPrepareTrianglesListNotOverTriangulate then
+   TrianglesList(false);
+
+ if DoPrepareTrianglesListOverTriangulate then
+   TrianglesList(true);
 end;
 
 procedure TVRMLFlatSceneGL.Render(
@@ -1107,6 +1133,77 @@ begin
     { TODO -- test this }
     glFreeDisplayList(SSS_DisplayLists.Items[ShapeStateNum]);
  end;
+end;
+
+procedure TVRMLFlatSceneGL.RenderShadowQuads(
+  const LightPos, CameraPos: TVector3Single;
+  const TrianglesTransform: TMatrix4Single;
+  Front: boolean);
+
+{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
+  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
+  (TrianglesList gwarantuje to)
+  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
+  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
+  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
+  zostaly uznane za "front facing"). }
+
+{ TODO:
+  - renderowanie back facing powinno juz byc szybsze, nie powinnismy
+    musiec robic znowu tych samych obliczen ktore juz wykonalismy dla front.
+}
+
+var
+  Triangles: TDynTriangle3SingleArray;
+  T: TTriangle3Single;
+
+  { Let SQ = shadow quad constructed by extending P0 and P1 by lines
+    from LightPos. POther is given here as a reference of the "inside"
+    part of triangle: let P = plane formed by P0, P1 and LightPos,
+    if CameraPos is on the same side of plane P as POther then
+    SQ is back-facing, else SQ is front-facing.
+    Let SQFront:="is SQ front facing".
+    If SQFront = Front then this procedure renders SQ, else is does not. }
+  procedure MaybeRenderShadowQuad(const P0, P1, POther: TVector3Single);
+  var
+    SQFront: boolean;
+    P: TVector4Single;
+  begin
+   P := TrianglePlane(P0, P1, LightPos);
+   SQFront := not PointsSamePlaneSides(POther, CameraPos, P);
+   if SQFront = Front then
+   begin
+    glVertexv(P0);
+    glVertexv(P1);
+    { TODO: wartosc 1000 jest tu dobrana "ot tak".
+      Bo w teorii shadow quad ma nieskonczona powierzchnie.
+      Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+      ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+      jakies normalizacje do kodu RenderShadowQuads a wiec strata szybkosci
+      na bzdure. }
+    glVertexv(VectorAdd(VectorScale(VectorSubtract(P1, LightPos), 1000), P1));
+    glVertexv(VectorAdd(VectorScale(VectorSubtract(P0, LightPos), 1000), P0));
+   end;
+  end;
+
+var
+  I: Integer;
+begin
+  Triangles := TrianglesList(false);
+
+  glBegin(GL_QUADS);
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { evaluate T := Triangles[I] transformed by TrianglesTransform }
+      T[0] := MultMatrixPoint(TrianglesTransform, Triangles[I][0]);
+      T[1] := MultMatrixPoint(TrianglesTransform, Triangles[I][1]);
+      T[2] := MultMatrixPoint(TrianglesTransform, Triangles[I][2]);
+
+      MaybeRenderShadowQuad(T[0], T[1], T[2]);
+      MaybeRenderShadowQuad(T[1], T[2], T[0]);
+      MaybeRenderShadowQuad(T[2], T[0], T[1]);
+    end;
+  glEnd;
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
