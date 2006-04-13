@@ -902,7 +902,7 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderBeginSimple;
 begin
- Renderer.RenderBegin(FogNode, FogTransformedVisibilityRange);
+ Renderer.RenderBegin(FogNode, FogDistanceScaling);
 end;
 
 procedure TVRMLFlatSceneGL.RenderEndSimple;
@@ -1199,46 +1199,50 @@ procedure TVRMLFlatSceneGL.RenderFrontShadowQuads(
     SQ is back-facing, else SQ is front-facing.
     Let SQFront:="is SQ front facing".
     If SQFront = Front then this procedure renders SQ, else is does not. }
-  procedure MaybeRenderShadowQuad(const P0, P1, POther: TVector3Single);
+  procedure MaybeRenderShadowQuad(const P0, P1, POther,
+    PExtruded0, PExtruded1: TVector3Single);
   var
     SQFront: boolean;
     P: TVector4Single;
     QuadPtr: PQuad3Single;
-    P0Far, P1Far: TVector3Single;
   begin
     P := TrianglePlane(P0, P1, LightPos);
     SQFront := not PointsSamePlaneSides(POther, CameraPos, P);
-
-    { TODO: wartosc 1000 jest tu dobrana "ot tak".
-      Bo w teorii shadow quad ma nieskonczona powierzchnie.
-      Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-      ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-      jakies normalizacje do kodu RenderShadowQuads a wiec strata szybkosci
-      na bzdure. }
-    P0Far := VectorAdd(VectorScale(VectorSubtract(P0, LightPos), 1000), P0);
-    P1Far := VectorAdd(VectorScale(VectorSubtract(P1, LightPos), 1000), P1);
 
     if SQFront then
     begin
       glVertexv(P0);
       glVertexv(P1);
-      glVertexv(P1Far);
-      glVertexv(P0Far);
+      glVertexv(PExtruded1);
+      glVertexv(PExtruded0);
     end else
     begin
       SavedShadowQuads.IncLength;
       QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
       QuadPtr[0] := P0;
       QuadPtr[1] := P1;
-      QuadPtr[2] := P1Far;
-      QuadPtr[3] := P0Far;
+      QuadPtr[2] := PExtruded1;
+      QuadPtr[3] := PExtruded0;
     end;
   end;
+
+const
+  { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+    Bo w teorii shadow quad ma nieskonczona powierzchnie.
+    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+    jakies normalizacje do kodu RenderShadowQuads a wiec strata szybkosci
+    na bzdure.
+
+    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+  MakeInfinite = 1000;
 
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
-  T: TTriangle3Single;
+  T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
 begin
   Triangles := TrianglesList(false);
 
@@ -1249,13 +1253,17 @@ begin
     for I := 0 to Triangles.Count - 1 do
     begin
       { evaluate T := Triangles[I] transformed by TrianglesTransform }
-      T[0] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
-      T[1] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
-      T[2] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
+      T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
+      T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
+      T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
 
-      MaybeRenderShadowQuad(T[0], T[1], T[2]);
-      MaybeRenderShadowQuad(T[1], T[2], T[0]);
-      MaybeRenderShadowQuad(T[2], T[0], T[1]);
+      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T0, LightPos), MakeInfinite), T0);
+      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T1, LightPos), MakeInfinite), T1);
+      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T2, LightPos), MakeInfinite), T2);
+
+      MaybeRenderShadowQuad(T0, T1, T2, TExtruded0, TExtruded1);
+      MaybeRenderShadowQuad(T1, T2, T0, TExtruded1, TExtruded2);
+      MaybeRenderShadowQuad(T2, T0, T1, TExtruded2, TExtruded0);
     end;
   glEnd;
 end;

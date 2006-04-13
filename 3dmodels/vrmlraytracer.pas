@@ -166,13 +166,13 @@ type
     FirstPixel+2 ... itd. az do Image.Width * Image.Height.
 
   Podaj FogNode <> nil aby miec odpowiednia mgle, zgodnie ze specyfik. VRMLa 97.
-    FogTransformedVisibilityRange to FogNode.VisibilityRange odpowiednio
-    przeliczone przez transformacje sceny VRMLa w miejscu gdzie byl
-    FogNode - tak samo jak pole TVRMLFlatScene o tej samej naziwe.
+  FogDistanceScaling to skalowanie FogNode z transformacji sceny
+  VRMLa w miejscu gdzie byl FogNode --- tak samo jak pole
+  TVRMLFlatScene o tej samej naziwe.
 
   Uzywamy lokalnego modelu oswietlenia zdefiniowanego w funkcjach
-    VRML97* w IllumModels, patrz tam po komentarze. Po pewne szczegoly
-    patrz tez rayhunter.php.  }
+  VRML97* w IllumModels, patrz tam po komentarze. Po pewne szczegoly
+  patrz tez rayhunter.php.  }
 procedure ClassicRayTracerTo1st(const Image: TImage;
   Octree: TVRMLTriangleOctree;
   const CamPosition, CamDirection, CamUp: TVector3Single;
@@ -180,7 +180,7 @@ procedure ClassicRayTracerTo1st(const Image: TImage;
   const SceneBGColor: TVector3Single;
   const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
   const InitialDepth: Cardinal;
-  FogNode: TNodeFog; const FogTransformedVisibilityRange: Single;
+  FogNode: TNodeFog; const FogDistanceScaling: Single;
   const FirstPixel: Cardinal {$ifdef DEFPARS}=0{$endif}); overload;
 
 { Znaczenie Image, Octree, Cam*, ViewAngle*, RowMade*, SceneBGColor - patrz
@@ -341,7 +341,7 @@ procedure ClassicRayTracerTo1st(const Image: TImage;
   const SceneBGColor: TVector3Single;
   const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
   const InitialDepth: Cardinal;
-  FogNode: TNodeFog; const FogTransformedVisibilityRange: Single;
+  FogNode: TNodeFog; const FogDistanceScaling: Single;
   const FirstPixel: Cardinal);
 
 var FogType: Integer;
@@ -451,7 +451,7 @@ var FogType: Integer;
      tez powinny przynosic kolory z uwzgledniona mgla, nie ? }
    if FogType <> -1 then
     result := VRML97Fog(result, PointsDistance(CamPosition, Intersection),
-      FogNode, FogTransformedVisibilityRange, FogType);
+      FogNode, FogDistanceScaling, FogType);
   end;
 
 var RaysWindow: TRaysWindow;
@@ -855,7 +855,7 @@ const
         dlatego w diffuse mamy cosinus). Wszystko dlatego ze te cosinusy sie
         skracaja.
 
-        Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze 
+        Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze
         nie jest zbyt dobrze przetestowane...
 
         W rezultacie kompletnie ignoruje PdfValue (otrzymywane w wyniku

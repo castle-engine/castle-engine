@@ -60,7 +60,7 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender(false, true);
+ Scene.PrepareRender(false, true, false, false);
 end;
 
 procedure Draw(glwin: TGLWindow);

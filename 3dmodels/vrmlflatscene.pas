@@ -84,8 +84,8 @@ type
     procedure AddFromTraverse(Node: TVRMLNode; State: TVRMLGraphTraverseState);
 
     FFogNode: TNodeFog;
-    FFogTransformedVisibilityRange: Single;
-    { calculate FFogNode and FFogTransformedVisibilityRange, include fvFog
+    FFogDistanceScaling: Single;
+    { calculate FFogNode and FFogDistanceScaling, include fvFog
       in Validities }
     procedure ValidateFog;
 
@@ -331,19 +331,20 @@ type
     function GetPerspectiveCamera(var CamPos, CamDir, CamUp: TVector3Single): boolean;
 
     { FogNode zwraca aktualny node Fog w tym modelu VRMLa, lub nil jesli
-      nie ma aktywnego node'u fog. FogTransformedVisibilityRange
-      zwraca pole visibilityRange tego node'a przetransformowane przez
-      transformacje w miejscu gdzie sie znajduje node Fog w hierarchii VRMLa
-      (zawsze powinienes uzywac tego FogTransformedVisibilityRange zamiast
-      FogNode.FdVisibilityRange.Value). FogTransformedVisibilityRange
-      jest niezdefiniowane jesli FogNode = nil.
+      nie ma aktywnego node'u fog.
+
+      FogDistanceScaling zwraca skalowanie tego node'a, wziete
+      z transformacji w miejscu gdzie sie znajduje node Fog w hierarchii VRMLa.
+      You should always multiply FogNode.FdVisibilityRange.Value
+      by FogDistanceScaling when applying (rendering etc.) this fog node.
+      Value of FogDistanceScaling is undefined if FogNode = nil.
 
       Wyniki tych funkcji sa "cachowane" wiec nie ma strachu - mozna uzywac
       tych funkcji czesto, dopoki nie bedziesz w miedzyczasie zmienial modelu
       VRMLa to te funkcje beda prosto zwracaly juz przeliczone wyniki,
       bez zadnej straty czasu. }
     function FogNode: TNodeFog;
-    function FogTransformedVisibilityRange: Single;
+    function FogDistanceScaling: Single;
 
     { This returns an array of all triangles of this scene.
       I.e. it triangulates the scene, adding all non-degenerated
@@ -742,10 +743,10 @@ begin
     RootNode.TryFindNodeTransform(InitialState, TNodeFog, TVRMLNode(FFogNode),
       FogTransform) then
   begin
-   { TODO: nie mamy jak tutaj obliczyc FFogTransformedVisibilityRange
+   { TODO: nie mamy jak tutaj obliczyc FFogDistanceScaling
      uwzgledniajac skalowanie w transformacji FogTransform bo przeciez
      skalowanie moze byc rozne w rozne strony. Dopiero teraz zorientowalem
-     sie o co chodzi : zamiast FFogTransformedVisibilityRange powinnismy
+     sie o co chodzi : zamiast FFogDistanceScaling powinnismy
      sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
      Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
      do coordinate space node'u mgly, podobnie jak pozycje kamery,
@@ -757,22 +758,21 @@ begin
      Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
      nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
      przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
-      mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
+     mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
      ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
 
      Tymczasem uzywam wiec prostego rozwiazania : wyliczam
-     FFogTransformedVisibilityRange na podstawie sredniej skali zawartej
+     FFogDistanceScaling na podstawie sredniej skali zawartej
      w transformacji FogTransform (trzy wspolczynniki skalowania mam w
      FogTransform[0, 0], FogTransform[1, 1], FogTransform[2, 2], biore ich
      srednia arytmetyczna i to jest "srednia skala").
 
-     A wiec FFogTransformedVisibilityRange jest niepoprawne
+     A wiec FFogDistanceScaling jest niepoprawne
      ale nie likwiduje tego parametru. Gdy sie zdecyduje, zastapie go czyms
      w rodzaju FogInvertedTransform: TMatrix4Single.
    }
-   FFogTransformedVisibilityRange :=
-     ((FogTransform[0, 0] + FogTransform[1, 1] + FogTransform[2, 2])/3) *
-     FFogNode.FdVisibilityRange.Value;
+   FFogDistanceScaling :=
+     ((FogTransform[0, 0] + FogTransform[1, 1] + FogTransform[2, 2])/3);
   end else
    FFogNode := nil;
 
@@ -786,10 +786,10 @@ begin
  result := FFogNode;
 end;
 
-function TVRMLFlatScene.FogTransformedVisibilityRange: Single;
+function TVRMLFlatScene.FogDistanceScaling: Single;
 begin
  if not (fvFog in Validities) then ValidateFog;
- result := FFogTransformedVisibilityRange;
+ result := FFogDistanceScaling;
 end;
 
 { triangles list ------------------------------------------------------------- }

@@ -88,7 +88,7 @@ function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
 { FogNode jak zwykle moze byc = nil aby powiedziec ze nie uzywamy mgly.
-  Jak zwykle mamy tutaj FogTransformedVisibilityRange, podobnie jak w
+  Jak zwykle mamy tutaj FogDistanceScaling, podobnie jak w
   TVRMLFlatScene.
 
   FogType: Integer musi byc poprzednio wyliczone przez VRML97FogType.
@@ -108,7 +108,7 @@ function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
   i ew. zrobi VLerp pomiedzy kolorem mgly a podanym Color. }
 function VRML97FogType(FogNode: TNodeFog): Integer;
 function VRML97Fog(const Color: TVector3Single; const DistanceFromCamera: Single;
-  FogNode: TNodeFog; const FogTransformedVisibilityRange: Single; FogType: Integer):
+  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer):
   TVector3Single;
 
 implementation
@@ -145,18 +145,22 @@ begin
 end;
 
 function VRML97Fog(const Color: TVector3Single; const DistanceFromCamera: Single;
-  FogNode: TNodeFog; const FogTransformedVisibilityRange: Single; FogType: Integer):
+  FogNode: TNodeFog; const FogDistanceScaling: Single; FogType: Integer):
   TVector3Single;
-var f: Single;
+var
+  F: Single;
+  FogVisibilityRangeScaled: Single;
 begin
  if FogType <> -1 then
  begin
-  if DistanceFromCamera >= FogTransformedVisibilityRange-SingleEqualityEpsilon then
+  FogVisibilityRangeScaled :=
+    FogNode.FdVisibilityRange.Value * FogDistanceScaling;
+  if DistanceFromCamera >= FogVisibilityRangeScaled-SingleEqualityEpsilon then
    result := FogNode.FdColor.Value else
   begin
    case FogType of
-    0: f:=(FogTransformedVisibilityRange - DistanceFromCamera) / FogTransformedVisibilityRange;
-    1: f := Exp(-DistanceFromCamera / (FogTransformedVisibilityRange - DistanceFromCamera));
+    0: f := (FogVisibilityRangeScaled - DistanceFromCamera) / FogVisibilityRangeScaled;
+    1: f := Exp(-DistanceFromCamera / (FogVisibilityRangeScaled - DistanceFromCamera));
    end;
    result := VLerp(f, FogNode.FdColor.Value, Color);
   end;

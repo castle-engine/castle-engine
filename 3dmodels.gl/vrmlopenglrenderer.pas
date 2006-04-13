@@ -442,7 +442,7 @@ type
     procedure UnprepareAll;
 
     procedure RenderBegin(FogNode: TNodeFog;
-      const FogTransformedVisibilityRange: Single);
+      const FogDistanceScaling: Single);
     procedure RenderEnd;
     procedure Render(Node: TNodeGeneralShape; State: TVRMLGraphTraverseState);
   end;
@@ -591,10 +591,12 @@ end;
 {$I vrmlopenglrenderer_indexednodesrenderer.inc}
 
 procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
-  const FogTransformedVisibilityRange: Single);
+  const FogDistanceScaling: Single);
 
   procedure SetupFog;
-  var FogType: Integer;
+  var
+    FogType: Integer;
+    FogVisibilityRangeScaled: Single;
   const FogDensityFactor = 3.0;
   begin
    if not Attrib_UseFog then Exit;
@@ -611,19 +613,22 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
     Exit;
    end;
 
+   FogVisibilityRangeScaled :=
+     FogNode.FdVisibilityRange.Value * FogDistanceScaling;
+
    glEnable(GL_FOG);
    glFogv(GL_FOG_COLOR, Vector4Single(ColorModulated(FogNode.FdColor.Value), 1.0));
    case FogType of
     0: begin
         glFogi(GL_FOG_MODE, GL_LINEAR);
         glFogf(GL_FOG_START, 0);
-        glFogf(GL_FOG_END, FogTransformedVisibilityRange);
+        glFogf(GL_FOG_END, FogVisibilityRangeScaled);
        end;
     1: begin
         glFogi(GL_FOG_MODE, GL_EXP);
         { patrz VRMLNotes.txt po komentarz dlaczego w ten sposob implementuje
           mgle exponential VRMLa w OpenGLu }
-        glFogf(GL_FOG_DENSITY, FogDensityFactor / FogTransformedVisibilityRange);
+        glFogf(GL_FOG_DENSITY, FogDensityFactor / FogVisibilityRangeScaled);
        end;
    end;
   end;
