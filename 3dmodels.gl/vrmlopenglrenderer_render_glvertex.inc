@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2004 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -18,13 +18,41 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-procedure TVRMLOpenGLRenderer.DoBeforeGLVertex(const Vert:TVector3Single);
-{ wywolaj OnBeforeGLVertex jezeli jest <> nil.
+{ Wywolaj OnBeforeGLVertex jezeli jest <> nil,
+  ustaw fog coordinate.
+
   v to wektor we wspolrzednych LOKALNYCH aktualnego Node'a -
   sami go sobie tutaj przemnozymy przez State.CurrMatrix. }
+procedure TVRMLOpenGLRenderer.DoBeforeGLVertex(const Vert: TVector3Single);
+var
+  VertGlobal, VertProjected: TVector3Single;
+  VertFogDistance: Single;
 begin
- if Assigned(Attrib_OnBeforeGLVertex) then
-  Attrib_OnBeforeGLVertex(Render_Node, MultMatrixPoint(Render_State.CurrMatrix, Vert));
+  { We check first, to avoid calculating VertGlobal when it's not needed. }
+  if Assigned(Attrib_OnBeforeGLVertex) or FogVolumetric then
+  begin
+    VertGlobal := MultMatrixPoint(Render_State.CurrMatrix, Vert);
+
+    if FogVolumetric then
+    begin
+      VertProjected := PointOnLineClosestToPoint(
+        ZeroVector3Single, FogVolumetricDirection, VertGlobal);
+      VertFogDistance := VectorLen(VertProjected);
+      if not AreParallelVectorsSameDirection(
+        VertProjected, FogVolumetricDirection) then
+        VertFogDistance := -VertFogDistance;
+      { Now I want
+        - VertFogDistance = FogVolumetricVisibilityStart -> 0
+        - VertFogDistance = FogVolumetricVisibilityStart + X -> X
+          (so that VertFogDistance = FogVolumetricVisibilityStart +
+          FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
+      VertFogDistance -= FogVolumetricVisibilityStart;
+      glFogCoordfEXT(VertFogDistance);
+    end;
+
+    if Assigned(Attrib_OnBeforeGLVertex) then
+      Attrib_OnBeforeGLVertex(Render_Node, VertGlobal);
+  end;
 end;
 
 { ZAWSZE wywoluj glVertex tylko za posrednictwem tych

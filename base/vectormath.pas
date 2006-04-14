@@ -948,6 +948,18 @@ function IsLineParallelToSimplePlane(const lineVector: TVector3Single;
 function IsLineParallelToSimplePlane(const lineVector: TVector3Double;
   const PlaneConstCoord: integer): boolean; overload;
 
+{ Assuming that Vector1 and Vector2 are parallel (that is, one of them
+  is just a scaled version of another) question is:
+  do they point in the same direction ?
+
+  This assumes that both vectors are non-zero.
+  If one of the vectors is zero, the result is undefined --- false or true.
+  (but the function will surely not raise some floating point error etc.) }
+function AreParallelVectorsSameDirection(
+  const Vector1, Vector2: TVector3Single): boolean; overload;
+function AreParallelVectorsSameDirection(
+  const Vector1, Vector2: TVector3Double): boolean; overload;
+
 { oblicz rzut prostopadly punktu point na plaszczyzne plane.
   Czyli znajdz najblizszy do point punkt na plaszczyznie plane. }
 function PointOnPlaneClosestToPoint(const plane: TVector4Single; const point: TVector3Single): TVector3Single; overload;

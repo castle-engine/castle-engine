@@ -532,6 +532,18 @@ begin
  result := IsZero(lineVector[PlaneConstCoord]);
 end;
 
+function AreParallelVectorsSameDirection(
+  const Vector1, Vector2: TYPE_VECTOR3): boolean;
+var
+  Coord: Integer;
+begin
+  { Assuming that Vector1 is non-zero, MaxAbsVectorCoord(Vector1)
+    must be non-zero. }
+  Coord := MaxAbsVectorCoord(Vector1);
+
+  Result := (Vector1[Coord] > 0) = (Vector2[Coord] > 0);
+end;
+
 function PointOnPlaneClosestToPoint(const plane: TYPE_VECTOR4; const point: TYPE_VECTOR3): TYPE_VECTOR3;
 var d: TYPE_SCALAR;
     PlaneDir: TYPE_VECTOR3 absolute plane;

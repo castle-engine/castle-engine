@@ -324,6 +324,11 @@ type
     procedure DrawTriangle(const Tri: TTriangle3Single;
       State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
     {$endif}
+
+    { Inited in RenderBegin, according to our FogNode }
+    FogVolumetric: boolean;
+    FogVolumetricDirection: TVector3Single;
+    FogVolumetricVisibilityStart: Single;
   public
 
     { ---------------------------------------------------------------------
@@ -599,6 +604,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
     FogVisibilityRangeScaled: Single;
   const FogDensityFactor = 3.0;
   begin
+   FogVolumetric := false;
    if not Attrib_UseFog then Exit;
 
    if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then
@@ -616,8 +622,35 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
    FogVisibilityRangeScaled :=
      FogNode.FdVisibilityRange.Value * FogDistanceScaling;
 
+   FogVolumetric := FogNode.FdVolumetric.Value and GL_EXT_fog_coord;
+
+   if FogNode.FdVolumetric.Value and (not GL_EXT_fog_coord) then
+   begin
+     { Then we will use normal fog, and try to keep (as much as possible..)
+       the similar fog look. I found that enlarging FogVisibilityRangeScaled
+       below and just letting other things to work as usual gives
+       acceptable results. }
+     FogVisibilityRangeScaled := FogVisibilityRangeScaled * 5;
+   end;
+
+   if FogVolumetric then
+   begin
+     FogVolumetricVisibilityStart :=
+       FogNode.FdVolumetricVisibilityStart.Value * FogDistanceScaling;
+     FogVolumetricDirection :=
+       FogNode.FdVolumetricDirection.Value;
+     glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+   end else
+   begin
+     { If not FogVolumetric but still GL_EXT_fog_coord, we make sure
+       that we're *not* using FogCoord below. }
+     if GL_EXT_fog_coord then
+       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+   end;
+
    glEnable(GL_FOG);
-   glFogv(GL_FOG_COLOR, Vector4Single(ColorModulated(FogNode.FdColor.Value), 1.0));
+   glFogv(GL_FOG_COLOR,
+     Vector4Single(ColorModulated(FogNode.FdColor.Value), 1.0));
    case FogType of
     0: begin
         glFogi(GL_FOG_MODE, GL_LINEAR);

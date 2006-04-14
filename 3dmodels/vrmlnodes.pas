@@ -1647,6 +1647,9 @@ type
     property FdColor: TSFColor index 0 read GetFieldAsSFColor;
     property FdFogType: TSFString index 1 read GetFieldAsSFString;
     property FdVisibilityRange: TSFFloat index 2 read GetFieldAsSFFloat;
+    property FdVolumetric: TSFBool index 3 read GetFieldAsSFBool;
+    property FdVolumetricDirection: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdVolumetricVisibilityStart: TSFFloat index 5 read GetFieldAsSFFloat;
   end;
 
   TNodeBackground = class(TVRMLNode)
@@ -3789,10 +3792,13 @@ end;
 
 constructor TNodeFog.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
- Fields.Add(TSFString.Create('fogType', 'LINEAR'));
- Fields.Add(TSFFloat.Create('visibilityRange', 0));
+  inherited;
+  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+  Fields.Add(TSFString.Create('fogType', 'LINEAR'));
+  Fields.Add(TSFFloat.Create('visibilityRange', 0));
+  Fields.Add(TSFBool.Create('volumetric', false));
+  Fields.Add(TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0)));
+  Fields.Add(TSFFloat.Create('volumetricVisibilityStart', 0));
 end;
 
 class function TNodeFog.ClassNodeTypeName: string;

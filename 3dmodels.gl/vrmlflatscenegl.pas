@@ -1078,13 +1078,13 @@ begin
      SAAW_PrepareRenderAndMaybeRender(GL_COMPILE);
   roSeparateShapeStates:
     begin
-     { build display lists (if needed) for all shape states }
+     { build display lists (if needed) for begin/end and all shape states }
+     if SSS_RenderBeginDisplayList = 0 then
+      SSS_PrepareAndMaybeRenderBegin(GL_COMPILE);
+
      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
       if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
        SSS_PrepareRenderAndMaybeRender(GL_COMPILE, ShapeStateNum);
-
-     if SSS_RenderBeginDisplayList = 0 then
-      SSS_PrepareAndMaybeRenderBegin(GL_COMPILE);
 
      if SSS_RenderEndDisplayList = 0 then
       SSS_PrepareAndMaybeRenderEnd(GL_COMPILE);
