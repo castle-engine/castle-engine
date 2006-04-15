@@ -743,6 +743,23 @@ type
 
     property IsFallingDown: boolean read FIsFallingDown;
 
+    { If IsFallingDown, then this will force IsFallingDown to false
+      @bold(without calling OnFallenDown). It's much like forcing
+      the opinion that "camera is not falling down right now".
+
+      Of course, if in the nearest Idle we will find out (using
+      GetCameraHeight) that camera is too high above the ground,
+      then we will start falling down again, setting IsFallingDown
+      back to true. (but the we will start falling down from the beginning,
+      starting at given CameraPos and with initial falling down speed).
+
+      This is useful to call if you just changed CameraPos because
+      e.g. the player teleported somewhere (or e.g. game levels changed).
+      In this case you just want to forget the fact that camera
+      was falling down --- no consequences (like lowering player's
+      health, redout etc.). }
+    procedure CancelFallingDown;
+
     { This triggers a nice effect when falling down from high.
       Camera dir rotates slightly, and camera up temporary rotates
       around camera up. This makes nice visual effect, so usually
@@ -1947,6 +1964,12 @@ begin
     problem... unless I see some example when it looks bad. }
 
   FFallingOnTheGroundAngleIncrease := Random(2) = 0;
+end;
+
+procedure TMatrixWalker.CancelFallingDown;
+begin
+  { Fortunately implementation of this is brutally simple right now. }
+  FIsFallingDown := false;
 end;
 
 { global ------------------------------------------------------------ }
