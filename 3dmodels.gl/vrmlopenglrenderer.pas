@@ -300,6 +300,7 @@ type
     { te dwie zmienne sa wewnetrzne dla funkcji MeterialsBegin/End, BindMaterial }
     Render_Material_ForcedLightDisable: boolean;
     Render_Material_BoundMatNum: integer;
+    Render_Material_LastFogImmune: boolean;
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
     procedure Render_BindMaterial(MatNum: integer);
@@ -325,8 +326,10 @@ type
       State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
     {$endif}
 
-    { Inited in RenderBegin, according to our FogNode }
+    { Inited in RenderBegin, according to our FogNode.
+      If not UseFog then it's always false. }
     FogVolumetric: boolean;
+    FogEnabled: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
   public
@@ -605,6 +608,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
   const FogDensityFactor = 3.0;
   begin
    FogVolumetric := false;
+   FogEnabled := false;
    if not Attrib_UseFog then Exit;
 
    if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then
@@ -618,6 +622,8 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
     glDisable(GL_FOG);
     Exit;
    end;
+
+   FogEnabled := true;
 
    FogVisibilityRangeScaled :=
      FogNode.FdVisibilityRange.Value * FogDistanceScaling;

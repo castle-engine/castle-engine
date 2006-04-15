@@ -1167,6 +1167,8 @@ type
     property FdReflSpecularExp: TMFFloat index 11 read GetFieldAsMFFloat;
     property FdTransSpecularExp: TMFFloat index 12 read GetFieldAsMFFloat;
 
+    property FdFogImmune: TSFBool index 13 read GetFieldAsSFBool;
+
     { ponizej sa funkcje do latwego wyciagania materialu z node'a material.
       De facto powinienes ich uzywac zawsze gdy zalezy ci na wyciagnieciu
       wartosci materialu. Te funkcje uwzgledniaja fakt ze pola moga byc
@@ -2916,6 +2918,8 @@ begin
  Fields.Add(TMFColor.Create('transDiffuse', []));
  Fields.Add(TMFFloat.Create('reflSpecularExp', [DEF_MAT_REFL_SPECULAR_EXP]));
  Fields.Add(TMFFloat.Create('transSpecularExp', [DEF_MAT_TRANS_SPECULAR_EXP]));
+
+ Fields.Add(TSFBool.Create('fogImmune', false));
 end;
 
 class function TNodeMaterial.ClassNodeTypeName: string;
