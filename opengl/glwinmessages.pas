@@ -104,7 +104,7 @@
       When displaying text we will always break long lines that don't
       fit in the window. We will try to break text only at spaces
       and tab characters. This will work correctly for all fonts
-      (see @link(MessageFont) variable), even if font is not
+      (see @link(TGLWinMessagesTheme.Font)), even if font is not
       fixed-character-width font.
 
       So don't worry about breaking long text lines,

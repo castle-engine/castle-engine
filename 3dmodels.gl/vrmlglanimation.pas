@@ -203,6 +203,7 @@ type
           go backwards. Cycle between TimeEnd + TimeDuration
           and TimeEnd + TimeDuration * 2 will again go forward.
           And so on.)
+      )
     }
     function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
 
