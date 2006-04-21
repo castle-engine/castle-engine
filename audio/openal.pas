@@ -88,7 +88,7 @@ unit OpenAL;
   So I'll just define it always. }
 {$define OLD_OPENAL}
 
-{  Zdefiniuj ALUT_IN_AL_LIB aby powiedziec ze funkcje "alutXxx" sa dostepne
+{ Zdefiniuj ALUT_IN_AL_LIB aby powiedziec ze funkcje "alutXxx" moga byc dostepne
   i na dodatek sa w tej samej dynlib co zasadnicze funkcje OpenALa.
   W tym momencie jest to jedyny sposob aby uzyskac funkcje alutXxx ale byc
   moze kiedys pojawia sie tez inne sposoby (np. jezeli znajde sie kiedys
@@ -310,13 +310,20 @@ initialization
   ALUTInited := {$ifdef ALUT_IN_AL_LIB} true {$else} false {$endif};
   if ALUTInited then
   begin
-   { alutXxx functions ---------------------------------------- }
-   ProcVarCast(alutInit) := ALLibrary.Symbol('alutInit');
-   ProcVarCast(alutExit) := ALLibrary.Symbol('alutExit');
-   ProcVarCast(alutLoadWAV) := ALLibrary.Symbol('alutLoadWAV');
-   ProcVarCast(alutLoadWAVFile) := ALLibrary.Symbol('alutLoadWAVFile');
-   ProcVarCast(alutLoadWAVMemory) := ALLibrary.Symbol('alutLoadWAVMemory');
-   ProcVarCast(alutUnloadWAV) := ALLibrary.Symbol('alutUnloadWAV');
+    { alutXxx functions ---------------------------------------- }
+    try
+      ProcVarCast(alutInit) := ALLibrary.Symbol('alutInit');
+      ProcVarCast(alutExit) := ALLibrary.Symbol('alutExit');
+      ProcVarCast(alutLoadWAV) := ALLibrary.Symbol('alutLoadWAV');
+      ProcVarCast(alutLoadWAVFile) := ALLibrary.Symbol('alutLoadWAVFile');
+      ProcVarCast(alutLoadWAVMemory) := ALLibrary.Symbol('alutLoadWAVMemory');
+      ProcVarCast(alutUnloadWAV) := ALLibrary.Symbol('alutUnloadWAV');
+    except
+      on EDynLibError do
+        { If loading of some alutXxx function will fail, then set
+          ALUTInited to false and silence the exception. }
+        ALUTInited := false;
+    end;
   end;
 
   {$undef FPC_OBJFPC}
