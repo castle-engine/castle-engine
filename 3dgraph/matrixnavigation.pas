@@ -35,6 +35,7 @@ const
   DefaultMinAngleRadFromHomeUp = { 10 degress } Pi / 18;
   DefaultRotationHorizontalSpeed = 3.0;
   DefaultRotationVerticalSpeed = 2.0;
+  DefaultFallingDownSpeedIncrease = 13/12;
 
 type
   { }
@@ -298,6 +299,7 @@ type
     FOnFalledDown: TFalledDownNotifyFunc;
     FFallingDownStartSpeed: Single;
     FFallingDownSpeed: Single;
+    FFallingDownSpeedIncrease: Single;
     FGravity: boolean;
     FOnGetCameraHeight: TGetCameraHeight;
     FGrowingSpeed: Single;
@@ -625,7 +627,7 @@ type
           See GrowingSpeed.)
         @item(When current height is too large --- we're falling down.
           See IsFallingDown, OnFalledDown, FallingDownStartSpeed,
-          FallingDownEffect.)
+          FallingDownSpeedIncrease, FallingDownEffect.)
         @item(It does head bobbing. See HeadBobbing.)
       )
 
@@ -741,6 +743,13 @@ type
       read FFallingDownStartSpeed write FFallingDownStartSpeed
       default DefaultFallingDownStartSpeed;
 
+    { When falling down, the speed increases.
+      Set this to 1.0 to fall down with constant speed
+      (taken from FallingDownStartSpeed). }
+    property FallingDownSpeedIncrease: Single
+      read FFallingDownSpeedIncrease write FFallingDownSpeedIncrease
+      default DefaultFallingDownSpeedIncrease;
+
     property IsFallingDown: boolean read FIsFallingDown;
 
     { If IsFallingDown, then this will force IsFallingDown to false
@@ -765,7 +774,11 @@ type
       around camera up. This makes nice visual effect, so usually
       you will want this.
 
-      Of course this is meaningfull only when @link(Gravity) works. }
+      Of course this is meaningfull only when @link(Gravity) works.
+
+      Note that changing it from @true to @false doesn't immediately
+      "cancel out" this effect if it's currently in progress.
+      It only prevents this effect from starting again. }
     property FallingDownEffect: boolean
       read FFallingDownEffect write FFallingDownEffect default true;
 
@@ -1030,6 +1043,7 @@ begin
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
+  FFallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
   FPreferHomeUp := true;
   FGravity := false;
   FGrowingSpeed := DefaultGrowingSpeed;
@@ -1459,8 +1473,6 @@ var
         Exit;
       end;
 
-      Result := true;
-
       { Make sure that FallingDownSpeed is initialized.
         When IsFallingDown, we know it's initialized (because setting
         "FIsFallingDown := true;" is done only in the piece of code below...),
@@ -1517,6 +1529,7 @@ var
         if not IsFallingDown then
           FFallingDownStartPos := CameraPosBefore;
         FIsFallingDown := true;
+        Result := true;
 
         { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
           And also above when using FFallingDownSpeed, I multipled
@@ -1524,7 +1537,8 @@ var
           - changing position based on FallingDownSpeed is a "velocity"
           - changing FallingDownSpeed below is "acceleration"
           And both acceleration and velocity must be time-based. }
-        FFallingDownSpeed *= Power(13/12, CompSpeed);
+        if FallingDownSpeedIncrease <> 1.0 then
+          FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
 
         { This is where we do FallingDownEffect }
         if FallingDownEffect and
@@ -1792,7 +1806,7 @@ begin
       MatrixChanged;
     end;
 
-    { Key_Jump quialifies better to be handled inside KeyDown,
+    { Key_Jump qualifies better to be handled inside KeyDown,
       but we don't have KeyDown in MatrixWalker. Maybe later it will
       be moved to KeyDown. }
     if KeysDown^[Key_Jump] then
