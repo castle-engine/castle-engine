@@ -419,7 +419,7 @@ var FogType: Integer;
   var i: integer;
   begin
    IntersectNodeIndex := Octree.RayCollision(Intersection, Ray0, RayVector, true,
-     OctreeItemToIgnore, IgnoreMarginAtStart);
+     OctreeItemToIgnore, IgnoreMarginAtStart, nil);
    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
 
    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
@@ -947,7 +947,7 @@ const
       NonEmissiveColor: TVector3Single;
   begin
    IntersectNodeIndex := Octree.RayCollision(Intersection, Ray0, RayVector, true,
-     OctreeItemToIgnore, IgnoreMarginAtStart);
+     OctreeItemToIgnore, IgnoreMarginAtStart, nil);
    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
 
    if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then

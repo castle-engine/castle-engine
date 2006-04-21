@@ -209,7 +209,9 @@ type
       ReturnClosestIntersection) to musisz uwazac zeby jakis subnode nie wykryl
       przypadkiem kolizji ktora de facto zdarzyla sie w innym subnodzie. }
     function SphereCollision(const pos: TVector3Single;
-      const Radius: Single): integer; overload;
+      const Radius: Single;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
       var Intersection: TVector3Single;
@@ -365,7 +367,7 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
       var Intersection: TVector3Single;
@@ -373,7 +375,7 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
       var IntersectionDistance: Single;
@@ -381,17 +383,19 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SphereCollision(const pos: TVector3Single;
-      const Radius: Single): integer;
+      const Radius: Single;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 
     function RayCollision(
       var Intersection: TVector3Single;
@@ -400,7 +404,7 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(
       var Intersection: TVector3Single;
@@ -408,7 +412,7 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(
       var IntersectionDistance: Single;
@@ -416,13 +420,13 @@ type
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
       const IgnoreMarginAtStart: boolean;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     { This checks if move between OldPos and ProposedNewPos is possible,
       by checking is segment between OldPos and ProposedNewPos free
@@ -433,12 +437,20 @@ type
       See @link(MoveAllowed) for some more sophisticated way of
       collision detection.
 
+      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      is just like for RayCollision. This can be used to allow
+      camera to walk thorugh some surfaces (e.g. through water
+      surface, or to allow player to walk through some "fake wall"
+      and discover secret room in game etc.).
+
       @seealso(TMatrixWalker.DoMoveAllowed
         TMatrixWalker.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single): boolean;
+      const CameraRadius: Single;
+      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
     { This is like @link(MoveAllowedSimple), but in some cases
       where MoveAllowedSimple would answer "false", this will
@@ -458,13 +470,18 @@ type
       So you should not assume that NewPos is not modified when it returns
       with false.
 
+      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      is just like for RayCollision.
+
       @seealso(TMatrixWalker.DoMoveAllowed
         TMatrixWalker.DoMoveAllowed is some place
         where you can use this function) }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
       var NewPos: TVector3Single;
-      const CameraRadius: Single): boolean;
+      const CameraRadius: Single;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
@@ -472,10 +489,15 @@ type
 
       This simply checks collision of a ray from
       CameraPos in direction -HomeCameraUp, and sets IsAboveTheGround
-      and SqrHeightAboveTheGround as needed. }
+      and SqrHeightAboveTheGround as needed.
+
+      OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
+      is just like for RayCollision. }
     procedure GetCameraHeight(
       const CameraPos, HomeCameraUp: TVector3Single;
-      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
     constructor Create(const ARootBox: TBox3d); overload;
     constructor Create(AMaxDepth, AMaxLeafItemsCount: integer;
@@ -704,38 +726,45 @@ end;
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
 
 function TTriangleOctreeNode.SphereCollision(const pos: TVector3Single;
-  const Radius: Single): integer;
+  const Radius: Single;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
-   result := TTriangleOctreeNode(subnode).SphereCollision(pos, Radius);
-   Stop := result <> NoItemIndex;
+    result := TTriangleOctreeNode(subnode).SphereCollision(
+      pos, Radius, OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+    Stop := result <> NoItemIndex;
   end;
 
 OCTREE_STEP_INTO_SUBNODES_DECLARE
-var i: integer;
+var
+  i: integer;
 begin
- if IsLeaf then
- begin
-  for i := 0 to ItemsIndices.High do
+  if IsLeaf then
   begin
-   Inc(ParentTree.DirectCollisionTestsCounter);
-   if IsTriangleSphereCollision(Items[i]^.Triangle,
-     Items[i]^.TriangleNormPlane, pos, Radius) then
-    Exit(ItemsIndices[i]);
+    for i := 0 to ItemsIndices.High do
+    begin
+      Inc(ParentTree.DirectCollisionTestsCounter);
+      if IsTriangleSphereCollision(Items[i]^.Triangle,
+        Items[i]^.TriangleNormPlane, pos, Radius) and
+        (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
+        ( (not Assigned(ItemsToIgnoreFunc)) or
+          (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
+       Exit(ItemsIndices[i]);
+    end;
+    Exit(NoItemIndex);
+  end else
+  begin
+    { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
+      SubNode'ow niz rzeczywiscie musimy. Kolizje ze sfera nie sa specjalnie
+      wykorzystywane (jak dotad tylko malfunction ich uzywa) wiec nie sa
+      zbytnio zoptymalizowane. }
+    result := NoItemIndex;
+    OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
+    OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+    OCTREE_STEP_INTO_SUBNODES
   end;
-  Exit(NoItemIndex);
- end else
- begin
-  { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
-    SubNode'ow niz rzeczywiscie musimy. Kolizje ze sfera nie sa specjalnie
-    wykorzystywane (jak dotad tylko malfunction ich uzywa) wiec nie sa
-    zbytnio zoptymalizowane. }
-  result := NoItemIndex;
-  OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
-  OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
-  OCTREE_STEP_INTO_SUBNODES
- end;
 end;
 
 function TTriangleOctreeNode.SegmentCollision(
@@ -849,9 +878,12 @@ end;}
 {$undef SegmentCollision_Implementation}
 
 function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single;
-  const Radius: Single): integer;
+  const Radius: Single;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 begin
- result := TreeRoot.SphereCollision(pos, Radius);
+ result := TreeRoot.SphereCollision(pos, Radius,
+   OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
 end;
 
 {$define RayCollision_CommonParams :=
@@ -905,17 +937,23 @@ end;}
 
 function TVRMLTriangleOctree.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single): boolean;
+  const CameraRadius: Single;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
  Result :=
-   (SegmentCollision(OldPos, ProposedNewPos, false, NoItemIndex, false) = NoItemIndex) and
-   (SphereCollision(ProposedNewPos, CameraRadius) = NoItemIndex);
+   (SegmentCollision(OldPos, ProposedNewPos, false,
+     OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
+   (SphereCollision(ProposedNewPos, CameraRadius,
+     OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
 end;
 
 function TVRMLTriangleOctree.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
   var NewPos: TVector3Single;
-  const CameraRadius: Single): boolean;
+  const CameraRadius: Single;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 
   function MoveAlongTheBlocker(BlockerIndex: Integer): boolean;
   const
@@ -949,7 +987,8 @@ function TVRMLTriangleOctree.MoveAllowed(
      (e.g. if player is trying to walk into the corner (two walls)).
      I can do it by using my simple MoveAllowedSimple. }
 
-   Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius);
+   Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
+     OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
   end;
 
 var
@@ -961,10 +1000,12 @@ begin
  Exit; }
 
  BlockerIndex := SegmentCollision(OldPos, ProposedNewPos,
-   true { return closest blocker }, NoItemIndex, false);
+   true { return closest blocker },
+   OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
  if BlockerIndex = NoItemIndex then
  begin
-  BlockerIndex := SphereCollision(ProposedNewPos, CameraRadius);
+  BlockerIndex := SphereCollision(ProposedNewPos, CameraRadius,
+    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
   if BlockerIndex = NoItemIndex then
   begin
    Result := true;
@@ -977,12 +1018,15 @@ end;
 
 procedure TVRMLTriangleOctree.GetCameraHeight(
   const CameraPos, HomeCameraUp: TVector3Single;
-  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 var
   GroundIntersection: TVector3Single;
 begin
   IsAboveTheGround := RayCollision(GroundIntersection,
-    CameraPos, VectorNegate(HomeCameraUp), true, NoItemIndex, false)
+    CameraPos, VectorNegate(HomeCameraUp), true,
+    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc)
     <> NoItemIndex;
   if IsAboveTheGround then
     SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
