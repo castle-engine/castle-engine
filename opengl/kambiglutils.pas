@@ -1086,7 +1086,9 @@ procedure SwitchGLTo2dScreen(proc: TProcIntData; data: integer);
     w Draw wywolaj ta proc,
     w Idle zmniejszaj BlackOutIntensity (o ile jest >0),
     w dowolnym momencie aby wywolac blackouta zrob BlackOutIntensity := 1
-      i ustaw BlackOutColor}
+      i ustaw BlackOutColor
+
+  You can place this inside display list. }
 procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
   const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
 
