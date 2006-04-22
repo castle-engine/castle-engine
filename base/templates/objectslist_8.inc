@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -35,6 +35,9 @@
 
 {$ifdef read_interface}
 
+  TObjectsListIsSmallerFunction_8 =
+    function (const A, B: TObjectsListItem_8): boolean of object;
+
   TObjectsList_8 = class(TObjectsList_Abstract)
   private
     Arr: PArray_TObject;
@@ -59,6 +62,9 @@
     procedure SetFirst(const Value: TObjectsListItem_8);
     function GetLast: TObjectsListItem_8;
     procedure SetLast(const Value: TObjectsListItem_8);
+
+    GoodIsSmallerFunction: TObjectsListIsSmallerFunction_8;
+    function ProxyIsSmallerFunction(const A, B: Pointer): boolean;
   public
     property Items[i: integer]: TObjectsListItem_8
       read GetItem write SetItem; default;
@@ -77,6 +83,15 @@
 
     { Shortcut for Items[Count-1]. }
     property Last: TObjectsListItem_8 read GetLast write SetLast;
+
+    { Sort Items between FirstIndex and LastIndex.
+      FirstIndex and LastIndex must be valid indexes,
+      i.e. between 0 and High and FirstIndex <= LastIndex. }
+    procedure Sort(FirstIndex, LastIndex: Cardinal;
+      IsSmallerFunction: TObjectsListIsSmallerFunction_8); overload;
+
+    { Sorts all items. }
+    procedure Sort(IsSmallerFunction: TObjectsListIsSmallerFunction_8); overload;
 
     { dodawanie ---------------------------------------- }
 
@@ -223,6 +238,29 @@ end;
 procedure TObjectsList_8.SetLast(const Value: TObjectsListItem_8);
 begin
  Items[Count-1] := Value;
+end;
+
+function TObjectsList_8.ProxyIsSmallerFunction(const A, B: Pointer): boolean;
+begin
+  { A and B are now pointers, just like Arr was a pointer.
+    I must dereference A and B now to get their object references. }
+  Result := GoodIsSmallerFunction(
+    TObjectsListItem_8(PtrObject(A)^),
+    TObjectsListItem_8(PtrObject(B)^));
+end;
+
+procedure TObjectsList_8.Sort(FirstIndex, LastIndex: Cardinal;
+  IsSmallerFunction: TObjectsListIsSmallerFunction_8);
+begin
+  GoodIsSmallerFunction := IsSmallerFunction;
+  SortByObject(Arr, SizeOf(TObject), ProxyIsSmallerFunction,
+    FirstIndex, LastIndex);
+end;
+
+procedure TObjectsList_8.Sort(IsSmallerFunction: TObjectsListIsSmallerFunction_8);
+begin
+  if Count <> 0 then
+    Sort(0, High, IsSmallerFunction);
 end;
 
 procedure TObjectsList_8.NeededCapacityForOneMore;

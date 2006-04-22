@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
+    <General>
+      <Flags>
+        <AlwaysBuild Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
+    </General>
+    <LazDoc Paths=""/>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="kambi_units"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="6">
+      <Unit0>
+        <Filename Value="test_al_sound_allocator.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_al_sound_allocator"/>
+        <CursorPos X="26" Y="8"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="24"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="mainf.pas"/>
+        <ComponentName Value="Main"/>
+        <IsPartOfProject Value="True"/>
+        <ResourceFilename Value="mainf.lrs"/>
+        <UnitName Value="mainf"/>
+        <CursorPos X="46" Y="111"/>
+        <TopLine Value="94"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="24"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="/win/mojepasy/units/audio/alsoundallocator.pas"/>
+        <UnitName Value="ALSoundAllocator"/>
+        <CursorPos X="7" Y="85"/>
+        <TopLine Value="69"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="/win/mojepasy/units/audio/openal_al.inc"/>
+        <CursorPos X="3" Y="37"/>
+        <TopLine Value="21"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="/win/mojepasy/units/audio/openal.pas"/>
+        <UnitName Value="OpenAL"/>
+        <CursorPos X="25" Y="106"/>
+        <TopLine Value="95"/>
+        <UsageCount Value="10"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="/win/mojepasy/units/base/templates/objectslist_2.inc"/>
+        <CursorPos X="5" Y="39"/>
+        <TopLine Value="22"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+    </Units>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <SearchPaths>
+      <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <D2Extensions Value="False"/>
+        <IncludeAssertionCode Value="True"/>
+        <CStyleMacros Value="True"/>
+        <DelphiCompat Value="True"/>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

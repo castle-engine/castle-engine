@@ -10,6 +10,7 @@ unit AllKambiAudioUnits;
 interface
 
 uses
+  alsoundallocator,
   alutils,
   openal,
   soundwav

@@ -1,0 +1,196 @@
+object Main: TMain
+  ActiveControl = Memo1
+  Caption = 'Test OpenAL sound allocator'
+  ClientHeight = 497
+  ClientWidth = 771
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 48
+  Position = poDesktopCenter
+  HorzScrollBar.Page = 770
+  VertScrollBar.Page = 496
+  Left = 25
+  Height = 497
+  Top = 44
+  Width = 771
+  object Memo1: TMemo
+    Lines.Strings = (
+      'This is a demo program for TALSoundAllocator class.'
+      'Create your allocator class, then try playing various sounds and see how the OpenAL sounds are managed based on their Importance. '
+      'It''s best to use some long sounds, so that you can get many sounds playing at once.'
+    )
+    TabOrder = 0
+    Left = 8
+    Height = 80
+    Top = 8
+    Width = 752
+  end
+  object PanelLists: TPanel
+    ClientHeight = 232
+    ClientWidth = 752
+    TabOrder = 1
+    Left = 8
+    Height = 232
+    Top = 264
+    Width = 752
+    object Label2: TLabel
+      Caption = 'Allocated sounds:'
+      Color = clNone
+      ParentColor = False
+      Left = 24
+      Height = 13
+      Top = 16
+      Width = 101
+    end
+    object ListAllocatedSounds: TListBox
+      TabOrder = 0
+      TopIndex = -1
+      Left = 24
+      Height = 185
+      Top = 32
+      Width = 704
+    end
+  end
+  object PanelAllocatorLimits: TPanel
+    ClientHeight = 88
+    ClientWidth = 552
+    TabOrder = 2
+    Left = 8
+    Height = 88
+    Top = 96
+    Width = 552
+    object LabelMaxAllocatedSounds: TLabel
+      Caption = 'Max allocated sounds'
+      Color = clNone
+      ParentColor = False
+      Left = 10
+      Height = 13
+      Top = 43
+      Width = 124
+    end
+    object LabelMinAllocatedSounds: TLabel
+      Caption = 'Min allocated sounds'
+      Color = clNone
+      ParentColor = False
+      Left = 13
+      Height = 13
+      Top = 16
+      Width = 121
+    end
+    object ButtonApplyAllocatorLimits: TButton
+      BorderSpacing.InnerBorder = 2
+      Caption = 'Apply to existing sound allocator'
+      OnClick = ButtonApplyAllocatorLimitsClick
+      TabOrder = 0
+      Left = 232
+      Height = 25
+      Top = 48
+      Width = 275
+    end
+    object SpinEditMaxAllocatedSounds: TSpinEdit
+      MaxValue = 1000
+      MinValue = 1
+      TabOrder = 1
+      Value = 6
+      Left = 154
+      Height = 20
+      Top = 36
+      Width = 50
+    end
+    object SpinEditMinAllocatedSounds: TSpinEdit
+      MaxValue = 1000
+      MinValue = 1
+      TabOrder = 2
+      Value = 4
+      Left = 156
+      Height = 20
+      Top = 16
+      Width = 50
+    end
+    object ButtonRecreateAllocator: TButton
+      BorderSpacing.InnerBorder = 2
+      Caption = 'Recreate AL sound allocator'
+      OnClick = ButtonRecreateAllocatorClick
+      TabOrder = 3
+      Left = 232
+      Height = 25
+      Top = 16
+      Width = 213
+    end
+  end
+  object PanelSoundPlaying: TPanel
+    ClientHeight = 64
+    ClientWidth = 752
+    TabOrder = 3
+    Left = 8
+    Height = 64
+    Top = 191
+    Width = 752
+    object LabelSoundImportance: TLabel
+      Caption = 'Sound importance :'
+      Color = clNone
+      ParentColor = False
+      Left = 8
+      Height = 13
+      Top = 16
+      Width = 109
+    end
+    object Label3: TLabel
+      Caption = 'Sound filename :'
+      Color = clNone
+      ParentColor = False
+      Left = 10
+      Height = 13
+      Top = 40
+      Width = 94
+    end
+    object FileNameEditSound: TFileNameEdit
+      FileName = '/win/music/wav.tests/natalya.wav'
+      Filter = 'WAV files (*.wav)|*.wav|All files (*)|*'
+      ButtonWidth = 23
+      NumGlyphs = 1
+      ParentColor = False
+      TabOrder = 0
+      TabOrder = 0
+      Text = '/win/music/wav.tests/natalya.wav'
+      Left = 128
+      Height = 23
+      Top = 32
+      Width = 352
+    end
+    object SpinEditSoundImportance: TSpinEdit
+      MaxValue = 1000
+      MinValue = -1000
+      TabOrder = 1
+      Left = 128
+      Height = 20
+      Top = 9
+      Width = 50
+    end
+    object ButtonAllocateAndPlay: TButton
+      BorderSpacing.InnerBorder = 2
+      Caption = 'Allocate and play sound'
+      OnClick = ButtonAllocateAndPlayClick
+      TabOrder = 2
+      Left = 536
+      Height = 25
+      Top = 20
+      Width = 195
+    end
+    object CheckBoxPlayLooping: TCheckBox
+      Caption = 'Play looping'
+      TabOrder = 3
+      Left = 200
+      Height = 24
+      Top = 5
+      Width = 94
+    end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = Timer1Timer
+    left = 400
+    top = 48
+  end
+end

@@ -76,6 +76,7 @@ objectslist_%.inc : ../objectslist.inc
 	$(SED_DO) \
 	  -e 's/\bTObjectsList\b/TObjectsList_'$*'/ig' \
 	  -e 's/\bTObjectsListItem\b/TObjectsListItem_'$*'/ig' \
+	  -e 's/\bTObjectsListIsSmallerFunction\b/TObjectsListIsSmallerFunction_'$*'/ig' \
 	  $@
 
 dim2array_%.inc: ../dim2array.inc

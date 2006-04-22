@@ -153,8 +153,8 @@ uses
 
 type
   { }
-  TIsSmallerFunc = function(const A, B, Data: pointer): boolean;
-  TIsSmallerFuncByObject = function(const A, B: pointer): boolean of object;
+  TIsSmallerFunc = function (const A, B, Data: Pointer): boolean;
+  TIsSmallerFuncByObject = function (const A, B: Pointer): boolean of object;
 
   { @noAutoLinkHere }
   Float = {$ifdef DELPHI} Extended {$else} Math.Float {$endif};

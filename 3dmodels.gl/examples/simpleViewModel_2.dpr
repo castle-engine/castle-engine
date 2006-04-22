@@ -51,7 +51,7 @@ program simpleViewModel_2;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
-  ProgressUnit, ProgressConsole, KambiFilesUtils;
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree;
 
 var
   Scene: TVRMLFlatSceneGL;
@@ -112,7 +112,8 @@ class function TDummy.MoveAllowed(Navigator: TMatrixWalker;
   const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.DefaultTriangleOctree.MoveAllowed(
-   Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius);
+   Navigator.CameraPos, ProposedNewPos, NewPos, CameraRadius,
+   NoItemIndex, nil);
 end;
 
 var
