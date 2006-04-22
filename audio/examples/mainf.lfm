@@ -1,6 +1,6 @@
 object Main: TMain
   ActiveControl = Memo1
-  Caption = 'Test OpenAL sound allocator'
+  Caption = 'Test OpenAL source allocator'
   ClientHeight = 497
   ClientWidth = 771
   OnCreate = FormCreate
@@ -15,8 +15,8 @@ object Main: TMain
   Width = 771
   object Memo1: TMemo
     Lines.Strings = (
-      'This is a demo program for TALSoundAllocator class.'
-      'Create your allocator class, then try playing various sounds and see how the OpenAL sounds are managed based on their Importance. '
+      'This is a demo program for TALSourceAllocator class.'
+      'Create your allocator class, then try playing various sounds and see how the OpenAL sources are managed based on their Importance. '
       'It''s best to use some long sounds, so that you can get many sounds playing at once.'
     )
     TabOrder = 0
@@ -34,21 +34,31 @@ object Main: TMain
     Top = 264
     Width = 752
     object Label2: TLabel
-      Caption = 'Allocated sounds:'
+      Caption = 'Allocated sources:'
       Color = clNone
       ParentColor = False
       Left = 24
       Height = 13
       Top = 16
-      Width = 101
+      Width = 105
     end
-    object ListAllocatedSounds: TListBox
+    object ListAllocatedSources: TListBox
       TabOrder = 0
       TopIndex = -1
       Left = 24
       Height = 185
       Top = 32
-      Width = 704
+      Width = 496
+    end
+    object ButtonRefreshUsed: TButton
+      BorderSpacing.InnerBorder = 2
+      Caption = 'Refresh used'
+      OnClick = ButtonRefreshUsedClick
+      TabOrder = 1
+      Left = 548
+      Height = 25
+      Top = 32
+      Width = 183
     end
   end
   object PanelAllocatorLimits: TPanel
@@ -59,27 +69,27 @@ object Main: TMain
     Height = 88
     Top = 96
     Width = 552
-    object LabelMaxAllocatedSounds: TLabel
-      Caption = 'Max allocated sounds'
+    object LabelMaxAllocatedSources: TLabel
+      Caption = 'Max allocated sources :'
       Color = clNone
       ParentColor = False
       Left = 10
       Height = 13
       Top = 43
-      Width = 124
+      Width = 135
     end
-    object LabelMinAllocatedSounds: TLabel
-      Caption = 'Min allocated sounds'
+    object LabelMinAllocatedSources: TLabel
+      Caption = 'Min allocated sources :'
       Color = clNone
       ParentColor = False
       Left = 13
       Height = 13
       Top = 16
-      Width = 121
+      Width = 132
     end
     object ButtonApplyAllocatorLimits: TButton
       BorderSpacing.InnerBorder = 2
-      Caption = 'Apply to existing sound allocator'
+      Caption = 'Apply to existing source allocator'
       OnClick = ButtonApplyAllocatorLimitsClick
       TabOrder = 0
       Left = 232
@@ -87,7 +97,7 @@ object Main: TMain
       Top = 48
       Width = 275
     end
-    object SpinEditMaxAllocatedSounds: TSpinEdit
+    object SpinEditMaxAllocatedSources: TSpinEdit
       MaxValue = 1000
       MinValue = 1
       TabOrder = 1
@@ -97,7 +107,7 @@ object Main: TMain
       Top = 36
       Width = 50
     end
-    object SpinEditMinAllocatedSounds: TSpinEdit
+    object SpinEditMinAllocatedSources: TSpinEdit
       MaxValue = 1000
       MinValue = 1
       TabOrder = 2
@@ -109,7 +119,7 @@ object Main: TMain
     end
     object ButtonRecreateAllocator: TButton
       BorderSpacing.InnerBorder = 2
-      Caption = 'Recreate AL sound allocator'
+      Caption = 'Recreate AL source allocator'
       OnClick = ButtonRecreateAllocatorClick
       TabOrder = 3
       Left = 232
@@ -118,7 +128,7 @@ object Main: TMain
       Width = 213
     end
   end
-  object PanelSoundPlaying: TPanel
+  object PanelSourcePlaying: TPanel
     ClientHeight = 64
     ClientWidth = 752
     TabOrder = 3
@@ -126,14 +136,14 @@ object Main: TMain
     Height = 64
     Top = 191
     Width = 752
-    object LabelSoundImportance: TLabel
-      Caption = 'Sound importance :'
+    object LabelSourceImportance: TLabel
+      Caption = 'Source importance :'
       Color = clNone
       ParentColor = False
       Left = 8
       Height = 13
       Top = 16
-      Width = 109
+      Width = 113
     end
     object Label3: TLabel
       Caption = 'Sound filename :'
@@ -158,7 +168,7 @@ object Main: TMain
       Top = 32
       Width = 352
     end
-    object SpinEditSoundImportance: TSpinEdit
+    object SpinEditSourceImportance: TSpinEdit
       MaxValue = 1000
       MinValue = -1000
       TabOrder = 1
@@ -169,7 +179,7 @@ object Main: TMain
     end
     object ButtonAllocateAndPlay: TButton
       BorderSpacing.InnerBorder = 2
-      Caption = 'Allocate and play sound'
+      Caption = 'Allocate and play sound source'
       OnClick = ButtonAllocateAndPlayClick
       TabOrder = 2
       Left = 536

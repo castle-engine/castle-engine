@@ -1,4 +1,4 @@
-program test_al_sound_allocator;
+program test_al_source_allocator;
 
 {$mode objfpc}{$H+}
 

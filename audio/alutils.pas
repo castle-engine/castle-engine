@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's audio Pascal units".
 
@@ -103,7 +103,7 @@ var
     @item(
       Use ALC_ENUMERATION_EXT to print all available OpenAL audio devices
       to stdout (uses InfoWrite, so on Windows when program is GUI, it will
-      make a dialog box).     
+      make a dialog box).
       If this extension is not present, write something
       like "Enumerating audio devices not supported by your OpenAL".
 
@@ -355,6 +355,10 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 { @groupEnd }
 
+{ @section(Other utils) --------------------------------------------------- }
+
+function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
+
 {$undef read_interface}
 
 implementation
@@ -418,7 +422,7 @@ begin
            'Bug in OpenAL ?';
        finally DeviceList.Free end;
       end;
-      
+
       InfoWrite(Message);
 
       ProgramBreak;
@@ -434,7 +438,7 @@ const
     (Short:#0; Long:'print-audio-devices'; Argument: oaNone)
   );
 begin
- ParseParameters(OpenALOptions, 
+ ParseParameters(OpenALOptions,
    {$ifdef FPC_OBJFPC} @ {$endif} OpenALOptionProc, nil, true);
 end;
 
@@ -819,6 +823,16 @@ end;
 procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 begin
  alGenBuffers(n, buffers);
+end;
+
+{ Other utils ---------------------------------------------------------------- }
+
+function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
+var
+  SourceState: TALuint;
+begin
+  SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
+  Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
 end.
