@@ -359,6 +359,9 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
 
+const
+  BoolToAL: array[boolean] of TALint = (AL_FALSE, AL_TRUE);
+
 {$undef read_interface}
 
 implementation
