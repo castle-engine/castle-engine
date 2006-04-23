@@ -67,7 +67,7 @@ interface
 uses SysUtils, KambiUtils, OpenAL, Classes, SoundWAV, ParseParametersUnit;
 
 { ---------------------------------------------------------------------------- }
-{ @section(OpenAL device used by TryBeginAL and BeginAL) }
+{ @section(OpenAL devices) }
 
 const
   { @name says what OpenAL device is generally the best.
@@ -90,6 +90,31 @@ var
     in OpenALOptionsParse. TryBeginAL / BeginAL procedures assume anyway
     that your program will require only one OpenAL context at any time. }
   ALCDevice: string = BestALCDevice;
+
+{ This appends to DevicesList object list of available OpenAL devices.
+
+  It uses ALC_ENUMERATION_EXT extension, so ALInited must be true
+  and ALC_ENUMERATION_EXT. If ALC_ENUMERATION_EXT extension is not supported
+  but ALInited is @true and we're compiled under Unix, then it assumes
+  that devices supported by default [http://www.openal.org/] Linux OpenAL
+  implementation are supported and returns them.
+  (so in the 2 most common situations --- current Creative's Windows OpenAL
+  and current Linux OpenAL from [http://www.openal.org/] --- it is able
+  to return list of devices).
+
+  Otherwise it doesn't append anything to DevicesList.
+
+  Remember that for every OpenAL implementation, there is also an implicit
+  OpenAL device named '' (empty string) supported. }
+procedure GetOpenALDevices(DevicesList: TStringList);
+
+{ This returns nice, user-readable description of OpenAL device named
+  ALCDevice. Currently this returns nice string for
+  @unorderedList(
+    @item(Empty string (means "Default OpenAL device"))
+    @item(Various Unix devices looking like @code('(( devices '(DEVICE-NAME) ))))
+  ) }
+function ALCDeviceToNiceStr(const ALCDevice: string): string;
 
 { This parses parameters in @link(Parameters) and interprets and removes
   recognized options. Internally it uses ParseParameters with
@@ -146,9 +171,6 @@ var
     as this is the only way to get detailed info why @link(TryBeginAL) failed. }
   ALActivationErrorMessage: string = '';
 
-  { Used by TryBeginAL and BeginAL, see there for description. }
-  SetDefaultALState: boolean = true;
-
 { BeginAL creates and activates OpenAL context for the ALCDevice device.
 
   You should deactivate and free the context by calling EndAL.
@@ -176,20 +198,6 @@ var
       (with Message equal to ALActivationErrorStr value).
 
       If this initialization will succeed, ALActive will be set to @true.)
-
-    @item(
-      If SetDefaultALState then we additionally make OpenAL context state
-      more conformant to OpenAL specification.
-      That's because Windows Creative Labs' implementation has
-      a little different starting state than Linux implementation :
-      @unorderedList(
-        @item(DopplerVelocity is different than in the specification
-          and Linux implementation. So we set it to value given in specification.)
-        @item(DistanceModel is different than in the Linux implementation,
-          specification does not specify this. So we set it to INVERSE_DISTANCE,
-          like Linux implementation.)
-      )
-    )
   )
 }
 procedure BeginAL(CheckForAlut: boolean);
@@ -202,7 +210,7 @@ procedure BeginAL(CheckForAlut: boolean);
 function TryBeginAL(CheckForAlut: boolean): boolean;
 
 { This deactivates and frees the context initialized by last TryBeginAL
-  or BeginAL call.
+  or BeginAL call. ALActive is set to @false.
 
   If not ALActive, then this does nothing. }
 procedure EndAL;
@@ -376,12 +384,56 @@ uses VectorMath, KambiStringUtils;
 procedure CheckALC(const situation: string); forward;
 {$endif}
 
+{$ifdef UNIX}
+function UnixALCDeviceName(const RealDeviceName: string): string;
+begin
+  Result := '''(( devices ''(' + RealDeviceName + ') ))';
+end;
+{$endif}
+
+procedure GetOpenALDevices(DevicesList: TStringList);
+var
+  pDeviceList: PChar;
+begin
+  if ALInited and alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT') then
+  begin
+    pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
+    Assert(pDeviceList <> nil);
+
+    { parse pDeviceList  }
+    while pDeviceList^ <> #0 do
+    begin
+      { automatic conversion PChar -> AnsiString below }
+      DevicesList.Append(pDeviceList);
+
+      { advance position of pDeviceList }
+      pDeviceList := StrEnd(pDeviceList);
+      Inc(pDeviceList);
+    end;
+  end
+
+  {$ifdef UNIX}
+  else
+  if ALInited then
+  begin
+    DevicesList.Append(UnixALCDeviceName('native'));
+    DevicesList.Append(UnixALCDeviceName('sdl'));
+    DevicesList.Append(UnixALCDeviceName('arts'));
+    DevicesList.Append(UnixALCDeviceName('esd'));
+    DevicesList.Append(UnixALCDeviceName('alsa'));
+    DevicesList.Append(UnixALCDeviceName('waveout'));
+    DevicesList.Append(UnixALCDeviceName('null'));
+  end
+  {$endif}
+
+  ;
+end;
+
 procedure OpenALOptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
   Message, DefaultDeviceName: string;
-  pDeviceList: PChar;
-  DeviceList: TDynStringArray;
+  DeviceList: TStringList;
   i, DefaultDeviceNum: Integer;
 begin
  case OptionNum of
@@ -395,21 +447,12 @@ begin
       begin
        DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
        DefaultDeviceNum := -1;
-       pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
-       Assert(pDeviceList <> nil);
 
-       DeviceList := TDynStringArray.Create;
+       DeviceList := TStringList.Create;
        try
-        { parse pDeviceList, evaluate DeviceList and DefaultDeviceNum }
-        while pDeviceList^<>#0 do
-        begin
-         DeviceList.AppendItem(pDeviceList); { automatic conversion PChar -> AnsiString }
-         if DeviceList[DeviceList.High] = DefaultDeviceName then
-          DefaultDeviceNum := DeviceList.High;
-         { advance position of pDeviceList }
-         pDeviceList := StrEnd(pDeviceList);
-         Inc(pDeviceList);
-        end;
+        GetOpenALDevices(DeviceList);
+
+        DefaultDeviceNum := DeviceList.IndexOf(DefaultDeviceName);
 
         Message := Format('%d available audio devices:', [DeviceList.Count]) + nl;
         for i := 0 to DeviceList.Count-1 do
@@ -458,6 +501,29 @@ begin
     '  --print-audio-devices' +nl+
     '                        Print available audio devices' +nl+
     '                        (not supported by every OpenAL implementation)';
+end;
+
+function ALCDeviceToNiceStr(const ALCDevice: string): string;
+begin
+  if ALCDevice = '' then
+    Result := 'Default OpenAL device' else
+  {$ifdef UNIX}
+  if ALCDevice = UnixALCDeviceName('native') then
+    Result := 'Operating system native' else
+  if ALCDevice = UnixALCDeviceName('sdl') then
+    Result := 'SDL (Simple DirectMedia Layer)' else
+  if ALCDevice = UnixALCDeviceName('arts') then
+    Result := 'aRts (analog Real time synthesizer)' else
+  if ALCDevice = UnixALCDeviceName('esd') then
+    Result := 'Esound (Enlightened Sound Daemon)' else
+  if ALCDevice = UnixALCDeviceName('alsa') then
+    Result := 'ALSA (Advanced Linux Sound Architecture)' else
+  if ALCDevice = UnixALCDeviceName('waveout') then
+    Result := 'WAVE file output' else
+  if ALCDevice = UnixALCDeviceName('null') then
+    Result := 'Null device (no output)' else
+  {$endif UNIX}
+    Result := ALCDevice;
 end;
 
 { implementation internal alc things  --------------------------------- }
@@ -512,15 +578,6 @@ end;
 { begin/end OpenAL ---------------------------------------------------- }
 
 procedure BeginAL(CheckForAlut: boolean);
-
-  procedure DoSetDefaultALState;
-  begin
-   {$ifdef WIN32}
-   alDopplerVelocity(1.0);
-   alDistanceModel(AL_INVERSE_DISTANCE);
-   {$endif}
-  end;
-
 {$ifdef USE_ALUT}
 var argc: Integer;
 {$endif}
@@ -528,27 +585,6 @@ begin
  {
    Notka (ale jeszcze nie wiem czy ma ona znaczenie) : patrzylem na implementacje
    alutInit/Exit i one nie robia alcProcessContext/alcSuspendContext.
-
-   Notki do nazw devices valid dla alcOpenDevice (oczywiscie w nie-testowych
-     wersjach zawsze najlepiej uzywac nil zamiast podawac device name,
-     wiec ponizszych rzeczy uzywam tylko dla celow testowania i zabawy OpenALem):
-   - Pod implementacja Creative Labs OpenAL 1.0 pod Win32 nastepujace
-     nazwy devices sa valid :
-       DirectSound3D (rownowazne nil)
-       DirectSound
-       MMSYSTEM (kazda inna nazwa zostanie po cichu zinterpretowana jako MMSYSTEM)
-     (podanie DirectSound3D spowoduje ze sprobuje zainicjowac DirectSound3D.
-        Jesli mu sie nie uda, sprobuje zainicjowac DirectSound. Jesli i to
-        sie nie uda, sprobuje zainicjowac MMSYSTEM.
-      podanie DirectSound powoduje ze sprobuje zainicjowac DirectSound, jesli
-        mu sie nie uda - sprobuje MMSYSTEM.
-      podanie MMSYSTEM wreszcie powoduje ze sprobuje zainicjowac tylko
-        MMSYSTEM.
-      podanie nil jest rownowazne podaniu DirectSound3D, co oznacza ze autorom
-        implementacji Creative wydawalo sie ze jest to najbardziej funkcjonalny
-        device. (no i w razie klopotow z DirectSound3D beda probowane wszystkie
-        pozostale devices po kolei)
-     ).
  }
 
  try
@@ -581,8 +617,6 @@ begin
   {$endif USE_ALUT}
 
   ALActive := true;
-
-  if SetDefaultALState then DoSetDefaultALState;
  except
   on E: EOpenALError do
   begin
@@ -605,6 +639,8 @@ end;
 procedure EndAL;
 begin
  if not ALActive then Exit;
+
+ ALActive := false;
 
  {$ifdef USE_ALUT}
  alutExit;
