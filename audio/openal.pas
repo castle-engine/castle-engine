@@ -185,6 +185,40 @@ const
     {$endif}
     {$ifdef WIN32} 'OpenAL32.dll' {$endif};
 
+{ Reset OpenAL library.
+
+  In this unit's initialization, we link to OpenAL library, load all symbols,
+  and initialize ALInited and ALUTInited. In this unit's finalization,
+  we release library handles and set ALInited and ALUTInited back to @false.
+
+  What this procedure does ?
+  It behaves like finalizing this unit (releasing OpenAL library handles),
+  then sleeping for some short amount, and initializing this unit again
+  (loading OpenAL library symbols).
+
+  When is it needed ?
+
+  Unix OpenAL implementation seems to have a problem.
+  It's reproduceable in "The Castle" code:
+  When I want to switch from one OpenAL device to the other,
+  I would like to call EndAL (this releases OpenAL context and device),
+  change my device name, and call BeginAL (this allocates
+  OpenAL context and device). But this causes problems under Linux:
+  when user selects some non-working device (e.g. when I select
+  esd device while Esound daemon is not running), OpenAL (correctly)
+  doesn't let me initialize the device (returns nil).
+  But then, after such failure, when I try to initialize *any* other device
+  (that worked before, like alsa or waveout), the initialization of
+  them also fails. I have to restart my program (to restart whole
+  OpenAL library state) to be able to initialize any other backend.
+
+  Workaround that I found is to do such OpenALRestart.
+  Release OpenAL library, wait some short time
+  (I guess that otherwise some resources will still occupy the sound
+  device ? In any case, this short sleep is needed...), then do
+  OpenAL library initialization again. And things work correctly. }
+procedure OpenALRestart;
+
 implementation
 
 uses KambiUtils;
@@ -212,10 +246,24 @@ end;
 
 { unit init/fini ------------------------------------------------------------ }
 
+procedure OpenALInitialization; forward;
+procedure OpenALFinalization; forward;
+
+procedure OpenALRestart;
+begin
+  OpenALFinalization;
+  Delay(500);
+  OpenALInitialization;
+end;
+
 var
   ALLibrary: TDynLib;
 
-initialization
+procedure OpenALInitialization;
+begin
+ { Just to be sure to start with a "clean" state. }
+ OpenALFinalization;
+
  ALLibrary := TDynLib.Load(OpenALDLL, false);
  ALInited := ALLibrary <> nil;
  ALUTInited := false; { I know it is initialized in unit's interface... but just to be sure... }
@@ -328,8 +376,17 @@ initialization
 
   {$undef FPC_OBJFPC}
  end;
-finalization
+end;
+
+procedure OpenALFinalization;
+begin
  ALInited := false;
  ALUTInited := false;
  FreeAndNil(ALLibrary);
+end;
+
+initialization
+  OpenALInitialization;
+finalization
+  OpenALFinalization;
 end.

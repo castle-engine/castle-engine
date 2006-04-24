@@ -418,7 +418,24 @@ begin
   begin
     DevicesList.Append(UnixALCDeviceName('native'));
     DevicesList.Append(UnixALCDeviceName('sdl'));
+
+    { aRts device is too unstable on my Linux:
+
+      When trying to initialize <tt>arts</tt> backend
+      I can bring the OpenAL library (and, consequently, whole program
+      using it) to crash with message <i>can't create mcop
+      directory</i>. Right after running konqueror, I get also
+      crash with message <i>*** glibc detected *** double free or corruption (out):
+      0x08538d88 ***</i>.
+
+      This is so unstable, that I think that I do a service
+      for users by *not* listing aRts in available OpenAL
+      devices. It's listed on [camelot/openal_notes.php]
+      and that's enough.
+
     DevicesList.Append(UnixALCDeviceName('arts'));
+    }
+
     DevicesList.Append(UnixALCDeviceName('esd'));
     DevicesList.Append(UnixALCDeviceName('alsa'));
     DevicesList.Append(UnixALCDeviceName('waveout'));
@@ -604,16 +621,14 @@ begin
 
   audio_device := alcOpenDevice(PCharOrNil(ALCDevice));
   if (audio_device = nil) then
-   raise EOpenALError.Create('OpenAL''s audio device is not available');
+   raise EOpenALError.CreateFmt(
+     'OpenAL''s audio device "%s" is not available', [ALCDevice]);
 
   audio_context := alcCreateContext(audio_device, nil);
   CheckALC('initing OpenAL (alcCreateContext)');
+
   alcMakeContextCurrent(audio_context);
   CheckALC('initing OpenAL (alcMakeContextCurrent)');
-
-  { Is alcProcessContext really needed ? alutExit doesn't do this. }
-  alcProcessContext(audio_context);
-  CheckALC('initing OpenAL (alcProcessContext)');
   {$endif USE_ALUT}
 
   ALActive := true;
@@ -648,14 +663,7 @@ begin
  {$else}
  if audio_context <> nil then
  begin
-  { Is alcSuspendContext really needed ? alutExit doesn't do this. }
-  alcSuspendContext(audio_context);
-
-  { Is alcMakeContextCurrent(nil) really needed ? alutExit doesn't do this.
-    After testing: No, this line is bad,
-    it makes Linux lets_take_a_walk hang on exit.
-  alcMakeContextCurrent(nil); }
-
+  alcMakeContextCurrent(nil);
   alcDestroyContext(audio_context);
   audio_context := nil;
   CheckALC('closing OpenAL context');
