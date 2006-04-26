@@ -325,6 +325,10 @@ type
 
     FFallingOnTheGround: boolean;
     FFallingOnTheGroundAngleIncrease: boolean;
+
+    FIsWalkingOnTheGround: boolean;
+
+    function RealCameraPreferredHeightNoHeadBobbing: Single;
   protected
     { }
     procedure MatrixChanged; override;
@@ -839,6 +843,13 @@ type
       on the ground. This works by gradually changing CameraUp such that
       it gets orthogonal to HomeCameraUp. }
     procedure FallOnTheGround;
+
+    { This is set in every Idle. @true means that gravity works
+      (so @link(Gravity) and PreferHomeUp are @true), and player
+      is standing stable on the ground, and player is moving
+      horizontally. The intention is that you can use this to make
+      some "footsteps" sound for the player. }
+    property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
   end;
 
 { See TMatrixWalker.CorrectCameraPreferredHeight.
@@ -1116,14 +1127,19 @@ begin
   Result := Gravity and PreferHomeUp and (HeadBobbing <> 0.0);
 end;
 
-function TMatrixWalker.RealCameraPreferredHeight: Single;
-var
-  BobbingModifier: Single;
+function TMatrixWalker.RealCameraPreferredHeightNoHeadBobbing: Single;
 begin
   Result := CameraPreferredHeight;
 
   if IsCrouching then
     Result *= CrouchHeight;
+end;
+
+function TMatrixWalker.RealCameraPreferredHeight: Single;
+var
+  BobbingModifier: Single;
+begin
+  Result := RealCameraPreferredHeightNoHeadBobbing;
 
   if UseHeadBobbing then
   begin
@@ -1202,6 +1218,10 @@ var
     *less often* than it should be, but this doesn't hurt. }
   HeadBobbingAlreadyDone: boolean;
 
+  { MoveHorizontal call sets this to @true to indicate that some
+    horizontal move was done. }
+  MoveHorizontalDone: boolean;
+
   { Multiply must be +1 or -1 }
   procedure MoveHorizontal(const Multiply: Integer = 1);
   const
@@ -1219,6 +1239,8 @@ var
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
+
+    MoveHorizontalDone := true;
 
     if PreferHomeUp then
       Direction := CameraDirInHomePlane else
@@ -1685,15 +1707,30 @@ var
       end;
     end;
 
+    function IsStandingOnTheGround: boolean;
+    var
+      MinHeightAboveTheGround, MaxHeightAboveTheGround, H: Single;
+    begin
+      H := RealCameraPreferredHeightNoHeadBobbing;
+      MinHeightAboveTheGround := (H - H * HeadBobbing) * 0.99;
+      MaxHeightAboveTheGround := (H + H * HeadBobbing) * 1.01;
+      Result :=
+        (Sqr(MinHeightAboveTheGround) <= SqrHeightAboveTheGround) and
+        (SqrHeightAboveTheGround <= Sqr(MaxHeightAboveTheGround));
+    end;
+
   var
     OldIsFallingDown: boolean;
   begin
+    FIsWalkingOnTheGround := false;
     OldIsFallingDown := IsFallingDown;
 
     if Gravity and PreferHomeUp then
     begin
       { calculate IsAboveTheGround, SqrHeightAboveTheGround }
       DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+
+      FIsWalkingOnTheGround := MoveHorizontalDone and IsStandingOnTheGround;
 
       if not TryJump then
         if not TryGrow then
@@ -1751,6 +1788,7 @@ begin
   ModsDown := ModifiersDown(KeysDown);
 
   HeadBobbingAlreadyDone := false;
+  MoveHorizontalDone := false;
 
   FIsCrouching := KeysDown^[Key_Crouch];
 
