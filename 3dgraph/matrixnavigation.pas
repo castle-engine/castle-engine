@@ -474,8 +474,10 @@ type
       zawsze compSpeed i w ogole nie jest jasne jak szybki tak naprawde
       jest ten ruch - musisz i tak domyslna dlugosc HomeCameraDir dopasowywac
       eksperymentalnie. }
-    property MoveSpeed: Single read FMoveSpeed; { =1 }
-    property MoveVertSpeed: Single read FMoveVertSpeed; { =1 }
+    property MoveSpeed: Single
+      read FMoveSpeed write FMoveSpeed default 1.0;
+    property MoveVertSpeed: Single
+      read FMoveVertSpeed write FMoveVertSpeed default 1.0;
 
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
