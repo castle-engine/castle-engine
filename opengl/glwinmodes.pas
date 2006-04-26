@@ -446,32 +446,39 @@ begin
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;
 
- glwin.MakeCurrent;
+ { Although it's forbidden to use TGLMode on Closed TGLWindow,
+   in destructor we must take care of every possible situation
+   (because this may be called in finally ... end things when
+   everything should be possible). }
+ if not Glwin.Closed then
+ begin
+   glwin.MakeCurrent;
 
- { restore OpenGL state }
- LoadPixelStoreUnpack(oldPixelStoreUnpack);
- glMatrixMode(GL_PROJECTION); glLoadMatrix(oldProjectionMatrix);
- glMatrixMode(GL_TEXTURE);    glLoadMatrix(oldTextureMatrix);
- glMatrixMode(GL_MODELVIEW);  glLoadMatrix(oldModelviewMatrix);
- glMatrixMode(oldMatrixMode);
- glPopAttrib;
+   { restore OpenGL state }
+   LoadPixelStoreUnpack(oldPixelStoreUnpack);
+   glMatrixMode(GL_PROJECTION); glLoadMatrix(oldProjectionMatrix);
+   glMatrixMode(GL_TEXTURE);    glLoadMatrix(oldTextureMatrix);
+   glMatrixMode(GL_MODELVIEW);  glLoadMatrix(oldModelviewMatrix);
+   glMatrixMode(oldMatrixMode);
+   glPopAttrib;
 
- { (pamietajmy ze przed EventXxx musi byc MakeCurrent) - juz zrobilismy
-   je powyzej }
- { Gdy byly aktywne nasze callbacki mogly zajsc zdarzenia co do ktorych
-   oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
- if (oldWinWidth <> glwin.Width) or
-    (oldWinHeight <> glwin.Height) then
-  glwin.EventResize;
+   { (pamietajmy ze przed EventXxx musi byc MakeCurrent) - juz zrobilismy
+     je powyzej }
+   { Gdy byly aktywne nasze callbacki mogly zajsc zdarzenia co do ktorych
+     oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
+   if (oldWinWidth <> glwin.Width) or
+      (oldWinHeight <> glwin.Height) then
+    glwin.EventResize;
 
- { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
-   teraz }
- if FakeMouseDown then
-   for btn := Low(btn) to High(btn) do
-     if btn in glwin.mousePressed then
-       glwin.EventMouseDown(btn);
+   { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
+     teraz }
+   if FakeMouseDown then
+     for btn := Low(btn) to High(btn) do
+       if btn in glwin.mousePressed then
+         glwin.EventMouseDown(btn);
 
- glwin.PostRedisplay;
+   glwin.PostRedisplay;
+ end;
 
  inherited;
 end;

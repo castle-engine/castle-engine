@@ -684,7 +684,8 @@ end;
 
 procedure TGLWindow.MakeCurrent;
 begin
- KambiOSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
+  Assert(not Closed);
+  KambiOSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
 procedure TGLWindow.SetCaption(const Value: string);

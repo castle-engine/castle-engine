@@ -48,7 +48,7 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="31" Y="77"/>
+        <CursorPos X="49" Y="90"/>
         <TopLine Value="75"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="24"/>
@@ -92,33 +92,10 @@
         <UnitName Value="kambi_units"/>
         <CursorPos X="3" Y="10"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="5" HistoryIndex="4">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="111" Column="46" TopLine="94"/>
-      </Position1>
-      <Position2>
-        <Filename Value="/win/mojepasy/units/packages/unix/kambi_units.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="52" Column="22" TopLine="33"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="100" Column="15" TopLine="84"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="40" Column="55" TopLine="39"/>
-      </Position5>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>

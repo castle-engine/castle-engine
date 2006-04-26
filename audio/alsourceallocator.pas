@@ -18,12 +18,25 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ See TALSourceAllocator. }
+{ See TALSourceAllocator.
+
+  The very reason for this unit is that when OpenAL implementation will run
+  out of sources then *no error will be raised*. I.e. no OpenAL error
+  (alGetError) will be left, and no exception will be raised.
+  In the worst case TALSourceAllocator.AllocateSource will return nil,
+  but in more probable cases some other sources (unused, or with
+  less priority) will be reused.
+
+  Note that above statement means that the code in this unit must
+  read in some situations alGetError. That's because reading alGetError
+  is the only way to know when OpenAL implementation has run out of sources.
+  So the code in this unit may in various places raise EALError if you
+  made some error in your OpenAL code. }
 unit ALSourceAllocator;
 
 interface
 
-uses OpenAL, KambiClassUtils, KambiUtils;
+uses SysUtils, OpenAL, KambiClassUtils, KambiUtils;
 
 {$define read_interface}
 
@@ -32,6 +45,8 @@ type
 
   TALAllocatedSourceEvent = procedure(Sender: TALAllocatedSource) of object;
 
+  ENoMoreOpenALSources = class(Exception);
+
   { Allocated OpenAL source. }
   TALAllocatedSource = class
   private
@@ -39,8 +54,16 @@ type
     FOnUsingEnd: TALAllocatedSourceEvent;
     FImportance: Integer;
     FALSource: TALuint;
+    { This must be @true for the whole lifetime of this object
+      except the situation at the beginning of the constructor,
+      and in destructor (if constructor exited with ENoMoreOpenALSources). }
+    FALSourceAllocated: boolean;
     FUserData: TObject;
   public
+    { Create source. This allocates actual OpenAL source.
+      Will raise ENoMoreOpenALSources if no more sources available
+      (ENoMoreOpenALSources should be catched and silenced by
+      TALSourceAllocator.AllocateSource). }
     constructor Create;
     destructor Destroy; override;
 
@@ -157,8 +180,15 @@ type
     destructor Destroy; override;
 
     { For the sake of speed, this class always has allocated at least
-      MinAllocatedSources OpenAL sounds.
-      This must be >= 1. }
+      MinAllocatedSources OpenAL sources. This must be >= 1.
+
+      @raises(ENoMoreOpenALSources
+        Setting this to too large value (so large that OpenAL cannot create
+        so many sources) will raise ENoMoreOpenALSources.
+        Also creating the TALSourceAllocator instance with initial
+        value for MinAllocatedSources too large will raise ENoMoreOpenALSources.
+        So set this property to really *the minimal* number or required sources.
+        If you don't know what to do, just set this to 1.) }
     property MinAllocatedSources: Cardinal
       read FMinAllocatedSources write SetMinAllocatedSources;
 
@@ -182,7 +212,9 @@ type
       classes is to provide you this function.
 
       If we can't allocate new OpenAL sound for this
-      (because we already allocated MaxAllocatedSources, and all existing
+      (because we already allocated MaxAllocatedSources, or
+      OpenAL cannot allocate so many sources (so ENoMoreOpenALSources
+      is catched and silenced by this function), and all existing
       sounds are used and their Importance is > given here Importance),
       returns nil.
 
@@ -226,7 +258,7 @@ type
 
 implementation
 
-uses SysUtils, ALUtils;
+uses ALUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -234,14 +266,34 @@ uses SysUtils, ALUtils;
 { TALAllocatedSource ---------------------------------------------------------- }
 
 constructor TALAllocatedSource.Create;
+var
+  ErrorCode: TALenum;
 begin
   inherited;
+
+  { I must check alGetError now, because I may need to catch
+    (and convert to ENoMoreOpenALSources exception) alGetError after
+    alCreateSources. So I want to have "clean error state" first. }
+  CheckAL('prevention OpenAL check in TALAllocatedSource.Create');
+
   alCreateSources(1, @FALSource);
+
+  ErrorCode := alGetError();
+  if ErrorCode = AL_INVALID_VALUE then
+    raise ENoMoreOpenALSources.Create('No more sound sources available') else
+  if ErrorCode <> AL_NO_ERROR then
+    raise EALError.Create(ErrorCode,
+      'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
+
+  { This signals to TALAllocatedSource.Destroy that FALSource contains
+    valid source name, that should be deleted by alDeleteSources. }
+  FALSourceAllocated := true;
 end;
 
 destructor TALAllocatedSource.Destroy;
 begin
-  alDeleteSources(1, @FALSource);
+  if FALSourceAllocated then
+    alDeleteSources(1, @FALSource);
   inherited;
 end;
 
@@ -295,15 +347,24 @@ destructor TALSourceAllocator.Destroy;
 var
   I: Integer;
 begin
-  { Stop using and free allocated sounds. }
-  for I := 0 to FAllocatedSources.High do
+  if FAllocatedSources <> nil then
   begin
-    if FAllocatedSources[I].Used then
-      FAllocatedSources[I].DoUsingEnd;
-    FAllocatedSources.FreeAndNil(I);
+    { Stop using and free allocated sounds. }
+    for I := 0 to FAllocatedSources.High do
+      { Although usually we are sure that every FAllocatedSources[I] <> nil,
+        in this case we must take into account that maybe our constructor
+        raise ENonMoreOpenALSources and so some FAllocatedSources[I] were
+        not initialized. }
+      if FAllocatedSources[I] <> nil then
+      begin
+        if FAllocatedSources[I].Used then
+          FAllocatedSources[I].DoUsingEnd;
+        FAllocatedSources.FreeAndNil(I);
+      end;
+
+    FreeAndNil(FAllocatedSources);
   end;
 
-  FreeAndNil(FAllocatedSources);
   inherited;
 end;
 
@@ -353,8 +414,14 @@ begin
   if (Result = nil) and
      (Cardinal(FAllocatedSources.Count) < MaxAllocatedSources) then
   begin
-    Result := TALAllocatedSource.Create;
-    FAllocatedSources.Add(Result);
+    try
+      Result := TALAllocatedSource.Create;
+      FAllocatedSources.Add(Result);
+    except
+      { If TALAllocatedSource.Create raises ENoMoreOpenALSources ---
+        then silence the exception and leave Result = nil. }
+      on ENoMoreOpenALSources do ;
+    end;
   end;
 
   { Try: maybe we can remove one more sound ?
@@ -380,6 +447,8 @@ begin
     Result.FImportance := Importance;
     Result.FUsed := true;
   end;
+
+  CheckAL('allocating sound source (TALSourceAllocator.AllocateSource)');
 end;
 
 procedure TALSourceAllocator.SetMinAllocatedSources(const Value: Cardinal);

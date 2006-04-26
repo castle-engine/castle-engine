@@ -634,6 +634,8 @@ end;
 
 procedure TGLWindow.MakeCurrent;
 begin
+ Assert(not Closed);
+
  {$ifdef GLWINDOW_GTK_2}
 
  { When GLAreaGtk is implemented by gdkglwindow-x11 or

@@ -111,8 +111,7 @@ begin
 
     alSourcei(UsedSource.ALSource, AL_BUFFER, UserData.ALBuffer);
     alSourcei(UsedSource.ALSource, AL_SOURCE_RELATIVE, AL_TRUE);
-    alSourceVector3f(UsedSource.ALSource, AL_POSITION,
-      Vector3Single(0, 0, 0.1));
+    alSourceVector3f(UsedSource.ALSource, AL_POSITION, Vector3Single(0, 0, 0));
     if CheckBoxPlayLooping.Checked then
       alSourcei(UsedSource.ALSource, AL_LOOPING, AL_TRUE) else
       alSourcei(UsedSource.ALSource, AL_LOOPING, AL_FALSE);

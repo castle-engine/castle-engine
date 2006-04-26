@@ -287,7 +287,8 @@ end;
 
 procedure TGLWindow.MakeCurrent;
 begin
- Check( glXMakeCurrent(glwm.display, windowXID, glcontext), 'glXMakeCurrent');
+  Assert(not Closed);
+  Check( glXMakeCurrent(glwm.display, windowXID, glcontext), 'glXMakeCurrent');
 end;
 
 procedure TGLWindow.CreateImplDepend;
