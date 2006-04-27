@@ -179,8 +179,11 @@ EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
   3dmodels.gl/examples/simpleViewModel \
   3dmodels.gl/examples/demo_animation
 
-EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES)
-EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES))
+EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
+  audio/examples/test_al_source_allocator
+
+EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
+  audio/examples/test_al_source_allocator.exe
 
 .PHONY: examples
 examples:
