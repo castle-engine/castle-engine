@@ -23,7 +23,6 @@ private
   h_GLRc: HGLRC;
   h_Dc: HDC;
   h_Wnd: HWND;
-  mouseHidden: boolean;
   FWindowBitsPerPixel: integer;
   { InCloseImplDepend = true means we are currently inside CloseImplDepend call.
     Useful -- see at WM_ACTIVATE. }
@@ -59,6 +58,11 @@ private
   fappActive: boolean;
   procedure SetAppActive(value: boolean);
   property appActive: boolean read fappActive write SetAppActive;
+
+  FMouseVisible: boolean;
+  procedure SetMouseVisible(const Value: boolean);
+  property MouseVisible: boolean
+    read FMouseVisible write SetMouseVisible default true;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -507,9 +511,6 @@ begin
    set dwStyle and dwExStyle for our window }
  if FFullScreen then
  begin
-  mouseHidden := fHideMouseInFullScreen;
-  if fHideMouseInFullScreen then ShowCursor(false);
-
   dwExStyle := WS_EX_APPWINDOW;
   dwStyle := DWord(WS_POPUP); { glut daje tutaj tez WS_MAXIMIZE; bez znaczenia, jak sadze; }
  end else
@@ -652,19 +653,38 @@ begin
  end;
 end;
 
+procedure TGLWindow.SetMouseVisible(const Value: boolean);
+begin
+  { Note that this completely ignores the fact whether current window
+    is Closed or not. This just changes cursor visiblity globally for all
+    windows of this program.
+
+    I don't know of any easy way to tell WinAPI that I want
+    particular cursor hidden over some particular window.
+    It seems that the only way to do it (it seems that Delphi
+    does it like this) is just to intercept mouse moves and
+    call SetCursor (this changes cursor globally, which can also
+    make the cursor hidden --- quite like under GTK and Xlib
+    where you can set the cursor to empty transparent image)
+    whenever the control over which the cursor is changes it's Cursor
+    property.
+
+    For now I will definitely go with a simpler approach
+    and just change cursor globally. }
+  FMouseVisible := Value;
+  Glwm.MouseVisible := MouseVisible;
+end;
+
+procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  Assert(not Closed);
+  SetCursorPos(Left + NewMouseX, Top + NewMouseY);
+end;
+
 procedure TGLWindow.CloseImplDepend;
 begin
  InCloseImplDepend := true;
  try
-  if FFullscreen then
-  begin
-   if mouseHidden then
-   begin
-    ShowCursor(true);
-    mouseHidden := false
-   end;
-  end;
-
   if h_GLRc <> 0 then
   begin
    if (not wglMakeCurrent(h_Dc, 0)) then
@@ -806,6 +826,8 @@ procedure TGLWindowsManager.CreateImplDependent;
 var WindowClass: TWndClass;
 begin
  appActive := true;
+
+ FMouseVisible := true;
 
  { create window class (WindowClass) }
 
@@ -964,6 +986,24 @@ end;
 function TGLWindowsManager.ImplementationName: string;
 begin
  Result := 'WinAPI';
+end;
+
+procedure TGLWindowsManager.SetMouseVisible(const Value: boolean);
+begin
+  if FMouseVisible <> Value then
+  begin
+    FMouseVisible := Value;
+    { We must call ShowCursor only when MouseVisible value changes.
+      That's because ShowCursor has internal counter of calls
+      (inc of calling with true, dec on calling with false),
+      and we want to avoid this counter (because calling
+        MouseVisible := true;
+        MouseVisible := true;
+        MouseVisible := false;
+      should hide the cursor. In other words, calling
+      MouseVisible := true more than once doesn't change anything.) }
+    ShowCursor(MouseVisible);
+  end;
 end;
 
 {$endif read_implementation}

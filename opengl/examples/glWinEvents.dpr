@@ -73,8 +73,19 @@ end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
- TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
-   [KeyToStr(key), DescribeKey(c), Ord(c)]));
+  { Tests:
+  case C of
+    'h': Glwin.MouseVisible := false;
+    's': Glwin.MouseVisible := true;
+    '1': Glwin.SetMousePosition(0          , 0);
+    '2': Glwin.SetMousePosition(Glwin.Width, 0);
+    '3': Glwin.SetMousePosition(Glwin.Width, Glwin.Height);
+    '4': Glwin.SetMousePosition(0          , Glwin.Height);
+    '5': Glwin.SetMousePosition(Glwin.Width div 2, Glwin.Height div 2);
+  end; }
+
+  TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
+    [KeyToStr(key), DescribeKey(c), Ord(c)]));
 end;
 
 procedure KeyUp(glwin: TGLWindow; key: TKey);
