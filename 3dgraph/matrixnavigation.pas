@@ -36,6 +36,8 @@ const
   DefaultRotationHorizontalSpeed = 3.0;
   DefaultRotationVerticalSpeed = 2.0;
   DefaultFallingDownSpeedIncrease = 13/12;
+  DefaultMouseLookHorizontalSensitivity = 0.1;
+  DefaultMouseLookVerticalSensitivity = 0.1;
 
 type
   { }
@@ -283,6 +285,15 @@ type
     FCheckModsDown: boolean;
 
     FMinAngleRadFromHomeUp: Single;
+
+    FMouseLook: boolean;
+    FMouseLookHorizontalSensitivity: Single;
+    FMouseLookVerticalSensitivity: Single;
+
+    procedure RotateAroundHomeUp(const AngleDeg: Single);
+    procedure RotateAroundUp(const AngleDeg: Single);
+    procedure RotateHorizontal(const AngleDeg: Single);
+    procedure RotateVertical(const AngleDeg: Single);
 
     { Private things related to frustum ---------------------------- }
 
@@ -599,6 +610,43 @@ type
     property MinAngleRadFromHomeUp: Single
       read FMinAngleRadFromHomeUp write FMinAngleRadFromHomeUp
       default DefaultMinAngleRadFromHomeUp;
+
+    { If true, then player is able to rotate the view (horizontally
+      and vertically, equivalent to Key_LeftRot, Key_RightRot,
+      Key_UpRotate, Key_DownRotate) using the mouse.
+
+      You have to call MouseMove of this object to achieve this.
+      Also note that there are things that you have to take care
+      of yourself when enabling this property:
+      @unorderedList(
+        @item(After calling MouseMove you should reposition your mouse
+          at the middle of your window (or the screen), to avoid the situation
+          when mouse movement is blocked by screen borders.)
+        @item(You usually will want to hide the mouse cursor, as showing
+          it always bouncing at the middle of the window/screen
+          doesn't look sensible.)
+      ) }
+    property MouseLook: boolean read FMouseLook write FMouseLook default false;
+
+    { These control mouse look sensitivity.
+      They say how much angle change is produced by 1 pixel change
+      (for MouseXChange, MouseYChange in MouseMove).
+      You can change this, to better adjust to user.
+
+      @groupBegin }
+    property MouseLookHorizontalSensitivity: Single
+      read FMouseLookHorizontalSensitivity write FMouseLookHorizontalSensitivity
+      default DefaultMouseLookHorizontalSensitivity;
+    property MouseLookVerticalSensitivity: Single
+      read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
+      default DefaultMouseLookVerticalSensitivity;
+    { @groupEnd }
+
+    { Call this to actually make MouseLook work.
+      MouseXChange and MouseYChange are differences between current
+      and previous window coords
+      (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
+    procedure MouseMove(MouseXChange, MouseYChange: Integer);
 
     { Things related to frustum ---------------------------------------- }
 
@@ -1068,6 +1116,8 @@ begin
   FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
+  FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
+  FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1177,6 +1227,96 @@ begin
   end;
 end;
 
+procedure TMatrixWalker.RotateAroundHomeUp(const AngleDeg: Single);
+var Axis: TVector3Single;
+begin
+ { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
+   obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
+   stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
+   jest homeCameraUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
+   wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
+   daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
+   jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
+
+   Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
+   (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
+   wzgledem nas) musze czasami obracac sie wokol homeCameraUp, a czasem
+   wokol -homeCameraUp.
+ }
+ if AngleRadBetweenVectors(CameraUp, HomeCameraUp) > Pi/2 then
+  Axis := VectorNegate(HomeCameraUp) else
+  Axis := HomeCameraUp;
+
+ FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp, Axis);
+ FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Axis);
+
+ MatrixChanged;
+end;
+
+procedure TMatrixWalker.RotateAroundUp(const AngleDeg: Single);
+begin
+ { W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle ! }
+ CameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, CameraUp);
+end;
+
+procedure TMatrixWalker.RotateHorizontal(const AngleDeg: Single);
+begin
+  if PreferHomeUp then
+    RotateAroundHomeUp(AngleDeg) else
+    RotateAroundUp(AngleDeg);
+end;
+
+procedure TMatrixWalker.RotateVertical(const AngleDeg: Single);
+var
+  Side: TVector3Single;
+  AngleRad: Single;
+
+  procedure DoRealRotate;
+  begin
+    { Rotate CameraUp around Side }
+    FCameraUp := RotatePointAroundAxisRad(AngleRad, CameraUp,  Side);
+    { Rotate CameraDir around Side }
+    FCameraDir := RotatePointAroundAxisRad(AngleRad, CameraDir, Side);
+  end;
+
+var
+  AngleRadBetween: Single;
+begin
+  AngleRad := DegToRad(AngleDeg);
+
+  if PreferHomeUp and (MinAngleRadFromHomeUp <> 0.0) then
+  begin
+    Side := VectorProduct(CameraDir, HomeCameraUp);
+    if IsZeroVector(Side) then
+    begin
+      { Brutally adjust CameraDir and CameraUp to be correct.
+        This should happen only if your code was changing values of
+        PreferHomeUp and MinAngleRadFromHomeUp at runtime.
+        E.g. first you let CameraDir and CameraUp to be incorrect,
+        and then you set PreferHomeUp to @true and MinAngleRadFromHomeUp
+        to > 0 --- and suddenly we find that CameraUp can be temporarily bad. }
+      FCameraDir := HomeCameraDir;
+      FCameraUp := HomeCameraUp;
+    end else
+    begin
+      { Calculate AngleRadBetween, and possibly adjust AngleRad. }
+      AngleRadBetween := AngleRadBetweenVectors(CameraDir, HomeCameraUp);
+      if AngleRadBetween - AngleRad < MinAngleRadFromHomeUp then
+        AngleRad := AngleRadBetween - MinAngleRadFromHomeUp else
+      if AngleRadBetween - AngleRad > Pi - MinAngleRadFromHomeUp then
+        AngleRad := AngleRadBetween - (Pi - MinAngleRadFromHomeUp);
+
+      DoRealRotate;
+    end;
+  end else
+  begin
+    Side := VectorProduct(CameraDir, CameraUp);
+    DoRealRotate;
+  end;
+
+  MatrixChanged;
+end;
+
 procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
 
   { Like Move, but you pass here final ProposedNewPos }
@@ -1265,96 +1405,6 @@ var
     if PreferHomeUp then
       MoveVerticalCore(HomeCameraUp) else
       MoveVerticalCore(CameraUp);
-  end;
-
-  procedure RotateAroundHomeUp(const AngleDeg: Single);
-  var Axis: TVector3Single;
-  begin
-   { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
-     obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
-     stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
-     jest homeCameraUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
-     wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
-     daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
-     jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
-
-     Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
-     (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
-     wzgledem nas) musze czasami obracac sie wokol homeCameraUp, a czasem
-     wokol -homeCameraUp.
-   }
-   if AngleRadBetweenVectors(CameraUp, HomeCameraUp) > Pi/2 then
-    Axis := VectorNegate(HomeCameraUp) else
-    Axis := HomeCameraUp;
-
-   FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp, Axis);
-   FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Axis);
-
-   MatrixChanged;
-  end;
-
-  procedure RotateAroundUp(const AngleDeg: Single);
-  begin
-   { W TYM MIEJSCU POTRZEBUJEMY aby cameraDir i cameraUp byly prostopadle ! }
-   CameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, CameraUp);
-  end;
-
-  procedure RotateHorizontal(const AngleDeg: Single);
-  begin
-    if PreferHomeUp then
-      RotateAroundHomeUp(AngleDeg) else
-      RotateAroundUp(AngleDeg);
-  end;
-
-  procedure RotateVertical(AngleDeg: Single);
-  var
-    Side: TVector3Single;
-    AngleRad: Single;
-
-    procedure DoRealRotate;
-    begin
-      { Rotate CameraUp around Side }
-      FCameraUp := RotatePointAroundAxisRad(AngleRad, CameraUp,  Side);
-      { Rotate CameraDir around Side }
-      FCameraDir := RotatePointAroundAxisRad(AngleRad, CameraDir, Side);
-    end;
-
-  var
-    AngleRadBetween: Single;
-  begin
-    AngleRad := DegToRad(AngleDeg);
-
-    if PreferHomeUp and (MinAngleRadFromHomeUp <> 0.0) then
-    begin
-      Side := VectorProduct(CameraDir, HomeCameraUp);
-      if IsZeroVector(Side) then
-      begin
-        { Brutally adjust CameraDir and CameraUp to be correct.
-          This should happen only if your code was changing values of
-          PreferHomeUp and MinAngleRadFromHomeUp at runtime.
-          E.g. first you let CameraDir and CameraUp to be incorrect,
-          and then you set PreferHomeUp to @true and MinAngleRadFromHomeUp
-          to > 0 --- and suddenly we find that CameraUp can be temporarily bad. }
-        FCameraDir := HomeCameraDir;
-        FCameraUp := HomeCameraUp;
-      end else
-      begin
-        { Calculate AngleRadBetween, and possibly adjust AngleRad. }
-        AngleRadBetween := AngleRadBetweenVectors(CameraDir, HomeCameraUp);
-        if AngleRadBetween - AngleRad < MinAngleRadFromHomeUp then
-          AngleRad := AngleRadBetween - MinAngleRadFromHomeUp else
-        if AngleRadBetween - AngleRad > Pi - MinAngleRadFromHomeUp then
-          AngleRad := AngleRadBetween - (Pi - MinAngleRadFromHomeUp);
-
-        DoRealRotate;
-      end;
-    end else
-    begin
-      Side := VectorProduct(CameraDir, CameraUp);
-      DoRealRotate;
-    end;
-
-    MatrixChanged;
   end;
 
   procedure CheckRotates(SpeedScale: Single);
@@ -2024,6 +2074,17 @@ procedure TMatrixWalker.CancelFallingDown;
 begin
   { Fortunately implementation of this is brutally simple right now. }
   FIsFallingDown := false;
+end;
+
+procedure TMatrixWalker.MouseMove(MouseXChange, MouseYChange: Integer);
+begin
+  if MouseLook then
+  begin
+    if MouseXChange <> 0 then
+      RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
+    if MouseYChange <> 0 then
+      RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+  end;
 end;
 
 { global ------------------------------------------------------------ }

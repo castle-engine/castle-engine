@@ -80,6 +80,7 @@ type
     oldFPSActive: boolean;
     oldMenuActive: boolean;
     oldMainMenu: TMenu;
+    OldMouseVisible: boolean;
     { TGLWindowDemo attributes }
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
@@ -118,7 +119,8 @@ procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
     czesc wlasciwosci jest pobierana jako prametry,
     czesc wlasciwosci jest pominieta -
       pominiete callbacki beda ustawione na nil,
-      pominiete Caption bedzie zostawione takie jakie jest. }
+      pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
+      pominiete MouseVisible bedzie ustawione na true. }
 procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
@@ -315,6 +317,7 @@ begin
  result.oldFPSActive := glwin.FpsActive;
  result.oldMenuActive := glwin.MenuActive;
  result.oldMainMenu := glwin.MainMenu;
+ Result.OldMouseVisible := Glwin.MouseVisible;
 
  if glwin is TGLWindowDemo then
  begin
@@ -336,6 +339,7 @@ begin
  glwin.FpsActive := State.oldFPSActive;
  glwin.MenuActive := State.oldMenuActive;
  glwin.MainMenu := State.oldMainMenu;
+ Glwin.MouseVisible := State.OldMouseVisible;
 
  if glwin is TGLWindowDemo then
  begin
@@ -365,6 +369,7 @@ begin
  glwin.FpsActive := NewFPSActive;
  glwin.MenuActive := NewMenuActive;
  {glwin.MainMenu := leave current value}
+ Glwin.MouseVisible := true;
 
  if glwin is TGLWindowDemo then
  begin
