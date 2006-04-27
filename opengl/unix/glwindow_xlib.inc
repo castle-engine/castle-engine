@@ -32,6 +32,8 @@ private
   procedure X_ButtonRelease(const event: TXButtonReleasedEvent);
   procedure X_MotionNotify(const event: TXMotionEvent);
   procedure X_FocusOut(const event: TXFocusOutEvent);
+
+  procedure UpdateMouseVisible;
 {$endif read_tglwindow_interface}
 
 {$ifdef read_tglwindowmanager_interface}
@@ -249,6 +251,8 @@ begin
  glcontext := glXCreateContext(glwm.display, viinfo, nil, true);
  check( glcontext <> nil, 'could not create rendering context');
 
+ UpdateMouseVisible;
+
  glwm.ActiveAdd(Self);
 
  MakeCurrent;
@@ -283,6 +287,59 @@ begin
  if windowXID <> None then begin XDestroyWindow(glwm.display, windowXID); windowXID := None end;
  if colormap  <> None then begin XFreeColormap(glwm.display, colormap);   colormap := None  end;
  if viinfo    <> nil  then begin XFree(viinfo);                           viinfo := nil     end;
+end;
+
+procedure TGLWindow.SetMouseVisible(const Value: boolean);
+begin
+  if FMouseVisible <> Value then
+  begin
+    FMouseVisible := Value;
+    if not Closed then
+      UpdateMouseVisible;
+  end;
+end;
+
+procedure TGLWindow.UpdateMouseVisible;
+var
+  bm_no: TPixmap;
+  cmap: TColormap;
+  no_ptr: TCursor;
+  black, dummy: TXColor;
+const
+  bm_no_data: array[0..7] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
+begin
+  if MouseVisible then
+  begin
+    XUndefineCursor(Glwm.DisplayPtr, WindowXID);
+  end else
+  begin
+    { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
+    cmap := DefaultColormap(Glwm.DisplayPtr, DefaultScreen(Glwm.DisplayPtr));
+    XAllocNamedColor(Glwm.DisplayPtr, cmap, 'black', @black, @dummy);
+    try
+      bm_no := XCreateBitmapFromData(Glwm.DisplayPtr, WindowXID, @bm_no_data, 8, 8);
+      try
+        no_ptr := XCreatePixmapCursor(Glwm.DisplayPtr, bm_no, bm_no, @black, @black, 0, 0);
+        try
+          XDefineCursor(Glwm.DisplayPtr, WindowXID, no_ptr);
+        finally
+          XFreeCursor(Glwm.DisplayPtr, no_ptr);
+        end;
+      finally
+        if bm_no <> None then
+          XFreePixmap(Glwm.DisplayPtr, bm_no);
+      end;
+    finally
+      XFreeColors(Glwm.DisplayPtr, cmap, @black.pixel, 1, 0);
+    end;
+  end;
+end;
+
+procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  Assert(not Closed);
+  XWarpPointer(Glwm.DisplayPtr, X.None, WindowXID,
+    0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
 procedure TGLWindow.MakeCurrent;
