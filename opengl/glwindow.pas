@@ -447,6 +447,35 @@ unit GLWindow;
 {$ifdef GLWINDOW_GTK_1} {$define GLWINDOW_GTK_ANY} {$endif}
 {$ifdef GLWINDOW_GTK_2} {$define GLWINDOW_GTK_ANY} {$endif}
 
+{ Grrrr. Implementing TGLWindow.SetMousePosition is a real hack for GTK.
+
+  First of all, there is no GDK or GTK function for this.
+  (confirmed by google, e.g. see here
+  [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
+  You have to bypass GTK and use things like Xlib's XWarpPointer or
+  Windows' SetCursorPos. So this is getting very dirty already ---
+  suddenly GLWindow's GTK backend stops to be portable.
+
+  Moreover, to use XWarpPointer, you have to get Xlib parameters
+  (X window id and display pointer) from GTK window. And here comes
+  another surprise, this time caused by FPC bindings: GTK 1 bindings
+  don't include macro GDK_WINDOW_XID. They include macro
+  GDK_WINDOW_XDISPLAY but it seems incorrectly defined
+  (should take GdkWindow not PGdkWindowPrivate ?).
+  GTK 2 bindings don't include these macros too, but GTK 2 library contains
+  functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
+
+  All in all, right now I implemented TGLWindow.SetMousePosition
+  only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
+  but more hacking is needed (hint: fix GTK 1 bindings in this regard).
+  It's possible to do this for Windows, you have to use SetCursorPos
+  (see the real Win32 backend TGLWindow.SetMousePosition implementation). }
+{$ifdef GLWINDOW_GTK_2}
+  {$ifdef UNIX}
+    {$define GLWINDOW_GTK_SETMOUSEPOSITION}
+  {$endif}
+{$endif}
+
 { An important property of a GLWindow implementation is whether such
   implementation can provide TGLWindowManager.ProcessMessage method.
   E.g. glut implementation cannot provide this. Xlib and WinAPI can.
@@ -607,6 +636,7 @@ uses
   {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym,
     {$ifdef GLWINDOW_HAS_VIDEO_CHANGE} XF86VMode, {$endif}
   {$endif}
+  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
@@ -792,10 +822,13 @@ type
     FMouseMove: TMouseMoveFunc;
     FMouseDown, FMouseUp: TMouseUpDownFunc;
     FOnIdle, FOnTimer: TGLWindowFunc;
-    FFullScreen, FDoubleBuffer, FHideMouseInFullScreen: boolean;
+    FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
     FMouseX, FMouseY: integer;
+
+    FMouseVisible: boolean;
+    procedure SetMouseVisible(const Value: boolean);
 
     FAutoRedisplay: boolean;
     procedure SetAutoRedisplay(value: boolean);
@@ -817,7 +850,8 @@ type
       Here's a list of properties that should be made "visible" to the user
       in InitImplDepend:
         Width, Height, Left, Top, FullScreen
-        HideMouseInFullscreen (not really important, almost obsolete)
+        MouseVisible (remember that changes to MouseVisible after InitImplDepend
+          should also be allowed)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
           the window may / may not be resized)
@@ -1233,7 +1267,23 @@ type
       po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits. }
     property WindowBitsPerPixel: integer read FWindowBitsPerPixel write FWindowBitsPerPixel; { = 0 }
     {$endif}
-    property HideMouseInFullScreen: boolean read FHideMouseInFullScreen write FHideMouseInFullScreen; { = false }
+
+    property MouseVisible: boolean
+      read FMouseVisible write SetMouseVisible default true;
+
+    { This instructs window manager to place mouse at NewMouseX and NewMouseY
+      position. NewMouseX and NewMouseY are specified just like
+      MouseX and MouseY properties are given, so they are relative
+      to OpenGL area, and 0,0 is upper-top corner.
+      Note that the resulting position may be different than
+      MouseX and MouseY, e.g. if part of the window is offscreen then
+      window manager will probably refuse to move cursor offscreen.
+
+      This *may* generate normal OnMouseMove event, just as if the
+      user moved the mouse. But it's also allowed to not do this.
+
+      Use this only when window is not closed. }
+    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
 
     { Naklada ograniczenia na to kiedy i jak Width i Height moga sie zmienic.
       = raNotAllowed oznacza ze Width i Height nie moga sie zmienic
@@ -2692,6 +2742,7 @@ begin
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
  DepthBufferBits := 16;
+ FMouseVisible := true;
 
  MenuActive := true;
  OwnsMainMenu := true;

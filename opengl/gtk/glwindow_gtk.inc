@@ -77,6 +77,8 @@ private
     ok_button, cancel_button: PGtkWidget): boolean;
 
   FBorderWidth: Cardinal;
+
+  procedure UpdateMouseVisible;
 public
 
   { Change this only when Closed.
@@ -156,6 +158,9 @@ private
   { Same as TryActiveGLAreaGtk, but exception EInternalError when
     no such window is found. }
   function ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+
+  { Will be used by SetMouseVisible. }
+  InvisibleCursor: PGdkCursor;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -587,6 +592,44 @@ SIGNAL_WINDOW_BEGIN
 SIGNAL_WINDOW_END;
 
 { TGLWindow ------------------------------------------------------------ }
+
+procedure TGLWindow.SetMouseVisible(const Value: boolean);
+begin
+  if FMouseVisible <> Value then
+  begin
+    FMouseVisible := Value;
+    if not Closed then
+      UpdateMouseVisible;
+  end;
+end;
+
+procedure TGLWindow.UpdateMouseVisible;
+begin
+  if MouseVisible then
+    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk).Window, nil) else
+    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk).Window, Glwm.InvisibleCursor);
+end;
+
+  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION}
+  function gdk_x11_drawable_get_xid(Drawable: PGdkDrawable): X.TXID;
+    cdecl; external gdklib name 'gdk_x11_drawable_get_xid';
+
+  function gdk_x11_drawable_get_xdisplay(Drawable: PGdkDrawable): Xlib.PDisplay;
+    cdecl; external gdklib name 'gdk_x11_drawable_get_xdisplay';
+  {$endif}
+
+procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION}
+  XWarpPointer(
+    gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk).Window),
+    X.None,
+    gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk).Window),
+    0, 0, 0, 0, NewMouseX, NewMouseY);
+  {$else}
+  raise Exception.Create('TODO: TGLWindow.SetMousePosition not implemented');
+  {$endif}
+end;
 
 procedure TGLWindow.MainMenuChangedImplDepend;
 begin
@@ -1022,6 +1065,8 @@ begin
    gdk_window_set_decorations(GTK_WIDGET(WindowGtk).Window, 0);
   {$endif}
  end;
+
+ UpdateMouseVisible;
 end;
 
 procedure TGLWindow.CloseImplDepend;
@@ -1348,24 +1393,50 @@ begin
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;
+
+  procedure InitializeInvisibleCursor;
+  const
+    Bits: array[0..0] of Guchar = ({$ifdef GLWINDOW_GTK_2} 0 {$else} #0 {$endif});
+    Color: TGdkColor = (Pixel: 0; Red: 0; Green: 0; Blue: 0);
+  var
+    Pixmap: PGdkPixmap;
+  begin
+    { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
+    Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
+    try
+      InvisibleCursor := gdk_cursor_new_from_pixmap(
+        Pixmap, Pixmap, @Color, @Color, 0, 0);
+    finally gdk_pixmap_unref(Pixmap); end;
+  end;
+
 begin
- gtk_init(@argc, @argv);
+  gtk_init(@argc, @argv);
 
- {$ifdef GLWINDOW_GTK_2}
- gtk_gl_init(@argc, @argv);
- {$endif}
+  {$ifdef GLWINDOW_GTK_2}
+  gtk_gl_init(@argc, @argv);
+  {$endif}
 
- AutoRedisplayList := TGLWindowsList.Create;
+  AutoRedisplayList := TGLWindowsList.Create;
 
- FGlobalIdleInstalled := false;
- GlobalIdleInstalled := true;
+  FGlobalIdleInstalled := false;
+  GlobalIdleInstalled := true;
+
+  InitializeInvisibleCursor;
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
 begin
- GlobalIdleInstalled := false;
+  GlobalIdleInstalled := false;
 
- FreeAndNil(AutoRedisplayList);
+  FreeAndNil(AutoRedisplayList);
+
+  if InvisibleCursor <> nil then
+  begin
+    {$ifdef GLWINDOW_GTK_2}
+    gdk_cursor_unref(InvisibleCursor);
+    {$endif}
+    InvisibleCursor := nil;
+  end;
 end;
 
 function TGLWindowsManager.ScreenWidth: integer;
