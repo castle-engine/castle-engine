@@ -36,8 +36,8 @@ const
   DefaultRotationHorizontalSpeed = 3.0;
   DefaultRotationVerticalSpeed = 2.0;
   DefaultFallingDownSpeedIncrease = 13/12;
-  DefaultMouseLookHorizontalSensitivity = 0.1;
-  DefaultMouseLookVerticalSensitivity = 0.1;
+  DefaultMouseLookHorizontalSensitivity = 0.09;
+  DefaultMouseLookVerticalSensitivity = 0.09;
 
 type
   { }
