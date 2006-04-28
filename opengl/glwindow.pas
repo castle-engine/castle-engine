@@ -273,18 +273,14 @@ unit GLWindow;
       is displayed.
 
     GLWINDOW_GTK_2:
-    At some point, when this will be 100% stable, this will be renamed
-    to simply GLWINDOW_GTK and compatilibity with GTK 1.x will be dropped.
-    In other words: this will be intended to work on top of current stable
-    GTK version, not only within GTK 2.x series.
-    It's just the "temporary state of the code" that currently my code
-    is quite stable when using GTK 1.x and not working yet with GTK 2.x.
+    This is now stable and tested and is much better than GTK_1.
+    At some point, this may be renamed to simply GLWINDOW_GTK
+    and compatilibity with GTK 1.x may be dropped.
 
-    GLWINDOW_GTK_2:
-    Also FullScreen is cleanly implemented,
+    Also FullScreen is cleanly implemented in GTK_2,
     never using override_redirect,
     so Alt+Tab always works (even when your window is fullscreen),
-    and gnome-panel will never cover your fullscreen window.
+    and things like gnome-panel will never cover your fullscreen window.
 
     Known problems:
     - TryVideoChange is not implemented, i.e. always returns false.
@@ -292,7 +288,7 @@ unit GLWindow;
     - Under Win32, window will be always resizeable by user, even if
       you set ResizeAllowed <> raAllowed.
       This is masked in our unit (so your OnResize callback will not get
-      to know such thing), so it's harmless for correctness of yout programs,
+      to know such thing), so it's harmless for correctness of your programs,
       but, anyway, user can do it.
 
   GLWINDOW_WINAPI
@@ -306,8 +302,9 @@ unit GLWindow;
     MainMenu is not implemented (it's ignored).
     That's not easy to implement when you don't want to use any X toolkit.
     And it's not a good idea to implement it yourself (without any standard
-    GUI toolkit) -- this makes many Xlib programs ugly, because every single one
-    uses his own GUI. If you want to have MainMenu use GLWINDOW_GTK_1/2.
+    GUI toolkit) --- this makes many Xlib programs ugly, because every single one
+    uses his own GUI. In other words:
+    if you want to have MainMenu then just use GLWINDOW_GTK_1/2.
 
     Dialog boxes are implemented using GLWinMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
@@ -559,12 +556,10 @@ unit GLWindow;
     or activates a menu
 
   only Xlib :
-  - HideMouseInFullscreen zrobic
   - ColorDialog test
 
   only GLWINDOW_GTK_1/2:
   - in InitImplDepend implement
-    HideMouseInFullscreen (not really important, almost obsolete)
     MaxWidth/Height (Maybe these properties should be removed ?
       They are made for symmetry with MinWidth/Height. Are they really useful ?)
   - with GTK 2:
@@ -607,8 +602,6 @@ unit GLWindow;
     okienko na fullscreen ale wewnetrzne Width i Height nie ulegna zmianie
     i program bedzie dzialac w okienku na srodku ekranu, a po bokach
     bedzie czern
-  - HideMouseInFullScreen should be changed to a more general HideMouse
-    or even SetMouseCursorShape property.
   - OnTimer interface sucks -- it doesn't allow you to register many timeout
     functions for different timeouts.
   - add to multi_glwindow testing call to FileDialog and ColorDialog
