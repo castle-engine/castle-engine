@@ -47,11 +47,14 @@ type
 )
 
     In such situations Rect may be considered empty when
-    
+
 @preformatted(
   (Rect[0,0] = Rect [1,0]) or (Rect[0,1] = Rect [1,1])
 ) }
   TIntRect = array[0..1]of TVector2Integer;
+
+const
+  IntRectEmpty: TIntRect = ((0, 0), (0, 0));
 
 function IntRect(X1, Y1, X2, Y2:Integer):TIntRect;
 

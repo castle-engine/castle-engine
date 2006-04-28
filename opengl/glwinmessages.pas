@@ -386,6 +386,11 @@ type
 
     { ustawiane w GLWinMesssage, potem readonly }
     OnUserKeyDown: TKeyCharFunc;
+    OnUserMouseDown: TMouseUpDownFunc;
+
+    { Wspolrzedne calego recta messaga, tzn. poza MessageRect nie rysujemy
+      naszego okienka (tam powinno byc widoczne tlo, czyli list_DrawBG). }
+    WholeMessageRect: TIntRect;
 
     { ------------------------------------------------------------
       zmienne ktore mowia jak i co rysowac, ustawiane w GLWinMesssage
@@ -594,20 +599,25 @@ procedure MouseDownMessg(glwin: TGLWindow; btn: TMouseButton);
 var mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
     md: TMessageData;
 begin
- md := TMessageData(glwin.userdata);
- if not (md.ScrollBarVisible and (btn = mbLeft)) then exit;
+  md := TMessageData(glwin.userdata);
 
- mx := glwin.mouseX;
- my := glwin.height-glwin.mouseY;
+  mx := glwin.mouseX;
+  my := glwin.height-glwin.mouseY;
 
- if PointInRect(mx, my, md.ScrollBarRect) then
- begin
-  if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Glwin) else
-  if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Glwin) else
+  if (btn = mbLeft) and
+    md.ScrollBarVisible and PointInRect(mx, my, md.ScrollBarRect) then
   begin
-   md.ScrollBarDragging := true;
+    if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Glwin) else
+    if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Glwin) else
+    begin
+      md.ScrollBarDragging := true;
+    end;
+  end else
+  if PointInRect(mx, my, md.WholeMessageRect) then
+  begin
+    if Assigned(MD.OnUserMouseDown) then
+      MD.OnUserMouseDown(Glwin, Btn);
   end;
- end;
 end;
 
 procedure MouseUpMessg(glwin: TGLWindow; btn: TMouseButton);
@@ -677,11 +687,9 @@ var md: TMessageData;
   end;
 
 var
-  { Wspolrzedne calego recta messaga, tzn. poza MessageRect nie rysujemy
-    naszego okienka (tam powinno byc widoczne tlo, czyli list_DrawBG). }
   MessageRect: TIntRect;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec MessageRect zmniejszony o BoxMargin we wszystkich kierunkach
+    a wiec MD.WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
     i z ew. obcieta prawa czescia przeznaczona na ScrollBarRect. }
   InnerRect: TIntRect;
   ScrollBarLength: integer;
@@ -714,13 +722,15 @@ begin
 
  RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);
 
- { Wspolrzedne InnerRect i MessageRect musza byc
+ { Wspolrzedne InnerRect i MD.WholeMessageRect i MessageRect musza byc
    liczone absolutnie (tzn. nie mozna juz teraz zrobic
    glTranslate costam i wzgledem tego przesuniecia podac InnerRect[...])
    bo te wspolrzedne beda nam potem potrzebne do podania glScissor ktore pracuje
    we wspolrzednych pixeli i w zwiazku z tym byloby nieczule na
-   jakies glTranslate. }
- MessageRect := CenteredRect(
+   jakies glTranslate.
+
+   Also WholeMessageRect is used by other things not in this procedure. }
+ MD.WholeMessageRect := CenteredRect(
    IntRect(0, 0, glwin.Width, glwin.Height),
    Min(md.MaxLineWidth + BoxMargin*2 + RealScrollBarWholeWidth,
      glwin.Width - WindMargin*2),
@@ -728,6 +738,7 @@ begin
        BoxMargin * 2 +
        MD.ClosingInfoBoxHeight,
      glwin.Height - WindMargin*2));
+ MessageRect := MD.WholeMessageRect;
 
  { draw MessageRect (using
    GLWinMessagesTheme.RectStipple,
@@ -772,11 +783,11 @@ begin
  InnerRect := GrowRect(MessageRect, -BoxMargin);
  InnerRect[1, 0] -= RealScrollBarWholeWidth;
 
- { teraz rysuj ScrollBar }
+ { teraz rysuj ScrollBar. Also calculate MD.ScrollBarRect here. }
  if md.ScrollBarVisible then
  begin
-  md.ScrollBarRect := MessageRect;
-  md.ScrollBarRect[0, 0] := MessageRect[1, 0] - ScrollBarWholeWidth;
+  MD.ScrollBarRect := MessageRect;
+  MD.ScrollBarRect[0, 0] := MessageRect[1, 0] - ScrollBarWholeWidth;
 
   ScrollBarLength := RectHeight(MessageRect) - ScrollBarMargin*2;
   ScrollBarVisibleBegin := MapRange(md.shiftY,
@@ -797,7 +808,8 @@ begin
   VerticalGLLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
     md.przewVisY1, md.przewVisY2);
   glLineWidth(1);
- end;
+ end else
+   MD.ScrollBarRect := IntRectEmpty;
 
  { teraz zaaplikuj shiftY. Jednoczesnie zmusza nas to do zrobienia scissora
    aby napisy jakie wyleza za okienko byly odpowiednio sciete.
@@ -829,11 +841,17 @@ end;
 
 { zasadnicza procedura GLWinMessage ------------------------------------- }
 
+{ Notes:
+  - MessageOnUserMouseDown will be called only if the mouse position
+    will be within WholeMessageRect. You should not react to mouse
+    click on other places.
+}
 procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
-   textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
-   messageUserdata: pointer;
-   const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
-   AdrawAdditional: boolean; var ASAdditional: string);
+  textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
+  MessageOnUserMouseDown: TMouseUpDownFunc;
+  messageUserdata: pointer;
+  const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
+  AdrawAdditional: boolean; var ASAdditional: string);
 { Robi cos co wyglada jak dialog window w srodku podanego glwin.
   Na pewien czas podmienia callbacki glwin; mozna podac jaki
   bedzie callback na OnKeyDown i OnDraw; W callbackach uzywamy
@@ -920,6 +938,7 @@ begin
   with messageData do
   begin
    OnUserKeyDown := messageOnUserKeyDown;
+   OnUserMouseDown := MessageOnUserMouseDown;
    if glwin.DoubleBuffer then
     dlDrawBG := SaveScreenToDispList_noflush(GL_BACK) else
     dlDrawBG := SaveScreenToDispList_noflush(GL_FRONT);
@@ -941,6 +960,9 @@ begin
    ScrollBarDragging := false;
    drawAdditional := AdrawAdditional;
    FSAdditional := ASAdditional;
+   { These will be set in nearest DrawMessg }
+   ScrollBarRect := IntRectEmpty;
+   WholeMessageRect := IntRectEmpty;
   end;
 
   {5 faza : konczymy ustawiac wlasne wlasciwosci okienka.
@@ -976,21 +998,29 @@ begin
 end;
 
 procedure GLWinMessage_NoAdditional(glwin: TGLWindow; textlist: TStringList;
-   textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
-   messageUserdata: pointer;
-   const AClosingInfo: string);
+  textalign: TTextAlign; messageOnUserKeyDown: TKeyCharFunc;
+  MessageOnUserMouseDown: TMouseUpDownFunc;
+  messageUserdata: pointer;
+  const AClosingInfo: string);
 var dummy: string;
 begin
  dummy := '';
  GLWinMessage(glwin, textlist, textalign, messageOnUserKeyDown,
-   messageUserdata, AClosingInfo, false, dummy);
+   MessageOnUserMouseDown, messageUserdata, AClosingInfo, false, dummy);
 end;
 
 { MessageOK function with callbacks ------------------------------------------ }
 
+procedure MouseDownMessgOK(glwin: TGLWindow; Btn: TMouseButton);
+begin
+  if Btn = mbLeft then
+    TMessageData(glwin.UserData).answered := true;
+end;
+
 procedure KeyDownMessgOK(glwin: TGLWindow; key: TKey; c: char);
 begin
- if c = #13 then TMessageData(glwin.UserData).answered := true;
+  if c = #13 then
+    TMessageData(glwin.UserData).answered := true;
 end;
 
 procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
@@ -1019,6 +1049,7 @@ procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
 begin
  GLWinMessage_NoAdditional(glwin, textlist, textalign,
    {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgOK,
+   {$ifdef FPC_OBJFPC} @ {$endif} MouseDownMessgOK,
    nil, '[Enter]');
 end;
 
@@ -1092,7 +1123,7 @@ begin
  inputdata.answerCancelled := false;
  result := answerDefault;
  GLWinMessage(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil,
    @inputdata, '', true, result);
 end;
 
@@ -1126,7 +1157,7 @@ begin
   answer. }
  SAdditional := answer;
  GLWinMessage(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil,
    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
  if result then answer := SAdditional;
@@ -1184,7 +1215,7 @@ var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
  GLWinMessage_NoAdditional(glwin, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar,
+   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgChar, nil,
    @chardata, ClosingInfo);
  result := chardata.answer;
 end;
@@ -1242,7 +1273,7 @@ var
   MessageKeyData: TMessageKeyData;
 begin
   GLWinMessage_NoAdditional(Glwin, TextList, TextAlign,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown,
+    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown, nil,
     @MessageKeyData, ClosingInfo);
   Result := MessageKeyData.Answer;
 end;
