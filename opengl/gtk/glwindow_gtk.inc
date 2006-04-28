@@ -161,6 +161,11 @@ private
 
   { Will be used by SetMouseVisible. }
   InvisibleCursor: PGdkCursor;
+
+  {$ifdef GLWINDOW_USE_XF86VMODE}
+  function XDisplay: Xlib.PDisplay;
+  function XScreen: Integer;
+  {$endif}
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -172,6 +177,20 @@ private
   {$ifdef GLWINDOW_GTK_1}
     {$define GLWINDOW_GTK_1_WIN32}
   {$endif}
+{$endif}
+
+{$ifdef GLWINDOW_GTK_WITH_XLIB}
+function gdk_x11_drawable_get_xid(Drawable: PGdkDrawable): X.TXID;
+  cdecl; external gdklib name 'gdk_x11_drawable_get_xid';
+
+function gdk_x11_drawable_get_xdisplay(Drawable: PGdkDrawable): Xlib.PDisplay;
+  cdecl; external gdklib name 'gdk_x11_drawable_get_xdisplay';
+
+function gdk_x11_get_default_screen(): Gint;
+  cdecl; external gdklib name 'gdk_x11_get_default_screen';
+
+function gdk_x11_get_default_xdisplay(): Xlib.PDisplay;
+  cdecl; external gdklib name 'gdk_x11_get_default_xdisplay';
 {$endif}
 
 { gtk, gdk helpers ------------------------------------------------------------ }
@@ -610,17 +629,9 @@ begin
     gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk).Window, Glwm.InvisibleCursor);
 end;
 
-  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION}
-  function gdk_x11_drawable_get_xid(Drawable: PGdkDrawable): X.TXID;
-    cdecl; external gdklib name 'gdk_x11_drawable_get_xid';
-
-  function gdk_x11_drawable_get_xdisplay(Drawable: PGdkDrawable): Xlib.PDisplay;
-    cdecl; external gdklib name 'gdk_x11_drawable_get_xdisplay';
-  {$endif}
-
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
-  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION}
+  {$ifdef GLWINDOW_GTK_WITH_XLIB}
   XWarpPointer(
     gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk).Window),
     X.None,
@@ -1439,6 +1450,9 @@ begin
   end;
 end;
 
+{ When GLWINDOW_USE_XF86VMODE, then glwindow_xf86vmode.inc
+  will provide implementation for ScreenWidth and ScreenHeight. }
+{$ifndef GLWINDOW_USE_XF86VMODE}
 function TGLWindowsManager.ScreenWidth: integer;
 begin
  Result := gdk_screen_width();
@@ -1448,10 +1462,23 @@ function TGLWindowsManager.ScreenHeight: integer;
 begin
  Result := gdk_screen_height();
 end;
+{$endif GLWINDOW_USE_XF86VMODE}
 
 function TGLWindowsManager.ImplementationName: string;
 begin
  Result := {$ifdef GLWINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
 end;
+
+{$ifdef GLWINDOW_USE_XF86VMODE}
+function TGLWindowsManager.XDisplay: Xlib.PDisplay;
+begin
+  Result := gdk_x11_get_default_xdisplay();
+end;
+
+function TGLWindowsManager.XScreen: Integer;
+begin
+  Result := gdk_x11_get_default_screen();
+end;
+{$endif}
 
 {$endif read_implementation}

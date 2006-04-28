@@ -18,6 +18,10 @@
   {$I glwindow_gtk.inc}
 {$endif}
 
+{$ifdef GLWINDOW_USE_XF86VMODE}
+  {$I glwindow_xf86vmode.inc}
+{$endif GLWINDOW_USE_XF86VMODE}
+
 {$ifdef GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   {$I glwindow_private_modifiers_down.inc}
 {$endif}

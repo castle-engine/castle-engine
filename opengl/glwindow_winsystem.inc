@@ -218,9 +218,9 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
    
    {$ifdef GLWINDOW_XLIB}    
    result := true;
-   if XBool(XCheckMaskEvent(display, AcceptedEventsMask, @event)) then
+   if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) then
     HandleEvent else
-   if XBool(XCheckTypedEvent(display, ClientMessage, @event)) then
+   if XBool(XCheckTypedEvent(XDisplay, ClientMessage, @event)) then
     HandleEvent else
     result := false;
    {$endif} 
@@ -232,7 +232,7 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
    Check( LongInt(GetMessage(msg, 0, 0, 0)) <> -1, 'GetMessage failed with result -1.');
    {$endif}
    {$ifdef GLWINDOW_XLIB}
-   XNextEvent(display, @event); { implicit XFlush }
+   XNextEvent(XDisplay, @event); { implicit XFlush }
    {$endif}
    HandleEvent;
   end;
@@ -240,7 +240,7 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
   procedure NoMessageProcessed; 
   begin 
    {$ifdef GLWINDOW_XLIB}
-   XFlush(display)
+   XFlush(XDisplay)
    {$endif}
   end;
 

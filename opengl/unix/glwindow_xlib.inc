@@ -38,10 +38,11 @@ private
 
 {$ifdef read_tglwindowmanager_interface}
 private
-  FDisplayName: string;
-  Display: PDisplay;
-  Screen: integer;
-  { uzywamy tego aby wylapac quit message. Inicjowane w SetDisplayName }
+  FXDisplayName: string;
+  FXDisplay: PDisplay;
+  FXScreen: Integer;
+
+  { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
   wmDeleteWindow: TAtom;
   { tablice przejscia z KeySym okrojonego do mniej znaczacego bajtu a TKey
    (moje stale K_x). Ktorej tablicy (0 czy FF) uzyc do konwersji - zalezy
@@ -56,37 +57,23 @@ private
   { Seek on Active[] window with WindowXID = seekWindowXID.
     Returns nil if not found. }
   function ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
-  procedure SetDisplayName(const Value: string);
-
-  {$ifdef GLWINDOW_HAS_VIDEO_CHANGE}
-  VideoModeChanged: boolean;
-  { *ModeInfos are valid only if VideoModeChanged }
-  CurrentModeInfo, OriginalModeInfo: TXF86VidModeModeInfo;
-  {$endif}
+  procedure SetXDisplayName(const Value: string);
 public
-  { jezeli UseVirtualXScreen to pod X-ami zmiana rozmiarow Video przez
-    VideoChange nie spowoduje zmiany ScreenWidth/H i bedziemy miec
-    okno np. 800x600 na ekranie 640x480. To jest wlasnie virtual screen
-    X-ow. W sumie moze to byc fajna rzecz dla jakichs programow uzytkowych ktore
-    pozwalaja userowi na operowanie na ekranie jakimis kontrolkami
-    ale nie dla typowych pelnoekranowych gier/dem : dla nas zmiana
-    rozmiaru ekranu ma na celu zmniejszenie/zwiekszenie dokladnosci
-    renderowanego obrazu. Wiec domyslnie UseVirtualXScreen = false. }
-  UseVirtualXScreen: boolean; { = false }
-
-  { DisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
+  { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
     glwm nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TGLWindow zaklada ze po zrobieniu Init glwm.Display bedzie
-    caly czas takie samo - wiec NIE ZMIENIAJ DisplayName po zrobieniu jakiegos Init !
-    DisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
-    SetDisplayName powoduje cos jak FDisplayName := XDisplayName(FDiaplayName),
+    implementacja TGLWindow zaklada ze po zrobieniu Init Glwm.XDisplay bedzie
+    caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Init !
+    XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
+    SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
     a wiec X serwer moze cos od razu powiedziec o tym jak on rozumie ta
-    DisplayName.
+    XDisplayName.
 
     Default = '', zinterpretowane przez X serwer. }
-  property DisplayName: string read FDisplayName write SetDisplayName;
+  property XDisplayName: string read FXDisplayName write SetXDisplayName;
 
-  property DisplayPtr: PDisplay read Display;
+  property XDisplay: PDisplay read FXDisplay;
+
+  property XScreen: Integer read FXScreen;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -148,18 +135,18 @@ begin
     GLX_ACCUM_BLUE_SIZE, AccumBufferBits[2],
     GLX_ACCUM_ALPHA_SIZE, AccumBufferBits[3],
     None ]);
-  viinfo := glXChooseVisual(glwm.display, glwm.screen, @VisualAttr.Items[0]);
+  viinfo := glXChooseVisual(Glwm.XDisplay, Glwm.XScreen, @VisualAttr.Items[0]);
  finally FreeAndNil(VisualAttr) end;
 
  if viinfo = nil then
   raise EGLContextNotPossible.CreateFmt(
     'glXChooseVisual: visual with requested attributes (%s) not found',
     [ RequestedBufferAttributes ]);
- {zawsze w tym miejscu bedzie Assert(glwm.screen = viinfo.screen);}
+ {zawsze w tym miejscu bedzie Assert(Glwm.XScreen = viinfo.screen);}
 
- parentwinXID := XRootWindow(glwm.display, glwm.screen);
+ parentwinXID := XRootWindow(Glwm.XDisplay, Glwm.XScreen);
 
- colormap := XCreateColormap(glwm.display, parentwinXID,
+ colormap := XCreateColormap(Glwm.XDisplay, parentwinXID,
                              viinfo.visual, AllocNone);
   { bardziej speszial metoda brania Colormap jest w glxdino }
  attr.colormap := colormap;
@@ -173,16 +160,16 @@ begin
   AttrValueMask := AttrValueMask or CWOverrideRedirect;
  end;
 
- windowXID := XCreateWindow(glwm.display, parentwinXID,
+ windowXID := XCreateWindow(Glwm.XDisplay, parentwinXID,
    left, top, width, height,
    0, viinfo.depth, InputOutput, viinfo.visual,
    AttrValueMask, @attr);
  if FFullscreen then
  begin
-  XMapWindow(glwm.display, windowXID); { MapWindow musi byc przed Grabami ponizej }
-  check( XGrabKeyboard(glwm.display, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
+  XMapWindow(Glwm.XDisplay, windowXID); { MapWindow musi byc przed Grabami ponizej }
+  check( XGrabKeyboard(Glwm.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
      CurrentTime) = GrabSuccess, 'cannot grab the keyboard');
-  check( XGrabPointer(glwm.display, windowXID, XBool_True,
+  check( XGrabPointer(Glwm.XDisplay, windowXID, XBool_True,
      AcceptedEventsMask and AllPointerEventsMask,
      GrabModeAsync, GrabModeAsync, windowXID, None, CurrentTime) = GrabSuccess,
      'cannot grab the pointer');
@@ -203,7 +190,7 @@ begin
  end else
  begin
   { only set window title and handle wm_delete_events if in windowed mode }
-  XSetWMProtocols(glwm.display, windowXID, @glwm.wmDeleteWindow, 1);
+  XSetWMProtocols(Glwm.XDisplay, windowXID, @glwm.wmDeleteWindow, 1);
 
   { ready sizeHints structure }
   sizeHints.x := left;
@@ -238,7 +225,7 @@ begin
 
   { use prepared WindTitleProp, Size/WM/ClassHints to give a lot of
     hints to WindowManager (that will hopefully honour them...) }
-  XSetWMProperties_Pascal(glwm.display, windowXID, @WindTitleProp, @WindTitleProp,
+  XSetWMProperties_Pascal(Glwm.XDisplay, windowXID, @WindTitleProp, @WindTitleProp,
      @sizeHints, @WMHints, @ClassHint);
 
   { realease allocated memory for structs for XSetWMProperties }
@@ -246,9 +233,9 @@ begin
   StrDispose(ClassHint.res_name);
   StrDispose(ClassHint.res_class);
 
-  XMapWindow(glwm.display, windowXID);
+  XMapWindow(Glwm.XDisplay, windowXID);
  end;
- glcontext := glXCreateContext(glwm.display, viinfo, nil, true);
+ glcontext := glXCreateContext(Glwm.XDisplay, viinfo, nil, true);
  check( glcontext <> nil, 'could not create rendering context');
 
  UpdateMouseVisible;
@@ -263,14 +250,14 @@ var dummy_event: TXEvent;
 begin
  if glcontext <> nil then
  begin
-  glXDestroyContext(glwm.display, glcontext);
+  glXDestroyContext(Glwm.XDisplay, glcontext);
   glcontext := nil;
  end;
 
  if FFullscreen then
  begin
-  XUnGrabPointer(glwm.display, CurrentTime);
-  XUnGrabKeyboard(glwm.display, CurrentTime);
+  XUnGrabPointer(Glwm.XDisplay, CurrentTime);
+  XUnGrabKeyboard(Glwm.XDisplay, CurrentTime);
  end;
 
  { czyscimy kolejke komunikatow dla tego okienka.
@@ -282,10 +269,10 @@ begin
    ALE ponizsze moze nam zaoszczedzic sporo czasu w ProcessMessage
    bo mimo wszystko zapewne zazwyczaj oczywsci kolejke z wiekszosci
    smieci dla tego okienka. }
- while XBool(XCheckWindowEvent(glwm.display, windowXID, Longint($FFFFFFFF), @dummy_event)) do ;
+ while XBool(XCheckWindowEvent(Glwm.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) do ;
 
- if windowXID <> None then begin XDestroyWindow(glwm.display, windowXID); windowXID := None end;
- if colormap  <> None then begin XFreeColormap(glwm.display, colormap);   colormap := None  end;
+ if windowXID <> None then begin XDestroyWindow(Glwm.XDisplay, windowXID); windowXID := None end;
+ if colormap  <> None then begin XFreeColormap(Glwm.XDisplay, colormap);   colormap := None  end;
  if viinfo    <> nil  then begin XFree(viinfo);                           viinfo := nil     end;
 end;
 
@@ -310,27 +297,27 @@ const
 begin
   if MouseVisible then
   begin
-    XUndefineCursor(Glwm.DisplayPtr, WindowXID);
+    XUndefineCursor(Glwm.XDisplay, WindowXID);
   end else
   begin
     { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
-    cmap := DefaultColormap(Glwm.DisplayPtr, DefaultScreen(Glwm.DisplayPtr));
-    XAllocNamedColor(Glwm.DisplayPtr, cmap, 'black', @black, @dummy);
+    cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
+    XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
     try
-      bm_no := XCreateBitmapFromData(Glwm.DisplayPtr, WindowXID, @bm_no_data, 8, 8);
+      bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
       try
-        no_ptr := XCreatePixmapCursor(Glwm.DisplayPtr, bm_no, bm_no, @black, @black, 0, 0);
+        no_ptr := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
         try
-          XDefineCursor(Glwm.DisplayPtr, WindowXID, no_ptr);
+          XDefineCursor(Glwm.XDisplay, WindowXID, no_ptr);
         finally
-          XFreeCursor(Glwm.DisplayPtr, no_ptr);
+          XFreeCursor(Glwm.XDisplay, no_ptr);
         end;
       finally
         if bm_no <> None then
-          XFreePixmap(Glwm.DisplayPtr, bm_no);
+          XFreePixmap(Glwm.XDisplay, bm_no);
       end;
     finally
-      XFreeColors(Glwm.DisplayPtr, cmap, @black.pixel, 1, 0);
+      XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
     end;
   end;
 end;
@@ -338,14 +325,14 @@ end;
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   Assert(not Closed);
-  XWarpPointer(Glwm.DisplayPtr, X.None, WindowXID,
+  XWarpPointer(Glwm.XDisplay, X.None, WindowXID,
     0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
 procedure TGLWindow.MakeCurrent;
 begin
   Assert(not Closed);
-  Check( glXMakeCurrent(glwm.display, windowXID, glcontext), 'glXMakeCurrent');
+  Check( glXMakeCurrent(Glwm.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
 end;
 
 procedure TGLWindow.CreateImplDepend;
@@ -367,7 +354,7 @@ begin
     'not enough memory for XStringListToTextProperty');
 
   {uzyj WindTitleProp}
-  XSetTextProperty(glwm.display, windowXID, @WindTitleProp, XInternAtom(glwm.display, 'WM_NAME', XBool_True) );
+  XSetTextProperty(Glwm.XDisplay, windowXID, @WindTitleProp, XInternAtom(Glwm.XDisplay, 'WM_NAME', XBool_True) );
 
   {zwolnij WindTitleProp}
   XFree(WindTitleProp.value);
@@ -386,7 +373,7 @@ end;
 
 procedure TGLWindow.SwapBuffers;
 begin
- glXSwapBuffers(glwm.display, windowXID);
+ glXSwapBuffers(Glwm.XDisplay, windowXID);
 end;
 
 procedure TGLWindow.X_KeyPress(const event: TXKeyEvent);
@@ -440,7 +427,7 @@ procedure TGLWindow.X_ConfigureNotify(const event: TXConfigureEvent);
 var dummy_win: TWindow;
 begin
  { event.x , event.y are realtive to out parent.
-   We always create our window giving XRootWindow(glwm.display, glwm.screen)
+   We always create our window giving XRootWindow(Glwm.XDisplay, Glwm.XScreen)
    as parent and we want our fLeft, fTop to be relitive to that
    window. BUT window managers may redirect our window and put
    it in some thick border, for example. Than this border is our parent
@@ -448,8 +435,8 @@ begin
    to be relative to XRootWindow(...) to be useful for future window
    creation !! So we translate coords from our parentwinXID to
    XRootWindow(...) }
- XTranslateCoordinates(glwm.display,
-   parentwinXID, XRootWindow(glwm.display, glwm.screen),
+ XTranslateCoordinates(Glwm.XDisplay,
+   parentwinXID, XRootWindow(Glwm.XDisplay, Glwm.XScreen),
    {event.x, event.y,}0, 0, @fLeft, @fTop, @dummy_win);
 
    { TODO: chwilowo, po prostu left i top pod GLWINDOW_XLIB oznaczaja rog okienka
@@ -533,20 +520,21 @@ begin
  result := nil;
 end;
 
-procedure TGLWindowsManager.SetDisplayName(const Value: string);
+procedure TGLWindowsManager.SetXDisplayName(const Value: string);
 begin
- if Display <> nil then XCloseDisplay(Display);
+ if XDisplay <> nil then XCloseDisplay(XDisplay);
 
- FDisplayName := XDisplayName(PCharOrNil(Value));
+ FXDisplayName := Xlib.XDisplayName(PCharOrNil(Value));
 
- Display := XOpenDisplay(PCharOrNil(Value));
- if display = nil then
-  raise ECheckFailed.Create('XOpenDisplay failed - could not open display '+DisplayName);
- screen := XDefaultScreen(display);
+ FXDisplay := XOpenDisplay(PCharOrNil(Value));
+ if XDisplay = nil then
+   raise ECheckFailed.Create('XOpenDisplay failed - could not open display ' +
+     XDisplayName);
+ FXScreen := XDefaultScreen(XDisplay);
 
- Check( glXQueryExtension(display, nil, nil),
+ Check( glXQueryExtension(XDisplay, nil, nil),
    'X server has no glX extension (needed to run OpenGL-based programs)');
- wmDeleteWindow := XInternAtom(display, 'WM_DELETE_WINDOW', XBool_True);
+ wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
 end;
 
 function TGLWindowsManager.KeySymToKey(ksym: TKeySym): TKey;
@@ -572,7 +560,7 @@ const
 
 var b: byte;
 begin
-  SetDisplayName(''); { zainicjuj DisplayName }
+  SetXDisplayName(''); { zainicjuj XDisplayName }
 
   { See ~/sources/fpc/latest/trunk/packages/extra/x11/keysym.pp }
 
@@ -648,134 +636,12 @@ end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
 begin
- if Display <> nil then XCloseDisplay(Display);
-end;
-
-function TGLWindowsManager.ScreenWidth: integer;
-begin
- { jezeli VideoModeChanged to nie chcemy uzywac rozmiarow screenu (bo wtedy
-   po utworzeniu okienka fullscreen mielibysmy okno o wymiarach np. 800x600
-   na ekranie 640x480. Po tym oknie musielibysmy sie przewijac myszka.
-   Zdecydowanie, to nie jest nasz cel : zazwyczaj my zmieniajac rozdzielczosc
-   chcemy miec po prostu wieksza/mniejsza dokladnosc obrazu zmieniajac ilosc pixeli
-   na ktorych ten obraz ma sie miescic. }
- {$ifdef GLWINDOW_HAS_VIDEO_CHANGE}
- if VideoModeChanged and (not UseVirtualXScreen) then
-  result := CurrentModeInfo.hdisplay else
- {$endif}
-  result := XDisplayWidth(display, screen);
-end;
-
-function TGLWindowsManager.ScreenHeight: integer;
-begin
- {$ifdef GLWINDOW_HAS_VIDEO_CHANGE}
- if VideoModeChanged and (not UseVirtualXScreen) then
-  result := CurrentModeInfo.vdisplay else
- {$endif}
-  result := XDisplayHeight(display, screen);
+ if XDisplay <> nil then XCloseDisplay(XDisplay);
 end;
 
 function TGLWindowsManager.ImplementationName: string;
 begin
  Result := 'Xlib';
 end;
-
-{ --------------------------------------------------------------------------------
-  TGLWindowsManager video resizing with XF86VMode }
-
-{$ifdef GLWINDOW_HAS_VIDEO_CHANGE}
-
-function XF86VidModeModeLineToModeInfo(const ModeLine: TXF86VidModeModeLine;
-  DotClock: Longint): TXF86VidModeModeInfo;
-begin
- result.dotclock := DotClock;
- result.hdisplay := ModeLine.hdisplay;
- result.hsyncstart := ModeLine.hsyncstart;
- result.hsyncend := ModeLine.hsyncend;
- result.htotal := ModeLine.htotal;
- result.hskew := ModeLine.hskew;
- result.vdisplay := ModeLine.vdisplay;
- result.vsyncstart := ModeLine.vsyncstart;
- result.vsyncend := ModeLine.vsyncend;
- result.vtotal := ModeLine.vtotal;
- result.flags := ModeLine.flags;
- result.privsize := 0;
- { TODO: should I try to copy privsize here somehow ?
-   TODO: should we in TryVideoChange and VideoReset and here do something
-   with c_private fields ? Manual is unclear to me... }
-end;
-
-function TGLWindowsManager.TryVideoChange: boolean;
-var {vidModeMajorVersion, vidModeMinorVersion: integer;}
-    i, bestmode: integer;
-
-    modesCount: integer;
-    modes : PArray_PXF86VidModeModeInfo;
-
-    OriginalMode: TXF86VidModeModeLine;
-    OriginalModeDotClock: Longint;
-begin
- {w tej chwili nie zmieniamy BitsPerPixel ekranu wiec
-  robimy faktyczne VideoChange tylko jezeli VideoResize. }
- if not VideoResize then exit(true);
-
- {TESTOWE:}
-{ XF86VidModeQueryVersion(DisplayPtr, @vidModeMajorVersion,
-   @vidModeMinorVersion);
- Writeln(Format('XF86VidModeExtension-Version %d.%d', [vidModeMajorVersion,
-   vidModeMinorVersion]));}
-
- { if this is first VideoChange then save desktop resolution before
-   switching modes }
- if not VideoModeChanged then
- begin
-  XF86VidModeGetModeLine(DisplayPtr, Screen, @OriginalModeDotClock,
-    @OriginalMode);
-  OriginalModeInfo := XF86VidModeModeLineToModeInfo(OriginalMode, OriginalModeDotClock);
- end;
-
- XF86VidModeGetAllModeLines(DisplayPtr, Screen, @modesCount, @modes);
- try
-  { look for mode with requested resolution }
-  bestmode := -1;
-  for i := 0 to modesCount-1 do
-   if (not VideoResize) or
-      ((modes[i]^.hdisplay = VideoResizeWidth) and
-       (modes[i]^.vdisplay = VideoResizeHeight)) then
-       { TODO: jak tu dopasowac BitsPerPixel }
-    bestMode := i;
-
-  if bestmode < 0 then exit(false);
-
-  CurrentModeInfo := modes[bestMode]^;
-  XF86VidModeSwitchToMode(DisplayPtr, Screen, @CurrentModeInfo);
-
-  {SetViewport jest przydatne gdy zmienimy sie z duzego ekranu na mniejszy i
-   nie chcemy uzywac VirtualXScreen. Wtedy czasem nasz maly ekranik jest
-   nieco z boku i user musi nakierowac myszka aby byl on w srodku.
-   Ponizsze SetViewport zrobi to za niego. }
-  XF86VidModeSetViewPort(DisplayPtr, Screen, 0, 0);
-
-  VideoModeChanged := true;
-  result := true;
- finally XFree(modes) end;
-end;
-
-procedure TGLWindowsManager.VideoReset;
-begin
- if VideoModeChanged then
- begin
-  { switch back to original desktop resolution }
-  XF86VidModeSwitchToMode(DisplayPtr, Screen, @OriginalModeInfo);
-  VideoModeChanged := false;
- end;
-end;
-
-{
- stare testy:
- XSetInputFocus(glwm.display, windowXID, RevertToParent, CurrentTime);
-}
-
-{$endif GLWINDOW_HAS_VIDEO_CHANGE}
 
 {$endif read_implementation}

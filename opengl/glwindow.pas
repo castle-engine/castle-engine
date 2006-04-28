@@ -367,9 +367,9 @@ unit GLWindow;
        { $define GLWINDOW_GLUT}
      {$endif}
      {$ifdef UNIX}
-       {$define GLWINDOW_GTK_2}
+       { $define GLWINDOW_GTK_2}
        { $define GLWINDOW_GTK_1}
-       { $define GLWINDOW_XLIB}
+       {$define GLWINDOW_XLIB}
        { $define GLWINDOW_GLUT}
      {$endif}
     {$endif}
@@ -444,32 +444,41 @@ unit GLWindow;
 {$ifdef GLWINDOW_GTK_1} {$define GLWINDOW_GTK_ANY} {$endif}
 {$ifdef GLWINDOW_GTK_2} {$define GLWINDOW_GTK_ANY} {$endif}
 
-{ Grrrr. Implementing TGLWindow.SetMousePosition is a real hack for GTK.
+{ Two reasons why sometimes GTK backend call some X-specific things:
 
-  First of all, there is no GDK or GTK function for this.
-  (confirmed by google, e.g. see here
-  [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
-  You have to bypass GTK and use things like Xlib's XWarpPointer or
-  Windows' SetCursorPos. So this is getting very dirty already ---
-  suddenly GLWindow's GTK backend stops to be portable.
+  1. Grrrr. Implementing TGLWindow.SetMousePosition is a real hack for GTK.
 
-  Moreover, to use XWarpPointer, you have to get Xlib parameters
-  (X window id and display pointer) from GTK window. And here comes
-  another surprise, this time caused by FPC bindings: GTK 1 bindings
-  don't include macro GDK_WINDOW_XID. They include macro
-  GDK_WINDOW_XDISPLAY but it seems incorrectly defined
-  (should take GdkWindow not PGdkWindowPrivate ?).
-  GTK 2 bindings don't include these macros too, but GTK 2 library contains
-  functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
+     First of all, there is no GDK or GTK function for this.
+     (confirmed by google, e.g. see here
+     [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
+     You have to bypass GTK and use things like Xlib's XWarpPointer or
+     Windows' SetCursorPos. So this is getting very dirty already ---
+     suddenly GLWindow's GTK backend stops to be portable.
 
-  All in all, right now I implemented TGLWindow.SetMousePosition
-  only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
-  but more hacking is needed (hint: fix GTK 1 bindings in this regard).
-  It's possible to do this for Windows, you have to use SetCursorPos
-  (see the real Win32 backend TGLWindow.SetMousePosition implementation). }
+     Moreover, to use XWarpPointer, you have to get Xlib parameters
+     (X window id and display pointer) from GTK window. And here comes
+     another surprise, this time caused by FPC bindings: GTK 1 bindings
+     don't include macro GDK_WINDOW_XID. They include macro
+     GDK_WINDOW_XDISPLAY but it seems incorrectly defined
+     (should take GdkWindow not PGdkWindowPrivate ?).
+     GTK 2 bindings don't include these macros too, but GTK 2 library contains
+     functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
+
+     All in all, right now I implemented TGLWindow.SetMousePosition
+     only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
+     but more hacking is needed (hint: fix GTK 1 bindings in this regard).
+     It's possible to do this for Windows, you have to use SetCursorPos
+     (see the real Win32 backend TGLWindow.SetMousePosition implementation).
+
+  2. Screen resizing.
+
+     I have to use there XF86VidMode extension, just like for GLWINDOW_XLIB
+     backend. And, just like for TGLWindow.SetMousePosition, I'll need
+     for this some functions available only in GTK 2 library that
+     "uncover" X11 internals related to GTK for me. }
 {$ifdef GLWINDOW_GTK_2}
   {$ifdef UNIX}
-    {$define GLWINDOW_GTK_SETMOUSEPOSITION}
+    {$define GLWINDOW_GTK_WITH_XLIB}
   {$endif}
 {$endif}
 
@@ -492,9 +501,20 @@ unit GLWindow;
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }
 {$undef GLWINDOW_HAS_VIDEO_CHANGE}
-{$ifdef GLWINDOW_WINAPI} {$define GLWINDOW_HAS_VIDEO_CHANGE} {$endif}
+{$ifdef GLWINDOW_WINAPI}
+  {$define GLWINDOW_HAS_VIDEO_CHANGE}
+{$endif}
 {$ifdef GLWINDOW_XLIB}
-  {$ifndef VER1_0} {$define GLWINDOW_HAS_VIDEO_CHANGE} {$endif}
+  {$define GLWINDOW_HAS_VIDEO_CHANGE}
+  {$define GLWINDOW_USE_XF86VMODE}
+{$endif}
+{$ifdef GLWINDOW_GTK_ANY}
+  {$ifdef UNIX}
+    { Hmm. This compiles and basically works, but the new screen is still
+      virtual. For now this is disabled. TODO. }
+    { $define GLWINDOW_HAS_VIDEO_CHANGE}
+    { $define GLWINDOW_USE_XF86VMODE}
+  {$endif}
 {$endif}
 
 { See glwindow_private_modifiers_down.inc for description in what
@@ -626,10 +646,9 @@ uses
   SysUtils, Math, VectorMath, OpenGLh,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym,
-    {$ifdef GLWINDOW_HAS_VIDEO_CHANGE} XF86VMode, {$endif}
-  {$endif}
-  {$ifdef GLWINDOW_GTK_SETMOUSEPOSITION} X, Xlib, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, {$endif}
+  {$ifdef GLWINDOW_USE_XF86VMODE} XF86VMode, {$endif}
+  {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
