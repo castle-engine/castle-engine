@@ -367,9 +367,9 @@ unit GLWindow;
        { $define GLWINDOW_GLUT}
      {$endif}
      {$ifdef UNIX}
-       { $define GLWINDOW_GTK_2}
+       {$define GLWINDOW_GTK_2}
        { $define GLWINDOW_GTK_1}
-       {$define GLWINDOW_XLIB}
+       { $define GLWINDOW_XLIB}
        { $define GLWINDOW_GLUT}
      {$endif}
     {$endif}
