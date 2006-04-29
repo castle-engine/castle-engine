@@ -748,7 +748,7 @@ type
         @item(When current height is too large --- we're falling down.
           See IsFallingDown, OnFalledDown, FallingDownStartSpeed,
           FallingDownSpeedIncrease, FallingDownEffect.)
-        @item(It does head bobbing. See HeadBobbing.)
+        @item(It does head bobbing. See HeadBobbing, HeadBobbingDistance.)
       )
 
       While there are many properties allowing you to control
@@ -1729,35 +1729,68 @@ var
 
         Result := true;
 
-        { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
-          And also above when using FFallingDownSpeed, I multipled
-          FFallingDownSpeed * CompSpeed. This is correct:
-          - changing position based on FallingDownSpeed is a "velocity"
-          - changing FallingDownSpeed below is "acceleration"
-          And both acceleration and velocity must be time-based. }
-        if FallingDownSpeedIncrease <> 1.0 then
-          FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
-
-        { This is where we do FallingDownEffect }
-        if FallingDownEffect and
-           (FFallingDownSpeed > FallingDownStartSpeed * 3) then
+        if SqrHeightAboveTheGround < Sqr(RealCameraPreferredHeight * 1.1) then
         begin
-          if FFallingDownSpeed > FallingDownStartSpeed * 5 then
+          { This check is needed, otherwise when you're walking down even from
+            the most slight hill then you get
+
+            1. FallingDownEffect
+            2. OnFalledDown is called seldom and with large heights.
+
+            Why ? Because MoveHorizontal calls are done between GravityIdle
+            calls, and the move can be quite fast. So even though the player is
+            actually quite closely following the terrain, we would constantly
+            have IsFallingDown := true. Consider a large hill that is almost
+            flat --- when walking down the hill, we would get IsFallingDown
+            := true, FallingDownSpeed and FallingDownEffect would raise,
+            and at the end OnFalledDown would be called with parameters
+            like player fell down from the top of the hill to the ground
+            (which can cause e.g. player losing life).
+
+            The check for RealCameraPreferredHeight * 1.1 above and
+            setting FIsFallingDown cure the situation. OnFalledDown will
+            be called more often indicating very small fallen down heights,
+            and FallingDownSpeed and FallingDownEffect will not be able
+            to raise high as long as player follows terrain closely.
+
+            Of course we're setting here FIsFallingDown := false even though
+            the player is not exactly on the terrain --- but he's very close.
+            In the next GravityIdle call we will again bring him a little
+            down, set FIsFallingDown to @true, and then set it back to @false
+            by line below. }
+          FIsFallingDown := false;
+        end else
+        begin
+          { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
+            And also above when using FFallingDownSpeed, I multipled
+            FFallingDownSpeed * CompSpeed. This is correct:
+            - changing position based on FallingDownSpeed is a "velocity"
+            - changing FallingDownSpeed below is "acceleration"
+            And both acceleration and velocity must be time-based. }
+          if FallingDownSpeedIncrease <> 1.0 then
+            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
+
+          { This is where we do FallingDownEffect }
+          if FallingDownEffect and
+             (FFallingDownSpeed > FallingDownStartSpeed * 3) then
           begin
-            if Fde_RotateHorizontal = 0 then
-              Fde_RotateHorizontal := RandomPlusMinus;
-            RotateAroundHomeUp(Fde_RotateHorizontal *
-              Fde_HorizontalRotateDeviation * CompSpeed);
+            if FFallingDownSpeed > FallingDownStartSpeed * 5 then
+            begin
+              if Fde_RotateHorizontal = 0 then
+                Fde_RotateHorizontal := RandomPlusMinus;
+              RotateAroundHomeUp(Fde_RotateHorizontal *
+                Fde_HorizontalRotateDeviation * CompSpeed);
+            end;
+
+            if Fde_CameraUpRotate < 0 then
+              Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
+            if Fde_CameraUpRotate > 0 then
+              Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed else
+              Fde_CameraUpRotate := RandomPlusMinus *
+                                    Fde_VerticalRotateDeviation * CompSpeed;
+
+            MatrixChanged;
           end;
-
-          if Fde_CameraUpRotate < 0 then
-            Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
-          if Fde_CameraUpRotate > 0 then
-            Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed else
-            Fde_CameraUpRotate := RandomPlusMinus *
-                                  Fde_VerticalRotateDeviation * CompSpeed;
-
-          MatrixChanged;
         end;
       end else
         FIsFallingDown := false;
