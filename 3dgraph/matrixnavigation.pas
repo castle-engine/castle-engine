@@ -260,7 +260,8 @@ type
 
     FMoveSpeed, FMoveVertSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
-    FPreferHomeUp: boolean;
+    FPreferHomeUpForRotations: boolean;
+    FPreferHomeUpForMoving: boolean;
 
     procedure SetCameraPos(const Value: TVector3Single);
     procedure SetCameraDir(const Value: TVector3Single);
@@ -342,6 +343,7 @@ type
     FIsWalkingOnTheGround: boolean;
 
     function RealCameraPreferredHeightNoHeadBobbing: Single;
+    function RealCameraPreferredHeightMargin: Single;
   protected
     { }
     procedure MatrixChanged; override;
@@ -523,35 +525,96 @@ type
     property CameraUp : TVector3Single read FCameraUp  write SetCameraUp;
     { @groupEnd }
 
-    { If PreferHomeUp then various operations are done with respect
+    { If PreferHomeUpForRotations or PreferHomeUpForMoving
+      then various operations are done with respect
       to HomeCameraUp, otherwise they are done with
       respect to current CameraUp (that can be different than HomeCameraUp,
       e.g. after using Key_UpRotate, Key_DownRotate --- raise / bow your head).
-      Currently this affects horizontal moving (forward, backward, strafe),
+
+      With PreferHomeUpForRotations, this affects rotations:
       horizontal rotations (keys Key_LeftRot and Key_RightRot)
-      and vertical moving (keys Key_UpMove and Key_DownMove).
+      and rotations caused by MouseLook.
       Also vertical rotations are bounded by MinAngleRadFromHomeUp
-      when PreferHomeUp.
+      when PreferHomeUpForRotations.
 
-      Polish: W rezultacie przy PreferHomeUp poczucie pionu
-      jest jakby silniejsze dla usera bo nawet jesli zadziera/pochyla glowe
-      to wektor pionu pozostaje taki sam.
-      Podczas gdy z not PreferHomeUp wektor pionu moze sie latwo
-      zmieniac, np. wlasnie klawisze Key_Up/DownRotate zmieniaja wektor CameraUp
-      a wiec takze wektor wokol ktorego sa robione obroty.
+      Note that you can change it freely at runtime,
+      and when you set PreferHomeUpForRotations from @false to @true
+      then in nearest Idle
+      calls CameraUp will be gradually fixed, so that CameraDir and CameraUp
+      and HomeCameraUp are on the same plane. Also CameraDir may be adjusted
+      to honour MinAngleRadFromHomeUp.
 
-      Podejscie pierwsze (PreferHomeUp = true) jest wygodniejsze dla usera
-      jesli ogladana scena jest "silnie zorientowana" wokol wektora HomeUp.
-      Natomiast jesli scena nie ma zbyt silnego poczucia pionu (np. jakas scena
-      w kosmosie gdzie trudno powiedziec gdzie gora a gdzie dol) lub gdy
-      wektor HomeUp niekoniecznie okresla prawidlowo pion sceny (bo np. zgadujemy
-      tylko wektor HomeUp, np. w view3dscene zgadujemy go jako (0, 1, 0) bo
-      taka jest konwencja w VRMLu ale to tylko konwencja, robiac scene mozna
-      sobie ustawic pion dowolnie. Ja sam preferuje przeciez ustawianie
-      pionu w (0, 0, 1)) --- wtedy lepiej uzyc PreferHomeUp = false zeby user
-      mial szanse swobodnie zmieniac pion. }
-    property PreferHomeUp: boolean
-      read FPreferHomeUp write FPreferHomeUp default true;
+      With PreferHomeUpForMoving, this affects moving:
+      horizontal moving (forward, backward, strafe),
+      and vertical moving (keys Key_UpMove and Key_DownMove).
+      E.g. when PreferHomeUpForMoving then forward/backward keys are tied
+      to horizontal plane defined by HomeCameraUp.
+      When not PreferHomeUpForMoving then forward/backward try to move
+      you just in the CameraDir. Which is usually more handy when
+      e.g. simulating flying.
+
+      It's a delicate decision how to set them, because generally
+      all the decisions are "somewhat correct" --- they just sometimes
+      "feel incorrect" for player.
+
+      @unorderedList(
+        @item(
+          First of all, if the scene is not "naturally oriented"
+          around HomeCameraUp, then you *may* set
+          PreferHomeUpForRotations as @false and you *should*
+          leave PreferHomeUpForMoving and @link(Gravity) to @false.
+
+          By the scene "naturally oriented around HomeCameraUp"
+          I mean that we have some proper HomeCameraUp,
+          not just some guessed HomeCameraUp that may
+          be incorrect. For example when view3dscene loads a VRML model
+          without any camera definition then it assumes that "up vector"
+          is (0, 1, 0), because this is more-or-less VRML standard
+          suggested by VRML spec. But this may be very inappopriate,
+          for example the scene may be actually oriented with (0, 0, 1)
+          up vector in mind.
+
+          Other examples of the scenes without any
+          "naturally oriented around HomeCameraUp" may be some
+          "outer space" scene without any gravity.)
+
+        @item(
+          With PreferHomeUpForRotations the "feeling" of HomeCameraUp
+          is stronger for user, because HomeCameraUp, CameraUp and CameraDir
+          always define the same plane in 3D space (i.e. along with the
+          4th point, (0, 0, 0), for camera eye). Raising/bowing the head
+          doesn't break this assumption.
+
+          Without PreferHomeUpForRotations, we quickly start to do rotations
+          in an awkward way --- once you do some vertical rotation,
+          you changed CameraUp, and next horizontal rotation will be
+          done versus new CameraUp.
+
+          If your HomeCameraUp is good, then you generally should
+          leave PreferHomeUpForRotations to @true. Unless you really *want*
+          the player to feel movements as "awkward", e.g. when you
+          want to simulate this "outer space without any gravity" feeling.)
+
+        @item(
+          If your HomeCameraUp is good, then you generally should set
+          PreferHomeUpForMoving just like Gravity.
+
+          E.g. when the player is flying / swimming etc. he will probably prefer
+          PreferHomeUpForMoving = @false, because this way he will not have to
+          press Key_UpMove and Key_DownMove. Simply pressing Key_Forward
+          and Key_Backward and doing rotations will be enough to move
+          freely in 3D space.
+
+          When gravity works, PreferHomeUpForMoving = @true is better,
+          otherwise player would unnecessarily try to jump when looking up.)
+
+      @groupBegin }
+    property PreferHomeUpForRotations: boolean
+      read FPreferHomeUpForRotations write FPreferHomeUpForRotations default true;
+
+    property PreferHomeUpForMoving: boolean
+      read FPreferHomeUpForMoving write FPreferHomeUpForMoving default true;
+    { @groupEnd }
 
     { ustawianie home camery.
       homeCameraUp bedzie automatycznie poprawione  tak zeby wektory
@@ -604,7 +667,8 @@ type
       Key_DownRotate) are "bounded" to not allow player to do something
       strange, i.e. bow your head too much and raise your head too much.
 
-      This is used only when PreferHomeUp is @true and when it's <> 0.0.
+      This is used only when PreferHomeUpForRotations
+      is @true and when it's <> 0.0.
 
       This must be always between 0 and Pi/2. Value of Pi/2 will effectively
       disallow vertical rotations (although you should rather do this in
@@ -669,8 +733,8 @@ type
     { Things related to gravity ---------------------------------------- }
 
     { This unlocks a couple of features and automatic behaviors
-      related to gravity. This is meaningfull only when PreferHomeUp
-      is @true. Gravity always drags the camera down to -HomeCameraUp.
+      related to gravity. Gravity always drags the camera down to
+      -HomeCameraUp.
 
       Summary of things done by gravity:
       @unorderedList(
@@ -691,7 +755,12 @@ type
       gravity behavior, most of them have initial values that should be
       sensible in all cases. The only things that you really want to take
       care of are: OnGetCameraHeight and CameraPreferredHeight.
-      Everything else will work auto-magically.
+      Everything else should basically work auto-magically.
+
+      Note that Gravity setting is independent from
+      PreferHomeUpForRotations or PreferHomeUpForMoving settings ---
+      PreferHomeUpXxx say how the player controls work,
+      Gravity says what happens to player due to ... well, due to gravity.
 
       @noAutoLinkHere }
     property Gravity: boolean
@@ -907,7 +976,7 @@ type
     procedure FallOnTheGround;
 
     { This is set in every Idle. @true means that gravity works
-      (so @link(Gravity) and PreferHomeUp are @true), and player
+      (i.e. @link(Gravity) is @true), and player
       is standing stable on the ground, and player is moving
       horizontally. The intention is that you can use this to make
       some "footsteps" sound for the player. }
@@ -1117,7 +1186,8 @@ begin
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
   FFallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
-  FPreferHomeUp := true;
+  FPreferHomeUpForRotations := true;
+  FPreferHomeUpForMoving := true;
   FGravity := false;
   FGrowingSpeed := DefaultGrowingSpeed;
   FFallingDownEffect := true;
@@ -1189,7 +1259,7 @@ end;
 
 function TMatrixWalker.UseHeadBobbing: boolean;
 begin
-  Result := Gravity and PreferHomeUp and (HeadBobbing <> 0.0);
+  Result := Gravity and (HeadBobbing <> 0.0);
 end;
 
 function TMatrixWalker.RealCameraPreferredHeightNoHeadBobbing: Single;
@@ -1240,6 +1310,13 @@ begin
   end;
 end;
 
+function TMatrixWalker.RealCameraPreferredHeightMargin: Single;
+begin
+  { I tried using here something smaller like
+    SingleEqualityEpsilon, but this was not good. }
+  Result := RealCameraPreferredHeight * 0.01;
+end;
+
 procedure TMatrixWalker.RotateAroundHomeUp(const AngleDeg: Single);
 var Axis: TVector3Single;
 begin
@@ -1274,7 +1351,7 @@ end;
 
 procedure TMatrixWalker.RotateHorizontal(const AngleDeg: Single);
 begin
-  if PreferHomeUp then
+  if PreferHomeUpForRotations then
     RotateAroundHomeUp(AngleDeg) else
     RotateAroundUp(AngleDeg);
 end;
@@ -1297,16 +1374,16 @@ var
 begin
   AngleRad := DegToRad(AngleDeg);
 
-  if PreferHomeUp and (MinAngleRadFromHomeUp <> 0.0) then
+  if PreferHomeUpForRotations and (MinAngleRadFromHomeUp <> 0.0) then
   begin
     Side := VectorProduct(CameraDir, HomeCameraUp);
     if IsZeroVector(Side) then
     begin
       { Brutally adjust CameraDir and CameraUp to be correct.
         This should happen only if your code was changing values of
-        PreferHomeUp and MinAngleRadFromHomeUp at runtime.
+        PreferHomeUpForRotations and MinAngleRadFromHomeUp at runtime.
         E.g. first you let CameraDir and CameraUp to be incorrect,
-        and then you set PreferHomeUp to @true and MinAngleRadFromHomeUp
+        and then you set PreferHomeUpForRotations to @true and MinAngleRadFromHomeUp
         to > 0 --- and suddenly we find that CameraUp can be temporarily bad. }
       FCameraDir := HomeCameraDir;
       FCameraUp := HomeCameraUp;
@@ -1391,7 +1468,7 @@ var
 
     MoveHorizontalDone := true;
 
-    if PreferHomeUp then
+    if PreferHomeUpForMoving then
       Direction := CameraDirInHomePlane else
       Direction := CameraDir;
 
@@ -1409,9 +1486,22 @@ var
     end;
 
   begin
-    if PreferHomeUp then
+    if PreferHomeUpForMoving then
       MoveVerticalCore(HomeCameraUp) else
       MoveVerticalCore(CameraUp);
+  end;
+
+  { This is just like RotateHorizontal, but it uses
+    PreferHomeUpForMoving to decide which rotation to use.
+    This way when PreferHomeUpForMoving, then we rotate versus HomeCameraUp,
+    move in HomeCameraUp plane, and then rotate back versus HomeCameraUp.
+    If not PreferHomeUpForMoving, then we do all this versus CameraUp.
+    And so everything works. }
+  procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
+  begin
+    if PreferHomeUpForMoving then
+      RotateAroundHomeUp(AngleDeg) else
+      RotateAroundUp(AngleDeg);
   end;
 
   procedure CheckRotates(SpeedScale: Single);
@@ -1428,13 +1518,6 @@ var
       +RotationVerticalSpeed * CompSpeed * SpeedScale);
     if KeysDown^[Key_DownRotate] then RotateVertical(
       -RotationVerticalSpeed * CompSpeed * SpeedScale);
-  end;
-
-  function RealCameraPreferredHeightMargin: Single;
-  begin
-    { I tried using here something smaller like
-      SingleEqualityEpsilon, but this was not good. }
-    Result := RealCameraPreferredHeight * 0.01;
   end;
 
   { Things related to gravity --- jumping, taking into account
@@ -1818,7 +1901,7 @@ var
     FIsWalkingOnTheGround := false;
     OldIsFallingDown := IsFallingDown;
 
-    if Gravity and PreferHomeUp then
+    if Gravity then
     begin
       { calculate IsAboveTheGround, SqrHeightAboveTheGround }
       DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
@@ -1845,34 +1928,82 @@ var
       DoFalledDown;
   end;
 
-  procedure Jump;
+  procedure PreferHomeUpForRotationsIdle;
+  (* This is a good piece of work and seemed to work OK,
+     but it's too much untested right now to let it work.
+
+     It's needed only when you'll start to change
+     PreferHomeUpForRotations from false to true in runtime,
+     to avoid making player feel "awkward" rotations.
+
+     Temporary I don't need it.
+
   var
-    IsAboveTheGround: boolean;
-    SqrHeightAboveTheGround: Single;
+    TargetPlane: TVector4Single;
+    TargetPlaneDir: TVector3Single absolute TargetPlane;
+    TargetCameraUp: TVector3Single;
+    AngleRadBetweenTargetAndHome: Single;
+    AngleRadBetweenTarget, AngleRadBetweenTargetChange: Single;
+    NewCameraUp: TVector3Single;
   begin
-    if IsJumping or IsFallingDown or (not (Gravity and PreferHomeUp)) then Exit;
+    if PreferHomeUp then
+    begin
+      { TODO: Correcting MinAngleRadFromHomeUp }
 
-    { Merely checking for IsFallingDown is not enough, because IsFallingDown
-      may be triggered with some latency. E.g. consider user that holds
-      Key_Jump key down: whenever jump will end (in GravityIdle),
-      KeysDown[Key_Jump] = true will cause another jump to be immediately
-      (before IsFallingDown will be set to true) initiated.
-      This is of course bad, because user holding Key_Jump key down
-      would be able to jump to any height. The only good thing to do
-      is to check whether player really has some ground beneath his feet
-      to be able to jump. }
+      { Correct CameraUp such that HomeCameraUp, CameraDir and CameraUp
+        are on the same plane.
 
-    { calculate IsAboveTheGround, SqrHeightAboveTheGround }
-    DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+        Math:
+          TargetPlane := common plane of HomeCameraUp and CameraDir,
+          given by (A, B, C) = VectorProduct(HomeCameraUp, CameraDir)
+          and D = 0 (because point (0, 0, 0) is part of this plane).
 
-    if (not IsAboveTheGround) or
-       (SqrHeightAboveTheGround >
-          Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
-      Exit;
+          We check whether CameraUp is on this TargetPlane too.
 
-    FIsJumping := true;
-    FJumpHeight := 0.0;
-    FJumpPower := 0.18;
+          If not, we find TargetCameraUp = nearest point to CameraUp
+          lying on this TargetPlane. We want our CameraUp be pointing
+          like HomeCameraUp, not in the other way, so if the angle between
+          HomeCameraUp and TargetCameraUp is > 90 degress we negate
+          TargetCameraUp. If the angle is exactly 90 degress then
+          TargetCameraUp is simply equal to HomeCameraUp.
+
+          And then we make the angle between TargetCameraUp and CameraUp
+          smaller. }
+
+      TargetPlaneDir := VectorProduct(HomeCameraUp, CameraDir);
+      if not IsZero(
+         (TargetPlaneDir[0] * FCameraUp[0]) +
+         (TargetPlaneDir[1] * FCameraUp[1]) +
+         (TargetPlaneDir[2] * FCameraUp[2])) then
+      begin
+        TargetPlane[3] := 0;
+
+        Writeln('corrrecting');
+
+        { calculate TargetCameraUp }
+        TargetCameraUp := PointOnPlaneClosestToPoint(TargetPlane, FCameraUp);
+        AngleRadBetweenTargetAndHome :=
+          AngleRadBetweenVectors(TargetCameraUp, HomeCameraUp);
+        if FloatsEqual(AngleRadBetweenTargetAndHome, HalfPi) then
+          TargetCameraUp := HomeCameraUp else
+        if AngleRadBetweenTargetAndHome > HalfPi then
+          VectorNegateTo1st(TargetCameraUp);
+
+        AngleRadBetweenTarget :=
+          AngleRadBetweenVectors(TargetCameraUp, FCameraUp);
+        AngleRadBetweenTargetChange := 0.01 * CompSpeed;
+        if AngleRadBetweenTarget > AngleRadBetweenTargetChange then
+        begin
+          NewCameraUp := FCameraUp;
+          MakeVectorsAngleRadOnTheirPlane(NewCameraUp, TargetCameraUp,
+            AngleRadBetweenTarget - AngleRadBetweenTargetChange);
+          CameraUp := NewCameraUp;
+        end else
+          CameraUp := TargetCameraUp;
+      end;
+    end;
+    *)
+  begin
   end;
 
 var
@@ -1893,9 +2024,18 @@ begin
     if KeysDown^[Key_Backward] then MoveHorizontal(-1);
 
     if KeysDown^[Key_RightStrafe] then
-      begin RotateHorizontal(-90); MoveHorizontal; RotateHorizontal(90); end;
+    begin
+      RotateHorizontalForStrafeMove(-90);
+      MoveHorizontal;
+      RotateHorizontalForStrafeMove(90);
+    end;
+
     if KeysDown^[Key_LeftStrafe] then
-      begin RotateHorizontal(90); MoveHorizontal; RotateHorizontal(-90); end;
+    begin
+      RotateHorizontalForStrafeMove(90);
+      MoveHorizontal;
+      RotateHorizontalForStrafeMove(-90);
+    end;
 
     { A simple implementation of Key_UpMove was
         RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
@@ -1936,17 +2076,13 @@ begin
       FMoveVertSpeed /= Power(1.1, CompSpeed);
       MatrixChanged;
     end;
-
-    { Key_Jump qualifies better to be handled inside KeyDown,
-      but we don't have KeyDown in MatrixWalker. Maybe later it will
-      be moved to KeyDown. }
-    if KeysDown^[Key_Jump] then
-      Jump;
   end else
   if AllowSlowerRotations and (ModsDown = [mkCtrl]) then
   begin
     CheckRotates(0.1);
   end;
+
+  PreferHomeUpForRotationsIdle;
 
   GravityIdle;
 end;
@@ -1973,6 +2109,37 @@ begin
 end;
 
 function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean;
+
+  procedure Jump;
+  var
+    IsAboveTheGround: boolean;
+    SqrHeightAboveTheGround: Single;
+  begin
+    if IsJumping or IsFallingDown or (not Gravity) then Exit;
+
+    { Merely checking for IsFallingDown is not enough, because IsFallingDown
+      may be triggered with some latency. E.g. consider user that holds
+      Key_Jump key down: whenever jump will end (in GravityIdle),
+      KeysDown[Key_Jump] = true will cause another jump to be immediately
+      (before IsFallingDown will be set to true) initiated.
+      This is of course bad, because user holding Key_Jump key down
+      would be able to jump to any height. The only good thing to do
+      is to check whether player really has some ground beneath his feet
+      to be able to jump. }
+
+    { calculate IsAboveTheGround, SqrHeightAboveTheGround }
+    DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+
+    if (not IsAboveTheGround) or
+       (SqrHeightAboveTheGround >
+          Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
+      Exit;
+
+    FIsJumping := true;
+    FJumpHeight := 0.0;
+    FJumpPower := 0.18;
+  end;
+
 begin
  result := inherited;
  if result then exit;
@@ -1984,6 +2151,8 @@ begin
  begin
    if Key = Key_HomeUp then
     CameraUp := HomeCameraUp else
+   if Key = Key_Jump then
+    Jump else
    {tu dopisuj inne klawisze jako
    if Key = <key> then
     <do-something> else}
