@@ -880,6 +880,11 @@ begin
    GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
    GL_COLOR_BUFFER_BIT, false);
 
+ { Otherwise closing dialog box with MouseDown will then cause MouseDown
+   when SavedMode is restored. This is bad, because then the mouse click
+   that closes dialog box could also do something else. }
+ SavedMode.FakeMouseDown := false;
+
  {2 faza :
    FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
    i ustawieniu wlasciwosci okienka robimy normalne SaveScreen_noflush
