@@ -1601,8 +1601,31 @@ var
         (not VectorsPerfectlyEqual(CameraPos, CameraPosBefore)) then
       begin
         if not IsFallingDown then
+        begin
           FFallingDownStartPos := CameraPosBefore;
-        FIsFallingDown := true;
+
+          { Why do I init here FFallingDownSpeed ? A few lines above I did
+              if not FIsFallingDown then
+                FFallingDownSpeed := FallingDownStartSpeed;
+            to init FFallingDownSpeed (I had to do it to calculate
+            SqrFallingDownVectorLength). So why initing it again here ?
+
+            Answer: Because Move above called MoveTo, that set CameraPos
+            that actually called MatrixChanged that called OnMatrixChanged.
+            And OnMatrixChanged is used callback and user could do there
+            things like
+            - Changing FallingDownStartSpeed (but still it's unspecified
+              whether we have to apply this change, right ?)
+            - Calling CancelFallingDown and *then* changing FallingDownStartSpeed.
+              And in this case, we *must* honour it, because here user
+              expects that we will use FallingDownStartSpeed if we want
+              to fall down. (of course, one call to "Move" with old
+              "FallingDownStartSpeed" was already done, that's unavoidable...). }
+          FFallingDownSpeed := FallingDownStartSpeed;
+
+          FIsFallingDown := true;
+        end;
+
         Result := true;
 
         { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
@@ -1939,16 +1962,17 @@ begin
  { nie interesuja nas tutaj zdarzenia z Key = K_None }
  if Key = K_None then Exit;
 
- if ModifiersDown(KeysDown)<>[] then Exit(false);
+ if (not CheckModsDown) or (ModifiersDown(KeysDown) = []) then
+ begin
+   if Key = Key_HomeUp then
+    CameraUp := HomeCameraUp else
+   {tu dopisuj inne klawisze jako
+   if Key = <key> then
+    <do-something> else}
+    Exit(false);
 
- if Key = Key_HomeUp then
-  CameraUp := HomeCameraUp else
- {tu dopisuj inne klawisze jako
- if Key = <key> then
-  <do-somthing> else}
-  Exit(false);
-
- result := true;
+   result := true;
+ end;
 end;
 
 procedure TMatrixWalker.Init(
