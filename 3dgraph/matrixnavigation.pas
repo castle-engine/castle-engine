@@ -38,6 +38,7 @@ const
   DefaultFallingDownSpeedIncrease = 13/12;
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
+  DefaultHeadBobbingDistance = 20.0;
 
 type
   { }
@@ -329,6 +330,7 @@ type
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
+    FHeadBobbingDistance: Single;
     function UseHeadBobbing: boolean;
 
     FCrouchHeight: Single;
@@ -874,6 +876,16 @@ type
     property HeadBobbing: Single
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
 
+    { This controls head bobbing frequency.
+
+      I increase HeadBobbingPosition such that
+      HeadBobbingPosition increase of 1
+      means that player moved horizontally by
+        VectorLen(Direction) * MoveSpeed * HeadBobbingDistance. }
+    property HeadBobbingDistance: Single
+      read FHeadBobbingDistance write FHeadBobbingDistance
+      default DefaultHeadBobbingDistance;
+
     { This defines the preferred height of camera when crouching.
       This is always mutiplied to CameraPreferredHeight.
       This should always be <= 1 (CrouchHeight = 1 effectively disables
@@ -1118,6 +1130,7 @@ begin
   FCheckModsDown := true;
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
+  FHeadBobbingDistance := DefaultHeadBobbingDistance;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1366,18 +1379,12 @@ var
 
   { Multiply must be +1 or -1 }
   procedure MoveHorizontal(const Multiply: Integer = 1);
-  const
-    HeadBobbingDistance = 20.0;
   var
     Direction: TVector3Single;
   begin
     { Update HeadBobbingPosition }
     if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
     begin
-      { I increase HeadBobbingPosition such that
-        HeadBobbingPosition increase of 1
-        means that player moved horizontally by
-          VectorLen(Direction) * MoveSpeed * HeadBobbingDistance. }
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
@@ -1473,6 +1480,8 @@ var
       end;
     end;
 
+   function TryFde_Stabilize: boolean; forward;
+
     { If our height above the ground is < RealCameraPreferredHeight
       then we try to "grow".
 
@@ -1500,6 +1509,15 @@ var
           RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
 
         Move(VectorAdjustToLength(HomeCameraUp, GrowingVectorLength), true);
+
+        { When growing, TryFde_Stabilize also must be done.
+          Otherwise when player walks horizontally on the flat surface
+          for some time then "Falling down effect" activates --- because
+          player is always in TryGrow or TryFallingDown. So one of them
+          (TryGrow or TryFallingDown) *must* allow "Falling down effect"
+          to stabilize itself. Obviously TryFallingDown can't (this would
+          be against the idea of this effect) so TryGrow does it... }
+        TryFde_Stabilize;
       end;
     end;
 
