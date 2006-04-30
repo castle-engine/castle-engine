@@ -8,7 +8,22 @@
         <OtherUnitFiles Value="../../units/opengl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
       </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <D2Extensions Value="False"/>
+          <IncludeAssertionCode Value="True"/>
+          <CStyleMacros Value="True"/>
+          <DelphiCompat Value="True"/>
+          <UseAnsiStrings Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
       <CodeGeneration>
+        <Checks>
+          <IOChecks Value="True"/>
+          <RangeChecks Value="True"/>
+          <OverflowChecks Value="True"/>
+          <StackChecks Value="True"/>
+        </Checks>
         <Generate Value="Faster"/>
       </CodeGeneration>
       <Other>
@@ -18,6 +33,7 @@
     <Files Count="1">
       <Item1>
         <Filename Value="../../opengl/glwindow.pas"/>
+        <UnitName Value="glwindow"/>
       </Item1>
     </Files>
     <Type Value="RunAndDesignTime"/>
@@ -28,7 +44,7 @@
       </Item1>
     </RequiredPkgs>
     <UsageOptions>
-      <UnitPath Value="$(PkgOutDir)"/>
+      <UnitPath Value="$(PkgOutDir)/"/>
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
