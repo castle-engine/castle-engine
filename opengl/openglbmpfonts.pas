@@ -69,7 +69,7 @@ var i: Cardinal;
     Saved_Unpack_Alignment: TGLint;
 begin
  inherited Create;
- base := glGenLists(BmpTableCount);
+ base := glGenListsCheck(BmpTableCount, 'TGLBitmapFont.Create');
  Self.BmpFont := BitmapFont;
  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
 

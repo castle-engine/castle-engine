@@ -1107,6 +1107,18 @@ procedure glClearColorv(const v: TVector3Single; alpha: Single);
 
 { Utilities for display lists ---------------------------------------- }
 
+type
+  EOpenGLNoMoreDisplayLists = class(Exception)
+  end;
+
+{ This calls glGenLists(range) and checks the result.
+
+  If the result is zero and range was <> 0, then the OpenGL
+  can't create any more display lists, and this function raises
+  EOpenGLNoMoreDisplayLists (showing Place, which should describe
+  where glGenListsCheck is called). }
+function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+
 { If list <> 0 then it does glDeleteList(list, 1) and sets list to 0.
   In other words this is simply glDeleteList but
   1. only if LIST really should be deleted
@@ -1364,7 +1376,7 @@ end;
 
 function ImageDrawToDispList(const img: TImage): TGLuint;
 begin
- result := glGenLists(1);
+ result := glGenListsCheck(1, 'ImageDrawToDispList');
  glNewList(result, GL_COMPILE);
  try
   ImageDraw(img);
@@ -2538,6 +2550,15 @@ end;
 procedure glClearColorv(const v: TVector3Single; alpha: Single);
 begin
  glClearColor(v[0], v[1], v[2], alpha);
+end;
+
+function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+begin
+  Result := glGenLists(range);
+  if (Result = 0) and (range <> 0) then
+    raise EOpenGLNoMoreDisplayLists.CreateFmt(
+      'No more OpenGL display lists available when trying to allocate new %d ' +
+      'display lists from "%s"', [range, Place]);
 end;
 
 procedure glFreeDisplayList(var list: TGLuint);

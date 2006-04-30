@@ -999,7 +999,8 @@ end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin(Mode: TGLenum);
 begin
- SSS_RenderBeginDisplayList := glGenLists(1);
+ SSS_RenderBeginDisplayList := glGenListsCheck(1,
+   'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin');
  glNewList(SSS_RenderBeginDisplayList, Mode);
  try
   RenderBeginSimple;
@@ -1008,7 +1009,8 @@ end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd(Mode: TGLenum);
 begin
- SSS_RenderEndDisplayList := glGenLists(1);
+ SSS_RenderEndDisplayList := glGenListsCheck(1,
+   'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd');
  glNewList(SSS_RenderEndDisplayList, Mode);
  try
   RenderEndSimple;
@@ -1034,7 +1036,8 @@ procedure TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender(
 begin
  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
 
- SSS_DisplayLists.Items[ShapeStateNum] := glGenLists(1);
+ SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
+   'TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender');
  glNewList(SSS_DisplayLists.Items[ShapeStateNum], Mode);
  try
   RenderShapeStateSimple(ShapeStateNum);
@@ -1058,7 +1061,8 @@ begin
  for i := 0 to ShapeStates.Count - 1 do
   Renderer.Prepare(ShapeStates[i].State);
 
- SAAW_DisplayList := glGenLists(1);
+ SAAW_DisplayList := glGenListsCheck(1,
+   'TVRMLFlatSceneGL.SAAW_PrepareRenderAndMaybeRender');
  glNewList(SAAW_DisplayList, mode);
  try
   RenderShapeStatesNoDispList(nil, RenderShapeStateSimple,

@@ -86,8 +86,8 @@ type
 
       @param(OnlyLines
         If @true then the font will be only a "skeleton" (only lines,
-        no polygons).) 
-        
+        no polygons).)
+
       @noAutoLinkHere }
     constructor Create(TrueTypeFont: PTrueTypeFont; depth: TGLfloat = 0.0;
       onlyLines: boolean = false); overload;
@@ -236,7 +236,7 @@ begin
  inherited Create;
  New(vertices);
  try
-  base := glGenLists(TTTableCount);
+  base := glGenListsCheck(TTTableCount, 'TGLOutlineFont.Create');
   Self.TTFont := TrueTypeFont;
 
   { notka : ciekawostke stanowi fakt ze moj OpenGL pod Linuxem dziala zle

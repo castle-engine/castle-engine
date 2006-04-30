@@ -388,7 +388,7 @@ begin
   begin
     CalculateRealGLLightNum2;
 
-    dlRenderLights := glGenLists(1);
+    dlRenderLights := glGenListsCheck(1, 'TVRMLLightSetGL.RenderLights');
 
     { As usual, I don't use here GL_COMPILE_AND_EXECUTE (because this
       can result in non-optimal display list). I use GL_COMPILE,

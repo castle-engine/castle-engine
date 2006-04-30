@@ -410,7 +410,7 @@ begin
  CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
  CubeSize2 := CubeSize / 2;
 
- szescianNieba_list := glGenLists(1);
+ szescianNieba_list := glGenListsCheck(1, 'TBackgroundGL.Create');
 
  glNewList(szescianNieba_list, GL_COMPILE);
  glPushAttrib(GL_ENABLE_BIT or GL_TEXTURE_BIT or GL_COLOR_BUFFER_BIT);
