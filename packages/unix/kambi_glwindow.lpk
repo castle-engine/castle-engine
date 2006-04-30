@@ -5,7 +5,8 @@
     <CompilerOptions>
       <Version Value="5"/>
       <SearchPaths>
-        <OtherUnitFiles Value="../../units/opengl/"/>
+        <IncludeFiles Value="../../opengl/unix/;../../opengl/gtk/"/>
+        <OtherUnitFiles Value="../../opengl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
       </SearchPaths>
       <Parsing>
@@ -30,18 +31,41 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Files Count="1">
+    <Files Count="6">
       <Item1>
         <Filename Value="../../opengl/glwindow.pas"/>
         <UnitName Value="glwindow"/>
       </Item1>
+      <Item2>
+        <Filename Value="../../opengl/timemessages.pas"/>
+        <UnitName Value="TimeMessages"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../../opengl/glwininputs.pas"/>
+        <UnitName Value="GLWinInputs"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../../opengl/glwinmessages.pas"/>
+        <UnitName Value="GLWinMessages"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../../opengl/glwinmodes.pas"/>
+        <UnitName Value="GLWinModes"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../../opengl/progressgl.pas"/>
+        <UnitName Value="ProgressGL"/>
+      </Item6>
     </Files>
     <Type Value="RunAndDesignTime"/>
-    <RequiredPkgs Count="1">
+    <RequiredPkgs Count="2">
       <Item1>
+        <PackageName Value="kambi_units"/>
+      </Item1>
+      <Item2>
         <PackageName Value="FCL"/>
         <MinVersion Major="1" Valid="True"/>
-      </Item1>
+      </Item2>
     </RequiredPkgs>
     <UsageOptions>
       <UnitPath Value="$(PkgOutDir)/"/>
