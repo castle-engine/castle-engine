@@ -31,9 +31,14 @@ What kambi_units package is *not*:
   because some unit files do some things that you *do not* want
   to be done in each program that uses my units (and thus
   uses "kambi_units" package), e.g.
-  - GLW_Win, GLW_Demo units are not included because they open OpenGL window,
+
   - GLWindow is not included because it initiates TGLWindowManager
     that may initiate some talk with WindowManager, GTK toolkit, etc.
+    If you want GLWindow unit, then use kambi_glwindow package
+    (that uses kambi_units).
+
+  - GLW_Win, GLW_Demo units are not included because they open OpenGL window,
+
   In fact *already* there are some units that may init some things
   on startup and thus are potentially unwanted:
   - OpenGLh unit loads OpenGL library, and fails if OpenGL is not available.
