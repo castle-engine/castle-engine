@@ -1,20 +1,24 @@
+In this directory you can find a couple of Lazarus packages that allow
+to easily use my units in Lazarus programs.
+
 Usage:
 
-  1. Open kambi_units.lpk file in Lazarus and compile this package.
-  2. When compiling a program that uses my units, just add kambi_units package
-     as a "Required Package" for this project.
-     (using "Project" -> "Project Inspector" dialog)
+  1. Open wanted kambi_*.lpk file in Lazarus and compile the package.
 
-  Then you can freely use my units inside your Lazarus programs,
-  just like in any FPC program. Lazarus will automatically handle
-  things like
-  - compiling my units with proper command-line options for FPC
-  - passing proper command-line options for FPC when compiling your program
-    (like paths to my compiled units)
+  2. When you want to use the units included in kambi_xxx.lpk
+     in your program, just add this kambi_xxx package
+     as a "Required Package" for your project
+     (using "Project" -> "Project Inspector" dialog).
 
-What kambi_units package is *not*:
+     That's it. Lazarus will automatically take care of such things as
+     recompiling the units in the package when needed (and with
+     proper command-line options) or adding
+     appropriate -Fu command-line options for FPC so that FPC
+     "sees" units in the package when compiling your program.
 
-  This is only useful to compile all my units and use them nicely
+What kambi_*.lpk packages are *not*:
+
+  These are only useful to compile my units and use them nicely and cleanly
   in your Lazarus programs. This is not needed if you don't use
   Lazarus. Units in this directory don't use any Lazarus units,
   so you don't need to have Lazarus to compile and run them.
@@ -24,27 +28,35 @@ What kambi_units package is *not*:
   take a look at ../../kambi.cfg, this specifies actual options
   used by ../Makefile and all compile.sh scripts.
 
-  This package is *not* meant to be installed in Lazarus.
-  There's no reason for this.
+  These packages are *not* intended to be installed in Lazarus.
+  You could, but there's no reason and no benefit for this (no components
+  will be registered etc.). You are supposed to simply use these
+  packages in your programs.
 
-  Also note that this package doesn't include all my unit files
-  because some unit files do some things that you *do not* want
-  to be done in each program that uses my units (and thus
-  uses "kambi_units" package), e.g.
+Why there are a couple of packages --- kambi_units, kambi_glwindow etc. :
 
-  - GLWindow is not included because it initiates TGLWindowManager
-    that may initiate some talk with WindowManager, GTK toolkit, etc.
-    If you want GLWindow unit, then use kambi_glwindow package
-    (that uses kambi_units).
+  Because some units do in their "initialization" and "finalization"
+  sections some things that you *do not* want to be done in each
+  program that uses my units.
 
-  - GLW_Win, GLW_Demo units are not included because they open OpenGL window,
+  The base package is "kambi_units", this is "almost safe"
+  package that doesn't do anything special in it's initialization:
 
-  In fact *already* there are some units that may init some things
-  on startup and thus are potentially unwanted:
   - OpenGLh unit loads OpenGL library, and fails if OpenGL is not available.
     On Win32 this also changes 8087 control word.
+
   - OpenAL, KambiZlib, KambiPng units load OpenAL, zlib, png
     libraries (but they don't fail if these libraries don't exist).
+
+  The package "kambi_glwindow" includes GLWindow unit,
+  which means that merely using this package will cause the program
+  to initialize TGLWindowManager class --- this initiates some talk
+  with WindowManager, GTK toolkit, etc. So use this package only
+  if you really want to use GLWindow unit.
+
+  The package "kambi_glwindow_navigated" includes GLW_Navigated unit,
+  this actually creates TGLWindowNavigated instance in it's
+  initialization section.
 
 Some internal notes:
 
