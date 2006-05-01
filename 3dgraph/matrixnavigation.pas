@@ -39,6 +39,7 @@ const
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
   DefaultHeadBobbingDistance = 20.0;
+  DefaultJumpSpeedMultiply = 2.0;
 
 type
   { }
@@ -328,6 +329,7 @@ type
     FIsJumping: boolean;
     FJumpHeight: Single;
     FJumpPower: Single;
+    FJumpSpeedMultiply: Single;
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
@@ -739,7 +741,8 @@ type
       Summary of things done by gravity:
       @unorderedList(
         @item(It uses OnGetCameraHeight to get camera height above the ground.)
-        @item(It allows player to jump. See Key_Jump, IsJumping, MaxJumpHeight.)
+        @item(It allows player to jump. See Key_Jump, IsJumping, MaxJumpHeight,
+          JumpSpeedMultiply.)
         @item(It allows player to crouch. See Key_Crouch, CrouchHeight.)
         @item(It tries to keep CameraPos above the ground on
           CameraPreferredHeight height.)
@@ -930,6 +933,10 @@ type
 
     { Camera is in the middle of a "jump" move right now. }
     property IsJumping: boolean read FIsJumping;
+
+    property JumpSpeedMultiply: Single
+      read FJumpSpeedMultiply write FJumpSpeedMultiply
+      default DefaultJumpSpeedMultiply;
 
     { When you move horizontally, you get "head bobbing" effect
       --- camera position slightly changes it's vertical position,
@@ -1201,6 +1208,7 @@ begin
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
   FHeadBobbingDistance := DefaultHeadBobbingDistance;
+  FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1458,9 +1466,15 @@ var
   procedure MoveHorizontal(const Multiply: Integer = 1);
   var
     Direction: TVector3Single;
+  var
+    AJumpMultiply: Single;
   begin
+    if IsJumping then
+      AJumpMultiply := JumpSpeedMultiply else
+      AJumpMultiply := 1.0;
+
     { Update HeadBobbingPosition }
-    if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
+    if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
     begin
       HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
@@ -1472,7 +1486,8 @@ var
       Direction := CameraDirInHomePlane else
       Direction := CameraDir;
 
-    Move(VectorScale(Direction, MoveSpeed * CompSpeed * Multiply), false);
+    Move(VectorScale(Direction,
+      MoveSpeed * CompSpeed * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
