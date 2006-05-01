@@ -135,7 +135,7 @@ unit GLWinMessages;
 interface
 
 uses Classes, GLWindow, KambiGLUtils, OpenGLh, KambiUtils, OpenGLFonts,
-  KambiStringUtils;
+  KambiStringUtils, VectorMath;
 
 type
   { Specifies text alignment for MessageXxx functions in
@@ -239,6 +239,10 @@ function MessageInputQueryFloat(glwin: TGLWindow; const Title: string;
   var Value: Float; TextAlign: TTextAlign): boolean;
 function MessageInputQuerySingle(glwin: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign): boolean;
+
+function MessageInputQueryVector3Single(
+  glwin: TGLWindow; const Title: string;
+  var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 
 type
   TGLWinMessagesTheme = record
@@ -1379,6 +1383,29 @@ begin
  Result := MessageInputQueryFloat(glwin, Title, ValueFloat, TextAlign);
  if Result then
   Value := ValueFloat;
+end;
+
+{ MessageInputQueryVector3Single --------------------------------------------- }
+
+function MessageInputQueryVector3Single(
+  glwin: TGLWindow; const Title: string;
+  var Value: TVector3Single; TextAlign: TTextAlign): boolean;
+var s: string;
+begin
+ Result := false;
+ s := Format('%f %f %f', [Value[0], Value[1], Value[2]]);
+ if MessageInputQuery(glwin, Title, s, TextAlign) then
+ begin
+  try
+   Value := Vector3SingleFromStr(s);
+   Result := true;
+  except
+   on E: EConvertError do
+   begin
+    MessageOK(glwin, 'Invalid vector 3 value : ' + E.Message, taLeft);
+   end;
+  end;
+ end;
 end;
 
 { init / fini ---------------------------------------------------------------- }
