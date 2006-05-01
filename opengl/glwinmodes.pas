@@ -156,6 +156,9 @@ type
     oldGLWinMessagesTheme: TGLWinMessagesTheme;
     FPushPopGLWinMessagesTheme: boolean;
     FFakeMouseDown: boolean;
+    FRestoreProjectionMatrix: boolean;
+    FRestoreModelviewMatrix: boolean;
+    FRestoreTextureMatrix: boolean;
   public
     { Enter / Exit mode:
 
@@ -176,8 +179,12 @@ type
               @item stan TGLWindowState
               @item atrybuty AttribsToPush (przez glPush/Pop Attrib)
               @item stan MatrixMode
-              @item(macierze projection, texture i modelview (czyli wszystkie)
-                (nie, nie uzywamy matrix stack))
+              @item(Macierze projection, texture i modelview (czyli wszystkie)
+                (nie, nie uzywamy matrix stack).
+
+                You can turn off restoring of them by setting corresponding
+                properties to @false. See RestoreProjectionMatrix,
+                RestoreModelviewMatrix, RestoreTextureMatrix.)
               @item stan PIXEL_STORE_*
             )
           )
@@ -242,6 +249,13 @@ type
 
     property FakeMouseDown: boolean
       read FFakeMouseDown write FFakeMouseDown default true;
+
+    property RestoreProjectionMatrix: boolean
+      read FRestoreProjectionMatrix write FRestoreProjectionMatrix default true;
+    property RestoreModelviewMatrix: boolean
+      read FRestoreModelviewMatrix write FRestoreModelviewMatrix default true;
+    property RestoreTextureMatrix: boolean
+      read FRestoreTextureMatrix write FRestoreTextureMatrix default true;
   end;
 
 type
@@ -409,6 +423,9 @@ begin
  glwin := AGLWindow;
 
  FFakeMouseDown := true;
+ FRestoreProjectionMatrix := true;
+ FRestoreModelviewMatrix := true;
+ FRestoreTextureMatrix := true;
 
  Check(not glwin.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
@@ -461,9 +478,25 @@ begin
 
    { restore OpenGL state }
    LoadPixelStoreUnpack(oldPixelStoreUnpack);
-   glMatrixMode(GL_PROJECTION); glLoadMatrix(oldProjectionMatrix);
-   glMatrixMode(GL_TEXTURE);    glLoadMatrix(oldTextureMatrix);
-   glMatrixMode(GL_MODELVIEW);  glLoadMatrix(oldModelviewMatrix);
+
+   if RestoreProjectionMatrix then
+   begin
+     glMatrixMode(GL_PROJECTION);
+     glLoadMatrix(oldProjectionMatrix);
+   end;
+
+   if RestoreTextureMatrix then
+   begin
+     glMatrixMode(GL_TEXTURE);
+     glLoadMatrix(oldTextureMatrix);
+   end;
+
+   if RestoreModelviewMatrix then
+   begin
+     glMatrixMode(GL_MODELVIEW);
+     glLoadMatrix(oldModelviewMatrix);
+   end;
+
    glMatrixMode(oldMatrixMode);
    glPopAttrib;
 
