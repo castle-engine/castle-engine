@@ -40,6 +40,7 @@ const
   DefaultMouseLookVerticalSensitivity = 0.09;
   DefaultHeadBobbingDistance = 20.0;
   DefaultJumpSpeedMultiply = 2.0;
+  DefaultJumpPower = 0.18;
 
 type
   { }
@@ -938,6 +939,9 @@ type
       read FJumpSpeedMultiply write FJumpSpeedMultiply
       default DefaultJumpSpeedMultiply;
 
+    property JumpPower: Single read FJumpPower write FJumpPower
+      default DefaultJumpPower;
+
     { When you move horizontally, you get "head bobbing" effect
       --- camera position slightly changes it's vertical position,
       going a little up, then a little down, then a little up again etc.
@@ -1209,6 +1213,7 @@ begin
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
   FHeadBobbingDistance := DefaultHeadBobbingDistance;
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
+  FJumpPower := DefaultJumpPower;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -2185,7 +2190,6 @@ function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boo
 
     FIsJumping := true;
     FJumpHeight := 0.0;
-    FJumpPower := 0.18;
   end;
 
 begin
