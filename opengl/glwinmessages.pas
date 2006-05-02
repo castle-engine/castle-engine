@@ -244,6 +244,10 @@ function MessageInputQueryVector3Single(
   glwin: TGLWindow; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 
+function MessageInputQueryVector4Single(
+  glwin: TGLWindow; const Title: string;
+  var Value: TVector4Single; TextAlign: TTextAlign): boolean;
+
 type
   TGLWinMessagesTheme = record
     { Color of the inside area in the message rectangle
@@ -312,7 +316,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, IntRects;
+  KambiClassUtils, SysUtils, GLWinModes, IntRects, Keys;
 
 const
   DrawMessg_BoxMargin = 10;
@@ -658,7 +662,7 @@ procedure IdleMessg(glwin: TGLWindow);
   function Faktor: Single;
   begin
    result := 4.0 * glwin.FpsCompSpeed;
-   if glwin.KeysDown[K_Ctrl] then result *= 6;
+   if mkCtrl in Glwin.ModifiersDown then result *= 6;
   end;
 
 var md: TMessageData;
@@ -1091,7 +1095,9 @@ begin
   CharBackSpace :
     begin
      if md.SAdditional <> '' then
-      md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
+       if mkCtrl in Glwin.ModifiersDown then
+         md.SetSAdditional(glwin, '') else
+         md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
     end;
   CharEscape:
     if id^.userCanCancel then
@@ -1403,6 +1409,29 @@ begin
    on E: EConvertError do
    begin
     MessageOK(glwin, 'Invalid vector 3 value : ' + E.Message, taLeft);
+   end;
+  end;
+ end;
+end;
+
+{ MessageInputQueryVector4Single --------------------------------------------- }
+
+function MessageInputQueryVector4Single(
+  glwin: TGLWindow; const Title: string;
+  var Value: TVector4Single; TextAlign: TTextAlign): boolean;
+var s: string;
+begin
+ Result := false;
+ s := Format('%g %g %g %g', [Value[0], Value[1], Value[2], Value[3]]);
+ if MessageInputQuery(glwin, Title, s, TextAlign) then
+ begin
+  try
+   Value := Vector4SingleFromStr(s);
+   Result := true;
+  except
+   on E: EConvertError do
+   begin
+    MessageOK(glwin, 'Invalid vector 4 value : ' + E.Message, taLeft);
    end;
   end;
  end;

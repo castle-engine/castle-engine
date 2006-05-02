@@ -564,6 +564,7 @@ function Triangle3Double(const p0, p1, p2: TVector3Double): TTriangle3Double; ov
 function Vector3SingleFromStr(const s: string): TVector3Single;
 function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
+function Vector4SingleFromStr(const s: string): TVector4Single;
 
 { prosta matematyka na wektorach  ---------------------------------------------- }
 
@@ -1895,6 +1896,19 @@ end;
 function Vector3SingleFromStr(const s: string): TVector3Single; {$I VectorMath_Vector3FromStr.inc}
 function Vector3DoubleFromStr(const s: string): TVector3Double; {$I VectorMath_Vector3FromStr.inc}
 function Vector3ExtendedFromStr(const s: string): TVector3Extended; {$I VectorMath_Vector3FromStr.inc}
+
+function Vector4SingleFromStr(const S: string): TVector4Single;
+var
+  SPosition: Integer;
+begin
+ SPosition := 1;
+ Result[0] := StrToFloat(NextToken(S, SPosition));
+ Result[1] := StrToFloat(NextToken(S, SPosition));
+ Result[2] := StrToFloat(NextToken(S, SPosition));
+ Result[3] := StrToFloat(NextToken(S, SPosition));
+ Check(NextToken(s, SPosition) = '',
+   'Expected end of string in Vector4SingleFromStr');
+end;
 
 { some math on vectors ------------------------------------------------------- }
 
