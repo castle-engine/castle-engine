@@ -1393,7 +1393,7 @@ function MessageInputQueryVector3Single(
 var s: string;
 begin
  Result := false;
- s := Format('%f %f %f', [Value[0], Value[1], Value[2]]);
+ s := Format('%g %g %g', [Value[0], Value[1], Value[2]]);
  if MessageInputQuery(glwin, Title, s, TextAlign) then
  begin
   try
