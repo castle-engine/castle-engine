@@ -1499,6 +1499,7 @@ type
     property FdOn: TSFBool index 0 read GetFieldAsSFBool;
     property FdIntensity: TSFFloat index 1 read GetFieldAsSFFloat;
     property FdColor: TSFColor index 2 read GetFieldAsSFColor;
+    property FdAmbientIntensity: TSFFloat index 3 read GetFieldAsSFFloat;
   end;
 
   TObjectsListItem_1 = TNodeGeneralLight;
@@ -1509,13 +1510,13 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdDirection: TSFVec3f index 3 read GetFieldAsSFVec3f;
+    property FdDirection: TSFVec3f index 4 read GetFieldAsSFVec3f;
   end;
 
   TNodeGeneralPositionalLight = class(TNodeGeneralLight)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property FdLocation: TSFVec3f index 3 read GetFieldAsSFVec3f;
-    property FdAttenuation: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdLocation: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdAttenuation: TSFVec3f index 5 read GetFieldAsSFVec3f;
 
     { Attenuation obliczaja attenuation (tzn. wzorek 1/max( attenuation[0] + ...)
       zgodnie ze specyfik. VRMLa 97. Poniewaz obliczenie parametru DistanceToLight
@@ -1542,9 +1543,9 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdDirection: TSFVec3f index 5 read GetFieldAsSFVec3f;
-    property FdDropOffRate: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdCutOffAngle: TSFFloat index 7 read GetFieldAsSFFloat;
+    property FdDirection: TSFVec3f index 6 read GetFieldAsSFVec3f;
+    property FdDropOffRate: TSFFloat index 7 read GetFieldAsSFFloat;
+    property FdCutOffAngle: TSFFloat index 8 read GetFieldAsSFFloat;
 
     { nieznormalizowany wykladnik dla spot'a (na podstawie dropOffAngle) }
     function SpotExp: Single;
@@ -3530,6 +3531,8 @@ begin
  Fields.Add(TSFBool.Create('on', true));
  Fields.Add(TSFFloat.Create('intensity', 1));
  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+ { TODO: For VRML 97, default is 0. }
+ Fields.Add(TSFFloat.Create('ambientIntensity', -1));
 end;
 
 procedure TNodeGeneralLight.MiddleTraverse(State: TVRMLGraphTraverseState);

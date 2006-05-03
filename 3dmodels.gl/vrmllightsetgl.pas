@@ -239,8 +239,8 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
   var SetNoAttenuation: boolean;
       Attenuat: TVector3Single;
-      LightColorMultIntensity3f: TVector3f;
-      LightColorMultIntensity4f: TVector4f;
+      Color3, AmbientColor3: TVector3f;
+      Color4, AmbientColor4: TVector4f;
   begin
    glPushMatrix;
    try
@@ -280,18 +280,29 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
    finally glPopMatrix end;
 
-   { evaluate LightColorMultIntensity4f }
-   LightColorMultIntensity3f := VectorScale(Light.LightNode.FdColor.Value,
+   { calculate Color4 = light color * light intensity,
+     eventually modulated. }
+   Color3 := VectorScale(Light.LightNode.FdColor.Value,
      Light.LightNode.FdIntensity.Value);
    if Assigned(ColorModulatorSingle) then
-    LightColorMultIntensity3f := ColorModulatorSingle(LightColorMultIntensity3f);
-   LightColorMultIntensity4f := Vector4f(LightColorMultIntensity3f, 1);
+     Color3 := ColorModulatorSingle(Color3);
+   Color4 := Vector4f(Color3, 1);
 
-   { TODO: VRML97 - light ambient color powinienes brac z LightColor *
-     LightAmbientIntensity, tzn. do ambient jest specjalne intensity. }
-   glLightv(glLightNum, GL_AMBIENT, LightColorMultIntensity4f);
-   glLightv(glLightNum, GL_DIFFUSE, LightColorMultIntensity4f);
-   glLightv(glLightNum, GL_SPECULAR, LightColorMultIntensity4f);
+   { calculate AmbientColor4 = light color * light ambient intensity,
+     eventually modulated. }
+   if Light.LightNode.FdAmbientIntensity.Value < 0 then
+     AmbientColor4 := Color4 else
+   begin
+     AmbientColor3 := VectorScale(Light.LightNode.FdColor.Value,
+       Light.LightNode.FdAmbientIntensity.Value);
+     if Assigned(ColorModulatorSingle) then
+       AmbientColor3 := ColorModulatorSingle(AmbientColor3);
+     AmbientColor4 := Vector4f(AmbientColor3, 1);
+   end;
+
+   glLightv(glLightNum, GL_AMBIENT, AmbientColor4);
+   glLightv(glLightNum, GL_DIFFUSE, Color4);
+   glLightv(glLightNum, GL_SPECULAR, Color4);
   end;
 
 begin
