@@ -23,7 +23,6 @@ private
   h_GLRc: HGLRC;
   h_Dc: HDC;
   h_Wnd: HWND;
-  FWindowBitsPerPixel: integer;
   { InCloseImplDepend = true means we are currently inside CloseImplDepend call.
     Useful -- see at WM_ACTIVATE. }
   InCloseImplDepend: boolean;
@@ -505,7 +504,7 @@ var
   WindowRect, ClientRect: TRect;
   H_Menu: HMenu;
 begin
- if WindowBitsPerPixel = 0 then WindowBitsPerPixel := glwm.BitsPerPixel;
+ if ColorBits = 0 then ColorBits := Glwm.VideoColorBits;
 
  { optionally hide mouse in FullScreem,
    set dwStyle and dwExStyle for our window }
@@ -583,7 +582,7 @@ begin
     or PFD_SUPPORT_OPENGL;                  // Format Must Support OpenGL
   if doubleBuffer then dwFlags := dwFlags or PFD_DOUBLEBUFFER;
   iPixelType := PFD_TYPE_RGBA;              // Request An RGBA Format
-  cColorBits := WindowBitsPerPixel;         // Select Our Color Depth (its ok to set here 0 to say "default")
+  cColorBits := ColorBits; // WinAPI accepts here 0 as "default"
   cAlphaBits := AlphaBits;
   cDepthBits := DepthBufferBits;
   cStencilBits := StencilBufferBits;
@@ -618,9 +617,9 @@ begin
  if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
   raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
 
- { jezeli WindowBitsPerPixel bylo = 0 to teraz dowiedz sie co dostalismy }
- if WindowBitsPerPixel = 0 then
-  WindowBitsPerPixel := GetDeviceCaps(h_DC, BITSPIXEL);
+ { jezeli ColorBits bylo = 0 to teraz dowiedz sie co dostalismy }
+ if ColorBits = 0 then
+  ColorBits := GetDeviceCaps(h_DC, BITSPIXEL);
 
  { create gl context and make it current }
  h_GLRc := wglCreateContext(h_Dc);
@@ -927,11 +926,12 @@ begin
  begin
   dmFields := 0;
 
-  if BitsPerPixel <> 0 then
+  if VideoColorBits <> 0 then
   begin
-   dmBitsPerPel := FBitsPerPixel;
+   dmBitsPerPel := VideoColorBits;
    dmFields     := dmFields or DM_BITSPERPEL;
   end;
+
   if VideoResize then
   begin
    dmPelsWidth  := VideoResizeWidth;
@@ -939,9 +939,25 @@ begin
    dmFields     := dmFields or DM_PELSWIDTH or DM_PELSHEIGHT;
   end;
 
+  if VideoFrequency <> 0 then
+  begin
+    dmDisplayFrequency := VideoFrequency;
+    dmFields    := dmFields or DM_DISPLAYFREQUENCY;
+  end;
+
   if dmFields <> 0 then { then TRY to change screen size and/or resolution }
   begin
    dmSize := sizeof(dmScreenSettings);
+
+   { Reading ChangeDisplaySettings docs
+     (http://msdn.microsoft.com/library/default.asp?url=/library/en-us/gdi/devcons_7gz7.asp):
+     The dmDriverExtra member of DEVMODE must be initialized to indicate
+     the number of bytes of private driver data following the
+     DEVMODE structure.
+
+     So I guess that I should just set this to 0 ? }
+   dmDriverExtra := 0;
+
    ChangeResult := ChangeDisplaySettings(@dmScreenSettings, CDS_FullScreen);
    Result := ChangeResult = DISP_CHANGE_SUCCESSFUL;
    { tests: InfoWrite('ChangeResult = '+ DispChangeToStr(ChangeResult)); }

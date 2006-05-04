@@ -614,9 +614,11 @@ unit GLWindow;
   - Width, Height, Left, Top zaimplementowac tak zeby przeniesc je
     do sekcji "mozesz nimi pozniej manipulowac" ?
   - zrobic implementacje przez SDL ?
-  - use EnumDisplaySettings instead of such variables as BitsPerPixel / ScreenWidth,
-    do some proc DisplayExists i EnumDisplays
-  - do parametru --fullscreen-custom dodac mozliwosc podania BitsPerPixel ?
+  - use EnumDisplaySettings instead of such variables as
+    VideoColorBits / VideoScreenWidth / VideoFrequency,
+    do some proc DisplayExists and EnumDisplays
+  - do parametru --fullscreen-custom dodac mozliwosc podania
+    VideoColorBits, VideoFrequency
   - zrobic zdarzenia mousewheel
   - dodac mozliwosc zrobienia FullScreen w stylu SDLa : program moze zmienic
     okienko na fullscreen ale wewnetrzne Width i Height nie ulegna zmianie
@@ -838,6 +840,7 @@ type
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
     FMouseX, FMouseY: integer;
+    FColorBits: integer;
 
     FMouseVisible: boolean;
     procedure SetMouseVisible(const Value: boolean);
@@ -1265,20 +1268,21 @@ type
     { DoubleBuffer to swapBuffers bedzie robione automatycznie po kazdym repaincie.
       jesli false - bedzie robione glFlush. }
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer; { = true }
-    {$ifdef GLWINDOW_WINAPI}
-    { WindowBitsPerPixel : sprobuje ustawic takie bits per pixel tylko dla danego
-      okna. Jesli WindowbitsPerPixel w czasie Init to uzyje glwm.BitsPerPixel
-      (chociaz one tez moga byc = 0; wtedy wezmie defaultowe BitsPerPixel jakie
-      da nam Windows). Tak czy siak, po zakonczeniu Init WindowBitsPerPixel powiedza
-      nam jakie BitsPerPixel otrzymalismy.
-      Aby naprawde zmienic BitsPerPixel z duza szansa uzywaj raczej glwm.DisplayChange
+
+    { ColorBits : sprobuje ustawic takie bits per pixel tylko dla danego okna.
+      Jesli ColorBits = 0 w czasie Init to uzyje glwm.VideoColorBits
+      (chociaz one tez moga byc = 0; wtedy wezmie defaultowe ColorBits jakie
+      da nam Windows). Tak czy siak, po zakonczeniu Init ColorBits powiedza
+      nam jakie ColorBits otrzymalismy.
+      Aby naprawde zmienic ColorBits z duza szansa uzywaj raczej
+      Glwm.VideoColorBits i glwm.VideoChange.
 
       TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
       interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
-      wymagane WindowBitsPerPixel, ponadto nie powinnismy zmieniac WindowBitsPerPixel
+      wymagane ColorBits, ponadto nie powinnismy zmieniac ColorBits
       po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits. }
-    property WindowBitsPerPixel: integer read FWindowBitsPerPixel write FWindowBitsPerPixel; { = 0 }
-    {$endif}
+    property ColorBits: integer
+      read FColorBits write FColorBits default 0;
 
     property MouseVisible: boolean
       read FMouseVisible write SetMouseVisible default true;
@@ -2398,7 +2402,8 @@ type
     FOnIdle :TIdleFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
-    FBitsPerPixel: integer;
+    FVideoColorBits: integer;
+    FVideoFrequency: Cardinal;
 
     FActive: TGLWindowsList;
     function GetActive(Index: integer): TGLWindow;
@@ -2476,19 +2481,33 @@ type
     VideoResize : boolean;
     VideoResizeWidth,
     VideoResizeheight : integer;
-    { Bits Per Pixel ktore ma uzyc przy robieniu VideoChange i przy
+
+    { Color bits per pixel ktore ma uzyc przy robieniu VideoChange i przy
       robieniu TGLWindow.Init. = 0 oznaczaja ze ma uzyc system default }
-    property BitsPerPixel: integer read FBitsPerPixel write FBitsPerPixel; { =0 }
-    { zmien ekran, zgodnie z BitsPerPixel i VideoResizeWidth/Height.
+    property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
+
+    { VideoFrequency to set in TryVideoChange and VideoChange.
+      Leave as 0 to use system default. }
+    property VideoFrequency: Cardinal read FVideoFrequency write FVideoFrequency default 0;
+
+    { Describe the changes recorded in variables VideoXxx, used by VideoChange and
+      TryVideoChange. This is a multiline string, each line is indented by 2 spaces,
+      always ends with KambiUtils.NL. }
+    function VideoSettingsDescribe: string;
+
+    { zmien ekran, zgodnie z VideoColorBits i VideoResizeWidth/Height
+      i VideoFrequency.
       Zwraca czy sie udalo.
       Zwracam uwage ze pod niektorymi implementacjami GLWINDOW ta funkcja
       bedzie po prostu zawsze zwracala false. }
     function TryVideoChange: boolean;
+
     { zrob TryVideoChange, jesli sie nie udalo :
       if OnErrorWarnUserAndContinue to wyswietli warning dla usera i bedzie
         kontynuowal,
       else rzuci Exception. }
     procedure VideoChange(OnErrorWarnUserAndContinue: boolean);
+
     { VideoReset przywraca domyslne ustawienia ekranu (tzn. nie robi
       nic jesli nigdy nie wywolales TryVideoChange z rezultatem true,
       wpp przywraca domyslne ustawienia). Jest wywolywane automatycznie w
@@ -4097,19 +4116,26 @@ begin
 end;
 {$endif not GLWINDOW_HAS_VIDEO_CHANGE}
 
+function TGLWindowsManager.VideoSettingsDescribe: string;
+begin
+  Result := '';
+  if VideoResize then
+    Result += Format('  Screen size :  %dx%d', [VideoResizeWidth, VideoResizeHeight]) + nl;
+  if VideoColorBits <> 0 then
+    Result += Format('  Color bits per pixel : %d', [VideoColorBits]) + nl;
+  if VideoFrequency <> 0 then
+    Result += Format('  Display frequency : %d', [VideoFrequency]) + nl;
+
+  if Result = '' then
+    Result := '  No display settings change' + nl;
+end;
+
 procedure TGLWindowsManager.VideoChange(OnErrorWarnUserAndContinue: boolean);
 var s: string;
 begin
  if not TryVideoChange then
  begin
-  s := '';
-  if VideoResize then
-   s := Format('screen width %d, screen height %d',[VideoResizeWidth, VideoResizeHeight]);
-  if BitsPerPixel <> 0 then
-   s := SAppendPart(s, ', ',Format('bits per pixel : %d',[BitsPerPixel]));
-  if s = '' then s := 'no change';
-
-  s := 'Can''t change display settings to : ['+s+']';
+  s := 'Can''t change display settings to : ' + nl + VideoSettingsDescribe;
 
   {$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
     {$ifdef GLWINDOW_XLIB}

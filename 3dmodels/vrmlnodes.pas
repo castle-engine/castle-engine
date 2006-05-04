@@ -1547,7 +1547,7 @@ type
     property FdDropOffRate: TSFFloat index 7 read GetFieldAsSFFloat;
     property FdCutOffAngle: TSFFloat index 8 read GetFieldAsSFFloat;
 
-    { nieznormalizowany wykladnik dla spot'a (na podstawie dropOffAngle) }
+    { nieznormalizowany wykladnik dla spot'a (na podstawie dropOffRate) }
     function SpotExp: Single;
   end;
 
