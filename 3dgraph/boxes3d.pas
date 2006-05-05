@@ -75,6 +75,7 @@ function Box3dOrderUp(const p0, p1: TVector3Single): TBox3d;
 function Box3dMiddle(const Box: TBox3d): TVector3Single;
 function Box3dAvgSize(const Box: TBox3d): Single;
 function Box3dMaxSize(const box: TBox3d): Single;
+function Box3dMinSize(const box: TBox3d): Single;
 function Box3dSizeX(const box: TBox3d): Single;
 function Box3dSizeY(const box: TBox3d): Single;
 function Box3dSizeZ(const box: TBox3d): Single;
@@ -312,6 +313,23 @@ begin
  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
  sizes := Box3dSizes(box);
  result := sizes[MaxVectorCoord(sizes)];
+end;
+
+function Box3dMinSize(const box: TBox3d): Single;
+begin
+ Check(not IsEmptyBox3d(Box), 'Empty box 3d - no maximum size');
+
+ Result := Min(
+   Box[1, 0] - Box[0, 0],
+   Box[1, 1] - Box[0, 1],
+   Box[1, 2] - Box[0, 2]);
+
+ { Another version is below (but this is slower without any benefit...)
+
+   var sizes: TVector3Single;
+     sizes := Box3dSizes(box);
+     result := sizes[MaxVectorCoord(sizes)];
+ }
 end;
 
 function Box3dSizeX(const box: TBox3d): Single;
