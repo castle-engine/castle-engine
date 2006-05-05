@@ -38,6 +38,8 @@
   (for full list of supported keys -- see view3dscene documentation,
   [http://www.camelot.homedns.org/~michalis/view3dscene.php],
   at Walk navigation method).
+  Space key restarts the animation (definitely useful if you passed
+  --no-loop option).
 
   You may notice that the 1st pass of the animation is much slower than the
   following ones, that's because in the 1st pass OpenGL display lists
@@ -96,6 +98,12 @@ begin
   ProjectionGLPerspective(45.0, glwin.Width/glwin.Height,
     Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 0.05,
     Box3dMaxSize(Animation.Scenes[0].BoundingBox) * 10.0);
+end;
+
+procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+begin
+  if C = ' ' then
+    AnimationTime := 0.0;
 end;
 
 var
@@ -165,6 +173,7 @@ begin
     Glw.OnClose := Close;
     Glw.OnResize := Resize;
     Glw.OnIdle := Idle;
+    Glw.OnKeyDown := KeyDown;
     Glw.InitLoop(ProgramName, Draw);
   finally Animation.Free end;
 end.
