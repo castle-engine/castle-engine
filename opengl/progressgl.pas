@@ -127,6 +127,10 @@ begin
 
  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 
+ { To actually draw progress start. }
+ Window.PostRedisplay;
+ Window.FlushRedisplay;
+
  glwm.ProcessMessage(false);
 end;
 
