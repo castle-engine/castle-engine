@@ -120,7 +120,7 @@ type
 
   { ta klasa reprezentuje Navigatory ktore potrzebuja cos takiego jak Idle()
     ktore musi byc wywolywane co mozliwie krotki czas. Argument CompSpeed
-    dla tego Idle powinien byc liczony jak TGLWindow.FpsCompSpeed,
+    dla tego Idle powinien byc liczony jak TGLWindow.IdleCompSpeed,
     argument KeysDown okresla klawisze wcisniete w czasie idle - powinienes
     tu podac klawisze w rodzaju glwin.KeysDown. Ew. mozesz tu podac nil -
     ale pamietaj ze wtedy nie pozwalasz userowi sterowac w domyslny sposob

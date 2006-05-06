@@ -1124,6 +1124,10 @@ type
     procedure SetFPSActive(value: boolean);
 
     FFpsCompSpeed: Single;
+    FIdleCompSpeed: Single;
+
+    LastIdleStartTimeInited: boolean;
+    LastIdleStartTime: TPerfTimerResult;
 
     {rzeczy do implementacji pomiaru Frames Per Sec}
     FFpsSecondsToAutoReset : Cardinal;
@@ -2030,6 +2034,13 @@ type
     }
     property FpsCompSpeed: Single read FFpsCompSpeed;
 
+    { This is like FpsCompSpeed, but calculated as a time between
+      start of previous Idle event and start of last (current) Idle event.
+      As such, if your Idle takes a lot of time (i.e. rendering speed
+      is not your only problem), then you may prefer to use this.
+      But note that you should sanely use this only within Idle event. }
+    property IdleCompSpeed: Single read FIdleCompSpeed;
+
     { ------------------------------------------------------------------------
       gotowe funkcje ktore realizuja "uproszczony scenariusz",
       same inicjuja typowe wartosci, wywoluja Init a potem glwm.Loop; }
@@ -2283,8 +2294,7 @@ type
         W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
         zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
         tylko Navigator <> nil i UseNavigator = true.
-        Acha, w EventInit wlaczamy FpsActive i nie mozesz ich nigdzie wylaczyc
-        zebysmy w EventIdle mogli przekazac do Navigator.Idle nasze FpsCompSpeed.)
+        Oh, and we use IdleCompSpeed for navigator.)
       @item(
         Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
         ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
@@ -3151,7 +3161,19 @@ begin
  EventMouseUp(btn);
 end;
 
-procedure TGLWindow.DoIdle;  begin  MakeCurrent; EventIdle  end;
+procedure TGLWindow.DoIdle;
+begin
+  { update FIdleCompSpeed, LastIdleStartTimeInited, LastIdleStartTime }
+  if LastIdleStartTimeInited then
+    FIdleCompSpeed:= ((PerfTime - LastIdleStartTime) / PerfTimerFreq) * 50 else
+    FIdleCompSpeed:= 1.0; { just init IdleCompSpeed to some sensible default }
+  LastIdleStartTime := PerfTime;
+  LastIdleStartTimeInited := true;
+
+  MakeCurrent;
+  EventIdle;
+end;
+
 procedure TGLWindow.DoTimer; begin  MakeCurrent; EventTimer end;
 
 procedure TGLWindow.DoMenuCommand(Item: TMenuItem);
@@ -3687,6 +3709,7 @@ begin
   Check( PerfTimerInit, 'performance timer not supported on this hardware');
   FpsReset;
   FFpsCompSpeed := 1.0; { just init FpsCompSpeed to some sensible default }
+  FIdleCompSpeed := 1.0; { just init IdleCompSpeed to some sensible default }
  end;
 end;
 
@@ -3943,7 +3966,7 @@ end;
 procedure TGLWindowNavigated.EventIdle;
 begin
  if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-  TMatrixNavigatorWithIdle(Navigator).Idle(FpsCompSpeed, @KeysDown);
+  TMatrixNavigatorWithIdle(Navigator).Idle(IdleCompSpeed, @KeysDown);
  inherited;
 end;
 
@@ -3956,7 +3979,6 @@ end;
 procedure TGLWindowNavigated.EventInit;
 begin
  inherited;
- FpsActive := true; { zeby moc przekazac FpsCompSpeed dla Navigator.Idle() }
 end;
 
 function TGLWindowNavigated.AllowsProcessMessageSuspend: boolean;

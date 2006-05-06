@@ -77,7 +77,7 @@ end;
 
 procedure Idle(glwin: TGLWindow);
 begin
-  AnimationTime += glwin.FpsCompSpeed / 50;
+  AnimationTime += glwin.IdleCompSpeed / 50;
 end;
 
 procedure Init(glwin: TGLWindow);
