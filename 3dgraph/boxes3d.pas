@@ -204,6 +204,10 @@ function TryBoxRayClosestIntersection(
 function TryBoxRayEntrance(var Entrance: TVector3Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
 
+function IsBox3dSegmentCollision(
+  const Box: TBox3d;
+  const Segment1, Segment2: TVector3Single): boolean;
+
 function IsBox3dPlaneCollision(const Box3d: TBox3d;
   const Plane: TVector4Single): boolean;
 
@@ -771,6 +775,53 @@ begin
   result := true;
  end else
   result := TryBoxRayClosestIntersection(Entrance, Box, Ray0, RayVector);
+end;
+
+function IsBox3dSegmentCollision(
+  const Box: TBox3d;
+  const Segment1, Segment2: TVector3Single): boolean;
+
+  function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
+    const PlaneConstValue: Single): boolean;
+  var
+    NowIntersection: TVector3Single;
+    c1, c2: integer;
+  begin
+    if TrySimplePlaneSegmentIntersection(NowIntersection,
+      PlaneConstCoord, PlaneConstValue, Segment1, Segment2) then
+    begin
+      RestOf3dCoords(PlaneConstCoord, c1, c2);
+      Result :=
+        Between(NowIntersection[c1], Box[0, c1], Box[1, c1]) and
+        Between(NowIntersection[c2], Box[0, c2], Box[1, c2]);
+    end else
+      Result := false;
+  end;
+
+var
+  I: integer;
+begin
+  for I := 0 to 2 do
+  begin
+    { wykorzystujemy ponizej fakt ze jezeli Segment1[i] < Box[0, i] to na pewno
+      promien ktory przecinalby scianke Box[1, i] pudelka przecinalby najpierw
+      tez inna scianke. Wiec jezeli Segment1[i] < Box[0, i] to nie musimy sprawdzac
+      przeciecia z plaszczyzna Box[1, i]. }
+    if Segment1[i] < Box[0, i] then
+    begin
+      if IsCollisionWithBoxPlane(i, Box[0, i]) then Exit(true);
+    end else
+    if Segment1[i] > Box[1, i] then
+    begin
+      if IsCollisionWithBoxPlane(i, Box[1, i]) then Exit(true);
+    end else
+    begin
+      if IsCollisionWithBoxPlane(i, Box[0, i]) then Exit(true);
+      if IsCollisionWithBoxPlane(i, Box[1, i]) then Exit(true);
+    end;
+  end;
+
+  Result := false;
 end;
 
 function IsBox3dPlaneCollision(const Box3d: TBox3d; const Plane: TVector4Single): boolean;
