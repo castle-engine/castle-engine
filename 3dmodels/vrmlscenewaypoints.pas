@@ -228,6 +228,10 @@ procedure TSceneWaypointsList.TraverseForWaypoints(Node: TVRMLNode;
 
     Items[WaypointIndex] := TSceneWaypoint.Create;
     Items[WaypointIndex].Position := WaypointPosition;
+
+    { Tests:
+    Writeln('Waypoint ', WaypointIndex, ': at position ',
+      VectorToNiceStr(WaypointPosition));}
   end;
 
 const
@@ -327,6 +331,10 @@ procedure TSceneSectorsList.TraverseForSectors(Node: TVRMLNode;
       Items[SectorIndex] := TSceneSector.Create;
 
     Items[SectorIndex].BoundingBoxes.AppendItem(SectorBoundingBox);
+
+    { Tests:
+    Writeln('Sector ', SectorIndex, ': added box ',
+      Box3dToNiceStr(SectorBoundingBox)); }
   end;
 
 const
