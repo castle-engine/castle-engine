@@ -56,12 +56,12 @@ program demo_animation;
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit;
+  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit;
 
 const
   { This is the number of animation frames constructed per one unit of time.
     Increase this to get smoother animation. }
-  ScenesPerTime = 100;
+  ScenesPerTime = 50;
 
 var
   Animation: TVRMLGLAnimation;
@@ -168,12 +168,25 @@ begin
     Glw.NavWalker.Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp, 0.0, 0.0);
 
+    ProgressGLInterface.Window := Glw;
+    Progress.UserInterface := ProgressGLInterface;
+
     Glw.AutoRedisplay := true;
     Glw.OnInit := Init;
     Glw.OnClose := Close;
     Glw.OnResize := Resize;
     Glw.OnIdle := Idle;
     Glw.OnKeyDown := KeyDown;
-    Glw.InitLoop(ProgramName, Draw);
+    Glw.Caption := ProgramName;
+    Glw.OnDraw := Draw;
+
+    Glw.Init;
+
+    Progress.Init(Animation.ScenesCount, 'Preparing animation');
+    try
+      Animation.PrepareRender(true, true, false, false, true);
+    finally Progress.Fini end;
+
+    Glwm.Loop;
   finally Animation.Free end;
 end.

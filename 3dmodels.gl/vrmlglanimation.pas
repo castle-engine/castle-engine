@@ -135,10 +135,14 @@ type
     function ScenesCount: Integer;
 
     { Prepare all scenes for rendering. This just calls
-      PrepareRender(...) for all Scenes. }
+      PrepareRender(...) for all Scenes.
+
+      If ProgressStep then it will additionally call Progress.Step after
+      preparing each scene (it will call it ScenesCount times). }
     procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate: boolean);
+      DoPrepareTrianglesListOverTriangulate: boolean;
+      ProgressStep: boolean);
 
     { Close anything associated with current OpenGL context in this class.
       This calls CloseGL on every Scenes[], and additionally may close
@@ -217,7 +221,8 @@ type
 
 implementation
 
-uses Math, KambiClassUtils, VectorMath, VRMLFields, KambiUtils;
+uses Math, KambiClassUtils, VectorMath, VRMLFields, KambiUtils,
+  ProgressUnit;
 
 { EModelsStructureDifferent --------------------------------------------------- }
 
@@ -599,14 +604,19 @@ end;
 procedure TVRMLGLAnimation.PrepareRender(
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
-  DoPrepareTrianglesListOverTriangulate: boolean);
+  DoPrepareTrianglesListOverTriangulate: boolean;
+  ProgressStep: boolean);
 var
   I: Integer;
 begin
   for I := 0 to FScenes.High do
+  begin
     FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate);
+    if ProgressStep then
+      Progress.Step;
+  end;
 end;
 
 procedure TVRMLGLAnimation.CloseGL;
