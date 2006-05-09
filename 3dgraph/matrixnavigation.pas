@@ -26,6 +26,9 @@ interface
 
 uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 
+type
+  TMouseButton = (mbLeft, mbMiddle, mbRight);
+
 const
   DefaultFallingDownStartSpeed = 0.5;
   DefaultGrowingSpeed = 1.0;
@@ -41,6 +44,7 @@ const
   DefaultHeadBobbingDistance = 20.0;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 0.18;
+  DefaultJumpMouseButton = mbRight;
 
 type
   { }
@@ -103,17 +107,27 @@ type
     function RotationOnlyMatrix: TMatrix4Single; virtual; abstract;
 
     { Zwraca true jezeli jakos obsluzyl klawisz c/key.
+
       W tej klasie zawsze zwraca false - w podklasach powinny dzialac na
       zasadzie
         result := inherited;
         if result then exit;
         ...i dzialamy, tzn. zawsze obsluga w klasach nadrzednych ma priorytet
         nad osbluga w podklasach.
+
       Mozesz podac stan aktualnie wcisnietych klawiszy w KeysDown.
-        Podaj nil jezeli nie chcesz tego podawac. (zawartosc podanego KeysDown
-        nie bedzie zmieniana, bierzemy wskaznik tylko dlatego zebys mogl przekazac
-        nil) }
+      Podaj nil jezeli nie chcesz tego podawac. (zawartosc podanego KeysDown
+      nie bedzie zmieniana, bierzemy wskaznik tylko dlatego zebys mogl przekazac
+      nil) }
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; virtual;
+
+    { Handle mouse down event.
+
+      Just like KeyDown, this returns whether the event was handled.
+      Descendants should always override this like
+        Result := inherited;
+        if Result then Exit; }
+    function MouseDown(Button: TMouseButton): boolean; virtual;
   end;
 
   TMatrixNavigatorClass = class of TMatrixNavigator;
@@ -298,6 +312,11 @@ type
     procedure RotateAroundUp(const AngleDeg: Single);
     procedure RotateHorizontal(const AngleDeg: Single);
     procedure RotateVertical(const AngleDeg: Single);
+
+    procedure Jump;
+
+    FJumpMouseButton: TMouseButton;
+    FJumpMouseButtonActive: boolean;
 
     { Private things related to frustum ---------------------------- }
 
@@ -717,6 +736,15 @@ type
       (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
     procedure MouseMove(MouseXChange, MouseYChange: Integer);
 
+    property JumpMouseButtonActive: boolean
+      read FJumpMouseButtonActive write FJumpMouseButtonActive
+      default false;
+    property JumpMouseButton: TMouseButton
+      read FJumpMouseButton write FJumpMouseButton
+      default DefaultJumpMouseButton;
+
+    function MouseDown(Button: TMouseButton): boolean; override;
+
     { Things related to frustum ---------------------------------------- }
 
     { This is initially IdentityMatrix4Single.
@@ -1019,7 +1047,14 @@ end;
 
 function TMatrixNavigator.KeyDown(key: TKey; c: char;
   KeysDown: PKeysBooleans): boolean;
-begin result := false end;
+begin
+  Result := false;
+end;
+
+function TMatrixNavigator.MouseDown(Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
 
 { TMatrixExaminer ------------------------------------------------------------ }
 
@@ -1214,6 +1249,8 @@ begin
   FHeadBobbingDistance := DefaultHeadBobbingDistance;
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
   FJumpPower := DefaultJumpPower;
+  FJumpMouseButton := DefaultJumpMouseButton;
+  FJumpMouseButtonActive := false;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -2161,37 +2198,36 @@ begin
  MatrixChanged;
 end;
 
+procedure TMatrixWalker.Jump;
+var
+  IsAboveTheGround: boolean;
+  SqrHeightAboveTheGround: Single;
+begin
+  if IsJumping or IsFallingDown or (not Gravity) then Exit;
+
+  { Merely checking for IsFallingDown is not enough, because IsFallingDown
+    may be triggered with some latency. E.g. consider user that holds
+    Key_Jump key down: whenever jump will end (in GravityIdle),
+    KeysDown[Key_Jump] = true will cause another jump to be immediately
+    (before IsFallingDown will be set to true) initiated.
+    This is of course bad, because user holding Key_Jump key down
+    would be able to jump to any height. The only good thing to do
+    is to check whether player really has some ground beneath his feet
+    to be able to jump. }
+
+  { calculate IsAboveTheGround, SqrHeightAboveTheGround }
+  DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
+
+  if (not IsAboveTheGround) or
+     (SqrHeightAboveTheGround >
+        Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
+    Exit;
+
+  FIsJumping := true;
+  FJumpHeight := 0.0;
+end;
+
 function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean;
-
-  procedure Jump;
-  var
-    IsAboveTheGround: boolean;
-    SqrHeightAboveTheGround: Single;
-  begin
-    if IsJumping or IsFallingDown or (not Gravity) then Exit;
-
-    { Merely checking for IsFallingDown is not enough, because IsFallingDown
-      may be triggered with some latency. E.g. consider user that holds
-      Key_Jump key down: whenever jump will end (in GravityIdle),
-      KeysDown[Key_Jump] = true will cause another jump to be immediately
-      (before IsFallingDown will be set to true) initiated.
-      This is of course bad, because user holding Key_Jump key down
-      would be able to jump to any height. The only good thing to do
-      is to check whether player really has some ground beneath his feet
-      to be able to jump. }
-
-    { calculate IsAboveTheGround, SqrHeightAboveTheGround }
-    DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
-
-    if (not IsAboveTheGround) or
-       (SqrHeightAboveTheGround >
-          Sqr(RealCameraPreferredHeight + RealCameraPreferredHeightMargin)) then
-      Exit;
-
-    FIsJumping := true;
-    FJumpHeight := 0.0;
-  end;
-
 begin
  result := inherited;
  if result then exit;
@@ -2347,6 +2383,18 @@ begin
       RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
     if MouseYChange <> 0 then
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+  end;
+end;
+
+function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if JumpMouseButtonActive and (Button = JumpMouseButton) then
+  begin
+    Jump;
+    Exit(true);
   end;
 end;
 

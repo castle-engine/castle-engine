@@ -721,6 +721,18 @@ const
 
 { --------------------------------------------------------------------- }
 
+{ @section(Export types and consts related to TMouseButton from
+  MatrixNavigation unit) }
+
+type
+  { }
+  TMouseButton = MatrixNavigation.TMouseButton;
+
+const
+  mbLeft = MatrixNavigation.mbLeft;
+  mbMiddle = MatrixNavigation.mbMiddle;
+  mbRight = MatrixNavigation.mbRight;
+
 const
   POS_SCREEN_CENTER = -1000000;
 
@@ -752,7 +764,6 @@ type
 
   {$I glwindowmenu.inc}
 
-  TMouseButton = (mbLeft, mbMiddle, mbRight);
   TMouseButtons = set of TMouseButton;
 
   TIdleFunc = procedure;
@@ -2343,6 +2354,7 @@ type
     procedure EventInit; override;
     procedure EventKeyDown(key: TKey; c: char); override;
     procedure EventIdle; override;
+    procedure EventMouseDown(Button: TMouseButton); override;
     function AllowsProcessMessageSuspend: boolean; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
@@ -3974,6 +3986,12 @@ procedure TGLWindowNavigated.EventKeyDown(key: TKey; c: char);
 begin
  if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
   inherited;
+end;
+
+procedure TGLWindowNavigated.EventMouseDown(Button: TMouseButton);
+begin
+  if not (ReallyUseNavigator and Navigator.MouseDown(Button)) then
+    inherited;
 end;
 
 procedure TGLWindowNavigated.EventInit;
