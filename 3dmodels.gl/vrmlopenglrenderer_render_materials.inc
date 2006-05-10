@@ -56,7 +56,7 @@ begin
     and we should treat EmissiveColor as precalculated color.
     So we can turn lighting off to improve speed (in fact, we are supposed
     to do that). }
-   glColorv(Vector4f(ColorModulated(EmissiveColor3Single(MatNum)),
+   glColorv(Vector4f(Attributes.ColorModulated(EmissiveColor3Single(MatNum)),
      Opacity(MatNum)));
   end else
   begin
@@ -69,20 +69,20 @@ begin
    { TODO: VRML97 - Ambient materialu bedziesz musial brac
      z DiffuseColor * AmbientIntensity }
    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT,
-     Vector4f(ColorModulated(AmbientColor3Single(MatNum)), Opacity(MatNum)));
+     Vector4f(Attributes.ColorModulated(AmbientColor3Single(MatNum)), Opacity(MatNum)));
    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
-     Vector4f(ColorModulated(DiffuseColor3Single(MatNum)), Opacity(MatNum)));
+     Vector4f(Attributes.ColorModulated(DiffuseColor3Single(MatNum)), Opacity(MatNum)));
    glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR,
-     Vector4f(ColorModulated(SpecularColor3Single(MatNum)), Opacity(MatNum)));
+     Vector4f(Attributes.ColorModulated(SpecularColor3Single(MatNum)), Opacity(MatNum)));
    glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION,
-     Vector4f(ColorModulated(EmissiveColor3Single(MatNum)), Opacity(MatNum)));
+     Vector4f(Attributes.ColorModulated(EmissiveColor3Single(MatNum)), Opacity(MatNum)));
    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp(MatNum));
 
    { Use also glColor for unlit things. This way this code will be able
      to work regardless of glEnable(GL_LIGHTING) state (even if we
      will put this on GL display list and then will call such list
      with various states of glEnable(GL_LIGHTING)). }
-   glColorv(Vector4f(ColorModulated(DiffuseColor3Single(MatNum)),
+   glColorv(Vector4f(Attributes.ColorModulated(DiffuseColor3Single(MatNum)),
      Opacity(MatNum)));
   end;
 

@@ -188,7 +188,7 @@ type
       replace RootNode value from time to time.
       This is useful because it allows to change viewed model
       (by changing RootNode) while preserving values of things
-      like Attrib_Xxx properties in subclass @link(TVRMLFlatSceneGL).
+      like Attributes properties in subclass @link(TVRMLFlatSceneGL).
 
       That's why it is possible to change RootNode and it is even
       possible to set it to nil. And when When RootNode = nil everything

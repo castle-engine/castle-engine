@@ -123,15 +123,6 @@
     przynajmniej zrobisz UnprepareAll jako ostatnie wywolanie dla tego
     gl-kontekstu.
 
-  Na koniec slowo o atrybutach renderowania (polach/wlasciwosciach Attrib_),
-    ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
-    tylko w momencie gdy renderer
-    nie jest przywiazany do zadnego kontekstu OpenGL'a (co jest zwiazane z tym
-    ze przywiazanie do danego kontekstu OpenGL'a oznacza takze ze czesc pracy
-    z dostosowaniem sie do takich a nie innych atrybutow renderowania
-    zostala juz zrobiona) czyli zaraz po wywolaniu konstruktora lub
-    UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*).
-
   Pewne notki w kwestii stanu OpenGL'a i renderowania sceny VRML'a :
     Jest jasne ze w implementacji RenderBegin musimy sobie zainicjowac
     pewne elementy stanu OpenGL'a, jak np. ustawic macierz na MODELVIEW
@@ -181,7 +172,7 @@
        blending OpenGLa, przykladowo tak robi VRMLFlatSceneGL)
 
   Notki o Triagles/VerticesCount : poniewaz OpenGL oferuje tylko cieniowanie
-    Gourauda (no i plaskie cieniowanie, w zaleznosci od Attrib_SmoothShading),
+    Gourauda (no i plaskie cieniowanie, w zaleznosci od Attributes.SmoothShading),
     idea OverTriangulate = true w VRMLNodes.TNodeGeneralShape.[Local]Triangulate
     staje sie uzyteczna. Jest gwarantowane ze ten renderer bedzie uzywal
     dokladnie takich trojkatow jakie generuje metoda Triangulate z
@@ -226,7 +217,7 @@ unit VRMLOpenGLRenderer;
 { TODO
   - use Backface culling in Render of Cone(all parts), Cube,
     Cylinder(all parts), Sphere when the viewer is outside
-  - test Attrib_PointSize
+  - test Attributes.PointSize
 }
 
 { define USE_VRML_NODES_TRIANGULATION only for testing purposes.
@@ -272,6 +263,180 @@ type
     function TextureNodeIndex(TexNode: TNodeTexture2): integer;
   end;
 
+  { These are various properties that control rendering done
+    with @link(TVRMLOpenGLRenderer).
+
+    They are collected here,
+    in a class separate from @link(TVRMLOpenGLRenderer),
+    because various things (like TVRMLFlatSceneGL and TVRMLGLAnimation)
+    wrap @link(TVRMLOpenGLRenderer) instances and hide it,
+    but still they want to allow user to change these attributes. }
+  TVRMLRenderingAttributes = class(TPersistent)
+  private
+    FOnBeforeGLVertex: TBeforeGLVertexProc;
+    FSmoothShading: boolean;
+    FColorModulatorSingle: TColorModulatorSingleFunc;
+    FColorModulatorByte: TColorModulatorByteFunc;
+    FUseLights: boolean;
+    FFirstGLFreeLight: integer;
+    FLastGLFreeLight: integer;
+    FEnableTextures: boolean;
+    FTextureMinFilter: TGLint;
+    FTextureMagFilter: TGLint;
+    FPointSize: integer;
+    FUseFog: boolean;
+  protected
+    { In this class these methods just set value on given property.
+      In descendants you can do something more here, like automatic
+      calling UnprepareAll of related TVRMLOpenGLRenderer
+      (this is not done here, as this would be dangerous ---
+      caller must be aware that TVRMLOpenGLRenderer was unprepared,
+      and must prepare it again, otherwise rendering will fail).
+      @groupBegin }
+    procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); virtual;
+    procedure SetSmoothShading(const Value: boolean); virtual;
+    procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
+    procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
+    procedure SetUseLights(const Value: boolean); virtual;
+    procedure SetFirstGLFreeLight(const Value: integer); virtual;
+    procedure SetLastGLFreeLight(const Value: integer); virtual;
+    procedure SetEnableTextures(const Value: boolean); virtual;
+    procedure SetTextureMinFilter(const Value: TGLint); virtual;
+    procedure SetTextureMagFilter(const Value: TGLint); virtual;
+    procedure SetPointSize(const Value: integer); virtual;
+    procedure SetUseFog(const Value: boolean); virtual;
+    { @groupEnd }
+  public
+    constructor Create; virtual;
+
+    { tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
+      (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
+      glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
+      Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
+      TNodeGeneralShape ktory renderuje ten vertex i b)wspolrzedne vertexa
+      przemnozone przez RenderState.CurrMatrix. Innymi slowy bedzie to
+      wspolrzedna vertexa wzgledem lokalnego ukladu wspolrzednych VRML'a
+      (podczas gdy rzeczywista komenda glVertex prawdopodobnie przekaze
+      OpenGL'owi wspolrzedne prosto z pliku VRML (a wiec byc moze wzgledem
+      ukladu wspolrzednych aktualnego node'a, a nie calego VRML'a)).
+
+      Zrobilem ta proc zeby zrobic glForCoord, ale byc moze znajdzie sie
+      kiedys dla niej jeszcze jakies zastosowanie.
+
+      nil by default. }
+    property OnBeforeGLVertex: TBeforeGLVertexProc
+      read FOnBeforeGLVertex write SetOnBeforeGLVertex;
+
+    { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
+      glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
+      sceny beda generowane odpowiednie normale (troszeczke inne normale
+      trzeba generowac gdy chcemy miec powierzchnie flat, a inne gdy smooth;
+      NIE WYSTACZY generowac zawsze normali smooth i tylko przestawiac
+      glShadeModel na GL_FLAT aby miec poprawne cieniowanie flat.
+      Chociaz zazwyczaj daje to tez dobre efekty; w szczeglnosci,
+      pamietaj ze nie bedziemy zmieniac normali ktore juz bedziemy mieli
+      podane w pliku VRMLa; wiec i tak nie bedzie pelnej poprawnosci
+      bo jezeli te normale byly zapisane smooth a my chcemy flat
+      to uzyjemy tych normali smooth z shadeModel ustawionym na FLAT).
+
+      Oczywiscie powinienes uzywac GL_SMOOTH bo rezultaty moga nie byc
+      tak dobre jak moglyby byc jesli uzyjesz GL_FLAT; no, ale beda
+      przewidywalne; wiec jesli np. wiesz ze dla danego modelu
+      GL_FLAT wyprodukuje zadowalajacy wynik to mozesz tego uzyc)}
+    property SmoothShading: boolean
+      read FSmoothShading write SetSmoothShading default true;
+
+    { zwraca GLU_SMOOTH lub GLU_FLAT, zgodnie z SmoothShading. }
+    function SmoothNormalsGLU: TGLenum;
+
+    { Za pomoca ponizszych ColorModulatorow mozna osiagnac mile efekty renderowania
+      sceny w spacjalnych kolorach - np. grayscale, tylko red channel itp.
+      Zawsze lepiej jest je robic metodami OpenGL'a, jak np. BlackOuty,
+      ale nie wszystko mozna zrobic metodami OpenGL'a - np. sceny grayscale
+      nie stworzymy robiac jakies proste sztuczki 2d w OpenGL'u.
+      Tutaj mozna podac funkcje ktora w dowolny sposob modyfikuje kolor
+      (ale pamietajmy ze ona modyfikuje kolor obiektu/swiatla/itp., a nie
+      wynikowy kolor pixela na 2d; wiec np. powierzchnie nieoswietlone
+      zawsze beda w ten sposob ciemne chocby modulator odwracal kolory itp.).
+
+      Obie funkcje ColorModulator* musza byc nil lub musza wykonywac analogiczna
+      konwersje ! (bo nie jest zdefiniowane kiedy nasz engine uzyje wersji
+      Byte a kiedy Single)
+
+      Ponadto musza wyniki tych funkcji musza byc zdeterminowane na podstawie
+      argumentow - tzn. te funkcje nie moga zwracac czegos losowego, nie moga
+      zwracac czegos na podstawie aktualnego czasu itp. To dlatego ze
+      nie jest zdefiniowane jak dlugo wyniki tych funkcji moga byc w roznych
+      miejscach kodu cache'owane.
+
+      Both are nil by default.
+      @groupBegin }
+    property ColorModulatorSingle: TColorModulatorSingleFunc
+      read FColorModulatorSingle write SetColorModulatorSingle;
+    property ColorModulatorByte: TColorModulatorByteFunc
+      read FColorModulatorByte write SetColorModulatorByte;
+    { @groupEnd }
+
+    { zwraca Color zmodulowany uzywajac ColorModulatorXxx }
+    function ColorModulated(const Color: TVector3Single): TVector3Single; overload;
+    function ColorModulated(const Color: TVector3Byte): TVector3Byte; overload;
+
+    { UseLights mowi zeby oswietlac shape'y swiatlami w node'ach VRMLa.
+      Wykorzysta do tego swiatla OpenGL'a od FirstGLFreeLight .. LastGLFreeLight.
+      Gdy LastGLFreeLight = -1 to zostanie uzyte glGet(GL_MAX_LIGHT)-1
+      (czyli wszystkie swiatla powyzej First beda potraktowane jako wolne. }
+    property UseLights: boolean
+      read FUseLights write SetUseLights default false;
+    property FirstGLFreeLight: integer
+      read FFirstGLFreeLight write SetFirstGLFreeLight default 0;
+    property LastGLFreeLight: integer
+      read FLastGLFreeLight write SetLastGLFreeLight default -1;
+
+    { Jezeli not EnableTextures to przez caly czas renderowania
+      sceny jest glDisable(GL_TEXTURE2D). Wiekszosc node'ow powstrzymuje sie
+      wtedy takze od generowania wspolrzednych tekstury wiec mozemy miec
+      maly zysk szybkosci.
+
+      Jezeli jest true to robimy normalnie : gdy jakas tekstura jest aktywna
+      to jej uzywamy, ustawiajac sobie glEnable(GL_TEXTURE2D) gdy trzeba. }
+    property EnableTextures: boolean
+      read FEnableTextures write SetEnableTextures default true;
+
+    { ponizsze parametry kontroluja min i mag filter dla tekstur.
+      @groupBegin }
+    property TextureMinFilter: TGLint
+      read FTextureMinFilter write SetTextureMinFilter default GL_LINEAR;
+    property TextureMagFilter: TGLint
+      read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
+    { @groupEnd }
+
+    { scena bedzie wyswietlana z glPointSize(PointSize),
+      co ma wplyw tylko na renderowanie PointSet. Zrobilem to atrybutem
+      renderera (zamiast po prostu pozwolic temu stanowi OpenGL'a "przeciec"
+      z zewnatrz) bo domyslny rozmiar mial byc = 3 a nie 1 (jak w OpenGL'u) }
+    property PointSize: integer
+      read FPointSize write SetPointSize default 3;
+
+    { true oznacza ze stan zmiennych OpenGLa GL_FOG_BIT (w szczegolnosci
+      stan enabled/disabled GL_FOG) jest kontrolowany przez tego renderera
+      (pomiedzy RenderBegin a RenderEnd stan tych zmiennych zalezy tylko od
+      przekazanych do RenderBegin informacji o mgle, nie zalezy od dotychczasowego
+      (przed wywolaniem RenderBegin) stanu OpenGLa).
+
+      false oznacza ze informacje o mgle przekazywane do RenderBegin sa
+      ignorowane i w tej klasie zadne wywolania, wlacznie z RenderBegin i
+      RenderEnd, nie dotykaja zmiennych z grupy atrybutow GL_FOG_BIT.
+
+      Innymi slowy, przy true ustawienia mgly z jakimi renderowany jest model
+      sa calkowicie zdeterminowane przez podane do RenderBegin informacje
+      o mgle. Przy false sa calkowicie zdeterminowane przez ustawienia
+      mgly w OpenGLu w momencie wywolywania RenderBegin. }
+    property UseFog: boolean
+      read FUseFog write SetUseFog default true;
+  end;
+
+  TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
+
   TVRMLOpenGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -280,7 +445,7 @@ type
 
     { FLastGLFreeLight = -1 if not calculated.
       GLContext - specific, so it is reset to -1 in UnprepareAll.
-      Use always LastGLFreeLight, not FLastGLFreeLight or Attrib_LastGLFreeLight
+      Use always LastGLFreeLight, not FLastGLFreeLight or Attributes.LastGLFreeLight
       to get LastGLFreeLight. LastGLFreeLight function will not ever return -1
       and will minimize amount of calls to glGetInteger() }
     FLastGLFreeLight: integer;
@@ -314,13 +479,6 @@ type
 
     { ----------------------------------------------------------------- }
 
-    { zwraca GLU_SMOOTH lub GLU_FLAT, zgodnie z Attrib_SmoothShading. }
-    function Attrib_SmoothNormalsGLU: TGLenum;
-
-    { zwraca Color zmodulowany uzywajac Attrib_ColorModulator }
-    function ColorModulated(const Color: TVector3Single): TVector3Single; overload;
-    function ColorModulated(const Color: TVector3Byte): TVector3Byte; overload;
-
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
       State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
@@ -332,106 +490,20 @@ type
     FogEnabled: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
+
+    FAttributes: TVRMLRenderingAttributes;
   public
+    { slowo o atrybutach renderowania
+      ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
+      tylko w momencie gdy renderer
+      nie jest przywiazany do zadnego kontekstu OpenGL'a (co jest zwiazane z tym
+      ze przywiazanie do danego kontekstu OpenGL'a oznacza takze ze czesc pracy
+      z dostosowaniem sie do takich a nie innych atrybutow renderowania
+      zostala juz zrobiona) czyli zaraz po wywolaniu konstruktora lub
+      UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*). }
+    property Attributes: TVRMLRenderingAttributes read FAttributes;
 
-    { ---------------------------------------------------------------------
-      atrybuty wyswietlania Attrib }
-
-    {tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
-       (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
-       glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
-       Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
-       TNodeGeneralShape ktory renderuje ten vertex i b)wspolrzedne vertexa
-       przemnozone przez RenderState.CurrMatrix. Innymi slowy bedzie to
-       wspolrzedna vertexa wzgledem lokalnego ukladu wspolrzednych VRML'a
-       (podczas gdy rzeczywista komenda glVertex prawdopodobnie przekaze
-       OpenGL'owi wspolrzedne prosto z pliku VRML (a wiec byc moze wzgledem
-       ukladu wspolrzednych aktualnego node'a, a nie calego VRML'a)).
-     Zrobilem ta proc zeby zrobic glForCoord, ale byc moze znajdzie sie
-       kiedys dla niej jeszcze jakies zastosowanie. }
-    Attrib_OnBeforeGLVertex: TBeforeGLVertexProc; { = nil }
-
-    { Ponizsze ustawienie kontroluje czy na poczatku renderowania sceny wywolac
-        glShadeModel(GL_SMOOTH) czy GL_FLAT. Ponadto w czasie renderowania
-        sceny beda generowane odpowiednie normale (troszeczke inne normale
-        trzeba generowac gdy chcemy miec powierzchnie flat, a inne gdy smooth;
-        NIE WYSTACZY generowac zawsze normali smooth i tylko przestawiac
-        glShadeModel na GL_FLAT aby miec poprawne cieniowanie flat.
-        Chociaz zazwyczaj daje to tez dobre efekty; w szczeglnosci,
-        pamietaj ze nie bedziemy zmieniac normali ktore juz bedziemy mieli
-        podane w pliku VRMLa; wiec i tak nie bedzie pelnej poprawnosci
-        bo jezeli te normale byly zapisane smooth a my chcemy flat
-        to uzyjemy tych normali smooth z shadeModel ustawionym na FLAT).
-      Oczywiscie powinienes uzywac GL_SMOOTH bo rezultaty moga nie byc
-        tak dobre jak moglyby byc jesli uzyjesz GL_FLAT; no, ale beda
-        przewidywalne; wiec jesli np. wiesz ze dla danego modelu
-        GL_FLAT wyprodukuje zadowalajacy wynik to mozesz tego uzyc)}
-    Attrib_SmoothShading: boolean; { = true }
-
-    { Za pomoca ponizszych ColorModulatorow mozna osiagnac mile efekty renderowania
-      sceny w spacjalnych kolorach - np. grayscale, tylko red channel itp.
-      Zawsze lepiej jest je robic metodami OpenGL'a, jak np. BlackOuty,
-      ale nie wszystko mozna zrobic metodami OpenGL'a - np. sceny grayscale
-      nie stworzymy robiac jakies proste sztuczki 2d w OpenGL'u.
-      Tutaj mozna podac funkcje ktora w dowolny sposob modyfikuje kolor
-      (ale pamietajmy ze ona modyfikuje kolor obiektu/swiatla/itp., a nie
-      wynikowy kolor pixela na 2d; wiec np. powierzchnie nieoswietlone
-      zawsze beda w ten sposob ciemne chocby modulator odwracal kolory itp.).
-
-      Obie funkcje ColorModulator* musza byc nil lub musza wykonywac analogiczna
-      konwersje ! (bo nie jest zdefiniowane kiedy nasz engine uzyje wersji
-      Byte a kiedy Single)
-
-      Ponadto musza wyniki tych funkcji musza byc zdeterminowane na podstawie
-      argumentow - tzn. te funkcje nie moga zwracac czegos losowego, nie moga
-      zwracac czegos na podstawie aktualnego czasu itp. To dlatego ze
-      nie jest zdefiniowane jak dlugo wyniki tych funkcji moga byc w roznych
-      miejscach kodu cache'owane. }
-    Attrib_ColorModulatorSingle: TColorModulatorSingleFunc; { = nil }
-    Attrib_ColorModulatorByte: TColorModulatorByteFunc; { = nil }
-
-    { UseLights mowi zeby oswietlac shape'y swiatlami w node'ach VRMLa.
-      Wykorzysta do tego swiatla OpenGL'a od FirstGLFreeLight .. LastGLFreeLight.
-      Gdy LastGLFreeLight = -1 to zostanie uzyte glGet(GL_MAX_LIGHT)-1
-      (czyli wszystkie swiatla powyzej First beda potraktowane jako wolne. }
-    Attrib_UseLights: boolean; { = false }
-    Attrib_FirstGLFreeLight: integer; { = 0 }
-    Attrib_LastGLFreeLight: integer; { = -1 }
-
-    { Jezeli not RenderAttrib_EnableTextures to przez caly czas renderowania
-        sceny jest glDisable(GL_TEXTURE2D). Wiekszosc node'ow powstrzymuje sie
-        wtedy takze od generowania wspolrzednych tekstury wiec mozemy miec
-        maly zysk szybkosci.
-      Jezeli jest true to robimy normalnie : gdy jakas tekstura jest aktywna
-        to jej uzywamy, ustawiajac sobie glEnable(GL_TEXTURE2D) gdy trzeba. }
-    Attrib_EnableTextures: boolean; { = true }
-
-    { ponizsze parametry kontroluja min i mag filter dla tekstur }
-    Attrib_TextureMinFilter, Attrib_TextureMagFilter: TGLint; { = GL_LINEAR, GL_LINEAR }
-
-    { scena bedzie wyswietlana z glPointSize(Attrib_PointSize),
-      co ma wplyw tylko na renderowanie PointSet. Zrobilem to atrybutem
-      renderera (zamiast po prostu pozwolic temu stanowi OpenGL'a "przeciec"
-      z zewnatrz) bo domyslny rozmiar mial byc = 3 a nie 1 (jak w OpenGL'u) }
-    Attrib_PointSize: integer; { = 3 }
-
-    { true oznacza ze stan zmiennych OpenGLa GL_FOG_BIT (w szczegolnosci
-        stan enabled/disabled GL_FOG) jest kontrolowany przez tego renderera
-        (pomiedzy RenderBegin a RenderEnd stan tych zmiennych zalezy tylko od
-        przekazanych do RenderBegin informacji o mgle, nie zalezy od dotychczasowego
-        (przed wywolaniem RenderBegin) stanu OpenGLa).
-      false oznacza ze informacje o mgle przekazywane do RenderBegin sa
-        ignorowane i w tej klasie zadne wywolania, wlacznie z RenderBegin i
-        RenderEnd, nie dotykaja zmiennych z grupy atrybutow GL_FOG_BIT.
-      Innymi slowy, przy true ustawienia mgly z jakimi renderowany jest model
-        sa calkowicie zdeterminowane przez podane do RenderBegin informacje
-        o mgle. Przy false sa calkowicie zdeterminowane przez ustawienia
-        mgly w OpenGLu w momencie wywolywania RenderBegin. }
-    Attrib_UseFog: boolean; { = true }
-
-    { ----------------------------------------------------------------------------- }
-
-    constructor Create;
+    constructor Create(AttributesClass: TVRMLRenderingAttributesClass);
     destructor Destroy; override;
 
     { przygotuj stan State aby moc pozniej renderowac shape'y ze stanem State.
@@ -468,6 +540,109 @@ uses NormalsCalculator, Math, Triangulator;
 
 {$I openglmac.inc}
 
+{ TVRMLRenderingAttributes --------------------------------------------------- }
+
+constructor TVRMLRenderingAttributes.Create;
+begin
+  inherited;
+
+  FSmoothShading := true;
+  FUseLights := false;
+  FFirstGLFreeLight := 0;
+  FLastGLFreeLight := -1;
+  FEnableTextures := true;
+  FTextureMinFilter := GL_LINEAR;
+  FTextureMagFilter := GL_LINEAR;
+  FPointSize := 3;
+  FUseFog := true;
+end;
+
+procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
+  const Value: TBeforeGLVertexProc);
+begin
+  FOnBeforeGLVertex := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetSmoothShading(const Value: boolean);
+begin
+  FSmoothShading := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetColorModulatorSingle(
+  const Value: TColorModulatorSingleFunc);
+begin
+  FColorModulatorSingle := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetColorModulatorByte(
+  const Value: TColorModulatorByteFunc);
+begin
+  FColorModulatorByte := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetUseLights(const Value: boolean);
+begin
+  FUseLights := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: integer);
+begin
+  FFirstGLFreeLight := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetLastGLFreeLight(const Value: integer);
+begin
+  FLastGLFreeLight := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
+begin
+  FEnableTextures := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
+begin
+  FTextureMinFilter := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
+begin
+  FTextureMagFilter := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetPointSize(const Value: integer);
+begin
+  FPointSize := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetUseFog(const Value: boolean);
+begin
+  FUseFog := Value;
+end;
+
+function TVRMLRenderingAttributes.SmoothNormalsGLU: TGLenum;
+begin
+  if SmoothShading then
+    Result := GLU_SMOOTH else
+    Result := GLU_FLAT;
+end;
+
+function TVRMLRenderingAttributes.ColorModulated(
+  const Color: TVector3Single): TVector3Single;
+begin
+  if Assigned(ColorModulatorSingle) then
+    Result := ColorModulatorSingle(Color) else
+    Result := Color;
+end;
+
+function TVRMLRenderingAttributes.ColorModulated(
+  const Color: TVector3Byte): TVector3Byte;
+begin
+  if Assigned(ColorModulatorByte) then
+    Result := ColorModulatorByte(Color) else
+    Result := Color;
+end;
+
 { TDynTextureGLBindingArray ---------------------------------------------------- }
 
 function TDynTextureGLBindingArray.TextureNodeIndex(TexNode: TNodeTexture2): integer;
@@ -479,30 +654,25 @@ end;
 
 { TVRMLOpenGLRenderer ---------------------------------------------------------- }
 
-constructor TVRMLOpenGLRenderer.Create;
+constructor TVRMLOpenGLRenderer.Create(
+  AttributesClass: TVRMLRenderingAttributesClass);
 begin
- inherited Create;
+  inherited Create;
 
- FLastGLFreeLight := -1;
+  { This is something different than FAttributes.FLastGLFreeLight.
+    See LastGLFreeLight function. }
+  FLastGLFreeLight := -1;
 
- Attrib_SmoothShading := true;
- Attrib_UseLights := false;
- Attrib_FirstGLFreeLight := 0;
- Attrib_LastGLFreeLight := -1;
- Attrib_EnableTextures := true;
- Attrib_TextureMinFilter := GL_LINEAR;
- Attrib_TextureMagFilter := GL_LINEAR;
- Attrib_PointSize := 3;
- Attrib_UseFog := true;
-
- TextureGLBindings := TDynTextureGLBindingArray.Create;
+  FAttributes := AttributesClass.Create;
+  TextureGLBindings := TDynTextureGLBindingArray.Create;
 end;
 
 destructor TVRMLOpenGLRenderer.Destroy;
 begin
- UnprepareAll;
- TextureGLBindings.Free;
- inherited;
+  UnprepareAll;
+  TextureGLBindings.Free;
+  FreeAndNil(FAttributes);
+  inherited;
 end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
@@ -531,10 +701,10 @@ begin
 
    TexGLBinding.TextureGL := LoadGLTextureModulated(
      State.LastNodes.Texture2.TextureImage,
-     Attrib_TextureMinFilter, Attrib_TextureMagFilter,
+     Attributes.TextureMinFilter, Attributes.TextureMagFilter,
      TexWrapEnumToGL[State.LastNodes.Texture2.FdWrapS.Value],
      TexWrapEnumToGL[State.LastNodes.Texture2.FdWrapT.Value],
-     Attrib_ColorModulatorByte);
+     Attributes.ColorModulatorByte);
 
    TextureGLBindings.AppendItem(TexGLBinding);
   end;
@@ -585,9 +755,9 @@ begin
  if FLastGLFreeLight = -1 then
  begin
   {jezeli jeszcze nie pobrane FLastGLFreeLight to pobierz je teraz:}
-  if Attrib_LastGLFreeLight = -1 then
+  if Attributes.LastGLFreeLight = -1 then
    FLastGLFreeLight := glGetInteger(GL_MAX_LIGHTS)-1 else
-   FLastGLFreeLight := Attrib_LastGLFreeLight;
+   FLastGLFreeLight := Attributes.LastGLFreeLight;
  end;
  result := FLastGLFreeLight;
 end;
@@ -609,7 +779,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
   begin
    FogVolumetric := false;
    FogEnabled := false;
-   if not Attrib_UseFog then Exit;
+   if not Attributes.UseFog then Exit;
 
    if (FogNode = nil) or (FogNode.FdVisibilityRange.Value = 0.0) then
     begin glDisable(GL_FOG); Exit end;
@@ -656,7 +826,7 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
 
    glEnable(GL_FOG);
    glFogv(GL_FOG_COLOR,
-     Vector4Single(ColorModulated(FogNode.FdColor.Value), 1.0));
+     Vector4Single(Attributes.ColorModulated(FogNode.FdColor.Value), 1.0));
    case FogType of
     0: begin
         glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -688,7 +858,7 @@ begin
  glDisable(GL_TEXTURE_GEN_T);
  glDisable(GL_TEXTURE_GEN_Q);
  glEnable(GL_NORMALIZE);
- glPointSize(Attrib_PointSize);
+ glPointSize(Attributes.PointSize);
  glEnable(GL_DEPTH_TEST);
  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
@@ -703,12 +873,13 @@ begin
  {AlphaFunc uzywane tylko w Texture2 i tam taka wartosc jest dobra}
  glAlphaFunc(GL_GEQUAL, 0.5);
 
- if Attrib_SmoothShading then
+ if Attributes.SmoothShading then
   glShadeModel(GL_SMOOTH) else
   glShadeModel(GL_FLAT);
 
- if Attrib_UseLights then
-  for i := Attrib_FirstGLFreeLight to LastGLFreeLight do glDisable(GL_LIGHT0+i);
+ if Attributes.UseLights then
+   for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
+     glDisable(GL_LIGHT0+i);
 
  SetupFog;
 end;
@@ -777,13 +948,14 @@ begin
  glMatrixMode(GL_TEXTURE); glLoadMatrix(State.CurrTextureMatrix);
  glMatrixMode(GL_MODELVIEW);
 
- { uwzglednij atrybut Attrib_UseLights : jezeli jest = true to zdefiniuj
+ { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj
    OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
    transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
    nie podlegaja transformacji aktualnego State'a w ktorym sa) }
- if Attrib_UseLights then
-   glLightsFromVRML(State.ActiveLights, Attrib_FirstGLFreeLight, LastGLFreeLight,
-     Attrib_ColorModulatorSingle);
+ if Attributes.UseLights then
+   glLightsFromVRML(State.ActiveLights,
+     Attributes.FirstGLFreeLight, LastGLFreeLight,
+     Attributes.ColorModulatorSingle);
 
  glPushMatrix;
    glMultMatrix(State.CurrMatrix);
@@ -813,9 +985,11 @@ begin
     i ktos zechce kombinowac finezyjne transparency
     materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
    }
-   if (State.LastNodes.Texture2.IsTextureImage) and Attrib_EnableTextures then
+   if (State.LastNodes.Texture2.IsTextureImage) and
+     Attributes.EnableTextures then
    begin
-    SetGLEnabled(GL_ALPHA_TEST, State.LastNodes.Texture2.TextureImage is TAlphaImage);
+    SetGLEnabled(GL_ALPHA_TEST,
+      State.LastNodes.Texture2.TextureImage is TAlphaImage);
     glEnable(GL_TEXTURE_2D);
     TextureGLBindingsIndex := TextureGLBindings.TextureNodeIndex(
       State.LastNodes.Texture2);
@@ -870,26 +1044,5 @@ begin
  glPopMatrix;
 end;
 {$endif}
-
-{ inne metody --------------------------------------------------------------- }
-
-function TVRMLOpenGLRenderer.Attrib_SmoothNormalsGLU: TGLenum;
-begin
- if Attrib_SmoothShading then result := GLU_SMOOTH else result := GLU_FLAT;
-end;
-
-function TVRMLOpenGLRenderer.ColorModulated(const Color: TVector3Single): TVector3Single;
-begin
- if Assigned(Attrib_ColorModulatorSingle) then
-  result := Attrib_ColorModulatorSingle(Color) else
-  result := Color;
-end;
-
-function TVRMLOpenGLRenderer.ColorModulated(const Color: TVector3Byte): TVector3Byte;
-begin
- if Assigned(Attrib_ColorModulatorByte) then
-  result := Attrib_ColorModulatorByte(Color) else
-  result := Color;
-end;
 
 end.

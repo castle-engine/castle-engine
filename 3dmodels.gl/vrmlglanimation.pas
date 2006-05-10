@@ -124,11 +124,8 @@ type
     destructor Destroy; override;
 
     { You can read anything from Scenes below. But you cannot set some
-      things: don't set their scenes Attrib_ properties.
-
-      TODO: this will be allowed by making Attrib_ properties
-      in this class, that properly deal with our shared Renderer object.
-      Right now it was not needed anywhere.
+      things: don't set their scenes Attributes properties.
+      Use only our @link(Attributes).
 
       @noAutoLinkHere }
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
@@ -217,6 +214,20 @@ type
     { See SceneFromTime for description what this property does. }
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
+
+    { Attributes controlling rendering.
+      See TVRMLSceneRenderingAttributes and TVRMLRenderingAttributes
+      for documentation of properties.
+
+      You can change properties of this
+      object at any time, but beware that some changes may force
+      time-consuming regeneration of some things (like OpenGL display lists)
+      in the nearest Render of the scenes.
+      So explicitly calling PrepareRender may be useful after
+      changing these Attributes.
+
+      @noAutoLinkHere }
+    function Attributes: TVRMLSceneRenderingAttributes;
   end;
 
 implementation
@@ -503,7 +514,7 @@ begin
 
   FScenes := TVRMLFlatSceneGLsList.Create;
 
-  Renderer := TVRMLOpenGLRenderer.Create;
+  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes);
 
   FTimeBegin := ATimes[0];
   FTimeEnd := ATimes[High(ATimes)];
@@ -624,7 +635,7 @@ procedure TVRMLGLAnimation.CloseGL;
   here and check is everything <> nil before freeing it. }
 begin
   if FScenes <> nil then
-    FScenes.CloseGLAll;
+    FScenes.CloseGL;
 
   if Renderer <> nil then
     Renderer.UnprepareAll;
@@ -685,6 +696,11 @@ begin
   end;
 
   Result := FScenes[SceneNumber];
+end;
+
+function TVRMLGLAnimation.Attributes: TVRMLSceneRenderingAttributes;
+begin
+  Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
 end;
 
 end.

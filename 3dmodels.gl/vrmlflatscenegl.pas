@@ -142,6 +142,40 @@ type
   PArray_Quad3Single = PInfiniteArray_1;
   TDynQuad3SingleArray = TDynArray_1;
 
+  TVRMLFlatSceneGLsList = class;
+
+  TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
+  private
+    { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
+    FScenes: TVRMLFlatSceneGLsList;
+
+    FBlending: boolean;
+  protected
+    procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
+    procedure SetSmoothShading(const Value: boolean); override;
+    procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
+    procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
+    procedure SetUseLights(const Value: boolean); override;
+    procedure SetFirstGLFreeLight(const Value: integer); override;
+    procedure SetLastGLFreeLight(const Value: integer); override;
+    procedure SetEnableTextures(const Value: boolean); override;
+    procedure SetTextureMinFilter(const Value: TGLint); override;
+    procedure SetTextureMagFilter(const Value: TGLint); override;
+    procedure SetPointSize(const Value: integer); override;
+    procedure SetUseFog(const Value: boolean); override;
+
+    procedure SetBlending(const Value: boolean); virtual;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+
+    { jezeli true to elementy sceny z IsAllMaterialsTransparent beda
+      rysowane uzywajac blending OpenGLa. Wpp. wszystko bedzie rysowane
+      jako nieprzezroczyste. }
+    property Blending: boolean
+      read FBlending write SetBlending default true;
+  end;
+
   { This is a descendant of TVRMLFlatScene that makes it easy to render
     VRML scene into OpenGL. The point is that this class is the final,
     comfortable utility to deal with VRML files when you want to be able
@@ -331,6 +365,9 @@ type
 
     { This is a very special constructor, that forces this class to use
       provided AProvidedRenderer.
+
+      Note that this renderer must be created with AttributesClass
+      = TVRMLSceneRenderingAttributes.
 
       @italic(Don't use this unless you really know what you're doing!)
       In all normal circumstances you should use normal @link(Create)
@@ -587,7 +624,7 @@ type
       are based on the attributes of first "Background" VRML node in the
       RootNode scene (and on his place in scene transformations).
       They are also based on current value of BackgroundSkySphereRadius.
-      And on the values of Attrib_ColorModulatorSingle/Byte.
+      And on the values of Attributes.ColorModulatorSingle/Byte.
       If there is no "Background" node in VRML scene this function returns nil.
 
       Note: this Background object is managed (automatically created/freed
@@ -597,7 +634,7 @@ type
 
       The results of this function are internally cached. Cache is invalidated
       on such situations as change in RootNode scene, changes to
-      BackgroundSkySphereRadius, CloseGL, Attrib_ColorModulatorSingle/Byte.
+      BackgroundSkySphereRadius, CloseGL, Attributes.ColorModulatorSingle/Byte.
 
       PrepareBackground (and PrepareRender(true, ...)) automatically validate this
       cache.
@@ -606,78 +643,37 @@ type
       So you HAVE to call CloseGL to disconnent this object from
       current OpenGL context after you used this function. }
     function Background: TBackgroundGL;
-  private
-    FAttrib_Blending: boolean;
-    procedure SetAttrib_Blending(value: boolean);
-  public
 
-    { -------------------------------------------------------------------
-      Atrybuty renderowania. Wszystkie atrybuty renderowania mozesz
-      zmieniac w dowolnym momencie (nawet atrybuty przekazywane do
-      VRMLOpenGLRenderera; mimo ze VRMLOpenGLRenderer
+    { Atrybuty renderowania. Wszystkie atrybuty renderowania mozesz
+      zmieniac w dowolnym momencie. Nawet atrybuty zdefiniowane
+      i wykonywane przez TVRMLOpenGLRenderera; mimo ze TVRMLOpenGLRenderer
       mial bardziej restrykcyjna polityke kiedy mozna bylo modyfikowac
-      te atrybuty).
+      Attributes.
 
       Chociaz powinienes zdawac sobie sprawe z faktu ze zmiana wartosci
       atrybutu moze spowodowac ze nastepne
       wywolanie Render bedzie musialo sobie cos przeliczac od nowa
-      (wywolanie PrepareRender moze miec sens w takiej sytuacji). }
+      (wywolanie PrepareRender moze miec sens w takiej sytuacji).
 
-    { Atrybuty renderowania realizowane w tym module }
+      Note for ColorModulatorSingle/Byte properties:
+      In addition to effects described at TVRMLOpenGLRenderer,
+      they also affect what the TVRMLFlatSceneGL.Background function returns. }
+    function Attributes: TVRMLSceneRenderingAttributes;
+  end;
 
-    { jezeli true to elementy sceny z IsAllMaterialsTransparent beda
-      rysowane uzywajac blending OpenGLa. Wpp. wszystko bedzie rysowane
-      jako nieprzezroczyste. }
-    property Attrib_Blending: boolean read FAttrib_Blending write
-      SetAttrib_Blending; { = true }
-
-    { Atrybuty renderowania przekazywane do VRMLOpenGLRenderera.
-      Po opis znaczenia tych atrybutow patrz VRMLOpenGLRenderer;
-      tam tez zobaczysz domyslne wartosci tych atrybutow. }
+  TObjectsListItem_1 = TVRMLFlatSceneGL;
+  {$I objectslist_1.inc}
+  TVRMLFlatSceneGLsList = class(TObjectsList_1)
   private
-    function GetAttrib_OnBeforeGLVertex: TBeforeGLVertexProc;
-    function GetAttrib_SmoothShading: boolean;
-    function GetAttrib_ColorModulatorSingle: TColorModulatorSingleFunc;
-    function GetAttrib_ColorModulatorByte: TColorModulatorByteFunc;
-    function GetAttrib_UseLights: boolean;
-    function GetAttrib_FirstGLFreeLight: integer;
-    function GetAttrib_LastGLFreeLight: integer;
-    function GetAttrib_EnableTextures: boolean;
-    function GetAttrib_TextureMinFilter: TGLint;
-    function GetAttrib_TextureMagFilter: TGLint;
-    function GetAttrib_PointSize: integer;
-    function GetAttrib_UseFog: boolean;
-
-    procedure SetAttrib_OnBeforeGLVertex(const Value: TBeforeGLVertexProc);
-    procedure SetAttrib_SmoothShading(const Value: boolean);
-    procedure SetAttrib_ColorModulatorSingle(const Value: TColorModulatorSingleFunc);
-    procedure SetAttrib_ColorModulatorByte(const Value: TColorModulatorByteFunc);
-    procedure SetAttrib_UseLights(const Value: boolean);
-    procedure SetAttrib_FirstGLFreeLight(const Value: integer);
-    procedure SetAttrib_LastGLFreeLight(const Value: integer);
-    procedure SetAttrib_EnableTextures(const Value: boolean);
-    procedure SetAttrib_TextureMinFilter(const Value: TGLint);
-    procedure SetAttrib_TextureMagFilter(const Value: TGLint);
-    procedure SetAttrib_PointSize(const Value: integer);
-    procedure SetAttrib_UseFog(const Value: boolean);
+    { Just call FBackgroundInvalidate or CloseGLRenderer on all items.
+      These methods are private, because corresponding methods in
+      TVRMLFlatSceneGL are also private and we don't want to expose
+      them here. }
+    procedure FBackgroundInvalidate;
+    procedure CloseGLRenderer;
   public
-    property Attrib_OnBeforeGLVertex: TBeforeGLVertexProc read GetAttrib_OnBeforeGLVertex write SetAttrib_OnBeforeGLVertex;
-    property Attrib_SmoothShading: boolean read GetAttrib_SmoothShading write SetAttrib_SmoothShading;
-
-    { In addition to effects described at TVRMLOpenGLRenderer,
-      Attrib_ColorModulatorSingle/Byte also affect what the
-      TVRMLFlatSceneGL.Background function returns. }
-    property Attrib_ColorModulatorSingle: TColorModulatorSingleFunc read GetAttrib_ColorModulatorSingle write SetAttrib_ColorModulatorSingle;
-    property Attrib_ColorModulatorByte: TColorModulatorByteFunc read GetAttrib_ColorModulatorByte write SetAttrib_ColorModulatorByte;
-
-    property Attrib_UseLights: boolean read GetAttrib_UseLights write SetAttrib_UseLights;
-    property Attrib_FirstGLFreeLight: integer read GetAttrib_FirstGLFreeLight write SetAttrib_FirstGLFreeLight;
-    property Attrib_LastGLFreeLight: integer read GetAttrib_LastGLFreeLight write SetAttrib_LastGLFreeLight;
-    property Attrib_EnableTextures: boolean read GetAttrib_EnableTextures write SetAttrib_EnableTextures;
-    property Attrib_TextureMinFilter: TGLint read GetAttrib_TextureMinFilter write SetAttrib_TextureMinFilter;
-    property Attrib_TextureMagFilter: TGLint read GetAttrib_TextureMagFilter write SetAttrib_TextureMagFilter;
-    property Attrib_PointSize: integer read GetAttrib_PointSize write SetAttrib_PointSize;
-    property Attrib_UseFog: boolean read GetAttrib_UseFog write SetAttrib_UseFog;
+    { Just call CloseGL on all items. }
+    procedure CloseGL;
   end;
 
 { Parses and removes from Parameters[1]..Parameters.High
@@ -693,13 +689,6 @@ procedure RendererOptimizationOptionsParse(
   to "@--help" command-line parameter). }
 function RendererOptimizationOptionsHelp: string;
 
-type
-  TObjectsListItem_1 = TVRMLFlatSceneGL;
-  {$I objectslist_1.inc}
-  TVRMLFlatSceneGLsList = class(TObjectsList_1)
-    procedure CloseGLAll;
-  end;
-
 {$undef read_interface}
 
 implementation
@@ -709,17 +698,6 @@ uses ParseParametersUnit;
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I dynarray_1.inc}
-
-procedure TVRMLFlatSceneGLsList.CloseGLAll;
-{ This may be called from various destructors,
-  so we are extra careful here and check Items[I] <> nil. }
-var
-  I: Integer;
-begin
- for I := 0 to Count - 1 do
-   if Items[I] <> nil then
-     Items[I].CloseGL;
-end;
 
 { ------------------------------------------------------------ }
 
@@ -779,7 +757,7 @@ end;
   - have to add additional param to KamGLEndList.
 }
 
-{ TVRMLFlatSceneGL ---------------------------------------- }
+{ TVRMLFlatSceneGL ------------------------------------------------------------ }
 
 procedure TVRMLFlatSceneGL.CommonCreate(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -800,8 +778,6 @@ begin
 
   inherited Create(ARootNode, AOwnsRootNode);
 
-  FAttrib_Blending := true;
-
   FBackgroundSkySphereRadius := 1.0;
   FBackgroundValid := false;
   FBackground := nil;
@@ -811,8 +787,15 @@ begin
   DefaultSavedShadowQuads := TDynQuad3SingleArray.Create;
 
   if FUsingProvidedRenderer then
-    Renderer := AProvidedRenderer else
-    Renderer := TVRMLOpenGLRenderer.Create;
+  begin
+    Renderer := AProvidedRenderer;
+    Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
+  end else
+    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes);
+
+  { Note that this calls Renderer.Attributes, so use this after
+    initializing Rendered. }
+  Attributes.FScenes.Add(Self);
 end;
 
 constructor TVRMLFlatSceneGL.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -830,17 +813,21 @@ end;
 
 destructor TVRMLFlatSceneGL.Destroy;
 begin
- CloseGL;
+  CloseGL;
 
- if not FUsingProvidedRenderer then
-   FreeAndNil(Renderer);
+  { Note that this calls Renderer.Attributes, so use this before
+    deinitializing Rendered. }
+  Attributes.FScenes.Delete(Self);
 
- FreeAndNil(SSS_DisplayLists);
- FreeAndNil(RenderFrustumOctree_Visible);
+  if not FUsingProvidedRenderer then
+    FreeAndNil(Renderer);
 
- FreeAndNil(DefaultSavedShadowQuads);
+  FreeAndNil(SSS_DisplayLists);
+  FreeAndNil(RenderFrustumOctree_Visible);
 
- inherited;
+  FreeAndNil(DefaultSavedShadowQuads);
+
+  inherited;
 end;
 
 procedure TVRMLFlatSceneGL.CloseGLRenderer;
@@ -954,7 +941,7 @@ begin
 
    glDepthMask(GL_TRUE);
    glDisable(GL_BLEND);
-   if Attrib_Blending then
+   if Attributes.Blending then
    begin
     { uzywamy zmiennej TransparentObjectsExists aby ew. (jesli na scenie
       nie ma zadnych obiektow ktore chcemy renderowac z blending)
@@ -1442,8 +1429,8 @@ begin
      @(BgNode.FdSkyAngle.Items.Items[0]), BgNode.FdSkyAngle.Count,
      @(BgNode.FdSkyColor.Items.Items[0]), BgNode.FdSkyColor.Count,
      BackgroundSkySphereRadius,
-     Attrib_ColorModulatorSingle,
-     Attrib_ColorModulatorByte);
+     Attributes.ColorModulatorSingle,
+     Attributes.ColorModulatorByte);
   end else
    FBackground := nil;
 
@@ -1457,110 +1444,193 @@ begin
  result := FBackground;
 end;
 
-{ atrybuty realizowane w tym module ---------------------------------------- }
-
-{$define PROPERTY_SET_WITH_CLOSE_GL_RENDERER:=
+function TVRMLFlatSceneGL.Attributes: TVRMLSceneRenderingAttributes;
 begin
- if PROPERTY_PRIVATE_NAME <> Value then
- begin
-  CloseGLRenderer;
-  PROPERTY_PRIVATE_NAME := Value;
- end;
-end;}
+  Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
+end;
 
-{$define PROPERTY_FUNC_SET_WITH_CLOSE_GL_RENDERER:=
+{ TVRMLSceneRenderingAttributes ---------------------------------------------- }
+
+constructor TVRMLSceneRenderingAttributes.Create;
 begin
- if @PROPERTY_FUNC_PRIVATE_NAME <> @Value then
- begin
-  CloseGLRenderer;
-  PROPERTY_FUNC_PRIVATE_NAME := Value;
- end;
-end;}
+  inherited;
+  FBlending := true;
+  FScenes := TVRMLFlatSceneGLsList.Create;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_Blending(value: boolean);
-{$define PROPERTY_PRIVATE_NAME := FAttrib_Blending}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+destructor TVRMLSceneRenderingAttributes.Destroy;
+begin
+  FreeAndNil(FScenes);
+  inherited;
+end;
 
-{ --------------------------------------------------------------------------------
-  atrybuty przekazywane do VRMLOpenGLRenderera - procedury Get/Set do nich;
-  Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
+{ Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
   od aktualnego kontekstu OpenGLa, wiec musimy przed zmiana atrybutu
   wywolac przynajmniej Renderer.UnprepareAll.
 
   Prawda jest taka ze my tez musimy byc wolni - nie mozemy miec zadnych
-  przeliczonych display-list, nic takiego, bo wlasnie zmiana Attrib_ renderera
+  przeliczonych display-list, nic takiego, bo wlasnie zmiana Attributes renderera
   moze te rzeczy zdezaktualizowac - z innymi attrib renderer bedzie dawal
   co innego.
 
-  Wiec kazda zmiana atrybutu musi byc poprzedzona CloseGLRenderer, wiec
-  uzywamy makr PROPERTY_SET_WITH_CLOSE_GL_RENDERER. }
+  Wiec kazda zmiana atrybutu musi byc poprzedzona ScenesCloseGLRenderer. }
 
-procedure TVRMLFlatSceneGL.SetAttrib_OnBeforeGLVertex(const Value: TBeforeGLVertexProc);
-{$define PROPERTY_FUNC_PRIVATE_NAME := Renderer.Attrib_OnBeforeGLVertex}
-PROPERTY_FUNC_SET_WITH_CLOSE_GL_RENDERER
-
-procedure TVRMLFlatSceneGL.SetAttrib_SmoothShading(const Value: boolean);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_SmoothShading}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
-
-procedure TVRMLFlatSceneGL.SetAttrib_ColorModulatorSingle(const Value: TColorModulatorSingleFunc);
-{$define PROPERTY_FUNC_PRIVATE_NAME := Renderer.Attrib_ColorModulatorSingle}
+procedure TVRMLSceneRenderingAttributes.SetBlending(const Value: boolean);
 begin
- FBackgroundInvalidate;
- PROPERTY_FUNC_SET_WITH_CLOSE_GL_RENDERER
+  if Blending <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FBlending := Value;
+  end;
 end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_ColorModulatorByte(const Value: TColorModulatorByteFunc);
-{$define PROPERTY_FUNC_PRIVATE_NAME := Renderer.Attrib_ColorModulatorByte}
+procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
+  const Value: TBeforeGLVertexProc);
 begin
- FBackgroundInvalidate;
- PROPERTY_FUNC_SET_WITH_CLOSE_GL_RENDERER
+  if @OnBeforeGLVertex <> @Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
 end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_UseLights(const Value: boolean);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_UseLights}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetSmoothShading(const Value: boolean);
+begin
+  if SmoothShading <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_FirstGLFreeLight(const Value: integer);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_FirstGLFreeLight}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetColorModulatorSingle(
+  const Value: TColorModulatorSingleFunc);
+begin
+  if @ColorModulatorSingle <> @Value then
+  begin
+    FScenes.FBackgroundInvalidate;
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_LastGLFreeLight(const Value: integer);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_LastGLFreeLight}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetColorModulatorByte(
+  const Value: TColorModulatorByteFunc);
+begin
+  if @ColorModulatorByte <> @Value then
+  begin
+    FScenes.FBackgroundInvalidate;
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_EnableTextures(const Value: boolean);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_EnableTextures}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetUseLights(const Value: boolean);
+begin
+  if UseLights <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_TextureMinFilter(const Value: TGLint);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_TextureMinFilter}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeLight(const Value: integer);
+begin
+  if FirstGLFreeLight <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_TextureMagFilter(const Value: TGLint);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_TextureMagFilter}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetLastGLFreeLight(const Value: integer);
+begin
+  if LastGLFreeLight <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_PointSize(const Value: integer);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_PointSize}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetEnableTextures(const Value: boolean);
+begin
+  if EnableTextures <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-procedure TVRMLFlatSceneGL.SetAttrib_UseFog(const Value: boolean);
-{$define PROPERTY_PRIVATE_NAME := Renderer.Attrib_UseFog}
-PROPERTY_SET_WITH_CLOSE_GL_RENDERER
+procedure TVRMLSceneRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
+begin
+  if TextureMinFilter <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
 
-function TVRMLFlatSceneGL.GetAttrib_OnBeforeGLVertex: TBeforeGLVertexProc; begin result := Renderer.Attrib_OnBeforeGLVertex end;
-function TVRMLFlatSceneGL.GetAttrib_SmoothShading: boolean; begin result := Renderer.Attrib_SmoothShading end;
-function TVRMLFlatSceneGL.GetAttrib_ColorModulatorSingle: TColorModulatorSingleFunc; begin result := Renderer.Attrib_ColorModulatorSingle end;
-function TVRMLFlatSceneGL.GetAttrib_ColorModulatorByte: TColorModulatorByteFunc; begin result := Renderer.Attrib_ColorModulatorByte end;
-function TVRMLFlatSceneGL.GetAttrib_UseLights: boolean; begin result := Renderer.Attrib_UseLights end;
-function TVRMLFlatSceneGL.GetAttrib_FirstGLFreeLight: integer; begin result := Renderer.Attrib_FirstGLFreeLight end;
-function TVRMLFlatSceneGL.GetAttrib_LastGLFreeLight: integer; begin result := Renderer.Attrib_LastGLFreeLight end;
-function TVRMLFlatSceneGL.GetAttrib_EnableTextures: boolean; begin result := Renderer.Attrib_EnableTextures end;
-function TVRMLFlatSceneGL.GetAttrib_TextureMinFilter: TGLint; begin result := Renderer.Attrib_TextureMinFilter end;
-function TVRMLFlatSceneGL.GetAttrib_TextureMagFilter: TGLint; begin result := Renderer.Attrib_TextureMagFilter end;
-function TVRMLFlatSceneGL.GetAttrib_PointSize: integer; begin result := Renderer.Attrib_PointSize end;
-function TVRMLFlatSceneGL.GetAttrib_UseFog: boolean; begin result := Renderer.Attrib_UseFog end;
+procedure TVRMLSceneRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
+begin
+  if TextureMagFilter <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetPointSize(const Value: integer);
+begin
+  if PointSize <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetUseFog(const Value: boolean);
+begin
+  if Usefog <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+{ TVRMLFlatSceneGLsList ------------------------------------------------------ }
+
+procedure TVRMLFlatSceneGLsList.CloseGL;
+{ This may be called from various destructors,
+  so we are extra careful here and check Items[I] <> nil. }
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   if Items[I] <> nil then
+     Items[I].CloseGL;
+end;
+
+procedure TVRMLFlatSceneGLsList.FBackgroundInvalidate;
+{ This may be called from various destructors,
+  so we are extra careful here and check Items[I] <> nil. }
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   if Items[I] <> nil then
+     Items[I].FBackgroundInvalidate;
+end;
+
+procedure TVRMLFlatSceneGLsList.CloseGLRenderer;
+{ This may be called from various destructors,
+  so we are extra careful here and check Items[I] <> nil. }
+var
+  I: Integer;
+begin
+ for I := 0 to Count - 1 do
+   if Items[I] <> nil then
+     Items[I].CloseGLRenderer;
+end;
 
 { non-object routines -------------------------------------------------- }
 

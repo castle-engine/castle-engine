@@ -463,7 +463,7 @@ begin
  inherited;
  if Render_Normals = inGenerate then
  begin
-  if Renderer.Attrib_SmoothShading then
+  if Renderer.Attributes.SmoothShading then
    Render_GeneratedNormals := CreateNormals(
      Node.FdCoordIndex.Items,
      State.LastNodes.Coordinate3.FdPoint.Items,

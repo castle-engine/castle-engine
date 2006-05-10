@@ -29,7 +29,7 @@ var
   VertFogDistance: Single;
 begin
   { We check first, to avoid calculating VertGlobal when it's not needed. }
-  if Assigned(Attrib_OnBeforeGLVertex) or FogVolumetric then
+  if Assigned(Attributes.OnBeforeGLVertex) or FogVolumetric then
   begin
     VertGlobal := MultMatrixPoint(Render_State.CurrMatrix, Vert);
 
@@ -50,8 +50,8 @@ begin
       glFogCoordfEXT(VertFogDistance);
     end;
 
-    if Assigned(Attrib_OnBeforeGLVertex) then
-      Attrib_OnBeforeGLVertex(Render_Node, VertGlobal);
+    if Assigned(Attributes.OnBeforeGLVertex) then
+      Attributes.OnBeforeGLVertex(Render_Node, VertGlobal);
   end;
 end;
 

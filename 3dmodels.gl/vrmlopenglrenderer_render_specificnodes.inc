@@ -120,7 +120,8 @@ begin
 
  Render_BindMaterial(0);
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), Attrib_SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+   Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
@@ -197,7 +198,8 @@ begin
 
  Render_BindMaterial(0);
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), Attrib_SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+   Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
@@ -263,7 +265,8 @@ begin
   glRotatef(-90, 1, 0, 0);
  end;
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), Attrib_SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+   Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   gluSphere(q, Node.FdRadius.Value, QUADRIC_SLICES, QUADRIC_STACKS);
  finally gluDeleteQuadric(q) end;
