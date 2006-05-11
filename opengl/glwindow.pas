@@ -4096,6 +4096,8 @@ var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
 begin
+  inherited;
+
   if ReallyUseMouseLook then
   begin
     MiddleScreenWidth := Width div 2;
