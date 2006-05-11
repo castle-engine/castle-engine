@@ -2312,6 +2312,12 @@ type
         ona po prostu PostRediplay. (Jezeli chcesz robic cos innego w reakcji
         na MatrixChanged to naturalnie nie musisz uzywac
         PostRedisplayOnMatrixChanged.))
+      @item(
+        This will also helps you use MouseLook feature of TMatrixWalker:
+        This will call MouseMove of Navigator with a suitable parameters,
+        and this gives you UpdateMouseLook method that you should use.
+        All that remains to you is to call UpdateMouseLook at appropriate times,
+        and mouse look will work.)
     )
 
     Typical use of this class:
@@ -2328,10 +2334,16 @@ type
   private
     FOwnsNavigator: boolean;
     FUseNavigator: boolean;
+    FNavigator: TMatrixNavigator;
     function ReallyUseNavigator: boolean;
+    function ReallyUseMouseLook: boolean;
   public
-    { Initially is nil. }
-    Navigator: TMatrixNavigator;
+    constructor Create;
+    destructor Destroy; override;
+
+    { Navigator instance used. Initially it's nil. }
+    property Navigator: TMatrixNavigator
+      read FNavigator write FNavigator;
 
     property OwnsNavigator: boolean
       read FOwnsNavigator write FOwnsNavigator default true;
@@ -2355,6 +2367,7 @@ type
     procedure EventKeyDown(key: TKey; c: char); override;
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
+    procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowsProcessMessageSuspend: boolean; override;
 
     { Calculate a ray picked by WindowX, WindowY position on the window.
@@ -2382,8 +2395,24 @@ type
       const ViewAngleDegX, ViewAngleDegY: Single;
       var Ray0, RayVector: TVector3Single);
 
-    constructor Create;
-    destructor Destroy; override;
+    { If you use Navigator of class TMatrixWalker with this window
+      and you want to use it's MouseLook feature then
+      you should call this after you changed Navigator.MouseLook value.
+
+      This sets MouseVisible, and (if Navigator.MouseLook is @true)
+      repositions mouse cursor at the middle of the window.
+
+      You should also call this after you changed Navigator's instance,
+      or UseNavigator, as these things also effectively change the
+      actual state of "using mouse look". OTOH sometimes you don't
+      have to call this --- e.g. if you push/pop mode states using
+      TGLMode and in the mode you set temporary UseNavigator = @false,
+      then you don't have to call this, because TGLMode will push/pop
+      MouseVisible state anyway. That's why I explicitly wrote above
+      what this function does (sets MouseVisible and repositions
+      the mouse) --- so that you can figure out where exactly
+      you have to use it. }
+    procedure UpdateMouseLook;
   end;
 
   TObjectsListItem_1 = TGLWindow;
@@ -4043,6 +4072,76 @@ procedure TGLWindowNavigated.MousePickedRay(
   var Ray0, RayVector: TVector3Single);
 begin
   Ray(MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
+
+function TGLWindowNavigated.ReallyUseMouseLook: boolean;
+begin
+  Result := ReallyUseNavigator and
+    (Navigator is TMatrixWalker) and
+    TMatrixWalker(Navigator).MouseLook;
+end;
+
+procedure TGLWindowNavigated.UpdateMouseLook;
+var
+  ML: boolean;
+begin
+  ML := ReallyUseMouseLook;
+  MouseVisible := not ML;
+  if ML then
+    SetMousePosition(Width div 2, Height div 2);
+end;
+
+procedure TGLWindowNavigated.EventMouseMove(NewX, NewY: Integer);
+var
+  MiddleScreenWidth: Integer;
+  MiddleScreenHeight: Integer;
+begin
+  if ReallyUseMouseLook then
+  begin
+    MiddleScreenWidth := Width div 2;
+    MiddleScreenHeight := Height div 2;
+
+    { Note that SetMousePosition may (but doesn't have to)
+      generate OnMouseMove to destination position.
+      This can cause some problems:
+
+      1. Consider this:
+
+         - player moves mouse to MiddleX-10
+         - MouseMove is generated, I rotate camera by "-10" horizontally
+         - SetMousePosition sets mouse to the Middle,
+           but this time no MouseMove is generated
+         - player moved mouse to MiddleX+10. Although mouse was
+           positioned on Middle, TGLWindow thinks that the mouse
+           is still positioned on Middle-10, and I will get "+20" move
+           for player (while I should get only "+10")
+
+         Fine solution for this would be to always subtract
+         MiddleScreenWidth and MiddleScreenHeight below
+         (instead of previous values, MouseX and MouseY).
+         But this causes another problem:
+
+      2. What if player switches to another window, moves the mouse,
+         than goes alt+tab back to our window ? Next mouse move will
+         be stupid, because it's really *not* from the middle of the screen.
+
+      The solution for both problems: you have to check that previous
+      position, MouseX and MouseY, are indeed equal to
+      MiddleScreenWidth and MiddleScreenHeight. This way we know that
+      this is good move, that qualifies to perform mouse move. }
+    if (MouseX = MiddleScreenWidth) and
+       (MouseY = MiddleScreenHeight) then
+      TMatrixWalker(Navigator).MouseMove(
+        NewX - MiddleScreenWidth, NewY - MiddleScreenHeight);
+
+    { I check the condition below to avoid calling SetMousePosition,
+      OnMouseMove, SetMousePosition, OnMouseMove... in a loop.
+      Not really likely (as messages will be queued, and some
+      SetMousePosition will finally just not generate OnMouseMove),
+      but I want to safeguard anyway. }
+    if (NewX <> MiddleScreenWidth) or (NewY <> MiddleScreenHeight) then
+      SetMousePosition(MiddleScreenWidth, MiddleScreenHeight);
+  end;
 end;
 
 { TGLWindowsList ------------------------------------------------------------ }
