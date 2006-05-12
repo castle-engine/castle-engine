@@ -137,11 +137,17 @@ type
       PrepareRender(...) for all Scenes.
 
       If ProgressStep then it will additionally call Progress.Step after
-      preparing each scene (it will call it ScenesCount times). }
+      preparing each scene (it will call it ScenesCount times).
+
+      If FreeRootNodes then it will free (and set to nil) RootNode
+      of each scene after preparing. This is somewhat dangerous
+      (because you have to be careful then about what methods
+      from scenes you use), but it allows you to save some memory. }
     procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate: boolean;
-      ProgressStep: boolean);
+      ProgressStep: boolean;
+      FreeRootNodes: boolean);
 
     { Close anything associated with current OpenGL context in this class.
       This calls CloseGL on every Scenes[], and additionally may close
@@ -620,7 +626,7 @@ procedure TVRMLGLAnimation.PrepareRender(
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
   DoPrepareTrianglesListOverTriangulate: boolean;
-  ProgressStep: boolean);
+  ProgressStep, FreeRootNodes: boolean);
 var
   I: Integer;
 begin
@@ -629,6 +635,13 @@ begin
     FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate);
+
+    if FreeRootNodes then
+    begin
+      FScenes[I].RootNode.Free;
+      FScenes[I].RootNode := nil;
+    end;
+
     if ProgressStep then
       Progress.Step;
   end;

@@ -200,8 +200,23 @@ type
       e.g. no TNodeGeneralShape nodes.
 
       Always call ChangedAll when you changed RootNode.
-    }
+
+      Note that there is also a trick to conserve memory use.
+      After you've done PrepareRender some things are precalculated here,
+      and RootNode is actually not used. So you can free RootNode
+      (and set it to nil here) @italic(without calling ChangedAll)
+      and some things will just continue to work, unaware of the fact
+      that the underlying RootNode structure is lost.
+      Note that this is still considered a "trick", and you will
+      have to be extra-careful then about what methods/properties
+      from this class. Generally, use only things that you prepared
+      with PrepareRender. So e.g. calling Render or using BoundingBox.
+      If all your needs are that simple, then you can use this trick
+      to save some memory. This is actually useful when using TVRMLGLAnimation,
+      as it creates a lot of intermediate node structures and TVRMLFlatScene
+      instances. }
     property RootNode: TVRMLNode read FRootNode write FRootNode;
+
     { jezeli OwnsRootNode to zwolni go w destruktorze }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
 
