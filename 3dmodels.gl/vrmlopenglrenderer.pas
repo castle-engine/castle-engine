@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -239,7 +239,7 @@ interface
 uses
   Classes, SysUtils, KambiUtils, VectorMath, OpenGLh,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
-  OpenGLFonts, KambiGLUtils, VRMLLightSetGL;
+  OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes;
 
 {$define read_interface}
 
@@ -247,20 +247,42 @@ type
   TBeforeGLVertexProc = procedure (Node: TNodeGeneralShape;
     const Vert: TVector3Single) of object;
 
-  TTextureGLBinding = record
+  TTextureReference = record
     TextureNode: TNodeTexture2;
     TextureGL: TGLuint;
   end;
-  PTextureGLBinding = ^TTextureGLBinding;
+  PTextureReference = ^TTextureReference;
 
-  TDynArrayItem_1 = TTextureGLBinding;
-  PDynArrayItem_1 = PTextureGLBinding;
+  TDynArrayItem_1 = TTextureReference;
+  PDynArrayItem_1 = PTextureReference;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynTextureGLBindingArray = class(TDynArray_1)
+  TDynTextureReferenceArray = class(TDynArray_1)
+  public
     { szuka rekordu z danym TextureNode.
       Zwraca jego indeks lub -1 jesli nie znajdzie. }
     function TextureNodeIndex(TexNode: TNodeTexture2): integer;
+  end;
+
+  TTextureCache = record
+    FileName: string;
+    Node: TNodeTexture2;
+    MinFilter: TGLint;
+    MagFilter: TGLint;
+    WrapS: TGLenum;
+    WrapT: TGLenum;
+    ColorModulator: TColorModulatorByteFunc;
+    References: Cardinal;
+    GLName: TGLuint;
+  end;
+  PTextureCache = ^TTextureCache;
+
+  TDynArrayItem_2 = TTextureCache;
+  PDynArrayItem_2 = PTextureCache;
+  {$define DYNARRAY_2_IS_STRUCT}
+  {$define DYNARRAY_2_IS_INIT_FINI_TYPE}
+  {$I dynarray_2.inc}
+  TDynTextureCacheArray = class(TDynArray_2)
   end;
 
   { These are various properties that control rendering done
@@ -437,6 +459,107 @@ type
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
 
+  TGLOutlineFontCache = record
+    References: Cardinal;
+    Instance: TGLOutlineFont;
+  end;
+
+  { This is a cache that may be used by many TVRMLOpenGLRenderer
+    instances to share some common resources related to this OpenGL
+    context.
+
+    For examples, texture names and OpenGL display lists
+    for fonts. Such things can usually be shared by all
+    TVRMLOpenGLRenderer instances used within the same OpenGL context.
+    And this may save a lot of memory if you use many TVRMLOpenGLRenderer
+    instances in your program.
+
+    Instance of this class is tied to particular OpenGL context if and only if
+    there are some TVRMLOpenGLRenderer instances using this cache and
+    tied to that OpenGL context. }
+  TVRMLOpenGLRendererContextCache = class
+  private
+    Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
+    TexturesCaches: TDynTextureCacheArray;
+    FUseTextureFileNames: boolean;
+
+    procedure Fonts_IncReference(
+      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
+      TTF_Font: PTrueTypeFont);
+
+    procedure Fonts_DecReference(
+      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
+
+    { Note that either TextureFileName or TextureNode will be ignored,
+      depending on UseTextureFileNames. }
+    function Texture_IncReference(
+      const TextureImage: TImage;
+      const TextureFileName: string;
+      const TextureNode: TNodeTexture2;
+      const TextureMinFilter, TextureMagFilter: TGLint;
+      const TextureWrapS, TextureWrapT: TGLenum;
+      const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
+
+    procedure Texture_DecReference(
+      const TextureGLName: TGLuint);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    { This deteremines how texture comparison with the cache is performed,
+      i.e. when Texture_IncReference assumes that we have given texture
+      in the cache (and it can be reused) and when it decides that
+      we have not (so it must be added to the cache).
+
+      If @true then if the textures come from the same filename
+      ("filename" means here combined WWWBasePath + filename field
+      of Texture2 VRML node) then the textures are assumed to contain
+      the same image. This seems reasonable and is sensible in 99% of most
+      common cases.
+
+      However this strategy is actually too relaxed
+      (i.e. it can falsely claim that two textures are equal and cache
+      may be used, while in fact the cache shouldn't be reused in this case).
+      For starters, consider that the actual image could be loaded from
+      the filename at various times, and the actual image file could
+      change between. Moreover, consider the fact that there is also
+      an "image" field of Texture2 node that allows you to write image
+      content directly in VRML file. In this case "filename" field
+      of Texture2 node may be left empty. The embedded "image" will also
+      be used if "filename" field is not empty but we can't load image
+      from that file (e.g. file does not exist or invalid format).
+      UseTextureFileNames = @true strategy will completely fail in these
+      cases, because it compares only "filename".
+      See e.g. file like
+      /win/3dmodels/vrml/kambi_vrml_examples/inlined_textures.wrl
+      that uses various embedded textures.
+
+      That's why another, safer strategy is the default:
+      When UseTextureFileNames = @false, texture images are assumed to be
+      equal only if they come from the same TNodeTexture2 instance.
+      In practice this will usually happen only if these come from
+      the actual same VRML file and are the same actual VRML Texture2 node.
+      So if you have two shape nodes that simply use the same Texture2 node,
+      then OK --- they will reuse the same texture. Obviously one Texture2 node
+      will not be loaded more than once to OpenGL texture memory.
+      So this is OK.
+
+      But in more elaborate cases, UseTextureFileNames = @true can
+      get significant memory savings. Since it doesn't require that
+      texture image comes from the same Texture2 node, so moreover
+      it doesn't require that it actually comes from the same VRML file.
+      All TVRMLFLatSceneGL and TVRMLGLAnimation instances can share
+      a single OpenGL texture name. For example, "The Castle" version
+      0.6.3 used almost 100 MB memory less (memory use dropped
+      from 475 MB to 380 MB) thanks to using UseTextureFileNames := @true.
+
+      You can change this only before you make any texture reference
+      to this cache (i.e. before any call to Texture_IncReference,
+      that happens within Prepare calls of TVRMLOpenGLRenderer). }
+    property UseTextureFileNames: boolean
+      read FUseTextureFileNames write FUseTextureFileNames default false;
+  end;
+
   TVRMLOpenGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -450,10 +573,10 @@ type
       and will minimize amount of calls to glGetInteger() }
     FLastGLFreeLight: integer;
     function LastGLFreeLight: integer;
-    { TTF_Fonts = list of already created fonts. GLContext-specific so
-      freed in UnprepareAll. }
-    TTF_Fonts: array[TVRMLFontFamily, boolean, boolean]of TGLOutlineFont;
-    TextureGLBindings: TDynTextureGLBindingArray;
+    TextureReferences: TDynTextureReferenceArray;
+
+    { To which fonts we made a reference in the cache ? }
+    FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
 
     { ------------------------------------------------------------
       Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
@@ -492,6 +615,9 @@ type
     FogVolumetricVisibilityStart: Single;
 
     FAttributes: TVRMLRenderingAttributes;
+
+    Cache: TVRMLOpenGLRendererContextCache;
+    OwnsCache: boolean;
   public
     { slowo o atrybutach renderowania
       ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
@@ -503,7 +629,17 @@ type
       UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*). }
     property Attributes: TVRMLRenderingAttributes read FAttributes;
 
-    constructor Create(AttributesClass: TVRMLRenderingAttributesClass);
+    { Constructor.
+
+      Passing nil as Cache will cause the private cache instance
+      to be created and used for this TVRMLOpenGLRenderer.
+      I.e. no cache will be shared between different TVRMLOpenGLRenderer
+      instances. Otherwise you can pass here your Cache. Of course
+      it has to remain created for the whole lifetime while
+      this TVRMLOpenGLRenderer is created. }
+    constructor Create(AttributesClass: TVRMLRenderingAttributesClass;
+      ACache: TVRMLOpenGLRendererContextCache);
+
     destructor Destroy; override;
 
     { przygotuj stan State aby moc pozniej renderowac shape'y ze stanem State.
@@ -537,8 +673,147 @@ uses NormalsCalculator, Math, Triangulator;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
+{$I dynarray_2.inc}
 
 {$I openglmac.inc}
+
+{ TVRMLOpenGLRendererContextCache -------------------------------------------- }
+
+{ $define DEBUG_VRML_RENDERER_CACHE}
+
+constructor TVRMLOpenGLRendererContextCache.Create;
+begin
+  inherited;
+  TexturesCaches := TDynTextureCacheArray.Create;
+end;
+
+destructor TVRMLOpenGLRendererContextCache.Destroy;
+var
+  fsfam: TVRMLFontFamily;
+  fsbold , fsitalic: boolean;
+begin
+  for fsfam := Low(fsfam) to High(fsfam) do
+    for fsbold := Low(boolean) to High(boolean) do
+      for fsitalic := Low(boolean) to High(boolean) do
+      begin
+        Assert(
+          (Fonts[fsfam, fsbold, fsitalic].Instance = nil) =
+          (Fonts[fsfam, fsbold, fsitalic].References = 0));
+        Assert(Fonts[fsfam, fsbold, fsitalic].Instance = nil,
+          'Some references to fonts still exist' +
+          ' when freeing TVRMLOpenGLRendererContextCache');
+      end;
+
+  if TexturesCaches <> nil then
+  begin
+    Assert(TexturesCaches.Count = 0, 'Some references to textures still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(TexturesCaches);
+  end;
+
+  inherited;
+end;
+
+procedure TVRMLOpenGLRendererContextCache.Fonts_IncReference(
+  fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
+  TTF_Font: PTrueTypeFont);
+begin
+  Inc(Fonts[fsfam, fsbold, fsitalic].References);
+  if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
+    Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(TTF_Font);
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : ', Fonts[fsfam, fsbold, fsitalic].References);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.Fonts_DecReference(
+  fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
+begin
+  Dec(Fonts[fsfam, fsbold, fsitalic].References);
+  if Fonts[fsfam, fsbold, fsitalic].References = 0 then
+    FreeAndNil(Fonts[fsfam, fsbold, fsitalic].Instance);
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('-- : ', Fonts[fsfam, fsbold, fsitalic].References);
+  {$endif}
+end;
+
+function TVRMLOpenGLRendererContextCache.Texture_IncReference(
+  const TextureImage: TImage;
+  const TextureFileName: string;
+  const TextureNode: TNodeTexture2;
+  const TextureMinFilter, TextureMagFilter: TGLint;
+  const TextureWrapS, TextureWrapT: TGLenum;
+  const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
+var
+  I: Integer;
+  TextureCached: PTextureCache;
+  ImagesEqual: boolean;
+begin
+  for I := 0 to TexturesCaches.High do
+  begin
+    TextureCached := TexturesCaches.Pointers[I];
+    if UseTextureFileNames then
+      ImagesEqual := TextureCached^.FileName = TextureFileName else
+      ImagesEqual := TextureCached^.Node = TextureNode;
+    if ImagesEqual and
+       (TextureCached^.MinFilter = TextureMinFilter) and
+       (TextureCached^.MagFilter = TextureMagFilter) and
+       (TextureCached^.WrapS = TextureWrapS) and
+       (TextureCached^.WrapT = TextureWrapT) and
+       (@TextureCached^.ColorModulator = @TextureColorModulator) then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : ', TextureFileName, ' : ', TextureCached^.References);
+      {$endif}
+      Exit(TextureCached^.GLName);
+    end;
+  end;
+
+  TexturesCaches.IncLength;
+  TextureCached := TexturesCaches.Pointers[TexturesCaches.High];
+  TextureCached^.FileName := TextureFileName;
+  TextureCached^.MinFilter := TextureMinFilter;
+  TextureCached^.MagFilter := TextureMagFilter;
+  TextureCached^.WrapS := TextureWrapS;
+  TextureCached^.WrapT := TextureWrapT;
+  TextureCached^.ColorModulator := TextureColorModulator;
+  TextureCached^.References := 1;
+  TextureCached^.GLName := LoadGLTextureModulated(
+    TextureImage, TextureMinFilter, TextureMagFilter,
+    TextureWrapS, TextureWrapT, TextureColorModulator);
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : ', TextureFileName, ' : ', 1);
+  {$endif}
+  Exit(TextureCached^.GLName);
+end;
+
+procedure TVRMLOpenGLRendererContextCache.Texture_DecReference(
+  const TextureGLName: TGLuint);
+var
+  I: Integer;
+begin
+  for I := 0 to TexturesCaches.High do
+    if TexturesCaches.Items[I].GLName = TextureGLName then
+    begin
+      Dec(TexturesCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : ', TexturesCaches.Items[I].FileName, ' : ',
+        TexturesCaches.Items[I].References);
+      {$endif}
+      if TexturesCaches.Items[I].References = 0 then
+      begin
+        glDeleteTextures(1, @(TexturesCaches.Items[I].GLName));
+        TexturesCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.Texture_DecReference: no reference ' +
+    'found to texture %d', [TextureGLName]);
+end;
 
 { TVRMLRenderingAttributes --------------------------------------------------- }
 
@@ -643,9 +918,9 @@ begin
     Result := Color;
 end;
 
-{ TDynTextureGLBindingArray ---------------------------------------------------- }
+{ TDynTextureReferenceArray ---------------------------------------------------- }
 
-function TDynTextureGLBindingArray.TextureNodeIndex(TexNode: TNodeTexture2): integer;
+function TDynTextureReferenceArray.TextureNodeIndex(TexNode: TNodeTexture2): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].TextureNode = TexNode then exit;
@@ -655,7 +930,8 @@ end;
 { TVRMLOpenGLRenderer ---------------------------------------------------------- }
 
 constructor TVRMLOpenGLRenderer.Create(
-  AttributesClass: TVRMLRenderingAttributesClass);
+  AttributesClass: TVRMLRenderingAttributesClass;
+  ACache: TVRMLOpenGLRendererContextCache);
 begin
   inherited Create;
 
@@ -664,14 +940,23 @@ begin
   FLastGLFreeLight := -1;
 
   FAttributes := AttributesClass.Create;
-  TextureGLBindings := TDynTextureGLBindingArray.Create;
+  TextureReferences := TDynTextureReferenceArray.Create;
+
+  OwnsCache := ACache = nil;
+  if OwnsCache then
+    Cache := TVRMLOpenGLRendererContextCache.Create else
+    Cache := ACache;
 end;
 
 destructor TVRMLOpenGLRenderer.Destroy;
 begin
   UnprepareAll;
-  TextureGLBindings.Free;
+  TextureReferences.Free;
   FreeAndNil(FAttributes);
+
+  if OwnsCache then
+    FreeAndNil(Cache);
+
   inherited;
 end;
 
@@ -681,32 +966,48 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 const
   TexWrapEnumToGL: array[TEXWRAP_REPEAT..TEXWRAP_CLAMP]of TGLenum =
   (GL_REPEAT, GL_CLAMP);
-var fsfam: TVRMLFontFamily;
-    fsbold, fsitalic: boolean;
-    TexGLBinding: TTextureGLBinding;
+var
+  fsfam: TVRMLFontFamily;
+  fsbold, fsitalic: boolean;
+  TextureReference: TTextureReference;
+  TextureFileName: string;
+  TextureNode: TNodeTexture2;
 begin
  {przygotuj font dla LastFontStyle}
  fsfam := State.LastNodes.FontStyle.FdFamily.Value;
  fsbold := State.LastNodes.FontStyle.FdStyle.Flags[FSSTYLE_BOLD];
  fsitalic := State.LastNodes.FontStyle.FdStyle.Flags[FSSTYLE_ITALIC];
- if TTF_Fonts[fsfam, fsbold, fsitalic] = nil then
-  TTF_Fonts[fsfam, fsbold, fsitalic] := TGLOutlineFont.Create(State.LastNodes.FontStyle.TTF_Font);
+
+ if not FontsReferences[fsfam, fsbold, fsitalic] then
+ begin
+   Cache.Fonts_IncReference(fsfam, fsbold, fsitalic,
+     State.LastNodes.FontStyle.TTF_Font);
+   FontsReferences[fsfam, fsbold, fsitalic] := true;
+ end;
 
  {przygotuj teksture dla LastTexture2}
- if (TextureGLBindings.TextureNodeIndex(State.LastNodes.Texture2) = -1) then
+ TextureNode := State.LastNodes.Texture2;
+ if (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
-  if State.LastNodes.Texture2.IsTextureImage then
+  if TextureNode.IsTextureImage then
   begin
-   TexGLBinding.TextureNode := State.LastNodes.Texture2;
+   TextureReference.TextureNode := TextureNode;
 
-   TexGLBinding.TextureGL := LoadGLTextureModulated(
-     State.LastNodes.Texture2.TextureImage,
-     Attributes.TextureMinFilter, Attributes.TextureMagFilter,
-     TexWrapEnumToGL[State.LastNodes.Texture2.FdWrapS.Value],
-     TexWrapEnumToGL[State.LastNodes.Texture2.FdWrapT.Value],
+   TextureFileName := TextureNode.FdFileName.Value;
+   if TextureFileName <> '' then
+     TextureFileName := TextureNode.PathFromWWWBasePath(TextureFileName);
+
+   TextureReference.TextureGL := Cache.Texture_IncReference(
+     TextureNode.TextureImage,
+     TextureFileName,
+     TextureNode,
+     Attributes.TextureMinFilter,
+     Attributes.TextureMagFilter,
+     TexWrapEnumToGL[TextureNode.FdWrapS.Value],
+     TexWrapEnumToGL[TextureNode.FdWrapT.Value],
      Attributes.ColorModulatorByte);
 
-   TextureGLBindings.AppendItem(TexGLBinding);
+   TextureReferences.AppendItem(TextureReference);
   end;
  end;
 end;
@@ -715,39 +1016,44 @@ procedure TVRMLOpenGLRenderer.Unprepare(Node: TVRMLNode);
 var i: integer;
 begin
  {zwracam uwage ze nie niszczymy tu fontow dla (LastNode is TNodeFontStyle)
-  bo fonty sa gromadzone w tablicy TTF_Fonts i wszystkie Font Styles
+  bo fonty sa gromadzone w tablicy Cache.Fonts i wszystkie Font Styles
   o takich samych wlasciwosciach Family i Style korzystaja zawsze z tego
   samego juz utworzonego fontu.}
 
  {niszczymy teksture}
  if Node is TNodeTexture2 then
  begin
-  i := TextureGLBindings.TextureNodeIndex(TNodeTexture2(Node));
+  i := TextureReferences.TextureNodeIndex(TNodeTexture2(Node));
   if i >= 0 then
   begin
-   glDeleteTextures(1, @(TextureGLBindings.Items[i].TextureGL));
-   TextureGLBindings.Delete(i, 1);
+   Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
+   TextureReferences.Delete(i, 1);
   end;
  end;
 end;
 
 procedure TVRMLOpenGLRenderer.UnprepareAll;
-var ff: TVRMLFontFamily;
-    b1, b2: boolean;
-    i: integer;
+var
+  fsfam: TVRMLFontFamily;
+  fsbold , fsitalic: boolean;
+  i: integer;
 begin
- FLastGLFreeLight := -1;
+  FLastGLFreeLight := -1;
 
- {niszcz fonty}
- for ff := Low(ff) to High(ff) do
-  for b1 := Low(boolean) to High(boolean) do
-   for b2 := Low(boolean) to High(boolean) do
-    FreeAndNil(TTF_Fonts[ff, b1, b2]);
+  {niszcz fonty}
+  for fsfam := Low(fsfam) to High(fsfam) do
+    for fsbold := Low(boolean) to High(boolean) do
+      for fsitalic := Low(boolean) to High(boolean) do
+        if FontsReferences[fsfam, fsbold, fsitalic] then
+        begin
+          FontsReferences[fsfam, fsbold, fsitalic] := false;
+          Cache.Fonts_DecReference(fsfam, fsbold, fsitalic);
+        end;
 
- {niszcz wszystkie tekstury}
- for i := 0 to TextureGLBindings.Count-1 do
-  glDeleteTextures(1, @(TextureGLBindings.Items[i].TextureGL));
- TextureGLBindings.SetLength(0);
+  {niszcz wszystkie tekstury}
+  for i := 0 to TextureReferences.Count-1 do
+    Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
+  TextureReferences.SetLength(0);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
@@ -937,7 +1243,7 @@ var
   {$I VRMLOpenGLRenderer_Render_SpecificNodes.inc}
 
 var IndexedRenderer: TGeneralIndexedRenderer;
-    TextureGLBindingsIndex: Integer;
+    TextureReferencesIndex: Integer;
 begin
  {LogWrite('Rendering ' +Node.NodeTypeName+ ' named ' +Node.NodeName);}
 
@@ -991,14 +1297,14 @@ begin
     SetGLEnabled(GL_ALPHA_TEST,
       State.LastNodes.Texture2.TextureImage is TAlphaImage);
     glEnable(GL_TEXTURE_2D);
-    TextureGLBindingsIndex := TextureGLBindings.TextureNodeIndex(
+    TextureReferencesIndex := TextureReferences.TextureNodeIndex(
       State.LastNodes.Texture2);
-    Assert(TextureGLBindingsIndex <> -1,
+    Assert(TextureReferencesIndex <> -1,
       'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
       'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
       'You must call TVRMLOpenGLRenderer.Prepare first');
     glBindTexture(GL_TEXTURE_2D,
-      TextureGLBindings.Items[TextureGLBindingsIndex].TextureGL);
+      TextureReferences.Items[TextureReferencesIndex].TextureGL);
     Render_TexCoordsNeeded := true;
    end else
    begin
@@ -1008,8 +1314,8 @@ begin
    end;
 
    with State.LastNodes.FontStyle do
-    CurrentFont := TTF_Fonts[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
-      FdStyle.Flags[FSSTYLE_ITALIC]];
+     CurrentFont := Cache.Fonts[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
+       FdStyle.Flags[FSSTYLE_ITALIC]].Instance;
 
    Render_MaterialsBegin;
    try

@@ -265,7 +265,7 @@ type
       ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
       AUsingProvidedRenderer: boolean;
-      AProvidedRenderer: TVRMLOpenGLRenderer);
+      ARenderer: TVRMLOpenGLRenderer);
 
     DefaultSavedShadowQuads: TDynQuad3SingleArray;
 
@@ -361,7 +361,8 @@ type
   public
     { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization);
+      AOptimization: TGLRendererOptimization;
+      ACache: TVRMLOpenGLRendererContextCache = nil);
 
     { This is a very special constructor, that forces this class to use
       provided AProvidedRenderer.
@@ -763,7 +764,7 @@ procedure TVRMLFlatSceneGL.CommonCreate(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AOptimization: TGLRendererOptimization;
   AUsingProvidedRenderer: boolean;
-  AProvidedRenderer: TVRMLOpenGLRenderer);
+  ARenderer: TVRMLOpenGLRenderer);
 begin
   { inherited Create calls ChangedAll that is overriden in this class
     and uses SSS_DisplayLists, RenderFrustumOctree_Visible, Optimization.
@@ -786,27 +787,27 @@ begin
 
   DefaultSavedShadowQuads := TDynQuad3SingleArray.Create;
 
-  if FUsingProvidedRenderer then
-  begin
-    Renderer := AProvidedRenderer;
-    Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
-  end else
-    Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes);
+  Renderer := ARenderer;
+  Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
 
   { Note that this calls Renderer.Attributes, so use this after
     initializing Rendered. }
   Attributes.FScenes.Add(Self);
 end;
 
-constructor TVRMLFlatSceneGL.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization);
+constructor TVRMLFlatSceneGL.Create(
+  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AOptimization: TGLRendererOptimization;
+  ACache: TVRMLOpenGLRendererContextCache);
 begin
-  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, false, nil);
+  CommonCreate(ARootNode, AOwnsRootNode, AOptimization, false,
+    TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache));
 end;
 
 constructor TVRMLFlatSceneGL.CreateProvidedRenderer(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization; AProvidedRenderer: TVRMLOpenGLRenderer);
+  AOptimization: TGLRendererOptimization;
+  AProvidedRenderer: TVRMLOpenGLRenderer);
 begin
   CommonCreate(ARootNode, AOwnsRootNode, AOptimization, true, AProvidedRenderer);
 end;

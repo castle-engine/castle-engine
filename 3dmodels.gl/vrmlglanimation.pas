@@ -111,14 +111,16 @@ type
       RootNodes: array of TVRMLNode;
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
-      AOptimization: TGLRendererOptimization); overload;
+      AOptimization: TGLRendererOptimization;
+      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     constructor Create(
       RootNodes: array of TVRMLNode;
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
-      ATimeLoop, ATimeBackwards: boolean); overload;
+      ATimeLoop, ATimeBackwards: boolean;
+      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -249,7 +251,8 @@ constructor TVRMLGLAnimation.Create(
   RootNodes: array of TVRMLNode;
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
-  AOptimization: TGLRendererOptimization);
+  AOptimization: TGLRendererOptimization;
+  ACache: TVRMLOpenGLRendererContextCache = nil);
 
   { This will check that Model1 and Model2 are exactly equal,
     or that at least interpolating (see VRMLModelLerp) is possible.
@@ -514,7 +517,7 @@ begin
 
   FScenes := TVRMLFlatSceneGLsList.Create;
 
-  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes);
+  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
 
   FTimeBegin := ATimes[0];
   FTimeEnd := ATimes[High(ATimes)];
@@ -569,9 +572,10 @@ constructor TVRMLGLAnimation.Create(
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
-  ATimeLoop, ATimeBackwards: boolean);
+  ATimeLoop, ATimeBackwards: boolean;
+  ACache: TVRMLOpenGLRendererContextCache);
 begin
-  Create(RootNodes, ATimes, ScenesPerTime, AOptimization);
+  Create(RootNodes, ATimes, ScenesPerTime, AOptimization, ACache);
   TimeLoop := ATimeLoop;
   TimeBackwards := ATimeBackwards;
 end;

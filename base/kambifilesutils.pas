@@ -491,13 +491,8 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
   on Unix it must begin with "/". RelPath can be relative and can
   be absolute. If RelPath is absolute, result is RelPath.
   Else the result is an absolute path calculated by combining RelPath
-  with BasePath.
-
-  TODO: this is implemented a little "sloppy" and, while it works,
-  the resulting absolute path is not always nice, e.g. it can look
-  like "/home/kambi/sources/../textures/img.png" instead of
-  "/home/kambi/textures/img.png". }
-function CombinePaths(const BasePath, RelPath: string): string;
+  with BasePath. }
+function CombinePaths(BasePath, RelPath: string): string;
 
 implementation
 
@@ -1091,16 +1086,30 @@ begin
  except on e: Exception do ShowFileException(e,filename) end;
 end;
 
-function CombinePaths(const BasePath, RelPath: string): string;
+function CombinePaths(BasePath, RelPath: string): string;
 begin
- if IsPathAbsolute(RelPath) then
-  result := RelPath else
- {$ifdef WIN32}
- if IsPathAbsoluteOnDrive(RelPath) then
-  result := BasePath[1] +DriveDelim +RelPath else
- {$endif}
-  { TODO: below is the "sloppy" thing. }
-  result := InclPathDelim(BasePath)+RelPath;
+  if IsPathAbsolute(RelPath) then
+    result := RelPath else
+  {$ifdef WIN32}
+  if IsPathAbsoluteOnDrive(RelPath) then
+    result := BasePath[1] +DriveDelim +RelPath else
+  {$endif}
+  begin
+    repeat
+      if (Copy(RelPath, 1, 2) = './')
+        {$ifdef WIN32} or (Copy(RelPath, 1, 2) = '.\') {$endif} then
+        RelPath := SEnding(RelPath, 3) else
+      if (Copy(RelPath, 1, 3) = '../')
+        {$ifdef WIN32} or (Copy(RelPath, 1, 3) = '..\') {$endif} then
+      begin
+        BasePath := ExtractFileDir(ExclPathDelim(BasePath));
+        RelPath := SEnding(RelPath, 4);
+      end else
+        Break;
+    until false;
+
+    result := InclPathDelim(BasePath) + RelPath;
+  end;
 end;
 
 procedure DoInitialization;
