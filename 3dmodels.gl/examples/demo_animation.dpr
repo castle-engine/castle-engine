@@ -184,7 +184,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareRender(true, true, false, false, true);
+      Animation.PrepareRender(true, true, false, false, true, false);
     finally Progress.Fini end;
 
     Glwm.Loop;
