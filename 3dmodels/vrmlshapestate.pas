@@ -35,7 +35,7 @@ type
   TVRMLShapeStateValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere);
+    svBoundingSphere, svAllMaterialsTransparent);
 
   { This class represents a pair of objects: @link(ShapeNode) and
     @link(State). It allows to perform some operations that need
@@ -66,6 +66,7 @@ type
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
+    FAllMaterialsTransparent: boolean;
 
     procedure ValidateBoundingSphere;
   public
@@ -116,6 +117,8 @@ type
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
 
+    function AllMaterialsTransparent: boolean;
+
     procedure Changed;
     constructor Create(AShapeNode: TNodeGeneralShape; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
@@ -127,7 +130,7 @@ type
     { szuka elementu ktorego ShapeNode.NodeName = ShapeNodeName.
       Zwraca jego indeks lub -1 jesli nie znalazl. }
     function IndexOfShapeNodeName(const ShapeNodeName: string): integer;
-    
+
     { szuka elementu ktorego ShapeNode ma rodzica o nazwie ParentNodeName,
       rodzic taki jest szukany metoda ShapeNode.TryFindParentNodeByName. }
     function IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
@@ -229,6 +232,13 @@ begin
  Result := FrustumSphereCollisionPossibleSimple(Frustum,
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
+
+function TVRMLShapeState.AllMaterialsTransparent: boolean;
+{$define PRECALC_VALUE_ENUM := svAllMaterialsTransparent}
+{$define PRECALC_VALUE := FAllMaterialsTransparent}
+{$define PRECALC_VALUE_CALCULATE :=
+  State.LastNodes.Material.IsAllMaterialsTransparent}
+PRECALC_VALUE_RETURN
 
 constructor TVRMLShapeState.Create(AShapeNode: TNodeGeneralShape; AState: TVRMLGraphTraverseState);
 begin

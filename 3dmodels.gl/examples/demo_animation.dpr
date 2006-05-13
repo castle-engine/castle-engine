@@ -156,7 +156,7 @@ begin
     VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
     Animation := TVRMLGLAnimation.Create(
-      AnimRootNodes, AnimTimes, ScenesPerTime, roSceneAsAWhole);
+      AnimRootNodes, AnimTimes, ScenesPerTime, roSeparateShapeStates);
     Animation.TimeLoop := AnimTimeLoop;
     Animation.TimeBackwards := AnimTimeBackwards;
 

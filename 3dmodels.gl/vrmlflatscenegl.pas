@@ -114,11 +114,25 @@ type
           is very local).)
 
         @item(and/or you know that usually user will not see the whole scene,
-         only a small part of it.
-         See TestShapeStateVisibility parameter of @link(TVRMLFlatSceneGL.Render)
-         and @link(TVRMLFlatSceneGL.RenderFrustum) and
-         @link(TVRMLFlatSceneGL.RenderFrustumOctree).)
-       )
+          only a small part of it.
+          See TestShapeStateVisibility parameter of @link(TVRMLFlatSceneGL.Render)
+          and @link(TVRMLFlatSceneGL.RenderFrustum) and
+          @link(TVRMLFlatSceneGL.RenderFrustumOctree).)
+
+        @item(
+          Another advantage of roSeparateShapeStates is when you use
+          TVRMLGLAnimation. If part of your animation is actually still
+          (i.e. the same ShapeState is used, the same nodes inside),
+          and only the part changes --- then the still ShapeStates will
+          use and share only one display list (only one ---
+          throughout all the time when they are still!).
+          This can be a huge memory saving, which is important because
+          generating many display lists for TVRMLGLAnimation is generally
+          very memory-hungry operation.
+
+          This is achieved by TVRMLOpenGLRendererContextCache
+          methods ShapeState_Xxx.)
+      )
     }
     roSeparateShapeStates
   );
@@ -168,6 +182,9 @@ type
   public
     constructor Create; override;
     destructor Destroy; override;
+
+    procedure Assign(Source: TPersistent); override;
+    function Equals(SecondValue: TPersistent): boolean; override;
 
     { jezeli true to elementy sceny z IsAllMaterialsTransparent beda
       rysowane uzywajac blending OpenGLa. Wpp. wszystko bedzie rysowane
@@ -855,8 +872,14 @@ begin
        ShapeStates.Count = SSS_DisplayLists.Count (like I do in many
        other places in this unit). So below I must iterate to
        "SSS_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
-     for ShapeStateNum := 0 to SSS_DisplayLists.Count - 1 do
-      glFreeDisplayList(SSS_DisplayLists.Items[ShapeStateNum]);
+     if Renderer <> nil then
+       for ShapeStateNum := 0 to SSS_DisplayLists.Count - 1 do
+         if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
+         begin
+           Renderer.Cache.ShapeState_DecReference(
+             SSS_DisplayLists.Items[ShapeStateNum]);
+           SSS_DisplayLists.Items[ShapeStateNum] := 0;
+         end;
 
      glFreeDisplayList(SSS_RenderBeginDisplayList);
      glFreeDisplayList(SSS_RenderEndDisplayList);
@@ -938,7 +961,16 @@ begin
 
      TODO - powinnismy rysowac obiekty partially transparent od najdalszego
      do najblizszego zeby zapewnic dobry wyglad w miejscach gdzie kilka
-     partially transparent obiektow zachodzi na siebie. }
+     partially transparent obiektow zachodzi na siebie.
+
+     Note for AllMaterialsTransparent: it's important here that we use
+     AllMaterialsTransparent from TVRMLShapeState, because this is cached
+     in TVRMLShapeState. If we would directly call
+     State.LastNodes.Material.IsAllMaterialsTransparent then
+     our trick with freeing RootNode to conserve memory
+     (see TVRMLFlatScene.RootNode docs) would make calling Render
+     impossible with optimization roSeparateShapeStates.
+   }
 
    glDepthMask(GL_TRUE);
    glDisable(GL_BLEND);
@@ -952,8 +984,7 @@ begin
 
     { draw fully opaque objects }
     for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-     if not ShapeStates[ShapeStateNum].
-       State.LastNodes.Material.IsAllMaterialsTransparent then
+     if not ShapeStates[ShapeStateNum].AllMaterialsTransparent then
       TestRenderShapeStateProc(ShapeStateNum) else
       TransparentObjectsExists := true;
 
@@ -971,8 +1002,7 @@ begin
        go za kazdym razem zmniejszala). }
      glBlendFunc(GL_SRC_ALPHA, GL_ONE {_MINUS_SRC_ALPHA});
      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-      if ShapeStates[ShapeStateNum].
-        State.LastNodes.Material.IsAllMaterialsTransparent then
+      if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
        TestRenderShapeStateProc(ShapeStateNum);
     end;
    end else
@@ -1021,15 +1051,35 @@ end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender(
   Mode: TGLenum; ShapeStateNum: Integer);
+var
+  AttributesCopy: TVRMLSceneRenderingAttributes;
+  StateCopy: TVRMLGraphTraverseState;
 begin
- Renderer.Prepare(ShapeStates[ShapeStateNum].State);
+  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
 
- SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-   'TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender');
- glNewList(SSS_DisplayLists.Items[ShapeStateNum], Mode);
- try
-  RenderShapeStateSimple(ShapeStateNum);
- finally glEndList end;
+  if not Renderer.Cache.ShapeState_IncReference_Existing(
+    Attributes,
+    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].State,
+    SSS_DisplayLists.Items[ShapeStateNum]) then
+  begin
+    SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
+     'TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender');
+    glNewList(SSS_DisplayLists.Items[ShapeStateNum], Mode);
+    try
+      RenderShapeStateSimple(ShapeStateNum);
+    finally glEndList end;
+
+    AttributesCopy := TVRMLSceneRenderingAttributes.Create;
+    AttributesCopy.Assign(Attributes);
+    StateCopy := TVRMLGraphTraverseState.CreateCopy(
+      ShapeStates[ShapeStateNum].State);
+    Renderer.Cache.ShapeState_IncReference_New(
+      AttributesCopy,
+      ShapeStates[ShapeStateNum].ShapeNode,
+      StateCopy,
+      SSS_DisplayLists.Items[ShapeStateNum]);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndRenderShapeState(
@@ -1075,8 +1125,17 @@ begin
       SSS_PrepareAndMaybeRenderBegin(GL_COMPILE);
 
      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-      if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
-       SSS_PrepareRenderAndMaybeRender(GL_COMPILE, ShapeStateNum);
+     begin
+       if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
+         SSS_PrepareRenderAndMaybeRender(GL_COMPILE, ShapeStateNum);
+
+       { Calculate AllMeterialTransparent and make it cached in
+         ShapeStatesList[ShapeStateNum] instance. This is needed
+         for our trick with freeing RootNode, see
+         TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
+         comments. }
+       ShapeStates[ShapeStateNum].AllMaterialsTransparent;
+     end;
 
      if SSS_RenderEndDisplayList = 0 then
       SSS_PrepareAndMaybeRenderEnd(GL_COMPILE);
@@ -1165,7 +1224,12 @@ begin
     glFreeDisplayList(SAAW_DisplayList);
   roSeparateShapeStates:
     { TODO -- test this }
-    glFreeDisplayList(SSS_DisplayLists.Items[ShapeStateNum]);
+    if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
+    begin
+      Renderer.Cache.ShapeState_DecReference(
+        SSS_DisplayLists.Items[ShapeStateNum]);
+      SSS_DisplayLists.Items[ShapeStateNum] := 0;
+    end;
  end;
 end;
 
@@ -1463,6 +1527,23 @@ destructor TVRMLSceneRenderingAttributes.Destroy;
 begin
   FreeAndNil(FScenes);
   inherited;
+end;
+
+procedure TVRMLSceneRenderingAttributes.Assign(Source: TPersistent);
+begin
+  if Source is TVRMLSceneRenderingAttributes then
+  begin
+    Blending := TVRMLSceneRenderingAttributes(Source).Blending;
+    inherited;
+  end else
+    inherited;
+end;
+
+function TVRMLSceneRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
+begin
+  Result := (inherited Equals(SecondValue)) and
+    (SecondValue is TVRMLSceneRenderingAttributes) and
+    (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending);
 end;
 
 { Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny

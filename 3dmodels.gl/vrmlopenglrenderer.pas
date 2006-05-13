@@ -331,6 +331,10 @@ type
   public
     constructor Create; virtual;
 
+    procedure Assign(Source: TPersistent); override;
+
+    function Equals(SecondValue: TPersistent): boolean; virtual;
+
     { tuz przed narysowaniem KAZDEGO vertexa bedzie wywolywana ta procedura.
       (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
       glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
@@ -464,6 +468,27 @@ type
     Instance: TGLOutlineFont;
   end;
 
+  { Note that Attributes and State are owned by this record
+    (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
+    them), but ShapeNode is a reference somewhere to the scene (it will
+    be supplied to TVRMLOpenGLRendererContextCache instance) and we don't
+    own it. }
+  TShapeStateCache = record
+    Attributes: TVRMLRenderingAttributes;
+    ShapeNode: TNodeGeneralShape;
+    State: TVRMLGraphTraverseState;
+    GLList: TGLuint;
+    References: Cardinal;
+  end;
+  PShapeStateCache = ^TShapeStateCache;
+
+  TDynArrayItem_3 = TShapeStateCache;
+  PDynArrayItem_3 = PShapeStateCache;
+  {$define DYNARRAY_3_IS_STRUCT}
+  {$I dynarray_3.inc}
+  TDynShapeStateCacheArray = class(TDynArray_3)
+  end;
+
   { This is a cache that may be used by many TVRMLOpenGLRenderer
     instances to share some common resources related to this OpenGL
     context.
@@ -482,6 +507,7 @@ type
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TexturesCaches: TDynTextureCacheArray;
     FUseTextureFileNames: boolean;
+    ShapeStateCaches: TDynShapeStateCacheArray;
 
     procedure Fonts_IncReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
@@ -558,6 +584,30 @@ type
       that happens within Prepare calls of TVRMLOpenGLRenderer). }
     property UseTextureFileNames: boolean
       read FUseTextureFileNames write FUseTextureFileNames default false;
+
+    { These will be used by TVRMLFlatSceneGL.
+
+      Note that we have two versions of ShapeState_IncReference,
+      because if the list will already exist in the cache then we don't want to
+      waste time on creating and immediately freeing unnecessary list.
+      you should call ShapeState_IncReference_Existing, and if @false
+      then you should build display list and call
+      ShapeState_IncReference_New. }
+
+    function ShapeState_IncReference_Existing(
+      AAttributes: TVRMLRenderingAttributes;
+      AShapeNode: TNodeGeneralShape;
+      AState: TVRMLGraphTraverseState;
+      out AGLList: TGLuint): boolean;
+
+    procedure ShapeState_IncReference_New(
+      AAttributes: TVRMLRenderingAttributes;
+      AShapeNode: TNodeGeneralShape;
+      AState: TVRMLGraphTraverseState;
+      AGLList: TGLuint);
+
+    procedure ShapeState_DecReference(
+      const GLList: TGLuint);
   end;
 
   TVRMLOpenGLRenderer = class
@@ -616,19 +666,9 @@ type
 
     FAttributes: TVRMLRenderingAttributes;
 
-    Cache: TVRMLOpenGLRendererContextCache;
+    FCache: TVRMLOpenGLRendererContextCache;
     OwnsCache: boolean;
   public
-    { slowo o atrybutach renderowania
-      ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
-      tylko w momencie gdy renderer
-      nie jest przywiazany do zadnego kontekstu OpenGL'a (co jest zwiazane z tym
-      ze przywiazanie do danego kontekstu OpenGL'a oznacza takze ze czesc pracy
-      z dostosowaniem sie do takich a nie innych atrybutow renderowania
-      zostala juz zrobiona) czyli zaraz po wywolaniu konstruktora lub
-      UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*). }
-    property Attributes: TVRMLRenderingAttributes read FAttributes;
-
     { Constructor.
 
       Passing nil as Cache will cause the private cache instance
@@ -641,6 +681,18 @@ type
       ACache: TVRMLOpenGLRendererContextCache);
 
     destructor Destroy; override;
+
+    { slowo o atrybutach renderowania
+      ktore steruja tym jak bedzie wygladac renderowanie : mozesz je zmieniac
+      tylko w momencie gdy renderer
+      nie jest przywiazany do zadnego kontekstu OpenGL'a (co jest zwiazane z tym
+      ze przywiazanie do danego kontekstu OpenGL'a oznacza takze ze czesc pracy
+      z dostosowaniem sie do takich a nie innych atrybutow renderowania
+      zostala juz zrobiona) czyli zaraz po wywolaniu konstruktora lub
+      UnprepareAll (przed wywolaniem jakiegokolwiek Prepare czy Render*). }
+    property Attributes: TVRMLRenderingAttributes read FAttributes;
+
+    property Cache: TVRMLOpenGLRendererContextCache read FCache;
 
     { przygotuj stan State aby moc pozniej renderowac shape'y ze stanem State.
       Od tego momentu do wywolania Unprepare[All] node'y przekazane tu jako
@@ -674,17 +726,19 @@ uses NormalsCalculator, Math, Triangulator;
 {$define read_implementation}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
+{$I dynarray_3.inc}
 
 {$I openglmac.inc}
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
-{ $define DEBUG_VRML_RENDERER_CACHE}
+{$define DEBUG_VRML_RENDERER_CACHE}
 
 constructor TVRMLOpenGLRendererContextCache.Create;
 begin
   inherited;
   TexturesCaches := TDynTextureCacheArray.Create;
+  ShapeStateCaches := TDynShapeStateCacheArray.Create;
 end;
 
 destructor TVRMLOpenGLRendererContextCache.Destroy;
@@ -709,6 +763,13 @@ begin
     Assert(TexturesCaches.Count = 0, 'Some references to textures still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(TexturesCaches);
+  end;
+
+  if ShapeStateCaches <> nil then
+  begin
+    Assert(ShapeStateCaches.Count = 0, 'Some references to ShapeStates still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(ShapeStateCaches);
   end;
 
   inherited;
@@ -815,7 +876,124 @@ begin
     'found to texture %d', [TextureGLName]);
 end;
 
+function TVRMLOpenGLRendererContextCache.ShapeState_IncReference_Existing(
+  AAttributes: TVRMLRenderingAttributes;
+  AShapeNode: TNodeGeneralShape;
+  AState: TVRMLGraphTraverseState;
+  out AGLList: TGLuint): boolean;
+var
+  I: Integer;
+  SSCache: PShapeStateCache;
+begin
+  for I := 0 to ShapeStateCaches.High do
+  begin
+    SSCache := ShapeStateCaches.Pointers[I];
+    if (SSCache^.Attributes.Equals(AAttributes)) and
+       (SSCache^.ShapeNode = AShapeNode) and
+       (SSCache^.State.Equals(AState)) then
+    begin
+      Inc(SSCache^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : SS ', SSCache^.GLList, ' : ', SSCache^.References);
+      {$endif}
+      AGLList := SSCache^.GLList;
+      Exit(true);
+    end;
+  end;
+
+  Exit(false);
+end;
+
+procedure TVRMLOpenGLRendererContextCache.ShapeState_IncReference_New(
+  AAttributes: TVRMLRenderingAttributes;
+  AShapeNode: TNodeGeneralShape;
+  AState: TVRMLGraphTraverseState;
+  AGLList: TGLuint);
+var
+  SSCache: PShapeStateCache;
+begin
+  ShapeStateCaches.IncLength;
+  SSCache := ShapeStateCaches.Pointers[ShapeStateCaches.High];
+  SSCache^.Attributes := AAttributes;
+  SSCache^.ShapeNode := AShapeNode;
+  SSCache^.State := AState;
+  SSCache^.GLList := AGLList;
+  SSCache^.References := 1;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : SS ', SSCache^.GLList, ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.ShapeState_DecReference(
+  const GLList: TGLuint);
+var
+  I: Integer;
+  SSCache: PShapeStateCache;
+begin
+  for I := 0 to ShapeStateCaches.High do
+  begin
+    SSCache := ShapeStateCaches.Pointers[I];
+    if SSCache^.GLList = GLList then
+    begin
+      Dec(SSCache^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : SS ', SSCache^.GLList, ' : ', SSCache^.References);
+      {$endif}
+      if SSCache^.References = 0 then
+      begin
+        FreeAndNil(SSCache^.Attributes);
+        FreeAndNil(SSCache^.State);
+        glFreeDisplayList(SSCache^.GLList);
+        ShapeStateCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+  end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.ShapeState_DecReference: no reference ' +
+    'found for display list %d', [GLList]);
+end;
+
 { TVRMLRenderingAttributes --------------------------------------------------- }
+
+procedure TVRMLRenderingAttributes.Assign(Source: TPersistent);
+begin
+  if Source is TVRMLRenderingAttributes then
+  begin
+    OnBeforeGLVertex := TVRMLRenderingAttributes(Source).OnBeforeGLVertex;
+    SmoothShading := TVRMLRenderingAttributes(Source).SmoothShading;
+    ColorModulatorSingle := TVRMLRenderingAttributes(Source).ColorModulatorSingle;
+    ColorModulatorByte := TVRMLRenderingAttributes(Source).ColorModulatorByte;
+    UseLights := TVRMLRenderingAttributes(Source).UseLights;
+    FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
+    LastGLFreeLight := TVRMLRenderingAttributes(Source).LastGLFreeLight;
+    EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
+    TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
+    TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
+    PointSize := TVRMLRenderingAttributes(Source).PointSize;
+    UseFog := TVRMLRenderingAttributes(Source).UseFog;
+  end else
+    inherited;
+end;
+
+function TVRMLRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
+begin
+  Result := (SecondValue is TVRMLRenderingAttributes) and
+    (@TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = @OnBeforeGLVertex) and
+    (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
+    (@TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = @ColorModulatorSingle) and
+    (@TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = @ColorModulatorByte) and
+    (TVRMLRenderingAttributes(SecondValue).UseLights = UseLights) and
+    (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
+    (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
+    (TVRMLRenderingAttributes(SecondValue).EnableTextures = EnableTextures) and
+    (TVRMLRenderingAttributes(SecondValue).TextureMinFilter = TextureMinFilter) and
+    (TVRMLRenderingAttributes(SecondValue).TextureMagFilter = TextureMagFilter) and
+    (TVRMLRenderingAttributes(SecondValue).PointSize = PointSize) and
+    (TVRMLRenderingAttributes(SecondValue).UseFog = UseFog);
+end;
 
 constructor TVRMLRenderingAttributes.Create;
 begin
@@ -944,8 +1122,8 @@ begin
 
   OwnsCache := ACache = nil;
   if OwnsCache then
-    Cache := TVRMLOpenGLRendererContextCache.Create else
-    Cache := ACache;
+    FCache := TVRMLOpenGLRendererContextCache.Create else
+    FCache := ACache;
 end;
 
 destructor TVRMLOpenGLRenderer.Destroy;
@@ -955,7 +1133,7 @@ begin
   FreeAndNil(FAttributes);
 
   if OwnsCache then
-    FreeAndNil(Cache);
+    FreeAndNil(FCache);
 
   inherited;
 end;

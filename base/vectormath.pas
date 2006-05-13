@@ -887,6 +887,9 @@ function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Doubl
 function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload;
 
+function MatricesPerfectlyEqual(const M1, M2: TMatrix4Single): boolean; overload;
+function MatricesPerfectlyEqual(const M1, M2: TMatrix4Double): boolean; overload;
+
 function VectorsPerp(const v1, v2: TVector3Single): boolean; overload;
 function VectorsPerp(const v1, v2: TVector3Double): boolean; overload;
 

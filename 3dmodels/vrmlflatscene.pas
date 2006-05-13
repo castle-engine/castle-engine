@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -75,8 +75,6 @@ type
     it's the key to write a flexible OpenGL renderer of the VRML scene.
   }
   TVRMLFlatScene = class
-  protected
-    StateDefaultNodes: TTraverseStateLastNodes;
   private
     FOwnsRootNode: boolean;
     FShapeStates: TVRMLShapeStatesList;
@@ -385,6 +383,20 @@ type
   skrystalizuje zrobie to.
 }
 
+var
+  { StateDefaultNodes, used as a starting state nodes for TVRMLFlatScene
+    and descendants when traversing VRML tree.
+
+    It's needed that various TVRMLFlatScene instances use the same
+    StateDefaultNodes, because in some cases we assume that nodes
+    are equal only when their references are equal
+    (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
+    by ShapeState caching in TVRMLOpenGLRendererContextCache).
+
+    This is read-only from outside, initialized and finalized in
+    this unit. }
+  StateDefaultNodes: TTraverseStateLastNodes;
+
 {$undef read_interface}
 
 implementation
@@ -407,7 +419,6 @@ begin
  FOwnsDefaultShapeStateOctree := true;
 
  FShapeStates := TVRMLShapeStatesList.Create;
- TraverseState_CreateNodes(StateDefaultNodes);
 
  ChangedAll;
 end;
@@ -417,7 +428,6 @@ begin
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
 
- TraverseState_FreeAndNilNodes(StateDefaultNodes);
  ShapeStates.FreeWithContents;
 
  if OwnsDefaultTriangleOctree then FreeAndNil(FDefaultTriangleOctree);
@@ -868,4 +878,8 @@ begin
   Result := FTrianglesList[OverTriangulate];
 end;
 
+initialization
+  TraverseState_CreateNodes(StateDefaultNodes);
+finalization
+  TraverseState_FreeAndNilNodes(StateDefaultNodes);
 end.

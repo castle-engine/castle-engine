@@ -327,9 +327,11 @@ type
   {$define DYNARRAY_1_IS_STRUCT}
   {$I DynArray_1.inc}
   TDynActiveLightArray = class(TDynArray_1)
+  public
     { -1 jesli nie ma }
     function IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
     procedure AddLight(ALightNode: TNodeGeneralLight; const ATransform: TMatrix4Single);
+    function Equals(SecondValue: TDynActiveLightArray): boolean;
   end;
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
@@ -395,6 +397,10 @@ type
     constructor Create; overload;
 
     destructor Destroy; override;
+
+    { Note that Equals doesn't compare OwnsLastNodes values,
+      as they don't really define the "content" of the instance... }
+    function Equals(SecondValue: TVRMLGraphTraverseState): boolean;
   end;
 
   TTraversingFunc = procedure (Node: TVRMLNode;
@@ -2082,7 +2088,8 @@ begin
  result := -1;
 end;
 
-procedure TDynActiveLightArray.AddLight(ALightNode: TNodeGeneralLight; const ATransform: TMatrix4Single);
+procedure TDynActiveLightArray.AddLight(ALightNode: TNodeGeneralLight;
+  const ATransform: TMatrix4Single);
 begin
  IncLength;
  with Items[High] do
@@ -2100,6 +2107,26 @@ begin
    TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
      TNodeDirectionalLight(LightNode).FdDirection.Value) );
  end;
+end;
+
+function TDynActiveLightArray.Equals(SecondValue: TDynActiveLightArray): boolean;
+
+  function ActiveLightEquals(const L1, L2: TActiveLight): boolean;
+  begin
+    Result := (L1.LightNode = L2.LightNode) and
+      MatricesPerfectlyEqual(L1.Transform, L2.Transform);
+    { No need to compare TransfLocation or TransfNormDirection,
+      as they are just precalculated based on LightNode and Transform. }
+  end;
+
+var
+  I: Integer;
+begin
+  Result := SecondValue.Count = Count;
+  if Result then
+    for I := 0 to High do
+      if not ActiveLightEquals(Items[I], SecondValue.Items[I]) then
+        Exit(false);
 end;
 
 { TVRMLGraphTraverseState -------------------------------------------------------- }
@@ -2149,6 +2176,23 @@ begin
 
   ActiveLights.Free;
   inherited;
+end;
+
+function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
+  boolean;
+var
+  I: Integer;
+begin
+  Result := ActiveLights.Equals(SecondValue.ActiveLights) and
+    MatricesPerfectlyEqual(CurrMatrix, SecondValue.CurrMatrix) and
+    MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix);
+
+  if Result then
+  begin
+    for I := 0 to HighTraverseStateLastNodes do
+      if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+        Exit(false);
+  end;
 end;
 
 { TVRMLNode ------------------------------------------------------------------- }

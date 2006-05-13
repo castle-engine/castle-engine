@@ -447,6 +447,16 @@ begin
            (v1[2] = v2[2]);
 end;
 
+function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX4): boolean;
+begin
+  { Could be realized by VectorsPerfectlyEqual, but for speed... }
+  Result :=
+    (M1[0, 0] = M2[0, 0]) and (M1[0, 1] = M2[0, 1]) and (M1[0, 2] = M2[0, 2]) and (M1[0, 3] = M2[0, 3]) and
+    (M1[1, 0] = M2[1, 0]) and (M1[1, 1] = M2[1, 1]) and (M1[1, 2] = M2[1, 2]) and (M1[1, 3] = M2[1, 3]) and
+    (M1[2, 0] = M2[2, 0]) and (M1[2, 1] = M2[2, 1]) and (M1[2, 2] = M2[2, 2]) and (M1[2, 3] = M2[2, 3]) and
+    (M1[3, 0] = M2[3, 0]) and (M1[3, 1] = M2[3, 1]) and (M1[3, 2] = M2[3, 2]) and (M1[3, 3] = M2[3, 3]);
+end;
+
 function VectorsPerp(const v1, v2: TYPE_VECTOR3): boolean;
 begin
  (* prosto : result := CosAngleBetweenVectors(v1, v2) = 0.

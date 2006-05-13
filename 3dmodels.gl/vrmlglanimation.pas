@@ -65,7 +65,11 @@ type
     Until the things mentioned above are done, this class allows you
     to create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
-    acceptable solution. }
+    acceptable solution.
+
+    Note that this class should generally use roSeparateShapeStates,
+    to conserve memory in some common cases. See docs
+    at TGLRendererOptimization type. }
   TVRMLGLAnimation = class
   private
     FScenes: TVRMLFlatSceneGLsList;
