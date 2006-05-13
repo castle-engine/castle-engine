@@ -134,7 +134,21 @@ type
           methods ShapeState_Xxx.)
       )
     }
-    roSeparateShapeStates
+    roSeparateShapeStates,
+
+    { This is like roSeparateShapeStates but it allows for more
+      display lists sharing because it stores untransformed
+      ShapeState in a display list. This is adviced for
+      TVRMLGLAnimation, as this allows to save more memory
+      (and loading time) on dislay lists.
+
+      But it can be used only if you don't use
+      Attributes.OnBeforeVertex and you don't use volumetric fog
+      (reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
+      uses Render_State.CurrMatrix).
+
+      TODO: not impl yet. }
+    roSeparateShapeStatesNoTransformation
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
 
@@ -312,14 +326,14 @@ type
       When Optimization = roSceneAsAWhole, 0 means "not initialized" . }
     SAAW_DisplayList: TGLuint; { = 0 jesli nie zainicjowana }
 
-    { Mode = GL_COMPILE to przygotuje wszystko. Mode = GL_COMPILE_AND_EXECUTE
-      to przygotuje wszystko i od razu wyrenderuje. Wywoluj tylko gdy
+    { Przygotuje wszystko. Wywoluj tylko gdy
       Optimization = roSceneAsAWhole i SAAW_DisplayList = 0.
 
       This calls RenderShapeStatesNoDispList so this sets
       FLastRender_RenderedShapeStatesCount and
       FLastRender_AllShapeStatesCount. }
-    procedure SAAW_PrepareRenderAndMaybeRender(Mode: TGLenum);
+    procedure SAAW_Prepare;
+    procedure SAAW_Render;
 
     { ------------------------------------------------------------
       Private things used only when Optimization = roSeparateShapeStates.
@@ -332,10 +346,9 @@ type
     SSS_RenderBeginDisplayList: TGLuint;
     SSS_RenderEndDisplayList: TGLuint;
 
-    { These create appropriate SSS_Render*DisplayList display list.
-      If mode = GL_COMPILE_AND_EXECUTE they also execute it. }
-    procedure SSS_PrepareAndMaybeRenderBegin(Mode: TGLenum);
-    procedure SSS_PrepareAndMaybeRenderEnd(Mode: TGLenum);
+    { These create appropriate SSS_Render*DisplayList display list. }
+    procedure SSS_PrepareBegin;
+    procedure SSS_PrepareEnd;
 
     { These call appropriate SSS_Render*DisplayList display list.
       If display list is not ready, they create it. }
@@ -347,7 +360,7 @@ type
 
       This renders SSS_DisplayLists.Items[ShapeStateNum]
       display list (creating it if necessary). }
-    procedure SSS_PrepareAndRenderShapeState(ShapeStateNum: Integer);
+    procedure SSS_RenderShapeState(ShapeStateNum: Integer);
 
     { Call this only when Optimization = roSeparateShapeStates and
       SSS_DisplayLists.Items[ShapeStateNum] = 0.
@@ -360,21 +373,13 @@ type
       it not only creates display list but also renders it now,
       if it's GL_COMPILE it only creates given display list.
 
-      This is somehow equivalent to SAAW_PrepareRenderAndMaybeRender,
+      This is somehow equivalent to SAAW_Prepare,
       but it operates only on a single ShapeState.
 
-      Short comparison of SSS_PrepareAndRenderShapeState versus
-      SSS_PrepareRenderAndMaybeRender:
-      @orderedList(
-        @item(
-          SSS_RenderShapeState always renders shapestate,
-          also creating it's display list if necessary)
-        @item(
-          SSS_PrepareRenderAndMaybeRender always creates shapestate's display list,
-          also rendering it if Mode = GL_COMPILE_AND_EXECUTE)
-      ) }
-    procedure SSS_PrepareRenderAndMaybeRender(
-      Mode: TGLenum; ShapeStateNum: Integer);
+      Note that SSS_RenderShapeState simply calls
+      SSS_PrepareShapeState if display list has to be created.
+      Then it renders the list. }
+    procedure SSS_PrepareShapeState(ShapeStateNum: Integer);
   public
     { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -754,7 +759,12 @@ uses ParseParametersUnit;
   may work like that, only some comments on some game-programming
   forums and statement that confirms that this is the case with
   HP implementation of OpenGL (or at least some version of it)
-  [http://www.talisman.org/opengl-1.1/ImpGuide/05_WriteProg.html#GLCOMPILEandEXECUTEMode]
+  [http://www.talisman.org/opengl-1.1/ImpGuide/05_WriteProg.html#GLCOMPILEandEXECUTEMode].
+  Also OpenGL FAQ [http://www.opengl.org/resources/faq/technical/displaylist.htm]
+  says "stay away from GL_COMPILE_AND_EXECUTE mode".
+  So I guess it's official. Later I removed from the code possibility
+  to use GL_COMPILE_AND_EXECUTE at all, since it was useless
+  and i wanted to make the code a little more manaegable.
 
   At first I wanted to implement KamGLNewList and KamGLEndList:
 
@@ -918,8 +928,8 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderShapeStateSimple(ShapeStateNum: Integer);
 begin
- Renderer.Render(ShapeStates[ShapeStateNum].ShapeNode,
-   ShapeStates[ShapeStateNum].State);
+  Renderer.RenderShapeState(ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].State);
 end;
 
 procedure TVRMLFlatSceneGL.RenderBeginSimple;
@@ -1026,7 +1036,7 @@ begin
  finally RenderEndProc end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin(Mode: TGLenum);
+procedure TVRMLFlatSceneGL.SSS_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
@@ -1037,7 +1047,7 @@ begin
   begin
     SSS_RenderBeginDisplayList := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin');
-    glNewList(SSS_RenderBeginDisplayList, Mode);
+    glNewList(SSS_RenderBeginDisplayList, GL_COMPILE);
     try
       RenderBeginSimple;
     finally glEndList end;
@@ -1051,7 +1061,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd(Mode: TGLenum);
+procedure TVRMLFlatSceneGL.SSS_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
@@ -1062,7 +1072,7 @@ begin
   begin
     SSS_RenderEndDisplayList := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd');
-    glNewList(SSS_RenderEndDisplayList, Mode);
+    glNewList(SSS_RenderEndDisplayList, GL_COMPILE);
     try
       RenderEndSimple;
     finally glEndList end;
@@ -1078,20 +1088,20 @@ end;
 
 procedure TVRMLFlatSceneGL.SSS_RenderBegin;
 begin
- if SSS_RenderBeginDisplayList = 0 then
-  SSS_PrepareAndMaybeRenderBegin({GL_COMPILE_AND_EXECUTE}GL_COMPILE);
- glCallList(SSS_RenderBeginDisplayList);
+  if SSS_RenderBeginDisplayList = 0 then
+    SSS_PrepareBegin;
+  glCallList(SSS_RenderBeginDisplayList);
 end;
 
 procedure TVRMLFlatSceneGL.SSS_RenderEnd;
 begin
- if SSS_RenderEndDisplayList = 0 then
-  SSS_PrepareAndMaybeRenderEnd({GL_COMPILE_AND_EXECUTE}GL_COMPILE);
- glCallList(SSS_RenderEndDisplayList);
+  if SSS_RenderEndDisplayList = 0 then
+    SSS_PrepareEnd;
+  glCallList(SSS_RenderEndDisplayList);
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender(
-  Mode: TGLenum; ShapeStateNum: Integer);
+procedure TVRMLFlatSceneGL.SSS_PrepareShapeState(
+  ShapeStateNum: Integer);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
   StateCopy: TVRMLGraphTraverseState;
@@ -1106,8 +1116,8 @@ begin
     SSS_DisplayLists.Items[ShapeStateNum]) then
   begin
     SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-     'TVRMLFlatSceneGL.SSS_PrepareRenderAndMaybeRender');
-    glNewList(SSS_DisplayLists.Items[ShapeStateNum], Mode);
+      'TVRMLFlatSceneGL.SSS_PrepareShapeState');
+    glNewList(SSS_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       RenderShapeStateSimple(ShapeStateNum);
     finally glEndList end;
@@ -1125,30 +1135,41 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareAndRenderShapeState(
+procedure TVRMLFlatSceneGL.SSS_RenderShapeState(
   ShapeStateNum: Integer);
 begin
- if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
-  SSS_PrepareRenderAndMaybeRender({GL_COMPILE_AND_EXECUTE}GL_COMPILE,
-    ShapeStateNum);
- glCallList(SSS_DisplayLists.Items[ShapeStateNum]);
+  if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
+    SSS_PrepareShapeState(ShapeStateNum);
+  glCallList(SSS_DisplayLists.Items[ShapeStateNum]);
 end;
 
-procedure TVRMLFlatSceneGL.SAAW_PrepareRenderAndMaybeRender(Mode: TGLenum);
+procedure TVRMLFlatSceneGL.SAAW_Prepare;
 var i: Integer;
 begin
- { First prepare all (because I can't later call Renderer.Prepare
-   while being inside display-list) }
- for i := 0 to ShapeStates.Count - 1 do
-  Renderer.Prepare(ShapeStates[i].State);
+  { First prepare all (because I can't later call Renderer.Prepare
+    while being inside display-list) }
+  for i := 0 to ShapeStates.Count - 1 do
+    Renderer.Prepare(ShapeStates[i].State);
 
- SAAW_DisplayList := glGenListsCheck(1,
-   'TVRMLFlatSceneGL.SAAW_PrepareRenderAndMaybeRender');
- glNewList(SAAW_DisplayList, mode);
- try
-  RenderShapeStatesNoDispList(nil, RenderShapeStateSimple,
-    RenderBeginSimple, RenderEndSimple);
- finally glEndList end;
+  SAAW_DisplayList := glGenListsCheck(1,
+    'TVRMLFlatSceneGL.SAAW_Prepare');
+  glNewList(SAAW_DisplayList, GL_COMPILE);
+  try
+   RenderShapeStatesNoDispList(nil, RenderShapeStateSimple,
+     RenderBeginSimple, RenderEndSimple);
+  finally glEndList end;
+end;
+
+procedure TVRMLFlatSceneGL.SAAW_Render;
+begin
+  if SAAW_DisplayList = 0 then
+    SAAW_Prepare else
+  begin
+    { In this case I must directly set here LastRender_Xxx variables. }
+    FLastRender_AllShapeStatesCount := ShapeStates.Count;
+    FLastRender_RenderedShapeStatesCount := FLastRender_AllShapeStatesCount;
+  end;
+  glCallList(SAAW_DisplayList);
 end;
 
 procedure TVRMLFlatSceneGL.PrepareRender(
@@ -1160,17 +1181,17 @@ begin
  case Optimization of
   roSceneAsAWhole:
     if SAAW_DisplayList = 0 then
-     SAAW_PrepareRenderAndMaybeRender(GL_COMPILE);
+     SAAW_Prepare;
   roSeparateShapeStates:
     begin
      { build display lists (if needed) for begin/end and all shape states }
      if SSS_RenderBeginDisplayList = 0 then
-      SSS_PrepareAndMaybeRenderBegin(GL_COMPILE);
+       SSS_PrepareBegin;
 
      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
      begin
        if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
-         SSS_PrepareRenderAndMaybeRender(GL_COMPILE, ShapeStateNum);
+         SSS_PrepareShapeState(ShapeStateNum);
 
        { Calculate AllMeterialTransparent and make it cached in
          ShapeStatesList[ShapeStateNum] instance. This is needed
@@ -1181,7 +1202,7 @@ begin
      end;
 
      if SSS_RenderEndDisplayList = 0 then
-      SSS_PrepareAndMaybeRenderEnd(GL_COMPILE);
+       SSS_PrepareEnd;
     end;
  end;
 
@@ -1206,21 +1227,12 @@ begin
        PrepareAndRenderShapeStateSimple, RenderBeginSimple, RenderEndSimple);
     end;
   roSceneAsAWhole:
-    begin
-     if SAAW_DisplayList = 0 then
-      SAAW_PrepareRenderAndMaybeRender({GL_COMPILE_AND_EXECUTE}GL_COMPILE) else
-     begin
-      { In this case I must directly set here LastRender_Xxx variables. }
-      FLastRender_AllShapeStatesCount := ShapeStates.Count;
-      FLastRender_RenderedShapeStatesCount := FLastRender_AllShapeStatesCount;
-     end;
-     glCallList(SAAW_DisplayList);
-    end;
+    SAAW_Render;
   roSeparateShapeStates:
     begin
      { build display lists (if needed) and render all shape states }
      RenderShapeStatesNoDispList(TestShapeStateVisibility,
-       SSS_PrepareAndRenderShapeState, SSS_RenderBegin, SSS_RenderEnd);
+       SSS_RenderShapeState, SSS_RenderBegin, SSS_RenderEnd);
     end;
  end;
 end;
@@ -1761,7 +1773,10 @@ end;
 
 const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
-  ( 'none', 'scene-as-a-whole', 'separate-shape-states' );
+  ( 'none',
+    'scene-as-a-whole',
+    'separate-shape-states',
+    'separate-shape-states-no-transform' );
 
   {$define ARRAY_POS_FUNCTION_NAME := RendererOptimizationFromName}
   {$define ARRAY_POS_ARRAY_NAME := RendererOptimizationNames}

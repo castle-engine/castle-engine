@@ -72,9 +72,21 @@
     na taki jakiego bedziemy pozniej potrzebowac. Od momentu wywolania
     RenderBegin stan OpenGL'a jest we wladzy tego obiektu : nie wolno
     ci go modyfikowac w zaden sposob niz poprzez ten obiekt.
-  - potem wywoluj Render(Node, State) aby renderowac pary Node+State.
+
+  - potem wywoluj RenderShapeState(Node, State)
+    aby renderowac pary Node+State.
     Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
     wczesniej w wywolaniu Prepare.
+
+    Alternatively you can call RenderShapeStateBegin,
+    RenderShapeStateNoTransform, RenderShapeStateEnd (always in this sequence,
+    always RenderShapeStateEnd in the "finally" clause, so that
+    after RenderShapeStateBegin there is always RenderShapeStateEnd
+    called). This is equivalent to RenderShapeState
+    (but sometimes it's better as it allows you to place
+    RenderShapeStateNoTransform on a separate display list, that can be more
+    shared (because it doesn't take some transformations into account)).
+
   - potem wywolaj RenderEnd. Po wywolaniu RenderEnd bedziesz mial
     taki sam stan OpenGL'a jak przed wywolaniem RenderBegin, modulo
     fakt ze zawartosci buforow kolorow i depth buffera zostana
@@ -772,7 +784,16 @@ type
     procedure RenderBegin(FogNode: TNodeFog;
       const FogDistanceScaling: Single);
     procedure RenderEnd;
-    procedure Render(Node: TNodeGeneralShape; State: TVRMLGraphTraverseState);
+
+    procedure RenderShapeStateBegin(Node: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
+    procedure RenderShapeStateNoTransform(Node: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
+    procedure RenderShapeStateEnd(Node: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
+
+    procedure RenderShapeState(Node: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -1669,7 +1690,34 @@ end;
 
 {$else}
 
-procedure TVRMLOpenGLRenderer.Render(Node: TNodeGeneralShape;
+procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
+  Node: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
+begin
+  {LogWrite('Rendering ' +Node.NodeTypeName+ ' named ' +Node.NodeName);}
+
+  {zrob nasze kopie}
+  Render_State := State;
+  Render_Node := Node;
+
+  glMatrixMode(GL_TEXTURE); glLoadMatrix(State.CurrTextureMatrix);
+  glMatrixMode(GL_MODELVIEW);
+
+  { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj
+    OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
+    transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
+    nie podlegaja transformacji aktualnego State'a w ktorym sa) }
+  if Attributes.UseLights then
+    glLightsFromVRML(State.ActiveLights,
+      Attributes.FirstGLFreeLight, LastGLFreeLight,
+      Attributes.ColorModulatorSingle);
+
+  glPushMatrix;
+    glMultMatrix(State.CurrMatrix);
+end;
+
+procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
+  Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
 var
   { jaki font jest aktualny (na podstawie State.LastNodes.FontStyle) }
@@ -1677,112 +1725,110 @@ var
 
   {$I VRMLOpenGLRenderer_Render_SpecificNodes.inc}
 
-var IndexedRenderer: TGeneralIndexedRenderer;
-    TextureReferencesIndex: Integer;
+var
+  IndexedRenderer: TGeneralIndexedRenderer;
+  TextureReferencesIndex: Integer;
 begin
- {LogWrite('Rendering ' +Node.NodeTypeName+ ' named ' +Node.NodeName);}
+  {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 
- {zrob nasze kopie}
- Render_State := State;
- Render_Node := Node;
+  {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
+   GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
+   tak naprawde nie bedzie alpha textury - to bedzie alpha textury
+   zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
+   dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
+   na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
+   bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
+   koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
+   my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
+   kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
+   pogodzic transparency materialu z kanalem alpha tekstury, przeciez
+   chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
+   Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
+   transparency materialu tak jak to robi OpenGL w GL_MODULATE.
 
- glMatrixMode(GL_TEXTURE); glLoadMatrix(State.CurrTextureMatrix);
- glMatrixMode(GL_MODELVIEW);
+   (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
+    na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
 
- { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj
-   OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
-   transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
-   nie podlegaja transformacji aktualnego State'a w ktorym sa) }
- if Attributes.UseLights then
-   glLightsFromVRML(State.ActiveLights,
-     Attributes.FirstGLFreeLight, LastGLFreeLight,
-     Attributes.ColorModulatorSingle);
+   To wszystko bedzie mialo wieksze znaczenie gdy zaimplementuje
+   pelne partial-transparency na teksturach (nie tylko 0-1 jak jest teraz)
+   i ktos zechce kombinowac finezyjne transparency
+   materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
+  }
+  if (State.LastNodes.Texture2.IsTextureImage) and
+    Attributes.EnableTextures then
+  begin
+   SetGLEnabled(GL_ALPHA_TEST,
+     State.LastNodes.Texture2.TextureImage is TAlphaImage);
+   glEnable(GL_TEXTURE_2D);
+   TextureReferencesIndex := TextureReferences.TextureNodeIndex(
+     State.LastNodes.Texture2);
+   Assert(TextureReferencesIndex <> -1,
+     'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
+     'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
+     'You must call TVRMLOpenGLRenderer.Prepare first');
+   glBindTexture(GL_TEXTURE_2D,
+     TextureReferences.Items[TextureReferencesIndex].TextureGL);
+   Render_TexCoordsNeeded := true;
+  end else
+  begin
+   glDisable(GL_TEXTURE_2D);
+   glDisable(GL_ALPHA_TEST);
+   Render_TexCoordsNeeded := false;
+  end;
 
- glPushMatrix;
-   glMultMatrix(State.CurrMatrix);
+  with State.LastNodes.FontStyle do
+    CurrentFont := Cache.Fonts[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
+      FdStyle.Flags[FSSTYLE_ITALIC]].Instance;
 
-   {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
-
-   {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
-    GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
-    tak naprawde nie bedzie alpha textury - to bedzie alpha textury
-    zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
-    dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
-    na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
-    bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
-    koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
-    my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
-    kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
-    pogodzic transparency materialu z kanalem alpha tekstury, przeciez
-    chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
-    Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
-    transparency materialu tak jak to robi OpenGL w GL_MODULATE.
-
-    (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
-     na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
-
-    To wszystko bedzie mialo wieksze znaczenie gdy zaimplementuje
-    pelne partial-transparency na teksturach (nie tylko 0-1 jak jest teraz)
-    i ktos zechce kombinowac finezyjne transparency
-    materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
-   }
-   if (State.LastNodes.Texture2.IsTextureImage) and
-     Attributes.EnableTextures then
-   begin
-    SetGLEnabled(GL_ALPHA_TEST,
-      State.LastNodes.Texture2.TextureImage is TAlphaImage);
-    glEnable(GL_TEXTURE_2D);
-    TextureReferencesIndex := TextureReferences.TextureNodeIndex(
-      State.LastNodes.Texture2);
-    Assert(TextureReferencesIndex <> -1,
-      'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
-      'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
-      'You must call TVRMLOpenGLRenderer.Prepare first');
-    glBindTexture(GL_TEXTURE_2D,
-      TextureReferences.Items[TextureReferencesIndex].TextureGL);
-    Render_TexCoordsNeeded := true;
-   end else
-   begin
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_ALPHA_TEST);
-    Render_TexCoordsNeeded := false;
+  Render_MaterialsBegin;
+  try
+   case ArrayPosPointer(Node.ClassType, [
+         TNodeAsciiText,
+         TNodeCone,
+         TNodeCube,
+         TNodeCylinder,
+         TNodePointSet,
+         TNodeSphere,
+         TNodeIndexedFaceSet,
+         TNodeIndexedTriangleMesh,
+         TNodeIndexedLineSet ]) of
+    0: RenderAsciiText(TNodeAsciiText(Node));
+    1: RenderCone     (TNodeCone     (Node));
+    2: RenderCube     (TNodeCube     (Node));
+    3: RenderCylinder (TNodeCylinder (Node));
+    4: RenderPointSet (TNodePointSet (Node));
+    5: RenderSphere   (TNodeSphere   (Node));
+    6, 7, 8:
+      begin
+       IndexedRenderer := CreateIndexedRenderer(Self);
+       try
+        IndexedRenderer.Render;
+       finally IndexedRenderer.Free end;
+      end;
+    else
+      raise EVRMLOpenGLRenderError.Create(
+        'Rendering of node kind '+Node.NodeTypeName+' not implemented');
    end;
+  finally Render_MaterialsEnd end;
+end;
 
-   with State.LastNodes.FontStyle do
-     CurrentFont := Cache.Fonts[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
-       FdStyle.Flags[FSSTYLE_ITALIC]].Instance;
+procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
+  Node: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
+begin
+  glPopMatrix;
+end;
 
-   Render_MaterialsBegin;
-   try
-    case ArrayPosPointer(Node.ClassType, [
-          TNodeAsciiText,
-          TNodeCone,
-          TNodeCube,
-          TNodeCylinder,
-          TNodePointSet,
-          TNodeSphere,
-          TNodeIndexedFaceSet,
-          TNodeIndexedTriangleMesh,
-          TNodeIndexedLineSet ]) of
-     0: RenderAsciiText(TNodeAsciiText(Node));
-     1: RenderCone     (TNodeCone     (Node));
-     2: RenderCube     (TNodeCube     (Node));
-     3: RenderCylinder (TNodeCylinder (Node));
-     4: RenderPointSet (TNodePointSet (Node));
-     5: RenderSphere   (TNodeSphere   (Node));
-     6, 7, 8:
-       begin
-        IndexedRenderer := CreateIndexedRenderer(Self);
-        try
-         IndexedRenderer.Render;
-        finally IndexedRenderer.Free end;
-       end;
-     else
-       raise EVRMLOpenGLRenderError.Create(
-         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
-    end;
-   finally Render_MaterialsEnd end;
- glPopMatrix;
+procedure TVRMLOpenGLRenderer.RenderShapeState(
+  Node: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
+begin
+  RenderShapeStateBegin(Node, State);
+  try
+    RenderShapeStateNoTransform(Node, State);
+  finally
+    RenderShapeStateEnd(Node, State);
+  end;
 end;
 {$endif}
 
