@@ -863,26 +863,37 @@ begin
     glFreeDisplayList(SAAW_DisplayList);
   roSeparateShapeStates:
     begin
-     { Because CloseGLRenderer may be called after scene has changed
-       and after "inherited ChangedAll" changed ShapeStates.Count to
-       reflect this change but before our ChangedAll changed
-       SSS_DisplayLists.Length (after all, CloseGLRenderer must be
-       called before changing SSS_DisplayLists.Length, since CloseGLRenderer
-       must finalize what was left) ... so, I can't assume here that
-       ShapeStates.Count = SSS_DisplayLists.Count (like I do in many
-       other places in this unit). So below I must iterate to
-       "SSS_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
-     if Renderer <> nil then
-       for ShapeStateNum := 0 to SSS_DisplayLists.Count - 1 do
-         if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
-         begin
-           Renderer.Cache.ShapeState_DecReference(
-             SSS_DisplayLists.Items[ShapeStateNum]);
-           SSS_DisplayLists.Items[ShapeStateNum] := 0;
-         end;
+      { Because CloseGLRenderer may be called after scene has changed
+        and after "inherited ChangedAll" changed ShapeStates.Count to
+        reflect this change but before our ChangedAll changed
+        SSS_DisplayLists.Length (after all, CloseGLRenderer must be
+        called before changing SSS_DisplayLists.Length, since CloseGLRenderer
+        must finalize what was left) ... so, I can't assume here that
+        ShapeStates.Count = SSS_DisplayLists.Count (like I do in many
+        other places in this unit). So below I must iterate to
+        "SSS_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
+      if Renderer <> nil then
+      begin
+        for ShapeStateNum := 0 to SSS_DisplayLists.Count - 1 do
+          if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
+          begin
+            Renderer.Cache.ShapeState_DecReference(
+              SSS_DisplayLists.Items[ShapeStateNum]);
+            SSS_DisplayLists.Items[ShapeStateNum] := 0;
+          end;
 
-     glFreeDisplayList(SSS_RenderBeginDisplayList);
-     glFreeDisplayList(SSS_RenderEndDisplayList);
+        if SSS_RenderBeginDisplayList <> 0 then
+        begin
+          Renderer.Cache.RenderBegin_DecReference(SSS_RenderBeginDisplayList);
+          SSS_RenderBeginDisplayList := 0;
+        end;
+
+        if SSS_RenderEndDisplayList <> 0 then
+        begin
+          Renderer.Cache.RenderEnd_DecReference(SSS_RenderEndDisplayList);
+          SSS_RenderEndDisplayList := 0;
+        end;
+      end;
     end;
  end;
 
@@ -1016,23 +1027,53 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin(Mode: TGLenum);
+var
+  AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
- SSS_RenderBeginDisplayList := glGenListsCheck(1,
-   'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin');
- glNewList(SSS_RenderBeginDisplayList, Mode);
- try
-  RenderBeginSimple;
- finally glEndList end;
+  if not Renderer.Cache.RenderBegin_IncReference_Existing(
+    Attributes,
+    FogNode, FogDistanceScaling,
+    SSS_RenderBeginDisplayList) then
+  begin
+    SSS_RenderBeginDisplayList := glGenListsCheck(1,
+      'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin');
+    glNewList(SSS_RenderBeginDisplayList, Mode);
+    try
+      RenderBeginSimple;
+    finally glEndList end;
+
+    AttributesCopy := TVRMLSceneRenderingAttributes.Create;
+    AttributesCopy.Assign(Attributes);
+    Renderer.Cache.RenderBegin_IncReference_New(
+      AttributesCopy,
+      FogNode, FogDistanceScaling,
+      SSS_RenderBeginDisplayList);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd(Mode: TGLenum);
+var
+  AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
- SSS_RenderEndDisplayList := glGenListsCheck(1,
-   'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd');
- glNewList(SSS_RenderEndDisplayList, Mode);
- try
-  RenderEndSimple;
- finally glEndList end;
+  if not Renderer.Cache.RenderEnd_IncReference_Existing(
+    Attributes,
+    FogNode, FogDistanceScaling,
+    SSS_RenderEndDisplayList) then
+  begin
+    SSS_RenderEndDisplayList := glGenListsCheck(1,
+      'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd');
+    glNewList(SSS_RenderEndDisplayList, Mode);
+    try
+      RenderEndSimple;
+    finally glEndList end;
+
+    AttributesCopy := TVRMLSceneRenderingAttributes.Create;
+    AttributesCopy.Assign(Attributes);
+    Renderer.Cache.RenderEnd_IncReference_New(
+      AttributesCopy,
+      FogNode, FogDistanceScaling,
+      SSS_RenderEndDisplayList);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_RenderBegin;
@@ -1061,6 +1102,7 @@ begin
     Attributes,
     ShapeStates[ShapeStateNum].ShapeNode,
     ShapeStates[ShapeStateNum].State,
+    FogNode, FogDistanceScaling,
     SSS_DisplayLists.Items[ShapeStateNum]) then
   begin
     SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
@@ -1078,6 +1120,7 @@ begin
       AttributesCopy,
       ShapeStates[ShapeStateNum].ShapeNode,
       StateCopy,
+      FogNode, FogDistanceScaling,
       SSS_DisplayLists.Items[ShapeStateNum]);
   end;
 end;
