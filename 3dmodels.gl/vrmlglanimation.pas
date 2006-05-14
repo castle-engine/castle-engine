@@ -74,11 +74,16 @@ type
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
+    FOwnsFirstRootNode: boolean;
   public
     { Constructor.
 
-      @param(RootNodes Models describing the "predefined" frames
-        of animation. They are all owned by this class --- that's needed,
+      @param(RootNodes
+        Models describing the "predefined" frames
+        of animation.
+
+        For all nodes except the first: They are @italic(always)
+        owned by this class --- that's needed,
         because actually we may do some operations on these models when
         building animation (including even freeing some RootNodes,
         if we will find that they are equivalent to some other RootNodes).
@@ -123,6 +128,7 @@ type
       @noAutoLinkHere }
     constructor Create(
       RootNodes: array of TVRMLNode;
+      AOwnsFirstRootNode: boolean;
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
@@ -131,6 +137,7 @@ type
 
     constructor Create(
       RootNodes: array of TVRMLNode;
+      AOwnsFirstRootNode: boolean;
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
@@ -140,6 +147,9 @@ type
 
     { @noAutoLinkHere }
     destructor Destroy; override;
+
+    property OwnsFirstRootNode: boolean
+      read FOwnsFirstRootNode;
 
     { You can read anything from Scenes below. But you cannot set some
       things: don't set their scenes Attributes properties.
@@ -158,7 +168,9 @@ type
       If FreeRootNodes then it will free (and set to nil) RootNode
       of each scene after preparing. This is somewhat dangerous
       (because you have to be careful then about what methods
-      from scenes you use), but it allows you to save some memory. }
+      from scenes you use), but it allows you to save some memory.
+      Note that if OwnsFirstRootNode then the initial RootNodes[0]
+      will *not* be freed. }
     procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate: boolean;
@@ -271,6 +283,7 @@ end;
 
 constructor TVRMLGLAnimation.Create(
   RootNodes: array of TVRMLNode;
+  AOwnsFirstRootNode: boolean;
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
@@ -418,7 +431,11 @@ constructor TVRMLGLAnimation.Create(
        will be loaded only once for OpenGL. So loading time and
        memory are saved *once again*  (otherwise OpenGL would allocate
        internal copy of texture for each duplicated node, once again
-       wasting a lot of memory). }
+       wasting a lot of memory).
+
+    4. And later the ShapeState cache of TVRMLOpenGLRenderer can speed
+       up loading time and conserve memory use, if it sees the same
+       reference to given ShapeNode twice. }
   function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;
   var
     I: Integer;
@@ -518,10 +535,11 @@ constructor TVRMLGLAnimation.Create(
     end;
   end;
 
-  function CreateOneScene(Node: TVRMLNode): TVRMLFlatSceneGL;
+  function CreateOneScene(Node: TVRMLNode;
+    OwnsRootNode: boolean): TVRMLFlatSceneGL;
   begin
     Result := TVRMLFlatSceneGL.CreateProvidedRenderer(
-      Node, true, AOptimization, Renderer);
+      Node, OwnsRootNode, AOptimization, Renderer);
   end;
 
 var
@@ -532,6 +550,8 @@ var
   SceneIndex: Integer;
 begin
   inherited Create;
+
+  FOwnsFirstRootNode := AOwnsFirstRootNode;
 
   Assert(High(RootNodes) = High(ATimes));
 
@@ -552,7 +572,7 @@ begin
 
   { RootNodes[0] goes to FScenes[0], that's easy }
   FScenes.Count := 1;
-  FScenes[0] := CreateOneScene(RootNodes[0]);
+  FScenes[0] := CreateOneScene(RootNodes[0], OwnsFirstRootNode);
   LastSceneIndex := 0;
   LastSceneRootNode := RootNodes[0];
 
@@ -581,8 +601,8 @@ begin
       for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
         FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
           MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
-          LastSceneRootNode, RootNodes[I]));
-      FScenes.Last := CreateOneScene(RootNodes[I]);
+          LastSceneRootNode, RootNodes[I]), true);
+      FScenes.Last := CreateOneScene(RootNodes[I], true);
       LastSceneRootNode := RootNodes[I];
     end;
 
@@ -592,6 +612,7 @@ end;
 
 constructor TVRMLGLAnimation.Create(
   RootNodes: array of TVRMLNode;
+  AOwnsFirstRootNode: boolean;
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
@@ -599,7 +620,7 @@ constructor TVRMLGLAnimation.Create(
   ATimeLoop, ATimeBackwards: boolean;
   ACache: TVRMLOpenGLRendererContextCache);
 begin
-  Create(RootNodes, ATimes, ScenesPerTime, AOptimization,
+  Create(RootNodes, AOwnsFirstRootNode, ATimes, ScenesPerTime, AOptimization,
     EqualityEpsilon, ACache);
   TimeLoop := ATimeLoop;
   TimeBackwards := ATimeBackwards;
@@ -655,7 +676,10 @@ begin
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate);
 
-    if FreeRootNodes then
+    { We check FScenes[I].OwnsRootNode here, because if OwnsFirstRootNode
+      was false then FScenes[I].OwnsRootNode will be false. }
+
+    if FreeRootNodes and FScenes[I].OwnsRootNode then
     begin
       FScenes[I].RootNode.Free;
       FScenes[I].RootNode := nil;
