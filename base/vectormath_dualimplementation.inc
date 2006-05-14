@@ -410,51 +410,92 @@ begin
   Result := Sqr(v2[0]-v1[0]) + Sqr(v2[1]-v1[1]);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR3): boolean;
+function VectorsEqual(const v1, v2: TYPE_VECTOR2;
+  const EqualityEpsilon: TYPE_SCALAR): boolean;
 begin
- result := FloatsEqual(v1[0], v2[0]) and
-           FloatsEqual(v1[1], v2[1]) and
-           FloatsEqual(v1[2], v2[2]);
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
+              (Abs(v1[1]-v2[1]) < EqualityEpsilon);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR3; const EqualityEpsilon: TYPE_SCALAR): boolean;
+function VectorsEqual(const v1, v2: TYPE_VECTOR3): boolean;
 begin
- result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
-           (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
-           (Abs(v1[2]-v2[2]) < EqualityEpsilon);
+  if SCALAR_EQUALITY_EPSILON = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := FloatsEqual(v1[0], v2[0]) and
+              FloatsEqual(v1[1], v2[1]) and
+              FloatsEqual(v1[2], v2[2]);
+end;
+
+function VectorsEqual(const v1, v2: TYPE_VECTOR3;
+  const EqualityEpsilon: TYPE_SCALAR): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
+              (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
+              (Abs(v1[2]-v2[2]) < EqualityEpsilon);
 end;
 
 function VectorsEqual(const v1, v2: TYPE_VECTOR4): boolean;
 begin
- result := FloatsEqual(v1[0], v2[0]) and
-           FloatsEqual(v1[1], v2[1]) and
-           FloatsEqual(v1[2], v2[2]) and
-           FloatsEqual(v1[3], v2[3]);
+  if SCALAR_EQUALITY_EPSILON = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := FloatsEqual(v1[0], v2[0]) and
+              FloatsEqual(v1[1], v2[1]) and
+              FloatsEqual(v1[2], v2[2]) and
+              FloatsEqual(v1[3], v2[3]);
 end;
 
-function VectorsEqual(const v1, v2: TYPE_VECTOR4; const EqualityEpsilon: TYPE_SCALAR): boolean;
+function VectorsEqual(const v1, v2: TYPE_VECTOR4;
+  const EqualityEpsilon: TYPE_SCALAR): boolean;
 begin
- result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
-           (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
-           (Abs(v1[2]-v2[2]) < EqualityEpsilon) and
-           (Abs(v1[3]-v2[3]) < EqualityEpsilon);
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@V1, @V2, SizeOf(V1)) else
+    Result := (Abs(v1[0]-v2[0]) < EqualityEpsilon) and
+              (Abs(v1[1]-v2[1]) < EqualityEpsilon) and
+              (Abs(v1[2]-v2[2]) < EqualityEpsilon) and
+              (Abs(v1[3]-v2[3]) < EqualityEpsilon);
+end;
+
+function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR2): boolean;
+begin
+  Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
 function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR3): boolean;
 begin
- result := (v1[0] = v2[0]) and
-           (v1[1] = v2[1]) and
-           (v1[2] = v2[2]);
+  Result := CompareMem(@V1, @V2, SizeOf(V1));
+end;
+
+function MatricesEqual(const M1, M2: TYPE_MATRIX4;
+  const EqualityEpsilon: TYPE_SCALAR): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@M1, @M2, SizeOf(M1)) else
+    Result :=
+      (Abs(M1[0, 0] - M2[0, 0]) < EqualityEpsilon) and
+      (Abs(M1[0, 1] - M2[0, 1]) < EqualityEpsilon) and
+      (Abs(M1[0, 2] - M2[0, 2]) < EqualityEpsilon) and
+      (Abs(M1[0, 3] - M2[0, 3]) < EqualityEpsilon) and
+      (Abs(M1[1, 0] - M2[1, 0]) < EqualityEpsilon) and
+      (Abs(M1[1, 1] - M2[1, 1]) < EqualityEpsilon) and
+      (Abs(M1[1, 2] - M2[1, 2]) < EqualityEpsilon) and
+      (Abs(M1[1, 3] - M2[1, 3]) < EqualityEpsilon) and
+      (Abs(M1[2, 0] - M2[2, 0]) < EqualityEpsilon) and
+      (Abs(M1[2, 1] - M2[2, 1]) < EqualityEpsilon) and
+      (Abs(M1[2, 2] - M2[2, 2]) < EqualityEpsilon) and
+      (Abs(M1[2, 3] - M2[2, 3]) < EqualityEpsilon) and
+      (Abs(M1[3, 0] - M2[3, 0]) < EqualityEpsilon) and
+      (Abs(M1[3, 1] - M2[3, 1]) < EqualityEpsilon) and
+      (Abs(M1[3, 2] - M2[3, 2]) < EqualityEpsilon) and
+      (Abs(M1[3, 3] - M2[3, 3]) < EqualityEpsilon);
 end;
 
 function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX4): boolean;
 begin
-  { Could be realized by VectorsPerfectlyEqual, but for speed... }
-  Result :=
-    (M1[0, 0] = M2[0, 0]) and (M1[0, 1] = M2[0, 1]) and (M1[0, 2] = M2[0, 2]) and (M1[0, 3] = M2[0, 3]) and
-    (M1[1, 0] = M2[1, 0]) and (M1[1, 1] = M2[1, 1]) and (M1[1, 2] = M2[1, 2]) and (M1[1, 3] = M2[1, 3]) and
-    (M1[2, 0] = M2[2, 0]) and (M1[2, 1] = M2[2, 1]) and (M1[2, 2] = M2[2, 2]) and (M1[2, 3] = M2[2, 3]) and
-    (M1[3, 0] = M2[3, 0]) and (M1[3, 1] = M2[3, 1]) and (M1[3, 2] = M2[3, 2]) and (M1[3, 3] = M2[3, 3]);
+  Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
 
 function VectorsPerp(const v1, v2: TYPE_VECTOR3): boolean;

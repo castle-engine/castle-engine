@@ -26,6 +26,11 @@
   animation to go backward after going forward.
   The default is --loop --no-backwards.
 
+  Also --renderer-optimization option is accepted, just like for
+  view3dscene (see view3dscene --help). Default is
+  separate-shape-states-no-transform, as this is the best
+  for TVRMLGLAnimation.
+
   Example command with more scenes:
     ./demo_animation models/gus_1_final.wrl 0 \
                      models/gus_2_final.wrl 1 \
@@ -41,14 +46,10 @@
   Space key restarts the animation (definitely useful if you passed
   --no-loop option).
 
-  You may notice that the 1st pass of the animation is much slower than the
-  following ones, that's because in the 1st pass OpenGL display lists
-  are created, in later passes they are only used.
-  (Of course this strange effect is avoidable, that's the purpose
-  of TVRMLFlatSceneGL.PrepareRender -- in real program you should
-  first prepare all animation scenes, because usually user prefers
-  to wait some time "while the level is loading" and then have a smooth
-  play. I didn't implement this in this demo program for simplicity.)
+  At the beginning there is some preprocessing time
+  ("Preparing animation") when we create display lists,
+  to make future animation run smoothly.
+  That's done by TVRMLGLAnimation.PrepareRender.
 }
 
 program demo_animation;
@@ -62,6 +63,10 @@ const
   { This is the number of animation frames constructed per one unit of time.
     Increase this to get smoother animation. }
   ScenesPerTime = 50;
+
+  { EqualityEpsilon used to marge nodes when creating animation.
+    Larger values may speed up animation loading time and save memory use. }
+  EqualityEpsilon = 0.001;
 
 var
   Animation: TVRMLGLAnimation;
@@ -136,8 +141,11 @@ var
   AnimRootNodes: array of TVRMLNode;
   AnimTimes: array of Single;
   I: Integer;
+  Param_RendererOptimization: TGLRendererOptimization =
+    roSeparateShapeStatesNoTransform;
 begin
   Glw.ParseParameters(StandardParseOptions);
+  RendererOptimizationOptionsParse(Param_RendererOptimization);
   ParseParameters(Options, OptionProc, nil);
 
   { parse parameters to AnimRootNodes and AnimTimes }
@@ -156,7 +164,8 @@ begin
     VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
 
     Animation := TVRMLGLAnimation.Create(
-      AnimRootNodes, AnimTimes, ScenesPerTime, roSeparateShapeStates);
+      AnimRootNodes, AnimTimes, ScenesPerTime, roSeparateShapeStatesNoTransform,
+      EqualityEpsilon);
     Animation.TimeLoop := AnimTimeLoop;
     Animation.TimeBackwards := AnimTimeBackwards;
 

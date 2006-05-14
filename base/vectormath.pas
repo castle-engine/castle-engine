@@ -234,9 +234,12 @@ uses SysUtils, KambiUtils;
 {$define read_interface}
 
 { Most types below are packed anyway, so the "packed" keyword below
-  is often not needed (but it doesn't hurt). The fact that types
+  is often not needed (but it doesn't hurt).
+
+  The fact that types
   below are packed is useful to easily map some of them to
-  OpenGL, OpenAL types etc. }
+  OpenGL, OpenAL types etc. It's also useful to be able to safely
+  compare the types for exact equality by routines like CompareMem. }
 
 type
   { }
@@ -479,6 +482,8 @@ var
     to always detect collisions.
 
     You can change the variables below (but always keep them >= 0).
+
+    Exact 0 always means that exact comparison will be used.
 
     @groupBegin }
     SingleEqualityEpsilon: Single   = 0.0000001;
@@ -871,7 +876,13 @@ function PointsDistanceXYSqr(const v1, v2: TVector3Single): Single; overload;
 function PointsDistanceXYSqr(const v1, v2: TVector3Double): Double; overload;
 { @groupEnd }
 
-{ czy dwa wektory sa rowne ? Uzywa FloatsEqual. }
+{ czy dwa wektory sa rowne ? Uzywa FloatsEqual.
+
+  Note that the case when EqualityEpsilon (or SingleEqualityEpsilon
+  or DoubleEqualityEpsilon) is exactly 0 is optimized here
+  (i.e. we compare using direct CompareMem routines). }
+function VectorsEqual(const v1, v2: TVector2Single; const EqualityEpsilon: Single): boolean; overload;
+function VectorsEqual(const v1, v2: TVector2Double; const EqualityEpsilon: Double): boolean; overload;
 function VectorsEqual(const v1, v2: TVector3Single): boolean; overload;
 function VectorsEqual(const v1, v2: TVector3Double): boolean; overload;
 function VectorsEqual(const v1, v2: TVector3Single; const EqualityEpsilon: Single): boolean; overload;
@@ -884,9 +895,15 @@ function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Doubl
 { czy dwa wektory sa rowne ? Uzywa operatora "=" wiec wymaga dokladnej
   rownosci. Zazwyczaj nie tego chcesz uzyc - zazwyczaj powinienes uzywac
   VectorsEqual. }
+function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload;
+function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload;
 
+function MatricesEqual(const M1, M2: TMatrix4Single;
+  const EqualityEpsilon: Single): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix4Double;
+  const EqualityEpsilon: Double): boolean; overload;
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Single): boolean; overload;
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Double): boolean; overload;
 
@@ -1692,37 +1709,95 @@ uses Math, KambiStringUtils;
 { FloatsEqual ------------------------------------------------------------- }
 
 function FloatsEqual(const f1, f2: Single): boolean;
-begin result := Abs(f1-f2) < SingleEqualityEpsilon end;
+begin
+  if SingleEqualityEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < SingleEqualityEpsilon;
+end;
 
 function FloatsEqual(const f1, f2: Double): boolean;
-begin result := Abs(f1-f2) < DoubleEqualityEpsilon end;
+begin
+  if DoubleEqualityEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < DoubleEqualityEpsilon;
+end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function FloatsEqual(const f1, f2: Extended): boolean;
-begin result := Abs(f1-f2) < ExtendedEqualityEpsilon end;
+begin
+  if ExtendedEqualityEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < ExtendedEqualityEpsilon
+end;
 {$endif}
 
 function FloatsEqual(const f1, f2, EqEpsilon: Single): boolean;
-begin result := Abs(f1-f2) < EqEpsilon end;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < EqEpsilon
+end;
 
 function FloatsEqual(const f1, f2, EqEpsilon: Double): boolean;
-begin result := Abs(f1-f2) < EqEpsilon end;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < EqEpsilon
+end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function FloatsEqual(const f1, f2, EqEpsilon: Extended): boolean;
-begin result := Abs(f1-f2) < EqEpsilon end;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < EqEpsilon
+end;
 {$endif}
 
-function IsZero(const f1: Single  ): boolean; begin result := Abs(f1)<  SingleEqualityEpsilon end;
-function IsZero(const f1: Double  ): boolean; begin result := Abs(f1)<  DoubleEqualityEpsilon end;
+function IsZero(const f1: Single  ): boolean;
+begin
+  if SingleEqualityEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1)<  SingleEqualityEpsilon
+end;
+
+function IsZero(const f1: Double  ): boolean;
+begin
+  if DoubleEqualityEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1)<  DoubleEqualityEpsilon
+end;
+
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1: Extended): boolean; begin result := Abs(f1) < ExtendedEqualityEpsilon end;
+function IsZero(const f1: Extended): boolean;
+begin
+  if ExtendedEqualityEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1) < ExtendedEqualityEpsilon
+end;
 {$endif}
 
-function IsZero(const f1, EqEpsilon: Single  ): boolean; begin result := Abs(f1) < EqEpsilon end;
-function IsZero(const f1, EqEpsilon: Double  ): boolean; begin result := Abs(f1) < EqEpsilon end;
+function IsZero(const f1, EqEpsilon: Single  ): boolean;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = 0 else
+    result := Abs(f1) < EqEpsilon
+end;
+
+function IsZero(const f1, EqEpsilon: Double  ): boolean;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1) < EqEpsilon
+end;
+
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function IsZero(const f1, EqEpsilon: Extended): boolean; begin result := Abs(f1) < EqEpsilon end;
+function IsZero(const f1, EqEpsilon: Extended): boolean;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1) < EqEpsilon
+end;
 {$endif}
 
 { konstruktory typow --------------------------------------------------------- }

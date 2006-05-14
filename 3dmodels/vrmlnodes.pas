@@ -401,6 +401,12 @@ type
     { Note that Equals doesn't compare OwnsLastNodes values,
       as they don't really define the "content" of the instance... }
     function Equals(SecondValue: TVRMLGraphTraverseState): boolean;
+
+    { This is like Equals but it ignores some fields that are
+      ignored when rendering using
+      TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
+      For example, it ignores CurrMatrix. }
+    function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
   end;
 
   TTraversingFunc = procedure (Node: TVRMLNode;
@@ -2193,6 +2199,21 @@ begin
       if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
         Exit(false);
   end;
+end;
+
+function TVRMLGraphTraverseState.EqualsNoTransform(
+  SecondValue: TVRMLGraphTraverseState): boolean;
+var
+  I: Integer;
+begin
+  { ActiveLights, CurrMatrix, CurrTextureMatrix
+    are ignored by TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
+
+  for I := 0 to HighTraverseStateLastNodes do
+    if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+      Exit(false);
+
+  Result := true;
 end;
 
 { TVRMLNode ------------------------------------------------------------------- }

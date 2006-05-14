@@ -65,11 +65,7 @@ type
     Until the things mentioned above are done, this class allows you
     to create animations by simply making two or more VRML scenes
     with various state of the same model. In many cases this should be
-    acceptable solution.
-
-    Note that this class should generally use roSeparateShapeStates,
-    to conserve memory in some common cases. See docs
-    at TGLRendererOptimization type. }
+    acceptable solution. }
   TVRMLGLAnimation = class
   private
     FScenes: TVRMLFlatSceneGLsList;
@@ -103,7 +99,21 @@ type
         of time.)
 
       @param(AOptimization
-        This is passed to TVRMLFlatSceneGL constructor, see there for docs.)
+        This is passed to TVRMLFlatSceneGL constructor, see there for docs.
+
+        Note that this class should generally use roSeparateShapeStatesNoTransform
+        or roSeparateShapeStates for Optimization, to conserve memory
+        in some common cases. See docs at TGLRendererOptimization type.)
+
+      @param(EqualityEpsilon
+        This will be used for comparing fields, to decide if two fields
+        (and, consequently, nodes) are equal. It will be simply
+        passed to TVRMLField.Equals.
+
+        You can pass here 0 to use exact comparison, but it's
+        adviced to use here something > 0. Otherwise we could waste
+        display list memory (and loading time) for many frames of the
+        same node that are in fact equal.)
 
       @raises(EModelsStructureDifferent
         When models in RootNode1 and RootNode2 are not structurally equal
@@ -116,6 +126,7 @@ type
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
+      const EqualityEpsilon: Single;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     constructor Create(
@@ -123,6 +134,7 @@ type
       const ATimes: array of Single;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
+      const EqualityEpsilon: Single;
       ATimeLoop, ATimeBackwards: boolean;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
@@ -262,6 +274,7 @@ constructor TVRMLGLAnimation.Create(
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
+  const EqualityEpsilon: Single;
   ACache: TVRMLOpenGLRendererContextCache = nil);
 
   { This will check that Model1 and Model2 are exactly equal,
@@ -363,7 +376,7 @@ constructor TVRMLGLAnimation.Create(
 
         if not (
            ( (Model1 is TNodeWWWInline) and (Model1.Fields[I].Name = 'name') ) or
-           Model1.Fields[I].Equals(Model2.Fields[I])
+           Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
            ) then
           raise EModelsStructureDifferent.CreateFmt(
             'Fields "%s" (class "%s") are not equal',
@@ -433,7 +446,7 @@ constructor TVRMLGLAnimation.Create(
     begin
       {$define CheckEqualitySetResult :=
         begin
-          if not Model1.Fields[I].Equals(Model2.Fields[I]) then
+          if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
             Exit(false);
         end}
 
@@ -582,10 +595,12 @@ constructor TVRMLGLAnimation.Create(
   const ATimes: array of Single;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
+  const EqualityEpsilon: Single;
   ATimeLoop, ATimeBackwards: boolean;
   ACache: TVRMLOpenGLRendererContextCache);
 begin
-  Create(RootNodes, ATimes, ScenesPerTime, AOptimization, ACache);
+  Create(RootNodes, ATimes, ScenesPerTime, AOptimization,
+    EqualityEpsilon, ACache);
   TimeLoop := ATimeLoop;
   TimeBackwards := ATimeBackwards;
 end;

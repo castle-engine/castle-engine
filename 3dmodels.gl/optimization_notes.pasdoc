@@ -76,10 +76,10 @@ case when you know that user will usually not see the whole scene.
 
 @orderedList(
   @item(
-    You can use @link(TVRMLFlatSceneGL) with @link(TVRMLFlatSceneGL.Optimization 
+    You can use @link(TVRMLFlatSceneGL) with @link(TVRMLFlatSceneGL.Optimization
     Optimization) = roSeparateShapeStates
     and use it's Render* methods that take into account your visibility
-    frustum (e.g. @link(TVRMLFlatSceneGL.RenderFrustum RenderFrustum)) 
+    frustum (e.g. @link(TVRMLFlatSceneGL.RenderFrustum RenderFrustum))
     or visibility sphere or something like that
     (generally speaking: methods that generate some function
     TestShapeStateVisibility that can quickly decide that some ShapeStates
@@ -115,7 +115,7 @@ case when you know that user will usually not see the whole scene.
 
     To use this: just build your octree with
     @link(TVRMLFlatScene.CreateShapeStateOctree) and then render using
-    @link(TVRMLFlatSceneGL.RenderFrustumOctree). 
+    @link(TVRMLFlatSceneGL.RenderFrustumOctree).
     @link(TVRMLFlatSceneGL) still (like in approach (1))
     should be constructed with Optimization = roSeparateShapeStates.
 
@@ -127,13 +127,33 @@ case when you know that user will usually not see the whole scene.
     this will work only to a certain point, i.e. at some point
     making more ShapeStates will again degrade performance.
     But now you can squeeze more ShapeStates than with approach (1).)
+
+  @item(
+    There's also a modified version of approach (4).
+    With Optimization = roSeparateShapeStates, I create a separate
+    display list for each ShapeState, that includes ShapeState's
+    tranformation and lighting settings.
+
+    However, this prevents
+    display lists sharing between various ShapeStates:
+    If the scene uses the same ShapeState many times, but transformed
+    differently, I would like to create only one display list for
+    such ShapeState. Moreover, when using TVRMLGLAnimation, if the
+    same ShapeState is used within each animation frame (and it's
+    only transformed differently), I would also like to use one
+    display list. This is achieved by
+    Optimization = roSeparateShapeStatesNoTransform.
+
+    This is important that we save display list usage, as display lists
+    can eat a huge amount of memory (as they have to store many things,
+    like all vertex coordinates).)
 )
 
 @section(3 OpenGLOptimizationAlternatives
   What are the alternatives ?)
 
 @orderedList(
-  @itemSetNumber 3
+  @itemSetNumber 4
   @item(
     Then comes the obvious idea to don't use scene division given
     by ShapeStates, but instead use triangles. This means that you
@@ -161,7 +181,7 @@ case when you know that user will usually not see the whole scene.
     Well, OK, this seems negotiable: maybe in some cases
     it would be sensible and more efficient to render triangles
     immediately when traversing your octree (let's assign
-    number (4) to this approach).
+    number (5) to this approach).
 
     Drawbacks: well, first of all your octree must be really good.
     Just like for ray-tracer. Too shallow octree (like the one

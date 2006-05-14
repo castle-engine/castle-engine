@@ -130,25 +130,74 @@ type
           generating many display lists for TVRMLGLAnimation is generally
           very memory-hungry operation.
 
+          You can achieve even much better memory saving by using
+          roSeparateShapeStatesNoTransformation.
+
           This is achieved by TVRMLOpenGLRendererContextCache
           methods ShapeState_Xxx.)
       )
     }
     roSeparateShapeStates,
 
-    { This is like roSeparateShapeStates but it allows for more
+    { This is like roSeparateShapeStates but it allows for much more
       display lists sharing because it stores untransformed
-      ShapeState in a display list. This is adviced for
-      TVRMLGLAnimation, as this allows to save more memory
-      (and loading time) on dislay lists.
+      ShapeState in a display list.
 
-      But it can be used only if you don't use
-      Attributes.OnBeforeVertex and you don't use volumetric fog
-      (reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
-      uses Render_State.CurrMatrix).
+      Where this is better over roSeparateShapeStates:
+      If you use TVRMLGLAnimation when the same ShapeState occurs
+      in each frame but is transformed differently.
+      Or when you have a scene that uses the same ShapeState many times
+      but with different transformation.
+      Actually, "transformation" means here everything rendered by
+      TVRMLOpenGLRenderer.RenderShapeStateBegin, which includes
+      modelview transformation, texture transformation and all lights
+      settings.
+      In such cases, roSeparateShapeStatesNoTranform will use
+      one display list, where roSeparateShapeStates would use a lot.
+      What exactly "a lot" means depends on how much frames your
+      animation has, how much ShapeState is duplicated etc.
+      This can be a @italic(huge memory saving). Also preparing
+      scene/animations (in PrepareRender) should be much faster.
 
-      TODO: not impl yet. }
-    roSeparateShapeStatesNoTransformation
+      This saved me 13 MB memory in "The Castle" (much less than
+      I hoped, honestly, but still something...).
+
+      Where this is worse over roSeparateShapeStates:
+      @unorderedList(
+        @item(
+          roSeparateShapeStatesNoTransform can be used only if you don't use
+          Attributes.OnBeforeVertex feature and your model doesn't
+          use volumetric fog. If you do use these features,
+          you have no choice: you must use roSeparateShapeStates,
+          otherwise rendering results may be wrong.
+
+          See [http://www.camelot.homedns.org/~michalis/miscella/kambi_vrml_examples.tar.gz]
+          file kambi-specific/fog_volumetric/break_no_transform_final.wrl
+          for a demo.
+
+          Reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
+          uses Render_State.CurrMatrix.)
+
+        @item(In some cases roSeparateShapeStatesNoTransform
+          may be a little slower at rendering than roSeparateShapeStates,
+          as this doesn't wrap in display list things done
+          by TVRMLOpenGLRenderer.RenderShapeStateBegin.
+          So modelview matrix and texture matrix and whole
+          lights state will be done each time by OpenGL commands,
+          without display lists.
+
+          Will this affect rendering speed much ?
+          If your scene doesn't use lights
+          then the speed difference between roSeparateShapeStates
+          and roSeparateShapeStatesNoTransform should not be noticeable.
+          Otherwise... well, you have to check what matters more
+          in this case: memory saving by roSeparateShapeStatesNoTransform
+          or additional speed saving by roSeparateShapeStates.)
+      )
+
+      This is achieved by TVRMLOpenGLRendererContextCache
+      methods ShapeStateNoTransform_Xxx. }
+    roSeparateShapeStatesNoTransform
   );
   PGLRendererOptimization = ^TGLRendererOptimization;
 
@@ -280,7 +329,7 @@ type
 
     { niszcz powiazania z kontekstem OpenGLa obiektu Renderer i ew. wszelkich
       wygenerowanych na podstawie niego rzeczy (w tym momencie oznacza
-      to SAAW_DisplayList i SSS_DisplayLists).
+      to SAAW_DisplayList i SSSX_DisplayLists).
       Nie niszcz powiazan Background.
       Ta procedura jest uzyteczna aby ja wywolac np. gdy zmieniamy
       Attrib (bo one (poza ColorModulatorami) wymagaja tylko odlaczenia
@@ -336,42 +385,47 @@ type
     procedure SAAW_Render;
 
     { ------------------------------------------------------------
-      Private things used only when Optimization = roSeparateShapeStates.
-      Prefixed with SSS, for clarity.  }
+      Private things used only when Optimization is
+      roSeparateShapeStates or roSeparateShapeStatesNoTransform.
+      Prefixed with SSSX, for clarity. }
 
-    { <> nil if and only if Optimization = roSeparateShapeStates.
+    { <> nil if and only if Optimization is not
+      roSeparateShapeStates or roSeparateShapeStatesNoTransform.
       Every item is 0 if it is not initialized. }
-    SSS_DisplayLists: TDynGLuintArray;
+    SSSX_DisplayLists: TDynGLuintArray;
 
-    SSS_RenderBeginDisplayList: TGLuint;
-    SSS_RenderEndDisplayList: TGLuint;
+    SSSX_RenderBeginDisplayList: TGLuint;
+    SSSX_RenderEndDisplayList: TGLuint;
 
-    { These create appropriate SSS_Render*DisplayList display list. }
-    procedure SSS_PrepareBegin;
-    procedure SSS_PrepareEnd;
+    { These create appropriate SSSX_Render*DisplayList display list. }
+    procedure SSSX_PrepareBegin;
+    procedure SSSX_PrepareEnd;
 
-    { These call appropriate SSS_Render*DisplayList display list.
+    { These call appropriate SSSX_Render*DisplayList display list.
       If display list is not ready, they create it. }
-    procedure SSS_RenderBegin;
-    procedure SSS_RenderEnd;
+    procedure SSSX_RenderBegin;
+    procedure SSSX_RenderEnd;
+
+    { ------------------------------------------------------------
+      Private things used only when Optimization is
+      roSeparateShapeStates. Prefixed with SSS, for clarity. }
 
     { Use this only when Optimization = roSeparateShapeStates.
       It can be passed as RenderShapeStateProc.
 
-      This renders SSS_DisplayLists.Items[ShapeStateNum]
+      This renders SSSX_DisplayLists.Items[ShapeStateNum]
       display list (creating it if necessary). }
     procedure SSS_RenderShapeState(ShapeStateNum: Integer);
 
     { Call this only when Optimization = roSeparateShapeStates and
-      SSS_DisplayLists.Items[ShapeStateNum] = 0.
+      SSSX_DisplayLists.Items[ShapeStateNum] = 0.
 
       Prepares shapestate (by Renderer.Prepare(ShapeStates[ShapeStateNum].State).
 
-      Then creates display list SSS_DisplayLists.Items[ShapeStateNum]
+      Then creates display list SSSX_DisplayLists.Items[ShapeStateNum]
       and initializes it with contents of RenderShapeStateSimple(ShapeStateNum).
-      Mode is passed to glNewList: if it's GL_COMPILE_AND_EXECUTE,
-      it not only creates display list but also renders it now,
-      if it's GL_COMPILE it only creates given display list.
+      Mode GL_COMPILE is passed to glNewList, so it only creates
+      given display list.
 
       This is somehow equivalent to SAAW_Prepare,
       but it operates only on a single ShapeState.
@@ -380,6 +434,13 @@ type
       SSS_PrepareShapeState if display list has to be created.
       Then it renders the list. }
     procedure SSS_PrepareShapeState(ShapeStateNum: Integer);
+
+    { ------------------------------------------------------------
+      Private things used only when Optimization is
+      roSeparateShapeStatesNoTransform. Prefixed with SSSNT, for clarity. }
+
+    procedure SSSNT_RenderShapeState(ShapeStateNum: Integer);
+    procedure SSSNT_PrepareShapeState(ShapeStateNum: Integer);
   public
     { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -794,13 +855,16 @@ procedure TVRMLFlatSceneGL.CommonCreate(
   ARenderer: TVRMLOpenGLRenderer);
 begin
   { inherited Create calls ChangedAll that is overriden in this class
-    and uses SSS_DisplayLists, RenderFrustumOctree_Visible, Optimization.
+    and uses SSSX_DisplayLists,
+    RenderFrustumOctree_Visible, Optimization.
     That's why I have to init them *before* "inherited Create" }
 
   FOptimization := AOptimization;
 
-  if Optimization = roSeparateShapeStates then
-   SSS_DisplayLists := TDynGLuintArray.Create;
+  case Optimization of
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      SSSX_DisplayLists := TDynGLuintArray.Create;
+  end;
 
   RenderFrustumOctree_Visible := TDynBooleanArray.Create;
 
@@ -850,7 +914,7 @@ begin
   if not FUsingProvidedRenderer then
     FreeAndNil(Renderer);
 
-  FreeAndNil(SSS_DisplayLists);
+  FreeAndNil(SSSX_DisplayLists);
   FreeAndNil(RenderFrustumOctree_Visible);
 
   FreeAndNil(DefaultSavedShadowQuads);
@@ -866,64 +930,70 @@ procedure TVRMLFlatSceneGL.CloseGLRenderer;
   w pelni skonstruowany.
   W tym momencie sprowadza sie to do tego ze trzeba sprawdzac czy
   Renderer <> nil. }
-var ShapeStateNum: Integer;
+var
+  ShapeStateNum: Integer;
 begin
- case Optimization of
-  roSceneAsAWhole:
-    glFreeDisplayList(SAAW_DisplayList);
-  roSeparateShapeStates:
-    begin
-      { Because CloseGLRenderer may be called after scene has changed
-        and after "inherited ChangedAll" changed ShapeStates.Count to
-        reflect this change but before our ChangedAll changed
-        SSS_DisplayLists.Length (after all, CloseGLRenderer must be
-        called before changing SSS_DisplayLists.Length, since CloseGLRenderer
-        must finalize what was left) ... so, I can't assume here that
-        ShapeStates.Count = SSS_DisplayLists.Count (like I do in many
-        other places in this unit). So below I must iterate to
-        "SSS_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
-      if Renderer <> nil then
+  case Optimization of
+    roSceneAsAWhole:
+      glFreeDisplayList(SAAW_DisplayList);
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       begin
-        for ShapeStateNum := 0 to SSS_DisplayLists.Count - 1 do
-          if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
+        { Because CloseGLRenderer may be called after scene has changed
+          and after "inherited ChangedAll" changed ShapeStates.Count to
+          reflect this change but before our ChangedAll changed
+          SSSX_DisplayLists.Length (after all, CloseGLRenderer must be
+          called before changing SSSX_DisplayLists.Length, since CloseGLRenderer
+          must finalize what was left) ... so, I can't assume here that
+          ShapeStates.Count = SSSX_DisplayLists.Count (like I do in many
+          other places in this unit). So below I must iterate to
+          "SSSX_DisplayLists.Count - 1", *not* to "ShapeStates.Count - 1". }
+        if Renderer <> nil then
+        begin
+          for ShapeStateNum := 0 to SSSX_DisplayLists.Count - 1 do
+            if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
+            begin
+
+              if Optimization = roSeparateShapeStates then
+                Renderer.Cache.ShapeState_DecReference(
+                  SSSX_DisplayLists.Items[ShapeStateNum]) else
+                Renderer.Cache.ShapeStateNoTransform_DecReference(
+                  SSSX_DisplayLists.Items[ShapeStateNum]);
+
+              SSSX_DisplayLists.Items[ShapeStateNum] := 0;
+            end;
+
+          if SSSX_RenderBeginDisplayList <> 0 then
           begin
-            Renderer.Cache.ShapeState_DecReference(
-              SSS_DisplayLists.Items[ShapeStateNum]);
-            SSS_DisplayLists.Items[ShapeStateNum] := 0;
+            Renderer.Cache.RenderBegin_DecReference(SSSX_RenderBeginDisplayList);
+            SSSX_RenderBeginDisplayList := 0;
           end;
 
-        if SSS_RenderBeginDisplayList <> 0 then
-        begin
-          Renderer.Cache.RenderBegin_DecReference(SSS_RenderBeginDisplayList);
-          SSS_RenderBeginDisplayList := 0;
-        end;
-
-        if SSS_RenderEndDisplayList <> 0 then
-        begin
-          Renderer.Cache.RenderEnd_DecReference(SSS_RenderEndDisplayList);
-          SSS_RenderEndDisplayList := 0;
+          if SSSX_RenderEndDisplayList <> 0 then
+          begin
+            Renderer.Cache.RenderEnd_DecReference(SSSX_RenderEndDisplayList);
+            SSSX_RenderEndDisplayList := 0;
+          end;
         end;
       end;
-    end;
- end;
+  end;
 
- { TODO: if FUsingProvidedRenderer then we should do something more detailed
-   then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
-   right now, so it's not implemented. }
- if Renderer <> nil then Renderer.UnprepareAll;
+  { TODO: if FUsingProvidedRenderer then we should do something more detailed
+    then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
+    right now, so it's not implemented. }
+  if Renderer <> nil then Renderer.UnprepareAll;
 end;
 
 procedure TVRMLFlatSceneGL.CloseGL;
 begin
- CloseGLRenderer;
- FBackgroundInvalidate;
+  CloseGLRenderer;
+  FBackgroundInvalidate;
 end;
 
 procedure TVRMLFlatSceneGL.PrepareAndRenderShapeStateSimple(
   ShapeStateNum: Integer);
 begin
- Renderer.Prepare(ShapeStates[ShapeStateNum].State);
- RenderShapeStateSimple(ShapeStateNum);
+  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
+  RenderShapeStateSimple(ShapeStateNum);
 end;
 
 procedure TVRMLFlatSceneGL.RenderShapeStateSimple(ShapeStateNum: Integer);
@@ -1036,18 +1106,18 @@ begin
  finally RenderEndProc end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareBegin;
+procedure TVRMLFlatSceneGL.SSSX_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
   if not Renderer.Cache.RenderBegin_IncReference_Existing(
     Attributes,
     FogNode, FogDistanceScaling,
-    SSS_RenderBeginDisplayList) then
+    SSSX_RenderBeginDisplayList) then
   begin
-    SSS_RenderBeginDisplayList := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderBegin');
-    glNewList(SSS_RenderBeginDisplayList, GL_COMPILE);
+    SSSX_RenderBeginDisplayList := glGenListsCheck(1,
+      'TVRMLFlatSceneGL.SSSX_PrepareBegin');
+    glNewList(SSSX_RenderBeginDisplayList, GL_COMPILE);
     try
       RenderBeginSimple;
     finally glEndList end;
@@ -1057,22 +1127,22 @@ begin
     Renderer.Cache.RenderBegin_IncReference_New(
       AttributesCopy,
       FogNode, FogDistanceScaling,
-      SSS_RenderBeginDisplayList);
+      SSSX_RenderBeginDisplayList);
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareEnd;
+procedure TVRMLFlatSceneGL.SSSX_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
   if not Renderer.Cache.RenderEnd_IncReference_Existing(
     Attributes,
     FogNode, FogDistanceScaling,
-    SSS_RenderEndDisplayList) then
+    SSSX_RenderEndDisplayList) then
   begin
-    SSS_RenderEndDisplayList := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSS_PrepareAndMaybeRenderEnd');
-    glNewList(SSS_RenderEndDisplayList, GL_COMPILE);
+    SSSX_RenderEndDisplayList := glGenListsCheck(1,
+      'TVRMLFlatSceneGL.SSSX_PrepareEnd');
+    glNewList(SSSX_RenderEndDisplayList, GL_COMPILE);
     try
       RenderEndSimple;
     finally glEndList end;
@@ -1082,22 +1152,22 @@ begin
     Renderer.Cache.RenderEnd_IncReference_New(
       AttributesCopy,
       FogNode, FogDistanceScaling,
-      SSS_RenderEndDisplayList);
+      SSSX_RenderEndDisplayList);
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_RenderBegin;
+procedure TVRMLFlatSceneGL.SSSX_RenderBegin;
 begin
-  if SSS_RenderBeginDisplayList = 0 then
-    SSS_PrepareBegin;
-  glCallList(SSS_RenderBeginDisplayList);
+  if SSSX_RenderBeginDisplayList = 0 then
+    SSSX_PrepareBegin;
+  glCallList(SSSX_RenderBeginDisplayList);
 end;
 
-procedure TVRMLFlatSceneGL.SSS_RenderEnd;
+procedure TVRMLFlatSceneGL.SSSX_RenderEnd;
 begin
-  if SSS_RenderEndDisplayList = 0 then
-    SSS_PrepareEnd;
-  glCallList(SSS_RenderEndDisplayList);
+  if SSSX_RenderEndDisplayList = 0 then
+    SSSX_PrepareEnd;
+  glCallList(SSSX_RenderEndDisplayList);
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareShapeState(
@@ -1113,11 +1183,11 @@ begin
     ShapeStates[ShapeStateNum].ShapeNode,
     ShapeStates[ShapeStateNum].State,
     FogNode, FogDistanceScaling,
-    SSS_DisplayLists.Items[ShapeStateNum]) then
+    SSSX_DisplayLists.Items[ShapeStateNum]) then
   begin
-    SSS_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
+    SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSS_PrepareShapeState');
-    glNewList(SSS_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
+    glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       RenderShapeStateSimple(ShapeStateNum);
     finally glEndList end;
@@ -1131,16 +1201,71 @@ begin
       ShapeStates[ShapeStateNum].ShapeNode,
       StateCopy,
       FogNode, FogDistanceScaling,
-      SSS_DisplayLists.Items[ShapeStateNum]);
+      SSSX_DisplayLists.Items[ShapeStateNum]);
   end;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_RenderShapeState(
   ShapeStateNum: Integer);
 begin
-  if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
+  if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
     SSS_PrepareShapeState(ShapeStateNum);
-  glCallList(SSS_DisplayLists.Items[ShapeStateNum]);
+  glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+end;
+
+procedure TVRMLFlatSceneGL.SSSNT_PrepareShapeState(
+  ShapeStateNum: Integer);
+var
+  AttributesCopy: TVRMLSceneRenderingAttributes;
+  StateCopy: TVRMLGraphTraverseState;
+begin
+  Renderer.Prepare(ShapeStates[ShapeStateNum].State);
+
+  if not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
+    Attributes,
+    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].State,
+    FogNode, FogDistanceScaling,
+    SSSX_DisplayLists.Items[ShapeStateNum]) then
+  begin
+    SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
+      'TVRMLFlatSceneGL.SSSNT_PrepareShapeState');
+    glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
+    try
+      Renderer.RenderShapeStateNoTransform(
+        ShapeStates[ShapeStateNum].ShapeNode,
+        ShapeStates[ShapeStateNum].State);
+    finally glEndList end;
+
+    AttributesCopy := TVRMLSceneRenderingAttributes.Create;
+    AttributesCopy.Assign(Attributes);
+    StateCopy := TVRMLGraphTraverseState.CreateCopy(
+      ShapeStates[ShapeStateNum].State);
+    Renderer.Cache.ShapeStateNoTransform_IncReference_New(
+      AttributesCopy,
+      ShapeStates[ShapeStateNum].ShapeNode,
+      StateCopy,
+      FogNode, FogDistanceScaling,
+      SSSX_DisplayLists.Items[ShapeStateNum]);
+  end;
+end;
+
+procedure TVRMLFlatSceneGL.SSSNT_RenderShapeState(
+  ShapeStateNum: Integer);
+begin
+  if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+    SSSNT_PrepareShapeState(ShapeStateNum);
+
+  Renderer.RenderShapeStateBegin(
+    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].State);
+  try
+    glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+  finally
+    Renderer.RenderShapeStateEnd(
+      ShapeStates[ShapeStateNum].ShapeNode,
+      ShapeStates[ShapeStateNum].State);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SAAW_Prepare;
@@ -1176,116 +1301,132 @@ procedure TVRMLFlatSceneGL.PrepareRender(
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
   DoPrepareTrianglesListOverTriangulate: boolean);
-var ShapeStateNum: Integer;
+var
+  ShapeStateNum: Integer;
 begin
- case Optimization of
-  roSceneAsAWhole:
-    if SAAW_DisplayList = 0 then
-     SAAW_Prepare;
-  roSeparateShapeStates:
-    begin
-     { build display lists (if needed) for begin/end and all shape states }
-     if SSS_RenderBeginDisplayList = 0 then
-       SSS_PrepareBegin;
+  case Optimization of
+    roSceneAsAWhole:
+      if SAAW_DisplayList = 0 then
+        SAAW_Prepare;
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      begin
+        { build display lists (if needed) for begin/end and all shape states }
+        if SSSX_RenderBeginDisplayList = 0 then
+          SSSX_PrepareBegin;
 
-     for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-     begin
-       if SSS_DisplayLists.Items[ShapeStateNum] = 0 then
-         SSS_PrepareShapeState(ShapeStateNum);
+        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+        begin
+          if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+          begin
+            if Optimization = roSeparateShapeStates then
+              SSS_PrepareShapeState(ShapeStateNum) else
+              SSSNT_PrepareShapeState(ShapeStateNum);
+          end;
 
-       { Calculate AllMeterialTransparent and make it cached in
-         ShapeStatesList[ShapeStateNum] instance. This is needed
-         for our trick with freeing RootNode, see
-         TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
-         comments. }
-       ShapeStates[ShapeStateNum].AllMaterialsTransparent;
-     end;
+          { Calculate AllMeterialTransparent and make it cached in
+            ShapeStatesList[ShapeStateNum] instance. This is needed
+            for our trick with freeing RootNode, see
+            TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
+            comments. }
+          ShapeStates[ShapeStateNum].AllMaterialsTransparent;
+        end;
 
-     if SSS_RenderEndDisplayList = 0 then
-       SSS_PrepareEnd;
-    end;
- end;
+        if SSSX_RenderEndDisplayList = 0 then
+          SSSX_PrepareEnd;
+      end;
+  end;
 
- if DoPrepareBackground then PrepareBackground;
+  if DoPrepareBackground then PrepareBackground;
 
- if DoPrepareBoundingBox then BoundingBox; { ignore the result }
+  if DoPrepareBoundingBox then BoundingBox; { ignore the result }
 
- if DoPrepareTrianglesListNotOverTriangulate then
-   TrianglesList(false);
+  if DoPrepareTrianglesListNotOverTriangulate then
+    TrianglesList(false);
 
- if DoPrepareTrianglesListOverTriangulate then
-   TrianglesList(true);
+  if DoPrepareTrianglesListOverTriangulate then
+    TrianglesList(true);
 end;
 
 procedure TVRMLFlatSceneGL.Render(
   TestShapeStateVisibility: TTestShapeStateVisibility);
 begin
- case Optimization of
-  roNone:
-    begin
-     RenderShapeStatesNoDispList(TestShapeStateVisibility,
-       PrepareAndRenderShapeStateSimple, RenderBeginSimple, RenderEndSimple);
-    end;
-  roSceneAsAWhole:
-    SAAW_Render;
-  roSeparateShapeStates:
-    begin
-     { build display lists (if needed) and render all shape states }
-     RenderShapeStatesNoDispList(TestShapeStateVisibility,
-       SSS_RenderShapeState, SSS_RenderBegin, SSS_RenderEnd);
-    end;
- end;
+  case Optimization of
+    roNone:
+      begin
+        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+          PrepareAndRenderShapeStateSimple, RenderBeginSimple, RenderEndSimple);
+      end;
+    roSceneAsAWhole:
+      SAAW_Render;
+    roSeparateShapeStates:
+      begin
+        { build display lists (if needed) and render all shape states }
+        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+          SSS_RenderShapeState, SSSX_RenderBegin, SSSX_RenderEnd);
+      end;
+    roSeparateShapeStatesNoTransform:
+      begin
+        { build display lists (if needed) and render all shape states }
+        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+          SSSNT_RenderShapeState, SSSX_RenderBegin, SSSX_RenderEnd);
+      end;
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.ChangedAll;
 begin
- inherited;
+  inherited;
 
- { zmienily sie wskazniki na jakies obiekty,
-   wiec musimy zrobic pelne UnprepareAll,
-   mimo ze nie zalezy nam na utracie polaczenia z danym kontekstem OpenGL'a.
-   Podobnie SAAW_DisplayList lub SSS_DisplayLists sa juz nieaktualne
-   wiec ich tez musimy sie pozbyc. Wiec trzeba wywolac po prostu CloseGL. }
- CloseGL;
+  { zmienily sie wskazniki na jakies obiekty,
+    wiec musimy zrobic pelne UnprepareAll,
+    mimo ze nie zalezy nam na utracie polaczenia z danym kontekstem OpenGL'a.
+    Podobnie SAAW_DisplayList lub SSSX_DisplayLists sa juz nieaktualne
+    wiec ich tez musimy sie pozbyc. Wiec trzeba wywolac po prostu CloseGL. }
+  CloseGL;
 
- if Optimization = roSeparateShapeStates then
- begin
-  SSS_DisplayLists.Count := ShapeStates.Count;
+  case Optimization of
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      begin
+        SSSX_DisplayLists.Count := ShapeStates.Count;
 
-  { Yeah, in previous CloseGL call we also resetted all
-    SSS_DisplayLists items to 0
-    (as a side-effect of calling glFreeDisplayList),
-    but previous statement "SSS_DisplayLists.Count := ..."
-    possibly enlarged SSS_DisplayLists.Count,
-    so we must now make sure that all new items are inited to 0. }
+        { Yeah, in previous CloseGL call we also resetted all
+          SSSX_DisplayLists items to 0
+          (as a side-effect of calling glFreeDisplayList),
+          but previous statement "SSSX_DisplayLists.Count := ..."
+          possibly enlarged SSSX_DisplayLists.Count,
+          so we must now make sure that all new items are inited to 0. }
 
-  SSS_DisplayLists.SetAll(0);
- end;
+        SSSX_DisplayLists.SetAll(0);
+      end;
+  end;
 
- RenderFrustumOctree_Visible.Count := ShapeStates.Count;
+  RenderFrustumOctree_Visible.Count := ShapeStates.Count;
 end;
 
 procedure TVRMLFlatSceneGL.ChangedShapeStateFields(ShapeStateNum: integer);
 begin
- inherited;
+  inherited;
 
- { nie musimy tu robic nigdy Renderer.Unprepare*, bo przeciez obiekty node'ow
-   sie nie zmienily, tylko ich pola. Zwracam uwage ze w ten sposob gdy
-   Optimization = roNone to w tej procedurze nie musimy NIC robic - a wiec
-   jest to jakis zysk gdy uzywamy roNone. }
+  { nie musimy tu robic nigdy Renderer.Unprepare*, bo przeciez obiekty node'ow
+    sie nie zmienily, tylko ich pola. Zwracam uwage ze w ten sposob gdy
+    Optimization = roNone to w tej procedurze nie musimy NIC robic - a wiec
+    jest to jakis zysk gdy uzywamy roNone. }
 
- case Optimization of
-  roSceneAsAWhole:
-    glFreeDisplayList(SAAW_DisplayList);
-  roSeparateShapeStates:
-    { TODO -- test this }
-    if SSS_DisplayLists.Items[ShapeStateNum] <> 0 then
-    begin
-      Renderer.Cache.ShapeState_DecReference(
-        SSS_DisplayLists.Items[ShapeStateNum]);
-      SSS_DisplayLists.Items[ShapeStateNum] := 0;
-    end;
- end;
+  case Optimization of
+    roSceneAsAWhole:
+      glFreeDisplayList(SAAW_DisplayList);
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      { TODO -- test this }
+      if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
+      begin
+        if Optimization = roSeparateShapeStates then
+          Renderer.Cache.ShapeState_DecReference(
+            SSSX_DisplayLists.Items[ShapeStateNum]) else
+          Renderer.Cache.ShapeStateNoTransform_DecReference(
+            SSSX_DisplayLists.Items[ShapeStateNum]);
+        SSSX_DisplayLists.Items[ShapeStateNum] := 0;
+      end;
+  end;
 end;
 
 { shadow quads --------------------------------------------------------------- }

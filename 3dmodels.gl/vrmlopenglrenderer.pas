@@ -523,6 +523,7 @@ type
     TexturesCaches: TDynTextureCacheArray;
     FUseTextureFileNames: boolean;
     ShapeStateCaches: TDynShapeStateCacheArray;
+    ShapeStateNoTransformCaches: TDynShapeStateCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
 
@@ -632,6 +633,25 @@ type
       AGLList: TGLuint);
 
     procedure ShapeState_DecReference(
+      const GLList: TGLuint);
+
+    function ShapeStateNoTransform_IncReference_Existing(
+      AAttributes: TVRMLRenderingAttributes;
+      AShapeNode: TNodeGeneralShape;
+      AState: TVRMLGraphTraverseState;
+      AFogNode: TNodeFog;
+      const AFogDistanceScaling: Single;
+      out AGLList: TGLuint): boolean;
+
+    procedure ShapeStateNoTransform_IncReference_New(
+      AAttributes: TVRMLRenderingAttributes;
+      AShapeNode: TNodeGeneralShape;
+      AState: TVRMLGraphTraverseState;
+      AFogNode: TNodeFog;
+      const AFogDistanceScaling: Single;
+      AGLList: TGLuint);
+
+    procedure ShapeStateNoTransform_DecReference(
       const GLList: TGLuint);
 
     function RenderBegin_IncReference_Existing(
@@ -821,6 +841,7 @@ begin
   inherited;
   TexturesCaches := TDynTextureCacheArray.Create;
   ShapeStateCaches := TDynShapeStateCacheArray.Create;
+  ShapeStateNoTransformCaches := TDynShapeStateCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
   RenderEndCaches := TDynRenderBeginEndCacheArray.Create;
 end;
@@ -854,6 +875,14 @@ begin
     Assert(ShapeStateCaches.Count = 0, 'Some references to ShapeStates still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
     FreeAndNil(ShapeStateCaches);
+  end;
+
+  if ShapeStateNoTransformCaches <> nil then
+  begin
+    Assert(ShapeStateNoTransformCaches.Count = 0,
+      'Some references to ShapeStatesNoTransform still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(ShapeStateNoTransformCaches);
   end;
 
   if RenderBeginCaches <> nil then
@@ -1071,6 +1100,99 @@ begin
 
   raise EInternalError.CreateFmt(
     'TVRMLOpenGLRendererContextCache.ShapeState_DecReference: no reference ' +
+    'found for display list %d', [GLList]);
+end;
+
+function TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_Existing(
+  AAttributes: TVRMLRenderingAttributes;
+  AShapeNode: TNodeGeneralShape;
+  AState: TVRMLGraphTraverseState;
+  AFogNode: TNodeFog;
+  const AFogDistanceScaling: Single;
+  out AGLList: TGLuint): boolean;
+var
+  I: Integer;
+  SSCache: PShapeStateCache;
+begin
+  for I := 0 to ShapeStateNoTransformCaches.High do
+  begin
+    SSCache := ShapeStateNoTransformCaches.Pointers[I];
+    if (SSCache^.Attributes.Equals(AAttributes)) and
+       (SSCache^.ShapeNode = AShapeNode) and
+       (SSCache^.State.EqualsNoTransform(AState)) and
+       FogParametersEqual(
+         SSCache^.FogNode, SSCache^.FogDistanceScaling,
+                 AFogNode,         AFogDistanceScaling) then
+    begin
+      Inc(SSCache^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : ShapeState NoTransform ', SSCache^.GLList, ' : ',
+        SSCache^.References);
+      {$endif}
+      AGLList := SSCache^.GLList;
+      Exit(true);
+    end;
+  end;
+
+  Exit(false);
+end;
+
+procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_New(
+  AAttributes: TVRMLRenderingAttributes;
+  AShapeNode: TNodeGeneralShape;
+  AState: TVRMLGraphTraverseState;
+  AFogNode: TNodeFog;
+  const AFogDistanceScaling: Single;
+  AGLList: TGLuint);
+var
+  SSCache: PShapeStateCache;
+begin
+  ShapeStateNoTransformCaches.IncLength;
+  SSCache := ShapeStateNoTransformCaches.Pointers[
+    ShapeStateNoTransformCaches.High];
+  SSCache^.Attributes := AAttributes;
+  SSCache^.ShapeNode := AShapeNode;
+  SSCache^.State := AState;
+  SSCache^.FogNode := AFogNode;
+  SSCache^.FogDistanceScaling := AFogDistanceScaling;
+  SSCache^.GLList := AGLList;
+  SSCache^.References := 1;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : ShapeState NoTransform ', SSCache^.GLList, ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_DecReference(
+  const GLList: TGLuint);
+var
+  I: Integer;
+  SSCache: PShapeStateCache;
+begin
+  for I := 0 to ShapeStateNoTransformCaches.High do
+  begin
+    SSCache := ShapeStateNoTransformCaches.Pointers[I];
+    if SSCache^.GLList = GLList then
+    begin
+      Dec(SSCache^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : ShapeState NoTransform ', SSCache^.GLList, ' : ',
+        SSCache^.References);
+      {$endif}
+      if SSCache^.References = 0 then
+      begin
+        FreeAndNil(SSCache^.Attributes);
+        FreeAndNil(SSCache^.State);
+        glFreeDisplayList(SSCache^.GLList);
+        ShapeStateNoTransformCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+  end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_DecReference: ' +
+    'no reference ' +
     'found for display list %d', [GLList]);
 end;
 
@@ -1694,12 +1816,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
 begin
-  {LogWrite('Rendering ' +Node.NodeTypeName+ ' named ' +Node.NodeName);}
-
-  {zrob nasze kopie}
-  Render_State := State;
-  Render_Node := Node;
-
   glMatrixMode(GL_TEXTURE); glLoadMatrix(State.CurrTextureMatrix);
   glMatrixMode(GL_MODELVIEW);
 
@@ -1723,12 +1839,16 @@ var
   { jaki font jest aktualny (na podstawie State.LastNodes.FontStyle) }
   CurrentFont: TGLOutlineFont;
 
-  {$I VRMLOpenGLRenderer_Render_SpecificNodes.inc}
+  {$I vrmlopenglrenderer_render_specificnodes.inc}
 
 var
   IndexedRenderer: TGeneralIndexedRenderer;
   TextureReferencesIndex: Integer;
 begin
+  {zrob nasze kopie}
+  Render_State := State;
+  Render_Node := Node;
+
   {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 
   {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
