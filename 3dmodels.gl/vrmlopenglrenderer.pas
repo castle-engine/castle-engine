@@ -834,7 +834,7 @@ uses NormalsCalculator, Math, Triangulator;
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
-{$define DEBUG_VRML_RENDERER_CACHE}
+{ $define DEBUG_VRML_RENDERER_CACHE}
 
 constructor TVRMLOpenGLRendererContextCache.Create;
 begin
