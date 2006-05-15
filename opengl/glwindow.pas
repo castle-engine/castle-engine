@@ -737,7 +737,7 @@ const
   POS_SCREEN_CENTER = -1000000;
 
 type
-  TGLWindowParseOption = (poGeometry, poScreenGeometry);
+  TGLWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
   TGLWindowParseOptions = set of TGLWindowParseOption;
   PGLWindowParseOptions = ^TGLWindowParseOptions;
 
@@ -757,7 +757,8 @@ const
     mean: well, I'm unsure too. If that bothers you, just don't
     use this constant and always specify list of parameters
     for TGLWindow.ParseParameters explicitly. }
-  StandardParseOptions: TGLWindowParseOptions = [poGeometry, poScreenGeometry];
+  StandardParseOptions: TGLWindowParseOptions = [poGeometry, poScreenGeometry,
+    poDisplay];
 
 type
   TGLWindow = class;
@@ -2078,6 +2079,9 @@ type
           --fullscreen-custom WIDTHxHEIGHT (ustawia Fullscreen = true,
              VideoResize := true, VideResizeWidth/Height inicjuje i robi VideoChange)
 
+        poDisplay
+          --display (set Glwm.XDisplayName)
+
       Multiple options of the same kind are allowed, for example two options
       --fullscreen --geometry 100x100+0+0 are allowed. Each of them will
       have appropriate effect - in the above example, --fullscreen param
@@ -2707,6 +2711,23 @@ type
          Nigdy nie wywoluj ProcessAllMessages w petli (powinienes wtedy uzywac
          ProcessMessage) - uzywaj tego tylko jesli robisz duzo rzeczy pomiedzy
          kolejnymi wywolaniami ProcessAllMessages.
+
+      Note that if you let some exception to be raised out of
+      some event (like OnXxx) then this window may be closed
+      while recovering from this exception. I.e. GLWindow implementation
+      is free to implement part of ProcessMessage like
+      @longCode(#
+        if HasKeyDown then
+        try
+          OnKeyDown(...);
+        except
+          Close;
+          raise;
+        end;
+      #)
+      TODO: this behavior is currently done only by Xlib and WinAPI
+      implementation, in glwindow_winsystem.inc.
+      Is there really any good reason why we can't remove this behavior ?
     }
     {$ifdef GLWINDOW_HAS_PROCESS_MESSAGE}
     function ProcessMessage(AllowSuspend: boolean): boolean;
@@ -3596,6 +3617,29 @@ begin
  end;
 end;
 
+procedure DisplayOptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  ProcData: POptionProcData absolute Data;
+begin
+  Include(ProcData^.SpecifiedOptions, poDisplay);
+  case OptionNum of
+    0: {$ifdef GLWINDOW_XLIB}
+       if Glwm.FActive.Count <> 0 then
+         WarningWrite(ProgramName + ': some windows are already open ' +
+           'so --display option is ignored.') else
+         Glwm.XDisplayName := Argument;
+       {$else}
+         {$ifdef GLWINDOW_GTK_2}
+         Glwm.XDisplayName := Argument;
+         {$else}
+         WarningWrite(ProgramName + ': warning: --display option is ignored ' +
+           'when we don''t use directly Xlib');
+         {$endif}
+       {$endif}
+  end;
+end;
+
 procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions;
    var SpecifiedOptions: TGLWindowParseOptions);
 
@@ -3603,8 +3647,13 @@ const
   GeometryOptions: array[0..1]of TOption =
   ( (Short:#0; Long:'fullscreen'; Argument: oaNone),
     (short:#0; Long:'geometry'; Argument: oaRequired) );
+
   ScreenGeometryOptions: array[0..0]of TOption =
   ( (Short:#0; Long:'fullscreen-custom'; Argument: oaRequired) );
+
+  DisplayOptions: array[0..0]of TOption =
+  ( (Short:#0; Long:'display'; Argument: oaRequired) );
+
   OptionsForParam: array[TGLWindowParseOption] of
     record
       pOptions: POption_Array;
@@ -3616,7 +3665,10 @@ const
       OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} GeometryOptionProc),
     ( pOptions: @ScreenGeometryOptions;
       Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc)
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
+    ( pOptions: @DisplayOptions;
+      Count: High(DisplayOptions) + 1;
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} DisplayOptionProc)
   );
 
 var Data: TOptionProcData;
@@ -3655,7 +3707,10 @@ const
    '  --fullscreen          Set initial window size to cover whole screen',
    '  --fullscreen-custom WIDTHxHEIGHT' +nl+
    '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
-   '                        then set initial window size to cover whole screen');
+   '                        then set initial window size to cover whole screen',
+   '  --display DISPLAY-NAME' +nl+
+   '                        Use given XWindows display name.'
+   );
 var ParamKind: TGLWindowParseOption;
 begin
  if AddHeader then

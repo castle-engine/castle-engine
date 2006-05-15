@@ -162,9 +162,22 @@ private
   { Will be used by SetMouseVisible. }
   InvisibleCursor: PGdkCursor;
 
+  {$ifdef GLWINDOW_GTK_2}
+  FXDisplayName: string;
+  {$endif}
+
   {$ifdef GLWINDOW_USE_XF86VMODE}
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
+  {$endif}
+public
+  {$ifdef GLWINDOW_GTK_2}
+  { Set XDisplay name, this will be used for all TGLWindow
+    that will be subsequently initialized by TGLWindow.Init.
+
+    Note that this is exposed by GTK even for non-XWindows platforms,
+    but I don't know what it does there. }
+  property XDisplayName: string read FXDisplayName write FXDisplayName;
   {$endif}
 {$endif read_tglwindowmanager_interface}
 
@@ -722,6 +735,11 @@ begin
  Result := GTK_WIDGET(GLArea);
 end;
 
+{ This is mispelled in FPC gtk bindings, see
+  [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
+function gdk_display_open(display_name:Pgchar):PGdkDisplay;
+  cdecl; external gdklib;
+
 procedure TGLWindow.InitImplDepend;
 
 { Notes about FullScreen implementation with GTK_1:
@@ -822,6 +840,10 @@ const
 var
   VisualAttr: TDynLongIntArray;
   GLAreaContainer: PGtkWidget;
+  {$ifdef GLWINDOW_GTK_2}
+  WindowXDisplay: PGdkDisplay;
+  WindowXScreen: PGdkScreen;
+  {$endif}
 begin
  {$ifdef GLWINDOW_GTK_1}
  FullScreenUsingOverrideRedirect := MainMenu = nil;
@@ -1031,6 +1053,15 @@ begin
   set_default_glarea_size(Width, Height);
   gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
  end;
+
+ {$ifdef GLWINDOW_GTK_2}
+ if Glwm.XDisplayName <> '' then
+ begin
+   WindowXDisplay := gdk_display_open(PChar(Glwm.XDisplayName));
+   WindowXScreen := gdk_display_get_default_screen(WindowXDisplay);
+   gtk_window_set_screen(WindowGtk, WindowXScreen);
+ end;
+ {$endif}
 
  { Show WindowGtk, it will also make visible all other widgets.
    If I understand everything right, gtk_widget_show realizes the widget
@@ -1472,6 +1503,7 @@ end;
 {$ifdef GLWINDOW_USE_XF86VMODE}
 function TGLWindowsManager.XDisplay: Xlib.PDisplay;
 begin
+  { TODO: should be synched with XDisplayName property }
   Result := gdk_x11_get_default_xdisplay();
 end;
 
