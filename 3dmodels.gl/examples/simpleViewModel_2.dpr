@@ -43,7 +43,7 @@
   - uses Glw.OnBeforeDraw and Scene.PrepareRender(false)
 
   5. Allows the scene to use it's own lights:
-  - see Scene.Attrib_UseLights line
+  - see Scene.Attributes.UseLights line
 }
 
 program simpleViewModel_2;
@@ -161,8 +161,8 @@ begin
   Glw.NavWalker.OnMoveAllowed := TDummy.MoveAllowed;
 
   { allow the scene to use it's own lights }
-  Scene.Attrib_UseLights := true;
-  Scene.Attrib_FirstGLFreeLight := 1;
+  Scene.Attributes.UseLights := true;
+  Scene.Attributes.FirstGLFreeLight := 1;
 
   Glw.OnInit := Init;
   Glw.OnClose := Close;
