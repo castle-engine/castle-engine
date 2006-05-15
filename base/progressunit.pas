@@ -210,6 +210,24 @@ var
     @noAutoLinkHere }
   Progress: TProgress;
 
+type
+  TProgressNullInterface = class(TProgressUserInterface)
+  public
+    procedure Init(Progress: TProgress); override;
+    procedure Update(Progress: TProgress); override;
+    procedure Fini(Progress: TProgress); override;
+  end;
+
+var
+  { A special TProgressUserInterface instance, that simply does nothing.
+
+    Set Progress.UserInterface to this, and then
+    progress Init/Update/Fini will work --- but will not be displayed
+    anywhere.
+
+    Created in initialization, freed in finalization. }
+  ProgressNullInterface :TProgressNullInterface;
+
 implementation
 
 function TProgress.DescribePosition: string;
@@ -299,9 +317,26 @@ begin
  FUseDescribePosition := true;
 end;
 
+{ TProgressNullInterface ----------------------------------------------------- }
+
+procedure TProgressNullInterface.Init(Progress: TProgress);
+begin
+end;
+
+procedure TProgressNullInterface.Update(Progress: TProgress);
+begin
+end;
+
+procedure TProgressNullInterface.Fini(Progress: TProgress);
+begin
+end;
+
+{ initialization / finalization ---------------------------------------------- }
+
 initialization
  Progress := TProgress.Create;
+ ProgressNullInterface := TProgressNullInterface.Create;
 finalization
  FreeAndNil(Progress);
+ FreeAndNil(ProgressNullInterface);
 end.
-
