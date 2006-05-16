@@ -120,13 +120,13 @@ Const
   SInvalidSeek = 'Invalid Compression seek operation';
 
 function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;
-{$ifndef usepaszlib} {$ifdef WIN32} stdcall; {$else} cdecl; {$endif} {$endif}
+{$ifndef usepaszlib} {$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif}; {$endif}
 begin
   Result:=GetMem(Items*Size);
 end;
 
 procedure zlibFreeMem(opaque:pointer; address:pointer);
-{$ifndef usepaszlib} {$ifdef WIN32} stdcall; {$else} cdecl; {$endif} {$endif}
+{$ifndef usepaszlib} {$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif}; {$endif}
 begin
   FreeMem(address);
 end;
