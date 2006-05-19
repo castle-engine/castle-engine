@@ -45,7 +45,8 @@ end;
 procedure Resize(glwin: TGLWindow);
 begin
  Resize2D(glwin);
- TimeMsg.Show(Format('Resize message : new size %d %d', [glwin.Width, glwin.Height]));
+ TimeMsg.Show(Format('Resize message : new size %d %d (pos %d, %d)',
+   [glwin.Width, glwin.Height, Glwin.Left, Glwin.Top]));
 end;
 
 procedure BeforeDraw(glwin: TGLWindow);
