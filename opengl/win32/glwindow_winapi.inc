@@ -374,13 +374,41 @@ begin
       okno mysza a potem robiac glRedPixels (odczyta pixele z miejsca w ktorym BYLO
       nasza okienko, czyli odczyta jakis kawalek desktopu, innych aplikacji itp.) }
     begin
-     fLeft := LongWord_rec(lParm).LoSmallint;
-     fTop := LongWord_rec(lParm).HiSmallint;
-     { TODO: przerobic to na glViewport ? po co wywolywac tu OnResize ktore
-       moze robic tu mnostwo rzeczy ktore przeciez nie sa potrzebne, bo tak
-       naprawde nie zmienil sie size tylko position ? }
-     DoResize(fWidth, fHeight, false);
-     Exit;
+      fLeft := LongWord_rec(lParm).LoSmallint;
+      fTop := LongWord_rec(lParm).HiSmallint;
+
+      { You know it, and I know it: WinAPI is so damn stupid and inconsistent.
+        What's up this time ? Well, I want to update Left and Top below to the position
+        on the screen of our client area. "Client area" means tha place where OpenGL
+        context is --- it's the window without the border, title bar and menu bar
+        (if MainMenu <> nil). I need this, because
+
+        1. Left and Top are said in unit's interface to work like that
+        2. SetMousePosition requires this. Otherwise positions set by SetMousePosition
+           and read by MouseX, MouseY properties would be slightly different.
+           And there are real cases when this is extremely important that they use
+           exactly the same coordinate systems --- see e.g. mouse look handling in
+           TGLWindowNavigated.EventMouseMove.
+
+        So what's the problem ? Well, if the window is not FullScreen, Left and Top
+        as recorded in lParm are exactly what I want. But when FullScreen, Left and Top
+        are always 0, 0 --- which means that they don't take menu bar height into
+        account. The effect: mouse look + menu bar + fullscreen mode don't work
+        (i.e. user is unable to do mouse look, TGLWindowNavigated.EventMouseMove always
+        ignores it). Tested on view3dscene.
+
+        So I workaround this by adding CYMENU. This is not perfect, as this assumes
+        that menu bar will always be a single line.
+        Note that this is non-perfect also because WM_MOVE message may not get to
+        FullScreen window at all, so in InitImplDepend I also do this trick. }
+      if FullScreen and (MainMenu <> nil) then
+        FTop += GetSystemMetrics(SM_CYMENU);
+
+      { TODO: przerobic to na glViewport ? po co wywolywac tu OnResize ktore
+        moze robic tu mnostwo rzeczy ktore przeciez nie sa potrzebne, bo tak
+        naprawde nie zmienil sie size tylko position ? }
+      DoResize(fWidth, fHeight, false);
+      Exit;
     end;
   WM_SIZING:
     begin
@@ -566,6 +594,10 @@ begin
    0 { no parent window }, H_Menu, hInstance,
    nil { don't pass anything to WM_CREATE } );
  Check( h_Wnd <> 0, 'CreateWindowEx failed');
+
+ { See WM_MOVE handling comments why this is needed to make Top correct. }
+ if FullScreen and (MainMenu <> nil) then
+   FTop += GetSystemMetrics(SM_CYMENU);
 
  SetWindowLong(h_Wnd, GWL_USERDATA, Longint(Self));
 
