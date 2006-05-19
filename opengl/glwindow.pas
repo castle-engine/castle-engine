@@ -1250,6 +1250,8 @@ type
     { Left, Top, Width i Height caly czas okreslaja ClientRect - a wiec
       obszar na ktorym bedzie tworzony i uzywany kontekst OpenGLa.
       Nie uwzgledniaja ramek jakie WindowManager dodal do naszego okienka.
+      And they don't take space taken by menu (if MainMenu <> nil) into account.
+      So these are always dimensions of our 3d window --- nothing more, nothing less.
 
       min/maxWidth/Height i ResizeAllowed ustawiaja scisle ograniczenia na
       Width i Height ktore sa poprawiane zgodnie z tymi wlasciwosciami podczas
@@ -1257,7 +1259,7 @@ type
       gwarantowane ze
         - minWidth<= Width<= maxWidth
         - minHeight<= Height<= maxHeight
-        - Width i Height nie ulegna zmianie jezeli not ReszieAllowed <> raAllowed
+        - Width i Height nie ulegna zmianie jezeli not ResizeAllowed <> raAllowed
 
       Poniewaz WindowManager (WindowManager X-ow lub Windows) moze dosc swobodnie
       traktowac nasze wymagania min/maxWidth/Height i ResizeAllowed wiec jest
