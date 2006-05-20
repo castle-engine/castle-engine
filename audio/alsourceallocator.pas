@@ -182,13 +182,12 @@ type
     { For the sake of speed, this class always has allocated at least
       MinAllocatedSources OpenAL sources. This must be >= 1.
 
-      @raises(ENoMoreOpenALSources
-        Setting this to too large value (so large that OpenAL cannot create
-        so many sources) will raise ENoMoreOpenALSources.
-        Also creating the TALSourceAllocator instance with initial
-        value for MinAllocatedSources too large will raise ENoMoreOpenALSources.
-        So set this property to really *the minimal* number or required sources.
-        If you don't know what to do, just set this to 1.) }
+      Setting this to too large value (so large that OpenAL cannot create
+      so many sources) will raise ENoMoreOpenALSources.
+      Also creating the TALSourceAllocator instance with initial
+      value for MinAllocatedSources too large will raise ENoMoreOpenALSources.
+      So set this property to really *the minimal* number or required sources.
+      If you don't know what to do, just set this to 1.) }
     property MinAllocatedSources: Cardinal
       read FMinAllocatedSources write SetMinAllocatedSources;
 

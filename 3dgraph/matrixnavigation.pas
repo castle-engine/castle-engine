@@ -629,6 +629,7 @@ type
 
           When gravity works, PreferHomeUpForMoving = @true is better,
           otherwise player would unnecessarily try to jump when looking up.)
+      )
 
       @groupBegin }
     property PreferHomeUpForRotations: boolean

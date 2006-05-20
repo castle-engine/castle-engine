@@ -365,6 +365,7 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 { @section(Other utils) --------------------------------------------------- }
 
+{ }
 function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
 
 const
