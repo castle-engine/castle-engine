@@ -258,6 +258,12 @@ unit OpenGLh;
     EDivByZero is raised from inside of glCallList inside
     TVRMLFLATSCENEGL__SSS_RENDERSHAPESTATE, line 1213 of vrmlflatscenegl.pas.
     Disabling fp exceptions fixed the problem.
+
+  I want to mention here that I know two OpenGL implementations
+  that do not cause such problems. These are Mesa3d and NVidia proprietary
+  Linux drivers. So it's possible to make an efficient OpenGL
+  implementation that doesn't require caller to disable fp exceptions.
+  Other implementors: please take this good example. Thanks.
 }
 {$define DISABLE_FP_EXCEPTIONS}
 
