@@ -228,6 +228,39 @@ unit OpenGLh;
   {$define NO_GL_12}
 {$endif}
 
+{ If DISABLE_FP_EXCEPTIONS is defined then in the initialization
+  this unit will mask all floating point exceptions.
+  This sucks, but it's the fault of OpenGL implementations and we can't
+  do anything about it:
+
+  - Windows:
+
+    In GLUT faq we can read explanation: this is because Microsoft's
+    OpenGL implementations can raise FPU exceptions doing floating
+    point operations.
+    Microsoft compilers, like Visual C++, by default ignore FPU
+    exceptions so nothing needs to be done when you compile programs
+    in Visual C++. But Borland's compilers (at least Delphi and
+    C++Builder) and FPC don't mask FPU exceptions - by default, they convert
+    them to normal C++/Pascal exceptions. So one should explicitly mask
+    FPU exceptions before using any OpenGL routine under Win32.
+
+    See also explanation in my bug report to FPC:
+    [http://www.freepascal.org/mantis/view.php?id=5914]
+    (note that it was written when I thought (incorrectly, see below)
+    that this is Win32-only issue).
+
+  - Linux:
+
+    Radeon open-source OpenGL driver may cause EDivByZero exceptions.
+    Reported by Daniel Mantione with Radeon Mobility M7,
+    steps to reproduce: just run "The Castle" and enter "New Game",
+    EDivByZero is raised from inside of glCallList inside
+    TVRMLFLATSCENEGL__SSS_RENDERSHAPESTATE, line 1213 of vrmlflatscenegl.pas.
+    Disabling fp exceptions fixed the problem.
+}
+{$define DISABLE_FP_EXCEPTIONS}
+
 {$I kambiconf.inc}
 {$I openglmac.inc}
 
@@ -6530,26 +6563,17 @@ end;
 { ------------------------------------------------------------- }
 
 initialization
- { Kambi : In GLUT faq we can read explanation why Se8087CW below
-   is needed : this is because Microsoft's OpenGL implementation
-   can raise FPU exceptions doing floating point operations.
-   Microsoft compilers, like Visual C++, by default ignore FPU
-   exceptions so nothing needs to be done when you compile programs
-   in Visual C++. But Borland's compilers (at least Delphi and
-   C++Builder) and FPC don't mask FPU exceptions - by default, they convert
-   them to normal C++/Pascal exceptions. So one should explicitly mask
-   FPU exceptions before using any OpenGL routine under win32. }
- {$ifdef WIN32}
- Set8087CW( { $133F = } F8087_Projective_Infinity or
-                        F8087_NearestOrEven_Round or
-                        F8087_Extended_Precision or
-                        F8087_Except );
- {$endif}
+  {$ifdef DISABLE_FP_EXCEPTIONS}
+  Set8087CW( { $133F = } F8087_Projective_Infinity or
+                         F8087_NearestOrEven_Round or
+                         F8087_Extended_Precision or
+                         F8087_Except );
+  {$endif}
 
- { Kambi+, automatic initialization }
- InitOpenGL;
+  { Kambi+, automatic initialization }
+  InitOpenGL;
 finalization
- CloseOpenGL;
- { We don't need to reset the FPU control word as the previous set call is
-   process specific. }
+  CloseOpenGL;
+  { We don't need to reset the FPU control word as the previous set call is
+    process specific. }
 end.
