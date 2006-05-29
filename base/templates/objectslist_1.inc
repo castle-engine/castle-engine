@@ -62,9 +62,10 @@
     procedure SetFirst(const Value: TObjectsListItem_1);
     function GetLast: TObjectsListItem_1;
     procedure SetLast(const Value: TObjectsListItem_1);
-
+  private
     GoodIsSmallerFunction: TObjectsListIsSmallerFunction_1;
     function ProxyIsSmallerFunction(const A, B: Pointer): boolean;
+
   public
     property Items[i: integer]: TObjectsListItem_1
       read GetItem write SetItem; default;
