@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2005 Michalis Kamburelis.
+  Copyright 2000-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -246,7 +246,7 @@ procedure Strings_AddCamelotProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 
-{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug. 
+{ Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
   See [http://www.freepascal.org/bugs/showrec.php3?ID=4831] }
 procedure Strings_SetText(SList: TStrings; const S: string);
 
@@ -258,6 +258,12 @@ procedure Strings_SetText(SList: TStrings; const S: string);
   najlepiej przekazac w postaci freshly created stream, like this
   @code(AppendStream(DestStream, TMyStream.Create(...)))). }
 procedure AppendStream(DestStream, OwnedSourceStream: TStream);
+
+procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
+function StreamReadLongWord(Stream: TStream): LongWord;
+
+procedure StreamWriteByte(Stream: TStream; const Value: Byte);
+function StreamReadByte(Stream: TStream): Byte;
 
 { This simply writes Length(s) bytes starting from s[1].
   Versions with "ln" append nl, end of the line marker, to this.
@@ -874,6 +880,26 @@ begin
  try
   DestStream.CopyFrom(OwnedSourceStream, 0);
  finally OwnedSourceStream.Free end;
+end;
+
+procedure StreamWriteLongWord(Stream: TStream; const Value: LongWord);
+begin
+  Stream.WriteBuffer(Value, SizeOf(Value));
+end;
+
+function StreamReadLongWord(Stream: TStream): LongWord;
+begin
+  Stream.ReadBuffer(Result, SizeOf(Result));
+end;
+
+procedure StreamWriteByte(Stream: TStream; const Value: Byte);
+begin
+  Stream.WriteBuffer(Value, SizeOf(Value));
+end;
+
+function StreamReadByte(Stream: TStream): Byte;
+begin
+  Stream.ReadBuffer(Result, SizeOf(Result));
 end;
 
 procedure WriteStr(Stream: TStream; const S: string);
