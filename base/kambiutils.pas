@@ -1,5 +1,5 @@
 {
-  Copyright 1999-2005 Michalis Kamburelis.
+  Copyright 1999-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
