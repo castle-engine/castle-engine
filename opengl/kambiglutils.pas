@@ -1055,21 +1055,33 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   const Tex1, Tex2, Tex3: TVector2f;
   DetailLev: Cardinal);
 
-{ SwitchGLTo2dScreen na chwile zmienia matryce na
-    Ortho2d (0, Viewport.width, 0, Viewport.height), wywoluje proc,
-    a potem przywraca poprzednia matryce projection.
+{ glProjection2dPushPop na chwile zmienia matryce na
+  Ortho2d (0, Viewport.width, 0, Viewport.height), wywoluje proc,
+  a potem przywraca poprzednia matryce projection.
+
   W momencie wywolania aktualna matryca nie musi byc GL_PROJECTION -
-    w momencie wywolania proc aktualna matryca OpenGL'a bedzia ta sama co
-    w momencie wywolania Switch2dProjection, np. jesli wywolales
-    SwitchGLTo2dScreen gdy aktualna matryca byla GL_MODELVIEW to
-    w momencie wywolania proc i po wyjsciu z SwitchGLTo2dScreen aktualna
-    matryca tez bedzie GL_MODELVIEW.
-  Bardziej ogolne ProjectionGLPushPop umozliwia podanie dowolnej matrycy
-    na ktora bedzie ustawiona matrix projection. }
+  w momencie wywolania proc aktualna matryca OpenGL'a bedzia ta sama co
+  w momencie wywolania glProjection2dPushPop, np. jesli wywolales
+  glProjection2dPushPop gdy aktualna matryca byla GL_MODELVIEW to
+  w momencie wywolania proc i po wyjsciu z glProjection2dPushPop aktualna
+  matryca tez bedzie GL_MODELVIEW.
+
+  Bardziej ogolne glProjectionPushPop umozliwia podanie dowolnej matrycy
+  na ktora bedzie ustawiona matrix projection. }
+
 type
   TProcIntData = procedure (data: integer);
-procedure ProjectionGLPushPop(proc: TProcIntData; data: integer; const projMatrix: TMatrix4f);
-procedure SwitchGLTo2dScreen(proc: TProcIntData; data: integer);
+
+procedure glProjectionPushPop2D(proc: TProcIntData; data: integer);
+
+procedure glProjectionPushPopOrtho(proc: TProcIntData; data: integer;
+  const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
+procedure glProjectionPushPopOrtho2D(proc: TProcIntData; data: integer;
+  const Left, Right, Bottom, Top: TGLdouble);
+procedure glProjectionPushPopPerspective(proc: TProcIntData; data: integer;
+  const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
+procedure glProjectionPushPop(proc: TProcIntData; data: integer;
+  const projMatrix: TMatrix4f);
 
 { BlackOutRect rysuje prostokat zabarwiony BlackOutem kolorem BlackOutColor.
   BlackOutIntensity okresla intensywnosc BlackOut'u - od 1 w dol.
@@ -2392,29 +2404,67 @@ begin
  end;
 end;
 
-procedure ProjectionGLPushPop(proc: TProcIntData; data: integer; const projMatrix: TMatrix4f);
-var oldMatrixMode: TGLenum;
+{$define PROJECTION_PUSH_POP_BEGIN:=
+var
+  oldMatrixMode: TGLenum;
 begin
- oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
- glMatrixMode(GL_PROJECTION);
- glPushMatrix;
- try
-  glLoadMatrixf(@projMatrix);
-  glMatrixMode(oldMatrixMode);
-  proc(data);
- finally
+  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
   glMatrixMode(GL_PROJECTION);
-  glPopMatrix;
-  glMatrixMode(oldMatrixMode);
- end;
-end;
+  glPushMatrix;
+  try}
 
-procedure SwitchGLTo2dScreen(proc: TProcIntData; data: integer);
-var viewport: TVector4i;
+{$define PROJECTION_PUSH_POP_END:=
+    glMatrixMode(oldMatrixMode);
+    proc(data);
+  finally
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+    glMatrixMode(oldMatrixMode);
+  end;
+end;}
+
+procedure glProjectionPushPop(proc: TProcIntData; data: integer;
+  const projMatrix: TMatrix4f);
+PROJECTION_PUSH_POP_BEGIN
+  glLoadMatrixf(@projMatrix);
+PROJECTION_PUSH_POP_END
+
+procedure glProjectionPushPopOrtho(proc: TProcIntData; data: integer;
+  const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
+PROJECTION_PUSH_POP_BEGIN
+  glLoadIdentity;
+  glOrtho(Left, Right, Bottom, Top, ZNear, ZFar);
+PROJECTION_PUSH_POP_END
+
+procedure glProjectionPushPopOrtho2D(proc: TProcIntData; data: integer;
+  const Left, Right, Bottom, Top: TGLdouble);
+PROJECTION_PUSH_POP_BEGIN
+  glLoadIdentity;
+  gluOrtho2D(Left, Right, Bottom, Top);
+PROJECTION_PUSH_POP_END
+
+procedure glProjectionPushPopPerspective(proc: TProcIntData; data: integer;
+  const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
+PROJECTION_PUSH_POP_BEGIN
+  glLoadIdentity;
+  gluPerspective(FovyDeg, Aspect, ZNear, ZFar);
+PROJECTION_PUSH_POP_END
+
+{$undef PROJECTION_PUSH_POP_BEGIN}
+{$undef PROJECTION_PUSH_POP_END}
+
+procedure glProjectionPushPop2D(proc: TProcIntData; data: integer);
+var
+  Viewport: TVector4i;
 begin
- glGetIntegerv(GL_VIEWPORT, @viewport);
- ProjectionGLPushPop(proc, data,
-   OrthoProjMatrix(0, viewport[2], 0, viewport[3], -1, 1));
+  glGetIntegerv(GL_VIEWPORT, @viewport);
+
+  { Other version is to use here
+      glProjectionPushPop(proc, data,
+        OrthoProjMatrix(0, viewport[2], 0, viewport[3], -1, 1));
+    but causing OpenGL to calculate it's matrices may be faster. }
+
+  glProjectionPushPopOrtho2D(proc, data, 0, viewport[2], 0, viewport[3]);
 end;
 
 procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
