@@ -1055,15 +1055,15 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   const Tex1, Tex2, Tex3: TVector2f;
   DetailLev: Cardinal);
 
-{ glProjection2dPushPop na chwile zmienia matryce na
+{ glProjectionPushPop2D na chwile zmienia matryce na
   Ortho2d (0, Viewport.width, 0, Viewport.height), wywoluje proc,
   a potem przywraca poprzednia matryce projection.
 
   W momencie wywolania aktualna matryca nie musi byc GL_PROJECTION -
   w momencie wywolania proc aktualna matryca OpenGL'a bedzia ta sama co
-  w momencie wywolania glProjection2dPushPop, np. jesli wywolales
-  glProjection2dPushPop gdy aktualna matryca byla GL_MODELVIEW to
-  w momencie wywolania proc i po wyjsciu z glProjection2dPushPop aktualna
+  w momencie wywolania glProjectionPushPop2D, np. jesli wywolales
+  glProjectionPushPop2D gdy aktualna matryca byla GL_MODELVIEW to
+  w momencie wywolania proc i po wyjsciu z glProjectionPushPop2D aktualna
   matryca tez bedzie GL_MODELVIEW.
 
   Bardziej ogolne glProjectionPushPop umozliwia podanie dowolnej matrycy
