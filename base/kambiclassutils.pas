@@ -364,6 +364,9 @@ function CreateReadFileStream(const filename: string): TStream;
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
   ResetDestStreamPosition: boolean);
 
+{ This is like ReadGrowingStream, but it returns read contents as a string. }
+function ReadGrowingStreamToString(GrowingStream: TStream): string;
+
 { read and write string as Length(s) (4 bytes) + s contents (Length(s) bytes). }
 procedure StreamWriteString(Stream: TStream; const s: string);
 function StreamReadString(Stream: TStream): string;
@@ -1063,6 +1066,22 @@ begin
   DestStream.WriteBuffer(Buffer, ReadCount);
  until false;
  if ResetDestStreamPosition then DestStream.Position := 0;
+end;
+
+function ReadGrowingStreamToString(GrowingStream: TStream): string;
+const
+  BufferSize = 10000;
+var
+  ReadCount: Integer;
+  Buffer: string;
+begin
+  SetLength(Buffer, BufferSize);
+  Result := '';
+  repeat
+    ReadCount := GrowingStream.Read(Buffer[1], Length(Buffer));
+    if ReadCount = 0 then Break;
+    Result := Result + Copy(Buffer, 1, ReadCount);
+  until false;
 end;
 
 procedure StreamWriteString(Stream: TStream; const s: string);
