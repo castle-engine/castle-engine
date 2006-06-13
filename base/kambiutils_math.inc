@@ -415,6 +415,10 @@ procedure KamDivMod(Dividend: Integer; Divisor: Word;
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
   var Result: Smallint; var Remainder: Word);
 
+{ Returns Ceil(A / B), but calculated faster and more precisely
+  (without floating-point help). }
+function CeilDiv(const A, B: Cardinal): Cardinal;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -728,6 +732,19 @@ begin
     Remainder := Divisor + SignedRemainder;
   end else
     Remainder := SignedRemainder;
+end;
+
+function CeilDiv(const A, B: Cardinal): Cardinal;
+var
+  DivResult, ModResult: Cardinal;
+begin
+  { I would like to use DivMod, but it's limited to 16-bit values.
+    DivMod(A, B, DivResult, ModResult); }
+  DivResult := A div B;
+  ModResult := A mod B;
+  if ModResult = 0 then
+    Result := DivResult else
+    Result := DivResult + 1;
 end;
 
 {$endif read_implementation}
