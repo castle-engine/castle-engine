@@ -48,7 +48,7 @@ unit KambiStringUtils;
 
 interface
 
-uses 
+uses
   {$ifdef WIN32} Windows, {$endif}
   Variants, SysUtils, KambiUtils;
 
@@ -292,7 +292,10 @@ type
 { DeFormat :
 
   format to ciag bialych znakow, specyfikacji typu %s %d lub %f i czarnych
-  znakow. %% oznacza czarny znak '%'. 1 lub wiecej bialych znakow w
+  znakow. %% oznacza czarny znak '%'.
+
+  When RelaxedWhitespaceChecking = @true (that's the default value)
+  then 1 lub wiecej bialych znakow w
   format to 1 lub wiecej bialych znakow w data (ale nie musi ich byc
   tyle samo tu i tu). Dotyczy to takze koncowki i poczatku stringa -
   format = ' %d' oznacza ze przed integerem musi byc przynajmniej jedna
@@ -311,11 +314,27 @@ type
 
   Wszystkie pozostale czarne znaki musza wystepowac dokladnie tak samo
   w data jak sa w format. Parametr IgnoreCase kontroluje czy ignorowac
-  roznice w wielkosci liter.
+  roznice w wielkosci liter. When RelaxedWhitespaceChecking = @false
+  then white chars are treated exactly like non-white chars: they must
+  simply match exactly.
 
   Format musi objac cale data - po przeczytaniu format data powinno sie
   skonczyc, inaczej blad. Jest jeden wyjatek : data moze zawierac nadprogramowe
-  biale znaki na poczatku i na koncu.
+  biale znaki na poczatku i na koncu (but this is allowed only
+  when RelaxedWhitespaceChecking = @true, which is the default).
+
+  Note that while usually you will want RelaxedWhitespaceChecking = @true,
+  sometimes it can be needed to set this to @false not only to get
+  strickter checking, but also to get some things matching that otherwise
+  wouldn't match. For example, consider Data = 'first  second apple'
+  and Format = 'first %s second %s'. With RelaxedWhitespaceChecking
+  these things @italic(do not match) --- because the 1st space character
+  in the Format string "consumes" the 1st and 2nd space characters
+  in the Data. Then '%s' is matched to the word 'second', and the
+  word 'second' is compared with 'apple' and they do not match.
+  If you want such Data and Format to match, you must pass
+  RelaxedWhitespaceChecking = @true. Then the first '%s' will be matched
+  to '' (empty string).
 
   TryDeFormat zwraca ile sposrod args zostalo zainicjowanych - a wiec
   dopuszcza sytuacje ze Data skonczylo sie przed Format. DeFormat
@@ -328,9 +347,13 @@ type
   - niezgodnosci data z format. Pamietaj ze wtedy niektore sposrod
   args moga byc zmienione a niektore nie. }
 procedure DeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean = true); overload;
+  const args: array of pointer;
+  const IgnoreCase: boolean = true;
+  const RelaxedWhitespaceChecking: boolean = true); overload;
 function TryDeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean = true): integer; overload;
+  const args: array of pointer;
+  const IgnoreCase: boolean = true;
+  const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
 { FileFilter jest w postaci 'xxxx|name1.ext1;name2.ext2' albo
   'name1.ext1;name2.ext2' gdzie xxxx to moze byc cokolwiek (nie zawierajace |),
@@ -1050,16 +1073,21 @@ begin
 end;
 
 procedure DeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean);
+  const args: array of pointer;
+  const IgnoreCase: boolean;
+  const RelaxedWhitespaceChecking: boolean);
 begin
- if TryDeFormat(Data, Format, args, IgnoreCase) < High(args)+1 then
+ if TryDeFormat(Data, Format, args, IgnoreCase,
+   RelaxedWhitespaceChecking) < High(args)+1 then
   raise EDeformatError.CreateFmt(
     'Unexpected end of Data (%s) - format (%s) not fully evaluated',
     [Data, Format]);
 end;
 
 function TryDeFormat(Data: string; const Format: string;
-  const args: array of pointer; IgnoreCase: boolean): integer;
+  const args: array of pointer;
+  const IgnoreCase: boolean;
+  const RelaxedWhitespaceChecking: boolean): integer;
 var datapos, formpos: integer;
 
   function ReadExtendedData: Extended;
@@ -1129,9 +1157,12 @@ var datapos, formpos: integer;
 
 begin
  {omin biale znaki na poczatku i na koncu data jesli nie ma ich w format}
- if not SCharIs(format, 1, WhiteSpaces) then data := TrimLeft(data);
- if not ((Length(format) > 0) and (format[Length(format)] in WhiteSpaces)) then
-  data := TrimRight(data);
+ if RelaxedWhitespaceChecking then
+ begin
+   if not SCharIs(format, 1, WhiteSpaces) then data := TrimLeft(data);
+   if not ((Length(format) > 0) and (format[Length(format)] in WhiteSpaces)) then
+    data := TrimRight(data);
+ end;
 
  datapos := 1;
  formpos := 1;
@@ -1145,7 +1176,7 @@ begin
   if datapos > Length(data) then exit;
 
   {1 or more whitespace in format means 1 or more whitespaces in data}
-  if format[formpos] in WhiteSpaces then
+  if RelaxedWhitespaceChecking and (format[formpos] in WhiteSpaces) then
   begin
    if not (Data[datapos] in WhiteSpaces) then
     raise EDeformatError.Create('whitespace not found in data '''+data+''' as requested by format '''+format+'''');
