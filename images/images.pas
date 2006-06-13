@@ -2028,11 +2028,13 @@ end;
 { LoadRGBImage ----------------------------------------------------------------- }
 
 function LoadRGBImage(Stream: TStream; const typeext: string): TRGBImage;
-var iff: TImageFormat;
+var
+  iff: TImageFormat;
 begin
- if FileExtToImageFormat(typeext, true, false, iff) then
-  result := ImageFormatInfos[iff].LoadRGB(Stream) else
-  raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
+  if FileExtToImageFormat(typeext, true, false, iff) then
+    result := ImageFormatInfos[iff].LoadRGB(Stream) else
+    raise EImageFormatNotSupported.Create(
+      'Unrecognized image format : "' + typeext + '"');
 end;
 
 function LoadRGBImage(const fname: string): TRGBImage;
