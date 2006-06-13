@@ -129,7 +129,7 @@ case when you know that user will usually not see the whole scene.
     But now you can squeeze more ShapeStates than with approach (1).)
 
   @item(
-    There's also a modified version of approach (4).
+    There's also a modified version of approach (2).
     With Optimization = roSeparateShapeStates, I create a separate
     display list for each ShapeState, that includes ShapeState's
     tranformation and lighting settings.
@@ -198,7 +198,7 @@ case when you know that user will usually not see the whole scene.
     each triangle, but this will (probably) not give you much speed.)
 )
 
-Final notes: please don't blame me if you found an invalid statement
+Final notes: don't blame me if you found an invalid statement
 in this document. This is only a quick draft of some of my thoughts
 and ideas. But I'm no guru on this matter, and I'm learning
 new things every day. You think you have a better approach to some of
