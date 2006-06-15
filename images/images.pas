@@ -493,6 +493,42 @@ type
     procedure StripToChannelRGB(Channel: Integer);
 
     {$endif FPC}
+
+    { This returns true only if given Image and this image have the same
+      classes, the same sizes (Width, Height) and contain exactly
+      the same values in RawPixels. }
+    function IsEqual(Image: TImage): boolean;
+
+    { This is like IsEqual, but is compares only given parts of the images.
+      Note that it's your responsibility to make sure that given areas
+      are really within the sizes of Self or Image.
+
+      Overloaded version without SelfXxx parameters compares whole Self
+      to given part of Image. Analogously, version without ImageXxx parameters
+      compares whole Image to part of Self.
+
+      @groupBegin }
+    function ArePartsEqual(
+      const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
+      Image: TImage;
+      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
+
+    function ArePartsEqual(
+      Image: TImage;
+      const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
+
+    function ArePartsEqual(
+      const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
+      Image: TImage): boolean; overload;
+    { @groupEnd }
+
+    { These check that Image and Self have equal classes, and then
+      copy Self to Image or Image to Self.
+      X and Y is each case are the position on the destinantion image.
+      @groupBegin }
+    procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+    procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
+    { @groupEnd }
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -1408,6 +1444,97 @@ begin
 end;
 
 {$endif FPC}
+
+function TImage.IsEqual(Image: TImage): boolean;
+begin
+  Result :=
+    (Image.ClassType = ClassType) and
+    (Image.Width = Width) and
+    (Image.Height = Height) and
+    (CompareMem(Image.RawPixels, RawPixels, Width * Height * PixelSize));
+end;
+
+function TImage.ArePartsEqual(
+  const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
+  Image: TImage;
+  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
+var
+  Y: Integer;
+  SelfPtr: Pointer;
+  ImagePtr: Pointer;
+  SelfRowByteWidth, ImageRowByteWidth, RowByteWidth: Cardinal;
+begin
+  Result :=
+    (Image.ClassType = ClassType) and
+    (SelfWidth = ImageWidth) and
+    (SelfHeight = ImageHeight);
+  if Result then
+  begin
+    SelfPtr := PixelPtr(SelfX0, SelfY0);
+    ImagePtr := Image.PixelPtr(ImageX0, ImageY0);
+    RowByteWidth := ImageWidth * PixelSize;
+    SelfRowByteWidth := Self.Width * PixelSize;
+    ImageRowByteWidth := Image.Width * Image.PixelSize;
+    for Y := 0 to Integer(ImageHeight) - 1 do
+    begin
+      if not CompareMem(SelfPtr, ImagePtr, RowByteWidth) then
+      begin
+        Result := false;
+        Exit;
+      end;
+      PtrUInt(SelfPtr) += SelfRowByteWidth;
+      PtrUInt(ImagePtr) += ImageRowByteWidth;
+    end;
+  end;
+end;
+
+function TImage.ArePartsEqual(
+  Image: TImage;
+  const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
+begin
+  Result := ArePartsEqual(
+    0, 0, Width, Height,
+    Image,
+    ImageX0, ImageY0, ImageWidth, ImageHeight);
+end;
+
+function TImage.ArePartsEqual(
+  const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
+  Image: TImage): boolean;
+begin
+  Result := ArePartsEqual(
+    SelfX0, SelfY0, SelfWidth, SelfHeight,
+    Image,
+    0, 0, Image.Width, Image.Height);
+end;
+
+procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+var
+  Y: Integer;
+  SelfPtr: Pointer;
+  ImagePtr: Pointer;
+  SelfRowByteWidth, ImageRowByteWidth: Cardinal;
+begin
+  if Image.ClassType <> ClassType then
+    raise Exception.Create('Cannot copy pixels from one image to another:' +
+      ' different image classes');
+
+  SelfPtr := PixelPtr(X0, Y0);
+  ImagePtr := Image.RawPixels;
+  SelfRowByteWidth := Self.Width * PixelSize;
+  ImageRowByteWidth := Image.Width * Image.PixelSize;
+  for Y := 0 to Integer(Image.Height) - 1 do
+  begin
+    Move(ImagePtr^, SelfPtr^, ImageRowByteWidth);
+    PtrUInt(SelfPtr) += SelfRowByteWidth;
+    PtrUInt(ImagePtr) += ImageRowByteWidth;
+  end;
+end;
+
+procedure TImage.CopyTo(Image: TImage; const X0, Y0: Cardinal);
+begin
+  Image.CopyFrom(Self, X0, Y0);
+end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
