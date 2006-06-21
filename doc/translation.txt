@@ -63,19 +63,19 @@ D   soundwav.pas
 |   enumeratefiles.pas
 D   intrects.pas
 |   kambiclassutils.pas
+|   kambifilesutils.pas
+|   kambistringutils.pas
 |   kambiutils.pas
 D   kambizlib.pas
 D   kambizstream.pas
 D   mathexprlexer.pas
 -   mathexprparser.pas
 -   mathexpr.pas
--   parsingpars.pas
+-   parseparametersunit.pas
 -   progressconsole.pas
 |   progressunit.pas
 D   rects.pas
 |   vectormath.pas
-|   kambifilesutils.pas
-|   kambistringutils.pas
 
   fonts/
 |   win32/windowsfonts.pas
