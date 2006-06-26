@@ -1,0 +1,51 @@
+object Main: TMain
+  Caption = 'Main'
+  ClientHeight = 276
+  ClientWidth = 400
+  Menu = MainMenu1
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnHide = FormHide
+  OnShow = FormShow
+  PixelsPerInch = 48
+  HorzScrollBar.Page = 399
+  VertScrollBar.Page = 275
+  Left = 212
+  Height = 300
+  Top = 162
+  Width = 400
+  object GLControl: TOpenGLControl
+    Align = alClient
+    OnPaint = GLControlPaint
+    OnResize = GLControlResize
+    Height = 276
+    Width = 400
+  end
+  object MainMenu1: TMainMenu
+    left = 48
+    top = 262
+    object MenuFile: TMenuItem
+      Caption = 'File'
+      object MenuOpen: TMenuItem
+        Caption = 'Open'
+        ShortCut = 16463
+        OnClick = MenuOpenClick
+      end
+      object MenuSep1: TMenuItem
+        Caption = '-'
+      end
+      object MenuQuit: TMenuItem
+        Caption = 'Quit'
+        OnClick = MenuQuitClick
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Title = 'Open 3d model file'
+    Filter = 'VRML files (*.wrl)|*.wrl|3DS files (*.3ds)|*.3ds|All supported files|*.wrl;*.3ds;*.obj;*.geo|All files|*'
+    FilterIndex = 0
+    Title = 'Open 3d model file'
+    left = 48
+    top = 304
+  end
+end
