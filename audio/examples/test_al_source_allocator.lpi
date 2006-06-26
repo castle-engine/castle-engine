@@ -10,9 +10,8 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
-    <LazDoc Paths=""/>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -38,9 +37,11 @@
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="test_al_source_allocator"/>
-        <CursorPos X="26" Y="8"/>
+        <CursorPos X="1" Y="10"/>
         <TopLine Value="1"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="24"/>
+        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -48,54 +49,63 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="49" Y="90"/>
-        <TopLine Value="75"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="/win/mojepasy/units/audio/alsourceallocator.pas"/>
+        <Filename Value="../alsourceallocator.pas"/>
         <UnitName Value="ALSourceAllocator"/>
         <CursorPos X="7" Y="85"/>
         <TopLine Value="69"/>
         <UsageCount Value="10"/>
       </Unit2>
       <Unit3>
-        <Filename Value="/win/mojepasy/units/audio/openal_al.inc"/>
+        <Filename Value="../openal_al.inc"/>
         <CursorPos X="3" Y="37"/>
         <TopLine Value="21"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
-        <Filename Value="/win/mojepasy/units/audio/openal.pas"/>
+        <Filename Value="../openal.pas"/>
         <UnitName Value="OpenAL"/>
         <CursorPos X="25" Y="106"/>
         <TopLine Value="95"/>
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
-        <Filename Value="/win/mojepasy/units/base/templates/objectslist_2.inc"/>
+        <Filename Value="../../base/templates/objectslist_2.inc"/>
         <CursorPos X="5" Y="39"/>
         <TopLine Value="22"/>
         <UsageCount Value="10"/>
       </Unit5>
       <Unit6>
-        <Filename Value="/win/mojepasy/units/audio/alutils.pas"/>
+        <Filename Value="../alutils.pas"/>
         <UnitName Value="ALUtils"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit6>
       <Unit7>
-        <Filename Value="/win/mojepasy/units/packages/unix/kambi_units.pas"/>
+        <Filename Value="../../packages/unix/kambi_units.pas"/>
         <UnitName Value="kambi_units"/>
         <CursorPos X="3" Y="10"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="90" Column="49" TopLine="75"/>
+      </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position2>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
