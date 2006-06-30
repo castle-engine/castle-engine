@@ -187,21 +187,21 @@ procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
   relative to RayVector (i.e. Intersection is always = Ray0 +
   IntersectionDistance * RayVector). }
 function TryBoxRayClosestIntersection(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
 function TryBoxRayClosestIntersection(
-  var Intersection: TVector3Single;
+  out Intersection: TVector3Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
 function TryBoxRayClosestIntersection(
-  var IntersectionDistance: Single;
+  out IntersectionDistance: Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
 
 { TryBoxRayEntrance traktuje Box jako zamknieta bryle - jezeli Ray0
   jest na zewnatrz Boxa to odpowiedz jest taka sama jak
   TryBoxRayClosestIntersection, jezeli Ray0 jest w Boxie to
   TryBoxRayEntrance zwroci po prostu Ray0. }
-function TryBoxRayEntrance(var Entrance: TVector3Single;
+function TryBoxRayEntrance(out Entrance: TVector3Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
 
 function IsBox3dSegmentCollision(
@@ -691,8 +691,8 @@ procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); CLAMP_IMPLEM
 procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); CLAMP_IMPLEMENTATION
 
 function TryBoxRayClosestIntersection(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   const Box: TBox3d;
   const Ray0, RayVector: TVector3Single): boolean;
 var
@@ -745,7 +745,7 @@ begin
 end;
 
 function TryBoxRayClosestIntersection(
-  var Intersection: TVector3Single;
+  out Intersection: TVector3Single;
   const Box: TBox3d;
   const Ray0, RayVector: TVector3Single): boolean;
 var
@@ -756,7 +756,7 @@ begin
 end;
 
 function TryBoxRayClosestIntersection(
-  var IntersectionDistance: Single;
+  out IntersectionDistance: Single;
   const Box: TBox3d;
   const Ray0, RayVector: TVector3Single): boolean;
 var
@@ -766,7 +766,7 @@ begin
     Intersection, IntersectionDistance, Box, Ray0, RayVector);
 end;
 
-function TryBoxRayEntrance(var Entrance: TVector3Single;
+function TryBoxRayEntrance(out Entrance: TVector3Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
 begin
  if Box3dPointInside(Ray0, Box) then
