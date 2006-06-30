@@ -10,7 +10,7 @@
       <SearchPaths>
         <IncludeFiles Value="..\..\base\templates\;..\..\base\win32\;..\..\base\;..\..\opengl\;..\..\audio\"/>
         <OtherUnitFiles Value="..\..\base\;..\..\3dgraph\;..\..\3dmodels\;..\..\3dmodels.gl\;..\..\images\;..\..\fonts\;..\..\opengl\;..\..\opengl\win32\;..\..\audio\"/>
-        <UnitOutputDirectory Value="lib\"/>
+        <UnitOutputDirectory Value="lib"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 "/>
     <Version Major="1"/>
-    <Files Count="75">
+    <Files Count="76">
       <Item1>
         <Filename Value="..\..\3dgraph\backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -62,289 +62,293 @@
         <UnitName Value="Keys"/>
       </Item4>
       <Item5>
-        <Filename Value="..\..\3dgraph\spacefillingcurves.pas"/>
-        <UnitName Value="SpaceFillingCurves"/>
+        <Filename Value="..\..\3dgraph\matrixnavigation.pas"/>
+        <UnitName Value="MatrixNavigation"/>
       </Item5>
       <Item6>
-        <Filename Value="..\..\3dgraph\spheresampling.pas"/>
-        <UnitName Value="SphereSampling"/>
-      </Item6>
-      <Item7>
-        <Filename Value="..\..\3dmodels.gl\backgroundgl.pas"/>
-        <UnitName Value="BackgroundGL"/>
-      </Item7>
-      <Item8>
-        <Filename Value="..\..\3dmodels.gl\object3dopengl.pas"/>
-        <UnitName Value="Object3dOpenGL"/>
-      </Item8>
-      <Item9>
-        <Filename Value="..\..\3dmodels.gl\vrmlflatscenegl.pas"/>
-        <UnitName Value="VRMLFlatSceneGL"/>
-      </Item9>
-      <Item10>
-        <Filename Value="..\..\3dmodels.gl\vrmllightsetgl.pas"/>
-        <UnitName Value="VRMLLightSetGL"/>
-      </Item10>
-      <Item11>
-        <Filename Value="..\..\3dmodels\illummodels.pas"/>
-        <UnitName Value="IllumModels"/>
-      </Item11>
-      <Item12>
-        <Filename Value="..\..\3dmodels\kambioctree.pas"/>
-        <UnitName Value="KambiOctree"/>
-      </Item12>
-      <Item13>
-        <Filename Value="..\..\3dmodels\normalscalculator.pas"/>
-        <UnitName Value="NormalsCalculator"/>
-      </Item13>
-      <Item14>
-        <Filename Value="..\..\3dmodels\object3dasvrml.pas"/>
-        <UnitName Value="Object3dAsVRML"/>
-      </Item14>
-      <Item15>
-        <Filename Value="..\..\3dmodels\object3dgeo.pas"/>
-        <UnitName Value="Object3dGEO"/>
-      </Item15>
-      <Item16>
-        <Filename Value="..\..\3dmodels\object3dobj.pas"/>
-        <UnitName Value="Object3dOBJ"/>
-      </Item16>
-      <Item17>
-        <Filename Value="..\..\3dmodels\object3ds.pas"/>
-        <UnitName Value="Object3ds"/>
-      </Item17>
-      <Item18>
-        <Filename Value="..\..\3dmodels\object3dschunks.pas"/>
-        <UnitName Value="Object3dsChunks"/>
-      </Item18>
-      <Item19>
-        <Filename Value="..\..\3dmodels\object3dsmaterial.pas"/>
-        <UnitName Value="Object3dsMaterial"/>
-      </Item19>
-      <Item20>
-        <Filename Value="..\..\3dmodels\triangulator.pas"/>
-        <UnitName Value="Triangulator"/>
-      </Item20>
-      <Item21>
-        <Filename Value="..\..\3dmodels\vrmlcamerautils.pas"/>
-        <UnitName Value="VRMLCameraUtils"/>
-      </Item21>
-      <Item22>
-        <Filename Value="..\..\3dmodels\vrmlfields.pas"/>
-        <UnitName Value="VRMLFields"/>
-      </Item22>
-      <Item23>
-        <Filename Value="..\..\3dmodels\vrmllexer.pas"/>
-        <UnitName Value="VRMLLexer"/>
-      </Item23>
-      <Item24>
-        <Filename Value="..\..\3dmodels\vrmlnodes.pas"/>
-        <UnitName Value="VRMLNodes"/>
-      </Item24>
-      <Item25>
-        <Filename Value="..\..\3dmodels\vrmlnodesdetailoptions.pas"/>
-        <UnitName Value="VRMLNodesDetailOptions"/>
-      </Item25>
-      <Item26>
-        <Filename Value="..\..\3dmodels\vrmlraytracer.pas"/>
-        <UnitName Value="VRMLRayTracer"/>
-      </Item26>
-      <Item27>
-        <Filename Value="..\..\3dmodels\vrmlshapestate.pas"/>
-        <UnitName Value="VRMLShapeState"/>
-      </Item27>
-      <Item28>
-        <Filename Value="..\..\3dmodels\vrmlshapestateoctree.pas"/>
-        <UnitName Value="VRMLShapeStateOctree"/>
-      </Item28>
-      <Item29>
-        <Filename Value="..\..\3dmodels\vrmltriangleoctree.pas"/>
-        <UnitName Value="VRMLTriangleOctree"/>
-      </Item29>
-      <Item30>
-        <Filename Value="..\..\audio\alsourceallocator.pas"/>
-        <UnitName Value="ALSourceAllocator"/>
-      </Item30>
-      <Item31>
-        <Filename Value="..\..\audio\alutils.pas"/>
-        <UnitName Value="ALUtils"/>
-      </Item31>
-      <Item32>
-        <Filename Value="..\..\audio\openal.pas"/>
-        <UnitName Value="OpenAL"/>
-      </Item32>
-      <Item33>
-        <Filename Value="..\..\audio\soundwav.pas"/>
-        <UnitName Value="SoundWAV"/>
-      </Item33>
-      <Item34>
-        <Filename Value="..\..\base\areas.pas"/>
-        <UnitName Value="Areas"/>
-      </Item34>
-      <Item35>
-        <Filename Value="..\..\base\enumeratefiles.pas"/>
-        <UnitName Value="EnumerateFiles"/>
-      </Item35>
-      <Item36>
-        <Filename Value="..\..\base\intrects.pas"/>
-        <UnitName Value="IntRects"/>
-      </Item36>
-      <Item37>
-        <Filename Value="..\..\base\kambiclassutils.pas"/>
-        <UnitName Value="KambiClassUtils"/>
-      </Item37>
-      <Item38>
-        <Filename Value="..\..\base\kambiconf.inc"/>
-        <Type Value="Include"/>
-      </Item38>
-      <Item39>
-        <Filename Value="..\..\base\kambifilesutils.pas"/>
-        <UnitName Value="KambiFilesUtils"/>
-      </Item39>
-      <Item40>
-        <Filename Value="..\..\base\kambistringutils.pas"/>
-        <UnitName Value="KambiStringUtils"/>
-      </Item40>
-      <Item41>
-        <Filename Value="..\..\base\kambiutils.pas"/>
-        <UnitName Value="KambiUtils"/>
-      </Item41>
-      <Item42>
-        <Filename Value="..\..\base\kambizlib.pas"/>
-        <UnitName Value="KambiZlib"/>
-      </Item42>
-      <Item43>
-        <Filename Value="..\..\base\kambizstream.pas"/>
-        <UnitName Value="KambiZStream"/>
-      </Item43>
-      <Item44>
-        <Filename Value="..\..\base\mathexpr.pas"/>
-        <UnitName Value="MathExpr"/>
-      </Item44>
-      <Item45>
-        <Filename Value="..\..\base\parseparametersunit.pas"/>
-        <UnitName Value="ParseParametersUnit"/>
-      </Item45>
-      <Item46>
-        <Filename Value="..\..\base\progressconsole.pas"/>
-        <UnitName Value="ProgressConsole"/>
-      </Item46>
-      <Item47>
-        <Filename Value="..\..\base\progressunit.pas"/>
-        <UnitName Value="ProgressUnit"/>
-      </Item47>
-      <Item48>
-        <Filename Value="..\..\base\vectormath.pas"/>
-        <UnitName Value="VectorMath"/>
-      </Item48>
-      <Item49>
-        <Filename Value="..\..\fonts\bmpfontstypes.pas"/>
-        <UnitName Value="BmpFontsTypes"/>
-      </Item49>
-      <Item50>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasans_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Bold_Italic_Unit"/>
-      </Item50>
-      <Item51>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasans_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Bold_Unit"/>
-      </Item51>
-      <Item52>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasans_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Italic_Unit"/>
-      </Item52>
-      <Item53>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasans_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Unit"/>
-      </Item53>
-      <Item54>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Italic_Unit"/>
-      </Item54>
-      <Item55>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Unit"/>
-      </Item55>
-      <Item56>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Italic_Unit"/>
-      </Item56>
-      <Item57>
-        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Unit"/>
-      </Item57>
-      <Item58>
-        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Italic_Unit"/>
-      </Item58>
-      <Item59>
-        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Unit"/>
-      </Item59>
-      <Item60>
-        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Italic_Unit"/>
-      </Item60>
-      <Item61>
-        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Unit"/>
-      </Item61>
-      <Item62>
-        <Filename Value="..\..\fonts\ttfontstypes.pas"/>
-        <UnitName Value="TTFontsTypes"/>
-      </Item62>
-      <Item63>
-        <Filename Value="..\..\images\images.pas"/>
-        <UnitName Value="Images"/>
-      </Item63>
-      <Item64>
-        <Filename Value="..\..\images\kambipasjpeg.pas"/>
-        <UnitName Value="KambiPasJpeg"/>
-      </Item64>
-      <Item65>
-        <Filename Value="..\..\images\kambipasjpeg_error_mgrs.pas"/>
-        <UnitName Value="KambiPasJpeg_error_mgrs"/>
-      </Item65>
-      <Item66>
-        <Filename Value="..\..\images\kambipasjpeg_stream_mgrs.pas"/>
-        <UnitName Value="KambiPasJpeg_stream_mgrs"/>
-      </Item66>
-      <Item67>
-        <Filename Value="..\..\images\kambipng.pas"/>
-        <UnitName Value="KambiPng"/>
-      </Item67>
-      <Item68>
-        <Filename Value="..\..\images\kambipngutils.pas"/>
-        <UnitName Value="KambiPngUtils"/>
-      </Item68>
-      <Item69>
-        <Filename Value="..\..\opengl\curve.pas"/>
-        <UnitName Value="Curve"/>
-      </Item69>
-      <Item70>
-        <Filename Value="..\..\opengl\kambiglutils.pas"/>
-        <UnitName Value="KambiGLUtils"/>
-      </Item70>
-      <Item71>
-        <Filename Value="..\..\opengl\openglbmpfonts.pas"/>
-        <UnitName Value="OpenGLBmpFonts"/>
-      </Item71>
-      <Item72>
-        <Filename Value="..\..\opengl\openglfonts.pas"/>
-        <UnitName Value="OpenGLFonts"/>
-      </Item72>
-      <Item73>
-        <Filename Value="..\..\opengl\openglh.pas"/>
-        <UnitName Value="OpenGLh"/>
-      </Item73>
-      <Item74>
-        <Filename Value="..\..\opengl\openglttfonts.pas"/>
-        <UnitName Value="OpenGLTTFonts"/>
-      </Item74>
-      <Item75>
         <Filename Value="..\..\3dgraph\rayswindow.pas"/>
         <UnitName Value="RaysWindow"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\..\3dgraph\spacefillingcurves.pas"/>
+        <UnitName Value="SpaceFillingCurves"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\3dgraph\spheresampling.pas"/>
+        <UnitName Value="SphereSampling"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\..\3dmodels.gl\backgroundgl.pas"/>
+        <UnitName Value="BackgroundGL"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\..\3dmodels.gl\object3dopengl.pas"/>
+        <UnitName Value="Object3dOpenGL"/>
+      </Item10>
+      <Item11>
+        <Filename Value="..\..\3dmodels.gl\vrmlflatscenegl.pas"/>
+        <UnitName Value="VRMLFlatSceneGL"/>
+      </Item11>
+      <Item12>
+        <Filename Value="..\..\3dmodels.gl\vrmllightsetgl.pas"/>
+        <UnitName Value="VRMLLightSetGL"/>
+      </Item12>
+      <Item13>
+        <Filename Value="..\..\3dmodels\illummodels.pas"/>
+        <UnitName Value="IllumModels"/>
+      </Item13>
+      <Item14>
+        <Filename Value="..\..\3dmodels\kambioctree.pas"/>
+        <UnitName Value="KambiOctree"/>
+      </Item14>
+      <Item15>
+        <Filename Value="..\..\3dmodels\normalscalculator.pas"/>
+        <UnitName Value="NormalsCalculator"/>
+      </Item15>
+      <Item16>
+        <Filename Value="..\..\3dmodels\object3dasvrml.pas"/>
+        <UnitName Value="Object3dAsVRML"/>
+      </Item16>
+      <Item17>
+        <Filename Value="..\..\3dmodels\object3dgeo.pas"/>
+        <UnitName Value="Object3dGEO"/>
+      </Item17>
+      <Item18>
+        <Filename Value="..\..\3dmodels\object3dobj.pas"/>
+        <UnitName Value="Object3dOBJ"/>
+      </Item18>
+      <Item19>
+        <Filename Value="..\..\3dmodels\object3ds.pas"/>
+        <UnitName Value="Object3ds"/>
+      </Item19>
+      <Item20>
+        <Filename Value="..\..\3dmodels\object3dschunks.pas"/>
+        <UnitName Value="Object3dsChunks"/>
+      </Item20>
+      <Item21>
+        <Filename Value="..\..\3dmodels\object3dsmaterial.pas"/>
+        <UnitName Value="Object3dsMaterial"/>
+      </Item21>
+      <Item22>
+        <Filename Value="..\..\3dmodels\triangulator.pas"/>
+        <UnitName Value="Triangulator"/>
+      </Item22>
+      <Item23>
+        <Filename Value="..\..\3dmodels\vrmlcamerautils.pas"/>
+        <UnitName Value="VRMLCameraUtils"/>
+      </Item23>
+      <Item24>
+        <Filename Value="..\..\3dmodels\vrmlfields.pas"/>
+        <UnitName Value="VRMLFields"/>
+      </Item24>
+      <Item25>
+        <Filename Value="..\..\3dmodels\vrmllexer.pas"/>
+        <UnitName Value="VRMLLexer"/>
+      </Item25>
+      <Item26>
+        <Filename Value="..\..\3dmodels\vrmlnodes.pas"/>
+        <UnitName Value="VRMLNodes"/>
+      </Item26>
+      <Item27>
+        <Filename Value="..\..\3dmodels\vrmlnodesdetailoptions.pas"/>
+        <UnitName Value="VRMLNodesDetailOptions"/>
+      </Item27>
+      <Item28>
+        <Filename Value="..\..\3dmodels\vrmlraytracer.pas"/>
+        <UnitName Value="VRMLRayTracer"/>
+      </Item28>
+      <Item29>
+        <Filename Value="..\..\3dmodels\vrmlshapestate.pas"/>
+        <UnitName Value="VRMLShapeState"/>
+      </Item29>
+      <Item30>
+        <Filename Value="..\..\3dmodels\vrmlshapestateoctree.pas"/>
+        <UnitName Value="VRMLShapeStateOctree"/>
+      </Item30>
+      <Item31>
+        <Filename Value="..\..\3dmodels\vrmltriangleoctree.pas"/>
+        <UnitName Value="VRMLTriangleOctree"/>
+      </Item31>
+      <Item32>
+        <Filename Value="..\..\audio\alsourceallocator.pas"/>
+        <UnitName Value="ALSourceAllocator"/>
+      </Item32>
+      <Item33>
+        <Filename Value="..\..\audio\alutils.pas"/>
+        <UnitName Value="ALUtils"/>
+      </Item33>
+      <Item34>
+        <Filename Value="..\..\audio\openal.pas"/>
+        <UnitName Value="OpenAL"/>
+      </Item34>
+      <Item35>
+        <Filename Value="..\..\audio\soundwav.pas"/>
+        <UnitName Value="SoundWAV"/>
+      </Item35>
+      <Item36>
+        <Filename Value="..\..\base\areas.pas"/>
+        <UnitName Value="Areas"/>
+      </Item36>
+      <Item37>
+        <Filename Value="..\..\base\enumeratefiles.pas"/>
+        <UnitName Value="EnumerateFiles"/>
+      </Item37>
+      <Item38>
+        <Filename Value="..\..\base\intrects.pas"/>
+        <UnitName Value="IntRects"/>
+      </Item38>
+      <Item39>
+        <Filename Value="..\..\base\kambiclassutils.pas"/>
+        <UnitName Value="KambiClassUtils"/>
+      </Item39>
+      <Item40>
+        <Filename Value="..\..\base\kambiconf.inc"/>
+        <Type Value="Include"/>
+      </Item40>
+      <Item41>
+        <Filename Value="..\..\base\kambifilesutils.pas"/>
+        <UnitName Value="KambiFilesUtils"/>
+      </Item41>
+      <Item42>
+        <Filename Value="..\..\base\kambistringutils.pas"/>
+        <UnitName Value="KambiStringUtils"/>
+      </Item42>
+      <Item43>
+        <Filename Value="..\..\base\kambiutils.pas"/>
+        <UnitName Value="KambiUtils"/>
+      </Item43>
+      <Item44>
+        <Filename Value="..\..\base\kambizlib.pas"/>
+        <UnitName Value="KambiZlib"/>
+      </Item44>
+      <Item45>
+        <Filename Value="..\..\base\kambizstream.pas"/>
+        <UnitName Value="KambiZStream"/>
+      </Item45>
+      <Item46>
+        <Filename Value="..\..\base\mathexpr.pas"/>
+        <UnitName Value="MathExpr"/>
+      </Item46>
+      <Item47>
+        <Filename Value="..\..\base\parseparametersunit.pas"/>
+        <UnitName Value="ParseParametersUnit"/>
+      </Item47>
+      <Item48>
+        <Filename Value="..\..\base\progressconsole.pas"/>
+        <UnitName Value="ProgressConsole"/>
+      </Item48>
+      <Item49>
+        <Filename Value="..\..\base\progressunit.pas"/>
+        <UnitName Value="ProgressUnit"/>
+      </Item49>
+      <Item50>
+        <Filename Value="..\..\base\vectormath.pas"/>
+        <UnitName Value="VectorMath"/>
+      </Item50>
+      <Item51>
+        <Filename Value="..\..\fonts\bmpfontstypes.pas"/>
+        <UnitName Value="BmpFontsTypes"/>
+      </Item51>
+      <Item52>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasans_bold_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSans_Bold_Italic_Unit"/>
+      </Item52>
+      <Item53>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasans_bold_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSans_Bold_Unit"/>
+      </Item53>
+      <Item54>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasans_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSans_Italic_Unit"/>
+      </Item54>
+      <Item55>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasans_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSans_Unit"/>
+      </Item55>
+      <Item56>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_bold_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Italic_Unit"/>
+      </Item56>
+      <Item57>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_bold_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Unit"/>
+      </Item57>
+      <Item58>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSansMono_Italic_Unit"/>
+      </Item58>
+      <Item59>
+        <Filename Value="..\..\fonts\ttf_bitstreamverasansmono_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSansMono_Unit"/>
+      </Item59>
+      <Item60>
+        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_bold_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Italic_Unit"/>
+      </Item60>
+      <Item61>
+        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_bold_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Unit"/>
+      </Item61>
+      <Item62>
+        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_italic_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSerif_Italic_Unit"/>
+      </Item62>
+      <Item63>
+        <Filename Value="..\..\fonts\ttf_bitstreamveraserif_unit.pas"/>
+        <UnitName Value="TTF_BitstreamVeraSerif_Unit"/>
+      </Item63>
+      <Item64>
+        <Filename Value="..\..\fonts\ttfontstypes.pas"/>
+        <UnitName Value="TTFontsTypes"/>
+      </Item64>
+      <Item65>
+        <Filename Value="..\..\images\images.pas"/>
+        <UnitName Value="Images"/>
+      </Item65>
+      <Item66>
+        <Filename Value="..\..\images\kambipasjpeg.pas"/>
+        <UnitName Value="KambiPasJpeg"/>
+      </Item66>
+      <Item67>
+        <Filename Value="..\..\images\kambipasjpeg_error_mgrs.pas"/>
+        <UnitName Value="KambiPasJpeg_error_mgrs"/>
+      </Item67>
+      <Item68>
+        <Filename Value="..\..\images\kambipasjpeg_stream_mgrs.pas"/>
+        <UnitName Value="KambiPasJpeg_stream_mgrs"/>
+      </Item68>
+      <Item69>
+        <Filename Value="..\..\images\kambipng.pas"/>
+        <UnitName Value="KambiPng"/>
+      </Item69>
+      <Item70>
+        <Filename Value="..\..\images\kambipngutils.pas"/>
+        <UnitName Value="KambiPngUtils"/>
+      </Item70>
+      <Item71>
+        <Filename Value="..\..\opengl\curve.pas"/>
+        <UnitName Value="Curve"/>
+      </Item71>
+      <Item72>
+        <Filename Value="..\..\opengl\kambiglutils.pas"/>
+        <UnitName Value="KambiGLUtils"/>
+      </Item72>
+      <Item73>
+        <Filename Value="..\..\opengl\openglbmpfonts.pas"/>
+        <UnitName Value="OpenGLBmpFonts"/>
+      </Item73>
+      <Item74>
+        <Filename Value="..\..\opengl\openglfonts.pas"/>
+        <UnitName Value="OpenGLFonts"/>
+      </Item74>
+      <Item75>
+        <Filename Value="..\..\opengl\openglh.pas"/>
+        <UnitName Value="OpenGLh"/>
       </Item75>
+      <Item76>
+        <Filename Value="..\..\opengl\openglttfonts.pas"/>
+        <UnitName Value="OpenGLTTFonts"/>
+      </Item76>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
