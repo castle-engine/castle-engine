@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004 Michalis Kamburelis.
+  Copyright 2002-2004,2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -45,15 +45,15 @@ const
     przybieraja rozne wartosci z tego zakresu, subchunki innych chunkow
     (jak Transparency itp.) przybieraja byc moze nawet mniejszy zakres.
     Ale uwaga - byc moze po prostu nie testowalem na dostatecznie duzej
-    ilosci 3ds'ow. 
-    
-    Later note: na podstawie lib3ds, naprawde tak jest ! Nawet w lib3ds 
+    ilosci 3ds'ow.
+
+    Later note: na podstawie lib3ds, naprawde tak jest ! Nawet w lib3ds
     ten chunk nazywa sie nie DOUBLE_BYTE ale po prostu INT_PERCENTAGE
-    a wiec "w procentach". 
-    
+    a wiec "w procentach".
+
     Lib3ds, a ja za nia, odczytujemy CHUNK_SHININESS, CHUNK_SHININESS_STRENTH,
     CHUNK_TRANSPARENCY, CHUNK_TRANSPARENCY_FALLOFF, CHUNK_REFLECT_BLUR. }
-  CHUNK_DOUBLE_BYTE = $0030; 
+  CHUNK_DOUBLE_BYTE = $0030;
 
   { MAIN chunk is the whole 3ds file;
     MLI chunk is the whole MLI (Material-Library) file;
@@ -61,7 +61,7 @@ const
   CHUNK_PRJ       = $C23D;
   CHUNK_MLI       = $3DAA;
   CHUNK_MAIN      = $4D4D;
-  
+
     CHUNK_VERSION   = $0002;
     CHUNK_OBJMESH   = $3D3D;
       CHUNK_BKGCOLOR  = $1200;
@@ -81,7 +81,7 @@ const
         CHUNK_CAMERA    = $4700;
           CHUNK_HIERARCHY = $4F00;
     CHUNK_VIEWPORT  = $7001;
-    
+
     CHUNK_MATERIAL  = $AFFF;
       CHUNK_MATNAME   = $A000; { req; asciiz, no subchunks }
       CHUNK_AMBIENT   = $A010; { req; subchunks are RGB chunk[s] }
@@ -92,7 +92,7 @@ const
       CHUNK_TRANSPARENCY = $A050;         { req; subchunks are DOUBLE_BYTE chunk[s] }
       CHUNK_TRANSPARENCY_FALLOFF = $A052; { req; subchunks are DOUBLE_BYTE chunk[s] }
       CHUNK_REFLECT_BLUR = $A053;         { req; subchunks are DOUBLE_BYTE chunk[s] }
-      
+
       CHUNK_TEXMAP_1  = $A200; { two texture maps }
       CHUNK_TEXMAP_2  = $A33A;
       CHUNK_BUMPMAP   = $A230;
@@ -102,7 +102,7 @@ const
         CHUNK_MAP_VSCALE = $A354; { single, no subchunks }
         CHUNK_MAP_UOFFSET = $A358; { single, no subchunks }
         CHUNK_MAP_VOFFSET = $A35A; { single, no subchunks }
-        
+
     CHUNK_KEYFRAMER = $B000;
       CHUNK_AMBIENTKEY    = $B001;
       CHUNK_TRACKINFO = $B002;
@@ -123,94 +123,103 @@ const
 
 type
   TChunkHeader = packed record
-    id:Word;
-    len:LongWord;
+    id: Word;
+    len: LongWord;
   end;
-  
+
   EInvalid3dsFile = class(Exception);
-  
-procedure Check3dsFile(TrueValue:boolean; const ErrMessg:string);
+
+procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 
 { odczytuj subchunki az do EndPos, ignorujac wszystko poza
   pierwszym chunkiem dotyczacym koloru (w jakimkolwiek formacie).
   Wtedy odczytaj ten kolor do Col. Na koncu Stream.Position jest na
   pewno EndPos, zwraca czy znalazl jakis kolor wsrod subchunkow czy nie.
-  Version 4f always return Col[3] = 1 (alpha = 1). }
-function TryReadColorInSubchunks(var Col:TVector3Single; Stream:TStream; EndPos:Int64):boolean; overload;
-function TryReadColorInSubchunks(var Col:TVector4Single; Stream:TStream; EndPos:Int64):boolean; overload;
+  Version 4f always return Col[3] = 1 (alpha = 1).
 
-{ Podobnie j.w. ale tutaj szuka chunka CHUNK_DOUBLE_BYTE i zwroc jego wartosc 
+  If no color was found, it returns @false and Col is left not modified
+  (it's intentionally a "var" parameter, not an "out" parameter). }
+function TryReadColorInSubchunks(var Col: TVector3Single;
+  Stream: TStream; EndPos: Int64): boolean; overload;
+function TryReadColorInSubchunks(var Col: TVector4Single;
+  Stream: TStream; EndPos: Int64): boolean; overload;
+
+{ Podobnie j.w. ale tutaj szuka chunka CHUNK_DOUBLE_BYTE i zwroc jego wartosc
   podzielona na /100. O ile wiem ten chunk ma zawsze takie znaczenie (wyraza
   cos procentowo). }
-function TryReadPercentageInSubchunks(var Value:Single; Stream:TStream; EndPos:Int64):boolean;
+function TryReadPercentageInSubchunks(var Value: Single;
+  Stream: TStream; EndPos: Int64): boolean;
 
 implementation
 
-procedure Check3dsFile(TrueValue:boolean; const ErrMessg:string);
+procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 begin
  if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
 end;
 
-function TryReadColorInSubchunks(var Col:TVector3Single; Stream:TStream; EndPos:Int64):boolean;
-var h:TChunkHeader;
-    hEnd:Int64;
-    Col3Byte:TVector3Byte;
+function TryReadColorInSubchunks(var Col: TVector3Single;
+  Stream: TStream; EndPos: Int64): boolean;
+var h: TChunkHeader;
+    hEnd: Int64;
+    Col3Byte: TVector3Byte;
 begin
- result:=false;
- while Stream.Position<EndPos do
+ result := false;
+ while Stream.Position < EndPos do
  begin
   Stream.ReadBuffer(h, SizeOf(h));
-  hEnd:=Stream.Position -SizeOf(TChunkHeader) + h.len;
+  hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
   { TODO: we ignore gamma correction entirely so we don't distinct
     gamma corrected and not corrected colors }
   case h.id of
    CHUNK_RGBF, CHUNK_RGBF_GAMMA:
      begin
       Stream.ReadBuffer(Col, SizeOf(Col));
-      result:=true;
+      result := true;
       break;
      end;
    CHUNK_RGBB, CHUNK_RGBB_GAMMA:
      begin
       Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
-      Col:=Vector3Single(Col3Byte);
-      result:=true;
+      Col := Vector3Single(Col3Byte);
+      result := true;
       break;
      end;
-   else Stream.Position:=hEnd;
+   else Stream.Position := hEnd;
   end;
  end;
- Stream.Position:=EndPos;
+ Stream.Position := EndPos;
 end;
 
-function TryReadColorInSubchunks(var Col:TVector4Single; Stream:TStream; EndPos:Int64):boolean;
-var Col3Single:TVector3Single;
+function TryReadColorInSubchunks(var Col: TVector4Single;
+  Stream: TStream; EndPos: Int64): boolean;
+var Col3Single: TVector3Single;
 begin
- result:=TryReadColorInSubchunks(Col3Single, Stream, EndPos);
- if result then Col:=Vector4Single(Col3Single);
+ result := TryReadColorInSubchunks(Col3Single, Stream, EndPos);
+ if result then Col := Vector4Single(Col3Single);
 end;
 
-function TryReadPercentageInSubchunks(var Value:Single; Stream:TStream; EndPos:Int64):boolean;
-type T3dsDoubleByte = SmallInt;    
-var h:TChunkHeader;
-    hEnd:Int64;
-    DoubleByte:T3dsDoubleByte;
+function TryReadPercentageInSubchunks(var Value: Single;
+  Stream: TStream; EndPos: Int64): boolean;
+type T3dsDoubleByte = SmallInt;
+var h: TChunkHeader;
+    hEnd: Int64;
+    DoubleByte: T3dsDoubleByte;
 begin
- result:=false;
- while Stream.Position<EndPos do
+ result := false;
+ while Stream.Position < EndPos do
  begin
   Stream.ReadBuffer(h, SizeOf(h));
-  hEnd:=Stream.Position -SizeOf(TChunkHeader) + h.len;
+  hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
   if h.id = CHUNK_DOUBLE_BYTE then
   begin
    Stream.ReadBuffer(DoubleByte, SizeOf(DoubleByte));
-   result:=true;
+   result := true;
    break;
   end else
-   Stream.Position:=hEnd;
+   Stream.Position := hEnd;
  end;
- Stream.Position:=EndPos;
- if result then Value:=DoubleByte/100;
+ Stream.Position := EndPos;
+ if result then Value := DoubleByte/100;
 end;
 
 end.
