@@ -192,16 +192,17 @@
       TMenuItem class some functionality -- otherwise, if I would
       separated both TMenuItemKey and TMenuItemChecked classes,
       then I would be forced to create additional TMenuItemKeyChecked
-      class. }
-    { TODO:  change these to writeable }
+      class.
+
+      TODO:  change these to writeable }
     property CharKey: char read FCharKey; { = #0 }
     property Key: TKey read FKey; { = K_None }
 
     { This returns as S the string that describes CharKey (if CharKey <> #0)
       or Key (if Key <> K_None) and then returns true.
       If both CharKey = #0 and Key = K_None then returns false and
-      S is not modified. }
-    function KeyString(var S: string): boolean;
+      S is undefined. }
+    function KeyString(out S: string): boolean;
 
     { This is Caption with optional key description (returned by KeyString)
       appended in '[' ... ']'. }
@@ -373,7 +374,7 @@ begin
  Result := false;
 end;
 
-function TMenuItem.KeyString(var S: string): boolean;
+function TMenuItem.KeyString(out S: string): boolean;
 begin
  if CharKey <> #0 then
  begin

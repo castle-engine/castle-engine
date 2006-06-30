@@ -103,12 +103,12 @@ end;
 type
   TDummy = class
     class function MoveAllowed(Navigator: TMatrixWalker;
-      const ProposedNewPos: TVector3Single; var NewPos: TVector3Single;
+      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
   end;
 
 class function TDummy.MoveAllowed(Navigator: TMatrixWalker;
-  const ProposedNewPos: TVector3Single; var NewPos: TVector3Single;
+  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
  Result := Scene.DefaultTriangleOctree.MoveAllowed(

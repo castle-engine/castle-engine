@@ -316,7 +316,7 @@ end;
 { Converts GDK mouse button number (from GdkEventButton.button)
   to TMouseButton. Returns false (and does not change mb) if such
   button number cannot be represented as TMouseButton. }
-function ButtonNumberToMouseButton(bn: guint; var mb: TMouseButton): boolean;
+function ButtonNumberToMouseButton(bn: guint; out mb: TMouseButton): boolean;
 begin
  { No need to implement this using dirty typecasts, it's simple enough
    to do it type-safe. }

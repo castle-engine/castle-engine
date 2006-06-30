@@ -94,7 +94,7 @@ type
   TArray_PChar = packed array[0..High(Word)]of PChar;
   PArray_PChar=^TArray_PChar;
 
-procedure CreateArgCV(var argc_ret: Longint; var argv_ret: PPChar);
+procedure CreateArgCV(out argc_ret: Longint; out argv_ret: PPChar);
 { Na podstawie ParamCount i ParamStr konstruujemy argc i argv
   aby udawaly parametry main () z ANSI C.
   Zawsze zwalniaj potem z pamieci argv przez DestroyArgV. }

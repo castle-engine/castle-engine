@@ -814,16 +814,16 @@ type
   Te procedury najpierw (w BEFORE) zasejwuja sobie aktualne GL_UNPACK_ALIGNMENT,
   potem je zmienia (jesli bedzie trzeba) tak zeby obrazek rozpakowal sie dobrze,
   i potem (w AFTER) ustawia je z powrotem tak jak byly. }
-procedure BeforeUnpackNotAlignedRGBImage(var unpackdata: TUnpackNotAlignedData; imageWidth: cardinal);
+procedure BeforeUnpackNotAlignedRGBImage(out unpackdata: TUnpackNotAlignedData; imageWidth: cardinal);
 procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
 
 { Before/After Pack : jak wyzej, ale martwia sie o GL_PACK_ALIGNMENT.
   Uzywaj naokolo glReadPixels. }
-procedure BeforePackNotAlignedRGBImage(var packdata: TPackNotAlignedData; imageWidth: cardinal);
+procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
 procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
 
 { wersje tych procedur z prostszymi nazwami i na typie TImage }
-procedure BeforeUnpackImage(var unpackdata: TUnpackNotAlignedData; image: TImage);
+procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
 procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
 
 { manipulacje projection matrix -------------------------------------------------------- }
@@ -1829,7 +1829,7 @@ procedure glLoadMatrix(const m: TMatrix4d); begin glLoadMatrixd(@m) end;
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
 
-procedure SavePixelStoreUnpack(var pixUnpack: TPixelStoreUnpack);
+procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
 begin
  with pixUnpack do begin
   UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
@@ -1853,7 +1853,7 @@ begin
  end;
 end;
 
-procedure BeforeUnpackImage(var unpackdata: TUnpackNotAlignedData; image: TImage);
+procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
 begin
  if (image.Width * Image.PixelSize mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
  begin
@@ -1868,7 +1868,7 @@ begin
   glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
 end;
 
-procedure BeforeUnpackNotAlignedRGBImage(var unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
+procedure BeforeUnpackNotAlignedRGBImage(out unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
 begin
  if (imageWidth*3 mod cardinal(glGetInteger(GL_UNPACK_ALIGNMENT))) <> 0 then
  begin
@@ -1883,7 +1883,7 @@ begin
   glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
 end;
 
-procedure BeforePackNotAlignedRGBImage(var packdata: TPackNotAlignedData; imageWidth: cardinal);
+procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
 begin
  if (imageWidth*3 mod cardinal(glGetInteger(GL_PACK_ALIGNMENT))) <> 0 then
  begin
@@ -2334,7 +2334,8 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
    texResult := Mix2Vectors(tex1, tex2, v2part);
   end;
 
-  procedure PairAssign(var v: TVector3f; var texv: TVector2f;
+  procedure PairAssign(
+    out v: TVector3f; out texv: TVector2f;
     const newv: TVector3f; const newtexv: TVector2f);
   begin
    v := newv; texv := newtexv;

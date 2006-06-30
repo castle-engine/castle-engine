@@ -255,7 +255,7 @@ type
     @link(TMatrixWalker.OnMoveAllowed) }
   TMoveAllowedFunc = function(Navigator: TMatrixWalker;
     const ProposedNewPos: TVector3Single;
-    var NewPos: TVector3Single;
+    out NewPos: TVector3Single;
     const BecauseOfGravity: boolean): boolean of object;
 
   { See @link(TMatrixWalker.OnFalledDown). }
@@ -263,7 +263,7 @@ type
     const FallenHeight: Single) of object;
 
   TGetCameraHeight = procedure (Navigator: TMatrixWalker;
-    var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single)
+    out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single)
     of object;
 
   { Walking (DOOM-like moving) over the model.
@@ -374,7 +374,7 @@ type
       override;
 
     procedure DoGetCameraHeight(
-      var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single); virtual;
+      out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
@@ -430,7 +430,7 @@ type
       ProposedNewPos (so move is always allowed).
       Else calls OnMoveAllowed. }
     function DoMoveAllowed(const ProposedNewPos: TVector3Single;
-      var NewPos: TVector3Single;
+      out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual;
 
     { Keys --------------------------------------------------------- }
@@ -1290,7 +1290,7 @@ begin
 end;
 
 function TMatrixWalker.DoMoveAllowed(const ProposedNewPos: TVector3Single;
-  var NewPos: TVector3Single; const BecauseOfGravity: boolean): boolean;
+  out NewPos: TVector3Single; const BecauseOfGravity: boolean): boolean;
 begin
  if Assigned(OnMoveAllowed) then
   Result := OnMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity) else
@@ -1301,7 +1301,7 @@ begin
 end;
 
 procedure TMatrixWalker.DoGetCameraHeight(
-  var IsAboveTheGround: boolean; var SqrHeightAboveTheGround: Single);
+  out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single);
 begin
   IsAboveTheGround := false;
   if Assigned(OnGetCameraHeight) then
@@ -1787,7 +1787,8 @@ var
 
         Result := true;
 
-        if SqrHeightAboveTheGround < Sqr(RealCameraPreferredHeight * 1.1) then
+        if IsAboveTheGround and
+          (SqrHeightAboveTheGround < Sqr(RealCameraPreferredHeight * 1.1)) then
         begin
           { This check is needed, otherwise when you're walking down even from
             the most slight hill then you get
@@ -1981,7 +1982,7 @@ var
       H := RealCameraPreferredHeightNoHeadBobbing;
       MinHeightAboveTheGround := (H - H * HeadBobbing) * 0.99;
       MaxHeightAboveTheGround := (H + H * HeadBobbing) * 1.01;
-      Result :=
+      Result := IsAboveTheGround and
         (Sqr(MinHeightAboveTheGround) <= SqrHeightAboveTheGround) and
         (SqrHeightAboveTheGround <= Sqr(MaxHeightAboveTheGround));
     end;

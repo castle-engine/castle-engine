@@ -468,7 +468,9 @@ type
       Note that it sometimes modifies NewPos even when it returns false.
       Such modification has no meaning to you.
       So you should not assume that NewPos is not modified when it returns
-      with false.
+      with false. You should assume that when it returns false,
+      NewPos is undefined (especiall since NewPos is "out" parameter
+      and it may be implicitly modified anyway).
 
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision.
@@ -478,7 +480,7 @@ type
         where you can use this function) }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
-      var NewPos: TVector3Single;
+      out NewPos: TVector3Single;
       const CameraRadius: Single;
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
@@ -950,7 +952,7 @@ end;
 
 function TVRMLTriangleOctree.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
-  var NewPos: TVector3Single;
+  out NewPos: TVector3Single;
   const CameraRadius: Single;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;

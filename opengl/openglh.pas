@@ -6213,7 +6213,7 @@ end;
 
 {---------------------------------------------------------------------------------------------------------------------- }
 
-procedure TrimAndSplitVersionString(Buffer: String; var Max, Min: Integer);
+procedure TrimAndSplitVersionString(Buffer: String; out Max, Min: Integer);
 
 { Peels out the X.Y form from the given Buffer which must contain a version string like "text Minor.Major.Build text" }
 { at least however "Major.Minor". }

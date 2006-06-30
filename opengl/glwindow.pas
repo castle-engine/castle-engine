@@ -2105,7 +2105,7 @@ type
     procedure ParseParameters({ AllowedOptions = StandardParseOptions }); overload;
     procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions); overload;
     procedure ParseParameters(const AllowedOptions: TGLWindowParseOptions;
-      var SpecifiedOptions: TGLWindowParseOptions); overload;
+      out SpecifiedOptions: TGLWindowParseOptions); overload;
 
     { Returns help text for options in AllowedOptions.
       The idea is that if you call @code(ParseParameters(AllowedOptions))
@@ -3643,7 +3643,7 @@ begin
 end;
 
 procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions;
-   var SpecifiedOptions: TGLWindowParseOptions);
+  out SpecifiedOptions: TGLWindowParseOptions);
 
 const
   GeometryOptions: array[0..1]of TOption =
