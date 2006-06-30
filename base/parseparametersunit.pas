@@ -547,8 +547,8 @@ begin
    ParseOnlyKnownLongOptions);
 end;
 
-procedure SplitLongParameter(const s: string; var ParamLong: string;
-  var HasArgument: boolean; var Argument: string; PrefixLength: Integer);
+procedure SplitLongParameter(const s: string; out ParamLong: string;
+  out HasArgument: boolean; out Argument: string; PrefixLength: Integer);
 { zadany s musi sie zaczynac od PrefixLength znakow ktore sa ignorowane
   (dla "prawdziwej" long option z definicji ParseParameters PrefixLength musi byc
   2 i musza one byc rowne '--').
@@ -590,8 +590,8 @@ end;
 procedure ParseParameters(Options: POption_Array; OptionsCount: Integer; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 
-  function ParseLongParameter(const s: string; var HasArgument: boolean;
-    var Argument: string): Integer;
+  function ParseLongParameter(const s: string; out HasArgument: boolean;
+    out Argument: string): Integer;
   { s jest jakims parametrem ktory zaczyna sie od '--' i nie jest rowny '--'.
     Wyciaga z s-a opcje jaka reprezentuje (i zwraca jej numer w Params,
     zero-based), wyciaga tez zapisany razem z nia parametr i zwraca
