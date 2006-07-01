@@ -795,7 +795,7 @@ type
     UnpackAlignment: TGLint;
   end;
 
-procedure SavePixelStoreUnpack(var pixUnpack: TPixelStoreUnpack);
+procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
 procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
 
 type
