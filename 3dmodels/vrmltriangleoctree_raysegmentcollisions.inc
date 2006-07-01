@@ -70,8 +70,8 @@ var
   function DoLeaf: integer;
 
     function TryTriangleCollision(
-      var Intersection: TYPE_VECTOR3;
-      var IntersectionDistance: TYPE_SCALAR;
+      out Intersection: TYPE_VECTOR3;
+      out IntersectionDistance: TYPE_SCALAR;
       ItemIndiceNumber: Integer): boolean;
     begin
       Result:=

@@ -147,15 +147,15 @@ function CreateOctreeItem(const Triangle: TTriangle3Single;
   Jezeli nie jest zdefiniowane OCTREE_ITEM_USE_MAILBOX to nigdy nie uzywa
   skrzynki i zawsze inkrementuje DirectCollisionTestsCounter. }
 function TryOctreeItemSegmentDirCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 
 function TryOctreeItemRayCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -214,8 +214,8 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
-      var Intersection: TVector3Single;
-      var IntersectionDistance: Single;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
@@ -224,8 +224,8 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(
-      var Intersection: TVector3Single;
-      var IntersectionDistance: Single;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
       const ReturnClosestIntersection: boolean;
@@ -361,8 +361,8 @@ type
       )
     }
     function SegmentCollision(
-      var Intersection: TVector3Single;
-      var IntersectionDistance: Single;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -370,7 +370,7 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
-      var Intersection: TVector3Single;
+      out Intersection: TVector3Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -378,7 +378,7 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function SegmentCollision(
-      var IntersectionDistance: Single;
+      out IntersectionDistance: Single;
       const pos1, pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -398,8 +398,8 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 
     function RayCollision(
-      var Intersection: TVector3Single;
-      var IntersectionDistance: Single;
+      out Intersection: TVector3Single;
+      out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -407,7 +407,7 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(
-      var Intersection: TVector3Single;
+      out Intersection: TVector3Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -415,7 +415,7 @@ type
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
 
     function RayCollision(
-      var IntersectionDistance: Single;
+      out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const OctreeItemIndexToIgnore: integer;
@@ -578,8 +578,8 @@ begin
 end;
 
 function TryOctreeItemSegmentDirCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Odc0, OdcVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const OdcTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -620,8 +620,8 @@ begin
 end;
 
 function TryOctreeItemRayCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   var OctreeItem: TOctreeItem; const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayTag: Int64; {$endif}
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
@@ -770,8 +770,8 @@ begin
 end;
 
 function TTriangleOctreeNode.SegmentCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
@@ -783,8 +783,8 @@ function TTriangleOctreeNode.SegmentCollision(
 {$undef SEGMENT_COLLISION}
 
 function TTriangleOctreeNode.RayCollision(
-  var Intersection: TVector3Single;
-  var IntersectionDistance: Single;
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   {$ifdef OCTREE_ITEM_USE_MAILBOX} const RayOdcTag: Int64; {$endif}
   const ReturnClosestIntersection: boolean;
@@ -850,20 +850,20 @@ begin
 end;}
 
   function TVRMLTriangleOctree.SegmentCollision(
-    var Intersection: TVector3Single;
-    var IntersectionDistance: Single;
+    out Intersection: TVector3Single;
+    out IntersectionDistance: Single;
     SegmentCollision_CommonParams): integer;
   SegmentCollision_Implementation
 
   function TVRMLTriangleOctree.SegmentCollision(
-    var Intersection: TVector3Single;
+    out Intersection: TVector3Single;
     SegmentCollision_CommonParams): integer;
   var
     IntersectionDistance: Single;
   SegmentCollision_Implementation
 
   function TVRMLTriangleOctree.SegmentCollision(
-    var IntersectionDistance: Single;
+    out IntersectionDistance: Single;
     SegmentCollision_CommonParams): integer;
   var
     Intersection: TVector3Single;
@@ -906,20 +906,20 @@ begin
 end;}
 
   function TVRMLTriangleOctree.RayCollision(
-    var Intersection: TVector3Single;
-    var IntersectionDistance: Single;
+    out Intersection: TVector3Single;
+    out IntersectionDistance: Single;
     RayCollision_CommonParams): integer;
   RayCollision_Implementation
 
   function TVRMLTriangleOctree.RayCollision(
-    var Intersection: TVector3Single;
+    out Intersection: TVector3Single;
     RayCollision_CommonParams): integer;
   var
     IntersectionDistance: Single;
   RayCollision_Implementation
 
   function TVRMLTriangleOctree.RayCollision(
-    var IntersectionDistance: Single;
+    out IntersectionDistance: Single;
     RayCollision_CommonParams): integer;
   var
     Intersection: TVector3Single;
