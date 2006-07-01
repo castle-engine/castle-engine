@@ -2389,7 +2389,7 @@ type
       @noAutoLinkHere }
     procedure Ray(const WindowX, WindowY: Integer;
       const ViewAngleDegX, ViewAngleDegY: Single;
-      var Ray0, RayVector: TVector3Single);
+      out Ray0, RayVector: TVector3Single);
 
     { Calculate a ray corresponding to current Navigator
       (must be TMatrixWalker instance) settings and MouseX, MouseY
@@ -2399,7 +2399,7 @@ type
       passing MouseX, MouseY as WindowX, WindowY. }
     procedure MousePickedRay(
       const ViewAngleDegX, ViewAngleDegY: Single;
-      var Ray0, RayVector: TVector3Single);
+      out Ray0, RayVector: TVector3Single);
 
     { If you use Navigator of class TMatrixWalker with this window
       and you want to use it's MouseLook feature then
@@ -4112,7 +4112,7 @@ NAV_AS_IMPLEMENT
 
 procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
-  var Ray0, RayVector: TVector3Single);
+  out Ray0, RayVector: TVector3Single);
 var
   Nav: TMatrixWalker;
 begin
@@ -4126,7 +4126,7 @@ end;
 
 procedure TGLWindowNavigated.MousePickedRay(
   const ViewAngleDegX, ViewAngleDegY: Single;
-  var Ray0, RayVector: TVector3Single);
+  out Ray0, RayVector: TVector3Single);
 begin
   Ray(MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;

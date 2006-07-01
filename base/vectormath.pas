@@ -1632,9 +1632,9 @@ const
   to GL_FLOAT) then frustum will look bad (both near and far quads
   will look obviously slightly assymetrical).
 }
-procedure CalculateFrustumPoints(var FrustumPoints: TFrustumPointsSingle;
+procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsSingle;
   const Frustum: TFrustum); overload;
-procedure CalculateFrustumPoints(var FrustumPoints: TFrustumPointsDouble;
+procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsDouble;
   const Frustum: TFrustum); overload;
 
 type
@@ -2770,7 +2770,7 @@ begin
    MultMatrices(ProjectionMatrix, ModelviewMatrix));
 end;
 
-procedure CalculateFrustumPoints(var FrustumPoints: TFrustumPointsSingle;
+procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsSingle;
   const Frustum: TFrustum);
 begin
  { Actually this can be speeded up some day by doing
@@ -2788,7 +2788,7 @@ begin
  FrustumPoints[7] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpLeft],  Frustum[fpBottom]);
 end;
 
-procedure CalculateFrustumPoints(var FrustumPoints: TFrustumPointsDouble;
+procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsDouble;
   const Frustum: TFrustum);
 begin
  { Copied from implementation for TFrustumPointsSingle, but here converting

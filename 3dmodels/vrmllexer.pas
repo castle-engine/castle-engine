@@ -132,7 +132,7 @@ type
       -1 (if EOF) or Ord(of this non-white char). (This non-white
       char will be already read from Stream, so usually you MUST do
       something with returned here FirstBlack, you can't ignore him) }
-    procedure StreamReadUptoFirstBlack(var FirstBlack: Integer);
+    procedure StreamReadUptoFirstBlack(out FirstBlack: Integer);
 
     { Read string. Initial " has been already read. Reads everything
       up to (and including) " terminating the string.
@@ -305,7 +305,7 @@ IMPLEMENT_ARRAY_POS
 
 { TVRMLLexer ------------------------------------------------------------- }
 
-procedure TVRMLLexer.StreamReadUptoFirstBlack(var FirstBlack: Integer);
+procedure TVRMLLexer.StreamReadUptoFirstBlack(out FirstBlack: Integer);
 begin
  repeat
   Stream.ReadUpto(VRMLNoWhitespaces);

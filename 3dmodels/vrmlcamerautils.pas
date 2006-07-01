@@ -28,12 +28,12 @@ const
   i niezerowe, ich dlugosci sa bez znaczenia. }
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single; overload;
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  var OrientAxis: TVector3Single; var OrientRadAngle: Single); overload;
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single); overload;
 
 implementation
 
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  var OrientAxis: TVector3Single; var OrientRadAngle: Single);
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
 { Poczatkowo byl tutaj kod based on Stephen Chenney's ANSI C code orient.c.
   Byl w nim bledzik (patrz testUnits.Test_VRMLFields - TestOrints[4])
   i nawet teraz nie wiem jaki bo ostatecznie zrozumialem sama idee tamtego kodu
@@ -101,8 +101,9 @@ procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
    VectorAddTo1st(result.vect_part, VectorScale(q2.vect_part, q1.real_part));
   end;
 
-  procedure Quaternion_To_AxisAngle(const q: TQuaternion; var axis: TVector3Single;
-    var angle: Single);
+  procedure Quaternion_To_AxisAngle(const q: TQuaternion; 
+    out axis: TVector3Single;
+    out angle: Single);
   { q musi byc znormalizowanym kwaternionem obrotu,
     tzn. <sin(alfa/2)*normalized(wektor), cos(alfa/2)> }
   var half_angle, sin_half_angle: Single;

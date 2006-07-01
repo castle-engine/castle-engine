@@ -382,7 +382,7 @@ type
   end;  
   PStepData=^TStepData;
   
-procedure InitStepData(var StepData:TStepData; Pixels:PArray_Vector2Cardinal;
+procedure InitStepData(out StepData:TStepData; Pixels:PArray_Vector2Cardinal;
   const SizeX, SizeY:Cardinal);
 begin
  FillChar(Pixels[0], SizeOf(Pixels[0]), 0);

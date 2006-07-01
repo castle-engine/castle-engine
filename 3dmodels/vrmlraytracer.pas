@@ -284,7 +284,7 @@ uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
   zalamania EtaFrom) w powierzchnie o wektorze normalnym (znormalizowanym)
   PlaneNormal. Materia po drugiej stronie powierzchni ma wspolczynnik
   zalamania = EtaTo. }
-function TryTransmittedRayVector(var TransmittedRayVector: TVector3Single;
+function TryTransmittedRayVector(out TransmittedRayVector: TVector3Single;
   const NormRayVector: TVector3Single; const PlaneNormal: TVector4Single;
   const EtaFrom, EtaTo: Single)
   :boolean;
@@ -681,7 +681,8 @@ const
         begin EtaFrom := 1; EtaTo := ETA_CONST end else
         begin EtaFrom := ETA_CONST; EtaTo := 1 end;
 
-       result := TryTransmittedRayVector(TransmittedRayVector, Normalized(RayVector),
+       result := TryTransmittedRayVector(TransmittedRayVector,
+         Normalized(RayVector),
          IntersectNode.TriangleNormPlane, EtaFrom, EtaTo);
        if result then
         TracedDir := PhiThetaToXYZ(

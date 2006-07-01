@@ -809,13 +809,15 @@ type
       Pamietaj ze State nie jest pamietane nigdzie indziej i musisz je zwolnic.
       W przypadku TryFindNodeTransform nie musisz o tym pamietac,
       no i TryFindNodeTransform dziala nieco szybciej.
-      Zwraca false i nie zmienia Node ani State ani Transform jesli nie znajdzie. }
+
+      Zwraca false and sets Node, State and Transform to undefined
+      (because they are "out" params) if not found. }
     function TryFindNodeState(InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      var Node: TVRMLNode; var State: TVRMLGraphTraverseState): boolean;
+      out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
     function TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      var Node: TVRMLNode; var Transform: TMatrix4Single): boolean;
+      out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
 
     { Szuka wsrod Self, wsrod node'ow Parents, wsrod ich node'ow Parents itd.
       Innymi slowy, dzialaja tak samo jak odpowiedniki bez "Parent" ale
@@ -1490,7 +1492,7 @@ type
       TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
       przez CamTransform) }
     procedure CalcCamera(const CamTransform: TMatrix4Single;
-      var CamPos, CamDir, CamUp: TVector3Single);
+      out CamPos, CamDir, CamUp: TVector3Single);
   end;
 
   TNodeOrthographicCamera = class(TNodeGeneralCamera)
@@ -2542,7 +2544,7 @@ end;
 
 function TVRMLNode.TryFindNodeState(InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
-  var Node: TVRMLNode; var State: TVRMLGraphTraverseState): boolean;
+  out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
 var Obj: TTryFindNodeStateObj;
 begin
  Obj := TTryFindNodeStateObj.Create;
@@ -2578,7 +2580,7 @@ end;
 
 function TVRMLNode.TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
-  var Node: TVRMLNode; var Transform: TMatrix4Single): boolean;
+  out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
 var Obj: TTryFindNodeTransformObj;
 begin
  Obj := TTryFindNodeTransformObj.Create;
@@ -3548,7 +3550,7 @@ begin
 end;
 
 procedure TNodeGeneralCamera.CalcCamera(const CamTransform: TMatrix4Single;
-  var CamPos, CamDir, CamUp: TVector3Single);
+  out CamPos, CamDir, CamUp: TVector3Single);
 begin
  CamPos := FdPosition.Value;
  if FdDirection.Items.Length > 0 then

@@ -73,14 +73,16 @@ function RandomUnitHemispherePointDensityConst: TVector2Single;
 function RandomUnitHemispherePointDensityConstXYZ: TVector3Single;
 
 { DensityCosTheta czyli p(Theta) = cos(Theta)/Pi }
-function RandomUnitHemispherePointDensityCosTheta(var PdfValue: Single): TVector2Single;
-function RandomUnitHemispherePointDensityCosThetaXYZ(var PdfValue: Single): TVector3Single;
+function RandomUnitHemispherePointDensityCosTheta(
+  out PdfValue: Single): TVector2Single;
+function RandomUnitHemispherePointDensityCosThetaXYZ(
+  out PdfValue: Single): TVector3Single;
 
 { DensityCosThetaExp czyli p(Theta) = (n+1) * (cos(Theta))^n / 2*Pi }
 function RandomUnitHemispherePointDensityCosThetaExp(const n: Single;
-  var PdfValue: Single): TVector2Single;
+  out PdfValue: Single): TVector2Single;
 function RandomUnitHemispherePointDensityCosThetaExpXYZ(const n: Single;
-  var PdfValue: Single): TVector3Single;
+  out PdfValue: Single): TVector3Single;
 
 implementation
 
@@ -160,7 +162,8 @@ begin
  result[2] := r2;
 end;
 
-function RandomUnitHemispherePointDensityCosTheta(var PdfValue: Single): TVector2Single;
+function RandomUnitHemispherePointDensityCosTheta(
+  out PdfValue: Single): TVector2Single;
 var SqrtR2: Float;
 begin
  SqrtR2 := Sqrt(Random);
@@ -170,7 +173,8 @@ begin
  PdfValue := SqrtR2 / Pi;
 end;
 
-function RandomUnitHemispherePointDensityCosThetaXYZ(var PdfValue: Single): TVector3Single;
+function RandomUnitHemispherePointDensityCosThetaXYZ(
+  out PdfValue: Single): TVector3Single;
 var SqRoot, r1, r2: Single;
     SinR1, CosR1: Float;
 begin
@@ -186,18 +190,18 @@ begin
 end;
 
 function RandomUnitHemispherePointDensityCosThetaExp(const n: Single;
-  var PdfValue: Single): TVector2Single;
+  out PdfValue: Single): TVector2Single;
 var r2: Float;
 begin
  r2 := Random;
 
  result[0] := 2*Pi*Random;
  result[1] := ArcCos(Power(r2, 1/(n+1)));
- PdfValue:=(n+1) * Power(r2, n/(n+1)) / 2*Pi;
+ PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
 function RandomUnitHemispherePointDensityCosThetaExpXYZ(const n: Single;
-  var PdfValue: Single): TVector3Single;
+  out PdfValue: Single): TVector3Single;
 var r1, r2, r2Power, r2Root: Single;
     SinR1, CosR1: Float;
 begin
@@ -210,7 +214,7 @@ begin
  result[0] := CosR1 * r2Root;
  result[1] := SinR1 * r2Root;
  result[2] := r2Power;
- PdfValue:=(n+1) * Power(r2, n/(n+1)) / 2*Pi;
+ PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
 end.

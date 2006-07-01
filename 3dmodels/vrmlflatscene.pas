@@ -340,10 +340,11 @@ type
       Zwraca zawsze znormalizowane CamDir i CamUp - powody takie same jak
       dla TNodeGeneralCamera.CalcCamera. }
     function GetCamera(const CamClass: TNodeGeneralCameraClass;
-      var CamKind: TVRMLCameraKind;
-      var CamPos, CamDir, CamUp: TVector3Single): boolean;
+      out CamKind: TVRMLCameraKind;
+      out CamPos, CamDir, CamUp: TVector3Single): boolean;
     { j.w. ale ignoruje kamery OrthographicCamera w VRMLu }
-    function GetPerspectiveCamera(var CamPos, CamDir, CamUp: TVector3Single): boolean;
+    function GetPerspectiveCamera(
+      out CamPos, CamDir, CamUp: TVector3Single): boolean;
 
     { FogNode zwraca aktualny node Fog w tym modelu VRMLa, lub nil jesli
       nie ma aktywnego node'u fog.
@@ -737,7 +738,8 @@ end;
 { camera ----------------------------------------------------------------------- }
 
 function TVRMLFlatScene.GetCamera(const CamClass: TNodeGeneralCameraClass;
-  var CamKind: TVRMLCameraKind; var CamPos, CamDir, CamUp: TVector3Single): boolean;
+  out CamKind: TVRMLCameraKind;
+  out CamPos, CamDir, CamUp: TVector3Single): boolean;
 var InitialState: TVRMLGraphTraverseState;
     CamNode: TNodeGeneralCamera;
     CamTransform: TMatrix4Single;
@@ -763,7 +765,7 @@ begin
 end;
 
 function TVRMLFlatScene.GetPerspectiveCamera(
-  var CamPos, CamDir, CamUp: TVector3Single): boolean;
+  out CamPos, CamDir, CamUp: TVector3Single): boolean;
 var CamKind: TVRMLCameraKind;
 begin
  result := GetCamera(TNodePerspectiveCamera, CamKind, CamPos, CamDir, CamUp);
