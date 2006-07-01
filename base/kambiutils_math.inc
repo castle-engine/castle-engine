@@ -193,7 +193,7 @@ procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload;
   A wiec coord=0 => (first, second) := (1, 2),
          coord=1 => (first, second) := (0, 2),
          coord=2 => (first, second) := (0, 1) }
-procedure RestOf3dCoords(coord: integer; var first, second: integer);
+procedure RestOf3dCoords(coord: integer; out first, second: integer);
 
 { zwraca value zwiekszone o change. change moze byc takze ujemne.
   Zmiany value beda sie zmieniac cyklicznie i w rezultacie zwrocony
@@ -403,7 +403,7 @@ function SmallFactorial(n: Integer): Int64;
 { Better DivMod version, in case Dividend may be < 0.
   See fpc-devel thread "Math.DivMod results should be signed" on 2006-03-21. }
 procedure KamDivMod(Dividend: Integer; Divisor: Word;
-  var Result, Remainder: SmallInt);
+  out Result, Remainder: SmallInt);
 
 { This is a special version of DivMod that always returns Remainder >= 0.
 
@@ -413,7 +413,7 @@ procedure KamDivMod(Dividend: Integer; Divisor: Word;
   This procedure will return Result rounded toward negative infinity,
   and Remainder will always be >= 0. }
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
-  var Result: Smallint; var Remainder: Word);
+  out Result: Smallint; var Remainder: Word);
 
 { Returns Ceil(A / B), but calculated faster and more precisely
   (without floating-point help). }
@@ -549,7 +549,7 @@ procedure Clamp(var a: Double;   const vBegin, vEnd: Double); {$I KambiUtils_imp
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); {$I KambiUtils_implement_Clamp.inc}
 {$endif}
 
-procedure RestOf3dCoords(coord: integer; var first, second: integer);
+procedure RestOf3dCoords(coord: integer; out first, second: integer);
 begin
  if coord=0 then first := 1 else first := 0;
  if coord=2 then second := 1 else second := 2;
@@ -712,7 +712,7 @@ begin
 end;
 
 procedure KamDivMod(Dividend: Integer; Divisor: Word;
-  var Result, Remainder: SmallInt);
+  out Result, Remainder: SmallInt);
 var
   UnsignedResult: Word absolute Result;
   UnsignedRemainder: Word absolute Remainder;
@@ -721,7 +721,7 @@ begin
 end;
 
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
-  var Result: Smallint; var Remainder: Word);
+  out Result: Smallint; out Remainder: Word);
 var
   SignedRemainder: SmallInt;
 begin
