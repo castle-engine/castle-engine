@@ -296,12 +296,12 @@ function StreamReadZeroEndString(Stream: TStream): string;
   i.e. if you need functionality of StreamReadUpto_Xxx without
   using tricks with changing Position of the stream. }
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; var endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: char): string; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean): string; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
   { backEndingChar: boolean = false }
-  var endingChar: char): string; overload;
+  out endingChar: char): string; overload;
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars
   { backEndingChar: boolean = false }): string; overload;
 
@@ -311,12 +311,12 @@ function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars
   znak ktory zakonczyl czytanie. Podobnie jako _NotEOS, zwrocony
   result nie zawiera endingChar. }
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; var endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): string; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   backEndingChar: boolean): string; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
   { backEndingChar: boolean = false }
-  var endingChar: integer): string; overload;
+  out endingChar: integer): string; overload;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars
   { backEndingChar: boolean = false }): string; overload;
 
@@ -937,7 +937,7 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; var endingChar: char): string; overload;
+  backEndingChar: boolean; out endingChar: char): string; overload;
 var readLen: integer; { ile znakow odczytales }
     ch: char;
 begin
@@ -971,7 +971,7 @@ begin
 end;
 
 function StreamReadUpto_NotEOS(Stream: TStream; const endingChars: TSetOfChars;
-  var endingChar: char): string;
+  out endingChar: char): string;
 begin
  result := StreamReadUpto_NotEOS(Stream, endingChars, false, endingChar);
 end;
@@ -982,7 +982,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  backEndingChar: boolean; var endingChar: integer): string; overload;
+  backEndingChar: boolean; out endingChar: integer): string; overload;
 var readLen: integer; { ile znakow odczytales }
     ch: char;
 begin
@@ -1021,7 +1021,7 @@ begin
 end;
 
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
-  var endingChar: integer): string;
+  out endingChar: integer): string;
 begin
  result := StreamReadUpto_EOS(Stream, endingChars, false, endingChar);
 end;
