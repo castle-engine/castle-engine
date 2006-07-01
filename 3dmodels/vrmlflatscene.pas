@@ -166,9 +166,11 @@ type
     procedure ChangedShapeStateFields(ShapeStateNum: Integer); virtual;
     procedure ChangedFields(Node: TVRMLNode);
 
-    { write some short (a few lines, at most) basic information about the scene }
-    procedure WritelnSceneInfo(WritelnTriVertCounts,
-      WritelnBoundingBox: boolean);
+    { Returns short information about the scene.
+      This consists of a few lines, separated by KambiUtils.NL.
+      Last line also ends with KambiUtils.NL. }
+    function Info(InfoTriVertCounts, InfoBoundingBox: boolean): string;
+
     { Write contents of all VRML "Info" nodes.
       Also write how many Info nodes there are in the scene. }
     procedure WritelnInfoNodes;
@@ -576,36 +578,48 @@ begin
   ChangedAll;
 end;
 
-procedure TVRMLFlatScene.WritelnSceneInfo(WritelnTriVertCounts,
-  WritelnBoundingBox: boolean);
-var BBox: TBox3d;
+resourcestring
+  SSceneInfoTriVertCounts_Same = 'Scene contains %d triangles and %d ' +
+    'vertices (with and without over-triangulating).';
+  SSceneInfoTriVertCounts_1 =
+    'When we don''t use over-triangulating (e.g. when we do collision '+
+    'detection or ray tracing) scene has %d triangles and %d vertices.';
+  SSceneInfoTriVertCounts_2 =
+    'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
+    'scene has %d triangles and %d vertices.';
+
+function TVRMLFlatScene.Info(
+  InfoTriVertCounts, InfoBoundingBox: boolean): string;
+var
+  BBox: TBox3d;
 begin
- if WritelnTriVertCounts then
- begin
-  if (VerticesCount(false) = VerticesCount(true)) and
-     (TrianglesCount(false) = TrianglesCount(true)) then
-   Writeln('Scene contains ',TrianglesCount(false), ' triangles and '
-     ,VerticesCount(false), ' vertices (with and without over-triangulating).') else
+  Result := '';
+
+  if InfoTriVertCounts then
   begin
-   Writeln('When we don''t use over-triangulating (e.g. when we do collision '+
-     'detection or ray tracing) scene has ',TrianglesCount(false),
-     ' triangles and ',VerticesCount(false), ' vertices.');
-   Writeln('When we use over-triangulating (e.g. when we do OpenGL rendering) '+
-     'scene has ',TrianglesCount(true),
-     ' triangles and ',VerticesCount(true), ' vertices.');
+    if (VerticesCount(false) = VerticesCount(true)) and
+       (TrianglesCount(false) = TrianglesCount(true)) then
+      Result += Format(SSceneInfoTriVertCounts_Same,
+        [TrianglesCount(false), VerticesCount(false)]) + NL else
+    begin
+      Result +=
+        Format(SSceneInfoTriVertCounts_1,
+          [TrianglesCount(false), VerticesCount(false)]) + NL +
+        Format(SSceneInfoTriVertCounts_2,
+          [TrianglesCount(true), VerticesCount(true)]) + NL;
+    end;
   end;
- end;
- if WritelnBoundingBox then
- begin
-  BBox := BoundingBox;
-  Write('Bounding box : ', Box3dToNiceStr(BBox));
-  if not IsEmptyBox3d(BBox) then
+
+  if InfoBoundingBox then
   begin
-    Write(', average size : ',FloatToNiceStr(Box3dAvgSize(BBox)) );
-    // Write(', radius : ',FloatToNiceStr(Box3dRadius(BBox)) );
+    BBox := BoundingBox;
+    Result += 'Bounding box : ' + Box3dToNiceStr(BBox);
+    if not IsEmptyBox3d(BBox) then
+    begin
+      Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
+    end;
+    Result += NL;
   end;
-  Writeln;
- end;
 end;
 
 type
