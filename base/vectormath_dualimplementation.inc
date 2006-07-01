@@ -268,7 +268,7 @@ begin
 end;
 
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TYPE_VECTOR4;
-  var Line0, LineVector: TYPE_VECTOR3);
+  out Line0, LineVector: TYPE_VECTOR3);
 var
   Plane0Dir: TYPE_VECTOR3 absolute Plane0;
   Plane1Dir: TYPE_VECTOR3 absolute Plane1;
@@ -694,7 +694,7 @@ begin
  result := PointsDistanceSqr(point, PointOnLineClosestToPoint(line0, lineVector, point));
 end;
 
-function TryPlaneLineIntersection(var t: TYPE_SCALAR;
+function TryPlaneLineIntersection(out t: TYPE_SCALAR;
   const plane: TYPE_VECTOR4; const line0, lineVector: TYPE_VECTOR3): boolean;
 var PlaneDir: TYPE_VECTOR3 absolute plane;
     Dot: TYPE_SCALAR;
@@ -708,7 +708,7 @@ begin
   result := false;
 end;
 
-function TryPlaneLineIntersection(var intersection: TYPE_VECTOR3;
+function TryPlaneLineIntersection(out intersection: TYPE_VECTOR3;
   const plane: TYPE_VECTOR4; const line0, lineVector: TYPE_VECTOR3): boolean;
 var t: TYPE_SCALAR;
 begin
@@ -716,7 +716,7 @@ begin
  if result then Intersection := VectorAdd(Line0, VectorScale(LineVector, t));
 end;
 
-function TryPlaneRayIntersection(var Intersection: TYPE_VECTOR3;
+function TryPlaneRayIntersection(out Intersection: TYPE_VECTOR3;
   const Plane: TYPE_VECTOR4; const Ray0, RayVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin
@@ -724,7 +724,8 @@ begin
  if result then Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));
 end;
 
-function TryPlaneRayIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+function TryPlaneRayIntersection(
+  out Intersection: TYPE_VECTOR3; out T: TYPE_SCALAR;
   const Plane: TYPE_VECTOR4; const Ray0, RayVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin
@@ -741,7 +742,7 @@ begin
  end;
 end;
 
-function TryPlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3;
+function TryPlaneSegmentDirIntersection(out Intersection: TYPE_VECTOR3;
   const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin
@@ -750,7 +751,8 @@ begin
  if result then Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));
 end;
 
-function TryPlaneSegmentDirIntersection(var Intersection: TYPE_VECTOR3; var T: TYPE_SCALAR;
+function TryPlaneSegmentDirIntersection(
+  out Intersection: TYPE_VECTOR3; out T: TYPE_SCALAR;
   const Plane: TYPE_VECTOR4; const Segment0, SegmentVector: TYPE_VECTOR3): boolean;
 var MaybeT: TYPE_SCALAR;
 begin

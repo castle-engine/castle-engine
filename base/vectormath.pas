@@ -836,9 +836,9 @@ type
 
 { If planes are parallel, exception EPlanesParalell is raised. }
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Single;
-  var Line0, LineVector: TVector3Single); overload;
+  out Line0, LineVector: TVector3Single); overload;
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Double;
-  var Line0, LineVector: TVector3Double); overload;
+  out Line0, LineVector: TVector3Double); overload;
 
 { This takes three plane equations (these planes MUST have exactly
   one common point, otherwise this function can fail with some
@@ -1025,34 +1025,34 @@ function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Double):
   miec z tego wprost implementacje TryRayPlaneIntersection i
   TryRaySegmentDirIntersection (ktore polegaja tylko na nalozeniu pewnych
   ograniczen na t). }
-function TryPlaneLineIntersection(var intersection: TVector3Single;
+function TryPlaneLineIntersection(out intersection: TVector3Single;
   const plane: TVector4Single; const line0, lineVector: TVector3Single): boolean; overload;
-function TryPlaneLineIntersection(var intersection: TVector3Double;
+function TryPlaneLineIntersection(out intersection: TVector3Double;
   const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
-function TryPlaneLineIntersection(var t: Single;
+function TryPlaneLineIntersection(out t: Single;
   const plane: TVector4Single; const line0, lineVector: TVector3Single): boolean; overload;
-function TryPlaneLineIntersection(var t: Double;
+function TryPlaneLineIntersection(out t: Double;
   const plane: TVector4Double; const line0, lineVector: TVector3Double): boolean; overload;
 
 { zwraca false i nie modyfikuje intersection jezeli ray rownolegly z plane
   lub ray nie moze trafic w plane (bo musialby byc skierowany w przeciwna
   strone) }
-function TrySimplePlaneRayIntersection(var Intersection: TVector3Single;
+function TrySimplePlaneRayIntersection(out Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Ray0, RayVector: TVector3Single): boolean; overload;
-function TrySimplePlaneRayIntersection(var Intersection: TVector3Double;
+function TrySimplePlaneRayIntersection(out Intersection: TVector3Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
-function TrySimplePlaneRayIntersection(var Intersection: TVector3Single; var T: Single;
+function TrySimplePlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Ray0, RayVector: TVector3Single): boolean; overload;
-function TrySimplePlaneRayIntersection(var Intersection: TVector3Double; var T: Double;
+function TrySimplePlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
-function TrySimplePlaneRayIntersection(var T: Single;
+function TrySimplePlaneRayIntersection(out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Ray0, RayVector: TVector3Single): boolean; overload;
-function TrySimplePlaneRayIntersection(var T: Double;
+function TrySimplePlaneRayIntersection(out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
 
@@ -1078,22 +1078,28 @@ function TrySimplePlaneSegmentDirIntersection(var T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Segment0, SegmentVector: TVector3Double): boolean; overload;
 
-function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Single;
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Double;
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
-function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Single; var T: Single;
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3Single; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneSegmentIntersection(var Intersection: TVector3Double; var T: Double;
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3Double; out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
-function TrySimplePlaneSegmentIntersection(var T: Single;
+function TrySimplePlaneSegmentIntersection(
+  out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
   const Pos1, Pos2: TVector3Single): boolean; overload;
-function TrySimplePlaneSegmentIntersection(var T: Double;
+function TrySimplePlaneSegmentIntersection(
+  out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
   const Pos1, Pos2: TVector3Double): boolean; overload;
 
@@ -1104,22 +1110,22 @@ function TrySimplePlaneSegmentIntersection(var T: Double;
   Intersection = Ray0 + RayVector * T. Tak naprawde wersje zwracajace Intersection
   uzywaja zaimplementowanej wersji ktora zwraca T i potem obliczaja Intersection
   z powyzszej zaleznosci. }
-function TryPlaneRayIntersection(var Intersection: TVector3Single;
+function TryPlaneRayIntersection(out Intersection: TVector3Single;
   const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryPlaneRayIntersection(var Intersection: TVector3Double;
+function TryPlaneRayIntersection(out Intersection: TVector3Double;
   const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
-function TryPlaneRayIntersection(var Intersection: TVector3Single; var T: Single;
+function TryPlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
   const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryPlaneRayIntersection(var Intersection: TVector3Double; var T: Double;
+function TryPlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
   const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
 
-function TryPlaneSegmentDirIntersection(var Intersection: TVector3Single;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3Single;
   const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
-function TryPlaneSegmentDirIntersection(var Intersection: TVector3Double;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double;
   const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
-function TryPlaneSegmentDirIntersection(var Intersection: TVector3Single; var T: Single;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3Single; out T: Single;
   const Plane: TVector4Single; const Segment0, SegmentVector: TVector3Single): boolean; overload;
-function TryPlaneSegmentDirIntersection(var Intersection: TVector3Double; var T: Double;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double; out T: Double;
   const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Single): boolean; overload;
