@@ -413,7 +413,7 @@ procedure KamDivMod(Dividend: Integer; Divisor: Word;
   This procedure will return Result rounded toward negative infinity,
   and Remainder will always be >= 0. }
 procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
-  out Result: Smallint; var Remainder: Word);
+  out Result: Smallint; out Remainder: Word);
 
 { Returns Ceil(A / B), but calculated faster and more precisely
   (without floating-point help). }
