@@ -153,7 +153,8 @@ procedure TGeneralIndexedRenderer.Render;
   var localBBox: TBox3d;
       localBBoxSize: TVector3f;
 
-    procedure SetupCoordGen(var gen: TVector4f; coord: integer; genStart, genEnd: TGLfloat);
+    procedure SetupCoordGen(out gen: TVector4f;
+      const coord: integer; const genStart, genEnd: TGLfloat);
     {chcemy mapowac localBBox[0, coord]...localBBox[0, coord]+localBBoxSize[coord]
                  na genStart...genEnd.
       czyli mamy dla punktu v[0..2] :
