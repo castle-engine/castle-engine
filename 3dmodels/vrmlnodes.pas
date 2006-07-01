@@ -726,7 +726,7 @@ type
       (lub czyms rownowaznym, naturalnie) wiec jezeli FirstChild > LastChild
       lub FirstChild > ChildrenCount-1 lub LastChild < 0 to nie
       bedziemy wchodzic w zadne children. }
-    procedure ChildrenToEnter(var FirstChild, LastChild: integer); virtual;
+    procedure ChildrenToEnter(out FirstChild, LastChild: integer); virtual;
 
     { przejdz po tym nodzie i wszystkich subnode'ach i dla wszystkich
       node'ow z klasy NodeClass wywolaj TraversingFunc z odpowiednim
@@ -1109,7 +1109,7 @@ type
      Ta proc. NIE poprawia wartosci na polach Fd* - bo byc moze w skryptach
      bedzie wygodniej zakladac ze nawet nieprawidlowe wartosci sa trwale. }
     procedure CalculateRange(LastCoordinate3: TNodeCoordinate3;
-      var startIndex, numPoints: integer);
+      out startIndex, numPoints: integer);
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -1155,7 +1155,7 @@ type
     {TODO: tu proc SetChildrenToEnterFromDistanceToViewer}
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    procedure ChildrenToEnter(var FirstChild, LastChild: integer); override;
+    procedure ChildrenToEnter(out FirstChild, LastChild: integer); override;
     property FdRange: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
   end;
@@ -1593,7 +1593,7 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdWhichChild: TSFLong index 0 read GetFieldAsSFLong;
-    procedure ChildrenToEnter(var FirstChild, LastChild: integer); override;
+    procedure ChildrenToEnter(out FirstChild, LastChild: integer); override;
   end;
 
   TNodeTransformSeparator = class(TVRMLNode)
@@ -2322,7 +2322,7 @@ begin
   Result := -1;
 end;
 
-procedure TVRMLNode.ChildrenToEnter(var FirstChild, LastChild: integer);
+procedure TVRMLNode.ChildrenToEnter(out FirstChild, LastChild: integer);
 begin
  FirstChild := 0;
  LastChild := ChildrenCount-1;
@@ -2839,7 +2839,7 @@ begin
 end;
 
 procedure TNodePointSet.CalculateRange(LastCoordinate3: TNodeCoordinate3;
-  var startIndex, numPoints: integer);
+  out startIndex, numPoints: integer);
 begin
  startIndex := FdStartIndex.Value;
  numPoints := FdNumPoints.Value;
@@ -2940,7 +2940,7 @@ begin
  result := 'LOD';
 end;
 
-procedure TNodeLOD.ChildrenToEnter(var FirstChild, LastChild: integer);
+procedure TNodeLOD.ChildrenToEnter(out FirstChild, LastChild: integer);
 begin
  { TODO: powinnismy tu uzywac odleglosci od viewera ? Problem.
    dla renderowania jest problem z wrzucaniem tego na display liste.
@@ -3746,7 +3746,7 @@ begin
  result := 'Switch';
 end;
 
-procedure TNodeSwitch.ChildrenToEnter(var FirstChild, LastChild: integer);
+procedure TNodeSwitch.ChildrenToEnter(out FirstChild, LastChild: integer);
 begin
  if FdWhichChild.Value = -3 then
  begin

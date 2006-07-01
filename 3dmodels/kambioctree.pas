@@ -277,7 +277,7 @@ type
       TOctreeSubnodeIndex; overload;
 
     procedure SubnodesWithBox(const ABox: TBox3d;
-      var SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
+      out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
   end;
 
   TOctree = class
@@ -596,7 +596,7 @@ SubnodeWithPoint_IMPLEMENT
 {$undef SubnodeWithPoint_IMPLEMENT}
 
 procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3d;
-  var SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
+  out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 var i: Integer;
 begin
  for i := 0 to 2 do

@@ -341,7 +341,7 @@ end;
 procedure TNodeSphere.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 
-  procedure StackHigherLine(StackNum: integer; var Radius, Height: Single);
+  procedure StackHigherLine(StackNum: integer; out Radius, Height: Single);
   { dla StackNum = 0..QUADRIC_STACKS (tak, ta funkcja wyjatkowo akceptuje
     StakNum = 0 bo wprawdzie warstwa o numerze 0 nie istnieje to jednak
     istnieje jej gorna linia, to jest przeciez dolny wierzcholek sfery.)
