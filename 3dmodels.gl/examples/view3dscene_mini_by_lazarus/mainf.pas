@@ -61,7 +61,7 @@ type
     Navigator: TMatrixWalker;
     SceneFileName: string;
     procedure OpenScene(const FileName: string);
-    procedure PostRedisplay(ANavigator: TMatrixNavigator);
+    procedure NavigatorChanged(ANavigator: TMatrixNavigator);
     procedure UpdateCaption;
   public
     { public declarations }
@@ -90,6 +90,8 @@ begin
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
+  
+  Scene.Attributes.TextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
 
   Scene.GetPerspectiveCamera(CamPos, CamDir, CamUp);
 
@@ -100,9 +102,9 @@ begin
     CamUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
-  GLControl.Resize;
-  PostRedisplay(Navigator);
-  
+  GLControlResize(GLControl);
+  GLControl.Invalidate;
+
   SceneFileName := FileName;
   UpdateCaption;
 end;
@@ -146,7 +148,7 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  Navigator := TMatrixWalker.Create(@PostRedisplay);
+  Navigator := TMatrixWalker.Create(@NavigatorChanged);
   GLControl.Navigator := Navigator;
   
   UpdateCaption;
@@ -283,7 +285,7 @@ begin
   UpdateNavigatorProjectionMatrix;
 end;
 
-procedure TMain.PostRedisplay(ANavigator: TMatrixNavigator);
+procedure TMain.NavigatorChanged(ANavigator: TMatrixNavigator);
 begin
   GLControl.Invalidate;
   

@@ -131,6 +131,9 @@ begin
   inherited;
   UseNavigator := true;
   OwnsNavigator := false;
+
+  { Needed by NavigatorIdle }
+  Check( PerfTimerInit, 'performance timer not supported on this hardware');
 end;
 
 destructor TKamOpenGLControl.Destroy;

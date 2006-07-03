@@ -76,7 +76,10 @@ II. Package with components (components/kambi_components package):
 
 This is a "normal" Lazarus package, which means that it registers
 some Lazarus components (that use my units), and you're supposed to just
-install this package. This also automatically installs kambi_units
+install this package in Lazarus. This also automatically installs kambi_units
 package --- that's OK.
+
+See ../3dmodels.gl/examples/view3dscene_mini_by_lazarus/
+for demo program using this package.
 
 Michalis

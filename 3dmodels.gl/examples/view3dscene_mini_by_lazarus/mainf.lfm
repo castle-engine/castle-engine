@@ -1,44 +1,43 @@
 object Main: TMain
   Caption = 'Main'
-  ClientHeight = 396
-  ClientWidth = 625
+  ClientHeight = 411
+  ClientWidth = 676
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
-  PixelsPerInch = 48
-  Position = poDefault
-  HorzScrollBar.Page = 624
-  VertScrollBar.Page = 395
-  Left = 102
-  Height = 420
-  Top = 55
-  Width = 625
+  PixelsPerInch = 96
+  HorzScrollBar.Page = 675
+  VertScrollBar.Page = 410
+  Left = 67
+  Height = 430
+  Top = 45
+  Width = 676
   object GLControl: TKamOpenGLControl
     OnGLContextInit = GLControlGLContextInit
     OnGLContextClose = GLControlGLContextClose
     Align = alClient
     OnPaint = GLControlPaint
     OnResize = GLControlResize
-    Height = 272
-    Width = 625
+    Height = 271
+    Width = 676
   end
   object PanelBottom: TPanel
     Align = alBottom
-    ClientHeight = 124
-    ClientWidth = 625
+    ClientHeight = 140
+    ClientWidth = 676
     TabOrder = 1
-    Height = 124
-    Top = 272
-    Width = 625
+    Height = 140
+    Top = 271
+    Width = 676
     object GroupBox1: TGroupBox
       Align = alLeft
       Caption = 'Camera'
-      ClientHeight = 105
+      ClientHeight = 120
       ClientWidth = 443
       TabOrder = 0
       Left = 1
-      Height = 122
+      Height = 138
       Top = 1
       Width = 447
       object Label1: TLabel

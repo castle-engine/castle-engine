@@ -23,16 +23,50 @@ before it can be accepted as a good foundation of next view3dscene
 release).
 
 Compiling:
+
 - Install standard Lazarus package with TOpenGLControl
+
 - Compile and install packages kambi_units and kambi_components,
   see ../../../packages/
+
 - Then just open and compile this program as usual from Lazarus.
 
+Usage:
+
+- Open any 3D file supported by view3dscene (VRML 1.0, 3DS ---
+  see view3dscene docs). You can open using "File -> Open" menu item
+  or just pass filename on command-line.
+
+- To move in the scene, all the view3dscene keys in Walk mode work
+  (Arrows, PageUp/Down, Insert/Delete, Comma/Period etc.).
+  Remember that you must have focus on 3D area to use them ---
+  press Escape (menu item "View -> Switch focus to 3D area") when needed.
+
+- You can also change camera vectors by hand if you like ---
+  just modify values in edit boxes at the bottom and press "Change".
+
+----------------------------------------
 TODO:
+
+- Ctrl+O key shortcut doesn't work when standing on TEdit boxes
+  (EditGLControlFocus hack means that this also occurs
+  when focus is on 3D area).
+
+- Only on Windows: I had to write
+  GLControlResize(GLControl) instead of GLControl.Resize
+  in TMain.OpenScene. Investigate, submit Lazazarus bug.
+
 - GLControl.ReleaseAllKeysAndMouse should be called when
-  user expands the menu with mouse.
+  user expands the menu with mouse. How to catch this ?
+
 - EditGLControlFocus is an ugly hack --- this should be corrected
   in Lazarus TOpenGLControl. Especially hardcoding VK_TAB there
   is just awful.
+
+- When Position was poDefault the form kept getting small size
+  each time when I open it under Windows. It seems that under Windows
+  when Position = poDefault, it is used like that even in design-time
+  (in Linux/GTK it was working correctly).
+  Investigate, submit Lazazarus bug.
 
 Michalis
