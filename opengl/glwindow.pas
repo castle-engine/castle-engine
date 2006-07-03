@@ -2360,12 +2360,15 @@ type
     property UseNavigator: boolean
       read FUseNavigator write FUseNavigator default true;
 
-    { skroty dla pisania TMatrixExaminer(Navigator) i TMatrixWalker(Navigator).
-      W wersji DEBUG uzywaja operatora "as" ale w wersji RELEASE uzywaja
-      type-castow dla szybkosci wiec nie polegaj na tym ze uzycie zlego
-      castu wygeneruje wyjatek - po prostu nie uzywaj zlego castu. }
+    { These are shortcuts for writing
+      TMatrixExaminer(Navigator) and TMatrixWalker(Navigator).
+      In DEBUG version they use operator "as" but in RELEASE
+      version they use direct type-casts for speed.
+
+      @groupBegin }
     function NavExaminer: TMatrixExaminer;
     function NavWalker: TMatrixWalker;
+    { @groupEnd }
 
     procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TMatrixNavigator);
 
@@ -4090,25 +4093,21 @@ begin
  if ReallyUseNavigator then result := false else result := inherited;
 end;
 
-{$define NAV_AS_IMPLEMENT:=
-function TGLWindowNavigated.NAV_NAME: TMATRIX_CAST;
+function TGLWindowNavigated.NavExaminer: TMatrixExaminer;
 begin
- result:= {$ifdef DEBUG}Navigator as TMATRIX_CAST
-          {$else}TMATRIX_CAST(Navigator){$endif}
-end;}
+  Result :=
+    {$ifdef DEBUG} Navigator as TMatrixExaminer
+    {$else} TMatrixExaminer(Navigator)
+    {$endif};
+end;
 
-{$define NAV_NAME := NavExaminer}
-{$define TMATRIX_CAST := TMatrixExaminer}
-NAV_AS_IMPLEMENT
-
-{$define NAV_NAME := NavWalker}
-{$define TMATRIX_CAST := TMatrixWalker}
-NAV_AS_IMPLEMENT
-
-{$undef NAV_NAME}
-{$undef TMATRIX_CAST}
-{$undef NAV_AS_IMPLEMENT}
-
+function TGLWindowNavigated.NavWalker: TMatrixWalker;
+begin
+  Result :=
+    {$ifdef DEBUG} Navigator as TMatrixWalker
+    {$else} TMatrixWalker(Navigator)
+    {$endif};
+end;
 
 procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;

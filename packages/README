@@ -1,6 +1,9 @@
 In this directory you can find a couple of Lazarus packages that allow
 to easily use my units in Lazarus programs.
 
+----------------------------------------
+I. Packages without components:
+
 Usage:
 
   1. Open wanted kambi_*.lpk file in Lazarus and compile the package.
@@ -29,9 +32,10 @@ What kambi_*.lpk packages are *not*:
   used by ../Makefile and all compile.sh scripts.
 
   These packages are *not* intended to be installed in Lazarus.
-  You could, but there's no reason and no benefit for this (no components
-  will be registered etc.). You are supposed to simply use these
-  packages in your programs.
+  You are supposed to simply use these packages in your programs.
+  You could install them, but there's no reason and no benefit for this
+  (no components will be registered etc.) --- unless you will also install
+  kambi_components package.
 
 Why there are a couple of packages --- kambi_units, kambi_glwindow etc. :
 
@@ -66,3 +70,13 @@ Some internal notes:
 
   Remember to put subpaths unix/ and win32/ only in according version
   of the package.
+
+----------------------------------------
+II. Package with components (components/kambi_components package):
+
+This is a "normal" Lazarus package, which means that it registers
+some Lazarus components (that use my units), and you're supposed to just
+install this package. This also automatically installs kambi_units
+package --- that's OK.
+
+Michalis
