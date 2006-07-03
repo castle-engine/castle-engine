@@ -215,10 +215,14 @@ clean: cleanexamples
 	     -print \
 	     | xargs rm -f
 	rm -Rf packages/unix/lib/ packages/unix/kambi_units.pas \
-	  packages/win32/lib/ packages/win32/kambi_units.pas
+	  packages/unix/kambi_glwindow.pas \
+	  packages/unix/kambi_glwindow_navigated.pas \
+	  packages/win32/lib/ packages/win32/kambi_units.pas \
+	  packages/components/lib/ packages/components/kambi_components.pas
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
+	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
