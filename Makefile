@@ -181,11 +181,11 @@ EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
-  3dmodels.gl/examples/view3dscene_mini_by_lazarus
+  3dmodels.gl/examples/view3dscene_mini_by_lazarus/view3dscene_mini_by_lazarus
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   audio/examples/test_al_source_allocator.exe \
-  3dmodels.gl/examples/view3dscene_mini_by_lazarus.exe
+  3dmodels.gl/examples/view3dscene_mini_by_lazarus/view3dscene_mini_by_lazarus.exe
 
 .PHONY: examples
 examples:

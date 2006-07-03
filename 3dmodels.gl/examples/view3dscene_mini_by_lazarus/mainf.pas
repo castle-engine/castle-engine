@@ -1,33 +1,3 @@
-{ This is a demo implementation of something like "mini-view3dscene"
-  using Lazarus.
-
-  The intention is to make development of
-  view3dscene much easier (by using all LCL visual things,
-  and designing UI visually).
-
-  The actual rendering code is adapted mostly from simpleViewModel
-  and simpleViewModel_2 example programs (I didn't want to start
-  with adapting a whole view3dscene code).
-  But, unlike in simpleViewModel, user
-  is able to open new scene file while the program is running
-  (just like in view3dscene).
-
-  Yes, eventually my intention is to really change view3dscene
-  into a normal Lazarus program. But some code will have
-  to be written for this to really happen,
-  also GTK 2 support should be improved in Lazarus,
-  also I'll also want to make sure that
-  TOpenGLControl is as stable as my GLWindow unit.
-  This program is a start of such effort.
-
-  TODO:
-  - GLControl.ReleaseAllKeysAndMouse should be called when
-    user expands the menu with mouse.
-  - EditGLControlFocus is an ugly hack --- this should be corrected
-    in Lazarus TOpenGLControl. Especially hardcoding VK_TAB there
-    is just awful.
-}
-
 unit mainf;
 
 {$mode objfpc}{$H+}
