@@ -182,11 +182,6 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControl.ReleaseAllKeysAndMouse;
-begin
-  FillChar(KeysDown, SizeOf(KeysDown), 0);
-end;
-
 procedure TKamOpenGLControl.DestroyHandle;
 begin
   if ContextInitialized then
@@ -213,6 +208,11 @@ procedure TKamOpenGLControl.PostRedisplayOnMatrixChanged(
   ChangedNavigator: TMatrixNavigator);
 begin
   Invalidate;
+end;
+
+procedure TKamOpenGLControl.ReleaseAllKeysAndMouse;
+begin
+  FillChar(KeysDown, SizeOf(KeysDown), 0);
 end;
 
 { This converts Key (Lazarus key codes) to my TKey value.
