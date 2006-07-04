@@ -1482,8 +1482,8 @@ begin
         Result := false;
         Exit;
       end;
-      PtrUInt(SelfPtr) += SelfRowByteWidth;
-      PtrUInt(ImagePtr) += ImageRowByteWidth;
+      PtrUInt(SelfPtr) := PtrUInt(SelfPtr) + SelfRowByteWidth;
+      PtrUInt(ImagePtr) := PtrUInt(ImagePtr) + ImageRowByteWidth;
     end;
   end;
 end;
@@ -1526,8 +1526,8 @@ begin
   for Y := 0 to Integer(Image.Height) - 1 do
   begin
     Move(ImagePtr^, SelfPtr^, ImageRowByteWidth);
-    PtrUInt(SelfPtr) += SelfRowByteWidth;
-    PtrUInt(ImagePtr) += ImageRowByteWidth;
+    PtrUInt(SelfPtr) := PtrUInt(SelfPtr) + SelfRowByteWidth;
+    PtrUInt(ImagePtr) := PtrUInt(ImagePtr) + ImageRowByteWidth;
   end;
 end;
 
