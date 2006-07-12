@@ -18,8 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ typy in  : TObjectsListItem_7
-  typy out : TObjectsList_7
+{ Types in  : TObjectsListItem_7.
+
+  Types out : TObjectsList_7.
 
   Requires KambiUtils (for PArray_TObject) and
   KambiClassUtils in uses clause (because inherits from
@@ -35,6 +36,7 @@
 
 {$ifdef read_interface}
 
+  { }
   TObjectsListIsSmallerFunction_7 =
     function (const A, B: TObjectsListItem_7): boolean of object;
 
