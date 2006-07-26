@@ -104,7 +104,11 @@
       in the world would use the same DecimalSeparator, we would have
       less communication problems. Just like there is a standard ISO
       date format, also setting a universal standard for DecimalSeparator
-      is a good idea.)
+      is a good idea.
+
+      Old value of DecimalSeparator is saved as LocaleDecimalSeparator,
+      this was probably initialized by RTL to something specific for
+      user's configured locale.)
 
     @item(Installs my handler for ExceptProc, see comments at
       @link(HaltCodeOnException))
@@ -189,6 +193,10 @@ type
 
 {$undef read_interface}
 
+var
+  { }
+  LocaleDecimalSeparator: char;
+
 implementation
 
 uses KambiStringUtils, KambiFilesUtils;
@@ -218,6 +226,8 @@ initialization
  InitializationOSSpecific;
 
  Randomize; { required by e.g. GetTempFname }
+
+ LocaleDecimalSeparator := DecimalSeparator;
  DecimalSeparator := '.';
 finalization
  FinalizationOSSpecific;

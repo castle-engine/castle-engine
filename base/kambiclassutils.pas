@@ -371,6 +371,11 @@ function ReadGrowingStreamToString(GrowingStream: TStream): string;
 procedure StreamWriteString(Stream: TStream; const s: string);
 function StreamReadString(Stream: TStream): string;
 
+{ Convert whole Stream to string.
+  This changes Stream.Position to 0 and then reads Stream.Size bytes,
+  so be sure that Stream supports these operations. }
+function StreamToString(Stream: TStream): string;
+
 type
   { This is TMemoryStream that at the end of construction
     loads it's contents from file AFileName,
@@ -1100,6 +1105,13 @@ begin
  SetLength(Result, L);
  { check L > 0 to avoid range check error on Result[1] }
  if L > 0 then Stream.ReadBuffer(Result[1], L);
+end;
+
+function StreamToString(Stream: TStream): string;
+begin
+  SetLength(Result, Stream.Size);
+  Stream.Position := 0;
+  Stream.ReadBuffer(Pointer(Result)^, Length(Result));
 end;
 
 { TMemoryFileStream ------------------------------------------------------- }
