@@ -239,7 +239,7 @@ end;
 
 function DateTimeToAtStr(DateTime: TDateTime): string;
 begin
- result := FormatDateTime('ddddd" at "tt', DateTime);
+ result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
 end;
 
 { cross-platform process timery ---------------------------------------------- }
