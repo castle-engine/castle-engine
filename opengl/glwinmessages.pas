@@ -313,6 +313,14 @@ var
     dopoki jakas (jakakolwiek !) MessageXxx dziala. }
   GLWinMessagesTheme: TGLWinMessagesTheme;
 
+type
+  TGLWinMessageNotify = procedure(Text: TStringList);
+
+var
+  { If non-nil, this will be notified about every MessageXxx call.
+    You can use this e.g. for logging purposes etc. }
+  OnGLWinMessage: TGLWinMessageNotify;
+
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
@@ -880,6 +888,9 @@ procedure GLWinMessage(glwin: TGLWindow; textlist: TStringList;
 var messageData: TMessageData;
     SavedMode: TGLMode;
 begin
+  if Assigned(OnGLWinMessage) then
+    OnGLWinMessage(TextList);
+
  {1 faza :
    Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.
    Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
