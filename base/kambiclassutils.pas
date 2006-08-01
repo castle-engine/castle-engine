@@ -1468,7 +1468,7 @@ procedure InitStdStreams;
   {$endif WIN32}
 
   {$ifdef UNIX}
-  procedure InitStdStream(var Stream: TStream; Handle: Handle);
+  procedure InitStdStream(var Stream: TStream; Handle: THandle);
   begin
     Stream := THandleStream.Create(Handle);
   end;
