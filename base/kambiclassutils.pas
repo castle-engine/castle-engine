@@ -599,15 +599,60 @@ procedure CreateIfNeeded(var Component: TComponent;
   Initialized and finalized in this unit.) }
 
 var
-  { Under Win32 when program is a GUI program then some
-    of the variables below may be nil (although that may
-    be <> nil, even for GUI program, e.g. if user has
-    run our GUI program like
-      @preformatted cat something | my_program
-    ).
+  { Streams that wrap standard input/output/error of the program.
 
     Note that you can't simultaneously read from StdInStream
-    and StdInReader (see comments at TTextReader class). }
+    and StdInReader (see comments at TTextReader class).
+
+    Notes for Windows:
+
+    @orderedList(
+      @item(
+        Under Win32 when program is a GUI program then some (or all)
+        of the variables below may be nil.)
+
+      @item(
+        But they don't @italic(have) to be nil. User can run a GUI
+        program and explicitly redirect it's standard stream, e.g.
+        @code(cat something | my_program) for stdin or
+        @code(my_program > output.txt) for stdout. Actually
+        some shells, like Cygwin's bash, always redirect some streams
+        "under the mask". And then you have
+        some of std* streams available.
+
+        Actually FPC (and Delphi ?)
+        RTL don't provide in such cases valid Input/Output/ErrOutput
+        variables (because IsConsole = false). But my streams below
+        try to obtain standard stream handles under Windows
+        @italic(regardless of IsConsole value). So even a GUI program
+        is able to write to stdin/stdout/stderr using these streams.)
+
+      @item(
+        Unfortunately, in a GUI program under Windows you @italic(cannot)
+        depend on the fact that "StdOutStream <> nil means that stdout
+        is actually available (because user redirected stdout etc.)".
+        Reason ? Windows failure, as usual:
+
+        This is tested on Windows 2000 Prof, with FPC 2.0.0 and 2.1.1 (revision 4317).
+        When no stdout is available, StdOutStream should be nil, because
+        GetStdHandle(STD_OUTPUT_HANDLE) should return 0. However,
+        GetStdHandle(STD_OUTPUT_HANDLE) doesn't return 0... It returns
+        some stupid handle (no, not INVALID_HANDLE_VALUE either)
+        that you can't write into (trying to write returns in ERROR_INVALID_HANDLE
+        WinAPI error). It seems that there is no way for me to check
+        whether GetStdHandle(STD_OUTPUT_HANDLE) returned valid handle
+        (e.g. because the program's stdout was redirected, so stdout is perfectly
+        available) or whether it returned something unusable.
+
+        So if you write an $apptype GUI program and you want to try to use stdout
+        anyway, you can't just check for StdOutStream <> nil.
+        You should also check the first write to StdOutStream for EWriteError.
+
+        Note that GetStdHandle(STD_INPUT_HANDLE) and GetStdHandle(STD_ERROR_HANDLE)
+        work correctly, so it should be OK to check StdInStream <> nil or
+        StdErrStream <> nil. The only problematic one is GetStdHandle(STD_OUTPUT_HANDLE).)
+    )
+  }
   StdInStream, StdOutStream, StdErrStream :TStream;
   StdInReader: TTextReader;
 
@@ -1392,40 +1437,58 @@ end;
 
 { init / fini --------------------------------------------------------------- }
 
-{TODO: use StdInpu/Output/ErrortHandle also under Win32, simplify this}
-
 procedure InitStdStreams;
 
-  procedure InitStdStream(var Stream: TStream;
-    {$ifdef WIN32}nStdHandle: DWord{$endif}
-    {$ifdef UNIX}Handle: THandle{$endif});
-  {$ifdef WIN32}var Handle: THandle;{$endif}
+{ Note that instead of GetStdHandle(STD_INPUT_HANDLE) I could just use
+  StdInputHandle, as this is initialized by FPC RTL exactly to
+  GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
+  However
+  1. This would not allow me to write InitStdStream without any $ifdefs,
+     because Win32 would still require checking for 0 and INVALID_HANDLE_VALUE
+  2. This is not documented, so I prefer to not depend on this.
+     For example, maybe in the future StdInputHandle will be always left as 0
+     when not IsConsole ? I want to exactly avoid this for my Std*Stream.
+}
+
+  {$ifdef WIN32}
+  procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
+  var
+    Handle: THandle;
   begin
-   {$ifdef UNIX}
-   Stream := THandleStream.Create(Handle);
-   {$else}
-   Handle := GetStdHandle(nStdHandle);
-   if Handle <> INVALID_HANDLE_VALUE then
-    Stream := THandleStream.Create(Handle) else
-    Stream := nil;
-   {$endif}
+    Handle := GetStdHandle(nStdHandle);
+    { If the function fails, the return value is INVALID_HANDLE_VALUE.
+      If an application does not have associated standard handles,
+      the return value is NULL.
+      See [http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dllproc/base/getstdhandle.asp] }
+    if (Handle <> INVALID_HANDLE_VALUE) and
+       (Handle <> 0) then
+      Stream := THandleStream.Create(Handle) else
+      Stream := nil;
   end;
+  {$endif WIN32}
+
+  {$ifdef UNIX}
+  procedure InitStdStream(var Stream: TStream; Handle: Handle);
+  begin
+    Stream := THandleStream.Create(Handle);
+  end;
+  {$endif UNIX}
 
 begin
- InitStdStream(StdInStream,  {$ifdef WIN32} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
- InitStdStream(StdOutStream, {$ifdef WIN32} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
- InitStdStream(StdErrStream, {$ifdef WIN32} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
- if StdInStream <> nil then
-  StdInReader := TTextReader.Create(StdInStream, false) else
-  StdInReader := nil;
+  InitStdStream(StdInStream,  {$ifdef WIN32} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
+  InitStdStream(StdOutStream, {$ifdef WIN32} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
+  InitStdStream(StdErrStream, {$ifdef WIN32} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
+  if StdInStream <> nil then
+    StdInReader := TTextReader.Create(StdInStream, false) else
+    StdInReader := nil;
 end;
 
 procedure FiniStdStreams;
 begin
- FreeAndNil(StdInStream);
- FreeAndNil(StdOutStream);
- FreeAndNil(StdErrStream);
- FreeAndNil(StdInReader);
+  FreeAndNil(StdInStream);
+  FreeAndNil(StdOutStream);
+  FreeAndNil(StdErrStream);
+  FreeAndNil(StdInReader);
 end;
 
 initialization
