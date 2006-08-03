@@ -52,7 +52,7 @@ type
     { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
       tzn. zawsze Name musi byc zdefiniowane.
       (w tym module mozemy gdzieniegdzie uzywac wewnetrznie takich obiektow,
-      np. pozwolilo to nam bardzo wygodnie zapisac TVRMLMultField.Parse.) }
+      np. pozwolilo to nam bardzo wygodnie zapisac TVRMLSimpleMultField.Parse.) }
     property Name: string read fName;
 
     constructor Create(const AName: string);
@@ -154,13 +154,21 @@ type
 
   EVRMLMultFieldDifferentCount = class(Exception);
 
+  TVRMLMultField = class(TVRMLField)
+  public
+    function Count: integer; virtual; abstract;
+
+    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
+    procedure CheckCountEqual(SecondValue: TVRMLMultField);
+  end;
+
   {pamietaj - lista MF fields moze miec zero elementow !
    MultFields w destruktorze zwalniaja wszystkie swoje RawItems.
-   W kazdym typie potomnym TVRMLMultField MUSISZ zdefiniowac fItemClass
+   W kazdym typie potomnym TVRMLSimpleMultField MUSISZ zdefiniowac fItemClass
    w konstruktorze (inaczej bedzie = nil i bedzie error).
 
    Notka o wydajnosci implementacji : wydaje sie pociagajacym uproszczeniem
-   zeby zapisac TVRMLMultField jako opakowanie na liste TVRMLSingleFieldsList.
+   zeby zapisac TVRMLSimpleMultField jako opakowanie na liste TVRMLSingleFieldsList.
    Ale takie rozwiazanie spowodowaloby ze dla dlugich pol MFField (a takie
    bedziemy czesto dostawac, tysiace vertexow w Coordinate3 to nic niezwyklego)
    bedziemy strasznie rozrzucali po pamieci duzo malenkich rekordow (b. duza
@@ -179,7 +187,7 @@ type
    - nie jest to zadnym wymaganiem ale zazwyczaj bedzie wygodnie jesli
      konstruktor bedzie pobieral jako argument array of Typ aby zainicjowac
      od razu swoja tablice. }
-  TVRMLMultField = class(TVRMLField)
+  TVRMLSimpleMultField = class(TVRMLMultField)
   protected
     fItemClass: TVRMLSingleFieldClass;
     { CreateItemBeforeParse ma za zadanie utworzyc nowy obiekt klasy
@@ -200,15 +208,16 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
   protected
     { nie ma potrzeby definiowania SaveToStreamValue w podklasach,
-        zdefiniuj tylko RawItemToString(i) ktore zamienia RawItems[i]
-        na string ktory moze byc zapisany jako wartosc tego pola w VRMLu.
-        W niniejszej klasie zajmujemy sie wszystkim.
+      zdefiniuj tylko RawItemToString(i) ktore zamienia RawItems[i]
+      na string ktory moze byc zapisany jako wartosc tego pola w VRMLu.
+      W niniejszej klasie zajmujemy sie wszystkim.
+
       Jezeli chcesz, mozesz w podklasie pokryc implementacje
-        SaveToStreamDoNewLineAfterRawItem - w tej klasie zawsze odpowiada
-        true. Ale zwroc uwage ze wyniki zwracane przez
-        SaveToStreamDoNewLineAfterRawItem moga byc niekiedy ignorowane
-        (czasami po prostu w tej klasie wiemy ze NA PEWNO tak jak robimy
-        bedzie ladniej wygladalo; bo tak czy siak, tu chodzi tylko o estetyke) }
+      SaveToStreamDoNewLineAfterRawItem - w tej klasie zawsze odpowiada
+      true. Ale zwroc uwage ze wyniki zwracane przez
+      SaveToStreamDoNewLineAfterRawItem moga byc niekiedy ignorowane
+      (czasami po prostu w tej klasie wiemy ze NA PEWNO tak jak robimy
+      bedzie ladniej wygladalo; bo tak czy siak, tu chodzi tylko o estetyke) }
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
     function RawItemToString(ItemNum: integer): string; virtual; abstract;
@@ -219,7 +228,7 @@ type
     RawItems: TDynArrayBase;
 
     { po prostu RawItems.Count }
-    function Count: integer;
+    function Count: integer; override;
 
     { wszystkie elementy jakie beda trafiac do RawItemsAdd beda tej klasy.
       Nie jest tu zdefiniowana zaleznosc miedzy elementami tej klasy a
@@ -234,9 +243,6 @@ type
 
     constructor Create(const AName: string);
     destructor Destroy; override;
-
-    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
-    procedure CheckCountEqual(SecondValue: TVRMLMultField);
 
     { In addition to inherited(Equals), this also checks that
       Count and ItemClass are equal. All descendants must check
@@ -566,7 +572,7 @@ type
   DefaultValue* robimy w normalnym konstruktorze Create. }
 
   { }
-  TMFColor = class(TVRMLMultField)
+  TMFColor = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
@@ -584,7 +590,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFLong = class(TVRMLMultField)
+  TMFLong = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Longint;
@@ -611,7 +617,7 @@ type
 
   TMFInt32 = TMFLong;
 
-  TMFVec2f = class(TVRMLMultField)
+  TMFVec2f = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Single;
@@ -629,7 +635,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFVec3f = class(TVRMLMultField)
+  TMFVec3f = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
@@ -647,7 +653,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFRotation = class(TVRMLMultField)
+  TMFRotation = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: Integer;
     DefaultValue: TVector4Single;
@@ -666,7 +672,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFFloat = class(TVRMLMultField)
+  TMFFloat = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Single;
@@ -685,7 +691,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFTime = class(TVRMLMultField)
+  TMFTime = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Double;
@@ -704,7 +710,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TMFString = class(TVRMLMultField)
+  TMFString = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: string;
@@ -787,28 +793,41 @@ begin
  Create(AName);
 end;
 
-{ TVRMLMultField ---------------------------------------------------------- }
+{ TVRMLMultField ------------------------------------------------------------- }
 
-constructor TVRMLMultField.Create(const AName: string);
+procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
+begin
+ if SecondValue.Count <> Count then
+  raise EVRMLMultFieldDifferentCount.CreateFmt(
+    'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+    [ Name,
+      SecondValue.Name,
+      Count,
+      SecondValue.Count ]);
+end;
+
+{ TVRMLSimpleMultField ------------------------------------------------------- }
+
+constructor TVRMLSimpleMultField.Create(const AName: string);
 begin
  inherited Create(AName);
 end;
 
-destructor TVRMLMultField.Destroy;
+destructor TVRMLSimpleMultField.Destroy;
 begin
  RawItems.Free;
  inherited;
 end;
 
-function TVRMLMultField.Count: integer;
+function TVRMLSimpleMultField.Count: integer;
 begin result := RawItems.Count end;
 
-function TVRMLMultField.CreateItemBeforeParse: TVRMLSingleField;
+function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
  result := TVRMLSimpleSingleFieldClass(ItemClass).CreateUndefined('');
 end;
 
-procedure TVRMLMultField.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TVRMLSimpleMultField.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 var SingleItem: TVRMLSingleField;
 begin
  RawItems.SetLength(0);
@@ -857,7 +876,7 @@ begin
  end;
 end;
 
-procedure TVRMLMultField.SaveToStreamValue(Stream: TStream;
+procedure TVRMLSimpleMultField.SaveToStreamValue(Stream: TStream;
   const Indent: string; NodeNameBinding: TStringList);
 var i: integer;
     WriteIndentNextTime: boolean;
@@ -885,29 +904,18 @@ begin
  end;
 end;
 
-function TVRMLMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TVRMLSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
  result := true;
 end;
 
-function TVRMLMultField.Equals(SecondValue: TVRMLField;
+function TVRMLSimpleMultField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TVRMLMultField) and
-   (TVRMLMultField(SecondValue).Count = Count) and
-   (TVRMLMultField(SecondValue).ItemClass = ItemClass);
-end;
-
-procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
-begin
- if SecondValue.RawItems.Count <> RawItems.Count then
-  raise EVRMLMultFieldDifferentCount.CreateFmt(
-    'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
-    [ Name,
-      SecondValue.Name,
-      RawItems.Count,
-      SecondValue.RawItems.Count ]);
+   (SecondValue is TVRMLSimpleMultField) and
+   (TVRMLSimpleMultField(SecondValue).Count = Count) and
+   (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
 { simple helpful parsing functions ---------------------------------------- }

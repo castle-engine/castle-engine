@@ -940,9 +940,33 @@ type
   { MFNode VRML field.
     Just like SFNode, it's defined in this unit, as it uses TVRMLNode.
     Note that items of MFNode @italic(cannot) be nil (i.e. VRML doesn't
-    allow to use NULL inside MFNode), contrary to SFNode. }
+    allow to use NULL inside MFNode), contrary to SFNode.
+
+    Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
+    Reasons ? 1. We don't want to use TDynArray descendant.
+    We want to use TVRMLNodesList. 2. We don't want to do parsing
+    using SFNode, because MFNode doesn't allow NULL items. }
   TMFNode = class(TVRMLMultField)
-    { TODO }
+  private
+    FItems: TVRMLNodesList;
+  protected
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string);
+    destructor Destroy; override;
+
+    property Items: TVRMLNodesList read FItems;
+
+    { Just a shortcut for Items.Count }
+    function Count: integer; override;
+
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    procedure Assign(Source: TPersistent); override;
   end;
 
 { specific VRML nodes. ----------------------------------------------------
@@ -3828,6 +3852,88 @@ begin
   begin
     FName  := TSFNode(Source).Name;
     FValue := TSFNode(Source).Value;
+  end else
+    inherited;
+end;
+
+{ TMFNode -------------------------------------------------------------------- }
+
+constructor TMFNode.Create(const AName: string);
+begin
+  inherited Create(AName);
+  FItems := TVRMLNodesList.Create;
+end;
+
+destructor TMFNode.Destroy;
+begin
+  FreeAndNil(FItems);
+  inherited;
+end;
+
+procedure TMFNode.SaveToStreamValue(Stream: TStream; const Indent: string;
+  NodeNameBinding: TStringList);
+var
+  I: Integer;
+begin
+  { We code Count = 0 and Count = 1 cases separately just to get a more
+    compact look in these common situations. }
+  if Count = 0 then
+    WriteStr(Stream, '[]') else
+  if Count = 1 then
+  begin
+    WriteStr(Stream, NL);
+    Items[0].SaveToStream(Stream, Indent + IndentIncrement, NodeNameBinding);
+  end else
+  begin
+    WriteStr(Stream, '[' + NL);
+    for I := 0 to Count - 1 do
+      Items[I].SaveToStream(Stream, Indent + IndentIncrement, NodeNameBinding);
+    WriteStr(Stream, Indent + ']');
+  end;
+end;
+
+function TMFNode.Count: integer;
+begin
+  Result := Items.Count;
+end;
+
+procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
+  if Lexer.Token = vtOpenSqBracket then
+  begin
+    Lexer.NextToken;
+
+    while Lexer.Token <> vtCloseSqBracket do
+    begin
+      Items.Add(ParseNode(Lexer, NodeNameBinding, true));
+    end;
+
+    Lexer.NextToken;
+  end else
+    { one single item - not enclosed in [] brackets }
+    Items.Add(ParseNode(Lexer, NodeNameBinding, true));
+end;
+
+function TMFNode.EqualsDefaultValue: boolean;
+begin
+  Result := Count = 0;
+end;
+
+function TMFNode.Equals(SecondValue: TVRMLField;
+  const EqualityEpsilon: Single): boolean;
+begin
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TMFNode) and
+    (TMFNode(SecondValue).Items.Equals(Items));
+end;
+
+procedure TMFNode.Assign(Source: TPersistent);
+begin
+  if Source is TMFNode then
+  begin
+    FName := TMFNode(Source).Name;
+    Items.Assign(TMFNode(Source).Items);
   end else
     inherited;
 end;
