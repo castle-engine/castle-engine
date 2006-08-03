@@ -417,10 +417,14 @@ type
     fNodeName: string;
     FWWWBasePath: string;
   private
-    FChildren, FParents: TVRMLNodesList;
+    FChildren, FParentNodes: TVRMLNodesList;
     function GetChildrenItem(i: integer): TVRMLNode;
-    function GetParentsItem(i: integer): TVRMLNode;
+    function GetParentNodesItem(i: integer): TVRMLNode;
     procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
+    FParentFields: TVRMLFieldsList;
+    function GetParentFieldsItem(Index: Integer): TVRMLField;
+    procedure RemoveParentField(Field: TVRMLField);
+    procedure AddParentField(Field: TVRMLField);
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -497,14 +501,19 @@ type
       @noAutoLinkHere }
     Fields: TVRMLFieldsList;
 
-    { Kazdy VRML nodes moze miec dowolnie wiele Children.
+    { Children property lists children VRML nodes, in the sense of VRML 1.0.
+      In VRML 2.0, nodes never have any Children nodes expressed on this
+      list (however, their children nodes may be expressed as items
+      of TMFNode / TSFNode fields).
+
+      Kazdy VRML nodes moze miec dowolnie wiele Children.
       Kiedy jakis node jest na liscie Children
-      jednego node'a to ma swojego rodzica na swojej liscie Parents.
+      jednego node'a to ma swojego rodzica na swojej liscie ParentNodes.
       Wiec w ten sposob mozemy podrozowac po grafie w obie strony.
       (pamietaj ze graf VRML'a nie ma cykli gdy na niego patrzec jak na graf
       skierowany (a takim wlasnie jest) ale kazdy node moze miec wiele rodzicow
       wiec jezeli potraktujemy go jako graf nieskierowany to mozemy otrzymac
-      cykle; wszystko przez to ze node moze miec wiele Parents bo moze
+      cykle; wszystko przez to ze node moze miec wiele ParentNodes bo moze
       uzywac mechanizmu USE).
 
       Kiedy jakis node jest na liscie Children innego node'a to gdy ten inny
@@ -512,6 +521,11 @@ type
       kazdy node kasuje wszystkich ze swojej listy Children) to wywola
       jego destruktora. Innymi slowy, gdy jakis node jest czyims dzieckiem
       to jest reference-counted i automatycznie zwalniany.
+      Actually, nodes can be children of both nodes (VRML 1.0 style,
+      then Children and ParentNodes is used) or fields (TMFNode or TSFNode,
+      in VRML 2.0 style; then ParentFields is used). So the node is freed
+      only when it's not referenced by any node and not referenced by any
+      field.
 
       Wazna konwencja : jak widac, rodzic automatycznie martwi sie o swoje
       dzieci. Natomiast dziecko w swoim Free nie martwi sie o uaktualnienie
@@ -524,8 +538,8 @@ type
       przeciez pomieszac sobie kolejnosci w Children (ona determinuje
       przeciez kolejnosc przegladania grafu, a wiec Renderowania itp.)
       (Natomiast mozemy sobie pozwolic i nieraz pozwalamy na ew. pomieszanie
-      kolejnosci w Parents; inaczej musielibysmy z kazdym Parents pamietac
-      swoj index na jego liscie). Tak wiec na listach Children i Parents
+      kolejnosci w ParentNodes; inaczej musielibysmy z kazdym ParentNodes pamietac
+      swoj index na jego liscie). Tak wiec na listach Children i ParentNodes
       moga byc duplikaty i zdecydowanie nie powinnismy nigdzie niefrasobliwie
       "czyscic" tych list przez DeleteDuplicates;
 
@@ -555,22 +569,27 @@ type
     procedure RemoveChild(i: integer);
     procedure RemoveAllChildren;
 
-    property Parents[i: integer]:TVRMLNode read GetParentsItem;
-    function ParentsCount: integer;
+    property ParentNodes[i: integer]:TVRMLNode read GetParentNodesItem;
+    function ParentNodesCount: integer;
 
-    { Seeks @link(Parents) list for parent named ParentNodeName,
+    { This lists all SFNode and MFNode fields where this node is referenced.
+      This is somewhat analogous for ParentNodes, but for VRML 2.0. }
+    property ParentFields[Index: Integer]: TVRMLField read GetParentFieldsItem;
+    function ParentFieldsCount: Integer;
+
+    { Seeks @link(ParentNodes) list for parent named ParentNodeName,
       returns it's index. Returns -1 if not found.
 
       Use TryFindParentNodeByName if you want to seek non-direct
-      parents too. }
+      ParentNodes too. }
     function IndexOfDirectParentNode(const ParentNodeName: string): Integer;
 
     { bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
-      ze WSZYSTKICH list Parents[].Children i robi Destroy.
+      ze WSZYSTKICH list ParentNodes[].Children i robi Destroy.
       Tym samym robi nam Free robiac to czego normalne Free nie robi :
-      martwiac sie o Parents. Jezeli chcesz usunac node ze srodka hierarchii
+      martwiac sie o ParentNodes. Jezeli chcesz usunac node ze srodka hierarchii
       VRMLa - to jest dobra metoda zeby to zrobic. }
-    procedure FreeRemovingFromAllParents;
+    procedure FreeRemovingFromAllParentNodes;
 
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
       Warunek ten bedzie sprawdzany w AddChild wiec nigdy nie uda ci sie dodac
@@ -829,9 +848,9 @@ type
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
 
-    { Szuka wsrod Self, wsrod node'ow Parents, wsrod ich node'ow Parents itd.
+    { Szuka wsrod Self, wsrod node'ow ParentNodes, wsrod ich node'ow ParentNodes itd.
       Innymi slowy, dzialaja tak samo jak odpowiedniki bez "Parent" ale
-      ida w gore (tzn. w/g wlasciwosci Parents, a nie Children).
+      ida w gore (tzn. w/g wlasciwosci ParentNodes, a nie Children).
       Zwracam uwage ze zawsze przeszukuja caly graf w gore, nie ograniczajac
       sie tylko do aktywnej czesci (bo nie mamy tu mechanizmow aby isc
       w gore grafu wzdluz aktywnych czesci, zreszta nie da sie ich zdefiniowac -
@@ -923,13 +942,16 @@ type
     TVRMLNode definition. NULL value of the field is indicated by
     Value field = nil. This field has always the same default value: NULL. }
   TSFNode = class(TVRMLSimpleSingleField)
-  protected
+  private
     FValue: TVRMLNode;
+    procedure SetValue(AValue: TVRMLNode);
+  protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    property Value: TVRMLNode read FValue write FValue;
     constructor Create(const AName: string);
+    destructor Destroy; override;
+    property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -938,9 +960,11 @@ type
   end;
 
   { MFNode VRML field.
+
     Just like SFNode, it's defined in this unit, as it uses TVRMLNode.
     Note that items of MFNode @italic(cannot) be nil (i.e. VRML doesn't
     allow to use NULL inside MFNode), contrary to SFNode.
+    Default value of MFNode field is always "0 items".
 
     Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
     Reasons ? 1. We don't want to use TDynArray descendant.
@@ -956,6 +980,13 @@ type
     constructor Create(const AName: string);
     destructor Destroy; override;
 
+    { Lists items of this fields.
+
+      If you modify this list explicitly, you must take care of calling
+      appropriate AddParentField / RemoveParentField, otherwise you
+      can break reference-counting of nodes by ParentFields.
+
+      Later I'll introduce some methods here to simplify do this. }
     property Items: TVRMLNodesList read FItems;
 
     { Just a shortcut for Items.Count }
@@ -3281,7 +3312,8 @@ begin
  FWWWBasePath := AWWWBasePath;
 
  FChildren := TVRMLNodesList.Create;
- FParents := TVRMLNodesList.Create;
+ FParentNodes := TVRMLNodesList.Create;
+ FParentFields := TVRMLFieldsList.Create;
  Fields := TVRMLFieldsList.Create;
 end;
 
@@ -3289,9 +3321,10 @@ destructor TVRMLNode.Destroy;
 begin
  if FChildren <> nil then RemoveAllChildren;
 
- Fields.FreeWithContents;
- FChildren.Free;
- FParents.Free;
+ FreeWithContentsAndNil(Fields);
+ FreeAndNil(FChildren);
+ FreeAndNil(FParentNodes);
+ FreeAndNil(FParentFields);
  inherited;
 end;
 
@@ -3300,7 +3333,7 @@ begin
  Check( {is child allowed in AllowedChildren ?} AllowedChildren,
    'Node '+NodeTypeName+' is not allowed to have child node of type '+
    Child.NodeTypeName);
- child.FParents.Add(Self);
+ child.FParentNodes.Add(Self);
  FChildren.Insert(Index, child);
 end;
 
@@ -3315,8 +3348,10 @@ var
 begin
   OldChild := FChildren[i];
   FChildren.Delete(i);
-  OldChild.FParents.Delete(Self);
-  if OldChild.FParents.Count = 0 then OldChild.Free;
+  OldChild.FParentNodes.Delete(Self);
+  if (OldChild.FParentNodes.Count = 0) and
+     (OldChild.FParentFields.Count = 0) then
+    OldChild.Free;
 end;
 
 procedure TVRMLNode.SetChildrenItem(I: Integer; Value: TVRMLNode);
@@ -3334,10 +3369,12 @@ begin
     OldChild := FChildren[i];
     FChildren[I] := Value;
 
-    OldChild.FParents.Delete(Self);
-    if OldChild.FParents.Count = 0 then OldChild.Free;
+    OldChild.FParentNodes.Delete(Self);
+    if (OldChild.FParentNodes.Count = 0) and
+       (OldChild.FParentFields.Count = 0) then
+      OldChild.Free;
 
-    Value.FParents.Add(Self);
+    Value.FParentNodes.Add(Self);
   end;
 end;
 
@@ -3347,30 +3384,40 @@ begin
 end;
 
 function TVRMLNode.GetChildrenItem(i: integer): TVRMLNode; begin result := FChildren[i] end;
-function TVRMLNode.GetParentsItem(i: integer): TVRMLNode; begin result := FParents[i] end;
+function TVRMLNode.GetParentNodesItem(i: integer): TVRMLNode; begin result := FParentNodes[i] end;
 
 function TVRMLNode.ChildrenCount: integer; begin result := FChildren.Count end;
-function TVRMLNode.ParentsCount: integer; begin result := FParents.Count end;
+function TVRMLNode.ParentNodesCount: integer; begin result := FParentNodes.Count end;
 
-procedure TVRMLNode.FreeRemovingFromAllParents;
+procedure TVRMLNode.FreeRemovingFromAllParentNodes;
 var i, j: integer;
 begin
  if Self = nil then exit;
 
- for i := 0 to FParents.Count-1 do
+ for i := 0 to FParentNodes.Count-1 do
  begin
-  j := FParents[i].FChildren.IndexOf(Self);
-  FParents[i].FChildren.Delete(j);
-  {nie musimy sie tu martwic usuwaniem naszego Parenta z listy FParents ktora
+  j := FParentNodes[i].FChildren.IndexOf(Self);
+  FParentNodes[i].FChildren.Delete(j);
+  {nie musimy sie tu martwic usuwaniem naszego Parenta z listy FParentNodes ktora
    wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
  end;
  Self.Destroy;
 end;
 
+function TVRMLNode.GetParentFieldsItem(Index: Integer): TVRMLField;
+begin
+  Result := FParentFields[Index];
+end;
+
+function TVRMLNode.ParentFieldsCount: Integer;
+begin
+  Result := FParentFields.Count;
+end;
+
 function TVRMLNode.IndexOfDirectParentNode(const ParentNodeName: string): Integer;
 begin
-  for Result := 0 to ParentsCount - 1 do
-    if Parents[Result].NodeName = ParentNodeName then
+  for Result := 0 to ParentNodesCount - 1 do
+    if ParentNodes[Result].NodeName = ParentNodeName then
       Exit;
   Result := -1;
 end;
@@ -3695,9 +3742,9 @@ begin
   result := Self else
  begin
   result := nil;
-  for i := 0 to ParentsCount-1 do
+  for i := 0 to ParentNodesCount-1 do
   begin
-   result := Parents[i].TryFindParentNodeByName(FindName);
+   result := ParentNodes[i].TryFindParentNodeByName(FindName);
    if result <> nil then exit;
   end;
  end;
@@ -3715,8 +3762,8 @@ begin
  if Self = Node then
   result := true else
  begin
-  for i := 0 to ParentsCount-1 do
-   if Parents[i].HasParent(Node) then Exit(true);
+  for i := 0 to ParentNodesCount-1 do
+   if ParentNodes[i].HasParent(Node) then Exit(true);
   result := False;
  end;
 end;
@@ -3804,12 +3851,38 @@ begin
   Result := true;
 end;
 
+procedure TVRMLNode.RemoveParentField(Field: TVRMLField);
+begin
+  Check(FParentFields.Delete(Field), 'RemoveParentField: parent not found');
+
+  if (FParentFields.Count = 0) and
+     (FParentNodes.Count = 0) then
+  begin
+    { This is written as "Self.Destroy" to actually do the desctruction,
+      freeing memory etc. If I would just call it "Destroy", it would
+      perform what destructor does but leaving object instance unfreed. }
+    Self.Destroy;
+  end;
+end;
+
+procedure TVRMLNode.AddParentField(Field: TVRMLField);
+begin
+  FParentFields.Add(Field);
+end;
+
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.Create(const AName: string);
 begin
   CreateUndefined(AName);
   Value := nil;
+end;
+
+destructor TSFNode.Destroy;
+begin
+  { To delete Self from Value.FParentFields, and eventually free Value. }
+  Value := nil;
+  inherited;
 end;
 
 procedure TSFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -3851,9 +3924,25 @@ begin
   if Source is TSFNode then
   begin
     FName  := TSFNode(Source).Name;
-    FValue := TSFNode(Source).Value;
+    { Assign using Value property, so that FParentFields will get
+      correctly updated. }
+    Value  := TSFNode(Source).Value;
   end else
     inherited;
+end;
+
+procedure TSFNode.SetValue(AValue: TVRMLNode);
+begin
+  if FValue <> AValue then
+  begin
+    if FValue <> nil then
+      FValue.RemoveParentField(Self);
+
+    FValue := AValue;
+
+    if AValue <> nil then
+      FValue.AddParentField(Self);
+  end;
 end;
 
 { TMFNode -------------------------------------------------------------------- }
@@ -3865,7 +3954,13 @@ begin
 end;
 
 destructor TMFNode.Destroy;
+var
+  I: Integer;
 begin
+  for I := 0 to FItems.Count - 1 do
+    FItems[I].RemoveParentField(Self);
+  FItems.Count := 0; { For safety }
+
   FreeAndNil(FItems);
   inherited;
 end;
@@ -3898,6 +3993,8 @@ begin
 end;
 
 procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+var
+  Node: TVRMLNode;
 begin
   { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
   if Lexer.Token = vtOpenSqBracket then
@@ -3906,7 +4003,9 @@ begin
 
     while Lexer.Token <> vtCloseSqBracket do
     begin
-      Items.Add(ParseNode(Lexer, NodeNameBinding, true));
+      Node := ParseNode(Lexer, NodeNameBinding, true);
+      Items.Add(Node);
+      Node.AddParentField(Self);
     end;
 
     Lexer.NextToken;
@@ -3929,11 +4028,21 @@ begin
 end;
 
 procedure TMFNode.Assign(Source: TPersistent);
+var
+  I: Integer;
 begin
   if Source is TMFNode then
   begin
     FName := TMFNode(Source).Name;
+
+    for I := 0 to Count - 1 do
+      Items[I].RemoveParentField(Self);
+    Items.Count := 0; { For safety }
+
     Items.Assign(TMFNode(Source).Items);
+
+    for I := 0 to Count - 1 do
+      Items[I].AddParentField(Self);
   end else
     inherited;
 end;

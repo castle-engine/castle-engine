@@ -1,9 +1,5 @@
 VRML 97 TODO items:
 
-- What about mem management of nodes in TSFNode and TMFNode ?
-  I don't want to abuse my Children field in TVRMLNode...
-  Node in SFNode and MFNode must be freed !
-
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
 - writing as VRML:
@@ -16,6 +12,9 @@ VRML 97 TODO items:
   for VRML 2.0 versions of DirectionalLight and PointLight is bad.
   When writing you can see that he still things that default value was as
   given earlier.
+
+- change FreeRemovingFromAllParentNodes to also remove from ParentFields,
+  rename back to FreeRemovingFromAllParents
 
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
