@@ -1,0 +1,200 @@
+VRML 97 TODO items:
+- Implement Prototypes, Event routing. Relevant spec parts:
+  - 4.2.4 Prototypes
+  - 4.2.5 Event routing
+  - 4.3.2 Statements
+    After the required header, a VRML file may contain any
+    combination of the following:
+    1. Any number of PROTO or EXTERNPROTO statements
+    (see 4.8, Prototype semantics);
+    ...
+    4. Any number of ROUTE statements (see 4.10.2, Route semantics).
+  - 4.3.3 Node statement syntax
+    A node's body consists of any number of ..., IS statements,
+    ROUTE statements, PROTO statements or EXTERNPROTO statements, in any order.
+  - 4.3.5 PROTO statement syntax
+  - 4.3.6 IS statement syntax
+  - 4.3.7 EXTERNPROTO statement syntax
+  - 4.3.9 ROUTE statement syntax
+- Check what nodes are allowed where:
+  - Root nodes shall be children nodes (see 4.6.5, Grouping and children nodes).
+- Resolving url fields (MFString, see 4.5.2, 4.5.3).
+  Use Synapse or curl (probably both, by compile-time define;
+  make the URL system "pluggable", by default "null" system is plugged
+  so neither Synapse nor curl is used.)
+- 4.5.4 Scripting language protocols
+- check
+
+   The following node types are geometry nodes:
+    * Box
+    * Cone
+    * Contour2D
+    * Cylinder
+    * ElevationGrid
+    * Extrusion
+    * GeoElevationGrid
+    * IndexedFaceSet
+    * IndexedLineSet
+    * NurbsCurve
+    * NurbsSurface
+    * PointSet
+    * Sphere
+    * Text
+    * TrimmedSurface
+
+  appearance must be Appearance
+
+Nodes of the following type may be specified in the material field of the Appearance node:
+
+    * Material
+
+Nodes of the following types may be specified by the texture field of the Appearance node:
+
+    * ImageTexture
+    * PixelTexture
+    * MovieTexture
+
+Nodes of the following types may be specified in the textureTransform field of the Appearance node:
+
+    * TextureTransform
+
+The following node types are grouping nodes:
+
+    * Anchor
+    * Billboard
+    * Collision
+    * CoordinateDeformer
+    * GeoLocation
+    * GeoLOD
+    * Group
+    * Inline
+    * InlineLoadControl
+    * LOD
+    * NurbsGroup
+    * Switch
+    * Transform
+
+The following node types are children nodes:
+
+    * Anchor
+    * Background
+    * Billboard
+    * Collision
+    * ColorInterpolator
+    * CoordinateInterpolator
+    * CylinderSensor
+    * DirectionalLight
+    * Fog
+    * GeoLocation
+    * GeoLOD
+    * GeoMetadata
+    * GeoPositionInterpolator
+
+
+
+    * GeoTouchSensor
+    * GeoViewpoint
+    * Group
+    * Inline
+    * LOD
+    * NavigationInfo
+    * NormalInterpolator
+    * NurbsPositionInterpolator
+    * OrientationInterpolator
+    * PlaneSensor
+    * PointLight
+    * PositionInterpolator
+    * ProximitySensor
+
+
+
+    * ScalarInterpolator
+    * Script
+    * Shape
+    * Sound
+    * SpotLight
+    * SphereSensor
+    * Switch
+    * TimeSensor
+    * TouchSensor
+    * Transform
+    * Viewpoint
+    * VisibilitySensor
+    * WorldInfo
+
+The following node types are not valid as children nodes:
+
+    * Appearance
+    * AudioClip
+    * Box
+    * Color
+    * Cone
+    * Contour2D
+    * Coordinate
+    * Cylinder
+    * ElevationGrid
+    * Extrusion
+
+
+
+    * GeoCoordinate
+    * GeoElevationGrid
+    * GeoOrigin
+    * ImageTexture
+    * IndexedFaceSet
+    * IndexedLineSet
+    * Material
+    * MovieTexture
+    * Normal
+    * NurbsCurve
+
+
+
+    * NurbsCurve2D
+    * NurbsSurface
+    * NurbsTextureSurface
+    * PointSet
+    * Polyline2D
+    * Sphere
+    * Text
+    * TextureCoordinate
+    * TextureTransform
+    * TrimmedSurface
+
+- PointLight and SpotLight illuminate all objects in the world that fall within their volume of lighting influence regardless of location within the transformation hierarchy. PointLight defines this volume of influence as a sphere centred at the light (defined by a radius). SpotLight defines the volume of influence as a solid angle defined by a radius and a cutoff angle. DirectionalLight nodes illuminate only the objects descended from the light's parent grouping node, including any descendent children of the parent grouping nodes.
+- 4.6.7 Sensor nodes
+  ...
+  and further 4.x, with the exception of 4.13, 4.14
+- 4.14.2 Lighting 'off'
+
+A Shape node is unlit if either of the following is true:
+
+   1. The shape's appearance field is NULL (default).
+   2. The material field in the Appearance node is NULL (default).
+
+- TMFNode
+  What about mem management of nodes in TSFNode and TMFNode ?
+  I don't want to abuse my Children field in TVRMLNode...
+
+  SFNode must be freed too !
+
+- grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
+
+- writing as VRML:
+  signature should be for VRML 2.0 where appropriate
+  should be wrapped inside VRML 2.0 Group (or no wrapping at all ? Maybe add some special name for this Group ?)
+
+- kambi_vrml_examples: do there VRML 2.0 counterpart, test
+
+----------------------------------------
+VRML 97 nodes done (parsed and handled correctly):
+- DirectionalLight
+  (almost: DirectionalLight nodes illuminate only the objects descended from the light's parent grouping node, including any descendent children of the parent grouping nodes.
+  This is almost what I do (that's VRML 1.0 way), but in my version DirectionalLight affects only subsequent nodes, not previous in it's parent...
+)
+
+- PointLight
+  (almost: see above "PointLight and SpotLight illuminate all objects...").
+
+- Background, Fog, NavigationInfo, WorldInfo
+  (were already done as VRML 1.0 extension)

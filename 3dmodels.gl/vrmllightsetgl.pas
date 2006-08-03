@@ -216,19 +216,19 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   procedure glLightFromVRMLLightAssumeOn;
 
     { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
-    procedure SetupDirectionalLight(LightNode: TNodeDirectionalLight);
+    procedure SetupDirectionalLight(LightNode: TNodeDirectionalLight_1);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(VectorNegate(LightNode.FdDirection.Value), 0));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupPointLight(LightNode: TNodePointLight);
+    procedure SetupPointLight(LightNode: TNodePointLight_1);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupSpotLight(LightNode: TNodeSpotLight);
+    procedure SetupSpotLight(LightNode: TNodeSpotLight_1);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
 
@@ -247,10 +247,10 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
     glMultMatrix(Light.Transform);
 
     case ArrayPosPointer(Light.LightNode.ClassType,
-           [ TNodeDirectionalLight, TNodePointLight, TNodeSpotLight ]) of
-     0: SetupDirectionalLight(TNodeDirectionalLight(Light.LightNode));
-     1: SetupPointLight      (TNodePointLight      (Light.LightNode));
-     2: SetupSpotLight       (TNodeSpotLight       (Light.LightNode));
+           [ TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1 ]) of
+     0: SetupDirectionalLight(TNodeDirectionalLight_1(Light.LightNode));
+     1: SetupPointLight      (TNodePointLight_1      (Light.LightNode));
+     2: SetupSpotLight       (TNodeSpotLight_1       (Light.LightNode));
      else raise EInternalError.Create('Unknown light node class');
     end;
 

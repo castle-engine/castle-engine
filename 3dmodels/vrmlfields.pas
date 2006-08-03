@@ -39,12 +39,15 @@ type
 
   TVRMLField = class(TPersistent)
   private
-    fName: string;
+    FExposed: boolean;
   protected
+    FName: string;
+
     { kazda klasa musi to pokryc; SaveToStream zapisuje
       Indent, Name, ' ', potem wywoluje SaveToStreamValue, potem zapisuje nl. }
     procedure SaveToStreamValue(Stream: TStream;
-      const Indent: string); virtual; abstract;
+      const Indent: string;
+      NodeNameBinding: TStringList); virtual; abstract;
   public
     { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
       tzn. zawsze Name musi byc zdefiniowane.
@@ -55,14 +58,26 @@ type
     constructor Create(const AName: string);
 
     { Parse : init Self properties from Lexer. Must be redefined in each
-      field class. }
-    procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
+      field class.
+
+      NodeNameBinding has the same meaning as for TVRMLNode.Parse,
+      see there. It can be ignored, and in fact it is ignored by all
+      TVRMLField descendants defined in this unit (it's used only
+      by TSFNode and TMFNode). }
+    procedure Parse(Lexer: TVRMLLexer;
+      NodeNameBinding: TStringList); virtual; abstract;
 
     { O ile not EqualsDefaultValue to kazde pole bedzie zapisane jako jedna lub
       wiecej linii.
       (notka wewnetrzna dla implementacji tego modulu - nie probuj nigdy
-      zapisac pol ktorych Name = '') }
-    procedure SaveToStream(Stream: TStream; const Indent: string);
+      zapisac pol ktorych Name = '').
+
+      NodeNameBinding has the same meaning as for TVRMLNode.SaveToStream,
+      see there. It can be ignored, and in fact it is ignored by all
+      TVRMLField descendants defined in this unit (it's used only
+      by TSFNode and TMFNode). }
+    procedure SaveToStream(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList);
 
     { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
       aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
@@ -96,6 +111,9 @@ type
     }
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; virtual;
+
+    { Is this an "exposedField" in VRML 97 ? }
+    property Exposed: boolean read FExposed write FExposed;
   end;
 
   TObjectsListItem_2 = TVRMLField;
@@ -191,7 +209,8 @@ type
         SaveToStreamDoNewLineAfterRawItem moga byc niekiedy ignorowane
         (czasami po prostu w tej klasie wiemy ze NA PEWNO tak jak robimy
         bedzie ladniej wygladalo; bo tak czy siak, tu chodzi tylko o estetyke) }
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     function RawItemToString(ItemNum: integer): string; virtual; abstract;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
   public
@@ -211,7 +230,7 @@ type
     { nie ma potrzeby definiowania Parse w zadnej podklasie pola MF.
       Tutejsze Parse dziala dla kazdego pola typu MF, uzywajac Parse
       klasy ItemClass. }
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
 
     constructor Create(const AName: string);
     destructor Destroy; override;
@@ -240,7 +259,8 @@ type
     procedure SetFlags(i: integer; value: boolean);
     function GetFlagNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
     {Flags okresla wartosci wszystkich flag - pytaj go o liczby z przedzialu
      0..FlagsCount-1}
@@ -265,7 +285,7 @@ type
     property AllString: string read fAllString;
     property NoneString: string read fNoneString;
 
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
 
     { zwraca true jesli wszystkie flagi sa = value }
     function AreAllFlags(value: boolean): boolean;
@@ -285,13 +305,14 @@ type
 
   TSFBool = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     DefaultValue: boolean;
     DefaultValueExists: boolean;
   public
     Value: boolean;
     constructor Create(const AName: string; const AValue: boolean);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -300,13 +321,14 @@ type
 
   TSFColor = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
   public
     Value: TVector3Single;
     constructor Create(const AName: string; const AValue: TVector3Single);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -321,12 +343,13 @@ type
     DefaultValue: integer;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
     Value: integer; { wartosc z 0..EnumCount-1; domyslnie 0 }
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     constructor Create(const AName: string;
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
@@ -344,7 +367,8 @@ type
     DefaultValueExists: boolean;
     procedure SetValue(const AValue: Single);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
     property Value: Single read FValue write SetValue;
     { jezeli true to przy probie ustawienia Value na X gdzie X < 0
@@ -353,7 +377,7 @@ type
     property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
     constructor Create(const AName: string; const AValue: Single); overload;
     constructor Create(const AName: string; const AValue: Single; AMustBeNonnegative: boolean); overload;
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -361,9 +385,33 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
+  { This is SFTime VRML field.
+    VRML requires this to be stored as double-precision float,
+    so I don't use TSFFloat for this. }
+  TSFTime = class(TVRMLSimpleSingleField)
+  private
+    FValue: Double;
+    DefaultValue: Double;
+    DefaultValueExists: boolean;
+    procedure SetValue(const AValue: Double);
+  protected
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: Double); overload;
+    property Value: Double read FValue write SetValue;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFTime);
+    procedure Assign(Source: TPersistent); override;
+  end;
+
   TSFImage = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
 
     { Value is owned by this object - i.e. in destructor we do Value.Free.
@@ -386,7 +434,7 @@ type
 
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -402,27 +450,31 @@ type
     DefaultValueExists: boolean;
     procedure SetValue(const AValue: Longint);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
     property Value: Longint read FValue write SetValue;
     { komentarz - jak dla TSFFloat.MustBeNonnegative }
     property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
     constructor Create(const AName: string; const AValue: Longint); overload;
     constructor Create(const AName: string; const AValue: Longint; AMustBeNonnegative: boolean); overload;
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
   end;
 
+  TSFInt32 = TSFLong;
+
   TSFMatrix = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
   public
     Matrix: TMatrix4Single;
     constructor Create(const AName: string; const AMatrix: TMatrix4Single);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
@@ -431,14 +483,16 @@ type
 
   TSFRotation = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
+    function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
   public
     Axis: TVector3Single;
     RotationRad: Single;
-    property Value: TVector4Single write SetValue;
+    property Value: TVector4Single read GetValue write SetValue;
     constructor Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
     function Equals(SecondValue: TVRMLField;
@@ -449,13 +503,14 @@ type
 
   TSFString = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     DefaultValue: string;
     DefaultValueExists: boolean;
   public
     Value: string;
     constructor Create(const AName: string; const AValue: string);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -464,13 +519,14 @@ type
 
   TSFVec2f = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
   public
     Value: TVector2Single;
     constructor Create(const AName: string; const AValue: TVector2Single);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -480,13 +536,14 @@ type
 
   TSFVec3f = class(TVRMLSimpleSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string); override;
+    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
+      NodeNameBinding: TStringList); override;
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
   public
     Value: TVector3Single;
     constructor Create(const AName: string; const AValue: TVector3Single);
-    procedure Parse(Lexer: TVRMLLexer); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -552,6 +609,8 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
+  TMFInt32 = TMFLong;
+
   TMFVec2f = class(TVRMLMultField)
   private
     DefaultValuesCount: integer;
@@ -588,6 +647,25 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
+  TMFRotation = class(TVRMLMultField)
+  private
+    DefaultValuesCount: Integer;
+    DefaultValue: TVector4Single;
+  protected
+    function RawItemToString(ItemNum: Integer): string; override;
+  public
+    function Items: TDynVector4SingleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string;
+      const InitialContent: array of TVector4Single);
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFRotation);
+    procedure Assign(Source: TPersistent); override;
+  end;
+
   TMFFloat = class(TVRMLMultField)
   private
     DefaultValuesCount: integer;
@@ -604,6 +682,25 @@ type
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+    procedure Assign(Source: TPersistent); override;
+  end;
+
+  TMFTime = class(TVRMLMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynDoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string;
+      const InitialContent: array of Double);
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFTime);
     procedure Assign(Source: TPersistent); override;
   end;
 
@@ -627,7 +724,7 @@ type
 
 implementation
 
-uses Math;
+uses Math, VRMLErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -637,30 +734,32 @@ uses Math;
 
 constructor TVRMLField.Create(const AName: string);
 begin
- inherited Create;
- fName := AName;
+  inherited Create;
+  fName := AName;
 end;
 
-procedure TVRMLField.SaveToStream(Stream: TStream; const Indent: string);
+procedure TVRMLField.SaveToStream(Stream: TStream; const Indent: string;
+  NodeNameBinding: TStringList);
 begin
- Assert(Name <> '', 'VRML field name must be defined to allow saving field to stream');
- if not EqualsDefaultValue then
- begin
-  WriteStr(Stream, Indent +Name +' ');
-  SaveToStreamValue(Stream, Indent);
-  WriteStr(Stream, nl);
- end;
+  Assert(Name <> '',
+    'VRML field name must be defined to allow saving field to stream');
+  if not EqualsDefaultValue then
+  begin
+    WriteStr(Stream, Indent +Name +' ');
+    SaveToStreamValue(Stream, Indent, NodeNameBinding);
+    WriteStr(Stream, nl);
+  end;
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
 begin
- result := false;
+  result := false;
 end;
 
 function TVRMLField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
- Result := SecondValue.Name = Name;
+  Result := SecondValue.Name = Name;
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
@@ -709,7 +808,7 @@ begin
  result := TVRMLSimpleSingleFieldClass(ItemClass).CreateUndefined('');
 end;
 
-procedure TVRMLMultField.Parse(Lexer: TVRMLLexer);
+procedure TVRMLMultField.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 var SingleItem: TVRMLSingleField;
 begin
  RawItems.SetLength(0);
@@ -725,24 +824,30 @@ begin
    while Lexer.Token <> vtCloseSqBracket do
    {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
    begin
-    SingleItem.Parse(Lexer);
+    SingleItem.Parse(Lexer, NodeNameBinding);
     RawItemsAdd(SingleItem);
 
     if Lexer.Token = vtCloseSqBracket then break;
 
-    Lexer.ChecktokenIs(vtComma);
-    Lexer.NextToken;
+    if Lexer.VRMLVerMajor < 2 then
+    begin
+      Lexer.CheckTokenIs(vtComma);
+      Lexer.NextToken;
+    end;
    end;
-   {powyzsza petla obejmuje przypadek 0-elementowej listy [] i nie dopuszcza
-    0-elementowej listy postaci [,] zgodnie ze specyfikacja. Natomiast gdy
-    na liscie jest 1 lub wiecej elementow za ostatnim elementem przecinek
-    jest dozwolony choc niewymagany. Wszystko zgodnie ze specyfikacja VRML'a.}
+
+   { Our handling of commas is specified by VRML 1.0 spec:
+     - When the list has no items, "[]" is allowed but "[,]" is not.
+     - When there are some items on the list, the last item *may*
+       be followed by a comma.
+     For VRML 2.0 this all doesn't matter, comma is just a whitespace
+     and Lexer will never return such token. }
 
    Lexer.NextToken;
   end else
   begin
    {one single field - not enclosed in [] brackets}
-   SingleItem.Parse(Lexer);
+   SingleItem.Parse(Lexer, NodeNameBinding);
    RawItemsAdd(SingleItem);
   end;
 
@@ -752,7 +857,8 @@ begin
  end;
 end;
 
-procedure TVRMLMultField.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TVRMLMultField.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 var i: integer;
     WriteIndentNextTime: boolean;
 begin
@@ -804,35 +910,15 @@ begin
       SecondValue.RawItems.Count ]);
 end;
 
-{ --------------------------------------------------------------------------
-  all fields names (lines below are convenient to expand with regular expr.) :
-SFBitMask
-SFBool
-SFColor
-SFEnum
-SFFloat
-SFImage
-SFLong
-SFMatrix
-SFRotation
-SFString
-SFVec2f
-SFVec3f
-MFColor
-MFLong
-MFVec2f
-MFVec3f
-MFFloat
-MFString
-}
-
 { simple helpful parsing functions ---------------------------------------- }
 
-function ParseFloat(Lexer: TVRMLLexer): Single;
+{ This returns Float, not just Single, because it's used by TSFTime
+  that wants double-precision preserved. }
+function ParseFloat(Lexer: TVRMLLexer): Float;
 begin
- Lexer.CheckTokenIs(TokenNumbers, 'float number');
- result := Lexer.TokenFloat;
- Lexer.NextToken;
+  Lexer.CheckTokenIs(TokenNumbers, 'float number');
+  result := Lexer.TokenFloat;
+  Lexer.NextToken;
 end;
 
 procedure ParseVector(var Vector: array of Single; Lexer: TVRMLLexer);
@@ -858,25 +944,45 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFBool.Parse(Lexer: TVRMLLexer);
-const SBoolExpected = 'boolean constant (TRUE, FALSE, 0 or 1)';
+procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+
+  procedure VRML2BooleanIntegerNonFatalError;
+  begin
+    if Lexer.VRMLVerMajor >= 2 then
+      VRMLNonFatalError('In VRML >= 2.0 you cannot express boolean values ' +
+        'as 0 (instead of FALSE) or 1 (instead of TRUE)');
+  end;
+
+const
+  SBoolExpected = 'boolean constant (TRUE, FALSE)';
 begin
  Lexer.CheckTokenIs([vtKeyword, vtInteger], SBoolExpected);
  if Lexer.Token = vtKeyword then
  begin
   if Lexer.TokenKeyword = vkTrue then Value := true else
    if Lexer.TokenKeyword = vkFalse then Value := false else
-    raise EVRMLParserError.Create(Lexer, 'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
+    raise EVRMLParserError.Create(Lexer,
+      'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
  end else
  begin
-  if Lexer.TokenInteger = 1 then Value := true else
-   if Lexer.TokenInteger = 0 then Value := false else
-    raise EVRMLParserError.Create(Lexer, 'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
+  if Lexer.TokenInteger = 1 then
+  begin
+    Value := true;
+    VRML2BooleanIntegerNonFatalError;
+  end else
+  if Lexer.TokenInteger = 0 then
+  begin
+    Value := false;
+    VRML2BooleanIntegerNonFatalError;
+  end else
+    raise EVRMLParserError.Create(Lexer,
+      'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
  end;
  Lexer.NextToken;
 end;
 
-procedure TSFBool.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFBool.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 begin
  if Value then WriteStr(Stream, VRMLKeywords[vkTrue]) else
                WriteStr(Stream, VRMLKeywords[vkFalse])
@@ -917,11 +1023,16 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFColor.Parse(Lexer: TVRMLLexer);
-begin ParseVector(Value, Lexer); end;
+procedure TSFColor.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  ParseVector(Value, Lexer);
+end;
 
-procedure TSFColor.SaveToStreamValue(Stream: TStream; const Indent: string);
-begin WriteStr(Stream, VectorToRawStr(Value)); end;
+procedure TSFColor.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, VectorToRawStr(Value));
+end;
 
 function TSFColor.EqualsDefaultValue: boolean;
 begin
@@ -978,11 +1089,16 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFFloat.Parse(Lexer: TVRMLLexer);
-begin Value := ParseFloat(Lexer); end;
+procedure TSFFloat.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  Value := ParseFloat(Lexer);
+end;
 
-procedure TSFFloat.SaveToStreamValue(Stream: TStream; const Indent: string);
-begin WriteStr(Stream, FloatToRawStr(Value)); end;
+procedure TSFFloat.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, FloatToRawStr(Value));
+end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
 begin
@@ -1016,6 +1132,62 @@ begin
   inherited;
 end;
 
+{ TSFTime -------------------------------------------------------------------- }
+
+constructor TSFTime.Create(const AName: string; const AValue: Double);
+begin
+  CreateUndefined(AName);
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
+procedure TSFTime.SetValue(const AValue: Double);
+begin
+  FValue := AValue;
+end;
+
+procedure TSFTime.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  Value := ParseFloat(Lexer);
+end;
+
+procedure TSFTime.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, FloatToRawStr(Value));
+end;
+
+function TSFTime.EqualsDefaultValue: boolean;
+begin
+  Result := DefaultValueExists and (DefaultValue = Value);
+end;
+
+function TSFTime.Equals(SecondValue: TVRMLField;
+  const EqualityEpsilon: Single): boolean;
+begin
+ Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+   (SecondValue is TSFTime) and
+   FloatsEqual(TSFTime(SecondValue).Value, Value, EqualityEpsilon);
+end;
+
+procedure TSFTime.AssignLerp(const A: Double; Value1, Value2: TSFTime);
+begin
+  Value := Lerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFTime.Assign(Source: TPersistent);
+begin
+  if Source is TSFTime then
+  begin
+    FName              := TSFTime(Source).Name;
+    DefaultValue       := TSFTime(Source).DefaultValue;
+    DefaultValueExists := TSFTime(Source).DefaultValueExists;
+    FValue             := TSFTime(Source).Value;
+  end else
+    inherited;
+end;
+
 { TSFImage ------------------------------------------------------------------- }
 
 constructor TSFImage.Create(const AName: string; const AValue: TImage);
@@ -1032,7 +1204,7 @@ begin
  inherited;
 end;
 
-procedure TSFImage.Parse(Lexer: TVRMLLexer);
+procedure TSFImage.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -1126,7 +1298,8 @@ begin
  end;
 end;
 
-procedure TSFImage.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFImage.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 var rgb: TVector3Byte;
     rgba: TVector4Byte;
     i: Cardinal;
@@ -1204,15 +1377,18 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFLong.Parse(Lexer: TVRMLLexer);
+procedure TSFLong.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 begin
  Lexer.CheckTokenIs(vtInteger);
  Value := Lexer.TokenInteger;
  Lexer.NextToken;
 end;
 
-procedure TSFLong.SaveToStreamValue(Stream: TStream; const Indent: string);
-begin WriteStr(Stream, IntToStr(Value)); end;
+procedure TSFLong.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, IntToStr(Value));
+end;
 
 function TSFLong.EqualsDefaultValue: boolean;
 begin
@@ -1249,13 +1425,14 @@ begin
  Matrix := AMatrix;
 end;
 
-procedure TSFMatrix.Parse(Lexer: TVRMLLexer);
+procedure TSFMatrix.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 var col: integer;
 begin
  for col := 0 to 3 do ParseVector(Matrix[col], Lexer);
 end;
 
-procedure TSFMatrix.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFMatrix.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 begin
  WriteStr(Stream, VectorToRawStr(Matrix[0]) +nl +
                   Indent +IndentIncrement +VectorToRawStr(Matrix[1]) +nl +
@@ -1299,10 +1476,16 @@ begin
  RotationRad := ARotationRad;
 end;
 
-procedure TSFRotation.Parse(Lexer: TVRMLLexer);
+procedure TSFRotation.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 begin
  ParseVector(Axis, Lexer);
  RotationRad := ParseFloat(Lexer);
+end;
+
+function TSFRotation.GetValue: TVector4Single;
+begin
+  Move(Axis[0], Result[0], SizeOf(Single) * 3);
+  Result[3] := RotationRad;
 end;
 
 procedure TSFRotation.SetValue(const AValue: TVector4Single);
@@ -1313,9 +1496,10 @@ begin
  RotationRad := AValue[3];
 end;
 
-procedure TSFRotation.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFRotation.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 begin
- WriteStr(Stream, VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
+  WriteStr(Stream, VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3Single): TVector3Single;
@@ -1359,14 +1543,15 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFString.Parse(Lexer: TVRMLLexer);
+procedure TSFString.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 begin
  Lexer.CheckTokenIs(vtString);
  Value := Lexer.TokenString;
  Lexer.NextToken;
 end;
 
-procedure TSFString.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFString.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 begin
  WriteStr(Stream, StringToVRMLStringToken(Value));
 end;
@@ -1406,11 +1591,14 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFVec2f.Parse(Lexer: TVRMLLexer);
+procedure TSFVec2f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 begin ParseVector(Value, Lexer) end;
 
-procedure TSFVec2f.SaveToStreamValue(Stream: TStream; const Indent: string);
-begin WriteStr(Stream, VectorToRawStr(Value)); end;
+procedure TSFVec2f.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, VectorToRawStr(Value));
+end;
 
 function TSFVec2f.EqualsDefaultValue: boolean;
 begin
@@ -1453,11 +1641,16 @@ begin
  DefaultValueExists := true;
 end;
 
-procedure TSFVec3f.Parse(Lexer: TVRMLLexer);
-begin ParseVector(Value, Lexer) end;
+procedure TSFVec3f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  ParseVector(Value, Lexer);
+end;
 
-procedure TSFVec3f.SaveToStreamValue(Stream: TStream; const Indent: string);
-begin WriteStr(Stream, VectorToRawStr(Value)); end;
+procedure TSFVec3f.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
+begin
+  WriteStr(Stream, VectorToRawStr(Value));
+end;
 
 function TSFVec3f.EqualsDefaultValue: boolean;
 begin
@@ -1523,7 +1716,7 @@ begin result := fFlagNames.Count end;
 function TSFBitMask.GetFlagNames(i: integer): string;
 begin result := fFlagNames[i] end;
 
-procedure TSFBitMask.Parse(Lexer: TVRMLLexer);
+procedure TSFBitMask.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 
   procedure InterpretTokenAsFlagName;
   var i: integer;
@@ -1568,7 +1761,8 @@ begin
  exit(true);
 end;
 
-procedure TSFBitMask.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFBitMask.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 var i: integer;
     PrecedeWithBar: boolean;
 begin
@@ -1640,7 +1834,7 @@ begin result := fEnumNames[i] end;
 function TSFEnum.EnumNamesCount: integer;
 begin result := fEnumNames.Count end;
 
-procedure TSFEnum.Parse(Lexer: TVRMLLexer);
+procedure TSFEnum.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 var val: integer;
 begin
  Lexer.CheckTokenIs(vtName, 'enumerated type constant');
@@ -1652,9 +1846,10 @@ begin
  Lexer.NextToken;
 end;
 
-procedure TSFEnum.SaveToStreamValue(Stream: TStream; const Indent: string);
+procedure TSFEnum.SaveToStreamValue(Stream: TStream;
+  const Indent: string; NodeNameBinding: TStringList);
 begin
- WriteStr(Stream, EnumNames[Value]);
+  WriteStr(Stream, EnumNames[Value]);
 end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
@@ -1886,10 +2081,24 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
+{$define TMF_CLASS := TMFRotation}
+{$define TMF_STATIC_ITEM := TVector4Single}
+{$define TMF_CLASS_ITEM := TSFRotation}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_VECTORS
+
 {$define TMF_CLASS := TMFFloat}
 {$define TMF_STATIC_ITEM := Single}
 {$define TMF_CLASS_ITEM := TSFFloat}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynSingleArray}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
+
+{$define TMF_CLASS := TMFTime}
+{$define TMF_STATIC_ITEM := Double}
+{$define TMF_CLASS_ITEM := TSFTime}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynDoubleArray}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 
@@ -1945,10 +2154,40 @@ begin
   Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 
+function TMFRotation.RawItemToString(ItemNum: Integer): string;
+begin
+  Result := VectorToRawStr(Items.Items[ItemNum])
+end;
+
+procedure TMFRotation.AssignLerp(const A: Single; Value1, Value2: TMFRotation);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+
 function TMFFloat.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
 
 procedure TMFFloat.AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+
+function TMFTime.RawItemToString(ItemNum: integer): string;
+begin result := FloatToRawStr(Items.Items[ItemNum]) end;
+
+procedure TMFTime.AssignLerp(const A: Double; Value1, Value2: TMFTime);
 var
   I: Integer;
 begin

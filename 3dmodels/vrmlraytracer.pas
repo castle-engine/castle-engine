@@ -353,7 +353,7 @@ var FogType: Integer;
   var Intersection: TVector3Single;
       IntersectNodeIndex: integer;
       IntersectNode: POctreeItem;
-      MaterialNode: TNodeMaterial; { = IntersectNode.State.LastNodes.Material }
+      MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
 
     procedure ModifyColorByTransmittedRay;
     var TransmittedColor, TransmittedRayVec: TVector3Single;
@@ -666,7 +666,7 @@ const
   var Intersection: TVector3Single;
       IntersectNodeIndex: integer;
       IntersectNode: POctreeItem;
-      MaterialNode: TNodeMaterial; { = IntersectNode.State.LastNodes.Material }
+      MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
       IntersectNormalInRay0Dir: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;

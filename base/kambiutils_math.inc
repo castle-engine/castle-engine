@@ -205,6 +205,9 @@ function ChangeIntCycle(value, change, maxValue: integer): integer;
 function Lerp(const a: Single; const l, h: Integer): Single; overload;
 function Lerp(const a: Single; const l, h: Cardinal): Single; overload;
 function Lerp(const a, l, h: Single): Single; overload;
+function Lerp(const a: Double; const l, h: Integer): Double; overload;
+function Lerp(const a: Double; const l, h: Cardinal): Double; overload;
+function Lerp(const a, l, h: Double): Double; overload;
 
 const
   enatural = 2.71828182845905;
@@ -568,6 +571,9 @@ end;
 function Lerp(const a: Single; const l, h: Integer): Single;  begin result := l + (h-l) * a; end;
 function Lerp(const a: Single; const l, h: Cardinal): Single; begin result := l + (h-l) * a; end;
 function Lerp(const a, l, h: Single): Single;                 begin result := l + (h-l) * a; end;
+function Lerp(const a: Double; const l, h: Integer): Double;  begin result := l + (h-l) * a; end;
+function Lerp(const a: Double; const l, h: Cardinal): Double; begin result := l + (h-l) * a; end;
+function Lerp(const a, l, h: Double): Double;                 begin result := l + (h-l) * a; end;
 
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 begin

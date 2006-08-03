@@ -341,6 +341,14 @@ type
   PArray_Vector2Single = PInfiniteArray_2;
   TDynVector2SingleArray = TDynArray_2;
 
+  TDynArrayItem_5 = TVector4Single;
+  PDynArrayItem_5 = PVector4Single;
+  {$define DYNARRAY_5_IS_STRUCT}
+  {$I dynarray_5.inc}
+  TArray_Vector4Single = TInfiniteArray_5;
+  PArray_Vector4Single = PInfiniteArray_5;
+  TDynVector4SingleArray = TDynArray_5;
+
   TDynArrayItem_3 = TVector3Cardinal;
   PDynArrayItem_3 = PVector3Cardinal;
   {$define DYNARRAY_3_IS_STRUCT}
@@ -899,6 +907,8 @@ function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload;
+function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload;
+function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload;
 
 function MatricesEqual(const M1, M2: TMatrix4Single;
   const EqualityEpsilon: Single): boolean; overload;
@@ -1711,6 +1721,7 @@ uses Math, KambiStringUtils;
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
+{$I dynarray_5.inc}
 
 { FloatsEqual ------------------------------------------------------------- }
 

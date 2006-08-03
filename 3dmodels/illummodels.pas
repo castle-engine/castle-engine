@@ -113,6 +113,8 @@ function VRML97Fog(const Color: TVector3Single; const DistanceFromCamera: Single
 
 implementation
 
+uses VRMLErrors;
+
 {$I VectorMathInlines.inc}
 
 function VRML97Emission(const IntersectNode: TOctreeItem;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -18,57 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-(*
-  @abstract(VRML 1.0 and 2.0 unified lexer by Kambi.)
-
-  Also we're trying to read
-  Inventor 1.0 ascii format (we treat Inventor 1.0 ascii format as
-  VRML 1.0. VerMajor.VerMinor are "0.0" when reading Inventor files.).
-
-  Lexer tokens :
-  @definitionList(
-    @itemLabel keyword
-    @item(
-      For VRML 97 :
-      DEF, EXTERNPROTO, FALSE, IS, NULL, PROTO, ROUTE, TO, TRUE,
-      USE, eventIn, eventOut, exposedField, field.
-
-      For VRML 1.0 only small subset of these (DEF, USE, FALSE, TRUE).)
-
-    @itemLabel name
-    @item(
-      Syntax as in specification on page 24 (really 32 in pdf) of
-      vrml97specification.pdf. It can be a user name for something (for a node,
-      for example) but it can also be a name of a node type or a node field
-      or an enumerated field constant ... it can be @italic(anything)
-      except keyword.)
-
-    @itemLabel various symbols
-    @item(
-      @code({ } [ ] ( ) |) @br
-      (last four things shouldn't be tokens in VRML 2.0;
-      TODO: comma should even be whitespace))
-
-    @itemLabel float
-    @item(Pascal Float type, expressed in the followin form:
-@preformatted(
-  [("-"|"+")]
-  (digit+ [ "." digit+ ] | "." digit+)
-  [ "e"|"E" [("-"|"+")] digit+ ]
-))
-    @itemLabel integer
-    @item(Pascal Int64 type, expressed in the followin form:
-@preformatted(
-  (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
-))
-
-    @itemLabel string
-    @item(string (form : "char*" where char is either not " or \" sequence))
-  )
-
-  Remember that VRML is case-sensitive.
-*)
-
+{ TVRMLLexer class and helpers. }
 unit VRMLLexer;
 
 { Every newly read token will be reported with LogWrite.
@@ -79,35 +29,57 @@ unit VRMLLexer;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils, Math
-  {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
+uses SysUtils, Classes, KambiUtils, KambiStringUtils, KambiClassUtils,
+  Math, VRMLErrors {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
 
-{ specification of valid VRML 1.0 and 2.0 keywords }
 type
+  { Valid keywords for any VRML version. }
   TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
     vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField);
   TVRMLKeywords = set of TVRMLKeyword;
 const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
 
-{ VRML lexer token }
 type
-  TVRMLToken = (vtKeyword, vtName,
-    (* special symbols : { } [ ] ( ) | , *)
-    vtOpenWasBracket, vtCloseWasBracket,
-    vtOpenSqBracket, vtCloseSqBracket, vtOpenBracket, vtCloseBracket,
-    vtBar, vtComma,
+  { VRML lexer token }
+  TVRMLToken = (
+    vtKeyword,
+    vtName,
+
+    { Symbols for all VRML versions }
+    vtOpenCurlyBracket, vtCloseCurlyBracket,
+    vtOpenSqBracket, vtCloseSqBracket,
+
+    { Symbols below are only for VRML <= 1.0.
+      In VRML 2.0, they are no longer valid symbols
+      (comma is even considered a whitespace).
+      They will never be returned by lexer when reading VRML >= 2.0 files. }
+    vtOpenBracket, vtCloseBracket, vtBar, vtComma,
+
+    { Symbols below are only for VRML >= 2.0.
+      They will never be returned by lexer when reading VRML < 2.0 files.  }
+    vtPeriod,
+
     vtFloat, vtInteger, vtString,
-    { vtEnd = we're standing at the end of stream, no more tokens.
+
+    { vtEnd means that we're standing at the end of stream, no more tokens.
       Subsequent reads NextToken from stream will always result in
       vtEnd (they will not raise an error). }
     vtEnd);
   TVRMLTokens = set of TVRMLToken;
+
 const
   TokenNumbers : TVRMLTokens = [vtFloat, vtInteger];
 
 type
-  { VRML lexer. It always "looks" at the next not yet interpreted token.
+  { VRML unified lexer.
+
+    The lexer always "looks" (i.e. contains in Token and TokenXxx fields)
+    at the next not yet interpreted token.
+
+    Remember that VRML is case-sensitive, so TokenName and TokenString
+    should be compared in case-sensitive manner. Also note that
+    for VRML >= 2.0 these fields contain UTF-8 encoded string.
 
     Note that it can read only from @link(TPeekCharStream), not just
     from any TStream. You may have to wrap your stream in some
@@ -124,6 +96,9 @@ type
     fTokenFloat: Float;
     fTokenInteger: Int64;
     fTokenString: string;
+
+    VRMLWhitespaces, VRMLNoWhitespaces: TSetOfChars;
+    VRMLNameChars, VRMLNameFirstChars: TSetOfChars;
 
     FStream: TPeekCharStream;
 
@@ -146,26 +121,65 @@ type
       wiecej bylismy w strumieniu gdy wystapil blad lexera. }
     property Stream: TPeekCharStream read FStream;
 
-    { jedyna wersje VRML'a dopuszczalne przez jakiekolwiek specyfikacje
-      to 1.0 lub 2.0. Dodatkowo obslugujemy Inventor'a 1.0 jako wersje "0.0". }
+    { These indicate VRML version, as recorded in VRML file header.
+
+      The only versions allowed by any VRML specifications
+      are 1.0 and 2.0. Moreover we handle Inventor 1.0 ascii,
+      then we set VRMLVerMajor and VRMLVerMinor both to 0
+      (as historically Inventor is a predecessor to VRML 1.0).
+
+      @groupBegin }
     property VRMLVerMajor: integer read fVRMLVerMajor;
     property VRMLVerMinor: integer read fVRMLVerMinor;
+    { @groupEnd }
 
     { Token na jakim aktualnie stoimy. Odpowiednie pola TokenKeyword,
       TokenName, TokenFloat i TokenInteger maja defined wartosci tylko
-      jezeli typ tokenu jest odpowiedni. Wyjatkiem (ale pozytywnym,
-      wiec nic sie nie stanie jesli o nim zapomnisz) jest vtInteger :
-      jest wtedy nie tylko zdefiniowne pole TokenInteger ale tez TokenFloat
-      (dla wygody; kazdy integer moze byc tez potraktowany jako liczba;
-      mozesz sprawdzac czy token to liczba testujac Token in TokenNumbers) }
+      jezeli typ tokenu jest odpowiedni. }
     property Token: TVRMLToken read fToken;
-    { jezeli VRMLVersion = 1.0 to na pewno TokenKeyword in VRML10Keywords.
+
+    { When Token = vtKeyword, TokenKeyword points to appropriate keyword.
+      Jezeli VRMLVersion = 1.0 to na pewno TokenKeyword in VRML10Keywords.
       Innymi slowy, gdy czytamy VRML 1.0 np. string "PROTO" zostanie potraktowany
       jako token Name, nie keyword. I tak jest dobrze. }
     property TokenKeyword: TVRMLKeyword read fTokenKeyword;
+
+    { When Token = vtName, TokenName contains appropriate VRML name.
+
+      Name syntax as in specification on page 24 (really 32 in pdf) of
+      vrml97specification.pdf. It can be a user name for something (for a node,
+      for example) but it can also be a name of a node type or a node field
+      or an enumerated field constant ... it can be @italic(anything)
+      except keyword.
+
+      Note that this is supposed to contain UTF-8 encoded string for VRML 2.0. }
     property TokenName: string read fTokenName;
+
+    { When Token = vtFloat or vtInteger, TokenFloat contains a value of
+      this token.
+
+      VRML float token corresponds to Pascal Float type,
+      in VRML it's expressed in the followin form:
+      @preformatted(
+        [("-"|"+")]
+        (digit+ [ "." digit+ ] | "." digit+)
+        [ "e"|"E" [("-"|"+")] digit+ ]
+      )
+
+      For vtInteger you have the same thing in TokenInteger,
+      TokenFloat is also initialized to the same value for your comfort
+      (every integer value is also a float, after all). }
     property TokenFloat: Float read fTokenFloat;
+
+    { When Token = vtInteger, TokenInteger contains appropriate value.
+
+      VRML integer token corresponds to Pascal Int64 type,
+      in VRML it's expressed in the followin form:
+      @preformatted(
+        (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
+      ) }
     property TokenInteger: Int64 read fTokenInteger;
+
     property TokenString: string read fTokenString;
 
     { NextToken pobiera z pliku nastepny token, inicjujac odpowiednio pola
@@ -241,7 +255,6 @@ type
     destructor Destroy; override;
   end;
 
-  EVRMLError = class(Exception);
   EVRMLLexerError = class(EVRMLError)
     { Lexer object must be valid for this call, it is not needed when
       constructor call finished (i.e. Lexer reference don't need to be
@@ -249,11 +262,10 @@ type
       constructing the exception, later it can be Freed etc.) }
     constructor Create(Lexer: TVRMLLexer; const s: string);
   end;
+
   EVRMLParserError = class(EVRMLError)
     { Lexer object must be valid only for this call; look at
-      EVRMLLexerError.Create for more detailed comment.
-
-      TODO: same as EVRMLLexerError.Create }
+      EVRMLLexerError.Create for more detailed comment. }
     constructor Create(Lexer: TVRMLLexer; const s: string);
   end;
 
@@ -275,26 +287,15 @@ function StringToVRMLStringToken(const s: string): string;
 
 implementation
 
-uses KambiStringUtils;
-
 const
   VRMLFirstLineTerm = [#10, #13];
 
   { utf8 specific constants below }
-  VRMLWhitespaces = [
-    { TODO: in VRML 2.0 we should have here a comma ',' too }
-    ' ',#9, #10, #13];
   VRMLLineTerm = [#10, #13];
-  VRMLNoWhitespaces = AllChars - VRMLWhitespaces;
-  { NameChars and NameFirstChars defined according to vrml97specification
-    on page 24. }
-  VRMLNameChars = AllChars - [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']',
-    '\', '{', '}',
-    '(', ')', '|' { TODO: last three should be here only in VRML 1.0 }];
-  VRMLNameFirstChars = VRMLNameChars - ['0'..'9', '-','+'];
 
   VRMLTokenNames: array[TVRMLToken]of string = (
-    'keyword', 'name', '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","',
+    'keyword', 'name',
+    '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."',
     'float', 'integer', 'string', 'end of file');
 
 {$I macarraypos.inc}
@@ -319,6 +320,8 @@ begin
 end;
 
 procedure TVRMLLexer.ReadString;
+{ String in encoded using the form
+  "char*" where char is either not " or \" sequence. }
 var endingChar: Integer;
 begin
  fToken := vtString;
@@ -443,37 +446,57 @@ function TVRMLLexer.NextToken: TVRMLToken;
    end;
   end;
 
-var FirstBlack: integer;
-    FirstBlackChr: char;
-begin
- StreamReadUptoFirstBlack(FirstBlack);
-
- if FirstBlack = -1 then
-  fToken := vtEnd else
- begin
-  FirstBlackChr := Chr(FirstBlack);
-  case FirstBlackChr of
-   '{':fToken := vtOpenWasBracket;
-   '}':fToken := vtCloseWasBracket;
-   '[':fToken := vtOpenSqBracket;
-   ']':fToken := vtCloseSqBracket;
-   '(':fToken := vtOpenBracket;
-   ')':fToken := vtCloseBracket;
-   '|':fToken := vtBar;
-   ',':fToken := vtComma;
-   '-','+','.','0'..'9':ReadFloatOrInteger(FirstBlackChr);
-   '"':ReadString;
-   else
-    if FirstBlackChr in VRMLNameFirstChars then
-     ReadNameOrKeyword(FirstBlackChr) else
-     raise EVRMLLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
-       [FirstBlackChr, Ord(FirstBlackChr)]));
+  procedure RecognizeCommonTokens(FirstBlackChr: char);
+  begin
+    case FirstBlackChr of
+     '{':fToken := vtOpenCurlyBracket;
+     '}':fToken := vtCloseCurlyBracket;
+     '[':fToken := vtOpenSqBracket;
+     ']':fToken := vtCloseSqBracket;
+     '-','+','.','0'..'9':ReadFloatOrInteger(FirstBlackChr);
+     '"':ReadString;
+     else
+      if FirstBlackChr in VRMLNameFirstChars then
+       ReadNameOrKeyword(FirstBlackChr) else
+       raise EVRMLLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
+         [FirstBlackChr, Ord(FirstBlackChr)]));
+    end;
   end;
- end;
 
- {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
+var
+  FirstBlack: integer;
+  FirstBlackChr: char;
+begin
+  StreamReadUptoFirstBlack(FirstBlack);
 
- result := Token;
+  if FirstBlack = -1 then
+    fToken := vtEnd else
+  begin
+    FirstBlackChr := Chr(FirstBlack);
+
+    if VRMLVerMajor <= 1 then
+    begin
+      case FirstBlackChr of
+        { VRML <= 1.0 symbols }
+        '(': fToken := vtOpenBracket;
+        ')': fToken := vtCloseBracket;
+        '|': fToken := vtBar;
+        ',': fToken := vtComma;
+        else RecognizeCommonTokens(FirstBlackChr);
+      end;
+    end else
+    begin
+      case FirstBlackChr of
+        { VRML > 1.0 symbols }
+        '.': fToken := vtPeriod;
+        else RecognizeCommonTokens(FirstBlackChr);
+      end;
+    end;
+  end;
+
+  {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
+
+  result := Token;
 end;
 
 procedure TVRMLLexer.NextTokenForceVTName;
@@ -573,6 +596,20 @@ begin
  end else
   raise EVRMLLexerError.Create(Self,
     'VRML signature error : unrecognized signature');
+
+ { calculate VRMLWhitespaces, VRMLNoWhitespaces }
+ VRMLWhitespaces := [' ',#9, #10, #13];
+ if VRMLVerMajor >= 2 then
+   Include(VRMLWhitespaces, ',');
+ VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
+
+ { calculate VRMLNameChars, VRMLNameFirstChars }
+ { These are defined according to vrml97specification on page 24. }
+ VRMLNameChars := AllChars -
+   [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
+ if VRMLVerMajor <= 1 then
+   VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
+ VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
 
  {read first token}
  NextToken;

@@ -469,6 +469,11 @@ begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
+function VectorsPerfectlyEqual(const v1, v2: TYPE_VECTOR4): boolean;
+begin
+  Result := CompareMem(@V1, @V2, SizeOf(V1));
+end;
+
 function MatricesEqual(const M1, M2: TYPE_MATRIX4;
   const EqualityEpsilon: TYPE_SCALAR): boolean;
 begin

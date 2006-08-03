@@ -112,7 +112,7 @@ begin
  if Render_TexCoordsNeeded then glPopMatrix;
 end;
 
-procedure RenderCone(Node: TNodeCone);
+procedure RenderCone(Node: TNodeCone_1);
 var q: PGLUQuadric;
 begin
  {cone uses its own normals and we apply texture according to VRML specification.
@@ -190,7 +190,7 @@ end;
 
 { Cylinder --------------------------------------------------------------------- }
 
-procedure RenderCylinder(Node: TNodeCylinder);
+procedure RenderCylinder(Node: TNodeCylinder_1);
 var q: PGLUQuadric;
 begin
  {cylinder uses its own normals and we apply texture according to VRML
@@ -227,7 +227,7 @@ end;
 
 { PointSet --------------------------------------------------------------------- }
 
-procedure RenderPointSet(Node: TNodePointSet);
+procedure RenderPointSet(Node: TNodePointSet_1);
 var i, startIndex, numPoints: integer;
 begin
  { TODO: use here Last :
@@ -250,7 +250,7 @@ end;
 
 { Sphere ---------------------------------------------------------------------- }
 
-procedure RenderSphere(Node: TNodeSphere);
+procedure RenderSphere(Node: TNodeSphere_1);
 var q: PGLUQuadric;
 begin
  {whole sphere uses materail num 0 and his own normals and we apply

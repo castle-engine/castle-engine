@@ -251,7 +251,8 @@ interface
 uses
   Classes, SysUtils, KambiUtils, VectorMath, OpenGLh,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
-  OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes;
+  OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
+  VRMLErrors;
 
 {$define read_interface}
 
@@ -1904,20 +1905,20 @@ begin
   try
    case ArrayPosPointer(Node.ClassType, [
          TNodeAsciiText,
-         TNodeCone,
+         TNodeCone_1,
          TNodeCube,
-         TNodeCylinder,
-         TNodePointSet,
-         TNodeSphere,
-         TNodeIndexedFaceSet,
+         TNodeCylinder_1,
+         TNodePointSet_1,
+         TNodeSphere_1,
+         TNodeIndexedFaceSet_1,
          TNodeIndexedTriangleMesh,
-         TNodeIndexedLineSet ]) of
-    0: RenderAsciiText(TNodeAsciiText(Node));
-    1: RenderCone     (TNodeCone     (Node));
-    2: RenderCube     (TNodeCube     (Node));
-    3: RenderCylinder (TNodeCylinder (Node));
-    4: RenderPointSet (TNodePointSet (Node));
-    5: RenderSphere   (TNodeSphere   (Node));
+         TNodeIndexedLineSet_1 ]) of
+    0: RenderAsciiText(TNodeAsciiText (Node));
+    1: RenderCone     (TNodeCone_1    (Node));
+    2: RenderCube     (TNodeCube      (Node));
+    3: RenderCylinder (TNodeCylinder_1(Node));
+    4: RenderPointSet (TNodePointSet_1(Node));
+    5: RenderSphere   (TNodeSphere_1  (Node));
     6, 7, 8:
       begin
        IndexedRenderer := CreateIndexedRenderer(Self);

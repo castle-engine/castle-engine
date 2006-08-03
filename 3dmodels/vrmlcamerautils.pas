@@ -14,7 +14,10 @@ const
   { nie mozesz zmieniac ponizszych stalych, ich definicja jako wlasnie takie
     jest przeciez czescia jezyka VRMLa. Ale mozesz uzywac w wielu miejscach
     ponizszych stalych aby zapisywac cos elegancko (i uniknac potencjalnych
-    pomylek przy wpisywaniu wartosci ponizszych stalych) }
+    pomylek przy wpisywaniu wartosci ponizszych stalych).
+
+    VRML 97 spec part "4.4.5 Standard units and coordinate system"
+    determines these values. }
   StdVRMLCamPos: TVector3Single = (0, 0, 1);
   StdVRMLCamDir: TVector3Single = (0, 0, -1);
   StdVRMLCamUp: TVector3Single = (0, 1, 0);
@@ -101,7 +104,7 @@ procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
    VectorAddTo1st(result.vect_part, VectorScale(q2.vect_part, q1.real_part));
   end;
 
-  procedure Quaternion_To_AxisAngle(const q: TQuaternion; 
+  procedure Quaternion_To_AxisAngle(const q: TQuaternion;
     out axis: TVector3Single;
     out angle: Single);
   { q musi byc znormalizowanym kwaternionem obrotu,

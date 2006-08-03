@@ -16,7 +16,7 @@ var Spot, CosSpotAngle: Single;
     Normal: TVector3Single;  
     
     {$ifndef CAMERA_INDEP} 
-    MaterialNode: TNodeMaterial; 
+    MaterialNode: TNodeMaterial_1; 
     
     { srednia z wektora do viewera i LightDirNorm, potrzebna do liczenia 
       odbicia Specular }
@@ -72,12 +72,12 @@ begin
    dla innych swiatel jest zawsze = 1. Notka - uzywamy dropOffRate VRMLa 1.0 
    zeby sprawic by spot byl bardziej "skupiony" zgodnie z rownaniami swiatla
    OpenGLa. W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
- if LightNode is TNodeSpotLight then
+ if LightNode is TNodeSpotLight_1 then
  begin
   CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
     Light.TransfNormDirection);
-  if ArcCos(CosSpotAngle) <= TNodeSpotLight(LightNode).FdCutOffAngle.Value then
-   Spot := Power(CosSpotAngle, TNodeSpotLight(LightNode).SpotExp) else
+  if ArcCos(CosSpotAngle) <= TNodeSpotLight_1(LightNode).FdCutOffAngle.Value then
+   Spot := Power(CosSpotAngle, TNodeSpotLight_1(LightNode).SpotExp) else
    Spot := 0;
  end else
   Spot := 1;

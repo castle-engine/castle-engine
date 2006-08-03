@@ -84,18 +84,18 @@ begin  result := 'File_' + ToVRMLName(filename)  end;
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
 var geo: TObject3dGEO;
     verts: TNodeCoordinate3;
-    faces: TNodeIndexedFaceSet;
+    faces: TNodeIndexedFaceSet_1;
     i: integer;
     WWWBasePath: string;
 begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  geo := TObject3dGEO.Create(filename);
  try
-  result := TNodeGroup.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
    verts := TNodeCoordinate3.Create('',WWWBasePath);
    result.AddChild(verts);
-   faces := TNodeIndexedFaceSet.Create('',WWWBasePath);
+   faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
    result.AddChild(faces);
 
    verts.FdPoint.Items.SetLength(0);
@@ -124,7 +124,7 @@ const
 
 var obj: TObject3dOBJ;
     verts: TNodeCoordinate3;
-    faces: TNodeIndexedFaceSet;
+    faces: TNodeIndexedFaceSet_1;
     texcoords: TNodeTextureCoordinate2;
     texture: TNodeTexture2;
     i: integer;
@@ -135,7 +135,7 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3dOBJ.Create(filename);
  try
-  result := TNodeGroup.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
    verts := TNodeCoordinate3.Create('',WWWBasePath);
    result.AddChild(verts);
@@ -163,7 +163,7 @@ begin
     if FacesWithTexCoords then
      texture.FdFilename.Value := OBJModelTextureFilename;
 
-    faces := TNodeIndexedFaceSet.Create('',WWWBasePath);
+    faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
     faces.FdCoordIndex.Items.SetLength(0);
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
     faces.FdTextureCoordIndex.Items.SetLength(0);
@@ -254,13 +254,13 @@ var WWWBasePath: string;
   end;
 
   procedure Add3dsCameras(scene: TScene3ds; node: TVRMLNode);
-  var camSwitch: TNodeSwitch;
+  var camSwitch: TNodeSwitch_1;
       camera: TNodePerspectiveCamera;
       i: Integer;
   begin
    if scene.Cameras.Count = 0 then Exit;
 
-   camSwitch := TNodeSwitch.Create(CamerasSwitchName, WWWBasePath);
+   camSwitch := TNodeSwitch_1.Create(CamerasSwitchName, WWWBasePath);
    node.AddChild(camSwitch);
    camSwitch.FdWhichChild.Value := 0;
 
@@ -279,17 +279,17 @@ var WWWBasePath: string;
 
   procedure Add3dsLights(scene: TScene3ds; node: TVRMLNode);
   var i: Integer;
-      light: TNodePointLight;
-      lightGroup: TNodeGroup;
+      light: TNodePointLight_1;
+      lightGroup: TNodeGroup_1;
   begin
    if Scene.Lights.Count = 0 then Exit;
 
-   lightGroup := TNodeGroup.Create('Lights', WWWBasePath);
+   lightGroup := TNodeGroup_1.Create('Lights', WWWBasePath);
    node.AddChild(lightGroup);
 
    for i := 0 to Scene.Lights.Count-1 do
    begin
-    light := TNodePointLight.Create(Light3dsNameToVRMLName(
+    light := TNodePointLight_1.Create(Light3dsNameToVRMLName(
       Scene.Lights[i].Name), WWWBasePath);
     lightGroup.AddChild(light);
 
@@ -302,9 +302,9 @@ var WWWBasePath: string;
 var obj3ds: TScene3ds;
     trimesh3ds: TTrimesh3ds;
 
-    materialSwitch: TNodeSwitch;
-    materialGroup, trimeshGroup: TNodeGroup;
-    indexedFacesNode: TNodeIndexedFaceSet;
+    materialSwitch: TNodeSwitch_1;
+    materialGroup, trimeshGroup: TNodeGroup_1;
+    indexedFacesNode: TNodeIndexedFaceSet_1;
     trimeshCoords: TNodeCoordinate3;
     trimeshTexCoords: TNodeTextureCoordinate2;
     facesSep: TNodeSeparator;
@@ -315,33 +315,33 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj3ds := TScene3ds.Create(filename);
  try
-  result := TNodeGroup.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
    Add3dsCameras(obj3ds, result);
    Add3dsLights(obj3ds, result);
 
    { konstruuj liste materiali jako dzieci materialSwitch }
-   materialSwitch := TNodeSwitch.Create('Materials', WWWBasePath);
+   materialSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
    result.AddChild(materialSwitch);
 
    for i := 0 to obj3ds.Materials.Count-1 do
    begin
-    materialGroup := TNodeGroup.Create(Mat3dsNameToVRMLName(obj3ds.Materials[i].Name), WWWBasePath);
+    materialGroup := TNodeGroup_1.Create(Mat3dsNameToVRMLName(obj3ds.Materials[i].Name), WWWBasePath);
     materialSwitch.AddChild(materialGroup);
 
     { dodaj Material node }
-    tmp := TNodeMaterial.Create('',WWWBasePath);
+    tmp := TNodeMaterial_1.Create('',WWWBasePath);
     materialGroup.AddChild(tmp);
-    TNodeMaterial(tmp).FdAmbientColor.Items.SetLength(1);
-    TNodeMaterial(tmp).FdAmbientColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].AmbientCol);
-    TNodeMaterial(tmp).FdDiffuseColor.Items.SetLength(1);
-    TNodeMaterial(tmp).FdDiffuseColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].DiffuseCol);
-    TNodeMaterial(tmp).FdSpecularColor.Items.SetLength(1);
-    TNodeMaterial(tmp).FdSpecularColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].SpecularCol);
-    TNodeMaterial(tmp).FdShininess.Items.SetLength(1);
-    TNodeMaterial(tmp).FdShininess.Items.Items[0] := obj3ds.Materials[i].Shininess;
-    TNodeMaterial(tmp).FdTransparency.Items.SetLength(1);
-    TNodeMaterial(tmp).FdTransparency.Items.Items[0] := obj3ds.Materials[i].Transparency;
+    TNodeMaterial_1(tmp).FdAmbientColor.Items.SetLength(1);
+    TNodeMaterial_1(tmp).FdAmbientColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].AmbientCol);
+    TNodeMaterial_1(tmp).FdDiffuseColor.Items.SetLength(1);
+    TNodeMaterial_1(tmp).FdDiffuseColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].DiffuseCol);
+    TNodeMaterial_1(tmp).FdSpecularColor.Items.SetLength(1);
+    TNodeMaterial_1(tmp).FdSpecularColor.Items.Items[0] := Vector3SingleCut(obj3ds.Materials[i].SpecularCol);
+    TNodeMaterial_1(tmp).FdShininess.Items.SetLength(1);
+    TNodeMaterial_1(tmp).FdShininess.Items.Items[0] := obj3ds.Materials[i].Shininess;
+    TNodeMaterial_1(tmp).FdTransparency.Items.SetLength(1);
+    TNodeMaterial_1(tmp).FdTransparency.Items.Items[0] := obj3ds.Materials[i].Transparency;
 
     if obj3ds.Materials[i].TextureMap1.Exists then
     begin
@@ -365,7 +365,7 @@ begin
    begin
     trimesh3ds := obj3ds.Trimeshes[i];
 
-    trimeshGroup := TNodeGroup.Create(Trimesh3dsNameToVRMLName(trimesh3ds.Name), WWWBasePath);
+    trimeshGroup := TNodeGroup_1.Create(Trimesh3dsNameToVRMLName(trimesh3ds.Name), WWWBasePath);
     result.AddChild(trimeshGroup);
 
     { zapisz Coordinate3 }
@@ -410,7 +410,7 @@ begin
      ThisMaterialFacesCount := SameMaterialFacesCount(trimesh3ds.Faces,
        trimesh3ds.FacesCount, j);
 
-     indexedFacesNode := TNodeIndexedFaceSet.Create('', WWWBasePath);
+     indexedFacesNode := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
      facesSep.AddChild(indexedFacesNode);
      indexedFacesNode.FdCoordIndex.Items.SetLength(ThisMaterialFacesCount*4);
 

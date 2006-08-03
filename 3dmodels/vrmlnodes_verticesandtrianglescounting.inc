@@ -32,7 +32,7 @@ begin result:=0;{TODO} end;
 function TNodeAsciiText.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin result:=0;{TODO} end;
 
-function TNodeCone.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCone_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=0;
  if FdParts.Flags[CONE_PARTS_SIDES] then
@@ -45,7 +45,7 @@ begin
   result += QUADRIC_SLICES;
 end;
 
-function TNodeCone.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCone_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  if OverTriangulate then
  begin
@@ -86,7 +86,7 @@ begin
   result:=8;
 end;
 
-function TNodeCylinder.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCylinder_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=0;
  if FdParts.Flags[CYLINDER_PARTS_SIDES] then
@@ -99,7 +99,7 @@ begin
  if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then result += QUADRIC_SLICES;
 end;
 
-function TNodeCylinder.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCylinder_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=0;
  if FdParts.Flags[CYLINDER_PARTS_SIDES] then
@@ -138,25 +138,25 @@ begin
  end;
 end;
 
-function TNodeIndexedLineSet.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeIndexedLineSet_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin result:=0; end;
 
-function TNodePointSet.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodePointSet_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin result:=0; end;
 
-function TNodePointSet.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodePointSet_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 var dummy, numPoints:integer;
 begin
  CalculateRange(State.LastNodes.Coordinate3, dummy, numPoints);
  result:=numPoints;
 end;
 
-function TNodeSphere.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeSphere_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=QUADRIC_SLICES * ((QUADRIC_STACKS-2)*2 + 2);
 end;
 
-function TNodeSphere.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeSphere_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=QUADRIC_SLICES * (QUADRIC_STACKS-1) + 2;
 end;

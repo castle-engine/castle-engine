@@ -138,7 +138,7 @@ begin
  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
 end;}
 
-procedure TNodeCone.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeCone_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var BottomPt, TopPt: TVector3Single;
     MatBottom, MatSides: integer;
@@ -205,7 +205,7 @@ begin
  LocalTriangulateBox3d(box, State, Self, OverTriangulate, NewTriangleProc);
 end;
 
-procedure TNodeCylinder.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeCylinder_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var BottomPt, TopPt: TVector3Single;
     MatSides, MatTop, MatBottom: integer;
@@ -290,7 +290,7 @@ procedure TNodeIndexed_Faces_Or_Triangles.LocalTriangulate(
    newTriData.FaceIndices := PArray_Longint(FdCoordIndex.Items.Pointers[StartIndex]);
    NewTriData.NewTriangleProc := NewTriangleProc;
 
-   if Self is TNodeIndexedFaceSet then
+   if Self is TNodeIndexedFaceSet_1 then
    begin
     if State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_UNKNOWN then
      TriangulateFace(NewTriData.FaceIndices, EndIndex-StartIndex,
@@ -328,17 +328,17 @@ begin
  end;
 end;
 
-procedure TNodeIndexedLineSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
 end;
 
-procedure TNodePointSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodePointSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
 end;
 
-procedure TNodeSphere.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 
   procedure StackHigherLine(StackNum: integer; out Radius, Height: Single);

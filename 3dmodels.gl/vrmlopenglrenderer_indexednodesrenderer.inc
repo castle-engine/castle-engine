@@ -99,9 +99,9 @@ function CreateIndexedRenderer(ARenderer: TVRMLOpenGLRenderer): TGeneralIndexedR
 begin
  if ARenderer.Render_Node is TNodeIndexedTriangleMesh then
   result := TIndexedTriangleMeshRenderer.Create(ARenderer) else
- if ARenderer.Render_Node is TNodeIndexedFaceSet then
+ if ARenderer.Render_Node is TNodeIndexedFaceSet_1 then
   result := TIndexedFaceSetRenderer.Create(ARenderer) else
- if ARenderer.Render_Node is TNodeIndexedLineSet then
+ if ARenderer.Render_Node is TNodeIndexedLineSet_1 then
   result := TIndexedLineSetRenderer.Create(ARenderer) else
   raise EInternalError.Create('CreateIndexedRenderer: Node not indexed');
 end;
