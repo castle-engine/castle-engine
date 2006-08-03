@@ -96,6 +96,16 @@
     { Sorts all items. }
     procedure Sort(IsSmallerFunction: TObjectsListIsSmallerFunction_10); overload;
 
+    { This assigns Source items references and count to our list.
+      Note that Source.Capacity is not copied (Capacity is only
+      a performance-tuning setting anyway).
+
+      TODO: untested yet! }
+    procedure Assign(Source: TObjectsList_10);
+
+    { TODO: untested yet! }
+    function Equals(SecondValue: TObjectsList_10): boolean;
+
     { dodawanie ---------------------------------------- }
 
     { }
@@ -264,6 +274,19 @@ procedure TObjectsList_10.Sort(IsSmallerFunction: TObjectsListIsSmallerFunction_
 begin
   if Count <> 0 then
     Sort(0, High, IsSmallerFunction);
+end;
+
+procedure TObjectsList_10.Assign(Source: TObjectsList_10);
+begin
+  Count := Source.Count;
+  System.Move(Source.Arr^, Arr^, Count * SizeOf(Pointer));
+end;
+
+function TObjectsList_10.Equals(SecondValue: TObjectsList_10): boolean;
+begin
+  Result :=
+    (Count = SecondValue.Count) and
+    CompareMem(SecondValue.Arr, Arr, Count * SizeOf(Pointer));
 end;
 
 procedure TObjectsList_10.NeededCapacityForOneMore;
