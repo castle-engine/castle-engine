@@ -4,7 +4,6 @@ VRML 97 TODO items:
 
 - writing as VRML:
   signature should be for VRML 2.0 where appropriate
-  should be wrapped inside VRML 2.0 Group (or no wrapping at all ? Maybe add some special name for this Group ?)
 
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
 
@@ -78,19 +77,19 @@ Nodes of the following types may be specified in the textureTransform field of t
 
 The following node types are grouping nodes:
 
-    * Anchor
-    * Billboard
-    * Collision
-    * CoordinateDeformer
-    * GeoLocation
+    * Anchor             (ChildrenField overriden)
+    * Billboard          (ChildrenField overriden)
+    * Collision          (ChildrenField overriden)
+    * CoordinateDeformer (ChildrenField overriden)
+    * GeoLocation        (ChildrenField overriden)
     * GeoLOD
-    * Group
+    * Group              (ChildrenField overriden)
     * Inline
     * InlineLoadControl
-    * LOD
-    * NurbsGroup
-    * Switch
-    * Transform
+    * LOD                (ChildrenField overriden)
+    * NurbsGroup         (ChildrenField overriden)
+    * Switch             (ChildrenField overriden)
+    * Transform          (ChildrenField overriden)
 
 The following node types are children nodes:
 

@@ -111,6 +111,16 @@
      uzyc TVRMLNodesList, ale wtedy musielibysmy powtorzyc implementacje
      wielu rzeczy w TVRMLNode takze dla takiej listy; wiec tutaj pomysl:
      przeciez klasa TNodeGroup jest wlasnie taka prosta lista node'ow.)
+
+     We represent this special "additional" Group node as a TNodeGroupHidden,
+     @italic(that is a descendant of TNodeGroup (not the other way around)).
+     This way you can entirely forget about this issue and just process
+     the VRML model as you like, and the only downside will be that you
+     will actually work with a different model (with additional Group node)
+     than what was encoded in the file. You can also test for
+     (Node is TNodeGroupHidden) and recognize this special case.
+     SaveToVRMLFile does this, and avoids writing this hidden Group node.
+
   Takie unikanie dekonstrukcji pozwoli nam
   1) na unikniecie zbytniego przywiazania naszego kodu VRMLa do konkretnych
      zastosowan. Poniewaz mamy cala informacje o scenie mozemy zrobic
@@ -425,6 +435,7 @@ type
     function GetParentFieldsItem(Index: Integer): TVRMLField;
     procedure RemoveParentField(Field: TVRMLField);
     procedure AddParentField(Field: TVRMLField);
+    function GetSmartChildren(Index: Integer): TVRMLNode;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -931,6 +942,28 @@ type
       ) }
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       virtual;
+
+    { MFNode field of this node that should be treated as general
+      "children" field of this node. This is used in some places,
+      like SmartAddChild.
+
+      Should return nil if this node doesn't have such
+      field (that's the default implementation in this class).
+      This should always return the same value for given class instance
+      (in other words, don't implement this to sometimes return one field,
+      sometimes the other, sometimes nil, etc.). }
+    function ChildrenField: TMFNode; virtual;
+
+    { These operate on children nodes, in either VRML 2.0 style
+      (if ChildrenField is non-nil, then these get/set ChildrenField.Items)
+      or in VRML 1.0 style (if ChildrenField is nil, then these get/set
+      our Children).
+
+      This is useful to operate on grouping nodes both in VRML 1.0 and VRML 2.0
+      style using the same code. }
+    procedure SmartAddChild(Node: TVRMLNode);
+    property SmartChildren[Index: Integer]: TVRMLNode read GetSmartChildren;
+    function SmartChildrenCount: integer;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -982,12 +1015,15 @@ type
 
     { Lists items of this fields.
 
-      If you modify this list explicitly, you must take care of calling
-      appropriate AddParentField / RemoveParentField, otherwise you
-      can break reference-counting of nodes by ParentFields.
-
-      Later I'll introduce some methods here to simplify do this. }
+      Do not modify this list explicitly. Use only methods in this class
+      like AddItem (they take care of calling appropriate
+      AddParentField / RemoveParentField, otherwise you
+      could break reference-counting of nodes by ParentFields). }
     property Items: TVRMLNodesList read FItems;
+
+    procedure AddItem(Node: TVRMLNode);
+    procedure ClearItems;
+    procedure AssignItems(SourceItems: TVRMLNodesList);
 
     { Just a shortcut for Items.Count }
     function Count: integer; override;
@@ -1748,6 +1784,11 @@ type
       override;
   end;
 
+  { A Group node that is added when VRML file contains more than one root
+    node. See comments at the beginning of this unit for more info. }
+  TNodeGroupHidden_1 = class(TNodeGroup_1)
+  end;
+
   { A general class that can ce used as a separator, something that
     pushes and pops all attribs and matrices.
     It is used in implementation of Separator and WWWAnchor.
@@ -1873,6 +1914,8 @@ type
     property Fdurl: TMFString index 3 read GetFieldAsMFString;
     property FdbboxCenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
     property FdbboxSize: TSFVec3f index 5 read GetFieldAsSFVec3f;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeAppearance = class(TVRMLNode)
@@ -1975,6 +2018,8 @@ type
     property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
     property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
     property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeBox = class(TVRMLNode)
@@ -1996,6 +2041,8 @@ type
     property FdbboxSize: TSFVec3f index 4 read GetFieldAsSFVec3f;
     property Fdproxy: TSFNode index 5 read GetFieldAsSFNode;
     { eventOut     SFTime   collideTime } { }
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeColor = class(TVRMLNode)
@@ -2067,6 +2114,8 @@ type
     property FdwDimension: TSFInt32 index 14 read GetFieldAsSFInt32;
     property FdwKnot: TMFFloat index 15 read GetFieldAsMFFloat;
     property FdwOrder: TSFInt32 index 16 read GetFieldAsSFInt32;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeCoordinateInterpolator = class(TVRMLNode)
@@ -2230,6 +2279,8 @@ type
     property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
     property FdgeoOrigin: TSFNode index 2 read GetFieldAsSFNode;
     property FdgeoSystem: TMFString index 3 read GetFieldAsMFString;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeGeoLOD = class(TVRMLNode)
@@ -2329,6 +2380,11 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function ChildrenField: TMFNode; override;
+  end;
+
+  TNodeGroupHidden_2 = class(TNodeGroup_2)
   end;
 
   TNodeImageTexture = class(TVRMLNode)
@@ -2413,6 +2469,8 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeMaterial_2 = class(TVRMLNode)
@@ -2507,6 +2565,8 @@ type
     property FdtessellationScale: TSFFloat index 1 read GetFieldAsSFFloat;
     property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
     property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeNurbsPositionInterpolator = class(TVRMLNode)
@@ -2736,6 +2796,8 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeText = class(TVRMLNode)
@@ -2810,6 +2872,8 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   TNodeTrimmedSurface = class(TVRMLNode)
@@ -3870,6 +3934,32 @@ begin
   FParentFields.Add(Field);
 end;
 
+function TVRMLNode.ChildrenField: TMFNode;
+begin
+  Result := nil;
+end;
+
+procedure TVRMLNode.SmartAddChild(Node: TVRMLNode);
+begin
+  if ChildrenField = nil then
+    AddChild(Node) else
+    ChildrenField.AddItem(Node);
+end;
+
+function TVRMLNode.GetSmartChildren(Index: Integer): TVRMLNode;
+begin
+  if ChildrenField = nil then
+    Result := Children[Index] else
+    Result := ChildrenField.Items[Index];
+end;
+
+function TVRMLNode.SmartChildrenCount: integer;
+begin
+  if ChildrenField = nil then
+    Result := ChildrenCount else
+    Result := ChildrenField.Items.Count;
+end;
+
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.Create(const AName: string);
@@ -3954,13 +4044,8 @@ begin
 end;
 
 destructor TMFNode.Destroy;
-var
-  I: Integer;
 begin
-  for I := 0 to FItems.Count - 1 do
-    FItems[I].RemoveParentField(Self);
-  FItems.Count := 0; { For safety }
-
+  ClearItems;
   FreeAndNil(FItems);
   inherited;
 end;
@@ -3992,26 +4077,49 @@ begin
   Result := Items.Count;
 end;
 
-procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-var
-  Node: TVRMLNode;
+procedure TMFNode.AddItem(Node: TVRMLNode);
 begin
+  Items.Add(Node);
+  Node.AddParentField(Self);
+end;
+
+procedure TMFNode.ClearItems;
+var
+  I: Integer;
+begin
+  for I := 0 to FItems.Count - 1 do
+    FItems[I].RemoveParentField(Self);
+  FItems.Count := 0;
+end;
+
+procedure TMFNode.AssignItems(SourceItems: TVRMLNodesList);
+var
+  I: Integer;
+begin
+  ClearItems;
+
+  Items.Assign(SourceItems);
+
+  for I := 0 to Count - 1 do
+    Items[I].AddParentField(Self);
+end;
+
+procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+begin
+  ClearItems;
+
   { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
   if Lexer.Token = vtOpenSqBracket then
   begin
     Lexer.NextToken;
 
     while Lexer.Token <> vtCloseSqBracket do
-    begin
-      Node := ParseNode(Lexer, NodeNameBinding, true);
-      Items.Add(Node);
-      Node.AddParentField(Self);
-    end;
+      AddItem(ParseNode(Lexer, NodeNameBinding, true));
 
     Lexer.NextToken;
   end else
     { one single item - not enclosed in [] brackets }
-    Items.Add(ParseNode(Lexer, NodeNameBinding, true));
+    AddItem(ParseNode(Lexer, NodeNameBinding, true));
 end;
 
 function TMFNode.EqualsDefaultValue: boolean;
@@ -4028,21 +4136,11 @@ begin
 end;
 
 procedure TMFNode.Assign(Source: TPersistent);
-var
-  I: Integer;
 begin
   if Source is TMFNode then
   begin
     FName := TMFNode(Source).Name;
-
-    for I := 0 to Count - 1 do
-      Items[I].RemoveParentField(Self);
-    Items.Count := 0; { For safety }
-
-    Items.Assign(TMFNode(Source).Items);
-
-    for I := 0 to Count - 1 do
-      Items[I].AddParentField(Self);
+    AssignItems(TMFNode(Source).Items);
   end else
     inherited;
 end;
@@ -5321,6 +5419,11 @@ begin
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
 
+function TNodeAnchor.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
 class function TNodeAppearance.ClassNodeTypeName: string;
 begin
   Result := 'Appearance';
@@ -5456,6 +5559,11 @@ begin
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
 
+function TNodeBillboard.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
 class function TNodeBox.ClassNodeTypeName: string;
 begin
   Result := 'Box';
@@ -5483,6 +5591,11 @@ begin
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
   Fields.Add(TSFNode.Create('proxy'));
   { eventOut     SFTime   collideTime }
+end;
+
+function TNodeCollision.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
 end;
 
 class function TNodeColor.ClassNodeTypeName: string;
@@ -5580,6 +5693,11 @@ begin
   Fields.Add(TSFInt32.Create('wDimension', 0));
   Fields.Add(TMFFloat.Create('wKnot', []));
   Fields.Add(TSFInt32.Create('wOrder', 2));
+end;
+
+function TNodeCoordinateDeformer.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
 end;
 
 class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
@@ -5794,6 +5912,11 @@ begin
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
 end;
 
+function TNodeGeoLocation.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
 class function TNodeGeoLOD.ClassNodeTypeName: string;
 begin
   Result := 'GeoLOD';
@@ -5923,6 +6046,11 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeGroup_2.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
 class function TNodeImageTexture.ClassNodeTypeName: string;
 begin
   Result := 'ImageTexture';
@@ -6035,6 +6163,11 @@ end;
 class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeLOD_2.ChildrenField: TMFNode;
+begin
+  Result := FdLevel;
 end;
 
 class function TNodeMaterial_2.ClassNodeTypeName: string;
@@ -6163,6 +6296,11 @@ begin
   Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+end;
+
+function TNodeNurbsGroup.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
 end;
 
 class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
@@ -6488,6 +6626,11 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeSwitch_2.ChildrenField: TMFNode;
+begin
+  Result := FdChoice;
+end;
+
 class function TNodeText.ClassNodeTypeName: string;
 begin
   Result := 'Text';
@@ -6586,6 +6729,11 @@ end;
 class function TNodeTransform_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeTransform_2.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;
@@ -6875,9 +7023,10 @@ begin
   try
 
    { ponizej : tak wyglada implementacja tej procedury ktora wymagalaby zeby
-     caly plik byl jednym nodem VRMLa (tak jak tego wymaga specyfikacja VRMLa 97).
+     caly plik byl jednym nodem VRMLa (tak jak tego wymaga specyfikacja
+     VRMLa 1.0).
 
-       Lexer.CheckTokenIs(vtEnd, 'end of file (remember : VRML 1.0 files can contain only one "global" node)');
+       Lexer.CheckTokenIs(vtEnd, 'end of file (remember : VRML 1.0 files can contain only one "root" node)');
 
      Nie uzywam jej, zamiast tego pozwalam plikow zawsze miec wiele node'ow
      i jezeli maja ich wiecej niz 1 to wrzucam je do stworzonego sztucznie
@@ -6891,16 +7040,21 @@ begin
 
    if Lexer.Token <> vtEnd then
    begin
-    childNode := result;
-    result := TNodeGroup_1.Create('', WWWBasePath);
-    result.AddChild(childNode);
+     childNode := Result;
 
-    repeat
-     result.AddChild(ParseNode(Lexer, NodeNameBinding, true));
-    until Lexer.Token = vtEnd;
+     if TNodeGroupHidden_1.ForVRMLVersion(
+          Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
+       Result := TNodeGroupHidden_1.Create('', WWWBasePath) else
+       Result := TNodeGroupHidden_2.Create('', WWWBasePath);
+
+     Result.SmartAddChild(childNode);
+
+     repeat
+       Result.SmartAddChild(ParseNode(Lexer, NodeNameBinding, true));
+     until Lexer.Token = vtEnd;
    end;
 
-  except result.Free; raise end;
+  except FreeAndNil(result); raise end;
  finally
   Lexer.Free;
   NodeNameBinding.Free
@@ -6959,24 +7113,37 @@ begin
  end;
 end;
 
-procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream; const PrecedingComment: string);
-var NodeNameBinding: TStringList;
+procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
+  const PrecedingComment: string);
+var
+  NodeNameBinding: TStringList;
+  I: Integer;
 begin
- NodeNameBinding := TStringListCaseSens.Create;
- try
-  WriteStr(Stream, VRML10SignatureLine +nl +nl);
-  if PrecedingComment <> '' then WriteStr(Stream, '# '+PrecedingComment +nl +nl);
-  Node.SaveToStream(Stream, '', NodeNameBinding);
- finally NodeNameBinding.Free end;
+  NodeNameBinding := TStringListCaseSens.Create;
+  try
+    WriteStr(Stream, VRML10SignatureLine +nl +nl);
+    if PrecedingComment <> '' then
+      WriteStr(Stream, '# '+PrecedingComment +nl +nl);
+
+    if (Node is TNodeGroupHidden_1) or
+       (Node is TNodeGroupHidden_2) then
+    begin
+      for I := 0 to Node.SmartChildrenCount - 1 do
+        Node.SmartChildren[I].SaveToStream(Stream, '', NodeNameBinding);
+    end else
+      Node.SaveToStream(Stream, '', NodeNameBinding);
+  finally NodeNameBinding.Free end;
 end;
 
-procedure SaveToVRMLFile(Node: TVRMLNode; const Filename, PrecedingComment: string);
-var Stream: TFileStream;
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string);
+var
+  Stream: TFileStream;
 begin
- Stream := TFileStream.Create(Filename, fmCreate);
- try
-  SaveToVRMLFile(Node, Stream, PrecedingComment);
- finally Stream.Free end;
+  Stream := TFileStream.Create(Filename, fmCreate);
+  try
+    SaveToVRMLFile(Node, Stream, PrecedingComment);
+  finally Stream.Free end;
 end;
 
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
