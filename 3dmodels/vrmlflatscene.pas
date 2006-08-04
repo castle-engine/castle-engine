@@ -641,7 +641,7 @@ begin
 
  W := TInfoNodeWriter.Create;
  try
-  RootNode.EnumNodes(TNodeInfo, W.WriteNode, false);
+  RootNode.EnumNodes(TNodeInfo, W.WriteNode, false, true);
   Writeln(W.Count, ' Info nodes in the scene.');
  finally W.Free end;
 end;

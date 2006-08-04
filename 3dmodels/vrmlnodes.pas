@@ -477,6 +477,11 @@ type
     procedure RemoveParentField(Field: TVRMLField);
     procedure AddParentField(Field: TVRMLField);
     function GetSmartChildren(Index: Integer): TVRMLNode;
+    procedure AndSuggestedVRMLVersion(
+      var Result: boolean;
+      var VerMajor, VerMinor, SuggestionPriority: Integer;
+      const NewResult: boolean;
+      const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -865,11 +870,16 @@ type
 
       BTW modyfikowanie dzieci node'a ktory wlasnie dostales do proc()
       to jedyna dozwolona modyfikacja na hierarchii VRMLa ktora mozesz
-      wykonywac w czasie EnumNodes. }
-    procedure EnumNodes(nodeClass: TVRMLNodeClass; proc: TVRMLNodeProc;
-      enumOnlyInActiveNodes: boolean); overload;
+      wykonywac w czasie EnumNodes.
+
+      If EnumNodeFields then it will also enumerate all nodes
+      in SFNode and MFNode fields. }
+    procedure EnumNodes(nodeClass: TVRMLNodeClass;
+      proc: TVRMLNodeProc;
+      EnumOnlyInActiveNodes, EnumNodeFields: boolean); overload;
     procedure EnumNodes(nodeClass: TVRMLNodeClass; const SeekNodeName: string;
-      proc: TVRMLNodeProc; enumOnlyInActiveNodes: boolean); overload;
+      proc: TVRMLNodeProc;
+      EnumOnlyInActiveNodes, EnumNodeFields: boolean); overload;
 
     { TryFindNode(ByName) : szuka wsrod siebie i swoich subnode'ow
       node'a o zadanej nazwie/klasie. Jezeli nie znajdzie zwraca nil.
@@ -919,8 +929,10 @@ type
 
     { policz ile jest node'ow danej klasy. Uzywajac np. TNodeGeneralLight mozesz
       sprawdzic czy na scenie zostalo zdefiniowane jakiekolwiek swiato.
-      Parametr countOnlyActiveNodes ma znaczenie jak zwykle. }
-    function CountNodes(NodeClass: TVRMLNodeClass; countOnlyActiveNodes: boolean): integer;
+      Parametr countOnlyActiveNodes ma znaczenie jak zwykle.
+      CountNodeFields ma takie znaczenie jak EnumNodeFields. }
+    function CountNodes(NodeClass: TVRMLNodeClass;
+      CountOnlyActiveNodes, CountNodeFields: boolean): integer;
 
     { zapisz node do strumienia; ta metoda jest tu zaimplementowana zupelnie
       ogolnie i dziala dla kazdej podklasy TVRMLNode. Jak widac,
@@ -1005,6 +1017,35 @@ type
     procedure SmartAddChild(Node: TVRMLNode);
     property SmartChildren[Index: Integer]: TVRMLNode read GetSmartChildren;
     function SmartChildrenCount: integer;
+
+    { SuggestedVRMLVersion determines what VRML header to use
+      when saving the node to file. Returns @true and sets out arguments
+      if some version is preferred, otherwise returns @false.
+
+      SuggestionPriority should be used to indicate the "strongness"
+      of this suggestion. The idea is that if there are two nodes
+      that have different VRML version suggestions, then the one
+      with greater SuggestionPriority "wins".
+
+      Right now I use SuggestionPriority 1000 for nodes
+      that are only in one VRML version, according to VRML 1.0 and 2.0
+      specs (with my extensions), and SuggestionPriority 100 for
+      VRML 2.0 nodes that are also allowed in VRML 1.0
+      by my extensions
+      [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php].
+      This way e.g. if your VRML hierarchy consists only of
+      a single TNodeBackground node, then the result will be saved as VRML 2.0
+      (as this will give VRML 2.0-compliant file).
+      But if your VRML hierarchy has for example TNodeBackground node inside
+      TNodeGroup_1, then the result will be VRML 1.0 file
+      (non-standard VRML 1.0 file using my "extension" that allows
+      Background node in VRML 1.0).
+
+      Default implementation in this class enumerates all
+      SFNode and MFNoden fields and Children nodes
+      and determines their suggested VRML version. }
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; virtual;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1234,6 +1275,9 @@ type
   public
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeAsciiText_1 = class(TNodeGeneralShape_1)
@@ -1361,6 +1405,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdPoint: TMFVec3f index 0 read GetFieldAsMFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TVRMLFontFamily = 0..2; {uzywaj stalych FSFAMLILY}
@@ -1375,12 +1422,18 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeInfo = class(TVRMLNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdString: TSFString index 0 read GetFieldAsSFString;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeLOD_1 = class(TVRMLNode)
@@ -1393,6 +1446,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeMaterial_1 = class(TVRMLNode)
@@ -1487,18 +1543,27 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeMaterialBinding = class(TVRMLNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdValue: TSFEnum index 0 read GetFieldAsSFEnum;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNormalBinding = class(TVRMLNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdValue: TSFEnum index 0 read GetFieldAsSFEnum;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTexture2 = class(TVRMLNode)
@@ -1565,6 +1630,9 @@ type
       use them. }
     property FdModel: TSFEnum index 4 read GetFieldAsSFEnum;
     property FdBlendColor: TSFVec3f index 5 read GetFieldAsSFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTexture2Transform = class(TVRMLNode)
@@ -1578,12 +1646,18 @@ type
     property FdScaleFactor: TSFVec2f index 2 read GetFieldAsSFVec2f;
     property FdCenter: TSFVec2f index 3 read GetFieldAsSFVec2f;
     function TextureMatrixTransformation: TMatrix4Single;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTextureCoordinate2 = class(TVRMLNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdPoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShapeHints = class(TVRMLNode)
@@ -1597,6 +1671,9 @@ type
     property FdShapeType: TSFEnum index 1 read GetFieldAsSFEnum;
     property FdFaceType: TSFEnum index 2 read GetFieldAsSFEnum;
     property FdCreaseAngle: TSFFloat index 3 read GetFieldAsSFFloat;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   { TNodeGeneralTransformation - wspolna klasa dla wszystkich node'ow ktorych
@@ -1608,6 +1685,9 @@ type
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
     function MatrixTransformation: TMatrix4Single; virtual; abstract;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeMatrixTransform = class(TNodeGeneralTransformation)
@@ -1727,6 +1807,9 @@ type
       przez CamTransform) }
     procedure CalcCamera(const CamTransform: TMatrix4Single;
       out CamPos, CamDir, CamUp: TVector3Single);
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeOrthographicCamera = class(TNodeGeneralCamera)
@@ -1764,6 +1847,9 @@ type
   TNodeDirectionalLight_1 = class(TNodeGeneralDirectionalLight)
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeneralPositionalLight = class(TNodeGeneralLight)
@@ -1795,6 +1881,9 @@ type
   TNodePointLight_1 = class(TNodeGeneralPointLight)
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSpotLight_1 = class(TNodeGeneralPositionalLight)
@@ -1810,6 +1899,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGroup_1 = class(TVRMLNode)
@@ -1818,6 +1910,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   { A Group node that is added when VRML file contains more than one root
@@ -1837,6 +1932,9 @@ type
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSeparator = class(TNodeGeneralSeparator)
@@ -1854,6 +1952,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTransformSeparator = class(TVRMLNode)
@@ -1865,6 +1966,9 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   { TODO: node anchor dziala jak Separator, wartosci jego pol nie maja
@@ -1914,6 +2018,9 @@ type
     property FdBboxSize: TSFVec3f index 1 read GetFieldAsSFVec3f;
     property FdBboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
     property FdSeparate: TSFBool index 3 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeKambiTriangulation = class(TVRMLNode)
@@ -1933,6 +2040,9 @@ type
     function QuadricStacks: Cardinal;
     function QuadricSlices: Cardinal;
     function RectDivisions: Cardinal;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   { Alphabetically, all VRML 97 nodes }
@@ -1952,6 +2062,9 @@ type
     property FdbboxSize: TSFVec3f index 5 read GetFieldAsSFVec3f;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeAppearance = class(TVRMLNode)
@@ -1961,6 +2074,9 @@ type
     property Fdmaterial: TSFNode index 0 read GetFieldAsSFNode;
     property Fdtexture: TSFNode index 1 read GetFieldAsSFNode;
     property FdtextureTransform: TSFNode index 2 read GetFieldAsSFNode;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeAudioClip = class(TVRMLNode)
@@ -1975,6 +2091,9 @@ type
     property Fdurl: TMFString index 5 read GetFieldAsMFString;
     { eventOut       SFTime   duration_changed } { }
     { eventOut       SFBool   isActive } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeBackground = class(TVRMLNode)
@@ -2042,6 +2161,9 @@ type
     property AllowedBgImagesClasses: TDynArrayImageClasses
       read FAllowedBgImagesClasses; { = [], so all image classes are allowed }
     procedure SetAllowedBgImagesClasses(const Value: array of TImageClass);
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeBillboard = class(TVRMLNode)
@@ -2056,6 +2178,9 @@ type
     property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeBox = class(TVRMLNode)
@@ -2063,6 +2188,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property Fdsize: TSFVec3f index 0 read GetFieldAsSFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCollision = class(TVRMLNode)
@@ -2079,6 +2207,9 @@ type
     { eventOut     SFTime   collideTime } { }
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeColor = class(TVRMLNode)
@@ -2086,6 +2217,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property Fdcolor: TMFColor index 0 read GetFieldAsMFColor;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeColorInterpolator = class(TVRMLNode)
@@ -2096,6 +2230,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFColor index 1 read GetFieldAsMFColor;
     { eventOut     SFColor value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCone_2 = class(TVRMLNode)
@@ -2109,6 +2246,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeContour2D = class(TVRMLNode)
@@ -2118,6 +2258,9 @@ type
     { eventIn      MFNode  addChildren } { }
     { eventIn      MFNode  removeChildren } { }
     property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCoordinate = class(TVRMLNode)
@@ -2125,6 +2268,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property Fdpoint: TMFVec3f index 0 read GetFieldAsMFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCoordinateDeformer = class(TVRMLNode)
@@ -2152,6 +2298,9 @@ type
     property FdwOrder: TSFInt32 index 16 read GetFieldAsSFInt32;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCoordinateInterpolator = class(TVRMLNode)
@@ -2162,6 +2311,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
     { eventOut     MFVec3f value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCylinder_2 = class(TVRMLNode)
@@ -2176,6 +2328,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeCylinderSensor = class(TVRMLNode)
@@ -2191,6 +2346,9 @@ type
     { eventOut     SFBool     isActive } { }
     { eventOut     SFRotation rotation_changed } { }
     { eventOut     SFVec3f    trackPoint_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeDirectionalLight_2 = class(TNodeGeneralDirectionalLight)
@@ -2199,6 +2357,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeElevationGrid = class(TVRMLNode)
@@ -2219,6 +2380,9 @@ type
     property FdxSpacing: TSFFloat index 10 read GetFieldAsSFFloat;
     property FdzDimension: TSFInt32 index 11 read GetFieldAsSFInt32;
     property FdzSpacing: TSFFloat index 12 read GetFieldAsSFFloat;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeExtrusion = class(TVRMLNode)
@@ -2239,6 +2403,9 @@ type
     property Fdscale: TMFVec2f index 7 read GetFieldAsMFVec2f;
     property Fdsolid: TSFBool index 8 read GetFieldAsSFBool;
     property Fdspine: TMFVec3f index 9 read GetFieldAsMFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeFog = class(TVRMLNode)
@@ -2253,6 +2420,9 @@ type
     property FdVolumetricVisibilityStart: TSFFloat index 5 read GetFieldAsSFFloat;
     { eventIn      SFBool   set_bind } { }
     { eventOut     SFBool   isBound } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeFontStyle_2 = class(TVRMLNode)
@@ -2271,6 +2441,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoCoordinate = class(TVRMLNode)
@@ -2280,6 +2453,9 @@ type
     property FdgeoOrigin: TSFNode index 0 read GetFieldAsSFNode;
     property FdgeoSystem: TMFString index 1 read GetFieldAsMFString;
     property Fdpoint: TMFString index 2 read GetFieldAsMFString;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoElevationGrid = class(TVRMLNode)
@@ -2305,6 +2481,9 @@ type
     property FdyScale: TSFFloat index 14 read GetFieldAsSFFloat;
     property FdzDimension: TSFInt32 index 15 read GetFieldAsSFInt32;
     property FdzSpacing: TSFString index 16 read GetFieldAsSFString;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoLocation = class(TVRMLNode)
@@ -2317,6 +2496,9 @@ type
     property FdgeoSystem: TMFString index 3 read GetFieldAsMFString;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoLOD = class(TVRMLNode)
@@ -2334,6 +2516,9 @@ type
     property FdrootUrl: TMFString index 8 read GetFieldAsMFString;
     property FdrootNode: TMFNode index 9 read GetFieldAsMFNode;
     { eventOut   MFNode    children } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoMetadata = class(TVRMLNode)
@@ -2343,6 +2528,9 @@ type
     property Fddata: TMFNode index 0 read GetFieldAsMFNode;
     property Fdsummary: TMFString index 1 read GetFieldAsMFString;
     property Fdurl: TMFString index 2 read GetFieldAsMFString;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoOrigin = class(TVRMLNode)
@@ -2352,6 +2540,9 @@ type
     property FdgeoSystem: TMFString index 0 read GetFieldAsMFString;
     property FdgeoCoords: TSFString index 1 read GetFieldAsSFString;
     property FdrotateYUp: TSFBool index 2 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoPositionInterpolator = class(TVRMLNode)
@@ -2365,6 +2556,9 @@ type
     property FdkeyValue: TMFString index 3 read GetFieldAsMFString;
     { eventOut  SFString  geovalue_changed } { }
     { eventOut  SFVec3f   value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoTouchSensor = class(TVRMLNode)
@@ -2381,6 +2575,9 @@ type
     { eventOut      SFBool    isActive } { }
     { eventOut      SFBool    isOver } { }
     { eventOut      SFTime    touchTime } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGeoViewpoint = class(TVRMLNode)
@@ -2402,6 +2599,9 @@ type
     property FdspeedFactor: TSFFloat index 9 read GetFieldAsSFFloat;
     { eventOut       SFTime       bindTime } { }
     { eventOut       SFBool       isBound } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGroup_2 = class(TVRMLNode)
@@ -2418,6 +2618,9 @@ type
       override;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeGroupHidden_2 = class(TNodeGroup_2)
@@ -2430,6 +2633,9 @@ type
     property Fdurl: TMFString index 0 read GetFieldAsMFString;
     property FdrepeatS: TSFBool index 1 read GetFieldAsSFBool;
     property FdrepeatT: TSFBool index 2 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeIndexedFaceSet_2 = class(TVRMLNode)
@@ -2457,6 +2663,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeIndexedLineSet_2 = class(TVRMLNode)
@@ -2473,6 +2682,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeInline = class(TVRMLNode)
@@ -2482,6 +2694,9 @@ type
     property Fdurl: TMFString index 0 read GetFieldAsMFString;
     property FdbboxCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
     property FdbboxSize: TSFVec3f index 2 read GetFieldAsSFVec3f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeInlineLoadControl = class(TVRMLNode)
@@ -2493,6 +2708,9 @@ type
     property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
     property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
     { eventOut     MFNode    children } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeLOD_2 = class(TVRMLNode)
@@ -2507,6 +2725,9 @@ type
       override;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeMaterial_2 = class(TVRMLNode)
@@ -2522,6 +2743,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeMovieTexture = class(TVRMLNode)
@@ -2537,6 +2761,9 @@ type
     property FdrepeatT: TSFBool index 6 read GetFieldAsSFBool;
     { eventOut     SFTime   duration_changed } { }
     { eventOut     SFBool   isActive } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNavigationInfo = class(TVRMLNode)
@@ -2550,6 +2777,9 @@ type
     property Fdtype: TMFString index 3 read GetFieldAsMFString;
     property FdvisibilityLimit: TSFFloat index 4 read GetFieldAsSFFloat;
     { eventOut     SFBool   isBound } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNormal = class(TVRMLNode)
@@ -2567,6 +2797,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
     { eventOut     MFVec3f value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsCurve = class(TVRMLNode)
@@ -2578,6 +2811,9 @@ type
     property Fdtessellation: TSFInt32 index 2 read GetFieldAsSFInt32;
     property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
     property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsCurve2D = class(TVRMLNode)
@@ -2589,6 +2825,9 @@ type
     property Fdweight: TMFFloat index 2 read GetFieldAsMFFloat;
     property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
     property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsGroup = class(TVRMLNode)
@@ -2603,6 +2842,9 @@ type
     property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsPositionInterpolator = class(TVRMLNode)
@@ -2616,6 +2858,9 @@ type
     property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
     property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
     { eventOut     SFVec3f  value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsSurface = class(TVRMLNode)
@@ -2635,6 +2880,9 @@ type
     property FdvDimension: TSFInt32 index 10 read GetFieldAsSFInt32;
     property FdvKnot: TMFFloat index 11 read GetFieldAsMFFloat;
     property FdvOrder: TSFInt32 index 12 read GetFieldAsSFInt32;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
@@ -2649,6 +2897,9 @@ type
     property FdvDimension: TSFInt32 index 5 read GetFieldAsSFInt32;
     property FdvKnot: TMFFloat index 6 read GetFieldAsMFFloat;
     property FdvOrder: TSFInt32 index 7 read GetFieldAsSFInt32;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeOrientationInterpolator = class(TVRMLNode)
@@ -2659,6 +2910,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFRotation index 1 read GetFieldAsMFRotation;
     { eventOut     SFRotation value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePixelTexture = class(TVRMLNode)
@@ -2668,6 +2922,9 @@ type
     property Fdimage: TSFImage index 0 read GetFieldAsSFImage;
     property FdrepeatS: TSFBool index 1 read GetFieldAsSFBool;
     property FdrepeatT: TSFBool index 2 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePlaneSensor = class(TVRMLNode)
@@ -2682,6 +2939,9 @@ type
     { eventOut     SFBool  isActive } { }
     { eventOut     SFVec3f trackPoint_changed } { }
     { eventOut     SFVec3f translation_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePointLight_2 = class(TNodeGeneralPointLight)
@@ -2691,6 +2951,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePointSet_2 = class(TVRMLNode)
@@ -2702,6 +2965,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePolyline2D = class(TVRMLNode)
@@ -2709,6 +2975,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property Fdpoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePositionInterpolator = class(TVRMLNode)
@@ -2719,6 +2988,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
     { eventOut     SFVec3f value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeProximitySensor = class(TVRMLNode)
@@ -2733,6 +3005,9 @@ type
     { eventOut     SFRotation orientation_changed } { }
     { eventOut     SFTime     enterTime } { }
     { eventOut     SFTime     exitTime } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeScalarInterpolator = class(TVRMLNode)
@@ -2743,6 +3018,9 @@ type
     property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdkeyValue: TMFFloat index 1 read GetFieldAsMFFloat;
     { eventOut     SFFloat value_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeScript = class(TVRMLNode)
@@ -2756,6 +3034,9 @@ type
     { eventIn      eventType eventName } { }
     { field        fieldType fieldName initialValue } { }
     { eventOut     eventType eventName } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShape = class(TVRMLNode)
@@ -2764,6 +3045,9 @@ type
     class function ClassNodeTypeName: string; override;
     property Fdappearance: TSFNode index 0 read GetFieldAsSFNode;
     property Fdgeometry: TSFNode index 1 read GetFieldAsSFNode;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSound = class(TVRMLNode)
@@ -2780,6 +3064,9 @@ type
     property Fdpriority: TSFFloat index 7 read GetFieldAsSFFloat;
     property Fdsource: TSFNode index 8 read GetFieldAsSFNode;
     property Fdspatialize: TSFBool index 9 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSphere_2 = class(TVRMLNode)
@@ -2790,6 +3077,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSphereSensor = class(TVRMLNode)
@@ -2802,6 +3092,9 @@ type
     { eventOut     SFBool     isActive } { }
     { eventOut     SFRotation rotation_changed } { }
     { eventOut     SFVec3f    trackPoint_changed } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSpotLight_2 = class(TVRMLNode)
@@ -2821,6 +3114,9 @@ type
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeSwitch_2 = class(TVRMLNode)
@@ -2834,6 +3130,9 @@ type
       override;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeText = class(TVRMLNode)
@@ -2844,6 +3143,9 @@ type
     property FdfontStyle: TSFNode index 1 read GetFieldAsSFNode;
     property Fdlength: TMFFloat index 2 read GetFieldAsMFFloat;
     property FdmaxExtent: TSFFloat index 3 read GetFieldAsSFFloat;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTextureCoordinate = class(TVRMLNode)
@@ -2851,6 +3153,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property Fdpoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTextureTransform = class(TVRMLNode)
@@ -2861,6 +3166,9 @@ type
     property Fdrotation: TSFFloat index 1 read GetFieldAsSFFloat;
     property Fdscale: TSFVec2f index 2 read GetFieldAsSFVec2f;
     property Fdtranslation: TSFVec2f index 3 read GetFieldAsSFVec2f;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTimeSensor = class(TVRMLNode)
@@ -2876,6 +3184,9 @@ type
     { eventOut     SFFloat  fraction_changed
     { eventOut     SFBool   isActive } { }
     { eventOut     SFTime   time } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTouchSensor = class(TVRMLNode)
@@ -2889,6 +3200,9 @@ type
     { eventOut     SFBool  isActive } { }
     { eventOut     SFBool  isOver } { }
     { eventOut     SFTime  touchTime } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTransform_2 = class(TVRMLNode)
@@ -2910,6 +3224,9 @@ type
       override;
 
     function ChildrenField: TMFNode; override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeTrimmedSurface = class(TVRMLNode)
@@ -2920,6 +3237,9 @@ type
     { eventIn       MFNode   removeTrimmingContour } { }
     property FdtrimmingContour: TMFNode index 0 read GetFieldAsMFNode;
     property Fdsurface: TSFNode index 1 read GetFieldAsSFNode;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeViewpoint = class(TVRMLNode)
@@ -2934,6 +3254,9 @@ type
     property Fddescription: TSFString index 4 read GetFieldAsSFString;
     { eventOut     SFTime     bindTime } { }
     { eventOut     SFBool     isBound } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeVisibilitySensor = class(TVRMLNode)
@@ -2946,6 +3269,9 @@ type
     { eventOut     SFTime  enterTime } { }
     { eventOut     SFTime  exitTime } { }
     { eventOut     SFBool  isActive } { }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeWorldInfo = class(TVRMLNode)
@@ -2954,6 +3280,9 @@ type
     class function ClassNodeTypeName: string; override;
     property Fdinfo: TMFString index 0 read GetFieldAsMFString;
     property Fdtitle: TSFString index 1 read GetFieldAsSFString;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
 { very very special node --------------------------------------------------- }
@@ -3536,13 +3865,13 @@ procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState); begin end;
 procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState); begin end;
 
 {$define ITERATE_CHILDREN_DECLARE:=
-var FirstChild, LastChild, i: integer; }
+var FirstChild, LastChild, ChildIndex: integer; }
 
 {$define ITERATE_CHILDEN_INIT:=
 ChildrenToEnter(FirstChild, LastChild)}
 
 {$define ITERATE_CHILDREN_LOOP:=
-for i := max(FirstChild, 0) to min(LastChild, ChildrenCount-1) do}
+for ChildIndex := max(FirstChild, 0) to min(LastChild, ChildrenCount-1) do}
 
 procedure TVRMLNode.Traverse(State: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
@@ -3555,7 +3884,8 @@ begin
   MiddleTraverse(State);
 
   ITERATE_CHILDEN_INIT;
-  ITERATE_CHILDREN_LOOP Children[i].Traverse(State, NodeClass, TraversingFunc);
+  ITERATE_CHILDREN_LOOP
+    Children[ChildIndex].Traverse(State, NodeClass, TraversingFunc);
  finally AfterTraverse(State) end;
 
  LastNodesIndex := TraverseStateLastNodesIndex;
@@ -3682,30 +4012,87 @@ begin
   Result := false;
 end;
 
-procedure TVRMLNode.EnumNodes(nodeClass: TVRMLNodeClass; proc: TVRMLNodeProc;
-  enumOnlyInActiveNodes: boolean);
+procedure TVRMLNode.EnumNodes(nodeClass: TVRMLNodeClass;
+  proc: TVRMLNodeProc;
+  EnumOnlyInActiveNodes, EnumNodeFields: boolean);
 ITERATE_CHILDREN_DECLARE
+var
+  I, J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
 begin
  if Self is nodeClass then proc(Self);
 
+ if EnumNodeFields then
+ begin
+   for I := 0 to Fields.Count - 1 do
+   begin
+     if Fields[I] is TSFNode then
+     begin
+       SF := TSFNode(Fields[I]);
+       if SF.Value <> nil then
+         SF.Value.EnumNodes(
+           NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+     end else
+     if Fields[I] is TMFNode then
+     begin
+       MF := TMFNode(Fields[I]);
+       for J := 0 to MF.Items.Count - 1 do
+         MF.Items[J].EnumNodes(
+           NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+     end;
+   end;
+ end;
+
  if enumOnlyInActiveNodes then
   ITERATE_CHILDEN_INIT else
   begin FirstChild := 0; LastChild := ChildrenCount-1 end;
 
- ITERATE_CHILDREN_LOOP Children[i].EnumNodes(nodeClass, proc, enumOnlyInActiveNodes);
+ ITERATE_CHILDREN_LOOP
+   Children[ChildIndex].EnumNodes(
+     NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
 end;
 
-procedure TVRMLNode.EnumNodes(nodeClass: TVRMLNodeClass; const SeekNodeName: string;
-  proc: TVRMLNodeProc; enumOnlyInActiveNodes: boolean);
+procedure TVRMLNode.EnumNodes(NodeClass: TVRMLNodeClass;
+  const SeekNodeName: string;
+  Proc: TVRMLNodeProc;
+  EnumOnlyInActiveNodes, EnumNodeFields: boolean);
 ITERATE_CHILDREN_DECLARE
+var
+  I, J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
 begin
  if (Self is nodeClass) and (NodeName = SeekNodeName) then proc(Self);
 
+ if EnumNodeFields then
+ begin
+   for I := 0 to Fields.Count - 1 do
+   begin
+     if Fields[I] is TSFNode then
+     begin
+       SF := TSFNode(Fields[I]);
+       if SF.Value <> nil then
+         SF.Value.EnumNodes(
+           NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+     end else
+     if Fields[I] is TMFNode then
+     begin
+       MF := TMFNode(Fields[I]);
+       for J := 0 to MF.Items.Count - 1 do
+         MF.Items[J].EnumNodes(
+           NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+     end;
+   end;
+ end;
+
  if enumOnlyInActiveNodes then
   ITERATE_CHILDEN_INIT else
   begin FirstChild := 0; LastChild := ChildrenCount-1 end;
 
- ITERATE_CHILDREN_LOOP Children[i].EnumNodes(nodeClass, SeekNodeName, proc, enumOnlyInActiveNodes);
+ ITERATE_CHILDREN_LOOP
+   Children[ChildIndex].EnumNodes(
+     NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
 end;
 
 function TVRMLNode.TryFindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
@@ -3722,7 +4109,7 @@ begin
 
   ITERATE_CHILDREN_LOOP
   begin
-   result := Children[i].TryFindNode(FindClass, enumOnlyInActiveNodes);
+   result := Children[ChildIndex].TryFindNode(FindClass, enumOnlyInActiveNodes);
    if result <> nil then exit;
   end;
  end;
@@ -3825,7 +4212,7 @@ begin
 
   ITERATE_CHILDREN_LOOP
   begin
-   result := Children[i].TryFindNodeByName(FindName, enumOnlyInActiveNodes);
+   result := Children[ChildIndex].TryFindNodeByName(FindName, enumOnlyInActiveNodes);
    if result <> nil then exit;
   end;
  end;
@@ -3881,7 +4268,7 @@ begin
   begin FirstChild := 0; LastChild := ChildrenCount-1 end;
 
  ITERATE_CHILDREN_LOOP
-  if Children[i].IsNodePresent(Node, seekOnlyInActiveNodes) then exit(true);
+  if Children[ChildIndex].IsNodePresent(Node, seekOnlyInActiveNodes) then exit(true);
 
  result := false;
 end;
@@ -3894,13 +4281,15 @@ type
   procedure TNodeCounter.CountNode(node: TVRMLNode);
   begin Inc(Counter) end;
 
-function TVRMLNode.CountNodes(NodeClass: TVRMLNodeClass; countOnlyActiveNodes: boolean): integer;
+function TVRMLNode.CountNodes(NodeClass: TVRMLNodeClass;
+  CountOnlyActiveNodes, CountNodeFields: boolean): integer;
 var C: TNodeCounter;
 begin
  C := TNodeCounter.Create;
  try
   EnumNodes(NodeClass,
-    {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode, countOnlyActiveNodes);
+    {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode,
+      CountOnlyActiveNodes, CountNodeFields);
   result := C.Counter;
  finally C.Free end;
 end;
@@ -3997,6 +4386,74 @@ begin
   if ChildrenField = nil then
     Result := ChildrenCount else
     Result := ChildrenField.Items.Count;
+end;
+
+function TVRMLNode.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+var
+  I, J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
+  NewResult: boolean;
+  NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer;
+  ChildIndex: Integer;
+begin
+  Result := false;
+
+  for I := 0 to Fields.Count - 1 do
+  begin
+    if Fields[I] is TSFNode then
+    begin
+      SF := TSFNode(Fields[I]);
+      if SF.Value <> nil then
+      begin
+        NewResult := SF.Value.SuggestedVRMLVersion(
+          NewVerMajor, NewVerMinor, NewSuggestionPriority);
+        AndSuggestedVRMLVersion(
+          Result, VerMajor, VerMinor, SuggestionPriority,
+          NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+      end;
+    end else
+    if Fields[I] is TMFNode then
+    begin
+      MF := TMFNode(Fields[I]);
+      for J := 0 to MF.Items.Count - 1 do
+      begin
+        NewResult := MF.Items[J].SuggestedVRMLVersion(
+          NewVerMajor, NewVerMinor, NewSuggestionPriority);
+        AndSuggestedVRMLVersion(
+          Result, VerMajor, VerMinor, SuggestionPriority,
+          NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+      end;
+    end;
+  end;
+
+  for ChildIndex := 0 to ChildrenCount - 1 do
+  begin
+    NewResult :=  Children[ChildIndex].SuggestedVRMLVersion(
+      NewVerMajor, NewVerMinor, NewSuggestionPriority);
+    AndSuggestedVRMLVersion(
+      Result, VerMajor, VerMinor, SuggestionPriority,
+      NewResult, NewVerMajor, NewVerMinor, NewSuggestionPriority);
+  end;
+end;
+
+procedure TVRMLNode.AndSuggestedVRMLVersion(
+  var Result: boolean;
+  var VerMajor, VerMinor, SuggestionPriority: Integer;
+  const NewResult: boolean;
+  const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
+begin
+  if NewResult then
+  begin
+    if (not Result) or (NewSuggestionPriority >= SuggestionPriority) then
+    begin
+      VerMajor := NewVerMajor;
+      VerMinor := NewVerMinor;
+      SuggestionPriority := NewSuggestionPriority;
+      Result := true;
+    end;
+  end;
 end;
 
 { TSFNode --------------------------------------------------------------------- }
@@ -4194,9 +4651,10 @@ end;
 
 { specific VRML nodes --------------------------------------------------------- }
 
-{$I VRMLNodes_BoundingBoxes.inc}
-{$I VRMLNodes_VerticesAndTrianglesCounting.inc}
-{$I VRMLNodes_Triangulating.inc}
+{$I vrmlnodes_boundingboxes.inc}
+{$I vrmlnodes_verticesandtrianglescounting.inc}
+{$I vrmlnodes_triangulating.inc}
+{$I vrmlnodes_suggested_vrml_version.inc}
 
 constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..0]of string = ('');
@@ -7141,10 +7599,22 @@ const
 var
   NodeNameBinding: TStringList;
   I: Integer;
+  VerMajor, VerMinor, SuggestionPriority: Integer;
+  VRMLHeader: string;
 begin
   NodeNameBinding := TStringListCaseSens.Create;
   try
-    WriteStr(Stream, VRML10Header +nl +nl);
+    if Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
+    begin
+      if (VerMajor = 1) and (VerMinor = 0) then
+        VRMLHeader := VRML10Header else
+      if (VerMajor = 2) and (VerMinor = 0) then
+        VRMLHeader := VRML20Header else
+        VRMLHeader := VRML10Header; { fallback is VRML10Header }
+    end else
+      VRMLHeader := VRML10Header; { fallback is VRML10Header }
+
+    WriteStr(Stream, VRMLHeader +nl +nl);
     if PrecedingComment <> '' then
       WriteStr(Stream, '# '+PrecedingComment +nl +nl);
 

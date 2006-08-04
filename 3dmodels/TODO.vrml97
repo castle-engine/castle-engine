@@ -2,13 +2,14 @@ VRML 97 TODO items:
 
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
-- writing as VRML:
-  signature should be for VRML 2.0 where appropriate
-
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents
+
+- EnumNodeFields should also have EnumNodeFieldsOnlyActive for EnumNodes.
+- Probably everywhere where ITERATE_CHILDREN_LOOP we should also
+  enter into (some of?) children in SFNode/MFNode.
 
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
