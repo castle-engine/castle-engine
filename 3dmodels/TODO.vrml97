@@ -7,11 +7,6 @@ VRML 97 TODO items:
 
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
 
-- the way how I changed default values for ambientIntensity and location
-  for VRML 2.0 versions of DirectionalLight and PointLight is bad.
-  When writing you can see that he still things that default value was as
-  given earlier.
-
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents
 

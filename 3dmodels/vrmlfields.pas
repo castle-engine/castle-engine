@@ -37,6 +37,17 @@ type
 
 { fields base classes ------------------------------------------------------ }
 
+  { Base class for all VRML fields.
+
+    Common notes for all descendants: most of them expose field or property
+    "Value", this is (surprise, surprise!) the value of the field.
+    Many of them also expose DefaultValue and DefaultValueExists
+    fields/properties, these should be the default VRML value for this field.
+    You can even change DefaultValue after the object is created.
+
+    Most of descendants include constructor that initializes
+    both DefaultValue and Value to the same thing, as this is what
+    you usually want. }
   TVRMLField = class(TPersistent)
   private
     FExposed: boolean;
@@ -313,11 +324,14 @@ type
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: boolean);
+
+    Value: boolean;
+
     DefaultValue: boolean;
     DefaultValueExists: boolean;
-  public
-    Value: boolean;
-    constructor Create(const AName: string; const AValue: boolean);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -329,11 +343,14 @@ type
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector3Single);
+
+    Value: TVector3Single;
+
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
-  public
-    Value: TVector3Single;
-    constructor Create(const AName: string; const AValue: TVector3Single);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -346,19 +363,22 @@ type
   private
     fEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
-    DefaultValue: integer;
-    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    Value: integer; { wartosc z 0..EnumCount-1; domyslnie 0 }
-    property EnumNames[i: integer]:string read GetEnumNames;
-    function EnumNamesCount: integer;
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     constructor Create(const AName: string;
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
+
+    Value: integer; { wartosc z 0..EnumCount-1; domyslnie 0 }
+
+    DefaultValue: integer;
+    DefaultValueExists: boolean;
+
+    property EnumNames[i: integer]:string read GetEnumNames;
+    function EnumNamesCount: integer;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -369,20 +389,25 @@ type
   private
     FMustBeNonnegative: boolean;
     FValue: Single;
-    DefaultValue: Single;
-    DefaultValueExists: boolean;
     procedure SetValue(const AValue: Single);
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
+    constructor Create(const AName: string; const AValue: Single); overload;
+    constructor Create(const AName: string; const AValue: Single;
+      AMustBeNonnegative: boolean); overload;
+
     property Value: Single read FValue write SetValue;
+
+    DefaultValue: Single;
+    DefaultValueExists: boolean;
+
     { jezeli true to przy probie ustawienia Value na X gdzie X < 0
       ustawi Value := -X (a wiec NIE robi clamp do 0 w rodzaju Value := Max(0, X)
       tylko Value := Abs(X); to jest cos dobrego dla np. Sphere.FdRadius). }
-    property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
-    constructor Create(const AName: string; const AValue: Single); overload;
-    constructor Create(const AName: string; const AValue: Single; AMustBeNonnegative: boolean); overload;
+    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -397,15 +422,18 @@ type
   TSFTime = class(TVRMLSimpleSingleField)
   private
     FValue: Double;
-    DefaultValue: Double;
-    DefaultValueExists: boolean;
     procedure SetValue(const AValue: Double);
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
     constructor Create(const AName: string; const AValue: Double); overload;
+
     property Value: Double read FValue write SetValue;
+
+    DefaultValue: Double;
+    DefaultValueExists: boolean;
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -452,18 +480,22 @@ type
   private
     FMustBeNonnegative: boolean;
     FValue: Longint;
-    DefaultValue: Longint;
-    DefaultValueExists: boolean;
     procedure SetValue(const AValue: Longint);
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
+    constructor Create(const AName: string; const AValue: Longint); overload;
+    constructor Create(const AName: string; const AValue: Longint;
+      AMustBeNonnegative: boolean); overload;
+
     property Value: Longint read FValue write SetValue;
+
+    DefaultValue: Longint;
+    DefaultValueExists: boolean;
+
     { komentarz - jak dla TSFFloat.MustBeNonnegative }
     property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
-    constructor Create(const AName: string; const AValue: Longint); overload;
-    constructor Create(const AName: string; const AValue: Longint; AMustBeNonnegative: boolean); overload;
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -511,11 +543,14 @@ type
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: string);
+
+    Value: string;
+
     DefaultValue: string;
     DefaultValueExists: boolean;
-  public
-    Value: string;
-    constructor Create(const AName: string; const AValue: string);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -527,11 +562,14 @@ type
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector2Single);
+
+    Value: TVector2Single;
+
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
-  public
-    Value: TVector2Single;
-    constructor Create(const AName: string; const AValue: TVector2Single);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -544,11 +582,14 @@ type
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector3Single);
+
+    Value: TVector3Single;
+
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
-  public
-    Value: TVector3Single;
-    constructor Create(const AName: string; const AValue: TVector3Single);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;

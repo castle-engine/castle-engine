@@ -19,15 +19,15 @@
 }
 
 (*
-  @abstract(Ten modul definiuje wezly VRML'a. Jako ze caly plik VRML'a
-  to po prostu wezel VRML'a wiec ten modul definiuje wszystko
-  co trzeba zeby reprezentowac w pamieci cala strukture sceny
-  VRML'a.)
+  @abstract(This unit defines VRML nodes. This is the most important
+  unit for VRML processing, as nodes are the key idea in VRML.)
 
-  Sa tu metody do odczytu sceny ze strumienia
-  pomagajac sobie lekserem VRML'a (w VRMLLexer) i parserem
-  pol VRML'a (w VRMLFields). Takze metody do zapisu wezlow
-  do strumienia.
+  In fact, the whole VRML file is just a VRML node, so "processing
+  VRML nodes" means also "processing VRML files".
+  And this unit allows you to read nodes from the stream
+  (with the help of lexer in VRMLLexer unit and parser of VRML fields
+  in VRMLFields unit). We also have here methods to save nodes back
+  to stream.
 
   I przede wszystkim metody do przeszukiwania grafu VRML'a na rozne sposoby -
   patrz metody Traverse, EnumNodes i FindNode. Szczegolnie metoda Traverse
@@ -53,31 +53,59 @@
   co jest wazne bo renderer przez OpenGL'a nie jest juz jedynym mozliwym
   rendererem - mamy juz VRMLRayTracer.
 
-  Kompatybilnosc z roznymi wersjami VRML'a :
-  - Elementarne jest aby KAZDY poprawny plik VRML'a 1.0 byl poprawnie
-    odczytany. Kazdy prawidlowy a nawet pare nieprawidlowych plikow
-    w VRMl'u 1.0 zostanie tu dobrze odczytanych.
+  As for VRML versions handling:
+  @unorderedList(
+    @item(
+      We handle both VRML 1.0 and 2.0.
+      Every correct VRML file should be parsed by this unit
+      (TODO: although for VRML 2.0 some constructs like "PROTO" are not
+      done yet, see TODO.vrml97).)
 
-  - Zgodnosc z Inventorem 1.0 : no coz, oblugujemy Inventora 1.0 tak jakby
-    byl VRML'em 1.0. Obslugujemy tez pare specyficznych rzeczy z
-    Inventora 1.0 ktorych nie ma w VRML'u a ktore czesto sie pojawiaja
-    w plikach .iv :
-    ) pole "hints" node'a ShapeHints
-    ) node IndexedTriangleMesh
+    @item(
+      Also many Inventor 1.0 files should be correctly parsed.
+      We handle Inventor 1.0 mostly like VRML 1.0, also some small
+      things and nodes specific for Inventor 1.0 are implemented here, see
+      [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_iv_in_vrml].
 
-    Mechanizm TNodeUnknown pozwala omijac parserowi nawet kompletnie
-    nieznane node'y pozbawione pol "fields" i "isA" (z VRML'a 1.0
-    extensibility features). Dlatego jestesmy w stanie odczytac i
-    wyswietlic satysfakcjonujaca czesc wiekszosci plikow Inventora
-    jakie mialem w /usr/share/inventor/demos/. Super !
+      TNodeUnknown pozwala omijac parserowi nawet kompletnie
+      nieznane node'y pozbawione pol "fields" i "isA" (z VRML'a 1.0
+      extensibility features). Dlatego jestesmy w stanie odczytac i
+      wyswietlic satysfakcjonujaca czesc wiekszosci plikow Inventora
+      jakie mialem w /usr/share/inventor/demos/. Super !)
 
-  - Nawet dla VRMLa 1.0 w wielu miejscach uzywam specyfikacji VRMLa 97
-    - zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
-      VRML 1.0,
-    - zeby pododawac do VRMLa 1.0 male drobiazgi z VRMLa 97, jak
-      attenuation swiatel.
-    - VRMLRayTracer uzywa modelu oswietlenia zdefiniowanego w specyfikacji
-      VRMLa 97
+    @item(
+      Nawet dla VRMLa 1.0 w wielu miejscach uzywam specyfikacji VRMLa 97
+      - zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
+        VRML 1.0,
+      - zeby pododawac do VRMLa 1.0 male drobiazgi z VRMLa 97, jak
+        attenuation swiatel.
+      - VRMLRayTracer uzywa modelu oswietlenia zdefiniowanego w specyfikacji
+        VRMLa 97)
+
+    @item(
+      Note that structures in this unit are @italic(not) focused
+      on either VRML 1.0 or VRML 2.0. On the contrary: we try to handle
+      the @italic(sum of VRML 1.0 and 2.0). When reading VRML 1.0,
+      many VRML 2.0 constructs (that not conflict with anything in VRML 1.0)
+      are allowed, and the other way around too.
+
+      Internally, we do @italic(not) convert VRML 1.0-specific constructs
+      to VRML 2.0 constructs (or the other way around).
+      For example, we do not convert VRML 1.0 idea of direct children nodes
+      to VRML 2.0 idea of children nodes embedded in MFNode fields.
+      We just allow both constructs. In fact, you could define here
+      a node that uses both VRML 1.0 children nodes and has some
+      MFNode fields --- in other words, a node invalid in terms of VRML 1.0 spec
+      and invalid in terms of VRML 2.0 spec, but valid if you take
+      "sum of features" of both VRML versions.
+
+      Sometimes this means more work for us, as some similar ideas
+      have to be implemented in two different ways, and then some
+      common access methods (like SmartChild* methods of TVRMLNode)
+      must be done. But the advantage is that we have a clean
+      implementation, that is suited and perfectly conforming
+      to both VRML 1.0 and 2.0.)
+  )
 
   Notka do mechanizmu DEF/USE : gdy uzywamy DEF nie mozemy odwolac
   sie do nazwy node'a ktory aktualnie parsujemy (osiagamy to
@@ -3104,8 +3132,10 @@ function ParseVRMLFile(const FileName: string;
 { SaveToVRMLFile writes whole VRML file (with signature '#VRML V1.0 ascii'
   and '# '+PrecedingComment, if PrecedingComment <> '') with RootNode =
   given Node }
-procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream; const PrecedingComment: string); overload;
-procedure SaveToVRMLFile(Node: TVRMLNode; const Filename, PrecedingComment: string); overload;
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  Stream: TStream; const PrecedingComment: string); overload;
+procedure SaveToVRMLFile(Node: TVRMLNode;
+  const Filename, PrecedingComment: string); overload;
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -5759,6 +5789,7 @@ begin
   { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
     see comments at ambientIntensity in implementation of TPointLight_2. }
   FdAmbientIntensity.Value := 0;
+  FdAmbientIntensity.DefaultValue := 0;
 end;
 
 class function TNodeDirectionalLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -6419,7 +6450,9 @@ begin
       specifications... Though VRML 2.0 indeed has more sensible default
       value, so that's another improvement in VRML 2.0. }
   FdAmbientIntensity.Value := 0;
+  FdAmbientIntensity.DefaultValue := 0;
   FdLocation.Value := ZeroVector3Single;
+  FdLocation.DefaultValue := ZeroVector3Single;
 
   Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
 end;
