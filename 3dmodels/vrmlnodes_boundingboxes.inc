@@ -40,7 +40,7 @@ end;
 
 { ------------------------------------------------------------------------ }
 
-function TNodeAsciiText.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var points: array[0..3]of TVector3Single;
     descend, rowh, yscale, maxRowWidth, minx, miny, maxx, maxy: Single;
     ttfont: PTrueTypeFont;
@@ -98,7 +98,7 @@ begin
    High(points)+1-firstPoint, 0, State.CurrMatrix);
 end;
 
-function TNodeCube.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
  result[0] := Vector3Single(-FdWidth.Value/2, -FdHeight.Value/2, -FdDepth.Value/2);
  result[1] := Vector3Single( FdWidth.Value/2,  FdHeight.Value/2,  FdDepth.Value/2);
@@ -163,7 +163,7 @@ begin
  result := CoordIndex^[indexNum];
 end;
 
-function TNodeGeneralIndexed.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeGeneralIndexed_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var Calculator: TGI_BBox_Calculator;
 begin
  Calculator := TGI_BBox_Calculator.Create;
@@ -178,7 +178,7 @@ begin
  finally Calculator.Free end;
 end;
 
-function TNodeGeneralIndexed.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TNodeGeneralIndexed_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var Calculator: TGI_BBox_Calculator;
 begin
  Calculator := TGI_BBox_Calculator.Create;

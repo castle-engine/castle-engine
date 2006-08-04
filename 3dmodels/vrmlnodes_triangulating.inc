@@ -110,7 +110,7 @@ end;
 
 { metody LocalTriangulate konkretnych node'ow ---------------------------------}
 
-procedure TNodeAsciiText.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeAsciiText_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
  { TODO: triangulate }
@@ -173,7 +173,7 @@ begin
  end;
 end;
 
-procedure TNodeCube.LocalTriangulate(State: TVRMLGraphTraverseState;
+procedure TNodeCube_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var MatPerPart: boolean;
 
@@ -273,7 +273,7 @@ begin
  end;
 end;
 
-procedure TNodeIndexed_Faces_Or_Triangles.LocalTriangulate(
+procedure TNodeIndexed_Faces_Or_Triangles_1.LocalTriangulate(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   NewTriangleProc: TNewTriangleProc);
 
@@ -297,7 +297,7 @@ procedure TNodeIndexed_Faces_Or_Triangles.LocalTriangulate(
        NewTriData.Vertices, @NewTriangleOfFaceSet, @NewTriData, 0) else
      TriangulateConvexFace(EndIndex-StartIndex, @NewTriangleOfFaceSet, @NewTriData, 0);
    end else
-   if Self is TNodeIndexedTriangleMesh then
+   if Self is TNodeIndexedTriangleMesh_1 then
    begin
     TriangulateTriangleStrip(EndIndex-StartIndex, @NewTriangleOfFaceSet, @NewTriData, 0);
    end else

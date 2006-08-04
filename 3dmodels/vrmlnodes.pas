@@ -74,13 +74,15 @@
       jakie mialem w /usr/share/inventor/demos/. Super !)
 
     @item(
-      Nawet dla VRMLa 1.0 w wielu miejscach uzywam specyfikacji VRMLa 97
-      - zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
-        VRML 1.0,
-      - zeby pododawac do VRMLa 1.0 male drobiazgi z VRMLa 97, jak
-        attenuation swiatel.
-      - VRMLRayTracer uzywa modelu oswietlenia zdefiniowanego w specyfikacji
-        VRMLa 97)
+      Nawet dla VRMLa 1.0 w wielu miejscach uzywam specyfikacji VRMLa 97:
+      @unorderedList(
+        @item(zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
+          VRML 1.0)
+        @item(zeby pododawac do VRMLa 1.0 male drobiazgi z VRMLa 97, jak
+          attenuation swiatel)
+        @item(VRMLRayTracer uzywa modelu oswietlenia zdefiniowanego
+          w specyfikacji VRMLa 97)
+      ))
 
     @item(
       Note that structures in this unit are @italic(not) focused
@@ -89,7 +91,7 @@
       many VRML 2.0 constructs (that not conflict with anything in VRML 1.0)
       are allowed, and the other way around too.
 
-      Internally, we do @italic(not) convert VRML 1.0-specific constructs
+      Internally, we do not convert VRML 1.0-specific constructs
       to VRML 2.0 constructs (or the other way around).
       For example, we do not convert VRML 1.0 idea of direct children nodes
       to VRML 2.0 idea of children nodes embedded in MFNode fields.
@@ -121,44 +123,55 @@
   mozna patrzec jako na jakis rodzaj dekonstrukcji to my zawsze zostajemy
   w posiadaniu calej informacji o scenie.
   Sa dwa wyjatki :
-  1) node WWWInline ktory w BeforeTraverse laduje swoja scene jako swoje dziecko
-  2) node'y moga (w niezdefiniowanym momencie) poprawiac wartosci
-     swoich pol jesli te sa w oczywisty sposob nieprawidlowe i
-     bezsensowne. Staram sie przy tym uznawac mozliwie duzo wartosci
-     za sensowne (np. specyfikacja VRMLa nie dopuszcza Cylindra ktory
-     nie ma zadnej czesci wlaczonej, ale ja to dopuszczam) wiec jezeli program
-     i scena sa dobrze napisane to taka sytuacja nie powinna nigdy zajsc.
-  3) w przypadku scen o wielu root node'ach (ktore sa de facto niepoprawne
-     trzymajac sie sciscle specyfikacji VRMLa 1.0, chociaz sa poprawne w
-     VRMLu 97 i ja je dopuszczam takze w VRMLu 1.0, patrz nizej) jezeli
-     root node'ow w pliku byloby wiele to jako root node tworzymy sobie
-     node Group i w nim umieszczamy wszystkie root nodes.
-     (jest to zaimplementowane w ParseVRMLFile. Jest to chyba najbardziej
-     sensowny sposob w jaki mozna to zrobic - w programie bedziemy chcieli
-     przeciez reprezentowac model VRMLa jako jeden obiekt; wiec nalezaloby
-     uzyc TVRMLNodesList, ale wtedy musielibysmy powtorzyc implementacje
-     wielu rzeczy w TVRMLNode takze dla takiej listy; wiec tutaj pomysl:
-     przeciez klasa TNodeGroup jest wlasnie taka prosta lista node'ow.)
+  @orderedList(
+    @item(
+      node WWWInline ktory w BeforeTraverse laduje swoja scene jako swoje dziecko)
+    @item(
+      node'y moga (w niezdefiniowanym momencie) poprawiac wartosci
+      swoich pol jesli te sa w oczywisty sposob nieprawidlowe i
+      bezsensowne. Staram sie przy tym uznawac mozliwie duzo wartosci
+      za sensowne (np. specyfikacja VRMLa nie dopuszcza Cylindra ktory
+      nie ma zadnej czesci wlaczonej, ale ja to dopuszczam) wiec jezeli program
+      i scena sa dobrze napisane to taka sytuacja nie powinna nigdy zajsc.)
 
-     We represent this special "additional" Group node as a TNodeGroupHidden,
-     @italic(that is a descendant of TNodeGroup (not the other way around)).
-     This way you can entirely forget about this issue and just process
-     the VRML model as you like, and the only downside will be that you
-     will actually work with a different model (with additional Group node)
-     than what was encoded in the file. You can also test for
-     (Node is TNodeGroupHidden) and recognize this special case.
-     SaveToVRMLFile does this, and avoids writing this hidden Group node.
+    @item(
+      w przypadku scen o wielu root node'ach (ktore sa de facto niepoprawne
+      trzymajac sie sciscle specyfikacji VRMLa 1.0, chociaz sa poprawne w
+      VRMLu 97 i ja je dopuszczam takze w VRMLu 1.0, patrz nizej) jezeli
+      root node'ow w pliku byloby wiele to jako root node tworzymy sobie
+      node Group i w nim umieszczamy wszystkie root nodes.
+
+      (Jest to zaimplementowane w ParseVRMLFile. Jest to chyba najbardziej
+      sensowny sposob w jaki mozna to zrobic - w programie bedziemy chcieli
+      przeciez reprezentowac model VRMLa jako jeden obiekt; wiec nalezaloby
+      uzyc TVRMLNodesList, ale wtedy musielibysmy powtorzyc implementacje
+      wielu rzeczy w TVRMLNode takze dla takiej listy; wiec tutaj pomysl:
+      przeciez klasa TNodeGroup jest wlasnie taka prosta lista node'ow.)
+
+      We represent this special "additional" Group node as a TNodeGroupHidden,
+      @italic(that is a descendant of TNodeGroup (not the other way around)).
+      This way you can entirely forget about this issue and just process
+      the VRML model as you like, and the only downside will be that you
+      will actually work with a different model (with additional Group node)
+      than what was encoded in the file. You can also test for
+      (Node is TNodeGroupHidden) and recognize this special case.
+      SaveToVRMLFile does this, and avoids writing this hidden Group node.)
+  )
 
   Takie unikanie dekonstrukcji pozwoli nam
-  1) na unikniecie zbytniego przywiazania naszego kodu VRMLa do konkretnych
-     zastosowan. Poniewaz mamy cala informacje o scenie mozemy zrobic
-     wszystko co mozemy zrobic ze scena VRMLa - co nie byloby mozliwe gdybysmy
-     w czasie dekonstrukcji (np. wykonujac juz w czasie odczytu wszystkie
-     transformacje na macierzy i transformujac punkty) tracili jakas czesc
-     informacji.
-  2) no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
-     konwerterow innych formatow na VRMLa. Uzywajac modulu Object3dAsVRML
-     i tutejszego SaveToVRMLFile mamy sliczny konwerter 3ds, obj, geo -> VRML.
+  @orderedList(
+    @item(
+      na unikniecie zbytniego przywiazania naszego kodu VRMLa do konkretnych
+      zastosowan. Poniewaz mamy cala informacje o scenie mozemy zrobic
+      wszystko co mozemy zrobic ze scena VRMLa - co nie byloby mozliwe gdybysmy
+      w czasie dekonstrukcji (np. wykonujac juz w czasie odczytu wszystkie
+      transformacje na macierzy i transformujac punkty) tracili jakas czesc
+      informacji.)
+    @item(
+      no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
+      konwerterow innych formatow na VRMLa. Uzywajac modulu Object3dAsVRML
+      i tutejszego SaveToVRMLFile mamy sliczny konwerter 3ds, obj, geo -> VRML.)
+  )
 
   Specyfikacja VRMLa 1.0 z dodanymi "moimi rozszerzeniami VMRLa"
   [http://www.camelot.homedns.org/~michalis/kambi-vrml.php] stanowia
@@ -1210,7 +1223,20 @@ type
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
   end;
 
-  TNodeAsciiText = class(TNodeGeneralShape)
+  { This is descendant of TNodeGeneralShape that is allowed only in
+    VRML <= 1.0.
+
+    In VRML 1.0 shape nodes are allowed pretty everywhere,
+    while VRML 2.0 has different idea of how shapes are handled
+    (they must be inside Shape node), so no shape node
+    is suitable at the same time for VRML 1.0 and VRML 2.0. }
+  TNodeGeneralShape_1 = class(TNodeGeneralShape)
+  public
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+  end;
+
+  TNodeAsciiText_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdString: TMFString index 0 read GetFieldAsMFString;
@@ -1225,7 +1251,7 @@ type
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCone_1 = class(TNodeGeneralShape)
+  TNodeCone_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdParts: TSFBitMask index 0 read GetFieldAsSFBitMask;
@@ -1236,12 +1262,9 @@ type
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
-  TNodeCube = class(TNodeGeneralShape)
+  TNodeCube_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdWidth: TSFFloat index 0 read GetFieldAsSFFloat;
@@ -1254,7 +1277,7 @@ type
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCylinder_1 = class(TNodeGeneralShape)
+  TNodeCylinder_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdParts: TSFBitMask index 0 read GetFieldAsSFBitMask;
@@ -1265,13 +1288,10 @@ type
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
   {wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet}
-  TNodeGeneralIndexed = class(TNodeGeneralShape)
+  TNodeGeneralIndexed_1 = class(TNodeGeneralShape_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     property FdCoordIndex: TMFLong index 0 read GetFieldAsMFLong;
@@ -1285,33 +1305,27 @@ type
   end;
 
   { wspolny rodzic dla IndexedFaceSet i IndexedTriangleMesh }
-  TNodeIndexed_Faces_Or_Triangles = class(TNodeGeneralIndexed)
+  TNodeIndexed_Faces_Or_Triangles_1 = class(TNodeGeneralIndexed_1)
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles)
+  TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
   { IndexedTriangleMesh --- from Inventor 1.0. }
-  TNodeIndexedTriangleMesh = class(TNodeIndexed_Faces_Or_Triangles)
+  TNodeIndexedTriangleMesh_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
   end;
 
-  TNodeIndexedLineSet_1 = class(TNodeGeneralIndexed)
+  TNodeIndexedLineSet_1 = class(TNodeGeneralIndexed_1)
     class function ClassNodeTypeName: string; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
-  TNodePointSet_1 = class(TNodeGeneralShape)
+  TNodePointSet_1 = class(TNodeGeneralShape_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1330,12 +1344,9 @@ type
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
-  TNodeSphere_1 = class(TNodeGeneralShape)
+  TNodeSphere_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdRadius: TSFFloat index 0 read GetFieldAsSFFloat;
@@ -1344,9 +1355,6 @@ type
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
   end;
 
   TNodeCoordinate3 = class(TVRMLNode)
@@ -3129,9 +3137,10 @@ function ParseVRMLFile(Stream: TPeekCharStream;
 function ParseVRMLFile(const FileName: string;
   AllowStdIn: boolean): TVRMLNode; overload;
 
-{ SaveToVRMLFile writes whole VRML file (with signature '#VRML V1.0 ascii'
-  and '# '+PrecedingComment, if PrecedingComment <> '') with RootNode =
-  given Node }
+{ SaveToVRMLFile writes whole VRML file with given root Node.
+  This includes writing VRML header '#VRML ...'.
+  Also if PrecedingComment <> '' then we will write a comment
+  '# '+ PrecedingComment at the beginning. }
 procedure SaveToVRMLFile(Node: TVRMLNode;
   Stream: TStream; const PrecedingComment: string); overload;
 procedure SaveToVRMLFile(Node: TVRMLNode;
@@ -4175,13 +4184,21 @@ begin
     inherited;
 end;
 
+{ TNodeGeneralShape_1 -------------------------------------------------------- }
+
+class function TNodeGeneralShape_1.ForVRMLVersion(
+  const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor <= 1;
+end;
+
 { specific VRML nodes --------------------------------------------------------- }
 
 {$I VRMLNodes_BoundingBoxes.inc}
 {$I VRMLNodes_VerticesAndTrianglesCounting.inc}
 {$I VRMLNodes_Triangulating.inc}
 
-constructor TNodeAsciiText.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..0]of string = ('');
       A2: array[0..2]of string = ('LEFT', 'CENTER', 'RIGHT');
       A3: array[0..0]of Single = (0);
@@ -4193,7 +4210,7 @@ begin
  Fields.Add(TMFFloat.Create('width', A3));
 end;
 
-class function TNodeAsciiText.ClassNodeTypeName: string;
+class function TNodeAsciiText_1.ClassNodeTypeName: string;
 begin
  result := 'AsciiText';
 end;
@@ -4212,12 +4229,7 @@ begin
  result := 'Cone';
 end;
 
-class function TNodeCone_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
-end;
-
-constructor TNodeCube.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  inherited;
  Fields.Add(TSFFloat.Create('width', 2, true));
@@ -4225,7 +4237,7 @@ begin
  Fields.Add(TSFFloat.Create('depth', 2, true));
 end;
 
-class function TNodeCube.ClassNodeTypeName: string;
+class function TNodeCube_1.ClassNodeTypeName: string;
 begin
  result := 'Cube';
 end;
@@ -4244,12 +4256,7 @@ begin
  result := 'Cylinder';
 end;
 
-class function TNodeCylinder_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
-end;
-
-constructor TNodeGeneralIndexed.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeGeneralIndexed_1.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..0]of Longint = (0);
       A2: array[0..0]of Longint = (-1);
 begin
@@ -4265,12 +4272,7 @@ begin
  result := 'IndexedFaceSet';
 end;
 
-class function TNodeIndexedFaceSet_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
-end;
-
-class function TNodeIndexedTriangleMesh.ClassNodeTypeName: string;
+class function TNodeIndexedTriangleMesh_1.ClassNodeTypeName: string;
 begin
  result := 'IndexedTriangleMesh';
 end;
@@ -4278,11 +4280,6 @@ end;
 class function TNodeIndexedLineSet_1.ClassNodeTypeName: string;
 begin
  result := 'IndexedLineSet';
-end;
-
-class function TNodeIndexedLineSet_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
 end;
 
 constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4324,11 +4321,6 @@ begin
  end;
 end;
 
-class function TNodePointSet_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
-end;
-
 constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  inherited;
@@ -4338,11 +4330,6 @@ end;
 class function TNodeSphere_1.ClassNodeTypeName: string;
 begin
  result := 'Sphere';
-end;
-
-class function TNodeSphere_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor <= 1;
 end;
 
 constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -7148,13 +7135,16 @@ end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
   const PrecedingComment: string);
+const
+  VRML10Header = '#VRML V1.0 ascii';
+  VRML20Header = '#VRML V2.0 utf8';
 var
   NodeNameBinding: TStringList;
   I: Integer;
 begin
   NodeNameBinding := TStringListCaseSens.Create;
   try
-    WriteStr(Stream, VRML10SignatureLine +nl +nl);
+    WriteStr(Stream, VRML10Header +nl +nl);
     if PrecedingComment <> '' then
       WriteStr(Stream, '# '+PrecedingComment +nl +nl);
 
@@ -7201,10 +7191,10 @@ initialization
  NodesManager := TNodesManager.Create;
  NodesManager.RegisterNodeClasses([
    { Inventor spec nodes }
-   TNodeIndexedTriangleMesh, TNodeRotationXYZ,
+   TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
 
    { VRML 1.0 spec nodes }
-   TNodeAsciiText, TNodeCone_1, TNodeCube, TNodeCylinder_1,
+   TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
    TNodePointSet_1, TNodeSphere_1,
    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,

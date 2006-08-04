@@ -1904,21 +1904,21 @@ begin
   Render_MaterialsBegin;
   try
    case ArrayPosPointer(Node.ClassType, [
-         TNodeAsciiText,
+         TNodeAsciiText_1,
          TNodeCone_1,
-         TNodeCube,
+         TNodeCube_1,
          TNodeCylinder_1,
          TNodePointSet_1,
          TNodeSphere_1,
          TNodeIndexedFaceSet_1,
-         TNodeIndexedTriangleMesh,
+         TNodeIndexedTriangleMesh_1,
          TNodeIndexedLineSet_1 ]) of
-    0: RenderAsciiText(TNodeAsciiText (Node));
-    1: RenderCone     (TNodeCone_1    (Node));
-    2: RenderCube     (TNodeCube      (Node));
-    3: RenderCylinder (TNodeCylinder_1(Node));
-    4: RenderPointSet (TNodePointSet_1(Node));
-    5: RenderSphere   (TNodeSphere_1  (Node));
+    0: RenderAsciiText(TNodeAsciiText_1(Node));
+    1: RenderCone     (TNodeCone_1     (Node));
+    2: RenderCube     (TNodeCube_1     (Node));
+    3: RenderCylinder (TNodeCylinder_1 (Node));
+    4: RenderPointSet (TNodePointSet_1 (Node));
+    5: RenderSphere   (TNodeSphere_1   (Node));
     6, 7, 8:
       begin
        IndexedRenderer := CreateIndexedRenderer(Self);

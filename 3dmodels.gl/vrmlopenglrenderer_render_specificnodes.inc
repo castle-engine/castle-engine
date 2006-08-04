@@ -40,7 +40,7 @@
 
 { AsciiText -------------------------------------------------------------------- }
 
-procedure RenderAsciiText(Node: TNodeAsciiText);
+procedure RenderAsciiText(Node: TNodeAsciiText_1);
 
   { StringPos* ignore last FontStyle Size, just assume that
     CurrentFont has right size.
@@ -140,7 +140,7 @@ end;
 
 { Cube ------------------------------------------------------------------------ }
 
-procedure RenderCube(Node: TNodeCube);
+procedure RenderCube(Node: TNodeCube_1);
 var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);

@@ -26,10 +26,10 @@
 {$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
 {$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}  
 
-function TNodeAsciiText.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeAsciiText_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin result:=0;{TODO} end;
 
-function TNodeAsciiText.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeAsciiText_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin result:=0;{TODO} end;
 
 function TNodeCone_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
@@ -68,7 +68,7 @@ begin
  end;
 end;
 
-function TNodeCube.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCube_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  if OverTriangulate then
   {6 scian, na kazdej Sqr(RECT_DIVISIONS+1) kwadracikow}
@@ -76,7 +76,7 @@ begin
   result:=6 * 2;
 end;
 
-function TNodeCube.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCube_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  if OverTriangulate then
   {6 scian, w srodku kazdej Sqr(RECT_DIVISIONS) vertexow,
@@ -116,12 +116,12 @@ begin
  end;
 end;
 
-function TNodeGeneralIndexed.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeGeneralIndexed_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 begin
  result:=State.LastNodes.Coordinate3.FdPoint.Count;
 end;
 
-function TNodeIndexed_Faces_Or_Triangles.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
 var startIndex,endIndex:integer;
 begin
  startIndex:=0;

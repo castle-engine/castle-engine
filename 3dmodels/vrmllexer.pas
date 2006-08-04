@@ -274,12 +274,6 @@ const
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
     'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field');
 
-const
-  { to jest pelna sygnatura VRML'a 1.0. Niniejszy lekser tego nie uzywa
-    bo tak naprawde mozna to sygnature zapisac tez nieco inaczej.
-    Ale moze byc przydatne dla programow zapisujacych VRML'e }
-  VRML10SignatureLine = '#VRML V1.0 ascii';
-
 { otoczy s cudzyslowami i zmieni wnetrze s tak zeby wynik mogl byc
   zapisany jako token vtString o wartosci s. Mowiac wprost,
   zamieni wszystkie " na \" i wszystkie \ na \\. }

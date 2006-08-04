@@ -46,7 +46,7 @@ type
        -1 lub koncami listy FdCoordIndex. Render_Init/Fini mozesz
        wykorzystac jak chcesz - w sposob odpowiedni dla danej podklasy. }
     State: TVRMLGraphTraverseState;
-    Node: TNodeGeneralIndexed;
+    Node: TNodeGeneralIndexed_1;
     Renderer: TVRMLOpenGLRenderer;
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
@@ -97,7 +97,7 @@ type
 
 function CreateIndexedRenderer(ARenderer: TVRMLOpenGLRenderer): TGeneralIndexedRenderer;
 begin
- if ARenderer.Render_Node is TNodeIndexedTriangleMesh then
+ if ARenderer.Render_Node is TNodeIndexedTriangleMesh_1 then
   result := TIndexedTriangleMeshRenderer.Create(ARenderer) else
  if ARenderer.Render_Node is TNodeIndexedFaceSet_1 then
   result := TIndexedFaceSetRenderer.Create(ARenderer) else
@@ -113,7 +113,7 @@ begin
  inherited Create;
  Renderer := ARenderer;
  State := Renderer.Render_State;
- Node := TNodeGeneralIndexed(Renderer.Render_Node);
+ Node := TNodeGeneralIndexed_1(Renderer.Render_Node);
 end;
 
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
