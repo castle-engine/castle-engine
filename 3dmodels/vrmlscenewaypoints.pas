@@ -240,9 +240,9 @@ var
   ParentIndex: Integer;
   Parent: TVRMLNode;
 begin
-  for ParentIndex := 0 to Node.ParentsCount - 1 do
+  for ParentIndex := 0 to Node.ParentNodesCount - 1 do
   begin
-    Parent := Node.Parents[ParentIndex];
+    Parent := Node.ParentNodes[ParentIndex];
     if IsPrefix(WaypointPrefix, Parent.NodeName) then
     begin
       CreateNewWaypoint(SEnding(Parent.NodeName, Length(WaypointPrefix) + 1));
@@ -262,7 +262,7 @@ begin
   try
     Node.TraverseFromDefaultState(TNodeGeneralShape, TraverseForWaypoints);
     for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParents;
+      NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
   finally NodesToRemove.Free end;
 end;
 
@@ -343,9 +343,9 @@ var
   ParentIndex: Integer;
   Parent: TVRMLNode;
 begin
-  for ParentIndex := 0 to Node.ParentsCount - 1 do
+  for ParentIndex := 0 to Node.ParentNodesCount - 1 do
   begin
-    Parent := Node.Parents[ParentIndex];
+    Parent := Node.ParentNodes[ParentIndex];
     if IsPrefix(SectorPrefix, Parent.NodeName) then
     begin
       AddSectorBoundingBox(SEnding(Parent.NodeName, Length(SectorPrefix) + 1));
@@ -365,7 +365,7 @@ begin
   try
     Node.TraverseFromDefaultState(TNodeGeneralShape, TraverseForSectors);
     for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParents;
+      NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
   finally NodesToRemove.Free end;
 end;
 

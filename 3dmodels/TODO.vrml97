@@ -11,6 +11,13 @@ VRML 97 TODO items:
 - Probably everywhere where ITERATE_CHILDREN_LOOP we should also
   enter into (some of?) children in SFNode/MFNode.
 
+- vrmlscenewaypoints.pas:
+  now uses ParentNodes, should also include ParentFields ?
+  Same for CastleLevel.
+
+- castledebugmenu: fix to include also VRML 97 light nodes,
+  not only _1 nodes.
+
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
   - 4.2.4 Prototypes
