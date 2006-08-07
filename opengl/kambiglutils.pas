@@ -366,7 +366,7 @@ function ImageGLType(const Img: TImage): TGLenum;
   ForbiddenConvs = LoadForbiddenConvs, see @link(Images.LoadImage)
   for description what these parameters mean.
   LoadAsClass may contain only classes present in GLImageClasses. }
-function LoadImageToDispList(const fname: string;
+function LoadImageToDispList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint; overload;
@@ -440,7 +440,7 @@ function ImageDrawToDispList(const img: TImage): TGLuint;
 
   Note that you can pass here any ReadBuffer value allowed by
   glReadBuffer OpenGL function). }
-procedure SaveScreen_noflush(const fname: string; ReadBuffer: TGLenum); overload;
+procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
@@ -1313,34 +1313,36 @@ end;
 
 function ImageGLFormat(const Img: TImage): TGLenum;
 begin
- if Img is TRGBImage then
-  Result := GL_RGB else
- if Img is TAlphaImage then
-  Result := GL_RGBA else
-  Result := GL_INVALID_ENUM;
+  if Img is TRGBImage then
+    Result := GL_RGB else
+  if Img is TAlphaImage then
+    Result := GL_RGBA else
+    Result := GL_INVALID_ENUM;
 end;
 
 function ImageGLType(const Img: TImage): TGLenum;
 begin
- if Img is TRGBImage then
-  Result := GL_UNSIGNED_BYTE else
- if Img is TAlphaImage then
-  Result := GL_UNSIGNED_BYTE else
-  Result := GL_INVALID_ENUM;
+  if Img is TRGBImage then
+    Result := GL_UNSIGNED_BYTE else
+  if Img is TAlphaImage then
+    Result := GL_UNSIGNED_BYTE else
+    Result := GL_INVALID_ENUM;
 end;
 
 { Loading images ------------------------------------------------------------- }
 
-function LoadImageToDispList(const fname: string;
+function LoadImageToDispList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint;
-var img: TImage;
+var
+  Img: TImage;
 begin
- img := LoadImage(fname, LoadAsClass, LoadForbiddenConvs, ResizeToX, ResizeToY);
- try
-  result := ImageDrawToDispList(img);
- finally Img.Free end;
+  Img := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
+    ResizeToX, ResizeToY);
+  try
+    Result := ImageDrawToDispList(Img);
+  finally Img.Free end;
 end;
 
 procedure ImageDraw(const Image: TImage);
@@ -1386,13 +1388,13 @@ begin
  finally LoadPixelStoreUnpack(pixUnpack) end;
 end;
 
-function ImageDrawToDispList(const img: TImage): TGLuint;
+function ImageDrawToDispList(const Img: TImage): TGLuint;
 begin
- result := glGenListsCheck(1, 'ImageDrawToDispList');
- glNewList(result, GL_COMPILE);
- try
-  ImageDraw(img);
- finally glEndList end;
+  Result := glGenListsCheck(1, 'ImageDrawToDispList');
+  glNewList(Result, GL_COMPILE);
+  try
+    ImageDraw(Img);
+  finally glEndList end;
 end;
 
 { Saving screen to TRGBImage ------------------------------------------------ }
@@ -1413,12 +1415,12 @@ begin
  except Result.Free; raise end;
 end;
 
-procedure SaveScreen_noflush(const fname: string; ReadBuffer: TGLenum);
+procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum);
 var img: TRGBImage;
 begin
  try
   img := SaveScreen_noflush(ReadBuffer);
-  SaveImage(img, fname);
+  SaveImage(img, FileName);
  finally Img.Free end;
 end;
 
