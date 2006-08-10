@@ -681,13 +681,6 @@ type
     property ParentFields[Index: Integer]: TVRMLField read GetParentFieldsItem;
     function ParentFieldsCount: Integer;
 
-    { Seeks @link(ParentNodes) list for parent named ParentNodeName,
-      returns it's index. Returns -1 if not found.
-
-      Use TryFindParentNodeByName if you want to seek non-direct
-      ParentNodes too. }
-    function IndexOfDirectParentNode(const ParentNodeName: string): Integer;
-
     { bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
       ze WSZYSTKICH list ParentNodes[].Children i robi Destroy.
       Tym samym robi nam Free robiac to czego normalne Free nie robi :
@@ -3907,14 +3900,6 @@ end;
 function TVRMLNode.ParentFieldsCount: Integer;
 begin
   Result := FParentFields.Count;
-end;
-
-function TVRMLNode.IndexOfDirectParentNode(const ParentNodeName: string): Integer;
-begin
-  for Result := 0 to ParentNodesCount - 1 do
-    if ParentNodes[Result].NodeName = ParentNodeName then
-      Exit;
-  Result := -1;
 end;
 
 procedure TVRMLNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
