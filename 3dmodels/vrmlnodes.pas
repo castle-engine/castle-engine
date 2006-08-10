@@ -479,7 +479,6 @@ type
   private
     fNodeName: string;
     FWWWBasePath: string;
-  private
     FChildren, FParentNodes: TVRMLNodesList;
     function GetChildrenItem(i: integer): TVRMLNode;
     function GetParentNodesItem(i: integer): TVRMLNode;
@@ -494,6 +493,7 @@ type
       var VerMajor, VerMinor, SuggestionPriority: Integer;
       const NewResult: boolean;
       const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
+    procedure TryFindNode_Found(Node: TVRMLNode);
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -927,18 +927,27 @@ type
       const SeekNodeName: string;
       proc: TVRMLNodeProc; OnlyActive: boolean); overload;
 
-    { TryFindNode(ByName) : szuka wsrod siebie i swoich subnode'ow
-      node'a o zadanej nazwie/klasie. Jezeli nie znajdzie zwraca nil.
+    { TryFindNodeByName and TryFindNode seek for a node with
+      given class (and node name, in case of TryFindNodeByName).
+      If OnlyActive then they seek among only active nodes
+      (as defined by DirectEnumerateActive), otherwise all nodes.
 
-      FindNodeByName : j.w. ale jezeli nie znajdzie - wyjatek.
+      These functions are quite like EnumerateNodes, except
+      they stop at the first occurence and return it.
 
-      Jezeli enumOnlyInActiveNodes to bedzie wchodzil tylko w dzieci
-      zwrocone przez ChildrenToEnter. Wpp. bedzie wchodzil we wszystkie
-      dzieci. }
-    function TryFindNodeByName(const FindName: string; enumOnlyInActiveNodes: boolean): TVRMLNode;
-    function FindNodeByName(const FindName: string; enumOnlyInActiveNodes: boolean): TVRMLNode;
-    function TryFindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
-    function FindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
+      TryFindNodeByName and TryFindNode return @nil if such node
+      is not found. FindNodeByName and FindNode raise exception
+      in this case. }
+    function TryFindNodeByName(FindClass: TVRMLNodeClass;
+      const FindName: string;
+      OnlyActive: boolean): TVRMLNode;
+    function FindNodeByName(FindClass: TVRMLNodeClass;
+      const FindName: string;
+      OnlyActive: boolean): TVRMLNode;
+    function TryFindNode(FindClass: TVRMLNodeClass;
+      OnlyActive: boolean): TVRMLNode;
+    function FindNode(FindClass: TVRMLNodeClass;
+      OnlyActive: boolean): TVRMLNode;
 
     { Znajdz pierwszy Node (zadanej klasy NodeClass) razem ze State
       (lub tylko z Transform).
@@ -4195,30 +4204,61 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-function TVRMLNode.TryFindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
-ITERATE_CHILDREN_DECLARE
-begin
- if Self is FindClass then
-  result := Self else
- begin
-  result := nil;
-
-  if enumOnlyInActiveNodes then
-   ITERATE_CHILDEN_INIT else
-   begin FirstChild := 0; LastChild := ChildrenCount-1 end;
-
-  ITERATE_CHILDREN_LOOP
-  begin
-   result := Children[ChildIndex].TryFindNode(FindClass, enumOnlyInActiveNodes);
-   if result <> nil then exit;
+type
+  BreakTryFindNode = class(TCodeBreaker)
+  public
+    FoundNode: TVRMLNode;
+    constructor Create(AFoundNode: TVRMLNode);
   end;
- end;
+
+  constructor BreakTryFindNode.Create(AFoundNode: TVRMLNode);
+  begin
+    inherited Create;
+    FoundNode := AFoundNode;
+  end;
+
+procedure TVRMLNode.TryFindNode_Found(Node: TVRMLNode);
+begin
+  raise BreakTryFindNode.Create(Node);
 end;
 
-function TVRMLNode.FindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
+function TVRMLNode.TryFindNode(FindClass: TVRMLNodeClass;
+  OnlyActive: boolean): TVRMLNode;
 begin
- result := TryFindNode(FindClass, enumOnlyInActiveNodes);
- Check(result <> nil, 'Node class '+FindClass.ClassName+' not found (by TVRMLNode.FindNode)');
+  try
+    EnumerateNodes(FindClass, TryFindNode_Found, OnlyActive);
+    Result := nil;
+  except
+    on B: BreakTryFindNode do Result := B.FoundNode;
+  end;
+end;
+
+function TVRMLNode.FindNode(FindClass: TVRMLNodeClass; OnlyActive: boolean): TVRMLNode;
+begin
+  result := TryFindNode(FindClass, OnlyActive);
+  Check(result <> nil,
+    'Node class '+FindClass.ClassName+' not found (by TVRMLNode.FindNode)');
+end;
+
+function TVRMLNode.TryFindNodeByName(
+  FindClass: TVRMLNodeClass; const FindName: string;
+  OnlyActive: boolean): TVRMLNode;
+begin
+  try
+    EnumerateNodes(FindClass, FindName, TryFindNode_Found, OnlyActive);
+    Result := nil;
+  except
+    on B: BreakTryFindNode do Result := B.FoundNode;
+  end;
+end;
+
+function TVRMLNode.FindNodeByName(
+  FindClass: TVRMLNodeClass; const FindName: string;
+  OnlyActive: boolean): TVRMLNode;
+begin
+  result := TryFindNodeByName(FindClass, FindName, OnlyActive);
+  Check(result <> nil,
+    'Node name '+FindName+' not found (by TVRMLNode.FindNodeByName)');
 end;
 
 { TVRMLNode.TryFindNodeState/Transform ----------------------------------------- }
@@ -4296,34 +4336,6 @@ begin
 end;
 
 { TVRMLNode.[...]Find[...]NodeByName ------------------------------------------ }
-
-function TVRMLNode.TryFindNodeByName(const FindName: string;
-  enumOnlyInActiveNodes: boolean): TVRMLNode;
-ITERATE_CHILDREN_DECLARE
-begin
- if NodeName = FindName then
-  result := Self else
- begin
-  result := nil;
-
-  if enumOnlyInActiveNodes then
-   ITERATE_CHILDEN_INIT else
-   begin FirstChild := 0; LastChild := ChildrenCount-1 end;
-
-  ITERATE_CHILDREN_LOOP
-  begin
-   result := Children[ChildIndex].TryFindNodeByName(FindName, enumOnlyInActiveNodes);
-   if result <> nil then exit;
-  end;
- end;
-end;
-
-function TVRMLNode.FindNodeByName(const FindName: string;
-  enumOnlyInActiveNodes: boolean): TVRMLNode;
-begin
- result := TryFindNodeByName(FindName, enumOnlyInActiveNodes);
- Check(result <> nil, 'Node name '+FindName+' not found (by TVRMLNode.FindNodeByName)');
-end;
 
 function TVRMLNode.TryFindParentNodeByName(const FindName: string): TVRMLNode;
 var i: integer;
