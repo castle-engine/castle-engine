@@ -57,7 +57,7 @@ program demo_animation;
 uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit;
+  KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
 
 const
   { This is the number of animation frames constructed per one unit of time.

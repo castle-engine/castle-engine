@@ -30,7 +30,7 @@
   to stream.
 
   I przede wszystkim metody do przeszukiwania grafu VRML'a na rozne sposoby -
-  patrz metody Traverse, EnumNodes i FindNode. Szczegolnie metoda Traverse
+  patrz metody Traverse, EnumerateNodes i FindNode. Szczegolnie metoda Traverse
   jest wazna : pozwala ona zamienic graf VRMl'a na liste par
   (Node typu TGeneralShapeNode + State : TVRMLGraphTraverseState).
   Renderowanie takiej listy sprowadza sie teraz do wyrenderowania
@@ -167,6 +167,7 @@
       w czasie dekonstrukcji (np. wykonujac juz w czasie odczytu wszystkie
       transformacje na macierzy i transformujac punkty) tracili jakas czesc
       informacji.)
+
     @item(
       no i mozemy w ten sposob latwo wykorzystac nasz kod VRMLa do pisania
       konwerterow innych formatow na VRMLa. Uzywajac modulu Object3dAsVRML
@@ -182,7 +183,7 @@
   GeneralCamera, GeneralTraformation itp. Te klasy pozwalaja
   nam zaimplementowac jakas funkcjonalnosc dla kilku podobnych
   klas jednoczesnie, te klasy buduja tez ladne drzewko
-  zaleznosci obiektow dzieki czemu np. w EnumNodes mozemy
+  zaleznosci obiektow dzieki czemu np. w EnumerateNodes mozemy
   jako parametr podac TNodeGeneralLights aby znalezc wszystkie
   swiatla na scenie.
 
@@ -456,6 +457,9 @@ type
   TTraversingFunc = procedure (Node: TVRMLNode;
     State: TVRMLGraphTraverseState) of object;
 
+  TEnumerateChildrenFunction =
+    procedure (Node, Child: TVRMLNode) of object;
+
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
     MatNum: integer) of object;
@@ -463,6 +467,14 @@ type
   TSFNode = class;
   TMFNode = class;
 
+  { VRML node.
+
+    Each descendant must:
+    - Define Fd* fields that allow fast, comfortable and type-secure way
+      for program to retrieve and set their fields
+    - override constructor (look at TVRMLNode.Create comments for things
+      that MUST be defined in this derived constructor).
+  }
   TVRMLNode = class
   private
     fNodeName: string;
@@ -485,6 +497,34 @@ type
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
+
+    { This enumerates all active child nodes of given node.
+      "Active nodes" means that only the visible (or affecting
+      the visible) parts are enumerated --- e.g. from Switch
+      node only one child will be enumerated.
+
+      "Direct" means that this enumerates only direct
+      descendants, i.e. this is not recursive.
+      See methods like Traverse or EnumerateNodes if you
+      want recursive behavior.
+
+      This can enumerate both @link(Children) nodes in VRML 1.0
+      style and nodes within TSFNode and TMFNode fields. }
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); virtual;
+
+    { This simply enumerates all direct descendant nodes of
+      this node. I.e. all children in VRML 1.0 style and
+      all nodes in SFNode and MFNode fields. }
+    procedure DirectEnumerateAll(
+      Func: TEnumerateChildrenFunction);
+
+    { This enumerates direct descendant nodes of this node.
+      This is equivalent to DirectEnumerateActive or
+      DirectEnumerateAll, depending on value of OnlyActive param. }
+    procedure DirectEnumerate(
+      Func: TEnumerateChildrenFunction;
+      OnlyActive: boolean);
 
     { w tej klasie te metody nie nie robia, w podklasach mozna za ich
       pomoca zmodyfikowac nieco zachowanie state'a podczas przechodzenia
@@ -814,9 +854,15 @@ type
       bedziemy wchodzic w zadne children. }
     procedure ChildrenToEnter(out FirstChild, LastChild: integer); virtual;
 
-    { przejdz po tym nodzie i wszystkich subnode'ach i dla wszystkich
-      node'ow z klasy NodeClass wywolaj TraversingFunc z odpowiednim
-      aktualnym State.
+    { Traverse enumerates all nodes of VRML graph that are active
+      for our hierarchy. "Active nodes" means that only the visible (or affecting
+      the visible) parts are enumerated --- e.g. from Switch node only one
+      child will be enumerated. For all nodes of NodeClass TraversingFunc
+      will be called. Traverse not only enumerates these
+      nodes, it also collects all state (transformation, etc ---
+      see TVRMLGraphTraverseState) that affects how given node should
+      be presented.
+
       Schemat dzialania Traverse :
 
 @preformatted(
@@ -835,7 +881,8 @@ type
       Kolejnosc w jakiej przechodzi graf jest naturalnie istotna.
       W czasie wykonywania Traverse mozesz modyfikowac tylko node'y dzieci
       (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
-    procedure Traverse(State: TVRMLGraphTraverseState; NodeClass: TVRMLNodeClass;
+    procedure Traverse(State: TVRMLGraphTraverseState;
+      NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc); virtual;
 
     { This is like @link(Traverse), but it automatically handles
@@ -848,38 +895,37 @@ type
     procedure TraverseFromDefaultState(
       NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
 
-    { enumerate all our children of some class. Recursively.
-      Zwroci do proc() takze sam obiekt na ktorym EnumNodes zostalo
+    { Enumerate all our children of some class. Recursively.
+      Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
       wywolane, jezeli tylko ten obiekt jest klasy nodeClass.
+
+      This enumerates both VRML 1.0 @link(Children) as well as
+      nodes in TSFNode and TMFNode fields.
+      If OnlyActive then it will enumerate only active parts
+      of the graph (as defined by @link(DirectEnumerateActive)),
+      so it will work as a simpler version of Traverse
+      (simpler, because it doesn't track any state).
+      If not OnlyActive then it will simply enumerate all nodes.
 
       Wersja z argumentem SeekNodeName wymaga ponadto aby node mial NodeName=
       SeekNodeName (gdy SeekNodeName = '' to znajduje nienazwane node'y,
       wiec wartosc '' nie jest tu traktowana specjalnie).
 
-      Jezeli enumOnlyInActiveNodes to bedzie wchodzil tylko w dzieci
-      zwrocone przez ChildrenToEnter (czyli bedzie sie zachowywal jak
-      takie proste Traverse ktore nie sledzi swojego State).
-      Wpp. bedzie wchodzil we wszystkie dzieci.
-
       Zaczyna przegladac dzieci dopiero jak przegladnie Self. Jezeli np.
-      w proc. zmodyfikowales (np. dodales) wlasne Children to EnumNodes
+      w proc. zmodyfikowales (np. dodales) wlasne Children to EnumerateNodes
       will enumerate these new children. To ma znaczenie np. w
       TVRMLScene.LoadAllInlined gdzie w proc robimy LoadInlined. Poniewaz
-      EnumNodes przeglada dzieci po wywolaniu proc., wiadomo ze
+      EnumerateNodes przeglada dzieci po wywolaniu proc., wiadomo ze
       przegladnie tez nowo zaladowane dziecko.
 
       BTW modyfikowanie dzieci node'a ktory wlasnie dostales do proc()
       to jedyna dozwolona modyfikacja na hierarchii VRMLa ktora mozesz
-      wykonywac w czasie EnumNodes.
-
-      If EnumNodeFields then it will also enumerate all nodes
-      in SFNode and MFNode fields. }
-    procedure EnumNodes(nodeClass: TVRMLNodeClass;
-      proc: TVRMLNodeProc;
-      EnumOnlyInActiveNodes, EnumNodeFields: boolean); overload;
-    procedure EnumNodes(nodeClass: TVRMLNodeClass; const SeekNodeName: string;
-      proc: TVRMLNodeProc;
-      EnumOnlyInActiveNodes, EnumNodeFields: boolean); overload;
+      wykonywac w czasie EnumerateNodes. }
+    procedure EnumerateNodes(nodeClass: TVRMLNodeClass;
+      proc: TVRMLNodeProc; OnlyActive: boolean); overload;
+    procedure EnumerateNodes(nodeClass: TVRMLNodeClass;
+      const SeekNodeName: string;
+      proc: TVRMLNodeProc; OnlyActive: boolean); overload;
 
     { TryFindNode(ByName) : szuka wsrod siebie i swoich subnode'ow
       node'a o zadanej nazwie/klasie. Jezeli nie znajdzie zwraca nil.
@@ -927,12 +973,15 @@ type
       node Node. Znaczenie seekOnlyInActiveNodes jak zwykle. }
     function IsNodePresent(Node: TVRMLNode; seekOnlyInActiveNodes: boolean): boolean;
 
-    { policz ile jest node'ow danej klasy. Uzywajac np. TNodeGeneralLight mozesz
+    { policz ile jest node'ow danej klasy.
+      Uzywajac np. TNodeGeneralLight mozesz
       sprawdzic czy na scenie zostalo zdefiniowane jakiekolwiek swiato.
       Parametr countOnlyActiveNodes ma znaczenie jak zwykle.
-      CountNodeFields ma takie znaczenie jak EnumNodeFields. }
-    function CountNodes(NodeClass: TVRMLNodeClass;
-      CountOnlyActiveNodes, CountNodeFields: boolean): integer;
+
+      This traverses both VRML 1.0 children nodes and VRML 2.0 nodes
+      inside SFNode and MFNode fields. }
+    function NodesCount(NodeClass: TVRMLNodeClass;
+      CountOnlyActiveNodes: boolean): integer;
 
     { zapisz node do strumienia; ta metoda jest tu zaimplementowana zupelnie
       ogolnie i dziala dla kazdej podklasy TVRMLNode. Jak widac,
@@ -1118,14 +1167,7 @@ type
     procedure Assign(Source: TPersistent); override;
   end;
 
-{ specific VRML nodes. ----------------------------------------------------
-  All specific VRML nodes define
-   - Fd* fields that allow fast, comfortable and type-secure way
-     for program to retrieve and set their fields
-   - override constructor (look at TVRMLNode.Create comments for things
-     that MUST be defined in this derived constructor)
-   - some override Before/Middle/AfterTraverse, TryParseSpecialField
-}
+  { Specific VRML nodes ---------------------------------------------------- }
 
   { Shape is the only node that produces some visible results
     during rendering. Basically, whole VRML 1.0 language is just
@@ -1150,7 +1192,7 @@ type
 
     This class may have some special functionality and it builds
     comfortable object inheritance hierarchy.
-    For example, now we can use EnumNodes(TNodeGeneralShape).
+    For example, now we can use EnumerateNodes(TNodeGeneralShape).
 
     A few things that make Shape node special :
     @unorderedList(
@@ -1437,10 +1479,15 @@ type
   end;
 
   TNodeLOD_1 = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+  public
     {TODO: tu proc SetChildrenToEnterFromDistanceToViewer}
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     procedure ChildrenToEnter(out FirstChild, LastChild: integer); override;
+
     property FdRange: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
 
@@ -1945,6 +1992,10 @@ type
   end;
 
   TNodeSwitch_1 = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdWhichChild: TSFLong index 0 read GetFieldAsSFLong;
@@ -1984,7 +2035,7 @@ type
   end;
 
   { gdy chcemy operowac na scenie juz po jej zaladowaniu, bezposrednio
-    lub poprzez metode w rodzaju TVRMLScene.EnumNodes, jest istotne
+    lub poprzez metode w rodzaju TVRMLNode.EnumerateNodes, jest istotne
     gdzie w hierarchii sceny znajduja sie Inlined nodes. Odpowiadam :
     sa one SubNode'ami WWWInline. Mozesz testowac ChildrenCount <> 0
     aby sprawdzic czy Inlined zostaly juz zaladowane. Mozesz
@@ -2605,6 +2656,9 @@ type
   end;
 
   TNodeGroup_2 = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3120,6 +3174,9 @@ type
   end;
 
   TNodeSwitch_2 = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3857,7 +3914,51 @@ end;
 procedure TVRMLNode.ChildrenToEnter(out FirstChild, LastChild: integer);
 begin
  FirstChild := 0;
- LastChild := ChildrenCount-1;
+ LastChild := ChildrenCount - 1;
+end;
+
+procedure TVRMLNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to ChildrenCount - 1 do
+    Func(Self, Children[I]);
+end;
+
+procedure TVRMLNode.DirectEnumerateAll(
+  Func: TEnumerateChildrenFunction);
+var
+  I, J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
+begin
+  for I := 0 to ChildrenCount - 1 do
+    Func(Self, Children[I]);
+
+  for I := 0 to Fields.Count - 1 do
+  begin
+    if Fields[I] is TSFNode then
+    begin
+      SF := TSFNode(Fields[I]);
+      if SF.Value <> nil then
+        Func(Self, SF.Value);
+    end else
+    if Fields[I] is TMFNode then
+    begin
+      MF := TMFNode(Fields[I]);
+      for J := 0 to MF.Items.Count - 1 do
+        Func(Self, MF.Items[J]);
+    end;
+  end;
+end;
+
+procedure TVRMLNode.DirectEnumerate(
+  Func: TEnumerateChildrenFunction;
+  OnlyActive: boolean);
+begin
+  if OnlyActive then
+    DirectEnumerateActive(Func) else
+    DirectEnumerateAll(Func);
 end;
 
 procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState); begin end;
@@ -3873,23 +3974,42 @@ ChildrenToEnter(FirstChild, LastChild)}
 {$define ITERATE_CHILDREN_LOOP:=
 for ChildIndex := max(FirstChild, 0) to min(LastChild, ChildrenCount-1) do}
 
+type
+  TTraverseEnumerator = class
+    State: TVRMLGraphTraverseState;
+    NodeClass: TVRMLNodeClass;
+    TraversingFunc: TTraversingFunc;
+    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TTraverseEnumerator.EnumerateChildrenFunction(
+    Node, Child: TVRMLNode);
+  begin
+    Child.Traverse(State, NodeClass, TraversingFunc);
+  end;
+
 procedure TVRMLNode.Traverse(State: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
-ITERATE_CHILDREN_DECLARE
-var LastNodesIndex: Integer;
+var
+  LastNodesIndex: Integer;
+  Enumerator: TTraverseEnumerator;
 begin
- BeforeTraverse(State);
- try
-  if Self is NodeClass then TraversingFunc(Self, State);
-  MiddleTraverse(State);
+  BeforeTraverse(State);
+  try
+    if Self is NodeClass then TraversingFunc(Self, State);
+    MiddleTraverse(State);
 
-  ITERATE_CHILDEN_INIT;
-  ITERATE_CHILDREN_LOOP
-    Children[ChildIndex].Traverse(State, NodeClass, TraversingFunc);
- finally AfterTraverse(State) end;
+    Enumerator := TTraverseEnumerator.Create;
+    try
+      Enumerator.State := State;
+      Enumerator.NodeClass := NodeClass;
+      Enumerator.TraversingFunc := TraversingFunc;
+      DirectEnumerateActive(Enumerator.EnumerateChildrenFunction);
+    finally FreeAndNil(Enumerator) end;
+  finally AfterTraverse(State) end;
 
- LastNodesIndex := TraverseStateLastNodesIndex;
- if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
+  LastNodesIndex := TraverseStateLastNodesIndex;
+  if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
 end;
 
 procedure TVRMLNode.TraverseFromDefaultState(
@@ -4012,87 +4132,67 @@ begin
   Result := false;
 end;
 
-procedure TVRMLNode.EnumNodes(nodeClass: TVRMLNodeClass;
-  proc: TVRMLNodeProc;
-  EnumOnlyInActiveNodes, EnumNodeFields: boolean);
-ITERATE_CHILDREN_DECLARE
+type
+  TEnumerateNodes1Enumerator = class
+    NodeClass: TVRMLNodeClass;
+    Proc: TVRMLNodeProc;
+    OnlyActive: boolean;
+    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TEnumerateNodes1Enumerator.EnumerateChildrenFunction(
+    Node, Child: TVRMLNode);
+  begin
+    Child.EnumerateNodes(NodeClass, Proc, OnlyActive);
+  end;
+
+procedure TVRMLNode.EnumerateNodes(nodeClass: TVRMLNodeClass;
+  Proc: TVRMLNodeProc; OnlyActive: boolean);
 var
-  I, J: Integer;
-  SF: TSFNode;
-  MF: TMFNode;
+  Enumerator: TEnumerateNodes1Enumerator;
 begin
- if Self is nodeClass then proc(Self);
+  if Self is NodeClass then Proc(Self);
 
- if EnumNodeFields then
- begin
-   for I := 0 to Fields.Count - 1 do
-   begin
-     if Fields[I] is TSFNode then
-     begin
-       SF := TSFNode(Fields[I]);
-       if SF.Value <> nil then
-         SF.Value.EnumNodes(
-           NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
-     end else
-     if Fields[I] is TMFNode then
-     begin
-       MF := TMFNode(Fields[I]);
-       for J := 0 to MF.Items.Count - 1 do
-         MF.Items[J].EnumNodes(
-           NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
-     end;
-   end;
- end;
-
- if enumOnlyInActiveNodes then
-  ITERATE_CHILDEN_INIT else
-  begin FirstChild := 0; LastChild := ChildrenCount-1 end;
-
- ITERATE_CHILDREN_LOOP
-   Children[ChildIndex].EnumNodes(
-     NodeClass, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+  Enumerator := TEnumerateNodes1Enumerator.Create;
+  try
+    Enumerator.NodeClass := NodeClass;
+    Enumerator.Proc := Proc;
+    Enumerator.OnlyActive := OnlyActive;
+    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+  finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TVRMLNode.EnumNodes(NodeClass: TVRMLNodeClass;
+type
+  TEnumerateNodes2Enumerator = class
+    NodeClass: TVRMLNodeClass;
+    SeekNodeName: string;
+    Proc: TVRMLNodeProc;
+    OnlyActive: boolean;
+    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TEnumerateNodes2Enumerator.EnumerateChildrenFunction(
+    Node, Child: TVRMLNode);
+  begin
+    Child.EnumerateNodes(NodeClass, SeekNodeName, Proc, OnlyActive);
+  end;
+
+procedure TVRMLNode.EnumerateNodes(NodeClass: TVRMLNodeClass;
   const SeekNodeName: string;
-  Proc: TVRMLNodeProc;
-  EnumOnlyInActiveNodes, EnumNodeFields: boolean);
-ITERATE_CHILDREN_DECLARE
+  Proc: TVRMLNodeProc; OnlyActive: boolean);
 var
-  I, J: Integer;
-  SF: TSFNode;
-  MF: TMFNode;
+  Enumerator: TEnumerateNodes2Enumerator;
 begin
- if (Self is nodeClass) and (NodeName = SeekNodeName) then proc(Self);
+  if (Self is nodeClass) and (NodeName = SeekNodeName) then proc(Self);
 
- if EnumNodeFields then
- begin
-   for I := 0 to Fields.Count - 1 do
-   begin
-     if Fields[I] is TSFNode then
-     begin
-       SF := TSFNode(Fields[I]);
-       if SF.Value <> nil then
-         SF.Value.EnumNodes(
-           NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
-     end else
-     if Fields[I] is TMFNode then
-     begin
-       MF := TMFNode(Fields[I]);
-       for J := 0 to MF.Items.Count - 1 do
-         MF.Items[J].EnumNodes(
-           NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
-     end;
-   end;
- end;
-
- if enumOnlyInActiveNodes then
-  ITERATE_CHILDEN_INIT else
-  begin FirstChild := 0; LastChild := ChildrenCount-1 end;
-
- ITERATE_CHILDREN_LOOP
-   Children[ChildIndex].EnumNodes(
-     NodeClass, SeekNodeName, Proc, EnumOnlyInActiveNodes, EnumNodeFields);
+  Enumerator := TEnumerateNodes2Enumerator.Create;
+  try
+    Enumerator.NodeClass := NodeClass;
+    Enumerator.SeekNodeName := SeekNodeName;
+    Enumerator.Proc := Proc;
+    Enumerator.OnlyActive := OnlyActive;
+    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+  finally FreeAndNil(Enumerator) end;
 end;
 
 function TVRMLNode.TryFindNode(FindClass: TVRMLNodeClass; enumOnlyInActiveNodes: boolean): TVRMLNode;
@@ -4278,20 +4378,21 @@ type
     procedure CountNode(node: TVRMLNode);
     Counter: integer;
   end;
+
   procedure TNodeCounter.CountNode(node: TVRMLNode);
   begin Inc(Counter) end;
 
-function TVRMLNode.CountNodes(NodeClass: TVRMLNodeClass;
-  CountOnlyActiveNodes, CountNodeFields: boolean): integer;
-var C: TNodeCounter;
+function TVRMLNode.NodesCount(NodeClass: TVRMLNodeClass;
+  CountOnlyActiveNodes: boolean): integer;
+var
+  C: TNodeCounter;
 begin
- C := TNodeCounter.Create;
- try
-  EnumNodes(NodeClass,
-    {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode,
-      CountOnlyActiveNodes, CountNodeFields);
-  result := C.Counter;
- finally C.Free end;
+  C := TNodeCounter.Create;
+  try
+    EnumerateNodes(NodeClass,
+      {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode, CountOnlyActiveNodes);
+    result := C.Counter;
+  finally C.Free end;
 end;
 
 procedure TVRMLNode.SaveToStream(Stream: TStream; const Indent: string; NodeNameBinding: TStringList);
@@ -4861,18 +4962,26 @@ end;
 
 procedure TNodeLOD_1.ChildrenToEnter(out FirstChild, LastChild: integer);
 begin
- { TODO: powinnismy tu uzywac odleglosci od viewera ? Problem.
-   dla renderowania jest problem z wrzucaniem tego na display liste.
-   dla boundingBoxa
-     Wybrac ostatnie SubNode bo bedzie je nalatwiej obliczac ?
-     Pierwsze, bo jest dokladne ? To ktore renderujemy ?
-     W ostatnim przypadku, ladujemy z tym samym klopotem co RenderNKSpecific :
-     zapamietywanie takiego BoundingBoxa nie jest poprawne.
- }
  if ChildrenCount = 0 then
   raise EVRMLError.Create('LOD node must have at least one child');
  FirstChild := 0;
  LastChild := 0;
+end;
+
+procedure TNodeLOD_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  { TODO: powinnismy tu uzywac odleglosci od viewera ? Problem.
+    dla renderowania jest problem z wrzucaniem tego na display liste.
+    dla boundingBoxa
+      Wybrac ostatnie SubNode bo bedzie je nalatwiej obliczac ?
+      Pierwsze, bo jest dokladne ? To ktore renderujemy ?
+      W ostatnim przypadku, ladujemy z tym samym klopotem co RenderNKSpecific :
+      zapamietywanie takiego BoundingBoxa nie jest poprawne.
+  }
+  if ChildrenCount = 0 then
+    raise EVRMLError.Create('LOD node must have at least one child');
+
+  Func(Self, Children[0]);
 end;
 
 class function TNodeLOD_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -5710,6 +5819,26 @@ begin
    but I support it, at least for now }
 end;
 
+procedure TNodeSwitch_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  if FdWhichChild.Value = -3 then
+  begin
+    { Enumerate all.
+      Note : value -3 is already deprecated in VRML 1.0;
+      but I support it, at least for now. }
+    inherited;
+  end else
+  begin
+    { Jezeli whichChild jest nieprawidlowe to w rezultacie nie wejdziemy w
+      zadne Child. Wpp. wejdziemy w jedno wyznaczone child. I o to chodzi.
+      (note : value -1 is no special value; any value that doesn't specify
+      valid child number and is not -3 instructs Switch to not enter
+      into any child. This is conformant with VRML 97 specification) }
+    if Between(FdWhichChild.Value, 0, ChildrenCount - 1) then
+      Func(Self, Children[FdWhichChild.Value]);
+  end;
+end;
+
 class function TNodeSwitch_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
@@ -6316,9 +6445,9 @@ end;
 constructor TNodeFontStyle_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFString.Create('family', 'SERIF'));
+  Fields.Add(TMFString.Create('family', ['SERIF']));
   Fields.Add(TSFBool.Create('horizontal', TRUE));
-  Fields.Add(TMFString.Create('justify', 'BEGIN'));
+  Fields.Add(TMFString.Create('justify', ['BEGIN']));
   Fields.Add(TSFString.Create('language', ''));
   Fields.Add(TSFBool.Create('leftToRight', TRUE));
   Fields.Add(TSFFloat.Create('size', 1.0));
@@ -6525,6 +6654,14 @@ end;
 function TNodeGroup_2.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
+end;
+
+procedure TNodeGroup_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
 end;
 
 class function TNodeImageTexture.ClassNodeTypeName: string;
@@ -7107,6 +7244,12 @@ end;
 function TNodeSwitch_2.ChildrenField: TMFNode;
 begin
   Result := FdChoice;
+end;
+
+procedure TNodeSwitch_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  if Between(FdWhichChoice.Value, 0, FdChoice.Count - 1) then
+    Func(Self, FdChoice.Items[FdWhichChoice.Value]);
 end;
 
 class function TNodeText.ClassNodeTypeName: string;
