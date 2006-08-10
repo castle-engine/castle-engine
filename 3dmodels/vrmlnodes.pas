@@ -485,6 +485,7 @@ type
     procedure SetChildrenItem(I: Integer; Value: TVRMLNode);
     FParentFields: TVRMLFieldsList;
     function GetParentFieldsItem(Index: Integer): TVRMLField;
+    function GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
     procedure RemoveParentField(Field: TVRMLField);
     procedure AddParentField(Field: TVRMLField);
     function GetSmartChildren(Index: Integer): TVRMLNode;
@@ -677,8 +678,15 @@ type
     function ParentNodesCount: integer;
 
     { This lists all SFNode and MFNode fields where this node is referenced.
-      This is somewhat analogous for ParentNodes, but for VRML 2.0. }
+      This is somewhat analogous for ParentNodes, but for VRML 2.0.
+
+      ParentFieldsNode is just for your comfort, it returns always
+      appropriate field's ParentNode property value
+      (i.e. @code((ParentField[Index] as TSFNode).ParentNode)
+      or @code((ParentField[Index] as TMFNode).ParentNode)). }
     property ParentFields[Index: Integer]: TVRMLField read GetParentFieldsItem;
+    property ParentFieldsNode[Index: Integer]: TVRMLNode
+      read GetParentFieldsNodeItem;
     function ParentFieldsCount: Integer;
 
     { bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
@@ -958,16 +966,22 @@ type
       out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
     { @groupEnd }
 
-    { Szuka wsrod Self, wsrod node'ow ParentNodes, wsrod ich node'ow ParentNodes itd.
-      Innymi slowy, dzialaja tak samo jak odpowiedniki bez "Parent" ale
-      ida w gore (tzn. w/g wlasciwosci ParentNodes, a nie Children).
-      Zwracam uwage ze zawsze przeszukuja caly graf w gore, nie ograniczajac
-      sie tylko do aktywnej czesci (bo nie mamy tu mechanizmow aby isc
-      w gore grafu wzdluz aktywnych czesci, zreszta nie da sie ich zdefiniowac -
-      - trzebaby podawac tutaj jakies RootNode). }
-    function TryFindParentNodeByName(const FindName: string): TVRMLNode;
-    function FindParentNodeByName(const FindName: string): TVRMLNode;
-    { Przeszukuje podobnie jak powyzsze FindParentNodeByName. Zwraca true
+    { This seeks Self and parent nodes (from ParentNodes and ParentFields,
+      recursively), for given node name.
+
+      In other words, this is similar to TryNodeByName or NodeByName,
+      but it goes "upward" in graph hierarchy. Note that this
+      never restricts itself only to "active" graph part
+      (see DirectEnumerateActive and OnlyActive param of various
+      methods) because you really can't detect what is the "active"
+      part of the graph when going upward.
+
+      @groupBegin }
+    function TryFindParentByName(const FindName: string): TVRMLNode;
+    function FindParentByName(const FindName: string): TVRMLNode;
+    { @groupEnd }
+
+    { Przeszukuje podobnie jak powyzsze FindParentByName. Zwraca true
       jesli znalazl tam gdzies node Node. }
     function HasParent(Node: TVRMLNode): boolean;
 
@@ -1110,12 +1124,13 @@ type
   TSFNode = class(TVRMLSimpleSingleField)
   private
     FValue: TVRMLNode;
+    FParentNode: TVRMLNode;
     procedure SetValue(AValue: TVRMLNode);
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    constructor Create(const AName: string);
+    constructor Create(AParentNode: TVRMLNode; const AName: string);
     destructor Destroy; override;
     property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
@@ -1123,6 +1138,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    property ParentNode: TVRMLNode read FParentNode;
   end;
 
   { MFNode VRML field.
@@ -1139,11 +1155,12 @@ type
   TMFNode = class(TVRMLMultField)
   private
     FItems: TVRMLNodesList;
+    FParentNode: TVRMLNode;
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    constructor Create(const AName: string);
+    constructor Create(AParentNode: TVRMLNode; const AName: string);
     destructor Destroy; override;
 
     { Lists items of this fields.
@@ -1167,6 +1184,8 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    property ParentNode: TVRMLNode read FParentNode;
   end;
 
   { Specific VRML nodes ---------------------------------------------------- }
@@ -3897,6 +3916,16 @@ begin
   Result := FParentFields[Index];
 end;
 
+function TVRMLNode.GetParentFieldsNodeItem(Index: Integer): TVRMLNode;
+var
+  F: TVRMLField;
+begin
+  F := ParentFields[Index];
+  if F is TSFNode then
+    Result := TSFNode(F).ParentNode else
+    Result := (F as TMFNode).ParentNode;
+end;
+
 function TVRMLNode.ParentFieldsCount: Integer;
 begin
   Result := FParentFields.Count;
@@ -4330,39 +4359,50 @@ begin
  finally Obj.Free end;
 end;
 
-{ TVRMLNode.[...]Find[...]NodeByName ------------------------------------------ }
-
-function TVRMLNode.TryFindParentNodeByName(const FindName: string): TVRMLNode;
-var i: integer;
+function TVRMLNode.TryFindParentByName(const FindName: string): TVRMLNode;
+var
+  I: integer;
 begin
- if NodeName = FindName then
-  result := Self else
- begin
-  result := nil;
-  for i := 0 to ParentNodesCount-1 do
+  if NodeName = FindName then
+    result := Self else
   begin
-   result := ParentNodes[i].TryFindParentNodeByName(FindName);
-   if result <> nil then exit;
+    result := nil;
+
+    for I := 0 to ParentNodesCount - 1 do
+    begin
+      result := ParentNodes[I].TryFindParentByName(FindName);
+      if result <> nil then exit;
+    end;
+
+    for I := 0 to ParentFieldsCount - 1 do
+    begin
+      result := ParentFieldsNode[I].TryFindParentByName(FindName);
+      if result <> nil then exit;
+    end;
   end;
- end;
 end;
 
-function TVRMLNode.FindParentNodeByName(const FindName: string): TVRMLNode;
+function TVRMLNode.FindParentByName(const FindName: string): TVRMLNode;
 begin
- result := TryFindParentNodeByName(FindName);
- Check(result <> nil, 'Node name '+FindName+' not found in parents');
+  result := TryFindParentByName(FindName);
+  Check(result <> nil, 'Node name '+FindName+' not found in parents');
 end;
 
 function TVRMLNode.HasParent(Node: TVRMLNode): boolean;
-var i: integer;
+var
+  I: integer;
 begin
- if Self = Node then
-  result := true else
- begin
-  for i := 0 to ParentNodesCount-1 do
-   if ParentNodes[i].HasParent(Node) then Exit(true);
-  result := False;
- end;
+  if Self = Node then
+    result := true else
+  begin
+    for i := 0 to ParentNodesCount - 1 do
+      if ParentNodes[i].HasParent(Node) then Exit(true);
+
+    for i := 0 to ParentFieldsCount - 1 do
+      if ParentFieldsNode[i].HasParent(Node) then Exit(true);
+
+    result := False;
+  end;
 end;
 
 type
@@ -4582,9 +4622,10 @@ end;
 
 { TSFNode --------------------------------------------------------------------- }
 
-constructor TSFNode.Create(const AName: string);
+constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string);
 begin
   CreateUndefined(AName);
+  FParentNode := AParentNode;
   Value := nil;
 end;
 
@@ -4657,9 +4698,10 @@ end;
 
 { TMFNode -------------------------------------------------------------------- }
 
-constructor TMFNode.Create(const AName: string);
+constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string);
 begin
   inherited Create(AName);
+  FParentNode := AParentNode;
   FItems := TVRMLNodesList.Create;
 end;
 
@@ -6009,7 +6051,7 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('parameter', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
@@ -6030,9 +6072,9 @@ end;
 constructor TNodeAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create('material')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('texture')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('textureTransform')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'material')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texture')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'textureTransform')); Fields.Last.Exposed := true;
 end;
 
 class function TNodeAudioClip.ClassNodeTypeName: string;
@@ -6100,17 +6142,27 @@ end;
 procedure TNodeBackground.ReloadBgImages;
 
   procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
-  var i: Integer;
+  var
+    I: Integer;
+    URL: string;
   begin
-   FBgImages[bs] := nil;
-   for i := 0 to Urls.Count-1 do
-   begin
-    try
-     FBgImages[bs] := LoadImage( PathFromWWWBasePath(Urls.Items.Items[i]),
-       AllowedBgImagesClasses, [], 0, 0);
-     Break;
-    except on E: Exception do {silence exception}; end;
-   end;
+    FBgImages[bs] := nil;
+    for i := 0 to Urls.Count-1 do
+    begin
+      try
+        URL := PathFromWWWBasePath(Urls.Items.Items[i]);
+        FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);
+        Break;
+      except
+        on E: Exception do
+        begin
+          VRMLNonFatalError('Exception ' + E.ClassName +
+            ' occured when trying to load ' +
+            'background image from URL "' + URL + '" : '+E.Message);
+          { and silence exception }
+        end;
+      end;
+    end;
   end;
 
 begin
@@ -6152,7 +6204,7 @@ begin
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
   Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0))); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
@@ -6183,11 +6235,11 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Add(TSFNode.Create('proxy'));
+  Fields.Add(TSFNode.Create(Self, 'proxy'));
   { eventOut     SFTime   collideTime }
 end;
 
@@ -6250,7 +6302,7 @@ begin
   inherited;
   { eventIn      MFNode  addChildren }
   { eventIn      MFNode  removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
 end;
 
 class function TNodeCoordinate.ClassNodeTypeName: string;
@@ -6274,11 +6326,11 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('inputCoord')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('inputTransform')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('outputCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'inputCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'inputTransform')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'outputCoord')); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
@@ -6374,9 +6426,9 @@ constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
   { eventIn      MFFloat  set_height }
-  Fields.Add(TSFNode.Create('color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('height', []));
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
@@ -6463,7 +6515,7 @@ end;
 constructor TNodeGeoCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TMFString.Create('point', []));
 end;
@@ -6478,13 +6530,13 @@ begin
   inherited;
   { eventIn        MFFloat    set_height }
   { eventIn        SFFloat    set_yScale }
-  Fields.Add(TSFNode.Create('color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFString.Create('geoGridOrigin', '0 0 0'));
   Fields.Add(TMFFloat.Create('height', []));
@@ -6506,8 +6558,8 @@ constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
   Fields.Add(TSFString.Create('geoCoords', '')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('children'));
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TMFNode.Create(Self, 'children'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
 end;
 
@@ -6529,11 +6581,11 @@ begin
   Fields.Add(TMFString.Create('child2Url', []));
   Fields.Add(TMFString.Create('child3Url', []));
   Fields.Add(TMFString.Create('child4Url', []));
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFFloat.Create('range', 10));
   Fields.Add(TMFString.Create('rootUrl', []));
-  Fields.Add(TMFNode.Create('rootNode'));
+  Fields.Add(TMFNode.Create(Self, 'rootNode'));
   { eventOut   MFNode    children }
 end;
 
@@ -6545,7 +6597,7 @@ end;
 constructor TNodeGeoMetadata.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create('data')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'data')); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('summary', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
 end;
@@ -6572,7 +6624,7 @@ constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string; const A
 begin
   inherited;
   { eventIn   SFFloat   set_fraction }
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TMFFloat.Create('key', []));
   Fields.Add(TMFString.Create('keyValue', []));
@@ -6589,7 +6641,7 @@ constructor TNodeGeoTouchSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   { eventOut      SFVec3f   hitNormal_changed }
   { eventOut      SFVec3f   hitPoint_changed }
@@ -6616,7 +6668,7 @@ begin
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('navType', ['EXAMINE','ANY'])); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', ''));
-  Fields.Add(TSFNode.Create('geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
   Fields.Add(TSFString.Create('position', '0 0 100000'));
@@ -6635,7 +6687,7 @@ begin
   inherited;
   { eventIn      MFNode  addChildren }
   { eventIn      MFNode  removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
@@ -6683,10 +6735,10 @@ begin
   { eventIn       MFInt32 set_coordIndex }
   { eventIn       MFInt32 set_normalIndex }
   { eventIn       MFInt32 set_texCoordIndex }
-  Fields.Add(TSFNode.Create('color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('coord')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TMFInt32.Create('colorIndex', []));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
@@ -6714,8 +6766,8 @@ begin
   inherited;
   { eventIn       MFInt32 set_colorIndex }
   { eventIn       MFInt32 set_coordIndex }
-  Fields.Add(TSFNode.Create('color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('coord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
   Fields.Add(TMFInt32.Create('colorIndex', []));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
   Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
@@ -6762,7 +6814,7 @@ end;
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create('level')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'level')); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
   Fields.Add(TMFFloat.Create('range', []));
 end;
@@ -6899,7 +6951,7 @@ begin
   inherited;
   { eventIn       MFNode   addChildren }
   { eventIn       MFNode   removeChildren }
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
@@ -6936,7 +6988,7 @@ constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
   Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('uTessellation', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('vTessellation', 0)); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
@@ -7046,8 +7098,8 @@ end;
 constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create('color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('coord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
 end;
 
 class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -7137,8 +7189,8 @@ end;
 constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create('appearance')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('geometry')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'appearance')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'geometry')); Fields.Last.Exposed := true;
 end;
 
 class function TNodeSound.ClassNodeTypeName: string;
@@ -7157,7 +7209,7 @@ begin
   Fields.Add(TSFFloat.Create('minBack', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('minFront', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('priority', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('source')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'source')); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('spatialize', TRUE));
 end;
 
@@ -7226,7 +7278,7 @@ end;
 constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create('choice')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'choice')); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('whichChoice', -1)); Fields.Last.Exposed := true;
 end;
 
@@ -7255,7 +7307,7 @@ constructor TNodeText.Create(const ANodeName: string; const AWWWBasePath: string
 begin
   inherited;
   Fields.Add(TMFString.Create('string', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('fontStyle')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'fontStyle')); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
 end;
@@ -7332,7 +7384,7 @@ begin
   { eventIn      MFNode      addChildren }
   { eventIn      MFNode      removeChildren }
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create('children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
@@ -7361,8 +7413,8 @@ begin
   inherited;
   { eventIn       MFNode   addTrimmingContour }
   { eventIn       MFNode   removeTrimmingContour }
-  Fields.Add(TMFNode.Create('trimmingContour')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create('surface')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'trimmingContour')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'surface')); Fields.Last.Exposed := true;
 end;
 
 class function TNodeViewpoint.ClassNodeTypeName: string;

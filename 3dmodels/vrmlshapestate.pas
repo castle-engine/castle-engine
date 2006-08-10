@@ -265,7 +265,7 @@ end;
 function TVRMLShapeStatesList.IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
 begin
  for result := 0 to Count-1 do
-  if Items[result].ShapeNode.TryFindParentNodeByName(ParentNodeName)<>nil then exit;
+  if Items[result].ShapeNode.TryFindParentByName(ParentNodeName)<>nil then exit;
  result := -1;
 end;
 

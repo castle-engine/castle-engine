@@ -5,7 +5,7 @@ VRML 97 TODO items:
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
-  rename back to FreeRemovingFromAllParents
+  rename back to FreeRemovingFromAllParents.
 
 - vrmlscenewaypoints.pas:
   now uses ParentNodes, should also include ParentFields ?
