@@ -1,8 +1,5 @@
 VRML 97 TODO items:
 
-- ChildrenToEnter and ITERATE_CHILDREN_xxx macros should be removed,
-  procedure DirectEnumerate should be used.
-
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test

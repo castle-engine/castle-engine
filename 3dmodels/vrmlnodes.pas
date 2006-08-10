@@ -509,7 +509,14 @@ type
       want recursive behavior.
 
       This can enumerate both @link(Children) nodes in VRML 1.0
-      style and nodes within TSFNode and TMFNode fields. }
+      style and nodes within TSFNode and TMFNode fields.
+
+      Default implementation in this class returns all Children
+      nodes of VRML 1.0. If you need to remove some children
+      for VRML 1.0 (e.g. for Switch or LOD nodes)
+      or add some children for VRML 2.0 you
+      have to override this. You're not required to call
+      inherited when overriding this. }
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); virtual;
 
@@ -835,25 +842,6 @@ type
       stalej wartosci NodeTypeName). }
     class function ClassNodeTypeName: string; virtual;
 
-    { za kazdym razem gdy chcemy przechodzic graf VRMLa Traverse
-      iteruja po dzieciach o indeksach od FirstChild do LastChild,
-      gdzie zmienne FirstChild i LastChild zostaly otrzymane wywolujac
-      ChildrenToEnter.
-
-      Domyslnie zwracane jest 0, ChildrenCount-1 a wiec bedzie wchodzil
-      we wszystkie children. Pokryj ta metode jesli z danego node'a
-      nie ma wchodzic w children - np. dla Switcha (ktory wybiera jedno/
-      wszystkie/zadne dziecko na podstawie swojego pola) lub LODa
-      (ktory wybiera jedno sposrod swoich dzieci na podstawie swojego
-      pola i pozcji viewera).
-
-      Iteracja bedzie robiona instrukcja
-        "for i := max(FirstChild, 0) to min(LastChild, ChildrenCount-1)"
-      (lub czyms rownowaznym, naturalnie) wiec jezeli FirstChild > LastChild
-      lub FirstChild > ChildrenCount-1 lub LastChild < 0 to nie
-      bedziemy wchodzic w zadne children. }
-    procedure ChildrenToEnter(out FirstChild, LastChild: integer); virtual;
-
     { Traverse enumerates all nodes of VRML graph that are active
       for our hierarchy. "Active nodes" means that only the visible (or affecting
       the visible) parts are enumerated --- e.g. from Switch node only one
@@ -869,7 +857,8 @@ type
   BeforeTraverse;
   if Self is NodeClass then TraversingFunc (Self, State)
   MiddleTraverse
-  dla wszystkich Children sposrod ChildrenToEnter wywolaj ich Traverse(State)
+  for all children returned by DirectEnumerateActive
+    call their Traverse(State)
   AfterTraverse,
   dodaj Self do stanu State do LastNode (o ile Self wsrod
     TraverseStateLastNodesClasses)
@@ -920,12 +909,17 @@ type
 
       BTW modyfikowanie dzieci node'a ktory wlasnie dostales do proc()
       to jedyna dozwolona modyfikacja na hierarchii VRMLa ktora mozesz
-      wykonywac w czasie EnumerateNodes. }
+      wykonywac w czasie EnumerateNodes.
+
+      @groupBegin }
+    procedure EnumerateNodes(
+      proc: TVRMLNodeProc; OnlyActive: boolean); overload;
     procedure EnumerateNodes(nodeClass: TVRMLNodeClass;
       proc: TVRMLNodeProc; OnlyActive: boolean); overload;
     procedure EnumerateNodes(nodeClass: TVRMLNodeClass;
       const SeekNodeName: string;
       proc: TVRMLNodeProc; OnlyActive: boolean); overload;
+    { @groupEnd }
 
     { TryFindNodeByName and TryFindNode seek for a node with
       given class (and node name, in case of TryFindNodeByName).
@@ -937,7 +931,9 @@ type
 
       TryFindNodeByName and TryFindNode return @nil if such node
       is not found. FindNodeByName and FindNode raise exception
-      in this case. }
+      in this case.
+
+      @groupBegin }
     function TryFindNodeByName(FindClass: TVRMLNodeClass;
       const FindName: string;
       OnlyActive: boolean): TVRMLNode;
@@ -948,6 +944,7 @@ type
       OnlyActive: boolean): TVRMLNode;
     function FindNode(FindClass: TVRMLNodeClass;
       OnlyActive: boolean): TVRMLNode;
+    { @groupEnd }
 
     { Znajdz pierwszy Node (zadanej klasy NodeClass) razem ze State
       (lub tylko z Transform).
@@ -957,13 +954,16 @@ type
       no i TryFindNodeTransform dziala nieco szybciej.
 
       Zwraca false and sets Node, State and Transform to undefined
-      (because they are "out" params) if not found. }
+      (because they are "out" params) if not found.
+
+      @groupBegin }
     function TryFindNodeState(InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
     function TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
       out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
+    { @groupEnd }
 
     { Szuka wsrod Self, wsrod node'ow ParentNodes, wsrod ich node'ow ParentNodes itd.
       Innymi slowy, dzialaja tak samo jak odpowiedniki bez "Parent" ale
@@ -979,8 +979,8 @@ type
     function HasParent(Node: TVRMLNode): boolean;
 
     { sprawdza czy istnieje w grafie VRML'a zaczepionym w danym punkcie
-      node Node. Znaczenie seekOnlyInActiveNodes jak zwykle. }
-    function IsNodePresent(Node: TVRMLNode; seekOnlyInActiveNodes: boolean): boolean;
+      node Node. Znaczenie OnlyActive jak zwykle. }
+    function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
 
     { policz ile jest node'ow danej klasy.
       Uzywajac np. TNodeGeneralLight mozesz
@@ -1492,10 +1492,8 @@ type
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
-    {TODO: tu proc SetChildrenToEnterFromDistanceToViewer}
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    procedure ChildrenToEnter(out FirstChild, LastChild: integer); override;
 
     property FdRange: TMFFloat index 0 read GetFieldAsMFFloat;
     property FdCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
@@ -2008,7 +2006,6 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdWhichChild: TSFLong index 0 read GetFieldAsSFLong;
-    procedure ChildrenToEnter(out FirstChild, LastChild: integer); override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -3920,12 +3917,6 @@ begin
   Result := -1;
 end;
 
-procedure TVRMLNode.ChildrenToEnter(out FirstChild, LastChild: integer);
-begin
- FirstChild := 0;
- LastChild := ChildrenCount - 1;
-end;
-
 procedure TVRMLNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
@@ -3973,15 +3964,6 @@ end;
 procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState); begin end;
 procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState); begin end;
 procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState); begin end;
-
-{$define ITERATE_CHILDREN_DECLARE:=
-var FirstChild, LastChild, ChildIndex: integer; }
-
-{$define ITERATE_CHILDEN_INIT:=
-ChildrenToEnter(FirstChild, LastChild)}
-
-{$define ITERATE_CHILDREN_LOOP:=
-for ChildIndex := max(FirstChild, 0) to min(LastChild, ChildrenCount-1) do}
 
 type
   TTraverseEnumerator = class
@@ -4139,6 +4121,34 @@ function TVRMLNode.TryParseSpecialField(Lexer: TVRMLLexer;
   NodeNameBinding: TStringList): boolean;
 begin
   Result := false;
+end;
+
+type
+  TEnumerateNodes0Enumerator = class
+    Proc: TVRMLNodeProc;
+    OnlyActive: boolean;
+    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TEnumerateNodes0Enumerator.EnumerateChildrenFunction(
+    Node, Child: TVRMLNode);
+  begin
+    Child.EnumerateNodes(Proc, OnlyActive);
+  end;
+
+procedure TVRMLNode.EnumerateNodes(
+  Proc: TVRMLNodeProc; OnlyActive: boolean);
+var
+  Enumerator: TEnumerateNodes0Enumerator;
+begin
+  Proc(Self);
+
+  Enumerator := TEnumerateNodes0Enumerator.Create;
+  try
+    Enumerator.Proc := Proc;
+    Enumerator.OnlyActive := OnlyActive;
+    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+  finally FreeAndNil(Enumerator) end;
 end;
 
 type
@@ -4370,19 +4380,35 @@ begin
  end;
 end;
 
-function TVRMLNode.IsNodePresent(Node: TVRMLNode; seekOnlyInActiveNodes: boolean): boolean;
-ITERATE_CHILDREN_DECLARE
+type
+  TIsNodePresentSeeker = class
+    SeekNode: TVRMLNode;
+    procedure Seek(Node: TVRMLNode);
+  end;
+
+  BreakIsNodePresent = class(TCodeBreaker);
+
+  procedure TIsNodePresentSeeker.Seek(Node: TVRMLNode);
+  begin
+    if Node = SeekNode then
+      raise BreakIsNodePresent.Create;
+  end;
+
+function TVRMLNode.IsNodePresent(Node: TVRMLNode;
+  OnlyActive: boolean): boolean;
+var
+  Seeker: TIsNodePresentSeeker;
 begin
- if Self = Node then exit(true);
-
- if seekOnlyInActiveNodes then
-  ITERATE_CHILDEN_INIT else
-  begin FirstChild := 0; LastChild := ChildrenCount-1 end;
-
- ITERATE_CHILDREN_LOOP
-  if Children[ChildIndex].IsNodePresent(Node, seekOnlyInActiveNodes) then exit(true);
-
- result := false;
+  Seeker := TIsNodePresentSeeker.Create;
+  try
+    Seeker.SeekNode := Node;
+    try
+      EnumerateNodes(Seeker.Seek, OnlyActive);
+      Result := false;
+    except
+      on BreakIsNodePresent do Result := true;
+    end;
+  finally FreeAndNil(Seeker) end;
 end;
 
 type
@@ -4970,14 +4996,6 @@ end;
 class function TNodeLOD_1.ClassNodeTypeName: string;
 begin
  result := 'LOD';
-end;
-
-procedure TNodeLOD_1.ChildrenToEnter(out FirstChild, LastChild: integer);
-begin
- if ChildrenCount = 0 then
-  raise EVRMLError.Create('LOD node must have at least one child');
- FirstChild := 0;
- LastChild := 0;
 end;
 
 procedure TNodeLOD_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -5808,27 +5826,6 @@ end;
 class function TNodeSwitch_1.ClassNodeTypeName: string;
 begin
  result := 'Switch';
-end;
-
-procedure TNodeSwitch_1.ChildrenToEnter(out FirstChild, LastChild: integer);
-begin
- if FdWhichChild.Value = -3 then
- begin
-  FirstChild := 0;
-  LastChild := ChildrenCount-1;
- end else
- begin
-  { jezeli whichChild jest nieprawidlowe to w rezultacie nie wejdziemy w
-    zadne Child. Wpp. wejdziemy w jedno wyznaczone child. I o to chodzi.
-    (note : value -1 is no special value; any value that doesn't specify
-     valid child number and is not -3 instructs Switch to not enter
-     into any child. This is conformant with VRML 97 specification) }
-  FirstChild := FdWhichChild.Value;
-  LastChild := FdWhichChild.Value;
- end;
-
- { note : value -3 is already deprecated in VRML 1.0;
-   but I support it, at least for now }
 end;
 
 procedure TNodeSwitch_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
