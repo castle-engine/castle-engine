@@ -3295,9 +3295,13 @@ type
   end;
 
   TNodeTransform_2 = class(TVRMLNode)
+  private
+    OriginalMatrix: TMatrix4Single;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -7439,6 +7443,35 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+
+  OriginalMatrix := State.CurrMatrix;
+
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    TranslationMatrix(FdTranslation.Value));
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    TranslationMatrix(FdCenter.Value));
+  if not IsZeroVector(FdRotation.Axis) then
+    State.CurrMatrix := MultMatrices(State.CurrMatrix,
+      RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    RotationMatrixRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    ScalingMatrix(FdScale.Value));
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    RotationMatrixRad(-FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
+  State.CurrMatrix := MultMatrices(State.CurrMatrix,
+    TranslationMatrix(VectorNegate(FdCenter.Value)));
+end;
+
+procedure TNodeTransform_2.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+  State.CurrMatrix := OriginalMatrix;
+  inherited;
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;

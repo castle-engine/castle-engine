@@ -203,7 +203,6 @@ VRML 97 nodes done (parsed and handled correctly):
 
 - Switch, Group
 
-- Transform partially: it works like Group now, transformation
-  is not applied.
+- Transform
 
-- Sphere
+- Sphere, Box
