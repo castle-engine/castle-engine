@@ -98,10 +98,24 @@ begin
    High(points)+1-firstPoint, 0, State.CurrMatrix);
 end;
 
+function Box_LocalBoundingBox(
+  const SizeX, SizeY, SizeZ: Single;
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  result[0] := Vector3Single(-SizeX/2, -SizeY/2, -SizeZ/2);
+  result[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
+end;
+
 function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
- result[0] := Vector3Single(-FdWidth.Value/2, -FdHeight.Value/2, -FdDepth.Value/2);
- result[1] := Vector3Single( FdWidth.Value/2,  FdHeight.Value/2,  FdDepth.Value/2);
+  Result := Box_LocalBoundingBox(
+    FdWidth.Value, FdHeight.Value, FdDepth.Value, State);
+end;
+
+function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Box_LocalBoundingBox(
+    FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
 end;
 
 function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;

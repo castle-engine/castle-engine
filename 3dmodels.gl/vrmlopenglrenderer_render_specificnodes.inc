@@ -138,9 +138,9 @@ begin
  finally gluDeleteQuadric(q) end;
 end;
 
-{ Cube ------------------------------------------------------------------------ }
+{ Box ---------------------------------------------------------------------- }
 
-procedure RenderCube(Node: TNodeCube_1);
+procedure Box_Render(const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);
@@ -159,9 +159,9 @@ begin
  if not MatPerPart then
   Render_BindMaterial(0); {use first material fot the whole cube}
 
- x2 := Node.FdWidth.Value/2;  x1 := -x2;
- y2 := Node.FdHeight.Value/2; y1 := -y2;
- z2 := Node.FdDepth.Value/2;  z1 := -z2;
+ x2 := SizeX / 2; x1 := -x2;
+ y2 := SizeY / 2; y1 := -y2;
+ z2 := SizeZ / 2; z1 := -z2;
 
  {Do narysowania Cube swietnie nadawalaby sie procedura KambiGLUtils.drawGLBox -
   tyle ze ona nie pozwala mi zrobic Render_BindMaterial przed kazda sciana i
@@ -188,7 +188,17 @@ begin
  {$undef DetailZ}
 end;
 
-{ Cylinder --------------------------------------------------------------------- }
+procedure RenderCube_1(Node: TNodeCube_1);
+begin
+  Box_Render(Node.FdWidth.Value, Node.FdHeight.Value, Node.FdDepth.Value);
+end;
+
+procedure RenderBox(Node: TNodeBox);
+begin
+  Box_Render(Node.FdSize.Value[0], Node.FdSize.Value[1], Node.FdSize.Value[2]);
+end;
+
+{ Cylinder ------------------------------------------------------------------ }
 
 procedure RenderCylinder(Node: TNodeCylinder_1);
 var q: PGLUQuadric;
@@ -250,7 +260,7 @@ end;
 
 { Sphere ---------------------------------------------------------------------- }
 
-procedure RenderSphere(const Radius: Single);
+procedure Sphere_Render(const Radius: Single);
 var q: PGLUQuadric;
 begin
  {whole sphere uses materail num 0 and his own normals and we apply
@@ -276,12 +286,12 @@ end;
 
 procedure RenderSphere_1(Node: TNodeSphere_1);
 begin
-  RenderSphere(Node.FdRadius.Value);
+  Sphere_Render(Node.FdRadius.Value);
 end;
 
 procedure RenderSphere_2(Node: TNodeSphere_2);
 begin
-  RenderSphere(Node.FdRadius.Value);
+  Sphere_Render(Node.FdRadius.Value);
 end;
 
 {$undef QUADRIC_SLICES}

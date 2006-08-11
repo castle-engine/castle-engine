@@ -1908,7 +1908,9 @@ begin
     if Node is TNodeCone_1 then
       RenderCone(TNodeCone_1(Node)) else
     if Node is TNodeCube_1 then
-      RenderCube(TNodeCube_1(Node)) else
+      RenderCube_1(TNodeCube_1(Node)) else
+    if Node is TNodeBox then
+      RenderBox(TNodeBox(Node)) else
     if Node is TNodeCylinder_1 then
       RenderCylinder(TNodeCylinder_1(Node)) else
     if Node is TNodePointSet_1 then

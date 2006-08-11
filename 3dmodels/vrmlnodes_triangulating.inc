@@ -173,8 +173,11 @@ begin
  end;
 end;
 
-procedure TNodeCube_1.LocalTriangulate(State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure Box_LocalTriangulate(
+  Self: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
   procedure LocalTriangulateBox3d(const Box: TBox3d;
@@ -200,9 +203,23 @@ var Box: TBox3d;
 begin
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
- Box[0] := Vector3Single(-FdWidth.Value/2, -FdHeight.Value/2, -FdDepth.Value/2);
- Box[1] := Vector3Single( FdWidth.Value/2, FdHeight.Value/2, FdDepth.Value/2);
+ Box[0] := Vector3Single(-SizeX / 2, -SizeY / 2, -SizeZ / 2);
+ Box[1] := Vector3Single( SizeX / 2,  SizeY / 2,  SizeZ / 2);
  LocalTriangulateBox3d(box, State, Self, OverTriangulate, NewTriangleProc);
+end;
+
+procedure TNodeCube_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Box_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdWidth.Value, FdHeight.Value, FdDepth.Value);
+end;
+
+procedure TNodeBox.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Box_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdSize.Value[0], FdSize.Value[1], FdSize.Value[2]);
 end;
 
 procedure TNodeCylinder_1.LocalTriangulate(State: TVRMLGraphTraverseState;

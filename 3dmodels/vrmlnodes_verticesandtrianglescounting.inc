@@ -68,22 +68,48 @@ begin
  end;
 end;
 
-function TNodeCube_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function Box_TrianglesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
 begin
- if OverTriangulate then
-  {6 scian, na kazdej Sqr(RECT_DIVISIONS+1) kwadracikow}
-  result := Sqr(RECT_DIVISIONS+1)*2 *6 else
-  result := 6 * 2;
+  if OverTriangulate then
+    {6 scian, na kazdej Sqr(RECT_DIVISIONS+1) kwadracikow}
+    result := Sqr(RECT_DIVISIONS+1)*2 *6 else
+    result := 6 * 2;
 end;
 
-function TNodeCube_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TNodeCube_1.TrianglesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
 begin
- if OverTriangulate then
-  {6 scian, w srodku kazdej Sqr(RECT_DIVISIONS) vertexow,
-   12 krawedzi, na srodku kazdej RECT_DIVISIONS vertexow,
-   8 rogow }
-  result := 6*Sqr(RECT_DIVISIONS) + 12*RECT_DIVISIONS + 8 else
-  result := 8;
+  Result := Box_TrianglesCount(State, OverTriangulate);
+end;
+
+function TNodeBox.TrianglesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
+begin
+  Result := Box_TrianglesCount(State, OverTriangulate);
+end;
+
+function Box_VerticesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
+begin
+  if OverTriangulate then
+    {6 scian, w srodku kazdej Sqr(RECT_DIVISIONS) vertexow,
+     12 krawedzi, na srodku kazdej RECT_DIVISIONS vertexow,
+     8 rogow }
+    result := 6 * Sqr(RECT_DIVISIONS) + 12*RECT_DIVISIONS + 8 else
+    result := 8;
+end;
+
+function TNodeCube_1.VerticesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
+begin
+  Result := Box_VerticesCount(State, OverTriangulate);
+end;
+
+function TNodeBox.VerticesCount(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean): Cardinal;
+begin
+  Result := Box_VerticesCount(State, OverTriangulate);
 end;
 
 function TNodeCylinder_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
