@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2004 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -20,21 +20,21 @@
 
 { implementacja metod VerticesCount i TrianglesCount dla specyficznych
   potomkow TNodeGeneralShape }
-  
-{ just a shortcuts for names often used in this file }  
+
+{ just a shortcuts for names often used in this file }
 {$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.QuadricSlices)}
 {$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
-{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}  
+{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}
 
-function TNodeAsciiText_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0;{TODO} end;
+function TNodeAsciiText_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0;{TODO} end;
 
-function TNodeAsciiText_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0;{TODO} end;
+function TNodeAsciiText_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0;{TODO} end;
 
-function TNodeCone_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCone_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=0;
+ result := 0;
  if FdParts.Flags[CONE_PARTS_SIDES] then
  begin
   if OverTriangulate then
@@ -45,50 +45,50 @@ begin
   result += QUADRIC_SLICES;
 end;
 
-function TNodeCone_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCone_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
  if OverTriangulate then
  begin
   if FdParts.Flags[CONE_PARTS_BOTTOM] and FdParts.Flags[CONE_PARTS_SIDES] then
-   result:=QUADRIC_SLICES + 1 + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
+   result := QUADRIC_SLICES + 1 + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
   if FdParts.Flags[CONE_PARTS_BOTTOM] then
-   result:=QUADRIC_SLICES + 1 else
+   result := QUADRIC_SLICES + 1 else
   if FdParts.Flags[CONE_PARTS_SIDES] then
-   result:=QUADRIC_SLICES + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
-   result:=0;
+   result := QUADRIC_SLICES + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
+   result := 0;
  end else
  begin
   if FdParts.Flags[CONE_PARTS_BOTTOM] or FdParts.Flags[CONE_PARTS_SIDES] then
   begin
-   result:=QUADRIC_SLICES;
+   result := QUADRIC_SLICES;
    if FdParts.Flags[CONE_PARTS_BOTTOM] then Inc(result);
    if FdParts.Flags[CONE_PARTS_SIDES] then Inc(result);
   end else
-   result:=0;
+   result := 0;
  end;
 end;
 
-function TNodeCube_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCube_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
  if OverTriangulate then
   {6 scian, na kazdej Sqr(RECT_DIVISIONS+1) kwadracikow}
-  result:=Sqr(RECT_DIVISIONS+1)*2 *6 else
-  result:=6 * 2;
+  result := Sqr(RECT_DIVISIONS+1)*2 *6 else
+  result := 6 * 2;
 end;
 
-function TNodeCube_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCube_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
  if OverTriangulate then
   {6 scian, w srodku kazdej Sqr(RECT_DIVISIONS) vertexow,
    12 krawedzi, na srodku kazdej RECT_DIVISIONS vertexow,
    8 rogow }
-  result:=6*Sqr(RECT_DIVISIONS) + 12*RECT_DIVISIONS + 8 else
-  result:=8;
+  result := 6*Sqr(RECT_DIVISIONS) + 12*RECT_DIVISIONS + 8 else
+  result := 8;
 end;
 
-function TNodeCylinder_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCylinder_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=0;
+ result := 0;
  if FdParts.Flags[CYLINDER_PARTS_SIDES] then
  begin
   if OverTriangulate then
@@ -99,9 +99,9 @@ begin
  if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then result += QUADRIC_SLICES;
 end;
 
-function TNodeCylinder_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeCylinder_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=0;
+ result := 0;
  if FdParts.Flags[CYLINDER_PARTS_SIDES] then
  begin
   if OverTriangulate then
@@ -116,49 +116,69 @@ begin
  end;
 end;
 
-function TNodeGeneralIndexed_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeGeneralIndexed_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=State.LastNodes.Coordinate3.FdPoint.Count;
+ result := State.LastNodes.Coordinate3.FdPoint.Count;
 end;
 
-function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-var startIndex,endIndex:integer;
+function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var startIndex, endIndex: integer;
 begin
- startIndex:=0;
- result:=0;
- while startIndex<FdCoordIndex.Count do
+ startIndex := 0;
+ result := 0;
+ while startIndex < FdCoordIndex.Count do
  begin
-  endIndex:=startIndex;
-  while (endIndex<FdCoordIndex.Count) and
-        (FdCoordIndex.Items.Items[endIndex]<>-1) do
+  endIndex := startIndex;
+  while (endIndex < FdCoordIndex.Count) and
+        (FdCoordIndex.Items.Items[endIndex] <> -1) do
    Inc(endIndex);
 
-  result+= Cardinal(max(endIndex-startIndex-2,0));
-  startIndex:=endIndex+1;
+  result+= Cardinal(max(endIndex-startIndex-2, 0));
+  startIndex := endIndex+1;
  end;
 end;
 
-function TNodeIndexedLineSet_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0; end;
+function TNodeIndexedLineSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0; end;
 
-function TNodePointSet_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-begin result:=0; end;
+function TNodePointSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0; end;
 
-function TNodePointSet_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
-var dummy, numPoints:integer;
+function TNodePointSet_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var dummy, numPoints: integer;
 begin
  CalculateRange(State.LastNodes.Coordinate3, dummy, numPoints);
- result:=numPoints;
+ result := numPoints;
 end;
 
-function TNodeSphere_1.TrianglesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function Sphere_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=QUADRIC_SLICES * ((QUADRIC_STACKS-2)*2 + 2);
+  result := QUADRIC_SLICES * ((QUADRIC_STACKS-2)*2 + 2);
 end;
 
-function TNodeSphere_1.VerticesCount(State:TVRMLGraphTraverseState; OverTriangulate:boolean):Cardinal;
+function TNodeSphere_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result:=QUADRIC_SLICES * (QUADRIC_STACKS-1) + 2;
+  Result := Sphere_TrianglesCount(State, OverTriangulate);
+end;
+
+function TNodeSphere_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Sphere_TrianglesCount(State, OverTriangulate);
+end;
+
+function Sphere_VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  result := QUADRIC_SLICES * (QUADRIC_STACKS-1) + 2;
+end;
+
+function TNodeSphere_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Sphere_VerticesCount(State, OverTriangulate);
+end;
+
+function TNodeSphere_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Sphere_VerticesCount(State, OverTriangulate);
 end;
 
 {$undef QUADRIC_SLICES}

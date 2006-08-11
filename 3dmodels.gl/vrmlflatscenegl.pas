@@ -1190,7 +1190,18 @@ begin
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       RenderShapeStateSimple(ShapeStateNum);
-    finally glEndList end;
+      glEndList;
+    except
+      glEndList;
+      { In case of trouble, make sure that
+        SSSX_DisplayLists.Items[ShapeStateNum]
+        resources are released and it's set to 0.
+        Otherwise we would try to do ShapeState_DecReference later,
+        but ShapeState_IncReference_New was not called yet
+        and ShapeState_DecReference would fail. }
+      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeStateNum]);
+      raise;
+    end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
@@ -1235,7 +1246,18 @@ begin
       Renderer.RenderShapeStateNoTransform(
         ShapeStates[ShapeStateNum].ShapeNode,
         ShapeStates[ShapeStateNum].State);
-    finally glEndList end;
+      glEndList;
+    except
+      glEndList;
+      { In case of trouble, make sure that
+        SSSX_DisplayLists.Items[ShapeStateNum]
+        resources are released and it's set to 0.
+        Otherwise we would try to do ShapeState_DecReference later,
+        but ShapeState_IncReference_New was not called yet
+        and ShapeState_DecReference would fail. }
+      glFreeDisplayList(SSSX_DisplayLists.Items[ShapeStateNum]);
+      raise;
+    end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);

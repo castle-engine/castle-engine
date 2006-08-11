@@ -1191,17 +1191,17 @@ type
   { Specific VRML nodes ---------------------------------------------------- }
 
   { Shape is the only node that produces some visible results
-    during rendering. Basically, whole VRML 1.0 language is just
-    a method of describing those shapes and almost all other nodes
-    are defined only to set up additional state for shapes.
+    during rendering. Basically, most if the VRML language is just
+    a method of describing those shapes and many other nodes
+    are defined only to set up additional state for shapes
+    (materials, transformations, lighting).
 
-    This @italic(almost) stands for "cameras, WWWAnchor, Info and Fog nodes"
-    (VRML97 has some more of these, like, soon to be implemented here,
-    WorldInfo and Background), these nodes specify some things that can't
-    be embedded in simple Render command fro OpenGL.
+    Some exceptions to this are camera nodes, sensors (WWWAnchor in VRML 1.0),
+    Info, WorldInfo, Background, Fog. These nodes specify some things
+    that can't be embedded in simple Render command for a node.
     These things describe
     @unorderedList(
-      @item(user interaction with the world (cameras, WWWAnchor))
+      @item(user interaction with the world (cameras, sensors))
       @item(
         some information that has no meaning to us and all we can do about it
         (besides ignoring it) is to show it to the user (Info, WorldInfo))
@@ -1219,19 +1219,19 @@ type
     @unorderedList(
       @item only shape nodes may have [Local]BoundingBox
       @item(
-        only shape nodes define something visible "in usual way" during rendering
-        (there may be some nodes that are also visible : those are only
-        present in VRML 97, e.g. very usueful Sky node (that I'm planning
-        to implement rather soon). However, this nodes must be rendered in
+        only shape nodes define something visible "in usual way"
+        during rendering (Some other nodes in VRML 2.0 are visible but in an
+        unusual way, like Background and Fog. These nodes must be rendered in
         a special way --- they are not affected in any usual way by the current
-        transformation matrix))
+        transformation matrix etc.))
       @item(
         only shape nodes can add triangles to the scene, so the Triangulate
         method can be defined only for shape nodes.)
       @item(
         shape nodes never have children (that's why I don't need to define
         in interface whether [Local]BoundingBox or Triangles/VerticesCount
-        calculate child nodes too - because they will never have any child nodes))
+        calculate child nodes too - because they will never have any child
+        nodes; TODO: some VRML 2.0 shape nodes will break this ?))
       @item(
         shape nodes doesn't affect anything in graph traverse state.)
     ) }
@@ -1789,6 +1789,7 @@ type
   end;
 
   TNodeTransform_1 = class(TNodeGeneralTransformation)
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdTranslation: TSFVec3f index 0 read GetFieldAsSFVec3f;
@@ -3112,6 +3113,9 @@ type
   end;
 
   TNodeShape = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3141,7 +3145,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSphere_2 = class(TVRMLNode)
+  TNodeSphere_2 = class(TNodeGeneralShape)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3152,6 +3156,11 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeSphereSensor = class(TVRMLNode)
@@ -3281,6 +3290,9 @@ type
   end;
 
   TNodeTransform_2 = class(TVRMLNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -7193,6 +7205,19 @@ begin
   Fields.Add(TSFNode.Create(Self, 'geometry')); Fields.Last.Exposed := true;
 end;
 
+procedure TNodeShape.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  if FdGeometry.Value <> nil then
+  begin
+    { According to VRML spec, when geometry is NULL then object is not
+      drawn so appearance doesn't matter. }
+    if FdAppearance.Value <> nil then
+      Func(Self, FdAppearance.Value);
+    Func(Self, FdGeometry.Value);
+  end;
+end;
+
 class function TNodeSound.ClassNodeTypeName: string;
 begin
   Result := 'Sound';
@@ -7401,6 +7426,14 @@ end;
 function TNodeTransform_2.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
+end;
+
+procedure TNodeTransform_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;

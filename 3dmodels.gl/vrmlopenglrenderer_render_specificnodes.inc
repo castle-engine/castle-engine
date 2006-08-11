@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -120,7 +120,7 @@ begin
 
  Render_BindMaterial(0);
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -198,7 +198,7 @@ begin
 
  Render_BindMaterial(0);
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -250,7 +250,7 @@ end;
 
 { Sphere ---------------------------------------------------------------------- }
 
-procedure RenderSphere(Node: TNodeSphere_1);
+procedure RenderSphere(const Radius: Single);
 var q: PGLUQuadric;
 begin
  {whole sphere uses materail num 0 and his own normals and we apply
@@ -265,13 +265,23 @@ begin
   glRotatef(-90, 1, 0, 0);
  end;
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded), 
+ q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
-  gluSphere(q, Node.FdRadius.Value, QUADRIC_SLICES, QUADRIC_STACKS);
+  gluSphere(q, Radius, QUADRIC_SLICES, QUADRIC_STACKS);
  finally gluDeleteQuadric(q) end;
 
  if Render_TexCoordsNeeded then glPopMatrix;
+end;
+
+procedure RenderSphere_1(Node: TNodeSphere_1);
+begin
+  RenderSphere(Node.FdRadius.Value);
+end;
+
+procedure RenderSphere_2(Node: TNodeSphere_2);
+begin
+  RenderSphere(Node.FdRadius.Value);
 end;
 
 {$undef QUADRIC_SLICES}

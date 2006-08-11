@@ -124,11 +124,21 @@ begin
   result := EmptyBox3d;
 end;
 
+function Sphere_LocalBoundingBox(const Radius: Single): TBox3d;
+begin
+  Result := Box3d(
+    Vector3Single(-Radius, -Radius, -Radius),
+    Vector3Single(+Radius, +Radius, +Radius) );
+end;
+
 function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
- result := Box3d(
-   Vector3Single(-FdRadius.Value, -FdRadius.Value, -FdRadius.Value),
-   Vector3Single(+FdRadius.Value, +FdRadius.Value, +FdRadius.Value) );
+  Result := Sphere_LocalBoundingBox(FdRadius.Value);
+end;
+
+function TNodeSphere_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
 { TODO: TNodeSphere, Cylinder, Cone.BoundingBox moze dac wiekszy box niz trzeba. }

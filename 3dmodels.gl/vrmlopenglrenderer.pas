@@ -1903,33 +1903,29 @@ begin
 
   Render_MaterialsBegin;
   try
-   case ArrayPosPointer(Node.ClassType, [
-         TNodeAsciiText_1,
-         TNodeCone_1,
-         TNodeCube_1,
-         TNodeCylinder_1,
-         TNodePointSet_1,
-         TNodeSphere_1,
-         TNodeIndexedFaceSet_1,
-         TNodeIndexedTriangleMesh_1,
-         TNodeIndexedLineSet_1 ]) of
-    0: RenderAsciiText(TNodeAsciiText_1(Node));
-    1: RenderCone     (TNodeCone_1     (Node));
-    2: RenderCube     (TNodeCube_1     (Node));
-    3: RenderCylinder (TNodeCylinder_1 (Node));
-    4: RenderPointSet (TNodePointSet_1 (Node));
-    5: RenderSphere   (TNodeSphere_1   (Node));
-    6, 7, 8:
-      begin
-       IndexedRenderer := CreateIndexedRenderer(Self);
-       try
+    if Node is TNodeAsciiText_1 then
+      RenderAsciiText(TNodeAsciiText_1(Node)) else
+    if Node is TNodeCone_1 then
+      RenderCone(TNodeCone_1(Node)) else
+    if Node is TNodeCube_1 then
+      RenderCube(TNodeCube_1(Node)) else
+    if Node is TNodeCylinder_1 then
+      RenderCylinder(TNodeCylinder_1(Node)) else
+    if Node is TNodePointSet_1 then
+      RenderPointSet(TNodePointSet_1(Node)) else
+    if Node is TNodeSphere_1 then
+      RenderSphere_1(TNodeSphere_1(Node)) else
+    if Node is TNodeSphere_2 then
+      RenderSphere_2(TNodeSphere_2(Node)) else
+    if Node is TNodeGeneralIndexed_1 then
+    begin
+      IndexedRenderer := CreateIndexedRenderer(Self);
+      try
         IndexedRenderer.Render;
-       finally IndexedRenderer.Free end;
-      end;
-    else
+      finally IndexedRenderer.Free end;
+    end else
       raise EVRMLOpenGLRenderError.Create(
         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
-   end;
   finally Render_MaterialsEnd end;
 end;
 

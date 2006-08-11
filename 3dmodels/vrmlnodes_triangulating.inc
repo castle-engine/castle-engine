@@ -338,8 +338,11 @@ procedure TNodePointSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
 begin
 end;
 
-procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure Sphere_LocalTriangulate(
+  Self: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  const FdRadiusValue: Single);
 
   procedure StackHigherLine(StackNum: integer; out Radius, Height: Single);
   { dla StackNum = 0..QUADRIC_STACKS (tak, ta funkcja wyjatkowo akceptuje
@@ -348,14 +351,14 @@ procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
     oblicza promien i wysokosc (y) gornej obreczy warstwy StackNum. }
   var alfa, s, c: Float;
   begin
-   { Policz Radius dla sfery o promieniu 1 i pomnoz przez FdRadius.Value.
+   { Policz Radius dla sfery o promieniu 1 i pomnoz przez FdRadiusValue.
      Podobnie radzimy sobie z Height. }
    { Dzielimy tutaj obrecz (poludniki) na QUADRIC_STACKS rownych
      kawalkow. To jest duzo lepszy pomysl niz dzielic os sfery na
      rowne kawalki; mozna to sprawdzic aktywujac na chwile ten stary
      kod :
-       Radius := Sqrt( 1 - Sqr(1 - 2*StackNum/QUADRIC_STACKS) ) * FdRadius.Value;
-       Height:=(-1 + StackNum * 2/QUADRIC_STACKS) * FdRadius.Value;
+       Radius := Sqrt( 1 - Sqr(1 - 2*StackNum/QUADRIC_STACKS) ) * FdRadiusValue;
+       Height:=(-1 + StackNum * 2/QUADRIC_STACKS) * FdRadiusValue;
      On liczy Radius i Height dzielac os na rowne kawalki.
      Mozna zobaczyc ze wyniki sa duzo gorsze, przy czubku sfera jest bardzo
      nieproporcjonalnie gorzej triangulowana. Nawiasem mowiac
@@ -363,8 +366,8 @@ procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
      sprawdzilem. }
    alfa := Pi * StackNum / QUADRIC_STACKS;
    SinCos(alfa, s, c);
-   Radius := s * FdRadius.Value;
-   Height := -c * FdRadius.Value;
+   Radius := s * FdRadiusValue;
+   Height := -c * FdRadiusValue;
   end;
 
 var BottomPt, TopPt: TVector3Single;
@@ -398,8 +401,8 @@ begin
 
  { najpierw narysuj warstwe pierwsza i ostatnia, czyli dla StackNum = 1 i
    QUADRIC_STACKS }
- BottomPt := Vector3Single(0, -FdRadius.Value, 0);
- TopPt := Vector3Single(0, FdRadius.Value, 0);
+ BottomPt := Vector3Single(0, -FdRadiusValue, 0);
+ TopPt := Vector3Single(0, FdRadiusValue, 0);
  StackHigherLine(1, BottomAndTopStackRadius, BottomHeight);
  TopHeight := -BottomHeight;
 
@@ -429,6 +432,20 @@ begin
    HighLastPt := HighPt;
   end;
  end;
+end;
+
+procedure TNodeSphere_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Sphere_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdRadius.Value);
+end;
+
+procedure TNodeSphere_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Sphere_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdRadius.Value);
 end;
 
 {$undef QUADRIC_SLICES}

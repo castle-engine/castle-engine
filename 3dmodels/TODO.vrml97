@@ -202,3 +202,8 @@ VRML 97 nodes done (parsed and handled correctly):
   (were already done as VRML 1.0 extension)
 
 - Switch, Group
+
+- Transform partially: it works like Group now, transformation
+  is not applied.
+
+- Sphere

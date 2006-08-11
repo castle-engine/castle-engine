@@ -480,11 +480,14 @@ begin
       end;
     end else
     begin
+      (* TODO: this prevents parsing floats like ".2", so it's
+        disabled for now.
       case FirstBlackChr of
         { VRML > 1.0 symbols }
         '.': fToken := vtPeriod;
         else RecognizeCommonTokens(FirstBlackChr);
-      end;
+      end; *)
+      RecognizeCommonTokens(FirstBlackChr);
     end;
   end;
 
