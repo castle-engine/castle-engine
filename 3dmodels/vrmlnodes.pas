@@ -2762,7 +2762,11 @@ type
   TNodeGroupHidden_2 = class(TNodeGroup_2)
   end;
 
-  TNodeImageTexture = class(TVRMLNode)
+  TNodeImageTexture = class(TNodeGeneralTexture)
+  private
+    FUsedUrl: string;
+  protected
+    function LoadTextureImage: TImage; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2772,6 +2776,17 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function TextureDescription: string; override;
+    function RepeatS: boolean; override;
+    function RepeatT: boolean; override;
+
+    { This contains one of URLs from the list of FdUrl.Items
+      (already expanded to absolute URL by PathFromWWWBasePath)
+      that was actually used to load current texture image.
+      This is set when image is actually loaded. If image is not
+      loaded it's ''. }
+    property UsedUrl: string read FUsedUrl;
   end;
 
   TNodeIndexedFaceSet_2 = class(TVRMLNode)
@@ -6878,6 +6893,49 @@ begin
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('repeatS', TRUE));
   Fields.Add(TSFBool.Create('repeatT', TRUE));
+end;
+
+function TNodeImageTexture.LoadTextureImage: TImage;
+var
+  I: Integer;
+  FullUrl: string;
+begin
+  Result := nil;
+
+  FUsedUrl := '';
+  for I := 0 to FdUrl.Count - 1 do
+  begin
+    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    try
+      Result := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
+      FUsedUrl := FullUrl;
+      Break;
+    except
+      on E: Exception do
+        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+          (chociaz nie musi) }
+        VRMLNonFatalError('Exception ' + E.ClassName +
+          ' occured when trying to load ' +
+          'texture from filename "' + FullUrl + '" : ' + E.Message);
+    end;
+  end;
+end;
+
+function TNodeImageTexture.TextureDescription: string;
+begin
+  if UsedUrl <> '' then
+    Result := 'file "' +PathFromWWWBasePath(UsedUrl) +'"' else
+    Result := 'none';
+end;
+
+function TNodeImageTexture.RepeatS: boolean;
+begin
+  Result := FdRepeatS.Value;
+end;
+
+function TNodeImageTexture.RepeatT: boolean;
+begin
+  Result := FdRepeatT.Value;
 end;
 
 class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;

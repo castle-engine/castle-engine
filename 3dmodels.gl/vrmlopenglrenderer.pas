@@ -1590,8 +1590,11 @@ begin
      if TextureFileName <> '' then
        TextureFileName :=
          TNodeTexture2(TextureNode).PathFromWWWBasePath(TextureFileName);
+   end else
+   if TextureNode is TNodeImageTexture then
+   begin
+     TextureFileName := TNodeImageTexture(TextureNode).UsedUrl;
    end;
-   { TODO: ImageTexture }
 
    TextureReference.TextureGL := Cache.Texture_IncReference(
      TextureNode.TextureImage,

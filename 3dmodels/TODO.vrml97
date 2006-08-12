@@ -221,3 +221,4 @@ VRML 97 nodes done (parsed and handled correctly):
 - Cone, Cylinder
 - PixelTexture
 - TextureTransform
+- ImageTexture
