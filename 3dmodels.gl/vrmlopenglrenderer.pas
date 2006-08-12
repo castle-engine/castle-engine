@@ -1833,8 +1833,19 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
+var
+  TextureTransform: TNodeTextureTransform;
 begin
-  glMatrixMode(GL_TEXTURE); glLoadMatrix(State.CurrTextureMatrix);
+  glMatrixMode(GL_TEXTURE);
+  if State.ParentShape = nil then
+    glLoadMatrix(State.CurrTextureMatrix) else
+  begin
+    TextureTransform := State.ParentShape.TextureTransform;
+    if TextureTransform = nil then
+      glLoadIdentity else
+      glLoadMatrix(TextureTransform.Matrix);
+  end;
+
   glMatrixMode(GL_MODELVIEW);
 
   { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj

@@ -3351,6 +3351,8 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function Matrix: TMatrix4Single;
   end;
 
   TNodeTimeSensor = class(TVRMLNode)
@@ -7598,6 +7600,26 @@ begin
   Fields.Add(TSFFloat.Create('rotation', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec2f.Create('scale', Vector2Single(1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0))); Fields.Last.Exposed := true;
+end;
+
+function TNodeTextureTransform.Matrix: TMatrix4Single;
+begin
+  { Note that this is different than
+    TNodeTexture2Transform.TextureMatrixTransformation,
+    because VRML 2.0 spec says that order of operations
+    performed by TextureTransform is different than
+    the one by VRML 1.0. }
+
+  Result := TranslationMatrix(
+    Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 ));
+  Result := MultMatrices(Result,
+    ScalingMatrix(
+      Vector3Single( FdScale.Value[0], FdScale.Value[1], 1 )));
+  Result := MultMatrices(Result,
+    RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
+  Result := MultMatrices(Result,
+    TranslationMatrix( Vector3Single(
+      VectorAdd(FdTranslation.Value, FdCenter.Value) )));
 end;
 
 class function TNodeTimeSensor.ClassNodeTypeName: string;
