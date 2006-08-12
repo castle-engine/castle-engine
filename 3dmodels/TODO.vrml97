@@ -219,3 +219,4 @@ VRML 97 nodes done (parsed and handled correctly):
 - Sphere, Box
 - Material
 - Cone, Cylinder
+- PixelTexture

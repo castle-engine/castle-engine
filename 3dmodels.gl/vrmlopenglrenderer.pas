@@ -445,7 +445,7 @@ type
 
   TTextureCache = record
     FileName: string;
-    Node: TNodeTexture2;
+    Node: TNodeGeneralTexture;
     MinFilter: TGLint;
     MagFilter: TGLint;
     WrapS: TGLenum;
@@ -540,7 +540,7 @@ type
     function Texture_IncReference(
       const TextureImage: TImage;
       const TextureFileName: string;
-      const TextureNode: TNodeTexture2;
+      const TextureNode: TNodeGeneralTexture;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrapS, TextureWrapT: TGLenum;
       const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
@@ -561,8 +561,9 @@ type
       we have not (so it must be added to the cache).
 
       If @true then if the textures come from the same filename
-      ("filename" means here combined WWWBasePath + filename field
-      of Texture2 VRML node) then the textures are assumed to contain
+      ("filename" means here combined WWWBasePath + filename/url field
+      of Texture2 or ImageTexture VRML node)
+      then the textures are assumed to contain
       the same image. This seems reasonable and is sensible in 99% of most
       common cases.
 
@@ -585,9 +586,10 @@ type
 
       That's why another, safer strategy is the default:
       When UseTextureFileNames = @false, texture images are assumed to be
-      equal only if they come from the same TNodeTexture2 instance.
+      equal only if they come from the same TNodeGeneralTexture instance.
       In practice this will usually happen only if these come from
-      the actual same VRML file and are the same actual VRML Texture2 node.
+      the actual same VRML file and are the same actual VRML
+      Texture2/ImageTexture/PixelTexture node.
       So if you have two shape nodes that simply use the same Texture2 node,
       then OK --- they will reuse the same texture. Obviously one Texture2 node
       will not be loaded more than once to OpenGL texture memory.
@@ -687,7 +689,7 @@ type
   end;
 
   TTextureReference = record
-    TextureNode: TNodeTexture2;
+    TextureNode: TNodeGeneralTexture;
     TextureGL: TGLuint;
   end;
   PTextureReference = ^TTextureReference;
@@ -700,7 +702,7 @@ type
   public
     { szuka rekordu z danym TextureNode.
       Zwraca jego indeks lub -1 jesli nie znajdzie. }
-    function TextureNodeIndex(TexNode: TNodeTexture2): integer;
+    function TextureNodeIndex(TexNode: TNodeGeneralTexture): integer;
   end;
 
   TVRMLOpenGLRenderer = class
@@ -937,7 +939,7 @@ end;
 function TVRMLOpenGLRendererContextCache.Texture_IncReference(
   const TextureImage: TImage;
   const TextureFileName: string;
-  const TextureNode: TNodeTexture2;
+  const TextureNode: TNodeGeneralTexture;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrapS, TextureWrapT: TGLenum;
   const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
@@ -1507,7 +1509,8 @@ end;
 
 { TDynTextureReferenceArray ---------------------------------------------------- }
 
-function TDynTextureReferenceArray.TextureNodeIndex(TexNode: TNodeTexture2): integer;
+function TDynTextureReferenceArray.TextureNodeIndex(
+  TexNode: TNodeGeneralTexture): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].TextureNode = TexNode then exit;
@@ -1551,14 +1554,13 @@ end;
 
 procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 const
-  TexWrapEnumToGL: array[TEXWRAP_REPEAT..TEXWRAP_CLAMP]of TGLenum =
-  (GL_REPEAT, GL_CLAMP);
+  TextureRepeatToGL: array[boolean]of TGLenum = (GL_CLAMP, GL_REPEAT);
 var
   fsfam: TVRMLFontFamily;
   fsbold, fsitalic: boolean;
   TextureReference: TTextureReference;
   TextureFileName: string;
-  TextureNode: TNodeTexture2;
+  TextureNode: TNodeGeneralTexture;
 begin
  {przygotuj font dla LastFontStyle}
  fsfam := State.LastNodes.FontStyle.FdFamily.Value;
@@ -1572,17 +1574,24 @@ begin
    FontsReferences[fsfam, fsbold, fsitalic] := true;
  end;
 
- {przygotuj teksture dla LastTexture2}
- TextureNode := State.LastNodes.Texture2;
- if (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
+ { przygotuj teksture }
+ TextureNode := State.Texture;
+ if (TextureNode <> nil) and
+    (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
   if TextureNode.IsTextureImage then
   begin
    TextureReference.TextureNode := TextureNode;
 
-   TextureFileName := TextureNode.FdFileName.Value;
-   if TextureFileName <> '' then
-     TextureFileName := TextureNode.PathFromWWWBasePath(TextureFileName);
+   TextureFileName := '';
+   if TextureNode is TNodeTexture2 then
+   begin
+     TextureFileName := TNodeTexture2(TextureNode).FdFileName.Value;
+     if TextureFileName <> '' then
+       TextureFileName :=
+         TNodeTexture2(TextureNode).PathFromWWWBasePath(TextureFileName);
+   end;
+   { TODO: ImageTexture }
 
    TextureReference.TextureGL := Cache.Texture_IncReference(
      TextureNode.TextureImage,
@@ -1590,8 +1599,8 @@ begin
      TextureNode,
      Attributes.TextureMinFilter,
      Attributes.TextureMagFilter,
-     TexWrapEnumToGL[TextureNode.FdWrapS.Value],
-     TexWrapEnumToGL[TextureNode.FdWrapT.Value],
+     TextureRepeatToGL[TextureNode.RepeatS],
+     TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte);
 
    TextureReferences.AppendItem(TextureReference);
@@ -1608,9 +1617,9 @@ begin
   samego juz utworzonego fontu.}
 
  {niszczymy teksture}
- if Node is TNodeTexture2 then
+ if Node is TNodeGeneralTexture then
  begin
-  i := TextureReferences.TextureNodeIndex(TNodeTexture2(Node));
+  i := TextureReferences.TextureNodeIndex(TNodeGeneralTexture(Node));
   if i >= 0 then
   begin
    Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
@@ -1763,7 +1772,7 @@ begin
  glDisable(GL_CULL_FACE);
 
  glDisable(GL_ALPHA_TEST);
- {AlphaFunc uzywane tylko w Texture2 i tam taka wartosc jest dobra}
+ {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
  glAlphaFunc(GL_GEQUAL, 0.5);
 
  if Attributes.SmoothShading then
@@ -1853,6 +1862,7 @@ var
 var
   IndexedRenderer: TGeneralIndexedRenderer;
   TextureReferencesIndex: Integer;
+  TextureNode: TNodeGeneralTexture;
 begin
   {zrob nasze kopie}
   Render_State := State;
@@ -1883,14 +1893,15 @@ begin
    i ktos zechce kombinowac finezyjne transparency
    materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
   }
-  if (State.LastNodes.Texture2.IsTextureImage) and
-    Attributes.EnableTextures then
+  TextureNode := State.Texture;
+  if (TextureNode <> nil) and
+     TextureNode.IsTextureImage and
+     Attributes.EnableTextures then
   begin
-   SetGLEnabled(GL_ALPHA_TEST,
-     State.LastNodes.Texture2.TextureImage is TAlphaImage);
+   SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
    glEnable(GL_TEXTURE_2D);
    TextureReferencesIndex := TextureReferences.TextureNodeIndex(
-     State.LastNodes.Texture2);
+     TextureNode);
    Assert(TextureReferencesIndex <> -1,
      'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
      'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +

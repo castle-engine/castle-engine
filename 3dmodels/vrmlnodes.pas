@@ -315,6 +315,7 @@ type
   TNodeGeneralLight = class;
   TNodeKambiTriangulation = class;
   TNodeShape = class;
+  TNodeGeneralTexture = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -455,6 +456,17 @@ type
       TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
       For example, it ignores CurrMatrix. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
+
+    { Returns proper texture node that should be used
+      for nodes within this State, regardless whether this in
+      VRML 1.0 or 2.0.
+
+      Details:
+      If ParentShape <> nil, this returns texture node taken from
+      ParentShape.Texture (note that it may be nil, if Apperance
+      of Appearance.Texture node is NULL in VRML).
+      Otherwise it returns texture from LastNodes.Texture2. }
+    function Texture: TNodeGeneralTexture;
   end;
 
   TTraversingFunc = procedure (Node: TVRMLNode;
@@ -1635,21 +1647,33 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeTexture2 = class(TVRMLNode)
+  TNodeGeneralTexture = class(TVRMLNode)
   private
     { This is always <> nil.
       We use only IsNull to indicate whether we have or have not a texture here. }
     FTextureImage: TImage;
     FIsTextureLoaded: boolean;
+  protected
+    { This should loads actual image. It must return newly created TImage
+      instance if texture could be loaded, or nil if no texture could
+      be loaded. You do not care in this method about things like
+      IsImageLoaded --- this method should just always,
+      unconditionally, make everything it can do to load texture.
+
+      You can use VRMLNonFatalError inside, so we're prepared
+      that this may even exit with exception (since VRMLNonFatalError
+      can raise exception).
+
+      You have to return TRGBImage or TAlphaImage here,
+      see TextureImage docs. }
+    function LoadTextureImage: TImage; virtual; abstract;
   public
+    constructor Create(const ANodeName: string;
+      const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     { Pierwsze uzycie TextureImage spowoduje ze tekstura zostanie automatycznie
-      zaladowana na podstawie pol obiektu: z pliku (pole filename)
-      lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,
-      jesli filename = '' (lub wystapi jakis blad przy ladowaniu z filename
-      ale VRMLNonFatalError to zignoruje) to zostanie uzyta tekstura inline.
-      Jezeli nie ma tekstury inline i nie ma prawidlowego filename to tekstura
-      zostanie zaladowana jako ImageNone. To ostatnie stwierdzenie ma
-      znaczenie: mowi ono ze IsTextureImage znaczy co innego niz IsTextureLoaded.
+      zaladowana na podstawie pol obiektu.
 
       IsTextureLoaded mowi czy nastepne uzycie TextureImage spowoduje
       ReloadTexture, a wiec potencjalnie siegniecie do pliku
@@ -1663,30 +1687,47 @@ type
       Dzieki temu mechanizmowi w standardowej sytuacji, tzn. gdy nigdy
       nie uzyjesz w programie ReloadTexture, blad w rodzaju
       "texture file foo.png does not exist" bedzie zgloszony do VRMLNonFatalError
-      tylko raz - za kazdym nastepnym razem IsTextureImage = false ale
+      tylko raz --- za kazdym nastepnym razem IsTextureImage = false ale
       IsTextureLoaded = true wiec odwolania do TextureImage beda po prostu
       zwracac ImageNone.
 
-      BTW, taki node z IsTextureLoaded = true i IsTextureImage = false
-      tez ma swoje znaczenie: oznacza "wylacz aktywna teksture".
-
-      TextureImage class is always in (TRGBImage, TAlphaImage)
+      TextureImage class  always in (TRGBImage, TAlphaImage)
       po prostu dlatego ze takie sa formaty akceptowane w KambiGLUtils.
       TODO: to nie jest eleganckie, przeciez nie chcemy zeby OpenGL
-      wplywal na ten modul nawet w taki subtelny sposob.   }
+      wplywal na ten modul nawet w taki subtelny sposob. }
     function TextureImage: TImage;
     function IsTextureImage: boolean; { = not TextureImage.IsNull }
     property IsTextureLoaded: boolean read FIsTextureLoaded;
     procedure ReloadTexture;
 
-    { krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
+    { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
       zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
       jak i jaka tekstura jest zaladowana. }
-    function TextureDescription: string;
+    function TextureDescription: string; virtual; abstract;
 
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    function RepeatS: boolean; virtual; abstract;
+    function RepeatT: boolean; virtual; abstract;
+  end;
+
+  TNodeTexture2 = class(TNodeGeneralTexture)
+  protected
+    { Texture in this class is loaded z pliku (pole filename)
+      lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,
+      jesli filename = '' (lub wystapi jakis blad przy ladowaniu z filename
+      ale VRMLNonFatalError to zignoruje) to zostanie uzyta tekstura inline.
+      Jezeli nie ma tekstury inline i nie ma prawidlowego filename to tekstura
+      zostanie zaladowana jako ImageNone. To ostatnie stwierdzenie ma
+      znaczenie: mowi ono ze IsTextureImage znaczy co innego niz
+      IsTextureLoaded.
+
+      BTW, in VRML 1.0 taki node z IsTextureLoaded = true i
+      IsTextureImage = false tez ma swoje znaczenie:
+      oznacza "wylacz aktywna teksture". }
+    function LoadTextureImage: TImage; override;
+  public
+    constructor Create(const ANodeName: string;
+      const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    destructor Destroy; override;
 
     property FdFilename: TSFString index 0 read GetFieldAsSFString;
     property FdImage: TSFImage index 1 read GetFieldAsSFImage;
@@ -1702,6 +1743,10 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function TextureDescription: string; override;
+    function RepeatS: boolean; override;
+    function RepeatT: boolean; override;
   end;
 
   TNodeTexture2Transform = class(TVRMLNode)
@@ -3019,7 +3064,9 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodePixelTexture = class(TVRMLNode)
+  TNodePixelTexture = class(TNodeGeneralTexture)
+  protected
+    function LoadTextureImage: TImage; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3029,6 +3076,10 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function TextureDescription: string; override;
+    function RepeatS: boolean; override;
+    function RepeatT: boolean; override;
   end;
 
   TNodePlaneSensor = class(TVRMLNode)
@@ -3143,6 +3194,8 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
+  TNodeTextureTransform = class;
+
   TNodeShape = class(TVRMLNode)
   protected
     procedure DirectEnumerateActive(
@@ -3158,6 +3211,21 @@ type
 
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+
+    { This is a shortcut for FdAppearance.Value.FdTexture.Value.
+      If anything makes this impossible (Apperance field is NULL,
+      or Appearance.Texture field is NULL, or wrong node class is
+      passed as Appearance or Texture node), then returns nil.
+      @noAutoLinkHere }
+    function Texture: TNodeGeneralTexture;
+
+    { This is like @like(Texture), but it returns TextureTransform
+      of Apperance. }
+    function TextureTransform: TNodeTextureTransform;
+
+    { This is like @like(Texture), but it returns Material
+      of Apperance. }
+    function Material: TNodeMaterial_2;
   end;
 
   TNodeSound = class(TVRMLNode)
@@ -3858,6 +3926,13 @@ begin
       Exit(false);
 
   Result := true;
+end;
+
+function TVRMLGraphTraverseState.Texture: TNodeGeneralTexture;
+begin
+  if ParentShape = nil then
+    Result := LastNodes.Texture2 else
+    Result := ParentShape.Texture;
 end;
 
 { TVRMLNode ------------------------------------------------------------------- }
@@ -5349,6 +5424,70 @@ begin
  result := 'NormalBinding';
 end;
 
+constructor TNodeGeneralTexture.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+  FTextureImage := TRGBImage.Create;
+  FIsTextureLoaded := false;
+end;
+
+destructor TNodeGeneralTexture.Destroy;
+begin
+  FreeAndNil(FTextureImage);
+  inherited;
+end;
+
+function TNodeGeneralTexture.TextureImage: TImage;
+begin
+  if not IsTextureLoaded then ReloadTexture;
+  Assert(IsTextureLoaded);
+  result := FTextureImage;
+end;
+
+function TNodeGeneralTexture.IsTextureImage: boolean;
+begin
+  result := not TextureImage.IsNull;
+end;
+
+procedure TNodeGeneralTexture.ReloadTexture;
+
+  procedure ReplaceTextureImage(NewFTextureImage: TImage);
+  begin
+    FreeAndNil(FTextureImage);
+    FTextureImage := NewFTextureImage;
+  end;
+
+var
+  LoadedImage: TImage;
+begin
+  { Just like in implementation of TSFImage.Parse:
+
+    Note that we should never let FTextureImage to be nil too long,
+    because even if this method exits with exception, FTextureImage should
+    always remain non-nil.
+    That's why I'm doing below FTextureImage.Null instead of
+    FreeAndNil(FTextureImage) and I'm using ReplaceTextureImage to set
+    new FTextureImage.
+    This way if e.g. TRGBImage.Create inside LoadTextureImage
+    will raise out of mem exception,
+    FTextureImage will still remain non-nil.
+
+    This is all because I just changed Images unit interface to class-like
+    and I want to do minimal changes to VRMLNodes unit to not break
+    anything. TODO -- this will be solved better in the future, by simply
+    allowing TextureImage to be nil at any time.
+  }
+
+  FTextureImage.Null;
+
+  LoadedImage := LoadTextureImage;
+  if LoadedImage <> nil then
+    ReplaceTextureImage(LoadedImage);
+
+  FIsTextureLoaded := true;
+end;
+
 constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..1]of string = ('REPEAT', 'CLAMP');
 begin
@@ -5359,9 +5498,6 @@ begin
  Fields.Add(TSFEnum.Create('wrapT', A1, TEXWRAP_REPEAT));
  Fields.Add(TSFEnum.Create('model', ['DECAL'], 0));
  Fields.Add(TSFVec3f.Create('blendColor', Vector3Single(0, 0, 0)));
-
- FTextureImage := TRGBImage.Create;
- FIsTextureLoaded := false;
 end;
 
 class function TNodeTexture2.ClassNodeTypeName: string;
@@ -5369,92 +5505,58 @@ begin
  result := 'Texture2';
 end;
 
-destructor TNodeTexture2.Destroy;
+function TNodeTexture2.LoadTextureImage: TImage;
 begin
- FreeAndNil(FTextureImage);
- inherited;
-end;
+  Result := nil;
 
-function TNodeTexture2.TextureImage: TImage;
-begin
- if not IsTextureLoaded then ReloadTexture;
- Assert(IsTextureLoaded);
- result := FTextureImage;
-end;
-
-function TNodeTexture2.IsTextureImage: boolean;
-begin
- result := not TextureImage.IsNull;
-end;
-
-procedure TNodeTexture2.ReloadTexture;
-
-  procedure ReplaceTextureImage(NewFTextureImage: TImage);
-  begin
-   FreeAndNil(FTextureImage);
-   FTextureImage := NewFTextureImage;
+  { sprobuj zaladowac teksture z pliku FdFilename }
+  if FdFilename.Value <> '' then
+  try
+    Result := LoadImage( PathFromWWWBasePath(FdFilename.Value),
+      [TRGBImage, TAlphaImage], []);
+  except
+    on E: Exception do
+      { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+        (chociaz nie musi) }
+      VRMLNonFatalError('Exception '+E.ClassName+' occured when trying to load '+
+        'texture from filename '+FdFilename.Value+' : '+E.Message);
   end;
 
-begin
- { Just like in implementation of TSFImage.Parse:
-
-   Note that we should never let FTextureImage to be nil too long,
-   because even if this method exits with exception, FTextureImage should
-   always remain non-nil.
-   That's why I'm doing below FTextureImage.Null instead of
-   FreeAndNil(FTextureImage) and I'm using ReplaceTextureImage to set
-   new FTextureImage.
-   This way if e.g. TRGBImage.Create with out of mem exception,
-   FTextureImage will still remain non-nil.
-
-   This is all because I just changed Images unit interface to class-like
-   and I want to do minimal changes to VRMLNodes unit to not break
-   anything. TODO -- this will be solved better in the future, by simply
-   allowing TextureImage to be nil at any time.
- }
-
- FTextureImage.Null;
-
- { sprobuj zaladowac teksture z pliku FdFilename }
- if FdFilename.Value <> '' then
- try
-  ReplaceTextureImage( LoadImage( PathFromWWWBasePath(FdFilename.Value),
-    [TRGBImage, TAlphaImage], []) );
- except
-  on E: Exception do
-   { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
-     (chociaz nie musi) }
-   VRMLNonFatalError('Exception '+E.ClassName+' occured when trying to load '+
-     'texture from filename '+FdFilename.Value+' : '+E.Message);
- end;
-
- { FTextureImage.IsNull oznacza ze nie bylo filename albo tekstury z
-   filename nie dalo sie zaladowac. Wiec jezeli jest to uzywamy inlined
-   tekstury (w polu FdImage) }
- if (FTextureImage.IsNull) and (not FdImage.Value.IsNull) then
-  ReplaceTextureImage(FdImage.Value.MakeCopy);
-
- FIsTextureLoaded := true;
+  { Result = nil oznacza ze nie bylo filename albo tekstury z
+    filename nie dalo sie zaladowac. Wiec jezeli jest to uzywamy inlined
+    tekstury (w polu FdImage) }
+  if (Result = nil) and (not FdImage.Value.IsNull) then
+    Result := FdImage.Value.MakeCopy;
 end;
 
 function TNodeTexture2.TextureDescription: string;
 
   function InlinedDescr: string;
   begin
-   result := Format('inlined (width = %d; height = %d; with alpha = %s)',
-     [ FdImage.Value.Width, FdImage.Value.Height,
-       BoolToStr[FdImage.Value is TAlphaImage] ]);
+    result := Format('inlined (width = %d; height = %d; with alpha = %s)',
+      [ FdImage.Value.Width, FdImage.Value.Height,
+        BoolToStr[FdImage.Value is TAlphaImage] ]);
   end;
 
 begin
- if FdFilename.Value <> '' then
- begin
-  result := 'file "' +PathFromWWWBasePath(FdFilename.Value) +'"';
-  if not FdImage.Value.IsNull then result += ' (and '+InlinedDescr+')';
- end else
- if not FdImage.Value.IsNull then
-  result := InlinedDescr else
-  result := 'none';
+  if FdFilename.Value <> '' then
+  begin
+    result := 'file "' +PathFromWWWBasePath(FdFilename.Value) +'"';
+    if not FdImage.Value.IsNull then result += ' (and '+InlinedDescr+')';
+  end else
+  if not FdImage.Value.IsNull then
+    result := InlinedDescr else
+    result := 'none';
+end;
+
+function TNodeTexture2.RepeatS: boolean;
+begin
+  Result := FdWrapS.Value = TEXWRAP_REPEAT;
+end;
+
+function TNodeTexture2.RepeatT: boolean;
+begin
+  Result := FdWrapT.Value = TEXWRAP_REPEAT;
 end;
 
 constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -7111,6 +7213,32 @@ begin
   Fields.Add(TSFBool.Create('repeatT', TRUE));
 end;
 
+function TNodePixelTexture.LoadTextureImage: TImage;
+begin
+  Result := nil;
+  if not FdImage.Value.IsNull then
+    Result := FdImage.Value.MakeCopy;
+end;
+
+function TNodePixelTexture.TextureDescription: string;
+begin
+  if not FdImage.Value.IsNull then
+    result := Format('inlined (width = %d; height = %d; with alpha = %s)',
+      [ FdImage.Value.Width, FdImage.Value.Height,
+        BoolToStr[FdImage.Value is TAlphaImage] ]) else
+    result := 'none';
+end;
+
+function TNodePixelTexture.RepeatS: boolean;
+begin
+  Result := FdRepeatS.Value;
+end;
+
+function TNodePixelTexture.RepeatT: boolean;
+begin
+  Result := FdRepeatT.Value;
+end;
+
 class function TNodePlaneSensor.ClassNodeTypeName: string;
 begin
   Result := 'PlaneSensor';
@@ -7280,6 +7408,51 @@ procedure TNodeShape.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
   State.ParentShape := nil;
   inherited;
+end;
+
+function TNodeShape.Texture: TNodeGeneralTexture;
+var
+  Appearance: TNodeAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeAppearance) then
+  begin
+    Appearance := TNodeAppearance(FdAppearance.Value);
+    if (Appearance.FdTexture.Value <> nil) and
+       (Appearance.FdTexture.Value is TNodeGeneralTexture) then
+      Result := TNodeGeneralTexture(Appearance.FdTexture.Value);
+  end;
+end;
+
+function TNodeShape.TextureTransform: TNodeTextureTransform;
+var
+  Appearance: TNodeAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeAppearance) then
+  begin
+    Appearance := TNodeAppearance(FdAppearance.Value);
+    if (Appearance.FdTextureTransform.Value <> nil) and
+       (Appearance.FdTextureTransform.Value is TNodeTextureTransform) then
+      Result := TNodeTextureTransform(Appearance.FdTextureTransform.Value);
+  end;
+end;
+
+function TNodeShape.Material: TNodeMaterial_2;
+var
+  Appearance: TNodeAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeAppearance) then
+  begin
+    Appearance := TNodeAppearance(FdAppearance.Value);
+    if (Appearance.FdMaterial.Value <> nil) and
+       (Appearance.FdMaterial.Value is TNodeMaterial_2) then
+      Result := TNodeMaterial_2(Appearance.FdMaterial.Value);
+  end;
 end;
 
 class function TNodeSound.ClassNodeTypeName: string;

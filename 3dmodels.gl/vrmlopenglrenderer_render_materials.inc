@@ -144,7 +144,6 @@ end;
  }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
-  Appearance: TNodeAppearance;
   Material: TNodeMaterial_2;
 begin
   Assert(not (Render_Node is TNodeGeneralShape_1));
@@ -156,17 +155,7 @@ begin
     Exit;
   end;
 
-  Appearance := nil;
-  Material := nil;
-
-  if (Render_State.ParentShape.FdAppearance.Value <> nil) and
-     (Render_State.ParentShape.FdAppearance.Value is TNodeAppearance) then
-  begin
-    Appearance := TNodeAppearance(Render_State.ParentShape.FdAppearance.Value);
-    if (Appearance.FdMaterial <> nil) and
-       (Appearance.FdMaterial.Value is TNodeMaterial_2) then
-      Material := TNodeMaterial_2(Appearance.FdMaterial.Value);
-  end;
+  Material := Render_State.ParentShape.Material;
 
   if Material <> nil then
   begin
@@ -177,7 +166,9 @@ begin
       Material.FdDiffuseColor.Value,
       Material.FdSpecularColor.Value,
       Material.FdEmissiveColor.Value,
-      White3Single { UnLit color doesn't matter },
+      { UnLit color doesn't matter here, it will not be used
+        by Render_Material. }
+      White3Single,
       Material.ShininessExp,
       Material.Opacity,
       Material.FdFogImmune.Value);
@@ -187,6 +178,8 @@ begin
       false,
       { Colors for lighting don't matter here }
       White3Single, White3Single, White3Single, White3Single,
+      { From VRML 2.0 spec about Appearance node: when no Material is
+        specified, object is unlit and unlit object color is (1, 1, 1). }
       White3Single,
       0,
       1,
