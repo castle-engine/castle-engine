@@ -3206,11 +3206,11 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdattenuation: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property FdbeamWidth: TSFFloat index 2 read GetFieldAsSFFloat;
-    property FdcutOffAngle: TSFFloat index 4 read GetFieldAsSFFloat;
-    property Fddirection: TSFVec3f index 5 read GetFieldAsSFVec3f;
-    property Fdlocation: TSFVec3f index 7 read GetFieldAsSFVec3f;
+    property Fdattenuation: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdbeamWidth: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdcutOffAngle: TSFFloat index 6 read GetFieldAsSFFloat;
+    property Fddirection: TSFVec3f index 7 read GetFieldAsSFVec3f;
+    property Fdlocation: TSFVec3f index 8 read GetFieldAsSFVec3f;
     property Fdradius: TSFFloat index 9 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -7338,6 +7338,11 @@ begin
   Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('location', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
+
+  { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
+    see comments at ambientIntensity in implementation of TPointLight_2. }
+  FdAmbientIntensity.Value := 0;
+  FdAmbientIntensity.DefaultValue := 0;
 end;
 
 class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
