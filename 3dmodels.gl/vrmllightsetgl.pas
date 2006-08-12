@@ -216,25 +216,35 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   procedure glLightFromVRMLLightAssumeOn;
 
     { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
-    procedure SetupDirectionalLight(LightNode: TNodeDirectionalLight_1);
+    procedure SetupDirectionalLight(LightNode: TNodeGeneralDirectionalLight);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(VectorNegate(LightNode.FdDirection.Value), 0));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupPointLight(LightNode: TNodePointLight_1);
+    procedure SetupPointLight(LightNode: TNodeGeneralPointLight);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupSpotLight(LightNode: TNodeSpotLight_1);
+    procedure SetupSpotLight_1(LightNode: TNodeSpotLight_1);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
 
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
      glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
      glLightf(glLightNum, GL_SPOT_CUTOFF, RadToDeg(LightNode.FdCutOffAngle.Value));
+    end;
+
+    procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
+    begin
+     glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
+
+     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
+     { TODO: translate VRML 2.0 SpotLight properties to OpenGL. }
+     glLightf(glLightNum, GL_SPOT_EXPONENT, 0.1);
+     glLightf(glLightNum, GL_SPOT_CUTOFF, 90);
     end;
 
   var SetNoAttenuation: boolean;
@@ -246,13 +256,15 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
    try
     glMultMatrix(Light.Transform);
 
-    case ArrayPosPointer(Light.LightNode.ClassType,
-           [ TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1 ]) of
-     0: SetupDirectionalLight(TNodeDirectionalLight_1(Light.LightNode));
-     1: SetupPointLight      (TNodePointLight_1      (Light.LightNode));
-     2: SetupSpotLight       (TNodeSpotLight_1       (Light.LightNode));
-     else raise EInternalError.Create('Unknown light node class');
-    end;
+    if Light.LightNode is TNodeGeneralDirectionalLight then
+      SetupDirectionalLight(TNodeGeneralDirectionalLight(Light.LightNode)) else
+    if Light.LightNode is TNodeGeneralPointLight then
+      SetupPointLight(TNodeGeneralPointLight(Light.LightNode)) else
+    if Light.LightNode is TNodeSpotLight_1 then
+      SetupSpotLight_1(TNodeSpotLight_1(Light.LightNode)) else
+    if Light.LightNode is TNodeSpotLight_2 then
+      SetupSpotLight_2(TNodeSpotLight_2(Light.LightNode)) else
+      raise EInternalError.Create('Unknown light node class');
 
     { setup attenuation for OpenGL light }
     SetNoAttenuation := true;

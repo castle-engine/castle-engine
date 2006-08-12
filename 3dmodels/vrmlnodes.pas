@@ -184,7 +184,7 @@
   nam zaimplementowac jakas funkcjonalnosc dla kilku podobnych
   klas jednoczesnie, te klasy buduja tez ladne drzewko
   zaleznosci obiektow dzieki czemu np. w EnumerateNodes mozemy
-  jako parametr podac TNodeGeneralLights aby znalezc wszystkie
+  jako parametr podac TNodeGeneralLight aby znalezc wszystkie
   swiatla na scenie.
 
   24 sierpnia 2003: znaczne osiagniecie : wyeliminowalem typ TVRMLNodeKind
@@ -2821,6 +2821,7 @@ type
     property Fdshininess: TSFFloat index 3 read GetFieldAsSFFloat;
     property FdspecularColor: TSFColor index 4 read GetFieldAsSFColor;
     property Fdtransparency: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdFogImmune: TSFBool index 6 read GetFieldAsSFBool;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -3201,19 +3202,15 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSpotLight_2 = class(TVRMLNode)
+  TNodeSpotLight_2 = class(TNodeGeneralLight)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdambientIntensity: TSFFloat index 0 read GetFieldAsSFFloat;
     property Fdattenuation: TSFVec3f index 1 read GetFieldAsSFVec3f;
     property FdbeamWidth: TSFFloat index 2 read GetFieldAsSFFloat;
-    property Fdcolor: TSFColor index 3 read GetFieldAsSFColor;
     property FdcutOffAngle: TSFFloat index 4 read GetFieldAsSFFloat;
     property Fddirection: TSFVec3f index 5 read GetFieldAsSFVec3f;
-    property Fdintensity: TSFFloat index 6 read GetFieldAsSFFloat;
     property Fdlocation: TSFVec3f index 7 read GetFieldAsSFVec3f;
-    property Fdon: TSFBool index 8 read GetFieldAsSFBool;
     property Fdradius: TSFFloat index 9 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3739,9 +3736,12 @@ begin
   if LightNode is TNodeSpotLight_1 then
    TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
      TNodeSpotLight_1(LightNode).FdDirection.Value) ) else
-  if LightNode is TNodeDirectionalLight_1 then
+  if LightNode is TNodeSpotLight_2 then
    TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
-     TNodeDirectionalLight_1(LightNode).FdDirection.Value) );
+     TNodeSpotLight_2(LightNode).FdDirection.Value) ) else
+  if LightNode is TNodeGeneralDirectionalLight then
+   TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
+     TNodeGeneralDirectionalLight(LightNode).FdDirection.Value) );
  end;
 end;
 
@@ -6886,6 +6886,7 @@ begin
   Fields.Add(TSFFloat.Create('shininess', 0.2)); Fields.Last.Exposed := true;
   Fields.Add(TSFColor.Create('specularColor', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('transparency', 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('fogImmune', false)); Fields.Last.Exposed := true;
 end;
 
 class function TNodeMaterial_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -7331,15 +7332,11 @@ end;
 constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('ambientIntensity', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0))); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('beamWidth', 1.570796)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('intensity', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('location', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('on', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
 end;
 

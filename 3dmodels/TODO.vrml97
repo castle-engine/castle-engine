@@ -16,6 +16,13 @@ VRML 97 TODO items:
 - castledebugmenu: fix to include also VRML 97 light nodes,
   not only _1 nodes.
 
+- move everything you can from
+  /win/mojewww/camelot/kambi_vrml_extensions.php
+  also to VRML 2.0, check it.
+
+- What about ray-tracer --- nodes should work there, lights will probably have
+  to be corrected.
+
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
   - 4.2.4 Prototypes
@@ -199,6 +206,10 @@ VRML 97 nodes done (parsed and handled correctly):
 
 - PointLight
   (almost: see above "PointLight and SpotLight illuminate all objects...").
+
+- SpotLight (not really;
+  see above "PointLight and SpotLight illuminate all objects..."
+  and see TODO in VRMLLightSetGL)
 
 - Background, Fog, NavigationInfo, WorldInfo
   (were already done as VRML 1.0 extension)

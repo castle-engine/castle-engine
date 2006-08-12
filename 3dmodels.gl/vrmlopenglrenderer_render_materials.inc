@@ -180,7 +180,7 @@ begin
       White3Single { UnLit color doesn't matter },
       Material.ShininessExp,
       Material.Opacity,
-      {}{Material.FdFogImmune.Value}false);
+      Material.FdFogImmune.Value);
   end else
   begin
     Render_Material(
