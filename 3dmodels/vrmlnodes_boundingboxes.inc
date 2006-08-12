@@ -74,7 +74,9 @@ begin
  result := CalculateBoundingBox(@points, 4, 0, State.CurrMatrix);
 end;
 
-function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function Cone_BoundingBox(State: TVRMLGraphTraverseState;
+  const BottomRadius, Height: Single;
+  const Sides, Bottom: boolean): TBox3d;
 var points: array[0..4]of TVector3Single;
     firstPoint: integer;
 begin
@@ -82,20 +84,34 @@ begin
   Tak jest prosto (po prostu 5 punktow); jasne ze w latwo sobie wyobrazic
   taka transformacje ze wyliczony w ten sposob bounding box jest nieco
   za duzy - ale wydaje mi sie ze nie jest tak zle.}
- points[0] := Vector3Single(0, FdHeight.Value/2, 0);
- points[1] := Vector3Single(-FdBottomRadius.Value, -FdHeight.Value/2, -FdBottomRadius.Value);
- points[2] := Vector3Single(-FdBottomRadius.Value, -FdHeight.Value/2, +FdBottomRadius.Value);
- points[3] := Vector3Single(+FdBottomRadius.Value, -FdHeight.Value/2, -FdBottomRadius.Value);
- points[4] := Vector3Single(+FdBottomRadius.Value, -FdHeight.Value/2, +FdBottomRadius.Value);
- if FdParts.Flags[CONE_PARTS_SIDES] then
+ points[0] := Vector3Single(0, Height/2, 0);
+ points[1] := Vector3Single(-BottomRadius, -Height/2, -BottomRadius);
+ points[2] := Vector3Single(-BottomRadius, -Height/2, +BottomRadius);
+ points[3] := Vector3Single(+BottomRadius, -Height/2, -BottomRadius);
+ points[4] := Vector3Single(+BottomRadius, -Height/2, +BottomRadius);
+ if Sides then
   firstPoint := 0 else
- if FdParts.Flags[CONE_PARTS_BOTTOM] then
+ if Bottom then
   firstPoint := 1 { nie uwzgledniaj pierwszego punktu = szczytu stozka } else
   begin result := EmptyBox3d; exit end;
 
  result := CalculateBoundingBox(
    @points[firstPoint],
    High(points)+1-firstPoint, 0, State.CurrMatrix);
+end;
+
+function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Cone_BoundingBox(State,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+function TNodeCone_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Cone_BoundingBox(State,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdSide.Value, FdBottom.Value);
 end;
 
 function Box_LocalBoundingBox(
@@ -118,24 +134,41 @@ begin
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
 end;
 
-function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function Cylinder_LocalBoundingBox(State: TVRMLGraphTraverseState;
+  const Height, Radius: Single;
+  const Bottom, Side, Top: boolean): TBox3d;
 var points: array[0..3]of TVector3Single;
 begin
  {points 0 = bottom start, 1 = bottom end}
- points[0] := Vector3Single(-FdRadius.Value, -FdHeight.Value/2, -FdRadius.Value);
- points[1] := Vector3Single(+FdRadius.Value, -FdHeight.Value/2, +FdRadius.Value);
+ points[0] := Vector3Single(-Radius, -Height/2, -Radius);
+ points[1] := Vector3Single(+Radius, -Height/2, +Radius);
  {points 2 = top start, 3 = top end}
- points[2] := Vector3Single(-FdRadius.Value,  FdHeight.Value/2, -FdRadius.Value);
- points[3] := Vector3Single(+FdRadius.Value,  FdHeight.Value/2, +FdRadius.Value);
+ points[2] := Vector3Single(-Radius,  Height/2, -Radius);
+ points[3] := Vector3Single(+Radius,  Height/2, +Radius);
 
- if FdParts.Flags[CYLINDER_PARTS_SIDES] or
-   (FdParts.Flags[CYLINDER_PARTS_TOP] and FdParts.Flags[CYLINDER_PARTS_BOTTOM]) then
+ if Side or (Top and Bottom) then
   result := Box3d(points[0], points[3]) else
- if FdParts.Flags[CYLINDER_PARTS_TOP] then
+ if Top then
   result := Box3d(points[2], points[3]) else
- if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then
+ if Bottom then
   result := Box3d(points[0], points[1]) else
   result := EmptyBox3d;
+end;
+
+function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Cylinder_LocalBoundingBox(State,
+    FdHeight.Value, FdRadius.Value,
+    FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+    FdParts.Flags[CYLINDER_PARTS_SIDES],
+    FdParts.Flags[CYLINDER_PARTS_TOP]);
+end;
+
+function TNodeCylinder_2.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Cylinder_LocalBoundingBox(State,
+    FdHeight.Value, FdRadius.Value,
+    FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
 function Sphere_LocalBoundingBox(const Radius: Single): TBox3d;

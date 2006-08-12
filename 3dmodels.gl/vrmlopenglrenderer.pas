@@ -1914,13 +1914,17 @@ begin
     if Node is TNodeAsciiText_1 then
       RenderAsciiText(TNodeAsciiText_1(Node)) else
     if Node is TNodeCone_1 then
-      RenderCone(TNodeCone_1(Node)) else
+      RenderCone_1(TNodeCone_1(Node)) else
+    if Node is TNodeCone_2 then
+      RenderCone_2(TNodeCone_2(Node)) else
     if Node is TNodeCube_1 then
       RenderCube_1(TNodeCube_1(Node)) else
     if Node is TNodeBox then
       RenderBox(TNodeBox(Node)) else
     if Node is TNodeCylinder_1 then
-      RenderCylinder(TNodeCylinder_1(Node)) else
+      RenderCylinder_1(TNodeCylinder_1(Node)) else
+    if Node is TNodeCylinder_2 then
+      RenderCylinder_2(TNodeCylinder_2(Node)) else
     if Node is TNodePointSet_1 then
       RenderPointSet(TNodePointSet_1(Node)) else
     if Node is TNodeSphere_1 then

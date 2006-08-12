@@ -32,40 +32,66 @@ begin result := 0;{TODO} end;
 function TNodeAsciiText_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin result := 0;{TODO} end;
 
-function TNodeCone_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function Cone_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  const Sides, Bottom: boolean): Cardinal;
 begin
  result := 0;
- if FdParts.Flags[CONE_PARTS_SIDES] then
+ if Sides then
  begin
   if OverTriangulate then
    result += QUADRIC_SLICES * ((QUADRIC_STACKS-1)*2 + 1) else
    result += QUADRIC_SLICES;
  end;
- if FdParts.Flags[CONE_PARTS_BOTTOM] then
+ if Bottom then
   result += QUADRIC_SLICES;
 end;
 
-function TNodeCone_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TNodeCone_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cone_TrianglesCount(State, OverTriangulate,
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+function TNodeCone_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cone_TrianglesCount(State, OverTriangulate,
+    FdSide.Value, FdBottom.Value);
+end;
+
+function Cone_VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  const Sides, Bottom: boolean): Cardinal;
 begin
  if OverTriangulate then
  begin
-  if FdParts.Flags[CONE_PARTS_BOTTOM] and FdParts.Flags[CONE_PARTS_SIDES] then
+  if Bottom and Sides then
    result := QUADRIC_SLICES + 1 + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
-  if FdParts.Flags[CONE_PARTS_BOTTOM] then
+  if Bottom then
    result := QUADRIC_SLICES + 1 else
-  if FdParts.Flags[CONE_PARTS_SIDES] then
+  if Sides then
    result := QUADRIC_SLICES + (QUADRIC_STACKS-1)*QUADRIC_SLICES + 1 else
    result := 0;
  end else
  begin
-  if FdParts.Flags[CONE_PARTS_BOTTOM] or FdParts.Flags[CONE_PARTS_SIDES] then
+  if Bottom or Sides then
   begin
    result := QUADRIC_SLICES;
-   if FdParts.Flags[CONE_PARTS_BOTTOM] then Inc(result);
-   if FdParts.Flags[CONE_PARTS_SIDES] then Inc(result);
+   if Bottom then Inc(result);
+   if Sides then Inc(result);
   end else
    result := 0;
  end;
+end;
+
+function TNodeCone_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cone_VerticesCount(State, OverTriangulate,
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+function TNodeCone_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cone_VerticesCount(State, OverTriangulate,
+    FdSide.Value, FdBottom.Value);
 end;
 
 function Box_TrianglesCount(State: TVRMLGraphTraverseState;
@@ -112,34 +138,64 @@ begin
   Result := Box_VerticesCount(State, OverTriangulate);
 end;
 
-function TNodeCylinder_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function Cylinder_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  const Bottom, Side, Top: boolean): Cardinal;
 begin
  result := 0;
- if FdParts.Flags[CYLINDER_PARTS_SIDES] then
+ if Side then
  begin
   if OverTriangulate then
    result += 2 * QUADRIC_SLICES*QUADRIC_STACKS else
    result += 2 * QUADRIC_SLICES;
  end;
- if FdParts.Flags[CYLINDER_PARTS_TOP] then result += QUADRIC_SLICES;
- if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then result += QUADRIC_SLICES;
+ if Top then result += QUADRIC_SLICES;
+ if Bottom then result += QUADRIC_SLICES;
 end;
 
-function TNodeCylinder_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TNodeCylinder_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cylinder_TrianglesCount(State, OverTriangulate,
+    FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+    FdParts.Flags[CYLINDER_PARTS_SIDES],
+    FdParts.Flags[CYLINDER_PARTS_TOP]);
+end;
+
+function TNodeCylinder_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cylinder_TrianglesCount(State, OverTriangulate,
+    FdBottom.Value, FdSide.Value, FdTop.Value);
+end;
+
+function Cylinder_VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  const Bottom, Side, Top: boolean): Cardinal;
 begin
  result := 0;
- if FdParts.Flags[CYLINDER_PARTS_SIDES] then
+ if Side then
  begin
   if OverTriangulate then
    result += (QUADRIC_STACKS+1) * QUADRIC_SLICES else
    result += 2*QUADRIC_SLICES;
-  if FdParts.Flags[CYLINDER_PARTS_TOP] then Inc(result);
-  if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then Inc(result);
+  if Top then Inc(result);
+  if Bottom then Inc(result);
  end else
  begin
-  if FdParts.Flags[CYLINDER_PARTS_TOP] then result += QUADRIC_SLICES + 1;
-  if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then result += QUADRIC_SLICES + 1;
+  if Top then result += QUADRIC_SLICES + 1;
+  if Bottom then result += QUADRIC_SLICES + 1;
  end;
+end;
+
+function TNodeCylinder_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cylinder_VerticesCount(State, OverTriangulate,
+    FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+    FdParts.Flags[CYLINDER_PARTS_SIDES],
+    FdParts.Flags[CYLINDER_PARTS_TOP]);
+end;
+
+function TNodeCylinder_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := Cylinder_VerticesCount(State, OverTriangulate,
+    FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
 function TNodeGeneralIndexed_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;

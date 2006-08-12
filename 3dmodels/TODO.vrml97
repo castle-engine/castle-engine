@@ -218,3 +218,4 @@ VRML 97 nodes done (parsed and handled correctly):
 - Transform
 - Sphere, Box
 - Material
+- Cone, Cylinder

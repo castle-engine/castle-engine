@@ -138,16 +138,20 @@ begin
  LOOP_OVER_CIRCLE_PROC(LOC_LastPt, LOC_Pt);
 end;}
 
-procedure TNodeCone_1.LocalTriangulate(State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure Cone_LocalTriangulate(
+  Self: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  const BottomRadius, Height: Single;
+  const Sides, Bottom: boolean);
 var BottomPt, TopPt: TVector3Single;
     MatBottom, MatSides: integer;
 
   procedure LOOP_OVER_CIRCLE_PROC(const LastPt, Pt: TVector3Single);
   begin
-   if FdParts.Flags[CONE_PARTS_BOTTOM] then
+   if Bottom then
     NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, MatBottom);
-   if FdParts.Flags[CONE_PARTS_SIDES] then
+   if Sides then
     NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, MatSides);
   end;
 
@@ -160,17 +164,33 @@ begin
   begin MatSides := 0; MatBottom := 1 end else
   begin MatSides := 0; MatBottom := 0 end;
 
- if FdParts.Flags[CONE_PARTS_SIDES] or FdParts.Flags[CONE_PARTS_BOTTOM] then
+ if Sides or Bottom then
  begin
-  if FdParts.Flags[CONE_PARTS_BOTTOM] then
-   BottomPt := Vector3Single(0, -FdHeight.Value/2, 0);
-  if FdParts.Flags[CONE_PARTS_SIDES] then
-   TopPt := Vector3Single(0, FdHeight.Value/2, 0);
+  if Bottom then
+   BottomPt := Vector3Single(0, -Height/2, 0);
+  if Sides then
+   TopPt := Vector3Single(0, Height/2, 0);
 
-  {$define LOOP_OVER_CIRCLE_RADIUS:=(FdBottomRadius.Value)}
-  {$define LOOP_OVER_CIRCLE_HEIGHT:=(-FdHeight.Value/2)}
+  {$define LOOP_OVER_CIRCLE_RADIUS:=(BottomRadius)}
+  {$define LOOP_OVER_CIRCLE_HEIGHT:=(-Height/2)}
   LOOP_OVER_CIRCLE
  end;
+end;
+
+procedure TNodeCone_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Cone_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+procedure TNodeCone_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Cone_LocalTriangulate(Self, State, OverTriangulate, NewTriangleProc,
+    FdBottomRadius.Value, FdHeight.Value,
+    FdSide.Value, FdBottom.Value);
 end;
 
 procedure Box_LocalTriangulate(
@@ -222,24 +242,28 @@ begin
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2]);
 end;
 
-procedure TNodeCylinder_1.LocalTriangulate(State: TVRMLGraphTraverseState;
-  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure Cylinder_LocalTriangulate(
+  Self: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
+  const Height, Radius: Single;
+  const Bottom, Side, Top: boolean);
 var BottomPt, TopPt: TVector3Single;
     MatSides, MatTop, MatBottom: integer;
 
   procedure LOOP_OVER_CIRCLE_PROC(const LowLastPt, LowPt: TVector3Single);
   var HighLastPt, HighPt: TVector3Single;
   begin
-   HighLastPt := Vector3Single(LowLastPt[0], FdHeight.Value/2, LowLastPt[2]);
-   HighPt    :=Vector3Single(LowPt    [0], FdHeight.Value/2, LowPt    [2]);
+   HighLastPt := Vector3Single(LowLastPt[0], Height/2, LowLastPt[2]);
+   HighPt     := Vector3Single(LowPt    [0], Height/2, LowPt    [2]);
 
-   if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then
+   if Bottom then
     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, BottomPt), State, Self, MatBottom);
 
-   if FdParts.Flags[CYLINDER_PARTS_TOP] then
+   if Top then
     NewTriangleProc(Triangle3Single(HighLastPt, HighPt, TopPt), State, Self, MatTop);
 
-   if FdParts.Flags[CYLINDER_PARTS_SIDES] then
+   if Side then
    begin
     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, MatSides);
     NewTriangleProc(Triangle3Single(HighLastPt, HighPt, LowLastPt), State, Self, MatSides);
@@ -250,21 +274,42 @@ LOOP_OVER_CIRCLE_DECLARE
 begin
  Assert(not OverTriangulate); { TODO: OverTriangulate not used here so not impl yet }
 
- if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+ if State.LastNodes.MaterialBinding.FdValue.Value in
+     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
   begin MatSides := 0; MatTop := 1; MatBottom := 2 end else
   begin MatSides := 0; MatTop := 0; MatBottom := 0 end;
 
- if not FdParts.AreAllFlags(false) then
+ if Bottom or Side or Top then
  begin
-  if FdParts.Flags[CYLINDER_PARTS_TOP] then
-   TopPt := Vector3Single(0, FdHeight.Value/2, 0);
-  if FdParts.Flags[CYLINDER_PARTS_BOTTOM] then
-   BottomPt := Vector3Single(0, -FdHeight.Value/2, 0);
+  if Top then
+   TopPt := Vector3Single(0, Height/2, 0);
+  if Bottom then
+   BottomPt := Vector3Single(0, -Height/2, 0);
 
-  {$define LOOP_OVER_CIRCLE_RADIUS:=(FdRadius.Value)}
-  {$define LOOP_OVER_CIRCLE_HEIGHT:=(-FdHeight.Value/2)}
+  {$define LOOP_OVER_CIRCLE_RADIUS:=(Radius)}
+  {$define LOOP_OVER_CIRCLE_HEIGHT:=(-Height/2)}
   LOOP_OVER_CIRCLE
  end;
+end;
+
+procedure TNodeCylinder_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Cylinder_LocalTriangulate(
+    Self, State, OverTriangulate, NewTriangleProc,
+    FdHeight.Value, FdRadius.Value,
+    FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+    FdParts.Flags[CYLINDER_PARTS_SIDES],
+    FdParts.Flags[CYLINDER_PARTS_TOP]);
+end;
+
+procedure TNodeCylinder_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  Cylinder_LocalTriangulate(
+    Self, State, OverTriangulate, NewTriangleProc,
+    FdHeight.Value, FdRadius.Value,
+    FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
 type

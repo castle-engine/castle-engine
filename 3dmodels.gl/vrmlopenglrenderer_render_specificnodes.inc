@@ -113,7 +113,9 @@ begin
  if Render_TexCoordsNeeded then glPopMatrix;
 end;
 
-procedure RenderCone(Node: TNodeCone_1);
+procedure Cone_Render(
+  const BottomRadius, Height: Single;
+  const Side, Bottom: boolean);
 var q: PGLUQuadric;
 begin
  {cone uses its own normals and we apply texture according to VRML specification.
@@ -126,17 +128,36 @@ begin
  try
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
-  glTranslatef(0, 0, -Node.FdHeight.Value/2);
-  if Node.FdParts.Flags[CONE_PARTS_SIDES] then
-   gluCylinder(q, Node.FdBottomRadius.Value, 0, Node.FdHeight.Value, QUADRIC_SLICES, QUADRIC_STACKS);
-  if Node.FdParts.Flags[CONE_PARTS_BOTTOM] then
+  glTranslatef(0, 0, -Height/2);
+  if Side then
+   gluCylinder(q, BottomRadius, 0, Height, QUADRIC_SLICES, QUADRIC_STACKS);
+  if Bottom then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+   if State.LastNodes.MaterialBinding.FdValue.Value in
+     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(1);
-   RenderBottomDisk(q, Node.FdBottomRadius.Value);
+   RenderBottomDisk(q, BottomRadius);
   end;
   glPopMatrix;
  finally gluDeleteQuadric(q) end;
+end;
+
+procedure RenderCone_1(Node: TNodeCone_1);
+begin
+  Cone_Render(
+    Node.FdBottomRadius.Value,
+    Node.FdHeight.Value,
+    Node.FdParts.Flags[CONE_PARTS_SIDES],
+    Node.FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+procedure RenderCone_2(Node: TNodeCone_2);
+begin
+  Cone_Render(
+    Node.FdBottomRadius.Value,
+    Node.FdHeight.Value,
+    Node.FdSide.Value,
+    Node.FdBottom.Value);
 end;
 
 { Box ---------------------------------------------------------------------- }
@@ -201,7 +222,9 @@ end;
 
 { Cylinder ------------------------------------------------------------------ }
 
-procedure RenderCylinder(Node: TNodeCylinder_1);
+procedure Cylinder_Render(
+  const Height, Radius: Single;
+  const Bottom, Side, Top: boolean);
 var q: PGLUQuadric;
 begin
  {cylinder uses its own normals and we apply texture according to VRML
@@ -214,26 +237,50 @@ begin
  try
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
-  glTranslatef(0, 0, -Node.FdHeight.Value/2);
-  if Node.FdParts.Flags[CYLINDER_PARTS_SIDES] then
-   gluCylinder(q, Node.FdRadius.Value, Node.FdRadius.Value, Node.FdHeight.Value,
+  glTranslatef(0, 0, -Height/2);
+  if Side then
+   gluCylinder(q, Radius, Radius, Height,
      QUADRIC_SLICES, QUADRIC_STACKS);
 
-  if Node.FdParts.Flags[CYLINDER_PARTS_BOTTOM] then
+  if Bottom then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+   if State.LastNodes.MaterialBinding.FdValue.Value in
+       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(2);
-   RenderBottomDisk(q, Node.FdRadius.Value);
+   RenderBottomDisk(q, Radius);
   end;
-  if Node.FdParts.Flags[CYLINDER_PARTS_TOP] then
+
+  if Top then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+   if State.LastNodes.MaterialBinding.FdValue.Value in
+       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(1);
-   glTranslatef(0, 0, Node.FdHeight.Value);
-   gluDisk(q, 0, Node.FdRadius.Value, QUADRIC_SLICES, 1);
+   glTranslatef(0, 0, Height);
+   gluDisk(q, 0, Radius, QUADRIC_SLICES, 1);
   end;
+
   glPopMatrix;
  finally gluDeleteQuadric(q) end;
+end;
+
+procedure RenderCylinder_1(Node: TNodeCylinder_1);
+begin
+  Cylinder_Render(
+    Node.FdHeight.Value,
+    Node.FdRadius.Value,
+    Node.FdParts.Flags[CYLINDER_PARTS_BOTTOM],
+    Node.FdParts.Flags[CYLINDER_PARTS_SIDES],
+    Node.FdParts.Flags[CYLINDER_PARTS_TOP]);
+end;
+
+procedure RenderCylinder_2(Node: TNodeCylinder_2);
+begin
+  Cylinder_Render(
+    Node.FdHeight.Value,
+    Node.FdRadius.Value,
+    Node.FdBottom.Value,
+    Node.FdSide.Value,
+    Node.FdTop.Value);
 end;
 
 { PointSet --------------------------------------------------------------------- }
