@@ -133,8 +133,10 @@ begin
  end;
 
  case Render_Materials of
-  imUseSpecifiedPerVertex: Renderer.Render_BindMaterial(VertexNum);
-  imUseSpecifiedPerVertexIndexed: Renderer.Render_BindMaterial(Node.FdMaterialIndex.Items.Items[indexNum]);
+  imUseSpecifiedPerVertex: 
+    Renderer.Render_BindMaterial_1(VertexNum);
+  imUseSpecifiedPerVertexIndexed: 
+    Renderer.Render_BindMaterial_1(Node.FdMaterialIndex.Items.Items[indexNum]);
  end;
 
  Renderer.DoGLArrayElement(State.LastNodes.Coordinate3.FdPoint.Items.Items, VertexNum);
@@ -299,7 +301,7 @@ procedure TGeneralIndexedRenderer.Render;
    { TODO: we handle all material bindings, but we handle BIND_PER_PART
      and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 
-   if Render_Materials = imOverall then Renderer.Render_BindMaterial(0);
+   if Render_Materials = imOverall then Renderer.Render_BindMaterial_1(0);
   end;
 
 var
@@ -344,9 +346,9 @@ begin
 
     case Render_Materials of
      imUseSpecifiedPerFace:
-       Renderer.Render_BindMaterial(faceNumber);
+       Renderer.Render_BindMaterial_1(faceNumber);
      imUseSpecifiedPerFaceIndexed:
-       Renderer.Render_BindMaterial(Node.FdMaterialIndex.Items.Items[faceNumber]);
+       Renderer.Render_BindMaterial_1(Node.FdMaterialIndex.Items.Items[faceNumber]);
     end;
 
     Render_Face(startIndex, endIndex);

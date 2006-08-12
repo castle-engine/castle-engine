@@ -314,6 +314,7 @@ type
   TNodeGeneralShape = class;
   TNodeGeneralLight = class;
   TNodeKambiTriangulation = class;
+  TNodeShape = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -415,6 +416,8 @@ type
 
     CurrMatrix: TMatrix4Single;
     CurrTextureMatrix: TMatrix4Single;
+
+    ParentShape: TNodeShape;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
     constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
@@ -2824,6 +2827,18 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    { Opacity is just a 1 - FdTransparency.Value.
+      Defined for your comfort --- for
+      OpenGL you will usually want to pass Opacity, not Transparency. }
+    function Opacity: Single;
+
+    { ShininessExp is just 128 * FdShininess.Value, this is the "real"
+      exponent indicated by shininess field value.
+      Defined for your comfort --- for any graphic library you will usually
+      want to pass the "real" exponent given by this function, not just
+      value of shininess field. }
+    function ShininessExp: Single;
   end;
 
   TNodeMovieTexture = class(TVRMLNode)
@@ -3129,6 +3144,9 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   end;
 
   TNodeSound = class(TVRMLNode)
@@ -3747,7 +3765,7 @@ begin
         Exit(false);
 end;
 
-{ TVRMLGraphTraverseState -------------------------------------------------------- }
+{ TVRMLGraphTraverseState ---------------------------------------------------- }
 
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
@@ -3763,6 +3781,7 @@ begin
   CurrTextureMatrix := Source.CurrTextureMatrix;
   FLastNodes := Source.FLastNodes;
   OwnsLastNodes := false;
+  ParentShape := Source.ParentShape;
 
   ActiveLights.AppendDynArray(Source.ActiveLights);
 end;
@@ -3803,7 +3822,8 @@ var
 begin
   Result := ActiveLights.Equals(SecondValue.ActiveLights) and
     MatricesPerfectlyEqual(CurrMatrix, SecondValue.CurrMatrix) and
-    MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix);
+    MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix) and
+    (ParentShape = SecondValue.ParentShape);
 
   if Result then
   begin
@@ -3820,6 +3840,8 @@ var
 begin
   { ActiveLights, CurrMatrix, CurrTextureMatrix
     are ignored by TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
+
+  Result := ParentShape = SecondValue.ParentShape;
 
   for I := 0 to HighTraverseStateLastNodes do
     if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
@@ -6871,6 +6893,16 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeMaterial_2.Opacity: Single;
+begin
+  Result := 1- FdTransparency.Value;
+end;
+
+function TNodeMaterial_2.ShininessExp: Single;
+begin
+  Result := Clamped(FdShininess.Value * 128.0, 0.0, 128.0);
+end;
+
 class function TNodeMovieTexture.ClassNodeTypeName: string;
 begin
   Result := 'MovieTexture';
@@ -7225,6 +7257,18 @@ begin
       Func(Self, FdAppearance.Value);
     Func(Self, FdGeometry.Value);
   end;
+end;
+
+procedure TNodeShape.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  State.ParentShape := Self;
+end;
+
+procedure TNodeShape.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+  State.ParentShape := nil;
+  inherited;
 end;
 
 class function TNodeSound.ClassNodeTypeName: string;

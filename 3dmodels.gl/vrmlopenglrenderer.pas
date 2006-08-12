@@ -734,7 +734,15 @@ type
     Render_Material_LastFogImmune: boolean;
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
-    procedure Render_BindMaterial(MatNum: integer);
+    procedure Render_BindMaterial_1(MatNum: integer);
+    procedure Render_BindMaterial_2;
+    procedure Render_Material(
+      const Lit: boolean;
+      const AmbientColor, DiffuseColor, SpecularColor,
+        EmissiveColor: TVector3Single;
+      const UnLitColor: TVector3Single;
+      const ShininessExp, Opacity: Single;
+      const FogImmune: boolean);
 
     { czy Render node'ow musi generowac tex coords ? }
     Render_TexCoordsNeeded: boolean;

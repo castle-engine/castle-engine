@@ -20,10 +20,11 @@
 
 { Notki do wyswietlania poszczegolnych node'ow :
 
-  - Aktualny bound material jest niezdefiniowany na wejsciu,
-    wiec zawsze powinno byc przynajmniej jedno wywolanie Render_BindMaterial.
+  - Aktualny bound material jest niezdefiniowany na wejsciu dla node'ow VRMLa 1.0.
+    So before you actually render anything for OpenGL, you must call
+    Render_BindMaterial_1 at least once.
     Nie wolno tutaj wywolywac glMaterial lub glColor - tym zajmie sie
-    Render_BindMaterial.
+    Render_BindMaterial_1.
 
   - Tekstura wszystko co nalezy zrobic w shape'ach z tekstura to
     wygenerowac odpowiednie texCoordy na vertexach. Jezeli
@@ -67,7 +68,7 @@ var yscale: TGLfloat;
 begin
  yscale := State.LastNodes.FontStyle.FdSize.Value / CurrentFont.RowHeight;
 
- Render_BindMaterial(0);
+ Render_BindMaterial_1(0);
 
  glNormal3f(0, 0, -1);
 
@@ -118,7 +119,7 @@ begin
  {cone uses its own normals and we apply texture according to VRML specification.
   Cone uses only material 0 or materials 0 and 1.}
 
- Render_BindMaterial(0);
+ Render_BindMaterial_1(0);
 
  q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
@@ -131,7 +132,7 @@ begin
   if Node.FdParts.Flags[CONE_PARTS_BOTTOM] then
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial(1);
+    Render_BindMaterial_1(1);
    RenderBottomDisk(q, Node.FdBottomRadius.Value);
   end;
   glPopMatrix;
@@ -145,7 +146,7 @@ var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);
   begin
-   if MatPerPart then Render_BindMaterial(MatNum);
+   if MatPerPart then Render_BindMaterial_1(MatNum);
   end;
 
 {$define DetailX:=(State.LastNodes.KambiTriangulation.RectDivisions)}
@@ -157,14 +158,14 @@ begin
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
-  Render_BindMaterial(0); {use first material fot the whole cube}
+  Render_BindMaterial_1(0); {use first material fot the whole cube}
 
  x2 := SizeX / 2; x1 := -x2;
  y2 := SizeY / 2; y1 := -y2;
  z2 := SizeZ / 2; z1 := -z2;
 
  {Do narysowania Cube swietnie nadawalaby sie procedura KambiGLUtils.drawGLBox -
-  tyle ze ona nie pozwala mi zrobic Render_BindMaterial przed kazda sciana i
+  tyle ze ona nie pozwala mi zrobic Render_BindMaterial_1 przed kazda sciana i
   nie gwarantuje jak beda nakladane wspolrzedne tekstury.
   To co jest ponizej to po prostu implementacja drawGLBox z tymi dodatkami.}
 
@@ -206,7 +207,7 @@ begin
  {cylinder uses its own normals and we apply texture according to VRML
   specification. Cylinder uses only material 0 or materials 0, 1, 2}
 
- Render_BindMaterial(0);
+ Render_BindMaterial_1(0);
 
  q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
@@ -221,13 +222,13 @@ begin
   if Node.FdParts.Flags[CYLINDER_PARTS_BOTTOM] then
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial(2);
+    Render_BindMaterial_1(2);
    RenderBottomDisk(q, Node.FdRadius.Value);
   end;
   if Node.FdParts.Flags[CYLINDER_PARTS_TOP] then
   begin
    if State.LastNodes.MaterialBinding.FdValue.Value in [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial(1);
+    Render_BindMaterial_1(1);
    glTranslatef(0, 0, Node.FdHeight.Value);
    gluDisk(q, 0, Node.FdRadius.Value, QUADRIC_SLICES, 1);
   end;
@@ -243,7 +244,7 @@ begin
  { TODO: use here Last :
    Normal, NormalBinding, TextureCoordinate2, Texture2}
 
- Render_BindMaterial(0);{TODO}
+ Render_BindMaterial_1(0);{TODO}
 
  {TODO: for now, we always draw points unlit}
  glPushAttrib(GL_LIGHTING_BIT);
@@ -266,7 +267,7 @@ begin
  {whole sphere uses materail num 0 and his own normals and we apply
   texture according to VRML specification}
 
- Render_BindMaterial(0);
+ Render_BindMaterial_1(0);
 
  if Render_TexCoordsNeeded then
  begin
