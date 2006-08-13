@@ -234,7 +234,8 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
      glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
-     glLightf(glLightNum, GL_SPOT_CUTOFF, RadToDeg(LightNode.FdCutOffAngle.Value));
+     glLightf(glLightNum, GL_SPOT_CUTOFF,
+       RadToDeg(LightNode.FdCutOffAngle.Value));
     end;
 
     procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
@@ -242,9 +243,34 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
 
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
-     { TODO: translate VRML 2.0 SpotLight properties to OpenGL. }
-     glLightf(glLightNum, GL_SPOT_EXPONENT, 0.1);
-     glLightf(glLightNum, GL_SPOT_CUTOFF, 90);
+
+     { There is no way to translate beamWidth to OpenGL's GL_SPOT_EXPONENT.
+       In OpenGL spotlight, there is *no* way to specify that light
+       is uniform (maximum) within beamWidth, and that light amount
+       falls linearly from beamWidth to cutOffAngle.
+       In OpenGL, light intensity drops off by
+       cosinus(of the angle)^GL_SPOT_EXPONENT.
+
+       No sensible way to even approximate VRML behavior ?
+
+       We can accurately express one specific case (that is
+       actually the default, in you will not give beamWidth
+       value in VRML 2.0): if beamWidth >= cutOffAngle, the light
+       is maximum within full cutOffAngle. This is easy to
+       do, just set spot_exponent to 0, then
+       cosinus(of the angle)^GL_SPOT_EXPONENT is always 1.
+
+       For other values of beamWidth, I just set spot_exponent
+       to some arbitrary value and hope that result will look sensible...
+       TODO: some VRML 2.0 extension to allow specifying
+       exponent directly would be useful to give user actual
+       control over this. }
+     if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
+       glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
+       glLightf(glLightNum, GL_SPOT_EXPONENT, 20);
+
+     glLightf(glLightNum, GL_SPOT_CUTOFF,
+       RadToDeg(LightNode.FdCutOffAngle.Value));
     end;
 
   var SetNoAttenuation: boolean;

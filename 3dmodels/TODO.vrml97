@@ -207,9 +207,12 @@ VRML 97 nodes done (parsed and handled correctly):
 - PointLight
   (almost: see above "PointLight and SpotLight illuminate all objects...").
 
-- SpotLight (not really;
-  see above "PointLight and SpotLight illuminate all objects..."
-  and see TODO in VRMLLightSetGL)
+- SpotLight
+  (almost:
+  see above "PointLight and SpotLight illuminate all objects...";
+  also note that beamWidth idea cannot be translated to a standard
+  OpenGL spotlight, so if you set beamWidth < cutOffAngle then the light
+  will not look exactly VRML 2.0-spec complaint)
 
 - Background, Fog, NavigationInfo, WorldInfo
   (were already done as VRML 1.0 extension)
