@@ -306,11 +306,11 @@ constructor TVRMLGLAnimation.Create(
         'Different nodes classes: "%s" and "%s"',
         [Model1.ClassName <> Model2.ClassName]);
 
-    if Model1 is TNodeWWWInline then
+    if Model1 is INodeGeneralInline then
     begin
-      { Make sure that WWWInline is loaded now. }
-      (Model1 as TNodeWWWInline).LoadInlined(false);
-      (Model2 as TNodeWWWInline).LoadInlined(false);
+      { Make sure that *Inline content is loaded now. }
+      (Model1 as INodeGeneralInline).LoadInlined(false);
+      (Model2 as INodeGeneralInline).LoadInlined(false);
     end;
 
     if Model1.NodeName <> Model2.NodeName then

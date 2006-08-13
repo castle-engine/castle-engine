@@ -125,7 +125,8 @@
   Sa dwa wyjatki :
   @orderedList(
     @item(
-      node WWWInline ktory w BeforeTraverse laduje swoja scene jako swoje dziecko)
+      Inline nodes (WWWInline, Inline, InlineLoadControl) ktore
+      w BeforeTraverse laduje swoja scene jako swoje dziecko)
     @item(
       node'y moga (w niezdefiniowanym momencie) poprawiac wartosci
       swoich pol jesli te sa w oczywisty sposob nieprawidlowe i
@@ -280,6 +281,14 @@ unit VRMLNodes;
     since not enclosing strings in double quotes is something totally
     useless.
 }
+
+{ This makes interfaces unparented by default.
+  Without this I would have to care about overriding AddRef
+  and similar useless crap for objects that want to implement
+  INodeGeneralInline interface. Or derive TVRMLNode from
+  TInterfacedObject (which is not really bad, but what's the
+  reason ? I don't need whole AddRef/etc. stuff). }
+{$interfaces corba}
 
 interface
 
@@ -717,9 +726,9 @@ type
 
       ParsingAllowedChildren okresla jakie dzieci moga byc odczytane
       ze strumienia jako dzieci tego node'a. Chwilowo ma to zastosowanie
-      tylko dla WWWInline ktory w strumieniu nie moze miec zapisanych
-      zadnych dzieci ale laduje swoj inline jako swoje Child.
-      Wiec musi miec ParsingAllowedChildren=[] i AllowedChildren = All.
+      tylko dla wezlow *Inline ktore w strumieniu nie moze miec zapisanych
+      zadnych dzieci ale laduja swoje inline jako swoje Child.
+      Wiec musza miec ParsingAllowedChildren=[] i AllowedChildren = All.
 
       TODO: jak bedzie mi to potrzebne to zaimplementuje te pola jako
       tablice TDynVRMLNodeClassArray z dodatkowym polem Any. Taka tablica
@@ -755,10 +764,10 @@ type
       TSFNode instance with Value = nil.) }
     property NodeName: string read fNodeName;
 
-    { WWWBasePath is the base URL path for all URL's
-      in node's fields. This is currently used by Texture2
-      and WWWInline nodes, could be used by WWWAnchor (but currently
-      WWWAnchor ignores it's URL anchor).
+    { WWWBasePath is the base URL path for all URLs
+      in node's fields. This is used by all nodes that get some
+      url (like Texture2 and WWWInline in VRML 1.0, ImageTexture
+      and Inline in VRML 2.0 etc.).
 
       This way URL's in node's fields may contain relative names.
       If WWWBasePath doesn't begin with <proto>:// it is understood
@@ -771,8 +780,8 @@ type
 
       WWWBasePath jest ustalane w Create, ew. pozniej jest zmieniane w trakcie
       Parse() na podstawie Lexer.WWWBasePath.
-      W ten sposob np. moglibysmy, gdybysmy tylko chcieli, rozwiazywac WWWInline
-      lub Texture2 zaraz po sparsowaniu ich. }
+      W ten sposob np. moglibysmy, gdybysmy tylko chcieli, rozwiazywac
+      wezly jak WWWInline lub Texture2 zaraz po sparsowaniu ich. }
     property WWWBasePath: string read FWWWBasePath;
 
     { This returns absolute path, assuming that RelativePath is relative
@@ -1024,7 +1033,9 @@ type
       poprawnie (uzyjemy USE tylko tam gdzie bedziemy mogli, jesli nie bedziemy
       mogli - zapiszemy node normalnie).
 
-      Notka - jesli Self is TNodeWWWInline to nie zapisujemy swoich Children. }
+      Note that if ChildrenSaveToStream returns @false
+      we don't write our Children. Currently this is used by various inline
+      nodes (WWWInline, Inline, etc.) }
     procedure SaveToStream(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList);
 
@@ -1126,6 +1137,13 @@ type
       and determines their suggested VRML version. }
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; virtual;
+
+    { Returns should SaveToStream save our Children.
+      In this class default implementation returns @true,
+      this is what you will want in 99% of cases.
+      It's useful to set this to false if you use
+      Children internally, e.g. *Inline nodes. }
+    class function ChildrenSaveToStream: boolean; virtual;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -2101,13 +2119,30 @@ type
     property FdMap: TSFEnum index 0 read GetFieldAsSFEnum;
   end;
 
+  INodeGeneralInline = interface
+    { Call LoadInlined to load Inlined NOW. If Inlined is already loaded,
+      than : if CanReload = true Inlined will be freed and loaded again,
+      else (if CanReload = false) nothing will happen.
+
+      LoadInlined(false) will be called automatically in BeforeTraverse. }
+    procedure LoadInlined(CanReload: boolean);
+  end;
+
   { gdy chcemy operowac na scenie juz po jej zaladowaniu, bezposrednio
     lub poprzez metode w rodzaju TVRMLNode.EnumerateNodes, jest istotne
     gdzie w hierarchii sceny znajduja sie Inlined nodes. Odpowiadam :
     sa one SubNode'ami WWWInline. Mozesz testowac ChildrenCount <> 0
     aby sprawdzic czy Inlined zostaly juz zaladowane. Mozesz
-    zazadac ich natychmiastowego zaladowania uzywajac LoadInlined. }
-  TNodeWWWInline = class(TVRMLNode)
+    zazadac ich natychmiastowego zaladowania uzywajac LoadInlined.
+
+    TODO : naturalnie tylko FdName jako nazwa pliku na lokalnym
+    systemie plikow jest obslugiwana chwilowo. W ogole, generalnie
+    to fajnie byloby gdyby TVRMLScene.Create przyjmowalo URL a nie
+    filename albo jeszcze lepiej gdyby miec strumien TURLDataStream
+    ktory moze podawac dane identyfikowane przez URL...
+    Moze nie w najblizszym czasie, ale zamierzam cos takiego kiedys
+    zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
+  TNodeWWWInline = class(TVRMLNode, INodeGeneralInline)
   private
     OriginalState: TVRMLGraphTraverseState;
     BeforeTraversePushedState: boolean;
@@ -2115,19 +2150,6 @@ type
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
-    { Call LoadInlined to load Inlined NOW. If Inlined is already loaded,
-      than : if CanReload = true Inlined will be freed and loaded again,
-      else (if CanReload = false) nothing will happen.
-
-      LoadInlined(false) will be called automatically in BeforeTraverse.
-
-      Acha --- TODO : naturalnie tylko FdName jako nazwa pliku na lokalnym
-      systemie plikow jest obslugiwana chwilowo. W ogole, generalnie
-      to fajnie byloby gdyby TVRMLScene.Create przyjmowalo URL a nie
-      filename albo jeszcze lepiej gdyby miec strumien TURLDataStream
-      ktory moze podawac dane identyfikowane przez URL...
-      Moze nie w najblizszym czasie, ale zamierzam cos takiego kiedys
-      zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
     procedure LoadInlined(CanReload: boolean);
 
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -2139,6 +2161,8 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    class function ChildrenSaveToStream: boolean; override;
   end;
 
   TNodeKambiTriangulation = class(TVRMLNode)
@@ -2849,7 +2873,9 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeInline = class(TNodeGeneralGrouping)
+  TNodeInline = class(TNodeGeneralGrouping, INodeGeneralInline)
+  protected
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2859,9 +2885,15 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    class function ChildrenSaveToStream: boolean; override;
+
+    procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeInlineLoadControl = class(TNodeGeneralGrouping)
+  TNodeInlineLoadControl = class(TNodeGeneralGrouping, INodeGeneralInline)
+  protected
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2873,6 +2905,10 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    class function ChildrenSaveToStream: boolean; override;
+
+    procedure LoadInlined(CanReload: boolean);
   end;
 
   TNodeLOD_2 = class(TNodeGeneralGrouping)
@@ -4627,7 +4663,7 @@ begin
 
   for i := 0 to Fields.Count-1 do
    Fields[i].SaveToStream(Stream, NewIndent, NodeNameBinding);
-  if not (Self is TNodeWWWInline) then
+  if ChildrenSaveToStream then
    for i := 0 to ChildrenCount-1 do
     Children[i].SaveToStream(Stream, NewIndent, NodeNameBinding);
 
@@ -4771,6 +4807,11 @@ begin
       Result := true;
     end;
   end;
+end;
+
+class function TVRMLNode.ChildrenSaveToStream: boolean;
+begin
+  Result := true;
 end;
 
 { TSFNode --------------------------------------------------------------------- }
@@ -6155,6 +6196,11 @@ begin
  inherited;
 end;
 
+class function TNodeWWWInline.ChildrenSaveToStream: boolean;
+begin
+  Result := false;
+end;
+
 const
   TriangulationUseDef = -1;
 
@@ -7028,6 +7074,53 @@ begin
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+
+  FParsingAllowedChildren := false;
+  FAllowedChildren := true;
+end;
+
+procedure TNodeInline.LoadInlined(CanReload: boolean);
+var
+  I: Integer;
+  FullUrl: string;
+  NewNode: TVRMLNode;
+begin
+  if ChildrenCount > 0 then
+  begin
+    if CanReload then RemoveAllChildren else Exit;
+  end;
+
+  NewNode := nil;
+
+  for I := 0 to FdUrl.Items.Count - 1 do
+  begin
+    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    try
+      NewNode := LoadAsVRML(PathFromWWWBasePath(FullUrl), false);
+      Break;
+    except
+      on E: Exception do
+        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+          (chociaz nie musi) }
+        VRMLNonFatalError('Exception ' + E.ClassName +
+          ' occured when trying to load '+
+          'inline file from URL "' + FullUrl + ' : ' + E.Message);
+    end;
+  end;
+
+  if NewNode <> nil then
+    AddChild(NewNode);
+end;
+
+procedure TNodeInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  LoadInlined(false);
+end;
+
+class function TNodeInline.ChildrenSaveToStream: boolean;
+begin
+  Result := false;
 end;
 
 class function TNodeInlineLoadControl.ClassNodeTypeName: string;
@@ -7043,6 +7136,62 @@ begin
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
   { eventOut     MFNode    children }
+
+  FParsingAllowedChildren := false;
+  FAllowedChildren := true;
+end;
+
+procedure TNodeInlineLoadControl.LoadInlined(CanReload: boolean);
+var
+  I: Integer;
+  FullUrl: string;
+  NewNode: TVRMLNode;
+begin
+  { TODO: InlineLoadControl should load it's contents to
+    children MFNode, and we should make a way (analogous
+    to TNodeInlineLoadControl.ChildrenSaveToStream)
+    to say that "we don't want to save to stream "children" field".
+    For now it's not really important (user doesn't see
+    where it's loaded), but it will be later for scripts. }
+
+  if ChildrenCount > 0 then
+  begin
+    if CanReload then RemoveAllChildren else Exit;
+  end;
+
+  if not FdLoad.Value then Exit;
+
+  NewNode := nil;
+
+  for I := 0 to FdUrl.Items.Count - 1 do
+  begin
+    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    try
+      NewNode := LoadAsVRML(PathFromWWWBasePath(FullUrl), false);
+      Break;
+    except
+      on E: Exception do
+        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+          (chociaz nie musi) }
+        VRMLNonFatalError('Exception ' + E.ClassName +
+          ' occured when trying to load '+
+          'inline file from URL "' + FullUrl + ' : ' + E.Message);
+    end;
+  end;
+
+  if NewNode <> nil then
+    AddChild(NewNode);
+end;
+
+procedure TNodeInlineLoadControl.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  LoadInlined(false);
+end;
+
+class function TNodeInlineLoadControl.ChildrenSaveToStream: boolean;
+begin
+  Result := false;
 end;
 
 class function TNodeLOD_2.ClassNodeTypeName: string;

@@ -226,3 +226,4 @@ VRML 97 nodes done (parsed and handled correctly):
 - PixelTexture
 - TextureTransform
 - ImageTexture
+- Inline, InlineLoadControl
