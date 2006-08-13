@@ -262,12 +262,33 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
 
        For other values of beamWidth, I just set spot_exponent
        to some arbitrary value and hope that result will look sensible...
+
        TODO: some VRML 2.0 extension to allow specifying
        exponent directly would be useful to give user actual
-       control over this. }
+       control over this. Probably just add dropOffRate field
+       (like in VRML 1.0) with def value like -1 and say that
+       "dropOffRate < 0 means that we should try to approx
+       beamWidth, otherwise dropOffRate is used".
+
+       Looking at how other VRML implementations handle this:
+       - Seems that most of them ignore the issue, leaving spot exponent
+         always 0 and ignoring beamWidth entirely.
+       - One implementation
+         [http://arteclab.artec.uni-bremen.de/courses/mixed-reality/material/ARToolkit/ARToolKit2.52vrml/lib/libvrml/libvrml97gl/src/vrml97gl/old_ViewerOpenGL.cpp]
+         does exactly like me --- checks beamWidth < cutOffAngle
+         and sets spot_exponent to 0 or 1.
+       - FreeWRL
+         [http://search.cpan.org/src/LUKKA/FreeWRL-0.14/VRMLRend.pm]
+         uses more intelligent approach setting
+         GL_SPOT_EXPONENT to 0.5/ (beamWidth + 0.1).
+         Which gives
+           beamWidth = 0 => GL_SPOT_EXPONENT = 5
+           beamWidth = Pi/4 => GL_SPOT_EXPONENT =~ 0.5 / 0.9 =~ 1/2
+           beamWidth = Pi/2 => GL_SPOT_EXPONENT =~ 0.5 / 1.67 =~ 1/3
+         Honestly I don't see how it's much better than our atbitrary way... }
      if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
        glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
-       glLightf(glLightNum, GL_SPOT_EXPONENT, 20);
+       glLightf(glLightNum, GL_SPOT_EXPONENT, 1);
 
      glLightf(glLightNum, GL_SPOT_CUTOFF,
        RadToDeg(LightNode.FdCutOffAngle.Value));
