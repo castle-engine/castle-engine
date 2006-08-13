@@ -2166,7 +2166,18 @@ type
   { Alphabetically, all VRML 97 nodes }
 
   { }
-  TNodeAnchor = class(TVRMLNode)
+  { This is a VRML 2.0 grouping node.
+    This will push/pop full TVRMLGraphTraverseState
+    in Before/AfterTraverse. }
+  TNodeGeneralGrouping = class(TVRMLNode)
+  private
+    OriginalState: TVRMLGraphTraverseState;
+  protected
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
+  end;
+
+  TNodeAnchor = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2284,7 +2295,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeBillboard = class(TVRMLNode)
+  TNodeBillboard = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2316,7 +2327,7 @@ type
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCollision = class(TVRMLNode)
+  TNodeCollision = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2401,7 +2412,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeCoordinateDeformer = class(TVRMLNode)
+  TNodeCoordinateDeformer = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2619,7 +2630,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeGeoLocation = class(TVRMLNode)
+  TNodeGeoLocation = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2634,7 +2645,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeGeoLOD = class(TVRMLNode)
+  TNodeGeoLOD = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2737,7 +2748,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeGroup_2 = class(TVRMLNode)
+  TNodeGroup_2 = class(TNodeGeneralGrouping)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -2838,7 +2849,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeInline = class(TVRMLNode)
+  TNodeInline = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2850,7 +2861,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeInlineLoadControl = class(TVRMLNode)
+  TNodeInlineLoadControl = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2864,7 +2875,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeLOD_2 = class(TVRMLNode)
+  TNodeLOD_2 = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2994,7 +3005,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeNurbsGroup = class(TVRMLNode)
+  TNodeNurbsGroup = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3313,7 +3324,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSwitch_2 = class(TVRMLNode)
+  TNodeSwitch_2 = class(TNodeGeneralGrouping)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -3404,14 +3415,11 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeTransform_2 = class(TVRMLNode)
-  private
-    OriginalMatrix: TMatrix4Single;
+  TNodeTransform_2 = class(TNodeGeneralGrouping)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -6213,6 +6221,22 @@ end;}
 
 { Alphabetically, all VRML 97 nodes ------------------------------------------ }
 
+procedure TNodeGeneralGrouping.BeforeTraverse(
+  var State: TVRMLGraphTraverseState);
+begin
+  inherited;
+  OriginalState := State;
+  State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+end;
+
+procedure TNodeGeneralGrouping.AfterTraverse(
+  var State: TVRMLGraphTraverseState);
+begin
+  FreeAndNil(State);
+  State := OriginalState;
+  inherited;
+end;
+
 class function TNodeAnchor.ClassNodeTypeName: string;
 begin
   Result := 'Anchor';
@@ -7758,7 +7782,7 @@ procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
   inherited;
 
-  OriginalMatrix := State.CurrMatrix;
+  { inherited TNodeGeneralGrouping already saved State.CurrMatrix }
 
   State.CurrMatrix := MultMatrices(State.CurrMatrix,
     TranslationMatrix(FdTranslation.Value));
@@ -7775,12 +7799,6 @@ begin
     RotationMatrixRad(-FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
   State.CurrMatrix := MultMatrices(State.CurrMatrix,
     TranslationMatrix(VectorNegate(FdCenter.Value)));
-end;
-
-procedure TNodeTransform_2.AfterTraverse(var State: TVRMLGraphTraverseState);
-begin
-  State.CurrMatrix := OriginalMatrix;
-  inherited;
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;

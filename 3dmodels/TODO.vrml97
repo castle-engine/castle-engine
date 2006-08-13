@@ -1,7 +1,5 @@
 VRML 97 TODO items:
 
-- actually all grouping nodes should push/pop state
-
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
@@ -22,6 +20,9 @@ VRML 97 TODO items:
 
 - What about ray-tracer --- nodes should work there, lights will probably have
   to be corrected.
+
+- KambiTriangulation should also be fixed
+  just like DirectionalLight.
 
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
