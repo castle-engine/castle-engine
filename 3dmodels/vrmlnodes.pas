@@ -2202,6 +2202,9 @@ type
   end;
 
   TNodeAnchor = class(TNodeGeneralGrouping)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2912,6 +2915,9 @@ type
   end;
 
   TNodeLOD_2 = class(TNodeGeneralGrouping)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -6306,6 +6312,14 @@ begin
   Result := FdChildren;
 end;
 
+procedure TNodeAnchor.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
 class function TNodeAppearance.ClassNodeTypeName: string;
 begin
   Result := 'Appearance';
@@ -7215,6 +7229,14 @@ end;
 function TNodeLOD_2.ChildrenField: TMFNode;
 begin
   Result := FdLevel;
+end;
+
+procedure TNodeLOD_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  { For now we simply always use the best LOD version,
+    avoiding whole issue of choosing proper LOD child. }
+  if FdLevel.Items.Count >= 1 then
+    Func(Self, FdLevel.Items[0]);
 end;
 
 class function TNodeMaterial_2.ClassNodeTypeName: string;

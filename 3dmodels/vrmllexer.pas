@@ -534,82 +534,93 @@ end;
 
 constructor TVRMLLexer.Create(AStream: TPeekCharStream;
   const AWWWBasePath: string);
+const
+  VRML1HeaderStart = '#VRML V1.0 ';
+  VRML2HeaderStart = '#VRML V2.0 ';
+  { This is not an official VRML header, but it's used by VRML models on
+    [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html] }
+  VRML2DraftHeaderStart = '#VRML Draft #2 V2.0 ';
+  VRML1HeaderAscii = 'ascii';
+  InventorHeaderStart = '#Inventor ';
 
-  procedure IgnoreRestOfSignatureLine;
+  procedure VRML2HeaderReadRest(const Line: string);
+  var
+    Encoding: string;
   begin
-   { ignore rest of first line }
-   Stream.ReadUpto(VRMLLineTerm);
-   if Stream.ReadChar = -1 then
-    raise EVRMLLexerError.Create(Self,
-      'Unexpected end of file on the 1st line');
+    fVRMLVerMajor := 2;
+    fVRMLVerMinor := 0;
+
+    Encoding := NextTokenOnce(Line);
+    if Encoding <> 'utf8' then
+      raise EVRMLLexerError.Create(Self,
+        'VRML 2.0 signature : only utf8 encoding supported for now');
   end;
 
-var Sign: string;
+var
+  Line: string;
 begin
- inherited Create;
- FStream := AStream;
- WWWBasePath := AWWWBasePath;
+  inherited Create;
+  FStream := AStream;
+  WWWBasePath := AWWWBasePath;
 
- {read first line = signature.
-  Must begin with '#VRML V?.0 ' (11 chars)}
- SetLength(Sign, 11);
- Stream.ReadBuffer(Sign[1], Length(Sign));
- if Sign = '#VRML V1.0 ' then
- begin
-  fVRMLVerMajor := 1;
-  fVRMLVerMinor := 0;
-  {then must be 'ascii'; VRML 1.0 'ascii' may be followed immediately by some black char. }
-  SetLength(Sign, 5);
-  Stream.ReadBuffer(Sign[1], Length(Sign));
-  if Sign <> 'ascii' then
-   raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature : '+
-     'VRML 1.0 files must have "ascii" encoding');
+  { Read first line = signature. }
+  Line := Stream.ReadUpto(VRMLLineTerm);
+  if Stream.ReadChar = -1 then
+    raise EVRMLLexerError.Create(Self,
+      'Unexpected end of file on the 1st line');
 
-  IgnoreRestOfSignatureLine;
- end else
- if Sign = '#VRML V2.0 ' then
- begin
-  fVRMLVerMajor := 2;
-  fVRMLVerMinor := 0;
-  Sign := Stream.ReadUpto(Whitespaces);
-  if Sign <> 'utf8' then
-   raise EVRMLLexerError.Create(Self, 'VRML 2.0 signature : only utf8 encoding '+
-     'supported for now');
+  if IsPrefix(VRML1HeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML1HeaderStart));
+    fVRMLVerMajor := 1;
+    fVRMLVerMinor := 0;
 
-  IgnoreRestOfSignatureLine;
- end else
- if Sign = '#Inventor V' then
- begin
-  fVRMLVerMajor := 0;
-  fVRMLVerMinor := 0;
+    { then must be 'ascii';
+      VRML 1.0 'ascii' may be followed immediately by some black char. }
+    if not IsPrefix(VRML1HeaderAscii, Line) then
+      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature : '+
+        'VRML 1.0 files must have "ascii" encoding');
+  end else
+  if IsPrefix(VRML2HeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML2HeaderStart));
+    VRML2HeaderReadRest(Line);
+  end else
+  if IsPrefix(VRML2DraftHeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML2DraftHeaderStart));
+    VRML2HeaderReadRest(Line);
+  end else
+  if IsPrefix(InventorHeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(InventorHeaderStart));
+    fVRMLVerMajor := 0;
+    fVRMLVerMinor := 0;
 
-  SetLength(Sign, 9);
-  Stream.ReadBuffer(Sign[1], Length(Sign));
-  if Sign <> '1.0 ascii' then
-   raise EVRMLLexerError.Create(Self, 'Inventor signature recognized, but only '+
-     'Inventor 1.0 ascii files are supported. Sor'+'ry.');
+    if not IsPrefix('V1.0 ascii', Line) then
+      raise EVRMLLexerError.Create(Self,
+        'Inventor signature recognized, but only '+
+        'Inventor 1.0 ascii files are supported. Sor'+'ry.');
+  end else
+    raise EVRMLLexerError.Create(Self,
+      'VRML signature error : unrecognized signature');
 
-  IgnoreRestOfSignatureLine;
- end else
-  raise EVRMLLexerError.Create(Self,
-    'VRML signature error : unrecognized signature');
+  { calculate VRMLWhitespaces, VRMLNoWhitespaces }
+  VRMLWhitespaces := [' ',#9, #10, #13];
+  if VRMLVerMajor >= 2 then
+    Include(VRMLWhitespaces, ',');
+  VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
 
- { calculate VRMLWhitespaces, VRMLNoWhitespaces }
- VRMLWhitespaces := [' ',#9, #10, #13];
- if VRMLVerMajor >= 2 then
-   Include(VRMLWhitespaces, ',');
- VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
+  { calculate VRMLNameChars, VRMLNameFirstChars }
+  { These are defined according to vrml97specification on page 24. }
+  VRMLNameChars := AllChars -
+    [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
+  if VRMLVerMajor <= 1 then
+    VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
+  VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
 
- { calculate VRMLNameChars, VRMLNameFirstChars }
- { These are defined according to vrml97specification on page 24. }
- VRMLNameChars := AllChars -
-   [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
- if VRMLVerMajor <= 1 then
-   VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
- VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
-
- {read first token}
- NextToken;
+  {read first token}
+  NextToken;
 end;
 
 destructor TVRMLLexer.Destroy;

@@ -203,7 +203,7 @@ VRML 97 nodes done (parsed and handled correctly):
 - DirectionalLight
   (almost: DirectionalLight nodes illuminate only the objects descended from the light's parent grouping node, including any descendent children of the parent grouping nodes.
   This is almost what I do (that's VRML 1.0 way), but in my version DirectionalLight affects only subsequent nodes, not previous in it's parent...
-)
+  )
 
 - PointLight
   (almost: see above "PointLight and SpotLight illuminate all objects...").
@@ -227,3 +227,30 @@ VRML 97 nodes done (parsed and handled correctly):
 - TextureTransform
 - ImageTexture
 - Inline, InlineLoadControl
+
+- LOD
+  (but we almost render highest-precision node, ignoring
+  distance of node to the viewer;
+  like with VRML 1.0 LOD node)
+
+- Anchor
+  (but clicking on anchor doesn't do anything;
+  it works just like Group node for now;
+  like with VRML 1.0 WWWAnchor node)
+
+Nearest plans:
+AsciiText and FontStyle
+Indexed things and Coordinate3 and friends
+
+----------------------------------------
+Tests passed:
+- Tested on my test suite kambi_vrml_examples in vrml_2 subdir
+- Passes first 2 examples from VRML 2.0 spec (D.2 and D.3)
+- From [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html]:
+  passes every file (that exists on server &mdash; some are missing) besides:
+    simple/face, line,
+    pointset/points
+    cameras
+    textures/face*, line, repeat5, sfimage*, t2face*
+    recurse.wrl crashes --- should fail nicer
+    anchors (but clicking on anchor nodes doesn't work, see above)
