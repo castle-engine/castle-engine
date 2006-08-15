@@ -259,9 +259,13 @@ VRML 97 nodes done (parsed and handled correctly):
     (the rest (size, spacing, justify, family, style) is handled
     fully, so Text node is still very useful)
 
+- Viewpoint
+  (jump, fieldOfView, description are currently ignored and
+  no menu with avail viewpoints is displayed)
+
 Nearest plans:
 Indexed things and Coordinate3 and friends
-Viewport
+Viewport.fieldOfView and list of viewpoints in menu
 make URLs actually work
 check NIST tests
 check blender exported files

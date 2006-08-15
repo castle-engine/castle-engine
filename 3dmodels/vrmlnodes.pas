@@ -1892,23 +1892,16 @@ type
   end;
 
   TVRMLCameraKind = (ckOrthographic, ckPerspective);
-  TNodeGeneralCameraClass = class of TNodeGeneralCamera;
 
-  { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
-  TNodeGeneralCamera = class(TVRMLNode)
+  { A common class for both VRML 1.0 camera nodes and VRML 2.0 Viewpoint
+    node. }
+  TNodeGeneralViewpoint = class(TVRMLNode)
+  public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     property FdPosition: TSFVec3f index 0 read GetFieldAsSFVec3f;
     property FdOrientation: TSFRotation index 1 read GetFieldAsSFRotation;
-    property FdFocalDistance: TSFFloat index 2 read GetFieldAsSFFloat;
-    property FdHeightAngle: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdDirection: TMFVec3f index 4 read GetFieldAsMFVec3f;
-    property FdUp: TMFVec3f index 5 read GetFieldAsMFVec3f;
-    { Ignored fields -- they are not part of VRML 1.0 spec
-      and I was not able to find any spec for them on the net.
-      But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
-      use them. }
-    property FdNearDistance: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdFarDistance: TSFFloat index 7 read GetFieldAsSFFloat;
+    property FdDirection: TMFVec3f index 2 read GetFieldAsMFVec3f;
+    property FdUp: TMFVec3f index 3 read GetFieldAsMFVec3f;
 
     class function CameraKind: TVRMLCameraKind; virtual; abstract;
 
@@ -1952,20 +1945,38 @@ type
       )
 
       TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
-      przez CamTransform) }
-    procedure CalcCamera(const CamTransform: TMatrix4Single;
+      przez CamTransform) for TNodeGeneralVRML1Camera. }
+    procedure GetCameraVectors(const CamTransform: TMatrix4Single;
       out CamPos, CamDir, CamUp: TVector3Single);
+  end;
+
+  TNodeGeneralViewpointClass = class of TNodeGeneralViewpoint;
+
+  { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
+  TNodeGeneralVRML1Camera = class(TNodeGeneralViewpoint)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    property FdFocalDistance: TSFFloat index 4 read GetFieldAsSFFloat;
+    property FdHeightAngle: TSFFloat index 5 read GetFieldAsSFFloat;
+
+    { Ignored fields -- they are not part of VRML 1.0 spec
+      and I was not able to find any spec for them on the net.
+      But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
+      use them. }
+    property FdNearDistance: TSFFloat index 6 read GetFieldAsSFFloat;
+    property FdFarDistance: TSFFloat index 7 read GetFieldAsSFFloat;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeOrthographicCamera = class(TNodeGeneralCamera)
+  TNodeOrthographicCamera = class(TNodeGeneralVRML1Camera)
     class function ClassNodeTypeName: string; override;
     class function CameraKind: TVRMLCameraKind; override;
   end;
 
-  TNodePerspectiveCamera = class(TNodeGeneralCamera)
+  TNodePerspectiveCamera = class(TNodeGeneralVRML1Camera)
     class function ClassNodeTypeName: string; override;
     class function CameraKind: TVRMLCameraKind; override;
   end;
@@ -3536,21 +3547,21 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeViewpoint = class(TVRMLNode)
+  TNodeViewpoint = class(TNodeGeneralViewpoint)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     { eventIn      SFBool     set_bind } { }
-    property FdfieldOfView: TSFFloat index 0 read GetFieldAsSFFloat;
-    property Fdjump: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdorientation: TSFRotation index 2 read GetFieldAsSFRotation;
-    property Fdposition: TSFVec3f index 3 read GetFieldAsSFVec3f;
-    property Fddescription: TSFString index 4 read GetFieldAsSFString;
+    property FdfieldOfView: TSFFloat index 4 read GetFieldAsSFFloat;
+    property Fdjump: TSFBool index 5 read GetFieldAsSFBool;
+    property Fddescription: TSFString index 6 read GetFieldAsSFString;
     { eventOut     SFTime     bindTime } { }
     { eventOut     SFBool     isBound } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    class function CameraKind: TVRMLCameraKind; override;
   end;
 
   TNodeVisibilitySensor = class(TVRMLNode)
@@ -3778,8 +3789,6 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
 const
   VRMLCameraKindToStr: array[TVRMLCameraKind]of string =
   ('Orthographic', 'Perspective');
-  VRMLCameraKindToVRMLNodeName: array[TVRMLCameraKind]of string =
-  ('OrthographicCamera', 'PerspectiveCamera');
 
 const
   { consts for TNodeAsciiText.FdJustification.Value }
@@ -5909,40 +5918,48 @@ begin
  result := TranslationMatrix(FdTranslation.Value);
 end;
 
-constructor TNodeGeneralCamera.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeGeneralViewpoint.Create(
+  const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('position', Vector3Single(0, 0, 1)));
- Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
- Fields.Add(TSFFloat.Create('focalDistance', 5, true));
- Fields.Add(TSFFloat.Create('heightAngle', 0.785398, true));
- Fields.Add(TMFVec3f.Create('direction', []));
- Fields.Add(TMFVec3f.Create('up', []));
- Fields.Add(TSFFloat.Create('nearDistance', 0));
- Fields.Add(TSFFloat.Create('farDistance', 0));
+  inherited;
+  Fields.Add(TSFVec3f.Create('position', Vector3Single(0, 0, 1)));
+  Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
+  Fields.Add(TMFVec3f.Create('direction', []));
+  Fields.Add(TMFVec3f.Create('up', []));
 end;
 
-procedure TNodeGeneralCamera.CalcCamera(const CamTransform: TMatrix4Single;
+procedure TNodeGeneralViewpoint.GetCameraVectors(
+  const CamTransform: TMatrix4Single;
   out CamPos, CamDir, CamUp: TVector3Single);
 begin
- CamPos := FdPosition.Value;
- if FdDirection.Items.Length > 0 then
-  CamDir := FdDirection.Items.Items[0] else
-  CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
- if FdUp.Items.Length > 0 then
-  CamUp := FdUp.Items.Items[0] else
-  CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+  CamPos := FdPosition.Value;
+  if FdDirection.Items.Length > 0 then
+    CamDir := FdDirection.Items.Items[0] else
+    CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
+  if FdUp.Items.Length > 0 then
+    CamUp := FdUp.Items.Items[0] else
+    CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
 
- { niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-   uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
-   jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-   TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
- CamPos := MultMatrixPoint(CamTransform, CamPos);
- CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
- CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
+  { niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
+    uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
+    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
+    TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
+  CamPos := MultMatrixPoint(CamTransform, CamPos);
+  CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
+  CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
 
- Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
- Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
+  Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
+  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
+end;
+
+constructor TNodeGeneralVRML1Camera.Create(
+  const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Fields.Add(TSFFloat.Create('focalDistance', 5, true));
+  Fields.Add(TSFFloat.Create('heightAngle', 0.785398, true));
+  Fields.Add(TSFFloat.Create('nearDistance', 0));
+  Fields.Add(TSFFloat.Create('farDistance', 0));
 end;
 
 class function TNodeOrthographicCamera.ClassNodeTypeName: string;
@@ -8180,17 +8197,26 @@ begin
   Result := 'Viewpoint';
 end;
 
-constructor TNodeViewpoint.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeViewpoint.Create(
+  const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
   { eventIn      SFBool     set_bind }
   Fields.Add(TSFFloat.Create('fieldOfView', 0.785398)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('position', Vector3Single(0, 0, 10))); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', ''));
   { eventOut     SFTime     bindTime }
   { eventOut     SFBool     isBound }
+
+  { Default value of position is different for Viewpoint than for VRML 1.0
+    cameras (as set by TNodeGeneralViewpoint). }
+  FdPosition.DefaultValue := Vector3Single(0, 0, 10);
+  FdPosition.Value := FdPosition.DefaultValue;
+end;
+
+class function TNodeViewpoint.CameraKind: TVRMLCameraKind;
+begin
+  Result := ckPerspective;
 end;
 
 class function TNodeVisibilitySensor.ClassNodeTypeName: string;

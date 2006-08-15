@@ -112,7 +112,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-function TNodeGeneralCamera.SuggestedVRMLVersion(
+function TNodeGeneralVRML1Camera.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

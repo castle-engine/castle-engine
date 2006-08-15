@@ -50,6 +50,9 @@ type
   { @exclude }
   TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
 
+  TViewpointFunction = procedure (Node: TNodeGeneralViewpoint;
+    const Transform: TMatrix4Single) of object;
+
   { This class represents a VRML scene (i.e. graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
     objects. The basic idea is to "have" at the same time hierarchical
@@ -112,6 +115,11 @@ type
     procedure ValidateTrianglesList(OverTriangulate: boolean);
     FTrianglesList:
       array[boolean { OverTriangulate ?}] of TDynTriangle3SingleArray;
+
+    function GetViewpointCore(
+      const OnlyPerspective: boolean;
+      out CamKind: TVRMLCameraKind;
+      out CamPos, CamDir, CamUp: TVector3Single): boolean;
   public
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -320,31 +328,45 @@ type
       read FOwnsDefaultShapeStateOctree write FOwnsDefaultShapeStateOctree
       default true;
 
-    { Zwraca kamere zdefiniowana w tym VRMLu: jezeli VRML posiada node kamery
+    { GetViewpoint and GetPerspectiveViewpoint return the properties
+      of first defined Viewpoint in VRML file, or some default viewpoint
+      properties if no viewpoint is defined in file. They seek for
+      nodes Viewpoint (for VRML 2.0), PerspectiveCamera and OrthographicCamera
+      (for VRML 1.0) in scene graph. GetPerspectiveViewpoint omits
+      OrthographicCamera.
+
+      Jezeli VRML posiada node kamery
       zdefiniowany w aktywnej czesci swojego grafu to oblicza swoje zmienne
-      "var" na podstawie tego node'a, wpp. zwraca domyslne ulozenia kamery
+      "out" na podstawie tego node'a, wpp. zwraca domyslne ulozenia kamery
       w VRMLu, zgodnie ze specyfik. VRMLa (tzn. CamPos = (0, 0, 1),
       CamDir = (0, 0, -1), CamUp = (0, 1, 0), CamType = ctPerspective
       (ze domyslna kamera jest ctPerspective to juz sam sobie dopowiedzialem)).
-
-      Podajac CamClass mozesz swobodnie ograniczyc klase kamer jakich ma szukac
-      - bedzie szukal tylko kamer ktore "is CamClass". Jesli nie chcesz
-      ograniczac zakresu szukanych kamer podaj TNodeGeneralCamera aby objac
-      wszystkie mozliwe kamery.
 
       Zwraca "true" jezeli uzyl kamery zdefiniowanej w pliku VRMLa (false
       oznacza ze uzyl domyslnych ustawien kamery). Czesto bedziesz chcial
       zignorowac wynik tej funkcji, w koncu zasadnicza funkcja tej funkcji
       jest zaproponowanie jakiegos ustawienia poczatkowego kamery.
 
-      Zwraca zawsze znormalizowane CamDir i CamUp - powody takie same jak
-      dla TNodeGeneralCamera.CalcCamera. }
-    function GetCamera(const CamClass: TNodeGeneralCameraClass;
+      Zwraca zawsze znormalizowane CamDir i CamUp --- powody takie same jak
+      dla TNodeGeneralViewpoint.GetCameraVectors.
+
+      @groupBegin }
+    function GetViewpoint(
       out CamKind: TVRMLCameraKind;
       out CamPos, CamDir, CamUp: TVector3Single): boolean;
-    { j.w. ale ignoruje kamery OrthographicCamera w VRMLu }
-    function GetPerspectiveCamera(
+
+    function GetPerspectiveViewpoint(
       out CamPos, CamDir, CamUp: TVector3Single): boolean;
+    { @groupEnd }
+
+    { This enumerates all viewpoint nodes (Viewpoint (for VRML 2.0),
+      PerspectiveCamera and OrthographicCamera (for VRML 1.0))
+      in scene graph.
+      For each such node, it calls ViewpointFunction.
+
+      Essentially, this is a trivial wrapper over RootNode.Traverse
+      that returns only TNodeGeneralViewpoint. }
+    procedure EnumerateViewpoints(ViewpointFunction: TViewpointFunction);
 
     { FogNode zwraca aktualny node Fog w tym modelu VRMLa, lub nil jesli
       nie ma aktywnego node'u fog.
@@ -735,41 +757,118 @@ begin
  except Result.Free; raise end;
 end;
 
-{ camera ----------------------------------------------------------------------- }
+{ viewpoints ----------------------------------------------------------------- }
 
-function TVRMLFlatScene.GetCamera(const CamClass: TNodeGeneralCameraClass;
-  out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp: TVector3Single): boolean;
-var InitialState: TVRMLGraphTraverseState;
-    CamNode: TNodeGeneralCamera;
-    CamTransform: TMatrix4Single;
-begin
- InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
- try
-  Result := (RootNode <> nil) and
-    RootNode.TryFindNodeTransform(InitialState, CamClass, TVRMLNode(CamNode),
-      CamTransform);
-  if Result then
-  begin
-   CamNode.CalcCamera(CamTransform, CamPos, CamDir, CamUp);
-   CamKind := CamNode.CameraKind;
-  end else
-  begin
-   { use default camera settings }
-   CamPos := StdVRMLCamPos;
-   CamDir := StdVRMLCamDir;
-   CamUp := StdVRMLCamUp;
-   CamKind := ckPerspective;
+type
+  TViewpointsSeeker = class
+    ViewpointFunction: TViewpointFunction;
+    procedure Seek(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
   end;
- finally InitialState.Free end;
+
+  procedure TViewpointsSeeker.Seek(
+    ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
+  begin
+    ViewpointFunction(
+      TNodeGeneralViewpoint(ANode),
+      AState.CurrMatrix);
+  end;
+
+procedure TVRMLFlatScene.EnumerateViewpoints(
+  ViewpointFunction: TViewpointFunction);
+var
+  InitialState: TVRMLGraphTraverseState;
+  Seeker: TViewpointsSeeker;
+begin
+  if RootNode <> nil then
+  begin
+    InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+    try
+      Seeker := TViewpointsSeeker.Create;
+      try
+        Seeker.ViewpointFunction := ViewpointFunction;
+        RootNode.Traverse(InitialState, TNodeGeneralViewpoint,
+          {$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
+      finally FreeAndNil(Seeker) end;
+    finally FreeAndNil(InitialState) end;
+  end;
 end;
 
-function TVRMLFlatScene.GetPerspectiveCamera(
+type
+  BreakFirstViewpointFound = class(TCodeBreaker);
+
+  TFirstViewpointSeeker = class
+    OnlyPerspective: boolean;
+    FoundNode: TNodeGeneralViewpoint;
+    FoundTransform: PMatrix4Single;
+    procedure Seek(Node: TNodeGeneralViewpoint;
+      const Transform: TMatrix4Single);
+  end;
+
+  procedure TFirstViewpointSeeker.Seek(
+    Node: TNodeGeneralViewpoint;
+    const Transform: TMatrix4Single);
+  begin
+    if (not OnlyPerspective) or (Node.CameraKind = ckPerspective) then
+    begin
+      FoundTransform^ := Transform;
+      FoundNode := Node;
+      raise BreakFirstViewpointFound.Create;
+    end;
+  end;
+
+function TVRMLFlatScene.GetViewpointCore(
+  const OnlyPerspective: boolean;
+  out CamKind: TVRMLCameraKind;
   out CamPos, CamDir, CamUp: TVector3Single): boolean;
-var CamKind: TVRMLCameraKind;
+var
+  Node: TNodeGeneralViewpoint;
+  CamTransform: TMatrix4Single;
+  Seeker: TFirstViewpointSeeker;
 begin
- result := GetCamera(TNodePerspectiveCamera, CamKind, CamPos, CamDir, CamUp);
- Assert(CamKind = ckPerspective);
+  Result := false;
+  Seeker := TFirstViewpointSeeker.Create;
+  try
+    Seeker.OnlyPerspective := OnlyPerspective;
+    Seeker.FoundTransform := @CamTransform;
+    try
+      EnumerateViewpoints({$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
+    except
+      on BreakFirstViewpointFound do
+      begin
+        Node := Seeker.FoundNode;
+        Result := true;
+      end;
+    end;
+  finally FreeAndNil(Seeker) end;
+
+  if Result then
+  begin
+    Node.GetCameraVectors(CamTransform, CamPos, CamDir, CamUp);
+    CamKind := Node.CameraKind;
+  end else
+  begin
+    { use default camera settings }
+    CamPos := StdVRMLCamPos_1;
+    CamDir := StdVRMLCamDir;
+    CamUp := StdVRMLCamUp;
+    CamKind := ckPerspective;
+  end;
+end;
+
+function TVRMLFlatScene.GetViewpoint(
+  out CamKind: TVRMLCameraKind;
+  out CamPos, CamDir, CamUp: TVector3Single): boolean;
+begin
+  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp);
+end;
+
+function TVRMLFlatScene.GetPerspectiveViewpoint(
+  out CamPos, CamDir, CamUp: TVector3Single): boolean;
+var
+  CamKind: TVRMLCameraKind;
+begin
+  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp);
+  Assert(CamKind = ckPerspective);
 end;
 
 { fog ---------------------------------------------------------------------- }

@@ -16,9 +16,13 @@ const
     ponizszych stalych aby zapisywac cos elegancko (i uniknac potencjalnych
     pomylek przy wpisywaniu wartosci ponizszych stalych).
 
-    VRML 97 spec part "4.4.5 Standard units and coordinate system"
-    determines these values. }
-  StdVRMLCamPos: TVector3Single = (0, 0, 1);
+    For VRML 1.0 spec of PerspectiveCamera node determines these values.
+    For VRML 97 spec part "4.4.5 Standard units and coordinate system"
+    and default values for Viewpoint determines these values.
+    StdVRMLCamPos_1 is for VRML 1.0, StdVRMLCamPos_2 is for VRML 2.0
+    (they are diffent). }
+  StdVRMLCamPos_1: TVector3Single = (0, 0, 1);
+  StdVRMLCamPos_2: TVector3Single = (0, 0, 10);
   StdVRMLCamDir: TVector3Single = (0, 0, -1);
   StdVRMLCamUp: TVector3Single = (0, 1, 0);
 
