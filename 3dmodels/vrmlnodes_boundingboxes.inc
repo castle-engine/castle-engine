@@ -40,38 +40,76 @@ end;
 
 { ------------------------------------------------------------------------ }
 
-function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var points: array[0..3]of TVector3Single;
-    descend, rowh, yscale, maxRowWidth, minx, miny, maxx, maxy: Single;
-    ttfont: PTrueTypeFont;
-    i: integer;
+function Text_BoundingBox(State: TVRMLGraphTraverseState;
+  const Size, Spacing: Single;
+  const Justify: TVRMLFontJustify;
+  const TTFont: PTrueTypeFont;
+  const Strings: TDynStringArray): TBox3d;
+var
+  points: array[0..3]of TVector3Single;
+  DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
+  I: integer;
 begin
- ttfont := State.LastNodes.FontStyle.TTF_Font;
+  YScale := Size / TTFontSimpleRowHeight(TTFont);
+  { TODO: Use maxEntent, length for VRML 2.0.
+    Use width for VRML 1.0. }
+  XScale := YScale;
+  DescendScaled := TTFontSimpleDescend(TTFont) * YScale;
 
- rowh := State.LastNodes.FontStyle.FdSize.Value;
- yscale := rowh / TTFontSimpleRowHeight(ttfont);
- descend := TTFontSimpleDescend(ttfont)*yscale;
+  MaxRowWidth := 0;
+  for I := 0 to Strings.Count - 1 do
+    MaxTo1st(MaxRowWidth,
+      TTFontTextWidth(TTFont, Strings[i]) * XScale);
 
- maxRowWidth := 0;
- for i := 0 to FdString.Count-1 do
-  maxRowWidth := KambiUtils.max(maxRowWidth,
-    TTFontTextWidth(ttfont, FdString.Items.Items[i])*yscale{TODO:use here FdWidth});
+  maxy := Size - DescendScaled;
+  miny := -(Strings.Count - 1) * Size * Spacing - DescendScaled;
+  case Justify of
+    fjBegin : begin minx := 0;              maxx := maxRowWidth end;
+    fjMiddle: begin minx := -maxRowWidth/2; maxx := maxRowWidth/2 end;
+    fjEnd   : begin minx := -maxRowWidth;   maxx := 0 end;
+    else raise EInternalError.Create('Invalid FontStyle Justify value');
+  end;
 
- maxy := rowh-descend;
- miny := -(FdString.Count-1)*FdSpacing.Value*rowh - descend;
- case FdJustification.Value of
-  JUSTIFICATION_LEFT   :begin minx := 0;              maxx := maxRowWidth end;
-  JUSTIFICATION_CENTER :begin minx := -maxRowWidth/2; maxx := maxRowWidth/2 end;
-  JUSTIFICATION_RIGHT  :begin minx := -maxRowWidth;   maxx := 0 end;
-  else raise EInternalError.Create('Invalid FdJustification.Value');
- end;
+  points[0] := Vector3Single(minx, maxy, 0);
+  points[1] := Vector3Single(maxx, maxy, 0);
+  points[2] := Vector3Single(minx, miny, 0);
+  points[3] := Vector3Single(maxx, miny, 0);
 
- points[0] := Vector3Single(minx, maxy, 0);
- points[1] := Vector3Single(maxx, maxy, 0);
- points[2] := Vector3Single(minx, miny, 0);
- points[3] := Vector3Single(maxx, miny, 0);
+  result := CalculateBoundingBox(@points, 4, 0, State.CurrMatrix);
+end;
 
- result := CalculateBoundingBox(@points, 4, 0, State.CurrMatrix);
+function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Text_BoundingBox(State,
+    State.LastNodes.FontStyle.FdSize.Value,
+    FdSpacing.Value,
+    Justify,
+    State.LastNodes.FontStyle.TTF_Font,
+    FdString.Items);
+end;
+
+function TNodeText.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+var
+  Size, Spacing: Single;
+  Justify: TVRMLFontJustify;
+  TTFont: PTrueTypeFont;
+begin
+  if FontStyle = nil then
+  begin
+    Size := TNodeFontStyle_2.DefaultSize;
+    Spacing := TNodeFontStyle_2.DefaultSpacing;
+    Justify := TNodeFontStyle_2.DefaultJustify;
+    TTFont := TNodeFontStyle_2.DefaultTTF_Font;
+  end else
+  begin
+    Size := FontStyle.FdSize.Value;
+    Spacing := FontStyle.FdSpacing.Value;
+    Justify := FontStyle.Justify;
+    TTFont := FontStyle.TTF_Font;
+  end;
+
+  Result := Text_BoundingBox(State,
+    Size, Spacing, Justify, TTFont, FdString.Items);
 end;
 
 function Cone_BoundingBox(State: TVRMLGraphTraverseState;

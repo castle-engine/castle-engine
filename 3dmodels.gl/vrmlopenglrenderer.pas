@@ -1553,25 +1553,54 @@ end;
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
 procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
+
+  procedure PrepareFont(
+    fsfam: TVRMLFontFamily;
+    fsbold, fsitalic: boolean;
+    TTF_Font: PTrueTypeFont);
+  begin
+    if not FontsReferences[fsfam, fsbold, fsitalic] then
+    begin
+      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, TTF_Font);
+      FontsReferences[fsfam, fsbold, fsitalic] := true;
+    end;
+  end;
+
 const
   TextureRepeatToGL: array[boolean]of TGLenum = (GL_CLAMP, GL_REPEAT);
 var
-  fsfam: TVRMLFontFamily;
-  fsbold, fsitalic: boolean;
   TextureReference: TTextureReference;
   TextureFileName: string;
   TextureNode: TNodeGeneralTexture;
+  FontStyle: TNodeFontStyle_2;
 begin
- {przygotuj font dla LastFontStyle}
- fsfam := State.LastNodes.FontStyle.FdFamily.Value;
- fsbold := State.LastNodes.FontStyle.FdStyle.Flags[FSSTYLE_BOLD];
- fsitalic := State.LastNodes.FontStyle.FdStyle.Flags[FSSTYLE_ITALIC];
-
- if not FontsReferences[fsfam, fsbold, fsitalic] then
+ { przygotuj font }
+ if State.ParentShape = nil then
+   PrepareFont(
+     State.LastNodes.FontStyle.Family,
+     State.LastNodes.FontStyle.Bold,
+     State.LastNodes.FontStyle.Italic,
+     State.LastNodes.FontStyle.TTF_Font) else
+ if (State.ParentShape.FdGeometry.Value <> nil) and
+    (State.ParentShape.FdGeometry.Value is TNodeText) then
  begin
-   Cache.Fonts_IncReference(fsfam, fsbold, fsitalic,
-     State.LastNodes.FontStyle.TTF_Font);
-   FontsReferences[fsfam, fsbold, fsitalic] := true;
+   { We know that TNodeText(State.ParentShape.FdGeometry.Value)
+     will be the shape node rendered along with this State.
+     That's how it works in VRML 2.0: State actually contains
+     reference to Shape that contains reference to geometry node,
+     which means that actually State contains rendered node too. }
+   FontStyle := TNodeText(State.ParentShape.FdGeometry.Value).FontStyle;
+   if FontStyle = nil then
+     PrepareFont(
+       TNodeFontStyle_2.DefaultFamily,
+       TNodeFontStyle_2.DefaultBold,
+       TNodeFontStyle_2.DefaultItalic,
+       TNodeFontStyle_2.DefaultTTF_Font) else
+     PrepareFont(
+       FontStyle.Family,
+       FontStyle.Bold,
+       FontStyle.Italic,
+       FontStyle.TTF_Font);
  end;
 
  { przygotuj teksture }
@@ -1867,9 +1896,6 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
-var
-  { jaki font jest aktualny (na podstawie State.LastNodes.FontStyle) }
-  CurrentFont: TGLOutlineFont;
 
   {$I vrmlopenglrenderer_render_specificnodes.inc}
 
@@ -1930,14 +1956,12 @@ begin
    Render_TexCoordsNeeded := false;
   end;
 
-  with State.LastNodes.FontStyle do
-    CurrentFont := Cache.Fonts[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
-      FdStyle.Flags[FSSTYLE_ITALIC]].Instance;
-
   Render_MaterialsBegin;
   try
     if Node is TNodeAsciiText_1 then
       RenderAsciiText(TNodeAsciiText_1(Node)) else
+    if Node is TNodeText then
+      RenderText(TNodeText(Node)) else
     if Node is TNodeCone_1 then
       RenderCone_1(TNodeCone_1(Node)) else
     if Node is TNodeCone_2 then

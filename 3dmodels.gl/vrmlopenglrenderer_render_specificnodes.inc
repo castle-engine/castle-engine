@@ -39,58 +39,105 @@
     DoBeforeGLVertex w tej chwili, a powinny.
 }
 
-{ AsciiText -------------------------------------------------------------------- }
+{ AsciiText ------------------------------------------------------------------ }
 
-procedure RenderAsciiText(Node: TNodeAsciiText_1);
+procedure Text_Render(
+  const Size, Spacing: Single;
+  const Justify: TVRMLFontJustify;
+  const Strings: TDynStringArray;
+  CurrentFont: TGLOutlineFont);
 
-  { StringPos* ignore last FontStyle Size, just assume that
-    CurrentFont has right size.
-  }
-
+  { StringPos* ignore Size, just assume that CurrentFont has right size. }
   function StringPosX(i: integer): TGLfloat;
   begin
-   case Node.FdJustification.Value of
-    JUSTIFICATION_LEFT:
-      Result := 0;
-    JUSTIFICATION_CENTER:
-      Result := -CurrentFont.TextWidth(Node.FdString.Items.Items[i])/2;
-    JUSTIFICATION_RIGHT:
-      Result := -CurrentFont.TextWidth(Node.FdString.Items.Items[i]);
-    else raise EInternalError.Create('Invalid FdJustification.Value');
-   end;
+    case Justify of
+      fjBegin : Result := 0;
+      fjMiddle: Result := -CurrentFont.TextWidth(Strings[i]) / 2;
+      fjend   : Result := -CurrentFont.TextWidth(Strings[i]);
+      else raise EInternalError.Create('Invalid font justify value');
+    end;
   end;
 
   function StringPosY(i: integer): TGLfloat;
-  begin result := -i*CurrentFont.RowHeight* Node.FdSpacing.Value end;
+  begin
+    Result := -i * CurrentFont.RowHeight * Spacing;
+  end;
 
-var yscale: TGLfloat;
-    i: integer;
+var
+  YScale, XScale: TGLfloat;
+  i: integer;
 begin
- yscale := State.LastNodes.FontStyle.FdSize.Value / CurrentFont.RowHeight;
+  YScale := Size / CurrentFont.RowHeight;
+  { TODO: Use maxEntent, length for VRML 2.0.
+    Use width for VRML 1.0. }
+  XScale := YScale;
 
- Render_BindMaterial_1(0);
+  Render_BindMaterial_1(0);
 
- glNormal3f(0, 0, -1);
+  glNormal3f(0, 0, -1);
 
- glPushMatrix;
- glScalef(1, yscale, 1);
- for i := 0 to Node.FdString.Count-1 do
- begin
   glPushMatrix;
-    glScalef(yscale{TODO:use here FdWidth}, 1, 1);
+    glScalef(1, YScale, 1);
+    for I := 0 to Strings.Count - 1 do
+    begin
+      glPushMatrix;
+        glScalef(XScale, 1, 1);
 
-    { TODO: when using justification <> LEFT I should also
-      change texOriginX here }
-    glTranslatef(StringPosX(i), StringPosY(i), 0);
+        { TODO: when using Justify <> fjBegin I should also
+          change texOriginX here, at least for VRML 1.0 --- check
+          for VRML 2.0. }
+        glTranslatef(StringPosX(I), StringPosY(I), 0);
 
-    { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
-      popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-    if Render_TexCoordsNeeded then
-     CurrentFont.PrintTexturedAndMove(Node.FdString.Items.Items[i], 0, 0) else
-     CurrentFont.PrintAndMove(Node.FdString.Items.Items[i]);
+        { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
+          popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
+        if Render_TexCoordsNeeded then
+          CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
+          CurrentFont.PrintAndMove(Strings[i]);
+      glPopMatrix;
+    end;
   glPopMatrix;
- end;
- glPopMatrix;
+end;
+
+procedure RenderAsciiText(Node: TNodeAsciiText_1);
+begin
+  Text_Render(
+    State.LastNodes.FontStyle.FdSize.Value,
+    Node.FdSpacing.Value,
+    Node.Justify,
+    Node.FdString.Items,
+    Cache.Fonts[
+      State.LastNodes.FontStyle.Family,
+      State.LastNodes.FontStyle.Bold,
+      State.LastNodes.FontStyle.Italic].Instance);
+end;
+
+procedure RenderText(Node: TNodeText);
+var
+  Size, Spacing: Single;
+  Justify: TVRMLFontJustify;
+  CurrentFont: TGLOutlineFont;
+begin
+  if Node.FontStyle = nil then
+  begin
+    Size := TNodeFontStyle_2.DefaultSize;
+    Spacing := TNodeFontStyle_2.DefaultSpacing;
+    Justify := TNodeFontStyle_2.DefaultJustify;
+    CurrentFont := Cache.Fonts[
+      TNodeFontStyle_2.DefaultFamily,
+      TNodeFontStyle_2.DefaultBold,
+      TNodeFontStyle_2.DefaultItalic].Instance;
+  end else
+  begin
+    Size := Node.FontStyle.FdSize.Value;
+    Spacing := Node.FontStyle.FdSpacing.Value;
+    Justify := Node.FontStyle.Justify;
+    CurrentFont := Cache.Fonts[
+      Node.FontStyle.Family,
+      Node.FontStyle.Bold,
+      Node.FontStyle.Italic].Instance;
+  end;
+
+  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont);
 end;
 
 { Cone ----------------------------------------------------------------------- }

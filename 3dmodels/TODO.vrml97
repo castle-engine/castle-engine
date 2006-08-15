@@ -1,5 +1,12 @@
 VRML 97 TODO items:
 
+WWW:
+- kambi_vrml_examples: name it "Kambi VRML test suite",
+  convert README to html and put on page (as well as in the archive)
+- "sources" page rename and rearrange to "Kambi 3D game VRML engine"
+- add page "VRML implementation status",
+  move there bottom on view3dscene docs
+
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
 - kambi_vrml_examples: do there VRML 2.0 counterpart, test
@@ -191,12 +198,6 @@ The following node types are not valid as children nodes:
 - 4.6.7 Sensor nodes
   ...
   and further 4.x, with the exception of 4.13, 4.14
-- 4.14.2 Lighting 'off'
-
-A Shape node is unlit if either of the following is true:
-
-   1. The shape's appearance field is NULL (default).
-   2. The material field in the Appearance node is NULL (default).
 
 ----------------------------------------
 VRML 97 nodes done (parsed and handled correctly):
@@ -238,9 +239,32 @@ VRML 97 nodes done (parsed and handled correctly):
   it works just like Group node for now;
   like with VRML 1.0 WWWAnchor node)
 
+- Text, FontStyle
+  Without:
+
+    FontStyle properties:
+    6.22.3 Direction and justification
+    (horizontal, leftToRight, topToBottom values are ignored and
+    things are always handled like they had default values
+    (TRUE, TRUE, TRUE) )
+    6.22.4 Language
+    (language)
+
+    (family, style handled;  will be)
+
+    Text properties:
+    length, maxEntent are ignored (and handled like they had
+    default values, which means that the text is not stretched)
+
+    (the rest (size, spacing, justify, family, style) is handled
+    fully, so Text node is still very useful)
+
 Nearest plans:
-AsciiText and FontStyle
 Indexed things and Coordinate3 and friends
+Viewport
+make URLs actually work
+check NIST tests
+check blender exported files
 
 ----------------------------------------
 Tests passed:
@@ -253,4 +277,3 @@ Tests passed:
     cameras
     textures/face*, line, repeat5, sfimage*, t2face*
     recurse.wrl crashes --- should fail nicer
-    anchors (but clicking on anchor nodes doesn't work, see above)

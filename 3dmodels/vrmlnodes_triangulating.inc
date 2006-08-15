@@ -116,6 +116,12 @@ begin
  { TODO: triangulate }
 end;
 
+procedure TNodeText.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+ { TODO: triangulate }
+end;
+
 {$define LOOP_OVER_CIRCLE_DECLARE:=
 var LOC_AngleRad: Single;
     LOC_LastPt, LOC_Pt: TVector3Single;

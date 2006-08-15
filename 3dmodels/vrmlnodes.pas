@@ -1376,6 +1376,11 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
+  { Font justification that can be specified by FontStyle in
+    justify/justification field. First three fields are equal
+    (after casting by Ord) to JUSTIFICATION_* constants. }
+  TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
+
   TNodeAsciiText_1 = class(TNodeGeneralShape_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1389,6 +1394,8 @@ type
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    function Justify: TVRMLFontJustify;
   end;
 
   TNodeCone_1 = class(TNodeGeneralShape_1)
@@ -1506,7 +1513,11 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TVRMLFontFamily = 0..2; {uzywaj stalych FSFAMLILY}
+  { Font family that can be specified by FontStyle node in family
+    field. First three fields are equal (after casting by Ord) to
+    three values of FSFAMILY_* constants. }
+  TVRMLFontFamily = (ffSerif, ffSans, ffTypeWriter);
+
   TNodeFontStyle_1 = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1514,13 +1525,17 @@ type
     property FdSize: TSFFloat index 0 read GetFieldAsSFFloat;
     property FdFamily: TSFEnum index 1 read GetFieldAsSFEnum;
     property FdStyle: TSFBitMask index 2 read GetFieldAsSFBitMask;
-    function TTF_Font: PTrueTypeFont;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function Family: TVRMLFontFamily;
+    function Bold: boolean;
+    function Italic: boolean;
+    function TTF_Font: PTrueTypeFont;
   end;
 
   TNodeInfo = class(TVRMLNode)
@@ -2615,6 +2630,20 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function Family: TVRMLFontFamily;
+    function Bold: boolean;
+    function Italic: boolean;
+    function Justify: TVRMLFontJustify;
+    function TTF_Font: PTrueTypeFont;
+
+    class function DefaultSize: Single;
+    class function DefaultSpacing: Single;
+    class function DefaultFamily: TVRMLFontFamily;
+    class function DefaultBold: boolean;
+    class function DefaultItalic: boolean;
+    class function DefaultJustify: TVRMLFontJustify;
+    class function DefaultTTF_Font: PTrueTypeFont;
   end;
 
   TNodeGeoCoordinate = class(TVRMLNode)
@@ -3385,7 +3414,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeText = class(TVRMLNode)
+  TNodeText = class(TNodeGeneralShape)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -3396,6 +3425,15 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
+      is nil or if it's not TNodeFontStyle_2. }
+    function FontStyle: TNodeFontStyle_2;
   end;
 
   TNodeTextureCoordinate = class(TVRMLNode)
@@ -5039,6 +5077,11 @@ begin
  result := 'AsciiText';
 end;
 
+function TNodeAsciiText_1.Justify: TVRMLFontJustify;
+begin
+  Result := TVRMLFontJustify(FdJustification.Value);
+end;
+
 constructor TNodeCone_1.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..1]of string = ('SIDES', 'BOTTOM');
 begin
@@ -5182,17 +5225,32 @@ begin
  result := 'FontStyle';
 end;
 
-function TNodeFontStyle_1.TTF_Font: PTrueTypeFont;
 const
-  Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
+  TTF_Font_Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
   (              {   [],                          [italic],                            [bold],                      [italic, bold] }
     {serif}      ( ((@TTF_BitstreamVeraSerif),   (@TTF_BitstreamVeraSerif_Italic)),    ((@TTF_BitstreamVeraSerif_Bold),    (@TTF_BitstreamVeraSerif_Bold_Italic)) ),
     {sans}       ( ((@TTF_BitstreamVeraSans),    (@TTF_BitstreamVeraSans_Italic)),     ((@TTF_BitstreamVeraSans_Bold),     (@TTF_BitstreamVeraSans_Bold_Italic)) ),
     {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
   );
+
+function TNodeFontStyle_1.TTF_Font: PTrueTypeFont;
 begin
- result := Results[FdFamily.Value, FdStyle.Flags[FSSTYLE_BOLD],
-   FdStyle.Flags[FSSTYLE_ITALIC]];
+  Result := TTF_Font_Results[Family, Bold, Italic];
+end;
+
+function TNodeFontStyle_1.Family: TVRMLFontFamily;
+begin
+  Result := TVRMLFontFamily(FdFamily.Value);
+end;
+
+function TNodeFontStyle_1.Bold: boolean;
+begin
+  Result := FdStyle.Flags[FSSTYLE_BOLD];
+end;
+
+function TNodeFontStyle_1.Italic: boolean;
+begin
+  Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
 
 class function TNodeFontStyle_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -6752,8 +6810,8 @@ begin
   Fields.Add(TMFString.Create('justify', ['BEGIN']));
   Fields.Add(TSFString.Create('language', ''));
   Fields.Add(TSFBool.Create('leftToRight', TRUE));
-  Fields.Add(TSFFloat.Create('size', 1.0));
-  Fields.Add(TSFFloat.Create('spacing', 1.0));
+  Fields.Add(TSFFloat.Create('size', DefaultSize));
+  Fields.Add(TSFFloat.Create('spacing', DefaultSpacing));
   Fields.Add(TSFString.Create('style', 'PLAIN'));
   Fields.Add(TSFBool.Create('topToBottom', TRUE));
 end;
@@ -6761,6 +6819,129 @@ end;
 class function TNodeFontStyle_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeFontStyle_2.TTF_Font: PTrueTypeFont;
+begin
+  Result := TTF_Font_Results[Family, Bold, Italic];
+end;
+
+function TNodeFontStyle_2.Family: TVRMLFontFamily;
+var
+  I: Integer;
+begin
+  for I := 0 to FdFamily.Items.Count - 1 do
+    if FdFamily.Items[I] = 'SERIF' then
+      Exit(ffSerif) else
+    if FdFamily.Items[I] = 'SANS' then
+      Exit(ffSans) else
+    if FdFamily.Items[I] = 'TYPEWRITER' then
+      Exit(ffTypeWriter) else
+      VRMLNonFatalError('Font family "' + FdFamily.Items[I] + '" not supported');
+
+  { If no supported values on FdFamily.Items then fall back to serif }
+  Result := ffSerif;
+end;
+
+const
+  StyleBold = 'BOLD';
+  StyleBoldItalic = 'BOLDITALIC';
+  StyleItalic = 'ITALIC';
+  StylePlain = 'PLAIN';
+
+function TNodeFontStyle_2.Bold: boolean;
+begin
+  Result :=
+    (FdStyle.Value = StyleBold) or
+    (FdStyle.Value = StyleBoldItalic);
+
+  { This is the end of calculating Result.
+    But we would like to make a warning in case of invalid FdStyle
+    value, so we do check below. }
+
+  if not Result then
+  begin
+    if not (
+      (FdStyle.Value = StyleItalic) or
+      (FdStyle.Value = StylePlain) or
+      (FdStyle.Value = '')) then
+      VRMLNonFatalError('Font style "' + FdStyle.Value + '" not supported');
+  end;
+end;
+
+function TNodeFontStyle_2.Italic: boolean;
+begin
+  Result :=
+    (FdStyle.Value = StyleItalic) or
+    (FdStyle.Value = StyleBoldItalic);
+
+  { This is the end of calculating Result.
+    But we would like to make a warning in case of invalid FdStyle
+    value, so we do check below. }
+
+  if not Result then
+  begin
+    if not (
+      (FdStyle.Value = StyleBold) or
+      (FdStyle.Value = StylePlain) or
+      (FdStyle.Value = '')) then
+      VRMLNonFatalError('Font style "' + FdStyle.Value + '" not supported');
+  end;
+end;
+
+function TNodeFontStyle_2.Justify: TVRMLFontJustify;
+begin
+  if FdJustify.Items.Count = 0 then
+    Result := fjBegin else
+  begin
+    if (FdJustify.Items[0] = 'BEGIN') or
+       (FdJustify.Items[0] = 'FIRST') then
+      Result := fjBegin else
+    if FdJustify.Items[0] = 'MIDDLE' then
+      Result := fjMiddle else
+    if FdJustify.Items[0] = 'END' then
+      Result := fjEnd else
+    begin
+      Result := fjBegin;
+      VRMLNonFatalError('Font justify "' + FdJustify.Items[0] +
+        '" not supported');
+    end;
+  end;
+end;
+
+class function TNodeFontStyle_2.DefaultSize: Single;
+begin
+  Result := 1;
+end;
+
+class function TNodeFontStyle_2.DefaultSpacing: Single;
+begin
+  Result := 1;
+end;
+
+class function TNodeFontStyle_2.DefaultFamily: TVRMLFontFamily;
+begin
+  Result := ffSerif;
+end;
+
+class function TNodeFontStyle_2.DefaultBold: boolean;
+begin
+  Result := false;
+end;
+
+class function TNodeFontStyle_2.DefaultItalic: boolean;
+begin
+  Result := false;
+end;
+
+class function TNodeFontStyle_2.DefaultJustify: TVRMLFontJustify;
+begin
+  Result := fjBegin;
+end;
+
+class function TNodeFontStyle_2.DefaultTTF_Font: PTrueTypeFont;
+begin
+  Result := TTF_Font_Results[DefaultFamily, DefaultBold, DefaultItalic];
 end;
 
 class function TNodeGeoCoordinate.ClassNodeTypeName: string;
@@ -7828,6 +8009,14 @@ begin
   Fields.Add(TSFNode.Create(Self, 'fontStyle')); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
+end;
+
+function TNodeText.FontStyle: TNodeFontStyle_2;
+begin
+  if (FdFontStyle.Value <> nil) and
+     (FdFontStyle.Value is TNodeFontStyle_2) then
+    Result := TNodeFontStyle_2(FdFontStyle.Value) else
+    Result := nil;
 end;
 
 class function TNodeTextureCoordinate.ClassNodeTypeName: string;
