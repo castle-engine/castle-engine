@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -26,17 +26,20 @@ type
     imUseSpecifiedPerFace, imUseSpecifiedPerFaceIndexed);
 
   TGeneralIndexedRenderer = class
-    {W kazdej podklasie musisz zdefiniowac metode Render_Face w ktorej
-       narysujesz face uzywajac Render_Vertex do renderowania vertexow.
-       Zapewne zechcesz zdefiniowac tez Render_Init i Render_Fini
-       (chociaz nie musisz; jesli jednak je zdefiniujesz, pamietaj zawsze
-       uzywac inherited).
-       - W podklasach nie musisz sie martwic o wspolrzedne tekstury -
-         zajmiemy sie nimi calkowicie w tej klasie.
-       - W podklasach musisz generowac normale (wychodzace z CCW
-         o ile Render_NormalsFromCCW, wpp. wychodzace z CW) tylko jesli
-	 Render_Normals = inGenerate,
-	 wpp. nie mozesz wywolywac glNormal - wszystkim zajmujemy sie w tej klasie.
+    { W kazdej podklasie musisz zdefiniowac metode Render_Face w ktorej
+      narysujesz face uzywajac Render_Vertex do renderowania vertexow.
+      Zapewne zechcesz zdefiniowac tez Render_Init i Render_Fini
+      (chociaz nie musisz; jesli jednak je zdefiniujesz, pamietaj zawsze
+      uzywac inherited).
+
+      - W podklasach nie musisz sie martwic o wspolrzedne tekstury -
+        zajmiemy sie nimi calkowicie w tej klasie.
+
+      - W podklasach musisz generowac normale (wychodzace z CCW
+        o ile Render_NormalsFromCCW, wpp. wychodzace z CW) tylko jesli
+        Render_Normals = inGenerate,
+        wpp. nie mozesz wywolywac glNormal - wszystkim zajmujemy sie w tej klasie.
+
        - Zajmujemy sie tez w tej klasie wszystkim zwiazanym z materialami -
          nie musisz sie o nie martwic w podklasach.
      Implementujac Render_Face/Init/Fini mozesz uzywac pol State i Node
@@ -60,7 +63,8 @@ type
     procedure Render_Fini; virtual;
 
     procedure Render;
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeGeneralIndexed_1);
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -72,7 +76,7 @@ type
     Render_NormalsFromCCW: boolean;
   end;
 
-  TIndexedFaceSetRenderer = class(TIndexedFaces_Or_TrianglesRenderer)
+  TIndexedFaceSet_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
   private
     Render_GeneratedNormals: TDynVector3SingleArray;
     procedure Render_Init; override;
@@ -81,39 +85,27 @@ type
     procedure Render_Face(startIndex, endIndex: integer); override;
   end;
 
-  TIndexedTriangleMeshRenderer = class(TIndexedFaces_Or_TrianglesRenderer)
+  TIndexedTriangleMesh_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
   private
     procedure Render_Face(startIndex, endIndex: integer); override;
   end;
 
-  TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
+  TIndexedLineSet_1Renderer = class(TGeneralIndexedRenderer)
   private
     procedure Render_Init; override;
     procedure Render_Fini; override;
     procedure Render_Face(startIndex, endIndex: integer); override;
   end;
 
-{ ogolne ---------------------------------------------------------------------- }
-
-function CreateIndexedRenderer(ARenderer: TVRMLOpenGLRenderer): TGeneralIndexedRenderer;
-begin
- if ARenderer.Render_Node is TNodeIndexedTriangleMesh_1 then
-  result := TIndexedTriangleMeshRenderer.Create(ARenderer) else
- if ARenderer.Render_Node is TNodeIndexedFaceSet_1 then
-  result := TIndexedFaceSetRenderer.Create(ARenderer) else
- if ARenderer.Render_Node is TNodeIndexedLineSet_1 then
-  result := TIndexedLineSetRenderer.Create(ARenderer) else
-  raise EInternalError.Create('CreateIndexedRenderer: Node not indexed');
-end;
-
 { TGeneralIndexedRenderer ----------------------------------------------------- }
 
-constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeGeneralIndexed_1);
 begin
- inherited Create;
- Renderer := ARenderer;
- State := Renderer.Render_State;
- Node := TNodeGeneralIndexed_1(Renderer.Render_Node);
+  inherited Create;
+  Renderer := ARenderer;
+  State := Renderer.Render_State;
+  Node := ANode;
 end;
 
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
@@ -133,9 +125,9 @@ begin
  end;
 
  case Render_Materials of
-  imUseSpecifiedPerVertex: 
+  imUseSpecifiedPerVertex:
     Renderer.Render_BindMaterial_1(VertexNum);
-  imUseSpecifiedPerVertexIndexed: 
+  imUseSpecifiedPerVertexIndexed:
     Renderer.Render_BindMaterial_1(Node.FdMaterialIndex.Items.Items[indexNum]);
  end;
 
@@ -452,16 +444,16 @@ begin
  inherited;
 end;
 
-{ TIndexedFaceSetRenderer ---------------------------------------------------- }
+{ TIndexedFaceSet_1Renderer -------------------------------------------------- }
 
-procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
+procedure TIndexedFaceSet_1Renderer.Render_Vertex(indexNum: integer);
 begin
  if Render_Normals = inGenerate then
   glNormalv(Render_GeneratedNormals.Items[indexNum]);
  inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Init;
+procedure TIndexedFaceSet_1Renderer.Render_Init;
 begin
  inherited;
  if Render_Normals = inGenerate then
@@ -479,7 +471,7 @@ begin
  end;
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Fini;
+procedure TIndexedFaceSet_1Renderer.Render_Fini;
 begin
  FreeAndNil(Render_GeneratedNormals);
  inherited;
@@ -487,12 +479,12 @@ end;
 
 procedure Render_Triangulated(const TriIndices: TVector3Longint; Data: Pointer);
 begin
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[0]);
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[1]);
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[2]);
+ TIndexedFaceSet_1Renderer(Data).Render_Vertex(TriIndices[0]);
+ TIndexedFaceSet_1Renderer(Data).Render_Vertex(TriIndices[1]);
+ TIndexedFaceSet_1Renderer(Data).Render_Vertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedFaceSet_1Renderer.Render_Face(startIndex, endIndex: integer);
 begin
  if State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_UNKNOWN then
  begin
@@ -543,9 +535,9 @@ begin
  end;
 end;
 
-{ TIndexedTriangleMeshRenderer ------------------------------------------------ }
+{ TIndexedTriangleMesh_1Renderer --------------------------------------------- }
 
-procedure TIndexedTriangleMeshRenderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedTriangleMesh_1Renderer.Render_Face(startIndex, endIndex: integer);
 
   procedure triangle(v1, v2, v3: integer);
   var Tri: TTriangle3Single;
@@ -589,9 +581,9 @@ begin
  glEnd;
 end;
 
-{ TIndexedLineSetRenderer ------------------------------------------------------- }
+{ TIndexedLineSet_1Renderer -------------------------------------------------- }
 
-procedure TIndexedLineSetRenderer.Render_Init;
+procedure TIndexedLineSet_1Renderer.Render_Init;
 begin
  {VRML 1.0 specification states that lines normals aren't generated - instead,
   lines are drawn unlit when there are no normals specified.}
@@ -603,14 +595,14 @@ begin
  end;
 end;
 
-procedure TIndexedLineSetRenderer.Render_Fini;
+procedure TIndexedLineSet_1Renderer.Render_Fini;
 begin
  if Render_Normals = inGenerate then
   glPopAttrib;
  inherited;
 end;
 
-procedure TIndexedLineSetRenderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedLineSet_1Renderer.Render_Face(startIndex, endIndex: integer);
 var i: integer;
 begin
  glBegin(GL_LINE_STRIP);
@@ -619,4 +611,3 @@ begin
 end;
 
 { eof --------------------------------------------------------------------------- }
-

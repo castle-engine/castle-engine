@@ -260,7 +260,7 @@ unit VRMLOpenGLRenderer;
      that triangulate method returns for each node),
      but it will always be non-optimal anyway --- see point 1) above.
 }
-{$define USE_VRML_NODES_TRIANGULATION}
+{ $define USE_VRML_NODES_TRIANGULATION}
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
   {$ifdef RELEASE}
@@ -1904,8 +1904,14 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
   {$I vrmlopenglrenderer_render_specificnodes.inc}
 
+  procedure RenderIndexed(IndexedRenderer: TGeneralIndexedRenderer);
+  begin
+    try
+      IndexedRenderer.Render;
+    finally IndexedRenderer.Free end;
+  end;
+
 var
-  IndexedRenderer: TGeneralIndexedRenderer;
   TextureReferencesIndex: Integer;
   TextureNode: TNodeGeneralTexture;
 begin
@@ -1999,13 +2005,12 @@ begin
       RenderSphere_1(TNodeSphere_1(Node)) else
     if Node is TNodeSphere_2 then
       RenderSphere_2(TNodeSphere_2(Node)) else
-    if Node is TNodeGeneralIndexed_1 then
-    begin
-      IndexedRenderer := CreateIndexedRenderer(Self);
-      try
-        IndexedRenderer.Render;
-      finally IndexedRenderer.Free end;
-    end else
+    if Node is TNodeIndexedTriangleMesh_1 then
+      RenderIndexed(TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node))) else
+    if Node is TNodeIndexedFaceSet_1 then
+      RenderIndexed(TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node))) else
+    if Node is TNodeIndexedLineSet_1 then
+      RenderIndexed(TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node))) else
       raise EVRMLOpenGLRenderError.Create(
         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
 
