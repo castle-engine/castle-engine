@@ -31,6 +31,8 @@ WWW:
 - KambiTriangulation should also be fixed
   just like DirectionalLight.
 
+- Viewpoint: HomeCameraUp can be different than starting CameraUp for Viewpoint
+
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
   - 4.2.4 Prototypes
@@ -261,14 +263,13 @@ VRML 97 nodes done (parsed and handled correctly):
     fully, so Text node is still very useful)
 
 - Viewpoint
-  (jump, fieldOfView are currently ignored)
   (view3dscene displays also nice menu allowing you to jump
-  to any efined viewpoint, displaying viewpoints descriptions)
+  to any efined viewpoint, displaying viewpoints descriptions;
+  extensive tests of various viewpoint properties, includind fieldOfView,
+  are inside kambi_vrml_examples/vrml_2/viewpoint_*.wrl files)
 
 Nearest plans:
 Indexed things and Coordinate3 and friends
-Viewport.fieldOfView
-  HomeCameraUp can be different than starting CameraUp for Viewpoint
 make URLs actually work
 check NIST tests
 check blender exported files

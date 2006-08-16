@@ -3562,6 +3562,31 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
 
     class function CameraKind: TVRMLCameraKind; override;
+
+    { This calculates proper angle of view for typical rectangular
+      display, based on given fieldOfView field value.
+      Result is in radians (just like fieldOfView VRML field).
+
+      If you want to calculate horizontal angle of view then
+      pass as ThisToOtherSizeRatio your window's width / height.
+      If you want to calculate vertical angle of view then
+      pass as ThisToOtherSizeRatio your window's height / width.
+      For this method it doesn't really matter which is horizontal
+      and which is vertical, both are treated the same.
+
+      This works following VRML spec. So the angle of view for
+      smaller window size is set to fieldOfViee. The other angle
+      can always be calculated by AdjustViewAngleRadToAspectRatio
+      (this implements the same equation that is mentioned in VRML spec).
+      The larger angle cannot be larger than Pi, and may force the
+      smaller angle to be smaller than fieldOfView. }
+    function AngleOfView(const ThisToOtherSizeRatio: Single): Single;
+
+    { This is like AngleOfView, but it allows you to specify
+      FieldOfView as a parameter. }
+    class function ViewpointAngleOfView(
+      FieldOfView: Single;
+      const ThisToOtherSizeRatio: Single): Single;
   end;
 
   TNodeVisibilitySensor = class(TVRMLNode)
@@ -3897,7 +3922,7 @@ uses
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
-  KambiStringUtils, KambiFilesUtils;
+  KambiStringUtils, KambiFilesUtils, RaysWindow;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -8217,6 +8242,39 @@ end;
 class function TNodeViewpoint.CameraKind: TVRMLCameraKind;
 begin
   Result := ckPerspective;
+end;
+
+function TNodeViewpoint.AngleOfView(
+  const ThisToOtherSizeRatio: Single): Single;
+begin
+  Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
+end;
+
+class function TNodeViewpoint.ViewpointAngleOfView(
+  FieldOfView: Single;
+  const ThisToOtherSizeRatio: Single): Single;
+var
+  OtherAngle: Single;
+begin
+  Clamp(FieldOfView, 0.01, Pi - 0.01);
+
+  if ThisToOtherSizeRatio < 1 then
+  begin
+    { So the resulting angle is the smaller one. }
+    Result := FieldOfView;
+    OtherAngle :=
+      AdjustViewAngleRadToAspectRatio(Result, 1 / ThisToOtherSizeRatio);
+    if OtherAngle > Pi then
+      Result := AdjustViewAngleRadToAspectRatio(Pi, ThisToOtherSizeRatio);
+  end else
+  begin
+    { So the resulting angle is the larger one. }
+    OtherAngle := FieldOfView;
+    Result :=
+      AdjustViewAngleRadToAspectRatio(OtherAngle, ThisToOtherSizeRatio);
+    if Result > Pi then
+      Result := Pi;
+  end;
 end;
 
 class function TNodeVisibilitySensor.ClassNodeTypeName: string;
