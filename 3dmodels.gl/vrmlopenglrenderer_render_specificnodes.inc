@@ -332,25 +332,87 @@ end;
 
 { PointSet --------------------------------------------------------------------- }
 
-procedure RenderPointSet(Node: TNodePointSet_1);
+procedure RenderPointSet_1(Node: TNodePointSet_1);
 var i, startIndex, numPoints: integer;
 begin
- { TODO: use here Last :
-   Normal, NormalBinding, TextureCoordinate2, Texture2}
+  { TODO: handle various possible material binding here }
+  Render_BindMaterial_1(0);
 
- Render_BindMaterial_1(0);{TODO}
+  { TODO: use here Last :
+    Normal, NormalBinding, TextureCoordinate2, Texture2.
+    For now light is already disabled by Render_Material
+    from Render_BindMaterial_1 above. }
 
- {TODO: for now, we always draw points unlit}
- glPushAttrib(GL_LIGHTING_BIT);
- glDisable(GL_LIGHTING);
+  { Render_BindMaterial_1 set unlit color to emissiveColor,
+    so we correct it now. }
+  with Render_State.LastNodes.Material do
+    glColorv(Vector4f(Attributes.ColorModulated(
+      DiffuseColor3Single(0)), Opacity(0)));
 
- Node.CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
- glBegin(GL_POINTS);
- for i := startIndex to startIndex+numPoints-1 do
-  DoGLVertex(State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
- glEnd;
+  Node.CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
+  glBegin(GL_POINTS);
+  for i := startIndex to startIndex+numPoints-1 do
+    DoGLVertex(State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
+  glEnd;
+end;
 
- glPopAttrib;
+procedure RenderPointSet_2(Node: TNodePointSet_2);
+
+  procedure SetColor(const Color: TVector3Single);
+  begin
+    glColorv(Attributes.ColorModulated(Color));
+  end;
+
+var
+  Coord: TMFVec3f;
+  Color: TMFColor;
+  Material: TNodeMaterial_2;
+  I: Integer;
+begin
+  { In VRML 2.0 PointSet is always unlit and not textured.
+    Light is already disabled by Render_Material. }
+
+  if (Node.FdCoord.Value <> nil) and
+     (Node.FdCoord.Value is TNodeCoordinate) then
+  begin
+    Coord := TNodeCoordinate(Node.FdCoord.Value).FdPoint;
+
+    { PointSet color may come from various places:
+      1. Color node, for each point, if it's not NULL
+      2. Material.emissiveColor, for every point
+      3. If no material, we use default White3Single, for every point
+         (following general spec remark at Material node that
+         Material = NULL makes unlit white color) }
+    Color := nil;
+    if (Node.FdColor.Value <> nil) and
+       (Node.FdColor.Value is TNodeColor) then
+    begin
+      Color := TNodeColor(Node.FdColor.Value).FdColor;
+      if Color.Count < Coord.Count then
+      begin
+        VRMLNonFatalError('Not enough colors specified for PointSet');
+        Color := nil;
+      end;
+    end;
+
+    if Color = nil then
+    begin
+      Material := Render_State.ParentShape.Material;
+      if Material <> nil then
+        SetColor(Material.FdEmissiveColor.Value) else
+        SetColor(White3Single);
+    end;
+
+    glBegin(GL_POINTS);
+    try
+      for I := 0 to Coord.Count - 1 do
+      begin
+        if Color <> nil then
+          SetColor(Color.Items.Items[I]);
+        DoGLVertex(Coord.Items.Items[i]);
+      end;
+    finally glEnd end;
+  end;
 end;
 
 { Sphere ---------------------------------------------------------------------- }

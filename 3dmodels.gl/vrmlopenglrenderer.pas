@@ -2000,7 +2000,9 @@ begin
     if Node is TNodeCylinder_2 then
       RenderCylinder_2(TNodeCylinder_2(Node)) else
     if Node is TNodePointSet_1 then
-      RenderPointSet(TNodePointSet_1(Node)) else
+      RenderPointSet_1(TNodePointSet_1(Node)) else
+    if Node is TNodePointSet_2 then
+      RenderPointSet_2(TNodePointSet_2(Node)) else
     if Node is TNodeSphere_1 then
       RenderSphere_1(TNodeSphere_1(Node)) else
     if Node is TNodeSphere_2 then

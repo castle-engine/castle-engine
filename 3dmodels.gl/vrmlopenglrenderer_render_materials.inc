@@ -18,6 +18,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{ Judge whether the node can be lit, looking only at Node (not at State,
+  Material etc.). }
+function NodeLit(Node: TNodeGeneralShape): boolean;
+begin
+  Result := not (
+    (Node is TNodePointSet_1) or
+    (Node is TNodePointSet_2));
+end;
+
 procedure TVRMLOpenGLRenderer.Render_MaterialsBegin;
 begin
   Render_Material_ForcedLightDisable := false;
@@ -128,7 +137,7 @@ begin
         and we should treat EmissiveColor as precalculated color.
         So we can turn lighting off to improve speed (in fact, we are supposed
         to do that). }
-      not OnlyEmissiveMaterial,
+      (not OnlyEmissiveMaterial) and NodeLit(Render_Node),
       AmbientColor3Single(MatNum),
       DiffuseColor3Single(MatNum),
       SpecularColor3Single(MatNum),
@@ -160,7 +169,7 @@ begin
   if Material <> nil then
   begin
     Render_Material(
-      true,
+      NodeLit(Render_Node),
       VectorScale(Material.FdDiffuseColor.Value,
         Material.FdAmbientIntensity.Value),
       Material.FdDiffuseColor.Value,
