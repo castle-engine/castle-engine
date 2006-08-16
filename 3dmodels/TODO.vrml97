@@ -217,7 +217,8 @@ VRML 97 nodes done (parsed and handled correctly):
   will not look exactly VRML 2.0-spec complaint)
 
 - Background, Fog, NavigationInfo, WorldInfo
-  (were already done as VRML 1.0 extension)
+  (were already done as VRML 1.0 extension; WorldInfo.title is displayed
+  by view3dscene on window's caption)
 
 - Switch, Group
 - Transform
@@ -260,12 +261,13 @@ VRML 97 nodes done (parsed and handled correctly):
     fully, so Text node is still very useful)
 
 - Viewpoint
-  (jump, fieldOfView, description are currently ignored and
-  no menu with avail viewpoints is displayed)
+  (jump, fieldOfView are currently ignored)
+  (view3dscene displays also nice menu allowing you to jump
+  to any efined viewpoint, displaying viewpoints descriptions)
 
 Nearest plans:
 Indexed things and Coordinate3 and friends
-Viewport.fieldOfView and list of viewpoints in menu,
+Viewport.fieldOfView
   HomeCameraUp can be different than starting CameraUp for Viewpoint
 make URLs actually work
 check NIST tests
