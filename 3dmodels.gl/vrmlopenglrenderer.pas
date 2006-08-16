@@ -232,17 +232,41 @@ unit VRMLOpenGLRenderer;
   - test Attributes.PointSize
 }
 
-{ define USE_VRML_NODES_TRIANGULATION only for testing purposes.
-  We will use then very simple rendering method using
-  TNodeGeneralShape.Triangulate method. This will be SLOW and many features
-  WILL NOT be available - the ONLY reason why you (I) would need this is to
-  test TNodeGeneralShape.Triangulate method. }
-{ $define USE_VRML_NODES_TRIANGULATION}
+{ When you define USE_VRML_NODES_TRIANGULATION, an alternative
+  rendering method will be used. Each node will be triangulated
+  using TNodeGeneralShape.LocalTriangulate and then this triangle
+  will be passed to OpenGL.
+
+  This is a proof-of-concept implementation that shows that
+  using TNodeGeneralShape.LocalTriangulate we can render all
+  nodes in the same manner --- no need to write separate rendering
+  routines for various TNodeGeneralShape descendants.
+  All you have to do is to implement triangulating.
+
+  This is mainly for testing purposes, it allows you to test
+  LocalTriangulate and allows you to render nodes that don't have
+  specialized rendering procedure done yet. It has a couple of
+  practical disadvantages:
+  1) It's slower, and always will be, than dedicated rendering
+     procedures for each node.
+  2) Things that are not expressed as triangles
+     (IndexedLineSet, PointSet) will not be rendered at all.
+  3) It lacks some features, because the triangulating routines
+     do not return enough information. For example, textures
+     are not applied (texture coords are not generated),
+     flat shading is always used (because each triangle has
+     always the same normal vector).
+     This disadvantage could be removed (by extending information
+     that triangulate method returns for each node),
+     but it will always be non-optimal anyway --- see point 1) above.
+}
+{$define USE_VRML_NODES_TRIANGULATION}
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
   {$ifdef RELEASE}
     {$fatal Undefine USE_VRML_NODES_TRIANGULATION
-      for VRMLOpenGLRenderer - you don't want to use this in RELEASE version.}
+      for VRMLOpenGLRenderer ---
+      you don't want to use this in RELEASE version. }
   {$endif}
 {$endif}
 
@@ -1831,36 +1855,17 @@ end;
 procedure TVRMLOpenGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
   State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
 begin
- with State.LastNodes.Material do
- begin
-  glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4f(ColorModulated(AmbientColor3Single(MatNum)), Opacity(MatNum)));
-  glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4f(ColorModulated(DiffuseColor3Single(MatNum)), Opacity(MatNum)));
-  glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4f(ColorModulated(SpecularColor3Single(MatNum)), Opacity(MatNum)));
-  glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4f(ColorModulated(EmissiveColor3Single(MatNum)), Opacity(MatNum)));
-  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp(MatNum));
-  glColorv(ColorModulated(DiffuseColor3Single(MatNum)));
- end;
+  Render_BindMaterial_1(MatNum);
 
- glNormalv(TriangleNormal(Tri));
+  glNormalv(TriangleNormal(Tri));
 
- glBegin(GL_TRIANGLES);
-  glVertexv(Tri[0]);
-  glVertexv(Tri[1]);
-  glVertexv(Tri[2]);
- glEnd;
+  glBegin(GL_TRIANGLES);
+    glVertexv(Tri[0]);
+    glVertexv(Tri[1]);
+    glVertexv(Tri[2]);
+  glEnd;
 end;
-
-procedure TVRMLOpenGLRenderer.Render(Node: TNodeGeneralShape; State: TVRMLGraphTraverseState);
-begin
- { alternatywny prosty rendering przez Triangulate, only to test
-   Triangulate. We should use here OverTriagulate = true (but it's not
-   impl yet because I don't need it anywhere (well, I would use it here
-   but this is just some testing code)) }
- { Self. below required due to FPC 1.0.10 bug }
- Node.Triangulate(State, false, Self.DrawTriangle);
-end;
-
-{$else}
+{$endif USE_VRML_NODES_TRIANGULATION}
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
   Node: TNodeGeneralShape;
@@ -1934,6 +1939,10 @@ begin
    materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
   }
   TextureNode := State.Texture;
+  {$ifdef USE_VRML_NODES_TRIANGULATION}
+  { We don't generate texture coords, so disable textures. }
+  TextureNode := nil;
+  {$endif}
   if (TextureNode <> nil) and
      TextureNode.IsTextureImage and
      Attributes.EnableTextures then
@@ -1958,6 +1967,16 @@ begin
 
   Render_MaterialsBegin;
   try
+    {$ifdef USE_VRML_NODES_TRIANGULATION}
+
+    { alternatywny prosty rendering przez LocalTriangulate, only to test
+      LocalTriangulate. We should use here OverTriagulate = true (but it's not
+      impl yet because I don't need it anywhere (well, I would use it here
+      but this is just some testing code)) }
+    Node.LocalTriangulate(State, false, DrawTriangle);
+
+    {$else}
+
     if Node is TNodeAsciiText_1 then
       RenderAsciiText(TNodeAsciiText_1(Node)) else
     if Node is TNodeText then
@@ -1989,6 +2008,9 @@ begin
     end else
       raise EVRMLOpenGLRenderError.Create(
         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
+
+    {$endif USE_VRML_NODES_TRIANGULATION}
+
   finally Render_MaterialsEnd end;
 end;
 
@@ -2010,6 +2032,5 @@ begin
     RenderShapeStateEnd(Node, State);
   end;
 end;
-{$endif}
 
 end.

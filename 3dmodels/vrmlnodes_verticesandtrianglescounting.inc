@@ -206,37 +206,87 @@ end;
 
 function TNodeGeneralIndexed_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
- result := State.LastNodes.Coordinate3.FdPoint.Count;
+  Result := State.LastNodes.Coordinate3.FdPoint.Count;
+end;
+
+function IndexedPolygons_TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  CoordIndex: TMFLong): Cardinal;
+var
+  startIndex, endIndex: integer;
+begin
+  startIndex := 0;
+  result := 0;
+  while startIndex < CoordIndex.Count do
+  begin
+    endIndex := startIndex;
+    while (endIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[endIndex] <> -1) do
+      Inc(endIndex);
+
+    result += Cardinal(max(endIndex-startIndex - 2, 0));
+    startIndex := endIndex + 1;
+  end;
 end;
 
 function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var startIndex, endIndex: integer;
 begin
- startIndex := 0;
- result := 0;
- while startIndex < FdCoordIndex.Count do
- begin
-  endIndex := startIndex;
-  while (endIndex < FdCoordIndex.Count) and
-        (FdCoordIndex.Items.Items[endIndex] <> -1) do
-   Inc(endIndex);
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+    FdCoordIndex);
+end;
 
-  result+= Cardinal(max(endIndex-startIndex-2, 0));
-  startIndex := endIndex+1;
- end;
+function TNodeIndexedFaceSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+    FdCoordIndex);
+end;
+
+function TNodeIndexedFaceSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+    Result := 0;
 end;
 
 function TNodeIndexedLineSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin result := 0; end;
+begin
+  result := 0;
+end;
+
+function TNodeIndexedLineSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  result := 0;
+end;
+
+function TNodeIndexedLineSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+    Result := 0;
+end;
 
 function TNodePointSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin result := 0; end;
+begin
+  result := 0;
+end;
+
+function TNodePointSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  result := 0;
+end;
 
 function TNodePointSet_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 var dummy, numPoints: integer;
 begin
  CalculateRange(State.LastNodes.Coordinate3, dummy, numPoints);
  result := numPoints;
+end;
+
+function TNodePointSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+    Result := 0;
 end;
 
 function Sphere_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;

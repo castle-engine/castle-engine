@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -228,90 +228,169 @@ end;
 
 { TODO: TNodeSphere, Cylinder, Cone.BoundingBox moze dac wiekszy box niz trzeba. }
 
-{ TNodeGeneralIndexed -------------------------------------------------------- }
+{ Indexed nodes -------------------------------------------------------- }
 
 type
   TGI_BBox_Calculator = class
   private
-    LastCoordinate3: TNodeCoordinate3;
-    CoordIndex: PArray_Longint;
+    Coord: TMFVec3f;
+    CoordIndex: TMFLong;
     function GetVertexFromIndex(index: integer): TVector3Single;
     function GetIndex(indexNum: integer): integer;
   end;
 
 function TGI_BBox_Calculator.GetVertexFromIndex(index: integer): TVector3Single;
 begin
- {na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
-  pytalo o indeksy ujemne.}
- if index >= LastCoordinate3.FdPoint.Count then
-  raise EVRMLError.CreateFmt('Wrong vertex index in Indexed Node '+
-    '(not enouch points in Coordinate3 defined : index is %d, we have only '+
-    '%d)', [index, LastCoordinate3.FdPoint.Count]);
- result := LastCoordinate3.FdPoint.Items.Items[index];
+  { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
+    pytalo o indeksy ujemne. }
+  if Index >= Coord.Count then
+    raise EVRMLError.CreateFmt('Wrong vertex index in indexed node ' +
+      '(not enouch points in Coordinate node defined: ' +
+      'index is %d, we have only %d vertices)',
+      [Index, Coord.Count]);
+  Result := Coord.Items.Items[Index];
 end;
 
-function TGI_BBox_Calculator.GetIndex(indexNum: integer): integer;
+function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;
 begin
- {nie musimy sprawdzac czy indexNum jest dobry -
-   CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
-   0..VertIndices.Count-1 }
- result := CoordIndex^[indexNum];
+  { nie musimy sprawdzac czy indexNum jest dobry -
+    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
+    0..VertIndices.Count-1 }
+  Result := CoordIndex.Items.Items[IndexNum];
 end;
 
-function TNodeGeneralIndexed_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var Calculator: TGI_BBox_Calculator;
+function Indexed_BoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+var
+  Calculator: TGI_BBox_Calculator;
 begin
- Calculator := TGI_BBox_Calculator.Create;
- try
-  Calculator.LastCoordinate3 := State.LastNodes.Coordinate3;
-  Calculator.CoordIndex := FdCoordIndex.Items.ItemsArray;
-  result := CalculateBoundingBoxFromIndices(
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
-    FdCoordIndex.Count,
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
-    State.CurrMatrix);
- finally Calculator.Free end;
+  Calculator := TGI_BBox_Calculator.Create;
+  try
+    Calculator.Coord := Coord;
+    Calculator.CoordIndex := CoordIndex;
+    Result := CalculateBoundingBoxFromIndices(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
+      CoordIndex.Count,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
+      State.CurrMatrix);
+  finally Calculator.Free end;
 end;
 
-function TNodeGeneralIndexed_1.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var Calculator: TGI_BBox_Calculator;
+function TNodeGeneralIndexed_1.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
 begin
- Calculator := TGI_BBox_Calculator.Create;
- try
-  Calculator.LastCoordinate3 := State.LastNodes.Coordinate3;
-  Calculator.CoordIndex := FdCoordIndex.Items.ItemsArray;
-  result := CalculateBoundingBoxFromIndices(
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
-    FdCoordIndex.Count,
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
- finally Calculator.Free end;
+  Result := Indexed_BoundingBox(State,
+    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
+end;
+
+function TNodeIndexedFaceSet_2.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := Indexed_BoundingBox(State,
+      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeIndexedLineSet_2.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := Indexed_BoundingBox(State,
+      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex) else
+    Result := EmptyBox3d;
+end;
+
+function Indexed_LocalBoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+var
+  Calculator: TGI_BBox_Calculator;
+begin
+  Calculator := TGI_BBox_Calculator.Create;
+  try
+    Calculator.Coord := Coord;
+    Calculator.CoordIndex := CoordIndex;
+    Result := CalculateBoundingBoxFromIndices(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
+      CoordIndex.Count,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
+  finally Calculator.Free end;
+end;
+
+function TNodeGeneralIndexed_1.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := Indexed_LocalBoundingBox(State,
+    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
+end;
+
+function TNodeIndexedFaceSet_2.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := Indexed_BoundingBox(State,
+      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeIndexedLineSet_2.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    Result := Indexed_BoundingBox(State,
+      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex) else
+    Result := EmptyBox3d;
 end;
 
 { TNodePointSet ------------------------------------------------------------- }
 
 type
   TPS_BBox_Calculator = class
-    Verts: TMFVec3f;
+    Coord: TMFVec3f;
     indexOffset: integer;
     PMatrix: PMatrix4Single;
     function GetVertex(i: integer): TVector3Single;
   end;
+
   function TPS_BBox_Calculator.GetVertex(i: integer): TVector3Single;
-  begin result := MultMatrixPoint(PMatrix^, Verts.Items.Items[i+indexOffset]) end;
+  begin
+    Result := MultMatrixPoint(PMatrix^, Coord.Items.Items[i+indexOffset])
+  end;
+
+function PointSet_BoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f; StartIndex, NumPoints: Integer): TBox3d;
+var
+  Calculator: TPS_BBox_Calculator;
+begin
+  Calculator := TPS_BBox_Calculator.Create;
+  try
+    Calculator.Coord := Coord;
+    Calculator.IndexOffset := StartIndex;
+    Calculator.PMatrix := @State.CurrMatrix;
+    Result := CalculateBoundingBox(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertex, NumPoints);
+  finally Calculator.Free end;
+end;
 
 function TNodePointSet_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var startIndex, numPoints: integer;
-    Calculator: TPS_BBox_Calculator;
+var
+  StartIndex, NumPoints: integer;
 begin
- CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
- Calculator := TPS_BBox_Calculator.Create;
- try
-  Calculator.Verts := State.LastNodes.Coordinate3.FdPoint;
-  Calculator.indexOffset := startIndex;
-  Calculator.PMatrix := @State.CurrMatrix;
-  result := CalculateBoundingBox(
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertex, numPoints);
- finally Calculator.Free end;
+  CalculateRange(State.LastNodes.Coordinate3, StartIndex, NumPoints);
+  Result := PointSet_BoundingBox(State,
+    State.LastNodes.Coordinate3.FdPoint, StartIndex, NumPoints);
+end;
+
+function TNodePointSet_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+var
+  Coord: TMFVec3f;
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+  begin
+    Coord := TNodeCoordinate(FdCoord.Value).FdPoint;
+    Result := PointSet_BoundingBox(State, Coord, 0, Coord.Count);
+  end else
+    Result := EmptyBox3d;
 end;
 
 { eof ------------------------------------------------------------------------- }

@@ -4,12 +4,17 @@ WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
   convert README to html and put on page (as well as in the archive)
 - "sources" page rename and rearrange to "Kambi 3D game VRML engine"
-- add page "VRML implementation status",
-  move there bottom on view3dscene docs
+- fix WWW pages for VRML 1 support
+    grep -n -i -e "vrml 1.0" *.php
+  Add links to vrml_implementation_status and kambi_vrml_test_suite
+  (from index, from rayhunter and view3dscene, from kambi_vrml_extensions,
+  and between them)
+
+- test level in VRML 2.0 for castle
 
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
-- kambi_vrml_examples: do there VRML 2.0 counterpart, test
+- kambi_vrml_examples: do VRML 2.0 counterpart for all sensible things, test
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
@@ -196,92 +201,15 @@ The following node types are not valid as children nodes:
     * TextureTransform
     * TrimmedSurface
 
-- PointLight and SpotLight illuminate all objects in the world that fall within their volume of lighting influence regardless of location within the transformation hierarchy. PointLight defines this volume of influence as a sphere centred at the light (defined by a radius). SpotLight defines the volume of influence as a solid angle defined by a radius and a cutoff angle. DirectionalLight nodes illuminate only the objects descended from the light's parent grouping node, including any descendent children of the parent grouping nodes.
+-
 - 4.6.7 Sensor nodes
   ...
   and further 4.x, with the exception of 4.13, 4.14
 
 ----------------------------------------
-VRML 97 nodes done (parsed and handled correctly):
-- DirectionalLight
-  (almost: DirectionalLight nodes illuminate only the objects descended from the light's parent grouping node, including any descendent children of the parent grouping nodes.
-  This is almost what I do (that's VRML 1.0 way), but in my version DirectionalLight affects only subsequent nodes, not previous in it's parent...
-  )
-
-- PointLight
-  (almost: see above "PointLight and SpotLight illuminate all objects...").
-
-- SpotLight
-  (almost:
-  see above "PointLight and SpotLight illuminate all objects...";
-  also note that beamWidth idea cannot be translated to a standard
-  OpenGL spotlight, so if you set beamWidth < cutOffAngle then the light
-  will not look exactly VRML 2.0-spec complaint)
-
-- Background, Fog, NavigationInfo, WorldInfo
-  (were already done as VRML 1.0 extension; WorldInfo.title is displayed
-  by view3dscene on window's caption)
-
-- Switch, Group
-- Transform
-- Sphere, Box
-- Material
-- Cone, Cylinder
-- PixelTexture
-- TextureTransform
-- ImageTexture
-- Inline, InlineLoadControl
-
-- LOD
-  (but we almost render highest-precision node, ignoring
-  distance of node to the viewer;
-  like with VRML 1.0 LOD node)
-
-- Anchor
-  (but clicking on anchor doesn't do anything;
-  it works just like Group node for now;
-  like with VRML 1.0 WWWAnchor node)
-
-- Text, FontStyle
-  Without:
-
-    FontStyle properties:
-    6.22.3 Direction and justification
-    (horizontal, leftToRight, topToBottom values are ignored and
-    things are always handled like they had default values
-    (TRUE, TRUE, TRUE) )
-    6.22.4 Language
-    (language)
-
-    (family, style handled;  will be)
-
-    Text properties:
-    length, maxEntent are ignored (and handled like they had
-    default values, which means that the text is not stretched)
-
-    (the rest (size, spacing, justify, family, style) is handled
-    fully, so Text node is still very useful)
-
-- Viewpoint
-  (view3dscene displays also nice menu allowing you to jump
-  to any efined viewpoint, displaying viewpoints descriptions;
-  extensive tests of various viewpoint properties, includind fieldOfView,
-  are inside kambi_vrml_examples/vrml_2/viewpoint_*.wrl files)
 
 Nearest plans:
 Indexed things and Coordinate3 and friends
 make URLs actually work
 check NIST tests
 check blender exported files
-
-----------------------------------------
-Tests passed:
-- Tested on my test suite kambi_vrml_examples in vrml_2 subdir
-- Passes first 2 examples from VRML 2.0 spec (D.2 and D.3)
-- From [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html]:
-  passes every file (that exists on server &mdash; some are missing) besides:
-    simple/face, line,
-    pointset/points
-    cameras
-    textures/face*, line, repeat5, sfimage*, t2face*
-    recurse.wrl crashes --- should fail nicer

@@ -341,59 +341,109 @@ begin
  end;
 end;
 
-procedure TNodeIndexed_Faces_Or_Triangles_1.LocalTriangulate(
+{ For IndexedTriangleMesh pass TriangleMesh = @true,
+  FacesConvex doesn't matter in this case.
+
+  MaterialBinding should be one of BIND_xxx constants,
+  MaterialIndex may be nil if MaterialBinding is not
+  anything _INDEXED. }
+procedure IndexedPolygons_LocalTriangulate(
+  Self: TNodeGeneralShape;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  NewTriangleProc: TNewTriangleProc);
+  NewTriangleProc: TNewTriangleProc;
+  Coord: TMFVec3f; CoordIndex: TMFLong;
+  TriangleMesh, FacesConvex: boolean;
+  MaterialBinding: Integer;
+  MaterialIndex: TMFLong);
 
   procedure Triangulate_Face(startIndex, endIndex, faceMatNum: integer);
-  var NewTriData: TNewTriData;
+  var
+    NewTriData: TNewTriData;
   begin
-   { roznica miedzy implementacja tego w IndexedFaceSet a IndexedTriangleMesh
-     jest tak subtelna ze zdecydowalem sie zapisac obie implementacje w ponizszym
-     kodzie. }
-   NewTriData.State := State;
-   NewTriData.ShapeNode := Self;
-   NewTriData.MatNum := faceMatNum;
-   NewTriData.Vertices := State.LastNodes.Coordinate3.FdPoint.Items.ItemsArray;
-   newTriData.FaceIndices := PArray_Longint(FdCoordIndex.Items.Pointers[StartIndex]);
-   NewTriData.NewTriangleProc := NewTriangleProc;
+    NewTriData.State := State;
+    NewTriData.ShapeNode := Self;
+    NewTriData.MatNum := faceMatNum;
+    NewTriData.Vertices := Coord.Items.ItemsArray;
+    newTriData.FaceIndices := PArray_Longint(CoordIndex.Items.Pointers[StartIndex]);
+    NewTriData.NewTriangleProc := NewTriangleProc;
 
-   if Self is TNodeIndexedFaceSet_1 then
-   begin
-    if State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_UNKNOWN then
-     TriangulateFace(NewTriData.FaceIndices, EndIndex-StartIndex,
-       NewTriData.Vertices, @NewTriangleOfFaceSet, @NewTriData, 0) else
-     TriangulateConvexFace(EndIndex-StartIndex, @NewTriangleOfFaceSet, @NewTriData, 0);
-   end else
-   if Self is TNodeIndexedTriangleMesh_1 then
-   begin
-    TriangulateTriangleStrip(EndIndex-StartIndex, @NewTriangleOfFaceSet, @NewTriData, 0);
-   end else
-    EInternalError.Create('undefined in TriangulateFace');
+    if not TriangleMesh then
+    begin
+      if FacesConvex then
+        TriangulateConvexFace(EndIndex-StartIndex,
+          @NewTriangleOfFaceSet, @NewTriData, 0) else
+        TriangulateFace(NewTriData.FaceIndices, EndIndex-StartIndex,
+          NewTriData.Vertices, @NewTriangleOfFaceSet, @NewTriData, 0);
+    end else
+    begin
+      TriangulateTriangleStrip(EndIndex-StartIndex,
+        @NewTriangleOfFaceSet, @NewTriData, 0);
+    end;
   end;
 
-var startIndex, endIndex, faceNumber, faceMatNum: integer;
+var
+  startIndex, endIndex, faceNumber, faceMatNum: integer;
 begin
- startIndex := 0;
- faceNumber := 0;
- while startIndex < FdCoordIndex.Count do
- begin
-  endIndex := startIndex;
-  while (endIndex < FdCoordIndex.Count) and
-        (FdCoordIndex.Items.Items[endIndex] <> -1) do
-   Inc(endIndex);
+  startIndex := 0;
+  faceNumber := 0;
+  while startIndex < CoordIndex.Count do
+  begin
+    endIndex := startIndex;
+    while (endIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[endIndex] <> -1) do
+      Inc(endIndex);
 
-  case State.LastNodes.MaterialBinding.FdValue.Value of
-   BIND_DEFAULT, BIND_OVERALL: faceMatNum := 0;
-   BIND_PER_PART, BIND_PER_FACE: faceMatNum := faceNumber;
-   BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED: faceMatNum := FdMaterialIndex.Items.Items[faceNumber];
-   { TODO: we don't support here materials per vertex or per vertex indexed }
-   else faceMatNum := 0;
+    case MaterialBinding of
+      BIND_DEFAULT, BIND_OVERALL: faceMatNum := 0;
+      BIND_PER_PART, BIND_PER_FACE: faceMatNum := faceNumber;
+      BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
+        faceMatNum := MaterialIndex.Items.Items[faceNumber];
+      { TODO: we don't support here materials per vertex or per vertex indexed }
+      else faceMatNum := 0;
+    end;
+    Triangulate_Face(startIndex, endIndex, faceMatNum);
+    Inc(faceNumber);
+    startIndex := endIndex+1;
   end;
-  Triangulate_Face(startIndex, endIndex, faceMatNum);
-  Inc(faceNumber);
-  startIndex := endIndex+1;
- end;
+end;
+
+procedure TNodeIndexedFaceSet_1.LocalTriangulate(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  NewTriangleProc: TNewTriangleProc);
+begin
+  IndexedPolygons_LocalTriangulate(Self,
+    State, OverTriangulate, NewTriangleProc,
+    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex,
+    false,
+    State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_CONVEX,
+    State.LastNodes.MaterialBinding.FdValue.Value,
+    FdMaterialIndex);
+end;
+
+procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  NewTriangleProc: TNewTriangleProc);
+begin
+  IndexedPolygons_LocalTriangulate(Self,
+    State, OverTriangulate, NewTriangleProc,
+    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex,
+    true,
+    State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_CONVEX,
+    State.LastNodes.MaterialBinding.FdValue.Value,
+    FdMaterialIndex);
+end;
+
+procedure TNodeIndexedFaceSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
+    IndexedPolygons_LocalTriangulate(Self,
+      State, OverTriangulate, NewTriangleProc,
+      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex,
+      false,
+      FdConvex.Value,
+      BIND_DEFAULT { For VRML 2.0 we will ignore material number anyway },
+      nil);
 end;
 
 procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
@@ -401,7 +451,17 @@ procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
 begin
 end;
 
+procedure TNodeIndexedLineSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+end;
+
 procedure TNodePointSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+end;
+
+procedure TNodePointSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
 end;
