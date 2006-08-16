@@ -25,35 +25,78 @@ type
     imUseSpecifiedPerVertex, imUseSpecifiedPerVertexIndexed,
     imUseSpecifiedPerFace, imUseSpecifiedPerFaceIndexed);
 
+  { This is class used as a base to render various indexed nodes:
+    IndexedFaceSet (both for VRML 1.0 and 2.0), IndexedTriangleMesh,
+    IndexedLineSet (both for VRML 1.0 and 2.0).
+
+    What you have to do to implement a descendant ?
+
+    @unorderedList(
+      @item(
+        You have to override Render_Face where you will render
+        your face by calling Render_Vertex to render vertexes.
+        It's your responsibility to call appropriate glBegin / glEnd
+        around Render_Vertex calls.
+
+        Render_Face must render all points between startIndex to endIndex - 1
+        (StartIndex and EndIndex are used to index CoordIndex array).
+
+        When implementing Render_Face you can safely assume
+        that all indexes between
+        startIndex to endIndex - 1 are <> -1, and they are surrounded
+        by -1 indexes or by the end of CoordIndex array.
+        In other words, Render_Face always gets indexes specifying
+        a complete face in the sense of IndexedFaceSet and similar
+        nodes.)
+
+      @item(
+        You can override Render_Init and Render_Fini,
+        although you don't have to (but if you do --- remember
+        to call inherited, as always).)
+
+      @item(
+        If and only if Render_Normals = inGenerate
+        you have to make appropriate glNormal calls.
+        Normals should always be oriented accoriding to
+        Render_NormalsFromCCW.
+        If Render_Normals <> inGenerate then we handle everything
+        related to normals in this class.)
+
+      @item(
+        Do not call Renderer.Render_BindMaterial_1
+        in descendants. Everything related to materials is already
+        handled in this class.)
+
+      @item(
+        Do not generate any texture coordinates (call glTexCoord etc.)
+        in descendants. Everything related to textures is already
+        handled in this class.)
+    ) }
   TGeneralIndexedRenderer = class
-    { W kazdej podklasie musisz zdefiniowac metode Render_Face w ktorej
-      narysujesz face uzywajac Render_Vertex do renderowania vertexow.
-      Zapewne zechcesz zdefiniowac tez Render_Init i Render_Fini
-      (chociaz nie musisz; jesli jednak je zdefiniujesz, pamietaj zawsze
-      uzywac inherited).
-
-      - W podklasach nie musisz sie martwic o wspolrzedne tekstury -
-        zajmiemy sie nimi calkowicie w tej klasie.
-
-      - W podklasach musisz generowac normale (wychodzace z CCW
-        o ile Render_NormalsFromCCW, wpp. wychodzace z CW) tylko jesli
-        Render_Normals = inGenerate,
-        wpp. nie mozesz wywolywac glNormal - wszystkim zajmujemy sie w tej klasie.
-
-       - Zajmujemy sie tez w tej klasie wszystkim zwiazanym z materialami -
-         nie musisz sie o nie martwic w podklasach.
-     Implementujac Render_Face/Init/Fini mozesz uzywac pol State i Node
-       ktore opisuja nam co dokladnie renderujemy.
-     Render_Face : renders all points between startIndex to endIndex-1.
-       Wszystkie indeksy po drodze sa zamknietym ciagiem otoczonym
-       -1 lub koncami listy FdCoordIndex. Render_Init/Fini mozesz
-       wykorzystac jak chcesz - w sposob odpowiedni dla danej podklasy. }
-    State: TVRMLGraphTraverseState;
-    Node: TNodeGeneralIndexed_1;
-    Renderer: TVRMLOpenGLRenderer;
+  private
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+
+    { This is set in our constructor. }
+    Renderer: TVRMLOpenGLRenderer;
+
+    { This will be at the beginning of our Render, and will be available
+      for Render_Init, Render_Face and other methods for descendants. }
     Render_Normals: TRenderIndexedNormals;
+
+    { Set these in descendant's constructor. }
+    CoordIndex: TMFLong;
+    { If Coord = nil then nothing will be rendered. }
+    Coord: TMFVec3f;
+    TexCoordIndex: TMFLong;
+    TexCoord: TMFVec2f;
+    NormalIndex: TMFLong;
+    Normal: TMFVec3f;
+    MaterialIndex: TMFLong;
+    MaterialBinding: Integer;
+    NormalBinding: Integer;
 
     procedure Render_Vertex(indexNum: integer); virtual;
     function Render_GetVertex(indexNum: integer): TVector3f;
@@ -63,35 +106,46 @@ type
     procedure Render_Fini; virtual;
 
     procedure Render;
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeGeneralIndexed_1);
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
-  private
+  public
     procedure Render_Init; override;
     procedure Render_Fini; override;
+
+    { Set these in descendant's constructor. }
     { czy normale wychodza / maja wychodzic z CCW ?
       Ta zmienna odzwierciedla stan glFronFace jaki ustawilismy OpenGL'owi. }
     Render_NormalsFromCCW: boolean;
+    CullBackFaces: boolean;
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
-  private
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedFaceSet_1);
     Render_GeneratedNormals: TDynVector3SingleArray;
     procedure Render_Init; override;
     procedure Render_Fini; override;
     procedure Render_Vertex(indexNum: integer); override;
     procedure Render_Face(startIndex, endIndex: integer); override;
+
+    { Set these in descendant's constructor. }
+    CreaseAngle: Single;
+    FaceConvex: boolean;
   end;
 
   TIndexedTriangleMesh_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
-  private
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedTriangleMesh_1);
     procedure Render_Face(startIndex, endIndex: integer); override;
   end;
 
   TIndexedLineSet_1Renderer = class(TGeneralIndexedRenderer)
-  private
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedLineSet_1);
     procedure Render_Init; override;
     procedure Render_Fini; override;
     procedure Render_Face(startIndex, endIndex: integer); override;
@@ -99,45 +153,41 @@ type
 
 { TGeneralIndexedRenderer ----------------------------------------------------- }
 
-constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeGeneralIndexed_1);
+constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited Create;
   Renderer := ARenderer;
-  State := Renderer.Render_State;
-  Node := ANode;
 end;
 
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
-var VertexNum: integer;
+var
+  VertexNum: integer;
 begin
- VertexNum := Node.FdCoordIndex.Items.Items[indexNum];
+  VertexNum := CoordIndex.Items.Items[indexNum];
 
- if Render_UseTextureCoordIndex then
-  glTexCoordv(State.LastNodes.TextureCoordinate2.FdPoint.Items.Items[
-    Node.FdTextureCoordIndex.Items.Items[indexNum]]);
+  if Render_UseTextureCoordIndex then
+    glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]]);
 
- case Render_Normals of
-  inUseSpecifiedPerVertex: {don't do anything - glDrawElement will get the normal};
-  inUseSpecifiedPerVertexIndexed: glNormalv(
-    State.LastNodes.Normal.FdVector.Items.Items[
-      Node.FdNormalIndex.Items.Items[indexNum]]);
- end;
+  case Render_Normals of
+    inUseSpecifiedPerVertex:
+      {don't do anything - glDrawElement will get the normal};
+    inUseSpecifiedPerVertexIndexed: glNormalv(
+      Normal.Items.Items[NormalIndex.Items.Items[indexNum]]);
+  end;
 
- case Render_Materials of
-  imUseSpecifiedPerVertex:
-    Renderer.Render_BindMaterial_1(VertexNum);
-  imUseSpecifiedPerVertexIndexed:
-    Renderer.Render_BindMaterial_1(Node.FdMaterialIndex.Items.Items[indexNum]);
- end;
+  case Render_Materials of
+    imUseSpecifiedPerVertex:
+      Renderer.Render_BindMaterial_1(VertexNum);
+    imUseSpecifiedPerVertexIndexed:
+      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
+  end;
 
- Renderer.DoGLArrayElement(State.LastNodes.Coordinate3.FdPoint.Items.Items, VertexNum);
+  Renderer.DoGLArrayElement(Coord.Items.Items, VertexNum);
 end;
 
 function TGeneralIndexedRenderer.Render_GetVertex(indexNum: integer): TVector3f;
 begin
- result := State.LastNodes.Coordinate3.FdPoint.Items.Items[
-   Node.FdCoordIndex.Items.Items[indexNum]];
+  result := Coord.Items.Items[CoordIndex.Items.Items[indexNum]];
 end;
 
 procedure TGeneralIndexedRenderer.Render;
@@ -179,10 +229,11 @@ procedure TGeneralIndexedRenderer.Render;
    Render_UseTextureCoordIndex := false;
    if Renderer.Render_TexCoordsNeeded then
    begin
-    if Node.FdTextureCoordIndex.Count >= Node.FdCoordIndex.Count then
+    if TexCoordIndex.Count >= CoordIndex.Count then
      Render_UseTextureCoordIndex := true else
      begin
-      localBBox := Node.LocalBoundingBox(State);
+      localBBox := Renderer.Render_Node.LocalBoundingBox(
+        Renderer.Render_State);
 
       {oblicz rozmiary localBBox. SCoord to wspolrzedna na ktorej rozmiar jest
        najwiekszy, TCoord to druga wspolrzedna (gdyby jakies wspolrzedne
@@ -233,14 +284,14 @@ procedure TGeneralIndexedRenderer.Render;
 
    Render_Normals := inGenerate;
 
-   case State.LastNodes.NormalBinding.FdValue.Value of
+   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (Node.FdNormalIndex.Count > 0) and (Node.FdNormalIndex.Items.Items[0] >=0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
        Render_Normals := inUseSpecifiedPerVertexIndexed;
     BIND_PER_VERTEX:
       Render_Normals := inUseSpecifiedPerVertex;
     BIND_OVERALL:
-      if State.LastNodes.Normal.FdVector.Count > 0 then
+      if Normal.Count > 0 then
         Render_Normals := inOverall;
    end;
 
@@ -254,17 +305,17 @@ procedure TGeneralIndexedRenderer.Render;
     tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
     normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
     zostanie mimo wszystko dobrze odczytany i wyswietlony. }
-   if State.LastNodes.Normal.FdVector.Count = 0 then
+   if Normal.Count = 0 then
     Render_Normals := inGenerate;
 
    { podejmij pewna inicjalizacje juz PO ustaleniu Render_Normals }
    case Render_Normals of
-    inOverall: glNormalv(State.LastNodes.Normal.FdVector.Items.Items[0]);
+    inOverall: glNormalv(Normal.Items.Items[0]);
     inUseSpecifiedPerVertex:
       begin
        {w tym przypadku mozemy uzyc vertex array dla normali bo
         indeks vertexu = indeks normala}
-       glNormalPointer(GL_FLOAT, 0, State.LastNodes.Normal.FdVector.Items.Items);
+       glNormalPointer(GL_FLOAT, 0, Normal.Items.Items);
        glEnableClientState(GL_NORMAL_ARRAY);
       end;
    end;
@@ -278,15 +329,15 @@ procedure TGeneralIndexedRenderer.Render;
   { setup Render_Materials variable }
   begin
    Render_Materials := imOverall;
-   case State.LastNodes.MaterialBinding.FdValue.Value of
+   case MaterialBinding of
     {BIND_OVERALL, BIND_DEFAULT: take default imOverall}
     BIND_PER_VERTEX: Render_Materials := imUseSpecifiedPerVertex;
     BIND_PER_VERTEX_INDEXED:
-      if IndexListNotEmpty(Node.FdMaterialIndex) then
+      if IndexListNotEmpty(MaterialIndex) then
        Render_Materials := imUseSpecifiedPerVertexIndexed;
     BIND_PER_PART, BIND_PER_FACE: Render_Materials := imUseSpecifiedPerFace;
     BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if IndexListNotEmpty(Node.FdMaterialIndex) then
+      if IndexListNotEmpty(MaterialIndex) then
        Render_Materials := imUseSpecifiedPerFaceIndexed;
    end;
 
@@ -305,19 +356,19 @@ begin
   (a byc moze kiedys cos wiecej) moga tez zaladowac swoje vertex arrays. }
  glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
  try
-  glVertexPointer(3, GL_FLOAT, 0, State.LastNodes.Coordinate3.FdPoint.Items.Items);
+  glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
   glEnableClientState(GL_VERTEX_ARRAY);
 
   { See
     [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
     for description of GL_EXT_compiled_vertex_array.
 
-    Note that I can't use it when last Coordinate3 had no nodes
+    Note that I can't use it when Coord has no items
     (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
   UseLockArrays := GL_EXT_compiled_vertex_array and
-    (State.LastNodes.Coordinate3.FdPoint.Items.Count <> 0);
+    (Coord.Items.Count <> 0);
   if UseLockArrays then
-   glLockArraysEXT(0, State.LastNodes.Coordinate3.FdPoint.Items.Count);
+   glLockArraysEXT(0, Coord.Items.Count);
 
   {initialize rendering}
   TextureInit;
@@ -329,18 +380,18 @@ begin
    {wlasciwe rendering : wywoluj Render_Face}
    startIndex := 0;
    faceNumber := 0;
-   while startIndex < Node.FdCoordIndex.Count do
+   while startIndex < CoordIndex.Count do
    begin
     endIndex := startIndex;
-    while (endIndex < Node.FdCoordIndex.Count) and
-          (Node.FdCoordIndex.Items.Items[endIndex] >= 0) do
+    while (endIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[endIndex] >= 0) do
      Inc(endIndex);
 
     case Render_Materials of
      imUseSpecifiedPerFace:
        Renderer.Render_BindMaterial_1(faceNumber);
      imUseSpecifiedPerFaceIndexed:
-       Renderer.Render_BindMaterial_1(Node.FdMaterialIndex.Items.Items[faceNumber]);
+       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
     end;
 
     Render_Face(startIndex, endIndex);
@@ -368,83 +419,72 @@ procedure TGeneralIndexedRenderer.Render_Fini; begin end;
 { TIndexedFaces_Or_TrianglesRenderer -------------------------------------------- }
 
 procedure TIndexedFaces_Or_TrianglesRenderer.Render_Init;
-var sh: TNodeShapeHints;
 begin
- inherited;
- sh := State.LastNodes.ShapeHints;
- glPushAttrib(GL_POLYGON_BIT);
+  inherited;
+  glPushAttrib(GL_POLYGON_BIT);
 
- { To jest problem w specyfikacji VRMLa 1.0 : czy Normale podawane
-   w nodzie Normal wychodza ze strony CCW scian czy tez ze strony scian
-   outside, zgodnie z vertexOrdering ?
-   To drugie ma problem z vertexOrdering = UNKNOWN_VERTEX_ORDERING.
-   Natomiast za drugim przemawia fakt ze tak jest w VRML'u 97.
+  { zmieniamy glFrontFace na GL_CW jesli VertexOrdering jest clockwise.
+    W ten sposob mowimy OpenGL'owi ktorym faces robic cull o ile
+    za chwile wlaczymy culling i mowimy tez z ktorej strony polygonow
+    wychodza normale (my wprawdzie moglibysmy sobie generowac normale
+    z dowolnej strony z ktorej chcemy ale normale w pliku VRML'a sa
+    zapisane zgodnie z aktualna orientacja vertexOrdering). }
+  if not Render_NormalsFromCCW then
+    glFrontFace(GL_CW);
 
-   Zdefiniuj ponizej NORMALS_ALWAYS_FROM_CCW (tylko na potrzeby implementacji
-   tej procedury, ten symbol nie jest uzywany nigdzie indziej) aby miec
-   wersje gdzie normale sa zawsze z ccw.
-
-   doom.wrl/ ma normale sa zgodnie z vertexOrdering
-   mgf2inv to (po wielu podejsciach) ciemna sprawa. Generuje VRML'e w ktorych
-     zawsze normale sa z ccw, i w sumie zawsze vertexOrdering okazuje sie
-     byc CCW wiec jest ok. Tylko nie jestem pewien czy autor mgf2inv przypadkiem
-     nie pomylil sie i nie chcial napisac vertexOrdering CW.
-   No coz, w kazdym razie Greg Ward nie jest najwyrazniej autorytetem w sprawie
-     VRMLa wiec uznaje za prawidlowa droge zgodna z VRMLem 97 (i Doom'em)
-     - normale sa zgodnie z vertexOrdering.
-   Wiec ostatecznie decyduje sie aby NORMALS_ALWAYS_FROM_CCW nigdy nie bylo
-     zdefiniowane (ale zostawiam sobie mozliwosc zeby kiedys ew. zmienic zdanie).
- }
- { $define NORMALS_ALWAYS_FROM_CCW}
-
- {$ifdef NORMALS_ALWAYS_FROM_CCW}
- Render_NormalsFromCCW := true;
- {$else}
- { zmieniamy glFrontFace na GL_CW jesli VertexOrdering jest clockwise.
-   W ten sposob mowimy OpenGL'owi ktorym faces robic cull o ile
-   za chwile wlaczymy culling i mowimy tez z ktorej strony polygonow
-   wychodza normale (my wprawdzie moglibysmy sobie generowac normale
-   z dowolnej strony z ktorej chcemy ale normale w pliku VRML'a sa
-   zapisane zgodnie z aktualna orientacja vertexOrdering).
-   W tym miejscu uznajemy tez VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
-   (a autorzy VRMLi w ogole nie powinni podawac normali jesli
-   nie podadza vertexOrdering innego niz UNKNOWN) }
- Render_NormalsFromCCW := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
- {$endif}
- if not Render_NormalsFromCCW then
-  glFrontFace(GL_CW);
-
- {if vertex ordering is consistent and object is SOLID than we use OpenGL's
-  backface culling. Warning : we should check viewer position to know
-  whether to cull outside or inside polygons because if the viewer is inside
-  the object we should cull outside polygons. But luckily for us (because
-  it's extremely difficult to decide whether a point in space is
-  inside or outside such solid object) VRML 1.0 specification states clearly
-  that if an object is SOLID we can assume that the viewer is ALWAYS OUTSIDE
-  OF IT. So we cull faces inside  }
- if (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
-    (SH.FdShapeType.Value = SHTYPE_SOLID) then
- begin
-  {$ifdef NORMALS_ALWAYS_FROM_CCW}
-  { if normals always from ccw, than we must modify glCullFace to GL_FRONT
-      (it has default value GL_BACK) to cull the right faces.
-    If not (normals always from ccw) then we always cull GL_BACK faces,
-      and glFrontFace already did the work of specifying right which
-      winding constitues front face. }
-  if SH.FdVertexOrdering.Value = VERTORDER_CLOCKWISE then
-   glCullFace(GL_FRONT);
-  {$endif}
-  glEnable(GL_CULL_FACE);
- end;
+  { if vertex ordering is consistent and object is SOLID than we use OpenGL's
+    backface culling. Warning : we should check viewer position to know
+    whether to cull outside or inside polygons because if the viewer is inside
+    the object we should cull outside polygons. But luckily for us (because
+    it's extremely difficult to decide whether a point in space is
+    inside or outside such solid object) VRML 1.0 specification states clearly
+    that if an object is SOLID we can assume that the viewer is ALWAYS OUTSIDE
+    OF IT. So we cull faces inside. }
+  if CullBackFaces then
+    glEnable(GL_CULL_FACE);
 end;
 
 procedure TIndexedFaces_Or_TrianglesRenderer.Render_Fini;
 begin
- glPopAttrib;
- inherited;
+  glPopAttrib;
+  inherited;
 end;
 
 { TIndexedFaceSet_1Renderer -------------------------------------------------- }
+
+constructor TIndexedFaceSet_1Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedFaceSet_1);
+var
+  SH: TNodeShapeHints;
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  NormalIndex := ANode.FdNormalIndex;
+  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  MaterialIndex := ANode.FdMaterialIndex;
+
+  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+
+  SH := Renderer.Render_State.LastNodes.ShapeHints;
+
+  { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
+    (a autorzy VRMLi w ogole nie powinni podawac normali jesli
+    nie podadza vertexOrdering innego niz UNKNOWN) }
+  Render_NormalsFromCCW := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+
+  CullBackFaces :=
+    (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
+    (SH.FdShapeType.Value = SHTYPE_SOLID);
+
+  CreaseAngle := SH.FdCreaseAngle.Value;
+  FaceConvex := SH.FdFaceType.Value = FACETYPE_CONVEX;
+end;
 
 procedure TIndexedFaceSet_1Renderer.Render_Vertex(indexNum: integer);
 begin
@@ -460,13 +500,13 @@ begin
  begin
   if Renderer.Attributes.SmoothShading then
    Render_GeneratedNormals := CreateNormals(
-     Node.FdCoordIndex.Items,
-     State.LastNodes.Coordinate3.FdPoint.Items,
-     State.LastNodes.ShapeHints.FdCreaseAngle.Value,
+     CoordIndex.Items,
+     Coord.Items,
+     CreaseAngle,
      Render_NormalsFromCCW) else
    Render_GeneratedNormals := CreateFlatNormals(
-     Node.FdCoordIndex.Items,
-     State.LastNodes.Coordinate3.FdPoint.Items,
+     CoordIndex.Items,
+     Coord.Items,
      Render_NormalsFromCCW);
  end;
 end;
@@ -486,11 +526,11 @@ end;
 
 procedure TIndexedFaceSet_1Renderer.Render_Face(startIndex, endIndex: integer);
 begin
- if State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_UNKNOWN then
+ if not FaceConvex then
  begin
   glBegin(GL_TRIANGLES);
-  TriangulateFace(Addr(Node.FdCoordIndex.Items.Items[StartIndex]),
-    EndIndex-StartIndex, State.LastNodes.Coordinate3.FdPoint.Items.Items,
+  TriangulateFace(Addr(CoordIndex.Items.Items[StartIndex]),
+    EndIndex-StartIndex, Coord.Items.Items,
     Render_Triangulated, Self, StartIndex);
   glEnd;
  end else
@@ -537,6 +577,37 @@ end;
 
 { TIndexedTriangleMesh_1Renderer --------------------------------------------- }
 
+constructor TIndexedTriangleMesh_1Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedTriangleMesh_1);
+var
+  SH: TNodeShapeHints;
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  NormalIndex := ANode.FdNormalIndex;
+  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  MaterialIndex := ANode.FdMaterialIndex;
+
+  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+
+  SH := Renderer.Render_State.LastNodes.ShapeHints;
+
+  { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
+    (a autorzy VRMLi w ogole nie powinni podawac normali jesli
+    nie podadza vertexOrdering innego niz UNKNOWN) }
+  Render_NormalsFromCCW := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+
+  CullBackFaces :=
+    (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
+    (SH.FdShapeType.Value = SHTYPE_SOLID);
+end;
+
 procedure TIndexedTriangleMesh_1Renderer.Render_Face(startIndex, endIndex: integer);
 
   procedure triangle(v1, v2, v3: integer);
@@ -582,6 +653,24 @@ begin
 end;
 
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
+
+constructor TIndexedLineSet_1Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedLineSet_1);
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  NormalIndex := ANode.FdNormalIndex;
+  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  MaterialIndex := ANode.FdMaterialIndex;
+
+  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+end;
 
 procedure TIndexedLineSet_1Renderer.Render_Init;
 begin

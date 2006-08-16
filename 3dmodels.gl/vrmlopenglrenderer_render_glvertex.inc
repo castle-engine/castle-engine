@@ -63,13 +63,14 @@ end;
    zeby wszystko dzialalo ok oczywiscie OpenGL musi miec zaladowana
    wlasnie ta tablice jako vertex array). }
 
-procedure TVRMLOpenGLRenderer.DoGLVertex(const Vert:TVector3Single);
+procedure TVRMLOpenGLRenderer.DoGLVertex(const Vert: TVector3Single);
 begin
  DoBeforeGLVertex(Vert);
  glVertexv(Vert);
 end;
 
-procedure TVRMLOpenGLRenderer.DoGLArrayElement(const Verts:PArray_Vector3Single; ith:TGLint);
+procedure TVRMLOpenGLRenderer.DoGLArrayElement(
+  const Verts: PArray_Vector3Single; ith: TGLint);
 begin
  DoBeforeGLVertex(Verts[ith]);
  glArrayElement(ith);
