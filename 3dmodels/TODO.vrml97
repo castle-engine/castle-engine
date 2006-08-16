@@ -224,5 +224,3 @@ IndexedFaceSet, Coordinate, Normal, TextureCoordinate:
 - the case when normalPerVertex = FALSE and normal field is not NULL
   (i.e. we have specified normals per face)
   is ignored (we just calculate our own normals in this case).
-
-- why texture on texture_test on IndexedFaceSet is incorrect ?

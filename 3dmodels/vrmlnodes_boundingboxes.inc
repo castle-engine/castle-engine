@@ -328,7 +328,7 @@ function TNodeIndexedFaceSet_2.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
-    Result := Indexed_BoundingBox(State,
+    Result := Indexed_LocalBoundingBox(State,
       TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex) else
     Result := EmptyBox3d;
 end;
