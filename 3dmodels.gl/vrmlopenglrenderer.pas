@@ -1904,6 +1904,13 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
   {$I vrmlopenglrenderer_render_specificnodes.inc}
 
+  function NodeTextured(Node: TNodeGeneralShape): boolean;
+  begin
+    Result := not (
+      (Node is TNodePointSet_2) or
+      (Node is TNodeIndexedLineSet_2));
+  end;
+
   procedure RenderIndexed(IndexedRenderer: TGeneralIndexedRenderer);
   begin
     try
@@ -1951,7 +1958,8 @@ begin
   {$endif}
   if (TextureNode <> nil) and
      TextureNode.IsTextureImage and
-     Attributes.EnableTextures then
+     Attributes.EnableTextures and
+     NodeTextured(Node) then
   begin
    SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
    glEnable(GL_TEXTURE_2D);
@@ -2011,8 +2019,12 @@ begin
       RenderIndexed(TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node))) else
     if Node is TNodeIndexedFaceSet_1 then
       RenderIndexed(TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node))) else
+    if Node is TNodeIndexedFaceSet_2 then
+      RenderIndexed(TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node))) else
     if Node is TNodeIndexedLineSet_1 then
       RenderIndexed(TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node))) else
+    if Node is TNodeIndexedLineSet_2 then
+      RenderIndexed(TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node))) else
       raise EVRMLOpenGLRenderError.Create(
         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
 

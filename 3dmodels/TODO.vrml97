@@ -209,7 +209,20 @@ The following node types are not valid as children nodes:
 ----------------------------------------
 
 Nearest plans:
-Indexed things and Coordinate3 and friends
 make URLs actually work
 check NIST tests
 check blender exported files
+
+IndexedLineSet:
+- color and colorPerVertex are ignored.
+
+IndexedFaceSet, Coordinate, Normal, TextureCoordinate:
+- the case when texCoordIndex is empty but texCoord is not NULL:
+  according to VRML 2.0 spec we should then use coordIndex like texCoordIndex.
+  (For now we just use default coordinate mapping in this case).
+- color and colorPerVertex are ignored fields.
+- the case when normalPerVertex = FALSE and normal field is not NULL
+  (i.e. we have specified normals per face)
+  is ignored (we just calculate our own normals in this case).
+
+- why texture on texture_test on IndexedFaceSet is incorrect ?
