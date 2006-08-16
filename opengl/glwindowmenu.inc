@@ -94,6 +94,7 @@
     { Same as Insert(EntriesCount, Value) }
     procedure Append(Value: TMenuEntry);
     procedure EntryDelete(Index: Integer);
+    procedure EntriesDeleteAll;
     constructor Create(const ACaption: String);
     destructor Destroy; override;
   end;
@@ -351,9 +352,15 @@ end;
 
 procedure TMenu.EntryDelete(Index: Integer);
 begin
- FEntries[Index].Free;
- FEntries.Delete(Index);
- Changed;
+  FEntries[Index].Free;
+  FEntries.Delete(Index);
+  Changed;
+end;
+
+procedure TMenu.EntriesDeleteAll;
+begin
+  FEntries.FreeContents;
+  Changed;
 end;
 
 { TMenuItem ------------------------------------------------------------ }

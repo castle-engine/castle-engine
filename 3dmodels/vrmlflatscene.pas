@@ -119,7 +119,7 @@ type
     function GetViewpointCore(
       const OnlyPerspective: boolean;
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp: TVector3Single): boolean;
+      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
   public
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -342,10 +342,14 @@ type
       CamDir = (0, 0, -1), CamUp = (0, 1, 0), CamType = ctPerspective
       (ze domyslna kamera jest ctPerspective to juz sam sobie dopowiedzialem)).
 
-      Zwraca "true" jezeli uzyl kamery zdefiniowanej w pliku VRMLa (false
-      oznacza ze uzyl domyslnych ustawien kamery). Czesto bedziesz chcial
-      zignorowac wynik tej funkcji, w koncu zasadnicza funkcja tej funkcji
-      jest zaproponowanie jakiegos ustawienia poczatkowego kamery.
+      If camera properties were found in some node,
+      it returns this node. Otherwise it returns nil.
+      This way you can optionally extract some additional info from
+      used viewpoint node, or do something special if default values
+      were used. Often you will just ignore result of this function
+      --- after all, the most important feature of this function
+      is that you don't @italic(have) to care about details of
+      dealing with camera node.
 
       Zwraca zawsze znormalizowane CamDir i CamUp --- powody takie same jak
       dla TNodeGeneralViewpoint.GetCameraVectors.
@@ -353,10 +357,10 @@ type
       @groupBegin }
     function GetViewpoint(
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp: TVector3Single): boolean;
+      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
 
     function GetPerspectiveViewpoint(
-      out CamPos, CamDir, CamUp: TVector3Single): boolean;
+      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
     { @groupEnd }
 
     { This enumerates all viewpoint nodes (Viewpoint (for VRML 2.0),
@@ -819,13 +823,12 @@ type
 function TVRMLFlatScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp: TVector3Single): boolean;
+  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
 var
-  Node: TNodeGeneralViewpoint;
   CamTransform: TMatrix4Single;
   Seeker: TFirstViewpointSeeker;
 begin
-  Result := false;
+  Result := nil;
   Seeker := TFirstViewpointSeeker.Create;
   try
     Seeker.OnlyPerspective := OnlyPerspective;
@@ -835,16 +838,15 @@ begin
     except
       on BreakFirstViewpointFound do
       begin
-        Node := Seeker.FoundNode;
-        Result := true;
+        Result := Seeker.FoundNode;
       end;
     end;
   finally FreeAndNil(Seeker) end;
 
-  if Result then
+  if Result <> nil then
   begin
-    Node.GetCameraVectors(CamTransform, CamPos, CamDir, CamUp);
-    CamKind := Node.CameraKind;
+    Result.GetCameraVectors(CamTransform, CamPos, CamDir, CamUp);
+    CamKind := Result.CameraKind;
   end else
   begin
     { use default camera settings }
@@ -857,13 +859,13 @@ end;
 
 function TVRMLFlatScene.GetViewpoint(
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp: TVector3Single): boolean;
+  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
 begin
   Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp);
 end;
 
 function TVRMLFlatScene.GetPerspectiveViewpoint(
-  out CamPos, CamDir, CamUp: TVector3Single): boolean;
+  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
 var
   CamKind: TVRMLCameraKind;
 begin

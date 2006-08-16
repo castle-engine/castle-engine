@@ -265,7 +265,8 @@ VRML 97 nodes done (parsed and handled correctly):
 
 Nearest plans:
 Indexed things and Coordinate3 and friends
-Viewport.fieldOfView and list of viewpoints in menu
+Viewport.fieldOfView and list of viewpoints in menu,
+  HomeCameraUp can be different than starting CameraUp for Viewpoint
 make URLs actually work
 check NIST tests
 check blender exported files
