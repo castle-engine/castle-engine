@@ -376,6 +376,8 @@ function StreamReadString(Stream: TStream): string;
   so be sure that Stream supports these operations. }
 function StreamToString(Stream: TStream): string;
 
+procedure StreamSaveToFile(Stream: TStream; const FileName: string);
+
 type
   { This is TMemoryStream that at the end of construction
     loads it's contents from file AFileName,
@@ -1157,6 +1159,28 @@ begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
   Stream.ReadBuffer(Pointer(Result)^, Length(Result));
+end;
+
+procedure StreamSaveToFile(Stream: TStream; const FileName: string);
+const
+  BufSize = 100000;
+var
+  S : TFileStream;
+  Buffer: Pointer;
+  ReadCount: Integer;
+begin
+  Buffer := GetMem(BufSize);
+  S := TFileStream.Create(FileName, fmCreate);
+  try
+    repeat
+      ReadCount := Stream.Read(Buffer^, BufSize);
+      if ReadCount = 0 then
+        Break else
+        S.WriteBuffer(Buffer^, ReadCount);
+    until false;
+  finally
+    S.free;
+  end;
 end;
 
 { TMemoryFileStream ------------------------------------------------------- }
