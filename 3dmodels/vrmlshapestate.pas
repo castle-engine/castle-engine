@@ -69,6 +69,7 @@ type
     FAllMaterialsTransparent: boolean;
 
     procedure ValidateBoundingSphere;
+    function CalculateIsAllMaterialsTransparent: boolean;
   public
     { ShapeNode to wskaznik na obiekt w RootNode }
     property ShapeNode: TNodeGeneralShape read FShapeNode;
@@ -233,11 +234,22 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
+function TVRMLShapeState.CalculateIsAllMaterialsTransparent: boolean;
+var
+  M: TNodeMaterial_2;
+begin
+  if State.ParentShape <> nil then
+  begin
+    M := State.ParentShape.Material;
+    Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+  end else
+    Result := State.LastNodes.Material.IsAllMaterialsTransparent;
+end;
+
 function TVRMLShapeState.AllMaterialsTransparent: boolean;
 {$define PRECALC_VALUE_ENUM := svAllMaterialsTransparent}
 {$define PRECALC_VALUE := FAllMaterialsTransparent}
-{$define PRECALC_VALUE_CALCULATE :=
-  State.LastNodes.Material.IsAllMaterialsTransparent}
+{$define PRECALC_VALUE_CALCULATE := CalculateIsAllMaterialsTransparent}
 PRECALC_VALUE_RETURN
 
 constructor TVRMLShapeState.Create(AShapeNode: TNodeGeneralShape; AState: TVRMLGraphTraverseState);
