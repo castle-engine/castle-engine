@@ -2393,11 +2393,11 @@ type
     class function ClassNodeTypeName: string; override;
     { eventIn      MFNode   addChildren } { }
     { eventIn      MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
-    property Fdcollide: TSFBool index 2 read GetFieldAsSFBool;
-    property FdbboxCenter: TSFVec3f index 3 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property Fdproxy: TSFNode index 5 read GetFieldAsSFNode;
+    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
+    property Fdcollide: TSFBool index 1 read GetFieldAsSFBool;
+    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
+    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+    property Fdproxy: TSFNode index 4 read GetFieldAsSFNode;
     { eventOut     SFTime   collideTime } { }
 
     function ChildrenField: TMFNode; override;
