@@ -1,5 +1,10 @@
 VRML 97 TODO items:
 
+- transp on
+  /win/3dmodels/vrml/kambi_vrml_examples/vrml_2/kings_head_transparent.wrl
+  and transparent_material.wrl
+  doesn't work
+
 - check NIST tests
 
 WWW:

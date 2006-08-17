@@ -48,7 +48,7 @@
       "under the hood" using external programs. This means that we may
       call external program to handle them.
       This is available only if this unit is compiled with FPC
-      (i.e. not with Delphi) on platforms where Process unit is
+      (i.e. not with Delphi) on platforms where ExecuteProcess is
       implemented, and of course appropriate external tool must
       be available.
       See glViewImage docs
@@ -806,12 +806,13 @@ procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
 { -------------------------------------------------------------------------- }
 
 { LoadXxx : load image from Stream.
-  An appropriate descendant of EInvalidImageFormat will be raised
+  An appropriate descendant of EImageLoadError will be raised
   in case of error when reading from Stream or when Stream will not
   contain correct data. }
 
 type
-  EInvalidImageFormat = class(Exception);
+  EImageLoadError = class(Exception);
+  EInvalidImageFormat = class(EImageLoadError);
   EInvalidBMP = class(EInvalidImageFormat);
   EInvalidPNG = class(EInvalidImageFormat);
   EInvalidJPEG = class(EInvalidImageFormat);
@@ -857,7 +858,7 @@ procedure SavePPM(const img: TRGBImage; Stream: TStream); { binary = true } over
 
 type
   { }
-  EUnableToLoadImage = class(EInvalidImageFormat);
+  EUnableToLoadImage = class(EImageLoadError);
 
 type
   TImageFormatRequirements = (frWithoutAlpha, frWithAlpha, frAny);
@@ -1193,20 +1194,7 @@ function ImageClassBestForSavingToFormat(const FileName: string): TImageClass; o
 
 implementation
 
-{$ifdef FPC}
-  {$ifdef LINUX}
-    {$define HAS_PROCESS}
-  {$endif}
-  {$ifdef BSD}
-    {$define HAS_PROCESS}
-  {$endif}
-  {$ifdef WIN32}
-    {$define HAS_PROCESS}
-  {$endif}
-{$endif}
-
-uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils
-  {$ifdef HAS_PROCESS}, Process {$endif};
+uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils;
 
 { file format specific functions : }
 {$I images_bmp.inc}
@@ -2235,8 +2223,8 @@ begin
   try
    Result := LoadRGBImage(f, ExtractFileExt(fname));
   except
-   on E: EInvalidImageFormat do begin
-     E.Message := 'Invalid format - file "'+fname+'" : '+E.Message;
+   on E: EImageLoadError do begin
+     E.Message := 'Error when loading image from file "'+fname+'" : '+E.Message;
      raise;
     end;
    on E: EImageFormatNotSupported do begin
@@ -2413,8 +2401,8 @@ begin
    result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses,
      ForbiddenConvs);
   except
-   on E: EInvalidImageFormat do begin
-     E.Message := 'Invalid format - file "'+filename+'" : '+E.Message;
+   on E: EImageLoadError do begin
+     E.Message := 'Error when loading image from file "'+filename+'" : '+E.Message;
      raise;
     end;
    on E: EImageFormatNotSupported do begin
