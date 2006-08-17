@@ -1,6 +1,8 @@
 VRML 97 TODO items:
 
-- Collision.wrl from annotated caused crash of view3dscene
+- "View warnings" looks bad (warning is dupl as 1st string,
+  bug in TStringList ? Maybe one of the bugs that I reported
+  once ?)
 
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
