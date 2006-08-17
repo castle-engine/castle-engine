@@ -236,47 +236,47 @@ end;
 
 procedure TGeneralIndexedRenderer.Render;
 
-  procedure TextureInit;
+var
+  { Used only by TextureBegin/End }
+  TextureGenerated: boolean;
+
   { setup texture-related things }
-  var localBBox: TBox3d;
-      localBBoxSize: TVector3f;
+  procedure TextureBegin;
 
-    procedure SetupCoordGen(out gen: TVector4f;
-      const coord: integer; const genStart, genEnd: TGLfloat);
-    {chcemy mapowac localBBox[0, coord]...localBBox[0, coord]+localBBoxSize[coord]
-                 na genStart...genEnd.
-      czyli mamy dla punktu v[0..2] :
-        s1 = (v[coord] - localBBox[0, coord]) / localBBoxSize[coord]
-      i mamy s1 w zakresie 0..1, teraz
-        s = s1 * (genEnd-genStart) + genStart
-      i mamy to co chcemy - s przedziale genStart...genEnd.
-     Sprowadzajac to do postaci ktora trzeba podac OpenGL'owi :
-       s = v[coord] * (genEnd-genStart) / localBBoxSize[coord]
-           - localBBox[0, coord] * (genEnd-genStart) / localBBoxSize[coord]
-           + genStart
-     Proste sprawdzenie :
-       dla genStart, End = 0, 1 mamy
-       s = v[coord] / localBBoxSize[coord] -
-           localBBox[0, coord] / localBBoxSize[coord] =
-           (v[coord] - localBBox[0, coord]) / localBBoxSize[coord] = s1
-    }
-    begin
-     FillChar(gen, SizeOf(gen), 0);
-     gen[coord]:=(genEnd-genStart) / localBBoxSize[coord];
-     gen[3] := -localBBox[0, coord] * (genEnd-genStart) / localBBoxSize[coord]
-             +genStart;
-    end;
+    procedure GenerateDefaultTextureCoordinates;
+    var localBBox: TBox3d;
+        localBBoxSize: TVector3f;
 
-  var s_gen, t_gen: TVector4f;
+      procedure SetupCoordGen(out gen: TVector4f;
+        const coord: integer; const genStart, genEnd: TGLfloat);
+      {chcemy mapowac localBBox[0, coord]...localBBox[0, coord]+localBBoxSize[coord]
+                   na genStart...genEnd.
+        czyli mamy dla punktu v[0..2] :
+          s1 = (v[coord] - localBBox[0, coord]) / localBBoxSize[coord]
+        i mamy s1 w zakresie 0..1, teraz
+          s = s1 * (genEnd-genStart) + genStart
+        i mamy to co chcemy - s przedziale genStart...genEnd.
+       Sprowadzajac to do postaci ktora trzeba podac OpenGL'owi :
+         s = v[coord] * (genEnd-genStart) / localBBoxSize[coord]
+             - localBBox[0, coord] * (genEnd-genStart) / localBBoxSize[coord]
+             + genStart
+       Proste sprawdzenie :
+         dla genStart, End = 0, 1 mamy
+         s = v[coord] / localBBoxSize[coord] -
+             localBBox[0, coord] / localBBoxSize[coord] =
+             (v[coord] - localBBox[0, coord]) / localBBoxSize[coord] = s1
+      }
+      begin
+        FillChar(gen, SizeOf(gen), 0);
+        gen[coord]:=(genEnd-genStart) / localBBoxSize[coord];
+        gen[3] := -localBBox[0, coord] * (genEnd-genStart) /
+          localBBoxSize[coord] + genStart;
+      end;
+
+    var
+      s_gen, t_gen: TVector4f;
       SCoord, TCoord, c1, c2: integer;
-  begin
-   Render_UseTextureCoordIndex := false;
-   if Renderer.Render_TexCoordsNeeded then
-   begin
-    if (TexCoord <> nil) and
-       (TexCoordIndex.Count >= CoordIndex.Count) then
-     Render_UseTextureCoordIndex := true else
-     begin
+    begin
       localBBox := Renderer.Render_Node.LocalBoundingBox(
         Renderer.Render_State);
 
@@ -299,19 +299,44 @@ procedure TGeneralIndexedRenderer.Render;
       glTexGenfv(GL_T, GL_OBJECT_PLANE, @t_gen);
       glEnable(GL_TEXTURE_GEN_S);
       glEnable(GL_TEXTURE_GEN_T);
-     end;
-   end;
+      TextureGenerated := true;
+    end;
+
+  begin
+    Render_UseTextureCoordIndex := false;
+    if Renderer.Render_TexCoordsNeeded then
+    begin
+      if TexCoord <> nil then
+      begin
+        if TexCoordIndex.Count >= CoordIndex.Count then
+          Render_UseTextureCoordIndex := true else
+        begin
+          { If TexCoord <> nil but TexCoordIndex is empty then
+            - VRML 2.0 spec says that coordIndex is used
+              to index texture coordinates.
+            - VRML 1.0 spec says that in this case default texture
+              coordinates should be generated (that's because for
+              VRML 1.0 there is always some TexCoord <> nil,
+              so it cannot be used to produce different behavior). }
+          if Renderer.Render_State.ParentShape <> nil then
+          begin
+            glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+          end else
+            GenerateDefaultTextureCoordinates;
+        end;
+      end else
+        GenerateDefaultTextureCoordinates;
+    end;
   end;
 
-  procedure TextureFini;
+  procedure TextureEnd;
   begin
-   if Renderer.Render_TexCoordsNeeded and
-     (not Render_UseTextureCoordIndex) then
-   begin
-    {to znaczy ze generowalismy wspolrzedne tekstury; wiec trzeba je teraz wylaczyc}
-    glDisable(GL_TEXTURE_GEN_S);
-    glDisable(GL_TEXTURE_GEN_T);
-   end;
+    if TextureGenerated then
+    begin
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+    end;
   end;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
@@ -320,7 +345,7 @@ procedure TGeneralIndexedRenderer.Render;
            (not ((MFIndexes.Count = 1) and (MFIndexes.Items.Items[0] = -1)));
   end;
 
-  procedure NormalsInit;
+  procedure NormalsBegin;
   { setup Render_Normals variable }
   begin
    { TODO: not all normal bindings are supported,
@@ -369,11 +394,11 @@ procedure TGeneralIndexedRenderer.Render;
    end;
   end;
 
-  procedure NormalsFini;
+  procedure NormalsEnd;
   begin
   end;
 
-  procedure MaterialsInit;
+  procedure MaterialsBegin;
   { setup Render_Materials variable }
   begin
    Render_Materials := imOverall;
@@ -396,70 +421,82 @@ procedure TGeneralIndexedRenderer.Render;
   end;
 
 var
-  startIndex, endIndex, faceNumber: integer;
+  { This is used only by LockArraysBegin and LockArraysEnd. }
   UseLockArrays: boolean;
-begin
- if Coord = nil then
-   Exit;
 
- {initialize most important thing we will use with indexed nodes :
-  vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit
-  (a byc moze kiedys cos wiecej) moga tez zaladowac swoje vertex arrays. }
- glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
- try
-  glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
-  glEnableClientState(GL_VERTEX_ARRAY);
+  procedure LockArraysBegin;
+  begin
+    { See
+      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+      for description of GL_EXT_compiled_vertex_array.
 
-  { See
-    [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-    for description of GL_EXT_compiled_vertex_array.
-
-    Note that I can't use it when Coord has no items
-    (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-  UseLockArrays := GL_EXT_compiled_vertex_array and
-    (Coord.Items.Count <> 0);
-  if UseLockArrays then
-   glLockArraysEXT(0, Coord.Items.Count);
-
-  {initialize rendering}
-  TextureInit;
-  MaterialsInit;
-  NormalsInit;
-  Render_Init;
-  try
-
-   {wlasciwe rendering : wywoluj Render_Face}
-   startIndex := 0;
-   faceNumber := 0;
-   while startIndex < CoordIndex.Count do
-   begin
-    endIndex := startIndex;
-    while (endIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[endIndex] >= 0) do
-     Inc(endIndex);
-
-    case Render_Materials of
-     imUseSpecifiedPerFace:
-       Renderer.Render_BindMaterial_1(faceNumber);
-     imUseSpecifiedPerFaceIndexed:
-       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
-    end;
-
-    Render_Face(startIndex, endIndex);
-    Inc(faceNumber);
-    startIndex := endIndex+1;
-   end;
-  finally
-
-   {finalize rendering}
-   Render_Fini;
-   NormalsFini;
-   TextureFini;
+      Note that I can't use it when Coord has no items
+      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+    UseLockArrays := GL_EXT_compiled_vertex_array and
+      (Coord.Items.Count <> 0);
+    if UseLockArrays then
+      glLockArraysEXT(0, Coord.Items.Count);
   end;
 
-  if UseLockArrays then
-   glUnlockArraysEXT;
- finally glPopClientAttrib; end;
+  procedure LockArraysEnd;
+  begin
+    if UseLockArrays then
+      glUnlockArraysEXT;
+  end;
+
+var
+  startIndex, endIndex, faceNumber: integer;
+begin
+  if Coord = nil then
+    Exit;
+
+  {initialize most important thing we will use with indexed nodes :
+   vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit
+   (a byc moze kiedys cos wiecej) moga tez zaladowac swoje vertex arrays. }
+  glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+  try
+    glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    {initialize rendering}
+    TextureBegin;
+    MaterialsBegin;
+    NormalsBegin;
+    { Lock arrays after setting up all arrays. }
+    LockArraysBegin;
+    Render_Init;
+    try
+
+      {wlasciwe rendering : wywoluj Render_Face}
+      startIndex := 0;
+      faceNumber := 0;
+      while startIndex < CoordIndex.Count do
+      begin
+        endIndex := startIndex;
+        while (endIndex < CoordIndex.Count) and
+              (CoordIndex.Items.Items[endIndex] >= 0) do
+          Inc(endIndex);
+
+        case Render_Materials of
+          imUseSpecifiedPerFace:
+            Renderer.Render_BindMaterial_1(faceNumber);
+          imUseSpecifiedPerFaceIndexed:
+            Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
+        end;
+
+        Render_Face(startIndex, endIndex);
+        Inc(faceNumber);
+        startIndex := endIndex+1;
+      end;
+    finally
+
+      {finalize rendering}
+      Render_Fini;
+      LockArraysEnd;
+      NormalsEnd;
+      TextureEnd;
+    end;
+  finally glPopClientAttrib; end;
 end;
 
 { Render_Init / Fini w tej klasie nie sa abstract zeby umozliwic zawsze
