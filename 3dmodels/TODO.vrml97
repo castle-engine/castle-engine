@@ -1,5 +1,7 @@
 VRML 97 TODO items:
 
+- Collision.wrl from annotated caused crash of view3dscene
+
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
   convert README to html and put on page (as well as in the archive)

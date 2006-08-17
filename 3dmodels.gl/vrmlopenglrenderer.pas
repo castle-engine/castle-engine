@@ -1880,7 +1880,23 @@ begin
     TextureTransform := State.ParentShape.TextureTransform;
     if TextureTransform = nil then
       glLoadIdentity else
-      glLoadMatrix(TextureTransform.Matrix);
+    begin
+      { Alternative version of the code below:
+          glLoadMatrix(TextureTransform.Matrix);
+        See TNodeTextureTransform.Matrix comments.
+        Below we do the same thing, but we just implement this
+        directly by calling OpenGL commands. }
+      glLoadIdentity;
+      with TextureTransform do
+      begin
+        glTranslatef(
+          FdTranslation.Value[0] + FdCenter.Value[0],
+          FdTranslation.Value[1] + FdCenter.Value[1], 0);
+        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
+        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
+        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+      end;
+    end;
   end;
 
   glMatrixMode(GL_MODELVIEW);

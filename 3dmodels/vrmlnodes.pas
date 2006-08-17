@@ -2350,6 +2350,9 @@ type
   end;
 
   TNodeBillboard = class(TNodeGeneralGrouping)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2382,6 +2385,9 @@ type
   end;
 
   TNodeCollision = class(TNodeGeneralGrouping)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -6588,6 +6594,14 @@ begin
   Result := FdChildren;
 end;
 
+procedure TNodeBillboard.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
 class function TNodeBox.ClassNodeTypeName: string;
 begin
   Result := 'Box';
@@ -6620,6 +6634,14 @@ end;
 function TNodeCollision.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
+end;
+
+procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
 end;
 
 class function TNodeColor.ClassNodeTypeName: string;
@@ -8106,22 +8128,54 @@ end;
 
 function TNodeTextureTransform.Matrix: TMatrix4Single;
 begin
-  { Note that this is different than
-    TNodeTexture2Transform.TextureMatrixTransformation,
-    because VRML 2.0 spec says that order of operations
-    performed by TextureTransform is different than
-    the one by VRML 1.0. }
+  { Note: don't be fooled by a little confusing VRML 2.0 spec
+    wording for TextureTransform, that suggests that VRML 2.0
+    TextureTransform should multiply matrices in reversed
+    order than VRML 1.0. I'm talking about the paragraph
 
-  Result := TranslationMatrix(
-    Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 ));
+       In matrix transformation notation, where Tc is the
+       untransformed texture coordinate, Tc' is the transformed
+       texture coordinate, C (center), T (translation),
+       R (rotation), and S (scale) are the intermediate
+       transformation matrices,
+
+         Tc' = -C × S × R × C × T × Tc
+
+    VRML TextureTransform node transforms texture *coordinates*.
+    OpenGL texture matrix transforms texture *coordinates*.
+    And above paragraph says about texture *coordinates*.
+    So I'm either ultra-dumb or ultra-smart, but for me
+    the above paragraph is wrong: it says precisely that I should load
+    the *reversed* matrix of what I'm actually loading.
+    If I would follow this, I would actually *not* be
+    conforming to the rest of TextureTransform description in VRML spec.
+
+    Am I the only one fooled by this ? No:
+    [http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4320634]
+
+    So what's the truth (i.e. the correct order, consistent
+    with the whole rest of TextureTransform specification and with
+    other implementations) ?
+    Actually the order is the same for
+    both VRML 1.0 and 2.0, confirmed by experience (reversed
+    order just will not work correctly, e.g. TextureTransform
+    with rotation and center 0.5 0.5 fields specified will
+    not behave correctly) and other implementations
+    (see [http://search.cpan.org/src/LUKKA/FreeWRL-0.14/VRMLFunc.xs]
+    function TextureTransform_Rend). }
+
+  Result :=
+    TranslationMatrix( Vector3Single(
+      FdTranslation.Value[0] + FdCenter.Value[0],
+      FdTranslation.Value[1] + FdCenter.Value[1], 0));
+  Result := MultMatrices(Result,
+    RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
   Result := MultMatrices(Result,
     ScalingMatrix(
       Vector3Single( FdScale.Value[0], FdScale.Value[1], 1 )));
   Result := MultMatrices(Result,
-    RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  Result := MultMatrices(Result,
-    TranslationMatrix( Vector3Single(
-      VectorAdd(FdTranslation.Value, FdCenter.Value) )));
+    TranslationMatrix(
+      Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
 class function TNodeTimeSensor.ClassNodeTypeName: string;
