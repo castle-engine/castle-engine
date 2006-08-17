@@ -1629,6 +1629,7 @@ type
     function EmissiveColor4Single(MatNum: integer): TVector4Single;
     function Transparency(MatNum: integer): Single;
     function Opacity(MatNum: integer): Single;
+    function Shininess(MatNum: integer): Single;
     function ShininessExp(MatNum: integer): Single;
 
     function Mirror(MatNum: integer): Single;
@@ -5495,11 +5496,16 @@ begin
  result := 1-Transparency(MatNum);
 end;
 
+function TNodeMaterial_1.Shininess(MatNum: integer): Single;
+begin
+  if FdShininess.Count = 0 then
+    result := DEF_MAT_SHININESS else
+    result := FdShininess.Items.Items[min(MatNum, FdShininess.Count-1)];
+end;
+
 function TNodeMaterial_1.ShininessExp(MatNum: integer): Single;
 begin
- if FdShininess.Count = 0 then
-  result := DEF_MAT_SHININESS else
-  result := FdShininess.Items.Items[min(MatNum, FdShininess.Count-1)];
+  Result := Shininess(MatNum);
 
  {zgodnie ze specyfikacja VRML'a zakres 0..1 shininess VRML'a mapuje sie
   jednostajnie na caly zakres 0..128 OpenGL'a. Super. Robimy clamp
