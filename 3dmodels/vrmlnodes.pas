@@ -5694,20 +5694,24 @@ begin
 end;
 
 function TNodeTexture2.LoadTextureImage: TImage;
+var
+  FullUrl: string;
 begin
   Result := nil;
+
+  FullUrl := PathFromWWWBasePath(FdFilename.Value);
 
   { sprobuj zaladowac teksture z pliku FdFilename }
   if FdFilename.Value <> '' then
   try
-    Result := LoadImage( PathFromWWWBasePath(FdFilename.Value),
-      [TRGBImage, TAlphaImage], []);
+    Result := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
   except
     on E: Exception do
       { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
         (chociaz nie musi) }
-      VRMLNonFatalError('Exception '+E.ClassName+' occured when trying to load '+
-        'texture from filename '+FdFilename.Value+' : '+E.Message);
+      VRMLNonFatalError('Exception ' + E.ClassName +
+        ' occured when trying to load '+
+        'texture from filename "' + FullUrl + '" : ' + E.Message);
   end;
 
   { Result = nil oznacza ze nie bylo filename albo tekstury z
