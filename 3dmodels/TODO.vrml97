@@ -1,8 +1,6 @@
 VRML 97 TODO items:
 
-- "View warnings" looks bad (warning is dupl as 1st string,
-  bug in TStringList ? Maybe one of the bugs that I reported
-  once ?)
+- check NIST tests
 
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
@@ -214,5 +212,4 @@ The following node types are not valid as children nodes:
 
 Nearest plans:
 make URLs actually work
-check NIST tests
 check blender exported files
