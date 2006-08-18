@@ -306,11 +306,29 @@ constructor TVRMLGLAnimation.Create(
         'Different nodes classes: "%s" and "%s"',
         [Model1.ClassName <> Model2.ClassName]);
 
-    if Model1 is INodeGeneralInline then
+    (* TODO: I would prefer to use here interface code, like
+      if Supports(Model1, INodeGeneralInline) and
+       Supports(Model2, INodeGeneralInline) then
+       begin
+         { Make sure that *Inline content is loaded now. }
+         INodeGeneralInline(Model1).LoadInlined(false);
+         INodeGeneralInline(Model2).LoadInlined(false);
+       end; *)
+
+    if Model1 is TNodeWWWInline then
     begin
-      { Make sure that *Inline content is loaded now. }
-      (Model1 as INodeGeneralInline).LoadInlined(false);
-      (Model2 as INodeGeneralInline).LoadInlined(false);
+      TNodeWWWInline(Model1).LoadInlined(false);
+      TNodeWWWInline(Model2).LoadInlined(false);
+    end else
+    if Model1 is TNodeInline then
+    begin
+      TNodeInline(Model1).LoadInlined(false);
+      TNodeInline(Model2).LoadInlined(false);
+    end else
+    if Model1 is TNodeInlineLoadControl then
+    begin
+      TNodeInlineLoadControl(Model1).LoadInlined(false);
+      TNodeInlineLoadControl(Model2).LoadInlined(false);
     end;
 
     if Model1.NodeName <> Model2.NodeName then
@@ -388,7 +406,9 @@ constructor TVRMLGLAnimation.Create(
           examples/models/gus_2_final.wrl trick. }
 
         if not (
-           ( (Model1 is TNodeWWWInline) and (Model1.Fields[I].Name = 'name') ) or
+           ( (Model1 is TNodeWWWInline)         and (Model1.Fields[I].Name = 'name') ) or
+           ( (Model2 is TNodeInline)            and (Model1.Fields[I].Name = 'url') ) or
+           ( (Model1 is TNodeInlineLoadControl) and (Model1.Fields[I].Name = 'url') ) or
            Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
            ) then
           raise EModelsStructureDifferent.CreateFmt(

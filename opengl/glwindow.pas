@@ -636,9 +636,7 @@ unit GLWindow;
     and it's not a problem to update them whole. But it should be improved.
     Probably the only visible problem is that if you use "tearoffs" with
     GTK menu, they disappear on menu change.
-  - Visually show setting MenuActive to false.
-  - Make TMenuEntry.Disabled (then setting MainMenu.Disabled would replace
-    the need for MenuActive property)
+  - For WinAPI, glut: impl Enabled
   - Make TMenuItemRadio.
 }
 
@@ -988,7 +986,7 @@ type
       - taking care of AutoRedisplay
       - updating Width, Height (and updating it with accordance to
         Min/MaxWidth/Height and ResizeAllowed)
-      - checking MenuActive
+      - checking MainMenu.Enabled
     }
 
     { DoResize with FromIndependentInit = true is called only once
@@ -1115,7 +1113,7 @@ type
     procedure DoIdle;
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
-      This takes care of MenuActive,
+      This takes care of MainMenu.Enabled,
         MakeCurent,
         Item.DoCommand,
         optional EventMenuCommand or EventKeyDown }
@@ -1754,36 +1752,34 @@ type
       <>nil. I.e. you can't set MainMenu to nil if you called Init
       with MainMenu <> nil.
       See examples/menu_test_alternative.dpr for demo of changing
-      value of MainMenu while window is not Closed. }
+      value of MainMenu while window is not Closed.
+
+      Note that MainMenu.Enabled is honoured (as well as Enabled
+      for all menu items inside, of course).
+      You can use this to disallow user from clicking on the whole
+      menu. When MainMenu.Enabled = @false then
+      no MenuItem.DoCommand, no EventMenuCommand
+      will be called when user presses some menu item.
+      When user presses some keyboard shortcut for some menu item,
+      no MenuItem.DoCommand and no EventMenuCommand will be called,
+      but instead normal EventKeyDown (OnKeyDown) will be called.
+
+      When it is useful to set this to false ?
+      For example hen using GLWinModes. When you're changing modes (e.g. at the
+      beginning of GLWinMessages.MessageOk) you're temporary setting
+      OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
+      functions. The only way to block menu from triggering ANY event is to
+      set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
     { If true then in TGLWindow destructor MainMenu will be destroyed too
       (if not nil, od course). Usually this is something useful. }
     OwnsMainMenu: boolean; { = true }
 
-    { Each time user will choose some menu item (let's name it MenuItem)
-      and MenuActive is true,
+    { Each time user will choose some menu item (let's name it MenuItem),
       we will call MenuItem.DoCommand. If this will return false then
       we will call EventMenuCommand (that will call OnMenuCommand). }
     OnMenuCommand: TMenuCommandFunc; { = nil }
-
-    { When this is set to false, user clicks on menu will be ignored.
-      No MenuItem.DoCommand, no EventMenuCommand
-      will be called when user presses some menu item.
-      When user presses some keyboard shortcut for some menu item,
-      no MenuItem.DoCommand and no EventMenuCommand will be called,
-      instead normal EventKeyDown (OnKeyDown) will be called.
-      Menu bar may be
-      even hidden or something like that (but such hiding is currently
-      not implemented in any GLWindow implementation).
-
-      When it is useful to set this to false ?
-      When using GLWinModes. When you're changing modes (e.g. at the
-      beginning of GLWinMessages.MessageOk) you're temporary setting
-      OnMenuCommand to nil, but you can't block TMenuItem.DoCommand functions.
-      So the only way to block menu from triggering ANY event is to
-      set this to false. }
-    MenuActive: boolean; { = true }
 
     { Mouse state ------------------------------------------------------------ }
 
@@ -2852,7 +2848,6 @@ begin
  DepthBufferBits := 16;
  FMouseVisible := true;
 
- MenuActive := true;
  OwnsMainMenu := true;
 
  CreateImplDepend;
@@ -3181,7 +3176,9 @@ begin
  if Key <> K_None then KeysDown[Key] := true;
 
  MatchingMI := SeekMatchingMenuItem;
- if MenuActive and (MatchingMI <> nil) then
+ if (MainMenu <> nil) and
+    MainMenu.Enabled and
+    (MatchingMI <> nil) then
  begin
   if RedirectKeyDownToMenuCommand then
    DoMenuCommand(MatchingMI);
@@ -3245,7 +3242,7 @@ procedure TGLWindow.DoTimer; begin  MakeCurrent; EventTimer end;
 
 procedure TGLWindow.DoMenuCommand(Item: TMenuItem);
 begin
- if not MenuActive then Exit;
+ if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
 
  MakeCurrent;
  if Item.DoCommand then Exit;

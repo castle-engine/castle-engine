@@ -78,8 +78,11 @@ type
     oldUserdata: Pointer;
     oldAutoRedisplay: boolean;
     oldFPSActive: boolean;
-    oldMenuActive: boolean;
     oldMainMenu: TMenu;
+    { This is saved value of oldMainMenu.Enabled.
+      So that you can change MainMenu.Enabled without changing MainMenu
+      and SetGLWindowState will restore this. }
+    oldMainMenuEnabled: boolean;
     OldMouseVisible: boolean;
     { TGLWindowDemo attributes }
     oldSwapFullScreen_Key: TKey;
@@ -108,7 +111,11 @@ type
   Free), o ile jest ona <> nil.
   2. Nie mozesz zmieniac zawartosci MainMenu w czasie TGLMode.Create/Free.
   (chociaz mozesz podmieniac wartosc MainMenu na inna, pod warunkiem
-  ze obie sa <> nil).
+  ze obie sa <> nil). Wyjatkiem jest tutaj MainMenu.Enabled, ktore
+  jest tutaj zapamietywane specjalnie.
+
+  Note that SetGLWindowState first sets Glwin.MainMenu, and then,
+  if Glwin.MainMenu <> nil, sets Glwin.MainMenu.Enabled from saved state.
 }
 function GetGLWindowState(glwin: TGLWindow): TGLWindowState;
 procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
@@ -116,15 +123,16 @@ procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
 { SetStandardGLWindowState ustawia wszystkie wlasciwosci ktore sa
   zawarte w TGLWindowState. Ale pozwala w wygodniejszy sposob niz SetGLWindowState
   podac te wlasciwosci :
-    czesc wlasciwosci jest pobierana jako prametry,
+    czesc wlasciwosci jest pobierana jako parametry,
     czesc wlasciwosci jest pominieta -
       pominiete callbacki beda ustawione na nil,
       pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-      pominiete MouseVisible bedzie ustawione na true. }
+      pominiete MouseVisible bedzie ustawione na true.
+    Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil. }
 procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMenuActive: boolean;
+  NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
   NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 
@@ -136,7 +144,7 @@ procedure SetStandardGLWindowState(glwin: TGLWindow;
 procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMenuActive: boolean;
+  NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
   NewFpsShowOnCaption, NewUseNavigator: boolean);
 
@@ -329,8 +337,9 @@ begin
  result.oldUserdata := glwin.Userdata;
  result.oldAutoRedisplay := glwin.AutoRedisplay;
  result.oldFPSActive := glwin.FpsActive;
- result.oldMenuActive := glwin.MenuActive;
  result.oldMainMenu := glwin.MainMenu;
+ if glwin.MainMenu <> nil then
+   result.oldMainMenuEnabled := glwin.MainMenu.Enabled;
  Result.OldMouseVisible := Glwin.MouseVisible;
 
  if glwin is TGLWindowDemo then
@@ -351,8 +360,9 @@ begin
  glwin.Userdata := State.oldUserdata;
  glwin.AutoRedisplay := State.oldAutoRedisplay;
  glwin.FpsActive := State.oldFPSActive;
- glwin.MenuActive := State.oldMenuActive;
  glwin.MainMenu := State.oldMainMenu;
+ if glwin.MainMenu <> nil then
+   glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
  Glwin.MouseVisible := State.OldMouseVisible;
 
  if glwin is TGLWindowDemo then
@@ -369,7 +379,7 @@ end;
 procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMenuActive: boolean;
+  NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
   NewClose_charkey: char; NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
@@ -381,7 +391,8 @@ begin
  glwin.Userdata := NewUserdata;
  glwin.AutoRedisplay := NewAutoRedisplay;
  glwin.FpsActive := NewFPSActive;
- glwin.MenuActive := NewMenuActive;
+ if glwin.MainMenu <> nil then
+   glwin.MainMenu.Enabled := NewMainMenuEnabled;
  {glwin.MainMenu := leave current value}
  Glwin.MouseVisible := true;
 
@@ -401,14 +412,14 @@ procedure CloseQuery_Ignore(glwin: TGLWindow); begin end;
 procedure SetStdNoCloseGLWindowState(glwin: TGLWindow;
   NewDraw, NewResize: TGLWindowFunc;
   NewUserData: Pointer; NewAutoRedisplay: boolean; NewFPSActive: boolean;
-  NewMenuActive: boolean;
+  NewMainMenuEnabled: boolean;
   NewSwapFullScreen_Key: TKey;
   NewFpsShowOnCaption, NewUseNavigator: boolean);
 begin
  SetStandardGLWindowState(glwin,
    NewDraw, {$ifdef FPC_OBJFPC} @ {$endif} CloseQuery_Ignore, NewResize,
    NewUserData, NewAutoRedisplay, NewFPSActive,
-   NewMenuActive,
+   NewMainMenuEnabled,
    NewSwapFullScreen_Key, #0, NewFpsShowOnCaption, NewUseNavigator);
 end;
 
@@ -578,7 +589,7 @@ begin
  SetStdNoCloseGLWindowState(AGLWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   Self, false, false, AGLWindow.FPSActive, K_None, false, false);
+   Self, false, AGLWindow.FPSActive, false, K_None, false, false);
 
  { setup our 2d projection. We must do it before SaveScreen }
  glwin.EventResize;

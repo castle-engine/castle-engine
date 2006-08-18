@@ -201,19 +201,19 @@ procedure TGLWindow.init_window_menu_bar;
          Tearoff);
       end;
 
-    {$ifdef GLWINDOW_GTK_1}
-    function gtk_check_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
-    begin
-     Result := gtk_check_menu_item_new_with_label(
-       PChar(SRemoveMnemonics(Caption)));
-    end;
+      {$ifdef GLWINDOW_GTK_1}
+      function gtk_check_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
+      begin
+       Result := gtk_check_menu_item_new_with_label(
+         PChar(SRemoveMnemonics(Caption)));
+      end;
 
-    function gtk_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
-    begin
-     Result := gtk_menu_item_new_with_label(
-       PChar(SRemoveMnemonics(Caption)));
-    end;
-    {$endif}
+      function gtk_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
+      begin
+       Result := gtk_menu_item_new_with_label(
+         PChar(SRemoveMnemonics(Caption)));
+      end;
+      {$endif}
 
     var SubMenu: PGtkMenu;
         i: Integer;
@@ -261,12 +261,20 @@ procedure TGLWindow.init_window_menu_bar;
      end else
       raise EInternalError.Create('Not implemented TMenuEntry subclass');
 
+     if Entry is TMenuEntryWithCaption then
+     begin
+       gtk_widget_set_sensitive(GTK_WIDGET(Result),
+         TMenuEntryWithCaption(Entry).Enabled);
+     end;
+
      gtk_widget_show(GTK_WIDGET(Result));
     end;
 
   var i: Integer;
   begin
    Result := PGtkMenuBar(gtk_menu_bar_new());
+
+   gtk_widget_set_sensitive(GTK_WIDGET(Result), MainMenu.Enabled);
 
    gtk_widget_show(GTK_WIDGET(Result));
    for i := 0 to MainMenu.EntriesCount - 1 do

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -49,7 +49,12 @@
   private
     FCaption: String;
     procedure SetCaption(const Value: String);
+
+    FEnabled: boolean;
+    procedure SetEnabled(Value: boolean);
   public
+    constructor Create(const ACaption: String);
+
     { Caption of this menu entry. Will be shown to user.
 
       To indicate that some letter of a caption is a mnemonic
@@ -75,7 +80,9 @@
       Just like in GTK toolkit gtk_label_new_with_mnemonic and
       gtk_menu_item_new_with_mnemonic. }
     property Caption: String read FCaption write SetCaption;
-    constructor Create(const ACaption: String);
+
+    property Enabled: boolean read FEnabled write SetEnabled
+      default true;
   end;
 
   { TMenuEntry that contains a list of menu entries.
@@ -303,16 +310,26 @@ end;
 
 { TMenuEntryWithCaption ---------------------------------------- }
 
-procedure TMenuEntryWithCaption.SetCaption(const Value: String);
-begin
- FCaption := Value;
- Changed;
-end;
-
 constructor TMenuEntryWithCaption.Create(const ACaption: String);
 begin
- inherited Create;
- FCaption := ACaption;
+  inherited Create;
+  FCaption := ACaption;
+  FEnabled := true;
+end;
+
+procedure TMenuEntryWithCaption.SetCaption(const Value: String);
+begin
+  FCaption := Value;
+  Changed;
+end;
+
+procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    Changed;
+  end;
 end;
 
 { TMenu ------------------------------------------------------------ }
