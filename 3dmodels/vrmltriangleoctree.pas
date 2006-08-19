@@ -1091,7 +1091,7 @@ var LightPos: TVector3Single;
 begin
  if not Light.LightNode.FdOn.Value then result := false;
 
- if Light.LightNode is TNodeDirectionalLight_1 then
+ if Light.LightNode is TNodeGeneralDirectionalLight then
   { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
     daleko ze wszystkie promienie od swiatla sa rownolegle.
 

@@ -3399,11 +3399,11 @@ type
       @noAutoLinkHere }
     function Texture: TNodeGeneralTexture;
 
-    { This is like @like(Texture), but it returns TextureTransform
+    { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
     function TextureTransform: TNodeTextureTransform;
 
-    { This is like @like(Texture), but it returns Material
+    { This is like @link(Texture), but it returns Material
       of Apperance. }
     function Material: TNodeMaterial_2;
   end;

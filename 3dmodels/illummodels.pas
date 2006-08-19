@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -34,7 +34,8 @@ uses VectorMath, VRMLNodes, VRMLTriangleOctree, Math, KambiUtils;
   chwilowo) zaimplementowane niezgodnie z ta specyfikacja to :
   - zle uwzgledniamy attenuation swiatel ktore sa umieszczone pod jakas
     transformacja (TODO)
-  - skupienie spot light liczymy troche inaczej bo mamy do dyspozycji inne
+  - For VRML 1.0 SpotLight, we have to calculate skupienie spot light 
+    troche inaczej bo mamy do dyspozycji inne
     dane (mamy pola z VRMLa 1.0 ktore okreslaja spot inaczej niz w VRMLu 97).
     Uzywamy wiec dla spota rownan uzywanych w OpenGLu.
   - nie obliczamy AmbientFactor w LightContribution bo nie mamy ambientIntensity
@@ -119,10 +120,33 @@ uses VRMLErrors;
 
 function VRML97Emission(const IntersectNode: TOctreeItem;
   LightingCalculationOn: boolean): TVector3Single;
+var
+  M1: TNodeMaterial_1;
+  M2: TNodeMaterial_2;
 begin
- if LightingCalculationOn then
-  result := IntersectNode.State.LastNodes.Material.EmissiveColor3Single(IntersectNode.MatNum) else
-  result := IntersectNode.State.LastNodes.Material.DiffuseColor3Single(IntersectNode.MatNum);
+  if IntersectNode.State.ParentShape <> nil then
+  begin
+    M2 := IntersectNode.State.ParentShape.Material;
+    if M2 <> nil then
+    begin
+      if LightingCalculationOn then
+        Result := M2.FdEmissiveColor.Value else
+        Result := M2.FdDiffuseColor.Value;
+    end else
+    begin
+      if LightingCalculationOn then
+        { Default VRML 2.0 Material.emissiveColor }
+        Result := Vector3Single(0, 0, 0) else
+        { Default VRML 2.0 Material.diffuseColor }
+        Result := Vector3Single(0.8, 0.8, 0.8);
+    end;
+  end else
+  begin
+    M1 := IntersectNode.State.LastNodes.Material;
+    if LightingCalculationOn then
+      Result := M1.EmissiveColor3Single(IntersectNode.MatNum) else
+      Result := M1.DiffuseColor3Single(IntersectNode.MatNum);
+  end;
 end;
 
 function VRML97LightContribution(const Light: TActiveLight;

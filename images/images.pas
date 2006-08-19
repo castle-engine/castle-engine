@@ -844,7 +844,7 @@ function LoadGIF(Stream: TStream): TRGBImage;
   ImageFormatsInfo[].
   This means that below we must use overloading instead of
   default parameters, since pointers to given procedures must be
-  compatible with @link(TImageFormatSaveFunc). }
+  compatible with @link(TRGBImageSaveFunc). }
 
 procedure SaveBMP(const img: TRGBImage; Stream: TStream);
 procedure SavePNG(const img: TRGBImage; Stream: TStream; interlaced: boolean); overload;
