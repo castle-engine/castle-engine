@@ -3811,6 +3811,9 @@ function ParseNode(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string): TVRMLNode; overload;
 
+function ParseVRMLFileFromString(const VRMLContents: string;
+  const WWWBasePath: string): TVRMLNode; overload;
+
 { FileName to nazwa istniejacego pliku (wzgledna lub bezwzgledna).
   Jezeli AllowStdIn to jesli filename = '-' to odczytamy model z StdInStream,
   w tym przypadku WWWBasePath bedzie ustawione na GetCurrentDir.
@@ -8702,6 +8705,18 @@ begin
    Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,
      ExtractFilePath(ExpandFilename(FileName)));
  end;
+end;
+
+function ParseVRMLFileFromString(const VRMLContents: string;
+  const WWWBasePath: string): TVRMLNode; overload;
+var
+  Stream: TPeekCharStream;
+begin
+  Stream := TSimplePeekCharStream.Create(
+    TStringStream.Create(VRMLContents), true);
+  try
+    Result := ParseVRMLFile(Stream, WWWBasePath);
+  finally FreeAndNil(Stream) end;
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
