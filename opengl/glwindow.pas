@@ -583,9 +583,6 @@ unit GLWindow;
     MaxWidth/Height (Maybe these properties should be removed ?
       They are made for symmetry with MinWidth/Height. Are they really useful ?)
   - with GTK 2:
-    - Only Win32: how to catch menu_bar_activation to also catch F10 press ?
-      Check: probably now menu_item_select fixed this.
-
     - Migrate GtkFileSelection to GtkFileChooser.
 
       Also provide some way to specify code some filter (at least

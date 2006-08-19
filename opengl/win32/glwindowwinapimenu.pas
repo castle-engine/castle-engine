@@ -100,7 +100,17 @@ implementation
 
 uses KambiUtils;
 
-function WindowsMenuFromGLWindowMenu(Menu: TMenu; MenuBar: boolean): HMenu;
+{ We use ParentAllowsEnabled trick to take into account main Menu.Enabled
+  state. WinAPI doesn't allow the menu bar or popup to be just disabled,
+  so instead we disable all direct children of main Manu
+  if Menu.Enabled = false.
+
+  In other words, when main menu creates it's children, it passes
+  ParentAllowsEnabled = main Menu.Enabled.
+  When other menu creates it's children, it passes
+  ParentAllowsEnabled = @true. }
+function WindowsMenuFromGLWindowMenuCore(Menu: TMenu; 
+  MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
   function SMnemonicsToWin(const S: string): string;
   var SPos, ResultPos: Integer;
@@ -139,20 +149,28 @@ function WindowsMenuFromGLWindowMenu(Menu: TMenu; MenuBar: boolean): HMenu;
    SetLength(Result, ResultPos - 1);
   end;
 
-  procedure AppendGLMenu(Menu: TMenu);
+  function EnabledFlag(Enabled: boolean): UInt;
+  begin
+    if Enabled then
+      Result := MF_ENABLED else
+      Result := MF_GRAYED;
+  end;
+
+  procedure AppendGLMenu(Menu: TMenu; ParentAllowsEnabled: boolean);
   begin
    { I'm casting WindowsMenuFromGLWindowMenu result (:HMenu)
      to UINT to avoid range check errors }
-   KambiOSCheck( AppendMenu(Result, MF_STRING or MF_POPUP,
-     UINT(WindowsMenuFromGLWindowMenu(Menu, false)),
+   KambiOSCheck( AppendMenu(Result,
+     MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
+     UINT(WindowsMenuFromGLWindowMenuCore(Menu, false, true)),
      PChar(SMnemonicsToWin(Menu.Caption))) );
   end;
 
-  procedure AppendGLMenuItem(MenuItem: TMenuItem);
+  procedure AppendGLMenuItem(MenuItem: TMenuItem; ParentAllowsEnabled: boolean);
   var Flags: UInt;
       KeyStr, S: string;
   begin
-   Flags := MF_STRING;
+   Flags := MF_STRING or EnabledFlag(MenuItem.Enabled and ParentAllowsEnabled);
 
    { If I understand docs properly, MF_UNCHECKED is actually meaningless
      here as I don't use any customized bitmaps for menu check marks.
@@ -196,15 +214,22 @@ begin
  begin
   M := Menu[i];
   if M is TMenuItem then
-   AppendGLMenuItem(TMenuItem(M)) else
+   AppendGLMenuItem(TMenuItem(M), ParentAllowsEnabled) else
   if M is TMenuSeparator then
   begin
    if not MenuBar then AppendGLMenuSeparator;
   end else
   if M is TMenu then
-   AppendGLMenu(TMenu(M)) else
+   AppendGLMenu(TMenu(M), ParentAllowsEnabled) else
    raise EInternalError.Create('Not implemented TMenuEntry subclass');
  end;
+end;
+
+function WindowsMenuFromGLWindowMenu(Menu: TMenu; 
+  MenuBar: boolean): HMenu;
+begin
+  Result := WindowsMenuFromGLWindowMenuCore(
+    Menu, MenuBar, Menu.Enabled);
 end;
 
 end.
