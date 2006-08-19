@@ -1150,21 +1150,54 @@ type
   {$I objectslist_3.inc}
   TVRMLNodesList = class(TObjectsList_3);
 
+  TVRMLNodeClassesList = class(TList)
+  private
+    function GetItems(Index: Integer): TVRMLNodeClass;
+    procedure SetItems(Index: Integer; Value: TVRMLNodeClass);
+  public
+    property Items[Index: Integer]: TVRMLNodeClass
+      read GetItems write SetItems;
+    procedure AssignArray(
+      const AItemsArray: array of TVRMLNodeClass);
+    function IndexOf(NodeClass: TVRMLNodeClass): Integer; overload;
+    { This is equivalent to IndexOf(NodeClass.ClassType),
+      taking care of necessary typecasts. }
+    function IndexOf(Node: TVRMLNode): Integer; overload;
+    procedure Add(Value: TVRMLNodeClass);
+  end;
+
   { SFNode VRML field.
     It's defined in this unit, not in VRMLFields, since it uses
     TVRMLNode definition. NULL value of the field is indicated by
-    Value field = nil. This field has always the same default value: NULL. }
+    Value field = nil. This field has always the same default value: NULL.
+
+    Note that we store AllowedChildren list, which is a list of
+    classes allowed as a Value (also nil is always allowed).
+    But this is used only to produce warnings for a user.
+    You should never assert that Value actually is one the requested
+    classes. We want to keep here even not allowed items,
+    because we want operation "read from VRML file + write to VRML file"
+    to be as non-destructible as possible. So if user wrote
+    invalid class hierarchy, we will output this invalid class hierarchy. }
   TSFNode = class(TVRMLSimpleSingleField)
   private
     FValue: TVRMLNode;
     FParentNode: TVRMLNode;
+    FAllowedChildren: TVRMLNodeClassesList;
     procedure SetValue(AValue: TVRMLNode);
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    constructor Create(AParentNode: TVRMLNode; const AName: string);
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      const AnAllowedChildren: array of TVRMLNodeClass); overload;
+    { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
+      Note that we copy the contents of AnAllowedChildren, not the
+      reference. }
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      AnAllowedChildren: TVRMLNodeClassesList); overload;
     destructor Destroy; override;
+
     property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function EqualsDefaultValue: boolean; override;
@@ -1184,16 +1217,30 @@ type
     Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
     Reasons ? 1. We don't want to use TDynArray descendant.
     We want to use TVRMLNodesList. 2. We don't want to do parsing
-    using SFNode, because MFNode doesn't allow NULL items. }
+    using SFNode, because MFNode doesn't allow NULL items.
+
+    Just like for TSFNode:
+    Note that we store AllowedChildren list, which is a list of
+    classes allowed as Items.
+    But this is used only to produce warnings for a user.
+    You should never assert that every item actually is one the requested
+    classes.  }
   TMFNode = class(TVRMLMultField)
   private
     FItems: TVRMLNodesList;
     FParentNode: TVRMLNode;
+    FAllowedChildren: TVRMLNodeClassesList;
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    constructor Create(AParentNode: TVRMLNode; const AName: string);
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      const AnAllowedChildren: array of TVRMLNodeClass); overload;
+    { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
+      Note that we copy the contents of AnAllowedChildren, not the
+      reference. }
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      AnAllowedChildren: TVRMLNodeClassesList); overload;
     destructor Destroy; override;
 
     { Lists items of this fields.
@@ -3927,6 +3974,10 @@ const
   MinQuadricStacks: Cardinal = 2; { mimo ze OpenGL akceptuje minimum 1, ale dla 1 wynik jest bez sensu }
   MinRectDivisions: Cardinal = 0;
 
+var
+  AllowedChildrenNodes: TVRMLNodeClassesList;
+  AllowedGeometryNodes: TVRMLNodeClassesList;
+
 {$undef read_interface}
 
 implementation
@@ -4920,30 +4971,97 @@ begin
   Result := true;
 end;
 
+{ TVRMLNodeClassesList ------------------------------------------------------- }
+
+function TVRMLNodeClassesList.GetItems(Index: Integer): TVRMLNodeClass;
+begin
+  Result := TVRMLNodeClass(inherited Items[Index]);
+end;
+
+procedure TVRMLNodeClassesList.SetItems(Index: Integer; Value: TVRMLNodeClass);
+begin
+  inherited Items[Index] := Pointer(Value);
+end;
+
+procedure TVRMLNodeClassesList.AssignArray(
+  const AItemsArray: array of TVRMLNodeClass);
+var
+  I: Integer;
+begin
+  Count := High(AItemsArray) + 1;
+  for I := 0 to High(AItemsArray) do
+    Items[I] := AItemsArray[I];
+end;
+
+function TVRMLNodeClassesList.IndexOf(NodeClass: TVRMLNodeClass): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result] = NodeClass then
+      Exit;
+  Result := -1;
+end;
+
+function TVRMLNodeClassesList.IndexOf(Node: TVRMLNode): Integer;
+begin
+  Result := IndexOf(TVRMLNodeClass(Node.ClassType));
+end;
+
+procedure TVRMLNodeClassesList.Add(Value: TVRMLNodeClass);
+begin
+  inherited Add(Pointer(Value));
+end;
+
 { TSFNode --------------------------------------------------------------------- }
 
-constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string);
+constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  const AnAllowedChildren: array of TVRMLNodeClass);
 begin
   CreateUndefined(AName);
   FParentNode := AParentNode;
+  FAllowedChildren := TVRMLNodeClassesList.Create;
+  FAllowedChildren.AssignArray(AnAllowedChildren);
   Value := nil;
+end;
+
+constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  AnAllowedChildren: TVRMLNodeClassesList);
+begin
+  Create(AParentNode, AName, []);
+  FAllowedChildren.Assign(AnAllowedChildren);
 end;
 
 destructor TSFNode.Destroy;
 begin
   { To delete Self from Value.FParentFields, and eventually free Value. }
   Value := nil;
+  FreeAndNil(FAllowedChildren);
   inherited;
 end;
 
 procedure TSFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+
+  procedure ChildNotAllowed;
+  var
+    S: string;
+  begin
+    S := Format('Node "%s" is not allowed in the field "%s"',
+      [Value.NodeTypeName, Name]);
+    if ParentNode <> nil then
+      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+    VRMLNonFatalError(S);
+  end;
+
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
     Value := nil;
     Lexer.NextToken;
   end else
+  begin
     Value := ParseNode(Lexer, NodeNameBinding, true);
+    if FAllowedChildren.IndexOf(Value) = -1 then
+      ChildNotAllowed;
+  end;
 end;
 
 procedure TSFNode.SaveToStreamValue(Stream: TStream;
@@ -4998,17 +5116,28 @@ end;
 
 { TMFNode -------------------------------------------------------------------- }
 
-constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string);
+constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  const AnAllowedChildren: array of TVRMLNodeClass);
 begin
   inherited Create(AName);
   FParentNode := AParentNode;
+  FAllowedChildren := TVRMLNodeClassesList.Create;
+  FAllowedChildren.AssignArray(AnAllowedChildren);
   FItems := TVRMLNodesList.Create;
+end;
+
+constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  AnAllowedChildren: TVRMLNodeClassesList);
+begin
+  Create(AParentNode, AName, []);
+  FAllowedChildren.Assign(AnAllowedChildren);
 end;
 
 destructor TMFNode.Destroy;
 begin
   ClearItems;
   FreeAndNil(FItems);
+  FreeAndNil(FAllowedChildren);
   inherited;
 end;
 
@@ -5067,6 +5196,20 @@ begin
 end;
 
 procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+
+  procedure ChildNotAllowed(Value: TVRMLNode);
+  var
+    S: string;
+  begin
+    S := Format('Node "%s" is not allowed in the field "%s"',
+      [Value.NodeTypeName, Name]);
+    if ParentNode <> nil then
+      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+    VRMLNonFatalError(S);
+  end;
+
+var
+  Node: TVRMLNode;
 begin
   ClearItems;
 
@@ -5076,7 +5219,12 @@ begin
     Lexer.NextToken;
 
     while Lexer.Token <> vtCloseSqBracket do
-      AddItem(ParseNode(Lexer, NodeNameBinding, true));
+    begin
+      Node := ParseNode(Lexer, NodeNameBinding, true);
+      AddItem(Node);
+      if FAllowedChildren.IndexOf(Node) = -1 then
+        ChildNotAllowed(Node);
+    end;
 
     Lexer.NextToken;
   end else
@@ -6436,7 +6584,7 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('parameter', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
@@ -6465,9 +6613,17 @@ end;
 constructor TNodeAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'material')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texture')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'textureTransform')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'material',
+    [TNodeMaterial_2]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'texture',
+    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'textureTransform',
+    [TNodeTextureTransform]));
+  Fields.Last.Exposed := true;
 end;
 
 class function TNodeAudioClip.ClassNodeTypeName: string;
@@ -6597,7 +6753,7 @@ begin
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
   Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0))); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
@@ -6636,11 +6792,11 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Add(TSFNode.Create(Self, 'proxy'));
+  Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
   { eventOut     SFTime   collideTime }
 end;
 
@@ -6711,7 +6867,9 @@ begin
   inherited;
   { eventIn      MFNode  addChildren }
   { eventIn      MFNode  removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children',
+    [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]));
+  Fields.Last.Exposed := true;
 end;
 
 class function TNodeCoordinate.ClassNodeTypeName: string;
@@ -6735,11 +6893,11 @@ begin
   inherited;
   { eventIn      MFNode   addChildren }
   { eventIn      MFNode   removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'inputCoord')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'inputTransform')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'outputCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate])); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2])); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
@@ -6835,9 +6993,9 @@ constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
   { eventIn      MFFloat  set_height }
-  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('height', []));
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
@@ -7047,7 +7205,7 @@ end;
 constructor TNodeGeoCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TMFString.Create('point', []));
 end;
@@ -7062,13 +7220,13 @@ begin
   inherited;
   { eventIn        MFFloat    set_height }
   { eventIn        SFFloat    set_yScale }
-  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFString.Create('geoGridOrigin', '0 0 0'));
   Fields.Add(TMFFloat.Create('height', []));
@@ -7090,8 +7248,8 @@ constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
   Fields.Add(TSFString.Create('geoCoords', '')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children'));
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
 end;
 
@@ -7113,11 +7271,11 @@ begin
   Fields.Add(TMFString.Create('child2Url', []));
   Fields.Add(TMFString.Create('child3Url', []));
   Fields.Add(TMFString.Create('child4Url', []));
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFFloat.Create('range', 10));
   Fields.Add(TMFString.Create('rootUrl', []));
-  Fields.Add(TMFNode.Create(Self, 'rootNode'));
+  Fields.Add(TMFNode.Create(Self, 'rootNode', AllowedChildrenNodes));
   { eventOut   MFNode    children }
 end;
 
@@ -7129,7 +7287,7 @@ end;
 constructor TNodeGeoMetadata.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create(Self, 'data')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'data', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('summary', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
 end;
@@ -7156,7 +7314,7 @@ constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string; const A
 begin
   inherited;
   { eventIn   SFFloat   set_fraction }
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TMFFloat.Create('key', []));
   Fields.Add(TMFString.Create('keyValue', []));
@@ -7173,7 +7331,7 @@ constructor TNodeGeoTouchSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   { eventOut      SFVec3f   hitNormal_changed }
   { eventOut      SFVec3f   hitPoint_changed }
@@ -7200,7 +7358,7 @@ begin
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('navType', ['EXAMINE','ANY'])); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', ''));
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin'));
+  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
   Fields.Add(TSFString.Create('position', '0 0 100000'));
@@ -7219,7 +7377,7 @@ begin
   inherited;
   { eventIn      MFNode  addChildren }
   { eventIn      MFNode  removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
@@ -7310,10 +7468,10 @@ begin
   { eventIn       MFInt32 set_coordIndex }
   { eventIn       MFInt32 set_normalIndex }
   { eventIn       MFInt32 set_texCoordIndex }
-  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TMFInt32.Create('colorIndex', []));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
@@ -7341,8 +7499,8 @@ begin
   inherited;
   { eventIn       MFInt32 set_colorIndex }
   { eventIn       MFInt32 set_coordIndex }
-  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TMFInt32.Create('colorIndex', []));
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
   Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
@@ -7492,7 +7650,7 @@ end;
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create(Self, 'level')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'level', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
   Fields.Add(TMFFloat.Create('range', []));
 end;
@@ -7648,7 +7806,7 @@ begin
   inherited;
   { eventIn       MFNode   addChildren }
   { eventIn       MFNode   removeChildren }
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
@@ -7685,7 +7843,7 @@ constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
   Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface])); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('uTessellation', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('vTessellation', 0)); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
@@ -7821,8 +7979,8 @@ end;
 constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'color')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
 end;
 
 class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -7912,8 +8070,8 @@ end;
 constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'appearance')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'geometry')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'geometry', AllowedGeometryNodes)); Fields.Last.Exposed := true;
 end;
 
 procedure TNodeShape.DirectEnumerateActive(
@@ -8002,7 +8160,7 @@ begin
   Fields.Add(TSFFloat.Create('minBack', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('minFront', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('priority', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'source')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('spatialize', TRUE));
 end;
 
@@ -8072,7 +8230,7 @@ end;
 constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFNode.Create(Self, 'choice')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'choice', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('whichChoice', -1)); Fields.Last.Exposed := true;
 end;
 
@@ -8101,7 +8259,7 @@ constructor TNodeText.Create(const ANodeName: string; const AWWWBasePath: string
 begin
   inherited;
   Fields.Add(TMFString.Create('string', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'fontStyle')); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
 end;
@@ -8238,7 +8396,7 @@ begin
   { eventIn      MFNode      addChildren }
   { eventIn      MFNode      removeChildren }
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
@@ -8298,8 +8456,8 @@ begin
   inherited;
   { eventIn       MFNode   addTrimmingContour }
   { eventIn       MFNode   removeTrimmingContour }
-  Fields.Add(TMFNode.Create(Self, 'trimmingContour')); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'surface')); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'surface', [TNodeNurbsSurface])); Fields.Last.Exposed := true;
 end;
 
 class function TNodeViewpoint.ClassNodeTypeName: string;
@@ -8786,107 +8944,253 @@ end;
 { unit init/fini ------------------------------------------------------------ }
 
 initialization
- NodesManager := TNodesManager.Create;
- NodesManager.RegisterNodeClasses([
-   { Inventor spec nodes }
-   TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
+  NodesManager := TNodesManager.Create;
+  NodesManager.RegisterNodeClasses([
+    { Inventor spec nodes }
+    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
 
-   { VRML 1.0 spec nodes }
-   TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
-   TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
-   TNodePointSet_1, TNodeSphere_1,
-   TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
-   TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding, TNodeTexture2,
-   TNodeTexture2Transform,
-   TNodeTextureCoordinate2, TNodeShapeHints,
-   TNodeMatrixTransform, TNodeRotation,
-   TNodeScale, TNodeTransform_1,
-   TNodeTranslation,
-   TNodeOrthographicCamera, TNodePerspectiveCamera,
-   TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
-   TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
-   TNodeWWWAnchor,
-   TNodeWWWInline,
+    { VRML 1.0 spec nodes }
+    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
+    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
+    TNodePointSet_1, TNodeSphere_1,
+    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
+    TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding, TNodeTexture2,
+    TNodeTexture2Transform,
+    TNodeTextureCoordinate2, TNodeShapeHints,
+    TNodeMatrixTransform, TNodeRotation,
+    TNodeScale, TNodeTransform_1,
+    TNodeTranslation,
+    TNodeOrthographicCamera, TNodePerspectiveCamera,
+    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
+    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
+    TNodeWWWAnchor,
+    TNodeWWWInline,
 
-   { Kambi non-standard nodes }
-   TNodeKambiTriangulation,
+    { Kambi non-standard nodes }
+    TNodeKambiTriangulation,
 
-   { VRML 2.0 spec nodes }
-   TNodeAnchor,
-   TNodeAppearance,
-   TNodeAudioClip,
-   TNodeBackground,
-   TNodeBillboard,
-   TNodeBox,
-   TNodeCollision,
-   TNodeColor,
-   TNodeColorInterpolator,
-   TNodeCone_2,
-   TNodeContour2D,
-   TNodeCoordinate,
-   TNodeCoordinateDeformer,
-   TNodeCoordinateInterpolator,
-   TNodeCylinder_2,
-   TNodeCylinderSensor,
-   TNodeDirectionalLight_2,
-   TNodeElevationGrid,
-   TNodeExtrusion,
-   TNodeFog,
-   TNodeFontStyle_2,
-   TNodeGeoCoordinate,
-   TNodeGeoElevationGrid,
-   TNodeGeoLocation,
-   TNodeGeoLOD,
-   TNodeGeoMetadata,
-   TNodeGeoOrigin,
-   TNodeGeoPositionInterpolator,
-   TNodeGeoTouchSensor,
-   TNodeGeoViewpoint,
-   TNodeGroup_2,
-   TNodeImageTexture,
-   TNodeIndexedFaceSet_2,
-   TNodeIndexedLineSet_2,
-   TNodeInline,
-   TNodeInlineLoadControl,
-   TNodeLOD_2,
-   TNodeMaterial_2,
-   TNodeMovieTexture,
-   TNodeNavigationInfo,
-   { TNodeNormal, - registered already as VRML 1.0 node }
-   TNodeNormalInterpolator,
-   TNodeNurbsCurve,
-   TNodeNurbsCurve2D,
-   TNodeNurbsGroup,
-   TNodeNurbsPositionInterpolator,
-   TNodeNurbsSurface,
-   TNodeNurbsTextureSurface,
-   TNodeOrientationInterpolator,
-   TNodePixelTexture,
-   TNodePlaneSensor,
-   TNodePointLight_2,
-   TNodePointSet_2,
-   TNodePolyline2D,
-   TNodePositionInterpolator,
-   TNodeProximitySensor,
-   TNodeScalarInterpolator,
-   TNodeScript,
-   TNodeShape,
-   TNodeSound,
-   TNodeSphere_2,
-   TNodeSphereSensor,
-   TNodeSpotLight_2,
-   TNodeSwitch_2,
-   TNodeText,
-   TNodeTextureCoordinate,
-   TNodeTextureTransform,
-   TNodeTimeSensor,
-   TNodeTouchSensor,
-   TNodeTransform_2,
-   TNodeTrimmedSurface,
-   TNodeViewpoint,
-   TNodeVisibilitySensor,
-   TNodeWorldInfo
-   ]);
+    { VRML 2.0 spec nodes }
+    TNodeAnchor,
+    TNodeAppearance,
+    TNodeAudioClip,
+    TNodeBackground,
+    TNodeBillboard,
+    TNodeBox,
+    TNodeCollision,
+    TNodeColor,
+    TNodeColorInterpolator,
+    TNodeCone_2,
+    TNodeContour2D,
+    TNodeCoordinate,
+    TNodeCoordinateDeformer,
+    TNodeCoordinateInterpolator,
+    TNodeCylinder_2,
+    TNodeCylinderSensor,
+    TNodeDirectionalLight_2,
+    TNodeElevationGrid,
+    TNodeExtrusion,
+    TNodeFog,
+    TNodeFontStyle_2,
+    TNodeGeoCoordinate,
+    TNodeGeoElevationGrid,
+    TNodeGeoLocation,
+    TNodeGeoLOD,
+    TNodeGeoMetadata,
+    TNodeGeoOrigin,
+    TNodeGeoPositionInterpolator,
+    TNodeGeoTouchSensor,
+    TNodeGeoViewpoint,
+    TNodeGroup_2,
+    TNodeImageTexture,
+    TNodeIndexedFaceSet_2,
+    TNodeIndexedLineSet_2,
+    TNodeInline,
+    TNodeInlineLoadControl,
+    TNodeLOD_2,
+    TNodeMaterial_2,
+    TNodeMovieTexture,
+    TNodeNavigationInfo,
+    { TNodeNormal, - registered already as VRML 1.0 node }
+    TNodeNormalInterpolator,
+    TNodeNurbsCurve,
+    TNodeNurbsCurve2D,
+    TNodeNurbsGroup,
+    TNodeNurbsPositionInterpolator,
+    TNodeNurbsSurface,
+    TNodeNurbsTextureSurface,
+    TNodeOrientationInterpolator,
+    TNodePixelTexture,
+    TNodePlaneSensor,
+    TNodePointLight_2,
+    TNodePointSet_2,
+    TNodePolyline2D,
+    TNodePositionInterpolator,
+    TNodeProximitySensor,
+    TNodeScalarInterpolator,
+    TNodeScript,
+    TNodeShape,
+    TNodeSound,
+    TNodeSphere_2,
+    TNodeSphereSensor,
+    TNodeSpotLight_2,
+    TNodeSwitch_2,
+    TNodeText,
+    TNodeTextureCoordinate,
+    TNodeTextureTransform,
+    TNodeTimeSensor,
+    TNodeTouchSensor,
+    TNodeTransform_2,
+    TNodeTrimmedSurface,
+    TNodeViewpoint,
+    TNodeVisibilitySensor,
+    TNodeWorldInfo
+    ]);
+
+  AllowedChildrenNodes := TVRMLNodeClassesList.Create;
+  AllowedChildrenNodes.AssignArray([
+    { We add all nodes for VRML < 2.0, because we allow
+      to mix VRML 1.0 inside VRML 2.0. }
+
+    { Inventor spec nodes }
+    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
+
+    { VRML 1.0 spec nodes }
+    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
+    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
+    TNodePointSet_1, TNodeSphere_1,
+    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
+    TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding, TNodeTexture2,
+    TNodeTexture2Transform,
+    TNodeTextureCoordinate2, TNodeShapeHints,
+    TNodeMatrixTransform, TNodeRotation,
+    TNodeScale, TNodeTransform_1,
+    TNodeTranslation,
+    TNodeOrthographicCamera, TNodePerspectiveCamera,
+    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
+    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
+    TNodeWWWAnchor,
+    TNodeWWWInline,
+
+    { Kambi non-standard nodes }
+    TNodeKambiTriangulation,
+
+    { VRML 2.0 spec nodes }
+    TNodeAnchor,
+    //TNodeAppearance,
+    //TNodeAudioClip,
+    TNodeBackground,
+    TNodeBillboard,
+    //TNodeBox,
+    TNodeCollision,
+    //TNodeColor,
+    TNodeColorInterpolator,
+    //TNodeCone_2,
+    //TNodeContour2D,
+    //TNodeCoordinate,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is CoordinateDeformer allowed or not as children node.
+      To be fixed when I'll implement CoordinateDeformer handling. }
+    TNodeCoordinateDeformer,
+    TNodeCoordinateInterpolator,
+    //TNodeCylinder_2,
+    TNodeCylinderSensor,
+    TNodeDirectionalLight_2,
+    //TNodeElevationGrid,
+    //TNodeExtrusion,
+    TNodeFog,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is TNodeFontStyle allowed as children node,
+      but FontStyle docs say that it's only for Text.fontStyle. }
+    //TNodeFontStyle_2,
+    //TNodeGeoCoordinate,
+    //TNodeGeoElevationGrid,
+    TNodeGeoLocation,
+    TNodeGeoLOD,
+    TNodeGeoMetadata,
+    //TNodeGeoOrigin,
+    TNodeGeoPositionInterpolator,
+    TNodeGeoTouchSensor,
+    TNodeGeoViewpoint,
+    TNodeGroup_2,
+    //TNodeImageTexture,
+    //TNodeIndexedFaceSet_2,
+    //TNodeIndexedLineSet_2,
+    TNodeInline,
+    { VRML 2.0 spec doesn't say InlineLoadControl is valid children
+      node, it also doesn't say it's not valid. Common sense says
+      it's valid. }
+    TNodeInlineLoadControl,
+    TNodeLOD_2,
+    //TNodeMaterial_2,
+    //TNodeMovieTexture,
+    TNodeNavigationInfo,
+    { Normal node is not a valid children node for VRML 2.0.
+      But we don't have separate TNodeNormal_1 and TNodeNormal_2 classes,
+      so node normal was already added here as all other VRML 1.0 nodes.
+      So it's allowed children node for us --- in the spirit thst
+      we allow to mix VRML 1.0 and 2.0. }
+    //{ TNodeNormal, - registered already as VRML 1.0 node }
+    TNodeNormalInterpolator,
+    //TNodeNurbsCurve,
+    //TNodeNurbsCurve2D,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is NurbsGroup allowed or not as children node.
+      To be fixed when I'll implement NurbsGroup handling. }
+    TNodeNurbsGroup,
+    TNodeNurbsPositionInterpolator,
+    //TNodeNurbsSurface,
+    //TNodeNurbsTextureSurface,
+    TNodeOrientationInterpolator,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is PixelTexture allowed or not as children node.
+      But common sense says it's only for Appearance.texture field. }
+    //TNodePixelTexture,
+    TNodePlaneSensor,
+    TNodePointLight_2,
+    //TNodePointSet_2,
+    //TNodePolyline2D,
+    TNodePositionInterpolator,
+    TNodeProximitySensor,
+    TNodeScalarInterpolator,
+    TNodeScript,
+    TNodeShape,
+    TNodeSound,
+    //TNodeSphere_2,
+    TNodeSphereSensor,
+    TNodeSpotLight_2,
+    TNodeSwitch_2,
+    //TNodeText,
+    //TNodeTextureCoordinate,
+    //TNodeTextureTransform,
+    TNodeTimeSensor,
+    TNodeTouchSensor,
+    TNodeTransform_2,
+    //TNodeTrimmedSurface,
+    TNodeViewpoint,
+    TNodeVisibilitySensor,
+    TNodeWorldInfo
+  ]);
+
+  AllowedGeometryNodes := TVRMLNodeClassesList.Create;
+  AllowedGeometryNodes.AssignArray([
+    TNodeBox,
+    TNodeCone_2,
+    TNodeContour2D,
+    TNodeCylinder_2,
+    TNodeElevationGrid,
+    TNodeExtrusion,
+    TNodeGeoElevationGrid,
+    TNodeIndexedFaceSet_2,
+    TNodeIndexedLineSet_2,
+    TNodeNurbsCurve,
+    TNodeNurbsSurface,
+    TNodePointSet_2,
+    TNodeSphere_2,
+    TNodeText,
+    TNodeTrimmedSurface
+  ]);
 finalization
- FreeAndNil(NodesManager);
+  FreeAndNil(AllowedGeometryNodes);
+  FreeAndNil(AllowedChildrenNodes);
+  FreeAndNil(NodesManager);
 end.
