@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2005 Michalis Kamburelis.
+  Copyright 2001-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -36,6 +36,8 @@ private
     to right mouse button.
     On exit, glut's current menu is this main menu. }
   procedure InitMainMenu;
+
+  procedure UpdateMouseVisible;
 {$endif read_tglwindow_interface}
 
 {$ifdef read_tglwindowmanager_interface}
@@ -178,9 +180,17 @@ GLUTBEGIN
 GLUTEND;}
 
 procedure menuByGlut(Value: Integer); cdecl;
+var
+  MenuItem: TMenuItem;
 GLUTBEGIN
- if Value <> -1 then
-  DoMenuCommand(MenuItemFromSmallId(Value));
+  if Value <> -1 then
+  begin
+    MenuItem := MenuItemFromSmallId(Value);
+    { Since glut doesn't allow me to show and respect Enabled
+      property in the UI, I just check it here. }
+    if MenuItem.Enabled then
+      DoMenuCommand(MenuItem);
+  end;
 GLUTEND;
 
 { menu things ------------------------------------------------------------ }
@@ -247,6 +257,28 @@ end;
 { ------------------------------------------------------------------------------
   procedury obslugujace TGLWindow poprzez GLUTa }
 
+procedure TGLWindow.SetMouseVisible(const Value: boolean);
+begin
+  if FMouseVisible <> Value then
+  begin
+    FMouseVisible := Value;
+    if not Closed then
+      UpdateMouseVisible;
+  end;
+end;
+
+procedure TGLWindow.UpdateMouseVisible;
+begin
+  if MouseVisible then
+    glutSetCursor(GLUT_CURSOR_INHERIT) else
+    glutSetCursor(GLUT_CURSOR_NONE);
+end;
+
+procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  glutWarpPointer(NewMouseX, NewMouseY);
+end;
+
 procedure TGLWindow.SwapBuffers;
 begin
  glutSwapBuffers;
@@ -310,7 +342,6 @@ begin
  begin
   glutHwnd := glutCreateWindow(PChar(FCaption));
   glutFullScreen;
-  if fHideMouseInFullscreen then glutSetCursor(GLUT_CURSOR_NONE);
  end else
  begin
   glutInitWindowSize(width, height);
@@ -334,6 +365,8 @@ begin
  glutMotionFunc(motion_and_passiveMotionByGlut);
  glutPassiveMotionFunc(motion_and_passiveMotionByGlut);
  {glutSpecialUpFunc(specialUpByGlut); (glutSpecialUpFunc is not implemented yet)}
+
+ UpdateMouseVisible;
 
  { menu }
  if MainMenu<> nil then InitMainMenu;
