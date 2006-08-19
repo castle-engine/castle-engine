@@ -12,22 +12,37 @@ WWW:
   (from index, from rayhunter and view3dscene, from kambi_vrml_extensions,
   and between them)
 
-- test level in VRML 2.0 for castle
+- In many places my code temporarily cannot handle VRML 2.0 files,
+  should be updated:
 
-- grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
+  Remaining places:
+  - Ray-tracer (lights and materials should be updated for VRML 2.0)
+    ./vrmlraytracer.pas
+    ./illummodels_vrml97lightcontribution.inc
+    (grep for _1 where I used only VRML 1.0 nodes versions)
+
+  - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
+    ./object3dasvrml.pas
+    (grep for _1 where I used only VRML 1.0 nodes versions)
+
+  - Some VRML fields nodes may have to be added to list of
+    interpolated/checked for equality nodes inside
+    ./vrmlglanimation.pas
+
+  - "The Castle":
+    vrmlscenewaypoints.pas:
+      now uses ParentNodes, should also include ParentFields ?
+      Same for CastleLevel.
+    castledebugmenu: fix to include also VRML 97 light nodes,
+      not only _1 nodes.
+      (grep for _1 where I used only VRML 1.0 nodes versions)
+    make test level in VRML 2.0 for castle
+
+  - view3dscene:
+    SceneChangesUnit
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
-
-- vrmlscenewaypoints.pas:
-  now uses ParentNodes, should also include ParentFields ?
-  Same for CastleLevel.
-
-- castledebugmenu: fix to include also VRML 97 light nodes,
-  not only _1 nodes.
-
-- What about ray-tracer --- nodes should work there, lights will probably have
-  to be corrected.
 
 ----------------------------------------
 Post view3dscene 2.0 things:
