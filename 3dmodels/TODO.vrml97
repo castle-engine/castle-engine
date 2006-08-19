@@ -33,13 +33,9 @@ WWW:
     vrmlscenewaypoints.pas:
       now uses ParentNodes, should also include ParentFields ?
       Same for CastleLevel.
-    castledebugmenu: fix to include also VRML 97 light nodes,
-      not only _1 nodes.
-      (grep for _1 where I used only VRML 1.0 nodes versions)
+    castledebugmenu: fix to use also VRML 97 version of SpotLight_2
+      (it uses beamWidth)
     make test level in VRML 2.0 for castle
-
-  - view3dscene:
-    SceneChangesUnit
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
