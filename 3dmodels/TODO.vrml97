@@ -2,8 +2,6 @@ VRML 97 TODO items:
 
 - check NIST tests
 
-- check blender exported files
-
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
   convert README to html and put on page (as well as in the archive)
@@ -28,23 +26,31 @@ WWW:
 - castledebugmenu: fix to include also VRML 97 light nodes,
   not only _1 nodes.
 
+- What about ray-tracer --- nodes should work there, lights will probably have
+  to be corrected.
+
+----------------------------------------
+Post view3dscene 2.0 things:
+
 - move everything you can from
   /win/mojewww/camelot/kambi_vrml_extensions.php
   also to VRML 2.0, check it.
   Remaining things:
   - mirror and Phong's BRDF fields for materials
 
-- What about ray-tracer --- nodes should work there, lights will probably have
-  to be corrected.
-
-- KambiTriangulation should also be fixed
-  just like DirectionalLight.
+- KambiTriangulation should also be fixed just like DirectionalLight.
+  Or maybe it should be made a new field of Apperance ?
 
 - Viewpoint: HomeCameraUp can be different than starting CameraUp for Viewpoint
 
 - kambi_vrml_examples: do VRML 2.0 counterpart of all useful VRML 1.0 tests.
   Remaining sensible things to translate are:
   castle.wrl, house_behind_the_glass.wrl, materials.wrl.
+
+  Start of castle is in kambi
+  /win/3dmodels/vrml/kambi_vrml_examples.private/castle_vrml97_export
+  looks too bad for public --- various small problems.
+  For now I'll include VRML 1.0 version.
 
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
