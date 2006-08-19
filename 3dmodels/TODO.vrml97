@@ -2,6 +2,8 @@ VRML 97 TODO items:
 
 - check NIST tests
 
+- check blender exported files
+
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
   convert README to html and put on page (as well as in the archive)
@@ -16,8 +18,6 @@ WWW:
 
 - grep for _1 where I used only VRML 1.0 nodes versions, replace with two versions to use corresponding VRML 2.0 nodes too.
 
-- kambi_vrml_examples: do VRML 2.0 counterpart for all sensible things, test
-
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
 
@@ -31,6 +31,8 @@ WWW:
 - move everything you can from
   /win/mojewww/camelot/kambi_vrml_extensions.php
   also to VRML 2.0, check it.
+  Remaining things:
+  - mirror and Phong's BRDF fields for materials
 
 - What about ray-tracer --- nodes should work there, lights will probably have
   to be corrected.
@@ -39,6 +41,10 @@ WWW:
   just like DirectionalLight.
 
 - Viewpoint: HomeCameraUp can be different than starting CameraUp for Viewpoint
+
+- kambi_vrml_examples: do VRML 2.0 counterpart of all useful VRML 1.0 tests.
+  Remaining sensible things to translate are:
+  castle.wrl, house_behind_the_glass.wrl, materials.wrl.
 
 ----------------------------------------
 - Implement Prototypes, Event routing. Relevant spec parts:
@@ -58,14 +64,11 @@ WWW:
   - 4.3.6 IS statement syntax
   - 4.3.7 EXTERNPROTO statement syntax
   - 4.3.9 ROUTE statement syntax
+
+- 4.5.4 Scripting language protocols
+----------------------------------------
 - Check what nodes are allowed where:
   - Root nodes shall be children nodes (see 4.6.5, Grouping and children nodes).
-- Resolving url fields (MFString, see 4.5.2, 4.5.3).
-  Use Synapse or curl (probably both, by compile-time define;
-  make the URL system "pluggable", by default "null" system is plugged
-  so neither Synapse nor curl is used.)
-- 4.5.4 Scripting language protocols
-- check
 
    The following node types are geometry nodes:
     * Box
@@ -203,13 +206,15 @@ The following node types are not valid as children nodes:
     * TextureTransform
     * TrimmedSurface
 
--
-- 4.6.7 Sensor nodes
-  ...
-  and further 4.x, with the exception of 4.13, 4.14
+----------------------------------------
+- Resolving url fields (MFString, see 4.5.2, 4.5.3).
+  Use Synapse or curl (probably both, by compile-time define;
+  make the URL system "pluggable", by default "null" system is plugged
+  so neither Synapse nor curl is used.)
 
 ----------------------------------------
+- 4.6.7 Sensor nodes
+  ...
+  and further 4.x spec parts, with the exception of 4.13, 4.14
 
-Nearest plans:
-make URLs actually work
-check blender exported files
+----------------------------------------
