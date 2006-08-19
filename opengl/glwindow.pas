@@ -584,6 +584,7 @@ unit GLWindow;
       They are made for symmetry with MinWidth/Height. Are they really useful ?)
   - with GTK 2:
     - Only Win32: how to catch menu_bar_activation to also catch F10 press ?
+      Check: probably now menu_item_select fixed this.
 
     - Migrate GtkFileSelection to GtkFileChooser.
 
@@ -593,10 +594,6 @@ unit GLWindow;
       *.wrl, *.3ds, *.obj, *.geo, *.iv), do it portably and also
       for Win32, as Win32 dialog also allows such filters.
 
-    - How ReleaseAllKeysAndMouse is called on F10 press under UNIXes ?
-      It's good that it is, but how ?
-      Maybe GTK 2 does by itself something like mine ReleaseAllKeysAndMouse ?
-      That's good, but confirm it.
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
       Update docs about capabilities of GTK_2 implementation.

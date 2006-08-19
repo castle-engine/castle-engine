@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -29,8 +29,26 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 begin
- TGLWindow(UserData).ReleaseAllKeysAndMouse;
- Result := false;
+  TGLWindow(UserData).ReleaseAllKeysAndMouse;
+  Result := false;
+end;
+
+{ This is the only event I found that can be used in GTK 2 to
+  "sniff" when menu is open. See ReleaseAllKeysAndMouse
+  for comments why it's important to sniff it.
+
+  Note that in GTK 2 even when menu is open, key up will correctly
+  be called when you release keys over item in main menu bar
+  (i.e. if your MainMenu contains directly TMenuItem).
+  In this case key up is just passed to our WindowGtk.
+  But this is of course only a special case, in general
+  we still must take care ourselves to call ReleaseAllKeysAndMouse
+  when needed. That's why proc below is needed. }
+function signal_menu_item_select(AItem: PGtkItem;
+  UserData: gpointer): gboolean; cdecl;
+begin
+  TGLWindow(UserData).ReleaseAllKeysAndMouse;
+  Result := false;
 end;
 
 { Block signal_menu_item_activate on this menu item.
@@ -266,6 +284,9 @@ procedure TGLWindow.init_window_menu_bar;
        gtk_widget_set_sensitive(GTK_WIDGET(Result),
          TMenuEntryWithCaption(Entry).Enabled);
      end;
+
+     gtk_signal_connect(GTK_OBJECT(Result), 'select',
+       GTK_SIGNAL_FUNC(@signal_menu_item_select), Self);
 
      gtk_widget_show(GTK_WIDGET(Result));
     end;

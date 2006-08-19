@@ -735,10 +735,12 @@ begin
  Result := GTK_WIDGET(GLArea);
 end;
 
+{$ifdef GLWINDOW_GTK_2}
 { This is mispelled in FPC gtk bindings, see
   [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
 function gdk_display_open(display_name:Pgchar):PGdkDisplay;
   cdecl; external gdklib;
+{$endif}
 
 procedure TGLWindow.InitImplDepend;
 

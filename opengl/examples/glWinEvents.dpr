@@ -121,6 +121,8 @@ begin
    [glwin.MouseX, glwin.MouseY, newX, newY]));
 end;
 
+var
+  M: TMenu;
 begin
  glw.ParseParameters;
 
@@ -145,8 +147,15 @@ begin
  Writeln('I''m trying to get window size ', glw.Width, ',', glw.Height, '...');
  }
  glw.MainMenu := TMenu.Create('Test menu');
- glw.MainMenu.Append(TMenuItem.Create('Menu Item 1', 0));
- glw.MainMenu.Append(TMenuItem.Create('Menu Item 2', 1));
+ M := TMenu.Create('Menu 1');
+   M.Append(TMenuItem.Create('Menu Item 1', 0));
+   M.Append(TMenuItem.Create('Menu Item 2', 1));
+   glw.MainMenu.Append(M);
+ M := TMenu.Create('Menu 2');
+   M.Append(TMenuItem.Create('Menu Item 3', 3));
+   M.Append(TMenuItem.Create('Menu Item 4', 4));
+   glw.MainMenu.Append(M);
+ glw.MainMenu.Append(TMenuItem.Create('Menu Item 5', 5));
 
  //glw.ResizeAllowed := raNotAllowed; // just for testing
 
