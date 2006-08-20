@@ -302,6 +302,18 @@ const
   CountTraverseStateLastNodes = 10;
   HighTraverseStateLastNodes = CountTraverseStateLastNodes - 1;
 
+const
+  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2);
+  DefaultMaterial_2AmbientIntensity = 0.2;
+  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
+  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0);
+  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0);
+  DefaultMaterialShininess = 0.2;
+  DefaultMaterialTransparency = 0.0;
+  DefaultMaterialMirror = 0.0;
+  DefaultMaterialReflSpecularExp = 1000000;
+  DefaultMaterialTransSpecularExp = 1000000;
+
 { -----------------------------------------------------------------------------
   dluuuga deklaracja "type" w ktorej wiele rzeczy jest zdefiniowanych
   wzajemnie (rekurencyjnie). }
@@ -3064,6 +3076,7 @@ type
     property FdspecularColor: TSFColor index 4 read GetFieldAsSFColor;
     property Fdtransparency: TSFFloat index 5 read GetFieldAsSFFloat;
     property FdFogImmune: TSFBool index 6 read GetFieldAsSFBool;
+    property FdMirror: TSFFloat index 7 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -5524,34 +5537,23 @@ begin
   Result := VerMajor <= 1;
 end;
 
-const
-  DEF_MAT_AMBIENT : TVector3Single = (0.2, 0.2, 0.2);
-  DEF_MAT_DIFFUSE : TVector3Single = (0.8, 0.8, 0.8);
-  DEF_MAT_SPECULAR : TVector3Single = (0, 0, 0);
-  DEF_MAT_EMISSIVE : TVector3Single = (0, 0, 0);
-  DEF_MAT_SHININESS : Single = 0.2;
-  DEF_MAT_TRANSPARENCY : Single = 0;
-  DEF_MAT_MIRROR : Single = 0;
-  DEF_MAT_REFL_SPECULAR_EXP  : Single = 1000000;
-  DEF_MAT_TRANS_SPECULAR_EXP : Single = 1000000;
-
 constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  inherited;
- Fields.Add(TMFColor.Create('ambientColor', [DEF_MAT_AMBIENT]));
- Fields.Add(TMFColor.Create('diffuseColor', [DEF_MAT_DIFFUSE]));
- Fields.Add(TMFColor.Create('specularColor', [DEF_MAT_SPECULAR]));
- Fields.Add(TMFColor.Create('emissiveColor', [DEF_MAT_EMISSIVE]));
- Fields.Add(TMFFloat.Create('shininess', [DEF_MAT_SHININESS]));
- Fields.Add(TMFFloat.Create('transparency', [DEF_MAT_TRANSPARENCY]));
+ Fields.Add(TMFColor.Create('ambientColor', [DefaultMaterial_1AmbientColor]));
+ Fields.Add(TMFColor.Create('diffuseColor', [DefaultMaterialDiffuseColor]));
+ Fields.Add(TMFColor.Create('specularColor', [DefaultMaterialSpecularColor]));
+ Fields.Add(TMFColor.Create('emissiveColor', [DefaultMaterialEmissiveColor]));
+ Fields.Add(TMFFloat.Create('shininess', [DefaultMaterialShininess]));
+ Fields.Add(TMFFloat.Create('transparency', [DefaultMaterialTransparency]));
 
- Fields.Add(TMFFloat.Create('mirror', [DEF_MAT_MIRROR]));
+ Fields.Add(TMFFloat.Create('mirror', [DefaultMaterialMirror]));
  Fields.Add(TMFColor.Create('reflSpecular', []));
  Fields.Add(TMFColor.Create('reflDiffuse', []));
  Fields.Add(TMFColor.Create('transSpecular', []));
  Fields.Add(TMFColor.Create('transDiffuse', []));
- Fields.Add(TMFFloat.Create('reflSpecularExp', [DEF_MAT_REFL_SPECULAR_EXP]));
- Fields.Add(TMFFloat.Create('transSpecularExp', [DEF_MAT_TRANS_SPECULAR_EXP]));
+ Fields.Add(TMFFloat.Create('reflSpecularExp', [DefaultMaterialReflSpecularExp]));
+ Fields.Add(TMFFloat.Create('transSpecularExp', [DefaultMaterialTransSpecularExp]));
 
  Fields.Add(TSFBool.Create('fogImmune', false));
 end;
@@ -5589,25 +5591,25 @@ end;
 }
 
   {$define MATERIAL_FUNCTION_FIELD := FdAmbientColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_AMBIENT}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterial_1AmbientColor}
   {$define MATERIAL_FUNCTION_NAME_3 := AmbientColor3Single}
   {$define MATERIAL_FUNCTION_NAME_4 := AmbientColor4Single}
   MATERIAL_FUNCTION_3_SINGLE
 
   {$define MATERIAL_FUNCTION_FIELD := FdDiffuseColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_DIFFUSE}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialDiffuseColor}
   {$define MATERIAL_FUNCTION_NAME_3 := DiffuseColor3Single}
   {$define MATERIAL_FUNCTION_NAME_4 := DiffuseColor4Single}
   MATERIAL_FUNCTION_3_SINGLE
 
   {$define MATERIAL_FUNCTION_FIELD := FdSpecularColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_SPECULAR}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialSpecularColor}
   {$define MATERIAL_FUNCTION_NAME_3 := SpecularColor3Single}
   {$define MATERIAL_FUNCTION_NAME_4 := SpecularColor4Single}
   MATERIAL_FUNCTION_3_SINGLE
 
   {$define MATERIAL_FUNCTION_FIELD := FdEmissiveColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_EMISSIVE}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialEmissiveColor}
   {$define MATERIAL_FUNCTION_NAME_3 := EmissiveColor3Single}
   {$define MATERIAL_FUNCTION_NAME_4 := EmissiveColor4Single}
   MATERIAL_FUNCTION_3_SINGLE
@@ -5629,22 +5631,22 @@ end;}
 
   {$define MATERIAL_FUNCTION_NAME := Transparency}
   {$define MATERIAL_FUNCTION_FIELD := FdTransparency}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_TRANSPARENCY}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialTransparency}
   MATERIAL_FUNCTION_SINGLE
 
   {$define MATERIAL_FUNCTION_NAME := Mirror}
   {$define MATERIAL_FUNCTION_FIELD := FdMirror}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_MIRROR}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialMirror}
   MATERIAL_FUNCTION_SINGLE
 
   {$define MATERIAL_FUNCTION_NAME := ReflSpecularExp}
   {$define MATERIAL_FUNCTION_FIELD := FdReflSpecularExp}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_REFL_SPECULAR_EXP}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialReflSpecularExp}
   MATERIAL_FUNCTION_SINGLE
 
   {$define MATERIAL_FUNCTION_NAME := TransSpecularExp}
   {$define MATERIAL_FUNCTION_FIELD := FdTransSpecularExp}
-  {$define MATERIAL_FUNCTION_DEFAULT := DEF_MAT_TRANS_SPECULAR_EXP}
+  {$define MATERIAL_FUNCTION_DEFAULT := DefaultMaterialTransSpecularExp}
   MATERIAL_FUNCTION_SINGLE
 
 {$undef MATERIAL_FUNCTION_NAME}
@@ -5660,7 +5662,7 @@ end;
 function TNodeMaterial_1.Shininess(MatNum: integer): Single;
 begin
   if FdShininess.Count = 0 then
-    result := DEF_MAT_SHININESS else
+    result := DefaultMaterialShininess else
     result := FdShininess.Items.Items[min(MatNum, FdShininess.Count-1)];
 end;
 
@@ -5736,7 +5738,7 @@ function TNodeMaterial_1.IsAllMaterialsTransparent: boolean;
 var i: Integer;
 begin
  if FdTransparency.Items.Length = 0 then
-  result := DEF_MAT_TRANSPARENCY > SingleEqualityEpsilon else
+  result := DefaultMaterialTransparency > SingleEqualityEpsilon else
  begin
   for i := 0 to FdTransparency.Items.Length-1 do
    if FdTransparency.Items.Items[i] <= SingleEqualityEpsilon then Exit(false);
@@ -7704,13 +7706,14 @@ end;
 constructor TNodeMaterial_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('ambientIntensity', 0.2)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('diffuseColor', Vector3Single(0.8, 0.8, 0.8))); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('emissiveColor', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('shininess', 0.2)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('specularColor', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('transparency', 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity)); Fields.Last.Exposed := true;
+  Fields.Add(TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor)); Fields.Last.Exposed := true;
+  Fields.Add(TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('shininess', DefaultMaterialShininess)); Fields.Last.Exposed := true;
+  Fields.Add(TSFColor.Create('specularColor', DefaultMaterialSpecularColor)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('transparency', DefaultMaterialTransparency)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('fogImmune', false)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('mirror', DefaultMaterialMirror));
 end;
 
 class function TNodeMaterial_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;

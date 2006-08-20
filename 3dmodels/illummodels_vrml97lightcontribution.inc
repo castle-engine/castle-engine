@@ -84,10 +84,10 @@ begin
    end else
    begin
      { Default VRML 2.0 lighting properties. }
-     MaterialAmbientIntensity := 0.2;
-     MaterialDiffuseColor := Vector3Single(0.8, 0.8, 0.8);
-     MaterialSpecularColor := ZeroVector3Single;
-     MaterialShininessExp := 0.2 * 128.0;
+     MaterialAmbientIntensity := DefaultMaterial_2AmbientIntensity;
+     MaterialDiffuseColor := DefaultMaterialDiffuseColor;
+     MaterialSpecularColor := DefaultMaterialSpecularColor;
+     MaterialShininessExp := DefaultMaterialShininess * 128.0;
    end;
  end else
  begin

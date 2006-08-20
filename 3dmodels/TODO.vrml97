@@ -12,13 +12,17 @@ WWW:
   (from index, from rayhunter and view3dscene, from kambi_vrml_extensions,
   and between them)
 
-- In many places my code temporarily cannot handle VRML 2.0 files,
+----------------------------------------
+Post view3dscene 2.0 things:
+
+- Remaining places where my code temporarily cannot handle VRML 2.0 files,
   should be updated:
 
-  Remaining places:
-  - Ray-tracer (lights and materials should be updated for VRML 2.0)
-    ./vrmlraytracer.pas
-    (grep for _1 where I used only VRML 1.0 nodes versions)
+  - Ray-tracer: vrmlraytracer.pas: PathTracerTo1st uses only
+    VRML 1.0 material node.
+    Fixing this means also porting VRML extension on
+    /win/mojewww/camelot/kambi_vrml_extensions.php
+    "Phong's BRDF fields for materials" to VRML 2.0 Material.
 
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
     ./object3dasvrml.pas
@@ -38,15 +42,6 @@ WWW:
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
-
-----------------------------------------
-Post view3dscene 2.0 things:
-
-- move everything you can from
-  /win/mojewww/camelot/kambi_vrml_extensions.php
-  also to VRML 2.0, check it.
-  Remaining things:
-  - mirror and Phong's BRDF fields for materials
 
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?

@@ -350,20 +350,19 @@ var FogType: Integer;
     const OctreeItemToIgnore: integer; IgnoreMarginAtStart: boolean): TVector3Single;
   { sledzi promien z zadana glebokoscia. Zwraca false jesli promien w nic
     nie trafia, wpp. zwraca true i ustawia Color na wyliczony Color. }
-  var Intersection: TVector3Single;
-      IntersectNodeIndex: integer;
-      IntersectNode: POctreeItem;
-      MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
+  var
+    Intersection: TVector3Single;
+    IntersectNodeIndex: integer;
+    IntersectNode: POctreeItem;
+    MaterialMirror, MaterialTransparency: Single;
 
     procedure ModifyColorByTransmittedRay;
     var TransmittedColor, TransmittedRayVec: TVector3Single;
         EtaFrom, EtaTo: Single;
-        MatTransparency: Single;
     const ETA_CONST = 1.3;
     begin
      { rob promien zalamany jesli Transparency > 0 i nie ma calkowitego odbicia wewn.}
-     MatTransparency := MaterialNode.Transparency(IntersectNode.MatNum);
-     if MatTransparency > 0 then
+     if MaterialTransparency > 0 then
      begin
       { Powinnismy to brac z informacji zapisanych w modelu - ale nie mamy
         tego. Wiec tymczasowo udaje tutaj ze zawsze przy zalamywaniu
@@ -376,9 +375,9 @@ var FogType: Integer;
       if TryTransmittedRayVector(TransmittedRayVec, Normalized(RayVector),
         IntersectNode.TriangleNormPlane, EtaFrom, EtaTo) then
       begin
-       VectorScaleTo1st(result, 1-MatTransparency);
+       VectorScaleTo1st(result, 1 - MaterialTransparency);
        TransmittedColor := Trace(Intersection, TransmittedRayVec, Depth-1, IntersectNodeIndex, true);
-       VectorScaleTo1st(TransmittedColor, MatTransparency);
+       VectorScaleTo1st(TransmittedColor, MaterialTransparency);
        VectorAddTo1st(result, TransmittedColor);
       end;
      end;
@@ -386,16 +385,14 @@ var FogType: Integer;
 
     procedure ModifyColorByReflectedRay;
     var ReflRayVector, ReflColor: TVector3Single;
-        MatMirror: Single;
     begin
      { rob promien odbity }
-     MatMirror := MaterialNode.Mirror(IntersectNode.MatNum);
-     if MatMirror > 0 then
+     if MaterialMirror > 0 then
      begin
       ReflRayVector := ReflectedRayVector(Normalized(RayVector), IntersectNode.TriangleNormPlane);
-      VectorScaleTo1st(result, 1-MatMirror);
+      VectorScaleTo1st(result, 1 - MaterialMirror);
       ReflColor := Trace(Intersection, ReflRayVector, Depth-1, IntersectNodeIndex, true);
-      VectorScaleTo1st(ReflColor, MatMirror);
+      VectorScaleTo1st(ReflColor, MaterialMirror);
       VectorAddTo1st(result, ReflColor);
      end;
     end;
@@ -416,14 +413,40 @@ var FogType: Integer;
        VectorNegate(RayVector), IntersectNodeIndex, true);
     end;
 
-  var i: integer;
+  var
+    i: integer;
+    M1: TNodeMaterial_1;
+    M2: TNodeMaterial_2;
   begin
    IntersectNodeIndex := Octree.RayCollision(Intersection, Ray0, RayVector, true,
      OctreeItemToIgnore, IgnoreMarginAtStart, nil);
    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
 
    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
-   MaterialNode := IntersectNode.State.LastNodes.Material;
+
+   { calculate material properties, taking into account VRML 1.0 and 2.0
+     material. }
+   if IntersectNode.State.ParentShape <> nil then
+   begin
+     { VRML 2.0 }
+     M2 := IntersectNode.State.ParentShape.Material;
+     if M2 <> nil then
+     begin
+       MaterialMirror := M2.FdMirror.Value;
+       MaterialTransparency := M2.FdTransparency.Value;
+     end else
+     begin
+       MaterialMirror := DefaultMaterialMirror;
+       MaterialTransparency := DefaultMaterialTransparency;
+     end;
+   end else
+   begin
+     { VRML 1.0 }
+     M1 := IntersectNode.State.LastNodes.Material;
+     MaterialMirror := M1.Mirror(IntersectNode.MatNum);
+     MaterialTransparency := M1.Transparency(IntersectNode.MatNum);
+   end;
+
    result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
    with IntersectNode^ do
    begin
