@@ -3,7 +3,7 @@
   VRML97LightContribution_CameraIndependent. Symbol CAMERA_INDEP
   oznacza ze mamy zrobic druga funkcje. }
 
-var Spot, CosSpotAngle: Single;
+var Spot: Single;
     Attenuat: Single;
 
     LightNode: TNodeGeneralLight;
@@ -23,6 +23,8 @@ var Spot, CosSpotAngle: Single;
       odbicia Specular }
     ViewerAndLightHalfway: TVector3Single;
 
+    MaterialAmbientIntensity: Single;
+    MaterialAmbientColor: TVector3Single;
     MaterialDiffuseColor: TVector3Single;
     MaterialSpecularColor: TVector3Single;
     MaterialShininessExp: Single;
@@ -31,20 +33,58 @@ var Spot, CosSpotAngle: Single;
     {$define PointPlaneNormal := IntersectNode.TriangleNormPlane}
     {$endif}
 
+  function CalculateSpot_1(SpotLight: TNodeSpotLight_1): Single;
+  var
+    CosSpotAngle, SpotAngle: Single;
+  begin
+    { Uzywamy dropOffRate VRMLa 1.0 zeby sprawic by spot byl
+      bardziej "skupiony" zgodnie z rownaniami swiatla OpenGLa.
+      W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
+    CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
+      Light.TransfNormDirection);
+    SpotAngle := ArcCos(CosSpotAngle);
+    if SpotAngle <= SpotLight.FdCutOffAngle.Value then
+      Result := Power(CosSpotAngle, SpotLight.SpotExp) else
+      Result := 0;
+  end;
+
+  function CalculateSpot_2(SpotLight: TNodeSpotLight_2): Single;
+  var
+    CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
+  begin
+    CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
+      Light.TransfNormDirection);
+    SpotAngle := ArcCos(CosSpotAngle);
+    SpotCO := SpotLight.FdCutOffAngle.Value;
+    SpotBW := SpotLight.FdBeamWidth.Value;
+
+    if SpotAngle < SpotCO then
+    begin
+      if SpotAngle > SpotBW then
+        Result := (SpotAngle - SpotCO) / (SpotBW - SpotCO) else
+        Result := 1;
+    end else
+      Result := 0;
+  end;
+
 begin
  { wyciagnij ze struktur kilka zmiennych ktorych bedziemy intensywnie uzywac }
  {$ifndef CAMERA_INDEP}
+ M1 := nil;
+ M2 := nil;
  if IntersectNode.State.ParentShape <> nil then
  begin
    M2 := IntersectNode.State.ParentShape.Material;
    if M2 <> nil then
    begin
+     MaterialAmbientIntensity := M2.FdAmbientIntensity.Value;
      MaterialDiffuseColor := M2.FdDiffuseColor.Value;
      MaterialSpecularColor := M2.FdSpecularColor.Value;
      MaterialShininessExp := M2.ShininessExp;
    end else
    begin
      { Default VRML 2.0 lighting properties. }
+     MaterialAmbientIntensity := 0.2;
      MaterialDiffuseColor := Vector3Single(0.8, 0.8, 0.8);
      MaterialSpecularColor := ZeroVector3Single;
      MaterialShininessExp := 0.2 * 128.0;
@@ -52,6 +92,7 @@ begin
  end else
  begin
    M1 := IntersectNode.State.LastNodes.Material;
+   MaterialAmbientColor := M1.AmbientColor3Single(IntersectNode.MatNum);
    MaterialDiffuseColor := M1.DiffuseColor3Single(IntersectNode.MatNum);
    MaterialSpecularColor := M1.SpecularColor3Single(IntersectNode.MatNum);
    MaterialShininessExp := M1.ShininessExp(IntersectNode.MatNum);
@@ -62,7 +103,9 @@ begin
  if (not LightNode.FdOn.Value) then Exit(ZeroVector3Single);
 
  { TODO: arg dla attenuation powinien byc w ukladzie transformacji swiatla.
-   aaargh - czy to znaczy ze musze implementowac InvertTransformation ? }
+   For now lights with non-trivial attenuation put under some transformation
+   that does distance scaling will not render as required by VRML 2.0 spec.
+   Czyli musze implementowac InvertTransformation ? }
  if LightNode is TNodeGeneralPositionalLight then
  begin
   if PosLightNode.DistanceNeededForAttenuation then
@@ -71,6 +114,7 @@ begin
  end else
   Attenuat := 1;
 
+ { LightDirNorm is called "L" in the equation in VRML spec }
  if LightNode is TNodeGeneralPositionalLight then
   LightDirNorm := Normalized(VectorSubtract(Light.TransfLocation, Point)) else
   LightDirNorm := VectorNegate(Light.TransfNormDirection);
@@ -78,6 +122,8 @@ begin
    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
    jest okreslane jako two-sided lighting, czyli wziac albo Normal albo
    -Normal, w zaleznosci od pozycji swiatla.). }
+
+ { Normal is called "N" in the equation in VRML spec }
  Normal := PlaneDirInDirection(PointPlaneNormal, LightDirNorm);
 
  {$ifndef CAMERA_INDEP}
@@ -93,34 +139,39 @@ begin
  {$endif}
 
  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
-   dla innych swiatel jest zawsze = 1. Notka - uzywamy dropOffRate VRMLa 1.0
-   zeby sprawic by spot byl bardziej "skupiony" zgodnie z rownaniami swiatla
-   OpenGLa. W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
+   dla innych swiatel jest zawsze = 1. }
  if LightNode is TNodeSpotLight_1 then
- begin
-  CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
-    Light.TransfNormDirection);
-  if ArcCos(CosSpotAngle) <= TNodeSpotLight_1(LightNode).FdCutOffAngle.Value then
-   Spot := Power(CosSpotAngle, TNodeSpotLight_1(LightNode).SpotExp) else
-   Spot := 0;
- end else
+   Spot := CalculateSpot_1(TNodeSpotLight_1(LightNode)) else
  if LightNode is TNodeSpotLight_2 then
- begin
-   { TODO }
- end else
-  Spot := 1;
+   Spot := CalculateSpot_2(TNodeSpotLight_2(LightNode)) else
+   Spot := 1;
 
  result := VectorScale(LightNode.FdColor.Value, Attenuat * Spot);
 
- { AmbientFactor = (0, 0,0). W VRML 97 dochodzi ambientIntensity
-   (domyslnie rowne 0) i AmbientFactor = LightNode.ambientIntensity *
-   IntersectNode.State.LastNodes.Material.MaterialColor3Single.
-   To jest sensowne, przeciez nie chcemy zeby ambientIntensity mialo
-   zbyt duzy wplyw na kolor (bo kolor ambient to jest cos juz
-   ZUPELNIE nierealistycznego w takim prostym modelu oswietlenia),
-   chcemy raczej zeby dominowaly komponenty diffuse i specular. }
- { Factors := ambient factor, TODO }
+ { Now we calculate "ambient_i" part of equation.
+
+   Note special things for VRML 1.0:
+   - when light.ambientIntensity < 0 then we assume we have to
+     be compatible to our initial VRML 1.0 behavior and
+     ambient factor is just zero.
+   - when light.ambientIntensity >= 0 but this is still VRML 1.0 material
+     then instead of material.ambientIntensity we take
+     material.ambientColor. Default material.ambientIntensity
+     in VRML 2.0 is 0.2 and default material.ambientColor in VRML 1.0
+     is (0.2, 0.2, 0.2), so results should match for VRML 1.0 and 2.0
+     for default situations. }
+ {$ifdef CAMERA_INDEP}
  Factors := ZeroVector3Single;
+ {$else}
+ if LightNode.FdAmbientIntensity.Value < 0 then
+   Factors := ZeroVector3Single else
+ if M1 <> nil then
+   Factors := VectorScale(
+     VectorMultEachPos(MaterialDiffuseColor, MaterialAmbientColor),
+     LightNode.FdAmbientIntensity.Value) else
+   Factors := VectorScale(MaterialDiffuseColor,
+     LightNode.FdAmbientIntensity.Value * MaterialAmbientIntensity);
+ {$endif}
 
  { Factors += diffuse factor }
  VectorAddTo1st(Factors, VectorScale(

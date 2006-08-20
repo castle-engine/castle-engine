@@ -153,7 +153,10 @@ function CalculateBoundingBoxFromIndices(
   argumencie) : oblicz najmniejszy box3d taki ktory by obejmowal oba
   zadane box'y. }
 function Box3dSum(const box1, box2: TBox3d): TBox3d;
-procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d);
+procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d); overload;
+
+{ This enlarges Box1 so that it contains given Point. }
+procedure Box3dSumTo1st(var box1: TBox3d; const Point: TVector3Single); overload;
 
 { trzy rozmiary box'a }
 function Box3dSizes(const box: TBox3d): TVector3Single;
@@ -627,6 +630,23 @@ begin
     MaxTo1st(box1[1, 1], box2[1, 1]);
     MinTo1st(box1[0, 2], box2[0, 2]);
     MaxTo1st(box1[1, 2], box2[1, 2]);
+  end;
+end;
+
+procedure Box3dSumTo1st(var Box1: TBox3d; const Point: TVector3Single);
+begin
+  if IsEmptyBox3d(Box1) then
+  begin
+    Box1[0] := Point;
+    Box1[1] := Point;
+  end else
+  begin
+    MinTo1st(Box1[0, 0], Point[0]);
+    MaxTo1st(Box1[1, 0], Point[0]);
+    MinTo1st(Box1[0, 1], Point[1]);
+    MaxTo1st(Box1[1, 1], Point[1]);
+    MinTo1st(Box1[0, 2], Point[2]);
+    MaxTo1st(Box1[1, 2], Point[2]);
   end;
 end;
 

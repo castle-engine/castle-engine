@@ -393,4 +393,33 @@ begin
     Result := EmptyBox3d;
 end;
 
+{ TNodeElevationGrid --------------------------------------------------------- }
+
+function TNodeElevationGrid.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+var
+  Y: Single;
+  I: Integer;
+begin
+  Result := EmptyBox3d;
+  if IsNotEmpty then
+  begin
+    Result[0, 0] := 0;
+    Result[0, 2] := 0;
+    Result[1, 0] := FdXSpacing.Value * (FdXDimension.Value - 1);
+    Result[1, 2] := FdZSpacing.Value * (FdZDimension.Value - 1);
+
+    { now calculate Result[0, 1] and Result[1, 1] }
+    Y := FdHeight.Items.Items[0];
+    Result[0, 1] := Y;
+    Result[1, 1] := Y;
+    for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
+    begin
+      Y := FdHeight.Items.Items[I];
+      MinTo1st(Result[0, 1], Y);
+      MaxTo1st(Result[1, 1], Y);
+    end;
+  end;
+end;
+
 { eof ------------------------------------------------------------------------- }

@@ -2614,7 +2614,7 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeElevationGrid = class(TVRMLNode)
+  TNodeElevationGrid = class(TNodeGeneralShape)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2635,6 +2635,18 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    { This checks whether xDimension and zDimension are >= 2,
+      xSpacing and zSpacing are > 0 and height has at least the
+      required number of values. If this returns @false then
+      it is understood that ElevationGrid is not rendered, doesn't
+      have any vertices/triangles etc. }
+    function IsNotEmpty: boolean;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeExtrusion = class(TVRMLNode)
@@ -3460,15 +3472,13 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSpotLight_2 = class(TNodeGeneralLight)
+  TNodeSpotLight_2 = class(TNodeGeneralPositionalLight)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdattenuation: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property FdbeamWidth: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdcutOffAngle: TSFFloat index 6 read GetFieldAsSFFloat;
-    property Fddirection: TSFVec3f index 7 read GetFieldAsSFVec3f;
-    property Fdlocation: TSFVec3f index 8 read GetFieldAsSFVec3f;
+    property FdbeamWidth: TSFFloat index 6 read GetFieldAsSFFloat;
+    property FdcutOffAngle: TSFFloat index 7 read GetFieldAsSFFloat;
+    property Fddirection: TSFVec3f index 8 read GetFieldAsSFVec3f;
     property Fdradius: TSFFloat index 9 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -7008,6 +7018,19 @@ begin
   Fields.Add(TSFFloat.Create('zSpacing', 1.0));
 end;
 
+function TNodeElevationGrid.IsNotEmpty: boolean;
+begin
+  Result :=
+    (FdXDimension.Value >= 2) and
+    (FdZDimension.Value >= 2) and
+    { VRML spec says that xSpacing and ySpacing shall be > 0.
+      So I understand that when they are = 0 (or < 0) nothing
+      should be rendered. }
+    (FdXSpacing.Value > 0) and
+    (FdZSpacing.Value > 0) and
+    (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
+end;
+
 class function TNodeExtrusion.ClassNodeTypeName: string;
 begin
   Result := 'Extrusion';
@@ -8204,17 +8227,18 @@ end;
 constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0))); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('beamWidth', 1.570796)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('location', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
 
   { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
-    see comments at ambientIntensity in implementation of TPointLight_2. }
+    see comments at ambientIntensity in implementation of TPointLight_2.
+    Same thing for location. }
   FdAmbientIntensity.Value := 0;
   FdAmbientIntensity.DefaultValue := 0;
+  FdLocation.DefaultValue := ZeroVector3Single;
+  FdLocation.Value := FdLocation.DefaultValue;
 end;
 
 class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;

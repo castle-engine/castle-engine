@@ -18,7 +18,6 @@ WWW:
   Remaining places:
   - Ray-tracer (lights and materials should be updated for VRML 2.0)
     ./vrmlraytracer.pas
-    ./illummodels_vrml97lightcontribution.inc
     (grep for _1 where I used only VRML 1.0 nodes versions)
 
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):

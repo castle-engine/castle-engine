@@ -1170,17 +1170,19 @@ var
   ReadCount: Integer;
 begin
   Buffer := GetMem(BufSize);
-  S := TFileStream.Create(FileName, fmCreate);
   try
-    repeat
-      ReadCount := Stream.Read(Buffer^, BufSize);
-      if ReadCount = 0 then
-        Break else
-        S.WriteBuffer(Buffer^, ReadCount);
-    until false;
-  finally
-    S.free;
-  end;
+    S := TFileStream.Create(FileName, fmCreate);
+    try
+      repeat
+        ReadCount := Stream.Read(Buffer^, BufSize);
+        if ReadCount = 0 then
+          Break else
+          S.WriteBuffer(Buffer^, ReadCount);
+      until false;
+    finally
+      S.free;
+    end;
+  finally FreeMem(Buffer) end;
 end;
 
 { TMemoryFileStream ------------------------------------------------------- }

@@ -2041,6 +2041,8 @@ begin
       RenderIndexed(TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node))) else
     if Node is TNodeIndexedLineSet_2 then
       RenderIndexed(TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node))) else
+    if Node is TNodeElevationGrid then
+      RenderElevationGrid(TNodeElevationGrid(Node)) else
       raise EVRMLOpenGLRenderError.Create(
         'Rendering of node kind '+Node.NodeTypeName+' not implemented');
 

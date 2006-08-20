@@ -455,4 +455,101 @@ end;
 {$undef QUADRIC_STACKS}
 {$undef RECT_DIVISIONS}
 
+{ TNodeElevationGrid --------------------------------------------------------- }
+
+procedure RenderElevationGrid(Node: TNodeElevationGrid);
+var
+  TexCoordUseful: boolean;
+
+  procedure TextureCoord(const I, J: Integer);
+  begin
+    if Render_TexCoordsNeeded then
+    begin
+      if TexCoordUseful then
+        glTexCoordv(
+          TNodeTextureCoordinate(Node.FdTexCoord.Value).FdPoint.
+            Items.Items[I + J * Node.FdXDimension.Value]) else
+        glTexCoord2f(I / (Node.FdXDimension.Value - 1),
+                     J / (Node.FdZDimension.Value - 1));
+    end;
+  end;
+
+var
+  I, J: Integer;
+  Last1, Last2, Next1, Next2: TVector3Single;
+begin
+  if Node.IsNotEmpty then
+  begin
+    TexCoordUseful :=
+      (Node.FdTexCoord.Value <> nil) and
+      (Node.FdTexCoord.Value is TNodeTextureCoordinate) and
+      (TNodeTextureCoordinate(Node.FdTexCoord.Value).FdPoint.Count >=
+        Node.FdXDimension.Value * Node.FdZDimension.Value);
+
+    glPushAttrib(
+      GL_LIGHTING_BIT { for shade model } or
+      GL_POLYGON_BIT { for glFrontFace and GL_CULL_FACE });
+
+      { TODO: for now we always generate normals, and always flat
+        (1 normal per face) }
+      glShadeModel(GL_FLAT);
+
+      if not Node.FdCcw.Value then
+        glFrontFace(GL_CW);
+
+      if Node.FdSolid.Value then
+        glEnable(GL_CULL_FACE);
+
+      for I := 1 to Node.FdXDimension.Value - 1 do
+      begin
+        glBegin(GL_QUAD_STRIP);
+          Last1[0] := Node.FdXSpacing.Value * (I - 1);
+          Last1[1] := Node.FdHeight.Items.Items[I - 1];
+          Last1[2] := 0;
+          Last2[0] := Node.FdXSpacing.Value * I;
+          Last2[1] := Node.FdHeight.Items.Items[I];
+          Last2[2] := 0;
+          { Next X-coordinate will be const for the life of "for J := " below. }
+          Next1[0] := Last1[0];
+          Next2[0] := Last2[0];
+
+          { Vertices are ordered such that face is CCW from up (i.e.
+            looking from positive Y axis). }
+          TextureCoord(I, 0);
+          DoGLVertex(Last2);
+          TextureCoord(I - 1, 0);
+          DoGLVertex(Last1);
+
+          for J := 1 to Node.FdZDimension.Value - 1 do
+          begin
+            Next1[1] := Node.FdHeight.Items.Items[
+              I - 1 + J * Node.FdXDimension.Value];
+            Next1[2] := Node.FdZSpacing.Value * J;
+            Next2[1] := Node.FdHeight.Items.Items[
+              I     + J * Node.FdXDimension.Value];
+            Next2[2] := Next1[2];
+
+            { As a normal we take avarage normal of two triangles of rendered
+              quad. We do not normalize VectorAdd as we have GL_NORMALIZE
+              enabled anyway. But we have to normalize two sum components
+              (use TriangleNormal, not TriangleDir), otherwise taking
+              the average woudn't be good. }
+            glNormalv(VectorAdd(
+              TriangleNormal(Last2, Last1, Next1),
+              TriangleNormal(Last2, Next1, Next2)));
+
+            TextureCoord(I, J);
+            DoGLVertex(Next2);
+            TextureCoord(I - 1, J);
+            DoGLVertex(Next1);
+
+            Last1 := Next1;
+            Last2 := Next2;
+          end;
+        glEnd;
+      end;
+    glPopAttrib;
+  end;
+end;
+
 { eof ------------------------------------------------------------------------ }

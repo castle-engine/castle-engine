@@ -322,3 +322,21 @@ end;
 {$undef QUADRIC_SLICES}
 {$undef QUADRIC_STACKS}
 {$undef RECT_DIVISIONS}
+
+{ TNodeElevationGrid --------------------------------------------------------- }
+
+function TNodeElevationGrid.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if IsNotEmpty then
+    Result := (FdXDimension.Value - 1) * (FdZDimension.Value - 1) * 2 else
+    Result := 0;
+end;
+
+function TNodeElevationGrid.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if IsNotEmpty then
+    Result := FdXDimension.Value * FdZDimension.Value else
+    Result := 0;
+end;

@@ -521,7 +521,7 @@ begin
     za chwile wlaczymy culling i mowimy tez z ktorej strony polygonow
     wychodza normale (my wprawdzie moglibysmy sobie generowac normale
     z dowolnej strony z ktorej chcemy ale normale w pliku VRML'a sa
-    zapisane zgodnie z aktualna orientacja vertexOrdering). }
+    zapisane zgodnie z aktualna orientacja vertexOrdering / ccw). }
   if not Render_NormalsFromCCW then
     glFrontFace(GL_CW);
 

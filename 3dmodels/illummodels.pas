@@ -29,40 +29,60 @@ interface
 
 uses VectorMath, VRMLNodes, VRMLTriangleOctree, Math, KambiUtils;
 
-{ Ponizej implementujemy mniej wiecej model oswietlenia ze specyfikacji VRMLa 97.
-  To jest normalny model osw. Phonga. Pewne rzeczy ktore sa (niektore tylko
-  chwilowo) zaimplementowane niezgodnie z ta specyfikacja to :
-  - zle uwzgledniamy attenuation swiatel ktore sa umieszczone pod jakas
-    transformacja (TODO)
-  - For VRML 1.0 SpotLight, we have to calculate skupienie spot light 
-    troche inaczej bo mamy do dyspozycji inne
-    dane (mamy pola z VRMLa 1.0 ktore okreslaja spot inaczej niz w VRMLu 97).
-    Uzywamy wiec dla spota rownan uzywanych w OpenGLu.
-  - nie obliczamy AmbientFactor w LightContribution bo nie mamy ambientIntensity
-    z VRMLa 97 w light nodes a jest ono niezbedne zeby rownanie dzialalo sensownie.
-    (TODO: dodac ambientIntensity do swiatel i odkomentarzowac w
-    VRML97LightContribution kod realizujacy AmbientFactor)
-  - w VRML97EmissionColor jezeli not LightingCalculationOn to
-    robimy cos speszial, zupelnie niezgodnie z modelem oswietlenia - bierzemy
-    kolor diffuse materialu. Wszystko dlatego ze sam kolor Emission jest
-    zazwyczaj czarny i obrazek narysowany tylko kolorem Emission raczej nie
-    jest zbyt ciekawy. Jezeli LightingCalculationOn to zwracamy poprawnie
-    kolor emission.
-  - O ile dobrze zrozumialem, rownania oswietlenia VMRLa 97 proponuja oswietlac
-    powierzchnie tylko z jednej strony, tam gdzie wskazuje podany wektor
-    normalny (tak jak w OpenGLu przy TWO_SIDED_LIGHTING OFF).
-    (patrz definicja "modified dot product" w specyfikacji oswietlenia VRMLa 97)
-    Dla mnie jest to bez sensu i oswietlam powierzchnie z obu stron, tak jakby
-    kazda powierzchnia byla DWOMA powierzchniami, kazda z nich o przeciwnym
-    wektorze normalnym (tak jak w OpenGLu przy TWO_SIDED_LIGHTING ON).
+{ This returns VRML 2.0 material emissiveColor for lighting equation.
+  I.e. the @code(O_Ergb) part of lighting equation in
+  VRML 2.0 spec section "4.14.4 Lighting equations".
+
+  This takes also into account VRML 1.0, when emissiveColor
+  of VRML 1.0 material is taken.
+
+  When LightingCalculationOn we do something special:
+  we take material's diffuseColor instead of emissiveColor.
+  This is supposed to be used when you use ray-tracer with
+  recursion 0 (i.e., actually it's a ray-caster in this case).
+  Using emissiveColor in such case would almost always
+  give a completely black, useles image. }
+function VRML97Emission(const IntersectNode: TOctreeItem;
+  LightingCalculationOn: boolean): TVector3Single;
+
+{ This returns VRML 2.0 light contribution to the specified
+  vertex color. In other words, this calculates the following
+  equation part from VRML 2.0 spec section
+  "4.14.4 Lighting equations" :
+@preformatted(
+  on_i × attenuation_i × spot_i × I_Lrgb
+    × (ambient_i + diffuse_i + specular_i)
+)
+
+  In some cases we do something different than VRML 2.0 spec:
+
+  @unorderedList(
+    @item(
+      For VRML 1.0 SpotLight, we have to calculate spot light differently
+      (because VRML 1.0 SpotLight gives me dropOffRate instead of
+      beamWidth), so we use spot factor equation following OpenGL equation.)
+
+    @item(
+      For VRML 1.0, we have to calculate ambientFactor in a little different way:
+      see [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_light_attenuation],
+      when light's ambientIntensity is < 0 then we just return 0 and
+      otherwise we use material's ambientColor.)
+
+    @item(
+      O ile dobrze zrozumialem, rownania oswietlenia VMRLa 97 proponuja oswietlac
+      powierzchnie tylko z jednej strony, tam gdzie wskazuje podany wektor
+      normalny (tak jak w OpenGLu przy TWO_SIDED_LIGHTING OFF).
+      (patrz definicja "modified dot product" w specyfikacji oswietlenia VRMLa 97)
+      Dla mnie jest to bez sensu i oswietlam powierzchnie z obu stron, tak jakby
+      kazda powierzchnia byla DWOMA powierzchniami, kazda z nich o przeciwnym
+      wektorze normalnym (tak jak w OpenGLu przy TWO_SIDED_LIGHTING ON).)
+  )
 
   Jeszcze slowo : wszystkie funkcje zwracaja kolor w postaci RGB ale NIE
   clamped do (0, 1) (robienie clamp przez te funkcje byloby czysta strata
   czasu, i tak te funkcje sa zazwyczaj opakowane w wiekszy kod liczacy
   kolory i ten nadrzedny kod musi robic clamp - o ile chce, np. raytracer
   zapisujacy kolory do rgbe nie musi nigdzie robic clamp). }
-function VRML97Emission(const IntersectNode: TOctreeItem;
-  LightingCalculationOn: boolean): TVector3Single;
 function VRML97LightContribution(const Light: TActiveLight;
   const Intersection: TVector3Single; const IntersectNode: TOctreeItem;
   const CamPosition: TVector3Single): TVector3Single;
