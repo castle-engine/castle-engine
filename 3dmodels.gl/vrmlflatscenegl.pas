@@ -171,9 +171,9 @@ type
           you have no choice: you must use roSeparateShapeStates,
           otherwise rendering results may be wrong.
 
-          See [http://www.camelot.homedns.org/~michalis/miscella/kambi_vrml_examples.tar.gz]
-          file kambi-specific/fog_volumetric/break_no_transform_final.wrl
-          for a demo.
+          See [http://www.camelot.homedns.org/~michalis/miscella/kambi_vrml_test_suite.php]
+          file @code(kambi_extensions/fog_volumetric/break_no_transform_final.wrl)
+          (versions for VRML 1.0 and 2.0 are available) for a demo.
 
           Reasons: because TVRMLOpenGLRenderer.DoBeforeGLVertex
           uses Render_State.CurrMatrix.)

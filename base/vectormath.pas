@@ -1629,12 +1629,11 @@ const
   Question: Should I use TFrustumPointsSingle or TFrustumPointsDouble ?
   Short answer: use Double. Tests show that while keeping type TFrustum
   based on Single type is sufficient, calculating FrustumPoints
-  on Single type is *not* sufficient, practical example:
-
-    view3dscene kambi_vrml_examples/cones.wrl \
-      --camera-pos 10.028575897216797 21.909427642822266 -2.0559430122375488 \
-      --camera-dir 1.44960026204899E-008 -0.03851138800382614 0.00586613966152072 \
-      --camera-up -0.0000005434037007 -0.15058502554893494 -0.98859578371047974
+  on Single type is *not* sufficient, practical example: run
+  @preformatted(
+    view3dscene kambi_vrml_test_suite/vrml_2/cones.wrl
+  )
+  and jump to viewpoint named "Frustum needs double-precision".
 
   Turn "Show viewing frustum" on and you will see that frustum
   looks good. But when you change implementation of view3dscene.dpr

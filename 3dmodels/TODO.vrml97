@@ -1,7 +1,5 @@
 VRML 97 TODO items:
 
-- check NIST tests
-
 WWW:
 - kambi_vrml_examples: name it "Kambi VRML test suite",
   convert README to html and put on page (as well as in the archive)
@@ -14,6 +12,8 @@ WWW:
 
 ----------------------------------------
 Post view3dscene 2.0 things:
+
+- finish checking NIST tests
 
 - Remaining places where my code temporarily cannot handle VRML 2.0 files,
   should be updated:

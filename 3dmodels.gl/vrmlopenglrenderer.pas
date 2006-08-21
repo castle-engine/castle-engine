@@ -604,8 +604,8 @@ type
       from that file (e.g. file does not exist or invalid format).
       UseTextureFileNames = @true strategy will completely fail in these
       cases, because it compares only "filename".
-      See e.g. file like
-      /win/3dmodels/vrml/kambi_vrml_examples/inlined_textures.wrl
+      See e.g. file like @code(inlined_textures.wrl) in
+      [http://www.camelot.homedns.org/~michalis/miscella/kambi_vrml_test_suite.php]
       that uses various embedded textures.
 
       That's why another, safer strategy is the default:
