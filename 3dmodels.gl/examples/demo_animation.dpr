@@ -171,7 +171,7 @@ begin
     Animation.TimeBackwards := AnimTimeBackwards;
 
     { get camera from 1st scene in Animation }
-    Animation.Scenes[0].GetPerspectiveCamera(CamPos, CamDir, CamUp);
+    Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
 
     { init Glw.Navigator }
     Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
