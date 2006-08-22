@@ -1,9 +1,6 @@
 VRML 97 TODO items:
 
 WWW:
-- kambi_vrml_examples: name it "Kambi VRML test suite",
-  convert README to html and put on page (as well as in the archive)
-- "sources" page rename and rearrange to "Kambi 3D game VRML engine"
 - fix WWW pages for VRML 1 support
     grep -n -i -e "vrml 1.0" *.php
   Add links to vrml_implementation_status and kambi_vrml_test_suite
