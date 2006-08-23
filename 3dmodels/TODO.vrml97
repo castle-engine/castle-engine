@@ -1,12 +1,5 @@
 VRML 97 TODO items:
 
-WWW:
-- fix WWW pages for VRML 1 support
-    grep -n -i -e "vrml 1.0" *.php
-  Add links to vrml_implementation_status and kambi_vrml_test_suite
-  (from index, from rayhunter and view3dscene, from kambi_vrml_extensions,
-  and between them)
-
 ----------------------------------------
 Post view3dscene 2.0 things:
 
@@ -24,6 +17,8 @@ Post view3dscene 2.0 things:
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
     ./object3dasvrml.pas
     (grep for _1 where I used only VRML 1.0 nodes versions)
+    Fix WWW pages on camelot then (grep for VRML 1.0...),
+    they say that convertion only to VRML 1.0 is available.
 
   - Some VRML fields nodes may have to be added to list of
     interpolated/checked for equality nodes inside
@@ -36,6 +31,8 @@ Post view3dscene 2.0 things:
     castledebugmenu: fix to use also VRML 97 version of SpotLight_2
       (it uses beamWidth)
     make test level in VRML 2.0 for castle
+    fix castle-development.php page, see TODO item there.
+    planned for September 2006.
 
 - change FreeRemovingFromAllParentNodes to also remove from ParentFields,
   rename back to FreeRemovingFromAllParents.
