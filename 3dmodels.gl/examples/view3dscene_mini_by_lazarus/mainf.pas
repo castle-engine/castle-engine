@@ -93,7 +93,7 @@ begin
   
   Scene.Attributes.TextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
 
-  Scene.GetPerspectiveCamera(CamPos, CamDir, CamUp);
+  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
 
   Navigator.Init(
     CamPos,
