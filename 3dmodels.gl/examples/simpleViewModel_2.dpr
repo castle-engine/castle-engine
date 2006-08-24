@@ -37,7 +37,7 @@
     see line "Scene.RenderFrustumOctree"
 
   3. Tries to get default camera settings from VRML file
-  - see Scene.GetPerspectiveCamera call
+  - see Scene.GetPerspectiveViewpoint call
 
   4. Makes FPS timings right after starting the program correct:
   - uses Glw.OnBeforeDraw and Scene.PrepareRender(false)
@@ -51,7 +51,8 @@ program simpleViewModel_2;
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree;
+  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
+  VRMLErrors;
 
 var
   Scene: TVRMLFlatSceneGL;
@@ -145,7 +146,7 @@ begin
   Scene.DefaultShapeStateOctree :=
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
-  Scene.GetPerspectiveCamera(CamPos, CamDir, CamUp);
+  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
 
   { init Glw.Navigator }
   Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
