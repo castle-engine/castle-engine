@@ -247,7 +247,7 @@ procedure Strings_AddCamelotProgramHelpSuffix(
   const Version: string; WrapLines: boolean);
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
-  See [http://www.freepascal.org/bugs/showrec.php3?ID=4831] }
+  See [http://www.freepascal.org/mantis/view.php?id=6699] }
 procedure Strings_SetText(SList: TStrings; const S: string);
 
 { ---------------------------------------------------------------------------- }
