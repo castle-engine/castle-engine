@@ -1155,41 +1155,60 @@ var datapos, formpos: integer;
     raise EDeformatError.CreateFmt('data (%s) and format (%s) don''t match', [data, format]);
   end;
 
-begin
- {omin biale znaki na poczatku i na koncu data jesli nie ma ich w format}
- if RelaxedWhitespaceChecking then
- begin
-   if not SCharIs(format, 1, WhiteSpaces) then data := TrimLeft(data);
-   if not ((Length(format) > 0) and (format[Length(format)] in WhiteSpaces)) then
-    data := TrimRight(data);
- end;
+  procedure CheckFormatNotEnd;
+  begin
+    if formpos > Length(format) then
+      raise EDeformatError.Create('Unexpected end of format : "'+format+'"');
+  end;
 
+begin
  datapos := 1;
  formpos := 1;
  result := 0; { no args done yet }
+
+ { Skip whitespace and the beginning of data }
+ if RelaxedWhitespaceChecking then
+   while SCharIs(Data, DataPos, WhiteSpaces) do Inc(DataPos);
+
  while formpos <= Length(Format) do
  begin
   {datapos > Length(data) -> means Data has ended but Format not.
    OK, so we can exit, because we are doing only TryDeFormat.
    Real DeFormat should check our result if it wishes to check that we parsed
    whole Format.}
-  if datapos > Length(data) then exit;
+  if datapos > Length(data) then
+  begin
+    { Actually, if next thing in format is %s, we can parse it too
+      (string will just be '') }
+    if Format[FormPos] = '%' then
+    begin
+      Inc(formpos);
+      CheckFormatNotEnd;
+      if Format[FormPos] = 's' then
+      begin
+        PString(args[result])^ := ReadStringData;
+        Inc(formpos);
+        Inc(result);
+      end;
+    end;
+    Exit;
+  end;
 
   {1 or more whitespace in format means 1 or more whitespaces in data}
   if RelaxedWhitespaceChecking and (format[formpos] in WhiteSpaces) then
   begin
-   if not (Data[datapos] in WhiteSpaces) then
-    raise EDeformatError.Create('whitespace not found in data '''+data+''' as requested by format '''+format+'''');
-   repeat Inc(formpos) until not (format[formpos] in WhiteSpaces);
-   repeat Inc(datapos) until not (data[datapos] in WhiteSpaces);
+   if not SCharIs(Data, datapos, WhiteSpaces) then
+    raise EDeformatError.Create('Whitespace not found in data "' + data +
+      '" as requested by format "' + format + '"');
+   repeat Inc(formpos) until not SCharIs(format, formpos, WhiteSpaces);
+   repeat Inc(datapos) until not SCharIs(data, datapos, WhiteSpaces);
   end else
 
   {%+something means "read this from data", %% means "read %"}
   if format[formpos] = '%' then
   begin
    Inc(formpos);
-   if formpos > Length(format) then
-    raise EDeformatError.Create('unexpected end of format : '''+format+'''');
+   CheckFormatNotEnd;
    try
     case format[formpos] of
      '%':begin
@@ -1234,6 +1253,9 @@ begin
    Inc(formpos);
   end;
  end;
+
+ if RelaxedWhitespaceChecking then
+   while SCharIs(Data, DataPos, WhiteSpaces) do Inc(DataPos);
 
  if datapos <= Length(data) then
   raise EDeformatError.CreateFmt(
