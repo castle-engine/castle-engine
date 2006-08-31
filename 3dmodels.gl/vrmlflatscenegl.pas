@@ -238,7 +238,7 @@ type
     procedure SetEnableTextures(const Value: boolean); override;
     procedure SetTextureMinFilter(const Value: TGLint); override;
     procedure SetTextureMagFilter(const Value: TGLint); override;
-    procedure SetPointSize(const Value: integer); override;
+    procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
@@ -1879,7 +1879,7 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetPointSize(const Value: integer);
+procedure TVRMLSceneRenderingAttributes.SetPointSize(const Value: TGLFloat);
 begin
   if PointSize <> Value then
   begin

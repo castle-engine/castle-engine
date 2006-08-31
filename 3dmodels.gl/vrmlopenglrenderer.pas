@@ -229,7 +229,6 @@ unit VRMLOpenGLRenderer;
 { TODO
   - use Backface culling in Render of Cone(all parts), Cube,
     Cylinder(all parts), Sphere when the viewer is outside
-  - test Attributes.PointSize
 }
 
 { When you define USE_VRML_NODES_TRIANGULATION, an alternative
@@ -304,7 +303,7 @@ type
     FEnableTextures: boolean;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
-    FPointSize: integer;
+    FPointSize: TGLFloat;
     FUseFog: boolean;
   protected
     { In this class these methods just set value on given property.
@@ -324,7 +323,7 @@ type
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
-    procedure SetPointSize(const Value: integer); virtual;
+    procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     { @groupEnd }
   public
@@ -439,8 +438,8 @@ type
       co ma wplyw tylko na renderowanie PointSet. Zrobilem to atrybutem
       renderera (zamiast po prostu pozwolic temu stanowi OpenGL'a "przeciec"
       z zewnatrz) bo domyslny rozmiar mial byc = 3 a nie 1 (jak w OpenGL'u) }
-    property PointSize: integer
-      read FPointSize write SetPointSize default 3;
+    property PointSize: TGLFloat
+      read FPointSize write SetPointSize default 3.0;
 
     { true oznacza ze stan zmiennych OpenGLa GL_FOG_BIT (w szczegolnosci
       stan enabled/disabled GL_FOG) jest kontrolowany przez tego renderera
@@ -1441,7 +1440,7 @@ begin
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR;
   FTextureMagFilter := GL_LINEAR;
-  FPointSize := 3;
+  FPointSize := 3.0;
   FUseFog := true;
 end;
 
@@ -1498,7 +1497,7 @@ begin
   FTextureMagFilter := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetPointSize(const Value: integer);
+procedure TVRMLRenderingAttributes.SetPointSize(const Value: TGLFloat);
 begin
   FPointSize := Value;
 end;
