@@ -127,13 +127,6 @@
     @item(
       Inline nodes (WWWInline, Inline, InlineLoadControl) ktore
       w BeforeTraverse laduje swoja scene jako swoje dziecko)
-    @item(
-      node'y moga (w niezdefiniowanym momencie) poprawiac wartosci
-      swoich pol jesli te sa w oczywisty sposob nieprawidlowe i
-      bezsensowne. Staram sie przy tym uznawac mozliwie duzo wartosci
-      za sensowne (np. specyfikacja VRMLa nie dopuszcza Cylindra ktory
-      nie ma zadnej czesci wlaczonej, ale ja to dopuszczam) wiec jezeli program
-      i scena sa dobrze napisane to taka sytuacja nie powinna nigdy zajsc.)
 
     @item(
       w przypadku scen o wielu root node'ach (ktore sa de facto niepoprawne

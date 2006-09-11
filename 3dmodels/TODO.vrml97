@@ -78,7 +78,10 @@ Post view3dscene 2.0 things:
 - Resolving url fields (MFString, see 4.5.2, 4.5.3).
   Use Synapse or curl (probably both, by compile-time define;
   make the URL system "pluggable", by default "null" system is plugged
-  so neither Synapse nor curl is used.)
+  so neither Synapse nor curl is used.).
+  Or lnet.
+  Yes, this definitely must be "pluggable" to allow various
+  network libraries to plug there ..
 
 ----------------------------------------
 - 4.6.7 Sensor nodes
