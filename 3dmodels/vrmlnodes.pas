@@ -3987,7 +3987,7 @@ const
     konkretne wartosci, ale mozesz oczywiscie przyjac zalozenie ze na pewno
     sa one Cardinalami (sa >=0) }
   MinQuadricSlices: Cardinal = 3; { mimo ze OpenGL akceptuje minimum 2, ale dla 2 wynik jest bez sensu }
-  MinQuadricStacks: Cardinal = 2; { mimo ze OpenGL akceptuje minimum 1, ale dla 1 wynik jest bez sensu }
+  MinQuadricStacks: Cardinal = 1;
   MinRectDivisions: Cardinal = 0;
 
 var
