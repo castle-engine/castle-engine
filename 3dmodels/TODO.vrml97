@@ -17,8 +17,12 @@ Post view3dscene 2.0 things:
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
     ./object3dasvrml.pas
     (grep for _1 where I used only VRML 1.0 nodes versions)
+
     Fix WWW pages on camelot then (grep for VRML 1.0...),
     they say that convertion only to VRML 1.0 is available.
+    And on freshmeat.
+
+    Also fix appropriate section in vrml_engine_doc.
 
   - Some VRML fields nodes may have to be added to list of
     interpolated/checked for equality nodes inside
