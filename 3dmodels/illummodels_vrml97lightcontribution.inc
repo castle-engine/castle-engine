@@ -42,6 +42,8 @@ var Spot: Single;
       W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
     CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
       Light.TransfNormDirection);
+    { TODO: optimize: no need to calc ArcCos here if we would precalc
+      CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
     if SpotAngle <= SpotLight.FdCutOffAngle.Value then
       Result := Power(CosSpotAngle, SpotLight.SpotExp) else
