@@ -53,6 +53,10 @@ procedure TVRMLOpenGLRenderer.Render_Material(
   const UnLitColor: TVector3Single;
   const ShininessExp, Opacity: Single;
   const FogImmune: boolean);
+{$ifdef TRANSPARENCY_BY_STIPPLE}
+var
+  Stipple: TPolygonStipple;
+{$endif}
 begin
   if Lit then
   begin
@@ -104,18 +108,22 @@ begin
     end;
   end;
 
-  { This is some old attempt at implementing transparency using
+  {$ifdef TRANSPARENCY_BY_STIPPLE}
+  { This is an attempt at implementing transparency using
     polygon stipple. This is called "low quality transparency" in ivview.
     But this is SOOO ugly that I do not consider it really worth
-    maintaining. Really, using blending we can achieve MUCH better results.
-    So it's commented out below. }
-  {if Opacity(MatNum) < 1.0 then
+    maintaining. Really, using blending we can achieve MUCH better results. }
+  if Opacity < 1.0 then
   begin
     glEnable(GL_POLYGON_STIPPLE);
-    Stipple := RandomPolyStippleBy16(1-Opacity(MatNum));
+    if Opacity >= 0.75 then
+      Stipple := ThreeQuartersStipple else
+      Stipple := HalftoneStipple;      
+    //Stipple := RandomPolyStippleBy16(1 - Opacity);
     glPolygonStipple(@Stipple);
   end else
-    glDisable(GL_POLYGON_STIPPLE)}
+    glDisable(GL_POLYGON_STIPPLE)
+  {$endif}
 end;
 
 { Sets current OpenGL material and color properties for material
