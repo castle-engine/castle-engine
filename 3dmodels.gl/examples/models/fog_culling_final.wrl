@@ -1,0 +1,22 @@
+#VRML V1.0 ascii
+
+Group {
+  Viewpoint  {
+    position -25.312177658081055 15.919895172119141 4.039839744567871
+    orientation 0.727922320365906 -0.484834522008896 -0.484834522008896 1.883150696754456
+  }
+
+  DirectionalLight {
+    direction 1 1 -1
+    intensity 1.0 }
+
+  ShapeHints { creaseAngle 1.0 }
+
+  Fog {
+    visibilityRange 30
+    color 0 1 0
+  }
+  Background { skyColor 0 1 0 }
+
+  WWWInline { name "fog_culling.wrl" }
+}

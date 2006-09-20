@@ -177,7 +177,8 @@ EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
   3dmodels/tools/gen_light_map \
   3dmodels.gl/examples/simpleViewModel_2 \
   3dmodels.gl/examples/simpleViewModel \
-  3dmodels.gl/examples/demo_animation
+  3dmodels.gl/examples/demo_animation \
+  3dmodels.gl/examples/fog_culling
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
