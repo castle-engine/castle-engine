@@ -97,6 +97,12 @@ type
       and you're sure that user will usually see the whole scene
       (or just a large part of it).
 
+      Note that this nullifies the purpose of
+      @link(TVRMLFlatSceneGL.RenderFrustum) and
+      @link(TVRMLFlatSceneGL.RenderFrustumOctree) methods. And the purpose
+      of the @link(TVRMLFlatSceneGL.Render) method with a parameter <> @nil.
+      That's because the scene will always be rendered fully to OpenGL.
+
       If the scene is static but user usually only looks at some small
       part of it, then building octree for the scene and using
       roSeparateShapeStates and @link(TVRMLFlatSceneGL.RenderFrustumOctree)
@@ -777,7 +783,7 @@ function RendererOptimizationOptionsHelp: string;
 
 implementation
 
-uses ParseParametersUnit;
+uses ParseParametersUnit, VRMLErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1691,34 +1697,80 @@ end;
 
 procedure TVRMLFlatSceneGL.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
-var InitialState: TVRMLGraphTraverseState;
-    BgTransform: TMatrix4Single;
-    BgNode: TNodeBackground;
+var
+  InitialState: TVRMLGraphTraverseState;
+  BgTransform: TMatrix4Single;
+  BgNode: TNodeBackground;
+  SkyAngleCount: Integer;
+  SkyColorCount: Integer;
+  GroundAngleCount: Integer;
+  GroundColorCount: Integer;
 begin
- if FBackgroundValid then Exit;
+  if FBackgroundValid then Exit;
 
- InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
- try
-  if (RootNode <> nil) and
-    RootNode.TryFindNodeTransform(InitialState, TNodeBackground,
-      TVRMLNode(BgNode), BgTransform) then
-  begin
-   { TODO - extract only rotation from BgTransform matrix ! }
-   BgNode.SetAllowedBgImagesClasses(GLImageClasses);
-   FBackground := TBackgroundGL.Create(BgTransform,
-     @(BgNode.FdGroundAngle.Items.Items[0]), BgNode.FdGroundAngle.Count,
-     @(BgNode.FdGroundColor.Items.Items[0]), BgNode.FdGroundColor.Count,
-     BgNode.BgImages,
-     @(BgNode.FdSkyAngle.Items.Items[0]), BgNode.FdSkyAngle.Count,
-     @(BgNode.FdSkyColor.Items.Items[0]), BgNode.FdSkyColor.Count,
-     BackgroundSkySphereRadius,
-     Attributes.ColorModulatorSingle,
-     Attributes.ColorModulatorByte);
-  end else
-   FBackground := nil;
+  InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+  try
+    if (RootNode <> nil) and
+      RootNode.TryFindNodeTransform(InitialState, TNodeBackground,
+        TVRMLNode(BgNode), BgTransform) then
+    begin
+      SkyAngleCount := BgNode.FdSkyAngle.Count;
+      SkyColorCount := BgNode.FdSkyColor.Count;
 
-  FBackgroundValid := true;
- finally InitialState.Free end;
+      if SkyColorCount <= 0 then
+      begin
+        VRMLNonFatalError('Background node incorrect: ' +
+          'Sky must have at least one color');
+        FBackground := nil;
+      end else
+      begin
+        if SkyAngleCount + 1 <> SkyColorCount then
+        begin
+          VRMLNonFatalError('Background node incorrect: ' +
+            'Sky must have exactly one more Color than Angles');
+          { We know now that SkyColorCount >= 1 and
+            SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
+            So we correct one of them to be smaller. }
+          if SkyAngleCount + 1 > SkyColorCount then
+            SkyAngleCount := SkyColorCount - 1 else
+            SkyColorCount := SkyAngleCount + 1;
+        end;
+
+        GroundAngleCount := BgNode.FdGroundAngle.Count;
+        GroundColorCount := BgNode.FdGroundColor.Count;
+
+        if (GroundAngleCount <> 0) and
+           (GroundAngleCount + 1 <> GroundColorCount) then
+        begin
+          VRMLNonFatalError('Background node incorrect: ' +
+            'Ground must have exactly one more Color than Angles');
+          { We know now that GroundColorCount >= 1 and
+            GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
+            So we correct one of them to be smaller. }
+          if GroundAngleCount + 1 > GroundColorCount then
+            GroundAngleCount := GroundColorCount - 1 else
+            GroundColorCount := GroundAngleCount + 1;
+        end;
+
+        { TODO - extract only rotation from BgTransform matrix ! }
+
+        BgNode.SetAllowedBgImagesClasses(GLImageClasses);
+
+        FBackground := TBackgroundGL.Create(BgTransform,
+          @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
+          @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
+          BgNode.BgImages,
+          @(BgNode.FdSkyAngle.Items.Items[0]), SkyAngleCount,
+          @(BgNode.FdSkyColor.Items.Items[0]), SkyColorCount,
+          BackgroundSkySphereRadius,
+          Attributes.ColorModulatorSingle,
+          Attributes.ColorModulatorByte);
+      end;
+    end else
+      FBackground := nil;
+
+    FBackgroundValid := true;
+  finally InitialState.Free end;
 end;
 
 function TVRMLFlatSceneGL.Background: TBackgroundGL;
