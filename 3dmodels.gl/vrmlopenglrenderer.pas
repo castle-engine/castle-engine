@@ -21,6 +21,12 @@
 { @abstract(Tutaj implementujemy klase @link(TVRMLOpenGLRenderer)
   ktora jest odpowiedzialna za renderowanie sceny VRML'a.)
 
+  TODO: Most of the text below is translated to English
+  in my master's thesis
+  [http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php]
+  in chapter "OpenGL rendering", section "Basic OpenGL rendering".
+  This text should be incorporated here at some point.
+
   Scena VRML'a jest tutaj po prostu ciagiem par
   (Node: TNodeGeneralShape; State: TVRMLGraphTraverseState).
 
