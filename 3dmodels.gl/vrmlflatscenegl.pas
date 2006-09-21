@@ -74,6 +74,26 @@ uses
 
 {$define read_interface}
 
+const
+  { }
+  DefaultBlendingSourceFactor = GL_SRC_ALPHA;
+
+  { Default value of Attributes.BlendingDestinationFactor.
+
+    Why isn't it GL_ONE_MINUS_SRC_ALPHA ?
+    See [http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php],
+    chapter "OpenGL rendering", section about "mat transparency
+    using blending".
+
+    Polish: Wada GL_ONE jest fakt ze wynikowy obraz bedzie bardzo jasny
+    tam gdzie widoczne sa obiekty blended. (bo GL_ONE zawsze tylko
+    zwieksza kolor obrazu).
+    Natomiast wada GL_ONE_MINUS_SRC_ALPHA jest fakt ze z wynikowego
+    obrazu moze za szybko zniknac kolor obiektu nie-blended ktory
+    byl za obiektami blended (bo GL_ONE_MINUS_SRC_ALPHA bedzie
+    go za kazdym razem zmniejszala). }
+  DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
+
 type
   { This is used by @link(TVRMLFlatSceneGL.Optimization) to describe
     what kind of optimization should be done. }
@@ -233,6 +253,8 @@ type
     FScenes: TVRMLFlatSceneGLsList;
 
     FBlending: boolean;
+    FBlendingSourceFactor: TGLenum;
+    FBlendingDestinationFactor: TGLenum;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetSmoothShading(const Value: boolean); override;
@@ -248,6 +270,8 @@ type
     procedure SetUseFog(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
+    procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
+    procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -260,6 +284,17 @@ type
       jako nieprzezroczyste. }
     property Blending: boolean
       read FBlending write SetBlending default true;
+
+    { Blending function parameters, used when @link(Blending).
+      See OpenGL documentation of glBlendFunc for possible values here.
+      @groupBegin }
+    property BlendingSourceFactor: TGLenum
+      read FBlendingSourceFactor write SetBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+    property BlendingDestinationFactor: TGLenum
+      read FBlendingDestinationFactor write SetBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
+    { @groupEnd }
   end;
 
   { This is a descendant of TVRMLFlatScene that makes it easy to render
@@ -1090,14 +1125,8 @@ begin
     begin
      glDepthMask(GL_FALSE);
      glEnable(GL_BLEND);
-     { Wada GL_ONE jest fakt ze wynikowy obraz bedzie bardzo jasny
-       tam gdzie widoczne sa obiekty blended. (bo GL_ONE zawsze tylko
-       zwieksza kolor obrazu).
-       Natomiast wada GL_ONE_MINUS_SRC_ALPHA jest fakt ze z wynikowego
-       obrazu moze za szybko zniknac kolor obiektu nie-blended ktory
-       byl za obiektami blended (bo GL_ONE_MINUS_SRC_ALPHA bedzie
-       go za kazdym razem zmniejszala). }
-     glBlendFunc(GL_SRC_ALPHA, GL_ONE {_MINUS_SRC_ALPHA});
+     glBlendFunc(Attributes.BlendingSourceFactor,
+                 Attributes.BlendingDestinationFactor);
      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
       if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
        TestRenderShapeStateProc(ShapeStateNum);
@@ -1789,7 +1818,11 @@ end;
 constructor TVRMLSceneRenderingAttributes.Create;
 begin
   inherited;
+
   FBlending := true;
+  FBlendingSourceFactor := DefaultBlendingSourceFactor;
+  FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
+
   FScenes := TVRMLFlatSceneGLsList.Create;
 end;
 
@@ -1800,10 +1833,15 @@ begin
 end;
 
 procedure TVRMLSceneRenderingAttributes.Assign(Source: TPersistent);
+var
+  S: TVRMLSceneRenderingAttributes;
 begin
   if Source is TVRMLSceneRenderingAttributes then
   begin
-    Blending := TVRMLSceneRenderingAttributes(Source).Blending;
+    S := TVRMLSceneRenderingAttributes(Source);
+    Blending := S.Blending;
+    BlendingSourceFactor := S.BlendingSourceFactor;
+    BlendingDestinationFactor := S.BlendingDestinationFactor;
     inherited;
   end else
     inherited;
@@ -1813,7 +1851,9 @@ function TVRMLSceneRenderingAttributes.Equals(SecondValue: TPersistent): boolean
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TVRMLSceneRenderingAttributes) and
-    (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending);
+    (TVRMLSceneRenderingAttributes(SecondValue).Blending = Blending) and
+    (TVRMLSceneRenderingAttributes(SecondValue).BlendingSourceFactor = BlendingSourceFactor) and
+    (TVRMLSceneRenderingAttributes(SecondValue).BlendingDestinationFactor = BlendingDestinationFactor);
 end;
 
 { Interfejs Renderera mowi ze zeby zmienic atrybut renderer musi byc wolny
@@ -1833,6 +1873,26 @@ begin
   begin
     FScenes.CloseGLRenderer;
     FBlending := Value;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBlendingSourceFactor(
+  const Value: TGLenum);
+begin
+  if BlendingSourceFactor <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FBlendingSourceFactor := Value;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
+  const Value: TGLenum);
+begin
+  if BlendingDestinationFactor <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    FBlendingDestinationFactor := Value;
   end;
 end;
 
