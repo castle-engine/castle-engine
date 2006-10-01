@@ -169,10 +169,13 @@ opengl/allkambiopenglunits.pas:
 EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
   base/examples/demo_textreader \
   base/examples/kambi_calc \
+  images/examples/image_convert \
   opengl/examples/glWinEvents \
   opengl/examples/menu_test_alternative \
   opengl/examples/menuTest \
   opengl/examples/test_glwindow_gtk_mix \
+  opengl/examples/test_font_break \
+  opengl/examples/multi_glwindow \
   3dmodels/examples/many2vrml \
   3dmodels/tools/gen_light_map \
   3dmodels.gl/examples/simpleViewModel_2 \
