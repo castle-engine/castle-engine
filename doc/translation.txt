@@ -18,6 +18,7 @@ D   convexhullunit.pas
 D   keys.pas
 |   matrixnavigation.pas
 D   polynomials.pas
+|   rayswindow.pas
 |   spacefillingcurves.pas
 -   spheresampling.pas
 
@@ -32,6 +33,7 @@ D   object3dobj.pas
 |   object3dsmaterial.pas
 -   object3ds.pas
 |   triangulator.pas
+|   vrmlerrors.pas
 |   vrmlfields.pas
 |   vrmlflatscene.pas
 -   vrmllexer.pas
@@ -41,6 +43,7 @@ D   vrmlnodesdetailoptions.pas
 -   vrmlnodes.pas
 |   vrmlraytracer.pas
 D   vrmlshapestateoctree.pas
+D   vrmlscenewaypoints.pas
 |   vrmlshapestate.pas
 -   vrmltriangleoctree.pas
 |   vrmlcamerautils.pas
@@ -57,6 +60,7 @@ D   vrmlglanimation.pas
 D   alutils.pas
 -   openal.pas
 D   soundwav.pas
+D   alsourceallocator.pas
 
   base/
 -   areas.pas
