@@ -259,10 +259,14 @@ unit OpenGLh;
     TVRMLFLATSCENEGL__SSS_RENDERSHAPESTATE, line 1213 of vrmlflatscenegl.pas.
     Disabling fp exceptions fixed the problem.
 
-  I want to mention here that I know two OpenGL implementations
-  that do not cause such problems. These are Mesa3d and NVidia proprietary
-  Linux drivers. So it's possible to make an efficient OpenGL
-  implementation that doesn't require caller to disable fp exceptions.
+    NVidia proprietary drivers exit with EDivByZero on the first
+    glXMakeCurrent call (done also by glut in first glutCreateWindow,
+    done also by GTK glarea in first gtk_glarea_make_current)
+    when no depth buffer was requested.
+
+  I want to mention here that Mesa3d doesn't cause such problems.
+  So maybe it's possible to make an efficient OpenGL
+  implementation that doesn't require caller to disable fp exceptions ?
   Other implementors: please take this good example. Thanks.
 }
 {$define DISABLE_FP_EXCEPTIONS}

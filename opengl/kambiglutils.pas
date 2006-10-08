@@ -2634,10 +2634,11 @@ initialization
  Assert(SizeOf(TGLint) = SizeOf(TGLuint));
 
  {$ifdef USE_GL_GLU_UNITS}
- { See FPC bug 3955,
-   http://www.freepascal.org/bugs/showrec.php3?ID=3955 }
- {$ifdef WIN32}
+ { For reasoning of this:
+   - see DISABLE_FP_EXCEPTIONS comments in OpenGLh unit.
+   - see FPC bug [http://www.freepascal.org/mantis/view.php?id=5914]
+     (old id is 3955)
+   - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570] }
  Set8087CW($133F);
- {$endif}
  {$endif}
 end.

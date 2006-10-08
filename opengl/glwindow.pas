@@ -522,37 +522,6 @@ unit GLWindow;
 {$ifdef GLWINDOW_GTK_ANY} {$define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 {$ifdef GLWINDOW_XLIB}    {$define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
-{ Without this workaround, when you set glw.DepthBufferBits := 0 under Linux:
-
-  With XLIB impl: glXMakeCurrent crashes with EDivByZero
-  With GLUT impl: glutCreateWindow crashes with EAccessViolation.
-    glutCreateWindow calls interally glXMakeCurrent, so it's probably the
-    same bug.
-  With GTK impl: EDivByZero at gtk_glarea_make_current.
-    gtk_glarea_make_current just does glXMakeCurrent, so it's again the same
-    thing.
-
-  Under Windows (with WINAPI or GLUT implementation) there is no bug.
-    Everything works with DepthBufferBits = 0.
-  Na uniwerku na Linuxach tez jest ten blad. Tam tez maja NVidie.
-
-  With FPC 1.9.3 error looks differently. It looks like the first call to
-  Round() function after TGLWindow.MakeCurrent produces error EDivByZero.
-  But it happens only when DepthBufferBits = 0 ! So it looks like it's the same
-  bug, it just shows in a different way.
-
-  I separated this bug in openGL.testy/glutTesty/zero_depth_buffer.dpr.
-  This is a program that does not use any of my units, it uses only standard
-  FPC OpenGL and glut units. So I know it's not some nasty error inside
-  my units. Ale w FPC 1.9.3 bledu juz tam nie ma.
-
-  It's probably some error with NVidia's drivers under Linux and FreeBSD.
-  It does not occur with Mesa OpenGL implementation under FreeBSD,
-  TODO: do more tests with that.
-}
-{$ifdef LINUX}   {$define WORKAROUND_DEPTH_BITS_0_BUG} {$endif}
-{$ifdef FREEBSD} {$define WORKAROUND_DEPTH_BITS_0_BUG} {$endif}
-
 { TODO list ------------------------------------------------------------------
 
   (? means "I'm not sure whether to implement it")
