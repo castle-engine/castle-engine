@@ -134,6 +134,8 @@ private
   { used in GlobalIdle }
   LastDoTimerTime: TMilisecTime;
 
+  QuitPosted: boolean;
+
   { used in SetGlobalIdleInstalled }
   GlobalIdleHandle: guint;
   FGlobalIdleInstalled: boolean;
@@ -1388,7 +1390,8 @@ end;
 
 procedure TGLWindowsManager.Loop;
 begin
- gtk_main();
+  { Alternative impl: while ProcessMessage(true) do ; }
+  gtk_main();
 end;
 
 function TGLWindowsManager.ProcessAllMessages: boolean;
@@ -1427,13 +1430,60 @@ end;
 
 function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
 begin
- Result := not {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
-   (gtk_main_iteration_do(AllowSuspend));
+  (* I would like to do here
+    Result := not {$ifndef GLWINDOW_GTK_2} gboolean {$endif}
+      (gtk_main_iteration_do(AllowSuspend))
+
+    I.e. I want to use the result of gtk_main_iteration_do to return it.
+    Unfortunately, it turns out that gtk_main_iteration_do always returns
+    true if the program doesn't use gtk_main call at all
+    (i.e. does it's whole loop manually, by calling Glwm.ProcessMessage).
+    This is confirmed by
+    1. practice (just change impl of Loop to
+         while ProcessMessage(true) do ;
+       instead of relaying on gtk_main
+    2. gtk source code:
+         gint
+         gtk_main_iteration_do (gboolean blocking)
+         {
+           GDK_THREADS_LEAVE ();
+           g_main_iteration (blocking);
+           GDK_THREADS_ENTER ();
+
+           if (main_loops)
+             return !g_main_is_running (main_loops->data);
+           else
+             return TRUE;
+         }
+
+
+       and note that main_loops is set only by gtk_main.
+       So a program that doesn't call gtk_main at all has
+       main_loops = nil always.
+
+    This means that I should trace the QuitPosted value myself,
+    just like I do for X11 or WinAPI GLWindow implementations.
+    And the result of gtk_main_iteration_do call should be ignored. *)
+
+  gtk_main_iteration_do(AllowSuspend);
+
+  Result := not QuitPosted;
 end;
 
 procedure TGLWindowsManager.QuitWhenNoWindowsActive;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
+
+ { QuitPosted is needed, gtk_main_quit is not enough --- see
+   comments in ProcessMessage impl.
+
+   Actually, we call gtk_main_quit
+   only to exit from gtk_main --- if we would not use gtk_main
+   (but e.g. implement Loop simply by calling ProcessMessage,
+   which is entirely possible), then calling gtk_main_quit
+   would not be needed at all. }
+
+ QuitPosted := true;
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;
@@ -1466,6 +1516,8 @@ begin
   GlobalIdleInstalled := true;
 
   InitializeInvisibleCursor;
+
+  QuitPosted := false;
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
