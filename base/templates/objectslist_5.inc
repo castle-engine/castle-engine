@@ -266,7 +266,8 @@ procedure TObjectsList_5.Sort(FirstIndex, LastIndex: Cardinal;
   IsSmallerFunction: TObjectsListIsSmallerFunction_5);
 begin
   GoodIsSmallerFunction := IsSmallerFunction;
-  SortByObject(Arr, SizeOf(TObject), ProxyIsSmallerFunction,
+  SortByObject(Arr, SizeOf(TObject), 
+    {$ifdef FPC_OBJFPC}@{$endif} ProxyIsSmallerFunction,
     FirstIndex, LastIndex);
 end;
 
