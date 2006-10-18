@@ -57,7 +57,7 @@
 )
 }
 
-unit XF86VMode;
+unit KambiXF86VMode;
 
 {$ifdef VER1_0_10}
   {$FATAL This unit cannot be safely

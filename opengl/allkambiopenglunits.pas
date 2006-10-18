@@ -27,7 +27,7 @@ uses
   progressgl,
   timemessages,
   {$ifdef UNIX}
-  xf86vmode,
+  kambixf86vmode,
   xlibutils
   {$endif UNIX}
   {$ifdef WIN32}

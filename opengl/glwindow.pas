@@ -610,7 +610,7 @@ uses
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
   {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, {$endif}
-  {$ifdef GLWINDOW_USE_XF86VMODE} XF86VMode, {$endif}
+  {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
