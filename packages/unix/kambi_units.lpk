@@ -372,8 +372,8 @@
         <UnitName Value="OpenGLTTFonts"/>
       </Item82>
       <Item83>
-        <Filename Value="../../opengl/unix/xf86vmode.pas"/>
-        <UnitName Value="XF86VMode"/>
+        <Filename Value="../../opengl/unix/kambixf86vmode.pas"/>
+        <UnitName Value="kambixf86vmode"/>
       </Item83>
       <Item84>
         <Filename Value="../../opengl/unix/xlibutils.pas"/>
