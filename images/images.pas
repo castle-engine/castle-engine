@@ -922,7 +922,7 @@ const
       ExtsCount: 1; Exts: ('png','','');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG;
-      Load: LoadAnyPNG),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyPNG),
     ( FormatName: 'JFIF, JPEG File Interchange Format';
       ExtsCount: 2; Exts: ('jpg','jpeg','');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG;
