@@ -1,5 +1,7 @@
 unit KambiPasJpeg_stream_mgrs;
 
+{$mode delphi}
+
 {$I kambiconf.inc}
 
 interface

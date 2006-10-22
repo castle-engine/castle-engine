@@ -72,6 +72,6 @@ end;
 procedure TVRMLOpenGLRenderer.DoGLArrayElement(
   const Verts: PArray_Vector3Single; ith: TGLint);
 begin
- DoBeforeGLVertex(Verts[ith]);
+ DoBeforeGLVertex(Verts^[ith]);
  glArrayElement(ith);
 end;

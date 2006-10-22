@@ -60,6 +60,9 @@ type
     class function Test(ShapeStateNum: Integer): boolean;
   end;
 
+var
+  FogVisibilityTester: TFogVisibilityTester = nil;
+
 class function TFogVisibilityTester.Test(ShapeStateNum: Integer): boolean;
 begin
   { Test for collision between two spheres.
@@ -88,7 +91,7 @@ begin
   glLoadMatrix(glw.Navigator.Matrix);
 
   if Scene.Attributes.UseFog then
-    Scene.Render(TFogVisibilityTester.Test) else
+    Scene.Render(@FogVisibilityTester.Test) else
     Scene.RenderFrustumOctree(Glw.NavWalker.Frustum);
 
   Writeln(Format('Rendered ShapeStates: %d / %d',
@@ -157,10 +160,11 @@ end;
 var
   //i: Integer;
   CamPos, CamDir, CamUp: TVector3Single;
+  Dummy: TDummy = nil;
 begin
  Parameters.CheckHigh(0);
  try
-  VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
+  VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(
     'models' + PathDelim + 'fog_culling_final.wrl', true),
@@ -178,7 +182,7 @@ begin
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
 
   { init Glw.Navigator }
-  Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
   Glw.NavWalker.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
     CamUp,
@@ -188,17 +192,17 @@ begin
   if IsEmptyBox3d(Scene.BoundingBox) then
    CameraRadius := 1.0 { any non-zero dummy value } else
    CameraRadius := Box3dAvgSize(Scene.BoundingBox) * 0.01;
-  Glw.NavWalker.OnMoveAllowed := TDummy.MoveAllowed;
+  Glw.NavWalker.OnMoveAllowed := @Dummy.MoveAllowed;
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
 
-  Glw.OnInit := Init;
-  Glw.OnClose := Close;
-  Glw.OnResize := Resize;
-  Glw.OnBeforeDraw := BeforeDraw;
-  Glw.OnKeyDown := KeyDown;
-  Glw.InitLoop(ProgramName, Draw);
+  Glw.OnInit := @Init;
+  Glw.OnClose := @Close;
+  Glw.OnResize := @Resize;
+  Glw.OnBeforeDraw := @BeforeDraw;
+  Glw.OnKeyDown := @KeyDown;
+  Glw.InitLoop(ProgramName, @Draw);
  finally Scene.Free end;
 end.

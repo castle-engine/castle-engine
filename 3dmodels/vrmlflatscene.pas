@@ -544,8 +544,8 @@ begin
  begin
   InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
   try
-   { "Self." below required because of fpc 1.0.10 func_ofobject_bug }
-   RootNode.Traverse(InitialState, TNodeGeneralShape, Self.AddFromTraverse);
+   RootNode.Traverse(InitialState, TNodeGeneralShape,
+     {$ifdef FPC_OBJFPC} @ {$endif} AddFromTraverse);
   finally InitialState.Free end;
  end;
 end;
@@ -667,7 +667,8 @@ begin
 
  W := TInfoNodeWriter.Create;
  try
-  RootNode.EnumerateNodes(TNodeInfo, W.WriteNode, false);
+  RootNode.EnumerateNodes(TNodeInfo,
+    {$ifdef FPC_OBJFPC} @ {$endif} W.WriteNode, false);
   Writeln(W.Count, ' Info nodes in the scene.');
  finally W.Free end;
 end;
@@ -711,11 +712,10 @@ begin
     Progress.Init(TrianglesCount(false), ProgressTitle);
     try
      TriangleOctreeToAdd := result;
-     { "Self." below required because of fpc 1.0.10 func_ofobject_bug }
-     FillOctree(Self.AddTriangleToOctreeProgress);
+     FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
     finally Progress.Fini end;
    end else
-    FillOctree(result.AddItemTriangle);
+    FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
   finally
    result.OctreeItems.AllowedCapacityOverflow := 4;
   end;
@@ -982,7 +982,8 @@ begin
         TriangleAdder.TriangleList := Result;
         for I := 0 to ShapeStates.Count - 1 do
           ShapeStates[I].ShapeNode.Triangulate(
-            ShapeStates[I].State, OverTriangulate, TriangleAdder.AddTriangle);
+            ShapeStates[I].State, OverTriangulate,
+            {$ifdef FPC_OBJFPC} @ {$endif} TriangleAdder.AddTriangle);
       finally FreeAndNil(TriangleAdder) end;
     finally Result.AllowedCapacityOverflow := 4 end;
   except Result.Free; raise end;

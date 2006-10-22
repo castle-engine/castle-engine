@@ -109,9 +109,9 @@ begin
  try
   glw.Width := 600;
   glw.Height := 400;
-  glw.OnInit := Init;
-  glw.OnClose := Close;
-  glw.OnResize := Resize;
-  glw.InitLoop('GLWindow with some GTK widgets', Draw);
+  glw.OnInit := @Init;
+  glw.OnClose := @Close;
+  glw.OnResize := @Resize;
+  glw.InitLoop('GLWindow with some GTK widgets', @Draw);
  finally glw.Free end;
 end.

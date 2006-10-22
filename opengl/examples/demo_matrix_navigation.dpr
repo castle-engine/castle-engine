@@ -64,12 +64,12 @@ end;
 
 begin
   { init Glw.Navigator }
-  Glw.Navigator := TMatrixExaminer.Create(Glw.PostRedisplayOnMatrixChanged);
+  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
   Glw.NavExaminer.Init(Box3d(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)));
 
-  Glw.OnInit := Init;
-  Glw.OnResize := Resize;
-  Glw.InitLoop(ProgramName, Draw);
+  Glw.OnInit := @Init;
+  Glw.OnResize := @Resize;
+  Glw.InitLoop(ProgramName, @Draw);
 end.

@@ -260,7 +260,8 @@ var
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseFromDefaultState(TNodeGeneralShape, TraverseForWaypoints);
+    Node.TraverseFromDefaultState(TNodeGeneralShape,
+      {$ifdef FPC_OBJFPC} @ {$endif} TraverseForWaypoints);
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
   finally NodesToRemove.Free end;
@@ -363,7 +364,8 @@ var
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseFromDefaultState(TNodeGeneralShape, TraverseForSectors);
+    Node.TraverseFromDefaultState(TNodeGeneralShape, 
+      {$ifdef FPC_OBJFPC} @ {$endif} TraverseForSectors);
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
   finally NodesToRemove.Free end;

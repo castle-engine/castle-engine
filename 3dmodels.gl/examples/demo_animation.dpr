@@ -146,7 +146,7 @@ var
 begin
   Glw.ParseParameters(StandardParseOptions);
   RendererOptimizationOptionsParse(Param_RendererOptimization);
-  ParseParameters(Options, OptionProc, nil);
+  ParseParameters(Options, @OptionProc, nil);
 
   { parse parameters to AnimRootNodes and AnimTimes }
   if Odd(Parameters.High) then
@@ -161,7 +161,7 @@ begin
   end;
 
   try
-    VRMLNonFatalError := VRMLNonFatalError_WarningWrite;
+    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
     Animation := TVRMLGLAnimation.Create(
       AnimRootNodes, true,
@@ -174,7 +174,7 @@ begin
     Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
 
     { init Glw.Navigator }
-    Glw.Navigator := TMatrixWalker.Create(Glw.PostRedisplayOnMatrixChanged);
+    Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
     Glw.NavWalker.Init(CamPos, VectorAdjustToLength(CamDir,
       Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp, 0.0, 0.0);
 
@@ -182,13 +182,13 @@ begin
     Progress.UserInterface := ProgressGLInterface;
 
     Glw.AutoRedisplay := true;
-    Glw.OnInit := Init;
-    Glw.OnClose := Close;
-    Glw.OnResize := Resize;
-    Glw.OnIdle := Idle;
-    Glw.OnKeyDown := KeyDown;
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
+    Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
+    Glw.OnKeyDown := @KeyDown;
     Glw.Caption := ProgramName;
-    Glw.OnDraw := Draw;
+    Glw.OnDraw := @Draw;
 
     Glw.Init;
 

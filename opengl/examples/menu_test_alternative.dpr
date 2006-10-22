@@ -62,10 +62,10 @@ begin
   { init glw properties related to menu }
   glw.OwnsMainMenu := false;
   glw.MainMenu := FirstMainMenu;
-  glw.OnMenuCommand := MenuCommand;
+  glw.OnMenuCommand := @MenuCommand;
 
   { init other glw properties }
-  glw.OnResize := Resize2D;
+  glw.OnResize := @Resize2D;
   glw.Width := 300;
   glw.Height := 300;
   glw.ParseParameters;

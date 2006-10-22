@@ -373,7 +373,7 @@ var FogType: Integer;
        begin EtaFrom := ETA_CONST; EtaTo := 1 end;
 
       if TryTransmittedRayVector(TransmittedRayVec, Normalized(RayVector),
-        IntersectNode.TriangleNormPlane, EtaFrom, EtaTo) then
+        IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo) then
       begin
        VectorScaleTo1st(result, 1 - MaterialTransparency);
        TransmittedColor := Trace(Intersection, TransmittedRayVec, Depth-1, IntersectNodeIndex, true);
@@ -389,7 +389,8 @@ var FogType: Integer;
      { rob promien odbity }
      if MaterialMirror > 0 then
      begin
-      ReflRayVector := ReflectedRayVector(Normalized(RayVector), IntersectNode.TriangleNormPlane);
+      ReflRayVector := ReflectedRayVector(Normalized(RayVector),
+        IntersectNode^.TriangleNormPlane);
       VectorScaleTo1st(result, 1 - MaterialMirror);
       ReflColor := Trace(Intersection, ReflRayVector, Depth-1, IntersectNodeIndex, true);
       VectorScaleTo1st(ReflColor, MaterialMirror);
@@ -409,7 +410,7 @@ var FogType: Integer;
          ze swiatlo oswietla IntersectNode ale Z DRUGIEJ STRONY.
          A tego przeciez nie chcemy liczyc. }
      result := ActiveLightNotBlocked(Octree, Light,
-       Intersection, PVector3Single(@IntersectNode.TriangleNormPlane)^,
+       Intersection, PVector3Single(@IntersectNode^.TriangleNormPlane)^,
        VectorNegate(RayVector), IntersectNodeIndex, true);
     end;
 
@@ -426,10 +427,10 @@ var FogType: Integer;
 
    { calculate material properties, taking into account VRML 1.0 and 2.0
      material. }
-   if IntersectNode.State.ParentShape <> nil then
+   if IntersectNode^.State.ParentShape <> nil then
    begin
      { VRML 2.0 }
-     M2 := IntersectNode.State.ParentShape.Material;
+     M2 := IntersectNode^.State.ParentShape.Material;
      if M2 <> nil then
      begin
        MaterialMirror := M2.FdMirror.Value;
@@ -442,9 +443,9 @@ var FogType: Integer;
    end else
    begin
      { VRML 1.0 }
-     M1 := IntersectNode.State.LastNodes.Material;
-     MaterialMirror := M1.Mirror(IntersectNode.MatNum);
-     MaterialTransparency := M1.Transparency(IntersectNode.MatNum);
+     M1 := IntersectNode^.State.LastNodes.Material;
+     MaterialMirror := M1.Mirror(IntersectNode^.MatNum);
+     MaterialTransparency := M1.Transparency(IntersectNode^.MatNum);
    end;
 
    result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
@@ -624,8 +625,8 @@ const
 
   function IsLightSourceIndex(ItemIndex: Integer): boolean;
   begin
-   result := VectorLenSqr(Octree.OctreeItems[ItemIndex].State.LastNodes.Material.
-     EmissiveColor3Single(Octree.OctreeItems[ItemIndex].MatNum))
+   result := VectorLenSqr(Octree.OctreeItems.Items[ItemIndex].State.LastNodes.Material.
+     EmissiveColor3Single(Octree.OctreeItems.Items[ItemIndex].MatNum))
       > Sqr(SingleEqualityEpsilon);
   end;
 
@@ -653,8 +654,8 @@ const
    begin
     CachedShadower := Octree.OctreeItems.Pointers[CachedShadowerIndex];
     Inc(Octree.DirectCollisionTestsCounter);
-    if IsTriangleSegmentCollision(CachedShadower.Triangle,
-      CachedShadower.TriangleNormPlane, ItemPoint, LightSourcePoint) then
+    if IsTriangleSegmentCollision(CachedShadower^.Triangle,
+      CachedShadower^.TriangleNormPlane, ItemPoint, LightSourcePoint) then
      Exit(true);
 
     { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
@@ -672,7 +673,7 @@ const
      LightsIndices.Items[LightSourceIndiceIndex]);
    try
     ShadowerIndex := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
-      ItemIndex, true, OctreeIgnorer.IgnoreItem);
+      ItemIndex, true, @OctreeIgnorer.IgnoreItem);
     result := ShadowerIndex <> NoItemIndex;
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     ShadowCache.Items[LightSourceIndiceIndex] := ShadowerIndex;
@@ -706,11 +707,11 @@ const
 
        result := TryTransmittedRayVector(TransmittedRayVector,
          Normalized(RayVector),
-         IntersectNode.TriangleNormPlane, EtaFrom, EtaTo);
+         IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo);
        if result then
         TracedDir := PhiThetaToXYZ(
           RandomUnitHemispherePointDensityCosThetaExp(
-            Round(MaterialNode.TransSpecularExp(IntersectNode.MatNum)),
+            Round(MaterialNode.TransSpecularExp(IntersectNode^.MatNum)),
             PdfValue),
           TransmittedRayVector);
       end;
@@ -773,7 +774,7 @@ const
         { evaluate SampleLightPoint. Lepiej pozniej sprawdz ze SampleLightPoint jest
           rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
           nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-        SampleLightPoint := SampleTrianglePoint(LightSource.Triangle);
+        SampleLightPoint := SampleTrianglePoint(LightSource^.Triangle);
         if VectorsEqual(SampleLightPoint, Intersection) then Continue;
 
         { evaluate LigtDirNorm (nieznormalizowane).
@@ -783,19 +784,20 @@ const
           swiatlo nie oswietla naszego pixela. }
         LightDirNorm := VectorSubtract(SampleLightPoint, Intersection);
         if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRay0Dir,
-          IntersectNode.TriangleNormPlane) then Continue;
+          IntersectNode^.TriangleNormPlane) then Continue;
 
         { sprawdz IsLightShadowed, czyli zrob shadow ray }
         if IsLightShadowed(IntersectNodeIndex, Intersection,
           LightSourceIndiceIndex, SampleLightPoint) then Continue;
 
         { evaluate DirectColor = kolor emission swiatla }
-        DirectColor := LightSource.State.LastNodes.Material.EmissiveColor3Single(LightSource.MatNum);
+        DirectColor := LightSource^.State.LastNodes.Material.
+          EmissiveColor3Single(LightSource^.MatNum);
 
         { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
           materialu }
         VectorMultEachPosTo1st(DirectColor,
-          MaterialNode.DiffuseColor3Single(IntersectNode.MatNum));
+          MaterialNode.DiffuseColor3Single(IntersectNode^.MatNum));
 
         { evaluate LightDirNorm (znormalizowane), NegatedLightDirNorm }
         NormalizeTo1st(LightDirNorm);
@@ -832,8 +834,9 @@ const
         VectorScaleTo1st(DirectColor,
           VectorDotProduct(LightDirNorm, IntersectNormalInRay0Dir) *
           VectorDotProduct(NegatedLightDirNorm,
-            PlaneDirInDirection(LightSource.TriangleNormPlane, NegatedLightDirNorm)) *
-          LightSource.TriangleArea /
+            PlaneDirInDirection(LightSource^.TriangleNormPlane,
+              NegatedLightDirNorm)) *
+          LightSource^.TriangleArea /
           PointsDistanceSqr(SampleLightPoint, Intersection)
         );
 
@@ -887,10 +890,10 @@ const
         odpowiada DOKLADNIE temu jak wpada swiatlo. }
 
       { evaluate Colors[] }
-      Colors[ckRS] := MaterialNode.ReflSpecular (IntersectNode.MatNum);
-      Colors[ckRD] := MaterialNode.ReflDiffuse  (IntersectNode.MatNum);
-      Colors[ckTS] := MaterialNode.TransSpecular(IntersectNode.MatNum);
-      Colors[ckTD] := MaterialNode.TransDiffuse (IntersectNode.MatNum);
+      Colors[ckRS] := MaterialNode.ReflSpecular (IntersectNode^.MatNum);
+      Colors[ckRD] := MaterialNode.ReflDiffuse  (IntersectNode^.MatNum);
+      Colors[ckTS] := MaterialNode.TransSpecular(IntersectNode^.MatNum);
+      Colors[ckTD] := MaterialNode.TransDiffuse (IntersectNode^.MatNum);
 
       { evaluate Weights[] and WeightSum }
       WeightsSum := 0;
@@ -922,7 +925,7 @@ const
       begin
        { evaluate IntersectNormalInRay0Dir - Normal at intersection in direction Ray0 }
        IntersectNormalInRay0Dir := PlaneDirNotInDirection(
-        IntersectNode.TriangleNormPlane, RayVector);
+        IntersectNode^.TriangleNormPlane, RayVector);
 
        { evaluate TracedDir i PdfValue samplujac odpowiednio polsfere
         (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
@@ -937,10 +940,10 @@ const
                IntersectNormalInRay0Dir);
         ckRS: TracedDir := PhiThetaToXYZ(
                 RandomUnitHemispherePointDensityCosThetaExp(
-                  Round(MaterialNode.ReflSpecularExp(IntersectNode.MatNum)),
+                  Round(MaterialNode.ReflSpecularExp(IntersectNode^.MatNum)),
                   PdfValue),
                 ReflectedRayVector(Normalized(RayVector),
-                  IntersectNode.TriangleNormPlane));
+                  IntersectNode^.TriangleNormPlane));
        end;
 
        { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
@@ -978,11 +981,11 @@ const
     Exit(ZeroVector3Single);
 
    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
-   MaterialNode := IntersectNode.State.LastNodes.Material;
+   MaterialNode := IntersectNode^.State.LastNodes.Material;
    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
      do result ZeroVector3Single. Ale nie widze w tej chwili jak z tego wyciagnac
      jakas specjalna optymalizacje. }
-   result := MaterialNode.EmissiveColor3Single(IntersectNode.MatNum);
+   result := MaterialNode.EmissiveColor3Single(IntersectNode^.MatNum);
 
    { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
      Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy

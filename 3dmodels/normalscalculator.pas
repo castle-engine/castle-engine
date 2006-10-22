@@ -150,7 +150,7 @@ var
     faces.IncLength;
     thisFace := faces.Pointers[thisFaceNum];
 
-    thisFace.StartIndex := i;
+    thisFace^.StartIndex := i;
     while (i < coordIndex.Count) and (coordIndex[i] >= 0) do
     begin
      {gdybysmy chcieli tu kasowac nieprawidlowe indeksy to moglibysmy tu robic
@@ -163,20 +163,20 @@ var
         Wiec test ponizej na IndexOf(thisFaceNum) nie bylby potrzebny.
         Ale my staramy sie zeby ta procedura zachowywala sie choc troche
         sensownie nawet dla nieprawidlowych faces. }
-     if verticesFaces[coordIndex[i]].IndexOf(thisFaceNum) = -1 then
-      verticesFaces[coordIndex[i]].AppendItem(thisFaceNum);
+     if verticesFaces^[coordIndex[i]].IndexOf(thisFaceNum) = -1 then
+      verticesFaces^[coordIndex[i]].AppendItem(thisFaceNum);
      Inc(i);
     end;
 
     { licz thisFace.IndicesCount
       Skompletowalismy jedno face : to indeksy od StartIndex do i-1 }
-    thisFace.IndicesCount := i-thisFace.StartIndex;
+    thisFace^.IndicesCount := i-thisFace^.StartIndex;
 
     { licz thisFace.Normal }
-    thisFace.Normal := IndexedPolygonNormal(
-      @(coordIndex.Items[thisFace.StartIndex]),
-      thisFace.IndicesCount,
-      Vertices.Items, Vector3Single(0, 0, 1));
+    thisFace^.Normal := IndexedPolygonNormal(
+      @(coordIndex.Items[thisFace^.StartIndex]),
+      thisFace^.IndicesCount,
+      Vertices.ItemsArray, Vector3Single(0, 0, 1));
 
     { przejdz do nastepnej sciany (omin ujemny indeks na ktorym stoimy;
       ew. przejdz z coordIndex.Count do coordIndex.Count+1, co niczemu nie szkodzi) }
@@ -242,7 +242,7 @@ var
       handledFaces: TDynBooleanArray;
       Normal: TVector3Single;
   begin
-   thisVertexFaces := verticesFaces[vertexNum];
+   thisVertexFaces := verticesFaces^[vertexNum];
 
    smoothFaces := nil;
    handledFaces := nil;
@@ -268,7 +268,7 @@ var
       for j := 0 to smoothFaces.Count-1 do
       begin
        handledFaces[smoothFaces[j]] := true;
-       VectorAddTo1st(Normal, faces[thisVertexFaces[smoothFaces[j]]].Normal);
+       VectorAddTo1st(Normal, faces.Items[thisVertexFaces[smoothFaces[j]]].Normal);
       end;
       NormalizeTo1st(Normal);
 
@@ -298,7 +298,7 @@ begin
    { zainicjuj verticesFaces i faces }
    verticesFaces := GetClearMem(SizeOf(Pointer) * vertices.Count);
    for i := 0 to vertices.Count-1 do
-    verticesFaces[i] := TDynIntegerArray.Create;
+    verticesFaces^[i] := TDynIntegerArray.Create;
    faces := TDynFaceArray.Create;
 
    { przegladnij coordIndex i skompletuj zawartosc tablic faces i verticesFaces }
@@ -317,7 +317,7 @@ begin
    { free verticesFaces and faces }
    if verticesFaces <> nil then
    begin
-    for i := 0 to vertices.Count-1 do verticesFaces[i].Free;
+    for i := 0 to vertices.Count-1 do verticesFaces^[i].Free;
     FreeMem(verticesFaces);
    end;
    faces.Free;
@@ -348,7 +348,7 @@ begin
     FaceNormal := IndexedPolygonNormal(
       @(coordIndex.Items[StartIndex]),
       i-StartIndex,
-      Vertices.Items, Vector3Single(0, 0, 0));
+      Vertices.ItemsArray, Vector3Single(0, 0, 0));
     {dodaj FaceNormal do normali wszystkich punktow tej face}
     for j := StartIndex to i-1 do
       VectorAddTo1st(VertNormals.Items[coordIndex.Items[j]], FaceNormal);
@@ -386,7 +386,7 @@ begin
    FaceNormal := IndexedPolygonNormal(
      @(coordIndex.Items[StartIndex]),
      i-startIndex,
-     Vertices.Items, Vector3Single(0, 0, 0));
+     Vertices.ItemsArray, Vector3Single(0, 0, 0));
    for j := StartIndex to i-1 do result.Items[j] := FaceNormal;
 
    Inc(i);

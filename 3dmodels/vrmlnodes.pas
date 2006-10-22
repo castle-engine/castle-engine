@@ -3570,7 +3570,7 @@ type
     property FdstartTime: TSFTime index 3 read GetFieldAsSFTime;
     property FdstopTime: TSFTime index 4 read GetFieldAsSFTime;
     { eventOut     SFTime   cycleTime } { }
-    { eventOut     SFFloat  fraction_changed
+    { eventOut     SFFloat  fraction_changed } { }
     { eventOut     SFBool   isActive } { }
     { eventOut     SFTime   time } { }
 
@@ -4371,7 +4371,8 @@ begin
       Enumerator.State := State;
       Enumerator.NodeClass := NodeClass;
       Enumerator.TraversingFunc := TraversingFunc;
-      DirectEnumerateActive(Enumerator.EnumerateChildrenFunction);
+      DirectEnumerateActive(
+        {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
     finally FreeAndNil(Enumerator) end;
   finally AfterTraverse(State) end;
 
@@ -4523,7 +4524,8 @@ begin
   try
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
+      Enumerator.EnumerateChildrenFunction, OnlyActive);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -4553,7 +4555,8 @@ begin
     Enumerator.NodeClass := NodeClass;
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
+      Enumerator.EnumerateChildrenFunction, OnlyActive);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -4586,7 +4589,8 @@ begin
     Enumerator.SeekNodeName := SeekNodeName;
     Enumerator.Proc := Proc;
     Enumerator.OnlyActive := OnlyActive;
-    DirectEnumerate(Enumerator.EnumerateChildrenFunction, OnlyActive);
+    DirectEnumerate({$ifdef FPC_OBJFPC} @ {$endif}
+      Enumerator.EnumerateChildrenFunction, OnlyActive);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -4612,7 +4616,8 @@ function TVRMLNode.TryFindNode(FindClass: TVRMLNodeClass;
   OnlyActive: boolean): TVRMLNode;
 begin
   try
-    EnumerateNodes(FindClass, TryFindNode_Found, OnlyActive);
+    EnumerateNodes(FindClass, {$ifdef FPC_OBJFPC} @ {$endif}
+      TryFindNode_Found, OnlyActive);
     Result := nil;
   except
     on B: BreakTryFindNode do Result := B.FoundNode;
@@ -4631,7 +4636,8 @@ function TVRMLNode.TryFindNodeByName(
   OnlyActive: boolean): TVRMLNode;
 begin
   try
-    EnumerateNodes(FindClass, FindName, TryFindNode_Found, OnlyActive);
+    EnumerateNodes(FindClass, FindName, {$ifdef FPC_OBJFPC} @ {$endif}
+      TryFindNode_Found, OnlyActive);
     Result := nil;
   except
     on B: BreakTryFindNode do Result := B.FoundNode;
@@ -4790,7 +4796,7 @@ begin
   try
     Seeker.SeekNode := Node;
     try
-      EnumerateNodes(Seeker.Seek, OnlyActive);
+      EnumerateNodes({$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek, OnlyActive);
       Result := false;
     except
       on BreakIsNodePresent do Result := true;
@@ -8058,9 +8064,9 @@ end;
 constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true;
+  { eventIn      SFFloat set_fraction }
+  { Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true; }
+  { Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true; }
   { eventOut     SFFloat value_changed }
 end;
 
@@ -8383,7 +8389,7 @@ begin
   Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
   { eventOut     SFTime   cycleTime }
-  { eventOut     SFFloat  fraction_changed
+  { eventOut     SFFloat  fraction_changed }
   { eventOut     SFBool   isActive }
   { eventOut     SFTime   time }
 end;

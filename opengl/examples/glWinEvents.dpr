@@ -126,22 +126,22 @@ var
 begin
  glw.ParseParameters;
 
- glw.OnInit := Init;
- glw.OnClose := Close;
- glw.OnResize := Resize;
- glw.OnBeforeDraw := BeforeDraw;
- glw.OnDraw := Draw;
+ glw.OnInit := @Init;
+ glw.OnClose := @Close;
+ glw.OnResize := @Resize;
+ glw.OnBeforeDraw := @BeforeDraw;
+ glw.OnDraw := @Draw;
 
- glw.OnKeyDown := KeyDown;
- glw.OnKeyUp := KeyUp;
+ glw.OnKeyDown := @KeyDown;
+ glw.OnKeyUp := @KeyUp;
 
- glw.OnMouseDown := MouseDown;
- glw.OnMouseMove := MouseMove;
- glw.OnMouseUp := MouseUp;
+ glw.OnMouseDown := @MouseDown;
+ glw.OnMouseMove := @MouseMove;
+ glw.OnMouseUp := @MouseUp;
 
- glw.OnIdle := Idle;
+ glw.OnIdle := @Idle;
  glwm.TimerMilisec := 5000;
- glw.OnTimer := Timer;
+ glw.OnTimer := @Timer;
 
  {testing:
  Writeln('I''m trying to get window size ', glw.Width, ',', glw.Height, '...');

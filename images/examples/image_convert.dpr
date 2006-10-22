@@ -108,7 +108,7 @@ var
   Img: TImage;
 begin
  { parse free position params }
- ParseParameters(Options, OptionProc, nil);
+ ParseParameters(Options, @OptionProc, nil);
 
  { parse fixed position params }
  if Parameters.High = 4 then

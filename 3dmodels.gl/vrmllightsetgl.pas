@@ -387,14 +387,14 @@ begin
   begin
    { wykorzystujemy wszystkie dostepne swiatla OpenGLa }
    for i := 0 to glLightNum2-glLightNum1 do
-    glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle);
+    glLightFromVRMLLight(glLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
   end else
   begin
    { jezeli nie zamierzamy wykorzystac wszystkich swiatel OpenGL to
      niewykorzystanym swiatlom robimy Disabled (a wykorzystywanym robimy
      to co wyzej) }
    for i := 0 to LightsCount-1 do
-    glLightFromVRMLLight(glLightNum1 + i, Lights[i], true, ColorModulatorSingle);
+    glLightFromVRMLLight(glLightNum1 + i, Lights^[i], true, ColorModulatorSingle);
    for i := LightsCount to glLightNum2-glLightNum1 do
     glDisable(GL_LIGHT0 + glLightNum1 + i);
   end;
@@ -403,7 +403,7 @@ end;
 procedure glLightsFromVRML(Lights: TDynActiveLightArray;
   glLightNum1, glLightNum2: Integer; ColorModulatorSingle: TColorModulatorSingleFunc); overload;
 begin
- glLightsFromVRML(Lights.Items, Lights.Count, glLightNum1, glLightNum2,
+ glLightsFromVRML(Lights.ItemsArray, Lights.Count, glLightNum1, glLightNum2,
    ColorModulatorSingle);
 end;
 
@@ -429,9 +429,11 @@ end;
 
 procedure TVRMLLightSetGL.SetColorModulatorSingle(Value: TColorModulatorSingleFunc);
 begin
-  if @Value <> @FColorModulatorSingle then
+  if {$ifndef FPC_OBJFPC} @ {$endif} Value <>
+     {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle then
   begin
-    @FColorModulatorSingle := @Value;
+    {$ifndef FPC_OBJFPC} @ {$endif} FColorModulatorSingle :=
+    {$ifndef FPC_OBJFPC} @ {$endif} Value;
     CloseGL;
   end;
 end;

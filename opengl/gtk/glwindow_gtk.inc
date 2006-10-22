@@ -900,7 +900,7 @@ begin
 
   {$ifdef GLWINDOW_GTK_2}
 
-  GLConfig := gdk_gl_config_new(@VisualAttr.Items[0]);
+  GLConfig := gdk_gl_config_new(VisualAttr.Pointers[0]);
   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
     to know whether such gl configuration was possible. }
   if GLConfig = nil then

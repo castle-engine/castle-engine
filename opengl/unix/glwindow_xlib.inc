@@ -147,7 +147,7 @@ begin
  parentwinXID := XRootWindow(Glwm.XDisplay, Glwm.XScreen);
 
  colormap := XCreateColormap(Glwm.XDisplay, parentwinXID,
-                             viinfo.visual, AllocNone);
+                             viinfo^.visual, AllocNone);
   { bardziej speszial metoda brania Colormap jest w glxdino }
  attr.colormap := colormap;
  attr.border_pixel := 0;
@@ -162,7 +162,7 @@ begin
 
  windowXID := XCreateWindow(Glwm.XDisplay, parentwinXID,
    left, top, width, height,
-   0, viinfo.depth, InputOutput, viinfo.visual,
+   0, viinfo^.depth, InputOutput, viinfo^.visual,
    AttrValueMask, @attr);
  if FFullscreen then
  begin

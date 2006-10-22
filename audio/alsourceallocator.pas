@@ -322,7 +322,7 @@ end;
 
 procedure TALAllocatedSourcesList.SortByImportance;
 begin
-  Sort(IsSmallerByImportance);
+  Sort({$ifdef FPC_OBJFPC} @ {$endif} IsSmallerByImportance);
 end;
 
 { TALSourceAllocator ---------------------------------------------------------- }

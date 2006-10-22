@@ -78,7 +78,7 @@ const
     (Short: #0; Long: 'detail-rect-divisions'; Argument: oaRequired)
   );
 begin
- ParseParameters(Options, OptionProc, nil, true);
+ ParseParameters(Options, @OptionProc, nil, true);
 end;
 
 function VRMLNodesDetailOptionsHelp: string;

@@ -1,5 +1,5 @@
 (*
-  @abstract(This is Kambi's reorganized version of pasjpeg.pas 
+  @abstract(This is Kambi's reorganized version of pasjpeg.pas
   unit from PasJPEG package.)
 
   Look for string "Kambi" to find my changes.
@@ -15,6 +15,8 @@
 *)
 
 unit KambiPasJpeg;
+
+{$mode delphi}
 
 {$I kambiconf.inc}
 

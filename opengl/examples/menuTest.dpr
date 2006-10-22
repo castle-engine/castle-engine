@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -78,7 +78,7 @@ var
 procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
 var M: TMenu;
 begin
- Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption), 
+ Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption),
    '" with SmallId ', Item.SmallId);
  case Item.IntData of
   0..High(Colors): CurrentColor := Item.IntData;
@@ -133,11 +133,11 @@ begin
    M.Append(TMenuSeparator.Create);
    glw.MainMenu.Append(M);
 
- glw.OnMenuCommand := MenuCommand;
- glw.OnResize := Resize;
+ glw.OnMenuCommand := @MenuCommand;
+ glw.OnResize := @Resize;
  glw.ParseParameters;
  glw.Width := 300;
  glw.Height := 300;
  glw.DepthBufferBits := 0;
- glw.InitLoop('Test Menu', Draw);
+ glw.InitLoop('Test Menu', @Draw);
 end.

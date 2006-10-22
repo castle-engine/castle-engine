@@ -226,7 +226,7 @@ begin
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
 
-  Renderer.DoGLArrayElement(Coord.Items.Items, VertexNum);
+  Renderer.DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
 end;
 
 function TGeneralIndexedRenderer.Render_GetVertex(indexNum: integer): TVector3f;
@@ -589,8 +589,8 @@ begin
  begin
   glBegin(GL_TRIANGLES);
   TriangulateFace(Addr(CoordIndex.Items.Items[StartIndex]),
-    EndIndex-StartIndex, Coord.Items.Items,
-    Render_Triangulated, Self, StartIndex);
+    EndIndex-StartIndex, Coord.Items.ItemsArray,
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, StartIndex);
   glEnd;
  end else
  begin

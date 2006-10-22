@@ -501,6 +501,14 @@ type
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
+    { This makes transparent triangles (with material
+      with Transparency > 0) ignored (i.e. returns @true for them).
+      This is a prepared function compatible with TOctreeItemIgnoreFunc
+      function type. }
+    class function IgnoreTransparentItem(
+      Octree: TVRMLTriangleOctree;
+      OctreeItemIndex: Integer): boolean;
+
     constructor Create(const ARootBox: TBox3d); overload;
     constructor Create(AMaxDepth, AMaxLeafItemsCount: integer;
       const ARootBox: TBox3d); overload;
@@ -508,12 +516,6 @@ type
   end;
 
   { przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc. }
-
-  TOctreeIgnore_Transparent = class
-    { IgnoreItem zwraca true dla obiektow ktorych Transparency > 0. }
-    class function IgnoreItem(Octree: TVRMLTriangleOctree;
-      OctreeItemIndex: Integer): boolean;
-  end;
 
   TOctreeIgnore_Transparent_And_OneItem = class
     OneItemIndex: Integer;
@@ -1055,10 +1057,10 @@ begin
  inherited;
 end;
 
-{ --------------------------------------------------------------------------------
-  przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc.  }
+{ TVRMLTriangleOctree.IgnoreTransparentItem ---------------------------------- }
 
-class function TOctreeIgnore_Transparent.IgnoreItem(Octree: TVRMLTriangleOctree;
+class function TVRMLTriangleOctree.IgnoreTransparentItem(
+  Octree: TVRMLTriangleOctree;
   OctreeItemIndex: Integer): boolean;
 var ItemPtr: POctreeItem;
 begin
@@ -1066,6 +1068,9 @@ begin
  result := ItemPtr^.State.LastNodes.Material.Transparency(ItemPtr^.MatNum)
    > SingleEqualityEpsilon;
 end;
+
+{ --------------------------------------------------------------------------------
+  przygotowane funkcje i klasy dla ItemsToIgnoreFunc: TOctreeItemIgnoreFunc.  }
 
 function TOctreeIgnore_Transparent_And_OneItem.IgnoreItem(Octree: TVRMLTriangleOctree; OctreeItemIndex: Integer): boolean;
 var ItemPtr: POctreeItem;
@@ -1116,7 +1121,7 @@ begin
        LightedPointPlane)) and
    (Octree.SegmentCollision(LightedPoint, LightPos,
      false, OctreeItemIndexToIgnore, IgnoreMarginAtStart,
-     {$ifdef FPC_OBJFPC} @ {$endif} TOctreeIgnore_Transparent.IgnoreItem)
+     {$ifdef FPC_OBJFPC} @ {$endif} Octree.IgnoreTransparentItem)
      = NoItemIndex);
 end;
 

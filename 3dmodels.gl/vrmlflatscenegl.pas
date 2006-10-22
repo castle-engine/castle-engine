@@ -1337,8 +1337,10 @@ begin
     'TVRMLFlatSceneGL.SAAW_Prepare');
   glNewList(SAAW_DisplayList, GL_COMPILE);
   try
-   RenderShapeStatesNoDispList(nil, RenderShapeStateSimple,
-     RenderBeginSimple, RenderEndSimple);
+   RenderShapeStatesNoDispList(nil,
+     {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
+     {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
+     {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
   finally glEndList end;
 end;
 
@@ -1411,7 +1413,9 @@ begin
     roNone:
       begin
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
-          PrepareAndRenderShapeStateSimple, RenderBeginSimple, RenderEndSimple);
+          {$ifdef FPC_OBJFPC} @ {$endif} PrepareAndRenderShapeStateSimple,
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
       end;
     roSceneAsAWhole:
       SAAW_Render;
@@ -1419,13 +1423,17 @@ begin
       begin
         { build display lists (if needed) and render all shape states }
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
-          SSS_RenderShapeState, SSSX_RenderBegin, SSSX_RenderEnd);
+          {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd);
       end;
     roSeparateShapeStatesNoTransform:
       begin
         { build display lists (if needed) and render all shape states }
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
-          SSSNT_RenderShapeState, SSSX_RenderBegin, SSSX_RenderEnd);
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd);
       end;
   end;
 end;
@@ -1528,10 +1536,10 @@ procedure TVRMLFlatSceneGL.RenderFrontShadowQuads(
     begin
       SavedShadowQuads.IncLength;
       QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
-      QuadPtr[0] := P0;
-      QuadPtr[1] := P1;
-      QuadPtr[2] := PExtruded1;
-      QuadPtr[3] := PExtruded0;
+      QuadPtr^[0] := P0;
+      QuadPtr^[1] := P1;
+      QuadPtr^[2] := PExtruded1;
+      QuadPtr^[3] := PExtruded0;
     end;
   end;
 
@@ -1638,7 +1646,7 @@ end;
 procedure TVRMLFlatSceneGL.RenderFrustum(const Frustum: TFrustum);
 begin
  RenderFrustum_Frustum := @Frustum;
- Render(RenderFrustum_TestShapeState);
+ Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState);
 end;
 
 { RenderFrustumOctree ---------------------------------------- }
@@ -1699,8 +1707,8 @@ begin
 
   RenderFrustumOctree_Visible.SetAll(false);
   Octree.EnumerateCollidingOctreeItems(Frustum,
-    RenderFrustumOctree_EnumerateOctreeItem);
-  Render(RenderFrustumOctree_TestShapeState);
+    {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
+  Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShapeState);
  end else
   Render(nil);
 end;
@@ -2076,7 +2084,8 @@ const
   ( (Short: #0; Long: 'renderer-optimization'; Argument: oaRequired)
   );
 begin
- ParseParameters(Options, OptionProc, @RendererOptimization, true);
+ ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc,
+   @RendererOptimization, true);
 end;
 
 function RendererOptimizationOptionsHelp: string;

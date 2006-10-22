@@ -56,12 +56,12 @@ var i: Integer;
 begin
  { Do parsing parameters }
 
- ParseParameters(Options, OptionProc, nil);
+ ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
 
  { Report state of Parameters[1] .. Parameters[Parameters.High] and Number after
    parsing parameters. }
 
- Writeln(Format('After ParseParameters, %d non-options are left.', 
+ Writeln(Format('After ParseParameters, %d non-options are left.',
    [Parameters.High]));
  for i := 1 to Parameters.High do
   Writeln('Parameters[', i, '] = ', Parameters[i]);

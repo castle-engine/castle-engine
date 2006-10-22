@@ -1,5 +1,7 @@
 unit KambiPasJpeg_error_mgrs;
 
+{$mode delphi}
+
 {$I kambiconf.inc}
 
 interface

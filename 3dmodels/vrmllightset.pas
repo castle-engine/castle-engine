@@ -82,8 +82,8 @@ begin
  
  InitialState:=TVRMLGraphTraverseState.Create(StateDefaultNodes);
  try
-  { "Self." below required because of fpc 1.0.10 func_ofobject_bug }
-  RootNode.Traverse(InitialState, TNodeGeneralLight, Self.AddToLights);
+   RootNode.Traverse(InitialState, TNodeGeneralLight, 
+     {$ifdef FPC_OBJFPC} @ {$endif} AddToLights);
  finally InitialState.Free end;
 end;
     

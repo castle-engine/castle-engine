@@ -97,14 +97,14 @@ begin
   bestmode := -1;
   for i := 0 to modesCount-1 do
    if (not VideoResize) or
-      ((modes[i]^.hdisplay = VideoResizeWidth) and
-       (modes[i]^.vdisplay = VideoResizeHeight)) then
+      ((modes^[i]^.hdisplay = VideoResizeWidth) and
+       (modes^[i]^.vdisplay = VideoResizeHeight)) then
        { TODO: jak tu dopasowac BitsPerPixel }
     bestMode := i;
 
   if bestmode < 0 then exit(false);
 
-  CurrentModeInfo := modes[bestMode]^;
+  CurrentModeInfo := modes^[bestMode]^;
   XF86VidModeSwitchToMode(XDisplay, XScreen, @CurrentModeInfo);
 
   {SetViewport jest przydatne gdy zmienimy sie z duzego ekranu na mniejszy i
