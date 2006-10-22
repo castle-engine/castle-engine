@@ -177,6 +177,7 @@ EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
   opengl/examples/test_font_break \
   opengl/examples/multi_glwindow \
   opengl/examples/demo_matrix_navigation \
+  3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
   3dmodels/tools/gen_light_map \
   3dmodels.gl/examples/simpleViewModel_2 \
