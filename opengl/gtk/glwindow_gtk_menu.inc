@@ -79,7 +79,7 @@ begin
  gtk_signal_handler_block_by_func
  {$endif}
  ( GTK_OBJECT(MenuItemGtk),
-   @signal_menu_item_activate,
+   {$ifndef GLWINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
    Pointer(MenuItem.SmallId));
 end;
 
@@ -93,7 +93,7 @@ begin
  gtk_signal_handler_unblock_by_func
  {$endif}
  ( GTK_OBJECT(MenuItemGtk),
-   @signal_menu_item_activate,
+   {$ifndef GLWINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
    Pointer(MenuItem.SmallId));
 end;
 

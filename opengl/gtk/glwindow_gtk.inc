@@ -1105,10 +1105,10 @@ begin
 
   {$ifdef GLWINDOW_GTK_1}
   if FullScreenUsingOverrideRedirect then
-   Check(gdk_keyboard_grab(GTK_WIDGET(WindowGtk).Window, 0, GDK_CURRENT_TIME) = 0,
+   Check(gdk_keyboard_grab(GTK_WIDGET(WindowGtk)^.Window, 0, GDK_CURRENT_TIME) = 0,
      'gdk_keyboard_grab was not successful. Try to run this program in windowed '+
      '(not fullscreen) mode.') else
-   gdk_window_set_decorations(GTK_WIDGET(WindowGtk).Window, 0);
+   gdk_window_set_decorations(GTK_WIDGET(WindowGtk)^.Window, 0);
   {$endif}
  end;
 
