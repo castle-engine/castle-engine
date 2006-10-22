@@ -222,7 +222,7 @@ var Expr: TMathExpr;
 begin
  Expr := ParseMathExpr(s);
  try
-  result := Expr.Value(ReturnNoVariable);
+  result := Expr.Value(@ReturnNoVariable);
  finally Expr.Free end;
 end;
 

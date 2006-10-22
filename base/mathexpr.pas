@@ -406,7 +406,7 @@ begin
  CreateFinish(afuncKind);
 end;
 
-constructor TMathFunction.Create(afuncKind: TFunctionKind; 
+constructor TMathFunction.Create(afuncKind: TFunctionKind;
   const AArgs: array of TMathExpr);
 begin
  inherited Create;
@@ -437,10 +437,10 @@ const boolTo01: array[boolean]of Float = (0, 1);
 
 begin
  case ffuncKind of
-  fkAdd:      Result := FArgs.Evaluate(addFloat, varfunc);
-  fkSubtract: Result := FArgs.Evaluate(subtractFloat, varfunc);
-  fkMultiply: Result := FArgs.Evaluate(multiplyFloat, varfunc);
-  fkDivide:   Result := FArgs.Evaluate(divideFloat, varfunc);
+  fkAdd:      Result := FArgs.Evaluate({$ifdef FPC_OBJFPC} @ {$endif} addFloat, varfunc);
+  fkSubtract: Result := FArgs.Evaluate({$ifdef FPC_OBJFPC} @ {$endif} subtractFloat, varfunc);
+  fkMultiply: Result := FArgs.Evaluate({$ifdef FPC_OBJFPC} @ {$endif} multiplyFloat, varfunc);
+  fkDivide:   Result := FArgs.Evaluate({$ifdef FPC_OBJFPC} @ {$endif} divideFloat, varfunc);
   fkNegate:   Result := -ArgValue(0);
   fkModulo:   Result := ArgValue(0) - Floor(ArgValue(0)/ArgValue(1)) * ArgValue(1);
 

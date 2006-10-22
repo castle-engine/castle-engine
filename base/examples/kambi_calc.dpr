@@ -14,6 +14,6 @@ program kambi_calc;
 uses KambiUtils, MathExprParser;
 
 begin
- { testing :  Writeln('Expression is ',E.ToString); }
- Writeln(EvalConstMathExpr(Parameters[1]): 10: 10);
+  { testing :  Writeln('Expression is ',E.ToString); }
+  Writeln(EvalConstMathExpr(Parameters[1]): 10: 10);
 end.
