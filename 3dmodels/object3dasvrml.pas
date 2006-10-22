@@ -99,7 +99,7 @@ begin
    result.AddChild(faces);
 
    verts.FdPoint.Items.SetLength(0);
-   verts.FdPoint.Items.AppendArray(geo.Verts.Items^, geo.Verts.Count);
+   verts.FdPoint.Items.AppendDynArray(geo.Verts);
 
    faces.FdCoordIndex.Items.SetLength(geo.Faces.Count*4);
    for i := 0 to geo.Faces.Count-1 do
@@ -430,9 +430,8 @@ begin
        coordIndex }
      indexedFacesNode.FdTextureCoordIndex.Items.SetLength(0);
      if trimesh3ds.HasTexCoords then
-      indexedFacesNode.FdTextureCoordIndex.Items.AppendArray(
-        indexedFacesNode.FdCoordIndex.Items.Items^,
-        indexedFacesNode.FdCoordIndex.Items.Count);
+      indexedFacesNode.FdTextureCoordIndex.Items.AppendDynArray(
+        indexedFacesNode.FdCoordIndex.Items);
     end;
 
    end;
