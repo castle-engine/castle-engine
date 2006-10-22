@@ -316,7 +316,9 @@ end;
 procedure TVRMLLexer.ReadString;
 { String in encoded using the form
   "char*" where char is either not " or \" sequence. }
-var endingChar: Integer;
+var
+  endingChar: Integer;
+  NextChar: Integer;
 begin
  fToken := vtString;
  fTokenString := '';
@@ -330,11 +332,17 @@ begin
 
   { gdy endingChar = '\' to ignorujemy palke ktora wlasnie przeczytalismy
     i nastepny znak ze strumienia nie jest interpretowany - odczytujemy
-    go przez StreamReadChar i zawsze dopisujemy do fTokenString. W ten sposob
+    go przez Stream.ReadChar i zawsze dopisujemy do fTokenString. W ten sposob
     \\ zostanie zrozumiane jako \, \" zostanie zrozumiane jako " (i nie bedzie
     oznaczac konca stringu), wszystko inne \? bedzie oznaczac ?. }
   if endingChar = Ord('\') then
-   fTokenString += StreamReadChar(Stream);
+  begin
+    NextChar := Stream.ReadChar;
+    if NextChar = -1 then
+      raise EVRMLLexerError.Create(Self,
+        'Unexpected end of file in the middle of string token');
+    fTokenString += Chr(NextChar);
+  end;
 
  until endingChar = Ord('"');
 end;
@@ -366,15 +374,20 @@ function TVRMLLexer.NextToken: TVRMLToken;
     procedure ReadAfterE(const AlreadyRead: string);
     var CharAfterE: char;
         RestOfToken: string;
+        CharAfterEInt: Integer;
     begin
      fToken := vtFloat;
      { Za "e" musi byc min 1 znak, to moze byc cyfra lub - lub +.
        Odczytujemy go do CharAfterE.
        Potem sa juz tylko cyfry, odczytujemy je do RestOfToken.
-       (note: you can't write "StreamReadChar(Stream) + Stream.ReadUpto(NoDigits)"
+       (note: you can't write "Stream.ReadChar(Stream) + Stream.ReadUpto(NoDigits)"
        because it is undefined in what order S1+S2
        will be evaluated. See console.testy/test_string_plus) }
-     CharAfterE := StreamReadChar(Stream);
+     CharAfterEInt := Stream.ReadChar;
+     if CharAfterEInt = -1 then
+       raise EVRMLLexerError.Create(Self,
+         'Unexpected end of file in the middle of real constant');
+     CharAfterE := Chr(CharAfterEInt);
      RestOfToken := Stream.ReadUpto(NoDigits);
      fTokenFloat := StrToFloat(AlreadyRead +'e' +CharAfterE +RestOfToken);
     end;
