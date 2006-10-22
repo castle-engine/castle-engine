@@ -17,7 +17,7 @@ begin
  case OptionNum of
   0: begin
       Writeln(
-        'demo_parsingparameters: Demo how to use ParsingParametersUnit.' +nl+
+        'demo_parsingparameters: Demo how to use the ParseParametersUnit.' +nl+
         nl+
         'Available options are:' +nl+
         HelpOptionHelp +nl+
