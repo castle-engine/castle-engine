@@ -369,10 +369,10 @@ var CubeSize, CubeSize2: Single;
   end;
 
   function SkyColorModulated(Index: Integer): TVector3Single;
-  begin result := ColorModulated(SkyColor[Index]); end;
+  begin result := ColorModulated(SkyColor^[Index]); end;
 
   function GroundColorModulated(Index: Integer): TVector3Single;
-  begin result := ColorModulated(GroundColor[Index]); end;
+  begin result := ColorModulated(GroundColor^[Index]); end;
 
 var bs: TBackgroundSide;
     TexturedSides: TBackgroundSides;
@@ -433,7 +433,7 @@ begin
       GroundHighestAngle is measured in sky convention (0 = zenith, Pi = nadir).
       If there is no sky I simply set GroundHighestAngle to sthg > Pi. }
     if GroundAngleCount <> 0 then
-     GroundHighestAngle := Pi-GroundAngle[GroundAngleCount-1] else
+     GroundHighestAngle := Pi-GroundAngle^[GroundAngleCount-1] else
      GroundHighestAngle := Pi + 1;
 
     { render sky }
@@ -456,18 +456,18 @@ begin
        lub RenderLowerStack zeby nie tracic czasu na malowanie obszaru
        ktory i tak zamalujemy przez ground. Uzywamy do tego GroundHighestAngle.
      }
-     RenderUpperStack(SkyColorModulated(0), SkyColorModulated(1), SkyAngle[0]);
+     RenderUpperStack(SkyColorModulated(0), SkyColorModulated(1), SkyAngle^[0]);
      for i := 1 to SkyAngleCount-1 do
      begin
-      if SkyAngle[i-1] > GroundHighestAngle then Break;
-      RenderStack(SkyColorModulated(i)  , SkyAngle[i-1],
-                  SkyColorModulated(i+1), SkyAngle[i]);
+      if SkyAngle^[i-1] > GroundHighestAngle then Break;
+      RenderStack(SkyColorModulated(i)  , SkyAngle^[i-1],
+                  SkyColorModulated(i+1), SkyAngle^[i]);
      end;
      { TODO: jesli ostatni stack ma SkyAngle bliskie Pi to powinnismy renderowac
        juz ostatni stack przy uzyciu RenderLowerStack. }
-     if SkyAngle[SkyAngleCount-1] <= GroundHighestAngle then
+     if SkyAngle^[SkyAngleCount-1] <= GroundHighestAngle then
       RenderLowerStack(
-        SkyColorModulated(SkyColorCount-1), SkyAngle[SkyAngleCount-1],
+        SkyColorModulated(SkyColorCount-1), SkyAngle^[SkyAngleCount-1],
         SkyColorModulated(SkyColorCount-1));
     end;
 
@@ -479,11 +479,11 @@ begin
        GroundAngleCount + 1 = GroundColorCount) }
      Assert(GroundAngleCount+1 = GroundColorCount, 'Ground must have exactly one more Color than Angles');
 
-     RenderLowerStack(GroundColorModulated(1), Pi-GroundAngle[0],
+     RenderLowerStack(GroundColorModulated(1), Pi-GroundAngle^[0],
                       GroundColorModulated(0));
      for i := 1 to GroundAngleCount-1 do
-      RenderStack(GroundColorModulated(i+1), Pi-GroundAngle[i],
-                  GroundColorModulated(i),   Pi-GroundAngle[i-1]);
+      RenderStack(GroundColorModulated(i+1), Pi-GroundAngle^[i],
+                  GroundColorModulated(i),   Pi-GroundAngle^[i-1]);
     end;
    end;
 
