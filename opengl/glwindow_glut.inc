@@ -110,7 +110,7 @@ end;
  var GLUTBEGIN_glwin: TGLWindow;
      GLUTBEGIN_glutHwnd: longint;
  begin
-  GLUTBEGIN_glutHwnd := glutGetWindow;
+  GLUTBEGIN_glutHwnd := glutGetWindow();
   GLUTBEGIN_glwin := glwm.ActiveGlutWindow(GLUTBEGIN_glutHwnd);
   if GLUTBEGIN_glwin <> nil then
    with GLUTBEGIN_glwin do
@@ -227,7 +227,7 @@ procedure TGLWindow.InitMainMenu;
    begin
     CurrentMenu := glutGetMenu();
     try
-     SubMenu := glutCreateMenu(menuByGlut);
+     SubMenu := glutCreateMenu(@menuByGlut);
      AddToCurrentMenuAllEntries(TMenu(Entry));
     finally glutSetMenu(CurrentMenu) end;
     glutAddSubMenu(PChar(SRemoveMnemonics(TMenu(Entry).Caption)), SubMenu);
@@ -242,7 +242,7 @@ procedure TGLWindow.InitMainMenu;
   end;
 
 begin
- glutCreateMenu(menuByGlut);
+ glutCreateMenu(@menuByGlut);
  AddToCurrentMenuAllEntries(MainMenu);
  glutAttachMenu(GLUT_RIGHT_BUTTON);
 end;
@@ -357,13 +357,13 @@ begin
    glutGet(GLUT_WINDOW_ACCUM_BLUE_SIZE), glutGet(GLUT_WINDOW_ACCUM_ALPHA_SIZE));
 
  glwm.ActiveAdd(Self);
- glutReshapeFunc(reshapeByGlut);
- glutDisplayFunc(displayByGlut);
- glutKeyboardFunc(keyboardByGlut);
- glutSpecialFunc(specialByGlut);
- glutMouseFunc(mouseByGlut);
- glutMotionFunc(motion_and_passiveMotionByGlut);
- glutPassiveMotionFunc(motion_and_passiveMotionByGlut);
+ glutReshapeFunc(@reshapeByGlut);
+ glutDisplayFunc(@displayByGlut);
+ glutKeyboardFunc(@keyboardByGlut);
+ glutSpecialFunc(@specialByGlut);
+ glutMouseFunc(@mouseByGlut);
+ glutMotionFunc(@motion_and_passiveMotionByGlut);
+ glutPassiveMotionFunc(@motion_and_passiveMotionByGlut);
  {glutSpecialUpFunc(specialUpByGlut); (glutSpecialUpFunc is not implemented yet)}
 
  UpdateMouseVisible;
@@ -476,7 +476,7 @@ end;
 procedure TGLWindowsManager.CreateImplDependent;
 begin
  glutPascalInit;
- glutIdleFunc(idleByGlut);
+ glutIdleFunc(@idleByGlut);
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
