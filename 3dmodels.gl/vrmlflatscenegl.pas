@@ -1907,7 +1907,8 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
-  if @OnBeforeGLVertex <> @Value then
+  if {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex <> 
+     {$ifndef FPC_OBJFPC} @ {$endif} Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
@@ -1926,7 +1927,8 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetColorModulatorSingle(
   const Value: TColorModulatorSingleFunc);
 begin
-  if @ColorModulatorSingle <> @Value then
+  if {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorSingle <>
+     {$ifndef FPC_OBJFPC} @ {$endif} Value then
   begin
     FScenes.FBackgroundInvalidate;
     FScenes.CloseGLRenderer;
@@ -1937,7 +1939,8 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetColorModulatorByte(
   const Value: TColorModulatorByteFunc);
 begin
-  if @ColorModulatorByte <> @Value then
+  if {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorByte <>
+     {$ifndef FPC_OBJFPC} @ {$endif} Value then
   begin
     FScenes.FBackgroundInvalidate;
     FScenes.CloseGLRenderer;

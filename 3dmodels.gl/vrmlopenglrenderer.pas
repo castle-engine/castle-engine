@@ -988,7 +988,8 @@ begin
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
        (TextureCached^.WrapT = TextureWrapT) and
-       (@TextureCached^.ColorModulator = @TextureColorModulator) then
+       ({$ifndef FPC_OBJFPC} @ {$endif} TextureCached^.ColorModulator =
+        {$ifndef FPC_OBJFPC} @ {$endif} TextureColorModulator) then
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
@@ -1421,10 +1422,13 @@ end;
 function TVRMLRenderingAttributes.Equals(SecondValue: TPersistent): boolean;
 begin
   Result := (SecondValue is TVRMLRenderingAttributes) and
-    (@TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex = @OnBeforeGLVertex) and
+    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).OnBeforeGLVertex =
+     {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex) and
     (TVRMLRenderingAttributes(SecondValue).SmoothShading = SmoothShading) and
-    (@TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle = @ColorModulatorSingle) and
-    (@TVRMLRenderingAttributes(SecondValue).ColorModulatorByte = @ColorModulatorByte) and
+    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).ColorModulatorSingle =
+     {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorSingle) and
+    ({$ifndef FPC_OBJFPC} @ {$endif} TVRMLRenderingAttributes(SecondValue).ColorModulatorByte =
+     {$ifndef FPC_OBJFPC} @ {$endif} ColorModulatorByte) and
     (TVRMLRenderingAttributes(SecondValue).UseLights = UseLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
