@@ -169,24 +169,24 @@ var i, poz,
   var PolygonNum, LineNum, PointNum: Integer;
       PointsKind: TPolygonKind;
   begin
-   vertices.count := 0;
+   vertices^.count := 0;
 
    gluTessBeginPolygon(tobj, vertices);
    poz := 0;
-   for PolygonNum := 1 to Znak.Info.PolygonsCount do
+   for PolygonNum := 1 to Znak^.Info.PolygonsCount do
    begin
     { read pkNewPolygon starter }
-    Assert(Znak.items[poz].Kind = pkNewPolygon);
-    linesCount := Znak.items[poz].Count;
+    Assert(Znak^.items[poz].Kind = pkNewPolygon);
+    linesCount := Znak^.items[poz].Count;
     Inc(poz);
 
     gluTessBeginContour(tobj);
     for LineNum := 1 to linesCount do
     begin
      { read pkLines/Bezier starter }
-     Assert(Znak.items[poz].Kind in [pkLines, pkBezier]);
-     PointsKind := Znak.items[poz].Kind;
-     PointsCount := Znak.items[poz].Count;
+     Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
+     PointsKind := Znak^.items[poz].Kind;
+     PointsCount := Znak^.items[poz].Count;
      Inc(poz);
 
      case PointsKind of
@@ -195,7 +195,7 @@ var i, poz,
         begin
          for PointNum := 1 to PointsCount-1 do
          begin
-          with Znak.items[poz] do
+          with Znak^.items[poz] do
           begin
            { vertexy dla tesselatora musza byc podawane w postaci 3 x GLdouble
              (a my mamy 2 x GLfloat). Nie mozna ich tworzyc tymczasowo (za pomoca
@@ -243,11 +243,11 @@ begin
     gdy nie ma edgeFlag'a. Uruchom view3dmodel ConeTest.wrl i zobacz
     na srodkowy dysk od dolu - bedzie zle oswietlony.
     Takze TextTest przy wlaczonym oswietleniu bedzie zly. }
-  tobj := gluNewTess;  { inicjuj tesselator }
-  gluTessCallback(tobj, GLU_TESS_VERTEX, @glVertex3dv);
-  gluTessCallback(tobj, GLU_TESS_BEGIN, @glBegin);
-  gluTessCallback(tobj, GLU_TESS_END, @glEnd);
-  gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, @glEdgeFlag);
+  tobj := gluNewTess();  { inicjuj tesselator }
+  gluTessCallback(tobj, GLU_TESS_VERTEX, {$ifndef FPC_OBJFPC} @ {$endif} glVertex3dv);
+  gluTessCallback(tobj, GLU_TESS_BEGIN, {$ifndef FPC_OBJFPC} @ {$endif} glBegin);
+  gluTessCallback(tobj, GLU_TESS_END, {$ifndef FPC_OBJFPC} @ {$endif} glEnd);
+  gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, {$ifndef FPC_OBJFPC} @ {$endif} glEdgeFlag);
   gluTessCallback(tobj, GLU_TESS_ERROR, @ReportGLError);
   gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, @TessCombineCallback);
 
@@ -259,7 +259,7 @@ begin
 
   for i := 0 to 255 do
   begin
-   Znak := TTFont[Chr(i)];
+   Znak := TTFont^[Chr(i)];
    glNewList(i+base, GL_COMPILE);
 
    TesselatedPolygon(0);
@@ -269,18 +269,18 @@ begin
     TesselatedPolygon(depth); {narysuj na glebokosci depth kopie poligonu}
 
     poz := 0;
-    for PolygonNum := 1 to Znak.Info.PolygonsCount do
+    for PolygonNum := 1 to Znak^.Info.PolygonsCount do
     begin
-     Assert(Znak.items[poz].Kind = pkNewPolygon);
-     linesCount := Znak.items[poz].Count;
+     Assert(Znak^.items[poz].Kind = pkNewPolygon);
+     linesCount := Znak^.items[poz].Count;
      Inc(poz);
 
      if onlyLines then glBegin(GL_LINES) else glBegin(GL_QUAD_STRIP);
      for LineNum := 1 to LinesCount do
      begin
-      Assert(Znak.items[poz].Kind in [pkLines, pkBezier]);
-      PointsKind := Znak.items[poz].Kind;
-      PointsCount := Znak.items[poz].Count;
+      Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
+      PointsKind := Znak^.items[poz].Kind;
+      PointsCount := Znak^.items[poz].Count;
       Inc(poz);
 
       case PointsKind of
@@ -289,7 +289,7 @@ begin
          begin
           for PointNum := 1 to PointsCount-1 do
           begin
-           with Znak.items[poz] do begin
+           with Znak^.items[poz] do begin
             glVertex2f(x, y);
             glVertex3f(x, y, depth);
            end;
@@ -305,7 +305,7 @@ begin
 
      {na koncu - laczymy ostatnia pare z pierwsza}
      if not onlyLines then
-     with Znak.items[poz-1] do
+     with Znak^.items[poz-1] do
      begin
       glVertex2f(x, y);
       glVertex3f(x, y, depth);
@@ -340,7 +340,7 @@ end;
 procedure TGLOutlineFont.CharPrintAndMove(c: char);
 begin
  CharPrint(c);
- glTranslatef(TTFont[c].Info.MoveX, TTFont[c].Info.MoveY, 0);
+ glTranslatef(TTFont^[c]^.Info.MoveX, TTFont^[c]^.Info.MoveY, 0);
 end;
 
 procedure TGLOutlineFont.Print(const s: string);
@@ -388,7 +388,7 @@ begin
   glTexGenv(GL_S, GL_OBJECT_PLANE,
     Vector4f(1/RowHeight, 0, 0,(xshift-texOriginX)/RowHeight));
   CharPrintAndMove(s[i]);
-  xshift := xshift+TTFont[s[i]].Info.MoveX;
+  xshift := xshift+TTFont^[s[i]]^.Info.MoveX;
  end;
 
  glPopAttrib;
