@@ -13,7 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
 
 { This is copied from FPC sources unit fpc/fcl/inc/zstream.pp
   that implements streams using zlib library.
