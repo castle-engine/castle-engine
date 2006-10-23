@@ -64,18 +64,18 @@ var InResult:TDynBooleanArray;
    for i:=0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if FloatsEqual(Points[i][1], Points[Start][1]) then
+     if FloatsEqual(Points.Items[i][1], Points.Items[Start][1]) then
      begin
-      if RightSide = (Points[i][0] > Points[Start][0]) then
+      if RightSide = (Points.Items[i][0] > Points.Items[Start][0]) then
       begin
        MaxCotanAngle:=MaxSingle;
        MaxCotanAngleI:=i;
       end;
      end else
-     if RightSide = (Points[i][1] > Points[Start][1]) then
+     if RightSide = (Points.Items[i][1] > Points.Items[Start][1]) then
      begin
-      ThisCotan:=(Points[i][0] - Points[Start][0]) /
-                 (Points[i][1] - Points[Start][1]);
+      ThisCotan:=(Points.Items[i][0] - Points.Items[Start][0]) /
+                 (Points.Items[i][1] - Points.Items[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
        MaxCotanAngle:=ThisCotan;

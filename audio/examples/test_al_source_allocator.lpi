@@ -10,7 +10,6 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -39,9 +38,7 @@
         <UnitName Value="test_al_source_allocator"/>
         <CursorPos X="1" Y="10"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="24"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -51,9 +48,7 @@
         <UnitName Value="mainf"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="0"/>
         <UsageCount Value="24"/>
-        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../alsourceallocator.pas"/>
@@ -96,16 +91,7 @@
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="2" HistoryIndex="1">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="90" Column="49" TopLine="75"/>
-      </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position2>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>

@@ -24,7 +24,7 @@
   do tego - uzycie procedur z tego modulu bedzie wymagalo
   od ciebie przygotowania najpierw odpowiedniego obrazka (w buforze
   kolorow OpenGLa albo w strukturze TImage).)
-  
+
   Komentarze do parametrow "ReadBuffer, FlushGLWindow" :
     Na poczatku funkcja robi save screen z ReadBuffer.
     Jesli FlushGLWindow to robi najpierw glwin.FlushRedisplay (generalnie,
@@ -58,12 +58,12 @@ uses OpenGLh, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   zlapany obrazek (musisz podac ScreenX0, Y0 = taka pozycja rastera ze jest
   ona lewym dolnym rogiem ekranu) a na nim - wczytywany string
   (na pozycji glRasterPos2i(AnswerX0, AnswerY0)).
-  
+
   Znaczenie AnswerDefault, MinLength, MaxLength i AnswerAllowedChars
   jest jasne, takie samo jak w GLWinMessages. Podobnie jak tam,
   dzialaja one dobrze pod warunkiem ze poczatkowe Answer nie zawiera znakow
-  spoza AnswerAllowedChars. 
-  
+  spoza AnswerAllowedChars.
+
   @noAutoLinkHere }
 function Input(glwin: TGLWindow;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
@@ -74,7 +74,7 @@ function Input(glwin: TGLWindow;
   MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
   const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
   ): string;
-  
+
 { Czeka na nacisniecie dowolnego klawisza aby wyjsc,
   obrazek wyswietlany na glRasterPos2i RasterX, Y
 
@@ -113,41 +113,41 @@ type
     AnswerAllowedChars: TSetOfChars;
     Font: TGLBitmapFont_Abstract;
     ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
-    
+
     { input/output params }
     Answer: string;
     Answered: boolean;
   end;
   PGLWinInputData = ^TGLWinInputData;
-  
+
 procedure DrawGL(glwin: TGLWindow);
 var D: PGLWinInputData;
 begin
  D := PGLWinInputData(glwin.UserData);
- 
- glRasterPos2i(D.ScreenX0, D.ScreenY0);
- glCallList(D.dlBGImage);
- glRasterPos2i(D.AnswerX0, D.AnswerY0);
- D.Font.Print(D.Answer+'_');
+
+ glRasterPos2i(D^.ScreenX0, D^.ScreenY0);
+ glCallList(D^.dlBGImage);
+ glRasterPos2i(D^.AnswerX0, D^.AnswerY0);
+ D^.Font.Print(D^.Answer+'_');
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: Char);
 var D: PGLWinInputData;
 begin
  D := PGLWinInputData(glwin.UserData);
- 
+
  case c of
   CharBackSpace:
-    if Length(D.Answer) > 0 then
-     begin SetLength(D.Answer, Length(D.Answer)-1); glwin.PostRedisplay; end;
+    if Length(D^.Answer) > 0 then
+     begin SetLength(D^.Answer, Length(D^.Answer)-1); glwin.PostRedisplay; end;
   CharEnter:
-    if Between(Length(D.Answer), D.MinLength, D.MaxLength) then
-     D.Answered := true;
+    if Between(Length(D^.Answer), D^.MinLength, D^.MaxLength) then
+     D^.Answered := true;
   else
-    if (c <> #0) and 
-       (c in D.AnswerAllowedChars) and 
-       (Length(D.Answer) < D.MaxLength) then
-     begin D.Answer += c; glwin.PostRedisplay; end;
+    if (c <> #0) and
+       (c in D^.AnswerAllowedChars) and
+       (Length(D^.Answer) < D^.MaxLength) then
+     begin D^.Answer += c; glwin.PostRedisplay; end;
  end;
 end;
 
@@ -180,12 +180,12 @@ begin
   Data.AnswerX0 := AnswerX0;
   Data.AnswerY0 := AnswerY0;
 
-  SetStdNoCloseGLWindowState(glwin, DrawGL, nil, @Data, false,
+  SetStdNoCloseGLWindowState(glwin, @DrawGL, nil, @Data, false,
     false, false, K_None, false, false);
-  glwin.OnKeyDown := KeyDown;
-  
+  glwin.OnKeyDown := @KeyDown;
+
   repeat glwm.ProcessMessage(true) until Data.Answered;
-  
+
   result := Data.Answer;
  finally SavedMode.Free end;
 end;
@@ -204,15 +204,15 @@ procedure DrawGLAnyKey(glwin: TGLWindow);
 var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(glwin.UserData);
- if D.DoClear then glClear(GL_COLOR_BUFFER_BIT);
- glCallList(D.dlImage);
+ if D^.DoClear then glClear(GL_COLOR_BUFFER_BIT);
+ glCallList(D^.dlImage);
 end;
 
 procedure KeyDownAnyKey(glwin: TGLWindow; key: TKey; c: char);
 var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(glwin.UserData);
- D.KeyPressed := true;
+ D^.KeyPressed := true;
 end;
 
 { GLWinInputAnyKey ----------------------------------------------------------- }
@@ -230,9 +230,9 @@ begin
   Data.KeyPressed := false;
 
   try
-   SetStdNoCloseGLWindowState(glwin, DrawGLAnyKey, nil, @Data,
+   SetStdNoCloseGLWindowState(glwin, @DrawGLAnyKey, nil, @Data,
      false, false, false, K_None, false, false);
-   glwin.OnKeyDown := KeyDownAnyKey;
+   glwin.OnKeyDown := @KeyDownAnyKey;
 
    glRasterPos2i(RasterX, RasterY);
    repeat glwm.ProcessMessage(true) until Data.KeyPressed;

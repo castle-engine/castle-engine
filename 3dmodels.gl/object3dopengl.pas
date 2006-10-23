@@ -220,12 +220,12 @@ begin
   glPushAttrib(Material3ds_AttribsModified(useTexture2d));
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3, GL_FLOAT, SizeOf(TVertex3ds), @Verts[0].Pos);
+  glVertexPointer(3, GL_FLOAT, SizeOf(TVertex3ds), @Verts^[0].Pos);
   if useTexture2d and HasTexCoords then
   begin
    {szczegoly inicjowania textury sa wykonywane w PrepareMaterial}
    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, SizeOf(TVertex3ds), @Verts[0].TexCoord);
+   glTexCoordPointer(2, GL_FLOAT, SizeOf(TVertex3ds), @Verts^[0].TexCoord);
   end;
 
   {we use UsedMaterial to record what material is currently prepared.
@@ -237,7 +237,7 @@ begin
   { cast to Integer before -1 because 0-1 => RangeError because FacesCount
     is of type Word (that is, it's unsigned) }
   for i := 0 to Integer(FacesCount)-1 do
-  with Faces[i] do
+  with Faces^[i] do
   begin
    if UsedMaterial <> FaceMaterialIndex then
    begin
@@ -248,7 +248,7 @@ begin
    end;
 
    glBegin(GL_TRIANGLES);
-     glNormalv(IndexedTriangleNormal(VertsIndices, @Verts[0].Pos, SizeOf(TVertex3ds)));
+     glNormalv(IndexedTriangleNormal(VertsIndices, @Verts^[0].Pos, SizeOf(TVertex3ds)));
      for j := 0 to 2 do
      begin
       if EdgeFlags[j] then glEdgeFlag(GL_TRUE) else glEdgeFlag(GL_FALSE);

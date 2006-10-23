@@ -314,9 +314,9 @@ function TMathExprCurve.Point(const t: Float): TVector3Single;
 begin
  SingleVariableName := 't';
  SingleVariable := t;
- Result[0] := XFunction.Value(ReturnSingleVariable);
- Result[1] := YFunction.Value(ReturnSingleVariable);
- Result[2] := ZFunction.Value(ReturnSingleVariable);
+ Result[0] := XFunction.Value(@ReturnSingleVariable);
+ Result[1] := YFunction.Value(@ReturnSingleVariable);
+ Result[2] := ZFunction.Value(@ReturnSingleVariable);
 
  {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
    VectorToNiceStr(Result), ')');}

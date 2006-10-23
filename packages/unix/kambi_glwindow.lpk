@@ -11,10 +11,10 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
-          <D2Extensions Value="False"/>
+          <D2Extensions Value="True"/>
           <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
-          <DelphiCompat Value="True"/>
+          <DelphiCompat Value="False"/>
           <UseAnsiStrings Value="True"/>
         </SyntaxOptions>
       </Parsing>
