@@ -1,7 +1,5 @@
 unit KambiPasJpeg_error_mgrs;
 
-{$mode delphi}
-
 {$I kambiconf.inc}
 
 interface
@@ -31,16 +29,16 @@ uses jmorecfg, jdeferr;
   Nomssi did his handler because :
    "NOTE: we have replaced jpeg_std_error because it stores a static
           message table (JDEFERR.PAS) in the jpeg_message_table field."
-          
+
   ale ja nie widze z tym problemu skoro ta statyczna tablica jest
   przez nas traktowana jako stala. Tym niemniej rzeczywiscie trzeba zrobic
   wlasnego error handlera zeby rzucac exception w error_exit.
-  
+
   Ponadto Nomsi chcial miec wlasnego handlera zeby w output_message
   pod Windowsem robic MessageBox w aplikacjach GUI (stderr moze wowczas nie
   istniec) - tak robil Nomssi ale ja tego nie robie, nie chce miec zadnego
   output message.
-  
+
  ------------------------------------------------------------------------ }
 
 procedure error_exit (cinfo : j_common_ptr);
@@ -65,7 +63,7 @@ begin
    Tym samym wiec rzeczy ponizej sa zakomentarzowane - nigdy nie wyswietlaj
    warningow czy czegos takiego. Moduly jpeg'a moga tylko zaladowac obrazek
    lub rzucic wyjatek. }
-   
+
 { TODO: jak tylko bedzie potrzeba i okazja, zrobi sie jednak jakis mechanizm
   wypuszczania tych warningow na zewnatrz, np. zmienna OnJpegWarning }
 
@@ -80,11 +78,11 @@ end;
 { Kambi*: copied from jerror.pas to workaround a bug in pasjpeg (original
   PasJPEG from Nomssi pages and in FPC pasjpeg package) that defined
   NO_FORMAT symbol for FPC. This makes incorrect (unformatted, with
-  things like '%d' left !) error messages. 
-  
+  things like '%d' left !) error messages.
+
   ALL below is exactly copied from jerror.format_message (it's just that
   NO_FORMAT is undefined here). }
-procedure format_message (cinfo : j_common_ptr; var buffer : string); 
+procedure format_message (cinfo : j_common_ptr; var buffer : string);
 var
   err : jpeg_error_mgr_ptr;
   msg_code : J_MESSAGE_CODE;

@@ -1,7 +1,5 @@
 unit KambiPasJpeg_stream_mgrs;
 
-{$mode delphi}
-
 {$I kambiconf.inc}
 
 interface
@@ -48,7 +46,7 @@ implementation
 const
   INPUT_BUF_SIZE = 4096;
 
-procedure init_source(cinfo : j_decompress_ptr); 
+procedure init_source(cinfo : j_decompress_ptr);
 var
   src : passtream_source_ptr;
 begin
@@ -56,7 +54,7 @@ begin
   src^.start_of_file := TRUE;
 end;
 
-function fill_input_buffer(cinfo : j_decompress_ptr) : boolean; 
+function fill_input_buffer(cinfo : j_decompress_ptr) : boolean;
 var
   src : passtream_source_ptr;
   nbytes : size_t;
@@ -79,7 +77,7 @@ begin
 end;
 
 procedure skip_input_data(cinfo : j_decompress_ptr;
-                      num_bytes : long); 
+                      num_bytes : long);
 var
   src : passtream_source_ptr;
 begin
@@ -96,7 +94,7 @@ begin
   end;
 end;
 
-procedure term_source(cinfo : j_decompress_ptr); 
+procedure term_source(cinfo : j_decompress_ptr);
 begin
   { no work necessary here }
 end;
@@ -143,7 +141,7 @@ end;
 const
   OUTPUT_BUF_SIZE = 4096;
 
-procedure init_destination(cinfo : j_compress_ptr); 
+procedure init_destination(cinfo : j_compress_ptr);
 var
   dest : passtream_dest_ptr;
 begin
@@ -155,7 +153,7 @@ begin
   dest^.pub.free_in_buffer := OUTPUT_BUF_SIZE;
 end;
 
-function empty_output_buffer(cinfo : j_compress_ptr) : boolean; 
+function empty_output_buffer(cinfo : j_compress_ptr) : boolean;
 var
   dest : passtream_dest_ptr;
 begin
@@ -169,7 +167,7 @@ begin
   empty_output_buffer := TRUE;
 end;
 
-procedure term_destination(cinfo : j_compress_ptr); 
+procedure term_destination(cinfo : j_compress_ptr);
 var
   dest : passtream_dest_ptr;
   datacount : size_t;

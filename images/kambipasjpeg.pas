@@ -16,8 +16,6 @@
 
 unit KambiPasJpeg;
 
-{$mode delphi}
-
 {$I kambiconf.inc}
 
 { Instead of including jconfig.inc I just always define here
@@ -721,7 +719,7 @@ procedure jpeg_my_progress(cinfo : j_common_ptr;
                         progress : my_progress_ptr;
                         callback : JPEG_ProgressMonitor);
 begin
-  if @callback = nil then
+  if {$ifndef FPC_OBJFPC} @ {$endif} callback = nil then
     Exit;
   {set method}
   progress^.pub.progress_monitor := {$ifdef FPC_OBJFPC} @ {$endif} progress_monitor;
