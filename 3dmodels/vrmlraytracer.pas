@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2006 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -51,225 +51,255 @@ type
     wywolac jakiegos raytracera. }
   TRayTracerKind = (rtkClassic, rtkPathTracer);
 
-{ RayTrace : do zadanego stworzonego juz obrazka Image zapisz do niego obraz
-  utworzony ze sceny zapisanej w drzewie Octree.
+  TRayTracer = class
+  public
+    { This describes the actual scene that will be used.
+      Must be set before calling @link(Execute). }
+    Octree: TVRMLTriangleOctree;
 
-  Istniejace wymiary obrazka beda zachowane, bedziemy tutaj zmieniac
-  tylko jego RawPixels. We will write on image using TImage.SetColorRGB
-  method, so this method must be implemented in Image class you use
-  (it's implemented in all 3 classes TRGBImage, TAlphaImage, TRGBEImage
-  in Images unit, so usually you just don't worry about that).
+    { Image where the ray-tracer result will be stored.
+      Must be set before calling @link(Execute).
 
-  Dla kazdego pixela w ktorym promien trafia na obiekt
-    ze sceny zapisujemy w obrazku wyliczony kolor RGB sceny w tym miejscu.
-    Nie dotykamy kanalu Alpha obrazka ikAlpha. (kiedys mialem tu mechanizm obslugi
-    tego kanalu ale zbytnio mi zawadzal a i tak nie byl uzywany, dlatego
-    go wylaczylem). Akceptujemy naturalnie obrazki ikRGBE i bedziemy w nich
-    zapisywali precyzyjne kolory - de facto format ikRGBE zaimplementowalem
-    wlasnie po to zeby raytracery w tym module mogly zapisywac obrazki
-    precyzyjnie, z kolorami jako 3xFloat.
+      We will not resize given here Image. Instead we will use it's
+      current size --- so you just have to set Image size as appropriate
+      before calling this method.
 
-    Ponadto, gdy uzywasz dowolnego formatu innego niz ikRGBE (patrzac
-    przyszlosciowo : dowolnego formatu z precyzja i zakresem float) tracisz nie
-    tylko precyzje : przy zapisywaniu obrazka do ikRGB/ikAlpha kolory
-    3xSingle sa konwertowane na 3xByte a konwersja Byte->Single jest robiona
-    tak jak VectorMath.Vector3Byte : zakres Single 0-1 jest skalowany na
-    zakres bajtu 0-255, jezeli wartosc Single jest wieksza niz 1 (co jest
-    przeciez zupelnie mozliwe) to jest obcinana do 1. Wiec zapisujac do
-    ikRGB/ikAlpha moze sie okazac ze przy bardzo jasnej scenie wyjdzie ci
-    caly bialy obrazek - podczas gdy przy ikRGBE obrazek mialby po prostu kolory
-    wieksze niz (1.0, 1.0, 1.0) co moznaby zawsze zniwelowac skalowaniem
-    albo korekcja gamma. Ta zaleta formatu RGBE jest pokrotce opisana
-    takze na poczatku dokumentacji do rayhuntera na camelot/rayhunter.php.
+      We will write on image using TImage.SetColorRGB
+      method, so this method must be implemented in Image class you use
+      (it's implemented in all 3 classes TRGBImage, TAlphaImage, TRGBEImage
+      in Images unit, so usually you just don't worry about that).
 
-    (Ta wada formatow RGB/Alpha _nie bedzie naprawiona w tej funkcji_
-    bo niby jak ? Jedynym sensownym rozwiazaniem jest tutaj zapisac obrazek
-    raytracerem w formacie RGBE a potem, po wygenerowaniu calosci,
-    ustalic maksymalna wartosc komponentu i zrobic odpowiednie skalowanie
-    lub korekcje gamma; ale do tego nie musze wcale naprawiac tej funkcji -
-    - wiec mozna co najwyzej uznac to za blad rayhuntera i view3dscene
-    ze takiego naprawiania nie robia po uzyciu RaytraceTo1st.
-    Ale: view3dscene zrzuca sprawe na "view3dscene nigdy nie mial realizowac
-    raytracingu do celu innego niz tylko testowanie, tzn. view3dscene
-    nie sluzy do generowania ostatecznych dopieszczonych obrazkow - od tego
-    jest rayhunter". A rayhunter argumentuje ze "zeby to zrobic to w srodku
-    rayhuntera musialbym robic zapis do RGBE i dopiero na koncu konwertowac
-    do RGB : w ten sposob nie tylko komplikuje sobie kod ale takze
-    robienie --write-partial-row staje sie klopotliwe. A wiec, na podobnej
-    zasadzie jak funkcja RaytraceTo1st zwala problem na kod zewnetrzny,
-    tak rayhunter zwala problem na program zewnetrzny. Innymi slowy,
-    zawsze generuj obrazki do RGBE jesli nie chcesz miec tego problemu.
-    Zreszta, Radiance tez tak robi : zawsze zapisuje obrazki
-    do swojego RGBE i potem w czasie post-processingu obrazka umozliwia
-    robienie korekcji kolorow)" )
+      Dla kazdego pixela w ktorym promien trafia na obiekt
+      ze sceny zapisujemy w obrazku wyliczony kolor RGB sceny w tym miejscu.
+      Nie dotykamy kanalu Alpha obrazka TAlphaImage.
+      (kiedys mialem tu mechanizm obslugi
+      tego kanalu ale zbytnio mi zawadzal a i tak nie byl uzywany, dlatego
+      go wylaczylem). Akceptujemy naturalnie obrazki TRGBEImage i bedziemy w nich
+      zapisywali precyzyjne kolory --- de facto format TRGBEImage zaimplementowalem
+      wlasnie po to zeby raytracery w tym module mogly zapisywac obrazki
+      precyzyjnie, z kolorami jako 3xFloat.
 
-  Wszystkie pixle obrazka zostana zapisane przez raytracer. Kiedys
-    mialem tu mechanizm umozliwiajacy podlozenie pod rendering tla,
-    ale skasowalem to bo bylo malo uzyteczne a bardzo nieeleganckie
-    w zapisie (wymagalo ode mnie rozrozniania czy promien pierw. trafil
-    w scene czy nie; teraz po prostu promien ktory nie trafia w scene
-    przynosi kolor SceneBGColor).
-    Jezeli RowMadeNotifier <> nil to mozesz obserwowac czesciowo
-    wygenerowany obrazek wiêc nale¿y tutaj powiedzieæ jak obrazek jest
-    zapisywany : zapisujemy mianowicie wierszami, id±c od do³u.
-    Górna czê¶æ obrazka (jeszcze nie wygenerowana) ma zawsze tak± zawarto¶æ
-    jak± mia³a w momencie przekazywania jej jako parametr do tej funkcji,
-    dlatego je¿eli zamierzasz jako¶ wy¶wietlaæ czê¶ciowo wygenerowany
-    obrazek to powiniene¶ zadbaæ o jakie¶ zainicjowanie jego pocz±tkowej
-    zawarto¶ci.
-  Parametry CamPosition, CamDirection, CamUp naturalnie ustawiaja kamere
-    w scenie. Tak jak zwykle, jezeli CamUp i CamDirection nie sa prostopadle
-    to poprawiany jest CamUp aby byc prostopadly (a NIE camDirection).
-  ViewAngleDegX i ViewAngleDegY to rozpietosc obiektywu w stopniach.
-  PixelsMadeNotifier, jezeli <> nil, to bedzie wywolywane po zapisaniu
-    kazdego pixla w Image. W ten sposob bedzie mozna wyswietlac obrazek
-    juz w trakcie generowania, jezeli tylko bedzie taka potrzeba.
-    PixelsMadeNotifier dostanie jako parametry liczbe pixli jaka zostala juz
-    zrobiona i PixelsMadeNotifierData (ktory tradycyjnie mozesz dowolnie
-    wykorzystac do wygodnej komunikacji z callbackiem).
+      Ponadto, gdy uzywasz dowolnego formatu innego niz TRGBEImage (patrzac
+      przyszlosciowo : dowolnego formatu z precyzja i zakresem float) tracisz nie
+      tylko precyzje : kolory 3xSingle sa konwertowane na 3xByte a
+      konwersja Byte->Single jest robiona
+      tak jak VectorMath.Vector3Byte : zakres Single 0-1 jest skalowany na
+      zakres bajtu 0-255, jezeli wartosc Single jest wieksza niz 1 (co jest
+      przeciez zupelnie mozliwe) to jest obcinana do 1. Wiec zapisujac do
+      ikRGB/ikAlpha moze sie okazac ze przy bardzo jasnej scenie wyjdzie ci
+      caly bialy obrazek - podczas gdy przy ikRGBE obrazek mialby po prostu kolory
+      wieksze niz (1.0, 1.0, 1.0) co moznaby zawsze zniwelowac skalowaniem
+      albo korekcja gamma. Ta zaleta formatu RGBE jest pokrotce opisana
+      takze na poczatku dokumentacji do rayhuntera na camelot/rayhunter.php.
 
-    Na pytanie KTORE konkretnie pixele zostaly zrobione, tzn. gdzie na obrazku
-    jest to PixelsDoneCount pixli, inaczej mowiac : w jakiej kolejnosci
-    robimy pixle :
-    dla ClassicRayTracera: jak TSwapScanCurve
-    dla PathTracera: zalezy od SFCurveClass;
+      (Ta wada formatow RGB/Alpha @italic(nie bedzie naprawiona w tej funkcji)
+      bo niby jak ? Jedynym sensownym rozwiazaniem jest tutaj zapisac obrazek
+      raytracerem w formacie RGBE a potem, po wygenerowaniu calosci,
+      ustalic maksymalna wartosc komponentu i zrobic odpowiednie skalowanie
+      lub korekcje gamma; ale do tego nie musze wcale naprawiac tej funkcji ---
+      wiec mozna co najwyzej uznac to za blad rayhuntera i view3dscene
+      ze takiego naprawiania nie robia po uzyciu RaytraceTo1st.
+      Ale: view3dscene zrzuca sprawe na "view3dscene nigdy nie mial realizowac
+      raytracingu do celu innego niz tylko testowanie, tzn. view3dscene
+      nie sluzy do generowania ostatecznych dopieszczonych obrazkow - od tego
+      jest rayhunter". A rayhunter argumentuje ze "zeby to zrobic to w srodku
+      rayhuntera musialbym robic zapis do RGBE i dopiero na koncu konwertowac
+      do RGB : w ten sposob nie tylko komplikuje sobie kod ale takze
+      robienie @--write-partial-row staje sie klopotliwe. A wiec, na podobnej
+      zasadzie jak funkcja @link(Execute) zwala problem na kod zewnetrzny,
+      tak rayhunter zwala problem na program zewnetrzny. Innymi slowy,
+      zawsze generuj obrazki do RGBE jesli nie chcesz miec tego problemu.
+      Zreszta, Radiance tez tak robi : zawsze zapisuje obrazki
+      do swojego RGBE i potem w czasie post-processingu obrazka umozliwia
+      robienie korekcji kolorow)" )
 
-    Wszystko przez to ze SFCurveClass okazaly sie praktycznie bezuzyteczne dla
-    path tracera, niczego tam nie przyspieszaja. Ale byc moze okaza sie bardziej
-    laskawe dla Classic RayTracera. Na razie nie zaimplementowalem jeszcze
-    w ClassicRayTracerze shadow-cache a wiec takze te SFCurveClass sa bez sensu,
-    ale kiedys planuje to zrobic.
+      Wszystkie pixle obrazka zostana zapisane przez raytracer. Kiedys
+      mialem tu mechanizm umozliwiajacy podlozenie pod rendering tla,
+      ale skasowalem to bo bylo malo uzyteczne a bardzo nieeleganckie
+      w zapisie (wymagalo ode mnie rozrozniania czy promien pierw. trafil
+      w scene czy nie; teraz po prostu promien ktory nie trafia w scene
+      przynosi kolor SceneBGColor).
 
-    Chwilowo powinienes zawsze uzywac w path tracerze BestRaytrSFC aby miec
-    TSwapScanCurve ktore renderuje prosto wierszami.
-    Wiekszych komplikacji nie ma sensu na razie
-    gdziekolwiek wprowadzac skoro uzywanie innych SFC niz renderujace
-    wierszami od dolu do gory jest bezcelowe (dla path tracera) lub
-    niezaimplementowane (dla classic ray tracera).
+      @noAutoLinkHere }
+    Image: TImage;
 
-  InitialDepth to ograniczenie raytracera na globokosc drzewa promieni - tak jak
-    zad.2 z rgk, tzn. InitialDepth = 0 oznacza tylko promienie prierw,
-    1 = promienie 1-krotnie odbite + bezposrednie cienie itd.
-  FirstPixel pozwala renderowac obrazki od srodka - normalnie FirstPixel = 0
-    powoduje ze zaczynamy renderowac od pierwszego pixela i wyrenderujemy
-    caly obrazek. FirstPixel > 0 oznacza ze zaczynamy gdzies dalej, uznajac
-    pierwsze FirstPixel pixeli na Image za juz zrobione (i nie zapisujemy
-    im zadnej wartosci). To jest przydatne do wznawianie dzialania ray tracera
-    poprzednio przerwanego ktory zapisal czesciowo wygenerowany rysunek.
-    FirstPixel musi byc w zakresie 0..Image.Width*Image.Height przy czym
-    wartosc najwieksza (Image.Width*Image.Height) instruuje ray tracera zeby
-    nic nie robil (caly obrazek jest juz wygenerowany).
+    { Parametry CamPosition, CamDirection, CamUp naturalnie ustawiaja kamere
+      w scenie. Tak jak zwykle, jezeli CamUp i CamDirection nie sa prostopadle
+      to poprawiany jest CamUp aby byc prostopadly (a NIE camDirection). }
+    CamPosition, CamDirection, CamUp: TVector3Single;
 
-    Zwracam uwage ze pierwszy parametr PixelMadeNotifier uwzglednia fakt tak
-    jakbysmy zrobili juz FirstPixel pixeli, tzn. kolejne wywolania
-    PixelMadeNotifier beda kolejno dostawaly parametry FirstPixel+1,
-    FirstPixel+2 ... itd. az do Image.Width * Image.Height.
+    { ViewAngleDegX i ViewAngleDegY to rozpietosc obiektywu w stopniach. }
+    ViewAngleDegX, ViewAngleDegY: Single;
 
-  Podaj FogNode <> nil aby miec odpowiednia mgle, zgodnie ze specyfik. VRMLa 97.
-  FogDistanceScaling to skalowanie FogNode z transformacji sceny
-  VRMLa w miejscu gdzie byl FogNode --- tak samo jak pole
-  TVRMLFlatScene o tej samej naziwe.
+    SceneBGColor: TVector3Single;
 
-  Uzywamy lokalnego modelu oswietlenia zdefiniowanego w funkcjach
-  VRML97* w IllumModels, patrz tam po komentarze. Po pewne szczegoly
-  patrz tez rayhunter.php.  }
-procedure ClassicRayTracerTo1st(const Image: TImage;
-  Octree: TVRMLTriangleOctree;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  const SceneBGColor: TVector3Single;
-  const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
-  const InitialDepth: Cardinal;
-  FogNode: TNodeFog; const FogDistanceScaling: Single;
-  const FirstPixel: Cardinal {$ifdef DEFPARS}=0{$endif}); overload;
+    { PixelsMadeNotifier, jezeli <> nil, to bedzie wywolywane po zapisaniu
+      kazdego pixla w Image. W ten sposob bedzie mozna wyswietlac obrazek
+      juz w trakcie generowania, jezeli tylko bedzie taka potrzeba.
+      PixelsMadeNotifier dostanie jako parametry liczbe pixli jaka zostala juz
+      zrobiona i PixelsMadeNotifierData (ktory tradycyjnie mozesz dowolnie
+      wykorzystac do wygodnej komunikacji z callbackiem).
 
-{ Znaczenie Image, Octree, Cam*, ViewAngle*, RowMade*, SceneBGColor - patrz
-    ClassicRayTraceTo1st.
-  MinDepth i RRoulContinue razem ustalaja warunki konczenia sciezki.
-    Wyglada to tak ze do glebokosci rekursji MinDepth wchodzimy na pewno,
-    natomiast glebiej wchodzimy pod warunkiem powodzenia w rosyjskiej
-    ruletce, tzn. jezeli Depth <= 0 to musi byc Random < RRoulContinue i wtedy
-    wywolujemy Trace(...,Depth-1) i wynik skalujemy przez 1/RRoulContinue.
+      Na pytanie KTORE konkretnie pixele zostaly zrobione, tzn. gdzie na obrazku
+      jest to PixelsDoneCount pixli, inaczej mowiac : w jakiej kolejnosci
+      robimy pixle :
+      dla ClassicRayTracera: jak TSwapScanCurve
+      dla PathTracera: zalezy od SFCurveClass;
 
-    Jezeli nie chcesz uzywac w ogole rosyjskiej ruletki to daj RRoulContinue = 0.0
-    (tak, porownywanie Random < RRoulContinue jak zwykle uzywa _ostrej_
-    nierownosci, co jest konsekwente bo Random zwraca wyniki z przedzialu [0;1) ).
-    Przestrzegam jednak przed rezygnowaniem z rosyjskiej ruletki - rezygnacja
-    ta powoduje bias na obrazku; obrazek wynikowy jest ciemniejszy ni¿ powinien byæ.
-    Przestrzegam te¿ przed dawaniem _bardzo_ malych wartosci dla RRoulContinue -
-    w wyniku tego bedziemy niekiedy skalowali wynik przez 1/RRoulContinue
-    (= bardzo duzo jezeli RRoulContinue = bardzo malo) a niekiedy wynik bedzie = 0,
-    wiec rosyjska ruletka spowoduje tu olbrzymia wariancje (a wiec noise).
-    RRoulContinue powinno byc w zakresie 0..1, jesli nie jest - bedzie clamped.
+      Wszystko przez to ze SFCurveClass okazaly sie praktycznie bezuzyteczne dla
+      path tracera, niczego tam nie przyspieszaja. Ale byc moze okaza sie bardziej
+      laskawe dla Classic RayTracera. Na razie nie zaimplementowalem jeszcze
+      w ClassicRayTracerze shadow-cache a wiec takze te SFCurveClass sa bez sensu,
+      ale kiedys planuje to zrobic.
 
-    Jezeli nie chcesz uzywac MinDepth (to znaczy chcesz zeby o kazdym wywolaniu
-    rekurencyjnym decydowala rosyjska ruletka) to przekaz MinDepth = 0.
-    (wartosci MinDepth < 0 w tej chwili sa w zasadzie dopuszczalne i
-    traktowane przez implementacje tak samo jak MinDepth = 0 ale byc moze kiedys
-    sie to zmieni).
+      Chwilowo powinienes zawsze uzywac w path tracerze BestRaytrSFC aby miec
+      TSwapScanCurve ktore renderuje prosto wierszami.
+      Wiekszych komplikacji nie ma sensu na razie
+      gdziekolwiek wprowadzac skoro uzywanie innych SFC niz renderujace
+      wierszami od dolu do gory jest bezcelowe (dla path tracera) lub
+      niezaimplementowane (dla classic ray tracera).
 
-    Uzywanie rosyjskiej ruletki gwarantuje nam ze nie mamy biasu (bez wzgledu
-    na MinDepth). Uzywanie MinDepth zmniejsza wariancje (chociaz naturalnie
-    wydluza czas dzialania bo przeciez sciezki beda mialy zawsze jakas minimalna
-    dlugosc, no, za wyjatkiem tych nielicznych sciezek ktore urwa sie w sposob
-    "naturalny", tzn. wyleca na zewnatrz sceny itp.). Razem, uzywanie MinDepth
-    w polaczeniu z rosyjska ruletka daje wynik unbiased i czesciowo niweluje noise
-    powodowany przez rosyjska ruletke.
-  Primary- i NonPrimary- SamplesCount okreslaja ile sciezek wygenerowac dla
-    kazdego pixela (obie musza byc >0, co jest sprawdzane uzywajac Check(),
-    nawet w wersji RELEASE). Primary mowi ile promieni pierwotnych jest
-    puszczanych dla kazdego pixela obrazka; dla kazdego promienia pierwotnego
-    ktory trafi w scene generowanych jest nastepnie NonPrimary sciezek
-    (tzn. teraz juz prawdziwych sciezek, ktore nie rozgaleziaja sie dalej).
-    Razem mamy wiec Primary*NonPrimary sciezek dla kazdego pixla.
-    Jezeli dasz NonPrimary = 1 i bedziesz operowal tylko Primary to w rezultacie
-    otrzymasz naiwna wersje path tracera, ktora np. dla 1000 sciezek
-    bedzie musiala przesledzic 1000 (tyle samo) promieni. O ile wziecie
-    1000 sciezek ma sens jesli chcesz miec ladny obrazek z path tracera
-    o tyle liczenie az 1000 promieni pierwotnych ma tutaj male zastosowanie.
-    Wiekszosc z tych promieni pierwotnych bedzie trafiala w jeden i ten sam
-    punkt sceny i dopiero dalsze kroki sciezki beda determinowaly faktyczne
-    roznice w kolorach przynoszonych przez konkretne sciezki.
-    Innymi slowy, promienie pierwotne tworza scisla wiazke i chcemy to
-    wykorzystac. W powyzszym przykladzie zmiana na Primary = 1 i NonPrimary = 1000
-    da ciagle 1000 sciezek na scene (i rendering rzeczywiscie bedzie
-    mial taka sama jakosc, taki sam poziom szumu) a czas renderowania
-    bedzie mniejszy (o ile dokladnie bedzie krotszy - to zalezy od dlugosci
-    sredniej sciezki, jesli sciezki sa b. dlugie to niewiele tutaj pomozemy
-    bo w koncu optymalizujemy tylko 1 krok kazdej sciezki; ale zazwyczaj
-    sciezki nie sa zbyt dlugie). Jedyna wada to ze zmniejszenie Primary do 1
-    spowodowalo aliasing. Mozna temu zaradzic zwiekszajac (ale tylko
-    nieznacznie !) Primary, np. Primary = 10 i NonPrimary = 100 powinno dac
-    nam dobry antialiasing, zachowujac 1000 sciezek dla pixela i jednoczesnie
-    lepszy czas renderowania. Faktem ktory ratuje nam tutaj tylek jest to
-    ze dla antialiasingu nie potrzebujemy az tak wielu probek na pixel.
-  DirectIllumSamplesCount okresla ile sampli ma byc wyslanych zeby
-    w kazdym punkcie sciezki obliczyc bezposrednio direct illumination
-    (tzn. kazdy taki sample jest skierowany w strone losowego punktu
-    losowego zrodla swiatla). Podaj tutaj 0 aby miec "naiwny path tracing" :
-    liczy direct i indirect illumination probujac wygenerowac sciezki ktore
-    trafilyby w zrodlo swiatla. Potrzebuje naprawde olbrzymiej ilosci
-    [Non]PrimarySamplesCount zeby dac jakiekolwiek rezultaty.
-    Podaj tutaj 1 lub wiecej aby miec typowego path tracera.
-    Dla wartosci rownej 1 rezultaty sa juz dobre. }
-procedure PathTracerTo1st(const Image: TImage;
-  Octree: TVRMLTriangleOctree;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  const SceneBGColor: TVector3Single;
-  const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
-  const MinDepth: Integer; RRoulContinue: Single;
-  const PrimarySamplesCount, NonPrimarySamplesCount, DirectIllumSamplesCount: Cardinal;
-  SFCurveClass: TSpaceFillingCurveClass;
-  const FirstPixel: Cardinal {$ifdef DEFPARS}=0{$endif}); overload;
+      Remember that pixels not done yet have the same content as they
+      had when you @link(Execute) method started. In other words,
+      if you set PixelsMadeNotifier <> nil, then often it's
+      desirable to initialize Image content (e.g. to all SceneBGColor)
+      before calling @link(Execute). Otherwise at the time of @link(Execute)
+      call, the pixels not done yet will have undefined colors. }
+    PixelsMadeNotifier: TPixelsMadeNotifierFunc;
+    PixelsMadeNotifierData: Pointer;
 
-const
-  { uzywanie innych TSpaceFillingCurveClass nie przyspiesza NIC a NIC
-    wiec na razie niech rayhunter i view3dscene uzywaja zawsze
-    TSwapScanCurve, on przynajmniej pozwala latwo oddzielic na obrazku
-    czesc zrobiona i niezrobiona (i dzieki temu np. view3dscene moze
-    szybciej rysowac obrazek w miare generowania) }
-  BestRaytrSFC: TSpaceFillingCurveClass = TSwapScanCurve;
+    { FirstPixel pozwala renderowac obrazki od srodka - normalnie FirstPixel = 0
+      powoduje ze zaczynamy renderowac od pierwszego pixela i wyrenderujemy
+      caly obrazek. FirstPixel > 0 oznacza ze zaczynamy gdzies dalej, uznajac
+      pierwsze FirstPixel pixeli na Image za juz zrobione (i nie zapisujemy
+      im zadnej wartosci). To jest przydatne do wznawianie dzialania ray tracera
+      poprzednio przerwanego ktory zapisal czesciowo wygenerowany rysunek.
+      FirstPixel musi byc w zakresie 0..Image.Width*Image.Height przy czym
+      wartosc najwieksza (Image.Width*Image.Height) instruuje ray tracera zeby
+      nic nie robil (caly obrazek jest juz wygenerowany).
+
+      Zwracam uwage ze pierwszy parametr PixelMadeNotifier uwzglednia fakt tak
+      jakbysmy zrobili juz FirstPixel pixeli, tzn. kolejne wywolania
+      PixelMadeNotifier beda kolejno dostawaly parametry FirstPixel+1,
+      FirstPixel+2 ... itd. az do Image.Width * Image.Height. }
+    FirstPixel: Cardinal;
+
+    { Do ray-tracing: write a ray-traced image into the @link(Image).
+      @noAutoLinkHere }
+    procedure Execute; virtual; abstract;
+  end;
+
+  { Classic Whitted-style ray-tracer.
+    See [http://stoma.name/michalis/vrml_engine_doc/output/xsl/html/ch04s02.html]
+    for documentation. }
+  TClassicRayTracer = class(TRayTracer)
+  public
+    procedure Execute; override;
+
+    { InitialDepth to ograniczenie raytracera na globokosc drzewa promieni - tak jak
+      zad.2 z rgk, tzn. InitialDepth = 0 oznacza tylko promienie prierw,
+      1 = promienie 1-krotnie odbite + bezposrednie cienie itd. }
+    InitialDepth: Cardinal;
+
+    { Podaj FogNode <> nil aby miec odpowiednia mgle, zgodnie ze specyfik. VRMLa 97.
+      FogDistanceScaling to skalowanie FogNode z transformacji sceny
+      VRMLa w miejscu gdzie byl FogNode --- tak samo jak pole
+      TVRMLFlatScene o tej samej naziwe. }
+    FogNode: TNodeFog;
+    FogDistanceScaling: Single;
+  end;
+
+  { Path tracer. See
+    [http://stoma.name/michalis/vrml_engine_doc/output/xsl/html/ch04s03.html]
+    for documentation. }
+  TPathTracer = class(TRayTracer)
+  public
+    constructor Create;
+    procedure Execute; override;
+
+    { MinDepth i RRoulContinue razem ustalaja warunki konczenia sciezki.
+      Wyglada to tak ze do glebokosci rekursji MinDepth wchodzimy na pewno,
+      natomiast glebiej wchodzimy pod warunkiem powodzenia w rosyjskiej
+      ruletce, tzn. jezeli Depth <= 0 to musi byc Random < RRoulContinue i wtedy
+      wywolujemy Trace(...,Depth-1) i wynik skalujemy przez 1/RRoulContinue.
+
+      Jezeli nie chcesz uzywac w ogole rosyjskiej ruletki to daj RRoulContinue = 0.0
+      (tak, porownywanie Random < RRoulContinue jak zwykle uzywa _ostrej_
+      nierownosci, co jest konsekwente bo Random zwraca wyniki z przedzialu [0;1) ).
+      Przestrzegam jednak przed rezygnowaniem z rosyjskiej ruletki - rezygnacja
+      ta powoduje bias na obrazku; obrazek wynikowy jest ciemniejszy ni¿ powinien byæ.
+      Przestrzegam te¿ przed dawaniem _bardzo_ malych wartosci dla RRoulContinue -
+      w wyniku tego bedziemy niekiedy skalowali wynik przez 1/RRoulContinue
+      (= bardzo duzo jezeli RRoulContinue = bardzo malo) a niekiedy wynik bedzie = 0,
+      wiec rosyjska ruletka spowoduje tu olbrzymia wariancje (a wiec noise).
+      RRoulContinue powinno byc w zakresie 0..1, jesli nie jest - bedzie clamped.
+
+      Jezeli nie chcesz uzywac MinDepth (to znaczy chcesz zeby o kazdym wywolaniu
+      rekurencyjnym decydowala rosyjska ruletka) to przekaz MinDepth = 0.
+      (wartosci MinDepth < 0 w tej chwili sa w zasadzie dopuszczalne i
+      traktowane przez implementacje tak samo jak MinDepth = 0 ale byc moze kiedys
+      sie to zmieni).
+
+      Uzywanie rosyjskiej ruletki gwarantuje nam ze nie mamy biasu (bez wzgledu
+      na MinDepth). Uzywanie MinDepth zmniejsza wariancje (chociaz naturalnie
+      wydluza czas dzialania bo przeciez sciezki beda mialy zawsze jakas minimalna
+      dlugosc, no, za wyjatkiem tych nielicznych sciezek ktore urwa sie w sposob
+      "naturalny", tzn. wyleca na zewnatrz sceny itp.). Razem, uzywanie MinDepth
+      w polaczeniu z rosyjska ruletka daje wynik unbiased i czesciowo niweluje noise
+      powodowany przez rosyjska ruletke. }
+    MinDepth: Integer;
+    RRoulContinue: Single;
+
+    { Primary- i NonPrimary- SamplesCount okreslaja ile sciezek wygenerowac dla
+      kazdego pixela (obie musza byc >0, co jest sprawdzane uzywajac Check(),
+      nawet w wersji RELEASE). Primary mowi ile promieni pierwotnych jest
+      puszczanych dla kazdego pixela obrazka; dla kazdego promienia pierwotnego
+      ktory trafi w scene generowanych jest nastepnie NonPrimary sciezek
+      (tzn. teraz juz prawdziwych sciezek, ktore nie rozgaleziaja sie dalej).
+      Razem mamy wiec Primary*NonPrimary sciezek dla kazdego pixla.
+      Jezeli dasz NonPrimary = 1 i bedziesz operowal tylko Primary to w rezultacie
+      otrzymasz naiwna wersje path tracera, ktora np. dla 1000 sciezek
+      bedzie musiala przesledzic 1000 (tyle samo) promieni. O ile wziecie
+      1000 sciezek ma sens jesli chcesz miec ladny obrazek z path tracera
+      o tyle liczenie az 1000 promieni pierwotnych ma tutaj male zastosowanie.
+      Wiekszosc z tych promieni pierwotnych bedzie trafiala w jeden i ten sam
+      punkt sceny i dopiero dalsze kroki sciezki beda determinowaly faktyczne
+      roznice w kolorach przynoszonych przez konkretne sciezki.
+      Innymi slowy, promienie pierwotne tworza scisla wiazke i chcemy to
+      wykorzystac. W powyzszym przykladzie zmiana na Primary = 1 i NonPrimary = 1000
+      da ciagle 1000 sciezek na scene (i rendering rzeczywiscie bedzie
+      mial taka sama jakosc, taki sam poziom szumu) a czas renderowania
+      bedzie mniejszy (o ile dokladnie bedzie krotszy - to zalezy od dlugosci
+      sredniej sciezki, jesli sciezki sa b. dlugie to niewiele tutaj pomozemy
+      bo w koncu optymalizujemy tylko 1 krok kazdej sciezki; ale zazwyczaj
+      sciezki nie sa zbyt dlugie). Jedyna wada to ze zmniejszenie Primary do 1
+      spowodowalo aliasing. Mozna temu zaradzic zwiekszajac (ale tylko
+      nieznacznie !) Primary, np. Primary = 10 i NonPrimary = 100 powinno dac
+      nam dobry antialiasing, zachowujac 1000 sciezek dla pixela i jednoczesnie
+      lepszy czas renderowania. Faktem ktory ratuje nam tutaj tylek jest to
+      ze dla antialiasingu nie potrzebujemy az tak wielu probek na pixel. }
+    PrimarySamplesCount, NonPrimarySamplesCount: Cardinal;
+
+    { DirectIllumSamplesCount okresla ile sampli ma byc wyslanych zeby
+      w kazdym punkcie sciezki obliczyc bezposrednio direct illumination
+      (tzn. kazdy taki sample jest skierowany w strone losowego punktu
+      losowego zrodla swiatla). Podaj tutaj 0 aby miec "naiwny path tracing" :
+      liczy direct i indirect illumination probujac wygenerowac sciezki ktore
+      trafilyby w zrodlo swiatla. Potrzebuje naprawde olbrzymiej ilosci
+      [Non]PrimarySamplesCount zeby dac jakiekolwiek rezultaty.
+      Podaj tutaj 1 lub wiecej aby miec typowego path tracera.
+      Dla wartosci rownej 1 rezultaty sa juz dobre. }
+    DirectIllumSamplesCount: Cardinal;
+
+    { For now it's not useful to change the value of this field.
+      Using any other than default (TSwapScanCurve) curves doesn't
+      give any speed benefit.
+
+      TSwapScanCurve przynajmniej pozwala latwo oddzielic na obrazku
+      czesc zrobiona i niezrobiona (i dzieki temu np. view3dscene moze
+      szybciej rysowac obrazek w miare generowania). }
+    SFCurveClass: TSpaceFillingCurveClass;
+  end;
 
 implementation
 
@@ -277,7 +307,7 @@ uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 
-{ RayVector calculations ---------------------------------------- }
+{ RayVector calculations ----------------------------------------------------- }
 
 { oblicz promien ugiety powstaly przez uderzenie promienia z kierunku
   NormRayVector (znormalizowany kierunek) (i z materii o wspolczynniku
@@ -332,18 +362,9 @@ begin
    NormNegatedRayVector);
 end;
 
-{ ClassicRayTracer -------------------------------------------------------------- }
+{ TClassicRayTracer ---------------------------------------------------------- }
 
-procedure ClassicRayTracerTo1st(const Image: TImage;
-  Octree: TVRMLTriangleOctree;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  const SceneBGColor: TVector3Single;
-  const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
-  const InitialDepth: Cardinal;
-  FogNode: TNodeFog; const FogDistanceScaling: Single;
-  const FirstPixel: Cardinal);
-
+procedure TClassicRayTracer.Execute;
 var FogType: Integer;
 
   function Trace(const Ray0, RayVector: TVector3Single; const Depth: Cardinal;
@@ -529,7 +550,13 @@ begin
  end;
 end;
 
-{ PathTracer -------------------------------------------------------------- }
+{ TPathTracer -------------------------------------------------------------- }
+
+constructor TPathTracer.Create;
+begin
+  inherited;
+  SFCurveClass := TSwapScanCurve;
+end;
 
 { Elementy implementacji path tracera :
  - Co znaczy parametr TraceOnlyIndirect dla Trace() ?
@@ -572,17 +599,7 @@ end;
    rosyjska ruletka.
 }
 
-procedure PathTracerTo1st(const Image: TImage;
-  Octree: TVRMLTriangleOctree;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single;
-  const SceneBGColor: TVector3Single;
-  const PixelsMadeNotifier: TPixelsMadeNotifierFunc; const PixelsMadeNotifierData: Pointer;
-  const MinDepth: Integer; RRoulContinue: Single;
-  const PrimarySamplesCount, NonPrimarySamplesCount, DirectIllumSamplesCount: Cardinal;
-  SFCurveClass: TSpaceFillingCurveClass;
-  const FirstPixel: Cardinal);
-
+procedure TPathTracer.Execute;
 var
   { w LightIndices mamy indeksy do Octree.OctreeItems[] wskazujace na
     elementy ktore maja emission kolor > 0, czyli na elementy ktore sa
