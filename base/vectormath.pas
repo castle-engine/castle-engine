@@ -227,11 +227,41 @@ unit VectorMath;
 
 {$I kambiconf.inc}
 
+{$ifdef FPC}
+  {$define HAS_MATRIX_UNIT}
+{$endif}
+
 interface
 
-uses SysUtils, KambiUtils;
+uses SysUtils, KambiUtils {$ifdef HAS_MATRIX_UNIT}, Matrix{$endif};
 
 {$define read_interface}
+
+{$ifndef HAS_MATRIX_UNIT}
+type    Tvector2_single_data=array[0..1] of single;
+        Tvector2_double_data=array[0..1] of double;
+        Tvector2_extended_data=array[0..1] of extended;
+
+        Tvector3_single_data=array[0..2] of single;
+        Tvector3_double_data=array[0..2] of double;
+        Tvector3_extended_data=array[0..2] of extended;
+
+        Tvector4_single_data=array[0..3] of single;
+        Tvector4_double_data=array[0..3] of double;
+        Tvector4_extended_data=array[0..3] of extended;
+
+        Tmatrix2_single_data=array[0..1,0..1] of single;
+        Tmatrix2_double_data=array[0..1,0..1] of double;
+        Tmatrix2_extended_data=array[0..1,0..1] of extended;
+
+        Tmatrix3_single_data=array[0..2,0..2] of single;
+        Tmatrix3_double_data=array[0..2,0..2] of double;
+        Tmatrix3_extended_data=array[0..2,0..2] of extended;
+
+        Tmatrix4_single_data=array[0..3,0..3] of single;
+        Tmatrix4_double_data=array[0..3,0..3] of double;
+        Tmatrix4_extended_data=array[0..3,0..3] of extended;
+{$endif}
 
 { Most types below are packed anyway, so the "packed" keyword below
   is often not needed (but it doesn't hurt).
@@ -243,9 +273,9 @@ uses SysUtils, KambiUtils;
 
 type
   { }
-  TVector2Single = packed array [0..1] of Single;     PVector2Single = ^TVector2Single;
-  TVector2Double = packed array [0..1] of Double;     PVector2Double = ^TVector2Double;
-  TVector2Extended = packed array [0..1] of Extended; PVector2Extended = ^TVector2Extended;
+  TVector2Single = Tvector2_single_data;              PVector2Single = ^TVector2Single;
+  TVector2Double = Tvector2_double_data;              PVector2Double = ^TVector2Double;
+  TVector2Extended = Tvector2_extended_data;          PVector2Extended = ^TVector2Extended;
   TVector2Byte = packed array [0..1] of Byte;         PVector2Byte = ^TVector2Byte;
   TVector2Word = packed array [0..1] of Word;         PVector2Word = ^TVector2Word;
   TVector2Longint = packed array [0..1] of Longint;   PVector2Longint = ^TVector2Longint;
@@ -253,9 +283,9 @@ type
   TVector2Cardinal = packed array [0..1] of Cardinal; PVector2Cardinal = ^TVector2Cardinal;
   TVector2Integer = packed array [0..1] of Integer;   PVector2Integer = ^TVector2Integer;
 
-  TVector3Single = packed array [0..2] of Single;     PVector3Single = ^TVector3Single;
-  TVector3Double = packed array [0..2] of Double;     PVector3Double = ^TVector3Double;
-  TVector3Extended = packed array [0..2] of Extended; PVector3Extended = ^TVector3Extended;
+  TVector3Single = Tvector3_single_data;              PVector3Single = ^TVector3Single;
+  TVector3Double = Tvector3_double_data;              PVector3Double = ^TVector3Double;
+  TVector3Extended = Tvector3_extended_data;          PVector3Extended = ^TVector3Extended;
   TVector3Byte = packed array [0..2] of Byte;         PVector3Byte = ^TVector3Byte;
   TVector3Word = packed array [0..2] of Word;         PVector3Word = ^TVector3Word;
   TVector3Longint = packed array [0..2] of Longint;   PVector3Longint = ^TVector3Longint;
@@ -263,9 +293,9 @@ type
   TVector3Integer = packed array [0..2] of Integer;   PVector3Integer = ^TVector3Integer;
   TVector3Cardinal = packed array [0..2] of Cardinal; PVector3Cardinal = ^TVector3Cardinal;
 
-  TVector4Single = packed array [0..3] of Single;     PVector4Single = ^TVector4Single;
-  TVector4Double = packed array [0..3] of Double;     PVector4Double = ^TVector4Double;
-  TVector4Extended = packed array [0..3] of Extended; PVector4Extended = ^TVector4Extended;
+  TVector4Single = Tvector4_single_data;              PVector4Single = ^TVector4Single;
+  TVector4Double = Tvector4_double_data;              PVector4Double = ^TVector4Double;
+  TVector4Extended = Tvector4_extended_data;          PVector4Extended = ^TVector4Extended;
   TVector4Byte = packed array [0..3] of Byte;         PVector4Byte = ^TVector4Byte;
   TVector4Word = packed array [0..3] of Word;         PVector4Word = ^TVector4Word;
   TVector4Longint = packed array [0..3] of Longint;   PVector4Longint = ^TVector4Longint;
@@ -288,22 +318,26 @@ type
     (where the leftmost column is numbered zero), 2nd index specifies the row
     (where the uppermost row is numbered zero).
 
+    @bold(Note that this is different than how FPC Matrix unit
+    treats matrices ! If you want to pass matrices between Matrix unit
+    and this unit, you must transpose them !)
+
     As you can see, matrices below are not declared explicitly
     as 2-dimensional arrays (like @code(array [0..3, 0..3] of Single)),
     but they are 1-dimensional arrays of vectors.
     This is sometimes useful and comfortable.
 
     @groupBegin }
-  TMatrix2Single = packed array[0..1]of TVector2Single;    PMatrix2Single = ^TMatrix2Single;
-  TMatrix2Double = packed array[0..1]of TVector2Double;    PMatrix2Double = ^TMatrix2Double;
+  TMatrix2Single = Tmatrix2_single_data;                   PMatrix2Single = ^TMatrix2Single;
+  TMatrix2Double = Tmatrix2_double_data;                   PMatrix2Double = ^TMatrix2Double;
   TMatrix2Longint = packed array[0..1]of TVector2Longint;  PMatrix2Longint = ^TMatrix2Longint;
 
-  TMatrix3Single = packed array[0..2]of TVector3Single;    PMatrix3Single = ^TMatrix3Single;
-  TMatrix3Double = packed array[0..2]of TVector3Double;    PMatrix3Double = ^TMatrix3Double;
+  TMatrix3Single = Tmatrix3_single_data;                   PMatrix3Single = ^TMatrix3Single;
+  TMatrix3Double = Tmatrix3_double_data;                   PMatrix3Double = ^TMatrix3Double;
   TMatrix3Longint = packed array[0..2]of TVector3Longint;  PMatrix3Longint = ^TMatrix3Longint;
 
-  TMatrix4Single = packed array[0..3]of TVector4Single;    PMatrix4Single = ^TMatrix4Single;
-  TMatrix4Double = packed array[0..3]of TVector4Double;    PMatrix4Double = ^TMatrix4Double;
+  TMatrix4Single = Tmatrix4_single_data;                   PMatrix4Single = ^TMatrix4Single;
+  TMatrix4Double = Tmatrix4_double_data;                   PMatrix4Double = ^TMatrix4Double;
   TMatrix4Longint = packed array[0..3]of TVector4Longint;  PMatrix4Longint = ^TMatrix4Longint;
   { @groupEnd }
 
@@ -2382,9 +2416,9 @@ end;
 
 function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
 begin
- result := VectorSubtract(
-   Vector3SinglePoint( MultMatrixVector(m, Vector4Single(v)) ),
-   Vector3SinglePoint( m[3] ) );
+  result := VectorSubtract(
+    Vector3SinglePoint( MultMatrixVector(m, Vector4Single(v)) ),
+    Vector3SinglePoint( m[3] ) );
 end;
 
 function MultMatrices(const m1, m2: TMatrix4Single): TMatrix4Single;
