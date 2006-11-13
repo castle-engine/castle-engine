@@ -9,11 +9,11 @@ var Spot: Single;
     LightNode: TNodeGeneralLight;
     PosLightNode: TNodeGeneralPositionalLight absolute LightNode;
 
-    Factors: TVector3Single;
+    Factors: TVector3_Single;
     { kierunek od Intersection do zrodla swiatla, normalized }
-    LightDirNorm: TVector3Single;
+    LightDirNorm: TVector3_Single;
     { wektor normalny do powierzchni (skierowany w strone Light) }
-    Normal: TVector3Single;
+    Normal: TVector3_Single;
 
     {$ifndef CAMERA_INDEP}
     M1: TNodeMaterial_1;
@@ -21,12 +21,12 @@ var Spot: Single;
 
     { srednia z wektora do viewera i LightDirNorm, potrzebna do liczenia
       odbicia Specular }
-    ViewerAndLightHalfway: TVector3Single;
+    ViewerAndLightHalfway: TVector3_Single;
 
     MaterialAmbientIntensity: Single;
-    MaterialAmbientColor: TVector3Single;
-    MaterialDiffuseColor: TVector3Single;
-    MaterialSpecularColor: TVector3Single;
+    MaterialAmbientColor: TVector3_Single;
+    MaterialDiffuseColor: TVector3_Single;
+    MaterialSpecularColor: TVector3_Single;
     MaterialShininessExp: Single;
 
     {$define Point := Intersection}
@@ -40,8 +40,7 @@ var Spot: Single;
     { Uzywamy dropOffRate VRMLa 1.0 zeby sprawic by spot byl
       bardziej "skupiony" zgodnie z rownaniami swiatla OpenGLa.
       W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
-    CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
-      Light.TransfNormDirection);
+    CosSpotAngle := (-LightDirNorm) ** Light.TransfNormDirection;
     { TODO: optimize: no need to calc ArcCos here if we would precalc
       CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
@@ -54,8 +53,7 @@ var Spot: Single;
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
-    CosSpotAngle := VectorDotProduct( VectorNegate(LightDirNorm),
-      Light.TransfNormDirection);
+    CosSpotAngle := (-LightDirNorm) ** Light.TransfNormDirection;
     SpotAngle := ArcCos(CosSpotAngle);
     SpotCO := SpotLight.FdCutOffAngle.Value;
     SpotBW := SpotLight.FdBeamWidth.Value;
@@ -102,7 +100,11 @@ begin
  {$endif}
  LightNode := TNodeGeneralLight(Light.LightNode);
 
- if (not LightNode.FdOn.Value) then Exit(ZeroVector3Single);
+ if (not LightNode.FdOn.Value) then
+ begin
+   Result.Init_Zero;
+   Exit;
+ end;
 
  { TODO: arg dla attenuation powinien byc w ukladzie transformacji swiatla.
    For now lights with non-trivial attenuation put under some transformation
@@ -118,8 +120,8 @@ begin
 
  { LightDirNorm is called "L" in the equation in VRML spec }
  if LightNode is TNodeGeneralPositionalLight then
-  LightDirNorm := Normalized(VectorSubtract(Light.TransfLocation, Point)) else
-  LightDirNorm := VectorNegate(Light.TransfNormDirection);
+  LightDirNorm := Vector_Get_Normalized(Light.TransfLocation - Point) else
+  LightDirNorm := -Light.TransfNormDirection;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
    jest okreslane jako two-sided lighting, czyli wziac albo Normal albo
@@ -129,15 +131,14 @@ begin
  Normal := PlaneDirInDirection(PointPlaneNormal, LightDirNorm);
 
  {$ifndef CAMERA_INDEP}
- { niestety musimy znormalizowac VectorSubtract(CamPosition, Point)
+ { niestety musimy znormalizowac (CamPosition - Point)
    (zeby mial taki sam wklad w sume co LightDirNorm) i wynik
    (ktory musi byc znormalizowany zeby nadawal sie do wyliczania
-   cosinusa jako prostego VectorDotProduct; jak zwykle, nalezy pamietac
+   cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
    ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
    dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
- ViewerAndLightHalfway := Normalized( VectorAdd(
-   Normalized(VectorSubtract(CamPosition, Point)),
-   LightDirNorm));
+ ViewerAndLightHalfway := Vector_Get_Normalized(
+   Vector_Get_Normalized(CamPosition - Point) + LightDirNorm);
  {$endif}
 
  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
@@ -148,7 +149,7 @@ begin
    Spot := CalculateSpot_2(TNodeSpotLight_2(LightNode)) else
    Spot := 1;
 
- result := VectorScale(LightNode.FdColor.Value, Attenuat * Spot);
+ Result := LightNode.FdColor.Value * (Attenuat * Spot);
 
  { Now we calculate "ambient_i" part of equation.
 
@@ -163,33 +164,30 @@ begin
      is (0.2, 0.2, 0.2), so results should match for VRML 1.0 and 2.0
      for default situations. }
  {$ifdef CAMERA_INDEP}
- Factors := ZeroVector3Single;
+ Factors.Init_Zero;
  {$else}
  if LightNode.FdAmbientIntensity.Value < 0 then
-   Factors := ZeroVector3Single else
+   Factors.Init_Zero else
  if M1 <> nil then
-   Factors := VectorScale(
-     VectorMultEachPos(MaterialDiffuseColor, MaterialAmbientColor),
-     LightNode.FdAmbientIntensity.Value) else
-   Factors := VectorScale(MaterialDiffuseColor,
-     LightNode.FdAmbientIntensity.Value * MaterialAmbientIntensity);
+   Factors := (MaterialDiffuseColor * MaterialAmbientColor) *
+     LightNode.FdAmbientIntensity.Value else
+   Factors := MaterialDiffuseColor *
+     (LightNode.FdAmbientIntensity.Value * MaterialAmbientIntensity);
  {$endif}
 
  { Factors += diffuse factor }
- VectorAddTo1st(Factors, VectorScale(
-   MaterialDiffuseColor,
-   LightNode.FdIntensity.Value * VectorDotProduct( Normal, LightDirNorm)));
+ Factors += MaterialDiffuseColor *
+   (LightNode.FdIntensity.Value * (Normal ** LightDirNorm));
 
  {$ifndef CAMERA_INDEP}
  { Factors += specular factor }
- VectorAddTo1st(Factors, VectorScale(
-   MaterialSpecularColor,
-   LightNode.FdIntensity.Value *
-     Power( max(VectorDotProduct(Normal, ViewerAndLightHalfway), Single(0.0)),
-       MaterialShininessExp)));
+ Factors += MaterialSpecularColor *
+   (LightNode.FdIntensity.Value *
+     Power( Max(Normal ** ViewerAndLightHalfway, Single(0.0)),
+       MaterialShininessExp));
  {$endif}
 
- VectorMultEachPosTo1st(result, Factors);
+ Result *= Factors;
 end;
 
 {$ifndef CAMERA_INDEP}
