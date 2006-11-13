@@ -1054,20 +1054,34 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
 *)
 var s, t: TYPE_SCALAR;
     w, u,v, ortho: TYPE_VECTOR3;
+    One: TYPE_SCALAR;
 begin
  u := VectorSubtract(Tri[1], Tri[0]);
  v := VectorSubtract(Tri[2], Tri[0]);
  w := VectorSubtract(P, Tri[0]);
 
+ One := 1+SCALAR_EQUALITY_EPSILON;
+
  ortho := VectorProduct(v, TriDir);
  s := VectorDotProduct(w, ortho) / VectorDotProduct(u, ortho);
- if s < -SCALAR_EQUALITY_EPSILON then exit(false);
+ if (s < -SCALAR_EQUALITY_EPSILON) or
+    { As far as only correctness is concerned, check for s > One isn't needed
+      here since we will check s+t <= One later anyway.
+      But for the speed, it's better to make here a quick check
+      "s > One" and in many cases avoid the long calculation of T.
+
+      See /win/3dmodels/rayhunter-demos/raporty/2006-11-12/README:
+      speed of this procedure has a significant impact
+      on the ray-tracer speed, so it's really good optimization. }
+    (s > One) then
+   Exit(false);
 
  ortho := VectorProduct(u, TriDir);
  t := VectorDotProduct(w, ortho) / VectorDotProduct(v, ortho);
- if t < -SCALAR_EQUALITY_EPSILON then exit(false);
+ if t < -SCALAR_EQUALITY_EPSILON then
+   Exit(false);
 
- result := s+t <= 1+SCALAR_EQUALITY_EPSILON;
+ result := s+t <= One;
 end;
 
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TYPE_VECTOR3;
