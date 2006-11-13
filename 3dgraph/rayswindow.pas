@@ -160,7 +160,7 @@ begin
  FViewAngleDegY := AViewAngleDegY;
 
  { popraw CamUp }
- MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
+ MakeVectorsOrthoOnTheirPlane(FCamUp.Data, FCamDirection);
 
  { oblicz rzutnie pomijajac Cam* i przyjmujac ze kamera jest
    w punkcie (0, 0, 0) skierowana w (0, 0, -1) i ma up w (0, 1, 0) }

@@ -41,7 +41,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow,
-  VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
+  VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves, Matrix;
 
 type
   TPixelsMadeNotifierFunc = procedure(PixelsMadeCount: Cardinal; Data: Pointer);
@@ -126,12 +126,12 @@ type
     { Parametry CamPosition, CamDirection, CamUp naturalnie ustawiaja kamere
       w scenie. Tak jak zwykle, jezeli CamUp i CamDirection nie sa prostopadle
       to poprawiany jest CamUp aby byc prostopadly (a NIE camDirection). }
-    CamPosition, CamDirection, CamUp: TVector3Single;
+    CamPosition, CamDirection, CamUp: TVector3_Single;
 
     { ViewAngleDegX i ViewAngleDegY to rozpietosc obiektywu w stopniach. }
     ViewAngleDegX, ViewAngleDegY: Single;
 
-    SceneBGColor: TVector3Single;
+    SceneBGColor: TVector3_Single;
 
     { PixelsMadeNotifier, jezeli <> nil, to bedzie wywolywane po zapisaniu
       kazdego pixla w Image. W ten sposob bedzie mozna wyswietlac obrazek
@@ -303,7 +303,7 @@ type
 
 implementation
 
-uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling, Matrix;
+uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
 
 {$I vectormathinlines.inc}
 
@@ -381,13 +381,6 @@ end;
 procedure TClassicRayTracer.Execute;
 var
   FogType: Integer;
-  { Our public fields are expressed as VectorMath.TVector3Single records,
-    but inside we want to use TVector3_Single objects.
-    TODO: one day we will migrate our interface to also use
-    TVector3_Single objects. }
-  ObjCamPosition: TVector3_Single;
-  ObjCamDirection: TVector3_Single;
-  ObjCamUp: TVector3_Single;
 
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
@@ -514,7 +507,7 @@ var
           if LightNotBlocked(State.ActiveLights.Items[i]) then
             Result += VRML97LightContribution(
               State.ActiveLights.Items[i],
-              Intersection, IntersectNode^, ObjCamPosition);
+              Intersection, IntersectNode^, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
@@ -537,7 +530,7 @@ var
       a color affected by the fog. }
     if FogType <> -1 then
       Result := VRML97Fog(Result,
-        PointsDistance(ObjCamPosition, Intersection),
+        PointsDistance(CamPosition, Intersection),
         FogNode, FogDistanceScaling, FogType);
   end;
 
@@ -547,7 +540,7 @@ var
   procedure DoPixel(const x, y: Cardinal);
   begin
     Image.SetColorRGB(x, y,
-      Trace(ObjCamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
+      Trace(CamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
         InitialDepth, NoItemIndex, false));
   end;
 
@@ -557,14 +550,10 @@ var
 begin
   FogType := VRML97FogType(FogNode);
 
-  ObjCamPosition := CamPosition;
-  ObjCamDirection := CamDirection;
-  ObjCamUp := CamUp;
-
   RaysWindow := nil;
   SFCurve := nil;
   try
-    RaysWindow := TRaysWindow.Create(ObjCamPosition, ObjCamDirection, ObjCamUp,
+    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
       ViewAngleDegX, ViewAngleDegY);
 
     { Using any other kind of space filling curve doesn't have any
@@ -1161,7 +1150,8 @@ begin
     {$endif}
 
     { calculate RaysWindow }
-    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
+      ViewAngleDegX, ViewAngleDegY);
 
     { calculate SFCurve }
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
