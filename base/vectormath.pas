@@ -647,6 +647,13 @@ function VLerp(const a: Single; V1, V2: TVector2Single): TVector2Single; overloa
 function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single; overload;
 function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single; overload;
 
+{$ifdef HAS_MATRIX_UNIT}
+function Vector_Init_Lerp(const A: Single; V1, V2: TVector3_Single): TVector3_Single; overload;
+function Vector_Init_Lerp(const A: Single; V1, V2: TVector4_Single): TVector4_Single; overload;
+function Vector_Init_Lerp(const A: Double; V1, V2: TVector3_Double): TVector3_Double; overload;
+function Vector_Init_Lerp(const A: Double; V1, V2: TVector4_Double): TVector4_Double; overload;
+{$endif}
+
 { zwraca (1-v2part) * v1 + v2part * v2 czyli cos jak srednia wazona z dwoch wektorow.
   v2part musi byc z przedzialu <0, 1>.
   Mozna o tym myslec jako : wez Segment z punktu v1 do v2, punkt 0 to v1 potem
@@ -2097,6 +2104,38 @@ begin
  result[2] := V1[2] + a*(V2[2]-V1[2]);
  result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
+
+{$ifdef HAS_MATRIX_UNIT}
+function Vector_Init_Lerp(const A: Single; V1, V2: TVector3_Single): TVector3_Single;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+end;
+
+function Vector_Init_Lerp(const A: Single; V1, V2: TVector4_Single): TVector4_Single;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
+end;
+
+function Vector_Init_Lerp(const A: Double; V1, V2: TVector3_Double): TVector3_Double;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+end;
+
+function Vector_Init_Lerp(const A: Double; V1, V2: TVector4_Double): TVector4_Double;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
+end;
+{$endif HAS_MATRIX_UNIT}
 
 function Mix2Vectors(const v1, v2: TVector3Single; const v2part: Single): TVector3Single;
 var v1part: Single;
