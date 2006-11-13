@@ -303,136 +303,171 @@ type
 
 implementation
 
-uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling;
+uses SysUtils, Math, KambiUtils, Boxes3d, IllumModels, SphereSampling, Matrix;
 
 {$I vectormathinlines.inc}
 
+{ TODO: Note that we use in the implementation of this unit
+  TVector*_* objects from FPC Matrix unit, while in the interface
+  this unit (and many others) use TVector* arrays from VectorMath unit.
+
+  VectorMath unit defines handy assignment operators that allow
+  FPC to automagically convert between TVector*_* objects
+  and TVector* arrays, so this is mostly unnoticeable in the syntax now.
+  But be aware of this.
+}
+
 { RayVector calculations ----------------------------------------------------- }
 
-{ oblicz promien ugiety powstaly przez uderzenie promienia z kierunku
-  NormRayVector (znormalizowany kierunek) (i z materii o wspolczynniku
-  zalamania EtaFrom) w powierzchnie o wektorze normalnym (znormalizowanym)
-  PlaneNormal. Materia po drugiej stronie powierzchni ma wspolczynnik
-  zalamania = EtaTo. }
-function TryTransmittedRayVector(out TransmittedRayVector: TVector3Single;
-  const NormRayVector: TVector3Single; const PlaneNormal: TVector4Single;
-  const EtaFrom, EtaTo: Single)
-  :boolean;
-{ napisane na podstawie Foleya, str. 627 }
-var EtaZalamania, RayIDotNormal, ToBeSqrRooted: Single;
-    RayI,
-    Normal: TVector3Single; { Normal w strone z ktorej przyszedl RayVector }
+{ Calculate the transmitted ray created by hitting a ray
+  - with direction NormRayVector (normalized ray direction is expected here)
+  - from material with angle of refraction EtaFrom
+  - transmitted into the material with angle of refraction EtaTo
+  - hit occurs on the plane with normal vector (i.e. normalized) PlaneNormal }
+function TryTransmittedRayVector(
+  out TransmittedRayVector: TVector3_Single;
+  const NormRayVector: TVector3_Single;
+  const PlaneNormal: TVector4_Single;
+  const EtaFrom, EtaTo: Single): boolean;
+{ Written based on Foley, page 627 }
+var
+  EtaTransmission, RayIDotNormal, ToBeSqrRooted: Single;
+  RayI: TVector3_Single;
+  { This is the Normal pointing in the direction from where the RayVector came
+    (i.e. in the opposite of RayVector,
+    i.e. -RayVector (note the "-") and Normal must point to the same side
+    of plane with PlaneNormal) }
+  Normal: TVector3_Single;
 begin
- { oblicz Normal w ta strone z ktorej przybyl RayVector (czyli -RayVector i
-   Normal musza wskazywac w ta sama strone powierzchni) }
- Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
- RayI := VectorNegate(NormRayVector);
+  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
+  RayI := -NormRayVector;
 
- RayIDotNormal := VectorDotProduct(RayI, Normal);
+  RayIDotNormal := RayI ** Normal;
 
- { EtaZalamania to stosunek wspolczynnikow zalamania materialow
-   ktore wlasnie zmieniamy wchodzac promieniem zalamanym do srodka. }
- EtaZalamania := EtaFrom / EtaTo;
+  { EtaTransmission is the ratio between angles of refraction of materials
+    that change when the transmitted ray enters to the other side
+    of the plane. }
+  EtaTransmission := EtaFrom / EtaTo;
 
- ToBeSqrRooted := 1 - Sqr(EtaZalamania) * (1 - Sqr(RayIDotNormal));
+  ToBeSqrRooted := 1 - Sqr(EtaTransmission) * (1 - Sqr(RayIDotNormal));
 
- result := ToBeSqrRooted >= 0;
- if result then
-  TransmittedRayVector := VectorSubtract(
-    VectorScale(Normal, EtaZalamania * RayIDotNormal - Sqrt(ToBeSqrRooted)),
-    VectorScale(RayI, EtaZalamania) );
+  Result := ToBeSqrRooted >= 0;
+  if Result then
+    TransmittedRayVector :=
+      (Normal * (EtaTransmission * RayIDotNormal - Sqrt(ToBeSqrRooted)))
+      - (RayI * EtaTransmission);
 end;
 
-{ licz idealnie lustrzany ReflectedRayVector. }
-function ReflectedRayVector(const NormRayVector: TVector3Single;
-  const PlaneNormal: TVector4Single): TVector3Single;
-var Normal, NormNegatedRayVector: TVector3Single;
+{ Calculate the perfect reflected vector.
+  Arguments NormRayVector and PlaneNormal like for TryTransmittedRayVector. }
+function ReflectedRayVector(
+  const NormRayVector: TVector3_Single;
+  const PlaneNormal: TVector4_Single): TVector3_Single;
+var
+  Normal, NormNegatedRayVector: TVector3_Single;
 begin
- { oblicz Normal w ta strone z ktorej przybyl RayVector (czyli -RayVector i
-   Normal musza wskazywac w ta sama strone powierzchni) }
- Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
- NormNegatedRayVector := VectorNegate(NormRayVector);
+  { Calculate Normal like in TryTransmittedRayVector. }
+  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
+  NormNegatedRayVector := -NormRayVector;
 
- { liczymy promien jako promien lustrzany do NormNegatedRayVector
-   wzgledem Normal. Licz jako 2 * Normal * Dot(Normal, NormNegatedRayVector)
-   - NormNegatedRayVector, zupelnie analogicznie do obliczania (14.16)
-   w Foley'u (str. 601) }
- result := VectorSubtract(
-   VectorScale(Normal, 2*VectorDotProduct(Normal, NormNegatedRayVector)),
-   NormNegatedRayVector);
+  { We calculate ray as mirror ray to NormNegatedRayVector.
+    Calculation is just like in Foley (page 601, section (14.16)). }
+  Result := (Normal * 2 * (Normal ** NormNegatedRayVector))
+    - NormNegatedRayVector;
 end;
 
 { TClassicRayTracer ---------------------------------------------------------- }
 
 procedure TClassicRayTracer.Execute;
-var FogType: Integer;
+var
+  FogType: Integer;
+  { Our public fields are expressed as VectorMath.TVector3Single records,
+    but inside we want to use TVector3_Single objects.
+    TODO: one day we will migrate our interface to also use
+    TVector3_Single objects. }
+  ObjCamPosition: TVector3_Single;
+  ObjCamDirection: TVector3_Single;
+  ObjCamUp: TVector3_Single;
 
-  function Trace(const Ray0, RayVector: TVector3Single; const Depth: Cardinal;
-    const OctreeItemToIgnore: integer; IgnoreMarginAtStart: boolean): TVector3Single;
-  { sledzi promien z zadana glebokoscia. Zwraca false jesli promien w nic
-    nie trafia, wpp. zwraca true i ustawia Color na wyliczony Color. }
+  { Traces the ray with given Depth.
+    Returns @false if the ray didn't hit anything, otherwise
+    returns @true and sets Color. }
+  function Trace(const Ray0, RayVector: TVector3_Single; const Depth: Cardinal;
+    const OctreeItemToIgnore: integer; IgnoreMarginAtStart: boolean):
+    TVector3_Single;
   var
-    Intersection: TVector3Single;
+    Intersection: TVector3_Single;
     IntersectNodeIndex: integer;
     IntersectNode: POctreeItem;
     MaterialMirror, MaterialTransparency: Single;
 
     procedure ModifyColorByTransmittedRay;
-    var TransmittedColor, TransmittedRayVec: TVector3Single;
-        EtaFrom, EtaTo: Single;
-    const ETA_CONST = 1.3;
+    var
+      TransmittedColor, TransmittedRayVec: TVector3_Single;
+      EtaFrom, EtaTo: Single;
+    const
+      EtaConst = 1.3;
     begin
-     { rob promien zalamany jesli Transparency > 0 i nie ma calkowitego odbicia wewn.}
-     if MaterialTransparency > 0 then
-     begin
-      { Powinnismy to brac z informacji zapisanych w modelu - ale nie mamy
-        tego. Wiec tymczasowo udaje tutaj ze zawsze przy zalamywaniu
-        mamy Eta = ETA_CONST, potem 1/ETA_CONST (w nastepnym rekurencyjnym
-        zalamaniu), potem znowu ETA_CONST itd. }
-      if Odd(InitialDepth-Depth) then
-       begin EtaFrom := 1; EtaTo := ETA_CONST end else
-       begin EtaFrom := ETA_CONST; EtaTo := 1 end;
-
-      if TryTransmittedRayVector(TransmittedRayVec, Normalized(RayVector),
-        IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo) then
+      { Make transmitted ray if Transparency > 0 and there
+        is no total internal reflection
+        [http://en.wikipedia.org/wiki/Total_internal_reflection]. }
+      if MaterialTransparency > 0 then
       begin
-       VectorScaleTo1st(result, 1 - MaterialTransparency);
-       TransmittedColor := Trace(Intersection, TransmittedRayVec, Depth-1, IntersectNodeIndex, true);
-       VectorScaleTo1st(TransmittedColor, MaterialTransparency);
-       VectorAddTo1st(result, TransmittedColor);
+        { TODO: we should get an information from our model here
+          (from Octree IntersectNode item). But we don't have it for now.
+          So for now we just always assume that the first transmission
+          has Eta = EtaConst and the next one has 1/EtaConst
+          and the next one has again EtaConst etc. }
+        if Odd(InitialDepth - Depth) then
+          begin EtaFrom := 1; EtaTo := EtaConst end else
+          begin EtaFrom := EtaConst; EtaTo := 1 end;
+
+        if TryTransmittedRayVector(
+          TransmittedRayVec, Vector_Get_Normalized(RayVector),
+          IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo) then
+        begin
+          TransmittedColor := Trace(Intersection, TransmittedRayVec,
+            Depth - 1, IntersectNodeIndex, true);
+          Result :=  Result * (1 - MaterialTransparency) +
+            TransmittedColor * MaterialTransparency;
+        end;
       end;
-     end;
     end;
 
     procedure ModifyColorByReflectedRay;
-    var ReflRayVector, ReflColor: TVector3Single;
+    var
+      ReflRayVector, ReflColor: TVector3_Single;
     begin
-     { rob promien odbity }
-     if MaterialMirror > 0 then
-     begin
-      ReflRayVector := ReflectedRayVector(Normalized(RayVector),
-        IntersectNode^.TriangleNormPlane);
-      VectorScaleTo1st(result, 1 - MaterialMirror);
-      ReflColor := Trace(Intersection, ReflRayVector, Depth-1, IntersectNodeIndex, true);
-      VectorScaleTo1st(ReflColor, MaterialMirror);
-      VectorAddTo1st(result, ReflColor);
-     end;
+      if MaterialMirror > 0 then
+      begin
+        ReflRayVector := ReflectedRayVector(Vector_Get_Normalized(RayVector),
+          IntersectNode^.TriangleNormPlane);
+        ReflColor := Trace(Intersection, ReflRayVector, Depth - 1,
+          IntersectNodeIndex, true);
+        Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
+      end;
     end;
 
     function LightNotBlocked(const Light: TActiveLight): boolean;
     begin
-     { czy swiatlo dociera do powierzchni ? Zwracam uwage ze
-         uwzgledniamy fakt ze obiekty polprzezroczyste nie rzucaja cienia.
-         (chociaz tak naprawde powinnismy robic nawet wiecej - przeciez
-         obiekty polprzezroczyste rzucaja cien, po prostu nie calkowity -
-         one tylko skaluja swiatlo przychodzace).
-       Uwzgledniamy tez fakt ze swiatlo musi byc skierowane w ta strone
-         plaszczyzny IntersectNode co -RayVector - gdyby nie to znaczy
-         ze swiatlo oswietla IntersectNode ale Z DRUGIEJ STRONY.
-         A tego przeciez nie chcemy liczyc. }
-     result := ActiveLightNotBlocked(Octree, Light,
-       Intersection, PVector3Single(@IntersectNode^.TriangleNormPlane)^,
-       VectorNegate(RayVector), IntersectNodeIndex, true);
+      { Does the light get to the current surface ?
+
+        Note that we treat partially transparent objects here
+        as not casting a shadow.
+        This is better that not doing anything (partially transparent objects
+        making normal "blocking" shadows looks bad), but it's not really correct,
+        since in reality partially transparent objects just bend
+        (or rather translate, if you consider a thin partially transparent object
+        like a glass that doesn't intersect any other objects)
+        the ray so it can get to the light.
+
+        We also take into account that the light may be on the opposide
+        side of the plane than from where RayVector came.
+        In such case the light shines on IntersectNode, but from the opposite
+        side, so we will not add it here. }
+      Result := ActiveLightNotBlocked(Octree, Light,
+        Intersection, IntersectNode^.TriangleNormPlane3,
+        -RayVector, IntersectNodeIndex, true);
     end;
 
   var
@@ -440,114 +475,130 @@ var FogType: Integer;
     M1: TNodeMaterial_1;
     M2: TNodeMaterial_2;
   begin
-   IntersectNodeIndex := Octree.RayCollision(Intersection, Ray0, RayVector, true,
-     OctreeItemToIgnore, IgnoreMarginAtStart, nil);
-   if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
+    IntersectNodeIndex := Octree.RayCollision(Intersection.Data,
+      Ray0, RayVector, true,
+      OctreeItemToIgnore, IgnoreMarginAtStart, nil);
+    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
 
-   IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
+    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
 
-   { calculate material properties, taking into account VRML 1.0 and 2.0
-     material. }
-   if IntersectNode^.State.ParentShape <> nil then
-   begin
-     { VRML 2.0 }
-     M2 := IntersectNode^.State.ParentShape.Material;
-     if M2 <> nil then
-     begin
-       MaterialMirror := M2.FdMirror.Value;
-       MaterialTransparency := M2.FdTransparency.Value;
-     end else
-     begin
-       MaterialMirror := DefaultMaterialMirror;
-       MaterialTransparency := DefaultMaterialTransparency;
-     end;
-   end else
-   begin
-     { VRML 1.0 }
-     M1 := IntersectNode^.State.LastNodes.Material;
-     MaterialMirror := M1.Mirror(IntersectNode^.MatNum);
-     MaterialTransparency := M1.Transparency(IntersectNode^.MatNum);
-   end;
-
-   result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
-   with IntersectNode^ do
-   begin
-    if Depth > 0 then
+    { calculate material properties, taking into account VRML 1.0 and 2.0
+      material. }
+    if IntersectNode^.State.ParentShape <> nil then
     begin
-     for i := 0 to State.ActiveLights.Count-1 do
-      if LightNotBlocked(State.ActiveLights.Items[i]) then
-       VectorAddTo1st(result,
-         VRML97LightContribution(State.ActiveLights.Items[i],
-           Intersection, IntersectNode^, CamPosition));
-
-     { licz rekurencyjnie kolory z promieni odbitych i zalamanych
-       (kolejnosc wywolywania (najpierw Reflected czy najpierw Transmitted)
-       MA znaczenie - te procedury niekoniecznie dodaja cos do Color,
-       one moga tez np. skalowac Color) }
-     ModifyColorByReflectedRay;
-     ModifyColorByTransmittedRay;
+      { VRML 2.0 }
+      M2 := IntersectNode^.State.ParentShape.Material;
+      if M2 <> nil then
+      begin
+        MaterialMirror := M2.FdMirror.Value;
+        MaterialTransparency := M2.FdTransparency.Value;
+      end else
+      begin
+        MaterialMirror := DefaultMaterialMirror;
+        MaterialTransparency := DefaultMaterialTransparency;
+      end;
+    end else
+    begin
+      { VRML 1.0 }
+      M1 := IntersectNode^.State.LastNodes.Material;
+      MaterialMirror := M1.Mirror(IntersectNode^.MatNum);
+      MaterialTransparency := M1.Transparency(IntersectNode^.MatNum);
     end;
-   end;
 
-   { tak jest, VRMLFog musi byc robione na kazdym poziomie rekurencji, nie tylko
-     dla promieni pierwotnych. Bo wyobrazmy sobie np. sytuacje gdy patrzymy
-     przez szybe (ktora jest bardzo blisko i mgla jej nie zakrywa) na cos
-     co jest daleko i jest zamglone. Widac ze rekurencyjne wywolania Trace
-     tez powinny przynosic kolory z uwzgledniona mgla, nie ? }
-   if FogType <> -1 then
-    result := VRML97Fog(result, PointsDistance(CamPosition, Intersection),
-      FogNode, FogDistanceScaling, FogType);
+    Result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
+    with IntersectNode^ do
+    begin
+      if Depth > 0 then
+      begin
+        for i := 0 to State.ActiveLights.Count - 1 do
+          if LightNotBlocked(State.ActiveLights.Items[i]) then
+            Result += VRML97LightContribution(
+              State.ActiveLights.Items[i],
+              Intersection, IntersectNode^, ObjCamPosition);
+
+        { Calculate recursively reflected and transmitted rays.
+          Note that the order of calls (first reflected or first transmitted ?)
+          is important --- as they may scale our Result (not only add
+          to it). }
+        ModifyColorByReflectedRay;
+        ModifyColorByTransmittedRay;
+      end;
+    end;
+
+    { That's right, VRMLFog calculation should be done on every
+      Depth of ray-tracing, not only once (i.e. for primary rays).
+      Reasoning: imagine that you look through a glass window
+      (and you're really close to this window, so that fog doesn't
+      affect the window glass noticeably) and through this window
+      you see something distant, like a forest. The forest is distant
+      so fog setting should affect it. Obviously even though the window
+      glass wasn't affected much by the fog, you will see a forest
+      covered by the fog. So each recursive call of Trace should bring
+      a color affected by the fog. }
+    if FogType <> -1 then
+      Result := VRML97Fog(Result,
+        PointsDistance(ObjCamPosition, Intersection),
+        FogNode, FogDistanceScaling, FogType);
   end;
 
-var RaysWindow: TRaysWindow;
+var
+  RaysWindow: TRaysWindow;
 
   procedure DoPixel(const x, y: Cardinal);
   begin
-   Image.SetColorRGB(x, y,
-     Trace(CamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
-       InitialDepth, NoItemIndex, false));
+    Image.SetColorRGB(x, y,
+      Trace(ObjCamPosition, RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height),
+        InitialDepth, NoItemIndex, false));
   end;
 
-var PixCoord: TVector2Cardinal;
-    SFCurve: TSpaceFillingCurve;
+var
+  PixCoord: TVector2Cardinal;
+  SFCurve: TSpaceFillingCurve;
 begin
- FogType := VRML97FogType(FogNode);
+  FogType := VRML97FogType(FogNode);
 
- RaysWindow := nil;
- SFCurve := nil;
- try
-  RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+  ObjCamPosition := CamPosition;
+  ObjCamDirection := CamDirection;
+  ObjCamUp := CamUp;
 
-  { uzywanie jakichkolwiek space filling curves nie ma teraz znaczenia dla
-    classic ray tracera, bo classic ray tracer nie uzywa shadow cache ani
-    zadnych innych tego typu technik. Ale w przyszlosci bedzie, to raz;
-    dwa to ze w ten sposob moge wygodniej realizowac parametr FirstPixel
-    i PixelsMadeNotifier. }
-  SFCurve := TSwapScanCurve.Create(Image.Width, Image.Height);
-  SFCurve.SkipPixels(FirstPixel);
+  RaysWindow := nil;
+  SFCurve := nil;
+  try
+    RaysWindow := TRaysWindow.Create(ObjCamPosition, ObjCamDirection, ObjCamUp,
+      ViewAngleDegX, ViewAngleDegY);
 
-  { generuj pixle obrazka }
-  if Assigned(PixelsMadeNotifier) then
-  begin
-   while not SFCurve.EndOfPixels do
-   begin
-    PixCoord := SFCurve.NextPixel;
-    DoPixel(PixCoord[0], PixCoord[1]);
-    PixelsMadeNotifier(SFCurve.PixelsDone, PixelsMadeNotifierData);
-   end;
-  end else
-  begin
-   while not SFCurve.EndOfPixels do
-   begin
-    PixCoord := SFCurve.NextPixel;
-    DoPixel(PixCoord[0], PixCoord[1]);
-   end;
+    { Using any other kind of space filling curve doesn't have any
+      noticeable impact right now for classic ray tracer, since
+      classic ray tracer doesn't use shadow cache or any other similar technique
+      that benefits from processing similar cases in one block.
+      In the future this make come to use.
+      Right now, using SFCurve just makes implementing FirstPixel
+      and PixelsMadeNotifier easier. }
+    SFCurve := TSwapScanCurve.Create(Image.Width, Image.Height);
+    SFCurve.SkipPixels(FirstPixel);
+
+    { generate image pixels }
+    if Assigned(PixelsMadeNotifier) then
+    begin
+      while not SFCurve.EndOfPixels do
+      begin
+        PixCoord := SFCurve.NextPixel;
+        DoPixel(PixCoord[0], PixCoord[1]);
+        PixelsMadeNotifier(SFCurve.PixelsDone, PixelsMadeNotifierData);
+      end;
+    end else
+    begin
+      while not SFCurve.EndOfPixels do
+      begin
+        PixCoord := SFCurve.NextPixel;
+        DoPixel(PixCoord[0], PixCoord[1]);
+      end;
+    end;
+
+  finally
+    RaysWindow.Free;
+    SFCurve.Free;
   end;
-
- finally
-  RaysWindow.Free;
-  SFCurve.Free;
- end;
 end;
 
 { TPathTracer -------------------------------------------------------------- }
@@ -558,63 +609,67 @@ begin
   SFCurveClass := TSwapScanCurve;
 end;
 
-{ Elementy implementacji path tracera :
- - Co znaczy parametr TraceOnlyIndirect dla Trace() ?
-    O ile tylko (DirectIllumSamplesCount <> 0) to rownanie renderingu rozbijamy
-    w kazdym punkcie na
+{ Some notes about path tracer implementation :
+
+  - Meaning of TraceOnlyIndirect parameter for Trace():
+
+    When (DirectIllumSamplesCount <> 0) then rendering equation at each point
+    is splitted into
       L_out = L_emission + IntegralOverHemisphere( L_direct + L_indirect ),
-    przy czym
+    where
       L_indirect = L_emission + IntegralOverHemisphere( L_direct + L_indirect ),
-    i L_indirect musi trafiac w cos co NIE jest zrodlem swiatla,
-    z czego wynika ze L_emission zawsze bedzie tu = (0, 0, 0) wiec mamy
+    and L_indirect must hit something that is *not* a light source.
+    Which means that L_emission is always here = (0, 0, 0) so we have
       L_indirect = IntegralOverHemisphere( L_direct + L_indirect ),
 
-   Wynika z tego ze robiac rekurencyjne wywolanie Trace aby policzyc
-   L_indirect NIE CHCEMY trafic w zrodlo swiatla bo wtedy policzylibysmy
-   L_direct dwukrotnie.
+    Which means that when we do recursive calls to Trace to calculate
+    L_indirect we *do not want to hit light source* since then
+    L_direct would be calculated twice.
 
-   Innymi slowy wysylajac promienie pierwotne dajemy TraceOnIndirect = false
-   bo liczymy L_out (co jest zreszta bardzo rozsadne nawet jesli nie bedziemy
-   patrzec na wzor; gdybysmy tak nie robili to ponizsze zabezpieczenie
-   spowodowaloby omylkowo ze zrodla swiatla sa zawsze niewidoczne,
-   tzn. zawsze maja czarny kolor, a przeciec zrodla swiatla zawsze maja
-   wlasnie inny (choc troche jasniejszy) niz czarny kolor).
+    In other words,
+    - for primary rays we pass TraceOnIndirect = false
+      since we calculate L_out and we want L_emission (which makes sense anyway,
+      since when you look directly at the light source you obviously see it's
+      light).
 
-   Podczas gdy wysylajac promienie rekurencyjne, tzn. wywolujac Trace() z
-   Trace(), chcemy dawac TraceOnIndirect = true, no, chyba ze
-   DirectIllumSamplesCount = 0, wiec w sumie dajemy
-   TraceOnIndirect = DirectIllumSamplesCount <> 0.
+    - for non-primary rays, i.e. in Trace recursive call from Trace itself,
+      we pass TraceOnIndirect = true. (Well, unless DirectIllumSamplesCount = 0,
+      in which case we just always make normal rendering equation
+      and we want to always calculate L_emission;
+      So TraceOnlyIndirect is actually DirectIllumSamplesCount <> 0).
 
-   Testy wykazuja ze rzeczywiscie na obrazie jest duzo mniej "noise" gdy
-   na poczatku Trace() uwzgledniamy ten parametr i nie pozwalamy sobie
-   policzyc omylkowo L_direct a wiec trafic przez przypadek w zrodlo
-   swiatla. (Trace zwraca wtedy ZeroVectyor3Single i konczy sciezke
-   (tzn. Trace ktore trafilo w zrodlo swiatla nie pojdzie juz dalej)).
+    Tests confirm that this is right. Without this (if we would remove
+    the check
+    "if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then ...")
+    we get a lot more noise on our image.
 
- - Zwracam uwage ze MinDepth i Depth (parametr Trace()) sa Integerami.
-   MinDepth dlatego ze jest poczatkowa wartoscia Depth.
-   Depth dlatego ze moze byc ujemne,
-   dla kazdego wywolania rekurencyjnego Trace przekazujemy Depth = Depth-1.
-   Gdy Depth <= 0 to o tym czy wykonamy kolejne wywolanie rekurencyjne decyduje
-   rosyjska ruletka.
+    Trace call with TraceOnlyIndirect = true that hits into a light source
+    returns just black color.
+
+  - Note that MinDepth and Depth (Trace parameters) are *signed* integers.
+    Depth can be negative, for each recursive call we pass Depth = Depth - 1.
+    When Depth <= 0 then roussian roulette will be used.
+    MinDepth is also signed becasue of that, since it's a starting Depth value.
 }
 
 procedure TPathTracer.Execute;
 var
-  { w LightIndices mamy indeksy do Octree.OctreeItems[] wskazujace na
-    elementy ktore maja emission kolor > 0, czyli na elementy ktore sa
-    swiatlami }
+  { In LightIndices we have indexes to Octree.OctreeItems[] pointing
+    to the items with emission color > 0. In other words, light sources. }
   LightsIndices: TDynIntegerArray;
+
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-  { dla kazdego swiatla w LightsIndices[i], ShadowCache[i] okresla
-    indeks (do Octree.OctreeItems[]) ktory wskazuje na ostatni obiekt ktory
-    blokowal to zrodlo swiatla (albo na NoItemIndex jesli jeszcze nie znalezlismy
-    takiego obiektu w czasie dzialania PathTracera).
-    Ten indeks jest uaktualniany i jednoczesnie wykorzystywany w IsLightShadowed
-    aby przyspieszyc dzialanie. Idea "shadow cache" - z RGK,
-    wykrystalizowana dzieki "Graphic Gems II". }
+  { For each light in LightsIndices[I], ShadowCache[I] gives the index
+    (into Octree.OctreeItems[]) of the last object that blocked this
+    light source (or NoItemIndex if no such object was yet found during
+    this path tracer execution).
+
+    This index is updated and used in IsLightShadowed.
+    The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
   ShadowCache: TDynIntegerArray;
   {$endif}
+
+  { TODO: comments below are in Polish. }
 
 const
   { LightEmissionArea definiuje co znacza wlasciwosci .Emission zrodel swiatla.
@@ -641,14 +696,19 @@ const
   LightEmissionArea = 1/30;
 
   function IsLightSourceIndex(ItemIndex: Integer): boolean;
+  var
+    Item: POctreeItem;
   begin
-   result := VectorLenSqr(Octree.OctreeItems.Items[ItemIndex].State.LastNodes.Material.
-     EmissiveColor3Single(Octree.OctreeItems.Items[ItemIndex].MatNum))
+    Item := Octree.OctreeItems.Pointers[ItemIndex];
+    Result := VectorLenSqr(Item^.State.LastNodes.Material.
+      EmissiveColor3Single(Item^.MatNum))
       > Sqr(SingleEqualityEpsilon);
   end;
 
-  function IsLightShadowed(const ItemIndex: Integer; const ItemPoint: TVector3Single;
-    const LightSourceIndiceIndex: Integer; LightSourcePoint: TVector3Single): boolean;
+  function IsLightShadowed(const ItemIndex: Integer;
+    const ItemPoint: TVector3_Single;
+    const LightSourceIndiceIndex: Integer;
+    LightSourcePoint: TVector3_Single): boolean;
   { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
@@ -656,84 +716,89 @@ const
     ItemIndex to indeks do, jak zwykle, Octree.OctreeItems[]. }
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
-  var OctreeIgnorer: TOctreeIgnore_Transparent_And_OneItem;
-      ShadowerIndex: Integer;
+  var
+    OctreeIgnorer: TOctreeIgnore_Transparent_And_OneItem;
+    ShadowerIndex: Integer;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-      CachedShadowerIndex: Integer;
-      CachedShadower: POctreeItem;
+    CachedShadowerIndex: Integer;
+    CachedShadower: POctreeItem;
   {$endif}
   begin
-   {$ifdef PATHTR_USES_SHADOW_CACHE}
-   { sprobuj wziac wynik z ShadowCache }
-   CachedShadowerIndex := ShadowCache.Items[LightSourceIndiceIndex];
-   if (CachedShadowerIndex <> NoItemIndex) and
-      (CachedShadowerIndex <> ItemIndex) then
-   begin
-    CachedShadower := Octree.OctreeItems.Pointers[CachedShadowerIndex];
-    Inc(Octree.DirectCollisionTestsCounter);
-    if IsTriangleSegmentCollision(CachedShadower^.Triangle,
-      CachedShadower^.TriangleNormPlane, ItemPoint, LightSourcePoint) then
-     Exit(true);
-
-    { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
-      LightSourcePoint (jezeli tam jest przeciecie to powinno byc uznawane
-      za niewazne). Zreszta ponizej zapominamy o marginesie wokol
-      LightSourcePoint. W moim kodzie te marginesy epsilonowe nie sa tak
-      wazne (tylko dla nieprawidlowych modeli, dla prawidlowych modeli
-      wystarcza ItemIndexToIgnore i OctreeIgnorer) wiec olewam tutaj te
-      niedorobki. }
-   end;
-   {$endif}
-
-   { oblicz przeciecie uzywajac Octree }
-   OctreeIgnorer := TOctreeIgnore_Transparent_And_OneItem.Create(
-     LightsIndices.Items[LightSourceIndiceIndex]);
-   try
-    ShadowerIndex := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
-      ItemIndex, true, @OctreeIgnorer.IgnoreItem);
-    result := ShadowerIndex <> NoItemIndex;
     {$ifdef PATHTR_USES_SHADOW_CACHE}
-    ShadowCache.Items[LightSourceIndiceIndex] := ShadowerIndex;
+    { sprobuj wziac wynik z ShadowCache }
+    CachedShadowerIndex := ShadowCache.Items[LightSourceIndiceIndex];
+    if (CachedShadowerIndex <> NoItemIndex) and
+       (CachedShadowerIndex <> ItemIndex) then
+    begin
+      CachedShadower := Octree.OctreeItems.Pointers[CachedShadowerIndex];
+      Inc(Octree.DirectCollisionTestsCounter);
+      if IsTriangleSegmentCollision(CachedShadower^.Triangle,
+        CachedShadower^.TriangleNormPlane, ItemPoint, LightSourcePoint) then
+        Exit(true);
+
+      { powyzej zapominamy o marginesie epsilonowym wokol ItemPoint i
+        LightSourcePoint (jezeli tam jest przeciecie to powinno byc uznawane
+        za niewazne). Zreszta ponizej zapominamy o marginesie wokol
+        LightSourcePoint. W moim kodzie te marginesy epsilonowe nie sa tak
+        wazne (tylko dla nieprawidlowych modeli, dla prawidlowych modeli
+        wystarcza ItemIndexToIgnore i OctreeIgnorer) wiec olewam tutaj te
+        niedorobki. }
+    end;
     {$endif}
-   finally OctreeIgnorer.Free end;
+
+    { oblicz przeciecie uzywajac Octree }
+    OctreeIgnorer := TOctreeIgnore_Transparent_And_OneItem.Create(
+      LightsIndices.Items[LightSourceIndiceIndex]);
+    try
+      ShadowerIndex := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
+        ItemIndex, true, @OctreeIgnorer.IgnoreItem);
+      Result := ShadowerIndex <> NoItemIndex;
+      {$ifdef PATHTR_USES_SHADOW_CACHE}
+      ShadowCache.Items[LightSourceIndiceIndex] := ShadowerIndex;
+      {$endif}
+    finally OctreeIgnorer.Free end;
   end;
 
-  function Trace(const Ray0, RayVector: TVector3Single;
+  function Trace(const Ray0, RayVector: TVector3_Single;
     const Depth: Integer; const OctreeItemToIgnore: integer;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
-    :TVector3Single;
+    : TVector3_Single;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
-  var Intersection: TVector3Single;
-      IntersectNodeIndex: integer;
-      IntersectNode: POctreeItem;
-      MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
-      IntersectNormalInRay0Dir: TVector3Single;
+  var
+    Intersection: TVector3_Single;
+    IntersectNodeIndex: integer;
+    IntersectNode: POctreeItem;
+    MaterialNode: TNodeMaterial_1; { = IntersectNode.State.LastNodes.Material }
+    IntersectNormalInRay0Dir: TVector3_Single;
 
-    function TraceNonEmissivePart: TVector3Single;
+    function TraceNonEmissivePart: TVector3_Single;
 
-      function TryEvaluateTransmittedSpecularRayVector(var TracedDir: TVector3Single;
+      function TryCalculateTransmittedSpecularRayVector(
+        var TracedDir: TVector3_Single;
         var PdfValue: Single): boolean;
-      var TransmittedRayVector: TVector3Single;
-          EtaFrom, EtaTo: Single;
-      const ETA_CONST = 1.3; { TODO: tu tez uzywam ETA_CONST, jak w Classic }
+      var
+        TransmittedRayVector: TVector3_Single;
+        EtaFrom, EtaTo: Single;
+      const
+        EtaConst = 1.3; { TODO: tu tez uzywam EtaConst, jak w Classic }
       begin
-       if Odd(MinDepth-Depth) then
-        begin EtaFrom := 1; EtaTo := ETA_CONST end else
-        begin EtaFrom := ETA_CONST; EtaTo := 1 end;
+        if Odd(MinDepth-Depth) then
+          begin EtaFrom := 1; EtaTo := EtaConst end else
+          begin EtaFrom := EtaConst; EtaTo := 1 end;
 
-       result := TryTransmittedRayVector(TransmittedRayVector,
-         Normalized(RayVector),
-         IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo);
-       if result then
-        TracedDir := PhiThetaToXYZ(
-          RandomUnitHemispherePointDensityCosThetaExp(
-            Round(MaterialNode.TransSpecularExp(IntersectNode^.MatNum)),
-            PdfValue),
-          TransmittedRayVector);
+        Result := TryTransmittedRayVector(TransmittedRayVector,
+          Vector_Get_Normalized(RayVector),
+          IntersectNode^.TriangleNormPlane, EtaFrom, EtaTo);
+        if Result then
+          TracedDir := PhiThetaToXYZ(
+            RandomUnitHemispherePointDensityCosThetaExp(
+              Round(MaterialNode.TransSpecularExp(IntersectNode^.MatNum)),
+              PdfValue),
+            TransmittedRayVector);
       end;
 
-      function DirectIllumination: TVector3Single;
+      function DirectIllumination: TVector3_Single;
       { ta funkcja liczy DirectIllumination dla naszego Intersection.
         Implementacja : uzywamy sformulowania (101) z GlobalIllumCompendium :
 
@@ -765,356 +830,367 @@ const
         TODO: jeszcze lepiej : (103), czyli losuj swiatlo w taki sposob ze
               swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
               brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
-      var LightSource: POctreeItem;
-          LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
-          LightSourceIndex: Integer; { indeks do Octree.OctreeItems[] }
-          SampleLightPoint: TVector3Single;
-          DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3Single;
-          i: integer;
+      var
+        LightSource: POctreeItem;
+        LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
+        LightSourceIndex: Integer; { indeks do Octree.OctreeItems[] }
+        SampleLightPoint: TVector3_Single;
+        DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3_Single;
+        i: integer;
       begin
-       result := ZeroVector3Single;
+        Result.Init_Zero;
 
-       { trzeba ustrzec sie tu przed LightsIndices.Count = 0 (zeby moc pozniej
-         spokojnie robic Random(LightsIndices.Count) i przed
-         DirectIllumSamplesCount = 0 (zeby moc pozniej spokojnie podzielic przez
-         DirectIllumSamplesCount). }
-       if (LightsIndices.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
+        { trzeba ustrzec sie tu przed LightsIndices.Count = 0 (zeby moc pozniej
+          spokojnie robic Random(LightsIndices.Count) i przed
+          DirectIllumSamplesCount = 0 (zeby moc pozniej spokojnie podzielic przez
+          DirectIllumSamplesCount). }
+        if (LightsIndices.Count = 0) or (DirectIllumSamplesCount = 0) then Exit;
 
-       for i := 0 to DirectIllumSamplesCount-1 do
-       begin
-        { evaluate LightSourceIndiceIndex, LightSourceIndex, LightSource }
-        LightSourceIndiceIndex := Random(LightsIndices.Count);
-        LightSourceIndex := LightsIndices.Items[LightSourceIndiceIndex];
-        if LightSourceIndex = IntersectNodeIndex then Continue;
-        LightSource := Octree.OctreeItems.Pointers[LightSourceIndex];
+        for i := 0 to DirectIllumSamplesCount - 1 do
+        begin
+          { calculate LightSourceIndiceIndex, LightSourceIndex, LightSource }
+          LightSourceIndiceIndex := Random(LightsIndices.Count);
+          LightSourceIndex := LightsIndices.Items[LightSourceIndiceIndex];
+          if LightSourceIndex = IntersectNodeIndex then Continue;
+          LightSource := Octree.OctreeItems.Pointers[LightSourceIndex];
 
-        { evaluate SampleLightPoint. Lepiej pozniej sprawdz ze SampleLightPoint jest
-          rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
-          nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-        SampleLightPoint := SampleTrianglePoint(LightSource^.Triangle);
-        if VectorsEqual(SampleLightPoint, Intersection) then Continue;
+          { calculate SampleLightPoint.
+            Lepiej pozniej sprawdz ze SampleLightPoint jest
+            rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
+            nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
+          SampleLightPoint := SampleTrianglePoint(LightSource^.Triangle);
+          if VectorsEqual(SampleLightPoint, Intersection) then Continue;
 
-        { evaluate LigtDirNorm (nieznormalizowane).
-          Jezeli LigtDirNorm wychodzi z innej strony
-          IntersectionNode.TriangleNormPlane niz IntersectNormalInRay0Dir
-          to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
-          swiatlo nie oswietla naszego pixela. }
-        LightDirNorm := VectorSubtract(SampleLightPoint, Intersection);
-        if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRay0Dir,
-          IntersectNode^.TriangleNormPlane) then Continue;
+          { calculate LigtDirNorm (nieznormalizowane).
+            Jezeli LigtDirNorm wychodzi z innej strony
+            IntersectionNode.TriangleNormPlane niz IntersectNormalInRay0Dir
+            to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
+            swiatlo nie oswietla naszego pixela. }
+          LightDirNorm := SampleLightPoint - Intersection;
+          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRay0Dir,
+            IntersectNode^.TriangleNormPlane) then Continue;
 
-        { sprawdz IsLightShadowed, czyli zrob shadow ray }
-        if IsLightShadowed(IntersectNodeIndex, Intersection,
-          LightSourceIndiceIndex, SampleLightPoint) then Continue;
+          { sprawdz IsLightShadowed, czyli zrob shadow ray }
+          if IsLightShadowed(IntersectNodeIndex, Intersection,
+            LightSourceIndiceIndex, SampleLightPoint) then Continue;
 
-        { evaluate DirectColor = kolor emission swiatla }
-        DirectColor := LightSource^.State.LastNodes.Material.
-          EmissiveColor3Single(LightSource^.MatNum);
+          { calculate DirectColor = kolor emission swiatla }
+          DirectColor := LightSource^.State.LastNodes.Material.
+            EmissiveColor3Single(LightSource^.MatNum);
 
-        { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
-          materialu }
-        VectorMultEachPosTo1st(DirectColor,
-          MaterialNode.DiffuseColor3Single(IntersectNode^.MatNum));
+          { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
+            materialu }
+          DirectColor *= MaterialNode.DiffuseColor3Single(IntersectNode^.MatNum);
 
-        { evaluate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-        NormalizeTo1st(LightDirNorm);
-        NegatedLightDirNorm := VectorNegate(LightDirNorm);
+          { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
+          Vector_Normalize(LightDirNorm);
+          NegatedLightDirNorm := -LightDirNorm;
 
-        { Wymnoz DirectColor
-          1) przez GeometryFunction czyli
-               cos(LightDirNorm, IntersectNormalInRay0Dir)
-                 * cos(-LightDirNorm, LightSource.TriangleNormal) /
-                 PointsDistanceSqr(SampleLightPoint, Intersection).
-             Cosinusy naturalnie licz uzywajac VectorDotProduct.
-          2) przez TriangleArea
+          { Wymnoz DirectColor
+            1) przez GeometryFunction czyli
+                 cos(LightDirNorm, IntersectNormalInRay0Dir)
+                   * cos(-LightDirNorm, LightSource.TriangleNormal) /
+                   PointsDistanceSqr(SampleLightPoint, Intersection).
+               Cosinusy naturalnie licz uzywajac dot product.
+            2) przez TriangleArea
 
-          Mozna zauwazyc ze czlon
-            TriangleArea *
-            cos(-LightDirNorm, LightSource.TriangleNormal) /
-              PointsDistanceSqr(SampleLightPoint, Intersection)
-          liczy po prostu solid angle swiatla with respect to Intersection
-          (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
+            Mozna zauwazyc ze czlon
+              TriangleArea *
+              cos(-LightDirNorm, LightSource.TriangleNormal) /
+                PointsDistanceSqr(SampleLightPoint, Intersection)
+            liczy po prostu solid angle swiatla with respect to Intersection
+            (no, mowiac scisle pewne bardzo dobre przyblizenie tego solid angle).
 
-          Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
-            przez cos(-LightDirNorm, LightSource.TriangleNormal)
-            (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
-          pouczajace moze tez byc usuniecie dzielenia przez
-            PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
-            mnozenia przez TriangleArea (te dwie rzeczy "wspolpracuja ze soba",
-            tzn. wazny jest tu wlasnie ich iloraz, dlatego usuwanie tylko
-            jednej z tych wartosci nie ma sensu).
+            Moze byc tutaj pouczajace zobaczyc jak to dziala gdy usuniemy mnozenie
+              przez cos(-LightDirNorm, LightSource.TriangleNormal)
+              (swiatlo bedzie wtedy jasniej swiecilo jakby "w bok"),
+            pouczajace moze tez byc usuniecie dzielenia przez
+              PointsDistanceSqr(SampleLightPoint, Intersection) i jednoczesnie
+              mnozenia przez TriangleArea (te dwie rzeczy "wspolpracuja ze soba",
+              tzn. wazny jest tu wlasnie ich iloraz, dlatego usuwanie tylko
+              jednej z tych wartosci nie ma sensu).
 
-          Elegancko byloby tutaj pomnozyc jeszcze przez
-            1/LightEmissionArea. Ale poniewaz LightEmissionArea = const wiec
-            przenioslem mnozenie przez LightEmissionArea na sam koniec tej
-            funkcji.}
-        VectorScaleTo1st(DirectColor,
-          VectorDotProduct(LightDirNorm, IntersectNormalInRay0Dir) *
-          VectorDotProduct(NegatedLightDirNorm,
-            PlaneDirInDirection(LightSource^.TriangleNormPlane,
-              NegatedLightDirNorm)) *
-          LightSource^.TriangleArea /
-          PointsDistanceSqr(SampleLightPoint, Intersection)
-        );
+            Elegancko byloby tutaj pomnozyc jeszcze przez
+              1/LightEmissionArea. Ale poniewaz LightEmissionArea = const wiec
+              przenioslem mnozenie przez LightEmissionArea na sam koniec tej
+              funkcji.}
+          DirectColor *=
+            (LightDirNorm ** IntersectNormalInRay0Dir) *
+            (NegatedLightDirNorm **
+              PlaneDirInDirection(LightSource^.TriangleNormPlane,
+                NegatedLightDirNorm)) *
+            LightSource^.TriangleArea /
+            PointsDistanceSqr(SampleLightPoint, Intersection);
 
-        { result += DirectColor }
-        VectorAddTo1st(result, DirectColor);
-       end;
+          Result += DirectColor;
+        end;
 
-       { dopiero tu przemnoz przez 1/LightEmissionArea.
-         Podziel tez przez ilosc probek i pomnoz przez ilosc swiatel -
-         - w rezultacie spraw zeby wynik przyblizal sume wkladu direct illumination
-         wszystkich swiatel. }
-       VectorScaleTo1st(result, LightsIndices.Count/
-         (LightEmissionArea*DirectIllumSamplesCount) );
+        { dopiero tu przemnoz przez 1/LightEmissionArea.
+          Podziel tez przez ilosc probek i pomnoz przez ilosc swiatel -
+          - w rezultacie spraw zeby wynik przyblizal sume wkladu direct illumination
+          wszystkich swiatel. }
+        Result *= LightsIndices.Count /
+          (LightEmissionArea * DirectIllumSamplesCount);
       end;
 
     type
       { kolory Transmittive/Reflective Diffuse/Specular }
       TColorKind = (ckRS, ckRD, ckTS, ckTD);
-    var Colors: array[TColorKind]of TVector3Single;
-        Weights: array[TColorKind]of Single;
-        WeightsSum: Single;
-        RandomCK: Single;
-        PdfValue: Single;
-        TracedCol, TracedDir: TVector3Single;
-        ck: TColorKind;
+    var
+      Colors: array[TColorKind]of TVector3_Single;
+      Weights: array[TColorKind]of Single;
+      WeightsSum: Single;
+      RandomCK: Single;
+      PdfValue: Single;
+      TracedCol, TracedDir: TVector3_Single;
+      ck: TColorKind;
     begin
-     result := ZeroVector3Single;
-     { caly result jaki tu wyliczymy dostaniemy dzieki wygranej w rosyjskiej
-       ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
-       przez RROulContinue.) }
+      Result.Init_Zero;
+      { caly result jaki tu wyliczymy dostaniemy dzieki wygranej w rosyjskiej
+        ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
+        przez RROulContinue.) }
 
-     if (Depth > 0) or (Random < RRoulContinue) then
-     begin
-      { krok sciezki to importance sampling zgodnie z Modified Phong BRDF,
-        patrz GlobalIllumComp (66), diffuse samplujemy z gestoscia cos(),
-        specular z gestoscia cos()^N_EXP.
-
-        W rezultacie po otrzymaniu wyniku Trace diffuse nie dziele juz wyniku
-        przez cosinus() (a powinienem, bo to jest importance sampling) ani
-        nie mnoze go przez cosinus() (a powinienem, bo w calce BRDF'a jest
-        ten cosinus - diffuse oznacza zbieranie ze wszystkich kierunkow swiatla
-        rownomiernie ale pod mniejszym katem na powierzchnie pada mniej promieni,
-        dlatego w diffuse mamy cosinus). Wszystko dlatego ze te cosinusy sie
-        skracaja.
-
-        Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze
-        nie jest zbyt dobrze przetestowane...
-
-        W rezultacie kompletnie ignoruje PdfValue (otrzymywane w wyniku
-        RandomUnitHemispeherePoint) i BRDF'a - po prostu akurat taki rozklad PDF'ow
-        odpowiada DOKLADNIE temu jak wpada swiatlo. }
-
-      { evaluate Colors[] }
-      Colors[ckRS] := MaterialNode.ReflSpecular (IntersectNode^.MatNum);
-      Colors[ckRD] := MaterialNode.ReflDiffuse  (IntersectNode^.MatNum);
-      Colors[ckTS] := MaterialNode.TransSpecular(IntersectNode^.MatNum);
-      Colors[ckTD] := MaterialNode.TransDiffuse (IntersectNode^.MatNum);
-
-      { evaluate Weights[] and WeightSum }
-      WeightsSum := 0;
-      for ck := Low(ck) to High(ck) do
+      if (Depth > 0) or (Random < RRoulContinue) then
       begin
-       Weights[ck] := Colors[ck, 0] + Colors[ck, 1] + Colors[ck, 2];
-       WeightsSum += Weights[ck];
+        { krok sciezki to importance sampling zgodnie z Modified Phong BRDF,
+          patrz GlobalIllumComp (66), diffuse samplujemy z gestoscia cos(),
+          specular z gestoscia cos()^N_EXP.
+
+          W rezultacie po otrzymaniu wyniku Trace diffuse nie dziele juz wyniku
+          przez cosinus() (a powinienem, bo to jest importance sampling) ani
+          nie mnoze go przez cosinus() (a powinienem, bo w calce BRDF'a jest
+          ten cosinus - diffuse oznacza zbieranie ze wszystkich kierunkow swiatla
+          rownomiernie ale pod mniejszym katem na powierzchnie pada mniej promieni,
+          dlatego w diffuse mamy cosinus). Wszystko dlatego ze te cosinusy sie
+          skracaja.
+
+          Podobnie dla specular - mam nadzieje ! TODO: Specular jeszcze
+          nie jest zbyt dobrze przetestowane...
+
+          W rezultacie kompletnie ignoruje PdfValue (otrzymywane w wyniku
+          RandomUnitHemispeherePoint) i BRDF'a - po prostu akurat taki rozklad PDF'ow
+          odpowiada DOKLADNIE temu jak wpada swiatlo. }
+
+        { calculate Colors[] }
+        Colors[ckRS] := MaterialNode.ReflSpecular (IntersectNode^.MatNum);
+        Colors[ckRD] := MaterialNode.ReflDiffuse  (IntersectNode^.MatNum);
+        Colors[ckTS] := MaterialNode.TransSpecular(IntersectNode^.MatNum);
+        Colors[ckTD] := MaterialNode.TransDiffuse (IntersectNode^.MatNum);
+
+        { calculate Weights[] and WeightSum }
+        WeightsSum := 0;
+        for ck := Low(ck) to High(ck) do
+        begin
+          Weights[ck] := Colors[ck].Data[0] +
+                         Colors[ck].Data[1] +
+                         Colors[ck].Data[2];
+          WeightsSum += Weights[ck];
+        end;
+
+        { wylosuj jedno z ck : wylosuj zmienna RandomCK z przedzialu 0..WeightsSum
+          a potem zbadaj do ktorego z przedzialow Weights[] wpada. Calculate ck. }
+        RandomCK := Random * WeightsSum;
+        ck := Low(ck);
+        while ck < High(ck) do
+        begin
+          if RandomCK < Weights[ck] then break;
+          RandomCK -= Weights[ck];
+          Inc(ck);
+        end;
+
+        { notka : nie, ponizej nie mozna zamienic na test WeightsSum >
+          SingleEqualityEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
+          ze WeightsSum jest wprawdzie duzo wieksze od zera ale samo
+          Weights[ck] jest mikroskopijnie male (i po prostu mielismy duzo
+          szczescia w losowaniu; path tracer robi tyle sciezek, tyle pixeli
+          itd. ze nietrudno tutaj "przez przypadek" wylosowac mikroskopijnie
+          mala wartosc). }
+        if Weights[ck] > SingleEqualityEpsilon then
+        begin
+          { calculate IntersectNormalInRay0Dir - Normal at intersection in direction Ray0 }
+          IntersectNormalInRay0Dir := PlaneDirNotInDirection(
+            IntersectNode^.TriangleNormPlane, RayVector);
+
+          { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
+           (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
+           i wtedy konczymy sciezke. }
+          case ck of
+            ckTD: TracedDir := PhiThetaToXYZ(
+                    RandomUnitHemispherePointDensityCosTheta(PdfValue),
+                    -IntersectNormalInRay0Dir);
+            ckTS: if not TryCalculateTransmittedSpecularRayVector(
+                    TracedDir, PdfValue) then Exit;
+            ckRD: TracedDir := PhiThetaToXYZ(
+                    RandomUnitHemispherePointDensityCosTheta(PdfValue),
+                    IntersectNormalInRay0Dir);
+            ckRS: TracedDir := PhiThetaToXYZ(
+                    RandomUnitHemispherePointDensityCosThetaExp(
+                      Round(MaterialNode.ReflSpecularExp(IntersectNode^.MatNum)),
+                      PdfValue),
+                    ReflectedRayVector(Vector_Get_Normalized(RayVector),
+                      IntersectNode^.TriangleNormPlane));
+          end;
+
+          { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
+          TracedCol := Trace(Intersection, TracedDir, Depth - 1,
+            IntersectNodeIndex, true, DirectIllumSamplesCount <> 0);
+
+          { przetworz TracedCol : wymnoz przez Colors[ck], podziel przez szanse
+            jego wyboru sposrod czterech Colors[], czyli przez
+            Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
+            (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
+            > SingleEqualityEpsilon, sprawdzilismy to juz wczesniej). }
+          TracedCol *= Colors[ck];
+          TracedCol *= WeightsSum / Weights[ck];
+
+          Result += TracedCol;
+        end;
+
+        { dodaj DirectIllumination }
+        Result += DirectIllumination;
+
+        { Jezeli weszlismy tu dzieki rosyjskiej ruletce (a wiec jezeli Depth <= 0)
+          to skaluj Result zeby zapisany tu estymator byl unbiased. }
+        if Depth <= 0 then Result *= 1/RRoulContinue;
       end;
-
-      { wylosuj jedno z ck : wylosuj zmienna RandomCK z przedzialu 0..WeightsSum
-       a potem zbadaj do ktorego z przedzialow Weights[] wpada. Evaluate ck. }
-      RandomCK := Random * WeightsSum;
-      ck := Low(ck);
-      while ck < High(ck) do
-      begin
-       if RandomCK < Weights[ck] then break;
-       RandomCK -= Weights[ck];
-       Inc(ck);
-      end;
-
-      { notka : nie, ponizej nie mozna zamienic na test WeightsSum >
-        SingleEqualityEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
-        ze WeightsSum jest wprawdzie duzo wieksze od zera ale samo
-        Weights[ck] jest mikroskopijnie male (i po prostu mielismy duzo
-        szczescia w losowaniu; path tracer robi tyle sciezek, tyle pixeli
-        itd. ze nietrudno tutaj "przez przypadek" wylosowac mikroskopijnie
-        mala wartosc). }
-      if Weights[ck] > SingleEqualityEpsilon then
-      begin
-       { evaluate IntersectNormalInRay0Dir - Normal at intersection in direction Ray0 }
-       IntersectNormalInRay0Dir := PlaneDirNotInDirection(
-        IntersectNode^.TriangleNormPlane, RayVector);
-
-       { evaluate TracedDir i PdfValue samplujac odpowiednio polsfere
-        (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
-        i wtedy konczymy sciezke. }
-       case ck of
-        ckTD: TracedDir := PhiThetaToXYZ(
-               RandomUnitHemispherePointDensityCosTheta(PdfValue),
-               VectorNegate(IntersectNormalInRay0Dir));
-        ckTS: if not TryEvaluateTransmittedSpecularRayVector(TracedDir, PdfValue) then Exit;
-        ckRD: TracedDir := PhiThetaToXYZ(
-               RandomUnitHemispherePointDensityCosTheta(PdfValue),
-               IntersectNormalInRay0Dir);
-        ckRS: TracedDir := PhiThetaToXYZ(
-                RandomUnitHemispherePointDensityCosThetaExp(
-                  Round(MaterialNode.ReflSpecularExp(IntersectNode^.MatNum)),
-                  PdfValue),
-                ReflectedRayVector(Normalized(RayVector),
-                  IntersectNode^.TriangleNormPlane));
-       end;
-
-       { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
-       TracedCol := Trace(Intersection, TracedDir, Depth-1, IntersectNodeIndex, true,
-        DirectIllumSamplesCount <> 0);
-
-       { przetworz TracedCol : wymnoz przez Colors[ck], podziel przez szanse
-         jego wyboru sposrod czterech Colors[], czyli przez
-         Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
-         (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
-         > SingleEqualityEpsilon, sprawdzilismy to juz wczesniej). }
-       VectorMultEachPosTo1st(TracedCol, Colors[ck]);
-       VectorScaleTo1st(TracedCol, WeightsSum/Weights[ck]);
-
-       VectorAddTo1st(Result, TracedCol);
-      end;
-
-      { dodaj DirectIllumination }
-      VectorAddTo1st(Result, DirectIllumination);
-
-      { Jezeli weszlismy tu dzieki rosyjskiej ruletce (a wiec jezeli Depth <= 0)
-        to skaluj Result zeby zapisany tu estymator byl unbiased. }
-      if Depth <= 0 then VectorScaleTo1st(Result, 1/RRoulContinue);
-     end;
     end;
 
-  var i: Integer;
-      NonEmissiveColor: TVector3Single;
+  var
+    i: Integer;
+    NonEmissiveColor: TVector3_Single;
   begin
-   IntersectNodeIndex := Octree.RayCollision(Intersection, Ray0, RayVector, true,
-     OctreeItemToIgnore, IgnoreMarginAtStart, nil);
-   if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
+    IntersectNodeIndex := Octree.RayCollision(Intersection.Data, Ray0, RayVector, true,
+      OctreeItemToIgnore, IgnoreMarginAtStart, nil);
+    if IntersectNodeIndex = NoItemIndex then Exit(SceneBGColor);
 
-   if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then
-    Exit(ZeroVector3Single);
+    if TraceOnlyIndirect and IsLightSourceIndex(IntersectNodeIndex) then
+    begin
+      Result.Init_Zero;
+      Exit;
+    end;
 
-   IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
-   MaterialNode := IntersectNode^.State.LastNodes.Material;
-   { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
-     do result ZeroVector3Single. Ale nie widze w tej chwili jak z tego wyciagnac
-     jakas specjalna optymalizacje. }
-   result := MaterialNode.EmissiveColor3Single(IntersectNode^.MatNum);
+    IntersectNode := Octree.OctreeItems.Pointers[IntersectNodeIndex];
+    MaterialNode := IntersectNode^.State.LastNodes.Material;
+    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
+      do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
+      jakas specjalna optymalizacje. }
+    Result := MaterialNode.EmissiveColor3Single(IntersectNode^.MatNum);
 
-   { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
-     Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
-       jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
-       na wiele promieni w punkcie rekursji.
-     Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
-       nie rozgaleziamy sie na wiele promieni. }
-   if MinDepth = Depth then
-   begin
-    NonEmissiveColor := ZeroVector3Single;
-    for i := 0 to NonPrimarySamplesCount-1 do
-     VectorAddTo1st(NonEmissiveColor, TraceNonEmissivePart);
-    VectorScaleTo1st(NonEmissiveColor, 1/NonPrimarySamplesCount);
-    VectorAddTo1st(result, NonEmissiveColor);
-   end else
-    VectorAddTo1st(result, TraceNonEmissivePart);
+    { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
+      Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
+        jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
+        na wiele promieni w punkcie rekursji.
+      Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
+        nie rozgaleziamy sie na wiele promieni. }
+    if MinDepth = Depth then
+    begin
+      NonEmissiveColor.Init_Zero;
+      for i := 0 to NonPrimarySamplesCount-1 do
+        NonEmissiveColor += TraceNonEmissivePart;
+      NonEmissiveColor *= 1 / NonPrimarySamplesCount;
+      Result += NonEmissiveColor;
+    end else
+      Result += TraceNonEmissivePart;
   end;
 
-var RaysWindow: TRaysWindow;
+var
+  RaysWindow: TRaysWindow;
 
   procedure DoPixel(const x, y: Cardinal);
-  var PixColor, PrimaryRayVector: TVector3Single;
-      SampleNum: Integer;
+  var
+    PixColor, PrimaryRayVector: TVector3_Single;
+    SampleNum: Integer;
   begin
-   { generuj pixel x, y. evaluate PixColor }
-   if PrimarySamplesCount = 1 then
-   begin
-    { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
-      i ten promien NIE jest losowany na rzutni w zakresie pixela
-      x, y ale przechodzi dokladnie przez srodek pixela x, y. }
-    PrimaryRayVector := RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height);
-    PixColor := Trace(CamPosition, PrimaryRayVector, MinDepth,
-      NoItemIndex, false, false);
-   end else
-   begin
-    PixColor := ZeroVector3Single;
-    for SampleNum := 0 to PrimarySamplesCount-1 do
+    { generuj pixel x, y. calculate PixColor }
+    if PrimarySamplesCount = 1 then
     begin
-     PrimaryRayVector := RaysWindow.PrimaryRay(x + Random - 0.5, y + Random - 0.5,
-       Image.Width, Image.Height);
-     VectorAddTo1st(PixColor, Trace(CamPosition, PrimaryRayVector, MinDepth,
-       NoItemIndex, false, false) );
+      { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
+        i ten promien NIE jest losowany na rzutni w zakresie pixela
+        x, y ale przechodzi dokladnie przez srodek pixela x, y. }
+      PrimaryRayVector := RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height);
+      PixColor := Trace(CamPosition, PrimaryRayVector, MinDepth,
+        NoItemIndex, false, false);
+    end else
+    begin
+      PixColor.Init_Zero;
+      for SampleNum := 0 to PrimarySamplesCount - 1 do
+      begin
+        PrimaryRayVector := RaysWindow.PrimaryRay(
+          x + Random - 0.5, y + Random - 0.5,
+          Image.Width, Image.Height);
+        PixColor += Trace(CamPosition, PrimaryRayVector, MinDepth,
+          NoItemIndex, false, false);
+      end;
+      PixColor *= 1 / PrimarySamplesCount;
     end;
-    VectorScaleTo1st(PixColor, 1/PrimarySamplesCount);
-   end;
 
-   { zapisz PixColor do Image }
-   Image.SetColorRGB(x, y, PixColor);
+    { zapisz PixColor do Image }
+    Image.SetColorRGB(x, y, PixColor);
   end;
 
-var PixCoord: TVector2Cardinal;
-    i: integer;
-    SFCurve: TSpaceFillingCurve;
+var
+  PixCoord: TVector2Cardinal;
+  i: integer;
+  SFCurve: TSpaceFillingCurve;
 begin
- { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
-   pozwolic zeby na poczatku tej procedury wykonac kilka testow, nawet gdy
-   kompilujemy sie w wersji RELEASE) }
- Check(PrimarySamplesCount > 0, 'PrimarySamplesCount for PathTracer must be greater than 0');
- Check(NonPrimarySamplesCount > 0, 'NonPrimarySamplesCount for PathTracer must be greater than 0');
- Clamp(RRoulContinue, Single(0.0), Single(1.0));
+  { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
+    pozwolic zeby na poczatku tej procedury wykonac kilka testow, nawet gdy
+    kompilujemy sie w wersji RELEASE) }
+  Check(PrimarySamplesCount > 0, 'PrimarySamplesCount for PathTracer must be greater than 0');
+  Check(NonPrimarySamplesCount > 0, 'NonPrimarySamplesCount for PathTracer must be greater than 0');
+  Clamp(RRoulContinue, Single(0.0), Single(1.0));
 
- { zainicjuj na nil'e, zeby moc napisac proste try..finally }
- LightsIndices := nil;
- {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache := nil; {$endif}
- RaysWindow := nil;
- SFCurve := nil;
- try
-  { evaluate LightIndices }
-  LightsIndices := TDynIntegerArray.Create;
-  LightsIndices.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
-  for i := 0 to Octree.OctreeItems.Count-1 do
-   if IsLightSourceIndex(i) then LightsIndices.AppendItem(i);
-  LightsIndices.AllowedCapacityOverflow := 4;
+  { zainicjuj na nil'e, zeby moc napisac proste try..finally }
+  LightsIndices := nil;
+  {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache := nil; {$endif}
+  RaysWindow := nil;
+  SFCurve := nil;
+  try
+    { calculate LightIndices }
+    LightsIndices := TDynIntegerArray.Create;
+    LightsIndices.AllowedCapacityOverflow := Octree.OctreeItems.Count div 4;
+    for i := 0 to Octree.OctreeItems.Count-1 do
+      if IsLightSourceIndex(i) then LightsIndices.AppendItem(i);
+    LightsIndices.AllowedCapacityOverflow := 4;
 
-  {$ifdef PATHTR_USES_SHADOW_CACHE}
-  { evaluate ShadowCache }
-  ShadowCache := TDynIntegerArray.Create;
-  ShadowCache.SetLength(LightsIndices.Length);
-  ShadowCache.SetAll(NoItemIndex);
-  {$endif}
+    {$ifdef PATHTR_USES_SHADOW_CACHE}
+    { calculate ShadowCache }
+    ShadowCache := TDynIntegerArray.Create;
+    ShadowCache.SetLength(LightsIndices.Length);
+    ShadowCache.SetAll(NoItemIndex);
+    {$endif}
 
-  { evaluate RaysWindow }
-  RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+    { calculate RaysWindow }
+    RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
 
-  { evaluate SFCurve }
-  SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
-  SFCurve.SkipPixels(FirstPixel);
+    { calculate SFCurve }
+    SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
+    SFCurve.SkipPixels(FirstPixel);
 
-  { generuj pixle obrazka }
-  if Assigned(PixelsMadeNotifier) then
-  begin
-   while not SFCurve.EndOfPixels do
-   begin
-    PixCoord := SFCurve.NextPixel;
-    DoPixel(PixCoord[0], PixCoord[1]);
-    PixelsMadeNotifier(SFCurve.PixelsDone, PixelsMadeNotifierData);
-   end;
-  end else
-  begin
-   while not SFCurve.EndOfPixels do
-   begin
-    PixCoord := SFCurve.NextPixel;
-    DoPixel(PixCoord[0], PixCoord[1]);
-   end;
+    { generuj pixle obrazka }
+    if Assigned(PixelsMadeNotifier) then
+    begin
+      while not SFCurve.EndOfPixels do
+      begin
+        PixCoord := SFCurve.NextPixel;
+        DoPixel(PixCoord[0], PixCoord[1]);
+        PixelsMadeNotifier(SFCurve.PixelsDone, PixelsMadeNotifierData);
+      end;
+    end else
+    begin
+      while not SFCurve.EndOfPixels do
+      begin
+        PixCoord := SFCurve.NextPixel;
+        DoPixel(PixCoord[0], PixCoord[1]);
+      end;
+    end;
+
+  finally
+    SFCurve.Free;
+    RaysWindow.Free;
+    {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache.Free; {$endif}
+    LightsIndices.Free;
   end;
-
- finally
-  SFCurve.Free;
-  RaysWindow.Free;
-  {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache.Free; {$endif}
-  LightsIndices.Free;
- end;
 end;
 
 end.

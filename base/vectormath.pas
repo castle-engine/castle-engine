@@ -217,6 +217,24 @@
   most things when compiled with Delphi. Because it compiles with Delphi,
   Images unit (that depends on some simplest things from this unit)
   can be compiled with Delphi too.
+
+  This unit, when compiled with FPC, will contain some stuff useful
+  for integration with FPC's Matrix unit.
+  The idea is to integrate in the future this unit with FPC's Matrix unit
+  much more. For now, there are some "glueing" functions here like
+  Vector_Get_Normalized that allow you to comfortably
+  perform operations on Matrix unit object types.
+  Most important is also the overload of ":=" operator that allows
+  you to switch between VectorMath arrays and Matrix objects without
+  any syntax obfuscation. Although note that this overload is a little
+  dangerous, since now code like
+  @preformatted(  V3 := VectorProduct(V1, V2);)
+  compiles and works both when all three V1, V2 and V3 are TVector3Single arrays
+  or TVector3_Single objects. However, for the case when they are all
+  TVector3_Single objects, this is highly un-optimal, and
+  @preformatted(  V3 := V1 >< V2;)
+  is much faster, since it avoids the implicit convertions (unnecessary
+  memory copying around).
 }
 
 unit VectorMath;
@@ -562,14 +580,14 @@ function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
 function Vector2Single(const x, y: Single): TVector2Single;
 
-function Vector3Single(const x, y: Single; const z: Single {$ifdef DEFPARS}=0.0{$endif}): TVector3Single; overload;
+function Vector3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
 function Vector3Single(const v3: TVector3Double): TVector3Single; overload;
 function Vector3Single(const v3: TVector3Byte): TVector3Single; overload;
-function Vector3Single(const v2: TVector2Single; const z: Single {$ifdef DEFPARS}=0.0{$endif}): TVector3Single; overload;
+function Vector3Single(const v2: TVector2Single; const z: Single = 0.0): TVector3Single; overload;
 
 function Vector3Longint(const p0, p1, p2: Longint): TVector3Longint;
 
-function Vector3Double(const x, y: Double; const z: Double {$ifdef DEFPARS}=0.0{$endif}): TVector3Double; overload;
+function Vector3Double(const x, y: Double; const z: Double = 0.0): TVector3Double; overload;
 function Vector3Double(const v: TVector3Single): TVector3Double; overload;
 
 function Vector4Single(const x, y: Single;
@@ -601,7 +619,7 @@ function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
 
 { Normal3Single zwraca jak Vector3Single ale od razu normalizuje wartosci x, y, z }
-function Normal3Single(const x, y: Single; const z: Single {$ifdef DEFPARS}=0{$endif}): TVector3Single; overload;
+function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
 
 function Triangle3Single(const T: TTriangle3Double): TTriangle3Single; overload;
 function Triangle3Single(const p0, p1, p2: TVector3Single): TTriangle3Single; overload;
@@ -612,6 +630,13 @@ function Vector3SingleFromStr(const s: string): TVector3Single;
 function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
+
+{ Overload := operator to allow convertion between
+  Matrix unit objects and this unit's arrays easy. }
+operator := (const V: TVector3_Single): TVector3Single;
+operator := (const V: TVector4_Single): TVector4Single;
+operator := (const V: TVector3Single): TVector3_Single;
+operator := (const V: TVector4Single): TVector4_Single;
 
 { prosta matematyka na wektorach  ---------------------------------------------- }
 
@@ -628,9 +653,9 @@ function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single; overloa
   rosnie do v2 gdzie staje sie = 1, niniejsza funkcja zwraca punkt na tym odcinku
   wielkosci v2part. }
 function Mix2Vectors(const v1, v2: TVector3Single;
-  const v2part: Single {$ifdef DEFPARS}=0.5{$endif}): TVector3Single; overload;
+  const v2part: Single = 0.5): TVector3Single; overload;
 function Mix2Vectors(const v1, v2: TVector2Single;
-  const v2part: Single {$ifdef DEFPARS}=0.5{$endif}): TVector2Single; overload;
+  const v2part: Single = 0.5): TVector2Single; overload;
 procedure Mix2VectorsTo1st(var v1: TVector3Single; const v2: TVector3Single;
   const v2part: Single); overload;
 procedure Mix2VectorsTo1st(var v1: TVector2Single; const v2: TVector2Single;
@@ -653,6 +678,12 @@ procedure NormalizeTo1st(var v: TVector3Double); overload;
 function Normalized(const v: TVector3Single): TVector3Single; overload;
 { @noAutoLinkHere }
 function Normalized(const v: TVector3Double): TVector3Double; overload;
+
+function Vector_Get_Normalized(const V: TVector3_Single): TVector3_Single; overload;
+function Vector_Get_Normalized(const V: TVector3_Double): TVector3_Double; overload;
+
+procedure Vector_Normalize(var V: TVector3_Single); overload;
+procedure Vector_Normalize(var V: TVector3_Double); overload;
 
 { This normalizes Plane by scaling all *four* coordinates of Plane
   so that length of plane vector (taken from 1st *three* coordinates)
@@ -2154,6 +2185,8 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_VECTOR3_OBJECT := TVector3_Single}
+{$define TYPE_VECTOR4_OBJECT := TVector4_Single}
 {$I vectormath_dualimplementation_beforeinlines.inc}
 
 {$define TYPE_SCALAR := Double}
@@ -2166,6 +2199,8 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_VECTOR3_OBJECT := TVector3_Double}
+{$define TYPE_VECTOR4_OBJECT := TVector4_Double}
 {$I vectormath_dualimplementation_beforeinlines.inc}
 
 {$I vectormathinlines.inc}
@@ -2183,6 +2218,8 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_VECTOR3_OBJECT := TVector3_Single}
+{$define TYPE_VECTOR4_OBJECT := TVector4_Single}
 {$I vectormath_dualimplementation.inc}
 
 {$define TYPE_SCALAR := Double}
@@ -2198,6 +2235,8 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_VECTOR3_OBJECT := TVector3_Double}
+{$define TYPE_VECTOR4_OBJECT := TVector4_Double}
 {$I vectormath_dualimplementation.inc}
 
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;

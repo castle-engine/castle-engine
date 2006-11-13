@@ -27,7 +27,7 @@ unit RaysWindow;
 
 interface
 
-uses VectorMath;
+uses VectorMath, Matrix;
 
 { Given one viewing angle of camera (FirstViewAngleDeg) and
   aspect ratio of your window sizes (SecondToFirstRatio),
@@ -60,7 +60,7 @@ type
   TRaysWindow = class
   private
     FWindowZ, FWindowWidth, FWindowHeight: Single;
-    FCamPosition, FCamDirection, FCamUp: TVector3Single;
+    FCamPosition, FCamDirection, FCamUp: TVector3_Single;
     FViewAngleDegX, FViewAngleDegY: Single;
   public
     property WindowZ: Single read FWindowZ;
@@ -71,14 +71,14 @@ type
       w konstruktorze, natomiast CamUp bedzie poprawione tak zeby na pewno
       bylo prostopadle do CamDirection (mozesz z tego skorzystac i po
       utworzeniu rzutni wziac juz poprawiony CamUp). }
-    property CamPosition: TVector3Single read FCamPosition;
-    property CamDirection: TVector3Single read FCamDirection;
-    property CamUp: TVector3Single read FCamUp;
+    property CamPosition: TVector3_Single read FCamPosition;
+    property CamDirection: TVector3_Single read FCamDirection;
+    property CamUp: TVector3_Single read FCamUp;
 
     property ViewAngleDegX: Single read FViewAngleDegX;
     property ViewAngleDegY: Single read FViewAngleDegY;
 
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3_Single;
       AViewAngleDegX, AViewAngleDegY: Single);
 
     { x, y sa liczone od lewej do dolu. Jezeli X, Y sa calkowite i w zakresach
@@ -90,8 +90,7 @@ type
 
       Zwraca RayVector promienia, Ray0 masz przeciez w CamPosition. }
     function PrimaryRay(const x, y: Single;
-      const ScreenWidth, ScreenHeight: Integer)
-      :TVector3Single;
+      const ScreenWidth, ScreenHeight: Integer): TVector3_Single;
   end;
 
 { Oblicz promien pierwotny na podstawie ulozenia kamery i ViewAngleXY.
@@ -105,8 +104,8 @@ type
   no i do picking wystarczy nam pozniej wysledzenie tego jednego promienia
   wiec rzeczywiscie nie ma sensu pieprzyc sie z klasa TRaysWindow. }
 function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
+  const CamPosition, CamDirection, CamUp: TVector3_Single;
+  const ViewAngleDegX, ViewAngleDegY: Single): TVector3_Single;
 
 implementation
 
@@ -146,7 +145,8 @@ end;
 
 { TRaysWindow ------------------------------------------------------------ }
 
-constructor TRaysWindow.Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+constructor TRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3_Single;
   AViewAngleDegX, AViewAngleDegY: Single);
 const
   WindowDistance = 1;  { dowolna stala > 0, moze kiedys na cos sie przyda }
@@ -173,33 +173,35 @@ begin
 end;
 
 function TRaysWindow.PrimaryRay(const x, y: Single;
-  const ScreenWidth, ScreenHeight: Integer): TVector3Single;
+  const ScreenWidth, ScreenHeight: Integer): TVector3_Single;
 begin
  { wyznacz kierunek promienia pierwotnego.
    X z zakresu 0..ScreenWidth-1 ma dawac promienie dokladnie przez srodek
    pixela na rzutni, analogicznie Y. }
- result[0] := MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2);
- result[1] := MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2);
- result[2] := WindowZ;
+ result.Init(
+   MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2),
+   MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2),
+   WindowZ);
 
  { uwzglednij teraz Cam* transformujac odpowiednio promien.
    Zwracam uwage ze nie uwzgledniamy tu przesuniecia CamPosition
    (wtedy traktowalibysmy RayVector jako punkt na polprostej promienia,
    a nie jako kierunek. Wiec musielibysmy wtedy od RayVector z powrotem
    odjac CamPosition, zupelnie bez sensu skoro mozemy je juz teraz pominac). }
- result := MultMatrixPoint(
+ Result := MultMatrixPoint(
    TransformToCoordsNoScaleMatrix(ZeroVector3Single,
-     VectorProduct(CamDirection, CamUp),
+     CamDirection >< CamUp,
      CamUp,
-     VectorNegate(CamDirection)), result);
+     -CamDirection), result);
 end;
 
 function PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
-  const ViewAngleDegX, ViewAngleDegY: Single): TVector3Single;
+  const CamPosition, CamDirection, CamUp: TVector3_Single;
+  const ViewAngleDegX, ViewAngleDegY: Single): TVector3_Single;
 var RaysWindow: TRaysWindow;
 begin
- RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp, ViewAngleDegX, ViewAngleDegY);
+ RaysWindow := TRaysWindow.Create(CamPosition, CamDirection, CamUp,
+   ViewAngleDegX, ViewAngleDegY);
  try
   result := RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight);
  finally RaysWindow.Free end;

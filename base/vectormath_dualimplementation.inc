@@ -39,6 +39,26 @@
   aby odwolywac sie do odpowiednich typow.
 }
 
+operator := (const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3;
+begin
+  Result := V.Data;
+end;
+
+operator := (const V: TYPE_VECTOR4_OBJECT): TYPE_VECTOR4;
+begin
+  Result := V.Data;
+end;
+
+operator := (const V: TYPE_VECTOR3): TYPE_VECTOR3_OBJECT;
+begin
+  Result.Data := V;
+end;
+
+operator := (const V: TYPE_VECTOR4): TYPE_VECTOR4_OBJECT;
+begin
+  Result.Data := V;
+end;
+
 procedure NormalizeTo1st(var V: TYPE_VECTOR3);
 var len: TYPE_SCALAR;
 begin
@@ -147,7 +167,21 @@ begin
 end;
 
 function Normalized(const v: TYPE_VECTOR3): TYPE_VECTOR3;
-begin result := v; NormalizeTo1st(result) end;
+begin
+  result := v;
+  NormalizeTo1st(result);
+end;
+
+function Vector_Get_Normalized(const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3_OBJECT;
+begin
+  Result.Data := V.Data;
+  NormalizeTo1st(Result.Data);
+end;
+
+procedure Vector_Normalize(var V: TYPE_VECTOR3_OBJECT);
+begin
+  NormalizeTo1st(V.Data);
+end;
 
 function RotatePointAroundAxisDeg(angleDeg: TYPE_SCALAR; const pt: TYPE_VECTOR3;
   const axisVec: TYPE_VECTOR3): TYPE_VECTOR3;

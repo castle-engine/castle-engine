@@ -93,12 +93,6 @@ type
   TOctreeItem = record
     Triangle: TTriangle3Single;
 
-    { This is calculated TriangleNormPlane(Triangle) czyli pierwsze
-      trzy wspolrzedne TriNormPlane daja wektor normalny o dlug. 1 z trojkata.
-      W ten sposob mamy tu przeliczony juz i plane trojkata
-      i jego wektor normalny. }
-    TriangleNormPlane: TVector4Single;
-
     { Calculated TriangleArea(Triangle) }
     TriangleArea: Single;
 
@@ -121,6 +115,15 @@ type
     MailboxIntersection: TVector3Single;
     MailboxIntersectionDistance: Single;
     {$endif}
+
+
+    case Integer of
+      0: ({ This is calculated TriangleNormPlane(Triangle) czyli pierwsze
+            trzy wspolrzedne TriNormPlane daja wektor normalny o dlug. 1 z trojkata.
+            W ten sposob mamy tu przeliczony juz i plane trojkata
+            i jego wektor normalny. }
+          TriangleNormPlane: TVector4Single;);
+      1: (TriangleNormPlane3: TVector3Single;);
   end;
   POctreeItem = ^TOctreeItem;
 
