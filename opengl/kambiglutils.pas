@@ -1032,14 +1032,35 @@ procedure DrawGLPlaneSpecialTex(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   Na boxie sa generowane wspolrzedne tekstury i normale. Wszystkie sciany
   sa CCW z punktu widzenia zewnatrz i wszystkie normale wskazuja na zewnatrz
   jezeli ccwOutside, wpp. CCW jest do wewnatrz i wszystkie normale wskazuja
-  tam.
-
-  Wersja Wire rysuje tylko siatke linii; generuje tez normale w taki sam
-  sposob jak drawGLBox. Wymaga 1 miejsca na attrib stack. }
+  tam. }
 procedure DrawGLBox(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
+
+(*
+{ DrawGLBoxWire is like DrawGLBox, but draws only wireframe.
+  It uses DetailX, DetailY, DetailZ parameters, and generates
+  even normal vectors and texture coordinates like DrawGLBox.
+
+  Requires one attrib stack place.
+
+  Unfortunately, current implementation is not correct because of
+  Radeon bug. To see the bug, just use DrawGLBoxWire(Box, 0, 0, 0, true)
+  as an implementation for glDrawBox3dWire. Then rotate the DrawGLBoxWire
+  (e.g. view3dscene draws scene bounding box using this routine).
+  You'll see that at some angles of view, Radeon draws a strange
+  diagonal lines inside GL_QUAD_STRIPs... obviously they draw
+  each quad inside GL_QUAD_STRIP as two triangles and they don't
+  do glEdgeFlag(GL_FALSE) where they should.
+
+  NVidia drivers on NVidia cards work correctly. }
 procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
 procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat; DetailX, DetailY, DetailZ: integer; ccwOutside: boolean); overload;
+*)
+
+{ glDrawBox3dWire draws a simple lines around this TBox3d.
+  It doesn't generate any texture coords or normal vectors
+  --- it only draws 8 lines. }
+procedure glDrawBox3dWire(const Box: TBox3d);
 
 { rysuje trojkat o zadanych wierzcholkach i wspolrzednych tekstury,
     generuje tez normal jako Normalized(p2-p1, p2-p3) a wiec normal
@@ -2309,8 +2330,25 @@ begin
    DetailX, DetailY, DetailZ, ccwOutside);
 end;
 
+(*
 procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean);
+begin
+  glPushAttrib(GL_POLYGON_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawGLBox(Box, DetailX, DetailY, DetailZ, ccwOutside);
+  glPopAttrib;
+end;
+
+procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat;
+  DetailX, DetailY, DetailZ: integer; ccwOutside: boolean);
+begin
+ DrawGLBoxWire(Box3dOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
+   DetailX, DetailY, DetailZ, ccwOutside);
+end;
+*)
+
+procedure glDrawBox3dWire(const Box: TBox3d);
 
   { BoxVertex(0..3, 0) are the four vertexes of front face,
     BoxVertex(0..3, 1) are the four vertexes of back face
@@ -2324,55 +2362,26 @@ procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
   end;
 
 begin
-  if (DetailX = 0) and (DetailY = 0) and (DetailZ = 0) then
-  begin
-    glBegin(GL_LINE_LOOP);
-      BoxVertex(0, 0);
-      BoxVertex(1, 0);
-      BoxVertex(2, 0);
-      BoxVertex(3, 0);
-    glEnd;
+  glBegin(GL_LINE_LOOP);
+    BoxVertex(0, 0);
+    BoxVertex(1, 0);
+    BoxVertex(2, 0);
+    BoxVertex(3, 0);
+  glEnd;
 
-    glBegin(GL_LINE_LOOP);
-      BoxVertex(0, 1);
-      BoxVertex(1, 1);
-      BoxVertex(2, 1);
-      BoxVertex(3, 1);
-    glEnd;
+  glBegin(GL_LINE_LOOP);
+    BoxVertex(0, 1);
+    BoxVertex(1, 1);
+    BoxVertex(2, 1);
+    BoxVertex(3, 1);
+  glEnd;
 
-    glBegin(GL_LINES);
-      BoxVertex(0, 0); BoxVertex(0, 1);
-      BoxVertex(1, 0); BoxVertex(1, 1);
-      BoxVertex(2, 0); BoxVertex(2, 1);
-      BoxVertex(3, 0); BoxVertex(3, 1);
-    glEnd;
-  end else
-  begin
-    { Unfortunately simple solution below doesn't work 100% correctly
-      on Radeon drivers.
-      It's obviously Radeon OpenGL bug, but there's nothing we can
-      do about it... To see the bug, just comment out the GL_LINES
-      implementation above and then rotate the DrawGLBoxWire
-      (e.g. view3dscene draws scene bounding box using this routine).
-      You'll see that at some angles of view, Radeon draws a strange
-      diagonal lines inside GL_QUAD_STRIPs... obviously they draw
-      each quad inside GL_QUAD_STRIP as two triangles and they don't
-      do glEdgeFlag(GL_FALSE) where they should.
-
-      TODO: for this reason, this solution should be always commented
-      out and GL_LINES should be used for all Detail* values. }
-    glPushAttrib(GL_POLYGON_BIT);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      DrawGLBox(Box, DetailX, DetailY, DetailZ, ccwOutside);
-    glPopAttrib;
-  end;
-end;
-
-procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat;
-  DetailX, DetailY, DetailZ: integer; ccwOutside: boolean);
-begin
- DrawGLBoxWire(Box3dOrderUp(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
-   DetailX, DetailY, DetailZ, ccwOutside);
+  glBegin(GL_LINES);
+    BoxVertex(0, 0); BoxVertex(0, 1);
+    BoxVertex(1, 0); BoxVertex(1, 1);
+    BoxVertex(2, 0); BoxVertex(2, 1);
+    BoxVertex(3, 0); BoxVertex(3, 1);
+  glEnd;
 end;
 
 procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
