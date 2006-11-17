@@ -491,7 +491,7 @@ type
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
-    MatNum: integer) of object;
+    const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
   TSFNode = class;
   TMFNode = class;

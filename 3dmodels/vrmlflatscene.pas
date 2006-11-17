@@ -101,7 +101,7 @@ type
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
-      MatNum: integer);
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     FDefaultShapeStateOctree: TVRMLShapeStateOctree;
     FDefaultTriangleOctree: TVRMLTriangleOctree;
@@ -675,11 +675,14 @@ end;
 
 { using triangle octree -------------------------------------------------- }
 
-procedure TVRMLFlatScene.AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
+procedure TVRMLFlatScene.AddTriangleToOctreeProgress(
+  const Triangle: TTriangle3Single;
+  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
- Progress.Step;
- TriangleOctreeToAdd.AddItemTriangle(Triangle, State, ShapeNode, MatNum);
+  Progress.Step;
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, ShapeNode, MatNum,
+    FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
 function TVRMLFlatScene.CreateTriangleOctree(const ProgressTitle: string):
@@ -956,12 +959,14 @@ type
     TriangleList: TDynTriangle3SingleArray;
     procedure AddTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape; MatNum: Integer);
+      ShapeNode: TNodeGeneralShape;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
     State: TVRMLGraphTraverseState;
-    ShapeNode: TNodeGeneralShape; MatNum: Integer);
+    ShapeNode: TNodeGeneralShape;
+    const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
     if IsValidTriangle(Triangle) then
       TriangleList.AppendItem(Triangle);

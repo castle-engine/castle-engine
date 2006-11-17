@@ -87,9 +87,13 @@ type
   TOctreeItemMailboxState = (msEmpty, msRay, msSegmentDir);
   TCollisionCount = Int64;
 
-  { NIGDY nie modyfikuj tego rekordu bezposrednio - on moze byc ustalany
-    tylko przez CreateOctreeItem i modyfikowany tylko przez procedury
-    ponizej w tym module. }
+  { This is a single item of a triangle octree.
+    In other words, this is really just a triangle with a lot
+    of associated information.
+
+    @bold(Never modify fields of this record directly) ---
+    this record should be created only by CreateOctreeItem and
+    modified by other routines in this unit. }
   TOctreeItem = record
     Triangle: TTriangle3Single;
 
@@ -99,6 +103,20 @@ type
     State: TVRMLGraphTraverseState;
     ShapeNode: TNodeGeneralShape;
     MatNum: integer;
+
+    { If this triangle is part of a face created by coordIndex field
+      (like all faces in IndexedFaceSet) then these fields indicate where
+      in this coordIndex this face is located.
+
+      You should look into ShapeNode, get it's coordIndex field,
+      and the relevant indexes are between FaceCoordIndexBegin
+      and FaceCoordIndexEnd - 1. Index FaceCoordIndexEnd is either
+      non-existing (coordIndex list ended) or is the "-1" (faces separator
+      on coordIndex fields).
+
+      If this triangle doesn't come from any coordIndex (e.g. because ShapeNode
+      is a TNodeSphere) than both FaceCoordIndex* are -1. }
+    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
     {$ifdef OCTREE_ITEM_USE_MAILBOX}
     { MailboxSavedTag okresla tag elementu z ktorym mamy zapamietane przeciecie
@@ -116,14 +134,13 @@ type
     MailboxIntersectionDistance: Single;
     {$endif}
 
-
     case Integer of
       0: ({ This is calculated TriangleNormPlane(Triangle) czyli pierwsze
             trzy wspolrzedne TriNormPlane daja wektor normalny o dlug. 1 z trojkata.
             W ten sposob mamy tu przeliczony juz i plane trojkata
             i jego wektor normalny. }
-          TriangleNormPlane: TVector4Single;);
-      1: (TriangleNormPlane3: TVector3Single;);
+          TriangleNormalPlane: TVector4Single;);
+      1: (TriangleNormal: TVector3Single;);
   end;
   POctreeItem = ^TOctreeItem;
 
@@ -135,7 +152,8 @@ type
 
 { podany Triangle musi byc IsValidTriangle }
 function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer): TOctreeItem;
+  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
 
 { Sprawdzaj przeciecia z elementem octree item tylko przez
   TryOctreeItemRay/Segment Collision zeby umozliwic uzywanie metody
@@ -289,7 +307,8 @@ type
       OctreeItems.AllowedCapacityCount na odpowiednio duza wartosc.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape; MatNum: integer);
+      ShapeNode: TNodeGeneralShape;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     { you can use variable below for testing purposes. It is increemented each
       time SphereCollision or SegmentCollision or RayCollision makes a direct
@@ -567,15 +586,18 @@ implementation
 { TOctreeItem  ------------------------------------------------------------ }
 
 function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer): TOctreeItem;
+  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
 begin
  result.Triangle := Triangle;
- result.TriangleNormPlane := TriangleNormPlane(Triangle);
+ result.TriangleNormalPlane := TriangleNormPlane(Triangle);
  result.TriangleArea := TriangleArea(Triangle);
 
  result.State := State;
  result.ShapeNode := ShapeNode;
  result.MatNum := MatNum;
+ result.FaceCoordIndexBegin := FaceCoordIndexBegin;
+ result.FaceCoordIndexEnd := FaceCoordIndexEnd;
 
  {$ifdef OCTREE_ITEM_USE_MAILBOX}
  result.MailboxSavedTag := -1;
@@ -604,7 +626,7 @@ begin
 
   Result := TryTriangleSegmentDirCollision(
     Intersection, IntersectionDistance,
-    OctreeItem.Triangle, OctreeItem.TriangleNormPlane,
+    OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
     Odc0, OdcVector);
   Inc(DirectCollisionTestsCounter);
 
@@ -650,7 +672,7 @@ begin
 
   result := TryTriangleRayCollision(
     Intersection, IntersectionDistance,
-    OctreeItem.Triangle, OctreeItem.TriangleNormPlane,
+    OctreeItem.Triangle, OctreeItem.TriangleNormalPlane,
     Ray0, RayVector);
   Inc(DirectCollisionTestsCounter);
 
@@ -677,7 +699,7 @@ procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
   procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
   begin
    if IsBox3dPlaneCollision(subnode.Box,
-     ParentTree.OctreeItems.Items[ItemIndex].TriangleNormPlane) then
+     ParentTree.OctreeItems.Items[ItemIndex].TriangleNormalPlane) then
     subnode.AddItem(ItemIndex);
     { wpp. przypadku na pewno caly trojkat jest poza Box'em.
       W sumie wrzucamy trojkat tylko jesli zachodza obydwa warunki :
@@ -754,7 +776,7 @@ begin
     begin
       Inc(ParentTree.DirectCollisionTestsCounter);
       if IsTriangleSphereCollision(Items[i]^.Triangle,
-        Items[i]^.TriangleNormPlane, pos, Radius) and
+        Items[i]^.TriangleNormalPlane, pos, Radius) and
         (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
         ( (not Assigned(ItemsToIgnoreFunc)) or
           (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
@@ -826,11 +848,13 @@ end;
 {$endif}
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
+  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
  if IsValidTriangle(Triangle) then
  begin
-  OctreeItems.AppendItem(CreateOctreeItem(Triangle, State, ShapeNode, MatNum));
+  OctreeItems.AppendItem(CreateOctreeItem(Triangle, State, ShapeNode, MatNum,
+    FaceCoordIndexBegin, FaceCoordIndexEnd));
   TreeRoot.AddItem(OctreeItems.High);
  end;
 end;
@@ -975,7 +999,7 @@ function TVRMLTriangleOctree.MoveAllowed(
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
-   PlanePtr := @OctreeItems.Items[BlockerIndex].TriangleNormPlane;
+   PlanePtr := @OctreeItems.Items[BlockerIndex].TriangleNormalPlane;
    PlaneNormalPtr := PVector3Single(PlanePtr);
 
    { project ProposedNewPos on a plane of blocking object }

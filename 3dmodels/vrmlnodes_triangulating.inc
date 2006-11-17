@@ -30,16 +30,21 @@ type
   TTriangulateRedirect = class
     Transform: PMatrix4Single;
     NewTriangle: TNewTriangleProc;
-    procedure LocalNewTriangle(const Tri: TTriangle3Single; State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape; MatNum: integer);
+    procedure LocalNewTriangle(const Tri: TTriangle3Single;
+      State: TVRMLGraphTraverseState;
+      ShapeNode: TNodeGeneralShape;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
+
   procedure TTriangulateRedirect.LocalNewTriangle(const Tri: TTriangle3Single;
-    State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
+    State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+    const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   var i: integer;
       NewT: TTriangle3Single;
   begin
    for i := 0 to 2 do NewT[i] := MultMatrixPoint(Transform^, Tri[i]);
-   NewTriangle(NewT, State, ShapeNode, MatNum);
+   NewTriangle(NewT, State, ShapeNode, MatNum,
+     FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
 procedure TNodeGeneralShape.Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
@@ -101,11 +106,11 @@ begin
  TriAssign(0, x1, y1);
  TriAssign(1, x1, y2);
  TriAssign(2, x2, y2);
- NewTriangleProc(T, State, ShapeNode, MatNum);
+ NewTriangleProc(T, State, ShapeNode, MatNum, -1, -1);
  TriAssign(0, x1, y1);
  TriAssign(1, x2, y2);
  TriAssign(2, x2, y1);
- NewTriangleProc(T, State, ShapeNode, MatNum);
+ NewTriangleProc(T, State, ShapeNode, MatNum, -1, -1);
 end;
 
 { metody LocalTriangulate konkretnych node'ow ---------------------------------}
@@ -156,9 +161,11 @@ var BottomPt, TopPt: TVector3Single;
   procedure LOOP_OVER_CIRCLE_PROC(const LastPt, Pt: TVector3Single);
   begin
    if Bottom then
-    NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, MatBottom);
+     NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt),
+       State, Self, MatBottom, -1, -1);
    if Sides then
-    NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, MatSides);
+     NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt),
+       State, Self, MatSides, -1, -1);
   end;
 
 LOOP_OVER_CIRCLE_DECLARE
@@ -264,15 +271,19 @@ var BottomPt, TopPt: TVector3Single;
    HighPt     := Vector3Single(LowPt    [0], Height/2, LowPt    [2]);
 
    if Bottom then
-    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, BottomPt), State, Self, MatBottom);
+     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, BottomPt),
+       State, Self, MatBottom, -1, -1);
 
    if Top then
-    NewTriangleProc(Triangle3Single(HighLastPt, HighPt, TopPt), State, Self, MatTop);
+     NewTriangleProc(Triangle3Single(HighLastPt, HighPt, TopPt),
+       State, Self, MatTop, -1, -1);
 
    if Side then
    begin
-    NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, MatSides);
-    NewTriangleProc(Triangle3Single(HighLastPt, HighPt, LowLastPt), State, Self, MatSides);
+     NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt),
+       State, Self, MatSides, -1, -1);
+     NewTriangleProc(Triangle3Single(HighLastPt, HighPt, LowLastPt),
+       State, Self, MatSides, -1, -1);
    end;
   end;
 
@@ -326,19 +337,22 @@ type
     Vertices: PArray_Vector3Single;
     FaceIndices: PArray_Longint;
     NewTriangleProc: TNewTriangleProc;
+    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
   end;
   PNewTriData = ^TNewTriData;
 
 procedure NewTriangleOfFaceSet(const TriIndices: TVector3Longint; Data: Pointer);
-var Tri: TTriangle3Single;
+var
+  Tri: TTriangle3Single;
 begin
- with PNewTriData(Data)^ do
- begin
-  Tri[0] := Vertices^[FaceIndices^[TriIndices[0]]];
-  Tri[1] := Vertices^[FaceIndices^[TriIndices[1]]];
-  Tri[2] := Vertices^[FaceIndices^[TriIndices[2]]];
-  NewTriangleProc(Tri, State, ShapeNode, MatNum);
- end;
+  with PNewTriData(Data)^ do
+  begin
+    Tri[0] := Vertices^[FaceIndices^[TriIndices[0]]];
+    Tri[1] := Vertices^[FaceIndices^[TriIndices[1]]];
+    Tri[2] := Vertices^[FaceIndices^[TriIndices[2]]];
+    NewTriangleProc(Tri, State, ShapeNode, MatNum,
+      FaceCoordIndexBegin, FaceCoordIndexEnd);
+  end;
 end;
 
 { For IndexedTriangleMesh pass TriangleMesh = @true,
@@ -366,6 +380,8 @@ procedure IndexedPolygons_LocalTriangulate(
     NewTriData.Vertices := Coord.Items.ItemsArray;
     newTriData.FaceIndices := PArray_Longint(CoordIndex.Items.Pointers[StartIndex]);
     NewTriData.NewTriangleProc := NewTriangleProc;
+    NewTriData.FaceCoordIndexBegin := startIndex;
+    NewTriData.FaceCoordIndexEnd := endIndex;
 
     if not TriangleMesh then
     begin
@@ -503,10 +519,10 @@ var BottomPt, TopPt: TVector3Single;
 
   procedure LOOP_OVER_CIRCLE_PROC(LastPt, Pt: TVector3Single);
   begin
-   NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, 0);
+   NewTriangleProc(Triangle3Single(LastPt, Pt, BottomPt), State, Self, 0, -1, -1);
    Pt[1] := TopHeight;
    LastPt[1] := TopHeight;
-   NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0);
+   NewTriangleProc(Triangle3Single(LastPt, Pt, TopPt), State, Self, 0, -1, -1);
   end;
 
 var AngleRad, LowRadius, HighRadius, LowHeight, HighHeight: Single;
@@ -553,8 +569,8 @@ begin
    HighPt := Vector3Single(Sin(AngleRad)*HighRadius, HighHeight, Cos(AngleRad)*HighRadius);
 
    {rysuj czworokat}
-   NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0);
-   NewTriangleProc(Triangle3Single(LowLastPt, HighLastPt, HighPt), State, Self, 0);
+   NewTriangleProc(Triangle3Single(LowLastPt, LowPt, HighPt), State, Self, 0, -1, -1);
+   NewTriangleProc(Triangle3Single(LowLastPt, HighLastPt, HighPt), State, Self, 0, -1, -1);
 
    LowLastPt := LowPt;
    HighLastPt := HighPt;
@@ -612,8 +628,8 @@ begin
           As far as I understand, no : ccw FALSE tells me that
           normals point download (normal y is negative) and I
           should eventually cull (if solid TRUE) the other side. }
-        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), State, Self, 0);
-        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), State, Self, 0);
+        NewTriangleProc(Triangle3Single(Last2, Last1, Next1), State, Self, 0, -1, -1);
+        NewTriangleProc(Triangle3Single(Last2, Next1, Next2), State, Self, 0, -1, -1);
 
         Last1 := Next1;
         Last2 := Next2;

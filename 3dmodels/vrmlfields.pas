@@ -934,12 +934,12 @@ begin
   for i := 0 to RawItems.Count-1 do
   begin
    if WriteIndentNextTime then WriteStr(Stream, Indent +IndentIncrement);
-   WriteStr(Stream, RawItemToString(i) +', ');
+   WriteStr(Stream, RawItemToString(i) +',');
    {za ostatnim elementem listy zawsze piszemy newline,
     bez wzgledu na wynik SaveToStreamDoNewLineAfterRawItem}
    if (i = RawItems.Count-1) or SaveToStreamDoNewLineAfterRawItem(i) then
-    begin WriteStr(Stream, nl); WriteIndentNextTime := true end else
-    WriteIndentNextTime := false;
+     begin WriteStr(Stream, nl); WriteIndentNextTime := true end else
+     begin WriteStr(Stream, ' '); WriteIndentNextTime := false; end;
   end;
   WriteStr(Stream, Indent +']');
  end;
