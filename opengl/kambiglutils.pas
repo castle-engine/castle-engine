@@ -2311,11 +2311,61 @@ end;
 
 procedure DrawGLBoxWire(const Box: TBox3d; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean);
+
+  { BoxVertex(0..3, 0) are the four vertexes of front face,
+    BoxVertex(0..3, 1) are the four vertexes of back face
+    (ordered in the same order, suitable for GL_LINE_LOOP). }
+  procedure BoxVertex(Index: Integer; Z: Integer);
+  const
+    X: array [0..3] of Integer = (0, 1, 1, 0);
+    Y: array [0..3] of Integer = (0, 0, 1, 1);
+  begin
+    glVertex3f(Box[X[Index], 0], Box[Y[Index], 1], Box[Z, 2]);
+  end;
+
 begin
- glPushAttrib(GL_POLYGON_BIT);
-   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-   DrawGLBox(Box, DetailX, DetailY, DetailZ, ccwOutside);
- glPopAttrib;
+  if (DetailX = 0) and (DetailY = 0) and (DetailZ = 0) then
+  begin
+    glBegin(GL_LINE_LOOP);
+      BoxVertex(0, 0);
+      BoxVertex(1, 0);
+      BoxVertex(2, 0);
+      BoxVertex(3, 0);
+    glEnd;
+
+    glBegin(GL_LINE_LOOP);
+      BoxVertex(0, 1);
+      BoxVertex(1, 1);
+      BoxVertex(2, 1);
+      BoxVertex(3, 1);
+    glEnd;
+
+    glBegin(GL_LINES);
+      BoxVertex(0, 0); BoxVertex(0, 1);
+      BoxVertex(1, 0); BoxVertex(1, 1);
+      BoxVertex(2, 0); BoxVertex(2, 1);
+      BoxVertex(3, 0); BoxVertex(3, 1);
+    glEnd;
+  end else
+  begin
+    { Unfortunately simple solution below doesn't work 100% correctly
+      on Radeon drivers.
+      It's obviously Radeon OpenGL bug, but there's nothing we can
+      do about it... To see the bug, just comment out the GL_LINES
+      implementation above and then rotate the DrawGLBoxWire
+      (e.g. view3dscene draws scene bounding box using this routine).
+      You'll see that at some angles of view, Radeon draws a strange
+      diagonal lines inside GL_QUAD_STRIPs... obviously they draw
+      each quad inside GL_QUAD_STRIP as two triangles and they don't
+      do glEdgeFlag(GL_FALSE) where they should.
+
+      TODO: for this reason, this solution should be always commented
+      out and GL_LINES should be used for all Detail* values. }
+    glPushAttrib(GL_POLYGON_BIT);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      DrawGLBox(Box, DetailX, DetailY, DetailZ, ccwOutside);
+    glPopAttrib;
+  end;
 end;
 
 procedure DrawGLBoxWire(const x1, y1, z1, x2, y2, z2: TGLfloat;
