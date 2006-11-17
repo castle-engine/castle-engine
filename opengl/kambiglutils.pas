@@ -1138,6 +1138,9 @@ function GLCapsString: string;
   glClearColor(v[0], v[1], v[2], alpha) }
 procedure glClearColorv(const v: TVector3Single; alpha: Single);
 
+const
+  GLDefaultLightModelAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
+
 { Utilities for display lists ---------------------------------------- }
 
 type
