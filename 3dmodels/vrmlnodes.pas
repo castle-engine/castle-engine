@@ -2687,11 +2687,17 @@ type
     property FdVolumetric: TSFBool index 3 read GetFieldAsSFBool;
     property FdVolumetricDirection: TSFVec3f index 4 read GetFieldAsSFVec3f;
     property FdVolumetricVisibilityStart: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdAlternative: TSFNode index 6 read GetFieldAsSFNode;
     { eventIn      SFBool   set_bind } { }
     { eventOut     SFBool   isBound } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    { Returns FdAlternative.Value already typecasted to TNodeFog.
+      If FdAlternative.Value is not of TNodeFog class, returns nil
+      (returns also nil when FdAlternative.Value is nil, obviously). }
+    function Alternative: TNodeFog;
   end;
 
   TNodeFontStyle_2 = class(TVRMLNode)
@@ -7070,8 +7076,16 @@ begin
   Fields.Add(TSFBool.Create('volumetric', false));
   Fields.Add(TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0)));
   Fields.Add(TSFFloat.Create('volumetricVisibilityStart', 0));
+  Fields.Add(TSFNode.Create(Self, 'alternative', [TNodeFog]));
   { eventIn      SFBool   set_bind }
   { eventOut     SFBool   isBound }
+end;
+
+function TNodeFog.Alternative: TNodeFog;
+begin
+  if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
+    Result := TNodeFog(FdAlternative.Value) else
+    Result := nil;
 end;
 
 class function TNodeFontStyle_2.ClassNodeTypeName: string;

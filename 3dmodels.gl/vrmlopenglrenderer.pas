@@ -1738,7 +1738,7 @@ end;
 procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
   const FogDistanceScaling: Single);
 
-  procedure SetupFog;
+  procedure SetupFog(FogNode: TNodeFog);
   var
     FogType: Integer;
     FogVisibilityRangeScaled: Single;
@@ -1755,9 +1755,20 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
    FogType := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
    if FogType = -1 then
    begin
-    VRMLNonFatalError('Unknown fog type '''+FogNode.FdFogType.Value+'''');
-    glDisable(GL_FOG);
-    Exit;
+     VRMLNonFatalError('Unknown fog type "' + FogNode.FdFogType.Value + '"');
+     SetupFog(FogNode.Alternative);
+     Exit;
+   end;
+
+   if FogNode.FdVolumetric.Value and (not GL_EXT_fog_coord) then
+   begin
+     { Earlier I tried in such cases to just do a normal fog
+       that looks "similar". But it turns out to be impossible
+       to automatically decide what non-volumetric fog setting (if any) will
+       look similar to requested volumetric fog.
+       So right now I just resort to "alternative" field. }
+     SetupFog(FogNode.Alternative);
+     Exit;
    end;
 
    FogEnabled := true;
@@ -1766,15 +1777,6 @@ procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
      FogNode.FdVisibilityRange.Value * FogDistanceScaling;
 
    FogVolumetric := FogNode.FdVolumetric.Value and GL_EXT_fog_coord;
-
-   if FogNode.FdVolumetric.Value and (not GL_EXT_fog_coord) then
-   begin
-     { Then we will use normal fog, and try to keep (as much as possible..)
-       the similar fog look. I found that enlarging FogVisibilityRangeScaled
-       below and just letting other things to work as usual gives
-       acceptable results. }
-     FogVisibilityRangeScaled := FogVisibilityRangeScaled * 5;
-   end;
 
    if FogVolumetric then
    begin
@@ -1848,7 +1850,7 @@ begin
    for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
      glDisable(GL_LIGHT0+i);
 
- SetupFog;
+ SetupFog(FogNode);
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
