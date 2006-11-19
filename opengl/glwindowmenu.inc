@@ -357,7 +357,7 @@
       it's allowed for radio group to have none radio item chosen). }
     property Selected: TMenuItemRadio read FSelected write SetSelected;
 
-    procedure DebugWriteln;
+    (* procedure DebugWriteln; *)
   end;
 
 {$endif read_interface}
@@ -711,10 +711,7 @@ end;
 
 procedure TMenuItemRadio.DoAutoCheckedToggle;
 begin
-  Writeln('begin TMenuItemRadio.DoAutoCheckedToggle');
   Group.Selected := Self;
-  Group.DebugWriteln;
-  Writeln('end TMenuItemRadio.DoAutoCheckedToggle');
 end;
 
 { TMenuItemRadioGroup -------------------------------------------------------- }
@@ -744,8 +741,6 @@ begin
       Item.Checked := false else
       FSelected := Item;
   end;
-
-  DebugWriteln;
 end;
 
 procedure TMenuItemRadioGroup.Delete(Item: TMenuItemRadio);
@@ -774,6 +769,7 @@ begin
   Items[0].Changed;
 end;
 
+(*
 procedure TMenuItemRadioGroup.DebugWriteln;
 var
   I: Integer;
@@ -787,6 +783,7 @@ begin
   end;
   Writeln('--------------------');
 end;
+*)
 
 { init/fini ------------------------------------------------------------ }
 
