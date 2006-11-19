@@ -225,7 +225,13 @@
       deletes Count items starting from position Index.
       Length of array will be decreased by Count items,
       and the last items of array will be shifted to the left to take
-      positions of deleted items. }
+      positions of deleted items.
+
+      Note that Index and DelCount parameters will be checked for
+      correctness and eventually corrected. So if Index is >= Count
+      then nothing will be removed. And if DelCount items from
+      Index would be larger than Count then DelCount will be corrected
+      to be smaller. }
     procedure Delete(Index, DelCount: integer);
 
     { Inserts Item at position Index into array.
@@ -449,6 +455,11 @@ end;
 procedure TDynArray_1.Delete(Index, DelCount: integer);
 var i: integer;
 begin
+ { Make sure Index and DelCount are sensible first }
+ if Index >= Count then
+   Exit;
+ MinTo1st(DelCount, Count - Index);
+
  {$ifdef DYNARRAY_1_IS_INIT_FINI_TYPE}
  for i := Index to Index + DelCount - 1 do
   Finalize(Items[i]);
