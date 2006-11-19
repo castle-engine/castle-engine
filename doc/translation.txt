@@ -70,6 +70,7 @@ D   intrects.pas
 |   kambifilesutils.pas
 |   kambistringutils.pas
 |   kambiutils.pas
+D   kambixmlcfg.pas
 D   kambizlib.pas
 D   kambizstream.pas
 D   mathexprlexer.pas
@@ -104,6 +105,7 @@ D   unix/xlibutils.pas
 D   curve.pas
 D   glw_demo.pas
 -   glwindow.pas
+D   glwindowrecentmenu.pas
 -   glwininputs.pas
 -   glwinmessages.pas
 -   glwinmodes.pas

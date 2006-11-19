@@ -2212,6 +2212,7 @@ type
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
+    procedure SetFPSBaseCaption(const Value: string);
   public
     { Whether to show current FPS (frames per second) on window's Caption.
       You can modify this property only @italic(before calling @link(Init).) }
@@ -2234,7 +2235,7 @@ type
       Instead use FPSBaseCaption.
       It will be inited from Caption at EventInit.
       I know, it's a problem. Well, if in doubt, just turn off FpsShowOnCaption. }
-    property FPSBaseCaption: string read FFPSBaseCaption write FFPSBaseCaption;
+    property FPSBaseCaption: string read FFPSBaseCaption write SetFPSBaseCaption;
 
     { w czasie OnInit / OnClose mozesz sprawdzic wartosc tej wlasciwosci.
       Jesli true to znaczy ze ten OnInit / OnClose sa wykonywane w czasie
@@ -3989,6 +3990,17 @@ begin
   SwapFullScreen_Key := ASwapFullScreen_Key;
   Close_CharKey := AClose_CharKey;
   FpsShowOnCaption := AFpsShowOnCaption;
+end;
+
+procedure TGLWindowDemo.SetFPSBaseCaption(const Value: string);
+begin
+  if FFPSBaseCaption <> Value then
+  begin
+    FFPSBaseCaption := Value;
+    { Update Caption now, otherwise Caption would get updated with
+      some latency (because only when FpsOutputMilisec is reached). }
+    FpsToCaption(FFPSBaseCaption);
+  end;
 end;
 
 constructor TGLWindowDemo.Create;

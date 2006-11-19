@@ -23,6 +23,7 @@
 }
 
 {$ifdef read_interface}
+  TMenu = class;
 
   { This is a basic class representing basic menu building block.
     This can be a separator, clickable menu item or something that
@@ -39,6 +40,19 @@
       (to Self) and in Close (to nil). This will be done processing from MainMenu
       recursively. This will be used by TMenuEntry to do Changed. }
     ParentWindow: TGLWindow;
+
+    FParentMenu: TMenu;
+    FParentMenuPosition: Cardinal;
+  public
+    { This is the parent TMenu that has this item in it's Entries list.
+      @nil is there is not parent menu yet (e.g. because it's not assigned
+      yet, or because this is the main menu). }
+    property ParentMenu: TMenu read FParentMenu;
+
+    { Position on ParentMenu. Indexed from 0, so
+      ParentMenu.Entries[ParentMenuPosition] should be always equal to Self
+      (as long as ParentMenu <> @nil. }
+    property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
   TObjectsListItem_2 = TMenuEntry;
@@ -273,7 +287,7 @@ function SRemoveMnemonics(const S: string): string;
 
 { Returns S with each underscore '_' replaced by two underscores, '__'.
 
-  In other words: S does will not contain any mnemonics.
+  In other words: S will not contain any mnemonics.
   If you will assign S to @link(TMenuEntryWithCaption.Caption),
   then this menu entry caption will display exactly S,
   without any mnemonics. Single '_' in S will be displayed exactly
@@ -336,41 +350,59 @@ end;
 
 constructor TMenu.Create(const ACaption: String);
 begin
- inherited Create(ACaption);
- FEntries := TMenuEntriesList.Create;
+  inherited Create(ACaption);
+  FEntries := TMenuEntriesList.Create;
 end;
 
 destructor TMenu.Destroy;
 begin
- FreeWithContentsAndNil(FEntries);
- inherited;
+  FreeWithContentsAndNil(FEntries);
+  inherited;
 end;
 
 function TMenu.GetEntries(Index: Integer): TMenuEntry;
 begin
- Result := FEntries[Index];
+  Result := FEntries[Index];
 end;
 
 function TMenu.EntriesCount: Integer;
 begin
- Result := FEntries.Count;
+  Result := FEntries.Count;
 end;
 
 procedure TMenu.Insert(Index: Integer; Value: TMenuEntry);
+var
+  I: Integer;
 begin
- FEntries.Insert(Index, Value);
- Changed;
+  FEntries.Insert(Index, Value);
+
+  { update Value.FParentMenu }
+  Value.FParentMenu := Self;
+
+  { update changed FParentMenuPosition values (this includes
+    Value.FParentMenuPosition) }
+  for I := Index to EntriesCount - 1 do
+    FEntries[I].FParentMenuPosition := I;
+
+  Changed;
 end;
 
 procedure TMenu.Append(Value: TMenuEntry);
 begin
- Insert(FEntries.Count, Value);
+  Insert(FEntries.Count, Value);
 end;
 
 procedure TMenu.EntryDelete(Index: Integer);
+var
+  I: Integer;
 begin
   FEntries[Index].Free;
   FEntries.Delete(Index);
+
+  { update changed FParentMenuPosition values }
+  for I := Index to EntriesCount - 1 do
+    FEntries[I].FParentMenuPosition := I;
+
   Changed;
 end;
 
