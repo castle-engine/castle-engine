@@ -578,8 +578,9 @@ begin
   { GTK checked menu items do always something like our AutoCheckedToggle.
     This assert confirms that: }
 
-  Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
-          TMenuItemChecked(MenuItem).Checked);
+  if not (MenuItem is TMenuItemRadio) then
+    Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
+            TMenuItemChecked(MenuItem).Checked);
 
   { I don't want this (because, first of all, not always my
     TMenuItemChecked will have AutoCheckedToggle = true.

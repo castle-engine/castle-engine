@@ -26,7 +26,8 @@
 
 program MenuTest;
 
-uses VectorMath, OpenGLh, GLWindow, GLW_Demo, KambiGLUtils;
+uses VectorMath, OpenGLh, GLWindow, GLW_Demo, KambiGLUtils,
+  GLWinMessages;
 
 var
   { Some state variables that determine what will be drawn.
@@ -34,6 +35,9 @@ var
   CurrentColor: Integer = 0;
   RectShape: boolean;
   Filled: boolean = true;
+  MoveX: Single = 0.0;
+  MoveY: Single = 0.0;
+  MenuHorizLeft, MenuHorizMiddle, MenuHorizRight: TMenuItemRadio;
 
 const
   Colors: array[0..6]of TVector3Byte =
@@ -54,6 +58,9 @@ begin
  if Filled then
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) else
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+ glLoadIdentity;
+ glTranslatef(MoveX, MoveY, 0);
 
  if RectShape then
   glRectf(-0.5, -0.5, 0.5, 0.5) else
@@ -76,6 +83,19 @@ var
   ChangeableMenu: TMenu;
 
 procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+
+  procedure ChangeChecked(Item: TMenuItemRadio);
+  begin
+    Item.Checked := MessageYesNo(Glw, 'Should menu item "' +
+      SRemoveMnemonics(Item.Caption) + '" be checked ?', taLeft);
+    if Item.Checked then
+      case Item.IntData of
+        25: MoveX := -0.5;
+        26: MoveX := 0.0;
+        27: MoveX := 0.5;
+      end;
+  end;
+
 var M: TMenu;
 begin
  Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption),
@@ -85,6 +105,13 @@ begin
   10: RectShape := true;
   11: RectShape := false;
   20: glwin.Close;
+
+  21: MoveY := +0.5;
+  22: MoveY :=  0.0;
+  23: MoveY := -0.5;
+
+  25..27: ChangeChecked(Item as TMenuItemRadio);
+
   31: Filled := not Filled;
   40: glwin.MainMenu.Append(TMenuItem.Create('New item', -1));
   41: begin
@@ -99,7 +126,12 @@ begin
  glw.PostRedisplay;
 end;
 
-var M, M2: TMenu;
+var
+  M, M2: TMenu;
+
+  { Helper variables for setting up radio items }
+  Radio: TMenuItemRadio;
+  RadioGroup: TMenuItemRadioGroup;
 begin
  { create menu }
  glw.MainMenu := TMenu.Create('Main menu');
@@ -116,6 +148,37 @@ begin
    M.Append(TMenuItem.Create('Gr_ay', 5));
    M.Append(TMenuItem.Create('B_lack', 6));
    glw.MainMenu.Append(M);
+
+ M := TMenu.Create('_Placement');
+
+   { Radio menu items test }
+
+   { First radio test: simple use AutoCheckToggle := true }
+   Radio := TMenuItemRadio.Create('_Top', 21, false, true);
+   RadioGroup := Radio.Group; { First: get Group }
+   M.Append(Radio);
+   Radio := TMenuItemRadio.Create('_Middle', 22, true, true);
+   Radio.Group := RadioGroup;
+   M.Append(Radio);
+   Radio := TMenuItemRadio.Create('_Bottom', 23, false, true);
+   Radio.Group := RadioGroup;
+   M.Append(Radio);
+
+   { Second radio test: use without AutoCheckToggle := true,
+     we will explicitly set Checked. }
+   M.Append(TMenuSeparator.Create);
+   MenuHorizLeft := TMenuItemRadio.Create('_Left', 25, false, false);
+   RadioGroup := MenuHorizLeft.Group;
+   M.Append(MenuHorizLeft);
+   MenuHorizMiddle := TMenuItemRadio.Create('M_iddle', 26, true, false);
+   MenuHorizMiddle.Group := RadioGroup;
+   M.Append(MenuHorizMiddle);
+   MenuHorizRight := TMenuItemRadio.Create('_Right', 27, true, false);
+   MenuHorizRight.Group := RadioGroup;
+   M.Append(MenuHorizRight);
+
+   glw.MainMenu.Append(M);
+
  M := TMenu.Create('_Shape');
    M.Append(TMenuItemChecked.Create('_Filled', 31, Filled, true));
    M2 := TMenu.Create('_More options');

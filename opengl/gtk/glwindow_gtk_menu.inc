@@ -26,6 +26,14 @@ end;
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl; forward;
 
+procedure gtk_check_menu_item_set_draw_as_radio(
+  check_menu_item:PGtkCheckMenuItem; draw_as_radio:gboolean);
+  cdecl; external gtklib;
+
+function gtk_check_menu_item_get_draw_as_radio(
+  check_menu_item:PGtkCheckMenuItem):gboolean;
+  cdecl; external gtklib;
+
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 begin
@@ -245,6 +253,22 @@ procedure TGLWindow.init_window_menu_bar;
        gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
          TMenuItemChecked(Entry).Checked);
        gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), true);
+
+       { To implement TMenuItemRadio I use normal GTK check menu items
+         and just make them look like radio items.
+
+         That's because we implement radio behavior (radio groups,
+         turning Checked on and turning Checked off of the rest)
+         ourselves. So there's no need to map our groups to GTK radio
+         groups (even though they follow the same design...).
+         But in GTK "at each instant exactly one of the radio menu
+         items from a group is selected." So I cannot just create
+         radio items carelessly, I have to set their groups correctly.
+
+         So it's easier for me just to use normal check menu items
+         and only make them look like radios. }
+       gtk_check_menu_item_set_draw_as_radio(
+         PGtkCheckMenuItem(Result), Entry is TMenuItemRadio);
       end else
        Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
          PChar(TMenuItem(Entry).Caption)));

@@ -249,9 +249,22 @@
   private
     FChecked: boolean;
     FAutoCheckedToggle: boolean;
-    procedure SetChecked(Value: boolean);
+  protected
+    { Called when Checked property is assigned.
+
+      Note that this is overriden ina a "dirty" way
+      (i.e. not calling "ingerited") in TMenuItemRadio descendant. }
+    procedure SetChecked(Value: boolean); virtual;
+
+    { This is called from DoCommand when AutoCheckedToggle is @true.
+      It's supposed to actually implement the AutoCheckedToggle behavior.
+
+      Note that this is overriden ina a "dirty" way
+      (i.e. not calling "ingerited") in TMenuItemRadio descendant. }
+    procedure DoAutoCheckedToggle; virtual;
   public
     property Checked: boolean read FChecked write SetChecked;
+
     { true means that each time user chooses this menu item,
       Checked is changed to not Checked. }
     property AutoCheckedToggle: boolean read FAutoCheckedToggle
@@ -267,6 +280,84 @@
       AChecked, AAutoCheckedToggle: boolean); overload;
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
       AChecked, AAutoCheckedToggle: boolean); overload;
+  end;
+
+  TMenuItemRadioGroup = class;
+
+  { This is similar to TMenuItemChecked, but it belongs to a group and
+    within this group only one (or none) radio button can be checked.
+
+    Note that AutoCheckedToggle property has a little different
+    meaning in this class: whenever user will click on some item,
+    it will be automatically set to Checked = @true and the rest
+    of items within this group will be set to Checked = @false.
+
+    You can of course operate on Checked property explicitly,
+    setting it to @true or @false. }
+  TMenuItemRadio = class(TMenuItemChecked)
+  private
+    FGroup: TMenuItemRadioGroup;
+    procedure SetGroup(Value: TMenuItemRadioGroup);
+    procedure CreateCommon;
+  protected
+    procedure SetChecked(Value: boolean); override;
+    procedure DoAutoCheckedToggle; override;
+  public
+    constructor Create(const ACaption: String; AIntData: Integer;
+      AChecked, AAutoCheckedToggle: boolean); overload;
+    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char;
+      AChecked, AAutoCheckedToggle: boolean); overload;
+    constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
+      AChecked, AAutoCheckedToggle: boolean); overload;
+
+    destructor Destroy; override;
+
+    { The list of radio items within this group. This is never @nil.
+
+      Assigning this property is equivalent to adding yourself to the
+      wanted group. I.e. @code(Item.Group := NewGroup;)
+      is equivalent to NewGroup.Add(Item). }
+    property Group: TMenuItemRadioGroup read FGroup write SetGroup;
+  end;
+
+  TObjectsListItem_3 = TMenuItemRadio;
+  {$I objectslist_3.inc}
+
+  { This is a group of radio buttons.
+
+    An instance of this object is always
+    created and destroyed automatically by TMenuItemRadio objects.
+    All TMenuItemRadio within the same group share the same
+    TMenuItemRadioGroup instance.
+
+    Never modify anything within this group using general TObjectsList_x
+    properties. Instead always use methods defined here. }
+  TMenuItemRadioGroup = class(TObjectsList_3)
+  private
+    FSelected: TMenuItemRadio;
+    procedure SetSelected(Value: TMenuItemRadio);
+  public
+    { Adds an existing radio menu item to this group.
+      After this, Item.Group will point to this group object.
+
+      Note that Item.Checked may be changed to @false if there
+      already is a selected item in this group. If the added
+      item already has Item.Checked = @false then for sure
+      it will not be changed (SelectedIndex can be left as -1). }
+    procedure Add(Item: TMenuItemRadio);
+
+    procedure Delete(Item: TMenuItemRadio);
+
+    { This is the only currently Checked item.
+
+      It can be nil if no item is checked currently
+      (this can happen if you added all initial items with
+      Checked = @false, or if you later removed the checked item from the
+      group; we need a state to represent this situation, that's why
+      it's allowed for radio group to have none radio item chosen). }
+    property Selected: TMenuItemRadio read FSelected write SetSelected;
+
+    procedure DebugWriteln;
   end;
 
 {$endif read_interface}
@@ -313,7 +404,8 @@ function SQuoteMenuEntryCaption(const S: string): string;
   will change in the future.
 }
 
-{$I ObjectsList_2.inc}
+{$I objectslist_2.inc}
+{$I objectslist_3.inc}
 
 { TMenuEntry ------------------------------------------------------------ }
 
@@ -504,12 +596,19 @@ end;
 
 { TMenuItemChecked ------------------------------------------------------------ }
 
+procedure TMenuItemChecked.DoAutoCheckedToggle;
+begin
+  { Changing Checked will also call Changed; }
+  Checked := not Checked;
+end;
+
 function TMenuItemChecked.DoCommand: boolean;
 begin
  if inherited DoCommand then Exit(true);
 
- { Changing Checked will also call Changed; }
- if AutoCheckedToggle then Checked := not Checked;
+ if AutoCheckedToggle then
+   DoAutoCheckedToggle;
+
  Result := false;
 end;
 
@@ -546,6 +645,147 @@ begin
  inherited Create(ACaption, AIntData, AKey);
  FChecked := AChecked;
  FAutoCheckedToggle := AAutoCheckedToggle;
+end;
+
+{ TMenuItemRadio ------------------------------------------------------------- }
+
+constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
+  AChecked, AAutoCheckedToggle: boolean);
+begin
+  inherited;
+  CreateCommon;
+end;
+
+constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
+  ACharKey: char;
+  AChecked, AAutoCheckedToggle: boolean);
+begin
+  inherited;
+  CreateCommon;
+end;
+
+constructor TMenuItemRadio.Create(const ACaption: String; AIntData: Integer;
+  AKey: TKey;
+  AChecked, AAutoCheckedToggle: boolean);
+begin
+  inherited;
+  CreateCommon;
+end;
+
+procedure TMenuItemRadio.CreateCommon;
+begin
+  FGroup := TMenuItemRadioGroup.Create;
+  FGroup.Add(Self);
+end;
+
+destructor TMenuItemRadio.Destroy;
+begin
+  if FGroup.Count > 1 then
+    FGroup.Delete(Self) else
+    FreeAndNil(FGroup);
+
+  inherited;
+end;
+
+procedure TMenuItemRadio.SetGroup(Value: TMenuItemRadioGroup);
+begin
+  Value.Add(Self);
+end;
+
+procedure TMenuItemRadio.SetChecked(Value: boolean);
+begin
+  FChecked := Value;
+
+  if Group.Selected <> Self then
+  begin
+    if Checked then
+      Group.Selected := Self;
+  end else
+  begin
+    if not Checked then
+      Group.FSelected := nil;
+  end;
+
+  Changed;
+end;
+
+procedure TMenuItemRadio.DoAutoCheckedToggle;
+begin
+  Writeln('begin TMenuItemRadio.DoAutoCheckedToggle');
+  Group.Selected := Self;
+  Group.DebugWriteln;
+  Writeln('end TMenuItemRadio.DoAutoCheckedToggle');
+end;
+
+{ TMenuItemRadioGroup -------------------------------------------------------- }
+
+procedure TMenuItemRadioGroup.Add(Item: TMenuItemRadio);
+begin
+  if Count = 0 then
+  begin
+    { Then this is the addition of the first radio item called from
+      TMenuItemRadio.CreateCommon. Handle this just by calling inherited. }
+    inherited Add(Item);
+  end else
+  begin
+    { Remove item from it's previous group }
+    if Item.FGroup.Count > 1 then
+      Item.FGroup.Delete(Item) else
+      SysUtils.FreeAndNil(Item.FGroup);
+
+    inherited Add(Item);
+
+    Item.FGroup := Self;
+  end;
+
+  if Item.Checked then
+  begin
+    if Selected <> nil then
+      Item.Checked := false else
+      FSelected := Item;
+  end;
+
+  DebugWriteln;
+end;
+
+procedure TMenuItemRadioGroup.Delete(Item: TMenuItemRadio);
+begin
+  if Selected = Item then
+    FSelected := nil;
+  inherited Delete(Item);
+  Item.FGroup := nil;
+end;
+
+procedure TMenuItemRadioGroup.SetSelected(Value: TMenuItemRadio);
+var
+  I: Integer;
+  Item: TMenuItemRadio;
+begin
+  FSelected := Value;
+
+  for I := 0 to Count - 1 do
+  begin
+    Item := Items[I];
+    Item.FChecked := Item = Selected;
+  end;
+
+  { Note that for efficiency we operate here on internal FChecked field
+    and call Changed only once. }
+  Items[0].Changed;
+end;
+
+procedure TMenuItemRadioGroup.DebugWriteln;
+var
+  I: Integer;
+begin
+  Writeln('--------------------');
+  for I := 0 to Count - 1 do
+  begin
+    Writeln(I, ': ', Items[I].Caption:20, ' ', Items[I].Checked);
+    Assert(Items[I].Group = Self);
+    Assert((not Items[I].Checked) or (Selected = Items[I]));
+  end;
+  Writeln('--------------------');
 end;
 
 { init/fini ------------------------------------------------------------ }
