@@ -207,7 +207,7 @@ end;
 
 function ReceiveWMCopyData_str(const msg:TWMCopyData):string;
 begin
- SetString(result, PChar(msg.CopyDataStruct.lpData), msg.CopyDataStruct.cbData);
+ SetString(result, PChar(msg.CopyDataStruct^.lpData), msg.CopyDataStruct^.cbData);
 end;
 
 function GetModuleFilename_str(h_Module:HMODULE):string;
@@ -257,13 +257,13 @@ function EnumWndProc (h_wnd: HWnd; param:LPARAM): Bool; stdcall;
 var pdata:PFindWindowOfModule_Data;
 begin
  pdata:=PFindWindowOfModule_Data(param);
- if (GetClassName_str(h_wnd) = pdata.SearchWndClassName) and
+ if (GetClassName_str(h_wnd) = pdata^.SearchWndClassName) and
     { compare module names case-insensitive under Windows }
     SameFileName(
       GetModuleFilename_str( HMODULE(GetWindowLong(h_wnd, GWL_HINSTANCE)) ),
-      pdata.SearchModuleName) then
+      pdata^.SearchModuleName) then
  begin
-  pdata.ResultPtr^:=h_Wnd;
+  pdata^.ResultPtr^:=h_Wnd;
   Result:=False;
  end else Result:=true;
 end;

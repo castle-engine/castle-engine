@@ -633,8 +633,10 @@ begin
   ShellLib := TDynLib.Load(ShellDLL);
   try
    ShellLib.SymbolErrorBehaviour := seReturnNil;
-   @SHGetSpecialFolderPath := ShellLib.Symbol('SHGetSpecialFolderPathA');
-   if (@SHGetSpecialFolderPath <> nil) and
+   {$ifdef FPC_OBJFPC} Pointer(SHGetSpecialFolderPath)
+   {$else} @SHGetSpecialFolderPath
+   {$endif} := ShellLib.Symbol('SHGetSpecialFolderPathA');
+   if Assigned(SHGetSpecialFolderPath) and
       SHGetSpecialFolderPath(0, @SHPath, CSIDL_APPDATA, true) then
    begin
     Result := SHPath;
