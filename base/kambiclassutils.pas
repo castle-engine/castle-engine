@@ -250,6 +250,10 @@ procedure Strings_AddCamelotProgramHelpSuffix(
   See [http://www.freepascal.org/mantis/view.php?id=6699] }
 procedure Strings_SetText(SList: TStrings; const S: string);
 
+{ If Strings.Count is larger than MaxCount then
+  it will delete the last strings (to make Strings.Count = MaxCount). }
+procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+
 { ---------------------------------------------------------------------------- }
 { @section(TStream related) }
 
@@ -926,6 +930,12 @@ begin
   if Length(S) = 1 then
     SList.Text := S + LineEnding else
     SList.Text := S;
+end;
+
+procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
+begin
+  while Strings.Count > MaxCount do
+    Strings.Delete(Strings.Count - 1);
 end;
 
 { TStream helpers -------------------------------------------------------- }
