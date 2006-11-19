@@ -213,11 +213,17 @@ procedure TGLWindow.InitMainMenu;
    if Entry is TMenuItem then
    begin
     TrueCaption := SRemoveMnemonics(TMenuItem(Entry).CaptionWithKey);
+    if Entry is TMenuItemRadio then
+    begin
+      if TMenuItemChecked(Entry).Checked then
+        TrueCaption += ' (*)' else
+        TrueCaption += ' ( )';
+    end else
     if Entry is TMenuItemChecked then
     begin
-     if TMenuItemChecked(Entry).Checked then
-      TrueCaption += ' <ON>' else
-      TrueCaption += ' <OFF>';
+      if TMenuItemChecked(Entry).Checked then
+        TrueCaption += ' <ON>' else
+        TrueCaption += ' <OFF>';
     end;
     glutAddMenuEntry(PChar(TrueCaption), TMenuItem(Entry).SmallId);
    end else

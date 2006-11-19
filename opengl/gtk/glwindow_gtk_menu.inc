@@ -26,6 +26,7 @@ end;
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl; forward;
 
+{$ifdef GLWINDOW_GTK_2}
 procedure gtk_check_menu_item_set_draw_as_radio(
   check_menu_item:PGtkCheckMenuItem; draw_as_radio:gboolean);
   cdecl; external gtklib;
@@ -33,6 +34,7 @@ procedure gtk_check_menu_item_set_draw_as_radio(
 function gtk_check_menu_item_get_draw_as_radio(
   check_menu_item:PGtkCheckMenuItem):gboolean;
   cdecl; external gtklib;
+{$endif}
 
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
@@ -267,8 +269,10 @@ procedure TGLWindow.init_window_menu_bar;
 
          So it's easier for me just to use normal check menu items
          and only make them look like radios. }
+       {$ifdef GLWINDOW_GTK_2}
        gtk_check_menu_item_set_draw_as_radio(
          PGtkCheckMenuItem(Result), Entry is TMenuItemRadio);
+       {$endif}
       end else
        Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
          PChar(TMenuItem(Entry).Caption)));
