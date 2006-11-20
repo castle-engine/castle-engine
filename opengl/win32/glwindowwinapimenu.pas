@@ -109,7 +109,7 @@ uses KambiUtils;
   ParentAllowsEnabled = main Menu.Enabled.
   When other menu creates it's children, it passes
   ParentAllowsEnabled = @true. }
-function WindowsMenuFromGLWindowMenuCore(Menu: TMenu; 
+function WindowsMenuFromGLWindowMenuCore(Menu: TMenu;
   MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
   function SMnemonicsToWin(const S: string): string;
@@ -177,9 +177,9 @@ function WindowsMenuFromGLWindowMenuCore(Menu: TMenu;
      But I wrote it for consistency. }
    if MenuItem is TMenuItemChecked then
    begin
-    if TMenuItemChecked(MenuItem).Checked then
-     Flags := Flags or MF_CHECKED else
-     Flags := Flags or MF_UNCHECKED;
+     if TMenuItemChecked(MenuItem).Checked then
+       Flags := Flags or MF_CHECKED else
+       Flags := Flags or MF_UNCHECKED;
    end;
 
    { Don't use here MenuItem.CaptionWithKey.
@@ -190,6 +190,10 @@ function WindowsMenuFromGLWindowMenuCore(Menu: TMenu;
     S := S + #9 + KeyStr;
 
    KambiOSCheck( AppendMenu(Result, Flags, MenuItem.SmallId, PChar(S)) );
+
+   if (MenuItem is TMenuItemRadio) and TMenuItemRadio(MenuItem).Checked then
+     KambiOSCheck( CheckMenuRadioItem(Result,
+       MenuItem.SmallId, MenuItem.SmallId, MenuItem.SmallId, MF_BYCOMMAND) );
   end;
 
   procedure AppendGLMenuSeparator;
@@ -225,7 +229,7 @@ begin
  end;
 end;
 
-function WindowsMenuFromGLWindowMenu(Menu: TMenu; 
+function WindowsMenuFromGLWindowMenu(Menu: TMenu;
   MenuBar: boolean): HMenu;
 begin
   Result := WindowsMenuFromGLWindowMenuCore(

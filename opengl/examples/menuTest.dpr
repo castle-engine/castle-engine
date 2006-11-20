@@ -22,7 +22,7 @@
   Demonstrates the use of MainMenu in TGLWindow.
 
   Shows menu, submenus, menus with keyboard shortcuts, checked menu items,
-  adding menus at runtime, using menu mnemonics. }
+  radio menu items, adding menus at runtime, using menu mnemonics. }
 
 program MenuTest;
 

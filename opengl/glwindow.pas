@@ -600,7 +600,6 @@ unit GLWindow;
     Probably the only visible problem is that if you use "tearoffs" with
     GTK menu, they disappear on menu change.
   - For WinAPI, glut: impl Enabled
-  - Make TMenuItemRadio.
 }
 
 interface
