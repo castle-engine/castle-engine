@@ -159,6 +159,12 @@ type
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
     function ScenesCount: Integer;
 
+    { Just a shortcut for Scenes[0]. }
+    function FirstScene: TVRMLFlatSceneGL;
+
+    { Just a shortcut for Scenes[ScenesCount - 1]. }
+    function LastScene: TVRMLFlatSceneGL;
+
     { Prepare all scenes for rendering. This just calls
       PrepareRender(...) for all Scenes.
 
@@ -680,6 +686,16 @@ end;
 function TVRMLGLAnimation.ScenesCount: Integer;
 begin
   Result := FScenes.Count;
+end;
+
+function TVRMLGLAnimation.FirstScene: TVRMLFlatSceneGL;
+begin
+  Result := FScenes.First;
+end;
+
+function TVRMLGLAnimation.LastScene: TVRMLFlatSceneGL;
+begin
+  Result := FScenes.Last;
 end;
 
 procedure TVRMLGLAnimation.PrepareRender(
