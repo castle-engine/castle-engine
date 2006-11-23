@@ -766,8 +766,14 @@ type
       TSFNode = TVRMLNode and TVRMLNode descendant of TVRMLField,
       but this wasn't a good idea: TSFNode may be NULL, but still
       it has a field name, so it should be nicely represented as
-      TSFNode instance with Value = nil.) }
-    property NodeName: string read fNodeName;
+      TSFNode instance with Value = nil.)
+
+      Note that this is writeable property, so you can change NodeName
+      at runtime. Beware that some operations depend that node names
+      don't change during their work: loading and saving nodes
+      from stream (since these operations keep current collection names to
+      read / write VRML DEF / USE statements), searching for nodes by name. }
+    property NodeName: string read fNodeName write FNodeName;
 
     { WWWBasePath is the base URL path for all URLs
       in node's fields. This is used by all nodes that get some
