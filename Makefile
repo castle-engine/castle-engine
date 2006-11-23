@@ -73,11 +73,7 @@ all: $(UNITS_SUBDIRECTORIES)
 
 .PHONY: $(UNITS_SUBDIRECTORIES)
 
-# Note: I have to use here cd ..; first because the base directory
-# must be the directory where kambi.cfg file is.
-# This is because kambi.cfg contains paths (in -Fu and -Fi)
-# relative to that directory.
-COMPILE_ALL_DIR_UNITS=cd ../; fpc -dRELEASE @kambi.cfg units/$<
+COMPILE_ALL_DIR_UNITS=fpc -dRELEASE @kambi.cfg $<
 
 3dgraph: 3dgraph/allkambi3dgraphunits.pas
 	$(COMPILE_ALL_DIR_UNITS)
