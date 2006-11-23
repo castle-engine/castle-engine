@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
+    <General>
+      <Flags>
+        <SaveClosedFiles Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <Title Value="test_kambi_units"/>
+    </General>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="4">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="kambi_units"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FPCUnitTestRunner"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="FCL"/>
+      </Item4>
+    </RequiredPackages>
+    <Units Count="14">
+      <Unit0>
+        <Filename Value="test_kambi_units.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="test_kambi_units"/>
+        <CursorPos X="51" Y="20"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="37"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="testkambiclassutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestKambiClassUtils"/>
+        <CursorPos X="3" Y="8"/>
+        <TopLine Value="89"/>
+        <UsageCount Value="37"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="testkambiutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestKambiUtils"/>
+        <CursorPos X="1" Y="20"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="35"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="testvectormath.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestVectorMath"/>
+        <CursorPos X="6" Y="45"/>
+        <TopLine Value="27"/>
+        <UsageCount Value="34"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="testparsingparameters.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestParsingParameters"/>
+        <CursorPos X="55" Y="35"/>
+        <TopLine Value="24"/>
+        <UsageCount Value="34"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="testdynarrays.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestDynArrays"/>
+        <CursorPos X="1" Y="6"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="34"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="TestFNMatch.pas"/>
+        <IsPartOfProject Value="True"/>
+        <CursorPos X="24" Y="126"/>
+        <TopLine Value="101"/>
+        <UsageCount Value="32"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="testvrmlnodes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="32"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="testvrmlflatscenegl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestVRMLFlatSceneGL"/>
+        <CursorPos X="72" Y="54"/>
+        <TopLine Value="32"/>
+        <UsageCount Value="32"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="testvrmlfields.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestVRMLFields"/>
+        <CursorPos X="57" Y="35"/>
+        <TopLine Value="28"/>
+        <UsageCount Value="32"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="testintrects.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="28"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="testspacefillingcurves.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="28"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="testobjectslist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="28"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="testkambistringutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="TestKambiStringUtils"/>
+        <CursorPos X="3" Y="92"/>
+        <TopLine Value="64"/>
+        <UsageCount Value="25"/>
+      </Unit13>
+    </Units>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+        <CStyleMacros Value="True"/>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <Verbosity>
+        <ShowNotes Value="False"/>
+        <ShowHints Value="False"/>
+      </Verbosity>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

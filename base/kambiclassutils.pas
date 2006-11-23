@@ -1341,7 +1341,7 @@ end;
 
 procedure TBufferedReadStream.FillBuffer;
 begin
- BufferEnd := SourceStream.Read(Buffer[0], BufferSize);
+ BufferEnd := SourceStream.Read(Buffer^[0], BufferSize);
  BufferPos := 0;
 end;
 
@@ -1353,12 +1353,12 @@ begin
  if LongWord(Count) <= BufferEnd - BufferPos then
  begin
   { In this case we can fill LocalBuffer using only data from Buffer }
-  Move(Buffer[BufferPos], LocalBuffer, Count);
+  Move(Buffer^[BufferPos], LocalBuffer, Count);
   BufferPos := BufferPos + LongWord(Count);
   Result := Count;
  end else
  begin
-  Move(Buffer[BufferPos], LocalBuffer, BufferEnd - BufferPos);
+  Move(Buffer^[BufferPos], LocalBuffer, BufferEnd - BufferPos);
   Result := BufferEnd - BufferPos;
   BufferPos := BufferEnd;
   Count := Count - Result;
@@ -1372,7 +1372,7 @@ begin
   begin
    FillBuffer;
    CopyCount := Min(Count, BufferEnd - BufferPos);
-   Move(Buffer[0], PChar(@LocalBuffer)[Result], CopyCount);
+   Move(Buffer^[0], PChar(@LocalBuffer)[Result], CopyCount);
    BufferPos := BufferPos + CopyCount;
    Result := Result + LongInt(CopyCount);
   end else

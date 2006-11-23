@@ -385,7 +385,7 @@ type
 procedure InitStepData(out StepData: TStepData; Pixels: PArray_Vector2Cardinal;
   const SizeX, SizeY: Cardinal);
 begin
- FillChar(Pixels[0], SizeOf(Pixels[0]), 0);
+ FillChar(Pixels^[0], SizeOf(Pixels^[0]), 0);
  StepData.Pixels := Pixels;
  StepData.NextPixelToWriteNum := 1;
  StepData.LastX := 0;
@@ -396,7 +396,7 @@ end;
 
 procedure HilbertPeanoStep(Angle: TSFCAngle; RawData: Pointer);
 { callback dla TSFCStepFunction dla Hilbert lub PeanoCurve.
-  Zapisze Pixels[NextPixelToWriteNum], uaktualniajac tez
+  Zapisze Pixels^[NextPixelToWriteNum], uaktualniajac tez
   LastX, LastY, NextPixelToWriteNum. Bedzie obcinal zapisywane do Pixels
   elementy do 0..SizeX-1, 0..SizeY-1. }
 var Data: PStepData absolute RawData;

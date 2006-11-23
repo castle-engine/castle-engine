@@ -16,6 +16,7 @@
 #
 #   clean --
 #     Delete FPC 1.0.x Win32 trash (*.ppw, *.ow), FPC trash, Delphi trash,
+#     Lazarus trash (*.compiled),
 #     binaries of example programs,
 #     also FPC compiled trash in packages/*/lib/
 #
@@ -215,6 +216,7 @@ info:
 clean: cleanexamples
 	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
+			   -iname '*.compiled' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
 	     -print \
 	     | xargs rm -f

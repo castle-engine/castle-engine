@@ -1,0 +1,1 @@
+cd ../; fpc @kambi.cfg -dDEBUG -dTEXT_RUNNER tests/test_kambi_units.lpr
