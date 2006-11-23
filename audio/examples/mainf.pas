@@ -53,7 +53,7 @@ var
 
 implementation
 
-uses VectorMath, ALUtils, OpenAL, KambiStringUtils;
+uses VectorMath, ALUtils, OpenAL, KambiUtils, KambiStringUtils;
 
 { TMain }
 
@@ -79,7 +79,17 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  BeginAL(false);
+  try
+    BeginAL(false);
+  except
+    on E: EOpenALError do
+    begin
+      MessageDlg('Exception ' + E.ClassName + ':' + NL + E.Message,
+        mtError, [mbOK], 0);
+      { Re-raise, to end the program and print this on console }
+      raise;
+    end;
+  end;
   SourceAllocator := TALSourceAllocator.Create(
     SpinEditMinAllocatedSources.Value,
     SpinEditMaxAllocatedSources.Value);

@@ -10,6 +10,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -46,9 +47,11 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <CursorPos X="47" Y="56"/>
+        <TopLine Value="23"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="24"/>
+        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../alsourceallocator.pas"/>
@@ -60,7 +63,7 @@
       <Unit3>
         <Filename Value="../openal_al.inc"/>
         <CursorPos X="3" Y="37"/>
-        <TopLine Value="21"/>
+        <TopLine Value="15"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
@@ -91,7 +94,32 @@
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="6" HistoryIndex="5">
+      <Position1>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="111" Column="60" TopLine="103"/>
+      </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="81" Column="3" TopLine="47"/>
+      </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="86" Column="14" TopLine="60"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="66" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="89" Column="7" TopLine="61"/>
+      </Position5>
+      <Position6>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="87" Column="53" TopLine="65"/>
+      </Position6>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
