@@ -65,7 +65,9 @@
 
 UNITS_SUBDIRECTORIES := $(shell \
   find * -maxdepth 0 -type d \
-    '(' -not -name 'private' ')' '(' -not -name 'old' ')' -print)
+    '(' -not -name 'private' ')' '(' -not -name 'old' ')' \
+    '(' -not -name 'packages' ')' '(' -not -name 'doc' ')' \
+    -print)
 
 all: $(UNITS_SUBDIRECTORIES)
 
@@ -191,7 +193,7 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
 
 .PHONY: examples
 examples:
-	cd ../; $(foreach NAME,$(EXAMPLES_BASE_NAMES),units/$(NAME)_compile.sh && ) true
+	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
 
 .PHONY: cleanexamples
 cleanexamples:
