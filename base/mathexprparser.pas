@@ -72,7 +72,8 @@ function ParseMathExpr(const S: string): TMathExpr;
 function EvalConstMathExpr(const S: string): Float;
 
 type
-  { zeby nazwa EMathSyntaxError byla obecna w tym module }
+  { Reexported in this unit, so that the identifier EMathSyntaxError
+    will be visible when using this unit. }
   EMathSyntaxError = MathExprLexer.EMathSyntaxError;
 
   EMathParserError = class(EMathSyntaxError);

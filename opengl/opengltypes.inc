@@ -163,6 +163,7 @@ const
 // *****************************************************************************
 
 type
+  { }
   TMatrix2i = TMatrix2Longint; PMatrix2i = PMatrix2Longint;
   TMatrix2f = TMatrix2Single;  PMatrix2f = PMatrix2Single;
   TMatrix2d = TMatrix2Double;  PMatrix2d = PMatrix2Double;
@@ -205,6 +206,7 @@ const
 // *****************************************************************************
 
 type
+  { }
   TPoint2i = TVector2i;
   TPoint2f = TVector2f;
   TPoint2d = TVector2d;
@@ -221,6 +223,7 @@ type
 
 { by Kambi : color types are equal to vector types }
 type
+  { }
   TColor3ub = TVector3ub;
   TColor3f = TVector3f;
   TColor4ub = TVector4ub;

@@ -44,7 +44,7 @@ type
 
   {* OpenAL void type (for params, not returns). }
   { TALvoid = void; 
-  PALvoid = ^TALvoid; } 
+  PALvoid = ^TALvoid; } { }
   PALvoid = Pointer;
 
   {* OpenAL enumerations. }
