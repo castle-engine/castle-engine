@@ -224,7 +224,8 @@ clean: cleanexamples
 	  packages/unix/kambi_glwindow.pas \
 	  packages/unix/kambi_glwindow_navigated.pas \
 	  packages/win32/lib/ packages/win32/kambi_units.pas \
-	  packages/components/lib/ packages/components/kambi_components.pas
+	  packages/components/lib/ packages/components/kambi_components.pas \
+	  tests/test_kambi_units tests/test_kambi_units.exe
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
