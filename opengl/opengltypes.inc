@@ -74,6 +74,7 @@ type
 // TVector1* :
 
 type
+  { }
   TVector1ub = packed array [0..0] of TGLubyte;   PVector1ub = ^TVector1ub;
   TVector1s = packed array [0..0] of TGLshort;    PVector1s = ^TVector1s;
   TVector1i = packed array [0..0] of TGLint;      PVector1i = ^TVector1i;
@@ -86,6 +87,7 @@ type
 // *****************************************************************************
 
 type
+  { }
   TVector2f = TVector2Single;   PVector2f = PVector2Single;
   TVector2d = TVector2Double;   PVector2d = PVector2Double;
   TVector2ub = TVector2Byte;    PVector2ub = PVector2Byte;
@@ -110,6 +112,7 @@ const
 // *****************************************************************************
 
 type
+  { }
   TVector3f = TVector3Single;   PVector3f = PVector3Single;
   TVector3d = TVector3Double;   PVector3d = PVector3Double;
   TVector3ub = TVector3Byte;    PVector3ub = PVector3Byte;
@@ -140,6 +143,7 @@ const
 // *****************************************************************************
 
 type
+  { }
   TVector4f = TVector4Single;   PVector4f = PVector4Single;
   TVector4d = TVector4Double;   PVector4d = PVector4Double;
   TVector4ub = TVector4Byte;    PVector4ub = PVector4Byte;
