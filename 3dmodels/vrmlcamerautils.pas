@@ -8,7 +8,7 @@ unit VRMLCameraUtils;
 
 interface
 
-uses Math, KambiUtils, VectorMath;
+uses Math, KambiUtils, VectorMath, Boxes3d;
 
 const
   { nie mozesz zmieniac ponizszych stalych, ich definicja jako wlasnie takie
@@ -36,6 +36,9 @@ const
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single; overload;
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   out OrientAxis: TVector3Single; out OrientRadAngle: Single); overload;
+
+procedure CameraViewpointForWholeScene(const Box: TBox3d;
+  out CameraPos, CameraDir, CameraUp: TVector3Single);
 
 implementation
 
@@ -196,6 +199,27 @@ var OrientAxis: TVector3Single;
 begin
  CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
  result := Vector4Single(OrientAxis, OrientAngle);
+end;
+
+procedure CameraViewpointForWholeScene(const Box: TBox3d;
+  out CameraPos, CameraDir, CameraUp: TVector3Single);
+var
+  AvgSize: Single;
+begin
+  if IsEmptyBox3d(Box) then
+  begin
+    CameraPos := StdVRMLCamPos_1;
+    CameraDir := StdVRMLCamDir;
+    CameraUp := StdVRMLCamUp;
+  end else
+  begin
+    AvgSize := Box3dAvgSize(Box);
+    CameraPos[0] := Box[0, 0] - AvgSize;
+    CameraPos[1] := (Box[0, 1] + Box[1, 1]) / 2;
+    CameraPos[2] := (Box[0, 2] + Box[1, 2]) / 2;
+    CameraDir := UnitVector3Single[0];
+    CameraUp := UnitVector3Single[2];
+  end;
 end;
 
 end.
