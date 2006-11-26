@@ -129,7 +129,8 @@ interface
 
 uses
   {$ifdef WIN32} Windows, {$endif}
-  Math, OpenGLh, SysUtils, KambiUtils, Images, VectorMath, Boxes3d, IntRects;
+  Math, OpenGLh, SysUtils, KambiUtils, Images, VectorMath, Boxes3d, IntRects,
+  Matrix;
 
 {$define read_interface}
 
@@ -625,6 +626,8 @@ procedure glNormalv(const v: TVector3b); overload;
 
 procedure glTranslatev(const V: TVector3f); overload;
 procedure glTranslatev(const V: TVector3d); overload;
+procedure glTranslatev(const V: TVector3_Single); overload;
+procedure glTranslatev(const V: TVector3_Double); overload;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
@@ -1771,6 +1774,9 @@ procedure glNormalv(const v: TVector3b); begin glNormal3bv(@v); end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
 procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2]); end;
+
+procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
+procedure glTranslatev(const V: TVector3_Double); begin glTranslated(V.Data[0], V.Data[1], V.Data[2]); end;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); begin glRotated(Angle, V[0], V[1], V[2]); end;
