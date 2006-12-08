@@ -356,6 +356,12 @@ type
       moga to opakowac w display liste. Patrz
       RenderBeginSimple and RenderEndSimple.
 
+      Jesli chcesz przekaz
+      RenderBeginProc, RenderEndProc = nil, wtedy musisz sam sie upewnic
+      ze je wywolasz naokolo RenderShapeStatesNoDispList
+      (this is needed because roSceneAsAWhole needs to honour
+      RenderBeginEndToDisplayList).
+
       This procedure never creates or uses any display list.
       You can freely put it's contents inside display list
       (assuming that RenderShapeStateProc, RenderBeginProc and RenderEndProc
@@ -389,6 +395,20 @@ type
       ARenderer: TVRMLOpenGLRenderer);
 
     DefaultSavedShadowQuads: TDynQuad3SingleArray;
+
+    { When using any optimization except roNone you can put
+      Renderer.RenderBegin and Renderer.RenderEnd calls inside
+      display lists too.
+
+      However, stupid Mesa 6.4.2 bug prevents using EXT_fog_coord calls
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+      inside a display list (they cause OpenGL error GL_INVALID_ENUM).
+
+      So before putting Renderer.RenderBegin or Renderer.RenderEnd calls
+      inside display list always check this function. This checks
+      whether we have Mesa. }
+    function RenderBeginEndToDisplayList: boolean;
 
     { Private things only for RenderFrustum ---------------------- }
 
@@ -923,7 +943,7 @@ begin
   Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
 
   { Note that this calls Renderer.Attributes, so use this after
-    initializing Rendered. }
+    initializing Renderer. }
   Attributes.FScenes.Add(Self);
 end;
 
@@ -949,7 +969,7 @@ begin
   CloseGL;
 
   { Note that this calls Renderer.Attributes, so use this before
-    deinitializing Rendered. }
+    deinitializing Renderer. }
   Attributes.FScenes.Delete(Self);
 
   if not FUsingProvidedRenderer then
@@ -1053,6 +1073,14 @@ begin
  Renderer.RenderEnd;
 end;
 
+function TVRMLFlatSceneGL.RenderBeginEndToDisplayList: boolean;
+begin
+  Result := not GLVersion.IsMesa;
+  { TODO: this should check for Mesa version, and only activate when
+    Mesa version <= something. I have to check various Mesa versions
+    (and eventually report this as Mesa bug, if not fixed yet). }
+end;
+
 procedure TVRMLFlatSceneGL.RenderShapeStatesNoDispList(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   RenderShapeStateProc: TRenderShapeState;
@@ -1075,7 +1103,8 @@ begin
  FLastRender_RenderedShapeStatesCount := 0;
  FLastRender_AllShapeStatesCount := ShapeStates.Count;
 
- RenderBeginProc;
+ if Assigned(RenderBeginProc) then
+   RenderBeginProc;
  try
   glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   try
@@ -1138,13 +1167,26 @@ begin
    end;
 
   finally glPopAttrib end;
- finally RenderEndProc end;
+ finally
+   if Assigned(RenderEndProc) then
+     RenderEndProc;
+ end;
 end;
 
 procedure TVRMLFlatSceneGL.SSSX_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
+  if not RenderBeginEndToDisplayList then
+  begin
+    { Although SSSX_PrepareBegin shouldn't call any actual OpenGL commands
+      outside of display list, (not RenderBeginEndToDisplayList) forces
+      us to call RenderBeginSimple here. See comments inside analogous
+      SAAW_Prepare situation. }
+    RenderBeginSimple;
+    Exit;
+  end;
+
   if not Renderer.Cache.RenderBegin_IncReference_Existing(
     Attributes,
     FogNode, FogDistanceScaling,
@@ -1170,6 +1212,12 @@ procedure TVRMLFlatSceneGL.SSSX_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
+  if not RenderBeginEndToDisplayList then
+  begin
+    RenderEndSimple;
+    Exit;
+  end;
+
   if not Renderer.Cache.RenderEnd_IncReference_Existing(
     Attributes,
     FogNode, FogDistanceScaling,
@@ -1195,14 +1243,20 @@ procedure TVRMLFlatSceneGL.SSSX_RenderBegin;
 begin
   if SSSX_RenderBeginDisplayList = 0 then
     SSSX_PrepareBegin;
-  glCallList(SSSX_RenderBeginDisplayList);
+
+  if RenderBeginEndToDisplayList then
+    glCallList(SSSX_RenderBeginDisplayList) else
+    RenderBeginSimple;
 end;
 
 procedure TVRMLFlatSceneGL.SSSX_RenderEnd;
 begin
   if SSSX_RenderEndDisplayList = 0 then
     SSSX_PrepareEnd;
-  glCallList(SSSX_RenderEndDisplayList);
+
+  if RenderBeginEndToDisplayList then
+    glCallList(SSSX_RenderEndDisplayList) else
+    RenderEndSimple;
 end;
 
 procedure TVRMLFlatSceneGL.SSS_PrepareShapeState(
@@ -1335,13 +1389,39 @@ begin
 
   SAAW_DisplayList := glGenListsCheck(1,
     'TVRMLFlatSceneGL.SAAW_Prepare');
-  glNewList(SAAW_DisplayList, GL_COMPILE);
-  try
-   RenderShapeStatesNoDispList(nil,
-     {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
-     {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
-     {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
-  finally glEndList end;
+  if RenderBeginEndToDisplayList then
+  begin
+    glNewList(SAAW_DisplayList, GL_COMPILE);
+    try
+      RenderShapeStatesNoDispList(nil,
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
+    finally glEndList end;
+  end else
+  begin
+    { Although this is SAAW_Prepare, and we shouldn't call here
+      any OpenGL command outside of display list, we have to call
+      RenderBegin/EndSimple outside of display list:
+      - (not RenderBeginEndToDisplayList) doesn't allow us to call
+        this inside display list,
+      - and TVRMLOpenGLRenderer requires
+        that RenderBegin/End must be called around particular shape+state
+        rendering (e.g. because RenderBegin sets up private variables for
+        volumetric fog).
+      Fortunately RenderBegin + RenderEnd do a full push/pop attributes
+      and matrices, so this shouldn't be a problem.
+    }
+
+    RenderBeginSimple;
+    try
+      glNewList(SAAW_DisplayList, GL_COMPILE);
+      try
+        RenderShapeStatesNoDispList(nil,
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple, nil, nil);
+      finally glEndList end;
+    finally RenderEndSimple end;
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SAAW_Render;
@@ -1353,7 +1433,15 @@ begin
     FLastRender_AllShapeStatesCount := ShapeStates.Count;
     FLastRender_RenderedShapeStatesCount := FLastRender_AllShapeStatesCount;
   end;
-  glCallList(SAAW_DisplayList);
+
+  if RenderBeginEndToDisplayList then
+    glCallList(SAAW_DisplayList) else
+  begin
+    RenderBeginSimple;
+    try
+      glCallList(SAAW_DisplayList);
+    finally RenderEndSimple end;
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.PrepareRender(
@@ -1372,26 +1460,27 @@ begin
         { build display lists (if needed) for begin/end and all shape states }
         if SSSX_RenderBeginDisplayList = 0 then
           SSSX_PrepareBegin;
-
-        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-        begin
-          if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+        try
+          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
           begin
-            if Optimization = roSeparateShapeStates then
-              SSS_PrepareShapeState(ShapeStateNum) else
-              SSSNT_PrepareShapeState(ShapeStateNum);
+            if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+            begin
+              if Optimization = roSeparateShapeStates then
+                SSS_PrepareShapeState(ShapeStateNum) else
+                SSSNT_PrepareShapeState(ShapeStateNum);
+            end;
+
+            { Calculate AllMeterialTransparent and make it cached in
+              ShapeStatesList[ShapeStateNum] instance. This is needed
+              for our trick with freeing RootNode, see
+              TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
+              comments. }
+            ShapeStates[ShapeStateNum].AllMaterialsTransparent;
           end;
-
-          { Calculate AllMeterialTransparent and make it cached in
-            ShapeStatesList[ShapeStateNum] instance. This is needed
-            for our trick with freeing RootNode, see
-            TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
-            comments. }
-          ShapeStates[ShapeStateNum].AllMaterialsTransparent;
+        finally
+          if SSSX_RenderEndDisplayList = 0 then
+            SSSX_PrepareEnd;
         end;
-
-        if SSSX_RenderEndDisplayList = 0 then
-          SSSX_PrepareEnd;
       end;
   end;
 
@@ -1907,7 +1996,7 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetOnBeforeGLVertex(
   const Value: TBeforeGLVertexProc);
 begin
-  if {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex <> 
+  if {$ifndef FPC_OBJFPC} @ {$endif} OnBeforeGLVertex <>
      {$ifndef FPC_OBJFPC} @ {$endif} Value then
   begin
     FScenes.CloseGLRenderer;
