@@ -18,214 +18,257 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Tutaj implementujemy klase @link(TVRMLOpenGLRenderer)
-  ktora jest odpowiedzialna za renderowanie sceny VRML'a.)
+{ @abstract(The @link(TVRMLOpenGLRenderer) class, responsible for
+  rendering VRML elements.)
 
-  TODO: Most of the text below is translated to English
-  in my master's thesis
+  The overview of this class can also be found in my master's thesis
   [http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
-  This text should be incorporated here at some point.
+  You should read that description first --- the text below only
+  adds some details.
 
-  Scena VRML'a jest tutaj po prostu ciagiem par
+  For this class, a VRML scene is just a sequence of pairs
   (Node: TNodeGeneralShape; State: TVRMLGraphTraverseState).
+  To render a sequence of such pairs you should:
 
-  Chcac wyrenderowac ciag takich par wywolaj
+  @orderedList(
+    @item(
+      Call @link(TVRMLOpenGLRenderer.Prepare) for all states
+      that you want to later render. The order of calling Prepare
+      methods doesn't matter, also you are free to prepare states that you
+      will not actually use later. Of course a state, once prepared,
+      may be used in rendering as many times as you want.
 
-  - najpierw Prepare na wszystkich stanach ktore zamierzasz tutaj
-    renderowac. Kolejnosc podawania stanow dla Prepare nie ma znaczenia,
-    mozesz tez podawac stany ktorych w ogole nie bedziesz pozniej renderowal.
-    Jezeli jakis stan bedzie renderowany dwa razy mozesz go podac tylko raz.
-    Wazne jest zeby KAZDY STAN jaki bedziesz pozniej renderowal zostal
-    podany dla Prepare. I teraz najwazniejsze : kazdy stan jaki bedziesz
-    pozniej podawal do Render to musi byc dokladnie ten sam stan co tutaj,
-    wiec musi miec te same wskazniki do node'ow Last*/Active* i
-    ZAWARTOSC POL TYCH NODE'OW TEZ MUSI BYC JUZ CIAGLE TAKA SAMA.
-    W szczegolnosci, bedziemy sobie tutaj zapamietywali wiazania niektorych
-    obiektow z zasobami OpenGL'a ktore bedziemy im przydzielac w Prepare.
-    Wiec musi byc pewne zeby dany wskaznik na obiekt wskazywal juz zawsze na
-    TEN SAM OBIEKT.
+      It's important that you will prepare @italic(every state that
+      you want to render later). And when rendring the state
+      must have exactly the same (fields, properties) values as when
+      it was prepared. This includes that it must have the same
+      pointers to nodes Last*/Active* and their contents
+      also must be the same. In particular, Prepare
+      may save some associations between objects and OpenGL resources,
+      so it's important that the same pointer must always point to the
+      same object (until it's unprepared).
 
-    Prepare wymaga aktywnego kontekstu OpenGL'a. Prepare
-    nie modyfikuje aktualnego stanu OpenGL'a poza tym ze moze zajac
-    jakies display listy i indeksy tekstur OpenGL'a.
-    Prepare nie moze byc wywolane jako czesc display-listy.
+      (Below is in Polish, sorry. See my master's thesis for
+      English summary of this documentation.)
 
-    Po wywolaniu Prepare (i pomiedzy kolejnymi wywolaniami Prepare)
-    mozesz sobie spokojnie robic z OpenGL'em co ci sie zywnie podoba.
-    Pamietaj tylko aby nie dotykac zajetych juz display-list i indeksow tekstury.
+      Prepare wymaga aktywnego kontekstu OpenGL'a. Prepare
+      nie modyfikuje aktualnego stanu OpenGL'a poza tym ze moze zajac
+      jakies display listy i indeksy tekstur OpenGL'a.
+      Prepare nie moze byc wywolane jako czesc display-listy.
 
-  - Jezeli zamierzasz zmienic zawartosc pol jakiegos node'a ktory trafil
-    gdzies tutaj jako Last*/Active* w jakims State (albo jezeli np. zamierzasz
-    w ogole zwolnic ten obiekt) i jezeli zamierzasz jeszcze uzywac
-    tego renderera to musisz wywolac UnPrepare na tym nodzie.
-    Wszystkie stany ktore przygotowales przez Prepare ktore
-    jako jeden ze swoich Last*/Active* mialy ten node juz oczywiscie nie sa
-    przygotowane. Pamietaj ze nawet jezeli zwalniasz ten node (a wiec
-    nie zamierzasz nic z nim juz renderowac) to musisz mu tu zrobic
-    Unprepare (bo inaczej jakis inny obiekt moglby byc kiedys
-    skonstruowany tak ze wskazywalby na to samo miejsce w pamieci
-    i co wtedy ? Nasz renderer moglby uznac ze ma do czynienia z tym samym
-    obiektem !).
+      Po wywolaniu Prepare (i pomiedzy kolejnymi wywolaniami Prepare)
+      mozesz sobie spokojnie robic z OpenGL'em co ci sie zywnie podoba.
+      Pamietaj tylko aby nie dotykac zajetych juz display-list i indeksow tekstury.
+    )
 
-    Przy czym wiedz ze obiekt ktory podajesz do Unprepare MOZE byc
-    (w momencie podawanie jego wskaznika) juz zwolniony. Wiec Unprepare
-    w ogole nie zaglada do zawartosci obiektu. Wywolanie Unprepare
-    na obiekcie ktory nigdy nie byl podawany jako Last*/Active* w jakims State
-    tez nie jest zabronione (po prostu niczego nie spowoduje).
+    @item(
+      Jezeli zamierzasz zmienic zawartosc pol jakiegos node'a ktory trafil
+      gdzies tutaj jako Last*/Active* w jakims State (albo jezeli np. zamierzasz
+      w ogole zwolnic ten obiekt) i jezeli zamierzasz jeszcze uzywac
+      tego renderera to musisz wywolac UnPrepare na tym nodzie.
+      Wszystkie stany ktore przygotowales przez Prepare ktore
+      jako jeden ze swoich Last*/Active* mialy ten node juz oczywiscie nie sa
+      przygotowane. Pamietaj ze nawet jezeli zwalniasz ten node (a wiec
+      nie zamierzasz nic z nim juz renderowac) to musisz mu tu zrobic
+      Unprepare (bo inaczej jakis inny obiekt moglby byc kiedys
+      skonstruowany tak ze wskazywalby na to samo miejsce w pamieci
+      i co wtedy ? Nasz renderer moglby uznac ze ma do czynienia z tym samym
+      obiektem !).
 
-  - w jakis czas potem wywolaj RenderBegin. To zainicjuje stan OpenGL'a
-    na taki jakiego bedziemy pozniej potrzebowac. Od momentu wywolania
-    RenderBegin stan OpenGL'a jest we wladzy tego obiektu : nie wolno
-    ci go modyfikowac w zaden sposob niz poprzez ten obiekt.
+      Przy czym wiedz ze obiekt ktory podajesz do Unprepare MOZE byc
+      (w momencie podawanie jego wskaznika) juz zwolniony. Wiec Unprepare
+      w ogole nie zaglada do zawartosci obiektu. Wywolanie Unprepare
+      na obiekcie ktory nigdy nie byl podawany jako Last*/Active* w jakims State
+      tez nie jest zabronione (po prostu niczego nie spowoduje).
+    )
 
-  - potem wywoluj RenderShapeState(Node, State)
-    aby renderowac pary Node+State.
-    Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
-    wczesniej w wywolaniu Prepare.
+    @item(
+      w jakis czas potem wywolaj RenderBegin. To zainicjuje stan OpenGL'a
+      na taki jakiego bedziemy pozniej potrzebowac. Od momentu wywolania
+      RenderBegin stan OpenGL'a jest we wladzy tego obiektu : nie wolno
+      ci go modyfikowac w zaden sposob niz poprzez ten obiekt.
+    )
 
-    Alternatively you can call RenderShapeStateBegin,
-    RenderShapeStateNoTransform, RenderShapeStateEnd (always in this sequence,
-    always RenderShapeStateEnd in the "finally" clause, so that
-    after RenderShapeStateBegin there is always RenderShapeStateEnd
-    called). This is equivalent to RenderShapeState
-    (but sometimes it's better as it allows you to place
-    RenderShapeStateNoTransform on a separate display list, that can be more
-    shared (because it doesn't take some transformations into account)).
+    @item(
+      potem wywoluj RenderShapeState(Node, State)
+      aby renderowac pary Node+State.
+      Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
+      wczesniej w wywolaniu Prepare.
 
-  - potem wywolaj RenderEnd. Po wywolaniu RenderEnd bedziesz mial
-    taki sam stan OpenGL'a jak przed wywolaniem RenderBegin, modulo
-    fakt ze zawartosci buforow kolorow i depth buffera zostana
-    zmodyfikowane (chociaz zawartosci buforow nie naleza do stanu OpenGL'a,
-    wedlug definicji stanu OpenGL'a z jego specyfikacji).
+      Alternatively you can call RenderShapeStateBegin,
+      RenderShapeStateNoTransform, RenderShapeStateEnd (always in this sequence,
+      always RenderShapeStateEnd in the "finally" clause, so that
+      after RenderShapeStateBegin there is always RenderShapeStateEnd
+      called). This is equivalent to RenderShapeState
+      (but sometimes it's better as it allows you to place
+      RenderShapeStateNoTransform on a separate display list, that can be more
+      shared (because it doesn't take some transformations into account)).
+    )
 
-    Dowolny kawalek powyzszych Renderow moze byc zapamietany na display-liscie.
-    Typowe zastosowania to zapamietywanie na osobnych listach RenderBegin,
-    Render kazdej pary i RenderEnd lub zapamietywanie na jednej display-liscie
-    Render wszystkiego (Begin + pary + End). Jest gwarantowane ze rzeczy
-    robione w RenderBegin i RenderEnd nie zaleza od Render node'ow jakie byly
-    wykonywane i ze w ogole Render kazdej pary Node+State jest niezalezne -
-    zapamietane na diplay-liscie, te listy beda nastepnie mogly byc
-    wywolywane w innej kolejnosci itp.
+    @item(
+      potem wywolaj RenderEnd. Po wywolaniu RenderEnd bedziesz mial
+      taki sam stan OpenGL'a jak przed wywolaniem RenderBegin, modulo
+      fakt ze zawartosci buforow kolorow i depth buffera zostana
+      zmodyfikowane (chociaz zawartosci buforow nie naleza do stanu OpenGL'a,
+      wedlug definicji stanu OpenGL'a z jego specyfikacji).
 
-  - mozesz powtarzac ten scenariusz na dowolne sposoby dowolnie wiele razy.
-    Mozesz robic sobie Unprepare'y, Prepare'y, ciagi
-    RenderBegin + Render'y + RenderEnd. Pamietaj tylko ze caly czas musi byc
-    obecny ten sam kontekst OpenGL'a i pamietaj to co mowilem o node'ach
-    ktore sa podawane jako Last*/Active* w odpowiednich State'ach : one musza caly
-    czas zajmowac swoj wskaznik w pamieci (zeby zaden inny obiekt nie wskazywal
-    nigdy na to miejsce pamieci) i zawsze musza miec ta sama zawartosc.
+      Dowolny kawalek powyzszych Renderow moze byc zapamietany na display-liscie.
+      Typowe zastosowania to zapamietywanie na osobnych listach RenderBegin,
+      Render kazdej pary i RenderEnd lub zapamietywanie na jednej display-liscie
+      Render wszystkiego (Begin + pary + End). Jest gwarantowane ze rzeczy
+      robione w RenderBegin i RenderEnd nie zaleza od Render node'ow jakie byly
+      wykonywane i ze w ogole Render kazdej pary Node+State jest niezalezne -
+      zapamietane na diplay-liscie, te listy beda nastepnie mogly byc
+      wywolywane w innej kolejnosci itp.
+    )
 
-    W koncu zechcesz zwolnic ten obiekt : badz swiadomy ze to spowoduje
-    zwolnienie tez kilku zasobow OpenGL'a bo wywola Unprepare.
-    Wiec musi byc aktywny ten sam kontekst OpenGL'a.
-    Podobnie jak z samym Unprepare : wszystkie node'y ktore gdzie pojawily
-    sie jako Last*/Active* MOGA byc w tym czasie juz zwolnione z pamieci.
+    @item(
+      mozesz powtarzac ten scenariusz na dowolne sposoby dowolnie wiele razy.
+      Mozesz robic sobie Unprepare'y, Prepare'y, ciagi
+      RenderBegin + Render'y + RenderEnd. Pamietaj tylko ze caly czas musi byc
+      obecny ten sam kontekst OpenGL'a i pamietaj to co mowilem o node'ach
+      ktore sa podawane jako Last*/Active* w odpowiednich State'ach : one musza caly
+      czas zajmowac swoj wskaznik w pamieci (zeby zaden inny obiekt nie wskazywal
+      nigdy na to miejsce pamieci) i zawsze musza miec ta sama zawartosc.
 
-  Jeszcze slowko o kontekstach OpenGL'a : Create nie wymaga zadnego
-    kontekstu aktywnego. Potem wszystko co wywolujesz musi byc w tym samym
-    kontekscie. Az do wywolania UnprepareAll, po ktorym
-    mozesz zaczac uzywac tego renderera na zupelnie innym kontekscie
-    (UnprepareAll po prostu niszczy wszelkie zwiazki tego renderera
-    z aktualnym kontekstem OpenGL'a). Uwaga - wywolanie Unpreprare
-    na wszystkich node'ach ktore podales kiedys jako Last*/Active* to NIE jest
-    to samo co UnprepareAll - wywolanie wszystkich mozliwych Unprepare
-    to NIE to samo co UnpreprareAll; UnprepareAll moze robic cos wiecej
-    (wiec wywoluj zawsze UnprepareAll aby uciac wszelki swoj zwiazek z
-    aktualnym kontekstem OpenGL'a). UnprepareAll mozesz
-    wykonywac dowolnie wiele razy, tzn. UnprepareAll nie zrobi nic
-    (i tym samym nie bedzie wymagalo glcontextu) jesli juz ostatnio
-    je wywolales i od tego czasu nie zrobiles zadnego Prepare.
-    Destruktor wykonuje UnprepareAll automatycznie a wiec albo wywolasz
-    destruktor podczas gdy ten glcontext jest jeszcze aktywny albo
-    przynajmniej zrobisz UnprepareAll jako ostatnie wywolanie dla tego
-    gl-kontekstu.
+      W koncu zechcesz zwolnic ten obiekt : badz swiadomy ze to spowoduje
+      zwolnienie tez kilku zasobow OpenGL'a bo wywola Unprepare.
+      Wiec musi byc aktywny ten sam kontekst OpenGL'a.
+      Podobnie jak z samym Unprepare : wszystkie node'y ktore gdzie pojawily
+      sie jako Last*/Active* MOGA byc w tym czasie juz zwolnione z pamieci.
+    )
+  )
 
-  Pewne notki w kwestii stanu OpenGL'a i renderowania sceny VRML'a :
-    Jest jasne ze w implementacji RenderBegin musimy sobie zainicjowac
-    pewne elementy stanu OpenGL'a, jak np. ustawic macierz na MODELVIEW
-    itp. Oczywiscie potem w RenderEnd odtworzymy takie atrybuty
-    jakie byly, ale nie o to chodzi. Chodzi o to ze sa pewne atrybuty
-    ktorych NIE CHCEMY inicjowac na stan poczatkowy bo chcemy ci pozwolic
-    na ich zainicjowanie samemu. Przede wszystkim nalezy tu wymienic
-    aktualny stan macierzy MODELVIEW : gdybysmy chcieli dokladnie odtworzyc
-    w OpenGL'u model VRML'a powinnismy na poczatku zrobic glLoadIdentity.
-    Ale oczywiscie nie robimy tego, to by byla zupelnie bezsensowna strata
-    funkcjonalnosci : poprzez pozwolenie ci na odpowiednie ustawienie
-    macierzy MODELVIEW przed wywolaniem RenderBegin mozesz
-    przesuwac, obracac i skalowac caly model VRML'a.
-    Oto spisik rzeczy ktore mozesz roznie ustawic przed wywolaniem
-    RenderBegin i za pomoca ktorych mozesz wplywac na sposob renderowania
-    sceny VRML'a przez VRMLOpenGLRenderera :
-     - aktualna macierz MODELVIEW i PROJECTION
-     - glLightModel (GL_LIGHT_MODEL_AMBIENT)
-       (notka: specyfikacja VRMLa 1.0 podaje domyslne LIGHT_MODEL_AMBIENT
-        0.2, 0.2, 0.2 co jest akurat zgodne z domyslnym stanem OpenGL'a.
-        Specyfikacja lighting VRMLa 97 (z ktora probujemy byc zgodni,
-        nawet w VRMLu 1.0) podaje z kolei rownania swiatla takie ze wynika z nich
-        ze LIGHT_MODEL_AMBIENT powinno byc zerowe.)
-     - glPolygonMode
-       (oczywiscie, zeby wszystko bylo normalne powinienes
-       uzywac GL_FRONT_AND_BACK, GL_FILL. Ale przelaczanie sie na model
-       wireframe moze byc bardzo pouczajace zeby zobaczyc jak model
-       jest skostruowany i jak jest wyswietlany)
-     - stan enabled GL_LIGHTING (sa specjalne sytuacje gdy material w VRMLu
-       okresla juz precalculated color - wtedy LIGHTING moze byc chwilowo
-       wylaczone i kolory obiektow beda brane z EmissionColor;
-       ale normalnie, LIGHTING OpenGL'a bedzie pozostawione w takim stanie
-       w jakim bylo w momencie wejscia w RenderBegin i OpenGL dostanie
-       informacje ktore pozwola mu wyrenderowac wszystko ladnie bez wzgledu
-       na to czy ma czy nie ma wlaczone LIGHTING)
-     - glTexEnv
-       (oczywiscie, powinienes uzywac defaultowego GL_MODULATE ktore
-       gwarantuje ze polaczenie wlasciwosci materialu, swiatla i tekstury
-       bedzie odpowiednio wyrenderowane; ale jesli masz model do specjalnych
-       zastosowan, albo nie zamierzasz uzywac swiatla itp. - inne tryby
-       tez moga byc uzyteczne)
-     - glDepthMask, stan enabled GL_BLEND i glBlendFunc
-       (te stany nie sa tu kontrolowane, choc zapewne kod zewnetrzny
-       (tzn. kod uzywajacy tego renderera) moze  zechciec ustawic
-       te wartosci na cos konkretnego. Manipulujac tymi wartosciami kod
-       zewnetrzny moze zaimplementowac obiekty polprzezroczyste uzywajac
-       blending OpenGLa, przykladowo tak robi VRMLFlatSceneGL)
+  @bold(Jeszcze slowko o kontekstach OpenGL'a :)
 
-  Notki o Triagles/VerticesCount : poniewaz OpenGL oferuje tylko cieniowanie
-    Gourauda (no i plaskie cieniowanie, w zaleznosci od Attributes.SmoothShading),
-    idea OverTriangulate = true w VRMLNodes.TNodeGeneralShape.[Local]Triangulate
-    staje sie uzyteczna. Jest gwarantowane ze ten renderer bedzie uzywal
-    dokladnie takich trojkatow jakie generuje metoda Triangulate z
-    [Local]Triangulate, a wiec ze powinienes uzywac
-    Triangles/VerticesCount(State, true) aby powiedziec userowi ile trojkatow
-    dajemy OpenGLowi do wyrenderowania.
-    TODO - niniejsza implementacja robi to, ale tak naprawde wcale nie uzywa
-      metody Triangulate. A wiec de facto zapewniamy sobie zgodnosc z
-      Triangles/VerticesCount(State, true) ale w brudny sposob - po prostu
-      znajac implementacje Triangulate, implementujemy w tym rendererze taka
-      sama triangulacje. Dlaczego nie uzywamy tu metody Triangulate ?
-      Bo spowodowalaby mnostwo straty czasu bo powodowalaby ze niektore
-      wartosci bylyby liczone dla tych samych vertexow wiele razy
-      bo czesto podawalibysmy te same vertexy OpenGLowi nie mowiac mu ze one
-      sa te same ! (bo Triangulate nie mowiloby nam ze one sa te same).
-      Zeby to zaimplementowac musielibysmy znacznie skomplikowac obsluge metody
-      Triangulate - musialaby zwracac vertexy + indeksy do vertexow,
-      zamiast po prostu kazdy trojkat = 3 vertexy jak teraz.
+  Create nie wymaga zadnego
+  kontekstu aktywnego. Potem wszystko co wywolujesz musi byc w tym samym
+  kontekscie. Az do wywolania UnprepareAll, po ktorym
+  mozesz zaczac uzywac tego renderera na zupelnie innym kontekscie
+  (UnprepareAll po prostu niszczy wszelkie zwiazki tego renderera
+  z aktualnym kontekstem OpenGL'a). Uwaga - wywolanie Unpreprare
+  na wszystkich node'ach ktore podales kiedys jako Last*/Active* to NIE jest
+  to samo co UnprepareAll - wywolanie wszystkich mozliwych Unprepare
+  to NIE to samo co UnpreprareAll; UnprepareAll moze robic cos wiecej
+  (wiec wywoluj zawsze UnprepareAll aby uciac wszelki swoj zwiazek z
+  aktualnym kontekstem OpenGL'a). UnprepareAll mozesz
+  wykonywac dowolnie wiele razy, tzn. UnprepareAll nie zrobi nic
+  (i tym samym nie bedzie wymagalo glcontextu) jesli juz ostatnio
+  je wywolales i od tego czasu nie zrobiles zadnego Prepare.
+  Destruktor wykonuje UnprepareAll automatycznie a wiec albo wywolasz
+  destruktor podczas gdy ten glcontext jest jeszcze aktywny albo
+  przynajmniej zrobisz UnprepareAll jako ostatnie wywolanie dla tego
+  gl-kontekstu.
 
-  About GL extensions:
+  @bold(Pewne notki w kwestii stanu OpenGL'a i renderowania sceny VRML'a :)
 
-    This unit uses GL_EXT_compiled_vertex_array extension if it's
-    available. Although, honestly, I didn't observe any speed
-    improvements from using this extension (even when using TVRMLFlatSceneGL
-    with RendererOptimization = roNone), but, anyway, this can't hurt us.
+  Jest jasne ze w implementacji RenderBegin musimy sobie zainicjowac
+  pewne elementy stanu OpenGL'a, jak np. ustawic macierz na MODELVIEW
+  itp. Oczywiscie potem w RenderEnd odtworzymy takie atrybuty
+  jakie byly, ale nie o to chodzi. Chodzi o to ze sa pewne atrybuty
+  ktorych NIE CHCEMY inicjowac na stan poczatkowy bo chcemy ci pozwolic
+  na ich zainicjowanie samemu. Przede wszystkim nalezy tu wymienic
+  aktualny stan macierzy MODELVIEW : gdybysmy chcieli dokladnie odtworzyc
+  w OpenGL'u model VRML'a powinnismy na poczatku zrobic glLoadIdentity.
+  Ale oczywiscie nie robimy tego, to by byla zupelnie bezsensowna strata
+  funkcjonalnosci : poprzez pozwolenie ci na odpowiednie ustawienie
+  macierzy MODELVIEW przed wywolaniem RenderBegin mozesz
+  przesuwac, obracac i skalowac caly model VRML'a.
+  Oto spisik rzeczy ktore mozesz roznie ustawic przed wywolaniem
+  RenderBegin i za pomoca ktorych mozesz wplywac na sposob renderowania
+  sceny VRML'a przez VRMLOpenGLRenderera :
 
-    Anyway, if you want to use this extension, you should init
-    extensions in OpenGL unit by calling procedures
-      ReadImplementationProperties;
-      LoadProcExtensions;
-    In the future this unit may use some more OpenGL extensions,
-    so to have best performance be sure that you called these
-    2 functions before using OpenGL renderer in this unit.
-    Note to users of GLWindow unit: remember that @link(TGLWindow.Init)
-    already takes care about it for you.
+  @unorderedList(
+    @item(aktualna macierz MODELVIEW i PROJECTION)
+
+    @item(glLightModel (GL_LIGHT_MODEL_AMBIENT)
+
+      (notka: specyfikacja VRMLa 1.0 podaje domyslne LIGHT_MODEL_AMBIENT
+      0.2, 0.2, 0.2 co jest akurat zgodne z domyslnym stanem OpenGL'a.
+      Specyfikacja lighting VRMLa 97 (z ktora probujemy byc zgodni,
+      nawet w VRMLu 1.0) podaje z kolei rownania swiatla takie ze wynika z nich
+      ze LIGHT_MODEL_AMBIENT powinno byc zerowe.))
+
+    @item(glPolygonMode
+
+      (oczywiscie, zeby wszystko bylo normalne powinienes
+      uzywac GL_FRONT_AND_BACK, GL_FILL. Ale przelaczanie sie na model
+      wireframe moze byc bardzo pouczajace zeby zobaczyc jak model
+      jest skostruowany i jak jest wyswietlany))
+
+    @item(
+      stan enabled GL_LIGHTING (sa specjalne sytuacje gdy material w VRMLu
+      okresla juz precalculated color - wtedy LIGHTING moze byc chwilowo
+      wylaczone i kolory obiektow beda brane z EmissionColor;
+      ale normalnie, LIGHTING OpenGL'a bedzie pozostawione w takim stanie
+      w jakim bylo w momencie wejscia w RenderBegin i OpenGL dostanie
+      informacje ktore pozwola mu wyrenderowac wszystko ladnie bez wzgledu
+      na to czy ma czy nie ma wlaczone LIGHTING))
+
+    @item(glTexEnv
+
+      (oczywiscie, powinienes uzywac defaultowego GL_MODULATE ktore
+      gwarantuje ze polaczenie wlasciwosci materialu, swiatla i tekstury
+      bedzie odpowiednio wyrenderowane; ale jesli masz model do specjalnych
+      zastosowan, albo nie zamierzasz uzywac swiatla itp. - inne tryby
+      tez moga byc uzyteczne))
+
+    @item(
+      glDepthMask, stan enabled GL_BLEND i glBlendFunc
+      (te stany nie sa tu kontrolowane, choc zapewne kod zewnetrzny
+      (tzn. kod uzywajacy tego renderera) moze  zechciec ustawic
+      te wartosci na cos konkretnego. Manipulujac tymi wartosciami kod
+      zewnetrzny moze zaimplementowac obiekty polprzezroczyste uzywajac
+      blending OpenGLa, przykladowo tak robi VRMLFlatSceneGL))
+  )
+
+  @bold(Notki o Triagles/VerticesCount :)
+
+  Poniewaz OpenGL oferuje tylko cieniowanie
+  Gourauda (no i plaskie cieniowanie, w zaleznosci od Attributes.SmoothShading),
+  idea OverTriangulate = true w VRMLNodes.TNodeGeneralShape.[Local]Triangulate
+  staje sie uzyteczna. Jest gwarantowane ze ten renderer bedzie uzywal
+  dokladnie takich trojkatow jakie generuje metoda Triangulate z
+  [Local]Triangulate, a wiec ze powinienes uzywac
+  Triangles/VerticesCount(State, true) aby powiedziec userowi ile trojkatow
+  dajemy OpenGLowi do wyrenderowania.
+
+  TODO - niniejsza implementacja robi to, ale tak naprawde wcale nie uzywa
+  metody Triangulate. A wiec de facto zapewniamy sobie zgodnosc z
+  Triangles/VerticesCount(State, true) ale w brudny sposob - po prostu
+  znajac implementacje Triangulate, implementujemy w tym rendererze taka
+  sama triangulacje. Dlaczego nie uzywamy tu metody Triangulate ?
+  Bo spowodowalaby mnostwo straty czasu bo powodowalaby ze niektore
+  wartosci bylyby liczone dla tych samych vertexow wiele razy
+  bo czesto podawalibysmy te same vertexy OpenGLowi nie mowiac mu ze one
+  sa te same ! (bo Triangulate nie mowiloby nam ze one sa te same).
+  Zeby to zaimplementowac musielibysmy znacznie skomplikowac obsluge metody
+  Triangulate - musialaby zwracac vertexy + indeksy do vertexow,
+  zamiast po prostu kazdy trojkat = 3 vertexy jak teraz.
+
+  @bold(About GL extensions :)
+
+  You should always call
+
+  @longCode(
+  ReadImplementationProperties;
+  LoadProcExtensions;)
+
+  before using this unit. If you initialize OpenGL context using GLWindow
+  unit then this will be done for you automatically (during TGLWindow.Init).
+
+  This unit may use GLVersion and GLUVersion and related variables.
+  Also it may use some OpenGL extensions. Right now this includes
+
+  @orderedList(
+    @item(GL_EXT_compiled_vertex_array extension if it's
+      available. Although, honestly, I didn't observe any speed
+      improvements from using this extension (even when using TVRMLFlatSceneGL
+      with RendererOptimization = roNone), but, anyway, this can't hurt us.)
+
+    @item(GL_EXT_fog_coord for volumetric fog.)
+  )
 }
 
 unit VRMLOpenGLRenderer;
