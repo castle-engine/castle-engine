@@ -50,6 +50,10 @@
 
     @item(tyle-o-ile przystosowany do roznych UNIXow, nie tylko Linuxa,
       w zasadzie proste /s/Unix/Linux/.)
+
+    @item(Added TGenericGLVersion and GLVersion and GLUVersion,
+      do detailed parsing of version strings, ability to detect
+      Mesa and Mesa versions.)
   )
 
   Poczatkowo ten modul byl dla win32, potem sciagnalem wersja ktora
@@ -3986,8 +3990,61 @@ var
   calling these functions, since @link(TGLWindow.Init) always calls
   ReadImplementationProperties and LoadProcExtensions. }
 
-{ Requires rendering context. Inits boolean variables GL_VERSION_*, GLU_VERSION_*
-  and all extensions booleans. }
+type
+  { This is used to store OpenGL libraries (core OpenGL or GLU)
+    version information. As obtained from glGetString(GL_VERSION)
+    or gluGetString(GLU_VERSION), by ReadImplementationProperties. }
+  TGenericGLVersion = class
+  public
+    constructor Create(const VersionString: string);
+
+    { Required (i.e. every OpenGL implemenetation has them)
+      major and minor numbers.
+      @groupBegin }
+    Major: Integer;
+    Minor: Integer;
+    { @groupEnd }
+
+    { Release is the optional release number (check ReleaseExists first).
+      @groupBegin }
+    ReleaseExists: boolean;
+    Release: Integer;
+    { @groupEnd }
+
+    { GLVendorVersion is whatever vendor-specific information was placed
+      inside VersionString, after the
+      major_number.minor_number.release_number. It doesn't have whitespace
+      at the beginning (ReadImplementationProperties will trim it). }
+    VendorVersion: string;
+  end;
+
+  TGLVersion = class(TGenericGLVersion)
+  public
+    constructor Create(const VersionString: string);
+
+    { Using VendorSpecific information (extracted by base TGenericGLVersion)
+      we can detect whether we the OpenGL implementation is Mesa (check IsMesa)
+      and Mesa version.
+      @groupBegin }
+    IsMesa: boolean;
+    MesaMajor: Integer;
+    MesaMinor: Integer;
+    MesaRelease: Integer;
+    { @groupEnd }
+  end;
+
+var
+  { Core OpenGL version information, as obtained from
+    glGetString(GL_VERSION) by ReadImplementationProperties. }
+  GLVersion: TGLVersion;
+
+  { GLU version information, as obtained from
+    gluGetString(GLU_VERSION) by ReadImplementationProperties. }
+  GLUVersion: TGenericGLVersion;
+
+{ Initialize boolean variables GL_VERSION_*, GLU_VERSION_*,
+  all extensions booleans, and GLVersion and GLUVersion variables.
+  Requires GL rendering context. }
 procedure ReadImplementationProperties;
 
 { set to nil all extension functions or load all extension functions.
@@ -4004,7 +4061,7 @@ procedure LoadProcExtensions;
 implementation
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, KambiStringUtils;
 
 {$define read_implementation}
 {$I opengltypes.inc}
@@ -6215,58 +6272,172 @@ begin
  {$undef ProcVarCast}
 end;
 
-{---------------------------------------------------------------------------------------------------------------------- }
+{ TGenericGLVersion ---------------------------------------------------------- }
 
-procedure TrimAndSplitVersionString(Buffer: String; out Max, Min: Integer);
+type
+  EInvalidGLVersionString = class(Exception);
 
-{ Peels out the X.Y form from the given Buffer which must contain a version string like "text Minor.Major.Build text" }
-{ at least however "Major.Minor". }
-
-var
-  Separator: Integer;
-
+procedure ParseWhiteSpaces(const S: string; var I: Integer);
 begin
+  while SCharIs(S, I, WhiteSpaces) do Inc(I);
+end;
+
+constructor TGenericGLVersion.Create(const VersionString: string);
+const
+  Digits = ['0'..'9'];
+var
+  NumberBegin, I: Integer;
+begin
+  inherited Create;
+
   try
-    { There must be at least one dot to separate major and minor version number. }
-    Separator := Pos('.', Buffer);
-    { At least one number must be before and one after the dot. }
-    if (Separator > 1) and (Separator < Length(Buffer)) and (Buffer[Separator - 1] in ['0'..'9']) and
-      (Buffer[Separator + 1] in ['0'..'9']) then
+    I := 1;
+
+    { Note: we allow some whitespace that is not allowed by OpenGL/GLU
+      spec. That's because we try hard to work correctly even with
+      broken GL_VERSION / GLU_VERSION strings. }
+
+    { Whitespace }
+    ParseWhiteSpaces(VersionString, I);
+
+    { Major number }
+    if not SCharIs(VersionString, I, Digits) then
+      raise EInvalidGLVersionString.Create('Major version number not found');
+    NumberBegin := I;
+    while SCharIs(VersionString, I, Digits) do Inc(I);
+    Major := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+
+    { Whitespace }
+    ParseWhiteSpaces(VersionString, I);
+
+    { Dot }
+    if not SCharIs(VersionString, I, '.') then
+      raise EInvalidGLVersionString.Create(
+        'The dot "." separator major and minor version number not found');
+    Inc(I);
+
+    { Whitespace }
+    ParseWhiteSpaces(VersionString, I);
+
+    { Minor number }
+    if not SCharIs(VersionString, I, Digits) then
+      raise EInvalidGLVersionString.Create('Minor version number not found');
+    NumberBegin := I;
+    while SCharIs(VersionString, I, Digits) do Inc(I);
+    Minor := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+
+    ReleaseExists := SCharIs(VersionString, I, '.');
+
+    if ReleaseExists then
     begin
-      { OK, it's a valid version string. Now remove unnecessary parts. }
-      Dec(Separator);
-      { Find last non-numeric character before version number. }
-      while (Separator > 0) and (Buffer[Separator] in ['0'..'9']) do
-        Dec(Separator);
-      { Delete leading characters which do not belong to the version string. }
-      Delete(Buffer, 1, Separator);
-      Separator := Pos('.', Buffer) + 1;
-      { Find first non-numeric character after version number }
-      while (Separator <= Length(Buffer)) and (Buffer[Separator] in ['0'..'9']) do
-        Inc(Separator);
-      { delete trailing characters not belonging to the version string }
-      Delete(Buffer, Separator, 255);
-      { Now translate the numbers. }
-      Separator := Pos('.', Buffer); { This is necessary because the buffer length might have changed. }
-      Max := StrToInt(Copy(Buffer, 1, Separator - 1));
-      Min := StrToInt(Copy(Buffer, Separator + 1, 255));
-    end
-    else
-      Abort;
+      { Dot }
+      Inc(I);
+
+      { Release number }
+      if not SCharIs(VersionString, I, Digits) then
+      raise EInvalidGLVersionString.Create(
+        'Release version number not found, ' +
+        'although there was a dot after minor number');
+      NumberBegin := I;
+      while SCharIs(VersionString, I, Digits) do Inc(I);
+      Release := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+    end;
+
+    { Whitespace }
+    ParseWhiteSpaces(VersionString, I);
+
+    VendorVersion := SEnding(VersionString, I);
   except
-    Min := 0;
-    Max := 0;
+    { In case of any error here: silence it.
+      So actually EInvalidGLVersionString is not useful.
+      We want our program to work even with broken GL_VERSION or GLU_VERSION
+      strings.
+
+      Class constructor always starts with Major and Minor initialized
+      to 0, ReleaseExists initialized to false, and VendorVersion to ''.
+      If we have here an exception, only part of them may be initialized. }
+  end;
+end;
+
+{ TGLVersion ----------------------------------------------------------------- }
+
+constructor TGLVersion.Create(const VersionString: string);
+const
+  Digits = ['0'..'9'];
+var
+  NumberBegin, I: Integer;
+  VendorName: string;
+begin
+  inherited;
+
+  try
+    I := 1;
+    while SCharIs(VendorVersion, I, AllChars - WhiteSpaces) do Inc(I);
+
+    VendorName := CopyPos(VendorVersion, 1, I - 1);
+    IsMesa := SameText(VendorName, 'Mesa');
+
+    if IsMesa then
+    begin
+      { Whitespace }
+      ParseWhiteSpaces(VendorVersion, I);
+
+      { Mesa major number }
+      if not SCharIs(VendorVersion, I, Digits) then
+        raise EInvalidGLVersionString.Create('Mesa major version number not found');
+      NumberBegin := I;
+      while SCharIs(VendorVersion, I, Digits) do Inc(I);
+      MesaMajor := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
+
+      { Whitespace }
+      ParseWhiteSpaces(VendorVersion, I);
+
+      { Dot }
+      if not SCharIs(VendorVersion, I, '.') then
+        raise EInvalidGLVersionString.Create(
+          'The dot "." separator between Mesa major and minor version number not found');
+      Inc(I);
+
+      { Whitespace }
+      ParseWhiteSpaces(VendorVersion, I);
+
+      { Mesa minor number }
+      if not SCharIs(VendorVersion, I, Digits) then
+        raise EInvalidGLVersionString.Create('Mesa minor version number not found');
+      NumberBegin := I;
+      while SCharIs(VendorVersion, I, Digits) do Inc(I);
+      MesaMinor := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
+
+      { Whitespace }
+      ParseWhiteSpaces(VendorVersion, I);
+
+      { Dot }
+      if not SCharIs(VendorVersion, I, '.') then
+        raise EInvalidGLVersionString.Create(
+          'The dot "." separator between Mesa minor and release version number not found');
+      Inc(I);
+
+      { Whitespace }
+      ParseWhiteSpaces(VendorVersion, I);
+
+      { Mesa release number }
+      if not SCharIs(VendorVersion, I, Digits) then
+        raise EInvalidGLVersionString.Create('Mesa release version number not found');
+      NumberBegin := I;
+      while SCharIs(VendorVersion, I, Digits) do Inc(I);
+      MesaRelease := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
+    end;
+  except
+    { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
+      string) ignore the problem. }
   end;
 end;
 
 { ---------------------------------------------------------------------------- }
 
 procedure ReadImplementationProperties;
-
 var
   Buffer: string;
-  MajorVersion,
-  MinorVersion: Integer;
 
   {--------------- local function -------------------------------------------- }
 
@@ -6292,17 +6463,16 @@ var
 begin
   { determine version of implementation }
   { GL }
-  Buffer := glGetString(GL_VERSION);
-  TrimAndSplitVersionString(Buffer, Majorversion, MinorVersion);
+  GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
   GL_VERSION_1_0 := True;
   GL_VERSION_1_1 := False;
   GL_VERSION_1_2 := False;
-  if MajorVersion > 0 then
+  if GLVersion.Major > 0 then
   begin
-    if MinorVersion > 0 then
+    if GLVersion.Minor > 0 then
     begin
       GL_VERSION_1_1 := True;
-      if MinorVersion > 1 then
+      if GLVersion.Minor > 1 then
         GL_VERSION_1_2 := True;
     end;
   end;
@@ -6314,16 +6484,16 @@ begin
   { gluGetString is valid for version 1.1 or later }
   if Assigned(gluGetString) then
   begin
-    Buffer := gluGetString(GLU_VERSION);
-    TrimAndSplitVersionString(Buffer, Majorversion, MinorVersion);
+    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION));
     GLU_VERSION_1_1 := True;
-    if MinorVersion > 1 then
+    if GLUVersion.Minor > 1 then
     begin
       GLU_VERSION_1_2 := True;
-      if MinorVersion > 2 then
+      if GLUVersion.Minor > 2 then
         GLU_VERSION_1_3 := True;
     end;
-  end;
+  end else
+    GLUVersion := TGenericGLVersion.Create('1.0');
 
   { check supported extensions }
   { GL }
@@ -6519,6 +6689,8 @@ begin
  FreeAndNil(GLLibrary);
  ClearProcAddresses;
  ClearProcExtensions;
+ FreeAndNil(GLVersion);
+ FreeAndNil(GLUVersion);
 end;
 
 {---------------------------------------------------------------------------------------------------------------------- }

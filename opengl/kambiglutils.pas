@@ -2615,6 +2615,22 @@ function GLCapsString: string;
    result := Format(form, [v[0], v[1]]);
   end;
 
+  function ParsedVersionReport(Version: TGenericGLVersion): string;
+  begin
+    Result := Format('Parsed: major: %d, minor: %d, release exists: %s, ' +
+      'release: %d, vendor: "%s"',
+      [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists),
+        Version.Release,  Version.VendorVersion ]);
+  end;
+
+  function ParsedGLVersionReport(Version: TGLVersion): string;
+  begin
+    Result := ParsedVersionReport(Version) +
+      Format(', vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)',
+        [ BoolToStr(Version.IsMesa),
+          Version.MesaMajor, Version.MesaMinor, Version.MesaRelease ]);
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
@@ -2622,6 +2638,7 @@ begin
 
   '--- glGetString queries results :' +nl+
   'GL_VERSION : ' +glGetString(GL_VERSION) +nl+
+  ParsedGLVersionReport(GLVersion) +nl+
   'GL_VENDOR : ' +glGetString(GL_VENDOR) +nl+
   'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
   'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
@@ -2629,6 +2646,7 @@ begin
 
   '--- gluGetString queries results : '+nl+
   'GLU_VERSION : ' +gluGetString(GLU_VERSION) +nl+
+  ParsedVersionReport(GLUVersion) +nl+
   'GLU_EXTENSIONS : '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
