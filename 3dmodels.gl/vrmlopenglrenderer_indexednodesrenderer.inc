@@ -414,6 +414,37 @@ var
        Render_Materials := imUseSpecifiedPerFaceIndexed;
    end;
 
+   if GLVersion.IsMesa and (GLVersion.MesaMajor < 6) and
+     (Render_Materials in
+       [imUseSpecifiedPerVertex, imUseSpecifiedPerVertexIndexed]) then
+   begin
+     { With older Mesa (confirmed that the bug is with 5.1 and is not with
+       6.4.2) when you use BindMaterial_1 inside
+       TGeneralIndexedRenderer.Render_Vertex it causes later
+       glPopAttrib (in RenderEnd) to crash with SIGSEGV.
+       gdb backtrace starts with
+
+       (gdb) bt
+       #0  0xa7a1639c in _mesa_PopAttrib ()
+          from /home/michal/installed/mesa/5.1/lib/libGL.so.1
+       #1  0x081e1418 in TVRMLOPENGLRENDERER__RENDEREND (this=0xa71af3c0)
+           at VRMLOpenGLRenderer.pas:1905
+       #2  0x081445f3 in TVRMLFLATSCENEGL__RENDERENDSIMPLE (this=0xa70b6060)
+           at VRMLFlatSceneGL.pas:1073
+       #3  0x08144b32 in TVRMLFLATSCENEGL__SSSX_PREPAREEND (this=0xa70b6060)
+           at VRMLFlatSceneGL.pas:1229
+
+       Easy test for it: run `view3dscene materials.wrl' with
+       materials.wrl from VRML 1.0 demos from
+       [http://www.camelot.homedns.org/~michalis/kambi_vrml_test_suite.php].
+
+       So I'm workaround this below by just using imOverall for old Mesa
+       versions. This causes incorrect rendering result, but at least
+       it works and often looks "sensible".
+     }
+     Render_Materials := imOverall;
+   end;
+
    { TODO: we handle all material bindings, but we handle BIND_PER_PART
      and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
 

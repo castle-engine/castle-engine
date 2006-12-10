@@ -1076,9 +1076,27 @@ end;
 function TVRMLFlatSceneGL.RenderBeginEndToDisplayList: boolean;
 begin
   Result := not GLVersion.IsMesa;
+
   { TODO: this should check for Mesa version, and only activate when
     Mesa version <= something. I have to check various Mesa versions
-    (and eventually report this as Mesa bug, if not fixed yet). }
+    (and eventually report this as Mesa bug, if not fixed yet).
+    Right now:
+
+    - 6.4.2: confirmed that the problem occurs and is solved by
+      RenderBeginEndToDisplayList set to false
+
+    - 6.5.1: unknown, just like 6.5.2, the error msg is always
+        tnl/t_save_api.c:1597: _tnl_EndList: Warunek zapewnienia `
+        ((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0'
+        nie zosta³ spe³niony.
+
+    - 6.5.2: unknown does it occur, because with 6.5.2 nearly everything
+      fails with view3dscene:
+        tnl/t_save_api.c:1605: _tnl_EndList: Warunek zapewnienia `
+        ((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0'
+        nie zosta³ spe³niony.
+      so there's some other bug.
+  }
 end;
 
 procedure TVRMLFlatSceneGL.RenderShapeStatesNoDispList(
