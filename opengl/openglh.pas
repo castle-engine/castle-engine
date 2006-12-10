@@ -6412,20 +6412,28 @@ begin
       ParseWhiteSpaces(VendorVersion, I);
 
       { Dot }
-      if not SCharIs(VendorVersion, I, '.') then
-        raise EInvalidGLVersionString.Create(
-          'The dot "." separator between Mesa minor and release version number not found');
-      Inc(I);
+      if SCharIs(VendorVersion, I, '.') then
+      begin
+        Inc(I);
 
-      { Whitespace }
-      ParseWhiteSpaces(VendorVersion, I);
+        { Whitespace }
+        ParseWhiteSpaces(VendorVersion, I);
 
-      { Mesa release number }
-      if not SCharIs(VendorVersion, I, Digits) then
-        raise EInvalidGLVersionString.Create('Mesa release version number not found');
-      NumberBegin := I;
-      while SCharIs(VendorVersion, I, Digits) do Inc(I);
-      MesaRelease := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
+        { Mesa release number }
+        if not SCharIs(VendorVersion, I, Digits) then
+          raise EInvalidGLVersionString.Create('Mesa release version number not found');
+        NumberBegin := I;
+        while SCharIs(VendorVersion, I, Digits) do Inc(I);
+        MesaRelease := StrToInt(CopyPos(VendorVersion, NumberBegin, I - 1));
+      end else
+      begin
+        { Some older Mesa versions (like 5.1) really don't have release
+          number inside a version string. Seems like they don't have
+          release number at all. So the missing dot "."
+          separator between Mesa minor and release version number should
+          be ignored. }
+        MesaRelease := 0;
+      end;
     end;
   except
     { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
