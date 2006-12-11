@@ -122,7 +122,7 @@ implementation
 uses KambiUtils;
 
 const
-  {w tej chwili zawsze 255 ale byc moze kiedys cos tu zmienie}
+  {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}
   TTTableCount = Ord(High(char)) - Ord(Low(char)) +1;
 
 type
@@ -239,15 +239,17 @@ begin
   base := glGenListsCheck(TTTableCount, 'TGLOutlineFont.Create');
   Self.TTFont := TrueTypeFont;
 
-  { notka : ciekawostke stanowi fakt ze moj OpenGL pod Linuxem dziala zle
-    gdy nie ma edgeFlag'a. Uruchom view3dmodel ConeTest.wrl i zobacz
-    na srodkowy dysk od dolu - bedzie zle oswietlony.
-    Takze TextTest przy wlaczonym oswietleniu bedzie zly. }
   tobj := gluNewTess();  { inicjuj tesselator }
   gluTessCallback(tobj, GLU_TESS_VERTEX, {$ifndef FPC_OBJFPC} @ {$endif} glVertex3dv);
   gluTessCallback(tobj, GLU_TESS_BEGIN, {$ifndef FPC_OBJFPC} @ {$endif} glBegin);
   gluTessCallback(tobj, GLU_TESS_END, {$ifndef FPC_OBJFPC} @ {$endif} glEnd);
-  gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, {$ifndef FPC_OBJFPC} @ {$endif} glEdgeFlag);
+
+  { This is a workaround of Mesa3D bug.
+    See ../3dmodels.gl/doc/mesa_normals_edge_flag_bug.txt }
+  if not GLVersion.IsMesa then
+    gluTessCallback(tobj, GLU_TESS_EDGE_FLAG,
+      {$ifndef FPC_OBJFPC} @ {$endif} glEdgeFlag);
+
   gluTessCallback(tobj, GLU_TESS_ERROR, @ReportGLError);
   gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, @TessCombineCallback);
 
