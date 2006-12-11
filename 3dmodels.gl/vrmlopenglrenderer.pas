@@ -829,7 +829,8 @@ type
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
+      State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     {$endif}
 
     { Inited in RenderBegin, according to our FogNode.
@@ -1907,13 +1908,15 @@ end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
 procedure TVRMLOpenGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape; MatNum: integer);
+  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Render_BindMaterial_1(MatNum);
 
   glNormalv(TriangleNormal(Tri));
 
   glBegin(GL_TRIANGLES);
+
     glVertexv(Tri[0]);
     glVertexv(Tri[1]);
     glVertexv(Tri[2]);
@@ -2057,7 +2060,7 @@ begin
       LocalTriangulate. We should use here OverTriagulate = true (but it's not
       impl yet because I don't need it anywhere (well, I would use it here
       but this is just some testing code)) }
-    Node.LocalTriangulate(State, false, DrawTriangle);
+    Node.LocalTriangulate(State, false, @DrawTriangle);
 
     {$else}
 
