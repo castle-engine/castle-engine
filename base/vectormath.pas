@@ -631,12 +631,14 @@ function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
 
+{$ifdef FPC}
 { Overload := operator to allow convertion between
   Matrix unit objects and this unit's arrays easy. }
 operator := (const V: TVector3_Single): TVector3Single;
 operator := (const V: TVector4_Single): TVector4Single;
 operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
+{$endif}
 
 { prosta matematyka na wektorach  ---------------------------------------------- }
 
