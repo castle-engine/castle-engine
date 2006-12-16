@@ -26,6 +26,8 @@
 
 program MenuTest;
 
+{$apptype CONSOLE}
+
 uses VectorMath, OpenGLh, GLWindow, GLW_Demo, KambiGLUtils,
   GLWinMessages;
 

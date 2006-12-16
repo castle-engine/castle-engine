@@ -119,13 +119,13 @@ begin
      that they have no guaranteed value when GlyphDataSize = 0. }
    Result := GetMem(SizeOf(TBFNTCharInfo));
 
-   Result.Info.Alignment := 4;
-   Result.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
-   Result.Info.YOrig := -GlyphMetrics.gmptGlyphOrigin.y;
-   Result.Info.XMove := GlyphMetrics.gmCellIncX;
-   Result.Info.YMove := GlyphMetrics.gmCellIncY;
-   Result.Info.Width := 0;
-   Result.Info.Height := 0;
+   Result^.Info.Alignment := 4;
+   Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
+   Result^.Info.YOrig := -GlyphMetrics.gmptGlyphOrigin.y;
+   Result^.Info.XMove := GlyphMetrics.gmCellIncX;
+   Result^.Info.YMove := GlyphMetrics.gmCellIncY;
+   Result^.Info.Width := 0;
+   Result^.Info.Height := 0;
   end else
   begin
    GlyphData := GetMem(GlyphDataSize);
@@ -151,20 +151,20 @@ begin
 
    Result := GetMem(SizeOf(TBFNTCharInfo) + GlyphDataSize*SizeOf(Byte));
 
-   Result.Info.Alignment := 4;
-   Result.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
-   Result.Info.YOrig := Integer(GlyphMetrics.gmBlackBoxY) - GlyphMetrics.gmptGlyphOrigin.y;
-   Result.Info.XMove := GlyphMetrics.gmCellIncX;
-   Result.Info.YMove := GlyphMetrics.gmCellIncY;
-   Result.Info.Width:=  GlyphMetrics.gmBlackBoxX;
-   Result.Info.Height := GlyphMetrics.gmBlackBoxY;
+   Result^.Info.Alignment := 4;
+   Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
+   Result^.Info.YOrig := Integer(GlyphMetrics.gmBlackBoxY) - GlyphMetrics.gmptGlyphOrigin.y;
+   Result^.Info.XMove := GlyphMetrics.gmCellIncX;
+   Result^.Info.YMove := GlyphMetrics.gmCellIncY;
+   Result^.Info.Width:=  GlyphMetrics.gmBlackBoxX;
+   Result^.Info.Height := GlyphMetrics.gmBlackBoxY;
 
-   { copy GlyphData do Result.Data line by line.
+   { copy GlyphData do Result^.Data line by line.
      We must replace line order - TBmpFont wants lines bottom -> top,
      while GlyphData has lines top -> bottom. }
    for j := 0 to GlyphMetrics.gmBlackBoxY-1 do
-    Move(GlyphData[(Result.Info.Height - j - 1) * RowByteLength],
-         Result.Data[j * RowByteLength],
+    Move(GlyphData[(Result^.Info.Height - j - 1) * RowByteLength],
+         Result^.Data[j * RowByteLength],
          RowByteLength);
   end;
  finally
@@ -201,10 +201,10 @@ var PointsFX: PArray_PointFX;
   procedure ResultItemsAdd(Kind: TPolygonKind; Count: Cardinal{ = 0}); overload;
   { use only with Kind <> pkPoint }
   begin
-   ResultItems.IncLength;
-   Assert(Kind <> pkPoint);
-   ResultItems[ResultItems.High].Kind := Kind;
-   ResultItems[ResultItems.High].Count := Count;
+    ResultItems.IncLength;
+    Assert(Kind <> pkPoint);
+    ResultItems.Items[ResultItems.High].Kind := Kind;
+    ResultItems.Items[ResultItems.High].Count := Count;
   end;
 
   procedure ResultItemsAdd(Kind: TPolygonKind {Count: Cardinal = 0 }); overload;
@@ -214,10 +214,10 @@ var PointsFX: PArray_PointFX;
 
   procedure ResultItemsAdd(x, y: Single); overload;
   begin
-   ResultItems.IncLength;
-   ResultItems[ResultItems.High].Kind := pkPoint;
-   ResultItems[ResultItems.High].x := x;
-   ResultItems[ResultItems.High].y := y;
+    ResultItems.IncLength;
+    ResultItems.Items[ResultItems.High].Kind := pkPoint;
+    ResultItems.Items[ResultItems.High].x := x;
+    ResultItems.Items[ResultItems.High].y := y;
   end;
 
   function ToFloat(const Val: TFixed): Extended;
@@ -255,34 +255,34 @@ begin
    begin
     { czytaj PolHeader }
     ResultItemsAdd(pkNewPolygon);
-    PolygonEnd := TPointerUInt(PointerAdd(PolHeader, PolHeader.cb));
-    lastPunkt.x := ToFloat(PolHeader.pfxStart.x);
-    lastPunkt.y := ToFloat(PolHeader.pfxStart.y);
+    PolygonEnd := TPointerUInt(PointerAdd(PolHeader, PolHeader^.cb));
+    lastPunkt.x := ToFloat(PolHeader^.pfxStart.x);
+    lastPunkt.y := ToFloat(PolHeader^.pfxStart.y);
 
     { czytaj PolCurves }
     PolCurve := PointerAdd(PolHeader, SizeOf(TTPolygonHeader)); { pierwszy PolCurve }
     while TPointerUInt(PolCurve) < PolygonEnd do
     begin
-     case PolCurve.wType of
+     case PolCurve^.wType of
       TT_PRIM_LINE : ResultItemsAdd(pkLines);
       TT_PRIM_QSPLINE : ResultItemsAdd(pkBezier);
-      else raise Exception.Create('UNKNOWN PolCurve.wType !!!!');
+      else raise Exception.Create('UNKNOWN PolCurve^.wType !!!!');
      end;
      ResultItemsAdd(lastPunkt.x, lastPunkt.y);
-     PointsFX := @PolCurve.apfx[0];
-     for i := 0 to PolCurve.cpfx-1 do
+     PointsFX := @PolCurve^.apfx[0];
+     for i := 0 to PolCurve^.cpfx-1 do
      begin
-      lastPunkt.x := ToFloat(PointsFX[i].x);
-      lastPunkt.y := ToFloat(PointsFX[i].y);
+      lastPunkt.x := ToFloat(PointsFX^[i].x);
+      lastPunkt.y := ToFloat(PointsFX^[i].y);
       ResultItemsAdd(lastPunkt.x, lastPunkt.y);
      end;
      { nastepny PolCurve: }
      PolCurve := PointerAdd(PolCurve, SizeOf(TTPolyCurve) +
-       (PolCurve.cpfx-1)*SizeOf(TPointFX));
+       (PolCurve^.cpfx-1)*SizeOf(TPointFX));
     end;
 
     { zakoncz ten polygon }
-    with PolHeader.pfxStart do ResultItemsAdd(ToFloat(x), ToFloat(y));
+    with PolHeader^.pfxStart do ResultItemsAdd(ToFloat(x), ToFloat(y));
 
     { nastepny PolHeader: }
     PolHeader := Pointer(PolCurve);
@@ -291,38 +291,38 @@ begin
 
   { calculate "Count" fields for items with Kind <> pkPoint in ResultItems }
   for i := 0 to ResultItems.High do
-   case ResultItems[i].Kind of
+     case ResultItems.Items[i].Kind of
      pkNewPolygon:
        begin
         dlug := 0;
         for j := i+1 to ResultItems.High do
-         case ResultItems[j].Kind of
+         case ResultItems.Items[j].Kind of
           pkLines, pkBezier : Inc(dlug);
           pkNewPolygon : break;
          end;
-        ResultItems[i].Count := dlug;
+        ResultItems.Items[i].Count := dlug;
        end;
      pkLines, pkBezier:
        begin
         dlug := 0;
         for j := i+1 to ResultItems.High do
-         if ResultItems[j].Kind = pkPoint then Inc(dlug) else break;
-        ResultItems[i].Count := dlug;
+         if ResultItems.Items[j].Kind = pkPoint then Inc(dlug) else break;
+        ResultItems.Items[i].Count := dlug;
        end;
     end;
 
-  { evaluate Result.Info.PolygonsCount/ItemsCount }
+  { evaluate Result^.Info.PolygonsCount/ItemsCount }
   ResultInfo.ItemsCount := ResultItems.Count;
   ResultInfo.PolygonsCount := 0;
   for i := 0 to ResultItems.High do
-   if ResultItems[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
+   if ResultItems.Items[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
 
   { get mem for Result and fill Result^ with calculated data }
   Result := GetMem(SizeOf(TTTFCharInfo) +
     ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
   try
-   Result.Info := ResultInfo;
-   Move(ResultItems.Items[0], Result.Items,
+   Result^.Info := ResultInfo;
+   Move(ResultItems.Items[0], Result^.Items,
      ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
   except FreeMem(Result); raise end;
 

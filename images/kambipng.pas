@@ -43,7 +43,7 @@
   Some comments:
   @unorderedList(
     @item(
-      works with either libpng.so (Unix) or libpng12.dll (Windows).
+      works with either libpng.so (Unix) or libpng12.dll/libpng13.dll (Windows).
       Some things are prepared to support cygpng2.dll from cygwin,
       but they doesn't work with my version of Cygwin.)
 
@@ -117,6 +117,8 @@ uses KambiZlib;
 const
   {$ifdef PNG_GNUWIN32} { libpng distributed by gnuwin32.sourceforge.net }
   PngLibraryName = 'libpng12.dll';
+  { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
+  PngAltLibraryName = 'libpng13.dll';
   PNG_LIBPNG_VER_STRING = '1.2.5';
   PNG_LIBPNG_VER_MAJOR   = 1;
   PNG_LIBPNG_VER_MINOR   = 2;
@@ -125,6 +127,7 @@ const
 
   {$ifdef PNG_VB} { libpng_vb version }
   PngLibraryName='libpng_vb.dll';
+  PngAltLibraryName = '';
   PNG_LIBPNG_VER_STRING = '1.2.1';
   PNG_LIBPNG_VER_MAJOR   = 1;
   PNG_LIBPNG_VER_MINOR   = 2;
@@ -133,6 +136,7 @@ const
 
   {$ifdef PNG_CYGWIN} { cygwin dll version }
   PngLibraryName = 'cygpng2.dll';
+  PngAltLibraryName = '';
   PNG_LIBPNG_VER_STRING = '1.0.11';
   PNG_LIBPNG_VER_MAJOR   = 1;
   PNG_LIBPNG_VER_MINOR   = 0;
@@ -972,6 +976,8 @@ end;
 
 initialization
  PngLibrary := TDynLib.Load(PngLibraryName, false);
+ if (PngLibrary = nil) and (PngAltLibraryName <> '') then
+   PngLibrary := TDynLib.Load(PngAltLibraryName, false);
  FKambiPngInited := PngLibrary <> nil;
 
  if FKambiPngInited then
@@ -980,7 +986,7 @@ initialization
        {$ifdef FPC_OBJFPC} Pointer {$else} @ {$endif} (xxx)
      but unfortunately stupid Delphi doesn't get @(xxx) construct.
      I must use @xxx construct. *)
- 
+
   {$ifdef FPC_OBJFPC} Pointer(png_access_version_number) {$else} @png_access_version_number {$endif} := PngLibrary.Symbol('png_access_version_number');
   {$ifdef FPC_OBJFPC} Pointer(png_set_sig_bytes) {$else} @png_set_sig_bytes {$endif} := PngLibrary.Symbol('png_set_sig_bytes');
   {$ifdef FPC_OBJFPC} Pointer(png_sig_cmp) {$else} @png_sig_cmp {$endif} := PngLibrary.Symbol('png_sig_cmp');

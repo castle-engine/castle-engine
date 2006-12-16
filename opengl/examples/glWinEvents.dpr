@@ -24,6 +24,8 @@
 
 program glWinEvents;
 
+{$apptype GUI}
+
 uses SysUtils, KambiUtils, KambiGLUtils, OpenGLh, TimeMessages, GLWindow,
   GLW_demo, Keys, KambiStringUtils;
 

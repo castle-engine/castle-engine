@@ -25,9 +25,14 @@
 
 program menu_test_alternative;
 
-uses GLWindow, GLW_Win;
+uses OpenGLh, GLWindow, GLW_Win;
 
 var FirstMainMenu, SecondMainMenu: TMenu;
+
+procedure Draw(glwin: TGLWindow);
+begin
+  glClear(GL_COlOR_BUFFER_BIT);
+end;
 
 procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
 begin
@@ -66,6 +71,7 @@ begin
 
   { init other glw properties }
   glw.OnResize := @Resize2D;
+  Glw.OnDraw := @Draw;
   glw.Width := 300;
   glw.Height := 300;
   glw.ParseParameters;

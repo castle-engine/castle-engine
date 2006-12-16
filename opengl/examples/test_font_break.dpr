@@ -22,6 +22,8 @@
   Resize the window and watch how the text lines are automatically broken.
 }
 
+{$apptype GUI}
+
 program test_font_break;
 
 uses GLWindow, GLW_Demo, OpenGLh, KambiGLUtils, OpenGLFonts, SysUtils, Classes,

@@ -289,7 +289,7 @@ begin
 
   camz := -19.0;
 
-  Texture := LoadGLTexture('/win/mojepasy/units/kambi_vrml_game_engine/opengl/examples/brickwall.png', GL_LINEAR, GL_LINEAR,
+  Texture := LoadGLTexture('brickwall.png', GL_LINEAR, GL_LINEAR,
     GL_REPEAT, GL_REPEAT);
 
 {$ifdef ARRAYS}

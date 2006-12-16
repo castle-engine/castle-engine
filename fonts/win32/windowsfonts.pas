@@ -139,6 +139,8 @@ procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsP
 
 implementation
 
+uses KambiStringUtils;
+
 { TWindowsFont ------------------------------------------------------------ }
 
 constructor TWindowsFont.Create(AHeight: Integer);
@@ -170,10 +172,12 @@ end;
 
 { Windows font query ------------------------------------------------------- }
 
-function EnumFontFamProc_IsTrueType(EnumLogfont: PEnumLogFont; NewTextMetric: PNewTextMetric;
-  FontType: Integer; FuncResult: PBoolean): integer; stdcall;
+function EnumFontFamProc_IsTrueType(var EnumLogfont: TEnumLogFont;
+  var NewTextMetric: TNewTextMetric;
+  FontType: Integer;
+  FuncResultPtr: LongInt): integer; stdcall;
 begin
- { powinnismy sprawdzic czy znaleziony EnumLogFont.LogFont zgadza sie z szukanym
+  { powinnismy sprawdzic czy znaleziony EnumLogFont.LogFont zgadza sie z szukanym
     LogFontem. Skoro moze byc wiele fontow o tej samej nazwie ... wiemy ze do tej
     procedury trafiaja tylko te ktorych nazwa sie zgadza. Ale co z reszta ?
     Czysto teoretycznie np. wersja regular fontu moze byc realizowana bitmapowo,
@@ -184,12 +188,14 @@ begin
     znalezione Logfonty a potem sprawdzac czy ten z nich ktory jest "najblizszy"
     naszgeo szukanego jest czy nie jest true-type. Niestety, kompletny algorytm na
     to czym jest "najblizszy" zna tylko Microsoft (zaimplementowali go chociazby w
-    CreateFont). }
-  { wiec co robimy ? Przeszukujemy wszystkie fonty o naszej nazwie. Jesli chociaz jeden
+    CreateFont).
+   
+    wiec co robimy ? Przeszukujemy wszystkie fonty o naszej nazwie. Jesli chociaz jeden
     jest true type to uznajemy nasz font za true-type. }
- if (FontType and TRUETYPE_FONTTYPE) <> 0 then
-  FuncResult^:=true;
- result := 1;
+   
+  if (FontType and TRUETYPE_FONTTYPE) <> 0 then
+    PBoolean(FuncResultPtr)^ := true;
+  result := 1;
 end;
 
 function IsFontTrueType( Font: HFONT ): boolean;
@@ -221,11 +227,14 @@ type
   end;
   PEnumCharsetsInternalInfo_ByObject = ^TEnumCharsetsInternalInfo_ByObject;
 
-function EnumFontFamExProc_ByObject( LogFontData : PEnumLogFontEx; PhysFontDataP : PTextMetric;
-  FontType : Integer; InternalInfo : PEnumCharsetsInternalInfo_ByObject): integer; stdcall;
+function EnumFontFamExProc_ByObject(var LogFontData : TEnumLogFontEx;
+  var PhysFontData: TNewTextMetricEx;
+  FontType: Integer;
+  InternalInfo: LongInt): integer; stdcall;
 begin
- InternalInfo.UserEnumProc( PhysFontDataP^.tmCharset );
- result := 1;
+  PEnumCharsetsInternalInfo_ByObject(InternalInfo)^.
+    UserEnumProc( PhysFontData.NtmENtm.tmCharset );
+  result := 1;
 end;
 
 procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
@@ -262,7 +271,7 @@ begin
  EnumObj := TEnumCharsetsDisp.Create;
  EnumObj.NonObjectEnumProc := EnumProc;
  try
-  EnumFontCharsetsObj(FontName, EnumObj.ObjectEnumProc );
+  EnumFontCharsetsObj(FontName, @EnumObj.ObjectEnumProc );
  finally
   EnumObj.Free
  end;

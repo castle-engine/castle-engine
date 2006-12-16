@@ -149,7 +149,7 @@ begin
   ParseParameters(Options, @OptionProc, nil);
 
   { parse parameters to AnimRootNodes and AnimTimes }
-  if Odd(Parameters.High) then
+  if (Parameters.High = 0) or Odd(Parameters.High) then
     raise EInvalidParams.Create('You must supply even number of paramaters: ' +
       '2 parameters "<scene> <time>" for each frame');
   SetLength(AnimRootNodes, Parameters.High div 2);
