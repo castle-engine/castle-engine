@@ -144,16 +144,26 @@ const
   {$endif}
 
   {$ifdef UNIX}
-  PngLibraryName =
-    {$ifdef DARWIN} 'libpng.dylib' { TODO--confirm this works under Darwin }
-    {$else} 'libpng.so'
-    {$endif};
+
+  {$ifdef DARWIN}
+  { TODO--confirm this works under Darwin }
+  PngLibraryName = 'libpng.dylib';
+  PngAltLibraryName = '';
+  {$else DARWIN}
+  PngLibraryName = 'libpng12.so.0';
+  { Alternative libpng library name for Unix. Use the one that comes usually
+    from package like libpng-dev, this allows the system admin to
+    eventually adjust the used libpng using symlink (in case the
+    exact libpng12.so.0 doesn't exist). }
+  PngAltLibraryName = 'libpng.so';
+  {$endif DARWIN}
+
   PNG_LIBPNG_VER_STRING = '1.0.12';
   { These should match the first 3 components of PNG_LIBPNG_VER_STRING: }
   PNG_LIBPNG_VER_MAJOR  = 1;
   PNG_LIBPNG_VER_MINOR  = 0;
   PNG_LIBPNG_VER_RELEASE= 12;
-  {$endif}
+  {$endif UNIX}
 
 { ALL consts below added by Kambi. }
 
