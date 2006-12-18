@@ -10,7 +10,10 @@
       Made compileable with Delphi (under Delphi use "{$ALIGN 4}" instead of
       "{$PACKRECORDS C}", "pointer" instead of "jmp_buf"))
     @item(Use KambiZlib instead of Zlib module.)
-    @item(Added PngLibraryName, PNG_LIBPNG_VER_* constants)
+    @item(Added PNG_LIBPNG_VER_* constants)
+    @item(We try to open libpng library from various names, to try hard
+      to work with various libpng SO/DLL names user may have installed
+      on his system.)
     @item(
       Added ALL other constants (missing in FPC Png -- lost during h2pas
       processing ?))
@@ -31,9 +34,8 @@
       versions. First three are obsolete.)
     @item(dword is LongWord, so it doesn't require Types unit under Delphi)
     @item(
-      If libgpng is not installed on system (PngLibraryName not found),
-      there is no exception at initialization.
-      Instead it merely sets KambiPngInited to false.
+      If libgpng is not installed on system, there is no exception
+      at initialization. Instead it merely sets KambiPngInited to false.
       This way programs that use this unit do NOT require libpng to be
       installed on target system. Libpng must be present only if program
       at runtime will really need it, e.g. Images.LoadPNG will raise an
@@ -96,7 +98,8 @@ uses KambiZlib;
   {$PACKRECORDS C}
 {$endif}
 
-{ Following consts added by Kambi.
+{ Version consts (added by Kambi).
+
   Unfortunately, they are specific to dll version !! Very bad - I'd like
   to have rather application that can run with every version that is compatible
   instead of ONLY this version ! So - I use my functions (defined in
@@ -115,55 +118,11 @@ uses KambiZlib;
   jednej z powyzszych funkcji SO_PNG_xxx jezeli wykryje ze wersja libpng
   jest BARDZO rozna od mojej wersji. }
 const
-  {$ifdef PNG_GNUWIN32} { libpng distributed by gnuwin32.sourceforge.net }
-  PngLibraryName = 'libpng12.dll';
-  { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
-  PngAltLibraryName = 'libpng13.dll';
-  PNG_LIBPNG_VER_STRING = '1.2.5';
-  PNG_LIBPNG_VER_MAJOR   = 1;
-  PNG_LIBPNG_VER_MINOR   = 2;
-  PNG_LIBPNG_VER_RELEASE = 5;
-  {$endif}
-
-  {$ifdef PNG_VB} { libpng_vb version }
-  PngLibraryName='libpng_vb.dll';
-  PngAltLibraryName = '';
-  PNG_LIBPNG_VER_STRING = '1.2.1';
-  PNG_LIBPNG_VER_MAJOR   = 1;
-  PNG_LIBPNG_VER_MINOR   = 2;
-  PNG_LIBPNG_VER_RELEASE = 1;
-  {$endif}
-
-  {$ifdef PNG_CYGWIN} { cygwin dll version }
-  PngLibraryName = 'cygpng2.dll';
-  PngAltLibraryName = '';
-  PNG_LIBPNG_VER_STRING = '1.0.11';
-  PNG_LIBPNG_VER_MAJOR   = 1;
-  PNG_LIBPNG_VER_MINOR   = 0;
-  PNG_LIBPNG_VER_RELEASE = 11;
-  {$endif}
-
-  {$ifdef UNIX}
-
-  {$ifdef DARWIN}
-  { TODO--confirm this works under Darwin }
-  PngLibraryName = 'libpng.dylib';
-  PngAltLibraryName = '';
-  {$else DARWIN}
-  PngLibraryName = 'libpng12.so.0';
-  { Alternative libpng library name for Unix. Use the one that comes usually
-    from package like libpng-dev, this allows the system admin to
-    eventually adjust the used libpng using symlink (in case the
-    exact libpng12.so.0 doesn't exist). }
-  PngAltLibraryName = 'libpng.so';
-  {$endif DARWIN}
-
-  PNG_LIBPNG_VER_STRING = '1.0.12';
+  PNG_LIBPNG_VER_STRING = '1.2.13';
   { These should match the first 3 components of PNG_LIBPNG_VER_STRING: }
   PNG_LIBPNG_VER_MAJOR  = 1;
-  PNG_LIBPNG_VER_MINOR  = 0;
-  PNG_LIBPNG_VER_RELEASE= 12;
-  {$endif UNIX}
+  PNG_LIBPNG_VER_MINOR  = 2;
+  PNG_LIBPNG_VER_RELEASE= 13;
 
 { ALL consts below added by Kambi. }
 
@@ -985,190 +944,219 @@ begin
 end;
 
 initialization
- PngLibrary := TDynLib.Load(PngLibraryName, false);
- if (PngLibrary = nil) and (PngAltLibraryName <> '') then
-   PngLibrary := TDynLib.Load(PngAltLibraryName, false);
- FKambiPngInited := PngLibrary <> nil;
+  {$ifdef PNG_GNUWIN32} { libpng distributed by gnuwin32.sourceforge.net }
+  PngLibrary := TDynLib.Load('libpng12.dll');
+  { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng13.dll');
+  {$endif}
 
- if FKambiPngInited then
- begin
-  (* Note: at first I wrote it like
-       {$ifdef FPC_OBJFPC} Pointer {$else} @ {$endif} (xxx)
-     but unfortunately stupid Delphi doesn't get @(xxx) construct.
-     I must use @xxx construct. *)
+  {$ifdef PNG_VB} { libpng_vb version }
+  PngLibrary := TDynLib.Load('libpng_vb.dll');
+  {$endif}
 
-  {$ifdef FPC_OBJFPC} Pointer(png_access_version_number) {$else} @png_access_version_number {$endif} := PngLibrary.Symbol('png_access_version_number');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sig_bytes) {$else} @png_set_sig_bytes {$endif} := PngLibrary.Symbol('png_set_sig_bytes');
-  {$ifdef FPC_OBJFPC} Pointer(png_sig_cmp) {$else} @png_sig_cmp {$endif} := PngLibrary.Symbol('png_sig_cmp');
-  {$ifdef FPC_OBJFPC} Pointer(png_check_sig) {$else} @png_check_sig {$endif} := PngLibrary.Symbol('png_check_sig');
-  {$ifdef FPC_OBJFPC} Pointer(png_create_read_struct) {$else} @png_create_read_struct {$endif} := PngLibrary.Symbol('png_create_read_struct');
-  {$ifdef FPC_OBJFPC} Pointer(png_create_write_struct) {$else} @png_create_write_struct {$endif} := PngLibrary.Symbol('png_create_write_struct');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_compression_buffer_size) {$else} @png_get_compression_buffer_size {$endif} := PngLibrary.Symbol('png_get_compression_buffer_size');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_buffer_size) {$else} @png_set_compression_buffer_size {$endif} := PngLibrary.Symbol('png_set_compression_buffer_size');
-  {$ifdef FPC_OBJFPC} Pointer(png_reset_zstream) {$else} @png_reset_zstream {$endif} := PngLibrary.Symbol('png_reset_zstream');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_chunk) {$else} @png_write_chunk {$endif} := PngLibrary.Symbol('png_write_chunk');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_start) {$else} @png_write_chunk_start {$endif} := PngLibrary.Symbol('png_write_chunk_start');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_data) {$else} @png_write_chunk_data {$endif} := PngLibrary.Symbol('png_write_chunk_data');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_end) {$else} @png_write_chunk_end {$endif} := PngLibrary.Symbol('png_write_chunk_end');
-  {$ifdef FPC_OBJFPC} Pointer(png_create_info_struct) {$else} @png_create_info_struct {$endif} := PngLibrary.Symbol('png_create_info_struct');
-  {$ifdef FPC_OBJFPC} Pointer(png_info_init) {$else} @png_info_init {$endif} := PngLibrary.Symbol('png_info_init');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_info_before_PLTE) {$else} @png_write_info_before_PLTE {$endif} := PngLibrary.Symbol('png_write_info_before_PLTE');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_info) {$else} @png_write_info {$endif} := PngLibrary.Symbol('png_write_info');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_info) {$else} @png_read_info {$endif} := PngLibrary.Symbol('png_read_info');
-  {$ifdef FPC_OBJFPC} Pointer(png_convert_to_rfc1123) {$else} @png_convert_to_rfc1123 {$endif} := PngLibrary.Symbol('png_convert_to_rfc1123');
-  {$ifdef FPC_OBJFPC} Pointer(png_convert_from_struct_tm) {$else} @png_convert_from_struct_tm {$endif} := PngLibrary.Symbol('png_convert_from_struct_tm');
-  {$ifdef FPC_OBJFPC} Pointer(png_convert_from_time_t) {$else} @png_convert_from_time_t {$endif} := PngLibrary.Symbol('png_convert_from_time_t');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_expand) {$else} @png_set_expand {$endif} := PngLibrary.Symbol('png_set_expand');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_gray_1_2_4_to_8) {$else} @png_set_gray_1_2_4_to_8 {$endif} := PngLibrary.Symbol('png_set_gray_1_2_4_to_8');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_palette_to_rgb) {$else} @png_set_palette_to_rgb {$endif} := PngLibrary.Symbol('png_set_palette_to_rgb');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_tRNS_to_alpha) {$else} @png_set_tRNS_to_alpha {$endif} := PngLibrary.Symbol('png_set_tRNS_to_alpha');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_bgr) {$else} @png_set_bgr {$endif} := PngLibrary.Symbol('png_set_bgr');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_gray_to_rgb) {$else} @png_set_gray_to_rgb {$endif} := PngLibrary.Symbol('png_set_gray_to_rgb');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_rgb_to_gray) {$else} @png_set_rgb_to_gray {$endif} := PngLibrary.Symbol('png_set_rgb_to_gray');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_rgb_to_gray_fixed) {$else} @png_set_rgb_to_gray_fixed {$endif} := PngLibrary.Symbol('png_set_rgb_to_gray_fixed');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_rgb_to_gray_status) {$else} @png_get_rgb_to_gray_status {$endif} := PngLibrary.Symbol('png_get_rgb_to_gray_status');
-  {$ifdef FPC_OBJFPC} Pointer(png_build_grayscale_palette) {$else} @png_build_grayscale_palette {$endif} := PngLibrary.Symbol('png_build_grayscale_palette');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_strip_alpha) {$else} @png_set_strip_alpha {$endif} := PngLibrary.Symbol('png_set_strip_alpha');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_swap_alpha) {$else} @png_set_swap_alpha {$endif} := PngLibrary.Symbol('png_set_swap_alpha');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_invert_alpha) {$else} @png_set_invert_alpha {$endif} := PngLibrary.Symbol('png_set_invert_alpha');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_filler) {$else} @png_set_filler {$endif} := PngLibrary.Symbol('png_set_filler');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_swap) {$else} @png_set_swap {$endif} := PngLibrary.Symbol('png_set_swap');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_packing) {$else} @png_set_packing {$endif} := PngLibrary.Symbol('png_set_packing');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_packswap) {$else} @png_set_packswap {$endif} := PngLibrary.Symbol('png_set_packswap');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_shift) {$else} @png_set_shift {$endif} := PngLibrary.Symbol('png_set_shift');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_interlace_handling) {$else} @png_set_interlace_handling {$endif} := PngLibrary.Symbol('png_set_interlace_handling');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_invert_mono) {$else} @png_set_invert_mono {$endif} := PngLibrary.Symbol('png_set_invert_mono');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_background) {$else} @png_set_background {$endif} := PngLibrary.Symbol('png_set_background');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_strip_16) {$else} @png_set_strip_16 {$endif} := PngLibrary.Symbol('png_set_strip_16');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_dither) {$else} @png_set_dither {$endif} := PngLibrary.Symbol('png_set_dither');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_gamma) {$else} @png_set_gamma {$endif} := PngLibrary.Symbol('png_set_gamma');
-  {$ifdef FPC_OBJFPC} Pointer(png_permit_empty_plte) {$else} @png_permit_empty_plte {$endif} := PngLibrary.Symbol('png_permit_empty_plte');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_flush) {$else} @png_set_flush {$endif} := PngLibrary.Symbol('png_set_flush');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_flush) {$else} @png_write_flush {$endif} := PngLibrary.Symbol('png_write_flush');
-  {$ifdef FPC_OBJFPC} Pointer(png_start_read_image) {$else} @png_start_read_image {$endif} := PngLibrary.Symbol('png_start_read_image');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_update_info) {$else} @png_read_update_info {$endif} := PngLibrary.Symbol('png_read_update_info');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_rows) {$else} @png_read_rows {$endif} := PngLibrary.Symbol('png_read_rows');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_row) {$else} @png_read_row {$endif} := PngLibrary.Symbol('png_read_row');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_image) {$else} @png_read_image {$endif} := PngLibrary.Symbol('png_read_image');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_row) {$else} @png_write_row {$endif} := PngLibrary.Symbol('png_write_row');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_rows) {$else} @png_write_rows {$endif} := PngLibrary.Symbol('png_write_rows');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_image) {$else} @png_write_image {$endif} := PngLibrary.Symbol('png_write_image');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_end) {$else} @png_write_end {$endif} := PngLibrary.Symbol('png_write_end');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_end) {$else} @png_read_end {$endif} := PngLibrary.Symbol('png_read_end');
-  {$ifdef FPC_OBJFPC} Pointer(png_destroy_info_struct) {$else} @png_destroy_info_struct {$endif} := PngLibrary.Symbol('png_destroy_info_struct');
-  {$ifdef FPC_OBJFPC} Pointer(png_destroy_read_struct) {$else} @png_destroy_read_struct {$endif} := PngLibrary.Symbol('png_destroy_read_struct');
-// {$ifdef FPC_OBJFPC} Pointer(png_read_destroy) {$else} @png_read_destroy {$endif} := PngLibrary.Symbol('png_read_destroy');
-  {$ifdef FPC_OBJFPC} Pointer(png_destroy_write_struct) {$else} @png_destroy_write_struct {$endif} := PngLibrary.Symbol('png_destroy_write_struct');
-// {$ifdef FPC_OBJFPC} Pointer(png_write_destroy_info) {$else} @png_write_destroy_info {$endif} := PngLibrary.Symbol('png_write_destroy_info');
-// {$ifdef FPC_OBJFPC} Pointer(png_write_destroy) {$else} @png_write_destroy {$endif} := PngLibrary.Symbol('png_write_destroy');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_crc_action) {$else} @png_set_crc_action {$endif} := PngLibrary.Symbol('png_set_crc_action');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_filter) {$else} @png_set_filter {$endif} := PngLibrary.Symbol('png_set_filter');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_filter_heuristics) {$else} @png_set_filter_heuristics {$endif} := PngLibrary.Symbol('png_set_filter_heuristics');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_level) {$else} @png_set_compression_level {$endif} := PngLibrary.Symbol('png_set_compression_level');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_mem_level) {$else} @png_set_compression_mem_level {$endif} := PngLibrary.Symbol('png_set_compression_mem_level');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_strategy) {$else} @png_set_compression_strategy {$endif} := PngLibrary.Symbol('png_set_compression_strategy');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_window_bits) {$else} @png_set_compression_window_bits {$endif} := PngLibrary.Symbol('png_set_compression_window_bits');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_compression_method) {$else} @png_set_compression_method {$endif} := PngLibrary.Symbol('png_set_compression_method');
-  {$ifdef FPC_OBJFPC} Pointer(png_init_io) {$else} @png_init_io {$endif} := PngLibrary.Symbol('png_init_io');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_error_fn) {$else} @png_set_error_fn {$endif} := PngLibrary.Symbol('png_set_error_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_error_ptr) {$else} @png_get_error_ptr {$endif} := PngLibrary.Symbol('png_get_error_ptr');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_write_fn) {$else} @png_set_write_fn {$endif} := PngLibrary.Symbol('png_set_write_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_read_fn) {$else} @png_set_read_fn {$endif} := PngLibrary.Symbol('png_set_read_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_io_ptr) {$else} @png_get_io_ptr {$endif} := PngLibrary.Symbol('png_get_io_ptr');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_read_status_fn) {$else} @png_set_read_status_fn {$endif} := PngLibrary.Symbol('png_set_read_status_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_write_status_fn) {$else} @png_set_write_status_fn {$endif} := PngLibrary.Symbol('png_set_write_status_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_read_user_transform_fn) {$else} @png_set_read_user_transform_fn {$endif} := PngLibrary.Symbol('png_set_read_user_transform_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_write_user_transform_fn) {$else} @png_set_write_user_transform_fn {$endif} := PngLibrary.Symbol('png_set_write_user_transform_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_user_transform_info) {$else} @png_set_user_transform_info {$endif} := PngLibrary.Symbol('png_set_user_transform_info');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_user_transform_ptr) {$else} @png_get_user_transform_ptr {$endif} := PngLibrary.Symbol('png_get_user_transform_ptr');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_read_user_chunk_fn) {$else} @png_set_read_user_chunk_fn {$endif} := PngLibrary.Symbol('png_set_read_user_chunk_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_user_chunk_ptr) {$else} @png_get_user_chunk_ptr {$endif} := PngLibrary.Symbol('png_get_user_chunk_ptr');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_progressive_read_fn) {$else} @png_set_progressive_read_fn {$endif} := PngLibrary.Symbol('png_set_progressive_read_fn');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_progressive_ptr) {$else} @png_get_progressive_ptr {$endif} := PngLibrary.Symbol('png_get_progressive_ptr');
-  {$ifdef FPC_OBJFPC} Pointer(png_process_data) {$else} @png_process_data {$endif} := PngLibrary.Symbol('png_process_data');
-  {$ifdef FPC_OBJFPC} Pointer(png_progressive_combine_row) {$else} @png_progressive_combine_row {$endif} := PngLibrary.Symbol('png_progressive_combine_row');
-  {$ifdef FPC_OBJFPC} Pointer(png_malloc) {$else} @png_malloc {$endif} := PngLibrary.Symbol('png_malloc');
-  {$ifdef FPC_OBJFPC} Pointer(png_free) {$else} @png_free {$endif} := PngLibrary.Symbol('png_free');
-  {$ifdef FPC_OBJFPC} Pointer(png_free_data) {$else} @png_free_data {$endif} := PngLibrary.Symbol('png_free_data');
-  {$ifdef FPC_OBJFPC} Pointer(png_data_freer) {$else} @png_data_freer {$endif} := PngLibrary.Symbol('png_data_freer');
-  {$ifdef FPC_OBJFPC} Pointer(png_memcpy_check) {$else} @png_memcpy_check {$endif} := PngLibrary.Symbol('png_memcpy_check');
-  {$ifdef FPC_OBJFPC} Pointer(png_memset_check) {$else} @png_memset_check {$endif} := PngLibrary.Symbol('png_memset_check');
-  {$ifdef FPC_OBJFPC} Pointer(png_error) {$else} @png_error {$endif} := PngLibrary.Symbol('png_error');
-  {$ifdef FPC_OBJFPC} Pointer(png_chunk_error) {$else} @png_chunk_error {$endif} := PngLibrary.Symbol('png_chunk_error');
-  {$ifdef FPC_OBJFPC} Pointer(png_warning) {$else} @png_warning {$endif} := PngLibrary.Symbol('png_warning');
-  {$ifdef FPC_OBJFPC} Pointer(png_chunk_warning) {$else} @png_chunk_warning {$endif} := PngLibrary.Symbol('png_chunk_warning');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_valid) {$else} @png_get_valid {$endif} := PngLibrary.Symbol('png_get_valid');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_rowbytes) {$else} @png_get_rowbytes {$endif} := PngLibrary.Symbol('png_get_rowbytes');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_rows) {$else} @png_get_rows {$endif} := PngLibrary.Symbol('png_get_rows');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_rows) {$else} @png_set_rows {$endif} := PngLibrary.Symbol('png_set_rows');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_channels) {$else} @png_get_channels {$endif} := PngLibrary.Symbol('png_get_channels');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_image_width) {$else} @png_get_image_width {$endif} := PngLibrary.Symbol('png_get_image_width');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_image_height) {$else} @png_get_image_height {$endif} := PngLibrary.Symbol('png_get_image_height');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_bit_depth) {$else} @png_get_bit_depth {$endif} := PngLibrary.Symbol('png_get_bit_depth');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_color_type) {$else} @png_get_color_type {$endif} := PngLibrary.Symbol('png_get_color_type');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_filter_type) {$else} @png_get_filter_type {$endif} := PngLibrary.Symbol('png_get_filter_type');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_interlace_type) {$else} @png_get_interlace_type {$endif} := PngLibrary.Symbol('png_get_interlace_type');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_compression_type) {$else} @png_get_compression_type {$endif} := PngLibrary.Symbol('png_get_compression_type');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_pixels_per_meter) {$else} @png_get_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_pixels_per_meter');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_x_pixels_per_meter) {$else} @png_get_x_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_x_pixels_per_meter');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_y_pixels_per_meter) {$else} @png_get_y_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_y_pixels_per_meter');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_pixel_aspect_ratio) {$else} @png_get_pixel_aspect_ratio {$endif} := PngLibrary.Symbol('png_get_pixel_aspect_ratio');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_x_offset_pixels) {$else} @png_get_x_offset_pixels {$endif} := PngLibrary.Symbol('png_get_x_offset_pixels');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_y_offset_pixels) {$else} @png_get_y_offset_pixels {$endif} := PngLibrary.Symbol('png_get_y_offset_pixels');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_x_offset_microns) {$else} @png_get_x_offset_microns {$endif} := PngLibrary.Symbol('png_get_x_offset_microns');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_y_offset_microns) {$else} @png_get_y_offset_microns {$endif} := PngLibrary.Symbol('png_get_y_offset_microns');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_signature) {$else} @png_get_signature {$endif} := PngLibrary.Symbol('png_get_signature');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_bKGD) {$else} @png_get_bKGD {$endif} := PngLibrary.Symbol('png_get_bKGD');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_bKGD) {$else} @png_set_bKGD {$endif} := PngLibrary.Symbol('png_set_bKGD');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_cHRM) {$else} @png_get_cHRM {$endif} := PngLibrary.Symbol('png_get_cHRM');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_cHRM_fixed) {$else} @png_get_cHRM_fixed {$endif} := PngLibrary.Symbol('png_get_cHRM_fixed');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_cHRM) {$else} @png_set_cHRM {$endif} := PngLibrary.Symbol('png_set_cHRM');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_cHRM_fixed) {$else} @png_set_cHRM_fixed {$endif} := PngLibrary.Symbol('png_set_cHRM_fixed');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_gAMA) {$else} @png_get_gAMA {$endif} := PngLibrary.Symbol('png_get_gAMA');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_gAMA_fixed) {$else} @png_get_gAMA_fixed {$endif} := PngLibrary.Symbol('png_get_gAMA_fixed');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_gAMA) {$else} @png_set_gAMA {$endif} := PngLibrary.Symbol('png_set_gAMA');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_gAMA_fixed) {$else} @png_set_gAMA_fixed {$endif} := PngLibrary.Symbol('png_set_gAMA_fixed');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_hIST) {$else} @png_get_hIST {$endif} := PngLibrary.Symbol('png_get_hIST');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_hIST) {$else} @png_set_hIST {$endif} := PngLibrary.Symbol('png_set_hIST');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_IHDR) {$else} @png_get_IHDR {$endif} := PngLibrary.Symbol('png_get_IHDR');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_IHDR) {$else} @png_set_IHDR {$endif} := PngLibrary.Symbol('png_set_IHDR');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_oFFs) {$else} @png_get_oFFs {$endif} := PngLibrary.Symbol('png_get_oFFs');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_oFFs) {$else} @png_set_oFFs {$endif} := PngLibrary.Symbol('png_set_oFFs');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_pCAL) {$else} @png_get_pCAL {$endif} := PngLibrary.Symbol('png_get_pCAL');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_pCAL) {$else} @png_set_pCAL {$endif} := PngLibrary.Symbol('png_set_pCAL');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_pHYs) {$else} @png_get_pHYs {$endif} := PngLibrary.Symbol('png_get_pHYs');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_pHYs) {$else} @png_set_pHYs {$endif} := PngLibrary.Symbol('png_set_pHYs');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_PLTE) {$else} @png_get_PLTE {$endif} := PngLibrary.Symbol('png_get_PLTE');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_PLTE) {$else} @png_set_PLTE {$endif} := PngLibrary.Symbol('png_set_PLTE');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_sBIT) {$else} @png_get_sBIT {$endif} := PngLibrary.Symbol('png_get_sBIT');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sBIT) {$else} @png_set_sBIT {$endif} := PngLibrary.Symbol('png_set_sBIT');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_sRGB) {$else} @png_get_sRGB {$endif} := PngLibrary.Symbol('png_get_sRGB');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sRGB) {$else} @png_set_sRGB {$endif} := PngLibrary.Symbol('png_set_sRGB');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sRGB_gAMA_and_cHRM) {$else} @png_set_sRGB_gAMA_and_cHRM {$endif} := PngLibrary.Symbol('png_set_sRGB_gAMA_and_cHRM');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_iCCP) {$else} @png_get_iCCP {$endif} := PngLibrary.Symbol('png_get_iCCP');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_iCCP) {$else} @png_set_iCCP {$endif} := PngLibrary.Symbol('png_set_iCCP');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_sPLT) {$else} @png_get_sPLT {$endif} := PngLibrary.Symbol('png_get_sPLT');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sPLT) {$else} @png_set_sPLT {$endif} := PngLibrary.Symbol('png_set_sPLT');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_text) {$else} @png_get_text {$endif} := PngLibrary.Symbol('png_get_text');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_text) {$else} @png_set_text {$endif} := PngLibrary.Symbol('png_set_text');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_tIME) {$else} @png_get_tIME {$endif} := PngLibrary.Symbol('png_get_tIME');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_tIME) {$else} @png_set_tIME {$endif} := PngLibrary.Symbol('png_set_tIME');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_tRNS) {$else} @png_get_tRNS {$endif} := PngLibrary.Symbol('png_get_tRNS');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_tRNS) {$else} @png_set_tRNS {$endif} := PngLibrary.Symbol('png_set_tRNS');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_sCAL) {$else} @png_get_sCAL {$endif} := PngLibrary.Symbol('png_get_sCAL');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_sCAL) {$else} @png_set_sCAL {$endif} := PngLibrary.Symbol('png_set_sCAL');
-// {$ifdef FPC_OBJFPC} Pointer(png_set_sCAL_s) {$else} @png_set_sCAL_s {$endif} := PngLibrary.Symbol('png_set_sCAL_s');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_keep_unknown_chunks) {$else} @png_set_keep_unknown_chunks {$endif} := PngLibrary.Symbol('png_set_keep_unknown_chunks');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_unknown_chunks) {$else} @png_set_unknown_chunks {$endif} := PngLibrary.Symbol('png_set_unknown_chunks');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_unknown_chunk_location) {$else} @png_set_unknown_chunk_location {$endif} := PngLibrary.Symbol('png_set_unknown_chunk_location');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_unknown_chunks) {$else} @png_get_unknown_chunks {$endif} := PngLibrary.Symbol('png_get_unknown_chunks');
-  {$ifdef FPC_OBJFPC} Pointer(png_set_invalid) {$else} @png_set_invalid {$endif} := PngLibrary.Symbol('png_set_invalid');
-  {$ifdef FPC_OBJFPC} Pointer(png_read_png) {$else} @png_read_png {$endif} := PngLibrary.Symbol('png_read_png');
-  {$ifdef FPC_OBJFPC} Pointer(png_write_png) {$else} @png_write_png {$endif} := PngLibrary.Symbol('png_write_png');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_header_ver) {$else} @png_get_header_ver {$endif} := PngLibrary.Symbol('png_get_header_ver');
-  {$ifdef FPC_OBJFPC} Pointer(png_get_header_version) {$else} @png_get_header_version {$endif} := PngLibrary.Symbol('png_get_header_version');
- end;
+  {$ifdef PNG_CYGWIN} { cygwin dll version }
+  PngLibrary := TDynLib.Load('cygpng2.dll');
+  {$endif}
+
+  {$ifdef UNIX}
+
+  {$ifdef DARWIN}
+  { TODO--confirm this works under Darwin }
+  PngLibrary := TDynLib.Load('libpng.dylib');
+  {$else DARWIN}
+  PngLibrary := TDynLib.Load('libpng12.so.0');
+  { Alternative libpng library name for Unix. Use the one that comes usually
+    from package like libpng-dev, this allows the system admin to
+    eventually adjust the used libpng using symlink (in case the
+    exact libpng12.so.0 doesn't exist). }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng.so');
+  {$endif DARWIN}
+
+  {$endif UNIX}
+
+  FKambiPngInited := PngLibrary <> nil;
+
+  if FKambiPngInited then
+  begin
+    (* Note: at first I wrote it like
+         {$ifdef FPC_OBJFPC} Pointer {$else} @ {$endif} (xxx)
+       but unfortunately stupid Delphi doesn't get @(xxx) construct.
+       I must use @xxx construct. *)
+
+    {$ifdef FPC_OBJFPC} Pointer(png_access_version_number) {$else} @png_access_version_number {$endif} := PngLibrary.Symbol('png_access_version_number');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sig_bytes) {$else} @png_set_sig_bytes {$endif} := PngLibrary.Symbol('png_set_sig_bytes');
+    {$ifdef FPC_OBJFPC} Pointer(png_sig_cmp) {$else} @png_sig_cmp {$endif} := PngLibrary.Symbol('png_sig_cmp');
+    {$ifdef FPC_OBJFPC} Pointer(png_check_sig) {$else} @png_check_sig {$endif} := PngLibrary.Symbol('png_check_sig');
+    {$ifdef FPC_OBJFPC} Pointer(png_create_read_struct) {$else} @png_create_read_struct {$endif} := PngLibrary.Symbol('png_create_read_struct');
+    {$ifdef FPC_OBJFPC} Pointer(png_create_write_struct) {$else} @png_create_write_struct {$endif} := PngLibrary.Symbol('png_create_write_struct');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_compression_buffer_size) {$else} @png_get_compression_buffer_size {$endif} := PngLibrary.Symbol('png_get_compression_buffer_size');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_buffer_size) {$else} @png_set_compression_buffer_size {$endif} := PngLibrary.Symbol('png_set_compression_buffer_size');
+    {$ifdef FPC_OBJFPC} Pointer(png_reset_zstream) {$else} @png_reset_zstream {$endif} := PngLibrary.Symbol('png_reset_zstream');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_chunk) {$else} @png_write_chunk {$endif} := PngLibrary.Symbol('png_write_chunk');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_start) {$else} @png_write_chunk_start {$endif} := PngLibrary.Symbol('png_write_chunk_start');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_data) {$else} @png_write_chunk_data {$endif} := PngLibrary.Symbol('png_write_chunk_data');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_chunk_end) {$else} @png_write_chunk_end {$endif} := PngLibrary.Symbol('png_write_chunk_end');
+    {$ifdef FPC_OBJFPC} Pointer(png_create_info_struct) {$else} @png_create_info_struct {$endif} := PngLibrary.Symbol('png_create_info_struct');
+    {$ifdef FPC_OBJFPC} Pointer(png_info_init) {$else} @png_info_init {$endif} := PngLibrary.Symbol('png_info_init');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_info_before_PLTE) {$else} @png_write_info_before_PLTE {$endif} := PngLibrary.Symbol('png_write_info_before_PLTE');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_info) {$else} @png_write_info {$endif} := PngLibrary.Symbol('png_write_info');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_info) {$else} @png_read_info {$endif} := PngLibrary.Symbol('png_read_info');
+    {$ifdef FPC_OBJFPC} Pointer(png_convert_to_rfc1123) {$else} @png_convert_to_rfc1123 {$endif} := PngLibrary.Symbol('png_convert_to_rfc1123');
+    {$ifdef FPC_OBJFPC} Pointer(png_convert_from_struct_tm) {$else} @png_convert_from_struct_tm {$endif} := PngLibrary.Symbol('png_convert_from_struct_tm');
+    {$ifdef FPC_OBJFPC} Pointer(png_convert_from_time_t) {$else} @png_convert_from_time_t {$endif} := PngLibrary.Symbol('png_convert_from_time_t');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_expand) {$else} @png_set_expand {$endif} := PngLibrary.Symbol('png_set_expand');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_gray_1_2_4_to_8) {$else} @png_set_gray_1_2_4_to_8 {$endif} := PngLibrary.Symbol('png_set_gray_1_2_4_to_8');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_palette_to_rgb) {$else} @png_set_palette_to_rgb {$endif} := PngLibrary.Symbol('png_set_palette_to_rgb');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_tRNS_to_alpha) {$else} @png_set_tRNS_to_alpha {$endif} := PngLibrary.Symbol('png_set_tRNS_to_alpha');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_bgr) {$else} @png_set_bgr {$endif} := PngLibrary.Symbol('png_set_bgr');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_gray_to_rgb) {$else} @png_set_gray_to_rgb {$endif} := PngLibrary.Symbol('png_set_gray_to_rgb');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_rgb_to_gray) {$else} @png_set_rgb_to_gray {$endif} := PngLibrary.Symbol('png_set_rgb_to_gray');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_rgb_to_gray_fixed) {$else} @png_set_rgb_to_gray_fixed {$endif} := PngLibrary.Symbol('png_set_rgb_to_gray_fixed');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_rgb_to_gray_status) {$else} @png_get_rgb_to_gray_status {$endif} := PngLibrary.Symbol('png_get_rgb_to_gray_status');
+    {$ifdef FPC_OBJFPC} Pointer(png_build_grayscale_palette) {$else} @png_build_grayscale_palette {$endif} := PngLibrary.Symbol('png_build_grayscale_palette');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_strip_alpha) {$else} @png_set_strip_alpha {$endif} := PngLibrary.Symbol('png_set_strip_alpha');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_swap_alpha) {$else} @png_set_swap_alpha {$endif} := PngLibrary.Symbol('png_set_swap_alpha');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_invert_alpha) {$else} @png_set_invert_alpha {$endif} := PngLibrary.Symbol('png_set_invert_alpha');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_filler) {$else} @png_set_filler {$endif} := PngLibrary.Symbol('png_set_filler');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_swap) {$else} @png_set_swap {$endif} := PngLibrary.Symbol('png_set_swap');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_packing) {$else} @png_set_packing {$endif} := PngLibrary.Symbol('png_set_packing');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_packswap) {$else} @png_set_packswap {$endif} := PngLibrary.Symbol('png_set_packswap');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_shift) {$else} @png_set_shift {$endif} := PngLibrary.Symbol('png_set_shift');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_interlace_handling) {$else} @png_set_interlace_handling {$endif} := PngLibrary.Symbol('png_set_interlace_handling');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_invert_mono) {$else} @png_set_invert_mono {$endif} := PngLibrary.Symbol('png_set_invert_mono');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_background) {$else} @png_set_background {$endif} := PngLibrary.Symbol('png_set_background');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_strip_16) {$else} @png_set_strip_16 {$endif} := PngLibrary.Symbol('png_set_strip_16');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_dither) {$else} @png_set_dither {$endif} := PngLibrary.Symbol('png_set_dither');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_gamma) {$else} @png_set_gamma {$endif} := PngLibrary.Symbol('png_set_gamma');
+    {$ifdef FPC_OBJFPC} Pointer(png_permit_empty_plte) {$else} @png_permit_empty_plte {$endif} := PngLibrary.Symbol('png_permit_empty_plte');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_flush) {$else} @png_set_flush {$endif} := PngLibrary.Symbol('png_set_flush');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_flush) {$else} @png_write_flush {$endif} := PngLibrary.Symbol('png_write_flush');
+    {$ifdef FPC_OBJFPC} Pointer(png_start_read_image) {$else} @png_start_read_image {$endif} := PngLibrary.Symbol('png_start_read_image');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_update_info) {$else} @png_read_update_info {$endif} := PngLibrary.Symbol('png_read_update_info');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_rows) {$else} @png_read_rows {$endif} := PngLibrary.Symbol('png_read_rows');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_row) {$else} @png_read_row {$endif} := PngLibrary.Symbol('png_read_row');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_image) {$else} @png_read_image {$endif} := PngLibrary.Symbol('png_read_image');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_row) {$else} @png_write_row {$endif} := PngLibrary.Symbol('png_write_row');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_rows) {$else} @png_write_rows {$endif} := PngLibrary.Symbol('png_write_rows');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_image) {$else} @png_write_image {$endif} := PngLibrary.Symbol('png_write_image');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_end) {$else} @png_write_end {$endif} := PngLibrary.Symbol('png_write_end');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_end) {$else} @png_read_end {$endif} := PngLibrary.Symbol('png_read_end');
+    {$ifdef FPC_OBJFPC} Pointer(png_destroy_info_struct) {$else} @png_destroy_info_struct {$endif} := PngLibrary.Symbol('png_destroy_info_struct');
+    {$ifdef FPC_OBJFPC} Pointer(png_destroy_read_struct) {$else} @png_destroy_read_struct {$endif} := PngLibrary.Symbol('png_destroy_read_struct');
+  // {$ifdef FPC_OBJFPC} Pointer(png_read_destroy) {$else} @png_read_destroy {$endif} := PngLibrary.Symbol('png_read_destroy');
+    {$ifdef FPC_OBJFPC} Pointer(png_destroy_write_struct) {$else} @png_destroy_write_struct {$endif} := PngLibrary.Symbol('png_destroy_write_struct');
+  // {$ifdef FPC_OBJFPC} Pointer(png_write_destroy_info) {$else} @png_write_destroy_info {$endif} := PngLibrary.Symbol('png_write_destroy_info');
+  // {$ifdef FPC_OBJFPC} Pointer(png_write_destroy) {$else} @png_write_destroy {$endif} := PngLibrary.Symbol('png_write_destroy');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_crc_action) {$else} @png_set_crc_action {$endif} := PngLibrary.Symbol('png_set_crc_action');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_filter) {$else} @png_set_filter {$endif} := PngLibrary.Symbol('png_set_filter');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_filter_heuristics) {$else} @png_set_filter_heuristics {$endif} := PngLibrary.Symbol('png_set_filter_heuristics');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_level) {$else} @png_set_compression_level {$endif} := PngLibrary.Symbol('png_set_compression_level');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_mem_level) {$else} @png_set_compression_mem_level {$endif} := PngLibrary.Symbol('png_set_compression_mem_level');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_strategy) {$else} @png_set_compression_strategy {$endif} := PngLibrary.Symbol('png_set_compression_strategy');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_window_bits) {$else} @png_set_compression_window_bits {$endif} := PngLibrary.Symbol('png_set_compression_window_bits');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_compression_method) {$else} @png_set_compression_method {$endif} := PngLibrary.Symbol('png_set_compression_method');
+    {$ifdef FPC_OBJFPC} Pointer(png_init_io) {$else} @png_init_io {$endif} := PngLibrary.Symbol('png_init_io');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_error_fn) {$else} @png_set_error_fn {$endif} := PngLibrary.Symbol('png_set_error_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_error_ptr) {$else} @png_get_error_ptr {$endif} := PngLibrary.Symbol('png_get_error_ptr');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_write_fn) {$else} @png_set_write_fn {$endif} := PngLibrary.Symbol('png_set_write_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_read_fn) {$else} @png_set_read_fn {$endif} := PngLibrary.Symbol('png_set_read_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_io_ptr) {$else} @png_get_io_ptr {$endif} := PngLibrary.Symbol('png_get_io_ptr');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_read_status_fn) {$else} @png_set_read_status_fn {$endif} := PngLibrary.Symbol('png_set_read_status_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_write_status_fn) {$else} @png_set_write_status_fn {$endif} := PngLibrary.Symbol('png_set_write_status_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_read_user_transform_fn) {$else} @png_set_read_user_transform_fn {$endif} := PngLibrary.Symbol('png_set_read_user_transform_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_write_user_transform_fn) {$else} @png_set_write_user_transform_fn {$endif} := PngLibrary.Symbol('png_set_write_user_transform_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_user_transform_info) {$else} @png_set_user_transform_info {$endif} := PngLibrary.Symbol('png_set_user_transform_info');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_user_transform_ptr) {$else} @png_get_user_transform_ptr {$endif} := PngLibrary.Symbol('png_get_user_transform_ptr');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_read_user_chunk_fn) {$else} @png_set_read_user_chunk_fn {$endif} := PngLibrary.Symbol('png_set_read_user_chunk_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_user_chunk_ptr) {$else} @png_get_user_chunk_ptr {$endif} := PngLibrary.Symbol('png_get_user_chunk_ptr');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_progressive_read_fn) {$else} @png_set_progressive_read_fn {$endif} := PngLibrary.Symbol('png_set_progressive_read_fn');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_progressive_ptr) {$else} @png_get_progressive_ptr {$endif} := PngLibrary.Symbol('png_get_progressive_ptr');
+    {$ifdef FPC_OBJFPC} Pointer(png_process_data) {$else} @png_process_data {$endif} := PngLibrary.Symbol('png_process_data');
+    {$ifdef FPC_OBJFPC} Pointer(png_progressive_combine_row) {$else} @png_progressive_combine_row {$endif} := PngLibrary.Symbol('png_progressive_combine_row');
+    {$ifdef FPC_OBJFPC} Pointer(png_malloc) {$else} @png_malloc {$endif} := PngLibrary.Symbol('png_malloc');
+    {$ifdef FPC_OBJFPC} Pointer(png_free) {$else} @png_free {$endif} := PngLibrary.Symbol('png_free');
+    {$ifdef FPC_OBJFPC} Pointer(png_free_data) {$else} @png_free_data {$endif} := PngLibrary.Symbol('png_free_data');
+    {$ifdef FPC_OBJFPC} Pointer(png_data_freer) {$else} @png_data_freer {$endif} := PngLibrary.Symbol('png_data_freer');
+    {$ifdef FPC_OBJFPC} Pointer(png_memcpy_check) {$else} @png_memcpy_check {$endif} := PngLibrary.Symbol('png_memcpy_check');
+    {$ifdef FPC_OBJFPC} Pointer(png_memset_check) {$else} @png_memset_check {$endif} := PngLibrary.Symbol('png_memset_check');
+    {$ifdef FPC_OBJFPC} Pointer(png_error) {$else} @png_error {$endif} := PngLibrary.Symbol('png_error');
+    {$ifdef FPC_OBJFPC} Pointer(png_chunk_error) {$else} @png_chunk_error {$endif} := PngLibrary.Symbol('png_chunk_error');
+    {$ifdef FPC_OBJFPC} Pointer(png_warning) {$else} @png_warning {$endif} := PngLibrary.Symbol('png_warning');
+    {$ifdef FPC_OBJFPC} Pointer(png_chunk_warning) {$else} @png_chunk_warning {$endif} := PngLibrary.Symbol('png_chunk_warning');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_valid) {$else} @png_get_valid {$endif} := PngLibrary.Symbol('png_get_valid');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_rowbytes) {$else} @png_get_rowbytes {$endif} := PngLibrary.Symbol('png_get_rowbytes');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_rows) {$else} @png_get_rows {$endif} := PngLibrary.Symbol('png_get_rows');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_rows) {$else} @png_set_rows {$endif} := PngLibrary.Symbol('png_set_rows');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_channels) {$else} @png_get_channels {$endif} := PngLibrary.Symbol('png_get_channels');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_image_width) {$else} @png_get_image_width {$endif} := PngLibrary.Symbol('png_get_image_width');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_image_height) {$else} @png_get_image_height {$endif} := PngLibrary.Symbol('png_get_image_height');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_bit_depth) {$else} @png_get_bit_depth {$endif} := PngLibrary.Symbol('png_get_bit_depth');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_color_type) {$else} @png_get_color_type {$endif} := PngLibrary.Symbol('png_get_color_type');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_filter_type) {$else} @png_get_filter_type {$endif} := PngLibrary.Symbol('png_get_filter_type');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_interlace_type) {$else} @png_get_interlace_type {$endif} := PngLibrary.Symbol('png_get_interlace_type');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_compression_type) {$else} @png_get_compression_type {$endif} := PngLibrary.Symbol('png_get_compression_type');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_pixels_per_meter) {$else} @png_get_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_pixels_per_meter');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_x_pixels_per_meter) {$else} @png_get_x_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_x_pixels_per_meter');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_y_pixels_per_meter) {$else} @png_get_y_pixels_per_meter {$endif} := PngLibrary.Symbol('png_get_y_pixels_per_meter');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_pixel_aspect_ratio) {$else} @png_get_pixel_aspect_ratio {$endif} := PngLibrary.Symbol('png_get_pixel_aspect_ratio');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_x_offset_pixels) {$else} @png_get_x_offset_pixels {$endif} := PngLibrary.Symbol('png_get_x_offset_pixels');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_y_offset_pixels) {$else} @png_get_y_offset_pixels {$endif} := PngLibrary.Symbol('png_get_y_offset_pixels');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_x_offset_microns) {$else} @png_get_x_offset_microns {$endif} := PngLibrary.Symbol('png_get_x_offset_microns');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_y_offset_microns) {$else} @png_get_y_offset_microns {$endif} := PngLibrary.Symbol('png_get_y_offset_microns');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_signature) {$else} @png_get_signature {$endif} := PngLibrary.Symbol('png_get_signature');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_bKGD) {$else} @png_get_bKGD {$endif} := PngLibrary.Symbol('png_get_bKGD');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_bKGD) {$else} @png_set_bKGD {$endif} := PngLibrary.Symbol('png_set_bKGD');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_cHRM) {$else} @png_get_cHRM {$endif} := PngLibrary.Symbol('png_get_cHRM');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_cHRM_fixed) {$else} @png_get_cHRM_fixed {$endif} := PngLibrary.Symbol('png_get_cHRM_fixed');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_cHRM) {$else} @png_set_cHRM {$endif} := PngLibrary.Symbol('png_set_cHRM');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_cHRM_fixed) {$else} @png_set_cHRM_fixed {$endif} := PngLibrary.Symbol('png_set_cHRM_fixed');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_gAMA) {$else} @png_get_gAMA {$endif} := PngLibrary.Symbol('png_get_gAMA');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_gAMA_fixed) {$else} @png_get_gAMA_fixed {$endif} := PngLibrary.Symbol('png_get_gAMA_fixed');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_gAMA) {$else} @png_set_gAMA {$endif} := PngLibrary.Symbol('png_set_gAMA');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_gAMA_fixed) {$else} @png_set_gAMA_fixed {$endif} := PngLibrary.Symbol('png_set_gAMA_fixed');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_hIST) {$else} @png_get_hIST {$endif} := PngLibrary.Symbol('png_get_hIST');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_hIST) {$else} @png_set_hIST {$endif} := PngLibrary.Symbol('png_set_hIST');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_IHDR) {$else} @png_get_IHDR {$endif} := PngLibrary.Symbol('png_get_IHDR');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_IHDR) {$else} @png_set_IHDR {$endif} := PngLibrary.Symbol('png_set_IHDR');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_oFFs) {$else} @png_get_oFFs {$endif} := PngLibrary.Symbol('png_get_oFFs');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_oFFs) {$else} @png_set_oFFs {$endif} := PngLibrary.Symbol('png_set_oFFs');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_pCAL) {$else} @png_get_pCAL {$endif} := PngLibrary.Symbol('png_get_pCAL');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_pCAL) {$else} @png_set_pCAL {$endif} := PngLibrary.Symbol('png_set_pCAL');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_pHYs) {$else} @png_get_pHYs {$endif} := PngLibrary.Symbol('png_get_pHYs');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_pHYs) {$else} @png_set_pHYs {$endif} := PngLibrary.Symbol('png_set_pHYs');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_PLTE) {$else} @png_get_PLTE {$endif} := PngLibrary.Symbol('png_get_PLTE');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_PLTE) {$else} @png_set_PLTE {$endif} := PngLibrary.Symbol('png_set_PLTE');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_sBIT) {$else} @png_get_sBIT {$endif} := PngLibrary.Symbol('png_get_sBIT');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sBIT) {$else} @png_set_sBIT {$endif} := PngLibrary.Symbol('png_set_sBIT');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_sRGB) {$else} @png_get_sRGB {$endif} := PngLibrary.Symbol('png_get_sRGB');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sRGB) {$else} @png_set_sRGB {$endif} := PngLibrary.Symbol('png_set_sRGB');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sRGB_gAMA_and_cHRM) {$else} @png_set_sRGB_gAMA_and_cHRM {$endif} := PngLibrary.Symbol('png_set_sRGB_gAMA_and_cHRM');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_iCCP) {$else} @png_get_iCCP {$endif} := PngLibrary.Symbol('png_get_iCCP');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_iCCP) {$else} @png_set_iCCP {$endif} := PngLibrary.Symbol('png_set_iCCP');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_sPLT) {$else} @png_get_sPLT {$endif} := PngLibrary.Symbol('png_get_sPLT');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sPLT) {$else} @png_set_sPLT {$endif} := PngLibrary.Symbol('png_set_sPLT');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_text) {$else} @png_get_text {$endif} := PngLibrary.Symbol('png_get_text');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_text) {$else} @png_set_text {$endif} := PngLibrary.Symbol('png_set_text');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_tIME) {$else} @png_get_tIME {$endif} := PngLibrary.Symbol('png_get_tIME');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_tIME) {$else} @png_set_tIME {$endif} := PngLibrary.Symbol('png_set_tIME');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_tRNS) {$else} @png_get_tRNS {$endif} := PngLibrary.Symbol('png_get_tRNS');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_tRNS) {$else} @png_set_tRNS {$endif} := PngLibrary.Symbol('png_set_tRNS');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_sCAL) {$else} @png_get_sCAL {$endif} := PngLibrary.Symbol('png_get_sCAL');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_sCAL) {$else} @png_set_sCAL {$endif} := PngLibrary.Symbol('png_set_sCAL');
+  // {$ifdef FPC_OBJFPC} Pointer(png_set_sCAL_s) {$else} @png_set_sCAL_s {$endif} := PngLibrary.Symbol('png_set_sCAL_s');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_keep_unknown_chunks) {$else} @png_set_keep_unknown_chunks {$endif} := PngLibrary.Symbol('png_set_keep_unknown_chunks');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_unknown_chunks) {$else} @png_set_unknown_chunks {$endif} := PngLibrary.Symbol('png_set_unknown_chunks');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_unknown_chunk_location) {$else} @png_set_unknown_chunk_location {$endif} := PngLibrary.Symbol('png_set_unknown_chunk_location');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_unknown_chunks) {$else} @png_get_unknown_chunks {$endif} := PngLibrary.Symbol('png_get_unknown_chunks');
+    {$ifdef FPC_OBJFPC} Pointer(png_set_invalid) {$else} @png_set_invalid {$endif} := PngLibrary.Symbol('png_set_invalid');
+    {$ifdef FPC_OBJFPC} Pointer(png_read_png) {$else} @png_read_png {$endif} := PngLibrary.Symbol('png_read_png');
+    {$ifdef FPC_OBJFPC} Pointer(png_write_png) {$else} @png_write_png {$endif} := PngLibrary.Symbol('png_write_png');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_header_ver) {$else} @png_get_header_ver {$endif} := PngLibrary.Symbol('png_get_header_ver');
+    {$ifdef FPC_OBJFPC} Pointer(png_get_header_version) {$else} @png_get_header_version {$endif} := PngLibrary.Symbol('png_get_header_version');
+  end;
 finalization
- FKambiPngInited := false;
- FreeAndNil(PngLibrary);
+  FKambiPngInited := false;
+  FreeAndNil(PngLibrary);
 end.

@@ -18,7 +18,7 @@
 
 {$else}
 
-  { Under linux - just use standard libpng, no problems }
+  { Under Unix - just use standard libpng, no problems }
   {$define LIBPNG_CDECL}
 
 {$endif}
