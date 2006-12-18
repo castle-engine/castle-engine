@@ -81,6 +81,10 @@ type
     constructor Create(const ATBegin, ATEnd: Float);
   end;
 
+  TObjectsListItem_2 = TCurve;
+  {$I objectslist_2.inc}
+  TCurvesList = TObjectsList_2;
+
   { @abstract(This is a curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t).) }
   TMathExprCurve = class(TCurve)
@@ -285,6 +289,7 @@ uses SysUtils, OpenGLh, ConvexHullUnit, KambiGLUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+{$I objectslist_2.inc}
 
 { TCurve ------------------------------------------------------------ }
 

@@ -631,6 +631,8 @@ function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
 
+function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
+
 {$ifdef FPC}
 { Overload := operator to allow convertion between
   Matrix unit objects and this unit's arrays easy. }
@@ -2076,6 +2078,14 @@ begin
  Result[3] := StrToFloat(NextToken(S, SPosition));
  Check(NextToken(s, SPosition) = '',
    'Expected end of string in Vector4SingleFromStr');
+end;
+
+function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
+begin
+  Result[0] := Vector4Double(M[0]);
+  Result[1] := Vector4Double(M[1]);
+  Result[2] := Vector4Double(M[2]);
+  Result[3] := Vector4Double(M[3]);
 end;
 
 { some math on vectors ------------------------------------------------------- }
