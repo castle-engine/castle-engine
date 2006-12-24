@@ -6484,19 +6484,28 @@ end;
 
 procedure TNodeWWWInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
- inherited;
+  inherited;
 
- { We save here BeforeTraversePushedState, to be safe in case
-   someone will change FdSeparate.Value between BeforeTraverse
-   and AfterTraverse. }
- BeforeTraversePushedState := FdSeparate.Value;
- if BeforeTraversePushedState then
- begin
-   OriginalState := State;
-   State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
- end;
+  { We save here BeforeTraversePushedState, to be safe in case
+    someone will change FdSeparate.Value between BeforeTraverse
+    and AfterTraverse. }
+  BeforeTraversePushedState := FdSeparate.Value;
+  if BeforeTraversePushedState then
+  begin
+    OriginalState := State;
+    State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+  end;
 
- LoadInlined(false);
+  try
+    LoadInlined(false);
+  except
+    if BeforeTraversePushedState then
+    begin
+      FreeAndNil(State);
+      State := OriginalState;
+    end;
+    raise;
+  end;
 end;
 
 procedure TNodeWWWInline.AfterTraverse(var State: TVRMLGraphTraverseState);
