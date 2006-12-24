@@ -970,7 +970,8 @@ begin
 
   { Note that this calls Renderer.Attributes, so use this before
     deinitializing Renderer. }
-  Attributes.FScenes.Delete(Self);
+  if Renderer <> nil then
+    Attributes.FScenes.Delete(Self);
 
   if not FUsingProvidedRenderer then
     FreeAndNil(Renderer);
