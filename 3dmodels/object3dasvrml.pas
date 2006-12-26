@@ -57,7 +57,7 @@ function Load3dsAsVRML(const filename: string): TVRMLNode;
 
   If AllowStdIn and FileName = '-' then it will load a VRML file
   from StdInStream (using GetCurrentDir as WWWBasePath). }
-function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
+function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLNode;
 
 implementation
 
