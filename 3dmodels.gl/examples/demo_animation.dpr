@@ -1,20 +1,25 @@
 { Demo of TVRMLGLAnimation class.
 
-  Run this passing an even number of command-line parameters.
-  Each parameters pair specifies scene filename, and position in time
-  of this scene. Scenes must be specified in increasing order of time.
-  Time is in seconds.
+  1. Run this passing one command-line parameter:
+     name of *.kanim file that describes the animation.
 
-  Effect: this will display animation going from 1st scene to the 2nd,
+  2. Alternatively, more "manual" method:
+     Run this passing an even number of command-line parameters.
+     Each parameters pair specifies scene filename, and position in time
+     of this scene. Scenes must be specified in increasing order of time.
+     Time is in seconds.
+
+  Effect: this will display animation. Animation goes from 1st scene to the 2nd,
   then to the 3rd etc. to the last scene. And then it will
   go back again to the 1st scene.
 
   I prepared some sets of sample models in models/ subdirectory.
   Example commands with two scenes:
     ./demo_animation models/sphere_1.wrl 0 models/sphere_2.wrl 1
-    ./demo_animation models/raptor_1.wrl 0 models/raptor_2.wrl 1
-    ./demo_animation models/gus_1_final.wrl 0 models/gus_2_final.wrl 1
-    ./demo_animation models/cube_opening_1_final.wrl 0 models/cube_opening_2_final.wrl 1
+    ./demo_animation models/sphere.kanim
+    ./demo_animation models/raptor.kanim
+    ./demo_animation models/gus.kanim
+    ./demo_animation models/cube_opening.kanim
 
   Additional command-line options are:
     --loop
@@ -24,17 +29,16 @@
   For precise meaning, see TVRMLGLAnimation documentation.
   In short, --loop causes animation to loop and --backwards causes
   animation to go backward after going forward.
-  The default is --loop --no-backwards.
-
-  Also --renderer-optimization option is accepted, just like for
-  view3dscene (see view3dscene --help). Default is
-  separate-shape-states-no-transform, as this is the best
-  for TVRMLGLAnimation.
+  The default is --loop --no-backwards
+  (note that in case we're loading animation from *.kanim file:
+  loop and backwards attributes of the *.kanim file are ignored).
 
   Example command with more scenes:
     ./demo_animation models/gus_1_final.wrl 0 \
                      models/gus_2_final.wrl 1 \
                      models/gus_3_final.wrl 1.5 --backwards
+  or just
+    ./demo_animation models/gus3.kanim --backwards
 
   This is all implemented in TVRMLGLAnimation class, see docs of this class
   for precise description how things work.
@@ -58,15 +62,6 @@ uses Math, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation, VRMLGLAnimation,
   KambiFilesUtils, ParseParametersUnit, ProgressGL, ProgressUnit, VRMLErrors;
-
-const
-  { This is the number of animation frames constructed per one unit of time.
-    Increase this to get smoother animation. }
-  ScenesPerTime = 50;
-
-  { EqualityEpsilon used to marge nodes when creating animation.
-    Larger values may speed up animation loading time and save memory use. }
-  EqualityEpsilon = 0.001;
 
 var
   Animation: TVRMLGLAnimation;
@@ -136,18 +131,23 @@ const
     end;
   end;
 
+function NewAnimationFromCommandLine: TVRMLGLAnimation;
+const
+  { These are constants used only with "manual" method
+    (even number of command-line params),
+    in case of *.kanim file these informations are read from *.kanim file. }
+  { This is the number of animation frames constructed per one unit of time.
+    Increase this to get smoother animation. }
+  ScenesPerTime = 50;
+  { EqualityEpsilon used to marge nodes when creating animation.
+    Larger values may speed up animation loading time and save memory use. }
+  EqualityEpsilon = 0.001;
+  RendererOptimization: TGLRendererOptimization = roSeparateShapeStatesNoTransform;
 var
-  CamPos, CamDir, CamUp: TVector3Single;
   AnimRootNodes: array of TVRMLNode;
   AnimTimes: array of Single;
   I: Integer;
-  Param_RendererOptimization: TGLRendererOptimization =
-    roSeparateShapeStatesNoTransform;
 begin
-  Glw.ParseParameters(StandardParseOptions);
-  RendererOptimizationOptionsParse(Param_RendererOptimization);
-  ParseParameters(Options, @OptionProc, nil);
-
   { parse parameters to AnimRootNodes and AnimTimes }
   if (Parameters.High = 0) or Odd(Parameters.High) then
     raise EInvalidParams.Create('You must supply even number of paramaters: ' +
@@ -160,13 +160,30 @@ begin
     AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
   end;
 
+  Result := TVRMLGLAnimation.Create(
+    AnimRootNodes, true,
+    AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
+end;
+
+var
+  CamPos, CamDir, CamUp: TVector3Single;
+begin
+  Glw.ParseParameters(StandardParseOptions);
+  ParseParameters(Options, @OptionProc, nil);
+
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-    Animation := TVRMLGLAnimation.Create(
-      AnimRootNodes, true,
-      AnimTimes, ScenesPerTime, roSeparateShapeStatesNoTransform,
-      EqualityEpsilon);
+    if Parameters.High = 1 then
+    begin
+      { 1st method: *.kanim file }
+      Animation := TVRMLGLAnimation.CreateFromFile(Parameters[1]);
+    end else
+    begin
+      { 2nd method: even number of command-line params }
+      Animation := NewAnimationFromCommandLine;
+    end;
+
     Animation.TimeLoop := AnimTimeLoop;
     Animation.TimeBackwards := AnimTimeBackwards;
 

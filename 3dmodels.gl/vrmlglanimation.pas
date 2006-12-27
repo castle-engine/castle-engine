@@ -3,7 +3,8 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatSceneGL;
+uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatSceneGL,
+  KambiUtils, DOM;
 
 type
   EModelsStructureDifferent = class(Exception)
@@ -145,6 +146,23 @@ type
       ATimeLoop, ATimeBackwards: boolean;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
+    { This creates TVRMLGLAnimation instance by loading it's parameters
+      (models to use, times to use etc.) from given file.
+      File format is described in ../../doc/kanim_format.txt file.
+
+      Note that after such animation is created, you cannot change
+      some of it's rendering parameters like ScenesPerTime and AOptimization
+      --- they are already set as specified in the file.
+      If you need more control from your program's code,
+      you should use something more flexible (and less comfortable to use)
+      like LoadFromFile class procedure.
+
+      Note that you can change TimeLoop and TimeBackwards --- since these
+      properties are writeable after the instance is created. }
+    constructor CreateFromFile(
+      const FileName: string;
+      ACache: TVRMLOpenGLRendererContextCache = nil);
+
     { @noAutoLinkHere }
     destructor Destroy; override;
 
@@ -270,12 +288,62 @@ type
 
       @noAutoLinkHere }
     function Attributes: TVRMLSceneRenderingAttributes;
+
+    { Load TVRMLGLAnimation data from a given FileName
+      to a set of variables.
+
+      See ../../doc/kanim_format.txt for specification of the file format.
+
+      This is a @italic(class procedure) --- it doesn't load the animation
+      data to the given TVRMLGLAnimation instance. Instead it loads
+      the data to your variables (passed as "out" params). In case
+      of RootNodes and Times, you should pass here references to
+      @italic(already created and currently empty) lists.
+
+      ModelFileNames returned will always be absolute paths.
+      We will expand them as necessary (actually, we will also expand
+      passed here FileName to be absolute).
+
+      If you seek for most comfortable way to load TVRMLGLAnimation from a file,
+      you should use the correct TVRMLGLAnimation constructor like
+      CreateFromFile. This procedure is more flexible --- it allows
+      you to e.g. modify parameters before creating TVRMLGLAnimation
+      instance, and it's usefull to implement a class like
+      TVRMLGLAnimationInfo that also wants to read animation data,
+      but doesn't have an TVRMLGLAnimation instance available. }
+    class procedure LoadFromFile(const FileName: string;
+      ModelFileNames: TDynStringArray;
+      Times: TDynSingleArray;
+      out ScenesPerTime: Cardinal;
+      out AOptimization: TGLRendererOptimization;
+      out EqualityEpsilon: Single;
+      out ATimeLoop, ATimeBackwards: boolean);
+
+    { Load TVRMLGLAnimation data from a given XML element
+      to a set of variables.
+
+      This is just like LoadFromFile, but it works using
+      an Element. This way you can use it to load <animation> element
+      that is a part of some larger XML file.
+
+      It requires BasePath --- this is the path from which relative
+      filenames inside Element will be resolved. (this path doesn't
+      need to be an absolute path, we will expand it to make it absolute
+      if necessary). }
+    class procedure LoadFromDOMElement(Element: TDOMElement;
+      const BasePath: string;
+      ModelFileNames: TDynStringArray;
+      Times: TDynSingleArray;
+      out ScenesPerTime: Cardinal;
+      out AOptimization: TGLRendererOptimization;
+      out EqualityEpsilon: Single;
+      out ATimeLoop, ATimeBackwards: boolean);
   end;
 
 implementation
 
-uses Math, KambiClassUtils, VectorMath, VRMLFields, KambiUtils,
-  ProgressUnit;
+uses Math, KambiClassUtils, VectorMath, VRMLFields,
+  ProgressUnit, XMLRead, KambiXMLUtils, KambiFilesUtils, Object3dAsVRML;
 
 { EModelsStructureDifferent --------------------------------------------------- }
 
@@ -652,6 +720,57 @@ begin
   TimeBackwards := ATimeBackwards;
 end;
 
+constructor TVRMLGLAnimation.CreateFromFile(
+  const FileName: string;
+  ACache: TVRMLOpenGLRendererContextCache = nil);
+var
+  { Vars from LoadFromFile }
+  ModelFileNames: TDynStringArray;
+  Times: TDynSingleArray;
+  ScenesPerTime: Cardinal;
+  AOptimization: TGLRendererOptimization;
+  EqualityEpsilon: Single;
+  ATimeLoop, ATimeBackwards: boolean;
+
+  RootNodes: array of TVRMLNode;
+  TimesArray: array of Single;
+  I, J: Integer;
+begin
+  ModelFileNames := nil;
+  Times := nil;
+
+  try
+    ModelFileNames := TDynStringArray.Create;
+    Times := TDynSingleArray.Create;
+
+    LoadFromFile(FileName, ModelFileNames, Times,
+      ScenesPerTime, AOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
+
+    Assert(ModelFileNames.Length = Times.Length);
+    Assert(ModelFileNames.Length >= 1);
+
+    SetLength(RootNodes, ModelFileNames.Length);
+    SetLength(TimesArray, ModelFileNames.Length);
+
+    for I := 0 to ModelFileNames.High do
+    try
+      RootNodes[I] := LoadAsVRML(ModelFileNames[I]);
+      TimesArray[I] := Times[I];
+    except
+      for J := 0 to I - 1 do
+        FreeAndNil(RootNodes[J]);
+      raise;
+    end;
+
+    Create(RootNodes, true, TimesArray, ScenesPerTime, AOptimization,
+      EqualityEpsilon, ATimeLoop, ATimeBackwards, ACache);
+
+  finally
+    FreeAndNil(ModelFileNames);
+    FreeAndNil(Times);
+  end;
+end;
+
 destructor TVRMLGLAnimation.Destroy;
 var
   I: Integer;
@@ -797,6 +916,109 @@ end;
 function TVRMLGLAnimation.Attributes: TVRMLSceneRenderingAttributes;
 begin
   Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
+end;
+
+class procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
+  ModelFileNames: TDynStringArray;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  out AOptimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out ATimeLoop, ATimeBackwards: boolean);
+var
+  Document: TXMLDocument;
+begin
+  ReadXMLFile(Document, FileName);
+  try
+    LoadFromDOMElement(Document.DocumentElement,
+      ExtractFilePath(FileName),
+      ModelFileNames, Times, ScenesPerTime, AOptimization,
+      EqualityEpsilon, ATimeLoop, ATimeBackwards);
+  finally FreeAndNil(Document); end;
+end;
+
+class procedure TVRMLGLAnimation.LoadFromDOMElement(
+  Element: TDOMElement;
+  const BasePath: string;
+  ModelFileNames: TDynStringArray;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  out AOptimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out ATimeLoop, ATimeBackwards: boolean);
+var
+  AbsoluteBasePath: string;
+  FrameElement: TDOMElement;
+  Children: TDOMNodeList;
+  I: Integer;
+  FrameTime: Single;
+  FrameFileName: string;
+  Attr: TDOMAttr;
+begin
+  Assert(Times.Length = 0);
+  Assert(ModelFileNames.Length = 0);
+
+  AbsoluteBasePath := ExpandFileName(BasePath);
+
+  Check(Element.TagName = 'animation',
+    'Root node of an animation XML file must be <animation>');
+
+  { Assign default values for optional attributes }
+  ScenesPerTime := 30;
+  AOptimization := roSeparateShapeStatesNoTransform;
+  EqualityEpsilon := 0.001;
+  ATimeLoop := false;
+  ATimeBackwards := false;
+
+  for I := 0 to Integer(Element.Attributes.Length) - 1 do
+  begin
+    Attr := Element.Attributes.Item[I] as TDOMAttr;
+    if Attr.Name = 'scenes_per_time' then
+      ScenesPerTime := StrToInt(Attr.Value) else
+    if Attr.Name = 'optimization' then
+      AOptimization := RendererOptimizationFromName(Attr.Value, true) else
+    if Attr.Name = 'equality-epsilon' then
+      EqualityEpsilon := StrToFloat(Attr.Value) else
+    if Attr.Name = 'loop' then
+      ATimeLoop := StrToBool(Attr.Value) else
+    if Attr.Name = 'backwards' then
+      ATimeBackwards := StrToBool(Attr.Value) else
+      raise Exception.CreateFmt('Unknown attribute of <animation> element: "%s"',
+        [Attr.Name]);
+  end;
+
+  Children := Element.ChildNodes;
+  try
+    for I := 0 to Integer(Children.Count) - 1 do
+      if Children.Item[I].NodeType = ELEMENT_NODE then
+      begin
+        FrameElement := Children.Item[I] as TDOMElement;
+        Check(FrameElement.TagName = 'frame',
+          'Each child of <animation> element must be a <frame> element');
+
+        if not DOMGetSingleAttribute(FrameElement, 'time', FrameTime) then
+          raise Exception.Create('<frame> element must have a "time" attribute');
+
+        if not DOMGetAttribute(FrameElement, 'file_name', FrameFileName) then
+          raise Exception.Create('<frame> element must have a "file_name" attribute');
+
+        { Make FrameFileName absolute, treating it as relative vs
+          AbsoluteBasePath }
+        FrameFileName := CombinePaths(AbsoluteBasePath, FrameFileName);
+
+        if (Times.Count > 0) and (FrameTime <= Times.Items[Times.High]) then
+          raise Exception.Create(
+            'Frames within <animation> element must be specified in ' +
+            'increasing time order');
+
+        ModelFileNames.AppendItem(FrameFileName);
+        Times.AppendItem(FrameTime);
+      end;
+
+    if ModelFileNames.Count = 0 then
+      raise Exception.Create(
+        'At least one <frame> is required within <animation> element');
+  finally Children.Release end;
 end;
 
 end.

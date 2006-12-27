@@ -834,6 +834,15 @@ procedure RendererOptimizationOptionsParse(
   to "@--help" command-line parameter). }
 function RendererOptimizationOptionsHelp: string;
 
+{ Convert string S to a TGLRendererOptimization value.
+  Raises exception if illegal value of S.
+
+  For a list of allowed values run
+  [http://camelot.homedns.org/~michalis/view3dscene.php] with @--help
+  (or just look at the implementation of this unit :) }
+function RendererOptimizationFromName(const S: string; IgnoreCase: boolean):
+  TGLRendererOptimization;
+
 {$undef read_interface}
 
 implementation
