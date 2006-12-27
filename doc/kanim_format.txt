@@ -46,7 +46,7 @@ File format is simple:
                         // list of avail values.
                         // Ignore this if you don't know what it means.
 
-  equality-epsilon="0.001"
+  equality_epsilon="0.001"
                         // Epsilon to use when comparing animation frames
                         // and deciding which parts didn't move at all between
                         // two adjacent frames. You can set this even to literal

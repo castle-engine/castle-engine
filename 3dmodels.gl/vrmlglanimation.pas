@@ -977,7 +977,7 @@ begin
       ScenesPerTime := StrToInt(Attr.Value) else
     if Attr.Name = 'optimization' then
       AOptimization := RendererOptimizationFromName(Attr.Value, true) else
-    if Attr.Name = 'equality-epsilon' then
+    if Attr.Name = 'equality_epsilon' then
       EqualityEpsilon := StrToFloat(Attr.Value) else
     if Attr.Name = 'loop' then
       ATimeLoop := StrToBool(Attr.Value) else
