@@ -687,6 +687,7 @@ const
 type
   { }
   TMouseButton = MatrixNavigation.TMouseButton;
+  TMouseButtons = MatrixNavigation.TMouseButtons;
 
 const
   mbLeft = MatrixNavigation.mbLeft;
@@ -724,8 +725,6 @@ type
   TGLWindow = class;
 
   {$I glwindowmenu.inc}
-
-  TMouseButtons = set of TMouseButton;
 
   TIdleFunc = procedure;
   TGLWindowFunc = procedure(Glwin: TGLWindow);
@@ -4037,9 +4036,10 @@ end;
 
 procedure TGLWindowNavigated.EventIdle;
 begin
- if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-  TMatrixNavigatorWithIdle(Navigator).Idle(IdleCompSpeed, @KeysDown);
- inherited;
+  if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
+    TMatrixNavigatorWithIdle(Navigator).Idle(
+      IdleCompSpeed, @KeysDown, MousePressed);
+  inherited;
 end;
 
 procedure TGLWindowNavigated.EventKeyDown(key: TKey; c: char);

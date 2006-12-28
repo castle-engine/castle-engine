@@ -28,6 +28,7 @@ uses SysUtils, VectorMath, KambiUtils, Keys, Boxes3d;
 
 type
   TMouseButton = (mbLeft, mbMiddle, mbRight);
+  TMouseButtons = set of TMouseButton;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -45,6 +46,7 @@ const
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 0.18;
   DefaultJumpMouseButton = mbRight;
+  DefaultUpMoveMouseButton = mbRight;
 
 type
   { }
@@ -132,17 +134,27 @@ type
 
   TMatrixNavigatorClass = class of TMatrixNavigator;
 
-  { ta klasa reprezentuje Navigatory ktore potrzebuja cos takiego jak Idle()
-    ktore musi byc wywolywane co mozliwie krotki czas. Argument CompSpeed
-    dla tego Idle powinien byc liczony jak TGLWindow.IdleCompSpeed,
-    argument KeysDown okresla klawisze wcisniete w czasie idle - powinienes
-    tu podac klawisze w rodzaju glwin.KeysDown. Ew. mozesz tu podac nil -
-    ale pamietaj ze wtedy nie pozwalasz userowi sterowac w domyslny sposob
-    navigatorem, musisz wtedy sam zadbac o odpowiednie sterowanie.
-    (zawartosc KeysDown nie bedzie zmieniana) }
+  { This is a navigator that has an Idle method that should be called
+    as often as possible. }
   TMatrixNavigatorWithIdle = class(TMatrixNavigator)
   public
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans); virtual; abstract;
+    { Call this often, to respond to user actions and to perform
+      other animations (falling down due to gravity in Walk mode,
+      rotating modelin Examine mode, and many more).
+
+      @param(CompSpeed Should be calculated like TGLWindow.IdleCompSpeed,
+        and usually it's in fact just taken from Glwin.IdleCompSpeed.)
+
+      @param(KeysDown What keys are pressed currently ?
+        Powinienes tu podac klawisze w rodzaju glwin.KeysDown.
+        Ew. mozesz tu podac nil -
+        ale pamietaj ze wtedy nie pozwalasz userowi sterowac w domyslny sposob
+        navigatorem, musisz wtedy sam zadbac o odpowiednie sterowanie.
+        (zawartosc KeysDown nie bedzie zmieniana).)
+
+      @param(MousePressed What mouse buttons are currently down ?) }
+    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+      const MousePressed: TMouseButtons); virtual; abstract;
   end;
 
   { ogladanie modelu. Model jest wyswietlany wokol punktu MoveAmount,
@@ -164,7 +176,8 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans); override;
+    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+      const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
 
     { wlasciwosci ------------------------------------------------------------- }
@@ -318,6 +331,9 @@ type
     FJumpMouseButton: TMouseButton;
     FJumpMouseButtonActive: boolean;
 
+    FUpMoveMouseButton: TMouseButton;
+    FUpMoveMouseButtonActive: boolean;
+
     { Private things related to frustum ---------------------------- }
 
     FProjectionMatrix: TMatrix4Single;
@@ -378,7 +394,8 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans); override;
+    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+      const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
@@ -744,6 +761,13 @@ type
       read FJumpMouseButton write FJumpMouseButton
       default DefaultJumpMouseButton;
 
+    property UpMoveMouseButtonActive: boolean
+      read FUpMoveMouseButtonActive write FUpMoveMouseButtonActive
+      default false;
+    property UpMoveMouseButton: TMouseButton
+      read FUpMoveMouseButton write FUpMoveMouseButton
+      default DefaultUpMoveMouseButton;
+
     function MouseDown(Button: TMouseButton): boolean; override;
 
     { Things related to frustum ---------------------------------------- }
@@ -1098,7 +1122,8 @@ begin
  result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[2], Vector3Single(0, 0, 1)));
 end;
 
-procedure TMatrixExaminer.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
+procedure TMatrixExaminer.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+  const MousePressed: TMouseButtons);
 var i: integer;
     move_change, rot_speed_change, scale_change: Single;
     ModsDown: TModifierKeys;
@@ -1252,6 +1277,8 @@ begin
   FJumpPower := DefaultJumpPower;
   FJumpMouseButton := DefaultJumpMouseButton;
   FJumpMouseButtonActive := false;
+  FUpMoveMouseButton := DefaultUpMoveMouseButton;
+  FUpMoveMouseButtonActive := false;
 
   Key_Forward := WalkerDefaultKey_Forward;
   Key_Backward := WalkerDefaultKey_Backward;
@@ -1458,7 +1485,8 @@ begin
   MatrixChanged;
 end;
 
-procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans);
+procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+  const MousePressed: TMouseButtons);
 
   { Like Move, but you pass here final ProposedNewPos }
   function MoveTo(const ProposedNewPos: TVector3Single;
@@ -2136,7 +2164,8 @@ begin
       But this is not good, because when PreferHomeUp, we want to move along the
       CameraHomeUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromHomeUp). }
-    if KeysDown^[Key_UpMove] then
+    if KeysDown^[Key_UpMove] or
+       (UpMoveMouseButtonActive and (UpMoveMouseButton in MousePressed)) then
       MoveVertical( 1);
     if KeysDown^[Key_DownMove] then
       MoveVertical(-1);
