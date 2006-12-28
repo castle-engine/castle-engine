@@ -44,6 +44,19 @@ begin
     glPopAttrib;
     Render_Material_ForcedLightDisable := false;
   end;
+
+  { Other RenderShapeState calls start with
+    Render_Material_LastFogImmune = false, so they expect that the fog
+    is already enabled (if FogEnabled). Therefore, we have to reenable
+    here the fog if the last material had fogImmune. }
+  if FogEnabled then
+  begin
+    if Render_Material_LastFogImmune then
+    begin
+      glEnable(GL_FOG);
+      Render_Material_LastFogImmune := false;
+    end;
+  end;
 end;
 
 procedure TVRMLOpenGLRenderer.Render_Material(
@@ -85,7 +98,16 @@ begin
   begin
     if not Render_Material_ForcedLightDisable then
     begin
-      glPushAttrib(GL_ENABLE_BIT);
+      { PushAttrib is used to save GL_LIGHTING enabled state,
+        as we cannot predict it (it's up to the VRMLOpenGLRenderer caller
+        whether the light is turned on). Obviously we don't want to explicitly
+        query GL_LIGHTING enabled state, push/pop is better.
+
+        Note that we use GL_LIGHTING_BIT instead of GL_ENABLE_BIT:
+        GL_ENABLE_BIT would also push/pop GL_FOG enabled state,
+        and this could cause problems when mixed with fogImmune. }
+      glPushAttrib(GL_LIGHTING_BIT);
+
       glDisable(GL_LIGHTING);
       Render_Material_ForcedLightDisable := true;
     end;
@@ -118,7 +140,7 @@ begin
     glEnable(GL_POLYGON_STIPPLE);
     if Opacity >= 0.75 then
       Stipple := ThreeQuartersStipple else
-      Stipple := HalftoneStipple;      
+      Stipple := HalftoneStipple;
     //Stipple := RandomPolyStippleBy16(1 - Opacity);
     glPolygonStipple(@Stipple);
   end else
