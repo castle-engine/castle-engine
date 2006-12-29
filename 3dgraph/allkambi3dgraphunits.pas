@@ -16,6 +16,7 @@ uses
   keys,
   matrixnavigation,
   polynomials,
+  rayswindow,
   spacefillingcurves,
   spheresampling
   ;

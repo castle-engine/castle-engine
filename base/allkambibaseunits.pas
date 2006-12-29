@@ -10,12 +10,15 @@ unit AllKambiBaseUnits;
 interface
 
 uses
-  EnumerateFiles,
-  VectorMath,
   areas,
+  enumeratefiles,
   intrects,
   kambiclassutils,
+  kambifilesutils,
+  kambistringutils,
   kambiutils,
+  kambixmlcfg,
+  kambixmlutils,
   kambizlib,
   kambizstream,
   mathexpr,
@@ -24,7 +27,8 @@ uses
   parseparametersunit,
   progressconsole,
   progressunit,
-  rects
+  rects,
+  vectormath
   ;
 
 implementation

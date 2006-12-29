@@ -10,11 +10,13 @@ unit AllKambiOpenGLUnits;
 interface
 
 uses
+  beziercurve,
   curve,
   glw_demo,
   glw_navigated,
   glw_win,
   glwindow,
+  glwindowrecentmenu,
   glwininputs,
   glwinmessages,
   glwinmodes,

@@ -13,6 +13,7 @@ uses
   backgroundgl,
   object3dopengl,
   vrmlflatscenegl,
+  vrmlglanimation,
   vrmllightsetgl,
   vrmlopenglrenderer
   ;

@@ -10,7 +10,6 @@ unit AllKambi3dModelsUnits;
 interface
 
 uses
-  VRMLNodes,
   illummodels,
   kambioctree,
   normalscalculator,
@@ -21,13 +20,17 @@ uses
   object3dschunks,
   object3dsmaterial,
   triangulator,
+  vrmlcamerautils,
+  vrmlerrors,
   vrmlfields,
   vrmlflatscene,
   vrmllexer,
   vrmllightmap,
   vrmllightset,
+  vrmlnodes,
   vrmlnodesdetailoptions,
   vrmlraytracer,
+  vrmlscenewaypoints,
   vrmlshapestate,
   vrmlshapestateoctree,
   vrmltriangleoctree

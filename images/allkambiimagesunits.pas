@@ -10,7 +10,7 @@ unit AllKambiImagesUnits;
 interface
 
 uses
-  Images,
+  images,
   kambipasjpeg,
   kambipasjpeg_error_mgrs,
   kambipasjpeg_stream_mgrs,
