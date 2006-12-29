@@ -117,8 +117,9 @@ function TKamXMLConfig.PathElement(const APath: string): TDOMElement;
     Node: TDOMNode;
   begin
     Node := Element.FindNode(ElementName);
-    if Node.NodeType = ELEMENT_NODE then
-      Result := Node as TDOMElement;
+    if (Node <> nil) and (Node.NodeType = ELEMENT_NODE) then
+      Result := Node as TDOMElement else
+      Result := nil;
   end;
 
 var
