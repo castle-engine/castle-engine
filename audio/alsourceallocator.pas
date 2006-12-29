@@ -63,7 +63,8 @@ type
     { Create source. This allocates actual OpenAL source.
       Will raise ENoMoreOpenALSources if no more sources available
       (ENoMoreOpenALSources should be catched and silenced by
-      TALSourceAllocator.AllocateSource). }
+      TALSourceAllocator.AllocateSource).
+      @noAutoLinkHere }
     constructor Create;
     destructor Destroy; override;
 
@@ -176,6 +177,7 @@ type
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   public
+    { @noAutoLinkHere }
     constructor Create(const AMinAllocatedSources, AMaxAllocatedSources: Cardinal);
     destructor Destroy; override;
 
