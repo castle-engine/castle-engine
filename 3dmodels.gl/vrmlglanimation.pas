@@ -76,6 +76,8 @@ type
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
     FOwnsFirstRootNode: boolean;
+
+    procedure Close;
   public
     { Constructor.
 
@@ -136,14 +138,20 @@ type
       const EqualityEpsilon: Single;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
+    { Alternative constructor that gets RootNodes and ATimes
+      as a TVRMLNodesList and TDynSingleArray instances.
+      Note that the value of these arrays is copied, so after calling
+      this constructor, you're still responsible for freeing your
+      RootNodes and ATimes.
+
+      See comments at the first @link(Create) for more information. }
     constructor Create(
-      RootNodes: array of TVRMLNode;
+      RootNodes: TVRMLNodesList;
       AOwnsFirstRootNode: boolean;
-      const ATimes: array of Single;
+      ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
       const EqualityEpsilon: Single;
-      ATimeLoop, ATimeBackwards: boolean;
       ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     { This creates TVRMLGLAnimation instance by loading it's parameters
@@ -705,19 +713,28 @@ begin
 end;
 
 constructor TVRMLGLAnimation.Create(
-  RootNodes: array of TVRMLNode;
+  RootNodes: TVRMLNodesList;
   AOwnsFirstRootNode: boolean;
-  const ATimes: array of Single;
+  ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
   const EqualityEpsilon: Single;
-  ATimeLoop, ATimeBackwards: boolean;
-  ACache: TVRMLOpenGLRendererContextCache);
+  ACache: TVRMLOpenGLRendererContextCache = nil);
+var
+  RootNodesArray: array of TVRMLNode;
+  TimesArray: array of Single;
+  I: Integer;
 begin
-  Create(RootNodes, AOwnsFirstRootNode, ATimes, ScenesPerTime, AOptimization,
-    EqualityEpsilon, ACache);
-  TimeLoop := ATimeLoop;
-  TimeBackwards := ATimeBackwards;
+  SetLength(RootNodesArray, RootNodes.Count);
+  for I := 0 to RootNodes.High do
+    RootNodesArray[I] := RootNodes[I];
+
+  SetLength(TimesArray, ATimes.Count);
+  for I := 0 to ATimes.High do
+    TimesArray[I] := ATimes[I];
+
+  Create(RootNodesArray, AOwnsFirstRootNode, TimesArray,
+    ScenesPerTime, AOptimization, EqualityEpsilon, ACache);
 end;
 
 constructor TVRMLGLAnimation.CreateFromFile(
@@ -763,7 +780,9 @@ begin
     end;
 
     Create(RootNodes, true, TimesArray, ScenesPerTime, AOptimization,
-      EqualityEpsilon, ATimeLoop, ATimeBackwards, ACache);
+      EqualityEpsilon, ACache);
+    TimeLoop := ATimeLoop;
+    TimeBackwards := ATimeBackwards;
 
   finally
     FreeAndNil(ModelFileNames);
@@ -772,9 +791,18 @@ begin
 end;
 
 destructor TVRMLGLAnimation.Destroy;
+begin
+  Close;
+  inherited;
+end;
+
+procedure TVRMLGLAnimation.Close;
 var
   I: Integer;
 begin
+  { This is called from destructor, so this must always check whether
+    things are <> nil before trying to free them. }
+
   CloseGL;
 
   if FScenes <> nil then
@@ -794,7 +822,6 @@ begin
   end;
 
   FreeAndNil(Renderer);
-  inherited;
 end;
 
 function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLFlatSceneGL;
@@ -937,6 +964,13 @@ begin
   finally FreeAndNil(Document); end;
 end;
 
+const
+  DefaultKAnimScenesPerTime = 30;
+  DefaultKAnimOptimization = roSeparateShapeStatesNoTransform;
+  DefaultKAnimEqualityEpsilon = 0.001;
+  DefaultKAnimLoop = false;
+  DefaultKAnimBackwards = false;
+
 class procedure TVRMLGLAnimation.LoadFromDOMElement(
   Element: TDOMElement;
   const BasePath: string;
@@ -964,11 +998,11 @@ begin
     'Root node of an animation XML file must be <animation>');
 
   { Assign default values for optional attributes }
-  ScenesPerTime := 30;
-  AOptimization := roSeparateShapeStatesNoTransform;
-  EqualityEpsilon := 0.001;
-  ATimeLoop := false;
-  ATimeBackwards := false;
+  ScenesPerTime := DefaultKAnimScenesPerTime;
+  AOptimization := DefaultKAnimOptimization;
+  EqualityEpsilon := DefaultKAnimEqualityEpsilon;
+  ATimeLoop := DefaultKAnimLoop;
+  ATimeBackwards := DefaultKAnimBackwards;
 
   for I := 0 to Integer(Element.Attributes.Length) - 1 do
   begin

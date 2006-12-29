@@ -23,7 +23,7 @@ unit KambiXMLCfg;
 
 interface
 
-uses KambiUtils, XMLCfg;
+uses KambiUtils, XMLCfg, DOM;
 
 type
   { This is descendant of TXMLConfig that adds
@@ -52,11 +52,38 @@ type
 
     procedure SetDeleteFloat(const APath: string;
       const AValue, ADefaultValue: Float);
+
+    { For a given path, return correspond DOM element of XML tree.
+      This is useful if you want to mix XMLConfig style operations
+      on the file and then use some real DOM functions to more directly
+      operate/read on XML document.
+
+      Note that for paths that you pass to various SetValue versions,
+      the last path component is the attribute name. You do not pass
+      this here. Path passed here should end with the name of final
+      element.
+
+      Path passed here may but doesn't have to be terminated by a final slash.
+      In fact, for now the path is just splitted using slash character
+      as a separator, so a path like @code(/some////path/) is equivalent
+      to a path like (some/path). But don't depend on this behavior.
+
+      Returns nil if there is no such element.
+
+      Remember that XMLConfig idea of XML document is limited.
+      That's intentional (XMLConfig is supposed to offer only a simple limited
+      XML access), and this means that some XML trees may confuse XMLConfig.
+      For example, if there are two elements with the same TagName as a children
+      of the same element: XMLConfig will (probably ?) just always ignore
+      the second one. Which means that if you use this method to change
+      some XML content, you should be careful when accessing this content
+      from regular XMLConfig Get/SetValue methods. }
+    function PathElement(const APath: string): TDOMElement;
   end;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, KambiStringUtils;
 
 { TKamXMLConfig -------------------------------------------------------------- }
 
@@ -79,6 +106,33 @@ procedure TKamXMLConfig.SetDeleteFloat(const APath: string;
   const AValue, ADefaultValue: Float);
 begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
+end;
+
+function TKamXMLConfig.PathElement(const APath: string): TDOMElement;
+
+  { Find a children element, nil if not found. }
+  function FindElementChildren(Element: TDOMElement;
+    const ElementName: string): TDOMElement;
+  var
+    Node: TDOMNode;
+  begin
+    Node := Element.FindNode(ElementName);
+    if Node.NodeType = ELEMENT_NODE then
+      Result := Node as TDOMElement;
+  end;
+
+var
+  SeekPos: Integer;
+  PathComponent: string;
+begin
+  Result := Doc.DocumentElement;
+  SeekPos := 1;
+  while Result <> nil do
+  begin
+    PathComponent := NextToken(APath, SeekPos, ['/']);
+    if PathComponent = '' then break;
+    Result := FindElementChildren(Result, PathComponent);
+  end;
 end;
 
 end.
