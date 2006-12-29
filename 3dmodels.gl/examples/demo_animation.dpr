@@ -131,7 +131,7 @@ const
     end;
   end;
 
-function NewAnimationFromCommandLine: TVRMLGLAnimation;
+procedure LoadAnimationFromCommandLine(Animation: TVRMLGLAnimation);
 const
   { These are constants used only with "manual" method
     (even number of command-line params),
@@ -168,8 +168,7 @@ begin
       AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
     end;
 
-    Result := TVRMLGLAnimation.Create(
-      AnimRootNodes, true,
+    Animation.Load(AnimRootNodes, true,
       AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
   finally
     FreeAndNil(AnimRootNodes);
@@ -186,14 +185,15 @@ begin
   try
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
+    Animation := TVRMLGLAnimation.Create;
     if Parameters.High = 1 then
     begin
       { 1st method: *.kanim file }
-      Animation := TVRMLGLAnimation.CreateFromFile(Parameters[1]);
+      Animation.LoadFromFile(Parameters[1]);
     end else
     begin
       { 2nd method: even number of command-line params }
-      Animation := NewAnimationFromCommandLine;
+      LoadAnimationFromCommandLine(Animation);
     end;
 
     Animation.TimeLoop := AnimTimeLoop;
