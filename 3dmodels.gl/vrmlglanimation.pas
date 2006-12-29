@@ -14,16 +14,19 @@ type
   { This is an animation of VRML model done by interpolating between
     any number of model states.
 
-    When constructing object of this class,
-    you must provide one or more VRML models that have exactly the same
-    structure, but possibly different values for various fields.
+    After constructing an object of this class, you must actually
+    load it's animation by calling Load or LoadFromFile.
+
+    When loading you must provide one or more VRML models that
+    have exactly the same structure, but possibly different values for
+    various fields.
     Each scene has an associated position in Time (Time is just a float number).
-    For constructor Scenes must be specified in increasing Time order.
+    Scenes must be specified in increasing Time order.
     For example, first object may be a small sphere with blue color, the other
     object may be a larger sphere with white color, and the simplest
     times are 0.0 for the 1st scene and 1.0 for the 2nd scene.
 
-    This class creates a list of @link(Scenes) such that
+    This creates a list of @link(Scenes) such that
     @unorderedList(
       @itemSpacing Compact
       @item the first scene on the list is exactly the 1st object
@@ -76,10 +79,17 @@ type
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
     FOwnsFirstRootNode: boolean;
-
-    procedure Close;
   public
     { Constructor.
+      @noAutoLinkHere }
+    constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
+
+    { @noAutoLinkHere }
+    destructor Destroy; override;
+
+    { This actually loads the animation scenes.
+      You must call this (or some other loading routine like LoadFromFile)
+      before you do almost anything with this object.
 
       @param(RootNodes
         Models describing the "predefined" frames
@@ -127,36 +137,32 @@ type
         When models in RootNode1 and RootNode2 are not structurally equal
         (see TVRMLGLAnimation comments for the precise meaning of
         "structurally equal" models).)
-
-      @noAutoLinkHere }
-    constructor Create(
+    }
+    procedure Load(
       RootNodes: TVRMLNodesList;
       AOwnsFirstRootNode: boolean;
       ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
-      const EqualityEpsilon: Single;
-      ACache: TVRMLOpenGLRendererContextCache = nil);
+      const EqualityEpsilon: Single);
 
-    { This creates TVRMLGLAnimation instance by loading it's parameters
+    { This loads TVRMLGLAnimation by loading it's parameters
       (models to use, times to use etc.) from given file.
       File format is described in ../../doc/kanim_format.txt file.
 
-      Note that after such animation is created, you cannot change
+      Note that after such animation is loaded, you cannot change
       some of it's rendering parameters like ScenesPerTime and AOptimization
       --- they are already set as specified in the file.
       If you need more control from your program's code,
       you should use something more flexible (and less comfortable to use)
-      like LoadFromFile class procedure.
+      like LoadFromFileToVars class procedure.
 
       Note that you can change TimeLoop and TimeBackwards --- since these
-      properties are writeable after the instance is created. }
-    constructor CreateFromFile(
-      const FileName: string;
-      ACache: TVRMLOpenGLRendererContextCache = nil);
+      properties are writeable at any time. }
+    procedure LoadFromFile(const FileName: string);
 
-    { @noAutoLinkHere }
-    destructor Destroy; override;
+    { This releases all resources allocared by Load (or LoadFromFile). }
+    procedure Close;
 
     property OwnsFirstRootNode: boolean
       read FOwnsFirstRootNode;
@@ -206,7 +212,8 @@ type
       (forward + backward) animation. }
     function TimeDurationWithBack: Single;
 
-    { First and last time that you passed to constructor.
+    { First and last time that you passed to Load (or that were read
+      from file by LoadFromFile).
       In other words, Times[0] and Times[High(Times)].
       @groupBegin }
     property TimeBegin: Single read FTimeBegin;
@@ -278,6 +285,10 @@ type
       So explicitly calling PrepareRender may be useful after
       changing these Attributes.
 
+      Note that Attributes may be accessed and even changed when the scene
+      is not loaded (e.g. before calling Load / LoadFromFile).
+      Also, Attributes are preserved between various animations loaded.
+
       @noAutoLinkHere }
     function Attributes: TVRMLSceneRenderingAttributes;
 
@@ -297,13 +308,13 @@ type
       passed here FileName to be absolute).
 
       If you seek for most comfortable way to load TVRMLGLAnimation from a file,
-      you should use the correct TVRMLGLAnimation constructor like
-      CreateFromFile. This procedure is more flexible --- it allows
+      you probably want to use TVRMLGLAnimation.LoadFromFile.
+      This procedure is more flexible --- it allows
       you to e.g. modify parameters before creating TVRMLGLAnimation
       instance, and it's usefull to implement a class like
       TVRMLGLAnimationInfo that also wants to read animation data,
       but doesn't have an TVRMLGLAnimation instance available. }
-    class procedure LoadFromFile(const FileName: string;
+    class procedure LoadFromFileToVars(const FileName: string;
       ModelFileNames: TDynStringArray;
       Times: TDynSingleArray;
       out ScenesPerTime: Cardinal;
@@ -314,7 +325,7 @@ type
     { Load TVRMLGLAnimation data from a given XML element
       to a set of variables.
 
-      This is just like LoadFromFile, but it works using
+      This is just like LoadFromFileToVars, but it works using
       an Element. This way you can use it to load <animation> element
       that is a part of some larger XML file.
 
@@ -322,7 +333,7 @@ type
       filenames inside Element will be resolved. (this path doesn't
       need to be an absolute path, we will expand it to make it absolute
       if necessary). }
-    class procedure LoadFromDOMElement(Element: TDOMElement;
+    class procedure LoadFromDOMElementToVars(Element: TDOMElement;
       const BasePath: string;
       ModelFileNames: TDynStringArray;
       Times: TDynSingleArray;
@@ -347,14 +358,26 @@ end;
 
 { TVRMLGLAnimation ------------------------------------------------------------ }
 
-constructor TVRMLGLAnimation.Create(
+constructor TVRMLGLAnimation.Create(ACache: TVRMLOpenGLRendererContextCache);
+begin
+  inherited Create;
+  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+end;
+
+destructor TVRMLGLAnimation.Destroy;
+begin
+  Close;
+  FreeAndNil(Renderer);
+  inherited;
+end;
+
+procedure TVRMLGLAnimation.Load(
   RootNodes: TVRMLNodesList;
   AOwnsFirstRootNode: boolean;
   ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
-  const EqualityEpsilon: Single;
-  ACache: TVRMLOpenGLRendererContextCache = nil);
+  const EqualityEpsilon: Single);
 
   { This will check that Model1 and Model2 are exactly equal,
     or that at least interpolating (see VRMLModelLerp) is possible.
@@ -635,7 +658,7 @@ var
   LastSceneRootNode: TVRMLNode;
   SceneIndex: Integer;
 begin
-  inherited Create;
+  Close;
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
@@ -645,8 +668,6 @@ begin
     CheckVRMLModelsStructurallyEqual(RootNodes[0], RootNodes[I]);
 
   FScenes := TVRMLFlatSceneGLsList.Create;
-
-  Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
 
   FTimeBegin := ATimes[0];
   FTimeEnd := ATimes[ATimes.High];
@@ -696,9 +717,7 @@ begin
   end;
 end;
 
-constructor TVRMLGLAnimation.CreateFromFile(
-  const FileName: string;
-  ACache: TVRMLOpenGLRendererContextCache = nil);
+procedure TVRMLGLAnimation.LoadFromFile(const FileName: string);
 var
   { Vars from LoadFromFile }
   ModelFileNames: TDynStringArray;
@@ -718,7 +737,7 @@ begin
     ModelFileNames := TDynStringArray.Create;
     Times := TDynSingleArray.Create;
 
-    LoadFromFile(FileName, ModelFileNames, Times,
+    LoadFromFileToVars(FileName, ModelFileNames, Times,
       ScenesPerTime, AOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
 
     Assert(ModelFileNames.Length = Times.Length);
@@ -736,8 +755,7 @@ begin
       raise;
     end;
 
-    Create(RootNodes, true, Times, ScenesPerTime, AOptimization,
-      EqualityEpsilon, ACache);
+    Load(RootNodes, true, Times, ScenesPerTime, AOptimization, EqualityEpsilon);
     TimeLoop := ATimeLoop;
     TimeBackwards := ATimeBackwards;
 
@@ -746,12 +764,6 @@ begin
     FreeAndNil(Times);
     FreeAndNil(RootNodes);
   end;
-end;
-
-destructor TVRMLGLAnimation.Destroy;
-begin
-  Close;
-  inherited;
 end;
 
 procedure TVRMLGLAnimation.Close;
@@ -778,8 +790,6 @@ begin
 
     FreeAndNil(FScenes);
   end;
-
-  FreeAndNil(Renderer);
 end;
 
 function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLFlatSceneGL;
@@ -903,7 +913,7 @@ begin
   Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
 end;
 
-class procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
+class procedure TVRMLGLAnimation.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
@@ -915,7 +925,7 @@ var
 begin
   ReadXMLFile(Document, FileName);
   try
-    LoadFromDOMElement(Document.DocumentElement,
+    LoadFromDOMElementToVars(Document.DocumentElement,
       ExtractFilePath(FileName),
       ModelFileNames, Times, ScenesPerTime, AOptimization,
       EqualityEpsilon, ATimeLoop, ATimeBackwards);
@@ -929,7 +939,7 @@ const
   DefaultKAnimLoop = false;
   DefaultKAnimBackwards = false;
 
-class procedure TVRMLGLAnimation.LoadFromDOMElement(
+class procedure TVRMLGLAnimation.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BasePath: string;
   ModelFileNames: TDynStringArray;
