@@ -79,6 +79,7 @@ type
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
     FOwnsFirstRootNode: boolean;
+    FLoaded: boolean;
   public
     { Constructor.
       @noAutoLinkHere }
@@ -90,6 +91,7 @@ type
     { This actually loads the animation scenes.
       You must call this (or some other loading routine like LoadFromFile)
       before you do almost anything with this object.
+      Loaded changes to @true after calling this.
 
       @param(RootNodes
         Models describing the "predefined" frames
@@ -158,11 +160,16 @@ type
       like LoadFromFileToVars class procedure.
 
       Note that you can change TimeLoop and TimeBackwards --- since these
-      properties are writeable at any time. }
+      properties are writeable at any time.
+
+      Loaded changes to @true. }
     procedure LoadFromFile(const FileName: string);
 
-    { This releases all resources allocared by Load (or LoadFromFile). }
+    { This releases all resources allocared by Load (or LoadFromFile).
+      Loaded changes to @false. }
     procedure Close;
+
+    property Loaded: boolean read FLoaded;
 
     property OwnsFirstRootNode: boolean
       read FOwnsFirstRootNode;
@@ -715,6 +722,8 @@ begin
 
     LastSceneIndex := FScenes.High;
   end;
+
+  FLoaded := true;
 end;
 
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string);
@@ -790,6 +799,8 @@ begin
 
     FreeAndNil(FScenes);
   end;
+
+  FLoaded := false;
 end;
 
 function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLFlatSceneGL;
