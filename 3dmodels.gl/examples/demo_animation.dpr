@@ -144,25 +144,37 @@ const
   EqualityEpsilon = 0.001;
   RendererOptimization: TGLRendererOptimization = roSeparateShapeStatesNoTransform;
 var
-  AnimRootNodes: array of TVRMLNode;
-  AnimTimes: array of Single;
+  AnimRootNodes: TVRMLNodesList;
+  AnimTimes: TDynSingleArray;
   I: Integer;
 begin
   { parse parameters to AnimRootNodes and AnimTimes }
   if (Parameters.High = 0) or Odd(Parameters.High) then
     raise EInvalidParams.Create('You must supply even number of paramaters: ' +
       '2 parameters "<scene> <time>" for each frame');
-  SetLength(AnimRootNodes, Parameters.High div 2);
-  SetLength(AnimTimes    , Parameters.High div 2);
-  for I := 0 to Parameters.High div 2 - 1 do
-  begin
-    AnimRootNodes[I] := LoadAsVRML(Parameters[(I+1) * 2 - 1], false);
-    AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
-  end;
 
-  Result := TVRMLGLAnimation.Create(
-    AnimRootNodes, true,
-    AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
+  AnimRootNodes := nil;
+  AnimTimes := nil;
+  try
+    AnimRootNodes := TVRMLNodesList.Create;
+    AnimTimes := TDynSingleArray.Create;
+
+    AnimRootNodes.Count := Parameters.High div 2;
+    AnimTimes    .Count := Parameters.High div 2;
+
+    for I := 0 to Parameters.High div 2 - 1 do
+    begin
+      AnimRootNodes[I] := LoadAsVRML(Parameters[(I+1) * 2 - 1], false);
+      AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
+    end;
+
+    Result := TVRMLGLAnimation.Create(
+      AnimRootNodes, true,
+      AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
+  finally
+    FreeAndNil(AnimRootNodes);
+    FreeAndNil(AnimTimes);
+  end;
 end;
 
 var
