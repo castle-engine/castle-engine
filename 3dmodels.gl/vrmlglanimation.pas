@@ -130,29 +130,13 @@ type
 
       @noAutoLinkHere }
     constructor Create(
-      RootNodes: array of TVRMLNode;
-      AOwnsFirstRootNode: boolean;
-      const ATimes: array of Single;
-      ScenesPerTime: Cardinal;
-      AOptimization: TGLRendererOptimization;
-      const EqualityEpsilon: Single;
-      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
-
-    { Alternative constructor that gets RootNodes and ATimes
-      as a TVRMLNodesList and TDynSingleArray instances.
-      Note that the value of these arrays is copied, so after calling
-      this constructor, you're still responsible for freeing your
-      RootNodes and ATimes.
-
-      See comments at the first @link(Create) for more information. }
-    constructor Create(
       RootNodes: TVRMLNodesList;
       AOwnsFirstRootNode: boolean;
       ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
       AOptimization: TGLRendererOptimization;
       const EqualityEpsilon: Single;
-      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
+      ACache: TVRMLOpenGLRendererContextCache = nil);
 
     { This creates TVRMLGLAnimation instance by loading it's parameters
       (models to use, times to use etc.) from given file.
@@ -364,9 +348,9 @@ end;
 { TVRMLGLAnimation ------------------------------------------------------------ }
 
 constructor TVRMLGLAnimation.Create(
-  RootNodes: array of TVRMLNode;
+  RootNodes: TVRMLNodesList;
   AOwnsFirstRootNode: boolean;
-  const ATimes: array of Single;
+  ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
   AOptimization: TGLRendererOptimization;
   const EqualityEpsilon: Single;
@@ -655,9 +639,9 @@ begin
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
-  Assert(High(RootNodes) = High(ATimes));
+  Assert(RootNodes.Count = ATimes.Count);
 
-  for I := 1 to High(RootNodes) do
+  for I := 1 to RootNodes.High do
     CheckVRMLModelsStructurallyEqual(RootNodes[0], RootNodes[I]);
 
   FScenes := TVRMLFlatSceneGLsList.Create;
@@ -665,7 +649,7 @@ begin
   Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
 
   FTimeBegin := ATimes[0];
-  FTimeEnd := ATimes[High(ATimes)];
+  FTimeEnd := ATimes[ATimes.High];
 
   FTimeLoop := true;
   FTimeBackwards := false;
@@ -678,7 +662,7 @@ begin
   LastSceneIndex := 0;
   LastSceneRootNode := RootNodes[0];
 
-  for I := 1 to High(RootNodes) do
+  for I := 1 to RootNodes.High do
   begin
     { Now add RootNodes[I] }
 
@@ -695,7 +679,7 @@ begin
         This way I have a series of the same instances of TVRMLFlatSceneGL
         along the way. When freeing FScenes, we will be smart and
         avoid deallocating the same pointer twice. }
-      FreeAndNil(RootNodes[I]);
+      RootNodes.FreeAndNil(I);
       for SceneIndex := LastSceneIndex + 1 to FScenes.High do
         FScenes[SceneIndex] := FScenes[LastSceneIndex];
     end else
@@ -712,31 +696,6 @@ begin
   end;
 end;
 
-constructor TVRMLGLAnimation.Create(
-  RootNodes: TVRMLNodesList;
-  AOwnsFirstRootNode: boolean;
-  ATimes: TDynSingleArray;
-  ScenesPerTime: Cardinal;
-  AOptimization: TGLRendererOptimization;
-  const EqualityEpsilon: Single;
-  ACache: TVRMLOpenGLRendererContextCache = nil);
-var
-  RootNodesArray: array of TVRMLNode;
-  TimesArray: array of Single;
-  I: Integer;
-begin
-  SetLength(RootNodesArray, RootNodes.Count);
-  for I := 0 to RootNodes.High do
-    RootNodesArray[I] := RootNodes[I];
-
-  SetLength(TimesArray, ATimes.Count);
-  for I := 0 to ATimes.High do
-    TimesArray[I] := ATimes[I];
-
-  Create(RootNodesArray, AOwnsFirstRootNode, TimesArray,
-    ScenesPerTime, AOptimization, EqualityEpsilon, ACache);
-end;
-
 constructor TVRMLGLAnimation.CreateFromFile(
   const FileName: string;
   ACache: TVRMLOpenGLRendererContextCache = nil);
@@ -749,8 +708,7 @@ var
   EqualityEpsilon: Single;
   ATimeLoop, ATimeBackwards: boolean;
 
-  RootNodes: array of TVRMLNode;
-  TimesArray: array of Single;
+  RootNodes: TVRMLNodesList;
   I, J: Integer;
 begin
   ModelFileNames := nil;
@@ -766,20 +724,19 @@ begin
     Assert(ModelFileNames.Length = Times.Length);
     Assert(ModelFileNames.Length >= 1);
 
-    SetLength(RootNodes, ModelFileNames.Length);
-    SetLength(TimesArray, ModelFileNames.Length);
+    RootNodes := TVRMLNodesList.Create;
+    RootNodes.Count := ModelFileNames.Count;
 
     for I := 0 to ModelFileNames.High do
     try
       RootNodes[I] := LoadAsVRML(ModelFileNames[I]);
-      TimesArray[I] := Times[I];
     except
       for J := 0 to I - 1 do
-        FreeAndNil(RootNodes[J]);
+        RootNodes.FreeAndNil(J);
       raise;
     end;
 
-    Create(RootNodes, true, TimesArray, ScenesPerTime, AOptimization,
+    Create(RootNodes, true, Times, ScenesPerTime, AOptimization,
       EqualityEpsilon, ACache);
     TimeLoop := ATimeLoop;
     TimeBackwards := ATimeBackwards;
@@ -787,6 +744,7 @@ begin
   finally
     FreeAndNil(ModelFileNames);
     FreeAndNil(Times);
+    FreeAndNil(RootNodes);
   end;
 end;
 
