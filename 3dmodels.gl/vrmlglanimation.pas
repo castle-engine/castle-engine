@@ -741,6 +741,7 @@ var
 begin
   ModelFileNames := nil;
   Times := nil;
+  RootNodes := nil;
 
   try
     ModelFileNames := TDynStringArray.Create;
