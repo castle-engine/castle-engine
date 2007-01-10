@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<animation>
+<animation backwards="true" loop="true">
   <frame file_name="cube_opening_1_final.wrl" time="0" />
   <frame file_name="cube_opening_2_final.wrl" time="1" />
 </animation>

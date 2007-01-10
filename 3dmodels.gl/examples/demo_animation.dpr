@@ -1,44 +1,43 @@
-{ Demo of TVRMLGLAnimation class.
+{ Demo of TVRMLGLAnimation class. In other words, this loads and displays
+  animations of "Kambi VRML game engine".
 
   1. Run this passing one command-line parameter:
      name of *.kanim file that describes the animation.
+
+     Example commands:
+      ./demo_animation models/sphere.kanim
+      ./demo_animation models/raptor.kanim
+      ./demo_animation models/gus.kanim
+      ./demo_animation models/cube_opening.kanim
+      ./demo_animation models/gus3.kanim
 
   2. Alternatively, more "manual" method:
      Run this passing an even number of command-line parameters.
      Each parameters pair specifies scene filename, and position in time
      of this scene. Scenes must be specified in increasing order of time.
-     Time is in seconds.
+     Time is in seconds. Animation goes from 1st scene to the 2nd,
+     then to the 3rd etc. to the last scene.
 
-  Effect: this will display animation. Animation goes from 1st scene to the 2nd,
-  then to the 3rd etc. to the last scene. And then it will
-  go back again to the 1st scene.
+     Example command with two scenes:
+       ./demo_animation models/sphere_1.wrl 0 models/sphere_2.wrl 1
+     Example command with more scenes:
+       ./demo_animation models/gus_1_final.wrl 0 \
+                        models/gus_2_final.wrl 1 \
+                        models/gus_3_final.wrl 1.5 --backwards
+
+   Additional command-line options:
+     --loop
+     --backwards
+     --no-loop
+     --no-backwards
+   For precise meaning, see TVRMLGLAnimation documentation.
+   In short, --loop causes animation to loop and --backwards causes
+   animation to go backward after going forward.
+   If you load from *.kanim file, then the default loop/backwards
+   settings are loaded from this file. Otherwise, the default is
+   --loop --no-backwards.
 
   I prepared some sets of sample models in models/ subdirectory.
-  Example commands with two scenes:
-    ./demo_animation models/sphere_1.wrl 0 models/sphere_2.wrl 1
-    ./demo_animation models/sphere.kanim
-    ./demo_animation models/raptor.kanim
-    ./demo_animation models/gus.kanim
-    ./demo_animation models/cube_opening.kanim
-
-  Additional command-line options are:
-    --loop
-    --backwards
-    --no-loop
-    --no-backwards
-  For precise meaning, see TVRMLGLAnimation documentation.
-  In short, --loop causes animation to loop and --backwards causes
-  animation to go backward after going forward.
-  The default is --loop --no-backwards
-  (note that in case we're loading animation from *.kanim file:
-  loop and backwards attributes of the *.kanim file are ignored).
-
-  Example command with more scenes:
-    ./demo_animation models/gus_1_final.wrl 0 \
-                     models/gus_2_final.wrl 1 \
-                     models/gus_3_final.wrl 1.5 --backwards
-  or just
-    ./demo_animation models/gus3.kanim --backwards
 
   This is all implemented in TVRMLGLAnimation class, see docs of this class
   for precise description how things work.
@@ -106,31 +105,6 @@ begin
     AnimationTime := 0.0;
 end;
 
-var
-  AnimTimeLoop: boolean = true;
-  AnimTimeBackwards: boolean = false;
-
-const
-  Options: array[0..3] of TOption =
-  (
-    (Short:  #0; Long: 'loop'; Argument: oaNone),
-    (Short:  #0; Long: 'backwards'; Argument: oaNone),
-    (Short:  #0; Long: 'no-loop'; Argument: oaNone),
-    (Short:  #0; Long: 'no-backwards'; Argument: oaNone)
-  );
-
-  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-  begin
-    case OptionNum of
-      0: AnimTimeLoop := true;
-      1: AnimTimeBackwards := true;
-      2: AnimTimeLoop := false;
-      3: AnimTimeBackwards := false;
-      else raise EInternalError.Create('OptionProc');
-    end;
-  end;
-
 procedure LoadAnimationFromCommandLine(Animation: TVRMLGLAnimation);
 const
   { These are constants used only with "manual" method
@@ -170,11 +144,41 @@ begin
 
     Animation.Load(AnimRootNodes, true,
       AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
+
+    Animation.TimeLoop := true;
+    Animation.TimeBackwards := true;
   finally
     FreeAndNil(AnimRootNodes);
     FreeAndNil(AnimTimes);
   end;
 end;
+
+var
+  WasParam_AnimTimeLoop: boolean = false;
+  Param_AnimTimeLoop: boolean;
+  WasParam_AnimTimeBackwards: boolean = false;
+  Param_AnimTimeBackwards: boolean;
+
+const
+  Options: array[0..3] of TOption =
+  (
+    (Short:  #0; Long: 'loop'; Argument: oaNone),
+    (Short:  #0; Long: 'backwards'; Argument: oaNone),
+    (Short:  #0; Long: 'no-loop'; Argument: oaNone),
+    (Short:  #0; Long: 'no-backwards'; Argument: oaNone)
+  );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: begin WasParam_AnimTimeLoop      := true; Param_AnimTimeLoop      := true; end;
+      1: begin WasParam_AnimTimeBackwards := true; Param_AnimTimeBackwards := true; end;
+      2: begin WasParam_AnimTimeLoop      := true; Param_AnimTimeLoop      := false; end;
+      3: begin WasParam_AnimTimeBackwards := true; Param_AnimTimeBackwards := false; end;
+      else raise EInternalError.Create('OptionProc');
+    end;
+  end;
 
 var
   CamPos, CamDir, CamUp: TVector3Single;
@@ -196,8 +200,10 @@ begin
       LoadAnimationFromCommandLine(Animation);
     end;
 
-    Animation.TimeLoop := AnimTimeLoop;
-    Animation.TimeBackwards := AnimTimeBackwards;
+    if WasParam_AnimTimeLoop then
+      Animation.TimeLoop := Param_AnimTimeLoop;
+    if WasParam_AnimTimeBackwards then
+      Animation.TimeBackwards := Param_AnimTimeBackwards;
 
     { get camera from 1st scene in Animation }
     Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
