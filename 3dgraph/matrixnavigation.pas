@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -45,15 +45,96 @@ const
   DefaultHeadBobbingDistance = 20.0;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 0.18;
-  DefaultJumpMouseButton = mbRight;
-  DefaultUpMoveMouseButton = mbRight;
 
 type
   { }
   TMatrixNavigator = class;
   TMatrixNavigatorNotifyFunc = procedure (Navigator: TMatrixNavigator) of object;
 
-  T3BoolKeys = array[0..2, boolean]of TKey;
+  { An input shortcut represents a keyboard and/or mouse shortcut
+    for some command. Up to two key shortcuts may be assigned to a single
+    item, and one mouse shortcut. }
+  TInputShortcut = class
+  private
+    FKey1: TKey;
+    FKey2: TKey;
+    FMouseButtonUse: boolean;
+    FMouseButton: TMouseButton;
+
+    FDefaultKey1: TKey;
+    FDefaultKey2: TKey;
+    FDefaultMouseButtonUse: boolean;
+    FDefaultMouseButton: TMouseButton;
+  public
+    { Constructor. Key/mouse shortcuts passed here are interpreted
+      as the default shortcuts (so they will be used in subsequent
+      MakeDefault) and they are also the initial values for Key1, Key2 etc.
+      properties. }
+    constructor Create(AKey1: TKey; AKey2: TKey;
+      AMouseButtonUse: boolean;
+      AMouseButton: TMouseButton);
+
+    { Key shortcuts for given command. You can set any of them to K_None
+      to indicate that no key is assigned.
+      @groupBegin }
+    property Key1: TKey read FKey1 write FKey1;
+    property Key2: TKey read FKey2 write FKey2;
+    { @groupEnd }
+
+    { Mouse shortcut for given command. You can set MouseButtonUse to @false
+      if you don't want to use this.
+      @groupBegin }
+    property MouseButtonUse: boolean read FMouseButtonUse write FMouseButtonUse;
+    property MouseButton: TMouseButton read FMouseButton write FMouseButton;
+    { @groupEnd }
+
+    { Default values for properties key/mouse.
+      You can change them --- this will change what MakeDefault does.
+
+      Note that setting these properties doesn't automatically set
+      corresponding "current" property. E.g. @code(DefaultKey1 := K_Space;)
+      doesn't change the value of Key1 property --- only DefaultKey1
+      changes. You can explicitly change Key1 property, or just call
+      MakeDefault afterwards, if you want this to happen.
+      @groupBegin }
+    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
+    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
+    property DefaultMouseButtonUse: boolean
+      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
+    property DefaultMouseButton: TMouseButton
+      read FDefaultMouseButton write FDefaultMouseButton;
+    { @groupEnd }
+
+    procedure MakeDefault;
+
+    { This assigns to this object the default values from Source. }
+    procedure AssignFromDefault(Source: TInputShortcut);
+
+    { This sets both keys to K_None and MouseButtonUse to @false,
+      effectively making this input shortcut impossible to enter by the user. }
+    procedure MakeClear;
+
+    { Given a set of currently pressed keys and mouse buttons,
+      decide whether this input is currently pressed.
+
+      You can pass @nil as KeysDown, then it will be assumed
+      that no keys are currently pressed. (Otherwise, the contents
+      pointed to by KeysDown pointer will never be modified;
+      KeysDown is a pointer only to allow you to pass @nil here).
+      Note that we assume that KeysDown behave like TGLWindow.KeysDown
+      property, i.e. KeysDown[K_None] is always @false. }
+    function IsPressed(KeysDown: PKeysBooleans;
+      const MousePressed: TMouseButtons): boolean;
+
+    { Check does given Key correspond to this input shortcut.
+      If Key = K_None, result is always @false. }
+    function IsKey(Key: TKey): boolean;
+
+    { Check does given mouse button correspond to this input shortcut.
+      In practice, just checks MouseButtonUse and if @true, compares
+      AMouseButton with MouseButton. }
+    function IsMouseButton(AMouseButton: TMouseButton): boolean;
+  end;
 
   { TMatrixNavigator to taka klasa ktora pozwala w specjalistyczny sposob
     operowac na macierzy. Ten specjalistyczny sposob polega na tym ze
@@ -157,6 +238,8 @@ type
       const MousePressed: TMouseButtons); virtual; abstract;
   end;
 
+  T3BoolInputs = array [0..2, boolean] of TInputShortcut;
+
   { ogladanie modelu. Model jest wyswietlany wokol punktu MoveAmount,
     nastepnie obracany o RotationAngle i skalowany o ScaleFactor
     (juz wzgledem tego punktu MoveAmount). }
@@ -170,9 +253,17 @@ type
     procedure SetScaleFactor(const Value: Single);
     procedure SetMoveAmount(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3d);
+
+    FInputs_Move: T3BoolInputs;
+    FInputs_Rotate: T3BoolInputs;
+    FInput_ScaleLarger: TInputShortcut;
+    FInput_ScaleSmaller: TInputShortcut;
+    FInput_Home: TInputShortcut;
+    FInput_StopRotating: TInputShortcut;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
+    destructor Destroy; override;
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
@@ -230,38 +321,18 @@ type
     { TODO: tak samo jak TMatrixWalker, przydaloby sie moc podawac
       tutaj za jednym zamachem char+TKey+modifiers zamiast tylko char
       lub tylko TKey.
-      W tym momencie klawisze Keys_Move dzialaja gdy ModifiersDown = [mkCtrl],
+      W tym momencie klawisze Inputs_Move dzialaja gdy ModifiersDown = [mkCtrl],
       a pozostale klawisze gdy ModifiersDown = []. }
 
-    Keys_Move: T3BoolKeys; { = ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp)) }
-    Keys_Rotate: T3BoolKeys; { = ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp)) }
-    Key_ScaleLarger: TKey; { = K_Numpad_Plus }
-    Key_ScaleSmaller: TKey; { = K_Numpad_Minus }
-    Key_Home: TKey; { = K_Home }
-    CharKey_StopRotating: char; { = ' ' }
+    { }
+    property Inputs_Move: T3BoolInputs read FInputs_Move;
+    property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
+    property Input_ScaleLarger: TInputShortcut read FInput_ScaleLarger;
+    property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
+    property Input_Home: TInputShortcut read FInput_Home;
+    property Input_StopRotating: TInputShortcut read FInput_StopRotating;
   end;
 
-const
-  { Default values of Key_Xxx properties of TMatrixWalker.
-    @groupBegin }
-  WalkerDefaultKey_Forward = K_Up;
-  WalkerDefaultKey_Backward = K_Down;
-  WalkerDefaultKey_LeftRot = K_Left;
-  WalkerDefaultKey_RightRot = K_Right;
-  WalkerDefaultKey_LeftStrafe = K_Comma;
-  WalkerDefaultKey_RightStrafe = K_Period;
-  WalkerDefaultKey_UpRotate = K_PageUp;
-  WalkerDefaultKey_DownRotate = K_PageDown;
-  WalkerDefaultKey_UpMove = K_Insert;
-  WalkerDefaultKey_DownMove = K_Delete;
-  WalkerDefaultKey_HomeUp = K_Home;
-  WalkerDefaultKey_MoveSpeedInc = K_Numpad_Plus;
-  WalkerDefaultKey_MoveSpeedDec = K_Numpad_Minus;
-  WalkerDefaultKey_Jump = K_A;
-  WalkerDefaultKey_Crouch = K_Z;
-  { @groupEnd }
-
-type
   TMatrixWalker = class;
 
   { See @link(TMatrixWalker.DoMoveAllowed) and
@@ -296,21 +367,21 @@ type
     procedure SetCameraDir(const Value: TVector3Single);
     procedure SetCameraUp(const Value: TVector3Single);
 
-    FKey_Forward: TKey;
-    FKey_Backward: TKey;
-    FKey_RightRot: TKey;
-    FKey_LeftRot: TKey;
-    FKey_RightStrafe: TKey;
-    FKey_LeftStrafe: TKey;
-    FKey_UpRotate: TKey;
-    FKey_DownRotate: TKey;
-    FKey_UpMove: TKey;
-    FKey_DownMove: TKey;
-    FKey_HomeUp: TKey;
-    FKey_MoveSpeedInc: TKey;
-    FKey_MoveSpeedDec: TKey;
-    FKey_Jump: TKey;
-    FKey_Crouch: TKey;
+    FInput_Forward: TInputShortcut;
+    FInput_Backward: TInputShortcut;
+    FInput_RightRot: TInputShortcut;
+    FInput_LeftRot: TInputShortcut;
+    FInput_RightStrafe: TInputShortcut;
+    FInput_LeftStrafe: TInputShortcut;
+    FInput_UpRotate: TInputShortcut;
+    FInput_DownRotate: TInputShortcut;
+    FInput_UpMove: TInputShortcut;
+    FInput_DownMove: TInputShortcut;
+    FInput_HomeUp: TInputShortcut;
+    FInput_MoveSpeedInc: TInputShortcut;
+    FInput_MoveSpeedDec: TInputShortcut;
+    FInput_Jump: TInputShortcut;
+    FInput_Crouch: TInputShortcut;
 
     FAllowSlowerRotations: boolean;
     FCheckModsDown: boolean;
@@ -327,12 +398,6 @@ type
     procedure RotateVertical(const AngleDeg: Single);
 
     procedure Jump;
-
-    FJumpMouseButton: TMouseButton;
-    FJumpMouseButtonActive: boolean;
-
-    FUpMoveMouseButton: TMouseButton;
-    FUpMoveMouseButtonActive: boolean;
 
     { Private things related to frustum ---------------------------- }
 
@@ -388,6 +453,7 @@ type
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
+    destructor Destroy; override;
 
     procedure DoGetCameraHeight(
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single); virtual;
@@ -455,55 +521,38 @@ type
     { TODO: przydaloby sie rozwiazac tu sprawe z modifiers jakos bardziej
       elegancko. Kazdy klawisz to powinien byc kod + flagi modifierow.
       W tej chwili klawisze wszystkie ponizsze klawisze dzialaja gdy
-      wszystkie modifiery sa OFF, za wyjatkiem Key_Right/LeftRot i
-      KeyUp/DownRotate ktore uzyskuja specjalne znaczenie gdy dziala modifier
+      wszystkie modifiery sa OFF, za wyjatkiem Input_Right/LeftRot i
+      Input_Up/DownRotate ktore uzyskuja specjalne znaczenie gdy dziala modifier
       Ctrl (see AllowSlowerRotations). }
 
     { }
-    property Key_Forward: TKey read FKey_Forward write FKey_Forward
-      default WalkerDefaultKey_Forward;
-    property Key_Backward: TKey read FKey_Backward write FKey_Backward
-      default WalkerDefaultKey_Backward;
-    property Key_LeftRot: TKey read FKey_LeftRot write FKey_LeftRot
-      default WalkerDefaultKey_LeftRot;
-    property Key_RightRot: TKey read FKey_RightRot write FKey_RightRot
-      default WalkerDefaultKey_RightRot;
-    property Key_LeftStrafe: TKey read FKey_LeftStrafe write FKey_LeftStrafe
-      default WalkerDefaultKey_LeftStrafe;
-    property Key_RightStrafe: TKey read FKey_RightStrafe write FKey_RightStrafe
-      default WalkerDefaultKey_RightStrafe;
-    property Key_UpRotate: TKey read FKey_UpRotate write FKey_UpRotate
-      default WalkerDefaultKey_UpRotate;
-    property Key_DownRotate: TKey read FKey_DownRotate write FKey_DownRotate
-      default WalkerDefaultKey_DownRotate;
-    property Key_UpMove: TKey read FKey_UpMove write FKey_UpMove
-      default WalkerDefaultKey_UpMove;
-    property Key_DownMove: TKey read FKey_DownMove write FKey_DownMove
-      default WalkerDefaultKey_DownMove;
-    property Key_HomeUp: TKey read FKey_HomeUp write FKey_HomeUp
-      default WalkerDefaultKey_HomeUp;
+    property Input_Forward: TInputShortcut read FInput_Forward;
+    property Input_Backward: TInputShortcut read FInput_Backward;
+    property Input_LeftRot: TInputShortcut read FInput_LeftRot;
+    property Input_RightRot: TInputShortcut read FInput_RightRot;
+    property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
+    property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
+    property Input_UpRotate: TInputShortcut read FInput_UpRotate;
+    property Input_DownRotate: TInputShortcut read FInput_DownRotate;
+    property Input_UpMove: TInputShortcut read FInput_UpMove;
+    property Input_DownMove: TInputShortcut read FInput_DownMove;
+    property Input_HomeUp: TInputShortcut read FInput_HomeUp;
 
-    { Note that Key_MoveSpeedInc and Key_MoveSpeedDec change
+    { Note that Input_MoveSpeedInc and Input_MoveSpeedDec change
       both MoveSpeed and MoveVertSpeed.
       @groupBegin }
-    property Key_MoveSpeedInc: TKey
-      read FKey_MoveSpeedInc write FKey_MoveSpeedInc
-      default WalkerDefaultKey_MoveSpeedInc;
-    property Key_MoveSpeedDec: TKey
-      read FKey_MoveSpeedDec write FKey_MoveSpeedDec
-      default WalkerDefaultKey_MoveSpeedDec;
+    property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
+    property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
     { @groupEnd }
 
     { Note that jumping and crouching works only when @link(Gravity) works.
       @groupBegin }
-    property Key_Jump: TKey read FKey_Jump write FKey_Jump
-      default WalkerDefaultKey_Jump;
-    property Key_Crouch: TKey read FKey_Crouch write FKey_Crouch
-      default WalkerDefaultKey_Crouch;
+    property Input_Jump: TInputShortcut read FInput_Jump;
+    property Input_Crouch: TInputShortcut read FInput_Crouch;
     { @groupEnd }
 
     { If @true then all rotation keys
-      (Key_RightRot, Key_LeftRot, Key_UpRotate, Key_DownRotate)
+      (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
       will work 10x slower when Ctrl modified is pressed. }
     property AllowSlowerRotations: boolean
       read FAllowSlowerRotations write FAllowSlowerRotations
@@ -568,10 +617,10 @@ type
       then various operations are done with respect
       to HomeCameraUp, otherwise they are done with
       respect to current CameraUp (that can be different than HomeCameraUp,
-      e.g. after using Key_UpRotate, Key_DownRotate --- raise / bow your head).
+      e.g. after using Input_UpRotate, Input_DownRotate --- raise / bow your head).
 
       With PreferHomeUpForRotations, this affects rotations:
-      horizontal rotations (keys Key_LeftRot and Key_RightRot)
+      horizontal rotations (Input_LeftRot and Input_RightRot)
       and rotations caused by MouseLook.
       Also vertical rotations are bounded by MinAngleRadFromHomeUp
       when PreferHomeUpForRotations.
@@ -585,7 +634,7 @@ type
 
       With PreferHomeUpForMoving, this affects moving:
       horizontal moving (forward, backward, strafe),
-      and vertical moving (keys Key_UpMove and Key_DownMove).
+      and vertical moving (Input_UpMove and Input_DownMove).
       E.g. when PreferHomeUpForMoving then forward/backward keys are tied
       to horizontal plane defined by HomeCameraUp.
       When not PreferHomeUpForMoving then forward/backward try to move
@@ -640,8 +689,8 @@ type
 
           E.g. when the player is flying / swimming etc. he will probably prefer
           PreferHomeUpForMoving = @false, because this way he will not have to
-          press Key_UpMove and Key_DownMove. Simply pressing Key_Forward
-          and Key_Backward and doing rotations will be enough to move
+          press Input_UpMove and Input_DownMove. Simply pressing Input_Forward
+          and Input_Backward and doing rotations will be enough to move
           freely in 3D space.
 
           When gravity works, PreferHomeUpForMoving = @true is better,
@@ -682,7 +731,7 @@ type
 
     { ustawia wektory Home camery i robi Home, tzn. ustawia
       wektory CameraPos/Dir/Up na ich odpowiedniki z przedrostkiem "Home".
-      Uwaga - klawisz Key_HomeUp nie wywoluje ponizszej metody Home, on
+      Uwaga - klawisz Input_HomeUp nie wywoluje ponizszej metody Home, on
       tylko ustawia CameraUp := HomeCameraUp (nie resetuje CameraPos i Dir).
 
       It will also call CorrectCameraPreferredHeight(ACameraRadius),
@@ -703,8 +752,8 @@ type
 
     { This sets the minimal angle (in radians) between HomeCameraUp
       and CameraDir, and also between -HomeCameraUp and CameraDir.
-      This way vertical rotations (like Key_UpRotate,
-      Key_DownRotate) are "bounded" to not allow player to do something
+      This way vertical rotations (like Input_UpRotate,
+      Input_DownRotate) are "bounded" to not allow player to do something
       strange, i.e. bow your head too much and raise your head too much.
 
       This is used only when PreferHomeUpForRotations
@@ -712,14 +761,14 @@ type
 
       This must be always between 0 and Pi/2. Value of Pi/2 will effectively
       disallow vertical rotations (although you should rather do this in
-      a "cleaner way" by setting Key_UpRotate and Key_DownRotate to K_None). }
+      a "cleaner way" by calling MakeClear on Input_UpRotate and Input_DownRotate). }
     property MinAngleRadFromHomeUp: Single
       read FMinAngleRadFromHomeUp write FMinAngleRadFromHomeUp
       default DefaultMinAngleRadFromHomeUp;
 
     { If true, then player is able to rotate the view (horizontally
-      and vertically, equivalent to Key_LeftRot, Key_RightRot,
-      Key_UpRotate, Key_DownRotate) using the mouse.
+      and vertically, equivalent to Input_LeftRot, Input_RightRot,
+      Input_UpRotate, Input_DownRotate) by moving the mouse.
 
       You have to call MouseMove of this object to achieve this.
       Also note that there are things that you have to take care
@@ -754,20 +803,6 @@ type
       (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
     procedure MouseMove(MouseXChange, MouseYChange: Integer);
 
-    property JumpMouseButtonActive: boolean
-      read FJumpMouseButtonActive write FJumpMouseButtonActive
-      default false;
-    property JumpMouseButton: TMouseButton
-      read FJumpMouseButton write FJumpMouseButton
-      default DefaultJumpMouseButton;
-
-    property UpMoveMouseButtonActive: boolean
-      read FUpMoveMouseButtonActive write FUpMoveMouseButtonActive
-      default false;
-    property UpMoveMouseButton: TMouseButton
-      read FUpMoveMouseButton write FUpMoveMouseButton
-      default DefaultUpMoveMouseButton;
-
     function MouseDown(Button: TMouseButton): boolean; override;
 
     { Things related to frustum ---------------------------------------- }
@@ -795,9 +830,9 @@ type
       Summary of things done by gravity:
       @unorderedList(
         @item(It uses OnGetCameraHeight to get camera height above the ground.)
-        @item(It allows player to jump. See Key_Jump, IsJumping, MaxJumpHeight,
+        @item(It allows player to jump. See Input_Jump, IsJumping, MaxJumpHeight,
           JumpSpeedMultiply.)
-        @item(It allows player to crouch. See Key_Crouch, CrouchHeight.)
+        @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
         @item(It tries to keep CameraPos above the ground on
           CameraPreferredHeight height.)
         @item(When current height is too small --- CameraPos is moved up.
@@ -1022,7 +1057,8 @@ type
     { This defines the preferred height of camera when crouching.
       This is always mutiplied to CameraPreferredHeight.
       This should always be <= 1 (CrouchHeight = 1 effectively disables
-      crouching, it's better to do this setting Key_Crouch to K_None). }
+      crouching, although it's better to do this by calling MakeClear
+      on Input_Crouch). }
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
 
@@ -1056,6 +1092,57 @@ implementation
 
 uses Math;
 
+{ TInputShortcut ------------------------------------------------------------- }
+
+constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey;
+  AMouseButtonUse: boolean; AMouseButton: TMouseButton);
+begin
+  inherited Create;
+  FDefaultKey1 := AKey1;
+  FDefaultKey2 := AKey2;
+  FDefaultMouseButtonUse := AMouseButtonUse;
+  FDefaultMouseButton := AMouseButton;
+  MakeDefault;
+end;
+
+procedure TInputShortcut.MakeDefault;
+begin
+  AssignFromDefault(Self);
+end;
+
+procedure TInputShortcut.AssignFromDefault(Source: TInputShortcut);
+begin
+  Key1 := Source.DefaultKey1;
+  Key2 := Source.DefaultKey2;
+  MouseButtonUse := Source.DefaultMouseButtonUse;
+  MouseButton := Source.DefaultMouseButton;
+end;
+
+procedure TInputShortcut.MakeClear;
+begin
+  Key1 := K_None;
+  Key2 := K_None;
+  MouseButtonUse := false;
+end;
+
+function TInputShortcut.IsPressed(KeysDown: PKeysBooleans;
+  const MousePressed: TMouseButtons): boolean;
+begin
+  Result :=
+    ( (KeysDown <> nil) and (KeysDown^[Key1] or KeysDown^[Key2]) ) or
+    ( MouseButtonUse and (MouseButton in MousePressed) );
+end;
+
+function TInputShortcut.IsKey(Key: TKey): boolean;
+begin
+  Result := (Key <> K_None) and ( (Key = Key1) or (Key = Key2) );
+end;
+
+function TInputShortcut.IsMouseButton(AMouseButton: TMouseButton): boolean;
+begin
+  Result := MouseButtonUse and (AMouseButton = MouseButton);
+end;
+
 { TMatrixNavigator ------------------------------------------------------------ }
 
 procedure TMatrixNavigator.MatrixChanged;
@@ -1083,26 +1170,54 @@ end;
 
 { TMatrixExaminer ------------------------------------------------------------ }
 
-const
-  DefaultKeys_Move: T3BoolKeys =
-    ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp));
-  DefaultKeys_Rotate: T3BoolKeys =
-    ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp));
-
 constructor TMatrixExaminer.Create(
   const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
+type
+  T3BoolKeys = array [0..2, boolean] of TKey;
+const
+  DefaultInputs_Move: T3BoolKeys =
+    ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp));
+  DefaultInputs_Rotate: T3BoolKeys =
+    ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp));
+var
+  I: Integer;
+  B: boolean;
 begin
- inherited;
- FScaleFactor := 1;
- FModelBox := EmptyBox3d;
+  inherited;
 
- { default keys }
- Keys_Move := DefaultKeys_Move;
- Keys_Rotate := DefaultKeys_Rotate;
- Key_ScaleLarger := K_Numpad_Plus;
- Key_ScaleSmaller := K_Numpad_Minus;
- Key_Home := K_Home;
- CharKey_StopRotating := ' ';
+  FScaleFactor := 1;
+  FModelBox := EmptyBox3d;
+
+  for I := 0 to 2 do
+    for B := false to true do
+    begin
+      FInputs_Move[I, B] := TInputShortcut.Create(DefaultInputs_Move[I, B],
+        K_None, false, mbLeft);
+      FInputs_Rotate[I, B] := TInputShortcut.Create(DefaultInputs_Rotate[I, B],
+        K_None, false, mbLeft);
+    end;
+  FInput_ScaleLarger := TInputShortcut.Create(K_Numpad_Plus, K_None, false, mbLeft);
+  FInput_ScaleSmaller := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
+  FInput_Home := TInputShortcut.Create(K_Home, K_None, false, mbLeft);
+  FInput_StopRotating := TInputShortcut.Create(K_Space, K_None, false, mbLeft);
+end;
+
+destructor TMatrixExaminer.Destroy;
+var
+  I: Integer;
+  B: boolean;
+begin
+  for I := 0 to 2 do
+    for B := false to true do
+    begin
+      FreeAndNil(FInputs_Move[I, B]);
+      FreeAndNil(FInputs_Rotate[I, B]);
+    end;
+  FreeAndNil(FInput_ScaleLarger);
+  FreeAndNil(FInput_ScaleSmaller);
+  FreeAndNil(FInput_Home);
+  FreeAndNil(FInput_StopRotating);
+  inherited;
 end;
 
 function TMatrixExaminer.Matrix: TMatrix4Single;
@@ -1128,46 +1243,49 @@ var i: integer;
     move_change, rot_speed_change, scale_change: Single;
     ModsDown: TModifierKeys;
 begin
- ModsDown := ModifiersDown(KeysDown);
+  ModsDown := ModifiersDown(KeysDown);
 
- { porownujemy RotationsAngle z (0, 0, 0). W ten sposob jezeli wywolales ostatnio
-   StopRotating to teraz nie bedziemy w Idle ciagle generowac MatrixChanged. }
- if (RotationsSpeed[0] <> 0) or
-    (RotationsSpeed[1] <> 0) or
-    (RotationsSpeed[2] <> 0) then
- begin
-  for i := 0 to 2 do RotationsAngle[i] += RotationsSpeed[i]* CompSpeed;
-  MatrixChanged;
- end;
+  { porownujemy RotationsAngle z (0, 0, 0). W ten sposob jezeli wywolales ostatnio
+    StopRotating to teraz nie bedziemy w Idle ciagle generowac MatrixChanged. }
+  if (RotationsSpeed[0] <> 0) or
+     (RotationsSpeed[1] <> 0) or
+     (RotationsSpeed[2] <> 0) then
+  begin
+    for i := 0 to 2 do RotationsAngle[i] += RotationsSpeed[i]* CompSpeed;
+    MatrixChanged;
+  end;
 
- if KeysDown <> nil then
- begin
   if IsEmptyBox3d(ModelBox) then
-   move_change := 0.02 * CompSpeed else
-   move_change := Box3dAvgSize(ModelBox) * 0.02 * CompSpeed;
+    move_change := 0.02 * CompSpeed else
+    move_change := Box3dAvgSize(ModelBox) * 0.02 * CompSpeed;
   rot_speed_change := 0.1 * CompSpeed;
   scale_change := 1.1; { nie mnoz tego razy compSpeed - scale_change bedzie uzywane do mnozenia }
 
-  if ModsDown=[mkCtrl] then
+  if ModsDown = [mkCtrl] then
   begin
-   for i := 0 to 2 do
-   begin
-    if KeysDown^[Keys_Move[i, true ]] then Move(i, +move_change);
-    if KeysDown^[Keys_Move[i, false]] then Move(i, -move_change);
-   end;
+    for i := 0 to 2 do
+    begin
+      if Inputs_Move[i, true ].IsPressed(KeysDown, MousePressed) then
+        Move(i, +move_change);
+      if Inputs_Move[i, false].IsPressed(KeysDown, MousePressed) then
+        Move(i, -move_change);
+    end;
   end else
-  if ModsDown=[] then
+  if ModsDown = [] then
   begin
-   for i := 0 to 2 do
-   begin
-    if KeysDown^[Keys_Rotate[i, true]]  then Rotate(i, +rot_speed_change);
-    if KeysDown^[Keys_Rotate[i, false]] then Rotate(i, -rot_speed_change);
-   end;
+    for i := 0 to 2 do
+    begin
+      if Inputs_Rotate[i, true ].IsPressed(KeysDown, MousePressed) then
+        Rotate(i, +rot_speed_change);
+      if Inputs_Rotate[i, false].IsPressed(KeysDown, MousePressed) then
+        Rotate(i, -rot_speed_change);
+    end;
   end;
 
-  if KeysDown^[Key_ScaleLarger] then Scale(scale_change);
-  if KeysDown^[Key_ScaleSmaller] then Scale(1/scale_change);
- end;
+  if Input_ScaleLarger.IsPressed(KeysDown, MousePressed) then
+    Scale(scale_change);
+  if Input_ScaleSmaller.IsPressed(KeysDown, MousePressed) then
+    Scale(1 / scale_change);
 end;
 
 procedure TMatrixExaminer.StopRotating;
@@ -1225,21 +1343,19 @@ begin
   MatrixChanged;
 end;
 
-{ TMatrixExaminer Key* methods ---------------------------------------- }
-
 function TMatrixExaminer.KeyDown(key: TKey; c: char;
   KeysDown: PKeysBooleans): boolean;
 begin
- result := inherited;
- if result then Exit;
+  result := inherited;
+  if result then Exit;
 
- if (c <> #0) and (c = CharKey_StopRotating) then
-  StopRotating else
- if (Key <> K_None) and (ModifiersDown(KeysDown) = []) and (key = Key_Home) then
-  Home else
-  Exit(false);
+  if Input_StopRotating.IsKey(Key) then
+    StopRotating else
+  if (ModifiersDown(KeysDown) = []) and Input_Home.IsKey(Key) then
+    Home else
+    Exit(false);
 
- Result := true;
+  Result := true;
 end;
 
 { TMatrixWalker ---------------------------------------------------------------- }
@@ -1275,28 +1391,44 @@ begin
   FHeadBobbingDistance := DefaultHeadBobbingDistance;
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
   FJumpPower := DefaultJumpPower;
-  FJumpMouseButton := DefaultJumpMouseButton;
-  FJumpMouseButtonActive := false;
-  FUpMoveMouseButton := DefaultUpMoveMouseButton;
-  FUpMoveMouseButtonActive := false;
 
-  Key_Forward := WalkerDefaultKey_Forward;
-  Key_Backward := WalkerDefaultKey_Backward;
-  Key_LeftRot := WalkerDefaultKey_LeftRot;
-  Key_RightRot := WalkerDefaultKey_RightRot;
-  Key_LeftStrafe := WalkerDefaultKey_LeftStrafe;
-  Key_RightStrafe := WalkerDefaultKey_RightStrafe;
-  Key_UpRotate := WalkerDefaultKey_UpRotate;
-  Key_DownRotate := WalkerDefaultKey_DownRotate;
-  Key_UpMove := WalkerDefaultKey_UpMove;
-  Key_DownMove := WalkerDefaultKey_DownMove;
-  Key_HomeUp := WalkerDefaultKey_HomeUp;
-  Key_MoveSpeedInc := WalkerDefaultKey_MoveSpeedInc;
-  Key_MoveSpeedDec := WalkerDefaultKey_MoveSpeedDec;
-  Key_Jump := WalkerDefaultKey_Jump;
-  Key_Crouch := WalkerDefaultKey_Crouch;
+  FInput_Forward      := TInputShortcut.Create(K_Up          , K_None, false, mbLeft);
+  FInput_Backward     := TInputShortcut.Create(K_Down        , K_None, false, mbLeft);
+  FInput_LeftRot      := TInputShortcut.Create(K_Left        , K_None, false, mbLeft);
+  FInput_RightRot     := TInputShortcut.Create(K_Right       , K_None, false, mbLeft);
+  FInput_LeftStrafe   := TInputShortcut.Create(K_Comma       , K_None, false, mbLeft);
+  FInput_RightStrafe  := TInputShortcut.Create(K_Period      , K_None, false, mbLeft);
+  FInput_UpRotate     := TInputShortcut.Create(K_PageUp      , K_None, false, mbLeft);
+  FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, false, mbLeft);
+  FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, false, mbRight);
+  FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, false, mbLeft);
+  FInput_HomeUp       := TInputShortcut.Create(K_Home        , K_None, false, mbLeft);
+  FInput_MoveSpeedInc := TInputShortcut.Create(K_Numpad_Plus , K_None, false, mbLeft);
+  FInput_MoveSpeedDec := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
+  FInput_Jump         := TInputShortcut.Create(K_A           , K_None, false, mbRight);
+  FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, false, mbLeft);
 
   FProjectionMatrix := IdentityMatrix4Single;
+end;
+
+destructor TMatrixWalker.Destroy;
+begin
+  FreeAndNil(FInput_Forward);
+  FreeAndNil(FInput_Backward);
+  FreeAndNil(FInput_LeftRot);
+  FreeAndNil(FInput_RightRot);
+  FreeAndNil(FInput_LeftStrafe);
+  FreeAndNil(FInput_RightStrafe);
+  FreeAndNil(FInput_UpRotate);
+  FreeAndNil(FInput_DownRotate);
+  FreeAndNil(FInput_UpMove);
+  FreeAndNil(FInput_DownMove);
+  FreeAndNil(FInput_HomeUp);
+  FreeAndNil(FInput_MoveSpeedInc);
+  FreeAndNil(FInput_MoveSpeedDec);
+  FreeAndNil(FInput_Jump);
+  FreeAndNil(FInput_Crouch);
+  inherited;
 end;
 
 function TMatrixWalker.Matrix: TMatrix4Single;
@@ -1516,12 +1648,12 @@ var
   { This is initally false. It's used by MoveHorizontal while head bobbing,
     to avoid updating HeadBobbingPosition more than once in the same Idle call.
 
-    Updating it more than once is bad --- try e.g. holding Key_Forward
+    Updating it more than once is bad --- try e.g. holding Input_Forward
     with one of the strafe keys: you move and it's very noticeable
     that HeadBobbing seems faster. That's because
-    when holding both Key_Forward and Key_StrafeRight, you shouldn't
+    when holding both Input_Forward and Input_StrafeRight, you shouldn't
     do HeadBobbing twice in one Idle --- you should do it only Sqrt(2).
-    When you will also hold Key_RotateRight at the same time --- situation
+    When you will also hold Input_RotateRight at the same time --- situation
     gets a little complicated...
 
     The good solution seems to just do head bobbing only once.
@@ -1595,15 +1727,15 @@ var
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-    if KeysDown^[Key_RightRot] then RotateHorizontal(
-      -RotationHorizontalSpeed * CompSpeed * SpeedScale);
-    if KeysDown^[Key_LeftRot] then RotateHorizontal(
-      +RotationHorizontalSpeed * CompSpeed * SpeedScale);
+    if Input_RightRot.IsPressed(KeysDown, MousePressed) then
+      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * SpeedScale);
+    if Input_LeftRot.IsPressed(KeysDown, MousePressed) then
+      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * SpeedScale);
 
-    if KeysDown^[Key_UpRotate] then RotateVertical(
-      +RotationVerticalSpeed * CompSpeed * SpeedScale);
-    if KeysDown^[Key_DownRotate] then RotateVertical(
-      -RotationVerticalSpeed * CompSpeed * SpeedScale);
+    if Input_UpRotate.IsPressed(KeysDown, MousePressed) then
+      RotateVertical(+RotationVerticalSpeed * CompSpeed * SpeedScale);
+    if Input_DownRotate.IsPressed(KeysDown, MousePressed) then
+      RotateVertical(-RotationVerticalSpeed * CompSpeed * SpeedScale);
   end;
 
   { Things related to gravity --- jumping, taking into account
@@ -2134,40 +2266,41 @@ begin
   HeadBobbingAlreadyDone := false;
   MoveHorizontalDone := false;
 
-  FIsCrouching := KeysDown^[Key_Crouch];
+  FIsCrouching := Input_Crouch.IsPressed(KeysDown, MousePressed);
 
   if (not CheckModsDown) or (ModsDown = []) then
   begin
     CheckRotates(1.0);
 
-    if KeysDown^[Key_Forward] then MoveHorizontal;
-    if KeysDown^[Key_Backward] then MoveHorizontal(-1);
+    if Input_Forward.IsPressed(KeysDown, MousePressed) then
+      MoveHorizontal;
+    if Input_Backward.IsPressed(KeysDown, MousePressed) then
+      MoveHorizontal(-1);
 
-    if KeysDown^[Key_RightStrafe] then
+    if Input_RightStrafe.IsPressed(KeysDown, MousePressed) then
     begin
       RotateHorizontalForStrafeMove(-90);
       MoveHorizontal;
       RotateHorizontalForStrafeMove(90);
     end;
 
-    if KeysDown^[Key_LeftStrafe] then
+    if Input_LeftStrafe.IsPressed(KeysDown, MousePressed) then
     begin
       RotateHorizontalForStrafeMove(90);
       MoveHorizontal;
       RotateHorizontalForStrafeMove(-90);
     end;
 
-    { A simple implementation of Key_UpMove was
+    { A simple implementation of Input_UpMove was
         RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
-      Similarly, simple implementation of Key_DownMove was
+      Similarly, simple implementation of Input_DownMove was
         RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
       But this is not good, because when PreferHomeUp, we want to move along the
       CameraHomeUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromHomeUp). }
-    if KeysDown^[Key_UpMove] or
-       (UpMoveMouseButtonActive and (UpMoveMouseButton in MousePressed)) then
+    if Input_UpMove.IsPressed(KeysDown, MousePressed) then
       MoveVertical( 1);
-    if KeysDown^[Key_DownMove] then
+    if Input_DownMove.IsPressed(KeysDown, MousePressed) then
       MoveVertical(-1);
 
     { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
@@ -2184,14 +2317,14 @@ begin
       So F is FMoveSpeed * Power(1.1, CompSpeed)
       Easy!
     }
-    if KeysDown^[Key_MoveSpeedInc] then
+    if Input_MoveSpeedInc.IsPressed(KeysDown, MousePressed) then
     begin
       FMoveSpeed *= Power(1.1, CompSpeed);
       FMoveVertSpeed *= Power(1.1, CompSpeed);
       MatrixChanged;
     end;
 
-    if KeysDown^[Key_MoveSpeedDec] then
+    if Input_MoveSpeedDec.IsPressed(KeysDown, MousePressed) then
     begin
       FMoveSpeed /= Power(1.1, CompSpeed);
       FMoveVertSpeed /= Power(1.1, CompSpeed);
@@ -2238,10 +2371,10 @@ begin
 
   { Merely checking for IsFallingDown is not enough, because IsFallingDown
     may be triggered with some latency. E.g. consider user that holds
-    Key_Jump key down: whenever jump will end (in GravityIdle),
-    KeysDown[Key_Jump] = true will cause another jump to be immediately
+    Input_Jump key down: whenever jump will end (in GravityIdle),
+    Input_Jump.IsKey = true will cause another jump to be immediately
     (before IsFallingDown will be set to true) initiated.
-    This is of course bad, because user holding Key_Jump key down
+    This is of course bad, because user holding Input_Jump key down
     would be able to jump to any height. The only good thing to do
     is to check whether player really has some ground beneath his feet
     to be able to jump. }
@@ -2260,25 +2393,39 @@ end;
 
 function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean;
 begin
- result := inherited;
- if result then exit;
+  result := inherited;
+  if result then exit;
 
- { nie interesuja nas tutaj zdarzenia z Key = K_None }
- if Key = K_None then Exit;
+  if (not CheckModsDown) or (ModifiersDown(KeysDown) = []) then
+  begin
+    if Input_HomeUp.IsKey(Key) then
+    begin
+      CameraUp := HomeCameraUp;
+      Exit(true);
+    end else
+    if Input_Jump.IsKey(Key) then
+    begin
+      Jump;
+      Exit(true);
+    end;
+  end;
+end;
 
- if (not CheckModsDown) or (ModifiersDown(KeysDown) = []) then
- begin
-   if Key = Key_HomeUp then
-    CameraUp := HomeCameraUp else
-   if Key = Key_Jump then
-    Jump else
-   {tu dopisuj inne klawisze jako
-   if Key = <key> then
-    <do-something> else}
-    Exit(false);
+function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
 
-   result := true;
- end;
+  if Input_HomeUp.IsMouseButton(Button) then
+  begin
+    CameraUp := HomeCameraUp;
+    Exit(true);
+  end else
+  if Input_Jump.IsMouseButton(Button) then
+  begin
+    Jump;
+    Exit(true);
+  end;
 end;
 
 procedure TMatrixWalker.Init(
@@ -2414,18 +2561,6 @@ begin
       RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
     if MouseYChange <> 0 then
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
-  end;
-end;
-
-function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if JumpMouseButtonActive and (Button = JumpMouseButton) then
-  begin
-    Jump;
-    Exit(true);
   end;
 end;
 
