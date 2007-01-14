@@ -110,6 +110,12 @@ type
     { This assigns to this object the default values from Source. }
     procedure AssignFromDefault(Source: TInputShortcut);
 
+    { This copies Source properties to this object.
+      It always copies "current" properties (Key1, Key2, MouseButtonUse,
+      MouseButton), and optionally (if CopyDefaults) also copies
+      the DefaultXxx properties. }
+    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean);
+
     { This sets both keys to K_None and MouseButtonUse to @false,
       effectively making this input shortcut impossible to enter by the user. }
     procedure MakeClear;
@@ -134,6 +140,24 @@ type
       In practice, just checks MouseButtonUse and if @true, compares
       AMouseButton with MouseButton. }
     function IsMouseButton(AMouseButton: TMouseButton): boolean;
+
+    { Check does given key (if not MouseEvent) or mouse button (if MouseEvent)
+      correspond to this input shortcut.
+
+      Basically, this is a "dispatcher" that simply calls IsKey or
+      IsMouseButton method. Depending on the MouseEvent value, one
+      of the other parameters (Key or AMouseButton) is simply ignored.
+
+      This is often comfortable method if you want to squeeze calling
+      IsKey and IsMouseButton into one procedure
+      in the implementation --- see e.g. TMatrixWalker.EventDown. }
+    function IsEvent(MouseEvent: boolean; Key: TKey;
+      AMouseButton: TMouseButton): boolean;
+
+    { Describe this input shortcut. If it's not active at all
+      (i.e. both keys are K_None and MouseButtonUse is @false),
+      we will use NoneString. }
+    function Description(const NoneString: string): string;
   end;
 
   { TMatrixNavigator to taka klasa ktora pozwala w specjalistyczny sposob
@@ -260,6 +284,9 @@ type
     FInput_ScaleSmaller: TInputShortcut;
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
+
+    function EventDown(MouseEvent: boolean; Key: TKey;
+      AMouseButton: TMouseButton): boolean;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
@@ -270,6 +297,7 @@ type
     procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
       const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
+    function MouseDown(Button: TMouseButton): boolean; override;
 
     { wlasciwosci ------------------------------------------------------------- }
 
@@ -398,6 +426,9 @@ type
     procedure RotateVertical(const AngleDeg: Single);
 
     procedure Jump;
+
+    function EventDown(MouseEvent: boolean; Key: TKey;
+      AMouseButton: TMouseButton): boolean;
 
     { Private things related to frustum ---------------------------- }
 
@@ -1118,6 +1149,18 @@ begin
   MouseButton := Source.DefaultMouseButton;
 end;
 
+procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
+begin
+  Key1 := Source.Key1;
+  Key2 := Source.Key2;
+  MouseButtonUse := Source.MouseButtonUse;
+  MouseButton := Source.MouseButton;
+  DefaultKey1 := Source.DefaultKey1;
+  DefaultKey2 := Source.DefaultKey2;
+  DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
+  DefaultMouseButton := Source.DefaultMouseButton;
+end;
+
 procedure TInputShortcut.MakeClear;
 begin
   Key1 := K_None;
@@ -1141,6 +1184,41 @@ end;
 function TInputShortcut.IsMouseButton(AMouseButton: TMouseButton): boolean;
 begin
   Result := MouseButtonUse and (AMouseButton = MouseButton);
+end;
+
+function TInputShortcut.IsEvent(MouseEvent: boolean; Key: TKey;
+  AMouseButton: TMouseButton): boolean;
+begin
+  if MouseEvent then
+    Result := IsMouseButton(AMouseButton) else
+    Result := IsKey(Key);
+end;
+
+function TInputShortcut.Description(const NoneString: string): string;
+const
+  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
+begin
+  Result := '';
+
+  if Key1 <> K_None then
+  begin
+    Result += Format('"%s" key', [KeyToStr(Key1)]);
+  end;
+
+  if Key2 <> K_None then
+  begin
+    if Result <> '' then Result += ' or ';
+    Result += Format('"%s" key', [KeyToStr(Key2)]);
+  end;
+
+  if MouseButtonUse then
+  begin
+    if Result <> '' then Result += ' or ';
+    Result += Format('"%s" mouse button', [MouseButtonStr[MouseButton]]);
+  end;
+
+  if Result = '' then
+    Result := NoneString;
 end;
 
 { TMatrixNavigator ------------------------------------------------------------ }
@@ -1343,19 +1421,39 @@ begin
   MatrixChanged;
 end;
 
+function TMatrixExaminer.EventDown(MouseEvent: boolean; Key: TKey;
+  AMouseButton: TMouseButton): boolean;
+begin
+  if Input_StopRotating.IsEvent(MouseEvent, Key, AMouseButton) then
+  begin
+    StopRotating;
+    Result := true;
+  end else
+  if Input_Home.IsEvent(MouseEvent, Key, AMouseButton) then
+  begin
+    Home;
+    Result := true;
+  end else
+    Result := false;
+end;
+
 function TMatrixExaminer.KeyDown(key: TKey; c: char;
   KeysDown: PKeysBooleans): boolean;
 begin
-  result := inherited;
-  if result then Exit;
+  Result := inherited;
+  if Result then Exit;
 
-  if Input_StopRotating.IsKey(Key) then
-    StopRotating else
-  if (ModifiersDown(KeysDown) = []) and Input_Home.IsKey(Key) then
-    Home else
-    Exit(false);
+  if ModifiersDown(KeysDown) <> [] then Exit;
 
-  Result := true;
+  Result := EventDown(false, Key, mbLeft);
+end;
+
+function TMatrixExaminer.MouseDown(Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  Result := EventDown(true, K_None, Button);
 end;
 
 { TMatrixWalker ---------------------------------------------------------------- }
@@ -2391,24 +2489,30 @@ begin
   FJumpHeight := 0.0;
 end;
 
+function TMatrixWalker.EventDown(MouseEvent: boolean; Key: TKey;
+  AMouseButton: TMouseButton): boolean;
+begin
+  if Input_HomeUp.IsEvent(MouseEvent, Key, AMouseButton) then
+  begin
+    CameraUp := HomeCameraUp;
+    Result := true;
+  end else
+  if Input_Jump.IsEvent(MouseEvent, Key, AMouseButton) then
+  begin
+    Jump;
+    Result := true;
+  end else
+    Result := false;
+end;
+
 function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean;
 begin
-  result := inherited;
-  if result then exit;
+  Result := inherited;
+  if Result then Exit;
 
-  if (not CheckModsDown) or (ModifiersDown(KeysDown) = []) then
-  begin
-    if Input_HomeUp.IsKey(Key) then
-    begin
-      CameraUp := HomeCameraUp;
-      Exit(true);
-    end else
-    if Input_Jump.IsKey(Key) then
-    begin
-      Jump;
-      Exit(true);
-    end;
-  end;
+  if CheckModsDown and (ModifiersDown(KeysDown) <> []) then Exit;
+
+  Result := EventDown(false, Key, mbLeft);
 end;
 
 function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
@@ -2416,16 +2520,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if Input_HomeUp.IsMouseButton(Button) then
-  begin
-    CameraUp := HomeCameraUp;
-    Exit(true);
-  end else
-  if Input_Jump.IsMouseButton(Button) then
-  begin
-    Jump;
-    Exit(true);
-  end;
+  Result := EventDown(true, K_None, Button);
 end;
 
 procedure TMatrixWalker.Init(
