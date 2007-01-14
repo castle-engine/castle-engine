@@ -51,6 +51,9 @@ type
   TMatrixNavigator = class;
   TMatrixNavigatorNotifyFunc = procedure (Navigator: TMatrixNavigator) of object;
 
+  TInputShortcut = class;
+  TInputShortcutChangedFunc = procedure (Shortcut: TInputShortcut) of object;
+
   { An input shortcut represents a keyboard and/or mouse shortcut
     for some command. Up to two key shortcuts may be assigned to a single
     item, and one mouse shortcut. }
@@ -61,10 +64,19 @@ type
     FMouseButtonUse: boolean;
     FMouseButton: TMouseButton;
 
+    procedure SetKey1(const Value: TKey);
+    procedure SetKey2(const Value: TKey);
+    procedure SetMouseButtonUse(const Value: boolean);
+    procedure SetMouseButton(const Value: TMouseButton);
+
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TMouseButton;
+
+    FOnChanged: TInputShortcutChangedFunc;
+  protected
+    procedure Changed; virtual;
   public
     { Constructor. Key/mouse shortcuts passed here are interpreted
       as the default shortcuts (so they will be used in subsequent
@@ -77,15 +89,15 @@ type
     { Key shortcuts for given command. You can set any of them to K_None
       to indicate that no key is assigned.
       @groupBegin }
-    property Key1: TKey read FKey1 write FKey1;
-    property Key2: TKey read FKey2 write FKey2;
+    property Key1: TKey read FKey1 write SetKey1;
+    property Key2: TKey read FKey2 write SetKey2;
     { @groupEnd }
 
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
       @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write FMouseButtonUse;
-    property MouseButton: TMouseButton read FMouseButton write FMouseButton;
+    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
+    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
     { Default values for properties key/mouse.
@@ -158,6 +170,13 @@ type
       (i.e. both keys are K_None and MouseButtonUse is @false),
       we will use NoneString. }
     function Description(const NoneString: string): string;
+
+    { If assigned, this will be called always right after the key/mouse
+      shortcut value changed. Note that this is called only when
+      the "current" values (Key1, Key2, MouseButtonUse, MouseButton)
+      changed, and it's not called when just the DefaultXxx values changed. }
+    property OnChanged: TInputShortcutChangedFunc
+      read FOnChanged write FOnChanged;
   end;
 
   { TMatrixNavigator to taka klasa ktora pozwala w specjalistyczny sposob
@@ -1119,6 +1138,9 @@ type
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
   const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
 
+const
+  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
+
 implementation
 
 uses Math;
@@ -1143,29 +1165,42 @@ end;
 
 procedure TInputShortcut.AssignFromDefault(Source: TInputShortcut);
 begin
-  Key1 := Source.DefaultKey1;
-  Key2 := Source.DefaultKey2;
-  MouseButtonUse := Source.DefaultMouseButtonUse;
-  MouseButton := Source.DefaultMouseButton;
+  FKey1 := Source.DefaultKey1;
+  FKey2 := Source.DefaultKey2;
+  FMouseButtonUse := Source.DefaultMouseButtonUse;
+  FMouseButton := Source.DefaultMouseButton;
+
+  { I don't set here properties, but directly set FXxx fields,
+    so that I call Changed only once. }
+  Changed;
 end;
 
 procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
 begin
-  Key1 := Source.Key1;
-  Key2 := Source.Key2;
-  MouseButtonUse := Source.MouseButtonUse;
-  MouseButton := Source.MouseButton;
   DefaultKey1 := Source.DefaultKey1;
   DefaultKey2 := Source.DefaultKey2;
   DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
   DefaultMouseButton := Source.DefaultMouseButton;
+
+  FKey1 := Source.Key1;
+  FKey2 := Source.Key2;
+  FMouseButtonUse := Source.MouseButtonUse;
+  FMouseButton := Source.MouseButton;
+
+  { I don't set here properties, but directly set FXxx fields,
+    so that I call Changed only once. }
+  Changed;
 end;
 
 procedure TInputShortcut.MakeClear;
 begin
-  Key1 := K_None;
-  Key2 := K_None;
-  MouseButtonUse := false;
+  FKey1 := K_None;
+  FKey2 := K_None;
+  FMouseButtonUse := false;
+
+  { I don't set here properties, but directly set FXxx fields,
+    so that I call Changed only once. }
+  Changed;
 end;
 
 function TInputShortcut.IsPressed(KeysDown: PKeysBooleans;
@@ -1195,30 +1230,61 @@ begin
 end;
 
 function TInputShortcut.Description(const NoneString: string): string;
-const
-  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
 begin
   Result := '';
 
-  if Key1 <> K_None then
-  begin
-    Result += Format('"%s" key', [KeyToStr(Key1)]);
-  end;
+  { It's important for this description to be really compact (as it's
+    used in situations like menu items (see "The Castle")), that's why
+    I mess with checking various cases and trying to make shorter string
+    for this. }
 
-  if Key2 <> K_None then
+  if (Key1 <> K_None) or (Key2 <> K_None) then
   begin
-    if Result <> '' then Result += ' or ';
-    Result += Format('"%s" key', [KeyToStr(Key2)]);
+    if (Key1 <> K_None) and (Key2 <> K_None) then
+      Result := Format('key "%s" or "%s"', [KeyToStr(Key1), KeyToStr(Key2)]) else
+    if Key1 <> K_None then
+      Result += Format('key "%s"', [KeyToStr(Key1)]) else
+      Result += Format('key "%s"', [KeyToStr(Key2)]);
   end;
 
   if MouseButtonUse then
   begin
     if Result <> '' then Result += ' or ';
-    Result += Format('"%s" mouse button', [MouseButtonStr[MouseButton]]);
+    Result += Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
   end;
 
   if Result = '' then
     Result := NoneString;
+end;
+
+procedure TInputShortcut.Changed;
+begin
+  if Assigned(OnChanged) then
+    OnChanged(Self);
+end;
+
+procedure TInputShortcut.SetKey1(const Value: TKey);
+begin
+  FKey1 := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetKey2(const Value: TKey);
+begin
+  FKey2 := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButtonUse(const Value: boolean);
+begin
+  FMouseButtonUse := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetMouseButton(const Value: TMouseButton);
+begin
+  FMouseButton := Value;
+  Changed;
 end;
 
 { TMatrixNavigator ------------------------------------------------------------ }
