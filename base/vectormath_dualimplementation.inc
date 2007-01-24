@@ -384,6 +384,37 @@ begin
     'intersection line of first two planes is parallel to the 3rd plane');
 end;
 
+function PlaneMove(const Plane: TYPE_VECTOR4;
+  const Move: TYPE_VECTOR3): TYPE_VECTOR4;
+begin
+  { Given a plane Ax + By + Cz + D = 0.
+    We want to find a new plane, moved by Move.
+    Actually, we want to find only new D, since we know that (A, B, C)
+    is a normal vector of the plane, so it doesn't change.
+
+    Math says: old plane equation is OK for point (x, y, z) if and only if
+    new plane equation is OK for (x, y, z) + Move. Therefore
+      Ax + By + Cz + D = 0 iff
+      A * (x + Move[0]) + B * (y + Move[1]) + C * (z + Move[2]) + NewD = 0
+    The 2nd equation can be rewritten as
+      Ax + By + Cz + NewD + A * Move[0] + B * Move[1] + C * Move[2] = 0
+    so
+      NewD = D - (A * Move[0] + B * Move[1] + C * Move[2]);
+  }
+
+  Result := Plane;
+  Result[3] -= Plane[0] * Move[0] +
+               Plane[1] * Move[1] +
+               Plane[2] * Move[2];
+end;
+
+procedure PlaneMoveTo1st(var Plane: TYPE_VECTOR4; const Move: TYPE_VECTOR3);
+begin
+  Plane[3] -= Plane[0] * Move[0] +
+              Plane[1] * Move[1] +
+              Plane[2] * Move[2];
+end;
+
 {$define VectorsSamePlaneDirections_Implement:=
 var v1dot, v2dot: TYPE_SCALAR;
 begin

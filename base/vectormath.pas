@@ -932,6 +932,19 @@ function ThreePlanesIntersectionPoint(
 function ThreePlanesIntersectionPoint(
   const Plane0, Plane1, Plane2: TVector4Double): TVector3Double; overload;
 
+{ Move a plane by a specifed vector.
+  The first three plane numbers (plane normal vector) don't change
+  (so, in particular, if you used the plane to define the half-space,
+  the half-space gets moved as it should).
+  @groupBegin }
+function PlaneMove(const Plane: TVector4Single;
+  const Move: TVector3Single): TVector4Single; overload;
+function PlaneMove(const Plane: TVector4Double;
+  const Move: TVector3Double): TVector4Double; overload;
+procedure PlaneMoveTo1st(var Plane: TVector4Single; const Move: TVector3Single); overload;
+procedure PlaneMoveTo1st(var Plane: TVector4Double; const Move: TVector3Double); overload;
+{ @groupEnd }
+
 { zwraca true gdy oba wektory wskazuja na ta sama strone Plane.
   Gdy jeden z wektorow jest rownolegly do Plane zawsze zwraca true.
   Plane mozesz podac jako 4 lub 3 liczby (kierunek plane) - przeciez 4 liczba
@@ -1783,6 +1796,11 @@ function FrustumSphereCollisionPossible(const Frustum: TFrustum;
 function FrustumSphereCollisionPossibleSimple(const Frustum: TFrustum;
   const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
   boolean;
+
+function FrustumMove(const Frustum: TFrustum;
+  const Move: TVector3Single): TFrustum;
+procedure FrustumMoveTo1st(var Frustum: TFrustum;
+  const Move: TVector3Single);
 
 {$endif FPC}
 
@@ -3025,6 +3043,28 @@ begin
  end;
 
  Result := true;
+end;
+
+function FrustumMove(const Frustum: TFrustum;
+  const Move: TVector3Single): TFrustum;
+begin
+  Result[fpLeft  ] := PlaneMove(Frustum[fpLeft]  , Move);
+  Result[fpRight ] := PlaneMove(Frustum[fpRight] , Move);
+  Result[fpBottom] := PlaneMove(Frustum[fpBottom], Move);
+  Result[fpTop   ] := PlaneMove(Frustum[fpTop]   , Move);
+  Result[fpNear  ] := PlaneMove(Frustum[fpNear]  , Move);
+  Result[fpFar   ] := PlaneMove(Frustum[fpFar]   , Move);
+end;
+
+procedure FrustumMoveTo1st(var Frustum: TFrustum;
+  const Move: TVector3Single);
+begin
+  PlaneMoveTo1st(Frustum[fpLeft]  , Move);
+  PlaneMoveTo1st(Frustum[fpRight] , Move);
+  PlaneMoveTo1st(Frustum[fpBottom], Move);
+  PlaneMoveTo1st(Frustum[fpTop]   , Move);
+  PlaneMoveTo1st(Frustum[fpNear]  , Move);
+  PlaneMoveTo1st(Frustum[fpFar]   , Move);
 end;
 
 {$endif FPC}
