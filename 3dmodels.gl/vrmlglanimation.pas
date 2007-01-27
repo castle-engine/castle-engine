@@ -400,7 +400,7 @@ procedure TVRMLGLAnimation.Load(
     if Model1.ClassType <> Model2.ClassType then
       raise EModelsStructureDifferent.CreateFmt(
         'Different nodes classes: "%s" and "%s"',
-        [Model1.ClassName <> Model2.ClassName]);
+        [Model1.ClassName, Model2.ClassName]);
 
     (* TODO: I would prefer to use here interface code, like
       if Supports(Model1, INodeGeneralInline) and
