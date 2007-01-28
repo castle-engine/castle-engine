@@ -87,6 +87,9 @@
     { Shortcut for Items[Count-1]. }
     property Last: TObjectsListItem_7 read GetLast write SetLast;
 
+    function IsFirst(Value: TObjectsListItem_7): boolean;
+    function IsLast(Value: TObjectsListItem_7): boolean;
+
     { Sort Items between FirstIndex and LastIndex.
       FirstIndex and LastIndex must be valid indexes,
       i.e. between 0 and High and FirstIndex <= LastIndex. }
@@ -262,11 +265,21 @@ begin
     TObjectsListItem_7(PtrObject(B)^));
 end;
 
+function TObjectsList_7.IsFirst(Value: TObjectsListItem_7): boolean;
+begin
+  Result := (Count > 0) and (Items[0] = Value);
+end;
+
+function TObjectsList_7.IsLast(Value: TObjectsListItem_7): boolean;
+begin
+  Result := (Count > 0) and (Items[Count - 1] = Value);
+end;
+
 procedure TObjectsList_7.Sort(FirstIndex, LastIndex: Cardinal;
   IsSmallerFunction: TObjectsListIsSmallerFunction_7);
 begin
   GoodIsSmallerFunction := IsSmallerFunction;
-  SortByObject(Arr, SizeOf(TObject), 
+  SortByObject(Arr, SizeOf(TObject),
     {$ifdef FPC_OBJFPC}@{$endif} ProxyIsSmallerFunction,
     FirstIndex, LastIndex);
 end;
