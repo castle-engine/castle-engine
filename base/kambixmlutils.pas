@@ -13,15 +13,19 @@ uses DOM;
 function DOMGetAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: string): boolean;
 
-{ Like DOMGetCardinalAttribute, but reads Cardinal value. }
+{ Like DOMGetAttribute, but reads Cardinal value. }
 function DOMGetCardinalAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Cardinal): boolean;
 
-{ Like DOMGetCardinalAttribute, but reads Single value. }
+{ Like DOMGetAttribute, but reads Integer value. }
+function DOMGetIntegerAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Integer): boolean;
+
+{ Like DOMGetAttribute, but reads Single value. }
 function DOMGetSingleAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Single): boolean;
 
-{ Like DOMGetCardinalAttribute, but reads Boolean value.
+{ Like DOMGetAttribute, but reads Boolean value.
   A boolean value is interpreted just like FPC's TXMLConfig
   objects: true is designated by word @code(true), false by word
   @code(false), case is ignored.
@@ -53,6 +57,16 @@ end;
 
 function DOMGetCardinalAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Cardinal): boolean;
+var
+  ValueStr: string;
+begin
+  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  if Result then
+    Value := StrToInt(ValueStr);
+end;
+
+function DOMGetIntegerAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Integer): boolean;
 var
   ValueStr: string;
 begin
