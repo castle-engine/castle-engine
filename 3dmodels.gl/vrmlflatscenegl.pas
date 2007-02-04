@@ -70,7 +70,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLFlatScene, VRMLOpenGLRenderer, OpenGLh, BackgroundGL, KambiGLUtils,
-  VRMLShapeStateOctree;
+  VRMLShapeStateOctree, VRMLGLHeadLight;
 
 {$define read_interface}
 
@@ -804,6 +804,14 @@ type
       In addition to effects described at TVRMLOpenGLRenderer,
       they also affect what the TVRMLFlatSceneGL.Background function returns. }
     function Attributes: TVRMLSceneRenderingAttributes;
+
+    { Creates a headlight, using (if present) KambiHeadLight node defined
+      in this VRML file. You're responsible for freeing this node.
+
+      Note that this is @italic(not) concerned whether you
+      actually should use this headlight (this information usually comes from
+      NavigationInfo.headlight value). }
+    function CreateHeadLight: TVRMLGLHeadLight;
   end;
 
   TObjectsListItem_1 = TVRMLFlatSceneGL;
@@ -1924,6 +1932,17 @@ end;
 function TVRMLFlatSceneGL.Attributes: TVRMLSceneRenderingAttributes;
 begin
   Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
+end;
+
+function TVRMLFlatSceneGL.CreateHeadLight: TVRMLGLHeadLight;
+var
+  HeadLightNode: TNodeKambiHeadLight;
+begin
+  HeadLightNode := nil;
+  if RootNode <> nil then
+    HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
+      TNodeKambiHeadLight;
+  Result := TVRMLGLHeadLight.Create(HeadLightNode);
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

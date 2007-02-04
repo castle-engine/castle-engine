@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -3713,6 +3713,19 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+  end;
+
+  TNodeKambiHeadLight = class(TVRMLNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    property FdAmbientIntensity: TSFFloat index 0 read GetFieldAsSFFloat;
+    property FdAttenuation: TSFVec3f index 1 read GetFieldAsSFVec3f;
+    property FdColor: TSFColor index 2 read GetFieldAsSFColor;
+    property FdIntensity: TSFFloat index 3 read GetFieldAsSFFloat;
+    property FdSpot: TSFBool index 4 read GetFieldAsSFBool;
+    property FdSpotCutOffAngle: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdSpotDropOffRate: TSFFloat index 6 read GetFieldAsSFFloat;
   end;
 
 { very very special node --------------------------------------------------- }
@@ -8603,6 +8616,31 @@ begin
   Fields.Add(TSFString.Create('title', ''));
 end;
 
+class function TNodeKambiHeadLight.ClassNodeTypeName: string;
+begin
+  Result := 'KambiHeadLight';
+end;
+
+constructor TNodeKambiHeadLight.Create(const ANodeName: string; const AWWWBasePath: string);
+const
+  HeadLightDefaultAmbientIntensity = 0;
+  HeadLightDefaultAttenuation: TVector3Single = (1, 0, 0);
+  HeadLightDefaultColor: TVector3Single = (1, 1, 1);
+  HeadLightDefaultIntensity = 1.0;
+  HeadLightDefaultSpot = false;
+  HeadLightDefaultSpotCutOffAngle = 0.785398;
+  HeadLightDefaultSpotDropOffRate = 0.0;
+begin
+  inherited;
+  Fields.Add(TSFFloat.Create('ambientIntensity', HeadLightDefaultAmbientIntensity));
+  Fields.Add(TSFVec3f.Create('attenuation', HeadLightDefaultAttenuation));
+  Fields.Add(TSFColor.Create('color', HeadLightDefaultColor));
+  Fields.Add(TSFFloat.Create('intensity', HeadLightDefaultIntensity));
+  Fields.Add(TSFBool.Create('spot', HeadLightDefaultSpot));
+  Fields.Add(TSFFloat.Create('spotCutOffAngle', HeadLightDefaultSpotCutOffAngle));
+  Fields.Add(TSFFloat.Create('spotDropOffRate', HeadLightDefaultSpotDropOffRate));
+end;
+
 { TNodeUnknown ---------------------------------------------------------------- }
 
 function TNodeUnknown.NodeTypeName: string;
@@ -9023,6 +9061,7 @@ initialization
 
     { Kambi non-standard nodes }
     TNodeKambiTriangulation,
+    TNodeKambiHeadLight,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
@@ -9128,6 +9167,7 @@ initialization
 
     { Kambi non-standard nodes }
     TNodeKambiTriangulation,
+    TNodeKambiHeadLight,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
