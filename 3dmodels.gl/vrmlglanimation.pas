@@ -220,7 +220,9 @@ type
       from scenes you use), but it allows you to save some memory.
       Note that if OwnsFirstRootNode then the initial RootNodes[0]
       will *not* be freed. }
-    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+    procedure PrepareRender(
+      TransparentGroups: TTransparentGroups;
+      DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate: boolean;
       ProgressStep: boolean;
@@ -845,6 +847,7 @@ begin
 end;
 
 procedure TVRMLGLAnimation.PrepareRender(
+  TransparentGroups: TTransparentGroups;
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
   DoPrepareTrianglesListOverTriangulate: boolean;
@@ -854,7 +857,8 @@ var
 begin
   for I := 0 to FScenes.High do
   begin
-    FScenes[I].PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+    FScenes[I].PrepareRender(TransparentGroups,
+      DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate);
 

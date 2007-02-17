@@ -71,7 +71,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
-  Animation.SceneFromTime(AnimationTime).Render(nil);
+  Animation.SceneFromTime(AnimationTime).Render(nil, tgAll);
 end;
 
 procedure Idle(glwin: TGLWindow);
@@ -229,7 +229,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareRender(true, true, false, false, true, false);
+      Animation.PrepareRender([tgAll], true, true, false, false, true, false);
     finally Progress.Fini end;
 
     Glwm.Loop;

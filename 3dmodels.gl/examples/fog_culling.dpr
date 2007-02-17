@@ -52,7 +52,7 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender(false, true, false, false);
+ Scene.PrepareRender([tgAll], false, true, false, false);
 end;
 
 type
@@ -91,8 +91,8 @@ begin
   glLoadMatrix(glw.Navigator.Matrix);
 
   if Scene.Attributes.UseFog then
-    Scene.Render(@FogVisibilityTester.Test) else
-    Scene.RenderFrustumOctree(Glw.NavWalker.Frustum);
+    Scene.Render(@FogVisibilityTester.Test, tgAll) else
+    Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll);
 
   Writeln(Format('Rendered ShapeStates: %d / %d',
     [ Scene.LastRender_RenderedShapeStatesCount,

@@ -297,6 +297,9 @@ type
     { @groupEnd }
   end;
 
+  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
+  TTransparentGroups = set of TTransparentGroup;
+
   { This is a descendant of TVRMLFlatScene that makes it easy to render
     VRML scene into OpenGL. The point is that this class is the final,
     comfortable utility to deal with VRML files when you want to be able
@@ -346,7 +349,8 @@ type
     { wywoluje Renderer.RenderBegin, pozniej na wszystkich elementach
       ShapeStates[] wywoluje RenderShapeStateProc z ich indexem
       (tylko o ile TestShapeStateVisibility is not assigned or
-      returns true for given node), pozniej Renderer.RenderEnd.
+      returns true for given node, and if TransparentGroup includes
+      given shapestate), pozniej Renderer.RenderEnd.
       Dodatkowo moze robic jeszcze jakies rzeczy z OpenGLem, np. to tutaj
       realizujemy blending.
 
@@ -372,7 +376,8 @@ type
     procedure RenderShapeStatesNoDispList(
       TestShapeStateVisibility: TTestShapeStateVisibility;
       RenderShapeStateProc: TRenderShapeState;
-      RenderBeginProc, RenderEndProc: TObjectProcedure);
+      RenderBeginProc, RenderEndProc: TObjectProcedure;
+      TransparentGroup: TTransparentGroup);
 
     { niszcz powiazania z kontekstem OpenGLa obiektu Renderer i ew. wszelkich
       wygenerowanych na podstawie niego rzeczy (w tym momencie oznacza
@@ -434,16 +439,18 @@ type
 
     { This is always 0 when Optimization <> roSceneAsAWhole.
       When Optimization = roSceneAsAWhole, 0 means "not initialized" . }
-    SAAW_DisplayList: TGLuint; { = 0 jesli nie zainicjowana }
+    SAAW_DisplayList: array [TTransparentGroup] of TGLuint;
 
     { Przygotuje wszystko. Wywoluj tylko gdy
-      Optimization = roSceneAsAWhole i SAAW_DisplayList = 0.
+      Optimization = roSceneAsAWhole i
+      SAAW_DisplayList[TransparentGroup] = 0.
 
       This calls RenderShapeStatesNoDispList so this sets
       FLastRender_RenderedShapeStatesCount and
       FLastRender_AllShapeStatesCount. }
-    procedure SAAW_Prepare;
-    procedure SAAW_Render;
+    procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
+
+    procedure SAAW_Render(TransparentGroup: TTransparentGroup);
 
     { ------------------------------------------------------------
       Private things used only when Optimization is
@@ -555,12 +562,20 @@ type
       Cel PrepareRender jest taki : niech najblizsze wywolanie Render zajmie
       mniej wiecej tyle samo czasu co wszystkie nastepne.
 
+      TransparentGroups specifies for what TransparentGroup value
+      it should prepare rendering resources (usually you only use
+      [tgAll] or only one of [tgTransparent, tgOpaque] ---
+      so it would be a waste of resources and time to prepare for every
+      possible TransparentGroup value).
+
       If DoPrepareBackground then it will call PrepareBackground too.
       Then this function will make next call to Background proceed fast.
 
       If DoPrepareBoundingBox then it will also make sure that call to
       BoundingBox is fast. }
-    procedure PrepareRender(DoPrepareBackground, DoPrepareBoundingBox,
+    procedure PrepareRender(
+      TransparentGroups: TTransparentGroups;
+      DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate: boolean);
 
@@ -618,34 +633,52 @@ type
 
           We use these OpenGL variables to implement transparency using OpenGL's
           blending. Some more notes about blending: what we do here is a standard
-          OpenGL technique : first we render all opaque objects and then
+          OpenGL technique : first we render all opaque objects
+          (if TransparentGroup is tgAll or tgOpaque) and then
           we make depth-buffer read-only and then we render all partially
-          trasparent objects. This technique has some important disadvantages
-          if your OnDraw does not consist of only one call to Render, e.g.
-          instead simple
-@preformatted(
-  Scene.Render;
+          trasparent objects (if TransparentGroup is tgAll or tgTransparent).
+
+          Note that while rendering just everything with tgAll is simple,
+          but it has some important disadvantages if your OnDraw does
+          not consist of only one call to Render. E.g. instead of simple
+@longCode(
+  Scene.Render(nil, tgAll);
 )
           you have
-@preformatted(
-  Scene1.Render;
-  Scene2.Render;
-  + some other rendings, using TVRMLFlatSceneGL or not
+@longCode(
+  Scene1.Render(nil, tgAll);
+  Scene2.Render(nil, tgAll);
 )
-          Basically, you should always render all opaque objects before
+          The code above it not good if both scenes contain some
+          opaque and some transparent objects.
+          You should always render all opaque objects before
           all transparent objects. E.g. Scene2 can't have any opaque objects
           if Scene1 has some of them.
+
+          So that's when TransparentGroups come to use: you can write
+@longCode(
+  Scene1.Render(nil, tgOpaque);
+  Scene2.Render(nil, tgOpaque);
+
+  Scene1.Render(nil, tgTransparent);
+  Scene2.Render(nil, tgTransparent);
+)
+          Note that when Attributes.Blending is @false then everything
+          is always opaque, so tgOpaque renders everything and tgTransparent
+          renders nothing.
         ))
 
       @noAutoLinkHere
     }
-    procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility);
+    procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
+      TransparentGroup: TTransparentGroup);
 
     { This calls Render passing TestShapeStateVisibility
       that tries to quickly eliminate ShapeStates that are entirely
       not within Frustum.
       In other words, this does so-called "frustum culling". }
-    procedure RenderFrustum(const Frustum: TFrustum);
+    procedure RenderFrustum(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup);
 
     { This is like @link(RenderFrustum) but it tries to enumerate
       visible ShapeStates using given Octree (instead of just testing
@@ -661,12 +694,14 @@ type
       so it's useless (and would waste some time)
       to analyze the scene with Octree. }
     procedure RenderFrustumOctree(const Frustum: TFrustum;
-      Octree: TVRMLShapeStateOctree); overload;
+      Octree: TVRMLShapeStateOctree;
+      TransparentGroup: TTransparentGroup); overload;
 
     { This simply calls RenderFrustumOctree(Frustum, DefaultShapeStareOctree).
       Be sure that you assigned DefaultShapeStareOctree property before
       calling this. }
-    procedure RenderFrustumOctree(const Frustum: TFrustum); overload;
+    procedure RenderFrustumOctree(const Frustum: TFrustum;
+      TransparentGroup: TTransparentGroup); overload;
 
     { LastRender_ properties provide you read-only statistics
       about what happened during last render. For now you
@@ -1011,10 +1046,12 @@ procedure TVRMLFlatSceneGL.CloseGLRenderer;
   Renderer <> nil. }
 var
   ShapeStateNum: Integer;
+  TG: TTransparentGroup;
 begin
   case Optimization of
     roSceneAsAWhole:
-      glFreeDisplayList(SAAW_DisplayList);
+      for TG := Low(TG) to High(TG) do
+        glFreeDisplayList(SAAW_DisplayList[TG]);
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       begin
         { Because CloseGLRenderer may be called after scene has changed
@@ -1108,93 +1145,103 @@ end;
 procedure TVRMLFlatSceneGL.RenderShapeStatesNoDispList(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   RenderShapeStateProc: TRenderShapeState;
-  RenderBeginProc, RenderEndProc: TObjectProcedure);
+  RenderBeginProc, RenderEndProc: TObjectProcedure;
+  TransparentGroup: TTransparentGroup);
+
+const
+  AllOrOpaque = [tgAll, tgOpaque];
+  AllOrTransparent = [tgAll, tgTransparent];
 
   procedure TestRenderShapeStateProc(ShapeStateNum: Integer);
   begin
-   if (not Assigned(TestShapeStateVisibility)) or
-      TestShapeStateVisibility(ShapeStateNum) then
-   begin
-    Inc(FLastRender_RenderedShapeStatesCount);
-    RenderShapeStateProc(ShapeStateNum);
-   end;
+    if (not Assigned(TestShapeStateVisibility)) or
+       TestShapeStateVisibility(ShapeStateNum) then
+    begin
+      Inc(FLastRender_RenderedShapeStatesCount);
+      RenderShapeStateProc(ShapeStateNum);
+    end;
   end;
 
 var
   ShapeStateNum: integer;
   TransparentObjectsExists: boolean;
 begin
- FLastRender_RenderedShapeStatesCount := 0;
- FLastRender_AllShapeStatesCount := ShapeStates.Count;
+  FLastRender_RenderedShapeStatesCount := 0;
+  FLastRender_AllShapeStatesCount := ShapeStates.Count;
 
- if Assigned(RenderBeginProc) then
-   RenderBeginProc;
- try
-  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  if Assigned(RenderBeginProc) then
+    RenderBeginProc;
   try
-   { TODO - niestety, jezeli jeden shape uzywa wielu materialow z ktorych
-     niektore sa opaque a niektore nie to wynik renderowania nie bedzie
-     za dobry. Idealnym rozwiazaniem byloby rozbijac tu renderowanie
-     na trojkaty - ale ponizej, dla szybkosci, renderujemy cale
-     shape'y. W zwiazku z tym zdecydowalem ze jezeli shape uzywa jakiegos
-     materialu i nie wszystkie elementy tego materialu sa transparent
-     to renderujemy shape jako opaque - wpp. renderujemy shape jako
-     transparent. W rezultacie jezeli chcesz zeby shape byl renderowany
-     z uwzglednieniem partial transparency to musisz zrobic tak zeby
-     shape uzywal materialu ktorego pole Transparency ma wszystkie
-     elementy > 0.
+    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+    try
+      { TODO - niestety, jezeli jeden shape uzywa wielu materialow z ktorych
+        niektore sa opaque a niektore nie to wynik renderowania nie bedzie
+        za dobry. Idealnym rozwiazaniem byloby rozbijac tu renderowanie
+        na trojkaty - ale ponizej, dla szybkosci, renderujemy cale
+        shape'y. W zwiazku z tym zdecydowalem ze jezeli shape uzywa jakiegos
+        materialu i nie wszystkie elementy tego materialu sa transparent
+        to renderujemy shape jako opaque - wpp. renderujemy shape jako
+        transparent. W rezultacie jezeli chcesz zeby shape byl renderowany
+        z uwzglednieniem partial transparency to musisz zrobic tak zeby
+        shape uzywal materialu ktorego pole Transparency ma wszystkie
+        elementy > 0.
 
-     TODO - powinnismy rysowac obiekty partially transparent od najdalszego
-     do najblizszego zeby zapewnic dobry wyglad w miejscach gdzie kilka
-     partially transparent obiektow zachodzi na siebie.
+        TODO - powinnismy rysowac obiekty partially transparent od najdalszego
+        do najblizszego zeby zapewnic dobry wyglad w miejscach gdzie kilka
+        partially transparent obiektow zachodzi na siebie.
 
-     Note for AllMaterialsTransparent: it's important here that we use
-     AllMaterialsTransparent from TVRMLShapeState, because this is cached
-     in TVRMLShapeState. If we would directly call
-     State.LastNodes.Material.IsAllMaterialsTransparent then
-     our trick with freeing RootNode to conserve memory
-     (see TVRMLFlatScene.RootNode docs) would make calling Render
-     impossible with optimization roSeparateShapeStates.
-   }
+        Note for AllMaterialsTransparent: it's important here that we use
+        AllMaterialsTransparent from TVRMLShapeState, because this is cached
+        in TVRMLShapeState. If we would directly call
+        State.LastNodes.Material.IsAllMaterialsTransparent then
+        our trick with freeing RootNode to conserve memory
+        (see TVRMLFlatScene.RootNode docs) would make calling Render
+        impossible with optimization roSeparateShapeStates.
+      }
 
-   glDepthMask(GL_TRUE);
-   glDisable(GL_BLEND);
-   if Attributes.Blending then
-   begin
-    { uzywamy zmiennej TransparentObjectsExists aby ew. (jesli na scenie
-      nie ma zadnych obiektow ktore chcemy renderowac z blending)
-      zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
-      itd. i nie iterowac ponownie po liscie ShapeStates }
-    TransparentObjectsExists := false;
+      glDepthMask(GL_TRUE);
+      glDisable(GL_BLEND);
+      if Attributes.Blending then
+      begin
+        { uzywamy zmiennej TransparentObjectsExists aby ew. (jesli na scenie
+          nie ma zadnych obiektow ktore chcemy renderowac z blending)
+          zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
+          itd. i nie iterowac ponownie po liscie ShapeStates }
+        TransparentObjectsExists := false;
 
-    { draw fully opaque objects }
-    for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-     if not ShapeStates[ShapeStateNum].AllMaterialsTransparent then
-      TestRenderShapeStateProc(ShapeStateNum) else
-      TransparentObjectsExists := true;
+        { draw fully opaque objects }
+        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+          if not ShapeStates[ShapeStateNum].AllMaterialsTransparent then
+          begin
+            if TransparentGroup in AllOrOpaque then
+              TestRenderShapeStateProc(ShapeStateNum);
+          end else
+            TransparentObjectsExists := true;
 
-    { draw partially transparent objects }
-    if TransparentObjectsExists then
-    begin
-     glDepthMask(GL_FALSE);
-     glEnable(GL_BLEND);
-     glBlendFunc(Attributes.BlendingSourceFactor,
-                 Attributes.BlendingDestinationFactor);
-     for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-      if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
-       TestRenderShapeStateProc(ShapeStateNum);
-    end;
-   end else
-   begin
-    for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-     TestRenderShapeStateProc(ShapeStateNum);
-   end;
+        { draw partially transparent objects }
+        if TransparentObjectsExists and
+           (TransparentGroup in AllOrTransparent) then
+        begin
+          glDepthMask(GL_FALSE);
+          glEnable(GL_BLEND);
+          glBlendFunc(Attributes.BlendingSourceFactor,
+                      Attributes.BlendingDestinationFactor);
+          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+            if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
+              TestRenderShapeStateProc(ShapeStateNum);
+        end;
+      end else
+      if TransparentGroup in AllOrOpaque then
+      begin
+        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+          TestRenderShapeStateProc(ShapeStateNum);
+      end;
 
-  finally glPopAttrib end;
- finally
-   if Assigned(RenderEndProc) then
-     RenderEndProc;
- end;
+    finally glPopAttrib end;
+  finally
+    if Assigned(RenderEndProc) then
+      RenderEndProc;
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SSSX_PrepareBegin;
@@ -1403,7 +1450,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SAAW_Prepare;
+procedure TVRMLFlatSceneGL.SAAW_Prepare(TransparentGroup: TTransparentGroup);
 var i: Integer;
 begin
   { First prepare all (because I can't later call Renderer.Prepare
@@ -1411,16 +1458,17 @@ begin
   for i := 0 to ShapeStates.Count - 1 do
     Renderer.Prepare(ShapeStates[i].State);
 
-  SAAW_DisplayList := glGenListsCheck(1,
+  SAAW_DisplayList[TransparentGroup] := glGenListsCheck(1,
     'TVRMLFlatSceneGL.SAAW_Prepare');
   if RenderBeginEndToDisplayList then
   begin
-    glNewList(SAAW_DisplayList, GL_COMPILE);
+    glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
     try
       RenderShapeStatesNoDispList(nil,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
-        {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
+        {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
+        TransparentGroup);
     finally glEndList end;
   end else
   begin
@@ -1439,46 +1487,52 @@ begin
 
     RenderBeginSimple;
     try
-      glNewList(SAAW_DisplayList, GL_COMPILE);
+      glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
       try
         RenderShapeStatesNoDispList(nil,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple, nil, nil);
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple, nil, nil,
+          TransparentGroup);
       finally glEndList end;
     finally RenderEndSimple end;
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SAAW_Render;
+procedure TVRMLFlatSceneGL.SAAW_Render(TransparentGroup: TTransparentGroup);
 begin
-  if SAAW_DisplayList = 0 then
-    SAAW_Prepare else
+  if SAAW_DisplayList[TransparentGroup] = 0 then
+    SAAW_Prepare(TransparentGroup) else
   begin
-    { In this case I must directly set here LastRender_Xxx variables. }
+    { In this case I must directly set here LastRender_Xxx variables.
+      TODO: this is wrong when TransparentGroup <> tgAll, then something
+      < ShapeStates.Count should be used. }
     FLastRender_AllShapeStatesCount := ShapeStates.Count;
     FLastRender_RenderedShapeStatesCount := FLastRender_AllShapeStatesCount;
   end;
 
   if RenderBeginEndToDisplayList then
-    glCallList(SAAW_DisplayList) else
+    glCallList(SAAW_DisplayList[TransparentGroup]) else
   begin
     RenderBeginSimple;
     try
-      glCallList(SAAW_DisplayList);
+      glCallList(SAAW_DisplayList[TransparentGroup]);
     finally RenderEndSimple end;
   end;
 end;
 
 procedure TVRMLFlatSceneGL.PrepareRender(
+  TransparentGroups: TTransparentGroups;
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
   DoPrepareTrianglesListOverTriangulate: boolean);
 var
   ShapeStateNum: Integer;
+  TG: TTransparentGroup;
 begin
   case Optimization of
     roSceneAsAWhole:
-      if SAAW_DisplayList = 0 then
-        SAAW_Prepare;
+      for TG := Low(TG) to High(TG) do
+        if (TG in TransparentGroups) and (SAAW_DisplayList[TG] = 0) then
+          SAAW_Prepare(TG);
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       begin
         { build display lists (if needed) for begin/end and all shape states }
@@ -1520,7 +1574,8 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.Render(
-  TestShapeStateVisibility: TTestShapeStateVisibility);
+  TestShapeStateVisibility: TTestShapeStateVisibility;
+  TransparentGroup: TTransparentGroup);
 begin
   case Optimization of
     roNone:
@@ -1528,17 +1583,19 @@ begin
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} PrepareAndRenderShapeStateSimple,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple);
+          {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
+          TransparentGroup);
       end;
     roSceneAsAWhole:
-      SAAW_Render;
+      SAAW_Render(TransparentGroup);
     roSeparateShapeStates:
       begin
         { build display lists (if needed) and render all shape states }
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd);
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
+          TransparentGroup);
       end;
     roSeparateShapeStatesNoTransform:
       begin
@@ -1546,7 +1603,8 @@ begin
         RenderShapeStatesNoDispList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd);
+          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
+          TransparentGroup);
       end;
   end;
 end;
@@ -1582,6 +1640,8 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.ChangedShapeStateFields(ShapeStateNum: integer);
+var
+  TG: TTransparentGroup;
 begin
   inherited;
 
@@ -1592,7 +1652,8 @@ begin
 
   case Optimization of
     roSceneAsAWhole:
-      glFreeDisplayList(SAAW_DisplayList);
+      for TG := Low(TG) to High(TG) do
+        glFreeDisplayList(SAAW_DisplayList[TG]);
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       { TODO -- test this }
       if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
@@ -1756,10 +1817,12 @@ begin
 
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustum(const Frustum: TFrustum);
+procedure TVRMLFlatSceneGL.RenderFrustum(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup);
 begin
- RenderFrustum_Frustum := @Frustum;
- Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState);
+  RenderFrustum_Frustum := @Frustum;
+  Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustum_TestShapeState,
+    TransparentGroup);
 end;
 
 { RenderFrustumOctree ---------------------------------------- }
@@ -1767,7 +1830,7 @@ end;
 function TVRMLFlatSceneGL.RenderFrustumOctree_TestShapeState(
   ShapeStateNum: Integer): boolean;
 begin
- Result := RenderFrustumOctree_Visible.Items[ShapeStateNum];
+  Result := RenderFrustumOctree_Visible.Items[ShapeStateNum];
 end;
 
 procedure TVRMLFlatSceneGL.RenderFrustumOctree_EnumerateOctreeItem(
@@ -1775,29 +1838,29 @@ procedure TVRMLFlatSceneGL.RenderFrustumOctree_EnumerateOctreeItem(
 
 {$ifdef RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
 begin
- { This implementation is fast, but may not eliminate as many
-   ShapeStates from rendering pipeline as it's possible
-   (so overall speed may be worse) : }
+  { This implementation is fast, but may not eliminate as many
+    ShapeStates from rendering pipeline as it's possible
+    (so overall speed may be worse) : }
 
- RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
+  RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
 {$endif}
 
 {$ifdef RENDER_FRUSTUM_OCTREE_BONUS_SPHERE_CHECK}
 begin
- { Another implementation: if CollidesForSure = false
-   then checks shapeshate's bounding sphere versus frustum before
-   setting
-     RenderFrustumOctree_Visible.Items[ShapeStateNum] := true
-   This means that it wastes some time on doing
-   FrustumSphereCollisionPossibleSimple but it may be able
-   to eliminate more shapestate's from rendering pipeline,
-   so overall speed may be better. }
+  { Another implementation: if CollidesForSure = false
+    then checks shapeshate's bounding sphere versus frustum before
+    setting
+      RenderFrustumOctree_Visible.Items[ShapeStateNum] := true
+    This means that it wastes some time on doing
+    FrustumSphereCollisionPossibleSimple but it may be able
+    to eliminate more shapestate's from rendering pipeline,
+    so overall speed may be better. }
 
- if (not RenderFrustumOctree_Visible.Items[ShapeStateNum]) and
-    ( CollidesForSure or
-      ShapeStates[ShapeStateNum].FrustumBoundingSphereCollisionPossibleSimple
-        (RenderFrustumOctree_Frustum^) ) then
-  RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
+  if (not RenderFrustumOctree_Visible.Items[ShapeStateNum]) and
+     ( CollidesForSure or
+       ShapeStates[ShapeStateNum].FrustumBoundingSphereCollisionPossibleSimple
+         (RenderFrustumOctree_Frustum^) ) then
+    RenderFrustumOctree_Visible.Items[ShapeStateNum] := true;
 {$endif}
 
 { Other implementations are also possible :
@@ -1812,23 +1875,27 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum;
-  Octree: TVRMLShapeStateOctree);
+  Octree: TVRMLShapeStateOctree;
+  TransparentGroup: TTransparentGroup);
 begin
- if Optimization <> roSceneAsAWhole then
- begin
-  RenderFrustumOctree_Frustum := @Frustum;
+  if Optimization <> roSceneAsAWhole then
+  begin
+    RenderFrustumOctree_Frustum := @Frustum;
 
-  RenderFrustumOctree_Visible.SetAll(false);
-  Octree.EnumerateCollidingOctreeItems(Frustum,
-    {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
-  Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShapeState);
- end else
-  Render(nil);
+    RenderFrustumOctree_Visible.SetAll(false);
+    Octree.EnumerateCollidingOctreeItems(Frustum,
+      {$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_EnumerateOctreeItem);
+    Render({$ifdef FPC_OBJFPC} @ {$endif} RenderFrustumOctree_TestShapeState,
+      TransparentGroup);
+  end else
+    Render(nil, TransparentGroup);
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum);
+procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum;
+  TransparentGroup: TTransparentGroup);
 begin
- RenderFrustumOctree(Frustum, DefaultShapeStateOctree);
+  RenderFrustumOctree(Frustum, DefaultShapeStateOctree,
+    TransparentGroup);
 end;
 
 { Background-related things ---------------------------------------- }

@@ -64,7 +64,7 @@ procedure Draw(glwin: TGLWindow);
 begin
  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
  glLoadMatrix(glw.Navigator.Matrix);
- Scene.Render(nil);
+ Scene.Render(nil, tgAll);
 end;
 
 procedure Init(glwin: TGLWindow);

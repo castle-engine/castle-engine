@@ -61,14 +61,14 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender(false, true, false, false);
+ Scene.PrepareRender([tgAll], false, true, false, false);
 end;
 
 procedure Draw(glwin: TGLWindow);
 begin
  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
  glLoadMatrix(glw.Navigator.Matrix);
- Scene.RenderFrustumOctree(Glw.NavWalker.Frustum);
+ Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll);
 end;
 
 procedure Init(glwin: TGLWindow);
