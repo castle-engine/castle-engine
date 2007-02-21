@@ -415,6 +415,32 @@ procedure TVRMLGLAnimation.Load(
     interpolating between Model1 and Model2 is not possible),
     it will raise EModelsStructureDifferent. }
   procedure CheckVRMLModelsStructurallyEqual(Model1, Model2: TVRMLNode);
+
+    procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
+    begin
+      if (Field1.Value <> nil) and (Field2.Value <> nil) then
+      begin
+        CheckVRMLModelsStructurallyEqual(Field1.Value, Field2.Value);
+      end else
+      if not ((Field1.Value = nil) and (Field2.Value = nil)) then
+        raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
+          'is once NULL and once not-NULL', [Field1.Name]);
+    end;
+
+    procedure CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode);
+    var
+      I: Integer;
+    begin
+      if Field1.Items.Count <> Field2.Items.Count then
+        raise EModelsStructureDifferent.CreateFmt(
+          'Different number of children in MFNode fields: "%d" and "%d"',
+          [Model1.ChildrenCount, Model2.ChildrenCount]);
+
+      for I := 0 to Field1.Items.Count - 1 do
+        CheckVRMLModelsStructurallyEqual(Field1.Items.Items[I],
+                                         Field2.Items.Items[I]);
+    end;
+
   var
     I: Integer;
   begin
@@ -509,6 +535,10 @@ procedure TVRMLGLAnimation.Load(
       if Model1.Fields[I] is TMFVec2f    then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFVec3f    then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFFloat    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TSFNode     then CheckSFNodesStructurallyEqual(
+        TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
+      if Model1.Fields[I] is TMFNode     then CheckMFNodesStructurallyEqual(
+        TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
 
       {$undef CheckMFStructuralEquality}
 
@@ -575,6 +605,46 @@ procedure TVRMLGLAnimation.Load(
        up loading time and conserve memory use, if it sees the same
        reference to given ShapeNode twice. }
   function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;
+
+    function SFNodesMerge(Field1, Field2: TSFNode): boolean;
+    begin
+      Result := true;
+
+      { Equality was already checked by CheckVRMLModelsStructurallyEqual,
+        so now if one SFNode value is not nil, we know that the other
+        one is not nil too. }
+      if Field1.Value <> nil then
+      begin
+        if VRMLModelsMerge(Field1.Value, Field2.Value) then
+          Field1.Value := Field2.Value else
+          Result := false;
+      end;
+    end;
+
+    function MFNodesMerge(Field1, Field2: TMFNode): boolean;
+    var
+      I: Integer;
+    begin
+      Result := true;
+
+      { Note that we already know that Counts are equals,
+        checked already by CheckVRMLModelsStructurallyEqual. }
+      Assert(Field1.Items.Count = Field2.Items.Count);
+      for I := 0 to Field1.Items.Count - 1 do
+      begin
+        if VRMLModelsMerge(Field1.Items.Items[I],
+                           Field2.Items.Items[I]) then
+        begin
+          { Think of this as
+              Field1.Items.Items[I] := Field2.Items.Items[I]
+            but I can't call this directly, I must use Field1.ReplaceChild
+            to not mess reference counts. }
+          Field1.ReplaceItem(I, Field2.Items.Items[I]);
+        end else
+          Result := false;
+      end;
+    end;
+
   var
     I: Integer;
   begin
@@ -602,7 +672,7 @@ procedure TVRMLGLAnimation.Load(
       {$define CheckEqualitySetResult :=
         begin
           if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
-            Exit(false);
+            Result := false;
         end}
 
       if Model1.Fields[I] is TSFColor    then CheckEqualitySetResult else
@@ -614,7 +684,19 @@ procedure TVRMLGLAnimation.Load(
       if Model1.Fields[I] is TMFColor    then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFVec2f    then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFVec3f    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFFloat    then CheckEqualitySetResult;
+      if Model1.Fields[I] is TMFFloat    then CheckEqualitySetResult else
+      if Model1.Fields[I] is TSFNode then
+      begin
+        if not SFNodesMerge(TSFNode(Model1.Fields[I]),
+                            TSFNode(Model2.Fields[I])) then
+          Result := false;
+      end else
+      if Model1.Fields[I] is TMFNode then
+      begin
+        if not MFNodesMerge(TMFNode(Model1.Fields[I]),
+                            TMFNode(Model2.Fields[I])) then
+          Result := false;
+      end;
 
       { Other fields were already checked by CheckVRMLModelsStructurallyEqual }
 
@@ -628,8 +710,24 @@ procedure TVRMLGLAnimation.Load(
 
     If Model1 and Model2 are the same object (the same references),
     then this will return just Model1. This way it keeps memory optimization
-    described by VRMLModelsMerge. }
+    described by VRMLModelsMerge. This is also true if both Model1 and Model2
+    are nil: then you can safely call this and it will return also nil. }
   function VRMLModelLerp(const A: Single; Model1, Model2: TVRMLNode): TVRMLNode;
+
+    procedure SFNodeLerp(Target, Field1, Field2: TSFNode);
+    begin
+      Target.Value := VRMLModelLerp(A, Field1.Value, Field2.Value);
+    end;
+
+    procedure MFNodeLerp(Target, Field1, Field2: TMFNode);
+    var
+      I: Integer;
+    begin
+      for I := 0 to Field1.Items.Count - 1 do
+        Target.AddItem(VRMLModelLerp(A, Field1.Items.Items[I],
+                                        Field2.Items.Items[I]));
+    end;
+
   var
     I: Integer;
   begin
@@ -661,6 +759,20 @@ procedure TVRMLGLAnimation.Load(
         if Model1.Fields[I] is TMFVec2f    then (Result.Fields[I] as TMFVec2f   ).AssignLerp(A, TMFVec2f   (Model1.Fields[I]), TMFVec2f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TMFVec3f    then (Result.Fields[I] as TMFVec3f   ).AssignLerp(A, TMFVec3f   (Model1.Fields[I]), TMFVec3f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else
+        if Model1.Fields[I] is TSFNode then
+        begin
+          SFNodeLerp(
+            (Result.Fields[I] as TSFNode),
+            (Model1.Fields[I] as TSFNode),
+            (Model2.Fields[I] as TSFNode));
+        end else
+        if Model1.Fields[I] is TMFNode then
+        begin
+          MFNodeLerp(
+            (Result.Fields[I] as TMFNode),
+            (Model1.Fields[I] as TMFNode),
+            (Model2.Fields[I] as TMFNode));
+        end else
         begin
           { These fields cannot be interpolated.
             So just copy to Result.Fields[I]. }

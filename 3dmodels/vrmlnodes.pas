@@ -1265,6 +1265,7 @@ type
     procedure AddItem(Node: TVRMLNode);
     procedure ClearItems;
     procedure AssignItems(SourceItems: TVRMLNodesList);
+    procedure ReplaceItem(Index: Integer; Node: TVRMLNode);
 
     { Just a shortcut for Items.Count }
     function Count: integer; override;
@@ -5219,6 +5220,16 @@ procedure TMFNode.AddItem(Node: TVRMLNode);
 begin
   Items.Add(Node);
   Node.AddParentField(Self);
+end;
+
+procedure TMFNode.ReplaceItem(Index: Integer; Node: TVRMLNode);
+begin
+  if FItems[Index] <> Node then
+  begin
+    FItems[Index].RemoveParentField(Self);
+    FItems[Index] := Node;
+    FItems[Index].AddParentField(Self);
+  end;
 end;
 
 procedure TMFNode.ClearItems;

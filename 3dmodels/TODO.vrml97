@@ -28,6 +28,8 @@ Post view3dscene 2.0 things:
     interpolated/checked for equality nodes inside
     ./vrmlglanimation.pas
 
+    TSFNode and TMFNode done on 2007-02-21, check is something more needed.
+
   - "The Castle":
     vrmlscenewaypoints.pas:
       now uses ParentNodes, should also include ParentFields ?
