@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -37,14 +37,14 @@
         <MinVersion Valid="True"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="6">
+    <Units Count="10">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="view3dscene_mini_by_lazarus"/>
         <CursorPos X="1" Y="14"/>
         <TopLine Value="1"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="32"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -52,31 +52,36 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="87" Y="107"/>
-        <TopLine Value="79"/>
+        <CursorPos X="91" Y="281"/>
+        <TopLine Value="272"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="32"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="3" Y="135"/>
-        <TopLine Value="123"/>
-        <UsageCount Value="10"/>
+        <CursorPos X="5" Y="32"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="11"/>
+        <Bookmarks Count="1">
+          <Item0 X="22" Y="376" ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="46" Y="575"/>
-        <TopLine Value="558"/>
+        <CursorPos X="46" Y="576"/>
+        <TopLine Value="557"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../vrmlflatscenegl.pas"/>
         <UnitName Value="VRMLFlatSceneGL"/>
-        <CursorPos X="26" Y="72"/>
-        <TopLine Value="61"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
@@ -86,18 +91,123 @@
         <TopLine Value="393"/>
         <UsageCount Value="10"/>
       </Unit5>
+      <Unit6>
+        <Filename Value="/home/michal/sources/lazarus/0.9.20/lazarus/components/opengl/openglcontext.pas"/>
+        <UnitName Value="OpenGLContext"/>
+        <CursorPos X="23" Y="147"/>
+        <TopLine Value="100"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="/home/michal/sources/lazarus/0.9.20/lazarus/lcl/controls.pp"/>
+        <UnitName Value="Controls"/>
+        <CursorPos X="25" Y="1090"/>
+        <TopLine Value="1066"/>
+        <UsageCount Value="10"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../3dgraph/matrixnavigation.pas"/>
+        <UnitName Value="MatrixNavigation"/>
+        <CursorPos X="48" Y="12"/>
+        <TopLine Value="1"/>
+        <UsageCount Value="10"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../../opengl/openglttfonts.pas"/>
+        <UnitName Value="OpenGLTTFonts"/>
+        <CursorPos X="20" Y="28"/>
+        <TopLine Value="172"/>
+        <UsageCount Value="10"/>
+      </Unit9>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="15" HistoryIndex="14">
+      <Position1>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="104" Column="1" TopLine="79"/>
+      </Position1>
+      <Position2>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="256" Column="21" TopLine="232"/>
+      </Position2>
+      <Position3>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="275" Column="3" TopLine="272"/>
+      </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="63" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="63" TopLine="1"/>
+      </Position5>
+      <Position6>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="96" Column="1" TopLine="82"/>
+      </Position6>
+      <Position7>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="33" TopLine="1"/>
+      </Position7>
+      <Position8>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="314" Column="1" TopLine="282"/>
+      </Position8>
+      <Position9>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="192" Column="25" TopLine="187"/>
+      </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="9" Column="66" TopLine="1"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="216" Column="3" TopLine="182"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="213" Column="3" TopLine="189"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="33" Column="66" TopLine="25"/>
+      </Position13>
+      <Position14>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="241" Column="1" TopLine="241"/>
+      </Position14>
+      <Position15>
+        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
+        <Caret Line="133" Column="34" TopLine="117"/>
+      </Position15>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+        <CStyleMacros Value="True"/>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
       <Generate Value="Faster"/>
     </CodeGeneration>
     <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="True"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -105,6 +215,10 @@
       </Options>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+        <ShowGenInfo Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

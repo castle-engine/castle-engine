@@ -253,7 +253,7 @@ begin
   
   if Scene <> nil then
   begin
-    Scene.Render(nil);
+    Scene.Render(nil, tgAll);
   end;
   
   GLControl.SwapBuffers;

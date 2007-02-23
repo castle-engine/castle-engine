@@ -245,7 +245,7 @@ begin
   gluTessCallback(tobj, GLU_TESS_END, {$ifndef FPC_OBJFPC} @ {$endif} glEnd);
 
   { This is a workaround of Mesa3D bug.
-    See ../3dmodels.gl/doc/mesa_normals_edge_flag_bug.txt }
+    See ../doc/mesa_normals_edge_flag_bug.txt }
   if not GLVersion.IsMesa then
     gluTessCallback(tobj, GLU_TESS_EDGE_FLAG,
       {$ifndef FPC_OBJFPC} @ {$endif} glEdgeFlag);

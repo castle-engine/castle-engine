@@ -5,7 +5,7 @@ unit KambiGLControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, MatrixNavigation,
+  Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls,
   VectorMath, Keys, KambiUtils;
 
 type
@@ -20,8 +20,16 @@ type
 
     Also, this provides OnGLContextInit and OnGLContextClose events.
 
-    TODO: integrate also MouseLook features of TMatrixNavigator.
-    TODO: call also MouseDown (to make jump on right-click) }
+
+    Also, this automatically calls
+    @longCode(
+  ReadImplementationProperties;
+  LoadProcExtensions;
+)
+    when GL context is initialized. This will set various variables in OpenGLh
+    unit, descripting OpenGL version and available extensions.
+
+    TODO: integrate also MouseLook features of TMatrixNavigator. }
   TKamOpenGLControl = class(TOpenGLControl)
   private
     FOwnsNavigator: boolean;
@@ -46,6 +54,10 @@ type
     
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
+    procedure MouseDown(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer); override;
+    procedure MouseUp(Button: Controls.TMouseButton;
+      Shift:TShiftState; X,Y:Integer); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -98,8 +110,8 @@ type
     procedure NavigatorIdle;
     
     KeysDown: TKeysBooleans;
+    MousePressed: MatrixNavigation.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
-
   published
   
     { This will be called right after GL context
@@ -117,7 +129,7 @@ procedure Register;
 
 implementation
 
-uses LCLType, RaysWindow;
+uses LCLType, RaysWindow, OpenGLh;
 
 procedure Register;
 begin
@@ -197,6 +209,9 @@ end;
 
 procedure TKamOpenGLControl.DoGLContextInit;
 begin
+  ReadImplementationProperties;
+  LoadProcExtensions;
+
   if Assigned(OnGLContextInit) then
     OnGLContextInit(Self);
 end;
@@ -216,6 +231,7 @@ end;
 procedure TKamOpenGLControl.ReleaseAllKeysAndMouse;
 begin
   FillChar(KeysDown, SizeOf(KeysDown), 0);
+  MousePressed := [];
 end;
 
 { This converts Key (Lazarus key codes) to my TKey value.
@@ -328,6 +344,53 @@ begin
     KeysDown[MyKey] := false;
 end;
 
+{ This converts Lazarus TMouseButton values to my TMouseButton values.
+
+  (By coincidense, my type name and values are the same as used by LCL;
+  but beware --- the order of values in my type is different (mbMiddle
+  is in the middle in my type)). }
+function LMouseButtonToMyMouseButton(
+  const MouseButton: Controls.TMouseButton;
+  out MyMouseButton: MatrixNavigation.TMouseButton): boolean;
+const
+  T: array [Controls.TMouseButton] of MatrixNavigation.TMouseButton =
+    (MatrixNavigation.mbLeft,
+     MatrixNavigation.mbRight,
+     MatrixNavigation.mbMiddle);
+begin
+  MyMouseButton := T[MouseButton];
+  Result := true; { for now, this always succeeds }
+end;
+
+procedure TKamOpenGLControl.MouseDown(Button: Controls.TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  MyButton: MatrixNavigation.TMouseButton;
+begin
+  inherited MouseDown(Button, Shift, X, Y);
+  
+  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  begin
+    Include(MousePressed, MyButton);
+    if ReallyUseNavigator then
+      Navigator.MouseDown(MyButton);
+  end;
+end;
+
+procedure TKamOpenGLControl.MouseUp(Button: Controls.TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  MyButton: MatrixNavigation.TMouseButton;
+begin
+  inherited MouseUp(Button, Shift, X, Y);
+  
+  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  begin
+    Exclude(MousePressed, MyButton);
+  end;
+
+end;
+
 procedure TKamOpenGLControl.NavigatorIdle;
 var
   FIdleCompSpeed: Single;
@@ -340,7 +403,8 @@ begin
   LastIdleStartTimeInited := true;
 
   if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleCompSpeed, @KeysDown);
+    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleCompSpeed, @KeysDown,
+      MousePressed);
 end;
 
 function TKamOpenGLControl.NavExaminer: TMatrixExaminer;
