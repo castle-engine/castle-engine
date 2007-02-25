@@ -523,6 +523,17 @@ type
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
+    { This is just like GetCameraHeight, but it assumes that
+      HomeCameraUp = (0, 0, 1) and it returns the actual
+      HeightAboveTheGround (not it's square). Thanks to the fact that
+      calculating HeightAboveTheGround doesn't require costly Sqrt operation
+      in case of such simple HomeCameraUp. }
+    procedure GetCameraHeightZ(
+      const CameraPos: TVector3Single;
+      out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
+      const OctreeItemIndexToIgnore: Integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+
     { This makes transparent triangles (with material
       with Transparency > 0) ignored (i.e. returns @true for them).
       This is a prepared function compatible with TOctreeItemIgnoreFunc
@@ -1061,6 +1072,25 @@ begin
     <> NoItemIndex;
   if IsAboveTheGround then
     SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
+end;
+
+procedure TVRMLTriangleOctree.GetCameraHeightZ(
+  const CameraPos: TVector3Single;
+  out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
+  const OctreeItemIndexToIgnore: Integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
+const
+  RayDir: TVector3Single = (0, 0, -1);
+var
+  GroundIntersection: TVector3Single;
+begin
+  IsAboveTheGround := RayCollision(GroundIntersection,
+    CameraPos, RayDir, true,
+    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc)
+    <> NoItemIndex;
+  if IsAboveTheGround then
+    { Calculation of HeightAboveTheGround uses the fact that RayDir is so simple. }
+    HeightAboveTheGround := CameraPos[2] - GroundIntersection[2];
 end;
 
 { Create/Destroy ------------------------------------------------------------ }
