@@ -497,6 +497,8 @@ type
 
     function RealCameraPreferredHeightNoHeadBobbing: Single;
     function RealCameraPreferredHeightMargin: Single;
+
+    FInvertVerticalMouseLook: boolean;
   protected
     { }
     procedure MatrixChanged; override;
@@ -846,6 +848,15 @@ type
       read FMouseLookVerticalSensitivity write FMouseLookVerticalSensitivity
       default DefaultMouseLookVerticalSensitivity;
     { @groupEnd }
+
+    { If this is @true and MouseLook works, then the meaning of vertical mouse
+      movement is inverted: when user moves mouse up, he looks down.
+      Many player's are more comfortable with such configuration,
+      and many games implement it (usually by calling it "Invert mouse"
+      for short). }
+    property InvertVerticalMouseLook: boolean
+      read FInvertVerticalMouseLook write FInvertVerticalMouseLook
+      default false;
 
     { Call this to actually make MouseLook work.
       MouseXChange and MouseYChange are differences between current
@@ -1555,6 +1566,7 @@ begin
   FHeadBobbingDistance := DefaultHeadBobbingDistance;
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
   FJumpPower := DefaultJumpPower;
+  FInvertVerticalMouseLook := false;
 
   FInput_Forward      := TInputShortcut.Create(K_Up          , K_None, false, mbLeft);
   FInput_Backward     := TInputShortcut.Create(K_Down        , K_None, false, mbLeft);
@@ -2721,7 +2733,11 @@ begin
     if MouseXChange <> 0 then
       RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
     if MouseYChange <> 0 then
+    begin
+      if InvertVerticalMouseLook then
+        MouseYChange := -MouseYChange;
       RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+    end;
   end;
 end;
 
