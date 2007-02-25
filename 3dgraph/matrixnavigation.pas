@@ -1037,7 +1037,7 @@ type
       Of course, if in the nearest Idle we will find out (using
       GetCameraHeight) that camera is too high above the ground,
       then we will start falling down again, setting IsFallingDown
-      back to true. (but the we will start falling down from the beginning,
+      back to true. (but then we will start falling down from the beginning,
       starting at given CameraPos and with initial falling down speed).
 
       This is useful to call if you just changed CameraPos because
