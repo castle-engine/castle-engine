@@ -671,12 +671,34 @@ begin
 end;
 
 function BoundingBoxTransform(const bbox: TBox3d; const Matrix: TMatrix4Single): TBox3d;
-var boxpoints: array[0..7]of TVector3Single;
-    i: integer;
+var
+  BoxPoints: array [0..7] of TVector3Single;
+  i: integer;
 begin
- Box3dGetAllPoints(@boxpoints, bbox);
- for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
- result := CalculateBoundingBox(@boxpoints, 8, 0);
+  Box3dGetAllPoints(@boxpoints, bbox);
+  for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
+
+  { Non-optimized version:
+      Result := CalculateBoundingBox(@boxpoints, 8, 0);
+
+    But it turns out that the code below, that does essentially the same
+    thing as CalculateBoundingBox implementation, works noticeably faster.
+    This is noticeable on "The Castle" with many creatures: then a considerable
+    time is spend inside TCreature.BoundingBox, that must calculate
+    transformed bounding boxes.
+  }
+
+  Result[0] := BoxPoints[0];
+  Result[1] := BoxPoints[0];
+  for I := 1 to High(BoxPoints) do
+  begin
+    if BoxPoints[I, 0] < Result[0, 0] then Result[0, 0] := BoxPoints[I, 0];
+    if BoxPoints[I, 1] < Result[0, 1] then Result[0, 1] := BoxPoints[I, 1];
+    if BoxPoints[I, 2] < Result[0, 2] then Result[0, 2] := BoxPoints[I, 2];
+    if BoxPoints[I, 0] > Result[1, 0] then Result[1, 0] := BoxPoints[I, 0];
+    if BoxPoints[I, 1] > Result[1, 1] then Result[1, 1] := BoxPoints[I, 1];
+    if BoxPoints[I, 2] > Result[1, 2] then Result[1, 2] := BoxPoints[I, 2];
+  end;
 end;
 
 function Box3dTranslate(const Box: TBox3d;
