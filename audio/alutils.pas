@@ -745,6 +745,7 @@ end;
 
 procedure TALSoundFile.alBufferData(buffer: TALuint);
 begin
+  SoundFile.PrepareOpenAL;
   OpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
     SoundFile.DataSize, SoundFile.Frequency);
 end;

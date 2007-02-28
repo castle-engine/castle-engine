@@ -96,15 +96,36 @@ end;
 { Simple encoding of OggVorbis is implemented based on
   [http://www.gamedev.net/reference/articles/article2031.asp].
   I reworked it a lot (I have to use callbacks to handle Pascal streams,
-  I check for errors). }
+  I check for errors). See [http://xiph.org/vorbis/doc/vorbisfile/index.html]
+  for vorbisfile overview. }
 
 function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
   out Frequency: LongWord): TMemoryStream;
 
-  procedure CheckVorbisFile(Err: CInt);
+  procedure CheckVorbisFile(Err: CInt; const Event: string);
+  var
+    ErrDescription: string;
   begin
+    { Errors list and ErrDescription values based on
+      [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
+    case Err of
+      OV_FALSE: ErrDescription := 'No data available';
+      OV_HOLE: ErrDescription := 'Vorbisfile encoutered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
+      OV_EREAD: ErrDescription := 'Read error while fetching compressed data for decode';
+      OV_EFAULT: ErrDescription := 'Internal inconsistency in decode state'; {. Continuing is likely not possible. }
+      OV_EIMPL: ErrDescription := 'Feature not implemented';
+      OV_EINVAL: ErrDescription := 'Either an invalid argument, or incompletely initialized argument passed to libvorbisfile call';
+      OV_ENOTVORBIS: ErrDescription := 'The given file/data was not recognized as Ogg Vorbis data';
+      OV_EBADHEADER: ErrDescription := 'The file/data is apparently an Ogg Vorbis stream, but contains a corrupted or undecipherable header';
+      OV_EVERSION: ErrDescription := 'The bitstream format revision of the given stream is not supported';
+      OV_EBADLINK: ErrDescription := 'The given link exists in the Vorbis data stream, but is not decipherable due to garbacge or corruption';
+      OV_ENOSEEK: ErrDescription := 'The given stream is not seekable';
+      else ErrDescription := '(unknown vorbisfile error code)';
+    end;
+
     if Err <> 0 then
-      raise EVorbisFileError.CreateFmt('VorbisFile error %d', [Err]);
+      raise EVorbisFileError.CreateFmt('VorbisFile error %d at "%s": %s',
+        [Err, Event, ErrDescription]);
   end;
 
 const
@@ -131,7 +152,8 @@ begin
     Callbacks.seek_func := @VorbisDecoder_seek_func;
     Callbacks.close_func := @VorbisDecoder_close_func;
     Callbacks.tell_func := @VorbisDecoder_tell_func;
-    CheckVorbisFile(ov_open_callbacks(Stream, @OggFile, nil, 0, Callbacks));
+    CheckVorbisFile(ov_open_callbacks(Stream, @OggFile, nil, 0, Callbacks),
+      'ov_open_callbacks');
 
     OggInfo := ov_info(@OggFile, -1);
 
@@ -150,7 +172,7 @@ begin
           { Always give us 16 bits } 2, 1, @BitStream);
 
         if ReadCount < 0 then
-          CheckVorbisFile(ReadCount);
+          CheckVorbisFile(ReadCount, 'ov_read');
 
         Result.WriteBuffer(Buffer^, ReadCount);
       until ReadCount <= 0;

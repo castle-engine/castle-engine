@@ -26,27 +26,6 @@
   initialized are clearly marked as such in the documentation. }
 unit SoundFile;
 
-{ If DEPEND_AL_VORBIS_EXT is defined, we will try to pass OggVorbis
-  file directly to OpenAL, using AL_EXT_vorbis extension.
-
-  The advantage is that OpenAL will take care of all the work,
-  and probably will do it better than we (OpenAL probably will use streaming
-  inside, while we don't use streaming for now so 1. large files will
-  eat a lot of memory 2. loading takes a while (because the whole file
-  is decoded)).
-
-  The disadvantage is that if AL_EXT_vorbis extension is not present,
-  we cannot play OggVorbis files... And on Windows there doesn't seem
-  a way to get the extension working anymore with newer OpenAL.
-  This hilarious message
-  [http://opensource.creative.com/pipermail/openal/2006-April/009488.html]
-  basically says that Creative will not fix AL_EXT_vorbis extension in Windows,
-  because it's *too easy* to do.
-
-  TODO: automatically use extension, if it's available, otherwise try to
-  use vorbisfile directly. }
-{ $define DEPEND_AL_VORBIS_EXT}
-
 interface
 
 uses SysUtils, KambiUtils, Classes, OpenAL;
@@ -67,17 +46,22 @@ type
       (which TSoundFile to use) is decided by the FileName extension. }
     class function CreateFromFile(const FileName: string): TSoundFile;
 
+    { Call this on this sound always after OpenAL is initialized
+      and before passing this sound data to OpenAL.
+      This may fix or check some things for this sound, checking
+      e.g. whether some OpenAL extensions are supported.
+
+      @raises(ESoundFormatNotSupportedByOpenAL if some OpenAL extension
+      required to support this format is not present.) }
+    procedure PrepareOpenAL; virtual;
+
     { Sound data, according to DataFormat.
       Contents of Data are readonly.
       @noAutoLinkHere }
     function Data: Pointer; virtual; abstract;
     { Bytes allocated for @link(Data). }
     function DataSize: LongWord; virtual; abstract;
-    { Data format, as understood by OpenAL.
-      This may check is some OpenAL extension present.
-
-      @raises(ESoundFormatNotSupportedByOpenAL if some OpenAL extension
-      required to support this format is not present.) }
+    { Data format, as understood by OpenAL. }
     function DataFormat: TALuint; virtual; abstract;
     function Frequency: LongWord; virtual; abstract;
   end;
@@ -94,27 +78,72 @@ type
     constructor CreateFromStream(Stream: TStream); override;
     destructor Destroy; override;
 
+    procedure PrepareOpenAL; override;
+
     function Data: Pointer; override;
     function DataSize: LongWord; override;
     function DataFormat: TALuint; override;
     function Frequency: LongWord; override;
   end;
 
+  { OggVorbis file loader.
+
+    Internally we can use two implementations of OggVorbis handling:
+
+    @orderedList(
+      @item(If AL_EXT_vorbis extension is available, then we will
+        use this.
+
+        The advantage of using AL_EXT_vorbis extension is that
+        OpenAL does all the work, so 1. it's easy for us
+        2. OpenAL does it in a best way (uses streaming inside,
+        so the OggVorbis data in decoded partially, on as-needed basis).
+
+        The disadvantage is obviously that AL_EXT_vorbis must be present...
+        And on Windows there doesn't seem a way to get the extension
+        working anymore with new OpenAL. This hilarious message
+        [http://opensource.creative.com/pipermail/openal/2006-April/009488.html]
+        basically says that Creative will not fix AL_EXT_vorbis extension
+        in Windows, because it's @italic(too easy) to do.)
+
+      @item(If AL_EXT_vorbis extension is not available but we
+        have vorbisfile library available then we use vorbisfile
+        functions to decode the file.
+
+        While this works OK, the disadvantages of our current approach
+        are that we decode the whole OggVorbis file in one go.
+        This means that 1. we waste potentially a lot of memory to keep
+        the whole uncompressed data --- 5 MB OggVorbis file can easily
+        take 50 MB in memory after decoding 2. whole decoding is done in one go,
+        so there is a noticeable time delay when this takes place.
+      )
+    )
+
+    The check for AL_EXT_vorbis extension and eventual decompression
+    using vorbisfile directly take place in the first DataFormat call.
+    You can also call method VorbisMethod to check which approach
+    (if any) will be used.
+
+    Note that both approaches require vorbisfile library to be installed
+    (OpenAL AL_EXT_vorbis extension also works using vorbisfile library).
+    If vorbisfile is not available, we cannot load OggVorbis sounds. }
   TSoundOggVorbis = class(TSoundFile)
   private
     DataStream: TMemoryStream;
-    {$ifndef DEPEND_AL_VORBIS_EXT}
     FDataFormat: TALuint;
     FFrequency: LongWord;
-    {$endif}
   public
     constructor CreateFromStream(Stream: TStream); override;
     destructor Destroy; override;
+
+    procedure PrepareOpenAL; override;
 
     function Data: Pointer; override;
     function DataSize: LongWord; override;
     function DataFormat: TALuint; override;
     function Frequency: LongWord; override;
+
+    class function VorbisMethod: string;
   end;
 
   EInvalidOggVorbis = class(EInvalidSoundFormat);
@@ -144,10 +173,7 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses KambiStringUtils
-  {$ifndef DEPEND_AL_VORBIS_EXT}
-  , VorbisDecoder
-  {$endif};
+uses KambiStringUtils, VorbisDecoder, VorbisFile;
 
 { TSoundFile ----------------------------------------------------------------- }
 
@@ -181,6 +207,11 @@ begin
       'required to play this file is not available', [S]);
 end;
 
+procedure TSoundFile.PrepareOpenAL;
+begin
+  { Nothing to do in this class. }
+end;
+
 { TSoundMP3 ------------------------------------------------------------------ }
 
 constructor TSoundMP3.CreateFromStream(Stream: TStream);
@@ -207,15 +238,20 @@ begin
   Result := FDataSize;
 end;
 
-function TSoundMP3.DataFormat: TALuint;
+procedure TSoundMP3.PrepareOpenAL;
 begin
+  inherited;
+
   { Although my OpenAL under Debian reports this extension present,
     it's implementation is actually not finished (looking at the sources),
     and alBufferData raises always "Invalid Value" when passed AL_EXT_mp3.
     So for now, I always raise here ESoundFormatNotSupportedByOpenAL. }
   raise ESoundFormatNotSupportedByOpenAL.Create('MP3 playing not supported');
   { CheckALExtension('AL_EXT_mp3'); }
+end;
 
+function TSoundMP3.DataFormat: TALuint;
+begin
   Result := AL_FORMAT_MP3_EXT;
 end;
 
@@ -228,25 +264,19 @@ end;
 
 { TSoundOggVorbis ------------------------------------------------------------ }
 
-{$ifdef DEPEND_AL_VORBIS_EXT}
-
 constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
 begin
   inherited Create;
   DataStream := TMemoryStream.Create;
   DataStream.CopyFrom(Stream, 0);
-end;
+  DataStream.Position := 0;
 
-function TSoundOggVorbis.DataFormat: TALuint;
-begin
-  CheckALExtension('AL_EXT_vorbis');
-  Result := AL_FORMAT_VORBIS_EXT;
-end;
-
-function TSoundOggVorbis.Frequency: LongWord;
-begin
+  { At the beginning, let's try to use AL_FORMAT_VORBIS_EXT extension.
+    Later (in DataFormat call) we will actually check is extension
+    present, and if not we will try to use vorbisfile directly. }
+  FDataFormat := AL_FORMAT_VORBIS_EXT;
   { The way I understand this, there's no way and no need to pass here
-    Frequency, since Ogg Vorbis file's frequency changed during the file.
+    Frequency, since Ogg Vorbis file's frequency changes during the file.
     This is confirmed by tests (things work OK with returning 0 here),
     and by looking at OpenAL source code (
     openal-0.0.8/src/extensions/al_ext_vorbis.c from Debian libopenal0a
@@ -258,15 +288,32 @@ begin
                       UNUSED(ALint freq),
                       ALint samples)
     ... and freq is really unused. }
-  Result := 0;
+  FFrequency := 0;
 end;
 
-{$else DEPEND_AL_VORBIS_EXT}
-
-constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
+destructor TSoundOggVorbis.Destroy;
 begin
-  inherited Create;
-  DataStream := VorbisDecode(Stream, FDataFormat, FFrequency);
+  FreeAndNil(DataStream);
+  inherited;
+end;
+
+procedure TSoundOggVorbis.PrepareOpenAL;
+
+  procedure ConvertToDirectVorbisFileUse;
+  var
+    NewDataStream: TMemoryStream;
+  begin
+    NewDataStream := VorbisDecode(DataStream, FDataFormat, FFrequency);
+    FreeAndNil(DataStream);
+    DataStream := NewDataStream;
+  end;
+
+begin
+  inherited;
+
+  if (FDataFormat = AL_FORMAT_VORBIS_EXT) and
+    (not alIsExtensionPresent('AL_EXT_vorbis')) then
+    ConvertToDirectVorbisFileUse;
 end;
 
 function TSoundOggVorbis.DataFormat: TALuint;
@@ -279,14 +326,6 @@ begin
   Result := FFrequency;
 end;
 
-{$endif DEPEND_AL_VORBIS_EXT}
-
-destructor TSoundOggVorbis.Destroy;
-begin
-  FreeAndNil(DataStream);
-  inherited;
-end;
-
 function TSoundOggVorbis.Data: Pointer;
 begin
   Result := DataStream.Memory;
@@ -295,6 +334,15 @@ end;
 function TSoundOggVorbis.DataSize: LongWord;
 begin
   Result := DataStream.Size;
+end;
+
+class function TSoundOggVorbis.VorbisMethod: string;
+begin
+  if alIsExtensionPresent('AL_EXT_vorbis') then
+    Result := 'AL_EXT_vorbis extension' else
+  if VorbisFileInited then
+    Result := 'vorbisfile library' else
+    Result := 'none';
 end;
 
 { TSoundWAV ------------------------------------------------------------ }
