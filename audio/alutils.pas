@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's audio Pascal units".
 
@@ -24,7 +24,7 @@
   Everything is based on my OpenAL binding in unit @link(OpenAL).
   Most important things are BeginAL and EndAL
   procedures for initializing / releasing OpenAL context.
-  Also TALSoundWAV class is useful to load WAV files into
+  Also TALSoundFile class is useful to load files into
   OpenAL buffers.
 
   This unit does @italic(not) use alut* functions from @link(OpenAL),
@@ -64,7 +64,7 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, KambiUtils, OpenAL, Classes, SoundWAV, ParseParametersUnit;
+uses SysUtils, KambiUtils, OpenAL, Classes, SoundFile, ParseParametersUnit;
 
 { ---------------------------------------------------------------------------- }
 { @section(OpenAL devices) }
@@ -255,16 +255,26 @@ type
 procedure CheckAL(const situation: string);
 
 { ---------------------------------------------------------------------------- }
-{ @section(TALSoundWAV) }
+{ @section(TALSoundFile) }
 
 type
   { }
-  TALSoundWAV = class(TSoundWAV)
-    { ALDataformat = AL_FORMAT_MONO/STEREO8/16, based on DataFormat }
-    function ALDataformat: TALenum;
+  TALSoundFile = class
+  private
+    FSoundFile: TSoundFile;
+    FOwnsSoundFile: boolean;
+  public
+    { Creates TALSoundFile, with given SoundFile.
+      If OwnsSoundFile then SoundFile will be freed on destruction
+      of this object. }
+    constructor Create(ASoundFile: TSoundFile; AOwnsSoundFile: boolean);
+    destructor Destroy; override;
 
-    { load this wave to the buffer using alBufferData(buffer, ...) where
-      "..." is taken from this object's properties. }
+    property SoundFile: TSoundFile read FSoundFile;
+    property OwnsSoundFile: boolean read FOwnsSoundFile;
+
+    { Load this file to the buffer using alBufferData(buffer, ...) where
+      "..." is taken from SoundFile's properties. }
     procedure alBufferData(buffer: TALuint);
 
     class procedure alBufferDataFromFile(buffer: TALuint; const FileName: string);
@@ -718,36 +728,49 @@ begin
    'OpenAL error AL_xxx at '+situation+' : '+alGetString(err));
 end;
 
-{ TALSoundWAV ------------------------------------------------------------ }
+{ TALSoundFile ------------------------------------------------------------ }
 
-function TALSoundWAV.ALDataFormat: TALenum;
-const
-  T: array[TSoundDataFormat]of TALenum =
-  (AL_FORMAT_MONO8, AL_FORMAT_MONO16, AL_FORMAT_STEREO8, AL_FORMAT_STEREO16);
+constructor TALSoundFile.Create(ASoundFile: TSoundFile; AOwnsSoundFile: boolean);
 begin
- result := T[DataFormat];
+  inherited Create;
+  FOwnsSoundFile := AOwnsSoundFile;
+  FSoundFile := ASoundFile;
 end;
 
-procedure TALSoundWAV.alBufferData(buffer: TALuint);
+destructor TALSoundFile.Destroy;
 begin
- OpenAL.alBufferData(buffer, ALDataFormat, Data, DataSize, Frequency);
+  if OwnsSoundFile then
+    FreeAndNil(FSoundFile);
 end;
 
-class procedure TALSoundWAV.alBufferDataFromFile(buffer: TALuint; const FileName: string);
-var wav: TALSoundWAV;
+procedure TALSoundFile.alBufferData(buffer: TALuint);
 begin
- wav := TALSoundWAV.CreateFromFile(FileName);
- try
-  wav.alBufferData(buffer);
- finally wav.Free end;
+  OpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
+    SoundFile.DataSize, SoundFile.Frequency);
 end;
 
-class function TALSoundWAV.alCreateBufferDataFromFile(const FileName: string): TALuint;
+class procedure TALSoundFile.alBufferDataFromFile(buffer: TALuint;
+  const FileName: string);
+var
+  F: TSoundFile;
+  FAL: TALSoundFile;
 begin
- alCreateBuffers(1, @result);
- try
-  alBufferDataFromFile(result, FileName);
- except alDeleteBuffers(1, @result); raise end;
+  F := TSoundFile.CreateFromFile(FileName);
+  try
+    FAL := TALSoundFile.Create(F, false);
+    try
+      FAL.alBufferData(buffer);
+    finally FAL.Free end;
+  finally F.Free end;
+end;
+
+class function TALSoundFile.alCreateBufferDataFromFile(
+  const FileName: string): TALuint;
+begin
+  alCreateBuffers(1, @result);
+  try
+    alBufferDataFromFile(result, FileName);
+  except alDeleteBuffers(1, @result); raise end;
 end;
 
 { query al state -------------------------------------------------------------- }

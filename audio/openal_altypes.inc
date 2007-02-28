@@ -43,7 +43,7 @@ type
   PALsizei = ^TALsizei;
 
   {* OpenAL void type (for params, not returns). }
-  { TALvoid = void; 
+  { TALvoid = void;
   PALvoid = ^TALvoid; } { }
   PALvoid = Pointer;
 
@@ -80,7 +80,7 @@ const
 
   {*
    * Indicate the type of AL_SOURCE.
-   * Sources can be spatialized 
+   * Sources can be spatialized
    }
   AL_SOURCE_TYPE = $0200;
 
@@ -89,14 +89,14 @@ const
 
   {*
    * Directional source, inner cone angle, in degrees.
-   * Range:    [0-360] 
+   * Range:    [0-360]
    * Default:  360
    }
   AL_CONE_INNER_ANGLE = $1001;
 
   {*
    * Directional source, outer cone angle, in degrees.
-   * Range:    [0-360] 
+   * Range:    [0-360]
    * Default:  360
    }
   AL_CONE_OUTER_ANGLE = $1002;
@@ -108,22 +108,22 @@ const
    * Default: 1.0
    }
   AL_PITCH = $1003;
-  
-  {* 
+
+  {*
    * Specify the current location in three dimensional space.
    * OpenAL, like OpenGL, uses a right handed coordinate system,
-   *  where in a frontal default view X (thumb) points right, 
+   *  where in a frontal default view X (thumb) points right,
    *  Y points up (index finger), and Z points towards the
-   *  viewer/camera (middle finger). 
+   *  viewer/camera (middle finger).
    * To switch from a left handed coordinate system, flip the
    *  sign on the Z coordinate.
    * Listener position is always in the world coordinate system.
-   } 
+   }
   AL_POSITION = $1004;
-  
+
   {* Specify the current direction. }
   AL_DIRECTION = $1005;
-  
+
   {* Specify the current velocity in three dimensional space. }
   AL_VELOCITY = $1006;
 
@@ -144,14 +144,14 @@ const
   AL_STREAMING = $1008;
 
   {*
-   * Indicate the buffer to provide sound samples. 
+   * Indicate the buffer to provide sound samples.
    * Type: ALuint.
    * Range: any valid Buffer id.
    }
   AL_BUFFER = $1009;
-  
+
   {*
-   * Indicate the gain (volume amplification) applied. 
+   * Indicate the gain (volume amplification) applied.
    * Type:   ALfloat.
    * Range:  ]0.0-  ]
    * A value of 1.0 means un-attenuated/unchanged.
@@ -192,7 +192,7 @@ const
   {*
    * Indicate listener orientation.
    *
-   * at/up 
+   * at/up
    }
   AL_ORIENTATION = $100F;
 
@@ -261,7 +261,7 @@ const
    }
   AL_MAX_DISTANCE = $1023;
 
-  {* 
+  {*
    * Sound samples: frequency, in units of Hertz [Hz].
    * This is the number of samples per second. Half of the
    *  sample frequency marks the maximum significant
@@ -284,26 +284,26 @@ const
   {* Errors: No Error. }
   AL_NO_ERROR = AL_FALSE;
 
-  {* 
+  {*
    * Invalid Name paramater passed to AL call.
    }
   AL_INVALID_NAME = $A001;
 
-  {* 
+  {*
    * Invalid parameter passed to AL call.
    }
   AL_ILLEGAL_ENUM = $A002;
 
-  {* 
+  {*
    * Invalid enum parameter value.
    }
   AL_INVALID_VALUE = $A003;
 
-  {* 
+  {*
    * Illegal call.
    }
   AL_ILLEGAL_COMMAND = $A004;
-  
+
   {*
    * No mojo.
    }
@@ -353,11 +353,11 @@ const
 
   {* IASIG Level 2 Environment. }
 
-  {*  
+  {*
    * Parameter:  IASIG ROOM  blah
    * Type:       intgeger
    * Range:      [-10000, 0]
-   * Default:    -10000 
+   * Default:    -10000
    }
   AL_ENV_ROOM_IASIG = $3001;
 
@@ -365,7 +365,7 @@ const
    * Parameter:  IASIG ROOM_HIGH_FREQUENCY
    * Type:       integer
    * Range:      [-10000, 0]
-   * Default:    0 
+   * Default:    0
    }
   AL_ENV_ROOM_HIGH_FREQUENCY_IASIG = $3002;
 
@@ -373,15 +373,15 @@ const
    * Parameter:  IASIG ROOM_ROLLOFF_FACTOR
    * Type:       float
    * Range:      [0.0, 10.0]
-   * Default:    0.0 
+   * Default:    0.0
    }
   AL_ENV_ROOM_ROLLOFF_FACTOR_IASIG = $3003;
 
-  {* 
+  {*
    * Parameter:  IASIG  DECAY_TIME
    * Type:       float
    * Range:      [0.1, 20.0]
-   * Default:    1.0 
+   * Default:    1.0
    }
   AL_ENV_DECAY_TIME_IASIG = $3004;
 
@@ -440,7 +440,7 @@ const
    * Default:    100.0
    }
   AL_ENV_DENSITY_IASIG = $300A;
-  
+
   {*
    * Parameter:  IASIG HIGH_FREQUENCY_REFERENCE
    * Type:       float
@@ -448,3 +448,10 @@ const
    * Default:    5000.0
    }
   AL_ENV_HIGH_FREQUENCY_REFERENCE_IASIG = $300B;
+
+  { See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_mp3 }
+  AL_FORMAT_MP3_EXT = $10020;
+
+  { See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_vorbis }
+  AL_FORMAT_VORBIS_EXT = $10003;
+

@@ -165,7 +165,10 @@ opengl/allkambiopenglunits.pas:
 
 # examples and tools -----------------------------------------------------------
 
-EXAMPLES_BASE_NAMES := base/examples/demo_parseparameters \
+EXAMPLES_BASE_NAMES := \
+  audio/examples/algets \
+  audio/examples/alplay \
+  base/examples/demo_parseparameters \
   base/examples/demo_textreader \
   base/examples/kambi_calc \
   images/examples/image_convert \
