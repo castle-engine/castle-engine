@@ -12,8 +12,12 @@ interface
 uses
   alsourceallocator,
   alutils,
+  ogg,
   openal,
-  soundwav
+  soundfile,
+  vorbiscodec,
+  vorbisdecoder,
+  vorbisfile
   ;
 
 implementation
