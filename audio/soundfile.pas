@@ -41,7 +41,10 @@ unit SoundFile;
   This hilarious message
   [http://opensource.creative.com/pipermail/openal/2006-April/009488.html]
   basically says that Creative will not fix AL_EXT_vorbis extension in Windows,
-  because it's *too easy* to do. }
+  because it's *too easy* to do.
+
+  TODO: automatically use extension, if it's available, otherwise try to
+  use vorbisfile directly. }
 { $define DEPEND_AL_VORBIS_EXT}
 
 interface
