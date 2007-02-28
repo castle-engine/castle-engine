@@ -26,6 +26,24 @@
   initialized are clearly marked as such in the documentation. }
 unit SoundFile;
 
+{ If DEPEND_AL_VORBIS_EXT is defined, we will try to pass OggVorbis
+  file directly to OpenAL, using AL_EXT_vorbis extension.
+
+  The advantage is that OpenAL will take care of all the work,
+  and probably will do it better than we (OpenAL probably will use streaming
+  inside, while we don't use streaming for now so 1. large files will
+  eat a lot of memory 2. loading takes a while (because the whole file
+  is decoded)).
+
+  The disadvantage is that if AL_EXT_vorbis extension is not present,
+  we cannot play OggVorbis files... And on Windows there doesn't seem
+  a way to get the extension working anymore with newer OpenAL.
+  This hilarious message
+  [http://opensource.creative.com/pipermail/openal/2006-April/009488.html]
+  basically says that Creative will not fix AL_EXT_vorbis extension in Windows,
+  because it's *too easy* to do. }
+{ $define DEPEND_AL_VORBIS_EXT}
+
 interface
 
 uses SysUtils, KambiUtils, Classes, OpenAL;
@@ -81,8 +99,11 @@ type
 
   TSoundOggVorbis = class(TSoundFile)
   private
-    FData: Pointer;
-    FDataSize: LongWord;
+    DataStream: TMemoryStream;
+    {$ifndef DEPEND_AL_VORBIS_EXT}
+    FDataFormat: TALuint;
+    FFrequency: LongWord;
+    {$endif}
   public
     constructor CreateFromStream(Stream: TStream); override;
     destructor Destroy; override;
@@ -92,6 +113,8 @@ type
     function DataFormat: TALuint; override;
     function Frequency: LongWord; override;
   end;
+
+  EInvalidOggVorbis = class(EInvalidSoundFormat);
 
   TSoundWAV = class(TSoundFile)
   private
@@ -118,7 +141,10 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses KambiStringUtils;
+uses KambiStringUtils
+  {$ifndef DEPEND_AL_VORBIS_EXT}
+  , VorbisDecoder
+  {$endif};
 
 { TSoundFile ----------------------------------------------------------------- }
 
@@ -156,6 +182,7 @@ end;
 
 constructor TSoundMP3.CreateFromStream(Stream: TStream);
 begin
+  inherited Create;
   FDataSize := Stream.Size;
   FData := GetMem(FDataSize);
   Stream.ReadBuffer(Data^, FDataSize);
@@ -198,27 +225,13 @@ end;
 
 { TSoundOggVorbis ------------------------------------------------------------ }
 
+{$ifdef DEPEND_AL_VORBIS_EXT}
+
 constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
 begin
-  FDataSize := Stream.Size;
-  FData := GetMem(FDataSize);
-  Stream.ReadBuffer(Data^, FDataSize);
-end;
-
-destructor TSoundOggVorbis.Destroy;
-begin
-  FreeMemNiling(FData);
-  inherited;
-end;
-
-function TSoundOggVorbis.Data: Pointer;
-begin
-  Result := FData;
-end;
-
-function TSoundOggVorbis.DataSize: LongWord;
-begin
-  Result := FDataSize;
+  inherited Create;
+  DataStream := TMemoryStream.Create;
+  DataStream.CopyFrom(Stream, 0);
 end;
 
 function TSoundOggVorbis.DataFormat: TALuint;
@@ -243,6 +256,42 @@ begin
                       ALint samples)
     ... and freq is really unused. }
   Result := 0;
+end;
+
+{$else DEPEND_AL_VORBIS_EXT}
+
+constructor TSoundOggVorbis.CreateFromStream(Stream: TStream);
+begin
+  inherited Create;
+  DataStream := VorbisDecode(Stream, FDataFormat, FFrequency);
+end;
+
+function TSoundOggVorbis.DataFormat: TALuint;
+begin
+  Result := FDataFormat;
+end;
+
+function TSoundOggVorbis.Frequency: LongWord;
+begin
+  Result := FFrequency;
+end;
+
+{$endif DEPEND_AL_VORBIS_EXT}
+
+destructor TSoundOggVorbis.Destroy;
+begin
+  FreeAndNil(DataStream);
+  inherited;
+end;
+
+function TSoundOggVorbis.Data: Pointer;
+begin
+  Result := DataStream.Memory;
+end;
+
+function TSoundOggVorbis.DataSize: LongWord;
+begin
+  Result := DataStream.Size;
 end;
 
 { TSoundWAV ------------------------------------------------------------ }
