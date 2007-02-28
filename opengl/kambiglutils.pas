@@ -2618,7 +2618,7 @@ function GLCapsString: string;
   function ParsedVersionReport(Version: TGenericGLVersion): string;
   begin
     Result := Format('Parsed: major: %d, minor: %d, release exists: %s, ' +
-      'release: %d, vendor: "%s"',
+      'release: %d, vendor-specific version: "%s"',
       [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists),
         Version.Release,  Version.VendorVersion ]);
   end;
