@@ -160,6 +160,7 @@ type
       read FUpdateOnDestroy write FUpdateOnDestroy;
 
     constructor Create(const AFileName: string; AUpdateOnDestroy: boolean);
+      reintroduce;
     destructor Destroy; override;
   end;
 
@@ -1234,12 +1235,14 @@ end;
 function TPeekCharStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
  raise EStreamNotImplementedSeek.Create('TPeekCharStream.Seek not supported');
+ Result := 0; { just to get rid of dummy fpc warning }
 end;
 {$endif}
 
 function TPeekCharStream.Write(const Buffer; Count: Longint): Longint;
 begin
  raise EStreamNotImplementedWrite.Create('TPeekCharStream.Write not supported');
+ Result := 0; { just to get rid of dummy fpc warning }
 end;
 
 constructor TPeekCharStream.Create(ASourceStream: TStream;
