@@ -1,6 +1,7 @@
 { OCTREE_STEP_INTO_SUBNODES mechanism ----------------------------------------- }
 
-{ kiedy robisz metode TTriangleOctreeNode ktora musi cos wykonac dla pewnych subnodes
+{ kiedy robisz metode TTriangleOctreeNode ktora musi cos wykonac dla
+  pewnych subnodes
   ktore zawieraja box3d to mozesz uzyc OCTREE_STEP_INTO_SUBNODES w
   nastepujacy sposob :
   - zdefiniuj proc lokalna
