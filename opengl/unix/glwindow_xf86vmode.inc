@@ -63,14 +63,21 @@ begin
 end;
 
 function TGLWindowsManager.TryVideoChange: boolean;
-var {vidModeMajorVersion, vidModeMinorVersion: integer;}
-    i, bestmode: integer;
+var
+  {vidModeMajorVersion, vidModeMinorVersion: integer;}
+  i, bestmode: integer;
 
-    modesCount: integer;
-    modes : PArray_PXF86VidModeModeInfo;
+  modesCount: integer;
+  modes : PArray_PXF86VidModeModeInfo;
 
-    OriginalMode: TXF86VidModeModeLine;
-    OriginalModeDotClock: Longint;
+  OriginalMode: TXF86VidModeModeLine;
+  OriginalModeDotClock: Longint;
+
+  { I really don't need this, but XF86VidModeQueryExtension on my Debian
+    segfaults when passed nil as 2nd or 3rd param. So I pass it some valid
+    pointers... }
+  DummyEventBase: LongInt;
+  DummyErrorBase: LongInt;
 begin
  {w tej chwili nie zmieniamy BitsPerPixel ekranu wiec
   robimy faktyczne VideoChange tylko jezeli VideoResize. }
@@ -82,7 +89,8 @@ begin
  Writeln(Format('XF86VidModeExtension-Version %d.%d', [vidModeMajorVersion,
    vidModeMinorVersion]));}
 
- if not XF86VidModeQueryExtension(XDisplay, nil, nil) then
+ if not XF86VidModeQueryExtension(XDisplay, @DummyEventBase,
+   @DummyErrorBase) then
    { X server doesn't implement this extension (at least on this display) }
    Exit(false);
 

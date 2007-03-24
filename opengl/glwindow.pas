@@ -4306,14 +4306,8 @@ begin
   s := 'Can''t change display settings to : ' + nl + VideoSettingsDescribe;
 
   {$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
-    {$ifdef GLWINDOW_XLIB}
-      s += ' (note : when compiling with FPC 1.0.10 changing Video size under '+
-        'XWindows was temporarily disabled by Michalis because of bug in FPC 1.0.10. '+
-        'This functionality will be restored as soon as FPC 2.0 will be ready)';
-    {$else}
-      s += ' (changing Video properties not implemented when GLWindow is '+
-        'made on top of ' +ImplementationName +')';
-    {$endif}
+    s += ' (changing Video properties not implemented when GLWindow is '+
+      'made on top of ' +ImplementationName +')';
   {$endif}
 
   if OnErrorWarnUserAndContinue then
