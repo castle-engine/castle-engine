@@ -1,0 +1,17 @@
+Current Mac OS X port is done with a minimal effort, which means that it uses
+some Unix compatibility layers:
+- X11 (may be found on Mac OS X install CD) (and you should run it from within X11 xterm,
+  to use your display)
+- libpng (installed by fink), if you want to be able to open any images/textures etc. stored
+  in PNG images
+- When GLWindow uses GTK backend (view3dscene compiled by default script does use GTK,
+  "The Castle" compiled by default script doesn't use GTK):
+  GTK and GtkGLExt are required (installed by fink)
+
+For libs installed by fink, you may have to add them to your libs path by command like
+export LD_LIBRARY_PATH=/sw/lib:"$LD_LIBRARY_PATH"
+
+TODO:
+Test OpenAL
+test view3dscene with gtkglext
+castle: gate level rendering errors (back wall and gate: tris disappear ???)

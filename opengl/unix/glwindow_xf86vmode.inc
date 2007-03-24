@@ -82,6 +82,10 @@ begin
  Writeln(Format('XF86VidModeExtension-Version %d.%d', [vidModeMajorVersion,
    vidModeMinorVersion]));}
 
+ if not XF86VidModeQueryExtension(XDisplay, nil, nil) then
+   { X server doesn't implement this extension (at least on this display) }
+   Exit(false);
+
  { if this is first VideoChange then save desktop resolution before
    switching modes }
  if not VideoModeChanged then

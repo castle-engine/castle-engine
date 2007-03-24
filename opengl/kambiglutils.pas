@@ -36,15 +36,15 @@ unit KambiGLUtils;
 {$I kambiconf.inc}
 {$I openglmac.inc}
 
-{ I implemented in this unit some comfortable versions
+{ This unit defines, among many other things, comfortable versions
   of some OpenGL functions. They introduce overloading
   (e.g. one name, glVertexv, for all glVertex* functtions)
   and allow passing records or arrays (instead of pointers)
   as parameters (this is an elegant way to allow things like
-    glVertexv( Vector3Single(1.0, 2.0, 3.0)  );
+    glVertexv( Vector3Single(1, 2, 3)  );
   ).
 
-  There are two ways of doing such things:
+  There are a couple ways to define such "aliases" to OpenGL functions:
 
   1) One, unsafe but fast, is to declare these functions like
        procedure glVertexv(const v: TVector3f); OPENGL_CALL overload;
@@ -64,7 +64,14 @@ unit KambiGLUtils;
      This will work slightly slower, but it also proved to be much
      safer solution.
 
-  Define IMPLEMENT_OPENGL_STUBS to have 2).
+  3) There's also another solution: just copy function pointers.
+     This is fast, but it 
+     - can't be used for overloaded functions (since you can't have many
+       vars with the same name).
+     - has part of the disadvantages of 1) : it relies that parameters are passed
+       correctly.
+
+  Define IMPLEMENT_OPENGL_STUBS to use 2), otherwise we'll try to use 1).
   For now, this is adviced.
 
   Old pl comments: Wyglada na to ze FPC ma wiekszy wstret do przekazywania parametrow
@@ -164,14 +171,16 @@ const
   OpenGLDLL =
     {$ifdef WIN32} 'opengl32.dll' {$endif}
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libGL.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib'
       {$else} 'libGL.so.1'
       {$endif}
     {$endif};
   GluDLL =
     {$ifdef WIN32} 'glu32.dll' {$endif}
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libGLU.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib'
       {$else} 'libGLU.so.1'
       {$endif}
     {$endif};
@@ -881,10 +890,10 @@ function RandomPolyStippleBy16(const BlackChance: Extended): TPolygonStipple;
 { jw. ale tu kawalki 8x8 sa rowne wiec jeszcze bardziej regularne }
 function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
 
-{ This is equivalent to glPolygonStipple, but takes
-  PPolygonStipple as a parameter. }
-procedure KamGLPolygonStipple(mask: PPolygonStipple);
-  OPENGL_CALL external openglDLL name 'glPolygonStipple';
+var
+  { This is equivalent to glPolygonStipple, but takes
+    PPolygonStipple as a parameter. }
+  KamGLPolygonStipple: procedure(mask: PPolygonStipple); OPENGL_CALL
 
 { others  --------------------------------------------------------------- }
 
@@ -1179,8 +1188,8 @@ procedure glFreeDisplayList(var list: TGLuint);
   But if Base = LongWord(-100) and CurrentListNumber = 0 then
   the actual list number is LongWord(-100) = <some big integer around 4 * 10^9>.
   So you can say that Base was positive. }
-procedure glListIBase(base: TGLint); OPENGL_CALL
-  external openglDLL name 'glListBase';
+var
+  glListIBase: procedure(base: TGLint); OPENGL_CALL
 
 { Set color buffer and depth buffer writeable or not writeable.
   This is just a shortcut for
@@ -2727,4 +2736,7 @@ initialization
    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570] }
  Set8087CW($133F);
  {$endif}
+
+ Pointer(glListIBase) := glListBase;
+ Pointer(KamGLPolygonStipple) := glPolygonStipple;
 end.

@@ -313,17 +313,25 @@ const
   OpenGLDLL =
     {$ifdef WIN32} 'opengl32.dll' {$endif}
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libGL.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib'
       {$else} 'libGL.so.1'
       {$endif}
     {$endif};
+
   GluDLL =
     {$ifdef WIN32} 'glu32.dll' {$endif}
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libGLU.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib'
       {$else} 'libGLU.so.1'
       {$endif}
     {$endif};
+
+  {$ifdef UNIX}
+  GlxDLL =
+    {$ifdef DARWIN} '/usr/X11R6/lib/libGL.dylib' {$else} OpenGLDLL {$endif};
+  {$endif UNIX}
 
 var
   GL_VERSION_1_0,
@@ -4069,6 +4077,11 @@ uses
 var
   GLLibrary: TDynLib;
   GLULibrary: TDynLib;
+  {$ifdef UNIX}
+  { This may be equal to GLLibrary or not.
+    When freeing this, you should check above condition. }
+  GlxLibrary: TDynLib;
+  {$endif}
 
 const
   SDefaultGLLibName = OpenglDLL;
@@ -4957,50 +4970,54 @@ begin
   ProcVarCast(glGetMinmaxParameteriv) := GLLibrary.Symbol('glGetMinmaxParameteriv');
   ProcVarCast(glGetMinmaxParameterfv) := GLLibrary.Symbol('glGetMinmaxParameterfv');
   {$endif}
-
-  {$IFDEF UNIX}
-  ProcVarCast(glXChooseVisual) := GLLibrary.Symbol('glXChooseVisual');
-  ProcVarCast(glXCreateContext) := GLLibrary.Symbol('glXCreateContext');
-  ProcVarCast(glXDestroyContext) := GLLibrary.Symbol('glXDestroyContext');
-  {$ifdef DYNAMIC_GLX_MAKECURRENT}
-  ProcVarCast(glXMakeCurrent) := GLLibrary.Symbol('glXMakeCurrent');
-  {$endif}
-  ProcVarCast(glXCopyContext) := GLLibrary.Symbol('glXCopyContext');
-  ProcVarCast(glXSwapBuffers) := GLLibrary.Symbol('glXSwapBuffers');
-  ProcVarCast(glXCreateGLXPixmap) := GLLibrary.Symbol('glXCreateGLXPixmap');
-  ProcVarCast(glXDestroyGLXPixmap) := GLLibrary.Symbol('glXDestroyGLXPixmap');
-  ProcVarCast(glXQueryExtension) := GLLibrary.Symbol('glXQueryExtension');
-  ProcVarCast(glXQueryVersion) := GLLibrary.Symbol('glXQueryVersion');
-  ProcVarCast(glXIsDirect) := GLLibrary.Symbol('glXIsDirect');
-  ProcVarCast(glXGetConfig) := GLLibrary.Symbol('glXGetConfig');
-  ProcVarCast(glXGetCurrentContext) := GLLibrary.Symbol('glXGetCurrentContext');
-  ProcVarCast(glXGetCurrentDrawable) := GLLibrary.Symbol('glXGetCurrentDrawable');
-  ProcVarCast(glXWaitGL) := GLLibrary.Symbol('glXWaitGL');
-  ProcVarCast(glXWaitX) := GLLibrary.Symbol('glXWaitX');
-  ProcVarCast(glXUseXFont) := GLLibrary.Symbol('glXUseXFont');
-  ProcVarCast(glXQueryExtensionsString) := GLLibrary.Symbol('glXQueryExtensionsString');
-  ProcVarCast(glXQueryServerString) := GLLibrary.Symbol('glXQueryServerString');
-  ProcVarCast(glXGetClientString) := GLLibrary.Symbol('glXGetClientString');
-  ProcVarCast(glXGetCurrentDisplay) := GLLibrary.Symbol('glXGetCurrentDisplay');
-  ProcVarCast(glXChooseFBConfig) := GLLibrary.Symbol('glXChooseFBConfig');
-  ProcVarCast(glXGetFBConfigAttrib) := GLLibrary.Symbol('glXGetFBConfigAttrib');
-  ProcVarCast(glXGetFBConfigs) := GLLibrary.Symbol('glXGetFBConfigs');
-  ProcVarCast(glXGetVisualFromFBConfig) := GLLibrary.Symbol('glXGetVisualFromFBConfig');
-  ProcVarCast(glXCreateWindow) := GLLibrary.Symbol('glXCreateWindow');
-  ProcVarCast(glXDestroyWindow) := GLLibrary.Symbol('glXDestroyWindow');
-  ProcVarCast(glXCreatePixmap) := GLLibrary.Symbol('glXCreatePixmap');
-  ProcVarCast(glXDestroyPixmap) := GLLibrary.Symbol('glXDestroyPixmap');
-  ProcVarCast(glXCreatePbuffer) := GLLibrary.Symbol('glXCreatePbuffer');
-  ProcVarCast(glXDestroyPbuffer) := GLLibrary.Symbol('glXDestroyPbuffer');
-  ProcVarCast(glXQueryDrawable) := GLLibrary.Symbol('glXQueryDrawable');
-  ProcVarCast(glXCreateNewContext) := GLLibrary.Symbol('glXCreateNewContext');
-  ProcVarCast(glXMakeContextCurrent) := GLLibrary.Symbol('glXMakeContextCurrent');
-  ProcVarCast(glXGetCurrentReadDrawable) := GLLibrary.Symbol('glXGetCurrentReadDrawable');
-  ProcVarCast(glXQueryContext) := GLLibrary.Symbol('glXQueryContext');
-  ProcVarCast(glXSelectEvent) := GLLibrary.Symbol('glXSelectEvent');
-  ProcVarCast(glXGetSelectedEvent) := GLLibrary.Symbol('glXGetSelectedEvent');
-  {$ENDIF}
  end;
+
+
+ {$IFDEF UNIX}
+ if GlxLibrary <> nil then
+ begin
+  ProcVarCast(glXChooseVisual) := GlxLibrary.Symbol('glXChooseVisual');
+  ProcVarCast(glXCreateContext) := GlxLibrary.Symbol('glXCreateContext');
+  ProcVarCast(glXDestroyContext) := GlxLibrary.Symbol('glXDestroyContext');
+  {$ifdef DYNAMIC_GLX_MAKECURRENT}
+  ProcVarCast(glXMakeCurrent) := GlxLibrary.Symbol('glXMakeCurrent');
+  {$endif}
+  ProcVarCast(glXCopyContext) := GlxLibrary.Symbol('glXCopyContext');
+  ProcVarCast(glXSwapBuffers) := GlxLibrary.Symbol('glXSwapBuffers');
+  ProcVarCast(glXCreateGLXPixmap) := GlxLibrary.Symbol('glXCreateGLXPixmap');
+  ProcVarCast(glXDestroyGLXPixmap) := GlxLibrary.Symbol('glXDestroyGLXPixmap');
+  ProcVarCast(glXQueryExtension) := GlxLibrary.Symbol('glXQueryExtension');
+  ProcVarCast(glXQueryVersion) := GlxLibrary.Symbol('glXQueryVersion');
+  ProcVarCast(glXIsDirect) := GlxLibrary.Symbol('glXIsDirect');
+  ProcVarCast(glXGetConfig) := GlxLibrary.Symbol('glXGetConfig');
+  ProcVarCast(glXGetCurrentContext) := GlxLibrary.Symbol('glXGetCurrentContext');
+  ProcVarCast(glXGetCurrentDrawable) := GlxLibrary.Symbol('glXGetCurrentDrawable');
+  ProcVarCast(glXWaitGL) := GlxLibrary.Symbol('glXWaitGL');
+  ProcVarCast(glXWaitX) := GlxLibrary.Symbol('glXWaitX');
+  ProcVarCast(glXUseXFont) := GlxLibrary.Symbol('glXUseXFont');
+  ProcVarCast(glXQueryExtensionsString) := GlxLibrary.Symbol('glXQueryExtensionsString');
+  ProcVarCast(glXQueryServerString) := GlxLibrary.Symbol('glXQueryServerString');
+  ProcVarCast(glXGetClientString) := GlxLibrary.Symbol('glXGetClientString');
+  ProcVarCast(glXGetCurrentDisplay) := GlxLibrary.Symbol('glXGetCurrentDisplay');
+  ProcVarCast(glXChooseFBConfig) := GlxLibrary.Symbol('glXChooseFBConfig');
+  ProcVarCast(glXGetFBConfigAttrib) := GlxLibrary.Symbol('glXGetFBConfigAttrib');
+  ProcVarCast(glXGetFBConfigs) := GlxLibrary.Symbol('glXGetFBConfigs');
+  ProcVarCast(glXGetVisualFromFBConfig) := GlxLibrary.Symbol('glXGetVisualFromFBConfig');
+  ProcVarCast(glXCreateWindow) := GlxLibrary.Symbol('glXCreateWindow');
+  ProcVarCast(glXDestroyWindow) := GlxLibrary.Symbol('glXDestroyWindow');
+  ProcVarCast(glXCreatePixmap) := GlxLibrary.Symbol('glXCreatePixmap');
+  ProcVarCast(glXDestroyPixmap) := GlxLibrary.Symbol('glXDestroyPixmap');
+  ProcVarCast(glXCreatePbuffer) := GlxLibrary.Symbol('glXCreatePbuffer');
+  ProcVarCast(glXDestroyPbuffer) := GlxLibrary.Symbol('glXDestroyPbuffer');
+  ProcVarCast(glXQueryDrawable) := GlxLibrary.Symbol('glXQueryDrawable');
+  ProcVarCast(glXCreateNewContext) := GlxLibrary.Symbol('glXCreateNewContext');
+  ProcVarCast(glXMakeContextCurrent) := GlxLibrary.Symbol('glXMakeContextCurrent');
+  ProcVarCast(glXGetCurrentReadDrawable) := GlxLibrary.Symbol('glXGetCurrentReadDrawable');
+  ProcVarCast(glXQueryContext) := GlxLibrary.Symbol('glXQueryContext');
+  ProcVarCast(glXSelectEvent) := GlxLibrary.Symbol('glXSelectEvent');
+  ProcVarCast(glXGetSelectedEvent) := GlxLibrary.Symbol('glXGetSelectedEvent');
+ end;
+ {$ENDIF}
 
  if GLULibrary <> nil then
  begin
@@ -6694,7 +6711,13 @@ end;
 procedure CloseOpenGL;
 begin
  FreeAndNil(GLULibrary);
+ {$ifdef UNIX}
+ if GlxLibrary <> GLLibrary then
+   FreeAndNil(GlxLibrary) else
+   GlxLibrary := nil;
+ {$endif UNIX}
  FreeAndNil(GLLibrary);
+
  ClearProcAddresses;
  ClearProcExtensions;
  FreeAndNil(GLVersion);
@@ -6737,6 +6760,12 @@ begin
    raise;
   end;
  end;
+ {$endif}
+
+ {$ifdef UNIX}
+ if GlxDLL = GLName then
+   GlxLibrary := GLLibrary else
+   GlxLibrary := TDynLib.Load(GlxDLL);
  {$endif}
 
  GLULibrary := TDynLib.Load(GLUName);
