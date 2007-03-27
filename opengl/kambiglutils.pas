@@ -1205,7 +1205,7 @@ implementation
 
 {$define read_implementation}
 
-uses KambiFilesUtils;
+uses KambiFilesUtils, KambiStringUtils;
 
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
@@ -2628,7 +2628,7 @@ function GLCapsString: string;
   begin
     Result := Format('Parsed: major: %d, minor: %d, release exists: %s, ' +
       'release: %d, vendor-specific version: "%s"',
-      [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists),
+      [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
         Version.Release,  Version.VendorVersion ]);
   end;
 
@@ -2636,7 +2636,7 @@ function GLCapsString: string;
   begin
     Result := ParsedVersionReport(Version) +
       Format(', vendor Mesa: %s (Mesa major: %d, minor: %d, release: %d)',
-        [ BoolToStr(Version.IsMesa),
+        [ BoolToStr[Version.IsMesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease ]);
   end;
 
