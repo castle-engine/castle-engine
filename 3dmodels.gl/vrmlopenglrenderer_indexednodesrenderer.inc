@@ -625,35 +625,64 @@ begin
   glEnd;
  end else
  begin
+   {$ifdef DARWIN}
+
+   { On Mac OS X 10.4.9, with Radeon ATI graphic card
+     (it's MacBook Pro computer), there's definitely a bug
+     in OpenGL implementation: it seems not able to handle
+     GL_TRIANGLE_FAN properly, which is visible on "The Gate" and
+     "Cages" levels of "The Castle": some triangles on these
+     levels (on "The Gate", it concerns that back wall and gate
+     geometry) seem to randomly disappear.
+
+     I didn't make enough
+     tests to actually make sure what's the precise condition
+     to trigger this bug (as other "The Castle" levels,
+     and castle.wrl sample VRML work OK). I also didn't test
+     on other Mac OS X systems. (However, I did test this on the
+     same computer with Linux Radeon OpenGL, and on Linux
+     it works OK --- so the problem is within software, OpenGL
+     probably, on Mac OS X ?). For safety I disable using
+     GL_TRIANGLE_FAN entirely for now on Darwin. }
+
+  glBegin(GL_TRIANGLES);
+  TriangulateConvexFace(EndIndex-StartIndex,
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, StartIndex);
+  glEnd;
+
+  {$else DARWIN}
+
   { zamiast GL_POLYGON uzywamy GL_TRIANGLES i robimy cos jak GL_TRIANGLE_FAN
-      uzywajac glEdgeFlag. De facto, to co my chcemy zrobic to jest
-      wlasnie wykonac GL_TRIANGLE_FAN tyle ze w triangle fan glEdgeFlag
-      jest ignorowane (jakby zawsze bylo GL_TRUE).
+    uzywajac glEdgeFlag. De facto, to co my chcemy zrobic to jest
+    wlasnie wykonac GL_TRIANGLE_FAN tyle ze w triangle fan glEdgeFlag
+    jest ignorowane (jakby zawsze bylo GL_TRUE).
+
     Zamiast GL_POLYGON uzywamy GL_TRIANGLE_FAN. Dlaczego ?
-      Bo chcemy miec 1-znaczna triangulacje kazdego polygonu. To ma
-      znaczenie kiedy np. renderujemy prostokat z cieniowaniem smooth
-      i kazdy z 4 vertexow ma inny kolor. Wtedy widac wzdluz ktorej
-      przekatnej biegnie triangulacja trojkata. I np. jezeli kawalek
-      kwadratu wyjezdza za ekran wtedy widac jak (na skutek przycinania
-      polygonu do frustum) przesuwa sie linia triangulacji. Wychodzi
-      bardzo dziwny efekt, bo widac ze kolory na prostokacie sie nieco
-      zmieniaja w miare jak ten wyjezdza za ekran, a to zdecydowanie nie jest
-      efekt na jakim nam zalezy. Rozwiazaniem jest ustawlic 1-znaczna
-      triangulacje prostokata, wtedy linia podzialu zawsze bedzie taka
-      sama i problemu nie bedzie.
+    Bo chcemy miec 1-znaczna triangulacje kazdego polygonu. To ma
+    znaczenie kiedy np. renderujemy prostokat z cieniowaniem smooth
+    i kazdy z 4 vertexow ma inny kolor. Wtedy widac wzdluz ktorej
+    przekatnej biegnie triangulacja trojkata. I np. jezeli kawalek
+    kwadratu wyjezdza za ekran wtedy widac jak (na skutek przycinania
+    polygonu do frustum) przesuwa sie linia triangulacji. Wychodzi
+    bardzo dziwny efekt, bo widac ze kolory na prostokacie sie nieco
+    zmieniaja w miare jak ten wyjezdza za ekran, a to zdecydowanie nie jest
+    efekt na jakim nam zalezy. Rozwiazaniem jest ustawlic 1-znaczna
+    triangulacje prostokata, wtedy linia podzialu zawsze bedzie taka
+    sama i problemu nie bedzie.
+
     Jedyna rzecz jaka (poza 1-znacznym wyznaczeniem triangulacji) robi
-      GL_TRIANGLE_FAN to dodawanie w srodku dodatkowych krawedzi.
-      Mozna to zobaczyc gdy przelaczymy sie na widok wireframe.
-      Nie mozna uzywac glEdgeFlag z GL_TRIANGLE_FAN, jest przez nie
-      ignorowane. Wiec zeby obejsc ten problem trzeba recznie realizowac
-      GL_TRIANGLE_FAN przez GL_TRIANGLES i tam uzywac glEdgeFlag.
-      Zrobilem to - patrz VRMLNodes_old_funcs.txt, ale niestety
-      okazalo sie to bardzo zwalniac rendering (nic dziwnego -
-      - musialem przeciez podawac wiele razy te same vertexy). Wiec
-      chwilowo tego nie uzywam. A to ze GL_TRIANGLES_FAN powoduje ze
-      w widoku wireframe widoczne jest wiecej krawedzi ? No coz,
-      to zaden problem, przeciez nikt mi nie kaze dokladnie renderowac
-      obiektu wireframe. }
+    GL_TRIANGLE_FAN to dodawanie w srodku dodatkowych krawedzi.
+    Mozna to zobaczyc gdy przelaczymy sie na widok wireframe.
+    Nie mozna uzywac glEdgeFlag z GL_TRIANGLE_FAN, jest przez nie
+    ignorowane. Wiec zeby obejsc ten problem trzeba recznie realizowac
+    GL_TRIANGLE_FAN przez GL_TRIANGLES i tam uzywac glEdgeFlag.
+    Zrobilem to - patrz VRMLNodes_old_funcs.txt, ale niestety
+    okazalo sie to bardzo zwalniac rendering (nic dziwnego -
+    - musialem przeciez podawac wiele razy te same vertexy). Wiec
+    chwilowo tego nie uzywam. A to ze GL_TRIANGLES_FAN powoduje ze
+    w widoku wireframe widoczne jest wiecej krawedzi ? No coz,
+    to zaden problem, przeciez nikt mi nie kaze dokladnie renderowac
+    obiektu wireframe. }
 
   glBegin(GL_TRIANGLE_FAN);
   while startIndex < endIndex do
@@ -662,6 +691,8 @@ begin
    Inc(startIndex);
   end;
   glEnd;
+
+  {$endif DARWIN}
  end;
 end;
 

@@ -18,6 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{$ifdef GLWINDOW_GTK_2}
+  {$ifdef DARWIN}
+    {$linklib gdkglext-x11-1.0}
+    {$linklib gtkglext-x11-1.0}
+  {$endif DARWIN}
+{$endif GLWINDOW_GTK_2}
+
 { This contains two very similar GLWindow backends, both based on GTK.
   One based on GTK 1.x and GtkGLArea,
   the other one based on GTK 2.x and GtkGLExt. }

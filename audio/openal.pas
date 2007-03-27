@@ -175,7 +175,8 @@ procedure CheckALUTInited;
 const
   OpenALDLL =
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libopenal.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenAL.framework/OpenAL'
       {$else}
         { I'm linking dynamically using dlopen/dlsym, so library name
           below can't be just 'libopenal.so', this is only avail

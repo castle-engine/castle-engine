@@ -91,6 +91,37 @@ var
     that your program will require only one OpenAL context at any time. }
   ALCDevice: string = BestALCDevice;
 
+{ Checks if ALC_ENUMERATION_EXT is present.
+  If it is, pDeviceList is initialized.
+
+  Below is some description of how it works:
+
+  This used to be trivial:
+  @orderedList(
+    @item(check
+      alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'))
+    @item(if true, then extension is supported, and get
+      @longCode(#
+  pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
+  Assert(pDeviceList <> nil);
+#)))
+
+  But then buggy Apple openal implementation came. With this
+  implementation
+  @orderedList(
+    @item(alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT')
+      returns true (confirmed by looking at trunk source code:
+      oalImp.cpp, line 75, alcExtensionsList contains ALC_ENUMERATION_EXT,
+      so alcIsExtensionPresent always returns true for it.))
+    @item(But alcGetString(nil, ALC_DEVICE_SPECIFIER) returns nil,
+      so this extension is not actually implemented...
+      Moreover, the second thing is that alGetError reports AL_INVALID_VALUE
+      error after this (which should be in alcError instead).)
+  )
+}
+function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
+function EnumerationExtPresent: boolean; overload;
+
 { This appends to DevicesList object list of available OpenAL devices.
 
   It uses ALC_ENUMERATION_EXT extension, so ALInited must be true
@@ -230,7 +261,16 @@ function GetALCString(enum: TALCenum): string;
 { Calls GetALCString and additionally checks alcGetError.
   If alcGetError returns error, it returns string looking like
   '(detailed error description)' (normal incorrect call to
-  alcGetError would return just nil).
+  alcGetString would return just nil).
+
+  Actually, this @italic(also) checks normal al error (alGetError instead
+  of alcGetError).
+  That's because on Darwin (Mac OS X) Apple's OpenAL
+  implementation fails to return some alcGetString
+  (e.g. ALC_DEFAULT_DEVICE_SPECIFIER, ALC_DEVICE_SPECIFIER,
+  ALC_EXTENSIONS) and reports this by setting AL error (instead of ALC one)
+  to "invalid value". Yes, that's Apple's bug (TODO: report ? check newer al
+  version ?).
 
   Just like all other functions that somehow check al[c]GetError,
   this function assumes that error state was "clear" before
@@ -402,16 +442,47 @@ begin
 end;
 {$endif}
 
+function EnumerationExtPresent(out pDeviceList: PChar): boolean;
+{$ifdef DARWIN}
+var
+  Err: TALenum;
+{$endif DARWIN}
+begin
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
+  if Result then
+  begin
+    pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
+
+    {$ifdef DARWIN}
+    if pDeviceList = nil then
+    begin
+      { This is normal on Darwin, thanks to buggy OpenAL implementation... }
+      Result := false;
+      { Clear AL_INVALID_VALUE set by alcGetString call above }
+      Err := alGetError();
+      Assert(Err = AL_INVALID_VALUE);
+    end;
+    {$else DARWIN}
+    Assert(pDeviceList <> nil);
+    {$endif DARWIN}
+  end;
+end;
+
+function EnumerationExtPresent: boolean;
+var
+  pDeviceList: PChar;
+begin
+  Result := EnumerationExtPresent(pDeviceList);
+  { Ignore pDeviceList }
+end;
+
 procedure GetOpenALDevices(DevicesList: TStringList);
 var
   pDeviceList: PChar;
 begin
-  if ALInited and alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT') then
+  if ALInited and EnumerationExtPresent(pDeviceList) then
   begin
-    pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
-    Assert(pDeviceList <> nil);
-
-    { parse pDeviceList  }
+    { parse pDeviceList }
     while pDeviceList^ <> #0 do
     begin
       { automatic conversion PChar -> AnsiString below }
@@ -424,6 +495,9 @@ begin
   end
 
   {$ifdef UNIX}
+   { Mac OS X Apple implementation doesn't use the same devices
+     as traditional Unix implementation (from Loki). }
+  {$ifndef DARWIN}
   else
   if ALInited then
   begin
@@ -452,7 +526,8 @@ begin
     DevicesList.Append(UnixALCDeviceName('waveout'));
     DevicesList.Append(UnixALCDeviceName('null'));
   end
-  {$endif}
+  {$endif not DARWIN}
+  {$endif UNIX}
 
   ;
 end;
@@ -469,9 +544,10 @@ begin
   1: begin
       if not ALInited then
        Message := 'OpenAL is not available - cannot print available audio devices' else
-      if not alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT') then
+      if not EnumerationExtPresent then
        Message := 'Your OpenAL implementation does not support getting the list '+
-         'of available audio devices (ALC_ENUMERATION_EXT extension not present).' else
+         'of available audio devices (ALC_ENUMERATION_EXT extension not present ' +
+         '(or not implemented correctly in case of Apple version)).' else
       begin
        DefaultDeviceName := alcGetString(nil, ALC_DEFAULT_DEVICE_SPECIFIER);
        DefaultDeviceNum := -1;
@@ -706,8 +782,10 @@ begin
  result := GetALCString(enum);
  try
   CheckALC('alcGetString');
+  CheckAL('alcGetString');
  except
   on E: EALCError do result := '('+E.Message+')';
+  on E: EALError do result := '('+E.Message+')';
  end;
 end;
 {$endif USE_ALUT}

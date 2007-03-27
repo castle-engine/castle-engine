@@ -131,9 +131,15 @@ initialization
   VorbisFileLibrary :=
 
     {$ifdef UNIX}
+    {$ifdef DARWIN}
+    TDynLib.Load('libvorbisfile.3.dylib', false);
+    if VorbisFileLibrary = nil then
+      VorbisFileLibrary := TDynLib.Load('libvorbisfile.dylib', false);
+    {$else}
     TDynLib.Load('libvorbisfile.so.3', false);
     if VorbisFileLibrary = nil then
       VorbisFileLibrary := TDynLib.Load('libvorbisfile.so', false);
+    {$endif}
     {$endif}
 
     {$ifdef WIN32}

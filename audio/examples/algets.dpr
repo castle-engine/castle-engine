@@ -21,7 +21,13 @@
 { Simple program that queries OpenAL implementation about various things.
   Useful for checking OpenAL version and extensions, and also to catch
   some minor differences/incompatibilities between various OpenAL
-  implementations. }
+  implementations.
+
+  You can run this with an optional command-line option:
+  a filename of any sound file we can load
+  (right now, the allowed formats are wav and OggVorbis;
+  see SoundFile unit for up-to-date list). Then the sound file will
+  be loaded as OpenAL sound, and some additional tests will be performed. }
 program algets;
 
 uses OpenAL, ALUtils, SysUtils, KambiUtils, VectorMath, SoundFile,
@@ -35,7 +41,6 @@ uses OpenAL, ALUtils, SysUtils, KambiUtils, VectorMath, SoundFile,
   be corrected by mine routines alCreate*. }
 { $define FORCE_COMPAT}
 
-procedure Gets;
 { Do and write a LOT of gets. Actually, do all possible queries
   of global state and sampleBuffer and sampleSource state.
   Then load test.wav to sampleBuffer and link sampleBuffer to sampleSource,
@@ -47,8 +52,8 @@ procedure Gets;
   I wanted to make sure that my both versions of OpenAL (Linux and Win)
   have THE SAME default state. (I'm trying to find some errors under Win
   - and I want to make sure that Win OpenAL version uses the same defaults
-  as Linux OpenAL version).
-}
+  as Linux OpenAL version). }
+procedure Gets;
 
   function DistanceModelToStr(enum:TALenum):string;
   begin
@@ -65,12 +70,8 @@ procedure Gets;
    result:='at : ' +VectorToNiceStr(tv[0]) +', up : ' +VectorToNiceStr(tv[1]);
   end;
 
-const
-  TestSoundFileName =
-    {$ifdef WIN32} 'h:' {$else} '/linux/home/michal' {$endif}
-    + '/music/wav.tests/test.wav';
-
-var SampleSource, SampleBuffer:TALuint;
+var
+  SampleSource, SampleBuffer:TALuint;
 
   function SampleSourceState:string;
   begin
@@ -117,6 +118,8 @@ var SampleSource, SampleBuffer:TALuint;
      nl;
   end;
 
+var
+  TestSoundFileName: string;
 begin
  {$ifdef FORCE_COMPAT}
  alCreateSources(1, @SampleSource);
@@ -138,6 +141,11 @@ begin
    'ALC_EXTENSIONS : ', GetALCStringTrapped(ALC_EXTENSIONS), nl,
 
    nl,
+   'ENUMERATION_EXT  --------------------------------', nl,
+   'alcIsExtensionPresent(ALC_ENUMERATION_EXT) : ', alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT'), nl,
+   'improved test for ALC_ENUMERATION_EXT : ', EnumerationExtPresent, nl,
+
+   nl,
    'Get globals --------------------------------', nl,
    'DISTANCE_MODEL : ',DistanceModelToStr(alGetInteger(AL_DISTANCE_MODEL)), nl,
    'DOPPLER_FACTOR : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_FACTOR)), nl,
@@ -157,20 +165,25 @@ begin
    SampleBufferState
  );
 
- TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName);
- alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
+ if Parameters.High > 0 then
+ begin
+   TestSoundFileName := Parameters[1];
 
- Write(
-   '----------------------------------------------------------------', nl,
-   'after loading ', TestSoundFileName, ' to SampleBuffer and linking', nl,
-   '  SampleBuffer with SampleSource :', nl,
-   nl,
-   SampleSourceState,
-   SampleBufferState
- );
+   TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName);
+   alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
 
- alDeleteSources(1, @SampleSource);
- alDeleteBuffers(1, @SampleBuffer);
+   Write(
+     '----------------------------------------------------------------', nl,
+     'after loading ', TestSoundFileName, ' to SampleBuffer and linking', nl,
+     '  SampleBuffer with SampleSource :', nl,
+     nl,
+     SampleSourceState,
+     SampleBufferState
+   );
+
+   alDeleteSources(1, @SampleSource);
+   alDeleteBuffers(1, @SampleBuffer);
+ end;
 
  CheckAL('Gets');
 end;
