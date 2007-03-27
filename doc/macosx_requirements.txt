@@ -21,6 +21,3 @@ TODO:
 Test OpenAL
   music of "castle hall" and "cages" and "doom" doesn't work ?
   Works on "intro" and "gate" ...
-
-BoolToStr seems to work bad ? Like IntToStr instead of true/false,
-can be seen on "View sound info" and "View video info".
