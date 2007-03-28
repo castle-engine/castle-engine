@@ -60,8 +60,7 @@ begin
     Parameters.CheckHigh(1);
     FileName:=Parameters[1];
 
-    { this is format-specific part : load file to Buffer, and optionally
-      print some info about file format. }
+    { load file to Buffer, and print some info about file format. }
     FAL := TALSoundFile.Create(TSoundFile.CreateFromFile(FileName), true);
     try
       FAL.alBufferData(Buffer);
