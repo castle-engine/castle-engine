@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -211,9 +211,25 @@ function IsBox3dSegmentCollision(
   const Box: TBox3d;
   const Segment1, Segment2: TVector3Single): boolean;
 
+{ Tests for collision between box3d centered around (0, 0, 0)
+  and a plane.
+
+  Note that you can't express empty box3d here: all BoxHalfSize items
+  must be >= 0. The case when size = 0 is considered like infintely small
+  box in some dimension (e.g. if all three sizes are = 0 then the box
+  becomes a point). }
+function IsCenteredBox3dPlaneCollision(
+  const BoxHalfSize: TVector3Single;
+  const Plane: TVector4Single): boolean;
+
 function IsBox3dPlaneCollision(const Box3d: TBox3d;
   const Plane: TVector4Single): boolean;
 
+{function IsBox3dTriangleCollision(
+  const Box: TBox3d;
+  const Triangle: TTriangle3Single;
+  const TriangleNormalPlane: TVector4Single): boolean;
+}
 { This is equivalent to @link(FrustumSphereCollisionPossible),
   but here it takes a box instead of a sphere. }
 function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
@@ -866,7 +882,9 @@ begin
   Result := false;
 end;
 
-function IsBox3dPlaneCollision(const Box3d: TBox3d; const Plane: TVector4Single): boolean;
+{ Old non-optimal implementation (tests all 8 box points). }
+function Old_IsBox3dPlaneCollision(const Box3d: TBox3d;
+  const Plane: TVector4Single): boolean;
 
   function Corner(const x01, y01, z01: boolean): TVector3Single;
   { zwroc odpowiedni z 8 rogow Box3d, dodatkowo dodajac
@@ -915,6 +933,82 @@ begin
  result := false;
 end;
 
+function IsBox3dPlaneCollision(const Box3d: TBox3d;
+  const Plane: TVector4Single): boolean;
+var
+  BoxCenter, BoxHalfSize: TVector3Single;
+  PlaneMoved: TVector4Single;
+  I: Integer;
+begin
+  if IsEmptyBox3d(Box3d) then
+    Exit(false);
+
+  { calculate BoxCenter and BoxHalfSize }
+  for I := 0 to 2 do
+  begin
+    BoxCenter[I] := (Box3d[0, I] + Box3d[1, I]) / 2;
+    BoxHalfSize[I] := (Box3d[1, I] - Box3d[0, I]) / 2;
+  end;
+
+  { calculate PlaneMoved = Plane moved by -BoxCenter }
+  PlaneMoved := PlaneAntiMove(Plane, BoxCenter);
+
+  Result := IsCenteredBox3dPlaneCollision(BoxHalfSize, PlaneMoved);
+
+  if Result <> Old_IsBox3dPlaneCollision(Box3d, Plane) then
+  begin
+    Writeln('fail: ', Box3dToNiceStr(Box3d), ' ', VectorToNiceStr(Plane), ' ',
+      Result, ' ', Old_IsBox3dPlaneCollision(Box3d, Plane));
+  end else
+    Writeln('success');
+end;
+
+function IsCenteredBox3dPlaneCollision(
+  const BoxHalfSize: TVector3Single;
+  const Plane: TVector4Single): boolean;
+{ Implementation of this is based on
+  [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
+  planeBoxOverlap routine, by Tomas Akenine-Möller,
+  mentioned in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
+  about "Fast 3D Triangle-Box Overlap Testing", downloadable from
+  [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
+
+  The idea: we need to test plane equation with only two points
+  (instead of eight points, as in naive version). Think about the plane
+  normal vector; imagine 8 box points projected on this vector; now
+  we can find 2 box points, one that has minimal value when projected
+  on normal vector, and one that has maximum value. Now you need to test
+  is the plane between these two points. }
+var
+  I: Integer;
+  VMin, VMax: TVector3Single;
+begin
+  for I := 0 to 2 do
+    if Plane[I] > 0 then
+    begin
+      VMin[I] := -BoxHalfSize[I];
+      VMax[I] :=  BoxHalfSize[I];
+    end else
+    begin
+      VMin[I] :=  BoxHalfSize[I];
+      VMax[I] := -BoxHalfSize[I];
+    end;
+
+  { If VMin is above the plane (plane equation is > 0), then VMax
+    is also above, no need to test anything else. }
+  if Plane[0] * VMin[0] +
+     Plane[1] * VMin[1] +
+     Plane[2] * VMin[2] +
+     Plane[3] > 0 then
+    Exit(false);
+
+  { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
+  Result :=  Plane[0] * VMax[0] +
+             Plane[1] * VMax[1] +
+             Plane[2] * VMax[2] +
+             Plane[3] >= 0;
+end;
+
 function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
   const Box: TBox3d): TFrustumCollisionPossible;
 
@@ -944,7 +1038,7 @@ var InsidePlanesCount: Cardinal;
 begin
  InsidePlanesCount := 0;
 
- { The login goes like this:
+ { The logic goes like this:
      if box is on the "outside" of *any* of 6 planes, result is NoCollision
      if box is on the "inside" of *all* 6 planes, result is InsideFrustum
      else SomeCollisionPossible. }

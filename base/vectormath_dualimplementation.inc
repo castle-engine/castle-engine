@@ -415,6 +415,18 @@ begin
               Plane[2] * Move[2];
 end;
 
+function PlaneAntiMove(const Plane: TYPE_VECTOR4;
+  const Move: TYPE_VECTOR3): TYPE_VECTOR4;
+begin
+  { Like PlaneMove, but Move vector is negated.
+    So we just do "Result[3] +=" instead of "Result[3] -=". }
+
+  Result := Plane;
+  Result[3] += Plane[0] * Move[0] +
+               Plane[1] * Move[1] +
+               Plane[2] * Move[2];
+end;
+
 {$define VectorsSamePlaneDirections_Implement:=
 var v1dot, v2dot: TYPE_SCALAR;
 begin

@@ -936,13 +936,23 @@ function ThreePlanesIntersectionPoint(
   The first three plane numbers (plane normal vector) don't change
   (so, in particular, if you used the plane to define the half-space,
   the half-space gets moved as it should).
+
+  PlaneAntiMove work like PlaneMove, but they translate by negated Move
+  So it's like PlaneAntiMove(Plane, V) := PlaneMove(Plane, -V),
+  but (very slightly) faster.
   @groupBegin }
 function PlaneMove(const Plane: TVector4Single;
   const Move: TVector3Single): TVector4Single; overload;
 function PlaneMove(const Plane: TVector4Double;
   const Move: TVector3Double): TVector4Double; overload;
+
 procedure PlaneMoveTo1st(var Plane: TVector4Single; const Move: TVector3Single); overload;
 procedure PlaneMoveTo1st(var Plane: TVector4Double; const Move: TVector3Double); overload;
+
+function PlaneAntiMove(const Plane: TVector4Single;
+  const Move: TVector3Single): TVector4Single; overload;
+function PlaneAntiMove(const Plane: TVector4Double;
+  const Move: TVector3Double): TVector4Double; overload;
 { @groupEnd }
 
 { zwraca true gdy oba wektory wskazuja na ta sama strone Plane.
