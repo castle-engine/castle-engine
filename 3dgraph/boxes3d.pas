@@ -882,57 +882,6 @@ begin
   Result := false;
 end;
 
-{ Old non-optimal implementation (tests all 8 box points). }
-function Old_IsBox3dPlaneCollision(const Box3d: TBox3d;
-  const Plane: TVector4Single): boolean;
-
-  function Corner(const x01, y01, z01: boolean): TVector3Single;
-  { zwroc odpowiedni z 8 rogow Box3d, dodatkowo dodajac
-    lub odejmujac SingleEqualityEpsilon tak zeby Box3d wydawal sie wiekszy
-    o SingleEqualityEpsilon }
-  begin
-   if x01 then result[0] := Box3d[0, 0]-SingleEqualityEpsilon else result[0] := Box3d[1, 0]+SingleEqualityEpsilon;
-   if y01 then result[1] := Box3d[0, 1]-SingleEqualityEpsilon else result[1] := Box3d[1, 1]+SingleEqualityEpsilon;
-   if z01 then result[2] := Box3d[0, 2]-SingleEqualityEpsilon else result[2] := Box3d[1, 2]+SingleEqualityEpsilon;
-  end;
-
-  function CalcCornerPlaneSide(const x01, y01, z01: boolean): Single;
-  { po prostu podstaw punkt Corner(x01, y01, z01) do rownania Plane }
-  var corn: TVector3Single;
-  begin
-   corn := Corner(x01, y01, z01);
-   result := Plane[0]*corn[0] + Plane[1]*corn[1] + Plane[2]*corn[2] + Plane[3];
-  end;
-
-var bits: byte;
-    cornerPlaneSide: Single;
-    side: boolean;
-begin
- { zeby box nie przecial plane, kazdy punkt boxa musi byc po tej samej
-   stronie plane (i zaden nie moze lezec na plane). To jest warunek
-   konieczny i dostateczny. }
-
- { najpierw policz side uzywajac punktu Corner(false, false, false).
-   Wszystkie pozostale punkty beda musialy miec takie samo Side.
-   Zwroc uwage ze porownuje cornerPlaneSide z zerem normalnie (nie uzywam
-   FloatsEqual) bo juz w samej funkcji Corner zawarlem SingleEpsilonEquality. }
- cornerPlaneSide := CalcCornerPlaneSide(false, false, false);
- if cornerPlaneSide = 0 then Exit(true);
- Side := cornerPlaneSide > 0;
-
- for bits := 1 to 7 do
- begin
-  cornerPlaneSide := CalcCornerPlaneSide(
-    (bits and 1) <> 0,
-    (bits and 2) <> 0,
-    (bits and 4) <> 0);
-  if cornerPlaneSide = 0 then Exit(true);
-  if (cornerPlaneSide > 0) <> Side then Exit(true);
- end;
-
- result := false;
-end;
-
 function IsBox3dPlaneCollision(const Box3d: TBox3d;
   const Plane: TVector4Single): boolean;
 var
@@ -954,13 +903,6 @@ begin
   PlaneMoved := PlaneAntiMove(Plane, BoxCenter);
 
   Result := IsCenteredBox3dPlaneCollision(BoxHalfSize, PlaneMoved);
-
-  if Result <> Old_IsBox3dPlaneCollision(Box3d, Plane) then
-  begin
-    Writeln('fail: ', Box3dToNiceStr(Box3d), ' ', VectorToNiceStr(Plane), ' ',
-      Result, ' ', Old_IsBox3dPlaneCollision(Box3d, Plane));
-  end else
-    Writeln('success');
 end;
 
 function IsCenteredBox3dPlaneCollision(
