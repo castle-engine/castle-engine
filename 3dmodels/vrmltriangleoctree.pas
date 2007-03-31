@@ -232,7 +232,11 @@ type
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
       const OctreeItemIndexToIgnore: integer;
-      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer; overload;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+
+    function BoxCollision(const ABox: TBox3d;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
 
     function SegmentCollision(
       out Intersection: TVector3Single;
@@ -419,6 +423,10 @@ type
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 
+    function BoxCollision(const ABox: TBox3d;
+      const OctreeItemIndexToIgnore: integer;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
+
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
@@ -471,6 +479,14 @@ type
     function MoveAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
       const CameraRadius: Single;
+      const OctreeItemIndexToIgnore: integer = NoItemIndex;
+      const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
+
+    { This is like @link(MoveAllowedSimple), but it checks for collision
+      around ProposedNewPos using TBox3d instead of a sphere. }
+    function MoveBoxAllowedSimple(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const ProposedNewBox: TBox3d;
       const OctreeItemIndexToIgnore: integer = NoItemIndex;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc = nil): boolean;
 
@@ -791,18 +807,51 @@ begin
         (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
         ( (not Assigned(ItemsToIgnoreFunc)) or
           (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
-       Exit(ItemsIndices[i]);
+        Exit(ItemsIndices[i]);
     end;
     Exit(NoItemIndex);
   end else
   begin
     { TODO: traktujemy tu sfere jako szescian a wiec byc moze wejdziemy w wiecej
-      SubNode'ow niz rzeczywiscie musimy. Kolizje ze sfera nie sa specjalnie
-      wykorzystywane (jak dotad tylko malfunction ich uzywa) wiec nie sa
-      zbytnio zoptymalizowane. }
+      SubNode'ow niz rzeczywiscie musimy. }
     result := NoItemIndex;
     OSIS_Box[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
     OSIS_Box[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+    OCTREE_STEP_INTO_SUBNODES
+  end;
+end;
+
+function TTriangleOctreeNode.BoxCollision(const ABox: TBox3d;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): Integer;
+
+  procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
+  begin
+    Result := TTriangleOctreeNode(subnode).BoxCollision(ABox,
+      OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+    Stop := result <> NoItemIndex;
+  end;
+
+OCTREE_STEP_INTO_SUBNODES_DECLARE
+var
+  i: integer;
+begin
+  if IsLeaf then
+  begin
+    for i := 0 to ItemsIndices.High do
+    begin
+      Inc(ParentTree.DirectCollisionTestsCounter);
+      if IsBox3dTriangleCollision(ABox, Items[i]^.Triangle) and
+        (OctreeItemIndexToIgnore <> ItemsIndices[I]) and
+        ( (not Assigned(ItemsToIgnoreFunc)) or
+          (not ItemsToIgnoreFunc(ParentTree, ItemsIndices[I])) ) then
+        Exit(ItemsIndices[i]);
+    end;
+    Exit(NoItemIndex);
+  end else
+  begin
+    Result := NoItemIndex;
+    OSIS_Box := ABox;
     OCTREE_STEP_INTO_SUBNODES
   end;
 end;
@@ -924,8 +973,16 @@ function TVRMLTriangleOctree.SphereCollision(const pos: TVector3Single;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
 begin
- result := TreeRoot.SphereCollision(pos, Radius,
-   OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+  Result := TreeRoot.SphereCollision(pos, Radius,
+    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
+end;
+
+function TVRMLTriangleOctree.BoxCollision(const ABox: TBox3d;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): integer;
+begin
+  Result := TreeRoot.BoxCollision(ABox,
+    OctreeItemIndexToIgnore, ItemsToIgnoreFunc);
 end;
 
 {$define RayCollision_CommonParams :=
@@ -983,11 +1040,24 @@ function TVRMLTriangleOctree.MoveAllowedSimple(
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
 begin
- Result :=
-   (SegmentCollision(OldPos, ProposedNewPos, false,
-     OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
-   (SphereCollision(ProposedNewPos, CameraRadius,
-     OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+  Result :=
+    (SegmentCollision(OldPos, ProposedNewPos, false,
+      OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
+    (SphereCollision(ProposedNewPos, CameraRadius,
+      OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
+end;
+
+function TVRMLTriangleOctree.MoveBoxAllowedSimple(
+  const OldPos, ProposedNewPos: TVector3Single;
+  const ProposedNewBox: TBox3d;
+  const OctreeItemIndexToIgnore: integer;
+  const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc): boolean;
+begin
+  Result :=
+    (SegmentCollision(OldPos, ProposedNewPos, false,
+      OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc) = NoItemIndex) and
+    (BoxCollision(ProposedNewBox,
+      OctreeItemIndexToIgnore, ItemsToIgnoreFunc) = NoItemIndex);
 end;
 
 function TVRMLTriangleOctree.MoveAllowed(
