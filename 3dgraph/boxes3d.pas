@@ -176,6 +176,10 @@ function BoundingBoxTransform(const bbox: TBox3d;
 function Box3dTranslate(const Box: TBox3d;
   const Translation: TVector3Single): TBox3d;
 
+{ Move Box, by -Translation. Does nothing if Box is empty. }
+function Box3dAntiTranslate(const Box: TBox3d;
+  const Translation: TVector3Single): TBox3d;
+
 function Box3dToNiceStr(const box: TBox3d): string;
 
 procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); overload;
@@ -723,6 +727,17 @@ begin
   begin
     Result[0] := VectorAdd(Box[0], Translation);
     Result[1] := VectorAdd(Box[1], Translation);
+  end else
+    Result := EmptyBox3d;
+end;
+
+function Box3dAntiTranslate(const Box: TBox3d;
+  const Translation: TVector3Single): TBox3d;
+begin
+  if not IsEmptyBox3d(Box) then
+  begin
+    Result[0] := VectorSubtract(Box[0], Translation);
+    Result[1] := VectorSubtract(Box[1], Translation);
   end else
     Result := EmptyBox3d;
 end;
