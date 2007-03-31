@@ -16,6 +16,7 @@ uses
   TestDynArrays,
   TestKambiClassUtils,
   TestVectorMath,
+  TestBoxes3d,
   TestParsingParameters,
   TestFNMatch,
   TestVRMLFields,
@@ -23,9 +24,9 @@ uses
   TestVRMLFlatSceneGL,
   TestIntRects,
   TestSpaceFillingCurves,
-  TestObjectsList, 
+  TestObjectsList,
   {$ifndef TEXT_RUNNER}
-  kambi_units, 
+  kambi_units,
   {$endif}
   TestKambiStringUtils;
 

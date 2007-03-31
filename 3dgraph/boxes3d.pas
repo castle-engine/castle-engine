@@ -225,11 +225,10 @@ function IsCenteredBox3dPlaneCollision(
 function IsBox3dPlaneCollision(const Box3d: TBox3d;
   const Plane: TVector4Single): boolean;
 
-{function IsBox3dTriangleCollision(
+function IsBox3dTriangleCollision(
   const Box: TBox3d;
-  const Triangle: TTriangle3Single;
-  const TriangleNormalPlane: TVector4Single): boolean;
-}
+  const Triangle: TTriangle3Single): boolean;
+
 { This is equivalent to @link(FrustumSphereCollisionPossible),
   but here it takes a box instead of a sphere. }
 function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
@@ -949,6 +948,195 @@ begin
              Plane[1] * VMax[1] +
              Plane[2] * VMax[2] +
              Plane[3] >= 0;
+end;
+
+function IsBox3dTriangleCollision(
+  const Box: TBox3d;
+  const Triangle: TTriangle3Single): boolean;
+
+{ Implementation of this is based on
+  [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
+  by Tomas Akenine-Möller, described
+  in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
+  "Fast 3D Triangle-Box Overlap Testing", downloadable from
+  [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
+
+  Use separating axis theorem to test overlap between triangle and box
+  need to test for overlap in these directions:
+  1) the (x,y,z)-directions
+  2) normal of the triangle
+  3) crossproduct(edge from tri, (x,y,z)-direction)
+     this gives 3x3=9 more tests
+}
+
+var
+  TriangleMoved: TTriangle3Single;
+  BoxHalfSize: TVector3Single;
+
+  { ======================== X-tests ======================== }
+  function AXISTEST_X01(const a, b, fa, fb: Single): boolean;
+  var
+    p0, p2, rad, min, max: Single;
+  begin
+    p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
+    p2 := a * TriangleMoved[2][1] - b * TriangleMoved[2][2];
+    if p0<p2 then begin min := p0; max := p2; end else
+                  begin min := p2; max := p0; end;
+    rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  function AXISTEST_X2(const a, b, fa, fb: Single): boolean;
+  var
+    p0, p1, rad, min, max: Single;
+  begin
+    p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
+    p1 := a * TriangleMoved[1][1] - b * TriangleMoved[1][2];
+    if p0<p1 then begin min := p0; max := p1; end else
+                  begin min := p1; max := p0; end;
+    rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  { ======================== Y-tests ======================== }
+  function AXISTEST_Y02(const a, b, fa, fb: Single): boolean;
+  var
+    p0, p2, rad, min, max: Single;
+  begin
+    p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
+    p2 := -a * TriangleMoved[2][0] + b * TriangleMoved[2][2];
+    if p0<p2 then begin min := p0; max := p2; end else
+                  begin min := p2; max := p0; end;
+    rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  function AXISTEST_Y1(const a, b, fa, fb: Single): boolean;
+  var
+    p0, p1, rad, min, max: Single;
+  begin
+    p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
+    p1 := -a * TriangleMoved[1][0] + b * TriangleMoved[1][2];
+    if p0<p1 then begin min := p0; max := p1; end else
+                  begin min := p1; max := p0; end;
+    rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  { ======================== Z-tests ======================== }
+  function AXISTEST_Z12(const a, b, fa, fb: Single): boolean;
+  var
+    p1, p2, rad, min, max: Single;
+  begin
+    p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
+    p2 := a * TriangleMoved[2][0] - b * TriangleMoved[2][1];
+    if p2<p1 then begin min := p2; max := p1; end else
+                  begin min := p1; max := p2; end;
+    rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  function AXISTEST_Z0(const a, b, fa, fb: Single): boolean;
+  var
+    p0, p1, rad, min, max: Single;
+  begin
+    p0 := a * TriangleMoved[0][0] - b * TriangleMoved[0][1];
+    p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
+    if p0<p1 then begin min := p0; max := p1; end else
+                  begin min := p1; max := p0; end;
+    rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
+    Result := (min>rad) or (max<-rad);
+  end;
+
+  procedure FindMinMax(const x0, x1, x2: Single; out min, max: Single);
+  begin
+    min := x0;
+    max := x0;
+    if   x1 < min then min := x1 else
+      if x1 > max then max := x1;
+    if   x2 < min then min := x2 else
+      if x2 > max then max := x2;
+  end;
+
+var
+  BoxCenter: TVector3Single;
+  I: Integer;
+  TriangleEdges: array [0..2] of TVector3Single;
+  EdgeAbs: TVector3Single;
+  min, max: Single;
+  Plane: TVector4Single;
+  PlaneDir: TVector3Single absolute Plane;
+begin
+  if IsEmptyBox3d(Box) then
+    Exit(false);
+
+  { calculate BoxCenter and BoxHalfSize }
+  for I := 0 to 2 do
+  begin
+    BoxCenter[I] := (Box[0, I] + Box[1, I]) / 2;
+    BoxHalfSize[I] := (Box[1, I] - Box[0, I]) / 2;
+  end;
+
+  { calculate TriangleMoved (Triangle shifted by -BoxCenter,
+    so that we can treat the BoxHalfSize as centered around origin) }
+  TriangleMoved[0] := VectorSubtract(Triangle[0], BoxCenter);
+  TriangleMoved[1] := VectorSubtract(Triangle[1], BoxCenter);
+  TriangleMoved[2] := VectorSubtract(Triangle[2], BoxCenter);
+
+  { calculate TriangleMoved edges }
+  TriangleEdges[0] := VectorSubtract(TriangleMoved[1], TriangleMoved[0]);
+  TriangleEdges[1] := VectorSubtract(TriangleMoved[2], TriangleMoved[1]);
+  TriangleEdges[2] := VectorSubtract(TriangleMoved[0], TriangleMoved[2]);
+
+  { tests 3) }
+  EdgeAbs[0] := Abs(TriangleEdges[0][0]);
+  EdgeAbs[1] := Abs(TriangleEdges[0][1]);
+  EdgeAbs[2] := Abs(TriangleEdges[0][2]);
+  if AXISTEST_X01(TriangleEdges[0][2], TriangleEdges[0][1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[0][2], TriangleEdges[0][0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[0][1], TriangleEdges[0][0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+
+  EdgeAbs[0] := Abs(TriangleEdges[1][0]);
+  EdgeAbs[1] := Abs(TriangleEdges[1][1]);
+  EdgeAbs[2] := Abs(TriangleEdges[1][2]);
+  if AXISTEST_X01(TriangleEdges[1][2], TriangleEdges[1][1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+  if AXISTEST_Y02(TriangleEdges[1][2], TriangleEdges[1][0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+  if AXISTEST_Z0 (TriangleEdges[1][1], TriangleEdges[1][0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+
+  EdgeAbs[0] := Abs(TriangleEdges[2][0]);
+  EdgeAbs[1] := Abs(TriangleEdges[2][1]);
+  EdgeAbs[2] := Abs(TriangleEdges[2][2]);
+  if AXISTEST_X2 (TriangleEdges[2][2], TriangleEdges[2][1], EdgeAbs[2], EdgeAbs[1]) then Exit(false);
+  if AXISTEST_Y1 (TriangleEdges[2][2], TriangleEdges[2][0], EdgeAbs[2], EdgeAbs[0]) then Exit(false);
+  if AXISTEST_Z12(TriangleEdges[2][1], TriangleEdges[2][0], EdgeAbs[1], EdgeAbs[0]) then Exit(false);
+
+  { tests 1)
+    first test overlap in the (x,y,z)-directions
+    find min, max of the triangle each direction, and test for overlap in
+    that direction -- this is equivalent to testing a minimal AABB around
+    the triangle against the AABB }
+
+  { test in X-direction }
+  FindMinMax(TriangleMoved[0][0], TriangleMoved[1][0], TriangleMoved[2][0], min, max);
+  if (min > boxhalfsize[0]) or (max < -boxhalfsize[0]) then Exit(false);
+
+  { test in Y-direction }
+  FindMinMax(TriangleMoved[0][1], TriangleMoved[1][1], TriangleMoved[2][1], min, max);
+  if (min > boxhalfsize[1]) or (max < -boxhalfsize[1]) then Exit(false);
+
+  { test in Z-direction }
+  FindMinMax(TriangleMoved[0][2], TriangleMoved[1][2], TriangleMoved[2][2], min, max);
+  if (min > boxhalfsize[2]) or (max < -boxhalfsize[2]) then Exit(false);
+
+  { tests 2)
+    test if the box intersects the plane of the triangle
+    compute plane equation of triangle: normal*x+d=0 }
+  PlaneDir := VectorProduct(TriangleEdges[0], TriangleEdges[1]);
+  Plane[3] := -VectorDotProduct(PlaneDir, TriangleMoved[0]);
+  if not IsCenteredBox3dPlaneCollision(BoxHalfSize, Plane) then
+    Exit(false);
+
+  Result := true; { box and triangle overlaps }
 end;
 
 function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
