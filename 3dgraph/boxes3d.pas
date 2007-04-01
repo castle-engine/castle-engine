@@ -280,6 +280,22 @@ function Box3dXYSqrRadius(const Box: TBox3d): Single;
   (not it's Sqr). Speed note: you pay here one Sqrt operation. }
 function Box3dXYRadius(const Box: TBox3d): Single;
 
+{ Check for collision betweeb box and sphere, fast @italic(but not
+  entirely correct).
+
+  This considers a Box enlarged by SphereRadius in each direction.
+  Then checks whether SphereRadius is inside such enlarged Box.
+  So this check will incorrectly report collision while in fact
+  there's no collision in the case when the Sphere is very near
+  the edge of the Box.
+
+  So this check is not 100% correct. But often this is good enough
+  --- in games, if you know that the SphereRadius is going to be
+  relatively small compared to the Box, this may be perfectly
+  acceptable. And it's fast. }
+function Box3dSphereSimpleCollision(const Box: TBox3d;
+  const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+
 type
   TDynArrayItem_1 = TBox3d;
   PDynArrayItem_1 = PBox3d;
@@ -1351,6 +1367,18 @@ end;
 function Box3dXYRadius(const Box: TBox3d): Single;
 begin
   Result := Sqrt(Box3dXYSqrRadius(Box));
+end;
+
+function Box3dSphereSimpleCollision(const Box: TBox3d;
+  const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+begin
+  Result := (not IsEmptyBox3d(Box)) and
+    (SphereCenter[0] >= Box[0][0] - SphereRadius) and
+    (SphereCenter[0] <= Box[1][0] + SphereRadius) and
+    (SphereCenter[1] >= Box[0][1] - SphereRadius) and
+    (SphereCenter[1] <= Box[1][1] + SphereRadius) and
+    (SphereCenter[2] >= Box[0][2] - SphereRadius) and
+    (SphereCenter[2] <= Box[1][2] + SphereRadius);
 end;
 
 end.
