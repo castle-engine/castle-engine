@@ -124,6 +124,17 @@ type
       do rzeczywistych pixeli).}
     procedure Draw2d(GLMaxX, GLMaxY, PixelWidth, PixelHeight: integer);
 
+    { This returns whether Draw2d will actually draw anything.
+      This just checks whether we have any messages that we want to
+      display --- if not, then you don't need to call Draw2d,
+      as it will not do anything.
+
+      This function is useful only if you want to draw some background under
+      TimeMessages, like in "The Castle". Then you want to know whether
+      the background is needed now or not --- that's where this function
+      is usefull. }
+    function DrawNeeded: boolean;
+
     { Font used to draw messages. Read-only for now, in the future
       you should be allowed to change it. }
     property MessageFont: TGLBitmapFont_Abstract read FMessageFont;
@@ -255,6 +266,11 @@ begin
   glRasterPos2i(x, y);
   messageFont.print(messages.Items[i].Text);
  end;
+end;
+
+function TTimeMessagesManager.DrawNeeded: boolean;
+begin
+  Result := Messages.Count <> 0;
 end;
 
 procedure TTimeMessagesManager.Idle;
