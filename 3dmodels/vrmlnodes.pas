@@ -489,6 +489,9 @@ type
   TEnumerateChildrenFunction =
     procedure (Node, Child: TVRMLNode) of object;
 
+  TEnumerateRemoveNodesFunction =
+    procedure (ParentNode, Node: TVRMLNode; var RemoveNode: boolean) of object;
+
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
@@ -1155,6 +1158,30 @@ type
       It's useful to set this to false if you use
       Children internally, e.g. *Inline nodes. }
     class function ChildrenSaveToStream: boolean; virtual;
+
+    { This enumerates all children nodes (recursively),
+      allowing you to decide for each node to remove it.
+
+      So this is something like EnumerateNodes,
+      except that it allows you to remove the nodes. It always
+      enumerates all nodes, not only active (e.g. it enumerates all
+      Switch node children, not only the chosen one).
+
+      Note that (unlike regular EnumerateNodes) @bold(this doesn't
+      report Self to Func !). Which is natural, since this removes
+      nodes by normal RemoveChild calls, so it needs to know ParentNode
+      of the removed node.
+
+      For each node Func will be called, with ParentNode and Node set.
+      Func will get RemoveNode boolean value initially set to @false.
+      If you change this to @true, the node will be removed.
+
+      Nodes are traversed in depth-first search. Node is first reported
+      to Func, and then (if it's not removed) we descend into this Node.
+
+      @returns The number of removed nodes. }
+    function EnumerateRemoveChildren(
+      Func: TEnumerateRemoveNodesFunction): Cardinal;
 
     { Removes all children (and their children, recursively) with
       node names matchig Wildcard. You can use * and ? special chars
@@ -5027,12 +5054,13 @@ begin
   Result := true;
 end;
 
-function TVRMLNode.RemoveChildrenWithMatchingName(
-  const Wildcard: string; IgnoreCase: Boolean): Cardinal;
+function TVRMLNode.EnumerateRemoveChildren(
+  Func: TEnumerateRemoveNodesFunction): Cardinal;
 var
   I, J: Integer;
   SF: TSFNode;
   MF: TMFNode;
+  RemoveNode: boolean;
 begin
   { I don't use EnumerateNodes since I have to enumerate them myself,
     since they may be removed during enumeration.
@@ -5044,13 +5072,15 @@ begin
   I := 0;
   while I < ChildrenCount do
   begin
-    if IsWild(Children[I].NodeName, Wildcard, IgnoreCase) then
+    RemoveNode := false;
+    Func(Self, Children[I], RemoveNode);
+    if RemoveNode then
     begin
       RemoveChild(I);
       Inc(Result);
     end else
     begin
-      Result += Children[I].RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+      Result += Children[I].EnumerateRemoveChildren(Func);
       Inc(I);
     end;
   end;
@@ -5062,13 +5092,15 @@ begin
       SF := TSFNode(Fields[I]);
       if SF.Value <> nil then
       begin
-        if IsWild(SF.Value.NodeName, Wildcard, IgnoreCase) then
+        RemoveNode := false;
+        Func(Self, SF.Value, RemoveNode);
+        if RemoveNode then
         begin
           SF.Value := nil;
           Inc(Result);
         end else
         begin
-          Result += SF.Value.RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+          Result += SF.Value.EnumerateRemoveChildren(Func);
         end;
       end;
     end else
@@ -5078,18 +5110,46 @@ begin
       J := 0;
       while J < MF.Items.Count do
       begin
-        if IsWild(MF.Items[J].NodeName, Wildcard, IgnoreCase) then
+        RemoveNode := false;
+        Func(Self, MF.Items[J], RemoveNode);
+        if RemoveNode then
         begin
           MF.RemoveItem(J);
           Inc(Result);
         end else
         begin
-          Result += MF.Items[J].RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+          Result += MF.Items[J].EnumerateRemoveChildren(Func);
           Inc(J);
         end;
       end;
     end;
   end;
+end;
+
+  type
+    TRemoveChildrenWithMatchingNameHelper = class
+      Wildcard: string;
+      IgnoreCase: boolean;
+      procedure DoIt(ParentNode, Node: TVRMLNode; var RemoveNode: boolean);
+    end;
+
+  procedure TRemoveChildrenWithMatchingNameHelper.DoIt(
+    ParentNode, Node: TVRMLNode; var RemoveNode: boolean);
+  begin
+    RemoveNode := IsWild(Node.NodeName, Wildcard, IgnoreCase);
+  end;
+
+function TVRMLNode.RemoveChildrenWithMatchingName(
+  const Wildcard: string; IgnoreCase: Boolean): Cardinal;
+var
+  Helper: TRemoveChildrenWithMatchingNameHelper;
+begin
+  Helper := TRemoveChildrenWithMatchingNameHelper.Create;
+  try
+    Helper.Wildcard := Wildcard;
+    Helper.IgnoreCase := IgnoreCase;
+    Result := EnumerateRemoveChildren(@Helper.DoIt);
+  finally FreeAndNil(Helper) end;
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
