@@ -1155,6 +1155,13 @@ type
       It's useful to set this to false if you use
       Children internally, e.g. *Inline nodes. }
     class function ChildrenSaveToStream: boolean; virtual;
+
+    { Removes all children (and their children, recursively) with
+      node names matchig Wildcard. You can use * and ? special chars
+      in the Wildcard.
+      @returns The number of removed nodes. }
+    function RemoveChildrenWithMatchingName(
+      const Wildcard: string; IgnoreCase: Boolean): Cardinal;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1263,6 +1270,7 @@ type
     property Items: TVRMLNodesList read FItems;
 
     procedure AddItem(Node: TVRMLNode);
+    procedure RemoveItem(Index: Integer);
     procedure ClearItems;
     procedure AssignItems(SourceItems: TVRMLNodesList);
     procedure ReplaceItem(Index: Integer; Node: TVRMLNode);
@@ -4043,7 +4051,7 @@ uses
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
-  KambiStringUtils, KambiFilesUtils, RaysWindow;
+  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -5019,6 +5027,71 @@ begin
   Result := true;
 end;
 
+function TVRMLNode.RemoveChildrenWithMatchingName(
+  const Wildcard: string; IgnoreCase: Boolean): Cardinal;
+var
+  I, J: Integer;
+  SF: TSFNode;
+  MF: TMFNode;
+begin
+  { I don't use EnumerateNodes since I have to enumerate them myself,
+    since they may be removed during enumeration.
+    The code below mimics TVRMLNode.DirectEnumerateAll implementation,
+    but it takes into account that nodes may be removed. }
+
+  Result := 0;
+
+  I := 0;
+  while I < ChildrenCount do
+  begin
+    if IsWild(Children[I].NodeName, Wildcard, IgnoreCase) then
+    begin
+      RemoveChild(I);
+      Inc(Result);
+    end else
+    begin
+      Result += Children[I].RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+      Inc(I);
+    end;
+  end;
+
+  for I := 0 to Fields.Count - 1 do
+  begin
+    if Fields[I] is TSFNode then
+    begin
+      SF := TSFNode(Fields[I]);
+      if SF.Value <> nil then
+      begin
+        if IsWild(SF.Value.NodeName, Wildcard, IgnoreCase) then
+        begin
+          SF.Value := nil;
+          Inc(Result);
+        end else
+        begin
+          Result += SF.Value.RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+        end;
+      end;
+    end else
+    if Fields[I] is TMFNode then
+    begin
+      MF := TMFNode(Fields[I]);
+      J := 0;
+      while J < MF.Items.Count do
+      begin
+        if IsWild(MF.Items[J].NodeName, Wildcard, IgnoreCase) then
+        begin
+          MF.RemoveItem(J);
+          Inc(Result);
+        end else
+        begin
+          Result += MF.Items[J].RemoveChildrenWithMatchingName(Wildcard, IgnoreCase);
+          Inc(J);
+        end;
+      end;
+    end;
+  end;
+end;
+
 { TVRMLNodeClassesList ------------------------------------------------------- }
 
 function TVRMLNodeClassesList.GetItems(Index: Integer): TVRMLNodeClass;
@@ -5220,6 +5293,12 @@ procedure TMFNode.AddItem(Node: TVRMLNode);
 begin
   Items.Add(Node);
   Node.AddParentField(Self);
+end;
+
+procedure TMFNode.RemoveItem(Index: Integer);
+begin
+  Items[Index].RemoveParentField(Self);
+  Items.Delete(Index);
 end;
 
 procedure TMFNode.ReplaceItem(Index: Integer; Node: TVRMLNode);
