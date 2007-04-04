@@ -531,11 +531,19 @@ type
       CameraPos in direction -HomeCameraUp, and sets IsAboveTheGround
       and SqrHeightAboveTheGround as needed.
 
+      Also GroundItemIndex is set to index of octree item immediately
+      below the camera (if IsAboveTheGround). This can be handy to detect
+      e.g. that player walks on hot lava and he should be wounded,
+      or that he walks on concrete/grass ground (to set his footsteps
+      sound accordingly). If IsAboveTheGround then for sure GroundItemIndex
+      <> NoItemIndex.
+
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision. }
     procedure GetCameraHeight(
       const CameraPos, HomeCameraUp: TVector3Single;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+      out GroundItemIndex: Integer;
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
@@ -547,6 +555,7 @@ type
     procedure GetCameraHeightZ(
       const CameraPos: TVector3Single;
       out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
+      out GroundItemIndex: Integer;
       const OctreeItemIndexToIgnore: Integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
@@ -1131,15 +1140,16 @@ end;
 procedure TVRMLTriangleOctree.GetCameraHeight(
   const CameraPos, HomeCameraUp: TVector3Single;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
+  out GroundItemIndex: Integer;
   const OctreeItemIndexToIgnore: integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 var
   GroundIntersection: TVector3Single;
 begin
-  IsAboveTheGround := RayCollision(GroundIntersection,
+  GroundItemIndex := RayCollision(GroundIntersection,
     CameraPos, VectorNegate(HomeCameraUp), true,
-    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc)
-    <> NoItemIndex;
+    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
+  IsAboveTheGround := GroundItemIndex <> NoItemIndex;
   if IsAboveTheGround then
     SqrHeightAboveTheGround := PointsDistanceSqr(CameraPos, GroundIntersection);
 end;
@@ -1147,6 +1157,7 @@ end;
 procedure TVRMLTriangleOctree.GetCameraHeightZ(
   const CameraPos: TVector3Single;
   out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
+  out GroundItemIndex: Integer;
   const OctreeItemIndexToIgnore: Integer;
   const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 const
@@ -1154,10 +1165,10 @@ const
 var
   GroundIntersection: TVector3Single;
 begin
-  IsAboveTheGround := RayCollision(GroundIntersection,
+  GroundItemIndex := RayCollision(GroundIntersection,
     CameraPos, RayDir, true,
-    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc)
-    <> NoItemIndex;
+    OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
+  IsAboveTheGround := GroundItemIndex <> NoItemIndex;
   if IsAboveTheGround then
     { Calculation of HeightAboveTheGround uses the fact that RayDir is so simple. }
     HeightAboveTheGround := CameraPos[2] - GroundIntersection[2];

@@ -600,13 +600,6 @@ type
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
 
-    procedure Fonts_IncReference(
-      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
-      TTF_Font: PTrueTypeFont);
-
-    procedure Fonts_DecReference(
-      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
-
     { Note that either TextureFileName or TextureNode will be ignored,
       depending on UseTextureFileNames. }
     function Texture_IncReference(
@@ -626,6 +619,13 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    function Fonts_IncReference(
+      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
+      TTF_Font: PTrueTypeFont): TGLOutlineFont;
+
+    procedure Fonts_DecReference(
+      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 
     { This deteremines how texture comparison with the cache is performed,
       i.e. when Texture_IncReference assumes that we have given texture
@@ -986,13 +986,14 @@ begin
   inherited;
 end;
 
-procedure TVRMLOpenGLRendererContextCache.Fonts_IncReference(
+function TVRMLOpenGLRendererContextCache.Fonts_IncReference(
   fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
-  TTF_Font: PTrueTypeFont);
+  TTF_Font: PTrueTypeFont): TGLOutlineFont;
 begin
   Inc(Fonts[fsfam, fsbold, fsitalic].References);
   if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
     Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(TTF_Font);
+  Result := Fonts[fsfam, fsbold, fsitalic].Instance;
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : Font : ', Fonts[fsfam, fsbold, fsitalic].References);
   {$endif}

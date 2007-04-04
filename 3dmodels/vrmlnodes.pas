@@ -2775,6 +2775,9 @@ type
     class function DefaultItalic: boolean;
     class function DefaultJustify: TVRMLFontJustify;
     class function DefaultTTF_Font: PTrueTypeFont;
+
+    class function ClassTTF_Font(AFamily: TVRMLFontFamily;
+      const ABold, AItalic: boolean): PTrueTypeFont;
   end;
 
   TNodeGeoCoordinate = class(TVRMLNode)
@@ -7293,6 +7296,12 @@ end;
 function TNodeFontStyle_2.TTF_Font: PTrueTypeFont;
 begin
   Result := TTF_Font_Results[Family, Bold, Italic];
+end;
+
+class function TNodeFontStyle_2.ClassTTF_Font(
+  AFamily: TVRMLFontFamily; const ABold, AItalic: boolean): PTrueTypeFont;
+begin
+  Result := TTF_Font_Results[AFamily, ABold, AItalic];
 end;
 
 function TNodeFontStyle_2.Family: TVRMLFontFamily;
