@@ -260,13 +260,21 @@ begin
  FMax := KambiUtils.Max(AMax, 1);
  FTitle := ATitle;
  WasUpdateCalled := false;
- UserInterface.Init(Self);
 
- { to znaczy ze Max bylo sztucznie poprawione na 1 (bo bylo <=0).
-   Wiec wywolaj teraz Step zeby progress zostal pokazany jako zakonczony.
-   No bo jezeli Max <=0 to tak naprawde o to chodzi - progress jest zakonczony
-   od razu w chwili rozpoczecia) }
- if AMax < Max then Step;
+ try
+   UserInterface.Init(Self);
+
+   { to znaczy ze Max bylo sztucznie poprawione na 1 (bo bylo <=0).
+     Wiec wywolaj teraz Step zeby progress zostal pokazany jako zakonczony.
+     No bo jezeli Max <=0 to tak naprawde o to chodzi - progress jest zakonczony
+     od razu w chwili rozpoczecia) }
+   if AMax < Max then Step;
+ except
+   { In case of problems within UserInterface.Init, call UserInterface.Fini
+     and change our state to not Active. }
+   Fini;
+   raise;
+ end;
 end;
 
 procedure TProgress.Step(StepSize: Cardinal);
