@@ -954,6 +954,31 @@ function IsCenteredBox3dPlaneCollision(
 var
   I: Integer;
   VMin, VMax: TVector3Single;
+const
+  { This sucks. Big time. But I really cannot use here 0.
+    Or even SingleEqualityEpsilon --- SingleEqualityEpsilon is still too
+    small. Testcase:
+      Plane[0] := 0;
+      Plane[1] := 0;
+      Plane[2] := 1;
+      Plane[3] := 1.980401039E+00;
+      Box[0][0] :=  2.837333679E-01;
+      Box[0][1] := -9.844776917E+01;
+      Box[0][2] := -1.980401039E+00;
+      Box[1][0] :=  1.283623352E+02;
+      Box[1][1] :=  3.240192413E+00;
+      Box[1][2] :=  3.100979996E+01;
+      Assert(IsBox3dPlaneCollision(Box, Plane));
+    (it's included in autotests in ../tests/).
+    It's clear that collision does occur (since Plane[3] = -Box[0][2]).
+    But for these values I get
+      Plane[0] * VMin[0] +
+      Plane[1] * VMin[1] +
+      Plane[2] * VMin[2] +
+      Plane[3] = 1.907348633E-06
+    So it's really really small, but still > 0, and even > standard
+    SingleEqualityEpsilon. }
+  EqualityEpsilon = 1e-5;
 begin
   for I := 0 to 2 do
     if Plane[I] > 0 then
@@ -971,14 +996,14 @@ begin
   if Plane[0] * VMin[0] +
      Plane[1] * VMin[1] +
      Plane[2] * VMin[2] +
-     Plane[3] > 0 then
+     Plane[3] > EqualityEpsilon then
     Exit(false);
 
   { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
   Result :=  Plane[0] * VMax[0] +
              Plane[1] * VMax[1] +
              Plane[2] * VMax[2] +
-             Plane[3] >= 0;
+             Plane[3] >= EqualityEpsilon;
 end;
 
 function IsBox3dTriangleCollision(

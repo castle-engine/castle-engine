@@ -40,7 +40,7 @@ procedure TTestVRMLFlatSceneGL.TestVRMLFlatSceneGL;
   procedure EmptySceneAsserts(EmptyScene: TVRMLFlatSceneGL);
   var
     CamKind: TVRMLCameraKind;
-    CamPos, CamDir, CamUp: TVector3Single;
+    CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   begin
    Assert(EmptyScene.VerticesCount(false) = 0);
    Assert(EmptyScene.VerticesCount(true) = 0);
@@ -51,7 +51,7 @@ procedure TTestVRMLFlatSceneGL.TestVRMLFlatSceneGL;
 
    Assert(EmptyScene.ShapeStates.Count = 0);
 
-   Assert(EmptyScene.GetViewpoint(CamKind, CamPos, CamDir, CamUp) = nil);
+   Assert(EmptyScene.GetViewpoint(CamKind, CamPos, CamDir, CamUp, GravityUp) = nil);
 
    Assert(EmptyScene.FogNode = nil);
 

@@ -63,6 +63,7 @@ end;
 procedure TTestBoxes3d.TestIsBox3dPlaneCollision;
 var
   Box: TBox3d;
+  Plane: TVector4Single;
 begin
   Box[0] := Vector3Single(-10, -1, -1);
   Box[1] := Vector3Single( 10,  1,  1);
@@ -92,6 +93,18 @@ begin
     Box, Vector4Single(0, 1, 0, 0)));
   Assert(IsBox3dPlaneCollision(
     Box, Vector4Single(1, 0, 0, 0)));
+
+  Plane[0] := 0;
+  Plane[1] := 0;
+  Plane[2] := 1;
+  Plane[3] := 1.980401039E+00;
+  Box[0][0] :=  2.837333679E-01;
+  Box[0][1] := -9.844776917E+01;
+  Box[0][2] := -1.980401039E+00;
+  Box[1][0] :=  1.283623352E+02;
+  Box[1][1] :=  3.240192413E+00;
+  Box[1][2] :=  3.100979996E+01;
+  Assert(IsBox3dPlaneCollision(Box, Plane));
 end;
 
 procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
