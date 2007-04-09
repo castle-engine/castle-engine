@@ -18,20 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ See TALSourceAllocator.
-
-  The very reason for this unit is that when OpenAL implementation will run
-  out of sources then *no error will be raised*. I.e. no OpenAL error
-  (alGetError) will be left, and no exception will be raised.
-  In the worst case TALSourceAllocator.AllocateSource will return nil,
-  but in more probable cases some other sources (unused, or with
-  less priority) will be reused.
-
-  Note that above statement means that the code in this unit must
-  read in some situations alGetError. That's because reading alGetError
-  is the only way to know when OpenAL implementation has run out of sources.
-  So the code in this unit may in various places raise EALError if you
-  made some error in your OpenAL code. }
+{ See TALSourceAllocator. }
 unit ALSourceAllocator;
 
 interface
@@ -168,7 +155,22 @@ type
     )
 
     This class may exist only when OpenAL context is active
-    (and it's the same OpenAL context). }
+    (and it's the same OpenAL context).
+
+    The very reason behind this class is to hide from you the fact that
+    the number of OpenAL sources are limited. In particular, this
+    means that when OpenAL will run out of sources, no OpenAL error
+    (alGetError) will be left, and no exception will be raised.
+    In the worst case TALSourceAllocator.AllocateSource will return nil,
+    but in more probable cases some other sources (unused, or with
+    less priority) will be reused.
+
+    Note that this means that the code in this unit must
+    read in some situations alGetError. That's because reading alGetError
+    is the only way to know when OpenAL implementation has run out of sources.
+    So the code in this unit may in various places raise EALError if you
+    made some error in your OpenAL code, and you didn't check alGetError
+    yourself often enough. }
   TALSourceAllocator = class
   private
     FAllocatedSources: TALAllocatedSourcesList;
