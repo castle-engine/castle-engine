@@ -159,7 +159,7 @@ end;
 
 var
   //i: Integer;
-  CamPos, CamDir, CamUp: TVector3Single;
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   Dummy: TDummy = nil;
 begin
  Parameters.CheckHigh(0);
@@ -179,13 +179,13 @@ begin
   Scene.DefaultShapeStateOctree :=
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
+  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
   { init Glw.Navigator }
   Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
   Glw.NavWalker.Init(CamPos,
     VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp,
+    CamUp, GravityUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
   { init collision detection }

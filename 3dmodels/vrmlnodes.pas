@@ -1998,17 +1998,20 @@ type
     property FdOrientation: TSFRotation index 1 read GetFieldAsSFRotation;
     property FdDirection: TMFVec3f index 2 read GetFieldAsMFVec3f;
     property FdUp: TMFVec3f index 3 read GetFieldAsMFVec3f;
+    property FdGravityUp: TSFVec3f index 4 read GetFieldAsSFVec3f;
 
     class function CameraKind: TVRMLCameraKind; virtual; abstract;
 
-    { Oblicz CamPos, Dir, Up na podstawie aktualnych ustawien kamery - zgodnie
-      ze specyfikacja VRMLa,
+    { Calculate camera properties in the form of 3 vectors
+      (position + direction + up) based on current field values of
+      this node. Following VRML spec:
 
 @preformatted(
   CamPos = FdPosition,
   CamDir = (0, 0, -1) rotated by FdOrientation,
   CamUp = (0, 1, 0) rotated by FdOrientation,
-  and CamPos, Dir, Up are transformed by given CamTransform.
+  GravityUp = (0, 1, 0) (not rotated by FdOrientation!),
+  and everything is transformed by given CamTransform.
 )
       (you should give here the actual VRML transformation at the point in file
       where camera is defined).
@@ -2018,7 +2021,7 @@ type
       FdOrientation ale jest brane wprost z FdDirection.Items[0].
       Podobnie dla FdUp.
 
-      Zwraca zawsze znormalizowany CamDir i CamUp bo:
+      Zwraca zawsze znormalizowany CamDir i CamUp i GravityUp bo:
       @orderedList(
         @item(
           zeby zmusic cie do stosowania konsekwentnej zasady wyrazonej na
@@ -2043,7 +2046,7 @@ type
       TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
       przez CamTransform) for TNodeGeneralVRML1Camera. }
     procedure GetCameraVectors(const CamTransform: TMatrix4Single;
-      out CamPos, CamDir, CamUp: TVector3Single);
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
   TNodeGeneralViewpointClass = class of TNodeGeneralViewpoint;
@@ -2053,15 +2056,15 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    property FdFocalDistance: TSFFloat index 4 read GetFieldAsSFFloat;
-    property FdHeightAngle: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdFocalDistance: TSFFloat index 5 read GetFieldAsSFFloat;
+    property FdHeightAngle: TSFFloat index 6 read GetFieldAsSFFloat;
 
     { Ignored fields -- they are not part of VRML 1.0 spec
       and I was not able to find any spec for them on the net.
       But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
       use them. }
-    property FdNearDistance: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdFarDistance: TSFFloat index 7 read GetFieldAsSFFloat;
+    property FdNearDistance: TSFFloat index 7 read GetFieldAsSFFloat;
+    property FdFarDistance: TSFFloat index 8 read GetFieldAsSFFloat;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -3691,9 +3694,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     { eventIn      SFBool     set_bind } { }
-    property FdfieldOfView: TSFFloat index 4 read GetFieldAsSFFloat;
-    property Fdjump: TSFBool index 5 read GetFieldAsSFBool;
-    property Fddescription: TSFString index 6 read GetFieldAsSFString;
+    property FdfieldOfView: TSFFloat index 5 read GetFieldAsSFFloat;
+    property Fdjump: TSFBool index 6 read GetFieldAsSFBool;
+    property Fddescription: TSFString index 7 read GetFieldAsSFString;
     { eventOut     SFTime     bindTime } { }
     { eventOut     SFBool     isBound } { }
 
@@ -6325,11 +6328,12 @@ begin
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
   Fields.Add(TMFVec3f.Create('direction', []));
   Fields.Add(TMFVec3f.Create('up', []));
+  Fields.Add(TSFVec3f.Create('gravityUp', StdVRMLGravityUp));
 end;
 
 procedure TNodeGeneralViewpoint.GetCameraVectors(
   const CamTransform: TMatrix4Single;
-  out CamPos, CamDir, CamUp: TVector3Single);
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
   CamPos := FdPosition.Value;
   if FdDirection.Items.Length > 0 then
@@ -6338,14 +6342,16 @@ begin
   if FdUp.Items.Length > 0 then
     CamUp := FdUp.Items.Items[0] else
     CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+  GravityUp := FdGravityUp.Value;
 
-  { niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
+  { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
     uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
     TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
   CamPos := MultMatrixPoint(CamTransform, CamPos);
   CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
   CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
+  GravityUp := Normalized( MultMatrixPointNoTranslation(CamTransform, GravityUp) );
 
   Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));

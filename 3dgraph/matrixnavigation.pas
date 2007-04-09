@@ -36,7 +36,7 @@ const
   DefaultHeadBobbing = 0.1;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
-  DefaultMinAngleRadFromHomeUp = { 10 degress } Pi / 18;
+  DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18;
   DefaultRotationHorizontalSpeed = 3.0;
   DefaultRotationVerticalSpeed = 2.0;
   DefaultFallingDownSpeedIncrease = 13/12;
@@ -403,12 +403,13 @@ type
   TMatrixWalker = class(TMatrixNavigatorWithIdle)
   private
     FCameraPos, FCameraDir, FCameraUp,
-    FHomeCameraPos, FHomeCameraDir, FHomeCameraUp: TVector3Single;
+    FInitialCameraPos, FInitialCameraDir, FInitialCameraUp: TVector3Single;
+    FGravityUp: TVector3Single;
 
     FMoveSpeed, FMoveVertSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
-    FPreferHomeUpForRotations: boolean;
-    FPreferHomeUpForMoving: boolean;
+    FPreferGravityUpForRotations: boolean;
+    FPreferGravityUpForMoving: boolean;
 
     procedure SetCameraPos(const Value: TVector3Single);
     procedure SetCameraDir(const Value: TVector3Single);
@@ -424,7 +425,7 @@ type
     FInput_DownRotate: TInputShortcut;
     FInput_UpMove: TInputShortcut;
     FInput_DownMove: TInputShortcut;
-    FInput_HomeUp: TInputShortcut;
+    FInput_GravityUp: TInputShortcut;
     FInput_MoveSpeedInc: TInputShortcut;
     FInput_MoveSpeedDec: TInputShortcut;
     FInput_Jump: TInputShortcut;
@@ -433,13 +434,13 @@ type
     FAllowSlowerRotations: boolean;
     FCheckModsDown: boolean;
 
-    FMinAngleRadFromHomeUp: Single;
+    FMinAngleRadFromGravityUp: Single;
 
     FMouseLook: boolean;
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
 
-    procedure RotateAroundHomeUp(const AngleDeg: Single);
+    procedure RotateAroundGravityUp(const AngleDeg: Single);
     procedure RotateAroundUp(const AngleDeg: Single);
     procedure RotateHorizontal(const AngleDeg: Single);
     procedure RotateVertical(const AngleDeg: Single);
@@ -588,7 +589,7 @@ type
     property Input_DownRotate: TInputShortcut read FInput_DownRotate;
     property Input_UpMove: TInputShortcut read FInput_UpMove;
     property Input_DownMove: TInputShortcut read FInput_DownMove;
-    property Input_HomeUp: TInputShortcut read FInput_HomeUp;
+    property Input_GravityUp: TInputShortcut read FInput_GravityUp;
 
     { Note that Input_MoveSpeedInc and Input_MoveSpeedDec change
       both MoveSpeed and MoveVertSpeed.
@@ -623,12 +624,9 @@ type
 
     { General stuff ----------------------------------------------------- }
 
-    { move*Speed sa na poczatku rowne 1 zebys mogl userowi wyswietlac
+    { Move*Speed sa na poczatku rowne 1 zebys mogl userowi wyswietlac
       te zmienne jako jakas "szybkosc" gdzie 1 oznacza ruch w/g dlugosci
-      wektora dir. Pamietaj ze tak naprawde w czasie ruchu uwzgledniamy
-      zawsze compSpeed i w ogole nie jest jasne jak szybki tak naprawde
-      jest ten ruch - musisz i tak domyslna dlugosc HomeCameraDir dopasowywac
-      eksperymentalnie. }
+      wektora dir. }
     property MoveSpeed: Single
       read FMoveSpeed write FMoveSpeed default 1.0;
     property MoveVertSpeed: Single
@@ -644,10 +642,10 @@ type
 
     { Camera position, looking direction and up vector.
 
-      Initially (after creating this object) they are equal to initial
-      values of HomeCameraPos, HomeCameraDir, HomeCameraUp.
+      Initially (after creating this object) they are equal to
+      InitialCameraPos, InitialCameraDir, InitialCameraUp.
       Also @link(Init) and @link(Home) methods reset them to respective
-      HomeCameraXxx values.
+      InitialCameraXxx values.
 
       The length of CameraDir vector @bold(is significant) ---
       together with MoveSpeed and MoveVertSpeed it determines
@@ -665,31 +663,40 @@ type
     property CameraUp : TVector3Single read FCameraUp  write SetCameraUp;
     { @groupEnd }
 
-    { If PreferHomeUpForRotations or PreferHomeUpForMoving
-      then various operations are done with respect
-      to HomeCameraUp, otherwise they are done with
-      respect to current CameraUp (that can be different than HomeCameraUp,
-      e.g. after using Input_UpRotate, Input_DownRotate --- raise / bow your head).
+    { This is the upward direction of the world in which player moves.
 
-      With PreferHomeUpForRotations, this affects rotations:
+      This indicates how @link(Gravity) works.
+
+      This is also the "normal" value for both CameraUp and
+      InitialCameraUp --- one that means that player is looking straight
+      foward. This is used for features like PreferGravityUpForRotations
+      and/or PreferGravityUpForMoving. }
+    property GravityUp: TVector3Single read FGravityUp write FGravityUp;
+
+    { If PreferGravityUpForRotations or PreferGravityUpForMoving
+      then various operations are done with respect
+      to GravityUp, otherwise they are done with
+      respect to current CameraUp.
+
+      With PreferGravityUpForRotations, this affects rotations:
       horizontal rotations (Input_LeftRot and Input_RightRot)
       and rotations caused by MouseLook.
-      Also vertical rotations are bounded by MinAngleRadFromHomeUp
-      when PreferHomeUpForRotations.
+      Also vertical rotations are bounded by MinAngleRadFromGravityUp
+      when PreferGravityUpForRotations.
 
       Note that you can change it freely at runtime,
-      and when you set PreferHomeUpForRotations from @false to @true
+      and when you set PreferGravityUpForRotations from @false to @true
       then in nearest Idle
       calls CameraUp will be gradually fixed, so that CameraDir and CameraUp
-      and HomeCameraUp are on the same plane. Also CameraDir may be adjusted
-      to honour MinAngleRadFromHomeUp.
+      and GravityUp are on the same plane. Also CameraDir may be adjusted
+      to honour MinAngleRadFromGravityUp.
 
-      With PreferHomeUpForMoving, this affects moving:
+      With PreferGravityUpForMoving, this affects moving:
       horizontal moving (forward, backward, strafe),
       and vertical moving (Input_UpMove and Input_DownMove).
-      E.g. when PreferHomeUpForMoving then forward/backward keys are tied
-      to horizontal plane defined by HomeCameraUp.
-      When not PreferHomeUpForMoving then forward/backward try to move
+      E.g. when PreferGravityUpForMoving then forward/backward keys are tied
+      to horizontal plane defined by GravityUp.
+      When not PreferGravityUpForMoving then forward/backward try to move
       you just in the CameraDir. Which is usually more handy when
       e.g. simulating flying.
 
@@ -700,13 +707,13 @@ type
       @unorderedList(
         @item(
           First of all, if the scene is not "naturally oriented"
-          around HomeCameraUp, then you *may* set
-          PreferHomeUpForRotations as @false and you *should*
-          leave PreferHomeUpForMoving and @link(Gravity) to @false.
+          around GravityUp, then you @bold(may) set
+          PreferGravityUpForRotations as @false and you @bold(should)
+          leave PreferGravityUpForMoving and @link(Gravity) to @false.
 
-          By the scene "naturally oriented around HomeCameraUp"
-          I mean that we have some proper HomeCameraUp,
-          not just some guessed HomeCameraUp that may
+          By the scene "naturally oriented around GravityUp"
+          I mean that we have some proper GravityUp,
+          not just some guessed GravityUp that may
           be incorrect. For example when view3dscene loads a VRML model
           without any camera definition then it assumes that "up vector"
           is (0, 1, 0), because this is more-or-less VRML standard
@@ -715,108 +722,117 @@ type
           up vector in mind.
 
           Other examples of the scenes without any
-          "naturally oriented around HomeCameraUp" may be some
+          "naturally oriented around GravityUp" may be some
           "outer space" scene without any gravity.)
 
         @item(
-          With PreferHomeUpForRotations the "feeling" of HomeCameraUp
-          is stronger for user, because HomeCameraUp, CameraUp and CameraDir
+          With PreferGravityUpForRotations the "feeling" of GravityUp
+          is stronger for user, because GravityUp, CameraUp and CameraDir
           always define the same plane in 3D space (i.e. along with the
           4th point, (0, 0, 0), for camera eye). Raising/bowing the head
           doesn't break this assumption.
 
-          Without PreferHomeUpForRotations, we quickly start to do rotations
+          Without PreferGravityUpForRotations, we quickly start to do rotations
           in an awkward way --- once you do some vertical rotation,
           you changed CameraUp, and next horizontal rotation will be
           done versus new CameraUp.
 
-          If your HomeCameraUp is good, then you generally should
-          leave PreferHomeUpForRotations to @true. Unless you really *want*
+          If your GravityUp is good, then you generally should
+          leave PreferGravityUpForRotations to @true. Unless you really @bold(want)
           the player to feel movements as "awkward", e.g. when you
           want to simulate this "outer space without any gravity" feeling.)
 
         @item(
-          If your HomeCameraUp is good, then you generally should set
-          PreferHomeUpForMoving just like Gravity.
+          If your GravityUp is good, then you generally should set
+          PreferGravityUpForMoving just like Gravity.
 
           E.g. when the player is flying / swimming etc. he will probably prefer
-          PreferHomeUpForMoving = @false, because this way he will not have to
+          PreferGravityUpForMoving = @false, because this way he will not have to
           press Input_UpMove and Input_DownMove. Simply pressing Input_Forward
           and Input_Backward and doing rotations will be enough to move
           freely in 3D space.
 
-          When gravity works, PreferHomeUpForMoving = @true is better,
+          When gravity works, PreferGravityUpForMoving = @true is better,
           otherwise player would unnecessarily try to jump when looking up.)
       )
 
       @groupBegin }
-    property PreferHomeUpForRotations: boolean
-      read FPreferHomeUpForRotations write FPreferHomeUpForRotations default true;
+    property PreferGravityUpForRotations: boolean
+      read FPreferGravityUpForRotations write FPreferGravityUpForRotations default true;
 
-    property PreferHomeUpForMoving: boolean
-      read FPreferHomeUpForMoving write FPreferHomeUpForMoving default true;
+    property PreferGravityUpForMoving: boolean
+      read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
-    { ustawianie home camery.
-      homeCameraUp bedzie automatycznie poprawione  tak zeby wektory
-        homeCameraDir i homeCameraUp definiowaly ciagle ta sama plaszczyzne
-        ale zeby byly na niej ponadto prostopadle (bedziemy potrzebowac tej
-        prostopadlosci). Wynika z tego warunek : homeCameraUp nie moze byc
-        rownolegly do homeCameraDir. }
-    property HomeCameraPos: TVector3Single read FHomeCameraPos; { = 0, 0, 0 }
-    property HomeCameraDir: TVector3Single read FHomeCameraDir; { = 0, -1, 0 }
-    property HomeCameraUp : TVector3Single read FHomeCameraUp;  { = 0, 1, 0 }
-    procedure SetCameraHome_LookDir(const AHomeCameraPos, AHomeCameraDir,
-      AHomeCameraUp: TVector3Single);
-    procedure SetCameraHome_LookAt(const AHomeCameraPos, AHomeCameraCenter,
-      AHomeCameraUp: TVector3Single);
+    { Initial camera values.
+
+      InitialCameraUp will be automatically corrected on change, such that
+      InitialCameraDir and InitialCameraUp will still define the same plane
+      but will also be orthogonal. This also means that you obviously cannot set
+      InitialCameraUp to be parallel to InitialCameraDir.
+
+      Default value of InitialCameraPos is (0, 0, 0), InitialCameraDir is
+      (0, -1, 0), InitialCameraUp is (0, 1, 0).
+
+      @groupBegin }
+    property InitialCameraPos: TVector3Single read FInitialCameraPos;
+    property InitialCameraDir: TVector3Single read FInitialCameraDir;
+    property InitialCameraUp : TVector3Single read FInitialCameraUp;
+    { @groupEnd }
+
+    procedure SetInitialCameraLookDir(const AInitialCameraPos, AInitialCameraDir,
+      AInitialCameraUp: TVector3Single);
+    procedure SetInitialCameraLookAt(const AInitialCameraPos, AInitialCameraCenter,
+      AInitialCameraUp: TVector3Single);
 
     { This returns CameraDir vector rotated such that it is
-      orthogonal to HomeCameraUp. This way it returns CameraDir projected
-      on the initial horizontal plane, which neutralizes such things
+      orthogonal to GravityUp. This way it returns CameraDir projected
+      on the gravity horizontal plane, which neutralizes such things
       like raising / bowing your head.
 
-      Note that when CameraDir and HomeCameraUp are parallel,
+      Note that when CameraDir and GravityUp are parallel,
       this just returns current CameraDir --- because in such case
       we can't project CameraDir on the horizontal plane. }
-    function CameraDirInHomePlane: TVector3Single;
+    function CameraDirInGravityPlane: TVector3Single;
 
-    { ustawia wektory Home camery i robi Home, tzn. ustawia
-      wektory CameraPos/Dir/Up na ich odpowiedniki z przedrostkiem "Home".
-      Uwaga - klawisz Input_HomeUp nie wywoluje ponizszej metody Home, on
-      tylko ustawia CameraUp := HomeCameraUp (nie resetuje CameraPos i Dir).
+    { This sets in one go most important properties of this class.
+      Sets initial camera properties (InitialCameraXxx),
+      sets current camera properties to them (CameraXxx := InitialCameraXxx).
 
       It will also call CorrectCameraPreferredHeight(ACameraRadius),
       because this is important thing that's too easy to otherwise forget.
       Just pass ACameraRadius = 0.0 if you don't really want this. }
-    procedure Init(const AHomeCameraPos, AHomeCameraDir,
-      AHomeCameraUp: TVector3Single;
+    procedure Init(const AInitialCameraPos, AInitialCameraDir,
+      AInitialCameraUp: TVector3Single;
+      const AGravityUp: TVector3Single;
       const ACameraPreferredHeight: Single;
       const ACameraRadius: Single); overload;
 
-    { Alternatywny Init. Wylicza HomeCameraPos, HomeCameraDir, HomeCameraUp
-      i CameraPreferredHeight takie zeby obiekt w box byl "dobrze widoczny"
-      (cokolwiek by to nie mialo oznaczac) i zeby CameraPreferredHeight
-      zachowywalo sie "rozsadnie". }
+    { Alternative Init that sets camera properties such that
+      an object inside Box is more or less "visible good".
+      Sets InitialCameraXxx properties to make it look right,
+      sets current CameraXxx properties to InitialCameraXxx.
+      Sets GravityUp to the same thing as InitialCameraUp.
+      Sets also CameraPreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3d; const ACameraRadius: Single); overload;
 
     procedure Home;
 
-    { This sets the minimal angle (in radians) between HomeCameraUp
-      and CameraDir, and also between -HomeCameraUp and CameraDir.
+    { This sets the minimal angle (in radians) between GravityUp
+      and CameraDir, and also between -GravityUp and CameraDir.
       This way vertical rotations (like Input_UpRotate,
       Input_DownRotate) are "bounded" to not allow player to do something
       strange, i.e. bow your head too much and raise your head too much.
 
-      This is used only when PreferHomeUpForRotations
+      This is used only when PreferGravityUpForRotations
       is @true and when it's <> 0.0.
 
       This must be always between 0 and Pi/2. Value of Pi/2 will effectively
       disallow vertical rotations (although you should rather do this in
       a "cleaner way" by calling MakeClear on Input_UpRotate and Input_DownRotate). }
-    property MinAngleRadFromHomeUp: Single
-      read FMinAngleRadFromHomeUp write FMinAngleRadFromHomeUp
-      default DefaultMinAngleRadFromHomeUp;
+    property MinAngleRadFromGravityUp: Single
+      read FMinAngleRadFromGravityUp write FMinAngleRadFromGravityUp
+      default DefaultMinAngleRadFromGravityUp;
 
     { If true, then player is able to rotate the view (horizontally
       and vertically, equivalent to Input_LeftRot, Input_RightRot,
@@ -851,7 +867,7 @@ type
 
     { If this is @true and MouseLook works, then the meaning of vertical mouse
       movement is inverted: when user moves mouse up, he looks down.
-      Many player's are more comfortable with such configuration,
+      Many players are more comfortable with such configuration,
       and many games implement it (usually by calling it "Invert mouse"
       for short). }
     property InvertVerticalMouseLook: boolean
@@ -886,7 +902,7 @@ type
 
     { This unlocks a couple of features and automatic behaviors
       related to gravity. Gravity always drags the camera down to
-      -HomeCameraUp.
+      -GravityUp.
 
       Summary of things done by gravity:
       @unorderedList(
@@ -911,8 +927,8 @@ type
       Everything else should basically work auto-magically.
 
       Note that Gravity setting is independent from
-      PreferHomeUpForRotations or PreferHomeUpForMoving settings ---
-      PreferHomeUpXxx say how the player controls work,
+      PreferGravityUpForRotations or PreferGravityUpForMoving settings ---
+      PreferGravityUpXxx say how the player controls work,
       Gravity says what happens to player due to ... well, due to gravity.
 
       @noAutoLinkHere }
@@ -959,7 +975,7 @@ type
       of your CameraRadius, because collision detection
       is (by design) never done by this class --- it's always
       delegated to OnGetCameraHeight and OnMoveAllowed.
-      Also, it's not exactly forced *how* you should force this
+      Also, it's not exactly forced @italic(how) you should force this
       condition to hold. Sometimes the good solution is to adjust
       CameraRadius, not to adjust CameraPreferredHeight.
 
@@ -972,7 +988,7 @@ type
     { Assign here the callback (or override DoGetCameraHeight)
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from CameraPos
-      in direction -HomeCameraUp with the scene.
+      in direction -GravityUp with the scene.
 
       This event returns IsAboveTheGround: bolean (set to @false
       to indicate that the ray doesn't hit the scene at all,
@@ -1062,7 +1078,7 @@ type
 
     { When @link(Gravity) works and camera height above the ground
       is less than CameraPreferredHeight, then we try to "grow",
-      i.e. camera position increases along the HomeCameraUp
+      i.e. camera position increases along the GravityUp
       so that camera height above the ground is closer to
       CameraPreferredHeight. This property (together with length of
       CameraDir, that always determines every moving speed)
@@ -1096,7 +1112,7 @@ type
       going a little up, then a little down, then a little up again etc.
 
       This property mutiplied by CameraPreferredHeight
-      says how much head bobbing can move you along HomeCameraUp.
+      says how much head bobbing can move you along GravityUp.
       Set this to 0 to disable head bobbing.
       This must always be < 1.0. For sensible effects, this should
       be rather close to 0.0.
@@ -1132,8 +1148,10 @@ type
     function RealCameraPreferredHeight: Single;
 
     { This makes a visual effect of camera falling down horizontally
-      on the ground. This works by gradually changing CameraUp such that
-      it gets orthogonal to HomeCameraUp. }
+      on the ground. Nice to use when player died, and you want to show
+      that it's body falled on the ground.
+      This works by gradually changing CameraUp such that
+      it gets orthogonal to GravityUp. }
     procedure FallOnTheGround;
 
     { This is set in every Idle. @true means that gravity works
@@ -1539,9 +1557,9 @@ constructor TMatrixWalker.Create(
   const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
 begin
   inherited;
-  FHomeCameraPos := Vector3Single(0, 0, 0);  FCameraPos := HomeCameraPos;
-  FHomeCameraDir := Vector3Single(0, 0, -1); FCameraDir := HomeCameraDir;
-  FHomeCameraUp  := Vector3Single(0, 1, 0);  FCameraUp  := HomeCameraUp;
+  FInitialCameraPos := Vector3Single(0, 0, 0);  FCameraPos := InitialCameraPos;
+  FInitialCameraDir := Vector3Single(0, 0, -1); FCameraDir := InitialCameraDir;
+  FInitialCameraUp  := Vector3Single(0, 1, 0);  FCameraUp  := InitialCameraUp;
 
   FMoveSpeed := 1;
   FMoveVertSpeed := 1;
@@ -1549,8 +1567,8 @@ begin
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
   FFallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
-  FPreferHomeUpForRotations := true;
-  FPreferHomeUpForMoving := true;
+  FPreferGravityUpForRotations := true;
+  FPreferGravityUpForMoving := true;
   FGravity := false;
   FGrowingSpeed := DefaultGrowingSpeed;
   FFallingDownEffect := true;
@@ -1558,7 +1576,7 @@ begin
   FHeadBobbing := DefaultHeadBobbing;
   FCrouchHeight := DefaultCrouchHeight;
   FMaxJumpHeight := DefaultMaxJumpHeight;
-  FMinAngleRadFromHomeUp := DefaultMinAngleRadFromHomeUp;
+  FMinAngleRadFromGravityUp := DefaultMinAngleRadFromGravityUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
@@ -1578,7 +1596,7 @@ begin
   FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, false, mbLeft);
   FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, false, mbRight);
   FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, false, mbLeft);
-  FInput_HomeUp       := TInputShortcut.Create(K_Home        , K_None, false, mbLeft);
+  FInput_GravityUp    := TInputShortcut.Create(K_Home        , K_None, false, mbLeft);
   FInput_MoveSpeedInc := TInputShortcut.Create(K_Numpad_Plus , K_None, false, mbLeft);
   FInput_MoveSpeedDec := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
   FInput_Jump         := TInputShortcut.Create(K_A           , K_None, false, mbRight);
@@ -1599,7 +1617,7 @@ begin
   FreeAndNil(FInput_DownRotate);
   FreeAndNil(FInput_UpMove);
   FreeAndNil(FInput_DownMove);
-  FreeAndNil(FInput_HomeUp);
+  FreeAndNil(FInput_GravityUp);
   FreeAndNil(FInput_MoveSpeedInc);
   FreeAndNil(FInput_MoveSpeedDec);
   FreeAndNil(FInput_Jump);
@@ -1703,25 +1721,25 @@ begin
   Result := RealCameraPreferredHeight * 0.01;
 end;
 
-procedure TMatrixWalker.RotateAroundHomeUp(const AngleDeg: Single);
+procedure TMatrixWalker.RotateAroundGravityUp(const AngleDeg: Single);
 var Axis: TVector3Single;
 begin
  { nie obracamy cameraDir wokol cameraUp, takie obroty w polaczeniu z
    obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
    stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
-   jest homeCameraUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
+   jest GravityUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
    wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
    daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
    jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
 
    Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
    (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
-   wzgledem nas) musze czasami obracac sie wokol homeCameraUp, a czasem
-   wokol -homeCameraUp.
+   wzgledem nas) musze czasami obracac sie wokol GravityUp, a czasem
+   wokol -GravityUp.
  }
- if AngleRadBetweenVectors(CameraUp, HomeCameraUp) > Pi/2 then
-  Axis := VectorNegate(HomeCameraUp) else
-  Axis := HomeCameraUp;
+ if AngleRadBetweenVectors(CameraUp, GravityUp) > Pi/2 then
+  Axis := VectorNegate(GravityUp) else
+  Axis := GravityUp;
 
  FCameraUp := RotatePointAroundAxisDeg(AngleDeg, CameraUp, Axis);
  FCameraDir := RotatePointAroundAxisDeg(AngleDeg, CameraDir, Axis);
@@ -1737,8 +1755,8 @@ end;
 
 procedure TMatrixWalker.RotateHorizontal(const AngleDeg: Single);
 begin
-  if PreferHomeUpForRotations then
-    RotateAroundHomeUp(AngleDeg) else
+  if PreferGravityUpForRotations then
+    RotateAroundGravityUp(AngleDeg) else
     RotateAroundUp(AngleDeg);
 end;
 
@@ -1760,27 +1778,50 @@ var
 begin
   AngleRad := DegToRad(AngleDeg);
 
-  if PreferHomeUpForRotations and (MinAngleRadFromHomeUp <> 0.0) then
+  if PreferGravityUpForRotations and (MinAngleRadFromGravityUp <> 0.0) then
   begin
-    Side := VectorProduct(CameraDir, HomeCameraUp);
+    Side := VectorProduct(CameraDir, GravityUp);
     if IsZeroVector(Side) then
     begin
       { Brutally adjust CameraDir and CameraUp to be correct.
         This should happen only if your code was changing values of
-        PreferHomeUpForRotations and MinAngleRadFromHomeUp at runtime.
+        PreferGravityUpForRotations and MinAngleRadFromGravityUp at runtime.
         E.g. first you let CameraDir and CameraUp to be incorrect,
-        and then you set PreferHomeUpForRotations to @true and MinAngleRadFromHomeUp
+        and then you set PreferGravityUpForRotations to @true and
+        MinAngleRadFromGravityUp
         to > 0 --- and suddenly we find that CameraUp can be temporarily bad. }
-      FCameraDir := HomeCameraDir;
-      FCameraUp := HomeCameraUp;
+      FCameraDir := InitialCameraDir;
+      FCameraUp := InitialCameraUp;
+
+      { Now check Side again. If it's still bad, this means that the
+        InitialCameraDir is parallel to GravityUp. This shouldn't
+        happen if you correctly set InitialCameraDir and GravityUp.
+        So just pick any sensible FCameraDir to satisfy MinAngleRadFromGravityUp
+        for sure.
+
+        This is a common problem on some VRML models:
+        - You wanted to place your camera such that camera looking direction
+          is in +Y or -Y (and camera up is e.g. +Z).
+        - You did this by using untransformed PerspectiveCamera/Viewpoint node.
+        But VRML (2.0 spec, I also do this in VMRL 1.0)
+        gravity is set by transforming (0, 1, 0) by PerspectiveCamera/Viewpoint
+        node transformation.
+        So the above will mean that gravity vector is parallel to your
+        looking direction. }
+      Side := VectorProduct(CameraDir, GravityUp);
+      if IsZeroVector(Side) then
+      begin
+        FCameraDir := AnyPerpVector(GravityUp);
+        FCameraUp := GravityUp;
+      end;
     end else
     begin
       { Calculate AngleRadBetween, and possibly adjust AngleRad. }
-      AngleRadBetween := AngleRadBetweenVectors(CameraDir, HomeCameraUp);
-      if AngleRadBetween - AngleRad < MinAngleRadFromHomeUp then
-        AngleRad := AngleRadBetween - MinAngleRadFromHomeUp else
-      if AngleRadBetween - AngleRad > Pi - MinAngleRadFromHomeUp then
-        AngleRad := AngleRadBetween - (Pi - MinAngleRadFromHomeUp);
+      AngleRadBetween := AngleRadBetweenVectors(CameraDir, GravityUp);
+      if AngleRadBetween - AngleRad < MinAngleRadFromGravityUp then
+        AngleRad := AngleRadBetween - MinAngleRadFromGravityUp else
+      if AngleRadBetween - AngleRad > Pi - MinAngleRadFromGravityUp then
+        AngleRad := AngleRadBetween - (Pi - MinAngleRadFromGravityUp);
 
       DoRealRotate;
     end;
@@ -1861,8 +1902,8 @@ var
 
     MoveHorizontalDone := true;
 
-    if PreferHomeUpForMoving then
-      Direction := CameraDirInHomePlane else
+    if PreferGravityUpForMoving then
+      Direction := CameraDirInGravityPlane else
       Direction := CameraDir;
 
     Move(VectorScale(Direction,
@@ -1880,21 +1921,21 @@ var
     end;
 
   begin
-    if PreferHomeUpForMoving then
-      MoveVerticalCore(HomeCameraUp) else
+    if PreferGravityUpForMoving then
+      MoveVerticalCore(GravityUp) else
       MoveVerticalCore(CameraUp);
   end;
 
   { This is just like RotateHorizontal, but it uses
-    PreferHomeUpForMoving to decide which rotation to use.
-    This way when PreferHomeUpForMoving, then we rotate versus HomeCameraUp,
-    move in HomeCameraUp plane, and then rotate back versus HomeCameraUp.
-    If not PreferHomeUpForMoving, then we do all this versus CameraUp.
+    PreferGravityUpForMoving to decide which rotation to use.
+    This way when PreferGravityUpForMoving, then we rotate versus GravityUp,
+    move in GravityUp plane, and then rotate back versus GravityUp.
+    If not PreferGravityUpForMoving, then we do all this versus CameraUp.
     And so everything works. }
   procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
   begin
-    if PreferHomeUpForMoving then
-      RotateAroundHomeUp(AngleDeg) else
+    if PreferGravityUpForMoving then
+      RotateAroundGravityUp(AngleDeg) else
       RotateAroundUp(AngleDeg);
   end;
 
@@ -1940,7 +1981,7 @@ var
           FIsJumping := false else
         begin
           { do jumping }
-          Move(VectorAdjustToLength(HomeCameraUp, ThisJumpHeight), false);
+          Move(VectorAdjustToLength(GravityUp, ThisJumpHeight), false);
 
           { Initially it was my intention to decrease FJumpPower
             at each point. But this doesn't make any nice visible effect,
@@ -1985,7 +2026,7 @@ var
           VectorLen(CameraDir) * GrowingSpeed * CompSpeed,
           RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
 
-        Move(VectorAdjustToLength(HomeCameraUp, GrowingVectorLength), true);
+        Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -2090,9 +2131,9 @@ var
         MinTo1st(SqrFallingDownVectorLength,
           Sqr(Sqrt(SqrHeightAboveTheGround) - RealCameraPreferredHeight));
 
-      if Move(VectorScale(HomeCameraUp,
+      if Move(VectorScale(GravityUp,
          - Sqrt(SqrFallingDownVectorLength /
-             VectorLenSqr(HomeCameraUp))), true) and
+             VectorLenSqr(GravityUp))), true) and
         (not VectorsPerfectlyEqual(CameraPos, CameraPosBefore)) then
       begin
         if not IsFallingDown then
@@ -2173,7 +2214,7 @@ var
             begin
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
-              RotateAroundHomeUp(Fde_RotateHorizontal *
+              RotateAroundGravityUp(Fde_RotateHorizontal *
                 Fde_HorizontalRotateDeviation * CompSpeed);
             end;
 
@@ -2229,7 +2270,7 @@ var
       if not Result then
         Exit;
 
-      Angle := AngleRadBetweenVectors(CameraUp, HomeCameraUp);
+      Angle := AngleRadBetweenVectors(CameraUp, GravityUp);
 
       if FloatsEqual(Angle, HalfPi) then
       begin
@@ -2244,7 +2285,7 @@ var
         AngleRotate := -AngleRotate;
 
       CameraUp := RotatePointAroundAxisRad(AngleRotate, CameraUp,
-        CameraDirInHomePlane);
+        CameraDirInGravityPlane);
     end;
 
     procedure DoFalledDown;
@@ -2255,19 +2296,19 @@ var
       if Assigned(OnFalledDown) then
       begin
         { Note that I project CameraPos and FFallingDownStartPos
-          onto HomeCameraUp vector to calculate FalledHeight. }
-        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, FFallingDownStartPos);
-        EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, HomeCameraUp, CameraPos);
+          onto GravityUp vector to calculate FalledHeight. }
+        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingDownStartPos);
+        EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, CameraPos);
         EndToBegin := VectorSubtract(BeginPos, EndPos);
 
-        { Now check that EndToBegin points in the same direction as HomeCameraUp.
+        { Now check that EndToBegin points in the same direction as GravityUp.
           If not, then EndPos is actually *higher* than BeginPos,
           so we were not really falling down. That can happen, various growing
           and jumping things can cause such "false flying". For OnFalledDown
           only the real falling down (from somewhere higher to lower) should
           be reported. }
         Coord := MaxAbsVectorCoord(EndToBegin);
-        if (EndToBegin[Coord] >= 0) <> (HomeCameraUp[Coord] >= 0) then
+        if (EndToBegin[Coord] >= 0) <> (GravityUp[Coord] >= 0) then
           Exit;
 
         OnFalledDown(Self, VectorLen(EndToBegin));
@@ -2356,12 +2397,12 @@ var
       DoFalledDown;
   end;
 
-  procedure PreferHomeUpForRotationsIdle;
+  procedure PreferGravityUpForRotationsIdle;
   (* This is a good piece of work and seemed to work OK,
      but it's too much untested right now to let it work.
 
      It's needed only when you'll start to change
-     PreferHomeUpForRotations from false to true in runtime,
+     PreferGravityUpForRotations from false to true in runtime,
      to avoid making player feel "awkward" rotations.
 
      Temporary I don't need it.
@@ -2370,35 +2411,35 @@ var
     TargetPlane: TVector4Single;
     TargetPlaneDir: TVector3Single absolute TargetPlane;
     TargetCameraUp: TVector3Single;
-    AngleRadBetweenTargetAndHome: Single;
+    AngleRadBetweenTargetAndGravity: Single;
     AngleRadBetweenTarget, AngleRadBetweenTargetChange: Single;
     NewCameraUp: TVector3Single;
   begin
-    if PreferHomeUp then
+    if PreferGravityUp then
     begin
-      { TODO: Correcting MinAngleRadFromHomeUp }
+      { TODO: Correcting MinAngleRadFromGravityUp }
 
-      { Correct CameraUp such that HomeCameraUp, CameraDir and CameraUp
+      { Correct CameraUp such that GravityUp, CameraDir and CameraUp
         are on the same plane.
 
         Math:
-          TargetPlane := common plane of HomeCameraUp and CameraDir,
-          given by (A, B, C) = VectorProduct(HomeCameraUp, CameraDir)
+          TargetPlane := common plane of GravityUp and CameraDir,
+          given by (A, B, C) = VectorProduct(GravityUp, CameraDir)
           and D = 0 (because point (0, 0, 0) is part of this plane).
 
           We check whether CameraUp is on this TargetPlane too.
 
           If not, we find TargetCameraUp = nearest point to CameraUp
           lying on this TargetPlane. We want our CameraUp be pointing
-          like HomeCameraUp, not in the other way, so if the angle between
-          HomeCameraUp and TargetCameraUp is > 90 degress we negate
+          like GravityUp, not in the other way, so if the angle between
+          GravityUp and TargetCameraUp is > 90 degress we negate
           TargetCameraUp. If the angle is exactly 90 degress then
-          TargetCameraUp is simply equal to HomeCameraUp.
+          TargetCameraUp is simply equal to GravityUp.
 
           And then we make the angle between TargetCameraUp and CameraUp
           smaller. }
 
-      TargetPlaneDir := VectorProduct(HomeCameraUp, CameraDir);
+      TargetPlaneDir := VectorProduct(GravityUp, CameraDir);
       if not IsZero(
          (TargetPlaneDir[0] * FCameraUp[0]) +
          (TargetPlaneDir[1] * FCameraUp[1]) +
@@ -2410,11 +2451,11 @@ var
 
         { calculate TargetCameraUp }
         TargetCameraUp := PointOnPlaneClosestToPoint(TargetPlane, FCameraUp);
-        AngleRadBetweenTargetAndHome :=
-          AngleRadBetweenVectors(TargetCameraUp, HomeCameraUp);
-        if FloatsEqual(AngleRadBetweenTargetAndHome, HalfPi) then
-          TargetCameraUp := HomeCameraUp else
-        if AngleRadBetweenTargetAndHome > HalfPi then
+        AngleRadBetweenTargetAndGravity :=
+          AngleRadBetweenVectors(TargetCameraUp, GravityUp);
+        if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
+          TargetCameraUp := GravityUp else
+        if AngleRadBetweenTargetAndGravity > HalfPi then
           VectorNegateTo1st(TargetCameraUp);
 
         AngleRadBetweenTarget :=
@@ -2471,9 +2512,9 @@ begin
         RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
       Similarly, simple implementation of Input_DownMove was
         RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
-      But this is not good, because when PreferHomeUp, we want to move along the
-      CameraHomeUp. (Also later note: RotateVertical is now bounded by
-      MinAngleRadFromHomeUp). }
+      But this is not good, because when PreferGravityUp, we want to move
+      along the GravityUp. (Also later note: RotateVertical is now bounded by
+      MinAngleRadFromGravityUp). }
     if Input_UpMove.IsPressed(KeysDown, MousePressed) then
       MoveVertical( 1);
     if Input_DownMove.IsPressed(KeysDown, MousePressed) then
@@ -2512,30 +2553,31 @@ begin
     CheckRotates(0.1);
   end;
 
-  PreferHomeUpForRotationsIdle;
+  PreferGravityUpForRotationsIdle;
 
   GravityIdle;
 end;
 
 procedure TMatrixWalker.Home;
 begin
- { nie tylko nie powinienem tutaj poslugiwac sie propertami CameraXxx
-   tylko zamiast tego polami FCameraXxx zeby zaoszczedzic na czasie
-   (w ten sposob moge wywolac MatrixChanged tylko raz). Ale nawet MUSZE
-   tak robic bo pamietaj ze ustawienie CameraDir i CameraUp pociaga za soba
-   ew. dostosowanie wektora up (aby byl prostopadly do wektra dir).
-   W zwiazku z tym wymagam aby zawsze podawany Dir i Up nie byly rownolegle -
-   ale w takim razie powinienem tez ustawiac je jednoczesnie, tzn. nie
-   chce ponizej ustawic CameraXxx wymuszajac aby aktualny CameraUp sie
-   dostosowal (a przeciez aktualny CameraUp moze byc rownolegly do nowego
-   CameraDir !). Zamiast tego chce ustawic jednoczesnie FCameraDir i FCameraUp.
-   Ponadto nalezy zwrocic uwage ze w tym przypadku w ogole nie musze sie martwic
-   o poprawianie CameraUp bo przeciez HomeCameraDir/Up JUZ sa odpowiednio
-   poprawione. }
- FCameraPos := HomeCameraPos;
- FCameraDir := HomeCameraDir;
- FCameraUp := HomeCameraUp;
- MatrixChanged;
+  { I don't set here CameraXxx properties, instead I actually directly set
+    FCameraXxx fields. Reason:
+
+    1. Speed (this way it's enough to call MatrixChanged only once).
+
+    2. Also remember that setting CameraDir and CameraUp properties is followed
+       by adjustment of up vector (to be orthogonal to dir vector).
+       So I require that given Dir and Up initial camera vectors
+       may not be parallel. But I can't guarantee that InitialCameraUp
+       is not parallel to current CameraDir.
+
+       Besides in this case I know that this adjustment is not needed,
+       since InitialCameraDir and InitialCameraUp are already adjusted
+       if necessary. }
+  FCameraPos := InitialCameraPos;
+  FCameraDir := InitialCameraDir;
+  FCameraUp := InitialCameraUp;
+  MatrixChanged;
 end;
 
 procedure TMatrixWalker.Jump;
@@ -2570,9 +2612,9 @@ end;
 function TMatrixWalker.EventDown(MouseEvent: boolean; Key: TKey;
   AMouseButton: TMouseButton): boolean;
 begin
-  if Input_HomeUp.IsEvent(MouseEvent, Key, AMouseButton) then
+  if Input_GravityUp.IsEvent(MouseEvent, Key, AMouseButton) then
   begin
-    CameraUp := HomeCameraUp;
+    CameraUp := GravityUp;
     Result := true;
   end else
   if Input_Jump.IsEvent(MouseEvent, Key, AMouseButton) then
@@ -2602,14 +2644,16 @@ begin
 end;
 
 procedure TMatrixWalker.Init(
-  const AHomeCameraPos, AHomeCameraDir, AHomeCameraUp: TVector3Single;
+  const AInitialCameraPos, AInitialCameraDir, AInitialCameraUp: TVector3Single;
+  const AGravityUp: TVector3Single;
   const ACameraPreferredHeight: Single;
   const ACameraRadius: Single);
 begin
- SetCameraHome_LookDir(AHomeCameraPos, AHomeCameraDir, AHomeCameraUp);
- CameraPreferredHeight := ACameraPreferredHeight;
- CorrectCameraPreferredHeight(ACameraRadius);
- Home;
+  SetInitialCameraLookDir(AInitialCameraPos, AInitialCameraDir, AInitialCameraUp);
+  FGravityUp := AGravityUp;
+  CameraPreferredHeight := ACameraPreferredHeight;
+  CorrectCameraPreferredHeight(ACameraRadius);
+  Home;
 end;
 
 procedure TMatrixWalker.Init(const Box: TBox3d; const ACameraRadius: Single);
@@ -2619,32 +2663,37 @@ begin
  if IsEmptyBox3d(Box) then
   Init(Vector3Single(0, 0, 0),
        Vector3Single(0, 0, -1),
-       Vector3Single(0, 1, 0), 0.0 { whatever }, ACameraRadius) else
+       Vector3Single(0, 1, 0),
+       Vector3Single(0, 1, 0) { GravityUp is the same as InitialCameraUp },
+       0.0 { whatever }, ACameraRadius) else
  begin
   AvgSize := Box3dAvgSize(Box);
   Pos[0] := Box[0, 0]-AvgSize;
   Pos[1] := (Box[0, 1]+Box[1, 1])/2;
   Pos[2] := (Box[0, 2]+Box[1, 2])/2;
   Init(Pos, VectorAdjustToLength(UnitVector3Single[0], AvgSize*0.1),
-    UnitVector3Single[2], AvgSize * 0.1, ACameraRadius);
+    UnitVector3Single[2],
+    UnitVector3Single[2] { GravityUp is the same as InitialCameraUp },
+    AvgSize * 0.1, ACameraRadius);
  end;
 end;
 
-procedure TMatrixWalker.SetCameraHome_LookDir(const AHomeCameraPos,
-  AHomeCameraDir, AHomeCameraUp: TVector3Single);
+procedure TMatrixWalker.SetInitialCameraLookDir(const AInitialCameraPos,
+  AInitialCameraDir, AInitialCameraUp: TVector3Single);
 begin
- FHomeCameraPos := AHomeCameraPos;
- FHomeCameraDir := AHomeCameraDir;
- FHomeCameraUp := AHomeCameraUp;
- MakeVectorsOrthoOnTheirPlane(FHomeCameraUp, FHomeCameraDir);
- MatrixChanged;
+  FInitialCameraPos := AInitialCameraPos;
+  FInitialCameraDir := AInitialCameraDir;
+  FInitialCameraUp := AInitialCameraUp;
+  MakeVectorsOrthoOnTheirPlane(FInitialCameraUp, FInitialCameraDir);
+  MatrixChanged;
 end;
 
-procedure TMatrixWalker.SetCameraHome_LookAt(const AHomeCameraPos,
-  AHomeCameraCenter, AHomeCameraUp: TVector3Single);
+procedure TMatrixWalker.SetInitialCameraLookAt(const AInitialCameraPos,
+  AInitialCameraCenter, AInitialCameraUp: TVector3Single);
 begin
- SetCameraHome_LookDir(AHomeCameraPos, VectorSubtract(AHomeCameraCenter,
-   AHomeCameraPos), AHomeCameraUp);
+  SetInitialCameraLookDir(AInitialCameraPos,
+    VectorSubtract(AInitialCameraCenter, AInitialCameraPos),
+    AInitialCameraUp);
 end;
 
 procedure TMatrixWalker.SetCameraPos(const Value: TVector3Single);
@@ -2655,33 +2704,33 @@ end;
 
 procedure TMatrixWalker.SetCameraDir(const Value: TVector3Single);
 begin
- FCameraDir := Value;
- MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
- MatrixChanged;
+  FCameraDir := Value;
+  MakeVectorsOrthoOnTheirPlane(FCameraUp, FCameraDir);
+  MatrixChanged;
 end;
 
 procedure TMatrixWalker.SetCameraUp(const Value: TVector3Single);
 begin
- FCameraUp := Value;
- MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
- MatrixChanged;
+  FCameraUp := Value;
+  MakeVectorsOrthoOnTheirPlane(FCameraDir, FCameraUp);
+  MatrixChanged;
 end;
 
 procedure TMatrixWalker.RecalculateFrustum;
 begin
- CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
+  CalculateFrustum(FFrustum, ProjectionMatrix, Matrix);
 end;
 
 procedure TMatrixWalker.MatrixChanged;
 begin
- RecalculateFrustum;
- inherited;
+  RecalculateFrustum;
+  inherited;
 end;
 
 procedure TMatrixWalker.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
- FProjectionMatrix := Value;
- RecalculateFrustum;
+  FProjectionMatrix := Value;
+  RecalculateFrustum;
 end;
 
 procedure TMatrixWalker.CorrectCameraPreferredHeight(const CameraRadius: Single);
@@ -2695,12 +2744,12 @@ begin
   Result := MaxJumpHeight * CameraPreferredHeight;
 end;
 
-function TMatrixWalker.CameraDirInHomePlane: TVector3Single;
+function TMatrixWalker.CameraDirInGravityPlane: TVector3Single;
 begin
   Result := CameraDir;
 
-  if not VectorsParallel(Result, HomeCameraUp) then
-    MakeVectorsOrthoOnTheirPlane(Result, HomeCameraUp);
+  if not VectorsParallel(Result, GravityUp) then
+    MakeVectorsOrthoOnTheirPlane(Result, GravityUp);
 end;
 
 procedure TMatrixWalker.FallOnTheGround;
@@ -2709,7 +2758,7 @@ begin
 
   { Mathematically reasoning, this should be smarter.
     I mean that we should randomize FFallingOnTheGroundAngleIncrease
-    *only* if CameraUp is parallel to HomeCameraUp ?
+    *only* if CameraUp is parallel to GravityUp ?
     Otherwise CameraUp could change through some strange path ?
 
     But current effect seems to behave good in all situations...

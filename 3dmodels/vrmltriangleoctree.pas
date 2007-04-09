@@ -528,7 +528,7 @@ type
       TMatrixWalker.OnGetCameraHeight.
 
       This simply checks collision of a ray from
-      CameraPos in direction -HomeCameraUp, and sets IsAboveTheGround
+      CameraPos in direction -GravityUp, and sets IsAboveTheGround
       and SqrHeightAboveTheGround as needed.
 
       Also GroundItemIndex is set to index of octree item immediately
@@ -541,17 +541,17 @@ type
       OctreeItemIndexToIgnore and ItemsToIgnoreFunc meaning
       is just like for RayCollision. }
     procedure GetCameraHeight(
-      const CameraPos, HomeCameraUp: TVector3Single;
+      const CameraPos, GravityUp: TVector3Single;
       out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
       out GroundItemIndex: Integer;
       const OctreeItemIndexToIgnore: integer;
       const ItemsToIgnoreFunc: TOctreeItemIgnoreFunc);
 
     { This is just like GetCameraHeight, but it assumes that
-      HomeCameraUp = (0, 0, 1) and it returns the actual
+      GravityUp = (0, 0, 1) and it returns the actual
       HeightAboveTheGround (not it's square). Thanks to the fact that
       calculating HeightAboveTheGround doesn't require costly Sqrt operation
-      in case of such simple HomeCameraUp. }
+      in case of such simple GravityUp. }
     procedure GetCameraHeightZ(
       const CameraPos: TVector3Single;
       out IsAboveTheGround: boolean; out HeightAboveTheGround: Single;
@@ -1138,7 +1138,7 @@ begin
 end;
 
 procedure TVRMLTriangleOctree.GetCameraHeight(
-  const CameraPos, HomeCameraUp: TVector3Single;
+  const CameraPos, GravityUp: TVector3Single;
   out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single;
   out GroundItemIndex: Integer;
   const OctreeItemIndexToIgnore: integer;
@@ -1147,7 +1147,7 @@ var
   GroundIntersection: TVector3Single;
 begin
   GroundItemIndex := RayCollision(GroundIntersection,
-    CameraPos, VectorNegate(HomeCameraUp), true,
+    CameraPos, VectorNegate(GravityUp), true,
     OctreeItemIndexToIgnore, false, ItemsToIgnoreFunc);
   IsAboveTheGround := GroundItemIndex <> NoItemIndex;
   if IsAboveTheGround then

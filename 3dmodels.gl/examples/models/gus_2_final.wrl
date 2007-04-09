@@ -1,10 +1,21 @@
 #VRML V1.0 ascii
 
 Group {
-  PerspectiveCamera {
-    position -6.662933349609375 -6.718474864959717 -0.805617570877075
-    orientation 0.87782883644104 -0.338685989379883 -0.338686019182205 1.700732827186584
+  # Camera settings "encoded" in the VRML declaration below :
+  # direction 0.011361199431121 0.012531651183963 9.63660928832155E-010
+  # up -0.000000022068983 -0.000000115891474 1
+  # gravityUp 0 0 1
+  Separator {
+    Transform {
+      translation -6.662933349609375 -6.718474864959717 -0.805617570877075
+      rotation 1 0 0 1.570796370506287
+    }
+    PerspectiveCamera {
+      position 0 0 0 # camera position is expressed by translation
+      orientation 3.66057335554615E-008 -1 0 0.736449778079987
+    }
   }
+
   ShapeHints {
     creaseAngle 2
   }

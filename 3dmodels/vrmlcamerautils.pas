@@ -25,6 +25,7 @@ const
   StdVRMLCamPos_2: TVector3Single = (0, 0, 10);
   StdVRMLCamDir: TVector3Single = (0, 0, -1);
   StdVRMLCamUp: TVector3Single = (0, 1, 0);
+  StdVRMLGravityUp: TVector3Single = (0, 1, 0);
 
 { Zamien CamDir i CamUp na orientation VRMLa 1.0.
   Orientation VRMLa wyraza CamDir i CamUp podajac wektor 4 elementowy
@@ -38,7 +39,7 @@ procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   out OrientAxis: TVector3Single; out OrientRadAngle: Single); overload;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
-  out CameraPos, CameraDir, CameraUp: TVector3Single);
+  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
 
 implementation
 
@@ -202,7 +203,7 @@ begin
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3d;
-  out CameraPos, CameraDir, CameraUp: TVector3Single);
+  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
 var
   AvgSize: Single;
 begin
@@ -220,6 +221,9 @@ begin
     CameraDir := UnitVector3Single[0];
     CameraUp := UnitVector3Single[2];
   end;
+
+  { Nothing more intelligent to do with GravityUp is possible... }
+  GravityUp := CameraUp;
 end;
 
 end.

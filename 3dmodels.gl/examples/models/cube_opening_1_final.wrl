@@ -1,9 +1,20 @@
 #VRML V1.0 ascii
 
 Group {
-  PerspectiveCamera {
-    position -2.732869863510132 -2.61075234413147 2.94332218170166
-    orientation 0.732075154781342 -0.312095612287521 -0.605526626110077 1.226867437362671
+  # Camera settings "encoded" in the VRML declaration below :
+  # direction 0.004701093304902 0.004511544946581 -0.00464173220098
+  # up 0.418627709150314 0.401748657226562 0.814462184906006
+  # gravityUp 0 0 1
+  Separator {
+    Transform {
+      translation -2.732869863510132 -2.61075234413147 2.94332218170166
+      rotation 1 0 0 1.570796370506287
+    }
+    PerspectiveCamera {
+      position 0 0 0 # camera position is expressed by translation
+      orientation -0.581324458122253 -0.775011718273163 -0.247827932238579 1.005804777145386
+    }
   }
+
   WWWInline { name "cube_opening_1.wrl" }
 }

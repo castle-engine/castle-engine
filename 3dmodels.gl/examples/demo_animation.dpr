@@ -181,7 +181,7 @@ const
   end;
 
 var
-  CamPos, CamDir, CamUp: TVector3Single;
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   Glw.ParseParameters(StandardParseOptions);
   ParseParameters(Options, @OptionProc, nil);
@@ -206,12 +206,14 @@ begin
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
     { get camera from 1st scene in Animation }
-    Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
+    Animation.Scenes[0].GetPerspectiveViewpoint(CamPos, CamDir, CamUp,
+      GravityUp);
 
     { init Glw.Navigator }
     Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
     Glw.NavWalker.Init(CamPos, VectorAdjustToLength(CamDir,
-      Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp, 0.0, 0.0);
+      Box3dAvgSize(Animation.Scenes[0].BoundingBox) * 0.01*0.4), CamUp, 
+      GravityUp, 0.0, 0.0);
 
     ProgressGLInterface.Window := Glw;
     Progress.UserInterface := ProgressGLInterface;

@@ -119,7 +119,8 @@ type
     function GetViewpointCore(
       const OnlyPerspective: boolean;
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      TNodeGeneralViewpoint;
   public
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -339,7 +340,7 @@ type
       zdefiniowany w aktywnej czesci swojego grafu to oblicza swoje zmienne
       "out" na podstawie tego node'a, wpp. zwraca domyslne ulozenia kamery
       w VRMLu, zgodnie ze specyfik. VRMLa (tzn. CamPos = (0, 0, 1),
-      CamDir = (0, 0, -1), CamUp = (0, 1, 0), CamType = ctPerspective
+      CamDir = (0, 0, -1), CamUp = GravityUp = (0, 1, 0), CamType = ctPerspective
       (ze domyslna kamera jest ctPerspective to juz sam sobie dopowiedzialem)).
 
       If camera properties were found in some node,
@@ -351,16 +352,18 @@ type
       is that you don't @italic(have) to care about details of
       dealing with camera node.
 
-      Zwraca zawsze znormalizowane CamDir i CamUp --- powody takie same jak
-      dla TNodeGeneralViewpoint.GetCameraVectors.
+      Zwraca zawsze znormalizowane CamDir i CamUp i GravityUp ---
+      powody takie same jak dla TNodeGeneralViewpoint.GetCameraVectors.
 
       @groupBegin }
     function GetViewpoint(
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      TNodeGeneralViewpoint;
 
     function GetPerspectiveViewpoint(
-      out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      TNodeGeneralViewpoint;
     { @groupEnd }
 
     { This enumerates all viewpoint nodes (Viewpoint (for VRML 2.0),
@@ -826,7 +829,7 @@ type
 function TVRMLFlatScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
 var
   CamTransform: TMatrix4Single;
   Seeker: TFirstViewpointSeeker;
@@ -848,7 +851,7 @@ begin
 
   if Result <> nil then
   begin
-    Result.GetCameraVectors(CamTransform, CamPos, CamDir, CamUp);
+    Result.GetCameraVectors(CamTransform, CamPos, CamDir, CamUp, GravityUp);
     CamKind := Result.CameraKind;
   end else
   begin
@@ -856,23 +859,24 @@ begin
     CamPos := StdVRMLCamPos_1;
     CamDir := StdVRMLCamDir;
     CamUp := StdVRMLCamUp;
+    GravityUp := StdVRMLGravityUp;
     CamKind := ckPerspective;
   end;
 end;
 
 function TVRMLFlatScene.GetViewpoint(
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
 begin
-  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp);
+  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp, GravityUp);
 end;
 
 function TVRMLFlatScene.GetPerspectiveViewpoint(
-  out CamPos, CamDir, CamUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
 var
   CamKind: TVRMLCameraKind;
 begin
-  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp);
+  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp, GravityUp);
   Assert(CamKind = ckPerspective);
 end;
 
