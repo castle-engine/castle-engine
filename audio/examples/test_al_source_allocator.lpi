@@ -47,8 +47,8 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="47" Y="56"/>
-        <TopLine Value="23"/>
+        <CursorPos X="7" Y="117"/>
+        <TopLine Value="93"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="24"/>
         <Loaded Value="True"/>
@@ -63,7 +63,7 @@
       <Unit3>
         <Filename Value="../openal_al.inc"/>
         <CursorPos X="3" Y="37"/>
-        <TopLine Value="15"/>
+        <TopLine Value="13"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
@@ -94,31 +94,15 @@
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="6" HistoryIndex="5">
+    <JumpHistory Count="2" HistoryIndex="1">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="111" Column="60" TopLine="103"/>
+        <Caret Line="56" Column="47" TopLine="23"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="81" Column="3" TopLine="47"/>
+        <Caret Line="117" Column="7" TopLine="93"/>
       </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="86" Column="14" TopLine="60"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="66" TopLine="1"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="89" Column="7" TopLine="61"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="87" Column="53" TopLine="65"/>
-      </Position6>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -114,7 +114,7 @@ begin
     UserData := TALAllocatedSourceData.Create;
     UserData.FileName := FileNameEditSound.FileName;
     UserData.ALBuffer :=
-      TALSoundWAV.alCreateBufferDataFromFile(UserData.FileName);
+      TALSoundFile.alCreateBufferDataFromFile(UserData.FileName);
     UserData.StartedTime := Now;
       
     UsedSource.UserData := UserData;

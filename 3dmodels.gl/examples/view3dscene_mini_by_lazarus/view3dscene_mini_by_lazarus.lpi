@@ -7,7 +7,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="1"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -52,8 +52,8 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="91" Y="281"/>
-        <TopLine Value="272"/>
+        <CursorPos X="97" Y="92"/>
+        <TopLine Value="70"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="32"/>
         <Loaded Value="True"/>
@@ -63,12 +63,10 @@
         <UnitName Value="KambiGLControl"/>
         <CursorPos X="5" Y="32"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="1"/>
         <UsageCount Value="11"/>
         <Bookmarks Count="1">
           <Item0 X="22" Y="376" ID="1"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
@@ -120,67 +118,19 @@
         <UsageCount Value="10"/>
       </Unit9>
     </Units>
-    <JumpHistory Count="15" HistoryIndex="14">
+    <JumpHistory Count="3" HistoryIndex="2">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="104" Column="1" TopLine="79"/>
+        <Caret Line="281" Column="91" TopLine="269"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="256" Column="21" TopLine="232"/>
+        <Caret Line="96" Column="54" TopLine="72"/>
       </Position2>
       <Position3>
         <Filename Value="mainf.pas"/>
-        <Caret Line="275" Column="3" TopLine="272"/>
+        <Caret Line="102" Column="22" TopLine="72"/>
       </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="63" TopLine="1"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="63" TopLine="1"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="96" Column="1" TopLine="82"/>
-      </Position6>
-      <Position7>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="33" TopLine="1"/>
-      </Position7>
-      <Position8>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="314" Column="1" TopLine="282"/>
-      </Position8>
-      <Position9>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="192" Column="25" TopLine="187"/>
-      </Position9>
-      <Position10>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="66" TopLine="1"/>
-      </Position10>
-      <Position11>
-        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
-        <Caret Line="216" Column="3" TopLine="182"/>
-      </Position11>
-      <Position12>
-        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
-        <Caret Line="213" Column="3" TopLine="189"/>
-      </Position12>
-      <Position13>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="33" Column="66" TopLine="25"/>
-      </Position13>
-      <Position14>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="241" Column="1" TopLine="241"/>
-      </Position14>
-      <Position15>
-        <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
-        <Caret Line="133" Column="34" TopLine="117"/>
-      </Position15>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -50,6 +50,7 @@ object Main: TMain
       Height = 25
       Top = 32
       Width = 183
+      BorderSpacing.InnerBorder = 4
       Caption = 'Refresh used'
       OnClick = ButtonRefreshUsedClick
       TabOrder = 1
@@ -84,6 +85,7 @@ object Main: TMain
       Height = 25
       Top = 48
       Width = 275
+      BorderSpacing.InnerBorder = 4
       Caption = 'Apply to existing source allocator'
       OnClick = ButtonApplyAllocatorLimitsClick
       TabOrder = 0
@@ -113,6 +115,7 @@ object Main: TMain
       Height = 25
       Top = 16
       Width = 213
+      BorderSpacing.InnerBorder = 4
       Caption = 'Recreate AL source allocator'
       OnClick = ButtonRecreateAllocatorClick
       TabOrder = 3
@@ -169,6 +172,7 @@ object Main: TMain
       Height = 25
       Top = 20
       Width = 195
+      BorderSpacing.InnerBorder = 4
       Caption = 'Allocate and play sound source'
       OnClick = ButtonAllocateAndPlayClick
       TabOrder = 2

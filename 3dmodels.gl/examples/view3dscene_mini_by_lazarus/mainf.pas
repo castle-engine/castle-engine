@@ -79,7 +79,7 @@ uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
 
 procedure TMain.OpenScene(const FileName: string);
 var
-  CamPos, CamDir, CamUp: TVector3Single;
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   FreeAndNil(Scene);
 
@@ -93,13 +93,13 @@ begin
   
   Scene.Attributes.TextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
 
-  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp);
+  Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
   Navigator.Init(
     CamPos,
     VectorAdjustToLength(CamDir,
       Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-    CamUp,
+    CamUp, GravityUp,
     0.0, 0.0 { unused, we don't use Gravity here });
 
   GLControlResize(GLControl);
