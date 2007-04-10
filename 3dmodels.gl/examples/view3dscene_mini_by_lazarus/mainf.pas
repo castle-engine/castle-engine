@@ -65,7 +65,7 @@ type
     procedure UpdateCaption;
   public
     { public declarations }
-  end; 
+  end;
 
 var
   Main: TMain;
@@ -90,8 +90,6 @@ begin
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
   Scene.Attributes.FirstGLFreeLight := 1;
-  
-  Scene.Attributes.TextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
 
@@ -150,11 +148,11 @@ procedure TMain.FormCreate(Sender: TObject);
 begin
   Navigator := TMatrixWalker.Create(@NavigatorChanged);
   GLControl.Navigator := Navigator;
-  
+
   UpdateCaption;
-  
+
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
-  
+
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);
 end;
@@ -178,7 +176,7 @@ begin
     StrToFloat(EditPositionX.Text),
     StrToFloat(EditPositionY.Text),
     StrToFloat(EditPositionZ.Text));
-    
+
   Dir := Vector3Single(
     StrToFloat(EditDirectionX.Text),
     StrToFloat(EditDirectionY.Text),
@@ -188,10 +186,10 @@ begin
     StrToFloat(EditUpX.Text),
     StrToFloat(EditUpY.Text),
     StrToFloat(EditUpZ.Text));
-    
+
   { First convert all to float. Then set Navigator properties.
     This way in case of exception in StrToFloat all remains OK. }
-    
+
   Navigator.CameraPos := Pos;
   Navigator.CameraDir := Dir;
   Navigator.CameraUp := Up;
@@ -210,7 +208,7 @@ end;
 procedure TMain.EditGLControlFocusKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   { EditGLControlFocus is an ugly hack.
-  
+
     The problem:
     TOpenGLControl cannot catch focus,so when I placed some
     focusable controls (edit boxes, buttons)
@@ -221,14 +219,14 @@ begin
     to GLControl. This is poor workaround, because it makes funny
     effects when user tries to operate on edit boxes with arrows:
     both 3d view changes and the cursor inside edit box moves.
-    
+
     Better workaround:
     Create EditGLControlFocus that can have focus, but is not visible
     --- so I set it's size to minimum (1, 1 in Lazarus)
     (I can't set Visible to false, then it would not be focusable).
     Then the only purpose of EditGLControlFocus is to call
     appropriate GLControl events. }
-    
+
   { I must avoid catching tab, to allow user to switch between controls. }
   if Key <> VK_TAB then
   begin
@@ -250,12 +248,12 @@ procedure TMain.GLControlPaint(Sender: TObject);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Navigator.Matrix);
-  
+
   if Scene <> nil then
   begin
     Scene.Render(nil, tgAll);
   end;
-  
+
   GLControl.SwapBuffers;
 end;
 
@@ -271,9 +269,9 @@ procedure TMain.GLControlResize(Sender: TObject);
 
 begin
   if not GLControl.MakeCurrent then Exit;
-  
+
   glViewport(0, 0, GLControl.Width, GLControl.Height);
-  
+
   if Scene <> nil then
   begin
     ProjectionGLPerspective(45.0,
@@ -281,18 +279,18 @@ begin
       Box3dMaxSize(Scene.BoundingBox) * 0.01,
       Box3dMaxSize(Scene.BoundingBox) * 20.0);
   end;
-  
+
   UpdateNavigatorProjectionMatrix;
 end;
 
 procedure TMain.NavigatorChanged(ANavigator: TMatrixNavigator);
 begin
   GLControl.Invalidate;
-  
+
   EditPositionX.Text := FloatToNiceStr(Navigator.CameraPos[0]);
   EditPositionY.Text := FloatToNiceStr(Navigator.CameraPos[1]);
   EditPositionZ.Text := FloatToNiceStr(Navigator.CameraPos[2]);
-  
+
   EditDirectionX.Text := FloatToNiceStr(Navigator.CameraDir[0]);
   EditDirectionY.Text := FloatToNiceStr(Navigator.CameraDir[1]);
   EditDirectionZ.Text := FloatToNiceStr(Navigator.CameraDir[2]);
@@ -312,7 +310,7 @@ begin
   S += ' - view3dscene_mini_by_lazarus';
   Caption := S;
 end;
- 
+
 initialization
   {$I mainf.lrs}
 end.

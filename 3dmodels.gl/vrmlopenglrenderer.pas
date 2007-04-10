@@ -478,7 +478,7 @@ type
     { ponizsze parametry kontroluja min i mag filter dla tekstur.
       @groupBegin }
     property TextureMinFilter: TGLint
-      read FTextureMinFilter write SetTextureMinFilter default GL_LINEAR;
+      read FTextureMinFilter write SetTextureMinFilter default GL_LINEAR_MIPMAP_LINEAR;
     property TextureMagFilter: TGLint
       read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
     { @groupEnd }
@@ -1493,7 +1493,7 @@ begin
   FFirstGLFreeLight := 0;
   FLastGLFreeLight := -1;
   FEnableTextures := true;
-  FTextureMinFilter := GL_LINEAR;
+  FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;
   FPointSize := 3.0;
   FUseFog := true;
