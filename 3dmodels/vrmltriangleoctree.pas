@@ -731,16 +731,28 @@ end;
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+{$ifdef DEBUG}
+var
+  AddedSomewhere: boolean;
+{$endif}
 
   procedure PutIntoSubNode(SubNode: TOctreeNode; PItem: POctreeItem);
   begin
     if IsBox3dTriangleCollision(SubNode.Box, PItem^.Triangle) then
+    begin
       SubNode.AddItem(ItemIndex);
+      {$ifdef DEBUG}
+      AddedSomewhere := true;
+      {$endif}
+    end;
   end;
 
 var
   PItem: POctreeItem;
 begin
+  {$ifdef DEBUG}
+  AddedSomewhere := false;
+  {$endif}
   PItem := ParentTree.OctreeItems.Pointers[ItemIndex];
   PutIntoSubNode(TreeSubNodes[false, false, false], PItem);
   PutIntoSubNode(TreeSubNodes[false, false, true ], PItem);
@@ -750,6 +762,9 @@ begin
   PutIntoSubNode(TreeSubNodes[true , false, true ], PItem);
   PutIntoSubNode(TreeSubNodes[true , true , false], PItem);
   PutIntoSubNode(TreeSubNodes[true , true , true ], PItem);
+  {$ifdef DEBUG}
+  Assert(AddedSomewhere, 'TTriangleOctreeNode.PutItemIntoSubNodes lost a triangle');
+  {$endif}
 end;
 
 function TTriangleOctreeNode.ParentTree: TVRMLTriangleOctree;

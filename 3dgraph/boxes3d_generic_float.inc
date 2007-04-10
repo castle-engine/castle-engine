@@ -31,7 +31,10 @@ function IsCenteredBox3dPlaneCollision(
   when trying to set this experimentally, I had to set EqualityEpsilon = 1e-3 (even
   EqualityEpsilon = 1e-4 was still too small epsilon !).
 
-  With Double, I can use EqualityEpsilon. OK, that's stil a large epsilon... }
+  With Double, I can use EqualityEpsilon below. OK, that's stil a large epsilon...
+  You can test on VRML models like malfunction/trunk/vrmls/wawoz.wrl:
+  view3dscene (when compiled with -dDEBUG) with fail loading
+  (Assert(AddedSomewhere) will trigger) with too small epsilon. }
 const
   EqualityEpsilon = 1e-5;
 
