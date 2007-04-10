@@ -2197,16 +2197,36 @@ var
           FIsFallingDown := false;
         end else
         begin
-          { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
-            And also above when using FFallingDownSpeed, I multipled
-            FFallingDownSpeed * CompSpeed. This is correct:
-            - changing position based on FallingDownSpeed is a "velocity"
-            - changing FallingDownSpeed below is "acceleration"
-            And both acceleration and velocity must be time-based. }
-          if FallingDownSpeedIncrease <> 1.0 then
-            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
+          { This is where we do FallingDownEffect.
 
-          { This is where we do FallingDownEffect }
+            Note that I do FallingDownEffect *before* increasing
+            FFallingDownSpeed below.
+
+            1. reason (ideological, not really that important...) is that
+               FallingDownEffect is a penalty equivalent to FFallingDownSpeed that
+               was already used --- not to the future FFallingDownSpeed.
+
+            2. reason (practical, and real :) is that when the program
+               was in some non-3d drawing state (e.g. displaying menu, or
+               displaying progress bar because the VRML model was just loaded)
+               then CompSpeed indicates (truly) that a lot of time elapsed
+               since last Idle. This means that it's common that at the same moment
+               when IsFallingDown changed suddenly to @true, CompSpeed may be large
+               and we're better not using this too much... A practical bug demo:
+               open in view3dscene (it does progress bar in OpenGL, so will cause
+               large CompSpeed) any model with gravity on and camera slightly
+               higher then CameraPreferredHeight (we want to trigger IsFallingDown
+               right when the model is loaded). E.g. run "view3dscene
+               kambi_vrml_test_suite/vrml_1/kambi_extensions/navigation_info_tests/speed_2.wrl".
+               If FallingDownSpeedIncrease will be done before FallingDownEffect,
+               then you'll see that at the very first frame FFallingDownSpeed
+               was increased so much (because CompSpeed was large) that it triggered
+               FallingDownEffect. Even though the falling down distance was really small...
+
+               Maybe in the future I'll workaround it differently.
+               One idea is that FFallingDownSpeed should be made smaller if the
+               falled down distance is small. Or just don't call GravityIdle after the first
+               model load, to avoid using large CompSpeed ? }
           if FallingDownEffect and
              (FFallingDownSpeed > FallingDownStartSpeed * 3) then
           begin
@@ -2227,6 +2247,15 @@ var
 
             MatrixChanged;
           end;
+
+          { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
+            And also above when using FFallingDownSpeed, I multipled
+            FFallingDownSpeed * CompSpeed. This is correct:
+            - changing position based on FallingDownSpeed is a "velocity"
+            - changing FallingDownSpeed below is "acceleration"
+            And both acceleration and velocity must be time-based. }
+          if FallingDownSpeedIncrease <> 1.0 then
+            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
         end;
       end else
         FIsFallingDown := false;
