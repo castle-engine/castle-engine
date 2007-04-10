@@ -181,6 +181,7 @@ function Box3dAntiTranslate(const Box: TBox3d;
   const Translation: TVector3Single): TBox3d;
 
 function Box3dToNiceStr(const box: TBox3d): string;
+function Box3dToRawStr(const box: TBox3d): string;
 
 procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); overload;
 procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
@@ -221,10 +222,16 @@ function IsBox3dSegmentCollision(
   Note that you can't express empty box3d here: all BoxHalfSize items
   must be >= 0. The case when size = 0 is considered like infintely small
   box in some dimension (e.g. if all three sizes are = 0 then the box
-  becomes a point). }
+  becomes a point).
+
+  @groupBegin }
 function IsCenteredBox3dPlaneCollision(
   const BoxHalfSize: TVector3Single;
-  const Plane: TVector4Single): boolean;
+  const Plane: TVector4Single): boolean; overload;
+function IsCenteredBox3dPlaneCollision(
+  const BoxHalfSize: TVector3Double;
+  const Plane: TVector4Double): boolean; overload;
+{ @groupEnd }
 
 function IsBox3dPlaneCollision(const Box3d: TBox3d;
   const Plane: TVector4Single): boolean;
@@ -762,7 +769,14 @@ function Box3dToNiceStr(const box: TBox3d): string;
 begin
  if IsEmptyBox3d(box) then
   result := 'EMPTY' else
-  result := VectorToniceStr(box[0])+' - '+VectorToNiceStr(box[1]);
+  result := VectorToNiceStr(box[0])+' - '+VectorToNiceStr(box[1]);
+end;
+
+function Box3dToRawStr(const box: TBox3d): string;
+begin
+ if IsEmptyBox3d(box) then
+  result := 'EMPTY' else
+  result := VectorToRawStr(box[0])+' - '+VectorToRawStr(box[1]);
 end;
 
 {$define CLAMP_IMPLEMENTATION:=
@@ -935,76 +949,15 @@ begin
   Result := IsCenteredBox3dPlaneCollision(BoxHalfSize, PlaneMoved);
 end;
 
-function IsCenteredBox3dPlaneCollision(
-  const BoxHalfSize: TVector3Single;
-  const Plane: TVector4Single): boolean;
-{ Implementation of this is based on
-  [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
-  planeBoxOverlap routine, by Tomas Akenine-Möller,
-  mentioned in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
-  about "Fast 3D Triangle-Box Overlap Testing", downloadable from
-  [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
+{$define TGenericFloat := Single}
+{$define TVector3GenericFloat := TVector3Single}
+{$define TVector4GenericFloat := TVector4Single}
+{$I boxes3d_generic_float.inc}
 
-  The idea: we need to test plane equation with only two points
-  (instead of eight points, as in naive version). Think about the plane
-  normal vector; imagine 8 box points projected on this vector; now
-  we can find 2 box points, one that has minimal value when projected
-  on normal vector, and one that has maximum value. Now you need to test
-  is the plane between these two points. }
-var
-  I: Integer;
-  VMin, VMax: TVector3Single;
-const
-  { This sucks. Big time. But I really cannot use here 0.
-    Or even SingleEqualityEpsilon --- SingleEqualityEpsilon is still too
-    small. Testcase:
-      Plane[0] := 0;
-      Plane[1] := 0;
-      Plane[2] := 1;
-      Plane[3] := 1.980401039E+00;
-      Box[0][0] :=  2.837333679E-01;
-      Box[0][1] := -9.844776917E+01;
-      Box[0][2] := -1.980401039E+00;
-      Box[1][0] :=  1.283623352E+02;
-      Box[1][1] :=  3.240192413E+00;
-      Box[1][2] :=  3.100979996E+01;
-      Assert(IsBox3dPlaneCollision(Box, Plane));
-    (it's included in autotests in ../tests/).
-    It's clear that collision does occur (since Plane[3] = -Box[0][2]).
-    But for these values I get
-      Plane[0] * VMin[0] +
-      Plane[1] * VMin[1] +
-      Plane[2] * VMin[2] +
-      Plane[3] = 1.907348633E-06
-    So it's really really small, but still > 0, and even > standard
-    SingleEqualityEpsilon. }
-  EqualityEpsilon = 1e-5;
-begin
-  for I := 0 to 2 do
-    if Plane[I] > 0 then
-    begin
-      VMin[I] := -BoxHalfSize[I];
-      VMax[I] :=  BoxHalfSize[I];
-    end else
-    begin
-      VMin[I] :=  BoxHalfSize[I];
-      VMax[I] := -BoxHalfSize[I];
-    end;
-
-  { If VMin is above the plane (plane equation is > 0), then VMax
-    is also above, no need to test anything else. }
-  if Plane[0] * VMin[0] +
-     Plane[1] * VMin[1] +
-     Plane[2] * VMin[2] +
-     Plane[3] > EqualityEpsilon then
-    Exit(false);
-
-  { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
-  Result :=  Plane[0] * VMax[0] +
-             Plane[1] * VMax[1] +
-             Plane[2] * VMax[2] +
-             Plane[3] >= EqualityEpsilon;
-end;
+{$define TGenericFloat := Double}
+{$define TVector3GenericFloat := TVector3Double}
+{$define TVector4GenericFloat := TVector4Double}
+{$I boxes3d_generic_float.inc}
 
 function IsBox3dTriangleCollision(
   const Box: TBox3d;
@@ -1025,86 +978,90 @@ function IsBox3dTriangleCollision(
      this gives 3x3=9 more tests
 }
 
+const
+  { The same comments about precision as for IsCenteredBox3dPlaneCollision apply also here. }
+  EqualityEpsilon = 1e-5;
+
 var
-  TriangleMoved: TTriangle3Single;
-  BoxHalfSize: TVector3Single;
+  TriangleMoved: TTriangle3Double;
+  BoxHalfSize: TVector3Double;
 
   { ======================== X-tests ======================== }
-  function AXISTEST_X01(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_X01(const a, b, fa, fb: Double): boolean;
   var
-    p0, p2, rad, min, max: Single;
+    p0, p2, rad, min, max: Double;
   begin
     p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
     p2 := a * TriangleMoved[2][1] - b * TriangleMoved[2][2];
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_X2(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_X2(const a, b, fa, fb: Double): boolean;
   var
-    p0, p1, rad, min, max: Single;
+    p0, p1, rad, min, max: Double;
   begin
     p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
     p1 := a * TriangleMoved[1][1] - b * TriangleMoved[1][2];
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
   { ======================== Y-tests ======================== }
-  function AXISTEST_Y02(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_Y02(const a, b, fa, fb: Double): boolean;
   var
-    p0, p2, rad, min, max: Single;
+    p0, p2, rad, min, max: Double;
   begin
     p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
     p2 := -a * TriangleMoved[2][0] + b * TriangleMoved[2][2];
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_Y1(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_Y1(const a, b, fa, fb: Double): boolean;
   var
-    p0, p1, rad, min, max: Single;
+    p0, p1, rad, min, max: Double;
   begin
     p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
     p1 := -a * TriangleMoved[1][0] + b * TriangleMoved[1][2];
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
   { ======================== Z-tests ======================== }
-  function AXISTEST_Z12(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_Z12(const a, b, fa, fb: Double): boolean;
   var
-    p1, p2, rad, min, max: Single;
+    p1, p2, rad, min, max: Double;
   begin
     p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
     p2 := a * TriangleMoved[2][0] - b * TriangleMoved[2][1];
     if p2<p1 then begin min := p2; max := p1; end else
                   begin min := p1; max := p2; end;
     rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_Z0(const a, b, fa, fb: Single): boolean;
+  function AXISTEST_Z0(const a, b, fa, fb: Double): boolean;
   var
-    p0, p1, rad, min, max: Single;
+    p0, p1, rad, min, max: Double;
   begin
     p0 := a * TriangleMoved[0][0] - b * TriangleMoved[0][1];
     p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
-    Result := (min>rad) or (max<-rad);
+    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  procedure FindMinMax(const x0, x1, x2: Single; out min, max: Single);
+  procedure FindMinMax(const x0, x1, x2: Double; out min, max: Double);
   begin
     min := x0;
     max := x0;
@@ -1115,13 +1072,13 @@ var
   end;
 
 var
-  BoxCenter: TVector3Single;
+  BoxCenter: TVector3Double;
   I: Integer;
-  TriangleEdges: array [0..2] of TVector3Single;
-  EdgeAbs: TVector3Single;
-  min, max: Single;
-  Plane: TVector4Single;
-  PlaneDir: TVector3Single absolute Plane;
+  TriangleEdges: array [0..2] of TVector3Double;
+  EdgeAbs: TVector3Double;
+  min, max: Double;
+  Plane: TVector4Double;
+  PlaneDir: TVector3Double absolute Plane;
 begin
   if IsEmptyBox3d(Box) then
     Exit(false);
@@ -1135,9 +1092,9 @@ begin
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
     so that we can treat the BoxHalfSize as centered around origin) }
-  TriangleMoved[0] := VectorSubtract(Triangle[0], BoxCenter);
-  TriangleMoved[1] := VectorSubtract(Triangle[1], BoxCenter);
-  TriangleMoved[2] := VectorSubtract(Triangle[2], BoxCenter);
+  TriangleMoved[0] := VectorSubtract(Vector3Double(Triangle[0]), BoxCenter);
+  TriangleMoved[1] := VectorSubtract(Vector3Double(Triangle[1]), BoxCenter);
+  TriangleMoved[2] := VectorSubtract(Vector3Double(Triangle[2]), BoxCenter);
 
   { calculate TriangleMoved edges }
   TriangleEdges[0] := VectorSubtract(TriangleMoved[1], TriangleMoved[0]);
@@ -1174,15 +1131,18 @@ begin
 
   { test in X-direction }
   FindMinMax(TriangleMoved[0][0], TriangleMoved[1][0], TriangleMoved[2][0], min, max);
-  if (min > boxhalfsize[0]) or (max < -boxhalfsize[0]) then Exit(false);
+  if (min >  boxhalfsize[0] + EqualityEpsilon) or
+     (max < -boxhalfsize[0] - EqualityEpsilon) then Exit(false);
 
   { test in Y-direction }
   FindMinMax(TriangleMoved[0][1], TriangleMoved[1][1], TriangleMoved[2][1], min, max);
-  if (min > boxhalfsize[1]) or (max < -boxhalfsize[1]) then Exit(false);
+  if (min >  boxhalfsize[1] + EqualityEpsilon) or
+     (max < -boxhalfsize[1] - EqualityEpsilon) then Exit(false);
 
   { test in Z-direction }
   FindMinMax(TriangleMoved[0][2], TriangleMoved[1][2], TriangleMoved[2][2], min, max);
-  if (min > boxhalfsize[2]) or (max < -boxhalfsize[2]) then Exit(false);
+  if (min >  boxhalfsize[2] + EqualityEpsilon) or
+     (max < -boxhalfsize[2] - EqualityEpsilon) then Exit(false);
 
   { tests 2)
     test if the box intersects the plane of the triangle

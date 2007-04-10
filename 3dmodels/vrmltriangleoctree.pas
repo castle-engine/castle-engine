@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -732,50 +732,24 @@ end;
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 
-  procedure OCTREE_STEP_INTO_SUBNODES_PROC(subnode: TOctreeNode; var Stop: boolean);
+  procedure PutIntoSubNode(SubNode: TOctreeNode; PItem: POctreeItem);
   begin
-   if IsBox3dPlaneCollision(subnode.Box,
-     ParentTree.OctreeItems.Items[ItemIndex].TriangleNormalPlane) then
-    subnode.AddItem(ItemIndex);
-    { wpp. przypadku na pewno caly trojkat jest poza Box'em.
-      W sumie wrzucamy trojkat tylko jesli zachodza obydwa warunki :
-      Box3d trojkata zachodzi na box subnode'a i plane trojkata przecina node'a.
-
-      Te dwa warunki razem nie daja pewnosci ze na pewno trojkat MUSI byc
-      wrzucony do node'a ale jest mala szansa ze wrzucimy trojkat
-      tam gdzie nie musimy (wrzucanie trojkata tam gdzie nie musimy jest
-      dopuszczalne (tzn. jesli chodzi o poprawnosc) ale wysoce niepozadane
-      ze wzgledu na pozniejsza optymalnosc, nie chcemy przeciez niepotrzebnie
-      przeladowywac lisci.
-
-      Latwo wyobrazic sobie trojkat ktory przeszedlby przez dowolny sposrod tych
-      warunkow a nie musi byc wrzucony do subnode'a. Trudniej juz
-      wyobrazic sobie trojkat ktory spelnia obydwa te warunki na raz a nie musi
-      byc wrzucony do subnode'a... Byc moze kiedys jeszcze to tutaj zoptymalizuje
-      ale na razie nie widze potrzeby.
-    }
+    if IsBox3dTriangleCollision(SubNode.Box, PItem^.Triangle) then
+      SubNode.AddItem(ItemIndex);
   end;
 
-OCTREE_STEP_INTO_SUBNODES_DECLARE
-var i: integer;
-   PItem: POctreeItem;
+var
+  PItem: POctreeItem;
 begin
- PItem := ParentTree.OctreeItems.Pointers[ItemIndex];
- for i := 0 to 2 do
- begin
-  { jak widac ponizej, zwiekszamy troche OSIS_Box o SingleEqualityEpsilon.
-    Bardzo potrzebne zwlaszcza gdy mamy np. prostokat ulozony dokladnie w/g
-    linii podzialu subnode'a (przyklad : MaterialTest.wrl) }
-  OSIS_Box[0, i] := KambiUtils.min(
-    PItem^.Triangle[0, i],
-    PItem^.Triangle[1, i],
-    PItem^.Triangle[2, i]) - SingleEqualityEpsilon;
-  OSIS_Box[1, i] := KambiUtils.max(
-    PItem^.Triangle[0, i],
-    PItem^.Triangle[1, i],
-    PItem^.Triangle[2, i]) + SingleEqualityEpsilon;
- end;
- OCTREE_STEP_INTO_SUBNODES
+  PItem := ParentTree.OctreeItems.Pointers[ItemIndex];
+  PutIntoSubNode(TreeSubNodes[false, false, false], PItem);
+  PutIntoSubNode(TreeSubNodes[false, false, true ], PItem);
+  PutIntoSubNode(TreeSubNodes[false, true , false], PItem);
+  PutIntoSubNode(TreeSubNodes[false, true , true ], PItem);
+  PutIntoSubNode(TreeSubNodes[true , false, false], PItem);
+  PutIntoSubNode(TreeSubNodes[true , false, true ], PItem);
+  PutIntoSubNode(TreeSubNodes[true , true , false], PItem);
+  PutIntoSubNode(TreeSubNodes[true , true , true ], PItem);
 end;
 
 function TTriangleOctreeNode.ParentTree: TVRMLTriangleOctree;

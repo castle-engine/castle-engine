@@ -1267,6 +1267,13 @@ begin
  if High(v) >= 0 then result += FloatToRawStr(v[High(v)]);
 end;
 
+function TriangleToRawStr(const T: TYPE_TRIANGLE3): string;
+begin
+  Result := '[' + VectorToRawStr(T[0]) + ', '
+                + VectorToRawStr(T[1]) + ', '
+                + VectorToRawStr(T[2]) + ']';
+end;
+
 (* operacje na macierzach -------------------------------------------------- *)
 
 function TranslationMatrix(const Transl: TYPE_VECTOR3): TMatrix4Single;

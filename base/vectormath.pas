@@ -1455,6 +1455,8 @@ function FloatToRawStr(f: Single): string; overload;
 function FloatToRawStr(f: Double): string; overload;
 function VectorToRawStr(const v: array of Single): string; overload;
 function VectorToRawStr(const v: array of Double): string; overload;
+function TriangleToRawStr(const t: TTriangle3Single): string; overload;
+function TriangleToRawStr(const t: TTriangle3Double): string; overload;
 
 { troche matematyki na macierzach ----------------------------------------------- }
 
