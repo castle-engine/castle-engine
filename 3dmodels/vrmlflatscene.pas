@@ -856,7 +856,7 @@ begin
   end else
   begin
     { use default camera settings }
-    CamPos := StdVRMLCamPos_1;
+    CamPos := StdVRMLCamPos[1];
     CamDir := StdVRMLCamDir;
     CamUp := StdVRMLCamUp;
     GravityUp := StdVRMLGravityUp;

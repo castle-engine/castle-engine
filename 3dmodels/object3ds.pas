@@ -38,6 +38,9 @@
 
   Dodatkowo TScene3ds ma liste obiektow TMaterial3ds ktore reprezentuja
   chunki MATERIAL.
+
+  Based on [http://www.martinreddy.net/gfx/3d/3DS.spec]
+  (or some earlier version of this, I don't remember...).
 }
 
 unit Object3ds;

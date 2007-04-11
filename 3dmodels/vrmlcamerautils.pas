@@ -1,31 +1,47 @@
-{ Some utilities related to camera definition in VRML.
-
-  This unit doesn't depend on VRMLNodes unit, so it doesn't
-  really deal with camera VRML nodes. See VRMLNodes unit
-  for this. This unit just defines some useful things related to VRML
-  camera that don't fit elsewhere. }
+{ Some utilities related to camera definition in VRML. }
 unit VRMLCameraUtils;
 
 interface
 
-uses Math, KambiUtils, VectorMath, Boxes3d;
+uses Math, KambiUtils, VectorMath, Boxes3d, VRMLNodes;
+
+type
+  { This is VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
+    For Inventor you should treat it like VRML 1.0. }
+  TVRMLCameraVersion = 1..2;
 
 const
-  { nie mozesz zmieniac ponizszych stalych, ich definicja jako wlasnie takie
-    jest przeciez czescia jezyka VRMLa. Ale mozesz uzywac w wielu miejscach
-    ponizszych stalych aby zapisywac cos elegancko (i uniknac potencjalnych
-    pomylek przy wpisywaniu wartosci ponizszych stalych).
+  { Standard camera settings. These values are defined by VRML specification,
+    so you really shouldn't change these constants ever.
 
     For VRML 1.0 spec of PerspectiveCamera node determines these values.
     For VRML 97 spec part "4.4.5 Standard units and coordinate system"
     and default values for Viewpoint determines these values.
-    StdVRMLCamPos_1 is for VRML 1.0, StdVRMLCamPos_2 is for VRML 2.0
-    (they are diffent). }
-  StdVRMLCamPos_1: TVector3Single = (0, 0, 1);
-  StdVRMLCamPos_2: TVector3Single = (0, 0, 10);
+
+    Note that StdVRMLCamPos is indexed by TVRMLCameraVersion, since
+    it's different for VRML 1.0 and 2.0, }
+  StdVRMLCamPos: array [TVRMLCameraVersion] of TVector3Single =
+    ( (0, 0, 1), (0, 0, 10) );
   StdVRMLCamDir: TVector3Single = (0, 0, -1);
   StdVRMLCamUp: TVector3Single = (0, 1, 0);
   StdVRMLGravityUp: TVector3Single = (0, 1, 0);
+
+procedure CameraViewpointForWholeScene(const Box: TBox3d;
+  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
+
+{ This constructs string with VRML node defining camera with given
+  properties. }
+function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
+  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): string;
+
+{ This constructs TVRMLNode defining camera with given properties. }
+function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
+  const WWWBasePath: string;
+  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;
+
+implementation
+
+uses SysUtils;
 
 { Zamien CamDir i CamUp na orientation VRMLa 1.0.
   Orientation VRMLa wyraza CamDir i CamUp podajac wektor 4 elementowy
@@ -34,14 +50,11 @@ const
   CamDir i CamUp. Zadaniem jest wyliczyc wlasnie takie Orientation dla
   zadanych juz CamDir i CamUp. Podane CamDir / Up musza byc prostopadle
   i niezerowe, ich dlugosci sa bez znaczenia. }
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single; overload;
+function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
+  forward; overload;
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
-  out OrientAxis: TVector3Single; out OrientRadAngle: Single); overload;
-
-procedure CameraViewpointForWholeScene(const Box: TBox3d;
-  out CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single);
-
-implementation
+  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+  forward; overload;
 
 procedure CamDirUp2Orient(CamDir, CamUp: TVector3Single;
   out OrientAxis: TVector3Single; out OrientRadAngle: Single);
@@ -209,7 +222,7 @@ var
 begin
   if IsEmptyBox3d(Box) then
   begin
-    CameraPos := StdVRMLCamPos_1;
+    CameraPos := StdVRMLCamPos[1];
     CameraDir := StdVRMLCamDir;
     CameraUp := StdVRMLCamUp;
   end else
@@ -224,6 +237,170 @@ begin
 
   { Nothing more intelligent to do with GravityUp is possible... }
   GravityUp := CameraUp;
+end;
+
+function MakeVRMLCameraStr(Version: TVRMLCameraVersion;
+  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): string;
+const
+  UntransformedViewpoint: array [TVRMLCameraVersion] of string = (
+    'PerspectiveCamera {' +nl+
+    '  position %s' +nl+
+    '  orientation %s' +nl+
+    '}',
+    'Viewpoint {' +nl+
+    '  position %s' +nl+
+    '  orientation %s' +nl+
+    '}'
+  );
+  TransformedViewpoint: array [TVRMLCameraVersion] of string = (
+    'Separator {' +nl+
+    '  Transform {' +nl+
+    '    translation %s' +nl+
+    '    rotation %s %s' +nl+
+    '  }' +nl+
+    '  PerspectiveCamera {' +nl+
+    '    position 0 0 0 # camera position is expressed by translation' +nl+
+    '    orientation %s' +nl+
+    '  }' +nl+
+    '}',
+    'Transform {' +nl+
+    '  translation %s' +nl+
+    '  rotation %s %s' +nl+
+    '  children Viewpoint {' +nl+
+    '    position 0 0 0 # camera position is expressed by translation' +nl+
+    '    orientation %s' +nl+
+    '  }' +nl+
+    '}'
+  );
+
+var
+  RotationVectorForGravity: TVector3Single;
+  AngleForGravity: Single;
+begin
+  Result := Format(
+    '# Camera settings "encoded" in the VRML declaration below :' +nl+
+    '# direction %s' +nl+
+    '# up %s' +nl+
+    '# gravityUp %s' + nl,
+    [ VectorToRawStr(CameraDir),
+      VectorToRawStr(CameraUp),
+      VectorToRawStr(GravityUp) ]);
+
+  RotationVectorForGravity := VectorProduct(StdVRMLGravityUp, GravityUp);
+  if IsZeroVector(RotationVectorForGravity) then
+  begin
+    { Then GravityUp is parallel to StdVRMLGravityUp, which means that it's
+      just the same. So we can use untranslated Viewpoint node. }
+    Result := Result +
+      Format(
+        UntransformedViewpoint[Version],
+        [ VectorToRawStr(CameraPos),
+          VectorToRawStr( CamDirUp2Orient(CameraDir, CameraUp) ) ]);
+  end else
+  begin
+    { Then we must transform Viewpoint node, in such way that
+      StdVRMLGravityUp affected by this transformation will give
+      desired GravityUp. }
+    AngleForGravity := AngleRadBetweenVectors(StdVRMLGravityUp, GravityUp);
+    Result := Result +
+      Format(
+        TransformedViewpoint[Version],
+        [ VectorToRawStr(CameraPos),
+          VectorToRawStr(RotationVectorForGravity),
+          FloatToRawStr(AngleForGravity),
+          { I want
+            1. standard VRML dir/up vectors
+            2. rotated by orientation
+            3. rotated around RotationVectorForGravity
+            will give MatrixWalker.CameraDir/Up.
+            CamDirUp2Orient will calculate the orientation needed to
+            achieve given up/dir vectors. So I have to pass there
+            MatrixWalker.CameraDir/Up *already rotated negatively
+            around RotationVectorForGravity*. }
+          VectorToRawStr( CamDirUp2Orient(
+            RotatePointAroundAxisRad(-AngleForGravity, CameraDir, RotationVectorForGravity),
+            RotatePointAroundAxisRad(-AngleForGravity, CameraUp , RotationVectorForGravity)
+            )) ]);
+  end;
+end;
+
+function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
+  const WWWBasePath: string;
+  const CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single): TVRMLNode;
+var
+  RotationVectorForGravity: TVector3Single;
+  AngleForGravity: Single;
+  GeneralViewpoint: TNodeGeneralViewpoint;
+  Separator: TNodeSeparator;
+  Transform_1: TNodeTransform_1;
+  Transform_2: TNodeTransform_2;
+  Rotation, Orientation: TVector4Single;
+begin
+  RotationVectorForGravity := VectorProduct(StdVRMLGravityUp, GravityUp);
+  if IsZeroVector(RotationVectorForGravity) then
+  begin
+    { Then GravityUp is parallel to StdVRMLGravityUp, which means that it's
+      just the same. So we can use untranslated Viewpoint node. }
+    case Version of
+      1: GeneralViewpoint := TNodePerspectiveCamera.Create('', '');
+      2: GeneralViewpoint := TNodeViewpoint.Create('', '');
+      else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
+    end;
+    GeneralViewpoint.FdPosition.Value := CameraPos;
+    GeneralViewpoint.FdOrientation.Value := CamDirUp2Orient(CameraDir, CameraUp);
+    Result := GeneralViewpoint;
+  end else
+  begin
+    { Then we must transform Viewpoint node, in such way that
+      StdVRMLGravityUp affected by this transformation will give
+      desired GravityUp. }
+    AngleForGravity := AngleRadBetweenVectors(StdVRMLGravityUp, GravityUp);
+    Rotation := Vector4Single(RotationVectorForGravity, AngleForGravity);
+    { I want
+      1. standard VRML dir/up vectors
+      2. rotated by orientation
+      3. rotated around RotationVectorForGravity
+      will give MatrixWalker.CameraDir/Up.
+      CamDirUp2Orient will calculate the orientation needed to
+      achieve given up/dir vectors. So I have to pass there
+      MatrixWalker.CameraDir/Up *already rotated negatively
+      around RotationVectorForGravity*. }
+    Orientation := CamDirUp2Orient(
+      RotatePointAroundAxisRad(-AngleForGravity, CameraDir, RotationVectorForGravity),
+      RotatePointAroundAxisRad(-AngleForGravity, CameraUp , RotationVectorForGravity));
+    case Version of
+      1: begin
+           Transform_1 := TNodeTransform_1.Create('', '');
+           Transform_1.FdTranslation.Value := CameraPos;
+           Transform_1.FdRotation.Value := Rotation;
+
+           GeneralViewpoint := TNodePerspectiveCamera.Create('', '');
+           GeneralViewpoint.FdPosition.Value := ZeroVector3Single;
+           GeneralViewpoint.FdOrientation.Value := Orientation;
+
+           Separator := TNodeSeparator.Create('', '');
+           Separator.AddChild(Transform_1);
+           Separator.AddChild(GeneralViewpoint);
+
+           Result := Separator;
+         end;
+
+      2: begin
+           Transform_2 := TNodeTransform_2.Create('', '');
+           Transform_2.FdTranslation.Value := CameraPos;
+           Transform_2.FdRotation.Value := Rotation;
+
+           GeneralViewpoint := TNodeViewpoint.Create('', '');
+           GeneralViewpoint.FdPosition.Value := ZeroVector3Single;
+           GeneralViewpoint.FdOrientation.Value := Orientation;
+
+           Transform_2.FdChildren.AddItem(GeneralViewpoint);
+
+           Result := Transform_2;
+         end;
+      else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
+    end;
+  end;
 end;
 
 end.

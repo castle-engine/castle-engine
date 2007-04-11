@@ -255,7 +255,7 @@ var WWWBasePath: string;
 
   procedure Add3dsCameras(scene: TScene3ds; node: TVRMLNode);
   var camSwitch: TNodeSwitch_1;
-      camera: TNodePerspectiveCamera;
+      camera: TVRMLNode;
       i: Integer;
   begin
    if scene.Cameras.Count = 0 then Exit;
@@ -266,14 +266,15 @@ var WWWBasePath: string;
 
    for i := 0 to scene.Cameras.Count-1 do
    begin
-    camera := TNodePerspectiveCamera.Create(Camera3dsNameToVRMLName(
-      scene.Cameras[i].Name), WWWBasePath);
+    camera := MakeVRMLCameraNode(1, WWWBasePath,
+      scene.Cameras[i].CamPos,
+      scene.Cameras[i].CamDir,
+      scene.Cameras[i].CamUp,
+      scene.Cameras[i].CamUp { GravityUp equals CamUp });
+    camera.NodeName := Camera3dsNameToVRMLName(scene.Cameras[i].Name);
     camSwitch.AddChild(camera);
 
-    camera.FdPosition.Value :=  scene.Cameras[i].CamPos;
-    camera.FdOrientation.Value :=  CamDirUp2Orient(scene.Cameras[i].CamDir,
-      scene.Cameras[i].CamUp);
-    { TODO: pozostale pola VRMLa ustalac, wykorzystac pozostale pola kamery 3ds }
+    { TODO: wykorzystac pozostale pola kamery 3ds }
    end;
   end;
 
