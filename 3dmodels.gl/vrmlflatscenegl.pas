@@ -781,6 +781,21 @@ type
 
     procedure RenderBackShadowQuads; overload;
     { @groupEnd }
+
+    { Render all shadow quads. See RenderFrontShadowQuads and
+      RenderBackShadowQuads, but this just renders all quads
+      (front or back facing).
+
+      Use this if you don't need to do anything between
+      RenderFrontShadowQuads and RenderBackShadowQuads.
+      E.g. when you want to use OpenGL to cull front/back faces,
+      or when you use the "xor" trick to render incorrect
+      (but sometimes good enough for really simple shadow casters) shadows.
+      This will work faster than just calling
+      @code(RenderFrontShadowQuads; RenderBackShadowQuads;) one after the other. }
+    procedure RenderShadowQuads(
+      const LightPos: TVector3Single;
+      const TrianglesTransform: TMatrix4Single);
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -1691,15 +1706,10 @@ procedure TVRMLFlatSceneGL.RenderFrontShadowQuads(
     Let SQFront:="is SQ front facing".
     If SQFront = Front then this procedure renders SQ, else is does not. }
   procedure MaybeRenderShadowQuad(const P0, P1, POther,
-    PExtruded0, PExtruded1: TVector3Single);
+    PExtruded0, PExtruded1: TVector3Single; const SQFront: boolean);
   var
-    SQFront: boolean;
-    P: TVector4Single;
     QuadPtr: PQuad3Single;
   begin
-    P := TrianglePlane(P0, P1, LightPos);
-    SQFront := not PointsSamePlaneSides(POther, CameraPos, P);
-
     if SQFront then
     begin
       glVertexv(P0);
@@ -1734,6 +1744,8 @@ var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
   T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+  SQPlanes: array [0..2] of TVector4Single;
+  SQFronts: array [0..2] of boolean;
 begin
   Triangles := TrianglesList(false);
 
@@ -1752,9 +1764,30 @@ begin
       TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T1, LightPos), MakeInfinite), T1);
       TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T2, LightPos), MakeInfinite), T2);
 
-      MaybeRenderShadowQuad(T0, T1, T2, TExtruded0, TExtruded1);
-      MaybeRenderShadowQuad(T1, T2, T0, TExtruded1, TExtruded2);
-      MaybeRenderShadowQuad(T2, T0, T1, TExtruded2, TExtruded0);
+      { First calculate all three SQPlanes and all three
+        SQFronts. This is because we *have* to catch the situation
+        when all SQFronts are equal. This may happen when the triangle
+        (T0, T1, T2) and  LightPos are on the same plane. In this case,
+        we should just ignore the triangle. }
+
+      SQPlanes[0] := TrianglePlane(T0, T1, LightPos);
+      SQPlanes[1] := TrianglePlane(T1, T2, LightPos);
+      SQPlanes[2] := TrianglePlane(T2, T0, LightPos);
+
+      SQFronts[0] := not PointsSamePlaneSides(T2, CameraPos, SQPlanes[0]);
+      SQFronts[1] := not PointsSamePlaneSides(T0, CameraPos, SQPlanes[1]);
+      SQFronts[2] := not PointsSamePlaneSides(T1, CameraPos, SQPlanes[2]);
+
+      { not ((SQFronts[0] = SQFronts[1]) and (SQFronts[1] = SQFronts[2])) =
+        not (not (SQFronts[0] xor SQFronts[1]) and not (SQFronts[1] xor SQFronts[2])) =
+        (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) }
+
+      if (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) then
+      begin
+        MaybeRenderShadowQuad(T0, T1, T2, TExtruded0, TExtruded1, SQFronts[0]);
+        MaybeRenderShadowQuad(T1, T2, T0, TExtruded1, TExtruded2, SQFronts[1]);
+        MaybeRenderShadowQuad(T2, T0, T1, TExtruded2, TExtruded0, SQFronts[2]);
+      end;
     end;
   glEnd;
 end;
@@ -1787,6 +1820,67 @@ end;
 procedure TVRMLFlatSceneGL.RenderBackShadowQuads;
 begin
   RenderBackShadowQuads(DefaultSavedShadowQuads);
+end;
+
+procedure TVRMLFlatSceneGL.RenderShadowQuads(
+  const LightPos: TVector3Single;
+  const TrianglesTransform: TMatrix4Single);
+
+{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
+  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
+  (TrianglesList gwarantuje to)
+  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
+  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
+  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
+  zostaly uznane za "front facing"). }
+
+  procedure RenderShadowQuad(
+    const P0, P1, PExtruded0, PExtruded1: TVector3Single);
+  begin
+    glNormalv(TriangleNormal(P0, P1, PExtruded1));
+    glVertexv(P0);
+    glVertexv(P1);
+    glVertexv(PExtruded1);
+    glVertexv(PExtruded0);
+  end;
+
+const
+  { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+    Bo w teorii shadow quad ma nieskonczona powierzchnie.
+    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+    jakies normalizacje do kodu RenderShadowQuads a wiec strata szybkosci
+    na bzdure.
+
+    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+  MakeInfinite = 1000;
+
+var
+  I: Integer;
+  Triangles: TDynTriangle3SingleArray;
+  T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+begin
+  Triangles := TrianglesList(false);
+
+  glBegin(GL_QUADS);
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { evaluate T := Triangles[I] transformed by TrianglesTransform }
+      T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
+      T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
+      T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
+
+      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T0, LightPos), MakeInfinite), T0);
+      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T1, LightPos), MakeInfinite), T1);
+      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T2, LightPos), MakeInfinite), T2);
+
+      RenderShadowQuad(T0, T1, TExtruded0, TExtruded1);
+      RenderShadowQuad(T1, T2, TExtruded1, TExtruded2);
+      RenderShadowQuad(T2, T0, TExtruded2, TExtruded0);
+    end;
+  glEnd;
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
