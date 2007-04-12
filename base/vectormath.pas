@@ -1305,9 +1305,15 @@ function TriangleAreaSqr(const Tri: TTriangle3Double): Double; overload;
 { oblicz plane of triangle. Wiadomo ze to zadanie ma niesk wiele rozw
   bo kazdy plane ma niesk wiele reprezentacji jako Ax+By+Cz+D = 0.
   TrianglePlane znajdujepo prostu jakies rozwiazanie,
+
+  It's guaranteed that the direction of this plane (i.e. first 3 items
+  of returned vector) will be in the same direction as calcualted by
+  TriangleDir, which means that it points outward from CCW side of
+  the triangle (assuming right-handed coord system).
+
   TriangleNormPlane zwraca taki plane ze jego pierwsze trzy pozycje tworza
-    wektor znormalizowany, tj. dlugosci 1. W ten sposob TrianglePlane
-    liczy przy okazji TriangleNormal. }
+  wektor znormalizowany, tj. dlugosci 1. W ten sposob TrianglePlane
+  liczy przy okazji TriangleNormal. }
 function TrianglePlane(const Tri: TTriangle3Single): TVector4Single; overload;
 function TrianglePlane(const Tri: TTriangle3Double): TVector4Double; overload;
 function TrianglePlane(const p0, p1, p2: TVector3Single): TVector4Single; overload;

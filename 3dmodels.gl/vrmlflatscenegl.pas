@@ -1755,7 +1755,7 @@ begin
   glBegin(GL_QUADS);
     for I := 0 to Triangles.Count - 1 do
     begin
-      { evaluate T := Triangles[I] transformed by TrianglesTransform }
+      { calculate T := Triangles[I] transformed by TrianglesTransform }
       T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
       T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
       T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
@@ -1860,25 +1860,57 @@ const
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
-  T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+  T: TTriangle3Single;
+  TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+  Plane: TVector4Single;
+  PlaneSide: Single;
 begin
   Triangles := TrianglesList(false);
 
   glBegin(GL_QUADS);
     for I := 0 to Triangles.Count - 1 do
     begin
-      { evaluate T := Triangles[I] transformed by TrianglesTransform }
-      T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
-      T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
-      T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
+      { calculate T := Triangles[I] transformed by TrianglesTransform }
+      T[0] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
+      T[1] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
+      T[2] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
 
-      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T0, LightPos), MakeInfinite), T0);
-      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T1, LightPos), MakeInfinite), T1);
-      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T2, LightPos), MakeInfinite), T2);
+      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T[0], LightPos), MakeInfinite), T[0]);
+      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T[1], LightPos), MakeInfinite), T[1]);
+      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T[2], LightPos), MakeInfinite), T[2]);
 
-      RenderShadowQuad(T0, T1, TExtruded0, TExtruded1);
-      RenderShadowQuad(T1, T2, TExtruded1, TExtruded2);
-      RenderShadowQuad(T2, T0, TExtruded2, TExtruded0);
+      { We want to have consistent CCW orientation of shadow quads faces,
+        so that face is oriented CCW <=> you're looking at it from outside
+        (i.e. it's considered front face of this shadow quad).
+        This is needed, since user of this method may want to do culling
+        to eliminate back or front faces.
+
+        If TriangleDir(T) indicates direction that goes from CCW triangle side.
+        If TriangleDir(T) points in the same direction as LightPos then
+        1st quad should be T1, T0, TExtruded0, TExtruded1.
+        If TriangleDir(T) points in the opposite direction as LightPos then
+        1st quad should be T0, T1, TExtruded1, TExtruded0.
+        And so on. }
+      Plane := TrianglePlane(T);
+      PlaneSide := Plane[0] * LightPos[0] +
+                   Plane[1] * LightPos[1] +
+                   Plane[2] * LightPos[2] +
+                   Plane[3];
+
+      if PlaneSide > 0 then
+      begin
+        RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
+        RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
+        RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
+      end else
+      if PlaneSide < 0 then
+      begin
+        RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
+        RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
+        RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
+      end;
+      { Don't render quads if LightPos lies on the Plane (which means
+        that PlaneSide = 0) }
     end;
   glEnd;
 end;
