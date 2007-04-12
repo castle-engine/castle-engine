@@ -1837,7 +1837,7 @@ procedure TVRMLFlatSceneGL.RenderShadowQuads(
   procedure RenderShadowQuad(
     const P0, P1, PExtruded0, PExtruded1: TVector3Single);
   begin
-    glNormalv(TriangleNormal(P0, P1, PExtruded1));
+    //glNormalv(TriangleNormal(P0, P1, PExtruded1));
     glVertexv(P0);
     glVertexv(P1);
     glVertexv(PExtruded1);
