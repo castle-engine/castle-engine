@@ -732,22 +732,30 @@ type
       for @italic(all) edges (not just silhouette edges).
       This works @italic(much) slower than RenderSilhouetteShadowQuads.
       The only advantage is that this works with any scene, while
-      RenderSilhouetteShadowQuads requires that model is a closed form
-      (convex).
+      RenderSilhouetteShadowQuads requires that model is built from a number
+      of closed (convex) forms.
 
       All shadow quads are generated from scene triangles
-      transformed by TrianglesTransform.
+      transformed by Transform.
       Uses TrianglesList(false) (so you may prefer to prepare it
       before, e.g. by calling PrepareRender with
       DoPrepareTrianglesListNonOverTriangulate = true).
 
       All the commands passed to OpenGL by this methods are:
-      glBegin, sequence of glVertex, then glEnd.
-
-      @groupBegin }
+      glBegin, sequence of glVertex, then glEnd. }
     procedure RenderAllShadowQuads(
       const LightPos: TVector3Single;
-      const TrianglesTransform: TMatrix4Single);
+      const Transform: TMatrix4Single);
+
+    { This renders shadow volume of this scene, rendering shadow quads
+      of silhouette edges. This is the usual, fast method of rendering
+      shadow volumes. This requires that model is build from a number of
+      closed (convex) parts.
+
+      @seealso RenderAllShadowQuads }
+    procedure RenderSilhouetteShadowQuads(
+      const LightPos: TVector3Single;
+      const Transform: TMatrix4Single);
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -1634,7 +1642,7 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
   const LightPos: TVector3Single;
-  const TrianglesTransform: TMatrix4Single);
+  const Transform: TMatrix4Single);
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
   zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
@@ -1680,10 +1688,10 @@ begin
   glBegin(GL_QUADS);
     for I := 0 to Triangles.Count - 1 do
     begin
-      { calculate T := Triangles[I] transformed by TrianglesTransform }
-      T[0] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
-      T[1] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
-      T[2] := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
+      { calculate T := Triangles[I] transformed by Transform }
+      T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
+      T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
+      T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
 
       TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T[0], LightPos), MakeInfinite), T[0]);
       TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T[1], LightPos), MakeInfinite), T[1]);
@@ -1723,6 +1731,180 @@ begin
         that PlaneSide = 0) }
     end;
   glEnd;
+end;
+
+type
+  TEdge = record
+    Vertexes: array [0..1] of TVector3Single;
+  end;
+  PEdge = ^TEdge;
+
+  TDynArrayItem_1 = TEdge;
+  PDynArrayItem_1 = PEdge;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$define read_interface}
+  {$I dynarray_1.inc}
+  {$undef read_interface}
+
+type
+  TDynEdgeArray = class(TDynArray_1)
+  public
+    procedure HandleEdge(const E: TEdge);
+  end;
+
+procedure TDynEdgeArray.HandleEdge(const E: TEdge);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    if ( VectorsPerfectlyEqual(E.Vertexes[0], Items[I].Vertexes[0]) and
+         VectorsPerfectlyEqual(E.Vertexes[1], Items[I].Vertexes[1]) ) or
+       ( VectorsPerfectlyEqual(E.Vertexes[0], Items[I].Vertexes[1]) and
+         VectorsPerfectlyEqual(E.Vertexes[1], Items[I].Vertexes[0]) ) then
+    begin
+      { This edge already exists. So remove it now: }
+      Items[I] := Items[Count - 1];
+      DecLength;
+      Exit;
+    end;
+  end;
+  { The edge doesn't exist --- add it. }
+  IncLength;
+  Items[Count - 1] := E;
+end;
+
+procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
+  const LightPos: TVector3Single;
+  const Transform: TMatrix4Single);
+
+{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
+  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
+  (TrianglesList gwarantuje to)
+  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
+  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
+  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
+  zostaly uznane za "front facing"). }
+
+{ We use here the simple algorithm from
+  [http://www.gamedev.net/reference/articles/article1873.asp].
+  For each triangle with dot > 0, add it to the Edges list
+  --- unless it's already there, in which case remove it.
+  This way, at the end Edges contain all edges that have on one
+  side triangle with dot > 0 and on the other side triangle with dot <= 0.
+  In other words, all sihouette edges.
+  (This is all assuming that silhouette is composed from convex parts,
+  which means that each edge has exactly 2 neighbor triangles).
+
+  TODO: this is simple but non-optimal algorithm. Better one would use
+  some knowledge about the edges, so that only one pass over all edges
+  would be necessary. Or even, we could travel some indexed line list
+  to only pass through interesting edges. This requires that we would
+  have to use only really convex shapes. E.g. right now it's ok to
+  have one convex form created by two IndexedFaceSet nodes, that
+  have two Coordinate3 nodes (assuming that appropriate vertexes on Coordinate3
+  are really exactly the same). Also, consistent vertex orientation would
+  help for TDynEdgeArray.HandleEdge --- no need to check both possibilities.
+}
+
+  procedure RenderShadowQuad(
+    const P0, P1, PExtruded0, PExtruded1: TVector3Single);
+  begin
+    //glNormalv(TriangleNormal(P0, P1, PExtruded1));
+    glVertexv(P0);
+    glVertexv(P1);
+    glVertexv(PExtruded1);
+    glVertexv(PExtruded0);
+  end;
+
+const
+  { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+    Bo w teorii shadow quad ma nieskonczona powierzchnie.
+    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
+    na bzdure.
+
+    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+  MakeInfinite = 1000;
+
+var
+  I: Integer;
+  Triangles: TDynTriangle3SingleArray;
+  T: TTriangle3Single;
+  Plane: TVector4Single;
+  PlaneSide: Single;
+  E: TEdge;
+  EdgePtr: PEdge;
+  Edges: TDynEdgeArray;
+begin
+  Triangles := TrianglesList(false);
+
+  Edges := TDynEdgeArray.Create;
+  try
+    { Maximum number of edges is Triangles.Count * 3 / 2, but usually
+      should be much much lower.
+      Triangles.Count seems reasnable. }
+    Edges.AllowedCapacityOverflow := Triangles.Count;
+
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { calculate T := Triangles[I] transformed by Transform }
+      T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
+      T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
+      T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
+
+      { We want to have consistent CCW orientation of shadow quads faces,
+        so that face is oriented CCW <=> you're looking at it from outside
+        (i.e. it's considered front face of this shadow quad).
+        This is needed, since user of this method may want to do culling
+        to eliminate back or front faces.
+
+        If TriangleDir(T) indicates direction that goes from CCW triangle side.
+        If TriangleDir(T) points in the same direction as LightPos then
+        1st quad should be T1, T0, TExtruded0, TExtruded1.
+        If TriangleDir(T) points in the opposite direction as LightPos then
+        1st quad should be T0, T1, TExtruded1, TExtruded0.
+        And so on. }
+      Plane := TrianglePlane(T);
+      PlaneSide := Plane[0] * LightPos[0] +
+                   Plane[1] * LightPos[1] +
+                   Plane[2] * LightPos[2] +
+                   Plane[3];
+
+      if PlaneSide > 0 then
+      begin
+        E.Vertexes[0] := T[1];
+        E.Vertexes[1] := T[0];
+        Edges.HandleEdge(E);
+
+        E.Vertexes[0] := T[0];
+        E.Vertexes[1] := T[2];
+        Edges.HandleEdge(E);
+
+        E.Vertexes[0] := T[2];
+        E.Vertexes[1] := T[1];
+        Edges.HandleEdge(E);
+      end;
+    end;
+
+    glBegin(GL_QUADS);
+      EdgePtr := Edges.Pointers[0];
+      for I := 0 to Edges.Count - 1 do
+      begin
+        RenderShadowQuad(
+          EdgePtr^.Vertexes[0],
+          EdgePtr^.Vertexes[1],
+          VectorAdd(VectorScale(VectorSubtract(
+            EdgePtr^.Vertexes[0], LightPos), MakeInfinite), EdgePtr^.Vertexes[0]),
+          VectorAdd(VectorScale(VectorSubtract(
+            EdgePtr^.Vertexes[1], LightPos), MakeInfinite), EdgePtr^.Vertexes[1]));
+        Inc(EdgePtr);
+      end;
+    glEnd;
+  finally FreeAndNil(Edges) end;
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
