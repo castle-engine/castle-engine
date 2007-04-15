@@ -6496,6 +6496,7 @@ var
 begin
   { determine version of implementation }
   { GL }
+  FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
   GL_VERSION_1_0 := True;
   GL_VERSION_1_1 := False;
@@ -6511,6 +6512,7 @@ begin
   end;
 
   { GLU }
+  FreeAndNil(GLUVersion);
   GLU_VERSION_1_1 := False;
   GLU_VERSION_1_2 := False;
   GLU_VERSION_1_3 := False;
