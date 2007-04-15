@@ -1755,19 +1755,22 @@ type
 procedure TDynEdgeArray.HandleEdge(const E: TEdge);
 var
   I: Integer;
+  EdgePtr: PEdge;
 begin
+  EdgePtr := Pointers[0];
   for I := 0 to Count - 1 do
   begin
-    if ( VectorsPerfectlyEqual(E.Vertexes[0], Items[I].Vertexes[0]) and
-         VectorsPerfectlyEqual(E.Vertexes[1], Items[I].Vertexes[1]) ) or
-       ( VectorsPerfectlyEqual(E.Vertexes[0], Items[I].Vertexes[1]) and
-         VectorsPerfectlyEqual(E.Vertexes[1], Items[I].Vertexes[0]) ) then
+    if ( VectorsPerfectlyEqual(E.Vertexes[0], EdgePtr^.Vertexes[0]) and
+         VectorsPerfectlyEqual(E.Vertexes[1], EdgePtr^.Vertexes[1]) ) or
+       ( VectorsPerfectlyEqual(E.Vertexes[0], EdgePtr^.Vertexes[1]) and
+         VectorsPerfectlyEqual(E.Vertexes[1], EdgePtr^.Vertexes[0]) ) then
     begin
       { This edge already exists. So remove it now: }
-      Items[I] := Items[Count - 1];
+      EdgePtr^ := Items[Count - 1];
       DecLength;
       Exit;
     end;
+    Inc(EdgePtr);
   end;
   { The edge doesn't exist --- add it. }
   IncLength;
