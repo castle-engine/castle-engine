@@ -3908,6 +3908,11 @@ var
   glVertexAttribs4svNV: procedure (index: TGLuint; count: TGLSizei; v: PGLshort); OPENGL_CALL
   glVertexAttribs4ubvNV: procedure (index: TGLuint; count: TGLSizei; v: PGLubyte); OPENGL_CALL
 
+  { OpenGL 2.0 (minimal functionality translated only, the one I needed;
+    in the future I'm going to switch to FPC OpenGL units anyway) }
+  { }
+  glStencilOpSeparate: procedure(face, sfail, dpfail, dppass: TGLenum); OPENGL_CALL
+
 {$ifdef UNIX}
 type
   GLXContext     = Pointer;
@@ -5656,6 +5661,8 @@ begin
  glVertexAttribs4svNV := nil;
  glVertexAttribs4ubvNV := nil;
 
+ glStencilOpSeparate := nil;
+
  {$ifdef UNIX}
  glXGetVideoSyncSGI := nil;
  glXWaitVideoSyncSGI := nil;
@@ -6266,6 +6273,7 @@ begin
   ProcVarCast(glVertexAttribs4fvNV) := LoadExtensionFunction('glVertexAttribs4fvNV');
   ProcVarCast(glVertexAttribs4svNV) := LoadExtensionFunction('glVertexAttribs4svNV');
   ProcVarCast(glVertexAttribs4ubvNV) := LoadExtensionFunction('glVertexAttribs4ubvNV');
+  ProcVarCast(glStencilOpSeparate) := LoadExtensionFunction('glStencilOpSeparate');
 
   {$ifdef UNIX}
   ProcVarCast(glXGetVideoSyncSGI) := LoadExtensionFunction('glXGetVideoSyncSGI');
