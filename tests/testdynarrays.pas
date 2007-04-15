@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2005,2007 Michalis Kamburelis.
 
   This file is part of test_kambi_units.
 
@@ -28,11 +28,12 @@ uses
 type
   TTestDynArrays = class(TTestCase)
     procedure TestDynArrays;
+    procedure TestVectorMathDynArrays;
   end;
 
 implementation
 
-uses KambiUtils;
+uses KambiUtils, VectorMath;
 
 { DynArray.inc KambiUtils_StandardDynArrays.inc }
 
@@ -117,6 +118,21 @@ begin
   iarr.Free;
   iarr2.Free;
  end;
+end;
+
+procedure TTestDynArrays.TestVectorMathDynArrays;
+var
+  vecs: TDynVector3SingleArray;
+begin
+  vecs := TDynVector3SingleArray.Create;
+  try
+    vecs.AppendItem(Vector3Single(1.0, 2.0, 3.0));
+    vecs.AppendItem(Vector3Single(4.0, 5.0, 6.0));
+    vecs.AppendItem(Vector3Single(1.0, 2.0, 3.0));
+    Assert(    VectorsPerfectlyEqual(vecs.Items[0], vecs.Items[2]));
+    Assert(not VectorsPerfectlyEqual(vecs.Items[0], vecs.Items[1]));
+    Assert(not VectorsPerfectlyEqual(vecs.Items[2], vecs.Items[1]));
+  finally FreeAndNil(vecs) end;
 end;
 
 initialization

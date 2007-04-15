@@ -1002,12 +1002,12 @@ function VectorsEqual(const v1, v2: TVector4Double; const EqualityEpsilon: Doubl
 { czy dwa wektory sa rowne ? Uzywa operatora "=" wiec wymaga dokladnej
   rownosci. Zazwyczaj nie tego chcesz uzyc - zazwyczaj powinienes uzywac
   VectorsEqual. }
-function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload;
-function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload;
-function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload;
-function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload;
-function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload;
-function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload;
+function VectorsPerfectlyEqual(const v1, v2: TVector2Single): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector2Double): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector3Single): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; inline;
+function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; inline;
 
 function MatricesEqual(const M1, M2: TMatrix4Single;
   const EqualityEpsilon: Single): boolean; overload;
