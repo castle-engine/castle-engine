@@ -58,9 +58,21 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
     Name: string;
+
     Vertexes: TDynMd3VertexArray;
     Triangles: TDynMd3TriangleArray;
+
+    { Frames within this surface.
+      This is always the same as the TObject3dMD3.FramesCount of enclosing
+      TObject3dMD3 instance (yes, this assumption is checked when loading
+      MD3, as it must be @true for any valid MD3 file). }
+    FramesCount: Cardinal;
+
+    { Vertexes array has VertexesInFrameCount * FramesCount items,
+      each set of VertexesInFrameCount is for a different animation frame. }
+    VertexesInFrameCount: Cardinal;
   end;
 
   TObjectsListItem_1 = TMd3Surface;
@@ -68,7 +80,7 @@ type
   TMd3SurfacesList = TObjectsList_1;
 
   { MD3 (Quake3 engine model format) reader.
-    TODO: textures. animations. }
+    TODO: textures. }
   TObject3dMD3 = class
     { Reads MD3 from a file. }
     constructor Create(const FileName: string);
@@ -85,7 +97,11 @@ type
 
     destructor Destroy; override;
 
+    Name: string;
+
     Surfaces: TMd3SurfacesList;
+
+    FramesCount: Cardinal;
   end;
 
   EInvalidMD3 = class(Exception);
@@ -191,6 +207,10 @@ begin
     raise EInvalidMD3.CreateFmt('Identifier of MD3 Surface must be "%s"',
       [GoodIdent]);
 
+  Name := Surface.Name;
+  FramesCount := Surface.NumFrames;
+  VertexesInFrameCount := Surface.NumVerts;
+
   (* Tests:
   Writeln('Surface');
   Writeln('  Name "', Surface.Name, '"');
@@ -215,20 +235,18 @@ begin
     end;
   end;
 
-  if Surface.NumVerts <> 0 then
+  Vertexes.Count := Surface.NumVerts * Surface.NumFrames;
+  if Vertexes.Count <> 0 then
   begin
     { For animations: actually we have here Surface.NumFrames times
       the vertexes array. For each frame, separate collection of
       vertices is added. }
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
-    for I := 0 to Surface.NumVerts - 1 do
+    for I := 0 to Vertexes.Count - 1 do
     begin
-      Vertexes.IncLength;
-      Stream.ReadBuffer(Vertexes.Items[Vertexes.High], SizeOf(TMd3Vertex));
+      Stream.ReadBuffer(Vertexes.Items[I], SizeOf(TMd3Vertex));
     end;
   end;
-
-  Name := Surface.Name;
 
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
 end;
@@ -281,6 +299,9 @@ begin
   Writeln('Stream.Size ', Stream.Size); { Usually this should be = Header.OffsetEof }
   *)
 
+  Name := Header.Name;
+  FramesCount := Header.NumFrames;
+
   if Header.NumFrames <> 0 then
   begin
     Stream.Position := Md3Start + Header.OffsetFrames;
@@ -325,6 +346,10 @@ begin
       NewSurface := TMd3Surface.Create;
       NewSurface.Read(Stream);
       Surfaces.Add(NewSurface);
+
+      if FramesCount <> NewSurface.FramesCount then
+        raise EInvalidMD3.CreateFmt('Surface frame count (%d) is different than ' +
+          'model''s frame count (%d)', [FramesCount, NewSurface.FramesCount]);
     end;
   end;
 end;

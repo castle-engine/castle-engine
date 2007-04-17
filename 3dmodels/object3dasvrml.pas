@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2005,2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -29,7 +29,7 @@ unit Object3dAsVRML;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d;
+uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3;
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
 
@@ -52,6 +52,13 @@ function Load3dsAsVRML(const filename: string): TVRMLNode;
 
 function LoadMD3AsVRML(const FileName: string): TVRMLNode;
 
+{ Load a specific animation frame from a given Md3 model.
+  @param Md3 is the MD3 file to use.
+  @param FrameNumber is the frame number to load, must be < Md3.Count.
+  @param WWBasePath is WWBasePath value to set in resulting VRML nodes. }
+function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
+  const WWWBasePath: string): TVRMLNode;
+
 { This guesses model format basing on ExtractFileExt(filename),
   then loads model converting it to VRML with appropriate
   LoadXxxAsVRML functions above in this unit or using
@@ -64,7 +71,7 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLN
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, KambiUtils, VRMLCameraUtils,
-  KambiStringUtils, Object3dMD3;
+  KambiStringUtils;
 
 function ToVRMLName(const s: string): string;
 const
@@ -442,22 +449,25 @@ begin
  finally obj3ds.Free end;
 end;
 
-function LoadMD3AsVRML(const FileName: string): TVRMLNode;
-var
-  WWWBasePath: string;
+function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
+  const WWWBasePath: string): TVRMLNode;
 
-  function MakeCoordinates(Vertexes: TDynMd3VertexArray): TNodeCoordinate3;
+  function MakeCoordinates(Vertexes: TDynMd3VertexArray;
+    VertexesInFrameCount: Cardinal): TNodeCoordinate3;
   var
     I: Integer;
+    V: PMd3Vertex;
   begin
     Result := TNodeCoordinate3.Create('', WWWBasePath);
-    Result.FdPoint.Items.Count := Vertexes.Count;
-    for I := 0 to Vertexes.Count - 1 do
+    Result.FdPoint.Items.Count := VertexesInFrameCount;
+    V := Vertexes.Pointers[VertexesInFrameCount * FrameNumber];
+    for I := 0 to VertexesInFrameCount - 1 do
     begin
       Result.FdPoint.Items.Items[I] := Vector3Single(
-        Vertexes.Items[I].Position[0] * Md3XyzScale,
-        Vertexes.Items[I].Position[1] * Md3XyzScale,
-        Vertexes.Items[I].Position[2] * Md3XyzScale);
+        V^.Position[0] * Md3XyzScale,
+        V^.Position[1] * Md3XyzScale,
+        V^.Position[2] * Md3XyzScale);
+      Inc(V);
     end;
   end;
 
@@ -479,20 +489,41 @@ var
   function MakeSeparator(Surface: TMd3Surface): TNodeSeparator;
   begin
     Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath);
-    Result.AddChild(MakeCoordinates(Surface.Vertexes));
+    Result.AddChild(MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount));
     Result.AddChild(MakeIndexes(Surface.Triangles));
   end;
 
 var
-  Md3: TObject3dMD3;
   I: Integer;
+begin
+  Result := TNodeGroup_1.Create(
+    ToVRMLName(Md3.Name
+      { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
+        requires for now that sequence of VRML models have the same node names }
+      { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
+
+  { MD3 files have no camera. I add camera here, just to force GravityUp
+    to be in +Z, since this is the convention used in all MD3 file that
+    I saw (so I guess that Quake3 engine generally uses this convention). }
+  Result.AddChild(MakeVRMLCameraNode(1, WWWBasePath,
+    Vector3Single(0, 0, 0),
+    Vector3Single(1, 0, 0),
+    Vector3Single(0, 0, 1),
+    Vector3Single(0, 0, 1)));
+
+  for I := 0 to Md3.Surfaces.Count - 1 do
+    Result.AddChild(MakeSeparator(Md3.Surfaces[I]));
+end;
+
+function LoadMD3AsVRML(const FileName: string): TVRMLNode;
+var
+  Md3: TObject3dMD3;
+  WWWBasePath: string;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
   Md3 := TObject3dMD3.Create(FileName);
   try
-    Result := TNodeGroup_1.Create('', WWWBasePath);
-    for I := 0 to Md3.Surfaces.Count - 1 do
-      Result.AddChild(MakeSeparator(Md3.Surfaces[I]));
+    Result := LoadMD3FrameAsVRML(Md3, 0, WWWBasePath);
   finally FreeAndNil(Md3) end;
 end;
 
