@@ -50,6 +50,8 @@ function LoadOBJAsVRML(const filename: string): TVRMLNode;
 
 function Load3dsAsVRML(const filename: string): TVRMLNode;
 
+function LoadMD3AsVRML(const FileName: string): TVRMLNode;
+
 { This guesses model format basing on ExtractFileExt(filename),
   then loads model converting it to VRML with appropriate
   LoadXxxAsVRML functions above in this unit or using
@@ -62,7 +64,7 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLN
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, KambiUtils, VRMLCameraUtils,
-  KambiStringUtils;
+  KambiStringUtils, Object3dMD3;
 
 function ToVRMLName(const s: string): string;
 const
@@ -440,10 +442,64 @@ begin
  finally obj3ds.Free end;
 end;
 
+function LoadMD3AsVRML(const FileName: string): TVRMLNode;
+var
+  WWWBasePath: string;
+
+  function MakeCoordinates(Vertexes: TDynMd3VertexArray): TNodeCoordinate3;
+  var
+    I: Integer;
+  begin
+    Result := TNodeCoordinate3.Create('', WWWBasePath);
+    Result.FdPoint.Items.Count := Vertexes.Count;
+    for I := 0 to Vertexes.Count - 1 do
+    begin
+      Result.FdPoint.Items.Items[I] := Vector3Single(
+        Vertexes.Items[I].Position[0] * Md3XyzScale,
+        Vertexes.Items[I].Position[1] * Md3XyzScale,
+        Vertexes.Items[I].Position[2] * Md3XyzScale);
+    end;
+  end;
+
+  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet_1;
+  var
+    I: Integer;
+  begin
+    Result := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
+    Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      Result.FdCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
+      Result.FdCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
+      Result.FdCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
+      Result.FdCoordIndex.Items.Items[I*4 + 3] := -1;
+    end;
+  end;
+
+  function MakeSeparator(Surface: TMd3Surface): TNodeSeparator;
+  begin
+    Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result.AddChild(MakeCoordinates(Surface.Vertexes));
+    Result.AddChild(MakeIndexes(Surface.Triangles));
+  end;
+
+var
+  Md3: TObject3dMD3;
+  I: Integer;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  Md3 := TObject3dMD3.Create(FileName);
+  try
+    Result := TNodeGroup_1.Create('', WWWBasePath);
+    for I := 0 to Md3.Surfaces.Count - 1 do
+      Result.AddChild(MakeSeparator(Md3.Surfaces[I]));
+  finally FreeAndNil(Md3) end;
+end;
+
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
-  Extensions: array[0..5]of string =
-  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz');
+  Extensions: array [0..6] of string =
+  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.md3');
 begin
  if AllowStdIn and (FileName = '-') then
   result := ParseVRMLFile('-', true) else
@@ -452,6 +508,7 @@ begin
   1: result := Load3dsAsVRML(filename);
   2: result := LoadOBJAsVRML(filename);
   3, 4, 5: result := ParseVRMLFile(filename, false);
+  6: Result := LoadMD3AsVRML(FileName);
   else raise Exception.Create('unrecognized file extension for 3d model file : file '''+filename+'''');
  end;
 end;
