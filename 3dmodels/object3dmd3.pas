@@ -51,6 +51,17 @@ type
   {$I dynarray_2.inc}
   TDynMd3VertexArray = TDynArray_2;
 
+  TMd3TexCoord = record
+    St: array [0..1] of Single;
+  end;
+  PMd3TexCoord = ^TMd3TexCoord;
+
+  TDynArrayItem_3 = TMd3TexCoord;
+  PDynArrayItem_3 = PMd3TexCoord;
+  {$define DYNARRAY_3_IS_STRUCT}
+  {$I dynarray_3.inc}
+  TDynMd3TexCoordArray = TDynArray_3;
+
   TMd3Surface = class
   private
     { Read surface from file, and advance position to next surface. }
@@ -62,6 +73,7 @@ type
     Name: string;
 
     Vertexes: TDynMd3VertexArray;
+    TextureCoords: TDynMd3TexCoordArray;
     Triangles: TDynMd3TriangleArray;
 
     { Frames within this surface.
@@ -71,7 +83,9 @@ type
     FramesCount: Cardinal;
 
     { Vertexes array has VertexesInFrameCount * FramesCount items,
-      each set of VertexesInFrameCount is for a different animation frame. }
+      each set of VertexesInFrameCount is for a different animation frame.
+      TextureCoords always has VertexesInFrameCount (texture is not
+      animated). }
     VertexesInFrameCount: Cardinal;
   end;
 
@@ -79,10 +93,16 @@ type
   {$I objectslist_1.inc}
   TMd3SurfacesList = TObjectsList_1;
 
-  { MD3 (Quake3 engine model format) reader.
-    TODO: textures. }
+  { MD3 (Quake3 engine model format) reader. }
   TObject3dMD3 = class
-    { Reads MD3 from a file. }
+    { Reads MD3 from a file.
+
+      Associated skin file is also read,
+      to get texture filename: for xxx.md3, we will try to read
+      xxx_default.skin file, looking there for a texture filename.
+      Texture filename found there will be trimmed to a name
+      (i.e. without directory part, as it usually specifies directory
+      within quake/tremulous/etc. data dir, not relative to md3 model dir). }
     constructor Create(const FileName: string);
 
     { Reads MD3 from a stream. The stream must be freely seekable
@@ -93,7 +113,7 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor Create(Stream: TStream);
+    constructor Create(Stream: TStream; const ATextureFileName: string);
 
     destructor Destroy; override;
 
@@ -102,6 +122,18 @@ type
     Surfaces: TMd3SurfacesList;
 
     FramesCount: Cardinal;
+
+    { Texture filename to use for this object. This is not read from md3
+      file (it's not recorded there), it's read (if available)
+      from accompanying xxx_default.skin file. It's empty '' if
+      no skin file was found, or it didn't specify any texture filename. }
+    TextureFileName: string;
+
+    { Searches for a skin file accompanying given MD3 model filename,
+      and reads it. Returns @true and sets TextureFileName if skin file
+      found and some texture filename was recorded there. }
+    class function ReadSkinFile(const Md3FileName: string;
+      out ATextureFileName: string): boolean;
   end;
 
   EInvalidMD3 = class(Exception);
@@ -113,7 +145,7 @@ const
 
 implementation
 
-uses VectorMath;
+uses VectorMath, KambiFilesUtils, KambiStringUtils;
 
 { MD3 reading code is implemented based on
   [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html] }
@@ -121,6 +153,7 @@ uses VectorMath;
 {$define read_implementation}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
+{$I dynarray_3.inc}
 {$I objectslist_1.inc}
 
 const
@@ -185,12 +218,14 @@ begin
   inherited;
   Vertexes := TDynMd3VertexArray.Create;
   Triangles := TDynMd3TriangleArray.Create;
+  TextureCoords := TDynMd3TexCoordArray.Create;
 end;
 
 destructor TMd3Surface.Destroy;
 begin
   FreeAndNil(Vertexes);
   FreeAndNil(Triangles);
+  FreeAndNil(TextureCoords);
   inherited;
 end;
 
@@ -248,6 +283,16 @@ begin
     end;
   end;
 
+  TextureCoords.Count := VertexesInFrameCount;
+  if VertexesInFrameCount <> 0 then
+  begin
+    Stream.Position := SurfaceStart + Surface.OffsetST;
+    for I := 0 to VertexesInFrameCount - 1 do
+    begin
+      Stream.ReadBuffer(TextureCoords.Items[I], SizeOf(TMd3TexCoord));
+    end;
+  end;
+
   Stream.Position := SurfaceStart + Surface.OffsetEnd;
 end;
 
@@ -256,14 +301,18 @@ end;
 constructor TObject3dMD3.Create(const FileName: string);
 var
   Stream: TStream;
+  ATextureFileName: string;
 begin
+  if not ReadSkinFile(FileName, ATextureFileName) then
+    ATextureFileName := '';
+
   Stream := TFileStream.Create(FileName, fmOpenRead);
   try
-    Create(Stream);
+    Create(Stream, ATextureFileName);
   finally Stream.Free end;
 end;
 
-constructor TObject3dMD3.Create(Stream: TStream);
+constructor TObject3dMD3.Create(Stream: TStream; const ATextureFileName: string);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -272,6 +321,8 @@ var
   NewSurface: TMd3Surface;
 begin
   inherited Create;
+
+  TextureFileName := ATextureFileName;
 
   Stream.ReadBuffer(Header, SizeOf(TMd3Header));
 
@@ -283,22 +334,6 @@ begin
     raise EInvalidMD3.CreateFmt('Only supported version of MD3 file is "%d"',
       [GoodVersion]);
 
-  (* Tests:
-  Writeln('"', Header.Ident, '"');
-  Writeln('"', Header.Version, '"');
-  Writeln('"', Header.Name, '"');
-  Writeln('"', Header.Flags, '"');
-  Writeln('NumFrames "', Header.NumFrames, '"');
-  Writeln('NumTags "', Header.NumTags, '"');
-  Writeln('NumSurfaces "', Header.NumSurfaces, '"');
-  Writeln('NumSkins "', Header.NumSkins, '"');
-  Writeln('OffsetFrames "', Header.OffsetFrames, '"');
-  Writeln('OffsetTags "', Header.OffsetTags, '"');
-  Writeln('OffsetSurfaces "', Header.OffsetSurfaces, '"');
-  Writeln('OffsetEof "', Header.OffsetEof, '"');
-  Writeln('Stream.Size ', Stream.Size); { Usually this should be = Header.OffsetEof }
-  *)
-
   Name := Header.Name;
   FramesCount := Header.NumFrames;
 
@@ -308,14 +343,6 @@ begin
     for I := 0 to Header.NumFrames - 1 do
     begin
       Stream.ReadBuffer(Frame, SizeOf(Frame));
-      (* Tests:
-      Writeln('Frame ', I);
-      Writeln('  MinBounds ', VectorToNiceStr(Frame.MinBounds));
-      Writeln('  MaxBounds ', VectorToNiceStr(Frame.MaxBounds));
-      Writeln('  LocalOrigin ', VectorToNiceStr(Frame.LocalOrigin));
-      Writeln('  Radius ', FloatToNiceStr(Frame.Radius));
-      Writeln('  Name "', Frame.Name, '"');
-      *)
     end;
   end;
 
@@ -325,14 +352,6 @@ begin
     for I := 0 to Header.NumTags - 1 do
     begin
       Stream.ReadBuffer(Tag, SizeOf(Tag));
-      (* Tests:
-      Writeln('Tag ', I);
-      Writeln('  Name "', Tag.Name, '"');
-      Writeln('  Origin ', VectorToNiceStr(Tag.Origin));
-      Writeln('  Axis[0] ', VectorToNiceStr(Tag.Axis[0]));
-      Writeln('  Axis[1] ', VectorToNiceStr(Tag.Axis[0]));
-      Writeln('  Axis[2] ', VectorToNiceStr(Tag.Axis[0]));
-      *)
     end;
   end;
 
@@ -358,6 +377,54 @@ destructor TObject3dMD3.Destroy;
 begin
   FreeWithContentsAndNil(Surfaces);
   inherited;
+end;
+
+class function TObject3dMD3.ReadSkinFile(const Md3FileName: string;
+  out ATextureFileName: string): boolean;
+var
+  SkinFile: TextFile;
+  S: string;
+  SkinFileName: string;
+  CommaPos: Integer;
+  Md3Path: string;
+begin
+  Result := false;
+  SkinFileName := DeleteFileExt(Md3FileName) + '_default.skin';
+  Md3Path := ExtractFilePath(Md3FileName);
+  if FileExists(SkinFileName) then
+  begin
+    SafeReset(SkinFile, SkinFileName, true);
+    try
+      while not Eof(SkinFile) do
+      begin
+        Readln(SkinFile, S);
+        CommaPos := Pos(',', S);
+        if CommaPos <> 0 then
+        begin
+          ATextureFileName := Trim(SEnding(S, CommaPos + 1));
+          if ATextureFileName <> '' then
+          begin
+            { Directory recorded in ATextureFileName is useless for us,
+              it's usually a relative directory inside quake/tremulous/etc.
+              data. We just assume that this is inside the same dir as
+              md3 model file, so we strip the directory part. }
+            ATextureFileName := ExtractFileName(ATextureFileName);
+
+            { Now, I know this is stupid, but we simply cannot trust
+              the extension of texture given in ATextureFileName in skin file.
+              It's common in Quake3 data files that texture filename is given
+              as xxx.tga, while in fact only xxx.jpg exists and should be used. }
+            if (not FileExists(Md3Path + ATextureFileName)) and
+               FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.jpg')) then
+              ATextureFileName := ChangeFileExt(ATextureFileName, '.jpg');
+
+            Result := true;
+            Exit;
+          end;
+        end;
+      end;
+    finally CloseFile(SkinFile) end;
+  end;
 end;
 
 end.

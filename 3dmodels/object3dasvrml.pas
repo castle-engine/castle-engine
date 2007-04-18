@@ -471,30 +471,54 @@ function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
     end;
   end;
 
+  function MakeTextureCoordinates(
+    TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate2;
+  var
+    I: Integer;
+    V: PMd3TexCoord;
+  begin
+    Result := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    Result.FdPoint.Items.Count := TextureCoords.Count;
+    V := TextureCoords.Pointers[0];
+    for I := 0 to TextureCoords.Count - 1 do
+    begin
+      Result.FdPoint.Items.Items[I] := Vector2Single(V^.St[0], 1-V^.St[1]);
+      Inc(V);
+    end;
+  end;
+
   function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet_1;
   var
     I: Integer;
   begin
     Result := TNodeIndexedFaceSet_1.Create('', WWWBasePath);
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
+    Result.FdTextureCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
       Result.FdCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
       Result.FdCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
       Result.FdCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
       Result.FdCoordIndex.Items.Items[I*4 + 3] := -1;
+
+      Result.FdTextureCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
+      Result.FdTextureCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
+      Result.FdTextureCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
+      Result.FdTextureCoordIndex.Items.Items[I*4 + 3] := -1;
     end;
   end;
 
   function MakeSeparator(Surface: TMd3Surface): TNodeSeparator;
   begin
     Result := TNodeSeparator.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result.AddChild(MakeTextureCoordinates(Surface.TextureCoords));
     Result.AddChild(MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount));
     Result.AddChild(MakeIndexes(Surface.Triangles));
   end;
 
 var
   I: Integer;
+  Texture: TNodeTexture2;
 begin
   Result := TNodeGroup_1.Create(
     ToVRMLName(Md3.Name
@@ -510,6 +534,13 @@ begin
     Vector3Single(1, 0, 0),
     Vector3Single(0, 0, 1),
     Vector3Single(0, 0, 1)));
+
+  if Md3.TextureFileName <> '' then
+  begin
+    Texture := TNodeTexture2.Create('',WWWBasePath);
+    Result.AddChild(Texture);
+    Texture.FdFilename.Value := Md3.TextureFileName;
+  end;
 
   for I := 0 to Md3.Surfaces.Count - 1 do
     Result.AddChild(MakeSeparator(Md3.Surfaces[I]));
