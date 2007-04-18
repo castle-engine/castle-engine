@@ -833,6 +833,7 @@ function LoadPCX(Stream: TStream): TRGBImage;
 function LoadPPM(Stream: TStream): TRGBImage;
 function LoadIPL(Stream: TStream): TRGBImage;
 function LoadGIF(Stream: TStream): TRGBImage;
+function LoadTGA(Stream: TStream): TRGBImage;
 
 { ------------------------------------------------------------------------------
 
@@ -884,10 +885,13 @@ procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 function LoadAnyGIF(Stream: TStream; FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
+function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
 { File formats managing ----------------------------------------------------- }
 
 type
-  TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE, ifGIF);
+  TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE, ifGIF, ifTGA);
   TImageFormats = set of TImageFormat;
   TRGBImageLoadFunc = function (Stream: TStream): TRGBImage;
   TRGBImageSaveFunc = procedure (const Img: TRGBImage; Stream: TStream);
@@ -952,7 +956,12 @@ const
       ExtsCount: 1; Exts: ('gif','','');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadGIF;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF)
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF),
+    ( FormatName: 'TGA, TARGA File Format';
+      ExtsCount: 1; Exts: ('tga','','');
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTGA;
+      SaveRGB: nil;
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA)
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;

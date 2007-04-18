@@ -146,3 +146,15 @@ begin
   Result := LoadAnyImageExternalTool(
     Stream, FormatRequired, ConvertToRequired, 'gif');
 end;
+
+function LoadTGA(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnyTGA(Stream, frWithoutAlpha, true) as TRGBImage;
+end;
+
+function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  Result := LoadAnyImageExternalTool(
+    Stream, FormatRequired, ConvertToRequired, 'tga');
+end;
