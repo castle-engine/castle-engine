@@ -732,8 +732,8 @@ type
       for @italic(all) edges (not just silhouette edges).
       This works @italic(much) slower than RenderSilhouetteShadowQuads.
       The only advantage is that this works with any scene, while
-      RenderSilhouetteShadowQuads requires that model is built from a number
-      of closed (convex) forms.
+      RenderSilhouetteShadowQuads requires that model is composed from a number
+      of closed manifold parts.
 
       All shadow quads are generated from scene triangles
       transformed by Transform.
@@ -749,8 +749,10 @@ type
 
     { This renders shadow volume of this scene, rendering shadow quads
       of silhouette edges. This is the usual, fast method of rendering
-      shadow volumes. This requires that model is build from a number of
-      closed (convex) parts.
+      shadow volumes. This requires that model is composed from a number
+      of closed manifold parts (in the simple cases, you just make the whole
+      model a closed manifold). In other words, each edge of the model has
+      exactly two neighboring faces.
 
       @seealso RenderAllShadowQuads }
     procedure RenderSilhouetteShadowQuads(
@@ -1796,15 +1798,15 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
   This way, at the end Edges contain all edges that have on one
   side triangle with dot > 0 and on the other side triangle with dot <= 0.
   In other words, all sihouette edges.
-  (This is all assuming that silhouette is composed from convex parts,
+  (This is all assuming that model is composed from manifold parts,
   which means that each edge has exactly 2 neighbor triangles).
 
   TODO: this is simple but non-optimal algorithm. Better one would use
   some knowledge about the edges, so that only one pass over all edges
   would be necessary. Or even, we could travel some indexed line list
   to only pass through interesting edges. This requires that we would
-  have to use only really convex shapes. E.g. right now it's ok to
-  have one convex form created by two IndexedFaceSet nodes, that
+  have to use only really manifold shapes. E.g. right now it's ok to
+  have one manifold scene created by two IndexedFaceSet nodes, that
   have two Coordinate3 nodes (assuming that appropriate vertexes on Coordinate3
   are really exactly the same). Also, consistent vertex orientation would
   help for TDynEdgeArray.HandleEdge --- no need to check both possibilities.
