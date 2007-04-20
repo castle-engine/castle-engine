@@ -289,6 +289,22 @@ type
   TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
   TTransparentGroups = set of TTransparentGroup;
 
+  TEdge = record
+    Vertexes: array [0..1] of TVector3Single;
+  end;
+  PEdge = ^TEdge;
+
+  TDynArrayItem_1 = TEdge;
+  PDynArrayItem_1 = PEdge;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$I dynarray_1.inc}
+
+  TDynEdgeArray = class(TDynArray_1)
+  private
+    { Private for GetSilhouetteEdges }
+    procedure HandleEdge(const E: TEdge);
+  end;
+
   { This is a descendant of TVRMLFlatScene that makes it easy to render
     VRML scene into OpenGL. The point is that this class is the final,
     comfortable utility to deal with VRML files when you want to be able
@@ -758,6 +774,14 @@ type
     procedure RenderSilhouetteShadowQuads(
       const LightPos: TVector3Single;
       const Transform: TMatrix4Single);
+
+    { Calculate edges of silhouette, when looking at the scene from
+      LookPos. This function is exposed in the interface
+      mostly to allow you to see how RenderSilhouetteShadowQuads
+      internally works. }
+    function GetSilhouetteEdges(
+      const LookPos: TVector3Single;
+      const Transform: TMatrix4Single): TDynEdgeArray;
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -870,6 +894,7 @@ implementation
 uses ParseParametersUnit, VRMLErrors;
 
 {$define read_implementation}
+{$I dynarray_1.inc}
 {$I objectslist_1.inc}
 
 { ------------------------------------------------------------ }
@@ -1735,25 +1760,6 @@ begin
   glEnd;
 end;
 
-type
-  TEdge = record
-    Vertexes: array [0..1] of TVector3Single;
-  end;
-  PEdge = ^TEdge;
-
-  TDynArrayItem_1 = TEdge;
-  PDynArrayItem_1 = PEdge;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define read_interface}
-  {$I dynarray_1.inc}
-  {$undef read_interface}
-
-type
-  TDynEdgeArray = class(TDynArray_1)
-  public
-    procedure HandleEdge(const E: TEdge);
-  end;
-
 procedure TDynEdgeArray.HandleEdge(const E: TEdge);
 var
   I: Integer;
@@ -1779,17 +1785,9 @@ begin
   Items[Count - 1] := E;
 end;
 
-procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
-  const LightPos: TVector3Single;
-  const Transform: TMatrix4Single);
-
-{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
-  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
-  (TrianglesList gwarantuje to)
-  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
-  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
-  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
-  zostaly uznane za "front facing"). }
+function TVRMLFlatSceneGL.GetSilhouetteEdges(
+  const LookPos: TVector3Single;
+  const Transform: TMatrix4Single): TDynEdgeArray;
 
 { We use here the simple algorithm from
   [http://www.gamedev.net/reference/articles/article1873.asp].
@@ -1811,6 +1809,78 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
   are really exactly the same). Also, consistent vertex orientation would
   help for TDynEdgeArray.HandleEdge --- no need to check both possibilities.
 }
+
+var
+  I: Integer;
+  Triangles: TDynTriangle3SingleArray;
+  T: TTriangle3Single;
+  Plane: TVector4Single;
+  PlaneSide: Single;
+  E: TEdge;
+begin
+  Triangles := TrianglesList(false);
+
+  Result := TDynEdgeArray.Create;
+  try
+    { Maximum number of edges is Triangles.Count * 3 / 2, but usually
+      should be much much lower.
+      Triangles.Count seems reasnable. }
+    Result.AllowedCapacityOverflow := Triangles.Count;
+
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { calculate T := Triangles[I] transformed by Transform }
+      T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
+      T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
+      T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
+
+      { We want to have consistent CCW orientation of shadow quads faces,
+        so that face is oriented CCW <=> you're looking at it from outside
+        (i.e. it's considered front face of this shadow quad).
+        This is needed, since user of this method may want to do culling
+        to eliminate back or front faces.
+
+        If TriangleDir(T) indicates direction that goes from CCW triangle side.
+        If TriangleDir(T) points in the same direction as LookPos then
+        1st quad should be T1, T0, TExtruded0, TExtruded1.
+        If TriangleDir(T) points in the opposite direction as LookPos then
+        1st quad should be T0, T1, TExtruded1, TExtruded0.
+        And so on. }
+      Plane := TrianglePlane(T);
+      PlaneSide := Plane[0] * LookPos[0] +
+                   Plane[1] * LookPos[1] +
+                   Plane[2] * LookPos[2] +
+                   Plane[3];
+
+      if PlaneSide > 0 then
+      begin
+        E.Vertexes[0] := T[1];
+        E.Vertexes[1] := T[0];
+        Result.HandleEdge(E);
+
+        E.Vertexes[0] := T[0];
+        E.Vertexes[1] := T[2];
+        Result.HandleEdge(E);
+
+        E.Vertexes[0] := T[2];
+        E.Vertexes[1] := T[1];
+        Result.HandleEdge(E);
+      end;
+    end;
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
+  const LightPos: TVector3Single;
+  const Transform: TMatrix4Single);
+
+{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
+  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
+  (TrianglesList gwarantuje to)
+  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
+  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
+  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
+  zostaly uznane za "front facing"). }
 
   procedure RenderShadowQuad(
     const P0, P1, PExtruded0, PExtruded1: TVector3Single);
@@ -1837,64 +1907,11 @@ const
 
 var
   I: Integer;
-  Triangles: TDynTriangle3SingleArray;
-  T: TTriangle3Single;
-  Plane: TVector4Single;
-  PlaneSide: Single;
-  E: TEdge;
   EdgePtr: PEdge;
   Edges: TDynEdgeArray;
 begin
-  Triangles := TrianglesList(false);
-
-  Edges := TDynEdgeArray.Create;
+  Edges := GetSilhouetteEdges(LightPos, Transform);
   try
-    { Maximum number of edges is Triangles.Count * 3 / 2, but usually
-      should be much much lower.
-      Triangles.Count seems reasnable. }
-    Edges.AllowedCapacityOverflow := Triangles.Count;
-
-    for I := 0 to Triangles.Count - 1 do
-    begin
-      { calculate T := Triangles[I] transformed by Transform }
-      T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
-      T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
-      T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
-
-      { We want to have consistent CCW orientation of shadow quads faces,
-        so that face is oriented CCW <=> you're looking at it from outside
-        (i.e. it's considered front face of this shadow quad).
-        This is needed, since user of this method may want to do culling
-        to eliminate back or front faces.
-
-        If TriangleDir(T) indicates direction that goes from CCW triangle side.
-        If TriangleDir(T) points in the same direction as LightPos then
-        1st quad should be T1, T0, TExtruded0, TExtruded1.
-        If TriangleDir(T) points in the opposite direction as LightPos then
-        1st quad should be T0, T1, TExtruded1, TExtruded0.
-        And so on. }
-      Plane := TrianglePlane(T);
-      PlaneSide := Plane[0] * LightPos[0] +
-                   Plane[1] * LightPos[1] +
-                   Plane[2] * LightPos[2] +
-                   Plane[3];
-
-      if PlaneSide > 0 then
-      begin
-        E.Vertexes[0] := T[1];
-        E.Vertexes[1] := T[0];
-        Edges.HandleEdge(E);
-
-        E.Vertexes[0] := T[0];
-        E.Vertexes[1] := T[2];
-        Edges.HandleEdge(E);
-
-        E.Vertexes[0] := T[2];
-        E.Vertexes[1] := T[1];
-        Edges.HandleEdge(E);
-      end;
-    end;
-
     glBegin(GL_QUADS);
       EdgePtr := Edges.Pointers[0];
       for I := 0 to Edges.Count - 1 do
