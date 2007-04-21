@@ -23,7 +23,7 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatSceneGL,
+uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatScene, VRMLFlatSceneGL,
   KambiUtils, DOM;
 
 type
@@ -377,6 +377,17 @@ type
       out AOptimization: TGLRendererOptimization;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
+
+    { This simply returns FirstScene.ManifoldEdges.
+      Since all scenes in the animation must have exactly the same
+      structure, we know that this ManifoldEdges is actually good
+      for all scenes within this animation. }
+    function ManifoldEdges: TDynManifoldEdgeArray;
+
+    { Calls ShareManifoldEdges(Value) on all scenes within this
+      animation. This is useful if yoy already have ManifoldEdges,
+      and you somewhat know that it's good also for this scene. }
+    procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
   end;
 
 implementation
@@ -1181,6 +1192,19 @@ begin
       raise Exception.Create(
         'At least one <frame> is required within <animation> element');
   finally Children.Release end;
+end;
+
+function TVRMLGLAnimation.ManifoldEdges: TDynManifoldEdgeArray;
+begin
+  Result := FirstScene.ManifoldEdges;
+end;
+
+procedure TVRMLGLAnimation.ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].ShareManifoldEdges(Value);
 end;
 
 end.
