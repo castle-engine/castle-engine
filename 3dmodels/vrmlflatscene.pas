@@ -465,7 +465,13 @@ type
       ManifoldEdges contents as some other scene. In particular,
       this is extremely handy in cases of animations in TVRMLGLAnimation,
       where all scenes actually need only a single instance of TDynManifoldEdgeArray,
-      this greatly speeds up TVRMLGLAnimation loading and reduces memory use. }
+      this greatly speeds up TVRMLGLAnimation loading and reduces memory use.
+
+      Note that passing here as Value the same reference
+      that is already returned by ManifoldEdges is always guaranteed to be
+      a harmless operation. If ManifoldEdges was owned by this object,
+      it will remain owned in this case (while in normal sharing situation,
+      Value set here is assumed to be owned by something else). }
     procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
   end;
 
@@ -1185,7 +1191,26 @@ end;
 
 procedure TVRMLFlatScene.ShareManifoldEdges(Value: TDynManifoldEdgeArray);
 begin
-  FreeAndNil(FManifoldEdges);
+  if (fvManifoldEdges in Validities) and (Value = FManifoldEdges) then
+    { No need to do anything in this case.
+
+      If Value = FManifoldEdges = nil, then we may leave FOwnsManifoldEdges = true
+      while it could be = false (if we let this procedure continue),
+      but this doesn't matter (since FOwnsManifoldEdges doesn't matter when
+      FManifoldEdges = nil).
+
+      If Value <> nil and old FOwnsManifoldEdges is false then this
+      doesn't change anything.
+
+      Finally, the important case: If Value <> nil and old
+      FOwnsManifoldEdges is true. Then it would be very very bad
+      to continue this method, as we would free FManifoldEdges pointer
+      and right away set FManifoldEdges to the same pointer (that would
+      be invalid now). }
+    Exit;
+
+  if FOwnsManifoldEdges then
+    FreeAndNil(FManifoldEdges);
 
   FManifoldEdges := Value;
   FOwnsManifoldEdges := false;
