@@ -1797,8 +1797,7 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
   just travel from this edge to other edges.
   Advantages:
   - speed increase because we travel only on the interesting edges
-  - speed increase because we can render quads and quad_strip instead
-    of quads list
+  - speed increase because we can render quad_strip instead of quads list
   Disadvantages:
   - this would require that we would have to use only really manifold shapes.
     E.g. right now it's ok to have one manifold scene created by two
