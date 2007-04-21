@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -45,13 +45,43 @@ type
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvFog,
-    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate);
+    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+    fvManifoldEdges);
 
   { @exclude }
   TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
 
   TViewpointFunction = procedure (Node: TNodeGeneralViewpoint;
     const Transform: TMatrix4Single) of object;
+
+  { This represents scene edge. It's used by @link(TVRMLFlatScene.ManifoldEdges),
+    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
+  TManifoldEdge = record
+    { Order of Vertexes is the same as on the first triangle,
+      that is Triangles[0]. So Vertexes[0..1] may be the from 0,1 or 1,2 or 2,0
+      vertices of Triangles[0]. }
+    Vertexes: array [0..1] of TVector3Single;
+    { Indexes to TVRMLFlatScene.Triangles(false) array }
+    Triangles: array [0..1] of Cardinal;
+    TrianglesCount: Cardinal;
+  end;
+  PManifoldEdge = ^TManifoldEdge;
+
+  TDynArrayItem_2 = TManifoldEdge;
+  PDynArrayItem_2 = PManifoldEdge;
+  {$define DYNARRAY_2_IS_STRUCT}
+  {$I dynarray_2.inc}
+
+  TDynManifoldEdgeArray = class(TDynArray_2)
+  private
+    { Private for TVRMLFlatScene.ManifoldEdges.
+      Adds given edge to the list. If the edge already exists and
+      has 2 triangles, returns @false since the scene is not a manifold. }
+    function AddEdgeCheckManifold(
+      const TriangleIndex: Cardinal;
+      const V0: TVector3Single;
+      const V1: TVector3Single): boolean;
+  end;
 
   { This class represents a VRML scene (i.e. graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
@@ -121,6 +151,8 @@ type
       out CamKind: TVRMLCameraKind;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
       TNodeGeneralViewpoint;
+
+    FManifoldEdges: TDynManifoldEdgeArray;
   public
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -404,6 +436,19 @@ type
       and returned object is read-only for you. Don't modify it, don't free it. }
     function TrianglesList(OverTriangulate: boolean):
       TDynTriangle3SingleArray;
+
+    { List of edges of this scene, assuming that the scene is a closed manifold.
+      More precisely, the scene must be composed from any number of closed
+      manifolds. Which means that each edge must have exactly two neighboring
+      faces. And the triangles must be consistently ordered,
+      all CCW on the outside.
+      Returns @nil if the scene does not satisfy these requirements.
+
+      Result of this function is cached, and it's also owned by this object.
+      So don't modify it, don't free it.
+
+      This uses TrianglesList(false). }
+    function ManifoldEdges: TDynManifoldEdgeArray;
   end;
 
 { TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
@@ -438,6 +483,7 @@ uses VRMLFields, VRMLCameraUtils;
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
 {$I dynarray_1.inc}
+{$I dynarray_2.inc}
 
 { TVRMLFlatScene ----------------------------------------------------------- }
 
@@ -459,6 +505,8 @@ destructor TVRMLFlatScene.Destroy;
 begin
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
+
+ FreeAndNil(FManifoldEdges);
 
  ShapeStates.FreeWithContents;
 
@@ -1003,6 +1051,108 @@ function TVRMLFlatScene.TrianglesList(OverTriangulate: boolean):
 begin
   ValidateTrianglesList(OverTriangulate);
   Result := FTrianglesList[OverTriangulate];
+end;
+
+function TDynManifoldEdgeArray.AddEdgeCheckManifold(
+  const TriangleIndex: Cardinal;
+  const V0: TVector3Single;
+  const V1: TVector3Single): boolean;
+var
+  I: Integer;
+  EdgePtr: PManifoldEdge;
+begin
+  if Count <> 0 then
+  begin
+    EdgePtr := Pointers[0];
+    for I := 0 to Count - 1 do
+    begin
+      { Triangles must be consistently ordered on a manifold,
+        so the second time an edge is present, we know it must
+        be in different order. So we compare V0 with Vertexes[1]
+        (and V1 with Vertexes[0]), no need to compare V1 with Vertexes[1]. }
+      if VectorsPerfectlyEqual(V0, EdgePtr^.Vertexes[1]) and
+         VectorsPerfectlyEqual(V1, EdgePtr^.Vertexes[0]) then
+      begin
+        { Add triangle to existing edge }
+        if EdgePtr^.TrianglesCount = 2 then
+          Result := false else
+        begin
+          EdgePtr^.Triangles[EdgePtr^.TrianglesCount] := TriangleIndex;
+          Inc(EdgePtr^.TrianglesCount);
+          Result := true;
+        end;
+        Exit;
+      end;
+      Inc(EdgePtr);
+    end;
+  end;
+
+  { New adge }
+  IncLength;
+  EdgePtr := Pointers[High];
+  EdgePtr^.Vertexes[0] := V0;
+  EdgePtr^.Vertexes[1] := V1;
+  EdgePtr^.Triangles[0] := TriangleIndex;
+  EdgePtr^.TrianglesCount := 1;
+end;
+
+function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
+
+  { TODO: FManifoldEdges and triangles lists should be freed
+    (and removed from Validities) on any ChangedXxx call. }
+
+  { Sets FManifoldEdges. Assumes that FManifoldEdges is @nil on enter. }
+  procedure CalculateManifoldEdges;
+  var
+    I: Integer;
+    Triangles: TDynTriangle3SingleArray;
+    TrianglePtr: PTriangle3Single;
+  begin
+    Assert(FManifoldEdges = nil);
+
+    { It's important here that TrianglesList guarentees that only valid
+      triangles are included. Otherwise degenerate triangles could make
+      shadow volumes rendering result bad. }
+    Triangles := TrianglesList(false);
+
+    FManifoldEdges := TDynManifoldEdgeArray.Create;
+
+    { There is a precise relation between number of edges and number of faces
+      on a closed manifold: E = T * 3 / 2. }
+    FManifoldEdges.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
+
+    TrianglePtr := Triangles.Pointers[0];
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      if (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[0], TrianglePtr^[1])) or
+         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[1], TrianglePtr^[2])) or
+         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[2], TrianglePtr^[0])) then
+      begin
+        { scene not a manifold: more than 2 faces for one edge }
+        FreeAndNil(FManifoldEdges);
+        Exit;
+      end;
+      Inc(TrianglePtr);
+    end;
+
+    for I := 0 to FManifoldEdges.Count - 1 do
+      if FManifoldEdges.Items[I].TrianglesCount <> 2 then
+      begin
+        { scene not a manifold: less than 2 faces for one edge
+          (the case with more than 2 is already eliminated above) }
+        FreeAndNil(FManifoldEdges);
+        Exit;
+      end;
+  end;
+
+begin
+  if not (fvManifoldEdges in Validities) then
+  begin
+    CalculateManifoldEdges;
+    Include(Validities, fvManifoldEdges);
+  end;
+
+  Result := FManifoldEdges;
 end;
 
 initialization

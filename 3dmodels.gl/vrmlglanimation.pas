@@ -224,7 +224,8 @@ type
       TransparentGroups: TTransparentGroups;
       DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate: boolean;
+      DoPrepareTrianglesListOverTriangulate,
+      DoManifoldEdges: boolean;
       ProgressStep: boolean;
       FreeRootNodes: boolean);
 
@@ -962,7 +963,8 @@ procedure TVRMLGLAnimation.PrepareRender(
   TransparentGroups: TTransparentGroups;
   DoPrepareBackground, DoPrepareBoundingBox,
   DoPrepareTrianglesListNotOverTriangulate,
-  DoPrepareTrianglesListOverTriangulate: boolean;
+  DoPrepareTrianglesListOverTriangulate,
+  DoManifoldEdges: boolean;
   ProgressStep, FreeRootNodes: boolean);
 var
   I: Integer;
@@ -972,7 +974,8 @@ begin
     FScenes[I].PrepareRender(TransparentGroups,
       DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate);
+      DoPrepareTrianglesListOverTriangulate,
+      DoManifoldEdges);
 
     { We check FScenes[I].OwnsRootNode here, because if OwnsFirstRootNode
       was false then FScenes[I].OwnsRootNode will be false. }
