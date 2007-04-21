@@ -88,7 +88,7 @@ type
       Triangles: TDynTriangle3SingleArray): boolean;
   end;
 
-  { This class represents a VRML scene (i.e. graph of VRML nodes
+  { This class represents a VRML scene (that is, graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
     objects. The basic idea is to "have" at the same time hierarchical
     view of the scene (in @link(RootNode)) and a flattened view of the same scene

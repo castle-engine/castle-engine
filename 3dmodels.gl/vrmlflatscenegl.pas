@@ -758,10 +758,10 @@ type
           exactly two neighboring faces. And the triangles must be consistently
           ordered CCW on the outside.
 
-          These are the same requirements as for ManifoldEdge method,
-          and in fact, ManifoldEdge method is called by
+          These are the same requirements as for ManifoldEdges method,
+          and in fact, ManifoldEdges method is called by
           RenderSilhouetteShadowQuads, and is the basis for it's work.
-          This algorithm is automatically selected if ManifoldEdge <> nil.)
+          This algorithm is automatically selected if ManifoldEdges <> nil.)
 
         @item(RenderAllShadowQuads renders shadow quads
           for @italic(all) edges (not just silhouette edges).
@@ -773,7 +773,7 @@ type
       transformed by Transform.
       This uses TrianglesList(false) and ManifoldEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
-      DoPrepareTrianglesListNonOverTriangulate = ManifoldEdges = true).
+      DoPrepareTrianglesListNonOverTriangulate = DoManifoldEdges = true).
 
       All the commands passed to OpenGL by this methods are:
       glBegin, sequence of glVertex, then glEnd. }
