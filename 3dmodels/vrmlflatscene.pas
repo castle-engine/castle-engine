@@ -57,10 +57,13 @@ type
   { This represents scene edge. It's used by @link(TVRMLFlatScene.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
-    { Order of Vertexes is the same as on the first triangle,
-      that is Triangles[0]. So Vertexes[0..1] may be the from 0,1 or 1,2 or 2,0
-      vertices of Triangles[0]. }
-    Vertexes: array [0..1] of TVector3Single;
+    { Index to get vertexes of this edge.
+      The actual edge's vertexes are not recorded here (this would prevent
+      using TVRMLFlatScene.ShareManifoldEdges with various scenes from
+      the same animation). You should get them as the VertexIndex
+      and (VertexIndex+1) mod 3 vertexes of the first triangle
+      (i.e. Triangles[0]). }
+    VertexIndex: Cardinal;
     { Indexes to TVRMLFlatScene.Triangles(false) array }
     Triangles: array [0..1] of Cardinal;
     TrianglesCount: Cardinal;
@@ -80,7 +83,9 @@ type
     function AddEdgeCheckManifold(
       const TriangleIndex: Cardinal;
       const V0: TVector3Single;
-      const V1: TVector3Single): boolean;
+      const V1: TVector3Single;
+      const VertexIndex: Cardinal;
+      Triangles: TDynTriangle3SingleArray): boolean;
   end;
 
   { This class represents a VRML scene (i.e. graph of VRML nodes
@@ -153,6 +158,7 @@ type
       TNodeGeneralViewpoint;
 
     FManifoldEdges: TDynManifoldEdgeArray;
+    FOwnsManifoldEdges: boolean;
   public
     { @noAutoLinkHere }
     destructor Destroy; override;
@@ -449,6 +455,18 @@ type
 
       This uses TrianglesList(false). }
     function ManifoldEdges: TDynManifoldEdgeArray;
+
+    { Set @link(ManifoldEdges) value. The Value set here will be returned
+      by following ManifoldEdges calls. The Value passed here will @italic(not
+      be owned) by this object --- you gave this, you're responsible for
+      freeing it.
+
+      This is handy if you know that this scene has the same
+      ManifoldEdges contents as some other scene. In particular,
+      this is extremely handy in cases of animations in TVRMLGLAnimation,
+      where all scenes actually need only a single instance of TDynManifoldEdgeArray,
+      this greatly speeds up TVRMLGLAnimation loading and reduces memory use. }
+    procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
   end;
 
 { TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
@@ -506,7 +524,8 @@ begin
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
 
- FreeAndNil(FManifoldEdges);
+ if FOwnsManifoldEdges then
+   FreeAndNil(FManifoldEdges);
 
  ShapeStates.FreeWithContents;
 
@@ -1056,22 +1075,30 @@ end;
 function TDynManifoldEdgeArray.AddEdgeCheckManifold(
   const TriangleIndex: Cardinal;
   const V0: TVector3Single;
-  const V1: TVector3Single): boolean;
+  const V1: TVector3Single;
+  const VertexIndex: Cardinal;
+  Triangles: TDynTriangle3SingleArray): boolean;
 var
   I: Integer;
   EdgePtr: PManifoldEdge;
+  TrianglePtr: PTriangle3Single;
+  EdgeV0, EdgeV1: PVector3Single;
 begin
   if Count <> 0 then
   begin
     EdgePtr := Pointers[0];
     for I := 0 to Count - 1 do
     begin
+      TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+      EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
+      EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+
       { Triangles must be consistently ordered on a manifold,
         so the second time an edge is present, we know it must
-        be in different order. So we compare V0 with Vertexes[1]
-        (and V1 with Vertexes[0]), no need to compare V1 with Vertexes[1]. }
-      if VectorsPerfectlyEqual(V0, EdgePtr^.Vertexes[1]) and
-         VectorsPerfectlyEqual(V1, EdgePtr^.Vertexes[0]) then
+        be in different order. So we compare V0 with EdgeV1
+        (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
+      if VectorsPerfectlyEqual(V0, EdgeV1^) and
+         VectorsPerfectlyEqual(V1, EdgeV0^) then
       begin
         { Add triangle to existing edge }
         if EdgePtr^.TrianglesCount = 2 then
@@ -1090,8 +1117,7 @@ begin
   { New adge }
   IncLength;
   EdgePtr := Pointers[High];
-  EdgePtr^.Vertexes[0] := V0;
-  EdgePtr^.Vertexes[1] := V1;
+  EdgePtr^.VertexIndex := VertexIndex;
   EdgePtr^.Triangles[0] := TriangleIndex;
   EdgePtr^.TrianglesCount := 1;
 end;
@@ -1124,9 +1150,10 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
     TrianglePtr := Triangles.Pointers[0];
     for I := 0 to Triangles.Count - 1 do
     begin
-      if (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[0], TrianglePtr^[1])) or
-         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[1], TrianglePtr^[2])) or
-         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[2], TrianglePtr^[0])) then
+      { TrianglePtr points to Triangles[I] now }
+      if (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles)) or
+         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles)) or
+         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles)) then
       begin
         { scene not a manifold: more than 2 faces for one edge }
         FreeAndNil(FManifoldEdges);
@@ -1148,11 +1175,21 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
 begin
   if not (fvManifoldEdges in Validities) then
   begin
+    FOwnsManifoldEdges := true;
     CalculateManifoldEdges;
     Include(Validities, fvManifoldEdges);
   end;
 
   Result := FManifoldEdges;
+end;
+
+procedure TVRMLFlatScene.ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+begin
+  FreeAndNil(FManifoldEdges);
+
+  FManifoldEdges := Value;
+  FOwnsManifoldEdges := false;
+  Include(Validities, fvManifoldEdges);
 end;
 
 initialization

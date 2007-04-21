@@ -219,7 +219,13 @@ type
       (because you have to be careful then about what methods
       from scenes you use), but it allows you to save some memory.
       Note that if OwnsFirstRootNode then the initial RootNodes[0]
-      will *not* be freed. }
+      will *not* be freed.
+
+      If DoManifoldEdges, then actually a special memory (and prepare
+      time) optimization will be used: only the first scene will
+      have actually prepared DoManifoldEdges. The other scenes will
+      just share the same ManifoldEdges instance, by
+      TVRMLFlatScene.ShareManifoldEdges method. }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       DoPrepareBackground, DoPrepareBoundingBox,
@@ -975,7 +981,10 @@ begin
       DoPrepareBackground, DoPrepareBoundingBox,
       DoPrepareTrianglesListNotOverTriangulate,
       DoPrepareTrianglesListOverTriangulate,
-      DoManifoldEdges);
+      DoManifoldEdges and (I = 0));
+
+    if DoManifoldEdges and (I <> 0) then
+      FScenes[I].ShareManifoldEdges(FScenes[0].ManifoldEdges);
 
     { We check FScenes[I].OwnsRootNode here, because if OwnsFirstRootNode
       was false then FScenes[I].OwnsRootNode will be false. }

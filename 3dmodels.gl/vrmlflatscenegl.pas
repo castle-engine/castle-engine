@@ -1808,13 +1808,45 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
     Yes, this happens, since shapes are not necessarily convex.
 }
 
+var
+  Triangles: TDynTriangle3SingleArray;
+  EdgePtr: PManifoldEdge;
+
   procedure RenderShadowQuad(
-    const P0, P1, PExtruded0, PExtruded1: TVector3Single);
+    const P0Index, P1Index: Cardinal);
+  const
+    { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+      Bo w teorii shadow quad ma nieskonczona powierzchnie.
+      Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+      ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+      jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
+      na bzdure.
+
+      Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+      shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+    MakeInfinite = 1000;
+  var
+    V0, V1, V0Extruded, V1Extruded: TVector3Single;
+    EdgeV0, EdgeV1: PVector3Single;
+    TrianglePtr: PTriangle3Single;
   begin
-    glVertexv(P0);
-    glVertexv(P1);
-    glVertexv(PExtruded1);
-    glVertexv(PExtruded0);
+    TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+
+    V0 := MultMatrixPoint(Transform, EdgeV0^);
+    V1 := MultMatrixPoint(Transform, EdgeV1^);
+
+    V0Extruded := VectorAdd(VectorScale(VectorSubtract(
+      V0, LightPos), MakeInfinite), V0);
+    V1Extruded := VectorAdd(VectorScale(VectorSubtract(
+      V1, LightPos), MakeInfinite), V1);
+
+    glVertexv(V0);
+    glVertexv(V1);
+    glVertexv(V1Extruded);
+    glVertexv(V0Extruded);
   end;
 
   function PlaneSide(const T: TTriangle3Single): boolean;
@@ -1831,39 +1863,11 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
                Plane[3]) > 0;
   end;
 
-  procedure PrepareVertexes(const EdgeV0, EdgeV1: TVector3Single;
-    out V0, V1, V0Extruded, V1Extruded: TVector3Single);
-  const
-    { TODO: wartosc 1000 jest tu dobrana "ot tak".
-
-      Bo w teorii shadow quad ma nieskonczona powierzchnie.
-      Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-      ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-      jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
-      na bzdure.
-
-      Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
-      shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
-    MakeInfinite = 1000;
-  begin
-    V0 := MultMatrixPoint(Transform, EdgeV0);
-    V1 := MultMatrixPoint(Transform, EdgeV1);
-
-    V0Extruded := VectorAdd(VectorScale(VectorSubtract(
-      V0, LightPos), MakeInfinite), V0);
-    V1Extruded := VectorAdd(VectorScale(VectorSubtract(
-      V1, LightPos), MakeInfinite), V1);
-  end;
-
 var
   I: Integer;
-  EdgePtr: PManifoldEdge;
   TrianglePtr: PTriangle3Single;
   PlaneSide0, PlaneSide1: boolean;
-  V0, V1, V0Extruded, V1Extruded: TVector3Single;
   TrianglesPlaneSide: TDynBooleanArray;
-
-  Triangles: TDynTriangle3SingleArray;
   Edges: TDynManifoldEdgeArray;
 begin
   glBegin(GL_QUADS);
@@ -1905,17 +1909,9 @@ begin
 
           This assumes that outside triangles are CCW. }
         if PlaneSide0 and not PlaneSide1 then
-        begin
-          PrepareVertexes(EdgePtr^.Vertexes[0], EdgePtr^.Vertexes[1],
-            V0, V1, V0Extruded, V1Extruded);
-          RenderShadowQuad(V0, V1, V0Extruded, V1Extruded);
-        end else
+          RenderShadowQuad(0, 1) else
         if PlaneSide1 and not PlaneSide0 then
-        begin
-          PrepareVertexes(EdgePtr^.Vertexes[0], EdgePtr^.Vertexes[1],
-            V0, V1, V0Extruded, V1Extruded);
-          RenderShadowQuad(V1, V0, V1Extruded, V0Extruded);
-        end;
+          RenderShadowQuad(1, 0);
 
         Inc(EdgePtr);
       end;
