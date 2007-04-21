@@ -52,7 +52,7 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender([tgAll], false, true, false, false);
+ Scene.PrepareRender([tgAll], false, true, false, false, false);
 end;
 
 type
