@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -52,7 +52,7 @@ var
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- Scene.PrepareRender([tgAll], false, true, false, false, false);
+ Scene.PrepareRender([tgAll], [prBoundingBox]);
 end;
 
 type

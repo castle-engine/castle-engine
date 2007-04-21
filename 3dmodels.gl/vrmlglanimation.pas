@@ -221,17 +221,14 @@ type
       Note that if OwnsFirstRootNode then the initial RootNodes[0]
       will *not* be freed.
 
-      If DoManifoldEdges, then actually a special memory (and prepare
-      time) optimization will be used: only the first scene will
-      have actually prepared DoManifoldEdges. The other scenes will
+      If prManifoldEdges is includes, then actually a special memory
+      (and prepare time) optimization will be used: only the first scene will
+      have actually prepared prManifoldEdges. The other scenes will
       just share the same ManifoldEdges instance, by
       TVRMLFlatScene.ShareManifoldEdges method. }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      DoPrepareBackground, DoPrepareBoundingBox,
-      DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate,
-      DoManifoldEdges: boolean;
+      Options: TPrepareRenderOptions;
       ProgressStep: boolean;
       FreeRootNodes: boolean);
 
@@ -978,23 +975,22 @@ end;
 
 procedure TVRMLGLAnimation.PrepareRender(
   TransparentGroups: TTransparentGroups;
-  DoPrepareBackground, DoPrepareBoundingBox,
-  DoPrepareTrianglesListNotOverTriangulate,
-  DoPrepareTrianglesListOverTriangulate,
-  DoManifoldEdges: boolean;
+  Options: TPrepareRenderOptions;
   ProgressStep, FreeRootNodes: boolean);
 var
   I: Integer;
+  SceneOptions: TPrepareRenderOptions;
 begin
   for I := 0 to FScenes.High do
   begin
-    FScenes[I].PrepareRender(TransparentGroups,
-      DoPrepareBackground, DoPrepareBoundingBox,
-      DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate,
-      DoManifoldEdges and (I = 0));
+    { For I <> 0, we don't want to pass prManifoldEdges to scenes. }
+    SceneOptions := Options;
+    if I <> 0 then
+      Exclude(SceneOptions, prManifoldEdges);
 
-    if DoManifoldEdges and (I <> 0) then
+    FScenes[I].PrepareRender(TransparentGroups, SceneOptions);
+
+    if (prManifoldEdges in Options) and (I <> 0) then
       FScenes[I].ShareManifoldEdges(FScenes[0].ManifoldEdges);
 
     { We check FScenes[I].OwnsRootNode here, because if OwnsFirstRootNode

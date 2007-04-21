@@ -289,6 +289,13 @@ type
   TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
   TTransparentGroups = set of TTransparentGroup;
 
+  { Various things that TVRMLFlatSceneGL.PrepareRender may prepare. }
+  TPrepareRenderOption = (prBackground, prBoundingBox,
+    prTrianglesListNotOverTriangulate,
+    prTrianglesListOverTriangulate,
+    prManifoldEdges);
+  TPrepareRenderOptions = set of TPrepareRenderOption;
+
   { This is a descendant of TVRMLFlatScene that makes it easy to render
     VRML scene into OpenGL. The point is that this class is the final,
     comfortable utility to deal with VRML files when you want to be able
@@ -539,46 +546,46 @@ type
     { @noAutoLinkHere }
     destructor Destroy; override;
 
-    { Niszcz wszelkie powiazania tego obiektu z aktualnym kontekstem OpenGL'a.
-      Generalnie, wszystko to co tworzy PrepareRender(true).
-      Jezeli juz aktualnie nie ma takich powiazan (bo np. wywolales ta metode
-      dwa razy pod rzad) to nic nie zrobi. Wywolywane tez automatycznie
-      z destruktora. }
+    { Destroy any associations of this object with current OpenGL context.
+      For example, releaseany allocated texture or display list names.
+
+      Generally speaking, destroys everything that is allocated by
+      PrepareRender([...], []) call. It's harmless to call this
+      method when there are already no associations with current OpenGL context.
+      This is called automatically from the destructor. }
     procedure CloseGL;
 
-    { procedura PrepareRender zwiazuje nas z aktualnym kontekstem OpenGL'a
-      ale nie zmienia stanu OpenGL'a ani zawartosci jakiegos z buforow
-      OpenGLa. Moze co najwyzej zajmowac jakies display-listy i tekstury OpenGLa.
-      wywolywanie PrepareRender nigdy nie jest wymagane; problem polega jednak
-      na tym ze samo wywolanie Render za pierwszym razem moze samo zainicjowac
-      sobie mase rzeczy. To jest dobrze ze ta inicjalizacja nastepuje automatycznie
-      ale czasami moze to byc bolesne ze gdy piszesz kod np. zdarzenia
-      TGLWindow.OnDraw to za pierwszym razem to wywolanie moze zajac bardzo
-      duzo czasu bo za pierwszym razem Render bedzie sobie chcialo bardzo
-      duzo zainicjowac. Moze to byc niepozadane, przyklad patrz "Malfunction".
-      Cel PrepareRender jest taki : niech najblizsze wywolanie Render zajmie
-      mniej wiecej tyle samo czasu co wszystkie nastepne.
+    { This prepares some internal things in this class, making sure that
+      appropriate methods execute as fast as possible.
+      In most cases, it's not strictly required to call this method
+      --- most things will be prepared "as needed" anyway.
+      But this means that some calls may sometimes take a long time,
+      e.g. the first Render call will take a long time because it may
+      have to prepare display lists that will be reused in next Render calls.
+      This may cause a strange behavior of the program: rendering of the
+      first frame takes unusually long time (which confuses user, and
+      also makes things like TGLWindow.FpsCompSpeed strange for a short
+      time). So calling this procedure may be desirable.
+      You may want to show to user that "now we're preparing
+      the VRML scene --- please wait".
 
-      TransparentGroups specifies for what TransparentGroup value
-      it should prepare rendering resources (usually you only use
-      [tgAll] or only one of [tgTransparent, tgOpaque] ---
-      so it would be a waste of resources and time to prepare for every
-      possible TransparentGroup value).
+      This method ties this object to current OpenGL context.
+      But it doesn't change any OpenGL state or buffers contents
+      (at most, it allocates some texture and display list names).
 
-      If DoPrepareBackground then it will call PrepareBackground too.
-      Then this function will make next call to Background proceed fast.
+      @param(TransparentGroups specifies for what TransparentGroup value
+        it should prepare rendering resources (usually you only use
+        [tgAll] or only one of [tgTransparent, tgOpaque] ---
+        so it would be a waste of resources and time to prepare for every
+        possible TransparentGroup value).)
 
-      If DoPrepareBoundingBox then it will also make sure that call to
-      BoundingBox is fast.
-
-      If DoPrepareManifoldEdges then it will also make sure that call to
-      ManifoldEdges is fast. }
+      @param(Options says what additional features (besides rendering)
+        should be prepared to execute fast. See TPrepareRenderOption,
+        the names should be self-explanatory (they refer to appropriate
+        methods of this class).) }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
-      DoPrepareBackground, DoPrepareBoundingBox,
-      DoPrepareTrianglesListNotOverTriangulate,
-      DoPrepareTrianglesListOverTriangulate,
-      DoPrepareManifoldEdges: boolean);
+      Options: TPrepareRenderOptions);
 
     { Render : probably the most important function in this class,
       often it is the reason why this class is used.
@@ -862,6 +869,17 @@ type
     { Just call CloseGL on all items. }
     procedure CloseGL;
   end;
+
+const
+  { Options to pass to TVRMLFlatSceneGL.PrepareRender to make
+    sure that next call to TVRMLFlatSceneGL.RenderShadowQuads
+    is as fast as possible.
+
+    For now this actually could be equal to prManifoldEdges
+    (prTrianglesListNotOverTriangulate has to be prepared while preparing
+    ManifoldEdges edges anyway). But for the future shadow volumes
+    optimizations, it's best to use this constant. }
+  prShadowQuads = [prTrianglesListNotOverTriangulate, prManifoldEdges];
 
 { Parses and removes from Parameters[1]..Parameters.High
   parameter @--renderer-optimization, and sets RendererOptimization
@@ -1515,10 +1533,7 @@ end;
 
 procedure TVRMLFlatSceneGL.PrepareRender(
   TransparentGroups: TTransparentGroups;
-  DoPrepareBackground, DoPrepareBoundingBox,
-  DoPrepareTrianglesListNotOverTriangulate,
-  DoPrepareTrianglesListOverTriangulate,
-  DoPrepareManifoldEdges: boolean);
+  Options: TPrepareRenderOptions);
 var
   ShapeStateNum: Integer;
   TG: TTransparentGroup;
@@ -1557,17 +1572,19 @@ begin
       end;
   end;
 
-  if DoPrepareBackground then PrepareBackground;
+  if prBackground in Options then
+    PrepareBackground;
 
-  if DoPrepareBoundingBox then BoundingBox; { ignore the result }
+  if prBoundingBox in Options then
+    BoundingBox { ignore the result };
 
-  if DoPrepareTrianglesListNotOverTriangulate then
+  if prTrianglesListNotOverTriangulate in Options then
     TrianglesList(false);
 
-  if DoPrepareTrianglesListOverTriangulate then
+  if prTrianglesListOverTriangulate in Options then
     TrianglesList(true);
 
-  if DoPrepareManifoldEdges then
+  if prManifoldEdges in Options then
     ManifoldEdges;
 end;
 
