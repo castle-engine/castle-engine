@@ -494,6 +494,7 @@ type
     FFallingOnTheGround: boolean;
     FFallingOnTheGroundAngleIncrease: boolean;
 
+    FIsOnTheGround: boolean;
     FIsWalkingOnTheGround: boolean;
 
     function RealCameraPreferredHeightNoHeadBobbing: Single;
@@ -1154,10 +1155,22 @@ type
       it gets orthogonal to GravityUp. }
     procedure FallOnTheGround;
 
-    { This is set in every Idle. @true means that gravity works
-      (i.e. @link(Gravity) is @true), and player
-      is standing stable on the ground, and player is moving
-      horizontally. The intention is that you can use this to make
+    { This is @true when gravity works (that is @link(Gravity) is @true),
+      and player is standing stable on the ground. This is set in every Idle.
+
+      You can use this e.g. to make some effects when player is on some
+      special ground (standing or walking), e.g. hurt player when he's
+      standing on some toxical ground.
+
+      @seealso IsWalkingOnTheGround }
+    property IsOnTheGround: boolean read FIsOnTheGround;
+
+    { This is @true when gravity works (that is @link(Gravity) is @true),
+      and player is standing stable on the ground, and player is moving
+      horizontally. In other words, this is like "IsOnTheGround and (s)he's
+      walking". This is set in every Idle.
+
+      The intention is that you can use this to make
       some "footsteps" sound for the player. }
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
   end;
@@ -2381,7 +2394,7 @@ var
       end;
     end;
 
-    function IsStandingOnTheGround: boolean;
+    function GetIsOnTheGround: boolean;
     var
       MinHeightAboveTheGround, MaxHeightAboveTheGround, H: Single;
     begin
@@ -2396,7 +2409,6 @@ var
   var
     OldIsFallingDown: boolean;
   begin
-    FIsWalkingOnTheGround := false;
     OldIsFallingDown := IsFallingDown;
 
     if Gravity then
@@ -2404,7 +2416,8 @@ var
       { calculate IsAboveTheGround, SqrHeightAboveTheGround }
       DoGetCameraHeight(IsAboveTheGround, SqrHeightAboveTheGround);
 
-      FIsWalkingOnTheGround := MoveHorizontalDone and IsStandingOnTheGround;
+      FIsOnTheGround := GetIsOnTheGround;
+      FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
 
       if not TryJump then
         if not TryGrow then
@@ -2583,6 +2596,10 @@ begin
   end;
 
   PreferGravityUpForRotationsIdle;
+
+  { These may be set to @true only inside GravityIdle }
+  FIsWalkingOnTheGround := false;
+  FIsOnTheGround := false;
 
   GravityIdle;
 end;
