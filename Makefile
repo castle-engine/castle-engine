@@ -187,7 +187,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/simpleViewModel_2 \
   3dmodels.gl/examples/simpleViewModel \
   3dmodels.gl/examples/demo_animation \
-  3dmodels.gl/examples/fog_culling
+  3dmodels.gl/examples/fog_culling \
+  3dmodels.gl/examples/shadow_volume_test/shadow_volume_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \

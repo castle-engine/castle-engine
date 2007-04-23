@@ -1,0 +1,1 @@
+./shadow_volume_test models/lightset_3.wrl models/sthenge.wrl models/shadow_caster_3.wrl
