@@ -44,6 +44,9 @@ interface
 uses OpenGLh, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
   GLWinModes, KambiGLUtils;
 
+const
+  DefaultBarYPosition = 0.5;
+
 type
   TProgressGLInterface = class(TProgressUserInterface)
   private
@@ -52,10 +55,20 @@ type
     ProgressFont: TGLBitmapFont_Abstract;
     FWindow: TGLWindow;
     SavedMode: TGLMode;
+    FBarYPosition: Single;
   public
+    constructor Create;
+
     { Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
     property Window: TGLWindow read FWindow write FWindow;
+
+    { Vertical position of the displayed bar. 0 means that
+      the middle of bar is on the bottom of the screen, 1 means it's
+      at the top. 0.5 is the default, and natural, value: it says
+      to put bar in the middle of the screen. }
+    property BarYPosition: Single
+      read FBarYPosition write FBarYPosition default DefaultBarYPosition;
 
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -74,7 +87,7 @@ uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images;
 
 procedure DisplayProgress(glwin: TGLWindow);
 var margines: integer;
-    BarHeight, y1, y2: TGLfloat;
+    BarHeight, y1, y2, YMiddle: TGLfloat;
     Progress: TProgress;
     ProgressInterface: TProgressGLInterface;
 begin
@@ -87,8 +100,9 @@ begin
 
  margines := 100 * glwin.width div 800;
  BarHeight := 50 * glwin.height div 600;
- y1 := glwin.height div 2 + BarHeight/2;
- y2 := glwin.height div 2 - BarHeight/2;
+ YMiddle := Glwin.Height * ProgressInterface.BarYPosition;
+ y1 := YMiddle + BarHeight/2;
+ y2 := YMiddle - BarHeight/2;
 
  glColor3ub(192, 192, 192);
  glRectf(margines, y1, glwin.width-margines, y2);
@@ -97,12 +111,18 @@ begin
    margines + (glwin.width-2*margines) * Progress.Position/Progress.Max, y2);
 
  glColor3f(0, 0,0);
- glRasterPos2i(margines + 20,
-   (glwin.Height - ProgressInterface.ProgressFont.TextHeight('M')) div 2);
+ glRasterPos2f(margines + 20,
+   YMiddle - ProgressInterface.ProgressFont.TextHeight('M') div 2);
  ProgressInterface.ProgressFont.Print(Progress.TitleWithPosition(true));
 end;
 
 { TProgressGLInterface  ------------------------------------------------ }
+
+constructor TProgressGLInterface.Create;
+begin
+  inherited;
+  FBarYPosition := DefaultBarYPosition;
+end;
 
 procedure TProgressGLInterface.Init(Progress: TProgress);
 begin
