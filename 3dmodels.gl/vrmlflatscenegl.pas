@@ -1832,16 +1832,17 @@ var
   procedure RenderShadowQuad(
     const P0Index, P1Index: Cardinal);
   const
-    { TODO: wartosc 1000 jest tu dobrana "ot tak".
+    { TODO: the value 1000 is just chosen here arbitrarily.
+      In theory, shadow quad is infinite. Fix this:
 
-      Bo w teorii shadow quad ma nieskonczona powierzchnie.
-      Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-      ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-      jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
-      na bzdure.
+      1. We could take as parameter some scene size.
+         But then we'll have to add normalizing to
+           VectorAdd(VectorScale(VectorSubtract(
+             V0, LightPos), MakeInfinite), V0)
+         Which is stupid --- wasting time for such unimportant thing.
 
-      Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
-      shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+      2. The right way: we can employ some tricks with homogeneous
+         coordinates to make infinite shadow quads. }
     MakeInfinite = 1000;
   var
     V0, V1, V0Extruded, V1Extruded: TVector3Single;
