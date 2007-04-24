@@ -21,11 +21,12 @@ DEF File_house3_3ds Group {
           }
 	}
 # Kambi-
-# 	DEF Lights Group {
-# 		DEF Light_Light01 PointLight {
-# 			location 6791.3388671875 -6102.3623046875 1968.50390625
-# 		}
-# 	}
+	DEF Lights Group {
+		DEF Light_Light01 PointLight {
+			intensity 0
+                        ambientIntensity 0.1
+		}
+	}
 	DEF Materials Switch {
 		DEF Material_GLASS Group {
 			Material {
