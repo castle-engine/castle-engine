@@ -53,11 +53,6 @@
   are really dynamic :) ) using the keys:
     asd qwe, Ctrl + asd qwe, 2, 34
       = keys to move, rotate and scale shadow caster
-
-  TODO: move this to menu items:
-    m = prints current ShadowCaster transformation as VRML MatrixTransformation
-        node
-    space = toggle shadow quads showing
 }
 
 program shadow_volume_test;
@@ -380,47 +375,47 @@ begin
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
-var NodeMatrix: TNodeMatrixTransform;
 begin
   ShadowCasterNav.KeyDown(key, c, @Glwin.KeysDown);
-
-  { TODO: change this to menu (and update docs) }
-  case c of
-    CtrlC:
-       begin
-         Writeln(MakeVRMLCameraStr(1,
-           Glw.NavWalker.CameraPos,
-           Glw.NavWalker.CameraDir,
-           Glw.NavWalker.CameraUp,
-           Glw.NavWalker.GravityUp));
-       end;
-   'm':begin
-         NodeMatrix := TNodeMatrixTransform.Create('ShadowCasterNav_Matrix', '');
-         try
-           NodeMatrix.FdMatrix.Matrix := ShadowCasterNav.Matrix;
-           SavetoVRMLFile(NodeMatrix, StdOutStream, '');
-         finally NodeMatrix.Free end;
-       end;
-   ' ':begin
-         ShowShadowQuads := not ShowShadowQuads;
-         glwin.PostRedisplay;
-       end;
-   CtrlE:begin
-         IsRenderSilhouetteEdges := not IsRenderSilhouetteEdges;
-         glwin.PostRedisplay;
-       end;
-  end;
 end;
 
 { menu ----------------------------------------------------------------------- }
 
 procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
+var
+  NodeMatrix: TNodeMatrixTransform;
 begin
   case MenuItem.IntData of
     Ord(Low(TShadowsImplementation)) ..
     Ord(High(TShadowsImplementation)):
       begin
         ShadowsImplementation := TShadowsImplementation(MenuItem.IntData);
+        Glwin.PostRedisplay;
+      end;
+    10:
+      begin
+        Writeln(MakeVRMLCameraStr(1,
+          Glw.NavWalker.CameraPos,
+          Glw.NavWalker.CameraDir,
+          Glw.NavWalker.CameraUp,
+          Glw.NavWalker.GravityUp));
+      end;
+    20:
+      begin
+        NodeMatrix := TNodeMatrixTransform.Create('ShadowCasterNav_Matrix', '');
+        try
+          NodeMatrix.FdMatrix.Matrix := ShadowCasterNav.Matrix;
+          SavetoVRMLFile(NodeMatrix, StdOutStream, '');
+        finally NodeMatrix.Free end;
+      end;
+    30:
+      begin
+        ShowShadowQuads := not ShowShadowQuads;
+        Glwin.PostRedisplay;
+      end;
+    40:
+      begin
+        IsRenderSilhouetteEdges := not IsRenderSilhouetteEdges;
         Glwin.PostRedisplay;
       end;
   end;
@@ -455,6 +450,16 @@ begin
       siGLCullFace2Passes);
     AppendShadowsImplementationRadio('_StencilOpSeparate (best choice, ' +
       'requires OpenGL >= 2.0)', siStencilOpSeparate);
+    Result.Append(M);
+  M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create('_Show shadows quads', 30,
+      ShowShadowQuads, true));
+    M.Append(TMenuItemChecked.Create('_Show silhouette edges', 40,
+      IsRenderSilhouetteEdges, true));
+    Result.Append(M);
+  M := TMenu.Create('_Console');
+    M.Append(TMenuItem.Create('_Print current camera', 10));
+    M.Append(TMenuItem.Create('_Print shadow caster transformation', 20));
     Result.Append(M);
 end;
 
