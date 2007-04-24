@@ -454,7 +454,7 @@ begin
   M := TMenu.Create('_View');
     M.Append(TMenuItemChecked.Create('_Show shadows quads', 30,
       ShowShadowQuads, true));
-    M.Append(TMenuItemChecked.Create('_Show silhouette edges', 40,
+    M.Append(TMenuItemChecked.Create('_Show silhouette edges (only for manifold scenes)', 40,
       IsRenderSilhouetteEdges, true));
     Result.Append(M);
   M := TMenu.Create('_Console');
