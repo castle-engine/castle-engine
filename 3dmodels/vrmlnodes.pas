@@ -2089,6 +2089,8 @@ type
     property FdIntensity: TSFFloat index 1 read GetFieldAsSFFloat;
     property FdColor: TSFColor index 2 read GetFieldAsSFColor;
     property FdAmbientIntensity: TSFFloat index 3 read GetFieldAsSFFloat;
+    property FdKambiShadows: TSFBool index 4 read GetFieldAsSFBool;
+    property FdKambiShadowsMain: TSFBool index 5 read GetFieldAsSFBool;
   end;
 
   TObjectsListItem_1 = TNodeGeneralLight;
@@ -2099,7 +2101,7 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdDirection: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdDirection: TSFVec3f index 6 read GetFieldAsSFVec3f;
   end;
 
   TNodeDirectionalLight_1 = class(TNodeGeneralDirectionalLight)
@@ -2112,8 +2114,8 @@ type
 
   TNodeGeneralPositionalLight = class(TNodeGeneralLight)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property FdLocation: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property FdAttenuation: TSFVec3f index 5 read GetFieldAsSFVec3f;
+    property FdLocation: TSFVec3f index 6 read GetFieldAsSFVec3f;
+    property FdAttenuation: TSFVec3f index 7 read GetFieldAsSFVec3f;
 
     { Attenuation obliczaja attenuation (tzn. wzorek 1/max( attenuation[0] + ...)
       zgodnie ze specyfik. VRMLa 97. Poniewaz obliczenie parametru DistanceToLight
@@ -2148,9 +2150,9 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdDirection: TSFVec3f index 6 read GetFieldAsSFVec3f;
-    property FdDropOffRate: TSFFloat index 7 read GetFieldAsSFFloat;
-    property FdCutOffAngle: TSFFloat index 8 read GetFieldAsSFFloat;
+    property FdDirection: TSFVec3f index 8 read GetFieldAsSFVec3f;
+    property FdDropOffRate: TSFFloat index 9 read GetFieldAsSFFloat;
+    property FdCutOffAngle: TSFFloat index 10 read GetFieldAsSFFloat;
 
     { nieznormalizowany wykladnik dla spot'a (na podstawie dropOffRate) }
     function SpotExp: Single;
@@ -3349,7 +3351,7 @@ type
   TNodePointLight_2 = class(TNodeGeneralPointLight)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property Fdradius: TSFFloat index 6 read GetFieldAsSFFloat;
+    property Fdradius: TSFFloat index 8 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -3536,10 +3538,10 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdbeamWidth: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdcutOffAngle: TSFFloat index 7 read GetFieldAsSFFloat;
-    property Fddirection: TSFVec3f index 8 read GetFieldAsSFVec3f;
-    property Fdradius: TSFFloat index 9 read GetFieldAsSFFloat;
+    property FdbeamWidth: TSFFloat index 8 read GetFieldAsSFFloat;
+    property FdcutOffAngle: TSFFloat index 9 read GetFieldAsSFFloat;
+    property Fddirection: TSFVec3f index 10 read GetFieldAsSFVec3f;
+    property Fdradius: TSFFloat index 11 read GetFieldAsSFFloat;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -6394,6 +6396,8 @@ begin
   Fields.Add(TSFFloat.Create('intensity', 1)); Fields.Last.Exposed := true;
   Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('ambientIntensity', -1)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('kambiShadows', false)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('kambiShadowsMain', false)); Fields.Last.Exposed := true;
 end;
 
 procedure TNodeGeneralLight.MiddleTraverse(State: TVRMLGraphTraverseState);

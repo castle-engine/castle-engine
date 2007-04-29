@@ -30,14 +30,26 @@
   useles, and implemented here only for testing purposes.
 
   This program displays two models:
-  - static scene
-  - shadow caster that casts shadows (on itself and on the scene).
+
+  1. static scene
+
+  2. shadow caster that casts shadows (on itself and on the scene).
     Ideally, shadow caster should be composed from a number of closed
     manifold parts to make rendering fast (see documentation of
     TVRMLFlatSceneGL.RenderShadowQuads for description of two different
     shadow quads drawing algorithms). When program starts, it tells you
     whether shadow caster was detected to be a closed manifold.
-  - we also need separate VRML file with exactly one light definition.
+
+    If you want, you can leave the static scene empty (well, it's
+    usually comfortable to set there only initial camera node),
+    and put all geometry inside shadow caster. This way everything
+    will cast shadows on everything --- the most realistic way.
+    shadow_volume_test_cages.sh tried to demonstrate this on "The Castle"
+    level, but it's not really done yet (because cages level is not
+    a correct manifold, so it's really slow to render
+    and the lack of depth-fail approach is very noticeable there).
+
+  3. we also need separate VRML file with exactly one light definition.
     This will be the light used to cast shadows (right now, this must
     be a positional light). The scene can contain additional lights,
     but they will not make additional shadows.
@@ -66,7 +78,7 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils, VRMLFlatSceneGL,
   VRMLNodes, MatrixNavigation, VRMLFlatScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
-  ShadowTests, GLWinMessages;
+  ShadowTests, GLWinMessages, VRMLErrors;
 
 type
   { Shadow implementations. Roughly ordered from the worse to the best. }
@@ -117,6 +129,11 @@ var
   Scene, ShadowCaster: TVRMLFlatSceneGL;
   ShadowCasterNav: TMatrixExaminer;
   LightSet: TVRMLLightSetGL;
+
+  { This is sum of bounding boxes of scene and
+    untransformed shadow caster. This is used as an approximate
+    box where our the world is. }
+  SceneBoundingBox: TBox3d;
 
   ShowShadowQuads: boolean = false;
   IsRenderSilhouetteEdges: boolean = false;
@@ -324,8 +341,8 @@ procedure ResizeGL(glwin: TGLWindow);
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
   ProjectionGLPerspective(30, glwin.Width/glwin.Height,
-    Box3dAvgSize(scene.BoundingBox)*0.05,
-    Box3dAvgSize(scene.BoundingBox)*20.0);
+    Box3dAvgSize(SceneBoundingBox)*0.05,
+    Box3dAvgSize(SceneBoundingBox)*20.0);
 end;
 
 procedure InitGL(glwin: TGLWindow);
@@ -444,7 +461,7 @@ begin
     AppendShadowsImplementationRadio('_Invert trick (usable only with' +
       ' simplest shadow casters)', siInvertTrick);
     AppendShadowsImplementationRadio('2 passes, cull faces using our _engine ' +
-      '(currently ignores manifold, so it''s bad)',
+      '(currently ignores manifold, so it''s slower than it could be)',
       siEngineCullFace2Passes);
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);
@@ -480,6 +497,7 @@ begin
     ShadowCasterVrmlName := Parameters[3];
 
     { init vrml-related objects }
+    VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
     LightSet := TVRMLLightSetGL.Create(
       ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
     Scene := TVRMLFlatSceneGL.Create(
@@ -488,6 +506,8 @@ begin
     Scene.Attributes.FirstGLFreeLight := 1;
     ShadowCaster := TVRMLFlatSceneGL.Create(
       ParseVRMLFile(ShadowCasterVrmlName, false), true, roSceneAsAWhole);
+    SceneBoundingBox := Box3dSum(Scene.BoundingBox,
+      ShadowCaster.BoundingBox);
 
     { init ShadowCasterNav }
     ShadowCasterNav := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
@@ -515,7 +535,7 @@ begin
     { init Glw.Navigator }
     Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
     Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-    VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(Scene.BoundingBox)*0.02);
+    VectorAdjustToLengthTo1st(CamDir, Box3dAvgSize(SceneBoundingBox)*0.02);
     Glw.NavWalker.Init(CamPos, CamDir, CamUp, GravityUp, 0.0, 0.0);
 
     Glw.MainMenu := CreateMainMenu;

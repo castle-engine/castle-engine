@@ -187,6 +187,49 @@ type
       I.e. it calls glDisable(GL_LIGHTx) for them. }
     procedure TurnLightsOff;
 
+    { Turn off lights not supposed to light in the shadow, and
+      detect position (if any) of the main light that produces shadows.
+
+      This is useful when you want to make shadows on the scene
+      from only a single light, but your scene has many lights.
+      Then you may think that your scene lights are divided
+      into three groups:
+      @orderedList(
+        @item(First of all, there's one and exactly one light
+          that makes shadows. Which means that shadows are made
+          where this light doesn't reach. This should usually be the
+          dominant, most intensive light on the scene.)
+        @item(Other lights that don't determine @italic(where)
+          shadows are --- but are turned off where shadows are.
+          This is obviously a nonsense --- we turn off the lights,
+          even though they may reach given scene point ?
+          But, in practice, it's often needed to put many lights
+          in this group. Otherwise, the scene could be so light,
+          that shadows are not "dark enough".)
+        @item(Other lights that light everything. These just
+          work like usual OpenGL lights, they shine everywhere.
+          Usually only the dark light(s) should be in this group,
+          just light enough to make shadows look good --- which
+          usually means "dark, but not absolutely unrealistically black".)
+      )
+
+      How does it work ? By kambiShadows field of lights.
+      First light with kambiShadows = kambiShadowsMain = TRUE
+      is the main light that
+      makes shadows. Other lights with kambiShadows = TRUE fall
+      into the second group (they are disabled by this function,
+      but don't affect returned MainLightPosition). Lights
+      with kambiShadows = FALSE are in the 3rd group: they are
+      left untouched by this method (they are not disabled).
+
+      If no light with kambiShadows = kambiShadowsMain = TRUE
+      is present then this
+      function returns @false, since MainLightPosition cannot
+      be calculated. In this case, it's guaranteed that no lights
+      were turned off (even the ones with kambiShadows = TRUE). }
+    function TurnLightsOffForShadows(out MainLightPosition: TVector3Single):
+      boolean;
+
     { close any connection between this object and current gl context.
       After calling this, you can e.g. switch to another context and use
       this object there. You can also destroy current context and
@@ -483,6 +526,55 @@ begin
   CalculateRealGLLightNum2;
   for I := GLLightNum1 to RealGLLightNum2 do
     glDisable(GL_LIGHT0 + I);
+end;
+
+function TVRMLLightSetGL.TurnLightsOffForShadows(
+  out MainLightPosition: TVector3Single): boolean;
+var
+  MyLightNum, GLLightNum: Integer;
+  L: PActiveLight;
+begin
+  Result := false;
+
+  { first pass: find main light, set Result and MainLightPosition.
+    Do this first, without disabling any light (because we don't
+    want to disable any light if Result is @false) }
+  L := Lights.Pointers[0];
+  for MyLightNum := 0 to Lights.Count - 1 do
+  begin
+    if L^.LightNode.FdKambiShadows.Value and
+       L^.LightNode.FdKambiShadowsMain.Value then
+    begin
+      Result := true;
+      if L^.LightNode is TNodeGeneralPositionalLight then
+        MainLightPosition := L^.TransfLocation else
+        { TODO: fix for dir lights: return 4 valued vector,
+          make RenderShadowQuads handle it }
+        MainLightPosition := Vector3Single(0, 0, 0);
+      Break;
+    end;
+    Inc(L);
+  end;
+
+  if Result then
+  begin
+    CalculateRealGLLightNum2;
+
+    { second pass: turn off lights }
+    L := Lights.Pointers[0];
+    for MyLightNum := 0 to Lights.Count - 1 do
+    begin
+      GLLightNum := MyLightNum + GLLightNum1;
+
+      if L^.LightNode.FdKambiShadows.Value then
+      begin
+        if GLLightNum <= RealGLLightNum2 then
+          glDisable(GL_LIGHT0 + GLLightNum);
+      end;
+
+      Inc(L);
+    end;
+  end;
 end;
 
 procedure TVRMLLightSetGL.CloseGL;

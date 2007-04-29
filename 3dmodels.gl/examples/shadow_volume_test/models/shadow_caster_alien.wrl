@@ -12,7 +12,8 @@ DEF ShadowCasterNav_Matrix MatrixTransform {
   Translation { translation 11025.0751953125 9071.5078125 3306.531494140625 }
   Scale { scaleFactor 500 500 500 }
 
-  WWWInline { name "/win/mojepasy/openGL/castle/trunk/data/creatures/alien/alien_still_final.wrl" }
+  WWWInline { name "/home/michalis/sources/vrml_engine/castle/data/creatures/alien/alien_still_final.wrl" }
+  #/win/mojepasy/openGL/castle/trunk/data/creatures/alien/alien_still_final.wrl" }
   #WWWInline { name "/win/mojepasy/openGL/castle/trunk/data/creatures/ghost/ghost_stand_1_final.wrl" }
   #WWWInline { name "/win/mojepasy/openGL/castle/trunk/data/creatures/werewolf/werewolf_still_final.wrl" }
 }
