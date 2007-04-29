@@ -731,28 +731,38 @@ end;
 { TTriangleOctreeNode -------------------------------------------------------------- }
 
 procedure TTriangleOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
-{$ifdef DEBUG}
 var
   AddedSomewhere: boolean;
-{$endif}
 
   procedure PutIntoSubNode(SubNode: TOctreeNode; PItem: POctreeItem);
   begin
     if IsBox3dTriangleCollision(SubNode.Box, PItem^.Triangle) then
     begin
       SubNode.AddItem(ItemIndex);
-      {$ifdef DEBUG}
       AddedSomewhere := true;
-      {$endif}
     end;
+  end;
+
+  procedure PutItemIntoSubNodesLazy(PItem: POctreeItem);
+
+    procedure OCTREE_STEP_INTO_SUBNODES_PROC(SubNode: TOctreeNode;
+      var Stop: boolean);
+    begin
+      SubNode.AddItem(ItemIndex);
+      AddedSomewhere := true;
+    end;
+
+  OCTREE_STEP_INTO_SUBNODES_DECLARE
+  begin
+    OSIS_Box := TriangleBoundingBox(PItem^.Triangle);
+    OCTREE_STEP_INTO_SUBNODES
   end;
 
 var
   PItem: POctreeItem;
 begin
-  {$ifdef DEBUG}
   AddedSomewhere := false;
-  {$endif}
+
   PItem := ParentTree.OctreeItems.Pointers[ItemIndex];
   PutIntoSubNode(TreeSubNodes[false, false, false], PItem);
   PutIntoSubNode(TreeSubNodes[false, false, true ], PItem);
@@ -762,9 +772,33 @@ begin
   PutIntoSubNode(TreeSubNodes[true , false, true ], PItem);
   PutIntoSubNode(TreeSubNodes[true , true , false], PItem);
   PutIntoSubNode(TreeSubNodes[true , true , true ], PItem);
-  {$ifdef DEBUG}
-  Assert(AddedSomewhere, 'TTriangleOctreeNode.PutItemIntoSubNodes lost a triangle');
-  {$endif}
+
+  if not AddedSomewhere then
+  begin
+    { This should not happen. But it happens, and unfortunately
+      it seems unavoidable: IsBox3dTriangleCollision tries hard
+      to detect that there's no collision. Even with really large
+      epsilons inside IsBox3dTriangleCollision,
+      it often detects no collision, while in fact triangle
+      lies on the boundary of SubNode.Box.
+
+      I tried to make epsilons inside IsBox3dTriangleCollision larger,
+      use better calculation (on doubles instead of singles),
+      and all of this helped... for some time. For some scenes.
+      Sooner or later, I was always able to find another scene,
+      so specific that requires even larger epsilon inside
+      IsBox3dTriangleCollision... This is unacceptable of course.
+
+      So I detect the cases when IsBox3dTriangleCollision works
+      badly, and use more "lazy" approach in this case (that may
+      result in inserting the triangle into more nodes than
+      necessary --- but that's not a problem (such triangle
+      happens seldom, so it doesn't really make octree less optimal)). }
+    PutItemIntoSubNodesLazy(PItem);
+  end;
+
+{  Assert(AddedSomewhere,
+    'TTriangleOctreeNode.PutItemIntoSubNodes lost a triangle');}
 end;
 
 function TTriangleOctreeNode.ParentTree: TVRMLTriangleOctree;

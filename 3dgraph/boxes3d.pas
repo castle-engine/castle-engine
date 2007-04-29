@@ -186,6 +186,8 @@ function Box3dToRawStr(const box: TBox3d): string;
 procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); overload;
 procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
 
+function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
+
 { TryBoxRayClosestIntersection znajduje przeciecie Boxa z promieniem
   najblizsze do Ray0, traktujac Box jako szesc wielokatow (tzn.
   przeciecie musi sie znalezc na ktoryms z bokow, nawet jezeli Ray0
@@ -792,6 +794,13 @@ end;
 procedure Box3dClamp(var point: TVector3Single; const box: TBox3d); CLAMP_IMPLEMENTATION
 procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); CLAMP_IMPLEMENTATION
 
+function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
+begin
+  MinMax(T[0][0], T[1][0], T[2][0], Result[0][0], Result[1][0]);
+  MinMax(T[0][1], T[1][1], T[2][1], Result[0][1], Result[1][1]);
+  MinMax(T[0][2], T[1][2], T[2][2], Result[0][2], Result[1][2]);
+end;
+
 function TryBoxRayClosestIntersection(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
@@ -1061,16 +1070,6 @@ var
     Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  procedure FindMinMax(const x0, x1, x2: Double; out min, max: Double);
-  begin
-    min := x0;
-    max := x0;
-    if   x1 < min then min := x1 else
-      if x1 > max then max := x1;
-    if   x2 < min then min := x2 else
-      if x2 > max then max := x2;
-  end;
-
 var
   BoxCenter: TVector3Double;
   I: Integer;
@@ -1130,17 +1129,17 @@ begin
     the triangle against the AABB }
 
   { test in X-direction }
-  FindMinMax(TriangleMoved[0][0], TriangleMoved[1][0], TriangleMoved[2][0], min, max);
+  MinMax(TriangleMoved[0][0], TriangleMoved[1][0], TriangleMoved[2][0], min, max);
   if (min >  boxhalfsize[0] + EqualityEpsilon) or
      (max < -boxhalfsize[0] - EqualityEpsilon) then Exit(false);
 
   { test in Y-direction }
-  FindMinMax(TriangleMoved[0][1], TriangleMoved[1][1], TriangleMoved[2][1], min, max);
+  MinMax(TriangleMoved[0][1], TriangleMoved[1][1], TriangleMoved[2][1], min, max);
   if (min >  boxhalfsize[1] + EqualityEpsilon) or
      (max < -boxhalfsize[1] - EqualityEpsilon) then Exit(false);
 
   { test in Z-direction }
-  FindMinMax(TriangleMoved[0][2], TriangleMoved[1][2], TriangleMoved[2][2], min, max);
+  MinMax(TriangleMoved[0][2], TriangleMoved[1][2], TriangleMoved[2][2], min, max);
   if (min >  boxhalfsize[2] + EqualityEpsilon) or
      (max < -boxhalfsize[2] - EqualityEpsilon) then Exit(false);
 

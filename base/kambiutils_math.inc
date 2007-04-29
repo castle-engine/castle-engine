@@ -422,6 +422,9 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
   (without floating-point help). }
 function CeilDiv(const A, B: Cardinal): Cardinal;
 
+procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
+procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -751,6 +754,26 @@ begin
   if ModResult = 0 then
     Result := DivResult else
     Result := DivResult + 1;
+end;
+
+procedure MinMax(const x0, x1, x2: Double; out min, max: Double);
+begin
+  min := x0;
+  max := x0;
+  if   x1 < min then min := x1 else
+    if x1 > max then max := x1;
+  if   x2 < min then min := x2 else
+    if x2 > max then max := x2;
+end;
+
+procedure MinMax(const x0, x1, x2: Single; out min, max: Single);
+begin
+  min := x0;
+  max := x0;
+  if   x1 < min then min := x1 else
+    if x1 > max then max := x1;
+  if   x2 < min then min := x2 else
+    if x2 > max then max := x2;
 end;
 
 {$endif read_implementation}
