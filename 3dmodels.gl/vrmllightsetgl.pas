@@ -206,8 +206,11 @@ type
       is present then this
       function returns @false, since MainLightPosition cannot
       be calculated. In this case, it's guaranteed that no lights
-      were turned off (even the ones with kambiShadows = TRUE). }
-    function TurnLightsOffForShadows(out MainLightPosition: TVector3Single):
+      were turned off (even the ones with kambiShadows = TRUE).
+
+      MainLightPosition[3] is always set to 1
+      (positional light) or 0 (indicates that this is a directional light). }
+    function TurnLightsOffForShadows(out MainLightPosition: TVector4Single):
       boolean;
 
     { close any connection between this object and current gl context.
@@ -509,7 +512,7 @@ begin
 end;
 
 function TVRMLLightSetGL.TurnLightsOffForShadows(
-  out MainLightPosition: TVector3Single): boolean;
+  out MainLightPosition: TVector4Single): boolean;
 var
   MyLightNum, GLLightNum: Integer;
   L: PActiveLight;
@@ -527,10 +530,12 @@ begin
     begin
       Result := true;
       if L^.LightNode is TNodeGeneralPositionalLight then
-        MainLightPosition := L^.TransfLocation else
-        { TODO: fix for dir lights: return 4 valued vector,
-          make RenderShadowQuads handle it }
-        MainLightPosition := Vector3Single(0, 0, 0);
+        MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
+      if L^.LightNode is TNodeGeneralDirectionalLight then
+        MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
+        raise Exception.CreateFmt('TVRMLLightSetGL.TurnLightsOffForShadows: ' +
+          'light node "%s" cannot be used to cast shadows, it has no position ' +
+          'and no direction', [L^.LightNode.NodeTypeName]);
       Break;
     end;
     Inc(L);

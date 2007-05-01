@@ -130,6 +130,9 @@ var
   ShadowCasterNav: TMatrixExaminer;
   LightSet: TVRMLLightSetGL;
 
+  { MainLightPosition[3] = 0 means it's directional. }
+  MainLightPosition: TVector4Single;
+
   { This is sum of bounding boxes of scene and
     untransformed shadow caster. This is used as an approximate
     box where our the world is. }
@@ -159,8 +162,7 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderFrontShadowQuads;
   begin
     ShadowTests.RenderFrontShadowQuads(ShadowCaster,
-      LightSet.Lights.Items[0].TransfLocation,
-      Glw.NavWalker.CameraPos, ShadowCasterNav.Matrix);
+      MainLightPosition, Glw.NavWalker.CameraPos, ShadowCasterNav.Matrix);
   end;
 
   procedure RenderBackShadowQuads;
@@ -170,9 +172,7 @@ procedure Draw(glwin: TGLWindow);
 
   procedure RenderAllShadowQuads;
   begin
-    ShadowCaster.RenderShadowQuads(
-      LightSet.Lights.Items[0].TransfLocation,
-      ShadowCasterNav.Matrix);
+    ShadowCaster.RenderShadowQuads(MainLightPosition, ShadowCasterNav.Matrix);
   end;
 
   procedure DoRenderSilhouetteEdges;
@@ -184,8 +184,7 @@ procedure Draw(glwin: TGLWindow);
         glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonOffset(1, 1);
         glColor4f(1, 1, 0, 0.3);
-        RenderSilhouetteEdges(ShadowCaster,
-          LightSet.Lights.Items[0].TransfLocation,
+        RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
           ShadowCasterNav.Matrix);
       glPopAttrib;
     end;
@@ -461,7 +460,7 @@ begin
     AppendShadowsImplementationRadio('_Invert trick (usable only with' +
       ' simplest shadow casters)', siInvertTrick);
     AppendShadowsImplementationRadio('2 passes, cull faces using our _engine ' +
-      '(currently ignores manifold, so it''s slower than it could be)',
+      '(currently ignores manifold, so it''s slower than it could be, and only for positional lights)',
       siEngineCullFace2Passes);
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);
@@ -487,6 +486,7 @@ var
   LightSetVrmlName: string;
   SceneVrmlName: string;
   ShadowCasterVrmlName: string;
+  L: PActiveLight;
 begin
   try
     { parse params }
@@ -508,6 +508,16 @@ begin
       ParseVRMLFile(ShadowCasterVrmlName, false), true, roSceneAsAWhole);
     SceneBoundingBox := Box3dSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);
+
+    { calculate MainLightPosition }
+    L := LightSet.Lights.Pointers[0];
+    if L^.LightNode is TNodeGeneralPositionalLight then
+      MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
+    if L^.LightNode is TNodeGeneralDirectionalLight then
+      MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
+      raise Exception.CreateFmt('TVRMLLightSetGL.TurnLightsOffForShadows: ' +
+        'light node "%s" cannot be used to cast shadows, it has no position ' +
+        'and no direction', [L^.LightNode.NodeTypeName]);
 
     { init ShadowCasterNav }
     ShadowCasterNav := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);

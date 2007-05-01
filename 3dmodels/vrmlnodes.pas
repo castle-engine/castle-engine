@@ -366,7 +366,7 @@ type
     transformacje.
 
     TransfLocation to juz przeliczone Transformation*Location dla swiatel
-    TNodeGenarlLightWLocation. TransfNormDirection to juz
+    TNodeGeneralPositionalLight. TransfNormDirection to juz
     znormalizowane i transformowane Direction dla swiatel Directional i Spot
     (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
     licza sie tylko obroty i skalowania).

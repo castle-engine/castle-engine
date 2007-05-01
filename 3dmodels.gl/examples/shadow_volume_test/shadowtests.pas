@@ -74,7 +74,8 @@ type
   @groupBegin }
 procedure RenderFrontShadowQuads(
   Scene: TVRMLFlatSceneGL;
-  const LightPos, CameraPos: TVector3Single;
+  const LightPos: TVector4Single;
+  const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad3SingleArray); overload;
 
@@ -84,7 +85,8 @@ procedure RenderBackShadowQuads(
 
 procedure RenderFrontShadowQuads(
   Scene: TVRMLFlatSceneGL;
-  const LightPos, CameraPos: TVector3Single;
+  const LightPos: TVector4Single;
+  const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single); overload;
 
 procedure RenderBackShadowQuads(Scene: TVRMLFlatSceneGL); overload;
@@ -97,7 +99,7 @@ procedure RenderBackShadowQuads(Scene: TVRMLFlatSceneGL); overload;
   as OpenGL line. }
 procedure RenderSilhouetteEdges(
   Scene: TVRMLFlatSceneGL;
-  const LightPos: TVector3Single;
+  const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 {$undef read_interface}
@@ -109,8 +111,39 @@ uses SysUtils, KambiGLUtils, OpenGLh;
 {$define read_implementation}
 {$I dynarray_1.inc}
 
+procedure ExtrudeVertex(out Extruded: TVector3Single;
+  const Original: TVector3Single;
+  const LightPos: TVector4Single);
+const
+  { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+    Bo w teorii shadow quad ma nieskonczona powierzchnie.
+    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
+    na bzdure.
+
+    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+  MakeInfinite = 1000;
+var
+  LightPos3: TVector3Single absolute LightPos;
+begin
+  if LightPos[3] <> 0 then
+    { Below is the moment when we require that
+      if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
+      Otherwise we would have to divide here LightPos3 by LightPos[3].
+      Maybe in the future this requirement will be removed and we'll work
+      for any LightPos in homogenous coordinates, for now it's not really
+      needed. }
+    Extruded := VectorAdd(VectorScale(VectorSubtract(Original, LightPos3),
+      MakeInfinite), Original) else
+    Extruded := VectorAdd(VectorScale(LightPos3, MakeInfinite), Original);
+end;
+
 procedure RenderFrontShadowQuads(Scene: TVRMLFlatSceneGL;
-  const LightPos, CameraPos: TVector3Single;
+  const LightPos: TVector4Single;
+  const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad3SingleArray);
 
@@ -159,7 +192,7 @@ const
 
     2. The right way: we can employ some tricks with homogeneous
        coordinates to make infinite shadow quads. }
-  MakeInfinite = 1000;
+  MakeInfinite = 100000;
 
 var
   I: Integer;
@@ -167,6 +200,7 @@ var
   T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
   SQPlanes: array [0..2] of TVector4Single;
   SQFronts: array [0..2] of boolean;
+  LightPos3: TVector3Single absolute LightPos;
 begin
   Triangles := Scene.TrianglesList(false);
 
@@ -181,19 +215,22 @@ begin
       T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
       T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
 
-      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T0, LightPos), MakeInfinite), T0);
-      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T1, LightPos), MakeInfinite), T1);
-      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T2, LightPos), MakeInfinite), T2);
+      ExtrudeVertex(TExtruded0, T0, LightPos);
+      ExtrudeVertex(TExtruded1, T1, LightPos);
+      ExtrudeVertex(TExtruded2, T2, LightPos);
 
       { First calculate all three SQPlanes and all three
         SQFronts. This is because we *have* to catch the situation
         when all SQFronts are equal. This may happen when the triangle
         (T0, T1, T2) and  LightPos are on the same plane. In this case,
-        we should just ignore the triangle. }
+        we should just ignore the triangle.
 
-      SQPlanes[0] := TrianglePlane(T0, T1, LightPos);
-      SQPlanes[1] := TrianglePlane(T1, T2, LightPos);
-      SQPlanes[2] := TrianglePlane(T2, T0, LightPos);
+        TODO: this assumes light is positional. I'm too lazy to implement
+        directional lights here. }
+
+      SQPlanes[0] := TrianglePlane(T0, T1, LightPos3);
+      SQPlanes[1] := TrianglePlane(T1, T2, LightPos3);
+      SQPlanes[2] := TrianglePlane(T2, T0, LightPos3);
 
       SQFronts[0] := not PointsSamePlaneSides(T2, CameraPos, SQPlanes[0]);
       SQFronts[1] := not PointsSamePlaneSides(T0, CameraPos, SQPlanes[1]);
@@ -236,7 +273,8 @@ var
 
 procedure RenderFrontShadowQuads(
   Scene: TVRMLFlatSceneGL;
-  const LightPos, CameraPos: TVector3Single;
+  const LightPos: TVector4Single;
+  const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single);
 begin
   RenderFrontShadowQuads(Scene, LightPos, CameraPos, TrianglesTransform,
@@ -250,7 +288,7 @@ end;
 
 procedure RenderSilhouetteEdges(
   Scene: TVRMLFlatSceneGL;
-  const LightPos: TVector3Single;
+  const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 var
@@ -286,7 +324,7 @@ var
     Result := (Plane[0] * LightPos[0] +
                Plane[1] * LightPos[1] +
                Plane[2] * LightPos[2] +
-               Plane[3]) > 0;
+               Plane[3] * LightPos[3]) > 0;
   end;
 
 var

@@ -507,11 +507,11 @@ type
     { shadow things ---------------------------------------------------------- }
 
     procedure RenderSilhouetteShadowQuads(
-      const LightPos: TVector3Single;
+      const LightPos: TVector4Single;
       const Transform: TMatrix4Single);
 
     procedure RenderAllShadowQuads(
-      const LightPos: TVector3Single;
+      const LightPos: TVector4Single;
       const Transform: TMatrix4Single);
   public
     { @noAutoLinkHere }
@@ -782,10 +782,13 @@ type
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
       DoPrepareTrianglesListNonOverTriangulate = DoManifoldEdges = true).
 
+      LightPos is the light position. LightPos[3] must be 1
+      (to indicate positional light) or 0 (a directional light).
+
       All the commands passed to OpenGL by this methods are:
       glBegin, sequence of glVertex, then glEnd. }
     procedure RenderShadowQuads(
-      const LightPos: TVector3Single;
+      const LightPos: TVector4Single;
       const Transform: TMatrix4Single);
   private
     FBackgroundSkySphereRadius: Single;
@@ -1685,8 +1688,39 @@ end;
 
 { shadow quads --------------------------------------------------------------- }
 
+{ LightPos has either LightPos[3] = 0 or LightPos[3] = 1. }
+procedure ExtrudeVertex(out Extruded: TVector3Single;
+  const Original: TVector3Single;
+  const LightPos: TVector4Single);
+const
+  { TODO: wartosc 1000 jest tu dobrana "ot tak".
+
+    Bo w teorii shadow quad ma nieskonczona powierzchnie.
+    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
+    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
+    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
+    na bzdure.
+
+    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
+    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
+  MakeInfinite = 100000;
+var
+  LightPos3: TVector3Single absolute LightPos;
+begin
+  if LightPos[3] <> 0 then
+    { Below is the moment when we require that
+      if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
+      Otherwise we would have to divide here LightPos3 by LightPos[3].
+      Maybe in the future this requirement will be removed and we'll work
+      for any LightPos in homogenous coordinates, for now it's not really
+      needed. }
+    Extruded := VectorAdd(VectorScale(VectorSubtract(Original, LightPos3),
+      MakeInfinite), Original) else
+    Extruded := VectorAdd(VectorScale(LightPos3, MakeInfinite), Original);
+end;
+
 procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
-  const LightPos: TVector3Single;
+  const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
@@ -1707,19 +1741,6 @@ procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
     glVertexv(PExtruded0);
   end;
 
-const
-  { TODO: wartosc 1000 jest tu dobrana "ot tak".
-
-    Bo w teorii shadow quad ma nieskonczona powierzchnie.
-    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
-    na bzdure.
-
-    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
-    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
-  MakeInfinite = 1000;
-
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
@@ -1738,9 +1759,9 @@ begin
       T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
       T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
 
-      TExtruded0 := VectorAdd(VectorScale(VectorSubtract(T[0], LightPos), MakeInfinite), T[0]);
-      TExtruded1 := VectorAdd(VectorScale(VectorSubtract(T[1], LightPos), MakeInfinite), T[1]);
-      TExtruded2 := VectorAdd(VectorScale(VectorSubtract(T[2], LightPos), MakeInfinite), T[2]);
+      ExtrudeVertex(TExtruded0, T[0], LightPos);
+      ExtrudeVertex(TExtruded1, T[1], LightPos);
+      ExtrudeVertex(TExtruded2, T[2], LightPos);
 
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside
@@ -1753,12 +1774,25 @@ begin
         1st quad should be T1, T0, TExtruded0, TExtruded1.
         If TriangleDir(T) points in the opposite direction as LightPos then
         1st quad should be T0, T1, TExtruded1, TExtruded0.
-        And so on. }
+        And so on.
+
+        Note that this works for any LightPos[3].
+        - For LightPos[3] = 1 this is  normal check.
+        - For other LightPos[3] > 0 this is equivalent to normal check.
+        - For LightPos[3] = 0, this calculates dot between light direction
+          and plane direction. Plane direction points outwards, so PlaneSide > 0
+          indicates that light is from the outside. So it matches results for
+          LightPos[3] = 1.
+        - For LightPos[3] < 0, is seems that the test has to be reversed !
+          I.e. add "if LightPos[3] < 0 then PlaneSide := -PlaneSide;".
+          This will be done when we'll have to do accept any homogeneous
+          coords for LightPos, right now it's not needed.
+      }
       Plane := TrianglePlane(T);
       PlaneSide := Plane[0] * LightPos[0] +
                    Plane[1] * LightPos[1] +
                    Plane[2] * LightPos[2] +
-                   Plane[3];
+                   Plane[3] * LightPos[3];
 
       if PlaneSide > 0 then
       begin
@@ -1779,7 +1813,7 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
-  const LightPos: TVector3Single;
+  const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 { Speed:
@@ -1831,19 +1865,6 @@ var
 
   procedure RenderShadowQuad(
     const P0Index, P1Index: Cardinal);
-  const
-    { TODO: the value 1000 is just chosen here arbitrarily.
-      In theory, shadow quad is infinite. Fix this:
-
-      1. We could take as parameter some scene size.
-         But then we'll have to add normalizing to
-           VectorAdd(VectorScale(VectorSubtract(
-             V0, LightPos), MakeInfinite), V0)
-         Which is stupid --- wasting time for such unimportant thing.
-
-      2. The right way: we can employ some tricks with homogeneous
-         coordinates to make infinite shadow quads. }
-    MakeInfinite = 1000;
   var
     V0, V1, V0Extruded, V1Extruded: TVector3Single;
     EdgeV0, EdgeV1: PVector3Single;
@@ -1856,10 +1877,8 @@ var
     V0 := MultMatrixPoint(Transform, EdgeV0^);
     V1 := MultMatrixPoint(Transform, EdgeV1^);
 
-    V0Extruded := VectorAdd(VectorScale(VectorSubtract(
-      V0, LightPos), MakeInfinite), V0);
-    V1Extruded := VectorAdd(VectorScale(VectorSubtract(
-      V1, LightPos), MakeInfinite), V1);
+    ExtrudeVertex(V0Extruded, V0, LightPos);
+    ExtrudeVertex(V1Extruded, V1, LightPos);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -1878,7 +1897,7 @@ var
     Result := (Plane[0] * LightPos[0] +
                Plane[1] * LightPos[1] +
                Plane[2] * LightPos[2] +
-               Plane[3]) > 0;
+               Plane[3] * LightPos[3]) > 0;
   end;
 
 var
@@ -1939,7 +1958,7 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.RenderShadowQuads(
-  const LightPos: TVector3Single;
+  const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 begin
   if ManifoldEdges <> nil then
