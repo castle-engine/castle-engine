@@ -1155,6 +1155,9 @@ type
       it gets orthogonal to GravityUp. }
     procedure FallOnTheGround;
 
+    { @true when the effect caused by FallOnTheGround is stil in motion. }
+    property FallingOnTheGround: boolean read FFallingOnTheGround;
+
     { This is @true when gravity works (that is @link(Gravity) is @true),
       and player is standing stable on the ground. This is set in every Idle.
 
