@@ -9119,7 +9119,8 @@ begin
  if AllowStdIn and (FileName = '-') then
   Result := DoIt(StdInStream, false, GetCurrentDir) else
  begin
-  if SameText(ExtractFileExt(FileName), '.gz') then
+  if SameText(ExtractFileExt(FileName), '.gz') or
+     SameText(ExtractFileExt(FileName), '.wrz') then
    Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
      ExtractFilePath(ExpandFilename(FileName))) else
    Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,

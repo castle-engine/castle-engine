@@ -560,8 +560,8 @@ end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
-  Extensions: array [0..6] of string =
-  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.md3');
+  Extensions: array [0..7] of string =
+  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.wrz', '.md3');
 begin
  if AllowStdIn and (FileName = '-') then
   result := ParseVRMLFile('-', true) else
@@ -569,8 +569,8 @@ begin
   0: result := LoadGEOAsVRML(filename);
   1: result := Load3dsAsVRML(filename);
   2: result := LoadOBJAsVRML(filename);
-  3, 4, 5: result := ParseVRMLFile(filename, false);
-  6: Result := LoadMD3AsVRML(FileName);
+  3..6: result := ParseVRMLFile(filename, false);
+  7: Result := LoadMD3AsVRML(FileName);
   else raise Exception.Create('unrecognized file extension for 3d model file : file '''+filename+'''');
  end;
 end;
