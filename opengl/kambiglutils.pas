@@ -1103,17 +1103,17 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   na ktora bedzie ustawiona matrix projection. }
 
 type
-  TProcIntData = procedure (data: integer);
+  TProcData = procedure (Data: Pointer);
 
-procedure glProjectionPushPop2D(proc: TProcIntData; data: integer);
+procedure glProjectionPushPop2D(proc: TProcData; Data: Pointer);
 
-procedure glProjectionPushPopOrtho(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopOrtho(proc: TProcData; Data: Pointer;
   const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
-procedure glProjectionPushPopOrtho2D(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopOrtho2D(proc: TProcData; Data: Pointer;
   const Left, Right, Bottom, Top: TGLdouble);
-procedure glProjectionPushPopPerspective(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
   const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
-procedure glProjectionPushPop(proc: TProcIntData; data: integer;
+procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
 
 { BlackOutRect rysuje prostokat zabarwiony BlackOutem kolorem BlackOutColor.
@@ -2503,27 +2503,27 @@ begin
   end;
 end;}
 
-procedure glProjectionPushPop(proc: TProcIntData; data: integer;
+procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
 PROJECTION_PUSH_POP_BEGIN
   glLoadMatrixf(@projMatrix);
 PROJECTION_PUSH_POP_END
 
-procedure glProjectionPushPopOrtho(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopOrtho(proc: TProcData; Data: Pointer;
   const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
 PROJECTION_PUSH_POP_BEGIN
   glLoadIdentity;
   glOrtho(Left, Right, Bottom, Top, ZNear, ZFar);
 PROJECTION_PUSH_POP_END
 
-procedure glProjectionPushPopOrtho2D(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopOrtho2D(proc: TProcData; Data: Pointer;
   const Left, Right, Bottom, Top: TGLdouble);
 PROJECTION_PUSH_POP_BEGIN
   glLoadIdentity;
   gluOrtho2D(Left, Right, Bottom, Top);
 PROJECTION_PUSH_POP_END
 
-procedure glProjectionPushPopPerspective(proc: TProcIntData; data: integer;
+procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
   const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
 PROJECTION_PUSH_POP_BEGIN
   glLoadIdentity;
@@ -2533,7 +2533,7 @@ PROJECTION_PUSH_POP_END
 {$undef PROJECTION_PUSH_POP_BEGIN}
 {$undef PROJECTION_PUSH_POP_END}
 
-procedure glProjectionPushPop2D(proc: TProcIntData; data: integer);
+procedure glProjectionPushPop2D(proc: TProcData; Data: Pointer);
 var
   Viewport: TVector4i;
 begin

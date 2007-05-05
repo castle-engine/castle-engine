@@ -172,6 +172,17 @@ type
     procedure PrintStringsBorderedRect(strs: TStringList; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
       BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
+
+    { Temporarily switch to 2d projection and print given string.
+      This is a comfortable routine in demo programs that generally have 3d
+      projection, and need to switch to 2d projection only to set raster
+      position to print some text.
+
+      This uses glProjectionPushPop2D, in 2d is sets modelview matrix
+      to identity and raster pos to X, Y, and then prints text like
+      PrintStrings(S). }
+    procedure Projection2DPrintStrings(X, Y: Integer; S: TStrings); overload;
+    procedure Projection2DPrintStrings(X, Y: Integer; S: string); overload;
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFont_Abstract;
@@ -400,6 +411,47 @@ begin
     InsideCol, BorderCol, TextCol, Stipple,
     BoxPixelMargin, XPixelsRes, YPixelsRes);
  finally slist.Free end;
+end;
+
+type
+  TProjection2DPrintData = record
+    S: TStrings;
+    X, Y: Integer;
+    Font: TGLBitmapFont_Abstract;
+  end;
+  PProjection2DPrintData = ^TProjection2DPrintData;
+
+procedure Draw2d(Data: Pointer);
+var
+  PData: PProjection2DPrintData;
+begin
+  PData := PProjection2DPrintData(Data);
+  glLoadIdentity();
+  PData^.Font.PrintStrings(PData^.S, 0, PData^.X, PData^.Y);
+end;
+
+procedure TGLBitmapFont_Abstract.Projection2DPrintStrings(
+  X, Y: Integer; S: TStrings);
+var
+  Data: TProjection2DPrintData;
+begin
+  Data.S := S;
+  Data.X := X;
+  Data.Y := Y;
+  Data.Font := Self;
+  glProjectionPushPop2D(@Draw2d, @Data);
+end;
+
+procedure TGLBitmapFont_Abstract.Projection2DPrintStrings(
+  X, Y: Integer; S: string);
+var
+  SList: TStrings;
+begin
+  SList := TStringList.Create;
+  try
+    SList.Text := S;
+    Projection2DPrintStrings(X, Y, SList);
+  finally SList.Free end;
 end;
 
 { TGLOutlineFont_Abstract ------------------------------------------------------}

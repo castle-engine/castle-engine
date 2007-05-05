@@ -69,16 +69,14 @@
 
 program shadow_volume_test;
 
-{ This is highly adviced. Requires gl >= 1.4 or EXT_stencil_wrap extension }
-{$define USE_WRAP}
-
 {$apptype CONSOLE}
 
 uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils, VRMLFlatSceneGL,
   VRMLNodes, MatrixNavigation, VRMLFlatScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
-  ShadowTests, GLWinMessages, VRMLErrors;
+  ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumesUtils,
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 type
   { Shadow implementations. Roughly ordered from the worse to the best. }
@@ -140,11 +138,16 @@ var
 
   ShowShadowQuads: boolean = false;
   IsRenderSilhouetteEdges: boolean = false;
+  IsRenderStatus: boolean = true;
 
   ShadowsImplementation: TShadowsImplementation = siStencilOpSeparate;
   ShadowsImplementationRadioGroup: TMenuItemRadioGroup;
   ShadowsImplementationRadio:
     array [TShadowsImplementation] of TMenuItemRadio;
+
+  ShadowVolumesHelper: TShadowVolumesHelper;
+
+  Font: TGLBitmapFont;
 
 { glw callbacks ------------------------------------------------------------ }
 
@@ -183,6 +186,7 @@ procedure Draw(glwin: TGLWindow);
         glDisable(GL_LIGHTING);
         glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonOffset(1, 1);
+        glDepthFunc(GL_LEQUAL);
         glColor4f(1, 1, 0, 0.3);
         RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
           ShadowCasterNav.Matrix);
@@ -193,12 +197,8 @@ procedure Draw(glwin: TGLWindow);
   { Rendering with hard shadows by SV algorithm. }
   procedure RenderWithShadows;
   var
-    StencilOpIncrWrap, StencilOpDecrWrap: TGLenum;
     StencilShadowBits: TGLuint;
   begin
-    StencilOpIncrWrap := {$ifdef USE_WRAP} GL_INCR_WRAP_EXT {$else} GL_INCR {$endif};
-    StencilOpDecrWrap := {$ifdef USE_WRAP} GL_DECR_WRAP_EXT {$else} GL_DECR {$endif};
-
     if (ShadowsImplementation = siStencilOpSeparate) and
        (glStencilOpSeparate = nil) then
     begin
@@ -227,7 +227,7 @@ procedure Draw(glwin: TGLWindow);
       More precisely, it should be the maximum number of possibly overlapping
       front shadow quads from any possible camera view.
 
-      If it's not enough, USE_WRAP will help a little --- but inevitably
+      If it's not enough, using INCR/DECR with "WRAP" will help --- but inevitably
       it will show some artifacts at some places.
       Run ./shadow_volume_test_parallels.sh to see such nasty case.
 
@@ -251,15 +251,17 @@ procedure Draw(glwin: TGLWindow);
         case ShadowsImplementation of
           siStencilOpSeparate:
             begin
-              glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, StencilOpIncrWrap);
-              glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, StencilOpDecrWrap);
+              glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP,
+                ShadowVolumesHelper.StencilOpIncrWrap);
+              glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP,
+                ShadowVolumesHelper.StencilOpDecrWrap);
               RenderAllShadowQuads;
             end;
           siGLCullFace2Passes, siEngineCullFace2Passes:
             begin
               { For each fragment that passes depth-test, *increase* it's stencil
                 value by 1. Render front facing shadow quads. }
-              glStencilOp(GL_KEEP, GL_KEEP, StencilOpIncrWrap);
+              glStencilOp(GL_KEEP, GL_KEEP, ShadowVolumesHelper.StencilOpIncrWrap);
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glEnable(GL_CULL_FACE);
@@ -270,7 +272,7 @@ procedure Draw(glwin: TGLWindow);
 
               { For each fragment that passes depth-test, *decrease* it's stencil
                 value by 1. Render back facing shadow quads. }
-              glStencilOp(GL_KEEP, GL_KEEP, StencilOpDecrWrap);
+              glStencilOp(GL_KEEP, GL_KEEP, ShadowVolumesHelper.StencilOpDecrWrap);
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glCullFace(GL_FRONT);
@@ -290,9 +292,20 @@ procedure Draw(glwin: TGLWindow);
       glSetDepthAndColorWriteable(GL_TRUE);
 
       { Now render everything once again, with lights turned on.
-        But render only things not in shadow. }
-      glClear(GL_DEPTH_BUFFER_BIT);
-      glPushAttrib(GL_LIGHTING_BIT);
+        But render only things not in shadow.
+
+        What should I do with depth buffer now ? Currently it contains the
+        current scene. So I should either clear it with
+        glClear(GL_DEPTH_BUFFER_BIT), or make sure that
+        DepthFunc accepts new pixel when depth values are equal.
+        glClear(GL_DEPTH_BUFFER_BIT) approach has one real problem: after such
+        rendering, depth buffer values will be filled only on the non-shadowed
+        parts, which will hurt us if we will try to render something else
+        on top of the scene --- like silhouette edges. }
+      glPushAttrib(
+          GL_DEPTH_BUFFER_BIT { for glDepthFunc } or
+          GL_LIGHTING_BIT { for LightSet.RenderLights });
+        glDepthFunc(GL_LEQUAL);
         LightSet.RenderLights;
         { setup stencil : don't modify stencil, stencil test passes only for =0 }
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -303,11 +316,18 @@ procedure Draw(glwin: TGLWindow);
     glDisable(GL_STENCIL_TEST);
   end;
 
+var
+  ShadowMaybeVisible: boolean;
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
-  if ShadowsImplementation = siNone then
+  ShadowVolumesHelper.FrustumCullingInit(Glw.NavWalker.Frustum, MainLightPosition);
+
+  ShadowMaybeVisible := ShadowVolumesHelper.ShadowMaybeVisible(
+    BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));;
+
+  if (ShadowsImplementation = siNone) or (not ShadowMaybeVisible) then
   begin
     { For only ShadowsImplementation = siNone, we could just render
       LightSet, no need to push/pop GL_LIGHTING_BIT. But if user will
@@ -334,14 +354,40 @@ begin
 
   if IsRenderSilhouetteEdges then
     DoRenderSilhouetteEdges;
+
+  if IsRenderStatus then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
+      glColorv(Yellow3Single);
+      Font.Projection2DPrintStrings(5, 5, Format(
+        'FPS : %f (real : %f)' +nl+
+        'Shadow maybe visible: %s' + nl+
+        'INCR/DECR_WRAP available: %s',
+        [ Glw.FpsFrameTime, Glw.FpsRealTime,
+          BoolToStr[ShadowMaybeVisible],
+          BoolToStr[ShadowVolumesHelper.WrapAvailable]]));
+    glPopAttrib;
+  end;
 end;
 
 procedure ResizeGL(glwin: TGLWindow);
+
+  procedure UpdateNavigatorProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+  end;
+
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
   ProjectionGLPerspective(30, glwin.Width/glwin.Height,
     Box3dAvgSize(SceneBoundingBox)*0.05,
     Box3dAvgSize(SceneBoundingBox)*20.0);
+  UpdateNavigatorProjectionMatrix;
 end;
 
 procedure InitGL(glwin: TGLWindow);
@@ -353,6 +399,11 @@ begin
   { Tests:
   glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.6, 0.6, 0.6, 1)); }
 
+  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+
+  ShadowVolumesHelper := TShadowVolumesHelper.Create;
+  ShadowVolumesHelper.InitGL;
+
   Scene.PrepareRender([tgAll], [prBoundingBox]);
   ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowQuads);
 end;
@@ -362,6 +413,10 @@ begin
   Scene.CloseGL;
   ShadowCaster.CloseGL;
   LightSet.CloseGL;
+
+  FreeAndNil(Font);
+
+  FreeAndNil(ShadowVolumesHelper);
 end;
 
 var
@@ -434,6 +489,11 @@ begin
         IsRenderSilhouetteEdges := not IsRenderSilhouetteEdges;
         Glwin.PostRedisplay;
       end;
+    50:
+      begin
+        IsRenderStatus := not IsRenderStatus;
+        Glwin.PostRedisplay;
+      end;
   end;
 end;
 
@@ -468,14 +528,16 @@ begin
       'requires OpenGL >= 2.0)', siStencilOpSeparate);
     Result.Append(M);
   M := TMenu.Create('_View');
-    M.Append(TMenuItemChecked.Create('_Show shadows quads', 30,
+    M.Append(TMenuItemChecked.Create('Show shadows _quads', 30,
       ShowShadowQuads, true));
-    M.Append(TMenuItemChecked.Create('_Show silhouette edges (only for manifold scenes)', 40,
+    M.Append(TMenuItemChecked.Create('Show silhouette _edges (only for manifold scenes)', 40,
       IsRenderSilhouetteEdges, true));
+    M.Append(TMenuItemChecked.Create('Show status text', 50,
+      IsRenderStatus, true));
     Result.Append(M);
   M := TMenu.Create('_Console');
-    M.Append(TMenuItem.Create('_Print current camera', 10));
-    M.Append(TMenuItem.Create('_Print shadow caster transformation', 20));
+    M.Append(TMenuItem.Create('Print current _camera', 10));
+    M.Append(TMenuItem.Create('Print shadow caster _transformation', 20));
     Result.Append(M);
 end;
 
