@@ -219,14 +219,18 @@ type
           okienka np. nigdy sie nie dowiedza ze user puscil klawisze myszki
           w czasie gdy bylismy pomiedzy ModeGLEnter..Exit.
 
-          Often it may be useful to set FakeMouseDown to @false.
+          FakeMouseDown turned out to be usually more troublesome than
+          usefull --- too often some unwanted MouseDown
+          event was caused by this mechanism.
           That's because if original callbacks do something in MouseDown (like
           e.g. activate some click) then you don't want to generate
           fake MouseDown by TGLMode.Destroy.
+          So the default value of FakeMouseDown is @false.
           But this means that original callbacks have to be careful
           and *never assume* that when some button is pressed
           (because it's included in MousePressed, or has MouseUp generated for it)
-          then for sure there occured some MouseDown for it.)
+          then for sure there occured some MouseDown for it.
+        )
 
         @item(
           Jezeli rozmiary okienka (Width, Height) ulegly zmianie pomiedzy Enter
@@ -256,7 +260,7 @@ type
     destructor Destroy; override;
 
     property FakeMouseDown: boolean
-      read FFakeMouseDown write FFakeMouseDown default true;
+      read FFakeMouseDown write FFakeMouseDown default false;
 
     property RestoreProjectionMatrix: boolean
       read FRestoreProjectionMatrix write FRestoreProjectionMatrix default true;
@@ -433,7 +437,7 @@ begin
 
  glwin := AGLWindow;
 
- FFakeMouseDown := true;
+ FFakeMouseDown := false;
  FRestoreProjectionMatrix := true;
  FRestoreModelviewMatrix := true;
  FRestoreTextureMatrix := true;
