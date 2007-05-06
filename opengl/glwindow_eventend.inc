@@ -1,5 +1,6 @@
 {$ifdef GLWINDOW_LOGFILE}
- LogWrite('TGLWindow event '+eventname+' end');
+ LogWrite('TGLWindow event '+eventname+' end'
+   {$ifdef BONUS_LOG_STRING} + ' ' + BONUS_LOG_STRING {$endif});
 except
  on E:Exception do
  begin
