@@ -116,4 +116,6 @@
   {$define EXTENDED_EQUALS_DOUBLE}
 {$endif} {$endif}
 
+{$ifdef FPC} {$define SUPPORTS_INLINE} {$endif}
+
 {$endif not KambiConf_ALREADY_INCLUDED}

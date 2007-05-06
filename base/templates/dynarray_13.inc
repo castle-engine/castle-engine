@@ -121,7 +121,8 @@
     {$endif}
     function GetPointers(ItemNum: integer): PDynArrayItem_13;
     function GetItems:
-      {$ifdef FPC_OBJFPC} PDynArrayItem_13 {$else} PInfiniteArray_13 {$endif}; inline;
+      {$ifdef FPC_OBJFPC} PDynArrayItem_13 {$else} PInfiniteArray_13 {$endif};
+      {$ifdef SUPPORTS_INLINE} inline; {$endif}
     function GetItemsArray: PInfiniteArray_13;
   private
     { Helpers to implement Sort() }
