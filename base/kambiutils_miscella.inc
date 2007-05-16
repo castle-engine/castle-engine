@@ -126,12 +126,6 @@ function Sqrt(const x: Extended): Extended;
 {$endif}
 {$endif}
 
-{$ifdef FPC}
-{$ifdef WIN32}
-function Round(d: Extended): Longint;
-{$endif}
-{$endif}
-
 { arrays searching ---------------------------------------- }
 
 {podstawowe zastosowanie ArrayPos jest do zapisywania instrukcji
@@ -249,12 +243,6 @@ begin
   Result := System.Sqrt(x) else
   raise EInvalidOp.Create('Sqrt argument <0');
 end;
-{$endif}
-{$endif}
-
-{$ifdef FPC}
-{$ifdef WIN32}
-  {$I trivial_round.inc}
 {$endif}
 {$endif}
 
