@@ -1645,7 +1645,11 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   end;
 
 const
-  TextureRepeatToGL: array[boolean]of TGLenum = (GL_CLAMP, GL_REPEAT);
+  TextureRepeatToGL: array[boolean]of TGLenum = (
+    GL_CLAMP {TODO: change this to CLAMP_TO_EDGE ? GL_CLAMP
+      is useless if VRML doesn't allow to control texture border color,
+      and CLAMP_TO_EDGE is the more natural clamping method anyway... 
+    }, GL_REPEAT);
 var
   TextureReference: TTextureReference;
   TextureFileName: string;
