@@ -175,12 +175,16 @@ type
       and do your work after calling "inherited". }
     property ShapeStates: TVRMLShapeStatesList read FShapeStates;
 
-    { specyfikacja co robia BoundingBox, VerticesCount i TrianglesCount -
-      patrz VRMLNodes.TNodeGenaralShape, tylko tutaj sumujemy je
-      dla wszystkich ShapeStates }
+    { Calculate bounding box, number of triangls and vertexes of all
+      shapa states. For detailed specification of what these functions
+      do (and what does OverTriangulate mean) see appropriate
+      VRMLNodes.TNodeGenaralShape methods. Here, we just sum results
+      of TNodeGenaralShape methods for all shapres.
+      @groupBegin }
     function BoundingBox: TBox3d;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
+    { @groupEnd }
 
     { ta klasa zapamietuje sobie pewne przeliczone rzeczy w swoich polach,
       w zwiazku z czym musi byc powiadamiana gdy dokonasz jakichs zmian w
