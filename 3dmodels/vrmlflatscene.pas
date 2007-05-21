@@ -179,7 +179,7 @@ type
       shapa states. For detailed specification of what these functions
       do (and what does OverTriangulate mean) see appropriate
       VRMLNodes.TNodeGenaralShape methods. Here, we just sum results
-      of TNodeGenaralShape methods for all shapres.
+      of TNodeGenaralShape methods for all shapes.
       @groupBegin }
     function BoundingBox: TBox3d;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
