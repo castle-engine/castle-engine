@@ -172,6 +172,7 @@ EXAMPLES_BASE_NAMES := \
   base/examples/demo_textreader \
   base/examples/kambi_calc \
   images/examples/image_convert \
+  images/tools/imageToPas \
   opengl/examples/glWinEvents \
   opengl/examples/menu_test_alternative \
   opengl/examples/menuTest \
