@@ -3,13 +3,13 @@
   This outputs on stdout Pascal unit that defines single object
   instance (created / freed in unit's initialization / finalization)
   of some descendant of TImage (i.e. TRGBImage or TAlphaImage or TRGBEImage,
-  whatever will be loaded by LoadImage from given filename) 
+  whatever will be loaded by LoadImage from given filename)
   that contains size and contents of given image.
 
   Unless you specified --no-show-progress, it will display
   progress of operation on stderr (this is useful in case of very large
   image files).
-  
+
   For an example output of this program see glViewImage sources,
   unit ImageInvalid.pas.
 }
@@ -29,18 +29,18 @@ var Image: TImage;
 begin
  {parse params}
  i := 0;
- while i <= Cardinal(ParCount) do
-  if ParStr(i) = '--no-show-progress' then
-   begin ShowProgress := false; ParDelete(i) end else
+ while i <= Cardinal(Parameters.High) do
+  if Parameters[i] = '--no-show-progress' then
+   begin ShowProgress := false; Parameters.Delete(i, 1) end else
    Inc(i);
 
- ParCountEqual(1);
- ImageFilename := ParStr(1);
+ Parameters.CheckHigh(1);
+ ImageFilename := Parameters[1];
 
  { Init other Image* variables }
  NameImage := ExtractOnlyFileName(ImageFileName);
  NameImage[1] := UpCase(NameImage[1]);
- Image := LoadImage(ImageFileName, AllImageClasses, []);
+ Image := LoadImage(ImageFileName, [], []);
 
  { Init progres }
  Progress.UserInterface := ProgressConsoleInterface;
