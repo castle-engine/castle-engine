@@ -117,13 +117,31 @@ Note that libpng requires also zlib installed.
 KambiZlib unit (required by KambiZStream unit and used by
 VRMLNodes) requires zlib installed.
 
-For Windows, the "reference" place from where you can get libpng and zlib DLLs
-is [http://gnuwin32.sourceforge.net/].
+Some additional libraries are required for sound playing: OggVorbis stuff
+requires @code(@noAutoLink(vorbisfile)) library, OpenAL stuff naturally requires
+OpenAL library. But all sound units are implemented in such way that
+even if the user doesn't have OpenAL/@noAutoLink(vorbisfile) installed,
+programs using these units can still run fine (e.g. units will not raise
+any exception at unit initialization just because some library cannot
+be loaded; instead, appropriate boolean variable will be set to @false,
+and higher-level code can always check this).
+
+For Windows, you can get some of the required DLLs easily
+from my site, [http://www.camelot.homedns.org/~michalis/miscella/win32_dlls.zip].
+Inside this archive there are also pointers where the "upstream" versions
+of these DLLs can be found on WWW.
+
+On Mac OS X there are some additional requirements, since Mac OS X
+port is done much like any other Unix right now. So some units require
+some typical Unix libraries, like X11, GTK, GTKGlExt etc. See
+[http://www.camelot.homedns.org/~michalis/macosx_requirements.php]
+for details.
 
 @section(2 SectionOsArchCompat OS / architectures compatibility)
 
 My units don't really depend on any specific UNIX flawour
-(like Linux, FreeBSD). This means that you should be able to compile
+(like Linux, FreeBSD, Darwin/Mac OS X).
+This means that you should be able to compile
 them under all UNIXes supported by FPC >= 2.0.x.
 Windows is also OK.
 
