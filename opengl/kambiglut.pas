@@ -18,13 +18,14 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Translation of glut.h header (vesrion 3.7 beta) to Pascal.)
+{ @abstract(Translation of glut.h header (version 3.7 beta) to Pascal.)
 
-  Compatible with Delphi, Kylix, FreePascal on Win32 and
-  FreePascal on Linux.
+  Working with FPC (and possibly Delphi, Kylix, but these are untested
+  since a long time) on all platforms (that I tested --- right now this
+  means Linux, FreeBSD, Mac OS X, Windows).
 
   Stosowalem dyrektywy $IF ale przestalem - teraz uzywam tylko
-  $IFDEF, wiec jest kompatybilnosc z FPC (i przy okazji ze
+  $IFDEF, wiec jest kompatybilnosc z FPC 1.0.x (i przy okazji ze
   starszymi Delphi).
 
   Dlaczego procedury / funkcje gluta sa ladowane w initialization
@@ -83,7 +84,7 @@ uses
 const
   GlutDLL =
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libglut.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN} 'libglut.dylib'
       {$else} 'libglut.so'
       {$endif}
     {$endif}
