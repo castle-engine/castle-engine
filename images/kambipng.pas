@@ -945,33 +945,32 @@ end;
 
 initialization
   {$ifdef PNG_GNUWIN32} { libpng distributed by gnuwin32.sourceforge.net }
-  PngLibrary := TDynLib.Load('libpng12.dll');
+  PngLibrary := TDynLib.Load('libpng12.dll', false);
   { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
   if PngLibrary = nil then
-    PngLibrary := TDynLib.Load('libpng13.dll');
+    PngLibrary := TDynLib.Load('libpng13.dll', false);
   {$endif}
 
   {$ifdef PNG_VB} { libpng_vb version }
-  PngLibrary := TDynLib.Load('libpng_vb.dll');
+  PngLibrary := TDynLib.Load('libpng_vb.dll', false);
   {$endif}
 
   {$ifdef PNG_CYGWIN} { cygwin dll version }
-  PngLibrary := TDynLib.Load('cygpng2.dll');
+  PngLibrary := TDynLib.Load('cygpng2.dll', false);
   {$endif}
 
   {$ifdef UNIX}
 
   {$ifdef DARWIN}
-  { TODO--confirm this works under Darwin }
-  PngLibrary := TDynLib.Load('libpng.dylib');
+  PngLibrary := TDynLib.Load('libpng.dylib', false);
   {$else DARWIN}
-  PngLibrary := TDynLib.Load('libpng12.so.0');
+  PngLibrary := TDynLib.Load('libpng12.so.0', false);
   { Alternative libpng library name for Unix. Use the one that comes usually
     from package like libpng-dev, this allows the system admin to
     eventually adjust the used libpng using symlink (in case the
     exact libpng12.so.0 doesn't exist). }
   if PngLibrary = nil then
-    PngLibrary := TDynLib.Load('libpng.so');
+    PngLibrary := TDynLib.Load('libpng.so', false);
   {$endif DARWIN}
 
   {$endif UNIX}

@@ -1632,14 +1632,17 @@ type
 { below are some functions that can be used as above
   TColorModulatorSingleFunc or TColorModulatorByteFunc values. }
 
+function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
+function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
+
 { This is the same as BWColor }
 function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
 
 { This the same as BWColor and then invert colors
   (i.e., Red := 1.0-Red, Green := 1.0-Green etc.) }
-function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
-function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
+function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
+function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
 
 {$ifdef FPC}
 
@@ -2808,24 +2811,38 @@ end;
 
 { color changing ------------------------------------------------------------ }
 
-function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
-begin result := BWColor(Color) end;
-
-function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
-begin result := BWColor(Color) end;
-
 function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
 begin
- result[0] := 1-BWColorValue(Color);
- result[1] := result[0];
- result[2] := result[0];
+  Result[0] := 1 - Color[0];
+  Result[1] := 1 - Color[1];
+  Result[2] := 1 - Color[2];
 end;
 
 function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
 begin
- result[0] := 255-BWColorValue(Color);
- result[1] := result[0];
- result[2] := result[0];
+  Result[0] := 255 - Color[0];
+  Result[1] := 255 - Color[1];
+  Result[2] := 255 - Color[2];
+end;
+
+function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
+begin Result := BWColor(Color) end;
+
+function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
+begin Result := BWColor(Color) end;
+
+function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
+begin
+ Result[0] := 1-BWColorValue(Color);
+ Result[1] := Result[0];
+ Result[2] := Result[0];
+end;
+
+function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
+begin
+ Result[0] := 255-BWColorValue(Color);
+ Result[1] := Result[0];
+ Result[2] := Result[0];
 end;
 
 {$ifdef FPC}
@@ -2835,8 +2852,8 @@ var i: integer;
 begin
  for i := 0 to 2 do
   if i = COL_MOD_CONVERT_NUM then
-   result[i] := BWColorValue(Color) else
-   result[i] := 0;
+   Result[i] := BWColorValue(Color) else
+   Result[i] := 0;
 end;}
 
 {$define COL_MOD_CONVERT_NUM := 0}
@@ -2856,8 +2873,8 @@ var i: integer;
 begin
  for i := 0 to 2 do
   if i = COL_MOD_STRIP_NUM then
-   result[i] := Color[i] else
-   result[i] := 0;
+   Result[i] := Color[i] else
+   Result[i] := 0;
 end;}
 
 {$define COL_MOD_STRIP_NUM := 0}

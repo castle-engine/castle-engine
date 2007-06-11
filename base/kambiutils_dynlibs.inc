@@ -1,5 +1,5 @@
 {
-  Copyright 2003,2004 Michalis Kamburelis.
+  Copyright 2003,2004,2007 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -34,9 +34,9 @@
 
   Typical usage:
 
-  var ALLibrary:TDynLib = nil;
+  var ALLibrary: TDynLib = nil;
   initialization
-   ALLibrary:=TDynLib.Load('libopenal.so');
+   ALLibrary := TDynLib.Load('libopenal.so');
    ... some calls to ALLibrary.Symbol() ...
   finalization
    FreeAndNil(ALLibrary);
@@ -69,18 +69,18 @@ type
   TDynLib = class
   private
     { klasa TDynLib zawsze operuje na FHandle ktore jest valid. }
-    FHandle:TDynLibHandle;
-    FName:string;
+    FHandle: TDynLibHandle;
+    FName: string;
   public
     { nazwa biblioteki, czyli po prostu nazwa odpowiedniego pliku.
       Dokladnie co to znaczy - patrz semantyka SysUtils.LoadLibrary
       (DynLibs for FPC) na danej platformie. }
-    property Name:string read FName;
+    property Name: string read FName;
     { Zeby uzyc konstruktora musisz posiadac juz Handle ktore jest valid
       (konstruktor rzuci wyjatek jesli uzyjesz AHandle invalid).
       Zazwyczaj wiec nie bedziesz uzywal konstruktora zeby stworzyc
       ten obiekt ale uzyjesz Load. }
-    constructor Create(const AName:string; AHandle:TDynLibHandle);
+    constructor Create(const AName: string; AHandle: TDynLibHandle);
     destructor Destroy; override;
     { Zainicjuje Handle dll'a o nazwie name. Jesli nie ma takiego dll'a
       w systemie to:
@@ -91,11 +91,10 @@ type
 
       Note that the default situation prevents from unintentionally ignoring
       an error and I consider it an advantage. }
-    class function Load(const AName:string; CheckResult:boolean):TDynLib; overload;
-    class function Load(const AName:string {CheckResult=true}):TDynLib; overload;
+    class function Load(const AName: string; CheckResult: boolean = true): TDynLib;
 
   public
-    SymbolErrorBehaviour:TDynLibSymbolErrorBehaviour; { = seRaise }
+    SymbolErrorBehaviour: TDynLibSymbolErrorBehaviour; { = seRaise }
     { Symbol zwraca adres symbolu o danej nazwie w bibliotece dynamicznej.
       Jezeli nie istnieje taki symbol to w zaleznosci od
       SymbolErrorBehaviour :
@@ -114,7 +113,7 @@ type
       errors, like EAccessViolation. Often these errors are (practically)
       unrecoverable.
     }
-    function Symbol(ProcName: PChar):Pointer;
+    function Symbol(ProcName: PChar): Pointer;
   end;
 
 {$endif read_interface}
@@ -123,14 +122,14 @@ type
 
 { TDynLib ----------------------------------------------------------------- }
 
-constructor TDynLib.Create(const AName:string; AHandle:TDynLibHandle);
+constructor TDynLib.Create(const AName: string; AHandle: TDynLibHandle);
 begin
  inherited Create;
- FName:=AName;
- FHandle:=AHandle;
+ FName := AName;
+ FHandle := AHandle;
  Check(AHandle <> InvalidDynLibHandle,
    'TDynLib can not be created with invalid DynLibHandle');
- SymbolErrorBehaviour:=seRaise;
+ SymbolErrorBehaviour := seRaise;
 end;
 
 destructor TDynLib.Destroy;
@@ -144,9 +143,9 @@ begin
  inherited;
 end;
 
-class function TDynLib.Load(const AName:string; CheckResult:boolean):TDynLib;
+class function TDynLib.Load(const AName: string; CheckResult: boolean): TDynLib;
 
-  function LoadLibraryGlobally(AName:PChar):TDynLibHandle;
+  function LoadLibraryGlobally(AName: PChar): TDynLibHandle;
   { TODO: under UNIX (Linux, more specifically, since I don't use this code
     with any other UNIX yet) I must load with RTLD_GLOBAL, else GLU crashes
     (it seems GLU requires that someone else loads GL symbols for it ?
@@ -158,35 +157,28 @@ class function TDynLib.Load(const AName:string; CheckResult:boolean):TDynLib;
      {$endif}
   end;
 
-var Handle:TDynLibHandle;
+var Handle: TDynLibHandle;
 begin
- Handle:=LoadLibraryGlobally(PChar(AName));
+ Handle := LoadLibraryGlobally(PChar(AName));
  if Handle = InvalidDynLibHandle then
  begin
   if CheckResult then
    raise EDynLibError.Create('Can''t load library "' +AName+ '"'
-     {$ifdef UNIX}
-       {$ifdef USE_LIBC} + ': ' + dlerror {$else} {TODO} {$endif}
-     {$endif}) else
-   result:=nil;
+     {$ifdef UNIX} + ': ' + dlerror {$endif}) else
+   result := nil;
  end else
-  result:=Self.Create(AName, Handle);
+  result := Self.Create(AName, Handle);
 end;
 
-class function TDynLib.Load(const AName:string {CheckResult=true}):TDynLib;
-begin
- result:=Load(AName, true);
-end;
+function TDynLib.Symbol(ProcName: PChar): Pointer;
 
-function TDynLib.Symbol(ProcName: PChar):Pointer;
-
-  function ErrStr:string;
-  begin result:='Symbol "'+ProcName+'" not found in library "'+Name+'"' end;
+  function ErrStr: string;
+  begin result := 'Symbol "'+ProcName+'" not found in library "'+Name+'"' end;
 
 begin
  result:= {$ifdef FPC} GetProcedureAddress {$else} GetProcAddress {$endif}
    (FHandle, ProcName);
- if result=nil then
+ if result = nil then
   case SymbolErrorBehaviour of
    seRaise: raise EDynLibError.Create(ErrStr);
    seReturnNil: ;
