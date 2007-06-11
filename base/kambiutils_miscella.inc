@@ -378,7 +378,7 @@ function SCamelotProgramHelpSuffix(const DisplayProgramName: string;
 begin
  Result :=
    DisplayProgramName + ' version ' + Version + '.' +nl+
-   'Author: Michalis Kamburelis, aka Kambi <michalis@camelot.homedns.org>' +nl+
+   'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
    'See http://www.camelot.homedns.org/~michalis/ for latest versions' +
    Iff(WrapLines, nl + ' ', '') +
    ' of this program, sources, documentation etc.' +nl+
