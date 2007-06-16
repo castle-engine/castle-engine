@@ -58,6 +58,16 @@ private
     Returns nil if not found. }
   function ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
   procedure SetXDisplayName(const Value: string);
+
+  { Check XDisplay.
+    And since we know now that XDisplay is OK, we initialize some
+    things: XScreen, check for glx extension, get WM_DELETE_WINDOW.
+    These things actually have be done only once, after XDisplay selection.
+    But note that this can't be called in SetXDisplayName automatically.
+
+    So you should call this when you know that last SetXDisplayName was
+    called --- good choice is before initializing your window. }
+  procedure InitializeXDisplay;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
     glwm nie jest przygotowany na zarzadzanie oknami na wielu displayach i
@@ -527,14 +537,18 @@ begin
  FXDisplayName := Xlib.XDisplayName(PCharOrNil(Value));
 
  FXDisplay := XOpenDisplay(PCharOrNil(Value));
- if XDisplay = nil then
-   raise ECheckFailed.Create('XOpenDisplay failed - could not open display ' +
-     XDisplayName);
- FXScreen := XDefaultScreen(XDisplay);
 
- Check( glXQueryExtension(XDisplay, nil, nil),
-   'X server has no glX extension (needed to run OpenGL-based programs)');
- wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
+ { Tests: Writeln('Setting XDisplayName to "', Value, '" success: ', FXDisplay <> nil); }
+
+ { I used to check this, if XDisplay = nil then raise ECheckFailed....;
+   but actually that's bad: at the beginning we call SetXDisplayName('')
+   to set to default display, and that doesn't have to succeed since
+   a default display may
+   not be available (e.g. you run from a Linux console, or on Mac OS X
+   not from X11 xterm) --- then you have to specify display name, the default
+   display name '' will not be OK.
+
+   So the check for XDisplay = nil will be done at window initialization. }
 end;
 
 function TGLWindowsManager.KeySymToKey(ksym: TKeySym): TKey;
@@ -547,6 +561,20 @@ begin
    $0000: exit(keySym_To_TKey0[ksym and $FF]);
    $FF00: exit(keySym_To_TKeyFF[ksym and $FF]);
   end;
+end;
+
+procedure TGLWindowsManager.InitializeXDisplay;
+begin
+  if XDisplay = nil then
+    raise ECheckFailed.Create('XOpenDisplay could not open display "' +
+      XDisplayName + '"');
+
+  FXScreen := XDefaultScreen(XDisplay);
+
+  Check( glXQueryExtension(XDisplay, nil, nil),
+    'X server has no glX extension (needed to run OpenGL-based programs)');
+
+  wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;

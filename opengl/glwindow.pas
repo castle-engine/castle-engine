@@ -695,7 +695,8 @@ const
   mbRight = MatrixNavigation.mbRight;
 
 const
-  POS_SCREEN_CENTER = -1000000;
+  GLWindowPositionCenter = -1000000;
+  GLWindowDefaultSize = -1000000;
 
 type
   TGLWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
@@ -1234,13 +1235,18 @@ type
       glViewport jest ustawiony na wymiary okienka moga byc spokojne : wprawdzie
       rzeczywiste okienko moze nie miec rozmiarow Width/Height, poczatkowe
       glViewport bedzie na pewno zgodne z NASZYMI Width/Height.
+
+      GLWindowDefaultSize will be treated specifically:
+      at Init, will be replaced with some comfortable size slightly
+      smaller than screen size.
     }
-    property Width: integer read FWidth write FWidth; { = ScreenWidth * 4/5 }
-    property Height: integer read FHeight write FHeight; { = ScreenHeight * 4/5 }
-    { jezeli Left / Top rowne sa POS_SCREEN_CENTER w momencie wywolania Init
+    property Width: integer read FWidth write FWidth default GLWindowDefaultSize;
+    property Height: integer read FHeight write FHeight default GLWindowDefaultSize;
+
+    { jezeli Left / Top rowne sa GLWindowPositionCenter w momencie wywolania Init
       to zostana zainicjowane tak zeby okienko bylo na srodku ekranu. }
-    property Left: integer read {$ifdef GLWINDOW_GLUT}GetLeft{$else}FLeft{$endif} write FLeft; { = POS_SCREEN_CENTER }
-    property Top :integer read {$ifdef GLWINDOW_GLUT}GetTop{$else}FTop{$endif} write FTop; { = POS_SCREEN_CENTER }
+    property Left: integer read {$ifdef GLWINDOW_GLUT}GetLeft{$else}FLeft{$endif} write FLeft; { = GLWindowPositionCenter }
+    property Top :integer read {$ifdef GLWINDOW_GLUT}GetTop{$else}FTop{$endif} write FTop; { = GLWindowPositionCenter }
     property FullScreen: boolean read FFullScreen write FFullScreen; { = false }
     { DoubleBuffer to swapBuffers bedzie robione automatycznie po kazdym repaincie.
       jesli false - bedzie robione glFlush. }
@@ -2780,26 +2786,16 @@ end;
 { ----------------------------------------------------------------------------
   niezalezne od GLWINDOW_xxx rzeczy TGLWindow }
 
-const
-  DefaultGLWinLeft = POS_SCREEN_CENTER;
-  DefaultGLWinTop = POS_SCREEN_CENTER;
-
-function DefaultGLWinWidth: integer;
-begin result := glwm.ScreenWidth * 4 div 5 end;
-
-function DefaultGLWinHeight: integer;
-begin result := glwm.ScreenHeight * 4 div 5 end;
-
 constructor TGLWindow.Create;
 begin
  inherited;
  OnInitList := TDynGLWindowFuncArray.Create;
  OnCloseList := TDynGLWindowFuncArray.Create;
  FClosed := true;
- FWidth := DefaultGLWinWidth;
- FHeight := DefaultGLWinHeight;
- FLeft  := DefaultGLWinLeft;
- FTop   := DefaultGLWinTop;
+ FWidth  := GLWindowDefaultSize;
+ FHeight := GLWindowDefaultSize;
+ FLeft  := GLWindowPositionCenter;
+ FTop   := GLWindowPositionCenter;
  FDoubleBuffer := true;
  FCaption := ProgramName;
  FFpsSecondsToAutoReset := 6;
@@ -2831,6 +2827,13 @@ begin
  if not FClosed then Exit;
 
  try
+   {$ifdef GLWINDOW_XLIB}
+   { I have to call this to initialize XScreen which is needed to be able to get
+     Glwm.ScreenWidth/Height which are needed below. So I can't wait with
+     this until InitImplDepend. }
+   Glwm.InitializeXDisplay;
+   {$endif}
+
   { Adjust Left/Top/Width/Height/FullScreen as needed.
     Note: calculations below try to correct window geometry but they
     can fail to foresee some things. In particular, they do not take
@@ -2856,10 +2859,14 @@ begin
    fheight := glwm.ScreenHeight;
   end else
   begin
-   if left = POS_SCREEN_CENTER then fleft:=(glwm.ScreenWidth-width) div 2;
-   if top = POS_SCREEN_CENTER then ftop:=(glwm.ScreenHeight-height) div 2;
+   if Width  = GLWindowDefaultSize then FWidth  := glwm.ScreenWidth  * 4 div 5;
+   if Height = GLWindowDefaultSize then FHeight := glwm.ScreenHeight * 4 div 5;
+
    Clamp(fwidth, minWidth, maxWidth);
    Clamp(fheight, minHeight, maxHeight);
+
+   if left = GLWindowPositionCenter then fleft := (glwm.ScreenWidth-width) div 2;
+   if top  = GLWindowPositionCenter then ftop := (glwm.ScreenHeight-height) div 2;
   end;
 
   { reset some window state variables }
@@ -3963,10 +3970,10 @@ begin
   { set initial window rect (wLeft/top/width/height) if fullscreen = true }
   if FFullScreen then
   begin
-   wWidth := DefaultGLWinWidth;
-   wHeight := DefaultGLWinHeight;
-   wLeft  := DefaultGLWinLeft;
-   wTop   := DefaultGLWinTop;
+   wWidth  := GLWindowDefaultSize;
+   wHeight := GLWindowDefaultSize;
+   wLeft   := GLWindowPositionCenter;
+   wTop    := GLWindowPositionCenter;
   end;
  end;
 
