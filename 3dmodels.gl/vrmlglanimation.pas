@@ -544,9 +544,12 @@ procedure TVRMLGLAnimation.Load(
       if Model1.Fields[I] is TSFFloat    then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFMatrix   then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFRotation then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFTime     then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFVec2f    then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFVec3f    then begin { no need to check anything } end else
       if Model1.Fields[I] is TMFColor    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFTime     then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFRotation then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFVec2f    then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFVec3f    then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFFloat    then CheckMFStructuralEquality else
@@ -694,9 +697,12 @@ procedure TVRMLGLAnimation.Load(
       if Model1.Fields[I] is TSFFloat    then CheckEqualitySetResult else
       if Model1.Fields[I] is TSFMatrix   then CheckEqualitySetResult else
       if Model1.Fields[I] is TSFRotation then CheckEqualitySetResult else
+      if Model1.Fields[I] is TSFTime     then CheckEqualitySetResult else
       if Model1.Fields[I] is TSFVec2f    then CheckEqualitySetResult else
       if Model1.Fields[I] is TSFVec3f    then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFColor    then CheckEqualitySetResult else
+      if Model1.Fields[I] is TMFTime     then CheckEqualitySetResult else
+      if Model1.Fields[I] is TMFRotation then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFVec2f    then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFVec3f    then CheckEqualitySetResult else
       if Model1.Fields[I] is TMFFloat    then CheckEqualitySetResult else
@@ -768,9 +774,12 @@ procedure TVRMLGLAnimation.Load(
         if Model1.Fields[I] is TSFFloat    then (Result.Fields[I] as TSFFloat   ).AssignLerp(A, TSFFloat   (Model1.Fields[I]), TSFFloat   (Model2.Fields[I])) else
         if Model1.Fields[I] is TSFMatrix   then (Result.Fields[I] as TSFMatrix  ).AssignLerp(A, TSFMatrix  (Model1.Fields[I]), TSFMatrix  (Model2.Fields[I])) else
         if Model1.Fields[I] is TSFRotation then (Result.Fields[I] as TSFRotation).AssignLerp(A, TSFRotation(Model1.Fields[I]), TSFRotation(Model2.Fields[I])) else
+        if Model1.Fields[I] is TSFTime     then (Result.Fields[I] as TSFTime    ).AssignLerp(A, TSFTime    (Model1.Fields[I]), TSFTime    (Model2.Fields[I])) else
         if Model1.Fields[I] is TSFVec2f    then (Result.Fields[I] as TSFVec2f   ).AssignLerp(A, TSFVec2f   (Model1.Fields[I]), TSFVec2f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TSFVec3f    then (Result.Fields[I] as TSFVec3f   ).AssignLerp(A, TSFVec3f   (Model1.Fields[I]), TSFVec3f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TMFColor    then (Result.Fields[I] as TMFColor   ).AssignLerp(A, TMFColor   (Model1.Fields[I]), TMFColor   (Model2.Fields[I])) else
+        if Model1.Fields[I] is TMFTime     then (Result.Fields[I] as TMFTime    ).AssignLerp(A, TMFTime    (Model1.Fields[I]), TMFTime    (Model2.Fields[I])) else
+        if Model1.Fields[I] is TMFRotation then (Result.Fields[I] as TMFRotation).AssignLerp(A, TMFRotation(Model1.Fields[I]), TMFRotation(Model2.Fields[I])) else
         if Model1.Fields[I] is TMFVec2f    then (Result.Fields[I] as TMFVec2f   ).AssignLerp(A, TMFVec2f   (Model1.Fields[I]), TMFVec2f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TMFVec3f    then (Result.Fields[I] as TMFVec3f   ).AssignLerp(A, TMFVec3f   (Model1.Fields[I]), TMFVec3f   (Model2.Fields[I])) else
         if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else

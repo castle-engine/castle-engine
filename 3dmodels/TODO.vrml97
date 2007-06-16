@@ -24,12 +24,6 @@ Post view3dscene 2.0 things:
 
     Also fix appropriate section in vrml_engine_doc.
 
-  - Some VRML fields nodes may have to be added to list of
-    interpolated/checked for equality nodes inside
-    ./vrmlglanimation.pas
-
-    TSFNode and TMFNode done on 2007-02-21, check is something more needed.
-
   - "The Castle":
     vrmlscenewaypoints.pas:
       now uses ParentNodes, should also include ParentFields ?
@@ -45,8 +39,6 @@ Post view3dscene 2.0 things:
 
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?
-
-- Viewpoint: HomeCameraUp can be different than starting CameraUp for Viewpoint
 
 - kambi_vrml_examples: do VRML 2.0 counterpart of all useful VRML 1.0 tests.
   Remaining sensible things to translate are:
