@@ -631,7 +631,9 @@ function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
 
+{$ifndef DELPHI}
 function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
+{$endif not DELPHI}
 
 {$ifdef FPC}
 { Overload := operator to allow convertion between
@@ -2119,6 +2121,7 @@ begin
    'Expected end of string in Vector4SingleFromStr');
 end;
 
+{$ifndef DELPHI}
 function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 begin
   Result[0] := Vector4Double(M[0]);
@@ -2126,6 +2129,7 @@ begin
   Result[2] := Vector4Double(M[2]);
   Result[3] := Vector4Double(M[3]);
 end;
+{$endif not DELPHI}
 
 { some math on vectors ------------------------------------------------------- }
 
