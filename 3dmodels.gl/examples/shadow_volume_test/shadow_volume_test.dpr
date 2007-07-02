@@ -50,8 +50,9 @@
     and the lack of depth-fail approach is very noticeable there).
 
   3. we also need separate VRML file with exactly one light definition.
-    This will be the light used to cast shadows (right now, this must
-    be a positional light). The scene can contain additional lights,
+    This will be the light used to cast shadows (it may be directional
+    or positional, it's all handled).
+    The scene (in point 1.) can contain additional lights,
     but they will not make additional shadows.
 
   Run the program with three command-line parameters for these models.
@@ -363,7 +364,7 @@ begin
       glColorv(Yellow3Single);
       Font.Projection2DPrintStrings(5, 5, Format(
         'FPS : %f (real : %f)' +nl+
-        'Shadow maybe visible: %s' + nl+
+        'Shadow maybe visible (sv culling): %s' + nl+
         'INCR/DECR_WRAP available: %s',
         [ Glw.FpsFrameTime, Glw.FpsRealTime,
           BoolToStr[ShadowMaybeVisible],
@@ -494,6 +495,7 @@ begin
         IsRenderStatus := not IsRenderStatus;
         Glwin.PostRedisplay;
       end;
+    120: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
   end;
 end;
 
@@ -534,6 +536,8 @@ begin
       IsRenderSilhouetteEdges, true));
     M.Append(TMenuItemChecked.Create('Show status text', 50,
       IsRenderStatus, true));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Save screen ...', 120, K_F5));
     Result.Append(M);
   M := TMenu.Create('_Console');
     M.Append(TMenuItem.Create('Print current _camera', 10));
