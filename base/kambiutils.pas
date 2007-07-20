@@ -183,7 +183,6 @@ type
 {$I kambiutils_params.inc}
 {$I kambiutils_bits.inc}
 {$I kambiutils_os_specific.inc}
-{$I kambiutils_time.inc}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
 {$I kambiutils_os_error.inc}
@@ -209,7 +208,6 @@ uses KambiStringUtils, KambiFilesUtils;
 {$I kambiutils_program_exit.inc}
 {$I kambiutils_params.inc}
 {$I kambiutils_bits.inc}
-{$I kambiutils_time.inc}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
 {$I kambiutils_os_specific.inc}

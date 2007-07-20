@@ -35,7 +35,7 @@
 }
 program alplay;
 
-uses KambiUtils, OpenAL, ALUtils, SoundFile;
+uses KambiUtils, OpenAL, ALUtils, SoundFile, KambiTimeUtils;
 
 var
   Buffer, Source: TALuint;

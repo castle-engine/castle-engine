@@ -615,7 +615,7 @@ uses
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
-  RaysWindow, KambiStringUtils, KambiFilesUtils;
+  RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils;
 
 {$define read_interface}
 
@@ -2759,8 +2759,7 @@ uses ParseParametersUnit
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
   {$ifdef GLWINDOW_WINAPI}, GLWinModes, GLWindowWinAPIMenu {$endif}
-  {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif}
-  ;
+  {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif};
 
 {$define read_implementation}
 

@@ -30,7 +30,8 @@
 program gen_light_map;
 
 uses SysUtils, KambiUtils, VectorMath, VRMLNodes, VRMLLightSet, VRMLFlatScene,
-  VRMLLightMap, Images, VRMLTriangleOctree, ProgressUnit, ProgressConsole;
+  VRMLLightMap, Images, VRMLTriangleOctree, ProgressUnit, ProgressConsole,
+  KambiTimeUtils;
 
 function ReadParametersVectorTo1st(i: Integer): TVector3Single;
 begin

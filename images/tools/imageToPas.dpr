@@ -18,7 +18,8 @@
 
 program imageToPas;
 
-uses SysUtils, Images, KambiUtils, ProgressUnit, ProgressConsole;
+uses SysUtils, Images, KambiUtils, ProgressUnit, ProgressConsole,
+  KambiTimeUtils;
 
 var Image: TImage;
     ImageFileName: string;

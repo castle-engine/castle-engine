@@ -91,7 +91,7 @@ unit ProgressUnit;
 interface
 
 uses
-  SysUtils, KambiUtils;
+  SysUtils, KambiUtils, KambiTimeUtils;
 
 const
   { }

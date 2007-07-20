@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2005 Michalis Kamburelis.
+  Copyright 2000-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -19,8 +19,18 @@
 }
 
 { Things working with time }
+unit KambiTimeUtils;
 
-{$ifdef read_interface}
+interface
+
+uses
+  {$ifdef WIN32}
+    Windows,
+  {$endif}
+  {$ifdef UNIX}
+    {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
+  {$endif}
+  SysUtils, KambiUtils, Math;
 
 procedure Delay(MiliSec: Word); {nie robiac Process messages}
 
@@ -152,9 +162,7 @@ const PerfTimerInit = true;
   uplynelo }
 function PerfTime: TPerfTimerResult;
 
-{$endif read_interface}
-
-{$ifdef read_implementation}
+implementation
 
 procedure Delay (MiliSec: Word);
 begin
@@ -326,4 +334,4 @@ begin
 end;
 {$endif UNIX}
 
-{$endif read_implementation}
+end.
