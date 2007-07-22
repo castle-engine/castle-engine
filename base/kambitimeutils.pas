@@ -21,6 +21,8 @@
 { Things working with time }
 unit KambiTimeUtils;
 
+{$I kambiconf.inc}
+
 interface
 
 uses
@@ -126,41 +128,39 @@ procedure ProcessTimerBegin;
 function ProcessTimerEnd: Double;
 
 { -----------------------------------------------------------------------------
-
-  TODO:
-  - performance timer should be changed : function names should be changed
-    (no need to emphasize that "performance")
-  - PerfTimer should never return false, instead it should fall back
-    on GetTickCount
-  - integrate PerfTimer with ProcessTimer, to use the same functions.
-
-  performance timer : wywolaj dwa razy, odejmij roznice a otrzymasz
-  czas jaki uplynal z b.duza dokladnoscia (miejmy nadzieje).
-  Pod WinAPI realizacja przez QueryPerformanceCounter/Frequency,
-  pod UNIXem przez gettimeofday. }
+  @section(Timer) }
+{ }
 
 {$ifdef WIN32}
-type TPerfTimerResult = Int64;
-     TPerfTimerFreqResult = Int64;
+type
+  TKamTimerResult = Int64;
+  TKamTimerFrequency = Int64;
 
-{ PerfTimer Init : jesli false to znaczy ze PerfTimer nieosiagalny }
-function PerfTimerInit: boolean;
-{ Performance timer frequency, czyli ile tykniec robi PerfTimer na sekunde.
-  Wszyscy mamy nadzieje ze bedzie to dosc duza liczba. }
-function PerfTimerFreq: TPerfTimerFreqResult;
+function KamTimerFrequency: TKamTimerFrequency;
 {$endif WIN32}
 
 {$ifdef UNIX}
-type TPerfTimerResult = Int64;
-     TPerfTimerFreqResult = LongWord;
-const PerfTimerInit = true;
-      PerfTimerFreq = 1000000;
+type
+  TKamTimerResult = Int64;
+  TKamTimerFrequency = LongWord;
+
+const
+  KamTimerFrequency: TKamTimerFrequency = 1000000;
 {$endif UNIX}
 
-{ PerfTime: po prostu, czas w/g tego timera. Odejmij dwa wywolania PerfTime,
-  podziel przez PerfTimeFreq i otrzymasz wynik : ile sekund (jaka czesc sekundy)
-  uplynelo }
-function PerfTime: TPerfTimerResult;
+{ KamTimer is used to measure passed "real time". "Real" as opposed
+  to e.g. process time (see ProcessTimerNow and friends above).
+  Call KamTimer twice, calculate the difference, and you get time
+  passed --- with frequency in KamTimerFrequency.
+
+  KamTimerFrequency says how much KamTimer gets larger during 1 second
+  (how many "ticks" are during one second).
+
+  Implementation details: Under Unix this uses gettimeofday.
+  Under Windows this uses QueryPerformanceCounter/Frequency,
+  unless WinAPI "performance timer" is not available, then standard
+  GetTickCount is used. }
+function KamTimer: TKamTimerResult;
 
 implementation
 
@@ -300,37 +300,58 @@ begin
     / ProcessTimersPerSec;
 end;
 
-{ performance timer ---------------------------------------------------------- }
+{ timer ---------------------------------------------------------- }
 
 {$ifdef WIN32}
-var FPerfTimerFreq: TPerfTimerFreqResult;
+type
+  TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount);
 
-function PerfTimerInit: boolean;
+var
+  FTimerState: TTimerState = tsNotInitialized;
+  FKamTimerFrequency: TKamTimerFrequency;
+
+{ Set FTimerState to something <> tsNotInitialized.
+  Also set FKamTimerFrequency. }
+procedure InitKamTimer;
 begin
- result := QueryPerformanceFrequency(FPerfTimerFreq);
+  if QueryPerformanceFrequency(FKamTimerFrequency) then
+    FTimerState := tsQueryPerformance else
+  begin
+    FTimerState := tsGetTickCount;
+    FKamTimerFrequency := 1000;
+  end;
 end;
 
-function PerfTimerFreq: TPerfTimerFreqResult;
-begin result := FPerfTimerFreq end;
-
-function PerfTime: TPerfTimerResult;
+function KamTimerFrequency: TKamTimerFrequency;
 begin
- QueryPerformanceCounter(result);
+  if FTimerState = tsNotInitialized then InitKamTimer;
+
+  Result := FPerfTimerFrequency;
+end;
+
+function KamTimer: TKamTimerResult;
+begin
+  if FTimerState = tsNotInitialized then InitKamTimer;
+
+  if FTimerState = tsQueryPerformance then
+    QueryPerformanceCounter(Result) else
+    Result := GetTickCount;
 end;
 {$endif WIN32}
 
 {$ifdef UNIX}
-function PerfTime: TPerfTimerResult;
-var tv: TTimeval;
+function KamTimer: TKamTimerResult;
+var
+  tv: TTimeval;
 begin
- {$ifdef USE_LIBC} gettimeofday(tv, nil)
- {$else}           FpGettimeofday(@tv, nil)
- {$endif};
+  {$ifdef USE_LIBC} gettimeofday(tv, nil)
+  {$else}           FpGettimeofday(@tv, nil)
+  {$endif};
 
- {w Int64 zmiesci sie cale TTimeval bez obcinania.
-  Robie tylko odpowiednie casty na zapas zeby na pewno liczyl wszystko
-  od poczatku jako Int64}
- result := Int64(tv.tv_sec)*1000000 + Int64(tv.tv_usec);
+  { w Int64 zmiesci sie cale TTimeval bez obcinania.
+    Robie tylko odpowiednie casty na zapas zeby na pewno liczyl wszystko
+    od poczatku jako Int64}
+  Result := Int64(tv.tv_sec)*1000000 + Int64(tv.tv_usec);
 end;
 {$endif UNIX}
 

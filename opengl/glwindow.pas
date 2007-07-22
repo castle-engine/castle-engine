@@ -1088,8 +1088,9 @@ type
     Fps_FramesRendered: Int64; { FramesRendered = 0 oznacza "jeszcze nie wywolal Fps_FrameRendered" }
     Fps_FirstTimeTick: LongWord; { jesli FrameRendered > 0 to FirstTimeTick oznacza czas
          pierwszego wywolania Fps_FrameRendered (tego ktore zmienilo FramesRendered z 0 na 1 }
-    Fps_RenderStartTime: TPerfTimerResult; { pobierane w Fps_RenderStartTime }
-    Fps_FrameTimePassed: TPerfTimerResult; { jaki czas uplynal dotychczas na renderowaniu
+    Fps_RenderStartTime: TKamTimerResult; { pobierane w Fps_RenderStartTime }
+    Fps_FrameTimePassed: TKamTimerResult;
+       { jaki czas uplynal dotychczas na renderowaniu
          ramek, czyli ile czasu uplynelo w/g definicji FpsFrameTime }
 
     FFpsActive: boolean;
@@ -1099,7 +1100,7 @@ type
     FIdleCompSpeed: Single;
 
     LastIdleStartTimeInited: boolean;
-    LastIdleStartTime: TPerfTimerResult;
+    LastIdleStartTime: TKamTimerResult;
 
     {rzeczy do implementacji pomiaru Frames Per Sec}
     FFpsSecondsToAutoReset : Cardinal;
@@ -3197,9 +3198,9 @@ procedure TGLWindow.DoIdle;
 begin
   { update FIdleCompSpeed, LastIdleStartTimeInited, LastIdleStartTime }
   if LastIdleStartTimeInited then
-    FIdleCompSpeed:= ((PerfTime - LastIdleStartTime) / PerfTimerFreq) * 50 else
-    FIdleCompSpeed:= 1.0; { just init IdleCompSpeed to some sensible default }
-  LastIdleStartTime := PerfTime;
+    FIdleCompSpeed := ((KamTimer - LastIdleStartTime) / KamTimerFrequency) * 50 else
+    FIdleCompSpeed := 1.0; { just init IdleCompSpeed to some sensible default }
+  LastIdleStartTime := KamTimer;
   LastIdleStartTimeInited := true;
 
   MakeCurrent;
@@ -3758,14 +3759,14 @@ begin
   Fps_FramesRendered := Round(RealTime * FpsHoldsAfterReset / 1000.0);
 
   {teraz musisz dopasowac Fps_FrameTimePassed zeby frameTime wyszedl taki sam.
-   Pamietaj ze Fps_FrameTimePassed jest w jednostkach PerfTimerFreq.
+   Pamietaj ze Fps_FrameTimePassed jest w jednostkach KamTimerFrequency.
    Czyli chcemy zeby
-   Fps_FramesRendered  / (Fps_FrameTimePassed / PerfTimerFreq) = frameTime czyli
-   Fps_FramesRendered * PerfTimerFreq  / Fps_FrameTimePassed = frameTime czyli
-   Fps_FramesRendered * PerfTimerFreq / frameTime = Fps_FrameTimePassed. }
+   Fps_FramesRendered  / (Fps_FrameTimePassed / KamTimerFrequency) = frameTime czyli
+   Fps_FramesRendered * KamTimerFrequency  / Fps_FrameTimePassed = frameTime czyli
+   Fps_FramesRendered * KamTimerFrequency / frameTime = Fps_FrameTimePassed. }
   if frameTime = 0 then
    Fps_FrameTimePassed := 0 else
-   Fps_FrameTimePassed := Round(Fps_FramesRendered * PerfTimerFreq / frameTime);
+   Fps_FrameTimePassed := Round(Fps_FramesRendered * KamTimerFrequency / frameTime);
  end;
 end;
 
@@ -3776,7 +3777,6 @@ begin
  FFpsActive := value;
  if value then
  begin
-  Check( PerfTimerInit, 'performance timer not supported on this hardware');
   FpsReset;
   FFpsCompSpeed := 1.0; { just init FpsCompSpeed to some sensible default }
   FIdleCompSpeed := 1.0; { just init IdleCompSpeed to some sensible default }
@@ -3787,7 +3787,7 @@ procedure TGLWindow.Fps_RenderStart;
 begin
  if not FpsActive then exit;
 
- Fps_RenderStartTime := PerfTime;
+ Fps_RenderStartTime := KamTimer;
 end;
 
 procedure TGLWindow.Fps_RenderEnd;
@@ -3795,12 +3795,12 @@ var NowTick: LongWord;
 begin
  if not FpsActive then exit;
 
- { ((PerfTime-Fps_RenderStartTime)/PerfTimerFreq) = jaka czesc sekundy
+ { ((KamTimer-Fps_RenderStartTime)/KamTimerFrequency) = jaka czesc sekundy
    renderowala sie ostatnia klatka. Zeby byl zgodni z poprzednia definicja
    FpsCompSpeed, jezeli klatka sie renderowala 1/50 sekundy to
    ma byc FpsCompSpeed 1, i wyliczamy wartosc FpsCompSpeed przymujac ze
    te dwie liczby sa proporcjonalne. }
- FFpsCompSpeed:= ((PerfTime - Fps_RenderStartTime) / PerfTimerFreq) * 50;
+ FFpsCompSpeed := ((KamTimer - Fps_RenderStartTime) / KamTimerFrequency) * 50;
 
  NowTick := GetTickCount;
  if ((NowTick-Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
@@ -3816,7 +3816,7 @@ begin
 
  if Fps_FramesRendered = 0 then Fps_FirstTimeTick := NowTick;
  Inc(Fps_FramesRendered);
- Fps_FrameTimePassed := Fps_FrameTimePassed+ PerfTime-Fps_RenderStartTime;
+ Fps_FrameTimePassed := Fps_FrameTimePassed + KamTimer - Fps_RenderStartTime;
 end;
 
 procedure TGLWindow.FpsToCaption(const WindowTitle: string);
@@ -3839,7 +3839,7 @@ function TGLWindow.FpsFrameTime: Double;
 begin
  Assert(FpsActive, 'FpsFrameTime called by Fps counting not Activated');
  if Fps_FrameTimePassed > 0 then
-  result := Fps_FramesRendered*PerfTimerFreq / Fps_FrameTimePassed else
+  result := Fps_FramesRendered * KamTimerFrequency / Fps_FrameTimePassed else
   result := 0;
 end;
 
