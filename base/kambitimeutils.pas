@@ -326,7 +326,7 @@ function KamTimerFrequency: TKamTimerFrequency;
 begin
   if FTimerState = tsNotInitialized then InitKamTimer;
 
-  Result := FPerfTimerFrequency;
+  Result := FKamTimerFrequency;
 end;
 
 function KamTimer: TKamTimerResult;
