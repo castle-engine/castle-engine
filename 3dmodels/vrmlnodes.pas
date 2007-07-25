@@ -65,7 +65,7 @@
       Also many Inventor 1.0 files should be correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
-      [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_iv_in_vrml].
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_iv_in_vrml].
 
       TNodeUnknown pozwala omijac parserowi nawet kompletnie
       nieznane node'y pozbawione pol "fields" i "isA" (z VRML'a 1.0
@@ -169,7 +169,7 @@
   )
 
   Specyfikacja VRMLa 1.0 z dodanymi "moimi rozszerzeniami VMRLa"
-  [http://www.camelot.homedns.org/~michalis/kambi-vrml.php] stanowia
+  [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php] stanowia
   uzasadnienie dla wielu rzeczy ktore robimy w tym module.
 
   Node'y o nazwach *General* to nie sa koncowe klasy node'ow,
@@ -1137,7 +1137,7 @@ type
       specs (with my extensions), and SuggestionPriority 100 for
       VRML 2.0 nodes that are also allowed in VRML 1.0
       by my extensions
-      [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php].
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php].
       This way e.g. if your VRML hierarchy consists only of
       a single TNodeBackground node, then the result will be saved as VRML 2.0
       (as this will give VRML 2.0-compliant file).
@@ -1694,7 +1694,7 @@ type
       W przypadku czterech wartosci Trans/ReflSpecular/Diffuse
       te funkcje realizuja "wyliczanie" na podstawie innych pol materialu,
       tak jak opisalem w
-      [http://camelot.homedns.org/~michalis/kambi_vrml_extensions.php].
+      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php].
 
       Funkcje zwracajace TVector4Single zwracaja [TVector3Single, Opacity].
 

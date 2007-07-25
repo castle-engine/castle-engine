@@ -52,7 +52,7 @@
       implemented, and of course appropriate external tool must
       be available.
       See glViewImage docs
-      [http://www.camelot.homedns.org/~michalis/glviewimage.php]
+      [http://vrmlengine.sourceforge.net/glviewimage.php]
       for details what external programs are used.
       )
   )

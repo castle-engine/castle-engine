@@ -24,7 +24,8 @@
   wygodna skladnia wszystko co moze zaoferowac klasa TMathExpr.)
 
   Gramatyka w EBNF :
-  (wiele komentarzy jest w dokumentacji gen_funkcja.php na camelot.
+  (wiele komentarzy jest w dokumentacji
+  [http://vrmlengine.sourceforge.net/gen_funkcja.php].
   Usunalem je stad zeby nie duplikowac informacji.)
 
   czynnik = NAZWA_ZMIENNEJ | STALA | "-" czynnik | "(" wyrazenie_math ")" |

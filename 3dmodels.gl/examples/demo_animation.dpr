@@ -44,7 +44,7 @@
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys -- see view3dscene documentation,
-  [http://www.camelot.homedns.org/~michalis/view3dscene.php],
+  [http://vrmlengine.sourceforge.net/view3dscene.php],
   at Walk navigation method).
   Space key restarts the animation (definitely useful if you passed
   --no-loop option).

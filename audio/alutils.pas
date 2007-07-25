@@ -167,7 +167,7 @@ function ALCDeviceToNiceStr(const ALCDevice: string): string;
   )
 
   More user-oriented documentation for the above options is here:
-  [http://www.camelot.homedns.org/~michalis/openal_notes.php#section_options] }
+  [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
 procedure OpenALOptionsParse;
 
 { This is help string for options parsed by OpenALOptionsParse.
@@ -515,7 +515,7 @@ begin
 
       This is so unstable, that I think that I do a service
       for users by *not* listing aRts in available OpenAL
-      devices. It's listed on [camelot/openal_notes.php]
+      devices. It's listed on [http://vrmlengine.sourceforge.net/openal_notes.php]
       and that's enough.
 
     DevicesList.Append(UnixALCDeviceName('arts'));

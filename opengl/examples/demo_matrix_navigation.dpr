@@ -27,7 +27,7 @@
 
   And user instantly gets the ability to move and rotate the object
   by arrow keys etc. (see view3dscene keys is "Examine" mode:
-  [http://www.camelot.homedns.org/~michalis/view3dscene.php]).
+  [http://vrmlengine.sourceforge.net/view3dscene.php]).
 }
 
 program demo_matrix_navigation;

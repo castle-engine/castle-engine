@@ -21,7 +21,7 @@
 { Generates light map.
 
   See lets_take_a_walk game
-  ([http://www.camelot.homedns.org/~michalis/lets_take_a_walk.php])
+  ([http://vrmlengine.sourceforge.net/lets_take_a_walk.php])
   for example how to use this program.
   lets_take_a_walk sources contain an example model and script
   used with this program.

@@ -22,7 +22,7 @@
   and smooth interpolated curves (each segment is a separate Bezier curve).
 
   Implemented first for bezier_curves program
-  [http://www.camelot.homedns.org/~michalis/bezier_curves.php],
+  [http://vrmlengine.sourceforge.net/bezier_curves.php],
   may be generally useful. }
 unit BezierCurve;
 

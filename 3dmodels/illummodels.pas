@@ -64,7 +64,7 @@ function VRML97Emission(const IntersectNode: TOctreeItem;
 
     @item(
       For VRML 1.0, we have to calculate ambientFactor in a little different way:
-      see [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_light_attenuation],
+      see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation],
       when light's ambientIntensity is < 0 then we just return 0 and
       otherwise we use material's ambientColor.)
 

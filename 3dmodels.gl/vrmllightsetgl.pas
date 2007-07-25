@@ -194,7 +194,7 @@ type
 
       This uses @code(kambiShadows) and @code(kambiShadowsMain) fields
       to determine which lights to turn off and which one is the main light.
-      See [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_shadows]
+      See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_shadows]
       for more info.
 
       Lights with kambiShadows = FALSE are ignored:

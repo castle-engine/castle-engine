@@ -22,7 +22,7 @@
   rendering VRML elements.)
 
   The overview of this class can also be found in my master's thesis
-  [http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php]
+  [http://vrmlengine.sourceforge.net/vrml_engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
   You should read that description first --- the text below only
   adds some details.
@@ -653,7 +653,7 @@ type
       UseTextureFileNames = @true strategy will completely fail in these
       cases, because it compares only "filename".
       See e.g. file like @code(inlined_textures.wrl) in
-      [http://www.camelot.homedns.org/~michalis/miscella/kambi_vrml_test_suite.php]
+      [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
       that uses various embedded textures.
 
       That's why another, safer strategy is the default:

@@ -90,7 +90,8 @@ type
       caly bialy obrazek - podczas gdy przy ikRGBE obrazek mialby po prostu kolory
       wieksze niz (1.0, 1.0, 1.0) co moznaby zawsze zniwelowac skalowaniem
       albo korekcja gamma. Ta zaleta formatu RGBE jest pokrotce opisana
-      takze na poczatku dokumentacji do rayhuntera na camelot/rayhunter.php.
+      takze na poczatku dokumentacji do rayhuntera na
+      [http://vrmlengine.sourceforge.net/rayhunter.php].
 
       (Ta wada formatow RGB/Alpha @italic(nie bedzie naprawiona w tej funkcji)
       bo niby jak ? Jedynym sensownym rozwiazaniem jest tutaj zapisac obrazek

@@ -436,7 +436,7 @@ var
 
        Easy test for it: run `view3dscene materials.wrl' with
        materials.wrl from VRML 1.0 demos from
-       [http://www.camelot.homedns.org/~michalis/kambi_vrml_test_suite.php].
+       [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php].
 
        So I'm workaround this below by just using imOverall for old Mesa
        versions. This causes incorrect rendering result, but at least

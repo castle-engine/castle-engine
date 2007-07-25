@@ -81,7 +81,7 @@ const
   { Default value of Attributes.BlendingDestinationFactor.
 
     Why isn't it GL_ONE_MINUS_SRC_ALPHA ?
-    See [http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php],
+    See [http://vrmlengine.sourceforge.net/vrml_engine_doc.php],
     chapter "OpenGL rendering", section about "mat transparency
     using blending".
 
@@ -197,7 +197,7 @@ type
           you have no choice: you must use roSeparateShapeStates,
           otherwise rendering results may be wrong.
 
-          See [http://www.camelot.homedns.org/~michalis/kambi_vrml_test_suite.php]
+          See [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
           file @code(kambi_extensions/fog_volumetric/break_no_transform_final.wrl)
           (versions for VRML 1.0 and 2.0 are available) for a demo.
 
@@ -888,7 +888,7 @@ const
   parameter @--renderer-optimization, and sets RendererOptimization
   to the value specified by user.
   See view3dscene documentation
-  [http://camelot.homedns.org/~michalis/view3dscene.php] for description. }
+  [http://vrmlengine.sourceforge.net/view3dscene.php] for description. }
 procedure RendererOptimizationOptionsParse(
   var RendererOptimization: TGLRendererOptimization);
 
@@ -901,7 +901,7 @@ function RendererOptimizationOptionsHelp: string;
   Raises exception if illegal value of S.
 
   For a list of allowed values run
-  [http://camelot.homedns.org/~michalis/view3dscene.php] with @--help
+  [http://vrmlengine.sourceforge.net/view3dscene.php] with @--help
   (or just look at the implementation of this unit :) }
 function RendererOptimizationFromName(const S: string; IgnoreCase: boolean):
   TGLRendererOptimization;

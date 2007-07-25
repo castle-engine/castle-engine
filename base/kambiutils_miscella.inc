@@ -198,7 +198,7 @@ function SFPCVersion: string;
 function SCompilerDescription: string;
 
 { Print some common info for programs released on
-  [[http://camelot.homedns.org/~michalis/].
+  [[http://vrmlengine.sourceforge.net/].
   This is useful only for Michalis' programs.
   Resulting string is multiline, delimited by @link(nl).
 
@@ -206,7 +206,7 @@ function SCompilerDescription: string;
     here something else if you want.)
 
   @param(Version For my programs this usually looks like '%d.%d.%d'
-    and conforms to [http://camelot.homedns.org/~michalis/versioning.php])
+    and conforms to [http://vrmlengine.sourceforge.net/versioning.php])
 
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
@@ -379,7 +379,7 @@ begin
  Result :=
    DisplayProgramName + ' version ' + Version + '.' +nl+
    'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
-   'See http://www.camelot.homedns.org/~michalis/ for latest versions' +
+   'See http://vrmlengine.sourceforge.net/ for latest versions' +
    Iff(WrapLines, nl + ' ', '') +
    ' of this program, sources, documentation etc.' +nl+
    'Compiled with ' + SCompilerDescription +'.';
