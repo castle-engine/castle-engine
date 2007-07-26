@@ -241,9 +241,9 @@ function SearchSortedList(List: TStrings; const Value: string): Integer;
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Something like @link(SCamelotProgramHelpSuffix), but appends
+{ Something like @link(SVrmlEngineProgramHelpSuffix), but appends
   contents as a couple of lines to Strings. }
-procedure Strings_AddCamelotProgramHelpSuffix(
+procedure Strings_AddVrmlEngineProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 
@@ -918,12 +918,12 @@ begin
   Strings.Append(SEnding(S, Done + 1));
 end;
 
-procedure Strings_AddCamelotProgramHelpSuffix(
+procedure Strings_AddVrmlEngineProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 begin
   Strings_AddSplittedString(Strings,
-    SCamelotProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
+    SVrmlEngineProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
 end;
 
 procedure Strings_SetText(SList: TStrings; const S: string);

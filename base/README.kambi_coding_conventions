@@ -2,34 +2,26 @@ This file describes some of Michalis Kamburelis'
 (aka Kambi) Pascal coding conventions.
 More overall overview of my units is in "Introduction" section
 of documentation, see
-[http://www.camelot.homedns.org/~michalis/src/pascal/docs/html/index.html].
+[http://vrmlengine.sourceforge.net/apidoc/html/].
 
 - *.pas files are units, *.inc are files to be included in other Pascal
   source files using $Include.
 
-  *.dpr files are main program files.
-  "Dpr" stands for DelphiProject, but I use this extension even when
-  I write FPC-only programs, because 1. I like the idea that main program
-  file gets different extension than units 2. It wouldn't be
-  really sensible to invent another extension just because this one
-  was invented by Delphi.
+  *.pasprogram are main program files.
+  This extension is quite non-standard, but I couldn't find any other
+  good standard. Some people use *.pp for units
+  and *.pas to indicate main program file, but that's not a clear
+  thing for most people (especially from Delphi background, where units
+  are *.pas). Delphi people use *.dpr, but that's Delphi, and my programs
+  are for FPC. Lazarus people use *.lpr, but that usually indicates
+  dependency on Lazarus library LCL, while almost all of my programs don't
+  depend on it and can be compiled with pure FPC installation.
 
-- Some marks in sources:
+  Many programs also use *.dpr as extension for main program file.
+  I used this extension for a long time, even though all programs here
+  are FPC-only.
 
-  "sorry" (in the comment or not, even inside string) means what usually
-  is marked as "TODO". As you can see  (find . -type f | xargs grep sorry)
-  there's a lot of "sorry" occurrences in my sources,
-  but it's not a reason to worry: most often things
-  marked as "sorry" are just some ideas about "what could be implemented
-  in this module" or "how could I do something better here". They very
-  rarely describe some unresolved problems.
-
-  Second mark is "{}". It's a meaningless sign (empty comment) --
-  -- I use it to mark sections of code that I temporarily changed for
-  debugging purposes. You should not see such mark anywhere in my sources !
-  If you will, then you just spotted a bug, please report this to me.
-
-  Oh, and whenever I was modifying Pascal sources of someone else
+- Whenever I was modifying Pascal sources of someone else
   I was marking my modifications by word "Kambi" somewhere in comments.
   "Kambi+" means that I added something,
   "Kambi-" that I commented out something,
@@ -157,5 +149,5 @@ of documentation, see
   be in ISO-8859-2 coding.
 
 Michalis Kamburelis (aka Kambi)
-<michalis@camelot.homedns.org>
-http://www.camelot.homedns.org/~michalis/
+<michalis.kambi@gmail.com>
+http://vrmlengine.sourceforge.net/

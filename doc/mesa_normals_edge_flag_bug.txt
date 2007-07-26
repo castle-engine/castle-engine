@@ -15,8 +15,8 @@ And the Mesa version where the problem is fixed is not known yet
 --- should be added to openglttfonts.pas near GLVersion.IsMesa check.
 
 Tests on VRMLs from
-[http://www.camelot.homedns.org/~michalis/kambi_vrml_test_suite.php] and
-[http://www.camelot.homedns.org/~michalis/vrml_engine_doc.php].
+[http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php] and
+[http://vrmlengine.sourceforge.net/vrml_engine_doc.php].
 
 simplest_sphere_1.wrl:
   fails with smooth and flat shading (GLU_SMOOTH, GLU_FLAT for quadric)

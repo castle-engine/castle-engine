@@ -11,14 +11,15 @@ Post view3dscene 2.0 things:
   - Ray-tracer: vrmlraytracer.pas: PathTracerTo1st uses only
     VRML 1.0 material node.
     Fixing this means also porting VRML extension on
-    /win/mojewww/camelot/kambi_vrml_extensions.php
+    http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php
     "Phong's BRDF fields for materials" to VRML 2.0 Material.
 
   - Conversion from other 3D formats (make 3DS -> VRML 2.0 converter):
     ./object3dasvrml.pas
     (grep for _1 where I used only VRML 1.0 nodes versions)
 
-    Fix WWW pages on camelot then (grep for VRML 1.0...),
+    Fix WWW pages on http://vrmlengine.sourceforge.net/ then
+    (grep for VRML 1.0...),
     they say that convertion only to VRML 1.0 is available.
     And on freshmeat.
 

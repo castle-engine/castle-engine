@@ -48,7 +48,7 @@ implementation
 uses
   {$ifdef WIN32} Windows, {$endif}
   {$ifdef UNIX} {$ifdef USE_LIBC} Libc, {$else} Unix, BaseUnix, {$endif} {$endif}
-  KambiUtils, Math;
+  KambiUtils, Math, KambiTimeUtils;
 
 {$I macspeedtest.inc}
 

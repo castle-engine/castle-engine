@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's base Pascal units".
 
@@ -112,7 +112,7 @@ type
   { See @link(Check) }
   ECheckFailed = class(Exception);
 
-{ if not TrueValue then raise ECheckFailed.Create(ErrMessage) 
+{ if not TrueValue then raise ECheckFailed.Create(ErrMessage)
 
   @noAutoLinkHere }
 procedure Check(TrueValue: boolean; const ErrMessage: string);
@@ -198,8 +198,8 @@ function SFPCVersion: string;
 function SCompilerDescription: string;
 
 { Print some common info for programs released on
-  [[http://vrmlengine.sourceforge.net/].
-  This is useful only for Michalis' programs.
+  [http://vrmlengine.sourceforge.net/].
+  This is useful only for programs released on this WWW page by Michalis.
   Resulting string is multiline, delimited by @link(nl).
 
   @param(DisplayProgramName Usually ProgramName, but you can give
@@ -211,7 +211,7 @@ function SCompilerDescription: string;
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
-function SCamelotProgramHelpSuffix(const DisplayProgramName: string;
+function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 
 {$endif read_interface}
@@ -373,7 +373,7 @@ begin
    {$endif} {$endif} {$endif} ;
 end;
 
-function SCamelotProgramHelpSuffix(const DisplayProgramName: string;
+function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 begin
  Result :=

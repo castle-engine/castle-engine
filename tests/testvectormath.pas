@@ -42,7 +42,7 @@ type
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils;
+uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils;
 
 {$I vectormathinlines.inc}
 

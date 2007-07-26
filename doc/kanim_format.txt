@@ -76,7 +76,7 @@ File format is simple:
                            // animation frame. Any 3D file format is allowed here:
                            // most of all, VRML, but also other formats
                            // understood by my engine, see
-                           // [http://www.camelot.homedns.org/~michalis/kambi_vrml_extensions.php#ext_inline_for_all]
+                           // [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_inline_for_all]
 
     time="0.0"             // This is a required attribute specyfying a
                            // time of this frame. For now, all frames
@@ -96,6 +96,6 @@ File format is simple:
 ----------------------------------------
 
 Michalis Kamburelis
-http://www.camelot.homedns.org/~michalis/
+http://vrmlengine.sourceforge.net/
 
 Eof.
