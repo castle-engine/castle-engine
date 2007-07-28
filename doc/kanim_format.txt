@@ -24,6 +24,7 @@ my engine.
 ----------------------------------------
 File format is simple:
 
+<?xml version="1.0"?>
 <animation              // Root node is always "animation".
                         // All it's attributes are optional
                         // (default values are shown below).
