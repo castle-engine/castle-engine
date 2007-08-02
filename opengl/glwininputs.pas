@@ -168,7 +168,7 @@ begin
  SavedMode := TGLMode.Create(glwin, 0, false);
  try
   if FlushGLWindow then glwin.FlushRedisplay;
-  Data.dlBGImage := SaveScreenToDispList_noflush(ReadBuffer);
+  Data.dlBGImage := SaveScreenToDisplayList_noflush(ReadBuffer);
   Data.Answer := AnswerDefault;
   Data.MinLength := MinLength;
   Data.MaxLength := MaxLength;
@@ -226,7 +226,7 @@ begin
   glDisable(GL_ALPHA_TEST);
 
   Data.DoClear := (glwin.Width > Img.Width) or (glwin.Height > Img.Height);
-  Data.dlImage := ImageDrawToDispList(Img);
+  Data.dlImage := ImageDrawToDisplayList(Img);
   Data.KeyPressed := false;
 
   try

@@ -133,7 +133,7 @@ begin
    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false);
 
  {catch screen}
- list_drawProgressBG := Window.SaveScreenToDispList;
+ list_drawProgressBG := Window.SaveScreenToDisplayList;
 
  {init our state}
  SetStdNoCloseGLWindowState(Window,

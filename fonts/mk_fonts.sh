@@ -27,3 +27,6 @@ do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -18 --grab-t
 
 # Used by view3dscene
 do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -15 --grab-to bfnt -b 1
+
+# Used by GLMenu
+do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bfnt --font-height -10

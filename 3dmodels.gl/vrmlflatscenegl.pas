@@ -358,7 +358,7 @@ type
 
       Jesli chcesz przekaz
       RenderBeginProc, RenderEndProc = nil, wtedy musisz sam sie upewnic
-      ze je wywolasz naokolo RenderShapeStatesNoDispList
+      ze je wywolasz naokolo RenderShapeStatesNoDisplayList
       (this is needed because roSceneAsAWhole needs to honour
       RenderBeginEndToDisplayList).
 
@@ -369,7 +369,7 @@ type
 
       This sets FLastRender_RenderedShapeStatesCount and
       FLastRender_AllShapeStatesCount. }
-    procedure RenderShapeStatesNoDispList(
+    procedure RenderShapeStatesNoDisplayList(
       TestShapeStateVisibility: TTestShapeStateVisibility;
       RenderShapeStateProc: TRenderShapeState;
       RenderBeginProc, RenderEndProc: TObjectProcedure;
@@ -439,7 +439,7 @@ type
       Optimization = roSceneAsAWhole i
       SAAW_DisplayList[TransparentGroup] = 0.
 
-      This calls RenderShapeStatesNoDispList so this sets
+      This calls RenderShapeStatesNoDisplayList so this sets
       FLastRender_RenderedShapeStatesCount and
       FLastRender_AllShapeStatesCount. }
     procedure SAAW_Prepare(TransparentGroup: TTransparentGroup);
@@ -1157,7 +1157,7 @@ begin
   }
 end;
 
-procedure TVRMLFlatSceneGL.RenderShapeStatesNoDispList(
+procedure TVRMLFlatSceneGL.RenderShapeStatesNoDisplayList(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   RenderShapeStateProc: TRenderShapeState;
   RenderBeginProc, RenderEndProc: TObjectProcedure;
@@ -1479,7 +1479,7 @@ begin
   begin
     glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
     try
-      RenderShapeStatesNoDispList(nil,
+      RenderShapeStatesNoDisplayList(nil,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
         {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
@@ -1504,7 +1504,7 @@ begin
     try
       glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
       try
-        RenderShapeStatesNoDispList(nil,
+        RenderShapeStatesNoDisplayList(nil,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderShapeStateSimple, nil, nil,
           TransparentGroup);
       finally glEndList end;
@@ -1564,7 +1564,7 @@ begin
             { Calculate AllMeterialTransparent and make it cached in
               ShapeStatesList[ShapeStateNum] instance. This is needed
               for our trick with freeing RootNode, see
-              TVRMLFlatSceneGL.RenderShapeStatesNoDispList implementation
+              TVRMLFlatSceneGL.RenderShapeStatesNoDisplayList implementation
               comments. }
             ShapeStates[ShapeStateNum].AllMaterialsTransparent;
           end;
@@ -1598,7 +1598,7 @@ begin
   case Optimization of
     roNone:
       begin
-        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} PrepareAndRenderShapeStateSimple,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
           {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
@@ -1609,7 +1609,7 @@ begin
     roSeparateShapeStates:
       begin
         { build display lists (if needed) and render all shape states }
-        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
@@ -1618,7 +1618,7 @@ begin
     roSeparateShapeStatesNoTransform:
       begin
         { build display lists (if needed) and render all shape states }
-        RenderShapeStatesNoDispList(TestShapeStateVisibility,
+        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
           {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,

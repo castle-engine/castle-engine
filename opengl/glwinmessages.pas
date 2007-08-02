@@ -999,8 +999,8 @@ begin
    OnUserMouseDown := MessageOnUserMouseDown;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if glwin.DoubleBuffer then
-    dlDrawBG := SaveScreenToDispList_noflush(GL_BACK) else
-    dlDrawBG := SaveScreenToDispList_noflush(GL_FRONT);
+    dlDrawBG := SaveScreenToDisplayList_noflush(GL_BACK) else
+    dlDrawBG := SaveScreenToDisplayList_noflush(GL_FRONT);
    answered := false;
    if GLWinMessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else

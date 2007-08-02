@@ -1890,8 +1890,8 @@ type
     function SaveScreen: TRGBImage; overload;
     function SaveScreen( const xpos, ypos, SavedAreaWidth,
       SavedAreaHeight: integer): TRGBImage; overload;
-    function SaveScreenToDispList: TGLuint; overload;
-    function SaveScreenToDispList(const xpos, ypos, SavedAreaWidth,
+    function SaveScreenToDisplayList: TGLuint; overload;
+    function SaveScreenToDisplayList(const xpos, ypos, SavedAreaWidth,
       SavedAreaHeight: integer): TGLuint; overload;
 
     {$ifndef GLWINDOW_GLUT}
@@ -3345,20 +3345,20 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-function TGLWindow.SaveScreenToDispList: TGLuint;
+function TGLWindow.SaveScreenToDisplayList: TGLuint;
 begin
  if DoubleBuffer then
  begin
   EventDraw;
-  Result := SaveScreenToDispList_noflush(GL_BACK);
+  Result := SaveScreenToDisplayList_noflush(GL_BACK);
  end else
  begin
   FlushRedisplay;
-  Result := SaveScreenToDispList_noflush(GL_FRONT);
+  Result := SaveScreenToDisplayList_noflush(GL_FRONT);
  end;
 end;
 
-function TGLWindow.SaveScreenToDispList(
+function TGLWindow.SaveScreenToDisplayList(
   const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLuint;
 var
   ReadBuffer: TGLenum;
@@ -3372,7 +3372,7 @@ begin
     FlushRedisplay;
     ReadBuffer := GL_FRONT;
   end;
-  Result := SaveScreenToDispList_noflush(xpos, ypos,
+  Result := SaveScreenToDisplayList_noflush(xpos, ypos,
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 

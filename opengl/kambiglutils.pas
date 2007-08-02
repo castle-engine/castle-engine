@@ -65,7 +65,7 @@ unit KambiGLUtils;
      safer solution.
 
   3) There's also another solution: just copy function pointers.
-     This is fast, but it 
+     This is fast, but it
      - can't be used for overloaded functions (since you can't have many
        vars with the same name).
      - has part of the disadvantages of 1) : it relies that parameters are passed
@@ -376,7 +376,7 @@ function ImageGLType(const Img: TImage): TGLenum;
   ForbiddenConvs = LoadForbiddenConvs, see @link(Images.LoadImage)
   for description what these parameters mean.
   LoadAsClass may contain only classes present in GLImageClasses. }
-function LoadImageToDispList(const FileName: string;
+function LoadImageToDisplayList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint; overload;
@@ -401,7 +401,7 @@ procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
 procedure ImageDrawCutted(const image: TImage; cutx, cuty: cardinal);
 
 { This creates new display list with a call to ImageDraw(Img) inside. }
-function ImageDrawToDispList(const img: TImage): TGLuint;
+function ImageDrawToDisplayList(const img: TImage): TGLuint;
 
 { Saving screen to TRGBImage ----------------------------------- }
 
@@ -455,12 +455,12 @@ function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
 
-{ SaveScreenToDispList_noflush saves the current color buffer (like
+{ SaveScreenToDisplayList_noflush saves the current color buffer (like
   @link(SaveScreen_noflush)) into the display list,
   i.e. it returns newly created display list that contains
   call to ImageDraw appropriate image. }
-function SaveScreenToDispList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
-function SaveScreenToDispList_noflush(xpos, ypos, width, height: integer;
+function SaveScreenToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
+function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TGLuint; overload;
 
 { ----------------------------------------------------------------------
@@ -1367,7 +1367,7 @@ end;
 
 { Loading images ------------------------------------------------------------- }
 
-function LoadImageToDispList(const FileName: string;
+function LoadImageToDisplayList(const FileName: string;
   const LoadAsClass: array of TImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint;
@@ -1377,7 +1377,7 @@ begin
   Img := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
     ResizeToX, ResizeToY);
   try
-    Result := ImageDrawToDispList(Img);
+    Result := ImageDrawToDisplayList(Img);
   finally Img.Free end;
 end;
 
@@ -1424,9 +1424,9 @@ begin
  finally LoadPixelStoreUnpack(pixUnpack) end;
 end;
 
-function ImageDrawToDispList(const Img: TImage): TGLuint;
+function ImageDrawToDisplayList(const Img: TImage): TGLuint;
 begin
-  Result := glGenListsCheck(1, 'ImageDrawToDispList');
+  Result := glGenListsCheck(1, 'ImageDrawToDisplayList');
   glNewList(Result, GL_COMPILE);
   try
     ImageDraw(Img);
@@ -1467,21 +1467,21 @@ begin
  result := SaveScreen_noflush(viewport[0], viewport[1], viewport[2], viewport[3], ReadBuffer);
 end;
 
-function SaveScreenToDispList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
+function SaveScreenToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
 var img: TImage;
 begin
  img := SaveScreen_noflush(ReadBuffer);
  try
-  result := ImageDrawToDispList(img);
+  result := ImageDrawToDisplayList(img);
  finally Img.Free end;
 end;
 
-function SaveScreenToDispList_noflush(xpos, ypos, width, height: integer; ReadBuffer: TGLenum): TGLuint; overload;
+function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer; ReadBuffer: TGLenum): TGLuint; overload;
 var img: TImage;
 begin
  img := SaveScreen_noflush(xpos, ypos, width, height, ReadBuffer);
  try
-  result := ImageDrawToDispList(img);
+  result := ImageDrawToDisplayList(img);
  finally Img.Free end;
 end;
 

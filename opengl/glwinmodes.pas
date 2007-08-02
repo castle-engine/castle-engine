@@ -599,7 +599,7 @@ begin
  glwin.EventResize;
 
  ScreenImage := SaveScreen_noflush(GL_FRONT);
- dlScreenImage := ImageDrawToDispList(ScreenImage);
+ dlScreenImage := ImageDrawToDisplayList(ScreenImage);
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
