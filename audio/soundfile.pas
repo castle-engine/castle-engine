@@ -185,7 +185,16 @@ class function TSoundFile.CreateFromFile(const FileName: string): TSoundFile;
   begin
     S := TFileStream.Create(FileName, fmOpenRead);
     try
-      Result := C.CreateFromStream(S);
+      try
+        Result := C.CreateFromStream(S);
+      except
+        on E: EReadError do
+        begin
+          { Add FileName to exception message }
+          E.Message := 'Error while reading file "' + FileName + '": ' + E.Message;
+          raise;
+        end;
+      end;
     finally S.Free end;
   end;
 

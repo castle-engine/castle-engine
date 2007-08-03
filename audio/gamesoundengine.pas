@@ -112,27 +112,21 @@ type
     ALSourceAllocator underneath.
 
     At ALContextInit, right before initializing OpenAL stuff,
-    this reads sounds information from @code(ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml') file.
+    this reads sounds information from SoundsXmlFileName file.
     When OpenAL is initialized, it loads all sound files.
-    They are expected to be found in @code(
-    ProgramDataPath + PathDelim + 'data' + PathDelim +
-    'sounds' + PathDelim + SoundInfos.Items[ST].FileName).
+    Sound filenames are specified inside SoundsXmlFileName file
+    (they may be relative filenames, relative to the location
+    of SoundsXmlFileName file).
 
     So this assumes that you want to load all sound files
     at once (along with initializing OpenAL context) and free them at once
     when releasing AL context. And it requires that you place your
-    sounds and sounds/index.xml file in appropriate subdirectory
-    of ProgramDataPath.
+    sounds data and XML file in appropriate locations.
 
-    While the location of sounds/index.xml and
-    sounds files may be more configurable in the future
-    (TODO: sounds/index.xml should contain paths relative to it's location,
-    and TODO: location of sounds/index.xml should be configurable as
-    TGameSoundEngine property), the basic principle of this
-    unit (load all files at once, require file like sounds/index.xml)
-    will not change. That's the price for having easy and comfortable unit.
-    All assumptions are perfectly OK for most games,
+    So the basic principle of this unit is to
+    load all files at once, and require file like sounds/index.xml.
+    That's the price for having easy and comfortable unit.
+    All these assumptions are perfectly OK for most games,
     for more general sound programs... not necessarily.
     If you need more flexibility, you should write your own sound
     manager (or heavily extend this), using ALUtils and
@@ -178,9 +172,26 @@ type
 
     function GetALMaxAllocatedSources: Cardinal;
     procedure SetALMaxAllocatedSources(const Value: Cardinal);
+
+    FSoundsXmlFileName: string;
   public
     constructor Create;
     destructor Destroy; override;
+
+    { The XML file that contains description of your sounds.
+      See @code(examples/sample_sounds.xml) file for a heavily
+      commented example.
+
+      It's crucial that you create such file, and eventually adjust
+      this property before calling ReadSoundInfos (or ALContextInit,
+      that always callsReadSoundInfos).
+
+      By default (in our constryctor) this is initialized to
+      @code(ProgramDataPath + 'data' +
+        PathDelim + 'sounds' + PathDelim + 'index.xml')
+      which may be good location for most games. }
+    property SoundsXmlFileName: string
+      read FSoundsXmlFileName write FSoundsXmlFileName;
 
     { This is a list of sound names used by your game.
       Each sound has a unique name, used to identify sound in
@@ -315,7 +326,7 @@ type
 
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or PlayedSound = stNone,
-      or PlayerSound.FileName = '' (not implemented)). }
+      or PlayerSound.FileName = '' (sound not existing)). }
     FAllocatedSource: TALAllocatedSource;
 
     procedure AllocatedSourceUsingEnd(Sender: TALAllocatedSource);
@@ -380,6 +391,12 @@ begin
   SoundInfos := TDynSoundInfoArray.Create;
 
   FMusicPlayer := TMusicPlayer.Create(Self);
+
+  FSoundsXmlFileName := ProgramDataPath + 'data' +
+    PathDelim + 'sounds' + PathDelim + 'index.xml';
+
+  FALMinAllocatedSources := DefaultALMinAllocatedSources;
+  FALMaxAllocatedSources := DefaultALMaxAllocatedSources;
 end;
 
 destructor TGameSoundEngine.Destroy;
@@ -424,8 +441,7 @@ begin
           begin
             SoundInfos.Items[ST].Buffer :=
               TALSoundFile.alCreateBufferDataFromFile(
-                ProgramDataPath + PathDelim + 'data' + PathDelim +
-                'sounds' + PathDelim + SoundInfos.Items[ST].FileName);
+                SoundInfos.Items[ST].FileName);
           end;
           Progress.Step;
         end;
@@ -598,9 +614,13 @@ var
   SoundElements: TDOMNodeList;
   S: string;
   I, SoundImportanceIndex: Integer;
+  SoundsXmlPath: string;
 begin
-  ReadXMLFile(SoundConfig, ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml');
+  { This must be an absolute path, since SoundInfos[].FileName should be
+    absolute (to not depend on the current dir when loading sound files. }
+  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
+
+  ReadXMLFile(SoundConfig, SoundsXmlFileName);
   try
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
@@ -612,7 +632,8 @@ begin
     { initialize other than stNone sounds }
     for ST := 1 to SoundInfos.High do
     begin
-      SoundInfos.Items[ST].FileName := SoundNames[ST] + '.wav';
+      SoundInfos.Items[ST].FileName :=
+        CombinePaths(SoundsXmlPath, SoundNames[ST] + '.wav');
       SoundInfos.Items[ST].Gain := 1;
       SoundInfos.Items[ST].MinGain := 0;
       SoundInfos.Items[ST].MaxGain := 1;
@@ -638,7 +659,14 @@ begin
             attribute is not present (in this case FileName is left as it was)
             and when it's present as set to empty string.
             Standard SoundElement.GetAttribute wouldn't allow me this. }
-          DOMGetAttribute(SoundElement, 'file_name', SoundInfos.Items[ST].FileName);
+          if DOMGetAttribute(SoundElement, 'file_name',
+            SoundInfos.Items[ST].FileName) and
+            (SoundInfos.Items[ST].FileName <> '') then
+            { Make FileName absolute, using SoundsXmlPath, if non-empty FileName
+              was specified in XML file. }
+            SoundInfos.Items[ST].FileName := CombinePaths(
+              SoundsXmlPath,
+              SoundInfos.Items[ST].FileName);
 
           DOMGetSingleAttribute(SoundElement, 'gain', SoundInfos.Items[ST].Gain);
           DOMGetSingleAttribute(SoundElement, 'min_gain', SoundInfos.Items[ST].MinGain);

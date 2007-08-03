@@ -23,7 +23,7 @@ unit VRMLErrors;
 
 interface
 
-uses SysUtils;
+uses SysUtils, DataErrors;
 
 type
   EVRMLError = class(Exception);
