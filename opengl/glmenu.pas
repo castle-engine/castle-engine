@@ -213,14 +213,6 @@ type
     function ValueToStr(const AValue: Single): string; virtual;
   end;
 
-  { Small modification of TGLMenuFloatSlider especially suited for
-    configuring sound volume: range is from 0 to 1 always, and
-    when the slider is exactly on 0.0 position it shows "Off". }
-  TGLMenuVolumeSlider = class(TGLMenuFloatSlider)
-    constructor Create(const AValue: Single);
-    function ValueToStr(const AValue: Single): string; override;
-  end;
-
   TGLMenuIntegerSlider = class(TGLMenuSlider)
   private
     FBeginRange: Integer;
@@ -777,20 +769,6 @@ end;
 function TGLMenuFloatSlider.ValueToStr(const AValue: Single): string;
 begin
   Result := Format('%f', [AValue]);
-end;
-
-{ TGLMenuVolumeSlider ---------------------------------------------------- }
-
-constructor TGLMenuVolumeSlider.Create(const AValue: Single);
-begin
-  inherited Create(0, 1, AValue);
-end;
-
-function TGLMenuVolumeSlider.ValueToStr(const AValue: Single): string;
-begin
-  if AValue = 0.0 then
-    Result := 'Off' else
-    Result := inherited ValueToStr(AValue);
 end;
 
 { TGLMenuIntegerSlider ------------------------------------------------------- }

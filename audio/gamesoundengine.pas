@@ -452,9 +452,12 @@ begin
 
       alListenerf(AL_GAIN, SoundVolume);
 
-      Progress.Init(SoundInfos.Count, 'Loading sounds');
+      Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
       try
-        for ST := 0 to SoundInfos.High do
+        { We do progress to "SoundInfos.Count - 1" because we start
+          iterating from ST = 1 because ST = 0 = stNone never exists. }
+        Assert(SoundInfos.Items[stNone].FileName = '');
+        for ST := 1 to SoundInfos.High do
         begin
           if SoundInfos.Items[ST].FileName <> '' then
           begin
