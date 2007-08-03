@@ -39,7 +39,7 @@ procedure VRMLNonFatalError_WarningWrite(const s: string);
 procedure VRMLNonFatalError_RaiseEVRMLError(const s: string);
 procedure VRMLNonFatalError_Ignore(const s: string);
 type
-  TVRMLNonFatalErrorProc = procedure(const s: string);
+  TVRMLNonFatalErrorProc = TDataNonFatalErrorProc;
 var
   VRMLNonFatalError: TVRMLNonFatalErrorProc =
     {$ifdef FPC_OBJFPC} @ {$endif} VRMLNonFatalError_RaiseEVRMLError;
@@ -49,12 +49,17 @@ implementation
 uses KambiUtils, KambiFilesUtils;
 
 procedure VRMLNonFatalError_WarningWrite(const s: string);
-begin WarningWrite(ProgramName+ ': WARNING: '+ s) end;
+begin
+  WarningWrite(ProgramName+ ': VRML Warning: '+ s)
+end;
 
 procedure VRMLNonFatalError_RaiseEVRMLError(const s: string);
-begin raise EVRMLError.Create(s); end;
+begin
+  raise EVRMLError.Create(s);
+end;
 
 procedure VRMLNonFatalError_Ignore(const s: string);
-begin end;
+begin
+end;
 
 end.

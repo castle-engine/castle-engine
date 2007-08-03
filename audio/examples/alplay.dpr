@@ -35,13 +35,15 @@
 }
 program alplay;
 
-uses KambiUtils, OpenAL, ALUtils, SoundFile, KambiTimeUtils;
+uses KambiUtils, OpenAL, ALUtils, SoundFile, KambiTimeUtils, DataErrors;
 
 var
   Buffer, Source: TALuint;
   FileName: string;
   FAL: TALSoundFile;
 begin
+  DataNonFatalError := @DataNonFatalError_WarningWrite;
+
   OpenALOptionsParse;
   BeginAL(false);
   try

@@ -143,13 +143,11 @@ begin
      - TotalCommander's internal view
      - and Windows2k code to show bmps on desktop
      - and GIMP
-     all fail trying to open them.)
-     TODO: we should do some warning here.
-
-     if biSize <> SizeOf(TBitmapInfoHeader) then
-      raise EInvalidBMP.CreateFmt('wrong size of a bitmap header - should be %d, is %d',
-        [SizeOf(TBitmapInfoHeader), biSize]);
-   }
+     all fail trying to open them.) }
+   if biSize <> SizeOf(TBitmapInfoHeader) then
+      DataNonFatalError(Format(
+        'Wrong size of a bitmap header --- should be %d, is %d',
+        [SizeOf(TBitmapInfoHeader), biSize]));
 
    { height can be negative - it means rows are written from up to down }
    rowsGoingUp := biHeight > 0;

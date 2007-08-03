@@ -1203,7 +1203,8 @@ function ImageClassBestForSavingToFormat(const FileName: string): TImageClass; o
 
 implementation
 
-uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils;
+uses ProgressUnit, KambiClassUtils, KambiStringUtils, KambiFilesUtils,
+  DataErrors;
 
 { file format specific functions : }
 {$I images_bmp.inc}
