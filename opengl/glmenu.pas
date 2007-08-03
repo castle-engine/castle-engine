@@ -298,6 +298,8 @@ type
     ItemAccessoryGrabbed: Integer;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
+    FDesignerMode: boolean;
+    LastWindowWidth, LastWindowHeight: Cardinal;
   public
     constructor Create;
     destructor Destroy; override;
@@ -450,6 +452,29 @@ type
     property SpaceBetweenItems: Cardinal
       read FSpaceBetweenItems write FSpaceBetweenItems
       default DefaultSpaceBetweenItems;
+
+    { "Designer mode" is useful for a developer to visually design
+      some properties of TGLMenu.
+
+      By default, we're not in designer mode,
+      and user has @italic(no way to enter into designer mode).
+      You have to actually add some code to your program to activate
+      designer mode. E.g. in "The Rift" game I required that user
+      passes @--debug-menu-designer command-line option and then
+      DesignerMode could be toggled by F12 key press.
+
+      Right now, features of designer mode:
+      @unorderedList(
+        @item(Mouse move change Position to current mouse position.)
+        @item(Key CtrlX switches between various PositionRelativeX values,
+          key CtrlY switches between various PositionRelativeX values.)
+        @item(CtrlB toggles DrawBackgroundRectangle.)
+        @item(Key CtrlD dumps current position values to StdOut
+          (this is useful if you decide that you want to actually use them
+          and paste them to your code.))
+      ) }
+    property DesignerMode: boolean
+      read FDesignerMode write FDesignerMode default false;
   end;
 
 var
@@ -962,6 +987,9 @@ var
   WholeItemWidth, MaxAccessoryWidth: Single;
   PositionXMove, PositionYMove: Single;
 begin
+  LastWindowWidth := WindowWidth;
+  LastWindowHeight := WindowHeight;
+
   MenuFontInit;
 
   ItemAccessoryGrabbed := -1;
@@ -1128,6 +1156,31 @@ begin
     CurrentItemSelected;
   end else
     CurrentItemAccessoryKeyDown;
+
+  if DesignerMode then
+  begin
+    case C of
+      CtrlB:
+        DrawBackgroundRectangle := not DrawBackgroundRectangle;
+      CtrlX:
+        if PositionRelativeX = High(PositionRelativeX) then
+          PositionRelativeX := Low(PositionRelativeX) else
+          PositionRelativeX := Succ(PositionRelativeX);
+      CtrlY:
+        if PositionRelativeY = High(PositionRelativeY) then
+          PositionRelativeY := Low(PositionRelativeY) else
+          PositionRelativeY := Succ(PositionRelativeY);
+      CtrlD:
+        InfoWrite(Format(
+          'Position := Vector2Single(%f, %f);' +nl+
+          'PositionRelativeX := %d;' +nl+
+          'PositionRelativeY := %d;' +nl+
+          'DrawBackgroundRectangle := %s;',
+          [ Position[0], Position[1],
+            PositionRelativeX, PositionRelativeY,
+            BoolToStr[DrawBackgroundRectangle] ]));
+    end;
+  end;
 end;
 
 procedure TGLMenu.MouseMove(const NewX, NewY: Single;
@@ -1149,6 +1202,12 @@ begin
       TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
         NewX, NewY, MousePressed,
         FAccessoryAreas.Items[CurrentItem], Self);
+  end;
+
+  if DesignerMode then
+  begin
+    Position := Vector2Single(NewX, NewY);
+    FixItemsAreas(LastWindowWidth, LastWindowHeight);
   end;
 end;
 
