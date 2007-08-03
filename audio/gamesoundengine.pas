@@ -25,7 +25,7 @@ unit GameSoundEngine;
 interface
 
 uses Classes, VectorMath, OpenAL, ALSourceAllocator, SysUtils,
-  KambiUtils;
+  KambiUtils, KambiXMLCfg;
 
 {$define read_interface}
 
@@ -312,6 +312,25 @@ type
       read GetALMaxAllocatedSources write SetALMaxAllocatedSources
       default DefaultALMaxAllocatedSources;
     { @groupEnd }
+
+    { These methods load/save into config file some sound properties.
+      Namely: sound/music volume, min/max allocated sounds,
+      and current ALCDevice. ALCDevice is technically declared in
+      another unit, ALUtils, but still this is probably the best place
+      to save/load it.
+
+      Everything is loaded/saved under the path sound/ inside ConfigFile.
+
+      @groupBegin }
+    procedure LoadFromConfig(ConfigFile: TKamXMLConfig);
+    procedure SaveToConfig(ConfigFile: TKamXMLConfig);
+    { @groupEnd }
+
+    { Change ALCDevice while OpenAL is already initialized.
+      This cleanly closes the old device (ALContextClose),
+      changes ALCDevice value, initializes context again
+      (ALContextInit). }
+    procedure ALChangeDevice(const NewALCDevice: string);
   end;
 
   { Music player. Objects of this class should be created only internally by
@@ -738,6 +757,44 @@ procedure TGameSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(Importance)));
+end;
+
+procedure TGameSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
+begin
+  SoundVolume := ConfigFile.GetFloat('sound/volume',
+    DefaultSoundVolume);
+  MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
+    DefaultMusicVolume);
+  ALMinAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/min', DefaultALMinAllocatedSources);
+  ALMaxAllocatedSources := ConfigFile.GetValue(
+    'sound/allocated_sources/max', DefaultALMaxAllocatedSources);
+
+  ALCDevice := ConfigFile.GetValue('sound/device', BestALCDevice);
+end;
+
+procedure TGameSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
+begin
+  ConfigFile.SetDeleteFloat('sound/volume',
+    SoundVolume, DefaultSoundVolume);
+  { This may be called from destructors and the like, so better check
+    that MusicPlayer is not nil. }
+  if MusicPlayer <> nil then
+    ConfigFile.SetDeleteFloat('sound/music/volume',
+      MusicPlayer.MusicVolume, DefaultMusicVolume);
+  ConfigFile.SetDeleteValue('sound/allocated_sources/min',
+    ALMinAllocatedSources, DefaultALMinAllocatedSources);
+  ConfigFile.SetDeleteValue('sound/allocated_sources/max',
+    ALMaxAllocatedSources, DefaultALMaxAllocatedSources);
+  ConfigFile.SetDeleteValue('sound/device', ALCDevice, BestALCDevice);
+end;
+
+procedure TGameSoundEngine.ALChangeDevice(const NewALCDevice: string);
+begin
+  ALContextClose;
+  OpenALRestart;
+  ALCDevice := NewALCDevice;
+  ALContextInit(false);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }
