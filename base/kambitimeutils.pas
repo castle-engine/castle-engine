@@ -117,7 +117,13 @@ const
           { Values below were choosen experimentally for Linux and FreeBSD
             (and I know that on most UNIXes it should be 128, that's
             a traditional value) }
-          {$ifdef LINUX} 100 {$else} 128 {$endif}
+          {$ifdef LINUX} 100 {$else}
+            {$ifdef DARWIN}
+              { In /usr/include/ppc/_limits.h and
+                   /usr/include/i386/_limits.h
+                __DARWIN_CLK_TCK is defined to 100. }
+              100 {$else}
+                128 {$endif} {$endif}
       {$endif}
     {$endif}
     {$ifdef WIN32} = 1000 { Using GetLastError } {$endif};

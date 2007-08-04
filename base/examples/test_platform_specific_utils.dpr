@@ -62,7 +62,8 @@ end;
 procedure TestKamReadLink;
 const
   ExampleSymLinkName = {$ifdef LINUX} '/boot/vmlinuz' {$endif}
-                       {$ifdef FREEBSD} '/home' {$endif};
+                       {$ifdef FREEBSD} '/home' {$endif}
+                       {$ifdef DARWIN} '/etc' {$endif};
 begin
  Writeln(ExampleSymLinkName + ' -> ', KamReadLink(ExampleSymLinkName));
  try
