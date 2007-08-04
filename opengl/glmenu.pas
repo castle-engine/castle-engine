@@ -1163,13 +1163,19 @@ begin
       CtrlB:
         DrawBackgroundRectangle := not DrawBackgroundRectangle;
       CtrlX:
-        if PositionRelativeX = High(PositionRelativeX) then
-          PositionRelativeX := Low(PositionRelativeX) else
-          PositionRelativeX := Succ(PositionRelativeX);
+        begin
+          if PositionRelativeX = High(PositionRelativeX) then
+            PositionRelativeX := Low(PositionRelativeX) else
+            PositionRelativeX := Succ(PositionRelativeX);
+          FixItemsAreas(LastWindowWidth, LastWindowHeight);
+        end;
       CtrlY:
-        if PositionRelativeY = High(PositionRelativeY) then
-          PositionRelativeY := Low(PositionRelativeY) else
-          PositionRelativeY := Succ(PositionRelativeY);
+        begin
+          if PositionRelativeY = High(PositionRelativeY) then
+            PositionRelativeY := Low(PositionRelativeY) else
+            PositionRelativeY := Succ(PositionRelativeY);
+          FixItemsAreas(LastWindowWidth, LastWindowHeight);
+        end;
       CtrlD:
         InfoWrite(Format(
           'Position := Vector2Single(%f, %f);' +nl+
