@@ -151,7 +151,7 @@ type
 
 implementation
 
-uses BFNT_BitstreamVeraSans_Unit, VectorMath;
+uses BFNT_BitstreamVeraSans_Unit, VectorMath, KambiLog;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -210,6 +210,9 @@ procedure TTimeMessagesManager.Show(s: TStrings);
 
 var broken: TStringList;
 begin
+ if Log then
+   WriteLog('Time message', S.Text);
+
  if DisplayPixelWidth > 0 then
  begin
   broken := TStringList.Create;

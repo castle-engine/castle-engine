@@ -74,6 +74,8 @@ type
 
 implementation
 
+uses SysUtils, KambiUtils, KambiStringUtils, KambiLog;
+
 procedure TShadowVolumesHelper.InitGL;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
@@ -87,6 +89,13 @@ begin
     FStencilOpIncrWrap := GL_INCR;
     FStencilOpDecrWrap := GL_DECR;
   end;
+
+  if Log then
+    WritelnLogMultiline('Shadow volumes initialization',
+      Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
+             'glStencilOpSeparate available: %s',
+            [ BoolToStr[WrapAvailable],
+              BoolToStr[glStencilOpSeparate <> nil] ]));
 end;
 
 procedure TShadowVolumesHelper.FrustumCullingInit(

@@ -342,14 +342,13 @@ type
   TGLWinMessageNotify = procedure(Text: TStringList);
 
 var
-  { If non-nil, this will be notified about every MessageXxx call.
-    You can use this e.g. for logging purposes etc. }
+  { If non-nil, this will be notified about every MessageXxx call. }
   OnGLWinMessage: TGLWinMessageNotify;
 
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, IntRects, Keys;
+  KambiClassUtils, SysUtils, GLWinModes, IntRects, Keys, KambiLog;
 
 const
   DrawMessg_BoxMargin = 10;
@@ -922,6 +921,9 @@ var messageData: TMessageData;
 begin
   if Assigned(OnGLWinMessage) then
     OnGLWinMessage(TextList);
+
+  if Log then
+    WritelnLogMultiline('GLWinMessage', TextList.Text);
 
  {1 faza :
    Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.

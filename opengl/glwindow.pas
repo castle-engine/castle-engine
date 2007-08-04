@@ -2755,7 +2755,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit
+uses ParseParametersUnit, KambiLog
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
@@ -2894,6 +2894,9 @@ begin
   {$else}
   LoadAllExtenstions;
   {$endif}
+
+  if Log then
+    WritelnLogMultiline('OpenGL context initialization', GLCapsString);
 
   { zsynchronizuj glViewport z naszymi Width/Height (bo one moga sie roznic od
     rzeczywistych rozmiarow okienka) }

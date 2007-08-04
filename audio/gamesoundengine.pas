@@ -239,6 +239,7 @@ type
 
     { If ALActive, then will append some info about current OpenAL used. }
     procedure AppendALInformation(S: TStrings);
+    function ALInformation: string;
 
     { Play given sound. This should be used to play sounds
       that are not spatial actually, i.e. have no place in 3D space.
@@ -382,7 +383,7 @@ implementation
 
 uses ProgressUnit, ALUtils,
   KambiFilesUtils, DOM, XMLRead, KambiXMLUtils,
-  SoundFile, VorbisFile, KambiStringUtils, KambiTimeUtils;
+  SoundFile, VorbisFile, KambiStringUtils, KambiTimeUtils, KambiLog;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -480,6 +481,10 @@ begin
       raise;
     end;
   end;
+
+  if Log then
+    WritelnLogMultiline('Sound initialization',
+      SoundInitializationReport + nl + ALInformation);
 end;
 
 procedure TGameSoundEngine.ALContextClose;
@@ -625,6 +630,17 @@ begin
     S.Append('OggVorbis handling method: ' + TSoundOggVorbis.VorbisMethod);
     S.Append('vorbisfile library available: ' + BoolToStr[VorbisFileInited]);
   end;
+end;
+
+function TGameSoundEngine.ALInformation: string;
+var
+  S: TStringList;
+begin
+  S := TStringList.Create;
+  try
+    AppendALInformation(S);
+    Result := S.Text;
+  finally S.Free end;
 end;
 
 procedure TGameSoundEngine.ReadSoundInfos;
