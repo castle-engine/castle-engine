@@ -1,4 +1,3 @@
-
 {
   Copyright 2006,2007 Michalis Kamburelis.
 
