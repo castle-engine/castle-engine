@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -83,6 +83,8 @@ begin
   robimy faktyczne VideoChange tylko jezeli VideoResize. }
  if not VideoResize then exit(true);
 
+ InitializeXDisplay;
+
  {TESTOWE:}
 { XF86VidModeQueryVersion(XDisplay, @vidModeMajorVersion,
    @vidModeMinorVersion);
@@ -142,6 +144,8 @@ end;
 
 function TGLWindowsManager.ScreenWidth: integer;
 begin
+ InitializeXDisplay;
+
  { jezeli VideoModeChanged to nie chcemy uzywac rozmiarow screenu (bo wtedy
    po utworzeniu okienka fullscreen mielibysmy okno o wymiarach np. 800x600
    na ekranie 640x480. Po tym oknie musielibysmy sie przewijac myszka.
@@ -155,6 +159,8 @@ end;
 
 function TGLWindowsManager.ScreenHeight: integer;
 begin
+ InitializeXDisplay;
+
  if VideoModeChanged and (not UseVirtualXScreen) then
   result := CurrentModeInfo.vdisplay else
   result := XDisplayHeight(XDisplay, XScreen);

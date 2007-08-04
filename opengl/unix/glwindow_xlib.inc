@@ -59,9 +59,14 @@ private
   function ActiveWindowXID(seekWindowXID: TWindow): TGLWindow;
   procedure SetXDisplayName(const Value: string);
 
-  { Check XDisplay.
+  InitializeXDisplayDone: boolean;
+
+  { Check XDisplay. Call this once you're sure that XDisplay is set to
+    value desired by used now.
+
     And since we know now that XDisplay is OK, we initialize some
-    things: XScreen, check for glx extension, get WM_DELETE_WINDOW.
+    things: XScreen, check for glx extension, get WM_DELETE_WINDOW
+    (we do it actually only if this was run for the 1st time).
     These things actually have be done only once, after XDisplay selection.
     But note that this can't be called in SetXDisplayName automatically.
 
@@ -569,12 +574,17 @@ begin
     raise ECheckFailed.Create('XOpenDisplay could not open display "' +
       XDisplayName + '"');
 
-  FXScreen := XDefaultScreen(XDisplay);
+  if not InitializeXDisplayDone then
+  begin
+    FXScreen := XDefaultScreen(XDisplay);
 
-  Check( glXQueryExtension(XDisplay, nil, nil),
-    'X server has no glX extension (needed to run OpenGL-based programs)');
+    Check( glXQueryExtension(XDisplay, nil, nil),
+      'X server has no glX extension (needed to run OpenGL-based programs)');
 
-  wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
+    wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
+
+    InitializeXDisplayDone := true;
+  end;
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;
