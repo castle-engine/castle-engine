@@ -680,6 +680,15 @@ procedure glVertexv(const v: TVector4f); overload;
 procedure glVertexv(const v: TVector4i); overload;
 procedure glVertexv(const v: TVector4s); overload;
 
+procedure glVertexv(const v: TVector2_Double); overload;
+procedure glVertexv(const v: TVector2_Single); overload;
+
+procedure glVertexv(const v: TVector3_Double); overload;
+procedure glVertexv(const v: TVector3_Single); overload;
+
+procedure glVertexv(const v: TVector4_Double); overload;
+procedure glVertexv(const v: TVector4_Single); overload;
+
 procedure glTexCoordv(const v: TVector1d); overload;
 procedure glTexCoordv(const v: TVector1f); overload;
 procedure glTexCoordv(const v: TVector1i); overload;
@@ -1789,6 +1798,15 @@ procedure glTranslatev(const V: TVector3_Double); begin glTranslated(V.Data[0], 
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); begin glRotated(Angle, V[0], V[1], V[2]); end;
+
+procedure glVertexv(const v: TVector2_Double);  begin glVertex2dv(@v.Data); end;
+procedure glVertexv(const v: TVector2_Single);  begin glVertex2fv(@v.Data); end;
+
+procedure glVertexv(const v: TVector3_Double);  begin glVertex3dv(@v.Data); end;
+procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
+
+procedure glVertexv(const v: TVector4_Double);  begin glVertex4dv(@v.Data); end;
+procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 

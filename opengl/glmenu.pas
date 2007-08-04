@@ -38,7 +38,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, OpenGLh;
+  GLWindow, OpenGLh, Matrix;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -246,18 +246,65 @@ type
     function ValueToStr(const AValue: Integer): string; virtual;
   end;
 
-  { How TGLMenu.Position will be interpreted. }
+  { How TGLMenu.Position will be interpreted.
+
+    This type is used for two cases:
+    @orderedList(
+
+      @item(PositionRelativeMenu: specifies (for X or Y)
+        what point of menu area is affected by Position value.
+        In this case,
+        @unorderedList(
+          @itemSpacing Compact
+          @item(prLowerBorder means that we want to
+            align left (or bottom) border of the menu area,)
+          @item(prMiddle means that we want to align middle of the menu area,)
+          @item(prHigherBorder means that we want to align right
+            (or top) border of the menu area.))
+      )
+
+      @item(PositionRelativeScreen: somewhat analogous.
+        But specifies relative to which @italic(screen edge) we align.
+        So
+        @unorderedList(
+          @itemSpacing Compact
+          @item(prLowerBorder means that we want to
+            align relative to left (or bottom) border of the screen,)
+          @item(prMiddle means that we want to align relative to the middle
+            of the screen,)
+          @item(prHigherBorder means that we want to align relative to the
+            right (or top) border of the screen.))
+      )
+    )
+
+    This may sound complicated, but it gives you complete
+    control over the menu position, so that it will look good on all
+    window sizes. In most common examples, both PositionRelativeMenu
+    and PositionRelativeScreen are equal, so
+
+    @unorderedList(
+      @item(If both are prLowerBorder, then Position specifies position
+        of left/lower menu border relative to left/lower screen border.
+        Position should always be >= 0 is such cases,
+        otherwise there is no way for the menu to be completely visible.)
+      @item(If both are prMiddle, then the Position (most often just 0, 0
+        in this case) specifies the shift between screen middle to
+        menu area middle. If Position is zero, then menu is just in the
+        middle of the screen.)
+      @item(If both are prHigherBorder, then Position specifies position
+        of right/top menu border relative to right/top screen border.
+        Position should always be <= 0 is such cases,
+        otherwise there is no way for the menu to be completely visible.)
+    )
+
+    In TGLMenu.DesignerMode you can see a line connecting the appropriate
+    screen position (from PositionRelativeScreen) to the appropriate
+    menu position (from PositionRelativeMenu) and you can experiment
+    with these settings.
+  }
   TPositionRelative = (
-    { Position coordinate specifies position of the lower (or left,
-      depending whether it's applied to PositionRelativeX or PositionRelativeY)
-      border of the menu. }
     prLowerBorder,
-    { Position coordinate = 0 means that menu will be in the middle
-      of the screen. Other positions will move menu appropriately
-      --- higher values to the up (or right), lower to the down (or left). }
     prMiddle,
-    { Position coordinate specifies position of the upper (or right)
-      border of the menu. }
     prHigherBorder);
 
   { A menu displayed in OpenGL.
@@ -273,9 +320,11 @@ type
   private
     FItems: TStringList;
     FCurrentItem: Integer;
-    FPosition: TVector2Single;
-    FPositionRelativeX: TPositionRelative;
-    FPositionRelativeY: TPositionRelative;
+    FPosition: TVector2_Single;
+    FPositionRelativeMenuX: TPositionRelative;
+    FPositionRelativeMenuY: TPositionRelative;
+    FPositionRelativeScreenX: TPositionRelative;
+    FPositionRelativeScreenY: TPositionRelative;
     FAreas: TDynAreaArray;
     FAccessoryAreas: TDynAreaArray;
     FAllItemsArea: TArea;
@@ -298,20 +347,67 @@ type
     ItemAccessoryGrabbed: Integer;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
+
+    FDesignerModeWindow: TGLWindow;
     FDesignerMode: boolean;
+    procedure SetDesignerMode(const Value: boolean);
+
     LastWindowWidth, LastWindowHeight: Cardinal;
+    FPositionAbsolute,
+      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
   public
+    { @noAutoLinkHere }
     constructor Create;
+    { @noAutoLinkHere }
     destructor Destroy; override;
 
-    { Position of the lower-left corner of the menu. }
-    property Position: TVector2Single read FPosition write FPosition;
+    { Position of the menu. Expressed as position of some corner of the menu
+      (see PositionRelativeMenuX/Y), relative to some corner of the
+      screen (see PositionRelativeScreenX/Y).
 
-    property PositionRelativeX: TPositionRelative
-      read FPositionRelativeX write FPositionRelativeX default prMiddle;
+      See TPositionRelative documentation for more information.
 
-    property PositionRelativeY: TPositionRelative
-      read FPositionRelativeY write FPositionRelativeY default prMiddle;
+      You may be interested in DesignerMode for a possibility to set
+      this property at run-time.
+
+      @noAutoLinkHere }
+    property Position: TVector2_Single read FPosition write FPosition;
+
+    { See TPositionRelative documentation for meaning of these four
+      PositionRelativeXxx properties.
+      @groupBegin }
+    property PositionRelativeMenuX: TPositionRelative
+      read FPositionRelativeMenuX write FPositionRelativeMenuX
+      default prMiddle;
+
+    property PositionRelativeMenuY: TPositionRelative
+      read FPositionRelativeMenuY write FPositionRelativeMenuY
+      default prMiddle;
+
+    property PositionRelativeScreenX: TPositionRelative
+      read FPositionRelativeScreenX write FPositionRelativeScreenX
+      default prMiddle;
+
+    property PositionRelativeScreenY: TPositionRelative
+      read FPositionRelativeScreenY write FPositionRelativeScreenY
+      default prMiddle;
+    { @groupEnd }
+
+    { PositionAbsolute expresses the position of the menu area
+      independently from all PositionRelative* properties.
+      You can think of it as "What value would Position have
+      if all PositionRelative* were equal prLowerBorder".
+
+      An easy exercise for the reader is to check implementation that when
+      all PositionRelative* are prLowerBorder, PositionAbsolute is indeed
+      always equal to Position :)
+
+      This is read-only, is calculated by FixItemsAreas.
+      It's calculated anyway because out drawing code needs this.
+      You may find it useful if you want to draw something relative to menu
+      position. }
+    property PositionAbsolute: TVector2_Single
+      read FPositionAbsolute;
 
     { Items of this menu.
 
@@ -335,9 +431,12 @@ type
 
     { These change CurrentItem as appropriate.
       Usually you will just let this class call it internally
-      (from MouseMove, KeyDown etc.) and will not need to call it yourself. }
+      (from MouseMove, KeyDown etc.) and will not need to call it yourself.
+
+      @groupBegin }
     procedure NextItem;
     procedure PreviousItem;
+    { @groupEnd }
 
     { Release things associated with OpenGL context.
       This will be also automatically called from destructor. }
@@ -456,6 +555,9 @@ type
     { "Designer mode" is useful for a developer to visually design
       some properties of TGLMenu.
 
+      Note that you have to set DesignerModeWindow before setting this
+      to @true, we need DesignerModeWindow for some operations.
+
       By default, we're not in designer mode,
       and user has @italic(no way to enter into designer mode).
       You have to actually add some code to your program to activate
@@ -466,15 +568,28 @@ type
       Right now, features of designer mode:
       @unorderedList(
         @item(Mouse move change Position to current mouse position.)
-        @item(Key CtrlX switches between various PositionRelativeX values,
-          key CtrlY switches between various PositionRelativeX values.)
+        @item(PositionRelative changing:
+          @unorderedList(
+            @itemSpacing Compact
+            @item Key X     changes PositionRelativeScreenX value,
+            @item key Y     changes PositionRelativeScreenY value,
+            @item Key CtrlX changes PositionRelativeMenuX values,
+            @item Key CtrlY changes PositionRelativeMenuY values.
+          )
+          Also, a white line is drawn in designer mode, to indicate
+          the referenced screen and menu positions.)
         @item(CtrlB toggles DrawBackgroundRectangle.)
-        @item(Key CtrlD dumps current position values to StdOut
-          (this is useful if you decide that you want to actually use them
-          and paste them to your code.))
+        @item(Key CtrlD dumps current properties to StdOut.
+          Basically, every property that can be changed from designer mode
+          is dumped here. This is crucial function if you decide that
+          you want to actually use the designed properties in your program,
+          so you want to paste code setting such properties.)
       ) }
     property DesignerMode: boolean
-      read FDesignerMode write FDesignerMode default false;
+      read FDesignerMode write SetDesignerMode default false;
+
+    property DesignerModeWindow: TGLWindow
+      read FDesignerModeWindow write FDesignerModeWindow;
   end;
 
 var
@@ -503,8 +618,9 @@ var
     files. It should return a path, terminated with final PathDelim.
     Currently, it's used to search for files
     @unorderedList(
-      @list menu_slider.png
-      @list menu_slider_position.png
+      @itemSpacing Compact
+      @item menu_slider.png
+      @item menu_slider_position.png
     )
 
     If it's not assigned, we'll use the path
@@ -890,8 +1006,10 @@ begin
   FAreas := TDynAreaArray.Create;
   FAccessoryAreas := TDynAreaArray.Create;
 
-  FPositionRelativeX := prMiddle;
-  FPositionRelativeY := prMiddle;
+  FPositionRelativeMenuX := prMiddle;
+  FPositionRelativeMenuY := prMiddle;
+  FPositionRelativeScreenX := prMiddle;
+  FPositionRelativeScreenY := prMiddle;
 
   KeyNextItem := DefaultGLMenuKeyNextItem;
   KeyPreviousItem := DefaultGLMenuKeyPreviousItem;
@@ -985,7 +1103,6 @@ const
 var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Single;
-  PositionXMove, PositionYMove: Single;
 begin
   LastWindowWidth := WindowWidth;
   LastWindowHeight := WindowHeight;
@@ -1034,35 +1151,54 @@ begin
       MenuFont.Descend + MenuFont.RowHeight));
   end;
 
-  { Now take into account Position, PositionRelativeX and PositionRelativeY,
-    and calculate PositionXMove, PositionYMove }
+  { Now take into account Position, PositionRelative*
+    and calculate PositionAbsolute.
 
-  case PositionRelativeX of
-    prLowerBorder: PositionXMove := Position[0];
-    prMiddle: PositionXMove :=
-      Position[0] + (WindowWidth - FAllItemsArea.Width) / 2;
-    prHigherBorder: PositionXMove := Position[0] - FAllItemsArea.Width;
-    else raise EInternalError.Create('PositionRelativeX = ?');
+    By the way, we also calculate PositionScreenRelativeMove
+    and PositionMenuRelativeMove, but you don't have to worry about them
+    too much, they are only for DesignerMode to visualize current
+    PositionRelative* meaning. }
+
+  case PositionRelativeScreenX of
+    prLowerBorder : PositionScreenRelativeMove.Data[0] := 0;
+    prMiddle      : PositionScreenRelativeMove.Data[0] := WindowWidth div 2;
+    prHigherBorder: PositionScreenRelativeMove.Data[0] := WindowWidth;
+    else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
-  case PositionRelativeY of
-    prLowerBorder: PositionYMove := Position[1];
-    prMiddle: PositionYMove :=
-      Position[1] + (WindowHeight - FAllItemsArea.Height) / 2;
-    prHigherBorder: PositionYMove := Position[1] - FAllItemsArea.Height;
-    else raise EInternalError.Create('PositionRelativeY = ?');
+  case PositionRelativeScreenY of
+    prLowerBorder : PositionScreenRelativeMove.Data[1] := 0;
+    prMiddle      : PositionScreenRelativeMove.Data[1] := WindowHeight div 2;
+    prHigherBorder: PositionScreenRelativeMove.Data[1] := WindowHeight;
+    else raise EInternalError.Create('PositionRelative* = ?');
   end;
+
+  case PositionRelativeMenuX of
+    prLowerBorder : PositionMenuRelativeMove.Data[0] := 0;
+    prMiddle      : PositionMenuRelativeMove.Data[0] := FAllItemsArea.Width / 2;
+    prHigherBorder: PositionMenuRelativeMove.Data[0] := FAllItemsArea.Width;
+    else raise EInternalError.Create('PositionRelative* = ?');
+  end;
+
+  case PositionRelativeMenuY of
+    prLowerBorder : PositionMenuRelativeMove.Data[1] := 0;
+    prMiddle      : PositionMenuRelativeMove.Data[1] := FAllItemsArea.Height / 2;
+    prHigherBorder: PositionMenuRelativeMove.Data[1] := FAllItemsArea.Height;
+    else raise EInternalError.Create('PositionRelative* = ?');
+  end;
+
+  FPositionAbsolute := Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
 
   { Calculate positions of all areas. }
 
   for I := 0 to Areas.High do
   begin
-    Areas.Items[I].X0 := PositionXMove + AllItemsAreaMargin;
-    Areas.Items[I].Y0 := PositionYMove + AllItemsAreaMargin
+    Areas.Items[I].X0 := PositionAbsolute.Data[0] + AllItemsAreaMargin;
+    Areas.Items[I].Y0 := PositionAbsolute.Data[1] + AllItemsAreaMargin
       + (Areas.High - I) * (MenuFont.RowHeight + Integer(SpaceBetweenItems));
   end;
-  FAllItemsArea.X0 := PositionXMove;
-  FAllItemsArea.Y0 := PositionYMove;
+  FAllItemsArea.X0 := PositionAbsolute.Data[0];
+  FAllItemsArea.Y0 := PositionAbsolute.Data[1];
 
   { Calculate FAccessoryAreas[].X0, Y0, Height }
   for I := 0 to Areas.High do
@@ -1090,6 +1226,16 @@ begin
 end;
 
 procedure TGLMenu.Draw;
+
+  procedure DrawPositionRelativeLine;
+  begin
+    glColorv(White3Single);
+    glBegin(GL_LINES);
+      glVertexv(PositionScreenRelativeMove);
+      glVertexv(PositionAbsolute + PositionMenuRelativeMove);
+    glEnd();
+  end;
+
 const
   CurrentItemBorderMargin = 5;
 var
@@ -1132,6 +1278,9 @@ begin
     if Items.Objects[I] <> nil then
       TGLMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryAreas.Items[I]);
   end;
+
+  if DesignerMode then
+    DrawPositionRelativeLine;
 end;
 
 procedure TGLMenu.KeyDown(Key: TKey; C: char);
@@ -1144,6 +1293,54 @@ procedure TGLMenu.KeyDown(Key: TKey; C: char);
         Key, C, Self);
     end;
   end;
+
+  procedure IncPositionRelative(var P: TPositionRelative);
+  var
+    OldChange, NewChange: TVector2_Single;
+  begin
+    { We want to change P, but preserve PositionAbsolute.
+      I.e. we want to change P, but also adjust Position such that
+      resulting PositionAbsolute will stay the same. This is very comfortable
+      for user is DesignerMode that wants often to change some
+      PositionRelative, but wants to preserve current menu position
+      (as visible on the screen currently) the same.
+
+      Key is the equation
+        PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
+      The part that changes when P changes is
+        (PositionScreenRelativeMove - PositionMenuRelativeMove)
+      Currently it's equal OldChange. So
+        PositionAbsolute = Position + OldChange
+      After P changes and FixItemsAreas does it's work, it's NewChange. So it's
+        PositionAbsolute = Position + NewChange;
+      But I want PositionAbsolute to stay the same. So I add (OldChange - NewChange)
+      to the equation after:
+        PositionAbsolute = Position + (OldChange - NewChange) + NewChange;
+      This way PositionAbsolute will stay the same. So
+        NewPosition := Position + (OldChange - NewChange); }
+    OldChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
+
+    if P = High(P) then
+      P := Low(P) else
+      P := Succ(P);
+
+    { Call FixItemsAreas only to set new
+      PositionScreenRelativeMove - PositionMenuRelativeMove. }
+    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+
+    NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
+    Position := Position + OldChange - NewChange;
+
+    { Call FixItemsAreas once again, since Position changed. }
+    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+  end;
+
+const
+  PositionRelativeName: array [TPositionRelative] of string =
+  ( 'prLowerBorder',
+    'prMiddle',
+    'prHigherBorder' );
+  BooleanToStr: array [boolean] of string=('false','true');
 
 begin
   if Key = KeyPreviousItem then
@@ -1162,35 +1359,46 @@ begin
     case C of
       CtrlB:
         DrawBackgroundRectangle := not DrawBackgroundRectangle;
-      CtrlX:
-        begin
-          if PositionRelativeX = High(PositionRelativeX) then
-            PositionRelativeX := Low(PositionRelativeX) else
-            PositionRelativeX := Succ(PositionRelativeX);
-          FixItemsAreas(LastWindowWidth, LastWindowHeight);
-        end;
-      CtrlY:
-        begin
-          if PositionRelativeY = High(PositionRelativeY) then
-            PositionRelativeY := Low(PositionRelativeY) else
-            PositionRelativeY := Succ(PositionRelativeY);
-          FixItemsAreas(LastWindowWidth, LastWindowHeight);
-        end;
+      'x': IncPositionRelative(PositionRelativeScreenX);
+      'y': IncPositionRelative(PositionRelativeScreenY);
+      CtrlX: IncPositionRelative(PositionRelativeMenuX);
+      CtrlY: IncPositionRelative(PositionRelativeMenuY);
       CtrlD:
         InfoWrite(Format(
           'Position := Vector2Single(%f, %f);' +nl+
-          'PositionRelativeX := %d;' +nl+
-          'PositionRelativeY := %d;' +nl+
+          'PositionRelativeScreenX := %s;' +nl+
+          'PositionRelativeScreenY := %s;' +nl+
+          'PositionRelativeMenuX := %s;' +nl+
+          'PositionRelativeMenuY := %s;' +nl+
           'DrawBackgroundRectangle := %s;',
-          [ Position[0], Position[1],
-            PositionRelativeX, PositionRelativeY,
-            BoolToStr[DrawBackgroundRectangle] ]));
+          [ Position.Data[0],
+            Position.Data[1],
+            PositionRelativeName[PositionRelativeScreenX],
+            PositionRelativeName[PositionRelativeScreenY],
+            PositionRelativeName[PositionRelativeMenuX],
+            PositionRelativeName[PositionRelativeMenuY],
+            BooleanToStr[DrawBackgroundRectangle] ]));
     end;
   end;
 end;
 
 procedure TGLMenu.MouseMove(const NewX, NewY: Single;
   const MousePressed: TMouseButtons);
+
+  procedure ChangePosition;
+  var
+    NewPositionAbsolute: TVector2_Single;
+  begin
+    NewPositionAbsolute.Init(NewX, NewY);
+    { I want Position set such that (NewX, NewY) are lower/left corner
+      of menu area. I know that
+        PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
+      (NewX, NewY) are new PositionAbsolute, so I can calculate from
+      this new desired Position value. }
+    Position := NewPositionAbsolute - PositionScreenRelativeMove + PositionMenuRelativeMove;
+    FixItemsAreas(LastWindowWidth, LastWindowHeight);
+  end;
+
 var
   NewItemIndex: Integer;
 begin
@@ -1211,10 +1419,7 @@ begin
   end;
 
   if DesignerMode then
-  begin
-    Position := Vector2Single(NewX, NewY);
-    FixItemsAreas(LastWindowWidth, LastWindowHeight);
-  end;
+    ChangePosition;
 end;
 
 procedure TGLMenu.MouseDown(const MouseX, MouseY: Single; Button: TMouseButton;
@@ -1281,6 +1486,19 @@ end;
 procedure TGLMenu.SomethingChanged;
 begin
   { Nothing to do in this class. }
+end;
+
+procedure TGLMenu.SetDesignerMode(const Value: boolean);
+begin
+  if (not FDesignerMode) and Value then
+  begin
+    Assert(DesignerModeWindow <> nil, 'DesignerModeWindow not set');
+    DesignerModeWindow.SetMousePosition(
+      Round(PositionAbsolute.Data[0]),
+      DesignerModeWindow.Height - Round(PositionAbsolute.Data[1]));
+  end;
+
+  FDesignerMode := Value;
 end;
 
 end.
