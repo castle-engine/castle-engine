@@ -170,6 +170,7 @@ EXAMPLES_BASE_NAMES := \
   audio/examples/alplay \
   base/examples/demo_parseparameters \
   base/examples/demo_textreader \
+  base/examples/test_platform_specific_utils \
   base/examples/kambi_calc \
   images/examples/image_convert \
   images/tools/imageToPas \
