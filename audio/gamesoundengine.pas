@@ -49,8 +49,8 @@ type
 
 const
   { Special sound type that indicates that there is actually none sound.
-    @link(Sound) and @link(Sound3d) will do nothing when called with
-    this sound type. }
+    @link(TGameSoundEngine.Sound) and @link(TGameSoundEngine.Sound3d)
+    will do nothing when called with this sound type. }
   stNone = 0;
 
 type

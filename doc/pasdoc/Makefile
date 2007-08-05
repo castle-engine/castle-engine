@@ -1,0 +1,62 @@
+# Main targets to gen final docs ----------------------------------------
+
+.PHONY: default html htmlhelp pdf ps rtf latex
+
+# html and pdf are two most useful versions of documentation,
+# shown on [http://vrmlengine.sourceforge.net/sources_docs.php]
+default: html pdf
+
+html:
+	./mk_docs.sh html
+
+# Just some shortcuts to "Helpful targets" below
+pdf: latex/docs.pdf
+ps: latex/docs.ps
+rtf: latex2rtf/docs.rtf
+latex: latex/docs.tex
+
+# This is just for testing for now
+htmlhelp:
+	./mk_docs.sh htmlhelp
+
+# Helpful targets to gen docs ----------------------------------------
+
+latex2rtf/docs.tex:
+	./mk_docs.sh latex2rtf
+
+latex2rtf/docs.rtf: latex2rtf/docs.tex
+	cd latex2rtf; latex2rtf docs.tex
+
+latex/docs.tex:
+	./mk_docs.sh latex
+
+latex/docs.dvi: latex/docs.tex
+	-cd latex; latex-batch docs.tex
+	-cd latex; latex-batch docs.tex
+
+# At the end of pdf generating, we clean useless junk
+# (because it's quite large, and I may want to upload latex/
+# dir to WWW page of my units)
+latex/docs.pdf: latex/docs.tex
+	-cd latex; pdflatex-batch docs.tex
+	-cd latex; pdflatex-batch docs.tex
+	rm -f latex/docs.aux \
+	      latex/docs.log \
+	      latex/docs.out \
+	      latex/docs.toc
+
+latex/docs.ps: latex/docs.dvi
+	cd latex; dvips docs.dvi -o docs.ps
+
+# Cleaning ------------------------------------------------------------
+
+.PHONY: clean-cache clean
+
+clean-cache:
+	rm -fR cache/
+
+# docs.hhc docs.hhp docs.hhk are created when doing htmlhelp format
+clean: clean-cache
+	rm -Rf html/ latex/ latex2rtf/ htmlhelp/
+
+# eof ----------------------------------------
