@@ -559,8 +559,13 @@ type
     { "Designer mode" is useful for a developer to visually design
       some properties of TGLMenu.
 
-      Note that you have to set DesignerModeWindow before setting this
-      to @true, we need DesignerModeWindow for some operations.
+      Note that you can set DesignerModeWindow before setting this
+      to @true, then we will set mouse position when entering DesignerMode
+      to match current menu position. This is usually desirable (otherwise
+      slight mouse move will immediately change menu position).
+      This works assuming that you always call our Draw with identity
+      transform matrix (otherwise, this unit is not able to know how to
+      calculate mouse position corresponding to given menu PositionAbsolute).
 
       By default, we're not in designer mode,
       and user has @italic(no way to enter into designer mode).
@@ -1494,12 +1499,12 @@ end;
 
 procedure TGLMenu.SetDesignerMode(const Value: boolean);
 begin
-  if (not FDesignerMode) and Value then
+  if (not FDesignerMode) and Value and (DesignerModeWindow <> nil) then
   begin
-    Assert(DesignerModeWindow <> nil, 'DesignerModeWindow not set');
-    DesignerModeWindow.SetMousePosition(
-      Round(PositionAbsolute.Data[0]),
-      DesignerModeWindow.Height - Round(PositionAbsolute.Data[1]));
+    if not DesignerModeWindow.Closed then
+      DesignerModeWindow.SetMousePosition(
+        Round(PositionAbsolute.Data[0]),
+        DesignerModeWindow.Height - Round(PositionAbsolute.Data[1]));
   end;
 
   FDesignerMode := Value;
