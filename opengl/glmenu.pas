@@ -320,7 +320,6 @@ type
   private
     FItems: TStringList;
     FCurrentItem: Integer;
-    FPosition: TVector2_Single;
     FPositionRelativeMenuX: TPositionRelative;
     FPositionRelativeMenuY: TPositionRelative;
     FPositionRelativeScreenX: TPositionRelative;
@@ -370,8 +369,13 @@ type
       You may be interested in DesignerMode for a possibility to set
       this property at run-time.
 
+      Expressed as a public field (instead of a read-write property)
+      because assigning a field of record property is a risk in ObjectPascal
+      (you may be modifying only a temporary copy of the record returned
+      by property getter).
+
       @noAutoLinkHere }
-    property Position: TVector2_Single read FPosition write FPosition;
+    Position: TVector2_Single;
 
     { See TPositionRelative documentation for meaning of these four
       PositionRelativeXxx properties.
@@ -1365,7 +1369,7 @@ begin
       CtrlY: IncPositionRelative(PositionRelativeMenuY);
       CtrlD:
         InfoWrite(Format(
-          'Position := Vector2Single(%f, %f);' +nl+
+          'Position.Init(%f, %f);' +nl+
           'PositionRelativeScreenX := %s;' +nl+
           'PositionRelativeScreenY := %s;' +nl+
           'PositionRelativeMenuX := %s;' +nl+

@@ -39,6 +39,11 @@
   aby odwolywac sie do odpowiednich typow.
 }
 
+operator := (const V: TYPE_VECTOR2_OBJECT): TYPE_VECTOR2;
+begin
+  Result := V.Data;
+end;
+
 operator := (const V: TYPE_VECTOR3_OBJECT): TYPE_VECTOR3;
 begin
   Result := V.Data;
@@ -47,6 +52,11 @@ end;
 operator := (const V: TYPE_VECTOR4_OBJECT): TYPE_VECTOR4;
 begin
   Result := V.Data;
+end;
+
+operator := (const V: TYPE_VECTOR2): TYPE_VECTOR2_OBJECT;
+begin
+  Result.Data := V;
 end;
 
 operator := (const V: TYPE_VECTOR3): TYPE_VECTOR3_OBJECT;

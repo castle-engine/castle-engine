@@ -638,8 +638,10 @@ function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 {$ifdef FPC}
 { Overload := operator to allow convertion between
   Matrix unit objects and this unit's arrays easy. }
+operator := (const V: TVector2_Single): TVector2Single;
 operator := (const V: TVector3_Single): TVector3Single;
 operator := (const V: TVector4_Single): TVector4Single;
+operator := (const V: TVector2Single): TVector2_Single;
 operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
 {$endif}
@@ -2279,6 +2281,7 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_VECTOR2_OBJECT := TVector2_Single}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Single}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Single}
 {$I vectormath_dualimplementation_beforeinlines.inc}
@@ -2293,6 +2296,7 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_VECTOR2_OBJECT := TVector2_Double}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Double}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Double}
 {$I vectormath_dualimplementation_beforeinlines.inc}
@@ -2312,6 +2316,7 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
 {$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define TYPE_VECTOR2_OBJECT := TVector2_Single}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Single}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Single}
 {$I vectormath_dualimplementation.inc}
@@ -2329,6 +2334,7 @@ end;
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
 {$define IDENTITY_MATRIX := IdentityMatrix4Double}
+{$define TYPE_VECTOR2_OBJECT := TVector2_Double}
 {$define TYPE_VECTOR3_OBJECT := TVector3_Double}
 {$define TYPE_VECTOR4_OBJECT := TVector4_Double}
 {$I vectormath_dualimplementation.inc}
