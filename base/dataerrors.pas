@@ -47,7 +47,7 @@ var
   { Used to report non-fatal errors. Should always be non-nil
     (assign DataNonFatalError_Ignore if you want to ignore warnings). }
   DataNonFatalError: TDataNonFatalErrorProc =
-    @DataNonFatalError_Ignore;
+    {$ifdef FPC_OBJFPC} @ {$endif} DataNonFatalError_Ignore;
 
 implementation
 
