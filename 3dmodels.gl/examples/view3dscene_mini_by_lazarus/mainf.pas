@@ -34,6 +34,8 @@ type
     MainMenu1: TMainMenu;
     MenuFile: TMenuItem;
     MenuFocusGLControl: TMenuItem;
+    MenuHelp: TMenuItem;
+    MenuAboutOpenGL: TMenuItem;
     MenuItemView: TMenuItem;
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
@@ -50,6 +52,7 @@ type
     procedure EditGLControlFocusKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure GLControlGLContextClose(Sender: TObject);
     procedure GLControlGLContextInit(Sender: TObject);
+    procedure MenuAboutOpenGLClick(Sender: TObject);
     procedure MenuFocusGLControlClick(Sender: TObject);
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
@@ -74,8 +77,8 @@ implementation
 
 uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
   OpenGLh, KambiClassUtils, KambiUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLFlatScene,
-  KambiFilesUtils;
+  KambiGLUtils, VRMLFlatScene, KambiFilesUtils,
+  OpenGLInformation;
 
 procedure TMain.OpenScene(const FileName: string);
 var
@@ -125,6 +128,11 @@ begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   GLControl.Resize;
+end;
+
+procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
+begin
+  TOpenGLInformation.Execute;
 end;
 
 procedure TMain.MenuFocusGLControlClick(Sender: TObject);

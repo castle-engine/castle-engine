@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, MatrixNavigation, Controls,
-  VectorMath, Keys, KambiUtils;
+  VectorMath, Keys, KambiUtils, KambiTimeUtils;
 
 type
   { This adds some comfortable things to TOpenGLControl.
@@ -42,7 +42,7 @@ type
     FOnGLContextClose: TNotifyEvent;
     
     LastIdleStartTimeInited: boolean;
-    LastIdleStartTime: TPerfTimerResult;
+    LastIdleStartTime: TKamTimerResult;
   protected
     procedure DestroyHandle; override;
     
@@ -143,9 +143,6 @@ begin
   inherited;
   UseNavigator := true;
   OwnsNavigator := false;
-
-  { Needed by NavigatorIdle }
-  Check( PerfTimerInit, 'performance timer not supported on this hardware');
 end;
 
 destructor TKamOpenGLControl.Destroy;
@@ -394,12 +391,15 @@ end;
 procedure TKamOpenGLControl.NavigatorIdle;
 var
   FIdleCompSpeed: Single;
+  NewLastIdleStartTime: TKamTimerFrequency;
 begin
   { update FIdleCompSpeed, LastIdleStartTimeInited, LastIdleStartTime }
+  NewLastIdleStartTime := KamTimer;
   if LastIdleStartTimeInited then
-    FIdleCompSpeed:= ((PerfTime - LastIdleStartTime) / PerfTimerFreq) * 50 else
+    FIdleCompSpeed:= ((NewLastIdleStartTime - LastIdleStartTime) /
+      KamTimerFrequency) * 50 else
     FIdleCompSpeed:= 1.0; { just init IdleCompSpeed to some sensible default }
-  LastIdleStartTime := PerfTime;
+  LastIdleStartTime := NewLastIdleStartTime;
   LastIdleStartTimeInited := true;
 
   if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then

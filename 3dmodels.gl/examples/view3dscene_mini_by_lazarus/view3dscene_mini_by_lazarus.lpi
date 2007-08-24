@@ -37,14 +37,14 @@
         <MinVersion Valid="True"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="10">
+    <Units Count="11">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="view3dscene_mini_by_lazarus"/>
-        <CursorPos X="1" Y="14"/>
+        <CursorPos X="45" Y="16"/>
         <TopLine Value="1"/>
-        <UsageCount Value="32"/>
+        <UsageCount Value="33"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -52,10 +52,10 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="97" Y="92"/>
-        <TopLine Value="70"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="32"/>
+        <UsageCount Value="33"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -71,8 +71,8 @@
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="46" Y="576"/>
-        <TopLine Value="557"/>
+        <CursorPos X="46" Y="585"/>
+        <TopLine Value="571"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
@@ -90,14 +90,14 @@
         <UsageCount Value="10"/>
       </Unit5>
       <Unit6>
-        <Filename Value="/home/michal/sources/lazarus/0.9.20/lazarus/components/opengl/openglcontext.pas"/>
+        <Filename Value="../../../../../../../../michal/sources/lazarus/0.9.20/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
         <CursorPos X="23" Y="147"/>
         <TopLine Value="100"/>
         <UsageCount Value="10"/>
       </Unit6>
       <Unit7>
-        <Filename Value="/home/michal/sources/lazarus/0.9.20/lazarus/lcl/controls.pp"/>
+        <Filename Value="../../../../../../../../michal/sources/lazarus/0.9.20/lazarus/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
         <CursorPos X="25" Y="1090"/>
         <TopLine Value="1066"/>
@@ -117,20 +117,38 @@
         <TopLine Value="172"/>
         <UsageCount Value="10"/>
       </Unit9>
+      <Unit10>
+        <Filename Value="openglinformation.pas"/>
+        <ComponentName Value="OpenGLInformation"/>
+        <IsPartOfProject Value="True"/>
+        <ResourceFilename Value="openglinformation.lrs"/>
+        <UnitName Value="OpenGLInformation"/>
+        <CursorPos X="30" Y="36"/>
+        <TopLine Value="18"/>
+        <UsageCount Value="21"/>
+      </Unit10>
     </Units>
-    <JumpHistory Count="3" HistoryIndex="2">
+    <JumpHistory Count="5" HistoryIndex="4">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="281" Column="91" TopLine="269"/>
+        <Caret Line="92" Column="97" TopLine="70"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="96" Column="54" TopLine="72"/>
+        <Caret Line="37" Column="13" TopLine="36"/>
       </Position2>
       <Position3>
         <Filename Value="mainf.pas"/>
-        <Caret Line="102" Column="22" TopLine="72"/>
+        <Caret Line="55" Column="53" TopLine="54"/>
       </Position3>
+      <Position4>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="134" Column="30" TopLine="133"/>
+      </Position4>
+      <Position5>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="135" Column="3" TopLine="121"/>
+      </Position5>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

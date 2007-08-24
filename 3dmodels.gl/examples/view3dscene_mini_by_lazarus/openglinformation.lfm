@@ -1,0 +1,31 @@
+object OpenGLInformation: TOpenGLInformation
+  Left = 322
+  Height = 300
+  Top = 208
+  Width = 400
+  HorzScrollBar.Page = 399
+  VertScrollBar.Page = 299
+  Caption = 'OpenGL Information'
+  object ButtonClose: TButton
+    Left = 324
+    Height = 30
+    Top = 259
+    Width = 71
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.InnerBorder = 4
+    Caption = 'Zamknij'
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object MemoInfo: TMemo
+    Height = 248
+    Width = 400
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'Memo1'
+    )
+    ReadOnly = True
+    TabOrder = 1
+  end
+end

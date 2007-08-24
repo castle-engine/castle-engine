@@ -4,7 +4,7 @@ object Main: TMain
   Top = 45
   Width = 676
   HorzScrollBar.Page = 675
-  VertScrollBar.Page = 405
+  VertScrollBar.Page = 401
   ActiveControl = EditGLControlFocus
   Caption = 'Main'
   Menu = MainMenu1
@@ -12,7 +12,7 @@ object Main: TMain
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
   object GLControl: TKamOpenGLControl
-    Height = 266
+    Height = 262
     Width = 676
     Align = alClient
     OnPaint = GLControlPaint
@@ -22,7 +22,7 @@ object Main: TMain
   end
   object PanelBottom: TPanel
     Height = 140
-    Top = 266
+    Top = 262
     Width = 676
     Align = alBottom
     TabOrder = 1
@@ -36,27 +36,27 @@ object Main: TMain
       TabOrder = 0
       object Label1: TLabel
         Left = 9
-        Height = 13
+        Height = 17
         Top = 7
-        Width = 48
+        Width = 62
         Caption = 'Position:'
         Color = clNone
         ParentColor = False
       end
       object Label2: TLabel
         Left = 9
-        Height = 13
+        Height = 17
         Top = 40
-        Width = 54
+        Width = 68
         Caption = 'Direction:'
         Color = clNone
         ParentColor = False
       end
       object Label3: TLabel
         Left = 9
-        Height = 13
+        Height = 17
         Top = 72
-        Width = 19
+        Width = 26
         Caption = 'Up:'
         Color = clNone
         ParentColor = False
@@ -171,6 +171,13 @@ object Main: TMain
       object MenuFocusGLControl: TMenuItem
         Caption = 'Switch focus to 3D area'
         OnClick = MenuFocusGLControlClick
+      end
+    end
+    object MenuHelp: TMenuItem
+      Caption = 'Help'
+      object MenuAboutOpenGL: TMenuItem
+        Caption = 'OpenGL information'
+        OnClick = MenuAboutOpenGLClick
       end
     end
   end
