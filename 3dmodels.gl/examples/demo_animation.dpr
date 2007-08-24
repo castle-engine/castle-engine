@@ -1,15 +1,24 @@
 { Demo of TVRMLGLAnimation class. In other words, this loads and displays
   animations of "Kambi VRML game engine".
 
+  If you're looking for example animation models,
+  see inside kanim/ subdirectory of
+  [http://vrmlengine.sourceforge.net/kanim_format.php].
+  If you're looking for a real, full-featured program to read
+  kanim animations, see
+  [http://vrmlengine.sourceforge.net/view3dscene.php].
+  This program is only a demo for a programmer to see how easy
+  it's to load animations in your own programs using our engine.
+
   1. Run this passing one command-line parameter:
      name of *.kanim file that describes the animation.
 
      Example commands:
-      ./demo_animation models/sphere.kanim
-      ./demo_animation models/raptor.kanim
-      ./demo_animation models/gus.kanim
-      ./demo_animation models/cube_opening.kanim
-      ./demo_animation models/gus3.kanim
+      ./demo_animation sphere.kanim
+      ./demo_animation raptor.kanim
+      ./demo_animation gus.kanim
+      ./demo_animation cube_opening.kanim
+      ./demo_animation gus3.kanim
 
   2. Alternatively, more "manual" method:
      Run this passing an even number of command-line parameters.
@@ -19,11 +28,11 @@
      then to the 3rd etc. to the last scene.
 
      Example command with two scenes:
-       ./demo_animation models/sphere_1.wrl 0 models/sphere_2.wrl 1
+       ./demo_animation sphere_1.wrl 0 sphere_2.wrl 1
      Example command with more scenes:
-       ./demo_animation models/gus_1_final.wrl 0 \
-                        models/gus_2_final.wrl 1 \
-                        models/gus_3_final.wrl 1.5 --backwards
+       ./demo_animation gus_1_final.wrl 0 \
+                        gus_2_final.wrl 1 \
+                        gus_3_final.wrl 1.5 --backwards
 
    Additional command-line options:
      --loop
@@ -37,13 +46,11 @@
    settings are loaded from this file. Otherwise, the default is
    --loop --no-backwards.
 
-  I prepared some sets of sample models in models/ subdirectory.
-
   This is all implemented in TVRMLGLAnimation class, see docs of this class
   for precise description how things work.
 
   You can navigate in the scene using the standard arrow keys, escape exits.
-  (for full list of supported keys -- see view3dscene documentation,
+  (for full list of supported keys --- see view3dscene documentation,
   [http://vrmlengine.sourceforge.net/view3dscene.php],
   at Walk navigation method).
   Space key restarts the animation (definitely useful if you passed
