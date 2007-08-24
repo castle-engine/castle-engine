@@ -427,6 +427,18 @@ type
       This calls TVRMLFlatSceneGL.ChangedAll on all Scenes[]
       and invalidates some cached things inside this class. }
     procedure ChangedAll;
+
+    { Returns some textual info about this animation.
+      Similar to TVRMLFlatSceneGL.Info. }
+    function Info(InfoTriVertCounts: boolean): string;
+
+    { Write contents of all VRML "Info" nodes.
+      Also write how many Info nodes there are in the scene.
+
+      Actually, this just calls WritelnInfoNodes on the FirstScene
+      --- thanks to the knowledge that all info nodes in all scenes
+      must be equal, since strings cannot be interpolated. }
+    procedure WritelnInfoNodes;
   end;
 
 implementation
@@ -1302,6 +1314,16 @@ begin
   for I := 0 to FScenes.High do
     FScenes[I].ChangedAll;
   ValidBoundingBoxSum := false;
+end;
+
+function TVRMLGLAnimation.Info(InfoTriVertCounts: boolean): string;
+begin
+  Result := FirstScene.Info(InfoTriVertCounts, false);
+end;
+
+procedure TVRMLGLAnimation.WritelnInfoNodes;
+begin
+  FirstScene.WritelnInfoNodes;
 end;
 
 end.
