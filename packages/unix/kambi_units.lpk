@@ -35,7 +35,8 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this unit, it's required by all other programs and packages that are part of Kambi VRML game engine."/>
+    <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this unit, it's required by all other programs and packages that are part of Kambi VRML game engine.
+"/>
     <License Value="GNU GPL >= 2
 "/>
     <Version Major="1"/>
@@ -469,7 +470,7 @@
       </Item1>
     </RequiredPkgs>
     <UsageOptions>
-      <IncludePath Value="../../base/;../../base/templates/"/>
+      <IncludePath Value="../../base/;../../base/templates/;../../opengl/"/>
       <UnitPath Value="$(PkgOutDir)/"/>
     </UsageOptions>
     <PublishOptions>
