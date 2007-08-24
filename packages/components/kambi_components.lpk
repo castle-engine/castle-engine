@@ -14,6 +14,8 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
+    <Description Value="Kambi VRML game engine - Lazarus components.
+"/>
     <Files Count="1">
       <Item1>
         <Filename Value="kambiglcontrol.pas"/>
@@ -35,7 +37,7 @@
       </Item3>
     </RequiredPkgs>
     <UsageOptions>
-      <UnitPath Value="$(PkgOutDir)"/>
+      <UnitPath Value="$(PkgOutDir)/"/>
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>

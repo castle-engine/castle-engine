@@ -7,14 +7,12 @@
       <SearchPaths>
         <IncludeFiles Value="../../opengl/unix/;../../opengl/gtk/"/>
         <OtherUnitFiles Value="../../opengl/"/>
-        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
-          <D2Extensions Value="True"/>
           <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
-          <DelphiCompat Value="False"/>
           <UseAnsiStrings Value="True"/>
         </SyntaxOptions>
       </Parsing>
@@ -31,7 +29,9 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Files Count="6">
+    <Description Value="Kambi VRML game engine - GLWindow and units using it.
+This unit cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
+    <Files Count="9">
       <Item1>
         <Filename Value="../../opengl/glwindow.pas"/>
         <UnitName Value="glwindow"/>
@@ -56,8 +56,19 @@
         <Filename Value="../../opengl/progressgl.pas"/>
         <UnitName Value="ProgressGL"/>
       </Item6>
+      <Item7>
+        <Filename Value="../../opengl/glwindowrecentmenu.pas"/>
+        <UnitName Value="GLWindowRecentMenu"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../../opengl/glmenu.pas"/>
+        <UnitName Value="GLMenu"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../../opengl/glsoundmenu.pas"/>
+        <UnitName Value="GLSoundMenu"/>
+      </Item9>
     </Files>
-    <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="kambi_units"/>
