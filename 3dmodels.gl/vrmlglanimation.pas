@@ -24,7 +24,7 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatScene, VRMLFlatSceneGL,
-  KambiUtils, DOM;
+  KambiUtils, DOM, Boxes3d;
 
 type
   EModelsStructureDifferent = class(Exception)
@@ -100,6 +100,9 @@ type
     FTimeBackwards: boolean;
     FOwnsFirstRootNode: boolean;
     FLoaded: boolean;
+
+    ValidBoundingBoxSum: boolean;
+    FBoundingBoxSum: TBox3d;
   public
     { Constructor.
       @noAutoLinkHere }
@@ -122,7 +125,10 @@ type
         because actually we may do some operations on these models when
         building animation (including even freeing some RootNodes,
         if we will find that they are equivalent to some other RootNodes).
-        They all must point to different objects.)
+        They all must point to different objects.
+
+        You must supply at least one item here (you cannot make an animation
+        from 0 items).)
 
       @param(Times Array specifying the point of time for each "predefined"
         frame. Length of this array must equal to length of RootNodes array.)
@@ -168,9 +174,28 @@ type
       AOptimization: TGLRendererOptimization;
       const EqualityEpsilon: Single);
 
+    { Load a dumb animation that consists of only one frame (so actually
+      there's  no animation, everything is static).
+
+      This just calls @link(Load) with parameters such that
+      @orderedList(
+        @item(RootNodes list contains one specified node)
+        @item(Times contain only one item 0.0)
+        @item(ScenesPerTime and EqualityEpsilon have some unimportant
+          values --- they are not meaningfull when you have only one scene)
+      )
+
+      This is usefull when you know that you have a static scene,
+      but still you want to treat it as TVRMLGLAnimation. }
+    procedure LoadStatic(
+      RootNode: TVRMLNode;
+      AOwnsRootNode: boolean;
+      AOptimization: TGLRendererOptimization);
+
     { This loads TVRMLGLAnimation by loading it's parameters
       (models to use, times to use etc.) from given file.
-      File format is described in ../../doc/kanim_format.txt file.
+      File format is described on
+      [http://vrmlengine.sourceforge.net/kanim_format.php].
 
       Note that after such animation is loaded, you cannot change
       some of it's rendering parameters like ScenesPerTime and AOptimization
@@ -186,7 +211,10 @@ type
     procedure LoadFromFile(const FileName: string);
 
     { This releases all resources allocared by Load (or LoadFromFile).
-      Loaded changes to @false. }
+      Loaded changes to @false.
+
+      It's safe to call this even if Loaded is already @false --- then
+      this will do nothing. }
     procedure Close;
 
     property Loaded: boolean read FLoaded;
@@ -382,9 +410,23 @@ type
     function ManifoldEdges: TDynManifoldEdgeArray;
 
     { Calls ShareManifoldEdges(Value) on all scenes within this
-      animation. This is useful if yoy already have ManifoldEdges,
+      animation. This is useful if you already have ManifoldEdges,
       and you somewhat know that it's good also for this scene. }
     procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+
+    { The sum of bounding boxes of all animation frames.
+
+      Result of this function is cached, which means that it usually returns
+      very fast. But you have to call ChangedAll when you changed something
+      inside Scenes[] using some direct Scenes[].RootNode operations,
+      to force recalculation of this box. }
+    function BoundingBoxSum: TBox3d;
+
+    { Call this when you changed something
+      inside Scenes[] using some direct Scenes[].RootNode operations.
+      This calls TVRMLFlatSceneGL.ChangedAll on all Scenes[]
+      and invalidates some cached things inside this class. }
+    procedure ChangedAll;
   end;
 
 implementation
@@ -884,9 +926,28 @@ begin
   FLoaded := true;
 end;
 
+procedure TVRMLGLAnimation.LoadStatic(
+  RootNode: TVRMLNode;
+  AOwnsRootNode: boolean;
+  AOptimization: TGLRendererOptimization);
+var
+  RootNodes: TVRMLNodesList;
+  ATimes: TDynSingleArray;
+begin
+  RootNodes := TVRMLNodesList.Create;
+  try
+    ATimes := TDynSingleArray.Create;
+    try
+      RootNodes.Add(RootNode);
+      ATimes.AppendItem(0);
+      Load(RootNodes, AOwnsRootNode, ATimes, 1, AOptimization, 0.0);
+    finally FreeAndNil(ATimes) end;
+  finally FreeAndNil(RootNodes) end;
+end;
+
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string);
 var
-  { Vars from LoadFromFile }
+  { Vars from LoadFromFileToVars }
   ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
   ScenesPerTime: Cardinal;
@@ -959,6 +1020,8 @@ begin
     FreeAndNil(FScenes);
   end;
 
+  ValidBoundingBoxSum := false;
+
   FLoaded := false;
 end;
 
@@ -969,7 +1032,9 @@ end;
 
 function TVRMLGLAnimation.ScenesCount: Integer;
 begin
-  Result := FScenes.Count;
+  if Loaded then
+    Result := FScenes.Count else
+    Result := 0;
 end;
 
 function TVRMLGLAnimation.FirstScene: TVRMLFlatSceneGL;
@@ -1210,6 +1275,33 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].ShareManifoldEdges(Value);
+end;
+
+function TVRMLGLAnimation.BoundingBoxSum: TBox3d;
+
+  procedure ValidateBoundingBoxSum;
+  var
+    I: Integer;
+  begin
+    FBoundingBoxSum := FScenes[0].BoundingBox;
+    for I := 1 to FScenes.High do
+      Box3dSumTo1st(FBoundingBoxSum, FScenes[I].BoundingBox);
+    ValidBoundingBoxSum := true;
+  end;
+
+begin
+  if not ValidBoundingBoxSum then
+    ValidateBoundingBoxSum;
+  Result := FBoundingBoxSum;
+end;
+
+procedure TVRMLGLAnimation.ChangedAll;
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].ChangedAll;
+  ValidBoundingBoxSum := false;
 end;
 
 end.

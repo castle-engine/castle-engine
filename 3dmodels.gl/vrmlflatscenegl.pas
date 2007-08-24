@@ -2071,6 +2071,7 @@ end;
 procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup);
 begin
+  Assert(DefaultShapeStateOctree <> nil);
   RenderFrustumOctree(Frustum, DefaultShapeStateOctree,
     TransparentGroup);
 end;

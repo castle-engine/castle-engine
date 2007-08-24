@@ -29,7 +29,8 @@ unit Object3dAsVRML;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3;
+uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3,
+  KambiUtils, VRMLFlatSceneGL;
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
 
@@ -68,10 +69,49 @@ function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
   from StdInStream (using GetCurrentDir as WWWBasePath). }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLNode;
 
+{ Load various model formats as animation expressed by VRML sequence.
+
+  For model formats that cannot express animations (like GEO or Wavefront OBJ)
+  or that express animations in a single VRML file (like VRML > 2.0)
+  this just loads them like LoadAsVRML, adding exactly one item
+  to RootNodes.
+  This guarantees that this function handles @italic(at least)
+  the same model formats as LoadAsVRML --- but actually it may
+  handle more.
+
+  And indeed, it currently handles kanim, that
+  is completely unrecognized by LoadAsVRML.
+
+  For now, the only difference in format handling is actually
+  the kanim format. In the future, it's expected that this will
+  also TODO: Load whole MD3 animations. That's fairly easy,
+  just use LoadMD3FrameAsVRML.
+
+  @param(RootNodes Sequence of root nodes will be stored there.
+    Pass here some created and empty instance of TVRMLNodesList.)
+
+  @param(ATimes Sequence of time values.
+    Pass here some created and empty instance of TDynSingleArray.)
+
+  @param(AOptimization This is a @code(var) variable: it will
+    be set only if a file format will actually specify it
+    (for now, this is only for kanim format).
+    For other formats, it will not be modified.
+    So you should set this to "preferred Optimization value for
+    other formats than kanim".)
+}
+procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  var Optimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
+
 implementation
 
-uses Object3dGEO, Object3ds, Object3dOBJ, KambiUtils, VRMLCameraUtils,
-  KambiStringUtils;
+uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
+  KambiStringUtils, VRMLGLAnimation;
 
 function ToVRMLName(const s: string): string;
 const
@@ -562,17 +602,78 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
   Extensions: array [0..7] of string =
   ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.wrz', '.md3');
+var
+  Ext: string;
 begin
- if AllowStdIn and (FileName = '-') then
-  result := ParseVRMLFile('-', true) else
- case ArrayPosText(ExtractFileExt(filename), Extensions) of
-  0: result := LoadGEOAsVRML(filename);
-  1: result := Load3dsAsVRML(filename);
-  2: result := LoadOBJAsVRML(filename);
-  3..6: result := ParseVRMLFile(filename, false);
-  7: Result := LoadMD3AsVRML(FileName);
-  else raise Exception.Create('unrecognized file extension for 3d model file : file '''+filename+'''');
- end;
+  if AllowStdIn and (FileName = '-') then
+    result := ParseVRMLFile('-', true) else
+  begin
+    Ext := ExtractFileExt(filename);
+    case ArrayPosText(Ext, Extensions) of
+      0: result := LoadGEOAsVRML(filename);
+      1: result := Load3dsAsVRML(filename);
+      2: result := LoadOBJAsVRML(filename);
+      3..6: result := ParseVRMLFile(filename, false);
+      7: Result := LoadMD3AsVRML(FileName);
+      else raise Exception.CreateFmt(
+        'Unrecognized file extension "%s" for 3D model file "%s"',
+        [Ext, FileName]);
+    end;
+  end;
+end;
+
+procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  var Optimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
+
+  procedure LoadKanim;
+  var
+    ModelFileNames: TDynStringArray;
+    I, J: Integer;
+  begin
+    ModelFileNames := TDynStringArray.Create;
+    try
+      TVRMLGLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
+        ScenesPerTime, Optimization, EqualityEpsilon,
+        TimeLoop, TimeBackwards);
+
+      Assert(ModelFileNames.Length = Times.Length);
+      Assert(ModelFileNames.Length >= 1);
+
+      { Now use ModelFileNames to load RootNodes }
+      RootNodes.Count := ModelFileNames.Count;
+      for I := 0 to ModelFileNames.High do
+      try
+        RootNodes[I] := LoadAsVRML(ModelFileNames[I]);
+      except
+        for J := 0 to I - 1 do
+          RootNodes.FreeAndNil(J);
+        raise;
+      end;
+    finally FreeAndNil(ModelFileNames) end;
+  end;
+
+  procedure LoadSingle(Node: TVRMLNode);
+  begin
+    RootNodes.Add(Node);
+    Times.AppendItem(0); { One time value }
+    ScenesPerTime := 1;      { doesn't matter }
+    EqualityEpsilon := 0.0;  { doesn't matter }
+    TimeLoop := false;      { doesn't matter }
+    TimeBackwards := false; { doesn't matter }
+  end;
+
+begin
+  Assert(Times.Length = 0);
+  Assert(RootNodes.Count = 0);
+
+  if SameText(ExtractFileExt(FileName), '.kanim') then
+    LoadKanim else
+    LoadSingle(LoadAsVRML(FileName, AllowStdIn));
 end;
 
 end.
