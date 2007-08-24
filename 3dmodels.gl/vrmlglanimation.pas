@@ -103,6 +103,9 @@ type
 
     ValidBoundingBoxSum: boolean;
     FBoundingBoxSum: TBox3d;
+
+    function GetBackgroundSkySphereRadius: Single;
+    procedure SetBackgroundSkySphereRadius(const Value: Single);
   public
     { Constructor.
       @noAutoLinkHere }
@@ -439,6 +442,24 @@ type
       --- thanks to the knowledge that all info nodes in all scenes
       must be equal, since strings cannot be interpolated. }
     procedure WritelnInfoNodes;
+
+    { Common BackgroundSkySphereRadius of all scenes,
+      see TVRMLFlatSceneGL.BackgroundSkySphereRadius.
+
+      This reads simply FirstScene.BackgroundSkySphereRadius
+      and sets BackgroundSkySphereRadius for all scenes.
+      So when reading this, it only makes sense if you always
+      set all BackgroundSkySphereRadius to all (e.g. you set only
+      by this property).
+
+      Note that there is doesn't really exist a requirement that all
+      animation frames have the same BackgroundSkySphereRadius...
+      But it's most common. In fact, it all depends on your needs, see
+      TVRMLFlatSceneGL.BackgroundSkySphereRadius used by
+      TVRMLFlatSceneGL.Background. }
+    property BackgroundSkySphereRadius: Single
+      read GetBackgroundSkySphereRadius
+      write SetBackgroundSkySphereRadius;
   end;
 
 implementation
@@ -1324,6 +1345,19 @@ end;
 procedure TVRMLGLAnimation.WritelnInfoNodes;
 begin
   FirstScene.WritelnInfoNodes;
+end;
+
+function TVRMLGLAnimation.GetBackgroundSkySphereRadius: Single;
+begin
+  Result := FirstScene.BackgroundSkySphereRadius;
+end;
+
+procedure TVRMLGLAnimation.SetBackgroundSkySphereRadius(const Value: Single);
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].BackgroundSkySphereRadius := Value;
 end;
 
 end.
