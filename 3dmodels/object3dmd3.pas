@@ -386,10 +386,11 @@ var
   S: string;
   SkinFileName: string;
   CommaPos: Integer;
-  Md3Path: string;
+  Md3Path, NoExt: string;
 begin
   Result := false;
-  SkinFileName := DeleteFileExt(Md3FileName) + '_default.skin';
+  NoExt := DeleteFileExt(Md3FileName);
+  SkinFileName := NoExt + '_default.skin';
   Md3Path := ExtractFilePath(Md3FileName);
   if FileExists(SkinFileName) then
   begin
@@ -410,13 +411,37 @@ begin
               md3 model file, so we strip the directory part. }
             ATextureFileName := ExtractFileName(ATextureFileName);
 
-            { Now, I know this is stupid, but we simply cannot trust
-              the extension of texture given in ATextureFileName in skin file.
-              It's common in Quake3 data files that texture filename is given
-              as xxx.tga, while in fact only xxx.jpg exists and should be used. }
-            if (not FileExists(Md3Path + ATextureFileName)) and
-               FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.jpg')) then
-              ATextureFileName := ChangeFileExt(ATextureFileName, '.jpg');
+            if not FileExists(Md3Path + ATextureFileName) then
+            begin
+              { Now, I know this is stupid, but we simply cannot trust
+                the extension of texture given in ATextureFileName in skin file.
+                It's common in Quake3 data files that texture filename is given
+                as xxx.tga, while in fact only xxx.jpg exists and should be used. }
+              if FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.jpg')) then
+                ATextureFileName := ChangeFileExt(ATextureFileName, '.jpg') else
+
+              { Also, some files have texture names with missing extension...
+                So we have to check also for tga here.
+                E.g. tremulous-unpacked-data/models/players/human_base/head }
+              if FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.tga')) then
+                ATextureFileName := ChangeFileExt(ATextureFileName, '.tga') else
+
+              { Now this is also stupid... But some tremulous data
+                has texture recorded as "null". We should ignore this
+                texture, and look at the next line. (We do it only
+                if above checks proved that texture filename doesn't
+                exist, and texture filename with .jpg also doesn't exist) }
+              { TODO: actually,
+                ~/3dmodels/tremulous-unpacked-data/models/players/human_base/upper_default.skin
+                shows that MD3 models may have various parts textured with
+                different textures or even not textured.
+                We should read each pair as PartName, PartTextureFileName,
+                where null means "no texture". Then we should apply each
+                part separately. PairName is somewhere recorded in MD3
+                file, right ? }
+              if ATextureFileName = 'null' then
+                Continue;
+            end;
 
             Result := true;
             Exit;
@@ -424,6 +449,14 @@ begin
         end;
       end;
     finally CloseFile(SkinFile) end;
+  end else
+  begin
+    { I see this convention used in a couple of tremulous data places:
+      object may be without skin file, but just texture with
+      basename same as model exists. }
+    ATextureFileName := NoExt + '.jpg';
+    if FileExists(ATextureFileName) then
+      Result := true;
   end;
 end;
 

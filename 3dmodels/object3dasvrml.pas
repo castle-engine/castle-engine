@@ -18,12 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Converting 3d models to VRML.
-  Reads models from file to @link(TVRMLNode) object.)
+{ @abstract(Converting 3D models to VRML.
+  Converts models in various formats (3DS, MD3 etc.)
+  to one or more (static or animation) VRML nodes.)
 
-  Note: remember that you may want to embed such @link(TVRMLNode) object
-  inside VRML Separator node before inserting it into some existing
-  VRML scene. }
+  Note: for VRML 1.0, remember that you may want to embed returned
+  @link(TVRMLNode) objects inside VRML Separator node before
+  inserting it into some existing VRML scene. }
 
 unit Object3dAsVRML;
 
@@ -59,6 +60,17 @@ function LoadMD3AsVRML(const FileName: string): TVRMLNode;
   @param WWBasePath is WWBasePath value to set in resulting VRML nodes. }
 function LoadMD3FrameAsVRML(Md3: TObject3dMD3; FrameNumber: Cardinal;
   const WWWBasePath: string): TVRMLNode;
+
+{ This is much like LoadAsVRMLSequence, but it only handles MD3 files.
+  Usually you want to use LoadAsVRMLSequence, not this procedure. }
+procedure LoadMD3AsVRMLSequence(
+  const FileName: string;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  var Optimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
 
 { This guesses model format basing on ExtractFileExt(filename),
   then loads model converting it to VRML with appropriate
@@ -100,7 +112,8 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLN
     So you should set this to "preferred Optimization value for
     other formats than kanim".)
 }
-procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
+procedure LoadAsVRMLSequence(
+  const FileName: string; AllowStdIn: boolean;
   RootNodes: TVRMLNodesList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
@@ -598,6 +611,44 @@ begin
   finally FreeAndNil(Md3) end;
 end;
 
+procedure LoadMD3AsVRMLSequence(
+  const FileName: string;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  var Optimization: TGLRendererOptimization;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
+var
+  Md3: TObject3dMD3;
+  WWWBasePath: string;
+  I: Integer;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  Md3 := TObject3dMD3.Create(FileName);
+  try
+    { handle each MD3 frame }
+    for I := 0 to Md3.FramesCount - 1 do
+    begin
+      RootNodes.Add(LoadMD3FrameAsVRML(Md3, I, WWWBasePath));
+      Times.AppendItem(I / 30);
+    end;
+
+    ScenesPerTime := 30;
+    { Default ScenesPerTime and times are set such that one MD3
+      frame will result in one frame inside TVRMLGLAnimation.
+      So don't try to merge these frames (on the assumption that
+      they are not merged in MD3... so hopefully there's no need for it ?). }
+    EqualityEpsilon := 0.0;
+
+    { Really, no sensible default for Loop/Backwards here...
+      I set Loop to @false, otherwise it's not clear for user when
+      animation ends. }
+    TimeLoop := false;
+    TimeBackwards := false;
+  finally FreeAndNil(Md3) end;
+end;
+
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
   Extensions: array [0..7] of string =
@@ -667,12 +718,18 @@ procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
     TimeBackwards := false; { doesn't matter }
   end;
 
+var
+  Ext: string;
 begin
   Assert(Times.Length = 0);
   Assert(RootNodes.Count = 0);
 
-  if SameText(ExtractFileExt(FileName), '.kanim') then
+  Ext := ExtractFileExt(FileName);
+  if SameText(Ext, '.kanim') then
     LoadKanim else
+  if SameText(Ext, '.md3') then
+    LoadMD3AsVRMLSequence(FileName, RootNodes, Times, ScenesPerTime,
+      Optimization, EqualityEpsilon, TimeLoop, TimeBackwards) else
     LoadSingle(LoadAsVRML(FileName, AllowStdIn));
 end;
 
