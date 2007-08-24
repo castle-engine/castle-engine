@@ -9,25 +9,16 @@ Switch {
 	DEF Material
 	Material {
 		diffuseColor 0.800000 0.800000 0.800000
-		specularColor 1.000000 1.000000 1.000000
+		specularColor 0.961941 0.822607 0.822607
 		shininess 0.500000 
 		transparency 0.000000 
 	}
-	DEF Plane
-	Separator {
-		Coordinate3 {
-			point [
-				 50.350002 50.349991 0.000000,
-				 50.350002 -50.350014 0.000000,
-				 -50.350002 -50.350002 0.000000,
-				 -50.349983 50.350014 0.000000,
-			]
-		}
-		IndexedFaceSet {
-			coordIndex [
-				 0, 3, 2, 1, -1,
-			]
-		}
+	DEF Material_001
+	Material {
+		diffuseColor 0.800000 0.800000 0.800000
+		specularColor 0.000000 0.000000 0.000000
+		shininess 0.500000 
+		transparency 0.000000 
 	}
 	DEF Plane_001
 	Separator {
@@ -43,6 +34,8 @@ Switch {
 				 -69.159973 59.160019 10.000000,
 			]
 		}
+		USE Material_001
+
 		IndexedFaceSet {
 			coordIndex [
 				 0, 3, 2, 1, -1,
@@ -8845,16 +8838,6 @@ Separator {
 			-19.315132 -0.444317 1.000000 1.000000
 		}
 		USE Sphere
-	}
-	Separator {
-		MatrixTransform {
-		matrix 
-			1.000000 0.000000 0.000000 0.000000
-			0.000000 1.000000 0.000000 0.000000
-			0.000000 0.000000 1.000000 0.000000
-			0.863158 9.278954 0.000000 1.000000
-		}
-		USE Plane
 	}
 }
 }

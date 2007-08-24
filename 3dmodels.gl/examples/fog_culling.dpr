@@ -103,6 +103,12 @@ procedure Init(glwin: TGLWindow);
 begin
  glEnable(GL_LIGHTING);
  glEnable(GL_LIGHT0);
+
+ { We use quite large triangles for fog_culling level demo wall.
+   This means that fog must be correctly rendered,
+   with perspective correction hint, otherwise ugly artifacts
+   will be visible. }
+ glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
 procedure Close(glwin: TGLWindow);
