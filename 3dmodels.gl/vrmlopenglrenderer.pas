@@ -221,6 +221,11 @@
       te wartosci na cos konkretnego. Manipulujac tymi wartosciami kod
       zewnetrzny moze zaimplementowac obiekty polprzezroczyste uzywajac
       blending OpenGLa, przykladowo tak robi VRMLFlatSceneGL))
+
+    @item(GL_FOG_HINT is also not manipulated by this unit.
+      Just like for any other OpenGL program, you may want to set this
+      to GL_NICEST (if you have to render models that may look bad
+      when fog is interpolated without perspective correction).)
   )
 
   @bold(Notki o Triagles/VerticesCount :)
@@ -1648,7 +1653,7 @@ const
   TextureRepeatToGL: array[boolean]of TGLenum = (
     GL_CLAMP {TODO: change this to CLAMP_TO_EDGE ? GL_CLAMP
       is useless if VRML doesn't allow to control texture border color,
-      and CLAMP_TO_EDGE is the more natural clamping method anyway... 
+      and CLAMP_TO_EDGE is the more natural clamping method anyway...
     }, GL_REPEAT);
 var
   TextureReference: TTextureReference;
