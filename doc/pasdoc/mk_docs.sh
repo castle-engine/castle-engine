@@ -31,13 +31,15 @@ TARGET_OS=unix
 
 VRMLENGINE_UNITS_PATH=../../
 
+# TODO: Should be based on `uname } grep -i -e cygwin`
+KAMBI_IS_CYGWIN=''
+
 PASDOC_FORMAT="$1"
 shift 1
 
 # calculate OUTPUT_PATH (os-native path)
-OUTPUT_PATH=`pwd`
-OUTPUT_PATH=`stringoper InclPathDelim $OUTPUT_PATH`
-if kambi_is_win32; then
+OUTPUT_PATH=`pwd`/
+if [ -n "$KAMBI_IS_CYGWIN" ]; then
   OUTPUT_PATH="`cygpath --windows \"$OUTPUT_PATH\"`"
 fi
 
@@ -54,15 +56,14 @@ PASDOC_CACHE="${OUTPUT_PATH}cache/"
 mkdir -p "$PASDOC_CACHE"
 
 # finish calculating OUTPUT_PATH
-OUTPUT_PATH="$OUTPUT_PATH""$PASDOC_FORMAT"
-OUTPUT_PATH=`stringoper InclPathDelim $OUTPUT_PATH`
+OUTPUT_PATH="$OUTPUT_PATH""$PASDOC_FORMAT"/
 mkdir -p "$OUTPUT_PATH"
 
 cd "$VRMLENGINE_UNITS_PATH"
 
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list
-if kambi_is_win32; then
+if [ -n "$KAMBI_IS_CYGWIN" ]; then
   TMP_PAS_LIST="`cygpath --windows \"$TMP_PAS_LIST\"`"
 fi
 
@@ -122,10 +123,9 @@ PASDOC_INCLUDE_DIRS="\
 "
 
 # make full_introduction.pasdoc
-if kambi_is_win32; then
-  TMP_INTRODUCTION_FILENAME=c:/tmp/introduction.pasdoc
-else
-  TMP_INTRODUCTION_FILENAME=/tmp/introduction.pasdoc
+TMP_INTRODUCTION_FILENAME=/tmp/introduction.pasdoc
+if [ -n "$KAMBI_IS_CYGWIN" ]; then
+  TMP_INTRODUCTION_FILENAME="`cygpath --windows \"$TMP_INTRODUCTION_FILENAME\"`"
 fi
 
 cat doc/introduction_begin.pasdoc \
