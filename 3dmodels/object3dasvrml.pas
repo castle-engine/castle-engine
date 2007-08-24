@@ -94,10 +94,7 @@ function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLN
   And indeed, it currently handles kanim, that
   is completely unrecognized by LoadAsVRML.
 
-  For now, the only difference in format handling is actually
-  the kanim format. In the future, it's expected that this will
-  also TODO: Load whole MD3 animations. That's fairly easy,
-  just use LoadMD3FrameAsVRML.
+  This handles animations in kanim and MD3 formats.
 
   @param(RootNodes Sequence of root nodes will be stored there.
     Pass here some created and empty instance of TVRMLNodesList.)
