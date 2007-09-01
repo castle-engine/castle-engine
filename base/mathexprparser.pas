@@ -25,7 +25,7 @@
 
   Gramatyka w EBNF :
   (wiele komentarzy jest w dokumentacji
-  [http://vrmlengine.sourceforge.net/gen_funkcja.php].
+  [http://vrmlengine.sourceforge.net/glplotter_and_gen_function.php#section_math_expr_syntax].
   Usunalem je stad zeby nie duplikowac informacji.)
 
   czynnik = NAZWA_ZMIENNEJ | STALA | "-" czynnik | "(" wyrazenie_math ")" |
@@ -40,7 +40,7 @@
   (czesc rozwiazywana przez Lexer :)
   NAZWA_ZMIENNEJ = LITERA [{LITERA | CYFRA}]
   STALA = "pi" | "enat" | CYFRA [{CYFRA}] ["." CYFRA [{CYFRA}] ]
-  NAZWA_FUNKCJI = (see gen_funkcja docs)
+  NAZWA_FUNKCJI = (see glplotter and gen_function docs)
   LITERA = nieformalnie 'a' .. 'z' | 'A' .. 'Z' | "_"
                   (tak, znaku podkreslenia mozna uzyc wszedzie tam gdzie litery)
   CYFRA = '0' .. '9'
