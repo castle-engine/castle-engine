@@ -76,6 +76,9 @@ type
     function NextToken: TToken;
 
     constructor Create(const AText: string);
+
+    { Current token textual description. Useful mainly for debugging lexer. }
+    function TokenDescription: string;
   end;
 
   { A common class for EMathLexerError and EMathParserError }
@@ -248,6 +251,25 @@ begin
  result := token;
 end;
 
+function TMathLexer.TokenDescription: string;
+begin
+  case Token of
+    tokConst: Result := Format('constant %g', [TokenFloat]);
+    tokVariable: Result := Format('variable %s', [TokenString]);
+    tokFuncName: Result := Format('function (internal number %d)',
+      [Ord(TokenFunctionKind)]);
+    tokMinus: Result := '-';
+    tokPlus: Result := '+';
+    tokMultiply: Result := '*';
+    tokDivide: Result := '/';
+    tokLParen: Result := '(';
+    tokRParen: Result := ')';
+    tokComma: Result := ',';
+    tokEnd: Result := 'end of stream';
+    else raise EInternalError.Create('TMathExptLexer.TokenDescription');
+  end;
+end;
+
 { EMathSyntaxError --------------------------------------- }
 
 constructor EMathSyntaxError.Create(Lexer: TMathLexer; const s: string);
@@ -264,37 +286,3 @@ begin
 end;
 
 end.
-
-(*
----------------------------------------------------------------
-tests of lexer :
-
-function ParseMathExpr(const s: string): TMathExpr;
-var lekser: TMathLekser;
-begin
- lekser := TMathLekser.Create(s);
- repeat
-  case lekser.token of
-   tokConst: Writeln('const ',lekser.TokenFloat);
-   tokVariable: Writeln('var ',lekser.TokenString);
-   tokFuncName: Writeln('funkcja nr ',ord(lekser.TokenFunctionKind));
-   tokMinus: Writeln('-');
-   tokPlus: Writeln('+');
-   tokMultiply: Writeln('*');
-   tokDivide: Writeln('/');
-   tokLParen: Writeln('(');
-   tokRParen: Writeln(')');
-   tokComma: Writeln(',');
-   tokEnd: Writeln('koniec');
-   else Writeln('wrong token');
-  end;
-  lekser.nexttoken;
- until lekser.token = tokEnd;
- lekser.free;
-
- result := TMathConst.Create(10);
-end;
-
---------------------------------------------
-*)
-

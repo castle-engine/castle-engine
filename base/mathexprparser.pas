@@ -81,10 +81,12 @@ type
 
 implementation
 
+uses SysUtils;
+
 const
   SErrRightParenExpected = 'right paren ")" expected';
   SErrWrongCzynnik = 'wrong czynnik (expected variable, constant, "-", "(" or function name)';
-  SErrKoniecExpected = 'end of expression expected';
+  SErrKoniecExpected = 'end of expression expected, but "%s" found';
   SErrOperRelacExpected = 'operator relacyjny (>, <, >=, <=, = or <>) expected';
   SErrRightQarenExpected = 'right paren "]" expected';
 
@@ -163,8 +165,8 @@ var Lexer: TMathLexer;
    try
     case Lexer.token of
      tokVariable: begin Lexer.nexttoken; result := TMathVar.Create(Lexer.TokenString) end;
-     tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.TokenFloat) end;
-     tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [czynnik]) end;
+     tokConst: begin Lexer.nexttoken; result := TMathConst.Create(Lexer.TokenFloat); end;
+     tokMinus: begin Lexer.nexttoken; result := TMathFunction.Create(fkNegate, [czynnik()]) end;
      tokLParen: begin
         Lexer.nexttoken;
         result := wyrazenie_math;
@@ -207,25 +209,37 @@ var Lexer: TMathLexer;
   end;
 
 begin
- Lexer := TMathLexer.Create(s);
- try
-  result := nil;
+  Lexer := TMathLexer.Create(s);
   try
-   result := wyrazenie_math;
-   CheckTokenIs(tokEnd, SErrKoniecExpected);
-  except result.Free; raise end;
- finally Lexer.Free end;
+    result := nil;
+    try
+      result := wyrazenie_math;
+      if Lexer.token <> tokEnd then
+        raise EMathParserError.Create(Lexer,
+          Format(SErrKoniecExpected, [Lexer.TokenDescription]));
+    except result.Free; raise end;
+  finally Lexer.Free end;
 end;
 
 { EvalConstMathExpr ---------------------------------------- }
 
 function EvalConstMathExpr(const S: string): Float;
-var Expr: TMathExpr;
+var
+  Expr: TMathExpr;
 begin
- Expr := ParseMathExpr(s);
- try
-  result := Expr.Value(@ReturnNoVariable);
- finally Expr.Free end;
+  try
+    Expr := ParseMathExpr(s);
+  except
+    on E: EMathSyntaxError do
+    begin
+      E.Message := 'Error when parsing constant expression: ' + E.Message;
+      raise;
+    end;
+  end;
+
+  try
+    Result := Expr.Value(@ReturnNoVariable);
+  finally Expr.Free end;
 end;
 
 end.

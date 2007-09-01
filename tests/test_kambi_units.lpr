@@ -28,7 +28,8 @@ uses
   {$ifndef TEXT_RUNNER}
   kambi_units,
   {$endif}
-  TestKambiStringUtils;
+  TestKambiStringUtils,
+  TestMathExpr;
 
 begin
   Application.Initialize;
