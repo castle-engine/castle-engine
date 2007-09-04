@@ -12,6 +12,8 @@ interface
 uses
   beziercurve,
   curve,
+  glmenu,
+  glsoundmenu,
   glw_demo,
   glw_navigated,
   glw_win,
@@ -27,6 +29,7 @@ uses
   openglh,
   openglttfonts,
   progressgl,
+  shadowvolumesutils,
   timemessages,
   {$ifdef UNIX}
   kambixf86vmode,

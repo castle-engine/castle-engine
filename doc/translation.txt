@@ -20,7 +20,7 @@ D   keys.pas
 D   polynomials.pas
 |   rayswindow.pas
 |   spacefillingcurves.pas
--   spheresampling.pas
+D   spheresampling.pas
 
   3dmodels/
 -   illummodels.pas
@@ -28,6 +28,7 @@ D   polynomials.pas
 -   normalscalculator.pas
 D   object3dasvrml.pas
 D   object3dgeo.pas
+D   object3dmd3.pas
 D   object3dobj.pas
 |   object3dschunks.pas
 |   object3dsmaterial.pas
@@ -55,20 +56,25 @@ D   vrmlscenewaypoints.pas
 |   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
 D   vrmlglanimation.pas
+D   vrmlglheadlight.pas
 
   audio/
 D   alutils.pas
 -   openal.pas
 D   soundwav.pas
 D   alsourceallocator.pas
+D   gamesoundengine.pas
 
   base/
 -   areas.pas
+D   dataerrors.pas
 |   enumeratefiles.pas
 D   intrects.pas
 |   kambiclassutils.pas
 |   kambifilesutils.pas
+D   kambilog.pas
 |   kambistringutils.pas
+|   kambitimeutils.pas
 |   kambiutils.pas
 D   kambixmlcfg.pas
 D   kambixmlutils.pas
@@ -120,6 +126,9 @@ D   glw_win.pas
 D   openglttfonts.pas
 -   progressgl.pas
 -   timemessages.pas
+D   glmenu.pas
+D   glsoundmenu.pas
+D   shadowvolumesutils.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:

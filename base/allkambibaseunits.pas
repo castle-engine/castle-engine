@@ -11,11 +11,14 @@ interface
 
 uses
   areas,
+  dataerrors,
   enumeratefiles,
   intrects,
   kambiclassutils,
   kambifilesutils,
+  kambilog,
   kambistringutils,
+  kambitimeutils,
   kambiutils,
   kambixmlcfg,
   kambixmlutils,

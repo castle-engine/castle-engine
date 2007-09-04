@@ -18,32 +18,49 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Samplowanie sfery i polsfery.)
+{ @abstract(Random sampling of points (directions) on sphere and hemisphere.)
 
-  Wiekszosc rzeczy napisana bezposrednio na podstawie GlobalIllumComp IV.B,
-  nie bede tego juz tutaj zaznaczal przy kazdej funkcji.
+  Most of the implementation based on "Global Illumination Compendium" IV.B
+  [http://www.cs.kuleuven.ac.be/~phil/GI/].
+  (I will not mark it again at each function, "Global Illum..." was just
+  used so often for this unit). Images in the "Global Illum..."
+  may help to illustrate (better than any words) what's the meaning
+  functions within this unit.
 
-  Funkcje bez XYZ zwracaja wektor 2 floatow = dwa katy Phi, Theta
-  (w tej kolejnosci), gdzie Phi = [0; 2*Pi] (traktowane jako odchylenie
-  od jakiegos ustalonego poludnika) a Theta = [0, Pi/2] dla polsfery i
-  [0, Pi] dla sfery (traktowane jako odchylenie od wybranej zasadniczej osi).
-  (de facto traktowanie wartosci Phi, Theta jako jakichs katow wyznaczajacych
-  cos na sferze jest czysto umowne, to po prostu dwie liczby z
-  jakiegos zakresu a my samplujemy je z jakas gestoscia.)
+  We use two ways to represent points on hemisphere:
+  @orderedList(
+    @item(Functions @italic(without "XYZ" suffix) return vector
+      of 2 floats = two angles, called phi and theta (in this order).
+      Phi (in [0, 2*Pi]) is an angle from some chosen meridian.
+      Theta (in [0, Pi/2] for hemisphere and [0, Pi] for sphere)
+      is an angle from chosen vector pointing outward from the (hemi)sphere.
+      Really, see images in "Global Illumination Compendium",
+      they are probably much easier to understand than words :@)
 
-  Funkcje XYZ zwracaja punkt x, y, z gdzie 0, 0, 0 to srodek (pol)sfery
-  (0, 0, 1) to kierunek osi polsfery (tzn. dla niego Theta = 0),
-  (1, 0, 0) to kierunek dla ktorego Phi = 0 i Theta = Pi/2,
-  (0, 1, 0) to kierunek dla ktorego Phi = Pi/2 i Theta = Pi/2.
-  (zgodnie z konwencja pokazana w GlobalIllumComp punkt (21)).
+      Sure, thinking about Phi and Theta as some angles related
+      to some sphere is just a comfortable way to think about them.
+      After all, they are just two numbers from some range and we
+      sample them with some density, nothing more.)
 
-  Funkcje z Density <> Const zwracaja wartosc PdfValue dla wylosowanego punktu,
-  tzn. dla probkowania z p(Theta) te funkcje zwracaja PfdValue = p(result[1]).
-  (ale te funkcje robia to bez zadnej straty czasu, bo i tak licza
-  PdfValue jako czesc obliczania result (natomiast gdybys chcial na podstawie
-  otrzymanego result obliczyc wartosc p(result) to musialbys czesto stracic
-  czas np. na liczenie Cosinusa).
-  PdfValue przyda sie do importance sampling.
+    @item(Functions @italic(with "XYZ" suffix) return
+      3D point x, y, z.
+
+      @unorderedList(
+        @item (0, 0, 0) is the center of (hemi)sphere,
+        @item (0, 0, 1) is the chosen outward vector (i.e. Theta = 0 there),
+        @item (1, 0, 0) is the direction where Phi = 0 and Theta = Pi/2,
+        @item (0, 1, 0) is the direction where Phi = Pi/2 and Theta = Pi/2.
+      )
+
+      This is matching conventions in "Global Illumination Compendium",
+      see there point (21).)
+  )
+
+  Functions with Density <> Const return PdfValue for returned point,
+  i.e. for density p(Theta) it's PfdValue = p(Result[1]).
+  These functions try to calculate PdfValue smartly (often calculating
+  PfdValue and calculating Result uses the same intermediate calculation,
+  so we can save some computation). PdfValue is needed for importance sampling.
 }
 
 unit SphereSampling;
@@ -52,37 +69,56 @@ interface
 
 uses VectorMath, KambiUtils;
 
-{ zamien PhiTheta na XYZ zgodnie z podanymi konwencjami w komentarzu na
-  poczatku modulu (tzn. (0, 0, 1) to punkt gdzie Theta = 0 itd. }
+{ Convert from PhiTheta representation of (hemi)sphere direction to
+  XYZ representation.
+
+  See the beginning of this unit's documentation, SphereSampling,
+  for more precise description of XYZ representation. }
 function PhiThetaToXYZ(const PhiTheta: TVector2Single; const SphereRadius: Single)
   :TVector3Single; overload;
 
-{ zamien PhiTheta na XYZ przyjmujac za os [pol]sfery (tam gdzie Theta = 0)
-  wektor SphereTheta0. Gdzie bedzie punkt (Phi = 0, Theta =Pi/2) lub jakikolwiek
-  punkt o Theta <> 0 nie jest ustalone, tzn. nie jest zdefiniowane jak beda
-  rozlozone wspolrzedne Phi. (zazwyczaj nie jest to zbyt istotne bo probkowanie
-  jest rozlozone rownomiernie wzdluz wartosci Phi).
+{ Convert from PhiTheta representation of (hemi)sphere direction to
+  XYZ representation.
 
-  Zwracam uwage ze parametr SphereRadius juz nie jest tu potrzebny, dlugosc
-  SphereTheta0 wyznacza SphereRadius. }
+  This is the more advanced version where you can freely specify which
+  vector is the "main outside (hemi)sphere vector", SphereTheta0.
+  Points with Theta = 0 are exactly on SphereTheta0.
+  It is @italic(undefined) where point like (Phi = 0, Theta = Pi/2)
+  (or any other point with Theta <> 0) will be placed,
+  i.e. it's not defined where's the "chosen meridian" for Phi = 0.
+  However @italic(it's defined that this meridian will be determined only by
+  SphereTheta0), and this is usually sufficient (since this makes sure
+  that sampling and then converting to XYZ multiple points with the same
+  SphereTheta0 will preserve sampled density).
+
+  Note that the length of SphereTheta0 determines also the sphere radius. }
 function PhiThetaToXYZ(const PhiTheta: TVector2Single;
   const SphereTheta0: TVector3Single): TVector3Single; overload;
 
-{ DensityConst czyli p(Theta) = 1/2*Pi }
+{ Random point (direction) on hemisphere, sampled with
+  constant density (p(Theta) = 1/2*Pi).
+  @groupBegin }
 function RandomUnitHemispherePointDensityConst: TVector2Single;
 function RandomUnitHemispherePointDensityConstXYZ: TVector3Single;
+{ @groupEnd }
 
-{ DensityCosTheta czyli p(Theta) = cos(Theta)/Pi }
+{ Random point (direction) on hemisphere, sampled with
+  density p(Theta) = cos(Theta)/Pi.
+  @groupBegin }
 function RandomUnitHemispherePointDensityCosTheta(
   out PdfValue: Single): TVector2Single;
 function RandomUnitHemispherePointDensityCosThetaXYZ(
   out PdfValue: Single): TVector3Single;
+{ @groupEnd }
 
-{ DensityCosThetaExp czyli p(Theta) = (n+1) * (cos(Theta))^n / 2*Pi }
+{ Random point (direction) on hemisphere, sampled with
+  density p(Theta) = (n+1) * (cos(Theta))^n / 2*Pi.
+  @groupBegin }
 function RandomUnitHemispherePointDensityCosThetaExp(const n: Single;
   out PdfValue: Single): TVector2Single;
 function RandomUnitHemispherePointDensityCosThetaExpXYZ(const n: Single;
   out PdfValue: Single): TVector3Single;
+{ @groupEnd }
 
 implementation
 

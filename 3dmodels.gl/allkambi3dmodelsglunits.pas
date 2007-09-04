@@ -14,6 +14,7 @@ uses
   object3dopengl,
   vrmlflatscenegl,
   vrmlglanimation,
+  vrmlglheadlight,
   vrmllightsetgl,
   vrmlopenglrenderer
   ;

@@ -15,6 +15,7 @@ uses
   normalscalculator,
   object3dasvrml,
   object3dgeo,
+  object3dmd3,
   object3dobj,
   object3ds,
   object3dschunks,

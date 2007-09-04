@@ -12,6 +12,7 @@ interface
 uses
   alsourceallocator,
   alutils,
+  gamesoundengine,
   ogg,
   openal,
   soundfile,

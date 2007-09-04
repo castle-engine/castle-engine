@@ -10,6 +10,7 @@ unit AllKambiFontsUnits;
 interface
 
 uses
+  bfnt_bitstreamverasans_m10_unit,
   bfnt_bitstreamverasans_unit,
   bfnt_bitstreamverasansmono_bold_m15_unit,
   bfnt_bitstreamverasansmono_m18_unit,
