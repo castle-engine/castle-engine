@@ -85,3 +85,14 @@ Post view3dscene 2.0 things:
   and further 4.x spec parts, with the exception of 4.13, 4.14
 
 ----------------------------------------
+- change specular_demo in kanim to use
+
+Transform {
+  center 0 10 0
+  rotation 0 0 1 -1
+  children PointLight {
+    location 0 0 20
+  }
+}
+
+when PointLight in VRML 2.0 will affect whole scene.
