@@ -721,12 +721,19 @@ type
       read GetParentFieldsNodeItem;
     function ParentFieldsCount: Integer;
 
-    { bardzo speszial metoda Free: o ile tylko Self <> nil, usuwa nasz node
-      ze WSZYSTKICH list ParentNodes[].Children i robi Destroy.
-      Tym samym robi nam Free robiac to czego normalne Free nie robi :
-      martwiac sie o ParentNodes. Jezeli chcesz usunac node ze srodka hierarchii
-      VRMLa - to jest dobra metoda zeby to zrobic. }
-    procedure FreeRemovingFromAllParentNodes;
+    { Free this object (if it's not @nil) @italic(also removing
+      it from @bold(all) parent nodes and fields).
+
+      By design, normal destructor (Destroy called by Free)
+      doesn't care about removing references to this object from
+      it's parents. That's because it's the parents that usually
+      initialize freeing of their children, and they free child
+      when it's reference count is 0. So this freeing method
+      is special in this regard.
+
+      Use this if you really want to remove all node occurences from the middle
+      of VRML hierarchy. }
+    procedure FreeRemovingFromAllParents;
 
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
       Warunek ten bedzie sprawdzany w AddChild wiec nigdy nie uda ci sie dodac
@@ -4327,19 +4334,49 @@ function TVRMLNode.GetParentNodesItem(i: integer): TVRMLNode; begin result := FP
 function TVRMLNode.ChildrenCount: integer; begin result := FChildren.Count end;
 function TVRMLNode.ParentNodesCount: integer; begin result := FParentNodes.Count end;
 
-procedure TVRMLNode.FreeRemovingFromAllParentNodes;
-var i, j: integer;
+procedure TVRMLNode.FreeRemovingFromAllParents;
+var
+  i, j: integer;
+  SF: TSFNode;
+  MF: TMFNode;
 begin
- if Self = nil then exit;
+  if Self = nil then exit;
 
- for i := 0 to FParentNodes.Count-1 do
- begin
-  j := FParentNodes[i].FChildren.IndexOf(Self);
-  FParentNodes[i].FChildren.Delete(j);
-  {nie musimy sie tu martwic usuwaniem naszego Parenta z listy FParentNodes ktora
-   wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
- end;
- Self.Destroy;
+  for i := 0 to FParentNodes.Count - 1 do
+  begin
+    j := FParentNodes[i].FChildren.IndexOf(Self);
+    FParentNodes[i].FChildren.Delete(j);
+    { nie musimy sie tu martwic usuwaniem naszego Parenta z listy
+      FParentNodes ktora
+     wlasnie przegladamy bo przeciez i tak zaraz zrobimy sobie Destroy; }
+  end;
+
+  for I := 0 to FParentFields.Count - 1 do
+  begin
+    if FParentFields[I] is TSFNode then
+    begin
+      SF := TSFNode(FParentFields[I]);
+      { We remove accessing private SF.FValue,
+        not SF.Value property setter,
+        to avoid checking our reference count (and possibly calling
+        our destructor) by this setter. }
+      SF.FValue := nil;
+    end else
+    if FParentFields[I] is TMFNode then
+    begin
+      MF := TMFNode(FParentFields[I]);
+      { Again we remove using internal methods, that shouldn't be used
+        by normal usage from outside: we call directly FItems methods
+        (instead of calling MFNode.RemoveItem method that would call our
+        RemoveParentField that possibly calls our destructor). }
+      J := MF.FItems.IndexOf(Self);
+      Assert(J <> -1, 'Node must be present on Items list of parent MFNode');
+      MF.FItems.Delete(J);
+    end else
+      raise EInternalError.Create('TVRMLNode.ParentFields not SF or MF Node class');
+  end;
+
+  Self.Destroy;
 end;
 
 function TVRMLNode.GetParentFieldsItem(Index: Integer): TVRMLField;

@@ -252,6 +252,10 @@ begin
       Break;
     end;
   end;
+
+  { TODO: should check ParentFields for VRML 2.0 too ? The goal is actually to
+    detect things with ItemPrefix in blender. so we have to see what
+    blender VRML 2.0 exporter does.}
 end;
 
 procedure TSceneWaypointsList.ExtractPositions(Node: TVRMLNode);
@@ -263,7 +267,7 @@ begin
     Node.TraverseFromDefaultState(TNodeGeneralShape,
       {$ifdef FPC_OBJFPC} @ {$endif} TraverseForWaypoints);
     for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
+      NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
 end;
 
@@ -356,6 +360,10 @@ begin
       Break;
     end;
   end;
+
+  { TODO: should check ParentFields for VRML 2.0 too ? The goal is actually to
+    detect things with ItemPrefix in blender. so we have to see what
+    blender VRML 2.0 exporter does.}
 end;
 
 procedure TSceneSectorsList.ExtractBoundingBoxes(Node: TVRMLNode);
@@ -364,10 +372,10 @@ var
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseFromDefaultState(TNodeGeneralShape, 
+    Node.TraverseFromDefaultState(TNodeGeneralShape,
       {$ifdef FPC_OBJFPC} @ {$endif} TraverseForSectors);
     for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParentNodes;
+      NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
 end;
 

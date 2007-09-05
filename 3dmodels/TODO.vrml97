@@ -35,9 +35,6 @@ Post view3dscene 2.0 things:
     fix castle-development.php page, see TODO item there.
     planned for September 2006.
 
-- change FreeRemovingFromAllParentNodes to also remove from ParentFields,
-  rename back to FreeRemovingFromAllParents.
-
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?
 
