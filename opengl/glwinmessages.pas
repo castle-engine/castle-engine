@@ -260,10 +260,12 @@ function MessageInputQueryCardinal(glwin: TGLWindow; const Title: string;
 function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 
-function MessageInputQueryFloat(glwin: TGLWindow; const Title: string;
-  var Value: Float; TextAlign: TTextAlign): boolean;
-function MessageInputQuerySingle(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
+  var Value: Extended; TextAlign: TTextAlign): boolean;
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign): boolean;
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
+  var Value: Double; TextAlign: TTextAlign): boolean;
 
 function MessageInputQueryVector3Single(
   glwin: TGLWindow; const Title: string;
@@ -1479,10 +1481,10 @@ begin
   Value := StrHexToInt(ValueStr);
 end;
 
-{ MessageInputQueryFloat ----------------------------------------------------- }
+{ MessageInputQuery on floats ------------------------------------------------ }
 
-function MessageInputQueryFloat(glwin: TGLWindow; const Title: string;
-  var Value: Float; TextAlign: TTextAlign): boolean;
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
+  var Value: Extended; TextAlign: TTextAlign): boolean;
 var s: string;
 begin
  Result := false;
@@ -1501,14 +1503,26 @@ begin
  end;
 end;
 
-function MessageInputQuerySingle(glwin: TGLWindow; const Title: string;
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign): boolean;
-var ValueFloat: Float;
+var
+  ValueExtended: Extended;
 begin
- ValueFloat := Value;
- Result := MessageInputQueryFloat(glwin, Title, ValueFloat, TextAlign);
- if Result then
-  Value := ValueFloat;
+  ValueExtended := Value;
+  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign);
+  if Result then
+    Value := ValueExtended;
+end;
+
+function MessageInputQuery(glwin: TGLWindow; const Title: string;
+  var Value: Double; TextAlign: TTextAlign): boolean;
+var
+  ValueExtended: Extended;
+begin
+  ValueExtended := Value;
+  Result := MessageInputQuery(glwin, Title, ValueExtended, TextAlign);
+  if Result then
+    Value := ValueExtended;
 end;
 
 { MessageInputQueryVector3Single --------------------------------------------- }

@@ -516,9 +516,9 @@ function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
 var NewColor: TVector3Single;
 begin
  Result := false;
- if not MessageInputQuerySingle(Self, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
- if not MessageInputQuerySingle(Self, 'Input Green value:', NewColor[1], taLeft) then Exit;
- if not MessageInputQuerySingle(Self, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
+ if not MessageInputQuery(Self, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
+ if not MessageInputQuery(Self, 'Input Green value:', NewColor[1], taLeft) then Exit;
+ if not MessageInputQuery(Self, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
 
  Result := true;
  Color := NewColor;
