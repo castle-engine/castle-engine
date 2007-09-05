@@ -115,11 +115,11 @@ function GetMouseY:integer;
 { Okienka robione prostymi messageBoxami. Jesli nie podasz 3-go parametru parent
   bedzie 0 (co spowoduje ze okno bedzie modalne dla calego procesu ze wzgledu na flage
   MB_TASKMODAL w wywolaniu MessageBox). }
-function PytanieBox    (const tekst:string; const caption:string {$ifdef DEFPARS}='Question'          {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
-procedure ErrorBox     (const tekst:string; const caption:string {$ifdef DEFPARS}='Error'             {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-procedure InfoBox      (const tekst:string; const caption:string {$ifdef DEFPARS}='Information'       {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-procedure WarningBox   (const tekst:string; const caption:string {$ifdef DEFPARS}='Warning'           {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
-function WarnPytanieBox(const tekst:string; const caption:string {$ifdef DEFPARS}='Important question'{$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
+function YesNoBox       (const tekst:string; const caption:string {$ifdef DEFPARS}='Question'          {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
+procedure ErrorBox      (const tekst:string; const caption:string {$ifdef DEFPARS}='Error'             {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
+procedure InfoBox       (const tekst:string; const caption:string {$ifdef DEFPARS}='Information'       {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
+procedure WarningBox    (const tekst:string; const caption:string {$ifdef DEFPARS}='Warning'           {$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif});         overload;
+function WarningYesNoBox(const tekst:string; const caption:string {$ifdef DEFPARS}='Important question'{$endif}; parent:HWND {$ifdef DEFPARS}=0{$endif}):boolean; overload;
 
 { WMSizing : sposob aby przypisac minimalne wymiary formularzowi w Delphi < 5 }
 type
@@ -309,7 +309,7 @@ end;
 
 { proste opakowania dla MessageBox ------------------------------------------- }
 
-function PytanieBox(const tekst:string; const caption:string; parent:HWND):boolean;
+function YesNoBox(const tekst:string; const caption:string; parent:HWND):boolean;
 begin
  result:=MessageBox(parent,PChar(tekst),PCHar(caption),MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL)=IDYES;
 end;
@@ -329,7 +329,7 @@ begin
  MessageBox(parent,PChar(tekst),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
 end;
 
-function WarnPytanieBox(const tekst:string; const caption:string{='Wazne pytanie'}; parent:HWND{=0}):boolean;
+function WarningYesNoBox(const tekst:string; const caption:string{='Wazne pytanie'}; parent:HWND{=0}):boolean;
 begin
  result:=MessageBox(parent,PChar(tekst),PCHar(caption),MB_YESNO or MB_ICONWARNING or MB_TASKMODAL)=IDYES;
 end;
