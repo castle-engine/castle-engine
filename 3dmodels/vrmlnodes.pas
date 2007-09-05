@@ -9160,8 +9160,31 @@ begin
      SameText(ExtractFileExt(FileName), '.wrz') then
    Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
      ExtractFilePath(ExpandFilename(FileName))) else
-   Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,
-     ExtractFilePath(ExpandFilename(FileName)));
+   begin
+     {$ifdef VER2_0_4}
+       {$ifdef WIN32}
+       { This is a temporary workaround for FPC 2.0.4 bug (already fixed
+         in 2.1.4 and current trunk (2007-09-05).
+         When opening non-existent file on Windows (on Unixes it's Ok)
+         by TFileStream.Create, no exception is raised, instead read procedures
+         behave like it was an empty file. This is a minor problem, because
+         error message then sound like nonsense for the user: E.g.
+           view3dscene not_existing_file.wrl
+         says "VRML lexical error at position 0 : Unexpected end of file on the 1st line",
+         while it should simply say that file doesn't exist.
+
+         Of course this workaround isn't perfect (file may disappear between
+         FileExists check and actual open, file permissions may not allow to read
+         etc., that's why usually it's best to left such checks for OS routines called
+         by TFileStream constructor) but it should work in usual cases. }
+       if not FileExists(FileName) then
+         raise EFOpenError.CreateFmt('Unable to open file "%s"', [FileName]);
+       {$endif}
+     {$endif}
+
+     Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,
+       ExtractFilePath(ExpandFilename(FileName)));
+   end;
  end;
 end;
 
