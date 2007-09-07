@@ -3978,6 +3978,11 @@ procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 { Free and nil all State.Nodes. }
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
 
+{ Create a new node with exactly the same VRML node hierarchy.
+  Everything in the hierarchy is a new node instance, although the same
+  node classess are present, with the same names, field values etc. }
+function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
+
 const
   VRMLCameraKindToStr: array[TVRMLCameraKind]of string =
   ('Orthographic', 'Perspective');
@@ -9262,6 +9267,33 @@ var
 begin
   for I := 0 to HighTraverseStateLastNodes do
     FreeAndNil(StateNodes.Nodes[i]);
+end;
+
+function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
+var
+  S: TMemoryStream;
+  SPeek: TPeekCharStream;
+begin
+  S := TMemoryStream.Create;
+  try
+    { TODO: this implementation works 100% correctly, but,
+      in case you didn't notice, it's a terrible hack actually,
+      it can be made dramatically faster
+      and less resource hungry. It saves SourceNode to stream, then loads
+      new node hierarchy from this stream...
+
+      We should instead copy VRML hierarchy by doing nice traverse of the graph.
+      See TVRMLGLAnimation.Load implementation, when merging VRML nodes
+      this also iterates everything that should be copied. }
+
+    SaveToVRMLFile(SourceNode, S, '');
+
+    S.Position := 0;
+    SPeek := TBufferedReadStream.Create(S, false);
+    try
+      Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
+    finally FreeAndNil(SPeek) end;
+  finally FreeAndNil(S) end;
 end;
 
 { unit init/fini ------------------------------------------------------------ }

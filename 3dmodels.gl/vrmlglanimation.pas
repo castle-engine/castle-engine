@@ -1151,7 +1151,23 @@ begin
     SceneNumber := 0;
   end else
   begin
-    SceneNumber := Round(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.High));
+    { I use FScenes.Count, not FScenes.High as the highest range value.
+      This is critical. On the short range (not looping), it may seem
+      that FScenes.High is more appropriate, since the last scene
+      corresponds exactly to TimeEnd. But that's not good for looping:
+      in effect float range TimeDuration would contain one scene less,
+      and so when looking at large Time values, the scenes are slightly shifted
+      within time.
+
+      This causes problems when code relies on the meaning of some time
+      values. E.g. if TimeBegin = 0, you expect that Time = k * TimeEnd,
+      for any k, will result in the LastScene generated (assuming
+      backwards is @true). This is needed for tricks like smooth animations
+      concatenation, see "the rift" in RiftCreatures unit.
+
+      When using FScenes.High, we would break this, as scenes are shifted
+      by one in each range. }
+    SceneNumber := Floor(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.Count));
 
     DivUnsignedMod(SceneNumber, FScenes.Count, DivResult, ModResult);
 
