@@ -311,6 +311,12 @@ function Box3dXYRadius(const Box: TBox3d): Single;
 function Box3dSphereSimpleCollision(const Box: TBox3d;
   const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
+{ Check for box <-> sphere collision.
+  This is a little slower than Box3dSphereSimpleCollision, although still
+  damn fast, and it's a precise check. }
+function Box3dSphereCollision(const Box: TBox3d;
+  const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+
 type
   TDynArrayItem_1 = TBox3d;
   PDynArrayItem_1 = PBox3d;
@@ -1383,6 +1389,48 @@ begin
     (SphereCenter[1] <= Box[1][1] + SphereRadius) and
     (SphereCenter[2] >= Box[0][2] - SphereRadius) and
     (SphereCenter[2] <= Box[1][2] + SphereRadius);
+end;
+
+function Box3dSphereCollision(const Box: TBox3d;
+  const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+{ This great and simple algorithm  was invented by Arvo, I read about
+  it in "Real-Time Rendering" by Moller and Haines.
+  The idea is beatifully simple: we can easily find point on the Box
+  that is closest to SphereCenter: on each of X, Y, Z axis,
+  1. SphereCenter[I] is within Box, so distance on this axis is 0
+  2. SphereCenter[I] is not within Box, so the closest point is taken
+     from appropriate box corner
+  Then just compare distance between these points and radius.
+
+  Implementation below is low-optimized: we actually calculate
+  distance, d, as we go (we don't keep explicitly our "closest point",
+  although we think about calculating it). And loop over three planes
+  is unfolded to be sure. }
+var
+  D: Single;
+begin
+  if IsEmptyBox3d(Box) then Exit(false);
+
+  D := 0;
+
+  { Uses:
+    4 up to 7 comparisons,
+    6 additions,
+    4 multiplications.
+
+    Ok, that's damn fast, but still a little slower than
+    Box3dSphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
+
+  if SphereCenter[0] < Box[0][0] then D += Sqr(SphereCenter[0] - Box[0][0]) else
+  if SphereCenter[0] > Box[1][0] then D += Sqr(SphereCenter[0] - Box[1][0]);
+
+  if SphereCenter[1] < Box[0][1] then D += Sqr(SphereCenter[1] - Box[0][1]) else
+  if SphereCenter[1] > Box[1][1] then D += Sqr(SphereCenter[1] - Box[1][1]);
+
+  if SphereCenter[2] < Box[0][2] then D += Sqr(SphereCenter[2] - Box[0][2]) else
+  if SphereCenter[2] > Box[1][2] then D += Sqr(SphereCenter[2] - Box[1][2]);
+
+  Result := D <= Sqr(SphereRadius);
 end;
 
 end.

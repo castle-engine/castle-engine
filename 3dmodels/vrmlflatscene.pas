@@ -650,13 +650,13 @@ procedure TVRMLFlatScene.ChangedAll;
       positional lights). }
     procedure AddLightRadius(const L: TActiveLight;
       const Location: TVector3Single; const Radius: Single);
+    var
+      J: Integer;
     begin
-      { TODO }
-      { TODO: test this works, including: the same shape node instantiated
-        twice can have light active on only one instance.
-
-        Construct a 3d mesh of cubes to see which ones are affected
-        by point light. }
+      for J := 0 to ShapeStates.Count - 1 do
+        if Box3dSphereCollision(ShapeStates[J].BoundingBox,
+             Location, Radius) then
+          ShapeStates[J].State.VRML2ActiveLights.AppendItem(L);
     end;
 
   var
@@ -672,13 +672,9 @@ procedure TVRMLFlatScene.ChangedAll;
          (LNode is TNodeSpotLight_1) then
         AddLightEverywhere(L^) else
       if LNode is TNodePointLight_2 then
-        AddLightRadius(L^,
-          TNodePointLight_2(LNode).FdLocation.Value,
-          TNodePointLight_2(LNode).FdRadius.Value) else
+        AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius) else
       if LNode is TNodeSpotLight_2 then
-        AddLightRadius(L^,
-          TNodeSpotLight_2(LNode).FdLocation.Value,
-          TNodeSpotLight_2(LNode).FdRadius.Value);
+        AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius);
       { Other light types (directional) should be handled by
         TNodeGeneralGrouping.BeforeTraverse }
     end;
@@ -687,7 +683,6 @@ procedure TVRMLFlatScene.ChangedAll;
 var
   InitialState: TVRMLGraphTraverseState;
 begin
-  Writeln('changed all ', RootNode.NodeName, ' ', RootNode.NodeTypeName);
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     ShapeStates.FreeContents;

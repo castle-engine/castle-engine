@@ -1976,7 +1976,6 @@ begin
     OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
     transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
     nie podlegaja transformacji aktualnego State'a w ktorym sa) }
-  Writeln('Lighted by ', State.CurrentActiveLights.Count, ' lights');
   if Attributes.UseLights then
     glLightsFromVRML(State.CurrentActiveLights,
       Attributes.FirstGLFreeLight, LastGLFreeLight,

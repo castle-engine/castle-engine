@@ -385,6 +385,10 @@ type
       (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
       licza sie tylko obroty i skalowania). }
     TransfNormDirection: TVector3Single;
+
+    { For VRML 2.0 positional lights, this is precalculated node's radius
+      scaled by Transform. }
+    TransfRadius: Single;
   end;
   PActiveLight = ^TActiveLight;
 
@@ -3421,6 +3425,8 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodePointSet_2 = class(TNodeGeneralShape)
@@ -8428,6 +8434,28 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodePointLight_2.CreateActiveLight(
+  State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result := inherited;
+
+  { TODO: For non-uniform scale, this will simply use average scale.
+    This is not fully correct, VRML spec doesn't clarify this
+    but I guess that the intention was that the non-uniform scale will
+    make radius non-uniform, i.e. light volume will not be a regular sphere
+    but some 3d ellipsoid. Unfortunately this would require quite more
+    work, UpdateVRML2ActiveLights would then have to check for collision
+    between
+      sphere transformed by matrix Transform
+    and
+      bounding box
+    which I don't know how to do *easily*... }
+  Result.TransfRadius := FdRadius.Value *
+    ( ( Result.Transform[0, 0] +
+        Result.Transform[1, 1] +
+        Result.Transform[2, 2] ) / 3 );
+end;
+
 class function TNodePointSet_2.ClassNodeTypeName: string;
 begin
   Result := 'PointSet';
@@ -8684,9 +8712,17 @@ function TNodeSpotLight_2.CreateActiveLight(
   State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result := inherited;
+
   Result.TransfNormDirection :=
     Normalized( MultMatrixPointNoTranslation(Result.Transform,
       FdDirection.Value) );
+
+  { TODO: For non-uniform scale, this will simply use average scale,
+    see TNodePointLight_2.CreateActiveLight for more comments. }
+  Result.TransfRadius := FdRadius.Value *
+    ( ( Result.Transform[0, 0] +
+        Result.Transform[1, 1] +
+        Result.Transform[2, 2] ) / 3 );
 end;
 
 class function TNodeSwitch_2.ClassNodeTypeName: string;
