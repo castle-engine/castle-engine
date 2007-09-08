@@ -9202,7 +9202,7 @@ begin
   Lexer.CheckTokenIs(vtName, 'VRML node name');
   SourceNodeName := Lexer.TokenName;
 
-  Lexer.NextToken(true);
+  Lexer.NextToken;
   Lexer.CheckTokenIs(vtPeriod);
 
   Lexer.NextToken;
@@ -9216,7 +9216,7 @@ begin
   Lexer.CheckTokenIs(vtName, 'VRML node name');
   DestinationNodeName := Lexer.TokenName;
 
-  Lexer.NextToken(true);
+  Lexer.NextToken;
   Lexer.CheckTokenIs(vtPeriod);
 
   Lexer.NextToken;

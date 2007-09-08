@@ -666,6 +666,8 @@ procedure TVRMLFlatScene.ChangedAll;
   begin
     for I := 0 to ChangedAll_TraversedLights.High do
     begin
+      { TODO: for spot lights, it would be an optimization to also limit
+        ActiveLights by spot cone size. }
       L := ChangedAll_TraversedLights.Pointers[I];
       LNode := L^.LightNode;
       if (LNode is TNodePointLight_1) or

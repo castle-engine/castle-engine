@@ -183,21 +183,8 @@ type
     property TokenString: string read fTokenString;
 
     { NextToken reads next token from stream, initializing appropriately
-      all Token* properties. For comfort, this returs the Token value.
-
-      @param(ParsePeriodAsSymbol If this is @true, then '.' will be read
-        as vtPeriod token. Otherwise '.' will be expected to start float number.
-
-        This is related to VRML lexer being unambigous: if you see
-        .34, maybe this means token dot, then token 34,
-        and maybe it means float .34 ? In practice the problem doesn't exist,
-        because the dot can occur only right before VRML names (e.g. in
-        ROUTE statement), and VRML name cannot start with a digit.
-
-        Still, this requires parser to pass ParsePeriodAsSymbol = @true
-        when the dot is expected, not a float.)
-    }
-    function NextToken(ParsePeriodAsSymbol: boolean = false): TVRMLToken;
+      all Token* properties. For comfort, this returs the Token value. }
+    function NextToken: TVRMLToken;
 
     { uzywaj gdy wiesz ze nastepny token MUSI byc vtName i zeby w zwiazku z
         tym lekser odczytal nastepny token jako vtName. Pamietaj ze moze
@@ -361,7 +348,7 @@ begin
  until endingChar = Ord('"');
 end;
 
-function TVRMLLexer.NextToken(ParsePeriodAsSymbol: boolean): TVRMLToken;
+function TVRMLLexer.NextToken: TVRMLToken;
 
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
@@ -507,8 +494,24 @@ begin
       end;
     end else
     begin
-      if ParsePeriodAsSymbol and
-         (FirstBlackChr = '.') then
+      { It's a little unsure lexer moment here. Maybe 12.34 means
+        "token integer 12", "token dot", "token integer 34" ?
+        Well, our decisions:
+
+        1. Lexer is greedy, so if after 12 we have a dot,
+        we assume it's a float. This means that in grammar, you cannot have
+        allowed sequence integer + dot.
+
+        2. If we see a dot, then we assume it's a float if after dot we have
+        a digit. So ".12" is one token, float number. So you cannot have
+        allowed sequence dot + integer in the grammar.
+
+        It's not a problem in practice. "Dot" token is allowed only inside
+        ROUTE statements as name + dot + name (and name doesn't start with
+        digit), so it's all OK in practice. Valid VRML files may be
+        unambiguously tokenized. }
+      if (FirstBlackChr = '.') and
+         (not Between(Stream.PeekChar, Ord('0'), Ord('9'))) then
         FToken := vtPeriod else
         RecognizeCommonTokens(FirstBlackChr);
     end;
