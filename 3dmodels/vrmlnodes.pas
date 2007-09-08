@@ -9065,56 +9065,88 @@ end;
 
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string): TVRMLNode;
-var Lexer: TVRMLLexer;
-    NodeNameBinding: TStringList;
-    childNode: TVRMLNode;
+var
+  Lexer: TVRMLLexer;
+  NodeNameBinding: TStringList;
+
+  { Create hidden group node, appropriate for current VRML version in Lexer. }
+  function CreateHiddenGroup: TVRMLNode;
+  begin
+    if TNodeGroupHidden_1.ForVRMLVersion(
+        Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
+      Result := TNodeGroupHidden_1.Create('', WWWBasePath) else
+      Result := TNodeGroupHidden_2.Create('', WWWBasePath);
+  end;
+
+  procedure ParseVRMLStatement;
+
+    procedure ParseRoute;
+    begin
+    end;
+
+    procedure ParseProto;
+    begin
+    end;
+
+    procedure ParseNodeInternal;
+    var
+      NewNode, ChildNode: TVRMLNode;
+    begin
+      NewNode := ParseNode(Lexer, NodeNameBinding, true);
+
+      if Result = nil then
+      begin
+        { This will happen on 1st ParseNode call. }
+        Result := NewNode;
+      end else
+      begin
+        if not ( (Result is TNodeGroupHidden_1) or
+                 (Result is TNodeGroupHidden_1) ) then
+        begin
+          { This will happen on 2nd ParseNode call.
+            Result is now assigned, but we want to add 2nd node: so we wrap
+            current Result (and NewNode too) together in a hidden Group node. }
+          ChildNode := Result;
+          Result := CreateHiddenGroup;
+          Result.SmartAddChild(ChildNode);
+        end;
+
+        Result.SmartAddChild(NewNode);
+      end;
+    end;
+
+  begin
+    if (Lexer.Token = vtKeyword) and
+       (Lexer.TokenKeyword = vkROUTE) then
+      ParseRoute else
+    if (Lexer.Token = vtKeyword) and
+       (Lexer.TokenKeyword = vkPROTO) then
+      ParseProto else
+      ParseNodeInternal;
+  end;
+
 begin
- Lexer := nil;
- NodeNameBinding := nil;
- try
-  Lexer := TVRMLLexer.Create(Stream, WWWBasePath);
-  NodeNameBinding := TStringListCaseSens.Create;
-
-  result := ParseNode(Lexer, NodeNameBinding, true);
+  Lexer := nil;
+  NodeNameBinding := nil;
   try
+    Lexer := TVRMLLexer.Create(Stream, WWWBasePath);
+    NodeNameBinding := TStringListCaseSens.Create;
 
-   { ponizej : tak wyglada implementacja tej procedury ktora wymagalaby zeby
-     caly plik byl jednym nodem VRMLa (tak jak tego wymaga specyfikacja
-     VRMLa 1.0).
+    Result := nil;
+    try
+      while Lexer.Token <> vtEnd do
+      begin
+        ParseVRMLStatement;
+      end;
 
-       Lexer.CheckTokenIs(vtEnd, 'end of file (remember : VRML 1.0 files can contain only one "root" node)');
+      if Result = nil then
+        Result := CreateHiddenGroup;
+    except FreeAndNil(Result); raise end;
 
-     Nie uzywam jej, zamiast tego pozwalam plikow zawsze miec wiele node'ow
-     i jezeli maja ich wiecej niz 1 to wrzucam je do stworzonego sztucznie
-     jednego node'a Group (wiec odczytany i zapisany z powrotem w ten sposob
-     plik zawsze ma jeden node w pliku). Zaimplementowalem to bo jest wiele
-     tacich niepoprawnych plikow VRMLa 1.0 w internecie ktore maja wiecej
-     niz jeden node zdefiniowany. Poza tym jest to krok w strone VRMLa 97
-     (ktorego specyfikacja jawnie na to pozwala). Poza tym jest to proste i
-     do zaimplementowania i jest calkiem logicznym rozszerzeniem VRMLa 1.0.
-   }
-
-   if Lexer.Token <> vtEnd then
-   begin
-     childNode := Result;
-
-     if TNodeGroupHidden_1.ForVRMLVersion(
-          Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
-       Result := TNodeGroupHidden_1.Create('', WWWBasePath) else
-       Result := TNodeGroupHidden_2.Create('', WWWBasePath);
-
-     Result.SmartAddChild(childNode);
-
-     repeat
-       Result.SmartAddChild(ParseNode(Lexer, NodeNameBinding, true));
-     until Lexer.Token = vtEnd;
-   end;
-
-  except FreeAndNil(result); raise end;
- finally
-  Lexer.Free;
-  NodeNameBinding.Free
- end;
+  finally
+    Lexer.Free;
+    NodeNameBinding.Free
+  end;
 end;
 
 function ParseVRMLFile(const FileName: string; AllowStdIn: boolean): TVRMLNode;
