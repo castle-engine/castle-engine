@@ -8875,32 +8875,25 @@ begin
  result := fNodeTypeName;
 end;
 
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer); forward;
+
 procedure TNodeUnknown.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 { TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
   VRMlNonFatalError tez nie trzeba zawsze rzucac. }
-var level: integer;
 begin
- { w przypadku TNodeUnknown musimy fAllowedChildren i fParseAllowedChildren
-   inicjowac na podstawie parsowania. }
- fAllowedChildren := false;
- fParsingAllowedChildren := false;
+  { w przypadku TNodeUnknown musimy fAllowedChildren i fParseAllowedChildren
+    inicjowac na podstawie parsowania. }
+  fAllowedChildren := false;
+  fParsingAllowedChildren := false;
 
- Lexer.CheckTokenIs(vtOpenCurlyBracket);
- level := 1;
- while (level > 0) and (Lexer.Token <> vtEnd) do
- begin
+  Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;
-  if Lexer.Token = vtOpenCurlyBracket then Inc(level) else
-   if Lexer.Token = vtCloseCurlyBracket then Dec(level);
- end;
- {sprawdz czy nie wyladowalismy na EndOfFile}
- Lexer.CheckTokenIs(vtCloseCurlyBracket);
- Lexer.NextToken;
+  ParseIgnoreToMatchingCurlyBracket(Lexer);
 
- FWWWBasePath := Lexer.WWWBasePath;
+  FWWWBasePath := Lexer.WWWBasePath;
 
- VRMLNonFatalError('Unknown VRML node of type '''+NodeTypeName+
-   ''' (named '''+NodeName+''')');
+  VRMLNonFatalError('Unknown VRML node of type '''+NodeTypeName+
+    ''' (named '''+NodeName+''')');
 end;
 
 constructor TNodeUnknown.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -9033,6 +9026,42 @@ end;
 
 { global procedures ---------------------------------------------------------- }
 
+{ Internal for ParseIgnoreToMatchingSqBracket and
+  ParseIgnoreToMatchingCurlyBracket }
+procedure ParseIgnoreToMatchingBracket(
+  Lexer: TVRMLLexer;
+  LevelSqBracket, LevelCurlyBracket: integer);
+begin
+  while (LevelSqBracket > 0) or
+        (LevelCurlyBracket > 0) do
+  begin
+    case Lexer.Token of
+      vtOpenCurlyBracket: Inc(LevelCurlyBracket);
+      vtCloseCurlyBracket: Dec(LevelCurlyBracket);
+      vtOpenSqBracket: Inc(LevelSqBracket);
+      vtCloseSqBracket: Dec(LevelSqBracket);
+      vtEnd: raise EVRMLParserError.Create(Lexer, 'Unexpected end of stream');
+    end;
+    Lexer.NextToken;
+  end;
+end;
+
+(* Assume that we just read "[", and are looking at next character.
+   Read everything up to (and including) matching "]".
+   This is a hack to omit (not really parse) interface sections
+   of prototypes. *)
+procedure ParseIgnoreToMatchingSqBracket(Lexer: TVRMLLexer);
+begin
+  ParseIgnoreToMatchingBracket(Lexer, 1, 0);
+end;
+
+(* Just like ParseIgnoreToMatchingSqBracket, but here for "{" and "}" brackets.
+   This is a hack to omit (not really parse) unknown VRML nodes. *)
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer);
+begin
+  ParseIgnoreToMatchingBracket(Lexer, 0, 1);
+end;
+
 function ParseNode(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
   const AllowedNodes: boolean): TVRMLNode;
 
@@ -9145,16 +9174,76 @@ var
       Route := TVRMLRoute.Create;
       try
         Route.Parse(Lexer);
-        VRMLNonFatalError('VRML routes are parsed but ignored for now, so route ' +
-          Route.Description + ' is ignored');
+        VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
+          'so route ' + Route.Description + ' is ignored');
       finally FreeAndNil(Route) end;
+    end;
+
+    procedure ParseInterfaceDeclarations;
+    begin
+      ParseIgnoreToMatchingSqBracket(Lexer);
+    end;
+
+    procedure ParseExternalInterfaceDeclarations;
+    begin
+      ParseIgnoreToMatchingSqBracket(Lexer);
+    end;
+
+    procedure ParseProto;
+    var
+      ProtoName: string;
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName);
+      ProtoName := Lexer.TokenName;
+
+      VRMLNonFatalError(Format(
+        'Prototype "%s" ignored (TODO: handling PROTOs not implemented)',
+        [ProtoName]));
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtOpenSqBracket);
+
+      Lexer.NextToken;
+      ParseInterfaceDeclarations;
+
+      Lexer.CheckTokenIs(vtOpenCurlyBracket);
+
+      Lexer.NextToken;
+      ParseIgnoreToMatchingCurlyBracket(Lexer);
+    end;
+
+    procedure ParseExternalProto;
+    var
+      ProtoName: string;
+      URLList: TMFString;
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName);
+      ProtoName := Lexer.TokenName;
+
+      VRMLNonFatalError(Format(
+        'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
+        [ProtoName]));
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtOpenSqBracket);
+
+      Lexer.NextToken;
+      ParseExternalInterfaceDeclarations;
+
+      URLList := TMFString.Create('', []);
+      try
+        URLList.Parse(Lexer, NodeNameBinding);
+      finally FreeAndNil(URLList) end;
     end;
 
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
     procedure ParseProtoStatement;
     begin
-      raise EVRMLParserError.Create(Lexer,
-        'VRML PROTOs and EXTERNPROTOs are not parsed for now');
+      if Lexer.TokenKeyword = vkPROTO then
+        ParseProto else
+        ParseExternalProto;
     end;
 
     procedure ParseNodeInternal;
