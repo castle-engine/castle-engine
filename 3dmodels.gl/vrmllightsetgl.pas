@@ -261,7 +261,8 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
      glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
      glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
      glLightf(glLightNum, GL_SPOT_CUTOFF,
-       RadToDeg(LightNode.FdCutOffAngle.Value));
+       { Clamp to 90 for safety, see VRML 2.0 version for comments }
+       Min(90, RadToDeg(RadToDeg(LightNode.FdCutOffAngle.Value))));
     end;
 
     procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
@@ -317,7 +318,11 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
        glLightf(glLightNum, GL_SPOT_EXPONENT, 1);
 
      glLightf(glLightNum, GL_SPOT_CUTOFF,
-       RadToDeg(LightNode.FdCutOffAngle.Value));
+       { Clamp to 90, to protect against user inputting invalid value in VRML,
+         or just thing like 1.5708, which may be recalculated by
+         RadToDeg to 90.0002104591, so > 90, and OpenGL raises "invalid value"
+         error then... }
+       Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
     end;
 
   var SetNoAttenuation: boolean;
