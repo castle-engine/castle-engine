@@ -192,7 +192,11 @@ type
 
   { Classic Whitted-style ray-tracer.
     See [http://stoma.name/michalis/vrml_engine_doc/output/xsl/html/ch04s02.html]
-    for documentation. }
+    for documentation.
+
+    Make sure that VRML2ActiveLights are properly initialized if you
+    plan to render VRML 2.0 nodes. TVRMLFlatScene and descendants do
+    this for you usually. }
   TClassicRayTracer = class(TRayTracer)
   public
     procedure Execute; override;
@@ -468,6 +472,7 @@ var
     i: integer;
     M1: TNodeMaterial_1;
     M2: TNodeMaterial_2;
+    ActiveLights: TDynActiveLightArray;
   begin
     IntersectNodeIndex := Octree.RayCollision(Intersection.Data,
       Ray0, RayVector, true,
@@ -504,11 +509,11 @@ var
     begin
       if Depth > 0 then
       begin
-        for i := 0 to State.ActiveLights.Count - 1 do
-          if LightNotBlocked(State.ActiveLights.Items[i]) then
+        ActiveLights := State.CurrentActiveLights;
+        for i := 0 to ActiveLights.Count - 1 do
+          if LightNotBlocked(ActiveLights.Items[i]) then
             Result += VRML97LightContribution(
-              State.ActiveLights.Items[i],
-              Intersection, IntersectNode^, CamPosition);
+              ActiveLights.Items[i], Intersection, IntersectNode^, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)

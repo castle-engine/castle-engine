@@ -104,6 +104,10 @@
       (but sometimes it's better as it allows you to place
       RenderShapeStateNoTransform on a separate display list, that can be more
       shared (because it doesn't take some transformations into account)).
+
+      Make sure that VRML2ActiveLights are properly initialized if you
+      plan to render VRML 2.0 nodes. TVRMLFlatScene and descendants do
+      this for you usually.
     )
 
     @item(
@@ -1972,8 +1976,9 @@ begin
     OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
     transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
     nie podlegaja transformacji aktualnego State'a w ktorym sa) }
+  Writeln('Lighted by ', State.CurrentActiveLights.Count, ' lights');
   if Attributes.UseLights then
-    glLightsFromVRML(State.ActiveLights,
+    glLightsFromVRML(State.CurrentActiveLights,
       Attributes.FirstGLFreeLight, LastGLFreeLight,
       Attributes.ColorModulatorSingle);
 

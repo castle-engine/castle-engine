@@ -29,7 +29,7 @@
   in VRMLFields unit). We also have here methods to save nodes back
   to stream.
 
-  I przede wszystkim metody do przeszukiwania grafu VRML'a na rozne sposoby -
+  I przede wszystkim metody do przeszukiwania grafu VRML'a na rozne sposoby ---
   patrz metody Traverse, EnumerateNodes i FindNode. Szczegolnie metoda Traverse
   jest wazna : pozwala ona zamienic graf VRMl'a na liste par
   (Node typu TGeneralShapeNode + State : TVRMLGraphTraverseState).
@@ -360,25 +360,30 @@ type
          );
   end;
 
-  { rekord do zapamietywania w TVRMLGraphTraverseState swiatla.
-    Kazde swiatlo to jeden node z grupy general light i jego tranformacja -
-    rzeczy takie jak pozycja i kierunek, swiatla sa modyfikowane przez ta
-    transformacje.
+  { This is used in TVRMLGraphTraverseState to keep track of used light.
+    When the light is used, not only it's node is imporant (in LightNode),
+    but also current transformation (this transformation affects things
+    like actual position and direction). This record keeps it all.
 
-    TransfLocation to juz przeliczone Transformation*Location dla swiatel
-    TNodeGeneralPositionalLight. TransfNormDirection to juz
-    znormalizowane i transformowane Direction dla swiatel Directional i Spot
-    (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
-    licza sie tylko obroty i skalowania).
+    Moreover, it provides precalculated properties like TransfLocation
+    and TransfNormDirection. Their computation too often would be somewhat
+    expensive, and thanks to this class we can calculate them just once
+    when they are found by traversing VRML file.
 
-    TODO: TransfLocation/Direction nie jest zbyt eleganckim rozwiazaniem
-
-    NIGDY nie konstruuj tego rekordu recznie - on moze byc modyfikowany tylko
-    w TDynActiveLightArray.AddLight  }
+    @bold(This record may be initialized only by
+    TNodeGeneralLight.CreateActiveLight). }
   TActiveLight = record
     LightNode: TNodeGeneralLight;
     Transform: TMatrix4Single;
+
+    { TransfLocation to juz przeliczone Transformation*Location dla swiatel
+      TNodeGeneralPositionalLight. }
     TransfLocation: TVector3Single;
+
+    { TransfNormDirection to juz
+      znormalizowane i transformowane Direction dla swiatel Directional i Spot
+      (jest transformowane tak zeby przesuniecia nie mialy znaczenia,
+      licza sie tylko obroty i skalowania). }
     TransfNormDirection: TVector3Single;
   end;
   PActiveLight = ^TActiveLight;
@@ -391,17 +396,17 @@ type
   public
     { -1 jesli nie ma }
     function IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
-    procedure AddLight(ALightNode: TNodeGeneralLight; const ATransform: TMatrix4Single);
     function Equals(SecondValue: TDynActiveLightArray): boolean;
   end;
   TArray_ActiveLight = TInfiniteArray_1;
   PArray_ActiveLight = PInfiniteArray_1;
 
-  { ponizsza klasa TVRMLGraphTraversalState definiuje "stan" w czasie
-    przechodzenia sceny VRML'a.
+  { This describes current "state" (current transformation and such)
+    when traversing VRML graph.
 
-    jedyne pole ktore pamieta aktualna transformacje to CurrMatrix,
-    wiec wiadomo jak zaimplementowac np. TransformSeparator.
+    For VRML >= 2.0 this could be smaller, as VRML >= 2.0 doesn't need
+    to keep track of all these LastNodes. But we want to handle VRML 1.0
+    100% correctly still, so there we are.
 
     Node'y ktore trafiaja na liste LastNodes (bo sa wsrod
     TraverseStateLastNodesClasses) nie moga wplywac w zaden inny sposob na stan
@@ -427,9 +432,39 @@ type
       ten obiekt przez Create. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
-    ActiveLights: TDynActiveLightArray;
+    { Lights active in this state, two separate versions for each VRML flavor
+      needed here.
 
+      VRML2ActiveLights should be for any VRML >= 2 (including X3D),
+      VRML1ActiveLights should be for any VRML <= 1 (including Inventor).
+
+      VRML 2.0 may have more lights active
+      (since DirectionalLight affects all siblings, and other lights affect
+      potentially all). But VRML 2.0 may also have some lights less,
+      since some lights are limited by radius and may be determined to
+      not light here.
+
+      Also, note that VRML2ActiveLights cannot be fully calculated in Traverse
+      pass (contrary to everything else in TVRMLGraphTraverseState).
+      DirectionalLights are calculated here, but positional lights have
+      to be calculated later (VRML 2 spec says that they affect whole scene,
+      based on their radius, and regardless of their position in VRML graph;
+      so this is not possible to fill during Traverse call).
+      See how UpdateVRML2ActiveLights in TVRMLFlatScene does this. }
+    VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
+
+    { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
+      flavor used to render with this state.
+
+      More precisely, it checks "VRML flavor" by looking at ParentShape:
+      when ParentShape is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
+    function CurrentActiveLights: TDynActiveLightArray;
+
+    { Current transformation. This is the only field that tracks
+      current transformation (so you know now how to implement VRML 1.0
+      nodes like TransformSeparator). }
     CurrMatrix: TMatrix4Single;
+
     CurrTextureMatrix: TMatrix4Single;
 
     ParentShape: TNodeShape;
@@ -483,6 +518,7 @@ type
     function Texture: TNodeGeneralTexture;
   end;
 
+  { Used as a callback by TVRMLNode.Traverse. }
   TTraversingFunc = procedure (Node: TVRMLNode;
     State: TVRMLGraphTraverseState) of object;
 
@@ -566,15 +602,23 @@ type
       Func: TEnumerateChildrenFunction;
       OnlyActive: boolean);
 
-    { w tej klasie te metody nie nie robia, w podklasach mozna za ich
-      pomoca zmodyfikowac nieco zachowanie state'a podczas przechodzenia
-      grafu. BeforeTraverse MOZE podmienic State na inny, tylko musi
-      go pozniej przywrocic w AfterTraverse. (to jest uzywane w Separatorze).
-      PAMIETAJ wywolywac inherited - w Before i Middle Traverse inherited
-      powinno byc wywolywane na poczatku, w AfterTraverse - na koncu.  }
+    { You can override these methods to determine what happens when
+      given node is traversed during Traverse call.
+      The main use of this is to modify TVRMLGraphTraverseState.
+
+      Remember to always call inherited when overriding.
+      In BeforeTraverse and MiddleTraverse you should call inherited
+      at the beginning, in AfterTraverse inherited should be called at the end.
+
+      Besides changing State fields, you can even replace the curent State
+      instance in BeforeTraverse. But in this case, you @italic(must
+      change it back to original value in AfterTraverse).
+
+      @groupBegin }
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); virtual;
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); virtual;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); virtual;
+    { @groupEnd }
 
     { method below can be used by a specific node kind to parse fields
       that are NOT on Fields list. Notka : oczywiscie, normalnie
@@ -598,7 +642,9 @@ type
     function TryParseSpecialField(Lexer: TVRMLLexer;
       NodeNameBinding: TStringList): boolean; virtual;
 
-    {methods to use in Fd* fields to allow comfortable access to node's specific fields}
+    { Methods to use when defininf Fd* fields properties,
+      to allow comfortable access to node's specific fields.
+      @groupBegin }
     function GetField(i: integer): TVRMLField;
     function GetFieldAsSFBitMask(i: integer): TSFBitMask;
     function GetFieldAsSFBool(i: integer): TSFBool;
@@ -625,6 +671,7 @@ type
     function GetFieldAsMFTime(i: integer): TMFTime;
     function GetFieldAsMFString(i: integer): TMFString;
     function GetFieldAsMFNode(i: integer): TMFNode;
+    { @groupEnd }
   public
     { kazdy typ node'a ma ustalone Fields razem z ich defaultowymi wartosciami
       w konstruktorze. Potem, czytajac obiekt ze strumienia lub operujac na
@@ -2098,6 +2145,8 @@ type
     property FdAmbientIntensity: TSFFloat index 3 read GetFieldAsSFFloat;
     property FdKambiShadows: TSFBool index 4 read GetFieldAsSFBool;
     property FdKambiShadowsMain: TSFBool index 5 read GetFieldAsSFBool;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; virtual;
   end;
 
   TObjectsListItem_1 = TNodeGeneralLight;
@@ -2109,6 +2158,8 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdDirection: TSFVec3f index 6 read GetFieldAsSFVec3f;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodeDirectionalLight_1 = class(TNodeGeneralDirectionalLight)
@@ -2138,6 +2189,8 @@ type
     function DistanceNeededForAttenuation: boolean;
     function Attenuation(const DistanceToLight: Single): Single; overload;
     function Attenuation(const DistanceToLight: Double): Double; overload;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodeGeneralPointLight = class(TNodeGeneralPositionalLight)
@@ -2169,6 +2222,8 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodeGroup_1 = class(TVRMLNode)
@@ -2325,8 +2380,9 @@ type
 
   { }
   { This is a VRML 2.0 grouping node.
-    This will push/pop full TVRMLGraphTraverseState
-    in Before/AfterTraverse. }
+    This will push/pop full TVRMLGraphTraverseState in Before/AfterTraverse.
+    It also propagates DirectionalLights in any child to all children
+    in VRML2ActiceLights. }
   TNodeGeneralGrouping = class(TVRMLNode)
   private
     OriginalState: TVRMLGraphTraverseState;
@@ -3555,6 +3611,8 @@ type
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodeSwitch_2 = class(TNodeGeneralGrouping)
@@ -4130,36 +4188,13 @@ begin
  result := -1;
 end;
 
-procedure TDynActiveLightArray.AddLight(ALightNode: TNodeGeneralLight;
-  const ATransform: TMatrix4Single);
-begin
- IncLength;
- with Items[High] do
- begin
-  LightNode := ALightNode;
-  Transform := ATransform;
-  if LightNode is TNodeGeneralPositionalLight then
-   TransfLocation := MultMatrixPoint(Transform,
-     TNodeGeneralPositionalLight(LightNode).FdLocation.Value);
-
-  if LightNode is TNodeSpotLight_1 then
-   TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
-     TNodeSpotLight_1(LightNode).FdDirection.Value) ) else
-  if LightNode is TNodeSpotLight_2 then
-   TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
-     TNodeSpotLight_2(LightNode).FdDirection.Value) ) else
-  if LightNode is TNodeGeneralDirectionalLight then
-   TransfNormDirection := Normalized( MultMatrixPointNoTranslation(Transform,
-     TNodeGeneralDirectionalLight(LightNode).FdDirection.Value) );
- end;
-end;
-
 function TDynActiveLightArray.Equals(SecondValue: TDynActiveLightArray): boolean;
 
   function ActiveLightEquals(const L1, L2: TActiveLight): boolean;
   begin
     Result := (L1.LightNode = L2.LightNode) and
       MatricesPerfectlyEqual(L1.Transform, L2.Transform);
+
     { No need to compare TransfLocation or TransfNormDirection,
       as they are just precalculated based on LightNode and Transform. }
   end;
@@ -4179,7 +4214,8 @@ end;
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
-  ActiveLights := TDynActiveLightArray.Create;
+  VRML1ActiveLights := TDynActiveLightArray.Create;
+  VRML2ActiveLights := TDynActiveLightArray.Create;
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -4192,7 +4228,8 @@ begin
   OwnsLastNodes := false;
   ParentShape := Source.ParentShape;
 
-  ActiveLights.AppendDynArray(Source.ActiveLights);
+  VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
+  VRML2ActiveLights.AppendDynArray(Source.VRML2ActiveLights);
 end;
 
 constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseStateLastNodes);
@@ -4220,7 +4257,9 @@ begin
   if OwnsLastNodes then
     TraverseState_FreeAndNilNodes(FLastNodes);
 
-  ActiveLights.Free;
+  FreeAndNil(VRML1ActiveLights);
+  FreeAndNil(VRML2ActiveLights);
+
   inherited;
 end;
 
@@ -4229,7 +4268,9 @@ function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState):
 var
   I: Integer;
 begin
-  Result := ActiveLights.Equals(SecondValue.ActiveLights) and
+  Result :=
+    VRML1ActiveLights.Equals(SecondValue.VRML1ActiveLights) and
+    VRML2ActiveLights.Equals(SecondValue.VRML2ActiveLights) and
     MatricesPerfectlyEqual(CurrMatrix, SecondValue.CurrMatrix) and
     MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix) and
     (ParentShape = SecondValue.ParentShape);
@@ -4250,7 +4291,7 @@ begin
   { ActiveLights, CurrMatrix, CurrTextureMatrix
     are ignored by TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
 
-  Result := ParentShape = SecondValue.ParentShape;
+  Result := (ParentShape = SecondValue.ParentShape);
 
   for I := 0 to HighTraverseStateLastNodes do
     if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
@@ -4264,6 +4305,13 @@ begin
   if ParentShape = nil then
     Result := LastNodes.Texture2 else
     Result := ParentShape.Texture;
+end;
+
+function TVRMLGraphTraverseState.CurrentActiveLights: TDynActiveLightArray;
+begin
+  if ParentShape = nil then
+    Result := VRML1ActiveLights else
+    Result := VRML2ActiveLights;
 end;
 
 { TVRMLNode ------------------------------------------------------------------- }
@@ -4464,9 +4512,17 @@ begin
     DirectEnumerateAll(Func);
 end;
 
-procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState); begin end;
-procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState); begin end;
-procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState); begin end;
+procedure TVRMLNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
+begin
+end;
+
+procedure TVRMLNode.MiddleTraverse(State: TVRMLGraphTraverseState);
+begin
+end;
+
+procedure TVRMLNode.AfterTraverse(var State: TVRMLGraphTraverseState);
+begin
+end;
 
 type
   TTraverseEnumerator = class
@@ -6458,10 +6514,16 @@ begin
   Fields.Add(TSFBool.Create('kambiShadowsMain', false)); Fields.Last.Exposed := true;
 end;
 
+function TNodeGeneralLight.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result.LightNode := Self;
+  Result.Transform := State.CurrMatrix;
+end;
+
 procedure TNodeGeneralLight.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
   inherited;
-  State.ActiveLights.AddLight(Self, State.CurrMatrix);
+  State.VRML1ActiveLights.AppendItem(CreateActiveLight(State));
 end;
 
 constructor TNodeGeneralPositionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6474,6 +6536,15 @@ end;
 function TNodeGeneralPositionalLight.DistanceNeededForAttenuation: boolean;
 begin
   Result := (FdAttenuation.Value[1] > 0) or (FdAttenuation.Value[2] > 0);
+end;
+
+function TNodeGeneralPositionalLight.CreateActiveLight(
+  State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result := inherited;
+
+  Result.TransfLocation := MultMatrixPoint(Result.Transform,
+    FdLocation.Value);
 end;
 
 {$define ATTENUATION_IMPLEMENTATION:=
@@ -6518,6 +6589,15 @@ begin
  result := 'DirectionalLight';
 end;
 
+function TNodeGeneralDirectionalLight.CreateActiveLight(
+  State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result := inherited;
+  Result.TransfNormDirection :=
+    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+      FdDirection.Value) );
+end;
+
 class function TNodeDirectionalLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
@@ -6560,6 +6640,15 @@ end;
 class function TNodeSpotLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
+end;
+
+function TNodeSpotLight_1.CreateActiveLight(
+  State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result := inherited;
+  Result.TransfNormDirection :=
+    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+      FdDirection.Value) );
 end;
 
 constructor TNodeGroup_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6824,12 +6913,86 @@ end;}
 
 { Alphabetically, all VRML 97 nodes ------------------------------------------ }
 
+type
+  TGeneralGroupingEnumerator = class
+    Lights: TDynActiveLightArray;
+    State: TVRMLGraphTraverseState;
+    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+  end;
+
+  procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
+    Node, Child: TVRMLNode);
+  begin
+    if Child is TNodeGeneralDirectionalLight then
+      { We do CreateActiveLight with State from TNodeGeneralGrouping node,
+        while precisely we should rather use State from TNodeDirectionalLight
+        traverse. But, fortunately, State of TNodeDirectionalLight doesn't
+        change inside (TNodeDirectionalLight doesn't do anything inside
+        BeforeTraverse), so this is the same thing. }
+      State.VRML2ActiveLights.AppendItem(
+        TNodeGeneralDirectionalLight(Child).CreateActiveLight(State));
+  end;
+
 procedure TNodeGeneralGrouping.BeforeTraverse(
   var State: TVRMLGraphTraverseState);
+var
+  Enumerator: TGeneralGroupingEnumerator;
 begin
   inherited;
   OriginalState := State;
   State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+
+  (*We append all directional lights to the current State.
+    This is how we implement DirectionalLight scope according to VRML 2.0
+    specification.
+
+    This may seem wasteful to enumerate children twice
+    (first we enumerate here, then actual Traverse enumerates,
+    this time recursively, for the second time). But it turned out to
+    be the fastest and simplest method of propagating DirectionalLight
+    correctly...
+
+    First approach was to add ParentGroup to TActiveLight
+    and do it as post-processing step, i.e. in TVRMLFlatScene in
+    UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
+    But that was 1. even slower, since it must traverse ParentGroup once again
+    for each directional light, and for each shape within this ParentGroup,
+    it must find all it's occurences inside ShapeStates, and add light there
+    2. it fails ugly in case of DEF / USE of shapes.
+
+    See kambi_vrml_test_suite/vrml_2/directional_light_scope.wrl test. Imagine
+    (simplified VRML below) :
+
+      Group {
+        DEF S Shape { .... some sphere .... }
+        Group {
+          USE S
+          DirectionalLight { }
+          USE S
+        }
+        USE S
+      }
+
+    What would happen here ? ParentGroup.Enumerate would find S *two* times.
+    For each of these occurences, it would find *four* shape states with
+    matching node value. So 1. all four spheres would be lighted (incorrect,
+    only two spheres in the middle should be lighted) 2. all of them would
+    be lighted two times by the same light... Fix for 1st problem would
+    require us to record some list of parents within State (which would
+    awfully slow down Traverse work, that already is too crowded). Fix for 2nd
+    problem would require some intelligent avoiding of duplicates
+    (set light only for first node, that is both matching and has the light
+    not set yet).
+
+    It would be quite more convoluted and much slower than
+    simple, correct solution below. *)
+
+  Enumerator := TGeneralGroupingEnumerator.Create;
+  try
+    Enumerator.State := State;
+    DirectEnumerateActive(
+      {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
+  finally FreeAndNil(Enumerator) end;
 end;
 
 procedure TNodeGeneralGrouping.AfterTraverse(
@@ -8515,6 +8678,15 @@ end;
 class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeSpotLight_2.CreateActiveLight(
+  State: TVRMLGraphTraverseState): TActiveLight;
+begin
+  Result := inherited;
+  Result.TransfNormDirection :=
+    Normalized( MultMatrixPointNoTranslation(Result.Transform,
+      FdDirection.Value) );
 end;
 
 class function TNodeSwitch_2.ClassNodeTypeName: string;

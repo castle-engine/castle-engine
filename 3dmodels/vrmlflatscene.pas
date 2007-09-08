@@ -111,13 +111,17 @@ type
     that scene did not changed much). And the @link(ShapeStates) list
     is the key to various processing of the scene, most important
     it's the key to write a flexible OpenGL renderer of the VRML scene.
-  }
+
+    Also, VRML2ActiveLights are magically updated for all states in
+    ShapeStates list. This is crucial for lights rendering in VRML 2.0. }
   TVRMLFlatScene = class
   private
     FOwnsRootNode: boolean;
     FShapeStates: TVRMLShapeStatesList;
     FRootNode: TVRMLNode;
-    procedure AddFromTraverse(Node: TVRMLNode; State: TVRMLGraphTraverseState);
+
+    ChangedAll_TraversedLights: TDynActiveLightArray;
+    procedure ChangedAll_Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState);
 
     FFogNode: TNodeFog;
     FFogDistanceScaling: Single;
@@ -607,27 +611,99 @@ begin
  end;
 end;
 
-procedure TVRMLFlatScene.AddFromTraverse(Node: TVRMLNode; State: TVRMLGraphTraverseState);
+procedure TVRMLFlatScene.ChangedAll_Traverse(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState);
+{ This does two things. These two things are independent, but both
+  require Traverse to be done, and both have to be done in ChangedAll call...
+  So it's efficient to do them at once.
+  1. Add shapes to ShapeStates
+  2. Add lights to ChangedAll_TraversedLights }
 begin
- ShapeStates.Add(
-   TVRMLShapeState.Create(Node as TNodeGeneralShape,
-   TVRMLGraphTraverseState.CreateCopy(State)));
+  if Node is TNodeGeneralShape then
+  begin
+    ShapeStates.Add(
+      TVRMLShapeState.Create(Node as TNodeGeneralShape,
+      TVRMLGraphTraverseState.CreateCopy(State)));
+  end else
+  if Node is TNodeGeneralLight then
+  begin
+    ChangedAll_TraversedLights.AppendItem(
+      (Node as TNodeGeneralLight).CreateActiveLight(State));
+  end;
 end;
 
 procedure TVRMLFlatScene.ChangedAll;
-var InitialState: TVRMLGraphTraverseState;
-begin
- ShapeStates.FreeContents;
- Validities := [];
 
- if RootNode <> nil then
- begin
-  InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+  procedure UpdateVRML2ActiveLights;
+
+    procedure AddLightEverywhere(const L: TActiveLight);
+    var
+      J: Integer;
+    begin
+      for J := 0 to ShapeStates.Count - 1 do
+        ShapeStates[J].State.VRML2ActiveLights.AppendItem(L);
+    end;
+
+    { Add L everywhere within given Radius from Location.
+      Note that this will calculate BoundingBox of every ShapeState
+      (but that's simply unavoidable if you have scene with VRML 2.0
+      positional lights). }
+    procedure AddLightRadius(const L: TActiveLight;
+      const Location: TVector3Single; const Radius: Single);
+    begin
+      { TODO }
+      { TODO: test this works, including: the same shape node instantiated
+        twice can have light active on only one instance.
+
+        Construct a 3d mesh of cubes to see which ones are affected
+        by point light. }
+    end;
+
+  var
+    I: Integer;
+    L: PActiveLight;
+    LNode: TNodeGeneralLight;
+  begin
+    for I := 0 to ChangedAll_TraversedLights.High do
+    begin
+      L := ChangedAll_TraversedLights.Pointers[I];
+      LNode := L^.LightNode;
+      if (LNode is TNodePointLight_1) or
+         (LNode is TNodeSpotLight_1) then
+        AddLightEverywhere(L^) else
+      if LNode is TNodePointLight_2 then
+        AddLightRadius(L^,
+          TNodePointLight_2(LNode).FdLocation.Value,
+          TNodePointLight_2(LNode).FdRadius.Value) else
+      if LNode is TNodeSpotLight_2 then
+        AddLightRadius(L^,
+          TNodeSpotLight_2(LNode).FdLocation.Value,
+          TNodeSpotLight_2(LNode).FdRadius.Value);
+      { Other light types (directional) should be handled by
+        TNodeGeneralGrouping.BeforeTraverse }
+    end;
+  end;
+
+var
+  InitialState: TVRMLGraphTraverseState;
+begin
+  Writeln('changed all ', RootNode.NodeName, ' ', RootNode.NodeTypeName);
+  ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
-   RootNode.Traverse(InitialState, TNodeGeneralShape,
-     {$ifdef FPC_OBJFPC} @ {$endif} AddFromTraverse);
-  finally InitialState.Free end;
- end;
+    ShapeStates.FreeContents;
+    Validities := [];
+
+    if RootNode <> nil then
+    begin
+      InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+      try
+        RootNode.Traverse(InitialState, TVRMLNode,
+          {$ifdef FPC_OBJFPC} @ {$endif} ChangedAll_Traverse);
+      finally InitialState.Free end;
+
+      UpdateVRML2ActiveLights;
+    end;
+  finally FreeAndNil(ChangedAll_TraversedLights) end;
 end;
 
 procedure TVRMLFlatScene.ChangedShapeStateFields(ShapeStateNum: integer);
@@ -664,10 +740,14 @@ begin
  if (Node is TNodeGeneralLight) then
  begin
   { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
-    gdzie wystepuje jako Active. }
+    gdzie wystepuje jako Active.
+
+    We use CurrentActiveLights, so possibly VRML2ActiveLights here ---
+    that's OK, they are valid because UpdateVRML2ActiveLights was called
+    when construcing ShapeStates list. }
   for i := 0 to ShapeStates.Count-1 do
-   if ShapeStates[i].State.ActiveLights.
-     IndexOfLightNode(TNodeGeneralLight(Node)) >= 0 then
+   if ShapeStates[i].State.CurrentActiveLights.
+        IndexOfLightNode(TNodeGeneralLight(Node)) >= 0 then
     ChangedShapeStateFields(i);
  end else
  if (Node is TNodeGeneralShape) then
