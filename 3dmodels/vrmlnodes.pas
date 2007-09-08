@@ -3919,6 +3919,22 @@ var
   { tworzony i niszczony w init/fini tego modulu }
   NodesManager: TNodesManager;
 
+{ TVRMLRoute ----------------------------------------------------------------- }
+
+type
+  TVRMLRoute = class
+  public
+    SourceNodeName, SourceFieldName: string;
+    DestinationNodeName, DestinationFieldName: string;
+
+    { Parses the route statement.
+      Implementation should be able to safely assume that current token
+      is ROUTE. }
+    procedure Parse(Lexer: TVRMLLexer);
+
+    function Description: string;
+  end;
+
 { global procedures ---------------------------------------------------------- }
 
 (*
@@ -8973,6 +8989,48 @@ begin
   Result := nil;
 end;
 
+{ TVRMLRoute ----------------------------------------------------------------- }
+
+procedure TVRMLRoute.Parse(Lexer: TVRMLLexer);
+begin
+  { We don't use NextTokenForceVTName here, as then the dot "."
+    is treated like part the VRML name. So this assumes that VRML node names
+    are really correct VRML names. }
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'VRML node name');
+  SourceNodeName := Lexer.TokenName;
+
+  Lexer.NextToken(true);
+  Lexer.CheckTokenIs(vtPeriod);
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'VRML field/event name');
+  SourceFieldName := Lexer.TokenName;
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIsKeyword(vkTO);
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'VRML node name');
+  DestinationNodeName := Lexer.TokenName;
+
+  Lexer.NextToken(true);
+  Lexer.CheckTokenIs(vtPeriod);
+
+  Lexer.NextToken;
+  Lexer.CheckTokenIs(vtName, 'VRML field/event name');
+  DestinationFieldName := Lexer.TokenName;
+
+  Lexer.NextToken;
+end;
+
+function TVRMLRoute.Description: string;
+begin
+  Result := Format('%s.%s -> %s.%s', [SourceNodeName, SourceFieldName,
+    DestinationNodeName, DestinationFieldName]);
+end;
+
 { global procedures ---------------------------------------------------------- }
 
 function ParseNode(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
@@ -9080,12 +9138,23 @@ var
 
   procedure ParseVRMLStatement;
 
-    procedure ParseRoute;
+    procedure ParseRouteInternal;
+    var
+      Route: TVRMLRoute;
     begin
+      Route := TVRMLRoute.Create;
+      try
+        Route.Parse(Lexer);
+        VRMLNonFatalError('VRML routes are parsed but ignored for now, so route ' +
+          Route.Description + ' is ignored');
+      finally FreeAndNil(Route) end;
     end;
 
-    procedure ParseProto;
+    { You can safely assume that current token is PROTO or EXTERNPROTO. }
+    procedure ParseProtoStatement;
     begin
+      raise EVRMLParserError.Create(Lexer,
+        'VRML PROTOs and EXTERNPROTOs are not parsed for now');
     end;
 
     procedure ParseNodeInternal;
@@ -9118,10 +9187,10 @@ var
   begin
     if (Lexer.Token = vtKeyword) and
        (Lexer.TokenKeyword = vkROUTE) then
-      ParseRoute else
+      ParseRouteInternal else
     if (Lexer.Token = vtKeyword) and
-       (Lexer.TokenKeyword = vkPROTO) then
-      ParseProto else
+       (Lexer.TokenKeyword in [vkPROTO, vkEXTERNPROTO]) then
+      ParseProtoStatement else
       ParseNodeInternal;
   end;
 

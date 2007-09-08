@@ -182,9 +182,22 @@ type
 
     property TokenString: string read fTokenString;
 
-    { NextToken pobiera z pliku nastepny token, inicjujac odpowiednio pola
-      Token*. Potem zwraca wartosc pola Token (dla wygody). }
-    function NextToken: TVRMLToken;
+    { NextToken reads next token from stream, initializing appropriately
+      all Token* properties. For comfort, this returs the Token value.
+
+      @param(ParsePeriodAsSymbol If this is @true, then '.' will be read
+        as vtPeriod token. Otherwise '.' will be expected to start float number.
+
+        This is related to VRML lexer being unambigous: if you see
+        .34, maybe this means token dot, then token 34,
+        and maybe it means float .34 ? In practice the problem doesn't exist,
+        because the dot can occur only right before VRML names (e.g. in
+        ROUTE statement), and VRML name cannot start with a digit.
+
+        Still, this requires parser to pass ParsePeriodAsSymbol = @true
+        when the dot is expected, not a float.)
+    }
+    function NextToken(ParsePeriodAsSymbol: boolean = false): TVRMLToken;
 
     { uzywaj gdy wiesz ze nastepny token MUSI byc vtName i zeby w zwiazku z
         tym lekser odczytal nastepny token jako vtName. Pamietaj ze moze
@@ -236,6 +249,7 @@ type
     procedure CheckTokenIs(Tok: TVRMLToken); overload;
     procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
+    procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
 
     { po wykonaniu konstruktora VRMLVerMajor i Minor i pierwszy Token
       juz sa odczytane }
@@ -347,7 +361,7 @@ begin
  until endingChar = Ord('"');
 end;
 
-function TVRMLLexer.NextToken: TVRMLToken;
+function TVRMLLexer.NextToken(ParsePeriodAsSymbol: boolean): TVRMLToken;
 
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
@@ -493,14 +507,10 @@ begin
       end;
     end else
     begin
-      (* TODO: this prevents parsing floats like ".2", so it's
-        disabled for now.
-      case FirstBlackChr of
-        { VRML > 1.0 symbols }
-        '.': fToken := vtPeriod;
-        else RecognizeCommonTokens(FirstBlackChr);
-      end; *)
-      RecognizeCommonTokens(FirstBlackChr);
+      if ParsePeriodAsSymbol and
+         (FirstBlackChr = '.') then
+        FToken := vtPeriod else
+        RecognizeCommonTokens(FirstBlackChr);
     end;
   end;
 
@@ -670,6 +680,14 @@ begin
  if not (Token in Toks) then
   raise EVRMLParserError.Create(Self, 'Expected '+ToksDescription
     +', got '+DescribeToken);
+end;
+
+procedure TVRMLLexer.CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
+begin
+  if not ( (Token = vtKeyword) and (TokenKeyword = Keyword) ) then
+    raise EVRMLParserError.Create(Self,
+      Format('Expected keyword "%s", got %s', [VRMLKeywords[TokenKeyword],
+        DescribeToken]));
 end;
 
 { TVRMLLexerFileName --------------------------------------------------------- }
