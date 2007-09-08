@@ -315,7 +315,8 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
          Honestly I don't see how it's much better than our atbitrary way... }
      if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
        glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
-       glLightf(glLightNum, GL_SPOT_EXPONENT, 1);
+       glLightf(glLightNum, GL_SPOT_EXPONENT, 1
+         { 0.5 / (LightNode.FdBeamWidth.Value + 0.1) });
 
      glLightf(glLightNum, GL_SPOT_CUTOFF,
        { Clamp to 90, to protect against user inputting invalid value in VRML,
