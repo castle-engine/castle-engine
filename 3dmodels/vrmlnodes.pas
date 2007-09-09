@@ -374,7 +374,9 @@ type
     TNodeGeneralLight.CreateActiveLight). }
   TActiveLight = record
     LightNode: TNodeGeneralLight;
+
     Transform: TMatrix4Single;
+    AverageScaleTransform: Single;
 
     { TransfLocation to juz przeliczone Transformation*Location dla swiatel
       TNodeGeneralPositionalLight. }
@@ -469,6 +471,19 @@ type
       nodes like TransformSeparator). }
     CurrMatrix: TMatrix4Single;
 
+    { This is a uniform scale caused by matrix CurrMatrix.
+
+      I.e., if we could extract the scaling from CurrMatrix, then it would
+      be AverageScaleTransform. Assuming that the scale is uniform.
+      If we used any non-uniform scale along the way, this is the average scale.
+
+      This is calculated by updating it along the way, just like CurrMatrix
+      is updated. This way it's calculated easily --- contrary to the
+      non-trivial operation of extracting a scale from a 4x4 matrix.
+      It's also 100% correct, @italic(assuming that user didn't use
+      VRML 1.0 MatrixTransform along the way). }
+    AverageScaleTransform: Single;
+
     CurrTextureMatrix: TMatrix4Single;
 
     ParentShape: TNodeShape;
@@ -507,7 +522,7 @@ type
     { This is like Equals but it ignores some fields that are
       ignored when rendering using
       TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
-      For example, it ignores CurrMatrix. }
+      For example, it ignores CurrMatrix, AverageScaleTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
     { Returns proper texture node that should be used
@@ -1054,12 +1069,17 @@ type
       (because they are "out" params) if not found.
 
       @groupBegin }
-    function TryFindNodeState(InitialState: TVRMLGraphTraverseState;
+    function TryFindNodeState(
+      InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
-    function TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
+      out Node: TVRMLNode;
+      out State: TVRMLGraphTraverseState): boolean;
+    function TryFindNodeTransform(
+      InitialState: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
+      out Node: TVRMLNode;
+      out Transform: TMatrix4Single;
+      out AverageScaleTransform: Single): boolean;
     { @groupEnd }
 
     { This seeks Self and parent nodes (from ParentNodes and ParentFields,
@@ -1986,6 +2006,7 @@ type
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
     function MatrixTransformation: TMatrix4Single; virtual; abstract;
+    function AverageScaleTransform: Single; virtual; abstract;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1995,14 +2016,30 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdMatrix: TSFMatrix index 0 read GetFieldAsSFMatrix;
+
     function MatrixTransformation: TMatrix4Single; override;
+
+    { Return average scale for this FdMatrix.
+
+      Note that this doesn't correctly extract scale from FdMatrix,
+      as that is too difficcult. Insted it does simple extraction,
+      which will work for identity, translation and scaling matrices
+      (but e.g. will fail miserably (generate nonsense results) when
+      looking at some rotation matrices).
+
+      Ultimately, this is the reason why VRML 2.0 removed this node
+      from specification: extracting some features from arbitrary given
+      4x4 matrix is very difficult. }
+    function AverageScaleTransform: Single; override;
   end;
 
   TNodeRotation = class(TNodeGeneralTransformation)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdRotation: TSFRotation index 0 read GetFieldAsSFRotation;
+
     function MatrixTransformation: TMatrix4Single; override;
+    function AverageScaleTransform: Single; override;
   end;
 
   { This node is actually from Inventor. It's not in VRML 1.0 spec.
@@ -2013,14 +2050,18 @@ type
     class function ClassNodeTypeName: string; override;
     property FdAxis: TSFEnum index 0 read GetFieldAsSFEnum;
     property FdAngle: TSFFloat index 1 read GetFieldAsSFFloat;
+
     function MatrixTransformation: TMatrix4Single; override;
+    function AverageScaleTransform: Single; override;
   end;
 
   TNodeScale = class(TNodeGeneralTransformation)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdScaleFactor: TSFVec3f index 0 read GetFieldAsSFVec3f;
+
     function MatrixTransformation: TMatrix4Single; override;
+    function AverageScaleTransform: Single; override;
   end;
 
   TNodeTransform_1 = class(TNodeGeneralTransformation)
@@ -2032,7 +2073,9 @@ type
     property FdScaleFactor: TSFVec3f index 2 read GetFieldAsSFVec3f;
     property FdScaleOrientation: TSFRotation index 3 read GetFieldAsSFRotation;
     property FdCenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
+
     function MatrixTransformation: TMatrix4Single; override;
+    function AverageScaleTransform: Single; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -2042,7 +2085,9 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdTranslation: TSFVec3f index 0 read GetFieldAsSFVec3f;
+
     function MatrixTransformation: TMatrix4Single; override;
+    function AverageScaleTransform: Single; override;
   end;
 
   TVRMLCameraKind = (ckOrthographic, ckPerspective);
@@ -2289,6 +2334,7 @@ type
   TNodeTransformSeparator = class(TVRMLNode)
   private
     OriginalMatrix: TMatrix4Single;
+    OriginalAverageScaleTransform: Single;
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
@@ -4229,6 +4275,7 @@ begin
   CommonCreate;
 
   CurrMatrix := Source.CurrMatrix;
+  AverageScaleTransform := Source.AverageScaleTransform;
   CurrTextureMatrix := Source.CurrTextureMatrix;
   FLastNodes := Source.FLastNodes;
   OwnsLastNodes := false;
@@ -4243,6 +4290,7 @@ begin
   CommonCreate;
 
   CurrMatrix := IdentityMatrix4Single;
+  AverageScaleTransform := 1.0;
   CurrTextureMatrix := IdentityMatrix4Single;
   FLastNodes := ADefaultLastNodes;
   OwnsLastNodes := false;
@@ -4253,6 +4301,7 @@ begin
   CommonCreate;
 
   CurrMatrix := IdentityMatrix4Single;
+  AverageScaleTransform := 1.0;
   CurrTextureMatrix := IdentityMatrix4Single;
   TraverseState_CreateNodes(FLastNodes);
   OwnsLastNodes := true;
@@ -4278,6 +4327,7 @@ begin
     VRML1ActiveLights.Equals(SecondValue.VRML1ActiveLights) and
     VRML2ActiveLights.Equals(SecondValue.VRML2ActiveLights) and
     MatricesPerfectlyEqual(CurrMatrix, SecondValue.CurrMatrix) and
+    (AverageScaleTransform = SecondValue.AverageScaleTransform) and
     MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix) and
     (ParentShape = SecondValue.ParentShape);
 
@@ -4294,7 +4344,7 @@ function TVRMLGraphTraverseState.EqualsNoTransform(
 var
   I: Integer;
 begin
-  { ActiveLights, CurrMatrix, CurrTextureMatrix
+  { ActiveLights, CurrMatrix, AverageScaleTransform, CurrTextureMatrix
     are ignored by TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
 
   Result := (ParentShape = SecondValue.ParentShape);
@@ -4884,36 +4934,42 @@ end;
     TTryFindNodeTransformObj = class
       PNode: PVRMLNode;
       PTransform: PMatrix4Single;
+      PAverageScaleTransform: PSingle;
       procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
     end;
 
     procedure TTryFindNodeTransformObj.TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
     begin
-     PNode^ := ANode;
-     { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
-       w TryFindNodeState trzeba tutaj kopiowac cale state,
-       w TryFindNodeTransform wystarczy skopiowac transformacje. }
-     PTransform^ := AState.CurrMatrix;
-     raise BreakTryFindNodeState.Create;
+      PNode^ := ANode;
+      { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
+        w TryFindNodeState trzeba tutaj kopiowac cale state,
+        w TryFindNodeTransform wystarczy skopiowac transformacje. }
+      PTransform^ := AState.CurrMatrix;
+      PAverageScaleTransform^ := AState.AverageScaleTransform;
+      raise BreakTryFindNodeState.Create;
     end;
 
 function TVRMLNode.TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
-  out Node: TVRMLNode; out Transform: TMatrix4Single): boolean;
-var Obj: TTryFindNodeTransformObj;
+  out Node: TVRMLNode;
+  out Transform: TMatrix4Single;
+  out AverageScaleTransform: Single): boolean;
+var
+  Obj: TTryFindNodeTransformObj;
 begin
- Obj := TTryFindNodeTransformObj.Create;
- try
+  Obj := TTryFindNodeTransformObj.Create;
   try
-   Obj.PNode := @Node;
-   Obj.PTransform := @Transform;
-   Traverse(InitialState, NodeClass,
-     {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
-   result := false;
-  except
-   on BreakTryFindNodeState do result := true;
-  end;
- finally Obj.Free end;
+    try
+      Obj.PNode := @Node;
+      Obj.PTransform := @Transform;
+      Obj.PAverageScaleTransform := @AverageScaleTransform;
+      Traverse(InitialState, NodeClass,
+        {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
+      Result := false;
+    except
+      on BreakTryFindNodeState do Result := true;
+    end;
+  finally Obj.Free end;
 end;
 
 function TVRMLNode.TryFindParentByName(const FindName: string): TVRMLNode;
@@ -6312,8 +6368,9 @@ end;
 
 procedure TNodeGeneralTransformation.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
- inherited;
- State.CurrMatrix := MultMatrices(State.CurrMatrix, MatrixTransformation);
+  inherited;
+  State.CurrMatrix := MultMatrices(State.CurrMatrix, MatrixTransformation);
+  State.AverageScaleTransform *= AverageScaleTransform;
 end;
 
 constructor TNodeMatrixTransform.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6329,7 +6386,18 @@ end;
 
 function TNodeMatrixTransform.MatrixTransformation: TMatrix4Single;
 begin
- result := FdMatrix.Matrix;
+  Result := FdMatrix.Matrix;
+end;
+
+function TNodeMatrixTransform.AverageScaleTransform: Single;
+begin
+  { This is a simple method of extracting average scaling factor from
+    a matrix. Works OK for combination of identity, scaling,
+    translation matrices.
+    Fails awfully on rotation (and possibly many other) matrices. }
+  Result := ( FdMatrix.Matrix[0, 0] +
+              FdMatrix.Matrix[1, 1] +
+              FdMatrix.Matrix[2, 2] ) / 3;
 end;
 
 constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6345,14 +6413,18 @@ end;
 
 function TNodeRotation.MatrixTransformation: TMatrix4Single;
 begin
- {glRotate OpenGL'a ma obroty skierowane w ta sama strone co
-    w/g specyfikacji VRML'a, wiec wszystko OK.
-  Musimy sie tu zabezpieczyc przed glupim wektorem FdRotation -
-    program o nazwie "Pioneer" potrafi takie cos zapisywac do
-    pliku VRMla. }
- if IsZeroVector(FdRotation.Axis) then
-  result := IdentityMatrix4Single else
-  result := RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis);
+  { We check for dumb zero rotation vector, program "Pioneer" could
+    write something like this to VRML. }
+  if IsZeroVector(FdRotation.Axis) then
+    result := IdentityMatrix4Single else
+    { RotationMatrixRad, just like glRotate, has rotations defined in the same way
+      (direction) as VRML, so it's all OK here. }
+    result := RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis);
+end;
+
+function TNodeRotation.AverageScaleTransform: Single;
+begin
+  Result := 1;
 end;
 
 constructor TNodeRotationXYZ.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6375,6 +6447,11 @@ begin
  Result := RotationMatrixRad(FdAngle.Value, AxisVectors[FdAxis.Value]);
 end;
 
+function TNodeRotationXYZ.AverageScaleTransform: Single;
+begin
+  Result := 1;
+end;
+
 constructor TNodeScale.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  inherited;
@@ -6389,6 +6466,13 @@ end;
 function TNodeScale.MatrixTransformation: TMatrix4Single;
 begin
  result := ScalingMatrix(FdScaleFactor.Value);
+end;
+
+function TNodeScale.AverageScaleTransform: Single;
+begin
+  Result := ( FdScaleFactor.Value[0] +
+              FdScaleFactor.Value[1] +
+              FdScaleFactor.Value[2] ) / 3;
 end;
 
 constructor TNodeTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -6421,6 +6505,13 @@ begin
  result := MultMatrices(result, TranslationMatrix(VectorNegate(FdCenter.Value)));
 end;
 
+function TNodeTransform_1.AverageScaleTransform: Single;
+begin
+  Result := ( FdScaleFactor.Value[0] +
+              FdScaleFactor.Value[1] +
+              FdScaleFactor.Value[2] ) / 3;
+end;
+
 class function TNodeTransform_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
@@ -6440,6 +6531,11 @@ end;
 function TNodeTranslation.MatrixTransformation: TMatrix4Single;
 begin
  result := TranslationMatrix(FdTranslation.Value);
+end;
+
+function TNodeTranslation.AverageScaleTransform: Single;
+begin
+  Result := 1;
 end;
 
 constructor TNodeGeneralViewpoint.Create(
@@ -6524,6 +6620,7 @@ function TNodeGeneralLight.CreateActiveLight(State: TVRMLGraphTraverseState): TA
 begin
   Result.LightNode := Self;
   Result.Transform := State.CurrMatrix;
+  Result.AverageScaleTransform := State.AverageScaleTransform;
 end;
 
 procedure TNodeGeneralLight.MiddleTraverse(State: TVRMLGraphTraverseState);
@@ -6758,16 +6855,19 @@ end;
 
 procedure TNodeTransformSeparator.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
- inherited;
- {nie robimy kopii calego State'a bo w TVRMLRenderState moga byc
-  jeszcze inne informacje ktore powinny "przeciec" na zewnatrz
-  TransformSeparator'a.}
- OriginalMatrix := State.CurrMatrix;
+  inherited;
+
+  { nie robimy kopii calego State'a bo w TVRMLRenderState moga byc
+    jeszcze inne informacje ktore powinny "przeciec" na zewnatrz
+    TransformSeparator'a. }
+  OriginalMatrix := State.CurrMatrix;
+  OriginalAverageScaleTransform := State.AverageScaleTransform;
 end;
 
 procedure TNodeTransformSeparator.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
  State.CurrMatrix := OriginalMatrix;
+ State.AverageScaleTransform := OriginalAverageScaleTransform;
  inherited;
 end;
 
@@ -8450,10 +8550,7 @@ begin
     and
       bounding box
     which I don't know how to do *easily*... }
-  Result.TransfRadius := FdRadius.Value *
-    ( ( Result.Transform[0, 0] +
-        Result.Transform[1, 1] +
-        Result.Transform[2, 2] ) / 3 );
+  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
 end;
 
 class function TNodePointSet_2.ClassNodeTypeName: string;
@@ -8717,12 +8814,9 @@ begin
     Normalized( MultMatrixPointNoTranslation(Result.Transform,
       FdDirection.Value) );
 
-  { TODO: For non-uniform scale, this will simply use average scale,
+  { TODO: For non-uniform scale, this is too easy,
     see TNodePointLight_2.CreateActiveLight for more comments. }
-  Result.TransfRadius := FdRadius.Value *
-    ( ( Result.Transform[0, 0] +
-        Result.Transform[1, 1] +
-        Result.Transform[2, 2] ) / 3 );
+  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
 end;
 
 class function TNodeSwitch_2.ClassNodeTypeName: string;
@@ -8947,6 +9041,9 @@ begin
     RotationMatrixRad(-FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
   State.CurrMatrix := MultMatrices(State.CurrMatrix,
     TranslationMatrix(VectorNegate(FdCenter.Value)));
+
+  State.AverageScaleTransform *=
+    (FdScale.Value[0] + FdScale.Value[1] + FdScale.Value[2]) / 3;
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;

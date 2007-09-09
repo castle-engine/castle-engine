@@ -2095,6 +2095,7 @@ procedure TVRMLFlatSceneGL.PrepareBackground;
 var
   InitialState: TVRMLGraphTraverseState;
   BgTransform: TMatrix4Single;
+  BgAverageScaleTransform: Single;
   BgNode: TNodeBackground;
   SkyAngleCount: Integer;
   SkyColorCount: Integer;
@@ -2107,7 +2108,7 @@ begin
   try
     if (RootNode <> nil) and
       RootNode.TryFindNodeTransform(InitialState, TNodeBackground,
-        TVRMLNode(BgNode), BgTransform) then
+        TVRMLNode(BgNode), BgTransform, BgAverageScaleTransform) then
     begin
       SkyAngleCount := BgNode.FdSkyAngle.Count;
       SkyColorCount := BgNode.FdSkyColor.Count;

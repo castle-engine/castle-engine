@@ -1037,47 +1037,39 @@ end;
 { fog ---------------------------------------------------------------------- }
 
 procedure TVRMLFlatScene.ValidateFog;
-var FogTransform: TMatrix4Single;
-    InitialState: TVRMLGraphTraverseState;
+var
+  FogTransform: TMatrix4Single;
+  FogAverageScaleTransform: Single;
+  InitialState: TVRMLGraphTraverseState;
 begin
  InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
  try
   if (RootNode <> nil) and
     RootNode.TryFindNodeTransform(InitialState, TNodeFog, TVRMLNode(FFogNode),
-      FogTransform) then
+      FogTransform, FogAverageScaleTransform) then
   begin
-   { TODO: nie mamy jak tutaj obliczyc FFogDistanceScaling
-     uwzgledniajac skalowanie w transformacji FogTransform bo przeciez
-     skalowanie moze byc rozne w rozne strony. Dopiero teraz zorientowalem
-     sie o co chodzi : zamiast FFogDistanceScaling powinnismy
-     sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
-     Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
-     do coordinate space node'u mgly, podobnie jak pozycje kamery,
-     obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
-     bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
-     I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
-     a mniej w drugim. Fajne.
+    { TODO: Using FogAverageScaleTransform is a simplification here.
+      If we have non-uniform scaling, then FogAverageScaleTransform (and
+      FogDistanceScaling) shouldn't  be used at all.
 
-     Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
-     nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
-     przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
-     mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
-     ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
+      Zamiast FFogDistanceScaling powinnismy
+      sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
+      Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
+      do coordinate space node'u mgly, podobnie jak pozycje kamery,
+      obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
+      bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
+      I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
+      a mniej w drugim. Fajne.
 
-     Tymczasem uzywam wiec prostego rozwiazania : wyliczam
-     FFogDistanceScaling na podstawie sredniej skali zawartej
-     w transformacji FogTransform (trzy wspolczynniki skalowania mam w
-     FogTransform[0, 0], FogTransform[1, 1], FogTransform[2, 2], biore ich
-     srednia arytmetyczna i to jest "srednia skala").
-
-     A wiec FFogDistanceScaling jest niepoprawne
-     ale nie likwiduje tego parametru. Gdy sie zdecyduje, zastapie go czyms
-     w rodzaju FogInvertedTransform: TMatrix4Single.
-   }
-   FFogDistanceScaling :=
-     ((FogTransform[0, 0] + FogTransform[1, 1] + FogTransform[2, 2])/3);
+      Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
+      nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
+      przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
+      mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
+      ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
+    }
+    FFogDistanceScaling := FogAverageScaleTransform;
   end else
-   FFogNode := nil;
+    FFogNode := nil;
 
   Include(Validities, fvFog);
  finally InitialState.Free end;
