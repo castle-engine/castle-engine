@@ -262,7 +262,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
      glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
      glLightf(glLightNum, GL_SPOT_CUTOFF,
        { Clamp to 90 for safety, see VRML 2.0 version for comments }
-       Min(90, RadToDeg(RadToDeg(LightNode.FdCutOffAngle.Value))));
+       Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
     end;
 
     procedure SetupSpotLight_2(LightNode: TNodeSpotLight_2);
