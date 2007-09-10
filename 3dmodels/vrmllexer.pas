@@ -227,9 +227,14 @@ type
       TVRMLNode.Parse.) }
     procedure NextTokenForceVTString;
 
+    { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }
+    function TokenIsKeyword(const Keyword: TVRMLKeyword): boolean; overload;
+    function TokenIsKeyword(const Keywords: TVRMLKeywords): boolean; overload;
+
     { skonstruuj tekstowy opis tokenu ktory nadaje sie do pokazania
       userowi. }
     function DescribeToken: string;
+
     { Check is token = Tok, if not -> parser error "expected token >>tok<<".
       You can provide your own description for Tok or default desciption
       for token will be used. }
@@ -652,6 +657,16 @@ end;
 destructor TVRMLLexer.Destroy;
 begin
  inherited;
+end;
+
+function TVRMLLexer.TokenIsKeyword(const Keyword: TVRMLKeyword): boolean;
+begin
+  Result := (Token = vtKeyword) and (TokenKeyword = Keyword);
+end;
+
+function TVRMLLexer.TokenIsKeyword(const Keywords: TVRMLKeywords): boolean;
+begin
+  Result := (Token = vtKeyword) and (TokenKeyword in Keywords);
 end;
 
 function TVRMLLexer.DescribeToken: string;

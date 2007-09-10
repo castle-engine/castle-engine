@@ -66,7 +66,39 @@ type
       np. pozwolilo to nam bardzo wygodnie zapisac TVRMLSimpleMultField.Parse.) }
     property Name: string read fName;
 
+    { Normal constrctor.
+
+      Implementors notes: when implementing constructors in descendants,
+      remember that Create in this class actually just calls CreateUndefined,
+      and CreateUndefined is virtual. So when calling @code(inherited Create),
+      be aware that actually you may be calling your own overriden
+      CreateUndefined.
+
+      In fact, in descendants you should focus on moving all the work to
+      CreateUndefined constructor.
+      The Create constructor should be just a comfortable extension of
+      CreateUndefined, that does the same and addiionally gets parameters
+      that specify default field value. }
     constructor Create(const AName: string);
+
+    { Virtual constructor, that you can use to construct field instance when
+      field class is known only at runtime.
+
+      The idea is that in some cases, you need to create fields using
+      variable like FieldClass: TVRMLFieldClass. See e.g. TVRMLInterfaceDeclaration,
+      VRML 2.0 feature that simply requires this ability, also
+      implementation of TVRMLSimpleMultField.Parse and
+      TVRMLSimpleMultField.CreateItemBeforeParse.
+
+      Later you can initialize such instance from string using it's Parse method.
+
+      Note that some exceptional fields simply cannot work when initialized
+      by this constructor: these are SFEnum and SFBitMask fields.
+      They simply need to know their TSFEnum.EnumNames, or
+      TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
+      before they can be parsed. I guess that's one of the reasons why these
+      field types were entirely removed from VRML 2.0. }
+    constructor CreateUndefined(const AName: string); virtual;
 
     { Parse : init Self properties from Lexer. Must be redefined in each
       field class.
@@ -125,7 +157,12 @@ type
 
     { Is this an "exposedField" in VRML 97 ? }
     property Exposed: boolean read FExposed write FExposed;
+
+    { This returns fieldType as for VRML interface declaration statements. }
+    class function VRMLTypeName: string; virtual; abstract;
   end;
+
+  TVRMLFieldClass = class of TVRMLField;
 
   TObjectsListItem_2 = TVRMLField;
   {$I objectslist_2.inc}
@@ -146,18 +183,6 @@ type
   TVRMLSingleField = class(TVRMLField)
   end;
   TVRMLSingleFieldClass = class of TVRMLSingleField;
-
-  { TVRMLSimpleSingleField to takie pole SFField ktore mozemy utworzyc
-    prostym CreateUndefined('nazwa') i potem mozemy zainicjowac je robiac Parse.
-    W rezultacie moga miec wirtualny konstruktor CreateUndefined(string), co jest
-    nieraz znacznym ulatwieniem w implementacji.
-    Wiekszosc pol SF jest wlasnie taka - wyjatkami sa SFEnum i SFBitMask
-    ktore aby moc sie sparsowac musza znac swoje EnumNames /
-    FlagNames+NoneString+AllString. }
-  TVRMLSimpleSingleField = class(TVRMLSingleField)
-    constructor CreateUndefined(const AName: string); virtual;
-  end;
-  TVRMLSimpleSingleFieldClass = class of TVRMLSimpleSingleField;
 
   TObjectsListItem_1 = TVRMLSingleField;
   {$I ObjectsList_1.inc}
@@ -191,25 +216,31 @@ type
    moze nie byc wcale takie straszne.
 
    Co trzeba zrobic w podklasach aby zaimplementowac konkretne MFField ?
-   - w Create zainicjowac fItemClass, utworzyc RawItems
-   - pokryc RawItemsAdd
-   - jezeli not (ItemClass is TVRMLSimpleSingleField) to musisz pokryc
-     CreateItemBeforeParse
-   - nie jest to zadnym wymaganiem ale zazwyczaj bedzie wygodnie jesli
-     konstruktor bedzie pobieral jako argument array of Typ aby zainicjowac
-     od razu swoja tablice. }
+   @unorderedList(
+     @item(W CreateUndefined zainicjowac FItemClass, utworzyc RawItems)
+
+     @item(Pokryc RawItemsAdd)
+
+     @item(
+       If your ItemClass doesn't work 100% correctly when it's initialized
+       by CreateUndefined, you may have to override CreateItemBeforeParse.
+       Fortunately, VRML specification was careful to choose as multi-valued field
+       types' only fields that can behave nicely when initialized by
+       CreateUndefined (and in fact VRML 2.0 removed the "bad fields" entirely).)
+
+     @item(
+       Nie jest to zadnym wymaganiem ale zazwyczaj bedzie wygodnie jesli
+       konstruktor bedzie pobieral jako argument array of Typ aby zainicjowac
+       od razu swoja tablice.)
+   ) }
   TVRMLSimpleMultField = class(TVRMLMultField)
   protected
     fItemClass: TVRMLSingleFieldClass;
     { CreateItemBeforeParse ma za zadanie utworzyc nowy obiekt klasy
       ItemClass ktorego wartosci moga byc niezdefiniwane bo za chwile
       zainicjujemy go wywolujac jego metode Parse. W tym wlasnie
-      miejscu przydaje sie nam wirtualny konstruktor klasy
-      TVRMLSimpleSingleField - domyslna implementacja CreateItemBeforeParse
-      wywoluje po prostu TVRMLSimpleSingleField(ItemClass).CreateUndefined
-      co zadziala dobrze o ole tylko ItemClass jest podklasa
-      TVRMLSimpleSingleField. Jezeli nie - to musisz przedefiniowac metode
-      CreateItemBeforeParse. }
+      miejscu przydaje sie nam CreateUndefined. Default implementation
+      calls simply ItemClass.CreateUndefined. }
     function CreateItemBeforeParse: TVRMLSingleField; virtual;
     { musisz pokryc ta metode w podklasie, powinna ona dodawac do
       RawItems na koncu Item (ktory na pewno jest klasy ItemClass).
@@ -252,7 +283,6 @@ type
       klasy ItemClass. }
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
 
-    constructor Create(const AName: string);
     destructor Destroy; override;
 
     { In addition to inherited(Equals), this also checks that
@@ -264,6 +294,11 @@ type
 
 { single value fields ----------------------------------------------------- }
 
+  { SFBitMask field.
+
+    TSFBitMask is one of the exceptional field types that cannot
+    be 100% correctly initialized by CreateUndefined, since
+    EnumNames will be left undefined. }
   TSFBitMask = class(TVRMLSingleField)
   private
     fAllString, fNoneString: string;
@@ -307,20 +342,23 @@ type
     { zwraca true jesli wszystkie flagi sa = value }
     function AreAllFlags(value: boolean): boolean;
 
-    { pamietaj - tablica AFLagNames i AFlags (poczatkowa wartosc Flags)
+    { pamietaj - tablica AFFlagNames i AFlags (poczatkowa wartosc Flags)
       musza miec tyle samo elementow, ew. AFlags moze byc dluzsza (dodatkowe
       elementy beda ignorowane) }
     constructor Create(const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
+
     destructor Destroy; override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFBool = class(TVRMLSimpleSingleField)
+  TSFBool = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -337,9 +375,11 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFColor = class(TVRMLSimpleSingleField)
+  TSFColor = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -357,8 +397,15 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFColor);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
+  { SFEnum field.
+
+    TSFEnum is one of the exceptional field types that cannot
+    be 100% correctly initialized by CreateUndefined, since
+    EnumNames will be left undefined. }
   TSFEnum = class(TVRMLSingleField)
   private
     fEnumNames: TStringList;
@@ -383,9 +430,11 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFFloat = class(TVRMLSimpleSingleField)
+  TSFFloat = class(TVRMLSingleField)
   private
     FMustBeNonnegative: boolean;
     FValue: Single;
@@ -414,12 +463,14 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFFloat);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   { This is SFTime VRML field.
     VRML requires this to be stored as double-precision float,
     so I don't use TSFFloat for this. }
-  TSFTime = class(TVRMLSimpleSingleField)
+  TSFTime = class(TVRMLSingleField)
   private
     FValue: Double;
     procedure SetValue(const AValue: Double);
@@ -427,7 +478,7 @@ type
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    constructor Create(const AName: string; const AValue: Double); overload;
+    constructor Create(const AName: string; const AValue: Double);
 
     property Value: Double read FValue write SetValue;
 
@@ -440,9 +491,11 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Double; Value1, Value2: TSFTime);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFImage = class(TVRMLSimpleSingleField)
+  TSFImage = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -465,6 +518,7 @@ type
         You can pass AValue = nil, then Value will be inited to null image
         TRGBImage.Create.) }
     constructor Create(const AName: string; const AValue: TImage);
+    constructor CreateUndefined(const AName: string); override;
 
     destructor Destroy; override;
 
@@ -474,9 +528,11 @@ type
       const EqualityEpsilon: Single): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFLong = class(TVRMLSimpleSingleField)
+  TSFLong = class(TVRMLSingleField)
   private
     FMustBeNonnegative: boolean;
     FValue: Longint;
@@ -501,35 +557,46 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFInt32 = TSFLong;
+  TSFInt32 = class(TSFLong)
+  public
+    class function VRMLTypeName: string; override;
+  end;
 
-  TSFMatrix = class(TVRMLSimpleSingleField)
+  TSFMatrix = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
   public
-    Matrix: TMatrix4Single;
     constructor Create(const AName: string; const AMatrix: TMatrix4Single);
+
+    Matrix: TMatrix4Single;
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFRotation = class(TVRMLSimpleSingleField)
+  TSFRotation = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
   public
+    constructor Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
+
     Axis: TVector3Single;
     RotationRad: Single;
     property Value: TVector4Single read GetValue write SetValue;
-    constructor Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
+
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
@@ -537,9 +604,11 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFString = class(TVRMLSimpleSingleField)
+  TSFString = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -556,9 +625,11 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFVec2f = class(TVRMLSimpleSingleField)
+  TSFVec2f = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -576,9 +647,11 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TSFVec3f = class(TVRMLSimpleSingleField)
+  TSFVec3f = class(TVRMLSingleField)
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -596,6 +669,8 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -608,9 +683,7 @@ type
   wartosci dla pola), 0 (domyslna wartosc pola to 0 elementow), 1 (domylna
   wartosc pola to 1 element o wartosci DefaultValue).
 
-  Pola multi nie maja CreateUndefined - gdyby mialy to w CreateUndefined
-  ustawialibysmy DefaultValuesCount na -1. A tak cala inicjacje pol
-  DefaultValue* robimy w normalnym konstruktorze Create. }
+  CreateUndefined sets DefaultValuesCount to -1. }
 
   { }
   TMFColor = class(TVRMLSimpleMultField)
@@ -622,13 +695,18 @@ type
   public
     function Items: TDynVector3SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector3Single);
+    constructor Create(const AName: string;
+      const InitialContent: array of TVector3Single);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFColor);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFLong = class(TVRMLSimpleMultField)
@@ -650,13 +728,20 @@ type
     constructor Create(const AName: string; const InitialContent: array of Longint);
     constructor CreateMFLong(const AName: string; const InitialContent: array of Longint;
       const ASaveToStreamLineUptoNegative: boolean);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
-  TMFInt32 = TMFLong;
+  TMFInt32 = class(TMFLong)
+  public
+    class function VRMLTypeName: string; override;
+  end;
 
   TMFVec2f = class(TVRMLSimpleMultField)
   private
@@ -668,12 +753,16 @@ type
     function Items: TDynVector2SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of TVector2Single);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFVec3f = class(TVRMLSimpleMultField)
@@ -686,12 +775,16 @@ type
     function Items: TDynVector3SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of TVector3Single);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFRotation = class(TVRMLSimpleMultField)
@@ -705,12 +798,16 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string;
       const InitialContent: array of TVector4Single);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFRotation);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFFloat = class(TVRMLSimpleMultField)
@@ -724,12 +821,16 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string;
       const InitialContent: array of Single);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFTime = class(TVRMLSimpleMultField)
@@ -743,12 +844,16 @@ type
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string;
       const InitialContent: array of Double);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Double; Value1, Value2: TMFTime);
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
 
   TMFString = class(TVRMLSimpleMultField)
@@ -761,11 +866,35 @@ type
     function Items: TDynStringArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of string);
+    constructor CreateUndefined(const AName: string); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+
+    class function VRMLTypeName: string; override;
   end;
+
+  { Stores information about available VRML field classes.
+    The only use for now is to make a mapping from VRML field name to
+    actual class (needed by VRML interface declarations). }
+  TVRMLFieldsManager = class
+  private
+    Registered: TStringList;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure RegisterClass(AClass: TVRMLFieldClass);
+    procedure RegisterClasses(const Classes: array of TVRMLFieldClass);
+
+    { Return field class for given name. Returns @nil if not found. }
+    function FieldTypeNameToClass(const TypeName: string): TVRMLFieldClass;
+  end;
+
+var
+  VRMLFieldsManager: TVRMLFieldsManager;
 
 {$undef read_interface}
 
@@ -781,8 +910,13 @@ uses Math, VRMLErrors;
 
 constructor TVRMLField.Create(const AName: string);
 begin
+  CreateUndefined(AName);
+end;
+
+constructor TVRMLField.CreateUndefined(const AName: string);
+begin
   inherited Create;
-  fName := AName;
+  FName := AName;
 end;
 
 procedure TVRMLField.SaveToStream(Stream: TStream; const Indent: string;
@@ -827,13 +961,6 @@ begin
   raise Exception.Create('Field name '+AName+' not found');
 end;
 
-{ TVRMLSimpleSingleField ----------------------------------------------------- }
-
-constructor TVRMLSimpleSingleField.CreateUndefined(const AName: string);
-begin
- Create(AName);
-end;
-
 { TVRMLMultField ------------------------------------------------------------- }
 
 procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
@@ -849,11 +976,6 @@ end;
 
 { TVRMLSimpleMultField ------------------------------------------------------- }
 
-constructor TVRMLSimpleMultField.Create(const AName: string);
-begin
- inherited Create(AName);
-end;
-
 destructor TVRMLSimpleMultField.Destroy;
 begin
  RawItems.Free;
@@ -865,7 +987,7 @@ begin result := RawItems.Count end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
- result := TVRMLSimpleSingleFieldClass(ItemClass).CreateUndefined('');
+ result := ItemClass.CreateUndefined('');
 end;
 
 procedure TVRMLSimpleMultField.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -987,10 +1109,11 @@ end;
 
 constructor TSFBool.Create(const AName: string; const AValue: boolean);
 begin
- CreateUndefined(AName);
- Value := AValue;
- DefaultValue := AValue;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := AValue;
+  DefaultValueExists := true;
 end;
 
 procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1062,14 +1185,20 @@ begin
   inherited;
 end;
 
+class function TSFBool.VRMLTypeName: string;
+begin
+  Result := 'SFBool';
+end;
+
 { TSFColor ------------------------------------------------------------------- }
 
 constructor TSFColor.Create(const AName: string; const AValue: TVector3Single);
 begin
- CreateUndefined(AName);
- Value := AValue;
- DefaultValue := AValue;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := AValue;
+  DefaultValueExists := true;
 end;
 
 procedure TSFColor.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1115,6 +1244,11 @@ begin
   inherited;
 end;
 
+class function TSFColor.VRMLTypeName: string;
+begin
+  Result := 'SFColor';
+end;
+
 { TSFFloat ------------------------------------------------------------------- }
 
 procedure TSFFloat.SetValue(const AValue: Single);
@@ -1126,16 +1260,17 @@ end;
 
 constructor TSFFloat.Create(const AName: string; const AValue: Single);
 begin
- Create(AName, AValue, false);
+  Create(AName, AValue, false);
 end;
 
 constructor TSFFloat.Create(const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
 begin
- CreateUndefined(AName);
- FMustBeNonnegative := AMustBeNonnegative;
- Value := AValue;
- DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  FMustBeNonnegative := AMustBeNonnegative;
+  Value := AValue;
+  DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
+  DefaultValueExists := true;
 end;
 
 procedure TSFFloat.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1181,11 +1316,17 @@ begin
   inherited;
 end;
 
+class function TSFFloat.VRMLTypeName: string;
+begin
+  Result := 'SFFloat';
+end;
+
 { TSFTime -------------------------------------------------------------------- }
 
 constructor TSFTime.Create(const AName: string; const AValue: Double);
 begin
-  CreateUndefined(AName);
+  inherited Create(AName);
+
   Value := AValue;
   DefaultValue := Value;
   DefaultValueExists := true;
@@ -1237,14 +1378,30 @@ begin
     inherited;
 end;
 
+class function TSFTime.VRMLTypeName: string;
+begin
+  Result := 'SFTime';
+end;
+
 { TSFImage ------------------------------------------------------------------- }
 
 constructor TSFImage.Create(const AName: string; const AValue: TImage);
 begin
- CreateUndefined(AName);
- if AValue = nil then
-  Value := TRGBImage.Create else
-  Value := AValue;
+  inherited Create(AName);
+
+  if AValue <> nil then
+  begin
+    FreeAndNil(Value);
+    Value := AValue;
+  end;
+end;
+
+constructor TSFImage.CreateUndefined(const AName: string);
+begin
+  inherited;
+
+  { Value must be initialized to non-nil. }
+  Value := TRGBImage.Create;
 end;
 
 destructor TSFImage.Destroy;
@@ -1403,6 +1560,11 @@ begin
   inherited;
 end;
 
+class function TSFImage.VRMLTypeName: string;
+begin
+  Result := 'SFImage';
+end;
+
 { TSFLong -------------------------------------------------------------------- }
 
 procedure TSFLong.SetValue(const AValue: Longint);
@@ -1414,16 +1576,17 @@ end;
 
 constructor TSFLong.Create(const AName: string; const AValue: Longint);
 begin
- Create(AName, AValue, false);
+  Create(AName, AValue, false);
 end;
 
 constructor TSFLong.Create(const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
 begin
- CreateUndefined(AName);
- FMustBeNonnegative := AMustBeNonnegative;
- Value := AValue;
- DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  FMustBeNonnegative := AMustBeNonnegative;
+  Value := AValue;
+  DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
+  DefaultValueExists := true;
 end;
 
 procedure TSFLong.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1447,6 +1610,8 @@ end;
 function TSFLong.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
+ { Note that this means that SFInt32 and SFLong will actually be considered
+   equal. That's Ok, we want this. }
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFLong) and
    (TSFLong(SecondValue).MustBeNonnegative = MustBeNonnegative) and
@@ -1466,12 +1631,24 @@ begin
   inherited;
 end;
 
+class function TSFLong.VRMLTypeName: string;
+begin
+  Result := 'SFLong';
+end;
+
+{ TSFInt32 ------------------------------------------------------------------- }
+
+class function TSFInt32.VRMLTypeName: string;
+begin
+  Result := 'SFInt32';
+end;
+
 { TSFMatrix ------------------------------------------------------------------ }
 
 constructor TSFMatrix.Create(const AName: string; const AMatrix: TMatrix4Single);
 begin
- CreateUndefined(AName);
- Matrix := AMatrix;
+  inherited Create(AName);
+  Matrix := AMatrix;
 end;
 
 procedure TSFMatrix.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1515,14 +1692,20 @@ begin
   inherited;
 end;
 
+class function TSFMatrix.VRMLTypeName: string;
+begin
+  Result := 'SFMatrix';
+end;
+
 { TSFRotation ---------------------------------------------------------------- }
 
 constructor TSFRotation.Create(const AName: string;
   const AnAxis: TVector3Single; const ARotationRad: Single);
 begin
- CreateUndefined(AName);
- Axis := AnAxis;
- RotationRad := ARotationRad;
+  inherited Create(AName);
+
+  Axis := AnAxis;
+  RotationRad := ARotationRad;
 end;
 
 procedure TSFRotation.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1582,14 +1765,20 @@ begin
   inherited;
 end;
 
+class function TSFRotation.VRMLTypeName: string;
+begin
+  Result := 'SFRotation';
+end;
+
 { TSFString ------------------------------------------------------------------ }
 
 constructor TSFString.Create(const AName: string; const AValue: string);
 begin
- CreateUndefined(AName);
- Value := AValue;
- DefaultValue := Value;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 procedure TSFString.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1630,14 +1819,20 @@ begin
   inherited;
 end;
 
+class function TSFString.VRMLTypeName: string;
+begin
+  Result := 'SFString';
+end;
+
 { TSFVec2f ------------------------------------------------------------------- }
 
 constructor TSFVec2f.Create(const AName: string; const AValue: TVector2Single);
 begin
- CreateUndefined(AName);
- Value := AValue;
- DefaultValue := Value;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 procedure TSFVec2f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1680,14 +1875,20 @@ begin
   inherited;
 end;
 
+class function TSFVec2f.VRMLTypeName: string;
+begin
+  Result := 'SFVec2f';
+end;
+
 { TSFVec3f ------------------------------------------------------------------- }
 
 constructor TSFVec3f.Create(const AName: string; const AValue: TVector3Single);
 begin
- CreateUndefined(AName);
- Value := AValue;
- DefaultValue := Value;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 procedure TSFVec3f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
@@ -1733,20 +1934,26 @@ begin
   inherited;
 end;
 
+class function TSFVec3f.VRMLTypeName: string;
+begin
+  Result := 'SFVec3f';
+end;
+
 { TSFBitMask ------------------------------------------------------------ }
 
 constructor TSFBitMask.Create(const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
 var i: integer;
 begin
- inherited Create(AName);
- fFlagNames := TStringListCaseSens.Create;
- AddStrArrayToStrings(AFlagNames, fFlagNames);
- for i := 0 to FlagsCount-1 do Flags[i] := AFlags[i];
- fNoneString := ANoneString;
- fAllString := AAllString;
+  inherited Create(AName);
 
- Assert(NoneString <> '', 'NoneString must be defined for SFBitMask');
+  fFlagNames := TStringListCaseSens.Create;
+  AddStrArrayToStrings(AFlagNames, fFlagNames);
+  for i := 0 to FlagsCount-1 do Flags[i] := AFlags[i];
+  fNoneString := ANoneString;
+  fAllString := AAllString;
+
+  Assert(NoneString <> '', 'NoneString must be defined for SFBitMask');
 end;
 
 destructor TSFBitMask.Destroy;
@@ -1860,22 +2067,28 @@ begin
   inherited;
 end;
 
+class function TSFBitMask.VRMLTypeName: string;
+begin
+  Result := 'SFBitMask';
+end;
+
 { TSFEnum ----------------------------------------------------------------- }
 
 constructor TSFEnum.Create(const AName: string; const AEnumNames: array of string; const AValue: integer);
 begin
- inherited Create(AName);
- fEnumNames := TStringListCaseSens.Create;
- AddStrArrayToStrings(AEnumNames, fEnumNames);
- Value := AValue;
- DefaultValue := Value;
- DefaultValueExists := true;
+  inherited Create(AName);
+
+  fEnumNames := TStringListCaseSens.Create;
+  AddStrArrayToStrings(AEnumNames, fEnumNames);
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 destructor TSFEnum.Destroy;
 begin
- fEnumNames.Free;
- inherited;
+  fEnumNames.Free;
+  inherited;
 end;
 
 function TSFEnum.GetEnumNames(i: integer): string;
@@ -1928,6 +2141,11 @@ begin
   inherited;
 end;
 
+class function TSFEnum.VRMLTypeName: string;
+begin
+  Result := 'SFEnum';
+end;
+
 { multiple value fields ----------------------------------------------------- }
 
 { Note that because of FPC 2.0.2 bug, code below will not compile
@@ -1948,22 +2166,29 @@ end;
 constructor TMF_CLASS.Create(const AName: string;
   const InitialContent: array of TMF_STATIC_ITEM);
 begin
- inherited Create(AName);
+  inherited Create(AName);
 
- fItemClass := TMF_CLASS_ITEM;
- RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
- Items.AppendArray(InitialContent);
+  Items.AppendArray(InitialContent);
 
- (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
-    jesli DefaultValuesCount = 1 *)
- case High(InitialContent)+1 of
-  0: DefaultValuesCount := 0;
-  1: begin
-      DefaultValuesCount := 1;
-      DefaultValue := InitialContent[0];
-     end;
-  else DefaultValuesCount := -1;
- end;
+  (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
+     jesli DefaultValuesCount = 1 *)
+  case High(InitialContent) + 1 of
+    0: DefaultValuesCount := 0;
+    1: begin
+         DefaultValuesCount := 1;
+         DefaultValue := InitialContent[0];
+       end;
+    else DefaultValuesCount := -1;
+  end;
+end;
+
+constructor TMF_CLASS.CreateUndefined(const AName: string);
+begin
+  inherited;
+
+  FItemClass := TMF_CLASS_ITEM;
+  RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
+  DefaultValuesCount := -1;
 end;
 
 function TMF_CLASS.Items: TMF_DYN_STATIC_ITEM_ARRAY;
@@ -2158,6 +2383,8 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
+{ TMFColor ------------------------------------------------------------------- }
+
 function TMFColor.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
 
@@ -2172,8 +2399,43 @@ begin
   Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 
+class function TMFColor.VRMLTypeName: string;
+begin
+  Result := 'MFColor';
+end;
+
+{ TMFLong -------------------------------------------------------------------- }
+
+constructor TMFLong.CreateMFLong(const AName: string; const InitialContent: array of Longint;
+ const ASaveToStreamLineUptoNegative: boolean);
+begin
+  Create(AName, InitialContent);
+  SaveToStreamLineUptoNegative := ASaveToStreamLineUptoNegative;
+end;
+
+function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+begin
+ if SaveToStreamLineUptoNegative then
+  result := Items.Items[ItemNum] < 0 else
+  result := inherited;
+end;
+
 function TMFLong.RawItemToString(ItemNum: integer): string;
 begin result := IntToStr(Items.Items[ItemNum]) end;
+
+class function TMFLong.VRMLTypeName: string;
+begin
+  Result := 'MFLong';
+end;
+
+{ TMFInt32 ------------------------------------------------------------------- }
+
+class function TMFInt32.VRMLTypeName: string;
+begin
+  Result := 'MFInt32';
+end;
+
+{ TMFVec2f ------------------------------------------------------------------- }
 
 function TMFVec2f.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
@@ -2189,6 +2451,13 @@ begin
   Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 
+class function TMFVec2f.VRMLTypeName: string;
+begin
+  Result := 'MFVec2f';
+end;
+
+{ TMFVec3f ------------------------------------------------------------------- }
+
 function TMFVec3f.RawItemToString(ItemNum: integer): string;
 begin result := VectorToRawStr(Items.Items[ItemNum]) end;
 
@@ -2202,6 +2471,13 @@ begin
  for I := 0 to Items.Count - 1 do
   Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
+
+class function TMFVec3f.VRMLTypeName: string;
+begin
+  Result := 'MFVec3f';
+end;
+
+{ TMFRotation ---------------------------------------------------------------- }
 
 function TMFRotation.RawItemToString(ItemNum: Integer): string;
 begin
@@ -2219,6 +2495,13 @@ begin
   Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 
+class function TMFRotation.VRMLTypeName: string;
+begin
+  Result := 'MFRotation';
+end;
+
+{ TMFFloat ------------------------------------------------------------------- }
+
 function TMFFloat.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
 
@@ -2232,6 +2515,13 @@ begin
  for I := 0 to Items.Count - 1 do
   Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
+
+class function TMFFloat.VRMLTypeName: string;
+begin
+  Result := 'MFFloat';
+end;
+
+{ TMFTime -------------------------------------------------------------------- }
 
 function TMFTime.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
@@ -2247,23 +2537,90 @@ begin
   Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 
+class function TMFTime.VRMLTypeName: string;
+begin
+  Result := 'MFTime';
+end;
+
+{ TMFString ------------------------------------------------------------------ }
+
 function TMFString.RawItemToString(ItemNum: integer): string;
 begin result := StringToVRMLStringToken(Items.Items[ItemNum]) end;
 
-{ pare rzeczy speszyl dla TMFLong ------------------------------------------- }
-
-constructor TMFLong.CreateMFLong(const AName: string; const InitialContent: array of Longint;
- const ASaveToStreamLineUptoNegative: boolean);
+class function TMFString.VRMLTypeName: string;
 begin
- Create(AName, InitialContent);
- SaveToStreamLineUptoNegative := ASaveToStreamLineUptoNegative;
+  Result := 'MFString';
 end;
 
-function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+{ TVRMLFieldsManager --------------------------------------------------------- }
+
+constructor TVRMLFieldsManager.Create;
 begin
- if SaveToStreamLineUptoNegative then
-  result := Items.Items[ItemNum] < 0 else
-  result := inherited;
+  inherited;
+  Registered := TStringList.Create;
+  { All VRML names are case-sensitive. }
+  Registered.CaseSensitive := true;
 end;
 
+destructor TVRMLFieldsManager.Destroy;
+begin
+  FreeAndNil(Registered);
+  inherited;
+end;
+
+procedure TVRMLFieldsManager.RegisterClass(AClass: TVRMLFieldClass);
+begin
+  Registered.AddObject(AClass.VRMLTypeName, TObject(AClass));
+end;
+
+procedure TVRMLFieldsManager.RegisterClasses(
+  const Classes: array of TVRMLFieldClass);
+var
+  I: Integer;
+begin
+  for I := 0 to High(Classes) do
+    RegisterClass(Classes[I]);
+end;
+
+function TVRMLFieldsManager.FieldTypeNameToClass(
+  const TypeName: string): TVRMLFieldClass;
+var
+  I: Integer;
+begin
+  I := Registered.IndexOf(TypeName);
+  if I <> -1 then
+    Result := TVRMLFieldClass(Registered.Objects[I]) else
+    Result := nil;
+end;
+
+initialization
+  VRMLFieldsManager := TVRMLFieldsManager.Create;
+
+  VRMLFieldsManager.RegisterClasses([
+    TSFBitMask,
+    TSFEnum,
+    TSFBool,
+    TSFColor,
+    TSFFloat,
+    TSFImage,
+    TSFLong,
+    TSFInt32,
+    TSFMatrix,
+    TSFRotation,
+    TSFString,
+    TSFTime,
+    TSFVec2f,
+    TSFVec3f,
+    TMFColor,
+    TMFFloat,
+    TMFLong,
+    TMFInt32,
+    TMFRotation,
+    TMFString,
+    TMFTime,
+    TMFVec2f,
+    TMFVec3f]);
+
+finalization
+  FreeAndNil(VRMLFieldsManager);
 end.
