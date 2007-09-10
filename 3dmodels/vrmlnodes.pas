@@ -554,14 +554,16 @@ type
   TSFNode = class;
   TMFNode = class;
 
+  TVRMLPrototypeBasesList = class;
+  TVRMLRoutesList = class;
+
   { VRML node.
 
-    Each descendant must:
-    - Define Fd* fields that allow fast, comfortable and type-secure way
-      for program to retrieve and set their fields
-    - override constructor (look at TVRMLNode.Create comments for things
-      that MUST be defined in this derived constructor).
-  }
+    Descendant implementors note: Each descendant should
+    override constructor to create and add his fields, like
+    @code(Fields.Add(TSFFloat.Create('width', 2, true))).
+    Also, you should define FdXxx properties that allow fast,
+    comfortable and type-secure way to retrieve and set these fields. }
   TVRMLNode = class
   private
     fNodeName: string;
@@ -582,6 +584,8 @@ type
       const NewResult: boolean;
       const NewVerMajor, NewVerMinor, NewSuggestionPriority: Integer);
     procedure TryFindNode_Found(Node: TVRMLNode);
+    FPrototypes: TVRMLPrototypeBasesList;
+    FRoutes: TVRMLRoutesList;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1279,6 +1283,9 @@ type
       @returns The number of removed nodes. }
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
+
+    property Prototypes: TVRMLPrototypeBasesList read FPrototypes;
+    property Routes: TVRMLRoutesList read FRoutes;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -4057,6 +4064,10 @@ type
       virtual; abstract;
   end;
 
+  TObjectsListItem_4 = TVRMLPrototypeBase;
+  {$I objectslist_4.inc}
+  TVRMLPrototypeBasesList = class(TObjectsList_4);
+
   TVRMLPrototype = class(TVRMLPrototypeBase)
   public
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
@@ -4072,6 +4083,25 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
   end;
+
+{ TVRMLRoute ----------------------------------------------------------------- }
+
+  TVRMLRoute = class
+  public
+    SourceNodeName, SourceFieldName: string;
+    DestinationNodeName, DestinationFieldName: string;
+
+    { Parses the route statement.
+      Implementation should be able to safely assume that current token
+      is ROUTE. }
+    procedure Parse(Lexer: TVRMLLexer);
+
+    function Description: string;
+  end;
+
+  TObjectsListItem_5 = TVRMLRoute;
+  {$I objectslist_5.inc}
+  TVRMLRoutesList = class(TObjectsList_5);
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
 
@@ -4141,22 +4171,6 @@ type
 var
   { tworzony i niszczony w init/fini tego modulu }
   NodesManager: TNodesManager;
-
-{ TVRMLRoute ----------------------------------------------------------------- }
-
-type
-  TVRMLRoute = class
-  public
-    SourceNodeName, SourceFieldName: string;
-    DestinationNodeName, DestinationFieldName: string;
-
-    { Parses the route statement.
-      Implementation should be able to safely assume that current token
-      is ROUTE. }
-    procedure Parse(Lexer: TVRMLLexer);
-
-    function Description: string;
-  end;
 
 { global procedures ---------------------------------------------------------- }
 
@@ -4343,6 +4357,8 @@ uses
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
+{$I objectslist_4.inc}
+{$I objectslist_5.inc}
 {$I dynarray_1.inc}
 
 { TDynActiveLightArray --------------------------------------------------------- }
@@ -4499,11 +4515,17 @@ begin
  FParentNodes := TVRMLNodesList.Create;
  FParentFields := TVRMLFieldsList.Create;
  Fields := TVRMLFieldsList.Create;
+
+ FPrototypes := TVRMLPrototypeBasesList.Create;
+ FRoutes := TVRMLRoutesList.Create;
 end;
 
 destructor TVRMLNode.Destroy;
 begin
  if FChildren <> nil then RemoveAllChildren;
+
+ FreeWithContentsAndNil(FPrototypes);
+ FreeWithContentsAndNil(FRoutes);
 
  FreeWithContentsAndNil(Fields);
  FreeAndNil(FChildren);
@@ -4827,6 +4849,8 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
   NodeNameBinding: TStringList): boolean;
 var
   I: integer;
+  Route: TVRMLRoute;
+  Proto: TVRMLPrototypeBase;
 begin
   Result := false;
 
@@ -4851,6 +4875,30 @@ begin
 
       Fields[I].Parse(Lexer, NodeNameBinding);
     end;
+  end else
+  if Lexer.TokenIsKeyword(vkPROTO) then
+  begin
+    Result := true;
+
+    Proto := TVRMLPrototype.Create;
+    Prototypes.Add(Proto);
+    Proto.Parse(Lexer, NodeNameBinding);
+  end else
+  if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
+  begin
+    Result := true;
+
+    Proto := TVRMLExternalPrototype.Create;
+    Prototypes.Add(Proto);
+    Proto.Parse(Lexer, NodeNameBinding);
+  end else
+  if Lexer.TokenIsKeyword(vkROUTE) then
+  begin
+    Result := true;
+
+    Route := TVRMLRoute.Create;
+    Routes.Add(Route);
+    Route.Parse(Lexer);
   end;
 end;
 
@@ -9821,6 +9869,24 @@ var
       Result := TNodeGroupHidden_2.Create('', WWWBasePath);
   end;
 
+  { Change Result to a hidden group node, if it's not already.
+    If previous Result was <> @nil,
+    then it will be inserted as first child of this new hidden group. }
+  procedure MakeResultHiddenGroup;
+  var
+    ChildNode: TVRMLNode;
+  begin
+    if not ( (Result <> nil) and
+             ( (Result is TNodeGroupHidden_1) or
+               (Result is TNodeGroupHidden_2) ) ) then
+    begin
+      ChildNode := Result;
+      Result := CreateHiddenGroup;
+      if ChildNode <> nil then
+        Result.SmartAddChild(ChildNode);
+    end;
+  end;
+
   procedure ParseVRMLStatement;
 
     procedure ParseRouteInternal;
@@ -9828,9 +9894,11 @@ var
       Route: TVRMLRoute;
     begin
       Route := TVRMLRoute.Create;
-      try
-        Route.Parse(Lexer);
-      finally FreeAndNil(Route) end;
+
+      MakeResultHiddenGroup;
+      Result.Routes.Add(Route);
+
+      Route.Parse(Lexer);
     end;
 
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
@@ -9838,18 +9906,19 @@ var
     var
       Proto: TVRMLPrototypeBase;
     begin
-      Proto := nil;
-      try
-        if Lexer.TokenKeyword = vkPROTO then
-          Proto := TVRMLPrototype.Create else
-          Proto := TVRMLExternalPrototype.Create;
-        Proto.Parse(Lexer, NodeNameBinding);
-      finally FreeAndNil(Proto) end;
+      if Lexer.TokenKeyword = vkPROTO then
+        Proto := TVRMLPrototype.Create else
+        Proto := TVRMLExternalPrototype.Create;
+
+      MakeResultHiddenGroup;
+      Result.Prototypes.Add(Proto);
+
+      Proto.Parse(Lexer, NodeNameBinding);
     end;
 
     procedure ParseNodeInternal;
     var
-      NewNode, ChildNode: TVRMLNode;
+      NewNode: TVRMLNode;
     begin
       NewNode := ParseNode(Lexer, NodeNameBinding, true);
 
@@ -9859,17 +9928,12 @@ var
         Result := NewNode;
       end else
       begin
-        if not ( (Result is TNodeGroupHidden_1) or
-                 (Result is TNodeGroupHidden_2) ) then
-        begin
-          { This will happen on 2nd ParseNode call.
-            Result is now assigned, but we want to add 2nd node: so we wrap
-            current Result (and NewNode too) together in a hidden Group node. }
-          ChildNode := Result;
-          Result := CreateHiddenGroup;
-          Result.SmartAddChild(ChildNode);
-        end;
-
+        { Result <> nil, so make sure it's a hidden group
+          (we don't want to insert NewNode into normal node).
+          This will happen on 2nd ParseNode call.
+          Result is now assigned, but we want to add 2nd node: so we wrap
+          current Result (and NewNode too) together in a hidden Group node. }
+        MakeResultHiddenGroup;
         Result.SmartAddChild(NewNode);
       end;
     end;

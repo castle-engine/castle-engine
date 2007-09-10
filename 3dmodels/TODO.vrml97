@@ -51,20 +51,14 @@ Post view3dscene 2.0 things:
 - Implement Prototypes, Event routing. Relevant spec parts:
   - 4.2.4 Prototypes
   - 4.2.5 Event routing
-  - 4.3.2 Statements
-    After the required header, a VRML file may contain any
-    combination of the following:
-    1. Any number of PROTO or EXTERNPROTO statements
-    (see 4.8, Prototype semantics);
-    ...
-    4. Any number of ROUTE statements (see 4.10.2, Route semantics).
+  - see 4.8, Prototype semantics
+  - see 4.10.2, Route semantics
+
+  Syntax:
   - 4.3.3 Node statement syntax
-    A node's body consists of any number of ..., IS statements,
-    ROUTE statements, PROTO statements or EXTERNPROTO statements, in any order.
-  - 4.3.5 PROTO statement syntax
+    A node's body consists of any number of ..., IS statements remaining...
+  - 4.3.5 PROTO statement syntax (inside node remaining to parse)
   - 4.3.6 IS statement syntax
-  - 4.3.7 EXTERNPROTO statement syntax
-  - 4.3.9 ROUTE statement syntax
 
 - 4.5.4 Scripting language protocols
 ----------------------------------------
