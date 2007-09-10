@@ -4798,7 +4798,7 @@ begin
 
     { Below: usually, it should be just "Lexer.NextToken;"
       But I have to add here some dirty hack to allow SFString fields
-      to contain strings not enclosed in double quotes.
+      to contain strings not enclosed in double quotes (VRML 1.0 allows this).
       So I have to call here NextTokenForceVTString before SFString field. }
     if Fields[ni] is TSFString then
      Lexer.NextTokenForceVTString else
@@ -5740,7 +5740,7 @@ end;
 
 class function TMFNode.VRMLTypeName: string;
 begin
-  Result := 'SFNode';
+  Result := 'MFNode';
 end;
 
 { TNodeGeneralShape_1 -------------------------------------------------------- }
