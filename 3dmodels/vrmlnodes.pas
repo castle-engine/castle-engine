@@ -9614,6 +9614,8 @@ function ParseVRMLStatements(
 
 procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
   const WWWBasePath: string);
+var
+  ProtoNodeNameBinding: TStringList;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -9629,8 +9631,17 @@ begin
 
   Lexer.NextToken;
   FreeAndNil(FNode);
-  FNode := ParseVRMLStatements(Lexer, NodeNameBinding,
-    vtCloseCurlyBracket, WWWBasePath);
+
+  { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
+    scope, completely independent from the outside. So we create
+    new ProtoNodeNameBinding for parsing prototype. }
+  ProtoNodeNameBinding := TStringListCaseSens.Create;
+  try
+    FNode := ParseVRMLStatements(Lexer, ProtoNodeNameBinding,
+      vtCloseCurlyBracket, WWWBasePath);
+  finally
+    FreeAndNil(ProtoNodeNameBinding);
+  end;
 
   { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
   Lexer.NextToken;
