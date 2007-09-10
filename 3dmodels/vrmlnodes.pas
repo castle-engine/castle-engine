@@ -639,26 +639,38 @@ type
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); virtual;
     { @groupEnd }
 
-    { method below can be used by a specific node kind to parse fields
-      that are NOT on Fields list. Notka : oczywiscie, normalnie
-      WSZYSTKIE pola powinny byc na liscie Fields i musza tam byc abysmy
-      mogli je normalnie odczytywac ! Po co wiec to udziwnienie ?
-      Chodzi o to ze probujemy obslugiwac kilka roznych odmian VRML'a :
-      Inventora, VRML'a 1.0 i VRML'a 97. Czasem pewne pola
-      danego node'a sa w innej odmianie wyrazone innym polem. Chcac zachowac
-      rozsadna prostote wykonania nie mozemy w danym nodzie umieszcac
-      dwoch pol ktore wyrazaja to samo ale w inny sposob. Wiec za pomoca
-      ponizszej metody pozwalamy node'owi obsluzyc "inne pola" tak aby
-      mogl je zinterpretowac i zapisac w swoich polach. Przyklad:
-      TNodeShapeHints.
+    { Parse VRML node body element. Usually, this is a field.
+      May also be VRML 1.0 style child node.
+      May also be VRML 2.0 Script node interface declaration, etc.
+      --- see VRML 2.0 grammar spec.
 
-      W klasie TVRMLNode ta metoda nic nie robi, zwraca tylko false.
-      Jezeli w jakiejs klasie je przedefiniujesz, powinienes albo
-      odczytywac cale pole na ktorym stoi lexer i zwracac true albo
-      nie zmieniac pozycji lexera i zwracac false.
+      This should be overriden to parse special features within particular
+      nodes. While generally VRML is very clean and there's no need to
+      override this, there are two uses of this already:
 
-      Jest gwarantowane ze w momencie wywolania tej proc. Lexer.Token = vtName. }
-    function TryParseSpecialField(Lexer: TVRMLLexer;
+      @orderedList(
+        @item(Since we handle a couple of VRML flavors (at least
+          Inventor, VRML 1.0 and VRML 97), sometimes the same node has
+          different fields to express the same things in various VRML flavors.
+          So it may be useful to parse a field and copy it's value into
+          other fields.
+
+          Example: TNodeShapeHints in Inventor parses "hints" field,
+          and copies it's value to other fields as appropriate.
+          "hints" field is not exposed in TNodeShapeHints interface,
+          so everything is clean in the interface, and under the hood
+          TNodeShapeHints can "magically" handle "hints" field for Inventor.)
+
+        @item(VRML 2.0 Script node has special features (interface declarations),
+          not present in other nodes. They have to be parsed and stored
+          in TNodeScript properties.))
+
+      When overriding, always check inherited result first, and exit if
+      inherited handled successfully.
+      Otherwise either read your stuff and return @true
+      (Lexer should advance to the position of next "nodeBodyElement").
+      Or return @false within changing Lexer position. }
+    function ParseNodeBodyElement(Lexer: TVRMLLexer;
       NodeNameBinding: TStringList): boolean; virtual;
 
     { Methods to use when defininf Fd* fields properties,
@@ -1989,7 +2001,7 @@ type
 
   TNodeShapeHints = class(TVRMLNode)
   private
-    function TryParseSpecialField(Lexer: TVRMLLexer;
+    function ParseNodeBodyElement(Lexer: TVRMLLexer;
       NodeNameBinding: TStringList): boolean; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -3553,20 +3565,28 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
+  TVRMLInterfaceDeclarationsList = class;
+
   TNodeScript = class(TVRMLNode)
+  private
+    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     property Fdurl: TMFString index 0 read GetFieldAsMFString;
     property FddirectOutput: TSFBool index 1 read GetFieldAsSFBool;
     property FdmustEvaluate: TSFBool index 2 read GetFieldAsSFBool;
-    { # And any number of: } { }
-    { eventIn      eventType eventName } { }
-    { field        fieldType fieldName initialValue } { }
-    { eventOut     eventType eventName } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
+      read FInterfaceDeclarations;
+
+    function ParseNodeBodyElement(Lexer: TVRMLLexer;
+      NodeNameBinding: TStringList): boolean; override;
   end;
 
   TNodeTextureTransform = class;
@@ -3977,6 +3997,8 @@ type
     FKind: TVRMLInterfaceDeclationKind;
     FName: string;
     FFieldType: TVRMLFieldClass;
+    FIsClause: boolean;
+    FIsClauseName: string;
   public
     { Kind of declation.
 
@@ -3990,11 +4012,18 @@ type
     property FieldType: TVRMLFieldClass read FFieldType;
 
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); virtual;
+
+    property IsClause: boolean read FIsClause;
+    property IsClauseName: string read FIsClauseName;
+
+    { In some cases, interface declaration may be followed by "IS something"
+      clause --- in such case, you have to call this method right after Parse. }
+    procedure ParseIsClause(Lexer: TVRMLLexer);
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
   {$I objectslist_2.inc}
-  TVRMLInterfaceDeclarationsList = TObjectsList_2;
+  TVRMLInterfaceDeclarationsList = class(TObjectsList_2);
 
   { VRML interface declation with exposedField or field value.
     This is used for prototype (not external) declarations and
@@ -4770,58 +4799,59 @@ begin
 end;
 
 procedure TVRMLNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-var ni: integer;
-    ThisIsField: boolean;
+var
+  Handled: boolean;
 begin
- RemoveAllChildren;
+  RemoveAllChildren;
 
- {parse node}
- Lexer.CheckTokenIs(vtOpenCurlyBracket);
- Lexer.NextToken;
- while Lexer.Token <> vtCloseCurlyBracket do
- begin
-  ThisIsField := false;
-
-  {gdybym wiedzial ze wszystkie node'y sa standardowe (zgodne ze specyfikacja
-   VRML'a) to moglbym tu sprawdzac czy Lexer.TokenName[0] in 'a'..'z'.
-   Jezeli nie - wiedzialbym juz ze to na pewno nie jest nazwa pola bo
-   wszystkie nazwy pol zaczynaja sie z malej litery. Ale nie mozemy tak
-   zrobic poniewaz zarowno w VRML'u 1.0 jak 2.0 (97) mozna definiowac
-   wlasne niestandardowe node'y i one moga miec pola ktore zaczynaja sie
-   od duzych liter. }
-  if Lexer.Token = vtName then
+  Lexer.CheckTokenIs(vtOpenCurlyBracket);
+  Lexer.NextToken;
+  while Lexer.Token <> vtCloseCurlyBracket do
   begin
-   ni := Fields.NameIndex(Lexer.TokenName);
-   if ni >= 0 then
-   begin
-    ThisIsField := true;
+    Handled := ParseNodeBodyElement(Lexer, NodeNameBinding);
 
-    { Below: usually, it should be just "Lexer.NextToken;"
-      But I have to add here some dirty hack to allow SFString fields
-      to contain strings not enclosed in double quotes (VRML 1.0 allows this).
-      So I have to call here NextTokenForceVTString before SFString field. }
-    if Fields[ni] is TSFString then
-     Lexer.NextTokenForceVTString else
-     Lexer.NextToken;
-
-    Fields[ni].Parse(Lexer, NodeNameBinding);
-   end else
-   if TryParseSpecialField(Lexer, NodeNameBinding) then
-    ThisIsField := true;
+    { VRML 1.0 nodes are handled as a last resort here
+      (that's also why they can't be inside our ParseNodeBodyElement).
+      That's because ParseNode just raises exception in case of unknown
+      node, so I have to catch first everything else (like "hints" field
+      of TNodeShapeHints). }
+    if not Handled then
+      AddChild(ParseNode(Lexer, NodeNameBinding, ParsingAllowedChildren));
   end;
+  Lexer.NextToken;
 
-  if not ThisIsField then
-   AddChild(ParseNode(Lexer, NodeNameBinding, ParsingAllowedChildren));
- end;
- Lexer.NextToken;
-
- FWWWBasePath := Lexer.WWWBasePath;
+  FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-function TVRMLNode.TryParseSpecialField(Lexer: TVRMLLexer;
+function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
   NodeNameBinding: TStringList): boolean;
+var
+  I: integer;
 begin
   Result := false;
+
+  { If I would know that all fields used are standard, I could
+    check first for if Lexer.TokenName[0] in ['a'..'z'], since all
+    standard field names start lowercase. But of course I can't,
+    all VRML versions allow to define your own nodes and fields. }
+  if Lexer.Token = vtName then
+  begin
+    I := Fields.NameIndex(Lexer.TokenName);
+    if I >= 0 then
+    begin
+      Result := true;
+
+      { Usually, it should be just "Lexer.NextToken;"
+        But I have to add here some dirty hack to allow SFString fields
+        to contain strings not enclosed in double quotes (VRML 1.0 allows this).
+        So I have to call here NextTokenForceVTString before SFString field. }
+      if Fields[I] is TSFString then
+        Lexer.NextTokenForceVTString else
+        Lexer.NextToken;
+
+      Fields[I].Parse(Lexer, NodeNameBinding);
+    end;
+  end;
 end;
 
 type
@@ -6447,30 +6477,38 @@ begin
  result := 'ShapeHints';
 end;
 
-function TNodeShapeHints.TryParseSpecialField(Lexer: TVRMLLexer;
+function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer;
   NodeNameBinding: TStringList): boolean;
-const A1: array[0..2]of string=('SOLID', 'ORDERED', 'CONVEX');
-var Hints: TSFBitMask;
+var
+  Hints: TSFBitMask;
 begin
- if (Lexer.VRMLVerMajor = 0) and (Lexer.TokenName = 'hints') then
- begin
-  Hints := TSFBitMask.Create('hints', A1, 'NONE', '',  [false, true, true]);
-  try
-   Lexer.NextToken;
-   Hints.Parse(Lexer, NodeNameBinding);
-   if Hints.Flags[0] then
-    FdShapeType.Value := SHTYPE_SOLID else
-    FdShapeType.Value := SHTYPE_UNKNOWN;
-   if Hints.Flags[1] then
-    FdVertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE else
-    FdVertexOrdering.Value := VERTORDER_UNKNOWN;
-   if Hints.Flags[2] then
-    FdFaceType.Value := FACETYPE_CONVEX else
-    FdFaceType.Value := FACETYPE_UNKNOWN;
-  finally Hints.Free end;
-  result := true;
- end else
-  result := false;
+  Result := inherited;
+
+  if not Result then
+  begin
+    Result := (Lexer.VRMLVerMajor = 0) and
+      (Lexer.Token = vtName) and
+      (Lexer.TokenName = 'hints');
+    if Result then
+    begin
+      Hints := TSFBitMask.Create('hints',
+        ['SOLID', 'ORDERED', 'CONVEX'], 'NONE', '',
+        [ false,   true,      true]);
+      try
+        Lexer.NextToken;
+        Hints.Parse(Lexer, NodeNameBinding);
+        if Hints.Flags[0] then
+          FdShapeType.Value := SHTYPE_SOLID else
+          FdShapeType.Value := SHTYPE_UNKNOWN;
+        if Hints.Flags[1] then
+          FdVertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE else
+          FdVertexOrdering.Value := VERTORDER_UNKNOWN;
+        if Hints.Flags[2] then
+          FdFaceType.Value := FACETYPE_CONVEX else
+          FdFaceType.Value := FACETYPE_UNKNOWN;
+      finally Hints.Free end;
+    end;
+  end;
 end;
 
 procedure TNodeGeneralTransformation.MiddleTraverse(State: TVRMLGraphTraverseState);
@@ -8745,10 +8783,38 @@ begin
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('directOutput', FALSE));
   Fields.Add(TSFBool.Create('mustEvaluate', FALSE));
-  { # And any number of: }
-  { eventIn      eventType eventName }
-  { field        fieldType fieldName initialValue }
-  { eventOut     eventType eventName }
+
+  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
+end;
+
+destructor TNodeScript.Destroy;
+begin
+  FreeWithContentsAndNil(FInterfaceDeclarations);
+  inherited;
+end;
+
+function TNodeScript.ParseNodeBodyElement(Lexer: TVRMLLexer;
+  NodeNameBinding: TStringList): boolean;
+var
+  I: TVRMLInterfaceDeclaration;
+begin
+  Result := inherited;
+
+  if not Result then
+  begin
+    { exposedField is not allowed for Script, grammar specifies
+      "restrictedInterfaceDeclaration" for it. }
+    Result := Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField]);
+    if Result then
+    begin
+      if Lexer.TokenKeyword = vkField then
+        I := TVRMLInterfaceDeclarationFieldValue.Create else
+        I := TVRMLInterfaceDeclaration.Create;
+      InterfaceDeclarations.Add(I);
+      I.Parse(Lexer, NodeNameBinding);
+      I.ParseIsClause(Lexer);
+    end;
+  end;
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;
@@ -9342,6 +9408,9 @@ procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
 var
   FieldTypeName: string;
 begin
+  { clear instance before parsing }
+  FIsClause := false;
+
   if Lexer.Token = vtKeyword then
   begin
     case Lexer.TokenKeyword of
@@ -9369,6 +9438,19 @@ begin
   FName := Lexer.TokenName;
 
   Lexer.NextToken;
+end;
+
+procedure TVRMLInterfaceDeclaration.ParseIsClause(Lexer: TVRMLLexer);
+begin
+  FIsClause := Lexer.TokenIsKeyword(vkIS);
+  if IsClause then
+  begin
+    Lexer.NextToken;
+    Lexer.CheckTokenIs(vtName);
+    FIsClauseName := Lexer.TokenName;
+    
+    Lexer.NextToken;
+  end;
 end;
 
 { TVRMLInterfaceDeclarationField --------------------------------------------- }
@@ -9414,17 +9496,16 @@ begin
        ( Lexer.TokenIsKeyword([vkField, vkExposedField]) and ExternalProto) then
     begin
       I := TVRMLInterfaceDeclaration.Create;
-      InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, NodeNameBinding);
     end else
     if Lexer.TokenIsKeyword([vkField, vkExposedField]) then
     begin
       I := TVRMLInterfaceDeclarationFieldValue.Create;
-      InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, NodeNameBinding);
     end else
       raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
+
+    InterfaceDeclarations.Add(I);
+    I.Parse(Lexer, NodeNameBinding);
   end;
 
   { eat "]" token }
