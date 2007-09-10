@@ -4030,7 +4030,7 @@ type
     property Field: TVRMLField read FField;
 
     procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      FieldValue: boolean); virtual;
+      FieldValue, IsClauseAllowed: boolean); virtual;
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
@@ -8891,7 +8891,7 @@ begin
     begin
       I := TVRMLInterfaceDeclaration.Create;
       InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, NodeNameBinding, true);
+      I.Parse(Lexer, NodeNameBinding, true, true);
     end;
   end;
 end;
@@ -9490,7 +9490,7 @@ begin
 end;
 
 procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
-  NodeNameBinding: TStringList; FieldValue: boolean);
+  NodeNameBinding: TStringList; FieldValue, IsClauseAllowed: boolean);
 type
   TVRMLInterfaceDeclationKind = (idEventIn, idEventOut, idField, idExposedField);
 var
@@ -9545,10 +9545,16 @@ begin
   Lexer.NextToken;
 
   if Event <> nil then
-    Event.Parse(Lexer) else
-  if FieldValue then
-    Field.Parse(Lexer, NodeNameBinding, true) else
-    Field.ParseIsClause(Lexer);
+  begin
+    if IsClauseAllowed then
+      Event.Parse(Lexer);
+  end else
+  begin
+    if FieldValue then
+      Field.Parse(Lexer, NodeNameBinding, IsClauseAllowed) else
+    if IsClauseAllowed then
+      Field.ParseIsClause(Lexer);
+  end;
 end;
 
 { TVRMLPrototypeBase --------------------------------------------------------- }
@@ -9578,11 +9584,11 @@ begin
     if Lexer.TokenIsKeyword([vkEventIn, vkEventOut]) or
        ( Lexer.TokenIsKeyword([vkField, vkExposedField]) and ExternalProto) then
     begin
-      I.Parse(Lexer, NodeNameBinding, false);
+      I.Parse(Lexer, NodeNameBinding, false, false);
     end else
     if Lexer.TokenIsKeyword([vkField, vkExposedField]) then
     begin
-      I.Parse(Lexer, NodeNameBinding, true);
+      I.Parse(Lexer, NodeNameBinding, true, false);
     end else
       raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
