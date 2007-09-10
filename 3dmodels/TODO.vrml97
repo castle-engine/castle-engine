@@ -1,5 +1,54 @@
 VRML 97 TODO items:
 
+plan for prototype handling:
+- create a new class like TNodePrototypeInstance.
+
+  When parsing proto,
+  rewrap it from TNodeHiddenGroup_x to TNodePrototypeInstance, always
+  (even if wasn't TNodeHiddenGroup_x but normal node after
+  ParseVRMLStatements).
+
+  One advantage over TNodeHiddenGroup_x
+  is that we will not descend into TNodePrototypeInstance when
+  saving back to file, and TNodePrototypeInstance will keep children in two
+  groups: first children (required in each prototype, this is very special
+  since this determines valid prototype placement) and list of other prototype
+  nodes (spec says "Any other nodes and accompanying scene graphs
+  are not part of the transformation hierarchy, but may be referenced
+  by ROUTE statements or Script nodes in the prototype definition."
+  Which means that they should be kept somewhere along with TNodePrototypeInstance.
+
+- We need some prototype names list. Note that this list will value have to be
+  push/pop on entering parsing prototype itself, as prototypes defined inside
+  prototypes are valid to instantiate only within this proto.
+
+- When found a node with name matching proto (internal OR external!) :
+
+  for external, just create TNodeUnknown for now, but mark with TODO
+  where should be fixed,
+  
+  for internal: insert VRMLNodeDeepCopy of Prototype.Node (of
+  TNodePrototypeInstance class). Search within it (procedure inside
+  TNodePrototypeInstance class like FillPrototypeValues) and replace
+  "IS" clauses as appropriate (but don't recurse into another
+  TNodePrototypeInstance --- "IS" always refers to innermost prototype;
+  this is very useful, because it means that prototype can always be
+  instantiated right after it's defined. Actually, this is the only sensible
+  solution: if "IS" would refer to some non-innermost proto, then the proto
+  couldn't be instantiated within it's direct parent --- and proto
+  must *always be instantiated within it's direct parent*, not higher,
+  so says the spec.
+
+- hmmm, that's all, pretty simple actually... great !
+  test everything I can find, test jaguar, mail ANL...
+
+- save back to file prototypes (all prototypes:
+    non-external: just save interface decl and node,
+    external: just save interface decl and MFString URLList
+    routes: all
+    events: those with IsClause
+    Scipt interface decl also save)
+
 ----------------------------------------
 Post view3dscene 2.0 things:
 
