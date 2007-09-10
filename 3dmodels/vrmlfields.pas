@@ -51,6 +51,8 @@ type
   TVRMLField = class(TPersistent)
   private
     FExposed: boolean;
+    FIsClause: boolean;
+    FIsClauseName: string;
   protected
     FName: string;
 
@@ -100,15 +102,24 @@ type
       field types were entirely removed from VRML 2.0. }
     constructor CreateUndefined(const AName: string); virtual;
 
-    { Parse : init Self properties from Lexer. Must be redefined in each
-      field class.
+    { Parse inits properties from Lexer.
+
+      In this class, Parse only sets IsClause and IsClauseName:
+      if we stand on "IS" clause (see VRML 2.0 spec about "IS" clause)
+      and IsClauseAllowed then IsClause is set to @true and IsClauseName is set
+      appropriately.
+
+      Descendants should override this to read actual field contents.
+      Always when overriding, call inherited first and check IsClause.
+      If IsClause, then abort any further reading, as the field was
+      specified using "IS" clause, so there's no actual value.
 
       NodeNameBinding has the same meaning as for TVRMLNode.Parse,
       see there. It can be ignored, and in fact it is ignored by all
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
     procedure Parse(Lexer: TVRMLLexer;
-      NodeNameBinding: TStringList); virtual; abstract;
+      NodeNameBinding: TStringList; IsClauseAllowed: boolean); virtual;
 
     { O ile not EqualsDefaultValue to kazde pole bedzie zapisane jako jedna lub
       wiecej linii.
@@ -160,6 +171,13 @@ type
 
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
+
+    { Parse only "IS" clause, if it's not present --- don't try to parse
+      field value. }
+    procedure ParseIsClause(Lexer: TVRMLLexer);
+
+    property IsClause: boolean read FIsClause;
+    property IsClauseName: string read FIsClauseName;
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -281,7 +299,8 @@ type
     { nie ma potrzeby definiowania Parse w zadnej podklasie pola MF.
       Tutejsze Parse dziala dla kazdego pola typu MF, uzywajac Parse
       klasy ItemClass. }
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
 
     destructor Destroy; override;
 
@@ -337,7 +356,8 @@ type
     property AllString: string read fAllString;
     property NoneString: string read fNoneString;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
 
     { zwraca true jesli wszystkie flagi sa = value }
     function AreAllFlags(value: boolean): boolean;
@@ -370,7 +390,8 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -391,7 +412,8 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -425,7 +447,8 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -457,7 +480,8 @@ type
       tylko Value := Abs(X); to jest cos dobrego dla np. Sphere.FdRadius). }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -485,7 +509,8 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -522,7 +547,8 @@ type
 
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -552,7 +578,8 @@ type
 
     { komentarz - jak dla TSFFloat.MustBeNonnegative }
     property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -575,7 +602,8 @@ type
 
     Matrix: TMatrix4Single;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
@@ -597,7 +625,8 @@ type
     RotationRad: Single;
     property Value: TVector4Single read GetValue write SetValue;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
     function Equals(SecondValue: TVRMLField;
@@ -620,7 +649,8 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -641,7 +671,8 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -663,7 +694,8 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -943,6 +975,25 @@ begin
   Result := SecondValue.Name = Name;
 end;
 
+procedure TVRMLField.ParseIsClause(Lexer: TVRMLLexer);
+begin
+  FIsClause := Lexer.TokenIsKeyword(vkIS);
+  if FIsClause then
+  begin
+    Lexer.NextToken;
+    FIsClauseName := Lexer.TokenName;
+    Lexer.NextToken;
+  end;
+end;
+
+procedure TVRMLField.Parse(Lexer: TVRMLLexer;
+  NodeNameBinding: TStringList; IsClauseAllowed: boolean);
+begin
+  if IsClauseAllowed then
+    ParseIsClause(Lexer) else
+    FIsClause := false;
+end;
+
 { TVRMLFieldsList ------------------------------------------------------------- }
 
 function TVRMLFieldsList.NameIndex(const AName: string): integer;
@@ -990,53 +1041,60 @@ begin
  result := ItemClass.CreateUndefined('');
 end;
 
-procedure TVRMLSimpleMultField.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TVRMLSimpleMultField.Parse(
+  Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 var SingleItem: TVRMLSingleField;
 begin
- RawItems.SetLength(0);
- RawItems.AllowedCapacityOverflow := 100;
- SingleItem := nil;
- try
-  SingleItem := CreateItemBeforeParse;
+  inherited;
 
-  if Lexer.Token = vtOpenSqBracket then
-  begin
-   Lexer.NextToken;
+  RawItems.SetLength(0);
 
-   while Lexer.Token <> vtCloseSqBracket do
-   {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
+  if IsClause then Exit;
+
+  RawItems.AllowedCapacityOverflow := 100;
+  SingleItem := nil;
+  try
+   SingleItem := CreateItemBeforeParse;
+
+   if Lexer.Token = vtOpenSqBracket then
    begin
-    SingleItem.Parse(Lexer, NodeNameBinding);
-    RawItemsAdd(SingleItem);
+    Lexer.NextToken;
 
-    if Lexer.Token = vtCloseSqBracket then break;
-
-    if Lexer.VRMLVerMajor < 2 then
+    while Lexer.Token <> vtCloseSqBracket do
+    {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
     begin
-      Lexer.CheckTokenIs(vtComma);
-      Lexer.NextToken;
+     SingleItem.Parse(Lexer, NodeNameBinding, false);
+     RawItemsAdd(SingleItem);
+
+     if Lexer.Token = vtCloseSqBracket then break;
+
+     if Lexer.VRMLVerMajor < 2 then
+     begin
+       Lexer.CheckTokenIs(vtComma);
+       Lexer.NextToken;
+     end;
     end;
+
+    { Our handling of commas is specified by VRML 1.0 spec:
+      - When the list has no items, "[]" is allowed but "[,]" is not.
+      - When there are some items on the list, the last item *may*
+        be followed by a comma.
+      For VRML 2.0 this all doesn't matter, comma is just a whitespace
+      and Lexer will never return such token. }
+
+    Lexer.NextToken;
+   end else
+   begin
+    {one single field - not enclosed in [] brackets}
+    SingleItem.Parse(Lexer, NodeNameBinding, false);
+    RawItemsAdd(SingleItem);
    end;
 
-   { Our handling of commas is specified by VRML 1.0 spec:
-     - When the list has no items, "[]" is allowed but "[,]" is not.
-     - When there are some items on the list, the last item *may*
-       be followed by a comma.
-     For VRML 2.0 this all doesn't matter, comma is just a whitespace
-     and Lexer will never return such token. }
-
-   Lexer.NextToken;
-  end else
-  begin
-   {one single field - not enclosed in [] brackets}
-   SingleItem.Parse(Lexer, NodeNameBinding);
-   RawItemsAdd(SingleItem);
+  finally
+    FreeAndNil(SingleItem);
+    RawItems.AllowedCapacityOverflow := 4;
   end;
-
- finally
-  FreeAndNil(SingleItem);
-  RawItems.AllowedCapacityOverflow := 4;
- end;
 end;
 
 procedure TVRMLSimpleMultField.SaveToStreamValue(Stream: TStream;
@@ -1116,7 +1174,8 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 
   procedure VRML2BooleanIntegerNonFatalError;
   begin
@@ -1128,29 +1187,32 @@ procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 const
   SBoolExpected = 'boolean constant (TRUE, FALSE)';
 begin
- Lexer.CheckTokenIs([vtKeyword, vtInteger], SBoolExpected);
- if Lexer.Token = vtKeyword then
- begin
-  if Lexer.TokenKeyword = vkTrue then Value := true else
-   if Lexer.TokenKeyword = vkFalse then Value := false else
-    raise EVRMLParserError.Create(Lexer,
-      'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
- end else
- begin
-  if Lexer.TokenInteger = 1 then
+  inherited;
+  if IsClause then Exit;
+
+  Lexer.CheckTokenIs([vtKeyword, vtInteger], SBoolExpected);
+  if Lexer.Token = vtKeyword then
   begin
-    Value := true;
-    VRML2BooleanIntegerNonFatalError;
+   if Lexer.TokenKeyword = vkTrue then Value := true else
+    if Lexer.TokenKeyword = vkFalse then Value := false else
+     raise EVRMLParserError.Create(Lexer,
+       'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
   end else
-  if Lexer.TokenInteger = 0 then
   begin
-    Value := false;
-    VRML2BooleanIntegerNonFatalError;
-  end else
-    raise EVRMLParserError.Create(Lexer,
-      'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
- end;
- Lexer.NextToken;
+   if Lexer.TokenInteger = 1 then
+   begin
+     Value := true;
+     VRML2BooleanIntegerNonFatalError;
+   end else
+   if Lexer.TokenInteger = 0 then
+   begin
+     Value := false;
+     VRML2BooleanIntegerNonFatalError;
+   end else
+     raise EVRMLParserError.Create(Lexer,
+       'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
+  end;
+  Lexer.NextToken;
 end;
 
 procedure TSFBool.SaveToStreamValue(Stream: TStream;
@@ -1201,8 +1263,12 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFColor.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFColor.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
+  inherited;
+  if IsClause then Exit;
+
   ParseVector(Value, Lexer);
 end;
 
@@ -1273,8 +1339,12 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFFloat.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFFloat.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
+  inherited;
+  if IsClause then Exit;
+
   Value := ParseFloat(Lexer);
 end;
 
@@ -1337,8 +1407,12 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFTime.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFTime.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
+  inherited;
+  if IsClause then Exit;
+
   Value := ParseFloat(Lexer);
 end;
 
@@ -1410,7 +1484,8 @@ begin
  inherited;
 end;
 
-procedure TSFImage.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFImage.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -1424,84 +1499,88 @@ var
   RGBPixels: PArray_Vector3Byte;
   AlphaPixels: PArray_Vector4Byte;
 begin
- { Note that we should never let Value to be nil too long,
-   because even if this method exits with exception, Value should
-   always remain non-nil.
-   That's why I'm doing below Value.Null instead of FreeAndNil(Value)
-   and I'm using ReplaceValue to set new Value.
-   This way if e.g. TRGBImage.Create with out of mem exception,
-   Value will still remain non-nil.
+  inherited;
 
-   This is all because I just changed Images unit interface to class-like
-   and I want to do minimal changes to VRMLFields unit to not break
-   anything. TODO -- this will be solved better in the future, by simply
-   allowing Value to be nil at any time.
-   }
+  { Note that we should never let Value to be nil too long,
+    because even if this method exits with exception, Value should
+    always remain non-nil.
+    That's why I'm doing below Value.Null instead of FreeAndNil(Value)
+    and I'm using ReplaceValue to set new Value.
+    This way if e.g. TRGBImage.Create with out of mem exception,
+    Value will still remain non-nil.
 
- Value.Null;
+    This is all because I just changed Images unit interface to class-like
+    and I want to do minimal changes to VRMLFields unit to not break
+    anything. TODO -- this will be solved better in the future, by simply
+    allowing Value to be nil at any time.
+    }
 
- { TODO: we convert here 1 and 2 components to 3 and 4 (that is,
-   we convert grayscale to RGB). This is a limitation of our Images unit. }
+  Value.Null;
 
- w := ParseLongWord(Lexer);
- h := ParseLongWord(Lexer);
- comp := ParseLongWord(Lexer);
+  if IsClause then Exit;
 
- { If w or h =0 then w*h = 0 so we don't have to read anything more.
-   We leave Value.IsNull in this case. }
- if (w <> 0) and (h <> 0) then
- begin
-  case comp of
-   1: begin
-       ReplaceValue(TRGBImage.Create(w, h));
-       RGBPixels := PArray_Vector3Byte(Value.RawPixels);
-       for i := 0 to w*h-1 do
-       begin
-        pixel := ParseLongWord(Lexer);
-        RGBPixels^[i, 0] := pixel and $FF;
-        RGBPixels^[i, 1] := pixel and $FF;
-        RGBPixels^[i, 2] := pixel and $FF;
+  { TODO: we convert here 1 and 2 components to 3 and 4 (that is,
+    we convert grayscale to RGB). This is a limitation of our Images unit. }
+
+  w := ParseLongWord(Lexer);
+  h := ParseLongWord(Lexer);
+  comp := ParseLongWord(Lexer);
+
+  { If w or h =0 then w*h = 0 so we don't have to read anything more.
+    We leave Value.IsNull in this case. }
+  if (w <> 0) and (h <> 0) then
+  begin
+   case comp of
+    1: begin
+        ReplaceValue(TRGBImage.Create(w, h));
+        RGBPixels := PArray_Vector3Byte(Value.RawPixels);
+        for i := 0 to w*h-1 do
+        begin
+         pixel := ParseLongWord(Lexer);
+         RGBPixels^[i, 0] := pixel and $FF;
+         RGBPixels^[i, 1] := pixel and $FF;
+         RGBPixels^[i, 2] := pixel and $FF;
+        end;
        end;
-      end;
-   2: begin
-       ReplaceValue(TAlphaImage.Create(w, h));
-       AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
-       for i := 0 to w*h-1 do
-       begin
-        pixel := ParseLongWord(Lexer);
-        AlphaPixels^[i, 0] := (pixel shr 8) and $FF;
-        AlphaPixels^[i, 1] := (pixel shr 8) and $FF;
-        AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
-        AlphaPixels^[i, 3] := pixel and $FF;
+    2: begin
+        ReplaceValue(TAlphaImage.Create(w, h));
+        AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+        for i := 0 to w*h-1 do
+        begin
+         pixel := ParseLongWord(Lexer);
+         AlphaPixels^[i, 0] := (pixel shr 8) and $FF;
+         AlphaPixels^[i, 1] := (pixel shr 8) and $FF;
+         AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
+         AlphaPixels^[i, 3] := pixel and $FF;
+        end;
        end;
-      end;
-   3: begin
-       ReplaceValue(TRGBImage.Create(w, h));
-       RGBPixels := PArray_Vector3Byte(Value.RawPixels);
-       for i := 0 to w*h-1 do
-       begin
-        pixel := ParseLongWord(Lexer);
-        RGBPixels^[i, 0] := (pixel shr 16) and $FF;
-        RGBPixels^[i, 1] := (pixel shr 8) and $FF;
-        RGBPixels^[i, 2] := pixel and $FF;
+    3: begin
+        ReplaceValue(TRGBImage.Create(w, h));
+        RGBPixels := PArray_Vector3Byte(Value.RawPixels);
+        for i := 0 to w*h-1 do
+        begin
+         pixel := ParseLongWord(Lexer);
+         RGBPixels^[i, 0] := (pixel shr 16) and $FF;
+         RGBPixels^[i, 1] := (pixel shr 8) and $FF;
+         RGBPixels^[i, 2] := pixel and $FF;
+        end;
        end;
-      end;
-   4: begin
-       ReplaceValue(TAlphaImage.Create(w, h));
-       AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
-       for i := 0 to w*h-1 do
-       begin
-        pixel := ParseLongWord(Lexer);
-        AlphaPixels^[i, 0] := (pixel shr 24) and $FF;
-        AlphaPixels^[i, 1] := (pixel shr 16) and $FF;
-        AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
-        AlphaPixels^[i, 3] := pixel and $FF;
+    4: begin
+        ReplaceValue(TAlphaImage.Create(w, h));
+        AlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+        for i := 0 to w*h-1 do
+        begin
+         pixel := ParseLongWord(Lexer);
+         AlphaPixels^[i, 0] := (pixel shr 24) and $FF;
+         AlphaPixels^[i, 1] := (pixel shr 16) and $FF;
+         AlphaPixels^[i, 2] := (pixel shr 8) and $FF;
+         AlphaPixels^[i, 3] := pixel and $FF;
+        end;
        end;
-      end;
-   else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
-          ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
+    else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
+           ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
+   end;
   end;
- end;
 end;
 
 procedure TSFImage.SaveToStreamValue(Stream: TStream;
@@ -1589,11 +1668,15 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFLong.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFLong.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
- Lexer.CheckTokenIs(vtInteger);
- Value := Lexer.TokenInteger;
- Lexer.NextToken;
+  inherited;
+  if IsClause then Exit;
+
+  Lexer.CheckTokenIs(vtInteger);
+  Value := Lexer.TokenInteger;
+  Lexer.NextToken;
 end;
 
 procedure TSFLong.SaveToStreamValue(Stream: TStream;
@@ -1651,10 +1734,15 @@ begin
   Matrix := AMatrix;
 end;
 
-procedure TSFMatrix.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-var col: integer;
+procedure TSFMatrix.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
+var
+  col: integer;
 begin
- for col := 0 to 3 do ParseVector(Matrix[col], Lexer);
+  inherited;
+  if IsClause then Exit;
+
+  for col := 0 to 3 do ParseVector(Matrix[col], Lexer);
 end;
 
 procedure TSFMatrix.SaveToStreamValue(Stream: TStream;
@@ -1708,10 +1796,14 @@ begin
   RotationRad := ARotationRad;
 end;
 
-procedure TSFRotation.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFRotation.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
- ParseVector(Axis, Lexer);
- RotationRad := ParseFloat(Lexer);
+  inherited;
+  if IsClause then Exit;
+
+  ParseVector(Axis, Lexer);
+  RotationRad := ParseFloat(Lexer);
 end;
 
 function TSFRotation.GetValue: TVector4Single;
@@ -1781,11 +1873,15 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFString.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFString.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
- Lexer.CheckTokenIs(vtString);
- Value := Lexer.TokenString;
- Lexer.NextToken;
+  inherited;
+  if IsClause then Exit;
+
+  Lexer.CheckTokenIs(vtString);
+  Value := Lexer.TokenString;
+  Lexer.NextToken;
 end;
 
 procedure TSFString.SaveToStreamValue(Stream: TStream;
@@ -1835,8 +1931,14 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFVec2f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-begin ParseVector(Value, Lexer) end;
+procedure TSFVec2f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
+begin
+  inherited;
+  if IsClause then Exit;
+
+  ParseVector(Value, Lexer);
+end;
 
 procedure TSFVec2f.SaveToStreamValue(Stream: TStream;
   const Indent: string; NodeNameBinding: TStringList);
@@ -1891,8 +1993,12 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFVec3f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFVec3f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 begin
+  inherited;
+  if IsClause then Exit;
+
   ParseVector(Value, Lexer);
 end;
 
@@ -1972,7 +2078,8 @@ begin result := fFlagNames.Count end;
 function TSFBitMask.GetFlagNames(i: integer): string;
 begin result := fFlagNames[i] end;
 
-procedure TSFBitMask.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFBitMask.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 
   procedure InterpretTokenAsFlagName;
   var i: integer;
@@ -1991,22 +2098,26 @@ procedure TSFBitMask.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
   end;
 
 begin
- fFlags:=[];
+  inherited;
 
- if Lexer.Token = vtOpenBracket then
- begin
-  repeat
+  fFlags:=[];
+
+  if IsClause then Exit;
+
+  if Lexer.Token = vtOpenBracket then
+  begin
+   repeat
+    Lexer.NextToken;
+    InterpretTokenAsFlagName;
+    Lexer.NextToken;
+   until Lexer.Token <> vtBar;
+   Lexer.CheckTokenIs(vtCloseBracket);
    Lexer.NextToken;
+  end else
+  begin
    InterpretTokenAsFlagName;
    Lexer.NextToken;
-  until Lexer.Token <> vtBar;
-  Lexer.CheckTokenIs(vtCloseBracket);
-  Lexer.NextToken;
- end else
- begin
-  InterpretTokenAsFlagName;
-  Lexer.NextToken;
- end;
+  end;
 end;
 
 function TSFBitMask.AreAllFlags(value: boolean): boolean;
@@ -2096,16 +2207,21 @@ begin result := fEnumNames[i] end;
 function TSFEnum.EnumNamesCount: integer;
 begin result := fEnumNames.Count end;
 
-procedure TSFEnum.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
-var val: integer;
+procedure TSFEnum.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
+var
+  val: integer;
 begin
- Lexer.CheckTokenIs(vtName, 'enumerated type constant');
- val := fEnumNames.IndexOf(Lexer.TokenName);
- if val = -1 then
-  raise EVRMLParserError.Create(Lexer,
-    'Expected enumerated type constant, got '+Lexer.DescribeToken);
- Value := val;
- Lexer.NextToken;
+  inherited;
+  if IsClause then Exit;
+
+  Lexer.CheckTokenIs(vtName, 'enumerated type constant');
+  val := fEnumNames.IndexOf(Lexer.TokenName);
+  if val = -1 then
+   raise EVRMLParserError.Create(Lexer,
+     'Expected enumerated type constant, got '+Lexer.DescribeToken);
+  Value := val;
+  Lexer.NextToken;
 end;
 
 procedure TSFEnum.SaveToStreamValue(Stream: TStream;

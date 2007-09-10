@@ -22,8 +22,10 @@
   @abstract(This unit defines VRML nodes. This is the most important
   unit for VRML processing, as nodes are the key idea in VRML.)
 
-  In fact, the whole VRML file is just a VRML node, so "processing
-  VRML nodes" means also "processing VRML files".
+  In fact, the whole VRML file is just a VRML node
+  (if necessary, we wrap it inside one "artificial" node,
+  see TNodeHiddenGroup_1 or TNodeHiddenGroup_2),
+  so "processing VRML nodes" means also "processing VRML files".
   And this unit allows you to read nodes from the stream
   (with the help of lexer in VRMLLexer unit and parser of VRML fields
   in VRMLFields unit). We also have here methods to save nodes back
@@ -57,9 +59,7 @@
   @unorderedList(
     @item(
       We handle both VRML 1.0 and 2.0.
-      Every correct VRML file should be parsed by this unit
-      (TODO: although for VRML 2.0 some constructs like "PROTO" are not
-      done yet, see TODO.vrml97).)
+      Every correct VRML file should be parsed by this unit.)
 
     @item(
       Also many Inventor 1.0 files should be correctly parsed.
@@ -286,7 +286,8 @@ unit VRMLNodes;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors;
+  VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
+  VRMLEvents;
 
 {$define read_interface}
 
@@ -560,8 +561,8 @@ type
   { VRML node.
 
     Descendant implementors note: Each descendant should
-    override constructor to create and add his fields, like
-    @code(Fields.Add(TSFFloat.Create('width', 2, true))).
+    override constructor to create and add his fields and events.
+    Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
     Also, you should define FdXxx properties that allow fast,
     comfortable and type-secure way to retrieve and set these fields. }
   TVRMLNode = class
@@ -586,6 +587,8 @@ type
     procedure TryFindNode_Found(Node: TVRMLNode);
     FPrototypes: TVRMLPrototypeBasesList;
     FRoutes: TVRMLRoutesList;
+    FFields: TVRMLFieldsList;
+    FEvents: TVRMLEventsList;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -718,7 +721,8 @@ type
       w czasie zycia obiektu, juz po wywolaniu konstruktora).
 
       @noAutoLinkHere }
-    Fields: TVRMLFieldsList;
+    property Fields: TVRMLFieldsList read FFields;
+    property Events: TVRMLEventsList read FEvents;
 
     { Children property lists children VRML nodes, in the sense of VRML 1.0.
       In VRML 2.0, nodes never have any Children nodes expressed on this
@@ -1342,7 +1346,8 @@ type
     destructor Destroy; override;
 
     property Value: TVRMLNode read FValue write SetValue;
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+     IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -1406,7 +1411,8 @@ type
     { Just a shortcut for Items.Count }
     function Count: integer; override;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      IsClauseAllowed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -3995,55 +4001,41 @@ type
 
 { TVRMLInterfaceDeclation ---------------------------------------------------- }
 
-  TVRMLInterfaceDeclationKind = (idEventIn, idEventOut, idField, idExposedField);
+  { Interface declaration, used in VRML (exposed) prototypes and scripts.
+    See VRML 2.0 spec.
 
-  { Interface declation, used in VRML (exposed) prototypes and scripts.
-    See VRML 2.0 spec. }
+    Each interface specification is either a field or an event,
+    so exactly one of the @link(Field) or @link(Event) properties
+    is initialized (non-nil) after parsing.
+
+    Field value is not initialized if you passed FieldValue = @false
+    to @link(Parse) (although Field.IsClause and IsClauseName will
+    always be initialized). FieldValue = @true is used for prototype
+    (not external) declarations and scripts.
+    In the future maybe some property like
+    FieldValueInitialized will be exposed here, if needed at some point.
+
+    Interface declaration doesn't have much properties, since all
+    the information is contained within @link(Field) or @link(Event)
+    instance, like Name, field class type, out or in (in case of event),
+    exposed or not (in case of field), IsClause and IsClauseName. }
   TVRMLInterfaceDeclaration = class
   private
-    FKind: TVRMLInterfaceDeclationKind;
-    FName: string;
-    FFieldType: TVRMLFieldClass;
-    FIsClause: boolean;
-    FIsClauseName: string;
+    FEvent: TVRMLEvent;
+    FField: TVRMLField;
   public
-    { Kind of declation.
+    destructor Destroy; override;
 
-      Note: Do not assume that for Kind in [idField, idExposedField],
-      Self must be TVRMLInterfaceDeclationFieldValue.
-      For external prototype declarations, idField, idExposedField
-      are specified without default value, and then this class
-      (not it's descendant TVRMLInterfaceDeclationFieldValue) may be used. }
-    property Kind: TVRMLInterfaceDeclationKind read FKind;
-    property Name: string read FName;
-    property FieldType: TVRMLFieldClass read FFieldType;
+    property Event: TVRMLEvent read FEvent;
+    property Field: TVRMLField read FField;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); virtual;
-
-    property IsClause: boolean read FIsClause;
-    property IsClauseName: string read FIsClauseName;
-
-    { In some cases, interface declaration may be followed by "IS something"
-      clause --- in such case, you have to call this method right after Parse. }
-    procedure ParseIsClause(Lexer: TVRMLLexer);
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      FieldValue: boolean); virtual;
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
   {$I objectslist_2.inc}
   TVRMLInterfaceDeclarationsList = class(TObjectsList_2);
-
-  { VRML interface declation with exposedField or field value.
-    This is used for prototype (not external) declarations and
-    scripts. }
-  TVRMLInterfaceDeclarationFieldValue = class(TVRMLInterfaceDeclaration)
-  private
-    FValue: TVRMLField;
-  public
-    destructor Destroy; override;
-    property Value: TVRMLField read FValue;
-
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
-  end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
 
@@ -4060,7 +4052,8 @@ type
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      const WWWBasePath: string);
       virtual; abstract;
   end;
 
@@ -4069,8 +4062,22 @@ type
   TVRMLPrototypeBasesList = class(TObjectsList_4);
 
   TVRMLPrototype = class(TVRMLPrototypeBase)
+  private
+    FNode: TVRMLNode;
   public
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    destructor Destroy; override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      const WWWBasePath: string); override;
+
+    { These are actual prototype contents: all nodes, prototypes, routes
+      defined within this prototype.
+
+      We wrap this all inside a single
+      VRML node, just like we do when reading whole VRML file:
+      if the whole thing is exactly one VRML node, then this is this node.
+      Otherwise, we wrap inside artificial TNodeGroupHidden_1 or
+      TNodeGroupHidden_2. }
+    property Node: TVRMLNode read FNode;
   end;
 
   TVRMLExternalPrototype = class(TVRMLPrototypeBase)
@@ -4081,7 +4088,8 @@ type
     destructor Destroy; override;
     property URLList: TMFString read FURLList;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList); override;
+    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+      const WWWBasePath: string); override;
   end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
@@ -4514,7 +4522,9 @@ begin
  FChildren := TVRMLNodesList.Create;
  FParentNodes := TVRMLNodesList.Create;
  FParentFields := TVRMLFieldsList.Create;
- Fields := TVRMLFieldsList.Create;
+ FFields := TVRMLFieldsList.Create;
+
+ FEvents := TVRMLEventsList.Create;
 
  FPrototypes := TVRMLPrototypeBasesList.Create;
  FRoutes := TVRMLRoutesList.Create;
@@ -4527,7 +4537,9 @@ begin
  FreeWithContentsAndNil(FPrototypes);
  FreeWithContentsAndNil(FRoutes);
 
- FreeWithContentsAndNil(Fields);
+ FreeWithContentsAndNil(FEvents);
+
+ FreeWithContentsAndNil(FFields);
  FreeAndNil(FChildren);
  FreeAndNil(FParentNodes);
  FreeAndNil(FParentFields);
@@ -4865,15 +4877,19 @@ begin
     begin
       Result := true;
 
-      { Usually, it should be just "Lexer.NextToken;"
+      { Advance to the next token. Usually, it should be just "Lexer.NextToken;"
         But I have to add here some dirty hack to allow SFString fields
-        to contain strings not enclosed in double quotes (VRML 1.0 allows this).
-        So I have to call here NextTokenForceVTString before SFString field. }
-      if Fields[I] is TSFString then
+        to contain strings not enclosed in double quotes in VRML 1.0.
+        So I call here NextTokenForceVTString before SFString field.
+
+        For VRML >= 2.0, this nonsense feature was fortunately removed,
+        and that's good because in VRML >= 2.0 you must be able to use
+        keyword "IS" here, so calling NextTokenForceVTString would be bad. }
+      if (Fields[I] is TSFString) and (Lexer.VRMLVerMajor <= 1) then
         Lexer.NextTokenForceVTString else
         Lexer.NextToken;
 
-      Fields[I].Parse(Lexer, NodeNameBinding);
+      Fields[I].Parse(Lexer, NodeNameBinding, true);
     end;
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
@@ -4882,7 +4898,7 @@ begin
 
     Proto := TVRMLPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer, NodeNameBinding);
+    Proto.Parse(Lexer, NodeNameBinding, WWWBasePath);
   end else
   if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
   begin
@@ -4890,7 +4906,7 @@ begin
 
     Proto := TVRMLExternalPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer, NodeNameBinding);
+    Proto.Parse(Lexer, NodeNameBinding, WWWBasePath);
   end else
   if Lexer.TokenIsKeyword(vkROUTE) then
   begin
@@ -5573,7 +5589,8 @@ begin
   inherited;
 end;
 
-procedure TSFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TSFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 
   procedure ChildNotAllowed;
   var
@@ -5587,6 +5604,9 @@ procedure TSFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
   end;
 
 begin
+  inherited;
+  if IsClause then Exit;
+
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
     Value := nil;
@@ -5756,7 +5776,8 @@ begin
     Items[I].AddParentField(Self);
 end;
 
-procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  IsClauseAllowed: boolean);
 
   procedure ChildNotAllowed(Value: TVRMLNode);
   var
@@ -5772,7 +5793,11 @@ procedure TMFNode.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
 var
   Node: TVRMLNode;
 begin
+  inherited;
+
   ClearItems;
+
+  if IsClause then Exit;
 
   { Note that we ignore commas here, because MFNode is in VRML 2.0 only. }
   if Lexer.Token = vtOpenSqBracket then
@@ -6544,7 +6569,7 @@ begin
         [ false,   true,      true]);
       try
         Lexer.NextToken;
-        Hints.Parse(Lexer, NodeNameBinding);
+        Hints.Parse(Lexer, NodeNameBinding, false);
         if Hints.Flags[0] then
           FdShapeType.Value := SHTYPE_SOLID else
           FdShapeType.Value := SHTYPE_UNKNOWN;
@@ -8855,12 +8880,9 @@ begin
     Result := Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField]);
     if Result then
     begin
-      if Lexer.TokenKeyword = vkField then
-        I := TVRMLInterfaceDeclarationFieldValue.Create else
-        I := TVRMLInterfaceDeclaration.Create;
+      I := TVRMLInterfaceDeclaration.Create;
       InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, NodeNameBinding);
-      I.ParseIsClause(Lexer);
+      I.Parse(Lexer, NodeNameBinding, true);
     end;
   end;
 end;
@@ -9451,21 +9473,34 @@ resourcestring
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
 
+destructor TVRMLInterfaceDeclaration.Destroy;
+begin
+  FreeAndNil(FEvent);
+  FreeAndNil(FField);
+  inherited;
+end;
+
 procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
-  NodeNameBinding: TStringList);
+  NodeNameBinding: TStringList; FieldValue: boolean);
+type
+  TVRMLInterfaceDeclationKind = (idEventIn, idEventOut, idField, idExposedField);
 var
   FieldTypeName: string;
+  Kind: TVRMLInterfaceDeclationKind;
+  FieldType: TVRMLFieldClass;
+  Name: string;
 begin
   { clear instance before parsing }
-  FIsClause := false;
+  FreeAndNil(FEvent);
+  FreeAndNil(FField);
 
   if Lexer.Token = vtKeyword then
   begin
     case Lexer.TokenKeyword of
-      vkEventIn: FKind := idEventIn;
-      vkEventOut: FKind := idEventOut;
-      vkField: FKind := idField;
-      vkExposedField: FKind := idExposedField;
+      vkEventIn: Kind := idEventIn;
+      vkEventOut: Kind := idEventOut;
+      vkField: Kind := idField;
+      vkExposedField: Kind := idExposedField;
       else raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
     end;
@@ -9476,47 +9511,35 @@ begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'field type (for interface declaration)');
   FieldTypeName := Lexer.TokenName;
-  FFieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+  FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
   if FieldType = nil then
     raise EVRMLParserError.Create(
       Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'name (for interface declaration)');
-  FName := Lexer.TokenName;
+  Name := Lexer.TokenName;
+
+  { we know everything now to create Event/Field instance }
+  case Kind of
+    idEventIn: FEvent := TVRMLEvent.Create(Name, FieldType, true);
+    idEventOut: FEvent := TVRMLEvent.Create(Name, FieldType, false);
+    idField: FField := FieldType.CreateUndefined(Name);
+    idExposedField:
+      begin
+        FField := FieldType.CreateUndefined(Name);
+        FField.Exposed := true;
+      end;
+    else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
+  end;
 
   Lexer.NextToken;
-end;
 
-procedure TVRMLInterfaceDeclaration.ParseIsClause(Lexer: TVRMLLexer);
-begin
-  FIsClause := Lexer.TokenIsKeyword(vkIS);
-  if IsClause then
-  begin
-    Lexer.NextToken;
-    Lexer.CheckTokenIs(vtName);
-    FIsClauseName := Lexer.TokenName;
-
-    Lexer.NextToken;
-  end;
-end;
-
-{ TVRMLInterfaceDeclarationField --------------------------------------------- }
-
-procedure TVRMLInterfaceDeclarationFieldValue.Parse(Lexer: TVRMLLexer;
-  NodeNameBinding: TStringList);
-begin
-  inherited;
-
-  FreeAndNil(FValue);
-  FValue := FieldType.CreateUndefined('');
-  FValue.Parse(Lexer, NodeNameBinding);
-end;
-
-destructor TVRMLInterfaceDeclarationFieldValue.Destroy;
-begin
-  FreeAndNil(FValue);
-  inherited;
+  if Event <> nil then
+    Event.Parse(Lexer) else
+  if FieldValue then
+    Field.Parse(Lexer, NodeNameBinding, true) else
+    Field.ParseIsClause(Lexer);
 end;
 
 { TVRMLPrototypeBase --------------------------------------------------------- }
@@ -9540,20 +9563,20 @@ var
 begin
   while Lexer.Token <> vtCloseSqBracket do
   begin
+    I := TVRMLInterfaceDeclaration.Create;
+    InterfaceDeclarations.Add(I);
+
     if Lexer.TokenIsKeyword([vkEventIn, vkEventOut]) or
        ( Lexer.TokenIsKeyword([vkField, vkExposedField]) and ExternalProto) then
     begin
-      I := TVRMLInterfaceDeclaration.Create;
+      I.Parse(Lexer, NodeNameBinding, false);
     end else
     if Lexer.TokenIsKeyword([vkField, vkExposedField]) then
     begin
-      I := TVRMLInterfaceDeclarationFieldValue.Create;
+      I.Parse(Lexer, NodeNameBinding, true);
     end else
       raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
-
-    InterfaceDeclarations.Add(I);
-    I.Parse(Lexer, NodeNameBinding);
   end;
 
   { eat "]" token }
@@ -9562,7 +9585,20 @@ end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
 
-procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+destructor TVRMLPrototype.Destroy;
+begin
+  FreeAndNil(FNode);
+  inherited;
+end;
+
+function ParseVRMLStatements(
+  Lexer: TVRMLLexer;
+  NodeNameBinding: TStringList;
+  const EndToken: TVRMLToken;
+  const WWWBasePath: string): TVRMLNode; forward;
+
+procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  const WWWBasePath: string);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -9577,7 +9613,12 @@ begin
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
 
   Lexer.NextToken;
-  ParseIgnoreToMatchingCurlyBracket(Lexer);
+  FreeAndNil(FNode);
+  FNode := ParseVRMLStatements(Lexer, NodeNameBinding,
+    vtCloseCurlyBracket, WWWBasePath);
+
+  { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
+  Lexer.NextToken;
 
   VRMLNonFatalError(Format(
     'Prototype "%s" ignored (TODO: handling PROTOs not implemented)', [Name]));
@@ -9598,7 +9639,8 @@ begin
 end;
 
 procedure TVRMLExternalPrototype.Parse(
-  Lexer: TVRMLLexer; NodeNameBinding: TStringList);
+  Lexer: TVRMLLexer; NodeNameBinding: TStringList;
+  const WWWBasePath: string);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -9610,7 +9652,7 @@ begin
   Lexer.NextToken;
   ParseInterfaceDeclarations(true, Lexer, NodeNameBinding);
 
-  URLList.Parse(Lexer, NodeNameBinding);
+  URLList.Parse(Lexer, NodeNameBinding, false);
 
   VRMLNonFatalError(Format(
     'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
@@ -9718,8 +9760,11 @@ begin
 
   Lexer.NextToken;
 
-  VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
-    'so route ' + Description + ' is ignored');
+{ While this was good for debugging, and it's true, it causes too many
+  messages usually for fields with ROUTEs... it's better to ignore
+  it silently. }
+{  VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
+    'so route ' + Description + ' is ignored');}
 end;
 
 function TVRMLRoute.Description: string;
@@ -9854,11 +9899,19 @@ begin
  end;
 end;
 
-function ParseVRMLFile(Stream: TPeekCharStream;
-  const WWWBasePath: string): TVRMLNode;
-var
+{ This parses a sequence of VRML statements: any number of nodes,
+  (external) protypes, routes. This is good to use to parse whole VRML file,
+  or a (non-external) prototype content.
+
+  Returns a single VRML node. If there was exactly one statement
+  and it was a node statement, returns this node. Otherwise,
+  returns everything read wrapped in artifical TNodeGroupHidden_1
+  or TNodeGroupHidden_2 instance. }
+function ParseVRMLStatements(
   Lexer: TVRMLLexer;
   NodeNameBinding: TStringList;
+  const EndToken: TVRMLToken;
+  const WWWBasePath: string): TVRMLNode;
 
   { Create hidden group node, appropriate for current VRML version in Lexer. }
   function CreateHiddenGroup: TVRMLNode;
@@ -9913,7 +9966,7 @@ var
       MakeResultHiddenGroup;
       Result.Prototypes.Add(Proto);
 
-      Proto.Parse(Lexer, NodeNameBinding);
+      Proto.Parse(Lexer, NodeNameBinding, WWWBasePath);
     end;
 
     procedure ParseNodeInternal;
@@ -9949,23 +10002,30 @@ var
   end;
 
 begin
+  Result := nil;
+  try
+    while Lexer.Token <> EndToken do
+    begin
+      ParseVRMLStatement;
+    end;
+
+    if Result = nil then
+      Result := CreateHiddenGroup;
+  except FreeAndNil(Result); raise end;
+end;
+
+function ParseVRMLFile(Stream: TPeekCharStream;
+  const WWWBasePath: string): TVRMLNode;
+var
+  Lexer: TVRMLLexer;
+  NodeNameBinding: TStringList;
+begin
   Lexer := nil;
   NodeNameBinding := nil;
   try
     Lexer := TVRMLLexer.Create(Stream, WWWBasePath);
     NodeNameBinding := TStringListCaseSens.Create;
-
-    Result := nil;
-    try
-      while Lexer.Token <> vtEnd do
-      begin
-        ParseVRMLStatement;
-      end;
-
-      if Result = nil then
-        Result := CreateHiddenGroup;
-    except FreeAndNil(Result); raise end;
-
+    Result := ParseVRMLStatements(Lexer, NodeNameBinding, vtEnd, WWWBasePath);
   finally
     Lexer.Free;
     NodeNameBinding.Free
