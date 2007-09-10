@@ -9448,7 +9448,7 @@ begin
     Lexer.NextToken;
     Lexer.CheckTokenIs(vtName);
     FIsClauseName := Lexer.TokenName;
-    
+
     Lexer.NextToken;
   end;
 end;
@@ -9530,6 +9530,9 @@ begin
 
   Lexer.NextToken;
   ParseIgnoreToMatchingCurlyBracket(Lexer);
+
+  VRMLNonFatalError(Format(
+    'Prototype "%s" ignored (TODO: handling PROTOs not implemented)', [Name]));
 end;
 
 { TVRMLExternalPrototype ----------------------------------------------------- }
@@ -9560,6 +9563,10 @@ begin
   ParseInterfaceDeclarations(true, Lexer, NodeNameBinding);
 
   URLList.Parse(Lexer, NodeNameBinding);
+
+  VRMLNonFatalError(Format(
+    'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
+    [Name]));
 end;
 
 { TNodesManager ------------------------------------------------------------ }
@@ -9662,6 +9669,9 @@ begin
   DestinationFieldName := Lexer.TokenName;
 
   Lexer.NextToken;
+
+  VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
+    'so route ' + Description + ' is ignored');
 end;
 
 function TVRMLRoute.Description: string;
@@ -9820,8 +9830,6 @@ var
       Route := TVRMLRoute.Create;
       try
         Route.Parse(Lexer);
-        VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
-          'so route ' + Route.Description + ' is ignored');
       finally FreeAndNil(Route) end;
     end;
 
@@ -9833,20 +9841,9 @@ var
       Proto := nil;
       try
         if Lexer.TokenKeyword = vkPROTO then
-        begin
-          Proto := TVRMLPrototype.Create;
-          Proto.Parse(Lexer, NodeNameBinding);
-          VRMLNonFatalError(Format(
-            'Prototype "%s" ignored (TODO: handling PROTOs not implemented)',
-            [Proto.Name]));
-        end else
-        begin
+          Proto := TVRMLPrototype.Create else
           Proto := TVRMLExternalPrototype.Create;
-          Proto.Parse(Lexer, NodeNameBinding);
-          VRMLNonFatalError(Format(
-            'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
-            [Proto.Name]));
-        end;
+        Proto.Parse(Lexer, NodeNameBinding);
       finally FreeAndNil(Proto) end;
     end;
 
@@ -9863,7 +9860,7 @@ var
       end else
       begin
         if not ( (Result is TNodeGroupHidden_1) or
-                 (Result is TNodeGroupHidden_1) ) then
+                 (Result is TNodeGroupHidden_2) ) then
         begin
           { This will happen on 2nd ParseNode call.
             Result is now assigned, but we want to add 2nd node: so we wrap
