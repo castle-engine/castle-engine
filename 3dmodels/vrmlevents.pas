@@ -60,7 +60,10 @@ type
 
   TObjectsListItem_1 = TVRMLEvent;
   {$I objectslist_1.inc}
-  TVRMLEventsList = TObjectsList_1;
+  TVRMLEventsList = class(TObjectsList_1)
+  public
+    function IndexOf(const Name: string): Integer;
+  end;
 
 {$undef read_interface}
 
@@ -88,6 +91,15 @@ begin
     FIsClauseName := Lexer.TokenName;
     Lexer.NextToken;
   end;
+end;
+
+{ TVRMLEventsList ------------------------------------------------------------ }
+
+function TVRMLEventsList.IndexOf(const Name: string): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Name = Name then Exit;
+  Result := -1;
 end;
 
 end.

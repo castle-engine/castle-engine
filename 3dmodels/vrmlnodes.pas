@@ -4890,6 +4890,15 @@ begin
         Lexer.NextToken;
 
       Fields[I].Parse(Lexer, NodeNameBinding, true);
+    end else
+    begin
+      I := Events.IndexOf(Lexer.TokenName);
+      if I >= 0 then
+      begin
+        Result := true;
+        Lexer.NextToken;
+        Events[I].Parse(Lexer);
+      end;
     end;
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
@@ -7335,8 +7344,8 @@ end;
 constructor TNodeAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode   addChildren }
-  { eventIn      MFNode   removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('parameter', [])); Fields.Last.Exposed := true;
@@ -7393,14 +7402,14 @@ begin
   Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
-  { eventOut       SFTime   duration_changed }
-  { eventOut       SFBool   isActive }
+  Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 end;
 
 constructor TNodeBackground.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFBool   set_bind }
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
   Fields.Add(TMFFloat.Create('groundAngle', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFColor.Create('groundColor', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('backUrl', [])); Fields.Last.Exposed := true;
@@ -7411,7 +7420,7 @@ begin
   Fields.Add(TMFString.Create('topUrl', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('skyAngle', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFColor.Create('skyColor', [ZeroVector3Single])); Fields.Last.Exposed := true;
-  { eventOut     SFBool   isBound }
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
   ImageClassesAssign(FAllowedBgImagesClasses, []);
   FBgImagesLoaded := false;
@@ -7503,8 +7512,8 @@ end;
 constructor TNodeBillboard.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode   addChildren }
-  { eventIn      MFNode   removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0))); Fields.Last.Exposed := true;
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
@@ -7543,14 +7552,14 @@ end;
 constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode   addChildren }
-  { eventIn      MFNode   removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
   Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
-  { eventOut     SFTime   collideTime }
+  Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
 end;
 
 function TNodeCollision.ChildrenField: TMFNode;
@@ -7585,10 +7594,10 @@ end;
 constructor TNodeColorInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFColor.Create('keyValue', [])); Fields.Last.Exposed := true;
-  { eventOut     SFColor value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TSFColor, false));
 end;
 
 class function TNodeCone_2.ClassNodeTypeName: string;
@@ -7618,8 +7627,8 @@ end;
 constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode  addChildren }
-  { eventIn      MFNode  removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children',
     [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]));
   Fields.Last.Exposed := true;
@@ -7644,8 +7653,8 @@ end;
 constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode   addChildren }
-  { eventIn      MFNode   removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate])); Fields.Last.Exposed := true;
@@ -7678,10 +7687,10 @@ end;
 constructor TNodeCoordinateInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
-  { eventOut     MFVec3f value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 end;
 
 class function TNodeCylinder_2.ClassNodeTypeName: string;
@@ -7718,9 +7727,9 @@ begin
   Fields.Add(TSFFloat.Create('maxAngle', -1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('minAngle', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('offset', 0)); Fields.Last.Exposed := true;
-  { eventOut     SFBool     isActive }
-  { eventOut     SFRotation rotation_changed }
-  { eventOut     SFVec3f    trackPoint_changed }
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
+  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 end;
 
 constructor TNodeDirectionalLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -7745,7 +7754,7 @@ end;
 constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFFloat  set_height }
+  Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
   Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
@@ -7782,10 +7791,10 @@ end;
 constructor TNodeExtrusion.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn MFVec2f    set_crossSection }
-  { eventIn MFRotation set_orientation }
-  { eventIn MFVec2f    set_scale }
-  { eventIn MFVec3f    set_spine }
+  Events.Add(TVRMLEvent.Create('set_crossSection', TMFVec2f, true));
+  Events.Add(TVRMLEvent.Create('set_orientation', TMFRotation, true));
+  Events.Add(TVRMLEvent.Create('set_scale', TMFVec2f, true));
+  Events.Add(TVRMLEvent.Create('set_spine', TMFVec3f, true));
   Fields.Add(TSFBool.Create('beginCap', TRUE));
   Fields.Add(TSFBool.Create('ccw', TRUE));
   Fields.Add(TSFBool.Create('convex', TRUE));
@@ -7813,8 +7822,8 @@ begin
   Fields.Add(TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0)));
   Fields.Add(TSFFloat.Create('volumetricVisibilityStart', 0));
   Fields.Add(TSFNode.Create(Self, 'alternative', [TNodeFog]));
-  { eventIn      SFBool   set_bind }
-  { eventOut     SFBool   isBound }
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 end;
 
 function TNodeFog.Alternative: TNodeFog;
@@ -7998,8 +8007,8 @@ end;
 constructor TNodeGeoElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn        MFFloat    set_height }
-  { eventIn        SFFloat    set_yScale }
+  Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
+  Events.Add(TVRMLEvent.Create('set_yScale', TSFFloat, true));
   Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
@@ -8056,7 +8065,7 @@ begin
   Fields.Add(TSFFloat.Create('range', 10));
   Fields.Add(TMFString.Create('rootUrl', []));
   Fields.Add(TMFNode.Create(Self, 'rootNode', AllowedChildrenNodes));
-  { eventOut   MFNode    children }
+  Events.Add(TVRMLEvent.Create('children', TMFNode, false));
 end;
 
 class function TNodeGeoMetadata.ClassNodeTypeName: string;
@@ -8093,13 +8102,13 @@ end;
 constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn   SFFloat   set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
   Fields.Add(TMFFloat.Create('key', []));
   Fields.Add(TMFString.Create('keyValue', []));
-  { eventOut  SFString  geovalue_changed }
-  { eventOut  SFVec3f   value_changed }
+  Events.Add(TVRMLEvent.Create('geovalue_changed', TSFString, false));
+  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 end;
 
 class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
@@ -8113,13 +8122,13 @@ begin
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  { eventOut      SFVec3f   hitNormal_changed }
-  { eventOut      SFVec3f   hitPoint_changed }
-  { eventOut      SFVec2f   hitTexCoord_changed }
-  { eventOut      SFString  hitGeoCoord_changed }
-  { eventOut      SFBool    isActive }
-  { eventOut      SFBool    isOver }
-  { eventOut      SFTime    touchTime }
+  Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
+  Events.Add(TVRMLEvent.Create('hitGeoCoord_changed', TSFString, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
 end;
 
 class function TNodeGeoViewpoint.ClassNodeTypeName: string;
@@ -8130,9 +8139,9 @@ end;
 constructor TNodeGeoViewpoint.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn        SFBool       set_bind }
-  { eventIn        SFString     set_orientation }
-  { eventIn        SFString     set_position }
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  Events.Add(TVRMLEvent.Create('set_orientation', TSFString, true));
+  Events.Add(TVRMLEvent.Create('set_position', TSFString, true));
   Fields.Add(TSFFloat.Create('fieldOfView', 0.785398)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('headlight', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
@@ -8143,8 +8152,8 @@ begin
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
   Fields.Add(TSFString.Create('position', '0 0 100000'));
   Fields.Add(TSFFloat.Create('speedFactor', 1.0));
-  { eventOut       SFTime       bindTime }
-  { eventOut       SFBool       isBound }
+  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 end;
 
 class function TNodeGroup_2.ClassNodeTypeName: string;
@@ -8155,8 +8164,8 @@ end;
 constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode  addChildren }
-  { eventIn      MFNode  removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
@@ -8244,10 +8253,10 @@ end;
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn       MFInt32 set_colorIndex }
-  { eventIn       MFInt32 set_coordIndex }
-  { eventIn       MFInt32 set_normalIndex }
-  { eventIn       MFInt32 set_texCoordIndex }
+  Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+  Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
+  Events.Add(TVRMLEvent.Create('set_normalIndex', TMFInt32, true));
+  Events.Add(TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true));
   Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
@@ -8277,8 +8286,8 @@ end;
 constructor TNodeIndexedLineSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn       MFInt32 set_colorIndex }
-  { eventIn       MFInt32 set_coordIndex }
+  Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+  Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
   Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
   Fields.Add(TMFInt32.Create('colorIndex', []));
@@ -8363,7 +8372,7 @@ begin
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  { eventOut     MFNode    children }
+  Events.Add(TVRMLEvent.Create('children', TMFNode, false));
 
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
@@ -8501,8 +8510,8 @@ begin
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('repeatS', TRUE));
   Fields.Add(TSFBool.Create('repeatT', TRUE));
-  { eventOut     SFTime   duration_changed }
-  { eventOut     SFBool   isActive }
+  Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 end;
 
 class function TNodeNavigationInfo.ClassNodeTypeName: string;
@@ -8513,13 +8522,13 @@ end;
 constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFBool   set_bind }
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
   Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('headlight', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('speed', 1.0)); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('type', ['WALK', 'ANY'])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('visibilityLimit', 0.0)); Fields.Last.Exposed := true;
-  { eventOut     SFBool   isBound }
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 end;
 
 class function TNodeNormal.ClassNodeTypeName: string;
@@ -8541,10 +8550,10 @@ end;
 constructor TNodeNormalInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
-  { eventOut     MFVec3f value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 end;
 
 class function TNodeNurbsCurve.ClassNodeTypeName: string;
@@ -8585,8 +8594,8 @@ end;
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn       MFNode   addChildren }
-  { eventIn       MFNode   removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
@@ -8606,13 +8615,13 @@ end;
 constructor TNodeNurbsPositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat  set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TSFInt32.Create('dimension', 0)); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('keyWeight', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('knot', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFInt32.Create('order', 4)); Fields.Last.Exposed := true;
-  { eventOut     SFVec3f  value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 end;
 
 class function TNodeNurbsSurface.ClassNodeTypeName: string;
@@ -8664,10 +8673,10 @@ end;
 constructor TNodeOrientationInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat    set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFRotation.Create('keyValue', [])); Fields.Last.Exposed := true;
-  { eventOut     SFRotation value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TSFRotation, false));
 end;
 
 class function TNodePixelTexture.ClassNodeTypeName: string;
@@ -8722,9 +8731,9 @@ begin
   Fields.Add(TSFVec2f.Create('maxPosition', Vector2Single(-1, -1))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec2f.Create('minPosition', Vector2Single(0, 0))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('offset', ZeroVector3Single)); Fields.Last.Exposed := true;
-  { eventOut     SFBool  isActive }
-  { eventOut     SFVec3f trackPoint_changed }
-  { eventOut     SFVec3f translation_changed }
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('translation_changed', TSFVec3f, false));
 end;
 
 constructor TNodePointLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -8807,10 +8816,10 @@ end;
 constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
-  { eventOut     SFVec3f value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 end;
 
 class function TNodeProximitySensor.ClassNodeTypeName: string;
@@ -8824,11 +8833,11 @@ begin
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('size', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  { eventOut     SFBool     isActive }
-  { eventOut     SFVec3f    position_changed }
-  { eventOut     SFRotation orientation_changed }
-  { eventOut     SFTime     enterTime }
-  { eventOut     SFTime     exitTime }
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('position_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('orientation_changed', TSFRotation, false));
+  Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
 end;
 
 class function TNodeScalarInterpolator.ClassNodeTypeName: string;
@@ -8839,10 +8848,10 @@ end;
 constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFFloat set_fraction }
+  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
   { Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true; }
   { Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true; }
-  { eventOut     SFFloat value_changed }
+  Events.Add(TVRMLEvent.Create('value_changed', TSFFloat, false));
 end;
 
 class function TNodeScript.ClassNodeTypeName: string;
@@ -9016,9 +9025,9 @@ begin
   Fields.Add(TSFBool.Create('autoOffset', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0)); Fields.Last.Exposed := true;
-  { eventOut     SFBool     isActive }
-  { eventOut     SFRotation rotation_changed }
-  { eventOut     SFVec3f    trackPoint_changed }
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
+  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 end;
 
 class function TNodeSpotLight_2.ClassNodeTypeName: string;
@@ -9202,10 +9211,10 @@ begin
   Fields.Add(TSFBool.Create('loop', FALSE)); Fields.Last.Exposed := true;
   Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
-  { eventOut     SFTime   cycleTime }
-  { eventOut     SFFloat  fraction_changed }
-  { eventOut     SFBool   isActive }
-  { eventOut     SFTime   time }
+  Events.Add(TVRMLEvent.Create('cycleTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('fraction_changed', TSFFloat, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('time', TSFTime, false));
 end;
 
 class function TNodeTouchSensor.ClassNodeTypeName: string;
@@ -9217,12 +9226,12 @@ constructor TNodeTouchSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  { eventOut     SFVec3f hitNormal_changed }
-  { eventOut     SFVec3f hitPoint_changed }
-  { eventOut     SFVec2f hitTexCoord_changed }
-  { eventOut     SFBool  isActive }
-  { eventOut     SFBool  isOver }
-  { eventOut     SFTime  touchTime }
+  Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+  Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
 end;
 
 class function TNodeTransform_2.ClassNodeTypeName: string;
@@ -9233,8 +9242,8 @@ end;
 constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      MFNode      addChildren }
-  { eventIn      MFNode      removeChildren }
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
@@ -9297,8 +9306,8 @@ end;
 constructor TNodeTrimmedSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn       MFNode   addTrimmingContour }
-  { eventIn       MFNode   removeTrimmingContour }
+  Events.Add(TVRMLEvent.Create('addTrimmingContour', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeTrimmingContour', TMFNode, true));
   Fields.Add(TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'surface', [TNodeNurbsSurface])); Fields.Last.Exposed := true;
 end;
@@ -9312,12 +9321,12 @@ constructor TNodeViewpoint.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { eventIn      SFBool     set_bind }
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
   Fields.Add(TSFFloat.Create('fieldOfView', 0.785398)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', ''));
-  { eventOut     SFTime     bindTime }
-  { eventOut     SFBool     isBound }
+  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
   { Default value of position is different for Viewpoint than for VRML 1.0
     cameras (as set by TNodeGeneralViewpoint). }
@@ -9374,9 +9383,9 @@ begin
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('size', ZeroVector3Single)); Fields.Last.Exposed := true;
-  { eventOut     SFTime  enterTime }
-  { eventOut     SFTime  exitTime }
-  { eventOut     SFBool  isActive }
+  Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 end;
 
 class function TNodeWorldInfo.ClassNodeTypeName: string;
