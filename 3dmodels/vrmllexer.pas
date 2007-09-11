@@ -248,11 +248,35 @@ type
     constructor Create(AStream: TPeekCharStream; const AWWWBasePath: string);
     destructor Destroy; override;
 
-    { This field is not used anywhere in the Lexer but it MUST be defined
+    { See TVRMLNode.WWWBasePath for a description of this field.
+
+      This field is not used anywhere in the Lexer but it MUST be defined
       to something sensible. It is just some information
-      "carried with" the lexer. We will use it when we parse nodes.
-      See TVRMLNode.WWWBasePath for a description of this field. }
+      "carried with" the lexer. We will use it when we parse nodes. }
     WWWBasePath: string;
+
+    { This is used when parsing to keep current namespace for DEF/USE.
+
+      NodeNameBinding jest lista bez duplikatow okreslajaca wszystkie dotychczasowe
+      nazwy node'ow razem z ich instancjami. Jezeli kilka instancji mialo takie
+      samo NodeName to na liscie znajduje sie ostatni z nich (ostatni w sensie
+      pozycji w pliku, czy raczej w strumieniu tokenow Lexera). Tym samym
+      jest chyba jasne do czego uzywamy NodeNameBinding : do realizacji
+      konstrukcji "USE <nodename>". Procedura ParseNode nie moze modyfikowac
+      tej listy, to zadania ma wykonywac TVRMLNode.Parse.
+
+      Notka do mechanizmu DEF/USE : gdy uzywamy DEF nie mozemy odwolac
+      sie do nazwy node'a ktory aktualnie parsujemy (osiagamy to
+      po prostu dodajac nazwe node do NodeNameBinding dopiero PO
+      sparsowaniu node'a). W ten sposob zapewniamy sobie ze graf VRML'a
+      nie moze zawierac cykli i jestesmy szczesliwi.
+
+      TODO: above causes failure to read jsTouch VRML file in openvrml/models/
+      tests. Looks like cycles are unavoidable after all. }
+    NodeNameBinding: TStringList;
+
+    { This is used when parsing to keep current namespace of prototypes. }
+    ProtoNameBinding: TStringList;
   end;
 
   TVRMLLexerFileName = class(TVRMLLexer)
@@ -305,6 +329,107 @@ const
 IMPLEMENT_ARRAY_POS
 
 { TVRMLLexer ------------------------------------------------------------- }
+
+constructor TVRMLLexer.Create(AStream: TPeekCharStream;
+  const AWWWBasePath: string);
+const
+  VRML1HeaderStart = '#VRML V1.0 ';
+  VRML2HeaderStart = '#VRML V2.0 ';
+  { This is not an official VRML header, but it's used by VRML models on
+    [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html] }
+  VRML2DraftHeaderStart = '#VRML Draft #2 V2.0 ';
+  VRML1HeaderAscii = 'ascii';
+  InventorHeaderStart = '#Inventor ';
+
+  procedure VRML2HeaderReadRest(const Line: string);
+  var
+    Encoding: string;
+  begin
+    fVRMLVerMajor := 2;
+    fVRMLVerMinor := 0;
+
+    Encoding := NextTokenOnce(Line);
+    if Encoding <> 'utf8' then
+      raise EVRMLLexerError.Create(Self,
+        'VRML 2.0 signature : only utf8 encoding supported for now');
+  end;
+
+var
+  Line: string;
+begin
+  inherited Create;
+  FStream := AStream;
+  WWWBasePath := AWWWBasePath;
+
+  NodeNameBinding := TStringListCaseSens.Create;
+  ProtoNameBinding := TStringListCaseSens.Create;
+
+  { Read first line = signature. }
+  Line := Stream.ReadUpto(VRMLLineTerm);
+  if Stream.ReadChar = -1 then
+    raise EVRMLLexerError.Create(Self,
+      'Unexpected end of file on the 1st line');
+
+  if IsPrefix(VRML1HeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML1HeaderStart));
+    fVRMLVerMajor := 1;
+    fVRMLVerMinor := 0;
+
+    { then must be 'ascii';
+      VRML 1.0 'ascii' may be followed immediately by some black char. }
+    if not IsPrefix(VRML1HeaderAscii, Line) then
+      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature : '+
+        'VRML 1.0 files must have "ascii" encoding');
+  end else
+  if IsPrefix(VRML2HeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML2HeaderStart));
+    VRML2HeaderReadRest(Line);
+  end else
+  if IsPrefix(VRML2DraftHeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(VRML2DraftHeaderStart));
+    VRML2HeaderReadRest(Line);
+  end else
+  if IsPrefix(InventorHeaderStart, Line) then
+  begin
+    Delete(Line, 1, Length(InventorHeaderStart));
+    fVRMLVerMajor := 0;
+    fVRMLVerMinor := 0;
+
+    if not IsPrefix('V1.0 ascii', Line) then
+      raise EVRMLLexerError.Create(Self,
+        'Inventor signature recognized, but only '+
+        'Inventor 1.0 ascii files are supported. Sor'+'ry.');
+  end else
+    raise EVRMLLexerError.Create(Self,
+      'VRML signature error : unrecognized signature');
+
+  { calculate VRMLWhitespaces, VRMLNoWhitespaces }
+  VRMLWhitespaces := [' ',#9, #10, #13];
+  if VRMLVerMajor >= 2 then
+    Include(VRMLWhitespaces, ',');
+  VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
+
+  { calculate VRMLNameChars, VRMLNameFirstChars }
+  { These are defined according to vrml97specification on page 24. }
+  VRMLNameChars := AllChars -
+    [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
+  if VRMLVerMajor <= 1 then
+    VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
+  VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
+
+  {read first token}
+  NextToken;
+end;
+
+destructor TVRMLLexer.Destroy;
+begin
+  FreeAndNil(NodeNameBinding);
+  FreeAndNil(ProtoNameBinding);
+  inherited;
+end;
 
 procedure TVRMLLexer.StreamReadUptoFirstBlack(out FirstBlack: Integer);
 begin
@@ -561,102 +686,6 @@ begin
  {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
 
  CheckTokenIs(vtString);
-end;
-
-constructor TVRMLLexer.Create(AStream: TPeekCharStream;
-  const AWWWBasePath: string);
-const
-  VRML1HeaderStart = '#VRML V1.0 ';
-  VRML2HeaderStart = '#VRML V2.0 ';
-  { This is not an official VRML header, but it's used by VRML models on
-    [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html] }
-  VRML2DraftHeaderStart = '#VRML Draft #2 V2.0 ';
-  VRML1HeaderAscii = 'ascii';
-  InventorHeaderStart = '#Inventor ';
-
-  procedure VRML2HeaderReadRest(const Line: string);
-  var
-    Encoding: string;
-  begin
-    fVRMLVerMajor := 2;
-    fVRMLVerMinor := 0;
-
-    Encoding := NextTokenOnce(Line);
-    if Encoding <> 'utf8' then
-      raise EVRMLLexerError.Create(Self,
-        'VRML 2.0 signature : only utf8 encoding supported for now');
-  end;
-
-var
-  Line: string;
-begin
-  inherited Create;
-  FStream := AStream;
-  WWWBasePath := AWWWBasePath;
-
-  { Read first line = signature. }
-  Line := Stream.ReadUpto(VRMLLineTerm);
-  if Stream.ReadChar = -1 then
-    raise EVRMLLexerError.Create(Self,
-      'Unexpected end of file on the 1st line');
-
-  if IsPrefix(VRML1HeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(VRML1HeaderStart));
-    fVRMLVerMajor := 1;
-    fVRMLVerMinor := 0;
-
-    { then must be 'ascii';
-      VRML 1.0 'ascii' may be followed immediately by some black char. }
-    if not IsPrefix(VRML1HeaderAscii, Line) then
-      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature : '+
-        'VRML 1.0 files must have "ascii" encoding');
-  end else
-  if IsPrefix(VRML2HeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(VRML2HeaderStart));
-    VRML2HeaderReadRest(Line);
-  end else
-  if IsPrefix(VRML2DraftHeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(VRML2DraftHeaderStart));
-    VRML2HeaderReadRest(Line);
-  end else
-  if IsPrefix(InventorHeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(InventorHeaderStart));
-    fVRMLVerMajor := 0;
-    fVRMLVerMinor := 0;
-
-    if not IsPrefix('V1.0 ascii', Line) then
-      raise EVRMLLexerError.Create(Self,
-        'Inventor signature recognized, but only '+
-        'Inventor 1.0 ascii files are supported. Sor'+'ry.');
-  end else
-    raise EVRMLLexerError.Create(Self,
-      'VRML signature error : unrecognized signature');
-
-  { calculate VRMLWhitespaces, VRMLNoWhitespaces }
-  VRMLWhitespaces := [' ',#9, #10, #13];
-  if VRMLVerMajor >= 2 then
-    Include(VRMLWhitespaces, ',');
-  VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
-
-  { calculate VRMLNameChars, VRMLNameFirstChars }
-  { These are defined according to vrml97specification on page 24. }
-  VRMLNameChars := AllChars -
-    [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
-  if VRMLVerMajor <= 1 then
-    VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
-  VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
-
-  {read first token}
-  NextToken;
-end;
-
-destructor TVRMLLexer.Destroy;
-begin
- inherited;
 end;
 
 function TVRMLLexer.TokenIsKeyword(const Keyword: TVRMLKeyword): boolean;

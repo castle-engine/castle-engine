@@ -114,12 +114,10 @@ type
       If IsClause, then abort any further reading, as the field was
       specified using "IS" clause, so there's no actual value.
 
-      NodeNameBinding has the same meaning as for TVRMLNode.Parse,
-      see there. It can be ignored, and in fact it is ignored by all
+      Note that Lexer.NodeNameBinding is ignored by all
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
-    procedure Parse(Lexer: TVRMLLexer;
-      NodeNameBinding: TStringList; IsClauseAllowed: boolean); virtual;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); virtual;
 
     { O ile not EqualsDefaultValue to kazde pole bedzie zapisane jako jedna lub
       wiecej linii.
@@ -299,8 +297,7 @@ type
     { nie ma potrzeby definiowania Parse w zadnej podklasie pola MF.
       Tutejsze Parse dziala dla kazdego pola typu MF, uzywajac Parse
       klasy ItemClass. }
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
     destructor Destroy; override;
 
@@ -356,8 +353,7 @@ type
     property AllString: string read fAllString;
     property NoneString: string read fNoneString;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
     { zwraca true jesli wszystkie flagi sa = value }
     function AreAllFlags(value: boolean): boolean;
@@ -390,8 +386,7 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -412,8 +407,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -447,8 +441,7 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -480,8 +473,7 @@ type
       tylko Value := Abs(X); to jest cos dobrego dla np. Sphere.FdRadius). }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -509,8 +501,7 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -547,8 +538,7 @@ type
 
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -578,8 +568,7 @@ type
 
     { komentarz - jak dla TSFFloat.MustBeNonnegative }
     property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -602,8 +591,7 @@ type
 
     Matrix: TMatrix4Single;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
@@ -625,8 +613,7 @@ type
     RotationRad: Single;
     property Value: TVector4Single read GetValue write SetValue;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
     function Equals(SecondValue: TVRMLField;
@@ -649,8 +636,7 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -671,8 +657,7 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -694,8 +679,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-      IsClauseAllowed: boolean); override;
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
@@ -986,8 +970,7 @@ begin
   end;
 end;
 
-procedure TVRMLField.Parse(Lexer: TVRMLLexer;
-  NodeNameBinding: TStringList; IsClauseAllowed: boolean);
+procedure TVRMLField.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   if IsClauseAllowed then
     ParseIsClause(Lexer) else
@@ -1042,8 +1025,7 @@ begin
 end;
 
 procedure TVRMLSimpleMultField.Parse(
-  Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+  Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 var SingleItem: TVRMLSingleField;
 begin
   inherited;
@@ -1064,7 +1046,7 @@ begin
     while Lexer.Token <> vtCloseSqBracket do
     {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
     begin
-     SingleItem.Parse(Lexer, NodeNameBinding, false);
+     SingleItem.Parse(Lexer, false);
      RawItemsAdd(SingleItem);
 
      if Lexer.Token = vtCloseSqBracket then break;
@@ -1087,7 +1069,7 @@ begin
    end else
    begin
     {one single field - not enclosed in [] brackets}
-    SingleItem.Parse(Lexer, NodeNameBinding, false);
+    SingleItem.Parse(Lexer, false);
     RawItemsAdd(SingleItem);
    end;
 
@@ -1174,8 +1156,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFBool.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFBool.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 
   procedure VRML2BooleanIntegerNonFatalError;
   begin
@@ -1263,8 +1244,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFColor.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFColor.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1339,8 +1319,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFFloat.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFFloat.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1407,8 +1386,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFTime.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFTime.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1484,8 +1462,7 @@ begin
  inherited;
 end;
 
-procedure TSFImage.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFImage.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -1668,8 +1645,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFLong.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFLong.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1734,8 +1710,7 @@ begin
   Matrix := AMatrix;
 end;
 
-procedure TSFMatrix.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFMatrix.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 var
   col: integer;
 begin
@@ -1796,8 +1771,7 @@ begin
   RotationRad := ARotationRad;
 end;
 
-procedure TSFRotation.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFRotation.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1873,8 +1847,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFString.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFString.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1931,8 +1904,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFVec2f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFVec2f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1993,8 +1965,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFVec3f.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFVec3f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -2078,8 +2049,7 @@ begin result := fFlagNames.Count end;
 function TSFBitMask.GetFlagNames(i: integer): string;
 begin result := fFlagNames[i] end;
 
-procedure TSFBitMask.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFBitMask.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 
   procedure InterpretTokenAsFlagName;
   var i: integer;
@@ -2207,8 +2177,7 @@ begin result := fEnumNames[i] end;
 function TSFEnum.EnumNamesCount: integer;
 begin result := fEnumNames.Count end;
 
-procedure TSFEnum.Parse(Lexer: TVRMLLexer; NodeNameBinding: TStringList;
-  IsClauseAllowed: boolean);
+procedure TSFEnum.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 var
   val: integer;
 begin
