@@ -548,7 +548,7 @@ type
 
   TSFNode = class;
   TMFNode = class;
-
+  TVRMLPrototypeNode = class;
   TVRMLPrototypeBasesList = class;
   TVRMLRoutesList = class;
 
@@ -583,6 +583,9 @@ type
     FRoutes: TVRMLRoutesList;
     FFields: TVRMLFieldsList;
     FEvents: TVRMLEventsList;
+    FPrototypeInstance: boolean;
+    FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
+    FPrototypeInstanceHelpers: TVRMLNodesList;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -920,7 +923,7 @@ type
       @noAutoLinkHere }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
 
-    { CreateParse : wygodne polaczenie Create+Parse }
+    { CreateParse simply does Create and then calls Parse. }
     constructor CreateParse(const ANodeName: string; Lexer: TVRMLLexer);
 
     { @noAutoLinkHere }
@@ -1283,6 +1286,36 @@ type
 
     property Prototypes: TVRMLPrototypeBasesList read FPrototypes;
     property Routes: TVRMLRoutesList read FRoutes;
+
+    { Add Self (NodeName must be initialized) to nodes namespace.
+      Doesn't do anything if NodeName = ''. }
+    procedure Bind(NodeNameBinding: TStringList);
+
+    { PrototypeInstance = @true indicates that this node was created
+      from a non-external prototype instantiation.
+
+      Then PrototypeInstanceSourceNode is non-nil and indicates
+      parsed prototype node (and PrototypeInstanceSourceNode.Prototype
+      given you even a link to the actual prototype specification).
+
+      PrototypeInstanceHelpers may be @nil if empty, or may contain
+      a list of other nodes duplicated along with the main prototype node.
+      From VRML spec:
+
+      @preformatted(
+        Any other nodes and accompanying scene graphs
+        are not part of the transformation hierarchy, but may be referenced
+        by ROUTE statements or Script nodes in the prototype definition.)
+
+      We don't really routes or scripts yet, so these nodes are just
+      useless for now... But should become useful at some point.
+
+      @groupBegin }
+    property PrototypeInstance: boolean read FPrototypeInstance;
+    property PrototypeInstanceSourceNode: TVRMLPrototypeNode
+      read FPrototypeInstanceSourceNode;
+    property PrototypeInstanceHelpers: TVRMLNodesList;
+    { @groupEnd }
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3960,8 +3993,8 @@ type
     Ten node nigdy nie powinien byc tworzony tak jak normalny node
     --- wrecz normalne wirtualne Create(const AName: string) spowoduje
     wyjatek ! Tworz obiekty tego typu tylko uzywajac CreateUnknownParse,
-    ew. mozesz uzyc CreateUnknown (jezeli tylko znajdziesz jakis sens
-    dla uzycia CreateUnknown bez Parse...).
+    lub CreateUnknown. This way we can safely assume that NodeTypeName
+    is always correctly set.
 
     Spostrzezenie : ten mechanizm jest calkiem dobry - node'y kazdego
     typu, nawet 1, moga byc nazywane i mozna sie pozniej do nich
@@ -4028,6 +4061,87 @@ type
 
 { TVRMLPrototype ------------------------------------------------------------- }
 
+  TVRMLPrototypeBase = class;
+
+  EVRMLPrototypeInstantiateError = class(Exception);
+
+  { VRML node related to a given prototype.
+
+    This node will have fields
+    initialized according to associated Prototype.InterfaceDeclarations.
+    This way you can simply parse this node (just like any other node)
+    to parse prototype instance.
+
+    If this is a non-external prototype, then after parsing you can
+    actually get the instantiated content by @link(Instantiate) method.
+
+    This node cannot be created by standard Create method,
+    always use CreatePrototypeNode. }
+  TVRMLPrototypeNode = class(TVRMLNode)
+  private
+    FPrototype: TVRMLPrototypeBase;
+  public
+    { This constructor will raise exception for TVRMLPrototypeNode.
+      Always use CreatePrototypeNode for this node class. }
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    constructor CreatePrototypeNode(const ANodeName, AWWWBasePath :string;
+      APrototype: TVRMLPrototypeBase);
+
+    function NodeTypeName: string; override;
+
+    property Prototype: TVRMLPrototypeBase read FPrototype;
+
+    { Instantiate the non-external prototype, that is create new VRML node
+      (of "normal" classs, not TVRMLPrototypeNode) using prototype description.
+      In essense, this takes Prototype.Node and returns it's copy.
+
+      Actually, the process is a little more involved (see below for
+      details), but the idea is that returned node can be simply inserted
+      into VRML hierarchy and works just like a normal node.
+      The important feature is that returned instance class is the same
+      that was specified as a first prototype node. For example, if the
+      prototype should expand to Material node, then this returns
+      TNodeMaterial. Just like Material node would be normally specified,
+      not created by some prototype.
+
+      Note that this TVRMLPrototypeNode becomes "owned" by returned
+      node instance, in PrototypeInstanceSourceNode.
+      (that's needed for returned node's SaveToStream to work correctly).
+
+      Details:
+      @unorderedList(
+        @item(
+          Prototype.Node may be just a wrapper, i.e. TNodeHiddenGroup_1
+          or TNodeHiddenGroup_2.
+
+          In this case the first children of Prototype.Node is used
+          to create instance. Rest of the nodes is also duplicated and inserted
+          into new node's PrototypeInstanceHelpers.
+
+          Other properties of the wrapper are ignored: wrapper's Prototypes
+          list can and actually @italic(should) be safely ignored, since
+          nested prototypes cannot be used outside anyway.
+          Wrapper's routes are ignored, as (TODO) for now routes are
+          ignored in general anyway.)
+
+        @item(
+          Returned Node (with all it's helpers in PrototypeInstanceHelpers)
+          has "IS" clauses everywhere filled, according to our field values.)
+
+        @item(
+          For SaveToStream to work, returned Node has PrototypeInstance = @true,
+          and PrototypeInstanceSourceNode set to Self. This allows SaveToStream
+          to correctly save using PrototypeInstanceSourceNode, instead
+          of writing actual node contents.))
+
+      @raises(EVRMLPrototypeInstantiateError if for some reason it's
+        found that the prototype cannot be instantiated.
+        You can catch this and replace with VRMLNonFatalError, if possible.
+        TODO.)
+    }
+    function Instantiate: TVRMLNode;
+  end;
+
   TVRMLPrototypeBase = class
   private
     FName: string;
@@ -4041,7 +4155,11 @@ type
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
+    { Parse prototype, and add it to Lexer.ProtoNameBinding by @link(Bind). }
     procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
+
+    { Add Self (at least Name must be initialized) to prototypes namespace. }
+    procedure Bind(ProtoNameBinding: TStringList);
   end;
 
   TObjectsListItem_4 = TVRMLPrototypeBase;
@@ -4513,6 +4631,13 @@ end;
 destructor TVRMLNode.Destroy;
 begin
  if FChildren <> nil then RemoveAllChildren;
+
+ if PrototypeInstance then
+ begin
+   FreeAndNil(FPrototypeInstanceSourceNode);
+   FreeWithContentsAndNil(FPrototypeInstanceHelpers);
+   FPrototypeInstance := false;
+ end;
 
  FreeWithContentsAndNil(FPrototypes);
  FreeWithContentsAndNil(FRoutes);
@@ -5501,6 +5626,19 @@ begin
     Helper.IgnoreCase := IgnoreCase;
     Result := EnumerateRemoveChildren(@Helper.DoIt);
   finally FreeAndNil(Helper) end;
+end;
+
+procedure TVRMLNode.Bind(NodeNameBinding: TStringList);
+var
+  I: Integer;
+begin
+  if NodeName <> '' then
+  begin
+    I := NodeNameBinding.IndexOf(NodeName);
+    if I >= 0 then
+      NodeNameBinding.Objects[I] := Self else
+      NodeNameBinding.AddObject(NodeName, Self);
+  end;
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
@@ -9534,6 +9672,86 @@ begin
   end;
 end;
 
+{ TVRMLPrototypeNode --------------------------------------------------------- }
+
+constructor TVRMLPrototypeNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  raise EInternalError.Create('TVRMLPrototypeNode node must be created' +
+    ' using CreatePrototypeNode, never default constructor');
+end;
+
+constructor TVRMLPrototypeNode.CreatePrototypeNode(
+  const ANodeName, AWWWBasePath :string;
+  APrototype: TVRMLPrototypeBase);
+var
+  I: TVRMLInterfaceDeclaration;
+  Index: Integer;
+  F: TVRMLField;
+  E: TVRMLEvent;
+begin
+  inherited Create(ANodeName, AWWWBasePath);
+  FPrototype := APrototype;
+  for Index := 0 to Prototype.InterfaceDeclarations.Count - 1 do
+  begin
+    I := Prototype.InterfaceDeclarations.Items[Index];
+    if I.Field <> nil then
+    begin
+      { F := copy of I.Field. We copy class type, Name, Exposed and the actual
+        value (nothing else can be set by TVRMLInterfaceDeclation.Parse
+        anyway). }
+      F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(I.Field.Name);
+      Check(not F.IsClause, 'Prototype interface field cannot have "IS" clause');
+      F.Exposed := I.Field.Exposed;
+      F.Assign(I.Field);
+      Fields.Add(F);
+    end else
+    if I.Event <> nil then
+    begin
+      { E := copy of I.Event }
+      E := TVRMLEvent.Create(I.Event.Name, I.Event.FieldClass, I.Event.InEvent);
+      Events.Add(E);
+    end else
+      raise EInternalError.Create('interface declaration but no Field or Event');
+  end;
+end;
+
+function TVRMLPrototypeNode.NodeTypeName: string;
+begin
+  Result := Prototype.Name;
+end;
+
+function TVRMLPrototypeNode.Instantiate: TVRMLNode;
+var
+  Proto: TVRMLPrototype;
+begin
+  if not (Prototype is TVRMLPrototype) then
+    raise EVRMLPrototypeInstantiateError.CreateFmt(
+      'Cannot instantiate external prototype "%s": '+
+      'only non-external prototypes may be instantiated', [Prototype.Name]);
+
+  Proto := Prototype as TVRMLPrototype;
+
+  if (Proto.Node is TNodeGroupHidden_1) or
+     (Proto.Node is TNodeGroupHidden_2) then
+  begin
+    if Proto.Node.SmartChildrenCount = 0 then
+      raise EVRMLPrototypeInstantiateError.CreateFmt(
+        'Prototype "%s" has no nodes, cannot instantiate',
+        [Proto.Name]);
+
+    Result := VRMLNodeDeepCopy(Proto.Node.SmartChildren[0]);
+    { TODO: fill this, copy the rest of Prototype.Node.SmartChildren[1..] }
+    Result.FPrototypeInstanceHelpers := TVRMLNodesList.Create;
+  end else
+    Result := VRMLNodeDeepCopy(Proto.Node);
+
+  { TODO: replace IS clauses }
+
+  Result.FPrototypeInstance := true;
+  Result.FPrototypeInstanceSourceNode := Self;
+end;
+
 { TVRMLPrototypeBase --------------------------------------------------------- }
 
 constructor TVRMLPrototypeBase.Create;
@@ -9573,6 +9791,16 @@ begin
 
   { eat "]" token }
   Lexer.NextToken;
+end;
+
+procedure TVRMLPrototypeBase.Bind(ProtoNameBinding: TStringList);
+var
+  I: Integer;
+begin
+  I := ProtoNameBinding.IndexOf(Name);
+  if I <> - 1 then
+    ProtoNameBinding.Objects[I] := Self else
+    ProtoNameBinding.AddObject(Name, Self);
 end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
@@ -9621,8 +9849,7 @@ begin
   { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
   Lexer.NextToken;
 
-  VRMLNonFatalError(Format(
-    'Prototype "%s" ignored (TODO: handling PROTOs not implemented)', [Name]));
+  Bind(Lexer.ProtoNameBinding);
 end;
 
 { TVRMLExternalPrototype ----------------------------------------------------- }
@@ -9652,6 +9879,8 @@ begin
   ParseInterfaceDeclarations(true, Lexer);
 
   URLList.Parse(Lexer, false);
+
+  Bind(Lexer.ProtoNameBinding);
 
   VRMLNonFatalError(Format(
     'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
@@ -9813,47 +10042,52 @@ end;
 function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean): TVRMLNode;
 
   procedure ParseNamedNode(const nodename: string);
+  var
+    NodeClass: TVRMLNodeClass;
+    NodeTypeName: string;
+    ProtoIndex: Integer;
+  begin
+    Lexer.CheckTokenIs(vtName, 'node type');
+    NodeTypeName := Lexer.TokenName;
+    Lexer.NextToken;
 
-    function LexerTokenToNode: TVRMLNodeClass;
-    {uwaga - moze zwrocic TNodeUnknown (ktory trzeba tworzyc specjalnym
-     konstruktorem)}
+    NodeClass := NodesManager.NodeTypeNameToClass(Lexer.TokenName,
+      Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+    if NodeClass <> nil then
     begin
-     Lexer.CheckTokenIs(vtName, 'node type');
-     result := NodesManager.NodeTypeNameToClass(Lexer.TokenName,
-       Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
-     if result <> nil then
-     begin
       if not ({result is allowed in AllowedNodes ?} AllowedNodes) then
-       raise EVRMLParserError.Create(Lexer,
-         'Node type '+result.ClassNodeTypeName+' not allowed here');
-     end else
-     begin
-      if not ({TNodeUnknown is allowed in AllowedNodes ?} AllowedNodes) then
-       raise EVRMLParserError.Create(Lexer,
-         'Unknown node type ('+Lexer.TokenName+') not allowed here');
-      result := TNodeUnknown;
-     end;
+        raise EVRMLParserError.Create(Lexer,
+          'Node type ' + NodeClass.ClassNodeTypeName + ' not allowed here');
+      Result := NodeClass.Create(nodename, '');
+    end else
+    begin
+      ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
+      if ProtoIndex <> -1 then
+      begin
+        if not AllowedNodes then
+          raise EVRMLParserError.Create(Lexer,
+            'Node type "' + NodeTypeName + '" (prototype) not allowed here');
+        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '',
+          TVRMLPrototypeBase(Lexer.ProtoNameBinding.Objects[ProtoIndex]));
+      end else
+      begin
+        if not ({TNodeUnknown is allowed in AllowedNodes ?} AllowedNodes) then
+          raise EVRMLParserError.Create(Lexer,
+            'Unknown node type (' + NodeTypeName + ') not allowed here');
+        Result := TNodeUnknown.CreateUnknown(nodename, '', NodeTypeName);
+      end;
     end;
 
-  var nodeclass: TVRMLNodeClass;
-      NodeTypeName: string;
-      i: integer;
-  begin
-   nodeClass := LexerTokenToNode;
-   NodeTypeName := Lexer.TokenName;
-   Lexer.NextToken;
+    Result.Parse(Lexer);
 
-   if nodeClass <> TNodeUnknown then
-    result := nodeclass.CreateParse(nodename, Lexer) else
-    result := TNodeUnknown.CreateUnknownParse(nodename, NodeTypeName, Lexer);
+    if (Result is TVRMLPrototypeNode) and
+       (TVRMLPrototypeNode(Result).Prototype is TVRMLPrototype) then
+      Result := TVRMLPrototypeNode(Result).Instantiate;
 
-   { add NodeName to Lexer.NodeNameBinding. Note : adding result to
-     NodeNameBinding AFTER parsing result we make infinite recursion loops
-     impossible. }
-   i := Lexer.NodeNameBinding.IndexOf(NodeName);
-   if i >= 0 then
-     Lexer.NodeNameBinding.Objects[i] := result else
-     Lexer.NodeNameBinding.AddObject(NodeName, result);
+    { add NodeName to Lexer.NodeNameBinding. Note : adding result to
+      NodeNameBinding AFTER parsing result we make infinite recursion loops
+      impossible. }
+    Result.Bind(Lexer.NodeNameBinding);
   end;
 
 var nodename: string;
