@@ -4334,6 +4334,15 @@ var
 
 { global procedures ---------------------------------------------------------- }
 
+type
+  EVRMLUnknownNodeNotAllowed = class(EVRMLParserError)
+  private
+    FNodeName: string;
+  public
+    constructor Create(Lexer: TVRMLLexer; const AMessage, ANodeName: string);
+    property NodeName: string read FNodeName;
+  end;
+
 (*
   Parse VRML node. This parses
   @preformatted([ DEF <nodename> ] <nodetype> { node-content })
@@ -4347,6 +4356,15 @@ var
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
   VRMLNonFatalError and simply return @nil.
+
+  @raises(EVRMLSyntaxError On various parsing errors.)
+  @raises(EVRMLUnknownNodeNotAllowed On a special parsing error:
+    we got unknown node name, and AllowedNodes was @false.
+
+    We have a special error class for this, because in some cases
+    it means that actually the unknown node name could be also
+    unknown field / proto etc. name, so error message for the user should
+    be better.)
 *)
 function ParseNode(Lexer: TVRMLLexer;
   const AllowedNodes: boolean; NilIfUnresolvedUSE: boolean = false): TVRMLNode;
@@ -5012,7 +5030,24 @@ begin
       node, so I have to catch first everything else (like "hints" field
       of TNodeShapeHints). }
     if not Handled then
+    try
       AddChild(ParseNode(Lexer, ParsingAllowedChildren));
+    except
+      on E: EVRMLUnknownNodeNotAllowed do
+      begin
+        { In VRML 2.0, this most certainly *doesn't* mean that node is
+          not allowed here. Message like "unknown node xxx not allowed here"
+          would be stupid, as VRML 2.0 doesn't allow direct children nodes.
+          My engine allows them, but only because they are in VRML 1.0.
+          That's why I have to catch, change error message to something better
+          and reraise. }
+        E.Message := E.MessagePositionPrefix(Lexer) +
+          Format('Unknown VRML field, prototype or VRML 1.0 node name ' +
+            '"%s" (and the node doesn''t allow VRML 1.0 style children) inside "%s"',
+            [E.NodeName, NodeTypeName]);
+        raise;
+      end;
+    end;
   end;
   Lexer.NextToken;
 
@@ -10140,6 +10175,15 @@ begin
     DestinationNodeName, DestinationFieldName]);
 end;
 
+{ EVRMLUnknownNodeNotAllowed ------------------------------------------------- }
+
+constructor EVRMLUnknownNodeNotAllowed.Create(Lexer: TVRMLLexer;
+  const AMessage, ANodeName: string);
+begin
+  inherited Create(Lexer, AMessage);
+  FNodeName := ANodeName;
+end;
+
 { global procedures ---------------------------------------------------------- }
 
 { Internal for ParseIgnoreToMatchingSqBracket and
@@ -10197,7 +10241,7 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
     begin
       if not ({result is allowed in AllowedNodes ?} AllowedNodes) then
         raise EVRMLParserError.Create(Lexer,
-          'Node type ' + NodeClass.ClassNodeTypeName + ' not allowed here');
+          'Node type "' + NodeClass.ClassNodeTypeName + '" not allowed here');
       Result := NodeClass.Create(nodename, '');
     end else
     begin
@@ -10212,8 +10256,8 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
       end else
       begin
         if not ({TNodeUnknown is allowed in AllowedNodes ?} AllowedNodes) then
-          raise EVRMLParserError.Create(Lexer,
-            'Unknown node type (' + NodeTypeName + ') not allowed here');
+          raise EVRMLUnknownNodeNotAllowed.Create(Lexer,
+            'Unknown node type "' + NodeTypeName + '" not allowed here', NodeTypeName);
         Result := TNodeUnknown.CreateUnknown(nodename, '', NodeTypeName);
       end;
     end;

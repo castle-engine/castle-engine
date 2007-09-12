@@ -1048,8 +1048,6 @@ function TVRMLFieldsList.IndexOfExposedEvent(const EventName: string;
 const
   SetPrefix = 'set_';
   ChangedSuffix = '_changed';
-var
-  I: Integer;
 begin
   if IsPrefix(SetPrefix, EventName, false) then
   begin

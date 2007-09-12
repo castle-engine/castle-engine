@@ -279,17 +279,25 @@ type
   end;
 
   EVRMLLexerError = class(EVRMLError)
-    { Lexer object must be valid for this call, it is not needed when
+  public
+    { Standard constructor.
+      Lexer object must be valid for this call, it is not needed when
       constructor call finished (i.e. Lexer reference don't need to be
       valid for the lifetime of the exception; it must be valid only for
       constructing the exception, later it can be Freed etc.) }
     constructor Create(Lexer: TVRMLLexer; const s: string);
+
+    function MessagePositionPrefix(Lexer: TVRMLLexer): string;
   end;
 
   EVRMLParserError = class(EVRMLError)
-    { Lexer object must be valid only for this call; look at
+  public
+    { Standard constructor.
+      Lexer object must be valid only for this call; look at
       EVRMLLexerError.Create for more detailed comment. }
     constructor Create(Lexer: TVRMLLexer; const s: string);
+
+    function MessagePositionPrefix(Lexer: TVRMLLexer): string;
   end;
 
 const
@@ -756,14 +764,22 @@ end;
 
 constructor EVRMLLexerError.Create(Lexer: TVRMLLexer; const s: string);
 begin
- inherited CreateFmt('VRML lexical error at position %d : %s',
-   [Lexer.Stream.Position, s]);
+ inherited Create(MessagePositionPrefix(Lexer) + S);
+end;
+
+function EVRMLLexerError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
+begin
+  Result := Format('VRML lexical error at position %d: ', [Lexer.Stream.Position]);
 end;
 
 constructor EVRMLParserError.Create(Lexer: TVRMLLexer; const s: string);
 begin
- inherited CreateFmt('VRML parse error at position %d : %s',
-   [Lexer.Stream.Position, s]);
+  inherited Create(MessagePositionPrefix(Lexer) + S);
+end;
+
+function EVRMLParserError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
+begin
+  Result := Format('VRML parse error at position %d: ', [Lexer.Stream.Position]);
 end;
 
 { global funcs  ------------------------------------------------------------------ }
