@@ -653,11 +653,12 @@ begin
  if FirstBlack = -1 then
   fToken := vtEnd else
  begin
-   (* Stop tokens include { and }, otherwise we risk that because of this
+   (* Stop tokens include { } [ ], otherwise we risk that because of this
       hack (NextTokenForceVTName is really only a hack to try to read
       even incorrect VRML files) we would fail to read correctly valid
       VRML files. *)
-  fTokenName := Chr(FirstBlack) +Stream.ReadUpto(VRMLWhitespaces + ['{', '}']);
+  fTokenName := Chr(FirstBlack) +Stream.ReadUpto(
+    VRMLWhitespaces + ['{', '}', '[', ']']);
   fToken := vtName;
  end;
 
