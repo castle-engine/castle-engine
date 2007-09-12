@@ -15,9 +15,7 @@ plan for prototype handling:
 - hmmm, that's all, pretty simple actually... great !
   test everything I can find, test jaguar, mail ANL...
 
-  test that DEF/USE scope is limited to inside proto
   test that nested protos work, and are not visible outside proto
-  test that deep "IS" references are correctly replaced
   test that "IS" references are not replaced within nested prototypes,
     within nested prototype IS can reference only innermost interface fields
   test that externprotos are also parsed according to protos now
