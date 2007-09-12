@@ -195,12 +195,12 @@ type
       zero, co oczywiscie zostanie odczytane jako vtInteger), gdzie indziej
       znalazlem przykladowe VRMLe z nazwa node'a "Crab!" (tak, z "!" i
       cudzyslowem)).
-      
+
       Uzywajac tej procedury bedziesz w stanie odczytac takie VRMLe ze zlymi
       nazwami node'ow (pamietajac ze zawsze przed nazwa node'a jest USE
       lub DEF wiec wiadomo kiedy nalezy sie spodziewac vtName i wtedy wlasnie
       trzeba uzyc NextTokenForceVTName.)
-      
+
       Wyjatek EParserError (bo to przeciez blad parsowania, nie leksera) jesli
       mimo wszystko nie uda sie odczytac tokenu vtName. }
     procedure NextTokenForceVTName;
@@ -265,16 +265,7 @@ type
       pozycji w pliku, czy raczej w strumieniu tokenow Lexera). Tym samym
       jest chyba jasne do czego uzywamy NodeNameBinding : do realizacji
       konstrukcji "USE <nodename>". Procedura ParseNode nie moze modyfikowac
-      tej listy, to zadania ma wykonywac TVRMLNode.Parse.
-
-      Notka do mechanizmu DEF/USE : gdy uzywamy DEF nie mozemy odwolac
-      sie do nazwy node'a ktory aktualnie parsujemy (osiagamy to
-      po prostu dodajac nazwe node do NodeNameBinding dopiero PO
-      sparsowaniu node'a). W ten sposob zapewniamy sobie ze graf VRML'a
-      nie moze zawierac cykli i jestesmy szczesliwi.
-
-      TODO: above causes failure to read jsTouch VRML file in openvrml/models/
-      tests. Looks like cycles are unavoidable after all. }
+      tej listy, to zadania ma wykonywac TVRMLNode.Parse. }
     NodeNameBinding: TStringList;
 
     { This is used when parsing to keep current namespace of prototypes. }

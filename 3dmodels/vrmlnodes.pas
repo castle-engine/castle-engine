@@ -4339,9 +4339,17 @@ var
   @preformatted([ DEF <nodename> ] <nodetype> { node-content })
   or
   @preformatted(USE <nodename>)
+
+  If we will find USE clause but node name will be unknown, the normal
+  behavior (when NilIfUnresolvedUSE = @false, default) is to raise
+  EVRMLParserError (just like in case of many other errors).
+  However, this is a particular parsing error, because we can probably
+  pretty safely continue parsing, ignoring this error.
+  So if you pass NilIfUnresolvedUSE = @true, this function will do
+  VRMLNonFatalError and simply return @nil.
 *)
 function ParseNode(Lexer: TVRMLLexer;
-  const AllowedNodes: boolean): TVRMLNode;
+  const AllowedNodes: boolean; NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
 { parse VRML file : parse whole VRML file, returning it's root node.
 
@@ -5791,8 +5799,10 @@ begin
     Lexer.NextToken;
   end else
   begin
-    Value := ParseNode(Lexer, true);
-    if (not AllowedChildrenAll) and
+    { This is one case when we can use NilIfUnresolvedUSE = @true }
+    Value := ParseNode(Lexer, true, true);
+    if (Value <> nil) and
+       (not AllowedChildrenAll) and
        (FAllowedChildren.IndexOf(Value) = -1) then
       ChildNotAllowed;
   end;
@@ -9870,7 +9880,7 @@ begin
     Result.FPrototypeInstanceHelpers := TVRMLNodesList.Create;
   end else
     Result := VRMLNodeDeepCopy(Proto.Node);
-    
+
   Result.NodeName := NodeName;
 
   InstantiateReplaceIsClauses(nil, Result);
@@ -10168,7 +10178,8 @@ begin
   ParseIgnoreToMatchingBracket(Lexer, 0, 1);
 end;
 
-function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean): TVRMLNode;
+function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
+  NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
   procedure ParseNamedNode(const nodename: string);
   var
@@ -10213,14 +10224,48 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean): TVRMLNode;
        (TVRMLPrototypeNode(Result).Prototype is TVRMLPrototype) then
       Result := TVRMLPrototypeNode(Result).Instantiate;
 
-    { add NodeName to Lexer.NodeNameBinding. Note : adding result to
-      NodeNameBinding AFTER parsing result we make infinite recursion loops
-      impossible. }
+    { Cycles in VRML graph are bad, I think we all agree about this.
+      They can cause traversing routines to loop infinitely
+      (sure, this is avoidable easily by keeping a list of already visited nodes,
+      but the time cost is bad...).
+      Most importantly, they can cause memory leaks, since reference
+      counting doesn't work when we have loops.
+
+      My initial brilliant idea is that I can 100% avoid having cycles
+      by simply doing Result.Bind *after* the node is parsed.
+      This is trivially simple and works 100% to avoid cycles.
+      Moreover, this is needed in the light of possible
+        "Result := TVRMLPrototypeNode(Result).Instantiate"
+      which means that before parsing, our Result is possibly not something
+      that we wanted to insert to NodeNameBinding.
+
+      So there I was, swimming in joy with ultra-simple and 100% correct
+      solution. Until I found a problem with it...
+
+      In VRML 2.0, there is a Script node. It has interface declarations.
+      It's interface declaration may have SFNode type. And then it can
+      do USE call. And the trouble: VRML allows this very special USE
+      clause to create cycle. E.g. see
+      ~/sources/openvrml/openvrml/models/jsTouch.wrl.
+
+      TODO: Which means that this is too easy solution, and ultimately
+      Result.Bind should be moved up, or I should invent some other more clever
+      solution for this (I think that this is needed only for Script interface
+      declarations, so it can be some pretty specific hack just to
+      fix this...).
+
+      For now, NilIfUnresovedUSE successfully changes there special
+      cycles in Script into mere VRMLNonFatalError, so they don't stop
+      us from reading the rest of VRML file. And since we don't handle
+      any scripting, this is not a problem in practice. But some day it'll
+      have to be fixed... }
+
     Result.Bind(Lexer.NodeNameBinding);
   end;
 
-var nodename: string;
-    i: integer;
+var
+  NodeName, S: string;
+  i: integer;
 begin
   Result := nil;
   try
@@ -10248,9 +10293,17 @@ begin
            {get appropriate node}
            i := Lexer.NodeNameBinding.IndexOf(nodename);
            if i = -1 then
-             raise EVRMLParserError.Create(Lexer,
-               'Incorrect USE clause : node name "'+nodename+'" undefined');
-           result := TVRMLNode(Lexer.NodeNameBinding.Objects[i]);
+           begin
+             S := Format('Incorrect USE clause: node name "%s" undefined',
+               [NodeName]);
+             if NilIfUnresolvedUSE then
+             begin
+               Result := nil;
+               VRMLNonFatalError(S);
+             end else
+               raise EVRMLParserError.Create(Lexer, S);
+           end else
+             Result := TVRMLNode(Lexer.NodeNameBinding.Objects[i]);
 
            Lexer.NextToken;
           end;
