@@ -1393,6 +1393,8 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
     property ParentNode: TVRMLNode read FParentNode;
 
     class function VRMLTypeName: string; override;
@@ -1474,6 +1476,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     property ParentNode: TVRMLNode read FParentNode;
 
@@ -5879,6 +5882,16 @@ begin
     inherited;
 end;
 
+procedure TSFNode.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFNode then
+  begin
+    inherited;
+    Value := TSFNode(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 procedure TSFNode.SetValue(AValue: TVRMLNode);
 begin
   if FValue <> AValue then
@@ -6076,6 +6089,16 @@ begin
     VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
+end;
+
+procedure TMFNode.AssignValue(Source: TVRMLField);
+begin
+  if Source is TMFNode then
+  begin
+    inherited;
+    AssignItems(TMFNode(Source).Items);
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TMFNode.VRMLTypeName: string;
@@ -9861,16 +9884,19 @@ begin
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
-        if OurField.ClassType = InstanceField.ClassType then
-          InstanceField.Assign(OurField) else
-          VRMLNonFatalError(Format('Within prototype "%s", ' +
-            'field of type %s (named "%s") references ' +
-            '(by "IS" clause) field of different type %s (named "%s")',
-            [Prototype.Name,
-             InstanceField.VRMLTypeName,
-             InstanceField.Name,
-             OurField.VRMLTypeName,
-             OurField.Name]));
+        try
+          InstanceField.AssignValue(OurField);
+        except
+          on EVRMLFieldAssignInvalidClass do
+            VRMLNonFatalError(Format('Within prototype "%s", ' +
+              'field of type %s (named "%s") references ' +
+              '(by "IS" clause) field of different type %s (named "%s")',
+              [Prototype.Name,
+               InstanceField.VRMLTypeName,
+               InstanceField.Name,
+               OurField.VRMLTypeName,
+               OurField.Name]));
+        end;
       end else
       if not ExposedFieldReferencesEvent(InstanceField) then
       begin

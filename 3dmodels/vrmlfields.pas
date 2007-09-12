@@ -34,6 +34,9 @@ const
   IndentIncrement = CharTab;
 
 type
+  EVRMLFieldAssign = class(Exception);
+  EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
+  EVRMLFieldAssignFromIsClause = class(EVRMLFieldAssign);
 
 { fields base classes ------------------------------------------------------ }
 
@@ -55,7 +58,10 @@ type
         assignment is possible only when source and destination field classes
         are equal.)
       @item(Assignment tries to copy everything: name, default value,
-        IsClause*, Exposed, and of course current value.))
+        IsClause*, Exposed, and of course current value.
+
+        If you want to copy only the current value, use AssignValue
+        (or AssignLerp, where available).))
   }
   TVRMLField = class(TPersistent)
   private
@@ -80,6 +86,8 @@ type
       I don't want to place this inside TVRMLField.Assign, since I want
       "inherited" in Assign methods to cause exception. }
     procedure VRMLFieldAssignCommon(Source: TVRMLField);
+
+    procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
   public
     { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
       tzn. zawsze Name musi byc zdefiniowane.
@@ -205,6 +213,45 @@ type
       Yes, pretty much like in SQL the "null" value. }
     property IsClause: boolean read FIsClause;
     property IsClauseName: string read FIsClauseName;
+
+    { Copies the current field value. Contrary to TPersistent.Assign, this
+      doesn't copy the rest of properties.
+
+      Source object must not have IsClause (since when IsClause, the Source
+      doesn't have any defined value). After setting, our IsClause is always
+      changed to @false.
+
+      @raises(EVRMLFieldAssignInvalidClass
+        Usually it's required the Source class to be equal to our class,
+        if Source classes cannot be assigned we raise EVRMLFieldCannotAssignClass.)
+
+      @raises(EVRMLFieldAssignFromIsClause
+        Raised is Source has IsClause = @true. This prevents assignment,
+        since it means that Source has no defined value.)
+
+      @raises(EVRMLFieldAssign (Previous two exceptions also inherit from this.)
+        Raised in case of any field assignment problem. It's guaranteed that
+        in case of such problem, our value will not be modified before
+        raising the exception.)
+
+      @italic(Descendants implementors notes):
+
+      In this class, implementation takes care of
+      checking Source.IsClause (and eventually raising EVRMLFieldAssignFromIsClause)
+      and setting our IsClause to @false. In descendants, you should do like
+      @longCode(#
+        if Source is <appropriate class> then
+        begin
+          inherited;
+          Value := Source.value;
+        end else
+          AssignValueRaiseInvalidClass(Source);
+      #)
+
+      This will make sure that in case of error (incompatible classes
+      or Source.IsClause) nothing will be changed (IsClause and Value will
+      remain as they were). }
+    procedure AssignValue(Source: TVRMLField); virtual;
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -405,6 +452,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -426,6 +474,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -448,6 +497,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFColor);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -481,6 +531,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -514,6 +565,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFFloat);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -542,6 +594,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Double; Value1, Value2: TSFTime);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -579,6 +632,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -608,6 +662,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -631,6 +686,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -655,6 +711,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -676,6 +733,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -698,6 +756,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -720,6 +779,7 @@ type
       const EqualityEpsilon: Single): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -756,6 +816,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFColor);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -785,6 +846,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -812,6 +874,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -834,6 +897,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -857,6 +921,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFRotation);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -880,6 +945,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -903,6 +969,7 @@ type
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Double; Value1, Value2: TMFTime);
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -923,6 +990,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1023,6 +1091,23 @@ begin
   FExposed := Source.Exposed;
   FIsClause := Source.IsClause;
   FIsClauseName := Source.IsClauseName;
+end;
+
+procedure TVRMLField.AssignValueRaiseInvalidClass(Source: TVRMLField);
+begin
+  raise EVRMLFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
+    '%s (%s) from %s (%s)',
+    [        Name,        VRMLTypeName,
+      Source.Name, Source.VRMLTypeName]);
+end;
+
+procedure TVRMLField.AssignValue(Source: TVRMLField);
+begin
+  if Source.IsClause then
+    raise EVRMLFieldAssignInvalidClass.CreateFmt('Cannot assign from VRML field ' +
+      '%s (%s) because it has an IS "%s" clause',
+      [Source.Name, Source.VRMLTypeName, Source.IsClauseName]);
+  FIsClause := false;
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
@@ -1300,6 +1385,16 @@ begin
   inherited;
 end;
 
+procedure TSFBool.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFBool then
+  begin
+    inherited;
+    Value := TSFBool(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFBool.VRMLTypeName: string;
 begin
   Result := 'SFBool';
@@ -1361,6 +1456,16 @@ begin
   VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
+end;
+
+procedure TSFColor.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFColor then
+  begin
+    inherited;
+    Value := TSFColor(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TSFColor.VRMLTypeName: string;
@@ -1438,6 +1543,16 @@ begin
   inherited;
 end;
 
+procedure TSFFloat.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFFloat then
+  begin
+    inherited;
+    Value := TSFFloat(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFFloat.VRMLTypeName: string;
 begin
   Result := 'SFFloat';
@@ -1501,6 +1616,16 @@ begin
     VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
+end;
+
+procedure TSFTime.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFTime then
+  begin
+    inherited;
+    Value := TSFTime(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TSFTime.VRMLTypeName: string;
@@ -1689,6 +1814,17 @@ begin
   inherited;
 end;
 
+procedure TSFImage.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFImage then
+  begin
+    inherited;
+    FreeAndNil(Value);
+    Value := TSFImage(Source).Value.MakeCopy;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFImage.VRMLTypeName: string;
 begin
   Result := 'SFImage';
@@ -1763,6 +1899,16 @@ begin
   inherited;
 end;
 
+procedure TSFLong.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFLong then
+  begin
+    inherited;
+    Value := TSFLong(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFLong.VRMLTypeName: string;
 begin
   Result := 'SFLong';
@@ -1826,6 +1972,16 @@ begin
   VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
+end;
+
+procedure TSFMatrix.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFMatrix then
+  begin
+    inherited;
+    Matrix := TSFMatrix(Source).Matrix;
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TSFMatrix.VRMLTypeName: string;
@@ -1904,6 +2060,17 @@ begin
   inherited;
 end;
 
+procedure TSFRotation.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFRotation then
+  begin
+    inherited;
+    Axis := TSFRotation(Source).Axis;
+    RotationRad := TSFRotation(Source).RotationRad;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFRotation.VRMLTypeName: string;
 begin
   Result := 'SFRotation';
@@ -1959,6 +2126,16 @@ begin
   VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
+end;
+
+procedure TSFString.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFString then
+  begin
+    inherited;
+    Value := TSFString(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TSFString.VRMLTypeName: string;
@@ -2023,6 +2200,16 @@ begin
   inherited;
 end;
 
+procedure TSFVec2f.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFVec2f then
+  begin
+    inherited;
+    Value := TSFVec2f(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFVec2f.VRMLTypeName: string;
 begin
   Result := 'SFVec2f';
@@ -2084,6 +2271,16 @@ begin
   VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
+end;
+
+procedure TSFVec3f.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFVec3f then
+  begin
+    inherited;
+    Value := TSFVec3f(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 
 class function TSFVec3f.VRMLTypeName: string;
@@ -2223,6 +2420,16 @@ begin
   inherited;
 end;
 
+procedure TSFBitMask.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFBitMask then
+  begin
+    inherited;
+    FFlags := TSFBitMask(Source).FFlags;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFBitMask.VRMLTypeName: string;
 begin
   Result := 'SFBitMask';
@@ -2301,6 +2508,16 @@ begin
   inherited;
 end;
 
+procedure TSFEnum.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFEnum then
+  begin
+    inherited;
+    Value := TSFEnum(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
 class function TSFEnum.VRMLTypeName: string;
 begin
   Result := 'SFEnum';
@@ -2369,6 +2586,16 @@ begin
   VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
+end;
+
+procedure TMF_CLASS.AssignValue(Source: TVRMLField);
+begin
+  if Source is TMF_CLASS then
+  begin
+    inherited;
+    Items.Assign(TMF_CLASS(Source).Items);
+  end else
+    AssignValueRaiseInvalidClass(Source);
 end;
 }
 
