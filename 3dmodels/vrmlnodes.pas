@@ -1477,23 +1477,24 @@ type
 
     A few things that make Shape node special :
     @unorderedList(
-      @item only shape nodes may have [Local]BoundingBox
+      @item(Only shape nodes may have [Local]BoundingBox.)
       @item(
-        only shape nodes define something visible "in usual way"
+        Only shape nodes define something visible "in usual way"
         during rendering (Some other nodes in VRML 2.0 are visible but in an
         unusual way, like Background and Fog. These nodes must be rendered in
         a special way --- they are not affected in any usual way by the current
         transformation matrix etc.))
       @item(
-        only shape nodes can add triangles to the scene, so the Triangulate
+        Only shape nodes can add triangles to the scene, so the Triangulate
         method can be defined only for shape nodes.)
       @item(
-        shape nodes never have children (that's why I don't need to define
-        in interface whether [Local]BoundingBox or Triangles/VerticesCount
-        calculate child nodes too - because they will never have any child
-        nodes; TODO: some VRML 2.0 shape nodes will break this ?))
+        Shape nodes are never "grouping nodes", in particular there's
+        never a shape node that is (direct or indirect) child of another
+        shape node. So there's no need to be concerned whether shape nodes'
+        children are included in things like [Local]BoundingBox or
+        Triangles/VerticesCount.)
       @item(
-        shape nodes doesn't affect anything in graph traverse state.)
+        Shape nodes don't affect anything in graph traverse state.)
     ) }
   TNodeGeneralShape = class(TVRMLNode)
     { BoundingBox oblicza BoundingBox shape node'a VRMLa ktory podczas
@@ -10093,43 +10094,46 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean): TVRMLNode;
 var nodename: string;
     i: integer;
 begin
- (* node means :
-    DEF <name> <nodetype> { node-content } or
-    USE <name> or
-    <nodetype> { node-content }
- *)
+  Result := nil;
+  try
+    (* node means :
+       DEF <name> <nodetype> { node-content } or
+       USE <name> or
+       <nodetype> { node-content }
+    *)
 
- case Lexer.Token of
-  vtKeyword:
-    case Lexer.TokenKeyword of
-     vkDEF:
-       begin
-        Lexer.NextTokenForceVTName;
-        nodename := Lexer.TokenName;
-        Lexer.NextToken;
-        ParseNamedNode(nodename);
+    case Lexer.Token of
+     vtKeyword:
+       case Lexer.TokenKeyword of
+        vkDEF:
+          begin
+           Lexer.NextTokenForceVTName;
+           nodename := Lexer.TokenName;
+           Lexer.NextToken;
+           ParseNamedNode(nodename);
+          end;
+        vkUSE:
+          begin
+           Lexer.NextTokenForceVTName;
+           nodename := Lexer.TokenName;
+
+           {get appropriate node}
+           i := Lexer.NodeNameBinding.IndexOf(nodename);
+           if i = -1 then
+             raise EVRMLParserError.Create(Lexer,
+               'Incorrect USE clause : node name "'+nodename+'" undefined');
+           result := TVRMLNode(Lexer.NodeNameBinding.Objects[i]);
+
+           Lexer.NextToken;
+          end;
+        else raise EVRMLParserError.Create(Lexer,
+               'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
        end;
-     vkUSE:
-       begin
-        Lexer.NextTokenForceVTName;
-        nodename := Lexer.TokenName;
-
-        {get appropriate node}
-        i := Lexer.NodeNameBinding.IndexOf(nodename);
-        if i = -1 then
-          raise EVRMLParserError.Create(Lexer,
-            'Incorrect USE clause : node name "'+nodename+'" undefined');
-        result := TVRMLNode(Lexer.NodeNameBinding.Objects[i]);
-
-        Lexer.NextToken;
-       end;
+     vtName: ParseNamedNode('');
      else raise EVRMLParserError.Create(Lexer,
             'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
     end;
-  vtName: ParseNamedNode('');
-  else raise EVRMLParserError.Create(Lexer,
-         'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
- end;
+  except FreeAndNil(Result); raise end;
 end;
 
 { This parses a sequence of VRML statements: any number of nodes,
