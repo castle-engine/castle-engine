@@ -4175,6 +4175,8 @@ type
           Returned Node (with all it's helpers in PrototypeInstanceHelpers)
           has "IS" clauses everywhere filled, according to our field values.)
 
+        @item(NodeName of returned node is copied from our NodeName.)
+
         @item(
           For SaveToStream to work, returned Node has PrototypeInstance = @true,
           and PrototypeInstanceSourceNode set to Self. This allows SaveToStream
@@ -9868,6 +9870,8 @@ begin
     Result.FPrototypeInstanceHelpers := TVRMLNodesList.Create;
   end else
     Result := VRMLNodeDeepCopy(Proto.Node);
+    
+  Result.NodeName := NodeName;
 
   InstantiateReplaceIsClauses(nil, Result);
 
