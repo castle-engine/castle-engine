@@ -9786,6 +9786,19 @@ end;
 
 procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
   Node, Child: TVRMLNode);
+
+  { @true if field is exposed, and it's IsClauseName references
+    one of our events (either explicit ones, in Events, or implicit,
+    in our own exposedFields). }
+  function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
+  var
+    DummyInEvent: boolean;
+  begin
+    Result := Field.Exposed and
+      ( (Events.IndexOf(Field.IsClauseName) <> -1) or
+        (Fields.IndexOfExposedEvent(Field.IsClauseName, DummyInEvent) <> -1) );
+  end;
+
 var
   InstanceField, OurField: TVRMLField;
   I, OurFieldIndex: Integer;
@@ -9812,6 +9825,7 @@ begin
              OurField.VRMLTypeName,
              OurField.Name]));
       end else
+      if not ExposedFieldReferencesEvent(InstanceField) then
       begin
         VRMLNonFatalError(Format('Within prototype "%s", field "%s" references ' +
           '(by "IS" clause) non-existing field "%s"',
@@ -9823,7 +9837,11 @@ begin
   Child.DirectEnumerateAll(@InstantiateReplaceIsClauses);
 
   { TODO: some kind of events "IS" copying also should take place here.
-    For now I don't use events, so I don't do it. }
+    For now I don't use events, so I don't do it.
+
+    Also, above ExposedFieldReferencesEvent is used only to avoid
+    warnings... while in fact, it should have some effect on the field value
+    and associations with event. }
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;

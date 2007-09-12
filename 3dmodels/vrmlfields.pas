@@ -223,6 +223,12 @@ type
     property ByName[const AName: string]:TVRMLField read GetByName;
     {NameIndex. Zwraca -1 jezeli nie znalazl.}
     function NameIndex(const AName: string): integer;
+
+    { Returns if EventName is an event implicitly exposed by one of our
+      exposed fields (i.e. set_xxx or xxx_changed). Returns index of event,
+      and whether it's "in" or "out" event if true. Otherwise returns -1. }
+    function IndexOfExposedEvent(const EventName: string;
+      out InEvent: boolean): Integer;
   end;
 
   TVRMLSingleField = class(TVRMLField)
@@ -1035,6 +1041,32 @@ begin
  if i >= 0 then
   result := Items[i] else
   raise Exception.Create('Field name '+AName+' not found');
+end;
+
+function TVRMLFieldsList.IndexOfExposedEvent(const EventName: string;
+  out InEvent: boolean): Integer;
+const
+  SetPrefix = 'set_';
+  ChangedSuffix = '_changed';
+var
+  I: Integer;
+begin
+  if IsPrefix(SetPrefix, EventName, false) then
+  begin
+    InEvent := true;
+    Result := NameIndex(SEnding(EventName, Length(SetPrefix) + 1));
+  end else
+  if IsSuffix(ChangedSuffix, EventName, false) then
+  begin
+    InEvent := false;
+    Result := NameIndex(Copy(EventName, 1,
+      Length(EventName) - Length(ChangedSuffix)));
+  end else
+    Result := -1;
+
+  { check is field really exposed now }
+  if (Result <> -1) and (not Items[Result].Exposed) then
+    Result := -1;
 end;
 
 { TVRMLMultField ------------------------------------------------------------- }
