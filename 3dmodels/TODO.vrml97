@@ -2,26 +2,15 @@ VRML 97 TODO items:
 
 plan for prototype handling:
 
-- We need some prototype names list. Note that this list will value have to be
+- ProtoNameBinding list value has to be
   push/pop on entering parsing prototype itself, as prototypes defined inside
   prototypes are valid to instantiate only within this proto.
 
 - When found a node with name matching proto (internal OR external!) :
 
   for external, just create TNodeUnknown for now, but mark with TODO
-  where should be fixed,
-
-  for internal: insert VRMLNodeDeepCopy of Prototype.Node (of
-  TNodePrototypeInstance class). Search within it (procedure inside
-  TNodePrototypeInstance class like FillPrototypeValues) and replace
-  "IS" clauses as appropriate (but don't recurse into another
-  TNodePrototypeInstance --- "IS" always refers to innermost prototype;
-  this is very useful, because it means that prototype can always be
-  instantiated right after it's defined. Actually, this is the only sensible
-  solution: if "IS" would refer to some non-innermost proto, then the proto
-  couldn't be instantiated within it's direct parent --- and proto
-  must *always be instantiated within it's direct parent*, not higher,
-  so says the spec.
+  where should be fixed.
+  (non-external done now)
 
 - hmmm, that's all, pretty simple actually... great !
   test everything I can find, test jaguar, mail ANL...
@@ -41,6 +30,7 @@ plan for prototype handling:
     routes: all
     events: those with IsClause
     Scipt interface decl also save)
+  For nodes with PrototypeInstance, save PrototypeInstanceSourceNode instead.
 
 ----------------------------------------
 Post view3dscene 2.0 things:

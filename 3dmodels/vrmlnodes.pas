@@ -4081,6 +4081,20 @@ type
   TVRMLPrototypeNode = class(TVRMLNode)
   private
     FPrototype: TVRMLPrototypeBase;
+
+    { This searches Node for fields with "IS" clauses, and expands them
+      using our current fields values (i.e. changes IsClause to @false
+      and fills appropriate value). It also descends into all children.
+
+      Aborts if current node is from another prototype (PrototypeInstance is @true).
+      We can do it, since "IS" always refers to innermost prototype.
+      This is very useful, because it means that prototype can always be
+      instantiated right after it's defined. Actually, this is the only sensible
+      solution: if "IS" would refer to some non-innermost proto, then the proto
+      couldn't be instantiated within it's direct parent --- and proto
+      must *always be instantiated within it's direct parent*, not higher,
+      so says the spec. }
+    procedure InstantiateReplaceIsClauses(Node, Child: TVRMLNode);
   public
     { This constructor will raise exception for TVRMLPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
@@ -5759,7 +5773,7 @@ end;
 
 function TSFNode.EqualsDefaultValue: boolean;
 begin
-  Result := Value = nil;
+  Result := (not IsClause) and (Value = nil);
 end;
 
 function TSFNode.Equals(SecondValue: TVRMLField;
@@ -5774,10 +5788,10 @@ procedure TSFNode.Assign(Source: TPersistent);
 begin
   if Source is TSFNode then
   begin
-    FName  := TSFNode(Source).Name;
     { Assign using Value property, so that FParentFields will get
       correctly updated. }
     Value  := TSFNode(Source).Value;
+    VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
 end;
@@ -5947,7 +5961,7 @@ end;
 
 function TMFNode.EqualsDefaultValue: boolean;
 begin
-  Result := Count = 0;
+  Result := (not IsClause) and (Count = 0);
 end;
 
 function TMFNode.Equals(SecondValue: TVRMLField;
@@ -5962,8 +5976,8 @@ procedure TMFNode.Assign(Source: TPersistent);
 begin
   if Source is TMFNode then
   begin
-    FName := TMFNode(Source).Name;
     AssignItems(TMFNode(Source).Items);
+    VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
 end;
@@ -9698,12 +9712,11 @@ begin
     I := Prototype.InterfaceDeclarations.Items[Index];
     if I.Field <> nil then
     begin
-      { F := copy of I.Field. We copy class type, Name, Exposed and the actual
-        value (nothing else can be set by TVRMLInterfaceDeclation.Parse
-        anyway). }
+      Check(not I.Field.IsClause,
+        'Prototype interface field cannot have "IS" clause');
+
+      { F := copy of I.Field }
       F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(I.Field.Name);
-      Check(not F.IsClause, 'Prototype interface field cannot have "IS" clause');
-      F.Exposed := I.Field.Exposed;
       F.Assign(I.Field);
       Fields.Add(F);
     end else
@@ -9720,6 +9733,48 @@ end;
 function TVRMLPrototypeNode.NodeTypeName: string;
 begin
   Result := Prototype.Name;
+end;
+
+procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
+  Node, Child: TVRMLNode);
+var
+  InstanceField, OurField: TVRMLField;
+  I, OurFieldIndex: Integer;
+begin
+  if Child.PrototypeInstance then Exit;
+
+  for I := 0 to Child.Fields.Count - 1 do
+  begin
+    InstanceField := Child.Fields[I];
+    if InstanceField.IsClause then
+    begin
+      OurFieldIndex := Fields.NameIndex(InstanceField.IsClauseName);
+      if OurFieldIndex <> -1 then
+      begin
+        OurField := Fields[OurFieldIndex];
+        if OurField.ClassType = InstanceField.ClassType then
+          InstanceField.Assign(OurField) else
+          VRMLNonFatalError(Format('Within prototype "%s", ' +
+            'field of type %s (named "%s") references ' +
+            '(by "IS" clause) field of different type %s (named "%s")',
+            [Prototype.Name,
+             InstanceField.VRMLTypeName,
+             InstanceField.Name,
+             OurField.VRMLTypeName,
+             OurField.Name]));
+      end else
+      begin
+        VRMLNonFatalError(Format('Within prototype "%s", field "%s" references ' +
+          '(by "IS" clause) non-existing field "%s"',
+          [Prototype.Name, InstanceField.Name, InstanceField.IsClauseName]));
+      end;
+    end;
+  end;
+
+  Child.DirectEnumerateAll(@InstantiateReplaceIsClauses);
+
+  { TODO: some kind of events "IS" copying also should take place here.
+    For now I don't use events, so I don't do it. }
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
@@ -9747,8 +9802,10 @@ begin
   end else
     Result := VRMLNodeDeepCopy(Proto.Node);
 
-  { TODO: replace IS clauses }
+  InstantiateReplaceIsClauses(nil, Result);
 
+  { Note: set PrototypeInstance to @true *after* InstantiateReplaceIsClauses,
+    otherwise InstantiateReplaceIsClauses would not enter this node. }
   Result.FPrototypeInstance := true;
   Result.FPrototypeInstanceSourceNode := Self;
 end;

@@ -47,7 +47,16 @@ type
 
     Most of descendants include constructor that initializes
     both DefaultValue and Value to the same thing, as this is what
-    you usually want. }
+    you usually want.
+
+    Some notes about @link(Assign) semantics here:
+    @orderedList(
+      @item(There are some exceptions, but usually
+        assignment is possible only when source and destination field classes
+        are equal.)
+      @item(Assignment tries to copy everything: name, default value,
+        IsClause*, Exposed, and of course current value.))
+  }
   TVRMLField = class(TPersistent)
   private
     FExposed: boolean;
@@ -57,10 +66,20 @@ type
     FName: string;
 
     { kazda klasa musi to pokryc; SaveToStream zapisuje
-      Indent, Name, ' ', potem wywoluje SaveToStreamValue, potem zapisuje nl. }
+      Indent, Name, ' ', potem wywoluje SaveToStreamValue, potem zapisuje nl.
+
+      Note that SaveToStream in this class
+      already takes care of IsClause. If IsClause, it will do
+      everything, and not call SaveToStreamValue. So when overriding
+      SaveToStreamValue, you can safely assume that IsClause is @false. }
     procedure SaveToStreamValue(Stream: TStream;
       const Indent: string;
       NodeNameBinding: TStringList); virtual; abstract;
+
+    { Call this inside overriden Assign methods.
+      I don't want to place this inside TVRMLField.Assign, since I want
+      "inherited" in Assign methods to cause exception. }
+    procedure VRMLFieldAssignCommon(Source: TVRMLField);
   public
     { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
       tzn. zawsze Name musi byc zdefiniowane.
@@ -132,7 +151,10 @@ type
       NodeNameBinding: TStringList);
 
     { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
-      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej. }
+      aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej.
+
+      Note that when IsClause, this should always return @false
+      (as the field doesn't have any value, conceptually). }
     function EqualsDefaultValue: boolean; virtual;
 
     { @true if the SecondValue object has exactly the same type and properties.
@@ -174,6 +196,13 @@ type
       field value. }
     procedure ParseIsClause(Lexer: TVRMLLexer);
 
+    { Does the field reference other field by "IS" clause.
+      This is usually caused by specifying "IS" clause instead
+      of field value in VRML file.
+
+      Conceptually, we think of such field as "without any value".
+      So Equals and EqualsDefaultValue will always return @false for such field.
+      Yes, pretty much like in SQL the "null" value. }
     property IsClause: boolean read FIsClause;
     property IsClauseName: string read FIsClauseName;
   end;
@@ -942,21 +971,26 @@ begin
     'VRML field name must be defined to allow saving field to stream');
   if not EqualsDefaultValue then
   begin
-    WriteStr(Stream, Indent +Name +' ');
-    SaveToStreamValue(Stream, Indent, NodeNameBinding);
+    WriteStr(Stream, Indent + Name + ' ');
+    { We depend here on the fact that EqualsDefaultValue is always @false
+      when IsClause, otherwise fields with IsClause could be omitted by
+      check "if not EqualsDefaultValue then" above. }
+    if IsClause then
+      WriteStr(Stream, 'IS ' + IsClauseName) else
+      SaveToStreamValue(Stream, Indent, NodeNameBinding);
     WriteStr(Stream, nl);
   end;
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;
 begin
-  result := false;
+  Result := false;
 end;
 
 function TVRMLField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
-  Result := SecondValue.Name = Name;
+  Result := (not IsClause) and (SecondValue.Name = Name);
 end;
 
 procedure TVRMLField.ParseIsClause(Lexer: TVRMLLexer);
@@ -975,6 +1009,14 @@ begin
   if IsClauseAllowed then
     ParseIsClause(Lexer) else
     FIsClause := false;
+end;
+
+procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
+begin
+  FName := Source.Name;
+  FExposed := Source.Exposed;
+  FIsClause := Source.IsClause;
+  FIsClauseName := Source.IsClauseName;
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
@@ -1205,7 +1247,7 @@ end;
 
 function TSFBool.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+ result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFBool.Equals(SecondValue: TVRMLField;
@@ -1220,10 +1262,10 @@ procedure TSFBool.Assign(Source: TPersistent);
 begin
  if Source is TSFBool then
  begin
-  FName              := TSFBool(Source).Name;
   DefaultValue       := TSFBool(Source).DefaultValue;
   DefaultValueExists := TSFBool(Source).DefaultValueExists;
   Value              := TSFBool(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1260,9 +1302,10 @@ end;
 
 function TSFColor.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue[0] = Value[0])
-                              and (DefaultValue[1] = Value[1])
-                              and (DefaultValue[2] = Value[2]);
+  result := (not IsClause) and
+    DefaultValueExists and (DefaultValue[0] = Value[0])
+                       and (DefaultValue[1] = Value[1])
+                       and (DefaultValue[2] = Value[2]);
 end;
 
 function TSFColor.Equals(SecondValue: TVRMLField;
@@ -1282,10 +1325,10 @@ procedure TSFColor.Assign(Source: TPersistent);
 begin
  if Source is TSFColor then
  begin
-  FName              := TSFColor(Source).Name;
   DefaultValue       := TSFColor(Source).DefaultValue;
   DefaultValueExists := TSFColor(Source).DefaultValueExists;
   Value              := TSFColor(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1335,7 +1378,7 @@ end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+ result := (not IsClause) and DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFFloat.Equals(SecondValue: TVRMLField;
@@ -1356,11 +1399,11 @@ procedure TSFFloat.Assign(Source: TPersistent);
 begin
  if Source is TSFFloat then
  begin
-  FName              := TSFFloat(Source).Name;
   DefaultValue       := TSFFloat(Source).DefaultValue;
   DefaultValueExists := TSFFloat(Source).DefaultValueExists;
   FValue             := TSFFloat(Source).Value;
   FMustBeNonnegative := TSFFloat(Source).MustBeNonnegative;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1402,7 +1445,7 @@ end;
 
 function TSFTime.EqualsDefaultValue: boolean;
 begin
-  Result := DefaultValueExists and (DefaultValue = Value);
+  Result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFTime.Equals(SecondValue: TVRMLField;
@@ -1422,10 +1465,10 @@ procedure TSFTime.Assign(Source: TPersistent);
 begin
   if Source is TSFTime then
   begin
-    FName              := TSFTime(Source).Name;
     DefaultValue       := TSFTime(Source).DefaultValue;
     DefaultValueExists := TSFTime(Source).DefaultValueExists;
     FValue             := TSFTime(Source).Value;
+    VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
 end;
@@ -1609,9 +1652,9 @@ procedure TSFImage.Assign(Source: TPersistent);
 begin
  if Source is TSFImage then
  begin
-  FName := TSFImage(Source).Name;
   FreeAndNil(Value);
   Value := TSFImage(Source).Value.MakeCopy;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1663,7 +1706,7 @@ end;
 
 function TSFLong.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+ result := (not IsClause) and DefaultValueExists and (DefaultValue = Value)
 end;
 
 function TSFLong.Equals(SecondValue: TVRMLField;
@@ -1681,11 +1724,11 @@ procedure TSFLong.Assign(Source: TPersistent);
 begin
  if Source is TSFLong then
  begin
-  FName              := TSFLong(Source).Name;
   DefaultValue       := TSFLong(Source).DefaultValue;
   DefaultValueExists := TSFLong(Source).DefaultValueExists;
   FValue             := TSFLong(Source).Value;
   FMustBeNonnegative := TSFLong(Source).MustBeNonnegative;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1749,8 +1792,8 @@ procedure TSFMatrix.Assign(Source: TPersistent);
 begin
  if Source is TSFMatrix then
  begin
-  FName  := TSFMatrix(Source).Name;
   Matrix := TSFMatrix(Source).Matrix;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1824,9 +1867,9 @@ procedure TSFRotation.Assign(Source: TPersistent);
 begin
  if Source is TSFRotation then
  begin
-  FName       := TSFRotation(Source).Name;
   Axis        := TSFRotation(Source).Axis;
   RotationRad := TSFRotation(Source).RotationRad;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1865,7 +1908,7 @@ end;
 
 function TSFString.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+ result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFString.Equals(SecondValue: TVRMLField;
@@ -1880,10 +1923,10 @@ procedure TSFString.Assign(Source: TPersistent);
 begin
  if Source is TSFString then
  begin
-  FName              := TSFString(Source).Name;
   DefaultValue       := TSFString(Source).DefaultValue;
   DefaultValueExists := TSFString(Source).DefaultValueExists;
   Value              := TSFString(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1920,8 +1963,9 @@ end;
 
 function TSFVec2f.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue[0] = Value[0])
-                              and (DefaultValue[1] = Value[1]);
+  result := (not IsClause) and
+    DefaultValueExists and (DefaultValue[0] = Value[0])
+                       and (DefaultValue[1] = Value[1]);
 end;
 
 function TSFVec2f.Equals(SecondValue: TVRMLField;
@@ -1941,10 +1985,10 @@ procedure TSFVec2f.Assign(Source: TPersistent);
 begin
  if Source is TSFVec2f then
  begin
-  FName              := TSFVec2f(Source).Name;
   DefaultValue       := TSFVec2f(Source).DefaultValue;
   DefaultValueExists := TSFVec2f(Source).DefaultValueExists;
   Value              := TSFVec2f(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -1981,9 +2025,10 @@ end;
 
 function TSFVec3f.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue[0] = Value[0])
-                              and (DefaultValue[1] = Value[1])
-                              and (DefaultValue[2] = Value[2]);
+  result := (not IsClause) and
+    DefaultValueExists and (DefaultValue[0] = Value[0])
+                       and (DefaultValue[1] = Value[1])
+                       and (DefaultValue[2] = Value[2]);
 end;
 
 function TSFVec3f.Equals(SecondValue: TVRMLField;
@@ -2003,10 +2048,10 @@ procedure TSFVec3f.Assign(Source: TPersistent);
 begin
  if Source is TSFVec3f then
  begin
-  FName              := TSFVec3f(Source).Name;
   DefaultValue       := TSFVec3f(Source).DefaultValue;
   DefaultValueExists := TSFVec3f(Source).DefaultValueExists;
   Value              := TSFVec3f(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -2139,11 +2184,11 @@ procedure TSFBitMask.Assign(Source: TPersistent);
 begin
  if Source is TSFBitMask then
  begin
-  FName       := TSFBitMask(Source).Name;
   FAllString  := TSFBitMask(Source).AllString;
   FNoneString := TSFBitMask(Source).NoneString;
   FFlags      := TSFBitMask(Source).FFlags;
   FFlagNames.Assign(TSFBitMask(Source).FFlagNames);
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -2201,7 +2246,7 @@ end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value)
+ result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFEnum.Equals(SecondValue: TVRMLField;
@@ -2217,11 +2262,11 @@ procedure TSFEnum.Assign(Source: TPersistent);
 begin
  if Source is TSFEnum then
  begin
-  FName              := TSFEnum(Source).Name;
   DefaultValue       := TSFEnum(Source).DefaultValue;
   DefaultValueExists := TSFEnum(Source).DefaultValueExists;
   Value              := TSFEnum(Source).Value;
   FEnumNames.Assign(TSFEnum(Source).FEnumNames);
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -2288,10 +2333,10 @@ procedure TMF_CLASS.Assign(Source: TPersistent);
 begin
  if Source is TMF_CLASS then
  begin
-  FName              := TMF_CLASS(Source).Name;
   DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
   DefaultValue       := TMF_CLASS(Source).DefaultValue;
   Items.Assign(TMF_CLASS(Source).Items);
+  VRMLFieldAssignCommon(TVRMLField(Source));
  end else
   inherited;
 end;
@@ -2320,9 +2365,10 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_EQUALITY_OP:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
- result:=((DefaultValuesCount = 0) and (Count = 0)) or
-         ((DefaultValuesCount = 1) and (Count = 1) and
-          (DefaultValue = Items.Items[0]));
+  result := (not IsClause) and
+    ((DefaultValuesCount = 0) and (Count = 0)) or
+    ((DefaultValuesCount = 1) and (Count = 1) and
+     (DefaultValue = Items.Items[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -2343,9 +2389,10 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_COMPARE_MEM:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
- result:=((DefaultValuesCount = 0) and (Count = 0)) or
-         ((DefaultValuesCount = 1) and (Count = 1) and
-           CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
+  result:= (not IsClause) and
+    ((DefaultValuesCount = 0) and (Count = 0)) or
+    ((DefaultValuesCount = 1) and (Count = 1) and
+      CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -2367,9 +2414,10 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_VECTORS:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
- result:=((DefaultValuesCount = 0) and (Count = 0)) or
-         ((DefaultValuesCount = 1) and (Count = 1) and
-           VectorsPerfectlyEqual(DefaultValue, Items.Items[0]) );
+  result := (not IsClause) and
+    ((DefaultValuesCount = 0) and (Count = 0)) or
+    ((DefaultValuesCount = 1) and (Count = 1) and
+      VectorsPerfectlyEqual(DefaultValue, Items.Items[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -2391,9 +2439,10 @@ end;
 {$define IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL:=
 function TMF_CLASS.EqualsDefaultValue: boolean;
 begin
- result:=((DefaultValuesCount = 0) and (Count = 0)) or
-         ((DefaultValuesCount = 1) and (Count = 1) and
-          (DefaultValue = Items.Items[0]) );
+  result := (not IsClause) and
+    ((DefaultValuesCount = 0) and (Count = 0)) or
+    ((DefaultValuesCount = 1) and (Count = 1) and
+     (DefaultValue = Items.Items[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
