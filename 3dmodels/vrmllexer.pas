@@ -187,20 +187,22 @@ type
     function NextToken: TVRMLToken;
 
     { uzywaj gdy wiesz ze nastepny token MUSI byc vtName i zeby w zwiazku z
-        tym lekser odczytal nastepny token jako vtName. Pamietaj ze moze
-        to powodowac odczytanie jako vtName czegos co nie jest poprawna
-        nazwa node'a w VRML'u ! Ale moze byc uzyteczne jesli jakis inny
-        program zapisywal plik VRML'a nie patrzac na to czy tworzy prawidlowe
-        czy nie nazwy VRML'a (np. mgf2inv potrafi zapisac nazwe "0" (tak jest,
-        zero, co oczywiscie zostanie odczytane jako vtInteger), gdzie indziej
-        znalazlem przykladowe VRMLe z nazwa node'a "Crab!" (tak, z "!" i
-        cudzyslowem)).
+      tym lekser odczytal nastepny token jako vtName. Pamietaj ze moze
+      to powodowac odczytanie jako vtName czegos co nie jest poprawna
+      nazwa node'a w VRML'u ! Ale moze byc uzyteczne jesli jakis inny
+      program zapisywal plik VRML'a nie patrzac na to czy tworzy prawidlowe
+      czy nie nazwy VRML'a (np. mgf2inv potrafi zapisac nazwe "0" (tak jest,
+      zero, co oczywiscie zostanie odczytane jako vtInteger), gdzie indziej
+      znalazlem przykladowe VRMLe z nazwa node'a "Crab!" (tak, z "!" i
+      cudzyslowem)).
+      
       Uzywajac tej procedury bedziesz w stanie odczytac takie VRMLe ze zlymi
-        nazwami node'ow (pamietajac ze zawsze przed nazwa node'a jest USE
-        lub DEF wiec wiadomo kiedy nalezy sie spodziewac vtName i wtedy wlasnie
-        trzeba uzyc NextTokenForceVTName.)
+      nazwami node'ow (pamietajac ze zawsze przed nazwa node'a jest USE
+      lub DEF wiec wiadomo kiedy nalezy sie spodziewac vtName i wtedy wlasnie
+      trzeba uzyc NextTokenForceVTName.)
+      
       Wyjatek EParserError (bo to przeciez blad parsowania, nie leksera) jesli
-        mimo wszystko nie uda sie odczytac tokenu vtName. }
+      mimo wszystko nie uda sie odczytac tokenu vtName. }
     procedure NextTokenForceVTName;
 
     { Similiar to NextTokenForceVTName: use this like a shortcut for
@@ -660,7 +662,11 @@ begin
  if FirstBlack = -1 then
   fToken := vtEnd else
  begin
-  fTokenName := Chr(FirstBlack) +Stream.ReadUpto(VRMLWhitespaces);
+   (* Stop tokens include { and }, otherwise we risk that because of this
+      hack (NextTokenForceVTName is really only a hack to try to read
+      even incorrect VRML files) we would fail to read correctly valid
+      VRML files. *)
+  fTokenName := Chr(FirstBlack) +Stream.ReadUpto(VRMLWhitespaces + ['{', '}']);
   fToken := vtName;
  end;
 
