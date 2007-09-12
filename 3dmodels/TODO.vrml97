@@ -20,8 +20,6 @@ plan for prototype handling:
   test that deep "IS" references are correctly replaced
   test that "IS" references are not replaced within nested prototypes,
     within nested prototype IS can reference only innermost interface fields
-  test that "IS" clauses are correctly replaced, incluing MFxxx field values,
-    SFNode and MFNode values
   test that externprotos are also parsed according to protos now
 
 - save back to file prototypes (all prototypes:

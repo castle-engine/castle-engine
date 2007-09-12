@@ -1355,6 +1355,7 @@ type
   private
     FValue: TVRMLNode;
     FParentNode: TVRMLNode;
+    FAllowedChildrenAll: boolean;
     FAllowedChildren: TVRMLNodeClassesList;
     procedure SetValue(AValue: TVRMLNode);
   protected
@@ -1370,6 +1371,21 @@ type
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AnAllowedChildren: TVRMLNodeClassesList); overload;
     destructor Destroy; override;
+
+    { This says that all children are allowed, regardless of
+      AllowedChildren value.
+
+      CreateUndefined creates always object with
+      AllowedChildrenAll = @true (otherwise AllowedChildren list is empty
+      and nothing would be allowed; but for e.g. fields in instantiated
+      prototypes, we must initially just allow all, otherwise valid prototypes
+      with SFNode/MFNode would cause warnings when parsing).
+
+      Other constructors set AllowedChildren
+      to something meaningful and set this to @false. You can change this
+      to @true then if you consciously want to turn this check off. }
+    property AllowedChildrenAll: boolean
+      read FAllowedChildrenAll write FAllowedChildrenAll;
 
     property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
@@ -1405,6 +1421,7 @@ type
     FItems: TVRMLNodesList;
     FParentNode: TVRMLNode;
     FAllowedChildren: TVRMLNodeClassesList;
+    FAllowedChildrenAll: boolean;
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -1418,6 +1435,21 @@ type
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AnAllowedChildren: TVRMLNodeClassesList); overload;
     destructor Destroy; override;
+
+    { This says that all children are allowed, regardless of
+      AllowedChildren value.
+
+      CreateUndefined creates always object with
+      AllowedChildrenAll = @true (otherwise AllowedChildren list is empty
+      and nothing would be allowed; but for e.g. fields in instantiated
+      prototypes, we must initially just allow all, otherwise valid prototypes
+      with SFNode/MFNode would cause warnings when parsing).
+
+      Other constructors set AllowedChildren
+      to something meaningful and set this to @false. You can change this
+      to @true then if you consciously want to turn this check off. }
+    property AllowedChildrenAll: boolean
+      read FAllowedChildrenAll write FAllowedChildrenAll;
 
     { Lists items of this fields.
 
@@ -5701,25 +5733,29 @@ end;
 constructor TSFNode.CreateUndefined(const AName: string);
 begin
   inherited;
+  Value := nil;
 
   FAllowedChildren := TVRMLNodeClassesList.Create;
-  Value := nil;
+  FAllowedChildrenAll := true;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   const AnAllowedChildren: array of TVRMLNodeClass);
 begin
   inherited Create(AName);
-
   FParentNode := AParentNode;
+
   FAllowedChildren.AssignArray(AnAllowedChildren);
+  FAllowedChildrenAll := false;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   AnAllowedChildren: TVRMLNodeClassesList);
 begin
   Create(AParentNode, AName, []);
+
   FAllowedChildren.Assign(AnAllowedChildren);
+  FAllowedChildrenAll := false;
 end;
 
 destructor TSFNode.Destroy;
@@ -5730,8 +5766,7 @@ begin
   inherited;
 end;
 
-procedure TSFNode.Parse(Lexer: TVRMLLexer;
-  IsClauseAllowed: boolean);
+procedure TSFNode.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 
   procedure ChildNotAllowed;
   var
@@ -5755,7 +5790,8 @@ begin
   end else
   begin
     Value := ParseNode(Lexer, true);
-    if FAllowedChildren.IndexOf(Value) = -1 then
+    if (not AllowedChildrenAll) and
+       (FAllowedChildren.IndexOf(Value) = -1) then
       ChildNotAllowed;
   end;
 end;
@@ -5820,8 +5856,10 @@ end;
 constructor TMFNode.CreateUndefined(const AName: string);
 begin
   inherited;
-  FAllowedChildren := TVRMLNodeClassesList.Create;
   FItems := TVRMLNodesList.Create;
+
+  FAllowedChildren := TVRMLNodeClassesList.Create;
+  FAllowedChildrenAll := true;
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
@@ -5829,14 +5867,18 @@ constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
 begin
   inherited Create(AName);
   FParentNode := AParentNode;
+
   FAllowedChildren.AssignArray(AnAllowedChildren);
+  FAllowedChildrenAll := false;
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
   AnAllowedChildren: TVRMLNodeClassesList);
 begin
   Create(AParentNode, AName, []);
+
   FAllowedChildren.Assign(AnAllowedChildren);
+  FAllowedChildrenAll := false;
 end;
 
 destructor TMFNode.Destroy;
@@ -5920,19 +5962,29 @@ end;
 procedure TMFNode.Parse(Lexer: TVRMLLexer;
   IsClauseAllowed: boolean);
 
-  procedure ChildNotAllowed(Value: TVRMLNode);
+  procedure ParseOneItem;
+
+    procedure ChildNotAllowed(Value: TVRMLNode);
+    var
+      S: string;
+    begin
+      S := Format('Node "%s" is not allowed in the field "%s"',
+        [Value.NodeTypeName, Name]);
+      if ParentNode <> nil then
+        S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+      VRMLNonFatalError(S);
+    end;
+
   var
-    S: string;
+    Node: TVRMLNode;
   begin
-    S := Format('Node "%s" is not allowed in the field "%s"',
-      [Value.NodeTypeName, Name]);
-    if ParentNode <> nil then
-      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    VRMLNonFatalError(S);
+    Node := ParseNode(Lexer, true);
+    AddItem(Node);
+    if (not AllowedChildrenAll) and
+       (FAllowedChildren.IndexOf(Node) = -1) then
+      ChildNotAllowed(Node);
   end;
 
-var
-  Node: TVRMLNode;
 begin
   inherited;
 
@@ -5946,17 +5998,14 @@ begin
     Lexer.NextToken;
 
     while Lexer.Token <> vtCloseSqBracket do
-    begin
-      Node := ParseNode(Lexer, true);
-      AddItem(Node);
-      if FAllowedChildren.IndexOf(Node) = -1 then
-        ChildNotAllowed(Node);
-    end;
+      ParseOneItem;
 
     Lexer.NextToken;
   end else
+  begin
     { one single item - not enclosed in [] brackets }
-    AddItem(ParseNode(Lexer, true));
+    ParseOneItem;
+  end;
 end;
 
 function TMFNode.EqualsDefaultValue: boolean;
