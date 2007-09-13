@@ -585,7 +585,7 @@ type
     FEvents: TVRMLEventsList;
     FPrototypeInstance: boolean;
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
-    FPrototypeInstanceHelpers: TVRMLNodesList;
+    FPrototypeInstanceHelpers: TVRMLNode;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -787,6 +787,17 @@ type
 
     procedure RemoveChild(i: integer);
     procedure RemoveAllChildren;
+
+    { Remove and return children indexed I, and @italic(never free it).
+
+      Compare this with RemoveChild, that removes children I and
+      frees it if it's reference count gets 0.
+
+      ExtractChild removes children I, appropriately adjusting
+      all parent/children links, but even if reference count of the node
+      will get zero, ExtractChild will not free it.
+      ExtractChild always returns extracted child. }
+    function ExtractChild(I: Integer): TVRMLNode;
 
     property ParentNodes[i: integer]:TVRMLNode read GetParentNodesItem;
     function ParentNodesCount: integer;
@@ -1216,6 +1227,7 @@ type
     procedure SmartAddChild(Node: TVRMLNode);
     property SmartChildren[Index: Integer]: TVRMLNode read GetSmartChildren;
     function SmartChildrenCount: integer;
+    function SmartExtractChild(Index: Integer): TVRMLNode;
 
     { SuggestedVRMLVersion determines what VRML header to use
       when saving the node to file. Returns @true and sets out arguments
@@ -1463,6 +1475,10 @@ type
 
     procedure AddItem(Node: TVRMLNode);
     procedure RemoveItem(Index: Integer);
+    { Remove child with given Index, and return it, @italic(never freeing it).
+      This is analogous to TVRMLNode.ExtractChild, see there for more
+      explanation. }
+    function ExtractItem(Index: Integer): TVRMLNode;
     procedure ClearItems;
     procedure AssignItems(SourceItems: TVRMLNodesList);
     procedure ReplaceItem(Index: Integer; Node: TVRMLNode);
@@ -4165,14 +4181,9 @@ type
           or TNodeHiddenGroup_2.
 
           In this case the first children of Prototype.Node is used
-          to create instance. Rest of the nodes is also duplicated and inserted
-          into new node's PrototypeInstanceHelpers.
-
-          Other properties of the wrapper are ignored: wrapper's Prototypes
-          list can and actually @italic(should) be safely ignored, since
-          nested prototypes cannot be used outside anyway.
-          Wrapper's routes are ignored, as (TODO) for now routes are
-          ignored in general anyway.)
+          to create instance. The rest of the wrapper (with this first children
+          removed, to not cause cycles) is also duplicated and set
+          as new node's PrototypeInstanceHelpers.)
 
         @item(
           Returned Node (with all it's helpers in PrototypeInstanceHelpers)
@@ -4188,8 +4199,7 @@ type
 
       @raises(EVRMLPrototypeInstantiateError if for some reason it's
         found that the prototype cannot be instantiated.
-        You can catch this and replace with VRMLNonFatalError, if possible.
-        TODO.)
+        You can catch this and replace with VRMLNonFatalError, if possible.)
     }
     function Instantiate: TVRMLNode;
   end;
@@ -4713,7 +4723,7 @@ begin
  if PrototypeInstance then
  begin
    FreeAndNil(FPrototypeInstanceSourceNode);
-   FreeWithContentsAndNil(FPrototypeInstanceHelpers);
+   FreeAndNil(FPrototypeInstanceHelpers);
    FPrototypeInstance := false;
  end;
 
@@ -4753,6 +4763,21 @@ begin
   if (OldChild.FParentNodes.Count = 0) and
      (OldChild.FParentFields.Count = 0) then
     OldChild.Free;
+end;
+
+function TVRMLNode.ExtractChild(I: Integer): TVRMLNode;
+begin
+  Result := FChildren[i];
+  FChildren.Delete(i);
+  Result.FParentNodes.Delete(Self);
+
+  { RemoveChild now does
+
+  if (Result.FParentNodes.Count = 0) and
+     (Result.FParentFields.Count = 0) then
+    Result.Free;
+
+    but ExtractChild doesn't do it. }
 end;
 
 procedure TVRMLNode.SetChildrenItem(I: Integer; Value: TVRMLNode);
@@ -5552,6 +5577,13 @@ begin
     Result := ChildrenField.Items.Count;
 end;
 
+function TVRMLNode.SmartExtractChild(Index: Integer): TVRMLNode;
+begin
+  if ChildrenField = nil then
+    Result := ExtractChild(Index) else
+    Result := ChildrenField.ExtractItem(Index);
+end;
+
 function TVRMLNode.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 var
@@ -5985,6 +6017,17 @@ end;
 procedure TMFNode.RemoveItem(Index: Integer);
 begin
   Items[Index].RemoveParentField(Self);
+  Items.Delete(Index);
+end;
+
+function TMFNode.ExtractItem(Index: Integer): TVRMLNode;
+begin
+  Result := Items[Index];
+
+  { Instead of calling Result.RemoveParentField(Self), which would possibly
+    free Result, we manually call FParentFields.Delete. }
+  Result.FParentFields.Delete(Self);
+
   Items.Delete(Index);
 end;
 
@@ -9920,6 +9963,7 @@ end;
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 var
   Proto: TVRMLPrototype;
+  NodeCopy: TVRMLNode;
 begin
   if not (Prototype is TVRMLPrototype) then
     raise EVRMLPrototypeInstantiateError.CreateFmt(
@@ -9928,19 +9972,44 @@ begin
 
   Proto := Prototype as TVRMLPrototype;
 
+  { Even when Proto.Node is a wrapper (TNodeGroupHidden_*),
+    we want to copy the whole Proto.Node, instead of copying separately
+    Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
+    This way, DEF / USE links within are preserved as they should.
+
+    Moreover, we can keep Routes and prototypes correctly.
+    (although nested prototypes are not important at this point,
+    since they are already expanded; but still, preserving them
+    "feels right"). }
+  NodeCopy := VRMLNodeDeepCopy(Proto.Node);
+
   if (Proto.Node is TNodeGroupHidden_1) or
      (Proto.Node is TNodeGroupHidden_2) then
   begin
-    if Proto.Node.SmartChildrenCount = 0 then
+    if NodeCopy.SmartChildrenCount = 0 then
+    begin
+      { If exception occurs before NodeCopy is connected to Result,
+        NodeCopy should be simply freed. }
+      FreeAndNil(NodeCopy);
       raise EVRMLPrototypeInstantiateError.CreateFmt(
         'Prototype "%s" has no nodes, cannot instantiate',
         [Proto.Name]);
+    end;
 
-    Result := VRMLNodeDeepCopy(Proto.Node.SmartChildren[0]);
-    { TODO: fill this, copy the rest of Prototype.Node.SmartChildren[1..] }
-    Result.FPrototypeInstanceHelpers := TVRMLNodesList.Create;
+    { ExtractChild/Item methods were really invented specially for this case.
+
+      We have to remove Result from NodeCopy, to avoid cycles
+      (that can cause mem leaks) because Result.FPrototypeInstanceHelpers
+      has to keep pointer to NodeCopy.
+
+      At the same time, Result must not be freed here because of ref count = 0... }
+    Result := NodeCopy.SmartExtractChild(0);
+
+    { Result.FPrototypeInstanceHelpers is used to keep the rest of
+      NodeCopy.SmartChildren[1...] that should accompany this node. }
+    Result.FPrototypeInstanceHelpers := NodeCopy;
   end else
-    Result := VRMLNodeDeepCopy(Proto.Node);
+    Result := NodeCopy;
 
   Result.NodeName := NodeName;
 
@@ -10292,7 +10361,14 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
 
     if (Result is TVRMLPrototypeNode) and
        (TVRMLPrototypeNode(Result).Prototype is TVRMLPrototype) then
+    try
       Result := TVRMLPrototypeNode(Result).Instantiate;
+    except
+      on E: EVRMLPrototypeInstantiateError do
+        { Just write E.Message and silence the exception.
+          Result will simply remain as TVRMLPrototypeNode instance in this case. }
+        VRMLNonFatalError(E.Message);
+    end;
 
     { Cycles in VRML graph are bad, I think we all agree about this.
       They can cause traversing routines to loop infinitely

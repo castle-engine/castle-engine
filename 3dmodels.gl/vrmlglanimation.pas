@@ -841,7 +841,8 @@ procedure TVRMLGLAnimation.Load(
       for I := 0 to Model1.ChildrenCount - 1 do
         Result.AddChild(VRMLModelLerp(A, Model1.Children[I], Model2.Children[I]));
 
-      { TODO: for TNodeUnknown, we should fill here Result.Fields. }
+      { TODO: for TNodeUnknown, we should fill here Result.Fields.
+        Also for TVRMLPrototypeNode. }
 
       for I := 0 to Model1.Fields.Count - 1 do
       begin
