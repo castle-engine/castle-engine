@@ -692,6 +692,10 @@ type
   end;
 
   TSFRotation = class(TVRMLSingleField)
+  private
+    DefaultAxis: TVector3Single;
+    DefaultRotationRad: Single;
+    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(Stream: TStream; const Indent: string;
       NodeNameBinding: TStringList); override;
@@ -707,8 +711,11 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     { rotate point pt around self }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
+
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
+    function EqualsDefaultValue: boolean; override;
+
     procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -1998,6 +2005,10 @@ begin
 
   Axis := AnAxis;
   RotationRad := ARotationRad;
+
+  DefaultAxis := Axis;
+  DefaultRotationRad := RotationRad;
+  DefaultValueExists := true;
 end;
 
 procedure TSFRotation.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2041,6 +2052,13 @@ begin
    (SecondValue is TSFRotation) and
    VectorsEqual(TSFRotation(SecondValue).Axis, Axis, EqualityEpsilon) and
    FloatsEqual(TSFRotation(SecondValue).RotationRad, RotationRad, EqualityEpsilon);
+end;
+
+function TSFRotation.EqualsDefaultValue: boolean;
+begin
+  Result := (not IsClause) and DefaultValueExists and
+    VectorsPerfectlyEqual(DefaultAxis, Axis) and
+    (DefaultRotationRad = RotationRad);
 end;
 
 procedure TSFRotation.AssignLerp(const A: Single; Value1, Value2: TSFRotation);
