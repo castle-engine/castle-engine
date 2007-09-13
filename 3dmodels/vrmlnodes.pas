@@ -9927,10 +9927,24 @@ begin
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
+        if OurField.IsClause then
+        begin
+          { This means that the prototype (current Prototype) is expanded
+            within the definition of another prototype.
+            So InstanceField.IsClauseName referers to OurField
+            (from current Prototype), but OurField.IsClauseName refers to yet
+            another, enclosing, prototype (that will be expanded later --- for
+            now we're within enclosing prototype definition).
+
+            So solution is simple: InstanceField is expanded to also
+            refer to this enclosing prototype. }
+          InstanceField.IsClauseName := OurField.IsClauseName;
+        end else
         try
           InstanceField.AssignValue(OurField);
         except
-          on EVRMLFieldAssignInvalidClass do
+          on E: EVRMLFieldAssignInvalidClass do
+          begin
             VRMLNonFatalError(Format('Within prototype "%s", ' +
               'field of type %s (named "%s") references ' +
               '(by "IS" clause) field of different type %s (named "%s")',
@@ -9939,6 +9953,12 @@ begin
                InstanceField.Name,
                OurField.VRMLTypeName,
                OurField.Name]));
+          end;
+          on E: EVRMLFieldAssign do
+          begin
+            VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
+              [Prototype.Name]) + E.Message);
+          end;
         end;
       end else
       if not ExposedFieldReferencesEvent(InstanceField) then
@@ -10013,7 +10033,15 @@ begin
 
   Result.NodeName := NodeName;
 
-  InstantiateReplaceIsClauses(nil, Result);
+  try
+    InstantiateReplaceIsClauses(nil, Result);
+  except
+    { Result.FPrototypeInstance is @false here, so make sure to free
+      FPrototypeInstanceHelpers specifically. }
+    FreeAndNil(Result.FPrototypeInstanceHelpers);
+    FreeAndNil(Result);
+    raise;
+  end;
 
   { Note: set PrototypeInstance to @true *after* InstantiateReplaceIsClauses,
     otherwise InstantiateReplaceIsClauses would not enter this node. }
@@ -10087,6 +10115,7 @@ function ParseVRMLStatements(
 procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer);
 var
   OldNodeNameBinding: TStringList;
+  OldProtoNameBinding: TStringList;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -10105,11 +10134,24 @@ begin
 
   { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
     scope, completely independent from the outside. So we create
-    new ProtoNodeNameBinding for parsing prototype. }
+    new NodeNameBinding for parsing prototype. }
   OldNodeNameBinding := Lexer.NodeNameBinding;
   Lexer.NodeNameBinding := TStringListCaseSens.Create;
   try
-    FNode := ParseVRMLStatements(Lexer, vtCloseCurlyBracket);
+    { Also prototype name scope is local within the prototype,
+      however it starts from current prototype name scope (not empty,
+      like in case of NodeNameBinding). So prototypes defined outside
+      are available inside, but nested prototypes inside are not
+      available outside. }
+    OldProtoNameBinding := Lexer.ProtoNameBinding;
+    Lexer.ProtoNameBinding := TStringListCaseSens.Create;
+    try
+      Lexer.ProtoNameBinding.Assign(OldProtoNameBinding);
+      FNode := ParseVRMLStatements(Lexer, vtCloseCurlyBracket);
+    finally
+      FreeAndNil(Lexer.ProtoNameBinding);
+      Lexer.ProtoNameBinding := OldProtoNameBinding;
+    end;
   finally
     FreeAndNil(Lexer.NodeNameBinding);
     Lexer.NodeNameBinding := OldNodeNameBinding;
@@ -10742,6 +10784,16 @@ begin
 end;
 
 function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
+
+  procedure Rewrap(WrapperClass: TVRMLNodeClass);
+  var
+    NewResult: TVRMLNode;
+  begin
+    NewResult := WrapperClass.Create('', '');
+    NewResult.SmartAddChild(Result);
+    Result := NewResult;
+  end;
+
 var
   S: TMemoryStream;
   SPeek: TPeekCharStream;
@@ -10764,6 +10816,28 @@ begin
     SPeek := TBufferedReadStream.Create(S, false);
     try
       Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
+
+      { SaveToVRMLFile silently strips TNodeGroupHidden_* wrapper,
+        and produces file with multiple root nodes. In usual circumstances,
+        ParseVRMLFile would detect that multiple root nodes require wrapping
+        again in TNodeGroupHidden_*, and everything would be Ok
+        (if SourceNode was TNodeGroupHidden_* wrapper, resulting copy also
+        will be).
+
+        But TODO: for now prototypes and routes are not saved back to file.
+        And they also cause TNodeGroupHidden_* wrapper creation, even
+        if it will have only one children. When saving such file,
+        SaveToVRMLFile will discard this wrapper, but prototypes/routes
+        will not be saved. So when recreating, ParseVRMLFile will *not*
+        wrap inside TNodeGroupHidden_* wrapper.
+
+        Below we workaround this. }
+      if ( (SourceNode is TNodeGroupHidden_1) or
+           (SourceNode is TNodeGroupHidden_2) ) and
+         not ( (Result is TNodeGroupHidden_1) or
+               (Result is TNodeGroupHidden_2) ) then
+        Rewrap(TVRMLNodeClass(SourceNode.ClassType));
+
     finally FreeAndNil(SPeek) end;
   finally FreeAndNil(S) end;
 end;

@@ -211,8 +211,8 @@ type
       Conceptually, we think of such field as "without any value".
       So Equals and EqualsDefaultValue will always return @false for such field.
       Yes, pretty much like in SQL the "null" value. }
-    property IsClause: boolean read FIsClause;
-    property IsClauseName: string read FIsClauseName;
+    property IsClause: boolean read FIsClause write FIsClause;
+    property IsClauseName: string read FIsClauseName write FIsClauseName;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -1104,7 +1104,7 @@ end;
 procedure TVRMLField.AssignValue(Source: TVRMLField);
 begin
   if Source.IsClause then
-    raise EVRMLFieldAssignInvalidClass.CreateFmt('Cannot assign from VRML field ' +
+    raise EVRMLFieldAssignFromIsClause.CreateFmt('Cannot assign from VRML field ' +
       '%s (%s) because it has an IS "%s" clause',
       [Source.Name, Source.VRMLTypeName, Source.IsClauseName]);
   FIsClause := false;

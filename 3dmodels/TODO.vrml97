@@ -1,35 +1,23 @@
 VRML 97 TODO items:
 
-plan for prototype handling:
-
-- ProtoNameBinding list value has to be
-  push/pop on entering parsing prototype itself, as prototypes defined inside
-  prototypes are valid to instantiate only within this proto.
-
-- When found a node with name matching proto (internal OR external!) :
-
-  for external, just create TNodeUnknown for now, but mark with TODO
-  where should be fixed.
-  (non-external done now)
-
-- hmmm, that's all, pretty simple actually... great !
-  test everything I can find, test jaguar, mail ANL...
-
-  test that nested protos work, and are not visible outside proto
-  test that "IS" references are not replaced within nested prototypes,
-    within nested prototype IS can reference only innermost interface fields
-  test that externprotos are also parsed according to protos now
+- external prototypes:
+  - We can parse them using TVRMLPrototypeNode, like with non-external.
+    This should already work.
+  - Try to load from their URL:
+    - load prototypes defined externally (remember that local name
+      and name in URL don't have to match)
+    - if URL indicates, load from internal definition (using URL,
+      not proto name, to determine which built-in node to use)
+  - test
+  - see spec 4.9, External prototype semantics
 
 - save back to file prototypes (all prototypes:
     non-external: just save interface decl and node,
-    external: just save interface decl and MFString URLList
-    routes: all
-    events: those with IsClause
+    external: just save interface decl and MFString URLList,
+    routes: all,
+    events: those with IsClause,
     Scipt interface decl also save)
   For nodes with PrototypeInstance, save PrototypeInstanceSourceNode instead.
-
-----------------------------------------
-Post view3dscene 2.0 things:
 
 - finish checking NIST tests
 
@@ -76,10 +64,8 @@ Post view3dscene 2.0 things:
   For now I'll include VRML 1.0 version.
 
 ----------------------------------------
-- Implement Prototypes, Event routing. Relevant spec parts:
-  - 4.2.4 Prototypes
+- Implement event, routes, scripts. Relevant spec parts:
   - 4.2.5 Event routing
-  - see 4.8, Prototype semantics
   - see 4.10.2, Route semantics
 - 4.5.4 Scripting language protocols
 ----------------------------------------
@@ -97,4 +83,4 @@ Post view3dscene 2.0 things:
 ----------------------------------------
 - 4.6.7 Sensor nodes
   ...
-  and further 4.x spec parts, with the exception of 4.13, 4.14
+  and further 4.x spec parts, with the exception of 4.8, 4.13, 4.14
