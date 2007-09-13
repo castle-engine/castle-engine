@@ -4382,7 +4382,7 @@ type
 function ParseNode(Lexer: TVRMLLexer;
   const AllowedNodes: boolean; NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
-{ parse VRML file : parse whole VRML file, returning it's root node.
+{ Parse whole VRML file, return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
   generic TStream class. But it's not a problem, really, because
@@ -4393,7 +4393,9 @@ function ParseNode(Lexer: TVRMLLexer;
 
   Note that this function can't handle compressed data (VRML files are
   sometimes compressed with gzip). You should already pass here a stream
-  with uncompressed text data. }
+  with uncompressed text data.
+
+  @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function ParseVRMLFile(Stream: TPeekCharStream;
   const WWWBasePath: string): TVRMLNode; overload;
 
@@ -10632,79 +10634,72 @@ begin
 end;
 
 function ParseVRMLFile(const FileName: string; AllowStdIn: boolean): TVRMLNode;
-{
-  First version.
-  This will be nice if I will modify one day TDecompressionStream
-  to make it able to handle gzip compressed streams
-  (not zlib-compressed streams, as it does for now).
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
     const WWWBasePath: string): TVRMLNode;
   var
     Stream: TPeekCharStream;
   begin
-   try
-    Stream := TBufferedReadStream.Create(
-      TDecompressionStream.Create(BaseStream, 15+16), true);
+    Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-     Result := ParseVRMLFile(Stream, WWWBasePath);
+      Result := ParseVRMLFile(Stream, WWWBasePath);
     finally Stream.Free end;
-   finally
-    if FreeBaseStream then BaseStream.Free;
-   end;
   end;
 
+var
+  WWWBasePath: string;
 begin
- if AllowStdIn and (FileName = '-') then
-  Result := DoIt(StdInStream, false, GetCurrentDir) else
-  Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,
-    ExtractFilePath(ExpandFilename(filename))); }
-
-  function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
-    const WWWBasePath: string): TVRMLNode;
-  var
-    Stream: TPeekCharStream;
+  if AllowStdIn and (FileName = '-') then
+    Result := DoIt(StdInStream, false, GetCurrentDir) else
   begin
-   Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
-   try
-    Result := ParseVRMLFile(Stream, WWWBasePath);
-   finally Stream.Free end;
+    WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+
+    if SameText(ExtractFileExt(FileName), '.gz') or
+       SameText(ExtractFileExt(FileName), '.wrz') then
+      Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
+        WWWBasePath) else
+    begin
+      {$ifdef VER2_0_4}
+        {$ifdef WIN32}
+        { This is a temporary workaround for FPC 2.0.4 bug (already fixed
+          in 2.1.4 and current trunk (2007-09-05).
+          When opening non-existent file on Windows (on Unixes it's Ok)
+          by TFileStream.Create, no exception is raised, instead read procedures
+          behave like it was an empty file. This is a minor problem, because
+          error message then sound like nonsense for the user: E.g.
+            view3dscene not_existing_file.wrl
+          says "VRML lexical error at position 0 : Unexpected end of file on the 1st line",
+          while it should simply say that file doesn't exist.
+
+          Of course this workaround isn't perfect (file may disappear between
+          FileExists check and actual open, file permissions may not allow to read
+          etc., that's why usually it's best to left such checks for OS routines called
+          by TFileStream constructor) but it should work in usual cases. }
+        if not FileExists(FileName) then
+          raise EFOpenError.CreateFmt('Unable to open file "%s"', [FileName]);
+        {$endif}
+      {$endif}
+
+      try
+        Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true, WWWBasePath);
+      except
+        { It's somewhat hacky solution to reopen the file, creating new stream.
+          But in practice, this works OK, and it allows us to read files
+          compressed by gzip but without indicating this by file extension.
+          The other idea would be to pipe the TFileStream through something
+          like TDecompressionStream, but
+
+          1. I simply prefer to not filter through yet another stream
+             class (we already wrap TFileStream in TBufferedReadStream)
+             when I don't have to.
+
+          2. TDecompressionStream doesn't handle gzip compressed data for now
+             (it handles zlib-compressed streams, which is not the same thing). }
+        on EVRMLGzipCompressed do
+          Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true, WWWBasePath);
+      end;
+    end;
   end;
-
-begin
- if AllowStdIn and (FileName = '-') then
-  Result := DoIt(StdInStream, false, GetCurrentDir) else
- begin
-  if SameText(ExtractFileExt(FileName), '.gz') or
-     SameText(ExtractFileExt(FileName), '.wrz') then
-   Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
-     ExtractFilePath(ExpandFilename(FileName))) else
-   begin
-     {$ifdef VER2_0_4}
-       {$ifdef WIN32}
-       { This is a temporary workaround for FPC 2.0.4 bug (already fixed
-         in 2.1.4 and current trunk (2007-09-05).
-         When opening non-existent file on Windows (on Unixes it's Ok)
-         by TFileStream.Create, no exception is raised, instead read procedures
-         behave like it was an empty file. This is a minor problem, because
-         error message then sound like nonsense for the user: E.g.
-           view3dscene not_existing_file.wrl
-         says "VRML lexical error at position 0 : Unexpected end of file on the 1st line",
-         while it should simply say that file doesn't exist.
-
-         Of course this workaround isn't perfect (file may disappear between
-         FileExists check and actual open, file permissions may not allow to read
-         etc., that's why usually it's best to left such checks for OS routines called
-         by TFileStream constructor) but it should work in usual cases. }
-       if not FileExists(FileName) then
-         raise EFOpenError.CreateFmt('Unable to open file "%s"', [FileName]);
-       {$endif}
-     {$endif}
-
-     Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true,
-       ExtractFilePath(ExpandFilename(FileName)));
-   end;
- end;
 end;
 
 function ParseVRMLFileFromString(const VRMLContents: string;

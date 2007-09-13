@@ -68,6 +68,8 @@ type
     vtEnd);
   TVRMLTokens = set of TVRMLToken;
 
+  EVRMLGzipCompressed = class(Exception);
+
 const
   TokenNumbers : TVRMLTokens = [vtFloat, vtInteger];
 
@@ -245,8 +247,11 @@ type
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
 
-    { po wykonaniu konstruktora VRMLVerMajor i Minor i pierwszy Token
-      juz sa odczytane }
+    { Standard constructor.
+      After constructor call, VRMLVerMajor and VRMLVerMinor are already set,
+      it's checked that file is not compressed by gzip, and the first
+      Token is already read.
+      @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
     constructor Create(AStream: TPeekCharStream; const AWWWBasePath: string);
     destructor Destroy; override;
 
@@ -341,6 +346,7 @@ const
   VRML2DraftHeaderStart = '#VRML Draft #2 V2.0 ';
   VRML1HeaderAscii = 'ascii';
   InventorHeaderStart = '#Inventor ';
+  GzipHeader = #$1F + #$8B;
 
   procedure VRML2HeaderReadRest(const Line: string);
   var
@@ -367,6 +373,17 @@ begin
 
   { Read first line = signature. }
   Line := Stream.ReadUpto(VRMLLineTerm);
+
+  { Conveniently, GzipHeader doesn't contain VRMLLineTerm.
+    So if Line starts with GzipHeader, we know 100% it's gzip file,
+    otherwise we know 100% it's not. }
+  if Copy(Line, 1, Length(GzipHeader)) = GzipHeader then
+  begin
+    raise EVRMLGzipCompressed.Create('Stream is compressed by gzip');
+  end;
+
+  { Normal (uncompressed) VRML file, continue reading ... }
+
   if Stream.ReadChar = -1 then
     raise EVRMLLexerError.Create(Self,
       'Unexpected end of file on the 1st line');
