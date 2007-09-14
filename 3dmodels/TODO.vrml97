@@ -11,10 +11,6 @@ VRML 97 TODO items:
   - test
   - see spec 4.9, External prototype semantics
 
-- save back to file prototypes (all prototypes:
-    TVRMLNode.Events: those with IsClause,
-    Scipt interface decl also save)
-
 - finish checking NIST tests
 
 - Remaining places where my code temporarily cannot handle VRML 2.0 files,

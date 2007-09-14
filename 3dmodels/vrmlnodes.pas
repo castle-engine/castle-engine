@@ -705,6 +705,12 @@ type
     function GetFieldAsMFString(i: integer): TMFString;
     function GetFieldAsMFNode(i: integer): TMFNode;
     { @groupEnd }
+
+    (* This will be called by SaveToStream within { }.
+       Usually you want to save here what you read in your overridden
+       ParseNodeBodyElement. *)
+    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
+      virtual;
   public
     { kazdy typ node'a ma ustalone Fields razem z ich defaultowymi wartosciami
       w konstruktorze. Potem, czytajac obiekt ze strumienia lub operujac na
@@ -3685,6 +3691,8 @@ type
       read FInterfaceDeclarations;
 
     function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
+    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
+      override;
   end;
 
   TNodeTextureTransform = class;
@@ -5530,9 +5538,63 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLNode.SaveContentsToStream(
+  SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
+begin
+  (*Write all prototypes at the beginning. Prototype cannot depend
+    on whatever is defined by children nodes (in particular, since
+    prototypes have separate DEF / USE namespace), so it's safe to just
+    write here all prototypes (in the same order as they were found
+    in the file).
+
+    TODO: that's not true in case prototype name will be redefined.
+    Consider
+      PROTO Whatever [ ] { ... some proto contents... }
+      Whatever { }
+      PROTO Whatever [ ] { ... other proto contents... }
+      Whatever { }
+    ... so prototype definitions must be mixed with node/field children
+    declarations. (In VRML 2.0, proto can only between two field definitions...
+    still, what if both these are SFNode/MFNode fields ?)
+
+    Testcase: kambi_vrml_test_suite/vrml_2/proto_ultra_simple.wrl,
+    MySphere proto is redefined there. Writing it back doesn't make
+    the same VRML file...
+  *)
+  for I := 0 to Prototypes.Count - 1 do
+    Prototypes[I].SaveToStream(SaveProperties);
+
+  for i := 0 to Fields.Count - 1 do
+    Fields[i].SaveToStream(SaveProperties);
+
+  if ChildrenSaveToStream then
+    for i := 0 to ChildrenCount - 1 do
+      Children[i].SaveToStream(SaveProperties);
+
+  for I := 0 to Events.Count - 1 do
+    if Events[I].IsClause then
+    begin
+      SaveProperties.WriteIndent(Events[I].Name + ' ');
+      Events[I].SaveToStream(SaveProperties);
+      SaveProperties.Writeln;
+    end;
+
+  (*Write all routes at the end. Routes depend on node names defined,
+    and nothing depends on nodes... so it's safe to write routes here.
+
+    TODO: this is bad, in case some node name is redefined, like
+      DEF NodeName Whatever { }
+      ROUTE NodeName.xxx TO yyy.zzz
+      DEF NodeName SomethingElse { }
+    so the order of ROUTE should be preserved within order of nodes...
+  *)
+  for I := 0 to Routes.Count - 1 do
+    Routes[I].SaveToStream(SaveProperties);
+end;
+
+procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 begin
   if PrototypeInstance and (not SaveProperties.WriteExpandedPrototype) then
   begin
@@ -5551,49 +5613,7 @@ begin
     SaveProperties.Writeln(NodeTypeName +' {');
 
     SaveProperties.IncIndent;
-
-    (*Write all prototypes at the beginning. Prototype cannot depend
-      on whatever is defined by children nodes (in particular, since
-      prototypes have separate DEF / USE namespace), so it's safe to just
-      write here all prototypes (in the same order as they were found
-      in the file).
-
-      TODO: that's not true in case prototype name will be redefined.
-      Consider
-        PROTO Whatever [ ] { ... some proto contents... }
-        Whatever { }
-        PROTO Whatever [ ] { ... other proto contents... }
-        Whatever { }
-      ... so prototype definitions must be mixed with node/field children
-      declarations. (In VRML 2.0, proto can only between two field definitions...
-      still, what if both these are SFNode/MFNode fields ?)
-
-      Testcase: kambi_vrml_test_suite/vrml_2/proto_ultra_simple.wrl,
-      MySphere proto is redefined there. Writing it back doesn't make
-      the same VRML file...
-    *)
-    for I := 0 to Prototypes.Count - 1 do
-      Prototypes[I].SaveToStream(SaveProperties);
-
-    for i := 0 to Fields.Count - 1 do
-      Fields[i].SaveToStream(SaveProperties);
-
-    if ChildrenSaveToStream then
-      for i := 0 to ChildrenCount - 1 do
-        Children[i].SaveToStream(SaveProperties);
-
-    (*Write all routes at the end. Routes depend on node names defined,
-      and nothing depends on nodes... so it's safe to write routes here.
-
-      TODO: this is bad, in case some node name is redefined, like
-        DEF NodeName Whatever { }
-        ROUTE NodeName.xxx TO yyy.zzz
-        DEF NodeName SomethingElse { }
-      so the order of ROUTE should be preserved within order of nodes...
-    *)
-    for I := 0 to Routes.Count - 1 do
-      Routes[I].SaveToStream(SaveProperties);
-
+    SaveContentsToStream(SaveProperties);
     SaveProperties.DecIndent;
 
     SaveProperties.WritelnIndent('}');
@@ -9322,6 +9342,17 @@ begin
       I.Parse(Lexer, true, true);
     end;
   end;
+end;
+
+procedure TNodeScript.SaveContentsToStream(
+  SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: Integer;
+begin
+  for I := 0 to InterfaceDeclarations.Count - 1 do
+    InterfaceDeclarations[I].SaveToStream(SaveProperties, true);
+
+  inherited;
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;
