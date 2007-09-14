@@ -4300,6 +4300,8 @@ type
       is ROUTE. }
     procedure Parse(Lexer: TVRMLLexer);
 
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+
     function Description: string;
   end;
 
@@ -5589,9 +5591,8 @@ begin
         DEF NodeName SomethingElse { }
       so the order of ROUTE should be preserved within order of nodes...
     *)
-    {TODO
     for I := 0 to Routes.Count - 1 do
-      Routes[I].SaveToStream(Stream, NewIndent, NodeNameBinding);}
+      Routes[I].SaveToStream(SaveProperties);
 
     SaveProperties.DecIndent;
 
@@ -7402,9 +7403,8 @@ begin
   for i := 0 to ChildrenCount - 1 do
     Children[i].SaveToStream(SaveProperties);
 
-  {TODO
   for I := 0 to Routes.Count - 1 do
-    Routes[I].SaveToStream(SaveProperties);}
+    Routes[I].SaveToStream(SaveProperties);
 end;
 
 constructor TNodeGeneralSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -8614,9 +8614,8 @@ begin
   for i := 0 to FdChildren.Count - 1 do
     FdChildren.Items[I].SaveToStream(SaveProperties);
 
-  {TODO
   for I := 0 to Routes.Count - 1 do
-    Routes[I].SaveToStream(SaveProperties);}
+    Routes[I].SaveToStream(SaveProperties);
 end;
 
 class function TNodeImageTexture.ClassNodeTypeName: string;
@@ -10531,6 +10530,12 @@ begin
     'so route ' + Description + ' is ignored');}
 end;
 
+procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
+    [SourceNodeName, SourceFieldName, DestinationNodeName, DestinationFieldName]));
+end;
+
 function TVRMLRoute.Description: string;
 begin
   Result := Format('%s.%s -> %s.%s', [SourceNodeName, SourceFieldName,
@@ -11053,26 +11058,16 @@ begin
       Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
 
       { SaveToVRMLFile silently strips TNodeGroupHidden_* wrapper,
-        and produces file with multiple root nodes. In usual circumstances,
-        ParseVRMLFile would detect that multiple root nodes require wrapping
-        again in TNodeGroupHidden_*, and everything would be Ok
+        and produces file with multiple root nodes.
+        ParseVRMLFile should detect that multiple root nodes require wrapping
+        again in TNodeGroupHidden_*, and everything should be Ok
         (if SourceNode was TNodeGroupHidden_* wrapper, resulting copy also
-        will be).
-
-        But TODO: for now routes are not saved back to file.
-        And they also cause TNodeGroupHidden_* wrapper creation, even
-        if it will have only one children. When saving such file,
-        SaveToVRMLFile will discard this wrapper, but prototypes/routes
-        will not be saved. So when recreating, ParseVRMLFile will *not*
-        wrap inside TNodeGroupHidden_* wrapper.
-
-        Below we workaround this. }
-      if ( (SourceNode is TNodeGroupHidden_1) or
-           (SourceNode is TNodeGroupHidden_2) ) and
-         not ( (Result is TNodeGroupHidden_1) or
-               (Result is TNodeGroupHidden_2) ) then
-        Rewrap(TVRMLNodeClass(SourceNode.ClassType));
-
+        will be). }
+      Assert(
+        ( (SourceNode is TNodeGroupHidden_1) or
+          (SourceNode is TNodeGroupHidden_2) ) =
+        ( (Result is TNodeGroupHidden_1) or
+          (Result is TNodeGroupHidden_2) ) );
     finally FreeAndNil(SPeek) end;
   finally FreeAndNil(S) end;
 end;

@@ -12,7 +12,6 @@ VRML 97 TODO items:
   - see spec 4.9, External prototype semantics
 
 - save back to file prototypes (all prototypes:
-    routes: all,
     TVRMLNode.Events: those with IsClause,
     Scipt interface decl also save)
 
