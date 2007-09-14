@@ -12,12 +12,9 @@ VRML 97 TODO items:
   - see spec 4.9, External prototype semantics
 
 - save back to file prototypes (all prototypes:
-    non-external: just save interface decl and node,
-    external: just save interface decl and MFString URLList,
     routes: all,
-    events: those with IsClause,
+    TVRMLNode.Events: those with IsClause,
     Scipt interface decl also save)
-  For nodes with PrototypeInstance, save PrototypeInstanceSourceNode instead.
 
 - finish checking NIST tests
 

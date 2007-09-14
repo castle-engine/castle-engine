@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 

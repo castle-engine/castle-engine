@@ -23,7 +23,7 @@ unit VRMLEvents;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, VRMLFields, VRMLLexer;
+uses SysUtils, Classes, KambiUtils, KambiClassUtils, VRMLFields, VRMLLexer;
 
 {$define read_interface}
 
@@ -56,6 +56,9 @@ type
     { This only reads (optional) "IS" clause of the event, as may occur
       in VRML nodeBodyStatement. }
     procedure Parse(Lexer: TVRMLLexer);
+
+    { Writes (optional) "IS" clause of the event. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
   end;
 
   TObjectsListItem_1 = TVRMLEvent;
@@ -91,6 +94,12 @@ begin
     FIsClauseName := Lexer.TokenName;
     Lexer.NextToken;
   end;
+end;
+
+procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  if IsClause then
+    SaveProperties.Write('IS ' + IsClauseName);
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }

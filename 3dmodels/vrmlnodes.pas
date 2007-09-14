@@ -136,14 +136,13 @@
       wielu rzeczy w TVRMLNode takze dla takiej listy; wiec tutaj pomysl:
       przeciez klasa TNodeGroup jest wlasnie taka prosta lista node'ow.)
 
-      We represent this special "additional" Group node as a TNodeGroupHidden,
+      We represent this special "additional" Group node as a TNodeGroupHidden_1/2,
       @italic(that is a descendant of TNodeGroup (not the other way around)).
       This way you can entirely forget about this issue and just process
       the VRML model as you like, and the only downside will be that you
       will actually work with a different model (with additional Group node)
       than what was encoded in the file. You can also test for
-      (Node is TNodeGroupHidden) and recognize this special case.
-      SaveToVRMLFile does this, and avoids writing this hidden Group node.)
+      (Node is TNodeGroupHidden_1/2) and recognize this special case.)
   )
 
   Takie unikanie dekonstrukcji pozwoli nam
@@ -1142,21 +1141,19 @@ type
     function NodesCount(NodeClass: TVRMLNodeClass;
       CountOnlyActiveNodes: boolean): integer;
 
-    { zapisz node do strumienia; ta metoda jest tu zaimplementowana zupelnie
-      ogolnie i dziala dla kazdej podklasy TVRMLNode. Jak widac,
-      zapisujac graf VRML'a takze trzymamy sobie aktualne NodeNameBinding.
-      W ten sposob wiemy ze jezeli jakis node juz jest na tej liscie
-      to wystarczy zrobic mu USE. Jednoczesnie NodeNameBinding to,
-      podobnie jak przy parsowaniu, lista bez duplikatow, wiec jezeli nawet
-      w scenie beda dwa node'y o tej samej nazwie to my zapiszemy scene
-      poprawnie (uzyjemy USE tylko tam gdzie bedziemy mogli, jesli nie bedziemy
-      mogli - zapiszemy node normalnie).
+    (*Save node to stream. This saves everything, including node name,
+      node type, then node contents within { }.
+
+      We use NodeNameBinding, pretty much like when parsing.
+      If a node name is already bound with this node, then we know
+      we have to write only USE ... statement. Otherwise we write
+      full node contents, with eventual DEF ... statement.
 
       Note that if ChildrenSaveToStream returns @false
       we don't write our Children. Currently this is used by various inline
-      nodes (WWWInline, Inline, etc.) }
-    procedure SaveToStream(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList);
+      nodes (WWWInline, Inline, etc.).
+    *)
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); virtual;
 
     { szuka tej klasy node'a (rzeczywistej koncowej klasy, z ClassType) w
       TraverseStateLastNodesClasses. Zwraca indeks lub -1 jesli nie znalazl. }
@@ -1371,8 +1368,7 @@ type
     FAllowedChildren: TVRMLNodeClassesList;
     procedure SetValue(AValue: TVRMLNode);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor CreateUndefined(const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
@@ -1437,8 +1433,7 @@ type
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor CreateUndefined(const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
@@ -2392,9 +2387,17 @@ type
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { A Group node that is added when VRML file contains more than one root
+  { A Group node that is added when VRML 1.0 file contains more than one root
     node. See comments at the beginning of this unit for more info. }
   TNodeGroupHidden_1 = class(TNodeGroup_1)
+  public
+    (*Save TNodeGroupHidden_* contents to stream.
+
+      TNodeGroupHidden_* is saved to stream in a special way, so that actually
+      only it's contents are written, without surrounding { } braces.
+      This way, when saving, we "undo" the artificial wrapping in
+      TNodeGroupHidden_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
   end;
 
   { A general class that can ce used as a separator, something that
@@ -3185,6 +3188,14 @@ type
   end;
 
   TNodeGroupHidden_2 = class(TNodeGroup_2)
+  public
+    (*Save TNodeGroupHidden_* contents to stream.
+
+      TNodeGroupHidden_* is saved to stream in a special way, so that actually
+      only it's contents are written, without surrounding { } braces.
+      This way, when saving, we "undo" the artificial wrapping in
+      TNodeGroupHidden_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
   end;
 
   TNodeImageTexture = class(TNodeGeneralTexture)
@@ -4105,6 +4116,13 @@ type
 
     procedure Parse(Lexer: TVRMLLexer;
       FieldValue, IsClauseAllowed: boolean); virtual;
+
+    { Save this interface declaration to stream.
+      This assumes that it starts at the beginning of the line,
+      and at the end always writes NL, so at the end it's also
+      at the beginning of some line. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      FieldValue: boolean);
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
@@ -4210,6 +4228,13 @@ type
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
       Lexer: TVRMLLexer);
+
+    { Saves Name, and interface declarations enclosed
+      within [ ]. In descendant, you should first write the keyword PROTO
+      or EXTERNPROTO, then call this, then write the rest of your prototype. }
+    procedure SaveInterfaceDeclarationsToStream(
+      SaveProperties: TVRMLSaveToStreamProperties;
+      ExternalProto: boolean);
   public
     constructor Create;
     destructor Destroy; override;
@@ -4219,6 +4244,9 @@ type
 
     { Parse prototype, and add it to Lexer.ProtoNameBinding by @link(Bind). }
     procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
+
+    { Save prototype description to a stream. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); virtual; abstract;
 
     { Add Self (at least Name must be initialized) to prototypes namespace. }
     procedure Bind(ProtoNameBinding: TStringList);
@@ -4233,7 +4261,9 @@ type
     FNode: TVRMLNode;
   public
     destructor Destroy; override;
+
     procedure Parse(Lexer: TVRMLLexer); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { These are actual prototype contents: all nodes, prototypes, routes
       defined within this prototype.
@@ -4255,6 +4285,7 @@ type
     property URLList: TMFString read FURLList;
 
     procedure Parse(Lexer: TVRMLLexer); override;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
   end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
@@ -4414,12 +4445,24 @@ function ParseVRMLFile(const FileName: string;
 
 { SaveToVRMLFile writes whole VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
-  Also if PrecedingComment <> '' then we will write a comment
-  '# '+ PrecedingComment at the beginning. }
+
+  @param(PrecedingComment
+    If PrecedingComment <> '' then we will write a comment
+    '# '+ PrecedingComment at the beginning. This is for you
+    to optionally put name of the generator program or source filename
+    or time/date of generation etc.)
+
+  @param(WriteExpandedPrototype
+    See TVRMLSaveToStreamProperties.WriteExpandedPrototype. In pretty much
+    all normal cases (i.e. when you save your VRML node hierarchy into a file
+    for user) you can leave this as @false.)
+  }
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  Stream: TStream; const PrecedingComment: string); overload;
+  Stream: TStream; const PrecedingComment: string;
+  WriteExpandedPrototype: boolean = false); overload;
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  const Filename, PrecedingComment: string); overload;
+  const Filename, PrecedingComment: string;
+  WriteExpandedPrototype: boolean = false); overload;
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -5485,37 +5528,83 @@ begin
   finally C.Free end;
 end;
 
-procedure TVRMLNode.SaveToStream(Stream: TStream; const Indent: string; NodeNameBinding: TStringList);
-var i: integer;
-    NewIndent: string;
+procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: integer;
 begin
- if NodeNameBinding.IndexOfObject(Self) >= 0 then
-  WriteStr(Stream, Indent +'USE ' +NodeName +nl) else
- begin
-  {zapisz nas do strumienia}
-  WriteStr(Stream, Indent);
-  if NodeName <> '' then WriteStr(Stream, 'DEF ' +NodeName +' ');
-  WriteStr(Stream, NodeTypeName +' {' +nl);
-
-  NewIndent := Indent +IndentIncrement;
-
-  for i := 0 to Fields.Count-1 do
-   Fields[i].SaveToStream(Stream, NewIndent, NodeNameBinding);
-  if ChildrenSaveToStream then
-   for i := 0 to ChildrenCount-1 do
-    Children[i].SaveToStream(Stream, NewIndent, NodeNameBinding);
-
-  WriteStr(Stream, Indent +'}' +nl);
-
-  {teraz uaktualnij NodeNameBinding}
-  if NodeName <> '' then
+  if PrototypeInstance and (not SaveProperties.WriteExpandedPrototype) then
   begin
-   i := NodeNameBinding.IndexOf(NodeName);
-   if i >= 0 then
-    NodeNameBinding.Objects[i] := Self else
-    NodeNameBinding.Addobject(NodeName, Self);
+    { If this is an expanded prototype, than delegate writing to the
+      PrototypeInstanceSourceNode. }
+    PrototypeInstanceSourceNode.SaveToStream(SaveProperties);
+  end else
+  if SaveProperties.NodeNameBinding.IndexOfObject(Self) >= 0 then
+  begin
+    SaveProperties.WritelnIndent('USE ' + NodeName);
+  end else
+  begin
+    { write us to stream }
+    SaveProperties.WriteIndent('');
+    if NodeName <> '' then SaveProperties.Write('DEF ' +NodeName +' ');
+    SaveProperties.Writeln(NodeTypeName +' {');
+
+    SaveProperties.IncIndent;
+
+    (*Write all prototypes at the beginning. Prototype cannot depend
+      on whatever is defined by children nodes (in particular, since
+      prototypes have separate DEF / USE namespace), so it's safe to just
+      write here all prototypes (in the same order as they were found
+      in the file).
+
+      TODO: that's not true in case prototype name will be redefined.
+      Consider
+        PROTO Whatever [ ] { ... some proto contents... }
+        Whatever { }
+        PROTO Whatever [ ] { ... other proto contents... }
+        Whatever { }
+      ... so prototype definitions must be mixed with node/field children
+      declarations. (In VRML 2.0, proto can only between two field definitions...
+      still, what if both these are SFNode/MFNode fields ?)
+
+      Testcase: kambi_vrml_test_suite/vrml_2/proto_ultra_simple.wrl,
+      MySphere proto is redefined there. Writing it back doesn't make
+      the same VRML file...
+    *)
+    for I := 0 to Prototypes.Count - 1 do
+      Prototypes[I].SaveToStream(SaveProperties);
+
+    for i := 0 to Fields.Count - 1 do
+      Fields[i].SaveToStream(SaveProperties);
+
+    if ChildrenSaveToStream then
+      for i := 0 to ChildrenCount - 1 do
+        Children[i].SaveToStream(SaveProperties);
+
+    (*Write all routes at the end. Routes depend on node names defined,
+      and nothing depends on nodes... so it's safe to write routes here.
+
+      TODO: this is bad, in case some node name is redefined, like
+        DEF NodeName Whatever { }
+        ROUTE NodeName.xxx TO yyy.zzz
+        DEF NodeName SomethingElse { }
+      so the order of ROUTE should be preserved within order of nodes...
+    *)
+    {TODO
+    for I := 0 to Routes.Count - 1 do
+      Routes[I].SaveToStream(Stream, NewIndent, NodeNameBinding);}
+
+    SaveProperties.DecIndent;
+
+    SaveProperties.WritelnIndent('}');
+
+    { update NodeNameBinding.
+
+      TODO: same problem here as when reading VRML file.
+      We call Bind(NodeNameBinding) after writing node contents, because
+      we assume there are no cycles... but in case of Script nodes,
+      cycles are unfortunately possible. }
+    Bind(SaveProperties.NodeNameBinding);
   end;
- end;
 end;
 
 class function TVRMLNode.TraverseStateLastNodesIndex: Integer;
@@ -5880,14 +5969,16 @@ begin
   end;
 end;
 
-procedure TSFNode.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
   if Value = nil then
-    WriteStr(Stream, 'NULL') else
+    SaveProperties.Write('NULL') else
   begin
-    WriteStr(Stream, NL);
-    Value.SaveToStream(Stream, Indent + IndentIncrement, NodeNameBinding);
+    { TVRMLNode.SaveToStream normally starts from new line with an indent...
+      In this case, we want it to start on the same line, so indent must
+      be discarded. }
+    SaveProperties.DiscardNextIndent;
+    Value.SaveToStream(SaveProperties);
   end;
 end;
 
@@ -5983,25 +6074,29 @@ begin
   inherited;
 end;
 
-procedure TMFNode.SaveToStreamValue(Stream: TStream; const Indent: string;
-  NodeNameBinding: TStringList);
+procedure TMFNode.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: Integer;
 begin
   { We code Count = 0 and Count = 1 cases separately just to get a more
     compact look in these common situations. }
   if Count = 0 then
-    WriteStr(Stream, '[]') else
+    SaveProperties.Write('[]') else
   if Count = 1 then
   begin
-    WriteStr(Stream, NL);
-    Items[0].SaveToStream(Stream, Indent + IndentIncrement, NodeNameBinding);
+    { TVRMLNode.SaveToStream normally starts from new line with an indent...
+      In this case, we want it to start on the same line, so indent must
+      be discarded. }
+    SaveProperties.DiscardNextIndent;
+    Items[0].SaveToStream(SaveProperties);
   end else
   begin
-    WriteStr(Stream, '[' + NL);
+    SaveProperties.Writeln('[');
+    SaveProperties.IncIndent;
     for I := 0 to Count - 1 do
-      Items[I].SaveToStream(Stream, Indent + IndentIncrement, NodeNameBinding);
-    WriteStr(Stream, Indent + ']');
+      Items[I].SaveToStream(SaveProperties);
+    SaveProperties.DecIndent;
+    SaveProperties.WriteIndent(']');
   end;
 end;
 
@@ -7293,6 +7388,25 @@ begin
   Result := VerMajor <= 1;
 end;
 
+procedure TNodeGroupHidden_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: integer;
+begin
+  { Special things for TNodeGroupHidden_1 saving:
+    NodeName is ignored (should be '').
+    Fields are ignored (should never have any meaning). }
+
+  for I := 0 to Prototypes.Count - 1 do
+    Prototypes[I].SaveToStream(SaveProperties);
+
+  for i := 0 to ChildrenCount - 1 do
+    Children[i].SaveToStream(SaveProperties);
+
+  {TODO
+  for I := 0 to Routes.Count - 1 do
+    Routes[I].SaveToStream(SaveProperties);}
+end;
+
 constructor TNodeGeneralSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  inherited;
@@ -8482,6 +8596,27 @@ var
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeGroupHidden_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: integer;
+begin
+  { Special things for TNodeGroupHidden_2 saving:
+    NodeName is ignored (should be '').
+    Only field "children" is used, and in a special way (we write it's
+    nodes, without writing field name "children [" "]").
+    Other fields are ignored (should never have any meaning). }
+
+  for I := 0 to Prototypes.Count - 1 do
+    Prototypes[I].SaveToStream(SaveProperties);
+
+  for i := 0 to FdChildren.Count - 1 do
+    FdChildren.Items[I].SaveToStream(SaveProperties);
+
+  {TODO
+  for I := 0 to Routes.Count - 1 do
+    Routes[I].SaveToStream(SaveProperties);}
 end;
 
 class function TNodeImageTexture.ClassNodeTypeName: string;
@@ -9851,6 +9986,44 @@ begin
   end;
 end;
 
+procedure TVRMLInterfaceDeclaration.SaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties;
+  FieldValue: boolean);
+begin
+  if Event <> nil then
+  begin
+    if Event.InEvent then
+      SaveProperties.WriteIndent('eventIn ') else
+      SaveProperties.WriteIndent('eventOut ');
+    SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ' + Event.Name + ' ');
+    Event.SaveToStream(SaveProperties);
+    SaveProperties.Writeln;
+  end else
+  begin
+    if Field.Exposed then
+      SaveProperties.WriteIndent('exposedField ') else
+      SaveProperties.WriteIndent('field ');
+    SaveProperties.Write(Field.VRMLTypeName + ' ');
+    { Do not write field only if Field.IsClause is @false and
+      FieldValue = @false, so the field has a value but we don't want to
+      output it. }
+    if Field.IsClause or FieldValue then
+    begin
+      { Field.SaveToStream normally starts from new line with an indent...
+        In this case, we want it to start on the same line, so indent must
+        be discarded. }
+      SaveProperties.DiscardNextIndent;
+      Field.SaveToStream(SaveProperties, true);
+      { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
+        (we pass SaveWhenDefault anyway, so we can be sure that
+        this newline will be done). }
+    end else
+    begin
+      SaveProperties.Writeln(Field.Name);
+    end;
+  end;
+end;
+
 { TVRMLPrototypeNode --------------------------------------------------------- }
 
 constructor TVRMLPrototypeNode.Create(const ANodeName: string;
@@ -10075,14 +10248,9 @@ begin
     I := TVRMLInterfaceDeclaration.Create;
     InterfaceDeclarations.Add(I);
 
-    if Lexer.TokenIsKeyword([vkEventIn, vkEventOut]) or
-       ( Lexer.TokenIsKeyword([vkField, vkExposedField]) and ExternalProto) then
+    if Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField, vkExposedField]) then
     begin
-      I.Parse(Lexer, false, false);
-    end else
-    if Lexer.TokenIsKeyword([vkField, vkExposedField]) then
-    begin
-      I.Parse(Lexer, true, false);
+      I.Parse(Lexer, not ExternalProto, false);
     end else
       raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
@@ -10100,6 +10268,23 @@ begin
   if I <> - 1 then
     ProtoNameBinding.Objects[I] := Self else
     ProtoNameBinding.AddObject(Name, Self);
+end;
+
+procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
+  SaveProperties: TVRMLSaveToStreamProperties;
+  ExternalProto: boolean);
+var
+  I: Integer;
+begin
+  SaveProperties.Writeln(Name + ' [');
+  SaveProperties.IncIndent;
+  for I := 0 to InterfaceDeclarations.Count - 1 do
+  begin
+    InterfaceDeclarations.Items[I].SaveToStream(
+      SaveProperties, not ExternalProto);
+  end;
+  SaveProperties.DecIndent;
+  SaveProperties.WritelnIndent(']');
 end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
@@ -10165,6 +10350,31 @@ begin
   Bind(Lexer.ProtoNameBinding);
 end;
 
+procedure TVRMLPrototype.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  OldNodeNameBinding: TStringList;
+begin
+  SaveProperties.WriteIndent('PROTO ');
+
+  SaveInterfaceDeclarationsToStream(SaveProperties, false);
+
+  { Inside prototype has it's own DEF/USE scope. }
+  OldNodeNameBinding := SaveProperties.NodeNameBinding;
+  SaveProperties.NodeNameBinding := TStringListCaseSens.Create;
+  try
+    SaveProperties.WritelnIndent('{');
+    { Node may be TNodeGroupHidden_* here, that's OK,
+      TNodeGroupHidden_*.SaveToStream will magically handle this right. }
+    SaveProperties.IncIndent;
+    Node.SaveToStream(SaveProperties);
+    SaveProperties.DecIndent;
+    SaveProperties.WritelnIndent('}');
+  finally
+    FreeAndNil(SaveProperties.NodeNameBinding);
+    SaveProperties.NodeNameBinding := OldNodeNameBinding;
+  end;
+end;
+
 { TVRMLExternalPrototype ----------------------------------------------------- }
 
 constructor TVRMLExternalPrototype.Create;
@@ -10198,6 +10408,19 @@ begin
   VRMLNonFatalError(Format(
     'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
     [Name]));
+end;
+
+procedure TVRMLExternalPrototype.SaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  SaveProperties.WriteIndent('EXTERNPROTO ');
+
+  SaveInterfaceDeclarationsToStream(SaveProperties, true);
+
+  { SaveProperties.NodeNameBinding will be ignored by URLList
+    (TMFString.SaveToStream), don't worry about it. }
+
+  URLList.SaveToStream(SaveProperties);
 end;
 
 { TNodesManager ------------------------------------------------------------ }
@@ -10715,18 +10938,20 @@ begin
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
-  const PrecedingComment: string);
+  const PrecedingComment: string;
+  WriteExpandedPrototype: boolean);
 const
   VRML10Header = '#VRML V1.0 ascii';
   VRML20Header = '#VRML V2.0 utf8';
 var
-  NodeNameBinding: TStringList;
-  I: Integer;
+  SaveProperties: TVRMLSaveToStreamProperties;
   VerMajor, VerMinor, SuggestionPriority: Integer;
   VRMLHeader: string;
 begin
-  NodeNameBinding := TStringListCaseSens.Create;
+  SaveProperties := TVRMLSaveToStreamProperties.Create(Stream);
   try
+    SaveProperties.WriteExpandedPrototype := WriteExpandedPrototype;
+
     if Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
     begin
       if (VerMajor = 1) and (VerMinor = 0) then
@@ -10737,28 +10962,25 @@ begin
     end else
       VRMLHeader := VRML10Header; { fallback is VRML10Header }
 
-    WriteStr(Stream, VRMLHeader +nl +nl);
+    SaveProperties.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
     if PrecedingComment <> '' then
-      WriteStr(Stream, '# '+PrecedingComment +nl +nl);
+      SaveProperties.Writeln('# '+PrecedingComment + NL);
 
-    if (Node is TNodeGroupHidden_1) or
-       (Node is TNodeGroupHidden_2) then
-    begin
-      for I := 0 to Node.SmartChildrenCount - 1 do
-        Node.SmartChildren[I].SaveToStream(Stream, '', NodeNameBinding);
-    end else
-      Node.SaveToStream(Stream, '', NodeNameBinding);
-  finally NodeNameBinding.Free end;
+    { Node may be TNodeGroupHidden_* here, that's OK,
+      TNodeGroupHidden_*.SaveToStream will magically handle this right. }
+    Node.SaveToStream(SaveProperties);
+  finally FreeAndNil(SaveProperties) end;
 end;
 
 procedure SaveToVRMLFile(Node: TVRMLNode;
-  const Filename, PrecedingComment: string);
+  const Filename, PrecedingComment: string;
+  WriteExpandedPrototype: boolean);
 var
   Stream: TFileStream;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveToVRMLFile(Node, Stream, PrecedingComment);
+    SaveToVRMLFile(Node, Stream, PrecedingComment, WriteExpandedPrototype);
   finally Stream.Free end;
 end;
 
@@ -10803,9 +11025,27 @@ begin
 
       We should instead copy VRML hierarchy by doing nice traverse of the graph.
       See TVRMLGLAnimation.Load implementation, when merging VRML nodes
-      this also iterates everything that should be copied. }
+      this also iterates everything that should be copied.
+    }
 
-    SaveToVRMLFile(SourceNode, S, '');
+    { It's crucial that we use WriteExpandedPrototype = @true here. Otherwise:
+
+      1. We would cause unnecessary expanding of prototypes.
+         SourceNode may have prototypes already
+         expanded, but when saving it to stream, SaveToStream would
+         discard the expanded version and save the prototype call instead.
+         Which means that ParseVRMLFile will have to expand it again...
+
+         This may hurt performance badly in case of nested large prototypes,
+         as prototype Instantiate itself uses VRMLNodeDeepCopy.
+
+      2. Moerover, this can cause actual errors, see e.g.
+         kambi_vrml_test_suite/vrml_2/proto_nested.wrl test.
+         Reason: inside a prototype, we may use a prototype defined at higher
+         level. Which means that this prototype definition will not be
+         recorded by SaveToVRMLFile below... but it we will write unexpanded
+         prototype, this definition will be needed by ParseVRMLFile. }
+    SaveToVRMLFile(SourceNode, S, '', true);
 
     S.Position := 0;
     SPeek := TBufferedReadStream.Create(S, false);
@@ -10819,7 +11059,7 @@ begin
         (if SourceNode was TNodeGroupHidden_* wrapper, resulting copy also
         will be).
 
-        But TODO: for now prototypes and routes are not saved back to file.
+        But TODO: for now routes are not saved back to file.
         And they also cause TNodeGroupHidden_* wrapper creation, even
         if it will have only one children. When saving such file,
         SaveToVRMLFile will discard this wrapper, but prototypes/routes

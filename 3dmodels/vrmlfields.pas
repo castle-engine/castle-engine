@@ -29,14 +29,48 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
 
 {$define read_interface}
 
-const
-  { IndentIncrement is string or char. It's used by SaveToStream }
-  IndentIncrement = CharTab;
-
 type
   EVRMLFieldAssign = class(Exception);
   EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
   EVRMLFieldAssignFromIsClause = class(EVRMLFieldAssign);
+
+  TVRMLSaveToStreamProperties = class
+  private
+    Indent: string;
+    DoDiscardNextIndent: boolean;
+  public
+    constructor Create(AStream: TStream);
+    destructor Destroy; override;
+
+    Stream: TStream;
+
+    NodeNameBinding: TStringList;
+
+    { If @true, TVRMLNode.SaveToStream will write the expanded
+      prototype contents. This means that prototype definitions in the
+      file will be actually useless, as every prototype is already
+      expanded into normal built-in nodes. Usually you want to pass
+      this as @false (default), since user wants to see his prototype
+      calls in the file just like they were in source file. }
+    WriteExpandedPrototype: boolean;
+
+    procedure IncIndent;
+    procedure DecIndent;
+
+    { Just a comfortable routines that simply write given string to a stream,
+      using WriteStr(Stream, ...).
+      @groupBegin }
+    procedure Write(const S: string);
+    procedure Writeln(const S: string); overload;
+    procedure Writeln; overload;
+    procedure WriteIndent(const S: string);
+    procedure WritelnIndent(const S: string);
+    { @groupEnd }
+
+    { Causes next WriteIndent or WritelnIndent will not write the Indent.
+      Useful in some cases to improve readability of generated VRML file. }
+    procedure DiscardNextIndent;
+  end;
 
 { fields base classes ------------------------------------------------------ }
 
@@ -78,9 +112,8 @@ type
       already takes care of IsClause. If IsClause, it will do
       everything, and not call SaveToStreamValue. So when overriding
       SaveToStreamValue, you can safely assume that IsClause is @false. }
-    procedure SaveToStreamValue(Stream: TStream;
-      const Indent: string;
-      NodeNameBinding: TStringList); virtual; abstract;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+      virtual; abstract;
 
     { Call this inside overriden Assign methods.
       I don't want to place this inside TVRMLField.Assign, since I want
@@ -146,17 +179,24 @@ type
       by TSFNode and TMFNode). }
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); virtual;
 
-    { O ile not EqualsDefaultValue to kazde pole bedzie zapisane jako jedna lub
-      wiecej linii.
-      (notka wewnetrzna dla implementacji tego modulu - nie probuj nigdy
-      zapisac pol ktorych Name = '').
+    { Save the field to the stream.
+      If the current field value equals default value and
+      SaveWhenDefault is @false (default) then the field will not be saved.
+      Otherwise field name, current value / "IS" clause will be saved.
 
-      NodeNameBinding has the same meaning as for TVRMLNode.SaveToStream,
+      This writes multiple lines, first line will start with Indent,
+      last line will be terminated by newline.
+
+      Note that when Name is '', this also works (writes only field value
+      / "IS" clause then).
+
+      SaveProperties.NodeNameBinding has the same meaning as for
+      TVRMLNode.SaveToStream,
       see there. It can be ignored, and in fact it is ignored by all
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
-    procedure SaveToStream(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      SaveWhenDefault: boolean = false);
 
     { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
       aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej.
@@ -358,8 +398,7 @@ type
       SaveToStreamDoNewLineAfterRawItem moga byc niekiedy ignorowane
       (czasami po prostu w tej klasie wiemy ze NA PEWNO tak jak robimy
       bedzie ladniej wygladalo; bo tak czy siak, tu chodzi tylko o estetyke) }
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
     function RawItemToString(ItemNum: integer): string; virtual; abstract;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
   public
@@ -409,8 +448,7 @@ type
     procedure SetFlags(i: integer; value: boolean);
     function GetFlagNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     {Flags okresla wartosci wszystkich flag - pytaj go o liczby z przedzialu
      0..FlagsCount-1}
@@ -459,8 +497,7 @@ type
 
   TSFBool = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: boolean);
 
@@ -481,8 +518,7 @@ type
 
   TSFColor = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: TVector3Single);
 
@@ -512,8 +548,7 @@ type
     fEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string;
       const AEnumNames: array of string; const AValue: integer);
@@ -542,8 +577,7 @@ type
     FValue: Single;
     procedure SetValue(const AValue: Single);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: Single); overload;
     constructor Create(const AName: string; const AValue: Single;
@@ -578,8 +612,7 @@ type
     FValue: Double;
     procedure SetValue(const AValue: Double);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: Double);
 
@@ -601,8 +634,7 @@ type
 
   TSFImage = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
 
     { Value is owned by this object - i.e. in destructor we do Value.Free.
@@ -643,8 +675,7 @@ type
     FValue: Longint;
     procedure SetValue(const AValue: Longint);
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: Longint); overload;
     constructor Create(const AName: string; const AValue: Longint;
@@ -674,8 +705,7 @@ type
 
   TSFMatrix = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AMatrix: TMatrix4Single);
 
@@ -697,8 +727,7 @@ type
     DefaultRotationRad: Single;
     DefaultValueExists: boolean;
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
   public
@@ -725,8 +754,7 @@ type
 
   TSFString = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: string);
 
@@ -747,8 +775,7 @@ type
 
   TSFVec2f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: TVector2Single);
 
@@ -770,8 +797,7 @@ type
 
   TSFVec3f = class(TVRMLSingleField)
   protected
-    procedure SaveToStreamValue(Stream: TStream; const Indent: string;
-      NodeNameBinding: TStringList); override;
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor Create(const AName: string; const AValue: TVector3Single);
 
@@ -1032,6 +1058,74 @@ uses Math, VRMLErrors;
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 
+{ TVRMLSaveToStreamProperties ------------------------------------------------ }
+
+const
+  { IndentIncrement is string or char. It's used by SaveToStream }
+  IndentIncrement = CharTab;
+
+constructor TVRMLSaveToStreamProperties.Create(AStream: TStream);
+begin
+  inherited Create;
+  Stream := AStream;
+  NodeNameBinding := TStringListCaseSens.Create;
+end;
+
+destructor TVRMLSaveToStreamProperties.Destroy;
+begin
+  FreeAndNil(NodeNameBinding);
+  inherited;
+end;
+
+procedure TVRMLSaveToStreamProperties.IncIndent;
+var
+  L: Integer;
+begin
+  L := Length(Indent) + 1;
+  SetLength(Indent, L);
+  Indent[L] := IndentIncrement;
+end;
+
+procedure TVRMLSaveToStreamProperties.DecIndent;
+begin
+  SetLength(Indent, Length(Indent) - 1);
+end;
+
+procedure TVRMLSaveToStreamProperties.Write(const S: string);
+begin
+  WriteStr(Stream, S);
+end;
+
+procedure TVRMLSaveToStreamProperties.Writeln(const S: string);
+begin
+  WriteStr(Stream, S);
+  WriteStr(Stream, NL);
+end;
+
+procedure TVRMLSaveToStreamProperties.Writeln;
+begin
+  WriteStr(Stream, NL);
+end;
+
+procedure TVRMLSaveToStreamProperties.WriteIndent(const S: string);
+begin
+  if DoDiscardNextIndent then
+    DoDiscardNextIndent := false else
+    WriteStr(Stream, Indent);
+  WriteStr(Stream, S);
+end;
+
+procedure TVRMLSaveToStreamProperties.WritelnIndent(const S: string);
+begin
+  WriteIndent(S);
+  WriteStr(Stream, NL);
+end;
+
+procedure TVRMLSaveToStreamProperties.DiscardNextIndent;
+begin
+  DoDiscardNextIndent := true;
+end;
+
 { TVRMLField ------------------------------------------------------------- }
 
 constructor TVRMLField.Create(const AName: string);
@@ -1045,21 +1139,19 @@ begin
   FName := AName;
 end;
 
-procedure TVRMLField.SaveToStream(Stream: TStream; const Indent: string;
-  NodeNameBinding: TStringList);
+procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+  SaveWhenDefault: boolean);
 begin
-  Assert(Name <> '',
-    'VRML field name must be defined to allow saving field to stream');
-  if not EqualsDefaultValue then
+  if SaveWhenDefault or (not EqualsDefaultValue) then
   begin
-    WriteStr(Stream, Indent + Name + ' ');
+    if Name <> '' then SaveProperties.WriteIndent(Name + ' ');
     { We depend here on the fact that EqualsDefaultValue is always @false
       when IsClause, otherwise fields with IsClause could be omitted by
       check "if not EqualsDefaultValue then" above. }
     if IsClause then
-      WriteStr(Stream, 'IS ' + IsClauseName) else
-      SaveToStreamValue(Stream, Indent, NodeNameBinding);
-    WriteStr(Stream, nl);
+      SaveProperties.Write('IS ' + IsClauseName) else
+      SaveToStreamValue(SaveProperties);
+    SaveProperties.Writeln;
   end;
 end;
 
@@ -1243,32 +1335,38 @@ begin
   end;
 end;
 
-procedure TVRMLSimpleMultField.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TVRMLSimpleMultField.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 var i: integer;
     WriteIndentNextTime: boolean;
 begin
- { kod ogolny generowalby poprawne wartosci takze dla RawItems.Count = 0 i 1.
-   Ale zalatwiam je specjalnym kodem dla estetyki. }
- if RawItems.Count = 0 then
-  WriteStr(Stream, '[]') else
- if RawItems.Count = 1 then
-  WriteStr(Stream, RawItemToString(0)) else
- begin
-  WriteStr(Stream, '[' +nl);
-  WriteIndentNextTime := true;
-  for i := 0 to RawItems.Count-1 do
-  begin
-   if WriteIndentNextTime then WriteStr(Stream, Indent +IndentIncrement);
-   WriteStr(Stream, RawItemToString(i) +',');
-   {za ostatnim elementem listy zawsze piszemy newline,
-    bez wzgledu na wynik SaveToStreamDoNewLineAfterRawItem}
-   if (i = RawItems.Count-1) or SaveToStreamDoNewLineAfterRawItem(i) then
-     begin WriteStr(Stream, nl); WriteIndentNextTime := true end else
-     begin WriteStr(Stream, ' '); WriteIndentNextTime := false; end;
+  { The general "for I := ..." code below can handle correctly any RawItems.Count
+    value. But for aesthetics, i.e. more clear output for humans,
+    I handle the RawItems.Count = 0 and 1 cases separately. }
+  case RawItems.Count of
+    0: SaveProperties.Write('[]');
+    1: SaveProperties.Write(RawItemToString(0));
+    else
+      begin
+        SaveProperties.Writeln('[');
+        SaveProperties.IncIndent;
+
+        WriteIndentNextTime := true;
+        for i := 0 to RawItems.Count-1 do
+        begin
+          if WriteIndentNextTime then SaveProperties.WriteIndent('');
+          SaveProperties.Write(RawItemToString(i) +',');
+          { After the last item we always write newline,
+            no matter what's SaveToStreamDoNewLineAfterRawItem }
+          if (i = RawItems.Count - 1) or
+             SaveToStreamDoNewLineAfterRawItem(i) then
+            begin SaveProperties.Writeln; WriteIndentNextTime := true end else
+            begin SaveProperties.Write(' '); WriteIndentNextTime := false; end;
+        end;
+
+        SaveProperties.DecIndent;
+        SaveProperties.WritelnIndent(']');
+      end;
   end;
-  WriteStr(Stream, Indent +']');
- end;
 end;
 
 function TVRMLSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
@@ -1360,11 +1458,10 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFBool.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFBool.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
- if Value then WriteStr(Stream, VRMLKeywords[vkTrue]) else
-               WriteStr(Stream, VRMLKeywords[vkFalse])
+ if Value then SaveProperties.Write(VRMLKeywords[vkTrue]) else
+               SaveProperties.Write(VRMLKeywords[vkFalse])
 end;
 
 function TSFBool.EqualsDefaultValue: boolean;
@@ -1426,10 +1523,9 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSFColor.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFColor.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, VectorToRawStr(Value));
+  SaveProperties.Write(VectorToRawStr(Value));
 end;
 
 function TSFColor.EqualsDefaultValue: boolean;
@@ -1512,10 +1608,9 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFFloat.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFFloat.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, FloatToRawStr(Value));
+  SaveProperties.Write(FloatToRawStr(Value));
 end;
 
 function TSFFloat.EqualsDefaultValue: boolean;
@@ -1589,10 +1684,9 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFTime.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFTime.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, FloatToRawStr(Value));
+  SaveProperties.Write(FloatToRawStr(Value));
 end;
 
 function TSFTime.EqualsDefaultValue: boolean;
@@ -1765,18 +1859,19 @@ begin
   end;
 end;
 
-procedure TSFImage.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFImage.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 var rgb: TVector3Byte;
     rgba: TVector4Byte;
     i: Cardinal;
     pixel: LongWord;
 begin
  if Value.IsNull then
-  WriteStr(Stream, '0 0 1') else
+  SaveProperties.Write('0 0 1') else
  begin
-  WriteStr(Stream, Format('%d %d %d', [Value.Width, Value.Height,
-    Value.ColorComponentsCount]) +nl +Indent +IndentIncrement);
+  SaveProperties.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
+    Value.ColorComponentsCount]));
+  SaveProperties.IncIndent;
+  SaveProperties.WriteIndent('');
   {$I NoRQCheckBegin.inc}
   if Value is TRGBImage then
   begin
@@ -1784,7 +1879,7 @@ begin
    begin
     rgb := PArray_Vector3Byte(TRGBImage(Value).RGBPixels)^[i];
     pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
-    WriteStr(Stream, Format('0x%.6x ', [pixel]));
+    SaveProperties.Write(Format('0x%.6x ', [pixel]));
    end;
   end else
   if Value is TAlphaImage then
@@ -1793,11 +1888,12 @@ begin
    begin
     rgba := PArray_Vector4Byte(TAlphaImage(Value).AlphaPixels)^[i];
     pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
-    WriteStr(Stream, Format('0x%.8x ', [pixel]));
+    SaveProperties.Write(Format('0x%.8x ', [pixel]));
    end;
   end else
    raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TImage descendant');
   {$I NoRQCheckEnd.inc}
+  SaveProperties.DecIndent;
  end;
 end;
 
@@ -1871,10 +1967,9 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFLong.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFLong.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, IntToStr(Value));
+  SaveProperties.Write(IntToStr(Value));
 end;
 
 function TSFLong.EqualsDefaultValue: boolean;
@@ -1946,13 +2041,14 @@ begin
   for col := 0 to 3 do ParseVector(Matrix[col], Lexer);
 end;
 
-procedure TSFMatrix.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFMatrix.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
- WriteStr(Stream, VectorToRawStr(Matrix[0]) +nl +
-                  Indent +IndentIncrement +VectorToRawStr(Matrix[1]) +nl +
-                  Indent +IndentIncrement +VectorToRawStr(Matrix[2]) +nl +
-                  Indent +IndentIncrement +VectorToRawStr(Matrix[3]) );
+  SaveProperties.Writeln(VectorToRawStr(Matrix[0]));
+  SaveProperties.IncIndent;
+  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[1]));
+  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[2]));
+  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[3]));
+  SaveProperties.DecIndent;
 end;
 
 function TSFMatrix.Equals(SecondValue: TVRMLField;
@@ -2034,10 +2130,9 @@ begin
  RotationRad := AValue[3];
 end;
 
-procedure TSFRotation.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
+  SaveProperties.Write(VectorToRawStr(Axis) +' ' +FloatToRawStr(RotationRad));
 end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3Single): TVector3Single;
@@ -2115,10 +2210,9 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFString.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFString.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
- WriteStr(Stream, StringToVRMLStringToken(Value));
+ SaveProperties.Write(StringToVRMLStringToken(Value));
 end;
 
 function TSFString.EqualsDefaultValue: boolean;
@@ -2180,10 +2274,9 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSFVec2f.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFVec2f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, VectorToRawStr(Value));
+  SaveProperties.Write(VectorToRawStr(Value));
 end;
 
 function TSFVec2f.EqualsDefaultValue: boolean;
@@ -2252,10 +2345,9 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSFVec3f.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFVec3f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, VectorToRawStr(Value));
+  SaveProperties.Write(VectorToRawStr(Value));
 end;
 
 function TSFVec3f.EqualsDefaultValue: boolean;
@@ -2388,28 +2480,27 @@ begin
  exit(true);
 end;
 
-procedure TSFBitMask.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFBitMask.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 var i: integer;
     PrecedeWithBar: boolean;
 begin
  if AreAllFlags(false) then
-  WriteStr(Stream, NoneString) else
+  SaveProperties.Write(NoneString) else
  begin
   {zapisywanie do strumienia AllString to taka estetyka - zawsze przeciez
    mozemy wyrazic All flags po prostu zapisujac je wszystkie. }
   if (AllString <> '') and AreAllFlags(true) then
-   WriteStr(Stream, AllString) else
+   SaveProperties.Write(AllString) else
   begin
    PrecedeWithBar := false; { pierwszy element nie bedzie poprzedzony '|' }
-   WriteStr(Stream, '(');
+   SaveProperties.Write('(');
    for i := 0 to FlagsCount-1 do
     if Flags[i] then
     begin
-     if PrecedeWithBar then WriteStr(Stream, '|') else PrecedeWithBar := true;
-     WriteStr(Stream, FlagNames[i]);
+     if PrecedeWithBar then SaveProperties.Write('|') else PrecedeWithBar := true;
+     SaveProperties.Write(FlagNames[i]);
     end;
-   WriteStr(Stream, ')');
+   SaveProperties.Write(')');
   end;
  end;
 end;
@@ -2493,10 +2584,9 @@ begin
   Lexer.NextToken;
 end;
 
-procedure TSFEnum.SaveToStreamValue(Stream: TStream;
-  const Indent: string; NodeNameBinding: TStringList);
+procedure TSFEnum.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
-  WriteStr(Stream, EnumNames[Value]);
+  SaveProperties.Write(EnumNames[Value]);
 end;
 
 function TSFEnum.EqualsDefaultValue: boolean;
