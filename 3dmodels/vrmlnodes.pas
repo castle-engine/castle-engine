@@ -1,20 +1,20 @@
 {
   Copyright 2002-2007 Michalis Kamburelis.
 
-  This file is part of "Kambi's 3dmodels Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's 3dmodels Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's 3dmodels Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's 3dmodels Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
@@ -4135,7 +4135,12 @@ type
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
   {$I objectslist_2.inc}
-  TVRMLInterfaceDeclarationsList = class(TObjectsList_2);
+  TVRMLInterfaceDeclarationsList = class(TObjectsList_2)
+  public
+    { Find item with Field <> nil and Field.Name matching FieldName.
+      @nil if not found. }
+    function TryFindFieldName(const FieldName: string): TVRMLField;
+  end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
 
@@ -4150,8 +4155,11 @@ type
     This way you can simply parse this node (just like any other node)
     to parse prototype instance.
 
-    If this is a non-external prototype, then after parsing you can
-    actually get the instantiated content by @link(Instantiate) method.
+    The prototype may be instantiated. After parsing you can
+    do it by @link(Instantiate) method. In case of non-external prototype,
+    this should always be possible (for a valid VRML files, that is),
+    in case of external prototype this may requite loading the external
+    prototype file.
 
     This node cannot be created by standard Create method,
     always use CreatePrototypeNode. }
@@ -4172,6 +4180,13 @@ type
       must *always be instantiated within it's direct parent*, not higher,
       so says the spec. }
     procedure InstantiateReplaceIsClauses(Node, Child: TVRMLNode);
+
+    { Basically, do Destination.Assign(Source).
+      If Source.IsClause, then copies Source.IsClauseName to
+      Destination.IsClauseName.
+      In case of EVRMLFieldAssign, make VRMLNonFatalError with clear message. }
+    procedure FieldsAssignValue(Destination, Source: TVRMLField;
+      UsingIsClause: boolean);
   public
     { This constructor will raise exception for TVRMLPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
@@ -4183,9 +4198,14 @@ type
 
     property Prototype: TVRMLPrototypeBase read FPrototype;
 
-    { Instantiate the non-external prototype, that is create new VRML node
+    { Instantiate the prototype, that is create new VRML node
       (of "normal" classs, not TVRMLPrototypeNode) using prototype description.
-      In essense, this takes Prototype.Node and returns it's copy.
+
+      For non-external prototype, in essense it just takes Prototype.Node
+      and returns it's copy. For external prototype it first loads external file,
+      and then uses non-external prototype there. Eventually,
+      for external prototype we may also use build-in node (if URN will
+      indicate so).
 
       Actually, the process is a little more involved (see below for
       details), but the idea is that returned node can be simply inserted
@@ -4223,8 +4243,8 @@ type
           to correctly save using PrototypeInstanceSourceNode, instead
           of writing actual node contents.))
 
-      @raises(EVRMLPrototypeInstantiateError if for some reason it's
-        found that the prototype cannot be instantiated.
+      @raises(EVRMLPrototypeInstantiateError if for some reason
+        the prototype cannot be instantiated.
         You can catch this and replace with VRMLNonFatalError, if possible.)
     }
     function Instantiate: TVRMLNode;
@@ -4234,6 +4254,9 @@ type
   private
     FName: string;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
+
+    { Parses InterfaceDeclarations. Also inits WWWBasePath from
+      Lexer.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
       Lexer: TVRMLLexer);
 
@@ -4243,6 +4266,8 @@ type
     procedure SaveInterfaceDeclarationsToStream(
       SaveProperties: TVRMLSaveToStreamProperties;
       ExternalProto: boolean);
+
+    FWWWBasePath: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -4258,6 +4283,11 @@ type
 
     { Add Self (at least Name must be initialized) to prototypes namespace. }
     procedure Bind(ProtoNameBinding: TStringList);
+
+    { The base URL path used to resolve urls inside.
+      For now, used by EXTERNPROTO urls.
+      See TVRMLNode.WWWBasePath for more comments. }
+    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
   end;
 
   TObjectsListItem_4 = TVRMLPrototypeBase;
@@ -4287,6 +4317,17 @@ type
   TVRMLExternalPrototype = class(TVRMLPrototypeBase)
   private
     FURLList: TMFString;
+
+    { FReferencedPrototype has links to other parts of the VRML graph.
+      Not only FReferencedPrototype.Node, but also
+      FReferencedPrototype.InterfaceDeclaration may have links to it:
+      if referenced node has SFNode or MFNode fields and their default
+      values have "USE ..." clauses.
+      So it's best to keep whole ReferencedPrototypeNode (whole VRML file
+      that contained this prototype) loaded. }
+    ReferencedPrototypeNode: TVRMLNode;
+
+    FReferencedPrototype: TVRMLPrototype;
   public
     constructor Create;
     destructor Destroy; override;
@@ -4294,6 +4335,10 @@ type
 
     procedure Parse(Lexer: TVRMLLexer); override;
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+
+    property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
+    procedure LoadReferencedPrototype;
+    procedure UnloadReferencedPrototype;
   end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
@@ -4436,9 +4481,13 @@ function ParseNode(Lexer: TVRMLLexer;
   sometimes compressed with gzip). You should already pass here a stream
   with uncompressed text data.
 
+  @param(ProtoNameBinding If <> @nil, will be filled with global
+    prototype namespace at the end of parsing the file. Usually not useful.)
+
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function ParseVRMLFile(Stream: TPeekCharStream;
-  const WWWBasePath: string): TVRMLNode; overload;
+  const WWWBasePath: string;
+  ProtoNameBinding: TStringList = nil): TVRMLNode; overload;
 
 function ParseVRMLFileFromString(const VRMLContents: string;
   const WWWBasePath: string): TVRMLNode; overload;
@@ -4449,9 +4498,13 @@ function ParseVRMLFileFromString(const VRMLContents: string;
 
   This function can handle files compressed with gzip
   (it just internally filters file contents with TGZFileStream,
-  uncompressing it on the fly). }
+  uncompressing it on the fly).
+
+  @param(ProtoNameBinding If <> @nil, will be filled with global
+    prototype namespace at the end of parsing the file. Usually not useful.) }
 function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean): TVRMLNode; overload;
+  AllowStdIn: boolean;
+  ProtoNameBinding: TStringList = nil): TVRMLNode; overload;
 
 { SaveToVRMLFile writes whole VRML file with given root Node.
   This includes writing VRML header '#VRML ...'.
@@ -4600,7 +4653,7 @@ uses
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
-  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils;
+  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -9298,8 +9351,8 @@ constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  { Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true; }
-  { Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true; }
+  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true;
   Events.Add(TVRMLEvent.Create('value_changed', TSFFloat, false));
 end;
 
@@ -10054,6 +10107,21 @@ begin
   end;
 end;
 
+{ TVRMLInterfaceDeclarationsList --------------------------------------------- }
+
+function TVRMLInterfaceDeclarationsList.TryFindFieldName(const FieldName: string): TVRMLField;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Result := Items[I].Field;
+    if (Result <> nil) and (Result.Name = FieldName) then
+      Exit;
+  end;
+  Result := nil;
+end;
+
 { TVRMLPrototypeNode --------------------------------------------------------- }
 
 constructor TVRMLPrototypeNode.Create(const ANodeName: string;
@@ -10102,6 +10170,33 @@ begin
   Result := Prototype.Name;
 end;
 
+procedure TVRMLPrototypeNode.FieldsAssignValue(Destination, Source: TVRMLField;
+  UsingIsClause: boolean);
+begin
+  if Source.IsClause then
+  begin
+    Destination.IsClauseName := Source.IsClauseName;
+  end else
+  try
+    Destination.Assign(Source);
+  except
+    on E: EVRMLFieldAssign do
+    begin
+      if (E is EVRMLFieldAssignInvalidClass) and UsingIsClause then
+        VRMLNonFatalError(Format('Within prototype "%s", ' +
+          'field of type %s (named "%s") references ' +
+          '(by "IS" clause) field of different type %s (named "%s")',
+          [Prototype.Name,
+           Destination.VRMLTypeName,
+           Destination.Name,
+           Source.VRMLTypeName,
+           Source.Name])) else
+        VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
+          [Prototype.Name]) + E.Message);
+    end;
+  end;
+end;
+
 procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
   Node, Child: TVRMLNode);
 
@@ -10132,39 +10227,21 @@ begin
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
-        if OurField.IsClause then
-        begin
-          { This means that the prototype (current Prototype) is expanded
-            within the definition of another prototype.
-            So InstanceField.IsClauseName referers to OurField
-            (from current Prototype), but OurField.IsClauseName refers to yet
-            another, enclosing, prototype (that will be expanded later --- for
-            now we're within enclosing prototype definition).
 
-            So solution is simple: InstanceField is expanded to also
-            refer to this enclosing prototype. }
-          InstanceField.IsClauseName := OurField.IsClauseName;
-        end else
-        try
-          InstanceField.AssignValue(OurField);
-        except
-          on E: EVRMLFieldAssignInvalidClass do
-          begin
-            VRMLNonFatalError(Format('Within prototype "%s", ' +
-              'field of type %s (named "%s") references ' +
-              '(by "IS" clause) field of different type %s (named "%s")',
-              [Prototype.Name,
-               InstanceField.VRMLTypeName,
-               InstanceField.Name,
-               OurField.VRMLTypeName,
-               OurField.Name]));
-          end;
-          on E: EVRMLFieldAssign do
-          begin
-            VRMLNonFatalError(Format('Error when expanding prototype "%s": ',
-              [Prototype.Name]) + E.Message);
-          end;
-        end;
+        { Note that if OurField.IsClause, then InstantceField will have
+          OurField.IsClauseName assigned.
+
+          This means that the prototype (current Prototype) is expanded
+          within the definition of another prototype.
+          So InstanceField.IsClauseName referers to OurField
+          (from current Prototype), but OurField.IsClauseName refers to yet
+          another, enclosing, prototype (that will be expanded later --- for
+          now we're within enclosing prototype definition).
+
+          So solution is simple: InstanceField is expanded to also
+          refer to this enclosing prototype. }
+
+        FieldsAssignValue(InstanceField, OurField, true);
       end else
       if not ExposedFieldReferencesEvent(InstanceField) then
       begin
@@ -10186,72 +10263,124 @@ begin
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
-var
-  Proto: TVRMLPrototype;
-  NodeCopy: TVRMLNode;
-begin
-  if not (Prototype is TVRMLPrototype) then
-    raise EVRMLPrototypeInstantiateError.CreateFmt(
-      'Cannot instantiate external prototype "%s": '+
-      'only non-external prototypes may be instantiated', [Prototype.Name]);
 
-  Proto := Prototype as TVRMLPrototype;
-
-  { Even when Proto.Node is a wrapper (TNodeGroupHidden_*),
-    we want to copy the whole Proto.Node, instead of copying separately
-    Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
-    This way, DEF / USE links within are preserved as they should.
-
-    Moreover, we can keep Routes and prototypes correctly.
-    (although nested prototypes are not important at this point,
-    since they are already expanded; but still, preserving them
-    "feels right"). }
-  NodeCopy := VRMLNodeDeepCopy(Proto.Node);
-
-  if (Proto.Node is TNodeGroupHidden_1) or
-     (Proto.Node is TNodeGroupHidden_2) then
+  procedure InstantiateNonExternalPrototype(Proto: TVRMLPrototype);
+  var
+    NodeCopy: TVRMLNode;
   begin
-    if NodeCopy.SmartChildrenCount = 0 then
+    { Even when Proto.Node is a wrapper (TNodeGroupHidden_*),
+      we want to copy the whole Proto.Node, instead of copying separately
+      Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
+      This way, DEF / USE links within are preserved as they should.
+
+      Moreover, we can keep Routes and prototypes correctly.
+      (although nested prototypes are not important at this point,
+      since they are already expanded; but still, preserving them
+      "feels right"). }
+    NodeCopy := VRMLNodeDeepCopy(Proto.Node);
+
+    if (Proto.Node is TNodeGroupHidden_1) or
+       (Proto.Node is TNodeGroupHidden_2) then
     begin
-      { If exception occurs before NodeCopy is connected to Result,
-        NodeCopy should be simply freed. }
-      FreeAndNil(NodeCopy);
-      raise EVRMLPrototypeInstantiateError.CreateFmt(
-        'Prototype "%s" has no nodes, cannot instantiate',
-        [Proto.Name]);
+      if NodeCopy.SmartChildrenCount = 0 then
+      begin
+        { If exception occurs before NodeCopy is connected to Result,
+          NodeCopy should be simply freed. }
+        FreeAndNil(NodeCopy);
+        raise EVRMLPrototypeInstantiateError.CreateFmt(
+          'Prototype "%s" has no nodes, cannot instantiate',
+          [Proto.Name]);
+      end;
+
+      { ExtractChild/Item methods were really invented specially for this case.
+
+        We have to remove Result from NodeCopy, to avoid cycles
+        (that can cause mem leaks) because Result.FPrototypeInstanceHelpers
+        has to keep pointer to NodeCopy.
+
+        At the same time, Result must not be freed here because of ref count = 0... }
+      Result := NodeCopy.SmartExtractChild(0);
+
+      { Result.FPrototypeInstanceHelpers is used to keep the rest of
+        NodeCopy.SmartChildren[1...] that should accompany this node. }
+      Result.FPrototypeInstanceHelpers := NodeCopy;
+    end else
+      Result := NodeCopy;
+
+    Result.NodeName := NodeName;
+
+    try
+      InstantiateReplaceIsClauses(nil, Result);
+    except
+      { Result.FPrototypeInstance is @false here, so make sure to free
+        FPrototypeInstanceHelpers specifically. }
+      FreeAndNil(Result.FPrototypeInstanceHelpers);
+      FreeAndNil(Result);
+      raise;
     end;
 
-    { ExtractChild/Item methods were really invented specially for this case.
-
-      We have to remove Result from NodeCopy, to avoid cycles
-      (that can cause mem leaks) because Result.FPrototypeInstanceHelpers
-      has to keep pointer to NodeCopy.
-
-      At the same time, Result must not be freed here because of ref count = 0... }
-    Result := NodeCopy.SmartExtractChild(0);
-
-    { Result.FPrototypeInstanceHelpers is used to keep the rest of
-      NodeCopy.SmartChildren[1...] that should accompany this node. }
-    Result.FPrototypeInstanceHelpers := NodeCopy;
-  end else
-    Result := NodeCopy;
-
-  Result.NodeName := NodeName;
-
-  try
-    InstantiateReplaceIsClauses(nil, Result);
-  except
-    { Result.FPrototypeInstance is @false here, so make sure to free
-      FPrototypeInstanceHelpers specifically. }
-    FreeAndNil(Result.FPrototypeInstanceHelpers);
-    FreeAndNil(Result);
-    raise;
+    { Note: set PrototypeInstance to @true *after* InstantiateReplaceIsClauses,
+      otherwise InstantiateReplaceIsClauses would not enter this node. }
+    Result.FPrototypeInstance := true;
+    Result.FPrototypeInstanceSourceNode := Self;
   end;
 
-  { Note: set PrototypeInstance to @true *after* InstantiateReplaceIsClauses,
-    otherwise InstantiateReplaceIsClauses would not enter this node. }
-  Result.FPrototypeInstance := true;
-  Result.FPrototypeInstanceSourceNode := Self;
+  procedure InstantiateExternalPrototype(Proto: TVRMLExternalPrototype);
+  var
+    NodeExternalPrototype: TVRMLPrototypeNode;
+    F: TVRMLField;
+    FieldIndex, I: Integer;
+  begin
+    if Proto.ReferencedPrototype = nil then
+      raise EVRMLPrototypeInstantiateError.CreateFmt(
+        'External prototype "%s" cannot be loaded, so cannot instantiate nodes using it',
+        [Proto.Name]);
+
+    NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
+      WWWBasePath, Proto.ReferencedPrototype);
+
+    for FieldIndex := 0 to Fields.Count - 1 do
+    begin
+      F := Fields[FieldIndex];
+      I := NodeExternalPrototype.Fields.NameIndex(F.Name);
+      if I <> -1 then
+      begin
+        { In case of type mismatch, FieldsAssignValue will make nice
+          VRMLNonFatalError.
+
+          Note that if F.IsClause, then F.IsClauseName will be copied.
+          That's OK. This means that external prototype is expanded within
+          other (more outside, non-external) prototype. So F.IsClauseName
+          refers to this outside prototype. So F.IsClauseName should
+          be copied to NodeExternalPrototype.Fields[I].IsClauseName,
+          and this in turn will be eventually copied to fields inside
+          the prototype expansion. }
+        FieldsAssignValue(NodeExternalPrototype.Fields[I], F, false);
+      end else
+        VRMLNonFatalError(Format(
+          'Error when expanding external prototype "%s": ' +
+          'prototype implementation doesn''t have field "%s"',
+          [Proto.Name, F.Name]));
+    end;
+
+    { TODO: I should probably copy events somehow too }
+
+    Result := NodeExternalPrototype.Instantiate;
+
+    { We use NodeExternalPrototype to instantiate, but then we want
+      Result.FPrototypeInstanceSourceNode to be Self. }
+    FreeAndNil(Result.FPrototypeInstanceSourceNode);
+    Result.FPrototypeInstanceSourceNode := Self;
+  end;
+
+begin
+  if Prototype is TVRMLPrototype then
+    InstantiateNonExternalPrototype(Prototype as TVRMLPrototype) else
+  if Prototype is TVRMLExternalPrototype then
+    InstantiateExternalPrototype(Prototype as TVRMLExternalPrototype) else
+    raise EVRMLPrototypeInstantiateError.CreateFmt(
+      'Cannot instantiate prototype "%s": '+
+      'unknown prototype class %s', [Prototype.Name, Prototype.ClassName]);
 end;
 
 { TVRMLPrototypeBase --------------------------------------------------------- }
@@ -10288,6 +10417,8 @@ begin
 
   { eat "]" token }
   Lexer.NextToken;
+
+  FWWWBasePath := Lexer.WWWBasePath;
 end;
 
 procedure TVRMLPrototypeBase.Bind(ProtoNameBinding: TStringList);
@@ -10415,6 +10546,7 @@ end;
 
 destructor TVRMLExternalPrototype.Destroy;
 begin
+  UnloadReferencedPrototype;
   FreeAndNil(FURLList);
   inherited;
 end;
@@ -10435,9 +10567,7 @@ begin
 
   Bind(Lexer.ProtoNameBinding);
 
-  VRMLNonFatalError(Format(
-    'External prototype "%s" ignored (TODO: handling EXTERNPROTOs not implemented)',
-    [Name]));
+  LoadReferencedPrototype;
 end;
 
 procedure TVRMLExternalPrototype.SaveToStream(
@@ -10451,6 +10581,133 @@ begin
     (TMFString.SaveToStream), don't worry about it. }
 
   URLList.SaveToStream(SaveProperties);
+end;
+
+procedure TVRMLExternalPrototype.LoadReferencedPrototype;
+
+  procedure LoadInterfaceDeclarationsValues;
+  var
+    IIndex: Integer;
+    I: TVRMLInterfaceDeclaration;
+    ReferencedField: TVRMLField;
+  begin
+    { We should load default values for our fields now,
+      since InterfaceDeclaration of external prototype doesn't
+      specify default values. }
+    for IIndex := 0 to InterfaceDeclarations.Count - 1 do
+    begin
+      I := InterfaceDeclarations[IIndex];
+      if I.Field <> nil then
+      begin
+        ReferencedField := ReferencedPrototype.InterfaceDeclarations.
+          TryFindFieldName(I.Field.Name);
+        if ReferencedField <> nil then
+        begin
+          try
+            I.Field.AssignValue(ReferencedField);
+          except
+            on E: EVRMLFieldAssign do
+            begin
+              VRMLNonFatalError(Format(
+                'Error when linking external prototype "%s" with prototype "%s": ',
+                [Name, ReferencedPrototype.Name]) + E.Message);
+            end;
+          end;
+        end else
+          VRMLNonFatalError(Format('Prototype "%s" referenced by external ' +
+            'prototype "%s" doesn''t have field "%s"',
+            [ReferencedPrototype.Name, Name, I.Field.Name]));
+      end;
+    end;
+  end;
+
+var
+  URL: string;
+
+  procedure ProtoNonFatalError(const S: string);
+  begin
+    VRMLNonFatalError(Format('Cannot load external prototype from URL "%s": ',
+      [URL]) + S);
+  end;
+
+var
+  I, ProtoIndex: Integer;
+  ProtoNameBinding: TStringList;
+  Warning, Anchor: string;
+  ReferencedProto: TVRMLPrototypeBase;
+begin
+  UnloadReferencedPrototype;
+
+  { TODO: in case of prototype libraries, it's wasteful to load URL each time
+    for each external prototype. We should have some cache of prototypes. }
+
+  ProtoNameBinding := TStringList.Create;
+  try
+    for I := 0 to URLList.Count - 1 do
+    begin
+      { TODO: allow internal extern proto names }
+
+      URL := CombinePaths(WWWBasePath, URLList.Items.Items[I]);
+      URLExtractAnchor(URL, Anchor);
+      try
+        ReferencedPrototypeNode := ParseVRMLFile(URL, false, ProtoNameBinding);
+      except
+        on E: Exception do
+        begin
+          ProtoNonFatalError(E.Message);
+          Continue;
+        end;
+      end;
+
+      if Anchor = '' then
+      begin
+        if ProtoNameBinding.Count = 0 then
+        begin
+          FreeAndNil(ReferencedPrototypeNode);
+          ProtoNonFatalError('No prototypes found');
+          Continue;
+        end;
+
+        ReferencedProto := ProtoNameBinding.Objects[0] as TVRMLPrototypeBase;
+      end else
+      begin
+        ProtoIndex := ProtoNameBinding.IndexOf(Anchor);
+        if ProtoIndex = -1 then
+        begin
+          FreeAndNil(ReferencedPrototypeNode);
+          ProtoNonFatalError(Format('No prototype named "%s" found', [Anchor]));
+          Continue;
+        end;
+
+        ReferencedProto := ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
+        Assert(ReferencedProto.Name = Anchor);
+      end;
+
+      if not (ReferencedProto is TVRMLPrototype) then
+      begin
+        Warning := Format('Referenced prototype "%s" is also ' +
+          'external prototype (EXTERNPROTO should reference only normal PROTOs)',
+          [ReferencedProto.Name]);
+        FreeAndNil(ReferencedPrototypeNode);
+        ProtoNonFatalError(Warning);
+        Continue;
+      end;
+
+      FReferencedPrototype := ReferencedProto as TVRMLPrototype;
+      Break;
+    end;
+
+    if ReferencedPrototype <> nil then
+      LoadInterfaceDeclarationsValues;
+  finally FreeAndNil(ProtoNameBinding); end;
+end;
+
+procedure TVRMLExternalPrototype.UnloadReferencedPrototype;
+begin
+  { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
+  FReferencedPrototype := nil;
+
+  FreeAndNil(ReferencedPrototypeNode);
 end;
 
 { TNodesManager ------------------------------------------------------------ }
@@ -10662,8 +10919,7 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
 
     Result.Parse(Lexer);
 
-    if (Result is TVRMLPrototypeNode) and
-       (TVRMLPrototypeNode(Result).Prototype is TVRMLPrototype) then
+    if Result is TVRMLPrototypeNode then
     try
       Result := TVRMLPrototypeNode(Result).Instantiate;
     except
@@ -10880,19 +11136,23 @@ begin
 end;
 
 function ParseVRMLFile(Stream: TPeekCharStream;
-  const WWWBasePath: string): TVRMLNode;
+  const WWWBasePath: string;
+  ProtoNameBinding: TStringList): TVRMLNode;
 var
   Lexer: TVRMLLexer;
 begin
   Lexer := TVRMLLexer.Create(Stream, WWWBasePath);
   try
     Result := ParseVRMLStatements(Lexer, vtEnd);
+    if ProtoNameBinding <> nil then
+      ProtoNameBinding.Assign(Lexer.ProtoNameBinding);
   finally
     Lexer.Free;
   end;
 end;
 
-function ParseVRMLFile(const FileName: string; AllowStdIn: boolean): TVRMLNode;
+function ParseVRMLFile(const FileName: string; AllowStdIn: boolean;
+  ProtoNameBinding: TStringList): TVRMLNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
     const WWWBasePath: string): TVRMLNode;
@@ -10901,7 +11161,7 @@ function ParseVRMLFile(const FileName: string; AllowStdIn: boolean): TVRMLNode;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := ParseVRMLFile(Stream, WWWBasePath);
+      Result := ParseVRMLFile(Stream, WWWBasePath, ProtoNameBinding);
     finally Stream.Free end;
   end;
 

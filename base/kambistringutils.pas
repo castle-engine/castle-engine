@@ -124,8 +124,11 @@ function CharsPosEx(const chars: TSetOfChars; const s: string;
   Offset: Integer): integer;
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 
-{ BackPos jak Pos, ale znajduje ostatnie wystapienie. }
-function BackPos(const SubS, S: string): integer;
+{ Find @bold(last) occurence of SubString within S.
+  0 if not found. Overloaded version is optimized for searching for
+  single character. }
+function BackPos(const SubString, S: string): Integer; overload;
+function BackPos(const SubString: char; const S: string): Integer; overload;
 { FirstDelimiter : cos jak LastDelimiter, ale skanuje od lewej.
   zwraca 0 jesli nie znajdzie. }
 function FirstDelimiter(const Delimiters, S: string): Integer;
@@ -785,11 +788,18 @@ begin
  result := 0;
 end;
 
-function BackPos(const SubS, S: string): integer;
+function BackPos(const SubString, S: string): integer;
 begin
- for result := Length(S)-Length(SubS)+1 downto 1 do
-  if SubS = Copy(S, result, Length(SubS)) then exit;
- result := 0;
+  for Result := Length(S) - Length(SubString) + 1 downto 1 do
+    if SubString = Copy(S, Result, Length(SubString)) then Exit;
+  Result := 0;
+end;
+
+function BackPos(const SubString: char; const S: string): Integer;
+begin
+  for Result := Length(S) downto 1 do
+    if S[Result] = SubString then Exit;
+  Result := 0;
 end;
 
 function FirstDelimiter(const Delimiters, S: string): Integer;

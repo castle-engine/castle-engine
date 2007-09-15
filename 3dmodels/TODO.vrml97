@@ -1,15 +1,9 @@
 VRML 97 TODO items:
 
 - external prototypes:
-  - We can parse them using TVRMLPrototypeNode, like with non-external.
-    This should already work.
   - Try to load from their URL:
-    - load prototypes defined externally (remember that local name
-      and name in URL don't have to match)
     - if URL indicates, load from internal definition (using URL,
       not proto name, to determine which built-in node to use)
-  - test
-  - see spec 4.9, External prototype semantics
 
 - finish checking NIST tests
 
