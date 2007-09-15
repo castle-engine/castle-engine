@@ -1,9 +1,10 @@
 VRML 97 TODO items:
 
-- external prototypes:
-  - Try to load from their URL:
-    - if URL indicates, load from internal definition (using URL,
-      not proto name, to determine which built-in node to use)
+- Saving to VRML known problems:
+  - When saving external prototype, we save all fields, always, not only
+    those specified in original file. In effect, this means that even fields
+    that were not specified in original file (so should have default value
+    specified by proto) will be specified in new file, with default value 0.
 
 - finish checking NIST tests
 
@@ -69,4 +70,4 @@ VRML 97 TODO items:
 ----------------------------------------
 - 4.6.7 Sensor nodes
   ...
-  and further 4.x spec parts, with the exception of 4.8, 4.13, 4.14
+  and further 4.x spec parts, with the exception of 4.8, 4.9, 4.13, 4.14
