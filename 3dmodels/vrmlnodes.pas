@@ -1814,7 +1814,7 @@ type
       so says the spec. }
     procedure InstantiateReplaceIsClauses(Node, Child: TVRMLNode);
 
-    { Basically, do Destination.Assign(Source).
+    { Basically, do Destination.AssignValue(Source).
       If Source.IsClause, then copies Source.IsClauseName to
       Destination.IsClauseName.
       In case of EVRMLFieldAssign, make VRMLNonFatalError with clear message. }
@@ -4224,7 +4224,7 @@ begin
     Destination.IsClauseName := Source.IsClauseName;
   end else
   try
-    Destination.Assign(Source);
+    Destination.AssignValue(Source);
   except
     on E: EVRMLFieldAssign do
     begin
@@ -4680,10 +4680,26 @@ var
         [URL]) + S);
     end;
 
+    { Find PROTO (but not EXTERNPROTO) with matching Name.
+      Name is ignored if ''.
+      @nil if not found. }
+    function TryFindProtoNonExternal(const Name: string): TVRMLPrototype;
+    var
+      I: Integer;
+    begin
+      for I := 0 to ProtoNameBinding.Count - 1 do
+        if ProtoNameBinding.Objects[I] is TVRMLPrototype then
+        begin
+          Result := TVRMLPrototype(ProtoNameBinding.Objects[I]);
+          if (Name = '') or (Result.Name = Name) then
+            Exit;
+        end;
+      Result := nil;
+    end;
+
   var
     ProtoIndex: Integer;
-    Warning, Anchor: string;
-    ReferencedProto: TVRMLPrototypeBase;
+    Anchor: string;
   begin
     Result := false;
 
@@ -4702,41 +4718,16 @@ var
       end;
     end;
 
-    if Anchor = '' then
+    FReferencedPrototype := TryFindProtoNonExternal(Anchor);
+    if FReferencedPrototype = nil then
     begin
-      if ProtoNameBinding.Count = 0 then
-      begin
-        FreeAndNil(ReferencedPrototypeNode);
-        ProtoNonFatalError('No prototypes found');
-        Exit;
-      end;
-
-      ReferencedProto := ProtoNameBinding.Objects[0] as TVRMLPrototypeBase;
-    end else
-    begin
-      ProtoIndex := ProtoNameBinding.IndexOf(Anchor);
-      if ProtoIndex = -1 then
-      begin
-        FreeAndNil(ReferencedPrototypeNode);
-        ProtoNonFatalError(Format('No prototype named "%s" found', [Anchor]));
-        Exit;
-      end;
-
-      ReferencedProto := ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
-      Assert(ReferencedProto.Name = Anchor);
-    end;
-
-    if not (ReferencedProto is TVRMLPrototype) then
-    begin
-      Warning := Format('Referenced prototype "%s" is also ' +
-        'external prototype (EXTERNPROTO should reference only normal PROTOs)',
-        [ReferencedProto.Name]);
       FreeAndNil(ReferencedPrototypeNode);
-      ProtoNonFatalError(Warning);
+      if Anchor = '' then
+        ProtoNonFatalError('No PROTO found') else
+        ProtoNonFatalError(Format('No PROTO named "%s" found', [Anchor]));
       Exit;
     end;
 
-    FReferencedPrototype := ReferencedProto as TVRMLPrototype;
     Result := true;
 
     LoadInterfaceDeclarationsValues;
