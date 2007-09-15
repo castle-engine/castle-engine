@@ -6,6 +6,12 @@ VRML 97 TODO items:
     that were not specified in original file (so should have default value
     specified by proto) will be specified in new file, with default value 0.
 
+- kambi_vrml_test_suite adjust to EXTERNPROTO/PROTOs more
+- implements VRML 1.0 isA and fields
+Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_extensions).
+
+- vrml_engine_doc update: short notice about protos, external protos, and that they are handled
+
 - finish checking NIST tests
 
 - Remaining places where my code temporarily cannot handle VRML 2.0 files,
