@@ -5334,9 +5334,15 @@ begin
         VRMLHeader := VRML10Header else
       if (VerMajor = 2) and (VerMinor = 0) then
         VRMLHeader := VRML20Header else
-        VRMLHeader := VRML10Header; { fallback is VRML10Header }
+        VRMLHeader := VRML20Header; { fallback is VRML20Header }
     end else
-      VRMLHeader := VRML10Header; { fallback is VRML10Header }
+      { If nothing is suggested, we use VRML 2.0 header. Reason:
+        - For now, SuggestedVRMLVersion doesn't check IsClause.
+          But if IsClause is present anywhere, then this must use VRML 2.0
+          features ("IS" is keyword only in VRML 2.0, it will not be understood
+          in VRML 1.0).
+        - Besides, we should promote newer VRML standard. }
+      VRMLHeader := VRML20Header; { fallback is VRML20Header }
 
     SaveProperties.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
     if PrecedingComment <> '' then
