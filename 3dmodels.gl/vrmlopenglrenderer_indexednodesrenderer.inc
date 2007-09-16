@@ -88,7 +88,7 @@ type
     { This is set in our constructor. }
     Renderer: TVRMLOpenGLRenderer;
 
-    { This will be at the beginning of our Render, and will be available
+    { This will be set at the beginning of our Render, and will be available
       for Render_Init, Render_Face and other methods for descendants. }
     Render_Normals: TRenderIndexedNormals;
 
@@ -118,7 +118,8 @@ type
 
     procedure Render_Vertex(indexNum: integer); virtual;
     function Render_GetVertex(indexNum: integer): TVector3f;
-    procedure Render_Face(startIndex, endIndex: integer); virtual; abstract;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); virtual; abstract;
 
     procedure Render_Init; virtual;
     procedure Render_Fini; virtual;
@@ -147,7 +148,8 @@ type
     procedure Render_Init; override;
     procedure Render_Fini; override;
     procedure Render_Vertex(indexNum: integer); override;
-    procedure Render_Face(startIndex, endIndex: integer); override;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); override;
 
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
@@ -170,14 +172,16 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedTriangleMesh_1);
-    procedure Render_Face(startIndex, endIndex: integer); override;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); override;
   end;
 
   TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
   public
     procedure Render_Init; override;
     procedure Render_Fini; override;
-    procedure Render_Face(startIndex, endIndex: integer); override;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); override;
   end;
 
   TIndexedLineSet_1Renderer = class(TIndexedLineSetRenderer)
@@ -188,11 +192,17 @@ type
 
   TIndexedLineSet_2Renderer = class(TIndexedLineSetRenderer)
   private
-    Color: TMFColor;
+    Color: TDynVector3SingleArray;
+    ColorPerVertex: boolean;
+    ColorIndex: TDynLongintArray;
   public
-    procedure Render_Init; override;
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedLineSet_2);
+
+    procedure Render_Init; override;
+    procedure Render_Vertex(indexNum: integer); override;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); override;
   end;
 
 { TGeneralIndexedRenderer ----------------------------------------------------- }
@@ -476,7 +486,8 @@ var
   end;
 
 var
-  startIndex, endIndex, faceNumber: integer;
+  startIndex, endIndex: integer;
+  FaceNumber: Cardinal;
 begin
   if Coord = nil then
     Exit;
@@ -515,7 +526,7 @@ begin
             Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
         end;
 
-        Render_Face(startIndex, endIndex);
+        Render_Face(FaceNumber, startIndex, endIndex);
         Inc(faceNumber);
         startIndex := endIndex+1;
       end;
@@ -614,7 +625,8 @@ begin
  TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
+  startIndex, endIndex: integer);
 begin
  if not FaceConvex then
  begin
@@ -806,7 +818,8 @@ begin
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 end;
 
-procedure TIndexedTriangleMesh_1Renderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedTriangleMesh_1Renderer.Render_Face(const AFaceNumber: Cardinal;
+  startIndex, endIndex: integer);
 
   procedure triangle(v1, v2, v3: integer);
   var Tri: TTriangle3Single;
@@ -854,29 +867,40 @@ end;
 
 procedure TIndexedLineSetRenderer.Render_Init;
 begin
- {VRML 1.0 specification states that lines normals aren't generated - instead,
-  lines are drawn unlit when there are no normals specified.}
- inherited;
- if Render_Normals = inGenerate then
- begin
-  glPushAttrib(GL_LIGHTING_BIT);
-  glDisable(GL_LIGHTING);
- end;
+  inherited;
+
+  { VRML 1.0 specification states that lines normals aren't generated
+    --- instead, lines are drawn unlit when there are no normals specified.
+
+    VRML 2.0 specification says that IndexedLineSet should always be until,
+    and doesn't allow specification of normals in any way, so
+    Render_Normals will always be = inGenerate in VRML 2.0.
+
+    So simple condition for Render_Normals = inGenerate works for all
+    VRML versions. }
+  if Render_Normals = inGenerate then
+  begin
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
+  end;
+
+  Assert((Self is TIndexedLineSet_2Renderer) = (Render_Normals = inGenerate));
 end;
 
 procedure TIndexedLineSetRenderer.Render_Fini;
 begin
- if Render_Normals = inGenerate then
-  glPopAttrib;
- inherited;
+  if Render_Normals = inGenerate then
+    glPopAttrib;
+  inherited;
 end;
 
-procedure TIndexedLineSetRenderer.Render_Face(startIndex, endIndex: integer);
+procedure TIndexedLineSetRenderer.Render_Face(const AFaceNumber: Cardinal;
+  startIndex, endIndex: integer);
 var i: integer;
 begin
- glBegin(GL_LINE_STRIP);
- for i := startIndex to endIndex-1 do Render_Vertex(i);
- glEnd;
+  glBegin(GL_LINE_STRIP);
+  for i := startIndex to endIndex - 1 do Render_Vertex(i);
+  glEnd;
 end;
 
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
@@ -901,21 +925,6 @@ end;
 
 { TIndexedLineSet_2Renderer -------------------------------------------------- }
 
-procedure TIndexedLineSet_2Renderer.Render_Init;
-var
-  Material: TNodeMaterial_2;
-begin
-  inherited;
-
-  if Color = nil then
-  begin
-    Material := Renderer.Render_State.ParentShape.Material;
-    if Material <> nil then
-      SetColor(Material.FdEmissiveColor.Value) else
-      SetColor(White3Single);
-  end;
-end;
-
 constructor TIndexedLineSet_2Renderer.Create(
   ARenderer: TVRMLOpenGLRenderer;
   ANode: TNodeIndexedLineSet_2);
@@ -937,7 +946,52 @@ begin
        Material = NULL makes unlit white color) }
   if (ANode.FdColor.Value <> nil) and
      (ANode.FdColor.Value is TNodeColor) then
-    Color := TNodeColor(ANode.FdColor.Value).FdColor;
+    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items;
+
+  ColorPerVertex := ANode.FdColorPerVertex.Value;
+  ColorIndex := ANode.FdColorIndex.Items;
+end;
+
+procedure TIndexedLineSet_2Renderer.Render_Init;
+var
+  Material: TNodeMaterial_2;
+begin
+  inherited;
+
+  if Color = nil then
+  begin
+    Material := Renderer.Render_State.ParentShape.Material;
+    if Material <> nil then
+      SetColor(Material.FdEmissiveColor.Value) else
+      SetColor(White3Single);
+  end;
+end;
+
+procedure TIndexedLineSet_2Renderer.Render_Vertex(IndexNum: integer);
+begin
+  { Implement different color per vertex here. }
+  if (Color <> nil) and ColorPerVertex then
+  begin
+    if ColorIndex.Count <> 0 then
+      SetColor(Color.Items[ColorIndex.Items[IndexNum]]) else
+      SetColor(Color.Items[CoordIndex.Items[IndexNum]]);
+  end;
+
+  inherited;
+end;
+
+procedure TIndexedLineSet_2Renderer.Render_Face(const AFaceNumber: Cardinal;
+  startIndex, endIndex: integer);
+begin
+  { Implement different color per face here. }
+  if (Color <> nil) and (not ColorPerVertex) then
+  begin
+    if ColorIndex.Count <> 0 then
+      SetColor(Color.Items[ColorIndex.Items[AFaceNumber]]) else
+      SetColor(Color.Items[AFaceNumber]);
+  end;
+
+  inherited;
 end;
 
 { eof --------------------------------------------------------------------------- }
