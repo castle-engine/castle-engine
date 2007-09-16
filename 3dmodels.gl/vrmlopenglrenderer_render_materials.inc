@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels.gl Pascal units".
 
@@ -20,11 +20,18 @@
 
 { Judge whether the node can be lit, looking only at Node (not at State,
   Material etc.). }
-function NodeLit(Node: TNodeGeneralShape): boolean;
+function TVRMLOpenGLRenderer.NodeLit(Node: TNodeGeneralShape): boolean;
 begin
   Result := not (
     (Node is TNodePointSet_1) or
-    (Node is TNodePointSet_2));
+    (Node is TNodePointSet_2) or
+    { VRML 1.0 specification states that lines normals aren't generated
+      --- instead, lines are drawn unlit when there are no normals specified. }
+    ( (Node is TNodeIndexedLineSet_1) and
+      (IndexedRenderer.Render_Normals = inGenerate) ) or
+    { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
+    (Node is TNodeIndexedLineSet_2)
+  );
 end;
 
 procedure TVRMLOpenGLRenderer.Render_MaterialsBegin;
@@ -153,6 +160,8 @@ end;
   This is ignored when Render_Node is not TNodeGeneralShape_1
   (then VRML 2.0 approach to materials should be used). }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
+var
+  UnlitColor: TVector3Single;
 begin
   if (not (Render_Node is TNodeGeneralShape_1)) or
      (MatNum = Render_Material_BoundMatNum) then
@@ -162,6 +171,27 @@ begin
 
   with Render_State.LastNodes.Material do
   begin
+    { Usually, UnlitColor should be from EmissiveColor3Single.
+
+      However, IndexedLineSet in VRML 1.0 is an exception. Note that
+      NodeLit may sometimes decide to draw it unlit, and sometimes lit
+      (this is contrary to other nodes, that are always lit or unlit;
+      well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
+      for the moment).
+
+      If it's determined to be unlit by NodeLit
+      (so when OnlyEmissiveMaterial is @false, then only NodeLit = @false
+      can force using UnlitColor), we want the unlit color to be the same
+      as when it was lit but we were watching with GL_LIGHTING off.
+      Render_Material uses DiffuseColor in such case.
+
+      Admittedly, I'm doing it all by just guessing what user may want...
+      VRML 1.0 spec doesn't specify here what should really be done, i.e. what
+      unlit color should be used. }
+    if (Render_Node is TNodeIndexedLineSet_1) and (not OnlyEmissiveMaterial) then
+      UnlitColor := DiffuseColor3Single(MatNum) else
+      UnlitColor := EmissiveColor3Single(MatNum);
+
     Render_Material(
       { VRML 1.0 specification states that this is a special case
         and we should treat EmissiveColor as precalculated color.
@@ -172,7 +202,7 @@ begin
       DiffuseColor3Single(MatNum),
       SpecularColor3Single(MatNum),
       EmissiveColor3Single(MatNum),
-      EmissiveColor3Single(MatNum),
+      UnlitColor,
       ShininessExp(MatNum),
       Opacity(MatNum),
       FdFogImmune.Value);

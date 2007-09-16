@@ -807,6 +807,10 @@ type
     { ------------------------------------------------------------
       Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
 
+    { IndexedRenderer. Actually of TGeneralIndexedRenderer class, but I really
+      don't want to expose TGeneralIndexedRenderer class in the interface. }
+    ExposedIndexedRenderer: TObject;
+
     { kopie aktualnego State i Node na czas Render }
     Render_State: TVRMLGraphTraverseState;
     Render_Node: TNodeGeneralShape;
@@ -826,6 +830,9 @@ type
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single;
       const FogImmune: boolean);
+
+    { Judge whether the node can be lit. }
+    function NodeLit(Node: TNodeGeneralShape): boolean;
 
     { czy Render node'ow musi generowac tex coords ? }
     Render_TexCoordsNeeded: boolean;
@@ -1789,9 +1796,11 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
+{$I vrmlopenglrenderer_indexednodesrenderer.inc}
+{$define IndexedRenderer := TGeneralIndexedRenderer(ExposedIndexedRenderer) }
+
 {$I vrmlopenglrenderer_render_glvertex.inc}
 {$I vrmlopenglrenderer_render_materials.inc}
-{$I vrmlopenglrenderer_indexednodesrenderer.inc}
 
 procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
   const FogDistanceScaling: Single);
@@ -1998,11 +2007,27 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       (Node is TNodeIndexedLineSet_2));
   end;
 
-  procedure RenderIndexed(IndexedRenderer: TGeneralIndexedRenderer);
+  { If current Node should be rendered using one of TGeneralIndexedRenderer
+    classes, then create appropriate IndexedRenderer. Takes care
+    of initializing IndexedRenderer, so you have to call only
+    IndexedRendered.Render.
+    Otherwise, IndexedRenderer is set to @nil. }
+  procedure InitIndexedRenderer;
   begin
-    try
-      IndexedRenderer.Render;
-    finally IndexedRenderer.Free end;
+    if Node is TNodeIndexedTriangleMesh_1 then
+      ExposedIndexedRenderer := TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node)) else
+    if Node is TNodeIndexedFaceSet_1 then
+      ExposedIndexedRenderer := TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node)) else
+    if Node is TNodeIndexedFaceSet_2 then
+      ExposedIndexedRenderer := TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node)) else
+    if Node is TNodeIndexedLineSet_1 then
+      ExposedIndexedRenderer := TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node)) else
+    if Node is TNodeIndexedLineSet_2 then
+      ExposedIndexedRenderer := TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node)) else
+      ExposedIndexedRenderer := nil;
+
+    if IndexedRenderer <> nil then
+      IndexedRenderer.CalculateRender_Normals;
   end;
 
 var
@@ -2066,60 +2091,55 @@ begin
    Render_TexCoordsNeeded := false;
   end;
 
-  Render_MaterialsBegin;
+  InitIndexedRenderer;
   try
-    {$ifdef USE_VRML_NODES_TRIANGULATION}
+    Render_MaterialsBegin;
+    try
+      {$ifdef USE_VRML_NODES_TRIANGULATION}
 
-    { alternatywny prosty rendering przez LocalTriangulate, only to test
-      LocalTriangulate. We should use here OverTriagulate = true (but it's not
-      impl yet because I don't need it anywhere (well, I would use it here
-      but this is just some testing code)) }
-    Node.LocalTriangulate(State, false, @DrawTriangle);
+      { alternatywny prosty rendering przez LocalTriangulate, only to test
+        LocalTriangulate. We should use here OverTriagulate = true (but it's not
+        impl yet because I don't need it anywhere (well, I would use it here
+        but this is just some testing code)) }
+      Node.LocalTriangulate(State, false, @DrawTriangle);
 
-    {$else}
+      {$else}
 
-    if Node is TNodeAsciiText_1 then
-      RenderAsciiText(TNodeAsciiText_1(Node)) else
-    if Node is TNodeText then
-      RenderText(TNodeText(Node)) else
-    if Node is TNodeCone_1 then
-      RenderCone_1(TNodeCone_1(Node)) else
-    if Node is TNodeCone_2 then
-      RenderCone_2(TNodeCone_2(Node)) else
-    if Node is TNodeCube_1 then
-      RenderCube_1(TNodeCube_1(Node)) else
-    if Node is TNodeBox then
-      RenderBox(TNodeBox(Node)) else
-    if Node is TNodeCylinder_1 then
-      RenderCylinder_1(TNodeCylinder_1(Node)) else
-    if Node is TNodeCylinder_2 then
-      RenderCylinder_2(TNodeCylinder_2(Node)) else
-    if Node is TNodePointSet_1 then
-      RenderPointSet_1(TNodePointSet_1(Node)) else
-    if Node is TNodePointSet_2 then
-      RenderPointSet_2(TNodePointSet_2(Node)) else
-    if Node is TNodeSphere_1 then
-      RenderSphere_1(TNodeSphere_1(Node)) else
-    if Node is TNodeSphere_2 then
-      RenderSphere_2(TNodeSphere_2(Node)) else
-    if Node is TNodeIndexedTriangleMesh_1 then
-      RenderIndexed(TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node))) else
-    if Node is TNodeIndexedFaceSet_1 then
-      RenderIndexed(TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node))) else
-    if Node is TNodeIndexedFaceSet_2 then
-      RenderIndexed(TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node))) else
-    if Node is TNodeIndexedLineSet_1 then
-      RenderIndexed(TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node))) else
-    if Node is TNodeIndexedLineSet_2 then
-      RenderIndexed(TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node))) else
-    if Node is TNodeElevationGrid then
-      RenderElevationGrid(TNodeElevationGrid(Node)) else
-      raise EVRMLOpenGLRenderError.Create(
-        'Rendering of node kind '+Node.NodeTypeName+' not implemented');
+      if IndexedRenderer <> nil then
+        IndexedRenderer.Render else
+      if Node is TNodeAsciiText_1 then
+        RenderAsciiText(TNodeAsciiText_1(Node)) else
+      if Node is TNodeText then
+        RenderText(TNodeText(Node)) else
+      if Node is TNodeCone_1 then
+        RenderCone_1(TNodeCone_1(Node)) else
+      if Node is TNodeCone_2 then
+        RenderCone_2(TNodeCone_2(Node)) else
+      if Node is TNodeCube_1 then
+        RenderCube_1(TNodeCube_1(Node)) else
+      if Node is TNodeBox then
+        RenderBox(TNodeBox(Node)) else
+      if Node is TNodeCylinder_1 then
+        RenderCylinder_1(TNodeCylinder_1(Node)) else
+      if Node is TNodeCylinder_2 then
+        RenderCylinder_2(TNodeCylinder_2(Node)) else
+      if Node is TNodePointSet_1 then
+        RenderPointSet_1(TNodePointSet_1(Node)) else
+      if Node is TNodePointSet_2 then
+        RenderPointSet_2(TNodePointSet_2(Node)) else
+      if Node is TNodeSphere_1 then
+        RenderSphere_1(TNodeSphere_1(Node)) else
+      if Node is TNodeSphere_2 then
+        RenderSphere_2(TNodeSphere_2(Node)) else
+      if Node is TNodeElevationGrid then
+        RenderElevationGrid(TNodeElevationGrid(Node)) else
+        raise EVRMLOpenGLRenderError.Create(
+          'Rendering of node kind '+Node.NodeTypeName+' not implemented');
 
-    {$endif USE_VRML_NODES_TRIANGULATION}
+      {$endif USE_VRML_NODES_TRIANGULATION}
 
-  finally Render_MaterialsEnd end;
+    finally Render_MaterialsEnd end;
+  finally FreeAndNil(ExposedIndexedRenderer); end;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(

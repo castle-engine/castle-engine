@@ -83,14 +83,21 @@ type
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
   public
+    { Constructor initializes various fields of this class.
+      Don't do any OpenGL state changes here (initialization of OpenGL state
+      should go to Render_Init). }
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
     { This is set in our constructor. }
     Renderer: TVRMLOpenGLRenderer;
 
-    { This will be set at the beginning of our Render, and will be available
-      for Render_Init, Render_Face and other methods for descendants. }
+    { This will be set by CalculateRender_Normals.
+
+      CalculateRender_Normals must be called after constructor but before
+      Render, so Render_Normals be already available for Render_Init,
+      Render_Face etc. }
     Render_Normals: TRenderIndexedNormals;
+    procedure CalculateRender_Normals;
 
     { Set these in descendant's constructor. }
     CoordIndex: TMFLong;
@@ -178,8 +185,6 @@ type
 
   TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
   public
-    procedure Render_Init; override;
-    procedure Render_Fini; override;
     procedure Render_Face(const AFaceNumber: Cardinal;
       startIndex, endIndex: integer); override;
   end;
@@ -244,8 +249,43 @@ begin
   result := Coord.Items.Items[CoordIndex.Items.Items[indexNum]];
 end;
 
-procedure TGeneralIndexedRenderer.Render;
+procedure TGeneralIndexedRenderer.CalculateRender_Normals;
+begin
+  { TODO: not all normal bindings are supported,
+    we Generate Normals if normalBinding is not supported.
+    Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
 
+  Render_Normals := inGenerate;
+
+  if (Normal = nil) or (NormalIndex = nil) then
+    Exit;
+
+  case NormalBinding of
+    BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
+        Render_Normals := inUseSpecifiedPerVertexIndexed;
+    BIND_PER_VERTEX:
+      Render_Normals := inUseSpecifiedPerVertex;
+    BIND_OVERALL:
+      if Normal.Count > 0 then
+        Render_Normals := inOverall;
+  end;
+
+  { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
+    node Normal (albo wrecz nie bylo zadnego takiego node'a w pliku, czyli
+    LastNormal to DefaultNormalNode sceny) to bedziemy generowac normale.
+
+    Jezeli juz bylismy ustawieni na generowanie normali albo jezeli to jest
+    pusty indexed node (tzn. nie podaje zadnych faces - co jest przeciez
+    dopuszczalne) to ta instrukcja nie spowoduje zadnego efektu (a wiec
+    tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
+    normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
+    zostanie mimo wszystko dobrze odczytany i wyswietlony. }
+  if Normal.Count = 0 then
+    Render_Normals := inGenerate;
+end;
+
+procedure TGeneralIndexedRenderer.Render;
 var
   { Used only by TextureBegin/End }
   TextureGenerated: boolean;
@@ -356,41 +396,7 @@ var
   end;
 
   procedure NormalsBegin;
-  { setup Render_Normals variable }
   begin
-   { TODO: not all normal bindings are supported,
-     we Generate Normals if normalBinding is not supported.
-     Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
-
-   Render_Normals := inGenerate;
-
-   if (Normal = nil) or (NormalIndex = nil) then
-     Exit;
-
-   case NormalBinding of
-    BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
-       Render_Normals := inUseSpecifiedPerVertexIndexed;
-    BIND_PER_VERTEX:
-      Render_Normals := inUseSpecifiedPerVertex;
-    BIND_OVERALL:
-      if Normal.Count > 0 then
-        Render_Normals := inOverall;
-   end;
-
-   {ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
-    node Normal (albo wrecz nie bylo zadnego takiego node'a w pliku, czyli
-    LastNormal to DefaultNormalNode sceny) to bedziemy generowac normale.
-
-    Jezeli juz bylismy ustawieni na generowanie normali albo jezeli to jest
-    pusty indexed node (tzn. nie podaje zadnych faces - co jest przeciez
-    dopuszczalne) to ta instrukcja nie spowoduje zadnego efektu (a wiec
-    tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
-    normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
-    zostanie mimo wszystko dobrze odczytany i wyswietlony. }
-   if Normal.Count = 0 then
-    Render_Normals := inGenerate;
-
    { podejmij pewna inicjalizacje juz PO ustaleniu Render_Normals }
    case Render_Normals of
     inOverall: glNormalv(Normal.Items.Items[0]);
@@ -865,35 +871,6 @@ end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
 
-procedure TIndexedLineSetRenderer.Render_Init;
-begin
-  inherited;
-
-  { VRML 1.0 specification states that lines normals aren't generated
-    --- instead, lines are drawn unlit when there are no normals specified.
-
-    VRML 2.0 specification says that IndexedLineSet should always be until,
-    and doesn't allow specification of normals in any way, so
-    Render_Normals will always be = inGenerate in VRML 2.0.
-
-    So simple condition for Render_Normals = inGenerate works for all
-    VRML versions. }
-  if Render_Normals = inGenerate then
-  begin
-    glPushAttrib(GL_LIGHTING_BIT);
-    glDisable(GL_LIGHTING);
-  end;
-
-  Assert((Self is TIndexedLineSet_2Renderer) = (Render_Normals = inGenerate));
-end;
-
-procedure TIndexedLineSetRenderer.Render_Fini;
-begin
-  if Render_Normals = inGenerate then
-    glPopAttrib;
-  inherited;
-end;
-
 procedure TIndexedLineSetRenderer.Render_Face(const AFaceNumber: Cardinal;
   startIndex, endIndex: integer);
 var i: integer;
@@ -938,16 +915,10 @@ begin
 
   MaterialBinding := BIND_DEFAULT;
 
-  { IndexedLineSet color may come from various places:
-    1. Color node, for each vertex or polyline, if it's not NULL
-    2. Material.emissiveColor, for whole line
-    3. If no material, we use default White3Single, for whole line
-       (following general spec remark at Material node that
-       Material = NULL makes unlit white color) }
   if (ANode.FdColor.Value <> nil) and
      (ANode.FdColor.Value is TNodeColor) then
-    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items;
-
+    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items else
+    Color := nil;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
   ColorIndex := ANode.FdColorIndex.Items;
 end;
@@ -958,6 +929,14 @@ var
 begin
   inherited;
 
+  { Implement "one color for the whole lineset" case here.
+
+    IndexedLineSet color may come from various places:
+    1. Color node, for each vertex or polyline, if it's not NULL
+    2. Material.emissiveColor, for whole line
+    3. If no material, we use default White3Single, for whole line
+       (following general spec remark at Material node that
+       Material = NULL makes unlit white color) }
   if Color = nil then
   begin
     Material := Renderer.Render_State.ParentShape.Material;
