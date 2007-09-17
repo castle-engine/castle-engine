@@ -70,8 +70,8 @@ type
         Actually, for VRML 2.0 you can do what you want with
         material, because Render_BindMaterial_1 calls are ignored
         and material should be set anyway in Render_MaterialsBegin.
-        You can use SetColor for setting unlit color (this takes
-        care of using Renderer.ColorModular).)
+        See SetColor and SetLitColor methods for example how to set
+        material/color in the middle of rendering, for VRML 2.0 shapes.)
 
       @item(
         Do not generate any texture coordinates (call glTexCoord etc.)
@@ -132,8 +132,6 @@ type
     procedure Render_Fini; virtual;
 
     procedure Render;
-
-    procedure SetColor(const Color: TVector3Single);
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -170,9 +168,26 @@ type
   end;
 
   TIndexedFaceSet_2Renderer = class(TIndexedFaceSetRenderer)
+  private
+    Color: TDynVector3SingleArray;
+    ColorPerVertex: boolean;
+    ColorIndex: TDynLongintArray;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedFaceSet_2);
+
+    procedure Render_Vertex(indexNum: integer); override;
+    procedure Render_Face(const AFaceNumber: Cardinal;
+      startIndex, endIndex: integer); override;
+
+    { Sets both glColor(...) and
+      glMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE, ...) colors.
+
+      This is good for VRML 2.0 IndexedFaceSet that uses colors to either
+      set precalculated color (when unlit, i.e. material is NULL)
+      or to change diffuseColor (when lit, see specification "lighting equaltions",
+      term O_Drgb). }
+    procedure SetLitColor(const AColor: TVector3Single);
   end;
 
   TIndexedTriangleMesh_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
@@ -203,6 +218,10 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedLineSet_2);
+
+    { Sets glColor(...). This is good for VRML 2.0 IndexedLineSet that
+      is always unlit (so no point in changing material color). }
+    procedure SetColor(const AColor: TVector3Single);
 
     procedure Render_Init; override;
     procedure Render_Vertex(indexNum: integer); override;
@@ -552,11 +571,6 @@ end;
 procedure TGeneralIndexedRenderer.Render_Init; begin end;
 procedure TGeneralIndexedRenderer.Render_Fini; begin end;
 
-procedure TGeneralIndexedRenderer.SetColor(const Color: TVector3Single);
-begin
-  glColorv(Renderer.Attributes.ColorModulated(Color));
-end;
-
 { TIndexedFaces_Or_TrianglesRenderer -------------------------------------------- }
 
 procedure TIndexedFaces_Or_TrianglesRenderer.Render_Init;
@@ -789,6 +803,54 @@ begin
   CullBackFaces := ANode.FdSolid.Value;
   CreaseAngle := ANode.FdCreaseAngle.Value;
   FaceConvex := ANode.FdConvex.Value;
+
+  { calculate Color, ColorPerVertex, ColorIndex fields }
+  if (ANode.FdColor.Value <> nil) and
+     (ANode.FdColor.Value is TNodeColor) then
+    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items else
+    Color := nil;
+  ColorPerVertex := ANode.FdColorPerVertex.Value;
+  ColorIndex := ANode.FdColorIndex.Items;
+end;
+
+procedure TIndexedFaceSet_2Renderer.SetLitColor(const AColor: TVector3Single);
+begin
+  { We use Material_BoundOpacity since we do not want to change
+    material opacity here, only it's RGB part. }
+
+  glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
+    Vector4f(Renderer.Attributes.ColorModulated(AColor),
+    Renderer.Material_BoundOpacity));
+
+  glColorv(Vector4f(Renderer.Attributes.ColorModulated(AColor),
+    Renderer.Material_BoundOpacity));
+end;
+
+procedure TIndexedFaceSet_2Renderer.Render_Vertex(IndexNum: integer);
+begin
+  { Implement different color per vertex here. }
+  if (Color <> nil) and ColorPerVertex then
+  begin
+    if ColorIndex.Count <> 0 then
+      SetLitColor(Color.Items[ColorIndex.Items[IndexNum]]) else
+      SetLitColor(Color.Items[CoordIndex.Items[IndexNum]]);
+  end;
+
+  inherited;
+end;
+
+procedure TIndexedFaceSet_2Renderer.Render_Face(const AFaceNumber: Cardinal;
+  startIndex, endIndex: integer);
+begin
+  { Implement different color per face here. }
+  if (Color <> nil) and (not ColorPerVertex) then
+  begin
+    if ColorIndex.Count <> 0 then
+      SetLitColor(Color.Items[ColorIndex.Items[AFaceNumber]]) else
+      SetLitColor(Color.Items[AFaceNumber]);
+  end;
+
+  inherited;
 end;
 
 { TIndexedTriangleMesh_1Renderer --------------------------------------------- }
@@ -921,6 +983,11 @@ begin
     Color := nil;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
   ColorIndex := ANode.FdColorIndex.Items;
+end;
+
+procedure TIndexedLineSet_2Renderer.SetColor(const AColor: TVector3Single);
+begin
+  glColorv(Renderer.Attributes.ColorModulated(AColor));
 end;
 
 procedure TIndexedLineSet_2Renderer.Render_Init;

@@ -78,6 +78,8 @@ var
   Stipple: TPolygonStipple;
 {$endif}
 begin
+  Material_BoundOpacity := Opacity;
+
   if Lit then
   begin
     if Render_Material_ForcedLightDisable then

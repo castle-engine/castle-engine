@@ -819,6 +819,7 @@ type
     Render_Material_ForcedLightDisable: boolean;
     Render_Material_BoundMatNum: integer;
     Render_Material_LastFogImmune: boolean;
+    Material_BoundOpacity: Single;
     procedure Render_MaterialsBegin;
     procedure Render_MaterialsEnd;
     procedure Render_BindMaterial_1(MatNum: integer);
