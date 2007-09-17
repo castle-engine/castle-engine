@@ -47,10 +47,6 @@ Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_exte
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?
 
-- kambi_vrml_examples: do VRML 2.0 counterpart of all useful VRML 1.0 tests.
-  Remaining sensible things to translate are:
-  materials.wrl.
-
 ----------------------------------------
 - Implement event, routes, scripts. Relevant spec parts:
   - 4.2.5 Event routing
