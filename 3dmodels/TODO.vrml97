@@ -52,7 +52,7 @@ Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_exte
   castle.wrl, house_behind_the_glass.wrl, materials.wrl.
 
   Start of castle is in kambi
-  /win/3dmodels/vrml/kambi_vrml_examples.private/castle_vrml97_export
+  /win/3dmodels/vrml/kambi_vrml_test_suite.private/castle_vrml97_export
   looks too bad for public --- various small problems.
   For now I'll include VRML 1.0 version.
 
