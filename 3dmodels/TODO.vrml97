@@ -49,7 +49,7 @@ Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_exte
 
 - kambi_vrml_examples: do VRML 2.0 counterpart of all useful VRML 1.0 tests.
   Remaining sensible things to translate are:
-  house_behind_the_glass.wrl, materials.wrl.
+  materials.wrl.
 
 ----------------------------------------
 - Implement event, routes, scripts. Relevant spec parts:
