@@ -164,11 +164,8 @@ type
     FManifoldEdges: TDynManifoldEdgeArray;
     FOwnsManifoldEdges: boolean;
   public
-    { @noAutoLinkHere }
-    destructor Destroy; override;
-
-    { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+    destructor Destroy; override;
 
     { ShapeStates contents are read-only from outside.
 

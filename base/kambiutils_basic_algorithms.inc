@@ -112,15 +112,12 @@ const
 
   TODO: chwilowo ArrStride nie moze byc ujemne (to moze czasem pozwolic na pewne sztuczki).
   TODO: zrobic tez wersje ktora zamiast ArrRecordSize pobiera SwapItemsFunc.
-
-  @noAutoLinkHere
 }
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer {$ifdef DEFPARS} = DefaultCountToUseSimpleSort {$endif}); overload;
 
-{ @noAutoLinkHere }
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;

@@ -50,8 +50,7 @@ type
     { Create source. This allocates actual OpenAL source.
       Will raise ENoMoreOpenALSources if no more sources available
       (ENoMoreOpenALSources should be catched and silenced by
-      TALSourceAllocator.AllocateSource).
-      @noAutoLinkHere }
+      TALSourceAllocator.AllocateSource). }
     constructor Create;
     destructor Destroy; override;
 
@@ -60,8 +59,7 @@ type
     { Used means that we actually use this source to play something.
       Sources that are not Used are simply OpenAL allocated sources
       that are not used right now, and will be used when we will
-      need them.
-      @noAutoLinkHere }
+      need them. }
     property Used: boolean read FUsed default false;
 
     { If this sound is @link(Used), this is the priority of keeping it.
@@ -179,7 +177,6 @@ type
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   public
-    { @noAutoLinkHere }
     constructor Create(const AMinAllocatedSources, AMaxAllocatedSources: Cardinal);
     destructor Destroy; override;
 

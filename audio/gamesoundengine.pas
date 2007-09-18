@@ -244,9 +244,7 @@ type
       that are not spatial actually, i.e. have no place in 3D space.
 
       Returns used TALAllocatedSource (or nil if none was available).
-      You don't have to do anything with this returned TALAllocatedSource.
-
-      @noAutoLinkHere }
+      You don't have to do anything with this returned TALAllocatedSource. }
     function Sound(SoundType: TSoundType;
       const Looping: boolean = false): TALAllocatedSource;
 

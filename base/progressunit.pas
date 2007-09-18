@@ -206,8 +206,7 @@ type
   end;
 
 var
-  { Created in initialization, freed in finalization.
-    @noAutoLinkHere }
+  { Created in initialization, freed in finalization. }
   Progress: TProgress;
 
 type

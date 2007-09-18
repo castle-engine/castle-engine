@@ -112,9 +112,7 @@ type
   { See @link(Check) }
   ECheckFailed = class(Exception);
 
-{ if not TrueValue then raise ECheckFailed.Create(ErrMessage)
-
-  @noAutoLinkHere }
+{ if not TrueValue then raise ECheckFailed.Create(ErrMessage). }
 procedure Check(TrueValue: boolean; const ErrMessage: string);
 
 {$ifdef DELPHI}

@@ -53,7 +53,6 @@ type
     FTextPos: Integer;
     FText: string;
   public
-    { @noAutoLinkHere }
     property Token: TToken read FToken;
 
     property TokenString: string read FTokenString;
@@ -63,8 +62,7 @@ type
     { Position of lexer in the @link(Text) string. }
     property TextPos: Integer read FTextPos;
 
-    { Text that this lexer reads.
-      @noAutoLinkHere }
+    { Text that this lexer reads. }
     property Text: string read FText;
 
     { NextToken moves to next token (updating fields @link(Token),

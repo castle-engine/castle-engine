@@ -107,11 +107,9 @@ type
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
   public
-    { Constructor.
-      @noAutoLinkHere }
+    { Constructor. }
     constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
 
     { This actually loads the animation scenes.
@@ -227,9 +225,7 @@ type
 
     { You can read anything from Scenes below. But you cannot set some
       things: don't set their scenes Attributes properties.
-      Use only our @link(Attributes).
-
-      @noAutoLinkHere }
+      Use only our @link(Attributes). }
     property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
     function ScenesCount: Integer;
 
@@ -351,9 +347,7 @@ type
 
       Note that Attributes may be accessed and even changed when the scene
       is not loaded (e.g. before calling Load / LoadFromFile).
-      Also, Attributes are preserved between various animations loaded.
-
-      @noAutoLinkHere }
+      Also, Attributes are preserved between various animations loaded. }
     function Attributes: TVRMLSceneRenderingAttributes;
 
     { Load TVRMLGLAnimation data from a given FileName

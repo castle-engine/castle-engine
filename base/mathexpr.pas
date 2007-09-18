@@ -81,9 +81,7 @@ type
       Note: Value is guaranteed to raise an exception if some
       calculation fails, e.g. if expression will be 'ln(-3)'.
       Stating it directly, Value may even call Math.ClearExceptions(true)
-      if it is needed to force generating proper exceptions.
-
-      @noAutoLinkHere }
+      if it is needed to force generating proper exceptions. }
     function Value(varfunc: TVariableValueFunc): Float; virtual; abstract;
 
     { TryValue podstawia pod return_value wartosc value(varfunc)

@@ -98,9 +98,7 @@ type
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top.
 
-      This uses @link(PrimaryRay) call
-
-      @noAutoLinkHere }
+      This uses @link(PrimaryRay) call. }
     procedure Ray(const WindowX, WindowY: Integer;
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);

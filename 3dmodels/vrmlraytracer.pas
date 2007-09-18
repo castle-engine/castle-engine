@@ -119,9 +119,7 @@ type
       ale skasowalem to bo bylo malo uzyteczne a bardzo nieeleganckie
       w zapisie (wymagalo ode mnie rozrozniania czy promien pierw. trafil
       w scene czy nie; teraz po prostu promien ktory nie trafia w scene
-      przynosi kolor SceneBGColor).
-
-      @noAutoLinkHere }
+      przynosi kolor SceneBGColor). }
     Image: TImage;
 
     { Parametry CamPosition, CamDirection, CamUp naturalnie ustawiaja kamere
@@ -185,8 +183,7 @@ type
       FirstPixel+2 ... itd. az do Image.Width * Image.Height. }
     FirstPixel: Cardinal;
 
-    { Do ray-tracing: write a ray-traced image into the @link(Image).
-      @noAutoLinkHere }
+    { Do ray-tracing: write a ray-traced image into the @link(Image). }
     procedure Execute; virtual; abstract;
   end;
 

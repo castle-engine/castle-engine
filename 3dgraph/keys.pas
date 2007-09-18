@@ -39,8 +39,6 @@
   Also, you should try to not assume that TKey size is 1 byte.
   Also, try to be prepared that maybe one day TKey type
   will be changed to be an enumerated type (not a simple Byte).
-
-  @noAutoLinkHere
 }
 
 unit Keys;

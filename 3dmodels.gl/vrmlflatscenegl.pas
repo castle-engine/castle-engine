@@ -514,7 +514,6 @@ type
       const LightPos: TVector4Single;
       const Transform: TMatrix4Single);
   public
-    { @noAutoLinkHere }
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
       ACache: TVRMLOpenGLRendererContextCache = nil);
@@ -543,7 +542,6 @@ type
       AOptimization: TGLRendererOptimization;
       AProvidedRenderer: TVRMLOpenGLRenderer);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
 
     { Destroy any associations of this object with current OpenGL context.
@@ -675,8 +673,6 @@ type
           is always opaque, so tgOpaque renders everything and tgTransparent
           renders nothing.
         ))
-
-      @noAutoLinkHere
     }
     procedure Render(TestShapeStateVisibility: TTestShapeStateVisibility;
       TransparentGroup: TTransparentGroup);

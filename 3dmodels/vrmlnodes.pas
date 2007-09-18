@@ -719,9 +719,7 @@ type
 
       Uwaga - w przypadku klasy TNodeUnknown (i tylko tam) to pole jest
       inicjowane kazdorazowo po parsowaniu (a wiec moze ulegac zmianie
-      w czasie zycia obiektu, juz po wywolaniu konstruktora).
-
-      @noAutoLinkHere }
+      w czasie zycia obiektu, juz po wywolaniu konstruktora). }
     property Fields: TVRMLFieldsList read FFields;
     property Events: TVRMLEventsList read FEvents;
 
@@ -774,9 +772,7 @@ type
       But 1. it's more efficient; 2. it's safer --- if
       Children[I] is already equal to NewChildren, then
       first @code(RemoveChild(I);) would free this children and following
-      AddChild would be totally wrong.
-
-      @noAutoLinkHere }
+      AddChild would be totally wrong. }
     property Children[i: integer]: TVRMLNode
       read GetChildrenItem write SetChildrenItem;
 
@@ -914,9 +910,7 @@ type
       *AllowedChildren i ilosc i typy Fields.
       Czasami jakies inne node'y robia override tej metody zeby (po wywolaniu
       w niej inherited) zrobic jakies dodatkowe rzeczy ktore powinno sie
-      zrobic po sparsowaniu.
-
-      @noAutoLinkHere }
+      zrobic po sparsowaniu. }
     procedure Parse(Lexer: TVRMLLexer); virtual;
 
     { Konstruktor. Inicjuje wszystko (jak to konstruktor), w szczegolnosci :
@@ -934,15 +928,12 @@ type
           w klasie TVRMLNode inicjujemy je na zbiory puste (tzn. chwilowo po prostu
           na false) po prostu dlatego ze wydaje sie to byc najczestsza wartoscia.
           W konstruktorze podklas mozesz swobodnie zmienic wartosci tych pol.))
-      )
-
-      @noAutoLinkHere }
+      ) }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); virtual;
 
     { CreateParse simply does Create and then calls Parse. }
     constructor CreateParse(const ANodeName: string; Lexer: TVRMLLexer);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
 
     { NodeTypeName zwraca nazwe klasy w VRML'u. Zawsze jest <>''.
@@ -1715,9 +1706,7 @@ type
     function NodeTypeName: string; override;
     procedure Parse(Lexer: TVRMLLexer); override;
 
-    { base Create will throw exception. Always use CreateUnknown*
-
-      @noAutoLinkHere }
+    { base Create will throw exception. Always use CreateUnknown* }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     constructor CreateUnknown(const ANodeName, AWWWBasePath, ANodeTypeName :string);

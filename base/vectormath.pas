@@ -689,9 +689,7 @@ procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
 procedure NormalizeTo1st(var v: TVector3Single); overload;
 procedure NormalizeTo1st(var v: TVector3Double); overload;
 
-{ @noAutoLinkHere }
 function Normalized(const v: TVector3Single): TVector3Single; overload;
-{ @noAutoLinkHere }
 function Normalized(const v: TVector3Double): TVector3Double; overload;
 
 function Vector_Get_Normalized(const V: TVector3_Single): TVector3_Single; overload;

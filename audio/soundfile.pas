@@ -56,8 +56,7 @@ type
     procedure PrepareOpenAL; virtual;
 
     { Sound data, according to DataFormat.
-      Contents of Data are readonly.
-      @noAutoLinkHere }
+      Contents of Data are readonly. }
     function Data: Pointer; virtual; abstract;
     { Bytes allocated for @link(Data). }
     function DataSize: LongWord; virtual; abstract;

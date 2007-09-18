@@ -5,7 +5,6 @@ interface
 uses SysUtils, GLWindow;
 
 var 
-  { @noAutoLinkHere }
   Glw: TGLWindowDemo;
 
 implementation

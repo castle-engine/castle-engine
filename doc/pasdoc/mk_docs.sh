@@ -142,7 +142,10 @@ pasdoc \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \
   --introduction="$TMP_INTRODUCTION_FILENAME" \
-  --auto-link
+  --auto-link \
+  --auto-link-exclude=doc/pasdoc/auto_link_exclude.txt
+  
+  #doc/pasdoc/auto_link_exclude.txt
 
 # --verbosity=3
 #

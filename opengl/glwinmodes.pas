@@ -250,13 +250,10 @@ type
           One more note --- ModeGLEnter nie moze byc uzyte na Closed okienku,
           oczywiscie. Wiec dla bezpiecznstwa jest w nim robiony
           Check(not glwin.Closed, ...).)
-      )
-
-      @noAutoLinkHere }
+      ) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
 
     property FakeMouseDown: boolean
@@ -317,14 +314,11 @@ type
       and you can safely assume that NO your own glwin callbacks (that were
       registered before Mode := TGLModeFrozenScreen.Create) will be called between
       try .. finally, yet everything will work correctly (window contents will
-      be properly refreshed if window manager will request window redraw etc.)
-
-      @noAutoLinkHere }
+      be properly refreshed if window manager will request window redraw etc.) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
   end;
 

@@ -18,8 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(3d curve class TCurve and many basic descendants.)
-  @noAutoLinkHere }
+{ @abstract(3d curve class TCurve and many basic descendants.) }
 
 unit Curve;
 
@@ -77,7 +76,6 @@ type
       (Maybe at some time I'll make this conditions more rigorous) }
     function BoundingBox: TBox3d; virtual; abstract;
 
-    { @noAutoLinkHere }
     constructor Create(const ATBegin, ATEnd: Float);
   end;
 

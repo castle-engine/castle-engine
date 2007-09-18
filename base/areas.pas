@@ -36,8 +36,6 @@
   Ten modul nie jest wiec zbyt ciekawy. Ale mozliwe ze kiedys
   przerobie go na managera kontrolek rysowanych pod OpenGLem -
   - a to juz bedzie calkiem ciekawe.
-
-  @noAutoLinkHere
 }
 
 unit Areas;
@@ -72,7 +70,6 @@ type
     function FindArea(const X, Y: Single): integer;
   end;
 
-{ @noAutoLinkHere }
 function Area(const X0, Y0, Width, Height: Single;
   const UserData: Pointer = nil): TArea;
 

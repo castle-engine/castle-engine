@@ -62,9 +62,7 @@ uses OpenGLh, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   Znaczenie AnswerDefault, MinLength, MaxLength i AnswerAllowedChars
   jest jasne, takie samo jak w GLWinMessages. Podobnie jak tam,
   dzialaja one dobrze pod warunkiem ze poczatkowe Answer nie zawiera znakow
-  spoza AnswerAllowedChars.
-
-  @noAutoLinkHere }
+  spoza AnswerAllowedChars. }
 function Input(glwin: TGLWindow;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;

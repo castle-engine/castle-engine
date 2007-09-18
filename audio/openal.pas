@@ -72,8 +72,6 @@
   ze to upraszcza mi robote. Nigdy nie moga byc modyfikowane z zewnatrz
   tego modulu - dotyczy to zarowno wskaznikow na wszystkie funkcje/procedury
   jak i zmiennych AL/ALUTInited.
-
-  @noAutoLinkHere
 }
 
 unit OpenAL;

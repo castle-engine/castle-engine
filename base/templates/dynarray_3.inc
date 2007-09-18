@@ -1,20 +1,20 @@
 {
   Copyright 2002-2005 Michalis Kamburelis.
 
-  This file is part of "Kambi's base Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's base Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's base Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's base Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
@@ -142,9 +142,7 @@
       for Delphi (and FPC Delphi mode) it has PInfiniteArray_3 type,
       for ObjFpc mode is has PDynArrayItem_3.
       This way you can always access items like @code(Items[Index])
-      (no need to write @code(Items^[Index])).
-
-      @noAutoLinkHere }
+      (no need to write @code(Items^[Index])). }
     property Items: {$ifdef FPC_OBJFPC} PDynArrayItem_3 {$else}
       PInfiniteArray_3 {$endif} read GetItems;
 
@@ -155,12 +153,11 @@
       @code(ItemsArray[Index]) (i.e. omit this ^ character). }
     property ItemsArray: PInfiniteArray_3 read GetItemsArray;
 
-    { @noAutoLinkHere }
     property Pointers[ItemNum: integer]: PDynArrayItem_3 read GetPointers;
       {$ifdef DYNARRAY_3_IS_STRUCT} default; {$endif}
 
     {$ifndef DYNARRAY_3_IS_STRUCT}
-    { @noAutoLinkHere }
+    { }
     property Values[ItemNum: integer]: TDynArrayItem_3
       read GetValues write SetValues; default;
     {$endif}

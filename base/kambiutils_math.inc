@@ -54,66 +54,44 @@ procedure OrderUp(x, y: Double;   var mniejsza, wieksza: Double  ); overload;
 procedure OrderUp(x, y: Extended; var mniejsza, wieksza: Extended); overload;
 {$endif}
 
-{ zwraca min/max z 2/3 elementów
-  @noAutoLinkHere }
+{ Return minimum / maximum from 2 / 3 items.
+  @groupBegin }
 function min(const a, b: Int64): Int64; overload;
-{ @noAutoLinkHere }
 function min(const a, b: integer): integer; overload;
-{ @noAutoLinkHere }
 function min(const a, b: cardinal): cardinal; overload;
-{ @noAutoLinkHere }
 function min(const a, b: Single): Single; overload;
-{ @noAutoLinkHere }
 function min(const a, b: Double): Double; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 function min(const a, b: Extended): Extended; overload;
 {$endif}
 
-{ @noAutoLinkHere }
 function min(const a, b, c: Int64): Int64; overload;
-{ @noAutoLinkHere }
 function min(const a, b, c: integer): integer; overload;
-{ @noAutoLinkHere }
 function min(const a, b, c: cardinal): cardinal; overload;
-{ @noAutoLinkHere }
 function min(const a, b, c: Single): Single; overload;
-{ @noAutoLinkHere }
 function min(const a, b, c: Double): Double; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 function min(const a, b, c: Extended): Extended; overload;
 {$endif}
 
-{ @noAutoLinkHere }
 function max(const a, b: Int64): Int64; overload;
-{ @noAutoLinkHere }
 function max(const a, b: integer): integer; overload;
-{ @noAutoLinkHere }
 function max(const a, b: cardinal): cardinal; overload;
-{ @noAutoLinkHere }
 function max(const a, b: Single): Single; overload;
-{ @noAutoLinkHere }
 function max(const a, b: Double): Double; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 function max(const a, b: Extended): Extended; overload;
 {$endif}
 
-{ @noAutoLinkHere }
 function max(const a, b, c: Int64): Int64; overload;
-{ @noAutoLinkHere }
 function max(const a, b, c: integer): integer; overload;
-{ @noAutoLinkHere }
 function max(const a, b, c: cardinal): cardinal; overload;
-{ @noAutoLinkHere }
 function max(const a, b, c: Single): Single; overload;
-{ @noAutoLinkHere }
 function max(const a, b, c: Double): Double; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 function max(const a, b, c: Extended): Extended; overload;
 {$endif}
+{ @groupEnd }
 
 { These work like @code(A := Min(A, B)).
   But they are a (very little) faster, since they avoid all the mem copying
@@ -149,42 +127,26 @@ procedure MaxTo1st(var a: Extended; const b: Extended); overload;
 function IndexMax(const a0, a1, a2: Double): Integer; overload;
 function IndexMin(const a0, a1, a2: Double): Integer; overload;
 
-{ @noAutoLinkHere }
 function Between(const a, vBegin, vEnd: Int64): boolean; overload;
-{ @noAutoLinkHere }
 function Between(const a, vBegin, vEnd: integer): boolean; overload;
-{ @noAutoLinkHere }
 function Between(const a, vBegin, vEnd: cardinal): boolean; overload;
-{ @noAutoLinkHere }
 function Between(const a, vBegin, vEnd: Float): boolean; overload;
 
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: Int64): Int64; overload;
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: integer): integer; overload;
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload;
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: Single): Single; overload;
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: Double): Double; overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 function Clamped(const a, vBegin, vEnd: Extended): Extended; overload;
 {$endif}
 
-{ @noAutoLinkHere }
 procedure Clamp(var a: Int64; const vBegin, vEnd: Int64); overload;
-{ @noAutoLinkHere }
 procedure Clamp(var a: integer; const vBegin, vEnd: integer); overload;
-{ @noAutoLinkHere }
 procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload;
-{ @noAutoLinkHere }
 procedure Clamp(var a: Single; const vBegin, vEnd: Single); overload;
-{ @noAutoLinkHere }
 procedure Clamp(var a: Double; const vBegin, vEnd: Double); overload;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-{ @noAutoLinkHere }
 procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload;
 {$endif}
 

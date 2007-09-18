@@ -81,8 +81,6 @@ var
         modify passed argv --- they remove parts of command-line that
         were already parsed.)
     )
-
-    @noAutoLinkHere
   }
   Parameters: TParametersArray;
 

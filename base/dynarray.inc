@@ -142,9 +142,7 @@
       for Delphi (and FPC Delphi mode) it has PInfiniteArray type,
       for ObjFpc mode is has PDynArrayItem.
       This way you can always access items like @code(Items[Index])
-      (no need to write @code(Items^[Index])).
-
-      @noAutoLinkHere }
+      (no need to write @code(Items^[Index])). }
     property Items: {$ifdef FPC_OBJFPC} PDynArrayItem {$else}
       PInfiniteArray {$endif} read GetItems;
 
@@ -155,12 +153,11 @@
       @code(ItemsArray[Index]) (i.e. omit this ^ character). }
     property ItemsArray: PInfiniteArray read GetItemsArray;
 
-    { @noAutoLinkHere }
     property Pointers[ItemNum: integer]: PDynArrayItem read GetPointers;
       {$ifdef DYNARRAY_IS_STRUCT} default; {$endif}
 
     {$ifndef DYNARRAY_IS_STRUCT}
-    { @noAutoLinkHere }
+    { }
     property Values[ItemNum: integer]: TDynArrayItem
       read GetValues write SetValues; default;
     {$endif}

@@ -155,8 +155,6 @@
     just don't worry: even if your program uses this unit, Images,
     (that uses KambiPng and KambiZlib units), your program will
     *not* require libpng or zlib to be installed.
-
-  @noAutoLinkHere
 }
 
 unit Images;

@@ -86,9 +86,7 @@ type
 
       @param(OnlyLines
         If @true then the font will be only a "skeleton" (only lines,
-        no polygons).)
-
-      @noAutoLinkHere }
+        no polygons).) }
     constructor Create(TrueTypeFont: PTrueTypeFont; depth: TGLfloat = 0.0;
       onlyLines: boolean = false); overload;
     destructor Destroy; override;

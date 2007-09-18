@@ -573,7 +573,6 @@ type
     { See TPeekCharStream for description how this Position behaves. }
     function GetPosition: Int64; override;
   public
-    { @noAutoLinkHere }
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;

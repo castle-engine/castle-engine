@@ -930,9 +930,7 @@ type
       Note that Gravity setting is independent from
       PreferGravityUpForRotations or PreferGravityUpForMoving settings ---
       PreferGravityUpXxx say how the player controls work,
-      Gravity says what happens to player due to ... well, due to gravity.
-
-      @noAutoLinkHere }
+      Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
       read FGravity write FGravity default false;
 

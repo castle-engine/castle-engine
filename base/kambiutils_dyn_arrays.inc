@@ -157,10 +157,8 @@ type
     { Reverse the order of items on the array. }
     procedure Reverse;
 
-    { @noAutoLinkHere }
     constructor Create(ElementSize, InitialLength: Integer);
 
-    { @noAutoLinkHere }
     destructor Destroy; override;
   end;
 

@@ -1254,8 +1254,7 @@
     { This is a shortcut for FdAppearance.Value.FdTexture.Value.
       If anything makes this impossible (Apperance field is NULL,
       or Appearance.Texture field is NULL, or wrong node class is
-      passed as Appearance or Texture node), then returns nil.
-      @noAutoLinkHere }
+      passed as Appearance or Texture node), then returns nil. }
     function Texture: TNodeGeneralTexture;
 
     { This is like @link(Texture), but it returns TextureTransform

@@ -355,9 +355,7 @@ type
     FPositionAbsolute,
       PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2_Single;
   public
-    { @noAutoLinkHere }
     constructor Create;
-    { @noAutoLinkHere }
     destructor Destroy; override;
 
     { Position of the menu. Expressed as position of some corner of the menu
@@ -372,9 +370,7 @@ type
       Expressed as a public field (instead of a read-write property)
       because assigning a field of record property is a risk in ObjectPascal
       (you may be modifying only a temporary copy of the record returned
-      by property getter).
-
-      @noAutoLinkHere }
+      by property getter). }
     Position: TVector2_Single;
 
     { See TPositionRelative documentation for meaning of these four

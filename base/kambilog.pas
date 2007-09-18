@@ -31,8 +31,7 @@ unit KambiLog;
 
 interface
 
-{ Is logging active ? Initially no. Activate by InitializeLog.
-  @noAutoLinkHere }
+{ Is logging active ? Initially no. Activate by InitializeLog. }
 function Log: boolean;
 
 procedure InitializeLog(const ProgramVersion: string);
