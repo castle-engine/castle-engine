@@ -1825,6 +1825,12 @@ function FrustumMove(const Frustum: TFrustum;
 procedure FrustumMoveTo1st(var Frustum: TFrustum;
   const Move: TVector3Single);
 
+{ Is Direction (you can think of it as a "point infinitely away in direction
+  Direction", e.g. the sun) within a frustum ? Note that this ignores
+  near/far planes of the frustum, only checking the 4 side planes. }
+function DirectionInsideFrustum(const Direction: TVector3Single;
+  const Frustum: TFrustum): boolean;
+
 {$endif FPC}
 
 {$undef read_interface}
@@ -3108,6 +3114,25 @@ begin
   PlaneMoveTo1st(Frustum[fpTop]   , Move);
   PlaneMoveTo1st(Frustum[fpNear]  , Move);
   PlaneMoveTo1st(Frustum[fpFar]   , Move);
+end;
+
+function DirectionInsideFrustum(const Direction: TVector3Single;
+  const Frustum: TFrustum): boolean;
+begin
+  { First we check fpTop, since this (usually?) has the highest chance
+    of failing (when Direction is direction of sun high in the sky) }
+  Result := ( Frustum[fpTop][0] * Direction[0] +
+              Frustum[fpTop][1] * Direction[1] +
+              Frustum[fpTop][2] * Direction[2] >= 0 ) and
+            ( Frustum[fpLeft][0] * Direction[0] +
+              Frustum[fpLeft][1] * Direction[1] +
+              Frustum[fpLeft][2] * Direction[2] >= 0 ) and
+            ( Frustum[fpRight][0] * Direction[0] +
+              Frustum[fpRight][1] * Direction[1] +
+              Frustum[fpRight][2] * Direction[2] >= 0 ) and
+            ( Frustum[fpBottom][0] * Direction[0] +
+              Frustum[fpBottom][1] * Direction[1] +
+              Frustum[fpBottom][2] * Direction[2] >= 0 );
 end;
 
 {$endif FPC}
