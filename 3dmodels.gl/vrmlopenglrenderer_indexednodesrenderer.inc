@@ -373,6 +373,7 @@ var
 
   begin
     Render_UseTextureCoordIndex := false;
+    TextureGenerated := false;
     if Renderer.Render_TexCoordsNeeded then
     begin
       if TexCoord <> nil then
