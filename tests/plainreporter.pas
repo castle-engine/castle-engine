@@ -52,7 +52,9 @@ type
     procedure   AddFailure(ATest: TTest; AFailure: TTestFailure);
     procedure   AddError(ATest: TTest; AError: TTestFailure);
     procedure   StartTest(ATest: TTest);
-    procedure   EndTest(ATest: TTest);
+    procedure   EndTest(ATest: TTest);   
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   end;
 
 implementation
@@ -71,6 +73,7 @@ constructor TPlainResultsWriter.Create;
 begin
   Writeln('Generated using FPCUnit on ' +
     FormatDateTime('yyyy-mm-dd hh:mm ', Now));
+  //Verbose := true;
 end;
 
 destructor TPlainResultsWriter.Destroy;
@@ -107,6 +110,14 @@ procedure TPlainResultsWriter.EndTest(ATest: TTest);
 begin
   if Verbose then
     Writeln(ATest.TestSuiteName + '.' + ATest.TestName + ': End');
+end;
+
+procedure TPlainResultsWriter.StartTestSuite(ATestSuite: TTestSuite);
+begin
+end;
+
+procedure TPlainResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
+begin
 end;
 
 end.
