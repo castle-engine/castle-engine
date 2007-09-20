@@ -1419,22 +1419,56 @@ begin
 end;
 
 function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): string;
-var Peeked: Integer;
+var
+  Peeked: Integer;
+  BufferBeginPos, OldResultLength, ReadCount: LongWord;
 begin
- Result := '';
- while true do
- begin
-  Peeked := PeekChar;
-  if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
-   Exit;
-  Result := Result + Chr(Peeked);
-  { I could call above "Result := Result + Chr(ReadChar);"
-    to make implementation of ReadUpto cleaner (not dealing
-    with private fields of TStreamPeekChar).
-    But doing like I'm doing now works a little faster. }
-  Inc(BufferPos);
-  Inc(FPosition);
- end;
+  Result := '';
+  while true do
+  begin
+    Peeked := PeekChar;
+    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+      Exit;
+
+    (*Since this is TBufferedReadStream, we often have a lot of data in our
+      Buffer. It would be wasteful to just check and copy it one-by-one,
+      by code like:
+
+        Result := Result + Chr(Peeked);
+
+        { I could call above "Result := Result + Chr(ReadChar);"
+          to make implementation of ReadUpto cleaner (not dealing
+          with private fields of TStreamPeekChar).
+
+          But doing like I'm doing now works a little faster.
+          After PeekChar with result <> -1 I know that I have one place in the buffer.
+          So I just explicitly increment BufferPos below. }
+        Inc(BufferPos);
+        Inc(FPosition);
+
+      So the optimized version tries to grab as much as large as possible data
+      chunk from the buffer, and copy it to Result at once.
+    *)
+
+    { Increase BufferPos as much as you can. We know that we can increase
+      at least by one, since we just called PeekChar and it returned character
+      <> -1 and not in EndingChars, so we use repeat...until instead of
+      while...do. }
+    BufferBeginPos := BufferPos;
+    repeat
+      Inc(BufferPos);
+    until (BufferPos >= BufferEnd) or (Chr(Buffer^[BufferPos]) in EndingChars);
+
+    ReadCount := BufferPos - BufferBeginPos;
+
+    { Increase FPosition by the same amount that BufferPos was incremented }
+    FPosition := FPosition + ReadCount;
+
+    { Append Buffer^[BufferBeginPos... BufferPos - 1] to Result }
+    OldResultLength := Length(Result);
+    SetLength(Result, OldResultLength + ReadCount);
+    Move(Buffer^[BufferBeginPos], Result[OldResultLength + 1], ReadCount);
+  end;
 end;
 
 constructor TBufferedReadStream.Create(ASourceStream: TStream;
