@@ -68,8 +68,6 @@ type
     { Indexes to TVRMLFlatScene.Triangles(false) array }
     Triangles: array [0..1] of Cardinal;
 
-    TrianglesCount: Cardinal;
-
     {$define SPEED_GENERATING_MANIFOLD_EDGES}
     {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
@@ -95,15 +93,6 @@ type
 
   TDynManifoldEdgeArray = class(TDynArray_2)
   private
-    { Private for TVRMLFlatScene.ManifoldEdges.
-      Adds given edge to the list. If the edge already exists and
-      has 2 triangles, returns @false since the scene is not a manifold. }
-    function AddEdgeCheckManifold(
-      const TriangleIndex: Cardinal;
-      const V0: TVector3Single;
-      const V1: TVector3Single;
-      const VertexIndex: Cardinal;
-      Triangles: TDynTriangle3SingleArray): boolean;
   end;
 
   { This class represents a VRML scene (that is, graph of VRML nodes
@@ -1166,66 +1155,6 @@ begin
   Result := FTrianglesList[OverTriangulate];
 end;
 
-function TDynManifoldEdgeArray.AddEdgeCheckManifold(
-  const TriangleIndex: Cardinal;
-  const V0: TVector3Single;
-  const V1: TVector3Single;
-  const VertexIndex: Cardinal;
-  Triangles: TDynTriangle3SingleArray): boolean;
-var
-  I: Integer;
-  EdgePtr: PManifoldEdge;
-  {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
-  TrianglePtr: PTriangle3Single;
-  EdgeV0, EdgeV1: PVector3Single;
-  {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
-begin
-  if Count <> 0 then
-  begin
-    EdgePtr := Pointers[0];
-    for I := 0 to Count - 1 do
-    begin
-      {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
-      TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
-      EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-      EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-      {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
-
-      { Triangles must be consistently ordered on a manifold,
-        so the second time an edge is present, we know it must
-        be in different order. So we compare V0 with EdgeV1
-        (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-      if VectorsPerfectlyEqual(V0, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-          EdgePtr^.V1 {$else} EdgeV1^ {$endif}) and
-        VectorsPerfectlyEqual(V1, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-          EdgePtr^.V0 {$else} EdgeV0^ {$endif}) then
-      begin
-        { Add triangle to existing edge }
-        if EdgePtr^.TrianglesCount = 2 then
-          Result := false else
-        begin
-          EdgePtr^.Triangles[EdgePtr^.TrianglesCount] := TriangleIndex;
-          Inc(EdgePtr^.TrianglesCount);
-          Result := true;
-        end;
-        Exit;
-      end;
-      Inc(EdgePtr);
-    end;
-  end;
-
-  { New edge }
-  IncLength;
-  EdgePtr := Pointers[High];
-  EdgePtr^.VertexIndex := VertexIndex;
-  EdgePtr^.Triangles[0] := TriangleIndex;
-  EdgePtr^.TrianglesCount := 1;
-  {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-  EdgePtr^.V0 := V0;
-  EdgePtr^.V1 := V1;
-  {$endif SPEED_GENERATING_MANIFOLD_EDGES}
-end;
-
 function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
 
   { TODO: FManifoldEdges and triangles lists should be freed
@@ -1233,10 +1162,117 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
 
   { Sets FManifoldEdges. Assumes that FManifoldEdges is @nil on enter. }
   procedure CalculateManifoldEdges;
+
+    { Adds given edge to the EdgesSingle list if it's 1st time for this edge.
+      Or to FManifoldEdges if this edge is the 2nd in manifold edges pair.
+      If the edge already has 2 neighbors, returns @false since the scene
+      is not a manifold. }
+    function AddEdgeCheckManifold(
+      EdgesSingle: TDynManifoldEdgeArray;
+      const TriangleIndex: Cardinal;
+      const V0: TVector3Single;
+      const V1: TVector3Single;
+      const VertexIndex: Cardinal;
+      Triangles: TDynTriangle3SingleArray): boolean;
+    var
+      I: Integer;
+      EdgePtr: PManifoldEdge;
+      {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
+      TrianglePtr: PTriangle3Single;
+      EdgeV0, EdgeV1: PVector3Single;
+      {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
+    begin
+      if EdgesSingle.Count <> 0 then
+      begin
+        EdgePtr := EdgesSingle.Pointers[0];
+        for I := 0 to EdgesSingle.Count - 1 do
+        begin
+          {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
+          TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
+          EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
+          EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+          {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
+
+          { Triangles must be consistently ordered on a manifold,
+            so the second time an edge is present, we know it must
+            be in different order. So we compare V0 with EdgeV1
+            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
+          if VectorsPerfectlyEqual(V0, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
+              EdgePtr^.V1 {$else} EdgeV1^ {$endif}) and
+            VectorsPerfectlyEqual(V1, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
+              EdgePtr^.V0 {$else} EdgeV0^ {$endif}) then
+          begin
+            EdgePtr^.Triangles[1] := TriangleIndex;
+
+            { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
+            FManifoldEdges.AppendItem(EdgePtr^);
+
+            { Remove this from EdgesSingle.
+              Note that we delete from EdgesSingle fast, using assignment and
+              deleting only from the end (normal Delete would want to shift
+              EdgesSingle contents in memory, to preserve order of items;
+              but we don't care about order). }
+            EdgePtr^ := EdgesSingle.Items[EdgesSingle.Count - 1];
+            EdgesSingle.DecLength;
+
+            Result := true;
+            Exit;
+          end;
+          Inc(EdgePtr);
+        end;
+      end;
+
+      { Now check: maybe the edge is already on FManifoldEdges, in which
+        case this model is not a correct manifold and we should cancel ?
+        Note that we do it after checking all edges EdgesSingle, since
+        this will seldom happen (it happens only for models that are not
+        manifold, and even then only *once* (after once, we cancel
+        construction of manifold edges)...). }
+      if FManifoldEdges.Count <> 0 then
+      begin
+        EdgePtr := FManifoldEdges.Pointers[0];
+        for I := 0 to FManifoldEdges.Count - 1 do
+        begin
+          {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
+          TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
+          EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
+          EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+          {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
+
+          { Triangles must be consistently ordered on a manifold,
+            so the second time an edge is present, we know it must
+            be in different order. So we compare V0 with EdgeV1
+            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
+          if VectorsPerfectlyEqual(V0, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
+              EdgePtr^.V1 {$else} EdgeV1^ {$endif}) and
+            VectorsPerfectlyEqual(V1, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
+              EdgePtr^.V0 {$else} EdgeV0^ {$endif}) then
+          begin
+            { This edge has already 2 neighboring triangles, and we just
+              got the 3rd one... so this is not a correct closed manifold. }
+            Result := false;
+            Exit;
+          end;
+          Inc(EdgePtr);
+        end;
+      end;
+
+      { New edge: add new item to EdgesSingle }
+      EdgesSingle.IncLength;
+      EdgePtr := EdgesSingle.Pointers[EdgesSingle.High];
+      EdgePtr^.VertexIndex := VertexIndex;
+      EdgePtr^.Triangles[0] := TriangleIndex;
+      {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
+      EdgePtr^.V0 := V0;
+      EdgePtr^.V1 := V1;
+      {$endif SPEED_GENERATING_MANIFOLD_EDGES}
+    end;
+
   var
     I: Integer;
     Triangles: TDynTriangle3SingleArray;
     TrianglePtr: PTriangle3Single;
+    EdgesSingle: TDynManifoldEdgeArray;
   begin
     Assert(FManifoldEdges = nil);
 
@@ -1246,34 +1282,44 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
     Triangles := TrianglesList(false);
 
     FManifoldEdges := TDynManifoldEdgeArray.Create;
-
     { There is a precise relation between number of edges and number of faces
       on a closed manifold: E = T * 3 / 2. }
     FManifoldEdges.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
 
-    TrianglePtr := Triangles.Pointers[0];
-    for I := 0 to Triangles.Count - 1 do
-    begin
-      { TrianglePtr points to Triangles[I] now }
-      if (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles)) or
-         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles)) or
-         (not FManifoldEdges.AddEdgeCheckManifold(I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles)) then
-      begin
-        { scene not a manifold: more than 2 faces for one edge }
-        FreeAndNil(FManifoldEdges);
-        Exit;
-      end;
-      Inc(TrianglePtr);
-    end;
+    { Edges that have no neighbor, i.e. have only one adjacent triangle.
 
-    for I := 0 to FManifoldEdges.Count - 1 do
-      if FManifoldEdges.Items[I].TrianglesCount <> 2 then
+      Using this speeds up generation, instead of using a field like
+      TriangleCount inside TManifoldEdge that could have 1 or 2 value.
+      That's because AddEdgeCheckManifold searches first here, and
+      this array will generallu shrink. AddEdgeCheckManifold searches
+      FManifoldEdges only as a last resort, in case the model is actually
+      not a correct closed manifold. }
+    EdgesSingle := TDynManifoldEdgeArray.Create;
+    try
+      EdgesSingle.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
+
+      TrianglePtr := Triangles.Pointers[0];
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        { TrianglePtr points to Triangles[I] now }
+        if (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles)) or
+           (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles)) or
+           (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles)) then
+        begin
+          { scene not a manifold: more than 2 faces for one edge }
+          FreeAndNil(FManifoldEdges);
+          Exit;
+        end;
+        Inc(TrianglePtr);
+      end;
+
+      if EdgesSingle.Count <> 0 then
       begin
         { scene not a manifold: less than 2 faces for one edge
           (the case with more than 2 is already eliminated above) }
         FreeAndNil(FManifoldEdges);
-        Exit;
       end;
+    finally FreeAndNil(EdgesSingle); end;
   end;
 
 begin
