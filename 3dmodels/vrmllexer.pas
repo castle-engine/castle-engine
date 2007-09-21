@@ -516,9 +516,30 @@ function TVRMLLexer.NextToken: TVRMLToken;
   end;
 
   procedure ReadFloatOrInteger(FirstChar: char);
-  const NoDigits = AllChars - ['0'..'9'];
-        NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
+  const
+    NoDigits = AllChars - ['0'..'9'];
+    NoHexDigits = AllChars - ['0'..'9', 'a'..'f', 'A'..'F'];
   { TODO: octal notation not implemented (i simply forgot about it) }
+
+    { StrToFloat a little faster.
+      Assumes that S doesn't contain any whitespace around
+      (StrToFloat does Trim(S), this doesn't).
+      Assumes that decimal separator is '.' (StrToFloat tries to look
+      for FormatSettings.DecimalSeparator and replace with '.').
+
+      This is a small optimization but it matters, since reading fields like
+      SFVec3f / SFVec2f is the main time-eater when reading VRML files.
+      For "the castle" "loading creatures" (with only Alien), it changed time
+      (1-0.5) * old_time = (1-0.46) * new_time, i.e. new_time ~= old_time * 0.92.
+      Small speedup. }
+    function StrToFloatFaster(const S: string): Extended;
+    var
+      Err: Integer;
+    begin
+      Val(S, Result, Err);
+      if Err <> 0 then
+        raise EConvertError.CreateFmt('"%s" is an invalid float', [S]);
+    end;
 
     procedure ReadAfterE(const AlreadyRead: string);
     var CharAfterE: char;
@@ -538,7 +559,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
          'Unexpected end of file in the middle of real constant');
      CharAfterE := Chr(CharAfterEInt);
      RestOfToken := Stream.ReadUpto(NoDigits);
-     fTokenFloat := StrToFloat(AlreadyRead +'e' +CharAfterE +RestOfToken);
+     fTokenFloat := StrToFloatFaster(AlreadyRead +'e' +CharAfterE +RestOfToken);
     end;
 
     procedure ReadAfterDot(const AlreadyRead: string);
@@ -556,7 +577,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
      end else
      begin
       fToken := vtFloat;
-      fTokenFloat := StrToFloat(s);
+      fTokenFloat := StrToFloatFaster(s);
      end;
     end;
 
