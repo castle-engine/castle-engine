@@ -712,15 +712,21 @@ type
     procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
       virtual;
   public
-    { kazdy typ node'a ma ustalone Fields razem z ich defaultowymi wartosciami
-      w konstruktorze. Potem, czytajac obiekt ze strumienia lub operujac na
-      nim kodem mozesz zmieniac tylko wartosci na poszczegolnych polach.
-      Node sam zwalnia swoje pola w destruktorze.
+    { Node fields.
 
-      Uwaga - w przypadku klasy TNodeUnknown (i tylko tam) to pole jest
-      inicjowane kazdorazowo po parsowaniu (a wiec moze ulegac zmianie
-      w czasie zycia obiektu, juz po wywolaniu konstruktora). }
+      For normal nodes, all Fields are created and added
+      to Fields list in constructor. Fields default values are set,
+      and of course current field values are set to these defaults.
+      Later, we only modify these fields current values (e.g. when parsing).
+
+      However, there are special node classes that set their Fields differently.
+      TVRMLPrototypeNode has their fields set according to it's VRML 2.0 prototype.
+      TNodeUnknown may have it's fields set by VRML 1.0 "fields" feature
+      (so it's Fields are initialized by parsing it).
+
+      All fields on this list are owned by this object. }
     property Fields: TVRMLFieldsList read FFields;
+
     property Events: TVRMLEventsList read FEvents;
 
     { Children property lists children VRML nodes, in the sense of VRML 1.0.
@@ -853,11 +859,12 @@ type
       AddChild z niedozwolonym argumentem). W tej chwili oznacza to tylko
       ze nie moze byc ParsingAllowedChildren = true i AllowedChildren = false.
 
-      Uwaga - w przypadku klasy TNodeUnknown (i tylko tam) wartosci tych
-      pol sa inicjowane po kazdorazowym parsowaniu (a wiec ulegaja zmianie
-      juz po wykonaniu konstruktora obiektu). }
-    property AllowedChildren: boolean read fAllowedChildren; { = false }
-    property ParsingAllowedChildren: boolean read fParsingAllowedChildren; { = false }
+      Note that is some special cases AllowedChildren and
+      ParsingAllowedChildren values may be changed during object lifetime.
+      Currently, this may concern TNodeUnknown. }
+    property AllowedChildren: boolean read fAllowedChildren default false;
+    property ParsingAllowedChildren: boolean
+      read fParsingAllowedChildren default false;
 
     { Name of this node, as defined by VRML "DEF" construct.
 
@@ -903,14 +910,12 @@ type
       path from WWWBasePath or that RelativePath is already absolute. }
     function PathFromWWWBasePath(const RelativePath: string): string;
 
-    { Parse jest zaimplementowane ogolnie dla wszystkich TVRMLNode'ow
-      za wyjatkiem node'a TNodeUnknown ktory redefiniuje ta metode.
-      Parse ustala wartosci Fields, liste Children, WWWBasePath.
-      W przypadku TNodeUnknown ma dozwolone takze zeby inicjowal
-      *AllowedChildren i ilosc i typy Fields.
-      Czasami jakies inne node'y robia override tej metody zeby (po wywolaniu
-      w niej inherited) zrobic jakies dodatkowe rzeczy ktore powinno sie
-      zrobic po sparsowaniu. }
+    { Parse node. This should set values of your fields, VRML 1.0 Children
+      list, WWWBasePath.
+
+      In special cases like TNodeUnknown this may
+      actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
+      feature). }
     procedure Parse(Lexer: TVRMLLexer); virtual;
 
     { Konstruktor. Inicjuje wszystko (jak to konstruktor), w szczegolnosci :
@@ -940,13 +945,13 @@ type
       To ma byc normalna nazwa node'a, taka ktora odczytujemy
       i zapisujemy bezposrednio z/do pliku VRMLa (wobec tego jest ona tez
       case-sensitive, jak caly VRML).
+
       Nie zmienia sie przez caly czas zycia obiektu, tzn. raz zainicjowana w
-      konstruktorze juz taka pozostaje (nawet dla obiektu TNodeUnknown;
-      dla obiektu TNodeUnknown po prostu NodeTypeName nie jest 1-znacznie
-      wyznaczone przez sama klase, tzn. obiekty klasy TNodeUnknown moga
-      miec rozne NodeTypeName, w przeciwienstwie do "normalnych" klas ktore
-      zawsze maja takie samo NodeTypeName; ale to nie czyni przypadku
-      TNodeUnknown czyms wyjatkowym dla tej funkcji).
+      konstruktorze juz taka pozostaje. Even for special nodes, like
+      TNodeUnknown and TVRMLPrototypeNode (where this is determined
+      at runtime, since these special nodes are used to instantiate special
+      nodes that are not built-in) --- but still even for these special
+      nodes, NodeTypeName is constant for the life of this object.
 
       W tej klasie NodeTypeName zwraca ClassNodeTypeName. Uwagi do
       implementacji podklas TVRMLNode dotyczace tej funkcji - patrz
@@ -2310,6 +2315,13 @@ uses
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
 
+resourcestring
+  SExpectedInterfaceDeclaration =
+    'Expected interface declaration (eventInt, eventOut, field or ' +
+    'exposedField keyword) but found %s';
+  SExpectedFieldType =
+    'Expected field type name (like SFVec2f etc.) but found %s';
+
 { TDynActiveLightArray --------------------------------------------------------- }
 
 function TDynActiveLightArray.IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
@@ -2838,6 +2850,77 @@ begin
 end;
 
 function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
+
+  procedure ParseExtensibilityFields;
+
+    procedure ReadOneField;
+    var
+      FieldTypeName, FieldName: string;
+      FieldType: TVRMLFieldClass;
+    begin
+      Lexer.CheckTokenIs(vtName, 'Field type name');
+      FieldTypeName := Lexer.TokenName;
+      FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+      if FieldType = nil then
+        raise EVRMLParserError.Create(
+          Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
+
+      Lexer.NextToken;
+
+      Lexer.CheckTokenIs(vtName, 'Field name');
+      FieldName := Lexer.TokenName;
+
+      Lexer.NextToken;
+
+      { TODO: we should actually do something with obtained here
+        FieldName, FieldType }
+    end;
+
+  begin
+    { We parse VRML 1.0 "fields" extensibility feature in a way similar to
+      MF fields syntax, this was the intention (although not clarified precisely)
+      of VRML 1.0 spec. }
+    if Lexer.Token = vtOpenSqBracket then
+    begin
+      Lexer.NextToken;
+
+      while Lexer.Token <> vtCloseSqBracket do
+      begin
+        ReadOneField;
+
+        if Lexer.Token = vtCloseSqBracket then break;
+
+        { In VRML >= 2.0 the comma is simply a whitespace and will be ignored
+          by the lexer. }
+        if Lexer.VRMLVerMajor < 2 then
+        begin
+          Lexer.CheckTokenIs(vtComma);
+          Lexer.NextToken;
+        end;
+      end;
+
+      { consume final "]" }
+      Lexer.NextToken;
+    end else
+    begin
+      { one single field - not enclosed in [] brackets }
+      ReadOneField;
+    end;
+  end;
+
+  procedure ParseExtensibilityIsA;
+  var
+    IsAField: TMFString;
+  begin
+    IsAField := TMFString.Create('', []);
+    try
+      IsAField.Parse(Lexer, false);
+
+      { TODO: we should actually do something with obtained here
+        isA value }
+    finally FreeAndNil(IsAField) end;
+  end;
+
 var
   I: integer;
   Route: TVRMLRoute;
@@ -2877,6 +2960,18 @@ begin
         Result := true;
         Lexer.NextToken;
         Events[I].Parse(Lexer);
+      end else
+      if Lexer.TokenName = 'fields' then
+      begin
+        Result := true;
+        Lexer.NextToken;
+        ParseExtensibilityFields;
+      end else
+      if Lexer.TokenName = 'isA' then
+      begin
+        Result := true;
+        Lexer.NextToken;
+        ParseExtensibilityIsA;
       end;
     end;
   end else
@@ -4021,13 +4116,6 @@ begin
 end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
-
-resourcestring
-  SExpectedInterfaceDeclaration =
-    'Expected interface declaration (eventInt, eventOut, field or ' +
-    'exposedField keyword) but found %s';
-  SExpectedFieldType =
-    'Expected field type name (like SFVec2f etc.) but found %s';
 
 destructor TVRMLInterfaceDeclaration.Destroy;
 begin
