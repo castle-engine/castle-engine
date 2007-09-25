@@ -409,6 +409,9 @@ type
       whether we have Mesa. }
     function RenderBeginEndToDisplayList: boolean;
 
+    procedure FreeExternalResources_UnloadTextureImage(
+      Node: TVRMLNode);
+
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
@@ -852,6 +855,21 @@ type
       actually should use this headlight (this information usually comes from
       NavigationInfo.headlight value). }
     function CreateHeadLight: TVRMLGLHeadLight;
+
+    { This unloads the texture images allocated in VRML texture nodes.
+
+      It's useful if you know that you already prepared everything
+      that needed the texture images, and you will not need texture images
+      later. Which means that you use Optimization method other than roNone,
+      you already did PrepareRender (so textures are already loaded to OpenGL),
+      and your code will not access TextureImage anymore.
+      This is commonly @true for various games.
+
+      Then you can call this to free some resources.
+
+      It's called FreeExternalResources, not FreeTextureResources,
+      in case in the future some resources will deserve the same treatment. }
+    procedure FreeExternalResources;
   end;
 
   TObjectsListItem_1 = TVRMLFlatSceneGL;
@@ -2185,6 +2203,19 @@ begin
     HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
       TNodeKambiHeadLight;
   Result := TVRMLGLHeadLight.Create(HeadLightNode);
+end;
+
+procedure TVRMLFlatSceneGL.FreeExternalResources_UnloadTextureImage(
+  Node: TVRMLNode);
+begin
+  (Node as TNodeGeneralTexture).IsTextureLoaded := false;
+end;
+
+procedure TVRMLFlatSceneGL.FreeExternalResources;
+begin
+  if RootNode <> nil then
+    RootNode.EnumerateNodes(TNodeGeneralTexture,
+      @FreeExternalResources_UnloadTextureImage, false);
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

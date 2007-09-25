@@ -347,68 +347,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeGeneralTexture = class(TVRMLNode)
-  private
-    { This is always <> nil.
-      We use only IsNull to indicate whether we have or have not a texture here. }
-    FTextureImage: TImage;
-    FIsTextureLoaded: boolean;
-  protected
-    { This should loads actual image. It must return newly created TImage
-      instance if texture could be loaded, or nil if no texture could
-      be loaded. You do not care in this method about things like
-      IsImageLoaded --- this method should just always,
-      unconditionally, make everything it can do to load texture.
-
-      You can use VRMLNonFatalError inside, so we're prepared
-      that this may even exit with exception (since VRMLNonFatalError
-      can raise exception).
-
-      You have to return TRGBImage or TAlphaImage here,
-      see TextureImage docs. }
-    function LoadTextureImage: TImage; virtual; abstract;
-  public
-    constructor Create(const ANodeName: string;
-      const AWWWBasePath: string); override;
-    destructor Destroy; override;
-
-    { Pierwsze uzycie TextureImage spowoduje ze tekstura zostanie automatycznie
-      zaladowana na podstawie pol obiektu.
-
-      IsTextureLoaded mowi czy nastepne uzycie TextureImage spowoduje
-      ReloadTexture, a wiec potencjalnie siegniecie do pliku
-      (a takze blad VRMLNonFatalError jesli plik nie istnieje/nie mozna
-      go odczytac itp.).
-
-      IsTextureImage <=> not TextureImage.IsNull, a wiec samo
-      uzycie IsTextureImage powoduje automatycznie zaladowanie tekstury
-      (i ustawienie IsTextureLoaded na true).
-
-      Dzieki temu mechanizmowi w standardowej sytuacji, tzn. gdy nigdy
-      nie uzyjesz w programie ReloadTexture, blad w rodzaju
-      "texture file foo.png does not exist" bedzie zgloszony do VRMLNonFatalError
-      tylko raz --- za kazdym nastepnym razem IsTextureImage = false ale
-      IsTextureLoaded = true wiec odwolania do TextureImage beda po prostu
-      zwracac ImageNone.
-
-      TextureImage class  always in (TRGBImage, TAlphaImage)
-      po prostu dlatego ze takie sa formaty akceptowane w KambiGLUtils.
-      TODO: to nie jest eleganckie, przeciez nie chcemy zeby OpenGL
-      wplywal na ten modul nawet w taki subtelny sposob. }
-    function TextureImage: TImage;
-    function IsTextureImage: boolean; { = not TextureImage.IsNull }
-    property IsTextureLoaded: boolean read FIsTextureLoaded;
-    procedure ReloadTexture;
-
-    { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
-      zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
-      jak i jaka tekstura jest zaladowana. }
-    function TextureDescription: string; virtual; abstract;
-
-    function RepeatS: boolean; virtual; abstract;
-    function RepeatT: boolean; virtual; abstract;
-  end;
-
   TNodeTexture2 = class(TNodeGeneralTexture)
   protected
     { Texture in this class is loaded z pliku (pole filename)
@@ -1382,70 +1320,6 @@ begin
  result := 'NormalBinding';
 end;
 
-constructor TNodeGeneralTexture.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-  FTextureImage := TRGBImage.Create;
-  FIsTextureLoaded := false;
-end;
-
-destructor TNodeGeneralTexture.Destroy;
-begin
-  FreeAndNil(FTextureImage);
-  inherited;
-end;
-
-function TNodeGeneralTexture.TextureImage: TImage;
-begin
-  if not IsTextureLoaded then ReloadTexture;
-  Assert(IsTextureLoaded);
-  result := FTextureImage;
-end;
-
-function TNodeGeneralTexture.IsTextureImage: boolean;
-begin
-  result := not TextureImage.IsNull;
-end;
-
-procedure TNodeGeneralTexture.ReloadTexture;
-
-  procedure ReplaceTextureImage(NewFTextureImage: TImage);
-  begin
-    FreeAndNil(FTextureImage);
-    FTextureImage := NewFTextureImage;
-  end;
-
-var
-  LoadedImage: TImage;
-begin
-  { Just like in implementation of TSFImage.Parse:
-
-    Note that we should never let FTextureImage to be nil too long,
-    because even if this method exits with exception, FTextureImage should
-    always remain non-nil.
-    That's why I'm doing below FTextureImage.Null instead of
-    FreeAndNil(FTextureImage) and I'm using ReplaceTextureImage to set
-    new FTextureImage.
-    This way if e.g. TRGBImage.Create inside LoadTextureImage
-    will raise out of mem exception,
-    FTextureImage will still remain non-nil.
-
-    This is all because I just changed Images unit interface to class-like
-    and I want to do minimal changes to VRMLNodes unit to not break
-    anything. TODO -- this will be solved better in the future, by simply
-    allowing TextureImage to be nil at any time.
-  }
-
-  FTextureImage.Null;
-
-  LoadedImage := LoadTextureImage;
-  if LoadedImage <> nil then
-    ReplaceTextureImage(LoadedImage);
-
-  FIsTextureLoaded := true;
-end;
-
 constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
 const A1: array[0..1]of string = ('REPEAT', 'CLAMP');
 begin
@@ -1469,11 +1343,10 @@ var
 begin
   Result := nil;
 
-  FullUrl := PathFromWWWBasePath(FdFilename.Value);
-
   { sprobuj zaladowac teksture z pliku FdFilename }
   if FdFilename.Value <> '' then
   try
+    FullUrl := PathFromWWWBasePath(FdFilename.Value);
     Result := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
   except
     on E: Exception do

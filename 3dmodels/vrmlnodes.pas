@@ -1643,6 +1643,87 @@ type
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
   end;
 
+{ TNodeGeneralTexture -------------------------------------------------------- }
+
+  { Common texture node for all VRML versions. }
+  TNodeGeneralTexture = class(TVRMLNode)
+  private
+    { This is always <> nil.
+      We use only IsNull to indicate whether we have or have not a texture here. }
+    FTextureImage: TImage;
+    FIsTextureLoaded: boolean;
+    procedure SetIsTextureLoaded(Value: boolean);
+  protected
+    { This loads actual image. It must return newly created TImage
+      instance if texture could be loaded, or nil if no texture could
+      be loaded. You do not care in this method about things like
+      IsImageLoaded --- this method should just always,
+      unconditionally, make everything it can do to load texture.
+
+      You can use VRMLNonFatalError inside, so we're prepared
+      that this may even exit with exception (since VRMLNonFatalError
+      can raise exception).
+
+      You have to return TRGBImage or TAlphaImage here,
+      see TextureImage docs. }
+    function LoadTextureImage: TImage; virtual; abstract;
+  public
+    constructor Create(const ANodeName: string;
+      const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
+    { Texture image, inline or loaded from URL.
+      First call to TextureImage will automatically
+      load the texture, so in simple situations you really
+      don't need to do anything. Just use TextureImage when you want,
+      and things will just work.
+
+      This is never @nil. If the texture is not available for any reason,
+      it's indicated by TextureImage.IsNull. IsTextureImage is a shortcut
+      for "not TextureImage.IsNull" (so note that calling IsTextureImage also
+      may cause texture load).
+
+      IsTextureLoaded says whether the texture is already loaded.
+      Since the texture will be loaded automatically, you're usually
+      not interested in this property. You can read it to e.g. predict
+      if next TextureImage call may take a long time. (You know that
+      if IsTextureLoaded = @true then TextureImage just returns ready
+      image instantly).
+
+      You can also set IsTextureLoaded.
+      Setting to @true means that you request the texture to be loaded @italic(now),
+      if it's not loaded already. Setting to @false may be useful if you want
+      to release resources (e.g. when you want to keep TNodeTexture instance
+      loaded but you know that you will not need TextureImage anymore).
+      You can also set it to @false and then back to @true if you want to
+      request reloading the texture from URL (e.g. if you suspect that
+      the URL contents changed).
+
+      Note that separate IsTextureLoaded and IsTextureImage state
+      means that if the texture loading will fail (e.g.
+      "texture file foo.png does not exist"), it will be reported
+      to VRMLNonFatalError only once, not at every TextureImage call.
+      This is obviously important if you use VRMLNonFatalError to report
+      warnings for user.
+
+      TextureImage class is always in (TRGBImage, TAlphaImage)
+      simply because only these formats are accepted by KambiGLUtils.
+      TODO: this is not nice, we do not want any OpenGL dependency in this unit,
+      even such "ideological" one. }
+    function TextureImage: TImage;
+    function IsTextureImage: boolean;
+    property IsTextureLoaded: boolean
+      read FIsTextureLoaded write SetIsTextureLoaded;
+
+    { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
+      zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
+      jak i jaka tekstura jest zaladowana. }
+    function TextureDescription: string; virtual; abstract;
+
+    function RepeatS: boolean; virtual; abstract;
+    function RepeatT: boolean; virtual; abstract;
+  end;
+
 { Specific VRML nodes from specifications ------------------------------------ }
 
 {$I vrml1nodes.inc}
@@ -2855,7 +2936,8 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
 
     procedure ReadOneField;
     var
-      FieldTypeName, FieldName: string;
+      FieldTypeName: string;
+      //FieldName: string;
       FieldType: TVRMLFieldClass;
     begin
       Lexer.CheckTokenIs(vtName, 'Field type name');
@@ -2868,7 +2950,7 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
       Lexer.NextToken;
 
       Lexer.CheckTokenIs(vtName, 'Field name');
-      FieldName := Lexer.TokenName;
+      //FieldName := Lexer.TokenName;
 
       Lexer.NextToken;
 
@@ -4067,6 +4149,86 @@ begin
   Result := 'MFNode';
 end;
 
+{ TNodeGeneralTexture -------------------------------------------------------- }
+
+constructor TNodeGeneralTexture.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+  FTextureImage := TRGBImage.Create;
+  FIsTextureLoaded := false;
+end;
+
+destructor TNodeGeneralTexture.Destroy;
+begin
+  FreeAndNil(FTextureImage);
+  inherited;
+end;
+
+function TNodeGeneralTexture.TextureImage: TImage;
+begin
+  { Setting IsTextureLoaded property will initialize FTextureImage. }
+  IsTextureLoaded := true;
+
+  Result := FTextureImage;
+end;
+
+procedure TNodeGeneralTexture.SetIsTextureLoaded(Value: boolean);
+
+  procedure DoLoadTexture;
+  var
+    LoadedImage: TImage;
+  begin
+    { Just like in implementation of TSFImage.Parse:
+
+      Note that we should never let FTextureImage to be nil too long,
+      because even if this method exits with exception, FTextureImage should
+      always remain non-nil.
+      That's why I'm doing below FTextureImage.Null instead of
+      FreeAndNil(FTextureImage) and I'm using ReplaceTextureImage to set
+      new FTextureImage.
+      This way if e.g. TRGBImage.Create inside LoadTextureImage
+      will raise out of mem exception,
+      FTextureImage will still remain non-nil.
+
+      This is all because I just changed Images unit interface to class-like
+      and I want to do minimal changes to VRMLNodes unit to not break
+      anything. TODO -- this will be solved better in the future, by simply
+      allowing TextureImage to be nil at any time.
+    }
+
+    FTextureImage.Null;
+
+    LoadedImage := LoadTextureImage;
+    if LoadedImage <> nil then
+    begin
+      FreeAndNil(FTextureImage);
+      FTextureImage := LoadedImage;
+    end;
+  end;
+
+begin
+  if Value <> FIsTextureLoaded then
+  begin
+    if Value then
+    begin
+      { actually load the texture }
+      DoLoadTexture;
+    end else
+    begin
+      { unload the texture }
+      FTextureImage.Null;
+    end;
+
+    FIsTextureLoaded := Value;
+  end;
+end;
+
+function TNodeGeneralTexture.IsTextureImage: boolean;
+begin
+  result := not TextureImage.IsNull;
+end;
+
 { TNodeUnknown ---------------------------------------------------------------- }
 
 function TNodeUnknown.NodeTypeName: string;
@@ -4775,7 +4937,6 @@ var
     end;
 
   var
-    ProtoIndex: Integer;
     Anchor: string;
   begin
     Result := false;

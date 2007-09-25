@@ -454,6 +454,10 @@ type
     property BackgroundSkySphereRadius: Single
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
+
+    { Call FreeExternalResources on all scenes,
+      see TVRMLFlatSceneGL.FreeExternalResources. }
+    procedure FreeExternalResources;
   end;
 
 implementation
@@ -1369,6 +1373,14 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].BackgroundSkySphereRadius := Value;
+end;
+
+procedure TVRMLGLAnimation.FreeExternalResources;
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].FreeExternalResources;
 end;
 
 end.
