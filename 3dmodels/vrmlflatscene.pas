@@ -68,21 +68,28 @@ type
     { Indexes to TVRMLFlatScene.Triangles(false) array }
     Triangles: array [0..1] of Cardinal;
 
-    {$define SPEED_GENERATING_MANIFOLD_EDGES}
-    {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
       Like said in VertexIndex, keeping here actual vertex info would prevent
       TVRMLFlatScene.ShareManifoldEdges. However, using these when generating
       makes a great speed-up when generating manifold edges.
 
-      Memory cost is acceptable... assume we have model with 10 000 faces,
+      Memory cost is acceptable: assume we have model with 10 000 faces,
       so 15 000 edges (assuming it's correctly closed manifold), so we waste
       15 000 * 2 * SizeOf(TVector3Single) = 360 000 bytes... that's really nothing
-      to worry (we waste much more on other things...). Still, for now, this
-      can be turned off by undefining SPEED_GENERATING_MANIFOLD_EDGES symbol. }
+      to worry (we waste much more on other things).
+
+      Checked with "The Castle": indeed, this costs about 1 MB memory
+      (out of 218 MB...), with really lot of creatures... On the other hand,
+      this causes small speed-up when loading: loading creatures is about
+      5 seconds faster (18 with, 23 without this).
+
+      So memory loss is small, speed gain is noticeable (but still small),
+      implementation code is a little simplified, so I'm keeping this.
+      Also, in the future, maybe it will be sensible
+      to use this for actual shadow quad rendering, in cases when we know that
+      TVRMLFlatScene.ShareManifoldEdges was not used to make it. }
     V0, V1: TVector3Single;
-    {$endif}
   end;
   PManifoldEdge = ^TManifoldEdge;
 
@@ -1251,30 +1258,28 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
     var
       I: Integer;
       EdgePtr: PManifoldEdge;
-      {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
-      TrianglePtr: PTriangle3Single;
-      EdgeV0, EdgeV1: PVector3Single;
-      {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
     begin
       if EdgesSingle.Count <> 0 then
       begin
         EdgePtr := EdgesSingle.Pointers[0];
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
-          TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
-          EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-          EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-          {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
+          { It would also be possible to get EdgePtr^.V0/1 by code like
+
+            TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
+            EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
+            EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+
+            But, see TManifoldEdge.V0/1 comments --- current version is
+            a little faster.
+          }
 
           { Triangles must be consistently ordered on a manifold,
             so the second time an edge is present, we know it must
             be in different order. So we compare V0 with EdgeV1
             (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-              EdgePtr^.V1 {$else} EdgeV1^ {$endif}) and
-            VectorsPerfectlyEqual(V1, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-              EdgePtr^.V0 {$else} EdgeV0^ {$endif}) then
+          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
+             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
           begin
             EdgePtr^.Triangles[1] := TriangleIndex;
 
@@ -1307,20 +1312,12 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
         EdgePtr := FManifoldEdges.Pointers[0];
         for I := 0 to FManifoldEdges.Count - 1 do
         begin
-          {$ifndef SPEED_GENERATING_MANIFOLD_EDGES}
-          TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
-          EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-          EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-          {$endif not SPEED_GENERATING_MANIFOLD_EDGES}
-
           { Triangles must be consistently ordered on a manifold,
             so the second time an edge is present, we know it must
             be in different order. So we compare V0 with EdgeV1
             (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-              EdgePtr^.V1 {$else} EdgeV1^ {$endif}) and
-            VectorsPerfectlyEqual(V1, {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
-              EdgePtr^.V0 {$else} EdgeV0^ {$endif}) then
+          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
+             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
           begin
             { This edge has already 2 neighboring triangles, and we just
               got the 3rd one... so this is not a correct closed manifold. }
@@ -1336,10 +1333,8 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
       EdgePtr := EdgesSingle.Pointers[EdgesSingle.High];
       EdgePtr^.VertexIndex := VertexIndex;
       EdgePtr^.Triangles[0] := TriangleIndex;
-      {$ifdef SPEED_GENERATING_MANIFOLD_EDGES}
       EdgePtr^.V0 := V0;
       EdgePtr^.V1 := V1;
-      {$endif SPEED_GENERATING_MANIFOLD_EDGES}
     end;
 
   var
