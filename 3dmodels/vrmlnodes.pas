@@ -280,7 +280,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  VRMLEvents;
+  VRMLEvents, ImagesCache;
 
 {$define read_interface}
 
@@ -1651,8 +1651,15 @@ type
     { This is always <> nil.
       We use only IsNull to indicate whether we have or have not a texture here. }
     FTextureImage: TImage;
+    { Non-nil only if FTextureImage should be freed using
+      TextureImageUsedCache.LoadImage_DecReference. }
+    TextureImageUsedCache: TImagesCache;
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
+
+    FImagesCache: TImagesCache;
+
+    procedure FreeAndNilTextureImage;
   protected
     { This loads actual image. It must return newly created TImage
       instance if texture could be loaded, or nil if no texture could
@@ -1664,9 +1671,10 @@ type
       that this may even exit with exception (since VRMLNonFatalError
       can raise exception).
 
-      You have to return TRGBImage or TAlphaImage here,
-      see TextureImage docs. }
-    function LoadTextureImage: TImage; virtual; abstract;
+      You have to return TRGBImage or TAlphaImage here, see TextureImage docs.
+
+      Set CacheUsed to @true if you loaded the image using ImagesCache. }
+    function LoadTextureImage(out CacheUsed: boolean): TImage; virtual; abstract;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
@@ -1677,6 +1685,9 @@ type
       load the texture, so in simple situations you really
       don't need to do anything. Just use TextureImage when you want,
       and things will just work.
+
+      Be sure to set ImagesCache before loading the texture.
+      TODO: allow ImagesCache to be @nil.
 
       This is never @nil. If the texture is not available for any reason,
       it's indicated by TextureImage.IsNull. IsTextureImage is a shortcut
@@ -1714,6 +1725,7 @@ type
     function IsTextureImage: boolean;
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
+    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
 
     { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
       zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
@@ -4156,13 +4168,24 @@ constructor TNodeGeneralTexture.Create(const ANodeName: string;
 begin
   inherited;
   FTextureImage := TRGBImage.Create;
+  TextureImageUsedCache := nil;
   FIsTextureLoaded := false;
 end;
 
 destructor TNodeGeneralTexture.Destroy;
 begin
-  FreeAndNil(FTextureImage);
+  FreeAndNilTextureImage;
   inherited;
+end;
+
+procedure TNodeGeneralTexture.FreeAndNilTextureImage;
+begin
+  if TextureImageUsedCache <> nil then
+  begin
+    TextureImageUsedCache.LoadImage_DecReference(FTextureImage);
+    TextureImageUsedCache := nil;
+  end else
+    FreeAndNil(FTextureImage);
 end;
 
 function TNodeGeneralTexture.TextureImage: TImage;
@@ -4177,34 +4200,34 @@ procedure TNodeGeneralTexture.SetIsTextureLoaded(Value: boolean);
 
   procedure DoLoadTexture;
   var
-    LoadedImage: TImage;
+    UsedCache: boolean;
   begin
-    { Just like in implementation of TSFImage.Parse:
+    Assert(ImagesCache <> nil, 'ImagesCache must be set before loading the texture');
 
-      Note that we should never let FTextureImage to be nil too long,
-      because even if this method exits with exception, FTextureImage should
-      always remain non-nil.
-      That's why I'm doing below FTextureImage.Null instead of
-      FreeAndNil(FTextureImage) and I'm using ReplaceTextureImage to set
-      new FTextureImage.
-      This way if e.g. TRGBImage.Create inside LoadTextureImage
-      will raise out of mem exception,
-      FTextureImage will still remain non-nil.
+    FreeAndNilTextureImage;
 
-      This is all because I just changed Images unit interface to class-like
-      and I want to do minimal changes to VRMLNodes unit to not break
-      anything. TODO -- this will be solved better in the future, by simply
-      allowing TextureImage to be nil at any time.
-    }
-
-    FTextureImage.Null;
-
-    LoadedImage := LoadTextureImage;
-    if LoadedImage <> nil then
-    begin
-      FreeAndNil(FTextureImage);
-      FTextureImage := LoadedImage;
+    try
+      FTextureImage := LoadTextureImage(UsedCache);
+      if UsedCache then
+        TextureImageUsedCache := ImagesCache;
+    except
+      { Even if LoadTextureImage exits with exception, FTextureImage should
+        always remain non-nil.
+        This is all because I just changed Images unit interface to class-like
+        and I want to do minimal changes to VRMLNodes unit to not break
+        anything. TODO -- this will be solved better in the future, by simply
+        allowing TextureImage to be nil at any time. }
+      FTextureImage := TRGBImage.Create;
+      raise;
     end;
+
+    { LoadTextureImage may raise exception, or it may return @nil in case of
+      trouble (this depends on VRMLNonFatalError, so we can't assume anything).
+      In case it returned nil, comments above still apply:
+      FTextureImage must not be nil. }
+
+    if FTextureImage = nil then
+      FTextureImage := TRGBImage.Create;
   end;
 
 begin
@@ -4217,7 +4240,8 @@ begin
     end else
     begin
       { unload the texture }
-      FTextureImage.Null;
+      FreeAndNilTextureImage;
+      FTextureImage := TRGBImage.Create;
     end;
 
     FIsTextureLoaded := Value;

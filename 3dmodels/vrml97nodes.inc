@@ -718,7 +718,7 @@
   private
     FUsedUrl: string;
   protected
-    function LoadTextureImage: TImage; override;
+    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1079,7 +1079,7 @@
 
   TNodePixelTexture = class(TNodeGeneralTexture)
   protected
-    function LoadTextureImage: TImage; override;
+    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2731,19 +2731,21 @@ begin
   Fields.Add(TSFBool.Create('repeatT', TRUE));
 end;
 
-function TNodeImageTexture.LoadTextureImage: TImage;
+function TNodeImageTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
 var
   I: Integer;
   FullUrl: string;
 begin
   Result := nil;
+  CacheUsed := false;
 
   FUsedUrl := '';
   for I := 0 to FdUrl.Count - 1 do
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      Result := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
+      Result := ImagesCache.LoadImage_IncReference(FullUrl);
+      CacheUsed := true;
       FUsedUrl := FullUrl;
       Break;
     except
@@ -3329,9 +3331,11 @@ begin
   Fields.Add(TSFBool.Create('repeatT', TRUE));
 end;
 
-function TNodePixelTexture.LoadTextureImage: TImage;
+function TNodePixelTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
 begin
   Result := nil;
+  CacheUsed := false;
+
   if not FdImage.Value.IsNull then
     Result := FdImage.Value.MakeCopy;
 end;

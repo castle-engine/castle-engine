@@ -24,7 +24,9 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatScene, VRMLFlatSceneGL,
-  KambiUtils, DOM, Boxes3d;
+  KambiUtils, DOM, Boxes3d, KambiClassUtils;
+
+{$define read_interface}
 
 type
   EModelsStructureDifferent = class(Exception)
@@ -461,10 +463,19 @@ type
       write SetBackgroundSkySphereRadius;
   end;
 
+  TObjectsListItem_1 = TVRMLGLAnimation;
+  {$I objectslist_1.inc}
+  TVRMLGLAnimationsList = TObjectsList_1;
+
+{$undef read_interface}
+
 implementation
 
-uses Math, KambiClassUtils, VectorMath, VRMLFields,
+uses Math, VectorMath, VRMLFields,
   ProgressUnit, XMLRead, KambiXMLUtils, KambiFilesUtils, Object3dAsVRML;
+
+{$define read_implementation}
+{$I objectslist_1.inc}
 
 { EModelsStructureDifferent --------------------------------------------------- }
 

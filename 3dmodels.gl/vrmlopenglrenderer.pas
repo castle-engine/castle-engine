@@ -333,7 +333,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, OpenGLh,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors;
+  VRMLErrors, ImagesCache;
 
 {$define read_interface}
 
@@ -599,7 +599,7 @@ type
     Instance of this class is tied to particular OpenGL context if and only if
     there are some TVRMLOpenGLRenderer instances using this cache and
     tied to that OpenGL context. }
-  TVRMLOpenGLRendererContextCache = class
+  TVRMLOpenGLRendererContextCache = class(TImagesCache)
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TexturesCaches: TDynTextureCacheArray;
@@ -1061,6 +1061,14 @@ begin
     end;
   end;
 
+  { Initialize Result first, before calling TexturesCaches.IncLength.
+    That's because in case LoadGLTextureModulated raises exception,
+    we don't want to add texture to cache (because caller would have
+    no way to call Texture_DecReference later). }
+  Result := LoadGLTextureModulated(
+    TextureImage, TextureMinFilter, TextureMagFilter,
+    TextureWrapS, TextureWrapT, TextureColorModulator);
+
   TexturesCaches.IncLength;
   TextureCached := TexturesCaches.Pointers[TexturesCaches.High];
   TextureCached^.FileName := TextureFileName;
@@ -1070,14 +1078,11 @@ begin
   TextureCached^.WrapT := TextureWrapT;
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
-  TextureCached^.GLName := LoadGLTextureModulated(
-    TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrapS, TextureWrapT, TextureColorModulator);
+  TextureCached^.GLName := Result;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : ', TextureFileName, ' : ', 1);
   {$endif}
-  Exit(TextureCached^.GLName);
 end;
 
 procedure TVRMLOpenGLRendererContextCache.Texture_DecReference(
@@ -1707,6 +1712,7 @@ begin
  if (TextureNode <> nil) and
     (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
+  TextureNode.ImagesCache := Cache;
   if TextureNode.IsTextureImage then
   begin
    TextureReference.TextureNode := TextureNode;

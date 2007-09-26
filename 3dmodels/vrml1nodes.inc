@@ -361,7 +361,7 @@
       BTW, in VRML 1.0 taki node z IsTextureLoaded = true i
       IsTextureImage = false tez ma swoje znaczenie:
       oznacza "wylacz aktywna teksture". }
-    function LoadTextureImage: TImage; override;
+    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
@@ -1337,17 +1337,20 @@ begin
  result := 'Texture2';
 end;
 
-function TNodeTexture2.LoadTextureImage: TImage;
+function TNodeTexture2.LoadTextureImage(out CacheUsed: boolean): TImage;
 var
   FullUrl: string;
 begin
   Result := nil;
+  CacheUsed := false;
 
   { sprobuj zaladowac teksture z pliku FdFilename }
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromWWWBasePath(FdFilename.Value);
-    Result := LoadImage(FullUrl, [TRGBImage, TAlphaImage], []);
+    Result := ImagesCache.LoadImage_IncReference(FullUrl);
+    CacheUsed := true;
+    Exit;
   except
     on E: Exception do
       { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
@@ -1357,10 +1360,9 @@ begin
         'texture from filename "' + FullUrl + '" : ' + E.Message);
   end;
 
-  { Result = nil oznacza ze nie bylo filename albo tekstury z
-    filename nie dalo sie zaladowac. Wiec jezeli jest to uzywamy inlined
-    tekstury (w polu FdImage) }
-  if (Result = nil) and (not FdImage.Value.IsNull) then
+  { Still not loaded (so FdFilename.Value is '' or LoadImage raised exception) ?
+    So try to use inlined texture. }
+  if not FdImage.Value.IsNull then
     Result := FdImage.Value.MakeCopy;
 end;
 

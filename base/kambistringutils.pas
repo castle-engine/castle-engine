@@ -546,6 +546,11 @@ function IntToStr16(n: Int64; minLength: Cardinal = 1): string; overload;
 function ToStr(const args: array of const): string;
 function VarRecToStr(const v: TVarRec): string;
 
+{ Returns Ptr as 0xXXX... hexadecimal value. "0x" is not a Pascal standard
+  for coding hex values, but it's so popular that users are more likely
+  to "get" 0x notation. }
+function PointerToStr(Ptr: Pointer): string;
+
 { This returns IntToStr(Value) with ThousandSeparator inserted to
   separate thousands (only if ThousandSeparator <> #0). }
 function IntToStrThousandSep(const Value: Int64): string;
@@ -1777,6 +1782,11 @@ begin
    vtClass:      Result := 'ClassRef('+VClass.ClassName+')';
    else raise Exception.CreateFmt('Wrong argument for VarRecToStr (v.vType = %d)', [vType]);
  end;
+end;
+
+function PointerToStr(Ptr: Pointer): string;
+begin
+  Result := '0x' + IntToStr16(PtrUInt(Ptr), 8);
 end;
 
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;

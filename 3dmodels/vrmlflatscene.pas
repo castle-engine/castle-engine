@@ -105,12 +105,32 @@ type
   { These are various features that may be freed by
     TVRMLFlatSceneGL.FreeResources.
 
-    @italic(Small warning): this is for experienced usage of TVRMLFlatScene.
-    You @italic(may) get nasty effects if you will use
-    this TVRMLFlatScene.FreeResources feature in a wrong way.
+    @italic(Warning): This is for experienced usage of TVRMLFlatScene.
     Everything is explained in detail below, but still  --- if you have some
     doubts, or you just don't observe any memory shortage in your program,
-    it may be better to not use TVRMLFlatScene.FreeResources. }
+    it's probably best to not use TVRMLFlatScene.FreeResources.
+
+    @unorderedList(
+      @item(For frRootNode, you @italic(may) get nasty effects including crashes
+        if you will use this in a wrong way.)
+
+      @item(For frTextureImageInNodes and TrianglesList,
+        if you will free them unnecessarily
+        (i.e. you will use it after you freed it), it will be automatically
+        recreated on next use. So everything will work correctly, but you
+        will experience unnecessary slowdown if we will need to recreate
+        exactly the same resource over and over again.)
+
+      @item(For frTextureImageInNodes and frRootNode, note that
+        freeing these resources too eagerly may make image cache
+        (see ImagesCache) less effective. In normal circumstances,
+        if you will use the same cache instance throughout the program,
+        loaded images are reused. If you free frTextureImageInNodes or frRootNode
+        too early, you may remove them from the cache too early, and lose
+        a chance to reuse them. So you may cause unnecessary slowdown
+        of preparing models, e.g. inside PrepareRender.)
+    )
+  }
   TVRMLSceneFreeResource = (
     { Free (and set to nil) RootNode of the scene. Works only if
       TVRMLFlatScene.OwnsRootNode is @true (the general assertion is that
