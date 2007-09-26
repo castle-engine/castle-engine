@@ -95,6 +95,76 @@ type
   private
   end;
 
+  { These are various features that may be freed by
+    TVRMLFlatSceneGL.FreeResources.
+
+    @italic(Small warning): this is for experienced usage of TVRMLFlatScene.
+    You @italic(may) get nasty effects if you will use
+    this TVRMLFlatScene.FreeResources feature in a wrong way.
+    Everything is explained in detail below, but still  --- if you have some
+    doubts, or you just don't observe any memory shortage in your program,
+    it may be better to not use TVRMLFlatScene.FreeResources. }
+  TVRMLSceneFreeResource = (
+    { Free (and set to nil) RootNode of the scene. Works only if
+      TVRMLFlatScene.OwnsRootNode is @true (the general assertion is that
+      TVRMLFlatScene will @italic(never) free RootNode when OwnsRootNode is
+      @false).
+
+      frRootNode allows you to save some memory, but may be quite dangerous.
+      You have to be careful then about what methods from the scene you use.
+      Usually, you will prepare appropriate things first (usually by
+      TVRMLFlatSceneGL.PrepareRender), and after that call FreeResources
+      with frRootNode.
+
+      Note that if you will try to use a resource that was already freed
+      by frRootNode, you may even get segfault (access violation).
+      So be really careful, be sure to prepare everything first by
+      TVRMLFlatSceneGL.PrepareRender or such. }
+    frRootNode,
+
+    { Unloads the texture images allocated in VRML texture nodes.
+
+      It's useful if you know that you already prepared everything
+      that needed the texture images, and you will not need texture images
+      later. For TVRMLFlatSceneGL this means that you use Optimization
+      method other than roNone,
+      and you already did PrepareRender (so textures are already loaded to OpenGL),
+      and your code will not access TextureImage anymore.
+      This is commonly @true for various games.
+
+      Then you can call this to free some resources.
+
+      Note that if you made an accident and you will use TextureImage
+      after FreeResources, then you will get no crash,
+      but texture image will be simply reloaded. So you may experience
+      slowdown if you inappropriately use this feature.
+
+      Oh, and note that if frRootNode and OwnsRootNode, then this is not
+      necessary (as freeing RootNode also frees texture nodes, along with
+      their texture). }
+    frTextureImageInNodes,
+
+    { Free triangle list created by TrianglesList(false) call.
+      This list is also implicitly created by constructing triangle octree
+      or ManifoldEdges.
+
+      Note that if you made an accident and you will use TrianglesList(false)
+      after FreeResources, then you will get no crash,
+      but TrianglesList(false) will be regenerated. So you may experience
+      slowdown if you inappropriately use this feature. }
+    frTrianglesListNotOverTriangulate,
+
+    { Free triangle list created by TrianglesList(true) call.
+      Analogous to frTrianglesListNotOverTriangulate.
+
+      Note that if you made an accident and you will use TrianglesList(true)
+      after FreeResources, then you will get no crash,
+      but TrianglesList(true) will be regenerated. So you may experience
+      slowdown if you inappropriately use this feature. }
+    frTrianglesListOverTriangulate);
+
+  TVRMLSceneFreeResources = set of TVRMLSceneFreeResource;
+
   { This class represents a VRML scene (that is, graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
     objects. The basic idea is to "have" at the same time hierarchical
@@ -170,6 +240,8 @@ type
 
     FManifoldEdges: TDynManifoldEdgeArray;
     FOwnsManifoldEdges: boolean;
+
+    procedure FreeResources_UnloadTextureImage(Node: TVRMLNode);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -485,6 +557,8 @@ type
       it will remain owned in this case (while in normal sharing situation,
       Value set here is assumed to be owned by something else). }
     procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+
+    procedure FreeResources(Resources: TVRMLSceneFreeResources);
   end;
 
 { TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
@@ -1359,6 +1433,37 @@ begin
   FManifoldEdges := Value;
   FOwnsManifoldEdges := false;
   Include(Validities, fvManifoldEdges);
+end;
+
+procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(
+  Node: TVRMLNode);
+begin
+  (Node as TNodeGeneralTexture).IsTextureLoaded := false;
+end;
+
+procedure TVRMLFlatScene.FreeResources(Resources: TVRMLSceneFreeResources);
+begin
+  if (frRootNode in Resources) and OwnsRootNode then
+  begin
+    RootNode.Free;
+    RootNode := nil;
+  end;
+
+  if (frTextureImageInNodes in Resources) and (RootNode <> nil) then
+    RootNode.EnumerateNodes(TNodeGeneralTexture,
+      @FreeResources_UnloadTextureImage, false);
+
+  if frTrianglesListNotOverTriangulate in Resources then
+  begin
+    Exclude(Validities, fvTrianglesListNotOverTriangulate);
+    FreeAndNil(FTrianglesList[false]);
+  end;
+
+  if frTrianglesListOverTriangulate in Resources then
+  begin
+    Exclude(Validities, fvTrianglesListOverTriangulate);
+    FreeAndNil(FTrianglesList[true]);
+  end;
 end;
 
 initialization

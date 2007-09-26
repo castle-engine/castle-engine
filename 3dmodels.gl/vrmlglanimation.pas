@@ -241,13 +241,6 @@ type
       If ProgressStep then it will additionally call Progress.Step after
       preparing each scene (it will call it ScenesCount times).
 
-      If FreeRootNodes then it will free (and set to nil) RootNode
-      of each scene after preparing. This is somewhat dangerous
-      (because you have to be careful then about what methods
-      from scenes you use), but it allows you to save some memory.
-      Note that if OwnsFirstRootNode then the initial RootNodes[0]
-      will *not* be freed.
-
       If prManifoldEdges is includes, then actually a special memory
       (and prepare time) optimization will be used: only the first scene will
       have actually prepared prManifoldEdges. The other scenes will
@@ -256,8 +249,20 @@ type
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions;
-      ProgressStep: boolean;
-      FreeRootNodes: boolean);
+      ProgressStep: boolean);
+
+    { This calls FreeResources for all scenes, it's useful if you know
+      that you will not need some allocated resources anymore and you
+      want to conserve memory use.
+
+      See TVRMLSceneFreeResource documentation for a description of what
+      are possible resources to free.
+
+      Note in case you pass frRootNode: the first scene has OwnsRootNode
+      set to what you passed as OwnsFirstRootNode. Which means that
+      if you passed OwnsFirstRootNode = @true, then frRootNode will @bold(not
+      free) the initial RootNodes[0]. }
+    procedure FreeResources(Resources: TVRMLSceneFreeResources);
 
     { Close anything associated with current OpenGL context in this class.
       This calls CloseGL on every Scenes[], and additionally may close
@@ -454,10 +459,6 @@ type
     property BackgroundSkySphereRadius: Single
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
-
-    { Call FreeExternalResources on all scenes,
-      see TVRMLFlatSceneGL.FreeExternalResources. }
-    procedure FreeExternalResources;
   end;
 
 implementation
@@ -1082,7 +1083,7 @@ end;
 procedure TVRMLGLAnimation.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions;
-  ProgressStep, FreeRootNodes: boolean);
+  ProgressStep: boolean);
 var
   I: Integer;
   SceneOptions: TPrepareRenderOptions;
@@ -1099,18 +1100,17 @@ begin
     if (prManifoldEdges in Options) and (I <> 0) then
       FScenes[I].ShareManifoldEdges(FScenes[0].ManifoldEdges);
 
-    { We check FScenes[I].OwnsRootNode here, because if OwnsFirstRootNode
-      was false then FScenes[I].OwnsRootNode will be false. }
-
-    if FreeRootNodes and FScenes[I].OwnsRootNode then
-    begin
-      FScenes[I].RootNode.Free;
-      FScenes[I].RootNode := nil;
-    end;
-
     if ProgressStep then
       Progress.Step;
   end;
+end;
+
+procedure TVRMLGLAnimation.FreeResources(Resources: TVRMLSceneFreeResources);
+var
+  I: Integer;
+begin
+  for I := 0 to FScenes.High do
+    FScenes[I].FreeResources(Resources);
 end;
 
 procedure TVRMLGLAnimation.CloseGL;
@@ -1373,14 +1373,6 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].BackgroundSkySphereRadius := Value;
-end;
-
-procedure TVRMLGLAnimation.FreeExternalResources;
-var
-  I: Integer;
-begin
-  for I := 0 to FScenes.High do
-    FScenes[I].FreeExternalResources;
 end;
 
 end.
