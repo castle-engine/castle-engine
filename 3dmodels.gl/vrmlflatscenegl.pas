@@ -70,7 +70,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLFlatScene, VRMLOpenGLRenderer, OpenGLh, BackgroundGL, KambiGLUtils,
-  VRMLShapeStateOctree, VRMLGLHeadLight;
+  VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization;
 
 {$define read_interface}
 
@@ -94,9 +94,17 @@ const
     go za kazdym razem zmniejszala). }
   DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
 
+type
   TGLRendererOptimization = VRMLRendererOptimization.TGLRendererOptimization;
   PGLRendererOptimization = VRMLRendererOptimization.PGLRendererOptimization;
 
+const
+  roNone = VRMLRendererOptimization.roNone;
+  roSceneAsAWhole = VRMLRendererOptimization.roSceneAsAWhole;
+  roSeparateShapeStates = VRMLRendererOptimization.roSeparateShapeStates;
+  roSeparateShapeStatesNoTransform = VRMLRendererOptimization.roSeparateShapeStatesNoTransform;
+
+type
   { Internal for TVRMLFlatSceneGL }
   TRenderShapeState = procedure(ShapeStateNum: Integer) of object;
   TObjectProcedure = procedure of object;
