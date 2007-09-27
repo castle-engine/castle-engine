@@ -715,8 +715,6 @@
   end;
 
   TNodeImageTexture = class(TNodeGeneralTexture)
-  private
-    FUsedUrl: string;
   protected
     function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
@@ -733,13 +731,6 @@
     function TextureDescription: string; override;
     function RepeatS: boolean; override;
     function RepeatT: boolean; override;
-
-    { This contains one of URLs from the list of FdUrl.Items
-      (already expanded to absolute URL by PathFromWWWBasePath)
-      that was actually used to load current texture image.
-      This is set when image is actually loaded. If image is not
-      loaded it's ''. }
-    property UsedUrl: string read FUsedUrl;
   end;
 
   TNodeIndexedFaceSet_2 = class(TNodeGeneralShape)
@@ -2738,15 +2729,15 @@ var
 begin
   Result := nil;
   CacheUsed := false;
+  FTextureUsedFullUrl := '';
 
-  FUsedUrl := '';
   for I := 0 to FdUrl.Count - 1 do
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
       Result := ImagesCache.LoadImage_IncReference(FullUrl);
       CacheUsed := true;
-      FUsedUrl := FullUrl;
+      FTextureUsedFullUrl := FullUrl;
       Break;
     except
       on E: Exception do
@@ -2761,8 +2752,8 @@ end;
 
 function TNodeImageTexture.TextureDescription: string;
 begin
-  if UsedUrl <> '' then
-    Result := 'file "' +PathFromWWWBasePath(UsedUrl) +'"' else
+  if TextureUsedFullUrl <> '' then
+    Result := 'file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
 end;
 

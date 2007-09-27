@@ -1343,12 +1343,14 @@ var
 begin
   Result := nil;
   CacheUsed := false;
+  FTextureUsedFullUrl := '';
 
   { sprobuj zaladowac teksture z pliku FdFilename }
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromWWWBasePath(FdFilename.Value);
     Result := ImagesCache.LoadImage_IncReference(FullUrl);
+    FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;
   except

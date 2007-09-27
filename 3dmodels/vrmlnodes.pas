@@ -1673,8 +1673,11 @@ type
 
       You have to return TRGBImage or TAlphaImage here, see TextureImage docs.
 
-      Set CacheUsed to @true if you loaded the image using ImagesCache. }
+      Set CacheUsed to @true if you loaded the image using ImagesCache.
+
+      Also, set FTextureUsedFullUrl here. }
     function LoadTextureImage(out CacheUsed: boolean): TImage; virtual; abstract;
+    FTextureUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
@@ -1734,6 +1737,13 @@ type
 
     function RepeatS: boolean; virtual; abstract;
     function RepeatT: boolean; virtual; abstract;
+
+    { Once the image is loaded, this is set to the URL that was used to load
+      this image, or '' if no URL was used. No URL was used may mean that
+      no image was valid, or inlined image was used,
+
+      This is always a full, expanded (i.e. not relative) URL. }
+    property TextureUsedFullUrl: string read FTextureUsedFullUrl;
   end;
 
 { Specific VRML nodes from specifications ------------------------------------ }

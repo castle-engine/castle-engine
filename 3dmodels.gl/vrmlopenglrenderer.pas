@@ -525,7 +525,7 @@ type
   end;
 
   TTextureCache = record
-    FileName: string;
+    FullUrl: string;
     Node: TNodeGeneralTexture;
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -603,17 +603,14 @@ type
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TexturesCaches: TDynTextureCacheArray;
-    FUseTextureFileNames: boolean;
     ShapeStateCaches: TDynShapeStateCacheArray;
     ShapeStateNoTransformCaches: TDynShapeStateCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
 
-    { Note that either TextureFileName or TextureNode will be ignored,
-      depending on UseTextureFileNames. }
     function Texture_IncReference(
       const TextureImage: TImage;
-      const TextureFileName: string;
+      const TextureFullUrl: string;
       const TextureNode: TNodeGeneralTexture;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrapS, TextureWrapT: TGLenum;
@@ -635,61 +632,6 @@ type
 
     procedure Fonts_DecReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
-
-    { This deteremines how texture comparison with the cache is performed,
-      i.e. when Texture_IncReference assumes that we have given texture
-      in the cache (and it can be reused) and when it decides that
-      we have not (so it must be added to the cache).
-
-      If @true then if the textures come from the same filename
-      ("filename" means here combined WWWBasePath + filename/url field
-      of Texture2 or ImageTexture VRML node)
-      then the textures are assumed to contain
-      the same image. This seems reasonable and is sensible in 99% of most
-      common cases.
-
-      However this strategy is actually too relaxed
-      (i.e. it can falsely claim that two textures are equal and cache
-      may be used, while in fact the cache shouldn't be reused in this case).
-      For starters, consider that the actual image could be loaded from
-      the filename at various times, and the actual image file could
-      change between. Moreover, consider the fact that there is also
-      an "image" field of Texture2 node that allows you to write image
-      content directly in VRML file. In this case "filename" field
-      of Texture2 node may be left empty. The embedded "image" will also
-      be used if "filename" field is not empty but we can't load image
-      from that file (e.g. file does not exist or invalid format).
-      UseTextureFileNames = @true strategy will completely fail in these
-      cases, because it compares only "filename".
-      See e.g. file like @code(inlined_textures.wrl) in
-      [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
-      that uses various embedded textures.
-
-      That's why another, safer strategy is the default:
-      When UseTextureFileNames = @false, texture images are assumed to be
-      equal only if they come from the same TNodeGeneralTexture instance.
-      In practice this will usually happen only if these come from
-      the actual same VRML file and are the same actual VRML
-      Texture2/ImageTexture/PixelTexture node.
-      So if you have two shape nodes that simply use the same Texture2 node,
-      then OK --- they will reuse the same texture. Obviously one Texture2 node
-      will not be loaded more than once to OpenGL texture memory.
-      So this is OK.
-
-      But in more elaborate cases, UseTextureFileNames = @true can
-      get significant memory savings. Since it doesn't require that
-      texture image comes from the same Texture2 node, so moreover
-      it doesn't require that it actually comes from the same VRML file.
-      All TVRMLFLatSceneGL and TVRMLGLAnimation instances can share
-      a single OpenGL texture name. For example, "The Castle" version
-      0.6.3 used almost 100 MB memory less (memory use dropped
-      from 475 MB to 380 MB) thanks to using UseTextureFileNames := @true.
-
-      You can change this only before you make any texture reference
-      to this cache (i.e. before any call to Texture_IncReference,
-      that happens within Prepare calls of TVRMLOpenGLRenderer). }
-    property UseTextureFileNames: boolean
-      read FUseTextureFileNames write FUseTextureFileNames default false;
 
     { These will be used by TVRMLFlatSceneGL.
 
@@ -1029,7 +971,7 @@ end;
 
 function TVRMLOpenGLRendererContextCache.Texture_IncReference(
   const TextureImage: TImage;
-  const TextureFileName: string;
+  const TextureFullUrl: string;
   const TextureNode: TNodeGeneralTexture;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrapS, TextureWrapT: TGLenum;
@@ -1037,15 +979,35 @@ function TVRMLOpenGLRendererContextCache.Texture_IncReference(
 var
   I: Integer;
   TextureCached: PTextureCache;
-  ImagesEqual: boolean;
 begin
   for I := 0 to TexturesCaches.High do
   begin
     TextureCached := TexturesCaches.Pointers[I];
-    if UseTextureFileNames then
-      ImagesEqual := TextureCached^.FileName = TextureFileName else
-      ImagesEqual := TextureCached^.Node = TextureNode;
-    if ImagesEqual and
+
+    { Once I had an idea to make here comparison with
+      TextureImage = TextureCached^.Image. Since we have ImagesCache,
+      so images from the same URL would have the same reference, so this
+      would work perfectly, and make comparison with TextureURL obsolete, right ?
+
+      But there's a problem with this: Image reference may be freed while
+      the corresponding texture is still cached. In fact, it's normal in
+      "The Castle", if you use FreeResources([frTexturesInNodes]) feature.
+      Which means that Image reference may become invalid, and, worse,
+      another Image may be potentially assigned the same reference.
+
+      What would be needed is to automatically set cached Image reference
+      to nil (and implement to not use Image reference if it's nil) if
+      Image instance is freed. Something like FreeNotification.
+
+      But still, the same FreeResources([frTexturesInNodes]) would prevent
+      the texture from sharing, if we would free the texture prematurely
+      and later load the same texture, with to different TImage instance.
+
+      For now, I don't use this idea, and rely on TextureFullUrl. }
+
+    if ( ( (TextureFullUrl <> '') and
+           (TextureCached^.FullUrl = TextureFullUrl) ) or
+         (TextureCached^.Node = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
@@ -1055,7 +1017,7 @@ begin
     begin
       Inc(TextureCached^.References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('++ : ', TextureFileName, ' : ', TextureCached^.References);
+      Writeln('++ : ', TextureFullUrl, ' : ', TextureCached^.References);
       {$endif}
       Exit(TextureCached^.GLName);
     end;
@@ -1071,7 +1033,8 @@ begin
 
   TexturesCaches.IncLength;
   TextureCached := TexturesCaches.Pointers[TexturesCaches.High];
-  TextureCached^.FileName := TextureFileName;
+  TextureCached^.FullUrl := TextureFullUrl;
+  TextureCached^.Node := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
   TextureCached^.WrapS := TextureWrapS;
@@ -1081,7 +1044,7 @@ begin
   TextureCached^.GLName := Result;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
-  Writeln('++ : ', TextureFileName, ' : ', 1);
+  Writeln('++ : ', TextureFullUrl, ' : ', 1);
   {$endif}
 end;
 
@@ -1095,7 +1058,7 @@ begin
     begin
       Dec(TexturesCaches.Items[I].References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ', TexturesCaches.Items[I].FileName, ' : ',
+      Writeln('-- : ', TexturesCaches.Items[I].FullUrl, ' : ',
         TexturesCaches.Items[I].References);
       {$endif}
       if TexturesCaches.Items[I].References = 0 then
@@ -1674,7 +1637,6 @@ const
     }, GL_REPEAT);
 var
   TextureReference: TTextureReference;
-  TextureFileName: string;
   TextureNode: TNodeGeneralTexture;
   FontStyle: TNodeFontStyle_2;
 begin
@@ -1716,23 +1678,9 @@ begin
   if TextureNode.IsTextureImage then
   begin
    TextureReference.TextureNode := TextureNode;
-
-   TextureFileName := '';
-   if TextureNode is TNodeTexture2 then
-   begin
-     TextureFileName := TNodeTexture2(TextureNode).FdFileName.Value;
-     if TextureFileName <> '' then
-       TextureFileName :=
-         TNodeTexture2(TextureNode).PathFromWWWBasePath(TextureFileName);
-   end else
-   if TextureNode is TNodeImageTexture then
-   begin
-     TextureFileName := TNodeImageTexture(TextureNode).UsedUrl;
-   end;
-
    TextureReference.TextureGL := Cache.Texture_IncReference(
      TextureNode.TextureImage,
-     TextureFileName,
+     TextureNode.TextureUsedFullUrl,
      TextureNode,
      Attributes.TextureMinFilter,
      Attributes.TextureMagFilter,
