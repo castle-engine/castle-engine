@@ -31,7 +31,7 @@ unit Object3dAsVRML;
 interface
 
 uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3,
-  KambiUtils, VRMLFlatSceneGL;
+  KambiUtils, VRMLRendererOptimization;
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
 
@@ -121,7 +121,7 @@ procedure LoadAsVRMLSequence(
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLGLAnimation;
+  KambiStringUtils, VRMLAnimation;
 
 function ToVRMLName(const s: string): string;
 const
@@ -685,7 +685,7 @@ procedure LoadAsVRMLSequence(const FileName: string; AllowStdIn: boolean;
   begin
     ModelFileNames := TDynStringArray.Create;
     try
-      TVRMLGLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
+      TVRMLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
         ScenesPerTime, Optimization, EqualityEpsilon,
         TimeLoop, TimeBackwards);
 
