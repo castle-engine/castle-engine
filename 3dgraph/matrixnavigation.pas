@@ -652,6 +652,12 @@ type
       together with MoveSpeed and MoveVertSpeed it determines
       the moving speed.
 
+      More precisely: each horizontal move in Idle moves by distance
+      VectorLen(CameraDir) * MoveSpeed * CompSpeed.
+      So in 1 CompSpeed unit (which is 1/50 of second if it came from
+      normal TGLWindow.IdleCompSpeed), we move by VectorLen(CameraDir) * MoveSpeed.
+      So we move 50 * VectorLen(CameraDir) * MoveSpeed units per second.
+
       When setting CameraDir, CameraUp will always be automatically
       adjusted to be orthogonal to CameraDir. And vice versa ---
       when setting CameraUp, CameraDir will be adjusted.
