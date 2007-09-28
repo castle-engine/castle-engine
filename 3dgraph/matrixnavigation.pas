@@ -215,7 +215,7 @@ type
   public
     { OnMatrixChanged bedzie wywolywane zawsze gdy funkcja Matrix
       zacznie zwracac inne wartosci LUB gdy jakakolwiek wartosc wlasciwosci
-      podklasy ulegnie zmianie (jak np. MoveSpeed w TMatrixWalker).
+      podklasy ulegnie zmianie (jak np. MoveHorizontalSpeed w TMatrixWalker).
       Moze byc = nil ale zazwyczaj nie powinna - CHCESZ przeciez reagowac na
       zmiany, prawda ? Pamietaj ze kazda zmiana macierzy spowoduje natychmiastowe
       wywolanie OnMatrixChanged - wiec napisz OnMatrixChanged tak zeby dzialalo
@@ -406,7 +406,7 @@ type
     FInitialCameraPos, FInitialCameraDir, FInitialCameraUp: TVector3Single;
     FGravityUp: TVector3Single;
 
-    FMoveSpeed, FMoveVertSpeed: Single;
+    FMoveHorizontalSpeed, FMoveVerticalSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
@@ -593,7 +593,7 @@ type
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
 
     { Note that Input_MoveSpeedInc and Input_MoveSpeedDec change
-      both MoveSpeed and MoveVertSpeed.
+      both MoveHorizontalSpeed and MoveVerticalSpeed.
       @groupBegin }
     property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
     property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
@@ -628,10 +628,10 @@ type
     { Move*Speed sa na poczatku rowne 1 zebys mogl userowi wyswietlac
       te zmienne jako jakas "szybkosc" gdzie 1 oznacza ruch w/g dlugosci
       wektora dir. }
-    property MoveSpeed: Single
-      read FMoveSpeed write FMoveSpeed default 1.0;
-    property MoveVertSpeed: Single
-      read FMoveVertSpeed write FMoveVertSpeed default 1.0;
+    property MoveHorizontalSpeed: Single
+      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
+    property MoveVerticalSpeed: Single
+      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
 
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
@@ -649,14 +649,14 @@ type
       InitialCameraXxx values.
 
       The length of CameraDir vector @bold(is significant) ---
-      together with MoveSpeed and MoveVertSpeed it determines
+      together with MoveHorizontalSpeed and MoveVerticalSpeed it determines
       the moving speed.
 
       More precisely: each horizontal move in Idle moves by distance
-      VectorLen(CameraDir) * MoveSpeed * CompSpeed.
+      VectorLen(CameraDir) * MoveXxxSpeed * CompSpeed.
       So in 1 CompSpeed unit (which is 1/50 of second if it came from
-      normal TGLWindow.IdleCompSpeed), we move by VectorLen(CameraDir) * MoveSpeed.
-      So we move 50 * VectorLen(CameraDir) * MoveSpeed units per second.
+      normal TGLWindow.IdleCompSpeed), we move by VectorLen(CameraDir) * MoveXxxSpeed.
+      So we move 50 * VectorLen(CameraDir) * MoveXxxSpeed units per second.
 
       When setting CameraDir, CameraUp will always be automatically
       adjusted to be orthogonal to CameraDir. And vice versa ---
@@ -1131,7 +1131,7 @@ type
       I increase HeadBobbingPosition such that
       HeadBobbingPosition increase of 1
       means that player moved horizontally by
-        VectorLen(Direction) * MoveSpeed * HeadBobbingDistance. }
+        VectorLen(Direction) * MoveHorizontalSpeed * HeadBobbingDistance. }
     property HeadBobbingDistance: Single
       read FHeadBobbingDistance write FHeadBobbingDistance
       default DefaultHeadBobbingDistance;
@@ -1581,8 +1581,8 @@ begin
   FInitialCameraDir := Vector3Single(0, 0, -1); FCameraDir := InitialCameraDir;
   FInitialCameraUp  := Vector3Single(0, 1, 0);  FCameraUp  := InitialCameraUp;
 
-  FMoveSpeed := 1;
-  FMoveVertSpeed := 1;
+  FMoveHorizontalSpeed := 1;
+  FMoveVerticalSpeed := 1;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
@@ -1927,7 +1927,7 @@ var
       Direction := CameraDir;
 
     Move(VectorScale(Direction,
-      MoveSpeed * CompSpeed * Multiply * AJumpMultiply), false);
+      MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -1937,7 +1937,7 @@ var
       Move(VectorScale(PreferredUpVector,
         { VectorLen(CameraDir) / VectorLen(PreferredUpVector) * }
         Sqrt(VectorLenSqr(CameraDir) / VectorLenSqr(PreferredUpVector)) *
-        MoveVertSpeed * CompSpeed * Multiply), false);
+        MoveVerticalSpeed * CompSpeed * Multiply), false);
     end;
 
   begin
@@ -2558,9 +2558,9 @@ begin
     end;
 
     { A simple implementation of Input_UpMove was
-        RotateVertical(90); Move(MoveVertSpeed * CompSpeed); RotateVertical(-90)
+        RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed); RotateVertical(-90)
       Similarly, simple implementation of Input_DownMove was
-        RotateVertical(-90); Move(MoveVertSpeed * CompSpeed); RotateVertical(90)
+        RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed); RotateVertical(90)
       But this is not good, because when PreferGravityUp, we want to move
       along the GravityUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromGravityUp). }
@@ -2576,24 +2576,24 @@ begin
 
       How to apply CompSpeed here ?
       I can't just ignore CompSpeed, but I can't also write
-        FMoveSpeed *= 1.1 * CompSpeed;
+        FMoveHorizontalSpeed *= 1.1 * CompSpeed;
       What I want is such (pl: ci±g³a) function that e.g.
-        F(FMoveSpeed, 2) = F(F(FMoveSpeed, 1), 1)
+        F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
       I.e. CompSpeed = 2 should work just like doing the same change twice.
-      So F is FMoveSpeed * Power(1.1, CompSpeed)
+      So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed)
       Easy!
     }
     if Input_MoveSpeedInc.IsPressed(KeysDown, MousePressed) then
     begin
-      FMoveSpeed *= Power(1.1, CompSpeed);
-      FMoveVertSpeed *= Power(1.1, CompSpeed);
+      FMoveHorizontalSpeed *= Power(1.1, CompSpeed);
+      FMoveVerticalSpeed *= Power(1.1, CompSpeed);
       MatrixChanged;
     end;
 
     if Input_MoveSpeedDec.IsPressed(KeysDown, MousePressed) then
     begin
-      FMoveSpeed /= Power(1.1, CompSpeed);
-      FMoveVertSpeed /= Power(1.1, CompSpeed);
+      FMoveHorizontalSpeed /= Power(1.1, CompSpeed);
+      FMoveVerticalSpeed /= Power(1.1, CompSpeed);
       MatrixChanged;
     end;
   end else
