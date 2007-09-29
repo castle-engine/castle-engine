@@ -123,7 +123,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils, KambiUtils, KambiDynLib;
 
 var
   VorbisFileLibrary: TDynLib;

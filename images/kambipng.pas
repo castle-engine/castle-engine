@@ -932,7 +932,7 @@ function KambiPngInited: boolean;
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils, KambiUtils, KambiDynLib;
 
 var
   PngLibrary: TDynLib;

@@ -18,35 +18,36 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Kambi (Michalis Kamburelis) Utilities.)
-
-  This unit defines many many various basic utilities.
+{ @abstract(Kambi (Michalis Kamburelis) various basic utilities.)
 
   @unorderedList(
-    @item(Base @link(TDynArrayBase) class and many TDyn*Array classes
-      implementing TDynArrayBase descendants that can store base Pascal types
-      (Integers, strings, floats etc.).)
+    @item(
+      Templates for classes that work like dynamic arrays.
+      Base @link(TDynArrayBase) class and many TDyn*Array classes
+      implementing TDynArrayBase descendants that can store base Pascal types,
+      like TDynIntegerArray, TDynStringArray, TDynFloatArray etc.
 
-    @item(They are comfortable replacement for ObjectPascal's dynamic arrays,
-      implemented by simulating C++-templates.
-      Initially done to achieve in FPC 1.0.6 things that I was doing
-      in Delphi using dynamic arrays, but now they are much more comfortable
-      and just better (for me) than dynamic arrays (e.g. they have
-      methods for seeking and sorting and they can be cleanly extended
-      by inheritance).
+      New TDyn*Xxx classes may be created much like instantiating templates in C++,
+      thanks to some tricks with include files and compiler defines,
+      see comments at the beginning of dynarray.inc file.
 
-      See things in kambiutils_dyn_arrays.inc include file.)
+      Initially TDyn*Xxx classes were implemented because old FPC versions didn't
+      implement dynamic arrays. But now TDyn*Xxx classes are just much more
+      powerful and comfortable than using normal ObjectPascal dynamic arrays.
+      E.g. they have methods for seeking and sorting and they can be
+      cleanly extended by inheritance.
 
-    @item(Some basic operations on numbers
+      Implemented in kambiutils_dyn_arrays.inc.)
+
+    @item(Basic operations on numbers
       (see things in kambiutils_math.inc).)
 
     @item(Some simple things that must be implemented differently on
       various OSes (i.e. they are implemented here to hide differences
       between some OSes).)
 
-    @item(They somehow complement standard set of routines in SysUtils.
-      See e.g. @link(GetTickCount), @link(ProcessTimerNow) in kambiutils_time.inc.
-      See e.g. things in kambiutils_filenames.inc.)
+    @item(Filenames operations (they somehow complement standard set
+      of routines in SysUtils), see things in kambiutils_filenames.inc.)
 
     @item(Things to process command-line options.
       See @link(Parameters) in kambiutils_params.inc.
@@ -54,17 +55,14 @@
       They are also used in my unit to parse command-line
       options @link(ParseParametersUnit).)
 
-    @item(Some basic algorithms, e.g. @link(Sort) in kambiutils_basic_algorithms.inc)
+    @item(Some basic algorithms, e.g. @link(Sort) in
+      kambiutils_basic_algorithms.inc)
 
     @item(Simple wrappers for OS specific things, like
       for Libc or BaseUnix/Unix units under UNIX
       (see also README.use_libc) or WinAPI under Windows.
       See win32/kambiutils_os_specific.inc and
       unix/kambiutils_os_specific.inc files.)
-
-    @item(@link(TDynLib) class to handle dynamic libraries in a way
-      more comfortable (for me) than standard routines available
-      in DynLibs, Dl or some OS-specific units like Libc or Windows.)
 
     @item(Some others...)
   )
@@ -148,7 +146,6 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}
-  {$ifdef FPC} DynLibs, {$endif}
   Variants, SysUtils, Math;
 
 {$define read_interface}
@@ -187,7 +184,6 @@ type
 {$I kambiutils_os_error.inc}
 {$I kambiutils_pointers.inc}
 {$I kambiutils_read_write.inc}
-{$I kambiutils_dynlibs.inc}
 
 {$undef read_interface}
 
@@ -213,7 +209,6 @@ uses KambiStringUtils, KambiFilesUtils;
 {$I kambiutils_os_error.inc}
 {$I kambiutils_pointers.inc}
 {$I kambiutils_read_write.inc}
-{$I kambiutils_dynlibs.inc}
 
 {$undef read_implementation}
 

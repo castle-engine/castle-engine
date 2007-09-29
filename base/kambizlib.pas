@@ -178,7 +178,7 @@ function KambiZlibInited: boolean;
 implementation
 
 uses
-  {$ifdef FPC} Strings, {$endif} SysUtils, KambiUtils;
+  {$ifdef FPC} Strings, {$endif} SysUtils, KambiUtils, KambiDynLib;
 
 function zlibversion : string;
   begin

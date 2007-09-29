@@ -23,17 +23,17 @@
   I *do not* have to include it in all my units, I include it only when
   I use some particular symbol (e.g. DELPHI) in my unit. Then I want to include
   this file to make sure that such symbol is correctly defined
-  (e.g. that DELPHI is defined is and only if I'm compiling with Delphi).
+  (e.g. that DELPHI is defined if and only if I'm compiling with Delphi).
 
   This file does not define some basic compiler settings, like
   syntax things (hugestrings ? which FPC mode to use ? ...) or what
   checks to do (io checks ? range checks ? assertions ? ...).
   Instead I depend on the fact that all my units must be compiled with
-  my "kambi.cfg" configuration file. This file defines such basic
+  my ../kambi.cfg configuration file. That file defines such basic
   compiler options. That's because I can't control everything using
-  this file, "kambiconf.inc". E.g. I can't say here to add HeapTrc
+  include file, like this one. E.g. I can't say here to add HeapTrc
   and LineInfo at the beginning of "uses" clause of current unit/program.
-  But I can say it easily in "kambi.cfg" using "-gl -gh" options.
+  But I can say it easily in ../kambi.cfg using "-gl -gh" options.
 }
 
 {$ifndef KambiConf_ALREADY_INCLUDED}

@@ -44,3 +44,6 @@ Scenes
 Attributes
 Render
 OpenAL
+Load
+symbol
+Name

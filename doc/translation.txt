@@ -71,6 +71,7 @@ D   dataerrors.pas
 |   enumeratefiles.pas
 D   intrects.pas
 |   kambiclassutils.pas
+D   kambidynlib.pas
 |   kambifilesutils.pas
 D   kambilog.pas
 |   kambistringutils.pas

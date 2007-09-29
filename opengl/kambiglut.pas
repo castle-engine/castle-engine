@@ -570,7 +570,7 @@ const
 
 implementation
 
-uses KambiUtils;
+uses KambiUtils, KambiDynLib;
 
 {procedury pomocnicze dla Gluta, zrobione przeze mnie ----------------------------}
 

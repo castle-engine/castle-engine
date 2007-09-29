@@ -1,7 +1,12 @@
+2007-09 update: what this file talks about is mostly history.
+Since a long time, I use FPC 2.x, and all my stuff uses BaseUnix / Unix
+units, no Libc unit.
+
+------------------------------------------------------------------------------
 The meaning of compilation-time symbol USE_LIBC,
 that I use in many places in UNIX-specific code:
 
-If it is defined, all UNIX-specific code depends on unit "Libc". 
+If it is defined, all UNIX-specific code depends on unit "Libc".
 If it is not defined, the same code depends on units
 BaseUnix and Unix (available only in FPC 1.9.x) and maybe others,
 even more UNIX-version-specific.
@@ -43,7 +48,7 @@ I sometimes want to use Libc unit:
    FPC 1.9.x, but these are just "known problems" for me and I can
    avoid them. So I want to keep my code compileable with *both* FPC
    1.0.10 and FPC 1.9.x.
-   
+
    2005-01-04 note: actually, FPC 1.9.6 is so stable that I may change
    my mind and drop 1.0.10 support even before official FPC 2.0
    is released. We'll see.

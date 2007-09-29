@@ -220,7 +220,7 @@ procedure OpenALRestart;
 
 implementation
 
-uses KambiUtils, KambiTimeUtils;
+uses KambiUtils, KambiTimeUtils, KambiDynLib;
 
 { CheckAL*Inited ------------------------------------------------------------ }
 
