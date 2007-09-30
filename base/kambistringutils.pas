@@ -65,72 +65,111 @@ const
 
 function RandomString: string;
 
-{ StringReplaceAllTo1st zamienia w stringu s wszystkie wystapienia
-  subs_orig na subs_repl. Domyslnie IgnoreCase = true.
-    StringReplaceAllTo1st(s, from, to)
-  jest rownowazne
-    s := StringReplace(s, from, to, [rfReplaceAll, rfIgnoreCase])
-  Przy IgnoreCase = false nie ma flagi rfIgnoreCase. Tym samym
-  StringReplaceAllTo1st opakowuje bardzo czeste zastosowanie
+{ Replace all occurences of FromPattern string to ToPattern string,
+  within another string S.
+
+  @code(StringReplaceAllTo1st(s, from, to)) is actually equivalent to
+  simply @code(s := StringReplace(s, from, to, [rfReplaceAll, rfIgnoreCase])).
+  So StringReplaceAllTo1st is just a wrapper for very common use case of
   StringReplace. }
-procedure StringReplaceAllTo1st(var s: string; const fromPat, toPat: string;
+procedure StringReplaceAllTo1st(var S: string;
+  const FromPattern, ToPattern: string;
   IgnoreCase: boolean = true); overload;
 
-{ BreakLine : bierze s i wstawia w nim znaki nl tak zeby kazda linia
-  w stringu miala maksymalnie MaxCol znakow. String s przy tym moze
-  byc juz podzielony przy uzyciu dowolnych znakow konca linii : #13, #10,
-  #13#10 lub #10#13. Zostana one rozpoznane i uwzglednione jako juz dzielace
-  linie ograniczniki.
-  Stara sie wstawic nl na ostatnim przed MaxCol znakiem onbreakChars (znak
-  sposrod breakChars zostaje przy tym skasowany).}
+{ Insert newline characters into string S, such that each line
+  has at most MaxCol chars. Newline characters inserted is @link(NL).
+
+  It tries to insert NL at the last character in OnBreakChars but still
+  before MaxCol limit, and the character in OnBreakChars is deleted in this case.
+  In other words, in most typical situation it simply breaks the string
+  where the whitespace is, trying to make the line as long as possible within
+  MaxCol limit. If no such character in OnBreakChars is found (e.g., you
+  put a long line of non-white characters), it will still break the string
+  at MaxCol position (so in this exceptional case, it will cause a break
+  in the middle of the word).
+
+  While breaking the string in the middle
+  of the word in not nice, this allows us a safe feeling that this
+  will always break the string into MaxCol chunks.
+
+  This intelligently recognizes already
+  existing newline characters (#13, #10, #13#10 or #10#13) in the string,
+  so e.g. it will not insert more newline characters when they are not
+  necessary. }
 function BreakLine(const s: string; MaxCol: integer;
   onbreakChars: TSetOfChars = WhiteSpaces): string; overload;
 
 { Returns S with all chars in ExcludedChars deleted. }
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
 
-{ SReplaceChars zamienia wszystkie wystapienia znakow ze stringu / zbioru
-  frompos w stringu s na :
-   wersja 3 x string - zamienia znak na odpowiedni znak na tej samej pozycji w ToChars,
-     np. wywolaj (s, 'ab','cd') aby zamienic wszystkie a na b i wszystkie c na d w s.
-     Zawsze powinno byc Length(FromChars) <= Length(ToChars).
-   wersja string, TSetOfChars, to char zamienia kazdy znak na ToChar (i dziala szybciej).
+{ SReplaceChars replaces all occurences of characters in FromChars with
+  new string / character. There are three overloaded versions:
 
-  Version with "FromChar: char" replaces just this one character to another. }
+  @orderedList(
+    @item(SReplaceChars(string, string, string) looks in S for characters within
+      FromChars, and replaces them with characters on appropriate position
+      in ToChars. For example, SReplaceChars(S, 'ab', 'cd') replaces
+      all occurences of 'a' into 'c' and all occurences of 'b' into 'd'.
+      It must always be Length(FromChars) <= Length(ToChars).)
+
+    @item(SReplaceChars(string, TSetOfChars, char) replaces all occurences
+      of any character in given set with the one specified character.)
+
+    @item(SReplaceChars(string, char, char) simply replaces all occurences
+      of one character into another.))
+
+  @groupBegin
+}
 function SReplaceChars(const s, FromChars, ToChars: string): string; overload;
 function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): string; overload;
 function SReplaceChars(const s: string; FromChar, ToChar: char): string; overload;
+{ @groupEnd }
 
-{ E.g. @code(SPad('29',4, '0')) gives '0029' }
+{ This pads (fills from the left with character C) string S, until length
+  of S is at least Len.
+
+  For example, @code(SPad('29', 4, '0')) gives '0029' }
 function SPad(const s: string; len: integer; c: char = ' '): string; overload;
 
-{ Like SPad with padding char set to '0'. }
+{ This pads (fills from the left)  with zeros string S, until length
+  of S is at least Len. It's actually just a shortcut for SPad
+  with padding character set to '0'. }
 function SZeroPad(const s: string; len: integer): string;
 
-{ LoCase: pair for UpCase. Note that this doesn't take current locale
-  into account (just like UpCase), it works only on English
-  a-z -> A-Z letters. }
+{ Convert uppercase letters to lowercase. Analogous to UpCase.
+  Doesn't change other characters. Just like UpCase, this doesn't
+  take current locale into account, and works only on English
+  A-Z -> a-z letters. }
 function LoCase(c: char): char;
 
 function CharPos(c: char; const s: string): integer;
 
-{ CharsPos : znajdz dowolny sposrod znakow chars w stringu s.
-  Czyli to samo co FirstDelimiter ale z parametrem jako TSetOfChars i duzo bardziej
-  sensowna nazwa. BackPos dziala w tyl.
+{ Find first occurence of any character in Chars in string S.
+  This is quite like FirstDelimiter but it takes parameter as TSetOfChars
+  and has much more sensible name.
+
+  BackCharsPos does the same, but from
+  the end of the string (i.e. finds the last occurence).
+
   CharsPosEx searches starting from Offset char.
-  Zwracaja 0 jesli nie znajda. }
+
+  They all return 0 if not found.
+
+  @groupBegin }
 function CharsPos(const chars: TSetOfChars; const s: string): integer;
 function CharsPosEx(const chars: TSetOfChars; const s: string;
   Offset: Integer): integer;
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
+{ @groupEnd }
 
 { Find @bold(last) occurence of SubString within S.
   0 if not found. Overloaded version is optimized for searching for
   single character. }
 function BackPos(const SubString, S: string): Integer; overload;
 function BackPos(const SubString: char; const S: string): Integer; overload;
-{ FirstDelimiter : cos jak LastDelimiter, ale skanuje od lewej.
-  zwraca 0 jesli nie znajdzie. }
+
+{ Find first occurence of character in Delimiters. Name is analogous to
+  LastDelimiter. Returns 0 if not found. }
 function FirstDelimiter(const Delimiters, S: string): Integer;
 
 { SEnding returns S contents starting from position P.
@@ -146,63 +185,83 @@ function IsSuffix(const Suffix, S: string;
 { If IsPrefix(Prefix, S, IgnoreCase) then returns S with this prefix
   removed. Else returns S. }
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
-{ Like PrefixRemove, but here checks for and removes Suffix }
+
+{ Like PrefixRemove, but checks for and removes Suffix. }
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 
-{ SAppendData : dopisz do s DataSize bajtow z pamieci wskazywanej przez @@Data }
+{ Appends to a string S DataSize bytes from Data. }
 procedure SAppendData(var s: string; const Data; DataSize: integer);
-{ SChar zwraca wskaznik na s[CharNum] czyli @@s[CharNum].
-  Ale SChar nie wykonuje przy tym Range Checks ! }
+
+{ SChar returns a pointer to S[CharNum], i.e. just @@S[CharNum],
+  however SChar doesn't avoids any range checking. }
 function SChar(const s: string; CharNum: integer): PChar;
-{ SCharIs : zwraca czy s[index] = c. ale zwraca false jesli s jest krotsze
-  niz index (normalnie porownanie s[index] = c da RangeError (przy $R+)
-  lub przypadkowy wynik (przy $R-) }
+
+{ SCharIs checks whether S[Index] = C, but also checks S length.
+  Return false if S is too short, or the chatacter differs. }
 function SCharIs(const s: string; index: integer; c: char): boolean; overload;
 function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean; overload;
-{ Zamienia spec. znaczki w stringu na #numer.
+
+{ Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
 function SReadableForm(const s: string): string;
-{ CopyPos zwraca s[StartPoz, .... ,EndPoz] - dziala jak Copy ale ostatni paranetr
-  okresla EndPoz zamiast ACount. Podobnie DeletePos dziala jak Delete. }
-function CopyPos(const s: string; StartPoz, EndPoz: integer): string;
-procedure DeletePos(var S: string; StartPoz, EndPoz: Integer);
 
-{ NextToken szuka w s pierwszego znaku <not in TokenDelims>, poczynajac od SeekPos.
-  Potem szuka dalej znaku <in TokenDelims>. Zwraca znaleziony sub-string (wlaczajac w to
-  pierwszy znak not in TokDelims i wylaczajac koncowy znak in TokenDelims).
+{ CopyPos returns s[StartPosition,....,EndPosition].
+  This is similar to standard Copy procedure,
+  but last parameter is EndPosition instead of Count, which is more comfortable
+  sometimes.
 
-  Modyfikuje jednoczesnie zmienna SeekPos tak ze po wywolaniu wskazuje ona na pierwszy
-  znak za koncowym znakiem ktory byl <not in TokDelims>, tzn.
-  s[SeekPos-1] jest in TokenDelims (chyba ze SeekPos-1 > Length(s) ) a s[SeekPos-2] to
-  ostatni znak w zwroconym tokenie. W rezultacie aby znalezc kolejny token powinienes
-  nastepnym razem wywolac ta procedure znowu z SeekPos.
+  Similar for DeletePos, it's analogous to standard Delete but with EndPosition
+  parameter. }
+function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
+procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
-  Zwraca '' jesli skonczyly sie tokeny (wartosc SeekPos jest w tym wypadku nieokreslona).
-  Typowe uzycie - iteruj po wszystkich tokenach w stringu :
-    SeekPos := 1;
-    repeat
-     Token := NextToken(s, SeekPos);
-     if Token = '' then break;
-     ... process_next_token (Token) ...
-    until false;
+(*NextToken is used to find next part in the string S separated by delimiters
+  TokenDelims. More precisely: NextToken searches S, starting from position
+  SeekPos, for the first character that is @italic(not in TokenDelims).
+  Then, all subsequent characters that are not in TokenDelims are
+  appended to the Result, until any character @italic(is in TokenDelims)
+  is found. In effect, Result contains the whole part that was in TokenDelims.
 
-  Note: it's *much* easier to use CreateTokens instead of this procedure.
-  This procedure has just a bit more functionality. }
+  SeekPos is advanced to the position of the next character, i.e. the character
+  right after the ending character that was in TokenDelims. In other words,
+  SeekPos points to the position of the next "unprocessed" character in
+  string S. Often you will want to make another call to NextToken, passing
+  this SeekPos, and this way you can split your string S into parts
+  delimited by TokenDelims.
+
+  Returns '' if no more tokens available (SeekPos value at the end is
+  unspecified).
+
+  Typical use scenario (iterate over all tokens in the string) :
+
+@longCode(#
+  SeekPos := 1;
+  repeat
+    Token := NextToken(S, SeekPos);
+    if Token = '' then break;
+    { ... process_next_token (Token) ... }
+  until false;
+#)
+
+  The above example will split the string into parts separated by whitespace.
+
+  Note: it's much easier to use CreateTokens instead of this procedure.
+  But this procedure gives you quite more flexibility. *)
 function NextToken(const s: string; var SeekPos: integer;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
-{ NextTokenOnce umozliwia przekazanie parametru SeekPos by value.
-
-  Oczywiscie, nie jest to dobre rozwiazanie jezeli chcemy znalezc wszystkie tokeny
-  w stringu - ale jezeli zalezy nam tylko na jednym tokenie (jesli SeekPos = 1 to bedzie
-  to pierwszy token) to ta procedura bedzie wygodniejsza od NextToken . }
+{ NextTokenOnce works just like NextToken, but doesn't advance the SeekPos
+  position. This means that it's quite useless when you're interested
+  in @italic(all) tokens inside some string, but it's also more comfortable
+  when you're interested in only @italic(one) token inside some string.
+  When SeekPos = 1, this is the first token. }
 function NextTokenOnce(const s: string; SeekPos: integer = 1;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
-{ Returns TDynStringArray with tokens extracted from s.
+{ Returns TDynStringArray with tokens extracted from S.
   Token is something delimited by TokenDelims.
   TokenDelims are not contained in resulting items.
   E.g. CreateTokens('foo, bar', [' ', ',']) returns TDynStringArray
@@ -237,8 +296,8 @@ function NextTokenRestr(const s: string; var SeekPos: integer;
   const RestrAreas: TSetOfChars = ['''','"']): string; overload;
 
 { FindPos : mocno rozbudowana procedura Pos (kiedys pod nazwa PosX) .
-  Szuka SubTekst w Copy(Tekst, StartPoz, Dlugosc) i zwraca pozycje (wzgledem calego Tekstu,
-   nie wzgledem StartPoz). Pozycja w stringu pascalowym jest tradycyjnie liczna od 1.
+  Szuka SubTekst w Copy(Tekst, StartPosition, Dlugosc) i zwraca pozycje (wzgledem calego Tekstu,
+   nie wzgledem StartPosition). Pozycja w stringu pascalowym jest tradycyjnie liczna od 1.
    Jesli soMatchCase w Opcje to szukanie jest case-sensitive (jesli nie jest, to
      utozsamianie malych i duzych znakow uwzglednia locale-chars).
    Jesli soWholeWord, to znalezione wystapienie SubTekstu w Tekst musi dodatkowo
@@ -250,7 +309,7 @@ function NextTokenRestr(const s: string; var SeekPos: integer;
      sie i zwraca wynik pierwszego znalezionego wystapienia, wiec wartosc
      soBackwards in Opcje okresla czy pierwszego od lewej czy od prawej).
   Zwraca 0 jesli nie znalazl. }
-function FindPos(const SubTekst, Tekst: string; StartPoz, Dlugosc: integer;
+function FindPos(const SubTekst, Tekst: string; StartPosition, Dlugosc: integer;
   opcje: TSearchOptions;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
 
@@ -292,39 +351,63 @@ procedure StringToFile(const fname, contents: string);
 type
   EDeformatError = class(Exception);
 
-{ DeFormat :
+{ DeFormat parses a string according to given format, returning the
+  values corresponding to placeholders %x in format string.
 
-  format to ciag bialych znakow, specyfikacji typu %s %d lub %f i czarnych
-  znakow. %% oznacza czarny znak '%'.
+  Format parameter is a sequence of white spaces, placeholders like %d or %f,
+  and other characters. More precisely:
 
-  When RelaxedWhitespaceChecking = @true (that's the default value)
-  then 1 lub wiecej bialych znakow w
-  format to 1 lub wiecej bialych znakow w data (ale nie musi ich byc
-  tyle samo tu i tu). Dotyczy to takze koncowki i poczatku stringa -
-  format = ' %d' oznacza ze przed integerem musi byc przynajmniej jedna
-  biala spacja.
+  @unorderedList(
+    @item(If RelaxedWhitespaceChecking = @true (that's the default value)
+      then 1 or more white spaces in Format must correspond to 1 or more
+      any whitespace characters in Data. I.e., the actual number and kind
+      of whitespace in Format and Data doesn't have to match --- it's
+      only important that @italic(some whitespace in Format) correspond
+      to @italic(some whitespace in Data).)
 
-  %d to Integer, moze byc ze znakiem.
+    @item(@code(%d) in Format means an integer value (possibly signed) in Data.
+      Args should have a pointer to Integer variable on the appropriate
+      position.)
 
-  %f to Float, moze byc ze znakiem i z kropka.
+    @item(@code(%f) in Format means a float value (possibly signed, possibly
+      with a dot) in Data. Args should have a pointer to Float variable
+      on the appropriate position.)
 
-  %.single. , %.double., %.extended. to odpowiednie typy zmiennoprzec.
-  (uwaga - nazwy typow sa case-sensitive, musza byc pisane malymi literami).
+    @item(@code(%.single.), @code(%.double.), @code(%.extended.) are like
+      @code(%f), but they
+      specify appropriate variable type in Args.
+      Since DeFormat can't check the type validity of your pointers,
+      always be sure to pass in Args pointers to appropriate types.)
 
-  %s to AnsiString, zakonczy sie na pierwszym bialym znaku w data (lub na koncu
-  data). Uwaga - %s moze byc utozsamiony z '' jesli np. format = '%d %s'
-  data = '123 '.
+    @item(@code(%s) in Format means a string (will end on the first whitespace)
+      in Data. Args should contain a pointer to an AnsiString
+      on the appropriate position. Note that I mean it --- a pointer
+      to an AnsiString, not just a string typecasted into a pointer.
+      I.e., if S is AnsiString, Args should contain @@S, not Pointer(S).
 
-  Wszystkie pozostale czarne znaki musza wystepowac dokladnie tak samo
-  w data jak sa w format. Parametr IgnoreCase kontroluje czy ignorowac
-  roznice w wielkosci liter. When RelaxedWhitespaceChecking = @false
-  then white chars are treated exactly like non-white chars: they must
-  simply match exactly.
+      Note that a string may be empty in some cases, e.g. Format = '%d %s'
+      and Data = '123 ' will result in the empty string as second Args.)
 
-  Format musi objac cale data - po przeczytaniu format data powinno sie
-  skonczyc, inaczej blad. Jest jeden wyjatek : data moze zawierac nadprogramowe
-  biale znaki na poczatku i na koncu (but this is allowed only
-  when RelaxedWhitespaceChecking = @true, which is the default).
+    @item(@code(%%) in Format means a one % sign in Data.)
+
+    @item(All the other characters (non-white, not %x sequences above)
+      should be present in Data exactly like they are specified in Format.
+      IgnoreCase controls is the letter case checked. When
+      RelaxedWhitespaceChecking = @false then white-space characters
+      are treated just like non-white chars: they must match exactly
+      between Format and Data.)
+  )
+
+  Format must always match the whole Data --- in other words, when
+  we finished reading the Format, Data should be finished too.
+  The exception is at the beginning and end of Data, if
+  RelaxedWhitespaceChecking = @true : then at the beginning and end of Data
+  any number of white-space is allowed.
+
+  For DeFormat, the opposite must also be true: when we finished reading
+  Data, Format should be finished too. However, for TryDeFormat, it's
+  allowed for Data to end prematurely. TryDeFormat returns how many Args
+  were initialized.
 
   Note that while usually you will want RelaxedWhitespaceChecking = @true,
   sometimes it can be needed to set this to @false not only to get
@@ -339,16 +422,12 @@ type
   RelaxedWhitespaceChecking = @true. Then the first '%s' will be matched
   to '' (empty string).
 
-  TryDeFormat zwraca ile sposrod args zostalo zainicjowanych - a wiec
-  dopuszcza sytuacje ze Data skonczylo sie przed Format. DeFormat
-  wyrzuca w takiej sytuacji wyjatek.
+  This was written because both JclSscanf and scanf units were buggy.
+  (see openGL.testy/nehe10).
 
-  Napisane bo zarowno wersje z JclSscanf jak i z modulu scanf dzialaly zle
-  - patrz openGL.testy/nehe10.
-
-  DeFormat rzuca wyjatkiem EDeformatError w razie jakiegokolwiek bledu
-  - niezgodnosci data z format. Pamietaj ze wtedy niektore sposrod
-  args moga byc zmienione a niektore nie. }
+  @raises(EDeformatError In case of any error --- mismatch between Format
+    and Data. Note that in case of error, some of Args may be initialized,
+    and some not --- no guarantees here, sorry.) }
 procedure DeFormat(Data: string; const Format: string;
   const args: array of pointer;
   const IgnoreCase: boolean = true;
@@ -431,45 +510,6 @@ function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
 { SAnsiSame does SAnsiCompare() = 0 }
 function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
 
-{ Formalnie:
-    Kazdy dwuznakowy ciag postaci
-      PercentChar + Replaces[i].c (dla dowolnego i)
-    jaki znajdziemy w Format zamieniamy na
-      Replaces[i].s (dla tego samego i ktore pasowalo wyzej)
-    Ponadto ciag PercentChar+PercentChar zamieniamy na pojedyncze PercentChar.
-    Jezeli ErrorOnUnknownPercentFormat i znajdziemy w stringu ciag PercentChar+c
-      gdzie c nie wystepuje nigdzie jako Replaces[i].c ani nie jest rowne PercentChar
-      (przy czym c moze byc takze koncem stringa, tzn. ma to takze zastosowanie gdy
-      na koncu Format jest pojedynczy PercentChar)
-      to rzucamy wyjatek EUnknownPercentFormat z opisem 'Unknown formatting sequence :
-      %c. Allowed formatting sequences are .... (and "%%" for "%")'
-    Cala reszta Format pozostaje bez zmian.
-    Tak zmodyfikowany Format zwracamy. Oczywiscie zamiany robimy jednokrotnie,
-      przesuwajac sie zawsze do przodu, wiec np. '%%%%' zamienimy na '%%' (nie wychwycimy
-      tych '%%' ponownie jako pary).
-  Nieformalnie: tak funkcja formatuje string Format zamieniajac sekwencje w rodzaju
-    '%a' na zadane stringi. Np. podaj Replaces = [(c:'a'; s:'kot'), (c:'b'; s:'pies')]
-    a rezultat bedzie taki ze w podanym Format wszystkie ciagi postaci '%a' zostana
-    zamienione na 'kot' a '%b' na 'pies'. Jezeli not ErrorOnUnknownPercentFormat
-    to ciagi z rodzaju '%d' zostana w tym momencie zostawione jako '%d' (tzn. jezeli
-    po '%' wystepuje literka taka jak 'd', ktora nie ma przypisanego formatu, to po prostu
-    nie wykonamy zadnego formatowania). Ale zazwyczaj nie jest to zbyt rozsadne bo
-    zazwyczaj uzywajac tej funkcji bedziesz chcial przygotowac sie na to ze mozesz
-    sobie kiedys rozszerzac Replaces - jezeli np. dodasz wtedy (c:'d'; s:'kura')
-    to string '%d' zostanie zamieniony 'kura'. Wiec lepiej uzywaj podwojnego '%%'
-    aby uzyskac '%'. Jezeli ErrorOnUnknownPercentFormat = true to jestes do tego nawet
-    ZMUSZONY bo wszelki ciag '%d' (lub sam '%' na koncu stringi) gdzie 'd' nie wystepuje
-    w Replaces[].c spowoduje wyjatek.
-
-    Ponadto mozesz konfigurowac czym jest PercenChar. Standardowo jest on
-    wlasnie procentem, czyli '%', ale mozesz uzyc dowolnego znaku.
-    IgnoreCase nie ma znaczeniu przy szukaniu PercentChar, znak PercentChar
-    jest zawsze szukany dokladnie, bez jakiegokolwiek ignorowania wielkosci
-    liter.
-
-    Nie jest zdefiniowane jak zachowa sie ta procedura kiedy wsrod Replaces jakis
-    znak c pojawi sie wiecej niz raz lub jakis znak c bedzie rowny PercentChar.
-}
 type
   TPercentReplace = record
     { @noAutoLinkHere }
@@ -479,6 +519,49 @@ type
   end;
 
   EUnknownPercentFormat = class(Exception);
+
+{ SPercentReplace is something like a generalized Format routine:
+  searches for %x construction and replaces it with some string.
+
+  More precisely: every two-char sequence that starts with PercentChar
+  and then is followed by one of Replaces[I].c characters is replaced
+  with appropriate Replaces[i].s. Moreover, a pair of two PercentChar
+  characters is replaced with one PercentChar character.
+
+  @italic(For example), assume that Replaces contains two items:
+  @code((c: 'B'; s: '<bold>'), (c: 'b'; s: '</bold>')).
+  Then @code(SPercentReplace('100%% of cats are %Bcute%b', Replaces)) will return
+  string @code('100% of cats are <bold>cute</bold>').
+
+  EUnknownPercentFormat is raised if we will see two-char sequence
+  that starts with PercentChar and then is followed by character that
+  is not any Replaces[i].c and is not PercentChar. Also, a single PercentChar
+  at the end of the string is an error.
+
+  @italic(For example), assume that Replaces contains the same two items as
+  previously. Following calls will result in EUnknownPercentFormat being raised:
+  @code(SPercentReplace('Unknown sequence %x', Replaces)),
+  @code(SPercentReplace('Unterminated sequence %', Replaces)).
+
+  If ErrorOnUnknownPercentFormat is @false, then EUnknownPercentFormat will
+  not be raised. Instead, incorrect sequence (like %x or unterminated % in
+  examples above) will simply be left in the string.
+
+  Of course, replacing is done intelligently. Which means that
+  e.g. sequence of four % characters will be correctly transformed into
+  two % characters.
+
+  Note that IgnoreCase is used to match characters for Replaces[I].c.
+  IgnoreCase is not used when it comes to comparing with PercentChar character,
+  i.e. even when PercentChar will be set to some letter, it will always
+  be compared in case-sensitive manner, regardless of IgnoreCase value.
+
+  It is undefined (meaning: don't do it) what happens if Replaces array
+  contains more than once the same character C, or if any character C
+  in Replaces array is equal to PercentChar.
+
+  @raises(EUnknownPercentFormat In case of error in InitialFormat string,
+    if ErrorOnUnknownPercentFormat is @true.) }
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   ErrorOnUnknownPercentFormat: boolean = true;
@@ -527,7 +610,7 @@ function DigitAsChar(b: byte): char;
 { c = '0' .. '9' konwertuje na 0..9 }
 function DigitAsByte(c: char): byte;
 
-{ IntToStrZpad = jak IntToStr ale padduje od lewej zerami jesli trzeba }
+{ IntToStrZPad = jak IntToStr ale padduje od lewej zerami jesli trzeba }
 function IntToStrZPad(n: integer; minLength: integer): string;
 { zamienia n na string w ukladzie poz-pozycyjnym. Poz nie moze byc wieksze
   niz 'Z'-'A'+1+10 (zabrakloby nam wtedy symboli). }
@@ -560,29 +643,41 @@ function IntToStrThousandSep(const Value: Int64): string;
 function Str2ToInt(const s: string): integer;
 { Convert string in hexadecimal (0-9, a-z, A-Z are digits,
   optional sign -/+ allowed) to Int64.
-  Raises EConvertError on problems with conversion }
+  @raises EConvertError On problems with conversion. }
 function StrHexToInt(const s: string): Int64;
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;
 
-function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
- { wypisze Set jakby byl set of NumStart..NumEnd. Uwaga ! Implementacja zaklada ze
-   realizacja set'u NumStart..NumEnd to set of byte obciety i dosuniety do lewej,
-   co w przypadku realizacji Borlanda moze sie okazac bledne - np.
-   set of 1..16 jest realizowany na 3 bajtach (pierwszy bit tracony, marnujemy jeden bajt,
-          ale za to mamy szybkosc - badajac i in set nie trzeba robic i := i-1.
-          Tak naprawde SizeOf(ten set) = 4 bo mamy dopelnianie do 4 bajtow - adresy podzielne
-          na 4 moga byc osiagane szybciej)
-   ale SizeOf(set of 200..216) = 4 takze, czyli tutaj juz kompilator jest na tyle sprytny
-    ze nie alokuje 216 bitow na zapamietanie 17 bitow, orientuje sie ze jest to tylko
-    maly przedzial.
-   Podsumowujac, nie mam nic przeciwko tej realizacji set'u przez Borlanda ale powoduje
-    ona ze NumStart dla powyzszej procedury powinien byc dobierany ostroznie zeby wynik
-    nie zawieral nieznaczacych bitow. Slowem, uzywaj tej funkcji raczej tylko do testow.
-    (no, ew. dla set of 0..NumEnd lub set of byte wynik bedzie zawsze ok.)
- }
+{ Convert a set to a string representation, in somewhat hacky way.
+  This assumes that given SetVariable is a set value, and the set type
+  is "set of [NumStart .. NumEnd]".
 
-{ PCharOrNil - cos jak cast PChar(s) ale zwraca nil jesli s = ''.
-  Ku mojemu zdziwieniu cast PChar(s) tak nie robi. }
+  @italic(Implementation is heavily dependent on how the sets are internally
+  stored.)
+  For now, we depend that a set of [NumStart .. NumEnd] behaves like a set
+  of Byte, shifted to the left (i.e., NumStart corresponds to a 0 in set of Byte).
+  This is not necessarily true ! For example in Delphi 5 (as far as I remember
+  --- I don't have this Delphi now, and I don't remember on which Delphi
+  version I observed this) set of 1..16 uses first three bytes, and
+  the first bit (that would correspond to 0) is simply wasted. In fact,
+  SizeOf such set is still 4, which means that internally sets eat 4 bytes anyway.
+  But SizeOf set 200..216 is also 4, which means that the compiler is smart
+  and doesn't waste too much space to store only 17 bits.
+
+  This all is not a rant on internal set handling by Delphi. On the contrary,
+  Delphi does it for speed reasons, and that's very good. This is just
+  a warning that SetToStr is not really reliable, and you may need to experiment
+  a little with NumStart / NumEnd values to get sensible results.
+  Although if your set is like "set of [0 ... something]", this should usually
+  work OK,
+
+  Still: @italic(this function should be used only for debug purposes.
+  Don't depend on it working 100% correctly always --- it can't, because we
+  can't depend on how compiler stores sets.) }
+function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
+
+{ PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
+  If string is empty, this returns @nil, otherwise it works just like
+  PChar(S): returns a Pointer(S) with appropriate type cast. }
 function PCharOrNil(const s: string): PChar;
 
 { some ASCII funcs / codes -------------------------------------------------- }
@@ -634,7 +729,8 @@ begin
  for i := 1 to 3 do result := result+char(byte('0')+Random(10));
 end;
 
-procedure StringReplaceAllTo1st(var s: string; const fromPat, toPat: string;
+procedure StringReplaceAllTo1st(var S: string;
+  const FromPattern, ToPattern: string;
   IgnoreCase: boolean);
 (*
  { NAIWNA IMPLEMENTACJA : zawsze szuka w nowym s od subs_orig od poczatku
@@ -653,8 +749,8 @@ begin
 *)
 begin
  if IgnoreCase then
-  s := StringReplace(s, fromPat, toPat, [rfReplaceAll, rfIgnoreCase]) else
-  s := StringReplace(s, fromPat, toPat, [rfReplaceAll]);
+  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll, rfIgnoreCase]) else
+  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
 end;
 
 function BreakLine(const s: string; MaxCol: integer; onbreakChars: TSetOfChars): string;
@@ -880,14 +976,14 @@ begin
    result := result+s[i];
 end;
 
-function CopyPos(const s: string; StartPoz, EndPoz: integer): string;
+function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
 begin
- result := Copy(s, StartPoz, EndPoz - StartPoz + 1);
+ result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
 end;
 
-procedure DeletePos(var S: string; StartPoz, EndPoz: Integer);
+procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 begin
- Delete(S, StartPoz, EndPoz - StartPoz + 1);
+ Delete(S, StartPosition, EndPosition - StartPosition + 1);
 end;
 
 function NextToken(const s: string; var SeekPos: integer;
@@ -964,7 +1060,7 @@ begin
 end;
 {$WARNINGS ON}
 
-function FindPos(const subTekst, tekst: string; startPoz, dlugosc: integer; opcje: TSearchOptions; const WordBorders: TSetOfChars): integer;
+function FindPos(const subTekst, tekst: string; StartPosition, dlugosc: integer; opcje: TSearchOptions; const WordBorders: TSetOfChars): integer;
 var S, SubS: string;
 
   function MatchingPos(i: integer): boolean;
@@ -978,7 +1074,7 @@ var S, SubS: string;
    begin
     if soWholeWord in opcje then
     begin
-     realI := i+startPoz-1;
+     realI := i+StartPosition-1;
      if ( (realI = 1) or (tekst[realI-1] in wordBorders) ) and
         ( (realI+length(subS)-1 = length(tekst)) or (tekst[realI+length(subS)] in WordBorders) )
      then result := true
@@ -988,7 +1084,7 @@ var S, SubS: string;
 
 var i: integer;
 begin
- S := copy(tekst, startPoz, dlugosc);
+ S := copy(tekst, StartPosition, dlugosc);
  SubS := SubTekst;
  if not (soMatchCase in opcje) then
  begin
@@ -1005,7 +1101,7 @@ begin
   for i := 1 to dlugosc-Length(SubS)+1 do
    if MatchingPos(i) then begin result := i; break end;
  end;
- if result > 0 then result := result+startPoz-1;
+ if result > 0 then result := result+StartPosition-1;
 end;
 
 function MatchingFind(const SubText, Text: string; MatchStart, MatchLength: integer; matchCase, wholeWord: boolean; const WordBorders: TSetOfChars): boolean;
@@ -1811,7 +1907,8 @@ begin
  end;
 end;
 
-function PCharOrNil(const s: string): PChar; begin if s = '' then result := nil else result := PChar(s); end;
+function PCharOrNil(const s: string): PChar;
+begin if s = '' then result := nil else result := PChar(s); end;
 
 { describe chars ---------------------------------------- }
 
