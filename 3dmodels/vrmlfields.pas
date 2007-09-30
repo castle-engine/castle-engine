@@ -105,8 +105,9 @@ type
   protected
     FName: string;
 
-    { kazda klasa musi to pokryc; SaveToStream zapisuje
-      Indent, Name, ' ', potem wywoluje SaveToStreamValue, potem zapisuje nl.
+    { Save field value to a stream. Must be overriden for each specific
+      field. SaveToStream writes Indent, Name, ' ', then calls SaveToStreamValue,
+      then writes @link(NL).
 
       Note that SaveToStream in this class
       already takes care of IsClause. If IsClause, it will do
@@ -122,15 +123,15 @@ type
 
     procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
   public
-    { spoza tego modulu nigdy nie tworz obiektow tej klasy z Name = '',
-      tzn. zawsze Name musi byc zdefiniowane.
-      (w tym module mozemy gdzieniegdzie uzywac wewnetrznie takich obiektow,
-      np. pozwolilo to nam bardzo wygodnie zapisac TVRMLSimpleMultField.Parse.) }
+    { Name of the field. Normal fields are inside some VRML node, and then
+      they should have a name <> ''. But in some special cases I use
+      fields without a name, then this is ''. }
     property Name: string read fName;
 
     { Normal constrctor.
 
-      Implementors notes: when implementing constructors in descendants,
+      @italic(Descendants implementors notes:)
+      when implementing constructors in descendants,
       remember that Create in this class actually just calls CreateUndefined,
       and CreateUndefined is virtual. So when calling @code(inherited Create),
       be aware that actually you may be calling your own overriden
@@ -304,11 +305,11 @@ type
   private
     function GetByName(const AName: string): TVRMLField;
   public
-    {ByName to wygodne property pozwalajace operowac na polach
-     podajac ich nazwe. Uwaga - jezeli nazwa nie istnieje - wyjatek
-     Exception. }
+    { This is a comfortable property that allows you to access fields by name.
+      Exception will be raised if the given Name doesn't exist. }
     property ByName[const AName: string]:TVRMLField read GetByName;
-    {NameIndex. Zwraca -1 jezeli nie znalazl.}
+
+    { Searches for a field with given Name, returns it's index or -1 if not found. }
     function NameIndex(const AName: string): integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
@@ -336,41 +337,41 @@ type
     procedure CheckCountEqual(SecondValue: TVRMLMultField);
   end;
 
-  {pamietaj - lista MF fields moze miec zero elementow !
-   MultFields w destruktorze zwalniaja wszystkie swoje RawItems.
-   W kazdym typie potomnym TVRMLSimpleMultField MUSISZ zdefiniowac fItemClass
-   w konstruktorze (inaczej bedzie = nil i bedzie error).
+  { Multiple values VRML fields. Remember that such field may always have
+    any number of items, including zero.
 
-   Notka o wydajnosci implementacji : wydaje sie pociagajacym uproszczeniem
-   zeby zapisac TVRMLSimpleMultField jako opakowanie na liste TVRMLSingleFieldsList.
-   Ale takie rozwiazanie spowodowaloby ze dla dlugich pol MFField (a takie
-   bedziemy czesto dostawac, tysiace vertexow w Coordinate3 to nic niezwyklego)
-   bedziemy strasznie rozrzucali po pamieci duzo malenkich rekordow (b. duza
-   fragmentacja pamieci, kiepska wydajnosc jej zarzadzaniem) no i, co bardzo
-   wazne, nie bedziemy mogli uzywac vertex arrays OpenGL'a na tablicach
-   vertexow i normali i texcoords. Szczegolnie ta druga wada moze powodowac
-   bardzo duza strate szybkosci renderowania wiec nie mozemy sobie na to pozwolic.
-   Tym bardziej ze gdy ladnie sobie wszystko zapiszemy uzywanie TDynArray
-   moze nie byc wcale takie straszne.
+    Note that we keep MF fields contents in TDyn*Array instances
+    (RawItems in this class, also accessible as Items (with more concrete
+    class) in descendants). This means that they are in compact form,
+    easy for reading, or even for feeding the list into OpenGL.
+    That's the main reason why I did not simply implement
+    TVRMLSimpleMultField as a descendant of TVRMLSingleFieldsList:
+    A long list of vertexes, MFVec3f, would be kept as a list of pointers
+    to a lot of TSFVec3f instances. This would be quite memory-consuming,
+    and very uncomfortable for access. On the contrary, current implementation
+    keeps all these vertexes inside one TDynVector3SingleArray instance,
+    that internally keeps all items in one continuos piece of memory.
+    
+    @italic(Descendants implementors notes): to make new descendant:
 
-   Co trzeba zrobic w podklasach aby zaimplementowac konkretne MFField ?
-   @unorderedList(
-     @item(W CreateUndefined zainicjowac FItemClass, utworzyc RawItems)
+    @unorderedList(
+      @item(In CreateUndefined you have to initialize FItemClass and create
+        RawItems. In destructor of this class, RawItems are freed, so
+        don't worry about this.)
 
-     @item(Pokryc RawItemsAdd)
+      @item(Override RawItemsAdd.)
 
-     @item(
-       If your ItemClass doesn't work 100% correctly when it's initialized
-       by CreateUndefined, you may have to override CreateItemBeforeParse.
-       Fortunately, VRML specification was careful to choose as multi-valued field
-       types' only fields that can behave nicely when initialized by
-       CreateUndefined (and in fact VRML 2.0 removed the "bad fields" entirely).)
+      @item(
+        If your ItemClass doesn't work 100% correctly when it's initialized
+        by CreateUndefined, you may have to override CreateItemBeforeParse.
+        Fortunately, VRML specification was careful to choose as multi-valued field
+        types' only fields that can behave nicely when initialized by
+        CreateUndefined (and in fact VRML 2.0 removed the "bad fields" entirely).)
 
-     @item(
-       Nie jest to zadnym wymaganiem ale zazwyczaj bedzie wygodnie jesli
-       konstruktor bedzie pobieral jako argument array of Typ aby zainicjowac
-       od razu swoja tablice.)
-   ) }
+      @item(Not strictly required, but usually it's comfortable to have
+        a constructor that allows you to init default field value
+        from some "array of TXxx".)
+    ) }
   TVRMLSimpleMultField = class(TVRMLMultField)
   protected
     fItemClass: TVRMLSingleFieldClass;
