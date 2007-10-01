@@ -34,8 +34,9 @@ D   object3dobj.pas
 |   object3dsmaterial.pas
 -   object3ds.pas
 |   triangulator.pas
-|   vrmlerrors.pas
-|   vrmlfields.pas
+D   vrmlanimation.pas
+D   vrmlerrors.pas
+D   vrmlfields.pas
 |   vrmlflatscene.pas
 |   vrmllexer.pas
 |   vrmllightmap.pas
@@ -48,6 +49,7 @@ D   vrmlscenewaypoints.pas
 |   vrmlshapestate.pas
 -   vrmltriangleoctree.pas
 |   vrmlcamerautils.pas
+D   vrmlrendereroptimization.pas
 
   3dmodels.gl/
 -   backgroundgl.pas

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dmodels Pascal units".
 
@@ -72,7 +72,8 @@ type
     procedure DiscardNextIndent;
   end;
 
-{ fields base classes ------------------------------------------------------ }
+{ ---------------------------------------------------------------------------- }
+{ @section(Base fields classes) }
 
   { Base class for all VRML fields.
 
@@ -337,7 +338,7 @@ type
     procedure CheckCountEqual(SecondValue: TVRMLMultField);
   end;
 
-  { Multiple values VRML fields. Remember that such field may always have
+  { Multiple values VRML field. Remember that such field may always have
     any number of items, including zero.
 
     Note that we keep MF fields contents in TDyn*Array instances
@@ -351,7 +352,7 @@ type
     and very uncomfortable for access. On the contrary, current implementation
     keeps all these vertexes inside one TDynVector3SingleArray instance,
     that internally keeps all items in one continuos piece of memory.
-    
+
     @italic(Descendants implementors notes): to make new descendant:
 
     @unorderedList(
@@ -375,64 +376,66 @@ type
   TVRMLSimpleMultField = class(TVRMLMultField)
   protected
     fItemClass: TVRMLSingleFieldClass;
-    { CreateItemBeforeParse ma za zadanie utworzyc nowy obiekt klasy
-      ItemClass ktorego wartosci moga byc niezdefiniwane bo za chwile
-      zainicjujemy go wywolujac jego metode Parse. W tym wlasnie
-      miejscu przydaje sie nam CreateUndefined. Default implementation
-      calls simply ItemClass.CreateUndefined. }
+
+    { This creates new instance of class ItemClass. It doesn't have to
+      have initialized value (in other words, it can be created by
+      CreateUndefined), since we'll call his Parse method immediately.
+      Default implementation in this class uses simply ItemClass.CreateUndefined. }
     function CreateItemBeforeParse: TVRMLSingleField; virtual;
-    { musisz pokryc ta metode w podklasie, powinna ona dodawac do
-      RawItems na koncu Item (ktory na pewno jest klasy ItemClass).
-      Pamietaj ze musisz sobie odpowiednio skopiowac zawartosc Item
-      (a nie tylko jakis wskaznik do niej) bo obiekt Item moze zostac
-      niedlugo zniszczony. }
+
+    { Add Item at the end of RawItems. It's guaranteed that Item
+      passes here will be of class ItemClass. You should copy
+      Item contents as appropriate (remember that Item instance itself
+      may be freed soon, so copy contents, not only some reference). }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
   protected
-    { nie ma potrzeby definiowania SaveToStreamValue w podklasach,
-      zdefiniuj tylko RawItemToString(i) ktore zamienia RawItems[i]
-      na string ktory moze byc zapisany jako wartosc tego pola w VRMLu.
-      W niniejszej klasie zajmujemy sie wszystkim.
-
-      Jezeli chcesz, mozesz w podklasie pokryc implementacje
-      SaveToStreamDoNewLineAfterRawItem - w tej klasie zawsze odpowiada
-      true. Ale zwroc uwage ze wyniki zwracane przez
-      SaveToStreamDoNewLineAfterRawItem moga byc niekiedy ignorowane
-      (czasami po prostu w tej klasie wiemy ze NA PEWNO tak jak robimy
-      bedzie ladniej wygladalo; bo tak czy siak, tu chodzi tylko o estetyke) }
+    { SaveToStreamValue overriden for MF fields. This class handles
+      SaveToStreamValue fully, no need to override it again in
+      descendants. }
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+
+    { RawItemToString(i) must change RawItems[i] into a string that can be used to
+      store this is text stream.  In descendants, you have to override this. }
     function RawItemToString(ItemNum: integer): string; virtual; abstract;
+
+    { This says when we should do newline when writing this field into a stream.
+      It's has purely aesthetical meaning, nothing more.
+      In this class SaveToStreamDoNewLineAfterRawItem always returns @true
+      (although SaveToStreamValue may sometimes ignore it, if it knows better). }
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
   public
-    { kazda podklasa musi w konstruktorze utworzyc sobie ta tablice
-      (w destruktorze my samy juz zajmiemy sie zwalnianiem tej tablicy) }
+    { Items of this field.
+
+      @italic(Descendants implementors notes): You have to initialize this field
+      in descendants' constructor, it will be always freed in our
+      destructor. }
     RawItems: TDynArrayBase;
 
-    { po prostu RawItems.Count }
+    { Number of items in this field. Simply returns RawItems.Count. }
     function Count: integer; override;
 
-    { wszystkie elementy jakie beda trafiac do RawItemsAdd beda tej klasy.
-      Nie jest tu zdefiniowana zaleznosc miedzy elementami tej klasy a
-      elementami tablicy RawItems - musisz w kazdej podklasie okreslic
-      ta zaleznosc definiujac RawItemsAdd. }
+    { A corresponding SF field class. All items that will be passed
+      to RawItemsAdd will be of this class. }
     property ItemClass: TVRMLSingleFieldClass read fItemClass;
 
-    { nie ma potrzeby definiowania Parse w zadnej podklasie pola MF.
-      Tutejsze Parse dziala dla kazdego pola typu MF, uzywajac Parse
-      klasy ItemClass. }
+    { Parse MF field. This class handles parsing fully, usually no need to
+      override this more in descendants. It uses ItemClass.Parse method. }
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
     destructor Destroy; override;
 
-    { In addition to inherited(Equals), this also checks that
+    { Checks equality between this and SecondValue field.
+      In addition to inherited(Equals), this also checks that
       Count and ItemClass are equal. All descendants must check
       for equality every item on SecondValue.Items[I] and Items[I]. }
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
   end;
 
-{ single value fields ----------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(Single value (SF) VRML fields) }
 
-  { SFBitMask field.
+  { SFBitMask VRML field.
 
     TSFBitMask is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
@@ -441,9 +444,11 @@ type
   private
     fAllString, fNoneString: string;
     fFlagNames: TStringList;
-    {specyfikacja VRML'a 1.0 gwarantuje ze SFBitMask ma 32 lub mniej flag,
-     zreszta zdefiniowane pola nie wychodza ponad 3 flagi.
-     W VRML'u 97 w ogole nie ma typu pola SFBitMask.}
+
+    { Value of this field, as a bit mask.
+      VRML 1.0 specification guarantees that SFBitMask has 32 or less flags.
+      Actually, defined field values have no more than 3 fields, and
+      VRML > 1.0 dropped SFBitMask entirely. So 32 is always enough. }
     fFlags: set of 0..31;
     function GetFlags(i: integer): boolean;
     procedure SetFlags(i: integer; value: boolean);
@@ -451,37 +456,36 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    {Flags okresla wartosci wszystkich flag - pytaj go o liczby z przedzialu
-     0..FlagsCount-1}
+    { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
     property Flags[i: integer]:boolean read GetFlags write SetFlags;
     function FlagsCount: integer;
     property FlagNames[i: integer]:string read GetFlagNames;
 
-    {AllString i NoneString : specjalne flagi ktorych uzycie powoduje
-     odpowiednio zaznaczenie wszystkich flag i nie zaznaczanie zadnej.
-     AllString istnieje tylko jezeli jest podana wartosc <> '',
-     NoneString musi byc zawsze <> '' (zawsze musi byc podany;
-     to nam pozwala myslec bardziej prosto o tych flagach -
-     kazda ich postac jest dozwolona, kazda mozna odczytac i zapisac
-     do pliku).
-     Nie ma sensu mieszania ich z innymi flagami (ALL | ze wszystkim daje
-     ciagle ALL, a NONE z czymkolwiek daje to cokolwiek) ale jest to
-     dopuszczalne skladniowo (tzn. parser i lekser to przyjma),
-     ALL jest zazwyczaj tylko wygodnym skrotem ale istnienie flagi NONE
-     ma zasadnicze znaczenie : poniewaz SFBitMask zawsze musi bc zapisane
-     jako przynajmniej jedna flaga, to jedynym sposobem aby zapisanie
-     wszystkich flag = false jest uzycie NONE.  }
+    { Special strings that will be understood by parser as ALL or NONE
+      bit values. AllString selects all flags, NoneString selects none.
+      AllString may be '' is there's no such string, NoneString
+      should never be '' (otherwise, user could not be able to specify
+      some SFBitMask values --- NoneString is the only way to specify 0).
+
+      There is usually little sense in using them like "ALL | something"
+      (because it means just "ALL") or "NONE | something" (because it means
+      just "something"). But it's allowed syntactically.
+
+      @groupBegin }
     property AllString: string read fAllString;
     property NoneString: string read fNoneString;
+    { @groupEnd }
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
-    { zwraca true jesli wszystkie flagi sa = value }
+    { Are all flag values set to @true currently. }
     function AreAllFlags(value: boolean): boolean;
 
-    { pamietaj - tablica AFFlagNames i AFlags (poczatkowa wartosc Flags)
-      musza miec tyle samo elementow, ew. AFlags moze byc dluzsza (dodatkowe
-      elementy beda ignorowane) }
+    { Constructor.
+
+      Remember that arrays AFFlagNames and AFlags
+      (AFlags is initial value of Flags) must have equal length.
+      Eventually, AFlags may be longer (excessive items will be ignored). }
     constructor Create(const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
 
@@ -539,7 +543,7 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  { SFEnum field.
+  { SFEnum VRML field.
 
     TSFEnum is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
@@ -555,7 +559,8 @@ type
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
 
-    Value: integer; { wartosc z 0..EnumCount-1; domyslnie 0 }
+    { Value between 0 .. EnumCount - 1. By default 0. }
+    Value: integer;
 
     DefaultValue: integer;
     DefaultValueExists: boolean;
@@ -589,9 +594,10 @@ type
     DefaultValue: Single;
     DefaultValueExists: boolean;
 
-    { jezeli true to przy probie ustawienia Value na X gdzie X < 0
-      ustawi Value := -X (a wiec NIE robi clamp do 0 w rodzaju Value := Max(0, X)
-      tylko Value := Abs(X); to jest cos dobrego dla np. Sphere.FdRadius). }
+    { If @true then when trying to set Value to something < 0,
+      we'll negate it (in other words, we'll keep Value >= 0 always).
+      This is nice e.g. for Sphere.FdRadius field --- some incorrect VRML specify
+      negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
@@ -605,7 +611,7 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  { This is SFTime VRML field.
+  { SFTime VRML field.
     VRML requires this to be stored as double-precision float,
     so I don't use TSFFloat for this. }
   TSFTime = class(TVRMLSingleField)
@@ -687,8 +693,8 @@ type
     DefaultValue: Longint;
     DefaultValueExists: boolean;
 
-    { komentarz - jak dla TSFFloat.MustBeNonnegative }
-    property MustBeNonnegative: boolean read FMustBeNonnegative; { = false }
+    { See TSFFloat.MustBeNonnegative for explanation of this. }
+    property MustBeNonnegative: boolean read FMustBeNonnegative default false;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -739,7 +745,7 @@ type
     property Value: TVector4Single read GetValue write SetValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
-    { rotate point pt around self }
+    { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
     function Equals(SecondValue: TVRMLField;
@@ -819,20 +825,23 @@ type
   end;
 
 { ---------------------------------------------------------------------------- }
-{ @section(Multiple value fields) }
-
-{ Internal comment for DefaultValue* field:
-
-  pole DefaultValuesCount
-  moze miec w tej chwili trzy wartosci : -1 (nie ma (nie jest znana) domyslnej
-  wartosci dla pola), 0 (domyslna wartosc pola to 0 elementow), 1 (domylna
-  wartosc pola to 1 element o wartosci DefaultValue).
-
-  CreateUndefined sets DefaultValuesCount to -1. }
+{ @section(Multiple value (MF) VRML fields) }
 
   { }
   TMFColor = class(TVRMLSimpleMultField)
   private
+    { Field DefaultValuesCount may have three valid values (for now):
+      -1 (means "no default value for this field")
+      0 (means "default value of this field is empty")
+      1 (means "default value of this field is one-item array with DefaultValue").
+
+      As you can see, it's not possible to express default values with more
+      than one item. That's OK, because nodes from VRML 1.0 and 2.0 specifications
+      never have such field (and VRML 2.0 prototypes (that have user-defined
+      default field values) actually don't need it). So, for now, more flexible
+      DefaultValuesCount is not needed.
+
+      CreateUndefined sets DefaultValuesCount to -1. }
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
   protected
@@ -859,15 +868,17 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Longint;
+    FSaveToStreamLineUptoNegative: boolean;
   protected
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
-    { jesli SaveToStreamLineUptoMinusOne to w tej klasie przedefiniujemy
-      SaveToStreamDoNewLineAfterRawItem zeby odpowiadal true tylko gdy
-      indeksujemy liczby ujemne. W ten sposob mozesz sprawic ze np.
-      IndexedFaceSet.coordIndex sa ladnie wypisywane. }
-    SaveToStreamLineUptoNegative: boolean; { = false }
+    { Set this to @true to make SaveToStreamDoNewLineAfterRawItem
+      answer @true only after negative indexes. This makes SaveToStream
+      have nice output for fields like IndexedFaceSet.coordIndex. }
+    property SaveToStreamLineUptoNegative: boolean
+      read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
+      default false;
 
     function Items: TDynLongintArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
