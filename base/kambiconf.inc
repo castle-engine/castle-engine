@@ -112,9 +112,13 @@
     p(double)
     {$ifndef EXTENDED_EQUALS_DOUBLE} p(extended) {$endif}
 *)
-{$ifdef FPC} {$ifndef CPUI386}
-  {$define EXTENDED_EQUALS_DOUBLE}
-{$endif} {$endif}
+{$ifdef FPC}
+  {$ifndef CPUI386}
+    {$ifndef CPUX86_64}
+      {$define EXTENDED_EQUALS_DOUBLE}
+    {$endif}
+  {$endif}
+{$endif}
 
 {$ifdef FPC} {$define SUPPORTS_INLINE} {$endif}
 

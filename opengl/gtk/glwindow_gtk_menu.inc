@@ -90,7 +90,7 @@ begin
  {$endif}
  ( GTK_OBJECT(MenuItemGtk),
    {$ifndef GLWINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
-   Pointer(MenuItem.SmallId));
+   Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 { Unblock signal_menu_item_activate from this menu item.
@@ -104,7 +104,7 @@ begin
  {$endif}
  ( GTK_OBJECT(MenuItemGtk),
    {$ifndef GLWINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
-   Pointer(MenuItem.SmallId));
+   Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 procedure TGLWindow.init_window_menu_bar;
@@ -280,7 +280,7 @@ procedure TGLWindow.init_window_menu_bar;
       gtk_object_set_user_data(GTK_OBJECT(Result), Pointer(Self));
       gtk_signal_connect(GTK_OBJECT(Result), 'activate',
         GTK_SIGNAL_FUNC(@signal_menu_item_activate),
-        Pointer(TMenuItem(Entry).SmallId));
+        Pointer(PtrUInt(TMenuItem(Entry).SmallId)));
 
       InstallGtkAccelerator(Result,
         TMenuItem(Entry).Key, TMenuItem(Entry).CharKey);
