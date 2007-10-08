@@ -772,7 +772,7 @@ end;
 procedure TGameSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
-  FSoundImportanceNames.AddObject(Name, TObject(Pointer(Importance)));
+  FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
 procedure TGameSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
