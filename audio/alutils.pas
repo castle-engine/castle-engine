@@ -750,7 +750,37 @@ begin
  {$else}
  if audio_context <> nil then
  begin
-  alcMakeContextCurrent(nil);
+   (* The OpenAL specification says
+
+      "The correct way to destroy a context is to first release
+      it using alcMakeCurrent with a NULL context. Applications
+      should not attempt to destroy a current context – doing so
+      will not work and will result in an ALC_INVALID_OPERATION error."
+
+      (See [http://openal.org/openal_webstf/specs/oal11spec_html/oal11spec6.html])
+
+      However, sample implementation (used on most (all?) Unixes) can hang
+      on alcMakeContextCurrent(nil) call. Actually, it doesn't hang,
+      but it stops for a *very* long time (even a couple of minutes).
+      This is a known problem, see
+      [http://opensource.creative.com/pipermail/openal-devel/2005-March/002823.html]
+      and
+      [http://lists.berlios.de/pipermail/warzone-dev/2005-August/000441.html].
+
+      Tremulous code workarounds it like
+
+	if( Q_stricmp((const char* )qalGetString( AL_VENDOR ), "J. Valenzuela" ) ) {
+		qalcMakeContextCurrent( NULL );
+	}
+
+      ... and this seems a good idea, we do it also here.
+      Initially I wanted to do $ifdef UNIX, but checking for Sample implementation
+      with alGetString(AL_VENDOR) feels more elegant (i.e. affecting more precisely
+      the problematic OpenAL implementations). *)
+
+  if alGetString(AL_VENDOR) <> 'J. Valenzuela' then
+    alcMakeContextCurrent(nil);
+
   alcDestroyContext(audio_context);
   audio_context := nil;
   CheckALC('closing OpenAL context');
