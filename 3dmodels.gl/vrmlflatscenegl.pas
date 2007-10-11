@@ -895,7 +895,35 @@ begin
     Attributes.FScenes.Delete(Self);
 
   if not FUsingProvidedRenderer then
+  begin
+    { We must release all connections between RootNode and Renderer first.
+      Reason: when freeing RootNode, image references (from texture nodes)
+      are decremented. So cache used when loading these images must be
+      available.
+
+      If we used provided renderer, then this is not
+      our problem: if OwnsRootNode then RootNode will be freed soon
+      by "inherited", if not OwnsRootNode then it's the using programmer
+      responsibility to free both RootNode and ProvidedRenderer
+      in exactly this order.
+
+      If we used our own renderer (actually, this is needed only if we used
+      own own cache, so caller didn't provide a renderer and didn't provide
+      a cache (ACache = nil for constructor), but we don't store this information
+      for now) : we must make sure that freeing RootNode is safe.
+
+      If OwnsRootNode then we know that inherited will free RootNode
+      and so the simpler solution, to just FreeAndNil(Renderer) after
+      inherited, would be possible. But it's not possible, since
+      OwnsRootNode may be false and then programmer may want to free
+      RootNode at undefined later time.
+
+      So we have to guarantee, *now*, that freeing RootNode is safe ---
+      no dangling references to Renderer.Cache. }
+    FreeResources([frTextureImageInNodes]);
+
     FreeAndNil(Renderer);
+  end;
 
   FreeAndNil(SSSX_DisplayLists);
   FreeAndNil(RenderFrustumOctree_Visible);
