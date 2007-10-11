@@ -7,8 +7,6 @@ VRML 97 TODO items:
     specified by proto) will be specified in new file, with default value 0.
 
 - kambi_vrml_test_suite adjust to EXTERNPROTO/PROTOs more
-- implements VRML 1.0 isA and fields
-Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_extensions).
 
 - vrml_engine_doc update: short notice about protos, external protos, and that they are handled
 
@@ -35,14 +33,8 @@ Both things above deserve mention on www (kambi_vrml_test_suite, kambi_vrml_exte
     Also fix appropriate section in vrml_engine_doc.
 
   - "The Castle":
-    vrmlscenewaypoints.pas:
-      now uses ParentNodes, should also include ParentFields ?
-      Same for CastleLevel.
-    castledebugmenu: fix to use also VRML 97 version of SpotLight_2
-      (it uses beamWidth)
     make test level in VRML 2.0 for castle
     fix castle-development.php page, see TODO item there.
-    planned for September 2006.
 
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?

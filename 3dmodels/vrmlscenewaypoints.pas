@@ -18,9 +18,11 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(For user-oriented description what are sectors and waypoints,
-  when they should be used etc. see the README file with
-  my game "The Castle".) }
+{ @abstract(Sectors and waypoints, usually used to provide creature AI
+  a "graph map" of some level.)
+  For user-oriented description what are sectors and waypoints,
+  when they should be used etc. see "The Castle" developer docs,
+  [http://vrmlengine.sourceforge.net/castle-development.php]. }
 unit VRMLSceneWaypoints;
 
 interface
@@ -50,8 +52,11 @@ type
   TSceneWaypointsList = class(TObjectsList_1)
   private
     NodesToRemove: TVRMLNodesList;
-    procedure TraverseForWaypoints(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+    procedure TraverseForWaypoints(
+      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+      ShapeNode: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
       are removed from the Node, and are added as new waypoint with
@@ -121,8 +126,11 @@ type
   TSceneSectorsList = class(TObjectsList_2)
   private
     NodesToRemove: TVRMLNodesList;
-    procedure TraverseForSectors(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+    procedure TraverseForSectors(
+      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+      ShapeNode: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
   public
     { Shapes placed under the name Sector<index>_<ignored>
       are removed from the Node, and are added to sector <index> BoundingBoxes.
@@ -204,8 +212,11 @@ end;
 
 { TSceneWaypointsList -------------------------------------------------------- }
 
-procedure TSceneWaypointsList.TraverseForWaypoints(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+procedure TSceneWaypointsList.TraverseForWaypoints(
+  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+  ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
 
   procedure CreateNewWaypoint(const WaypointNodeName: string);
   var
@@ -218,8 +229,7 @@ procedure TSceneWaypointsList.TraverseForWaypoints(Node: TVRMLNode;
       WaypointIndex := StrToInt(WaypointNodeName) else
       WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
 
-    WaypointPosition := Box3dMiddle(
-      (Node as TNodeGeneralShape).BoundingBox(State));
+    WaypointPosition := Box3dMiddle(ShapeNode.BoundingBox(State));
 
     Count := Max(Count, WaypointIndex + 1);
     if Items[WaypointIndex] <> nil then
@@ -236,26 +246,14 @@ procedure TSceneWaypointsList.TraverseForWaypoints(Node: TVRMLNode;
 
 const
   WaypointPrefix = 'Waypoint';
-var
-  ParentIndex: Integer;
-  Parent: TVRMLNode;
 begin
-  for ParentIndex := 0 to Node.ParentNodesCount - 1 do
+  if IsPrefix(WaypointPrefix, BlenderMeshName) then
   begin
-    Parent := Node.ParentNodes[ParentIndex];
-    if IsPrefix(WaypointPrefix, Parent.NodeName) then
-    begin
-      CreateNewWaypoint(SEnding(Parent.NodeName, Length(WaypointPrefix) + 1));
-      { Don't remove Parent now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      NodesToRemove.Add(Parent);
-      Break;
-    end;
+    CreateNewWaypoint(SEnding(BlenderMeshName, Length(WaypointPrefix) + 1));
+    { Don't remove BlenderObjectNode now --- will be removed later.
+      This avoids problems with removing nodes while traversing. }
+    NodesToRemove.Add(BlenderObjectNode);
   end;
-
-  { TODO: should check ParentFields for VRML 2.0 too ? The goal is actually to
-    detect things with ItemPrefix in blender. so we have to see what
-    blender VRML 2.0 exporter does.}
 end;
 
 procedure TSceneWaypointsList.ExtractPositions(Node: TVRMLNode);
@@ -264,8 +262,7 @@ var
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseFromDefaultState(TNodeGeneralShape,
-      {$ifdef FPC_OBJFPC} @ {$endif} TraverseForWaypoints);
+    Node.TraverseBlenderObjects(@TraverseForWaypoints);
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
@@ -315,8 +312,11 @@ end;
 
 { TSceneSectorsList -------------------------------------------------------- }
 
-procedure TSceneSectorsList.TraverseForSectors(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+procedure TSceneSectorsList.TraverseForSectors(
+  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+  ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
 
   procedure AddSectorBoundingBox(const SectorNodeName: string);
   var
@@ -329,7 +329,7 @@ procedure TSceneSectorsList.TraverseForSectors(Node: TVRMLNode;
       SectorIndex := StrToInt(SectorNodeName) else
       SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
 
-    SectorBoundingBox := (Node as TNodeGeneralShape).BoundingBox(State);
+    SectorBoundingBox := ShapeNode.BoundingBox(State);
 
     Count := Max(Count, SectorIndex + 1);
     if Items[SectorIndex] = nil then
@@ -344,26 +344,14 @@ procedure TSceneSectorsList.TraverseForSectors(Node: TVRMLNode;
 
 const
   SectorPrefix = 'Sector';
-var
-  ParentIndex: Integer;
-  Parent: TVRMLNode;
 begin
-  for ParentIndex := 0 to Node.ParentNodesCount - 1 do
+  if IsPrefix(SectorPrefix, BlenderMeshName) then
   begin
-    Parent := Node.ParentNodes[ParentIndex];
-    if IsPrefix(SectorPrefix, Parent.NodeName) then
-    begin
-      AddSectorBoundingBox(SEnding(Parent.NodeName, Length(SectorPrefix) + 1));
-      { Don't remove Parent now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      NodesToRemove.Add(Parent);
-      Break;
-    end;
+    AddSectorBoundingBox(SEnding(BlenderMeshName, Length(SectorPrefix) + 1));
+    { Don't remove BlenderObjectNode now --- will be removed later.
+      This avoids problems with removing nodes while traversing. }
+    NodesToRemove.Add(BlenderObjectNode);
   end;
-
-  { TODO: should check ParentFields for VRML 2.0 too ? The goal is actually to
-    detect things with ItemPrefix in blender. so we have to see what
-    blender VRML 2.0 exporter does.}
 end;
 
 procedure TSceneSectorsList.ExtractBoundingBoxes(Node: TVRMLNode);
@@ -372,8 +360,7 @@ var
 begin
   NodesToRemove := TVRMLNodesList.Create;
   try
-    Node.TraverseFromDefaultState(TNodeGeneralShape,
-      {$ifdef FPC_OBJFPC} @ {$endif} TraverseForSectors);
+    Node.TraverseBlenderObjects(@TraverseForSectors);
     for I := 0 to NodesToRemove.Count - 1 do
       NodesToRemove.Items[I].FreeRemovingFromAllParents;
   finally NodesToRemove.Free end;
