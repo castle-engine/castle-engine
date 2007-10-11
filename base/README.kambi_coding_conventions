@@ -84,7 +84,7 @@ of documentation, see
 - Compilation symbols used:
 
   Besides standard FPC, GPC and Delphi ones (like WIN32, UNIX, LINUX,
-  CPUI386 to differentiate between compilation platforms,
+  CPUI386, CPUX86_64 to differentiate between compilation platforms,
   FPC and __GPC__ to differentiate between compiler versions).
 
   I don't use MSWINDOWS symbol, I use WIN32 symbol everywhere.

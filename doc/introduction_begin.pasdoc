@@ -139,16 +139,15 @@ for details.
 
 @section(2 SectionOsArchCompat OS / architectures compatibility)
 
-My units don't really depend on any specific UNIX flawour
-(like Linux, FreeBSD, Darwin/Mac OS X).
-This means that you should be able to compile
-them under all UNIXes supported by FPC >= 2.0.x.
-Windows is also OK.
+Tested and actually used on Linux, FreeBSD, Darwin/Mac OS X and Windows,
+on i386 processor (32 bit). Also, Linux on x86-64 (64 bit) is working flawlessly.
 
-As for processors: I tested only on i386 architectures,
-although some work was done to make it easily portable to other processors.
-Try, and maybe it will work. And remember to report any
-successes or failures.
+The engine is very portable, and minimal amount of work / testing
+should get it to compile under any other modern platform supported
+by FPC. All Unix flavors may work out of the box. Windows on x86-64
+is probably OK too, but needs to be tested. On big-endian processors
+(most not-x86 processors), some image loading code probably needs to be adjusted.
+Porters / testers are most welcome.
 
 @section(1 SectionUnitsMap Units map)
 
