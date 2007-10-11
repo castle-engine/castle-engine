@@ -1129,6 +1129,10 @@ type
       jesli znalazl tam gdzies node Node. }
     function HasParent(Node: TVRMLNode): boolean;
 
+    { Searches immediate parents of this node for a node with given FindName.
+      Returns @nil if not found. }
+    function TryFindDirectParentByName(const FindName: string): TVRMLNode;
+
     { sprawdza czy istnieje w grafie VRML'a zaczepionym w danym punkcie
       node Node. Znaczenie OnlyActive jak zwykle. }
     function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
@@ -3365,6 +3369,25 @@ function TVRMLNode.FindParentByName(const FindName: string): TVRMLNode;
 begin
   result := TryFindParentByName(FindName);
   Check(result <> nil, 'Node name '+FindName+' not found in parents');
+end;
+
+function TVRMLNode.TryFindDirectParentByName(const FindName: string): TVRMLNode;
+var
+  I: Integer;
+begin
+  for I := 0 to ParentNodesCount - 1 do
+  begin
+    Result := ParentNodes[I];
+    if Result.NodeName = FindName then Exit;
+  end;
+
+  for I := 0 to ParentFieldsCount - 1 do
+  begin
+    Result := ParentFieldsNode[I];
+    if Result.NodeName = FindName then Exit;
+  end;
+
+  Result := nil;
 end;
 
 function TVRMLNode.HasParent(Node: TVRMLNode): boolean;
