@@ -509,11 +509,17 @@ type
 
     destructor Destroy; override;
 
-    { Note that Equals doesn't compare OwnsLastNodes values,
-      as they don't really define the "content" of the instance... }
+    { Compare with other TVRMLGraphTraverseState instance.
+      The idea is that two states are equal if, when applied to the same
+      VRML node, they "mean" the same thing, i.e. produce the same shape,
+      behavior etc.
+
+      So note that @name doesn't compare OwnsLastNodes values,
+      as they don't really define the "content" of the state,
+      they don't change the behavior of VRML node affected by this state. }
     function Equals(SecondValue: TVRMLGraphTraverseState): boolean;
 
-    { This is like Equals but it ignores some fields that are
+    { This is like @link(Equals) but it ignores some fields that are
       ignored when rendering using
       TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
       For example, it ignores CurrMatrix, AverageScaleTransform. }
@@ -531,8 +537,22 @@ type
     function Texture: TNodeGeneralTexture;
   end;
 
+  PTraversingInfo = ^TTraversingInfo;
+  TTraversingInfo = record
+    Node: TVRMLNode;
+    ParentInfo: PTraversingInfo;
+  end;
+
   { Used as a callback by TVRMLNode.Traverse. }
   TTraversingFunc = procedure (Node: TVRMLNode;
+    State: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo) of object;
+
+  { Used as a callback by TVRMLNode.TraverseBlenderObjects. }
+  TBlenderTraversingFunc = procedure (
+    BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+    BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+    ShapeNode: TNodeGeneralShape;
     State: TVRMLGraphTraverseState) of object;
 
   TEnumerateChildrenFunction =
@@ -991,6 +1011,15 @@ type
       see TVRMLGraphTraverseState) that affects how given node should
       be presented.
 
+      Also, TraversingInfo is passed to each TraversingFunc call.
+      This allows you to investigate, during TraversingFunc call, the parents
+      hierarchy (you can't use ParentNodes / ParentFields of the current node,
+      since a node may have many parents). Traverse calls are
+      naturally recursive, and so the stack of TraversingInfo
+      structures is naturally build and destroyed by recursive calls.
+      For the root node (the one where you called Traverse without
+      specifying initial TraversingInfo), ParentInfo is simply @nil.
+
       Schemat dzialania Traverse :
 
 @preformatted(
@@ -1012,7 +1041,8 @@ type
       (bezposrednie i niebezposrednie) node'a na ktorym wlasnie stoisz. }
     procedure Traverse(State: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
-      TraversingFunc: TTraversingFunc); virtual;
+      TraversingFunc: TTraversingFunc;
+      ParentInfo: PTraversingInfo = nil);
 
     { This is like @link(Traverse), but it automatically handles
       creating and destroying of TVRMLGraphTraverseState and it's LastNodes.
@@ -1338,6 +1368,41 @@ type
       You can use constants like URNVRML97Nodes and URNKambiNodes to help
       implementing this. }
     class function URNMatching(const URN: string): boolean; virtual;
+
+    { Traverses all Blender objects/meshes instances in this model,
+      assuming that this VRML node was created by Blender VRML 1.0 or 2.0
+      exporter.
+
+      For each Blender object (which means, for each Blender mesh instantiation),
+      this calls TraversingFunc. Since each Blender object is unique in file,
+      you can be sure that each BlenderObjectNode will be enumerated only
+      once by TraversingFunc, @italic(as long as this file was really
+      made by Blender exporter). As for BlenderObjectName, Blender VRML 1.0
+      exporter doesn't write object names (only meshes), so it's always ''
+      for VRML 1.0.
+
+      Mesh may occur many times in the file, and both Blender exporters
+      correctly use VRML DEF/USE mechanism, so the same BlenderMeshNode
+      and BlenderMeshName may be enumerated many times by TraversingFunc.
+
+      Implementation of this follows the logic of Blender VRML 1.0 and 2.0
+      standard exporters, there's no other way to implement this.
+      If you wrote in Python your own Blender exporter for VRML,
+      this method may obviously not work. But it's guaranteed that this
+      method will not crash or anything on any VRML model. The worst thing
+      that can happen on all VRML models is simply that TraversingFunc will
+      enumerate something that doesn't correspond to any Blender object...
+
+      Overloaded version without State just creates default state internally.
+
+      @groupBegin }
+    procedure TraverseBlenderObjects(
+      State: TVRMLGraphTraverseState;
+      TraversingFunc: TBlenderTraversingFunc); overload;
+
+    procedure TraverseBlenderObjects(
+      TraversingFunc: TBlenderTraversingFunc); overload;
+    { @groupEnd }
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -2815,31 +2880,39 @@ type
     State: TVRMLGraphTraverseState;
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
+    ParentInfo: PTraversingInfo;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
   end;
 
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.Traverse(State, NodeClass, TraversingFunc);
+    Child.Traverse(State, NodeClass, TraversingFunc, ParentInfo);
   end;
 
 procedure TVRMLNode.Traverse(State: TVRMLGraphTraverseState;
-  NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc);
+  NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc;
+  ParentInfo: PTraversingInfo);
 var
   LastNodesIndex: Integer;
   Enumerator: TTraverseEnumerator;
+  CurrentInfo: TTraversingInfo;
 begin
   BeforeTraverse(State);
   try
-    if Self is NodeClass then TraversingFunc(Self, State);
+    if Self is NodeClass then TraversingFunc(Self, State, ParentInfo);
     MiddleTraverse(State);
+
+    { CurrentInfo will be passed to children as their ParentInfo. }
+    CurrentInfo.Node := Self;
+    CurrentInfo.ParentInfo := ParentInfo;
 
     Enumerator := TTraverseEnumerator.Create;
     try
       Enumerator.State := State;
       Enumerator.NodeClass := NodeClass;
       Enumerator.TraversingFunc := TraversingFunc;
+      Enumerator.ParentInfo := @CurrentInfo;
       DirectEnumerateActive(
         {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
     finally FreeAndNil(Enumerator) end;
@@ -3271,15 +3344,17 @@ end;
     TTryFindNodeStateObj = class
       PNode: PVRMLNode;
       PState: PVRMLGraphTraverseState;
-      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
+      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ParentInfo: PTraversingInfo);
     end;
 
-    procedure TTryFindNodeStateObj.TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
-    begin
-     PNode^ := ANode;
-     PState^ := TVRMLGraphTraverseState.CreateCopy(AState);
-     raise BreakTryFindNodeState.Create;
-    end;
+  procedure TTryFindNodeStateObj.TraverseFunc(ANode: TVRMLNode;
+    AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  begin
+    PNode^ := ANode;
+    PState^ := TVRMLGraphTraverseState.CreateCopy(AState);
+    raise BreakTryFindNodeState.Create;
+  end;
 
 function TVRMLNode.TryFindNodeState(InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
@@ -3305,19 +3380,21 @@ end;
       PNode: PVRMLNode;
       PTransform: PMatrix4Single;
       PAverageScaleTransform: PSingle;
-      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
+      procedure TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+        ParentInfo: PTraversingInfo);
     end;
 
-    procedure TTryFindNodeTransformObj.TraverseFunc(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
-    begin
-      PNode^ := ANode;
-      { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
-        w TryFindNodeState trzeba tutaj kopiowac cale state,
-        w TryFindNodeTransform wystarczy skopiowac transformacje. }
-      PTransform^ := AState.CurrMatrix;
-      PAverageScaleTransform^ := AState.AverageScaleTransform;
-      raise BreakTryFindNodeState.Create;
-    end;
+  procedure TTryFindNodeTransformObj.TraverseFunc(ANode: TVRMLNode;
+    AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+  begin
+    PNode^ := ANode;
+    { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
+      w TryFindNodeState trzeba tutaj kopiowac cale state,
+      w TryFindNodeTransform wystarczy skopiowac transformacje. }
+    PTransform^ := AState.CurrMatrix;
+    PAverageScaleTransform^ := AState.AverageScaleTransform;
+    raise BreakTryFindNodeState.Create;
+  end;
 
 function TVRMLNode.TryFindNodeTransform(InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
@@ -3805,6 +3882,99 @@ end;
 class function TVRMLNode.URNMatching(const URN: string): boolean;
 begin
   Result := false;
+end;
+
+type
+  TBlenderObjectsTraverser = class
+    TraversingFunc: TBlenderTraversingFunc;
+    procedure Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
+  end;
+
+procedure TBlenderObjectsTraverser.Traverse(Node: TVRMLNode;
+  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+var
+  ShapeNode: TNodeGeneralShape absolute Node;
+  BlenderObjectNode: TVRMLNode;
+  BlenderObjectName: string;
+  BlenderMeshNode: TVRMLNode;
+  BlenderMeshName: string;
+begin
+  if ShapeNode is TNodeGeneralShape_1 then
+  begin
+    { Shape node generated by Blender VRML 1.0 exporter should have
+      one parent, and this is his mesh. This mesh may have may
+      parents, and these are his objects. }
+    if ParentInfo <> nil then
+    begin
+      BlenderMeshNode := ParentInfo^.Node;
+      BlenderMeshName := BlenderMeshNode.NodeName;
+
+      ParentInfo := ParentInfo^.ParentInfo;
+
+      if ParentInfo <> nil then
+      begin
+        BlenderObjectNode := ParentInfo^.Node;
+        { Unfortunately, this will always be ''. Blender VRML 1.0 exporter
+          doesn't write this. }
+        BlenderObjectName := BlenderObjectNode.NodeName;
+        TraversingFunc(BlenderObjectNode, BlenderObjectName,
+          BlenderMeshNode, BlenderMeshName, ShapeNode, State);
+      end;
+    end;
+  end else
+  if (State.ParentShape <> nil) and (ParentInfo <> nil) then
+  begin
+    { For VRML 2.0 exporter, the situation is actually quite similar, but
+      we have to remove ME_ and OB_ prefixes from node names.
+      Oh, and VRML 2.0 exporter actually does write object names.
+
+      Initially we do ParentInfo := ParentInfo^.Parent,
+      since we want to start from parent Shape node.
+      That's how VRML 2.0 Blender exporter writes. }
+
+    ParentInfo := ParentInfo^.ParentInfo;
+
+    if ParentInfo <> nil then
+    begin
+      BlenderMeshNode := ParentInfo^.Node;
+      BlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
+
+      ParentInfo := ParentInfo^.ParentInfo;
+
+      if ParentInfo <> nil then
+      begin
+        BlenderObjectNode := ParentInfo^.Node;
+        BlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
+        TraversingFunc(BlenderObjectNode, BlenderObjectName,
+          BlenderMeshNode, BlenderMeshName, ShapeNode, State);
+      end;
+    end;
+  end;
+end;
+
+procedure TVRMLNode.TraverseBlenderObjects(
+  State: TVRMLGraphTraverseState;
+  TraversingFunc: TBlenderTraversingFunc);
+var
+  Traverser: TBlenderObjectsTraverser;
+begin
+  Traverser := TBlenderObjectsTraverser.Create;
+  try
+    Traverser.TraversingFunc := TraversingFunc;
+    Traverse(State, TNodeGeneralShape, @Traverser.Traverse);
+  finally FreeAndNil(Traverser) end;
+end;
+
+procedure TVRMLNode.TraverseBlenderObjects(
+  TraversingFunc: TBlenderTraversingFunc);
+var
+  InitialState: TVRMLGraphTraverseState;
+begin
+  InitialState := TVRMLGraphTraverseState.Create;
+  try
+    TraverseBlenderObjects(InitialState, TraversingFunc);
+  finally InitialState.Free end;
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }

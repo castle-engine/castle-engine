@@ -225,7 +225,8 @@ type
     FRootNode: TVRMLNode;
 
     ChangedAll_TraversedLights: TDynActiveLightArray;
-    procedure ChangedAll_Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState);
+    procedure ChangedAll_Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
 
     FFogNode: TNodeFog;
     FFogDistanceScaling: Single;
@@ -717,7 +718,7 @@ begin
 end;
 
 procedure TVRMLFlatScene.ChangedAll_Traverse(
-  Node: TVRMLNode; State: TVRMLGraphTraverseState);
+  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 { This does two things. These two things are independent, but both
   require Traverse to be done, and both have to be done in ChangedAll call...
   So it's efficient to do them at once.
@@ -1031,11 +1032,13 @@ end;
 type
   TViewpointsSeeker = class
     ViewpointFunction: TViewpointFunction;
-    procedure Seek(ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
+    procedure Seek(ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
   end;
 
   procedure TViewpointsSeeker.Seek(
-    ANode: TVRMLNode; AState: TVRMLGraphTraverseState);
+    ANode: TVRMLNode; AState: TVRMLGraphTraverseState;
+    ParentInfo: PTraversingInfo);
   begin
     ViewpointFunction(
       TNodeGeneralViewpoint(ANode),

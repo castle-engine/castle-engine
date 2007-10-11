@@ -47,3 +47,4 @@ OpenAL
 Load
 symbol
 Name
+Equals

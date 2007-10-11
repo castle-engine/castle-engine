@@ -184,6 +184,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/fog_coord \
   3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
+  3dmodels/examples/test_blender_exported_hierarchy \
   3dmodels/tools/gen_light_map \
   3dmodels/tools/md3tovrmlsequence \
   3dmodels.gl/examples/simpleViewModel_2 \

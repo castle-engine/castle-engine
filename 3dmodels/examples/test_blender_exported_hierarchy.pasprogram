@@ -1,0 +1,41 @@
+{ Run with $1 = filename ("-" means stdin) of VRML file generated
+  by standard Blender VRML 1.0 or 2.0 exporter.
+  This will output Blender hierarchy information extracted from VRML file,
+  that tries to match as closely as possible original Blender hierarchy.
+  Note that VRML 1.0 exporter doesn't record object names, so they
+  are always empty. }
+program test_blender_exported_hierarchy;
+
+uses SysUtils, KambiUtils, VRMLNodes;
+
+type
+  TDummy = class
+    procedure Traverse(
+      BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+      BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+      ShapeNode: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState);
+  end;
+
+procedure TDummy.Traverse(
+  BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
+  BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
+  ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState);
+begin
+  Writeln(
+    'Blender object "', BlenderObjectName, '" (VRML ', BlenderObjectNode.NodeTypeName, ') -> ' +
+              'mesh "', BlenderMeshName, '" (VRML ', BlenderMeshNode.NodeTypeName, ')');
+end;
+
+var
+  Node: TVRMLNode;
+  { No need to actually create Dummy, this is used only because FPC doesn't
+    allow class procedures to be passed directly as method pointers. }
+  Dummy: TDummy = nil;
+begin
+  Node := ParseVRMLFile(Parameters[1], true);
+  try
+    Node.TraverseBlenderObjects(@Dummy.Traverse);
+  finally FreeAndNil(Node) end;
+end.

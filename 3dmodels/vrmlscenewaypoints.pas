@@ -51,7 +51,7 @@ type
   private
     NodesToRemove: TVRMLNodesList;
     procedure TraverseForWaypoints(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState);
+      State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
       are removed from the Node, and are added as new waypoint with
@@ -122,7 +122,7 @@ type
   private
     NodesToRemove: TVRMLNodesList;
     procedure TraverseForSectors(Node: TVRMLNode;
-      State: TVRMLGraphTraverseState);
+      State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
   public
     { Shapes placed under the name Sector<index>_<ignored>
       are removed from the Node, and are added to sector <index> BoundingBoxes.
@@ -205,7 +205,7 @@ end;
 { TSceneWaypointsList -------------------------------------------------------- }
 
 procedure TSceneWaypointsList.TraverseForWaypoints(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState);
+  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 
   procedure CreateNewWaypoint(const WaypointNodeName: string);
   var
@@ -316,7 +316,7 @@ end;
 { TSceneSectorsList -------------------------------------------------------- }
 
 procedure TSceneSectorsList.TraverseForSectors(Node: TVRMLNode;
-  State: TVRMLGraphTraverseState);
+  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 
   procedure AddSectorBoundingBox(const SectorNodeName: string);
   var

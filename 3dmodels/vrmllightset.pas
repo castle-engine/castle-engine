@@ -47,7 +47,8 @@ type
     FRootNode: TVRMLNode;
     FLights: TDynActiveLightArray;
     StateDefaultNodes: TTraverseStateLastNodes;
-    procedure AddToLights(Node: TVRMLNode; State: TVRMLGraphTraverseState);
+    procedure AddToLights(Node: TVRMLNode; State: TVRMLGraphTraverseState;
+      ParentInfo: PTraversingInfo);
   public
     { if OwnsRootNode then in destructor we will call RootNode.Free }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
@@ -70,7 +71,8 @@ uses SysUtils;
 
 { TVRMLLightSet ------------------------------------------------------------ }
 
-procedure TVRMLLightSet.AddToLights(Node: TVRMLNode; State: TVRMLGraphTraverseState);
+procedure TVRMLLightSet.AddToLights(Node: TVRMLNode;
+  State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 begin
   Lights.AppendItem((Node as TNodeGeneralLight).CreateActiveLight(State));
 end;
