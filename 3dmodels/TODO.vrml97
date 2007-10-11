@@ -34,7 +34,6 @@ VRML 97 TODO items:
 
   - "The Castle":
     make test level in VRML 2.0 for castle
-    fix castle-development.php page, see TODO item there.
 
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?
