@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -264,8 +264,10 @@ function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Extended; TextAlign: TTextAlign): boolean;
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Single; TextAlign: TTextAlign): boolean;
+{$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Double; TextAlign: TTextAlign): boolean;
+{$endif not EXTENDED_EQUALS_DOUBLE}
 
 function MessageInputQueryVector3Single(
   glwin: TGLWindow; const Title: string;
@@ -1514,6 +1516,7 @@ begin
     Value := ValueExtended;
 end;
 
+{$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(glwin: TGLWindow; const Title: string;
   var Value: Double; TextAlign: TTextAlign): boolean;
 var
@@ -1524,6 +1527,7 @@ begin
   if Result then
     Value := ValueExtended;
 end;
+{$endif not EXTENDED_EQUALS_DOUBLE}
 
 { MessageInputQueryVector3Single --------------------------------------------- }
 

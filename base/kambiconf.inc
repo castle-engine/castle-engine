@@ -93,8 +93,6 @@
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
-  According to FPC's docs (Programmers Manual, 8.2.0: floating point types),
-  this will be true for most of non-i386 architectures.
 
   One typical case when this is important is when you overload
   one procedure like
@@ -108,8 +106,15 @@
 *)
 {$ifdef FPC}
   {$ifndef CPUI386}
-    {$ifndef CPUX86_64}
-      {$define EXTENDED_EQUALS_DOUBLE}
+    { According to FPC docs (Programmers Manual, 8.2.0: floating point types),
+      there's no Extended (i.e. Extended = Double) for most of non-i386 architectures. }
+    {$define EXTENDED_EQUALS_DOUBLE}
+  {$endif}
+
+  { Exception to the above is Linux on x86-64, that allows to use normal Extended. }
+  {$ifdef CPUX86_64}
+    {$ifdef LINUX}
+      {$undefine EXTENDED_EQUALS_DOUBLE}
     {$endif}
   {$endif}
 {$endif}

@@ -182,9 +182,9 @@ end;
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var glwin: TGLWindow;
 begin
- glwin := TGLWindow(GetWindowLong(hWnd, GWL_USERDATA));
+ glwin := TGLWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
  { wszystkie hwnd jakie tu beda wpadac to beda nasze okna. Ale zanim
-   ustawimy oknu SetWindowLong (GetWindowLong bedzie do tego czasu zwracac 0)
+   ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
    ono juz dostaje jakies messagy - WM_CREATE i inne.
    Mozemy je spokojnie zignorowac.
 
@@ -229,13 +229,15 @@ function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT
   end;
 
   type
-    LongWord_rec = packed record
-      case integer of
-       0:(Signed: LongInt);
-       1:(LoWord, HiWord: Word);
-       2:(LoSmallint, HiSmallint: Smallint);
-       3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
-       4:(LowestShortint, LowerShortint, HigherShortint, HighestShortint: byte);
+    { This is useful to deconstruct WParam and LParam. It will work faster
+      than any LoWord/HiWord functions in Windows unit, and it allows you
+      to specify signedness of values as you wish. }
+    TWinParam = packed record
+      case Integer of
+        0:(Signed: LongInt {$ifdef CPUX86_64}; Dummy: LongWord {$endif});
+        1:(LoWord, HiWord: Word);
+        2:(LoSmallint, HiSmallint: Smallint);
+        3:(LowestByte, LowerByte, HigherByte, HighestByte: byte);
     end;
 
   function InterceptedSystemKey(key: integer): boolean;
@@ -363,7 +365,7 @@ begin
      { Note: Window class has (VREDRAW or HREDRAW), so Windows will automatically
        take care of requesting window redraw after window resize. }
      if (wParm = SIZE_MAXIMIZED) or (wParm = SIZE_RESTORED) then
-      DoResize(LOWORD(lParm), HIWORD(lParm), false);
+      DoResize(LoWord(lParm), HiWord(lParm), false);
      Exit;
     end;
   WM_MOVE:
@@ -374,8 +376,8 @@ begin
       okno mysza a potem robiac glRedPixels (odczyta pixele z miejsca w ktorym BYLO
       nasza okienko, czyli odczyta jakis kawalek desktopu, innych aplikacji itp.) }
     begin
-      fLeft := LongWord_rec(lParm).LoSmallint;
-      fTop := LongWord_rec(lParm).HiSmallint;
+      fLeft := TWinParam(lParm).LoSmallint;
+      fTop := TWinParam(lParm).HiSmallint;
 
       { You know it, and I know it: WinAPI is so damn stupid and inconsistent.
         What's up this time ? Well, I want to update Left and Top below to the position
@@ -487,15 +489,15 @@ begin
      if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
      if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
        ... ale nie ma po temu zadnej potrzeby. }
-     DoMouseMove( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint);
+     DoMouseMove( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint);
      exit;
     end;
-  WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbLeft);   Exit end;
-  WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbMiddle); Exit end;
-  WM_RBUTTONDOWN: begin MaybeCapture; DoMouseDown( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbRight);  Exit end;
-  WM_LBUTTONUP  : begin DoMouseUp( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbLeft);   MaybeRelease; Exit end;
-  WM_MBUTTONUP  : begin DoMouseUp( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
-  WM_RBUTTONUP  : begin DoMouseUp( LongWord_rec(lParm).LoSmallint, LongWord_rec(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
+  WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbLeft);   Exit end;
+  WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); Exit end;
+  WM_RBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  Exit end;
+  WM_LBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbLeft);   MaybeRelease; Exit end;
+  WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
+  WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
   WM_COMMAND    :
     begin
      { If this comes from a menu item, call DoMenuCommand }
@@ -599,7 +601,7 @@ begin
  if FullScreen and (MainMenu <> nil) then
    FTop += GetSystemMetrics(SM_CYMENU);
 
- SetWindowLong(h_Wnd, GWL_USERDATA, Longint(Self));
+ SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
 
  { get h_DC and set pixel format }
 
