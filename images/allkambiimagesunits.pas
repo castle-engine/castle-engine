@@ -11,6 +11,7 @@ interface
 
 uses
   images,
+  imagescache,
   kambipasjpeg,
   kambipasjpeg_error_mgrs,
   kambipasjpeg_stream_mgrs,

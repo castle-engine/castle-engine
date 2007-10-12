@@ -15,6 +15,7 @@ uses
   enumeratefiles,
   intrects,
   kambiclassutils,
+  kambidynlib,
   kambifilesutils,
   kambilog,
   kambistringutils,

@@ -238,7 +238,7 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareRender([tgAll], [prBoundingBox], true, false);
+      Animation.PrepareRender([tgAll], [prBoundingBox], true);
     finally Progress.Fini end;
 
     Glwm.Loop;

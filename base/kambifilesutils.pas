@@ -496,7 +496,7 @@ function CombinePaths(BasePath, RelPath: string): string;
 
 implementation
 
-uses KambiStringUtils;
+uses KambiStringUtils, KambiDynLib;
 
 var
   { inicjowane w initialization i pozniej stale.
