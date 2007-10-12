@@ -1623,7 +1623,7 @@ begin
  end;
 
  for i := 0 to High(Ar1) do
-  if Ar1[1] <> Ar2[i] then
+  if Ar1[I] <> Ar2[I] then
   begin
    Result := false;
    Exit;

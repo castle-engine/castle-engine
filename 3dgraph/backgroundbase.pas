@@ -26,7 +26,7 @@ unit BackgroundBase;
 
 interface
 
-uses Images;
+uses Images, ImagesCache;
 
 type
   { }
@@ -83,8 +83,11 @@ function BackgroundImages(const BackImg, BottomImg, FrontImg, LeftImg,
 function BackgroundImagesLoadFromOldNamePattern(const SkyNamePattern: string;
   const ImageAllowedClasses: array of TImageClass): TBackgroundImages;
 
-{ robi FreeAndNil na wszystkich elementach BGImages[] }
-procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages);
+{ This releases and sets to @nil all images in BgImages.
+  If Cache is @nil, it releases images by simple FreeAndNil,
+  otherwise they are released from the cache by LoadImage_DecReference. }
+procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages;
+  Cache: TImagesCache);
 
 implementation
 
@@ -121,10 +124,22 @@ begin
  end;
 end;
 
-procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages);
-var bs: TBackgroundSide;
+procedure BackgroundImagesFreeAll(var BGImages: TBackgroundImages;
+  Cache: TImagesCache);
+var
+  bs: TBackgroundSide;
 begin
- for bs := Low(bs) to High(bs) do FreeAndNil(BGImages[bs]);
+  if Cache <> nil then
+  begin
+    for bs := Low(bs) to High(bs) do
+      { Cache.LoadImage_DecReference is not prepared for nil parameters,
+        and some of our BGImages[bs] may be nil. }
+      if BGImages[bs] <> nil then
+        Cache.LoadImage_DecReference(BGImages[bs]);
+  end else
+  begin
+    for bs := Low(bs) to High(bs) do FreeAndNil(BGImages[bs]);
+  end;
 end;
 
 end.

@@ -114,14 +114,14 @@ type
       @item(For frRootNode, you @italic(may) get nasty effects including crashes
         if you will use this in a wrong way.)
 
-      @item(For frTextureImageInNodes and TrianglesList,
+      @item(For frTextureImageInNodes, frBackgroundImageInNodes and TrianglesList,
         if you will free them unnecessarily
         (i.e. you will use it after you freed it), it will be automatically
         recreated on next use. So everything will work correctly, but you
         will experience unnecessary slowdown if we will need to recreate
         exactly the same resource over and over again.)
 
-      @item(For frTextureImageInNodes and frRootNode, note that
+      @item(For frTextureImageInNodes, frBackgroundImageInNodes and frRootNode, note that
         freeing these resources too eagerly may make image cache
         (see ImagesCache) less effective. In normal circumstances,
         if you will use the same cache instance throughout the program,
@@ -170,6 +170,10 @@ type
       necessary (as freeing RootNode also frees texture nodes, along with
       their texture). }
     frTextureImageInNodes,
+
+    { Unloads the background images allocated in VRML Background nodes.
+      The same comments as for frTextureImageInNodes apply. }
+    frBackgroundImageInNodes,
 
     { Free triangle list created by TrianglesList(false) call.
       This list is also implicitly created by constructing triangle octree
@@ -270,6 +274,7 @@ type
     FOwnsManifoldEdges: boolean;
 
     procedure FreeResources_UnloadTextureImage(Node: TVRMLNode);
+    procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -1453,10 +1458,14 @@ begin
   Include(Validities, fvManifoldEdges);
 end;
 
-procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(
-  Node: TVRMLNode);
+procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(Node: TVRMLNode);
 begin
   (Node as TNodeGeneralTexture).IsTextureLoaded := false;
+end;
+
+procedure TVRMLFlatScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
+begin
+  (Node as TNodeBackground).BgImagesLoaded := false;
 end;
 
 procedure TVRMLFlatScene.FreeResources(Resources: TVRMLSceneFreeResources);
@@ -1470,6 +1479,10 @@ begin
   if (frTextureImageInNodes in Resources) and (RootNode <> nil) then
     RootNode.EnumerateNodes(TNodeGeneralTexture,
       @FreeResources_UnloadTextureImage, false);
+
+  if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
+    RootNode.EnumerateNodes(TNodeBackground,
+      @FreeResources_UnloadBackgroundImage, false);
 
   if frTrianglesListNotOverTriangulate in Resources then
   begin

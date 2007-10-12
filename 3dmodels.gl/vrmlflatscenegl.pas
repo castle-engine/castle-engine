@@ -920,7 +920,7 @@ begin
 
       So we have to guarantee, *now*, that freeing RootNode is safe ---
       no dangling references to Renderer.Cache. }
-    FreeResources([frTextureImageInNodes]);
+    FreeResources([frTextureImageInNodes, frBackgroundImageInNodes]);
 
     FreeAndNil(Renderer);
   end;
@@ -2030,7 +2030,11 @@ begin
 
         { TODO - extract only rotation from BgTransform matrix ! }
 
+        { The call to BgNode.BgImages is important here, as it may actually
+          load the images from file. So first we want to set AllowedBgImagesClasses
+          and ImagesCache as appropriate. }
         BgNode.SetAllowedBgImagesClasses(GLImageClasses);
+        BgNode.ImagesCache := Renderer.Cache;
 
         FBackground := TBackgroundGL.Create(BgTransform,
           @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,

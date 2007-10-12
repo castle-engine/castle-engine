@@ -521,7 +521,7 @@ begin
  SkyImgs := BackgroundImagesLoadFromOldNamePattern(SkyNamePattern, GLImageClasses);
  try
   Create(SkyImgs, zNear, zFar);
- finally BackgroundImagesFreeAll(SkyImgs) end;
+ finally BackgroundImagesFreeAll(SkyImgs, nil) end;
 end;
 
 constructor TSkyCube.Create(const Imgs: TBackgroundImages; zNear, zFar: Single);

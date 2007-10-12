@@ -98,9 +98,16 @@
       this in our implementation) }
     FBgImages: TBackgroundImages;
 
+    { Non-nil only if FBgImages should be freed using
+      UsedCache.LoadImage_DecReference. }
+    UsedCache: TImagesCache;
+
+    procedure SetBgImagesLoaded(const Value: boolean);
+
     FAllowedBgImagesClasses: TDynArrayImageClasses;
     function GetBgImages: TBackgroundImages;
-    procedure UnloadImages;
+
+    FImagesCache: TImagesCache;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -135,14 +142,18 @@
     { Czy obrazki juz sa zaladowane ? W zasadzie ta funkcja nigdy nie powinna
       ci byc potrzebna skoro cale ladowanie / zwalnianie obrazkow jest
       robione automatycznie. Ale moze ci przydac : ona mowi czy najblizsze
-      wywolanie BgImages wywola ReloadBgImages czy nie. }
-    property BgImagesLoaded: boolean read FBgImagesLoaded;
+      wywolanie BgImages wywola ReloadBgImages czy nie.
 
-    { Wymusza przeladowanie obrazkow BgImages, nawet jesli BgImages zostalo
-      juz raz wywolane (a wiec obrazki juz raz zostaly zaladowane).
-      Uzywaj np. jezeli podejrzewasz ze zawartosc obrazkow zmienila sie
-      na dysku. }
-    procedure ReloadBgImages;
+      You can set this to @true to force loading of images now, and you
+      can set to this to @false to force release of background images now.
+      In normal circumstances, you don't need it --- BgImages are automatically
+      loaded on first use, and are automatically freed when necessary.
+
+      If you're sure you want to reload the background images (e.g. when
+      you suspect that images on the disk changed), you may force reload
+      by setting this to @false and then to @true again. }
+    property BgImagesLoaded: boolean read FBgImagesLoaded
+      write SetBgImagesLoaded;
 
     { Wszystkie obrazki na BgImages (ktore nie sa nil) maja zawsze
       klase wsrod AllowedBgImagesClasses.
@@ -154,6 +165,15 @@
     property AllowedBgImagesClasses: TDynArrayImageClasses
       read FAllowedBgImagesClasses; { = [], so all image classes are allowed }
     procedure SetAllowedBgImagesClasses(const Value: array of TImageClass);
+
+    { Set this to non-nil before background images are loaded, this way bacground
+      images will be loaded from this cache.
+
+      They will also be freed using this
+      cache then (so remember that used cache must remain valid for the lifetime
+      of this node, or you have to call BgImagesLoaded := false explicitly to
+      break the connection from this node to the cache). }
+    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1764,25 +1784,7 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBackground.UnloadImages;
-begin
- FBgImagesLoaded := false;
- BackgroundImagesFreeAll(FbgImages);
-end;
-
-procedure TNodeBackground.Parse(Lexer: TVRMLLexer);
-begin
-  inherited;
-  UnloadImages;
-end;
-
-function TNodeBackground.GetBgImages: TBackgroundImages;
-begin
- if not FBgImagesLoaded then ReloadBgImages;
- result := FBgImages;
-end;
-
-procedure TNodeBackground.ReloadBgImages;
+procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
 
   procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
   var
@@ -1794,7 +1796,14 @@ procedure TNodeBackground.ReloadBgImages;
     begin
       try
         URL := PathFromWWWBasePath(Urls.Items.Items[i]);
-        FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);
+        if ImagesCache <> nil then
+        begin
+          { TODO: this doesn't honour AllowedBgImagesClasses for now,
+            ImagesCache.LoadImage_IncReference always loads with
+            AllowedImageClasses = [TRGBImage, TAlphaImage] }
+          FBgImages[bs] := ImagesCache.LoadImage_IncReference(URL);
+        end else
+          FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);
         Break;
       except
         on E: Exception do
@@ -1809,31 +1818,61 @@ procedure TNodeBackground.ReloadBgImages;
   end;
 
 begin
- if FBgImagesLoaded then UnloadImages;
+  if Value <> BgImagesLoaded then
+  begin
+    if Value then
+    begin
+      try
+        LoadImg(bsBack, FdBackUrl);
+        LoadImg(bsBottom, FdBottomUrl);
+        LoadImg(bsFront, FdFrontUrl);
+        LoadImg(bsLeft, FdLeftUrl);
+        LoadImg(bsRight, FdRightUrl);
+        LoadImg(bsTop, FdTopUrl);
+      except
+        { In case of trouble, free the images that were loaded.
+          This may happen if VRMLNonFatalError raises exception and some
+          image cannot be loaded. }
+        BackgroundImagesFreeAll(FbgImages, ImagesCache);
+        raise;
+      end;
+      UsedCache := ImagesCache;
+    end else
+    begin
+      BackgroundImagesFreeAll(FbgImages, UsedCache);
+      UsedCache := nil;
+    end;
 
- LoadImg(bsBack, FdBackUrl);
- LoadImg(bsBottom, FdBottomUrl);
- LoadImg(bsFront, FdFrontUrl);
- LoadImg(bsLeft, FdLeftUrl);
- LoadImg(bsRight, FdRightUrl);
- LoadImg(bsTop, FdTopUrl);
+    FBgImagesLoaded := Value;
+  end;
+end;
 
- FBgImagesLoaded := true;
+procedure TNodeBackground.Parse(Lexer: TVRMLLexer);
+begin
+  inherited;
+  { Force reload on next BgImages use, since our fields are different now }
+  BgImagesLoaded := false;
+end;
+
+function TNodeBackground.GetBgImages: TBackgroundImages;
+begin
+  BgImagesLoaded := true;
+  Result := FBgImages;
 end;
 
 procedure TNodeBackground.SetAllowedBgImagesClasses(const Value: array of TImageClass);
 begin
- if not ImageClassesEqual(Value, AllowedBgImagesClasses) then
- begin
-  ImageClassesAssign(FAllowedBgImagesClasses, Value);
-  UnloadImages;
- end;
+  if not ImageClassesEqual(Value, AllowedBgImagesClasses) then
+  begin
+    ImageClassesAssign(FAllowedBgImagesClasses, Value);
+    BgImagesLoaded := false;
+  end;
 end;
 
 destructor TNodeBackground.Destroy;
 begin
- UnloadImages;
- inherited;
+  BgImagesLoaded := false;
+  inherited;
 end;
 
 class function TNodeBillboard.ClassNodeTypeName: string;
