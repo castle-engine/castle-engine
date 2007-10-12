@@ -8,8 +8,8 @@
       <Version Value="5"/>
       <PathDelim Value="\"/>
       <SearchPaths>
-        <IncludeFiles Value="..\..\base\templates\;..\..\base\win32\;..\..\base\;..\..\opengl\;..\..\audio\"/>
-        <OtherUnitFiles Value="..\..\base\;..\..\3dgraph\;..\..\3dmodels\;..\..\3dmodels.gl\;..\..\images\;..\..\fonts\;..\..\opengl\;..\..\opengl\win32\;..\..\audio\"/>
+        <IncludeFiles Value="..\..\base\templates\;..\..\base\windows\;..\..\base\;..\..\opengl\;..\..\audio\"/>
+        <OtherUnitFiles Value="..\..\base\;..\..\3dgraph\;..\..\3dmodels\;..\..\3dmodels.gl\;..\..\images\;..\..\fonts\;..\..\opengl\;..\..\opengl\windows\;..\..\audio\"/>
         <UnitOutputDirectory Value="lib"/>
       </SearchPaths>
       <Parsing>

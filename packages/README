@@ -47,7 +47,9 @@ Why there are a couple of packages --- kambi_units, kambi_glwindow etc. :
   package that doesn't do anything special in it's initialization:
 
   - OpenGLh unit loads OpenGL library, and fails if OpenGL is not available.
-    On Win32 this also changes 8087 control word.
+    This also changes 8087 control word (trick needed to avoid floating
+    point exceptions with most OpenGL implementations, needed on both Windows
+    and Linux --- so actually probably everywhere).
 
   - OpenAL, KambiZlib, KambiPng units load OpenAL, zlib, png
     libraries (but they don't fail if these libraries don't exist).
@@ -64,11 +66,11 @@ Why there are a couple of packages --- kambi_units, kambi_glwindow etc. :
 
 Some internal notes:
 
-  Useful regexp when synching win32 version with unix version:
+  Useful regexp when synching windows version with unix version:
     From \.\./\.\./\([.a-z0-9A-Z]*\)/
     To ..\\..\\\1\\
 
-  Remember to put subpaths unix/ and win32/ only in according version
+  Remember to put subpaths unix/ and windows/ only in according version
   of the package.
 
 ----------------------------------------

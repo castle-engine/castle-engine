@@ -20,12 +20,12 @@ set -eu
 # for some particular unit, because generating documentation
 # for all units takes a while.
 
-# "os-native path" in this file means "under Win32 it must
+# "os-native path" in this file means "under Windows it must
 # *not* be Cygwin's POSIX path, because I pass it to pasdoc as filename".
 
-# TARGET_OS is win32 lub unix.
+# TARGET_OS is windows lub unix.
 # This says which subdirectories of sources are meaningfull
-# (e.g. add base/unix/ or base/win32/ to include file path ?).
+# (e.g. add base/unix/ or base/windows/ to include file path ?).
 # Moreover pasdoc will be run with --define $TARGET_OS.
 TARGET_OS=unix
 

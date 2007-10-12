@@ -3,9 +3,9 @@
   Copied from FPC zlib.pp in packages.
   Changed by Kambi to
   @unorderedList(
-    @item(link to zlib1.dll under win32 (from [http://gnuwin32.sourceforge.net/]),
+    @item(link to zlib1.dll under Windows (from [http://gnuwin32.sourceforge.net/]),
       this uses cdecl calling convention)
-    @item compile under FPC+Win32 and Delphi
+    @item compile under Delphi too
     @item(name changed from zlib to KambiZlib to not collide with FPC and Kylix
       zlib units)
     @item(changed to link using my TDynLib instead of linking with
@@ -41,7 +41,7 @@ const
       {$else} 'libz.so.1'
       {$endif}
     {$endif}
-    {$ifdef WIN32} 'zlib1.dll' {$endif};
+    {$ifdef MSWINDOWS} 'zlib1.dll' {$endif};
 
 type
   { Compatible with paszlib }

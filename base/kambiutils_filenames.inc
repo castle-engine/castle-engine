@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004 Michalis Kamburelis.
+  Copyright 2002-2004,2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -38,8 +38,8 @@ function ChangeFilePath(const fname, NewPath:string):string;
 { podwaja w stringu znaki PathDelim }
 function DuplicateSlash(const s:string):string;
 
-{ zwraca true jesli c = PathDelim, pod Win32 zwraca true takze gdy c = '/'.
-  ( Bo pod Win32 '/' nie jest PathDelim ale tak naprawde jest akceptowane przez funkcje
+{ zwraca true jesli c = PathDelim, pod Windows zwraca true takze gdy c = '/'.
+  ( Bo pod Windows '/' nie jest PathDelim ale tak naprawde jest akceptowane przez funkcje
   WinAPI (wiec w zasadzie przez wszystko) zamiast PathDelim, wiec gdzieniegdzie jest
   uzywane (takze przeze mnie) zamiast PathDelim - przynajmniej w moim przypadku
   jest to przyzwyczajenie z Linuxa.)  }
@@ -54,7 +54,7 @@ function IsPathDelim(c:char):boolean;
 
   Pewne roznice z wersjami SysUtils moga byc: te funkcje nie dzialaja na
   stringach MBCS. Ponadto uzywaja mojej IsPathDelim ktora uwzglednia fakt
-  ze pod Win32 '/' jest tak naprawde akceptowalnym path delimitorem. }
+  ze pod Windows '/' jest tak naprawde akceptowalnym path delimitorem. }
 function InclPathDelim(const s:string):string;
 function ExclPathDelim(const s:string):string;
 
@@ -156,7 +156,7 @@ end;
 
 function IsPathDelim(c:char):boolean;
 begin
- result:=(c=PathDelim) {$ifdef WIN32} or (c='/') {$endif};
+ result:=(c=PathDelim) {$ifdef MSWINDOWS} or (c='/') {$endif};
 end;
 
 function InclPathDelim(const s:string):string;
@@ -179,7 +179,7 @@ begin
  if IsPathAbsolute(fname) then
   Result:=ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
     fname) else
- { TODO: WIN32 - chyba nie trzeba uwzgledniac tu
+ { TODO: MSWINDOWS - chyba nie trzeba uwzgledniac tu
    IsPathAbsoluteOnDrive(fname) ? }
   Result:=fname;
 end;
@@ -206,7 +206,7 @@ end;
 function IsPathAbsoluteOnDrive(const path:string):boolean;
 begin
  result:=IsPathAbsolute(path)
-   {$ifdef WIN32} or SCharIs(path,1,PathDelim) {$endif}
+   {$ifdef MSWINDOWS} or SCharIs(path,1,PathDelim) {$endif}
 end;
 
 function SpecialDirName(const dirname:string):boolean;
@@ -216,13 +216,13 @@ begin
      . jako aktualny. Sprawdzilem to i przynajmniej pod win95/98 nie zrobili tego
      bezuzytecznego kretynstwa, ale zawsze lepiej sie zabezpieczyc - stad powyzsze
      checki '...' i '....'. One niczemu nie przeszkadzaja, bo i tak
-     ... i .... to nieprawidlowe nazwy plikow pod WIN32 wiec ten check
+     ... i .... to nieprawidlowe nazwy plikow pod Windows wiec ten check
      (poza zabieraniem chwilki czasu) nic nie psuje.
 
-   Pod linuxem (i prawdopodobnie kazdym innym nie-Windowsem) 
-   ... i .... to zupelnie legalne nazwy plikow dlatego 
+   Pod linuxem (i prawdopodobnie kazdym innym nie-Windowsem)
+   ... i .... to zupelnie legalne nazwy plikow dlatego
    ten check nie moze istniec pod nie-Windowsem. }
- result:=ArrayPosStr(dirname,['.','..' {$ifdef WIN32},'...','....'{$endif}])>=0;
+ result:=ArrayPosStr(dirname,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}])>=0;
 end;
 
 function AppendToFilename(const FileName, Suffix:string):string;

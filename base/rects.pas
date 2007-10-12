@@ -29,7 +29,7 @@ uses Types, KambiUtils;
 function Bounds(ALeft, ATop, AWidth, AHeight: Integer): TRect;
 
 procedure InflateRect(var r: TRect; dx, dy: integer);
-  {$ifdef WIN32} stdcall; external userDLL name 'InflateRect'; {$endif}
+  {$ifdef MSWINDOWS} stdcall; external userDLL name 'InflateRect'; {$endif}
 function InflatedRect(const r: TRect; dx, dy: integer): TRect;
 
 implementation
@@ -42,7 +42,7 @@ begin
   Bounds.Bottom := ATop + AHeight;
 end;
 
-{$ifndef WIN32}
+{$ifndef MSWINDOWS}
 procedure InflateRect(var r: TRect; dx, dy: integer);
 begin
   r.left := r.left-dx;

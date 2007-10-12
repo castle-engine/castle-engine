@@ -15,7 +15,7 @@
 #     just run appropriate xxx_compile.sh scripts.
 #
 #   clean --
-#     Delete FPC 1.0.x Win32 trash (*.ppw, *.ow), FPC trash, Delphi trash,
+#     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,
 #     Lazarus trash (*.compiled),
 #     binaries of example programs,
 #     also FPC compiled trash in packages/*/lib/
@@ -150,7 +150,7 @@ base/allkambibaseunits.pas:
 fonts/allkambifontsunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
   (write-unit-all-units-in-dir \"fonts/\" \"AllKambiFontsUnits\") \
-  (kam-simple-replace-buffer \"ttfontstypes,\" \"ttfontstypes {\$$ifdef WIN32}, {\$$endif}\") \
+  (kam-simple-replace-buffer \"ttfontstypes,\" \"ttfontstypes {\$$ifdef MSWINDOWS}, {\$$endif}\") \
   (save-buffer))"
 
 images/allkambiimagesunits.pas:
@@ -237,7 +237,7 @@ clean: cleanexamples
 	rm -Rf packages/unix/lib/ packages/unix/kambi_units.pas \
 	  packages/unix/kambi_glwindow.pas \
 	  packages/unix/kambi_glwindow_navigated.pas \
-	  packages/win32/lib/ packages/win32/kambi_units.pas \
+	  packages/windows/lib/ packages/windows/kambi_units.pas \
 	  packages/components/lib/ packages/components/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 

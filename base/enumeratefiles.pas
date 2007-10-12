@@ -30,7 +30,7 @@ unit EnumerateFiles;
   TODO:
   - better interface, probably TEnumerateFiles as class
   - don't select files using faXxx constants, as these do not have
-    perfect definition on non-Dos/Win32 systems.
+    perfect definition on non-Dos/Windows systems.
     Maybe use readdir and opendir on UNIX systems
     (instead of relaying on FindFirst/Next ported to UNIX).
 }
@@ -212,7 +212,7 @@ type
   in some subsequent FileProc ? Answer: you don't know.
   It depends on implementation of SysUtils.FindFirst/Next
   and it depends on implementation of some OS-specific
-  things (e.g. Windows.FindFirst/NextFile under Win32).
+  things (e.g. Windows.FindFirst/NextFile under Windows).
   In fact under Windows my experience shows that it's random:
   sometimes you will get foo.copy, sometimes you will not.
 

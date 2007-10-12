@@ -27,14 +27,14 @@
 const
   {$ifdef DELPHI}
     LineEnding = {$ifdef UNIX}  #10 {$endif}
-                 {$ifdef WIN32} #13#10 {$endif} ;
+                 {$ifdef MSWINDOWS} #13#10 {$endif} ;
   {$endif}
 
   { Kambi short name for new line }
   nl = LineEnding;
   { root dir name ('' if not applicable to this OS) }
   RootDir = {$ifdef UNIX} '/' {$endif}
-            {$ifdef WIN32} '' {$endif} ;
+            {$ifdef MSWINDOWS} '' {$endif} ;
 
 { basic types ---------------------------------------- }
 

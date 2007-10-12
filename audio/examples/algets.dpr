@@ -149,7 +149,7 @@ begin
    'Get globals --------------------------------', nl,
    'DISTANCE_MODEL : ',DistanceModelToStr(alGetInteger(AL_DISTANCE_MODEL)), nl,
    'DOPPLER_FACTOR : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_FACTOR)), nl,
-   { Undocumented in al specs, and not valid in Creative win32 implementation.
+   { Undocumented in al specs, and not valid in Creative Windows implementation.
      Not checked in Linux implementation yet.
    'DISTANCE_SCALE : ',FloatToNiceStr(alGetFloat(AL_DISTANCE_SCALE)), nl, }
    'DOPPLER_VELOCITY : ',FloatToNiceStr(alGetFloat(AL_DOPPLER_VELOCITY)), nl,

@@ -46,7 +46,7 @@ type
 implementation
 
 uses
-  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} {$ifdef USE_LIBC} Libc, {$else} Unix, BaseUnix, {$endif} {$endif}
   KambiUtils, Math, KambiTimeUtils;
 
@@ -206,7 +206,7 @@ begin
  Assert(ExclPathDelim('/c/blah/') = '/c/blah' );
  Assert(ExclPathDelim('/c/blah' ) = '/c/blah' );
 {$endif}
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  Assert(InclPathDelim('c:\blah\') = 'c:\blah\');
  Assert(InclPathDelim('c:\blah' ) = 'c:\blah\');
@@ -233,7 +233,7 @@ procedure TTestKambiUtils.TestKambiOSError;
 begin
  try
   KambiOSCheck(
-    {$ifdef WIN32} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
+    {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
     {$ifdef UNIX}
       {$ifdef USE_LIBC} Libc.__rename('some_not_existing_file_name', 'foo') <> -1
       {$else}           FpRename('some_not_existing_file_name', 'foo') <> -1

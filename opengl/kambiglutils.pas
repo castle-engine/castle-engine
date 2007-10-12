@@ -135,7 +135,7 @@ unit KambiGLUtils;
 interface
 
 uses
-  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   Math, OpenGLh, SysUtils, KambiUtils, Images, VectorMath, Boxes3d, IntRects,
   Matrix;
 
@@ -169,7 +169,7 @@ const
   { These constants *must* match constants used in implementation of gl and glu
     units, so that we link to the same libraries. }
   OpenGLDLL =
-    {$ifdef WIN32} 'opengl32.dll' {$endif}
+    {$ifdef MSWINDOWS} {TODO: needs fix for WIN64?} 'opengl32.dll' {$endif}
     {$ifdef UNIX}
       {$ifdef DARWIN}
         '/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib'
@@ -177,7 +177,7 @@ const
       {$endif}
     {$endif};
   GluDLL =
-    {$ifdef WIN32} 'glu32.dll' {$endif}
+    {$ifdef MSWINDOWS} {TODO: needs fix for WIN64?} 'glu32.dll' {$endif}
     {$ifdef UNIX}
       {$ifdef DARWIN}
         '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib'

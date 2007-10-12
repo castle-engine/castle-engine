@@ -387,21 +387,21 @@ procedure alListenerOrientation(const Orient: TALTwoVectors3f); overload;
 
 { @groupBegin
 
-  Unfortunately current Creative OpenAL Win32 implementation violates
+  Unfortunately current Creative OpenAL Windows implementation violates
   OpenAL specifitation : default source state (i.e. newly generated
   source state) is not as it is specified by OpenAL implementation :
   attributes MAX_DISTANCE, DIRECTION and CONE_OUTER_GAIN have different
   values.
 
   So alCreateSources calls alGenSources and then makes sure that all sources
-  have state consistent with OpenAL specification (under Win32 it means
+  have state consistent with OpenAL specification (under Windows it means
   that it sets MAX_DISTANCE, DIRECTION and CONE_OUTER_GAIN attributes
   to their proper values). alCreateBuffers does the same for alGenBuffers
   (which means, @italic(for now), that it simply calls alGenBuffers.)
 
   (alCreateSources and alCreateBuffers may be extended at some time if
   I discover some other incompatibilities in alGenSources/Buffers,
-  maybe in Win32 and maybe in Linux implementation (and maybe in others?)).
+  maybe in Windows and maybe in Linux implementation (and maybe in others?)).
 
   So explaining it simply : always use alCreateSources and alCreateBuffers
   instead alGenSources and alGenBuffers. (warning : no additional CheckAL
@@ -666,7 +666,7 @@ begin
     i zamiast alcErrDescriptionStr uzyc po prostu alcGetString(audio_device, err).
     Jedynym powodem dla ktorego jednak wprowadzam tu ta mala komplikacje jest fakt
     ze sytuacja ze alcGetError zwroci cos niespodziewanego (bledny kod bledu) niestety
-    zdarza sie (implementacja Creative pod win32 nie jest doskonala...).
+    zdarza sie (implementacja Creative pod Windows nie jest doskonala...).
     W zwiazku z tym chcemy sie nia zajac. }
   alcErrDescription := alcGetString(audio_device, err);
   if alcErrDescription = nil then
@@ -983,13 +983,13 @@ end;
   state setting for compatibility between various OpenAL implementations }
 
 procedure alCreateSources(n: TALsizei; sources: PALuint);
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 var i: Integer;
 {$endif}
 begin
  alGenSources(n, sources);
 
- {$ifdef WIN32}
+ {$ifdef MSWINDOWS}
  for i := 1 to n do
  begin
 //TODO:  alSourcei(sources^, AL_MAX_DISTANCE, );

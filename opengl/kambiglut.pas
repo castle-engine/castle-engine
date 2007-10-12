@@ -39,7 +39,7 @@
   oryginal : Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
 
   Dolaczenie tego modulu do programu powoduje ze user musi miec
-  zainstalowanego gluta (pod UNIXem - libglut.so, pod win32 - glut32.dll).
+  zainstalowanego gluta, odpowiedni SO lub DLL (see below).
 }
 
 unit KambiGlut;
@@ -73,13 +73,13 @@ unit KambiGlut;
 {$Include KambiConf.inc}
 
 { Choose calling convention for glut functions. }
-{$ifdef UNIX}  {$define GLUT_CDECL}   {$endif}
-{$ifdef WIN32} {$define GLUT_STDCALL} {$endif}
+{$ifdef UNIX}      {$define GLUT_CDECL}   {$endif}
+{$ifdef MSWINDOWS} {$define GLUT_STDCALL} {$endif}
 
 interface
 
 uses
-  {$ifdef WIN32} Windows, {$else} {$endif} OpenGLh, SysUtils;
+  {$ifdef MSWINDOWS} Windows, {$else} {$endif} OpenGLh, SysUtils;
 
 const
   GlutDLL =
@@ -88,7 +88,7 @@ const
       {$else} 'libglut.so'
       {$endif}
     {$endif}
-    {$ifdef WIN32} 'glut32.dll' {$endif};
+    {$ifdef MSWINDOWS} {TODO: fix for win64?} 'glut32.dll' {$endif};
 
 {
   GLUT API revision history:
@@ -226,7 +226,7 @@ const _GLUT_API_VERSION = 3;
   GLUT_GREEN = 1;
   GLUT_BLUE = 2;
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
   { Stroke font constants (use these in GLUT program). }
   GLUT_STROKE_ROMAN = pointer(0);
   GLUT_STROKE_MONO_ROMAN = pointer(1);
@@ -628,7 +628,7 @@ end;
   1.
     stale fontow pod glutem (GLUT_BITMAP_xx i GLUT_STROKE_xx) sa
     troszke kuriozalne pod UNIXem : sa to makra ktore zwracaja adres
-    odpowiednich innych funkcji glutDLL (pod win32 GLUT_BITMAP_xx i GLUT_STROKE_xx
+    odpowiednich innych funkcji glutDLL (pod Windows GLUT_BITMAP_xx i GLUT_STROKE_xx
     to sa stale). W rezultacie musimy recznie inicjowac i zamykac gluta
     (dlopen/dlclose) aby uzyskac zmienna libglut: pointer przy uzyciu ktorej
     uzyskujemy adresy odpowiednich procedur przez dlsym(libglut, 'xxx').
@@ -810,7 +810,7 @@ initialization
  Pointer(glutGameModeGet) := libglut.Symbol('glutGameModeGet');
  }
 
- {$ifndef WIN32}
+ {$ifndef MSWINDOWS}
  GLUT_STROKE_ROMAN := libglut.Symbol('glutStrokeRoman');
  GLUT_STROKE_MONO_ROMAN := libglut.Symbol('glutStrokeMonoRoman');
 

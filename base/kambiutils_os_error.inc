@@ -81,7 +81,7 @@ begin
    {$ifdef UNIX} 
      {$ifdef USE_LIBC} Libc.ErrNo {$else} BaseUnix.ErrNo {$endif} 
    {$endif UNIX}
-   {$ifdef WIN32} Windows.GetLastError {$endif} ;
+   {$ifdef MSWINDOWS} Windows.GetLastError {$endif} ;
 end;
 
 procedure RaiseLastKambiOSError;

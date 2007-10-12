@@ -61,7 +61,8 @@ Here it is:
     If you don't use Lazarus, you should compile my units using
     @code(units/Makefile) file. GNU make is required
     (under Linux this is the default `make',
-    under Win32 you can get this e.g. with FPC or Cygwin,
+    under Windows you have this already bundled with FPC
+    (you can also get this from Cygwin or MinGW),
     under FreeBSD this is called `gmake').)
 
   @item(

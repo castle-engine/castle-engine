@@ -93,8 +93,8 @@ D   rects.pas
 |   vectormath.pas
 
   fonts/
-|   win32/windowsfonts.pas
-D   win32/winfontconvert.pas
+|   windows/windowsfonts.pas
+D   windows/winfontconvert.pas
 D   bmpfontstypes.pas
 D   font2pascalunit.pas
 -   ttfontstypes.pas
@@ -108,8 +108,8 @@ D   kambipasjpeg_stream_mgrs.pas
 D   kambipngutils.pas
 
   opengl/
-D   win32/glwindowwinapimenu.pas
-D   win32/openglwindowsfonts.pas
+D   windows/glwindowwinapimenu.pas
+D   windows/openglwindowsfonts.pas
 D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
 D   curve.pas

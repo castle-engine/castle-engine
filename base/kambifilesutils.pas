@@ -35,7 +35,7 @@ unit KambiFilesUtils;
 interface
 
 uses
-  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, {$endif}
   {$endif}
@@ -47,7 +47,7 @@ type
 { Returns full (absolute) filename to executable file of this program.
   If it's impossible to obtain, raises exception @link(EExeNameNotAvailable).
 
-  Under Win32 this is simply ParamStr(0) (and it never raises
+  Under Windows this is simply ParamStr(0) (and it never raises
   exception), but under other OSes it's not so simple to obtain
   (although it's important to note that usually programs under
   UNIX should not need this, actually).
@@ -119,7 +119,7 @@ function NormalFileExists(const fileName: string): boolean;
 function GetTempPath: string;
 
 { ----------------------------------------------------------------------
-  Filenames derived from ProgramName (and possibly ExeName under Win32).
+  Filenames derived from ProgramName (and possibly ExeName under Windows).
 
   General comments for all functions below:
 
@@ -129,7 +129,7 @@ function GetTempPath: string;
   - path that program should use to obtain installed data files
 
   Results of this functions are based on ProgramName
-  (and possibly ExeName under Win32).
+  (and possibly ExeName under Windows).
 
   They may also be based on existence on some files/directories.
   E.g. ProgramDataPath under UNIXes checks
@@ -141,7 +141,7 @@ function GetTempPath: string;
   program about "what would be a result of Xxx function if it would
   be called by some other program", all functions come in 2 versions:
   Xxx and Xxx_Other. Xxx_Other does *not* use ProgramName (and ExeName for
-  Win32) of current program -- instead caller must pass to Xxx_Other
+  Windows) of current program -- instead caller must pass to Xxx_Other
   value that would be returned by ProgramName/ExeName if it would
   be called from "some other program". If it seems confusing,
   just don't look at Xxx_Other functions, you probably don't need them.
@@ -217,7 +217,7 @@ function UserConfigFile_FromProposed_Other(
   user and programmer must know how this function works
   (and usually it should be described in documentation of a program).
 
-  Under Win32 : returns ExtractFilePath(ExeName).
+  Under Windows : returns ExtractFilePath(ExeName).
 
   Under UNIXes: returns HomePath +'.' +ProgramName+'.data/'
   if such directory exists, else returns
@@ -235,7 +235,7 @@ function UserConfigFile_FromProposed_Other(
   does not exist. }
 function ProgramDataPath: string;
 
-{ Under Win32 WindowsExeNamePath must be
+{ Under Windows WindowsExeNamePath must be
   ExtractFilePath(ExeName) where ExeName is what ExeName would return
   for this "other" program.
 
@@ -243,7 +243,7 @@ function ProgramDataPath: string;
   for this "other" program.
 
   This way under UNIX parameter WindowsExeNamePath is ignored
-  and under Win32 parameter UnixProgramName is ignored.
+  and under Windows parameter UnixProgramName is ignored.
   I know that this looks strange, but this is the only safe way
   to write interface of this procedure.
 
@@ -341,7 +341,7 @@ function IsSymLink(const f: TSearchRec): boolean; overload;
   Pod windowsem ta funkcja nic nie robi, zwraca filename.  }
 function ExpandHomePath(const fname: string): string;
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 { fname : nazwa istniejacego pliku, ze sciezka absolutna lub wzgledna.
   Zwraca nazwe tego pliku gwarantujac ze ostatni czlon (tzn. sama nazwa
   pliku beda uzywaly dlugiej (tj. nie DOSowej) nazwy. }
@@ -507,9 +507,9 @@ var
 
 function ExeName: string;
 begin
- { Under Win32 ParamStr(0) is always OK, so there is no need to check
+ { Under Windows ParamStr(0) is always OK, so there is no need to check
    is FExeName = ''. }
- {$ifndef WIN32}
+ {$ifndef MSWINDOWS}
  if FExeName = '' then
   raise EExeNameNotAvailable.Create(
     'ExeName: Cannot obtain filename of executable of this program');
@@ -533,7 +533,7 @@ end;
 function ProgramName_Other(const ParamStr0: string): string;
 begin
  Result :=
-   {$ifdef WIN32} ExtractOnlyFilename(ParamStr0) {$endif}
+   {$ifdef MSWINDOWS} ExtractOnlyFilename(ParamStr0) {$endif}
    {$ifdef UNIX}  ExtractFilename(ParamStr0) {$endif} ;
 end;
 
@@ -544,7 +544,7 @@ begin
 end;
 
 function NormalFileExists(const FileName: string): boolean;
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 var s: string;
 begin
  s := UpperCase(ExtractOnlyFileName(fileName));
@@ -559,7 +559,7 @@ begin
 end;
 
 function GetTempPath: string;
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 var reqlen: Dword;
 begin
  reqlen := Windows.GetTempPath(0,nil);
@@ -567,7 +567,7 @@ begin
  SetLength(result, reqlen-1);
  KambiOSCheck( Windows.GetTempPath(reqlen,PChar(result)) = reqlen-1 );
  Result := InclPathDelim(result);
-{$endif WIN32}
+{$endif MSWINDOWS}
 {$ifdef UNIX}
 
   function UsableDir(var DirName: string): boolean;
@@ -607,17 +607,17 @@ begin
 end;
 
 { ----------------------------------------------------------------------
-  filenames derived from ProgramName (and possibly ExeName under Win32) }
+  filenames derived from ProgramName (and possibly ExeName under Windows) }
 
 function UserConfigPath: string;
 begin
  Result := UserConfigPath_Other(
-   {$ifdef WIN32} ExtractFilePath(ExeName) {$else} '' {$endif}
+   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$else} '' {$endif}
    );
 end;
 
 function UserConfigPath_Other(const WindowsExeNamePath: string): string;
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 const
   CSIDL_APPDATA = $001a;
 var
@@ -628,6 +628,7 @@ var
 begin
  Result := '';
 
+ { TODO: fix this for win64, what's the symbol for VER_PLATFORM_WIN32_NT }
  if Win32Platform = VER_PLATFORM_WIN32_NT then
  begin
   ShellLib := TDynLib.Load(ShellDLL);
@@ -658,31 +659,31 @@ function UserConfigFile(const FExtension: string): string;
 begin
  Result := UserConfigFile_Other(FExtension,
    {$ifdef UNIX} ProgramName {$else} '' {$endif},
-   {$ifdef WIN32} ExeName {$else} '' {$endif});
+   {$ifdef MSWINDOWS} ExeName {$else} '' {$endif});
 end;
 
 function UserConfigFile_Other(
   const FExtension, UnixProgramName, WindowsExeName: string): string;
 begin
  Result := UserConfigFile_FromProposed_Other(
-   {$ifdef WIN32} ProgramName_Other(WindowsExeName) {$endif}
+   {$ifdef MSWINDOWS} ProgramName_Other(WindowsExeName) {$endif}
    {$ifdef UNIX}  UnixProgramName {$endif}
     + FExtension,
-   {$ifdef WIN32} ExtractFilePath(WindowsExeName) {$else} '' {$endif}
+   {$ifdef MSWINDOWS} ExtractFilePath(WindowsExeName) {$else} '' {$endif}
    );
 end;
 
 function UserConfigFile_FromProposed(const ProposedFileName: string): string;
 begin
  Result := UserConfigFile_FromProposed_Other(ProposedFileName,
-   {$ifdef WIN32} ExtractFilePath(ExeName) {$else} '' {$endif});
+   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$else} '' {$endif});
 end;
 
 function UserConfigFile_FromProposed_Other(
   const ProposedFileName, WindowsExeNamePath: string): string;
 begin
  Result :=
-   {$ifdef WIN32} UserConfigPath_Other(WindowsExeNamePath) + ProposedFileName {$endif}
+   {$ifdef MSWINDOWS} UserConfigPath_Other(WindowsExeNamePath) + ProposedFileName {$endif}
    {$ifdef UNIX}  UserConfigPath_Other('') + '.' + ProposedFileName {$endif};
 end;
 
@@ -690,8 +691,8 @@ function ProgramDataPath: string;
 begin
  Result := ProgramDataPath_Other(
    {$ifdef UNIX}  ProgramName {$endif}
-   {$ifdef WIN32} '' {$endif},
-   {$ifdef WIN32} ExtractFilePath(ExeName) {$endif}
+   {$ifdef MSWINDOWS} '' {$endif},
+   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$endif}
    { Avoid using ExeName under UNIXes }
    {$ifdef UNIX} '' {$endif}
    );
@@ -699,7 +700,7 @@ end;
 
 function ProgramDataPath_Other(
   const UnixProgramName, WindowsExeNamePath: string): string;
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  Result := WindowsExeNamePath;
 {$endif}
@@ -724,7 +725,7 @@ begin
  Result := {$ifdef USE_LIBC} S_ISLNK {$else} FpS_ISLNK {$endif}
    (statbuf.st_mode);
 {$endif}
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  Result := false;
 {$endif}
@@ -736,7 +737,7 @@ function IsSymLink(const f: TSearchRec): boolean;
 begin
  result := S_ISLNK(f.Mode);
 {$endif}
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  result := false;
 {$endif}
@@ -805,7 +806,7 @@ begin
 {$endif}
 end;
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 function GetLongFilename(const fname: string): string;
 begin
  result := ExtractFilePath(fname)+GetLongFileOnlyname(fname);
@@ -854,7 +855,7 @@ end;
 {$endif}
 
 function ExpandLongFilename(const fname: string): string;
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  result := ExpandFilename(GetLongPathName(fname));
 {$else}
@@ -929,7 +930,7 @@ procedure FileMove(const SourceFname, DestFname: string; CanOverwrite: boolean{=
 begin
  if (not CanOverwrite) and FileExists(DestFname) then
   raise EFileExists.Create('File '+DestFname+' already exists.');
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
  { kiedys zapisalem to jako
    var dwFlags: Dword;
      dwFlags := MOVEFILE_COPY_ALLOWED;
@@ -981,7 +982,7 @@ const
    Result.ErrorCode := ErrorCode;
   end;
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 begin
  if not SetCurrentDirectory(PChar(NewDir)) then raise IOError(GetLastError);
 {$endif}
@@ -1026,7 +1027,7 @@ end;
 function ParentPath(DirName: string; DoExpandDirName: boolean): string;
 var p: integer;
 begin
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
  { if it's only drive name - return(dirname) }
  if (DirName[2]=DriveDelim) and
     ( (Length(DirName)=2) or
@@ -1092,17 +1093,17 @@ function CombinePaths(BasePath, RelPath: string): string;
 begin
   if IsPathAbsolute(RelPath) then
     result := RelPath else
-  {$ifdef WIN32}
+  {$ifdef MSWINDOWS}
   if IsPathAbsoluteOnDrive(RelPath) then
     result := BasePath[1] +DriveDelim +RelPath else
   {$endif}
   begin
     repeat
       if (Copy(RelPath, 1, 2) = './')
-        {$ifdef WIN32} or (Copy(RelPath, 1, 2) = '.\') {$endif} then
+        {$ifdef MSWINDOWS} or (Copy(RelPath, 1, 2) = '.\') {$endif} then
         RelPath := SEnding(RelPath, 3) else
       if (Copy(RelPath, 1, 3) = '../')
-        {$ifdef WIN32} or (Copy(RelPath, 1, 3) = '..\') {$endif} then
+        {$ifdef MSWINDOWS} or (Copy(RelPath, 1, 3) = '..\') {$endif} then
       begin
         BasePath := ExtractFileDir(ExclPathDelim(BasePath));
         RelPath := SEnding(RelPath, 4);
@@ -1150,7 +1151,7 @@ begin
  end;
  {$endif}
 
- {$ifdef WIN32} FExeName := ParamStr(0) {$endif};
+ {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
 end;
 
 initialization

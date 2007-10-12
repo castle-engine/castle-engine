@@ -49,7 +49,7 @@ unit KambiStringUtils;
 interface
 
 uses
-  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   Variants, SysUtils, KambiUtils;
 
 type
@@ -1623,7 +1623,7 @@ end;
 function AnsiUpperCaseChar(C: char): char;
 begin
  Result :=
-   {$ifdef WIN32} Chr( TPointerUInt( Windows.CharUpper(
+   {$ifdef MSWINDOWS} Chr( TPointerUInt( Windows.CharUpper(
      Windows.LPSTR(TPointerUInt(Ord(C))) ) ) )
    {$else} AnsiUpperCase(C)[1]
    {$endif};
@@ -1632,7 +1632,7 @@ end;
 function AnsiLowerCaseChar(C: char): char;
 begin
  Result :=
-   {$ifdef WIN32} Chr( TPointerUInt( Windows.CharLower(
+   {$ifdef MSWINDOWS} Chr( TPointerUInt( Windows.CharLower(
      Windows.LPSTR(TPointerUInt(Ord(C))) ) ) )
    {$else} AnsiLowerCase(C)[1]
    {$endif};

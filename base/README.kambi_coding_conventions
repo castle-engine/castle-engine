@@ -83,15 +83,13 @@ of documentation, see
 
 - Compilation symbols used:
 
-  Besides standard FPC, GPC and Delphi ones (like WIN32, UNIX, LINUX,
+  Besides standard FPC, GPC and Delphi ones (like MSWINDOWS, UNIX, LINUX,
   CPUI386, CPUX86_64 to differentiate between compilation platforms,
   FPC and __GPC__ to differentiate between compiler versions).
-
-  I don't use MSWINDOWS symbol, I use WIN32 symbol everywhere.
-  When I learn how to deal with 64-bit Windows some day,
-  and when I make sure that Delphi >= 7 and FPC >= 2.0.0
-  define it when needed, I may change this practice.
-  For now I stick to WIN32 symbol.
+  
+  Since 2007-10-12, I use MSWINDOWS symbol to designate both 32 bit and 64 bit
+  Windows. WIN32 symbol is only for 32 bit Windows.
+  FPC >= 2.2.0 defines MSWINDOWS as it should, so there's no problem.
 
   See also base/kambiconf.inc for some more handy symbols that I use,
   like DELPHI.

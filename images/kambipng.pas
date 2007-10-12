@@ -22,7 +22,7 @@
       LibPng file exists; useless anyway --- probably, they we're useful in
       older libpng versions))
     @item(
-      Work with win32 libpng version with stdcalls
+      Work with Windows libpng version with stdcalls
       (changed "cdecl" to "{$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif}"))
     @item(
       Changed all functions from declared as "external" to functions' pointers

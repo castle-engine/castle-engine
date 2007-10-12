@@ -1,6 +1,6 @@
 { Test some very platform-specific utilities in kambi_vrml_game_engine.
   Usually the mere purpose of these utilities is to hide some OS-specific
-  (UNIX-specific, Win32-specific) things from program.
+  (UNIX-specific, Windows-specific) things from program.
 
   Started to test porting to Unix/BaseUnit units (from old Libc unit). }
 
@@ -12,9 +12,9 @@ uses SysUtils, KambiUtils, EnumerateFiles, KambiFilesUtils,
 procedure TestChangeDir;
 const
   ExistingDir = {$ifdef UNIX} '/usr' {$endif}
-                {$ifdef WIN32} 'd:/mojepasy/units/images/' {$endif};
+                {$ifdef MSWINDOWS} 'd:/mojepasy/units/images/' {$endif};
   NotExistingDir = {$ifdef UNIX} '/non_existing_dir' {$endif}
-                   {$ifdef WIN32} 'd:/non_existing_dir' {$endif};
+                   {$ifdef MSWINDOWS} 'd:/non_existing_dir' {$endif};
 begin
  ChangeDir(ExistingDir);
  Writeln('Current dir is ', GetCurrentDir, ' (should be ', ExistingDir, ')');
@@ -52,8 +52,8 @@ begin
   on E: Exception do
   begin
    Writeln('ExeName not available:' +nl+ ExceptMessage(E));
-   { This is an error under Win32, where ExeName is guaranteed to be available }
-   {$ifdef WIN32} raise; {$endif}
+   { This is an error under Windows, where ExeName is guaranteed to be available }
+   {$ifdef MSWINDOWS} raise; {$endif}
   end;
  end;
 end;
@@ -108,7 +108,7 @@ begin
    nl,
 
    '---- Files/paths of program with ProgramName = ', Other_ProgramName,
-     ', ExeName (Win32 only) = ', Other_WindowsExeName, nl,
+     ', ExeName (Windows only) = ', Other_WindowsExeName, nl,
    nl,
    'UserConfigPath = ',
      UserConfigPath_Other(ExtractFilePath(Other_WindowsExeName)), nl,

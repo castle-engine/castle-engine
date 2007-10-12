@@ -119,7 +119,7 @@ protected
     Using this function kills some part of portability of GLWindow unit,
     as this function exists only when GLWindow is implemented on top
     of GTK, so you will have to always use GLWindow implemented on top GTK
-    on every OS, e.g. with Win32 version of your program you will have
+    on every OS, e.g. with Windows version of your program you will have
     to distribute GTK and GtkGLExt/GLArea for Windows.
     This is not really a problem, since GTK 2.x and GtkGLExt work
     excellent also under Windows (you know, GTK itself is a library
@@ -195,9 +195,9 @@ public
 {$ifndef GLWINDOW_GTK_2} {$I gtk_1_keysyms.inc} {$endif}
 {$I glwindow_gtk_menu.inc}
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
   {$ifdef GLWINDOW_GTK_1}
-    {$define GLWINDOW_GTK_1_WIN32}
+    {$define GLWINDOW_GTK_1_MSWINDOWS}
   {$endif}
 {$endif}
 
@@ -250,7 +250,7 @@ begin
   GDK_KEY_BracketRight: Result := K_RightBracket;
 
   (*
-    It seems that win32 gtk (at least GTK 1.3) uses other consts for
+    It seems that Windows gtk (at least GTK 1.3) uses other consts for
     numpad plus and minus.
 
     Note: I *cannot* convert here two GDK_xxx codes to one K_xxx
@@ -260,9 +260,9 @@ begin
     glwindow_private_modifiers_down.inc.
 
     For some time I had here this code:
-      {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_plus_key {$else} GDK_KEY_KP_Add {$endif}:
+      {$ifdef GLWINDOW_GTK_1_MSWINDOWS} GDK_KEY_plus_key {$else} GDK_KEY_KP_Add {$endif}:
          Result := K_Numpad_Plus;
-      {$ifdef GLWINDOW_GTK_1_WIN32} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
+      {$ifdef GLWINDOW_GTK_1_MSWINDOWS} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
          Result := K_Numpad_Minus;
     but that's a hack only for GTK 1 under Windows
     (and it collides with checking for K_Minus below),
@@ -469,8 +469,8 @@ SIGNAL_WINDOW_BEGIN
   begin
    Key := GdkKeysymToKey(Event^.KeyVal);
 
-   {$ifdef WIN32}
-   { It seems that GTK 1.3 for win32 cannot translate GDK_KEY_Escape and
+   {$ifdef MSWINDOWS}
+   { It seems that GTK 1.3 for Windows cannot translate GDK_KEY_Escape and
      GDK_KEY_Return to standard chars (#13 and #27). So I'm fixing it here. }
    if Key = K_Escape then
     CharKey := CharEscape else
@@ -889,7 +889,7 @@ begin
       {$else} DepthBufferBits
       {$endif},
 
-    { This is a workaround for gtkglext win32 bug,
+    { This is a workaround for gtkglext Windows bug,
       one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise
       gtkglext will request 32-bits sized color buffer (instead of just accepting
       any bit depth), that may not be available.

@@ -24,7 +24,7 @@ unit KambiDynLib;
 interface
 
 uses
-  {$ifdef WIN32} Windows, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}

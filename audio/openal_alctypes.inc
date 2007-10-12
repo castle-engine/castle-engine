@@ -83,7 +83,7 @@ const
   ALC_ALL_ATTRIBUTES = $306;
   {$endif}
 
-  {$ifdef WIN32}  
+  {$ifdef MSWINDOWS}  
   { Kambi: strange, but Windows (Creative) OpenAL implementation has different
     values for these consts. }
   ALC_MAJOR_VERSION = $1000;

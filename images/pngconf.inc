@@ -4,10 +4,10 @@
   determine calling convention of libpng funcs and callbacks.
 }
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 
-  { Under win32 define some PNG_Xxx symbol to determine with which dll
-    you want to link. }
+  { Under Windows define some PNG_Xxx symbol to determine with which dll
+    you want to link. TODO: fix for win64. }
   {$define PNG_GNUWIN32} { libpng distributed from gnuwin32.sourceforge.net }
   { $define PNG_CYGWIN}  { libpng distributed with Cygwin }
   { $define PNG_VB}      { libpng_vb.dll from http://net.thevbzone.com/d_DLL.htm }

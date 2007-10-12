@@ -43,13 +43,7 @@
   is the preferred symbol to mark Windows-only code
   (that is not necessarily tied only to 32-bit Windows).
   But older Delphi and FPC 1.0.x did not define this symbol,
-  that's why I'm not using MSWINDOWS in my sources.
-
-  However trick below allows me to use MSWINDOWS symbol
-  even with older FPC and Delphi versions.
-
-  Update: since FPC 2.0.0 release, actually I allow myself
-  to use MSWINDOWS freely. }
+  I fix this below. }
 {$ifdef WIN32} {$define MSWINDOWS} {$endif}
 
 { A hack to detect Kylix 1, that AFAIK does not define any VERxxx }
@@ -59,7 +53,7 @@
   and Delphi version.
 
   Note that Delphi 6 = Kylix 1. To differentiate between Delphi on Windows
-  and Kylix use WIN32 / LINUX symbols. }
+  and Kylix use MSWINDOWS / LINUX symbols. }
 {$ifdef VER80}  {$define DELPHI}                                                                                     {$endif}
 {$ifdef VER90}  {$define DELPHI}                                                                                     {$endif}
 {$ifdef VER93}  {$define DELPHI}                                                                                     {$endif}

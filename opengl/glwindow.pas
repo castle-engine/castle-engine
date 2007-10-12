@@ -248,7 +248,8 @@ unit GLWindow;
     Dialog windows implemented using GTK dialog windows.
 
     Implementations on top of GTK should work under any OS where GTK works.
-    Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Win32.
+    Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Windows.
+    GTK_2 is also tested on Mac OS X.
 
     GLWINDOW_GTK_1:
     Known problems of only GLWINDOW_GTK_1 (fixed in GTK_2):
@@ -285,7 +286,7 @@ unit GLWindow;
     Known problems:
     - TryVideoChange is not implemented, i.e. always returns false.
       I don't know how to cleanly implement it using GTK.
-    - Under Win32, window will be always resizeable by user, even if
+    - Under Windows, window will be always resizeable by user, even if
       you set ResizeAllowed <> raAllowed.
       This is masked in our unit (so your OnResize callback will not get
       to know such thing), so it's harmless for correctness of your programs,
@@ -360,7 +361,7 @@ unit GLWindow;
   {$ifndef GLWINDOW_GLUT}
    {$ifndef GLWINDOW_GTK_1}
     {$ifndef GLWINDOW_GTK_2}
-     {$ifdef WIN32}
+     {$ifdef MSWINDOWS}
        {$define GLWINDOW_WINAPI}
        { $define GLWINDOW_GTK_2}
        { $define GLWINDOW_GTK_1}
@@ -468,7 +469,7 @@ unit GLWindow;
      only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
      but more hacking is needed (hint: fix GTK 1 bindings in this regard).
      It's possible to do this for Windows, you have to use SetCursorPos
-     (see the real Win32 backend TGLWindow.SetMousePosition implementation).
+     (see the real Windows backend TGLWindow.SetMousePosition implementation).
 
   2. Screen resizing.
 
@@ -558,7 +559,7 @@ unit GLWindow;
       some lists of masks of files to initially display,
       e.g. open command of view3dscene should only display files
       *.wrl, *.3ds, *.obj, *.geo, *.iv), do it portably and also
-      for Win32, as Win32 dialog also allows such filters.
+      for Windows, as Windows dialog also allows such filters.
 
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
@@ -2630,7 +2631,7 @@ type
          ale nie przez krecenie sie w kolko robiac "puste" wykonania ProcessMessage
          (czyli powodujac zle busy-waiting) tylko przekazujac informacje do
          systemu ze "nasz proces czeka na event". Np. pod Xlib robimy
-         XNextEvent, pod win32 GetMessage. W rezultacie piszac petle
+         XNextEvent, pod Windows GetMessage. W rezultacie piszac petle
          while ProcessMessage(true) do foo(); NIE MOZESZ zakladac
          ze foo() jest wywolywane co chwila. Jezeli OnIdleGL = nil to
          pomiedzy kolejnymi wywolaniami foo() moze uplynac wiele czasu

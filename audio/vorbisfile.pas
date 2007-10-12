@@ -142,7 +142,7 @@ initialization
     {$endif}
     {$endif}
 
-    {$ifdef WIN32}
+    {$ifdef MSWINDOWS}
     TDynLib.Load('vorbisfile.dll', false);
     {$endif}
 

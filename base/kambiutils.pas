@@ -61,7 +61,7 @@
     @item(Simple wrappers for OS specific things, like
       for Libc or BaseUnix/Unix units under UNIX
       (see also README.use_libc) or WinAPI under Windows.
-      See win32/kambiutils_os_specific.inc and
+      See windows/kambiutils_os_specific.inc and
       unix/kambiutils_os_specific.inc files.)
 
     @item(Some others...)
@@ -140,7 +140,7 @@ unit KambiUtils;
 interface
 
 uses
-  {$ifdef WIN32}
+  {$ifdef MSWINDOWS}
     Windows, {$ifdef DELPHI} Messages, Types, ShellAPI, {$endif}
   {$endif}
   {$ifdef UNIX}

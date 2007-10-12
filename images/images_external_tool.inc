@@ -101,7 +101,7 @@ begin
       the path to windows/system32/). }
 
     ConvertExecutable := FileSearch(
-      {$ifdef WIN32} 'convert.exe' {$endif}
+      {$ifdef MSWINDOWS} 'convert.exe' {$endif}
       {$ifdef UNIX} 'convert' {$endif}
       , GetEnvironmentVariable('PATH'));
 

@@ -56,15 +56,14 @@
       Mesa and Mesa versions.)
   )
 
-  Poczatkowo ten modul byl dla win32, potem sciagnalem wersja ktora
-  (tylko w teorii) powinna tez dzialac pod Linuxem (czyli kylixem).
-  TA wersja modulu OpenGLh rzeczywiscie dziala zarowno pod Delphi,
-  FPC+win32, Kylixem i FPC+linux.
-  Pozniejsza notka - stracilem kompatybilnosc z Delphi bo zapisalem
-  sobie duzo rzeczy wygodniej uzywajac dodatkow z FPC (przede wszystkim
-  makr). A, w diabla z Delphi.
+  At the beginning this unit was only for Win32, later I downloaded version
+  that was (theoretically only..) compatible also for Kylix.
+  *This* version of OpenGLh works on all FPC platforms that are
+  supported by my engine [http://vrmlengine.sourceforge.net/] ---
+  various OSes and processors. But I lost compatibility with Delphi
+  at one point --- well, I don't care about Delphi anymore.
 
-  Uwaga - pod Win32 rozne rendering contexts moga implementowac rozne
+  Uwaga - pod Windows rozne rendering contexts moga implementowac rozne
   zbiory extenstions, o ile maja rozny pixelFormat (jest gwarantowane
   ze jezeli dwa rendering contexts powstaly z tego samego pixelFormat
   to maja te same rozszerzenia o tych samych adresach; patrz html
@@ -210,7 +209,7 @@ unit OpenGLh;
 {   - added more nVidia extensions }
 {---------------------------------------------------------------------------------------------------------------------- }
 
-{ Pod Win32 OLDER_WGL powoduje ze nie wlaczamy symbolu wglSwapMultipleBuffers
+{ Pod Windows OLDER_WGL powoduje ze nie wlaczamy symbolu wglSwapMultipleBuffers
   (ktorego nie ma np. w moim OpenGLu pod Windows 98 (NVidii,
   ale wgl chyba pochodzi z innej bibioteki a opengl32.dll tylko tu posredniczy ?)
 
@@ -227,7 +226,7 @@ unit OpenGLh;
   glGetHistogramParameterfv glMinmax glResetMinmax glGetMinmax
   glGetMinmaxParameteriv glGetMinmaxParameterfv
 }
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
   {$define OLDER_WGL}
   {$define NO_GL_12}
 {$endif}
@@ -247,12 +246,12 @@ unit OpenGLh;
     in Visual C++. But Borland's compilers (at least Delphi and
     C++Builder) and FPC don't mask FPU exceptions - by default, they convert
     them to normal C++/Pascal exceptions. So one should explicitly mask
-    FPU exceptions before using any OpenGL routine under Win32.
+    FPU exceptions before using any OpenGL routine under Windows.
 
     See also explanation in my bug report to FPC:
     [http://www.freepascal.org/mantis/view.php?id=5914]
     (note that it was written when I thought (incorrectly, see below)
-    that this is Win32-only issue).
+    that this is Windows-only issue).
 
   - Linux:
 
@@ -281,7 +280,7 @@ unit OpenGLh;
 interface
 
 uses
-  {$IFDEF WIN32}
+  {$IFDEF MSWINDOWS}
     Windows,
   {$ENDIF}
   {$IFDEF UNIX}
@@ -311,7 +310,7 @@ type
 
 const
   OpenGLDLL =
-    {$ifdef WIN32} 'opengl32.dll' {$endif}
+    {$ifdef MSWINDOWS} {TODO: fix for win64?} 'opengl32.dll' {$endif}
     {$ifdef UNIX}
       {$ifdef DARWIN}
         '/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib'
@@ -320,7 +319,7 @@ const
     {$endif};
 
   GluDLL =
-    {$ifdef WIN32} 'glu32.dll' {$endif}
+    {$ifdef MSWINDOWS} {TODO: fix for win64?} 'glu32.dll' {$endif}
     {$ifdef UNIX}
       {$ifdef DARWIN}
         '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib'
@@ -3297,7 +3296,7 @@ var
   gluEndPolygon: procedure(tess: PGLUtesselator); OPENGL_CALL
 
   { window support functions }
-  {$IFDEF Win32}
+  {$IFDEF MSWINDOWS}
 
 type
   PWGLSwap = ^TWGLSwap;
@@ -4061,7 +4060,7 @@ var
 procedure ReadImplementationProperties;
 
 { set to nil all extension functions or load all extension functions.
-  Loading requires rendering context under Win32 (see also my note at
+  Loading requires rendering context under Windows (see also my note at
   the beginning of this module - various RCs may have different extensions
   at different addresses !). }
 procedure ClearProcExtensions;
@@ -4443,7 +4442,7 @@ begin
  glVertexPointer := nil;
  glViewport := nil;
 
- {$IFDEF Win32}
+ {$IFDEF MSWINDOWS}
  wglGetProcAddress := nil;
  wglCopyContext := nil;
  wglCreateContext := nil;
@@ -4908,7 +4907,7 @@ begin
   ProcVarCast(glViewport) := GLLibrary.Symbol('glViewport');
 
   { window support routines }
-  {$IFDEF Win32}
+  {$IFDEF MSWINDOWS}
   ProcVarCast(wglGetProcAddress) := GLLibrary.Symbol('wglGetProcAddress');
   ProcVarCast(wglCopyContext) := GLLibrary.Symbol('wglCopyContext');
   ProcVarCast(wglCreateContext) := GLLibrary.Symbol('wglCreateContext');
@@ -5682,8 +5681,8 @@ procedure LoadProcExtensions;
 
   function LoadExtensionFunction(functionName: PChar): pointer;
   begin
-   {$ifdef WIN32} result := wglGetProcAddress(functionName);
-   {$else}        result := GLLibrary.Symbol(functionName);
+   {$ifdef MSWINDOWS} result := wglGetProcAddress(functionName);
+   {$else}            result := GLLibrary.Symbol(functionName);
    {$endif}
   end;
 

@@ -614,7 +614,7 @@ var
 
     @orderedList(
       @item(
-        Under Win32 when program is a GUI program then some (or all)
+        Under Windows when program is a GUI program then some (or all)
         of the variables below may be nil.)
 
       @item(
@@ -668,7 +668,7 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc {$else} BaseUnix, Unix {$endif}
   {$endif}
-  {$ifdef WIN32} Windows {$endif}
+  {$ifdef MSWINDOWS} Windows {$endif}
   , StrUtils, KambiFilesUtils;
 
 { TTextReader ---------------------------------------------------------------- }
@@ -1516,13 +1516,13 @@ procedure InitStdStreams;
   GetStdHandle(STD_INPUT_HANDLE). Same for other Std*Handle.
   However
   1. This would not allow me to write InitStdStream without any $ifdefs,
-     because Win32 would still require checking for 0 and INVALID_HANDLE_VALUE
+     because Windows would still require checking for 0 and INVALID_HANDLE_VALUE
   2. This is not documented, so I prefer to not depend on this.
      For example, maybe in the future StdInputHandle will be always left as 0
      when not IsConsole ? I want to exactly avoid this for my Std*Stream.
 }
 
-  {$ifdef WIN32}
+  {$ifdef MSWINDOWS}
   procedure InitStdStream(var Stream: TStream; nStdHandle: DWord);
   var
     Handle: THandle;
@@ -1537,7 +1537,7 @@ procedure InitStdStreams;
       Stream := THandleStream.Create(Handle) else
       Stream := nil;
   end;
-  {$endif WIN32}
+  {$endif MSWINDOWS}
 
   {$ifdef UNIX}
   procedure InitStdStream(var Stream: TStream; Handle: THandle);
@@ -1547,9 +1547,9 @@ procedure InitStdStreams;
   {$endif UNIX}
 
 begin
-  InitStdStream(StdInStream,  {$ifdef WIN32} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
-  InitStdStream(StdOutStream, {$ifdef WIN32} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
-  InitStdStream(StdErrStream, {$ifdef WIN32} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
+  InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
+  InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
+  InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
   if StdInStream <> nil then
     StdInReader := TTextReader.Create(StdInStream, false) else
     StdInReader := nil;

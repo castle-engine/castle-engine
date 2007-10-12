@@ -319,7 +319,7 @@ function GeneralPower(const Base, Exponent: Float): Float;
   FPC 1.9.x: it's implemented in Math unit with fully Delphi-compatible
   Default8087CW constant and Get/Set8087CW functions. I copy&pasted that
   implementation to this file below, so that my units under FPC 1.0.10 can
-  use those functions (it's especially required by OpenGL under Win32).
+  use those functions (it's especially required by OpenGL under Windows).
 
   Niepewne notki : o ile umiem zrozumiec kod Asemblera (a umiem
   bardzo slabo) procedury w RTL'u FPC sa ladnie napisane i

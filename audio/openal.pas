@@ -182,7 +182,7 @@ const
         'libopenal.so.0'
       {$endif}
     {$endif}
-    {$ifdef WIN32} 'OpenAL32.dll' {$endif};
+    {$ifdef MSWINDOWS} {TODO: fix for win64?} 'OpenAL32.dll' {$endif};
 
 { Reset OpenAL library.
 

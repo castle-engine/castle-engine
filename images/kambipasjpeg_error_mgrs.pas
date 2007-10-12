@@ -69,8 +69,8 @@ begin
 
 (*
  { show message using WinAPI or Writeln }
- {$ifdef WIN32} if not IsConsole then MessageBox(0,PChar(buffer),'jpeg message',MB_OK) else
- {$else}          Writeln(ErrOutput, buffer);
+ {$ifdef MSWINDOWS} if not IsConsole then MessageBox(0,PChar(buffer),'jpeg message',MB_OK) else
+ {$else}            Writeln(ErrOutput, buffer);
  {$endif}
 *)
 end;

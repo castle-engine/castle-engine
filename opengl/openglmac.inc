@@ -8,7 +8,7 @@
   {$define OpenGLh := gl, glu, glext}
 {$endif}
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
   {$define OPENGL_CALL := stdcall;}
   {$define OPENGL_CALLBACK_CALL := stdcall;}
   {$define OPENGL_STDCALL}

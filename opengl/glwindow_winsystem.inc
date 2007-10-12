@@ -23,7 +23,7 @@
 {$ifdef read_tglwindow_interface}
 private
   { program w Xlib powinien czekac na pierwsze zdarzenie Expose zanim
-    narysuje COKOLWIEK; podobnie Win32, dlatego redisplayPosted jest w
+    narysuje COKOLWIEK; podobnie Windows, dlatego redisplayPosted jest w
     Init inicjowane na false. }
   redisplayPosted: boolean;
   

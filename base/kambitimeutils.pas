@@ -26,7 +26,7 @@ unit KambiTimeUtils;
 interface
 
 uses
-  {$ifdef WIN32}
+  {$ifdef MSWINDOWS}
     Windows,
   {$endif}
   {$ifdef UNIX}
@@ -65,7 +65,7 @@ function MilisecTimesSubtract(t1, t2: TMilisecTime): TMilisecTime;
 
 { czas od uruchomienia systemu w milisekundach (przewija sie co 49 dni) }
 function GetTickCount: TMilisecTime;
- {$ifdef WIN32} stdcall; external KernelDLL name 'GetTickCount'; {$endif WIN32}
+ {$ifdef MSWINDOWS} stdcall; external KernelDLL name 'GetTickCount'; {$endif MSWINDOWS}
 
 const
   MinDateTime: TDateTime = MinDouble;
@@ -103,7 +103,7 @@ type
   { }
   TProcessTimerResult =
     {$ifdef UNIX} clock_t {$endif}
-    {$ifdef WIN32} DWord {$endif};
+    {$ifdef MSWINDOWS} DWord {$endif};
 
 const
   ProcessTimersPerSec
@@ -126,7 +126,7 @@ const
                 128 {$endif} {$endif}
       {$endif}
     {$endif}
-    {$ifdef WIN32} = 1000 { Using GetLastError } {$endif};
+    {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif};
 
 function ProcessTimerNow: TProcessTimerResult;
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
@@ -137,13 +137,13 @@ function ProcessTimerEnd: Double;
   @section(Timer) }
 { }
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 type
   TKamTimerResult = Int64;
   TKamTimerFrequency = Int64;
 
 function KamTimerFrequency: TKamTimerFrequency;
-{$endif WIN32}
+{$endif MSWINDOWS}
 
 {$ifdef UNIX}
 type
@@ -210,7 +210,7 @@ function MilisecTimesSubtract(t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1-t2 end;
 {$I norqcheckend.inc}
 
-{$ifndef WIN32}
+{$ifndef MSWINDOWS}
 
 {$I norqcheckbegin.inc}
 function GetTickCount: TMilisecTime;
@@ -249,7 +249,7 @@ begin
 end;
 {$I norqcheckend.inc}
 
-{$endif not WIN32}
+{$endif not MSWINDOWS}
 
 function DateTimeToAtStr(DateTime: TDateTime): string;
 begin
@@ -280,7 +280,7 @@ begin
 end;
 {$endif UNIX}
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 function ProcessTimerNow: TProcessTimerResult;
 begin
   Result := GetTickCount;
@@ -290,7 +290,7 @@ function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
   Result := TimeTickDiff(b, a);
 end;
-{$endif WIN32}
+{$endif MSWINDOWS}
 
 var
   LastProcessTimerBegin: TProcessTimerResult;
@@ -308,7 +308,7 @@ end;
 
 { timer ---------------------------------------------------------- }
 
-{$ifdef WIN32}
+{$ifdef MSWINDOWS}
 type
   TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount);
 
@@ -343,7 +343,7 @@ begin
     QueryPerformanceCounter(Result) else
     Result := GetTickCount;
 end;
-{$endif WIN32}
+{$endif MSWINDOWS}
 
 {$ifdef UNIX}
 function KamTimer: TKamTimerResult;

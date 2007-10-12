@@ -62,7 +62,7 @@ function ReadlnChoice(Prompt: string; const Choices: array of string;
 { Writing ---------------------------------------------------------------- }
 
 { XxxWrite: if we are under Windows and not IsConsole then
-  uses XxxBox (from win32/kambiutils_os_specific.inc).
+  uses XxxBox (from windows/kambiutils_os_specific.inc).
   Else (IsConsole or we are not under Windows):
   - ErrorWrite and WarningWrite do Writeln(ErrOutput, S)
   - InfoWrite does Writeln(S)
@@ -85,7 +85,7 @@ procedure ErrorWrite(const s: string; const args: array of const); overload;
 procedure WarningWrite(const s: string; const args: array of const); overload;
 procedure InfoWrite(const s: string; const args: array of const); overload;
 
-{ Jezeli nie jest Win32 lub IsConsole to po prostu wszystkie elememnty Messages
+{ Jezeli nie jest Windows lub IsConsole to po prostu wszystkie elememnty Messages
   zostana po kolei wypisane na stdout przez Writeln (a wiec kazdy Messages[]
   bedzie dodatkowo zakonczony newline'm).
 
@@ -166,19 +166,19 @@ end;
 
 procedure ErrorWrite(const s: string);
 begin
- {$ifdef WIN32} if not IsConsole then ErrorBox(s) else {$endif}
+ {$ifdef MSWINDOWS} if not IsConsole then ErrorBox(s) else {$endif}
  Writeln(ErrOutput, s);
 end;
 
 procedure WarningWrite(const s: string);
 begin
- {$ifdef WIN32} if not IsConsole then WarningBox(s) else {$endif}
+ {$ifdef MSWINDOWS} if not IsConsole then WarningBox(s) else {$endif}
  Writeln(ErrOutput, s);
 end;
 
 procedure InfoWrite(const s: string);
 begin
- {$ifdef WIN32} if not IsConsole then InfoBox(s) else {$endif}
+ {$ifdef MSWINDOWS} if not IsConsole then InfoBox(s) else {$endif}
  Writeln(s);
 end;
 
@@ -192,7 +192,7 @@ begin InfoWrite(format(s, args)) end;
 procedure InfoWriteParts(const TitleFormat: string; const Messages: array of string);
 var i: Integer;
 begin
- {$ifdef WIN32}
+ {$ifdef MSWINDOWS}
  if not IsConsole then
  begin
   for i := 0 to High(Messages) do
