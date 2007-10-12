@@ -31,8 +31,12 @@ TARGET_OS=unix
 
 VRMLENGINE_UNITS_PATH=../../
 
-# TODO: Should be based on `uname } grep -i -e cygwin`
-KAMBI_IS_CYGWIN=''
+# Autodetect if we're under Cygwin
+if uname | grep --quiet -i cygwin; then
+  KAMBI_IS_CYGWIN='t'
+else
+  KAMBI_IS_CYGWIN=''
+fi
 
 PASDOC_FORMAT="$1"
 shift 1
@@ -144,7 +148,7 @@ pasdoc \
   --introduction="$TMP_INTRODUCTION_FILENAME" \
   --auto-link \
   --auto-link-exclude=doc/pasdoc/auto_link_exclude.txt
-  
+
   #doc/pasdoc/auto_link_exclude.txt
 
 # --verbosity=3

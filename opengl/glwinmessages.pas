@@ -1,124 +1,113 @@
 {
   Copyright 2001-2007 Michalis Kamburelis.
 
-  This file is part of "Kambi's OpenGL Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's OpenGL Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's OpenGL Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's OpenGL Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
 (*
-  @abstract(This unit implements functions similar to "message boxes"
-  known from many GUI toolkits but drawn in OpenGL
-  inside @link(TGLWindow) window.)
+  @abstract(Various dialog boxes (asking user for confirmation, question,
+  simple text input etc.) drawn by OpenGL inside @link(TGLWindow) window.)
 
-  Idea implementacji jest aby na czas wywolania MessageXxx przechwycic
-  wszystkie zarejestrowane dla okna callbacki i podmienic je na wlasne.
-  Wlasne callbacki beda wyswietlac odpowiedni tekst i czekac
-  na wcisniecie entera, kiedy to nastapi - oryginalne callbacki
-  zostana przywrocone i procedura MessageOk powroci. Proste i skuteczne.
-  W tym momencie takie chwilowe podmienianie stanu okienka GLWindow
-  zaimplementowane jest juz w osobnym module GLWinModes z ktorego tu korzystamy.
-  Dokladniej, robimy tutaj
-  @longcode(#
-    ModeGLEnter(glwin, ...)
-    SetStdNoCloseGLWindowState(
-      { ... register some private callbacks in this unit ... })
-    { ... wait for user's answer ... }
-    ModeGLExit
-  #)
-  So you can be sure that e.g. no glwin callbacks that you registered in your
-  own programs/units will be called while MessageXxx works.
+  Features:
 
-  Jest tu tez procedura MessageInput ktora na podobnej zasadzie
-  wykonuje cos jak InputBox z VCLa Delphi : prosi usera o wprowadzenie
-  stringa.
-
-  Wazna uwaga : jezeli uzywasz callbackow glwm.OnIdle / OnTimer
-  lub z innych miejsc (np. z callbackow innych okienek) jakos sie
-  odwolujesz do wlasciwosci okienka dla ktorego wywolujesz MessageXxx -
-  - no coz, to najlepiej przestan to robic. Idea procedur MessageXxx
-  jest aby nie wypuscic zadnego kodu spoza tego modulu w czasie dzialania
-  MessageXxx ktory moglby jakos odwolac sie do okienka glwin. Jestesmy
-  w stanie w tym celu podmienic callbacki glwin, ale nie chcemy podmieniac
-  callbackow obiektu glwm ani innych okien.
-
-  Jest gwarantowane ze w czasie wyswietania komunikatow Message*
-  nie bedzie moglo zajsc Close ani Init, chyba ze zdefiniowales
-  wlasna podklase TGLWindow i tam umozliwiles Init lub Close.
-  W takim wypadku musisz to sam wylaczyc. Przypadkiem gdy glwin is TGLWindowDemo
-  zajmujemy sie juz w tym module, nie ma problemu.
-  Jest tez gwarantowane ze CloseQuery w czasie wyswietania komunikatow Message*
-  bedzie postaci "begin end;" a wiec w szczegolnosci nie tylko nie zamierzam
-  pozwolic userowi na wyjscie z programu ale tez nie wyswietlam zadnego
-  komunikatu w odpowiedzi na CloseQuery. Dzieki temu procedury Message()
-  sa bezpieczne do uzycia w OnCloseQUery i zazwyczaj zapisanie OnCloseQuery
-  jako cos w rodzaju "if MessageYesNo('Are you sure ?') then glwin.Close"
-  jest poprawne i skuteczne, a przy tym proste.
-
-  Ladne rzeczy zrobione :
-  - user moze resizowac okienko gdy jest  wyswietlane message
-    (o ile ResizeAllowed = raAllowed, oczywiscie) i stringi beda automatycznie
-    przelamanane na nowo, takze stringi Additional i ClosingInfo beda lamane !
-  - z boku wyswietli sie ladny ScrollBar jezeli stringow bedzie za duzo zeby
-    zmiescily sie wszystkie (jesli okienko bedzie za niskie),
-    bedzie mozna go przesuwac strzalkami gora/dol (i to plynnie, dzieki OdIdle
-    jako wlasciwosci TGLWindow !), ctrl + gora / dol, page up/down, home/end,
-    przeciagajac mysza lub klikajac  pod / nad ScrollBariem.
-  - mozna skonfigurowac wyswietlanie okienka zmiennymi messageXxx ponizej,
-    mozna np. zrobic sobie stipple aby okienko bylo czesciowo przeswitujace
-  - sa rozne fajne wersje MessageXxx. Jest zwykle OK, jest input string,
-    jest input char no i jest input boolean czyli Tak/Nie.
-
-  Note that this units is only able to work when GLWindow unit
-  implements glwm.ProcessMessage routine. For now this means
-  that GLWindow unit must not work on top of glut (GLWINDOW_GLUT
-  must not be defined while compiling GLWindow).
-
-  Comments for all MessageXxx functions:
-
-  In the text given as parameter (as "const s: string"):
   @unorderedList(
-    @item(
-      New line characters (specified e.g. as @link(KambiUtils.nl))
-      inside string will be properly
-      handled, i.e. they will force new line when displaying.
+    @item(MessageInputXxx ask user to enter some text.)
 
-      Remember that if text consists many lines, it's better to pass
-      it as "array of string" (instead of one string with newlines inside).
-      (Note that when passing "array of string" it's undefined whether
-      newline characters inside strings will be properly handled !).)
+    @item(The dialog boxes have vertical scroll bar, displayed when needed.
+      So don't worry about displaying long text. Scroll bar can be operated
+      with keys (up/down, ctrl+up/down, page up/down, home/end) and mouse
+      (drag the scroll bar, or click below/above it).)
 
-    @item(
-      When displaying text we will always break long lines that don't
-      fit in the window. We will try to break text only at spaces
-      and tab characters. This will work correctly for all fonts
-      (see @link(TGLWinMessagesTheme.Font)), even if font is not
-      fixed-character-width font.
+    @item(Long text lines are automatically broken, so don't worry about
+      displaying text with long lines.
 
-      So don't worry about breaking long text lines,
-      this unit will handle it.)
+      We will try to break text only at whitespace. Note that our "line breaking"
+      works correctly for all fonts (see @link(TGLWinMessagesTheme.Font)),
+      even if font is not fixed-character-width font.
 
-    @item(
-      If you will pass here text as TStringList object, you can
-      be sure that contents of this object will *not* be modified
-      in any way.)
-  )
+      If you pass a text as a single string parameter, then our "line breaking"
+      works  correctly even for text that already contains newline characters
+      (they are correctly recognized as forcing line break).
+
+      If you pass a text as an "array of string" or TStringList, it's expected
+      that strings inside don't contain newline characters anymore. It's undefined
+      what will happen (i.e. whether they will be correctly broken) otherwise.
+      Of course, TStringList contents used to pass text to MessageXxx will never
+      be modified in any way.)
+
+    @item(User is allowed to resize the window while MessageXxx works.
+      (As long as TGLWindow.ResizeAllowed = raAllowed, of course.)
+      Long lines are automatically broken taking into account current window
+      width.)
+
+    @item(You can configure dialog boxes look using GLWinMessagesTheme variable.
+      For example, you can make the dialog box background partially transparent
+      (by real transparency or by OpenGL stipple pattern).))
 
   Call MessageXxx functions only when glwin.Closed = false.
   Note that MessageXxx will do glwin.MakeCurrent (probably more than once).
   Calling MessageXxx requires one free place on OpenGL attrib stack.
+
+  Notes about implementation:
+
+  @unorderedList(
+    @item(
+      It's implemented using GLWinModes approach. Which means that when you call
+      some MessageXxx procedure, it temporarily switches all TGLWindow callbacks
+      (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
+      So you can be sure that e.g. no glwin callbacks that you registered in your
+      own programs/units will be called while MessageXxx works.
+      When message box ends (e.g. for simple MessageOk, this happens when user
+      will accept it by Enter key or clicking OK), original callbacks are
+      restored.
+
+      This way you can call MessageXxx procedures in virtually any place of your
+      program, and things will magically work --- inside MessageXxx we wait until
+      user answers the dialog box.
+
+      This also means that this units is only able to work when GLWindow unit
+      implements Glwm.ProcessMessage routine. For now this means
+      that GLWindow unit must not work on top of glut (GLWINDOW_GLUT
+      must not be defined while compiling GLWindow), other GLWindow implementations
+      are OK.)
+
+    @item(
+      Be careful if you use Glwm callbacks, OnIdle / OnTimer.
+      They are tied to GL window manager, Glwn, not to any particular window,
+      and so they continue to work even while we're inside MessageXxx procedure.
+
+      While this can be useful, you should be careful when implementing these
+      Glwm callbacks. When they access some TGLWindow instance, it may be currently
+      inside MessageXxx call.)
+
+    @item(
+      The whole MessageXxx is supposed to start and end on an open TGLWindow
+      instance, so no Init or Close methods of TGLWindow will be called during
+      MessageXxx.
+
+      OnCloseQuery during MessageXxx calls prevents user from exiting the program,
+      actually OnCloseQuery callback is simple no-op. Which means, among other things,
+      that you can safely use MessageXxx inside your own OnCloseQuery, for example
+      you can implement you OnCloseQuery like
+      @longCode(#
+  if MessageYesNo('Are you sure ?') then
+    Glwin.Close;
+#))
+  )
 *)
 
 unit GLWinMessages;
@@ -142,46 +131,70 @@ type
     @link(GLWinMessages) unit. }
   TTextAlign = (taLeft, taMiddle, taRight);
 
+{ Ask user for simple confirmation. In other words, this is the standard
+  and simplest "OK" dialog box.
+
+  @groupBegin }
 procedure MessageOK(glwin: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle); overload;
 procedure MessageOK(glwin: TGLWindow;  const SArray: array of string;
   textalign: TTextAlign = taMiddle); overload;
 procedure MessageOK(glwin: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign = taMiddle); overload;
+{ @groupEnd }
 
+{ Ask user to input a string.
+  User must give an answer (there is no "Cancel" button) --- see
+  MessageInputQuery if you want "Cancel" button.
+  @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
+
+  @groupBegin }
 function MessageInput(glwin: TGLWindow; const s: string;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
-  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): string; overload;
 function MessageInput(glwin: TGLWindow; textlist: TStringList;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
-  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): string; overload;
+{ @groupEnd }
 
-{ MessageInputQuery pozwala wyjsc userowi przez escape, w przeciwienstwie
-  do MessageInput. MessageInputQuery zwraca true i ustawia odpowiednio wartosc answer
-  jesli user wyszedl przez Enter, czyli akceptujac to co wpisal.
-  MessageInputQuery nie ma parametru answerDefault
-  ktory ma MessageInput - w przypadku MessageInputQuery poczatkowa wartosc
-  zmiennej answer spelnia ta role. }
+{ Ask user to input a string, or cancel.
+  Returns @true and sets Answer if user accepted some text.
+  Note that initial Answer value is the answer proposed to the user.
+  @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
+
+  @groupBegin }
 function MessageInputQuery(glwin: TGLWindow; const s: string;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
-  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
 function MessageInputQuery(glwin: TGLWindow; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
-  answerMaxLen: integer = 0; { 0 oznacza ze nie ma maxLen }
+  answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
+{ @groupEnd }
 
+{ Ask user to input a single character from a given set.
+  This is good when user has a small, finite number of answers for some question,
+  and each answer can be assigned some key. For example, MessageYesNo is
+  built on top of this procedure: keys "y" and "n" are allowed characters that
+  user can input.
+
+  @param(ClosingInfo This is a text to indicate to user what keys can be pressed
+    and what they mean. ClosingInfo is displayed below basic Text of the
+    message, and in a different color. If may be '' if you don't want this.)
+
+  @groupBegin }
 function MessageChar(glwin: TGLWindow; const s: string;
   const AllowedChars: TSetOfChars;
-  const ClosingInfo: string; { = '' oznacza ze nie ma (nie wypisywac) closing info }
+  const ClosingInfo: string;
   textalign: TTextAlign = taMiddle): char; overload;
 function MessageChar(glwin: TGLWindow;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
@@ -191,11 +204,12 @@ function MessageChar(glwin: TGLWindow;  textlist: TStringList;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle): char; overload;
+{ @groupEnd }
 
-{ MessageKey displays message dialog, with text
-  taken from S (or SArray or TextList, depending on overloaded version
-  used) and waits for user to press any key (that is expressed
-  as Keys.TKey value). Never returns K_None.
+{ Ask user to press any key, return this key as Keys.TKey.
+
+  Never returns K_None (which means that keys that cannot be interpreted
+  as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
 function MessageKey(Glwin: TGLWindow; const S: string;
@@ -208,18 +222,14 @@ function MessageKey(Glwin: TGLWindow; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 { @groupEnd }
 
-{ MessageKeyMouse displays message dialog, with text
-  taken from S (or SArray or TextList, depending on overloaded version
-  used) and waits for user to press any key (that is expressed
-  as Keys.TKey value) or a mouse button.
+{ Ask user to press any key or mouse button, return that key (as Keys.TKey)
+  or mouse button. The natural use for this is to allow user to configure
+  keybindings of your program, like for MatrixNavigator.TInputShortcut.
 
   If user pressed a key, returns MouseEvent = @false and appropriate Key
   (it's for sure <> K_None).
-  if user pressed a mouse button, returns MouseEvent = @true and
+  If user pressed a mouse button, returns MouseEvent = @true and
   appropriate MouseButton.
-
-  The primary use of this is to get user key/mouse shotrtcut
-  for MatrixNavigator.TInputShortcut.
 
   @groupBegin }
 procedure MessageKeyMouse(Glwin: TGLWindow; const S: string;
@@ -240,13 +250,17 @@ function MessageYesNo(glwin: TGLWindow;  const SArray: array of string;
 function MessageYesNo(glwin: TGLWindow;  textlist: TStringList;
   textalign: TTextAlign = taMiddle): boolean; overload;
 
-{ MessageInputCardinal : taki maly skrot do MessageInput z answerMinLength = 1
-  i AllowedChars = ['0'..'9']. Taka konfiguracja wymusza na userze wprowadzenie
-  poprawnej liczby naturalnej. MessageInputCardinal zwraca StrToInt z odpowiedzi
-  MessageInput (i, o ile czegos nie przeoczylem, to uzyskana odpowiedz
-  musi byc poprawnym Cardinalem wiec nie ma szans na wyjatek EConvertError).
-  Jak ponizej widac, AnswerDefault mozna podac jako Cardinal ale mozna
-  tez jako string (to drugie ma zastosowanie np. gdy chcesz by AnswerDefault = ''). }
+{ Ask user to input an unsigned integer.
+
+  This is actually a shortcut for simple MessageInput with answerMinLength = 1
+  and AllowedChars = ['0'..'9'], since this guarantees input of some unsigned
+  integer number.
+
+  Note that AnswerDefault below may be given as Cardinal or as a string.
+  The latter is useful if you want the default answer to be '', i.e. empty string
+  --- no default answer.
+
+  @groupBegin }
 function MessageInputCardinal(glwin: TGLWindow; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal; overload;
 function MessageInputCardinal(glwin: TGLWindow; const s: string;
@@ -254,8 +268,9 @@ function MessageInputCardinal(glwin: TGLWindow; const s: string;
 
 function MessageInputQueryCardinal(glwin: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
+{ @groupEnd }
 
-{ User must input a value in hexadecimal.
+{ Ask user to input a value in hexadecimal.
   Give MaxWidth = 0 to say that there is no maximum width. }
 function MessageInputQueryCardinalHex(glwin: TGLWindow; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
@@ -280,7 +295,7 @@ function MessageInputQueryVector4Single(
 type
   TGLWinMessagesTheme = record
     { Color of the inside area in the message rectangle
-      (or of the stipple, if it's <> nil).
+      (or of the stipple, if it's <> @nil).
       If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
     RectColor: TVector4f;
 
@@ -302,19 +317,18 @@ type
   end;
 
 const
-  { TODO: tymczasowa wada starych wersji FPC uniemozliwia mi tu uzywanie
-    ladnych nazw dla kolorow }
   GLWinMessagesTheme_Default: TGLWinMessagesTheme =
-  ( RectColor: (0, 0, 0, 1);               { = Black3f }
-    RectBorderCol: (1, 1, 0.33);       { = Yellow3f }
-    ScrollBarCol: (0.5, 0.5, 0.5);    { = Gray3f }
-    ClosingInfoCol: (1, 1, 0.33);      { = Yellow3f }
-    AdditionalStrCol: (0.33, 1, 1);    { = LightCyan3f }
-    TextCol: (1, 1, 1);                { = White3f }
+  ( RectColor: (0, 0, 0, 1);           { = Black3Single }
+    RectBorderCol: (1, 1, 0.33);       { = Yellow3Single }
+    ScrollBarCol: (0.5, 0.5, 0.5);     { = Gray3Single }
+    ClosingInfoCol: (1, 1, 0.33);      { = Yellow3Single }
+    AdditionalStrCol: (0.33, 1, 1);    { = LightCyan3Single }
+    TextCol: (1, 1, 1);                { = White3Single }
     RectStipple: nil;
     Font: nil;
   );
 
+  { }
   GLWinMessagesTheme_TypicalGUI: TGLWinMessagesTheme =
   ( RectColor: (0.75, 0.75, 0.66, 1);
     RectBorderCol: (0.87, 0.87, 0.81);
@@ -330,16 +344,11 @@ var
   { The way MessageXxx procedures in this unit are displayed.
     By default it is equal to GLWinMessagesTheme_Default.
 
-    Polish:
-    wszystkie procedury w tym module sa re-entrant (bezpieczne do rekurencyjnego
-    wywolywania i w watkach) dopoki nie modyfikujesz ponizszej zmiennej.
-    Jezeli robisz watki - upewnij sie ze nie zmieniasz wartosci ponizej
-    dopoki jakas procedura dziala (zaden kod z tego unitu oprocz
-    inicjujacego nie zmienia tych zmiennych). Co do wywolan
-    rekurencyjnych (ktore gdzieniegdzie sobie tutaj wewnetrznie robie) albo
-    kodu rzeczy glwm.OnIdle (ktore beda wywolywane gdy MessageXxx bedzie realizowac
-    swoja petle komunikatow) to podobnie : nigdy nie zmieniaj tej zmiennej
-    dopoki jakas (jakakolwiek !) MessageXxx dziala. }
+    Note that all procedures in this unit are re-entrant (safe for recursive
+    calls, and in threads), unless you modify this variable. When you modify
+    this from one thread, be sure that you don't currently use it in some
+    MessageXxx (in other thread, or maybe you're in Glwm.OnIdle or such that
+    is called while other window is in MessageXxx). }
   GLWinMessagesTheme: TGLWinMessagesTheme;
 
 type

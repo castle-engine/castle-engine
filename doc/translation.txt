@@ -117,7 +117,7 @@ D   glw_demo.pas
 -   glwindow.pas
 D   glwindowrecentmenu.pas
 -   glwininputs.pas
--   glwinmessages.pas
+D   glwinmessages.pas
 -   glwinmodes.pas
 D   glw_navigated.pas
 D   glw_win.pas
