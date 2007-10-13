@@ -44,10 +44,11 @@
     usually comfortable to set there only initial camera node),
     and put all geometry inside shadow caster. This way everything
     will cast shadows on everything --- the most realistic way.
-    shadow_volume_test_cages.sh tried to demonstrate this on "The Castle"
-    level, but it's not really done yet (because cages level is not
+    shadow_volume_test_fountain.sh demonstrates this on "The Castle"
+    level. (It's not completely OK yet, because level is not
     a correct manifold, so it's really slow to render
-    and the lack of depth-fail approach is very noticeable there).
+    and the lack of depth-fail approach is very noticeable there;
+    but it works).
 
   3. we also need separate VRML file with exactly one light definition.
     This will be the light used to cast shadows (it may be directional
@@ -464,9 +465,9 @@ begin
         ShadowsImplementation := TShadowsImplementation(MenuItem.IntData);
         Glwin.PostRedisplay;
       end;
-    10:
+    10, 11:
       begin
-        Writeln(MakeVRMLCameraStr(1,
+        Writeln(MakeVRMLCameraStr(MenuItem.IntData - 9,
           Glw.NavWalker.CameraPos,
           Glw.NavWalker.CameraDir,
           Glw.NavWalker.CameraUp,
@@ -540,7 +541,8 @@ begin
     M.Append(TMenuItem.Create('_Save screen ...', 120, K_F5));
     Result.Append(M);
   M := TMenu.Create('_Console');
-    M.Append(TMenuItem.Create('Print current _camera', 10));
+    M.Append(TMenuItem.Create('Print current _camera (for VRML 1.0)', 10));
+    M.Append(TMenuItem.Create('Print current _camera (for VRML 2.0)', 11));
     M.Append(TMenuItem.Create('Print shadow caster _transformation', 20));
     Result.Append(M);
 end;

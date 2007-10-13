@@ -1,6 +1,0 @@
-#VRML V1.0 ascii
-
-PointLight {
-  intensity 1
-  location 0 0 0
-}
