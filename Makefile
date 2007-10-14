@@ -18,7 +18,8 @@
 #     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,
 #     Lazarus trash (*.compiled),
 #     binaries of example programs,
-#     also FPC compiled trash in packages/*/lib/
+#     also FPC compiled trash in packages/*/lib/,
+#     and finally pasdoc generated documentation in doc/pasdoc/
 #
 # Not-so-commonly-useful targets:
 #
@@ -240,6 +241,7 @@ clean: cleanexamples
 	  packages/windows/lib/ packages/windows/kambi_units.pas \
 	  packages/components/lib/ packages/components/kambi_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
+	$(MAKE) -C doc/pasdoc/ clean
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \

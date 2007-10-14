@@ -102,6 +102,11 @@ procedure RenderSilhouetteEdges(
   const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
+{ Render all Scene.BorderEdges as lines. }
+procedure RenderBorderEdges(
+  Scene: TVRMLFlatSceneGL;
+  const Transform: TMatrix4Single);
+
 {$undef read_interface}
 
 implementation
@@ -334,6 +339,7 @@ var
   TrianglesPlaneSide: TDynBooleanArray;
   Edges: TDynManifoldEdgeArray;
 begin
+  glColor4f(1, 1, 0, 0.3);
   glBegin(GL_LINES);
     Triangles := Scene.TrianglesList(false);
     Edges := Scene.ManifoldEdges;
@@ -363,6 +369,49 @@ begin
       end;
 
     finally FreeAndNil(TrianglesPlaneSide) end;
+  glEnd;
+end;
+
+procedure RenderBorderEdges(
+  Scene: TVRMLFlatSceneGL;
+  const Transform: TMatrix4Single);
+var
+  Triangles: TDynTriangle3SingleArray;
+  EdgePtr: PBorderEdge;
+
+  procedure RenderEdge;
+  var
+    V0, V1: TVector3Single;
+    EdgeV0, EdgeV1: PVector3Single;
+    TrianglePtr: PTriangle3Single;
+  begin
+    TrianglePtr := Triangles.Pointers[EdgePtr^.TriangleIndex];
+    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
+    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+
+    V0 := MultMatrixPoint(Transform, EdgeV0^);
+    V1 := MultMatrixPoint(Transform, EdgeV1^);
+
+    glVertexv(V0);
+    glVertexv(V1);
+  end;
+
+var
+  I: Integer;
+  Edges: TDynBorderEdgeArray;
+begin
+  glColor4f(0, 0, 1, 0.3);
+  glBegin(GL_LINES);
+    Triangles := Scene.TrianglesList(false);
+    Edges := Scene.BorderEdges;
+
+    { for each edge, render it }
+    EdgePtr := Edges.Pointers[0];
+    for I := 0 to Edges.Count - 1 do
+    begin
+      RenderEdge;
+      Inc(EdgePtr);
+    end;
   glEnd;
 end;
 

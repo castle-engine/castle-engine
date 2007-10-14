@@ -243,11 +243,11 @@ type
       If ProgressStep then it will additionally call Progress.Step after
       preparing each scene (it will call it ScenesCount times).
 
-      If prManifoldEdges is includes, then actually a special memory
+      If prManifoldAndBorderEdges is included, then actually a special memory
       (and prepare time) optimization will be used: only the first scene will
-      have actually prepared prManifoldEdges. The other scenes will
-      just share the same ManifoldEdges instance, by
-      TVRMLFlatScene.ShareManifoldEdges method. }
+      have actually prepared prManifoldAndBorderEdges. The other scenes will
+      just share the same ManifoldEdges and BorderEdges instances, by
+      TVRMLFlatScene.ShareManifoldAndBorderEdges method. }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions;
@@ -363,10 +363,18 @@ type
       for all scenes within this animation. }
     function ManifoldEdges: TDynManifoldEdgeArray;
 
-    { Calls ShareManifoldEdges(Value) on all scenes within this
-      animation. This is useful if you already have ManifoldEdges,
-      and you somewhat know that it's good also for this scene. }
-    procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+    { This simply returns FirstScene.BorderEdges.
+      Like ManifoldEdges: all scenes in the animation must have exactly the same
+      structure, we know that this BorderEdges is actually good
+      for all scenes within this animation. }
+    function BorderEdges: TDynBorderEdgeArray;
+
+    { Calls ShareManifoldAndBoderEdges on all scenes within this
+      animation. This is useful if you already have ManifoldEdges and BorderEdges,
+      and you somehow know that it's good also for this scene. }
+    procedure ShareManifoldAndBorderEdges(
+      ManifoldShared: TDynManifoldEdgeArray;
+      BorderShared: TDynBorderEdgeArray);
 
     { The sum of bounding boxes of all animation frames.
 
@@ -1051,15 +1059,16 @@ var
 begin
   for I := 0 to FScenes.High do
   begin
-    { For I <> 0, we don't want to pass prManifoldEdges to scenes. }
+    { For I <> 0, we don't want to pass prManifoldAndBorderEdges to scenes. }
     SceneOptions := Options;
     if I <> 0 then
-      Exclude(SceneOptions, prManifoldEdges);
+      Exclude(SceneOptions, prManifoldAndBorderEdges);
 
     FScenes[I].PrepareRender(TransparentGroups, SceneOptions);
 
-    if (prManifoldEdges in Options) and (I <> 0) then
-      FScenes[I].ShareManifoldEdges(FScenes[0].ManifoldEdges);
+    if (prManifoldAndBorderEdges in Options) and (I <> 0) then
+      FScenes[I].ShareManifoldAndBorderEdges(
+        FScenes[0].ManifoldEdges, FScenes[0].BorderEdges);
 
     if ProgressStep then
       Progress.Step;
@@ -1168,12 +1177,19 @@ begin
   Result := FirstScene.ManifoldEdges;
 end;
 
-procedure TVRMLGLAnimation.ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+function TVRMLGLAnimation.BorderEdges: TDynBorderEdgeArray;
+begin
+  Result := FirstScene.BorderEdges;
+end;
+
+procedure TVRMLGLAnimation.ShareManifoldAndBorderEdges(
+  ManifoldShared: TDynManifoldEdgeArray;
+  BorderShared: TDynBorderEdgeArray);
 var
   I: Integer;
 begin
   for I := 0 to FScenes.High do
-    FScenes[I].ShareManifoldEdges(Value);
+    FScenes[I].ShareManifoldAndBorderEdges(ManifoldShared, BorderShared);
 end;
 
 function TVRMLGLAnimation.BoundingBoxSum: TBox3d;

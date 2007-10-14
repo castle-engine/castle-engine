@@ -36,19 +36,17 @@
   2. shadow caster that casts shadows (on itself and on the scene).
     Ideally, shadow caster should be composed from a number of closed
     manifold parts to make rendering fast (see documentation of
-    TVRMLFlatSceneGL.RenderShadowQuads for description of two different
-    shadow quads drawing algorithms). When program starts, it tells you
-    whether shadow caster was detected to be a closed manifold.
+    TVRMLFlatSceneGL.RenderShadowQuads for description of silhouette optimization
+    that requires edges to be manifold). When program starts, it tells you
+    how many edges in shadow caster were detected to be manifold --- ideally,
+    all edges are manifold.
 
     If you want, you can leave the static scene empty (well, it's
     usually comfortable to set there only initial camera node),
     and put all geometry inside shadow caster. This way everything
     will cast shadows on everything --- the most realistic way.
     shadow_volume_test_fountain.sh demonstrates this on "The Castle"
-    level. (It's not completely OK yet, because level is not
-    a correct manifold, so it's really slow to render
-    and the lack of depth-fail approach is very noticeable there;
-    but it works).
+    level.
 
   3. we also need separate VRML file with exactly one light definition.
     This will be the light used to cast shadows (it may be directional
@@ -139,8 +137,10 @@ var
   SceneBoundingBox: TBox3d;
 
   ShowShadowQuads: boolean = false;
-  IsRenderSilhouetteEdges: boolean = false;
+  IsRenderEdgesForShadows: boolean = false;
   IsRenderStatus: boolean = true;
+  IsRenderShadowCaster: boolean = true;
+  AllowSilhouetteOptimization: boolean = true;
 
   ShadowsImplementation: TShadowsImplementation = siStencilOpSeparate;
   ShadowsImplementationRadioGroup: TMenuItemRadioGroup;
@@ -158,10 +158,13 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderEverything;
   begin
     Scene.Render(nil, tgAll);
-    glPushMatrix;
-      glMultMatrix(ShadowCasterNav.Matrix);
-      ShadowCaster.Render(nil, tgAll);
-    glPopMatrix;
+    if IsRenderShadowCaster then
+    begin
+      glPushMatrix;
+        glMultMatrix(ShadowCasterNav.Matrix);
+        ShadowCaster.Render(nil, tgAll);
+      glPopMatrix;
+    end;
   end;
 
   procedure RenderFrontShadowQuads;
@@ -177,23 +180,42 @@ procedure Draw(glwin: TGLWindow);
 
   procedure RenderAllShadowQuads;
   begin
-    ShadowCaster.RenderShadowQuads(MainLightPosition, ShadowCasterNav.Matrix);
+    ShadowCaster.RenderShadowQuads(MainLightPosition, ShadowCasterNav.Matrix,
+      AllowSilhouetteOptimization);
   end;
 
-  procedure DoRenderSilhouetteEdges;
+  procedure DoRenderEdgesForShadows;
   begin
-    if ShadowCaster.ManifoldEdges <> nil then
-    begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
-        glDisable(GL_LIGHTING);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(1, 1);
-        glDepthFunc(GL_LEQUAL);
-        glColor4f(1, 1, 0, 0.3);
+    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_ENABLE_BIT);
+      glDisable(GL_LIGHTING);
+      glEnable(GL_POLYGON_OFFSET_LINE);
+      glPolygonOffset(1, 1);
+      glDepthFunc(GL_LEQUAL);
+
+      { F12 performs somewhat obscure function: exchange the order
+        of rendering of ManifoldEdges and BorderEdges.
+        What for ? Well, if some edge has more than 2 neighbors,
+        then it's present in both ManifoldEdges and BorderEdges.
+        You may want to identify such edges sometimes (as the model
+        could possibly be fixed to have edges with only 2 neighbors there).
+        This is a way to do it: press and release F12 repeatedly,
+        then edges that are both in ManifoldEdges and BorderEdges
+        will flicker blue-yellow.
+
+        Well, I warned that this is somewhat obscure feature, didn't I ? :) }
+
+      if Glwin.KeysDown[K_F12] then
+      begin
+        RenderBorderEdges(ShadowCaster, ShadowCasterNav.Matrix);
         RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
           ShadowCasterNav.Matrix);
-      glPopAttrib;
-    end;
+      end else
+      begin
+        RenderSilhouetteEdges(ShadowCaster, MainLightPosition,
+          ShadowCasterNav.Matrix);
+        RenderBorderEdges(ShadowCaster, ShadowCasterNav.Matrix);
+      end;
+    glPopAttrib;
   end;
 
   { Rendering with hard shadows by SV algorithm. }
@@ -354,8 +376,8 @@ begin
     glPopAttrib;
   end;
 
-  if IsRenderSilhouetteEdges then
-    DoRenderSilhouetteEdges;
+  if IsRenderEdgesForShadows then
+    DoRenderEdgesForShadows;
 
   if IsRenderStatus then
   begin
@@ -424,9 +446,35 @@ end;
 var
   FirstIdle: boolean = true;
 
-procedure IdleGL(glwin: TGLWindow);
+procedure ShowManifoldStatistics;
 var
   S: string;
+begin
+  S := Format('Model has' +nl+
+    '%d manifold edges' +nl+
+    '%d border edges' +nl+
+    nl+
+    'For shadow volumes silhouette optimization, it''s crucial that ' +
+    'the model has mostly (if not only) manifold edges. So if rendering ' +
+    'is slow, you may want to improve your model: make all edges '+
+    'manifold (with exactly two neighbors) and order vertexes consistently ' +
+    '(e.g. all CCW outside).' +nl+
+    nl+
+    'Note that if model is not a perfect manifold (some border edges exist) ' +
+    'then in some very rare cases some artifacts may occur. Their cause is similar to ' +
+    'ghost shadows, although in this case they make the shadows disappear. ' +
+    'And they are unavoidable, in any implementation, like usual with ghost ' +
+    'shadows... See docs for more. To workaround these artifacts, you ' +
+    'may turn off silhouette optimization from the menu. But usually ' +
+    'it''s much more efficient to correct your model to be manifold, like ' +
+    'above.',
+    [ ShadowCaster.ManifoldEdges.Count,
+      ShadowCaster.BorderEdges.Count ]);
+
+  MessageOK(Glw, S, taMiddle);
+end;
+
+procedure IdleGL(glwin: TGLWindow);
 begin
   if FirstIdle then
   begin
@@ -434,13 +482,7 @@ begin
       because in OnIdle we're already corrected initialized
       (first OnResize and OnInit for sure are done now, and OnDraw may
       work as usual) and so the background under MessageOK is good now. }
-    if ShadowCaster.ManifoldEdges <> nil then
-      S := 'Shadow caster is composed from a closed manifolds.' +nl+
-           'That''s GOOD --- shadows will be fast.' else
-      S := 'Shadow caster is not composed from a closed manifolds.' +nl+
-           'That''s BAD --- shadows may be really slow.';
-
-    MessageOK(Glwin, S, taMiddle);
+    ShowManifoldStatistics;
     FirstIdle := false;
   end;
 
@@ -463,6 +505,10 @@ begin
     Ord(High(TShadowsImplementation)):
       begin
         ShadowsImplementation := TShadowsImplementation(MenuItem.IntData);
+        Glwin.PostRedisplay;
+      end;
+    8:begin
+        AllowSilhouetteOptimization := not AllowSilhouetteOptimization;
         Glwin.PostRedisplay;
       end;
     10, 11:
@@ -488,12 +534,17 @@ begin
       end;
     40:
       begin
-        IsRenderSilhouetteEdges := not IsRenderSilhouetteEdges;
+        IsRenderEdgesForShadows := not IsRenderEdgesForShadows;
         Glwin.PostRedisplay;
       end;
     50:
       begin
         IsRenderStatus := not IsRenderStatus;
+        Glwin.PostRedisplay;
+      end;
+    60:
+      begin
+        IsRenderShadowCaster := not IsRenderShadowCaster;
         Glwin.PostRedisplay;
       end;
     120: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
@@ -523,18 +574,26 @@ begin
     AppendShadowsImplementationRadio('_Invert trick (usable only with' +
       ' simplest shadow casters)', siInvertTrick);
     AppendShadowsImplementationRadio('2 passes, cull faces using our _engine ' +
-      '(currently ignores manifold, so it''s slower than it could be, and only for positional lights)',
+      '(currently can''t use silhouette optim, so it''s slower than it could be, ' +
+      'and only for positional lights)',
       siEngineCullFace2Passes);
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);
     AppendShadowsImplementationRadio('_StencilOpSeparate (best choice, ' +
       'requires OpenGL >= 2.0)', siStencilOpSeparate);
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Allow silhouette optimization', 8,
+      AllowSilhouetteOptimization, true));
     Result.Append(M);
   M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create('Show shadow caster (turning off may cause' +
+      ' artifacts: shadows on screen where the caster would be)', 60,
+      IsRenderShadowCaster, true));
     M.Append(TMenuItemChecked.Create('Show shadows _quads', 30,
       ShowShadowQuads, true));
-    M.Append(TMenuItemChecked.Create('Show silhouette _edges (only for manifold scenes)', 40,
-      IsRenderSilhouetteEdges, true));
+    M.Append(TMenuItemChecked.Create('Show _edges for shadows (only for manifold' +
+      ' scenes; yellow edges are 2-manifold, blue are border edges)', 40,
+      IsRenderEdgesForShadows, true));
     M.Append(TMenuItemChecked.Create('Show status text', 50,
       IsRenderStatus, true));
     M.Append(TMenuSeparator.Create);

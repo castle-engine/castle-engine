@@ -171,7 +171,7 @@ type
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
     prTrianglesListOverTriangulate,
-    prManifoldEdges);
+    prManifoldAndBorderEdges);
   TPrepareRenderOptions = set of TPrepareRenderOption;
 
   { This is a descendant of TVRMLFlatScene that makes it easy to render
@@ -629,32 +629,51 @@ type
       difference is very noticeable:
 
       @orderedList(
-        @item(RenderSilhouetteShadowQuads renders shadow quads of
-          silhouette edges. This is the usual,
-          fast method of rendering  shadow volumes.
+        @item(Rendering with AllowSilhouetteOptimization.
+          This is the usual, fast method of rendering shadow volumes.
 
-          This requires that model is composed from a number
-          of closed manifold parts (in the simple cases, you just make the whole
-          model a closed manifold). In other words, each edge of the model has
-          exactly two neighboring faces. And the triangles must be consistently
-          ordered CCW on the outside.
+          This renders shadow quads of silhouette edge. Edges from ManifoldEdges
+          list are used to find silhouette edge. Additionally edges from
+          BorderEdges always produce shadow quads, i.e. we treat them
+          like they would always be silhouette edges.
 
-          These are the same requirements as for ManifoldEdges method,
-          and in fact, ManifoldEdges method is called by
-          RenderSilhouetteShadowQuads, and is the basis for it's work.
-          This algorithm is automatically selected if ManifoldEdges <> nil.)
+          The very idea of this optimization is that most edges are in
+          ManifoldEdges and so only real silhouette edges produce shadow quads.
+          In other words, BorderEdges list should not contain too many items.
+          When BorderEdges contains all edges (ManifoldEdges is empty), then
+          this method degenerates to a naive rendering without silhouette
+          optimization. So you should try to make your models as much as
+          possible resembling nice 2-manifolds. Ideally, if your mesh
+          is a number of perfectly closed manifolds, and vertex ordering
+          is consistent, then BorderEdges is empty, and this works perfect.
 
-        @item(RenderAllShadowQuads renders shadow quads
-          for @italic(all) edges (not just silhouette edges).
-          This works @italic(much) slower than RenderSilhouetteShadowQuads.
-          The only advantage is that this works with absolutely any scene,
-          and ManifoldEdges may be @nil.))
+          Usually, most models are mostly 2-manifold (only the real border
+          edges are, well, in BorderEdges), and this works great.)
+
+        @item(Without silhouette optimization.
+          If you pass AllowSilhouetteOptimization = @false,
+          you explicitly want to use the naive approach that just renders
+          3 shadow quads for each triangle. This is much slower,
+          and is not adviced... read below for exceptions.
+
+          The only good reason to use this is that silhouette optimization
+          for models that are not perfect 2-manifold (i.e., have some
+          BorderEdges) may show some artifacts. These artifacts work
+          like ghost shadows, except that is this case they cause shadows
+          to disappear where they should appear. The instructive image is in
+          ../../vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png.
+          It's quite unavoidable in any shadow volumes implementation,
+          just like normal ghost shadows.
+
+          This artifact happens really seldom, for really awkward structures,
+          and usually it's much better to workarounded it by correcting 3D model
+          (to be correct 2-manifold) than by turning off silhouette optimization.))
 
       All shadow quads are generated from scene triangles
       transformed by Transform.
-      This uses TrianglesList(false) and ManifoldEdges
+      This uses TrianglesList(false) and ManifoldEdges and BorderEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
-      DoPrepareTrianglesListNonOverTriangulate = DoManifoldEdges = true).
+      prShadowQuads included).
 
       LightPos is the light position. LightPos[3] must be 1
       (to indicate positional light) or 0 (a directional light).
@@ -663,7 +682,8 @@ type
       glBegin, sequence of glVertex, then glEnd. }
     procedure RenderShadowQuads(
       const LightPos: TVector4Single;
-      const Transform: TMatrix4Single);
+      const Transform: TMatrix4Single;
+      const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -756,7 +776,7 @@ const
     (prTrianglesListNotOverTriangulate has to be prepared while preparing
     ManifoldEdges edges anyway). But for the future shadow volumes
     optimizations, it's best to use this constant. }
-  prShadowQuads = [prTrianglesListNotOverTriangulate, prManifoldEdges];
+  prShadowQuads = [prTrianglesListNotOverTriangulate, prManifoldAndBorderEdges];
 
 {$undef read_interface}
 
@@ -1467,7 +1487,7 @@ begin
   if prTrianglesListOverTriangulate in Options then
     TrianglesList(true);
 
-  if prManifoldEdges in Options then
+  if prManifoldAndBorderEdges in Options then
     ManifoldEdges;
 end;
 
@@ -1741,16 +1761,38 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
 
 var
   Triangles: TDynTriangle3SingleArray;
-  EdgePtr: PManifoldEdge;
 
-  procedure RenderShadowQuad(
-    const P0Index, P1Index: Cardinal);
+  procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
+    const P0Index, P1Index: Cardinal); overload;
   var
     V0, V1, V0Extruded, V1Extruded: TVector3Single;
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
     TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+
+    V0 := MultMatrixPoint(Transform, EdgeV0^);
+    V1 := MultMatrixPoint(Transform, EdgeV1^);
+
+    ExtrudeVertex(V0Extruded, V0, LightPos);
+    ExtrudeVertex(V1Extruded, V1, LightPos);
+
+    glVertexv(V0);
+    glVertexv(V1);
+    glVertexv(V1Extruded);
+    glVertexv(V0Extruded);
+  end;
+
+  procedure RenderShadowQuad(EdgePtr: PBorderEdge;
+    const P0Index, P1Index: Cardinal); overload;
+  var
+    V0, V1, V0Extruded, V1Extruded: TVector3Single;
+    EdgeV0, EdgeV1: PVector3Single;
+    TrianglePtr: PTriangle3Single;
+  begin
+    TrianglePtr := Triangles.Pointers[EdgePtr^.TriangleIndex];
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -1785,11 +1827,13 @@ var
   TrianglePtr: PTriangle3Single;
   PlaneSide0, PlaneSide1: boolean;
   TrianglesPlaneSide: TDynBooleanArray;
-  Edges: TDynManifoldEdgeArray;
+  ManifoldEdgesNow: TDynManifoldEdgeArray;
+  ManifoldEdgePtr: PManifoldEdge;
+  BorderEdgesNow: TDynBorderEdgeArray;
+  BorderEdgePtr: PBorderEdge;
 begin
   glBegin(GL_QUADS);
     Triangles := TrianglesList(false);
-    Edges := ManifoldEdges;
 
     TrianglesPlaneSide := TDynBooleanArray.Create;
     try
@@ -1802,12 +1846,47 @@ begin
         Inc(TrianglePtr);
       end;
 
-      { for each edge, possibly render it's shadow quad }
-      EdgePtr := Edges.Pointers[0];
-      for I := 0 to Edges.Count - 1 do
+      { for each 2-manifold edge, possibly render it's shadow quad }
+      ManifoldEdgesNow := ManifoldEdges;
+      ManifoldEdgePtr := ManifoldEdgesNow.Pointers[0];
+      for I := 0 to ManifoldEdgesNow.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[1]];
+        PlaneSide0 := TrianglesPlaneSide.Items[ManifoldEdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.Items[ManifoldEdgePtr^.Triangles[1]];
+
+        { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
+          so only then render it's shadow quad.
+
+          We want to have consistent CCW orientation of shadow quads faces,
+          so that face is oriented CCW <=> you're looking at it from outside
+          (i.e. it's considered front face of this shadow quad).
+          This is needed, since user of this method may want to do culling
+          to eliminate back or front faces.
+
+          TriangleDir(T) indicates direction that goes from CCW triangle side
+          (that's guaranteed by the way TriangleDir calculates plane dir).
+          So PlaneSideX is @true if LightPos is on CCW side of appropriate
+          triangle. So if PlaneSide0 the shadow quad is extended
+          in reversed Triangles[0] order, i.e. like 1, 0, Extruded0, Extruded1.
+          Otherwise, in normal Triangles[0], i.e. 0, 1, Extruded1, Extruded0.
+
+          Just draw it, the triangle corners numbered with 0,1,2 in CCW and
+          imagine that you want the shadow quad to be also CCW on the outside,
+          it will make sense then :) }
+        if PlaneSide0 and not PlaneSide1 then
+          RenderShadowQuad(ManifoldEdgePtr, 1, 0) else
+        if PlaneSide1 and not PlaneSide0 then
+          RenderShadowQuad(ManifoldEdgePtr, 0, 1);
+
+        Inc(ManifoldEdgePtr);
+      end;
+
+      { for each border edge, always render it's shadow quad }
+      BorderEdgesNow := BorderEdges;
+      BorderEdgePtr := BorderEdgesNow.Pointers[0];
+      for I := 0 to BorderEdgesNow.Count - 1 do
+      begin
+        PlaneSide0 := TrianglesPlaneSide.Items[BorderEdgePtr^.TriangleIndex];
 
         { We want to have consistent CCW orientation of shadow quads faces,
           so that face is oriented CCW <=> you're looking at it from outside
@@ -1817,20 +1896,14 @@ begin
 
           TriangleDir(T) indicates direction that goes from CCW triangle side
           (that's guaranteed by the way TriangleDir calculates plane dir).
-          So PlaneSideX is @true if LightPos is on CCW side of appropriate
-          triangle. So if PlaneSide0 <> PlaneSide1 (and only in this case
-          the edge is a silhouette edge) then the shadow quad is extended
-          in the direction of Triangles[0] if PlaneSide1 or
-          Triangles[1] if PlaneSide0. So if PlaneSide1 then EdgePtr^.Vertexes
-          ordering is 0,1 (like on Triangles[0]), otherwise it's 1,0.
+          So PlaneSide0 is true if LightPos is on CCW side of appropriate
+          triangle. So if PlaneSide0, the shadow quad is extended
+          in the direction of TriangleIndex, like 1, 0, Extruded0, Extruded1. }
+        if PlaneSide0 then
+          RenderShadowQuad(BorderEdgePtr, 1, 0) else
+          RenderShadowQuad(BorderEdgePtr, 0, 1);
 
-          This assumes that outside triangles are CCW. }
-        if PlaneSide0 and not PlaneSide1 then
-          RenderShadowQuad(0, 1) else
-        if PlaneSide1 and not PlaneSide0 then
-          RenderShadowQuad(1, 0);
-
-        Inc(EdgePtr);
+        Inc(BorderEdgePtr);
       end;
 
     finally FreeAndNil(TrianglesPlaneSide) end;
@@ -1839,9 +1912,10 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderShadowQuads(
   const LightPos: TVector4Single;
-  const Transform: TMatrix4Single);
+  const Transform: TMatrix4Single;
+  const AllowSilhouetteOptimization: boolean);
 begin
-  if ManifoldEdges <> nil then
+  if (ManifoldEdges <> nil) and AllowSilhouetteOptimization then
     RenderSilhouetteShadowQuads(LightPos, Transform) else
     RenderAllShadowQuads(LightPos, Transform);
 end;

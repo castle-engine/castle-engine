@@ -1,0 +1,1 @@
+./shadow_volume_test models/lightset.wrl models/scene.wrl models/ball_with_tentacles.wrl

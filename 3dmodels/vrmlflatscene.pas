@@ -46,7 +46,7 @@ type
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvFog,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
-    fvManifoldEdges);
+    fvManifoldAndBorderEdges);
 
   { @exclude }
   TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
@@ -54,12 +54,13 @@ type
   TViewpointFunction = procedure (Node: TNodeGeneralViewpoint;
     const Transform: TMatrix4Single) of object;
 
-  { This represents scene edge. It's used by @link(TVRMLFlatScene.ManifoldEdges),
+  { Scene edge that is between exactly two triangles.
+    It's used by @link(TVRMLFlatScene.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using TVRMLFlatScene.ShareManifoldEdges with various scenes from
+      using TVRMLFlatScene.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the first triangle
       (i.e. Triangles[0]). }
@@ -71,7 +72,7 @@ type
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
       Like said in VertexIndex, keeping here actual vertex info would prevent
-      TVRMLFlatScene.ShareManifoldEdges. However, using these when generating
+      TVRMLFlatScene.ShareManifoldAndBorderEdges. However, using these when generating
       makes a great speed-up when generating manifold edges.
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
@@ -88,7 +89,7 @@ type
       implementation code is a little simplified, so I'm keeping this.
       Also, in the future, maybe it will be sensible
       to use this for actual shadow quad rendering, in cases when we know that
-      TVRMLFlatScene.ShareManifoldEdges was not used to make it. }
+      TVRMLFlatScene.ShareManifoldAndBorderEdges was not used to make it. }
     V0, V1: TVector3Single;
   end;
   PManifoldEdge = ^TManifoldEdge;
@@ -101,6 +102,28 @@ type
   TDynManifoldEdgeArray = class(TDynArray_2)
   private
   end;
+
+  { Scene edge that has no neighbors, i.e. border edge.
+    It's used by @link(TVRMLFlatScene.BorderEdges),
+    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
+  TBorderEdge = record
+    { Index to get vertexes of this edge.
+      The actual edge's vertexes are not recorded here (this would prevent
+      using TVRMLFlatScene.ShareManifoldAndBorderEdges with various scenes from
+      the same animation). You should get them as the VertexIndex
+      and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
+    VertexIndex: Cardinal;
+
+    { Index to TVRMLFlatScene.Triangles(false) array. }
+    TriangleIndex: Cardinal;
+  end;
+  PBorderEdge = ^TBorderEdge;
+
+  TDynArrayItem_3 = TBorderEdge;
+  PDynArrayItem_3 = PBorderEdge;
+  {$define DYNARRAY_3_IS_STRUCT}
+  {$I dynarray_3.inc}
+  TDynBorderEdgeArray = TDynArray_3;
 
   { These are various features that may be freed by
     TVRMLFlatSceneGL.FreeResources.
@@ -177,7 +200,7 @@ type
 
     { Free triangle list created by TrianglesList(false) call.
       This list is also implicitly created by constructing triangle octree
-      or ManifoldEdges.
+      or ManifoldEdges or BorderEdges.
 
       Note that if you made an accident and you will use TrianglesList(false)
       after FreeResources, then you will get no crash,
@@ -271,7 +294,10 @@ type
       TNodeGeneralViewpoint;
 
     FManifoldEdges: TDynManifoldEdgeArray;
-    FOwnsManifoldEdges: boolean;
+    FBorderEdges: TDynBorderEdgeArray;
+    FOwnsManifoldAndBorderEdges: boolean;
+
+    procedure CalculateIfNeededManifoldAndBorderEdges;
 
     procedure FreeResources_UnloadTextureImage(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
@@ -560,36 +586,71 @@ type
     function TrianglesList(OverTriangulate: boolean):
       TDynTriangle3SingleArray;
 
-    { List of edges of this scene, assuming that the scene is a closed manifold.
-      More precisely, the scene must be composed from any number of closed
-      manifolds. Which means that each edge must have exactly two neighboring
-      faces. And the triangles must be consistently ordered,
-      all CCW on the outside.
-      Returns @nil if the scene does not satisfy these requirements.
+    { ManifoldEdges is a list of edges that have exactly @bold(two) neighbor
+      triangles, and BorderEdges is a list of edges that have exactly @bold(one)
+      neighbor triangle. These are crucial for rendering shadows using shadow
+      volumes.
 
-      Result of this function is cached, and it's also owned by this object.
+      Edges with more than two neighbors are allowed. If an edge has an odd
+      number of neighbors, it will be placed in BorderEdges. Every other pair
+      of neighbors will be "paired" and placed as one manifold edge inside
+      ManifoldEdges. So actually edge with exactly 1 neighbor (odd number,
+      so makes one BorderEdges item) and edge with exactly 2 neighbors
+      (even number, one pair of triangles, makes one item in ManifoldEdges)
+      --- they are just a special case of a general rule, that allows any
+      neighbors number.
+
+      Note that vertexes must be consistently ordered in triangles.
+      For two neighboring triangles, if one triangle's edge has
+      order V0, V1, then on the neighbor triangle the order must be reversed
+      (V1, V0). This is true in almost all situations, for example
+      if you have a closed solid object and all outside faces are ordered
+      consistently (all CCW or all CW).
+      Failure to order consistently will result in edges not being "paired",
+      i.e. we will not recognize that some 2 edges are in fact one edge between
+      two neighboring triangles --- and this will result in more edges in
+      BorderEdges.
+
+      Both of these lists are calculated at once, i.e. when you call ManifoldEdges
+      or BorderEdges for the 1st time, actually both ManifoldEdges and
+      BorderEdges are calculated at once. If all edges are in ManifoldEdges,
+      then the scene is a correct closed manifold, or rather it's composed
+      from any number of closed manifolds.
+
+      Results of these functions are cached, and are also owned by this object.
       So don't modify it, don't free it.
 
-      This uses TrianglesList(false). }
-    function ManifoldEdges: TDynManifoldEdgeArray;
+      This uses TrianglesList(false).
 
-    { Set @link(ManifoldEdges) value. The Value set here will be returned
-      by following ManifoldEdges calls. The Value passed here will @italic(not
+      @groupBegin }
+    function ManifoldEdges: TDynManifoldEdgeArray;
+    function BorderEdges: TDynBorderEdgeArray;
+    { @groupEnd }
+
+    { This allows you to "share" @link(ManifoldEdges) and
+      @link(BorderEdges) values between TVRMLFlatScene instances,
+      to conserve memory and preparation time.
+      The values set here will be returned by following ManifoldEdges and
+      BorderEdges calls. The values passed here will @italic(not
       be owned) by this object --- you gave this, you're responsible for
       freeing it.
 
       This is handy if you know that this scene has the same
-      ManifoldEdges contents as some other scene. In particular,
+      ManifoldEdges and BorderEdges contents as some other scene. In particular,
       this is extremely handy in cases of animations in TVRMLGLAnimation,
-      where all scenes actually need only a single instance of TDynManifoldEdgeArray,
+      where all scenes actually need only a single instance of TDynManifoldEdgeArray
+      and TDynBorderEdgeArray,
       this greatly speeds up TVRMLGLAnimation loading and reduces memory use.
 
-      Note that passing here as Value the same reference
-      that is already returned by ManifoldEdges is always guaranteed to be
-      a harmless operation. If ManifoldEdges was owned by this object,
+      Note that passing here as values the same references
+      that are already returned by ManifoldEdges / BorderEdges is always
+      guaranteed to be a harmless operation. If ManifoldEdges  / BorderEdges
+      was owned by this object,
       it will remain owned in this case (while in normal sharing situation,
-      Value set here is assumed to be owned by something else). }
-    procedure ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+      values set here are assumed to be owned by something else). }
+    procedure ShareManifoldAndBorderEdges(
+      ManifoldShared: TDynManifoldEdgeArray;
+      BorderShared: TDynBorderEdgeArray);
 
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
   end;
@@ -627,6 +688,7 @@ uses VRMLFields, VRMLCameraUtils;
 {$I macprecalcvaluereturn.inc}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
+{$I dynarray_3.inc}
 
 { TVRMLFlatScene ----------------------------------------------------------- }
 
@@ -649,8 +711,11 @@ begin
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
 
- if FOwnsManifoldEdges then
+ if FOwnsManifoldAndBorderEdges then
+ begin
    FreeAndNil(FManifoldEdges);
+   FreeAndNil(FBorderEdges);
+ end;
 
  ShapeStates.FreeWithContents;
 
@@ -796,6 +861,9 @@ procedure TVRMLFlatScene.ChangedAll;
 var
   InitialState: TVRMLGraphTraverseState;
 begin
+  { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
+    (and removed from Validities) on any ChangedXxx call. }
+
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     ShapeStates.FreeContents;
@@ -1264,25 +1332,27 @@ begin
   Result := FTrianglesList[OverTriangulate];
 end;
 
-function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
+procedure TVRMLFlatScene.CalculateIfNeededManifoldAndBorderEdges;
 
-  { TODO: FManifoldEdges and triangles lists should be freed
-    (and removed from Validities) on any ChangedXxx call. }
+  { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
+    FBorderEdges are @nil on enter. }
+  procedure CalculateManifoldAndBorderEdges;
 
-  { Sets FManifoldEdges. Assumes that FManifoldEdges is @nil on enter. }
-  procedure CalculateManifoldEdges;
+    { If the counterpart of this edge (edge from neighbor) exists in
+      EdgesSingle, then it adds this edge (along with it's counterpart)
+      to FManifoldEdges.
 
-    { Adds given edge to the EdgesSingle list if it's 1st time for this edge.
-      Or to FManifoldEdges if this edge is the 2nd in manifold edges pair.
-      If the edge already has 2 neighbors, returns @false since the scene
-      is not a manifold. }
-    function AddEdgeCheckManifold(
+      Otherwise, it just adds the edge to EdgesSingle. This can happen
+      if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
+      all odd occurences, assuming that ordering of faces is consistent,
+      so that counterpart edges are properly detected. }
+    procedure AddEdgeCheckManifold(
       EdgesSingle: TDynManifoldEdgeArray;
       const TriangleIndex: Cardinal;
       const V0: TVector3Single;
       const V1: TVector3Single;
       const VertexIndex: Cardinal;
-      Triangles: TDynTriangle3SingleArray): boolean;
+      Triangles: TDynTriangle3SingleArray);
     var
       I: Integer;
       EdgePtr: PManifoldEdge;
@@ -1322,34 +1392,6 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
             EdgePtr^ := EdgesSingle.Items[EdgesSingle.Count - 1];
             EdgesSingle.DecLength;
 
-            Result := true;
-            Exit;
-          end;
-          Inc(EdgePtr);
-        end;
-      end;
-
-      { Now check: maybe the edge is already on FManifoldEdges, in which
-        case this model is not a correct manifold and we should cancel ?
-        Note that we do it after checking all edges EdgesSingle, since
-        this will seldom happen (it happens only for models that are not
-        manifold, and even then only *once* (after once, we cancel
-        construction of manifold edges)...). }
-      if FManifoldEdges.Count <> 0 then
-      begin
-        EdgePtr := FManifoldEdges.Pointers[0];
-        for I := 0 to FManifoldEdges.Count - 1 do
-        begin
-          { Triangles must be consistently ordered on a manifold,
-            so the second time an edge is present, we know it must
-            be in different order. So we compare V0 with EdgeV1
-            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
-             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
-          begin
-            { This edge has already 2 neighboring triangles, and we just
-              got the 3rd one... so this is not a correct closed manifold. }
-            Result := false;
             Exit;
           end;
           Inc(EdgePtr);
@@ -1372,6 +1414,7 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
     EdgesSingle: TDynManifoldEdgeArray;
   begin
     Assert(FManifoldEdges = nil);
+    Assert(FBorderEdges = nil);
 
     { It's important here that TrianglesList guarentees that only valid
       triangles are included. Otherwise degenerate triangles could make
@@ -1383,14 +1426,9 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
       on a closed manifold: E = T * 3 / 2. }
     FManifoldEdges.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
 
-    { Edges that have no neighbor, i.e. have only one adjacent triangle.
-
-      Using this speeds up generation, instead of using a field like
-      TriangleCount inside TManifoldEdge that could have 1 or 2 value.
-      That's because AddEdgeCheckManifold searches first here, and
-      this array will generallu shrink. AddEdgeCheckManifold searches
-      FManifoldEdges only as a last resort, in case the model is actually
-      not a correct closed manifold. }
+    { EdgesSingle are edges that have no neighbor,
+      i.e. have only one adjacent triangle. At the end, what's left here
+      will be simply copied to BorderEdges. }
     EdgesSingle := TDynManifoldEdgeArray.Create;
     try
       EdgesSingle.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
@@ -1399,63 +1437,93 @@ function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
       for I := 0 to Triangles.Count - 1 do
       begin
         { TrianglePtr points to Triangles[I] now }
-        if (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles)) or
-           (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles)) or
-           (not AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles)) then
-        begin
-          { scene not a manifold: more than 2 faces for one edge }
-          FreeAndNil(FManifoldEdges);
-          Exit;
-        end;
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles);
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles);
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles);
         Inc(TrianglePtr);
       end;
 
+      FBorderEdges := TDynBorderEdgeArray.Create;
+
       if EdgesSingle.Count <> 0 then
       begin
-        { scene not a manifold: less than 2 faces for one edge
-          (the case with more than 2 is already eliminated above) }
-        FreeAndNil(FManifoldEdges);
+        { scene not a perfect manifold: less than 2 faces for some edges
+          (the case with more than 2 is already eliminated above).
+          So we copy EdgesSingle to BorderEdges. }
+        FBorderEdges.Count := EdgesSingle.Count;
+        for I := 0 to EdgesSingle.Count - 1 do
+        begin
+          FBorderEdges.Items[I].VertexIndex := EdgesSingle.Items[I].VertexIndex;
+          FBorderEdges.Items[I].TriangleIndex := EdgesSingle.Items[I].Triangles[0];
+        end;
       end;
     finally FreeAndNil(EdgesSingle); end;
   end;
 
 begin
-  if not (fvManifoldEdges in Validities) then
+  if not (fvManifoldAndBorderEdges in Validities) then
   begin
-    FOwnsManifoldEdges := true;
-    CalculateManifoldEdges;
-    Include(Validities, fvManifoldEdges);
+    FOwnsManifoldAndBorderEdges := true;
+    CalculateManifoldAndBorderEdges;
+    Include(Validities, fvManifoldAndBorderEdges);
   end;
+end;
 
+function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
+begin
+  CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-procedure TVRMLFlatScene.ShareManifoldEdges(Value: TDynManifoldEdgeArray);
+function TVRMLFlatScene.BorderEdges: TDynBorderEdgeArray;
 begin
-  if (fvManifoldEdges in Validities) and (Value = FManifoldEdges) then
+  CalculateIfNeededManifoldAndBorderEdges;
+  Result := FBorderEdges;
+end;
+
+procedure TVRMLFlatScene.ShareManifoldAndBorderEdges(
+  ManifoldShared: TDynManifoldEdgeArray;
+  BorderShared: TDynBorderEdgeArray);
+begin
+  Assert(
+    (ManifoldShared = FManifoldEdges) =
+    (BorderShared = FBorderEdges),
+    'For ShareManifoldAndBorderEdges, either both ManifoldShared and ' +
+    'BorderShared should be the same as already owned, or both should ' +
+    'be different. If you have a good reason to break this, report, ' +
+    'implementation of ShareManifoldAndBorderEdges may be improved ' +
+    'if it''s needed');
+
+  if (fvManifoldAndBorderEdges in Validities) and
+    (ManifoldShared = FManifoldEdges) then
     { No need to do anything in this case.
 
-      If Value = FManifoldEdges = nil, then we may leave FOwnsManifoldEdges = true
+      If ManifoldShared = FManifoldEdges = nil, then we may leave
+      FOwnsManifoldAndBorderEdges = true
       while it could be = false (if we let this procedure continue),
-      but this doesn't matter (since FOwnsManifoldEdges doesn't matter when
-      FManifoldEdges = nil).
+      but this doesn't matter (since FOwnsManifoldAndBorderEdges doesn't matter
+      when FManifoldEdges = nil).
 
-      If Value <> nil and old FOwnsManifoldEdges is false then this
-      doesn't change anything.
+      If ManifoldShared <> nil and old FOwnsManifoldAndBorderEdges is false
+      then this doesn't change anything.
 
-      Finally, the important case: If Value <> nil and old
-      FOwnsManifoldEdges is true. Then it would be very very bad
+      Finally, the important case: If ManifoldShared <> nil and old
+      FOwnsManifoldAndBorderEdges is true. Then it would be very very bad
       to continue this method, as we would free FManifoldEdges pointer
       and right away set FManifoldEdges to the same pointer (that would
       be invalid now). }
     Exit;
 
-  if FOwnsManifoldEdges then
+  if FOwnsManifoldAndBorderEdges then
+  begin
     FreeAndNil(FManifoldEdges);
+    FreeAndNil(FBorderEdges);
+  end;
 
-  FManifoldEdges := Value;
-  FOwnsManifoldEdges := false;
-  Include(Validities, fvManifoldEdges);
+  FManifoldEdges := ManifoldShared;
+  FBorderEdges := BorderShared;
+  FOwnsManifoldAndBorderEdges := false;
+  Include(Validities, fvManifoldAndBorderEdges);
 end;
 
 procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(Node: TVRMLNode);
