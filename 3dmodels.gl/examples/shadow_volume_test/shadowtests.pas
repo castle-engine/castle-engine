@@ -28,16 +28,16 @@ uses VectorMath, VRMLFlatSceneGL, VRMLFlatScene, KambiUtils, KambiClassUtils;
 {$define read_interface}
 
 type
-  TQuad3Single = array[0..3] of TVector3Single;
-  PQuad3Single = ^TQuad3Single;
+  TQuad4Single = array[0..3] of TVector4Single;
+  PQuad4Single = ^TQuad4Single;
 
-  TDynArrayItem_1 = TQuad3Single;
-  PDynArrayItem_1 = PQuad3Single;
+  TDynArrayItem_1 = TQuad4Single;
+  PDynArrayItem_1 = PQuad4Single;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TArray_Quad3Single = TInfiniteArray_1;
-  PArray_Quad3Single = PInfiniteArray_1;
-  TDynQuad3SingleArray = TDynArray_1;
+  TArray_Quad4Single = TInfiniteArray_1;
+  PArray_Quad4Single = PInfiniteArray_1;
+  TDynQuad4SingleArray = TDynArray_1;
 
 { These things were part of VRMLFlatSceneGL unit once, but I removed them
   from there, since I discovered that they are not useful methods of
@@ -62,12 +62,12 @@ type
 
   When rendering front shadow quads, we actually calculate
   also back shadow quads. To RenderFrontShadowQuads you
-  just pass instance of TDynQuad3SingleArray (don't care
+  just pass instance of TDynQuad4SingleArray (don't care
   about it's contents, all will be initialized by RenderFrontShadowQuads).
   To RenderBackShadowQuads you must pass unmodified SavedShadowQuads
   as received by previous RenderFrontShadowQuads call.
   You can also use versions that don't take SavedShadowQuads argument
-  at all --- they will just internally use TDynQuad3Single instance
+  at all --- they will just internally use TDynQuad4Single instance
   inside this object (so they are a little less flexible,
   and in some cases may unnecessarily waste memory).
 
@@ -77,11 +77,11 @@ procedure RenderFrontShadowQuads(
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
-  SavedShadowQuads: TDynQuad3SingleArray); overload;
+  SavedShadowQuads: TDynQuad4SingleArray); overload;
 
 procedure RenderBackShadowQuads(
   Scene: TVRMLFlatSceneGL;
-  SavedShadowQuads: TDynQuad3SingleArray); overload;
+  SavedShadowQuads: TDynQuad4SingleArray); overload;
 
 procedure RenderFrontShadowQuads(
   Scene: TVRMLFlatSceneGL;
@@ -116,41 +116,40 @@ uses SysUtils, KambiGLUtils, OpenGLh;
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-procedure ExtrudeVertex(out Extruded: TVector3Single;
+{ This returns vertex Original extruded into infinity, as seen from light
+  at position LightPos.
+
+  This is designed to work only with LightPos[3] = 1. In the future, when
+  need arises, this may be improved to work with any LightPos[3] <> 0.
+
+  For LightPos[3] = 0, i.e. directional light,
+  don't use this, and there's no need to do it,
+  since then the extruded point is just LightPos (for any vertex).
+  RenderXxxShadowQuads want to treat it specially anyway (to optimize
+  drawing, since then quads degenerate to triangles). }
+function ExtrudeVertex(
   const Original: TVector3Single;
-  const LightPos: TVector4Single);
-const
-  { TODO: wartosc 1000 jest tu dobrana "ot tak".
-
-    Bo w teorii shadow quad ma nieskonczona powierzchnie.
-    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
-    na bzdure.
-
-    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
-    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
-  MakeInfinite = 1000;
+  const LightPos: TVector4Single): TVector4Single;
 var
   LightPos3: TVector3Single absolute LightPos;
 begin
-  if LightPos[3] <> 0 then
-    { Below is the moment when we require that
-      if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
-      Otherwise we would have to divide here LightPos3 by LightPos[3].
-      Maybe in the future this requirement will be removed and we'll work
-      for any LightPos in homogenous coordinates, for now it's not really
-      needed. }
-    Extruded := VectorAdd(VectorScale(VectorSubtract(Original, LightPos3),
-      MakeInfinite), Original) else
-    Extruded := VectorAdd(VectorScale(LightPos3, MakeInfinite), Original);
+  { Below is the moment when we require that
+    if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
+    Otherwise we would have to divide here LightPos3 by LightPos[3].
+    Maybe in the future this requirement will be removed and we'll work
+    for any LightPos in homogenous coordinates, for now it's not really
+    needed. }
+  Result[0] := Original[0] -  LightPos3[0];
+  Result[1] := Original[1] -  LightPos3[1];
+  Result[2] := Original[2] -  LightPos3[2];
+  Result[3] := 0;
 end;
 
 procedure RenderFrontShadowQuads(Scene: TVRMLFlatSceneGL;
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
-  SavedShadowQuads: TDynQuad3SingleArray);
+  SavedShadowQuads: TDynQuad4SingleArray);
 
 { It's important here that TrianglesList guarentees that only valid
   triangles are included. Otherwise degenerate triangles could make
@@ -163,10 +162,10 @@ procedure RenderFrontShadowQuads(Scene: TVRMLFlatSceneGL;
     SQ is back-facing, else SQ is front-facing.
     Let SQFront:="is SQ front facing".
     If SQFront = Front then this procedure renders SQ, else is does not. }
-  procedure MaybeRenderShadowQuad(const P0, P1, POther,
-    PExtruded0, PExtruded1: TVector3Single; const SQFront: boolean);
+  procedure MaybeRenderShadowQuad(const P0, P1, POther: TVector3Single;
+    const PExtruded0, PExtruded1: TVector4Single; const SQFront: boolean);
   var
-    QuadPtr: PQuad3Single;
+    QuadPtr: PQuad4Single;
   begin
     if SQFront then
     begin
@@ -178,31 +177,41 @@ procedure RenderFrontShadowQuads(Scene: TVRMLFlatSceneGL;
     begin
       SavedShadowQuads.IncLength;
       QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
-      QuadPtr^[0] := P0;
-      QuadPtr^[1] := P1;
+      QuadPtr^[0] := Vector4Single(P0, 1);
+      QuadPtr^[1] := Vector4Single(P1, 1);
       QuadPtr^[2] := PExtruded1;
       QuadPtr^[3] := PExtruded0;
     end;
   end;
 
-const
-  { TODO: the value 1000 is just chosen here arbitrarily.
-    In theory, shadow quad is infinite. Fix this:
-
-    1. We could take as parameter some scene size.
-       But then we'll have to add normalizing to
-         VectorAdd(VectorScale(VectorSubtract(
-           V0, LightPos), MakeInfinite), V0)
-       Which is stupid --- wasting time for such unimportant thing.
-
-    2. The right way: we can employ some tricks with homogeneous
-       coordinates to make infinite shadow quads. }
-  MakeInfinite = 100000;
+  procedure MaybeRenderShadowQuad(const P0, P1, POther: TVector3Single;
+    const PExtruded: TVector4Single; const SQFront: boolean);
+  var
+    QuadPtr: PQuad4Single;
+  begin
+    if SQFront then
+    begin
+      glVertexv(P0);
+      glVertexv(P1);
+      glVertexv(PExtruded);
+    end else
+    begin
+      SavedShadowQuads.IncLength;
+      QuadPtr := SavedShadowQuads.Pointers[SavedShadowQuads.High];
+      QuadPtr^[0] := Vector4Single(P0, 1);
+      QuadPtr^[1] := Vector4Single(P1, 1);
+      QuadPtr^[2] := PExtruded;
+      { This is poor code, we should have separate Quad array for triangles
+        (for directional light case). }
+      QuadPtr^[3] := PExtruded;
+    end;
+  end;
 
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
-  T0, T1, T2, TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+  T0, T1, T2: TVector3Single;
+  TExtruded0, TExtruded1, TExtruded2: TVector4Single;
   SQPlanes: array [0..2] of TVector4Single;
   SQFronts: array [0..2] of boolean;
   LightPos3: TVector3Single absolute LightPos;
@@ -212,17 +221,16 @@ begin
   SavedShadowQuads.Count := 0;
   SavedShadowQuads.AllowedCapacityOverflow := Triangles.Count * 3;
 
-  glBegin(GL_QUADS);
+  if LightPos[3] <> 0 then
+    glBegin(GL_QUADS) else
+    glBegin(GL_TRIANGLES);
+
     for I := 0 to Triangles.Count - 1 do
     begin
       { calculate T := Triangles[I] transformed by TrianglesTransform }
       T0 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][0]);
       T1 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][1]);
       T2 := MultMatrixPoint(TrianglesTransform, Triangles.Items[I][2]);
-
-      ExtrudeVertex(TExtruded0, T0, LightPos);
-      ExtrudeVertex(TExtruded1, T1, LightPos);
-      ExtrudeVertex(TExtruded2, T2, LightPos);
 
       { First calculate all three SQPlanes and all three
         SQFronts. This is because we *have* to catch the situation
@@ -241,15 +249,32 @@ begin
       SQFronts[1] := not PointsSamePlaneSides(T0, CameraPos, SQPlanes[1]);
       SQFronts[2] := not PointsSamePlaneSides(T1, CameraPos, SQPlanes[2]);
 
-      { not ((SQFronts[0] = SQFronts[1]) and (SQFronts[1] = SQFronts[2])) =
-        not (not (SQFronts[0] xor SQFronts[1]) and not (SQFronts[1] xor SQFronts[2])) =
-        (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) }
-
-      if (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) then
+      if LightPos[3] <> 0 then
       begin
-        MaybeRenderShadowQuad(T0, T1, T2, TExtruded0, TExtruded1, SQFronts[0]);
-        MaybeRenderShadowQuad(T1, T2, T0, TExtruded1, TExtruded2, SQFronts[1]);
-        MaybeRenderShadowQuad(T2, T0, T1, TExtruded2, TExtruded0, SQFronts[2]);
+        TExtruded0 := ExtrudeVertex(T0, LightPos);
+        TExtruded1 := ExtrudeVertex(T1, LightPos);
+        TExtruded2 := ExtrudeVertex(T2, LightPos);
+
+        { not ((SQFronts[0] = SQFronts[1]) and (SQFronts[1] = SQFronts[2])) =
+          not (not (SQFronts[0] xor SQFronts[1]) and not (SQFronts[1] xor SQFronts[2])) =
+          (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) }
+
+        if (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) then
+        begin
+          MaybeRenderShadowQuad(T0, T1, T2, TExtruded0, TExtruded1, SQFronts[0]);
+          MaybeRenderShadowQuad(T1, T2, T0, TExtruded1, TExtruded2, SQFronts[1]);
+          MaybeRenderShadowQuad(T2, T0, T1, TExtruded2, TExtruded0, SQFronts[2]);
+        end;
+      end else
+      begin
+        { For directional light, this is a little simpler, since
+          extruded vertex is just equal to LightPos. }
+        if (SQFronts[0] xor SQFronts[1]) or (SQFronts[1] xor SQFronts[2]) then
+        begin
+          MaybeRenderShadowQuad(T0, T1, T2, LightPos, SQFronts[0]);
+          MaybeRenderShadowQuad(T1, T2, T0, LightPos, SQFronts[1]);
+          MaybeRenderShadowQuad(T2, T0, T1, LightPos, SQFronts[2]);
+        end;
       end;
     end;
   glEnd;
@@ -257,7 +282,7 @@ end;
 
 procedure RenderBackShadowQuads(
   Scene: TVRMLFlatSceneGL;
-  SavedShadowQuads: TDynQuad3SingleArray);
+  SavedShadowQuads: TDynQuad4SingleArray);
 var
   I: Integer;
 begin
@@ -274,7 +299,7 @@ begin
 end;
 
 var
-  DefaultSavedShadowQuads: TDynQuad3SingleArray;
+  DefaultSavedShadowQuads: TDynQuad4SingleArray;
 
 procedure RenderFrontShadowQuads(
   Scene: TVRMLFlatSceneGL;
@@ -416,7 +441,7 @@ begin
 end;
 
 initialization
-  DefaultSavedShadowQuads := TDynQuad3SingleArray.Create;
+  DefaultSavedShadowQuads := TDynQuad4SingleArray.Create;
 finalization
   FreeAndNil(DefaultSavedShadowQuads);
 end.

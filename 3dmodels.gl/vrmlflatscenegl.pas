@@ -1590,35 +1590,33 @@ end;
 
 { shadow quads --------------------------------------------------------------- }
 
-{ LightPos has either LightPos[3] = 0 or LightPos[3] = 1. }
-procedure ExtrudeVertex(out Extruded: TVector3Single;
+{ This returns vertex Original extruded into infinity, as seen from light
+  at position LightPos.
+
+  This is designed to work only with LightPos[3] = 1. In the future, when
+  need arises, this may be improved to work with any LightPos[3] <> 0.
+
+  For LightPos[3] = 0, i.e. directional light,
+  don't use this, and there's no need to do it,
+  since then the extruded point is just LightPos (for any vertex).
+  RenderXxxShadowQuads want to treat it specially anyway (to optimize
+  drawing, since then quads degenerate to triangles). }
+function ExtrudeVertex(
   const Original: TVector3Single;
-  const LightPos: TVector4Single);
-const
-  { TODO: wartosc 1000 jest tu dobrana "ot tak".
-
-    Bo w teorii shadow quad ma nieskonczona powierzchnie.
-    Rozwiazac ten problem - mozna podawac max rozmiar modelu sceny parametrem
-    ale przeciez wtedy powstanie problem ze bedzie trzeba dodac
-    jakies normalizacje do kodu RenderAllShadowQuads a wiec strata szybkosci
-    na bzdure.
-
-    Mozna kombinowac z robieniem sztuczek zeby renderowac nieskonczony
-    shadow volume (bo vertex jest de facto 4D, nie 3D, dla OpenGLa). }
-  MakeInfinite = 100000;
+  const LightPos: TVector4Single): TVector4Single;
 var
   LightPos3: TVector3Single absolute LightPos;
 begin
-  if LightPos[3] <> 0 then
-    { Below is the moment when we require that
-      if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
-      Otherwise we would have to divide here LightPos3 by LightPos[3].
-      Maybe in the future this requirement will be removed and we'll work
-      for any LightPos in homogenous coordinates, for now it's not really
-      needed. }
-    Extruded := VectorAdd(VectorScale(VectorSubtract(Original, LightPos3),
-      MakeInfinite), Original) else
-    Extruded := VectorAdd(VectorScale(LightPos3, MakeInfinite), Original);
+  { Below is the moment when we require that
+    if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
+    Otherwise we would have to divide here LightPos3 by LightPos[3].
+    Maybe in the future this requirement will be removed and we'll work
+    for any LightPos in homogenous coordinates, for now it's not really
+    needed. }
+  Result[0] := Original[0] -  LightPos3[0];
+  Result[1] := Original[1] -  LightPos3[1];
+  Result[2] := Original[2] -  LightPos3[2];
+  Result[3] := 0;
 end;
 
 procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
@@ -1634,7 +1632,8 @@ procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
   zostaly uznane za "front facing"). }
 
   procedure RenderShadowQuad(
-    const P0, P1, PExtruded0, PExtruded1: TVector3Single);
+    const P0, P1: TVector3Single;
+    const PExtruded0, PExtruded1: TVector4Single); overload;
   begin
     //glNormalv(TriangleNormal(P0, P1, PExtruded1));
     glVertexv(P0);
@@ -1643,27 +1642,35 @@ procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
     glVertexv(PExtruded0);
   end;
 
+  procedure RenderShadowQuad(
+    const P0, P1: TVector3Single;
+    const PExtruded: TVector4Single); overload;
+  begin
+    glVertexv(P0);
+    glVertexv(P1);
+    glVertexv(PExtruded);
+  end;
+
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
   T: TTriangle3Single;
-  TExtruded0, TExtruded1, TExtruded2: TVector3Single;
+  TExtruded0, TExtruded1, TExtruded2: TVector4Single;
   Plane: TVector4Single;
   PlaneSide: Single;
 begin
   Triangles := TrianglesList(false);
 
-  glBegin(GL_QUADS);
+  if LightPos[3] <> 0 then
+    glBegin(GL_QUADS) else
+    glBegin(GL_TRIANGLES);
+
     for I := 0 to Triangles.Count - 1 do
     begin
       { calculate T := Triangles[I] transformed by Transform }
       T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
       T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
       T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
-
-      ExtrudeVertex(TExtruded0, T[0], LightPos);
-      ExtrudeVertex(TExtruded1, T[1], LightPos);
-      ExtrudeVertex(TExtruded2, T[2], LightPos);
 
       { We want to have consistent CCW orientation of shadow quads faces,
         so that face is oriented CCW <=> you're looking at it from outside
@@ -1696,20 +1703,43 @@ begin
                    Plane[2] * LightPos[2] +
                    Plane[3] * LightPos[3];
 
-      if PlaneSide > 0 then
+      if LightPos[3] <> 0 then
       begin
-        RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
-        RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
-        RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
+        TExtruded0 := ExtrudeVertex(T[0], LightPos);
+        TExtruded1 := ExtrudeVertex(T[1], LightPos);
+        TExtruded2 := ExtrudeVertex(T[2], LightPos);
+
+        if PlaneSide > 0 then
+        begin
+          RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
+          RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
+          RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
+        end else
+        if PlaneSide < 0 then
+        begin
+          RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
+          RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
+          RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
+        end;
+        { Don't render quads if LightPos lies on the Plane (which means
+          that PlaneSide = 0) }
       end else
-      if PlaneSide < 0 then
       begin
-        RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
-        RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
-        RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
+        { For directional lights, this gets a little simpler, since
+          all extruded points are the same and equal just LightPos. }
+        if PlaneSide > 0 then
+        begin
+          RenderShadowQuad(T[1], T[0], LightPos);
+          RenderShadowQuad(T[0], T[2], LightPos);
+          RenderShadowQuad(T[2], T[1], LightPos);
+        end else
+        if PlaneSide < 0 then
+        begin
+          RenderShadowQuad(T[0], T[1], LightPos);
+          RenderShadowQuad(T[1], T[2], LightPos);
+          RenderShadowQuad(T[2], T[0], LightPos);
+        end;
       end;
-      { Don't render quads if LightPos lies on the Plane (which means
-        that PlaneSide = 0) }
     end;
   glEnd;
 end;
@@ -1767,7 +1797,7 @@ var
   procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
     const P0Index, P1Index: Cardinal); overload;
   var
-    V0, V1, V0Extruded, V1Extruded: TVector3Single;
+    V0, V1: TVector3Single;
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
@@ -1778,19 +1808,20 @@ var
     V0 := MultMatrixPoint(Transform, EdgeV0^);
     V1 := MultMatrixPoint(Transform, EdgeV1^);
 
-    ExtrudeVertex(V0Extruded, V0, LightPos);
-    ExtrudeVertex(V1Extruded, V1, LightPos);
-
     glVertexv(V0);
     glVertexv(V1);
-    glVertexv(V1Extruded);
-    glVertexv(V0Extruded);
+    if LightPos[3] <> 0 then
+    begin
+      glVertexv(ExtrudeVertex(V1, LightPos));
+      glVertexv(ExtrudeVertex(V0, LightPos));
+    end else
+      glVertexv(LightPos);
   end;
 
   procedure RenderShadowQuad(EdgePtr: PBorderEdge;
     const P0Index, P1Index: Cardinal); overload;
   var
-    V0, V1, V0Extruded, V1Extruded: TVector3Single;
+    V0, V1: TVector3Single;
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
@@ -1801,13 +1832,14 @@ var
     V0 := MultMatrixPoint(Transform, EdgeV0^);
     V1 := MultMatrixPoint(Transform, EdgeV1^);
 
-    ExtrudeVertex(V0Extruded, V0, LightPos);
-    ExtrudeVertex(V1Extruded, V1, LightPos);
-
     glVertexv(V0);
     glVertexv(V1);
-    glVertexv(V1Extruded);
-    glVertexv(V0Extruded);
+    if LightPos[3] <> 0 then
+    begin
+      glVertexv(ExtrudeVertex(V1, LightPos));
+      glVertexv(ExtrudeVertex(V0, LightPos));
+    end else
+      glVertexv(LightPos);
   end;
 
   function PlaneSide(const T: TTriangle3Single): boolean;
@@ -1834,7 +1866,10 @@ var
   BorderEdgesNow: TDynBorderEdgeArray;
   BorderEdgePtr: PBorderEdge;
 begin
-  glBegin(GL_QUADS);
+  if LightPos[3] <> 0 then
+    glBegin(GL_QUADS) else
+    glBegin(GL_TRIANGLES);
+
     Triangles := TrianglesList(false);
 
     TrianglesPlaneSide := TDynBooleanArray.Create;
