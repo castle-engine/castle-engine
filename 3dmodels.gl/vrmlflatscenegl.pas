@@ -661,7 +661,9 @@ type
           BorderEdges) may show some artifacts. These artifacts work
           like ghost shadows, except that is this case they cause shadows
           to disappear where they should appear. The instructive image is in
-          ../../vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png.
+          ../../vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png
+          or [http://vrmlengine.svn.sourceforge.net/viewvc/*checkout*/vrmlengine/trunk/vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png]
+          online.
           It's quite unavoidable in any shadow volumes implementation,
           just like normal ghost shadows.
 
