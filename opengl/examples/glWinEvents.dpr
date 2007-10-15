@@ -76,16 +76,17 @@ end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
 begin
-  { Tests:
+  { Tests: }
   case C of
-    'h': Glwin.MouseVisible := false;
-    's': Glwin.MouseVisible := true;
+    'n': Glwin.Cursor := gcNone;
+    'd': Glwin.Cursor := gcDefault;
+    'w': Glwin.Cursor := gcWait;
     '1': Glwin.SetMousePosition(0          , 0);
     '2': Glwin.SetMousePosition(Glwin.Width, 0);
     '3': Glwin.SetMousePosition(Glwin.Width, Glwin.Height);
     '4': Glwin.SetMousePosition(0          , Glwin.Height);
     '5': Glwin.SetMousePosition(Glwin.Width div 2, Glwin.Height div 2);
-  end; }
+  end; {}
 
   TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
     [KeyToStr(key), DescribeKey(c), Ord(c)]));

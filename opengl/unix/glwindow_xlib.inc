@@ -33,7 +33,7 @@ private
   procedure X_MotionNotify(const event: TXMotionEvent);
   procedure X_FocusOut(const event: TXFocusOutEvent);
 
-  procedure UpdateMouseVisible;
+  procedure UpdateCursor;
 {$endif read_tglwindow_interface}
 
 {$ifdef read_tglwindowmanager_interface}
@@ -253,7 +253,7 @@ begin
  glcontext := glXCreateContext(Glwm.XDisplay, viinfo, nil, true);
  check( glcontext <> nil, 'could not create rendering context');
 
- UpdateMouseVisible;
+ UpdateCursor;
 
  glwm.ActiveAdd(Self);
 
@@ -291,17 +291,23 @@ begin
  if viinfo    <> nil  then begin XFree(viinfo);                           viinfo := nil     end;
 end;
 
-procedure TGLWindow.SetMouseVisible(const Value: boolean);
+procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
 begin
-  if FMouseVisible <> Value then
+  if FCursor <> Value then
   begin
-    FMouseVisible := Value;
+    FCursor := Value;
     if not Closed then
-      UpdateMouseVisible;
+      UpdateCursor;
   end;
 end;
 
-procedure TGLWindow.UpdateMouseVisible;
+procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
+begin
+  FCustomCursor := Value;
+  { TODO }
+end;
+
+procedure TGLWindow.UpdateCursor;
 var
   bm_no: TPixmap;
   cmap: TColormap;
@@ -310,30 +316,33 @@ var
 const
   bm_no_data: array[0..7] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
 begin
-  if MouseVisible then
-  begin
-    XUndefineCursor(Glwm.XDisplay, WindowXID);
-  end else
-  begin
-    { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
-    cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
-    XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
-    try
-      bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
-      try
-        no_ptr := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
+  case Cursor of
+    gcDefault: XUndefineCursor(Glwm.XDisplay, WindowXID);
+    gcNone:
+      begin
+        { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
+        cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
+        XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
         try
-          XDefineCursor(Glwm.XDisplay, WindowXID, no_ptr);
+          bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
+          try
+            no_ptr := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
+            try
+              XDefineCursor(Glwm.XDisplay, WindowXID, no_ptr);
+            finally
+              XFreeCursor(Glwm.XDisplay, no_ptr);
+            end;
+          finally
+            if bm_no <> None then
+              XFreePixmap(Glwm.XDisplay, bm_no);
+          end;
         finally
-          XFreeCursor(Glwm.XDisplay, no_ptr);
+          XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
         end;
-      finally
-        if bm_no <> None then
-          XFreePixmap(Glwm.XDisplay, bm_no);
       end;
-    finally
-      XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
-    end;
+    else
+      { TODO: for now, other values of Cursor are ignored }
+      XUndefineCursor(Glwm.XDisplay, WindowXID);
   end;
 end;
 

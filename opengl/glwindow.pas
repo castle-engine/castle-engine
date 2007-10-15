@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -348,6 +348,7 @@ unit GLWindow;
       Analogous for DepthBufferBits, AlphaBits, AccumBufferBits.
     - Menu mnemonics are not implemented.
       They are simply removed when Caption is displayed.
+    - CustomCursor is not implemented. Cursor = gcCursor is treated like gcDefault.
 }
 
 { If GLWindow implementation is not choosen at this point, choose
@@ -774,6 +775,9 @@ type
 
   EGLContextNotPossible = class(Exception);
 
+  { Values for TGLWindow.Cursor. }
+  TGLWindowCursor = (gcDefault, gcNone, gcCustom, gcWait);
+
   {$define read_interface_types}
   {$I glwindow_implementation_specific.inc}
   {$undef read_interface_types}
@@ -815,8 +819,11 @@ type
     FMouseX, FMouseY: integer;
     FColorBits: integer;
 
-    FMouseVisible: boolean;
-    procedure SetMouseVisible(const Value: boolean);
+    FCursor: TGLWindowCursor;
+    procedure SetCursor(const Value: TGLWindowCursor);
+
+    FCustomCursor: TAlphaImage;
+    procedure SetCustomCursor(const Value: TAlphaImage);
 
     FAutoRedisplay: boolean;
     procedure SetAutoRedisplay(value: boolean);
@@ -838,7 +845,7 @@ type
       Here's a list of properties that should be made "visible" to the user
       in InitImplDepend:
         Width, Height, Left, Top, FullScreen
-        MouseVisible (remember that changes to MouseVisible after InitImplDepend
+        Cursor, CustomCursor (remember that changes to this after InitImplDepend
           should also be allowed)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
@@ -1269,8 +1276,38 @@ type
     property ColorBits: integer
       read FColorBits write FColorBits default 0;
 
-    property MouseVisible: boolean
-      read FMouseVisible write SetMouseVisible default true;
+    { Sets mouse cursor appearance over this window.
+      See TGLWindowCursor for a list of possible values.
+
+      Some special TGLWindowCursor values are:
+      @unorderedList(
+        @item gcDefault --- leave cursor as default, decided by a window manager
+        @item gcNone --- make cursor invisible
+        @item gcCustom --- use custom cursor image in CustomCursor
+      )
+
+      TODO: for now, only gcDefault and gcNone are implemented and honoured
+      under every GLWindow implementation. Other TGLWindowCursor values are treated
+      just like gcDefault. So for now, Cursor is just equivalent to "MouseVisible".
+      It's only a plan to extend it (it will have to be done for "the rift" around the
+      end of 2007). }
+    property Cursor: TGLWindowCursor read FCursor write SetCursor default gcDefault;
+
+    { Image for cursor, used only when @link(Cursor) = gcCustom.
+      We will try hard to use any cursor image as appropriate, but on some platforms
+      cursor size may be limited (16 x 16 seems standard for GTK) and cursor
+      may be forced to monochrome.
+
+      Note that you still own the TAlphaImage instance passed here --- you're
+      responsible for freeing it etc. If this is @nil, and @link(Cursor) = gcCustom,
+      then it will be treated like @link(Cursor) = gcDefault. (I don't raise error
+      in such case, as that would make changing both Cursor and CustomCursor values
+      unnecessarily tricky for the programmer.)
+
+      TODO: for now, this is not implemented. @link(Cursor) ignores gcCustom value,
+      under every GLWindow implementation... sorry, CustomCursor is only a plan. }
+    property CustomCursor: TAlphaImage read FCustomCursor
+      write SetCustomCursor;
 
     { This instructs window manager to place mouse at NewMouseX and NewMouseY
       position. NewMouseX and NewMouseY are specified just like
@@ -2372,8 +2409,13 @@ type
       and you want to use it's MouseLook feature then
       you should call this after you changed Navigator.MouseLook value.
 
-      This sets MouseVisible, and (if Navigator.MouseLook is @true)
-      repositions mouse cursor at the middle of the window.
+      This sets @link(Cursor) (to gcNone or gcDefault, based on
+      whether mouse look is used now, that is Navigator.MouseLook is @true)
+      and, if mouse look is used,  repositions mouse cursor at the middle
+      of the window.
+
+      TODO: when the need will be, cursor will not be so carelessly changed
+      to gcDefault.
 
       You should also call this after you changed Navigator's instance,
       or UseNavigator, as these things also effectively change the
@@ -2381,8 +2423,8 @@ type
       have to call this --- e.g. if you push/pop mode states using
       TGLMode and in the mode you set temporary UseNavigator = @false,
       then you don't have to call this, because TGLMode will push/pop
-      MouseVisible state anyway. That's why I explicitly wrote above
-      what this function does (sets MouseVisible and repositions
+      @link(Cursor) state anyway. That's why I explicitly wrote above
+      what this function does (sets @link(Cursor) and repositions
       the mouse) --- so that you can figure out where exactly
       you have to use it. }
     procedure UpdateMouseLook;
@@ -2803,7 +2845,7 @@ begin
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
  DepthBufferBits := 16;
- FMouseVisible := true;
+ FCursor := gcDefault;
 
  OwnsMainMenu := true;
 
@@ -4125,7 +4167,9 @@ var
   ML: boolean;
 begin
   ML := ReallyUseMouseLook;
-  MouseVisible := not ML;
+  if ML then
+    Cursor := gcNone else
+    Cursor := gcDefault;
   if ML then
     SetMousePosition(Width div 2, Height div 2);
 end;

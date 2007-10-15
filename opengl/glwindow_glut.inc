@@ -37,7 +37,7 @@ private
     On exit, glut's current menu is this main menu. }
   procedure InitMainMenu;
 
-  procedure UpdateMouseVisible;
+  procedure UpdateCursor;
 {$endif read_tglwindow_interface}
 
 {$ifdef read_tglwindowmanager_interface}
@@ -263,21 +263,32 @@ end;
 { ------------------------------------------------------------------------------
   procedury obslugujace TGLWindow poprzez GLUTa }
 
-procedure TGLWindow.SetMouseVisible(const Value: boolean);
+procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
 begin
-  if FMouseVisible <> Value then
+  if FCursor <> Value then
   begin
-    FMouseVisible := Value;
+    FCursor := Value;
     if not Closed then
-      UpdateMouseVisible;
+      UpdateCursor;
   end;
 end;
 
-procedure TGLWindow.UpdateMouseVisible;
+procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
 begin
-  if MouseVisible then
-    glutSetCursor(GLUT_CURSOR_INHERIT) else
-    glutSetCursor(GLUT_CURSOR_NONE);
+  { CustomCursor cannot be handled in glut. So we save FCustomCursor property and...
+    do nothing with it. }
+  FCustomCursor := Value;
+end;
+
+procedure TGLWindow.UpdateCursor;
+begin
+  case Cursor of
+    { CustomCursor cannot be handled in glut, so gcCustom is treated just like gcDefault }
+    gcDefault, gcCustom: glutSetCursor(GLUT_CURSOR_INHERIT);
+    gcNone: glutSetCursor(GLUT_CURSOR_NONE);
+    gcWait: glutSetCursor(GLUT_CURSOR_WAIT);
+    else raise EInternalError.Create('glwindow_glut.inc TGLWindow.UpdateCursor: unknown Cursor');
+  end;
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -372,7 +383,7 @@ begin
  glutPassiveMotionFunc(@motion_and_passiveMotionByGlut);
  {glutSpecialUpFunc(specialUpByGlut); (glutSpecialUpFunc is not implemented yet)}
 
- UpdateMouseVisible;
+ UpdateCursor;
 
  { menu }
  if MainMenu<> nil then InitMainMenu;

@@ -85,7 +85,7 @@ private
 
   FBorderWidth: Cardinal;
 
-  procedure UpdateMouseVisible;
+  procedure UpdateCursor;
 public
 
   { Change this only when Closed.
@@ -168,7 +168,7 @@ private
     no such window is found. }
   function ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 
-  { Will be used by SetMouseVisible. }
+  { Will be used by SetCursor. }
   InvisibleCursor: PGdkCursor;
 
   {$ifdef GLWINDOW_GTK_2}
@@ -635,21 +635,31 @@ SIGNAL_WINDOW_END;
 
 { TGLWindow ------------------------------------------------------------ }
 
-procedure TGLWindow.SetMouseVisible(const Value: boolean);
+procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
 begin
-  if FMouseVisible <> Value then
+  if FCursor <> Value then
   begin
-    FMouseVisible := Value;
+    FCursor := Value;
     if not Closed then
-      UpdateMouseVisible;
+      UpdateCursor;
   end;
 end;
 
-procedure TGLWindow.UpdateMouseVisible;
+procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
 begin
-  if MouseVisible then
-    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, nil) else
-    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Glwm.InvisibleCursor);
+  FCustomCursor := Value;
+  { TODO }
+end;
+
+procedure TGLWindow.UpdateCursor;
+begin
+  case Cursor of
+    gcDefault: gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, nil);
+    gcNone:    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Glwm.InvisibleCursor);
+    else
+      { TODO: for now, other values of Cursor are ignored }
+      gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, nil);
+  end;
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -1120,7 +1130,7 @@ begin
   {$endif}
  end;
 
- UpdateMouseVisible;
+ UpdateCursor;
 end;
 
 procedure TGLWindow.CloseImplDepend;

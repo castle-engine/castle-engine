@@ -48,3 +48,4 @@ Load
 symbol
 Name
 Equals
+CustomCursor

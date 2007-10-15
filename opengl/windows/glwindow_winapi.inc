@@ -686,8 +686,10 @@ begin
  end;
 end;
 
-procedure TGLWindow.SetMouseVisible(const Value: boolean);
+procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
 begin
+  FCursor := Value;
+
   { Note that this completely ignores the fact whether current window
     is Closed or not. This just changes cursor visiblity globally for all
     windows of this program.
@@ -703,9 +705,20 @@ begin
     property.
 
     For now I will definitely go with a simpler approach
-    and just change cursor globally. }
-  FMouseVisible := Value;
-  Glwm.MouseVisible := MouseVisible;
+    and just change cursor globally.
+
+    TODO: also, it only distinguishes between gcDefault and gcNone,
+    everything else treated like gcDefault... for now. This is possible
+    to fix in Windows using SetCursor (but first, previous problem will have
+    to be fixed to be able to use SetCursor nicely...). }
+
+  Glwm.MouseVisible := Cursor <> gcNone;
+end;
+
+procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
+begin
+  FCustomCursor := Value;
+  { TODO }
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);

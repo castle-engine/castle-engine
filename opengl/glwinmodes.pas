@@ -83,7 +83,8 @@ type
       So that you can change MainMenu.Enabled without changing MainMenu
       and SetGLWindowState will restore this. }
     oldMainMenuEnabled: boolean;
-    OldMouseVisible: boolean;
+    OldCursor: TGLWindowCursor;
+    OldCustomCursor: TAlphaImage;
     { TGLWindowDemo attributes }
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
@@ -127,7 +128,7 @@ procedure SetGLWindowState(glwin: TGLWindow; const State: TGLWindowState);
     czesc wlasciwosci jest pominieta -
       pominiete callbacki beda ustawione na nil,
       pominiete Caption i MainMenu bedzie zostawione takie jakie jest,
-      pominiete MouseVisible bedzie ustawione na true.
+      pominiete Cursor bedzie ustawione na gcDefault.
     Note that NewMainMenuEnabled will be set only if Glwin.MainMenu <> nil. }
 procedure SetStandardGLWindowState(glwin: TGLWindow;
   NewDraw, NewCloseQuery, NewResize: TGLWindowFunc;
@@ -338,7 +339,8 @@ begin
  result.oldMainMenu := glwin.MainMenu;
  if glwin.MainMenu <> nil then
    result.oldMainMenuEnabled := glwin.MainMenu.Enabled;
- Result.OldMouseVisible := Glwin.MouseVisible;
+ Result.OldCursor := Glwin.Cursor;
+ Result.OldCustomCursor := Glwin.CustomCursor;
 
  if glwin is TGLWindowDemo then
  begin
@@ -361,7 +363,8 @@ begin
  glwin.MainMenu := State.oldMainMenu;
  if glwin.MainMenu <> nil then
    glwin.MainMenu.Enabled := State.OldMainMenuEnabled;
- Glwin.MouseVisible := State.OldMouseVisible;
+ Glwin.Cursor := State.OldCursor;
+ Glwin.CustomCursor := State.OldCustomCursor;
 
  if glwin is TGLWindowDemo then
  begin
@@ -392,7 +395,7 @@ begin
  if glwin.MainMenu <> nil then
    glwin.MainMenu.Enabled := NewMainMenuEnabled;
  {glwin.MainMenu := leave current value}
- Glwin.MouseVisible := true;
+ Glwin.Cursor := gcDefault;
 
  if glwin is TGLWindowDemo then
  begin
