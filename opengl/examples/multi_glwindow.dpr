@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2006 Michalis Kamburelis.
+  Copyright 2004-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -23,6 +23,9 @@
   - instead of registering OnXxx callbacks overriding EventXxx methods
     (more OOP approach)
   - TGLOutlineTTFont rendered with depth (3d letters)
+  - press c to change cursor in the window that has focus, this is to demo
+    that TGLWindow.Cursor indeed works as appropriate, i.e. changes the cursor
+    only for the given window.
 
   Started as program based on NeHe 14th tutorial. Now the things insprired
   by NeHe 14th tutorial are in implementation of TGLOutlineFont for
@@ -152,6 +155,7 @@ begin
        OnlyLines := not OnlyLines;
        PostRedisplay
       end;
+  'c':if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
  end;
 end;
 

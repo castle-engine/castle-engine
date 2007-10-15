@@ -1,20 +1,20 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
-  This file is part of "Kambi's OpenGL Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's OpenGL Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's OpenGL Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's OpenGL Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
@@ -58,10 +58,20 @@ private
   procedure SetAppActive(value: boolean);
   property appActive: boolean read fappActive write SetAppActive;
 
-  FMouseVisible: boolean;
-  procedure SetMouseVisible(const Value: boolean);
-  property MouseVisible: boolean
-    read FMouseVisible write SetMouseVisible default true;
+  { A private array, initialized in CreateImplDependent.
+    NameForLoadCursor are actually constant, taken from Windows unit,
+    but CursorHandle are loaded each time in CreateImplDependent.
+    Having them all loaded once makes sure that WM_SETCURSOR is able to
+    use predefined HCURSOR values and so is fast. SetCursor is guaranteed
+    by WinAPI to return fast if called with already used cursor.
+
+    For gcDefault, and gcCustom, values in this array are undefined.
+    For gcNone, CursorHandle is 0 (this is what SetCursor always accepts
+    as invisible cursor). }
+  CursorHandles: array [TGLWindowCursor] of record
+    NameForLoadCursor: LPCTSTR;
+    Handle: HCURSOR;
+  end;
 {$endif read_tglwindowmanager_interface}
 
 {$ifdef read_implementation}
@@ -507,6 +517,41 @@ begin
       Exit;
      end;
     end;
+
+  { On Windows, we have to change cursor in each WM_SETCURSOR (called on each
+    mouse move (when mouse not captured), we also manually call it after each
+    Cursor property change).
+
+    That's because Windows internally doesn't have any "cursor" property associated
+    with h_Wnd --- instead, it has only SetCursor that changes cursor globally,
+    for everyone. Changing cursor on each WM_SETCURSOR seems to be the solution to
+    enable / disable our private Cursor value when appropriate, so as not to change
+    cursor look for other programs. This is also what glut for win32 does, so thanks
+    go to glut win32 author, Nate Robins, for showing how it's done.
+
+    There's some uncertainty whether doing SetCursor calls so often (each WM_SETCURSOR,
+    each mouse move !) will not decrease performance --- but, well, there seems to be
+    no other way, and SetCursor docs guarantee that SetCursor checks whether cursor
+    changes. In no change, SetCursor returns immediately. So, we feel a little safer
+    that we use CursorHandles[Cursor].Handle, so when Cursor stays the same, SetCursor
+    is called with exactly the same arguments. }
+  WM_SETCURSOR:
+    begin
+      { Falling back on DefWindowProc means that it will install
+        our window class cursor (or parent cursor) if in client area,
+        or just do the right thing if outside client area.
+        So it's suitable when wParm <> h_Wnd or we want gcDefault. }
+      if wParm = h_Wnd then
+        case Cursor of
+          gcDefault: { Fallback on DefWindowProc };
+          gcCustom: { TODO, for now behave like gcDefault };
+          else
+            begin
+              Windows.SetCursor(Glwm.CursorHandles[Cursor].Handle);
+              Exit(1);
+            end;
+        end;
+    end;
  end;
  Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
 end;
@@ -687,32 +732,24 @@ begin
 end;
 
 procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
+var
+  Point: Windows.TPoint;
 begin
-  FCursor := Value;
+  if FCursor <> Value then
+  begin
+    FCursor := Value;
 
-  { Note that this completely ignores the fact whether current window
-    is Closed or not. This just changes cursor visiblity globally for all
-    windows of this program.
+    { We reinstall the cursor on each WM_SETCURSOR call, that's the proper
+      place to do it. Right now, we want to force this reinstallation,
+      since FCursor changed (normally WM_SETCURSOR will be called only when
+      mouse will be moved). So we call PostMessage, if current position is
+      within the window.
 
-    I don't know of any easy way to tell WinAPI that I want
-    particular cursor hidden over some particular window.
-    It seems that the only way to do it (it seems that Delphi
-    does it like this) is just to intercept mouse moves and
-    call SetCursor (this changes cursor globally, which can also
-    make the cursor hidden --- quite like under GTK and Xlib
-    where you can set the cursor to empty transparent image)
-    whenever the control over which the cursor is changes it's Cursor
-    property.
-
-    For now I will definitely go with a simpler approach
-    and just change cursor globally.
-
-    TODO: also, it only distinguishes between gcDefault and gcNone,
-    everything else treated like gcDefault... for now. This is possible
-    to fix in Windows using SetCursor (but first, previous problem will have
-    to be fixed to be able to use SetCursor nicely...). }
-
-  Glwm.MouseVisible := Cursor <> gcNone;
+      This is similar to what glut for Win32 does in glutSetCursor. }
+    GetCursorPos(@Point);
+    if h_Wnd = WindowFromPoint(Point) then
+      PostMessage(h_Wnd, WM_SETCURSOR, h_Wnd, 0 { not important});
+  end;
 end;
 
 procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
@@ -869,11 +906,24 @@ end;
 { TGLWindowsManager ----------------------------------------------- }
 
 procedure TGLWindowsManager.CreateImplDependent;
-var WindowClass: TWndClass;
+var
+  WindowClass: TWndClass;
+  C: TGLWindowCursor;
 begin
- appActive := true;
+  appActive := true;
 
- FMouseVisible := true;
+  { initialize NameForLoadCursor for CursorHandles }
+  CursorHandles[gcStandard].NameForLoadCursor := IDC_ARROW;
+  CursorHandles[gcWait].NameForLoadCursor := IDC_WAIT;
+  CursorHandles[gcText].NameForLoadCursor := IDC_IBEAM;
+
+  { initialize Handle for CursorHandles }
+
+  CursorHandles[gcNone].Handle := 0;
+
+  for C := Low(C) to High(C) do
+    if not (C in [gcDefault, gcNone, gcCustom]) then
+      CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
 
  { create window class (WindowClass) }
 
@@ -1049,24 +1099,6 @@ end;
 function TGLWindowsManager.ImplementationName: string;
 begin
  Result := 'WinAPI';
-end;
-
-procedure TGLWindowsManager.SetMouseVisible(const Value: boolean);
-begin
-  if FMouseVisible <> Value then
-  begin
-    FMouseVisible := Value;
-    { We must call ShowCursor only when MouseVisible value changes.
-      That's because ShowCursor has internal counter of calls
-      (inc of calling with true, dec on calling with false),
-      and we want to avoid this counter (because calling
-        MouseVisible := true;
-        MouseVisible := true;
-        MouseVisible := false;
-      should hide the cursor. In other words, calling
-      MouseVisible := true more than once doesn't change anything.) }
-    ShowCursor(MouseVisible);
-  end;
 end;
 
 {$endif read_implementation}

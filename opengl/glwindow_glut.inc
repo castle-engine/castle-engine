@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -286,7 +286,9 @@ begin
     { CustomCursor cannot be handled in glut, so gcCustom is treated just like gcDefault }
     gcDefault, gcCustom: glutSetCursor(GLUT_CURSOR_INHERIT);
     gcNone: glutSetCursor(GLUT_CURSOR_NONE);
+    gcStandard: glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
     gcWait: glutSetCursor(GLUT_CURSOR_WAIT);
+    gcText: glutSetCursor(GLUT_CURSOR_TEXT);
     else raise EInternalError.Create('glwindow_glut.inc TGLWindow.UpdateCursor: unknown Cursor');
   end;
 end;

@@ -775,8 +775,25 @@ type
 
   EGLContextNotPossible = class(Exception);
 
-  { Values for TGLWindow.Cursor. }
-  TGLWindowCursor = (gcDefault, gcNone, gcCustom, gcWait);
+  { Values for TGLWindow.Cursor.
+
+    gcDefault, gcNone, gcCustom have somewhat special meanings.
+    The rest are some cursor images will well-defined meanings for the user,
+    their exact look may depend on current window manager theme etc.  }
+  TGLWindowCursor = (
+    { Leave cursor as default, decided by a window manager. }
+    gcDefault,
+    { Make cursor invisible. }
+    gcNone,
+    { Use custom cursor image in TGLWindow.CustomCursor. }
+    gcCustom,
+    { Standard arrow, indicates, well, that user can point / click something. }
+    gcStandard,
+    { Indicates the program is busy and user should wait. }
+    gcWait,
+    { Text cursor, indicates that there's text under the cursor, which commonly means
+      that it can be selectec, or that user can click to gain focus to text box. }
+    gcText);
 
   {$define read_interface_types}
   {$I glwindow_implementation_specific.inc}
@@ -1272,25 +1289,18 @@ type
       TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
       interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
       wymagane ColorBits, ponadto nie powinnismy zmieniac ColorBits
-      po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits. }
+      po Init - po wyjasnienie dlaczego patrz komentarze do StencilbufferBits.
+
+      @deprecated }
     property ColorBits: integer
       read FColorBits write FColorBits default 0;
 
     { Sets mouse cursor appearance over this window.
-      See TGLWindowCursor for a list of possible values.
+      See TGLWindowCursor for a list of possible values and their meanings.
 
-      Some special TGLWindowCursor values are:
-      @unorderedList(
-        @item gcDefault --- leave cursor as default, decided by a window manager
-        @item gcNone --- make cursor invisible
-        @item gcCustom --- use custom cursor image in CustomCursor
-      )
-
-      TODO: for now, only gcDefault and gcNone are implemented and honoured
-      under every GLWindow implementation. Other TGLWindowCursor values are treated
-      just like gcDefault. So for now, Cursor is just equivalent to "MouseVisible".
-      It's only a plan to extend it (it will have to be done for "the rift" around the
-      end of 2007). }
+      TODO: for now, gcCustom is not handled anywhere.
+      gcDefault and gcNone is handled everywhere. The rest is handled only
+      on glut and WinAPI. }
     property Cursor: TGLWindowCursor read FCursor write SetCursor default gcDefault;
 
     { Image for cursor, used only when @link(Cursor) = gcCustom.
