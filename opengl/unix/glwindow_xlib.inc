@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -132,6 +132,8 @@ const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
+ Glwm.InitializeXDisplay;
+
  VisualAttr := TDynLongIntArray.Create;
  try
   VisualAttr.AllowedCapacityOverflow := 20;

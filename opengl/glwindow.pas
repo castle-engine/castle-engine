@@ -2878,13 +2878,6 @@ begin
  if not FClosed then Exit;
 
  try
-   {$ifdef GLWINDOW_XLIB}
-   { I have to call this to initialize XScreen which is needed to be able to get
-     Glwm.ScreenWidth/Height which are needed below. So I can't wait with
-     this until InitImplDepend. }
-   Glwm.InitializeXDisplay;
-   {$endif}
-
   { Adjust Left/Top/Width/Height/FullScreen as needed.
     Note: calculations below try to correct window geometry but they
     can fail to foresee some things. In particular, they do not take

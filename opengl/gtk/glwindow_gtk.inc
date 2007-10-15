@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2006 Michalis Kamburelis.
+  Copyright 2004-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's OpenGL Pascal units".
 
@@ -168,11 +168,26 @@ private
     no such window is found. }
   function ActiveGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
 
-  { Will be used by SetCursor. }
-  InvisibleCursor: PGdkCursor;
+  { Used by SetCursor, each item may be nil if not initialized. }
+  Cursors: array [TGLWindowCursor] of PGdkCursor;
 
   {$ifdef GLWINDOW_GTK_2}
   FXDisplayName: string;
+
+  InitializeXDisplayDone: boolean;
+
+  XDisplayGdk: PGdkDisplay;
+  XScreenGdk: PGdkScreen;
+
+  { Check XDisplayGdk. Call this once you're sure that XDisplayName is set to
+    value desired by used now. See glwindow_xlib.inc for comments about
+    this, it's used here for analogous reasons.
+
+    This initializes XDisplayGdk, XScreenGdk.
+
+    You should call this when you know that last SetXDisplayName was
+    called --- good choice is before initializing your window. }
+  procedure InitializeXDisplay;
   {$endif}
 
   {$ifdef GLWINDOW_USE_XF86VMODE}
@@ -213,6 +228,22 @@ function gdk_x11_get_default_screen(): Gint;
 
 function gdk_x11_get_default_xdisplay(): Xlib.PDisplay;
   cdecl; external gdklib name 'gdk_x11_get_default_xdisplay';
+{$endif}
+
+{$ifdef GLWINDOW_GTK_2}
+{ This is mispelled in FPC gtk bindings, see
+  [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
+function gdk_display_open(display_name:Pgchar):PGdkDisplay;
+  cdecl; external gdklib;
+
+{ Some functions missing from FPC gtk bindings }
+
+function gdk_cursor_new_for_display(Display: PGdkDisplay;
+  cursor_type: TGdkCursorType): PGdkCursor;
+  cdecl; external gdklib name 'gdk_cursor_new_for_display';
+
+function gdk_display_get_default: PGdkDisplay;
+  cdecl; external gdklib name 'gdk_display_get_default';
 {$endif}
 
 { gtk, gdk helpers ------------------------------------------------------------ }
@@ -652,14 +683,54 @@ begin
 end;
 
 procedure TGLWindow.UpdateCursor;
-begin
-  case Cursor of
-    gcDefault: gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, nil);
-    gcNone:    gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Glwm.InvisibleCursor);
-    else
-      { TODO: for now, other values of Cursor are ignored }
-      gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, nil);
+
+  function CreateNoneCursor: PGdkCursor;
+  const
+    Bits: array[0..0] of Guchar = ({$ifdef GLWINDOW_GTK_2} 0 {$else} #0 {$endif});
+    Color: TGdkColor = (Pixel: 0; Red: 0; Green: 0; Blue: 0);
+  var
+    Pixmap: PGdkPixmap;
+  begin
+    { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
+    Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
+    try
+      Result := gdk_cursor_new_from_pixmap(
+        Pixmap, Pixmap, @Color, @Color, 0, 0);
+    finally gdk_pixmap_unref(Pixmap); end;
   end;
+
+const
+  GdkCursorTypeFromMy: array [gcStandard .. High(TGLWindowCursor)] of
+    TGdkCursorType =
+  ( { I think that GDK_ARROW was traditionally standard under XWindows
+      (right-top arrow), but then gtk changed standard to much more standard
+      left-top arrow in GDK_LEFT_PTR. }
+    GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM );
+begin
+  if Glwm.Cursors[Cursor] = nil then
+  begin
+    { initialize Glwm.Cursors[Cursor] }
+    case Cursor of
+      gcDefault:
+        { don't do anything, Glwm.Cursors[gcDefault] should be nil,
+          gdk_window_set_cursor will understand nil as "use parent"
+          and that's exactly what we want for gcDefault. };
+      gcNone: Glwm.Cursors[Cursor] := CreateNoneCursor;
+      gcCustom: { TODO: temporary, behave like gcDefault };
+      else
+      begin
+        Glwm.Cursors[Cursor] :=
+          {$ifdef GLWINDOW_GTK_2}
+          gdk_cursor_new_for_display(Glwm.XDisplayGdk,
+          {$else}
+          gdk_cursor_new(
+          {$endif}
+            GdkCursorTypeFromMy[Cursor]);
+      end;
+    end;
+  end;
+
+  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Glwm.Cursors[Cursor]);
 end;
 
 procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -754,13 +825,6 @@ function TGLWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
  Result := GTK_WIDGET(GLArea);
 end;
-
-{$ifdef GLWINDOW_GTK_2}
-{ This is mispelled in FPC gtk bindings, see
-  [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
-function gdk_display_open(display_name:Pgchar):PGdkDisplay;
-  cdecl; external gdklib;
-{$endif}
 
 procedure TGLWindow.InitImplDepend;
 
@@ -862,11 +926,11 @@ const
 var
   VisualAttr: TDynLongIntArray;
   GLAreaContainer: PGtkWidget;
-  {$ifdef GLWINDOW_GTK_2}
-  WindowXDisplay: PGdkDisplay;
-  WindowXScreen: PGdkScreen;
-  {$endif}
 begin
+ {$ifdef GLWINDOW_GTK_2}
+ Glwm.InitializeXDisplay;
+ {$endif}
+
  {$ifdef GLWINDOW_GTK_1}
  FullScreenUsingOverrideRedirect := MainMenu = nil;
  WindowGtk := PGtkWindow(gtk_window_new(
@@ -1077,12 +1141,9 @@ begin
  end;
 
  {$ifdef GLWINDOW_GTK_2}
- if Glwm.XDisplayName <> '' then
- begin
-   WindowXDisplay := gdk_display_open(PChar(Glwm.XDisplayName));
-   WindowXScreen := gdk_display_get_default_screen(WindowXDisplay);
-   gtk_window_set_screen(WindowGtk, WindowXScreen);
- end;
+ { Honour display (XScreenGdk is default screen on chosen display)
+   chosen by user. }
+ gtk_window_set_screen(WindowGtk, Glwm.XScreenGdk);
  {$endif}
 
  { Show WindowGtk, it will also make visible all other widgets.
@@ -1505,22 +1566,6 @@ begin
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;
-
-  procedure InitializeInvisibleCursor;
-  const
-    Bits: array[0..0] of Guchar = ({$ifdef GLWINDOW_GTK_2} 0 {$else} #0 {$endif});
-    Color: TGdkColor = (Pixel: 0; Red: 0; Green: 0; Blue: 0);
-  var
-    Pixmap: PGdkPixmap;
-  begin
-    { Based on [http://mail.gnome.org/archives/gtk-app-devel-list/2005-January/msg00370.html] }
-    Pixmap := gdk_bitmap_create_from_data(nil, @Bits, 1, 1);
-    try
-      InvisibleCursor := gdk_cursor_new_from_pixmap(
-        Pixmap, Pixmap, @Color, @Color, 0, 0);
-    finally gdk_pixmap_unref(Pixmap); end;
-  end;
-
 begin
   gtk_init(@argc, @argv);
 
@@ -1533,24 +1578,26 @@ begin
   FGlobalIdleInstalled := false;
   GlobalIdleInstalled := true;
 
-  InitializeInvisibleCursor;
-
   QuitPosted := false;
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
+var
+  C: TGLWindowCursor;
 begin
   GlobalIdleInstalled := false;
 
   FreeAndNil(AutoRedisplayList);
 
-  if InvisibleCursor <> nil then
-  begin
-    {$ifdef GLWINDOW_GTK_2}
-    gdk_cursor_unref(InvisibleCursor);
-    {$endif}
-    InvisibleCursor := nil;
-  end;
+  { unref cursors allocated in Cursors array }
+  for C := Low(C) to High(C) do
+    if Cursors[C] <> nil then
+    begin
+      {$ifdef GLWINDOW_GTK_2}
+      gdk_cursor_unref(Cursors[C]);
+      {$endif}
+      Cursors[C] := nil;
+    end;
 end;
 
 { When GLWINDOW_USE_XF86VMODE, then glwindow_xf86vmode.inc
@@ -1558,18 +1605,28 @@ end;
 {$ifndef GLWINDOW_USE_XF86VMODE}
 function TGLWindowsManager.ScreenWidth: integer;
 begin
- Result := gdk_screen_width();
+  {$ifdef GLWINDOW_GTK_2}
+  InitializeXDisplay;
+  Result := gdk_screen_get_width(XScreenGdk);
+  {$else}
+  Result := gdk_screen_width();
+  {$endif}
 end;
 
 function TGLWindowsManager.ScreenHeight: integer;
 begin
- Result := gdk_screen_height();
+  {$ifdef GLWINDOW_GTK_2}
+  InitializeXDisplay;
+  Result := gdk_screen_get_height(XScreenGdk);
+  {$else}
+  Result := gdk_screen_height();
+  {$endif}
 end;
 {$endif GLWINDOW_USE_XF86VMODE}
 
 function TGLWindowsManager.ImplementationName: string;
 begin
- Result := {$ifdef GLWINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
+  Result := {$ifdef GLWINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
 end;
 
 {$ifdef GLWINDOW_USE_XF86VMODE}
@@ -1584,5 +1641,21 @@ begin
   Result := gdk_x11_get_default_screen();
 end;
 {$endif}
+
+{$ifdef GLWINDOW_GTK_2}
+procedure TGLWindowsManager.InitializeXDisplay;
+begin
+  if not InitializeXDisplayDone then
+  begin
+    if XDisplayName <> '' then
+      XDisplayGdk := gdk_display_open(PChar(XDisplayName)) else
+      XDisplayGdk := gdk_display_get_default();
+
+    XScreenGdk := gdk_display_get_default_screen(XDisplayGdk);
+
+    InitializeXDisplayDone := true;
+  end;
+end;
+{$endif GLWINDOW_GTK_2}
 
 {$endif read_implementation}
