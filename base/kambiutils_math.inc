@@ -387,6 +387,10 @@ function CeilDiv(const A, B: Cardinal): Cardinal;
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
+{ To workaround http://www.freepascal.org/mantis/view.php?id=9944,
+  our version of CoTan. }
+function KamCoTan(const Value: Float): Float;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -736,6 +740,14 @@ begin
     if x1 > max then max := x1;
   if   x2 < min then min := x2 else
     if x2 > max then max := x2;
+end;
+
+function KamCoTan(const Value: Float): Float;
+var
+  ASin, ACos: Float;
+begin
+  SinCos(Value, ASin, ACos);
+  Result := Acos / ASin;
 end;
 
 {$endif read_implementation}

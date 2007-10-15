@@ -112,12 +112,21 @@ procedure TShadowVolumesHelper.FrustumCullingInit(
 var
   MainLightPosition3: TVector3Single absolute MainLightPosition;
 begin
-  IsFrustumLightBox := MainLightPosition[3] = 1;
+  IsFrustumLightBox := (MainLightPosition[3] = 1) and
+    ( (Frustum[fpFar][0] <> 0) or
+      (Frustum[fpFar][1] <> 0) or
+      (Frustum[fpFar][2] <> 0) );
 
-  { TODO: this is very lame frustum culling. First of all, this works
-    only for positional lights. Second, this represents the sum of
-    Frustum + light position as a box3d --- while a convex hull of max
-    9 points would be more optimal. }
+  { TODO: this is very lame frustum culling.
+    1. First of all, this works only for positional lights.
+    2. Second, this represents the sum of
+       Frustum + light position as a box3d --- while a convex hull of max
+       9 points would be more optimal.
+    3. Third, it doesn't work for frustum with infinite far plane
+       (and this is practically neededfor z-fail approach).
+       (CalculateFrustumPoints, and so FrustumAndPointBoundingBox,
+       cannot work with such frustum).
+  }
 
   if IsFrustumLightBox then
     FrustumLightBox := FrustumAndPointBoundingBox(Frustum, MainLightPosition3);

@@ -849,15 +849,24 @@ procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImag
 
 { manipulacje projection matrix -------------------------------------------------------- }
 
-{ wszystkie procedury ProjectionGL* wywoluja odpowiadajace im
-    procedury gl*. Ale najpierw : ustawiaja sie na matrixMode(GL_PROJECTION) i
-    laduja glLoadIdentity. A po zrobieniu tego wracaja do matrixMode ktory byl
-    aktywny przy wejsciu w te procedury.
-  Innymi slowy, te procedury laduja odpowiednie matryce do matrycy GL_PROJECTION
-    OpenGL'a jednoczesnie nie zmieniajac aktualnej matrycy OpenGL'a. }
-procedure ProjectionGLPerspective(fovy, aspect, zNear, zFar: TGLdouble);
-procedure ProjectionGLOrtho(left, right, bottom, top, zNear, zFar: TGLdouble); overload;
-procedure ProjectionGLOrtho(left, right, bottom, top: TGLdouble); overload; { near = -1, far = 1 }
+{ ProjectionGL* procedures load correspoding OpenGL matrices
+  (gluPerspective, glOrtho), making sure we're in GL_PROJECTION matrix mode.
+
+  More precise description: first these procedures change current matrix
+  mode (if needed) to GL_PROJECTION. Then call load identity,
+  and then call appropriate OpenGL functions (gluPerspective, glOrtho).
+  And then (if needed) go back to previous matrix mode.
+  So current matrix mode is never changed by these procedures.
+
+  Also, ZFar is allowed to have special ZFarInfinity value
+  for ProjectionGLPerspective.
+  Then we set special perspective matrix, that has far plane set
+  at infinity --- useful for z-fail shadow volumes.
+
+  @groupBegin }
+procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
+procedure ProjectionGLOrtho(const left, right, bottom, top, zNear, zFar: TGLdouble); overload;
+procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble); overload; { near = -1, far = 1 }
 
 { ------------------------------------------------------------ }
 { @section(Helpers for polygon stipple) }
@@ -1968,7 +1977,7 @@ end;
   VectorMath unit. }
 { $define TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
 
-procedure ProjectionGLPerspective(fovy, aspect, zNear, zFar: TGLdouble);
+procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
 var oldMatrixMode: TGLenum;
 begin
  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
@@ -1977,14 +1986,20 @@ begin
  {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
  glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
  {$else}
- glLoadIdentity;
- gluPerspective(fovy, aspect, zNear, zFar);
+ if ZFar = ZFarInfinity then
+ begin
+   glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
+ end else
+ begin
+   glLoadIdentity;
+   gluPerspective(fovy, aspect, zNear, zFar);
+ end;
  {$endif}
 
  glMatrixMode(oldMatrixMode);
 end;
 
-procedure ProjectionGLOrtho(left, right, bottom, top, zNear, zFar: TGLdouble);
+procedure ProjectionGLOrtho(const left, right, bottom, top, zNear, zFar: TGLdouble);
 var oldMatrixMode: TGLenum;
 begin
  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
@@ -2000,7 +2015,7 @@ begin
  glMatrixMode(oldMatrixMode);
 end;
 
-procedure ProjectionGLOrtho(left, right, bottom, top: TGLdouble);
+procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble);
 begin
  ProjectionGLOrtho(left, right, bottom, top, -1, 1);
 end;

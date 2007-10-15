@@ -410,7 +410,12 @@ begin
   glViewport(0, 0, glwin.Width, glwin.Height);
   ProjectionGLPerspective(30, glwin.Width/glwin.Height,
     Box3dAvgSize(SceneBoundingBox)*0.05,
-    Box3dAvgSize(SceneBoundingBox)*20.0);
+    { TODO: switch to using NV_depth_clamp where possible.
+      Enable this for good when shadow culling for infinite frustum will work...
+      otherwise, right now, we lose a little time for this, even in z-pass. }
+    { For z-fail, we use far projection plane in infinity. }
+    ZFarInfinity 
+    { Box3dAvgSize(SceneBoundingBox)*20.0 });
   UpdateNavigatorProjectionMatrix;
 end;
 

@@ -1484,11 +1484,30 @@ function MultMatrices(const m1, m2: TMatrix4Single): TMatrix4Single;
   czyli np. dla wektorow 3-elementowych otrzymamy macierz 3x3. }
 function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix3Single;
 
-{ Functions below generate the same matrices that are made by corresponding
+const
+  { Special value that you can pass to FrustumProjMatrix and
+    PerspectiveProjMatrix as ZFar, with intention to set far plane at infinity.
+
+    If would be "cooler" to define ZFarInfinity as Math.Infinity,
+    but operating on Math.Infinity requires unnecessary turning
+    off of compiler checks. The point was only to have some special ZFar
+    value, so 0 is as good as Infinity. }
+  ZFarInfinity = 0.0;
+
+{ Functions to create common 4x4 matrices used in 3D graphics.
+
+  These functions generate the same matrices that are made by corresponding
   OpenGL (gl or glu) functions. So rotations will be generated in the same
   fashion, etc. For exact specification of what matrices they create see
   OpenGL specification for routines glTranslate, glScale, glRotate,
-  glOrtho, glFrustum, gluPerspective. }
+  glOrtho, glFrustum, gluPerspective.
+
+  For frustum and pespective projection matrices, we have a special bonus
+  here: you can pass as ZFar the special value ZFarInfinity.
+  Then you get perspective projection matrix withour far clipping plane,
+  which is very useful for z-fail shadow volumes technique.
+
+  @groupBegin }
 function TranslationMatrix(const Transl: TVector3Single): TMatrix4Single; overload;
 function TranslationMatrix(const Transl: TVector3Double): TMatrix4Single; overload;
 function ScalingMatrix(const ScaleFactor: TVector3Single): TMatrix4Single;
@@ -1499,6 +1518,7 @@ function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Sing
 function FrustumProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 function PerspectiveProjMatrixDeg(const fovyDeg, aspect, zNear, zFar: Single): TMatrix4Single;
 function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): TMatrix4Single;
+{ @groupEnd }
 
 function MatrixDet4x4(const mat: TMatrix4Single): Single;
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: Single): Single;
@@ -1677,6 +1697,7 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 
 type
   { Order of planes of TFrustum.
+
     (This order is the same as the order of params to
     procedure FrustumProjMatrix and OpenGL's glFrustum routine.
     Article [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf]
@@ -1685,7 +1706,12 @@ type
 
   { Frustum is defined as 6 plane equations.
     Direction vectors of these planes (not "normal vectors" as they don't
-    have to be Normalized) must point to the inside of the frustum. }
+    have to be Normalized) must point to the inside of the frustum.
+
+    @italic(Warning:) If you used a special perspective projection with
+    far plane at infinity (ZFarInfinity, see above in this unit),
+    then the far plane will be invalid --- first three values of it's
+    equation will be 0. }
   TFrustum = array[TFrustumPlane]of TVector4Single;
   PFrustum = ^TFrustum;
 
@@ -1718,11 +1744,11 @@ const
     (0, 4), (1, 5), (2, 6), (3, 7)
   );
 
-{ This calculates 6 points of Frustum. These points are simply
+{ This calculates 8 points of Frustum. These points are simply
   calculated doing ThreePlanesIntersectionPoint on appropriate planes.
 
   Using these points you can easily draw given frustum on screen.
-  Use FrustumPolygons to obtain indexes to FrustumPoints.
+  Use FrustumPointsQuadsIndexes to obtain indexes to FrustumPoints.
   E.g. using OpenGL use code like this:
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -1738,7 +1764,12 @@ const
 
     glDisableClientState(GL_VERTEX_ARRAY);
 
-  Question: Should I use TFrustumPointsSingle or TFrustumPointsDouble ?
+  @italic(Warning:) If you used a special perspective projection with
+  far plane at infinity (ZFarInfinity, see above in this unit),
+  then the far plane will be invalid. This procedure will fail
+  in this case. You can't use this if you used ZFarInfinity.
+
+  @italic(Question:) Should I use TFrustumPointsSingle or TFrustumPointsDouble ?
   Short answer: use Double. Tests show that while keeping type TFrustum
   based on Single type is sufficient, calculating FrustumPoints
   on Single type is *not* sufficient, practical example: run
@@ -2683,44 +2714,66 @@ begin
 end;
 
 function FrustumProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
-var Width, Height, Depth, ZNear2: Single;
-begin
- { This is of course based on "OpenGL Programming Guide",
-   Appendix G "... and Transformation Matrices" }
- Width := Right - Left;
- Height := Top - Bottom;
- Depth := ZFar - ZNear;
- ZNear2 := ZNear * 2;
 
- Result := ZeroMatrix4Single;
- Result[0, 0] := ZNear2         / Width;
- Result[2, 0] := (Right + Left) / Width;
- Result[1, 1] := ZNear2         / Height;
- Result[2, 1] := (Top + Bottom) / Height;
- Result[2, 2] := - (ZFar + ZNear) / Depth;
- Result[3, 2] := - ZNear2 * ZFar  / Depth;
- Result[2, 3] := -1;
+{ This is of course based on "OpenGL Programming Guide",
+  Appendix G "... and Transformation Matrices".
+  ZFarInfinity version based on various sources, pretty much every
+  article about shadow volumes mentions z-fail and this trick. }
+
+var
+  Width, Height, Depth, ZNear2: Single;
+begin
+  Width := Right - Left;
+  Height := Top - Bottom;
+  ZNear2 := ZNear * 2;
+
+  Result := ZeroMatrix4Single;
+  Result[0, 0] := ZNear2         / Width;
+  Result[2, 0] := (Right + Left) / Width;
+  Result[1, 1] := ZNear2         / Height;
+  Result[2, 1] := (Top + Bottom) / Height;
+  if ZFar <> ZFarInfinity then
+  begin
+    Depth := ZFar - ZNear;
+    Result[2, 2] := - (ZFar + ZNear) / Depth;
+    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+  end else
+  begin
+    Result[2, 2] := -1;
+    Result[3, 2] := -ZNear2;
+  end;
+  Result[2, 3] := -1;
 end;
 
 function PerspectiveProjMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4Single;
 begin
- Result := PerspectiveProjMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
+  Result := PerspectiveProjMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
 end;
 
 function PerspectiveProjMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4Single;
-var Depth, ZNear2, Cotangent: Single;
+{ Based on various sources, e.g. sample implementation of
+  glu by SGI in Mesa3d sources. }
+var
+  Depth, ZNear2, Cotangent: Single;
 begin
- { See e.g. sample implementation of glu by SGI in Mesa3d sources. }
- Depth := ZFar - ZNear;
- ZNear2 := ZNear * 2;
- Cotangent := CoTan(FovyRad / 2);
+  ZNear2 := ZNear * 2;
+  Cotangent := KamCoTan(FovyRad / 2);
 
- Result := ZeroMatrix4Single;
- Result[0, 0] := Cotangent / Aspect;
- Result[1, 1] := Cotangent;
- Result[2, 2] := - (ZFar + ZNear) / Depth;
- Result[3, 2] := - ZNear2 * ZFar  / Depth;
- Result[2, 3] := -1;
+  Result := ZeroMatrix4Single;
+  Result[0, 0] := Cotangent / Aspect;
+  Result[1, 1] := Cotangent;
+  if ZFar <> ZFarInfinity then
+  begin
+    Depth := ZFar - ZNear;
+    Result[2, 2] := - (ZFar + ZNear) / Depth;
+    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+  end else
+  begin
+    Result[2, 2] := -1;
+    Result[3, 2] := -ZNear2;
+  end;
+
+  Result[2, 3] := -1;
 end;
 
 { kod dla MatrixDet* przerobiony z vect.c z mgflib }

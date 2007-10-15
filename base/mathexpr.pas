@@ -445,7 +445,7 @@ begin
   fkSin:   Result := Sin(ArgValue(0));
   fkCos:   Result := Cos(ArgValue(0));
   fkTan:   Result := Tan(ArgValue(0));
-  fkCotan: Result := Cotan(ArgValue(0));
+  fkCotan: Result := KamCoTan(ArgValue(0));
 
   fkSinH:   Result:=  SinH(ArgValue(0));
   fkCosH:   Result:=  CosH(ArgValue(0));
