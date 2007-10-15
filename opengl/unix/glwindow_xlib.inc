@@ -73,6 +73,8 @@ private
     So you should call this when you know that last SetXDisplayName was
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
+
+  XCursors: array [TGLWindowCursor] of TCursor;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania glwin.Init.
     glwm nie jest przygotowany na zarzadzanie oknami na wielu displayach i
@@ -310,41 +312,51 @@ begin
 end;
 
 procedure TGLWindow.UpdateCursor;
-var
-  bm_no: TPixmap;
-  cmap: TColormap;
-  no_ptr: TCursor;
-  black, dummy: TXColor;
-const
-  bm_no_data: array[0..7] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
-begin
-  case Cursor of
-    gcDefault: XUndefineCursor(Glwm.XDisplay, WindowXID);
-    gcNone:
-      begin
-        { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
-        cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
-        XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
-        try
-          bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
-          try
-            no_ptr := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
-            try
-              XDefineCursor(Glwm.XDisplay, WindowXID, no_ptr);
-            finally
-              XFreeCursor(Glwm.XDisplay, no_ptr);
-            end;
-          finally
-            if bm_no <> None then
-              XFreePixmap(Glwm.XDisplay, bm_no);
-          end;
-        finally
-          XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
-        end;
+
+  function CreateNoneCursor: TCursor;
+  var
+    bm_no: TPixmap;
+    cmap: TColormap;
+    black, dummy: TXColor;
+  const
+    bm_no_data: array[0..7] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
+  begin
+    { Based on [http://www.linuxforums.org/forum/linux-programming-scripting/59012-xlib-hide-mouse-pointer.html] }
+    cmap := DefaultColormap(Glwm.XDisplay, DefaultScreen(Glwm.XDisplay));
+    XAllocNamedColor(Glwm.XDisplay, cmap, 'black', @black, @dummy);
+    try
+      bm_no := XCreateBitmapFromData(Glwm.XDisplay, WindowXID, @bm_no_data, 8, 8);
+      try
+        Result := XCreatePixmapCursor(Glwm.XDisplay, bm_no, bm_no, @black, @black, 0, 0);
+      finally
+        if bm_no <> None then
+          XFreePixmap(Glwm.XDisplay, bm_no);
       end;
-    else
-      { TODO: for now, other values of Cursor are ignored }
-      XUndefineCursor(Glwm.XDisplay, WindowXID);
+    finally
+      XFreeColors(Glwm.XDisplay, cmap, @black.pixel, 1, 0);
+    end;
+  end;
+
+const
+  XCursorShapeFromMy: array [gcStandard .. High(TGLWindowCursor)] of LongWord =
+  ( XC_left_ptr, XC_watch, XC_xterm );
+begin
+  { TODO: for now gcCustom is treated like gcDefault }
+  if (Cursor = gcDefault) or (Cursor = gcCustom) then
+  begin
+    XUndefineCursor(Glwm.XDisplay, WindowXID);
+  end else
+  begin
+    if Glwm.XCursors[Cursor] = X.None then
+    begin
+      { initialize XCursors[Cursor] }
+      if Cursor = gcNone then
+        Glwm.XCursors[Cursor] := CreateNoneCursor else
+        Glwm.XCursors[Cursor] := XCreateFontCursor(Glwm.XDisplay,
+          XCursorShapeFromMy[Cursor]);
+    end;
+
+    XDefineCursor(Glwm.XDisplay, WindowXID, Glwm.XCursors[Cursor]);
   end;
 end;
 
@@ -684,8 +696,20 @@ begin
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
+var
+  C: TGLWindowCursor;
 begin
- if XDisplay <> nil then XCloseDisplay(XDisplay);
+  if XDisplay <> nil then
+  begin
+    for C := Low(C) to High(C) do
+      if XCursors[C] <> X.None then
+      begin
+        XFreeCursor(XDisplay, XCursors[C]);
+        XCursors[C] := X.None;
+      end;
+
+    XCloseDisplay(XDisplay);
+  end;
 end;
 
 function TGLWindowsManager.ImplementationName: string;

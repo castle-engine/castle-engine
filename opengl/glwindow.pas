@@ -610,7 +610,7 @@ uses
   SysUtils, Math, VectorMath, OpenGLh,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, {$endif}
   {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
@@ -1298,9 +1298,7 @@ type
     { Sets mouse cursor appearance over this window.
       See TGLWindowCursor for a list of possible values and their meanings.
 
-      TODO: for now, gcCustom is not handled anywhere.
-      gcDefault and gcNone is handled everywhere. The rest is handled only
-      on glut and WinAPI. }
+      TODO: for now, gcCustom is not handled anywhere. }
     property Cursor: TGLWindowCursor read FCursor write SetCursor default gcDefault;
 
     { Image for cursor, used only when @link(Cursor) = gcCustom.
