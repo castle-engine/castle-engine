@@ -49,3 +49,4 @@ symbol
 Name
 Equals
 CustomCursor
+Objects

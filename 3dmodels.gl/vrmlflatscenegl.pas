@@ -386,10 +386,12 @@ type
 
     procedure RenderSilhouetteShadowQuads(
       const LightPos: TVector4Single;
+      const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single);
 
     procedure RenderAllShadowQuads(
       const LightPos: TVector4Single;
+      const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
@@ -671,8 +673,16 @@ type
           and usually it's much better to workarounded it by correcting 3D model
           (to be correct 2-manifold) than by turning off silhouette optimization.))
 
-      All shadow quads are generated from scene triangles
-      transformed by Transform.
+      All shadow quads are generated from scene triangles transformed
+      by Transform. This must be able to correctly detect front and
+      back facing triangles with respect to LightPos, so "LightPos" and
+      "scene transformed by Transform" must be in the same coordinate system.
+      (That's why explicit Transform parameter is needed, you can't get away
+      with simply doing glPush/PopMatrix and glMustMatrix around RenderShadowQuads
+      call.) If TransformIsIdentity then Transform value is ignored and
+      everything works like Transform = identity matrix (and is a little
+      faster in this special case).
+
       This uses TrianglesList(false) and ManifoldEdges and BorderEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
       prShadowQuads included).
@@ -684,6 +694,7 @@ type
       glBegin, sequence of glVertex, then glEnd. }
     procedure RenderShadowQuads(
       const LightPos: TVector4Single;
+      const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
   private
@@ -1621,6 +1632,7 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
   const LightPos: TVector4Single;
+  const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single);
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
@@ -1651,13 +1663,87 @@ procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
     glVertexv(PExtruded);
   end;
 
+  procedure HandleTriangle(const T: TTriangle3Single);
+  var
+    TExtruded0, TExtruded1, TExtruded2: TVector4Single;
+    Plane: TVector4Single;
+    PlaneSide: Single;
+  begin
+    { We want to have consistent CCW orientation of shadow quads faces,
+      so that face is oriented CCW <=> you're looking at it from outside
+      (i.e. it's considered front face of this shadow quad).
+      This is needed, since user of this method may want to do culling
+      to eliminate back or front faces.
+
+      If TriangleDir(T) indicates direction that goes from CCW triangle side.
+      If TriangleDir(T) points in the same direction as LightPos then
+      1st quad should be T1, T0, TExtruded0, TExtruded1.
+      If TriangleDir(T) points in the opposite direction as LightPos then
+      1st quad should be T0, T1, TExtruded1, TExtruded0.
+      And so on.
+
+      Note that this works for any LightPos[3].
+      - For LightPos[3] = 1 this is  normal check.
+      - For other LightPos[3] > 0 this is equivalent to normal check.
+      - For LightPos[3] = 0, this calculates dot between light direction
+        and plane direction. Plane direction points outwards, so PlaneSide > 0
+        indicates that light is from the outside. So it matches results for
+        LightPos[3] = 1.
+      - For LightPos[3] < 0, is seems that the test has to be reversed !
+        I.e. add "if LightPos[3] < 0 then PlaneSide := -PlaneSide;".
+        This will be done when we'll have to do accept any homogeneous
+        coords for LightPos, right now it's not needed.
+    }
+    Plane := TrianglePlane(T);
+    PlaneSide := Plane[0] * LightPos[0] +
+                 Plane[1] * LightPos[1] +
+                 Plane[2] * LightPos[2] +
+                 Plane[3] * LightPos[3];
+
+    if LightPos[3] <> 0 then
+    begin
+      TExtruded0 := ExtrudeVertex(T[0], LightPos);
+      TExtruded1 := ExtrudeVertex(T[1], LightPos);
+      TExtruded2 := ExtrudeVertex(T[2], LightPos);
+
+      if PlaneSide > 0 then
+      begin
+        RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
+        RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
+        RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
+      end else
+      if PlaneSide < 0 then
+      begin
+        RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
+        RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
+        RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
+      end;
+      { Don't render quads if LightPos lies on the Plane (which means
+        that PlaneSide = 0) }
+    end else
+    begin
+      { For directional lights, this gets a little simpler, since
+        all extruded points are the same and equal just LightPos. }
+      if PlaneSide > 0 then
+      begin
+        RenderShadowQuad(T[1], T[0], LightPos);
+        RenderShadowQuad(T[0], T[2], LightPos);
+        RenderShadowQuad(T[2], T[1], LightPos);
+      end else
+      if PlaneSide < 0 then
+      begin
+        RenderShadowQuad(T[0], T[1], LightPos);
+        RenderShadowQuad(T[1], T[2], LightPos);
+        RenderShadowQuad(T[2], T[0], LightPos);
+      end;
+    end;
+  end;
+
 var
   I: Integer;
   Triangles: TDynTriangle3SingleArray;
-  T: TTriangle3Single;
-  TExtruded0, TExtruded1, TExtruded2: TVector4Single;
-  Plane: TVector4Single;
-  PlaneSide: Single;
+  TransformedTri: TTriangle3Single;
+  TPtr: PTriangle3Single;
 begin
   Triangles := TrianglesList(false);
 
@@ -1665,87 +1751,35 @@ begin
     glBegin(GL_QUADS) else
     glBegin(GL_TRIANGLES);
 
+  TPtr := Triangles.Pointers[0];
+
+  if TransformIsIdentity then
+  begin
     for I := 0 to Triangles.Count - 1 do
     begin
-      { calculate T := Triangles[I] transformed by Transform }
-      T[0] := MultMatrixPoint(Transform, Triangles.Items[I][0]);
-      T[1] := MultMatrixPoint(Transform, Triangles.Items[I][1]);
-      T[2] := MultMatrixPoint(Transform, Triangles.Items[I][2]);
-
-      { We want to have consistent CCW orientation of shadow quads faces,
-        so that face is oriented CCW <=> you're looking at it from outside
-        (i.e. it's considered front face of this shadow quad).
-        This is needed, since user of this method may want to do culling
-        to eliminate back or front faces.
-
-        If TriangleDir(T) indicates direction that goes from CCW triangle side.
-        If TriangleDir(T) points in the same direction as LightPos then
-        1st quad should be T1, T0, TExtruded0, TExtruded1.
-        If TriangleDir(T) points in the opposite direction as LightPos then
-        1st quad should be T0, T1, TExtruded1, TExtruded0.
-        And so on.
-
-        Note that this works for any LightPos[3].
-        - For LightPos[3] = 1 this is  normal check.
-        - For other LightPos[3] > 0 this is equivalent to normal check.
-        - For LightPos[3] = 0, this calculates dot between light direction
-          and plane direction. Plane direction points outwards, so PlaneSide > 0
-          indicates that light is from the outside. So it matches results for
-          LightPos[3] = 1.
-        - For LightPos[3] < 0, is seems that the test has to be reversed !
-          I.e. add "if LightPos[3] < 0 then PlaneSide := -PlaneSide;".
-          This will be done when we'll have to do accept any homogeneous
-          coords for LightPos, right now it's not needed.
-      }
-      Plane := TrianglePlane(T);
-      PlaneSide := Plane[0] * LightPos[0] +
-                   Plane[1] * LightPos[1] +
-                   Plane[2] * LightPos[2] +
-                   Plane[3] * LightPos[3];
-
-      if LightPos[3] <> 0 then
-      begin
-        TExtruded0 := ExtrudeVertex(T[0], LightPos);
-        TExtruded1 := ExtrudeVertex(T[1], LightPos);
-        TExtruded2 := ExtrudeVertex(T[2], LightPos);
-
-        if PlaneSide > 0 then
-        begin
-          RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
-          RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
-          RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
-        end else
-        if PlaneSide < 0 then
-        begin
-          RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
-          RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
-          RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
-        end;
-        { Don't render quads if LightPos lies on the Plane (which means
-          that PlaneSide = 0) }
-      end else
-      begin
-        { For directional lights, this gets a little simpler, since
-          all extruded points are the same and equal just LightPos. }
-        if PlaneSide > 0 then
-        begin
-          RenderShadowQuad(T[1], T[0], LightPos);
-          RenderShadowQuad(T[0], T[2], LightPos);
-          RenderShadowQuad(T[2], T[1], LightPos);
-        end else
-        if PlaneSide < 0 then
-        begin
-          RenderShadowQuad(T[0], T[1], LightPos);
-          RenderShadowQuad(T[1], T[2], LightPos);
-          RenderShadowQuad(T[2], T[0], LightPos);
-        end;
-      end;
+      HandleTriangle(TPtr^);
+      Inc(TPtr);
     end;
+  end else
+  begin
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      { calculate TransformedTri := Triangles[I] transformed by Transform }
+      TransformedTri[0] := MultMatrixPoint(Transform, TPtr^[0]);
+      TransformedTri[1] := MultMatrixPoint(Transform, TPtr^[1]);
+      TransformedTri[2] := MultMatrixPoint(Transform, TPtr^[2]);
+
+      HandleTriangle(TransformedTri);
+      Inc(TPtr);
+    end;
+  end;
+
   glEnd;
 end;
 
 procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
   const LightPos: TVector4Single;
+  const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single);
 
 { Speed:
@@ -1805,11 +1839,19 @@ var
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MultMatrixPoint(Transform, EdgeV0^);
-    V1 := MultMatrixPoint(Transform, EdgeV1^);
+    if TransformIsIdentity then
+    begin
+      V0 := EdgeV0^;
+      V1 := EdgeV1^;
+    end else
+    begin
+      V0 := MultMatrixPoint(Transform, EdgeV0^);
+      V1 := MultMatrixPoint(Transform, EdgeV1^);
+    end;
 
     glVertexv(V0);
     glVertexv(V1);
+
     if LightPos[3] <> 0 then
     begin
       glVertexv(ExtrudeVertex(V1, LightPos));
@@ -1829,8 +1871,15 @@ var
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MultMatrixPoint(Transform, EdgeV0^);
-    V1 := MultMatrixPoint(Transform, EdgeV1^);
+    if TransformIsIdentity then
+    begin
+      V0 := EdgeV0^;
+      V1 := EdgeV1^;
+    end else
+    begin
+      V0 := MultMatrixPoint(Transform, EdgeV0^);
+      V1 := MultMatrixPoint(Transform, EdgeV1^);
+    end;
 
     glVertexv(V0);
     glVertexv(V1);
@@ -1842,7 +1891,18 @@ var
       glVertexv(LightPos);
   end;
 
-  function PlaneSide(const T: TTriangle3Single): boolean;
+  function PlaneSide_Identity(const T: TTriangle3Single): boolean;
+  var
+    Plane: TVector4Single;
+  begin
+    Plane := TrianglePlane(T);
+    Result := (Plane[0] * LightPos[0] +
+               Plane[1] * LightPos[1] +
+               Plane[2] * LightPos[2] +
+               Plane[3] * LightPos[3]) > 0;
+  end;
+
+  function PlaneSide_NotIdentity(const T: TTriangle3Single): boolean;
   var
     Plane: TVector4Single;
   begin
@@ -1877,10 +1937,21 @@ begin
       { calculate TrianglesPlaneSide array }
       TrianglesPlaneSide.Count := Triangles.Count;
       TrianglePtr := Triangles.Pointers[0];
-      for I := 0 to Triangles.Count - 1 do
+
+      if TransformIsIdentity then
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide(TrianglePtr^);
-        Inc(TrianglePtr);
+        for I := 0 to Triangles.Count - 1 do
+        begin
+          TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
+          Inc(TrianglePtr);
+        end;
+      end else
+      begin
+        for I := 0 to Triangles.Count - 1 do
+        begin
+          TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
+          Inc(TrianglePtr);
+        end;
       end;
 
       { for each 2-manifold edge, possibly render it's shadow quad }
@@ -1949,12 +2020,13 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderShadowQuads(
   const LightPos: TVector4Single;
+  const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const AllowSilhouetteOptimization: boolean);
 begin
   if (ManifoldEdges <> nil) and AllowSilhouetteOptimization then
-    RenderSilhouetteShadowQuads(LightPos, Transform) else
-    RenderAllShadowQuads(LightPos, Transform);
+    RenderSilhouetteShadowQuads(LightPos, TransformIsIdentity, Transform) else
+    RenderAllShadowQuads(LightPos, TransformIsIdentity, Transform);
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
