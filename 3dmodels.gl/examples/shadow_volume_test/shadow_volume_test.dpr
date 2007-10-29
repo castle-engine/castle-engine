@@ -180,8 +180,8 @@ procedure Draw(glwin: TGLWindow);
 
   procedure RenderAllShadowQuads;
   begin
-    ShadowCaster.RenderShadowQuads(MainLightPosition, ShadowCasterNav.Matrix,
-      AllowSilhouetteOptimization);
+    ShadowCaster.RenderShadowQuads(MainLightPosition, false,
+      ShadowCasterNav.Matrix, AllowSilhouetteOptimization);
   end;
 
   procedure DoRenderEdgesForShadows;
@@ -414,7 +414,7 @@ begin
       Enable this for good when shadow culling for infinite frustum will work...
       otherwise, right now, we lose a little time for this, even in z-pass. }
     { For z-fail, we use far projection plane in infinity. }
-    ZFarInfinity 
+    ZFarInfinity
     { Box3dAvgSize(SceneBoundingBox)*20.0 });
   UpdateNavigatorProjectionMatrix;
 end;
@@ -502,6 +502,16 @@ end;
 { menu ----------------------------------------------------------------------- }
 
 procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
+
+  procedure SetViewpointForWholeScene;
+  var
+    CameraPos, CameraDir, CameraUp, GravityUp: TVector3Single;
+  begin
+    CameraViewpointForWholeScene(SceneBoundingBox,
+      CameraPos, CameraDir, CameraUp, GravityUp);
+    Glw.NavWalker.Init(CameraPos, CameraDir, CameraUp, GravityUp, 0.0, 0.0);
+  end;
+
 var
   NodeMatrix: TNodeMatrixTransform;
 begin
@@ -553,6 +563,7 @@ begin
         Glwin.PostRedisplay;
       end;
     120: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
+    130: SetViewpointForWholeScene;
   end;
 end;
 
@@ -603,6 +614,8 @@ begin
       IsRenderStatus, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Save screen ...', 120, K_F5));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Jump to calculated viewpoint to see the whole scene', 130));
     Result.Append(M);
   M := TMenu.Create('_Console');
     M.Append(TMenuItem.Create('Print current _camera (for VRML 1.0)', 10));
