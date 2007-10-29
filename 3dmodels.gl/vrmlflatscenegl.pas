@@ -660,18 +660,16 @@ type
 
           The only good reason to use this is that silhouette optimization
           for models that are not perfect 2-manifold (i.e., have some
-          BorderEdges) may show some artifacts. These artifacts work
-          like ghost shadows, except that is this case they cause shadows
-          to disappear where they should appear. The instructive image is in
-          ../../vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png
-          or [http://vrmlengine.svn.sourceforge.net/viewvc/*checkout*/vrmlengine/trunk/vrml_engine_doc/images_shadow_volumes/ghost_lack_of_shadow.png]
-          online.
-          It's quite unavoidable in any shadow volumes implementation,
+          BorderEdges) may show some artifacts. See
+          "VRML engine documentation" on
+          [http://vrmlengine.sourceforge.net/vrml_engine_doc.php],
+          chapter "Shadows", for description and pictures of these artifacts.
+          They are quite unavoidable in any shadow volumes implementation,
           just like normal ghost shadows.
 
-          This artifact happens really seldom, for really awkward structures,
-          and usually it's much better to workarounded it by correcting 3D model
-          (to be correct 2-manifold) than by turning off silhouette optimization.))
+          While you can avoid these artifacts by turning off
+          AllowSilhouetteOptimization, still it's usually
+          much better to fix your 3D model to be correct 2-manifold.))
 
       All shadow quads are generated from scene triangles transformed
       by Transform. This must be able to correctly detect front and
