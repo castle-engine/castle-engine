@@ -2209,7 +2209,13 @@ begin
             GroundColorCount := GroundAngleCount + 1;
         end;
 
-        { TODO - extract only rotation from BgTransform matrix ! }
+        { TODO: We should extract here only rotation from BgTransform matrix.
+          Below is a very hacky way of at least cancelling the translation.
+          This will work OK for any rigid body matrix, i.e. composed only from
+          rotation and translation. }
+        BgTransform[3, 0] := 0;
+        BgTransform[3, 1] := 0;
+        BgTransform[3, 2] := 0;
 
         { The call to BgNode.BgImages is important here, as it may actually
           load the images from file. So first we want to set AllowedBgImagesClasses
