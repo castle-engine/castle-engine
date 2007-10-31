@@ -465,14 +465,12 @@ begin
     'manifold (with exactly two neighbors) and order vertexes consistently ' +
     '(e.g. all CCW outside).' +nl+
     nl+
-    'Note that if model is not a perfect manifold (some border edges exist) ' +
-    'then in some very rare cases some artifacts may occur. Their cause is similar to ' +
-    'ghost shadows, although in this case they make the shadows disappear. ' +
-    'And they are unavoidable, in any implementation, like usual with ghost ' +
-    'shadows... See docs for more. To workaround these artifacts, you ' +
+    'Also note that if model is not a perfect manifold (some border edges exist) ' +
+    'then in some cases artifacts may occur. See "VRML engine documentation" ' +
+    'on [http://vrmlengine.sourceforge.net/vrml_engine_doc.php] ' +
+    '(chapter "Shadows") for more info. To workaround these artifacts, you ' +
     'may turn off silhouette optimization from the menu. But usually ' +
-    'it''s much more efficient to correct your model to be manifold, like ' +
-    'above.',
+    'it''s much more efficient to correct your model to be manifold.',
     [ ShadowCaster.ManifoldEdges.Count,
       ShadowCaster.BorderEdges.Count ]);
 

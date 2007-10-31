@@ -91,11 +91,13 @@ begin
   end;
 
   { This looks hacky, but actually this is how it should be:
-    with Mesa versions 6.x (tested with 6.4.1, 6.5.1, 6.5.2),
-    glStencilOpSeparate is not nil, but it doesn't work.
-    I guess that's OK (I mean, it's not Mesa bug), as I should look
+    - with Mesa versions 6.x (tested with 6.4.1, 6.5.1, 6.5.2),
+      glStencilOpSeparate is not nil, but it doesn't work.
+    - Same thing happens with NVidia legacy 96xx drivers (reported
+      version is "1.5.8 NVIDIA 96.43.01").
+    I guess that's OK (I mean, it's not Mesa/NVidia bug), as I should look
     for glStencilOpSeparate only if GL version is >= 2. }
-  if GLVersion.IsMesa and (GLVersion.Major <= 1) then
+  if GLVersion.Major <= 1 then
     glStencilOpSeparate := nil;
 
   if Log then
