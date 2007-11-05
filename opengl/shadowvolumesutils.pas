@@ -70,6 +70,21 @@ type
       in FrustumCullingInit) camera for sure doesn't see the shadow, so you
       don't have to render it. }
     function ShadowMaybeVisible(const Box: TBox3d): boolean;
+
+    { TODO: For now, this is set by you (should be auto detected later).
+      This says whether we want to use z-pass or z-fail technique. }
+    ZFail: boolean;
+
+    { These set glStencilOpSeparate (suitable for both front and
+      back faces) or glStencil (suitable only for front or only for back faces)
+      as appropriate.
+
+      Use this before rendering shadow volumes.
+      It uses ZFail to decide what setup is necessary.
+      It also uses StencilOpIncrWrap / StencilOpDecrWrap as needed. }
+    procedure SetStencilOpSeparate;
+    procedure SetStencilOpForFront;
+    procedure SetStencilOpForBack;
   end;
 
 implementation
@@ -145,6 +160,35 @@ begin
     on "The Castle" Doom level, for example, it wasn't hard to find place
     where this optimization improved FPS to 40 from 17). }
   Result := (not IsFrustumLightBox) or Boxes3dCollision(Box, FrustumLightBox);
+end;
+
+procedure TShadowVolumesHelper.SetStencilOpSeparate;
+begin
+  if ZFail then
+  begin
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, StencilOpIncrWrap, GL_KEEP);
+    glStencilOpSeparate(GL_BACK , GL_KEEP, StencilOpDecrWrap, GL_KEEP);
+  end else
+  begin
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, StencilOpIncrWrap);
+    glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, StencilOpDecrWrap);
+  end;
+end;
+
+procedure TShadowVolumesHelper.SetStencilOpForFront;
+begin
+  if ZFail then
+    glStencilOp(GL_KEEP, StencilOpIncrWrap, GL_KEEP) else
+    { For each fragment that passes depth-test, *increase* it's stencil value. }
+    glStencilOp(GL_KEEP, GL_KEEP, StencilOpIncrWrap);
+end;
+
+procedure TShadowVolumesHelper.SetStencilOpForBack;
+begin
+  if ZFail then
+    glStencilOp(GL_KEEP, StencilOpDecrWrap, GL_KEEP) else
+    { For each fragment that passes depth-test, *decrease* it's stencil value. }
+    glStencilOp(GL_KEEP, GL_KEEP, StencilOpDecrWrap);
 end;
 
 end.

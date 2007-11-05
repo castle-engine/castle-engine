@@ -178,10 +178,14 @@ procedure Draw(glwin: TGLWindow);
     ShadowTests.RenderBackShadowQuads(ShadowCaster);
   end;
 
-  procedure RenderAllShadowQuads;
+  procedure RenderAllShadowQuadsAndCaps;
   begin
-    ShadowCaster.RenderShadowQuads(MainLightPosition, false,
-      ShadowCasterNav.Matrix, AllowSilhouetteOptimization);
+    ShadowCaster.RenderShadowVolume(MainLightPosition, false,
+      ShadowCasterNav.Matrix,
+      ShadowVolumesHelper.ZFail
+      { TODO: LightCap can be avoided if caster is not in frustum },
+      ShadowVolumesHelper.ZFail,
+      AllowSilhouetteOptimization);
   end;
 
   procedure DoRenderEdgesForShadows;
@@ -275,32 +279,27 @@ procedure Draw(glwin: TGLWindow);
         case ShadowsImplementation of
           siStencilOpSeparate:
             begin
-              glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP,
-                ShadowVolumesHelper.StencilOpIncrWrap);
-              glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP,
-                ShadowVolumesHelper.StencilOpDecrWrap);
-              RenderAllShadowQuads;
+              ShadowVolumesHelper.SetStencilOpSeparate;
+              RenderAllShadowQuadsAndCaps;
             end;
           siGLCullFace2Passes, siEngineCullFace2Passes:
             begin
-              { For each fragment that passes depth-test, *increase* it's stencil
-                value by 1. Render front facing shadow quads. }
-              glStencilOp(GL_KEEP, GL_KEEP, ShadowVolumesHelper.StencilOpIncrWrap);
+              { Render front facing shadow quads. }
+              ShadowVolumesHelper.SetStencilOpForFront;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glEnable(GL_CULL_FACE);
                 glCullFace(GL_BACK);
-                RenderAllShadowQuads;
+                RenderAllShadowQuadsAndCaps;
               end else
                 RenderFrontShadowQuads;
 
-              { For each fragment that passes depth-test, *decrease* it's stencil
-                value by 1. Render back facing shadow quads. }
-              glStencilOp(GL_KEEP, GL_KEEP, ShadowVolumesHelper.StencilOpDecrWrap);
+              { Render back facing shadow quads. }
+              ShadowVolumesHelper.SetStencilOpForBack;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glCullFace(GL_FRONT);
-                RenderAllShadowQuads;
+                RenderAllShadowQuadsAndCaps;
                 glDisable(GL_CULL_FACE);
               end else
                 RenderBackShadowQuads;
@@ -308,7 +307,7 @@ procedure Draw(glwin: TGLWindow);
           siInvertTrick:
             begin
               glStencilOp(GL_KEEP, GL_KEEP, GL_INVERT);
-              RenderAllShadowQuads;
+              RenderAllShadowQuadsAndCaps;
             end;
           else raise Exception.Create('Unknown ShadowsImplementation value');
         end;
@@ -372,7 +371,7 @@ begin
       glDepthMask(GL_FALSE);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
-      RenderAllShadowQuads;
+      RenderAllShadowQuadsAndCaps;
     glPopAttrib;
   end;
 
@@ -432,9 +431,10 @@ begin
 
   ShadowVolumesHelper := TShadowVolumesHelper.Create;
   ShadowVolumesHelper.InitGL;
+  ShadowVolumesHelper.ZFail := true; { TODO: for now always z-fail }
 
   Scene.PrepareRender([tgAll], [prBoundingBox]);
-  ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowQuads);
+  ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowVolume);
 end;
 
 procedure CloseGL(glwin: TGLWindow);
@@ -589,7 +589,7 @@ begin
       ' simplest shadow casters)', siInvertTrick);
     AppendShadowsImplementationRadio('2 passes, cull faces using our _engine ' +
       '(currently can''t use silhouette optim, so it''s slower than it could be, ' +
-      'and only for positional lights)',
+      'and only for positional lights, and no caps (so z-fail will not work))',
       siEngineCullFace2Passes);
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);

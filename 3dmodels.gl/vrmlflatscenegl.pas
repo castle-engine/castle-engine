@@ -384,15 +384,17 @@ type
 
     { shadow things ---------------------------------------------------------- }
 
-    procedure RenderSilhouetteShadowQuads(
+    procedure RenderSilhouetteShadowVolume(
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single);
+      const Transform: TMatrix4Single;
+      const LightCap, DarkCap: boolean);
 
-    procedure RenderAllShadowQuads(
+    procedure RenderAllShadowVolume(
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single);
+      const Transform: TMatrix4Single;
+      const LightCap, DarkCap: boolean);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
@@ -676,24 +678,42 @@ type
       back facing triangles with respect to LightPos, so "LightPos" and
       "scene transformed by Transform" must be in the same coordinate system.
       (That's why explicit Transform parameter is needed, you can't get away
-      with simply doing glPush/PopMatrix and glMustMatrix around RenderShadowQuads
+      with simply doing glPush/PopMatrix and glMustMatrix around RenderShadowVolume
       call.) If TransformIsIdentity then Transform value is ignored and
       everything works like Transform = identity matrix (and is a little
       faster in this special case).
 
       This uses TrianglesList(false) and ManifoldEdges and BorderEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareRender with
-      prShadowQuads included).
+      prShadowVolume included).
 
       LightPos is the light position. LightPos[3] must be 1
       (to indicate positional light) or 0 (a directional light).
 
+      LightCap and DarkCap say whether you want to cap your shadow volume.
+      LightCap is the cap at the caster position, DarkCap is the cap in infinity.
+      This is needed by z-fail method, you should set them both to @true.
+      To be more optimal, you can request LightCap only if z-fail @italic(and
+      the caster is inside camera frustum). For directional lights, DarkCap is
+      ignored, since the volume is always closed by a single point in infinity.
+
+      Faces (both shadow quads and caps) are rendered such that
+      CCW <=> you're looking at it from outside
+      (i.e. it's considered front face of this shadow volume).
+
       All the commands passed to OpenGL by this methods are:
       glBegin, sequence of glVertex, then glEnd. }
-    procedure RenderShadowQuads(
+    procedure RenderShadowVolume(
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
+      { TODO: it's only temporary (to keep castle compiling without much changes)
+        that LightCap and DarkCap have default value false. In the long run,
+        I want to not have their default values. And in fact, I want to remove them,
+        and use ShadowVolumesHelper to automatically detect z-fail and whether light caps
+        are needed. }
+      const LightCap: boolean = false;
+      const DarkCap: boolean = false;
       const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
@@ -780,14 +800,14 @@ type
 
 const
   { Options to pass to TVRMLFlatSceneGL.PrepareRender to make
-    sure that next call to TVRMLFlatSceneGL.RenderShadowQuads
+    sure that next call to TVRMLFlatSceneGL.RenderShadowVolume
     is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
     (prTrianglesListNotOverTriangulate has to be prepared while preparing
     ManifoldEdges edges anyway). But for the future shadow volumes
     optimizations, it's best to use this constant. }
-  prShadowQuads = [prTrianglesListNotOverTriangulate, prManifoldAndBorderEdges];
+  prShadowVolume = [prTrianglesListNotOverTriangulate, prManifoldAndBorderEdges];
 
 {$undef read_interface}
 
@@ -1608,7 +1628,7 @@ end;
   For LightPos[3] = 0, i.e. directional light,
   don't use this, and there's no need to do it,
   since then the extruded point is just LightPos (for any vertex).
-  RenderXxxShadowQuads want to treat it specially anyway (to optimize
+  RenderXxxShadowVolume want to treat it specially anyway (to optimize
   drawing, since then quads degenerate to triangles). }
 function ExtrudeVertex(
   const Original: TVector3Single;
@@ -1628,10 +1648,13 @@ begin
   Result[3] := 0;
 end;
 
-procedure TVRMLFlatSceneGL.RenderAllShadowQuads(
+procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single);
+  const Transform: TMatrix4Single;
+  const LightCap, DarkCap: boolean);
+
+{ TODO: honour LightCap, DarkCap }
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
   zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
@@ -1775,10 +1798,11 @@ begin
   glEnd;
 end;
 
-procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
+procedure TVRMLFlatSceneGL.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single);
+  const Transform: TMatrix4Single;
+  const LightCap, DarkCap: boolean);
 
 { Speed:
 
@@ -1795,8 +1819,8 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowQuads(
 
   But this algorithms proved to be unacceptably slow for typical cases.
   While it generated much less shadow quads than naive
-  RenderAllShadowQuads, the time spent in detecting the silhouette edges
-  made the total time even worse than RenderAllShadowQuads.
+  RenderAllShadowVolume, the time spent in detecting the silhouette edges
+  made the total time even worse than RenderAllShadowVolume.
   Obviously, that's because we started from the list of triangles,
   without any explicit information about the edges.
   The time of this algorithm was n*m, if n is the number of triangles
@@ -1889,34 +1913,120 @@ var
       glVertexv(LightPos);
   end;
 
-  function PlaneSide_Identity(const T: TTriangle3Single): boolean;
-  var
-    Plane: TVector4Single;
-  begin
-    Plane := TrianglePlane(T);
-    Result := (Plane[0] * LightPos[0] +
-               Plane[1] * LightPos[1] +
-               Plane[2] * LightPos[2] +
-               Plane[3] * LightPos[3]) > 0;
-  end;
+  { We initialize TrianglesPlaneSide and render caps in one step,
+    this way we have to iterate over Triangles only once, and in case
+    of PlaneSide_NotIdentity and rendering caps --- we have to transform
+    each triangle only once. }
+  procedure InitializeTrianglesPlaneSideAndRenderCaps(
+    TrianglesPlaneSide: TDynBooleanArray;
+    LightCap, DarkCap: boolean);
 
-  function PlaneSide_NotIdentity(const T: TTriangle3Single): boolean;
+    procedure RenderCaps(const T: TTriangle3Single);
+    begin
+      if LightCap then
+      begin
+        glVertexv(T[0]);
+        glVertexv(T[1]);
+        glVertexv(T[2]);
+      end;
+
+      if DarkCap then
+      begin
+        glVertexv(ExtrudeVertex(T[2], LightPos));
+        glVertexv(ExtrudeVertex(T[1], LightPos));
+        glVertexv(ExtrudeVertex(T[0], LightPos));
+      end;
+    end;
+
+    function PlaneSide_Identity(const T: TTriangle3Single): boolean;
+    var
+      Plane: TVector4Single;
+    begin
+      Plane := TrianglePlane(T);
+      Result := (Plane[0] * LightPos[0] +
+                 Plane[1] * LightPos[1] +
+                 Plane[2] * LightPos[2] +
+                 Plane[3] * LightPos[3]) > 0;
+      if Result then RenderCaps(T);
+    end;
+
+    function PlaneSide_NotIdentity(const T: TTriangle3Single): boolean;
+    var
+      Plane: TVector4Single;
+      TriangleTransformed: TTriangle3Single;
+    begin
+      TriangleTransformed[0] := MultMatrixPoint(Transform, T[0]);
+      TriangleTransformed[1] := MultMatrixPoint(Transform, T[1]);
+      TriangleTransformed[2] := MultMatrixPoint(Transform, T[2]);
+      Plane := TrianglePlane(TriangleTransformed);
+      Result := (Plane[0] * LightPos[0] +
+                 Plane[1] * LightPos[1] +
+                 Plane[2] * LightPos[2] +
+                 Plane[3] * LightPos[3]) > 0;
+      if Result then RenderCaps(TriangleTransformed);
+    end;
+
   var
-    Plane: TVector4Single;
+    TrianglePtr: PTriangle3Single;
+    I: Integer;
   begin
-    Plane := TrianglePlane(
-      MultMatrixPoint(Transform, T[0]),
-      MultMatrixPoint(Transform, T[1]),
-      MultMatrixPoint(Transform, T[2]));
-    Result := (Plane[0] * LightPos[0] +
-               Plane[1] * LightPos[1] +
-               Plane[2] * LightPos[2] +
-               Plane[3] * LightPos[3]) > 0;
+    TrianglesPlaneSide.Count := Triangles.Count;
+    TrianglePtr := Triangles.Pointers[0];
+
+    { If light is directional, no need to render dark cap }
+    DarkCap := DarkCap and (LightPos[3] <> 0);
+
+    if LightCap or DarkCap then
+    begin
+      { It's crucial to set glDepthFunc(GL_NEVER) for LightCap.
+        This way we get proper self-shadowing. Otherwise, LightCap would
+        collide in z buffer with the object itself.
+
+        Setting glDepthFunc(GL_NEVER) for DarkCap also is harmless and OK.
+        And it allows us to render both LightCap and DarkCap in one
+        GL_TRIANGLES pass, in one iteration over Triangles list, which is
+        good for speed.
+
+        Some papers propose other solution:
+          glEnable(GL_POLYGON_OFFSET_FILL);
+          glPolygonOffset(1, 1);
+        but this is no good for use, because it cannot be applied
+        to DarkCap (otherwise DarkCap in infinity (as done by ExtrudeVertex)
+        would go outside of depth range (even for infinite projection,
+        as glPolygonOffset works already after the vertex is transformed
+        by projection), as this would break DarkCap rendering).
+      }
+
+      glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
+      glDepthFunc(GL_NEVER);
+      glBegin(GL_TRIANGLES);
+    end;
+
+    if TransformIsIdentity then
+    begin
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
+        Inc(TrianglePtr);
+      end;
+    end else
+    begin
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
+        Inc(TrianglePtr);
+      end;
+    end;
+
+    if LightCap or DarkCap then
+    begin
+      glEnd;
+      glPopAttrib;
+    end;
   end;
 
 var
   I: Integer;
-  TrianglePtr: PTriangle3Single;
   PlaneSide0, PlaneSide1: boolean;
   TrianglesPlaneSide: TDynBooleanArray;
   ManifoldEdgesNow: TDynManifoldEdgeArray;
@@ -1924,33 +2034,16 @@ var
   BorderEdgesNow: TDynBorderEdgeArray;
   BorderEdgePtr: PBorderEdge;
 begin
-  if LightPos[3] <> 0 then
-    glBegin(GL_QUADS) else
-    glBegin(GL_TRIANGLES);
+  Triangles := TrianglesList(false);
 
-    Triangles := TrianglesList(false);
+  TrianglesPlaneSide := TDynBooleanArray.Create;
+  try
+    InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
+      LightCap, DarkCap);
 
-    TrianglesPlaneSide := TDynBooleanArray.Create;
-    try
-      { calculate TrianglesPlaneSide array }
-      TrianglesPlaneSide.Count := Triangles.Count;
-      TrianglePtr := Triangles.Pointers[0];
-
-      if TransformIsIdentity then
-      begin
-        for I := 0 to Triangles.Count - 1 do
-        begin
-          TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
-          Inc(TrianglePtr);
-        end;
-      end else
-      begin
-        for I := 0 to Triangles.Count - 1 do
-        begin
-          TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
-          Inc(TrianglePtr);
-        end;
-      end;
+    if LightPos[3] <> 0 then
+      glBegin(GL_QUADS) else
+      glBegin(GL_TRIANGLES);
 
       { for each 2-manifold edge, possibly render it's shadow quad }
       ManifoldEdgesNow := ManifoldEdges;
@@ -2012,19 +2105,23 @@ begin
         Inc(BorderEdgePtr);
       end;
 
-    finally FreeAndNil(TrianglesPlaneSide) end;
-  glEnd;
+    glEnd;
+
+  finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure TVRMLFlatSceneGL.RenderShadowQuads(
+procedure TVRMLFlatSceneGL.RenderShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
+  const LightCap, DarkCap: boolean;
   const AllowSilhouetteOptimization: boolean);
 begin
   if (ManifoldEdges <> nil) and AllowSilhouetteOptimization then
-    RenderSilhouetteShadowQuads(LightPos, TransformIsIdentity, Transform) else
-    RenderAllShadowQuads(LightPos, TransformIsIdentity, Transform);
+    RenderSilhouetteShadowVolume(
+      LightPos, TransformIsIdentity, Transform, LightCap, DarkCap) else
+    RenderAllShadowVolume(
+      LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
