@@ -75,7 +75,7 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils, VRMLFlatSceneGL,
   VRMLNodes, MatrixNavigation, VRMLFlatScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
-  ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumesUtils,
+  ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumesHelper,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 type
@@ -147,7 +147,7 @@ var
   ShadowsImplementationRadio:
     array [TShadowsImplementation] of TMenuItemRadio;
 
-  ShadowVolumesHelper: TShadowVolumesHelper;
+  SVHelper: TShadowVolumesHelper;
 
   Font: TGLBitmapFont;
 
@@ -182,9 +182,7 @@ procedure Draw(glwin: TGLWindow);
   begin
     ShadowCaster.RenderShadowVolume(MainLightPosition, false,
       ShadowCasterNav.Matrix,
-      ShadowVolumesHelper.ZFail
-      { TODO: LightCap can be avoided if caster is not in frustum },
-      ShadowVolumesHelper.ZFail,
+      SVHelper,
       AllowSilhouetteOptimization);
   end;
 
@@ -279,13 +277,13 @@ procedure Draw(glwin: TGLWindow);
         case ShadowsImplementation of
           siStencilOpSeparate:
             begin
-              ShadowVolumesHelper.SetStencilOpSeparate;
+              SVHelper.SetStencilOpSeparate;
               RenderAllShadowQuadsAndCaps;
             end;
           siGLCullFace2Passes, siEngineCullFace2Passes:
             begin
               { Render front facing shadow quads. }
-              ShadowVolumesHelper.SetStencilOpForFront;
+              SVHelper.SetStencilOpForFront;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glEnable(GL_CULL_FACE);
@@ -295,7 +293,7 @@ procedure Draw(glwin: TGLWindow);
                 RenderFrontShadowQuads;
 
               { Render back facing shadow quads. }
-              ShadowVolumesHelper.SetStencilOpForBack;
+              SVHelper.SetStencilOpForBack;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glCullFace(GL_FRONT);
@@ -339,18 +337,16 @@ procedure Draw(glwin: TGLWindow);
     glDisable(GL_STENCIL_TEST);
   end;
 
-var
-  ShadowMaybeVisible: boolean;
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
 
-  ShadowVolumesHelper.FrustumCullingInit(Glw.NavWalker.Frustum, MainLightPosition);
+  SVHelper.InitFrustumAndLight(Glw.NavWalker.Frustum, MainLightPosition);
 
-  ShadowMaybeVisible := ShadowVolumesHelper.ShadowMaybeVisible(
-    BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));;
+  SVHelper.InitScene(
+    BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
 
-  if (ShadowsImplementation = siNone) or (not ShadowMaybeVisible) then
+  if (ShadowsImplementation = siNone) or (not SVHelper.SceneShadowPossiblyVisible) then
   begin
     { For only ShadowsImplementation = siNone, we could just render
       LightSet, no need to push/pop GL_LIGHTING_BIT. But if user will
@@ -386,11 +382,15 @@ begin
       glColorv(Yellow3Single);
       Font.Projection2DPrintStrings(5, 5, Format(
         'FPS : %f (real : %f)' +nl+
-        'Shadow maybe visible (sv culling): %s' + nl+
+        'Shadow possibly visible (sv culling): %s' + nl+
+        'Z-fail required: %s' + nl+
+        'Z-fail and light cap required: %s' + nl+
         'INCR/DECR_WRAP available: %s',
         [ Glw.FpsFrameTime, Glw.FpsRealTime,
-          BoolToStr[ShadowMaybeVisible],
-          BoolToStr[ShadowVolumesHelper.WrapAvailable]]));
+          BoolToStr[SVHelper.SceneShadowPossiblyVisible],
+          BoolToStr[SVHelper.ZFail],
+          BoolToStr[SVHelper.ZFailAndLightCap],
+          BoolToStr[SVHelper.WrapAvailable]]));
     glPopAttrib;
   end;
 end;
@@ -429,9 +429,8 @@ begin
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
-  ShadowVolumesHelper := TShadowVolumesHelper.Create;
-  ShadowVolumesHelper.InitGL;
-  ShadowVolumesHelper.ZFail := true; { TODO: for now always z-fail }
+  SVHelper := TShadowVolumesHelper.Create;
+  SVHelper.InitGLContext;
 
   Scene.PrepareRender([tgAll], [prBoundingBox]);
   ShadowCaster.PrepareRender([tgAll], [prBoundingBox] + prShadowVolume);
@@ -445,7 +444,7 @@ begin
 
   FreeAndNil(Font);
 
-  FreeAndNil(ShadowVolumesHelper);
+  FreeAndNil(SVHelper);
 end;
 
 var

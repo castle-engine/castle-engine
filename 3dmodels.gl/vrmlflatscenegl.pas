@@ -70,7 +70,8 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLFlatScene, VRMLOpenGLRenderer, OpenGLh, BackgroundGL, KambiGLUtils,
-  VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization;
+  VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
+  ShadowVolumesHelper;
 
 {$define read_interface}
 
@@ -707,13 +708,15 @@ type
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
-      { TODO: it's only temporary (to keep castle compiling without much changes)
-        that LightCap and DarkCap have default value false. In the long run,
-        I want to not have their default values. And in fact, I want to remove them,
-        and use ShadowVolumesHelper to automatically detect z-fail and whether light caps
-        are needed. }
-      const LightCap: boolean = false;
-      const DarkCap: boolean = false;
+      const LightCap: boolean;
+      const DarkCap: boolean;
+      const AllowSilhouetteOptimization: boolean = true);
+
+    procedure RenderShadowVolume(
+      const LightPos: TVector4Single;
+      const TransformIsIdentity: boolean;
+      const Transform: TMatrix4Single;
+      ShadowVolumesHelper: TShadowVolumesHelper;
       const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
@@ -2122,6 +2125,22 @@ begin
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap) else
     RenderAllShadowVolume(
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
+end;
+
+procedure TVRMLFlatSceneGL.RenderShadowVolume(
+  const LightPos: TVector4Single;
+  const TransformIsIdentity: boolean;
+  const Transform: TMatrix4Single;
+  ShadowVolumesHelper: TShadowVolumesHelper;
+  const AllowSilhouetteOptimization: boolean);
+begin
+  if ShadowVolumesHelper.SceneShadowPossiblyVisible then
+  begin
+    RenderShadowVolume(LightPos, TransformIsIdentity, Transform,
+      ShadowVolumesHelper.ZFailAndLightCap,
+      ShadowVolumesHelper.ZFail,
+      AllowSilhouetteOptimization);
+  end;
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }

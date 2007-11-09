@@ -19,22 +19,35 @@
 }
 
 { TShadowVolumesHelper class. }
-unit ShadowVolumesUtils;
+unit ShadowVolumesHelper;
 
 interface
 
 uses VectorMath, Boxes3d, OpenGLh;
 
 type
-  { This class is a bag for various utilities usefull
-    when implementing shadow volumes that didn't fit elsewhere. }
+  { This class performs various initialization and calculations related
+    to shadow volume rendering. It does everything, except the actual
+    shadow volume rendering (this is handled elsewhere, for example
+    in TVRMLFlatSceneGL.RenderShadowVolume).
+
+    To use this class: call InitGLContext, InitFrustumAndLight,
+    InitScene at appropriate moments. Setup your stencil buffer with
+    provided SetStencilOpSeparate or SetStencilOpForFront / SetStencilOpForBack.
+    Pass the instance of this to TVRMLFlatSceneGL.RenderShadowVolume. }
   TShadowVolumesHelper = class
   private
     IsFrustumLightBox: boolean;
     FrustumLightBox: TBox3d;
+    FFrustum: TFrustum;
+    FrustumNearPoints: TFrustumPointsDouble;
 
     FWrapAvailable: boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
+
+    FSceneShadowPossiblyVisible: boolean;
+    FZFail: boolean;
+    FZFailAndLightCap: boolean;
   public
     property WrapAvailable: boolean read FWrapAvailable;
 
@@ -55,25 +68,53 @@ type
 
     { Call this when OpenGL context is initialized, this will set some things.
       For now, this sets StencilOpIncrWrap, StencilOpDecrWrap. }
-    procedure InitGL;
+    procedure InitGLContext;
 
-    { Use this before using ShadowMaybeVisible. This prepares some things
-      (so that each ShadowMaybeVisible call doesn't have to) and
-      all subsequent ShadowMaybeVisible calls assume that Frustum and
+    { Call this when camera frustum is known and light position (of the shadow
+      casting light) is known, typically at the beginning of your drawing routine.
+      You have to call this before InitScene.
+
+      This prepares some things (so that each InitScene call doesn't have to) and
+      all subsequent InitScene calls assume that Frustum and
       MainLightPosition are the same. }
-    procedure FrustumCullingInit(
+    procedure InitFrustumAndLight(
       const Frustum: TFrustum;
       const MainLightPosition: TVector4Single);
 
-    { This checks whether you need to render shadow of the object inside Box.
-      @false means that (assuming Frustum and MainLightPosition values given
-      in FrustumCullingInit) camera for sure doesn't see the shadow, so you
-      don't have to render it. }
-    function ShadowMaybeVisible(const Box: TBox3d): boolean;
+    { Call this when the bounding box of shadow caster is known.
 
-    { TODO: For now, this is set by you (should be auto detected later).
-      This says whether we want to use z-pass or z-fail technique. }
-    ZFail: boolean;
+      This calculates various things related to shadow volumes rendering
+      of this scene.  1. checks whether you need to render shadow of the
+      object inside SceneBox, settting SceneShadowPossiblyVisible.
+      2. checks whether ZFail method is needed, setting ZFail.
+
+      TODO: this should set stencilop also, based on
+      glStencilOpSeparate is available and ZFail, also avoiding resetting
+      the same state if not necessary.
+
+      This assumes that Frustum and MainLightPosition values given
+      in InitFrustumAndLight are OK.  }
+    procedure InitScene(const SceneBox: TBox3d);
+
+    { This is an alternative version of InitScene that initializes the same
+      variables as InitScene, but assumes that the scene, along with it's
+      shadow, will always be visible. This means that for example
+      SceneShadowPossiblyVisible, ZFail, ZFailAndLightCap will always be @true.
+
+      Use this only if you have a scene that will really be always visible
+      and z-fail will be needed. For example, level scene in FPS games
+      will usually be always visible, so making optimizations in
+      InitScene may be useless. Also, this is useful if for any reason you
+      don't know bounding box of the scene. }
+    procedure InitSceneAlwaysVisible;
+
+    { This is set by InitScene. }
+    property SceneShadowPossiblyVisible: boolean
+      read FSceneShadowPossiblyVisible;
+
+    { This is set by InitScene. }
+    property ZFail: boolean read FZFail;
+    property ZFailAndLightCap: boolean read FZFailAndLightCap;
 
     { These set glStencilOpSeparate (suitable for both front and
       back faces) or glStencil (suitable only for front or only for back faces)
@@ -91,7 +132,7 @@ implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, KambiLog;
 
-procedure TShadowVolumesHelper.InitGL;
+procedure TShadowVolumesHelper.InitGLContext;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
   FWrapAvailable := (GLVersion.Major >= 2) or GL_EXT_stencil_wrap;
@@ -121,14 +162,20 @@ begin
              'glStencilOpSeparate available: %s',
             [ BoolToStr[WrapAvailable],
               BoolToStr[glStencilOpSeparate <> nil] ]));
+
+  { TODO } FZFail := true;
 end;
 
-procedure TShadowVolumesHelper.FrustumCullingInit(
+procedure TShadowVolumesHelper.InitFrustumAndLight(
   const Frustum: TFrustum;
   const MainLightPosition: TVector4Single);
 var
   MainLightPosition3: TVector3Single absolute MainLightPosition;
 begin
+  FFrustum := Frustum;
+
+  CalculateFrustumPoints(FrustumNearPoints, Frustum, true);
+
   IsFrustumLightBox := (MainLightPosition[3] = 1) and
     ( (Frustum[fpFar][0] <> 0) or
       (Frustum[fpFar][1] <> 0) or
@@ -149,7 +196,13 @@ begin
     FrustumLightBox := FrustumAndPointBoundingBox(Frustum, MainLightPosition3);
 end;
 
-function TShadowVolumesHelper.ShadowMaybeVisible(const Box: TBox3d): boolean;
+procedure TShadowVolumesHelper.InitScene(const SceneBox: TBox3d);
+
+  function CalculateZFail: boolean;
+  begin
+    Result := true; // TODO, use FrustumNearPoints
+  end;
+
 begin
   { Frustum culling for shadow volumes:
     If the light is positional (so we have FrustumLightBox),
@@ -159,7 +212,20 @@ begin
     (level with many creatures, spread evenly on the level;
     on "The Castle" Doom level, for example, it wasn't hard to find place
     where this optimization improved FPS to 40 from 17). }
-  Result := (not IsFrustumLightBox) or Boxes3dCollision(Box, FrustumLightBox);
+  FSceneShadowPossiblyVisible := (not IsFrustumLightBox) or
+    Boxes3dCollision(SceneBox, FrustumLightBox);
+
+  FZFail := FSceneShadowPossiblyVisible and CalculateZFail;
+
+  FZFailAndLightCap := ZFail and
+    FrustumBox3dCollisionPossibleSimple(FFrustum, SceneBox);
+end;
+
+procedure TShadowVolumesHelper.InitSceneAlwaysVisible;
+begin
+  FSceneShadowPossiblyVisible := true;
+  FZFail := true;
+  FZFailAndLightCap := true;
 end;
 
 procedure TShadowVolumesHelper.SetStencilOpSeparate;

@@ -1764,10 +1764,14 @@ const
 
     glDisableClientState(GL_VERTEX_ARRAY);
 
-  @italic(Warning:) If you used a special perspective projection with
-  far plane at infinity (ZFarInfinity, see above in this unit),
-  then the far plane will be invalid. This procedure will fail
-  in this case. You can't use this if you used ZFarInfinity.
+  You can pass OnlyNearPlane = @true, then only the first 4 points
+  of FrustumPoints will be calculated. These are 4 points on the frustum
+  near plane. You @italic(must pass OnlyNearPlane = @true if your
+  frustum has far plane at infinity). Such frustum could be created
+  by ZFarInfinity parameter to appropriate procedures.
+  Obviously, such frustum doesn't have normal 3D far plane points,
+  and this procedure will fail on such frustum if OnlyNearPlane = @false
+  in such case. (will raise EPlanesParallel in such case).
 
   @italic(Question:) Should I use TFrustumPointsSingle or TFrustumPointsDouble ?
   Short answer: use Double. Tests show that while keeping type TFrustum
@@ -1783,11 +1787,14 @@ const
   to use TFrustumPointsSingle (and change GL_DOUBLE at glVertexPointer
   to GL_FLOAT) then frustum will look bad (both near and far quads
   will look obviously slightly assymetrical).
+
+  @raises(EPlanesParallel If frustum was created with ZFarInfinity,
+    or if Frustum doesn't have planes of any valid frustum.)
 }
 procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsSingle;
-  const Frustum: TFrustum); overload;
+  const Frustum: TFrustum; OnlyNearPlane: boolean); overload;
 procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsDouble;
-  const Frustum: TFrustum); overload;
+  const Frustum: TFrustum; OnlyNearPlane: boolean); overload;
 
 type
   { See @link(FrustumSphereCollisionPossible) for description
@@ -3025,36 +3032,44 @@ begin
 end;
 
 procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsSingle;
-  const Frustum: TFrustum);
+  const Frustum: TFrustum; OnlyNearPlane: boolean);
 begin
- { Actually this can be speeded up some day by doing
-   TwoPlanesIntersectionLine and then some TryPlaneLineIntersection,
-   since current implementation will calculate
-   (inside ThreePlanesIntersectionPoint) the same Line0+LineVector many times. }
- FrustumPoints[0] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpLeft],  Frustum[fpTop]);
- FrustumPoints[1] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpRight], Frustum[fpTop]);
- FrustumPoints[2] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpRight], Frustum[fpBottom]);
- FrustumPoints[3] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpLeft],  Frustum[fpBottom]);
- { 4..7 are in the same order as 0..3, but with "far" instead of "near" }
- FrustumPoints[4] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpLeft],  Frustum[fpTop]);
- FrustumPoints[5] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpRight], Frustum[fpTop]);
- FrustumPoints[6] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpRight], Frustum[fpBottom]);
- FrustumPoints[7] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpLeft],  Frustum[fpBottom]);
+  { Actually this can be speeded up some day by doing
+    TwoPlanesIntersectionLine and then some TryPlaneLineIntersection,
+    since current implementation will calculate
+    (inside ThreePlanesIntersectionPoint) the same Line0+LineVector many times. }
+  FrustumPoints[0] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpLeft],  Frustum[fpTop]);
+  FrustumPoints[1] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpRight], Frustum[fpTop]);
+  FrustumPoints[2] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpRight], Frustum[fpBottom]);
+  FrustumPoints[3] := ThreePlanesIntersectionPoint(Frustum[fpNear], Frustum[fpLeft],  Frustum[fpBottom]);
+
+  if not OnlyNearPlane then
+  begin
+    { 4..7 are in the same order as 0..3, but with "far" instead of "near" }
+    FrustumPoints[4] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpLeft],  Frustum[fpTop]);
+    FrustumPoints[5] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpRight], Frustum[fpTop]);
+    FrustumPoints[6] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpRight], Frustum[fpBottom]);
+    FrustumPoints[7] := ThreePlanesIntersectionPoint(Frustum[fpFar], Frustum[fpLeft],  Frustum[fpBottom]);
+  end;
 end;
 
 procedure CalculateFrustumPoints(out FrustumPoints: TFrustumPointsDouble;
-  const Frustum: TFrustum);
+  const Frustum: TFrustum; OnlyNearPlane: boolean);
 begin
- { Copied from implementation for TFrustumPointsSingle, but here converting
-   to Vector4Single }
- FrustumPoints[0] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpTop]));
- FrustumPoints[1] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpTop]));
- FrustumPoints[2] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpBottom]));
- FrustumPoints[3] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpBottom]));
- FrustumPoints[4] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpTop]));
- FrustumPoints[5] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpTop]));
- FrustumPoints[6] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpBottom]));
- FrustumPoints[7] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpBottom]));
+  { Copied from implementation for TFrustumPointsSingle, but here converting
+    to Vector4Single }
+  FrustumPoints[0] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpTop]));
+  FrustumPoints[1] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpTop]));
+  FrustumPoints[2] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpBottom]));
+  FrustumPoints[3] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpNear]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpBottom]));
+
+  if not OnlyNearPlane then
+  begin
+    FrustumPoints[4] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpTop]));
+    FrustumPoints[5] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpTop]));
+    FrustumPoints[6] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpRight]), Vector4Double(Frustum[fpBottom]));
+    FrustumPoints[7] := ThreePlanesIntersectionPoint(Vector4Double(Frustum[fpFar]), Vector4Double(Frustum[fpLeft]),  Vector4Double(Frustum[fpBottom]));
+  end;
 end;
 
 function FrustumSphereCollisionPossible(const Frustum: TFrustum;

@@ -1309,7 +1309,7 @@ var
     OnePoint: TVector3Single;
   end;
 begin
-  CalculateFrustumPoints(AllPoints.FrustumPoints, Frustum);
+  CalculateFrustumPoints(AllPoints.FrustumPoints, Frustum, true);
   AllPoints.OnePoint := Point;
   Result := CalculateBoundingBox(PVector3Single(@AllPoints),
     High(TFrustumPointsSingle) + 2, 0);
