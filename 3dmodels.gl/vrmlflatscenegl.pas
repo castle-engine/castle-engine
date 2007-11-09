@@ -723,6 +723,15 @@ type
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const AllowSilhouetteOptimization: boolean = true);
+
+    { A shortcut for ShadowVolumesHelper.InitScene and then RenderShadowVolume.
+      It will calculate current bounding box using Transform, TransformIsIdentity
+      and BoundingBox method. }
+    procedure InitAndRenderShadowVolume(
+      ShadowVolumesHelper: TShadowVolumesHelper;
+      const TransformIsIdentity: boolean;
+      const Transform: TMatrix4Single;
+      const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
     { Cached Background value }
@@ -2146,6 +2155,25 @@ begin
       ShadowVolumesHelper.ZFail,
       AllowSilhouetteOptimization);
   end;
+end;
+
+procedure TVRMLFlatSceneGL.InitAndRenderShadowVolume(
+  ShadowVolumesHelper: TShadowVolumesHelper;
+  const TransformIsIdentity: boolean;
+  const Transform: TMatrix4Single;
+  const AllowSilhouetteOptimization: boolean);
+var
+  Box: TBox3d;
+begin
+  { calculate Box }
+  Box := BoundingBox;
+  if not TransformIsIdentity then
+    Box := BoundingBoxTransform(Box, Transform);
+
+  ShadowVolumesHelper.InitScene(Box);
+
+  RenderShadowVolume(ShadowVolumesHelper, TransformIsIdentity, Transform,
+    AllowSilhouetteOptimization);
 end;
 
 { RenderFrustum and helpers ---------------------------------------- }
