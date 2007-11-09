@@ -628,7 +628,8 @@ type
     procedure ChangedAll; override;
     procedure ChangedShapeStateFields(ShapeStateNum: integer); override;
 
-    { Render shadow quads of this scene, for shadow volume algorithm.
+    { Render shadow volume (sides and caps) of this scene, for shadow volume
+      algorithm.
 
       There are two underlying algorithms here, and their speed
       difference is very noticeable:
@@ -698,6 +699,11 @@ type
       the caster is inside camera frustum). For directional lights, DarkCap is
       ignored, since the volume is always closed by a single point in infinity.
 
+      For ShadowVolumesHelper version, LightPos, LightCap and DarkCap
+      are already available in ShadowVolumesHelper properties (set by
+      ShadowVolumesHelper.InitFrustumAndLight and ShadowVolumesHelper.InitScene
+      calls).
+
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
       (i.e. it's considered front face of this shadow volume).
@@ -713,10 +719,9 @@ type
       const AllowSilhouetteOptimization: boolean = true);
 
     procedure RenderShadowVolume(
-      const LightPos: TVector4Single;
+      ShadowVolumesHelper: TShadowVolumesHelper;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
-      ShadowVolumesHelper: TShadowVolumesHelper;
       const AllowSilhouetteOptimization: boolean = true);
   private
     FBackgroundSkySphereRadius: Single;
@@ -2128,15 +2133,15 @@ begin
 end;
 
 procedure TVRMLFlatSceneGL.RenderShadowVolume(
-  const LightPos: TVector4Single;
+  ShadowVolumesHelper: TShadowVolumesHelper;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
-  ShadowVolumesHelper: TShadowVolumesHelper;
   const AllowSilhouetteOptimization: boolean);
 begin
   if ShadowVolumesHelper.SceneShadowPossiblyVisible then
   begin
-    RenderShadowVolume(LightPos, TransformIsIdentity, Transform,
+    RenderShadowVolume(ShadowVolumesHelper.LightPosition,
+      TransformIsIdentity, Transform,
       ShadowVolumesHelper.ZFailAndLightCap,
       ShadowVolumesHelper.ZFail,
       AllowSilhouetteOptimization);

@@ -45,12 +45,6 @@ type
     FWrapAvailable: boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
 
-    FSceneShadowPossiblyVisible: boolean;
-    FZFail: boolean;
-    FZFailAndLightCap: boolean;
-  public
-    property WrapAvailable: boolean read FWrapAvailable;
-
     { These will ideally be initialized to GL_INCR/DECR_WRAP (available
       in OpenGL >= 2.0) or GL_INCR/DECR_WRAP_EXT (available if EXT_stencil_wrap).
       Actually values with and without _EXT are the same.
@@ -66,6 +60,14 @@ type
     property StencilOpDecrWrap: TGLenum read FStencilOpDecrWrap;
     { @groupEnd }
 
+    FSceneShadowPossiblyVisible: boolean;
+    FZFail: boolean;
+    FZFailAndLightCap: boolean;
+
+    FLightPosition: TVector4Single;
+  public
+    property WrapAvailable: boolean read FWrapAvailable;
+
     { Call this when OpenGL context is initialized, this will set some things.
       For now, this sets StencilOpIncrWrap, StencilOpDecrWrap. }
     procedure InitGLContext;
@@ -76,10 +78,13 @@ type
 
       This prepares some things (so that each InitScene call doesn't have to) and
       all subsequent InitScene calls assume that Frustum and
-      MainLightPosition are the same. }
+      LightPosition are the same. }
     procedure InitFrustumAndLight(
       const Frustum: TFrustum;
-      const MainLightPosition: TVector4Single);
+      const ALightPosition: TVector4Single);
+
+    { Light casting shadows position, initialized by InitFrustumAndLight. }
+    property LightPosition: TVector4Single read FLightPosition;
 
     { Call this when the bounding box of shadow caster is known.
 
@@ -92,7 +97,7 @@ type
       glStencilOpSeparate is available and ZFail, also avoiding resetting
       the same state if not necessary.
 
-      This assumes that Frustum and MainLightPosition values given
+      This assumes that Frustum and LightPosition values given
       in InitFrustumAndLight are OK.  }
     procedure InitScene(const SceneBox: TBox3d);
 
@@ -108,12 +113,14 @@ type
       don't know bounding box of the scene. }
     procedure InitSceneAlwaysVisible;
 
-    { This is set by InitScene. }
+    { Does the shadow need to be rendered, set by InitScene. }
     property SceneShadowPossiblyVisible: boolean
       read FSceneShadowPossiblyVisible;
 
-    { This is set by InitScene. }
+    { Is the ZFail method needed, set by InitScene. }
     property ZFail: boolean read FZFail;
+
+    { Is the ZFail with light caps method needed, set by InitScene. }
     property ZFailAndLightCap: boolean read FZFailAndLightCap;
 
     { These set glStencilOpSeparate (suitable for both front and
@@ -168,15 +175,15 @@ end;
 
 procedure TShadowVolumesHelper.InitFrustumAndLight(
   const Frustum: TFrustum;
-  const MainLightPosition: TVector4Single);
+  const ALightPosition: TVector4Single);
 var
-  MainLightPosition3: TVector3Single absolute MainLightPosition;
+  ALightPosition3: TVector3Single absolute ALightPosition;
 begin
   FFrustum := Frustum;
 
   CalculateFrustumPoints(FrustumNearPoints, Frustum, true);
 
-  IsFrustumLightBox := (MainLightPosition[3] = 1) and
+  IsFrustumLightBox := (ALightPosition[3] = 1) and
     ( (Frustum[fpFar][0] <> 0) or
       (Frustum[fpFar][1] <> 0) or
       (Frustum[fpFar][2] <> 0) );
@@ -193,7 +200,9 @@ begin
   }
 
   if IsFrustumLightBox then
-    FrustumLightBox := FrustumAndPointBoundingBox(Frustum, MainLightPosition3);
+    FrustumLightBox := FrustumAndPointBoundingBox(Frustum, ALightPosition3);
+
+  FLightPosition := ALightPosition;
 end;
 
 procedure TShadowVolumesHelper.InitScene(const SceneBox: TBox3d);
