@@ -74,6 +74,7 @@ type
 
     FStencilSetupKind: TStencilSetupKind;
 
+    FCount: boolean;
     FCountScenes: Cardinal;
     FCountShadowsNotVisible: Cardinal;
     FCountZPass: Cardinal;
@@ -174,6 +175,7 @@ type
       read FStencilSetupKind  write FStencilSetupKind
       default ssSeparate;
 
+    property Count: boolean read FCount write FCount default false;
     property CountScenes: Cardinal read FCountScenes;
     property CountShadowsNotVisible: Cardinal read FCountShadowsNotVisible;
     property CountZPass: Cardinal read FCountZPass;
@@ -415,19 +417,22 @@ begin
     FrustumBox3dCollisionPossibleSimple(FFrustum, SceneBox);
 
   { update counters }
-  Inc(FCountScenes);
-
-  if FSceneShadowPossiblyVisible then
+  if Count then
   begin
-    if ZFail then
+    Inc(FCountScenes);
+
+    if FSceneShadowPossiblyVisible then
     begin
-      if ZFailAndLightCap then
-        Inc(FCountZFailAndLightCap) else
-        Inc(FCountZFailNoLightCap);
+      if ZFail then
+      begin
+        if ZFailAndLightCap then
+          Inc(FCountZFailAndLightCap) else
+          Inc(FCountZFailNoLightCap);
+      end else
+        Inc(FCountZPass);
     end else
-      Inc(FCountZPass);
-  end else
-    Inc(FCountShadowsNotVisible);
+      Inc(FCountShadowsNotVisible);
+  end;
 end;
 
 procedure TShadowVolumesHelper.InitSceneOnlySetupStencil;
