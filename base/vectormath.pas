@@ -765,6 +765,8 @@ procedure VectorNegateTo1st(var v: TVector2Single); overload;
 procedure VectorNegateTo1st(var v: TVector2Double); overload;
 procedure VectorNegateTo1st(var v: TVector3Single); overload;
 procedure VectorNegateTo1st(var v: TVector3Double); overload;
+procedure VectorNegateTo1st(var v: TVector4Single); overload;
+procedure VectorNegateTo1st(var v: TVector4Double); overload;
 
 { przeskaluj wektor tak zeby mial zadana dlugosc.
   (tak, Normalized moznaby wyrazic jako VectorAdjustToLength(,1)).

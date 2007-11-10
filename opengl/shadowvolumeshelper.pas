@@ -26,6 +26,8 @@ interface
 uses VectorMath, Boxes3d, OpenGLh;
 
 type
+  TStencilSetupKind = (ssSeparate, ssForFront, ssForBack);
+
   { This class performs various initialization and calculations related
     to shadow volume rendering. It does everything, except the actual
     shadow volume rendering (this is handled elsewhere, for example
@@ -65,6 +67,18 @@ type
     FZFailAndLightCap: boolean;
 
     FLightPosition: TVector4Single;
+    FLightPositionDouble: TVector4Double;
+
+    StencilConfigurationKnown: boolean;
+    StencilConfigurationKnownZFail: boolean;
+
+    FStencilSetupKind: TStencilSetupKind;
+
+    FCountScenes: Cardinal;
+    FCountShadowsNotVisible: Cardinal;
+    FCountZPass: Cardinal;
+    FCountZFailNoLightCap: Cardinal;
+    FCountZFailAndLightCap: Cardinal;
   public
     property WrapAvailable: boolean read FWrapAvailable;
 
@@ -78,13 +92,16 @@ type
 
       This prepares some things (so that each InitScene call doesn't have to) and
       all subsequent InitScene calls assume that Frustum and
-      LightPosition are the same. }
+      LightPosition are the same.
+
+      It also resets CountScenes etc. counters for debug purposes. }
     procedure InitFrustumAndLight(
       const Frustum: TFrustum;
       const ALightPosition: TVector4Single);
 
     { Light casting shadows position, initialized by InitFrustumAndLight. }
     property LightPosition: TVector4Single read FLightPosition;
+    property LightPositionDouble: TVector4Double read FLightPositionDouble;
 
     { Call this when the bounding box of shadow caster is known.
 
@@ -93,13 +110,37 @@ type
       object inside SceneBox, settting SceneShadowPossiblyVisible.
       2. checks whether ZFail method is needed, setting ZFail.
 
-      TODO: this should set stencilop also, based on
-      glStencilOpSeparate is available and ZFail, also avoiding resetting
-      the same state if not necessary.
-
       This assumes that Frustum and LightPosition values given
-      in InitFrustumAndLight are OK.  }
+      in InitFrustumAndLight are OK.
+
+      Also note that after InitFrustumAndLight, all InitScene will assume that
+      they have complete control over glStencilOp states for the time
+      of rendering shadow volumes. In other words: InitScene will setup
+      some stencil configuration, depending on ZFail state and StencilSetupKind.
+      For the sake of speed, we try to avoid setting the same state
+      twice, so we optimize it: first InitScene after InitFrustumAndLight
+      does always setup stencil confguration. Following InitScene will
+      only change stencil configuration if ZFail value will actually change.
+      This means that if e.g. all objects will be detected to be in z-pass
+      method, then stencil configuration will be done only once.
+
+      The above optimization works OK if you do not change StencilOp configuration
+      yourself during SV rendering. }
     procedure InitScene(const SceneBox: TBox3d);
+
+    { You can split InitScene call into these two calls,
+      first InitSceneDontSetupStencil and then InitSceneOnlySetupStencil.
+
+      This is useful only in very special cases, in particular: if you
+      only have one shadow caster object in your scene. Then you
+      can call InitSceneDontSetupStencil only once, before any drawing,
+      and later you can call InitSceneOnlySetupStencil multiple times
+      to set stencil configuration for this object.
+
+      @groupBegin }
+    procedure InitSceneDontSetupStencil(const SceneBox: TBox3d);
+    procedure InitSceneOnlySetupStencil;
+    { @groupEnd }
 
     { This is an alternative version of InitScene that initializes the same
       variables as InitScene, but assumes that the scene, along with it's
@@ -123,16 +164,21 @@ type
     { Is the ZFail with light caps method needed, set by InitScene. }
     property ZFailAndLightCap: boolean read FZFailAndLightCap;
 
-    { These set glStencilOpSeparate (suitable for both front and
-      back faces) or glStencil (suitable only for front or only for back faces)
-      as appropriate.
+    { What kind of stencil settings should be set by InitScene ?
 
-      Use this before rendering shadow volumes.
-      It uses ZFail to decide what setup is necessary.
-      It also uses StencilOpIncrWrap / StencilOpDecrWrap as needed. }
-    procedure SetStencilOpSeparate;
-    procedure SetStencilOpForFront;
-    procedure SetStencilOpForBack;
+      Set ssSeparate only if glStencilOpSeparate is available.
+      Otherwise, you have to use 2-pass method (render everything
+      2 times, culling front one time, culling back second time) ---
+      in this case use ssForFront or ssForBack as appropriate. }
+    property StencilSetupKind: TStencilSetupKind
+      read FStencilSetupKind  write FStencilSetupKind
+      default ssSeparate;
+
+    property CountScenes: Cardinal read FCountScenes;
+    property CountShadowsNotVisible: Cardinal read FCountShadowsNotVisible;
+    property CountZPass: Cardinal read FCountZPass;
+    property CountZFailNoLightCap: Cardinal read FCountZFailNoLightCap;
+    property CountZFailAndLightCap: Cardinal read FCountZFailAndLightCap;
   end;
 
 implementation
@@ -169,8 +215,6 @@ begin
              'glStencilOpSeparate available: %s',
             [ BoolToStr[WrapAvailable],
               BoolToStr[glStencilOpSeparate <> nil] ]));
-
-  { TODO } FZFail := true;
 end;
 
 procedure TShadowVolumesHelper.InitFrustumAndLight(
@@ -203,13 +247,120 @@ begin
     FrustumLightBox := FrustumAndPointBoundingBox(Frustum, ALightPosition3);
 
   FLightPosition := ALightPosition;
+  FLightPositionDouble := Vector4Double(ALightPosition);
+
+  StencilConfigurationKnown := false;
+
+  FCountScenes := 0;
+  FCountShadowsNotVisible := 0;
+  FCountZPass := 0;
+  FCountZFailNoLightCap := 0;
+  FCountZFailAndLightCap := 0;
 end;
 
 procedure TShadowVolumesHelper.InitScene(const SceneBox: TBox3d);
+begin
+  InitSceneDontSetupStencil(SceneBox);
+  InitSceneOnlySetupStencil;
+end;
+
+procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d);
 
   function CalculateZFail: boolean;
+
+    { Returns if SceneBox is (at least partially)
+      inside the Plane (i.e. where the plane equation is <= 0).
+      Also returns @true if Plane is invalid, since in this case result
+      of CalculateZFail should depend on other planes. }
+    function InsidePlane(const Plane: TVector4Double): boolean;
+
+      function CalculatePoint(const X, Y, Z: Integer): Single;
+      begin
+        Result := Plane[0] * SceneBox[X][0] +
+                  Plane[1] * SceneBox[Y][1] +
+                  Plane[2] * SceneBox[Z][2] +
+                  Plane[3];
+      end;
+
+    begin
+      Result :=
+        ( (Plane[0] = 0) and (Plane[1] = 0) and (Plane[2] = 0) ) or
+        (CalculatePoint(0, 0, 0) <= 0) or
+        (CalculatePoint(0, 0, 1) <= 0) or
+        (CalculatePoint(0, 1, 0) <= 0) or
+        (CalculatePoint(0, 1, 1) <= 0) or
+        (CalculatePoint(1, 0, 0) <= 0) or
+        (CalculatePoint(1, 0, 1) <= 0) or
+        (CalculatePoint(1, 1, 0) <= 0) or
+        (CalculatePoint(1, 1, 1) <= 0);
+    end;
+
+  var
+    LightPosition3: TVector3Double absolute FLightPositionDouble;
+    NearPlane: TVector4Double;
   begin
-    Result := true; // TODO, use FrustumNearPoints
+    if LightPosition[3] <> 0 then
+    begin
+      { Idea: calculate a pyramid between light position and near plane rectangle
+        of the frustum. Assuming light point is positional and it does not
+        lie on the near plane, this is simple: such pyramid has 4 side planes
+        (created by two succeding near plane rectangle points and light pos),
+        and 1 additional plane for near plane.
+
+        Now, if for any such plane, SceneBox is outside, then ZFail is for sure
+        not needed.
+
+        Actually, even when the light lies exactly on near rectangle plane,
+        usually this is still OK. The trouble will occur only if the light lies
+        exactly on one of near rectangle points, since then an invalid
+        plane (with 1st three items = 0) will be calculated. In such case,
+        at most two planes out of 5 will be invalid (we assume that all 4 near
+        rectangle points are for sure different, so the light pos may collide
+        with only 1 of them, so only two plane calculations will lead to
+        invalid plane). In such case, it's OK to simply ignore invalid planes.
+
+        That's why InsidePlane simply checks for and ignores invalid planes.
+      }
+
+      { FrustumNearPoints meaning:
+        0: left , top
+        1: right, top
+        2: right, bottom
+        3: left , bottom }
+
+      NearPlane := TrianglePlane(
+        FrustumNearPoints[2], FrustumNearPoints[1], FrustumNearPoints[0]);
+
+      { Now NearPlane points CCW outside of the frustum, but this is not
+        necessarily what we want. We want NearPlane to point CCW outside
+        from light+near plane pyramid. In other words, LightPosition should be
+        on CW side of this plane. If LightPosition is on CCW side,
+        flip NearPlane. Also, calculations of other side planes should
+        generate flipped planes. }
+
+      if (NearPlane[0] * LightPositionDouble[0] +
+          NearPlane[1] * LightPositionDouble[1] +
+          NearPlane[2] * LightPositionDouble[2] +
+          NearPlane[3] * LightPositionDouble[3]) > 0 then
+      begin
+        VectorNegateTo1st(NearPlane);
+        Result :=
+          InsidePlane(NearPlane) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[1], FrustumNearPoints[0], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2], FrustumNearPoints[1], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3], FrustumNearPoints[2], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[0], FrustumNearPoints[3], LightPosition3));
+      end else
+      begin
+        Result :=
+          InsidePlane(NearPlane) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[0], FrustumNearPoints[1], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[1], FrustumNearPoints[2], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2], FrustumNearPoints[3], LightPosition3)) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3], FrustumNearPoints[0], LightPosition3));
+      end;
+    end else
+      Result := true;  { TODO: for directional ? }
   end;
 
 begin
@@ -228,6 +379,93 @@ begin
 
   FZFailAndLightCap := ZFail and
     FrustumBox3dCollisionPossibleSimple(FFrustum, SceneBox);
+
+  { update counters }
+  Inc(FCountScenes);
+
+  if FSceneShadowPossiblyVisible then
+  begin
+    if ZFail then
+    begin
+      if ZFailAndLightCap then
+        Inc(FCountZFailAndLightCap) else
+        Inc(FCountZFailNoLightCap);
+    end else
+      Inc(FCountZPass);
+  end else
+    Inc(FCountShadowsNotVisible);
+end;
+
+procedure TShadowVolumesHelper.InitSceneOnlySetupStencil;
+
+  procedure ActuallySetStencilConfiguration;
+
+    { These set glStencilOpSeparate (suitable for both front and
+      back faces) or glStencil (suitable only for front or only for back faces)
+      as appropriate.
+
+      Use this before rendering shadow volumes.
+      It uses ZFail to decide what setup is necessary.
+      It also uses StencilOpIncrWrap / StencilOpDecrWrap as needed. }
+
+    procedure SetStencilOpSeparate;
+    begin
+      if ZFail then
+      begin
+        glStencilOpSeparate(GL_FRONT, GL_KEEP, StencilOpDecrWrap, GL_KEEP);
+        glStencilOpSeparate(GL_BACK , GL_KEEP, StencilOpIncrWrap, GL_KEEP);
+      end else
+      begin
+        glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, StencilOpIncrWrap);
+        glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, StencilOpDecrWrap);
+      end;
+    end;
+
+    procedure SetStencilOpForFront;
+    begin
+      if ZFail then
+        glStencilOp(GL_KEEP, StencilOpDecrWrap, GL_KEEP) else
+        { For each fragment that passes depth-test, *increase* it's stencil value. }
+        glStencilOp(GL_KEEP, GL_KEEP, StencilOpIncrWrap);
+    end;
+
+    procedure SetStencilOpForBack;
+    begin
+      if ZFail then
+        glStencilOp(GL_KEEP, StencilOpIncrWrap, GL_KEEP) else
+        { For each fragment that passes depth-test, *decrease* it's stencil value. }
+        glStencilOp(GL_KEEP, GL_KEEP, StencilOpDecrWrap);
+    end;
+
+  begin
+    case StencilSetupKind of
+      ssSeparate: SetStencilOpSeparate;
+      ssForFront: SetStencilOpForFront;
+      ssForBack: SetStencilOpForBack;
+      else raise EInternalError.Create('shadowvolumeshelper.pas 456');
+    end;
+  end;
+
+begin
+  if FSceneShadowPossiblyVisible then
+  begin
+    { setup stencil configuration. To avoid state too often changes,
+      use StencilConfigurationKnown. }
+    if StencilConfigurationKnown then
+    begin
+      if StencilConfigurationKnownZFail <> ZFail then
+      begin
+        ActuallySetStencilConfiguration;
+        StencilConfigurationKnownZFail := ZFail;
+      end;
+        { else, if configuration known and equals current, nothing to do }
+    end else
+    begin
+      ActuallySetStencilConfiguration;
+      StencilConfigurationKnown := true;
+      StencilConfigurationKnownZFail := ZFail;
+    end;
+  end;
 end;
 
 procedure TShadowVolumesHelper.InitSceneAlwaysVisible;
@@ -235,35 +473,6 @@ begin
   FSceneShadowPossiblyVisible := true;
   FZFail := true;
   FZFailAndLightCap := true;
-end;
-
-procedure TShadowVolumesHelper.SetStencilOpSeparate;
-begin
-  if ZFail then
-  begin
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, StencilOpIncrWrap, GL_KEEP);
-    glStencilOpSeparate(GL_BACK , GL_KEEP, StencilOpDecrWrap, GL_KEEP);
-  end else
-  begin
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, StencilOpIncrWrap);
-    glStencilOpSeparate(GL_BACK , GL_KEEP, GL_KEEP, StencilOpDecrWrap);
-  end;
-end;
-
-procedure TShadowVolumesHelper.SetStencilOpForFront;
-begin
-  if ZFail then
-    glStencilOp(GL_KEEP, StencilOpIncrWrap, GL_KEEP) else
-    { For each fragment that passes depth-test, *increase* it's stencil value. }
-    glStencilOp(GL_KEEP, GL_KEEP, StencilOpIncrWrap);
-end;
-
-procedure TShadowVolumesHelper.SetStencilOpForBack;
-begin
-  if ZFail then
-    glStencilOp(GL_KEEP, StencilOpDecrWrap, GL_KEEP) else
-    { For each fragment that passes depth-test, *decrease* it's stencil value. }
-    glStencilOp(GL_KEEP, GL_KEEP, StencilOpDecrWrap);
 end;
 
 end.

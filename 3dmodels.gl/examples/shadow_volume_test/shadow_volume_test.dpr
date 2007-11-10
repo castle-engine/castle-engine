@@ -275,13 +275,15 @@ procedure Draw(glwin: TGLWindow);
         case ShadowsImplementation of
           siStencilOpSeparate:
             begin
-              SVHelper.SetStencilOpSeparate;
+              SVHelper.StencilSetupKind := ssSeparate;
+              SVHelper.InitSceneOnlySetupStencil;
               RenderAllShadowQuadsAndCaps;
             end;
           siGLCullFace2Passes, siEngineCullFace2Passes:
             begin
               { Render front facing shadow quads. }
-              SVHelper.SetStencilOpForFront;
+              SVHelper.StencilSetupKind := ssForFront;
+              SVHelper.InitSceneOnlySetupStencil;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glEnable(GL_CULL_FACE);
@@ -291,7 +293,8 @@ procedure Draw(glwin: TGLWindow);
                 RenderFrontShadowQuads;
 
               { Render back facing shadow quads. }
-              SVHelper.SetStencilOpForBack;
+              SVHelper.StencilSetupKind := ssForBack;
+              SVHelper.InitSceneOnlySetupStencil;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
                 glCullFace(GL_FRONT);
@@ -341,7 +344,7 @@ begin
 
   SVHelper.InitFrustumAndLight(Glw.NavWalker.Frustum, MainLightPosition);
 
-  SVHelper.InitScene(
+  SVHelper.InitSceneDontSetupStencil(
     BoundingBoxTransform(ShadowCaster.BoundingBox, ShadowCasterNav.Matrix));
 
   if (ShadowsImplementation = siNone) or (not SVHelper.SceneShadowPossiblyVisible) then

@@ -22,7 +22,7 @@
   implementujemy rzeczy ktore sa zaimplementowane takze w VectorMathInlines.
   W ponizszych procedurach wersje inline NIE beda uzywane - wlasnie po to
   aby umozliwic zaimplementwanie tych wersji nie-inline.
-}  
+}
 
 {$define VECTOR_OP_FUNCS:=
 function VectorOpFuncName(const v1, v2: TYPE_VECTOR2): TYPE_VECTOR2;
@@ -136,6 +136,14 @@ begin
  v[0] := -v[0];
  v[1] := -v[1];
  v[2] := -v[2];
+end;
+
+procedure VectorNegateTo1st(var v: TYPE_VECTOR4);
+begin
+ v[0] := -v[0];
+ v[1] := -v[1];
+ v[2] := -v[2];
+ v[3] := -v[3];
 end;
 
 function VectorProduct(const v1, v2: TYPE_VECTOR3): TYPE_VECTOR3;
