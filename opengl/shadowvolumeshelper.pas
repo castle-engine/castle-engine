@@ -34,8 +34,8 @@ type
     in TVRMLFlatSceneGL.RenderShadowVolume).
 
     To use this class: call InitGLContext, InitFrustumAndLight,
-    InitScene at appropriate moments. Setup your stencil buffer with
-    provided SetStencilOpSeparate or SetStencilOpForFront / SetStencilOpForBack.
+    InitScene at appropriate moments. Setup your stencil buffer by
+    setting StencilSetupKind before InitScene.
     Pass the instance of this to TVRMLFlatSceneGL.RenderShadowVolume. }
   TShadowVolumesHelper = class
   private
