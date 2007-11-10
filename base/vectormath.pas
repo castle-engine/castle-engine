@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -329,6 +329,8 @@ type
   TTriangle3Double = packed array[0..2]of TVector3Double;     PTriangle3Double = ^TTriangle3Double;
   TTriangle3Extended = packed array[0..2]of TVector3Extended; PTriangle3Extended = ^TTriangle3Extended;
 
+  TTriangle4Single = packed array[0..2]of TVector4Single;     PTriangle4Single = ^TTriangle4Single;
+
   { Matrices types.
 
     The indexing rules of these types are the same as indexing rules
@@ -647,6 +649,11 @@ operator := (const V: TVector4Single): TVector4_Single;
 {$endif}
 
 { prosta matematyka na wektorach  ---------------------------------------------- }
+
+procedure SwapValues(var V1, V2: TVector3Single); overload;
+procedure SwapValues(var V1, V2: TVector3Double); overload;
+procedure SwapValues(var V1, V2: TVector4Single); overload;
+procedure SwapValues(var V1, V2: TVector4Double); overload;
 
 { VLerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
   Zwraca (1-a)*V1 + a*V2 (no, troche inaczej zapisane dla szybkosci). }

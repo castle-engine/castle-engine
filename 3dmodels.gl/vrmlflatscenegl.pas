@@ -395,7 +395,7 @@ type
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
-      const LightCap, DarkCap: boolean);
+      LightCap, DarkCap: boolean);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
@@ -826,6 +826,15 @@ const
     optimizations, it's best to use this constant. }
   prShadowVolume = [prTrianglesListNotOverTriangulate, prManifoldAndBorderEdges];
 
+type
+  TDynArrayItem_1 = TTriangle4Single;
+  PDynArrayItem_1 = PTriangle4Single;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$I dynarray_1.inc}
+  TArray_Triangle4Single = TInfiniteArray_1;
+  PArray_Triangle4Single = PInfiniteArray_1;
+  TDynTriangle4SingleArray = TDynArray_1;
+
 {$undef read_interface}
 
 implementation
@@ -834,6 +843,7 @@ uses VRMLErrors;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
+{$I dynarray_1.inc}
 
 { ------------------------------------------------------------ }
 
@@ -1669,9 +1679,7 @@ procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
-  const LightCap, DarkCap: boolean);
-
-{ TODO: honour LightCap, DarkCap }
+  LightCap, DarkCap: boolean);
 
 { Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
   zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
@@ -1680,6 +1688,10 @@ procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
   bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
   powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
   zostaly uznane za "front facing"). }
+
+var
+  TrianglesForLightCap: TDynTriangle3SingleArray;
+  TrianglesForDarkCap: TDynTriangle4SingleArray;
 
   procedure RenderShadowQuad(
     const P0, P1: TVector3Single;
@@ -1703,7 +1715,7 @@ procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
 
   procedure HandleTriangle(const T: TTriangle3Single);
   var
-    TExtruded0, TExtruded1, TExtruded2: TVector4Single;
+    TExtruded: TTriangle4Single;
     Plane: TVector4Single;
     PlaneSide: Single;
   begin
@@ -1738,26 +1750,42 @@ procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
                  Plane[2] * LightPos[2] +
                  Plane[3] * LightPos[3];
 
+    { Don't render quads on caps if LightPos lies on the Plane
+      (which means that PlaneSide = 0) }
+    if PlaneSide = 0 then
+      Exit;
+
     if LightPos[3] <> 0 then
     begin
-      TExtruded0 := ExtrudeVertex(T[0], LightPos);
-      TExtruded1 := ExtrudeVertex(T[1], LightPos);
-      TExtruded2 := ExtrudeVertex(T[2], LightPos);
+      TExtruded[0] := ExtrudeVertex(T[0], LightPos);
+      TExtruded[1] := ExtrudeVertex(T[1], LightPos);
+      TExtruded[2] := ExtrudeVertex(T[2], LightPos);
 
       if PlaneSide > 0 then
       begin
-        RenderShadowQuad(T[1], T[0], TExtruded1, TExtruded0);
-        RenderShadowQuad(T[0], T[2], TExtruded0, TExtruded2);
-        RenderShadowQuad(T[2], T[1], TExtruded2, TExtruded1);
+        RenderShadowQuad(T[1], T[0], TExtruded[1], TExtruded[0]);
+        RenderShadowQuad(T[0], T[2], TExtruded[0], TExtruded[2]);
+        RenderShadowQuad(T[2], T[1], TExtruded[2], TExtruded[1]);
       end else
-      if PlaneSide < 0 then
       begin
-        RenderShadowQuad(T[0], T[1], TExtruded0, TExtruded1);
-        RenderShadowQuad(T[1], T[2], TExtruded1, TExtruded2);
-        RenderShadowQuad(T[2], T[0], TExtruded2, TExtruded0);
+        RenderShadowQuad(T[0], T[1], TExtruded[0], TExtruded[1]);
+        RenderShadowQuad(T[1], T[2], TExtruded[1], TExtruded[2]);
+        RenderShadowQuad(T[2], T[0], TExtruded[2], TExtruded[0]);
       end;
-      { Don't render quads if LightPos lies on the Plane (which means
-        that PlaneSide = 0) }
+
+      if DarkCap then
+      begin
+        { reverse TExtruded dir, we want to render caps CCW outside always.
+
+          Note that the test for reversing here is "PlaneSide > 0", while
+          test for reversing LightCaps is "PlaneSide < 0": that's as it should
+          be, as DarkCap triangle should always be in reversed direction
+          than corresponding LightCap triangle (since they both should be
+          CCW outside). }
+        if PlaneSide > 0 then
+          SwapValues(TExtruded[0], TExtruded[2]);
+        TrianglesForDarkCap.AppendItem(TExtruded);
+      end;
     end else
     begin
       { For directional lights, this gets a little simpler, since
@@ -1768,13 +1796,34 @@ procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
         RenderShadowQuad(T[0], T[2], LightPos);
         RenderShadowQuad(T[2], T[1], LightPos);
       end else
-      if PlaneSide < 0 then
       begin
         RenderShadowQuad(T[0], T[1], LightPos);
         RenderShadowQuad(T[1], T[2], LightPos);
         RenderShadowQuad(T[2], T[0], LightPos);
       end;
     end;
+
+    if LightCap then
+    begin
+      { reverse T dir, we want to render caps CCW outside always }
+      if PlaneSide < 0 then
+        TrianglesForLightCap.AppendItem(Triangle3Single(T[2], T[1], T[0])) else
+        TrianglesForLightCap.AppendItem(T);
+    end;
+  end;
+
+  procedure RenderTriangle3Single(const T: TTriangle3Single);
+  begin
+    glVertexv(T[0]);
+    glVertexv(T[1]);
+    glVertexv(T[2]);
+  end;
+
+  procedure RenderTriangle4Single(const T: TTriangle4Single);
+  begin
+    glVertexv(T[0]);
+    glVertexv(T[1]);
+    glVertexv(T[2]);
   end;
 
 var
@@ -1782,37 +1831,100 @@ var
   Triangles: TDynTriangle3SingleArray;
   TransformedTri: TTriangle3Single;
   TPtr: PTriangle3Single;
+  T4Ptr: PTriangle4Single;
 begin
+  TrianglesForLightCap := nil;
+  TrianglesForDarkCap := nil;
+
   Triangles := TrianglesList(false);
 
-  if LightPos[3] <> 0 then
-    glBegin(GL_QUADS) else
-    glBegin(GL_TRIANGLES);
+  { If light is directional, no need to render dark cap }
+  DarkCap := DarkCap and (LightPos[3] <> 0);
 
-  TPtr := Triangles.Pointers[0];
+  { It's a not nice that we have to create a structure in memory
+    to hold TrianglesForLight/DarkCap. But that's because they have to be rendered
+    after rendering normal shadow quads (because shadow quads may be
+    quads or triangles, caps are only triangles, and are rendered in
+    glDepthFunc(GL_NEVER) mode. }
 
-  if TransformIsIdentity then
+  if LightCap then
   begin
-    for I := 0 to Triangles.Count - 1 do
-    begin
-      HandleTriangle(TPtr^);
-      Inc(TPtr);
-    end;
-  end else
-  begin
-    for I := 0 to Triangles.Count - 1 do
-    begin
-      { calculate TransformedTri := Triangles[I] transformed by Transform }
-      TransformedTri[0] := MultMatrixPoint(Transform, TPtr^[0]);
-      TransformedTri[1] := MultMatrixPoint(Transform, TPtr^[1]);
-      TransformedTri[2] := MultMatrixPoint(Transform, TPtr^[2]);
-
-      HandleTriangle(TransformedTri);
-      Inc(TPtr);
-    end;
+    TrianglesForLightCap := TDynTriangle3SingleArray.Create;
+    TrianglesForLightCap.AllowedCapacityOverflow := Triangles.Count;
   end;
 
-  glEnd;
+  if DarkCap then
+  begin
+    TrianglesForDarkCap := TDynTriangle4SingleArray.Create;
+    TrianglesForDarkCap.AllowedCapacityOverflow := Triangles.Count;
+  end;
+
+  try
+
+    if LightPos[3] <> 0 then
+      glBegin(GL_QUADS) else
+      glBegin(GL_TRIANGLES);
+
+    TPtr := Triangles.Pointers[0];
+
+    if TransformIsIdentity then
+    begin
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        HandleTriangle(TPtr^);
+        Inc(TPtr);
+      end;
+    end else
+    begin
+      for I := 0 to Triangles.Count - 1 do
+      begin
+        { calculate TransformedTri := Triangles[I] transformed by Transform }
+        TransformedTri[0] := MultMatrixPoint(Transform, TPtr^[0]);
+        TransformedTri[1] := MultMatrixPoint(Transform, TPtr^[1]);
+        TransformedTri[2] := MultMatrixPoint(Transform, TPtr^[2]);
+
+        HandleTriangle(TransformedTri);
+        Inc(TPtr);
+      end;
+    end;
+
+    glEnd;
+
+    if LightCap or DarkCap then
+    begin
+      { See RenderSilhouetteShadowVolume for explanation why caps
+        should be rendered with glDepthFunc(GL_NEVER). }
+      glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
+      glDepthFunc(GL_NEVER);
+      glBegin(GL_TRIANGLES);
+
+      if LightCap then
+      begin
+        TPtr := TrianglesForLightCap.Pointers[0];
+        for I := 0 to TrianglesForLightCap.Count - 1 do
+        begin
+          RenderTriangle3Single(TPtr^);
+          Inc(TPtr);
+        end;
+      end;
+
+      if DarkCap then
+      begin
+        T4Ptr := TrianglesForDarkCap.Pointers[0];
+        for I := 0 to TrianglesForDarkCap.Count - 1 do
+        begin
+          RenderTriangle4Single(T4Ptr^);
+          Inc(T4Ptr);
+        end;
+      end;
+
+      glEnd;
+      glPopAttrib;
+    end;
+  finally
+    FreeAndNil(TrianglesForLightCap);
+    FreeAndNil(TrianglesForDarkCap);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.RenderSilhouetteShadowVolume(
@@ -1854,6 +1966,10 @@ procedure TVRMLFlatSceneGL.RenderSilhouetteShadowVolume(
   Advantages:
   - speed increase because we travel only on the interesting edges
   - speed increase because we can render quad_strip instead of quads list
+    in case of directional lights, we can even use triangle fan for shadow quads
+    in case of DarkCap (and not directional light), we can render DarkCap
+    as triangle fan also (see "fast, robust and practical sv" paper", this
+    works)
   Disadvantages:
   - this would require that we would have to use only really manifold shapes.
     E.g. right now it's ok to have one manifold scene created by two

@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -38,6 +38,24 @@
   (i ew. innych, patrz implementacja VectorMath przy wywolaniu $I Ten_Plik)
   aby odwolywac sie do odpowiednich typow.
 }
+
+procedure SwapValues(var V1, V2: TYPE_VECTOR3);
+var
+  Tmp: TYPE_VECTOR3;
+begin
+  Tmp := V1;
+  V1 := V2;
+  V2 := Tmp;
+end;
+
+procedure SwapValues(var V1, V2: TYPE_VECTOR4);
+var
+  Tmp: TYPE_VECTOR4;
+begin
+  Tmp := V1;
+  V1 := V2;
+  V2 := Tmp;
+end;
 
 operator := (const V: TYPE_VECTOR2_OBJECT): TYPE_VECTOR2;
 begin
