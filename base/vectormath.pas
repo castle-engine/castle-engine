@@ -1324,7 +1324,11 @@ function TriangleAreaSqr(const Tri: TTriangle3Double): Double; overload;
 
   TriangleNormPlane zwraca taki plane ze jego pierwsze trzy pozycje tworza
   wektor znormalizowany, tj. dlugosci 1. W ten sposob TrianglePlane
-  liczy przy okazji TriangleNormal. }
+  liczy przy okazji TriangleNormal.
+
+  For three points that do not define a plane, a plane with first three
+  components = 0 is returned. In fact, the 4th component will be zero too
+  in this case (for now), but depend on it. }
 function TrianglePlane(const Tri: TTriangle3Single): TVector4Single; overload;
 function TrianglePlane(const Tri: TTriangle3Double): TVector4Double; overload;
 function TrianglePlane(const p0, p1, p2: TVector3Single): TVector4Single; overload;
@@ -3085,56 +3089,69 @@ function FrustumSphereCollisionPossible(const Frustum: TFrustum;
   const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
   TFrustumCollisionPossible;
 var
-  fp: TFrustumPlane;
+  fp, LastPlane: TFrustumPlane;
   Distance, SqrRealDistance: Single;
   InsidePlanesCount: Cardinal;
 begin
- InsidePlanesCount := 0;
+  InsidePlanesCount := 0;
 
- { The logic goes like this:
-     if sphere is on the "outside" of *any* of 6 planes, result is NoCollision
-     if sphere is on the "inside" of *all* 6 planes, result is InsideFrustum
-     else SomeCollisionPossible.
+  LastPlane := High(FP);
+  Assert(LastPlane = fpFar);
 
-   Ideas based on
-   [http://www.flipcode.com/articles/article_frustumculling.shtml]
-   Version below is even better optimized: in case sphere
-   intersects with one plane, but is outside another plane,
-   their version may answer "intersection" (equivalent to my
-   SomeCollisionPossible), without realizing that actually a better
-   answer, NoCollision, exists. }
-
- { For the sake of maximum speed, I'm not using here things like
-   VectorDotProduct or PointToPlaneDistanceSqr }
- for fp := Low(fp) to High(fp) do
- begin
-  { This is not a true distance since
-    1. This is signed
-    2. My plane (Frustum[fp]) is not normalized, so this distance is wrong.
-       (should be divided by
-       Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
-  Distance := Frustum[fp][0] * SphereCenter[0] +
-              Frustum[fp][1] * SphereCenter[1] +
-              Frustum[fp][2] * SphereCenter[2] +
-              Frustum[fp][3];
-
-  SqrRealDistance := Sqr(Distance) /
-    ( Sqr(Frustum[fp][0]) +
-      Sqr(Frustum[fp][1]) +
-      Sqr(Frustum[fp][2]) );
-
-  if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
+  { If the frustum has far plane in infinity, then ignore this plane.
+    Inc InsidePlanesCount, since the sphere is inside this infinite plane. }
+  if (Frustum[fpFar][0] = 0) and
+     (Frustum[fpFar][1] = 0) and
+     (Frustum[fpFar][2] = 0) then
   begin
-   Result := fcNoCollision;
-   Exit;
-  end else
-  if SqrRealDistance >= SphereRadiusSqr then
-   Inc(InsidePlanesCount);
- end;
+    LastPlane := Pred(LastPlane);
+    Inc(InsidePlanesCount);
+  end;
 
- if InsidePlanesCount = 6 then
-  Result := fcInsideFrustum else
-  Result := fcSomeCollisionPossible;
+  { The logic goes like this:
+      if sphere is on the "outside" of *any* of 6 planes, result is NoCollision
+      if sphere is on the "inside" of *all* 6 planes, result is InsideFrustum
+      else SomeCollisionPossible.
+
+    Ideas based on
+    [http://www.flipcode.com/articles/article_frustumculling.shtml]
+    Version below is even better optimized: in case sphere
+    intersects with one plane, but is outside another plane,
+    their version may answer "intersection" (equivalent to my
+    SomeCollisionPossible), without realizing that actually a better
+    answer, NoCollision, exists. }
+
+  { For the sake of maximum speed, I'm not using here things like
+    VectorDotProduct or PointToPlaneDistanceSqr }
+  for fp := Low(fp) to LastPlane do
+  begin
+   { This is not a true distance since
+     1. This is signed
+     2. My plane (Frustum[fp]) is not normalized, so this distance is wrong.
+        (should be divided by
+        Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
+   Distance := Frustum[fp][0] * SphereCenter[0] +
+               Frustum[fp][1] * SphereCenter[1] +
+               Frustum[fp][2] * SphereCenter[2] +
+               Frustum[fp][3];
+
+   SqrRealDistance := Sqr(Distance) /
+     ( Sqr(Frustum[fp][0]) +
+       Sqr(Frustum[fp][1]) +
+       Sqr(Frustum[fp][2]) );
+
+   if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
+   begin
+    Result := fcNoCollision;
+    Exit;
+   end else
+   if SqrRealDistance >= SphereRadiusSqr then
+    Inc(InsidePlanesCount);
+  end;
+
+  if InsidePlanesCount = 6 then
+    Result := fcInsideFrustum else
+    Result := fcSomeCollisionPossible;
 end;
 
 function FrustumSphereCollisionPossibleSimple(const Frustum: TFrustum;
@@ -3143,32 +3160,42 @@ function FrustumSphereCollisionPossibleSimple(const Frustum: TFrustum;
 var
   fp: TFrustumPlane;
   Distance, SqrRealDistance: Single;
+  LastPlane: TFrustumPlane;
 begin
- for fp := Low(fp) to High(fp) do
- begin
-  { This is not a true distance since
-    1. This is signed
-    2. My plane (Frustum[fp]) is not normalized, so this distance is wrong.
-       (should be divided by
-       Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
-  Distance := Frustum[fp][0] * SphereCenter[0] +
-              Frustum[fp][1] * SphereCenter[1] +
-              Frustum[fp][2] * SphereCenter[2] +
-              Frustum[fp][3];
+  LastPlane := High(FP);
+  Assert(LastPlane = fpFar);
 
-  SqrRealDistance := Sqr(Distance) /
-    ( Sqr(Frustum[fp][0]) +
-      Sqr(Frustum[fp][1]) +
-      Sqr(Frustum[fp][2]) );
+  { If the frustum has far plane in infinity, then ignore this plane. }
+  if (Frustum[fpFar][0] = 0) and
+     (Frustum[fpFar][1] = 0) and
+     (Frustum[fpFar][2] = 0) then
+    LastPlane := Pred(LastPlane);
 
-  if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
+  for fp := Low(fp) to LastPlane do
   begin
-   Result := false;
-   Exit;
-  end;
- end;
+   { This is not a true distance since
+     1. This is signed
+     2. My plane (Frustum[fp]) is not normalized, so this distance is wrong.
+        (should be divided by
+        Sqrt(Sqr(Plane[0]) + Sqr(Plane[1]) + Sqr(Plane[2])) ) }
+   Distance := Frustum[fp][0] * SphereCenter[0] +
+               Frustum[fp][1] * SphereCenter[1] +
+               Frustum[fp][2] * SphereCenter[2] +
+               Frustum[fp][3];
 
- Result := true;
+   SqrRealDistance := Sqr(Distance) /
+     ( Sqr(Frustum[fp][0]) +
+       Sqr(Frustum[fp][1]) +
+       Sqr(Frustum[fp][2]) );
+
+   if (Distance < 0) and (SqrRealDistance > SphereRadiusSqr) then
+   begin
+    Result := false;
+    Exit;
+   end;
+  end;
+
+  Result := true;
 end;
 
 function FrustumMove(const Frustum: TFrustum;

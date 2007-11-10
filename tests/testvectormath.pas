@@ -29,6 +29,12 @@ uses
 
 type
   TTestVectorMath = class(TTestCase)
+  private
+    procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
+      const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
+      const GoodResult: TFrustumCollisionPossible);
+    procedure AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
+      const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
   published
     procedure TestPlaneOdcCollision;
     procedure TestCollisions;
@@ -175,28 +181,27 @@ begin
  { Writeln(VectorToRawStr(Line0), ' ', VectorToRawStr(LineVector)); }
 end;
 
+procedure TTestVectorMath.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
+  const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
+  const GoodResult: TFrustumCollisionPossible);
+begin
+ Assert( FrustumSphereCollisionPossible(Frustum, SphereCenter,
+   SphereRadiusSqt) = GoodResult);
+
+ Assert( FrustumSphereCollisionPossibleSimple(Frustum, SphereCenter,
+     SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
+end;
+
+procedure TTestVectorMath.AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
+  const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
+begin
+ Assert( FrustumBox3dCollisionPossible(Frustum, Box3d) = GoodResult);
+
+ Assert( FrustumBox3dCollisionPossibleSimple(Frustum, Box3d) =
+   (GoodResult <> fcNoCollision) );
+end;
+
 procedure TTestVectorMath.TestFrustum;
-
-  procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
-    const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
-    const GoodResult: TFrustumCollisionPossible);
-  begin
-   Assert( FrustumSphereCollisionPossible(Frustum, SphereCenter,
-     SphereRadiusSqt) = GoodResult);
-
-   Assert( FrustumSphereCollisionPossibleSimple(Frustum, SphereCenter,
-       SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
-  end;
-
-  procedure AssertFrustumBox3dCollisionPossible(const Frustum: TFrustum;
-    const Box3d: TBox3d; const GoodResult: TFrustumCollisionPossible);
-  begin
-   Assert( FrustumBox3dCollisionPossible(Frustum, Box3d) = GoodResult);
-
-   Assert( FrustumBox3dCollisionPossibleSimple(Frustum, Box3d) =
-     (GoodResult <> fcNoCollision) );
-  end;
-
 var Frustum: TFrustum;
 begin
  { Calculate testing frustum }
@@ -230,6 +235,23 @@ begin
  AssertFrustumBox3dCollisionPossible(Frustum,
    Box3d(Vector3Single(19, 10, 10), Vector3Single(21, 11, 11)),
    fcSomeCollisionPossible);
+end;
+
+procedure TTestVectorMath.TestInfiniteFrustum;
+begin
+  CalculateFrustum(Frustum,
+    PerspectiveProjMatrixDeg(60, 1, 10, ZFarInfinity),
+    LookDirMatrix(
+      Vector3Single(10, 10, 10) { eye position },
+      Vector3Single(1, 0, 0) { look direction },
+      vector3Single(0, 0, 1) { up vector } ));
+
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
+    fcNoCollision);
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(100, 10, 10), 1,
+    fcInsideFrustum);
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 200,
+    fcSomeCollisionPossible);
 end;
 
 procedure TTestVectorMath.TestOther;
