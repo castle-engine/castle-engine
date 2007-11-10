@@ -1191,66 +1191,81 @@ var
      Frustum[fp][3] < 0;
   end;
 
-var InsidePlanesCount: Cardinal;
+var
+  InsidePlanesCount: Cardinal;
+  LastPlane: TFrustumPlane;
 begin
- InsidePlanesCount := 0;
+  InsidePlanesCount := 0;
 
- { The logic goes like this:
-     if box is on the "outside" of *any* of 6 planes, result is NoCollision
-     if box is on the "inside" of *all* 6 planes, result is InsideFrustum
-     else SomeCollisionPossible. }
+  LastPlane := High(FP);
+  Assert(LastPlane = fpFar);
 
- for fp := Low(fp) to High(fp) do
- begin
-  { This way I need 6 multiplications instead of 8*3=24
-    (in case I would have to execute CheckOutsideCorner 8 times) }
-  FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
-  FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
-  FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
-  FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
-  FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
-  FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
-
-  { I'm splitting code below to two possilibilities.
-    This way I can calculate 7 remaining CheckOutsideCorner
-    calls using code  like
-      "... and ... and ..."
-    or
-      "... or ... or ..."
-    , and this means that short-circuit boolean evaluation
-    may usually reduce number of needed CheckOutsideCorner calls
-    (i.e. I will not need to actually call CheckOutsideCorner 8 times
-    per frustum plane). }
-
-  if CheckOutsideCorner(0, 0, 0) then
+  { If the frustum has far plane in infinity, then ignore this plane.
+    Inc InsidePlanesCount, since the box is inside this infinite plane. }
+  if (Frustum[fpFar][0] = 0) and
+     (Frustum[fpFar][1] = 0) and
+     (Frustum[fpFar][2] = 0) then
   begin
-   if CheckOutsideCorner(0, 0, 1) and
-      CheckOutsideCorner(0, 1, 0) and
-      CheckOutsideCorner(0, 1, 1) and
-      CheckOutsideCorner(1, 0, 0) and
-      CheckOutsideCorner(1, 0, 1) and
-      CheckOutsideCorner(1, 1, 0) and
-      CheckOutsideCorner(1, 1, 1) then
-    { All 8 corners outside }
-    Exit(fcNoCollision);
-  end else
-  begin
-   if not (
-      CheckOutsideCorner(0, 0, 1) or
-      CheckOutsideCorner(0, 1, 0) or
-      CheckOutsideCorner(0, 1, 1) or
-      CheckOutsideCorner(1, 0, 0) or
-      CheckOutsideCorner(1, 0, 1) or
-      CheckOutsideCorner(1, 1, 0) or
-      CheckOutsideCorner(1, 1, 1) ) then
-    { All 8 corners inside }
+    LastPlane := Pred(LastPlane);
     Inc(InsidePlanesCount);
   end;
- end;
 
- if InsidePlanesCount = 6 then
-  Result := fcInsideFrustum else
-  Result := fcSomeCollisionPossible;
+  { The logic goes like this:
+      if box is on the "outside" of *any* of 6 planes, result is NoCollision
+      if box is on the "inside" of *all* 6 planes, result is InsideFrustum
+      else SomeCollisionPossible. }
+
+  for fp := Low(fp) to LastPlane do
+  begin
+   { This way I need 6 multiplications instead of 8*3=24
+     (in case I would have to execute CheckOutsideCorner 8 times) }
+   FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
+   FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
+   FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
+   FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
+   FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
+   FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
+
+   { I'm splitting code below to two possilibilities.
+     This way I can calculate 7 remaining CheckOutsideCorner
+     calls using code  like
+       "... and ... and ..."
+     or
+       "... or ... or ..."
+     , and this means that short-circuit boolean evaluation
+     may usually reduce number of needed CheckOutsideCorner calls
+     (i.e. I will not need to actually call CheckOutsideCorner 8 times
+     per frustum plane). }
+
+   if CheckOutsideCorner(0, 0, 0) then
+   begin
+    if CheckOutsideCorner(0, 0, 1) and
+       CheckOutsideCorner(0, 1, 0) and
+       CheckOutsideCorner(0, 1, 1) and
+       CheckOutsideCorner(1, 0, 0) and
+       CheckOutsideCorner(1, 0, 1) and
+       CheckOutsideCorner(1, 1, 0) and
+       CheckOutsideCorner(1, 1, 1) then
+     { All 8 corners outside }
+     Exit(fcNoCollision);
+   end else
+   begin
+    if not (
+       CheckOutsideCorner(0, 0, 1) or
+       CheckOutsideCorner(0, 1, 0) or
+       CheckOutsideCorner(0, 1, 1) or
+       CheckOutsideCorner(1, 0, 0) or
+       CheckOutsideCorner(1, 0, 1) or
+       CheckOutsideCorner(1, 1, 0) or
+       CheckOutsideCorner(1, 1, 1) ) then
+     { All 8 corners inside }
+     Inc(InsidePlanesCount);
+   end;
+  end;
+
+  if InsidePlanesCount = 6 then
+    Result := fcInsideFrustum else
+    Result := fcSomeCollisionPossible;
 end;
 
 function FrustumBox3dCollisionPossibleSimple(const Frustum: TFrustum;
@@ -1276,29 +1291,40 @@ var
      Frustum[fp][3] < 0;
   end;
 
+var
+  LastPlane: TFrustumPlane;
 begin
- for fp := Low(fp) to High(fp) do
- begin
-  { This way I need 6 multiplications instead of 8*3=24 }
-  FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
-  FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
-  FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
-  FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
-  FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
-  FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
+  LastPlane := High(FP);
+  Assert(LastPlane = fpFar);
 
-  if CheckOutsideCorner(0, 0, 0) and
-     CheckOutsideCorner(0, 0, 1) and
-     CheckOutsideCorner(0, 1, 0) and
-     CheckOutsideCorner(0, 1, 1) and
-     CheckOutsideCorner(1, 0, 0) and
-     CheckOutsideCorner(1, 0, 1) and
-     CheckOutsideCorner(1, 1, 0) and
-     CheckOutsideCorner(1, 1, 1) then
-    Exit(false);
- end;
+  { If the frustum has far plane in infinity, then ignore this plane. }
+  if (Frustum[fpFar][0] = 0) and
+     (Frustum[fpFar][1] = 0) and
+     (Frustum[fpFar][2] = 0) then
+    LastPlane := Pred(LastPlane);
 
- Result := true;
+  for fp := Low(fp) to LastPlane do
+  begin
+    { This way I need 6 multiplications instead of 8*3=24 }
+    FrustumMultiplyBox[0][0] := Frustum[fp][0] * Box[0][0];
+    FrustumMultiplyBox[0][1] := Frustum[fp][1] * Box[0][1];
+    FrustumMultiplyBox[0][2] := Frustum[fp][2] * Box[0][2];
+    FrustumMultiplyBox[1][0] := Frustum[fp][0] * Box[1][0];
+    FrustumMultiplyBox[1][1] := Frustum[fp][1] * Box[1][1];
+    FrustumMultiplyBox[1][2] := Frustum[fp][2] * Box[1][2];
+
+    if CheckOutsideCorner(0, 0, 0) and
+       CheckOutsideCorner(0, 0, 1) and
+       CheckOutsideCorner(0, 1, 0) and
+       CheckOutsideCorner(0, 1, 1) and
+       CheckOutsideCorner(1, 0, 0) and
+       CheckOutsideCorner(1, 0, 1) and
+       CheckOutsideCorner(1, 1, 0) and
+       CheckOutsideCorner(1, 1, 1) then
+      Exit(false);
+  end;
+
+  Result := true;
 end;
 
 function FrustumAndPointBoundingBox(const Frustum: TFrustum;
