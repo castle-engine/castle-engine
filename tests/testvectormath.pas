@@ -25,7 +25,7 @@ unit TestVectorMath;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, Boxes3d;
 
 type
   TTestVectorMath = class(TTestCase)
@@ -44,11 +44,12 @@ type
     procedure TestFrustum;
     procedure TestOther;
     procedure TestVectorStr;
+    procedure TestInfiniteFrustum;
   end;
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3d, KambiStringUtils, KambiTimeUtils;
+uses KambiUtils, KambiStringUtils, KambiTimeUtils;
 
 {$I vectormathinlines.inc}
 
@@ -202,7 +203,8 @@ begin
 end;
 
 procedure TTestVectorMath.TestFrustum;
-var Frustum: TFrustum;
+var
+  Frustum: TFrustum;
 begin
  { Calculate testing frustum }
  CalculateFrustum(Frustum,
@@ -238,6 +240,8 @@ begin
 end;
 
 procedure TTestVectorMath.TestInfiniteFrustum;
+var
+  Frustum: TFrustum;
 begin
   CalculateFrustum(Frustum,
     PerspectiveProjMatrixDeg(60, 1, 10, ZFarInfinity),
@@ -250,7 +254,7 @@ begin
     fcNoCollision);
   AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(100, 10, 10), 1,
     fcInsideFrustum);
-  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 200,
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 400,
     fcSomeCollisionPossible);
 end;
 
