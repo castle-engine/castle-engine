@@ -951,6 +951,11 @@ function ThreePlanesIntersectionPoint(
   PlaneAntiMove work like PlaneMove, but they translate by negated Move
   So it's like PlaneAntiMove(Plane, V) := PlaneMove(Plane, -V),
   but (very slightly) faster.
+
+  This works Ok with invalid planes (1st three components = 0),
+  that is after the move the plane remains invalid (1st three components
+  remain = 0).
+
   @groupBegin }
 function PlaneMove(const Plane: TVector4Single;
   const Move: TVector3Single): TVector4Single; overload;
@@ -3206,6 +3211,8 @@ begin
   Result[fpBottom] := PlaneMove(Frustum[fpBottom], Move);
   Result[fpTop   ] := PlaneMove(Frustum[fpTop]   , Move);
   Result[fpNear  ] := PlaneMove(Frustum[fpNear]  , Move);
+  { This is Ok for frustum with infinite far plane, since
+    PlaneMove will simply keep the far plane invalid }
   Result[fpFar   ] := PlaneMove(Frustum[fpFar]   , Move);
 end;
 
@@ -3217,6 +3224,8 @@ begin
   PlaneMoveTo1st(Frustum[fpBottom], Move);
   PlaneMoveTo1st(Frustum[fpTop]   , Move);
   PlaneMoveTo1st(Frustum[fpNear]  , Move);
+  { This is Ok for frustum with infinite far plane, since
+    PlaneMove will simply keep the far plane invalid }
   PlaneMoveTo1st(Frustum[fpFar]   , Move);
 end;
 
