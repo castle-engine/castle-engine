@@ -360,7 +360,41 @@ procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d)
           InsidePlane(TrianglePlane(FrustumNearPoints[3], FrustumNearPoints[0], LightPosition3));
       end;
     end else
-      Result := true;  { TODO: for directional ? }
+    begin
+      { For directional light, this is somewhat similar to positional lights,
+        except that you have 4 planes (each one from a segment of near rectangle,
+        extruded to infinity in both directions).
+
+        The corner cases may occur when light direction is the same as direction
+        of one of the segments. This will make at most 2 such planes invalid
+        (as 2 pairs of segments have different direction than other 2 pairs
+        of near rectangle segments). So we simply ignore such invald planes,
+        so again we can use InsidePlane function. }
+
+      { Although NearPlane for directional lights is not a plane that delimits
+        the pyramid, we still calculate NearPlane to decide in which direction
+        our 4 planes should be calculated, so that they point CCW outside. }
+      NearPlane := TrianglePlane(
+        FrustumNearPoints[2], FrustumNearPoints[1], FrustumNearPoints[0]);
+
+      if (NearPlane[0] * LightPositionDouble[0] +
+          NearPlane[1] * LightPositionDouble[1] +
+          NearPlane[2] * LightPositionDouble[2]) > 0 then
+      begin
+        Result :=
+          InsidePlane(TrianglePlane(FrustumNearPoints[0], FrustumNearPoints[1], VectorAdd(FrustumNearPoints[0], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[1], FrustumNearPoints[2], VectorAdd(FrustumNearPoints[1], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2], FrustumNearPoints[3], VectorAdd(FrustumNearPoints[2], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3], FrustumNearPoints[0], VectorAdd(FrustumNearPoints[3], LightPosition3)));
+      end else
+      begin
+        Result :=
+          InsidePlane(TrianglePlane(FrustumNearPoints[1], FrustumNearPoints[0], VectorAdd(FrustumNearPoints[1], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[2], FrustumNearPoints[1], VectorAdd(FrustumNearPoints[2], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[3], FrustumNearPoints[2], VectorAdd(FrustumNearPoints[3], LightPosition3))) and
+          InsidePlane(TrianglePlane(FrustumNearPoints[0], FrustumNearPoints[3], VectorAdd(FrustumNearPoints[0], LightPosition3)));
+      end;
+    end;
   end;
 
 begin
