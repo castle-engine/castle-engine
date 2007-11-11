@@ -178,7 +178,7 @@ type
       @unorderedList(
         @item(glStencilOpSeparate (in OpenGL >= 2.0))
         @item(GL_ATI_separate_stencil extension, glStencilOpSeparateATI)
-        @item(GL_EXT_stencil_two_side extension, glActiveStencilFaceEXT)
+        @item(TODO: GL_EXT_stencil_two_side extension, glActiveStencilFaceEXT)
       ) }
     property StencilTwoSided: boolean read FStencilTwoSided;
 
