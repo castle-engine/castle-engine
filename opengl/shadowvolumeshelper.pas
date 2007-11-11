@@ -80,6 +80,8 @@ type
     FCountZPass: Cardinal;
     FCountZFailNoLightCap: Cardinal;
     FCountZFailAndLightCap: Cardinal;
+
+    procedure UpdateCount;
   public
     property WrapAvailable: boolean read FWrapAvailable;
 
@@ -464,6 +466,11 @@ begin
   FZFailAndLightCap := ZFail and
     FrustumBox3dCollisionPossibleSimple(FFrustum, SceneBox);
 
+  UpdateCount;
+end;
+
+procedure TShadowVolumesHelper.UpdateCount;
+begin
   { update counters }
   if Count then
   begin
@@ -560,6 +567,8 @@ begin
   FSceneShadowPossiblyVisible := true;
   FZFail := true;
   FZFailAndLightCap := true;
+  UpdateCount;
+  InitSceneOnlySetupStencil;
 end;
 
 end.
