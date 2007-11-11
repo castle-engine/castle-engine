@@ -594,7 +594,7 @@ begin
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);
     AppendShadowsImplementationRadio('_StencilOpSeparate (best choice, ' +
-      'requires OpenGL >= 2.0)', siStencilOpSeparate);
+      'requires OpenGL >= 2.0 or GL_ATI_separate_stencil)', siStencilOpSeparate);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Allow silhouette optimization', 8,
       AllowSilhouetteOptimization, true));

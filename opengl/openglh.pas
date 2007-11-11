@@ -441,6 +441,8 @@ var
   GL_NV_vertex_array_range,
   GL_NV_vertex_program,
 
+  GL_ATI_separate_stencil,
+
   GL_PGI_misc_hints,
   GL_PGI_vertex_hints,
 
@@ -3907,6 +3909,9 @@ var
   glVertexAttribs4svNV: procedure (index: TGLuint; count: TGLSizei; v: PGLshort); OPENGL_CALL
   glVertexAttribs4ubvNV: procedure (index: TGLuint; count: TGLSizei; v: PGLubyte); OPENGL_CALL
 
+  { GL_ATI_separate_stencil }
+  glStencilOpSeparateATI: procedure(face, sfail, dpfail, dppass: TGLenum); OPENGL_CALL
+
   { OpenGL 2.0 (minimal functionality translated only, the one I needed;
     in the future I'm going to switch to FPC OpenGL units anyway) }
   { }
@@ -5660,6 +5665,10 @@ begin
  glVertexAttribs4svNV := nil;
  glVertexAttribs4ubvNV := nil;
 
+ { GL_ATI_separate_stencil }
+ glStencilOpSeparateATI := nil;
+
+ { OpenGL 2.0 }
  glStencilOpSeparate := nil;
 
  {$ifdef UNIX}
@@ -6272,6 +6281,11 @@ begin
   ProcVarCast(glVertexAttribs4fvNV) := LoadExtensionFunction('glVertexAttribs4fvNV');
   ProcVarCast(glVertexAttribs4svNV) := LoadExtensionFunction('glVertexAttribs4svNV');
   ProcVarCast(glVertexAttribs4ubvNV) := LoadExtensionFunction('glVertexAttribs4ubvNV');
+
+  { GL_ATI_separate_stencil }
+  ProcVarCast(glStencilOpSeparateATI) := LoadExtensionFunction('glStencilOpSeparateATI');
+
+  { OpenGL 2.0 }
   ProcVarCast(glStencilOpSeparate) := LoadExtensionFunction('glStencilOpSeparate');
 
   {$ifdef UNIX}
@@ -6632,6 +6646,8 @@ begin
   GL_NV_texture_env_combine4 := CheckExtension('GL_NV_texture_env_combine4');
   GL_NV_vertex_array_range := CheckExtension('GL_NV_vertex_array_range');
   GL_NV_vertex_program := CheckExtension('GL_NV_vertex_program');
+
+  GL_ATI_separate_stencil := CheckExtension('GL_ATI_separate_stencil');
 
   GL_PGI_misc_hints := CheckExtension('GL_PGI_misc_hints');
   GL_PGI_vertex_hints := CheckExtension('GL_PGI_vertex_hints');

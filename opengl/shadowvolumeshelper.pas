@@ -214,6 +214,19 @@ begin
   if GLVersion.Major <= 1 then
     glStencilOpSeparate := nil;
 
+  { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
+    call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
+    is just an extension promoted to standard in GL 2.0... }
+  if (glStencilOpSeparate = nil) and GL_ATI_separate_stencil then
+  begin
+    if Log then
+      WritelnLog('SV init',
+        'Real glStencilOpSeparate not available, ' +
+        'but faking it by glStencilOpSeparateATI (since ' +
+        'GL_ATI_separate_stencil available)');
+    glStencilOpSeparate := glStencilOpSeparateATI;
+  end;
+
   if Log then
     WritelnLogMultiline('Shadow volumes initialization',
       Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
