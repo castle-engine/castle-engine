@@ -70,6 +70,7 @@ type
     FLightPositionDouble: TVector4Double;
 
     StencilConfigurationKnown: boolean;
+    StencilConfigurationKnownKind: TStencilSetupKind;
     StencilConfigurationKnownZFail: boolean;
 
     FStencilSetupKind: TStencilSetupKind;
@@ -545,20 +546,16 @@ begin
   begin
     { setup stencil configuration. To avoid state too often changes,
       use StencilConfigurationKnown. }
-    if StencilConfigurationKnown then
-    begin
-      if StencilConfigurationKnownZFail <> ZFail then
-      begin
-        ActuallySetStencilConfiguration;
-        StencilConfigurationKnownZFail := ZFail;
-      end;
-        { else, if configuration known and equals current, nothing to do }
-    end else
+    if (not StencilConfigurationKnown) or
+       (StencilConfigurationKnownZFail <> ZFail) or
+       (StencilConfigurationKnownKind <> StencilSetupKind) then
     begin
       ActuallySetStencilConfiguration;
       StencilConfigurationKnown := true;
+      StencilConfigurationKnownKind := StencilSetupKind;
       StencilConfigurationKnownZFail := ZFail;
     end;
+      { else, if configuration known and equals current, nothing to do }
   end;
 end;
 
