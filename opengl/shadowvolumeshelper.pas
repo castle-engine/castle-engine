@@ -309,7 +309,7 @@ procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d)
     end;
 
   begin
-    for I := 0 to FrustumAndLightPlanesCount - 1 do
+    for I := 0 to Integer(FrustumAndLightPlanesCount) - 1 do
     begin
       if CheckPoint(0, 0, 0) and
          CheckPoint(0, 0, 1) and
