@@ -39,8 +39,8 @@ type
     Pass the instance of this to TVRMLFlatSceneGL.RenderShadowVolume. }
   TShadowVolumesHelper = class
   private
-    IsFrustumLightBox: boolean;
-    FrustumLightBox: TBox3d;
+    FrustumAndLightPlanes: array [0..5] of TVector4Single;
+    FrustumAndLightPlanesCount: Cardinal;
     FFrustum: TFrustum;
     FrustumNearPoints: TFrustumPointsDouble;
 
@@ -222,34 +222,59 @@ end;
 procedure TShadowVolumesHelper.InitFrustumAndLight(
   const Frustum: TFrustum;
   const ALightPosition: TVector4Single);
+
+  procedure CalculateFrustumAndLightPlanes;
+  var
+    FP, LastPlane: TFrustumPlane;
+  begin
+    FrustumAndLightPlanesCount := 0;
+
+    LastPlane := High(FP);
+    Assert(LastPlane = fpFar);
+
+    { if infinite far plane, then ignore it }
+    if (Frustum[fpFar][0] = 0) and
+       (Frustum[fpFar][1] = 0) and
+       (Frustum[fpFar][2] = 0) then
+      LastPlane := Pred(LastPlane);
+
+    for FP := Low(FP) to LastPlane do
+    begin
+      { This checks that LightPosition is inside Frustum[FP] plane.
+
+        When LightPosition[3] = 1, this is normal test on which side
+        of plane lies a point, so then it's OK (frustum planes point inside
+        the frustum). For LightPosition[3] > 0 this is also  equivalent.
+
+        For LightPosition[3] = 0 (directional light), this check dot product
+        between light direction and plane direction. So >= 0 means that they
+        point in the same dir (angle < 90 degs), so the light position
+        in infinity can also be considered inside this plane. }
+      if Frustum[FP][0] * LightPosition[0] +
+         Frustum[FP][1] * LightPosition[1] +
+         Frustum[FP][2] * LightPosition[2] +
+         Frustum[FP][3] * LightPosition[3] >= 0 then
+      begin
+        FrustumAndLightPlanes[FrustumAndLightPlanesCount] := Frustum[FP];
+        Inc(FrustumAndLightPlanesCount);
+      end;
+    end;
+
+    { TODO: a better convex hull between light position and frustum could
+      be useful. We should add additional planes to FrustumAndLightPlanes
+      for this. Some pointers on [http://www.terathon.com/gdc06_lengyel.ppt]. }
+  end;
+
 var
   ALightPosition3: TVector3Single absolute ALightPosition;
 begin
   FFrustum := Frustum;
+  FLightPosition := ALightPosition;
+  FLightPositionDouble := Vector4Double(ALightPosition);
 
   CalculateFrustumPoints(FrustumNearPoints, Frustum, true);
 
-  IsFrustumLightBox := (ALightPosition[3] = 1) and
-    ( (Frustum[fpFar][0] <> 0) or
-      (Frustum[fpFar][1] <> 0) or
-      (Frustum[fpFar][2] <> 0) );
-
-  { TODO: this is very lame frustum culling.
-    1. First of all, this works only for positional lights.
-    2. Second, this represents the sum of
-       Frustum + light position as a box3d --- while a convex hull of max
-       9 points would be more optimal.
-    3. Third, it doesn't work for frustum with infinite far plane
-       (and this is practically neededfor z-fail approach).
-       (CalculateFrustumPoints, and so FrustumAndPointBoundingBox,
-       cannot work with such frustum).
-  }
-
-  if IsFrustumLightBox then
-    FrustumLightBox := FrustumAndPointBoundingBox(Frustum, ALightPosition3);
-
-  FLightPosition := ALightPosition;
-  FLightPositionDouble := Vector4Double(ALightPosition);
+  CalculateFrustumAndLightPlanes;
 
   StencilConfigurationKnown := false;
 
@@ -267,6 +292,35 @@ begin
 end;
 
 procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d);
+
+  function CalculateShadowPossiblyVisible(const SceneBox: TBox3d): boolean;
+  var
+    I: Integer;
+
+    function CheckPoint(const X, Y, Z: Integer): boolean;
+    begin
+      Result :=
+        SceneBox[X][0] * FrustumAndLightPlanes[I][0] +
+        SceneBox[Y][1] * FrustumAndLightPlanes[I][1] +
+        SceneBox[Z][2] * FrustumAndLightPlanes[I][2] +
+        FrustumAndLightPlanes[I][3] < 0;
+    end;
+
+  begin
+    for I := 0 to FrustumAndLightPlanesCount - 1 do
+    begin
+      if CheckPoint(0, 0, 0) and
+         CheckPoint(0, 0, 1) and
+         CheckPoint(0, 1, 0) and
+         CheckPoint(0, 1, 1) and
+         CheckPoint(1, 0, 0) and
+         CheckPoint(1, 0, 1) and
+         CheckPoint(1, 1, 0) and
+         CheckPoint(1, 1, 1) then
+        Exit(false);
+    end;
+    Result := true;
+  end;
 
   function CalculateZFail: boolean;
 
@@ -400,16 +454,10 @@ procedure TShadowVolumesHelper.InitSceneDontSetupStencil(const SceneBox: TBox3d)
   end;
 
 begin
-  { Frustum culling for shadow volumes:
-    If the light is positional (so we have FrustumLightBox),
-    and Box is outside FrustumLightBox, there's
-    no need to render shadow quads for this creature.
-    This is a very usefull optimization in certain cases
-    (level with many creatures, spread evenly on the level;
-    on "The Castle" Doom level, for example, it wasn't hard to find place
-    where this optimization improved FPS to 40 from 17). }
-  FSceneShadowPossiblyVisible := (not IsFrustumLightBox) or
-    Boxes3dCollision(SceneBox, FrustumLightBox);
+  { Frustum culling for shadow volumes.
+    If the SceneBox is outside of convex hull light pos + frustum,
+    the shadow of this scene is not visible for sure. }
+  FSceneShadowPossiblyVisible := CalculateShadowPossiblyVisible(SceneBox);
 
   FZFail := FSceneShadowPossiblyVisible and CalculateZFail;
 

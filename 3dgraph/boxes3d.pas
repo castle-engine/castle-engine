@@ -257,12 +257,6 @@ function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
 function FrustumBox3dCollisionPossibleSimple(const Frustum: TFrustum;
   const Box: TBox3d): boolean;
 
-{ Calculate bounding box that spans Frustum and the addiional Point.
-  Usefull for shadow volume optimization, where it's usefull to
-  calculate bounding volume of the frustum + light position. }
-function FrustumAndPointBoundingBox(const Frustum: TFrustum;
-  const Point: TVector3Single): TBox3d;
-
 { This calculates smallest possible sphere completely
   enclosing given Box.
   SphereRadiusSqr = 0 and SphereCenter is undefined if Box is empty. }
@@ -1325,20 +1319,6 @@ begin
   end;
 
   Result := true;
-end;
-
-function FrustumAndPointBoundingBox(const Frustum: TFrustum;
-  const Point: TVector3Single): TBox3d;
-var
-  AllPoints: record
-    FrustumPoints: TFrustumPointsSingle;
-    OnePoint: TVector3Single;
-  end;
-begin
-  CalculateFrustumPoints(AllPoints.FrustumPoints, Frustum, true);
-  AllPoints.OnePoint := Point;
-  Result := CalculateBoundingBox(PVector3Single(@AllPoints),
-    High(TFrustumPointsSingle) + 2, 0);
 end;
 
 procedure Box3dBoundingSphere(const Box3d: TBox3d;
