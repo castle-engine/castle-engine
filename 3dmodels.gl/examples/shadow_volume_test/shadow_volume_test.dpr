@@ -114,13 +114,15 @@ type
 
       Note that glStencilOpSeparate (avail in OpenGL >= 2.0)
       allows to combine these two advantages: only one pass will
-      be needed, and OpenGL can detect back/front faces. }
+      be needed, and OpenGL can detect back/front faces.
+      There are extensions for older OpenGL that also allow this. }
     siGLCullFace2Passes,
 
-    { This means that glStencilOpSeparate will be used.
-      Requires OpenGL >= 2.0, but allows only one pass, and OpenGL detects
-      front/back faces. So this is the most desirable and practical approach. }
-    siStencilOpSeparate
+    { This means that StencilTwoSided (glStencilOpSeparate or some OpenGL
+      extension) will be used.
+      Allows only one pass, and OpenGL detects front/back faces.
+      So this is the most desirable and practical approach. }
+    siStencilTwoSided
   );
 
 var
@@ -142,7 +144,7 @@ var
   IsRenderShadowCaster: boolean = true;
   AllowSilhouetteOptimization: boolean = true;
 
-  ShadowsImplementation: TShadowsImplementation = siStencilOpSeparate;
+  ShadowsImplementation: TShadowsImplementation = siStencilTwoSided;
   ShadowsImplementationRadioGroup: TMenuItemRadioGroup;
   ShadowsImplementationRadio:
     array [TShadowsImplementation] of TMenuItemRadio;
@@ -223,15 +225,16 @@ procedure Draw(glwin: TGLWindow);
   var
     StencilShadowBits: TGLuint;
   begin
-    if (ShadowsImplementation = siStencilOpSeparate) and
-       (glStencilOpSeparate = nil) then
+    if (ShadowsImplementation = siStencilTwoSided) and
+       (not SVHelper.StencilTwoSided) then
     begin
       ShadowsImplementation := siGLCullFace2Passes;
       ShadowsImplementationRadioGroup.Selected :=
         ShadowsImplementationRadio[ShadowsImplementation];
 
-      MessageOK(Glwin, 'glStencilOpSeparate not available ' +
-        '(OpenGL version required is >= 2.0), falling back to ' +
+      MessageOK(Glwin, 'Stencil two-sided approach not available ' +
+        '(requires OpenGL >= 2.0 for glStencilOpSeparate or some extension ' +
+        'on older OpenGLs). Falling back to ' +
         'GLCullFace2Passes implementation', taMiddle);
     end;
 
@@ -273,16 +276,16 @@ procedure Draw(glwin: TGLWindow);
 
         glStencilFunc(GL_ALWAYS, 0, 0);
         case ShadowsImplementation of
-          siStencilOpSeparate:
+          siStencilTwoSided:
             begin
-              SVHelper.StencilSetupKind := ssSeparate;
+              SVHelper.StencilSetupKind := ssFrontAndBack;
               SVHelper.InitSceneOnlySetupStencil;
               RenderAllShadowQuadsAndCaps;
             end;
           siGLCullFace2Passes, siEngineCullFace2Passes:
             begin
               { Render front facing shadow quads. }
-              SVHelper.StencilSetupKind := ssForFront;
+              SVHelper.StencilSetupKind := ssFront;
               SVHelper.InitSceneOnlySetupStencil;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
@@ -293,7 +296,7 @@ procedure Draw(glwin: TGLWindow);
                 RenderFrontShadowQuads;
 
               { Render back facing shadow quads. }
-              SVHelper.StencilSetupKind := ssForBack;
+              SVHelper.StencilSetupKind := ssBack;
               SVHelper.InitSceneOnlySetupStencil;
               if ShadowsImplementation = siGLCullFace2Passes then
               begin
@@ -593,8 +596,8 @@ begin
       siEngineCullFace2Passes);
     AppendShadowsImplementationRadio('2 passes, cull faces using _OpenGL',
       siGLCullFace2Passes);
-    AppendShadowsImplementationRadio('_StencilOpSeparate (best choice, ' +
-      'requires OpenGL >= 2.0 or GL_ATI_separate_stencil)', siStencilOpSeparate);
+    AppendShadowsImplementationRadio('_Stencil two-sided (best choice, ' +
+      'requires OpenGL >= 2.0 or some extensions)', siStencilTwoSided);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Allow silhouette optimization', 8,
       AllowSilhouetteOptimization, true));

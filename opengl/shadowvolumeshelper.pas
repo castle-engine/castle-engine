@@ -26,7 +26,7 @@ interface
 uses VectorMath, Boxes3d, OpenGLh;
 
 type
-  TStencilSetupKind = (ssSeparate, ssForFront, ssForBack);
+  TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
 
   { This class performs various initialization and calculations related
     to shadow volume rendering. It does everything, except the actual
@@ -83,6 +83,8 @@ type
     FCountZFailAndLightCap: Cardinal;
 
     procedure UpdateCount;
+
+    FStencilTwoSided: boolean;
   public
     property WrapAvailable: boolean read FWrapAvailable;
 
@@ -168,15 +170,27 @@ type
     { Is the ZFail with light caps method needed, set by InitScene. }
     property ZFailAndLightCap: boolean read FZFailAndLightCap;
 
+    { Is two-sided stencil test (that allows you to make SV in a single pass)
+      available ?
+
+      This is initialized by InitGLContext, and is true if OpenGL provides
+      one of:
+      @unorderedList(
+        @item(glStencilOpSeparate (in OpenGL >= 2.0))
+        @item(GL_ATI_separate_stencil extension, glStencilOpSeparateATI)
+        @item(GL_EXT_stencil_two_side extension, glActiveStencilFaceEXT)
+      ) }
+    property StencilTwoSided: boolean read FStencilTwoSided;
+
     { What kind of stencil settings should be set by InitScene ?
 
-      Set ssSeparate only if glStencilOpSeparate is available.
+      Set ssFrontAndBack only if StencilTwoSided is @true.
       Otherwise, you have to use 2-pass method (render everything
       2 times, culling front one time, culling back second time) ---
-      in this case use ssForFront or ssForBack as appropriate. }
+      in this case use ssFront or ssBack as appropriate. }
     property StencilSetupKind: TStencilSetupKind
       read FStencilSetupKind  write FStencilSetupKind
-      default ssSeparate;
+      default ssFrontAndBack;
 
     property Count: boolean read FCount write FCount default false;
     property CountScenes: Cardinal read FCountScenes;
@@ -227,12 +241,14 @@ begin
     glStencilOpSeparate := glStencilOpSeparateATI;
   end;
 
+  FStencilTwoSided := glStencilOpSeparate <> nil;
+
   if Log then
     WritelnLogMultiline('Shadow volumes initialization',
       Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
-             'glStencilOpSeparate available: %s',
+             'Two-sided stencil test available: %s',
             [ BoolToStr[WrapAvailable],
-              BoolToStr[glStencilOpSeparate <> nil] ]));
+              BoolToStr[StencilTwoSided] ]));
 end;
 
 procedure TShadowVolumesHelper.InitFrustumAndLight(
@@ -547,9 +563,9 @@ procedure TShadowVolumesHelper.InitSceneOnlySetupStencil;
 
   begin
     case StencilSetupKind of
-      ssSeparate: SetStencilOpSeparate;
-      ssForFront: SetStencilOpForFront;
-      ssForBack: SetStencilOpForBack;
+      ssFrontAndBack: SetStencilOpSeparate;
+      ssFront: SetStencilOpForFront;
+      ssBack: SetStencilOpForBack;
       else raise EInternalError.Create('shadowvolumeshelper.pas 456');
     end;
   end;
