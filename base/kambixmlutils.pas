@@ -3,7 +3,7 @@ unit KambiXMLUtils;
 
 interface
 
-uses DOM;
+uses SysUtils, DOM;
 
 { Retrieves from Element attribute Value and returns @true,
   or (of there is no such attribute) returns @false
@@ -43,6 +43,37 @@ function DOMGetBooleanAttribute(const Element: TDOMElement;
   in correct XML file. }
 function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
 
+type
+  EDOMChildElementError = class(Exception);
+
+{ Searches children elements inside Element for element with given
+  ChildName.
+
+  For example
+
+@preformatted(
+  <level>
+    <creatures>
+      ...
+    </creatures>
+    <items>
+      ...
+    </items>
+  </level>
+)
+
+  If you pass as Element the <level> node, as 'items' as
+  ChildNode, then the TDOMElement representing <items>
+  will be returned. If given ChildName will not exist
+  @italic(or it will exist more than once (yes, that's checked)),
+  then will return @nil or raise EDOMChildElementError
+  (depending on RaiseOnError).
+
+  @raises(EDOMChildElementError
+    If child not found or found more than once and RaiseOnError)  }
+function DOMGetChildElement(const Element: TDOMElement;
+  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+
 { This returns the text data contained in this element.
 
   This is suitable if an element is supposed to contain only some text.
@@ -64,7 +95,7 @@ function DOMGetTextData(const Element: TDOMElement): string;
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses KambiUtils;
 
 function DOMGetAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: string): boolean;
@@ -151,6 +182,39 @@ begin
       end;
     end;
   finally Children.Release end;
+end;
+
+function DOMGetChildElement(const Element: TDOMElement;
+  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+var
+  Children: TDOMNodeList;
+  Node: TDOMNode;
+  I: Integer;
+begin
+  Result := nil;
+  Children := Element.ChildNodes;
+  try
+    for I := 0 to Integer(Children.Count) - 1 do
+    begin
+      Node := Children.Item[I];
+      if (Node.NodeType = ELEMENT_NODE) and
+         ((Node as TDOMElement).TagName = ChildName) then
+      begin
+        if Result = nil then
+          Result := TDOMElement(Node) else
+        begin
+          if RaiseOnError then
+            raise EDOMChildElementError.CreateFmt(
+              'Child "%s" occurs more than once', [ChildName]) else
+            Exit(nil);
+        end;
+      end;
+    end;
+  finally Children.Release end;
+
+  if (Result = nil) and RaiseOnError then
+    raise EDOMChildElementError.CreateFmt(
+      'Child "%s" not found', [ChildName])
 end;
 
 function DOMGetTextData(const Element: TDOMElement): string;
