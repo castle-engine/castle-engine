@@ -278,6 +278,8 @@ end;
 
 procedure TProgress.Step(StepSize: Cardinal);
 begin
+ Assert(Active, 'TProgress.Step error: progress is not active');
+
  FPosition := FPosition + StepSize;
  if Position > Max then FPosition := Max;
  if ( (not WasUpdateCalled) or
