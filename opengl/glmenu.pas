@@ -1364,10 +1364,10 @@ begin
     case C of
       CtrlB:
         DrawBackgroundRectangle := not DrawBackgroundRectangle;
-      'x': IncPositionRelative(PositionRelativeScreenX);
-      'y': IncPositionRelative(PositionRelativeScreenY);
-      CtrlX: IncPositionRelative(PositionRelativeMenuX);
-      CtrlY: IncPositionRelative(PositionRelativeMenuY);
+      'x': IncPositionRelative(FPositionRelativeScreenX);
+      'y': IncPositionRelative(FPositionRelativeScreenY);
+      CtrlX: IncPositionRelative(FPositionRelativeMenuX);
+      CtrlY: IncPositionRelative(FPositionRelativeMenuY);
       CtrlD:
         InfoWrite(Format(
           'Position.Init(%f, %f);' +nl+
