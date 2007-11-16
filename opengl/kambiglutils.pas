@@ -999,10 +999,21 @@ procedure DrawArrow(grotThickness, grotLength: TGLfloat); overload;
   quadrica, ustawia callback GLU_ERROR na ReportGLerror i
   sprawdza automatycznie (i rzuca Exception jesli nie) czy result <> nil. }
 function NewGLUQuadric(
-  texture: TGLboolean {$ifdef DEFPARS} = GL_TRUE {$endif};
-  normals: TGLenum {$ifdef DEFPARS} = GLU_NONE {$endif};
-  orientation: TGLenum {$ifdef DEFPARS} = GLU_OUTSIDE {$endif};
-  drawStyle: TGLenum {$ifdef DEFPARS} = GLU_FILL {$endif}): PGLUQuadric; overload;
+  Texture: TGLboolean = GL_TRUE;
+  Normals: TGLenum = GLU_NONE;
+  Orientation: TGLenum = GLU_OUTSIDE;
+  DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; overload;
+
+{ Render sphere in OpenGL. Radius, Slices, Stacks have the same meaning
+  as for gluSphere (in case they are not self-explanatory...).
+  Other parameters set glu quadric parameters, see glu quadric documentation. }
+procedure KamGluSphere(
+  const Radius: TGLdouble;
+  const Slices, Stacks: TGLint;
+  Texture: TGLboolean = GL_TRUE;
+  Normals: TGLenum = GLU_NONE;
+  Orientation: TGLenum = GLU_OUTSIDE;
+  DrawStyle: TGLenum = GLU_FILL);
 
 { rysuje rectangle od x1, y1 do x2, y2. Wspolrzedna constCoordx jest stala
   i ma zawsze wartosc constValue. Wspolrzedne tesktury i normal (jeden
@@ -2244,6 +2255,20 @@ begin
  gluQuadricNormals(result, normals);
  gluQuadricOrientation(result, orientation);
  gluQuadricDrawStyle(result, drawStyle);
+end;
+
+procedure KamGluSphere(
+  const Radius: TGLdouble;
+  const Slices, Stacks: TGLint;
+  Texture: TGLboolean; Normals: TGLenum;
+  Orientation: TGLenum; DrawStyle: TGLenum);
+var
+  Q: PGLUQuadric;
+begin
+  Q := NewGLUQuadric(Texture, Normals, Orientation, DrawStyle);
+  try
+    gluSphere(Q, Radius, Slices, Stacks);
+  finally gluDeleteQuadric(Q); end;
 end;
 
 procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
