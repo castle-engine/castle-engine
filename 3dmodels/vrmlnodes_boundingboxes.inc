@@ -44,9 +44,11 @@ function Text_BoundingBox(State: TVRMLGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const TTFont: PTrueTypeFont;
-  const Strings: TDynStringArray): TBox3d;
+  const Strings: TDynStringArray;
+  const Depth: Single): TBox3d;
 var
-  points: array[0..3]of TVector3Single;
+  points: array [0..7] of TVector3Single;
+  PointsCount: Cardinal;
   DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
   I: integer;
 begin
@@ -74,8 +76,20 @@ begin
   points[1] := Vector3Single(maxx, maxy, 0);
   points[2] := Vector3Single(minx, miny, 0);
   points[3] := Vector3Single(maxx, miny, 0);
+  PointsCount := 4;
 
-  result := CalculateBoundingBox(@points, 4, 0, State.CurrMatrix);
+  if Depth <> 0 then
+  begin
+    { add another set of 4 points, on given -Depth }
+    PointsCount := 8;
+    for I := 4 to 7 do
+    begin
+      Points[I] := Points[I - 4];
+      Points[I][2] := -Depth;
+    end;
+  end;
+
+  result := CalculateBoundingBox(@Points, PointsCount, 0, State.CurrMatrix);
 end;
 
 function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -85,7 +99,8 @@ begin
     FdSpacing.Value,
     Justify,
     State.LastNodes.FontStyle.TTF_Font,
-    FdString.Items);
+    FdString.Items,
+    FdKambiDepth.Value);
 end;
 
 function TNodeText.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -109,7 +124,7 @@ begin
   end;
 
   Result := Text_BoundingBox(State,
-    Size, Spacing, Justify, TTFont, FdString.Items);
+    Size, Spacing, Justify, TTFont, FdString.Items, FdKambiDepth.Value);
 end;
 
 function Cone_BoundingBox(State: TVRMLGraphTraverseState;

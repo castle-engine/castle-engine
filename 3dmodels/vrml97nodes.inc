@@ -1379,6 +1379,7 @@
     property FdfontStyle: TSFNode index 1 read GetFieldAsSFNode;
     property Fdlength: TMFFloat index 2 read GetFieldAsMFFloat;
     property FdmaxExtent: TSFFloat index 3 read GetFieldAsSFFloat;
+    property FdKambiDepth: TSFFloat index 4 read GetFieldAsSFFloat;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -3882,6 +3883,7 @@ begin
   Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2])); Fields.Last.Exposed := true;
   Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('kambiDepth', 0, true));
 end;
 
 function TNodeText.FontStyle: TNodeFontStyle_2;

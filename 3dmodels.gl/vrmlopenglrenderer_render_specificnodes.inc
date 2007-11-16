@@ -45,7 +45,8 @@ procedure Text_Render(
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const Strings: TDynStringArray;
-  CurrentFont: TGLOutlineFont);
+  CurrentFont: TGLOutlineFont;
+  const Depth: Single);
 
   { StringPos* ignore Size, just assume that CurrentFont has right size. }
   function StringPosX(i: integer): TGLfloat;
@@ -78,6 +79,7 @@ begin
 
   glPushMatrix;
     glScalef(1, YScale, 1);
+
     for I := 0 to Strings.Count - 1 do
     begin
       glPushMatrix;
@@ -95,6 +97,58 @@ begin
           CurrentFont.PrintAndMove(Strings[i]);
       glPopMatrix;
     end;
+
+    if Depth <> 0 then
+    begin
+      { TODO: backface culling could be used for fonts with kambiDepth <> 0 ? }
+
+      for I := 0 to Strings.Count - 1 do
+      begin
+        glPushMatrix;
+          glScalef(XScale, 1, 1);
+
+          { TODO: when using Justify <> fjBegin I should also
+            change texOriginX here, at least for VRML 1.0 --- check
+            for VRML 2.0. }
+          glTranslatef(StringPosX(I), StringPosY(I), -Depth);
+
+          { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
+            popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
+          if Render_TexCoordsNeeded then
+            CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
+            CurrentFont.PrintAndMove(Strings[i]);
+        glPopMatrix;
+      end;
+
+      { Normals will change during rendering of character extrusions,
+        that's why I render extrusions after rendering all front and back caps.
+        For now, normals for extrusions are suitable only for flat shading,
+        so we set flat shading. }
+
+      glPushAttrib(GL_LIGHTING_BIT);
+        glShadeModel(GL_FLAT);
+
+        for I := 0 to Strings.Count - 1 do
+        begin
+          glPushMatrix;
+            glScalef(XScale, 1, 1);
+
+            { TODO: when using Justify <> fjBegin I should also
+              change texOriginX here, at least for VRML 1.0 --- check
+              for VRML 2.0. }
+            glTranslatef(StringPosX(I), StringPosY(I), -Depth);
+
+            { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
+              popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
+            if Render_TexCoordsNeeded then
+              CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
+              CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
+          glPopMatrix;
+        end;
+
+      glPopAttrib;
+    end;
+
   glPopMatrix;
 end;
 
@@ -108,7 +162,8 @@ begin
     Cache.Fonts[
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
-      State.LastNodes.FontStyle.Italic].Instance);
+      State.LastNodes.FontStyle.Italic].Instance,
+    Node.FdKambiDepth.Value);
 end;
 
 procedure RenderText(Node: TNodeText);
@@ -137,7 +192,8 @@ begin
       Node.FontStyle.Italic].Instance;
   end;
 
-  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont);
+  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
+    Node.FdKambiDepth.Value);
 end;
 
 { Cone ----------------------------------------------------------------------- }

@@ -60,6 +60,7 @@
     { Use consts JUSTIFICATION_XXX (declared below in this unit) }
     property FdJustification: TSFEnum index 2 read GetFieldAsSFEnum;
     property FdWidth: TMFFloat index 3 read GetFieldAsMFFloat;
+    property FdKambiDepth: TSFFloat index 4 read GetFieldAsSFFloat;
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -847,6 +848,7 @@ begin
  Fields.Add(TSFFloat.Create('spacing', 1));
  Fields.Add(TSFEnum.Create('justification', A2, JUSTIFICATION_LEFT));
  Fields.Add(TMFFloat.Create('width', A3));
+ Fields.Add(TSFFloat.Create('kambiDepth', 0, true));
 end;
 
 class function TNodeAsciiText_1.ClassNodeTypeName: string;

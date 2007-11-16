@@ -56,8 +56,18 @@ type
   private
     base : TGLuint;
     TTFont : PTrueTypeFont;
+
+    TexturedXShift: TGLfloat;
+    procedure TexturedBegin(const TexOriginX, TexOriginY: TGLfloat);
+    procedure TexturedLetterEnd(const TexOriginX, TexOriginY: TGLfloat; const C: char);
+    procedure TexturedEnd;
+
     procedure CharPrint(c: char);
     procedure CharPrintAndMove(c: char);
+
+    procedure CharExtrusionPrint(const C: char; const Depth: Single;
+      onlyLines: boolean = false);
+    procedure CharExtrusionPrintAndMove(const C: char; const Depth: Single);
   public
     { Create instance from TrueTypeFont.
 
@@ -113,11 +123,42 @@ type
     procedure PrintTextured(const s: string;
       const texOriginX, texOriginY: TGLfloat);
     { @groupEnd }
+
+    { Render extrusion of given text. This renders the side walls of text
+      that would be created when pushing the text into z = -Depth.
+
+      If you want to render letters as solid 3D objects, then the text
+      has three parts: front cap (you get this by normal Print or PrintAndMove
+      or PrintTexturedAndMove), back cap (this is the same thing as front cap
+      but with z = -Depth) and extrusion (connecting front cap and back cap;
+      this is rendered using this method).
+
+      This is supposed to be used on text created with Depth = 0 at
+      constructor. Text created with Depth <> 0 at constructions already
+      gets this extrusion (along with back cap) rendered by normal
+      Print or PrintAndMove etc. methods.
+
+      This generates proper normal vectors. For now, they are only suitable
+      for flat shading, so be sure to render fonts with flat shading if using
+      this.
+
+      PrintTexturedExtrusionAndMove version generates also proper
+      texture coordinates (matching coordinates made by PrintTexturedAndMove).
+
+      This doesn't use any display list.
+
+      @groupBegin }
+    procedure PrintExtrusionAndMove(const S: string; const Depth: Single);
+
+    procedure PrintTexturedExtrusionAndMove(
+      const S: string; const Depth: Single;
+      const TexOriginX, TexOriginY: TGLfloat);
+    { @groupEnd }
   end;
 
 implementation
 
-uses KambiUtils;
+uses KambiUtils, VectorMath;
 
 const
   {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}
@@ -228,8 +269,6 @@ var i, poz,
    gluTessEndPolygon(tobj);
   end;
 
-var PolygonNum, LineNum, PointNum: Integer;
-    PointsKind: TPolygonKind;
 begin
  inherited Create;
  New(vertices);
@@ -268,51 +307,9 @@ begin
    begin
     TesselatedPolygon(depth); {narysuj na glebokosci depth kopie poligonu}
 
-    poz := 0;
-    for PolygonNum := 1 to Znak^.Info.PolygonsCount do
-    begin
-     Assert(Znak^.items[poz].Kind = pkNewPolygon);
-     linesCount := Znak^.items[poz].Count;
-     Inc(poz);
-
-     if onlyLines then glBegin(GL_LINES) else glBegin(GL_QUAD_STRIP);
-     for LineNum := 1 to LinesCount do
-     begin
-      Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
-      PointsKind := Znak^.items[poz].Kind;
-      PointsCount := Znak^.items[poz].Count;
-      Inc(poz);
-
-      case PointsKind of
-       pkLines,
-       pkBezier:
-         begin
-          for PointNum := 1 to PointsCount-1 do
-          begin
-           with Znak^.items[poz] do begin
-            glVertex2f(x, y);
-            glVertex3f(x, y, depth);
-           end;
-           Inc(poz);
-          end;
-          Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
-                      punkt nastepnej linii lub pierwszy punkt polygonu }
-         end;
-         { TODO:  robic tu krzywe beziera jezeli kiedys bede potrzebowal
-           takiej dokladnosci? }
-      end;
-     end;
-
-     {na koncu - laczymy ostatnia pare z pierwsza}
-     if not onlyLines then
-     with Znak^.items[poz-1] do
-     begin
-      glVertex2f(x, y);
-      glVertex3f(x, y, depth);
-     end;
-
-     glEnd;
-    end;
+    { Although CharExtrusionPrint prints at z = -Depth, we want from
+      here to print at +Depth for compatibility with old code. }
+    CharExtrusionPrint(Chr(I), -Depth, onlyLines);
    end;
 
    glEndList;
@@ -362,44 +359,187 @@ begin result := TTFontTextWidth(TTfont, s) end;
 function TGLOutlineFont.TextHeight(const s: string): single;
 begin result := TTFontTextHeight(TTfont, s) end;
 
+procedure TGLOutlineFont.TexturedBegin(const TexOriginX, TexOriginY: TGLfloat);
+begin
+  glPushAttrib(GL_TEXTURE_BIT);
+
+  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+
+  glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4f(1/RowHeight, 0, 0, - texOriginX / RowHeight));
+  glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4f(0, 1/RowHeight, 0, - texOriginY));
+  { texT = (objectY - texOriginY)/RowHeight =
+           objectY/RowHeight - texOriginY/RowHeight
+
+    Note that equation for GL_S above is actually the same as the one in
+    TexturedLetterEnd with TexturedXShift assumed to be 0. }
+
+  glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
+
+  TexturedXShift := 0;
+end;
+
+procedure TGLOutlineFont.TexturedLetterEnd(
+  const TexOriginX, TexOriginY: TGLfloat; const C: char);
+begin
+  TexturedXShift += TTFont^[C]^.Info.MoveX;
+
+  { texS = (objectX+xshift - texOriginX)/RowHeight =
+           objectX/RowHeight + (xshift-texOriginX)/RowHeight
+
+    TexturedXShift sie zmienia, to jest powod dla ktorego musimy przed
+    narysowaniem kazdego charactera ustawic glTexGenv(GL_S,...) od nowa }
+  glTexGenv(GL_S, GL_OBJECT_PLANE,
+    Vector4f(1/RowHeight, 0, 0,
+    (TexturedXShift - texOriginX) / RowHeight));
+end;
+
+procedure TGLOutlineFont.TexturedEnd;
+begin
+  glPopAttrib;
+end;
+
 procedure TGLOutlineFont.PrintTexturedAndMove(const s: string;
-  const texOriginX, texOriginY: TGLfloat);
+  const TexOriginX, TexOriginY: TGLfloat);
 var
   i: integer;
-  xshift: TGLfloat;
 begin
- glPushAttrib(GL_TEXTURE_BIT);
-
- glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
- glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
- {texT = (objectY - texOriginY)/RowHeight =
-         objectY/RowHeight - texOriginY/RowHeight}
- glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4f(0, 1/RowHeight, 0, -texOriginY));
- glEnable(GL_TEXTURE_GEN_S);
- glEnable(GL_TEXTURE_GEN_T);
-
- xshift := 0;
- for i := 1 to Length(s) do
- begin
-  {texS = (objectX+xshift - texOriginX)/RowHeight =
-          objectX/RowHeight + (xshift-texOriginX)/RowHeight
-   xshift sie zmienia, to jest powod dla ktorego musimy przed narysowaniem
-   kazdego charactera ustawic glTexGenv(GL_S,...) od nowa}
-  glTexGenv(GL_S, GL_OBJECT_PLANE,
-    Vector4f(1/RowHeight, 0, 0,(xshift-texOriginX)/RowHeight));
-  CharPrintAndMove(s[i]);
-  xshift := xshift+TTFont^[s[i]]^.Info.MoveX;
- end;
-
- glPopAttrib;
+  TexturedBegin(TexOriginX, TexOriginY);
+  for i := 1 to Length(s) do
+  begin
+    CharPrintAndMove(s[i]);
+    TexturedLetterEnd(texOriginX, texOriginY, S[I]);
+  end;
+  TexturedEnd;
 end;
 
 procedure TGLOutlineFont.PrintTextured(const s: string;
   const texOriginX, texOriginY: TGLfloat);
 begin
- glPushMatrix;
- PrintTexturedAndMove(s, texOriginX, texOriginY);
- glPopMatrix;
+  glPushMatrix;
+  PrintTexturedAndMove(s, texOriginX, texOriginY);
+  glPopMatrix;
+end;
+
+procedure TGLOutlineFont.CharExtrusionPrint(
+  const C: char; const Depth: Single; onlyLines: boolean);
+var
+  Znak: PTTFChar;
+  Poz: Cardinal;
+  PolygonNum, LineNum, PointNum: Integer;
+  PointsKind: TPolygonKind;
+  linesCount, pointsCount :Cardinal;
+  Character, NextCharacter: PTTFCharItem;
+  Normal: TVector3Single;
+begin
+  Znak := TTFont^[C];
+
+  poz := 0;
+  for PolygonNum := 1 to Znak^.Info.PolygonsCount do
+  begin
+   Assert(Znak^.items[poz].Kind = pkNewPolygon);
+   linesCount := Znak^.items[poz].Count;
+   Inc(poz);
+
+   { Set Normal, only to have it initially set to anything.
+     Value below will be used as normal for 2nd vertex, and for flat shading
+     this will simply be ignored. }
+   Normal := Vector3Single(1, 0, 0);
+
+   if onlyLines then glBegin(GL_LINES) else glBegin(GL_QUAD_STRIP);
+
+   for LineNum := 1 to LinesCount do
+   begin
+    Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
+    PointsKind := Znak^.items[poz].Kind;
+    PointsCount := Znak^.items[poz].Count;
+    Inc(poz);
+
+    case PointsKind of
+     pkLines,
+     pkBezier:
+       begin
+        for PointNum := 1 to PointsCount-1 do
+        begin
+          { Thanks to the fact that each line always has as it's last point
+            the first point of next line (or the first point of this polygon),
+            we can safely assume here that Znak^.items[poz+1] is the next char. }
+          Character := @Znak^.Items[poz];
+          NextCharacter := @Znak^.Items[poz + 1];
+
+          with Character^ do
+          begin
+            glVertex2f(x, y);
+            glNormalv(Normal);
+            glVertex3f(x, y, depth);
+          end;
+
+          { Calculate normal for the quad you just started now,
+            it will be actually passed to glNormal in next iteration.
+            Reason: For flat shading and GL_QUAD_STRIP, OpenGL says
+            that the properties (like a normal) of 2i+2 vertex define
+            the properties of i-th quad (counted from one).
+            I other words, the normal before 4th vertex sets normal
+            for 1st quad, before 6th vertex -- for 2nd quad and so on. }
+
+          Normal := TriangleNormal(
+            Vector3Single(    Character^.X,     Character^.Y, 0),
+            Vector3Single(NextCharacter^.X, NextCharacter^.Y, 0),
+            Vector3Single(    Character^.X,     Character^.Y, -Depth));
+
+          Inc(poz);
+        end;
+        Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
+                    punkt nastepnej linii lub pierwszy punkt polygonu }
+       end;
+       { TODO:  robic tu krzywe beziera jezeli kiedys bede potrzebowal
+         takiej dokladnosci? }
+    end;
+   end;
+
+   {na koncu - laczymy ostatnia pare z pierwsza}
+   if not onlyLines then
+   with Znak^.items[poz-1] do
+   begin
+    glVertex2f(x, y);
+    glNormalv(Normal);
+    glVertex3f(x, y, depth);
+   end;
+
+   glEnd;
+  end;
+end;
+
+procedure TGLOutlineFont.CharExtrusionPrintAndMove(
+  const C: char; const Depth: Single);
+begin
+  CharExtrusionPrint(C, Depth);
+  glTranslatef(TTFont^[C]^.Info.MoveX, TTFont^[C]^.Info.MoveY, 0);
+end;
+
+procedure TGLOutlineFont.PrintExtrusionAndMove(
+  const S: string; const Depth: Single);
+var
+  I: Integer;
+begin
+  for I := 1 to Length(S) do
+    CharExtrusionPrintAndMove(S[I], Depth);
+end;
+
+procedure TGLOutlineFont.PrintTexturedExtrusionAndMove(
+  const S: string; const Depth: Single;
+  const TexOriginX, TexOriginY: TGLfloat);
+var
+  I: Integer;
+begin
+  TexturedBegin(TexOriginX, TexOriginY);
+  for I := 1 to Length(S) do
+  begin
+    CharExtrusionPrintAndMove(S[I], Depth);
+    TexturedLetterEnd(TexOriginX, texOriginY, S[I]);
+  end;
+  TexturedEnd;
 end;
 
 end.
