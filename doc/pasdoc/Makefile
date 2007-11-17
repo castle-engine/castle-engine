@@ -3,7 +3,7 @@
 .PHONY: default html htmlhelp pdf ps rtf latex
 
 # html and pdf are two most useful versions of documentation,
-# shown on [http://vrmlengine.sourceforge.net/sources_docs.php]
+# shown on [http://vrmlengine.sourceforge.net/reference.php]
 default: html pdf
 
 html:
