@@ -47,7 +47,7 @@ procedure Text_Render(
   const Strings: TDynStringArray;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
-  Solid: boolean);
+  const MarkFrontFaces: boolean);
 
   { StringPos* ignore Size, just assume that CurrentFont has right size. }
   function StringPosX(i: integer): TGLfloat;
@@ -76,10 +76,17 @@ begin
 
   Render_BindMaterial_1(0);
 
-  glNormal3f(0, 0, -1);
-
   glPushMatrix;
     glScalef(1, YScale, 1);
+
+    if MarkFrontFaces then
+    begin
+      glFrontFace(GL_CW);
+      { normal pointing from CW }
+      glNormal3f(0, 0, 1);
+    end else
+      { normal pointing from CCW }
+      glNormal3f(0, 0, -1);
 
     for I := 0 to Strings.Count - 1 do
     begin
@@ -101,7 +108,12 @@ begin
 
     if Depth <> 0 then
     begin
-      { TODO: backface culling could be used for fonts with kambiDepth <> 0 ? }
+      if MarkFrontFaces then
+        glFrontFace(GL_CCW);
+
+      { Normal pointing from CCW.
+        If not MarkFrontFaces, then it's default that front face is CCW.  }
+      glNormal3f(0, 0, -1);
 
       for I := 0 to Strings.Count - 1 do
       begin
@@ -163,8 +175,7 @@ begin
     Cache.Fonts[
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
-      State.LastNodes.FontStyle.Italic].Instance,
-    0, false);
+      State.LastNodes.FontStyle.Italic].Instance, 0, false);
 end;
 
 procedure RenderText(Node: TNodeText);
@@ -193,8 +204,7 @@ begin
       Node.FontStyle.Italic].Instance;
   end;
 
-  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
-    0, false);
+  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
 end;
 
 procedure RenderText3D(Node: TNodeText3D);
@@ -223,8 +233,19 @@ begin
       Node.FontStyle.Italic].Instance;
   end;
 
+  if Node.FdSolid.Value then
+  begin
+    glPushAttrib(GL_POLYGON_BIT);
+    glEnable(GL_CULL_FACE);
+  end;
+
   Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
     Node.FdDepth.Value, Node.FdSolid.Value);
+
+  if Node.FdSolid.Value then
+  begin
+    glPopAttrib;
+  end;
 end;
 
 { Cone ----------------------------------------------------------------------- }
