@@ -23,8 +23,6 @@ unit KambiZlib;
 interface
 
 {$ifndef DELPHI}
-  { Needed for array of const }
-
   { for linux for linking with libc }
   {$ifdef unix}
     {$linklib c}
@@ -136,7 +134,14 @@ var
   gzsetparams: function(thefile:gzFile; level:longint; strategy:longint):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzread: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzwrite: function(thefile:gzFile; buf:pointer; len:cardinal):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
-  gzprintf: function(thefile:gzFile; format:pbytef; args:array of const):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
+  (* gzprintf commented out,
+     FPC 2.2.0 warning "Warning: cdecl'ared functions have no high parameter"
+     and on mailing list Jonas suggests that C varargs will never be reliably
+     handled anyway.
+     http://www.mail-archive.com/fpc-devel@lists.freepascal.org/msg09040.html
+     (although the point of thread is about something else completely,
+     and even the question was about "array of PChar" which is not varargs...) *)
+  //gzprintf: function(thefile:gzFile; format:pbytef; args:array of const):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzputs: function(thefile:gzFile; s:pbytef):longint;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzgets: function(thefile:gzFile; buf:pbytef; len:longint):pbytef;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
   gzputc: function(thefile:gzFile; c:char):char;{$ifdef ZLIB_STDCALL} stdcall {$else} cdecl {$endif};
@@ -250,7 +255,7 @@ initialization
   {$ifdef FPC_OBJFPC} Pointer(gzsetparams) {$else} @gzsetparams {$endif} := ZLibrary.Symbol('gzsetparams');
   {$ifdef FPC_OBJFPC} Pointer(gzread) {$else} @gzread {$endif} := ZLibrary.Symbol('gzread');
   {$ifdef FPC_OBJFPC} Pointer(gzwrite) {$else} @gzwrite {$endif} := ZLibrary.Symbol('gzwrite');
-  {$ifdef FPC_OBJFPC} Pointer(gzprintf) {$else} @gzprintf {$endif} := ZLibrary.Symbol('gzprintf');
+//  {$ifdef FPC_OBJFPC} Pointer(gzprintf) {$else} @gzprintf {$endif} := ZLibrary.Symbol('gzprintf');
   {$ifdef FPC_OBJFPC} Pointer(gzputs) {$else} @gzputs {$endif} := ZLibrary.Symbol('gzputs');
   {$ifdef FPC_OBJFPC} Pointer(gzgets) {$else} @gzgets {$endif} := ZLibrary.Symbol('gzgets');
   {$ifdef FPC_OBJFPC} Pointer(gzputc) {$else} @gzputc {$endif} := ZLibrary.Symbol('gzputc');

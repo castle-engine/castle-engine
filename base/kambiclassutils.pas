@@ -934,7 +934,7 @@ end;
 
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 begin
-  while Strings.Count > MaxCount do
+  while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
 end;
 
