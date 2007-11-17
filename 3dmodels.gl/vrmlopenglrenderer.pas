@@ -1667,6 +1667,27 @@ begin
        FontStyle.Bold,
        FontStyle.Italic,
        FontStyle.TTF_Font);
+ end else
+ if (State.ParentShape.FdGeometry.Value <> nil) and
+    (State.ParentShape.FdGeometry.Value is TNodeText3D) then
+ begin
+   { We know that TNodeText3D(State.ParentShape.FdGeometry.Value)
+     will be the shape node rendered along with this State.
+     That's how it works in VRML 2.0: State actually contains
+     reference to Shape that contains reference to geometry node,
+     which means that actually State contains rendered node too. }
+   FontStyle := TNodeText3D(State.ParentShape.FdGeometry.Value).FontStyle;
+   if FontStyle = nil then
+     PrepareFont(
+       TNodeFontStyle_2.DefaultFamily,
+       TNodeFontStyle_2.DefaultBold,
+       TNodeFontStyle_2.DefaultItalic,
+       TNodeFontStyle_2.DefaultTTF_Font) else
+     PrepareFont(
+       FontStyle.Family,
+       FontStyle.Bold,
+       FontStyle.Italic,
+       FontStyle.TTF_Font);
  end;
 
  { przygotuj teksture }
@@ -2066,6 +2087,8 @@ begin
         RenderAsciiText(TNodeAsciiText_1(Node)) else
       if Node is TNodeText then
         RenderText(TNodeText(Node)) else
+      if Node is TNodeText3D then
+        RenderText3D(TNodeText3D(Node)) else
       if Node is TNodeCone_1 then
         RenderCone_1(TNodeCone_1(Node)) else
       if Node is TNodeCone_2 then

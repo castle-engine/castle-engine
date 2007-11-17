@@ -59,6 +59,36 @@
 
     class function URNMatching(const URN: string): boolean; override;
   end;
+
+  TNodeText3D = class(TNodeGeneralShape)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+
+    property Fdstring: TMFString index 0 read GetFieldAsMFString;
+    property FdfontStyle: TSFNode index 1 read GetFieldAsSFNode;
+    property Fdlength: TMFFloat index 2 read GetFieldAsMFFloat;
+    property FdmaxExtent: TSFFloat index 3 read GetFieldAsSFFloat;
+
+    { Fields added compared to normal Text node: }
+
+    { }
+    property FdDepth: TSFFloat index 4 read GetFieldAsSFFloat;
+    property FdSolid: TSFBool index 5 read GetFieldAsSFBool;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
+      is nil or if it's not TNodeFontStyle_2. }
+    function FontStyle: TNodeFontStyle_2;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -161,5 +191,35 @@ class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+class function TNodeText3D.ClassNodeTypeName: string;
+begin
+  Result := 'Text3D';
+end;
+
+class function TNodeText3D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeText3D.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Fields.Add(TMFString.Create('string', [])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2])); Fields.Last.Exposed := true;
+  Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('depth', 0.1, true)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('solid', true)); Fields.Last.Exposed := true;
+end;
+
+function TNodeText3D.FontStyle: TNodeFontStyle_2;
+begin
+  if (FdFontStyle.Value <> nil) and
+     (FdFontStyle.Value is TNodeFontStyle_2) then
+    Result := TNodeFontStyle_2(FdFontStyle.Value) else
+    Result := nil;
 end;
 {$endif read_implementation}

@@ -100,7 +100,7 @@ begin
     Justify,
     State.LastNodes.FontStyle.TTF_Font,
     FdString.Items,
-    FdKambiDepth.Value);
+    0);
 end;
 
 function TNodeText.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -124,7 +124,31 @@ begin
   end;
 
   Result := Text_BoundingBox(State,
-    Size, Spacing, Justify, TTFont, FdString.Items, FdKambiDepth.Value);
+    Size, Spacing, Justify, TTFont, FdString.Items, 0);
+end;
+
+function TNodeText3D.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+var
+  Size, Spacing: Single;
+  Justify: TVRMLFontJustify;
+  TTFont: PTrueTypeFont;
+begin
+  if FontStyle = nil then
+  begin
+    Size := TNodeFontStyle_2.DefaultSize;
+    Spacing := TNodeFontStyle_2.DefaultSpacing;
+    Justify := TNodeFontStyle_2.DefaultJustify;
+    TTFont := TNodeFontStyle_2.DefaultTTF_Font;
+  end else
+  begin
+    Size := FontStyle.FdSize.Value;
+    Spacing := FontStyle.FdSpacing.Value;
+    Justify := FontStyle.Justify;
+    TTFont := FontStyle.TTF_Font;
+  end;
+
+  Result := Text_BoundingBox(State,
+    Size, Spacing, Justify, TTFont, FdString.Items, FdDepth.Value);
 end;
 
 function Cone_BoundingBox(State: TVRMLGraphTraverseState;

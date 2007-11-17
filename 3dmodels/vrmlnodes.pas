@@ -5944,6 +5944,7 @@ initialization
     { Kambi non-standard nodes }
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
+    TNodeText3D,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
@@ -6050,6 +6051,7 @@ initialization
     { Kambi non-standard nodes }
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
+    //TNodeText3D,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
@@ -6164,6 +6166,7 @@ initialization
     TNodePointSet_2,
     TNodeSphere_2,
     TNodeText,
+    TNodeText3D,
     TNodeTrimmedSurface
   ]);
 finalization

@@ -38,6 +38,12 @@ begin result := 0;{TODO} end;
 function TNodeText.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin result := 0;{TODO} end;
 
+function TNodeText3D.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0;{TODO} end;
+
+function TNodeText3D.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin result := 0;{TODO} end;
+
 function Cone_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   const Sides, Bottom: boolean): Cardinal;
 begin

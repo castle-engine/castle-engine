@@ -46,7 +46,8 @@ procedure Text_Render(
   const Justify: TVRMLFontJustify;
   const Strings: TDynStringArray;
   CurrentFont: TGLOutlineFont;
-  const Depth: Single);
+  const Depth: Single;
+  Solid: boolean);
 
   { StringPos* ignore Size, just assume that CurrentFont has right size. }
   function StringPosX(i: integer): TGLfloat;
@@ -163,7 +164,7 @@ begin
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
       State.LastNodes.FontStyle.Italic].Instance,
-    Node.FdKambiDepth.Value);
+    0, false);
 end;
 
 procedure RenderText(Node: TNodeText);
@@ -193,7 +194,37 @@ begin
   end;
 
   Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
-    Node.FdKambiDepth.Value);
+    0, false);
+end;
+
+procedure RenderText3D(Node: TNodeText3D);
+var
+  Size, Spacing: Single;
+  Justify: TVRMLFontJustify;
+  CurrentFont: TGLOutlineFont;
+begin
+  if Node.FontStyle = nil then
+  begin
+    Size := TNodeFontStyle_2.DefaultSize;
+    Spacing := TNodeFontStyle_2.DefaultSpacing;
+    Justify := TNodeFontStyle_2.DefaultJustify;
+    CurrentFont := Cache.Fonts[
+      TNodeFontStyle_2.DefaultFamily,
+      TNodeFontStyle_2.DefaultBold,
+      TNodeFontStyle_2.DefaultItalic].Instance;
+  end else
+  begin
+    Size := Node.FontStyle.FdSize.Value;
+    Spacing := Node.FontStyle.FdSpacing.Value;
+    Justify := Node.FontStyle.Justify;
+    CurrentFont := Cache.Fonts[
+      Node.FontStyle.Family,
+      Node.FontStyle.Bold,
+      Node.FontStyle.Italic].Instance;
+  end;
+
+  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
+    Node.FdDepth.Value, Node.FdSolid.Value);
 end;
 
 { Cone ----------------------------------------------------------------------- }
