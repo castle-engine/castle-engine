@@ -52,7 +52,7 @@ const
   DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single };
   DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single };
 
-  DefaultSpaceBetweenItems = 10;
+  DefaultRegularSpaceBetweenItems = 10;
 
 type
   TGLMenu = class;
@@ -339,7 +339,7 @@ type
     FCurrentItemColor: TVector3Single;
     FNonCurrentItemColor: TVector3Single;
     MaxItemWidth: Single;
-    FSpaceBetweenItems: Cardinal;
+    FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
     { Item accessory that currently has "grabbed" the mouse.
       -1 if none. }
@@ -447,7 +447,8 @@ type
         @itemSpacing Compact
         @item Items
         @item Position
-        @item SpaceBetweenItems
+        @item(RegularSpaceBetweenItems (and eventually everything else that
+          affects your custom SpaceBetweenItems implementation))
       )
       and calling one of the procedures
       @unorderedList(
@@ -547,10 +548,25 @@ type
       read FDrawBackgroundRectangle write FDrawBackgroundRectangle
       default true;
 
-    { Additional vertical space, in pixels, between menu items. }
-    property SpaceBetweenItems: Cardinal
-      read FSpaceBetweenItems write FSpaceBetweenItems
-      default DefaultSpaceBetweenItems;
+    { Additional vertical space, in pixels, between menu items.
+
+      If you want more control over it (if you want to add more/less
+      space between some menu items), override SpaceBetweenItems method. }
+    property RegularSpaceBetweenItems: Cardinal
+      read FRegularSpaceBetweenItems write FRegularSpaceBetweenItems
+      default DefaultRegularSpaceBetweenItems;
+
+    { Return the space needed before NextItemIndex.
+      This will be a space between NextItemIndex - 1 and NextItemIndex
+      (this method will not be called for NextItemIndex = 0).
+
+      Default implementation in this class simply returns
+      RegularSpaceBetweenItems always.
+
+      Note that this is used only at FixItemsAreas call.
+      So when some variable affecting the implementation of this changes,
+      you should call FixItemsAreas again. }
+    function SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal; virtual;
 
     { "Designer mode" is useful for a developer to visually design
       some properties of TGLMenu.
@@ -1027,7 +1043,7 @@ begin
   FCurrentItemColor := DefaultCurrentItemColor;
   FNonCurrentItemColor := DefaultNonCurrentItemColor;
 
-  FSpaceBetweenItems := DefaultSpaceBetweenItems;
+  FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
 end;
 
@@ -1099,6 +1115,11 @@ begin
   glFreeDisplayList(GLList_DrawFadeRect);
 end;
 
+function TGLMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
+begin
+  Result := RegularSpaceBetweenItems;
+end;
+
 const
   MarginBeforeAccessory = 20;
 
@@ -1108,6 +1129,7 @@ const
 var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Single;
+  ItemsBelowHeight: Cardinal;
 begin
   LastWindowWidth := WindowWidth;
   LastWindowHeight := WindowHeight;
@@ -1139,7 +1161,14 @@ begin
   FAllItemsArea.Width := MaxItemWidth;
   if MaxAccessoryWidth <> 0.0 then
     FAllItemsArea.Width += MarginBeforeAccessory + MaxAccessoryWidth;
-  FAllItemsArea.Height := (MenuFont.RowHeight + Integer(SpaceBetweenItems)) * Items.Count;
+
+  FAllItemsArea.Height := 0;
+  for I := 0 to Items.Count - 1 do
+  begin
+    FAllItemsArea.Height += MenuFont.RowHeight;
+    if I > 0 then
+      FAllItemsArea.Height += Integer(SpaceBetweenItems(I));
+  end;
 
   FAllItemsArea.Width += 2 * AllItemsAreaMargin;
   FAllItemsArea.Height += 2 * AllItemsAreaMargin;
@@ -1196,11 +1225,18 @@ begin
 
   { Calculate positions of all areas. }
 
-  for I := 0 to Areas.High do
+  { we iterate downwards from Areas.High to 0, updating ItemsBelowHeight.
+    That's OpenGL (and so, Areas.Items[I].Y0) coordinates grow up, while
+    our menu items are specified from highest to lowest. }
+  ItemsBelowHeight := 0;
+
+  for I := Areas.High downto 0 do
   begin
     Areas.Items[I].X0 := PositionAbsolute.Data[0] + AllItemsAreaMargin;
-    Areas.Items[I].Y0 := PositionAbsolute.Data[1] + AllItemsAreaMargin
-      + (Areas.High - I) * (MenuFont.RowHeight + Integer(SpaceBetweenItems));
+    Areas.Items[I].Y0 := PositionAbsolute.Data[1] + AllItemsAreaMargin + ItemsBelowHeight;
+
+    if I > 0 then
+      ItemsBelowHeight += Cardinal(MenuFont.RowHeight + Integer(SpaceBetweenItems(I)));
   end;
   FAllItemsArea.X0 := PositionAbsolute.Data[0];
   FAllItemsArea.Y0 := PositionAbsolute.Data[1];
