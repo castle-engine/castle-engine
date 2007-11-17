@@ -29,7 +29,7 @@ uses
   openglh,
   openglttfonts,
   progressgl,
-  shadowvolumesutils,
+  shadowvolumeshelper,
   timemessages,
   {$ifdef UNIX}
   kambixf86vmode,
