@@ -2701,6 +2701,13 @@ function GLCapsString: string;
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease ]);
   end;
 
+  function GetMaxTextureUnits: string;
+  begin
+    if GL_ARB_multitexture then
+      Result := GetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+      Result := 'ARB_multitexture not available';
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
@@ -2751,7 +2758,8 @@ begin
   'GL_MAX_LIST_NESTING : ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
   'GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
   'GL_MAX_TEXTURE_SIZE : ' +GetInteger(GL_MAX_TEXTURE_SIZE) +nl+
-  'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d');
+  'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
+  'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits;
 
  CheckGLErrors;
 end;
