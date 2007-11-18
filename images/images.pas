@@ -1,20 +1,20 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
-  This file is part of "Kambi's images Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's images Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's images Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's images Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
@@ -762,7 +762,7 @@ type
     function ToRGBImage: TRGBImage;
 
     {$ifdef FPC}
-    { Every component (red, green, blue) or every pixel
+    { Every component (red, green, blue) of every pixel
       is multiplied by Scale. }
     procedure ScaleColors(const Scale: Single);
 
@@ -795,6 +795,11 @@ type
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
+
+    { Every pixels value is halved (divided by 2).
+      This is done by simple bitshift, so you can be sure that all
+      components are < 2^7 after this. }
+    procedure HalfColors;
   end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
@@ -2091,6 +2096,19 @@ end;
 function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
 begin
   Result := IsMemCharFilled(RawPixels^, Width * Height, Char(Pixel));
+end;
+
+procedure TGrayscaleImage.HalfColors;
+var
+  P: PByte;
+  I: Cardinal;
+begin
+  P := PByte(GrayscalePixels);
+  for I := 1 to Width * Height do
+  begin
+    P^ := P^ shr 1;
+    Inc(P);
+  end;
 end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
