@@ -7,7 +7,7 @@
       <Version Value="5"/>
       <SearchPaths>
         <IncludeFiles Value="../../base/templates/;../../base/unix/;../../base/;../../opengl/;../../audio/"/>
-        <OtherUnitFiles Value="../../base/;../../3dgraph/;../../3dmodels/;../../3dmodels.gl/;../../images/;../../fonts/;../../opengl/;../../opengl/unix/;../../audio/"/>
+        <OtherUnitFiles Value="../../base/;../../3dgraph/;../../3dmodels/;../../3dmodels.gl/;../../images/;../../fonts/;../../opengl/;../../opengl/unix/;../../audio/;../../net/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -40,7 +40,7 @@
     <License Value="GNU GPL >= 2
 "/>
     <Version Major="1"/>
-    <Files Count="105">
+    <Files Count="106">
       <Item1>
         <Filename Value="../../3dgraph/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -450,8 +450,8 @@
         <UnitName Value="OpenGLTTFonts"/>
       </Item102>
       <Item103>
-        <Filename Value="../../opengl/shadowvolumesutils.pas"/>
-        <UnitName Value="ShadowVolumesUtils"/>
+        <Filename Value="../../opengl/shadowvolumeshelper.pas"/>
+        <UnitName Value="ShadowVolumesHelper"/>
       </Item103>
       <Item104>
         <Filename Value="../../opengl/unix/kambixf86vmode.pas"/>
@@ -461,6 +461,10 @@
         <Filename Value="../../opengl/unix/xlibutils.pas"/>
         <UnitName Value="XlibUtils"/>
       </Item105>
+      <Item106>
+        <Filename Value="../../net/kambiurlutils.pas"/>
+        <UnitName Value="KambiURLUtils"/>
+      </Item106>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
