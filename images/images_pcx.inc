@@ -47,7 +47,8 @@ function LoadPCX(Stream: TStream): TRGBImage;
 
 var head: TPCXHeader;
     bajt: byte;
-    x, y, num_end_byte: integer;
+    y: integer;
+    X, num_end_byte: Cardinal;
     palette: packed array[0..255]of TVector3Byte;
 
   procedure PalettePut(x, y, palIndex: integer);

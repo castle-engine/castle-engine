@@ -492,7 +492,13 @@ type
 
       Implemented if and only if ModulateRGB is implemented.
       When image has alpha channel, alpha channel value
-      (or just anything beyond 3 rgb components) is ignored (not modified). }
+      (or just anything beyond 3 rgb components) is ignored (not modified).
+
+      This changes color to grayscale, but format of memory storage is the same.
+      For example, for TRGBImage, they are still kept in RGB format
+      (just Red = Green = Blue). If you want to convert to true Grayscale format,
+      you should use TRGBImage.ToGrayscale that will create new
+      TGrayscaleImage instance. }
     procedure Grayscale;
 
     {$ifdef FPC}
@@ -599,6 +605,7 @@ procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
 type
   TAlphaImage = class;
   TRGBEImage = class;
+  TGrayscaleImage = class;
 
   { Here pixel is represented as TVector3Byte (red, green, blue) }
   TRGBImage = class(TImage)
@@ -658,6 +665,8 @@ type
       you initially fill RGBE image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
     function ToRGBEImage: TRGBEImage;
+
+    function ToGrayscale: TGrayscaleImage;
 
     { Draws horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
@@ -762,6 +771,30 @@ type
       So e.g. Exp = 1/2.2 gives commonly used gamma correction. }
     procedure ExpColors(const Exp: Single);
     {$endif}
+  end;
+
+  { Color is a simple Byte value.
+
+    TODO: this is just a start, not supported by many routines as it should
+    for now. Many loading routines should be able to directly load image
+    to this, if it's the most appropriate format. Right now, LoadImage
+    routine will load to this only if TRGBImage will not be allowed and
+    this will be (and loading will be done by conversion of RGB to this...). }
+  TGrayscaleImage = class(TImage)
+  private
+    function GetGrayscalePixels: PByteArray;
+  public
+    { This is the same pointer as RawPixels, only typecasted to PByteArray }
+    property GrayscalePixels: PByteArray read GetGrayscalePixels;
+
+    class function PixelSize: Cardinal; override;
+    class function ColorComponentsCount: Cardinal; override;
+
+    function PixelPtr(X, Y: Cardinal): PByte;
+    function RowPtr(Y: Cardinal): PByteArray;
+
+    procedure Clear(const Pixel: Byte); reintroduce;
+    function IsClear(const Pixel: Byte): boolean; reintroduce;
   end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
@@ -1117,7 +1150,7 @@ function LoadRGBImage(const fname: string; resizeToX: Cardinal; resizeToY: Cardi
       i dodam tutaj komentarz gdzie to sie moze przydac ------) }
 type
   TImageLoadConversion = (ilcAlphaDelete, ilcFloatPrecDelete,
-    ilcAlphaAdd, ilcFloatPrecAdd);
+    ilcAlphaAdd, ilcFloatPrecAdd, ilcRGBFlattenToGrayscale);
   TImageLoadConversions = set of TImageLoadConversion;
 const
   AllImageLoadConversions: TImageLoadConversions =
@@ -1817,6 +1850,25 @@ begin
  except Result.Free; raise end;
 end;
 
+function TRGBImage.ToGrayscale: TGrayscaleImage;
+var
+  pRGB: PVector3Byte;
+  pGrayscale: PByte;
+  I: Cardinal;
+begin
+  Result := TGrayscaleImage.Create(Width, Height);
+  try
+    pRGB := RGBPixels;
+    pGrayscale := PByte(Result.GrayscalePixels);
+    for i := 1 to Width * Height do
+    begin
+      pGrayscale^ := BWColorValue(pRGB^);
+      Inc(pRGB);
+      Inc(pGrayscale);
+    end;
+  except Result.Free; raise end;
+end;
+
 procedure TRGBImage.HorizontalLine(const x1, x2, y: Integer;
   const Color: TVector3Byte);
 var P: PVector3Byte;
@@ -2003,6 +2055,43 @@ begin
  end;
 end;
 {$endif}
+
+{ TGrayscaleImage ------------------------------------------------------------ }
+
+function TGrayscaleImage.GetGrayscalePixels: PByteArray;
+begin
+  Result := PByteArray(RawPixels);
+end;
+
+class function TGrayscaleImage.PixelSize: Cardinal;
+begin
+  Result := 1;
+end;
+
+class function TGrayscaleImage.ColorComponentsCount: Cardinal;
+begin
+  Result := 1;
+end;
+
+function TGrayscaleImage.PixelPtr(X, Y: Cardinal): PByte;
+begin
+  Result := PByte(inherited PixelPtr(X, Y));
+end;
+
+function TGrayscaleImage.RowPtr(Y: Cardinal): PByteArray;
+begin
+  Result := PByteArray(inherited RowPtr(Y));
+end;
+
+procedure TGrayscaleImage.Clear(const Pixel: Byte);
+begin
+  FillChar(RawPixels^, Width * Height, Pixel);
+end;
+
+function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
+begin
+  Result := IsMemCharFilled(RawPixels^, Width * Height, Char(Pixel));
+end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
 
@@ -2261,13 +2350,24 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const ForbiddenConvs: TImageLoadConversions)
   :TImage;
 
+  { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
+  procedure ImageGrayscaleTo1st(var Image: TImage);
+  var
+    NewImage: TGrayscaleImage;
+  begin
+    NewImage := (Image as TRGBImage).ToGrayscale;
+    FreeAndNil(Image);
+    Image := NewImage;
+  end;
+
   procedure DoingConversion(Conv: TImageLoadConversion);
   { check is Conv Forbidden, if it is -> raise exception }
   const ConvToStr: array[TImageLoadConversion]of string=(
     'delete alpha channel',
     'lose float precision',
     'add dummy alpha channel',
-    'add useless float precision');
+    'add useless float precision',
+    'flatten RGB colors to grayscale');
   begin
    if Conv in ForbiddenConvs then
     raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
@@ -2321,11 +2421,22 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
         to chcemy stracic alpha obrazka (jesli go ma), tzn. chcemy zaladowac
         teraz obrazek do RGB. }
       Result := Load(Stream, frWithoutAlpha, not (ilcAlphaDelete in ForbiddenConvs));
+
+      Assert(Result is TRGBImage);
+
       if not (ClassAllowed(TRGBImage)) then
       begin
-        Assert(ClassAllowed(TRGBEImage));
-        DoingConversion(ilcFloatPrecAdd);
-        ImageRGBToRGBETo1st(result);
+        if ClassAllowed(TRGBEImage) then
+        begin
+          DoingConversion(ilcFloatPrecAdd);
+          ImageRGBToRGBETo1st(result);
+        end else
+        if ClassAllowed(TGrayscaleImage) then
+        begin
+          DoingConversion(ilcRGBFlattenToGrayscale);
+          ImageGrayscaleTo1st(Result);
+        end else
+          raise EInternalError.Create('LoadImage: unknown target required');
       end;
     end;
   end;
@@ -2339,20 +2450,31 @@ const
   procedure LoadRGB(Load: TRGBImageLoadFunc);
   begin
     result := Load(Stream);
+
+    Assert(Result is TRGBImage);
+
     if not (ClassAllowed(TRGBImage)) then
     begin
       if (ClassAllowed(TAlphaImage)) and not(ilcAlphaAdd in ForbiddenConvs) then
-        ImageAlphaConstTo1st(result, DummyDefaultAlpha) else
       begin
-        { wpp. byc moze ClassAllowed(TAlphaImage) ale nie mozemy z niego
-          skorzystac. Mozemy teraz tylko skonwertowac obrazek na ikRGBE. }
-        if not(ClassAllowed(TRGBEImage)) then
-          raise EUnableToLoadImage.Create('LoadImage: unable to load image: '+
-            'alpha channel requested but dummy alpha channel creation forbidden '+
-            'but image has no alpha channel');
+        ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+      end else
+      if ClassAllowed(TGrayscaleImage) then
+      begin
+        DoingConversion(ilcRGBFlattenToGrayscale);
+        ImageGrayscaleTo1st(Result);
+      end else
+      if ClassAllowed(TRGBEImage) then
+      begin
         DoingConversion(ilcFloatPrecAdd);
         ImageRGBToRGBETo1st(result);
-      end;
+      end else
+        { The only situation when this can happen (assuming no internal error,
+          and at least one image class was allowed) was if
+          ClassAllowed(TAlphaImage) and (ilcAlphaAdd in ForbiddenConvs). }
+        raise EUnableToLoadImage.Create('LoadImage: unable to load image: '+
+          'alpha channel requested but dummy alpha channel creation forbidden '+
+          'but image has no alpha channel');
     end;
   end;
 
@@ -2366,11 +2488,20 @@ begin
       begin
         DoingConversion(ilcFloatPrecDelete);
         result := LoadRGBE(Stream, true);
+
         if not ClassAllowed(TRGBImage) then
         begin
-          Assert(ClassAllowed(TAlphaImage));
-          DoingConversion(ilcAlphaAdd);
-          ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+          if ClassAllowed(TAlphaImage) then
+          begin
+            DoingConversion(ilcAlphaAdd);
+            ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+          end else
+          if ClassAllowed(TGrayscaleImage) then
+          begin
+            DoingConversion(ilcRGBFlattenToGrayscale);
+            ImageGrayscaleTo1st(Result);
+          end else
+            raise EInternalError.Create('LoadImage: RGBE format and unknown target required');
         end;
       end;
     end else
