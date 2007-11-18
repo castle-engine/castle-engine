@@ -2550,6 +2550,8 @@ const
   GL_MAP2_VERTEX_ATTRIB14_4_NV                      = $867E;
   GL_MAP2_VERTEX_ATTRIB15_4_NV                      = $867F;
 
+  { OpenGL >= 1.3 }
+  GL_SUBTRACT = $84E7;
 
   { ********** GLU generic constants ********** }
 
@@ -4033,6 +4035,8 @@ type
       major_number.minor_number.release_number. It doesn't have whitespace
       at the beginning (ReadImplementationProperties will trim it). }
     VendorVersion: string;
+
+    function AtLeast(AMajor, AMinor: Integer): boolean;
   end;
 
   TGLVersion = class(TGenericGLVersion)
@@ -6395,6 +6399,12 @@ begin
       to 0, ReleaseExists initialized to false, and VendorVersion to ''.
       If we have here an exception, only part of them may be initialized. }
   end;
+end;
+
+function TGenericGLVersion.AtLeast(AMajor, AMinor: Integer): boolean;
+begin
+  Result := (AMajor < Major) or
+    ( (AMajor = Major) and (AMinor <= Minor) );
 end;
 
 { TGLVersion ----------------------------------------------------------------- }
