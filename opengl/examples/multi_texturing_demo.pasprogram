@@ -1,0 +1,228 @@
+{
+  Copyright 2007 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Simple OpenGL multitexturing demo, using Kambi VRML game engine
+  GLWindow and texture loading helpers.
+
+  From the left:
+  1st cube: 1st texture (it's strongly limited by material 1,1,0).
+  2nd cube: 2nd texture (it's not much limited by material 1,1,0).
+  3rd cube: material * 1st texture + 2nd texture
+  4th cube: material * 2nd texture + 1st texture
+
+  (just to show that order of textures in multitexturing obviosuly
+  matters, as it determines the calculations done).
+}
+
+program multi_texturing_demo;
+
+uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
+  MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  KambiClassUtils, KambiFilesUtils, KambiStringUtils,
+  GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+
+const
+  SceneBoundingBox: TBox3d =
+  ( (-8, -3, -3),
+    ( 8,  3,  3) );
+
+var
+  Tex: array [0..1] of TGLuint;
+
+{ glw callbacks ------------------------------------------------------------ }
+
+procedure Draw(glwin: TGLWindow);
+
+  { Draw cube using really old-fashioned approach (no vertex arrays,
+    just specify by hand 6 quads, 4 vertexes and tex coords each). }
+  procedure DrawCube;
+
+    procedure TexCoord(const X, Y: Single);
+    begin
+      glMultiTexCoord2fARB(GL_TEXTURE0_ARB, X, Y);
+      glMultiTexCoord2fARB(GL_TEXTURE1_ARB, X, Y);
+    end;
+
+  begin
+    glBegin(GL_QUADS);
+      glNormal3f( 0.0, 0.0, 1.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+
+      glNormal3f( 0.0, 0.0,-1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+
+      glNormal3f( 0.0, 1.0, 0.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0,  1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+
+      glNormal3f( 0.0,-1.0, 0.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0, -1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+
+      glNormal3f( 1.0, 0.0, 0.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+
+      glNormal3f(-1.0, 0.0, 0.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+    glEnd();
+  end;
+
+begin
+  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  glLoadMatrix(Glw.Navigator.Matrix);
+
+  glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 0, 1));
+  glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+
+  glActiveTextureARB(GL_TEXTURE1_ARB);
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+
+  glPushMatrix;
+    glTranslatef(-6, 0, 0);
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[0]);
+    glEnable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    DrawCube;
+  glPopMatrix;
+
+  glPushMatrix;
+    glTranslatef(-2, 0, 0);
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[1]);
+    glEnable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    DrawCube;
+  glPopMatrix;
+
+  glPushMatrix;
+    glTranslatef(+2, 0, 0);
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[0]);
+    glEnable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[1]);
+    glEnable(GL_TEXTURE_2D);
+
+    DrawCube;
+  glPopMatrix;
+
+  glPushMatrix;
+    glTranslatef(+6, 0, 0);
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[1]);
+    glEnable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[0]);
+    glEnable(GL_TEXTURE_2D);
+
+    DrawCube;
+  glPopMatrix;
+end;
+
+procedure Resize(glwin: TGLWindow);
+
+  procedure UpdateNavigatorProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    if Glw.Navigator is TMatrixWalker then
+      Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height,
+    Box3dAvgSize(SceneBoundingBox) * 0.05,
+    Box3dAvgSize(SceneBoundingBox) * 20.0);
+
+  { In case I'll use walker navigator at some time. }
+  UpdateNavigatorProjectionMatrix;
+end;
+
+procedure InitGL(glwin: TGLWindow);
+
+  function LoadTexture(const FileName: string): TGLuint;
+  begin
+    Result := LoadGLTexture(FileName, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+      GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+  end;
+
+begin
+  Check(GL_ARB_multitexture, 'GL_ARB_multitexture required for this demo');
+
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_DEPTH_TEST);
+
+  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.8, 0.8, 0.8, 1.0));
+
+  Tex[0] := LoadTexture('../../../castle/data/textures/023pierres.jpg');
+  Tex[1] := LoadTexture('../../../castle/data/textures/bridgerock512side.jpg');
+end;
+
+procedure CloseGL(glwin: TGLWindow);
+begin
+end;
+
+begin
+  { parse params }
+  Glw.ParseParameters(StandardParseOptions);
+  Parameters.CheckHigh(0);
+
+  { init Glw.Navigator }
+  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.NavExaminer.Init(SceneBoundingBox);
+
+  Glw.OnInit := @InitGL;
+  Glw.OnClose := @CloseGL;
+  Glw.OnDraw := @Draw;
+  Glw.OnResize := @Resize;
+  Glw.InitLoop;
+end.
