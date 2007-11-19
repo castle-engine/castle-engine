@@ -18,7 +18,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Multitexturing demo changed to bump mapping demo. }
+{ Bump mapping demo.
+  Emboss bump mapping for now.
+
+  Keys:
+  awsd change artificially x, y shift of emboss (just for test).
+  qe change light position.
+  Examine mode keys from [http://vrmlengine.sf.net/view3dscene.php]:
+    page up, page down, arrows: rotate the scene
+    space: stop rotating
+    ctrl + page up, page down, arrows: move the scene
+    + / -: scale the scene
+    home: restore default rotation, translation and scale
+ }
 
 program bump_mapping;
 
@@ -29,8 +41,8 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
 
 const
   SceneBoundingBox: TBox3d =
-  ( (-4, -4, -3),
-    ( 4,  4,  3) );
+  ( (-5, -5, -3),
+    ( 5,  5,  3) );
 
 var
   Tex: array [0..2] of TGLuint;
@@ -39,6 +51,10 @@ var
   YShift: Single = 0;
 
   Font: TGLBitmapFont;
+
+  LightPosition: TVector3Single;
+  LightRotation: Single = 0;
+  LightRadius: Single = 3;
 
 { glw callbacks ------------------------------------------------------------ }
 
@@ -230,11 +246,35 @@ procedure Draw(glwin: TGLWindow);
     glPopMatrix;
   end;
 
+  procedure DisableTextures;
+  begin
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    glActiveTextureARB(GL_TEXTURE2_ARB);
+    glDisable(GL_TEXTURE_2D);
+  end;
+
 const
   IsRenderStatus = true;
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
+
+  glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
+
+  glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);
+    DisableTextures;
+
+    glColorv(Yellow3Single);
+    glBegin(GL_POINTS);
+      glVertexv(LightPosition);
+    glEnd;
+  glPopAttrib;
 
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
@@ -259,15 +299,7 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_LIGHTING);
-
-      glActiveTextureARB(GL_TEXTURE0_ARB);
-      glDisable(GL_TEXTURE_2D);
-
-      glActiveTextureARB(GL_TEXTURE1_ARB);
-      glDisable(GL_TEXTURE_2D);
-
-      glActiveTextureARB(GL_TEXTURE2_ARB);
-      glDisable(GL_TEXTURE_2D);
+      DisableTextures;
 
       glColorv(Yellow3Single);
       Font.Projection2DPrintStrings(5, 5, Format(
@@ -298,6 +330,13 @@ begin
 
   { In case I'll use walker navigator at some time. }
   UpdateNavigatorProjectionMatrix;
+end;
+
+procedure UpdateLightPosition;
+begin
+  LightPosition[0] := cos(LightRotation) * LightRadius;
+  LightPosition[1] := sin(LightRotation) * LightRadius;
+  LightPosition[2] := 2;
 end;
 
 procedure InitGL(glwin: TGLWindow);
@@ -352,11 +391,17 @@ begin
 
   glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
+  glClearColor(0.3, 0.3, 0.3, 1);
+
+  glPointSize(10);
+
   LoadTexture('brick_1.png', 'brick_1_bump.png', Tex[0]);
   LoadTexture('brick_2.png', 'brick_2_bump.png', Tex[1]);
   LoadTexture('brick_1.png', 'brick_1_bump_better.png', Tex[2]);
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+
+  UpdateLightPosition;
 end;
 
 procedure CloseGL(glwin: TGLWindow);
@@ -370,6 +415,18 @@ begin
   if Glwin.KeysDown[K_D] then XShift += Glwin.IdleCompSpeed / 1000;
   if Glwin.KeysDown[K_S] then YShift -= Glwin.IdleCompSpeed / 1000;
   if Glwin.KeysDown[K_W] then YShift += Glwin.IdleCompSpeed / 1000;
+
+  if Glwin.KeysDown[K_Q] then
+  begin
+    LightRotation -= Glwin.IdleCompSpeed / 10;
+    UpdateLightPosition;
+  end;
+
+  if Glwin.KeysDown[K_E] then
+  begin
+    LightRotation += Glwin.IdleCompSpeed / 10;
+    UpdateLightPosition;
+  end;
 end;
 
 begin
