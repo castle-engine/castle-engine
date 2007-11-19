@@ -723,6 +723,12 @@ type
       see @link(EqualRGB)) or AlphaOnNoColor. }
     procedure AlphaDecide(const AlphaColor: TVector3Byte;
       Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
+
+    { This initializes image contents: RGB channels from RGB image,
+      alpha channel from Grayscale image. Given RGB and Grayscale
+      images must have the same size, and this is the resulting
+      size of this image after Compose call. }
+    procedure Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
   end;
 
   { Color is encoded as 3 mantisas + 1 exponent,
@@ -782,10 +788,10 @@ type
     this will be (and loading will be done by conversion of RGB to this...). }
   TGrayscaleImage = class(TImage)
   private
-    function GetGrayscalePixels: PByteArray;
+    function GetGrayscalePixels: PByte;
   public
     { This is the same pointer as RawPixels, only typecasted to PByteArray }
-    property GrayscalePixels: PByteArray read GetGrayscalePixels;
+    property GrayscalePixels: PByte read GetGrayscalePixels;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -1864,7 +1870,7 @@ begin
   Result := TGrayscaleImage.Create(Width, Height);
   try
     pRGB := RGBPixels;
-    pGrayscale := PByte(Result.GrayscalePixels);
+    pGrayscale := Result.GrayscalePixels;
     for i := 1 to Width * Height do
     begin
       pGrayscale^ := BWColorValue(pRGB^);
@@ -1975,6 +1981,34 @@ begin
  end;
 end;
 
+procedure TAlphaImage.Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
+var
+  PtrAlpha: PVector4Byte;
+  PtrRGB: PVector3Byte;
+  PtrGrayscale: PByte;
+  I: Cardinal;
+begin
+  Check( (RGB.Width = AGrayscale.Width) and
+         (RGB.Height = AGrayscale.Height),
+    'For TAlphaImage.Compose, RGB and alpha images must have the same sizes');
+
+  SetSize(RGB.Width, RGB.Height);
+
+  PtrAlpha := AlphaPixels;
+  PtrRGB := RGB.RGBPixels;
+  PtrGrayscale := AGrayscale.GrayscalePixels;
+
+  for I := 1 to Width * Height do
+  begin
+    System.Move(PtrRGB^, PtrAlpha^, SizeOf(TVector3Byte));
+    PtrAlpha^[3] := PtrGrayscale^;
+
+    Inc(PtrAlpha);
+    Inc(PtrRGB);
+    Inc(PtrGrayscale);
+  end;
+end;
+
 { TRGBEImage ------------------------------------------------------------ }
 
 function TRGBEImage.GetRGBEPixels: PVector4Byte;
@@ -2063,9 +2097,9 @@ end;
 
 { TGrayscaleImage ------------------------------------------------------------ }
 
-function TGrayscaleImage.GetGrayscalePixels: PByteArray;
+function TGrayscaleImage.GetGrayscalePixels: PByte;
 begin
-  Result := PByteArray(RawPixels);
+  Result := PByte(RawPixels);
 end;
 
 class function TGrayscaleImage.PixelSize: Cardinal;
@@ -2103,7 +2137,7 @@ var
   P: PByte;
   I: Cardinal;
 begin
-  P := PByte(GrayscalePixels);
+  P := GrayscalePixels;
   for I := 1 to Width * Height do
   begin
     P^ := P^ shr 1;
