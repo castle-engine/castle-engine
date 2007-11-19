@@ -182,6 +182,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/test_font_break \
   opengl/examples/multi_glwindow \
   opengl/examples/multi_texturing_demo \
+  opengl/examples/bump_mapping/bump_mapping \
   opengl/examples/demo_matrix_navigation \
   opengl/examples/fog_coord \
   3dgraph/examples/draw_space_filling_curve \

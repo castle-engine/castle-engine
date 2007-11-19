@@ -1,0 +1,223 @@
+Bump mapping overview: brick wall.
+Texturing: because obviously too costly to model each brick.
+Bump mapping: increase the look, still without increasing geometric complexity.
+Idea: normals change within. How about we store normals somehow in some texture
+(to be able to vary them on pixel-by-pixel basis ?) ? This changes the look,
+without changing the geometry.
+
+Emboss bump mapping example:
+http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
+http://nehe.gamedev.net/data/lessons/extras/lesson22/EmbossBumpMapping.ppt
+Some my improvements: 1-pass only method (as implemented now needs 3 tex units,
+although could get away with 2), GL_SUBTRACT.
+
+------------------------------------------------------------------------------
+GL_ARB_multitexture:
+
+GL_ARB_multitexture avail from OpenGL 1.2.1, incorporated as standard since
+OpenGL 1.3.
+
+http://www.opengl.org/wiki/index.php/GL_ARB_multitexture - short.
+http://www.berkelium.com/OpenGL/GDC99/multitexture.html - nice intro.
+Multiple textures, mixed freely - multiple uses.
+Common (first ?) example: lightmaps in GLQuake.
+First, historically, "ARB" extension (reviewed by ARB, as opposed to EXT
+that are popular and accepted but not necessarily reviewed). ARB essentially
+means "we think that this will definitely go into gl standard".
+
+Separate texture units: separate coords, matrix (stack ? probably, but
+TODO: not sure), environment, bound unit (although the same texture can
+be bound to multiple channels; and yes, we will use this for emboss).
+Set active unit:
+
+glActiveTextureARB(GL_TEXTUREn_ARB); // 0 <= n < GL_MAX_TEXTURE_UNITS_ARB
+
+Note that glTexCoord2f still affects only 0th texture (regardless
+of glActiveTexture calls). To change coords for other textures, use
+
+glMultiTexCoord2fARB(GL_TEXTUREn_ARB, x, y);
+(so glTexCoord2f(x, y); is just a shortcut for
+glMultiTexCoord2fARB(GL_TEXTURE0_ARB, x, y)).
+
+One more: for client things (notably glEnableClientState(GL_TEXTURE_COORD_ARRAY))
+there's glClientActiveTextureARB(GL_TEXTURE0_ARB) (analogous to
+glActiveTextureARB(GL_TEXTURE0_ARB)). E.g.
+
+  glClientActiveTextureARB(GL_TEXTURE1_ARB);
+  glTexCoordPointer(2, GL_FLOAT, 0, tp1);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+(This will be improved soon by GL_EXT_texture_env_combine, but for now,
+state of GL_ARB_multitexture:)
+
+Textures are mixed as specified by TEXTURE_ENV_MODE.
+- interpolated pixel color (from vertex colors, that already include
+  lights (materials, eventually colors set explicitly by glColor), fog).
+- ... is mixed with texture 0 color. This is where we stop without multitexturing.
+- ... the result above is mixed with texture 1 color.
+- ... and so on, for each enabled texture unit.
+
+See glTexEnv. For example, GL_MODULATE means (for texture RGB case)
+that color is multipled component-wise by tex color. GL_ADD may be useful
+for 2nd and further texture units.
+
+Note that some equations still require multipass technique, e.g.
+  A * B + C * D
+(where A, B, C and D are 4 textures). Without multitetexturing, this
+is not doable at all with screen rendering. Multipass doesn't help:
+you could render A, then mutliply by B, then add C. Nothing to do with D...
+With multitexturing, you can actually do (A * B + C) in one pass.
+So you can do multitexturing with 2 passes, one pass does A*B and 2nd one adds C*D.
+
+Naturally, it turns out that multitexturing allows us to do the same things
+as multipass in the past. Multitexturing is just better (you have to transform,
+rasterize, z-test, stencil-test etc. only once).
+
+------------------------------------------------------------------------------
+GL_EXT_texture_env_combine:
+
+Emboss is (Bump - shifted(at runtime) Bump) * normal scene color.
+
+Bump is one texture unit, "shifted(at runtime) Bump" goes to 2nd texture
+unit. Actually, we can also invent ourselves, so "- shifted(at runtime) Bump"
+goes to 2nd texture unit. Then texture env may use GL_ADD.
+Actually, we can avoid precalculating inversion (saves texture memory)
+since GL 1.3 gives us GL_SUBTRACT.
+Also, note that we want (...) to be in 0..1 range. Right now it's in -1..1 range.
+So scale / 2. Totally we have:
+  Bump/2  + (- shifted(at runtime) Bump/2)
+
+Still, how to do this by 1-pass multutexturing ? At the beginning we have to
+input "normal scene color", so no way to multiply by combined
+"(Bump - shifted(at runtime) Bump)". Here's GL_EXT_texture_env_combine
+useful.
+
+GL_EXT_texture_env_combine
+later
+GL_ARB_texture_env_combine
+later
+standard in gl 1.3
+1.3 also added GL_SUBTRACT, we will use it.
+
+Idea:
+glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+and then
+glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_xxx, ...);
+determine the actual computation.
+
+GL_COMBINE_RGB,
+GL_COMBINE_ALPHA,
+           RGB_SCALE,
+	   ALPHA_SCALE,
+           SOURCE0_RGB,    OPERAND0_RGB,
+	   SOURCE1_RGB,	   OPERAND1_RGB,
+	   SOURCE2_RGB,	   OPERAND2_RGB,
+	   SOURCE0_ALPHA,  OPERAND0_ALPHA,
+	   SOURCE1_ALPHA,  OPERAND1_ALPHA,
+	   SOURCE2_ALPHA   OPERAND2_ALPHA
+
+Advantages of texture_env_combine
+- you can specify RGB and ALPHA mixing orthogonally (old, classic modes for
+  TEXTURE_ENV_MODE, like glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+  specified both RGB and ALPHA methods at once).
+
+- we have more modes,  like GL_SUBTRACT, GL_INTERPOLATE (one texture unit
+  specifies interpolation between two other texture units, this uses three
+  arguments).
+
+- For each of 3 arguments, we have
+  GL_COMBINE_SOURCEn_RGB, SOURCEn_ALPHA,
+             OPERANDn_RGB, OPERANDn_ALPHA
+
+  SOURCEn values tell from where to take this (from fragment unmodified color
+  PRIMARY_COLOR (as normal for 0th texture unit), from previous texture
+  PREVIOUS (as normal for > 0th texture units), from constant color,
+  explicitly selected texture unit, currently bound texture unit...).
+
+  OPERANDn values allow you to additionally transform the value.
+  Usually, it's GL_SRC_COLOR or GL_SRC_ALPHA for OPERANDn_RGB, OPERANDn_ALPHA,
+  but you can also change them. This allows you to mix RGB+Alpha to, well,
+  RGB and/or alpha of this texture unit.
+
+Since SOURCEn may point to any texture unit, not only to "current unit",
+we can arrange our calculation completely independent of loaded textures.
+That is, enable(GL_TEXTURE_2) and set glTexEnv is one set of texture units.
+And you can load actual textures (and point to them by SOURCEn) to totally
+independent texture units.
+
+Stil, one limitation: only GL_PREVIOUS can get result of previous calculation.
+So we *cannot* make any calculation arrangement... this is still a pipeline
+arrangement, one result goes to another. That's why many multitexturing tricks
+use alpha and RGB channels for totally different jobs.
+
+For emboss, this will allow a 1-pass method.
+
+See "Texture Mapping: Beyond the Basics"
+http://www.informit.com/content/images/9780321498823/samplechapter/0321498828_CH09.pdf
+for practical overview of texture extensions in OpenGL.
+
+http://www.opengl.org/sdk/docs/man/ - glTexEnv manpage as of OpenGL 2006.
+
+------------------------------------------------------------------------------
+1-pass:
+
+Back to
+  (Bump/2 - shifted(at runtime) Bump/2) * normal scene color
+Normal scene color is actually PRIMARY_COLOR * normal texture, so this
+is still not so easy. You cannot make it 1-pass without using alpha channels.
+Only on RGB, you would have to make
+  PRIMARY_COLOR * normal texture
+as first calculation and then multiply it by (Bump/2 - shifted(at runtime) Bump/2)
+which is not doable...
+
+Idea is to use alpha channel. Compute "PRIMARY_COLOR * normal texture"
+in RGB channel and in parallel "(Bump/2 - shifted(at runtime) Bump/2)" in alpha
+channels. This may work, since for "normal texture" and "Bump/2" you
+want the same texture coordinates, so you can put them on a single RGBA texture.
+
+So I have bump_amount * normal_color. normal_color = primary_color * tex_color.
+How to actually use this ?
+
+1. bump_amount + normal_color. Quite a hack but works.
+   Implemented.
+
+   The bad thing is that bump_amount is totally not limited by texture color,
+   material color, lighting color, light position etc. Anything better ?
+
+2. bump_amount * normal_color + normal_color. Not doable in 1-pass, as
+   I'd have to calculate normal_color twice.
+   Not implemented, I wanted to hold to 1-pass methods.
+
+3. bump_amount * normal_color + primary_color.
+   Doable (with 1 more tex unit. I can use PRIMARY_COLOR more than
+   once (this was one of explicit goals behind texture_env_combine design))
+   but stupid: original texture modulation will be lost.
+
+4. bump_amount * primary_color + normal_color. Not doable in 1-pass again,
+   as (bump_amount * primary_color) is RGB multiplication,
+   normal_color is (primary_color * texture_col) RGB multiplication.
+
+------------------------------------------------------------------------------
+Note about generating bump images:
+- get image, increase brightness and contrast almost to the max,
+  making it almost black and white image.
+- middle row looks worse, because it contained many small white/black
+  stains. In lower row these stains are removed, image much better.
+So seems that automatic generation of sensible bump images is easy and doable.
+
+TODO: Finish reading nehe demo:
+- does multi-pass really add something ?
+- finish reading about tranforming, do it (insted of manual XShift, YShift)
+
+------------------------------------------------------------------------------
+
+TODO: test, elaborate on
+  Note also that this cube CAN NOT be done using a display list, since
+  display-lists seem to use an internal floating point accuracy
+  different from GLfloat. Since this leads to several nasty effects,
+  generally referred to as "decaling"-problems, I kicked display
+  lists. I assume that a general rule for multipass algorithms is to do
+  the entire geometry with or without display lists.
+from http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
+
+TODO: dl all URLs here to chantal.

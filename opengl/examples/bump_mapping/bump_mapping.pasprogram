@@ -1,0 +1,391 @@
+{
+  Copyright 2007 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Multitexturing demo changed to bump mapping demo. }
+
+program bump_mapping;
+
+uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
+  MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
+  KambiClassUtils, KambiFilesUtils, KambiStringUtils,
+  GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images;
+
+const
+  SceneBoundingBox: TBox3d =
+  ( (-4, -4, -3),
+    ( 4,  4,  3) );
+
+var
+  Tex: array [0..2] of TGLuint;
+
+  XShift: Single = 0;
+  YShift: Single = 0;
+
+  Font: TGLBitmapFont;
+
+{ glw callbacks ------------------------------------------------------------ }
+
+procedure Draw(glwin: TGLWindow);
+
+  { Draw cube using really old-fashioned approach (no vertex arrays,
+    just specify by hand 6 quads, 4 vertexes and tex coords each). }
+  procedure DrawCube;
+
+    procedure TexCoord(const X, Y: Single);
+    begin
+      glMultiTexCoord2fARB(GL_TEXTURE0_ARB, X, Y);
+      glMultiTexCoord2fARB(GL_TEXTURE1_ARB, X - XShift, Y - YShift);
+    end;
+
+  begin
+    glBegin(GL_QUADS);
+      glNormal3f( 0.0, 0.0, 1.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+
+      glNormal3f( 0.0, 0.0,-1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+
+      glNormal3f( 0.0, 1.0, 0.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0,  1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+
+      glNormal3f( 0.0,-1.0, 0.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0, -1.0, -1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+
+      glNormal3f( 1.0, 0.0, 0.0);
+      TexCoord(1.0, 0.0); glVertex3f( 1.0, -1.0, -1.0);
+      TexCoord(1.0, 1.0); glVertex3f( 1.0,  1.0, -1.0);
+      TexCoord(0.0, 1.0); glVertex3f( 1.0,  1.0,  1.0);
+      TexCoord(0.0, 0.0); glVertex3f( 1.0, -1.0,  1.0);
+
+      glNormal3f(-1.0, 0.0, 0.0);
+      TexCoord(0.0, 0.0); glVertex3f(-1.0, -1.0, -1.0);
+      TexCoord(1.0, 0.0); glVertex3f(-1.0, -1.0,  1.0);
+      TexCoord(1.0, 1.0); glVertex3f(-1.0,  1.0,  1.0);
+      TexCoord(0.0, 1.0); glVertex3f(-1.0,  1.0, -1.0);
+    glEnd();
+  end;
+
+  procedure Test(TextureNum: Integer);
+
+    procedure SetTextures(ShowRealBump: boolean);
+    begin
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glBindTexture(GL_TEXTURE_2D, Tex[TextureNum]);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+      { Texture unit 0 RGB calculates normal texturing (PRIMARY_COLOR
+        modulate with TEXTURE in this unit). }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+      { Texture unit 0 alpha loads bump map (not shifted) value.
+        *Loads*, i.e. it's not mixed with PRIMARY_COLOR in any way. }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+      { Load Tex[TextureNum] again, as it has bump in the alpha
+        channel. Don't care about RGB channels of texture loaded here,
+        they will not be used. }
+      glBindTexture(GL_TEXTURE_2D, Tex[TextureNum]);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+      { Texture unit 1 RGB simply passes the result forward, no modifications.
+        This step is only to subtract bump maps. }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+
+      { Texture unit 1 alpha does subtraction: from previous result
+        (unshifted bump) subtract shifted bump. }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_SUBTRACT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PREVIOUS_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+
+      { Now we have RGB and alpha color that should be multiplied for the final
+        color. We want to keep 1-pass approach, so I see two ways to solve this:
+
+        1. Use another texture unit, with no texture bound to it,
+           only to perform this operation.
+
+           As a bonus, we can use this to grab alpha value from PRIMARY_COLOR
+           and simply put it here. This way you can use your "normal" alpha
+           from color/material, e.g. for doing partially transparent materials
+           using blending.
+
+        2. On older (but still reasonable ?) hardware, you may have
+           only 2 texture units. TODO: test on ii computers
+           (137, 107, kocur.ii, crypto.ii).
+
+           Then you can use blending to multiply incoming color by it's own
+           incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO). (TODO: untested)
+           This means that you lose the ability to do partial transparency,
+           as you lost alpha from your PRIMARY_COLOR --- but you keep 1-pass
+           method, which is crucial.
+
+        You could also make this into 2-pass method, it's probably even possible
+        to do this without EXT_texture_env_combine (only ARB_multitexture).
+        But since EXT_texture_env_combine and ARB_multitexture should be
+        pretty much commonly found (OpenGL >= 1.3), I don't see much point for
+        more elaborate tricks. }
+
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      { Hm, funny, actually I have to bind *any* texture here
+        (it's values will not be used by equation on this texture unit),
+        otherwise this texture unit is always off. }
+      glBindTexture(GL_TEXTURE_2D, Tex[TextureNum]);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+      if ShowRealBump then
+      begin
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_ADD);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_ALPHA);
+      end else
+      begin
+        { just for test: show the current alpha values
+          (subtracted bumps) }
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_ALPHA);
+      end;
+
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+    end;
+
+  begin
+    { texture unit 0 contains normal texture value mixed with scene color }
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, Tex[TextureNum]);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    { texture unit 1 not used. }
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    { texture unit 2 not used. }
+    glActiveTextureARB(GL_TEXTURE2_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    glPushMatrix;
+      glTranslatef(-4, 0, 0);
+      DrawCube;
+    glPopMatrix;
+
+    SetTextures(false);
+
+    glPushMatrix;
+      glTranslatef(+0, 0, 0);
+      DrawCube;
+    glPopMatrix;
+
+    SetTextures(true);
+
+    glPushMatrix;
+      glTranslatef(+4, 0, 0);
+      DrawCube;
+    glPopMatrix;
+  end;
+
+const
+  IsRenderStatus = true;
+begin
+  glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+  glLoadMatrix(Glw.Navigator.Matrix);
+
+  glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
+  glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
+
+  glPushMatrix;
+    glTranslatef(0, -4, 0);
+    Test(2);
+  glPopMatrix;
+
+  glPushMatrix;
+    glTranslatef(0, +0, 0);
+    Test(0);
+  glPopMatrix;
+
+  glPushMatrix;
+    glTranslatef(0, +4, 0);
+    Test(1);
+  glPopMatrix;
+
+  if IsRenderStatus then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
+
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glDisable(GL_TEXTURE_2D);
+
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+      glDisable(GL_TEXTURE_2D);
+
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glDisable(GL_TEXTURE_2D);
+
+      glColorv(Yellow3Single);
+      Font.Projection2DPrintStrings(5, 5, Format(
+        'FPS : %f (real : %f)' +nl+
+        'Shift: %f %f',
+        [ Glw.FpsFrameTime, Glw.FpsRealTime,
+          XShift, YShift ] ));
+    glPopAttrib;
+  end;
+end;
+
+procedure Resize(glwin: TGLWindow);
+
+  procedure UpdateNavigatorProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    if Glw.Navigator is TMatrixWalker then
+      Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height,
+    Box3dAvgSize(SceneBoundingBox) * 0.05,
+    Box3dAvgSize(SceneBoundingBox) * 20.0);
+
+  { In case I'll use walker navigator at some time. }
+  UpdateNavigatorProjectionMatrix;
+end;
+
+procedure InitGL(glwin: TGLWindow);
+const
+{  MinFilter = GL_NEAREST;
+  MagFilter = GL_NEAREST;}
+
+  // TODO: restore normal mapping ? are they OK ?
+  MinFilter = GL_LINEAR_MIPMAP_LINEAR;
+  MagFilter = GL_LINEAR;
+
+  procedure LoadTexture(const BaseFileName, BumpFileName: string;
+    var Tex: TGLuint);
+  var
+    BaseImage: TRGBImage;
+    BumpImage: TGrayscaleImage;
+    Image: TAlphaImage;
+  begin
+    BaseImage := nil;
+    BumpImage := nil;
+    Image := nil;
+    try
+      BaseImage := LoadImage(BaseFileName, [TRGBImage], []) as TRGBImage;
+
+      BumpImage := LoadImage(BumpFileName, [TGrayscaleImage], []) as TGrayscaleImage;
+      BumpImage.HalfColors;
+
+      Image := TAlphaImage.Create;
+      Image.Compose(BaseImage, BumpImage);
+
+      Tex := LoadGLTexture(Image, MinFilter, MagFilter,
+        GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+
+      { BumpTex := LoadGLTexture(BumpImage, MinFilter, MagFilter,
+        GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, true); }
+    finally
+      FreeAndNil(BaseImage);
+      FreeAndNil(BumpImage);
+      FreeAndNil(Image);
+    end;
+  end;
+
+begin
+  Check(GL_EXT_texture_env_combine, 'EXT_texture_env_combine required');
+  Check(GL_ARB_multitexture, 'ARB_multitexture required');
+  Check(GLVersion.AtLeast(1, 3), 'GL 1.3 >= required for GL_SUBTRACT');
+  Check(glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) >= 3, 'At least 3 texture units required');
+
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_DEPTH_TEST);
+
+  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
+
+  LoadTexture('brick_1.png', 'brick_1_bump.png', Tex[0]);
+  LoadTexture('brick_2.png', 'brick_2_bump.png', Tex[1]);
+  LoadTexture('brick_1.png', 'brick_1_bump_better.png', Tex[2]);
+
+  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+end;
+
+procedure CloseGL(glwin: TGLWindow);
+begin
+  FreeAndNil(Font);
+end;
+
+procedure Idle(glwin: TGLWindow);
+begin
+  if Glwin.KeysDown[K_A] then XShift -= Glwin.IdleCompSpeed / 1000;
+  if Glwin.KeysDown[K_D] then XShift += Glwin.IdleCompSpeed / 1000;
+  if Glwin.KeysDown[K_S] then YShift -= Glwin.IdleCompSpeed / 1000;
+  if Glwin.KeysDown[K_W] then YShift += Glwin.IdleCompSpeed / 1000;
+end;
+
+begin
+  { parse params }
+  Glw.ParseParameters(StandardParseOptions);
+  Parameters.CheckHigh(0);
+
+  { init Glw.Navigator }
+  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.NavExaminer.Init(SceneBoundingBox);
+
+  Glw.AutoRedisplay := true; { for easy Idle code }
+  Glw.OnInit := @InitGL;
+  Glw.OnClose := @CloseGL;
+  Glw.OnDraw := @Draw;
+  Glw.OnResize := @Resize;
+  Glw.OnIdle := @Idle;
+  Glw.InitLoop;
+end.
