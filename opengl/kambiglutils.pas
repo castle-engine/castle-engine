@@ -532,30 +532,52 @@ procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
   MinFilter, MagFilter, WrapS, WrapT: TGLEnum;
   TextureProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}); overload;
 
-{ laduj jedna texture. Najpierw generuje jej numer przez
-  @code(glGenTextures(1, @@result)).
-  Nie przejmuj sie przy tym czy UNPACK_ALIGNMENT jest dobry, sami tu o to
-  zadbamy (a potem przywrocimy go do poczatkowego stanu) (jesli tylko bedzie
-  trzeba). Jesli nie uzyjesz wrapS/T to ich nie ustawi (a wiec uzyje domyslnych
-  wartosci OpenGL'a, bo tutaj zawsze uzywamy nowej tekstury).
-  Zmienia currently bound texture na ta TexNum. }
-function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum)
-  :TGLuint; overload;
-function LoadGLTexture(const image: TImage; minFilter, magFilter,
-  WrapS, WrapT: TGLenum): TGLuint; overload;
-function LoadGLTexture(const FileName: string; minFilter, magFilter,
-  WrapS, WrapT: TGLenum): TGLuint; overload;
+{ Load new texture. It generates new texture number by glGenTextures.
+  This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
+  later revert back, so that the texture is correctly loaded).
 
-{ jak LoadGLTexture, ale zaklada ze masz juz wygenerowany numer tekstury
-  do ktorej chcesz zaladowac ten obrazek. Jesli nie uzyjesz wrapS/T to
-  ich nie ustawi.
-  Zmienia currently bound texture na ta TexNum.
-  Mozesz uzyc tej procedury aby ustawic wlasciwosci textury "defaultowa
-  unnamed textura OpenGLa" przekazujac texnum = 0. }
+  If you omit WrapS / WrapT parameters then they will not be set
+  (so default OpenGL values will be used, since we always initialize
+  new texture here).
+
+  Changes currently bound texture to this one (returned).
+
+  GrayscaleIsAlpha is meaningful only if the image is TGrayscaleImage class.
+  If GrayscaleIsAlpha is @false, then we'll load GL_LUMINANCE texture
+  (this basically behaves like normal RGB texture, except that it has
+  only one channel and stores grayscale colors). If GrayscaleIsAlpha is @true,
+  the texture will be loaded as GL_ALPHA texture (it will modify only the
+  fragments alpha value, it doesn't have any "color" in the normal sense,
+  it's only for opacity).
+
+  @groupBegin }
+function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+function LoadGLTexture(const image: TImage;
+  minFilter, magFilter, WrapS, WrapT: TGLenum;
+  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+function LoadGLTexture(const FileName: string;
+  minFilter, magFilter, WrapS, WrapT: TGLenum;
+  GrayscaleIsAlpha: boolean = false): TGLuint; overload;
+{ @groupEnd }
+
+{ Load texture into already reserved texture number.
+
+  Besides this, works exactly like LoadGLTexture.
+  If you omit WrapS / WrapT parameters then they will not be set.
+  Changes currently bound texture to TexNum.
+
+  You can use this to set "default unnamed OpenGL texture" parameters
+  by passing TexNum = 0.
+
+  @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter, wrapS, wrapT: TGLenum); overload;
+  minFilter, magFilter, wrapS, wrapT: TGLenum;
+  GrayscaleIsAlpha: boolean = false); overload;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter: TGLenum); overload;
+  minFilter, magFilter: TGLenum;
+  GrayscaleIsAlpha: boolean = false); overload;
+{ @groupEnd }
 
 { As LoadGLTexture, but the texture will be modified using ColorModulatorByte.
   If not Assigned(ColorModulatorByte) then this will simply return
@@ -563,8 +585,9 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
   Else it will return
   LoadGLTexture(ImageModulated(Image), MinFilter, MagFilter, WrapS, WrapT)
   (without introducing any memoty leaks). }
-function LoadGLTextureModulated(const Image: TImage; MinFilter, MagFilter,
-  WrapS, WrapT: TGLenum; ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
+function LoadGLTextureModulated(const Image: TImage;
+  MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+  ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
 
 { sprawdzanie bledow gl ----------------------------------------------------------}
 
@@ -1565,33 +1588,38 @@ end;
 {implementacja procedur LoadGLTextures_XXX
 ------------------------------------------------------------------------------------------}
 
-function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum)
-  :TGLuint;
+function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
+  GrayscaleIsAlpha: boolean): TGLuint;
 begin
- glGenTextures(1, @result);
- LoadGLGeneratedTexture(result, image, minFilter, magFilter);
+  glGenTextures(1, @result);
+  LoadGLGeneratedTexture(result, image, minFilter, magFilter,
+    GrayscaleIsAlpha);
 end;
 
 function LoadGLTexture(const image: TImage; minFilter, magFilter,
-  wrapS, wrapT: TGLenum): TGLuint; overload;
+  wrapS, wrapT: TGLenum; GrayscaleIsAlpha: boolean): TGLuint; overload;
 begin
- result := LoadGLTexture(Image, MinFilter, MagFilter);
+ result := LoadGLTexture(Image, MinFilter, MagFilter, GrayscaleIsAlpha);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
 end;
 
 function LoadGLTexture(const FileName: string;
-  MinFilter, MagFilter, WrapS, WrapT: TGLenum): TGLuint;
+  MinFilter, MagFilter, WrapS, WrapT: TGLenum; GrayscaleIsAlpha: boolean): TGLuint;
 var Image: TImage;
 begin
  Image := LoadImage(FileName, GLImageClasses, []);
  try
-  Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT);
+  Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT,
+    GrayscaleIsAlpha);
  finally Image.Free end;
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter: TGLenum);
+  minFilter, magFilter: TGLenum; GrayscaleIsAlpha: boolean);
+var
+  ImageInternalFormat: TGLuint;
+  ImageFormat: TGLuint;
 
   { Calls glTexImage2D for given image.
     Takes care of OpenGL unpacking (alignment etc.).
@@ -1613,8 +1641,8 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
         niepodzielne na 4). }
       BeforeUnpackImage(UnpackData, Image);
       try
-        glTexImage2D(GL_TEXTURE_2D, 0, Image.ColorComponentsCount,
-          Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+        glTexImage2D(GL_TEXTURE_2D, 0, ImageInternalFormat,
+          Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
@@ -1642,8 +1670,8 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
   begin
     BeforeUnpackImage(UnpackData, Image);
     try
-      gluBuild2DMipmaps(GL_TEXTURE_2D, Image.ColorComponentsCount,
-        Image.Width, Image.Height, ImageGLFormat(Image), ImageGLType(Image),
+      gluBuild2DMipmaps(GL_TEXTURE_2D, ImageInternalFormat,
+        Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
@@ -1677,6 +1705,18 @@ const
   ( GL_NEAREST_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST,
     GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR );
 begin
+  if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
+  begin
+    { To treat texture as pure alpha channel, both internalFormat and format
+      must be ALPHA }
+    ImageInternalFormat := GL_ALPHA;
+    ImageFormat := GL_ALPHA;
+  end else
+  begin
+    ImageInternalFormat := Image.ColorComponentsCount;
+    ImageFormat := ImageGLFormat(Image);
+  end;
+
   { bind the texture, set min and mag filters }
   glBindTexture(GL_TEXTURE_2D, texnum);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
@@ -1689,9 +1729,9 @@ begin
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
-  minFilter, magFilter, wrapS, wrapT: TGLenum);
+  minFilter, magFilter, wrapS, wrapT: TGLenum; GrayscaleIsAlpha: boolean);
 begin
- LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter);
+ LoadGLGeneratedTexture(TexNum, Image, MinFilter, MagFilter, GrayscaleIsAlpha);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
 end;
