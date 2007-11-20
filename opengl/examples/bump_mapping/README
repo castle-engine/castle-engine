@@ -374,8 +374,7 @@ darker, as expected, but probably nothing "too obvious" for casual viewer ?
 Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
 TODO: cube maps method is incorrect for now, for some angles it's 0 0 0 ?
-What's troubling is that for different camera angles results are different
-- with and without normalization !
+Looks like cracks because cube map side changes.
 
 ------------------------------------------------------------------------------
 TODO: auto generation of normal maps from height maps seems doable easily,
@@ -383,6 +382,10 @@ just calc gradients on both sides.
 http://en.wikipedia.org/wiki/Sobel_operator, naturally
 
 ------------------------------------------------------------------------------
+TODO: ModelTranslation replaced with something more complex
+  (real ModelInvertedTransform), coded nicer (instead of duplicating values
+  for ModelInvertedTransform and glTransform)
+
 TODO: environemnt bump mapping, parallax mapping, displacement?
 
 Parallax mapping:
