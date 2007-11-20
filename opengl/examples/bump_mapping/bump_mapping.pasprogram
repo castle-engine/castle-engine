@@ -416,6 +416,10 @@ procedure Draw(glwin: TGLWindow);
       glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
       glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+
+      { texture unit 2 not used. }
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glDisable(GL_TEXTURE_2D);
     end;
 
     procedure DrawDot3Cubes;
@@ -500,6 +504,10 @@ procedure Draw(glwin: TGLWindow);
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
   glLoadMatrix(Glw.Navigator.Matrix);
+
+  if (Method = bmEmboss) and
+    (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
+    Method := bmDot3;
 
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
@@ -613,13 +621,12 @@ const
       GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
   end;
 
-
 begin
   Check(GL_EXT_texture_env_combine, 'EXT_texture_env_combine required');
   Check(GL_ARB_multitexture, 'ARB_multitexture required');
   Check(GLVersion.AtLeast(1, 3), 'GL 1.3 >= required for GL_SUBTRACT');
   Check(GL_ARB_texture_env_dot3, 'ARB_texture_env_dot3 required (for dot3 method)');
-  Check(glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) >= 3, 'At least 3 texture units required');
+  Check(glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
