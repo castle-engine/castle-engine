@@ -294,8 +294,14 @@ procedure Draw(glwin: TGLWindow);
            using blending.
 
         2. On older (but still reasonable ?) hardware, you may have
-           only 2 texture units. TODO: test on ii computers
-           (137, 107, kocur.ii, crypto.ii).
+           only 2 texture units.
+
+           - On kocury (GeForce FX 5200): 4
+           - On ii.107 (Radeon GL_VERSION : 1.4.5469 WinXP Release so really old drivers): 8
+           - On chantal (Radeon don't remeber, MacBookPro): 8
+           - On ii.137: TODO
+           - On kocur.ii (some older NVidia): TODO
+           - On crypto.ii (Radeon): TODO
 
            Then you can use blending to multiply incoming color by it's own
            incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO). (TODO: untested)
