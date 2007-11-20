@@ -65,6 +65,8 @@ var
 
   Method: TBumpMethod = bmEmboss;
 
+  MaxTextureUnits: Cardinal;
+
   { Vars below for emboss only }
 
   LighterAndBumpTex: array [0..2] of TGLuint;
@@ -417,9 +419,12 @@ procedure Draw(glwin: TGLWindow);
       glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
       glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
 
-      { texture unit 2 not used. }
-      glActiveTextureARB(GL_TEXTURE2_ARB);
-      glDisable(GL_TEXTURE_2D);
+      if MaxTextureUnits > 2 then
+      begin
+        { texture unit 2 not used. }
+        glActiveTextureARB(GL_TEXTURE2_ARB);
+        glDisable(GL_TEXTURE_2D);
+      end;
     end;
 
     procedure DrawDot3Cubes;
@@ -449,8 +454,11 @@ procedure Draw(glwin: TGLWindow);
     glDisable(GL_TEXTURE_2D);
 
     { texture unit 2 not used. }
-    glActiveTextureARB(GL_TEXTURE2_ARB);
-    glDisable(GL_TEXTURE_2D);
+    if MaxTextureUnits > 2 then
+    begin
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glDisable(GL_TEXTURE_2D);
+    end;
 
     glPushMatrix;
       glTranslatef(-4, 0, 0);
@@ -472,8 +480,11 @@ procedure Draw(glwin: TGLWindow);
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glDisable(GL_TEXTURE_2D);
 
-    glActiveTextureARB(GL_TEXTURE2_ARB);
-    glDisable(GL_TEXTURE_2D);
+    if MaxTextureUnits > 2 then
+    begin
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glDisable(GL_TEXTURE_2D);
+    end;
   end;
 
   procedure RenderStatus;
@@ -626,7 +637,10 @@ begin
   Check(GL_ARB_multitexture, 'ARB_multitexture required');
   Check(GLVersion.AtLeast(1, 3), 'GL 1.3 >= required for GL_SUBTRACT');
   Check(GL_ARB_texture_env_dot3, 'ARB_texture_env_dot3 required (for dot3 method)');
-  Check(glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
+
+  MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB);
+
+  Check(MaxTextureUnits >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
