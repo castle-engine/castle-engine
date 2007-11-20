@@ -30,6 +30,7 @@
   awsd change emboss shift (if in "by hand" mode)
   m changes emboss method
   b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
+  n reverts NormalizedDot3First
 
   Examine mode keys from [http://vrmlengine.sf.net/view3dscene.php]:
     page up, page down, arrows: rotate the scene
@@ -88,6 +89,8 @@ var
   NormalMap: array [0..2] of TGLuint;
 
   NormalizationCubeTex: TGLuint;
+
+  NormalizedDot3First: boolean = false;
 
 { Returns (unnormalized) direction from Vertex to LightPosition,
   in tangent space.
@@ -161,10 +164,10 @@ procedure Draw(glwin: TGLWindow);
         bmDot3:
         begin
           L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
-          NormalizeTo1st(L);
 
           if LightDirAsColor then
           begin
+            NormalizeTo1st(L);
             { put L as RGB color }
             glColor3f((L[0] + 1) / 2,
                       (L[1] + 1) / 2,
@@ -417,7 +420,7 @@ procedure Draw(glwin: TGLWindow);
       end;
     end;
 
-    procedure SetTexturesForDot3;
+    procedure SetTexturesForDot3NotNormalized;
     begin
       glActiveTextureARB(GL_TEXTURE0_ARB);
       glBindTexture(GL_TEXTURE_2D, NormalMap[TextureNum]);
@@ -502,14 +505,26 @@ procedure Draw(glwin: TGLWindow);
     end;
 
     procedure DrawDot3Cubes;
+    var
+      Dot3Normalized, Dot3NotNormalized: TGLfloat;
     begin
-      SetTexturesForDot3;
+      if NormalizedDot3First then
+      begin
+        Dot3Normalized := 0;
+        Dot3NotNormalized := 4;
+      end else
+      begin
+        Dot3NotNormalized := 0;
+        Dot3Normalized := 4;
+      end;
+
+      SetTexturesForDot3NotNormalized;
 
       glDisable(GL_LIGHTING);
       glColorv(White3Single);
 
       glPushMatrix;
-        glTranslatef(+0, 0, 0);
+        glTranslatef(Dot3NotNormalized, 0, 0);
         DrawCube(true);
       glPopMatrix;
 
@@ -518,7 +533,7 @@ procedure Draw(glwin: TGLWindow);
         SetTexturesForDot3Normalized;
 
         glPushMatrix;
-          glTranslatef(+4, 0, 0);
+          glTranslatef(Dot3Normalized, 0, 0);
           DrawCube(false);
         glPopMatrix;
 
@@ -597,6 +612,7 @@ procedure Draw(glwin: TGLWindow);
       if ShiftByHand then
         S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
         S += 'Shift automatic from tangent space light position' +nl;
+      S += Format('Dot3 normalized first (for quick visual compare): %s', [BoolToStr[NormalizedDot3First]]) +nl;
       S += Format('Emboss scale: %f', [EmbossScale]) +nl;
       S += Format('Emboss alpha multiply by blending: %s',
         [BoolToStr[EmbossAlphaMultiplyByBlending]]);
@@ -817,6 +833,7 @@ begin
            Method := Low(Method) else
            Method := Succ(Method);
     'b': EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
+    'n': NormalizedDot3First := not NormalizedDot3First;
   end;
 end;
 

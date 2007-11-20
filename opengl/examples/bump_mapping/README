@@ -368,9 +368,14 @@ See code how we init and use it for dot3. 3rd texture unit is needed
 have 3 texture units, you must do 2-pass... or just ignore the whole
 "normalization" issue, which is quite reasonable).
 
+Compare normalized and not normalized results: not normalized are a little
+darker, as expected, but probably nothing "too obvious" for casual viewer ?
+
 Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
 TODO: cube maps method is incorrect for now, for some angles it's 0 0 0 ?
+What's troubling is that for different camera angles results are different
+- with and without normalization !
 
 ------------------------------------------------------------------------------
 TODO: auto generation of normal maps from height maps seems doable easily,
