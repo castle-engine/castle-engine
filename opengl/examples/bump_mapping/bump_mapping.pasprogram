@@ -28,6 +28,7 @@
   rR change light radius.
   h switch emboss shift from automatic (from light in tangent space) to by hand
   awsd change emboss shift (if in "by hand" mode)
+  m changes emboss method
 
   Examine mode keys from [http://vrmlengine.sf.net/view3dscene.php]:
     page up, page down, arrows: rotate the scene
@@ -49,6 +50,9 @@ const
   ( (-5, -5, -3),
     ( 14,  5,  3) );
 
+type
+  TBumpMethod = (bmEmboss, bmDot3);
+
 var
   NormalAndBumpTex: array [0..2] of TGLuint;
   LighterAndBumpTex: array [0..2] of TGLuint;
@@ -67,6 +71,42 @@ var
 
   EmbossScale: Single = 1;
 
+  Method: TBumpMethod = bmEmboss;
+
+{ Returns (unnormalized) direction from Vertex to LightPosition,
+  in tangent space.
+
+  ModelviewMatrix is used to transform Vertex,
+  LightPosition will be transformed by Glw.Navigator.Matrix
+  (following the way we render them; the idea is that we want
+  to have their positions in world space). }
+function LightDirectionInTangentSpace(
+  const ModelviewMatrix: TMatrix4Single;
+  const Vertex, Normal, Tangent: TVector3Single): TVector3Single;
+var
+  ToTangent: TMatrix4Single;
+  I: Integer;
+  Binormal, VertexWorldSpace, LightPositionWorldSpace: TVector3Single;
+begin
+  VertexWorldSpace := MultMatrixPoint(ModelviewMatrix, Vertex);
+  LightPositionWorldSpace := MultMatrixPoint(Glw.Navigator.Matrix, LightPosition);
+
+  Binormal := VectorProduct(Normal, Tangent);
+
+  { first init 4th row and column }
+  ToTangent := IdentityMatrix4Single;
+
+  for I := 0 to 2 do
+  begin
+    ToTangent[I, 0] := Tangent[I];
+    ToTangent[I, 1] := Binormal[I];
+    ToTangent[I, 2] := Normal[I];
+  end;
+
+  Result := MultMatrixPoint(ToTangent,
+    VectorSubtract(LightPositionWorldSpace, VertexWorldSpace));
+end;
+
 { glw callbacks ------------------------------------------------------------ }
 
 procedure Draw(glwin: TGLWindow);
@@ -83,29 +123,11 @@ procedure Draw(glwin: TGLWindow);
     procedure TexCoordVertex(const TexX, TexY: Single;
       const Vertex: TVector3Single);
     var
-      ToTangent: TMatrix4Single;
-      I: Integer;
-      Binormal, L, VertexWorldSpace, LightPositionWorldSpace: TVector3Single;
+      L: TVector3Single;
     begin
       if not ShiftByHand then
       begin
-        VertexWorldSpace := MultMatrixPoint(ModelviewMatrix, Vertex);
-        LightPositionWorldSpace := MultMatrixPoint(Glw.Navigator.Matrix, LightPosition);
-
-        Binormal := VectorProduct(Normal, Tangent);
-
-        { first init 4th row and column }
-        ToTangent := IdentityMatrix4Single;
-
-        for I := 0 to 2 do
-        begin
-          ToTangent[I, 0] := Tangent[I];
-          ToTangent[I, 1] := Binormal[I];
-          ToTangent[I, 2] := Normal[I];
-        end;
-
-        L := MultMatrixPoint(ToTangent,
-          VectorSubtract(LightPositionWorldSpace, VertexWorldSpace));
+        L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
         L[2] := 0;
         NormalizeTo1st(L);
         XShift := EmbossScale * L[0] / BumpImageWidth;
@@ -173,7 +195,7 @@ procedure Draw(glwin: TGLWindow);
 
   procedure Test(TextureNum: Integer);
 
-    procedure SetTextures(ShowRealBump, Modulate: boolean);
+    procedure SetTexturesForEmboss(ShowRealBump, Modulate: boolean);
     var
       Tex: TGLuint;
     begin
@@ -291,6 +313,50 @@ procedure Draw(glwin: TGLWindow);
       glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
     end;
 
+    procedure DrawEmbossCubes;
+    begin
+      { bump_amount * normal_color, with lighter textures }
+
+      SetTexturesForEmboss(false, true);
+
+      glPushMatrix;
+        glTranslatef(+0, 0, 0);
+        DrawCube;
+      glPopMatrix;
+
+      SetTexturesForEmboss(true, true);
+
+      //glDisable(GL_LIGHTING);
+      //glColorv(White3Single);
+
+      glPushMatrix;
+        glTranslatef(+4, 0, 0);
+        DrawCube;
+      glPopMatrix;
+
+      //glEnable(GL_LIGHTING);
+
+      { bump_amount + normal_color hack }
+
+      SetTexturesForEmboss(false, false);
+
+      glPushMatrix;
+        glTranslatef(+8, 0, 0);
+        DrawCube;
+      glPopMatrix;
+
+      SetTexturesForEmboss(true, false);
+
+      glPushMatrix;
+        glTranslatef(+12, 0, 0);
+        DrawCube;
+      glPopMatrix;
+    end;
+
+    procedure DrawDot3Cubes;
+    begin
+    end;
+
   begin
     { texture unit 0 contains normal texture value mixed with scene color }
     glActiveTextureARB(GL_TEXTURE0_ARB);
@@ -311,42 +377,11 @@ procedure Draw(glwin: TGLWindow);
       DrawCube;
     glPopMatrix;
 
-    { bump_amount * normal_color, with lighter textures }
-
-    SetTextures(false, true);
-
-    glPushMatrix;
-      glTranslatef(+0, 0, 0);
-      DrawCube;
-    glPopMatrix;
-
-    SetTextures(true, true);
-
-    //glDisable(GL_LIGHTING);
-    //glColorv(White3Single);
-
-    glPushMatrix;
-      glTranslatef(+4, 0, 0);
-      DrawCube;
-    glPopMatrix;
-
-    //glEnable(GL_LIGHTING);
-
-    { bump_amount + normal_color hack }
-
-    SetTextures(false, false);
-
-    glPushMatrix;
-      glTranslatef(+8, 0, 0);
-      DrawCube;
-    glPopMatrix;
-
-    SetTextures(true, false);
-
-    glPushMatrix;
-      glTranslatef(+12, 0, 0);
-      DrawCube;
-    glPopMatrix;
+    case Method of
+      bmEmboss: DrawEmbossCubes;
+      bmDot3: DrawDot3Cubes;
+      else raise EInternalError.Create('method?');
+    end;
   end;
 
   procedure DisableTextures;
@@ -364,6 +399,8 @@ procedure Draw(glwin: TGLWindow);
   procedure RenderStatus;
   var
     S: string;
+  const
+    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3');
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_DEPTH_TEST);
@@ -372,7 +409,9 @@ procedure Draw(glwin: TGLWindow);
 
       glColorv(Yellow3Single);
 
-      S := Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime]);
+      S := //Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime]);
+        '' { fps on caption };
+      S += 'Method: ' + MethodNames[Method] + nl;
       if ShiftByHand then
         S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
         S += 'Shift automatic from tangent space light position' +nl;
@@ -561,6 +600,9 @@ procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
 begin
   case C of
     'h': ShiftByHand := not ShiftByHand;
+    'm': if Method = High(Method) then
+           Method := Low(Method) else
+           Method := Succ(Method);
   end;
 end;
 
