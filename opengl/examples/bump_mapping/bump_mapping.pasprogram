@@ -383,7 +383,33 @@ procedure Draw(glwin: TGLWindow);
 
     procedure SetTexturesForDot3;
     begin
-      { TODO }
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glBindTexture(GL_TEXTURE_2D, NormalMap[TextureNum]);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+      { texture unit 0: make dot between PRIMARY_COLOR and
+        current texture (normal map). IOW, calculate diffuse factor. }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+      { We bind NormalAndBumpTex, although actually we don't use
+        bump stored there as alpha channel (they are only for emboss
+        method). }
+      glBindTexture(GL_TEXTURE_2D, NormalAndBumpTex[TextureNum]);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+      { texture unit 1: multiply diffuse factor by texture value. }
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
     end;
 
     procedure DrawDot3Cubes;
@@ -586,6 +612,7 @@ begin
   Check(GL_EXT_texture_env_combine, 'EXT_texture_env_combine required');
   Check(GL_ARB_multitexture, 'ARB_multitexture required');
   Check(GLVersion.AtLeast(1, 3), 'GL 1.3 >= required for GL_SUBTRACT');
+  Check(GL_ARB_texture_env_dot3, 'ARB_texture_env_dot3 required (for dot3 method)');
   Check(glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) >= 3, 'At least 3 texture units required');
 
   glEnable(GL_LIGHTING);

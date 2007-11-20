@@ -239,26 +239,43 @@ For the calculations, we want to invert this, so we want to calculate
 
 Idea:
 
-1. pass direction of light-to-vertex (in vertex space, i.e. calculated
+1. Make a texture with normals stored as 3-value vectors.
+   This is called normal map, and what we used in emboss is called height map
+   (height map when used for bump mapping is sometimes confusingly called just bump map).
+
+2. Pass direction of light-to-vertex (in vertex space, i.e. calculated
    by transforming light pos to tangent space just like for emboss) as
    some 3f value that will be interpolated and available for texture unit
    operations.
 
    a) It can be passed as color3f, and lighting may be off,
-      then texture unit can access it simply as PRIMARY_COLOR
-      TODO.
+      then texture unit can access it simply as PRIMARY_COLOR.
+
+      Advantage: simple. Disadvantages: not normalized light vector
+      (see below), also you loose any material/light parameters in
+      calculation. Practically, material is like 0 ambient, 1 diffuse,
+      0 specular, and light properties also.
+
+      Although you could add ambient by another texture unit, adding
+      some constant color.
+
+      And dot3 also allows to calculate speculars: probably 2nd pass needed
+      for this, and some tricks with textures or pixel shader to calculate
+      exponent in texture unit, newer pixel shader has calculating exps
+      built-in. I didn't do it, but Haines+Moller say it's doable all right,
+      and in fact this is one of advantages of dot3 over emboss.
 
    b) texCoord3f (for some texture unit). Then texture unit can use
       this to access actual values using cube map, that normalizes the
       light direction (as interpolation between two normalized vectors
       easily leads to not normalized vectors (although quite close),
       {draw simple example}.
+
       This way we get more correct method, at the cost
       of one additional texture unit needed and we have to prepare normalizing
       cube map.
-      TODO.
 
-2. Make a texture with normals stored as 3-value vectors.
+      TODO.
 
 Use DOT3_RGB_ARB to calculate dot between light direction and normal
 at this point of the screen. Effectively, this calculates the diffuse
@@ -271,10 +288,10 @@ http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 (testing normal_map.jpg from there)
 
 ------------------------------------------------------------------------------
-TODO: Finish reading nehe demo, is there good expl of tangent space ?
+TODO: Finish reading nehe demo, is there good expl of tangent space for emboss ?
   If not, xero 6 pages from Moller+Haines ? There's a short and good expl.
-TODO: dot3 method, environemnt bump mapping, parallax mapping, displacement?
-TODO: make it faster on Radeon (chantal)
+TODO: environemnt bump mapping, parallax mapping, displacement?
+TODO: make it faster on Radeon (chantal). On 107, works quite OK.
 TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/

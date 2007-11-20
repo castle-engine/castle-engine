@@ -441,6 +441,8 @@ var
   GL_NV_vertex_array_range,
   GL_NV_vertex_program,
 
+  GL_ARB_texture_env_dot3,
+
   GL_ATI_separate_stencil,
 
   GL_PGI_misc_hints,
@@ -2552,6 +2554,10 @@ const
 
   { OpenGL >= 1.3 }
   GL_SUBTRACT = $84E7;
+
+  { GL_ARB_texture_env_dot3 }
+  GL_DOT3_RGB_ARB  = $86AE;
+  GL_DOT3_RGBA_ARB = $86AF;
 
   { ********** GLU generic constants ********** }
 
@@ -6656,6 +6662,8 @@ begin
   GL_NV_texture_env_combine4 := CheckExtension('GL_NV_texture_env_combine4');
   GL_NV_vertex_array_range := CheckExtension('GL_NV_vertex_array_range');
   GL_NV_vertex_program := CheckExtension('GL_NV_vertex_program');
+
+  GL_ARB_texture_env_dot3 := CheckExtension('GL_ARB_texture_env_dot3');
 
   GL_ATI_separate_stencil := CheckExtension('GL_ATI_separate_stencil');
 
