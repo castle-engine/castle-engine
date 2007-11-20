@@ -370,7 +370,7 @@ have 3 texture units, you must do 2-pass... or just ignore the whole
 
 Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
-TODO: cube maps method is incorrect for now ? bumps don't change, only lighter/darker as a whole..
+TODO: cube maps method is incorrect for now, for some angles it's 0 0 0 ?
 
 ------------------------------------------------------------------------------
 TODO: auto generation of normal maps from height maps seems doable easily,

@@ -173,10 +173,7 @@ procedure Draw(glwin: TGLWindow);
             glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
           end else
           begin
-            glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-              (L[0] + 1) / 2,
-              (L[1] + 1) / 2,
-              (L[2] + 1) / 2);
+            glMultiTexCoord3fARB(GL_TEXTURE0_ARB, L[0], L[1], L[2]);
             glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
             glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
           end;
