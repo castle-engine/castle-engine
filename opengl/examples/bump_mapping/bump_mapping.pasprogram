@@ -95,20 +95,38 @@ var
 { Returns (unnormalized) direction from Vertex to LightPosition,
   in tangent space.
 
-  ModelviewMatrix is used to transform Vertex,
-  LightPosition will be transformed by Glw.Navigator.Matrix
-  (following the way we render them; the idea is that we want
-  to have their positions in world space). }
+  ModelTranslation is the transformation from the space where LightPosition
+  is (currently, this is world space) to object space, i.e. the one where
+  Vertex is. IOW, the transformations applied after the point where
+  we were in space where LightPosition was good, that is after
+    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
+  call.
+
+  In this program, ModelTranslation is simple. In a general program,
+  we need here ModelInvertedTransformation, a matrix, that undoes any
+  transformations applied to object space. This is needed, since
+  LightPositionObjectSpace is crucial for this procedure.
+  Think like
+    ModelTransformation * Vertex gets you to the same space as LightPosition
+  (this is usually called world space). So
+    ModelInvertedTransformation * LightPosition gets you to the same space as
+    LightPosition
+  (this is usually called object space).
+}
 function LightDirectionInTangentSpace(
-  const ModelviewMatrix: TMatrix4Single;
+  const ModelTranslation: TVector3Single;
   const Vertex, Normal, Tangent: TVector3Single): TVector3Single;
 var
   ToTangent: TMatrix4Single;
   I: Integer;
-  Binormal, VertexWorldSpace, LightPositionWorldSpace: TVector3Single;
+  Binormal, LightPositionObjectSpace: TVector3Single;
 begin
-  VertexWorldSpace := MultMatrixPoint(ModelviewMatrix, Vertex);
-  LightPositionWorldSpace := MultMatrixPoint(Glw.Navigator.Matrix, LightPosition);
+  { We want to have LightPositionObjectSpace (in the same space where Vertex
+    already is), as this is also the space where we expressed our Tangent,
+    Binormal, Normal vectors. "Tangent space" is for current face, such that
+    XY run along surface's S,T texture coords. }
+
+  LightPositionObjectSpace := VectorSubtract(LightPosition, ModelTranslation);
 
   Binormal := VectorProduct(Normal, Tangent);
 
@@ -123,7 +141,74 @@ begin
   end;
 
   Result := MultMatrixPoint(ToTangent,
-    VectorSubtract(LightPositionWorldSpace, VertexWorldSpace));
+    VectorSubtract(LightPositionObjectSpace, Vertex));
+end;
+
+{ ----------------------------------------------------------------------------
+  Various TTexCoordVertexProc implementations.
+  They should set texture coord(s), and call glVertex(Vertex).
+  And do whatever else is needed for current bump mapping method.
+  LightDirTangent is direction from current vertex to light,
+  already in tangent space, not normalized. }
+
+type
+  TTexCoordVertexProc = procedure (const TexX, TexY: Single;
+    const Vertex: TVector3Single; LightDirTangent: TVector3Single);
+
+procedure TexCoordVertex_NoBump(const TexX, TexY: Single;
+  const Vertex: TVector3Single; LightDirTangent: TVector3Single);
+begin
+  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
+  glVertexv(Vertex);
+end;
+
+procedure TexCoordVertex_Emboss(const TexX, TexY: Single;
+  const Vertex: TVector3Single; LightDirTangent: TVector3Single);
+begin
+  if not ShiftByHand then
+  begin
+    LightDirTangent[2] := 0;
+    NormalizeTo1st(LightDirTangent);
+    XShift := EmbossScale * LightDirTangent[0] / BumpImageWidth;
+    YShift := EmbossScale * LightDirTangent[1] / BumpImageHeight;
+  end;
+
+  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX         , TexY         );
+  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX + XShift, TexY + YShift);
+
+  glVertexv(Vertex);
+end;
+
+procedure TexCoordVertex_Dot3_NotNormalized(const TexX, TexY: Single;
+  const Vertex: TVector3Single; LightDirTangent: TVector3Single);
+begin
+  NormalizeTo1st(LightDirTangent);
+
+  { pass LightDirTangent as RGB color }
+  glColor3f((LightDirTangent[0] + 1) / 2,
+            (LightDirTangent[1] + 1) / 2,
+            (LightDirTangent[2] + 1) / 2);
+
+  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
+  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
+
+  glVertexv(Vertex);
+end;
+
+procedure TexCoordVertex_Dot3_Normalized(const TexX, TexY: Single;
+  const Vertex: TVector3Single; LightDirTangent: TVector3Single);
+begin
+  { no need to normalize LightDirTangent, it will be normalized at each
+    fragment anyway by normalizing cube map }
+
+  glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
+    LightDirTangent[0],
+    LightDirTangent[1],
+    LightDirTangent[2]);
+  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
+  glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
+
+  glVertexv(Vertex);
 end;
 
 { glw callbacks ------------------------------------------------------------ }
@@ -132,115 +217,73 @@ procedure Draw(glwin: TGLWindow);
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }
-  procedure DrawCube(const LightDirAsColor: boolean = true);
+  procedure DrawCube(
+    const TexCoordVertex: TTexCoordVertexProc;
+    const ModelTranslation: TVector3Single);
   var
     Normal: TVector3Single;
     Tangent: TVector3Single;
 
-    ModelviewMatrix: TMatrix4Single;
-
-    { TODO: make this as @proc, eliminate LightDirAsColor }
-    procedure TexCoordVertex(const TexX, TexY: Single;
+    procedure DoTexCoordVertex(const TexX, TexY: Single;
       const Vertex: TVector3Single);
-    var
-      L: TVector3Single;
     begin
-      case Method of
-        bmEmboss:
-        begin
-          if not ShiftByHand then
-          begin
-            L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
-            L[2] := 0;
-            NormalizeTo1st(L);
-            XShift := EmbossScale * L[0] / BumpImageWidth;
-            YShift := EmbossScale * L[1] / BumpImageHeight;
-          end;
-
-          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX         , TexY         );
-          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX + XShift, TexY + YShift);
-        end;
-
-        bmDot3:
-        begin
-          L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
-
-          if LightDirAsColor then
-          begin
-            NormalizeTo1st(L);
-            { put L as RGB color }
-            glColor3f((L[0] + 1) / 2,
-                      (L[1] + 1) / 2,
-                      (L[2] + 1) / 2);
-            glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
-            glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
-          end else
-          begin
-            glMultiTexCoord3fARB(GL_TEXTURE0_ARB, L[0], L[1], L[2]);
-            glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
-            glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
-          end;
-        end;
-      end;
-
-      glVertexv(Vertex);
+      TexCoordVertex(TexX, TexY, Vertex,
+        LightDirectionInTangentSpace(ModelTranslation, Vertex, Normal, Tangent));
     end;
 
   begin
-    glGetFloatv(GL_MODELVIEW_MATRIX, @ModelviewMatrix);
-
     glBegin(GL_QUADS);
       Normal  := Vector3Single( 0, 0, 1);
       Tangent := Vector3Single( 1, 0, 0);
       glNormalv(Normal);
-      TexCoordVertex(0, 0, Vector3Single(-1, -1,  1));
-      TexCoordVertex(1, 0, Vector3Single( 1, -1,  1));
-      TexCoordVertex(1, 1, Vector3Single( 1,  1,  1));
-      TexCoordVertex(0, 1, Vector3Single(-1,  1,  1));
+      DoTexCoordVertex(0, 0, Vector3Single(-1, -1,  1));
+      DoTexCoordVertex(1, 0, Vector3Single( 1, -1,  1));
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1,  1));
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1,  1));
 
       Normal  := Vector3Single( 0, 0,-1);
       Tangent := Vector3Single(-1, 0, 0);
       glNormalv(Normal);
-      TexCoordVertex(1, 0, Vector3Single(-1, -1, -1));
-      TexCoordVertex(1, 1, Vector3Single(-1,  1, -1));
-      TexCoordVertex(0, 1, Vector3Single( 1,  1, -1));
-      TexCoordVertex(0, 0, Vector3Single( 1, -1, -1));
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1, -1));
+      DoTexCoordVertex(1, 1, Vector3Single(-1,  1, -1));
+      DoTexCoordVertex(0, 1, Vector3Single( 1,  1, -1));
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1, -1));
 
       Normal  := Vector3Single( 0, 1, 0);
       Tangent := Vector3Single( 1, 0, 0);
       glNormalv(Normal);
-      TexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
-      TexCoordVertex(0, 0, Vector3Single(-1,  1,  1));
-      TexCoordVertex(1, 0, Vector3Single( 1,  1,  1));
-      TexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
+      DoTexCoordVertex(0, 0, Vector3Single(-1,  1,  1));
+      DoTexCoordVertex(1, 0, Vector3Single( 1,  1,  1));
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
 
       Normal  := Vector3Single( 0,-1, 0);
       Tangent := Vector3Single(-1, 0, 0);
       glNormalv(Normal);
-      TexCoordVertex(1, 1, Vector3Single(-1, -1, -1));
-      TexCoordVertex(0, 1, Vector3Single( 1, -1, -1));
-      TexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
-      TexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
+      DoTexCoordVertex(1, 1, Vector3Single(-1, -1, -1));
+      DoTexCoordVertex(0, 1, Vector3Single( 1, -1, -1));
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
 
       Normal  := Vector3Single( 1, 0, 0);
       Tangent := Vector3Single( 0, 0,-1);
       glNormalv(Normal);
-      TexCoordVertex(1, 0, Vector3Single( 1, -1, -1));
-      TexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
-      TexCoordVertex(0, 1, Vector3Single( 1,  1,  1));
-      TexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
+      DoTexCoordVertex(1, 0, Vector3Single( 1, -1, -1));
+      DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
+      DoTexCoordVertex(0, 1, Vector3Single( 1,  1,  1));
+      DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
 
       Normal  := Vector3Single(-1, 0, 0);
       Tangent := Vector3Single( 0, 0, 1);
       glNormalv(Normal);
-      TexCoordVertex(0, 0, Vector3Single(-1, -1, -1));
-      TexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
-      TexCoordVertex(1, 1, Vector3Single(-1,  1,  1));
-      TexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
+      DoTexCoordVertex(0, 0, Vector3Single(-1, -1, -1));
+      DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
+      DoTexCoordVertex(1, 1, Vector3Single(-1,  1,  1));
+      DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
     glEnd();
   end;
 
-  procedure Test(TextureNum: Integer);
+  procedure Test(TextureNum: Integer; const ModelTranslation: TVector3Single);
 
     procedure SetTexturesForEmboss(ShowRealBump, Modulate: boolean);
     var
@@ -380,7 +423,7 @@ procedure Draw(glwin: TGLWindow);
 
         glPushMatrix;
           glTranslatef(+0, 0, 0);
-          DrawCube;
+          DrawCube(@TexCoordVertex_Emboss, ModelTranslation);
         glPopMatrix;
       end;
 
@@ -394,7 +437,8 @@ procedure Draw(glwin: TGLWindow);
 
       glPushMatrix;
         glTranslatef(+4, 0, 0);
-        DrawCube;
+        DrawCube(@TexCoordVertex_Emboss,
+          VectorAdd(ModelTranslation, Vector3Single(4, 0, 0)));
       glPopMatrix;
 
       if EmbossAlphaMultiplyByBlending then
@@ -408,14 +452,16 @@ procedure Draw(glwin: TGLWindow);
 
         glPushMatrix;
           glTranslatef(+8, 0, 0);
-          DrawCube;
+          DrawCube(@TexCoordVertex_Emboss,
+            VectorAdd(ModelTranslation, Vector3Single(8, 0, 0)));
         glPopMatrix;
 
         SetTexturesForEmboss(true, false);
 
         glPushMatrix;
           glTranslatef(+12, 0, 0);
-          DrawCube;
+          DrawCube(@TexCoordVertex_Emboss,
+            VectorAdd(ModelTranslation, Vector3Single(12, 0, 0)));
         glPopMatrix;
       end;
     end;
@@ -525,7 +571,8 @@ procedure Draw(glwin: TGLWindow);
 
       glPushMatrix;
         glTranslatef(Dot3NotNormalized, 0, 0);
-        DrawCube(true);
+        DrawCube(@TexCoordVertex_Dot3_NotNormalized,
+          VectorAdd(ModelTranslation, Vector3Single(Dot3NotNormalized, 0, 0)));
       glPopMatrix;
 
       if MaxTextureUnits > 2 then
@@ -534,7 +581,8 @@ procedure Draw(glwin: TGLWindow);
 
         glPushMatrix;
           glTranslatef(Dot3Normalized, 0, 0);
-          DrawCube(false);
+          DrawCube(@TexCoordVertex_Dot3_Normalized,
+            VectorAdd(ModelTranslation, Vector3Single(Dot3Normalized, 0, 0)));
         glPopMatrix;
 
         { clean after ourselves, otherwise we'd have to call
@@ -568,7 +616,7 @@ procedure Draw(glwin: TGLWindow);
 
     glPushMatrix;
       glTranslatef(-4, 0, 0);
-      DrawCube;
+      DrawCube(@TexCoordVertex_NoBump, Vector3Single(-4, 0, 0));
     glPopMatrix;
 
     case Method of
@@ -650,17 +698,17 @@ begin
 
   glPushMatrix;
     glTranslatef(0, -4, 0);
-    Test(2);
+    Test(2, Vector3Single(0, -4, 0));
   glPopMatrix;
 
   glPushMatrix;
     glTranslatef(0, +0, 0);
-    Test(0);
+    Test(0, Vector3Single(0, +0, 0));
   glPopMatrix;
 
   glPushMatrix;
     glTranslatef(0, +4, 0);
-    Test(1);
+    Test(1, Vector3Single(0, +4, 0));
   glPopMatrix;
 
   RenderStatus;
