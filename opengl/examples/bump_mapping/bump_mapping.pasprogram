@@ -29,6 +29,7 @@
   h switch emboss shift from automatic (from light in tangent space) to by hand
   awsd change emboss shift (if in "by hand" mode)
   m changes emboss method
+  b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
 
   Examine mode keys from [http://vrmlengine.sf.net/view3dscene.php]:
     page up, page down, arrows: rotate the scene
@@ -78,6 +79,8 @@ var
   BumpImageWidth, BumpImageHeight: Cardinal;
 
   EmbossScale: Single = 1;
+
+  EmbossAlphaMultiplyByBlending: boolean = false;
 
   { Vars below for dot3 only }
 
@@ -302,12 +305,12 @@ procedure Draw(glwin: TGLWindow);
            - On ii.107 (poor Radeon (GL_VERSION : 1.4.5469 WinXP Release so really old drivers)): 8
            - On chantal (Radeon don't remeber, MacBookPro): 8
            - On ii.137: TODO
-           - On kocur.ii (older NVidia: GeForce4 MX 440): 2
+           - On kocur.ii (older NVidia: GeForce4 MX 440): 2, indeed
            - On crypto.ii (Radeon X300): 8
            - Mesa on kocury: TODO
 
            Then you can use blending to multiply incoming color by it's own
-           incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO). (TODO: untested)
+           incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO).
            This means that you lose the ability to do partial transparency,
            as you lost alpha from your PRIMARY_COLOR --- but you keep 1-pass
            method, which is crucial.
@@ -318,76 +321,89 @@ procedure Draw(glwin: TGLWindow);
         pretty much commonly found (OpenGL >= 1.3), I don't see much point for
         more elaborate tricks. }
 
-      glActiveTextureARB(GL_TEXTURE2_ARB);
-      { Hm, funny, actually I have to bind *any* texture here
-        (it's values will not be used by equation on this texture unit),
-        otherwise this texture unit is always off. }
-      glBindTexture(GL_TEXTURE_2D, Tex);
-      glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-      if ShowRealBump then
+      if not EmbossAlphaMultiplyByBlending then
       begin
-        if Modulate then
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE) else
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_ADD);
+        glActiveTextureARB(GL_TEXTURE2_ARB);
+        { Hm, funny, actually I have to bind *any* texture here
+          (it's values will not be used by equation on this texture unit),
+          otherwise this texture unit is always off. }
+        glBindTexture(GL_TEXTURE_2D, Tex);
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
 
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_ALPHA);
-      end else
-      begin
-        { just for test: show the current alpha values
-          (subtracted bumps) }
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_ALPHA);
+        if ShowRealBump then
+        begin
+          if Modulate then
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE) else
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_ADD);
+
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_ALPHA);
+        end else
+        begin
+          { just for test: show the current alpha values
+            (subtracted bumps) }
+          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_ALPHA);
+        end;
+
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
       end;
-
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
     end;
 
     procedure DrawEmbossCubes;
     begin
       { bump_amount * normal_color, with lighter textures }
 
-      SetTexturesForEmboss(false, true);
+      if not EmbossAlphaMultiplyByBlending then
+      begin
+        SetTexturesForEmboss(false, true);
 
-      glPushMatrix;
-        glTranslatef(+0, 0, 0);
-        DrawCube;
-      glPopMatrix;
+        glPushMatrix;
+          glTranslatef(+0, 0, 0);
+          DrawCube;
+        glPopMatrix;
+      end;
 
       SetTexturesForEmboss(true, true);
 
-      //glDisable(GL_LIGHTING);
-      //glColorv(White3Single);
+      if EmbossAlphaMultiplyByBlending then
+      begin
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+      end;
 
       glPushMatrix;
         glTranslatef(+4, 0, 0);
         DrawCube;
       glPopMatrix;
 
-      //glEnable(GL_LIGHTING);
+      if EmbossAlphaMultiplyByBlending then
+        glDisable(GL_BLEND);
 
       { bump_amount + normal_color hack }
 
-      SetTexturesForEmboss(false, false);
+      if not EmbossAlphaMultiplyByBlending then
+      begin
+        SetTexturesForEmboss(false, false);
 
-      glPushMatrix;
-        glTranslatef(+8, 0, 0);
-        DrawCube;
-      glPopMatrix;
+        glPushMatrix;
+          glTranslatef(+8, 0, 0);
+          DrawCube;
+        glPopMatrix;
 
-      SetTexturesForEmboss(true, false);
+        SetTexturesForEmboss(true, false);
 
-      glPushMatrix;
-        glTranslatef(+12, 0, 0);
-        DrawCube;
-      glPopMatrix;
+        glPushMatrix;
+          glTranslatef(+12, 0, 0);
+          DrawCube;
+        glPopMatrix;
+      end;
     end;
 
     procedure SetTexturesForDot3;
@@ -507,7 +523,9 @@ procedure Draw(glwin: TGLWindow);
       if ShiftByHand then
         S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
         S += 'Shift automatic from tangent space light position' +nl;
-      S += Format('Emboss scale: %f', [EmbossScale]);
+      S += Format('Emboss scale: %f', [EmbossScale]) +nl;
+      S += Format('Emboss alpha multiply by blending: %s',
+        [BoolToStr[EmbossAlphaMultiplyByBlending]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -519,7 +537,11 @@ begin
 
   if (Method = bmEmboss) and
     (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
-    Method := bmDot3;
+  begin
+    { You can't have emboss with not EmbossAlphaMultiplyByBlending
+      on this hardware. }
+    EmbossAlphaMultiplyByBlending := true;
+  end;
 
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
@@ -717,6 +739,7 @@ begin
     'm': if Method = High(Method) then
            Method := Low(Method) else
            Method := Succ(Method);
+    'b': EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
   end;
 end;
 

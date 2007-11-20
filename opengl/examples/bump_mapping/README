@@ -179,8 +179,21 @@ Emboss bump mapping example:
 http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
 http://nehe.gamedev.net/data/lessons/extras/lesson22/EmbossBumpMapping.ppt
 
-Some my improvements: 1-pass only method (as implemented now needs 3 tex units,
-although could get away with 2 if using blending for the last step), GL_SUBTRACT.
+Some my improvements: 1-pass only method.
+
+For "bump_amount + normal_color" approach (see below), 3 texture units
+are needed.
+
+For the modulate "bump_amount * normal_color" approach (see below)
+we can get away with only 2 tex units, which are found practically
+anywhere. The role of 3rd texture unit can be done by blending with
+glBlendFunc(GL_SRC_ALPHA, GL_ZERO). Both approaches implemented,
+and for modulate both 3rd texture unit or blending method done --- you can
+see that results are exactly the same in this case.
+See comments in code (when setting 3rd tex unit,
+glActiveTextureARB(GL_TEXTURE2_ARB)) about this.
+
+GL_SUBTRACT used, so no need to load bump map twice into memory.
 
 ------------------------------------------------------------------------------
 Emboss finish:
@@ -291,7 +304,7 @@ http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 TODO: Finish reading nehe demo, is there good expl of tangent space for emboss ?
   If not, xero 6 pages from Moller+Haines ? There's a short and good expl.
 TODO: environemnt bump mapping, parallax mapping, displacement?
-TODO: make it faster on Radeon (chantal). On 107, works quite OK.
+TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
