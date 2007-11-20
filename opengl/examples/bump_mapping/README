@@ -290,8 +290,9 @@ Idea:
    some 3f value that will be interpolated and available for texture unit
    operations.
 
-   a) It can be passed as color3f, and lighting may be off,
-      then texture unit can access it simply as PRIMARY_COLOR.
+   a) It can be passed as color3f (with smooth shading this is interpolated),
+      and lighting may be off, then texture unit can access it simply as
+      PRIMARY_COLOR.
 
       Advantage: simple. Disadvantages: not normalized light vector
       (see below), also you loose any material/light parameters in
@@ -307,17 +308,18 @@ Idea:
       built-in. I didn't do it, but Haines+Moller say it's doable all right,
       and in fact this is one of advantages of dot3 over emboss.
 
-   b) texCoord3f (for some texture unit). Then texture unit can use
+   b) texCoord3f (texture coords are obviously interpolated by gl).
+      Then texture unit can use
       this to access actual values using cube map, that normalizes the
       light direction (as interpolation between two normalized vectors
       easily leads to not normalized vectors (although quite close),
-      {draw simple example}.
+      {draw simple example}).
 
       This way we get more correct method, at the cost
       of one additional texture unit needed and we have to prepare normalizing
       cube map.
 
-      TODO.
+      See below.
 
 Use DOT3_RGB_ARB to calculate dot between light direction and normal
 at this point of the screen. Effectively, this calculates the diffuse
@@ -326,8 +328,49 @@ bump_amount in emboss bump mapping.
 
 http://nehe.gamedev.net/data/articles/article.asp?article=20
 
+Nice explanation of dot3:
 http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 (testing normal_map.jpg from there)
+(although there code does 2-pass, while we did 1-pass with 3 texture units
+or even 2 texture units if we ignore normalization).
+
+------------------------------------------------------------------------------
+Cube map:
+
+Idea: we have a 3D cube, with size 2, centered around the origin.
+We can easily project any (x, y, z) point on this cube:
+1. choose component with largest absolute value.
+   Let's say, we have (33, 44, -100). So we have -100, which says
+   "take -Z side of the cube".
+2. divide other 2 components by abs value of this. IOW, simply
+   scale down the vector such that it's exactly on the -Z cube face:
+   (0.33, 0.44, -1). So take from -Z side of the cube vertex corresponding
+   to 0.33, 0.44. If you think about texture coordinates in 0..1 range,
+   you can take (x+1)/2.
+
+Invented for environment mapping: an object reflects some surroundings
+(assumption: surroundings are far, far away from this object; e.g. sky).
+We have viewer direction, normal of the surface, calculate reflection vector,
+use this as (x, y, z) to see surrounding color at this place of the cube.
+
+TODO: demo program.
+
+Our use of cube mapping will be more "creative" :) Namely: we want to
+use cube maps as precalculated array of normals. Initialize colors of cube map
+textures such that they specify normalized vector (x, y, z).
+This way, lookup in cube map normalizes any vector... without any nasty sqrs
+(but at the cost of memory and aliasing). What's more, OpenGL does all the work
+for us, we only initialize cube map.
+
+See code how we init and use it for dot3. 3rd texture unit is needed
+(no escape from this, we need 1 RGB unit for original texture,
+1 RGB unit for 3D normals, 1 cube map unit for cube map; if you don't
+have 3 texture units, you must do 2-pass... or just ignore the whole
+"normalization" issue, which is quite reasonable).
+
+Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
+
+TODO: cube maps method is incorrect for now ? bumps don't change, only lighter/darker as a whole..
 
 ------------------------------------------------------------------------------
 TODO: auto generation of normal maps from height maps seems doable easily,
@@ -340,6 +383,8 @@ TODO: environemnt bump mapping, parallax mapping, displacement?
 Parallax mapping:
   from http://www.realtimerendering.com/#texture
   PDF from Olgierd
+
+TODO: better playing with light (mouse unproject xy, depth control)
 
 TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 TODO: show on larger/more complicated models, like an orange

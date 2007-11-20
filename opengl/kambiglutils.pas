@@ -2757,6 +2757,13 @@ function GLCapsString: string;
       Result := 'ARB_multitexture not available';
   end;
 
+  function GetMaxCubeMapTextureSize: string;
+  begin
+    if GL_ARB_texture_cube_map then
+      Result := GetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
+      Result := 'ARB_texture_cube_map not available';
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
@@ -2808,7 +2815,8 @@ begin
   'GL_MAX_PIXEL_MAP_TABLE : ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
   'GL_MAX_TEXTURE_SIZE : ' +GetInteger(GL_MAX_TEXTURE_SIZE) +nl+
   'GL_MAX_VIEWPORT_DIMS : ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-  'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits;
+  'GL_MAX_TEXTURE_UNITS_ARB : ' + GetMaxTextureUnits +nl+
+  'GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB : ' + GetMaxCubeMapTextureSize;
 
  CheckGLErrors;
 end;
