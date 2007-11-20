@@ -6,6 +6,19 @@ Idea: normals change within. How about we store normals somehow in some texture
 without changing the geometry.
 
 ------------------------------------------------------------------------------
+Emboss idea:
+
+Like 2D effect. Take image, shift, subtract --- this tells how to scale color
+{draw image with hills, it's clear}.
+
+More math speaking, we're calculating derivative, actually gradient
+(gradient = 2d derivative) and calculating gradient is how we calculate normals
+from height map. This is also the answer to "auto generation of normal
+maps from height maps", useful for dot3 method much later.
+
+First, overview of OpenGL multitexturing:
+
+------------------------------------------------------------------------------
 GL_ARB_multitexture:
 
 GL_ARB_multitexture avail from OpenGL 1.2.1, incorporated as standard since
@@ -155,7 +168,7 @@ for practical overview of texture extensions in OpenGL.
 http://www.opengl.org/sdk/docs/man/ - glTexEnv manpage as of OpenGL 2006.
 
 ------------------------------------------------------------------------------
-1-pass:
+Emboss 1-pass:
 
 Back to
   (0.5 + Bump/2 - shifted(at runtime) Bump/2) * normal scene color
@@ -173,27 +186,13 @@ want the same texture coordinates, so you can put them on a single RGBA texture.
 
 ------------------------------------------------------------------------------
 Light in tangent space: how to calculate the shift.
-See code, see Moller+Haines.
+See code (LightDirectionInTangentSpace function), see Moller+Haines.
 
-Emboss bump mapping example:
-http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
-http://nehe.gamedev.net/data/lessons/extras/lesson22/EmbossBumpMapping.ppt
-
-Some my improvements: 1-pass only method.
-
-For "bump_amount + normal_color" approach (see below), 3 texture units
-are needed.
-
-For the modulate "bump_amount * normal_color" approach (see below)
-we can get away with only 2 tex units, which are found practically
-anywhere. The role of 3rd texture unit can be done by blending with
-glBlendFunc(GL_SRC_ALPHA, GL_ZERO). Both approaches implemented,
-and for modulate both 3rd texture unit or blending method done --- you can
-see that results are exactly the same in this case.
-See comments in code (when setting 3rd tex unit,
-glActiveTextureARB(GL_TEXTURE2_ARB)) about this.
-
-GL_SUBTRACT used, so no need to load bump map twice into memory.
+Explanation and code of this in nehe demo is rather messy...
+Scan drawing from Moller+Haines ? There's a short and good expl.
+Maybe in
+http://www.cs.lth.se/home/Tomas_Akenine_Moller/RTR/RTRslides.zip
+there's a good drawing.
 
 ------------------------------------------------------------------------------
 Emboss finish:
@@ -221,14 +220,42 @@ bump_amount + normal_color. Totally not related to any lighting equation,
 but looks quite OK.
 Implemented (4th and 5th columns).
 
+Emboss bump mapping examples elsewhere:
+http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
+http://nehe.gamedev.net/data/lessons/extras/lesson22/EmbossBumpMapping.ppt
+
+Some my improvements: 1-pass only method.
+
+For "bump_amount + normal_color" approach (see below), 3 texture units
+are needed.
+
+For the modulate "bump_amount * normal_color" approach (see below)
+we can get away with only 2 tex units, which are found practically
+anywhere. The role of 3rd texture unit can be done by blending with
+glBlendFunc(GL_SRC_ALPHA, GL_ZERO). Both approaches implemented,
+and for modulate both 3rd texture unit or blending method done --- you can
+see that results are exactly the same in this case.
+See comments in code (when setting 3rd tex unit,
+glActiveTextureARB(GL_TEXTURE2_ARB)) about this.
+
+GL_SUBTRACT used, so no need to load bump map twice into memory.
+
 ------------------------------------------------------------------------------
-Note about generating bump images:
+Note about generating height maps from normal ("normal" as "the ones used
+for normal texturing", not as "normal maps") texture:
 - get image, increase brightness and contrast almost to the max,
   making it almost black and white image.
 - middle row looks worse, because it contained many small white/black
   stains. In lower row these stains are removed, image much better.
 So seems that automatic generation of sensible bump images is easy and doable.
 
+If you start from highly polygonal model and you will convert to low poly,
+it's straightforward to get height map from highly polygonal version
+(just render depth with ortho projection set directly at the face).
+There are also programs that just do this automatically, some links from
+http://www.realtimerendering.com/#texture
+
+TODO: auto generation of lighter images for emboss
 ------------------------------------------------------------------------------
 Dot3 bump mapping:
 
@@ -249,6 +276,8 @@ For the calculations, we want to invert this, so we want to calculate
   2 * (Arg0_r - 0.5) * 2 * (Arg1_r - 0.5) +
   2 * (Arg0_g - 0.5) * 2 * (Arg1_g - 0.5) +
   2 * (Arg0_b - 0.5) * 2 * (Arg1_b - 0.5)
+
+Yes, DOT3_RGB_ARB was explicitly "invented" for doing bump mapping.
 
 Idea:
 
@@ -301,15 +330,22 @@ http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 (testing normal_map.jpg from there)
 
 ------------------------------------------------------------------------------
-TODO: Finish reading nehe demo, is there good expl of tangent space for emboss ?
-  If not, xero 6 pages from Moller+Haines ? There's a short and good expl.
+TODO: auto generation of normal maps from height maps seems doable easily,
+just calc gradients on both sides.
+http://en.wikipedia.org/wiki/Sobel_operator, naturally
+
+------------------------------------------------------------------------------
 TODO: environemnt bump mapping, parallax mapping, displacement?
+
+Parallax mapping:
+  from http://www.realtimerendering.com/#texture
+  PDF from Olgierd
+
 TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
 TODO: walker navigator.
-TODO: 2 pass method implement ? if needed also for dot3 ?
 
 TODO: test, elaborate on
   Note also that this cube CAN NOT be done using a display list, since
@@ -320,4 +356,6 @@ TODO: test, elaborate on
   the entire geometry with or without display lists.
 from http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=22
 
-TODO: dl all URLs here to chantal, gl 2.1 spec.
+TODO: dl dl all URLs here to chantal,
+  - gl 2.1, 1.3 spec.
+  - http://www.cs.lth.se/home/Tomas_Akenine_Moller/RTR/RTRslides.zip
