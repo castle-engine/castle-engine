@@ -249,7 +249,10 @@ factor of the lighting equation, so we can use this just like
 bump_amount in emboss bump mapping.
 
 http://nehe.gamedev.net/data/articles/article.asp?article=20
+
 http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
+(testing normal_map.jpg from there)
+
 ------------------------------------------------------------------------------
 TODO: Finish reading nehe demo, is there good expl of tangent space ?
   If not, xero 6 pages from Moller+Haines ? There's a short and good expl.

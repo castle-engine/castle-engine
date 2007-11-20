@@ -54,12 +54,8 @@ type
   TBumpMethod = (bmEmboss, bmDot3);
 
 var
+  { normal texture is for all methods, bumps in alpha for emboss only }
   NormalAndBumpTex: array [0..2] of TGLuint;
-  LighterAndBumpTex: array [0..2] of TGLuint;
-
-  XShift: Single = 0;
-  YShift: Single = 0;
-  ShiftByHand: boolean = false;
 
   Font: TGLBitmapFont;
 
@@ -67,11 +63,23 @@ var
   LightRotation: Single = 0;
   LightRadius: Single = 3;
 
+  Method: TBumpMethod = bmEmboss;
+
+  { Vars below for emboss only }
+
+  LighterAndBumpTex: array [0..2] of TGLuint;
+
+  XShift: Single = 0;
+  YShift: Single = 0;
+  ShiftByHand: boolean = false;
+
   BumpImageWidth, BumpImageHeight: Cardinal;
 
   EmbossScale: Single = 1;
 
-  Method: TBumpMethod = bmEmboss;
+  { Vars below for dot3 only }
+
+  NormalMap: array [0..2] of TGLuint;
 
 { Returns (unnormalized) direction from Vertex to LightPosition,
   in tangent space.
@@ -495,7 +503,7 @@ const
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
   MagFilter = GL_LINEAR;
 
-  procedure LoadTexture(const BaseFileName, BumpFileName: string;
+  procedure LoadTextureBumpMap(const BaseFileName, BumpFileName: string;
     var Tex: TGLuint);
   var
     BaseImage: TRGBImage;
@@ -529,6 +537,15 @@ const
     end;
   end;
 
+  procedure LoadNormalMap(const FileName: string;
+    var Tex: TGLuint);
+  begin
+    { for now this is simple... }
+    Tex := LoadGLTexture(FileName, MinFilter, MagFilter,
+      GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+  end;
+
+
 begin
   Check(GL_EXT_texture_env_combine, 'EXT_texture_env_combine required');
   Check(GL_ARB_multitexture, 'ARB_multitexture required');
@@ -545,14 +562,20 @@ begin
 
   glPointSize(10);
 
-  LoadTexture('brick_1.png'      , 'brick_1_bump.png', NormalAndBumpTex[0]);
-  LoadTexture('brick_1_light.png', 'brick_1_bump.png', LighterAndBumpTex[0]);
+  LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump.png', NormalAndBumpTex[0]);
+  LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump.png', LighterAndBumpTex[0]);
 
-  LoadTexture('brick_2.png'      , 'brick_2_bump.png', NormalAndBumpTex[1]);
-  LoadTexture('brick_2_light.png', 'brick_2_bump.png', LighterAndBumpTex[1]);
+  LoadTextureBumpMap('brick_2.png'      , 'brick_2_bump.png', NormalAndBumpTex[1]);
+  LoadTextureBumpMap('brick_2_light.png', 'brick_2_bump.png', LighterAndBumpTex[1]);
 
-  LoadTexture('brick_1.png'      , 'brick_1_bump_better.png', NormalAndBumpTex[2]);
-  LoadTexture('brick_1_light.png', 'brick_1_bump_better.png', LighterAndBumpTex[2]);
+  LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump_better.png', NormalAndBumpTex[2]);
+  LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump_better.png', LighterAndBumpTex[2]);
+
+  { TODO: I use one normal map for all, totally unrelated to model }
+  LoadNormalMap('normal_map.jpg', NormalMap[0]);
+  { for now, these are the same }
+  NormalMap[1] := NormalMap[0];
+  NormalMap[2] := NormalMap[0];
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
