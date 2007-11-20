@@ -303,7 +303,8 @@ procedure Draw(glwin: TGLWindow);
            - On chantal (Radeon don't remeber, MacBookPro): 8
            - On ii.137: TODO
            - On kocur.ii (older NVidia: GeForce4 MX 440): 2
-           - On crypto.ii (Radeon): TODO
+           - On crypto.ii (Radeon X300): 8
+           - Mesa on kocury: TODO
 
            Then you can use blending to multiply incoming color by it's own
            incoming alpha with glBlendFunc(GL_SRC_ALPHA, GL_ZERO). (TODO: untested)
