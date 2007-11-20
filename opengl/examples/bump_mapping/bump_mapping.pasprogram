@@ -133,17 +133,37 @@ procedure Draw(glwin: TGLWindow);
     var
       L: TVector3Single;
     begin
-      if not ShiftByHand then
-      begin
-        L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
-        L[2] := 0;
-        NormalizeTo1st(L);
-        XShift := EmbossScale * L[0] / BumpImageWidth;
-        YShift := EmbossScale * L[1] / BumpImageHeight;
+      case Method of
+        bmEmboss:
+        begin
+          if not ShiftByHand then
+          begin
+            L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
+            L[2] := 0;
+            NormalizeTo1st(L);
+            XShift := EmbossScale * L[0] / BumpImageWidth;
+            YShift := EmbossScale * L[1] / BumpImageHeight;
+          end;
+
+          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX         , TexY         );
+          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX + XShift, TexY + YShift);
+        end;
+
+        bmDot3:
+        begin
+          L := LightDirectionInTangentSpace(ModelviewMatrix, Vertex, Normal, Tangent);
+          NormalizeTo1st(L);
+
+          { put L as RGB color }
+          glColor3f((L[0] + 1) / 2,
+                    (L[1] + 1) / 2,
+                    (L[2] + 1) / 2);
+
+          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
+          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
+        end;
       end;
 
-      glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX         , TexY         );
-      glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX + XShift, TexY + YShift);
       glVertexv(Vertex);
     end;
 
@@ -361,8 +381,24 @@ procedure Draw(glwin: TGLWindow);
       glPopMatrix;
     end;
 
+    procedure SetTexturesForDot3;
+    begin
+      { TODO }
+    end;
+
     procedure DrawDot3Cubes;
     begin
+      SetTexturesForDot3;
+
+      glDisable(GL_LIGHTING);
+      glColorv(White3Single);
+
+      glPushMatrix;
+        glTranslatef(+0, 0, 0);
+        DrawCube;
+      glPopMatrix;
+
+      glEnable(GL_LIGHTING);
     end;
 
   begin

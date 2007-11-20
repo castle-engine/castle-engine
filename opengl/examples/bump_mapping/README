@@ -227,19 +227,36 @@ calculates
      (Arg0_g - 0.5)*(Arg1_g - 0.5) +
      (Arg0_b - 0.5)*(Arg1_b - 0.5))
 and places the same result in all R, G, B. (There's also analogous
-DOT3_RGBA_ARB, not important for us).
+DOT3_RGBA_ARB, not important for us). Why "-0.5" and "4*" above ?
+Because we will use R, G, B values to represent lighting direction
+and normals direction. So actually we want to place -1...1 values there.
+We squeeze them by (value + 1) / 2 to get into range 0..1.
+For the calculations, we want to invert this, so we want to calculate
+
+  2 * (Arg0_r - 0.5) * 2 * (Arg1_r - 0.5) +
+  2 * (Arg0_g - 0.5) * 2 * (Arg1_g - 0.5) +
+  2 * (Arg0_b - 0.5) * 2 * (Arg1_b - 0.5)
 
 Idea:
 
 1. pass direction of light-to-vertex (in vertex space, i.e. calculated
    by transforming light pos to tangent space just like for emboss) as
-   some 3f value that will be interpolated. It can be passed as color3f,
-   texCoord3f (for some texture unit), etc. --- whatever, it's only important
-   that this should be available for texture unit calculations.
+   some 3f value that will be interpolated and available for texture unit
+   operations.
 
-   In practice TODO.
+   a) It can be passed as color3f, and lighting may be off,
+      then texture unit can access it simply as PRIMARY_COLOR
+      TODO.
 
-   It should be renormalized ! (interpolating breaks normalization).
+   b) texCoord3f (for some texture unit). Then texture unit can use
+      this to access actual values using cube map, that normalizes the
+      light direction (as interpolation between two normalized vectors
+      easily leads to not normalized vectors (although quite close),
+      {draw simple example}.
+      This way we get more correct method, at the cost
+      of one additional texture unit needed and we have to prepare normalizing
+      cube map.
+      TODO.
 
 2. Make a texture with normals stored as 3-value vectors.
 
