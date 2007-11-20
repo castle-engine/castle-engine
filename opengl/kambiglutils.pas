@@ -750,6 +750,9 @@ procedure glMultMatrix(const m: TMatrix4d); overload;
 procedure glLoadMatrix(const m: TMatrix4f); overload;
 procedure glLoadMatrix(const m: TMatrix4d); overload;
 
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); overload;
+
 {$else IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glNormal3dv';
@@ -825,6 +828,9 @@ procedure glMultMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openg
 procedure glMultMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glMultMatrixd';
 procedure glLoadMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openglDLL name 'glLoadMatrixf';
 procedure glLoadMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glLoadMatrixd';
+
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexEnvfv';
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glTexEnviv';
 
 {$endif IMPLEMENT_OPENGL_STUBS}
 
@@ -1946,6 +1952,9 @@ procedure glMultMatrix(const m: TMatrix4f); begin glMultMatrixf(@m) end;
 procedure glMultMatrix(const m: TMatrix4d); begin glMultMatrixd(@m) end;
 procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
 procedure glLoadMatrix(const m: TMatrix4d); begin glLoadMatrixd(@m) end;
+
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
+procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4i); begin glTexEnviv(target, pname, @params); end;
 
 {$endif IMPLEMENT_OPENGL_STUBS}
 
