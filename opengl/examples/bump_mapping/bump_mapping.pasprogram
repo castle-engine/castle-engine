@@ -193,9 +193,9 @@ begin
   NormalizeTo1st(LightDirTangent);
 
   { pass LightDirTangent as RGB color }
-  glColor3f((LightDirTangent[0] + 1) / 2,
-            (LightDirTangent[1] + 1) / 2,
-            (LightDirTangent[2] + 1) / 2);
+  glColor3f(( LightDirTangent[0] + 1) / 2,
+            (-LightDirTangent[1] + 1) / 2,
+            ( LightDirTangent[2] + 1) / 2);
 
   glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
   glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
@@ -210,9 +210,9 @@ begin
     fragment anyway by normalizing cube map }
 
   glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-    LightDirTangent[0],
-    LightDirTangent[1],
-    LightDirTangent[2]);
+     LightDirTangent[0],
+    -LightDirTangent[1],
+     LightDirTangent[2]);
   glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
   glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
 

@@ -429,3 +429,8 @@ TODO: dl dl all URLs here to chantal,
   - gl 2.1, 1.3 spec.
   - http://www.cs.lth.se/home/Tomas_Akenine_Moller/RTR/RTRslides.zip
   - install gimp-normalmap on chantal
+
+TODO: y reverted in dot3 effects ? I have to revert in
+  TexCoordVertex_Dot3_NotNormalized
+(check in normalized too ?) lightdir[1]
+Not in emboss. check on other normal maps.
