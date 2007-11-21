@@ -371,10 +371,9 @@ have 3 texture units, you must do 2-pass... or just ignore the whole
 Compare normalized and not normalized results: not normalized are a little
 darker, as expected, but probably nothing "too obvious" for casual viewer ?
 
-Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
+Show the normal map colors, view3dscene normalization_cube_display.wrl.
 
-TODO: cube maps method is incorrect for now, for some angles it's 0 0 0 ?
-Looks like cracks because cube map side changes.
+Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
 ------------------------------------------------------------------------------
 TODO: auto generation of normal maps from height maps seems doable easily,

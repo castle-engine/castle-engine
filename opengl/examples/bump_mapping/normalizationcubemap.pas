@@ -13,6 +13,8 @@ implementation
 
 uses SysUtils, KambiUtils, Images, VectorMath, KambiGLUtils;
 
+{ $define DEBUG_SAVE_NORMAL_IMAGES}
+
 function MakeNormalizationCubeMap: TGLuint;
 
   procedure FillNormalized(out NormalAsColor: TVector3Byte; V: TVector3Single);
@@ -66,7 +68,10 @@ begin
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_POSITIVE_X.png');
+    {$endif}
 
     for S := 0 to Size1 do
       for T := 0 to Size1 do
@@ -78,7 +83,10 @@ begin
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_NEGATIVE_X.png');
+    {$endif}
 
     for S := 0 to Size1 do
       for T := 0 to Size1 do
@@ -90,7 +98,10 @@ begin
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_POSITIVE_Y.png');
+    {$endif}
 
     for S := 0 to Size1 do
       for T := 0 to Size1 do
@@ -98,11 +109,14 @@ begin
           Vector3Single(
               (S / Size1) * 2 - 1,
             - 1,
-            - (T / Size1) * 2 - 1));
+            - ((T / Size1) * 2 - 1)));
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_NEGATIVE_Y.png');
+    {$endif}
 
     for S := 0 to Size1 do
       for T := 0 to Size1 do
@@ -114,7 +128,10 @@ begin
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_POSITIVE_Z.png');
+    {$endif}
 
     for S := 0 to Size1 do
       for T := 0 to Size1 do
@@ -126,7 +143,11 @@ begin
 
     glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, 0, 3,
       Image.Width, Image.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Image.RawPixels);
+
+    {$ifdef DEBUG_SAVE_NORMAL_IMAGES}
     SaveImage(Image, '/tmp/normal_NEGATIVE_Z.png');
+    {$endif}
+
   finally FreeAndNil(Image) end;
 end;
 
