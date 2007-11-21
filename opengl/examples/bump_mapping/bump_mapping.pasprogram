@@ -767,11 +767,12 @@ const
     BumpImage := nil;
     Image := nil;
     try
-      BaseImage := LoadImage(BaseFileName, [TRGBImage], []) as TRGBImage;
+      BaseImage := LoadImage('textures/' + BaseFileName,
+        [TRGBImage], []) as TRGBImage;
 
-      BumpImage := LoadImage(BumpFileName, [TGrayscaleImage], []) as TGrayscaleImage;
+      BumpImage := LoadImage('textures/' + BumpFileName,
+        [TGrayscaleImage], []) as TGrayscaleImage;
       BumpImage.HalfColors;
-
       BumpImageWidth := BumpImage.Width;
       BumpImageHeight := BumpImage.Height;
 
@@ -793,8 +794,8 @@ const
   procedure LoadNormalMap(const FileName: string;
     var Tex: TGLuint);
   begin
-    { for now this is simple... }
-    Tex := LoadGLTexture(FileName, MinFilter, MagFilter,
+    { This is quite simple... }
+    Tex := LoadGLTexture('textures/' + FileName, MinFilter, MagFilter,
       GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
   end;
 
