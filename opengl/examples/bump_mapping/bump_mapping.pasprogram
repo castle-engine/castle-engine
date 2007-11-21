@@ -19,25 +19,27 @@
 }
 
 { Bump mapping demo.
-  Emboss bump mapping for now.
+  Emboss and dot3 bump mapping.
 
   Keys:
   eE change scale of emboss effect.
   awsd change light position[x, y], qQ change light position[z]
   h switch emboss shift from automatic (from light in tangent space) to by hand
   ijkl change emboss shift (if in "by hand" mode)
-  m changes emboss method
+  m changes bump mapping method (emboss / dot3)
   b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
   n reverts NormalizedDot3First
+  enter changes navigation mode (examiner / walker)
 
-  Examine mode keys from [http://vrmlengine.sf.net/view3dscene.php]:
+  Keys the same as [http://vrmlengine.sf.net/view3dscene.php] for examiner mode:
     page up, page down, arrows: rotate the scene
     space: stop rotating
     ctrl + page up, page down, arrows: move the scene
     + / -: scale the scene
     home: restore default rotation, translation and scale
- }
-
+  and for walker mode
+    arrows, etc.: doom like walking, see view3dscene docs
+}
 program bump_mapping;
 
 uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
@@ -67,6 +69,9 @@ var
   MaxTextureUnits: Cardinal;
 
   RotatingColumn: Single;
+
+  Examiner: TMatrixExaminer;
+  Walker: TMatrixWalker;
 
   { Vars below for emboss only }
 
@@ -787,8 +792,7 @@ procedure Resize(glwin: TGLWindow);
     ProjectionMatrix: TMatrix4f;
   begin
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    if Glw.Navigator is TMatrixWalker then
-      Glw.NavWalker.ProjectionMatrix := ProjectionMatrix;
+    Walker.ProjectionMatrix := ProjectionMatrix;
   end;
 
 begin
@@ -797,7 +801,7 @@ begin
     Box3dAvgSize(SceneBoundingBox) * 0.05,
     Box3dAvgSize(SceneBoundingBox) * 20.0);
 
-  { In case I'll use walker navigator at some time. }
+  { In case I use walker navigator. }
   UpdateNavigatorProjectionMatrix;
 end;
 
@@ -938,6 +942,10 @@ begin
            Method := Succ(Method);
     'b': EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
     'n': NormalizedDot3First := not NormalizedDot3First;
+    CharEnter:
+      if Glw.Navigator = Examiner then
+        Glw.Navigator := Walker else
+        Glw.Navigator := Examiner;
   end;
 end;
 
@@ -947,15 +955,28 @@ begin
   Parameters.CheckHigh(0);
 
   { init Glw.Navigator }
-  Glw.Navigator := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
-  Glw.NavExaminer.Init(SceneBoundingBox);
+  Examiner := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Examiner.Init(SceneBoundingBox);
 
-  Glw.AutoRedisplay := true; { for easy Idle code }
-  Glw.OnInit := @InitGL;
-  Glw.OnClose := @CloseGL;
-  Glw.OnDraw := @Draw;
-  Glw.OnResize := @Resize;
-  Glw.OnIdle := @Idle;
-  Glw.OnKeyDown := @KeyDown;
-  Glw.InitLoop;
+  Walker := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
+    Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
+    0.0, 0.0 { unused, we don't use Gravity here });
+
+  Glw.OwnsNavigator := false;
+  Glw.Navigator := Examiner;
+
+  try
+    Glw.AutoRedisplay := true; { for easy Idle code }
+    Glw.OnInit := @InitGL;
+    Glw.OnClose := @CloseGL;
+    Glw.OnDraw := @Draw;
+    Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
+    Glw.OnKeyDown := @KeyDown;
+    Glw.InitLoop;
+  finally
+    FreeAndNil(Walker);
+    FreeAndNil(Examiner);
+  end;
 end.
