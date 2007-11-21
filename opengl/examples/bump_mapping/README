@@ -362,6 +362,8 @@ This way, lookup in cube map normalizes any vector... without any nasty sqrs
 (but at the cost of memory and aliasing). What's more, OpenGL does all the work
 for us, we only initialize cube map.
 
+Show the normal map colors, view3dscene normalization_cube_display.wrl.
+
 See code how we init and use it for dot3. 3rd texture unit is needed
 (no escape from this, we need 1 RGB unit for original texture,
 1 RGB unit for 3D normals, 1 cube map unit for cube map; if you don't
@@ -369,9 +371,10 @@ have 3 texture units, you must do 2-pass... or just ignore the whole
 "normalization" issue, which is quite reasonable).
 
 Compare normalized and not normalized results: not normalized are a little
-darker, as expected, but probably nothing "too obvious" for casual viewer ?
-
-Show the normal map colors, view3dscene normalization_cube_display.wrl.
+darker, as expected. When the light moves over the surface, the lighting
+seems dimmer right under the light, this is exactly the result of not
+normalizing. So, this normalizing is needed in pratice, if there's a chance
+that user will be able to clearly see this bad artifact of non-normalizing.
 
 Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
@@ -406,9 +409,13 @@ with brick_1_normalmap_worse, done from brick_1_bump_better).
 So generate normal maps from original detailed textures, if possible.
 
 ------------------------------------------------------------------------------
-TODO: ModelTranslation replaced with something more complex
-  (real ModelInvertedTransform), coded nicer (instead of duplicating values
-  for ModelInvertedTransform and glTransform)
+TODO: replace translations with something more complex
+
+TODO: show on larger/more complicated models, like an orange
+TODO: implement in VRML
+  http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
+
+TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 
 TODO: environemnt bump mapping, parallax mapping, displacement?
 
@@ -416,10 +423,6 @@ Parallax mapping:
   from http://www.realtimerendering.com/#texture
   PDF from Olgierd
 
-TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
-TODO: show on larger/more complicated models, like an orange
-TODO: implement in VRML
-  http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
 TODO: walker navigator.
 
 TODO: test, elaborate on

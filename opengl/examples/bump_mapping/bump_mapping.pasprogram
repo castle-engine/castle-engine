@@ -105,26 +105,26 @@ var
   freely on the face, otherwise normal + STangent force the direction
   of texture T coordinate).
 
-  ModelTranslation is the transformation from the space where LightPosition
-  is (currently, this is world space) to object space, i.e. the one where
-  Vertex is. IOW, the transformations applied after the point where
-  we were in space where LightPosition was good, that is after
+  ModelInvertedTransformation is the inverted transformation from the
+  space where LightPosition is (this is world space) to object space,
+  i.e. the one where Vertex is.
+
+  Think like:
+  - LightPosition                 is in world space
+  - ModelTransformation * Vertex  is also in world space
+  - Vertex                                        is in object space
+  - so ModelInvertedTrasformation * LightPosition is in object space
+
+  IOW, ModelInvertedTrasformation inverts all transformations
+  applied after the point where we were in space where LightPosition was good,
+  that is after
     glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
   call.
 
-  In this program, ModelTranslation is simple. In a general program,
-  we need here ModelInvertedTransformation, a matrix, that undoes any
-  transformations applied to object space. This is needed, since
-  LightPositionObjectSpace is crucial for this procedure.
-  Think like
-    ModelTransformation * Vertex gets you to the same space as LightPosition
-  (this is usually called world space). So
-    ModelInvertedTransformation * LightPosition gets you to the same space as
-    LightPosition
-  (this is usually called object space).
+  This is needed, since LightPositionObjectSpace is crucial for this procedure.
 }
 function LightDirectionInTangentSpace(
-  const ModelTranslation: TVector3Single;
+  const ModelInvertedTrasformation: TMatrix4Single;
   const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
 var
   ToTangent: TMatrix4Single;
@@ -136,7 +136,8 @@ begin
     TTangent, Normal vectors. "Tangent space" is for current face, such that
     XY run along surface's S,T texture coords. }
 
-  LightPositionObjectSpace := VectorSubtract(LightPosition, ModelTranslation);
+  LightPositionObjectSpace := MultMatrixPoint(ModelInvertedTrasformation,
+    LightPosition);
 
   { first init 4th row and column }
   ToTangent := IdentityMatrix4Single;
@@ -222,12 +223,48 @@ end;
 { glw callbacks ------------------------------------------------------------ }
 
 procedure Draw(glwin: TGLWindow);
+var
+  ModelInvertedTrasformation: TMatrix4Single;
+
+  { glTranslate, and update ModelInvertedTrasformation }
+  procedure Translate(const X, Y, Z: Single);
+  begin
+    glTranslatef(X, Y, Z);
+    { On ModelInvertedTrasformation, we add new matrix on the left side,
+      to revert also the order of operations. This way we really get
+      proper inverse. }
+    ModelInvertedTrasformation := MultMatrices(
+      TranslationMatrix(-X, -Y, -Z),
+      ModelInvertedTrasformation);
+  end;
+
+  { glRotate, and update ModelInvertedTrasformation }
+  procedure Rotate(const Angle, X, Y, Z: Single);
+  begin
+    glRotatef(Angle, X, Y, Z);
+    ModelInvertedTrasformation := MultMatrices(
+      RotationMatrixDeg(-Angle, X, Y, Z),
+      ModelInvertedTrasformation);
+  end;
+
+  { glPushMatrix, and return current ModelInvertedTrasformation }
+  function PushMatrix: TMatrix4Single;
+  begin
+    glPushMatrix;
+    Result := ModelInvertedTrasformation;
+  end;
+
+  { glPopMatrix, and set given ModelInvertedTrasformation }
+  procedure PopMatrix(const SavedMatrix: TMatrix4Single);
+  begin
+    glPopMatrix;
+    ModelInvertedTrasformation := SavedMatrix;
+  end;
 
   { Draw cube using really old-fashioned approach (no vertex arrays,
     just specify by hand 6 quads, 4 vertexes and tex coords each). }
   procedure DrawCube(
-    const TexCoordVertex: TTexCoordVertexProc;
-    const ModelTranslation: TVector3Single);
+    const TexCoordVertex: TTexCoordVertexProc);
   var
     Normal, STangent, TTangent: TVector3Single;
 
@@ -235,7 +272,7 @@ procedure Draw(glwin: TGLWindow);
       const Vertex: TVector3Single);
     begin
       TexCoordVertex(TexX, TexY, Vertex,
-        LightDirectionInTangentSpace(ModelTranslation, Vertex,
+        LightDirectionInTangentSpace(ModelInvertedTrasformation, Vertex,
           Normal, STangent, TTangent));
     end;
 
@@ -297,7 +334,7 @@ procedure Draw(glwin: TGLWindow);
     glEnd();
   end;
 
-  procedure Test(TextureNum: Integer; const ModelTranslation: TVector3Single);
+  procedure Test(TextureNum: Integer);
 
     procedure SetTexturesForEmboss(ShowRealBump, Modulate: boolean);
     var
@@ -428,6 +465,8 @@ procedure Draw(glwin: TGLWindow);
     end;
 
     procedure DrawEmbossCubes;
+    var
+      SavedMatrix: TMatrix4Single;
     begin
       { bump_amount * normal_color, with lighter textures }
 
@@ -435,10 +474,10 @@ procedure Draw(glwin: TGLWindow);
       begin
         SetTexturesForEmboss(false, true);
 
-        glPushMatrix;
-          glTranslatef(+0, 0, 0);
-          DrawCube(@TexCoordVertex_Emboss, ModelTranslation);
-        glPopMatrix;
+        SavedMatrix := PushMatrix;
+          Translate(+0, 0, 0);
+          DrawCube(@TexCoordVertex_Emboss);
+        PopMatrix(SavedMatrix);
       end;
 
       SetTexturesForEmboss(true, true);
@@ -449,11 +488,10 @@ procedure Draw(glwin: TGLWindow);
         glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
       end;
 
-      glPushMatrix;
-        glTranslatef(+4, 0, 0);
-        DrawCube(@TexCoordVertex_Emboss,
-          VectorAdd(ModelTranslation, Vector3Single(4, 0, 0)));
-      glPopMatrix;
+      SavedMatrix := PushMatrix;
+        Translate(+4, 0, 0);
+        DrawCube(@TexCoordVertex_Emboss);
+      PopMatrix(SavedMatrix);
 
       if EmbossAlphaMultiplyByBlending then
         glDisable(GL_BLEND);
@@ -464,19 +502,17 @@ procedure Draw(glwin: TGLWindow);
       begin
         SetTexturesForEmboss(false, false);
 
-        glPushMatrix;
-          glTranslatef(+8, 0, 0);
-          DrawCube(@TexCoordVertex_Emboss,
-            VectorAdd(ModelTranslation, Vector3Single(8, 0, 0)));
-        glPopMatrix;
+        SavedMatrix := PushMatrix;
+          Translate(+8, 0, 0);
+          DrawCube(@TexCoordVertex_Emboss);
+        PopMatrix(SavedMatrix);
 
         SetTexturesForEmboss(true, false);
 
-        glPushMatrix;
-          glTranslatef(+12, 0, 0);
-          DrawCube(@TexCoordVertex_Emboss,
-            VectorAdd(ModelTranslation, Vector3Single(12, 0, 0)));
-        glPopMatrix;
+        SavedMatrix := PushMatrix;
+          Translate(+12, 0, 0);
+          DrawCube(@TexCoordVertex_Emboss);
+        PopMatrix(SavedMatrix);
       end;
     end;
 
@@ -567,6 +603,7 @@ procedure Draw(glwin: TGLWindow);
     procedure DrawDot3Cubes;
     var
       Dot3Normalized, Dot3NotNormalized: TGLfloat;
+      SavedMatrix: TMatrix4Single;
     begin
       if NormalizedDot3First then
       begin
@@ -583,21 +620,19 @@ procedure Draw(glwin: TGLWindow);
       glDisable(GL_LIGHTING);
       glColorv(White3Single);
 
-      glPushMatrix;
-        glTranslatef(Dot3NotNormalized, 0, 0);
-        DrawCube(@TexCoordVertex_Dot3_NotNormalized,
-          VectorAdd(ModelTranslation, Vector3Single(Dot3NotNormalized, 0, 0)));
-      glPopMatrix;
+      SavedMatrix := PushMatrix;
+        Translate(Dot3NotNormalized, 0, 0);
+        DrawCube(@TexCoordVertex_Dot3_NotNormalized);
+      PopMatrix(SavedMatrix);
 
       if MaxTextureUnits > 2 then
       begin
         SetTexturesForDot3Normalized;
 
-        glPushMatrix;
-          glTranslatef(Dot3Normalized, 0, 0);
-          DrawCube(@TexCoordVertex_Dot3_Normalized,
-            VectorAdd(ModelTranslation, Vector3Single(Dot3Normalized, 0, 0)));
-        glPopMatrix;
+        SavedMatrix := PushMatrix;
+          Translate(Dot3Normalized, 0, 0);
+          DrawCube(@TexCoordVertex_Dot3_Normalized);
+        PopMatrix(SavedMatrix);
 
         { clean after ourselves, otherwise we'd have to call
           glDisable(GL_TEXTURE_CUBE_MAP_ARB) everywhere where we
@@ -610,6 +645,8 @@ procedure Draw(glwin: TGLWindow);
       glEnable(GL_LIGHTING);
     end;
 
+  var
+    SavedMatrix: TMatrix4Single;
   begin
     { texture unit 0 contains normal texture value mixed with scene color }
     glActiveTextureARB(GL_TEXTURE0_ARB);
@@ -628,10 +665,10 @@ procedure Draw(glwin: TGLWindow);
       glDisable(GL_TEXTURE_2D);
     end;
 
-    glPushMatrix;
-      glTranslatef(-4, 0, 0);
-      DrawCube(@TexCoordVertex_NoBump, Vector3Single(-4, 0, 0));
-    glPopMatrix;
+    SavedMatrix := PushMatrix;
+      Translate(-4, 0, 0);
+      DrawCube(@TexCoordVertex_NoBump);
+    PopMatrix(SavedMatrix);
 
     case Method of
       bmEmboss: DrawEmbossCubes;
@@ -697,6 +734,8 @@ begin
 
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
+  ModelInvertedTrasformation := IdentityMatrix4Single;
+
   glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);
     DisableTextures;
@@ -710,25 +749,17 @@ begin
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
 
-  glPushMatrix;
-    glTranslatef(0, -4, 0);
-    Test(2, Vector3Single(0, -4, 0));
-  glPopMatrix;
+  Translate(0,-4, 0);
+  Test(2);
 
-  glPushMatrix;
-    glTranslatef(0, +0, 0);
-    Test(0, Vector3Single(0, +0, 0));
-  glPopMatrix;
+  Translate(0, 4, 0);
+  Test(0);
 
-  glPushMatrix;
-    glTranslatef(0, +4, 0);
-    Test(1, Vector3Single(0, +4, 0));
-  glPopMatrix;
+  Translate(0, 4, 0);
+  Test(1);
 
-  glPushMatrix;
-    glTranslatef(0, +8, 0);
-    Test(3, Vector3Single(0, +8, 0));
-  glPopMatrix;
+  Translate(0, 4, 0);
+  Test(3);
 
   RenderStatus;
 end;
