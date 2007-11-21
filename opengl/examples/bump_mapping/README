@@ -429,8 +429,6 @@ TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
 
-TODO: walker navigator.
-
 TODO: y reverted in dot3 effects ? I have to revert in
   TexCoordVertex_Dot3_NotNormalized
 (check in normalized too ?) lightdir[1]
