@@ -410,8 +410,6 @@ Parallax mapping:
   from http://www.realtimerendering.com/#texture
   PDF from Olgierd
 
-TODO: better playing with light (mouse unproject xy, depth control)
-
 TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
