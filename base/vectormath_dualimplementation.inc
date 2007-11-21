@@ -1306,10 +1306,18 @@ end;
 
 function TranslationMatrix(const Transl: TYPE_VECTOR3): TMatrix4Single;
 begin
- result := IdentityMatrix4Single;
- result[3, 0] := Transl[0];
- result[3, 1] := Transl[1];
- result[3, 2] := Transl[2];
+  result := IdentityMatrix4Single;
+  result[3, 0] := Transl[0];
+  result[3, 1] := Transl[1];
+  result[3, 2] := Transl[2];
+end;
+
+function TranslationMatrix(const X, Y, Z: TYPE_SCALAR): TMatrix4Single;
+begin
+  result := IdentityMatrix4Single;
+  result[3, 0] := X;
+  result[3, 1] := Y;
+  result[3, 2] := Z;
 end;
 
 function TransformToCoordsMatrix(const NewOrigin,

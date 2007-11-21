@@ -1526,11 +1526,15 @@ const
   which is very useful for z-fail shadow volumes technique.
 
   @groupBegin }
+function TranslationMatrix(const X, Y, Z: Single): TMatrix4Single; overload;
+function TranslationMatrix(const X, Y, Z: Double): TMatrix4Single; overload;
 function TranslationMatrix(const Transl: TVector3Single): TMatrix4Single; overload;
 function TranslationMatrix(const Transl: TVector3Double): TMatrix4Single; overload;
 function ScalingMatrix(const ScaleFactor: TVector3Single): TMatrix4Single;
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3Single): TMatrix4Single;
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;
+function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
+function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
 function OrthoProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single;
 function FrustumProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
@@ -2699,7 +2703,19 @@ end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;
 begin
- result := RotationMatrixRad(DegToRad(AngleDeg), Axis);
+  result := RotationMatrixRad(DegToRad(AngleDeg), Axis);
+end;
+
+function RotationMatrixDeg(const AngleDeg: Single;
+  const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
+begin
+  result := RotationMatrixRad(DegToRad(AngleDeg), Vector3Single(AxisX, AxisY, AxisZ));
+end;
+
+function RotationMatrixRad(const AngleRad: Single;
+  const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
+begin
+  result := RotationMatrixRad(AngleRad, Vector3Single(AxisX, AxisY, AxisZ));
 end;
 
 function OrthoProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
