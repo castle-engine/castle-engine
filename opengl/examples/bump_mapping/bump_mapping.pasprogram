@@ -50,15 +50,15 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
 
 const
   SceneBoundingBox: TBox3d =
-  ( (-5, -5, -3),
-    ( 14,  5,  3) );
+  ( (-6, -4, -3),
+    ( 14,  8,  3) );
 
 type
   TBumpMethod = (bmEmboss, bmDot3);
 
 var
   { normal texture is for all methods, bumps in alpha for emboss only }
-  NormalAndBumpTex: array [0..2] of TGLuint;
+  NormalAndBumpTex: array [0..3] of TGLuint;
 
   Font: TGLBitmapFont;
 
@@ -72,7 +72,7 @@ var
 
   { Vars below for emboss only }
 
-  LighterAndBumpTex: array [0..2] of TGLuint;
+  LighterAndBumpTex: array [0..High(NormalAndBumpTex)] of TGLuint;
 
   XShift: Single = 0;
   YShift: Single = 0;
@@ -86,7 +86,7 @@ var
 
   { Vars below for dot3 only }
 
-  NormalMap: array [0..2] of TGLuint;
+  NormalMap: array [0..High(NormalAndBumpTex)] of TGLuint;
 
   NormalizationCubeTex: TGLuint;
 
@@ -711,6 +711,11 @@ begin
     Test(1, Vector3Single(0, +4, 0));
   glPopMatrix;
 
+  glPushMatrix;
+    glTranslatef(0, +8, 0);
+    Test(3, Vector3Single(0, +8, 0));
+  glPopMatrix;
+
   RenderStatus;
 end;
 
@@ -816,18 +821,19 @@ begin
 
   LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump.png', NormalAndBumpTex[0]);
   LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump.png', LighterAndBumpTex[0]);
+  LoadNormalMap('brick_1_normalmap.png', NormalMap[0]);
 
   LoadTextureBumpMap('brick_2.png'      , 'brick_2_bump.png', NormalAndBumpTex[1]);
   LoadTextureBumpMap('brick_2_light.png', 'brick_2_bump.png', LighterAndBumpTex[1]);
+  LoadNormalMap('brick_2_normalmap.png', NormalMap[1]);
 
   LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump_better.png', NormalAndBumpTex[2]);
   LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump_better.png', LighterAndBumpTex[2]);
+  LoadNormalMap('brick_1_normalmap_better.png', NormalMap[2]);
 
-  { TODO: I use one normal map for all, totally unrelated to model }
-  LoadNormalMap('normal_map.jpg', NormalMap[0]);
-  { for now, these are the same }
-  NormalMap[1] := NormalMap[0];
-  NormalMap[2] := NormalMap[0];
+  LoadTextureBumpMap('shell.png'      , 'shell_bump.png', NormalAndBumpTex[3]);
+  LoadTextureBumpMap('shell.png'      , 'shell_bump.png', LighterAndBumpTex[3]);
+  LoadNormalMap('shell_normalmap.jpg', NormalMap[3]);
 
   NormalizationCubeTex := MakeNormalizationCubeMap;
 
