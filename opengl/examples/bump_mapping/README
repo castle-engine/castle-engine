@@ -372,6 +372,9 @@ darker, as expected. When the light moves over the surface, the lighting
 seems dimmer right under the light, this is exactly the result of not
 normalizing. So, this normalizing is needed in pratice, if there's a chance
 that user will be able to clearly see this bad artifact of non-normalizing.
+If the light is not directly near and over the surface, the difference
+between these two methods is not noticeable at all (no wonder, interpolating
+normals (almost) preserves their length 1 then).
 
 Oh, this is OpenGL extension ARB_texture_cube_map (and standard since gl 1.3,
 as almost every other gl feature we were talking about here...).
@@ -425,8 +428,6 @@ TODO: show on larger/more complicated models, like an orange
 
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
-
-TODO: make it faster on Radeon (chantal). On 107 and crypto, works quite OK.
 
 TODO: walker navigator.
 

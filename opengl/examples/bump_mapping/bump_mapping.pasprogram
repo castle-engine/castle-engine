@@ -644,7 +644,7 @@ var
         PopMatrix(SavedMatrix);
 
         SavedMatrix := PushMatrix;
-          Translate(Dot3Normalized + 4, 0, 0);
+          Translate(8, 0, 0);
           { Rotate just to show that lightdir tangent calculation works }
           Rotate(RotatingColumn, 0, 1, 0);
           DrawCube(@TexCoordVertex_Dot3_Normalized);
