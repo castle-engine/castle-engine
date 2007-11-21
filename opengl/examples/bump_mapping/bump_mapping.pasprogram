@@ -91,6 +91,20 @@ var
 { Returns (unnormalized) direction from Vertex to LightPosition,
   in tangent space.
 
+  In many articles, the vectors forming tangent space I called
+    tangent
+    binormal
+    normal
+  referring to the fact that one approach is to get normal and tangent
+  from called, and binormal is just calculated by normal x tangent.
+  I call them tangent = STangent, binormal = TTangent to make
+  the meaning of them more clear (S, T are texture coordinates directions).
+  Also, I don't calculate TTangent from cross product, I take it
+  as a parameter: this allows me to use STangent, TTangent, Normal
+  look like left handed coord system (this allows me to orient texture
+  freely on the face, otherwise normal + STangent force the direction
+  of texture T coordinate).
+
   ModelTranslation is the transformation from the space where LightPosition
   is (currently, this is world space) to object space, i.e. the one where
   Vertex is. IOW, the transformations applied after the point where
@@ -111,28 +125,26 @@ var
 }
 function LightDirectionInTangentSpace(
   const ModelTranslation: TVector3Single;
-  const Vertex, Normal, Tangent: TVector3Single): TVector3Single;
+  const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
 var
   ToTangent: TMatrix4Single;
   I: Integer;
-  Binormal, LightPositionObjectSpace: TVector3Single;
+  LightPositionObjectSpace: TVector3Single;
 begin
   { We want to have LightPositionObjectSpace (in the same space where Vertex
-    already is), as this is also the space where we expressed our Tangent,
-    Binormal, Normal vectors. "Tangent space" is for current face, such that
+    already is), as this is also the space where we expressed our STangent,
+    TTangent, Normal vectors. "Tangent space" is for current face, such that
     XY run along surface's S,T texture coords. }
 
   LightPositionObjectSpace := VectorSubtract(LightPosition, ModelTranslation);
-
-  Binormal := VectorProduct(Normal, Tangent);
 
   { first init 4th row and column }
   ToTangent := IdentityMatrix4Single;
 
   for I := 0 to 2 do
   begin
-    ToTangent[I, 0] := Tangent[I];
-    ToTangent[I, 1] := Binormal[I];
+    ToTangent[I, 0] := STangent[I];
+    ToTangent[I, 1] := TTangent[I];
     ToTangent[I, 2] := Normal[I];
   end;
 
@@ -217,20 +229,21 @@ procedure Draw(glwin: TGLWindow);
     const TexCoordVertex: TTexCoordVertexProc;
     const ModelTranslation: TVector3Single);
   var
-    Normal: TVector3Single;
-    Tangent: TVector3Single;
+    Normal, STangent, TTangent: TVector3Single;
 
     procedure DoTexCoordVertex(const TexX, TexY: Single;
       const Vertex: TVector3Single);
     begin
       TexCoordVertex(TexX, TexY, Vertex,
-        LightDirectionInTangentSpace(ModelTranslation, Vertex, Normal, Tangent));
+        LightDirectionInTangentSpace(ModelTranslation, Vertex,
+          Normal, STangent, TTangent));
     end;
 
   begin
     glBegin(GL_QUADS);
       Normal  := Vector3Single( 0, 0, 1);
-      Tangent := Vector3Single( 1, 0, 0);
+      STangent := Vector3Single( 1, 0, 0);
+      TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
       DoTexCoordVertex(0, 0, Vector3Single(-1, -1,  1));
       DoTexCoordVertex(1, 0, Vector3Single( 1, -1,  1));
@@ -238,7 +251,8 @@ procedure Draw(glwin: TGLWindow);
       DoTexCoordVertex(0, 1, Vector3Single(-1,  1,  1));
 
       Normal  := Vector3Single( 0, 0,-1);
-      Tangent := Vector3Single(-1, 0, 0);
+      STangent := Vector3Single(-1, 0, 0);
+      TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
       DoTexCoordVertex(1, 0, Vector3Single(-1, -1, -1));
       DoTexCoordVertex(1, 1, Vector3Single(-1,  1, -1));
@@ -246,7 +260,8 @@ procedure Draw(glwin: TGLWindow);
       DoTexCoordVertex(0, 0, Vector3Single( 1, -1, -1));
 
       Normal  := Vector3Single( 0, 1, 0);
-      Tangent := Vector3Single( 1, 0, 0);
+      STangent := Vector3Single( 1, 0, 0);
+      TTangent := Vector3Single( 0, 0, -1);
       glNormalv(Normal);
       DoTexCoordVertex(0, 1, Vector3Single(-1,  1, -1));
       DoTexCoordVertex(0, 0, Vector3Single(-1,  1,  1));
@@ -254,7 +269,8 @@ procedure Draw(glwin: TGLWindow);
       DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
 
       Normal  := Vector3Single( 0,-1, 0);
-      Tangent := Vector3Single(-1, 0, 0);
+      STangent := Vector3Single(-1, 0, 0);
+      TTangent := Vector3Single( 0, 0, -1);
       glNormalv(Normal);
       DoTexCoordVertex(1, 1, Vector3Single(-1, -1, -1));
       DoTexCoordVertex(0, 1, Vector3Single( 1, -1, -1));
@@ -262,7 +278,8 @@ procedure Draw(glwin: TGLWindow);
       DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
 
       Normal  := Vector3Single( 1, 0, 0);
-      Tangent := Vector3Single( 0, 0,-1);
+      STangent := Vector3Single( 0, 0,-1);
+      TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
       DoTexCoordVertex(1, 0, Vector3Single( 1, -1, -1));
       DoTexCoordVertex(1, 1, Vector3Single( 1,  1, -1));
@@ -270,7 +287,8 @@ procedure Draw(glwin: TGLWindow);
       DoTexCoordVertex(0, 0, Vector3Single( 1, -1,  1));
 
       Normal  := Vector3Single(-1, 0, 0);
-      Tangent := Vector3Single( 0, 0, 1);
+      STangent := Vector3Single( 0, 0, 1);
+      TTangent := Vector3Single( 0, 1, 0);
       glNormalv(Normal);
       DoTexCoordVertex(0, 0, Vector3Single(-1, -1, -1));
       DoTexCoordVertex(1, 0, Vector3Single(-1, -1,  1));
