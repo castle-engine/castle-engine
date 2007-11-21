@@ -409,8 +409,6 @@ with brick_1_normalmap_worse, done from brick_1_bump_better).
 So generate normal maps from original detailed textures, if possible.
 
 ------------------------------------------------------------------------------
-TODO: replace translations with something more complex
-
 TODO: show on larger/more complicated models, like an orange
 TODO: implement in VRML
   http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/

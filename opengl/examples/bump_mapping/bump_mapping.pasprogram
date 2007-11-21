@@ -66,6 +66,8 @@ var
 
   MaxTextureUnits: Cardinal;
 
+  RotatingColumn: Single;
+
   { Vars below for emboss only }
 
   LighterAndBumpTex: array [0..High(NormalAndBumpTex)] of TGLuint;
@@ -493,6 +495,13 @@ var
         DrawCube(@TexCoordVertex_Emboss);
       PopMatrix(SavedMatrix);
 
+      SavedMatrix := PushMatrix;
+        Translate(+8, 0, 0);
+        { Rotate just to show that lightdir tangent calculation works }
+        Rotate(RotatingColumn, 0, 1, 0);
+        DrawCube(@TexCoordVertex_Emboss);
+      PopMatrix(SavedMatrix);
+
       if EmbossAlphaMultiplyByBlending then
         glDisable(GL_BLEND);
 
@@ -503,14 +512,14 @@ var
         SetTexturesForEmboss(false, false);
 
         SavedMatrix := PushMatrix;
-          Translate(+8, 0, 0);
+          Translate(+12, 0, 0);
           DrawCube(@TexCoordVertex_Emboss);
         PopMatrix(SavedMatrix);
 
         SetTexturesForEmboss(true, false);
 
         SavedMatrix := PushMatrix;
-          Translate(+12, 0, 0);
+          Translate(+16, 0, 0);
           DrawCube(@TexCoordVertex_Emboss);
         PopMatrix(SavedMatrix);
       end;
@@ -631,6 +640,13 @@ var
 
         SavedMatrix := PushMatrix;
           Translate(Dot3Normalized, 0, 0);
+          DrawCube(@TexCoordVertex_Dot3_Normalized);
+        PopMatrix(SavedMatrix);
+
+        SavedMatrix := PushMatrix;
+          Translate(Dot3Normalized + 4, 0, 0);
+          { Rotate just to show that lightdir tangent calculation works }
+          Rotate(RotatingColumn, 0, 1, 0);
           DrawCube(@TexCoordVertex_Dot3_Normalized);
         PopMatrix(SavedMatrix);
 
@@ -909,6 +925,8 @@ begin
       EmbossScale -= Glwin.IdleCompSpeed / 10 else
       EmbossScale += Glwin.IdleCompSpeed / 10;
   end;
+
+  RotatingColumn += Glwin.IdleCompSpeed / 5;
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
