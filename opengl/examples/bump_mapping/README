@@ -376,7 +376,7 @@ Show the normal map colors, view3dscene normalization_cube_display.wrl.
 Oh, this is OpenGL extension ARB_texture_cube_map (TODO: in which gl standatd ?)
 
 ------------------------------------------------------------------------------
-Auto generation of normal maps from height maps seems doable easily,
+Auto generation of normal maps seems doable easily,
 just calc gradients on both sides, e.g. by Sobel filter.
 
 Actually, it's already done as GIMP plugin:
@@ -394,10 +394,16 @@ http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 shell.jpg is totally unrelated texture from http://lemog.fr/
 
 brick_* heightmaps were made from original textures, and normal maps were
-done using gimp-normalmap.
+done using gimp-normalmap (also from original textures).
 
-TODO: brick_*_normalmap not reallyy visible ? dot3 effect is not visible
-on them ?
+Important note: *do not* generate normal maps from the height maps that
+you used for emboss bump mapping. Height maps for emboss bump mapping
+have little noise, this was needed for emboss effect to look OK
+(compare brick_1_bump and brick_1_bump_better). However, for dot3 method,
+detailed (noisy) normal maps are good, and non-detailed in fact give
+"too subtle" effect (compare brick_1_normalmap, done from original brick_1,
+with brick_1_normalmap_worse, done from brick_1_bump_better).
+So generate normal maps from original detailed textures, if possible.
 
 ------------------------------------------------------------------------------
 TODO: ModelTranslation replaced with something more complex

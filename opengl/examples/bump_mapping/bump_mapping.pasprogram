@@ -837,7 +837,7 @@ begin
 
   LoadTextureBumpMap('brick_1.png'      , 'brick_1_bump_better.png', NormalAndBumpTex[2]);
   LoadTextureBumpMap('brick_1_light.png', 'brick_1_bump_better.png', LighterAndBumpTex[2]);
-  LoadNormalMap('brick_1_normalmap_better.png', NormalMap[2]);
+  LoadNormalMap('brick_1_normalmap_worse.png', NormalMap[2]);
 
   LoadTextureBumpMap('shell.png'      , 'shell_bump.png', NormalAndBumpTex[3]);
   LoadTextureBumpMap('shell.png'      , 'shell_bump.png', LighterAndBumpTex[3]);
