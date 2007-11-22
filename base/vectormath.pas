@@ -650,6 +650,8 @@ operator := (const V: TVector4Single): TVector4_Single;
 
 { prosta matematyka na wektorach  ---------------------------------------------- }
 
+procedure SwapValues(var V1, V2: TVector2Single); overload;
+procedure SwapValues(var V1, V2: TVector2Double); overload;
 procedure SwapValues(var V1, V2: TVector3Single); overload;
 procedure SwapValues(var V1, V2: TVector3Double); overload;
 procedure SwapValues(var V1, V2: TVector4Single); overload;
@@ -934,6 +936,16 @@ procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Single;
   out Line0, LineVector: TVector3Single); overload;
 procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4Double;
   out Line0, LineVector: TVector3Double); overload;
+
+type
+  ELinesParallel = class(Exception);
+
+{ Intersection of two 2D lines.
+  @raises ELinesParallel if lines parallel
+  @groupBegin }
+function Lines2DIntersection(const Line0, Line1: TVector3Single): TVector2Single;
+function Lines2DIntersection(const Line0, Line1: TVector3Double): TVector2Double;
+{ @groupEnd }
 
 { This takes three plane equations (these planes MUST have exactly
   one common point, otherwise this function can fail with some

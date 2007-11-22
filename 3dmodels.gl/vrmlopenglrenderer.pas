@@ -1734,7 +1734,7 @@ begin
        based on actual texture filename. This works only for specially
        prepared fountain_bumpdemo VRML. }
      TextureReference.TextureNormalMap := LoadGLTexture(NormalMapFileName,
-       GL_LINEAR, GL_LINEAR,
+       GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
        TextureRepeatToGL[TextureNode.RepeatS],
        TextureRepeatToGL[TextureNode.RepeatT]);
    end;
@@ -1935,6 +1935,9 @@ end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
 begin
+  if Attributes.BumpMapping then
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+
  {pop matrices and attribs (by popping matrix LAST we restore also saved
   matrix mode)}
  glMatrixMode(GL_TEXTURE); glPopMatrix;

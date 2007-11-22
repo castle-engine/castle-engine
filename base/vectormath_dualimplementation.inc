@@ -39,6 +39,15 @@
   aby odwolywac sie do odpowiednich typow.
 }
 
+procedure SwapValues(var V1, V2: TYPE_VECTOR2);
+var
+  Tmp: TYPE_VECTOR2;
+begin
+  Tmp := V1;
+  V1 := V2;
+  V2 := Tmp;
+end;
+
 procedure SwapValues(var V1, V2: TYPE_VECTOR3);
 var
   Tmp: TYPE_VECTOR3;
@@ -400,6 +409,49 @@ begin
    (PlaneWithNonZeroIndex1^[Index2] * Line0[Index2] +
     PlaneWithNonZeroIndex1^[3]) /
    PlaneWithNonZeroIndex1^[Index1];
+end;
+
+function Lines2DIntersection(const Line0, Line1: TYPE_VECTOR3): TYPE_VECTOR2;
+var
+  Ratio, Divide: TYPE_SCALAR;
+begin
+  { Only one from Line0[0], Line0[1] may be zero.
+    Take larger one for numerical stability. }
+  if Abs(Line0[0]) > Abs(Line0[1]) then
+  begin
+    Ratio := Line1[0] / Line0[0];
+
+    { we have equations
+        Line0[0] * x + Line0[1] * y + Line0[2] = 0
+        Line1[0] * x + Line1[1] * y + Line1[2] = 0
+      Multiply first equation by Ratio and subtract to 2nd one:
+        y * (Line0[1] * Ratio - Line1[1]) + Line0[2] * Ratio - Line1[2] = 0 }
+    Divide := Line0[1] * Ratio - Line1[1];
+    if Divide = 0 then
+      raise ELinesParallel.Create('Lines are parallel, Lines2DIntersection not possible');
+    Result[1] := - (Line0[2] * Ratio - Line1[2]) / Divide;
+    Result[0] := - (Line0[1] * Result[1] + Line0[2]) / Line0[0];
+  end else
+  begin
+    Ratio := Line1[1] / Line0[1];
+
+    { we have equations
+        Line0[0] * x + Line0[1] * y + Line0[2] = 0
+        Line1[0] * x + Line1[1] * y + Line1[2] = 0
+      Multiply first equation by Ratio and subtract to 2nd one:
+        x * (Line0[0] * Ratio - Line1[0]) + Line0[2] * Ratio - Line1[2] = 0 }
+    Divide := Line0[0] * Ratio - Line1[0];
+    if Divide = 0 then
+      raise ELinesParallel.Create('Lines are parallel, Lines2DIntersection not possible');
+    Result[0] := - (Line0[2] * Ratio - Line1[2]) / Divide;
+    Result[1] := - (Line0[0] * Result[0] + Line0[2]) / Line0[1];
+  end;
+
+  { tests: (checking should write zeros)
+  Writeln('intersection 2d: ', VectorToNiceStr(Line0), ' ',
+    VectorToNiceStr(Line1), ' gives ', VectorToNiceStr(Result), ' checking: ',
+    FloatToNiceStr(Line0[0] * Result[0] + Line0[1] * Result[1] + Line0[2]), ' ',
+    FloatToNiceStr(Line1[0] * Result[0] + Line1[1] * Result[1] + Line1[2])); }
 end;
 
 function ThreePlanesIntersectionPoint(

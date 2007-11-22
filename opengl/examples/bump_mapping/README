@@ -32,8 +32,10 @@ First, historically, "ARB" extension (reviewed by ARB, as opposed to EXT
 that are popular and accepted but not necessarily reviewed). ARB essentially
 means "we think that this will definitely go into gl standard".
 
-Separate texture units: separate coords, matrix (stack ? probably, but
-TODO: not sure), environment, bound unit (although the same texture can
+Separate texture units: separate coords, matrix (stack too, you can feel
+this painfully: do push texture matrix, change active texture, pop
+texture matrix -> OpenGL stack underflow error),
+environment, bound unit (although the same texture can
 be bound to multiple channels; and yes, we will use this for emboss).
 Set active unit:
 
@@ -410,6 +412,9 @@ with brick_1_normalmap_worse, done from brick_1_bump_better).
 So generate normal maps from original detailed textures, if possible.
 
 ------------------------------------------------------------------------------
+Practical implementation in VRML.
+
+------------------------------------------------------------------------------
 End:
 
 - Environment bump mapping (normal map says how to transform environment
@@ -424,15 +429,10 @@ End:
   Don't ask me how...
 
 ------------------------------------------------------------------------------
-TODO: show on larger/more complicated models, like an orange
-
-TODO: implement in VRML
-  http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/
-
 TODO: y reverted in dot3 effects ? I have to revert in
   TexCoordVertex_Dot3_NotNormalized
 (check in normalized too ?) lightdir[1]
-Not in emboss. check on other normal maps.
+Not in emboss. On all normal maps, also on VRML fountain test. Only for dot3.
 
 ------------------------------------------------------------------------------
 Not really related to bump mapping info:

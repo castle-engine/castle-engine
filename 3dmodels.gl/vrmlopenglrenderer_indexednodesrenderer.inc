@@ -132,7 +132,8 @@ type
     procedure Render_Fini; virtual;
 
     procedure Render;
-    
+
+    HasTangentVectors: boolean;
     STangent, TTangent: TVector3Single;
   end;
 
@@ -278,10 +279,7 @@ procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
       will be OK here ? }
     Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
 
-    //Writeln('normal: ', VectorToNiceStr(Normal));
-
     Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
-    //Writeln('vertex: ', VectorToNiceStr(Vertex));
 
     { Vertex should be the same as
         MultMatrixPoint(Render_State.CurrMatrix, Vertex),
@@ -290,16 +288,23 @@ procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
 
     Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
     Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
-    //Writeln('texcoord: ', VectorToNiceStr(Tex));
 
-    LightDirTangent := LightDirectionInTangentSpace(
-      Vertex, Normal, STangent, TTangent);
+    if HasTangentVectors and
+      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
+      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) then
+    begin
+      LightDirTangent := LightDirectionInTangentSpace(
+        Vertex, Normal, STangent, TTangent);
 
-    { TODO: "-" workaround here too ? }
-    glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-       LightDirTangent[0],
-      -LightDirTangent[1],
-       LightDirTangent[2]);
+      glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
+         LightDirTangent[0],
+        -LightDirTangent[1],
+         LightDirTangent[2]);
+    end else
+    begin
+      glMultiTexCoord3fARB(GL_TEXTURE0_ARB, 0, 0, 1);
+    end;
+
     glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
     glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
   end;
@@ -767,8 +772,100 @@ end;
 
 procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
   startIndex, endIndex: integer);
+
+  { This procedure can change Triangle*, but only by swapping some vertexes,
+    so we pass Triangle* by reference instead of by value, to avoid
+    needless mem copying. }
+  procedure CalculateTangent(IsSTangent: boolean; var Tangent: TVector3Single;
+    var Triangle3D: TTriangle3Single;
+    var TriangleTexCoord: TTriangle2Single);
+  var
+    D: TVector2Single;
+    LineA, LineBC, DIn3D: TVector3Single;
+    MiddleIndex: Integer;
+    FarthestDistance, NewDistance, Alpha: Single;
+    SearchCoord, OtherCoord: Cardinal;
+  begin
+    if ISSTangent then
+      SearchCoord := 0 else
+      SearchCoord := 1;
+    OtherCoord := 1 - SearchCoord;
+
+    { choose such that 1st and 2nd points have longest distance along
+      OtherCoord, so 0 point is in the middle. }
+
+    { MiddleIndex means that
+      MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
+
+    MiddleIndex := 2;
+    FarthestDistance := Abs(TriangleTexCoord[0][OtherCoord] - TriangleTexCoord[1][OtherCoord]);
+
+    NewDistance := Abs(TriangleTexCoord[1][OtherCoord] - TriangleTexCoord[2][OtherCoord]);
+    if NewDistance > FarthestDistance then
+    begin
+      MiddleIndex := 0;
+      FarthestDistance := NewDistance;
+    end;
+
+    NewDistance := Abs(TriangleTexCoord[2][OtherCoord] - TriangleTexCoord[0][OtherCoord]);
+    if NewDistance > FarthestDistance then
+    begin
+      MiddleIndex := 1;
+      FarthestDistance := NewDistance;
+    end;
+
+    if MiddleIndex <> 0 then
+    begin
+      SwapValues(TriangleTexCoord[0], TriangleTexCoord[MiddleIndex]);
+      SwapValues(Triangle3D      [0], Triangle3D      [MiddleIndex]);
+    end;
+
+    if IsSTangent then
+    begin
+      { we want line Y = TriangleTexCoord[0][1]. }
+      LineA[0] := 0;
+      LineA[1] := 1;
+      LineA[2] := -TriangleTexCoord[0][1];
+    end else
+    begin
+      { we want line X = TriangleTexCoord[0][0]. }
+      LineA[0] := 1;
+      LineA[1] := 0;
+      LineA[2] := -TriangleTexCoord[0][0];
+    end;
+    LineBC := LineOfTwoDifferentPoints2d(
+      TriangleTexCoord[1], TriangleTexCoord[2]);
+
+    { We will catch ELinesParallel from this later }
+    D := Lines2DIntersection(LineA, LineBC);
+
+    { LineBC[0, 1] is vector 2D orthogonal to LineBC.
+      If Abs(LineBC[0]) is *smaller* then it means that B and C points
+      are most different on 0 coord. }
+    if Abs(LineBC[0]) < Abs(LineBC[1]) then
+      Alpha := (                  D[0] - TriangleTexCoord[1][0]) /
+               (TriangleTexCoord[2][0] - TriangleTexCoord[1][0]) else
+      Alpha := (                  D[1] - TriangleTexCoord[1][1]) /
+               (TriangleTexCoord[2][1] - TriangleTexCoord[1][1]);
+
+    DIn3D := VectorAdd(
+      VectorScale(Triangle3D[1], 1 - Alpha),
+      VectorScale(Triangle3D[2], Alpha));
+
+    if D[SearchCoord] > TriangleTexCoord[0][SearchCoord] then
+      Tangent := VectorSubtract(DIn3D, Triangle3D[0]) else
+      Tangent := VectorSubtract(Triangle3D[0], DIn3D);
+
+    NormalizeTo1st(Tangent);
+  end;
+
+var
+  Triangle3D: TTriangle3Single;
+  TriangleTexCoord: TTriangle2Single;
 begin
- { STangent := , TTangent := TODO }
+ if Renderer.Attributes.BumpMapping then
+   Check(FaceConvex, 'VRML BumpMapping not implemented for non-convex faces yet');
+
  if not FaceConvex then
  begin
   glBegin(GL_TRIANGLES);
@@ -778,6 +875,28 @@ begin
   glEnd;
  end else
  begin
+   HasTangentVectors := false;
+   if Renderer.Attributes.BumpMapping and (StartIndex + 2 < EndIndex) then
+   begin
+     Triangle3D[0] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex]];
+     Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
+     Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
+
+     TriangleTexCoord[0] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex]];
+     TriangleTexCoord[1] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex + 1]];
+     TriangleTexCoord[2] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex + 2]];
+
+     try
+       CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord);
+       CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord);
+
+       HasTangentVectors := Abs(VectorDotProduct(STangent, TTangent)) < 0.95;
+     except
+       { degenerate triangle, ignore,HasTangentVectors will remain false  }
+       on ELinesParallel do ;
+     end;
+   end;
+
    {$ifdef DARWIN}
 
    { On Mac OS X 10.4.9, with Radeon ATI graphic card

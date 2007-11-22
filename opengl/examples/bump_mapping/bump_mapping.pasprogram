@@ -721,6 +721,9 @@ var
       glActiveTextureARB(GL_TEXTURE2_ARB);
       glDisable(GL_TEXTURE_2D);
     end;
+
+    { reset as active 0 texture unit, to be in default state }
+    glActiveTextureARB(GL_TEXTURE0_ARB);
   end;
 
   procedure RenderStatus;
@@ -754,31 +757,10 @@ var
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
 
+  DisableTextures;
+
   if Method = bmVRML then
   begin
-    { set first 3 texture units back to normal, so that tweaks
-      in this demo don't affect unprepared VRML renderer.
-      This is right now needed by both VRML and BackgroundGL renderer. }
-
-    { texture unit 0 contains normal texture value mixed with scene color }
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    { texture unit 1 not used. }
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-    glDisable(GL_TEXTURE_2D);
-
-    { texture unit 2 not used. }
-    if MaxTextureUnits > 2 then
-    begin
-      glActiveTextureARB(GL_TEXTURE2_ARB);
-      glDisable(GL_TEXTURE_2D);
-    end;
-
-    { reset as active 0 texture unit }
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-
     glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
     Scene.Background.Render;
   end;
@@ -795,6 +777,15 @@ begin
 
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
+  glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);
+
+    glColorv(Yellow3Single);
+    glBegin(GL_POINTS);
+      glVertexv(LightPosition);
+    glEnd;
+  glPopAttrib;
+
   if Method = bmVRML then
   begin
     Scene.Attributes.BumpMappingLightPosition := LightPosition;
@@ -804,16 +795,6 @@ begin
   end else
   begin
     ModelInvertedTrasformation := IdentityMatrix4Single;
-
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      DisableTextures;
-
-      glColorv(Yellow3Single);
-      glBegin(GL_POINTS);
-        glVertexv(LightPosition);
-      glEnd;
-    glPopAttrib;
 
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
     glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
