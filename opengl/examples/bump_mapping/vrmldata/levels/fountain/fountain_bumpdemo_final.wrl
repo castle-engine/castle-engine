@@ -1,0 +1,42 @@
+#VRML V2.0 utf8
+
+NavigationInfo {
+  avatarSize [ 0.5, 2 ]
+  speed 1
+  headlight TRUE
+}
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction 0.1520898938179016 -0.1298794895410537 -8.7422780126189537E-009
+# up 0 0 1
+# gravityUp 0 0 1
+Transform {
+  translation -14.312630653381348 13.910222053527832 1.8029143810272217
+  rotation 1 0 0 1.5707963705062866
+  children Viewpoint {
+    position 0 0 0 # camera position is expressed by translation
+    orientation -2.0152985058530248E-008 -1 0 2.277587890625
+  }
+}
+
+Transform {
+  rotation 1 0 0 1.5707963705062866
+
+  children Background {
+    backUrl "../../skies/sunset/sunset_back.png"
+    bottomUrl "../../skies/sunset/sunset_bottom.png"
+    frontUrl "../../skies/sunset/sunset_front.png"
+    leftUrl "../../skies/sunset/sunset_left.png"
+    rightUrl "../../skies/sunset/sunset_right.png"
+    topUrl "../../skies/sunset/sunset_top.png"
+  }
+
+#   children Background {
+#     groundColor [ 0.1 0.1 0.1, 0.0565629 0.2208154 0.4 ]
+#     groundAngle [ 1.57 ]
+#     skyColor [ 0.1 0.1 0.1, 0.0565629 0.2208154 0.4 ]
+#     skyAngle [ 1.57 ]
+#   }
+}
+
+Inline { url "fountain_bumpdemo.wrl" }
