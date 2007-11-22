@@ -1835,8 +1835,16 @@ end;
 
 function glGetInteger(pname: TGLEnum): TGLint;
 begin
- FillChar(result, SizeOf(result), 0);
- glGetIntegerv(pname, @result);
+  { Just for test, to somewhat simulate hardware with lower
+    GL_MAX_TEXTURE_UNITS_ARB,
+  if pname = GL_MAX_TEXTURE_UNITS_ARB then
+  begin
+    Result := 2;
+    Exit;
+  end;}
+
+  FillChar(result, SizeOf(result), 0);
+  glGetIntegerv(pname, @result);
 end;
 
 function glGetBoolean(pname: TGLEnum): TGLboolean;

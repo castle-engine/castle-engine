@@ -759,6 +759,16 @@ begin
 
   DisableTextures;
 
+  if (Method = bmVRML) and
+    (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
+  begin
+    { You can't have brVRML on this hardware, currently bmVRML does only
+      dot3 with normalization, so 3 texture units are required.
+      This will be remedied (fallback on dot3 without normalization) later
+      in VRML. }
+    Method := bmEmboss;
+  end;
+
   if Method = bmVRML then
   begin
     glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
