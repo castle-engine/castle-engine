@@ -844,10 +844,6 @@ end;
 
 procedure InitGL(glwin: TGLWindow);
 const
-{  MinFilter = GL_NEAREST;
-  MagFilter = GL_NEAREST;}
-
-  // TODO: restore normal mapping ? are they OK ?
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
   MagFilter = GL_LINEAR;
 
@@ -998,7 +994,7 @@ begin
             a hack to show off VRML with bump mapping, will be implemented
             much nicer in view3dscene later. }
 
-          LightPosition := Vector3Single(0, 0, 10);
+          LightPosition := Vector3Single(3, 3, 5);
 
           Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
           Walker.Init(CamPos,

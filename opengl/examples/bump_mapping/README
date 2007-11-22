@@ -412,7 +412,55 @@ with brick_1_normalmap_worse, done from brick_1_bump_better).
 So generate normal maps from original detailed textures, if possible.
 
 ------------------------------------------------------------------------------
-Practical implementation in VRML.
+Practical implementation in VRML: (show VRML demo)
+
+How to calculate STangent and TTangent from normal vertex data + tex coord
+data that we usually get in 3D model. See paper (I mean, a real piece
+of paper with my drawing that I'll hopefully remember to take tomorrow).
+
+Speed: FPS around 30 on chantal. When viewed by
+$ view3dscene \
+  ../../../../castle/data/levels/fountain/fountain_bumpdemo_final.wrl \
+  --renderer-optimization=none
+(i.e., without bump mapping) it's around 45.
+Sure, when viewed with optimizations, it's around ~100, or ~300 etc...
+Current implementation of this in VRML is lousy, it forces me to turn
+off optimizations that precalculate many things (for example, normal
+vectors are recalculated each frame with roNone optimization,
+which is quite stupid... but I have to use roNone, because texture coords
+change depending on light position). IOW, better optimization should be
+done, to precalculate everything as it should, but specify tex coords
+for bump mapping dynamically. Current optimizations assume that parts
+of model (at least untransformed shape+states) are constant.
+
+Also, currently I even calculate STangent, TTangent at each frame.
+Although tests (when commented out and calculation replaced by dummy
+  STangent := Vector3Single(1, 0, 0);
+  TTangent := Vector3Single(0, 1, 0);
+suggest that calculation of tangents at each frame doesn't hurt noticeably.
+Still, it's just ugly.
+
+In other words: looks like performance penalty is not a problem.
+Current performance problems are results of my lousy implementation
+of this in VRML renderer, which should be remedied quickly...
+
+Still, this scene is only 6300 triangles. Test on larger scene could
+be useful.
+
+Final, practical note: I used normal maps and height maps the same
+size as original textures. That's a waste of texture memory,
+according to various articles these maps are OK being 2 times
+(i.e. 4 times area) smaller than original textures. Or even more smaller.
+
+------------------------------------------------------------------------------
+Notes about filtering: I simply filtered normal maps just like normal
+textures, LINEAR_MIMAP_LINEAR (2 mipmaps mixed, both with bilinear)
+and LINEAR for mag. Other options are simply
+not acceptable, the usual ugly aliasing occurs.
+I mention it because articles about bump mapping sometimes scare that
+filtering too smoothly may result in bad artifacts. In my experience,
+normal maps and height maps require filtering for the same reason as
+normal material textures, no escape from this.
 
 ------------------------------------------------------------------------------
 End:
