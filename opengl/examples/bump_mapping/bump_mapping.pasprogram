@@ -105,6 +105,8 @@ var
 
   NormalizedDot3First: boolean = false;
 
+{ ---------------------------------------------------------------------------- }
+
 { Returns (unnormalized) direction from Vertex to LightPosition,
   in tangent space.
 
@@ -238,6 +240,24 @@ begin
 end;
 
 { glw callbacks ------------------------------------------------------------ }
+
+procedure DisableTextures;
+begin
+  glActiveTextureARB(GL_TEXTURE0_ARB);
+  glDisable(GL_TEXTURE_2D);
+
+  glActiveTextureARB(GL_TEXTURE1_ARB);
+  glDisable(GL_TEXTURE_2D);
+
+  if MaxTextureUnits > 2 then
+  begin
+    glActiveTextureARB(GL_TEXTURE2_ARB);
+    glDisable(GL_TEXTURE_2D);
+  end;
+
+  { reset as active 0 texture unit, to be in default state }
+  glActiveTextureARB(GL_TEXTURE0_ARB);
+end;
 
 procedure Draw(glwin: TGLWindow);
 var
@@ -708,24 +728,6 @@ var
     end;
   end;
 
-  procedure DisableTextures;
-  begin
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-    glDisable(GL_TEXTURE_2D);
-
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-    glDisable(GL_TEXTURE_2D);
-
-    if MaxTextureUnits > 2 then
-    begin
-      glActiveTextureARB(GL_TEXTURE2_ARB);
-      glDisable(GL_TEXTURE_2D);
-    end;
-
-    { reset as active 0 texture unit, to be in default state }
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-  end;
-
   procedure RenderStatus;
   var
     S: string;
@@ -986,40 +988,80 @@ begin
   RotatingColumn += Glwin.IdleCompSpeed / 5;
 end;
 
-procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
-var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-begin
-  case C of
-    'h': ShiftByHand := not ShiftByHand;
-    'm':
-      begin
-        if Method = High(Method) then
-          Method := Low(Method) else
-          Method := Succ(Method);
-        if Method = bmVRML then
-        begin
-          { some preparations for bmVRML, to make it look better.
-            Like all VRML code here, don't look at this: this is only
-            a hack to show off VRML with bump mapping, will be implemented
-            much nicer in view3dscene later. }
+{ menu ----------------------------------------------------------------------- }
 
-          LightPosition := Vector3Single(3, 3, 5);
+procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
 
-          Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
-          Walker.Init(CamPos,
-            VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
-            CamUp, GravityUp,
-            0.0, 0.0 { unused, we don't use Gravity here });
-        end;
-      end;
-    'b': EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
-    'n': NormalizedDot3First := not NormalizedDot3First;
-    CharEnter:
-      if Glw.Navigator = Examiner then
-        Glw.Navigator := Walker else
-        Glw.Navigator := Examiner;
+  procedure NextBumpMappingMethod;
+  var
+    CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  begin
+    if Method = High(Method) then
+      Method := Low(Method) else
+      Method := Succ(Method);
+    if Method = bmVRML then
+    begin
+      { some preparations for bmVRML, to make it look better.
+        Like all VRML code here, don't look at this: this is only
+        a hack to show off VRML with bump mapping, will be implemented
+        much nicer in view3dscene later. }
+
+      LightPosition := Vector3Single(3, 3, 5);
+
+      Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+      Walker.Init(CamPos,
+        VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+        CamUp, GravityUp,
+        0.0, 0.0 { unused, we don't use Gravity here });
+    end;
   end;
+
+  procedure NextNavigator;
+  begin
+    if Glw.Navigator = Examiner then
+      Glw.Navigator := Walker else
+      Glw.Navigator := Examiner;
+  end;
+
+begin
+  case MenuItem.IntData of
+    50: NextBumpMappingMethod;
+    60: NextNavigator;
+    { TODO: Save screen doesn'r work nicely with multitexturing ?
+    100:
+      begin
+        DisableTextures;
+        Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
+      end;}
+    200: Glwin.Close;
+    300: ShiftByHand := not ShiftByHand;
+    400: EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
+    500: NormalizedDot3First := not NormalizedDot3First;
+  end;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_Program');
+    M.Append(TMenuItem.Create('Next _bump mapping method', 50, 'm'));
+    M.Append(TMenuItem.Create('Next _navigation method', 60, CharEnter));
+    {M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Save screen ...', 100, K_F5));}
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit', 200));
+    Result.Append(M);
+
+  M := TMenu.Create('_Emboss');
+    M.Append(TMenuItem.Create('_Shift emboss by hand', 300, 'h'));
+    M.Append(TMenuItem.Create('_Alpha multiply by blending (1 less texture unit needed)', 400, 'b'));
+    Result.Append(M);
+
+  M := TMenu.Create('_Dot3');
+    M.Append(TMenuItem.Create('_Display normalized version first', 500, 'n'));
+    Result.Append(M);
 end;
 
 begin
@@ -1040,13 +1082,16 @@ begin
   Glw.Navigator := Examiner;
 
   try
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
+
     Glw.AutoRedisplay := true; { for easy Idle code }
     Glw.OnInit := @InitGL;
     Glw.OnClose := @CloseGL;
     Glw.OnDraw := @Draw;
     Glw.OnResize := @Resize;
     Glw.OnIdle := @Idle;
-    Glw.OnKeyDown := @KeyDown;
+
     Glw.InitLoop;
   finally
     FreeAndNil(Walker);
