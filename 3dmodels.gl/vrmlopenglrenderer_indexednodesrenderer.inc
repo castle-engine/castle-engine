@@ -238,6 +238,32 @@ begin
 end;
 
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
+
+  procedure DoBumpMapping;
+  var
+    Normal, Vertex: TVector3Single;
+    Tex: TVector2Single;
+  begin
+    Check(Render_Normals = inGenerate, 'Normal for BumpMapping');
+    { TODO: should we force taking normals per face here ? Or a smoothed normal
+      will be OK here ? }
+    Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
+
+    //Writeln('normal: ', VectorToNiceStr(Normal));
+
+    Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
+    //Writeln('vertex: ', VectorToNiceStr(Vertex));
+
+    { Vertex should be the same as
+        MultMatrixPoint(Render_State.CurrMatrix, Vertex),
+      i.e. Render_State.CurrMatrix = ident,
+      bump mapping hack for VRML assumes no transform for now. }
+
+    Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
+    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
+    //Writeln('texcoord: ', VectorToNiceStr(Tex));
+  end;
+
 var
   VertexNum: integer;
 begin
@@ -259,6 +285,10 @@ begin
     imUseSpecifiedPerVertexIndexed:
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
+
+  if Renderer.Attributes.BumpMapping and
+     (Self is TIndexedFaceSetRenderer) then
+    DoBumpMapping;
 
   Renderer.DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
 end;

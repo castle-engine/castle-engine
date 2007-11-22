@@ -26,7 +26,7 @@
   awsd change light position[x, y], qQ change light position[z]
   h switch emboss shift from automatic (from light in tangent space) to by hand
   ijkl change emboss shift (if in "by hand" mode)
-  m changes bump mapping method (emboss / dot3)
+  m changes bump mapping method (emboss / dot3 / dot3 inside vrml)
   b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
   n reverts NormalizedDot3First
   enter changes navigation mode (examiner / walker)
@@ -39,6 +39,12 @@
     home: restore default rotation, translation and scale
   and for walker mode
     arrows, etc.: doom like walking, see view3dscene docs
+
+  TODO: VRML demo here is a hack, just to show off bump mapping
+  on non-trivial models.
+  It will be removed soon, and this demo program will not depend
+  on VRMLFlatSceneGL. VRML engine will get proper bump mapping
+  handling, and VRMLs with bump mapping will be viewable in view3dscene.
 }
 program bump_mapping;
 
@@ -46,7 +52,9 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
   MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
-  NormalizationCubeMap;
+  NormalizationCubeMap,
+
+  VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL;
 
 const
   SceneBoundingBox: TBox3d =
@@ -54,7 +62,7 @@ const
     ( 14,  8,  3) );
 
 type
-  TBumpMethod = (bmEmboss, bmDot3);
+  TBumpMethod = (bmEmboss, bmDot3, bmVRML);
 
 var
   { normal texture is for all methods, bumps in alpha for emboss only }
@@ -72,6 +80,8 @@ var
 
   Examiner: TMatrixExaminer;
   Walker: TMatrixWalker;
+
+  Scene: TVRMLFlatSceneGL;
 
   { Vars below for emboss only }
 
@@ -717,7 +727,7 @@ var
   var
     S: string;
   const
-    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3');
+    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3', 'dot3 in VRML');
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_DEPTH_TEST);
@@ -743,6 +753,36 @@ var
 
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+
+  if Method = bmVRML then
+  begin
+    { set first 3 texture units back to normal, so that tweaks
+      in this demo don't affect unprepared VRML renderer.
+      This is right now needed by both VRML and BackgroundGL renderer. }
+
+    { texture unit 0 contains normal texture value mixed with scene color }
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    { texture unit 1 not used. }
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+
+    { texture unit 2 not used. }
+    if MaxTextureUnits > 2 then
+    begin
+      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glDisable(GL_TEXTURE_2D);
+    end;
+
+    { reset as active 0 texture unit }
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+
+    glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
+    Scene.Background.Render;
+  end;
+
   glLoadMatrix(Glw.Navigator.Matrix);
 
   if (Method = bmEmboss) and
@@ -755,32 +795,40 @@ begin
 
   glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
 
-  ModelInvertedTrasformation := IdentityMatrix4Single;
+  if Method = bmVRML then
+  begin
+    if Glw.Navigator = Walker then
+      Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
+      Scene.Render(nil, tgAll);
+  end else
+  begin
+    ModelInvertedTrasformation := IdentityMatrix4Single;
 
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_LIGHTING);
-    DisableTextures;
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_LIGHTING);
+      DisableTextures;
 
-    glColorv(Yellow3Single);
-    glBegin(GL_POINTS);
-      glVertexv(LightPosition);
-    glEnd;
-  glPopAttrib;
+      glColorv(Yellow3Single);
+      glBegin(GL_POINTS);
+        glVertexv(LightPosition);
+      glEnd;
+    glPopAttrib;
 
-  glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
-  glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 1, 1));
 
-  Translate(0,-4, 0);
-  Test(2);
+    Translate(0,-4, 0);
+    Test(2);
 
-  Translate(0, 4, 0);
-  Test(0);
+    Translate(0, 4, 0);
+    Test(0);
 
-  Translate(0, 4, 0);
-  Test(1);
+    Translate(0, 4, 0);
+    Test(1);
 
-  Translate(0, 4, 0);
-  Test(3);
+    Translate(0, 4, 0);
+    Test(3);
+  end;
 
   RenderStatus;
 end;
@@ -795,11 +843,18 @@ procedure Resize(glwin: TGLWindow);
     Walker.ProjectionMatrix := ProjectionMatrix;
   end;
 
+var
+  ProjectionNear, ProjectionFar: Single;
 begin
   glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionNear := Box3dAvgSize(SceneBoundingBox) * 0.05;
+  ProjectionFar := Box3dAvgSize(SceneBoundingBox) * 20.0;
   ProjectionGLPerspective(30, Glwin.Width / Glwin.Height,
-    Box3dAvgSize(SceneBoundingBox) * 0.05,
-    Box3dAvgSize(SceneBoundingBox) * 20.0);
+    ProjectionNear, ProjectionFar);
+
+  Scene.BackgroundSkySphereRadius :=
+    TBackgroundGL.NearFarToSkySphereRadius(
+      ProjectionNear, ProjectionFar);
 
   { In case I use walker navigator. }
   UpdateNavigatorProjectionMatrix;
@@ -897,11 +952,21 @@ begin
   NormalizationCubeTex := MakeNormalizationCubeMap;
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+
+  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(
+    '../../../../castle/data/levels/fountain/fountain_bumpdemo_final.wrl', true),
+    true, roNone);
+  { for RenderFrustumOctree }
+  Progress.UserInterface := ProgressNullInterface;
+  Scene.DefaultShapeStateOctree :=
+    Scene.CreateShapeStateOctree('Building ShapeState octree');
+  Scene.Attributes.BumpMapping := true;
 end;
 
 procedure CloseGL(glwin: TGLWindow);
 begin
   FreeAndNil(Font);
+  FreeAndNil(Scene);
 end;
 
 procedure Idle(glwin: TGLWindow);
@@ -934,12 +999,32 @@ begin
 end;
 
 procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+var
+  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   case C of
     'h': ShiftByHand := not ShiftByHand;
-    'm': if Method = High(Method) then
-           Method := Low(Method) else
-           Method := Succ(Method);
+    'm':
+      begin
+        if Method = High(Method) then
+          Method := Low(Method) else
+          Method := Succ(Method);
+        if Method = bmVRML then
+        begin
+          { some preparations for bmVRML, to make it look better.
+            Like all VRML code here, don't look at this: this is only
+            a hack to show off VRML with bump mapping, will be implemented
+            much nicer in view3dscene later. }
+
+          LightPosition := Vector3Single(0, 0, 10);
+
+          Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
+          Walker.Init(CamPos,
+            VectorAdjustToLength(CamDir, Box3dAvgSize(Scene.BoundingBox) * 0.01*0.4),
+            CamUp, GravityUp,
+            0.0, 0.0 { unused, we don't use Gravity here });
+        end;
+      end;
     'b': EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
     'n': NormalizedDot3First := not NormalizedDot3First;
     CharEnter:

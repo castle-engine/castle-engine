@@ -363,6 +363,7 @@ type
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
     FUseFog: boolean;
+    FBumpMapping: boolean;
   protected
     { In this class these methods just set value on given property.
       In descendants you can do something more here, like automatic
@@ -515,6 +516,12 @@ type
       mgly w OpenGLu w momencie wywolywania RenderBegin. }
     property UseFog: boolean
       read FUseFog write SetUseFog default true;
+
+    { TODO: this is mostly a hack for now, just to show specially prepared VRMLs
+      (like fountain_bumpdemo). Should be extended to work with everything,
+      to use ModelInverseTransform and to check for existence of textures
+      and to be aware and many other ways to specify normals. }
+    property BumpMapping: boolean read FBumpMapping write FBumpMapping;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
