@@ -723,6 +723,7 @@ type
   TTextureReference = record
     TextureNode: TNodeGeneralTexture;
     TextureGL: TGLuint;
+    TextureNormalMap: TGLuint;
   end;
   PTextureReference = ^TTextureReference;
 
@@ -874,7 +875,8 @@ type
 
 implementation
 
-uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap;
+uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
+  KambiStringUtils;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1648,6 +1650,8 @@ var
   TextureReference: TTextureReference;
   TextureNode: TNodeGeneralTexture;
   FontStyle: TNodeFontStyle_2;
+  SlashPos: Integer;
+  NormalMapFileName: string;
 begin
  { przygotuj font }
  if State.ParentShape = nil then
@@ -1717,6 +1721,23 @@ begin
      TextureRepeatToGL[TextureNode.RepeatS],
      TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte);
+
+   if Attributes.BumpMapping then
+   begin
+     SlashPos := BackPos('/', TextureNode.TextureUsedFullUrl);
+     Check(SlashPos <> 0, 'no / in texture URL');
+     NormalMapFileName := TextureNode.TextureUsedFullUrl;
+     Insert('normal_maps/', NormalMapFileName, SlashPos+1);
+     NormalMapFileName := ChangeFileExt(NormalMapFileName, '.png');
+     //Writeln('Loading normal map from ', NormalMapFileName);
+     { TODO: total hack, we just generate normal map texture filename
+       based on actual texture filename. This works only for specially
+       prepared fountain_bumpdemo VRML. }
+     TextureReference.TextureNormalMap := LoadGLTexture(NormalMapFileName,
+       GL_LINEAR, GL_LINEAR,
+       TextureRepeatToGL[TextureNode.RepeatS],
+       TextureRepeatToGL[TextureNode.RepeatT]);
+   end;
 
    TextureReferences.AppendItem(TextureReference);
   end;
@@ -2079,7 +2100,10 @@ begin
      glBindTexture(GL_TEXTURE_2D,
        TextureReferences.Items[TextureReferencesIndex].TextureGL);
    end else
+   begin
      TexOriginal := TextureReferences.Items[TextureReferencesIndex].TextureGL;
+     TexNormalMap := TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
+   end;
 
    Render_TexCoordsNeeded := true;
   end else
