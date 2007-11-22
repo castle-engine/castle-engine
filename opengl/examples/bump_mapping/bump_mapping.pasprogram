@@ -797,6 +797,7 @@ begin
 
   if Method = bmVRML then
   begin
+    Scene.Attributes.BumpMappingLightPosition := LightPosition;
     if Glw.Navigator = Walker then
       Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
       Scene.Render(nil, tgAll);

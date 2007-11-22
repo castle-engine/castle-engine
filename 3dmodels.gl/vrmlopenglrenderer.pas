@@ -522,6 +522,8 @@ type
       to use ModelInverseTransform and to check for existence of textures
       and to be aware and many other ways to specify normals. }
     property BumpMapping: boolean read FBumpMapping write FBumpMapping;
+
+    BumpMappingLightPosition: TVector3Single;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -872,7 +874,7 @@ type
 
 implementation
 
-uses NormalsCalculator, Math, Triangulator;
+uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1779,6 +1781,10 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
+{ TODO: just a hack to pass them in global vars }
+var
+  TexOriginal, TexNormalMap, TexNormalizationCube: TGLuint;
+
 {$I vrmlopenglrenderer_indexednodesrenderer.inc}
 {$define IndexedRenderer := TGeneralIndexedRenderer(ExposedIndexedRenderer) }
 
@@ -1901,6 +1907,9 @@ begin
      glDisable(GL_LIGHT0+i);
 
  SetupFog(FogNode);
+
+ if Attributes.BumpMapping then
+   TexNormalizationCube := MakeNormalizationCubeMap;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
@@ -2056,16 +2065,22 @@ begin
      Attributes.EnableTextures and
      NodeTextured(Node) then
   begin
-   SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
-   glEnable(GL_TEXTURE_2D);
    TextureReferencesIndex := TextureReferences.TextureNodeIndex(
      TextureNode);
    Assert(TextureReferencesIndex <> -1,
      'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
      'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
      'You must call TVRMLOpenGLRenderer.Prepare first');
-   glBindTexture(GL_TEXTURE_2D,
-     TextureReferences.Items[TextureReferencesIndex].TextureGL);
+
+   if not Attributes.BumpMapping then
+   begin
+     SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
+     glEnable(GL_TEXTURE_2D);
+     glBindTexture(GL_TEXTURE_2D,
+       TextureReferences.Items[TextureReferencesIndex].TextureGL);
+   end else
+     TexOriginal := TextureReferences.Items[TextureReferencesIndex].TextureGL;
+
    Render_TexCoordsNeeded := true;
   end else
   begin
