@@ -1372,6 +1372,34 @@ begin
   result[3, 2] := Z;
 end;
 
+procedure TranslationMatrices(const X, Y, Z: TYPE_SCALAR;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+begin
+  Matrix := IdentityMatrix4Single;
+  Matrix[3, 0] := X;
+  Matrix[3, 1] := Y;
+  Matrix[3, 2] := Z;
+
+  InvertedMatrix := IdentityMatrix4Single;
+  InvertedMatrix[3, 0] := -X;
+  InvertedMatrix[3, 1] := -Y;
+  InvertedMatrix[3, 2] := -Z;
+end;
+
+procedure TranslationMatrices(const Transl: TYPE_VECTOR3;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+begin
+  Matrix := IdentityMatrix4Single;
+  Matrix[3, 0] := Transl[0];
+  Matrix[3, 1] := Transl[1];
+  Matrix[3, 2] := Transl[2];
+
+  InvertedMatrix := IdentityMatrix4Single;
+  InvertedMatrix[3, 0] := -Transl[0];
+  InvertedMatrix[3, 1] := -Transl[1];
+  InvertedMatrix[3, 2] := -Transl[2];
+end;
+
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TYPE_VECTOR3): TMatrix4Single;
 var i: integer;

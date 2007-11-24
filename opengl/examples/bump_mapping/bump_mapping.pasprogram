@@ -1027,7 +1027,7 @@ begin
   case MenuItem.IntData of
     50: NextBumpMappingMethod;
     60: NextNavigator;
-    { TODO: Save screen doesn'r work nicely with multitexturing ?
+    { TODO: Save screen doesn't work nicely with multitexturing ?
     100:
       begin
         DisableTextures;

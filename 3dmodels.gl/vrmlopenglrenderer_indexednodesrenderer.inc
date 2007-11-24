@@ -135,6 +135,7 @@ type
 
     HasTangentVectors: boolean;
     STangent, TTangent: TVector3Single;
+    LightPositionObjectSpace: TVector3Single;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -249,13 +250,7 @@ procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
     var
       ToTangent: TMatrix4Single;
       I: Integer;
-      LightPositionObjectSpace: TVector3Single;
     begin
-      { for now, BumpMappingLightPosition in world space is also
-        in object space since we assume that no transform occured. }
-
-      LightPositionObjectSpace := Renderer.Attributes.BumpMappingLightPosition;
-
       { first init 4th row and column }
       ToTangent := IdentityMatrix4Single;
 
@@ -279,12 +274,8 @@ procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
       will be OK here ? }
     Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
 
+    { This is OK, we want Vertex in object space here. }
     Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
-
-    { Vertex should be the same as
-        MultMatrixPoint(Render_State.CurrMatrix, Vertex),
-      i.e. Render_State.CurrMatrix = ident,
-      bump mapping hack for VRML assumes no transform for now. }
 
     Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
     Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
@@ -640,7 +631,12 @@ begin
     Exit;
 
   if Renderer.Attributes.BumpMapping then
+  begin
     SetTexturesForDot3Normalized;
+    LightPositionObjectSpace := MultMatrixPoint(
+      Renderer.Render_State.InvertedTransform,
+      Renderer.Attributes.BumpMappingLightPosition);
+  end;
 
   {initialize most important thing we will use with indexed nodes :
    vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit

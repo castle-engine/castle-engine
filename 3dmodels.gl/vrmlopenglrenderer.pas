@@ -397,7 +397,7 @@ type
       glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
       Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
       TNodeGeneralShape ktory renderuje ten vertex i b)wspolrzedne vertexa
-      przemnozone przez RenderState.CurrMatrix. Innymi slowy bedzie to
+      przemnozone przez RenderState.Transform. Innymi slowy bedzie to
       wspolrzedna vertexa wzgledem lokalnego ukladu wspolrzednych VRML'a
       (podczas gdy rzeczywista komenda glVertex prawdopodobnie przekaze
       OpenGL'owi wspolrzedne prosto z pliku VRML (a wiec byc moze wzgledem
@@ -519,8 +519,8 @@ type
 
     { TODO: this is mostly a hack for now, just to show specially prepared VRMLs
       (like fountain_bumpdemo). Should be extended to work with everything,
-      to use ModelInverseTransform and to check for existence of textures
-      and to be aware and many other ways to specify normals. }
+      to check for existence of textures
+      and to be aware of many other ways to specify normals. }
     property BumpMapping: boolean read FBumpMapping write FBumpMapping;
 
     BumpMappingLightPosition: TVector3Single;
@@ -1971,7 +1971,7 @@ var
 begin
   glMatrixMode(GL_TEXTURE);
   if State.ParentShape = nil then
-    glLoadMatrix(State.CurrTextureMatrix) else
+    glLoadMatrix(State.TextureTransform) else
   begin
     TextureTransform := State.ParentShape.TextureTransform;
     if TextureTransform = nil then
@@ -1999,7 +1999,7 @@ begin
 
   { uwzglednij atrybut Attributes.UseLights : jezeli jest = true to zdefiniuj
     OpenGLowi wszystkie State.ActiveLights. Robimy to PRZED zaladowaniem
-    transformacji State.CurrMatrix (bo swiatla maja wlasne CurrMatrix i
+    transformacji State.Transform (bo swiatla maja wlasne Transform i
     nie podlegaja transformacji aktualnego State'a w ktorym sa) }
   if Attributes.UseLights then
     glLightsFromVRML(State.CurrentActiveLights,
@@ -2007,7 +2007,7 @@ begin
       Attributes.ColorModulatorSingle);
 
   glPushMatrix;
-    glMultMatrix(State.CurrMatrix);
+    glMultMatrix(State.Transform);
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(

@@ -1537,16 +1537,53 @@ const
   Then you get perspective projection matrix withour far clipping plane,
   which is very useful for z-fail shadow volumes technique.
 
+  Functions named Matrices below generate both normal and inverted matrices.
+  For example, function RotationMatrices returns two matrices that you
+  could calculate separately by
+
+@longCode(#
+        Matrix: = RotationMatrix( Angle, Axis);
+InvertedMatrix: = RotationMatrix(-Angle, Axis);
+#)
+
+  This is useful sometimes, and generating them both at the same time
+  allows for some speedup (for example, calling RotationMatrix twice will
+  calculate sincos of Angle twice).
+
+  Note that inverse of scaling matrix will not exist if the
+  ScaleFactor has one of the components zero !
+  Depending on InvertedMatrixIdentityIfNotExists, this will
+  (if @false) raise division by zero exception or (if @true) cause
+  the matrix to be set to identity.
+
+  Note that rotation matrix (both normal and inverse) is always defined,
+  for Axis = zero both normal and inverse matrices are set to identity.
+
   @groupBegin }
 function TranslationMatrix(const X, Y, Z: Single): TMatrix4Single; overload;
 function TranslationMatrix(const X, Y, Z: Double): TMatrix4Single; overload;
 function TranslationMatrix(const Transl: TVector3Single): TMatrix4Single; overload;
 function TranslationMatrix(const Transl: TVector3Double): TMatrix4Single; overload;
+
+procedure TranslationMatrices(const X, Y, Z: Single; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+procedure TranslationMatrices(const X, Y, Z: Double; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+procedure TranslationMatrices(const Transl: TVector3Single; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+procedure TranslationMatrices(const Transl: TVector3Double; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+
 function ScalingMatrix(const ScaleFactor: TVector3Single): TMatrix4Single;
+
+procedure ScalingMatrices(const ScaleFactor: TVector3Single;
+  InvertedMatrixIdentityIfNotExists: boolean;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+
 function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3Single): TMatrix4Single;
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;
 function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
 function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
+
+procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3Single;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+
 function OrthoProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single;
 function FrustumProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
@@ -2691,26 +2728,89 @@ begin
  result[2, 2] := ScaleFactor[2];
 end;
 
-function RotationMatrixRad(const AngleRad: Single; const Axis: TVector3Single): TMatrix4Single;
-var NormAxis: TVector3Single;
-    m1, m2, m3: TMatrix3Single;
-    i, j: integer;
+procedure ScalingMatrices(const ScaleFactor: TVector3Single;
+  InvertedMatrixIdentityIfNotExists: boolean;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+begin
+  Matrix := IdentityMatrix4Single;
+  Matrix[0, 0] := ScaleFactor[0];
+  Matrix[1, 1] := ScaleFactor[1];
+  Matrix[2, 2] := ScaleFactor[2];
+
+  InvertedMatrix := IdentityMatrix4Single;
+  if not
+    (InvertedMatrixIdentityIfNotExists and
+      ( IsZero(ScaleFactor[0]) or
+        IsZero(ScaleFactor[1]) or
+        IsZero(ScaleFactor[2]) )) then
+  begin
+    InvertedMatrix[0, 0] := 1 / ScaleFactor[0];
+    InvertedMatrix[1, 1] := 1 / ScaleFactor[1];
+    InvertedMatrix[2, 2] := 1 / ScaleFactor[2];
+  end;
+end;
+
+function RotationMatrixRad(const AngleRad: Single;
+  const Axis: TVector3Single): TMatrix4Single;
+var
+  NormAxis: TVector3Single;
+  m1, m2, m3: TMatrix3Single;
+  i, j: integer;
+  AngleSin, AngleCos: Float;
 begin
  NormAxis := Normalized(Axis);
 
+ SinCos(AngleRad, AngleSin, AngleCos);
+
  m1 := VectorMultTransposedSameVector(NormAxis);
- m2 := MatrixMultScalar(MatrixSubtract(IdentityMatrix3Single, m1), cos(AngleRad));
+ m2 := MatrixMultScalar(MatrixSubtract(IdentityMatrix3Single, m1), AngleCos);
 
  m3[0, 0] := 0;            m3[1, 0] := -NormAxis[2]; m3[2, 0] := NormAxis[1];
  m3[0, 1] := NormAxis[2];  m3[1, 1] := 0;            m3[2, 1] := -NormAxis[0];
  m3[0, 2] := -NormAxis[1]; m3[1, 2] := NormAxis[0];  m3[2, 2] := 0;
- m3 := MatrixMultScalar(m3, sin(AngleRad));
+ m3 := MatrixMultScalar(m3, AngleSin);
 
  MatrixAddTo1st(m1, m2);
  MatrixAddTo1st(m1, m3);
 
  result := IdentityMatrix4Single;
  for i := 0 to 2 do for j := 0 to 2 do result[i, j] := m1[i, j];
+end;
+
+procedure RotationMatricesRad(const AngleRad: Single;
+  const Axis: TVector3Single;
+  out Matrix, InvertedMatrix: TMatrix4Single);
+var
+  NormAxis: TVector3Single;
+  m1, m2, m3: TMatrix3Single;
+  i, j: integer;
+  AngleSin, AngleCos: Float;
+begin
+ NormAxis := Normalized(Axis);
+
+ SinCos(AngleRad, AngleSin, AngleCos);
+
+ m1 := VectorMultTransposedSameVector(NormAxis);
+ m2 := MatrixMultScalar(MatrixSubtract(IdentityMatrix3Single, m1), AngleCos);
+
+ m3[0, 0] := 0;            m3[1, 0] := -NormAxis[2]; m3[2, 0] := NormAxis[1];
+ m3[0, 1] := NormAxis[2];  m3[1, 1] := 0;            m3[2, 1] := -NormAxis[0];
+ m3[0, 2] := -NormAxis[1]; m3[1, 2] := NormAxis[0];  m3[2, 2] := 0;
+ m3 := MatrixMultScalar(m3, AngleSin);
+
+ MatrixAddTo1st(m1, m2);
+
+ Matrix := IdentityMatrix4Single;
+ InvertedMatrix := IdentityMatrix4Single;
+
+ for i := 0 to 2 do
+   for j := 0 to 2 do
+   begin
+     Matrix[i, j] := m1[i, j] + m3[i, j];
+     { The only thing that changes for InvertedMatrix is that AngleSin is
+       negated, so you should subtract m3 calculated above. }
+     InvertedMatrix[i, j] := m1[i, j] - m3[i, j];
+   end;
 end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3Single): TMatrix4Single;

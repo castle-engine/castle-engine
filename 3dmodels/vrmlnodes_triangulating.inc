@@ -52,11 +52,11 @@ var tr: TTriangulateRedirect;
 begin
  { klasa TTriangulateRedirect bedzie dzialala jako posrednik :
    kazdy trojkat ktory zwroci LocalTriangulate bedzie transformowany przez
-   State.CurrMatrix i dopiero wtedy przekazywany do NewTriangleProc.
+   State.Transform i dopiero wtedy przekazywany do NewTriangleProc.
    W ten sposob za pomoca LocalTriangulate implementujemy Triangulate }
  tr := TTriangulateRedirect.Create;
  try
-  tr.Transform := @(State.CurrMatrix);
+  tr.Transform := @(State.Transform);
   tr.NewTriangle := NewTriangleProc;
   LocalTriangulate(State, OverTriangulate,
     {$ifdef FPC_OBJFPC} @ {$endif} tr.LocalNewTriangle);

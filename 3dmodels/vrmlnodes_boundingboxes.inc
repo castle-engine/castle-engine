@@ -25,7 +25,7 @@
 
 function TNodeGeneralShape.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
- result := BoundingBoxTransform(LocalBoundingBox(State), State.CurrMatrix);
+ result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
 end;
 
 function TNodeGeneralShape.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -33,7 +33,7 @@ var NewState: TVRMLGraphTraverseState;
 begin
  NewState := TVRMLGraphTraverseState.CreateCopy(State);
  try
-  NewState.CurrMatrix := IdentityMatrix4Single;
+  NewState.Transform := IdentityMatrix4Single;
   result := BoundingBox(NewState);
  finally NewState.Free end;
 end;
@@ -89,7 +89,7 @@ begin
     end;
   end;
 
-  result := CalculateBoundingBox(@Points, PointsCount, 0, State.CurrMatrix);
+  result := CalculateBoundingBox(@Points, PointsCount, 0, State.Transform);
 end;
 
 function TNodeAsciiText_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -174,7 +174,7 @@ begin
 
  result := CalculateBoundingBox(
    @points[firstPoint],
-   High(points)+1-firstPoint, 0, State.CurrMatrix);
+   High(points)+1-firstPoint, 0, State.Transform);
 end;
 
 function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
@@ -311,7 +311,7 @@ begin
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
-      State.CurrMatrix);
+      State.Transform);
   finally Calculator.Free end;
 end;
 
@@ -405,7 +405,7 @@ begin
   try
     Calculator.Coord := Coord;
     Calculator.IndexOffset := StartIndex;
-    Calculator.PMatrix := @State.CurrMatrix;
+    Calculator.PMatrix := @State.Transform;
     Result := CalculateBoundingBox(
       {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertex, NumPoints);
   finally Calculator.Free end;

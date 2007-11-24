@@ -4074,26 +4074,55 @@ begin
 end;
 
 procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+var
+  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
   inherited;
 
-  { inherited TNodeGeneralGrouping already saved State.CurrMatrix }
+  { Inherited TNodeGeneralGrouping already saved State.Transform and such.
 
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    TranslationMatrix(FdTranslation.Value));
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    TranslationMatrix(FdCenter.Value));
-  if not IsZeroVector(FdRotation.Axis) then
-    State.CurrMatrix := MultMatrices(State.CurrMatrix,
-      RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    RotationMatrixRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    ScalingMatrix(FdScale.Value));
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    RotationMatrixRad(-FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
-  State.CurrMatrix := MultMatrices(State.CurrMatrix,
-    TranslationMatrix(VectorNegate(FdCenter.Value)));
+    To make InvertedTransform, we multiply inverted matrices in inverted order
+    below. }
+
+  TranslationMatrices(VectorAdd(FdTranslation.Value, FdCenter.Value), M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  { Note that even Axis = zero is OK, both M and IM will be identity in
+    this case. }
+  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  if (FdScale.Value[0] <> 1) or
+     (FdScale.Value[1] <> 1) or
+     (FdScale.Value[2] <> 1) then
+  begin
+    RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
+      MRotateScaleOrient, IMRotateScaleOrient);
+
+    State.Transform := MultMatrices(State.Transform, MRotateScaleOrient);
+    State.InvertedTransform := MultMatrices(IMRotateScaleOrient, State.InvertedTransform);
+
+    { For scaling, we explicitly request that if ScalingFactor contains
+      zero, IM will be forced to be identity. That's because VRML allows
+      scaling factor to have 0 components (we need InvertedTransform only
+      for special tricks). }
+
+    ScalingMatrices(FdScale.Value, true, M, IM);
+    State.Transform := MultMatrices(State.Transform, M);
+    State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+    { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
+      matrices below. Since we want to reverse them now, so normal
+      Transform is multiplied by IM and InvertedTransform is multiplied by M. }
+    State.Transform := MultMatrices(State.Transform, IMRotateScaleOrient);
+    State.InvertedTransform := MultMatrices(MRotateScaleOrient, State.InvertedTransform);
+  end;
+
+  TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
   State.AverageScaleTransform *=
     (FdScale.Value[0] + FdScale.Value[1] + FdScale.Value[2]) / 3;

@@ -36,7 +36,7 @@
     property FdAxis: TSFEnum index 0 read GetFieldAsSFEnum;
     property FdAngle: TSFFloat index 1 read GetFieldAsSFFloat;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
   end;
 {$endif read_interface}
@@ -59,12 +59,14 @@ begin
  Result := 'RotationXYZ';
 end;
 
-function TNodeRotationXYZ.MatrixTransformation: TMatrix4Single;
+procedure TNodeRotationXYZ.Transformation(
+  out Matrix, InvertedMatrix: TMatrix4Single);
 const
   AxisVectors: array[0..2]of TVector3Single =
   ( (1, 0, 0), (0, 1, 0), (0, 0, 1) );
 begin
- Result := RotationMatrixRad(FdAngle.Value, AxisVectors[FdAxis.Value]);
+  RotationMatricesRad(FdAngle.Value, AxisVectors[FdAxis.Value],
+    Matrix, InvertedMatrix);
 end;
 
 function TNodeRotationXYZ.AverageScaleTransform: Single;

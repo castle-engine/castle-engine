@@ -31,7 +31,7 @@ begin
   { We check first, to avoid calculating VertGlobal when it's not needed. }
   if Assigned(Attributes.OnBeforeGLVertex) or FogVolumetric then
   begin
-    VertGlobal := MultMatrixPoint(Render_State.CurrMatrix, Vert);
+    VertGlobal := MultMatrixPoint(Render_State.Transform, Vert);
 
     if FogVolumetric then
     begin

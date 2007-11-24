@@ -1115,7 +1115,7 @@ type
   begin
     ViewpointFunction(
       TNodeGeneralViewpoint(ANode),
-      AState.CurrMatrix);
+      AState.Transform);
   end;
 
 procedure TVRMLFlatScene.EnumerateViewpoints(

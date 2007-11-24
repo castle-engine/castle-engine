@@ -435,7 +435,7 @@
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
-    function MatrixTransformation: TMatrix4Single; virtual; abstract;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); virtual; abstract;
     function AverageScaleTransform: Single; virtual; abstract;
 
     function SuggestedVRMLVersion(
@@ -447,7 +447,10 @@
     class function ClassNodeTypeName: string; override;
     property FdMatrix: TSFMatrix index 0 read GetFieldAsSFMatrix;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    { Returns simply FdMatrix as transformation. Returns identity as
+      InvertedMatrix --- calculating actual inverted matrix from any matrix
+      is too difficult. }
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
 
     { Return average scale for this FdMatrix.
 
@@ -468,7 +471,7 @@
     class function ClassNodeTypeName: string; override;
     property FdRotation: TSFRotation index 0 read GetFieldAsSFRotation;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
   end;
 
@@ -477,7 +480,7 @@
     class function ClassNodeTypeName: string; override;
     property FdScaleFactor: TSFVec3f index 0 read GetFieldAsSFVec3f;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
   end;
 
@@ -491,7 +494,7 @@
     property FdScaleOrientation: TSFRotation index 3 read GetFieldAsSFRotation;
     property FdCenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -503,7 +506,7 @@
     class function ClassNodeTypeName: string; override;
     property FdTranslation: TSFVec3f index 0 read GetFieldAsSFVec3f;
 
-    function MatrixTransformation: TMatrix4Single; override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
   end;
 
@@ -758,7 +761,7 @@
 
   TNodeTransformSeparator = class(TVRMLNode)
   private
-    OriginalMatrix: TMatrix4Single;
+    OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalAverageScaleTransform: Single;
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
@@ -1426,7 +1429,7 @@ end;
 procedure TNodeTexture2Transform.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
  inherited;
- State.CurrTextureMatrix := MultMatrices(State.CurrTextureMatrix,
+ State.TextureTransform := MultMatrices(State.TextureTransform,
    TextureMatrixTransformation);
 end;
 
@@ -1494,9 +1497,15 @@ begin
 end;
 
 procedure TNodeGeneralTransformation.MiddleTraverse(State: TVRMLGraphTraverseState);
+var
+  M, IM: TMatrix4Single;
 begin
   inherited;
-  State.CurrMatrix := MultMatrices(State.CurrMatrix, MatrixTransformation);
+
+  Transformation(M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
   State.AverageScaleTransform *= AverageScaleTransform;
 end;
 
@@ -1511,9 +1520,11 @@ begin
  result := 'MatrixTransform';
 end;
 
-function TNodeMatrixTransform.MatrixTransformation: TMatrix4Single;
+procedure TNodeMatrixTransform.Transformation(
+  out Matrix, InvertedMatrix: TMatrix4Single);
 begin
-  Result := FdMatrix.Matrix;
+  Matrix := FdMatrix.Matrix;
+  InvertedMatrix := IdentityMatrix4Single;
 end;
 
 function TNodeMatrixTransform.AverageScaleTransform: Single;
@@ -1538,15 +1549,13 @@ begin
  result := 'Rotation';
 end;
 
-function TNodeRotation.MatrixTransformation: TMatrix4Single;
+procedure TNodeRotation.Transformation(
+  out Matrix, InvertedMatrix: TMatrix4Single);
 begin
-  { We check for dumb zero rotation vector, program "Pioneer" could
-    write something like this to VRML. }
-  if IsZeroVector(FdRotation.Axis) then
-    result := IdentityMatrix4Single else
-    { RotationMatrixRad, just like glRotate, has rotations defined in the same way
-      (direction) as VRML, so it's all OK here. }
-    result := RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis);
+  { We don't check here for FdRotation.Axis = zero, RotationMatricesRad
+    will set both matrices for identity in such case. }
+  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis,
+    Matrix, InvertedMatrix);
 end;
 
 function TNodeRotation.AverageScaleTransform: Single;
@@ -1565,9 +1574,9 @@ begin
  result := 'Scale';
 end;
 
-function TNodeScale.MatrixTransformation: TMatrix4Single;
+procedure TNodeScale.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
 begin
- result := ScalingMatrix(FdScaleFactor.Value);
+  ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
 end;
 
 function TNodeScale.AverageScaleTransform: Single;
@@ -1592,19 +1601,45 @@ begin
  result := 'Transform';
 end;
 
-function TNodeTransform_1.MatrixTransformation: TMatrix4Single;
+procedure TNodeTransform_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+var
+  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
- result := TranslationMatrix(FdTranslation.Value);
- result := MultMatrices(result, TranslationMatrix(FdCenter.Value));
- if not IsZeroVector(FdRotation.Axis) then
-  result := MultMatrices(result,
-    RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
- result := MultMatrices(result,
-   RotationMatrixRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
- result := MultMatrices(result, ScalingMatrix(FdScaleFactor.Value));
- result := MultMatrices(result,
-   RotationMatrixRad(-FdScaleOrientation.RotationRad, FdScaleOrientation.Axis));
- result := MultMatrices(result, TranslationMatrix(VectorNegate(FdCenter.Value)));
+  TranslationMatrices(VectorAdd(FdTranslation.Value, FdCenter.Value),
+    Matrix, InvertedMatrix);
+
+  { Note that even Axis = zero is OK, both M and IM will be identity in
+    this case. }
+  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
+  Matrix := MultMatrices(Matrix, M);
+  InvertedMatrix := MultMatrices(IM, InvertedMatrix);
+
+  if (FdScaleFactor.Value[0] <> 1) or
+     (FdScaleFactor.Value[1] <> 1) or
+     (FdScaleFactor.Value[2] <> 1) then
+  begin
+    RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
+      MRotateScaleOrient, IMRotateScaleOrient);
+
+    Matrix := MultMatrices(Matrix, MRotateScaleOrient);
+    InvertedMatrix := MultMatrices(IMRotateScaleOrient, InvertedMatrix);
+
+    { For scaling, we explicitly request that if ScalingFactor contains
+      zero, IM will be forced to be identity. That's because VRML allows
+      scaling factor to have 0 components (we need InvertedTransform only
+      for special tricks). }
+
+    ScalingMatrices(FdScaleFactor.Value, true, M, IM);
+    Matrix := MultMatrices(Matrix, M);
+    InvertedMatrix := MultMatrices(IM, InvertedMatrix);
+
+    Matrix := MultMatrices(Matrix, IMRotateScaleOrient);
+    InvertedMatrix := MultMatrices(MRotateScaleOrient, InvertedMatrix);
+  end;
+
+  TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
+  Matrix := MultMatrices(Matrix, M);
+  InvertedMatrix := MultMatrices(IM, InvertedMatrix);
 end;
 
 function TNodeTransform_1.AverageScaleTransform: Single;
@@ -1630,9 +1665,10 @@ begin
  result := 'Translation';
 end;
 
-function TNodeTranslation.MatrixTransformation: TMatrix4Single;
+procedure TNodeTranslation.Transformation(
+  out Matrix, InvertedMatrix: TMatrix4Single);
 begin
- result := TranslationMatrix(FdTranslation.Value);
+  TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
 end;
 
 function TNodeTranslation.AverageScaleTransform: Single;
@@ -1721,7 +1757,7 @@ end;
 function TNodeGeneralLight.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result.LightNode := Self;
-  Result.Transform := State.CurrMatrix;
+  Result.Transform := State.Transform;
   Result.AverageScaleTransform := State.AverageScaleTransform;
 end;
 
@@ -1977,18 +2013,19 @@ procedure TNodeTransformSeparator.BeforeTraverse(var State: TVRMLGraphTraverseSt
 begin
   inherited;
 
-  { nie robimy kopii calego State'a bo w TVRMLRenderState moga byc
-    jeszcze inne informacje ktore powinny "przeciec" na zewnatrz
-    TransformSeparator'a. }
-  OriginalMatrix := State.CurrMatrix;
+  { We don't copy whole State here, as changes to other properties of
+    TVRMLRenderState should "leak out" from TransformSeparator node. }
+  OriginalTransform := State.Transform;
+  OriginalInvertedTransform := State.InvertedTransform;
   OriginalAverageScaleTransform := State.AverageScaleTransform;
 end;
 
 procedure TNodeTransformSeparator.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
- State.CurrMatrix := OriginalMatrix;
- State.AverageScaleTransform := OriginalAverageScaleTransform;
- inherited;
+  State.Transform := OriginalTransform;
+  State.InvertedTransform := OriginalInvertedTransform;
+  State.AverageScaleTransform := OriginalAverageScaleTransform;
+  inherited;
 end;
 
 constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: string);

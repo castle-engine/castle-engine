@@ -355,7 +355,7 @@ type
   end;
 
   { This is used in TVRMLGraphTraverseState to keep track of used light.
-    When the light is used, not only it's node is imporant (in LightNode),
+    When the light is used, not only it's node is important (in LightNode),
     but also current transformation (this transformation affects things
     like actual position and direction). This record keeps it all.
 
@@ -460,25 +460,44 @@ type
       when ParentShape is @nil, we're in VRML 1 mode, otherwise in VRML 2 mode. }
     function CurrentActiveLights: TDynActiveLightArray;
 
-    { Current transformation. This is the only field that tracks
-      current transformation (so you know now how to implement VRML 1.0
-      nodes like TransformSeparator). }
-    CurrMatrix: TMatrix4Single;
+    { Current transformation. }
+    Transform: TMatrix4Single;
 
-    { This is a uniform scale caused by matrix CurrMatrix.
+    { Inverted @link(Transform) matrix. This matrix is crucial for some
+      special effects (for example, it's needed for calculating in tangent space
+      for bump mapping).
 
-      I.e., if we could extract the scaling from CurrMatrix, then it would
+      This is not calculated using any complex matrix inversion algorithms.
+      Instead, this is calculated by updating this along the way, just like
+      we calculate normal @link(Transform). So it's simple, quick, and
+      guaranteed to be correct @italic(assuming that user didn't use
+      VRML 1.0 MatrixTransform along the way). That's why MatrixTransform node
+      was removed from VRML 2.0, it breaks such things.
+
+      Also, any scale with zero component along the way will make this
+      partially invalid (we'll substitute identity in place of inverted scaling
+      matrix). This is unavoidable, there's no reverse matrix for scaling
+      with zero factor, since one resulting point may correpond to infinitely many
+      source points (i.e., it's natural that such scaling function cannot be
+      reversed). }
+    InvertedTransform: TMatrix4Single;
+
+    { This is a uniform scale caused by matrix Transform.
+
+      I.e., if we could extract the scaling from Transform, then it would
       be AverageScaleTransform. Assuming that the scale is uniform.
       If we used any non-uniform scale along the way, this is the average scale.
 
-      This is calculated by updating it along the way, just like CurrMatrix
+      This is calculated by updating it along the way, just like Transform
       is updated. This way it's calculated easily --- contrary to the
       non-trivial operation of extracting a scale from a 4x4 matrix.
       It's also 100% correct, @italic(assuming that user didn't use
       VRML 1.0 MatrixTransform along the way). }
     AverageScaleTransform: Single;
 
-    CurrTextureMatrix: TMatrix4Single;
+    { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
+      texture transformations don't accumulate like modelview transformations. }
+    TextureTransform: TMatrix4Single;
 
     ParentShape: TNodeShape;
 
@@ -522,7 +541,7 @@ type
     { This is like @link(Equals) but it ignores some fields that are
       ignored when rendering using
       TVRMLOpenGLRenderer.RenderShapeStateNoTransform.
-      For example, it ignores CurrMatrix, AverageScaleTransform. }
+      For example, it ignores Transform, AverageScaleTransform, InvertedTransform. }
     function EqualsNoTransform(SecondValue: TVRMLGraphTraverseState): boolean;
 
     { Returns proper texture node that should be used
@@ -1624,11 +1643,11 @@ type
     { BoundingBox oblicza BoundingBox shape node'a VRMLa ktory podczas
       trawersowania grafu VRML'a ma stan State.
 
-      LocalBoundingBox liczy BoundingBox jakby CurrMatrix = IdentityMatrix,
+      LocalBoundingBox liczy BoundingBox jakby Transform = IdentityMatrix,
       czyli liczy bounding box wzgledem lokalnego ukladu node'a.
 
       W tej klasie LocalBoundingBox jest liczone jako BoundingBox ktore
-      dostaje specjalnie spreparowane State z CurrMatrix = zawsze Identity.
+      dostaje specjalnie spreparowane State z Transform = zawsze Identity.
       Jest to poprawna metoda realizacji LocalBoundingBox'a natomiast
       nieco nieoptymalna czasowo : bedzie wykonywanych wiele mnozen przez
       macierz o ktorej wiadomo ze jest Identity. Wiec w podklasach mozesz
@@ -1636,12 +1655,12 @@ type
 
       Zwracam uwage ze odwrotny pomysl --- realizacja BoundingBox'a przez
       LocalBoundingBox'a (transformujac wyliczony LocalBoundingBox przez
-      State.CurrMatrix) nie jest juz tak dobrym pomyslem --- mozemy w rezultacie
+      State.Transform) nie jest juz tak dobrym pomyslem --- mozemy w rezultacie
       otrzymac o wiele za duze BoundingBox'y.
 
       Tym niemniej miejscami zamierzam tak liczyc BoundingBox'a --- np. dla sfery.
       Wiec w tej klasie BoundingBox jest zaimplementowany wlasnie jako
-      LocalBoundingBox transformowany o State.CurrMatrix.
+      LocalBoundingBox transformowany o State.Transform.
 
       W kazdej podklasie Shape powinienes pokryc przynajmniej jedna z tych metod
       --- jak to napisalem powyzej, jezeli nie pokryjesz BoundingBox'a to byc
@@ -1684,7 +1703,7 @@ type
       Tri will be new triangle,  and State will always be State podany tutaj
       parametrem and Node will always be Self.
 
-      LocalTriangulate robi to samo ale nie uwzglednia State.CurrMatrix.
+      LocalTriangulate robi to samo ale nie uwzglednia State.Transform.
       W podklasach trzeba zdefiniowac tylko LocalTriangulate.
 
       Jezeli OverTriangulate = false to [Local]Triangulate generuje tylko tyle
@@ -2537,9 +2556,11 @@ constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
 begin
   CommonCreate;
 
-  CurrMatrix := Source.CurrMatrix;
+  Transform := Source.Transform;
   AverageScaleTransform := Source.AverageScaleTransform;
-  CurrTextureMatrix := Source.CurrTextureMatrix;
+  InvertedTransform := Source.InvertedTransform;
+
+  TextureTransform := Source.TextureTransform;
   FLastNodes := Source.FLastNodes;
   OwnsLastNodes := false;
   ParentShape := Source.ParentShape;
@@ -2552,9 +2573,11 @@ constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseSta
 begin
   CommonCreate;
 
-  CurrMatrix := IdentityMatrix4Single;
+  Transform := IdentityMatrix4Single;
   AverageScaleTransform := 1.0;
-  CurrTextureMatrix := IdentityMatrix4Single;
+  InvertedTransform := IdentityMatrix4Single;
+
+  TextureTransform := IdentityMatrix4Single;
   FLastNodes := ADefaultLastNodes;
   OwnsLastNodes := false;
 end;
@@ -2563,9 +2586,11 @@ constructor TVRMLGraphTraverseState.Create;
 begin
   CommonCreate;
 
-  CurrMatrix := IdentityMatrix4Single;
+  Transform := IdentityMatrix4Single;
   AverageScaleTransform := 1.0;
-  CurrTextureMatrix := IdentityMatrix4Single;
+  InvertedTransform := IdentityMatrix4Single;
+
+  TextureTransform := IdentityMatrix4Single;
   TraverseState_CreateNodes(FLastNodes);
   OwnsLastNodes := true;
 end;
@@ -2589,9 +2614,11 @@ begin
   Result :=
     VRML1ActiveLights.Equals(SecondValue.VRML1ActiveLights) and
     VRML2ActiveLights.Equals(SecondValue.VRML2ActiveLights) and
-    MatricesPerfectlyEqual(CurrMatrix, SecondValue.CurrMatrix) and
+    { no need to compare InvertedTransform, it should be equal when normal
+      Transform is equal. }
+    MatricesPerfectlyEqual(Transform, SecondValue.Transform) and
     (AverageScaleTransform = SecondValue.AverageScaleTransform) and
-    MatricesPerfectlyEqual(CurrTextureMatrix, SecondValue.CurrTextureMatrix) and
+    MatricesPerfectlyEqual(TextureTransform, SecondValue.TextureTransform) and
     (ParentShape = SecondValue.ParentShape);
 
   if Result then
@@ -2607,8 +2634,9 @@ function TVRMLGraphTraverseState.EqualsNoTransform(
 var
   I: Integer;
 begin
-  { ActiveLights, CurrMatrix, AverageScaleTransform, CurrTextureMatrix
-    are ignored by TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
+  { ActiveLights, Transform, AverageScaleTransform, InvertedTransform,
+    TextureTransform are ignored by
+    TVRMLOpenGLRenderer.RenderShapeStateNoTransform }
 
   Result := (ParentShape = SecondValue.ParentShape);
 
@@ -3391,7 +3419,7 @@ end;
     { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
       w TryFindNodeState trzeba tutaj kopiowac cale state,
       w TryFindNodeTransform wystarczy skopiowac transformacje. }
-    PTransform^ := AState.CurrMatrix;
+    PTransform^ := AState.Transform;
     PAverageScaleTransform^ := AState.AverageScaleTransform;
     raise BreakTryFindNodeState.Create;
   end;
