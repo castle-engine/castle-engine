@@ -903,9 +903,16 @@ const
   end;
 
 begin
-  Check(GL_EXT_texture_env_combine, 'EXT_texture_env_combine required');
+  Check(GL_EXT_texture_env_combine or GLVersion.AtLeast(1, 3),
+    'EXT_texture_env_combine or GL >= 1.3 required');
+  { Actually, other extensions also don't have to exist, they are built in
+    newer OpenGL version. But this requires getting their procedures under different
+    names (without extension suffix). For EXT_texture_env_combine, this is simpler
+    since it only defines new constants and these are the same, whether it's extension
+    or built-in GL 1.3. }
+
   Check(GL_ARB_multitexture, 'ARB_multitexture required');
-  Check(GLVersion.AtLeast(1, 3), 'GL 1.3 >= required for GL_SUBTRACT');
+  Check(GLVersion.AtLeast(1, 3), 'GL >= 1.3 required for GL_SUBTRACT');
   Check(GL_ARB_texture_env_dot3, 'ARB_texture_env_dot3 required (for dot3 method)');
   Check(GL_ARB_texture_cube_map, 'ARB_texture_cube_map required (for dot3 corrected method)');
 
