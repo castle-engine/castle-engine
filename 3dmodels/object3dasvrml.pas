@@ -181,15 +181,18 @@ const
     TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3dsAsVRML.}
   ALLOWED_INDICES_ARRAYS_OVERFLOWS = 100;
 
-var obj: TObject3dOBJ;
-    verts: TNodeCoordinate3;
-    faces: TNodeIndexedFaceSet_1;
-    texcoords: TNodeTextureCoordinate2;
-    texture: TNodeTexture2;
-    i: integer;
-    fourIndices: array[0..3]of Longint;
-    FacesWithTexCoords: boolean;
-    WWWBasePath: string;
+var
+  obj: TObject3dOBJ;
+  verts: TNodeCoordinate3;
+  faces: TNodeIndexedFaceSet_1;
+  texcoords: TNodeTextureCoordinate2;
+  texture: TNodeTexture2;
+  i: integer;
+  fourIndices: array[0..3]of Longint;
+  FacesWithTexCoords, FacesWithNormals: boolean;
+  WWWBasePath: string;
+  Normals: TNodeNormal;
+  FacesWithMaterial: TWavefrontMaterial;
 begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3dOBJ.Create(filename);
@@ -206,10 +209,17 @@ begin
    texcoords.FdPoint.Items.SetLength(0);
    texcoords.FdPoint.Items.AppendDynArray(obj.TexCoords);
 
+   Normals := TNodeNormal.Create('', WWWBasePath);
+   Result.AddChild(Normals);
+   Normals.FdVector.Items.SetLength(0);
+   Normals.FdVector.Items.AppendDynArray(Obj.Normals);
+
    i := 0;
    while i < obj.Faces.Count do
    begin
-    FacesWithTexCoords := obj.Faces.Items[i].HasTexCoords;
+    FacesWithTexCoords := Obj.Faces.Items[i].HasTexCoords;
+    FacesWithNormals := Obj.Faces.Items[i].HasNormals;
+    FacesWithMaterial := Obj.Faces.Items[i].Material;
 
     (* przed kazda grupa IndexedFaceSet dodajemy node Texture2. Jezeli ta grupa
        scian ma texture coords to dajemy jej
@@ -227,16 +237,19 @@ begin
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
     faces.FdTextureCoordIndex.Items.SetLength(0);
     faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
+    faces.FdNormalIndex.Items.SetLength(0);
+    faces.FdNormalIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
     result.AddChild(faces);
 
-    {zapisujemy Faces dopoki (FacesWithTexCoords = obj.Faces[i].HasTexCoords).
-     Na pewno mamy przed soba przynajmniej jedno takie face. }
+    { We add Faces as long as FacesWithXxx parameters stay the same.
+      We know that at least the next face is Ok. }
     repeat
      fourIndices[0] := obj.Faces.Items[i].VertIndices[0];
      fourIndices[1] := obj.Faces.Items[i].VertIndices[1];
      fourIndices[2] := obj.Faces.Items[i].VertIndices[2];
      fourIndices[3] := -1;
      faces.FdCoordIndex.Items.AppendArray(fourIndices);
+
      if FacesWithTexCoords then
      begin
       fourIndices[0] := obj.Faces.Items[i].TexCoordIndices[0];
@@ -245,9 +258,21 @@ begin
       fourIndices[3] := -1;
       faces.FdTextureCoordIndex.Items.AppendArray(fourIndices);
      end;
+
+     if FacesWithNormals then
+     begin
+      fourIndices[0] := obj.Faces.Items[i].NormalIndices[0];
+      fourIndices[1] := obj.Faces.Items[i].NormalIndices[1];
+      fourIndices[2] := obj.Faces.Items[i].NormalIndices[2];
+      fourIndices[3] := -1;
+      faces.FdNormalIndex.Items.AppendArray(fourIndices);
+     end;
+
      Inc(i);
     until (i >= obj.Faces.Count) or
-      (FacesWithTexCoords <> obj.Faces.Items[i].HasTexCoords);
+      (FacesWithTexCoords <> obj.Faces.Items[i].HasTexCoords) or
+      (FacesWithNormals <> obj.Faces.Items[i].HasNormals) or
+      (FacesWithMaterial <> obj.Faces.Items[i].Material);
 
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
     faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := 4;
