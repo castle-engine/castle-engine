@@ -226,7 +226,13 @@ begin
      Material.FdSpecularColor.Items.Items[0] := Obj.Materials.Items[I].SpecularColor;
      Material.FdTransparency.Items.SetLength(1);
      Material.FdTransparency.Items.Items[0] := 1 - Obj.Materials.Items[I].Opacity;
-     { TODO: shininess from SpecularExponent }
+     Material.FdShininess.Items.SetLength(1);
+     Material.FdShininess.Items.Items[0] :=
+       Obj.Materials.Items[I].SpecularExponent / 128.0;
+
+     Texture := TNodeTexture2.Create('', WWWBasePath);
+     MaterialGroup.AddChild(Texture);
+     Texture.FdFilename.Value := Obj.Materials.Items[I].DiffuseTextureFileName;
    end;
 
    verts := TNodeCoordinate3.Create('',WWWBasePath);
@@ -268,9 +274,9 @@ begin
     begin
       { if no material specified, but FacesWithTexCoords, we insert
         simple Texture2 node that uses OBJModelTextureFilename. }
-      texture := TNodeTexture2.Create('',WWWBasePath);
+      Texture := TNodeTexture2.Create('',WWWBasePath);
       FacesSeparator.AddChild(texture);
-      texture.FdFilename.Value := OBJModelTextureFilename;
+      Texture.FdFilename.Value := OBJModelTextureFilename;
     end;
 
     faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
