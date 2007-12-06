@@ -173,13 +173,17 @@ begin
 end;
 
 function LoadOBJAsVRML(const filename: string): TVRMLNode;
-
 const
   { na czas konstruowania duzych tablic indeksow pozwalamy sobie ustawiac
     bardzo duze dopuszczalne AllowedCapacityOverflow zeby wszystko bylo szybko.
 
     TODO: powinienes unikac uzywania tego, zrob tu tak jak w Load3dsAsVRML.}
   ALLOWED_INDICES_ARRAYS_OVERFLOWS = 100;
+
+  function MatOBJNameToVRMLName(const MatOBJName: string): string;
+  begin
+    Result := 'Material_' + ToVRMLName(MatOBJName);
+  end;
 
 var
   obj: TObject3dOBJ;
@@ -193,18 +197,44 @@ var
   WWWBasePath: string;
   Normals: TNodeNormal;
   FacesWithMaterial: TWavefrontMaterial;
+  MaterialsSwitch: TNodeSwitch_1;
+  MaterialGroup: TNodeGroup_1;
+  Material: TNodeMaterial_1;
+  FacesSeparator: TNodeSeparator;
 begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3dOBJ.Create(filename);
  try
   result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
   try
+   MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
+   Result.AddChild(MaterialsSwitch);
+
+   for I := 0 to Obj.Materials.Count - 1 do
+   begin
+     MaterialGroup := TNodeGroup_1.Create(
+       MatOBJNameToVRMLName(Obj.Materials.Items[I].Name), WWWBasePath);
+     MaterialsSwitch.AddChild(MaterialGroup);
+
+     Material := TNodeMaterial_1.Create('', WWWBasePath);
+     MaterialGroup.AddChild(Material);
+     Material.FdAmbientColor.Items.SetLength(1);
+     Material.FdAmbientColor.Items.Items[0] := Obj.Materials.Items[I].AmbientColor;
+     Material.FdDiffuseColor.Items.SetLength(1);
+     Material.FdDiffuseColor.Items.Items[0] := Obj.Materials.Items[I].DiffuseColor;
+     Material.FdSpecularColor.Items.SetLength(1);
+     Material.FdSpecularColor.Items.Items[0] := Obj.Materials.Items[I].SpecularColor;
+     Material.FdTransparency.Items.SetLength(1);
+     Material.FdTransparency.Items.Items[0] := 1 - Obj.Materials.Items[I].Opacity;
+     { TODO: shininess from SpecularExponent }
+   end;
+
    verts := TNodeCoordinate3.Create('',WWWBasePath);
    result.AddChild(verts);
    verts.FdPoint.Items.SetLength(0);
    verts.FdPoint.Items.AppendDynArray(obj.Verts);
 
-   texcoords := TNodeTextureCoordinate2.Create('',WWWBasePath);
+   texcoords := TNodeTextureCoordinate2.Create('', WWWBasePath);
    result.AddChild(texcoords);
    texcoords.FdPoint.Items.SetLength(0);
    texcoords.FdPoint.Items.AppendDynArray(obj.TexCoords);
@@ -221,25 +251,36 @@ begin
     FacesWithNormals := Obj.Faces.Items[i].HasNormals;
     FacesWithMaterial := Obj.Faces.Items[i].Material;
 
-    (* przed kazda grupa IndexedFaceSet dodajemy node Texture2. Jezeli ta grupa
-       scian ma texture coords to dajemy jej
-         Texture2 { filename "default_obj_texture.png" }
-       (co wlaczy defaultowa texture) wpp. dajemy
-         Texture2 { }
-       (co wylaczy teksturowanie) *)
-    texture := TNodeTexture2.Create('',WWWBasePath);
-    result.AddChild(texture);
+    FacesSeparator := TNodeSeparator.Create('', WWWBasePath);
+    Result.AddChild(FacesSeparator);
+
+    if FacesWithMaterial <> nil then
+    begin
+      { We use material from the MaterialsSwitch.
+        We find it by name, using FindNodeByName, we're sure that we will
+        find this material --- since we added all materials to
+        MaterialsSwitch. }
+      FacesSeparator.AddChild(MaterialsSwitch.FindNodeByName(TVRMLNode,
+        MatOBJNameToVRMLName(FacesWithMaterial.Name),
+        false));
+    end else
     if FacesWithTexCoords then
-     texture.FdFilename.Value := OBJModelTextureFilename;
+    begin
+      { if no material specified, but FacesWithTexCoords, we insert
+        simple Texture2 node that uses OBJModelTextureFilename. }
+      texture := TNodeTexture2.Create('',WWWBasePath);
+      FacesSeparator.AddChild(texture);
+      texture.FdFilename.Value := OBJModelTextureFilename;
+    end;
 
     faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
+    FacesSeparator.AddChild(faces);
     faces.FdCoordIndex.Items.SetLength(0);
     faces.FdCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
     faces.FdTextureCoordIndex.Items.SetLength(0);
     faces.FdTextureCoordIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
     faces.FdNormalIndex.Items.SetLength(0);
     faces.FdNormalIndex.Items.AllowedCapacityOverflow := ALLOWED_INDICES_ARRAYS_OVERFLOWS;
-    result.AddChild(faces);
 
     { We add Faces as long as FacesWithXxx parameters stay the same.
       We know that at least the next face is Ok. }
