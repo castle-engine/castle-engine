@@ -20,7 +20,7 @@
 
 { @abstract(Handling of 3D models in Wavefront OBJ format.)
 
-  First implementation vased on information from [http://www.gametutorials.com].
+  First implementation based on information from [http://www.gametutorials.com].
   Written without any particular reason --- I just saw some code doing so,
   and it seemed extremely easy, and so I decided to implement it too.
   And it works: we simply read "v", "vt" and "f" lines and that's all.
@@ -39,19 +39,6 @@ uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils, Boxes3d;
 {$define read_interface}
 
 type
-  TOBJFace = record
-    VertIndices, TexCoordIndices, NormalIndices: TVector3Cardinal;
-    HasTexCoords: boolean;
-    HasNormals: boolean;
-  end;
-  POBJFace = ^TOBJFace;
-
-  TDynArrayItem_1 = TOBJFace;
-  PDynArrayItem_1 = POBJFace;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I DynArray_1.inc}
-  TDynOBJFaceArray = TDynArray_1;
-  
   TWavefrontMaterial = class
     Name: string;
     AmbientColor, DiffuseColor, SpecularColor, TransmissionColor: TVector3Single;
@@ -59,7 +46,36 @@ type
     Opacity: Single;
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
+    DiffuseTextureFileName: string;
+
+    { Initializes material with default values.
+      Since Wavefront specification doesn't say what the default values are,
+      we just assign something along the lines of default VRML material. }
+    constructor Create(const AName: string);
   end;
+
+  TObjectsListItem_1 = TWavefrontMaterial;
+  {$I objectslist_1.inc}
+  TWavefrontMaterialsList = class(TObjectsList_1)
+    { Find material with given name, @nil if not found. }
+    function TryFindName(const Name: string): TWavefrontMaterial;
+  end;
+
+  TWavefrontFace = record
+    VertIndices, TexCoordIndices, NormalIndices: TVector3Cardinal;
+    HasTexCoords: boolean;
+    HasNormals: boolean;
+
+    { Material assigned to this face. @nil means that no material was assigned. }
+    Material: TWavefrontMaterial;
+  end;
+  PWavefrontFace = ^TWavefrontFace;
+
+  TDynArrayItem_1 = TWavefrontFace;
+  PDynArrayItem_1 = PWavefrontFace;
+  {$define DYNARRAY_1_IS_STRUCT}
+  {$I dynarray_1.inc}
+  TDynWavefrontFaceArray = TDynArray_1;
 
   { 3D model in OBJ file format. }
   TObject3dOBJ = class(TObjectBBox)
@@ -67,8 +83,9 @@ type
     FVerts: TDynVector3SingleArray;
     FTexCoords: TDynVector2SingleArray;
     FNormals: TDynVector3SingleArray;
-    FFaces: TDynOBJFaceArray;
+    FFaces: TDynWavefrontFaceArray;
     FBoundingBox: TBox3d;
+    FMaterials: TWavefrontMaterialsList;
   public
     constructor Create(const fname: string);
     destructor Destroy; override;
@@ -82,8 +99,10 @@ type
     property Verts: TDynVector3SingleArray read FVerts;
     property TexCoords: TDynVector2SingleArray read FTexCoords;
     property Normals: TDynVector3SingleArray read FNormals;
-    property Faces: TDynOBJFaceArray read FFaces;
+    property Faces: TDynWavefrontFaceArray read FFaces;
     { @groupEnd }
+
+    property Materials: TWavefrontMaterialsList read FMaterials;
 
     function BoundingBox: TBox3d; override;
   end;
@@ -94,16 +113,63 @@ type
 
 implementation
 
-uses KambiStringUtils, KambiFilesUtils;
+uses KambiStringUtils, KambiFilesUtils, DataErrors;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
+{$I objectslist_1.inc}
+
+{ TWavefrontMaterial --------------------------------------------------------- }
+
+constructor TWavefrontMaterial.Create(const AName: string);
+begin
+  inherited Create;
+
+  Name := AName;
+
+  AmbientColor := Vector3Single(0.2, 0.2, 0.2);
+  DiffuseColor := Vector3Single(0.8, 0.8, 0.8);
+  SpecularColor := Vector3Single(0, 0, 0);
+
+  { This is not necessarily good, I don't use it anywhere for now }
+  TransmissionColor := Vector3Single(0, 0, 0);
+
+  { Blender exported writes such illumination, I guess it's good default }
+  IlluminationModel := 2;
+
+  Opacity := 1.0;
+
+  SpecularExponent := 1;
+  Sharpness := 60;
+  IndexOfRefraction := 1;
+
+  DiffuseTextureFileName := '';
+end;
+
+{ TWavefrontMaterialsList ---------------------------------------------------- }
+
+function TWavefrontMaterialsList.TryFindName(const Name: string):
+  TWavefrontMaterial;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Result := Items[I];
+    if Result.Name = Name then Exit;
+  end;
+  Result := nil;
+end;
+
+{ TObject3dOBJ --------------------------------------------------------------- }
 
 constructor TObject3dOBJ.Create(const fname: string);
+var
+  BasePath: string;
 
-  procedure ReadFacesFromOBJLine(const line: string);
+  procedure ReadFacesFromOBJLine(const line: string; Material: TWavefrontMaterial);
   var
-    face: TOBJFace;
+    face: TWavefrontFace;
 
     { Zainicjuj indeksy numer indiceNum face na podstawie VertexStr }
     procedure ReadIndices(const VertexStr: string;
@@ -183,6 +249,7 @@ constructor TObject3dOBJ.Create(const fname: string);
       vertex normal or texCoord will not be present. }
     Face.HasTexCoords := true;
     Face.HasNormals := true;
+    Face.Material := Material;
 
     SeekPos := 1;
 
@@ -224,39 +291,159 @@ constructor TObject3dOBJ.Create(const fname: string);
       parametrami) a my uzywamy i tak tylko dwoch pierwszych }
   end;
 
+  { Reads single line from Wavefront OBJ or materials file.
+    This takes care of stripping comments.
+    If current line is empty or only comment, LineTok = ''.
+    Otherwise, LineTok <> '' and LineAfterMarker contains the rest of the line. }
+  procedure ReadLine(var F: TextFile; out LineTok, LineAfterMarker: string);
+  var
+    S: string;
+    SeekPosAfterMarker: Integer;
+  begin
+    Readln(F, S);
+    S := STruncateHash(S);
+
+    { calculate first line token }
+    SeekPosAfterMarker := 1;
+    LineTok := NextToken(S, SeekPosAfterMarker);
+    if LineTok <> '' then
+      LineAfterMarker := Trim(SEnding(S, SeekPosAfterMarker));
+  end;
+
+  procedure ReadMaterials(const FileName: string);
+  var
+    IsMaterial: boolean;
+
+    function ReadRGBColor(const Line: string): TVector3Single;
+    var
+      FirstToken: string;
+    begin
+      FirstToken := NextTokenOnce(Line);
+      if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
+        { we can't interpret other colors than RGB, so we silently ignore them }
+        Result := Vector3Single(1, 1, 1) else
+        Result := Vector3SingleFromStr(Line);
+    end;
+
+    procedure CheckIsMaterial(const AttributeName: string);
+    begin
+      if not IsMaterial then
+        raise EInvalidOBJFile.CreateFmt(
+          'Material not named yet, but it''s %s specified', [AttributeName]);
+    end;
+
+  var
+    F: TextFile;
+    LineTok, LineAfterMarker: string;
+  begin
+    { Specification doesn't say what to do when multiple matlib directives
+      encountered, i.e. when ReadMaterials is called multiple times.
+      I simply add to Materials list. }
+
+    { is some material in current file ? If false, then Materials is empty
+      or last material is from some other file. }
+    IsMaterial := false;
+
+    SafeReset(F, CombinePaths(BasePath, FileName), true);
+    try
+      while not Eof(F) do
+      begin
+        ReadLine(F, LineTok, LineAfterMarker);
+        if LineTok = '' then Continue;
+
+        case ArrayPosText(LineTok, ['newmtl', 'Ka', 'Kd', 'Ks', 'Tf', 'illum',
+          'd', 'Ns', 'sharpness', 'Ni', 'map_Kd']) of
+          0: begin
+               Materials.Add(TWavefrontMaterial.Create(LineAfterMarker));
+               IsMaterial := true;
+             end;
+          1: begin
+               CheckIsMaterial('ambient color (Ka)');
+               Materials.Last.AmbientColor := ReadRGBColor(LineAfterMarker);
+             end;
+          2: begin
+               CheckIsMaterial('diffuse color (Kd)');
+               Materials.Last.DiffuseColor := ReadRGBColor(LineAfterMarker);
+             end;
+          3: begin
+               CheckIsMaterial('specular color (Ks)');
+               Materials.Last.SpecularColor := ReadRGBColor(LineAfterMarker);
+             end;
+          4: begin
+               CheckIsMaterial('transmission filter color (Tf)');
+               Materials.Last.TransmissionColor := ReadRGBColor(LineAfterMarker);
+             end;
+          5: begin
+               CheckIsMaterial('illumination model (illum)');
+               Materials.Last.IlluminationModel := StrToInt(LineAfterMarker);
+             end;
+          6: begin
+               CheckIsMaterial('dissolve (d)');
+               Materials.Last.Opacity := StrToFloat(LineAfterMarker);
+             end;
+          7: begin
+               CheckIsMaterial('specular exponent (Ns)');
+               Materials.Last.SpecularExponent := StrToFloat(LineAfterMarker);
+             end;
+          8: begin
+               CheckIsMaterial('sharpness');
+               Materials.Last.Sharpness := StrToFloat(LineAfterMarker);
+             end;
+          9: begin
+               CheckIsMaterial('index of refraction (Ni)');
+               Materials.Last.IndexOfRefraction := StrToFloat(LineAfterMarker);
+             end;
+          10:begin
+               CheckIsMaterial('diffuse map (map_Kd)');
+               Materials.Last.DiffuseTextureFileName := LineAfterMarker;
+             end;
+          else { we ignore other linetoks };
+        end;
+      end;
+    finally CloseFile(F) end;
+  end;
+
 var
-  f: TextFile;
-  linetok, s,lineAfterMarker: string;
-  SeekPosAfterMarker: integer;
+  F: TextFile;
+  LineTok, LineAfterMarker: string;
   GroupName: string;
+  UsedMaterial: TWavefrontMaterial;
 begin
   inherited Create;
+
+  BasePath := ExtractFilePath(ExpandFileName(FName));
+
   FVerts := TDynVector3SingleArray.Create;
   FTexCoords := TDynVector2SingleArray.Create;
   FNormals := TDynVector3SingleArray.Create;
-  FFaces := TDynOBJFaceArray.Create;
+  FFaces := TDynWavefrontFaceArray.Create;
+  FMaterials := TWavefrontMaterialsList.Create;
+
+  UsedMaterial := nil;
 
   SafeReset(f, fname, true);
   try
     while not Eof(f) do
     begin
-      Readln(f, s);
-      s := STruncateHash(s);
+      ReadLine(F, LineTok, LineAfterMarker);
 
-      { evaluate first line token }
-      SeekPosAfterMarker := 1;
-      lineTok := NextToken(s, SeekPosAfterMarker);
-      lineAfterMarker := SEnding(s, SeekPosAfterMarker);
-      { lineTok = '' means "this line is a comment" }
-      if lineTok = '' then Continue;
+      { LineTok = '' means "this line is a comment" }
+      if LineTok = '' then Continue;
 
       { specialized token line parsing }
-      case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g']) of
+      case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
         0: Verts.AppendItem(Vector3SingleFromStr(lineAfterMarker));
         1: TexCoords.AppendItem(ReadTexCoordFromOBJLine(lineAfterMarker));
-        2: ReadFacesFromOBJLine(lineAfterMarker);
+        2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
         3: Normals.AppendItem(Vector3SingleFromStr(lineAfterMarker));
-        4: GroupName := Trim(LineAfterMarker);
+        4: GroupName := LineAfterMarker;
+        5: ReadMaterials(LineAfterMarker);
+        6: begin
+             UsedMaterial := Materials.TryFindName(LineAfterMarker);
+             if UsedMaterial = nil then
+               DataNonFatalError(Format('Unknown material name "%s"',
+                 [LineAfterMarker]));
+           end;
         else { we ignore other linetoks };
       end;
     end;
@@ -272,6 +459,7 @@ begin
   FreeAndNil(FTexCoords);
   FreeAndNil(FNormals);
   FreeAndNil(FFaces);
+  FreeWithContentsAndNil(FMaterials);
   inherited;
 end;
 
