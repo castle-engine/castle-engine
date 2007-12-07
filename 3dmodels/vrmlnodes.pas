@@ -268,19 +268,11 @@ unit VRMLNodes;
     useless.
 }
 
-{ This makes interfaces unparented by default.
-  Without this I would have to care about overriding AddRef
-  and similar useless crap for objects that want to implement
-  INodeGeneralInline interface. Or derive TVRMLNode from
-  TInterfacedObject (which is not really bad, but what's the
-  reason ? I don't need whole AddRef/etc. stuff). }
-{$interfaces corba}
-
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  VRMLEvents, ImagesCache;
+  VRMLEvents, ImagesCache, KambiInterfaces;
 
 {$define read_interface}
 
@@ -597,7 +589,7 @@ type
     Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
     Also, you should define FdXxx properties that allow fast,
     comfortable and type-secure way to retrieve and set these fields. }
-  TVRMLNode = class
+  TVRMLNode = class(TNonRefCountedInterfacedObject)
   private
     fNodeName: string;
     FWWWBasePath: string;
@@ -1832,6 +1824,19 @@ type
 
       This is always a full, expanded (i.e. not relative) URL. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
+  end;
+
+{ INodeGeneralInline --------------------------------------------------------- }
+
+  { Basic interface that should be implemented by all Inline VRML nodes. }
+  INodeGeneralInline = interface
+    { Call LoadInlined to load inlined VRML content @bold(now).
+      If Inlined is already loaded,
+      than: if CanReload = @true Inlined will be freed and loaded again,
+      else (if CanReload = @false) nothing will happen.
+
+      LoadInlined(false) will be called automatically in BeforeTraverse. }
+    procedure LoadInlined(CanReload: boolean);
   end;
 
 { Specific VRML nodes from specifications ------------------------------------ }

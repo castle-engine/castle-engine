@@ -508,15 +508,9 @@ procedure TVRMLGLAnimation.Load(
         'Different nodes classes: "%s" and "%s"',
         [Model1.ClassName, Model2.ClassName]);
 
-    (* TODO: I would prefer to use here interface code, like
-      if Supports(Model1, INodeGeneralInline) and
-       Supports(Model2, INodeGeneralInline) then
-       begin
-         { Make sure that *Inline content is loaded now. }
-         INodeGeneralInline(Model1).LoadInlined(false);
-         INodeGeneralInline(Model2).LoadInlined(false);
-       end; *)
-
+    {$ifdef VER2_0}
+    { This ugly version (without using interfaces) is only to support
+      compilation with FPC 2.0.4, it will be removed at some point. }
     if Model1 is TNodeWWWInline then
     begin
       TNodeWWWInline(Model1).LoadInlined(false);
@@ -532,6 +526,15 @@ procedure TVRMLGLAnimation.Load(
       TNodeInlineLoadControl(Model1).LoadInlined(false);
       TNodeInlineLoadControl(Model2).LoadInlined(false);
     end;
+    {$else}
+    if Supports(Model1, INodeGeneralInline) and
+       Supports(Model2, INodeGeneralInline) then
+      begin
+        { Make sure that *Inline content is loaded now. }
+        (Model1 as INodeGeneralInline).LoadInlined(false);
+        (Model2 as INodeGeneralInline).LoadInlined(false);
+      end;
+    {$endif}
 
     if Model1.NodeName <> Model2.NodeName then
       raise EModelsStructureDifferent.CreateFmt(

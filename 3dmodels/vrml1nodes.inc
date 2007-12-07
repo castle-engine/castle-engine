@@ -786,15 +786,6 @@
     property FdMap: TSFEnum index 0 read GetFieldAsSFEnum;
   end;
 
-  INodeGeneralInline = interface
-    { Call LoadInlined to load Inlined NOW. If Inlined is already loaded,
-      than : if CanReload = true Inlined will be freed and loaded again,
-      else (if CanReload = false) nothing will happen.
-
-      LoadInlined(false) will be called automatically in BeforeTraverse. }
-    procedure LoadInlined(CanReload: boolean);
-  end;
-
   { gdy chcemy operowac na scenie juz po jej zaladowaniu, bezposrednio
     lub poprzez metode w rodzaju TVRMLNode.EnumerateNodes, jest istotne
     gdzie w hierarchii sceny znajduja sie Inlined nodes. Odpowiadam :
