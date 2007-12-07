@@ -439,10 +439,14 @@ begin
         4: GroupName := LineAfterMarker;
         5: ReadMaterials(LineAfterMarker);
         6: begin
-             UsedMaterial := Materials.TryFindName(LineAfterMarker);
-             if UsedMaterial = nil then
-               DataNonFatalError(Format('Unknown material name "%s"',
-                 [LineAfterMarker]));
+             if LineAfterMarker = '(null)' then
+               UsedMaterial := nil else
+             begin
+               UsedMaterial := Materials.TryFindName(LineAfterMarker);
+               if UsedMaterial = nil then
+                 DataNonFatalError(Format('Unknown material name "%s"',
+                   [LineAfterMarker]));
+             end;
            end;
         else { we ignore other linetoks };
       end;

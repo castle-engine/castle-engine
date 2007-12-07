@@ -35,19 +35,6 @@ uses VectorMath, SysUtils, VRMLNodes, VRMLFields, Boxes3d, Object3dMD3,
 
 function LoadGEOAsVRML(const filename: string): TVRMLNode;
 
-(*
-  Because OBJ reading code can read texture coords from OBJ file
-  but cannot read a texture filename (how is it supposed to
-  be written in OBJ file ?!), so before every IndexedFaceSet node
-  that has some texture coords @link(LoadOBJAsVRML) inserts node
-     @code(Texture2 { filename OBJModelTextureFilename })
-  And before every IndexedFaceSet that does not have texture coords
-  it inserts @code(Texture2 { }) to turn texture off.
-
-  This way you can put a texture in filename OBJModelTextureFilename
-  and it will be correctly used with given OBJ file. *)
-var OBJModelTextureFilename: string = 'default_obj_texture.png';
-
 function LoadOBJAsVRML(const filename: string): TVRMLNode;
 
 function Load3dsAsVRML(const filename: string): TVRMLNode;
@@ -269,15 +256,28 @@ begin
       FacesSeparator.AddChild(MaterialsSwitch.FindNodeByName(TVRMLNode,
         MatOBJNameToVRMLName(FacesWithMaterial.Name),
         false));
-    end else
+    end;
+
+    (* else
     if FacesWithTexCoords then
     begin
-      { if no material specified, but FacesWithTexCoords, we insert
-        simple Texture2 node that uses OBJModelTextureFilename. }
+      { if no material specified, but FacesWithTexCoords, we used to insert
+        simple Texture2 node that uses
+        OBJModelTextureFilename = 'default_obj_texture.png'.
+
+        I removed this later, as texture filename may be specified (we read
+        material file for OBJ), and blender exporter can even write faces
+        with texture coordinates for objects without materials, so no texture
+        also. IOW, it seems more sensible to not output Texture node if no
+        material is present. (still, we output textureCoordIndex to VRML in
+        this case, it will not be used, but user has the possibility to add
+        Texture2 node by hand then, and he will have ready texture coords). }
+
       Texture := TNodeTexture2.Create('',WWWBasePath);
       FacesSeparator.AddChild(texture);
       Texture.FdFilename.Value := OBJModelTextureFilename;
     end;
+    *)
 
     faces := TNodeIndexedFaceSet_1.Create('',WWWBasePath);
     FacesSeparator.AddChild(faces);
