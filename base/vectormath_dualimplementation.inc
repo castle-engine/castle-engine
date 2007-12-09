@@ -176,16 +176,23 @@ begin
 end;
 
 function CosAngleBetweenVectors(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
+var
+  LensSquared: Float;
 begin
- (* jak widac, wykrecam sie jednym pierwiastkowaniem pierwiastkujac
-    VectorLenSqr(v1) i VectorLenSqr(v2) jednoczesnie. *)
+  (* jak widac, wykrecam sie jednym pierwiastkowaniem pierwiastkujac
+     VectorLenSqr(v1) i VectorLenSqr(v2) jednoczesnie. *)
 
- (* musimy robic tu Clamp do (-1, 1) bo praktyka pokazala ze czasami na skutek
-    bledow obliczen zmiennoprzec. wynik tej funkcji jest maciupinke poza
-    zakresem. A Cosinum musi byc w zakresie -1..1, w szczegolnosci
-    ArcCos() dla czegos choc troche poza zakresem wywala paskudny EInvalidArgument *)
- result := Clamped(
-   VectorDotProduct(v1, v2) / Sqrt(VectorLenSqr(v1)*VectorLenSqr(v2)), -1.0, 1.0);
+  LensSquared := VectorLenSqr(v1) * VectorLenSqr(v2);
+  if LensSquared < SCALAR_EQUALITY_EPSILON then
+    raise EVectorMathInvalidOp.Create(
+      'Cannot calculate angle between vectors, at least one of the vectors is zero');
+
+  (* musimy robic tu Clamp do (-1, 1) bo praktyka pokazala ze czasami na skutek
+     bledow obliczen zmiennoprzec. wynik tej funkcji jest maciupinke poza
+     zakresem. A Cosinum musi byc w zakresie -1..1, w szczegolnosci
+     ArcCos() dla czegos choc troche poza zakresem wywala paskudny EInvalidArgument *)
+  result := Clamped(
+    VectorDotProduct(v1, v2) / Sqrt(LensSquared), -1.0, 1.0);
 end;
 
 function AngleRadBetweenVectors(const v1, v2: TYPE_VECTOR3): TYPE_SCALAR;
