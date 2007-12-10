@@ -549,7 +549,14 @@ type
       - with textures transformed by texture transform
       - with mixed models, some line sets, some points, some spheres/boxes,
         some indexedfaceset with normalMap specified,
-        some indexedfaceset with normalMap not specified. }
+        some indexedfaceset with normalMap not specified.
+      - again on kocur.ii (2 tex units only)
+      - test on Mesa 
+      - examples/bump_mapping/ should use a copy of fountain level
+        from the castle, the castle should use bump mapping
+      - fix flat normals artifacts on fountain core on fountain level
+        with bump mapping
+      }
     property BumpMapping: boolean read FBumpMapping write FBumpMapping
       default false;
 
