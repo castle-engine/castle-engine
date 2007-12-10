@@ -535,15 +535,21 @@ type
       To actually use this, it requires also
       some OpenGL capabilities (some extensions present, and enough texture
       units available). And naturally it comes to use only if
-      TODO: VRML model will use BumpMap extension for some shapes nodes.
+      VRML model will use BumpMap extension for some shapes nodes.
 
       You have to update BumpMappingLightPosition if you enable BumpMapping,
       to actually specify how bumps should appear.
 
-      TODO: this is mostly a hack for now, just to show specially prepared VRMLs
-      (like fountain_bumpdemo). Should be extended to work with everything,
-      to check for existence of textures
-      and to be aware of many other ways to specify normals. }
+      TODO: implementation of this should still be cleaned up:
+      - be aware of other ways to specify normals
+      - take texture transform into account correctly
+      See TODOs in this file and see vrmlopenglrenderer_indexednodesrenderer.inc
+      Test:
+      - with textures with alpha channel (should make alpha test)
+      - with textures transformed by texture transform
+      - with mixed models, some line sets, some points, some spheres/boxes,
+        some indexedfaceset with normalMap specified,
+        some indexedfaceset with normalMap not specified. }
     property BumpMapping: boolean read FBumpMapping write FBumpMapping
       default false;
 
@@ -2150,6 +2156,8 @@ var
   TextureTransform: TNodeTextureTransform;
 begin
   { TODO: for bump mapping, this should be done on more than one texture unit. }
+  ActiveTexture(0);
+
   glMatrixMode(GL_TEXTURE);
   if State.ParentShape = nil then
     glLoadMatrix(State.TextureTransform) else
@@ -2240,17 +2248,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
       glBindTexture(GL_TEXTURE_2D,
         TextureReferences.Items[TextureReferencesIndex].TextureGL);
-
-      { turn off other textures, and go back to 0th texture unit }
-      { TODO: this should be provided by push/pop mechanism }
-      ActiveTexture(1);
-      glDisable(GL_TEXTURE_2D);
-
-      ActiveTexture(2);
-      glDisable(GL_TEXTURE_2D);
-
-      ActiveTexture(0);
-      glDisable(GL_TEXTURE_CUBE_MAP_ARB);
     end;
 
   begin
@@ -2328,17 +2325,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       glDisable(GL_TEXTURE_2D);
       glDisable(GL_ALPHA_TEST);
       Render_TexCoordsNeeded := false;
-
-      { turn off other textures, and go back to 0th texture unit }
-      { TODO: this should be provided by push/pop mechanism }
-      ActiveTexture(1);
-      glDisable(GL_TEXTURE_2D);
-
-      ActiveTexture(2);
-      glDisable(GL_TEXTURE_2D);
-
-      ActiveTexture(0);
-      glDisable(GL_TEXTURE_CUBE_MAP_ARB);
     end;
   end;
 

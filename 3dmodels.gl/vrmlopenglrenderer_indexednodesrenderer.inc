@@ -723,9 +723,6 @@ end;
 
 procedure TIndexedFaceSetRenderer.Render_Init;
 
-  { TODO: push/pop current texture unit and tex env, in case only some
-    parts of VRML model use bump mapping. }
-
   procedure SetTexturesForDot3NotNormalized;
   begin
     Renderer.ActiveTexture(0);
@@ -757,16 +754,6 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-
-    if Renderer.LastGLFreeTexture -
-       Renderer.Attributes.FirstGLFreeTexture + 1 > 2 then
-    begin
-      { TODO: this is not nice, doing this by push/pop elsewhere
-        would be nicer }
-      { texture unit 2 not used. }
-      Renderer.ActiveTexture(2);
-      glDisable(GL_TEXTURE_2D);
-    end;
   end;
 
   procedure SetTexturesForDot3Normalized;
@@ -852,9 +839,52 @@ begin
 end;
 
 procedure TIndexedFaceSetRenderer.Render_Fini;
+
+  { DisableXxx procedures disable textures (2d and cube map)
+    that were enabled by their SetXxx counterparts in Render_Init.
+
+    Note that they still leave some state behind:
+    - currently bound textures
+    - texture environments
+    - the currently bound texture is left unspecified
+    These must be set always when anything will enable some texture. }
+
+  procedure DisableTexturesForDot3NotNormalized;
+  begin
+    Renderer.ActiveTexture(0);
+    glDisable(GL_TEXTURE_2D);
+
+    Renderer.ActiveTexture(1);
+    glDisable(GL_TEXTURE_2D);
+  end;
+
+  procedure DisableTexturesForDot3Normalized;
+  begin
+    { texture unit 0: just lookup your coordinates (which are
+      3D lighting dir, not normalized) in cube map.
+      This calculates normalized lighting dir. }
+    Renderer.ActiveTexture(0);
+    glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+    Renderer.ActiveTexture(1);
+    glDisable(GL_TEXTURE_2D);
+
+    Renderer.ActiveTexture(2);
+    glDisable(GL_TEXTURE_2D);
+  end;
+
 begin
- FreeAndNil(Render_GeneratedNormals);
- inherited;
+  FreeAndNil(Render_GeneratedNormals);
+  inherited;
+
+  if BumpMappingMethod <> bmNone then
+  begin
+    case BumpMappingMethod of
+      bmDot3NotNormalized: DisableTexturesForDot3NotNormalized;
+      bmDot3Normalized   : DisableTexturesForDot3Normalized;
+      else raise EInternalError.Create('BumpMappingMethod ?');
+    end;
+  end;
 end;
 
 procedure Render_Triangulated(const TriIndices: TVector3Longint; Data: Pointer);
