@@ -1,20 +1,20 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2007 Michalis Kamburelis.
 
-  This file is part of "Kambi's 3dmodels.gl Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's 3dmodels.gl Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's 3dmodels.gl Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's 3dmodels.gl Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
@@ -356,9 +356,11 @@ type
     FColorModulatorSingle: TColorModulatorSingleFunc;
     FColorModulatorByte: TColorModulatorByteFunc;
     FUseLights: boolean;
-    FFirstGLFreeLight: integer;
+    FFirstGLFreeLight: Cardinal;
     FLastGLFreeLight: integer;
     FEnableTextures: boolean;
+    FFirstGLFreeTexture: Cardinal;
+    FLastGLFreeTexture: integer;
     FTextureMinFilter: TGLint;
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
@@ -377,9 +379,11 @@ type
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); virtual;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); virtual;
     procedure SetUseLights(const Value: boolean); virtual;
-    procedure SetFirstGLFreeLight(const Value: integer); virtual;
+    procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
     procedure SetLastGLFreeLight(const Value: integer); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
+    procedure SetFirstGLFreeTexture(const Value: Cardinal); virtual;
+    procedure SetLastGLFreeTexture(const Value: integer); virtual;
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
     procedure SetPointSize(const Value: TGLFloat); virtual;
@@ -470,7 +474,7 @@ type
       (czyli wszystkie swiatla powyzej First beda potraktowane jako wolne. }
     property UseLights: boolean
       read FUseLights write SetUseLights default false;
-    property FirstGLFreeLight: integer
+    property FirstGLFreeLight: Cardinal
       read FFirstGLFreeLight write SetFirstGLFreeLight default 0;
     property LastGLFreeLight: integer
       read FLastGLFreeLight write SetLastGLFreeLight default -1;
@@ -484,6 +488,23 @@ type
       to jej uzywamy, ustawiajac sobie glEnable(GL_TEXTURE2D) gdy trzeba. }
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
+
+    { These specify which OpenGL texture units are free to use.
+
+      Note that for now we assume that at least one tetxure unit is free.
+      If OpenGL multitexturing is not available, we will just use the default
+      texture unit.
+
+      LastGLFreeTexture = -1 means that up to the end, all texture units
+      are available. In other words, -1 is equivalent to
+      glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1.
+
+      @groupBegin }
+    property FirstGLFreeTexture: Cardinal
+      read FFirstGLFreeTexture write SetFirstGLFreeTexture default 0;
+    property LastGLFreeTexture: Integer
+      read FLastGLFreeTexture write SetLastGLFreeTexture default -1;
+    { @groupEnd }
 
     { ponizsze parametry kontroluja min i mag filter dla tekstur.
       @groupBegin }
@@ -517,11 +538,22 @@ type
     property UseFog: boolean
       read FUseFog write SetUseFog default true;
 
-    { TODO: this is mostly a hack for now, just to show specially prepared VRMLs
+    { Enable bump mapping.
+
+      To actually use this, it requires also
+      some OpenGL capabilities (some extensions present, and enough texture
+      units available). And naturally it comes to use only if
+      TODO: VRML model will use BumpMap extension for some shapes nodes.
+
+      You have to update BumpMappingLightPosition if you enable BumpMapping,
+      to actually specify how bumps should appear.
+
+      TODO: this is mostly a hack for now, just to show specially prepared VRMLs
       (like fountain_bumpdemo). Should be extended to work with everything,
       to check for existence of textures
       and to be aware of many other ways to specify normals. }
-    property BumpMapping: boolean read FBumpMapping write FBumpMapping;
+    property BumpMapping: boolean read FBumpMapping write FBumpMapping
+      default false;
 
     BumpMappingLightPosition: TVector3Single;
   end;
@@ -738,6 +770,8 @@ type
     function TextureNodeIndex(TexNode: TNodeGeneralTexture): integer;
   end;
 
+  TBumpMappingMethod = (bmNone, bmDot3, bmDot3Normalized);
+
   TVRMLOpenGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -751,6 +785,19 @@ type
       and will minimize amount of calls to glGetInteger() }
     FLastGLFreeLight: integer;
     function LastGLFreeLight: integer;
+
+    { Use always LastGLFreeTexture, this will never return -1.
+      Will return Attributes.LastGLFreeTexture, or
+      glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) -1 if -1.
+
+      To minimize number of glGetInteger calls, the result of this is cached
+      in FLastGLFreeTexture. }
+    FLastGLFreeTexture: integer;
+    function LastGLFreeTexture: integer;
+
+    BumpMappingMethodCached: TBumpMappingMethod;
+    BumpMappingMethodIsCached: boolean;
+
     TextureReferences: TDynTextureReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -813,6 +860,16 @@ type
 
     FCache: TVRMLOpenGLRendererContextCache;
     OwnsCache: boolean;
+
+    { If ARB_multitexturing available, this sets currently active texture unit.
+      TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB
+      + FirstGLFreeTexture.
+
+      So the only thing that you have to care about is to specify TextureUnit <=
+      LastGLFreeTexture - FirstGLFreeTexture.
+      Everything else (ARB_multitexturing, GL_TEXTURE0_ARB,
+      FirstGLFreeTexture values) is taken care of inside here. }
+    procedure ActiveTexture(TextureUnit: Cardinal);
   public
     { Constructor.
 
@@ -867,9 +924,29 @@ type
 
     procedure RenderShapeState(Node: TNodeGeneralShape;
       State: TVRMLGraphTraverseState);
+
+    { This checks Attributes (mainly Attributes.BumpMapping) and OpenGL
+      context capabilities to check which bump mapping method (if any)
+      should be used.
+
+      More precisely: this checks Attributes.BumpMapping,
+      Attributes.EnableTextures. Then check are appropriate OpenGL extensions
+      present (GL_ARB_multitexture and friends). Then checks are enough
+      texture units available (using First/LastGLFreeTexture).
+
+      This is mainly for private purposes, as this class handles everything
+      related to bump mapping inside. This function may be usable for you
+      only to display to user this property. Use this only after RenderBegin
+      was called and before CloseGL, in other words: use this only when we're
+      already tied to particular OpenGL context. }
+    function BumpMappingMethod: TBumpMappingMethod;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
+
+const
+  BumpMappingMethodNames: array [TBumpMappingMethod] of string =
+  ( 'None', 'Dot3', 'Dot3Normalized' );
 
 {$undef read_interface}
 
@@ -1452,6 +1529,8 @@ begin
     FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
     LastGLFreeLight := TVRMLRenderingAttributes(Source).LastGLFreeLight;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
+    FirstGLFreeTexture := TVRMLRenderingAttributes(Source).FirstGLFreeTexture;
+    LastGLFreeTexture := TVRMLRenderingAttributes(Source).LastGLFreeTexture;
     TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
     TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
     PointSize := TVRMLRenderingAttributes(Source).PointSize;
@@ -1474,6 +1553,8 @@ begin
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).EnableTextures = EnableTextures) and
+    (TVRMLRenderingAttributes(SecondValue).FirstGLFreeTexture = FirstGLFreeTexture) and
+    (TVRMLRenderingAttributes(SecondValue).LastGLFreeTexture = LastGLFreeTexture) and
     (TVRMLRenderingAttributes(SecondValue).TextureMinFilter = TextureMinFilter) and
     (TVRMLRenderingAttributes(SecondValue).TextureMagFilter = TextureMagFilter) and
     (TVRMLRenderingAttributes(SecondValue).PointSize = PointSize) and
@@ -1488,6 +1569,8 @@ begin
   FUseLights := false;
   FFirstGLFreeLight := 0;
   FLastGLFreeLight := -1;
+  FFirstGLFreeTexture := 0;
+  FLastGLFreeTexture := -1;
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;
@@ -1523,7 +1606,7 @@ begin
   FUseLights := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: integer);
+procedure TVRMLRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
 begin
   FFirstGLFreeLight := Value;
 end;
@@ -1536,6 +1619,16 @@ end;
 procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
   FEnableTextures := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
+begin
+  FFirstGLFreeTexture := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
+begin
+  FLastGLFreeTexture := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
@@ -1602,6 +1695,8 @@ begin
   { This is something different than FAttributes.FLastGLFreeLight.
     See LastGLFreeLight function. }
   FLastGLFreeLight := -1;
+
+  FLastGLFreeTexture := -1;
 
   FAttributes := AttributesClass.Create;
   TextureReferences := TDynTextureReferenceArray.Create;
@@ -1771,6 +1866,8 @@ var
   i: integer;
 begin
   FLastGLFreeLight := -1;
+  FLastGLFreeTexture := -1;
+  BumpMappingMethodIsCached := false;
 
   {niszcz fonty}
   for fsfam := Low(fsfam) to High(fsfam) do
@@ -1800,6 +1897,76 @@ begin
  result := FLastGLFreeLight;
 end;
 
+function TVRMLOpenGLRenderer.LastGLFreeTexture: Integer;
+begin
+  if FLastGLFreeTexture = -1 then
+  begin
+    if Attributes.LastGLFreeTexture = -1 then
+    begin
+      { actually get this from OpenGL }
+      if GL_ARB_multitexture then
+        FLastGLFreeTexture := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1 else
+        FLastGLFreeTexture := 0;
+    end else
+      FLastGLFreeTexture := Attributes.LastGLFreeTexture;
+  end;
+  Result := FLastGLFreeTexture;
+end;
+
+function TVRMLOpenGLRenderer.BumpMappingMethod: TBumpMappingMethod;
+var
+  TextureUnitsAvailable: Cardinal;
+begin
+  if not BumpMappingMethodIsCached then
+  begin
+    TextureUnitsAvailable := LastGLFreeTexture - Attributes.FirstGLFreeTexture;
+
+    if Attributes.BumpMapping and
+       Attributes.EnableTextures and
+
+      { EXT_texture_env_combine (standard since 1.3) required }
+      (GL_EXT_texture_env_combine or GLVersion.AtLeast(1, 3)) and
+
+      { Actually, other extensions also don't have to exist, they are built in
+        newer OpenGL version. But this requires getting their procedures under different
+        names (without extension suffix). For EXT_texture_env_combine, this is simpler
+        since it only defines new constants and these are the same, whether it's extension
+        or built-in GL 1.3. }
+
+      { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
+      GL_ARB_multitexture and
+
+      { GL >= 1.3 required for GL_SUBTRACT.
+
+        As you see, actually this whole check could be substituted by GL >= 1.3,
+        as this is requires for GL_SUBTRACT and provides all extensions required
+        here. }
+      GLVersion.AtLeast(1, 3) and
+
+      { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
+      GL_ARB_texture_env_dot3 and
+
+      { 2 texture units for Dot3 (without normalization }
+      (TextureUnitsAvailable >= 2) then
+    begin
+      if
+        { ARB_texture_cube_map required for Dot3Normalized }
+        GL_ARB_texture_cube_map and
+
+        { 2 texture units for Dot3Normalized }
+        (TextureUnitsAvailable >= 3) then
+
+        BumpMappingMethodCached := bmDot3Normalized else
+        BumpMappingMethodCached := bmDot3;
+    end else
+      BumpMappingMethodCached := bmNone;
+
+    BumpMappingMethodIsCached := true;
+  end;
+
+  Result := BumpMappingMethodCached;
+end;
+
 { Render ---------------------------------------------------------------------- }
 
 { TODO: just a hack to pass them in global vars }
@@ -1811,6 +1978,13 @@ var
 
 {$I vrmlopenglrenderer_render_glvertex.inc}
 {$I vrmlopenglrenderer_render_materials.inc}
+
+procedure TVRMLOpenGLRenderer.ActiveTexture(TextureUnit: Cardinal);
+begin
+  if GL_ARB_multitexture then
+    glActiveTextureARB(GL_TEXTURE0_ARB +
+      Attributes.FirstGLFreeTexture + TextureUnit);
+end;
 
 procedure TVRMLOpenGLRenderer.RenderBegin(FogNode: TNodeFog;
   const FogDistanceScaling: Single);
@@ -1894,7 +2068,16 @@ begin
   matrix mode)}
  glPushAttrib(GL_ALL_ATTRIB_BITS);
  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+
+ { TODO: push/pop is not fully correctly done for multitexturing now:
+   - we should push/pop all texture units environment properties
+   - we should push/pop all texture units matrices
+   - make sure that currently active texture unit is saved ?
+   Right now, we actually assume that on enter, 0th unit is already
+   active, and we only save it's matrix and environment. }
+ ActiveTexture(0);
  glMatrixMode(GL_TEXTURE); glPushMatrix;
+
  glMatrixMode(GL_MODELVIEW);
 
  {init our OpenGL state}
@@ -1929,20 +2112,21 @@ begin
 
  SetupFog(FogNode);
 
- if Attributes.BumpMapping then
+ { tests: Writeln(BumpMappingMethodNames[BumpMappingMethod]); }
+
+ if BumpMappingMethod = bmDot3Normalized then
    TexNormalizationCube := MakeNormalizationCubeMap;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
 begin
-  if Attributes.BumpMapping then
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+  ActiveTexture(0);
 
- {pop matrices and attribs (by popping matrix LAST we restore also saved
-  matrix mode)}
- glMatrixMode(GL_TEXTURE); glPopMatrix;
- glPopClientAttrib;
- glPopAttrib;
+  {pop matrices and attribs (by popping matrix LAST we restore also saved
+   matrix mode)}
+  glMatrixMode(GL_TEXTURE); glPopMatrix;
+  glPopClientAttrib;
+  glPopAttrib;
 end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -1969,6 +2153,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
 var
   TextureTransform: TNodeTextureTransform;
 begin
+  { TODO: for bump mapping, this should be done on more than one texture unit. }
   glMatrixMode(GL_TEXTURE);
   if State.ParentShape = nil then
     glLoadMatrix(State.TextureTransform) else
@@ -2096,7 +2281,7 @@ begin
      'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
      'You must call TVRMLOpenGLRenderer.Prepare first');
 
-   if not Attributes.BumpMapping then
+   if BumpMappingMethod = bmNone then
    begin
      SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
      glEnable(GL_TEXTURE_2D);

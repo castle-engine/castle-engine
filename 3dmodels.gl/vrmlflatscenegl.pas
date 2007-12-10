@@ -129,9 +129,11 @@ type
     procedure SetColorModulatorSingle(const Value: TColorModulatorSingleFunc); override;
     procedure SetColorModulatorByte(const Value: TColorModulatorByteFunc); override;
     procedure SetUseLights(const Value: boolean); override;
-    procedure SetFirstGLFreeLight(const Value: integer); override;
+    procedure SetFirstGLFreeLight(const Value: Cardinal); override;
     procedure SetLastGLFreeLight(const Value: integer); override;
     procedure SetEnableTextures(const Value: boolean); override;
+    procedure SetFirstGLFreeTexture(const Value: Cardinal); override;
+    procedure SetLastGLFreeTexture(const Value: integer); override;
     procedure SetTextureMinFilter(const Value: TGLint); override;
     procedure SetTextureMagFilter(const Value: TGLint); override;
     procedure SetPointSize(const Value: TGLFloat); override;
@@ -2663,7 +2665,7 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeLight(const Value: integer);
+procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeLight(const Value: Cardinal);
 begin
   if FirstGLFreeLight <> Value then
   begin
@@ -2684,6 +2686,24 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
   if EnableTextures <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetFirstGLFreeTexture(const Value: Cardinal);
+begin
+  if FirstGLFreeTexture <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetLastGLFreeTexture(const Value: integer);
+begin
+  if LastGLFreeTexture <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
