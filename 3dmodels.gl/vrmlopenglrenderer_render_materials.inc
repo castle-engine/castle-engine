@@ -38,7 +38,6 @@ begin
       original texture to give primary_color). In case of Dot3NotNormalized,
       UnlitColor will be ignored (we'll use glColor to pass light dir). }
     ( (IndexedRenderer <> nil) and
-      (IndexedRenderer is TIndexedFaceSetRenderer) and
       (IndexedRenderer.BumpMappingMethod <> bmNone) )
   );
 end;

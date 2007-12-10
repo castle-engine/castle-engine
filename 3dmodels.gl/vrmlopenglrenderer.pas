@@ -210,14 +210,6 @@
       informacje ktore pozwola mu wyrenderowac wszystko ladnie bez wzgledu
       na to czy ma czy nie ma wlaczone LIGHTING))
 
-    @item(glTexEnv
-
-      (oczywiscie, powinienes uzywac defaultowego GL_MODULATE ktore
-      gwarantuje ze polaczenie wlasciwosci materialu, swiatla i tekstury
-      bedzie odpowiednio wyrenderowane; ale jesli masz model do specjalnych
-      zastosowan, albo nie zamierzasz uzywac swiatla itp. - inne tryby
-      tez moga byc uzyteczne))
-
     @item(
       glDepthMask, stan enabled GL_BLEND i glBlendFunc
       (te stany nie sa tu kontrolowane, choc zapewne kod zewnetrzny
@@ -938,9 +930,9 @@ type
 
       This is mainly for private purposes, as this class handles everything
       related to bump mapping inside. This function may be usable for you
-      only to display to user this property. Use this only after RenderBegin
-      was called and before CloseGL, in other words: use this only when we're
-      already tied to particular OpenGL context. }
+      only to display to user this property. Note that calling this
+      ties us to current OpenGL context (just like any PrepareXxx or RenderXxx
+      call). }
     function BumpMappingMethod: TBumpMappingMethod;
   end;
 
@@ -1747,8 +1739,6 @@ var
   TextureReference: TTextureReference;
   TextureNode: TNodeGeneralTexture;
   FontStyle: TNodeFontStyle_2;
-  SlashPos: Integer;
-  NormalMapFileName: string;
 begin
  { przygotuj font }
  if State.ParentShape = nil then
@@ -1819,21 +1809,29 @@ begin
      TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte);
 
-   if Attributes.BumpMapping then
+   { TODO: for now, bump mapping is used only if the node has normal texture
+     too. It should be possible to use bump mapping even if the node is colored
+     only by material (in this case we should remember to still generate
+     texture coords etc.).
+
+     TODO: Also, now for each texture, there must always be the same bump map
+     (since we store it in the same textureReference }
+
+   TextureReference.TextureNormalMap := 0;
+   if (BumpMappingMethod <> bmNone) and
+      (State.ParentShape <> nil) and
+      (State.ParentShape.NormalMap <> nil) then
    begin
-     SlashPos := BackPos('/', TextureNode.TextureUsedFullUrl);
-     Check(SlashPos <> 0, 'no / in texture URL');
-     NormalMapFileName := TextureNode.TextureUsedFullUrl;
-     Insert('normal_maps/', NormalMapFileName, SlashPos+1);
-     NormalMapFileName := ChangeFileExt(NormalMapFileName, '.png');
-     //Writeln('Loading normal map from ', NormalMapFileName);
-     { TODO: total hack, we just generate normal map texture filename
-       based on actual texture filename. This works only for specially
-       prepared fountain_bumpdemo VRML. }
-     TextureReference.TextureNormalMap := LoadGLTexture(NormalMapFileName,
-       GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-       TextureRepeatToGL[TextureNode.RepeatS],
-       TextureRepeatToGL[TextureNode.RepeatT]);
+     State.ParentShape.NormalMap.ImagesCache := Cache;
+     if State.ParentShape.NormalMap.IsTextureImage then
+     begin
+       { TODO: normal map textures should be shared by Cache }
+       TextureReference.TextureNormalMap := LoadGLTexture(
+         State.ParentShape.NormalMap.TextureImage,
+         GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+         TextureRepeatToGL[TextureNode.RepeatS],
+         TextureRepeatToGL[TextureNode.RepeatT]);
+     end;
    end;
 
    TextureReferences.AppendItem(TextureReference);
@@ -2233,6 +2231,28 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   var
     TextureReferencesIndex: Integer;
     TextureNode: TNodeGeneralTexture;
+
+    procedure EnableClassicTexturing;
+    begin
+      ActiveTexture(0);
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+      glBindTexture(GL_TEXTURE_2D,
+        TextureReferences.Items[TextureReferencesIndex].TextureGL);
+
+      { turn off other textures, and go back to 0th texture unit }
+      { TODO: this should be provided by push/pop mechanism }
+      ActiveTexture(1);
+      glDisable(GL_TEXTURE_2D);
+
+      ActiveTexture(2);
+      glDisable(GL_TEXTURE_2D);
+
+      ActiveTexture(0);
+      glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+    end;
+
   begin
     {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 
@@ -2280,22 +2300,26 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
 
       if (IndexedRenderer <> nil) and
-         (IndexedRenderer is TIndexedFaceSetRenderer) and
          (IndexedRenderer.BumpMappingMethod <> bmNone) then
       begin
-        TIndexedFaceSetRenderer(IndexedRenderer).TexNormalizationCube :=
-          TexNormalizationCube;
-        TIndexedFaceSetRenderer(IndexedRenderer).TexOriginal :=
-          TextureReferences.Items[TextureReferencesIndex].TextureGL;
-        TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
-          TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
+        if TextureReferences.Items[TextureReferencesIndex].TextureNormalMap <> 0 then
+        begin
+          Assert(IndexedRenderer is TIndexedFaceSetRenderer,
+            'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
+          TIndexedFaceSetRenderer(IndexedRenderer).TexNormalizationCube :=
+            TexNormalizationCube;
+          TIndexedFaceSetRenderer(IndexedRenderer).TexOriginal :=
+            TextureReferences.Items[TextureReferencesIndex].TextureGL;
+          TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
+            TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
+        end else
+        begin
+          { Last chance to resign from BumpMapping: we don't have normalMap to use }
+          IndexedRenderer.BumpMappingMethod := bmNone;
+          EnableClassicTexturing;
+        end;
       end else
-      begin
-        ActiveTexture(0);
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D,
-          TextureReferences.Items[TextureReferencesIndex].TextureGL);
-      end;
+        EnableClassicTexturing;
 
       Render_TexCoordsNeeded := true;
     end else
@@ -2304,6 +2328,17 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       glDisable(GL_TEXTURE_2D);
       glDisable(GL_ALPHA_TEST);
       Render_TexCoordsNeeded := false;
+
+      { turn off other textures, and go back to 0th texture unit }
+      { TODO: this should be provided by push/pop mechanism }
+      ActiveTexture(1);
+      glDisable(GL_TEXTURE_2D);
+
+      ActiveTexture(2);
+      glDisable(GL_TEXTURE_2D);
+
+      ActiveTexture(0);
+      glDisable(GL_TEXTURE_CUBE_MAP_ARB);
     end;
   end;
 

@@ -89,6 +89,15 @@
       is nil or if it's not TNodeFontStyle_2. }
     function FontStyle: TNodeFontStyle_2;
   end;
+
+  TNodeKambiAppearance = class(TNodeAppearance)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    property FdNormalMap: TSFNode index 3 read GetFieldAsSFNode;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -222,4 +231,25 @@ begin
     Result := TNodeFontStyle_2(FdFontStyle.Value) else
     Result := nil;
 end;
+
+class function TNodeKambiAppearance.ClassNodeTypeName: string;
+begin
+  Result := 'KambiAppearance';
+end;
+
+class function TNodeKambiAppearance.URNMatching(const URN: string): boolean;
+begin
+  { Don't call "inherited URNMatching(URN)", since we don't want to
+    "intercept" URNs that should indicate standard Appearance node. }
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeKambiAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Fields.Add(TSFNode.Create(Self, 'normalMap',
+    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
+  Fields.Last.Exposed := true;
+end;
+
 {$endif read_implementation}

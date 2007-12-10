@@ -1267,6 +1267,10 @@
       or Appearance.Texture field is NULL, or wrong node class is
       passed as Appearance or Texture node), then returns nil. }
     function Texture: TNodeGeneralTexture;
+    
+    { This is like @link(Texture), but it returns NormalMap field
+      of KambiAppearance. }
+    function NormalMap: TNodeGeneralTexture;
 
     { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
@@ -3639,7 +3643,7 @@ end;
 constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance])); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance, TNodeKambiAppearance])); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'geometry', AllowedGeometryNodes)); Fields.Last.Exposed := true;
 end;
 
@@ -3680,6 +3684,21 @@ begin
     if (Appearance.FdTexture.Value <> nil) and
        (Appearance.FdTexture.Value is TNodeGeneralTexture) then
       Result := TNodeGeneralTexture(Appearance.FdTexture.Value);
+  end;
+end;
+
+function TNodeShape.NormalMap: TNodeGeneralTexture;
+var
+  Appearance: TNodeKambiAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeKambiAppearance) then
+  begin
+    Appearance := TNodeKambiAppearance(FdAppearance.Value);
+    if (Appearance.FdNormalMap.Value <> nil) and
+       (Appearance.FdNormalMap.Value is TNodeGeneralTexture) then
+      Result := TNodeGeneralTexture(Appearance.FdNormalMap.Value);
   end;
 end;
 

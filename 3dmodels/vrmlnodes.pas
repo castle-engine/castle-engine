@@ -5978,6 +5978,7 @@ initialization
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
     TNodeText3D,
+    TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
@@ -6085,6 +6086,7 @@ initialization
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
     //TNodeText3D,
+    //TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
     TNodeAnchor,
