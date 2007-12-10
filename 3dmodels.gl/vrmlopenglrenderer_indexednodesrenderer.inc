@@ -660,26 +660,44 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
     Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
     Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
 
-    { TODO: for now, this assumes BumpMappingMethod = bmDot3Normalized }
-
+    { calculate LightDirTangent }
     if HasTangentVectors and
       (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
       (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
-    begin
       LightDirTangent := LightDirectionInTangentSpace(
-        Vertex, Normal, STangent, TTangent);
+        Vertex, Normal, STangent, TTangent) else
+      LightDirTangent := Vector3Single(0, 0, 1);
 
-      glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-         LightDirTangent[0],
-        -LightDirTangent[1],
-         LightDirTangent[2]);
-    end else
-    begin
-      glMultiTexCoord3fARB(GL_TEXTURE0_ARB, 0, 0, 1);
+    { TODO: that's an error that it's needed, see bump_mapping.pasprogram }
+    LightDirTangent[1] := - LightDirTangent[1];
+
+    { set all textures coordinates }
+    case BumpMappingMethod of
+      bmDot3NotNormalized:
+        begin
+          NormalizeTo1st(LightDirTangent);
+
+          { pass LightDirTangent as RGB color }
+          glColor3f((LightDirTangent[0] + 1) / 2,
+                    (LightDirTangent[1] + 1) / 2,
+                    (LightDirTangent[2] + 1) / 2);
+
+          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
+          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
+        end;
+
+      bmDot3Normalized:
+        begin
+          glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
+            LightDirTangent[0],
+            LightDirTangent[1],
+            LightDirTangent[2]);
+
+          glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
+          glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
+        end;
+      else raise EInternalError.Create('BumpMappingMethod ?');
     end;
-
-    glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
-    glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
   end;
 
 begin
@@ -696,6 +714,49 @@ procedure TIndexedFaceSetRenderer.Render_Init;
 
   { TODO: push/pop current texture unit and tex env, in case only some
     parts of VRML model use bump mapping. }
+
+  procedure SetTexturesForDot3NotNormalized;
+  begin
+    Renderer.ActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+    { texture unit 0: make dot between PRIMARY_COLOR and
+      current texture (normal map). IOW, calculate diffuse factor. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+    Renderer.ActiveTexture(1);
+    glBindTexture(GL_TEXTURE_2D, TexOriginal);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+    { texture unit 1: multiply diffuse factor by texture value. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+    { pass alpha from primary_color (this is actual material Opacity) }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+
+    if Renderer.LastGLFreeTexture -
+       Renderer.Attributes.FirstGLFreeTexture + 1 > 2 then
+    begin
+      { TODO: this is not nice, doing this by push/pop elsewhere
+        would be nicer }
+      { texture unit 2 not used. }
+      Renderer.ActiveTexture(2);
+      glDisable(GL_TEXTURE_2D);
+    end;
+  end;
 
   procedure SetTexturesForDot3Normalized;
   begin
@@ -735,12 +796,17 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
 
-    { texture unit 1: multiply diffuse factor by texture value. }
+    { texture unit 2: multiply diffuse factor by texture value. }
     glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+    { pass alpha from primary_color (this is actual material Opacity) }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
   end;
 
 begin
@@ -748,8 +814,11 @@ begin
 
   if BumpMappingMethod <> bmNone then
   begin
-    { TODO: for now, this assumes BumpMappingMethod = bmDot3Normalized }
-    SetTexturesForDot3Normalized;
+    case BumpMappingMethod of
+      bmDot3NotNormalized: SetTexturesForDot3NotNormalized;
+      bmDot3Normalized   : SetTexturesForDot3Normalized;
+      else raise EInternalError.Create('BumpMappingMethod ?');
+    end;
 
     LightPositionObjectSpace := MultMatrixPoint(
       Renderer.Render_State.InvertedTransform,

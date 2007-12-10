@@ -770,7 +770,7 @@ type
     function TextureNodeIndex(TexNode: TNodeGeneralTexture): integer;
   end;
 
-  TBumpMappingMethod = (bmNone, bmDot3, bmDot3Normalized);
+  TBumpMappingMethod = (bmNone, bmDot3NotNormalized, bmDot3Normalized);
 
   TVRMLOpenGLRenderer = class
   private
@@ -1957,7 +1957,7 @@ begin
         (TextureUnitsAvailable >= 3) then
 
         BumpMappingMethodCached := bmDot3Normalized else
-        BumpMappingMethodCached := bmDot3;
+        BumpMappingMethodCached := bmDot3NotNormalized;
     end else
       BumpMappingMethodCached := bmNone;
 
