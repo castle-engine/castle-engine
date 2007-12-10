@@ -803,6 +803,8 @@ type
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array[TVRMLFontFamily, boolean, boolean] of boolean;
 
+    TexNormalizationCube: TGLuint;
+
     { ------------------------------------------------------------
       Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
 
@@ -1969,10 +1971,6 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
-{ TODO: just a hack to pass them in global vars }
-var
-  TexOriginal, TexNormalMap, TexNormalizationCube: TGLuint;
-
 {$I vrmlopenglrenderer_indexednodesrenderer.inc}
 {$define IndexedRenderer := TGeneralIndexedRenderer(ExposedIndexedRenderer) }
 
@@ -2231,78 +2229,93 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       IndexedRenderer.CalculateRender_Normals;
   end;
 
-var
-  TextureReferencesIndex: Integer;
-  TextureNode: TNodeGeneralTexture;
+  procedure InitTextures;
+  var
+    TextureReferencesIndex: Integer;
+    TextureNode: TNodeGeneralTexture;
+  begin
+    {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
+
+    {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
+     GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
+     tak naprawde nie bedzie alpha textury - to bedzie alpha textury
+     zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
+     dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
+     na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
+     bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
+     koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
+     my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
+     kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
+     pogodzic transparency materialu z kanalem alpha tekstury, przeciez
+     chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
+     Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
+     transparency materialu tak jak to robi OpenGL w GL_MODULATE.
+
+     (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
+      na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
+
+     To wszystko bedzie mialo wieksze znaczenie gdy zaimplementuje
+     pelne partial-transparency na teksturach (nie tylko 0-1 jak jest teraz)
+     i ktos zechce kombinowac finezyjne transparency
+     materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
+    }
+    TextureNode := State.Texture;
+    {$ifdef USE_VRML_NODES_TRIANGULATION}
+    { We don't generate texture coords, so disable textures. }
+    TextureNode := nil;
+    {$endif}
+
+    if (TextureNode <> nil) and
+       TextureNode.IsTextureImage and
+       Attributes.EnableTextures and
+       NodeTextured(Node) then
+    begin
+      TextureReferencesIndex := TextureReferences.TextureNodeIndex(
+        TextureNode);
+      Assert(TextureReferencesIndex <> -1,
+        'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
+        'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
+        'You must call TVRMLOpenGLRenderer.Prepare first');
+
+      SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
+
+      if (IndexedRenderer <> nil) and
+         (IndexedRenderer is TIndexedFaceSetRenderer) and
+         (IndexedRenderer.BumpMappingMethod <> bmNone) then
+      begin
+        TIndexedFaceSetRenderer(IndexedRenderer).TexNormalizationCube :=
+          TexNormalizationCube;
+        TIndexedFaceSetRenderer(IndexedRenderer).TexOriginal :=
+          TextureReferences.Items[TextureReferencesIndex].TextureGL;
+        TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
+          TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
+      end else
+      begin
+        ActiveTexture(0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D,
+          TextureReferences.Items[TextureReferencesIndex].TextureGL);
+      end;
+
+      Render_TexCoordsNeeded := true;
+    end else
+    begin
+      ActiveTexture(0);
+      glDisable(GL_TEXTURE_2D);
+      glDisable(GL_ALPHA_TEST);
+      Render_TexCoordsNeeded := false;
+    end;
+  end;
+
 begin
   {zrob nasze kopie}
   Render_State := State;
   Render_Node := Node;
 
-  {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
-
-  {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
-   GL_TEXTURE_ENV_MODE = GL_MODULATE to alpha ktore bedzie testowane
-   tak naprawde nie bedzie alpha textury - to bedzie alpha textury
-   zmieszane z alpha koloru zmieszane z alpha swiatla. Nawet gdybysmy
-   dali texture env mode = GL_REPLACE to ciagle alpha swiatla ma wplyw
-   na testowane alpha fragmentu (chociaz to juz nie jest takie zle,
-   bo w VRML'u nie ma czegos takiego jak "alpha" czy "transparency"
-   koloru swiatla co jest dosc rozsadnym uproszczeniem) ALE przeciez
-   my chcemy miec GL_MODULATE bo powinnismy modulowac kolor tekstury
-   kolorem materialu ! Nie widze tu ladnego sposobu jak mialbym
-   pogodzic transparency materialu z kanalem alpha tekstury, przeciez
-   chcac zadowolic specyfikacje VRML'a musze honorowac obie te rzeczy.
-   Wiec niniejszym decyduje sie po prostu mieszac alpha textury z
-   transparency materialu tak jak to robi OpenGL w GL_MODULATE.
-
-   (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
-    na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
-
-   To wszystko bedzie mialo wieksze znaczenie gdy zaimplementuje
-   pelne partial-transparency na teksturach (nie tylko 0-1 jak jest teraz)
-   i ktos zechce kombinowac finezyjne transparency
-   materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
-  }
-  TextureNode := State.Texture;
-  {$ifdef USE_VRML_NODES_TRIANGULATION}
-  { We don't generate texture coords, so disable textures. }
-  TextureNode := nil;
-  {$endif}
-  if (TextureNode <> nil) and
-     TextureNode.IsTextureImage and
-     Attributes.EnableTextures and
-     NodeTextured(Node) then
-  begin
-   TextureReferencesIndex := TextureReferences.TextureNodeIndex(
-     TextureNode);
-   Assert(TextureReferencesIndex <> -1,
-     'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
-     'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
-     'You must call TVRMLOpenGLRenderer.Prepare first');
-
-   if BumpMappingMethod = bmNone then
-   begin
-     SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
-     glEnable(GL_TEXTURE_2D);
-     glBindTexture(GL_TEXTURE_2D,
-       TextureReferences.Items[TextureReferencesIndex].TextureGL);
-   end else
-   begin
-     TexOriginal := TextureReferences.Items[TextureReferencesIndex].TextureGL;
-     TexNormalMap := TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
-   end;
-
-   Render_TexCoordsNeeded := true;
-  end else
-  begin
-   glDisable(GL_TEXTURE_2D);
-   glDisable(GL_ALPHA_TEST);
-   Render_TexCoordsNeeded := false;
-  end;
-
   InitIndexedRenderer;
   try
+    InitTextures;
+
     Render_MaterialsBegin;
     try
       {$ifdef USE_VRML_NODES_TRIANGULATION}

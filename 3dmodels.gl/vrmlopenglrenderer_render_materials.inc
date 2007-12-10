@@ -39,7 +39,7 @@ begin
       UnlitColor will be ignored (we'll use glColor to pass light dir). }
     ( (IndexedRenderer <> nil) and
       (IndexedRenderer is TIndexedFaceSetRenderer) and
-      (BumpMappingMethod <> bmNone) )
+      (IndexedRenderer.BumpMappingMethod <> bmNone) )
   );
 end;
 

@@ -123,7 +123,7 @@ type
     MaterialBinding: Integer;
     NormalBinding: Integer;
 
-    { Initialized in our Render_Init to bmNone.
+    { Initialized in our constructor to bmNone.
       Set this to Renderer.BumpMappingMethod when you're in subclass
       able to do bump mapping. }
     BumpMappingMethod: TBumpMappingMethod;
@@ -155,6 +155,8 @@ type
   private
     Render_GeneratedNormals: TDynVector3SingleArray;
   public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+
     procedure Render_Init; override;
     procedure Render_Fini; override;
     procedure Render_Vertex(indexNum: integer); override;
@@ -164,6 +166,9 @@ type
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
     FaceConvex: boolean;
+
+    { These must be set by Renderer if BumpMappingMethod <> bmNone }
+    TexOriginal, TexNormalMap, TexNormalizationCube: TGLuint;
 
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
@@ -621,6 +626,12 @@ end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
+constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+  BumpMappingMethod := Renderer.BumpMappingMethod;
+end;
+
 procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
   procedure DoBumpMapping;
@@ -810,8 +821,6 @@ procedure TIndexedFaceSetRenderer.Render_Init;
   end;
 
 begin
-  BumpMappingMethod := Renderer.BumpMappingMethod;
-
   if BumpMappingMethod <> bmNone then
   begin
     case BumpMappingMethod of
