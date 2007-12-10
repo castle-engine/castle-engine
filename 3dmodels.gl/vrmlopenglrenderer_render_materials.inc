@@ -30,7 +30,14 @@ begin
     ( (Node is TNodeIndexedLineSet_1) and
       (IndexedRenderer.Render_Normals = inGenerate) ) or
     { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
-    (Node is TNodeIndexedLineSet_2)
+    (Node is TNodeIndexedLineSet_2) or
+    { When doing bump mapping, we turn off lighting, bump mapping will
+      calculate it per-pixel anyway. UnlitColor is not important
+      in this case, Dot3Normalized will ignore it and Dot3NotNormalized will
+      override it. }
+    ( (IndexedRenderer <> nil) and
+      (IndexedRenderer is TIndexedFaceSetRenderer) and
+      (BumpMappingMethod <> bmNone) )
   );
 end;
 

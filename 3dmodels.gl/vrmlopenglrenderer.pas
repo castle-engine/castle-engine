@@ -1950,7 +1950,7 @@ begin
       (TextureUnitsAvailable >= 2) then
     begin
       if
-        { ARB_texture_cube_map required for Dot3Normalized }
+        { ARB_texture_cube_map required for Dot3Normalized (TODO: standard since 1.3, see above comments) }
         GL_ARB_texture_cube_map and
 
         { 2 texture units for Dot3Normalized }

@@ -123,6 +123,11 @@ type
     MaterialBinding: Integer;
     NormalBinding: Integer;
 
+    { Initialized in our Render_Init to bmNone.
+      Set this to Renderer.BumpMappingMethod when you're in subclass
+      able to do bump mapping. }
+    BumpMappingMethod: TBumpMappingMethod;
+
     procedure Render_Vertex(indexNum: integer); virtual;
     function Render_GetVertex(indexNum: integer): TVector3f;
     procedure Render_Face(const AFaceNumber: Cardinal;
@@ -132,10 +137,6 @@ type
     procedure Render_Fini; virtual;
 
     procedure Render;
-
-    HasTangentVectors: boolean;
-    STangent, TTangent: TVector3Single;
-    LightPositionObjectSpace: TVector3Single;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -163,6 +164,11 @@ type
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
     FaceConvex: boolean;
+
+    { Helpers for bump mapping }
+    HasTangentVectors: boolean;
+    STangent, TTangent: TVector3Single;
+    LightPositionObjectSpace: TVector3Single;
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
@@ -242,72 +248,15 @@ begin
 end;
 
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
-
-  procedure DoBumpMapping;
-
-    function LightDirectionInTangentSpace(
-      const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
-    var
-      ToTangent: TMatrix4Single;
-      I: Integer;
-    begin
-      { first init 4th row and column }
-      ToTangent := IdentityMatrix4Single;
-
-      for I := 0 to 2 do
-      begin
-        ToTangent[I, 0] := STangent[I];
-        ToTangent[I, 1] := TTangent[I];
-        ToTangent[I, 2] := Normal[I];
-      end;
-
-      Result := MultMatrixPoint(ToTangent,
-        VectorSubtract(LightPositionObjectSpace, Vertex));
-    end;
-
-  var
-    Normal, Vertex, LightDirTangent: TVector3Single;
-    Tex: TVector2Single;
-  begin
-    Check(Render_Normals = inGenerate, 'Normal for BumpMapping');
-    { TODO: should we force taking normals per face here ? Or a smoothed normal
-      will be OK here ? }
-    Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
-
-    { This is OK, we want Vertex in object space here. }
-    Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
-
-    Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
-    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
-
-    { TODO: for now, this assumes Renderer.BumpMappingMethod = bmDot3Normalized }
-
-    if HasTangentVectors and
-      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
-      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) then
-    begin
-      LightDirTangent := LightDirectionInTangentSpace(
-        Vertex, Normal, STangent, TTangent);
-
-      glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-         LightDirTangent[0],
-        -LightDirTangent[1],
-         LightDirTangent[2]);
-    end else
-    begin
-      glMultiTexCoord3fARB(GL_TEXTURE0_ARB, 0, 0, 1);
-    end;
-
-    glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
-    glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
-  end;
-
 var
   VertexNum: integer;
 begin
   VertexNum := CoordIndex.Items.Items[indexNum];
 
-  if Render_UseTextureCoordIndex then
+  { Don't pass glTexCoordv here if BumpMappingMethod <> bmNone,
+    then we'll handle passing texture coords appropriately
+    ourselves. }
+  if Render_UseTextureCoordIndex and (BumpMappingMethod = bmNone) then
     glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]]);
 
   case Render_Normals of
@@ -323,10 +272,6 @@ begin
     imUseSpecifiedPerVertexIndexed:
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
-
-  if (Renderer.BumpMappingMethod <> bmNone) and
-     (Self is TIndexedFaceSetRenderer) then
-    DoBumpMapping;
 
   Renderer.DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
 end;
@@ -579,70 +524,12 @@ var
       glUnlockArraysEXT;
   end;
 
-  { TODO: push/pop current texture unit and tex env, in case only some
-    parts of VRML model use bump mapping. }
-
-  procedure SetTexturesForDot3Normalized;
-  begin
-    { texture unit 0: just lookup your coordinates (which are
-      3D lighting dir, not normalized) in cube map.
-      This calculates normalized lighting dir. }
-    Renderer.ActiveTexture(0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexNormalizationCube);
-    glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-    { make sure GL_TEXTURE_2D is disabled here (other bump mapping
-      methods could enable this) }
-    glDisable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-
-    Renderer.ActiveTexture(1);
-    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 1: make dot between previous (light dir normalized) and
-      current texture (normal map). IOW, calculate diffuse factor. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-
-    Renderer.ActiveTexture(2);
-    { We bind NormalAndBumpTex, although actually we don't use
-      bump stored there as alpha channel (they are only for emboss
-      method). }
-    glBindTexture(GL_TEXTURE_2D, TexOriginal);
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-
-    { texture unit 1: multiply diffuse factor by texture value. }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-  end;
-
 var
   startIndex, endIndex: integer;
   FaceNumber: Cardinal;
 begin
   if Coord = nil then
     Exit;
-
-  if Renderer.BumpMappingMethod <> bmNone then
-  begin
-    { TODO: for now, this assumes BumpMappingMethod = bmDot3Normalized }
-    SetTexturesForDot3Normalized;
-    LightPositionObjectSpace := MultMatrixPoint(
-      Renderer.Render_State.InvertedTransform,
-      Renderer.Attributes.BumpMappingLightPosition);
-  end;
 
   {initialize most important thing we will use with indexed nodes :
    vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit
@@ -735,15 +622,142 @@ end;
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
 procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
+
+  procedure DoBumpMapping;
+
+    function LightDirectionInTangentSpace(
+      const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
+    var
+      ToTangent: TMatrix4Single;
+      I: Integer;
+    begin
+      { first init 4th row and column }
+      ToTangent := IdentityMatrix4Single;
+
+      for I := 0 to 2 do
+      begin
+        ToTangent[I, 0] := STangent[I];
+        ToTangent[I, 1] := TTangent[I];
+        ToTangent[I, 2] := Normal[I];
+      end;
+
+      Result := MultMatrixPoint(ToTangent,
+        VectorSubtract(LightPositionObjectSpace, Vertex));
+    end;
+
+  var
+    Normal, Vertex, LightDirTangent: TVector3Single;
+    Tex: TVector2Single;
+  begin
+    Check(Render_Normals = inGenerate, 'Normal for BumpMapping');
+    { TODO: should we force taking normals per face here ? Or a smoothed normal
+      will be OK here ? }
+    Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
+
+    { This is OK, we want Vertex in object space here. }
+    Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
+
+    Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
+    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
+
+    { TODO: for now, this assumes BumpMappingMethod = bmDot3Normalized }
+
+    if HasTangentVectors and
+      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
+      (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
+    begin
+      LightDirTangent := LightDirectionInTangentSpace(
+        Vertex, Normal, STangent, TTangent);
+
+      glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
+         LightDirTangent[0],
+        -LightDirTangent[1],
+         LightDirTangent[2]);
+    end else
+    begin
+      glMultiTexCoord3fARB(GL_TEXTURE0_ARB, 0, 0, 1);
+    end;
+
+    glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
+    glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
+  end;
+
 begin
- if Render_Normals = inGenerate then
-  glNormalv(Render_GeneratedNormals.Items[indexNum]);
- inherited;
+  if Render_Normals = inGenerate then
+    glNormalv(Render_GeneratedNormals.Items[indexNum]);
+
+  if BumpMappingMethod <> bmNone then
+    DoBumpMapping;
+
+  inherited;
 end;
 
 procedure TIndexedFaceSetRenderer.Render_Init;
+
+  { TODO: push/pop current texture unit and tex env, in case only some
+    parts of VRML model use bump mapping. }
+
+  procedure SetTexturesForDot3Normalized;
+  begin
+    { texture unit 0: just lookup your coordinates (which are
+      3D lighting dir, not normalized) in cube map.
+      This calculates normalized lighting dir. }
+    Renderer.ActiveTexture(0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, TexNormalizationCube);
+    glEnable(GL_TEXTURE_CUBE_MAP_ARB);
+    { make sure GL_TEXTURE_2D is disabled here (other bump mapping
+      methods could enable this) }
+    glDisable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+
+    Renderer.ActiveTexture(1);
+    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+    { texture unit 1: make dot between previous (light dir normalized) and
+      current texture (normal map). IOW, calculate diffuse factor. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+
+    Renderer.ActiveTexture(2);
+    { We bind NormalAndBumpTex, although actually we don't use
+      bump stored there as alpha channel (they are only for emboss
+      method). }
+    glBindTexture(GL_TEXTURE_2D, TexOriginal);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+
+    { texture unit 1: multiply diffuse factor by texture value. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+  end;
+
 begin
+  BumpMappingMethod := Renderer.BumpMappingMethod;
+
+  if BumpMappingMethod <> bmNone then
+  begin
+    { TODO: for now, this assumes BumpMappingMethod = bmDot3Normalized }
+    SetTexturesForDot3Normalized;
+
+    LightPositionObjectSpace := MultMatrixPoint(
+      Renderer.Render_State.InvertedTransform,
+      Renderer.Attributes.BumpMappingLightPosition);
+  end;
+
  inherited;
+
  if Render_Normals = inGenerate then
  begin
   if Renderer.Attributes.SmoothShading then
@@ -869,7 +883,7 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
     TriangleTexCoord: TTriangle2Single;
   begin
     HasTangentVectors := false;
-    if (Renderer.BumpMappingMethod <> bmNone) and (StartIndex + 2 < EndIndex) then
+    if (BumpMappingMethod <> bmNone) and (StartIndex + 2 < EndIndex) then
     begin
       Triangle3D[0] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex]];
       Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
@@ -892,7 +906,7 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
   end;
 
 begin
- if Renderer.BumpMappingMethod <> bmNone then
+ if BumpMappingMethod <> bmNone then
    Check(FaceConvex, 'VRML BumpMapping not implemented for non-convex faces yet');
 
  if not FaceConvex then
