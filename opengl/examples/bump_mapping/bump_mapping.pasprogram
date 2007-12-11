@@ -54,7 +54,8 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
   NormalizationCubeMap,
 
-  VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL;
+  VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
+  VRMLOpenGLRenderer;
 
 const
   SceneBoundingBox: TBox3d =
@@ -750,7 +751,9 @@ var
       S += Format('Dot3 normalized first (for quick visual compare): %s', [BoolToStr[NormalizedDot3First]]) +nl;
       S += Format('Emboss scale: %f', [EmbossScale]) +nl;
       S += Format('Emboss alpha multiply by blending: %s',
-        [BoolToStr[EmbossAlphaMultiplyByBlending]]);
+        [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
+      S += Format('VRML auto-detected best bump mapping method: %s',
+        [BumpMappingMethodNames[Scene.BumpMappingMethod]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -760,16 +763,6 @@ begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
 
   DisableTextures;
-
-  if (Method = bmVRML) and
-    (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
-  begin
-    { You can't have brVRML on this hardware, currently bmVRML does only
-      dot3 with normalization, so 3 texture units are required.
-      This will be remedied (fallback on dot3 without normalization) later
-      in VRML. }
-    Method := bmEmboss;
-  end;
 
   if Method = bmVRML then
   begin

@@ -800,6 +800,19 @@ type
       actually should use this headlight (this information usually comes from
       NavigationInfo.headlight value). }
     function CreateHeadLight: TVRMLGLHeadLight;
+
+    { @abstract(Which bump mapping method will be used ?)
+
+      This is decided and controlled internally, based on current OpenGL
+      capabilities (the only things you can control
+      are Attributes.EnableTextures and Attributes.BumpMapping properties).
+      So the only use of this function is when you want to report this
+      to user, or for debug purposes etc.
+
+      Note that calling this ties us to current OpenGL context.
+
+      @seealso TVRMLOpenGLRenderer.BumpMappingMethod }
+    function BumpMappingMethod: TBumpMappingMethod;
   end;
 
   TObjectsListItem_1 = TVRMLFlatSceneGL;
@@ -2527,6 +2540,11 @@ begin
     HeadLightNode := RootNode.TryFindNode(TNodeKambiHeadLight, true) as
       TNodeKambiHeadLight;
   Result := TVRMLGLHeadLight.Create(HeadLightNode);
+end;
+
+function TVRMLFlatSceneGL.BumpMappingMethod: TBumpMappingMethod;
+begin
+  Result := Renderer.BumpMappingMethod;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }
