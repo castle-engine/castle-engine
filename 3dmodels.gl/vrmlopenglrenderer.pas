@@ -538,7 +538,10 @@ type
       VRML model will use BumpMap extension for some shapes nodes.
 
       You have to update BumpMappingLightPosition if you enable BumpMapping,
-      to actually specify how bumps should appear.
+      to actually specify how bumps should appear. Also, changing
+      BumpMappingLightPosition means that the objects must be rendered again
+      --- so if BumpMappingLightPosition changes often, you have to use
+      roNone as Optimization for TVRMLFlatSceneGL.
 
       TODO: implementation of this should still be cleaned up:
       - be aware of other ways to specify normals
