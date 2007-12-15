@@ -944,7 +944,7 @@ begin
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(
-    'vrmldata/levels/fountain/fountain_bumpdemo_final.wrl', true),
+    'vrmldata/levels/fountain/fountain_final.wrl', true),
     true, roNone);
   { for RenderFrustumOctree }
   Progress.UserInterface := ProgressNullInterface;

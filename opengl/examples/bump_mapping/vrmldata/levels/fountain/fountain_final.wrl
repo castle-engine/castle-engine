@@ -2,8 +2,8 @@
 
 NavigationInfo {
   avatarSize [ 0.5, 2 ]
-  speed 1
-  headlight TRUE
+  speed 10
+  headlight FALSE
 }
 
 # Camera settings "encoded" in the VRML declaration below :
@@ -39,4 +39,4 @@ Transform {
 #   }
 }
 
-Inline { url "fountain_bumpdemo.wrl" }
+Inline { url "fountain_processed.wrl" }

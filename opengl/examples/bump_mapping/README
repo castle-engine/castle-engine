@@ -452,6 +452,20 @@ size as original textures. That's a waste of texture memory,
 according to various articles these maps are OK being 2 times
 (i.e. 4 times area) smaller than original textures. Or even more smaller.
 
+I added bump mapping to VRML by inventing normalMap extension,
+see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php].
+Other implementations in VRML of this are X3D multitexture node
+(see [http://www.web3d.org/x3d/specifications/ISO-IEC-19775-X3DAbstractSpecification/Part01/components/texturing.html#MultiTexture]
+with DOTPRODUCT3 mode) and Cortona's BumpMap extension for VRML 97
+[http://www.parallelgraphics.com/developer/products/cortona/extensions/bumpmap/].
+Both X3D and Cortona ways allow you to do bump mapping just by allowing
+you to do multitexturing with Dot3 operation, I felt that this exposes
+implementation details too much (and you still have to implement in VRML script things
+like calculating light direction in tangent space, eventually normalizing it
+on each pixel etc.). I feel that my normalMap field is much more comfortable
+for VRML authors (you just specify normalMap texture, and VRML engine is
+supposed to do everything else to handle this normal map somehow).
+
 ------------------------------------------------------------------------------
 Notes about filtering: I simply filtered normal maps just like normal
 textures, LINEAR_MIMAP_LINEAR (2 mipmaps mixed, both with bilinear)
