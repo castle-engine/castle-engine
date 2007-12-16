@@ -82,6 +82,23 @@ type
   private
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
+
+    { Return texture coordinate for given vertex, identified by IndexNum
+      (IndexNum has the same meaning as for Render_Vertex).
+
+      Returns @false if no texture coords are available.
+
+      This tries to work in all cases when we actually render some texture,
+      but in practice doesn't work (yet) in all cases: when texture coords
+      are generated, it returns @false. (that's because we used OpenGL to
+      generate them). }
+    function GetTextureCoord(IndexNum: integer; out Tex: TVector2Single): boolean;
+
+    { Pretty much analogous to GetTextureCoord.
+
+      Override this in descendants only to handle
+      Render_Normals = inGenerate case. }
+    procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
   public
     { Constructor initializes various fields of this class.
       Don't do any OpenGL state changes here (initialization of OpenGL state
@@ -154,6 +171,8 @@ type
   TIndexedFaceSetRenderer = class(TIndexedFaces_Or_TrianglesRenderer)
   private
     Render_GeneratedNormals: TDynVector3SingleArray;
+
+    procedure GetNormal(IndexNum: integer; out N: TVector3Single); override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
@@ -252,6 +271,49 @@ begin
   Renderer := ARenderer;
 end;
 
+function TGeneralIndexedRenderer.GetTextureCoord(
+  IndexNum: integer; out Tex: TVector2Single): boolean;
+begin
+  { The logic of this is synchronized with TextureBegin and
+    Render_Vertex logic. Ideally, this should calculate the
+    same texture coordinate that is effectively used by OpenGL. }
+  if Render_UseTextureCoordIndex then
+  begin
+    Result := true;
+    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[IndexNum]];
+  end else
+  if (Renderer.Render_TexCoordsNeeded) and
+     (TexCoord <> nil) and
+     (TexCoordIndex.Count < CoordIndex.Count) and
+     (Renderer.Render_State.ParentShape <> nil) then
+  begin
+    Result := true;
+    { TextureBegin sets in this case
+        glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
+      which means that CoordIndex will be used just like TexCoordIndex. }
+    Tex := TexCoord.Items.Items[CoordIndex.Items.Items[IndexNum]];
+  end else
+    { TODO: we fail to handle cases when texture coord in automatically
+      generated, see cases when GenerateDefaultTextureCoordinates is called by
+      TextureBegin. For now, we return @false for them --- instead, we should
+      calculate and return texture coordinates ourself. }
+    Result := false;
+end;
+
+procedure TGeneralIndexedRenderer.GetNormal(
+  IndexNum: integer; out N: TVector3Single);
+begin
+  case Render_Normals of
+    inOverall: N := Normal.Items.Items[0];
+    inUseSpecifiedPerVertex:
+      N := Normal.Items.Items[CoordIndex.Items.Items[IndexNum]];
+    inUseSpecifiedPerVertexIndexed:
+      N := Normal.Items.Items[NormalIndex.Items.Items[indexNum]];
+    else
+      raise EInternalError.Create('GetNormal: Render_Normals ?');
+  end;
+end;
+
 procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
 var
   VertexNum: integer;
@@ -262,13 +324,25 @@ begin
     then we'll handle passing texture coords appropriately
     ourselves. }
   if Render_UseTextureCoordIndex and (BumpMappingMethod = bmNone) then
+  begin
+    { We could use GetTextureCoord(IndexNum) here,
+      but since we already checked Render_UseTextureCoordIndex,
+      we do it more directly. But the result is the same as if we had used
+      GetTextureCoord. }
     glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]]);
+  end;
 
-  case Render_Normals of
-    inUseSpecifiedPerVertex:
-      {don't do anything - glDrawElement will get the normal};
-    inUseSpecifiedPerVertexIndexed: glNormalv(
-      Normal.Items.Items[NormalIndex.Items.Items[indexNum]]);
+  { If case of other Render_Normals, this will be handled elsewhere:
+    - inOverall is handled in NormalsBegin
+    - inGenerate is handled in Render_Vertex/Face as appropriate in descendants
+    - inUseSpecifiedPerVertex is also set up in NormalsBegin,
+      so glDrawElement will magically do this. }
+  if Render_Normals = inUseSpecifiedPerVertexIndexed then
+  begin
+    { We could use GetNormal(IndexNum) here, but since we already checked
+      Render_Normals, we do it more directly. But the result is the same
+      as if we had used GetNormal. }
+    glNormalv(Normal.Items.Items[NormalIndex.Items.Items[indexNum]]);
   end;
 
   case Render_Materials of
@@ -632,6 +706,14 @@ begin
   BumpMappingMethod := Renderer.BumpMappingMethod;
 end;
 
+procedure TIndexedFaceSetRenderer.GetNormal(
+  IndexNum: integer; out N: TVector3Single);
+begin
+  if Render_Normals = inGenerate then
+    N := Render_GeneratedNormals.Items[IndexNum] else
+    inherited;
+end;
+
 procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
   procedure DoBumpMapping;
@@ -660,16 +742,12 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
     Normal, Vertex, LightDirTangent: TVector3Single;
     Tex: TVector2Single;
   begin
-    Check(Render_Normals = inGenerate, 'Normal for BumpMapping');
-    { TODO: should we force taking normals per face here ? Or a smoothed normal
-      will be OK here ? }
-    Normal := TIndexedFaceSetRenderer(Self).Render_GeneratedNormals.Items[IndexNum];
+    GetNormal(IndexNum, Normal);
 
     { This is OK, we want Vertex in object space here. }
     Vertex := Coord.Items.ItemsArray^[CoordIndex.Items.Items[indexNum]];
 
-    Check(Render_UseTextureCoordIndex, 'TexCoord for BumpMapping');
-    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]];
+    Check(GetTextureCoord(IndexNum, Tex), 'TexCoord for BumpMapping');
 
     { calculate LightDirTangent }
     if HasTangentVectors and
@@ -993,15 +1071,17 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
     HasTangentVectors := false;
     if (BumpMappingMethod <> bmNone) and (StartIndex + 2 < EndIndex) then
     begin
+      { calculate Triangle3D }
       Triangle3D[0] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex]];
       Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
       Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
 
-      TriangleTexCoord[0] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex]];
-      TriangleTexCoord[1] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex + 1]];
-      TriangleTexCoord[2] := TexCoord.Items.Items[TexCoordIndex.Items.Items[StartIndex + 2]];
-
+      { calculate TriangleTexCoord }
+      if GetTextureCoord(StartIndex    , TriangleTexCoord[0]) and
+         GetTextureCoord(StartIndex + 1, TriangleTexCoord[1]) and
+         GetTextureCoord(StartIndex + 2, TriangleTexCoord[2]) then
       try
+        { calculate STangent, TTangent }
         CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord);
         CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord);
 

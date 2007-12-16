@@ -544,7 +544,6 @@ type
       roNone as Optimization for TVRMLFlatSceneGL.
 
       TODO: implementation of this should still be cleaned up:
-      - be aware of other ways to specify normals
       - take texture transform into account correctly
       See TODOs in this file and see vrmlopenglrenderer_indexednodesrenderer.inc
       Test:

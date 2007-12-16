@@ -764,7 +764,7 @@ begin
 
   DisableTextures;
 
-  if Method = bmVRML then
+  if (Method = bmVRML) and (Scene.Background <> nil) then
   begin
     glLoadMatrix(Glw.Navigator.RotationOnlyMatrix);
     Scene.Background.Render;
