@@ -116,6 +116,12 @@ type
     Render_Normals: TRenderIndexedNormals;
     procedure CalculateRender_Normals;
 
+    { Only if Render_Normals = inGenerate, you can set this in descendants
+      in Render_Init (after inherited).
+      If @true, then it's guaranteed that normals for the same face will
+      be equal --- this may be useful for various optimization purposes. }
+    NormalsFlat: boolean;
+
     { Set these in descendant's constructor. }
     CoordIndex: TMFLong;
     { If Coord = nil then nothing will be rendered. }
@@ -367,6 +373,7 @@ begin
     Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
 
   Render_Normals := inGenerate;
+  NormalsFlat := false;
 
   if (Normal = nil) or (NormalIndex = nil) then
     Exit;
@@ -374,12 +381,21 @@ begin
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
       if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
+      begin
         Render_Normals := inUseSpecifiedPerVertexIndexed;
+        NormalsFlat := false;
+      end;
     BIND_PER_VERTEX:
-      Render_Normals := inUseSpecifiedPerVertex;
+      begin
+        Render_Normals := inUseSpecifiedPerVertex;
+        NormalsFlat := false;
+      end;
     BIND_OVERALL:
       if Normal.Count > 0 then
+      begin
         Render_Normals := inOverall;
+        NormalsFlat := true;
+      end;
   end;
 
   { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
@@ -393,7 +409,10 @@ begin
     normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
     zostanie mimo wszystko dobrze odczytany i wyswietlony. }
   if Normal.Count = 0 then
+  begin
     Render_Normals := inGenerate;
+    NormalsFlat := false;
+  end;
 end;
 
 procedure TGeneralIndexedRenderer.Render;
@@ -741,6 +760,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
   var
     Normal, Vertex, LightDirTangent: TVector3Single;
     Tex: TVector2Single;
+    LocalSTangent, LocalTTangent: TVector3Single;
   begin
     GetNormal(IndexNum, Normal);
 
@@ -753,8 +773,32 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
     if HasTangentVectors and
       (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
       (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
-      LightDirTangent := LightDirectionInTangentSpace(
-        Vertex, Normal, STangent, TTangent) else
+    begin
+      if NormalsFlat then
+      begin
+        LightDirTangent := LightDirectionInTangentSpace(
+          Vertex, Normal, STangent, TTangent);
+      end else
+      begin
+        { If not NormalsFlat, you want to calculate local STangent and TTangent,
+          I mean STangent and TTangent adjusted to current vertex (since each
+          vertex may have different normal on the face when not NormalsFlat).
+
+          Without doing this, you would see strange artefacts, smoothed
+          faces would look somewhat like flat faces. Concenptually, for smoothed
+          faces, whole tangent space should vary for each vertex, so Normal,
+          and both tangents may be different on each vertex. }
+
+        LocalSTangent := STangent;
+        MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+        LocalTTangent := TTangent;
+        MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+        LightDirTangent := LightDirectionInTangentSpace(
+          Vertex, Normal, LocalSTangent, LocalTTangent);
+      end;
+    end else
       LightDirTangent := Vector3Single(0, 0, 1);
 
     { TODO: that's an error that it's needed, see bump_mapping.pasprogram }
@@ -790,7 +834,9 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
   end;
 
 begin
-  if Render_Normals = inGenerate then
+  { For Render_Normals = inGenerate and NormalsFlat, we'll handle this
+    in Render_Face. }
+  if (Render_Normals = inGenerate) and (not NormalsFlat) then
     glNormalv(Render_GeneratedNormals.Items[indexNum]);
 
   if BumpMappingMethod <> bmNone then
@@ -899,21 +945,30 @@ begin
       Renderer.Attributes.BumpMappingLightPosition);
   end;
 
- inherited;
+  inherited;
 
- if Render_Normals = inGenerate then
- begin
-  if Renderer.Attributes.SmoothShading then
-   Render_GeneratedNormals := CreateNormals(
-     CoordIndex.Items,
-     Coord.Items,
-     CreaseAngle,
-     Render_NormalsFromCCW) else
-   Render_GeneratedNormals := CreateFlatNormals(
-     CoordIndex.Items,
-     Coord.Items,
-     Render_NormalsFromCCW);
- end;
+  if Render_Normals = inGenerate then
+  begin
+    { I could just do normal CreateNormals for all CreaseAngle values,
+      so the test for "CreaseAngle <> 0" is not really required below.
+      But I want to set NormalsFlat to @true whenever possible
+      (as NormalsFlat allow some optimizations), so the test for
+      "CreaseAngle <> 0" is useful there (as many VRML models will have
+      default creaseAngle = 0, so NormalsFlat = true optimizations may be
+      often applicable). }
+
+    if Renderer.Attributes.SmoothShading and (CreaseAngle <> 0) then
+    begin
+      Render_GeneratedNormals := CreateNormals(
+        CoordIndex.Items, Coord.Items, CreaseAngle, Render_NormalsFromCCW);
+      NormalsFlat := false;
+    end else
+    begin
+      Render_GeneratedNormals := CreateFlatNormals(
+        CoordIndex.Items, Coord.Items, Render_NormalsFromCCW);
+      NormalsFlat := true;
+    end;
+  end;
 end;
 
 procedure TIndexedFaceSetRenderer.Render_Fini;
@@ -1094,8 +1149,11 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
   end;
 
 begin
- if BumpMappingMethod <> bmNone then
-   Check(FaceConvex, 'VRML BumpMapping not implemented for non-convex faces yet');
+  if BumpMappingMethod <> bmNone then
+    Check(FaceConvex, 'VRML BumpMapping not implemented for non-convex faces yet');
+
+  if (Render_Normals = inGenerate) and NormalsFlat then
+    glNormalv(Render_GeneratedNormals.Items[StartIndex]);
 
  if not FaceConvex then
  begin

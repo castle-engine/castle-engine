@@ -552,8 +552,6 @@ type
       - with mixed models, some line sets, some points, some spheres/boxes,
         some indexedfaceset with normalMap specified,
         some indexedfaceset with normalMap not specified.
-      - fix flat normals artifacts on fountain core on fountain level
-        with bump mapping
       }
     property BumpMapping: boolean read FBumpMapping write FBumpMapping
       default false;
