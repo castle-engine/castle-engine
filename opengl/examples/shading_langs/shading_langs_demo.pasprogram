@@ -205,11 +205,11 @@ begin
   end;
 
   glTranslatef(0, 3, 0);
-  if GLSLProgram = pStandard then
+  if GLSLProgram = pARBExtension then
   begin
-    glUseProgram(GLSLProgramId);
+    glUseProgramObjectARB(GLSLProgramId);
     DrawCubes;
-    glUseProgram(0);
+    glUseProgramObjectARB(0);
   end;
 end;
 
@@ -253,15 +253,22 @@ const
     function ShaderGetInfoLog(Shader: GLuint): String;
     var
       Len, Len2: TGLint;
-     begin
-      glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, @Len);
+    begin
+      case GLSLProgram of
+        pStandard:
+          begin
+            glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, @Len);
 
-      if Len <> 0 then
-      begin
-        SetLength(Result, Len);
-        glGetShaderInfoLog(Shader, Len, @Len2, PChar(Result));
-      end else
-        Result := '';
+            if Len <> 0 then
+            begin
+              SetLength(Result, Len);
+              glGetShaderInfoLog(Shader, Len, @Len2, PChar(Result));
+            end else
+              Result := '';
+          end;
+        pARBExtension:
+          Result := 'TODO: implement ShaderGetInfoLog for ARB path';
+      end;
     end;
 
   var
@@ -269,12 +276,15 @@ const
     SrcLength: Cardinal;
     Compiled: TGLint;
   begin
-    Result := glCreateShader(AType);
+    Result := glCreateShaderObjectARB(AType);
     SrcPtr := PChar(S);
     SrcLength := Length(S);
-    glShaderSource(Result, 1, @SrcPtr, @SrcLength);
-    glCompileShader(Result);
-    glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
+    glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
+    glCompileShaderARB(Result);
+    case GLSLProgram of
+      pStandard: glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
+      pARBExtension: { TODO } Compiled := GL_TRUE;
+    end;
     if Compiled <> GL_TRUE then
       raise Exception.CreateFmt('Shader not compiled: %s',
         [ShaderGetInfoLog(Result)]);
@@ -287,8 +297,9 @@ const
 
 const
   GLSLProgramBaseName =
-  //'glsl_simple'
-  'glsl_toon_shading'
+  'glsl_simple'
+  //'glsl_toon_shading'
+  //'glsl_phong_shading'
   ;
 begin
   glEnable(GL_LIGHTING);
@@ -336,25 +347,27 @@ begin
   end;
 
   { initialize GLSL program }
-  { TODO: I should also try to init shader from ARB extension }
-  if Load_GL_version_2_0 then
-    GLSLProgram := pStandard else
-  {if Load_GL_ARB_xxx then
-    GLSLProgram := pARBExtension else }
+{  if Load_GL_version_2_0 then
+    GLSLProgram := pStandard else}
+  if Load_GL_ARB_shader_objects and
+     Load_GL_ARB_vertex_shader and
+     Load_GL_ARB_fragment_shader and
+     Load_GL_ARB_shading_language_100 then
+    GLSLProgram := pARBExtension else
     GLSLProgram := pNone;
   Writeln('GLSLProgram: ', ProgramNames[GLSLProgram]);
 
-  if GLSLProgram = pStandard then
+  if GLSLProgram = pARBExtension then
   begin
-    GLSLProgramId := glCreateProgram();
+    GLSLProgramId := glCreateProgramObjectARB();
 
-    GLSLVertexId := CreateShaderFromFile(GLSLProgramBaseName + '.vert', GL_VERTEX_SHADER);
-    GLSLFragmentId := CreateShaderFromFile(GLSLProgramBaseName + '.frag', GL_FRAGMENT_SHADER);
+    GLSLVertexId := CreateShaderFromFile(GLSLProgramBaseName + '.vert', GL_VERTEX_SHADER_ARB);
+    GLSLFragmentId := CreateShaderFromFile(GLSLProgramBaseName + '.frag', GL_FRAGMENT_SHADER_ARB);
 
-    glAttachShader(GLSLProgramId, GLSLVertexId);
-    glAttachShader(GLSLProgramId, GLSLFragmentId);
+    glAttachObjectARB(GLSLProgramId, GLSLVertexId);
+    glAttachObjectARB(GLSLProgramId, GLSLFragmentId);
 
-    glLinkProgram(GLSLProgramId);
+    glLinkProgramARB(GLSLProgramId);
   end;
 
   Tex[0] := LoadTexture('../../../../castle/data/textures/023pierres.jpg');
