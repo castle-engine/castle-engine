@@ -325,7 +325,8 @@ var
   Calls all Load_GLXxx routines from glext unit, so tries to init
   - all GL 1.2 function addresses and
   - all gl extensions function addresses and
-  - inits all those boolean extensions variables above. }
+  - inits all those boolean extensions variables above and
+  - inits GLVersion and GLUVersion from GLVersionUnit. }
 procedure LoadAllExtenstions;
 {$endif}
 
@@ -1264,7 +1265,7 @@ implementation
 
 {$define read_implementation}
 
-uses KambiFilesUtils, KambiStringUtils;
+uses KambiFilesUtils, KambiStringUtils, GLVersionUnit;
 
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
@@ -1401,6 +1402,14 @@ begin
  GL_NV_fragment_program := Load_GL_NV_fragment_program;
  GL_NV_primitive_restart := Load_GL_NV_primitive_restart;
  GL_NV_vertex_program2 := Load_GL_NV_vertex_program2;
+
+ FreeAndNil(GLVersion);
+ GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
+
+ { gluGetString is valid for version 1.1 or later }
+ if Assigned(gluGetString) then
+   GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
+   GLUVersion := TGenericGLVersion.Create('1.0');
 end;
 {$endif}
 
@@ -2310,7 +2319,8 @@ function NewGLUQuadric(
 begin
  result := gluNewQuadric();
  Check(result <> nil, 'gluNewQuadric');
- gluQuadricCallback(result, GLU_ERROR, @ReportGLError);
+ gluQuadricCallback(result, GLU_ERROR,
+   {$ifdef USE_GL_GLU_UNITS} TCallBack {$endif} (@ReportGLError));
  gluQuadricTexture(result, texture);
  gluQuadricNormals(result, normals);
  gluQuadricOrientation(result, orientation);

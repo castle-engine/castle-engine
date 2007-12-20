@@ -1,0 +1,19 @@
+http://en.wikipedia.org/wiki/Shading_language
+
+Assembly shading languages:
+- blessed by ARB (standard in gl >= 2.0):
+  ARB_vertex_program
+  http://oss.sgi.com/projects/ogl-sample/registry/ARB/vertex_program.txt
+  ARB_fragment_program
+  http://oss.sgi.com/projects/ogl-sample/registry/ARB/fragment_program.txt
+
+  http://en.wikipedia.org/wiki/ARB_%28GPU_assembly_language%29
+
+Higher-level shading languages:
+- blessed by ARB (standard in gl >= 2.0, gl >= 2.1 requires GLSL >= 1.20),
+  compiled into ARB assembly langs above:
+  GLSL or glslang
+  Merges fragment and vertex langs in one syntax.
+
+- NVidia Cg
+  http://en.wikipedia.org/wiki/Cg_%28programming_language%29
