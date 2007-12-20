@@ -192,7 +192,13 @@ begin
  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
  obj := TObject3dOBJ.Create(filename);
  try
-  result := TNodeGroup_1.Create(FileNameToVRMLName(filename), WWWBasePath);
+  result := TNodeGroup_1.Create(''
+    { I used to put here FileNameToVRMLName(filename), but
+      it made two OBJ models structurally not equal, so demo_animation
+      couldn't animate them. Conceptually, you can say that OBJ filename
+      shouldn't be recorded as VRML field name, since filename is something
+      not related to actual *content* of the model. },
+    WWWBasePath);
   try
    MaterialsSwitch := TNodeSwitch_1.Create('Materials', WWWBasePath);
    Result.AddChild(MaterialsSwitch);
