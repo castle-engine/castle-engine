@@ -4034,7 +4034,7 @@ procedure LoadProcExtensions;
 implementation
 
 uses
-  SysUtils, Classes, KambiStringUtils, KambiDynLib;
+  SysUtils, Classes, KambiStringUtils, KambiDynLib, GLVersionUnit;
 
 {$define read_implementation}
 {$I opengltypes.inc}

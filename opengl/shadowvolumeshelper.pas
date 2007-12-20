@@ -202,7 +202,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, KambiLog;
+uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit;
 
 procedure TShadowVolumesHelper.InitGLContext;
 begin

@@ -956,7 +956,7 @@ const
 implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils;
+  KambiStringUtils, GLVersionUnit;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

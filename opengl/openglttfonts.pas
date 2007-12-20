@@ -158,7 +158,7 @@ type
 
 implementation
 
-uses KambiUtils, VectorMath;
+uses KambiUtils, VectorMath, GLVersionUnit;
 
 const
   {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}
