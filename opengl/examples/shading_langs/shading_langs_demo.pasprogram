@@ -40,7 +40,7 @@ type
   TProgram = (pNone, pARBExtension, pStandard);
 
 var
-  VertexProgram, FragmentProgram, ShaderProgram: TProgram;
+  VertexProgram, FragmentProgram, GLSLProgram: TProgram;
   GLSLProgramId, GLSLFragmentId, GLSLVertexId: TGLuint;
 
 { utilities ------------------------------------------------------------------ }
@@ -178,26 +178,39 @@ begin
   DrawCubes;
 
   glTranslatef(0, 3, 0);
-  glEnable(GL_VERTEX_PROGRAM_ARB);
-  DrawCubes;
-  glDisable(GL_VERTEX_PROGRAM_ARB);
+  if VertexProgram = pARBExtension then
+  begin
+    glEnable(GL_VERTEX_PROGRAM_ARB);
+    DrawCubes;
+    glDisable(GL_VERTEX_PROGRAM_ARB);
+  end;
 
   glTranslatef(0, 3, 0);
-  glEnable(GL_FRAGMENT_PROGRAM_ARB);
-  DrawCubes;
-  glDisable(GL_FRAGMENT_PROGRAM_ARB);
+  if FragmentProgram = pARBExtension then
+  begin
+    glEnable(GL_FRAGMENT_PROGRAM_ARB);
+    DrawCubes;
+    glDisable(GL_FRAGMENT_PROGRAM_ARB);
+  end;
 
   glTranslatef(0, 3, 0);
-  glEnable(GL_FRAGMENT_PROGRAM_ARB);
-  glEnable(GL_VERTEX_PROGRAM_ARB);
-  DrawCubes;
-  glDisable(GL_FRAGMENT_PROGRAM_ARB);
-  glDisable(GL_VERTEX_PROGRAM_ARB);
+  if (VertexProgram = pARBExtension) and
+     (FragmentProgram = pARBExtension) then
+  begin
+    glEnable(GL_FRAGMENT_PROGRAM_ARB);
+    glEnable(GL_VERTEX_PROGRAM_ARB);
+    DrawCubes;
+    glDisable(GL_FRAGMENT_PROGRAM_ARB);
+    glDisable(GL_VERTEX_PROGRAM_ARB);
+  end;
 
   glTranslatef(0, 3, 0);
-  glUseProgram(GLSLProgramId);
-  DrawCubes;
-  glUseProgram(0);
+  if GLSLProgram = pStandard then
+  begin
+    glUseProgram(GLSLProgramId);
+    DrawCubes;
+    glUseProgram(0);
+  end;
 end;
 
 procedure Resize(glwin: TGLWindow);
@@ -325,12 +338,13 @@ begin
   { initialize GLSL program }
   { TODO: I should also try to init shader from ARB extension }
   if Load_GL_version_2_0 then
-    ShaderProgram := pStandard else
+    GLSLProgram := pStandard else
   {if Load_GL_ARB_xxx then
-    ShaderProgram := pARBExtension else }
-    ShaderProgram := pNone;
+    GLSLProgram := pARBExtension else }
+    GLSLProgram := pNone;
+  Writeln('GLSLProgram: ', ProgramNames[GLSLProgram]);
 
-  if ShaderProgram = pStandard then
+  if GLSLProgram = pStandard then
   begin
     GLSLProgramId := glCreateProgram();
 
@@ -355,7 +369,7 @@ begin
   if FragmentProgram = pARBExtension then
     glDeleteProgramsARB(1, @FragmentProgId);
 
-  if ShaderProgram = pStandard then
+  if GLSLProgram = pStandard then
     glDeleteProgram(GLSLProgramId);
 end;
 

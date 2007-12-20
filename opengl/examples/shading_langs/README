@@ -83,3 +83,5 @@ dl urls, GL 2.1, GLSL spec and wikipedia articles on chantal
 install nvidia cg runtime
 - vertex_program_from_cg_sample.txt doesn't work, seems I should pass him
   modelViewProjection matrix, it uses something called program.local ?
+- migrate to GL, GLU, GLExt units everywhere, add shading_langs_demo
+  to Makefile examples
