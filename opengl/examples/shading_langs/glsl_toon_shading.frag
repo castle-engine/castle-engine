@@ -1,4 +1,6 @@
-//uniform vec4 Colour1,Colour2,Colour3,Colour4; // "shades"
+// Kambi changed these to be const in fragment code
+// uniform vec4 Colour1,Colour2,Colour3,Colour4; // "shades"
+
 varying vec3 normal;
 void main()
 {
@@ -14,13 +16,13 @@ void main()
   intensity = dot(lDir,n);
   // Decide which shade to used based on intensity
   if (intensity > 0.95)
-     colour = vec4(1, 1, 1, 1);
+     colour = vec4(1, 1, 0, 1);
   else if (intensity > 0.5)
-     colour = vec4(0.75, 0.75, 0.75, 1);
+     colour = vec4(0.75, 0.75, 0, 1);
   else if (intensity > 0.25)
-     colour = vec4(0.5, 0.5, 0.5, 1);
+     colour = vec4(0.5, 0.5, 0, 1);
   else
-     colour = vec4(0.25, 0.25, 0.25, 1);
+     colour = vec4(0.25, 0.25, 0, 1);
   // Finally, set destination colour
   gl_FragColor = colour;
 }
