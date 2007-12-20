@@ -52,7 +52,7 @@ uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
   MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
-  NormalizationCubeMap,
+  NormalizationCubeMap, GLVersionUnit,
 
   VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer;
