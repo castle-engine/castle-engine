@@ -9,11 +9,43 @@ Assembly shading languages:
 
   http://en.wikipedia.org/wiki/ARB_%28GPU_assembly_language%29
 
+- NVidia-specific ancestors of ARB langs above (don't use, use ARB now):
+  NV_fragment_program
+  http://www.opengl.org/registry/specs/NV/fragment_program.txt
+  NV_vertex_program.txt
+  http://oss.sgi.com/projects/ogl-sample/registry/NV/vertex_program.txt
+  Very similar to ARB counterparts.
+
 Higher-level shading languages:
 - blessed by ARB (standard in gl >= 2.0, gl >= 2.1 requires GLSL >= 1.20),
   compiled into ARB assembly langs above:
   GLSL or glslang
-  Merges fragment and vertex langs in one syntax.
+
+  Merges fragment and vertex langs in one syntax. What's even more
+  important, allows vertex program to easily pass arguments
+  to vertex program. (API creates one shader program to which you
+  can attach vertex and/or fragment programs, that will communicate).
 
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
+
+Didn't check in practice, but the "pipeline" requirement seems not present
+in ARB vertex program. In one program I can access any texture coordinate
+and sample any texture. See fragment.texcoord[n], texture[n],
+operations like TEX, TXP.
+
+  TEX some_result, some_coordinate, texture[some_texture_unit_number], 2D;
+
+So we can avoid the multitexture constraint that the calculations can
+only access calculation result from previous texture unit.
+
+Interesting non-trivial fragment shader ability: KIL, so we can easily
+reject some pixels using any convoluted rule.
+
+Very nice overview or ARB vertex/fragment assembly programs:
+http://www.ce.chalmers.se/edu/course/EDA425/lectures/shaders.pdf
+
+http://www.opengl.org/code/category/C20
+
+TODO:
+dl urls, GL 2.1, GLSL spec and wikipedia articles on chantal

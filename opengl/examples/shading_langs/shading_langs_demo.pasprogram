@@ -30,17 +30,18 @@ uses GLWindow, GLW_Navigated, KambiGLUtils,
 const
   SceneBoundingBox: TBox3d =
   ( (-8, -3, -3),
-    ( 4,  3,  3) );
+    ( 8,  15,  3) );
 
 var
   Tex: array [0..1] of TGLuint;
-  VertexProgId: TGLuint;
+  VertexProgId, FragmentProgId: TGLuint;
 
 type
   TProgram = (pNone, pARBExtension, pStandard);
 
 var
-  VertexProgram, FragmentProgram: TProgram;
+  VertexProgram, FragmentProgram, ShaderProgram: TProgram;
+  GLSLProgramId, GLSLFragmentId, GLSLVertexId: TGLuint;
 
 { utilities ------------------------------------------------------------------ }
 
@@ -50,9 +51,9 @@ begin
   glGetProgramivARB(target, pname, @Result);
 end;
 
-procedure LoadVertexProgram(const S: string);
+procedure LoadProgram(Target: TGLenum; const S: string);
 begin
-  glProgramStringARB(GL_VERTEX_PROGRAM_ARB,
+  glProgramStringARB(Target,
     GL_PROGRAM_FORMAT_ASCII_ARB, Length(S), PCharOrNil(S));
 
   { writeln currents and limits }
@@ -60,12 +61,16 @@ begin
     'Number of instructions: %d / %d' +NL+
     'Number of temporaries: %d / %d' +NL+
     'Number of program parameter bindings: %d / %d' +NL,
-    [ glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_INSTRUCTIONS_ARB),
-      glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_INSTRUCTIONS_ARB),
-      glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_TEMPORARIES_ARB),
-      glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_TEMPORARIES_ARB),
-      glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_PARAMETERS_ARB),
-      glGetProgramiARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_PARAMETERS_ARB) ]));
+    [ glGetProgramiARB(Target, GL_MAX_PROGRAM_INSTRUCTIONS_ARB),
+      glGetProgramiARB(Target, GL_PROGRAM_INSTRUCTIONS_ARB),
+      glGetProgramiARB(Target, GL_MAX_PROGRAM_TEMPORARIES_ARB),
+      glGetProgramiARB(Target, GL_PROGRAM_TEMPORARIES_ARB),
+      glGetProgramiARB(Target, GL_MAX_PROGRAM_PARAMETERS_ARB),
+      glGetProgramiARB(Target, GL_PROGRAM_PARAMETERS_ARB) ]));
+
+  if glGetProgramiARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB) <> 0 then
+    Writeln('Program fits within native limits, OK.') else
+    Writeln('Program doesn''t fit within native limits, performance/quality will suffer!');
 end;
 
 { glw callbacks ------------------------------------------------------------ }
@@ -122,6 +127,8 @@ procedure Draw(glwin: TGLWindow);
   end;
 
   procedure DrawCubes;
+  var
+    Q: PGLUQuadric;
   begin
     glPushMatrix;
       glTranslatef(-6, 0, 0);
@@ -144,14 +151,29 @@ procedure Draw(glwin: TGLWindow);
       glDisable(GL_TEXTURE_2D);
       DrawCube;
     glPopMatrix;
+
+    glPushMatrix;
+      glTranslatef(+6, 0, 0);
+      glRotatef(-90, 1, 0, 0);
+      Q := NewGLUQuadric(GL_TRUE, GLU_SMOOTH, GLU_OUTSIDE, GLU_FILL);
+      try
+        gluSphere(Q, 1, 20, 20);
+      finally gluDeleteQuadric(Q) end;
+    glPopMatrix;
   end;
 
 begin
   glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT);
+
+  glLoadIdentity;
+  glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(0, 0, 1));
+
   glLoadMatrix(Glw.Navigator.Matrix);
 
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 0, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+  glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(1, 1, 1, 1));
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 20.0);
 
   DrawCubes;
 
@@ -159,6 +181,23 @@ begin
   glEnable(GL_VERTEX_PROGRAM_ARB);
   DrawCubes;
   glDisable(GL_VERTEX_PROGRAM_ARB);
+
+  glTranslatef(0, 3, 0);
+  glEnable(GL_FRAGMENT_PROGRAM_ARB);
+  DrawCubes;
+  glDisable(GL_FRAGMENT_PROGRAM_ARB);
+
+  glTranslatef(0, 3, 0);
+  glEnable(GL_FRAGMENT_PROGRAM_ARB);
+  glEnable(GL_VERTEX_PROGRAM_ARB);
+  DrawCubes;
+  glDisable(GL_FRAGMENT_PROGRAM_ARB);
+  glDisable(GL_VERTEX_PROGRAM_ARB);
+
+  glTranslatef(0, 3, 0);
+  glUseProgram(GLSLProgramId);
+  DrawCubes;
+  glUseProgram(0);
 end;
 
 procedure Resize(glwin: TGLWindow);
@@ -193,12 +232,61 @@ procedure InitGL(glwin: TGLWindow);
 const
   ProgramNames: array [TProgram] of string =
   ( 'None', 'ARBExtension', 'Standard' );
+
+  { Based on Dean Ellis BasicShader.dpr }
+  function CreateShaderFromString(const S: string; AType: GLenum): TGLuint;
+
+    { Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
+    function ShaderGetInfoLog(Shader: GLuint): String;
+    var
+      Len, Len2: TGLint;
+     begin
+      glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, @Len);
+
+      if Len <> 0 then
+      begin
+        SetLength(Result, Len);
+        glGetShaderInfoLog(Shader, Len, @Len2, PChar(Result));
+      end else
+        Result := '';
+    end;
+
+  var
+    SrcPtr: PChar;
+    SrcLength: Cardinal;
+    Compiled: TGLint;
+  begin
+    Result := glCreateShader(AType);
+    SrcPtr := PChar(S);
+    SrcLength := Length(S);
+    glShaderSource(Result, 1, @SrcPtr, @SrcLength);
+    glCompileShader(Result);
+    glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
+    if Compiled <> GL_TRUE then
+      raise Exception.CreateFmt('Shader not compiled: %s',
+        [ShaderGetInfoLog(Result)]);
+  end;
+
+  function CreateShaderFromFile(const FileName: string; AType: TGLenum): TGLuint;
+  begin
+    Result := CreateShaderFromString(FileToString(FileName), AType);
+  end;
+
+const
+  GLSLProgramBaseName =
+  //'glsl_simple'
+  'glsl_toon_shading'
+  ;
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glEnable(GL_DEPTH_TEST);
 
-  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.8, 0.8, 0.8, 1.0));
+  { This is to 0, just because vertex_program_simulate_conventional.txt
+    doesn't simulate global ambient, so it would look different. }
+  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.0, 0.0, 0.0, 1.0));
+
+  glClearColor(0.3, 0.3, 0.3, 1);
 
   { TODO: fow now only pARBExtension works, not pStandard. }
 
@@ -214,7 +302,8 @@ begin
   begin
     glGenProgramsARB(1, @VertexProgId);
     glBindProgramARB(GL_VERTEX_PROGRAM_ARB, VertexProgId);
-    LoadVertexProgram(FileToString('vertex_program_simulate_conventional.txt'));
+    LoadProgram(GL_VERTEX_PROGRAM_ARB,
+      FileToString('vertex_program_simulate_conventional.txt'));
   end;
 
   { initialize fragment program }
@@ -225,16 +314,49 @@ begin
     FragmentProgram := pNone;
   Writeln('FragmentProgram: ', ProgramNames[FragmentProgram]);
 
+  if FragmentProgram = pARBExtension then
+  begin
+    glGenProgramsARB(1, @FragmentProgId);
+    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, FragmentProgId);
+    LoadProgram(GL_FRAGMENT_PROGRAM_ARB,
+      FileToString('fragment_program_simulate_conventional.txt'));
+  end;
+
+  { initialize GLSL program }
+  { TODO: I should also try to init shader from ARB extension }
+  if Load_GL_version_2_0 then
+    ShaderProgram := pStandard else
+  {if Load_GL_ARB_xxx then
+    ShaderProgram := pARBExtension else }
+    ShaderProgram := pNone;
+
+  if ShaderProgram = pStandard then
+  begin
+    GLSLProgramId := glCreateProgram();
+
+    GLSLVertexId := CreateShaderFromFile(GLSLProgramBaseName + '.vert', GL_VERTEX_SHADER);
+    GLSLFragmentId := CreateShaderFromFile(GLSLProgramBaseName + '.frag', GL_FRAGMENT_SHADER);
+
+    glAttachShader(GLSLProgramId, GLSLVertexId);
+    glAttachShader(GLSLProgramId, GLSLFragmentId);
+
+    glLinkProgram(GLSLProgramId);
+  end;
+
   Tex[0] := LoadTexture('../../../../castle/data/textures/023pierres.jpg');
   Tex[1] := LoadTexture('../../../../castle/data/textures/bridgerock512side.jpg');
 end;
 
 procedure CloseGL(glwin: TGLWindow);
 begin
-  if VertexProgram <> pNone then
-  begin
+  if VertexProgram = pARBExtension then
     glDeleteProgramsARB(1, @VertexProgId);
-  end;
+
+  if FragmentProgram = pARBExtension then
+    glDeleteProgramsARB(1, @FragmentProgId);
+
+  if ShaderProgram = pStandard then
+    glDeleteProgram(GLSLProgramId);
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -247,12 +369,22 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   begin
     S := '';
     if Glwin.FileDialog('Open file with vertex program', S, true) then
-      LoadVertexProgram(FileToString(S));
+      LoadProgram(GL_VERTEX_PROGRAM_ARB, FileToString(S));
+  end;
+
+  procedure LoadFragmentProgramMenu;
+  var
+    S: string;
+  begin
+    S := '';
+    if Glwin.FileDialog('Open file with fragment program', S, true) then
+      LoadProgram(GL_FRAGMENT_PROGRAM_ARB, FileToString(S));
   end;
 
 begin
   case MenuItem.IntData of
     10: LoadVertexProgramMenu;
+    20: LoadFragmentProgramMenu;
   end;
 end;
 
@@ -263,6 +395,7 @@ begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Load new ARB vertex program', 10));
+    M.Append(TMenuItem.Create('Load new ARB fragment program', 20));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
