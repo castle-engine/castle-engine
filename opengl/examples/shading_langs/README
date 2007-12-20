@@ -40,6 +40,26 @@ Higher-level shading languages:
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
 
+  Also high-level, also C-like. One advantage is that this is also
+  usable for Direct X, assuming anyone cares.
+
+  This language is not built inside OpenGL. It's compiled into
+  other languages --- like ARB_vertex_program, ARB_fragment_program,
+  GLSL vertex/fragment. You can also compile *from* GLSL.
+  You need NVidia Cg toolkit for this.
+
+  - Shader may be compiled by a developer, when developing the game ---
+    this means that you compile to one or several chosen hardware profiles
+    that you expect that your game will run on. Like
+      cgc cg_sample.cg -profile arbvp1 -o vertex_program_from_cg_sample.txt
+
+  - Or it can be compiled at your game runtime. This means that you
+    distribute your game with actual Cg shader sources, and compile
+    on user machine. This means that you compile precisely for the
+    hardware that will run the shader, so you may get more optimizations.
+    The disadvantage is that you must program it, to link and call Cg runtime
+    functions to compile from your program.
+
 Didn't check in practice, but the "pipeline" requirement seems not present
 in ARB vertex program. In one program I can access any texture coordinate
 and sample any texture. See fragment.texcoord[n], texture[n],
@@ -60,3 +80,6 @@ http://www.opengl.org/code/category/C20
 
 TODO:
 dl urls, GL 2.1, GLSL spec and wikipedia articles on chantal
+install nvidia cg runtime
+- vertex_program_from_cg_sample.txt doesn't work, seems I should pass him
+  modelViewProjection matrix, it uses something called program.local ?
