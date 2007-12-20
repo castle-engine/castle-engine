@@ -1,3 +1,5 @@
+Notes about shading languages:
+
 http://en.wikipedia.org/wiki/Shading_language
 
 Assembly shading languages:
@@ -15,6 +17,15 @@ Assembly shading languages:
   NV_vertex_program.txt
   http://oss.sgi.com/projects/ogl-sample/registry/NV/vertex_program.txt
   Very similar to ARB counterparts.
+
+- even older: NVidia register combiners
+  http://developer.nvidia.com/object/registercombiners.html
+
+  In some way, this is not a new language, it's only an extension to
+  multitexturing, "programmed" by issuing appropriate OpenGL API calls,
+  much like normal multitexturing.
+  But with much more parameters and flexibility. So much that complexity
+  of this qualifies it as an initial attempt at fragment programs.
 
 Higher-level shading languages:
 - blessed by ARB (standard in gl >= 2.0, gl >= 2.1 requires GLSL >= 1.20),
