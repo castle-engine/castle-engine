@@ -2804,7 +2804,7 @@ procedure Resize2D(glwin: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit, KambiLog
+uses ParseParametersUnit, KambiLog, GLImages
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}

@@ -651,7 +651,7 @@ var
 implementation
 
 uses SysUtils, KambiUtils, KambiGLUtils, Images, KambiFilesUtils,
-  BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils;
+  BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages;
 
 procedure SliderFontInit;
 begin

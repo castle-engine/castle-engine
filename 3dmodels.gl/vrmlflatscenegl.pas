@@ -854,7 +854,7 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit;
+uses VRMLErrors, GLVersionUnit, GLImages;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

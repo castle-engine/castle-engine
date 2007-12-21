@@ -10,7 +10,7 @@
   *}
 
 uses VectorMath, GLWindow, GLW_Demo, OpenGLh, KambiGLUtils,
-  KambiStringUtils, KambiUtils;
+  KambiStringUtils, KambiUtils, GLImages;
 
 {$I openglmac.inc}
 

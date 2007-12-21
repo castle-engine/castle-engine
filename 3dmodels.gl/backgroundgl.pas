@@ -27,7 +27,7 @@
     @item kawalek sfery (ground) z interpolowanymi kolorami
     @item wszystko to zawarte w calej sferze (sky) z interpolowanymi kolorami.
   )
-  
+
   Idea jest taka zeby gracz zawsze byl polozony dokladnie w srodku takiego
   Background (tzn. koncepcyjnie mozna powiedziec ze ten szescian i sfery
   sa nieskonczone) (chociaz gracz moze sie oczywiscie obracac aby ogladac
@@ -53,7 +53,7 @@
   szescian o boku dlugosci CubeSize. Srodek sfery = srodek szescianu,
   jak wyrazic CubeSize w zaleznosci od SphereRadius i w druga strone
   aby szescian byl dokladnie wpisany w sfere ?
-  
+
 @preformatted(
   Przekatna szescianu (ale nie boku szescianu) = 2*promien sfery,
     czyli bok szescianu * Sqrt2 = przekatna boku i
@@ -66,7 +66,7 @@
       CubeSize = Sqrt( Sqr(2 * SkySphereRadius)/3 )
                = 2 * SkySphereRadius / Sqrt(3)
     funkcja w druga strone : SkySphereRadius = Sqrt(3) * CubeSize / 2
-    
+
   Dlatego wlasnie w module ponizej sa stale
     SphereRadiusToCubeSize = 2/Sqrt(3)
     CubeSizeToSpeherRadius = Sqrt(3)/2
@@ -193,6 +193,8 @@ type
   end;
 
 implementation
+
+uses GLImages;
 
 { TBackgroundGL ------------------------------------------------------------ }
 

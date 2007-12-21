@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2007 Michalis Kamburelis.
 
   This file is part of "Kambi's 3dgraph Pascal units".
 
@@ -42,7 +42,8 @@ program draw_space_filling_curve;
 {$apptype GUI}
 
 uses SysUtils, OpenGLh, GLWindow, GLW_Demo, KambiUtils, KambiGLUtils,
-  Images, VectorMath, Math, SpaceFillingCurves, KambiStringUtils;
+  Images, VectorMath, Math, SpaceFillingCurves, KambiStringUtils,
+  GLImages;
 
 var CurveImage: TRGBImage;
 const

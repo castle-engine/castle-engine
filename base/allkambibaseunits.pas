@@ -17,6 +17,7 @@ uses
   kambiclassutils,
   kambidynlib,
   kambifilesutils,
+  kambiinterfaces,
   kambilog,
   kambistringutils,
   kambitimeutils,

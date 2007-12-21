@@ -24,6 +24,7 @@ uses GLWindow, GLW_Navigated, KambiGLUtils,
   MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
+  GLImages,
   { Need to use newer FPC OpenGL headers. }
   GL, GLU, GLExt;
 

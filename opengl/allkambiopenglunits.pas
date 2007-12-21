@@ -12,8 +12,10 @@ interface
 uses
   beziercurve,
   curve,
+  glimages,
   glmenu,
   glsoundmenu,
+  glversionunit,
   glw_demo,
   glw_navigated,
   glw_win,
@@ -24,6 +26,7 @@ uses
   glwinmodes,
   kambiglut,
   kambiglutils,
+  normalizationcubemap,
   openglbmpfonts,
   openglfonts,
   openglh,

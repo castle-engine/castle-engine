@@ -36,7 +36,8 @@ program multi_texturing_demo;
 uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils,
   MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
-  GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+  GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
+  GLImages;
 
 const
   SceneBoundingBox: TBox3d =
