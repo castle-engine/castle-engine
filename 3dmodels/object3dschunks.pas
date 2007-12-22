@@ -1,20 +1,20 @@
 {
   Copyright 2002-2004,2006 Michalis Kamburelis.
 
-  This file is part of "Kambi's 3dmodels Pascal units".
+  This file is part of "Kambi VRML game engine".
 
-  "Kambi's 3dmodels Pascal units" is free software; you can redistribute it and/or modify
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "Kambi's 3dmodels Pascal units" is distributed in the hope that it will be useful,
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "Kambi's 3dmodels Pascal units"; if not, write to the Free Software
+  along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
