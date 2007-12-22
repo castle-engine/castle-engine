@@ -610,7 +610,7 @@ uses
   SysUtils, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, Glx, {$endif}
   {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
@@ -2938,7 +2938,7 @@ begin
   { Do MakeCurrent before glViewport and EventInit. }
   MakeCurrent;
 
-  LoadAllExtenstions;
+  LoadAllExtensions;
 
   if Log then
     WritelnLogMultiline('OpenGL context initialization', GLCapsString);

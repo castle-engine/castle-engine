@@ -29,7 +29,6 @@ uses
   normalizationcubemap,
   openglbmpfonts,
   openglfonts,
-  openglh,
   openglttfonts,
   progressgl,
   shadowvolumeshelper,

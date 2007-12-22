@@ -591,6 +591,11 @@ begin
   end;
 end;
 
+var
+  { different declaration of glXQueryExtension, just to be able to pass
+    nil as last 2 params }
+  glXQueryExtension: function(dpy: PDisplay; errorb, event: Pointer): Boolean; cdecl;
+
 procedure TGLWindowsManager.InitializeXDisplay;
 begin
   if XDisplay = nil then
@@ -600,6 +605,8 @@ begin
   if not InitializeXDisplayDone then
   begin
     FXScreen := XDefaultScreen(XDisplay);
+    
+    Pointer(glXQueryExtension) := Glx.glXQueryExtension;
 
     Check( glXQueryExtension(XDisplay, nil, nil),
       'X server has no glX extension (needed to run OpenGL-based programs)');

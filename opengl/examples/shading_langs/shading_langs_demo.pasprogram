@@ -24,9 +24,7 @@ uses GLWindow, GLW_Navigated, KambiGLUtils,
   MatrixNavigation, Boxes3d, SysUtils, KambiUtils, VectorMath,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
-  GLImages,
-  { Need to use newer FPC OpenGL headers. }
-  GL, GLU, GLExt;
+  GLImages, GL, GLU, GLExt;
 
 const
   SceneBoundingBox: TBox3d =
@@ -316,7 +314,7 @@ begin
   { TODO: fow now only pARBExtension works, not pStandard. }
 
   { initialize vertex program }
-  { if Load_GL_version_2_0 then
+  { if GL_version_2_0 then
     VertexProgram := pStandard else }
   if Load_GL_ARB_vertex_program then
     VertexProgram := pARBExtension else
@@ -332,7 +330,7 @@ begin
   end;
 
   { initialize fragment program }
-  { if Load_GL_version_2_0 then
+  { if GL_version_2_0 then
     FragmentProgram := pStandard else }
   if Load_GL_ARB_fragment_program then
     FragmentProgram := pARBExtension else
@@ -348,7 +346,7 @@ begin
   end;
 
   { initialize GLSL program }
-{  if Load_GL_version_2_0 then
+{  if GL_version_2_0 then
     GLSLProgram := pStandard else}
   if Load_GL_ARB_shader_objects and
      Load_GL_ARB_vertex_shader and

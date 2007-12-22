@@ -144,7 +144,10 @@ const
 var
   GL_version_1_2: boolean;
   GL_version_1_3: boolean;
+  GL_version_1_4: boolean;
+  GL_version_1_5: boolean;
   GL_version_2_0: boolean;
+
   GL_ARB_imaging: boolean;
   GL_ARB_multitexture: boolean;
   GL_ARB_transpose_matrix: boolean;
@@ -323,7 +326,7 @@ var
   really should work.
 
   Inits also GLVersion and GLUVersion from GLVersionUnit. }
-procedure LoadAllExtenstions;
+procedure LoadAllExtensions;
 {$endif}
 
 { sprawdzanie bledow gl ----------------------------------------------------------}
@@ -1006,7 +1009,7 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit;
 {$ifdef USE_GL_GLU_UNITS}
 {$I opengltypes.inc}
 
-procedure LoadAllExtenstions;
+procedure LoadAllExtensions;
 
   {$ifdef NEEDS_FOG_COORD_FIX}
   function Load_GL_EXT_fog_coord: Boolean;
@@ -1046,7 +1049,10 @@ begin
 
  GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
  GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
+ GL_version_1_4 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_4;
+ GL_version_1_5 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_5;
  GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
+
  GL_ARB_imaging := Load_GL_ARB_imaging;
  GL_ARB_multitexture := Load_GL_ARB_multitexture;
  GL_ARB_transpose_matrix := Load_GL_ARB_transpose_matrix;
@@ -2172,7 +2178,14 @@ begin
   'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
   'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
-
+  '--- Which OpenGL entry points are actually available ?' +nl+
+  '    (checks both version string and actual availability, to detect buggy OpenGL)' +nl+
+  '1.2 : ' + BoolToStr[GL_version_1_2] +nl+
+  '1.3 : ' + BoolToStr[GL_version_1_3] +nl+
+  '1.4 : ' + BoolToStr[GL_version_1_4] +nl+
+  '1.5 : ' + BoolToStr[GL_version_1_5] +nl+
+  '2.0 : ' + BoolToStr[GL_version_2_0] +nl+
+  nl+
   '--- gluGetString queries results : '+nl+
   'GLU_VERSION : ' +gluGetString(GLU_VERSION) +nl+
   ParsedVersionReport(GLUVersion) +nl+
