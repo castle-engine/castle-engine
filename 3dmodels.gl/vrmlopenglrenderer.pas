@@ -1934,7 +1934,7 @@ begin
        Attributes.EnableTextures and
 
       { EXT_texture_env_combine (standard since 1.3) required }
-      (GL_EXT_texture_env_combine or GLVersion.AtLeast(1, 3)) and
+      (GL_EXT_texture_env_combine or GL_version_1_3) and
 
       { Actually, other extensions also don't have to exist, they are built in
         newer OpenGL version. But this requires getting their procedures under different
@@ -1950,7 +1950,7 @@ begin
         As you see, actually this whole check could be substituted by GL >= 1.3,
         as this is requires for GL_SUBTRACT and provides all extensions required
         here. }
-      GLVersion.AtLeast(1, 3) and
+      GL_version_1_3 and
 
       { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
       GL_ARB_texture_env_dot3 and
