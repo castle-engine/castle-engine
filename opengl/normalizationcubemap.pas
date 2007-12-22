@@ -2,7 +2,7 @@ unit NormalizationCubeMap;
 
 interface
 
-uses GL, GLU, GLExt;
+uses GL, GLU, GLExt, KambiGLUtils;
 
 { Generate new OpenGL texture number and set it's 6
   GL_TEXTURE_CUBE_MAP_*_ARB targets to cube map used to normalize vectors.
@@ -11,7 +11,7 @@ function MakeNormalizationCubeMap: TGLuint;
 
 implementation
 
-uses SysUtils, KambiUtils, Images, VectorMath, KambiGLUtils;
+uses SysUtils, KambiUtils, Images, VectorMath;
 
 { $define DEBUG_SAVE_NORMAL_IMAGES}
 

@@ -51,7 +51,7 @@ unit GLWinInputs;
 
 interface
 
-uses GL, GLU, GLExt, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
+uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   KambiStringUtils;
 
 { Dziala w petli (glwm.ProcessMessage) i wyswietla
@@ -99,7 +99,7 @@ procedure InputAnyKey(glwin: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: bool
 
 implementation
 
-uses KambiGLUtils, GLImages;
+uses GLImages;
 
 { gl window callbacks for GLWinInput -------------------------------------------- }
 

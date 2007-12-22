@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -80,8 +80,7 @@ unit KambiGlut;
 
 interface
 
-uses
-  {$ifdef MSWINDOWS} Windows, {$else} {$endif} GL, GLU, GLExt, SysUtils;
+uses GL, GLU, KambiGLUtils, SysUtils;
 
 const
   GlutDLL =

@@ -38,7 +38,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Areas,
-  GLWindow, GL, GLU, GLExt, Matrix;
+  GLWindow, GL, GLU, KambiGLUtils, Matrix;
 
 const
   DefaultGLMenuKeyNextItem = K_Down;
@@ -650,7 +650,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils, KambiGLUtils, Images, KambiFilesUtils,
+uses SysUtils, KambiUtils, Images, KambiFilesUtils,
   BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages;
 
 procedure SliderFontInit;
