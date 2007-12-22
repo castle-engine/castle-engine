@@ -77,11 +77,3 @@ Very nice overview or ARB vertex/fragment assembly programs:
 http://www.ce.chalmers.se/edu/course/EDA425/lectures/shaders.pdf
 
 http://www.opengl.org/code/category/C20
-
-TODO:
-- vertex_program_from_cg_sample.txt doesn't work, seems I should pass him
-  modelViewProjection matrix, it uses something called program.local ?
-- migrate to GL, GLU, GLExt units everywhere, add shading_langs_demo
-  to Makefile examples
-- Radeon: phong and toon shading work bad, too bright, why ?
-  Same thing on NVidia works perfect.

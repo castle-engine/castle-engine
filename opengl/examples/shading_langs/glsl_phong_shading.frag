@@ -18,7 +18,12 @@ vec4 Idiff = gl_FrontLightProduct[0].diffuse * max(dot(N,L), 0.0);
 
 // calculate Specular Term:
 vec4 Ispec = gl_FrontLightProduct[0].specular
-  * pow(max(dot(R,E),0.0),0.3*gl_FrontMaterial.shininess);
+  * pow(max(dot(R,E),0.0),
+    /* 0.3 * gl_FrontMaterial.shininess was here, but on Radeon with closed
+       ATI drivers on Linux MacBookPro this produced always white
+       result... Somehow, "gl_FrontMaterial.shininess / 3.0" which
+       calculates almost the same in almost the same way...) works OK. */
+       gl_FrontMaterial.shininess / 3.0);
 
 // write Total Color:
 gl_FragColor = /* gl_FrontLightModelProduct.SceneColor + */Iamb + Idiff + Ispec;

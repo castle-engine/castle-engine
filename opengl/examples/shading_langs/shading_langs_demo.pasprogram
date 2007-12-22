@@ -296,9 +296,9 @@ const
 
 const
   GLSLProgramBaseName =
-  'glsl_simple'
+  //'glsl_simple'
   //'glsl_toon_shading'
-  //'glsl_phong_shading'
+  'glsl_phong_shading'
   ;
 begin
   glEnable(GL_LIGHTING);
