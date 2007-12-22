@@ -23,7 +23,7 @@ unit ShadowVolumesHelper;
 
 interface
 
-uses VectorMath, Boxes3d, OpenGLh;
+uses VectorMath, Boxes3d, GL, GLU, GLExt;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -202,7 +202,8 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit;
+uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit,
+  KambiGLUtils;
 
 procedure TShadowVolumesHelper.InitGLContext;
 begin

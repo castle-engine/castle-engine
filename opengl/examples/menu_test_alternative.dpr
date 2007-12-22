@@ -25,7 +25,7 @@
 
 program menu_test_alternative;
 
-uses OpenGLh, GLWindow, GLW_Win;
+uses GL, GLU, GLExt, GLWindow, GLW_Win;
 
 var FirstMainMenu, SecondMainMenu: TMenu;
 

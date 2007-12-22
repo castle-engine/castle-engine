@@ -9,7 +9,7 @@
   * Daniel Borca
   *}
 
-uses VectorMath, GLWindow, GLW_Demo, OpenGLh, KambiGLUtils,
+uses VectorMath, GLWindow, GLW_Demo, GL, GLU, GLExt, KambiGLUtils,
   KambiStringUtils, KambiUtils, GLImages;
 
 {$I openglmac.inc}

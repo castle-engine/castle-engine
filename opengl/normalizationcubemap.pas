@@ -2,7 +2,7 @@ unit NormalizationCubeMap;
 
 interface
 
-uses OpenGLh;
+uses GL, GLU, GLExt;
 
 { Generate new OpenGL texture number and set it's 6
   GL_TEXTURE_CUBE_MAP_*_ARB targets to cube map used to normalize vectors.

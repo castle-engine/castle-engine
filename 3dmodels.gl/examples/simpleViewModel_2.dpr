@@ -48,7 +48,7 @@
 
 program simpleViewModel_2;
 
-uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, OpenGLh, GLWindow,
+uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
   KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,

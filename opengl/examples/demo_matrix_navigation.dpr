@@ -34,7 +34,7 @@ program demo_matrix_navigation;
 
 {$apptype GUI}
 
-uses VectorMath, Boxes3d, OpenGLh, GLWindow,
+uses VectorMath, Boxes3d, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, MatrixNavigation, KambiFilesUtils;
 

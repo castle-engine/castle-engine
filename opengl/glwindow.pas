@@ -607,7 +607,7 @@ unit GLWindow;
 interface
 
 uses
-  SysUtils, Math, VectorMath, OpenGLh,
+  SysUtils, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
   {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, {$endif}
@@ -1830,39 +1830,47 @@ type
 
     property Closed: boolean read FClosed;
 
-    { This initializes this OpenGL window:
-      - create window, it's OpenGL area, optionally it's menu
-      - create OpenGL context associated with it's OpenGL area
-      - show the window
-      - call OpenGLh unit's procedures
-          ReadImplementationProperties;
-          LoadProcExtensions;
-        so that every information initialized by these variables
-        is ready.
-      - Initial events called:
-        Call MakeCurrent, EventInit (OnInit)
-        Call MakeCurrent + EventResize (OnResize)
-        Call MakeCurrent once again, to be sure that after Init
-        active OpenGL context is the one associated with newly created
-        window (in case you would change active OpenGL context inside
-        EventResize (OnResize), which is allowed).
+    { Initialize window (create window with GL context, show window).
 
-      If it's not possible to obtain OpenGL context with specified
-      attributes (e.g. maybe you set (Depth|Stencil|Accum)BufferBits properties
-      to too high values) then @link(EGLContextNotPossible) is raised.
+      @unorderedList(
+        @item(Create window, it's OpenGL area, optionally it's menu.)
+        @item(Create OpenGL context associated with it's OpenGL area.)
+        @item(Show the window.)
+        @item(Call LoadAllExtensions.
+          This way every information initialized by this
+          is ready, like GLVersion, GLUVersion, extensions are checked
+          and initialized.)
+
+        @item(Initial events called:@br
+          Call MakeCurrent, EventInit (OnInit)@br
+          Call MakeCurrent + EventResize (OnResize)@br
+          Call MakeCurrent once again, to be sure that after Init
+          active OpenGL context is the one associated with newly created
+          window (in case you would change active OpenGL context inside
+          EventResize (OnResize), which is allowed).)
+      )
 
       Call to Init is ignored if not Closed., i.e. if window is already inited.
+
+      @raises(EGLContextNotPossible
+        If it's not possible to obtain OpenGL context with specified
+        attributes (e.g. maybe you set (Depth|Stencil|Accum)BufferBits properties
+        to too high values) then @link(EGLContextNotPossible).)
     }
     procedure Init;
 
-    { Close
-      - calls EventClose (and OnClose)
-      - hides window, destroys it
-      - if this was the only open TGLWindow window
-        and QuitWhenLastWindowClosed = true then
-        this calls glwm.Quit.
+    { Close window.
 
-      Note that there's often no need to call Close in your program,
+      @unorderedList(
+        @item(Calls EventClose (and OnClose).)
+        @item(Hides window, destroys it.)
+        @item(
+          if this was the only open TGLWindow window
+          and QuitWhenLastWindowClosed = true then
+          this calls glwm.Quit.)
+      )
+
+      Note that often there's no need to call Close explicitly in your program,
       because in destructor of this object we call Close, to be sure
       that window is closed.
 
@@ -2930,12 +2938,7 @@ begin
   { Do MakeCurrent before glViewport and EventInit. }
   MakeCurrent;
 
-  {$ifndef USE_GL_GLU_UNITS}
-  ReadImplementationProperties;
-  LoadProcExtensions;
-  {$else}
   LoadAllExtenstions;
-  {$endif}
 
   if Log then
     WritelnLogMultiline('OpenGL context initialization', GLCapsString);

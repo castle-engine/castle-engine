@@ -71,7 +71,7 @@ program shadow_volume_test;
 
 {$apptype CONSOLE}
 
-uses GLWindow, GLW_Navigated, OpenGLh, KambiGLUtils, VRMLFlatSceneGL,
+uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils, VRMLFlatSceneGL,
   VRMLNodes, MatrixNavigation, VRMLFlatScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,

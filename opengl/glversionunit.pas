@@ -1,10 +1,34 @@
+{
+  Copyright 2001-2007 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
 { Implements GLVersion, GLUVersion and related stuff handy for checking
-  OpenGL version information, detect Mesa implementation etc.
+  OpenGL version information, detect Mesa/other vendors etc.
 
-  TODO: This unit is supposed to be used only when using GL, GLU, GLExt units,
-  not when using OpenGLh. OpenGLh internally duplicates this unit
-  functionality. }
-
+  As you see, this unit doesn't use GL bindings itself.
+  That's so that it may be used with various OpenGL bindings,
+  like my old OpenGLh or FPC's GL, GLU, GLExt.
+  So you must manually initialize GLVersion from some othe unit.
+  As far as my engine is concerned, this will happen automatically
+  by LoadAllExtensions call. Which is done by GLWindow on Init,
+  or TKamOpenGLControl on GL context initialization.
+}
 unit GLVersionUnit;
 
 {$include openglmac.inc}
@@ -14,7 +38,7 @@ interface
 type
   { This is used to store OpenGL libraries (core OpenGL or GLU)
     version information. As obtained from glGetString(GL_VERSION)
-    or gluGetString(GLU_VERSION), by ReadImplementationProperties. }
+    or gluGetString(GLU_VERSION), by LoadAllExtensions. }
   TGenericGLVersion = class
   public
     constructor Create(const VersionString: string);
@@ -32,10 +56,10 @@ type
     Release: Integer;
     { @groupEnd }
 
-    { GLVendorVersion is whatever vendor-specific information was placed
+    { VendorVersion is whatever vendor-specific information was placed
       inside VersionString, after the
-      major_number.minor_number.release_number. It doesn't have whitespace
-      at the beginning (ReadImplementationProperties will trim it). }
+      major_number.minor_number.release_number. It never has any whitespace
+      at the beginning (we trim it when initializing). }
     VendorVersion: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;

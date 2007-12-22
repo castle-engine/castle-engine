@@ -69,7 +69,7 @@ interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLFlatScene, VRMLOpenGLRenderer, OpenGLh, BackgroundGL, KambiGLUtils,
+  VRMLFlatScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
   ShadowVolumesHelper;
 

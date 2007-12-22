@@ -37,7 +37,7 @@
 
 program test_glwindow_gtk_mix;
 
-uses GLWindow, OpenGLh, KambiGLUtils, OpenGLFonts, SysUtils,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils,
   VectorMath, KambiUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
   {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif};
 

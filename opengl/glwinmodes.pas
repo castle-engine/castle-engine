@@ -65,7 +65,7 @@ unit GLWinModes;
 
 interface
 
-uses SysUtils, OpenGLh, GLWindow, KambiGLUtils, Images, GLWinMessages;
+uses SysUtils, GL, GLU, GLExt, GLWindow, KambiGLUtils, Images, GLWinMessages;
 
 { GLWindowState --------------------------------------------------------- }
 

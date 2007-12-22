@@ -114,7 +114,7 @@ type
 
 implementation
 
-uses OpenGLh, KambiGLUtils;
+uses GL, GLU, GLExt, KambiGLUtils;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

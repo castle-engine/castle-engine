@@ -87,7 +87,7 @@ type
 
 implementation
 
-uses OpenGLh, KambiGLUtils, SysUtils, Math;
+uses GL, GLU, GLExt, KambiGLUtils, SysUtils, Math;
 
 constructor TVRMLGLHeadLight.Create(HeadLightNode: TNodeKambiHeadLight);
 

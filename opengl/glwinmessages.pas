@@ -123,7 +123,7 @@ unit GLWinMessages;
 
 interface
 
-uses Classes, GLWindow, KambiGLUtils, OpenGLh, KambiUtils, OpenGLFonts,
+uses Classes, GLWindow, KambiGLUtils, GL, GLU, GLExt, KambiUtils, OpenGLFonts,
   KambiStringUtils, VectorMath;
 
 type

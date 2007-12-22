@@ -26,7 +26,7 @@ program glWinEvents;
 
 {$apptype GUI}
 
-uses SysUtils, KambiUtils, KambiGLUtils, OpenGLh, TimeMessages, GLWindow,
+uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLExt, TimeMessages, GLWindow,
   GLW_demo, Keys, KambiStringUtils;
 
 var TimeMsg: TTimeMessagesManager;

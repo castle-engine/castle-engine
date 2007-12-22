@@ -41,7 +41,7 @@ unit ProgressGL;
 
 interface
 
-uses OpenGLh, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
+uses GL, GLU, GLExt, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
   GLWinModes, KambiGLUtils;
 
 const

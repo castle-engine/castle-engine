@@ -111,7 +111,7 @@ procedure RenderBorderEdges(
 
 implementation
 
-uses SysUtils, KambiGLUtils, OpenGLh;
+uses SysUtils, KambiGLUtils, GL, GLU, GLExt;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

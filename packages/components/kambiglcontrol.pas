@@ -20,14 +20,10 @@ type
 
     Also, this provides OnGLContextInit and OnGLContextClose events.
 
-
-    Also, this automatically calls
-    @longCode(
-  ReadImplementationProperties;
-  LoadProcExtensions;
-)
-    when GL context is initialized. This will set various variables in OpenGLh
-    unit, descripting OpenGL version and available extensions.
+    Also, this automatically calls LoadAllExtensions
+    when GL context is initialized. This will initialize all extensions
+    and set GLVersion variables, descripting OpenGL version
+    and available extensions.
 
     TODO: integrate also MouseLook features of TMatrixNavigator. }
   TKamOpenGLControl = class(TOpenGLControl)
@@ -37,21 +33,21 @@ type
     FNavigator: TMatrixNavigator;
     ContextInitialized: boolean;
     function ReallyUseNavigator: boolean;
-    
+
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
-    
+
     LastIdleStartTimeInited: boolean;
     LastIdleStartTime: TKamTimerResult;
   protected
     procedure DestroyHandle; override;
-    
+
     { In this class this just calls OnGLContextInit. }
     procedure DoGLContextInit; virtual;
-    
+
     { In this class this just calls OnGLContextClose. }
     procedure DoGLContextClose; virtual;
-    
+
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: Controls.TMouseButton;
@@ -81,7 +77,7 @@ type
       TMatrixExaminer(Navigator) and TMatrixWalker(Navigator).
       In DEBUG version they use operator "as" but in RELEASE
       version they use direct type-casts for speed.
-      
+
       @groupBegin }
     function NavExaminer: TMatrixExaminer;
     function NavWalker: TMatrixWalker;
@@ -102,16 +98,16 @@ type
     procedure Ray(const WindowX, WindowY: Integer;
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
-      
+
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
-    
+
     procedure NavigatorIdle;
-    
+
     KeysDown: TKeysBooleans;
     MousePressed: MatrixNavigation.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
   published
-  
+
     { This will be called right after GL context
       will be initialized. }
     property OnGLContextInit: TNotifyEvent
@@ -127,7 +123,7 @@ procedure Register;
 
 implementation
 
-uses LCLType, RaysWindow, OpenGLh;
+uses LCLType, RaysWindow, GL, GLU, GLExt;
 
 procedure Register;
 begin
@@ -184,7 +180,7 @@ to be realized. }
 function TKamOpenGLControl.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
-  
+
   if not ContextInitialized then
   begin
     ContextInitialized := true;
@@ -204,8 +200,7 @@ end;
 
 procedure TKamOpenGLControl.DoGLContextInit;
 begin
-  ReadImplementationProperties;
-  LoadProcExtensions;
+  LoadAllExtensions;
 
   if Assigned(OnGLContextInit) then
     OnGLContextInit(Self);
@@ -241,7 +236,7 @@ procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
 begin
   MyKey := K_None;
   MyCharKey := #0;
-  
+
   case Key of
     VK_BACK: MyKey := K_BackSpace;
     VK_TAB: MyKey := K_Tab;
@@ -291,13 +286,13 @@ begin
         MyKey := K_0  + Key - Ord('0');
         MyCharKey := Chr(Key);
       end;
-      
+
     Ord('A') .. Ord('Z'):
       begin
         MyKey := K_A  + Key - Ord('A');
         MyCharKey := Chr(Key);
       end;
-        
+
     VK_F1 .. VK_F12  : MyKey := K_F1 + Key - VK_F1;
   end;
 end;
@@ -310,10 +305,10 @@ begin
   inherited KeyDown(Key, Shift);
 
   LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
-  
+
   { Tests: Writeln('Key down : ', KeyToStr(MyKey),
     ' ', Ord(MyCharKey), ' ', MyCharKey); }
-  
+
   if MyKey <> K_None then
     KeysDown[MyKey] := true;
 
@@ -329,7 +324,7 @@ var
   MyCharKey: char;
 begin
   inherited KeyUp(Key, Shift);
-  
+
   LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
 
   { Tests: Writeln('Key up : ', KeyToStr(MyKey),
@@ -363,7 +358,7 @@ var
   MyButton: MatrixNavigation.TMouseButton;
 begin
   inherited MouseDown(Button, Shift, X, Y);
-  
+
   if LMouseButtonToMyMouseButton(Button, MyButton) then
   begin
     Include(MousePressed, MyButton);
@@ -378,7 +373,7 @@ var
   MyButton: MatrixNavigation.TMouseButton;
 begin
   inherited MouseUp(Button, Shift, X, Y);
-  
+
   if LMouseButtonToMyMouseButton(Button, MyButton) then
   begin
     Exclude(MousePressed, MyButton);

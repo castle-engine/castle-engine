@@ -35,7 +35,7 @@ unit OpenGLWindowsFonts;
 
 interface
 
-uses WindowsFonts, OpenGLh, Windows
+uses WindowsFonts, GL, GLU, GLExt, Windows
   {$ifndef USE_WGL}, BmpFontsTypes, TTFontsTypes, WinFontConvert,
   OpenGLTTFonts, OpenGLBmpFonts {$endif};
 

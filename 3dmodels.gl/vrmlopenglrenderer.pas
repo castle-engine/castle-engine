@@ -322,7 +322,7 @@ unit VRMLOpenGLRenderer;
 interface
 
 uses
-  Classes, SysUtils, KambiUtils, VectorMath, OpenGLh,
+  Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
   VRMLErrors, ImagesCache;

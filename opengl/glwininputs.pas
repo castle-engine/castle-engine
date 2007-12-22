@@ -51,7 +51,7 @@ unit GLWinInputs;
 
 interface
 
-uses OpenGLh, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
+uses GL, GLU, GLExt, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
   KambiStringUtils;
 
 { Dziala w petli (glwm.ProcessMessage) i wyswietla

@@ -28,9 +28,11 @@
   $IFDEF, wiec jest kompatybilnosc z FPC 1.0.x (i przy okazji ze
   starszymi Delphi).
 
-  Dlaczego procedury / funkcje gluta sa ladowane w initialization
-  modulu zamiast robic je przez external ? Patrz openGLh,
-  komentarz przy glXMakeCurrent.
+  Procedury / funkcje gluta sa ladowane w initialization
+  zamiast robic je przez external, this is a leftover from old confusion,
+  see OpenGLh.glXMakeCurrent comments. The issue is (most probably)
+  non-existent since a long time, and I even don't use OpenGLh unit anymore...
+  So there's no valid reason currently to not use "external" construct.
 
   Wieksze wlasne dodatki / konieczne zmiany oznaczylem przez 'Kambi'
   (wlasciwie to jest tylko jeden moj dodatek uzyteczny z zewnatrz :
@@ -79,7 +81,7 @@ unit KambiGlut;
 interface
 
 uses
-  {$ifdef MSWINDOWS} Windows, {$else} {$endif} OpenGLh, SysUtils;
+  {$ifdef MSWINDOWS} Windows, {$else} {$endif} GL, GLU, GLExt, SysUtils;
 
 const
   GlutDLL =

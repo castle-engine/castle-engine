@@ -80,7 +80,7 @@ unit BackgroundGL;
 
 interface
 
-uses VectorMath, SysUtils, OpenGLh, KambiGLUtils, KambiUtils, Images,
+uses VectorMath, SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils, Images,
   BackgroundBase;
 
 const

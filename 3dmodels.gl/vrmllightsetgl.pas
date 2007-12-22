@@ -38,7 +38,7 @@ unit VRMLLightSetGL;
 
 interface
 
-uses VectorMath, OpenGLh, KambiGLUtils, VRMLNodes, VRMLLightSet;
+uses VectorMath, GL, GLU, GLExt, KambiGLUtils, VRMLNodes, VRMLLightSet;
 
 { Sets up OpenGL light (number glLightNum) properties based on VRMLLight
   properties. It means that it calls

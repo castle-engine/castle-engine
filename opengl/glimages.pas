@@ -27,19 +27,19 @@
       Wrapper around glTexImage2D and other texture-related operations.
       See LoadGLTexture.)
 
-    @item(Drawing TImaga instance in OpenGL buffer.
+    @item(Drawing TImage instance in OpenGL buffer.
       Wrapper around glDrawPixels and related things.
       See ImageDraw.)
 
     @item(Screen saving, that is saving OpenGL buffer contents to TImage instance.
       Wrapper around glReadPixels and related things.
-      See SaveScreen.)
+      See TGLWindow.SaveScreen, based on SaveScreen_noflush in this unit.)
   )
 
-  See Images unit for functions to load, save, process
+  See @link(Images) unit for functions to load, save, process
   images. Images unit is the non-OpenGL-related helper of this unit.
 
-  This unit hides from you some pecularities of OpenGL images handling :
+  This unit hides from you some specifics of OpenGL images handling :
 
   @unorderedList(
     @item(
@@ -77,7 +77,7 @@ unit GLImages;
 
 interface
 
-uses OpenGLh, Images, VectorMath, KambiGLUtils;
+uses GL, GLU, GLExt, Images, VectorMath, KambiGLUtils;
 
 const
   { All routines in this unit that take TImage paramater

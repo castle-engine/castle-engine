@@ -41,7 +41,7 @@ program draw_space_filling_curve;
 
 {$apptype GUI}
 
-uses SysUtils, OpenGLh, GLWindow, GLW_Demo, KambiUtils, KambiGLUtils,
+uses SysUtils, GL, GLU, GLExt, GLWindow, GLW_Demo, KambiUtils, KambiGLUtils,
   Images, VectorMath, Math, SpaceFillingCurves, KambiStringUtils,
   GLImages;
 

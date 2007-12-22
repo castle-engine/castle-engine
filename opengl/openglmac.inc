@@ -1,8 +1,8 @@
 { some OpenGL Macros }
 
-{ Define this to automatically use gl, glu, glext FPC units everywhere
+{ Define this to automatically use GL, GLU, GLExt FPC units everywhere
   instead of my OpenGLh unit. }
-{ $define USE_GL_GLU_UNITS}
+{$define USE_GL_GLU_UNITS}
 
 {$ifdef USE_GL_GLU_UNITS}
   {$define OpenGLh := gl, glu, glext}

@@ -4013,7 +4013,7 @@ var
 
 { Note to users of GLWindow unit: you usually don't need to care about
   calling these functions, since @link(TGLWindow.Init) always calls
-  ReadImplementationProperties and LoadProcExtensions. }
+  LoadAllExtensions. }
 
 { Initialize boolean variables GL_VERSION_*, GLU_VERSION_*,
   all extensions booleans, and GLVersion and GLUVersion variables.
@@ -4026,6 +4026,20 @@ procedure ReadImplementationProperties;
   at different addresses !). }
 procedure ClearProcExtensions;
 procedure LoadProcExtensions;
+
+{ Initialize boolean variables GL_VERSION_*, GLU_VERSION_*,
+  all extensions booleans, and GLVersion and GLUVersion variables.
+  And then loads all present extensions.
+
+  This is just a shortcut for
+@longCode(#
+  ReadImplementationProperties;
+  LoadProcExtensions;
+#)
+
+  (a handy shortcut, since KambiGLUtils has procedure with the same name
+  and same meaning for GL, GLU, GL units). }
+procedure LoadAllExtensions;
 
 {---------------------------------------------------------------------------------------------------------------------- }
 
@@ -6518,6 +6532,12 @@ begin
   GLU_EXT_TEXTURE := CheckExtension('GLU_EXT_TEXTURE');
   GLU_EXT_object_space_tess := CheckExtension('GLU_EXT_object_space_tess');
   GLU_EXT_nurbs_tessellator := CheckExtension('GLU_EXT_nurbs_tessellator');
+end;
+
+procedure LoadAllExtensions;
+begin
+  ReadImplementationProperties;
+  LoadProcExtensions;
 end;
 
 {---------------------------------------------------------------------------------------------------------------------- }

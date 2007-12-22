@@ -26,7 +26,7 @@
 
 program test_font_break;
 
-uses GLWindow, GLW_Demo, OpenGLh, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
+uses GLWindow, GLW_Demo, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
   KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath;
 
 var

@@ -56,7 +56,7 @@ unit KambiGLUtils;
   2) Second way, safer, is to do some "stub": declare
      normal function
        procedure glVertexv(const v: TVector3f); overload;
-     and in implementation just call appropriate function from OpenGLh
+     and in implementation just call appropriate function from GL, GLU, GLExt
        procedure glVertexv(const v: TVector3f);
        begin glVertex3fv(@v); end;
      This will work slightly slower, but it also proved to be much
@@ -84,16 +84,22 @@ unit KambiGLUtils;
 }
 {$define IMPLEMENT_OPENGL_STUBS}
 
+{ See
+  http://www.freepascal.org/mantis/view.php?id=10460
+  for NEEDS_FOG_COORD_FIX explanation. }
+{$ifdef VER2_0} {$define NEEDS_FOG_COORD_FIX} {$endif}
+{$ifdef VER2_2} {$define NEEDS_FOG_COORD_FIX} {$endif}
+
 interface
 
-uses Math, OpenGLh, SysUtils, KambiUtils, VectorMath, Boxes3d, IntRects,
+uses Math, GL, GLU, GLExt, SysUtils, KambiUtils, VectorMath, Boxes3d, IntRects,
   Images, Matrix;
 
 {$define read_interface}
 
 { ------------------------------------------------------------ }
-{ @section(Utils needed only when using gl, glu, glext bindings.
-    Not needed when using OpenGLh binding.) }
+{ @section(Utils needed only when using GL, GLU, GLExt bindings.
+  Not needed when using OpenGLh binding.) }
 
 {$ifdef USE_GL_GLU_UNITS}
 type
@@ -137,8 +143,9 @@ const
 
 var
   GL_version_1_2: boolean;
-  GL_ARB_imaging: boolean;
   GL_version_1_3: boolean;
+  GL_version_2_0: boolean;
+  GL_ARB_imaging: boolean;
   GL_ARB_multitexture: boolean;
   GL_ARB_transpose_matrix: boolean;
   GL_ARB_multisample: boolean;
@@ -266,17 +273,56 @@ var
   GL_NV_fragment_program: boolean;
   GL_NV_primitive_restart: boolean;
   GL_NV_vertex_program2: boolean;
+  GL_ATI_separate_stencil: boolean;
 
-{ Something roughly equivalent to
-    ReadImplementationProperties;
-    LoadProcExtensions;
-  from OpenGLh unit.
+{$ifdef NEEDS_FOG_COORD_FIX}
+var
+  glFogCoordfEXT: procedure(coord: GLfloat); OPENGL_CALL
+  glFogCoorddEXT: procedure(coord: GLdouble); OPENGL_CALL
+  glFogCoordfvEXT: procedure(coord: PGLfloat); OPENGL_CALL
+  glFogCoorddvEXT: procedure(coord: PGLdouble); OPENGL_CALL
+{$endif}
+
+{ Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
-  - all GL 1.2 function addresses and
-  - all gl extensions function addresses and
-  - inits all those boolean extensions variables above and
-  - inits GLVersion and GLUVersion from GLVersionUnit. }
+  @unorderedList(
+    @itemSpacing compact
+    @item all GL 1.2, 1.3, 2.0 etc. function addresses and
+    @item all gl extensions function addresses and
+    @item inits all boolean extensions variables.
+  )
+
+  Note that variables GL_version_x_x, like GL_version_2_0, are initialized
+  by checking both version string (glGetString(GL_VERSION) etc) @bold(and) by
+  actually checking whether all entry points are non-nil.
+  This is important because with buggy OpenGL implementations
+  (see shitty ATI Linux closed drivers) version number in version string
+  may be untrue: version string reports OpenGL 2.0,
+  but actually lack entry points for pretty much all OpenGL 2.0 functions.
+  So GLVersion.AtLeast(2, 0) returns @true, but in fact you can't have
+  OpenGL 2.0 functions.
+
+  Implementation: Load_GL_version_x_x from GLExt unit actually always checks
+  whether all entry points are <> nil, that's good. GLVersion.AtLeast by
+  definition only checks version string, so this is used to check version
+  string.
+
+  Note that it would be an error to check only whether entry points
+  are non-nil, I should always check version string too. For example
+  see @code(glStencilOpSeparate := nil) in TShadowVolumesHelper.InitGLContext
+  fix, on Mesa 6.x and NVidia legacy 96xx on Linux this is non-nil
+  (i.e. entry point exists in GL library), but doesn't work
+  (I didn't use GLExt back then, but OpenGLh).
+  And OpenGL version string indicates gl 1.x version.
+  This is OK, I think: and it means I should always check version string
+  (not depend that all library entry points are actually implemented).
+
+  So when e.g. GL_version_2_0 is @true, you are
+  actually sure that all GL 2.0 entry points are really non-nil and they
+  really should work.
+
+  Inits also GLVersion and GLUVersion from GLVersionUnit. }
 procedure LoadAllExtenstions;
 {$endif}
 
@@ -320,9 +366,9 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
 function glGetDouble(pname: TGLEnum): TGLdouble;
 
 { ----------------------------------------------------------------------------------
-  Dodatkowe deklaracje eksportujace funkcje openGL'a w nieco inny sposob.
+  Dodatkowe deklaracje eksportujace funkcje OpenGL'a w nieco inny sposob.
 
-  Podstawowe wersje tych procedur w openGLh (jako v: PXxx) sa nieco bardziej
+  Podstawowe wersje tych procedur w module OpenGLa (jako v: PXxx) sa nieco bardziej
   elastyczne. Np. dla glLightfv adres moze wskazywac na 1 liczbe (np. dla GL_SPOT_CUTOFF),
   na 3 liczby (np. dla GL_SPOT_DIR) lub na 4 liczby (np. GL_AMBIENT). Ponizsze deklaracje
   z koniecznosci beda wiec powtarzaly nie raz eksportowanie tych samych proc. na inne
@@ -961,10 +1007,47 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit;
 {$I opengltypes.inc}
 
 procedure LoadAllExtenstions;
+
+  {$ifdef NEEDS_FOG_COORD_FIX}
+  function Load_GL_EXT_fog_coord: Boolean;
+  var
+    extstring: String;
+  begin
+
+    Result := FALSE;
+    extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+    if glext_ExtensionSupported('GL_EXT_fog_coord', extstring) then
+    begin
+      Pointer(glFogCoordfEXT) := wglGetProcAddress('glFogCoordfEXT');
+      if not Assigned(glFogCoordfEXT) then Exit;
+      Pointer(glFogCoorddEXT) := wglGetProcAddress('glFogCoorddEXT');
+      if not Assigned(glFogCoorddEXT) then Exit;
+      Pointer(glFogCoordfvEXT) := wglGetProcAddress('glFogCoordfvEXT');
+      if not Assigned(glFogCoordfvEXT) then Exit;
+      Pointer(glFogCoorddvEXT) := wglGetProcAddress('glFogCoorddvEXT');
+      if not Assigned(glFogCoorddvEXT) then Exit;
+      Pointer(glFogCoordPointerEXT) := wglGetProcAddress('glFogCoordPointerEXT');
+      if not Assigned(glFogCoordPointerEXT) then Exit;
+      Result := TRUE;
+    end;
+
+  end;
+  {$endif}
+
 begin
- GL_version_1_2 := Load_GL_version_1_2;
+ FreeAndNil(GLVersion);
+ GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
+
+ { gluGetString is valid for version 1.1 or later }
+ if Assigned(gluGetString) then
+   GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
+   GLUVersion := TGenericGLVersion.Create('1.0');
+
+ GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
+ GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
+ GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
  GL_ARB_imaging := Load_GL_ARB_imaging;
- GL_version_1_3 := Load_GL_version_1_3;
  GL_ARB_multitexture := Load_GL_ARB_multitexture;
  GL_ARB_transpose_matrix := Load_GL_ARB_transpose_matrix;
  GL_ARB_multisample := Load_GL_ARB_multisample;
@@ -1092,14 +1175,7 @@ begin
  GL_NV_fragment_program := Load_GL_NV_fragment_program;
  GL_NV_primitive_restart := Load_GL_NV_primitive_restart;
  GL_NV_vertex_program2 := Load_GL_NV_vertex_program2;
-
- FreeAndNil(GLVersion);
- GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
-
- { gluGetString is valid for version 1.1 or later }
- if Assigned(gluGetString) then
-   GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
-   GLUVersion := TGenericGLVersion.Create('1.0');
+ GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
 end;
 {$endif}
 
@@ -2174,14 +2250,56 @@ initialization
  { This is needed for gllistIBase declaration to be correct. }
  Assert(SizeOf(TGLint) = SizeOf(TGLuint));
 
- {$ifdef USE_GL_GLU_UNITS}
- { For reasoning of this:
-   - see DISABLE_FP_EXCEPTIONS comments in OpenGLh unit.
-   - see FPC bug [http://www.freepascal.org/mantis/view.php?id=5914]
-     (old id is 3955)
-   - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570] }
- Set8087CW($133F);
- {$endif}
+  { If DISABLE_FP_EXCEPTIONS is defined then in the initialization
+    this unit will mask all floating point exceptions.
+    This sucks, but it's the fault of OpenGL implementations and we can't
+    do anything about it:
+
+    - Windows:
+
+      In GLUT faq we can read explanation: this is because Microsoft's
+      OpenGL implementations can raise FPU exceptions doing floating
+      point operations.
+      Microsoft compilers, like Visual C++, by default ignore FPU
+      exceptions so nothing needs to be done when you compile programs
+      in Visual C++. But Borland's compilers (at least Delphi and
+      C++Builder) and FPC don't mask FPU exceptions - by default, they convert
+      them to normal C++/Pascal exceptions. So one should explicitly mask
+      FPU exceptions before using any OpenGL routine under Windows.
+
+      See also explanation in my bug report to FPC:
+      [http://www.freepascal.org/mantis/view.php?id=5914]
+      (note that it was written when I thought (incorrectly, see below)
+      that this is Windows-only issue).
+
+    - Linux:
+
+      Radeon open-source OpenGL driver may cause EDivByZero exceptions.
+      Reported by Daniel Mantione with Radeon Mobility M7,
+      steps to reproduce: just run "The Castle" and enter "New Game",
+      EDivByZero is raised from inside of glCallList inside
+      TVRMLFLATSCENEGL__SSS_RENDERSHAPESTATE, line 1213 of vrmlflatscenegl.pas.
+      Disabling fp exceptions fixed the problem.
+
+      NVidia proprietary drivers exit with EDivByZero on the first
+      glXMakeCurrent call (done also by glut in first glutCreateWindow,
+      done also by GTK glarea in first gtk_glarea_make_current)
+      when no depth buffer was requested.
+
+    I want to mention here that Mesa3d doesn't cause such problems.
+    So maybe it's possible to make an efficient OpenGL
+    implementation that doesn't require caller to disable fp exceptions ?
+    Other implementors: please take this good example. Thanks.
+
+    For more reasoning see related bug reports I submitted to FPC:
+    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=5914]
+      (old id is 3955)
+    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570] }
+  {$define DISABLE_FP_EXCEPTIONS}
+
+  {$ifdef DISABLE_FP_EXCEPTIONS}
+  Set8087CW($133F);
+  {$endif}
 
  Pointer(glListIBase) := glListBase;
  Pointer(KamGLPolygonStipple) := glPolygonStipple;

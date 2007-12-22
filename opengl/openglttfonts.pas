@@ -27,7 +27,7 @@ unit OpenGLTTFonts;
 
 interface
 
-uses OpenGLFonts, OpenGLh, TTFontsTypes, SysUtils, KambiGLUtils;
+uses OpenGLFonts, GL, GLU, GLExt, TTFontsTypes, SysUtils, KambiGLUtils;
 
 type
   { Outline 3D font for OpenGL.
@@ -277,18 +277,17 @@ begin
   Self.TTFont := TrueTypeFont;
 
   tobj := gluNewTess();  { inicjuj tesselator }
-  gluTessCallback(tobj, GLU_TESS_VERTEX, {$ifndef FPC_OBJFPC} @ {$endif} glVertex3dv);
-  gluTessCallback(tobj, GLU_TESS_BEGIN, {$ifndef FPC_OBJFPC} @ {$endif} glBegin);
-  gluTessCallback(tobj, GLU_TESS_END, {$ifndef FPC_OBJFPC} @ {$endif} glEnd);
+  gluTessCallback(tobj, GLU_TESS_VERTEX, TCallBack(glVertex3dv));
+  gluTessCallback(tobj, GLU_TESS_BEGIN, TCallBack(glBegin));
+  gluTessCallback(tobj, GLU_TESS_END, TCallBack(glEnd));
 
   { This is a workaround of Mesa3D bug.
     See ../doc/mesa_normals_edge_flag_bug.txt }
   if not GLVersion.IsMesa then
-    gluTessCallback(tobj, GLU_TESS_EDGE_FLAG,
-      {$ifndef FPC_OBJFPC} @ {$endif} glEdgeFlag);
+    gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
-  gluTessCallback(tobj, GLU_TESS_ERROR, @ReportGLError);
-  gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, @TessCombineCallback);
+  gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@ReportGLError));
+  gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, TCallBack(@TessCombineCallback));
 
   if onlyLines then gluTessProperty(tobj, GLU_TESS_BOUNDARY_ONLY, GL_TRUE);
 

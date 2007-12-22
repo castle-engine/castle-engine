@@ -64,7 +64,7 @@ procedure Render3DS(scene: TScene3ds; useTexture2d: boolean);
 
 implementation
 
-uses SysUtils, KambiUtils, OpenGLh, KambiGLUtils, Object3dsMaterial, Images,
+uses SysUtils, KambiUtils, GL, GLU, GLExt, KambiGLUtils, Object3dsMaterial, Images,
   GLImages;
 
 procedure RenderGEO(geo: TObject3dGEO);

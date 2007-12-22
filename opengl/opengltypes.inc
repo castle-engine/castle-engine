@@ -23,6 +23,8 @@
   OpenGLTypes zostaje wlaczony przez $I jako integralna czesc
   OpenGLh. Jak to juz kiedys zreszta bylo.
 
+  When using GL, GLU, GLExt units, this is included from KambiGLUtils.
+
   Notabene pozwolilo mi to na przeniesienie modulu Boxes3d takze do
   modulow niezaleznych od OpenGLa.
 
@@ -43,7 +45,7 @@
     $Include, obecnie jego tresc jest tu literalnie wklejona.
 
     W oryginale GeometryTypes to byl w ogole osobny unit - u mnie jest
-    wstawiony do OpenGLTypes.inc a wiec i do OpenGLh.pas bo:
+    wstawiony do OpenGLTypes.inc a wiec i do KambiGLUtils bo:
     * tak jest wygodniej, to raz,
     * dwa to ze typy z GeometryTypes potrzebuja i tak definicji TGLfloat,
       TGLdouble i TGLint aby byc elegancko zdefiniowanymi

@@ -79,11 +79,8 @@ Some part of these units can be compiled with Delphi 7 for Windows
 (all versions, even Delphi 7 Personal).
 This concerns most of the units in @code(base/) subdirectory,
 all units in @code(images/) and @code(fonts/).
-
 Maybe some other units could be compiled with Delphi, but this
-would be only an accident. In particular, OpenGLh unit is only
-for FPC so nothing in @code(opengl/) or @code(3dmodels.gl/)
-will compile with Delphi.
+would be only an accident.
 
 Some parts possibly could be compiled with Kylix (Delphi for Linux),
 but this would also be only "by accident" --- I'm not planning
