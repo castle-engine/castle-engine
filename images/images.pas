@@ -344,8 +344,7 @@ type
       alpha value of given pixel is not changed).
 
       In case of descendants that don't have anything like RGB encoded
-      inside (e.g. TGrayscaleImage, that is not implemented now but may be
-      implemented some day), this should not be overriden and then
+      inside (e.g. TGrayscaleImage), this should not be overriden and then
       default implementation of this method in this class
       will raise EInternalError. This also means that you must not
       call inherited in descendants when overriding this method.
