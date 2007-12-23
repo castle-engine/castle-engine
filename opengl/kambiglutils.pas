@@ -1042,6 +1042,7 @@ begin
  FreeAndNil(GLVersion);
  GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
 
+ FreeAndNil(GLUVersion);
  { gluGetString is valid for version 1.1 or later }
  if Assigned(gluGetString) then
    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
@@ -2307,8 +2308,12 @@ initialization
     For more reasoning see related bug reports I submitted to FPC:
     - see FPC bug [http://www.freepascal.org/mantis/view.php?id=5914]
       (old id is 3955)
-    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570] }
+    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570]
+
+    FPC >= 2.2.0 already does this in GL unit for all x86. }
+  {$ifdef VER2_0}
   {$define DISABLE_FP_EXCEPTIONS}
+  {$endif}
 
   {$ifdef DISABLE_FP_EXCEPTIONS}
   Set8087CW($133F);
