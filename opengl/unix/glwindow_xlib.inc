@@ -143,10 +143,7 @@ begin
   VisualAttr.AppendArray([
     GLX_RGBA,
     { Ponizsze rozmiary buforow sa zawsze w bitach }
-    GLX_DEPTH_SIZE,
-      {$ifdef WORKAROUND_DEPTH_BITS_0_BUG} Max(DepthBufferBits, 1)
-      {$else} DepthBufferBits
-      {$endif},
+    GLX_DEPTH_SIZE, DepthBufferBits,
     GLX_STENCIL_SIZE, StencilBufferBits,
     GLX_ALPHA_SIZE, AlphaBits,
     GLX_ACCUM_RED_SIZE, AccumBufferBits[0],

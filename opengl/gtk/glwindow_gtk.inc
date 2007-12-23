@@ -958,10 +958,7 @@ begin
     GDK_GL_RGBA,
     { Note that sizes of buffers in VisualAttr must be given in bits
       (not in e.g. bytes), so this is exactly what I have in my variables. }
-    GDK_GL_DEPTH_SIZE,
-      {$ifdef WORKAROUND_DEPTH_BITS_0_BUG} Max(DepthBufferBits, 1)
-      {$else} DepthBufferBits
-      {$endif},
+    GDK_GL_DEPTH_SIZE, DepthBufferBits,
 
     { This is a workaround for gtkglext Windows bug,
       one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise

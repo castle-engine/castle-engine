@@ -346,9 +346,7 @@ begin
   GlutDispMode := GlutDispMode or GLUT_SINGLE;
  if StencilBufferBits > 0 then
   GlutDispMode := GlutDispMode or GLUT_STENCIL;
- {$ifndef WORKAROUND_DEPTH_BITS_0_BUG}
  if DepthBufferBits > 0 then
- {$endif}
   GlutDispMode := GlutDispMode or GLUT_DEPTH;
  if AlphaBits > 0 then
   GlutDispMode := GlutDispMode or GLUT_ALPHA;

@@ -724,6 +724,8 @@ const
   StandardParseOptions: TGLWindowParseOptions = [poGeometry, poScreenGeometry,
     poDisplay];
 
+  DefaultDepthBufferBits = 16;
+
 type
   TGLWindow = class;
 
@@ -1157,6 +1159,10 @@ type
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
       ProvidedAccumAlphaBits: Cardinal);
+
+    FDepthBufferBits: Cardinal;
+    FStencilBufferBits: Cardinal;
+    FAlphaBits: Cardinal;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1422,54 +1428,81 @@ type
       Zawsze kiedy chcesz zbadac ile bitow rzeczywiscie masz mozesz uzyc
       glGetInteger. }
 
-    { Wartosc wieksza od zera oznacza ze chcemy miec gl context z przynajmniej
-      taka iloscia bitow. Wartosc rowna zero oznacza ze nie potrzebujemy
-      stencil bufora (chociaz mozemy go dostac mimo to). Innymi slowy,
-      jest gwarantowane ze dostaniemy gl context ze stencil buforem rozmiaru
-      StencilBufferBits lub wiekszym (lub ze wystapi blad podczas Init jesli
-      nie bedzie taki context dostepny). }
-    StencilBufferBits: Cardinal; { = 0 }
+    { Required depth buffer precision. Zero means that we don't need
+      depth buffer at all. We may get depth buffer with more precision
+      than requested (we may even get depth buffer when we set
+      DepthBufferBits = 0), this all depends on graphic card.
 
-    { analogicznie jak StencilBufferBits, tylko teraz mowimy o buforze glebokosci.
+      Default value is 16 (DefaultDepthBufferBits),
+      which is a reasonable default for 3D programs
+      that want to work with depth test enabled.
 
-      Note about default value: default value is 16, which is a reasonable
-      default for 3d programs that want to work with depth test enabled.
-      One may ask why default value is not 0 ?
-      (1) Most programs using OpenGL use depth testing, so many programs
-          would have to call something like "glw.DepthBufferBits := 16"
-      (2) Often graphic cards / window systems / OSes give you an OpenGL
-          context with depth buffer *even if you don't need depth buffer*.
-          I don't say that it's bad. But it makes easy to forget about
-          doing (1). I.e., if you're writing 3d program and sitting on some
+      @italic(Design notes:) One may ask why default value is not 0 ?
+
+      @orderedList(
+        @item(
+          Most programs using OpenGL use depth testing, so many programs
+          would have to call something like @code(Glw.DepthBufferBits := 16).)
+
+        @item(
+          Often graphic cards / window systems / OSes give you an OpenGL
+          context with depth buffer @italic(even if you don't need depth buffer).
+          I don't say that it's bad. But it makes very easy to forget about
+          doing @code(DepthBufferBits := something-non-zero;).
+          If you're writing 3d program and sitting on some
           system that always gives you depth buffer (even if DepthBufferBits = 0)
           then it may happen that you forget to write in your program
-            glw.DepthBufferBits := 16
+          @longCode(#  glw.DepthBufferBits := 16;#)
+
           And while on your system everything will work, you will
           receive errors on other systems because you forgot to request a
-          depth buffer.
+          depth buffer.)
+      )
 
       Of course, if you are writing a program that does not need depth buffer
       you should set glw.DepthBufferBits := 0. The only advantage of having
       default DepthBufferBits = 16 is that if you forget to set
-      glw.DepthBufferBits := 0 your programs will work (most graphic cards
+      Glw.DepthBufferBits := 0 your programs will still work (most graphic cards
       will give you some depth buffer anyway).
       They will just use more resources than they should.
-
-      TODO:  test that, what really happens on my system when I do that,
-      i.e. set DepthBufferBits := 0 and try to use depth buffer (enable depth
-      test) ? I'm unable to test it right now to 0 because i get EDivByZero.
     }
-    DepthBufferBits: Cardinal; { = 16 }
+    property DepthBufferBits: Cardinal
+      read FDepthBufferBits write FDepthBufferBits default DefaultDepthBufferBits;
 
-    { analogicznie jak StencilBufferBits, tylko teraz mowimy o kanale alpha
-      dla standardowego color buffera. Nie jest zdefiniowane jak potraktuje
-      ta zmienna kiedy zaimplementuje indexed color mode. }
+    { Required stencil buffer precision, zero means that stencil buffer is
+      not needed.
 
-    AlphaBits: Cardinal; { = 0 }
-    { analogicznie jak StencilBufferBits, tylko teraz mowimy o buforze
-      akumulacji. Kolejne elementy wektora to minimalne zadane rozmiary kanalow
-      red, green, blue i alpha. }
-    AccumBufferBits: TVector4Cardinal; { = (0, 0, 0, 0) }
+      Just like with other XxxBufferBits property, we may get more
+      bits than we requested. But we will never get less --- if window system
+      will not be able to provide GL context with requested number of bits,
+      @link(Init) will raise an error. }
+    property StencilBufferBits: Cardinal
+      read FStencilBufferBits write FStencilBufferBits default 0;
+
+    { Required number of bits in alpha channel of color buffer.
+      Zero means that alpha channel is not needed.
+
+      Just like with other XxxBufferBits property, we may get more
+      bits than we requested. But we will never get less --- if window system
+      will not be able to provide GL context with requested number of bits,
+      @link(Init) will raise an error.
+
+      It's undefined how I'll treat this variable when indexed color mode
+      will be possible in TGLWindow. }
+    property AlphaBits: Cardinal
+      read FAlphaBits write FAlphaBits default 0;
+
+    { Required number of bits in color channels of accumulation buffer.
+      Color channel is 0..3: red, green, blue, alpha.
+      Zero means that given channel of accumulation buffer is not needed,
+      so when the vector is all zeros (default value) this means that
+      accumulation buffer is not needed at all.
+
+      Just like with other XxxBufferBits property, we may get more
+      bits than we requested. But we will never get less --- if window system
+      will not be able to provide GL context with requested number of bits,
+      @link(Init) will raise an error. }
+    AccumBufferBits: TVector4Cardinal;
 
     (* TODO: zrobic od razu
          IndexBufferBits: Cardinal; = ????
@@ -2860,7 +2893,7 @@ begin
  FResizeAllowed := raAllowed;
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
- DepthBufferBits := 16;
+ DepthBufferBits := DefaultDepthBufferBits;
  FCursor := gcDefault;
 
  OwnsMainMenu := true;
