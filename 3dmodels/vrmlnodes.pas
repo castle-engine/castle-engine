@@ -1845,6 +1845,7 @@ type
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
+{$I x3d_shaders_nodes.inc}
 
 { TNodeUnknown --------------------------------------------------- }
 
@@ -2510,6 +2511,7 @@ uses
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
+{$I x3d_shaders_nodes.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -6054,7 +6056,14 @@ initialization
     TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
-    TNodeWorldInfo
+    TNodeWorldInfo,
+
+    { X3D nodes }
+    TNodeComposedShader,
+    TNodePackagedShader,
+    TNodeProgramShader,
+    TNodeShaderPart,
+    TNodeShaderProgram
     ]);
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
@@ -6183,6 +6192,13 @@ initialization
     TNodeViewpoint,
     TNodeVisibilitySensor,
     TNodeWorldInfo
+
+    { X3D nodes }
+    //TNodeComposedShader,
+    //TNodePackagedShader,
+    //TNodeProgramShader,
+    //TNodeShaderPart,
+    //TNodeShaderProgram
   ]);
 
   AllowedGeometryNodes := TVRMLNodeClassesList.Create;

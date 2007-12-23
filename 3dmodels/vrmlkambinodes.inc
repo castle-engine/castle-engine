@@ -94,7 +94,7 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdNormalMap: TSFNode index 3 read GetFieldAsSFNode;
+    property FdNormalMap: TSFNode index 7 read GetFieldAsSFNode;
     class function URNMatching(const URN: string): boolean; override;
   end;
 

@@ -58,13 +58,21 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  TNodeX3DShaderNode = class;
+
   TNodeAppearance = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     property Fdmaterial: TSFNode index 0 read GetFieldAsSFNode;
     property Fdtexture: TSFNode index 1 read GetFieldAsSFNode;
     property FdtextureTransform: TSFNode index 2 read GetFieldAsSFNode;
+
+    property FdfillProperties: TSFNode index 3 read GetFieldAsSFNode;
+    property FdlineProperties: TSFNode index 4 read GetFieldAsSFNode;
+    property Fdmetadata: TSFNode index 5 read GetFieldAsSFNode;
+    property Fdshaders: TMFNode index 6 read GetFieldAsMFNode;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1267,7 +1275,7 @@
       or Appearance.Texture field is NULL, or wrong node class is
       passed as Appearance or Texture node), then returns nil. }
     function Texture: TNodeGeneralTexture;
-    
+
     { This is like @link(Texture), but it returns NormalMap field
       of KambiAppearance. }
     function NormalMap: TNodeGeneralTexture;
@@ -1729,6 +1737,19 @@ begin
 
   Fields.Add(TSFNode.Create(Self, 'textureTransform',
     [TNodeTextureTransform]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'fillProperties', [{TNodeFillProperties}]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'lineProperties', [{TNodeLineProperties}]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TMFNode.Create(Self, 'shaders', [
+    TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]));
   Fields.Last.Exposed := true;
 end;
 
