@@ -44,7 +44,7 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, GL, GLU, GLExt;
+uses SysUtils, GL, GLU, GLExt, KambiGLUtils;
 
 type
   TGLSupport = (gsNone, gsARBExtension, gsStandard);
@@ -134,7 +134,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiStringUtils, KambiGLUtils;
+uses KambiUtils, KambiStringUtils;
 
 const
   SupportNames: array [TGLSupport] of string =
