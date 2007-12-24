@@ -138,6 +138,8 @@ type
     procedure SetTextureMagFilter(const Value: TGLint); override;
     procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
+    procedure SetBumpMapping(const Value: boolean); override;
+    procedure SetGLSLShaders(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -2757,7 +2759,25 @@ end;
 
 procedure TVRMLSceneRenderingAttributes.SetUseFog(const Value: boolean);
 begin
-  if Usefog <> Value then
+  if UseFog <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBumpMapping(const Value: boolean);
+begin
+  if BumpMapping <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetGLSLShaders(const Value: boolean);
+begin
+  if GLSLShaders <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;

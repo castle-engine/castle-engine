@@ -1271,6 +1271,11 @@
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
 
     { This is a shortcut for FdAppearance.Value.FdTexture.Value.
+      If anything makes this impossible (Apperance field is NULL, or wrong class)
+      then returns @nil. }
+    function Appearance: TNodeAppearance;
+
+    { This is a shortcut for FdAppearance.Value.FdTexture.Value.
       If anything makes this impossible (Apperance field is NULL,
       or Appearance.Texture field is NULL, or wrong node class is
       passed as Appearance or Texture node), then returns nil. }
@@ -3693,63 +3698,70 @@ begin
   inherited;
 end;
 
+function TNodeShape.Appearance: TNodeAppearance;
+begin
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeAppearance) then
+    Result := TNodeAppearance(FdAppearance.Value);
+end;
+
 function TNodeShape.Texture: TNodeGeneralTexture;
 var
-  Appearance: TNodeAppearance;
+  A: TNodeAppearance;
 begin
   Result := nil;
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeAppearance) then
   begin
-    Appearance := TNodeAppearance(FdAppearance.Value);
-    if (Appearance.FdTexture.Value <> nil) and
-       (Appearance.FdTexture.Value is TNodeGeneralTexture) then
-      Result := TNodeGeneralTexture(Appearance.FdTexture.Value);
+    A := TNodeAppearance(FdAppearance.Value);
+    if (A.FdTexture.Value <> nil) and
+       (A.FdTexture.Value is TNodeGeneralTexture) then
+      Result := TNodeGeneralTexture(A.FdTexture.Value);
   end;
 end;
 
 function TNodeShape.NormalMap: TNodeGeneralTexture;
 var
-  Appearance: TNodeKambiAppearance;
+  A: TNodeKambiAppearance;
 begin
   Result := nil;
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeKambiAppearance) then
   begin
-    Appearance := TNodeKambiAppearance(FdAppearance.Value);
-    if (Appearance.FdNormalMap.Value <> nil) and
-       (Appearance.FdNormalMap.Value is TNodeGeneralTexture) then
-      Result := TNodeGeneralTexture(Appearance.FdNormalMap.Value);
+    A := TNodeKambiAppearance(FdAppearance.Value);
+    if (A.FdNormalMap.Value <> nil) and
+       (A.FdNormalMap.Value is TNodeGeneralTexture) then
+      Result := TNodeGeneralTexture(A.FdNormalMap.Value);
   end;
 end;
 
 function TNodeShape.TextureTransform: TNodeTextureTransform;
 var
-  Appearance: TNodeAppearance;
+  A: TNodeAppearance;
 begin
   Result := nil;
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeAppearance) then
   begin
-    Appearance := TNodeAppearance(FdAppearance.Value);
-    if (Appearance.FdTextureTransform.Value <> nil) and
-       (Appearance.FdTextureTransform.Value is TNodeTextureTransform) then
-      Result := TNodeTextureTransform(Appearance.FdTextureTransform.Value);
+    A := TNodeAppearance(FdAppearance.Value);
+    if (A.FdTextureTransform.Value <> nil) and
+       (A.FdTextureTransform.Value is TNodeTextureTransform) then
+      Result := TNodeTextureTransform(A.FdTextureTransform.Value);
   end;
 end;
 
 function TNodeShape.Material: TNodeMaterial_2;
 var
-  Appearance: TNodeAppearance;
+  A: TNodeAppearance;
 begin
   Result := nil;
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeAppearance) then
   begin
-    Appearance := TNodeAppearance(FdAppearance.Value);
-    if (Appearance.FdMaterial.Value <> nil) and
-       (Appearance.FdMaterial.Value is TNodeMaterial_2) then
-      Result := TNodeMaterial_2(Appearance.FdMaterial.Value);
+    A := TNodeAppearance(FdAppearance.Value);
+    if (A.FdMaterial.Value <> nil) and
+       (A.FdMaterial.Value is TNodeMaterial_2) then
+      Result := TNodeMaterial_2(A.FdMaterial.Value);
   end;
 end;
 

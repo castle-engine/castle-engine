@@ -1820,7 +1820,7 @@ type
 
     { Once the image is loaded, this is set to the URL that was used to load
       this image, or '' if no URL was used. No URL was used may mean that
-      no image was valid, or inlined image was used,
+      no image was valid, or inlined image was used.
 
       This is always a full, expanded (i.e. not relative) URL. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
