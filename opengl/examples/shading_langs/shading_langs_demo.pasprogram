@@ -241,8 +241,8 @@ begin
 
   { initialize GLSL program }
   GLSLProgram := TGLSLProgram.Create;
-  GLSLProgram.AttachVertexShader(FileToString(GLSLProgramBaseName + '.vert'));
-  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.frag'));
+  GLSLProgram.AttachVertexShader(FileToString(GLSLProgramBaseName + '.vs'));
+  GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
   GLSLProgram.Link;
   Writeln(GLSLProgram.DebugInfo);
 
@@ -292,8 +292,8 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S := '';
     if Glwin.FileDialog('Open file with GLSL fragment or vertex shader', S, true) then
     begin
-      GLSLProgram.AttachVertexShader(FileToString(ChangeFileExt(S,'.vert')));
-      GLSLProgram.AttachFragmentShader(FileToString(ChangeFileExt(S,'.frag')));
+      GLSLProgram.AttachVertexShader(FileToString(ChangeFileExt(S,'.vs')));
+      GLSLProgram.AttachFragmentShader(FileToString(ChangeFileExt(S,'.fs')));
       GLSLProgram.Link;
       Writeln(GLSLProgram.DebugInfo);
     end;
@@ -315,7 +315,7 @@ begin
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Load new ARB vertex program', 10));
     M.Append(TMenuItem.Create('Load new ARB fragment program', 20));
-    M.Append(TMenuItem.Create('Load new GLSL program (fragment must have *.frag extension, vertex *.vert)', 30));
+    M.Append(TMenuItem.Create('Load new GLSL program (fragment must have *.fs extension, vertex *.vs)', 30));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
