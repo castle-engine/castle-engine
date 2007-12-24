@@ -1225,8 +1225,70 @@ begin
     'found to texture %d', [TextureGLName]);
 end;
 
+type
+  EGLSLProgramError = class(Exception);
+
 function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
   ProgramNode: TNodeComposedShader): TGLSLProgram;
+
+  procedure LoadGLSLProgram(GLSLProgram: TGLSLProgram;
+    ProgramNode: TNodeComposedShader);
+  var
+    HasVertexShader: boolean;
+    HasFragmentShader: boolean;
+    I: Integer;
+    Part: TNodeShaderPart;
+    Source: String;
+  begin
+    HasVertexShader := false;
+    HasFragmentShader := false;
+
+    { iterate over ProgramNode.FdParts, looking for one vertex shader
+      and one fragment shader. }
+
+    for I := 0 to ProgramNode.FdParts.Count - 1 do
+      if ProgramNode.FdParts.Items[I] is TNodeShaderPart then
+      begin
+        Part := TNodeShaderPart(ProgramNode.FdParts.Items[I]);
+
+        if Part.FdType.Value = 'VERTEX' then
+        begin
+          if HasVertexShader then
+            VRMLNonFatalError('More than one vertex shader for GLSL program, ignoring') else
+          begin
+            Source := Part.LoadContents;
+            if Part.UsedFullUrl <> '' then
+            begin
+              HasVertexShader := true;
+              GLSLProgram.AttachVertexShader(Source);
+            end;
+          end;
+        end else
+
+        if Part.FdType.Value = 'FRAGMENT' then
+        begin
+          if HasFragmentShader then
+            VRMLNonFatalError('More than one fragment shader for GLSL program, ignoring') else
+          begin
+            Source := Part.LoadContents;
+            if Part.UsedFullUrl <> '' then
+            begin
+              HasFragmentShader := true;
+              GLSLProgram.AttachFragmentShader(Source);
+            end;
+          end;
+        end else
+
+          VRMLNonFatalError(Format('Unknown type for ShaderPart: "%s"',
+            [Part.FdType.Value]));
+      end;
+
+    if not (HasVertexShader or HasFragmentShader) then
+      raise EGLSLProgramError.Create('No vertex and no fragment shader for GLSL program');
+
+    GLSLProgram.Link;
+  end;
+
 var
   I: Integer;
   GLSLProgramCache: PGLSLProgramCache;
@@ -1253,16 +1315,7 @@ begin
 
   Result := TGLSLProgram.Create;
   try
-    { TODO: check correctly which ShaderPart is vertex, which is fragment,
-      make sure that at most 1 is specified.
-      In case of trouble (VRML wrong, (more than 1 specified ?) or all URLs bad,
-      or loading shader fails --- do something nice to gracefully ignore it.
-      Below is only a prototype for testing. }
-    Result.AttachVertexShader(
-      (ProgramNode.Fdparts.Items[0] as TNodeShaderPart).LoadContents);
-    Result.AttachFragmentShader(
-      (ProgramNode.Fdparts.Items[1] as TNodeShaderPart).LoadContents);
-    Result.Link;
+    LoadGLSLProgram(Result, ProgramNode);
   except
     { In case of problems with initializing GLSL program, free the program
       and reraise exception. Caller of GLSLProgram_IncReference will
@@ -1944,6 +1997,11 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
               on E: EShaderError do
               begin
                 VRMLNonFatalError('Error when initializing GLSL shader : ' + E.Message);
+                GLSLProgram := nil;
+              end;
+              on E: EGLSLProgramError do
+              begin
+                VRMLNonFatalError('Error when initializing GLSL program : ' + E.Message);
                 GLSLProgram := nil;
               end;
             end;
