@@ -3720,7 +3720,8 @@ function TNodeShape.Appearance: TNodeAppearance;
 begin
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TNodeAppearance) then
-    Result := TNodeAppearance(FdAppearance.Value);
+    Result := TNodeAppearance(FdAppearance.Value) else
+    Result := nil;
 end;
 
 function TNodeShape.Texture: TNodeGeneralTexture;
