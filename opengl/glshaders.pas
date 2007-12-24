@@ -338,8 +338,12 @@ procedure TGLSLProgram.AttachShader(
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
     glCompileShader(Result);
     glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
+    { Although I generally avoid creating multiline exception messages,
+      ShaderGetInfoLog naturally comes out multiline (it contains a
+      couple of error messages) and it's best presented with line breaks.
+      So a line break right before ShaderGetInfoLog contents looks good. }
     if Compiled <> GL_TRUE then
-      raise EShaderError.CreateFmt('Shader not compiled: %s',
+      raise EShaderError.CreateFmt('Shader not compiled:' + NL + '%s',
         [ShaderGetInfoLog(Result)]);
   end;
 
@@ -365,7 +369,7 @@ procedure TGLSLProgram.AttachShader(
     { TODO } Compiled := GL_TRUE;
 
     if Compiled <> GL_TRUE then
-      raise EShaderError.CreateFmt('Shader not compiled: %s',
+      raise EShaderError.CreateFmt('Shader not compiled:' + NL + '%s',
         [ShaderGetInfoLog(Result)]);
   end;
 
