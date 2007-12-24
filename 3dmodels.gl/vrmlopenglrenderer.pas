@@ -1913,7 +1913,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   procedure PrepareGLSLProgram;
   var
     I: Integer;
-    ProgramNodeMaybe: TVRMLNode;
     ProgramNode: TNodeComposedShader;
     GLSLProgram: TGLSLProgram;
     GLSLProgramReference: PGLSLProgramReference;
@@ -1926,11 +1925,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     begin
       for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
       begin
-        ProgramNodeMaybe := State.ParentShape.Appearance.FdShaders.Items[I];
-        if ProgramNodeMaybe is TNodeComposedShader then
+        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+        if ProgramNode <> nil then
         begin
-          ProgramNode := TNodeComposedShader(ProgramNodeMaybe);
-
           ExistingReferenceIndex := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
 
           if ExistingReferenceIndex <> -1 then
@@ -2588,7 +2585,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   procedure RenderShadersBegin;
   var
     I, ProgramReference: Integer;
-    ProgramNodeMaybe: TVRMLNode;
     ProgramNode: TNodeComposedShader;
   begin
     UsedGLSLProgram := nil;
@@ -2598,11 +2594,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     begin
       for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do
       begin
-        ProgramNodeMaybe := State.ParentShape.Appearance.FdShaders.Items[I];
-        if ProgramNodeMaybe is TNodeComposedShader then
+        ProgramNode := State.ParentShape.Appearance.GLSLShader(I);
+        if ProgramNode <> nil then
         begin
-          ProgramNode := TNodeComposedShader(ProgramNodeMaybe);
-
           ProgramReference := GLSLProgramReferences.ProgramNodeIndex(ProgramNode);
           if (ProgramReference <> -1) and
              (GLSLProgramReferences.Items[ProgramReference].GLSLProgram <> nil) then

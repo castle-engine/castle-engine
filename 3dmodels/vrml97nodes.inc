@@ -59,6 +59,7 @@
   end;
 
   TNodeX3DShaderNode = class;
+  TNodeComposedShader = class;
 
   TNodeAppearance = class(TVRMLNode)
   public
@@ -73,6 +74,11 @@
     property FdlineProperties: TSFNode index 4 read GetFieldAsSFNode;
     property Fdmetadata: TSFNode index 5 read GetFieldAsSFNode;
     property Fdshaders: TMFNode index 6 read GetFieldAsMFNode;
+
+    { This returns FdShaders.Items[Index], if it's a shader node suitable for GLSL
+      shader. Otherwise returns @nil. This checks the class of
+      FdShaders.Items[Index] and it's @code(language) field. }
+    function GLSLShader(Index: Integer): TNodeComposedShader;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1756,6 +1762,18 @@ begin
   Fields.Add(TMFNode.Create(Self, 'shaders', [
     TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]));
   Fields.Last.Exposed := true;
+end;
+
+function TNodeAppearance.GLSLShader(Index: Integer): TNodeComposedShader;
+begin
+  if FdShaders.Items[Index] is TNodeComposedShader then
+  begin
+    Result := TNodeComposedShader(FdShaders.Items[Index]);
+    if not ((Result.FdLanguage.Value = '') or
+            (Result.FdLanguage.Value = 'GLSL')) then
+      Result := nil;
+  end else
+    Result := nil;
 end;
 
 class function TNodeAudioClip.ClassNodeTypeName: string;
