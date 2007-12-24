@@ -1035,10 +1035,12 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
 
     { This procedure can change Triangle*, but only by swapping some vertexes,
       so we pass Triangle* by reference instead of by value, to avoid
-      needless mem copying. }
-    procedure CalculateTangent(IsSTangent: boolean; var Tangent: TVector3Single;
+      needless mem copying.
+
+      Returns @false if cannot be calculated. }
+    function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3Single;
       var Triangle3D: TTriangle3Single;
-      var TriangleTexCoord: TTriangle2Single);
+      var TriangleTexCoord: TTriangle2Single): boolean;
     var
       D: TVector2Single;
       LineA, LineBC, DIn3D: TVector3Single;
@@ -1074,6 +1076,9 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
         FarthestDistance := NewDistance;
       end;
 
+      if IsZero(FarthestDistance) then
+        Exit(false);
+
       if MiddleIndex <> 0 then
       begin
         SwapValues(TriangleTexCoord[0], TriangleTexCoord[MiddleIndex]);
@@ -1096,8 +1101,11 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
       LineBC := LineOfTwoDifferentPoints2d(
         TriangleTexCoord[1], TriangleTexCoord[2]);
 
-      { We will catch ELinesParallel from this later }
-      D := Lines2DIntersection(LineA, LineBC);
+      try
+        D := Lines2DIntersection(LineA, LineBC);
+      except
+        on ELinesParallel do begin Result := false; Exit; end;
+      end;
 
       { LineBC[0, 1] is vector 2D orthogonal to LineBC.
         If Abs(LineBC[0]) is *smaller* then it means that B and C points
@@ -1117,6 +1125,8 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
         Tangent := VectorSubtract(Triangle3D[0], DIn3D);
 
       NormalizeTo1st(Tangent);
+
+      Result := true;
     end;
 
   var
@@ -1131,20 +1141,15 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
       Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
       Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
 
-      { calculate TriangleTexCoord }
-      if GetTextureCoord(StartIndex    , TriangleTexCoord[0]) and
-         GetTextureCoord(StartIndex + 1, TriangleTexCoord[1]) and
-         GetTextureCoord(StartIndex + 2, TriangleTexCoord[2]) then
-      try
+      HasTangentVectors :=
+        { calculate TriangleTexCoord }
+        GetTextureCoord(StartIndex    , TriangleTexCoord[0]) and
+        GetTextureCoord(StartIndex + 1, TriangleTexCoord[1]) and
+        GetTextureCoord(StartIndex + 2, TriangleTexCoord[2]) and
         { calculate STangent, TTangent }
-        CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord);
-        CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord);
-
-        HasTangentVectors := Abs(VectorDotProduct(STangent, TTangent)) < 0.95;
-      except
-        { degenerate triangle, ignore,HasTangentVectors will remain false  }
-        on ELinesParallel do ;
-      end;
+        CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
+        CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
+        (Abs(VectorDotProduct(STangent, TTangent)) < 0.95);
     end;
   end;
 

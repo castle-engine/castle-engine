@@ -1486,6 +1486,8 @@ function VectorToNiceStr(const v: array of Single): string; overload;
 function VectorToNiceStr(const v: array of Double): string; overload;
 function MatrixToNiceStr(const v: TMatrix4Single; const LineIndent: string): string; overload;
 function MatrixToNiceStr(const v: TMatrix4Double; const LineIndent: string): string; overload;
+function TriangleToNiceStr(const t: TTriangle2Single): string; overload;
+function TriangleToNiceStr(const t: TTriangle2Double): string; overload;
 function TriangleToNiceStr(const t: TTriangle3Single): string; overload;
 function TriangleToNiceStr(const t: TTriangle3Double): string; overload;
 

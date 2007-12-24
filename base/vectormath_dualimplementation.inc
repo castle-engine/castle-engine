@@ -1334,6 +1334,13 @@ begin
    LineIndent, FloatToNiceStr(v[0, 3]), FloatToNiceStr(v[1, 3]), FloatToNiceStr(v[2, 3]), FloatToNiceStr(v[3, 3]) ]);
 end;
 
+function TriangleToNiceStr(const t: TYPE_TRIANGLE2): string;
+begin
+ result := '['+VectorToNiceStr(t[0])+', '
+              +VectorToNiceStr(t[1])+', '
+              +VectorToNiceStr(t[2])+']';
+end;
+
 function TriangleToNiceStr(const t: TYPE_TRIANGLE3): string;
 begin
  result := '['+VectorToNiceStr(t[0])+', '
