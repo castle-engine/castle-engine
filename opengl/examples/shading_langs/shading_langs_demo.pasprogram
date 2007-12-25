@@ -292,6 +292,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
     S := '';
     if Glwin.FileDialog('Open file with GLSL fragment or vertex shader', S, true) then
     begin
+      GLSLProgram.DetachAllShaders;
       GLSLProgram.AttachVertexShader(FileToString(ChangeFileExt(S,'.vs')));
       GLSLProgram.AttachFragmentShader(FileToString(ChangeFileExt(S,'.fs')));
       GLSLProgram.Link;

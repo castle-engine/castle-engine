@@ -44,7 +44,7 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, GL, GLU, GLExt, KambiGLUtils;
+uses SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils;
 
 type
   TGLSupport = (gsNone, gsARBExtension, gsStandard);
@@ -90,7 +90,13 @@ type
     function DebugInfo: string; override;
   end;
 
-  EShaderError = class(Exception);
+  { Common class for exceptions related to GLSL programs. }
+  EGLSLError = class(Exception);
+
+  EGLSLShaderCompileError = class(EGLSLError);
+  EGLSLProgramLinkError = class(EGLSLError);
+
+  TDynGLuintArray = TDynCardinalArray;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -99,9 +105,10 @@ type
 
     { Actually, this should be TGLhandleARB for gsARBExtension version.
       But TGLhandleARB = TGLuint in practice, so this is not a problem. }
-    VertexShaderId, FragmentShaderId, ProgramId: TGLuint;
+    ProgramId: TGLuint;
+    ShaderIds: TDynGLuintArray;
 
-    procedure AttachShader(var ShaderId: TGLuint; AType: TGLenum; const S: string);
+    procedure AttachShader(AType: TGLenum; const S: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -110,7 +117,13 @@ type
 
     { Create shader from given string, compile it and attach to current program.
 
-      @raises EShaderError(If the shader source code cannot be compiled,
+      You can attach more than one vertex or fragment shader, just
+      make sure that only one main() function is among vertex shaders and
+      only one among fragment shaders (otherwise Link error will be raised).
+
+      If you want to explicitly get rid of old shaders, use DetachAllShaders.
+
+      @raises(EGLSLShaderCompileError If the shader source code cannot be compiled,
         exception message contains precise description from OpenGL where
         the error is.)
 
@@ -119,8 +132,14 @@ type
     procedure AttachFragmentShader(const S: string);
     { @groupEnd }
 
+    procedure DetachAllShaders;
+
     { Link the program, this should be done after attaching all shaders
-      and before actually using the program. }
+      and before actually using the program.
+
+      @raises(EGLSLProgramLinkError If the program cannot be linked,
+        exception message contains precise description from OpenGL where
+        the error is.) }
     procedure Link;
 
     { Enable (use) this program. }
@@ -134,7 +153,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiStringUtils;
+uses KambiStringUtils;
 
 const
   SupportNames: array [TGLSupport] of string =
@@ -290,6 +309,8 @@ begin
     gsARBExtension: ProgramId := glCreateProgramObjectARB();
     gsStandard    : ProgramId := glCreateProgram         ();
   end;
+
+  ShaderIds := TDynGLuintArray.Create;
 end;
 
 destructor TGLSLProgram.Destroy;
@@ -298,6 +319,10 @@ begin
     gsARBExtension: glDeleteObjectARB(ProgramId);
     gsStandard    : glDeleteProgram  (ProgramId);
   end;
+
+  FreeAndNil(ShaderIds);
+
+  inherited;
 end;
 
 function TGLSLProgram.DebugInfo: string;
@@ -305,8 +330,7 @@ begin
   Result := 'GLSL program support: ' + SupportNames[Support];
 end;
 
-procedure TGLSLProgram.AttachShader(
-  var ShaderId: TGLuint; AType: TGLenum; const S: string);
+procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
 
   { Based on Dean Ellis BasicShader.dpr }
   function CreateShader(const S: string): TGLuint;
@@ -343,7 +367,7 @@ procedure TGLSLProgram.AttachShader(
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
     if Compiled <> GL_TRUE then
-      raise EShaderError.CreateFmt('Shader not compiled:' + NL + '%s',
+      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [ShaderGetInfoLog(Result)]);
   end;
 
@@ -365,29 +389,27 @@ procedure TGLSLProgram.AttachShader(
     SrcLength := Length(S);
     glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
     glCompileShaderARB(Result);
-
-    { TODO } Compiled := GL_TRUE;
-
-    if Compiled <> GL_TRUE then
-      raise EShaderError.CreateFmt('Shader not compiled:' + NL + '%s',
+    glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
+    if Compiled <> 1 then
+      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [ShaderGetInfoLog(Result)]);
   end;
 
+var
+  ShaderId: TGLuint;
 begin
   case Support of
     gsARBExtension:
       begin
-        if ShaderId <> 0 then
-          glDetachObjectARB(ProgramId, ShaderId);
         ShaderId := CreateShaderARB(S);
         glAttachObjectARB(ProgramId, ShaderId);
+        ShaderIds.AppendItem(ShaderId);
       end;
     gsStandard:
       begin
-        if ShaderId <> 0 then
-          glDetachShader(ProgramId, ShaderId);
         ShaderId := CreateShader(S);
         glAttachShader(ProgramId, ShaderId);
+        ShaderIds.AppendItem(ShaderId);
       end;
   end;
 end;
@@ -395,24 +417,52 @@ end;
 procedure TGLSLProgram.AttachVertexShader(const S: string);
 begin
   case Support of
-    gsARBExtension: AttachShader(VertexShaderId, GL_VERTEX_SHADER_ARB, S);
-    gsStandard    : AttachShader(VertexShaderId, GL_VERTEX_SHADER    , S);
+    gsARBExtension: AttachShader(GL_VERTEX_SHADER_ARB, S);
+    gsStandard    : AttachShader(GL_VERTEX_SHADER    , S);
   end;
 end;
 
 procedure TGLSLProgram.AttachFragmentShader(const S: string);
 begin
   case Support of
-    gsARBExtension: AttachShader(FragmentShaderId, GL_FRAGMENT_SHADER_ARB, S);
-    gsStandard    : AttachShader(FragmentShaderId, GL_FRAGMENT_SHADER    , S);
+    gsARBExtension: AttachShader(GL_FRAGMENT_SHADER_ARB, S);
+    gsStandard    : AttachShader(GL_FRAGMENT_SHADER    , S);
+  end;
+end;
+
+procedure TGLSLProgram.DetachAllShaders;
+var
+  I: Integer;
+begin
+  case Support of
+    gsARBExtension:
+      for I := 0 to ShaderIds.Count - 1 do
+        glDetachObjectARB(ProgramId, ShaderIds.Items[I]);
+    gsStandard    :
+      for I := 0 to ShaderIds.Count - 1 do
+        glDetachShader   (ProgramId, ShaderIds.Items[I]);
   end;
 end;
 
 procedure TGLSLProgram.Link;
+var
+  Linked: TGLuint;
 begin
   case Support of
-    gsARBExtension: glLinkProgramARB(ProgramId);
-    gsStandard    : glLinkProgram   (ProgramId);
+    gsARBExtension:
+      begin
+        glLinkProgramARB(ProgramId);
+        glGetObjectParameterivARB(ProgramId, GL_OBJECT_LINK_STATUS_ARB, @Linked);
+        if Linked <> 1 then
+          raise EGLSLProgramLinkError.Create('GLSL program not linked');
+      end;
+    gsStandard:
+      begin
+        glLinkProgram(ProgramId);
+        glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
+        if Linked <> GL_TRUE then
+          raise EGLSLProgramLinkError.Create('GLSL program not linked');
+      end;
   end;
 end;
 

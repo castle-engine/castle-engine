@@ -1225,9 +1225,6 @@ begin
     'found to texture %d', [TextureGLName]);
 end;
 
-type
-  EGLSLProgramError = class(Exception);
-
 function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
   ProgramNode: TNodeComposedShader): TGLSLProgram;
 
@@ -1284,7 +1281,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
       end;
 
     if not (HasVertexShader or HasFragmentShader) then
-      raise EGLSLProgramError.Create('No vertex and no fragment shader for GLSL program');
+      raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     GLSLProgram.Link;
   end;
@@ -1994,14 +1991,12 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             try
               GLSLProgram := Cache.GLSLProgram_IncReference(ProgramNode);
             except
-              on E: EShaderError do
+              { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
+                including GLShaders errors like
+                EGLSLShaderCompileError or EGLSLProgramLinkError }
+              on E: EGLSLError do
               begin
                 VRMLNonFatalError('Error when initializing GLSL shader : ' + E.Message);
-                GLSLProgram := nil;
-              end;
-              on E: EGLSLProgramError do
-              begin
-                VRMLNonFatalError('Error when initializing GLSL program : ' + E.Message);
                 GLSLProgram := nil;
               end;
             end;
