@@ -1231,17 +1231,17 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
   procedure LoadGLSLProgram(GLSLProgram: TGLSLProgram;
     ProgramNode: TNodeComposedShader);
   var
-    HasVertexShader: boolean;
-    HasFragmentShader: boolean;
     I: Integer;
     Part: TNodeShaderPart;
     Source: String;
+    HasAnyShader: boolean;
   begin
-    HasVertexShader := false;
-    HasFragmentShader := false;
+    HasAnyShader := false;
 
-    { iterate over ProgramNode.FdParts, looking for one vertex shader
-      and one fragment shader. }
+    { Iterate over ProgramNode.FdParts, looking for vertex shaders
+      and fragment shaders. Note that more than one vertex/fragment shader
+      is OK (as long as each has only one main() entry, OpenGL will check
+      this when linking program). }
 
     for I := 0 to ProgramNode.FdParts.Count - 1 do
       if ProgramNode.FdParts.Items[I] is TNodeShaderPart then
@@ -1250,29 +1250,21 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
 
         if Part.FdType.Value = 'VERTEX' then
         begin
-          if HasVertexShader then
-            VRMLNonFatalError('More than one vertex shader for GLSL program, ignoring') else
+          Source := Part.LoadContents;
+          if Part.UsedFullUrl <> '' then
           begin
-            Source := Part.LoadContents;
-            if Part.UsedFullUrl <> '' then
-            begin
-              HasVertexShader := true;
-              GLSLProgram.AttachVertexShader(Source);
-            end;
+            GLSLProgram.AttachVertexShader(Source);
+            HasAnyShader := true;
           end;
         end else
 
         if Part.FdType.Value = 'FRAGMENT' then
         begin
-          if HasFragmentShader then
-            VRMLNonFatalError('More than one fragment shader for GLSL program, ignoring') else
+          Source := Part.LoadContents;
+          if Part.UsedFullUrl <> '' then
           begin
-            Source := Part.LoadContents;
-            if Part.UsedFullUrl <> '' then
-            begin
-              HasFragmentShader := true;
-              GLSLProgram.AttachFragmentShader(Source);
-            end;
+            GLSLProgram.AttachFragmentShader(Source);
+            HasAnyShader := true;
           end;
         end else
 
@@ -1280,7 +1272,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
             [Part.FdType.Value]));
       end;
 
-    if not (HasVertexShader or HasFragmentShader) then
+    if not HasAnyShader then
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     GLSLProgram.Link;
