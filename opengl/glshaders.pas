@@ -476,6 +476,7 @@ begin
         glDeleteShader   (ShaderIds.Items[I]);
       end;
   end;
+  ShaderIds.Count := 0;
 end;
 
 procedure TGLSLProgram.Link;
