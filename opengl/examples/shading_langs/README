@@ -11,6 +11,9 @@ Assembly shading languages:
 
   http://en.wikipedia.org/wiki/ARB_%28GPU_assembly_language%29
 
+  Very nice overview or ARB vertex/fragment assembly programs:
+  http://www.ce.chalmers.se/edu/course/EDA425/lectures/shaders.pdf
+
 - NVidia-specific ancestors of ARB langs above (don't use, use ARB now):
   NV_fragment_program
   http://www.opengl.org/registry/specs/NV/fragment_program.txt
@@ -36,6 +39,13 @@ Higher-level shading languages:
   important, allows vertex program to easily pass arguments
   to vertex program. (API creates one shader program to which you
   can attach vertex and/or fragment programs, that will communicate).
+
+  Many many tutorials and references around the WWW,
+  http://www.opengl.org/documentation/glsl/
+  http://www.lighthouse3d.com/opengl/glsl/
+  http://nehe.gamedev.net/data/articles/article.asp?article=21
+  basically just
+  http://www.google.com/search?q=glsl
 
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
@@ -73,7 +83,5 @@ only access calculation result from previous texture unit.
 Interesting non-trivial fragment shader ability: KIL, so we can easily
 reject some pixels using any convoluted rule.
 
-Very nice overview or ARB vertex/fragment assembly programs:
-http://www.ce.chalmers.se/edu/course/EDA425/lectures/shaders.pdf
 
 http://www.opengl.org/code/category/C20
