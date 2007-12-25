@@ -165,6 +165,55 @@ begin
   glGetProgramivARB(target, pname, @Result);
 end;
 
+{ Wrapper around glGetShaderInfoLog.
+  Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
+function GetShaderInfoLog(ShaderId: TGLuint): String;
+var
+  Len, Len2: TGLint;
+begin
+  glGetShaderiv(ShaderId, GL_INFO_LOG_LENGTH, @Len);
+
+  if Len <> 0 then
+  begin
+    SetLength(Result, Len);
+    glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
+    StringReplaceAllTo1st(Result, #0, NL);
+  end else
+    Result := '';
+end;
+
+{ Wrapper around glGetProgramInfoLog. }
+function GetProgramInfoLog(ProgramId: TGLuint): String;
+var
+  Len, Len2: TGLint;
+begin
+  glGetProgramiv(ProgramId, GL_INFO_LOG_LENGTH, @Len);
+
+  if Len <> 0 then
+  begin
+    SetLength(Result, Len);
+    glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
+    StringReplaceAllTo1st(Result, #0, NL);
+  end else
+    Result := '';
+end;
+
+{ Wrapper around glGetInfoLogARB (this is for both shaders and programs). }
+function GetInfoLogARB(ObjectId: TGLuint): String;
+var
+  Len, Len2: TGLint;
+begin
+  glGetObjectParameterivARB(ObjectId, GL_OBJECT_INFO_LOG_LENGTH_ARB, @Len);
+
+  if Len <> 0 then
+  begin
+    SetLength(Result, Len);
+    glGetInfoLogARB(ObjectId, Len, @Len2, PChar(Result));
+    StringReplaceAllTo1st(Result, #0, NL);
+  end else
+    Result := '';
+end;
+
 { TARBProgram ---------------------------------------------------------------- }
 
 destructor TARBProgram.Destroy;
@@ -332,25 +381,25 @@ end;
 
 procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
 
+  function CreateShaderARB(const S: string): TGLuint;
+  var
+    SrcPtr: PChar;
+    SrcLength: Cardinal;
+    Compiled: TGLint;
+  begin
+    Result := glCreateShaderObjectARB(AType);
+    SrcPtr := PChar(S);
+    SrcLength := Length(S);
+    glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
+    glCompileShaderARB(Result);
+    glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
+    if Compiled <> 1 then
+      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
+        [GetInfoLogARB(Result)]);
+  end;
+
   { Based on Dean Ellis BasicShader.dpr }
   function CreateShader(const S: string): TGLuint;
-
-    { Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
-    function ShaderGetInfoLog(Shader: TGLuint): String;
-    var
-      Len, Len2: TGLint;
-    begin
-      glGetShaderiv(Shader, GL_INFO_LOG_LENGTH, @Len);
-
-      if Len <> 0 then
-      begin
-        SetLength(Result, Len);
-        glGetShaderInfoLog(Shader, Len, @Len2, PChar(Result));
-        StringReplaceAllTo1st(Result, #0, NL);
-      end else
-        Result := '';
-    end;
-
   var
     SrcPtr: PChar;
     SrcLength: Cardinal;
@@ -368,31 +417,7 @@ procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
       So a line break right before ShaderGetInfoLog contents looks good. }
     if Compiled <> GL_TRUE then
       raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
-        [ShaderGetInfoLog(Result)]);
-  end;
-
-  function CreateShaderARB(const S: string): TGLuint;
-
-    { Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
-    function ShaderGetInfoLog(Shader: GLuint): String;
-    begin
-      Result := 'TODO: implement ShaderGetInfoLog for ARB path';
-    end;
-
-  var
-    SrcPtr: PChar;
-    SrcLength: Cardinal;
-    Compiled: TGLint;
-  begin
-    Result := glCreateShaderObjectARB(AType);
-    SrcPtr := PChar(S);
-    SrcLength := Length(S);
-    glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
-    glCompileShaderARB(Result);
-    glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
-    if Compiled <> 1 then
-      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
-        [ShaderGetInfoLog(Result)]);
+        [GetShaderInfoLog(Result)]);
   end;
 
 var
@@ -454,14 +479,16 @@ begin
         glLinkProgramARB(ProgramId);
         glGetObjectParameterivARB(ProgramId, GL_OBJECT_LINK_STATUS_ARB, @Linked);
         if Linked <> 1 then
-          raise EGLSLProgramLinkError.Create('GLSL program not linked');
+          raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
+            GetInfoLogARB(ProgramId));
       end;
     gsStandard:
       begin
         glLinkProgram(ProgramId);
         glGetProgramiv(ProgramId, GL_LINK_STATUS, @Linked);
         if Linked <> GL_TRUE then
-          raise EGLSLProgramLinkError.Create('GLSL program not linked');
+          raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
+            GetProgramInfoLog(ProgramId));
       end;
   end;
 end;
