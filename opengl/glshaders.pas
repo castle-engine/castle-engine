@@ -364,6 +364,9 @@ end;
 
 destructor TGLSLProgram.Destroy;
 begin
+  { make sure all shaders are detached and deleted, to free all resources }
+  DetachAllShaders;
+
   case Support of
     gsARBExtension: glDeleteObjectARB(ProgramId);
     gsStandard    : glDeleteProgram  (ProgramId);
@@ -462,10 +465,16 @@ begin
   case Support of
     gsARBExtension:
       for I := 0 to ShaderIds.Count - 1 do
+      begin
         glDetachObjectARB(ProgramId, ShaderIds.Items[I]);
+        glDeleteObjectARB(ShaderIds.Items[I]);
+      end;
     gsStandard    :
       for I := 0 to ShaderIds.Count - 1 do
+      begin
         glDetachShader   (ProgramId, ShaderIds.Items[I]);
+        glDeleteShader   (ShaderIds.Items[I]);
+      end;
   end;
 end;
 
