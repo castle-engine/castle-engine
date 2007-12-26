@@ -47,6 +47,16 @@ Higher-level shading languages:
   basically just
   http://www.google.com/search?q=glsl
 
+  Note: be sure to test your GLSL not only on NVidia cards.
+  NVidia GL tends to be forgiving to various malformed (but reasonable...)
+  code, most probably because cgc also is forgiving and they use the same
+  parser there, and cgc is forgiving because it was initially for Cg language.
+  NVidia does eat every valid GLSL code, they just also often eat invalid GLSL
+  code (with some Cg shortcuts / syntax).
+  So if you develop on NVidia, be sure to test afterwards also on ATI/Mesa
+  and fix eventual small things (like texture coords for texture2D functions
+  should have ".st" qualifiers).
+
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
 
