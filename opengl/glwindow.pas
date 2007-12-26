@@ -1282,7 +1282,7 @@ type
     property FullScreen: boolean read FFullScreen write FFullScreen; { = false }
     { DoubleBuffer to swapBuffers bedzie robione automatycznie po kazdym repaincie.
       jesli false - bedzie robione glFlush. }
-    property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer; { = true }
+    property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
     { ColorBits : sprobuje ustawic takie bits per pixel tylko dla danego okna.
       Jesli ColorBits = 0 w czasie Init to uzyje glwm.VideoColorBits

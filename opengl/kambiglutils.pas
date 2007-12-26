@@ -2137,6 +2137,11 @@ function GLCapsString: string;
    result := Format(form, [v[0], v[1]]);
   end;
 
+  function GetBoolean(param: TGLenum): string;
+  begin
+    Result := BoolToStr[glGetInteger(Param) = GL_TRUE];
+  end;
+
   function ParsedVersionReport(Version: TGenericGLVersion): string;
   begin
     Result := Format('Parsed: major: %d, minor: %d, release exists: %s, ' +
@@ -2206,6 +2211,7 @@ begin
                                           +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
                                           +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
                                           +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
+  'GL_DOUBLEBUFFER : ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
   nl+
 
   'max capabilities - stack depths :' +nl+
