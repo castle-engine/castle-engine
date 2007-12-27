@@ -185,7 +185,7 @@ begin
   result := ProgramName +': Exception ' +E.ClassName;
   {$ifdef DEBUG}
   if ExceptAddr<>nil then
-   result := result +' (at address 0x'+IntToStr16(PtrUInt(ExceptAddr))+')';
+   result := result +' (at address ' + PointerToStr(ExceptAddr) + ')';
   {$endif}
   if Message<>'' then result := result +' : ' +nl +Message;
  end;

@@ -1882,7 +1882,9 @@ end;
 
 function PointerToStr(Ptr: Pointer): string;
 begin
-  Result := '0x' + IntToStr16(PtrUInt(Ptr), 8);
+  Result := '0x' + IntToStr16(PtrUInt(Ptr),
+    {$ifdef CPU32} 8 {$endif}
+    {$ifdef CPU64} 16 {$endif} );
 end;
 
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;

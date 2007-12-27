@@ -114,7 +114,7 @@
   { Exception to the above is Linux on x86-64, that allows to use normal Extended. }
   {$ifdef CPUX86_64}
     {$ifdef LINUX}
-      {$undefine EXTENDED_EQUALS_DOUBLE}
+      {$undef EXTENDED_EQUALS_DOUBLE}
     {$endif}
   {$endif}
 {$endif}
