@@ -92,7 +92,7 @@ unit KambiGLUtils;
 
 interface
 
-uses Math, GL, GLU, {$ifdef CPU64} GLExtFixed, {$else} GLExt, {$endif}
+uses Math, GL, GLU, GLExt,
   SysUtils, KambiUtils, VectorMath, Boxes3d, IntRects,
   Images, Matrix;
 

@@ -73,6 +73,12 @@ Here it is:
     FPC using exactly this configuration.)
 )
 
+@bold(Note for x86_64): for FPC <= 2.2.0, GLExt unit provided with FPC is buggy.
+Workaround is to add directory @code(kambi_vrml_game_engine/opengl/x86_64/)
+to your FPC config file, so that fixed GLExt implementation from there
+will be used.
+I submitted patch to FPC to fix this, so in FPC > 2.2.0 this is fixed.
+
 @section(2 SectionCompilingDelphi Compiling these units with Delphi)
 
 Some part of these units can be compiled with Delphi 7 for Windows
