@@ -2316,10 +2316,9 @@ initialization
       (old id is 3955)
     - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570]
 
-    FPC >= 2.2.0 already does this in GL unit for all x86. }
-  {$ifdef VER2_0}
+    Although FPC 2.2.0 does this in GL unit, it's under ifdef x86...
+    and x86 doesn't seem to be defined... see TODO.submit. }
   {$define DISABLE_FP_EXCEPTIONS}
-  {$endif}
 
   {$ifdef DISABLE_FP_EXCEPTIONS}
   Set8087CW($133F);

@@ -1,0 +1,12 @@
+(submit when FPC mantis will work again)
+Set8087CW is not done by GL unit
+
+As explained in #5914 and #7570, Set8087CW call is needed in initialization of GL unit. In FPC 2.2.0, Set8087CW is GL unit is done but inside {$ifdef x86}... And symbol "x86" doesn't seem to be ever defined, so the Set8087CW is actually never done.
+
+There doesn't seem to be any symbol that is automatically defined for both 32-bit and 64-bit x86 platforms (there are symbols like CPU86 and CPU87, but these are not defined undef x86_64...).
+
+Proposed solution: change
+  {$ifdef x86}
+to
+  {$if defined(cpui386) or defined(cpux86_64)}
+. The intention of this ifdef was to detect platforms where Set8087CW is available, and in rtl/inc/mathh.inc Set8087CW is defined exactly under the same ifdef (defined(cpui386) or defined(cpux86_64)). So this should work perfectly.
