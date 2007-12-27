@@ -1255,10 +1255,19 @@ begin
   begin
     SSSX_RenderBeginDisplayList := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSSX_PrepareBegin');
-    glNewList(SSSX_RenderBeginDisplayList, GL_COMPILE);
     try
-      RenderBeginSimple;
-    finally glEndList end;
+      glNewList(SSSX_RenderBeginDisplayList, GL_COMPILE);
+      try
+        RenderBeginSimple;
+      finally glEndList end;
+    except
+      { In case of problems above, free SSSX_RenderBeginDisplayList
+        by simple glFreeDisplayList. Otherwise CloseGLRenderer would
+        like to free this by RenderBegin_DecReference, but this is not
+        in Renderer.Cache yet. }
+      glFreeDisplayList(SSSX_RenderBeginDisplayList);
+      raise;
+    end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
@@ -1286,10 +1295,15 @@ begin
   begin
     SSSX_RenderEndDisplayList := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSSX_PrepareEnd');
-    glNewList(SSSX_RenderEndDisplayList, GL_COMPILE);
     try
-      RenderEndSimple;
-    finally glEndList end;
+      glNewList(SSSX_RenderEndDisplayList, GL_COMPILE);
+      try
+        RenderEndSimple;
+      finally glEndList end;
+    except
+      glFreeDisplayList(SSSX_RenderEndDisplayList);
+      raise;
+    end;
 
     AttributesCopy := TVRMLSceneRenderingAttributes.Create;
     AttributesCopy.Assign(Attributes);
