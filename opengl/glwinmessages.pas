@@ -730,11 +730,22 @@ procedure DrawMessg(glwin: TGLWindow);
 var md: TMessageData;
 
   procedure DrawString(const text: string; textalign: TTextAlign);
+  var
+    X: Integer;
   begin
    case textalign of
     taLeft:   glRasterPos2i(0, 0);
     taMiddle: glRasterPos2f((md.MaxLineWidth - md.font.TextWidth(text))/2, 0);
-    taRight:  glRasterPos2f(md.MaxLineWidth - md.font.TextWidth(text), 0);
+    taRight:
+      begin
+        { You can't simply pass this result to glRasterPos2f, this causes
+          errors on x86_64. So first calculate to variable X.
+          Probably fixed in FPC by fixing
+          [http://www.freepascal.org/mantis/view.php?id=9893],
+          TODO: check is it fixed in trunk. }
+        X := md.MaxLineWidth - md.font.TextWidth(text);
+        glRasterPos2f(X, 0);
+      end;
    end;
    md.font.print(text);
    glTranslatef(0, md.font.RowHeight, 0);
