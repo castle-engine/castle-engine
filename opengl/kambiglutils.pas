@@ -2318,7 +2318,8 @@ initialization
     - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570]
 
     Although FPC 2.2.0 does this in GL unit, it's under ifdef x86...
-    and x86 doesn't seem to be defined... see TODO.submit. }
+    and x86 doesn't seem to be defined... see
+    [http://bugs.freepascal.org/view.php?id=10507]. }
   {$define DISABLE_FP_EXCEPTIONS}
 
   {$ifdef DISABLE_FP_EXCEPTIONS}

@@ -1,6 +1,7 @@
 { Kambi: this is fixed version of GLext unit, to Load_xxx procs working
   on x86_64 platform.
-  Make sure that this is used by FPC 2.2.0 (not default one) on x86_64. }
+  Make sure that this is used by FPC 2.2.0 (not default one) on x86_64.
+  See [http://bugs.freepascal.org/view.php?id=10508] }
 
 {
 
