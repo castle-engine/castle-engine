@@ -26,6 +26,6 @@ vec4 Ispec = gl_FrontLightProduct[0].specular
        gl_FrontMaterial.shininess / 3.0);
 
 // write Total Color:
-gl_FragColor = /* gl_FrontLightModelProduct.SceneColor + */Iamb + Idiff + Ispec;
+gl_FragColor = gl_FrontLightModelProduct.sceneColor + Iamb + Idiff + Ispec;
 
 }
