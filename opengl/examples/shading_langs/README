@@ -57,6 +57,9 @@ Higher-level shading languages:
   and fix eventual small things (like texture coords for texture2D functions
   should have ".st" qualifiers).
 
+  See kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/
+  for demo how it's used from VRML.
+
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
 
