@@ -2059,7 +2059,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           { set uniform samplers, so that fragment shader has access
             to both bound textures }
           BumpMappingGLSLProgram.Link;
-          //Writeln(BumpMappingGLSLProgram.DebugInfo);
+          Writeln(BumpMappingGLSLProgram.DebugInfo);
           BumpMappingGLSLProgram.Enable;
           //BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0); { TODO bmGLSL }
           BumpMappingGLSLProgram.SetUniform('tex_original', 1);

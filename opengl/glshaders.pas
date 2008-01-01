@@ -104,6 +104,7 @@ type
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
   EGLSLUniformNotFound = class(EGLSLError);
+  EGLSLAttributeNotFound = class(EGLSLError);
 
   TDynGLuintArray = TDynCardinalArray;
 
@@ -124,6 +125,12 @@ type
 
     { Wrapper over glGetUniformLocation (use only if gsStandard) }
     function GetUniformLocation(const Name: string): TGLint;
+
+    { Wrapper over glGetAttribLocationARB (use only if gsARBExtension) }
+    function GetAttribLocationARB(const Name: string): TGLint;
+
+    { Wrapper over glGetAttribLocation (use only if gsStandard) }
+    function GetAttribLocation(const Name: string): TGLint;
   public
     constructor Create;
     destructor Destroy; override;
@@ -236,6 +243,37 @@ type
     procedure SetUniform(const Name: string; const Value: TVector3Single);
     procedure SetUniform(const Name: string; const Value: TVector4Single);
     { @groupEnd }
+
+    { Set attribute variable value.
+      The used type must match the type of this variable in GLSL program.
+
+      OpenGL forces some constraints on using this, see SetUniform.
+      In short: use this only after linking and using the program.
+      And note that attributes declared but not actually used in shader code
+      may be eliminated, use DebugInfo to see which attributes are actually
+      used (@italic(active) in OpenGL terminology).
+
+      @raises(EGLSLAttributeNotFound If the variable is not found within
+        the program.
+
+        Note that this is only one of the many things that can
+        go wrong. And on most cases we don't raise any error,
+        instead OpenGL sets it's error state and you probably want to
+        call CheckGLErrors from time to time to catch them.)
+
+      @groupBegin }
+    procedure SetAttribute(const Name: string; const Value: TVector4Integer);
+    procedure SetAttribute(const Name: string; const Value: TVector4Byte);
+    procedure SetAttribute(const Name: string; const Value: TGLfloat);
+    procedure SetAttribute(const Name: string; const Value: TVector2Single);
+    procedure SetAttribute(const Name: string; const Value: TVector3Single);
+    procedure SetAttribute(const Name: string; const Value: TVector4Single);
+    procedure SetAttribute(const Name: string; const Value: TGLdouble);
+    procedure SetAttribute(const Name: string; const Value: TVector2Double);
+    procedure SetAttribute(const Name: string; const Value: TVector3Double);
+    procedure SetAttribute(const Name: string; const Value: TVector4Double);
+    { @groupEnd }
+
   end;
 
 implementation
@@ -481,6 +519,43 @@ end;
 
 function TGLSLProgram.DebugInfo: string;
 
+  function GLShaderVariableTypeName(AType: TGLenum): string;
+  begin
+    case AType of
+      GL_FLOAT: Result := 'FLOAT';
+      GL_FLOAT_VEC2: Result := 'FLOAT_VEC2';
+      GL_FLOAT_VEC3: Result := 'FLOAT_VEC3';
+      GL_FLOAT_VEC4: Result := 'FLOAT_VEC4';
+      GL_INT: Result := 'INT';
+      GL_INT_VEC2: Result := 'INT_VEC2';
+      GL_INT_VEC3: Result := 'INT_VEC3';
+      GL_INT_VEC4: Result := 'INT_VEC4';
+      GL_BOOL: Result := 'BOOL';
+      GL_BOOL_VEC2: Result := 'BOOL_VEC2';
+      GL_BOOL_VEC3: Result := 'BOOL_VEC3';
+      GL_BOOL_VEC4: Result := 'BOOL_VEC4';
+      GL_FLOAT_MAT2: Result := 'FLOAT_MAT2';
+      GL_FLOAT_MAT3: Result := 'FLOAT_MAT3';
+      GL_FLOAT_MAT4: Result := 'FLOAT_MAT4';
+      { These are only for GL >= 2.1, will be uncommented when GLExt
+        binding will be updated to GL 2.1. }
+      //GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
+      //GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
+      //GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
+      //GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
+      //GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
+      //GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
+      GL_SAMPLER_1D: Result := 'SAMPLER_1D';
+      GL_SAMPLER_2D: Result := 'SAMPLER_2D';
+      GL_SAMPLER_3D: Result := 'SAMPLER_3D';
+      GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
+      GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
+      GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+      else Result := Format('Unrecognized uniform type "%d"', [AType]);
+    end;
+  end;
+
+
   { Fills the UniformNames with the names (and properties)
     of all active uniform variables available by the program.
     The program must be previously linked to use this.
@@ -496,43 +571,6 @@ function TGLSLProgram.DebugInfo: string;
     GetActiveUniforms was planned once to be public, but actually
     I think it fits better in DebugInfo }
   procedure GetActiveUniforms(UniformNames: TStringList);
-
-    function GLUniformTypeName(AType: TGLenum): string;
-    begin
-      case AType of
-        GL_FLOAT: Result := 'FLOAT';
-        GL_FLOAT_VEC2: Result := 'FLOAT_VEC2';
-        GL_FLOAT_VEC3: Result := 'FLOAT_VEC3';
-        GL_FLOAT_VEC4: Result := 'FLOAT_VEC4';
-        GL_INT: Result := 'INT';
-        GL_INT_VEC2: Result := 'INT_VEC2';
-        GL_INT_VEC3: Result := 'INT_VEC3';
-        GL_INT_VEC4: Result := 'INT_VEC4';
-        GL_BOOL: Result := 'BOOL';
-        GL_BOOL_VEC2: Result := 'BOOL_VEC2';
-        GL_BOOL_VEC3: Result := 'BOOL_VEC3';
-        GL_BOOL_VEC4: Result := 'BOOL_VEC4';
-        GL_FLOAT_MAT2: Result := 'FLOAT_MAT2';
-        GL_FLOAT_MAT3: Result := 'FLOAT_MAT3';
-        GL_FLOAT_MAT4: Result := 'FLOAT_MAT4';
-        { These are only for GL >= 2.1, will be uncommented when GLExt
-          binding will be updated to GL 2.1. }
-        //GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
-        //GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
-        //GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
-        //GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
-        //GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
-        //GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
-        GL_SAMPLER_1D: Result := 'SAMPLER_1D';
-        GL_SAMPLER_2D: Result := 'SAMPLER_2D';
-        GL_SAMPLER_3D: Result := 'SAMPLER_3D';
-        GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
-        GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
-        GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
-        else Result := Format('Unrecognized uniform type "%d"', [AType]);
-      end;
-    end;
-
   var
     I: Integer;
     UniformsCount, UniformMaxLength: TGLuint;
@@ -554,7 +592,7 @@ function TGLSLProgram.DebugInfo: string;
               @Size, @AType, PCharOrNil(Name));
             SetLength(Name, ReturnedLength);
             UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
-              [Name, GLUniformTypeName(AType), Size]));
+              [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
 
@@ -570,7 +608,51 @@ function TGLSLProgram.DebugInfo: string;
               @Size, @AType, PCharOrNil(Name));
             SetLength(Name, ReturnedLength);
             UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
-              [Name, GLUniformTypeName(AType), Size]));
+              [Name, GLShaderVariableTypeName(AType), Size]));
+          end;
+        end;
+    end;
+  end;
+
+  procedure GetActiveAttribs(AttribNames: TStringList);
+  var
+    I: Integer;
+    AttribsCount, AttribMaxLength: TGLuint;
+    ReturnedLength: TGLsizei;
+    Size: TGLint;
+    AType: TGLEnum;
+    Name: string;
+  begin
+    case Support of
+      gsARBExtension:
+        begin
+          glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, @AttribsCount);
+          glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTE_MAX_LENGTH_ARB, @AttribMaxLength);
+
+          for I := 0 to AttribsCount - 1 do
+          begin
+            SetLength(Name, AttribMaxLength);
+            glGetActiveAttribARB(ProgramId, I, AttribMaxLength, @ReturnedLength,
+              @Size, @AType, PCharOrNil(Name));
+            SetLength(Name, ReturnedLength);
+            AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
+              [Name, GLShaderVariableTypeName(AType), Size]));
+          end;
+        end;
+
+      gsStandard    :
+        begin
+          glGetProgramiv(ProgramId, GL_ACTIVE_ATTRIBUTES, @AttribsCount);
+          glGetProgramiv(ProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, @AttribMaxLength);
+
+          for I := 0 to AttribsCount - 1 do
+          begin
+            SetLength(Name, AttribMaxLength);
+            glGetActiveAttrib(ProgramId, I, AttribMaxLength, @ReturnedLength,
+              @Size, @AType, PCharOrNil(Name));
+            SetLength(Name, ReturnedLength);
+            AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
+              [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
     end;
@@ -585,6 +667,10 @@ begin
   try
     GetActiveUniforms(S);
     Result += NL + 'Active uniforms:' + NL + S.Text;
+
+    S.Clear;
+    GetActiveAttribs(S);
+    Result += NL + 'Active attribs:' + NL + S.Text;
   finally FreeAndNil(S) end;
 end;
 
@@ -800,6 +886,100 @@ begin
   case Support of
     gsARBExtension: glUniform4fvARB(GetUniformLocationARB(Name), 4, @Value);
     gsStandard    : glUniform4fv   (GetUniformLocation   (Name), 4, @Value);
+  end;
+end;
+
+function TGLSLProgram.GetAttribLocationARB(const Name: string): TGLint;
+begin
+  Result := glGetAttribLocationARB(ProgramId, PCharOrNil(Name));
+  if Result = -1 then
+    raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
+end;
+
+function TGLSLProgram.GetAttribLocation(const Name: string): TGLint;
+begin
+  Result := glGetAttribLocation   (ProgramId, PCharOrNil(Name));
+  if Result = -1 then
+    raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Integer);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4ivARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib4iv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Byte);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4ubvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib4ubv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLfloat);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib1fARB(GetAttribLocationARB(Name), Value);
+    gsStandard    : glVertexAttrib1f   (GetAttribLocation   (Name), Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib2fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib2fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib3fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib3fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib4fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLdouble);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib1dARB(GetAttribLocationARB(Name), Value);
+    gsStandard    : glVertexAttrib1d   (GetAttribLocation   (Name), Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib2dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib2dv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib3dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib3dv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard    : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
