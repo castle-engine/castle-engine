@@ -44,7 +44,7 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, GL, GLU, GLExt, KambiGLUtils, KambiUtils;
+uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath;
 
 type
   TGLSupport = (gsNone, gsARBExtension, gsStandard);
@@ -103,6 +103,7 @@ type
 
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
+  EGLSLUniformNotFound = class(EGLSLError);
 
   TDynGLuintArray = TDynCardinalArray;
 
@@ -117,6 +118,12 @@ type
     ShaderIds: TDynGLuintArray;
 
     procedure AttachShader(AType: TGLenum; const S: string);
+
+    { Wrapper over glGetUniformLocationARB (use only if gsARBExtension) }
+    function GetUniformLocationARB(const Name: string): TGLint;
+
+    { Wrapper over glGetUniformLocation (use only if gsStandard) }
+    function GetUniformLocation(const Name: string): TGLint;
   public
     constructor Create;
     destructor Destroy; override;
@@ -156,11 +163,79 @@ type
     { Disable this program (use the fixed function pipeline). }
     procedure Disable;
 
+    { Returns multiline debug info about current program.
+      Things like how it's supported (not at all ? ARB extension ?
+      standard ?), names of active uniform variables etc. }
     function DebugInfo: string;
 
     { @abstract(What support do we get from current OpenGL context ?)
       This is much like @link(Support), but it's a class function. }
     class function ClassSupport: TGLSupport;
+
+    { Set appropriate uniform variable value.
+      The used type must match the type of this variable in GLSL program.
+
+      OpenGL forces some constraints on using this:
+
+      @unorderedList(
+        @item(This should be used only after linking, and re-linking clears
+          (sets to zero) all uniform variables values.)
+
+        @item(This can be used only when the program is currently used.
+          So call @link(Enable) before doing SetUniform calls.
+
+          This is required by OpenGL glUniform*
+          commands. glGetUniformLocation take ProgramId as parameter, so they
+          can operate on any program. But glUniform* operate only on
+          active program.)
+
+        @item(Only @italic(active) uniforms variables may be set.
+          @italic(Active) means, quoting OpenGL manpages,
+          a variable that is determined during the link operation
+          that it may be accessed during program execution.
+          In other words, when linking GLSL program, unused variables
+          may be eliminated, and you cannot set them by SetUniform.
+
+          Call DebugInfo to see what uniform variables are considered
+          active for your shader.)
+      )
+
+      @italic(Design notes:) For simplicity, this interface doesn't
+      allow you to set
+      vectors using different counts as their declared types in shader.
+      That is, OpenGL interface has functions like
+
+@preformatted(
+  glUniform4fv(GLint location, GLsizei count, GLfloat *value)
+)
+
+      The "4" in the name must match array size declared in shader.
+      The given "count" specifies how many values are passed.
+      AFAIK (but not tested), it's allowed to specify different "count"
+      than "4" --- ad then OpenGL "pads" the appropriate passed value.
+      For SetUniform methods below, this is not possible
+      ("count" as a parameter is always equal to the number in function name),
+      I think that this simplifies things without actually losing any
+      functionality.
+
+      @raises(EGLSLUniformNotFound If the variable is not found within
+        the program.
+
+        Note that this is only one of the many things that can
+        go wrong. And on most cases we don't raise any error,
+        instead OpenGL sets it's error state and you probably want to
+        call CheckGLErrors from time to time to catch them.)
+
+      @groupBegin }
+    procedure SetUniform(const Name: string; const Value: TGLint);
+    procedure SetUniform(const Name: string; const Value: TVector2Integer);
+    procedure SetUniform(const Name: string; const Value: TVector3Integer);
+    procedure SetUniform(const Name: string; const Value: TVector4Integer);
+    procedure SetUniform(const Name: string; const Value: TGLfloat);
+    procedure SetUniform(const Name: string; const Value: TVector2Single);
+    procedure SetUniform(const Name: string; const Value: TVector3Single);
+    procedure SetUniform(const Name: string; const Value: TVector4Single);
+    { @groupEnd }
   end;
 
 implementation
@@ -405,8 +480,112 @@ begin
 end;
 
 function TGLSLProgram.DebugInfo: string;
+
+  { Fills the UniformNames with the names (and properties)
+    of all active uniform variables available by the program.
+    The program must be previously linked to use this.
+
+    Quoting OpenGL manpage about what is @italic(active) uniform variable:
+    A uniform variable (either built-in or user-defined) is
+    considered active if it is determined during the link operation
+    that it may be accessed during program execution.
+
+    You may want to clear UniformNames before calling this, as this doesn't
+    clear them automatically, it only appends new names.
+
+    GetActiveUniforms was planned once to be public, but actually
+    I think it fits better in DebugInfo }
+  procedure GetActiveUniforms(UniformNames: TStringList);
+
+    function GLUniformTypeName(AType: TGLenum): string;
+    begin
+      case AType of
+        GL_FLOAT: Result := 'FLOAT';
+        GL_FLOAT_VEC2: Result := 'FLOAT_VEC2';
+        GL_FLOAT_VEC3: Result := 'FLOAT_VEC3';
+        GL_FLOAT_VEC4: Result := 'FLOAT_VEC4';
+        GL_INT: Result := 'INT';
+        GL_INT_VEC2: Result := 'INT_VEC2';
+        GL_INT_VEC3: Result := 'INT_VEC3';
+        GL_INT_VEC4: Result := 'INT_VEC4';
+        GL_BOOL: Result := 'BOOL';
+        GL_BOOL_VEC2: Result := 'BOOL_VEC2';
+        GL_BOOL_VEC3: Result := 'BOOL_VEC3';
+        GL_BOOL_VEC4: Result := 'BOOL_VEC4';
+        GL_FLOAT_MAT2: Result := 'FLOAT_MAT2';
+        GL_FLOAT_MAT3: Result := 'FLOAT_MAT3';
+        GL_FLOAT_MAT4: Result := 'FLOAT_MAT4';
+        { These are only for GL >= 2.1, will be uncommented when GLExt
+          binding will be updated to GL 2.1. }
+        //GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
+        //GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
+        //GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
+        //GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
+        //GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
+        //GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
+        GL_SAMPLER_1D: Result := 'SAMPLER_1D';
+        GL_SAMPLER_2D: Result := 'SAMPLER_2D';
+        GL_SAMPLER_3D: Result := 'SAMPLER_3D';
+        GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
+        GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
+        GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+        else Result := Format('Unrecognized uniform type "%d"', [AType]);
+      end;
+    end;
+
+  var
+    I: Integer;
+    UniformsCount, UniformMaxLength: TGLuint;
+    ReturnedLength: TGLsizei;
+    Size: TGLint;
+    AType: TGLEnum;
+    Name: string;
+  begin
+    case Support of
+      gsARBExtension:
+        begin
+          glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORMS_ARB, @UniformsCount);
+          glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB, @UniformMaxLength);
+
+          for I := 0 to UniformsCount - 1 do
+          begin
+            SetLength(Name, UniformMaxLength);
+            glGetActiveUniformARB(ProgramId, I, UniformMaxLength, @ReturnedLength,
+              @Size, @AType, PCharOrNil(Name));
+            SetLength(Name, ReturnedLength);
+            UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
+              [Name, GLUniformTypeName(AType), Size]));
+          end;
+        end;
+
+      gsStandard    :
+        begin
+          glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORMS, @UniformsCount);
+          glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORM_MAX_LENGTH, @UniformMaxLength);
+
+          for I := 0 to UniformsCount - 1 do
+          begin
+            SetLength(Name, UniformMaxLength);
+            glGetActiveUniform(ProgramId, I, UniformMaxLength, @ReturnedLength,
+              @Size, @AType, PCharOrNil(Name));
+            SetLength(Name, ReturnedLength);
+            UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
+              [Name, GLUniformTypeName(AType), Size]));
+          end;
+        end;
+    end;
+  end;
+
+var
+  S: TStringList;
 begin
   Result := 'GLSL program support: ' + SupportNames[Support];
+
+  S := TStringList.Create;
+  try
+    GetActiveUniforms(S);
+    Result += NL + 'Active uniforms:' + NL + S.Text;
+  finally FreeAndNil(S) end;
 end;
 
 procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
@@ -543,6 +722,84 @@ begin
   case Support of
     gsARBExtension: glUseProgramObjectARB(0);
     gsStandard    : glUseProgram         (0);
+  end;
+end;
+
+function TGLSLProgram.GetUniformLocationARB(const Name: string): TGLint;
+begin
+  Result := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
+  if Result = -1 then
+    raise EGLSLUniformNotFound.CreateFmt('Uniform variable "%s" not found', [Name]);
+end;
+
+function TGLSLProgram.GetUniformLocation(const Name: string): TGLint;
+begin
+  Result := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
+  if Result = -1 then
+    raise EGLSLUniformNotFound.CreateFmt('Uniform variable "%s" not found', [Name]);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint);
+begin
+  case Support of
+    gsARBExtension: glUniform1iARB(GetUniformLocationARB(Name), Value);
+    gsStandard    : glUniform1i   (GetUniformLocation   (Name), Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer);
+begin
+  case Support of
+    gsARBExtension: glUniform2ivARB(GetUniformLocationARB(Name), 2, @Value);
+    gsStandard    : glUniform2iv   (GetUniformLocation   (Name), 2, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer);
+begin
+  case Support of
+    gsARBExtension: glUniform3ivARB(GetUniformLocationARB(Name), 3, @Value);
+    gsStandard    : glUniform3iv   (GetUniformLocation   (Name), 3, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer);
+begin
+  case Support of
+    gsARBExtension: glUniform4ivARB(GetUniformLocationARB(Name), 4, @Value);
+    gsStandard    : glUniform4iv   (GetUniformLocation   (Name), 4, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat);
+begin
+  case Support of
+    gsARBExtension: glUniform1fARB(GetUniformLocationARB(Name), Value);
+    gsStandard    : glUniform1f   (GetUniformLocation   (Name), Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single);
+begin
+  case Support of
+    gsARBExtension: glUniform2fvARB(GetUniformLocationARB(Name), 2, @Value);
+    gsStandard    : glUniform2fv   (GetUniformLocation   (Name), 2, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single);
+begin
+  case Support of
+    gsARBExtension: glUniform3fvARB(GetUniformLocationARB(Name), 3, @Value);
+    gsStandard    : glUniform3fv   (GetUniformLocation   (Name), 3, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single);
+begin
+  case Support of
+    gsARBExtension: glUniform4fvARB(GetUniformLocationARB(Name), 4, @Value);
+    gsStandard    : glUniform4fv   (GetUniformLocation   (Name), 4, @Value);
   end;
 end;
 

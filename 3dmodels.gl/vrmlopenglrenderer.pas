@@ -820,7 +820,8 @@ type
     function ProgramNodeIndex(ProgramNode: TNodeComposedShader): Integer;
   end;
 
-  TBumpMappingMethod = (bmNone, bmDot3NotNormalized, bmDot3Normalized);
+  TBumpMappingMethod = (bmNone, bmDot3NotNormalized,
+    bmDot3Normalized, bmGLSL);
 
   TVRMLOpenGLRenderer = class
   private
@@ -847,6 +848,10 @@ type
 
     BumpMappingMethodCached: TBumpMappingMethod;
     BumpMappingMethodIsCached: boolean;
+
+    { Will be created by some prepare, if BumpMappingMethod is bmGLSL
+      and it's detected that bump mapping will be actually used. }
+    BumpMappingGLSLProgram: TGLSLProgram;
 
     TextureReferences: TDynTextureReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
@@ -986,6 +991,8 @@ type
       Attributes.EnableTextures. Then check are appropriate OpenGL extensions
       present (GL_ARB_multitexture and friends). Then checks are enough
       texture units available (using First/LastGLFreeTexture).
+      For bmGLSL, also GLSL availability (as standard or ARB extension)
+      is checked.
 
       This is mainly for private purposes, as this class handles everything
       related to bump mapping inside. This function may be usable for you
@@ -993,13 +1000,32 @@ type
       ties us to current OpenGL context (just like any PrepareXxx or RenderXxx
       call). }
     function BumpMappingMethod: TBumpMappingMethod;
+
+    { How we would support bump mapping in current OpenGL context, with given
+      Attributes values.
+
+      The contract is that if you @italic(create TVRMLOpenGLRenderer in current
+      OpenGL context) and @italic(set it's Attributes just like parameters to
+      this method) then @italic(created TVRMLOpenGLRenderer will
+      have BumpMappingMethod the same as what this function tells).
+
+      This is helpful if you don't have TVRMLOpenGLRenderer and it's
+      attributes instances created yet, but you want to know right now
+      what bump mapping will be available. }
+    class function GLContextBumpMappingMethod(
+      const FirstGLFreeTexture: Cardinal;
+      ALastGLFreeTexture: Integer;
+      const AttributesBumpMapping, AttributesEnableTextures: boolean):
+      TBumpMappingMethod;
+
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
 
 const
   BumpMappingMethodNames: array [TBumpMappingMethod] of string =
-  ( 'None', 'Dot3', 'Dot3Normalized' );
+  ( 'None', 'Dot3 (Not normalized)', 'Dot3 (Normalized by cube map)',
+    'GLSL' );
 
 {$undef read_interface}
 
@@ -2009,6 +2035,40 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
+    may be actually used. This is supposed to initialize anything related to
+    BumpMapping. }
+  procedure PrepareBumpMapping;
+  begin
+    case BumpMappingMethod of
+      bmDot3Normalized:
+        if TexNormalizationCube = 0 then
+        begin
+          TexNormalizationCube := MakeNormalizationCubeMap;
+        end;
+
+      bmGLSL:
+        if BumpMappingGLSLProgram = nil then
+        begin
+          BumpMappingGLSLProgram := TGLSLProgram.Create;
+          { If BumpMappingMethod is bmGLSL, then we checked in BumpMappingMethod
+            that support is <> gsNone }
+          Assert(BumpMappingGLSLProgram.Support <> gsNone);
+          BumpMappingGLSLProgram.AttachVertexShader({$I glsl_bump_mapping.vs.inc});
+          BumpMappingGLSLProgram.AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
+          { set uniform samplers, so that fragment shader has access
+            to both bound textures }
+          BumpMappingGLSLProgram.Link;
+          //Writeln(BumpMappingGLSLProgram.DebugInfo);
+          BumpMappingGLSLProgram.Enable;
+          //BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0); { TODO bmGLSL }
+          BumpMappingGLSLProgram.SetUniform('tex_original', 1);
+          { TODO: this should restore previously bound program }
+          BumpMappingGLSLProgram.Disable;
+        end;
+    end;
+  end;
+
 const
   TextureRepeatToGL: array[boolean]of TGLenum = (
     GL_CLAMP {TODO: change this to CLAMP_TO_EDGE ? GL_CLAMP
@@ -2111,6 +2171,8 @@ begin
          GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
          TextureRepeatToGL[TextureNode.RepeatS],
          TextureRepeatToGL[TextureNode.RepeatT]);
+
+       PrepareBumpMapping;
      end;
    end;
 
@@ -2185,6 +2247,12 @@ begin
     if GLSLProgramReferences.Items[i].GLSLProgram <> nil then
       Cache.GLSLProgram_DecReference(GLSLProgramReferences.Items[i].GLSLProgram);
   GLSLProgramReferences.SetLength(0);
+
+  { unprepare TexNormalizationCube }
+  glFreeTexture(TexNormalizationCube);
+
+  { unprepare BumpMappingGLSLProgram }
+  FreeAndNil(BumpMappingGLSLProgram);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
@@ -2215,53 +2283,84 @@ begin
   Result := FLastGLFreeTexture;
 end;
 
-function TVRMLOpenGLRenderer.BumpMappingMethod: TBumpMappingMethod;
+class function TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
+  const FirstGLFreeTexture: Cardinal;
+  ALastGLFreeTexture: Integer;
+  const AttributesBumpMapping, AttributesEnableTextures: boolean):
+  TBumpMappingMethod;
 var
   TextureUnitsAvailable: Cardinal;
 begin
+  if ALastGLFreeTexture = -1 then
+  begin
+    { When ALastGLFreeTexture = -1, we get this from OpenGL, thus somewhat
+      duplicating functionality that we already implemented in
+      TVRMLOpenGLRenderer.LastGLFreeTexture method. However, this is useful:
+
+      - When calling GLContextBumpMappingMethod internally, by BumpMappingMethod,
+        TVRMLOpenGLRenderer.LastGLFreeTexture will be passed, so it's never -1.
+
+      - When calling GLContextBumpMappingMethod from other places, in 99%
+        of the cases it's very comfortable being able to pass -1 for this. }
+
+    if GL_ARB_multitexture then
+      ALastGLFreeTexture := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) - 1 else
+      ALastGLFreeTexture := 0;
+  end;
+
+  TextureUnitsAvailable := ALastGLFreeTexture - FirstGLFreeTexture + 1;
+
+  if AttributesBumpMapping and
+     AttributesEnableTextures and
+
+    { EXT_texture_env_combine (standard since 1.3) required }
+    (GL_EXT_texture_env_combine or GL_version_1_3) and
+
+    { Actually, other extensions also don't have to exist, they are built in
+      newer OpenGL version. But this requires getting their procedures under different
+      names (without extension suffix). For EXT_texture_env_combine, this is simpler
+      since it only defines new constants and these are the same, whether it's extension
+      or built-in GL 1.3. }
+
+    { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
+    GL_ARB_multitexture and
+
+    { GL >= 1.3 required for GL_SUBTRACT.
+
+      As you see, actually this whole check could be substituted by GL >= 1.3,
+      as this allows GL_SUBTRACT and provides all extensions required here. }
+    GL_version_1_3 and
+
+    { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
+    GL_ARB_texture_env_dot3 and
+
+    { 2 texture units for Dot3 (without normalization; GLSL does
+      normalization in shader, so it also requires only 2 units) }
+    (TextureUnitsAvailable >= 2) then
+  begin
+    if TGLSLProgram.ClassSupport <> gsNone then
+      Result := bmGLSL else
+    if
+      { ARB_texture_cube_map required for Dot3Normalized (TODO: standard since 1.3, see above comments) }
+      GL_ARB_texture_cube_map and
+
+      { 2 texture units for Dot3Normalized }
+      (TextureUnitsAvailable >= 3) then
+
+      Result := bmDot3Normalized else
+      Result := bmDot3NotNormalized;
+  end else
+    Result := bmNone;
+end;
+
+function TVRMLOpenGLRenderer.BumpMappingMethod: TBumpMappingMethod;
+begin
   if not BumpMappingMethodIsCached then
   begin
-    TextureUnitsAvailable := LastGLFreeTexture - Attributes.FirstGLFreeTexture + 1;
-
-    if Attributes.BumpMapping and
-       Attributes.EnableTextures and
-
-      { EXT_texture_env_combine (standard since 1.3) required }
-      (GL_EXT_texture_env_combine or GL_version_1_3) and
-
-      { Actually, other extensions also don't have to exist, they are built in
-        newer OpenGL version. But this requires getting their procedures under different
-        names (without extension suffix). For EXT_texture_env_combine, this is simpler
-        since it only defines new constants and these are the same, whether it's extension
-        or built-in GL 1.3. }
-
-      { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
-      GL_ARB_multitexture and
-
-      { GL >= 1.3 required for GL_SUBTRACT.
-
-        As you see, actually this whole check could be substituted by GL >= 1.3,
-        as this is requires for GL_SUBTRACT and provides all extensions required
-        here. }
-      GL_version_1_3 and
-
-      { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
-      GL_ARB_texture_env_dot3 and
-
-      { 2 texture units for Dot3 (without normalization }
-      (TextureUnitsAvailable >= 2) then
-    begin
-      if
-        { ARB_texture_cube_map required for Dot3Normalized (TODO: standard since 1.3, see above comments) }
-        GL_ARB_texture_cube_map and
-
-        { 2 texture units for Dot3Normalized }
-        (TextureUnitsAvailable >= 3) then
-
-        BumpMappingMethodCached := bmDot3Normalized else
-        BumpMappingMethodCached := bmDot3NotNormalized;
-    end else
-      BumpMappingMethodCached := bmNone;
+    BumpMappingMethodCached := GLContextBumpMappingMethod(
+      Attributes.FirstGLFreeTexture,
+      LastGLFreeTexture,
+      Attributes.BumpMapping, Attributes.EnableTextures);
 
     BumpMappingMethodIsCached := true;
   end;
@@ -2409,9 +2508,6 @@ begin
      glDisable(GL_LIGHT0+i);
 
  SetupFog(FogNode);
-
- if BumpMappingMethod = bmDot3Normalized then
-   TexNormalizationCube := MakeNormalizationCubeMap;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;

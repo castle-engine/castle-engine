@@ -829,6 +829,14 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
           glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
           glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
         end;
+
+      bmGLSL:
+        begin
+          glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
+          { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
+            Shader knows that they are the same, and will just use gl_TexCoord[0]
+            to access both textures. }
+        end;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;
@@ -847,7 +855,7 @@ end;
 
 procedure TIndexedFaceSetRenderer.Render_Init;
 
-  procedure SetTexturesForDot3NotNormalized;
+  procedure EnableForDot3NotNormalized;
   begin
     Renderer.ActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, TexNormalMap);
@@ -880,7 +888,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
   end;
 
-  procedure SetTexturesForDot3Normalized;
+  procedure EnableForDot3Normalized;
   begin
     { texture unit 0: just lookup your coordinates (which are
       3D lighting dir, not normalized) in cube map.
@@ -931,12 +939,27 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
   end;
 
+  procedure EnableForGLSL;
+  begin
+    { This binds textures in the same way as EnableForDot3NotNormalized,
+      but this doesn't call glTexEnvi or glEnable(GL_TEXTURE_2D)
+      (it's useless, shader will control this). }
+    Renderer.ActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, TexNormalMap);
+
+    Renderer.ActiveTexture(1);
+    glBindTexture(GL_TEXTURE_2D, TexOriginal);
+
+    Renderer.BumpMappingGLSLProgram.Enable;
+  end;
+
 begin
   if BumpMappingMethod <> bmNone then
   begin
     case BumpMappingMethod of
-      bmDot3NotNormalized: SetTexturesForDot3NotNormalized;
-      bmDot3Normalized   : SetTexturesForDot3Normalized;
+      bmDot3NotNormalized: EnableForDot3NotNormalized;
+      bmDot3Normalized   : EnableForDot3Normalized;
+      bmGLSL             : EnableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
 
@@ -975,6 +998,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
 
   { DisableXxx procedures disable textures (2d and cube map)
     that were enabled by their SetXxx counterparts in Render_Init.
+    In case of shader implementation, this also disables the shader.
 
     Note that they still leave some state behind:
     - currently bound textures
@@ -982,7 +1006,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     - the currently bound texture is left unspecified
     These must be set always when anything will enable some texture. }
 
-  procedure DisableTexturesForDot3NotNormalized;
+  procedure DisableForDot3NotNormalized;
   begin
     Renderer.ActiveTexture(0);
     glDisable(GL_TEXTURE_2D);
@@ -991,7 +1015,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     glDisable(GL_TEXTURE_2D);
   end;
 
-  procedure DisableTexturesForDot3Normalized;
+  procedure DisableForDot3Normalized;
   begin
     { texture unit 0: just lookup your coordinates (which are
       3D lighting dir, not normalized) in cube map.
@@ -1006,6 +1030,14 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     glDisable(GL_TEXTURE_2D);
   end;
 
+  procedure DisableForGLSL;
+  begin
+    { No need to disable two textures, as we didn't enable them in
+      EnableForGLSL (shader doesn't need them enabled). }
+
+    Renderer.BumpMappingGLSLProgram.Disable;
+  end;
+
 begin
   FreeAndNil(Render_GeneratedNormals);
   inherited;
@@ -1013,8 +1045,9 @@ begin
   if BumpMappingMethod <> bmNone then
   begin
     case BumpMappingMethod of
-      bmDot3NotNormalized: DisableTexturesForDot3NotNormalized;
-      bmDot3Normalized   : DisableTexturesForDot3Normalized;
+      bmDot3NotNormalized: DisableForDot3NotNormalized;
+      bmDot3Normalized   : DisableForDot3Normalized;
+      bmGLSL             : DisableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;

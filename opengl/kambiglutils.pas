@@ -967,11 +967,21 @@ type
   where glGenListsCheck is called). }
 function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
 
-{ If list <> 0 then it does glDeleteList(list, 1) and sets list to 0.
+{ If List <> 0 then it does glDeleteList on List and sets List to 0.
   In other words this is simply glDeleteList but
-  1. only if LIST really should be deleted
-  2. sets LIST to 0 after deletion. }
+  @orderedList(
+    @item only if List really should be deleted
+    @item sets List to 0 after deletion
+  ) }
 procedure glFreeDisplayList(var list: TGLuint);
+
+{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
+  In other words, this is a simple wrapper over glDeleteTextures that
+  @orderedList(
+    @item checks if Tex really should be deleted
+    @item sets Tex to 0 to not free it once again
+  ) }
+procedure glFreeTexture(var Tex: TGLuint);
 
 { This is equivalent to glListBase but it's parameter is a signed integer.
 
@@ -2259,6 +2269,15 @@ begin
   glDeleteLists(list, 1);
   list := 0;
  end;
+end;
+
+procedure glFreeTexture(var Tex: TGLuint);
+begin
+  if Tex <> 0 then
+  begin
+    glDeleteTextures(1, @Tex);
+    Tex := 0;
+  end;
 end;
 
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
