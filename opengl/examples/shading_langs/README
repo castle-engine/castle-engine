@@ -43,6 +43,7 @@ Higher-level shading languages:
   Many many tutorials and references around the WWW,
   http://www.opengl.org/documentation/glsl/
   http://www.lighthouse3d.com/opengl/glsl/
+  http://folk.uio.no/johans/publications/Seland.2006.INF3320.pdf
   http://nehe.gamedev.net/data/articles/article.asp?article=21
   basically just
   http://www.google.com/search?q=glsl
@@ -83,9 +84,9 @@ Higher-level shading languages:
     The disadvantage is that you must program it, to link and call Cg runtime
     functions to compile from your program.
 
-Didn't check in practice, but the "pipeline" requirement seems not present
-in ARB vertex program. In one program I can access any texture coordinate
-and sample any texture. See fragment.texcoord[n], texture[n],
+The "pipeline" requirement is not present in shaders.
+In one program I can access any texture coordinate and sample any texture.
+E.g. for ARB vertex program see fragment.texcoord[n], texture[n],
 operations like TEX, TXP.
 
   TEX some_result, some_coordinate, texture[some_texture_unit_number], 2D;
@@ -95,6 +96,5 @@ only access calculation result from previous texture unit.
 
 Interesting non-trivial fragment shader ability: KIL, so we can easily
 reject some pixels using any convoluted rule.
-
 
 http://www.opengl.org/code/category/C20

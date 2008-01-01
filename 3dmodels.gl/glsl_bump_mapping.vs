@@ -5,28 +5,23 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-varying vec3 interpolated_normal;
-varying vec3 vertex_world;
-
 /* TODO: calc light_dir_tangent_v from tangents and lightpos
    VRMLOpenGLRenderer.Attributes */
 
-attribute vec3 light_dir_tangent_v;
+attribute vec3 light_position_object_space;
+attribute mat3 object_space_to_tangent;
 varying vec3 light_dir_tangent;
 
 void main(void)
 {
-  /* Is normalization here needed ? Probably not, but it improves the
-     numerical precision of interpolation ? */
-  interpolated_normal = normalize(gl_NormalMatrix * gl_Normal);
-
-  vertex_world = vec3(gl_ModelViewMatrix * gl_Vertex);
-
   gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
 
-  /* Just make light_dir_tangent_v, as passed from program, to be interpolated
-     for fragment shader. */
-  light_dir_tangent = light_dir_tangent_v;
+  /* Calculate light_dir_tangent, which is crucial for bump mapping.
+     This in some way does the same as LightDirectionInTangentSpace
+     function in VRMLOpenGLRenderer, but this works in shader. */
+  vec3 light_dir_object_space = light_position_object_space - gl_Vertex;
+  light_dir_tangent = object_space_to_tangent * light_dir_object_space;
+  light_dir_tangent.y = -light_dir_tangent.y;
 
   gl_Position = ftransform();
 }

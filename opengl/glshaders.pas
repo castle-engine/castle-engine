@@ -129,6 +129,8 @@ type
     procedure SetValue(const Value: TVector2Double);
     procedure SetValue(const Value: TVector3Double);
     procedure SetValue(const Value: TVector4Double);
+    procedure SetValue(const Value: TMatrix3Single);
+    procedure SetValue(const Value: TMatrix4Single);
   end;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
@@ -298,6 +300,8 @@ type
     procedure SetAttribute(const Name: string; const Value: TVector2Double);
     procedure SetAttribute(const Name: string; const Value: TVector3Double);
     procedure SetAttribute(const Name: string; const Value: TVector4Double);
+    procedure SetAttribute(const Name: string; const Value: TMatrix3Single);
+    procedure SetAttribute(const Name: string; const Value: TMatrix4Single);
     { @groupEnd }
 
     { Create an attribute instance, this way you can assign multiple times
@@ -599,6 +603,44 @@ begin
   case Support of
     gsARBExtension: glVertexAttrib4dvARB(Location, @Value);
     gsStandard    : glVertexAttrib4dv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TMatrix3Single);
+begin
+  case Support of
+    gsARBExtension:
+      begin
+        glVertexAttrib3fvARB(Location    , @Value[0]);
+        glVertexAttrib3fvARB(Location + 1, @Value[1]);
+        glVertexAttrib3fvARB(Location + 2, @Value[2]);
+      end;
+    gsStandard    :
+      begin
+        glVertexAttrib3fv   (Location    , @Value[0]);
+        glVertexAttrib3fv   (Location + 1, @Value[1]);
+        glVertexAttrib3fv   (Location + 2, @Value[2]);
+      end;
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TMatrix4Single);
+begin
+  case Support of
+    gsARBExtension:
+      begin
+        glVertexAttrib4fvARB(Location    , @Value[0]);
+        glVertexAttrib4fvARB(Location + 1, @Value[1]);
+        glVertexAttrib4fvARB(Location + 2, @Value[2]);
+        glVertexAttrib4fvARB(Location + 3, @Value[3]);
+      end;
+    gsStandard    :
+      begin
+        glVertexAttrib4fv   (Location    , @Value[0]);
+        glVertexAttrib4fv   (Location + 1, @Value[1]);
+        glVertexAttrib4fv   (Location + 2, @Value[2]);
+        glVertexAttrib4fv   (Location + 3, @Value[3]);
+      end;
   end;
 end;
 
@@ -1108,6 +1150,52 @@ begin
   case Support of
     gsARBExtension: glVertexAttrib4dvARB(GetAttribLocationARB(Name), @Value);
     gsStandard    : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3Single);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension:
+      begin
+        Location := GetAttribLocationARB(Name);
+        glVertexAttrib3fvARB(Location    , @Value[0]);
+        glVertexAttrib3fvARB(Location + 1, @Value[1]);
+        glVertexAttrib3fvARB(Location + 2, @Value[2]);
+      end;
+    gsStandard    :
+      begin
+        Location := GetAttribLocation   (Name);
+        glVertexAttrib3fv   (Location    , @Value[0]);
+        glVertexAttrib3fv   (Location + 1, @Value[1]);
+        glVertexAttrib3fv   (Location + 2, @Value[2]);
+      end;
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4Single);
+var
+  Location: TGLint;
+begin
+  case Support of
+    gsARBExtension:
+      begin
+        Location := GetAttribLocationARB(Name);
+        glVertexAttrib4fvARB(Location    , @Value[0]);
+        glVertexAttrib4fvARB(Location + 1, @Value[1]);
+        glVertexAttrib4fvARB(Location + 2, @Value[2]);
+        glVertexAttrib4fvARB(Location + 3, @Value[3]);
+      end;
+    gsStandard    :
+      begin
+        Location := GetAttribLocation   (Name);
+        glVertexAttrib4fv   (Location    , @Value[0]);
+        glVertexAttrib4fv   (Location + 1, @Value[1]);
+        glVertexAttrib4fv   (Location + 2, @Value[2]);
+        glVertexAttrib4fv   (Location + 3, @Value[3]);
+      end;
   end;
 end;
 

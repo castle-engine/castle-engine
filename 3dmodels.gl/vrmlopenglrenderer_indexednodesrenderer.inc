@@ -736,28 +736,129 @@ end;
 procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
   procedure DoBumpMapping;
+  var
+    Normal, Vertex: TVector3Single;
 
-    function LightDirectionInTangentSpace(
-      const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
-    var
-      ToTangent: TMatrix3Single;
-      I: Integer;
-    begin
-      for I := 0 to 2 do
+    function CalculateLightDirTangent: TVector3Single;
+
+      function LightDirectionInTangentSpace(
+        const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
+      var
+        ToTangent: TMatrix3Single;
+        I: Integer;
       begin
-        ToTangent[I, 0] := STangent[I];
-        ToTangent[I, 1] := TTangent[I];
-        ToTangent[I, 2] := Normal[I];
+        for I := 0 to 2 do
+        begin
+          ToTangent[I, 0] := STangent[I];
+          ToTangent[I, 1] := TTangent[I];
+          ToTangent[I, 2] := Normal[I];
+        end;
+
+        Result := MultMatrixVector(ToTangent,
+          VectorSubtract(LightPositionObjectSpace, Vertex));
       end;
 
-      Result := MultMatrixVector(ToTangent,
-        VectorSubtract(LightPositionObjectSpace, Vertex));
+    var
+      LocalSTangent, LocalTTangent: TVector3Single;
+    begin
+      { calculate LightDirTangent }
+      if HasTangentVectors and
+        (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
+        (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
+      begin
+        if NormalsFlat then
+        begin
+          Result := LightDirectionInTangentSpace(
+            Vertex, Normal, STangent, TTangent);
+        end else
+        begin
+          { If not NormalsFlat, you want to calculate local STangent and TTangent,
+            I mean STangent and TTangent adjusted to current vertex (since each
+            vertex may have different normal on the face when not NormalsFlat).
+
+            Without doing this, you would see strange artefacts, smoothed
+            faces would look somewhat like flat faces. Concenptually, for smoothed
+            faces, whole tangent space should vary for each vertex, so Normal,
+            and both tangents may be different on each vertex. }
+
+          LocalSTangent := STangent;
+          MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+          LocalTTangent := TTangent;
+          MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+          Result := LightDirectionInTangentSpace(
+            Vertex, Normal, LocalSTangent, LocalTTangent);
+        end;
+      end else
+        Result := Vector3Single(0, 0, 1);
+
+      { TODO: that's an error that it's needed, see bump_mapping.pasprogram }
+      Result[1] := - Result[1];
+    end;
+
+    procedure SetBumpMappingAttribs;
+
+      procedure SetMatrixToTangent(const Normal, STangent, TTangent: TVector3Single);
+      var
+        ToTangent: TMatrix3Single;
+        I: Integer;
+      begin
+        for I := 0 to 2 do
+        begin
+          ToTangent[I, 0] := STangent[I];
+          ToTangent[I, 1] := TTangent[I];
+          ToTangent[I, 2] := Normal[I];
+        end;
+
+        Renderer.BumpMappingGLSLAttribObjectSpaceToTangent.SetValue(ToTangent);
+        Renderer.BumpMappingGLSLAttribLightPosObjectSpace.SetValue(LightPositionObjectSpace);
+      end;
+
+    var
+      LocalSTangent, LocalTTangent: TVector3Single;
+    begin
+      { This somewhat duplicates CalculateLightDirTangent logic,
+        but instead of calling LightDirectionInTangentSpace this must
+        call SetMatrixToTangent. }
+      if HasTangentVectors and
+        (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
+        (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
+      begin
+        if NormalsFlat then
+        begin
+          SetMatrixToTangent(Normal, STangent, TTangent);
+        end else
+        begin
+          { If not NormalsFlat, you want to calculate local STangent and TTangent,
+            I mean STangent and TTangent adjusted to current vertex (since each
+            vertex may have different normal on the face when not NormalsFlat).
+
+            Without doing this, you would see strange artefacts, smoothed
+            faces would look somewhat like flat faces. Concenptually, for smoothed
+            faces, whole tangent space should vary for each vertex, so Normal,
+            and both tangents may be different on each vertex. }
+
+          LocalSTangent := STangent;
+          MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
+
+          LocalTTangent := TTangent;
+          MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
+
+          SetMatrixToTangent(Normal, LocalSTangent, LocalTTangent);
+        end;
+      end else
+      begin
+        SetMatrixToTangent(Normal,
+          { would be more correct to set LocalSTangent as anything perpendicular
+            to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
+          Vector3Single(1, 0, 0), Vector3Single(0, 1, 0));
+      end;
     end;
 
   var
-    Normal, Vertex, LightDirTangent: TVector3Single;
+    LightDirTangent: TVector3Single;
     Tex: TVector2Single;
-    LocalSTangent, LocalTTangent: TVector3Single;
   begin
     GetNormal(IndexNum, Normal);
 
@@ -766,45 +867,11 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
     Check(GetTextureCoord(IndexNum, Tex), 'TexCoord for BumpMapping');
 
-    { calculate LightDirTangent }
-    if HasTangentVectors and
-      (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
-      (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
-    begin
-      if NormalsFlat then
-      begin
-        LightDirTangent := LightDirectionInTangentSpace(
-          Vertex, Normal, STangent, TTangent);
-      end else
-      begin
-        { If not NormalsFlat, you want to calculate local STangent and TTangent,
-          I mean STangent and TTangent adjusted to current vertex (since each
-          vertex may have different normal on the face when not NormalsFlat).
-
-          Without doing this, you would see strange artefacts, smoothed
-          faces would look somewhat like flat faces. Concenptually, for smoothed
-          faces, whole tangent space should vary for each vertex, so Normal,
-          and both tangents may be different on each vertex. }
-
-        LocalSTangent := STangent;
-        MakeVectorsOrthoOnTheirPlane(LocalSTangent, Normal);
-
-        LocalTTangent := TTangent;
-        MakeVectorsOrthoOnTheirPlane(LocalTTangent, Normal);
-
-        LightDirTangent := LightDirectionInTangentSpace(
-          Vertex, Normal, LocalSTangent, LocalTTangent);
-      end;
-    end else
-      LightDirTangent := Vector3Single(0, 0, 1);
-
-    { TODO: that's an error that it's needed, see bump_mapping.pasprogram }
-    LightDirTangent[1] := - LightDirTangent[1];
-
     { set all textures coordinates }
     case BumpMappingMethod of
       bmDot3NotNormalized:
         begin
+          LightDirTangent := CalculateLightDirTangent;
           NormalizeTo1st(LightDirTangent);
 
           { pass LightDirTangent as RGB color }
@@ -818,6 +885,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
       bmDot3Normalized:
         begin
+          LightDirTangent := CalculateLightDirTangent;
           glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
             LightDirTangent[0],
             LightDirTangent[1],
@@ -829,7 +897,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
       bmGLSL:
         begin
-          Renderer.BumpMappingGLSLAttribLightDirTangent.SetValue(LightDirTangent);
+          SetBumpMappingAttribs;
           glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
           { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
             Shader knows that they are the same, and will just use gl_TexCoord[0]

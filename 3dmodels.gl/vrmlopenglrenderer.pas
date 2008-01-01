@@ -858,7 +858,8 @@ type
     { Will be created by some prepare, if BumpMappingMethod is bmGLSL
       and it's detected that bump mapping will be actually used. }
     BumpMappingGLSLProgram: TGLSLProgram;
-    BumpMappingGLSLAttribLightDirTangent: TGLSLAttribute;
+    BumpMappingGLSLAttribObjectSpaceToTangent: TGLSLAttribute;
+    BumpMappingGLSLAttribLightPosObjectSpace: TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
@@ -2087,8 +2088,11 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
           Writeln(BumpMappingGLSLProgram.DebugInfo);
 
-          BumpMappingGLSLAttribLightDirTangent :=
-            BumpMappingGLSLProgram.CreateAttribute('light_dir_tangent_v');
+          BumpMappingGLSLAttribObjectSpaceToTangent :=
+            BumpMappingGLSLProgram.CreateAttribute('object_space_to_tangent');
+
+          BumpMappingGLSLAttribLightPosObjectSpace :=
+            BumpMappingGLSLProgram.CreateAttribute('light_position_object_space');
 
           BumpMappingGLSLProgram.Enable;
           BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
@@ -2283,7 +2287,8 @@ begin
 
   { unprepare BumpMappingGLSLProgram }
   FreeAndNil(BumpMappingGLSLProgram);
-  FreeAndNil(BumpMappingGLSLAttribLightDirTangent);
+  FreeAndNil(BumpMappingGLSLAttribObjectSpaceToTangent);
+  FreeAndNil(BumpMappingGLSLAttribLightPosObjectSpace);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
