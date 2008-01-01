@@ -740,12 +740,9 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
     function LightDirectionInTangentSpace(
       const Vertex, Normal, STangent, TTangent: TVector3Single): TVector3Single;
     var
-      ToTangent: TMatrix4Single;
+      ToTangent: TMatrix3Single;
       I: Integer;
     begin
-      { first init 4th row and column }
-      ToTangent := IdentityMatrix4Single;
-
       for I := 0 to 2 do
       begin
         ToTangent[I, 0] := STangent[I];
@@ -753,7 +750,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
         ToTangent[I, 2] := Normal[I];
       end;
 
-      Result := MultMatrixPoint(ToTangent,
+      Result := MultMatrixVector(ToTangent,
         VectorSubtract(LightPositionObjectSpace, Vertex));
     end;
 

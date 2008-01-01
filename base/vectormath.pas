@@ -1507,7 +1507,8 @@ procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single);
 function MatrixMultScalar(const m: TMatrix3Single; const s: Single): TMatrix3Single;
 
 function MultMatrixPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single;
-function MultMatrixVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single;
+function MultMatrixVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
+function MultMatrixVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
 function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
 
 function MultMatrices(const m1, m2: TMatrix4Single): TMatrix4Single;
@@ -2666,6 +2667,13 @@ begin
   Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2] + M[3, 1] * V[3];
   Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2] + M[3, 2] * V[3];
   Result[3] := M[0, 3] * V[0] + M[1, 3] * V[1] + M[2, 3] * V[2] + M[3, 3] * V[3];
+end;
+
+function MultMatrixVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single;
+begin
+  Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1] + M[2, 0] * V[2];
+  Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1] + M[2, 1] * V[2];
+  Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2];
 end;
 
 function MultMatrixPointNoTranslation(const m: TMatrix4Single; const v: TVector3Single): TVector3Single;
