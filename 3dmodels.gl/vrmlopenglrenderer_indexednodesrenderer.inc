@@ -832,6 +832,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
       bmGLSL:
         begin
+          Renderer.BumpMappingGLSLAttribLightDirTangent.SetValue(LightDirTangent);
           glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
           { No need to pass texture coords for 2nd texture, GL_TEXTURE1_ARB.
             Shader knows that they are the same, and will just use gl_TexCoord[0]

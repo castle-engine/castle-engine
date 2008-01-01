@@ -793,12 +793,19 @@ begin
 
   if Method = bmVRML then
   begin
+    { This is high for non-bmVRML methods, they look better then.
+      But for bmVRML it's clearly visible that light is non-natural,
+      so I change it back to default GL value. }
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
+
     Scene.Attributes.BumpMappingLightPosition := LightPosition;
     if Glw.Navigator = Walker then
       Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
   end else
   begin
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
+
     ModelInvertedTrasformation := IdentityMatrix4Single;
 
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
@@ -919,8 +926,6 @@ begin
   glEnable(GL_LIGHT0);
   glEnable(GL_DEPTH_TEST);
 
-  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
-
   glClearColor(0.3, 0.3, 0.3, 1);
 
   glPointSize(10);
@@ -945,9 +950,10 @@ begin
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
-  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
+{ TODO bmGLSL }
+{  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, true, true) in [bmNone, bmGLSL] then
-    SceneOptimization := roSceneAsAWhole else
+    SceneOptimization := roSceneAsAWhole else}
     SceneOptimization := roNone;
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(
     'vrmldata/levels/fountain/fountain_final.wrl', true),

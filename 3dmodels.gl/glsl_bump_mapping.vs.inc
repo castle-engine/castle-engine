@@ -10,6 +10,12 @@
 'varying vec3 interpolated_normal;' + LineEnding + 
 'varying vec3 vertex_world;' + LineEnding + 
 '' + LineEnding + 
+'/* TODO: calc light_dir_tangent_v from tangents and lightpos' + LineEnding + 
+'   VRMLOpenGLRenderer.Attributes */' + LineEnding + 
+'' + LineEnding + 
+'attribute vec3 light_dir_tangent_v;' + LineEnding + 
+'varying vec3 light_dir_tangent;' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  /* Is normalization here needed ? Probably not, but it improves the' + LineEnding + 
@@ -19,6 +25,10 @@
 '  vertex_world = vec3(gl_ModelViewMatrix * gl_Vertex);' + LineEnding + 
 '' + LineEnding + 
 '  gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;' + LineEnding + 
+'' + LineEnding + 
+'  /* Just make light_dir_tangent_v, as passed from program, to be interpolated' + LineEnding + 
+'     for fragment shader. */' + LineEnding + 
+'  light_dir_tangent = light_dir_tangent_v;' + LineEnding + 
 '' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 

@@ -108,6 +108,29 @@ type
 
   TDynGLuintArray = TDynCardinalArray;
 
+  { Attribute of GLSL program. May be created only by
+    TGLSLProgram.CreateAttribute, see there for comments. }
+  TGLSLAttribute = class
+  private
+    FName: string;
+    FSupport: TGLSupport;
+    Location: TGLint;
+  public
+    property Name: string read FName;
+    property Support: TGLSupport read FSupport;
+
+    procedure SetValue(const Value: TVector4Integer);
+    procedure SetValue(const Value: TVector4Byte);
+    procedure SetValue(const Value: TGLfloat);
+    procedure SetValue(const Value: TVector2Single);
+    procedure SetValue(const Value: TVector3Single);
+    procedure SetValue(const Value: TVector4Single);
+    procedure SetValue(const Value: TGLdouble);
+    procedure SetValue(const Value: TVector2Double);
+    procedure SetValue(const Value: TVector3Double);
+    procedure SetValue(const Value: TVector4Double);
+  end;
+
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
@@ -253,6 +276,9 @@ type
       may be eliminated, use DebugInfo to see which attributes are actually
       used (@italic(active) in OpenGL terminology).
 
+      A faster (but somewhat less comfortable) way to set shader attributes is
+      to use CreateAttribute.
+
       @raises(EGLSLAttributeNotFound If the variable is not found within
         the program.
 
@@ -274,6 +300,26 @@ type
     procedure SetAttribute(const Name: string; const Value: TVector4Double);
     { @groupEnd }
 
+    { Create an attribute instance, this way you can assign multiple times
+      to this attribute.
+
+      Calling SetAttribute(Name, ...) with the same Name many times is not
+      efficient, as the mapping between string (Name) and some memory location
+      (done by glGetAttribLocation) must be done at each SetAttribute call.
+      So it's more efficient to CreateAttribute and then call SetValue on
+      the created instance many times. When doing CreateAttribute,
+      glGetAttribLocation is called once, and then each SetValue does
+      only simple glVertexAttrib.
+
+      Note that this TGLSLAttribute instance is usable only as long as the
+      program is not relinked. So call this only when shader program is linked,
+      and free TGLSLAttribute when relinking (or just destroying TGLSLProgram).
+
+      And call it's SetValue only when TGLSLProgram is actually in use.
+
+      @raises(EGLSLAttributeNotFound If the variable Name not found within
+        the program.) }
+    function CreateAttribute(const Name: string): TGLSLAttribute;
   end;
 
 implementation
@@ -472,6 +518,88 @@ begin
   if Load_GL_ARB_fragment_program then
     Result := gsARBExtension else
     Result := gsNone;
+end;
+
+{ TGLSLAttribute ------------------------------------------------------------- }
+
+procedure TGLSLAttribute.SetValue(const Value: TVector4Integer);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4ivARB(Location, @Value);
+    gsStandard    : glVertexAttrib4iv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector4Byte);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4ubvARB(Location, @Value);
+    gsStandard    : glVertexAttrib4ubv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TGLfloat);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib1fARB(Location, Value);
+    gsStandard    : glVertexAttrib1f   (Location, Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector2Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib2fvARB(Location, @Value);
+    gsStandard    : glVertexAttrib2fv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector3Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib3fvARB(Location, @Value);
+    gsStandard    : glVertexAttrib3fv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector4Single);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4fvARB(Location, @Value);
+    gsStandard    : glVertexAttrib4fv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TGLdouble);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib1dARB(Location, Value);
+    gsStandard    : glVertexAttrib1d   (Location, Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib2dvARB(Location, @Value);
+    gsStandard    : glVertexAttrib2dv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector3Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib3dvARB(Location, @Value);
+    gsStandard    : glVertexAttrib3dv   (Location, @Value);
+  end;
+end;
+
+procedure TGLSLAttribute.SetValue(const Value: TVector4Double);
+begin
+  case Support of
+    gsARBExtension: glVertexAttrib4dvARB(Location, @Value);
+    gsStandard    : glVertexAttrib4dv   (Location, @Value);
+  end;
 end;
 
 { TGLSLProgram --------------------------------------------------------------- }
@@ -981,6 +1109,19 @@ begin
     gsARBExtension: glVertexAttrib4dvARB(GetAttribLocationARB(Name), @Value);
     gsStandard    : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
   end;
+end;
+
+function TGLSLProgram.CreateAttribute(const Name: string): TGLSLAttribute;
+begin
+  Result := TGLSLAttribute.Create;
+  try
+    Result.FName := Name;
+    Result.FSupport := Support;
+    case Support of
+      gsARBExtension: Result.Location := GetAttribLocationARB(Name);
+      gsStandard    : Result.Location := GetAttribLocation   (Name);
+    end;
+  except FreeAndNil(Result); raise end;
 end;
 
 end.

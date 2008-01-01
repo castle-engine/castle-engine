@@ -10,24 +10,40 @@
 'uniform sampler2D tex_normal_map;' + LineEnding + 
 'uniform sampler2D tex_original;' + LineEnding + 
 '' + LineEnding + 
-'varying vec3 interpolated_normal;' + LineEnding + 
-'varying vec3 vertex_world;' + LineEnding + 
+'varying vec3 light_dir_tangent;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  /* TODO: take this from VRMLOpenGLRenderer.Attributes */' + LineEnding + 
-'  vec3 light_position = gl_LightSource[0].position.xyz;' + LineEnding + 
-'  vec3 light_dir = normalize(light_position - vertex_world);' + LineEnding + 
-'  vec3 normal = normalize(interpolated_normal);' + LineEnding + 
+'  /* Both light_dir and normal are in tangent space. */' + LineEnding + 
+'  vec3 light_dir = normalize(light_dir_tangent);' + LineEnding + 
+'' + LineEnding + 
+'  /* I read normal from texture, this is the very idea of bump mapping.' + LineEnding + 
+'     Unpack normals, they are in texture in [0..1] range and I want in [-1..1]. */' + LineEnding + 
+'  vec3 normal = texture2D(tex_normal_map, gl_TexCoord[0].st) * 2 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
 '  /* gl_FragColor = lighting computed mostly just like using OpenGL' + LineEnding + 
 '     fixed-function pipeline, but per-fragment. */' + LineEnding + 
-'' + LineEnding + 
 '  gl_FragColor =' + LineEnding + 
 '    gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
 '    gl_FrontLightProduct[0].ambient +' + LineEnding + 
 '    gl_FrontLightProduct[0].diffuse * max(dot(normal, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
+'' + LineEnding + 
+'/* This is more close to what bmDot3Normalized method did' + LineEnding + 
+'   (but it''s less correct and generally worse. I present it here' + LineEnding + 
+'   only to visually compare bmDot3Normalized and bmGLSL,' + LineEnding + 
+'   to see that they are able to calculate the same.)' + LineEnding + 
+'*/' + LineEnding + 
+'/*' + LineEnding + 
+'  gl_FragColor =' + LineEnding + 
+'    //gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
+'    gl_FrontLightProduct[0].ambient +' + LineEnding + 
+'    gl_FrontLightProduct[0].diffuse;' + LineEnding + 
+'' + LineEnding + 
+'  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
+'' + LineEnding + 
+'  gl_FragColor *= max(dot(normal, light_dir), 0.0);' + LineEnding + 
+'*/' + LineEnding + 
 '}' + LineEnding + 
 ''
