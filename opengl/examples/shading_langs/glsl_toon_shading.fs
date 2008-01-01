@@ -1,12 +1,11 @@
 // Kambi changed these to be const in fragment code
 // uniform vec4 Colour1,Colour2,Colour3,Colour4; // "shades"
 
-/* TODO: This doesn't work like it should on Radeon with closed ATI
-   drivers on Linux MacBookPro. Don't know why, seems like comparison
-   "intensity > ..." is always true unless "..." is 0, and
-   constant vector values also work only as 0 / 1.
-   Effectively, seems that float constants are rounded up to integer
-   values.... Weird. */
+/* Note: this doesn't work like it should on Radeon with closed ATI
+   drivers (fglrx) on Linux MacBookPro. This is most probably OpenGL
+   bug there (as this code works on the same graphic card under Mac OS X).
+   See ../../../../kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/glsl_toon_shading_2_helper.fs
+   for color_from_intensity_alt function that workarounds this. */
 
 varying vec3 normal;
 void main()
