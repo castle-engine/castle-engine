@@ -214,9 +214,9 @@ begin
   NormalizeTo1st(LightDirTangent);
 
   { pass LightDirTangent as RGB color }
-  glColor3f(( LightDirTangent[0] + 1) / 2,
-            (-LightDirTangent[1] + 1) / 2,
-            ( LightDirTangent[2] + 1) / 2);
+  glColor3f((LightDirTangent[0] + 1) / 2,
+            (LightDirTangent[1] + 1) / 2,
+            (LightDirTangent[2] + 1) / 2);
 
   glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
   glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
@@ -231,9 +231,9 @@ begin
     fragment anyway by normalizing cube map }
 
   glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
-     LightDirTangent[0],
-    -LightDirTangent[1],
-     LightDirTangent[2]);
+    LightDirTangent[0],
+    LightDirTangent[1],
+    LightDirTangent[2]);
   glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
   glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
 
@@ -733,7 +733,7 @@ var
   var
     S: string;
   const
-    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3', 'dot3 in VRML');
+    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3', 'built in VRML');
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_DEPTH_TEST);
@@ -944,7 +944,7 @@ begin
 
   LoadTextureBumpMap('shell.png'      , 'shell_bump.png', NormalAndBumpTex[3]);
   LoadTextureBumpMap('shell.png'      , 'shell_bump.png', LighterAndBumpTex[3]);
-  LoadNormalMap('shell_normalmap.jpg', NormalMap[3]);
+  LoadNormalMap('shell_normalmap.png', NormalMap[3]);
 
   NormalizationCubeTex := MakeNormalizationCubeMap;
 

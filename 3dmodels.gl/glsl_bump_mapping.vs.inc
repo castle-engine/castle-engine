@@ -23,7 +23,6 @@
 '     function in VRMLOpenGLRenderer, but this works in shader. */' + LineEnding + 
 '  vec3 light_dir_object_space = light_position_object_space - gl_Vertex;' + LineEnding + 
 '  light_dir_tangent = object_space_to_tangent * light_dir_object_space;' + LineEnding + 
-'  light_dir_tangent.y = -light_dir_tangent.y;' + LineEnding + 
 '' + LineEnding + 
 '  gl_Position = ftransform();' + LineEnding + 
 '}' + LineEnding + 

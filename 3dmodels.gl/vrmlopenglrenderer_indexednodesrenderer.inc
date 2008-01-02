@@ -792,9 +792,6 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
         end;
       end else
         Result := Vector3Single(0, 0, 1);
-
-      { TODO: that's an error that it's needed, see bump_mapping.pasprogram }
-      Result[1] := - Result[1];
     end;
 
     procedure SetBumpMappingAttribs;

@@ -21,7 +21,6 @@ void main(void)
      function in VRMLOpenGLRenderer, but this works in shader. */
   vec3 light_dir_object_space = light_position_object_space - gl_Vertex;
   light_dir_tangent = object_space_to_tangent * light_dir_object_space;
-  light_dir_tangent.y = -light_dir_tangent.y;
 
   gl_Position = ftransform();
 }
