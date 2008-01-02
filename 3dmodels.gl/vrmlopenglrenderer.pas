@@ -358,6 +358,8 @@ type
     FPointSize: TGLFloat;
     FUseFog: boolean;
     FBumpMapping: boolean;
+    FBumpMappingLightAmbientColor: TVector4Single;
+    FBumpMappingLightDiffuseColor: TVector4Single;
     FGLSLShaders: boolean;
   protected
     { In this class these methods just set value on given property.
@@ -382,6 +384,8 @@ type
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMapping(const Value: boolean); virtual;
+    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single); virtual;
+    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
     { @groupEnd }
   public
@@ -541,8 +545,9 @@ type
       VRML model will use normalMap extension for some shapes nodes.
 
       You have to update Renderer.BumpMappingLightPosition if you enable
-      BumpMapping, to actually specify how bumps should appear. See
-      TVRMLOpenGLRenderer.BumpMappingLightPosition.
+      BumpMapping, to actually specify how bumps should appear.
+      See TVRMLOpenGLRenderer.BumpMappingLightPosition, or
+      TVRMLFlatSceneGL.BumpMappingLightPosition for more comfortable version.
 
       TODO: implementation of this should still be cleaned up:
       - take texture transform into account correctly
@@ -556,6 +561,34 @@ type
       }
     property BumpMapping: boolean read FBumpMapping write SetBumpMapping
       default false;
+
+    { Ambient color of the light calculated when doing bump mapping.
+
+      When doing bump mapping, we don't use VRML lights. Instead some
+      properties of the light are controlled by
+      TVRMLOpenGLRenderer.BumpMappingLightPosition
+      (or TVRMLFlatSceneGL.BumpMappingLightPosition) and attributes like
+      this one.
+
+      Note that whether this is used depends on BumpMappingMethod used
+      (and this depends on OpenGL capabilities). Some bump mapping methods
+      may not be able to use this. For now, this is used only by bmGLSL method.
+
+      Default value is (0, 0, 0, 1), that is black.
+
+      4th component of the color has the same meaning and use as 4th color
+      component for OpenGL lights. Usually, just set this to 1.0. }
+    property BumpMappingLightAmbientColor: TVector4Single
+      read FBumpMappingLightAmbientColor
+      write SetBumpMappingLightAmbientColor;
+
+    { Diffuse color of the light calculated when doing bump mapping.
+      See also comments at BumpMappingLightAmbientColor.
+
+      Default value is (1, 1, 1, 1), that is white. }
+    property BumpMappingLightDiffuseColor: TVector4Single
+      read FBumpMappingLightDiffuseColor
+      write SetBumpMappingLightDiffuseColor;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -1011,6 +1044,9 @@ type
           (lighting_per_pixel * material * original_texture),
           while it should be (ambient + lighting_per_pixel * material) *
           original_texture).)
+
+        @item(bmGLSL honours properties like Attributes.BumpMappingLightDiffuseColor,
+          so you can control the light more like normal OpenGL light.)
       )
 
       This method is mainly for debugging purposes, as this class handles everything
@@ -1837,6 +1873,9 @@ begin
   FPointSize := 3.0;
   FUseFog := true;
   FGLSLShaders := true;
+
+  FBumpMappingLightAmbientColor := Vector4Single(0, 0, 0, 1);
+  FBumpMappingLightDiffuseColor := Vector4Single(1, 1, 1, 1);
 end;
 
 procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
@@ -1915,6 +1954,18 @@ end;
 procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
   FBumpMapping := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetBumpMappingLightAmbientColor(
+  const Value: TVector4Single);
+begin
+  FBumpMappingLightAmbientColor := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetBumpMappingLightDiffuseColor(
+  const Value: TVector4Single);
+begin
+  FBumpMappingLightDiffuseColor := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);

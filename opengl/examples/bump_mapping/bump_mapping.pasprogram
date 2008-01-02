@@ -1036,6 +1036,8 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
       Glw.Navigator := Examiner;
   end;
 
+var
+  C: TVector3Single;
 begin
   case MenuItem.IntData of
     50: NextBumpMappingMethod;
@@ -1050,6 +1052,18 @@ begin
     300: ShiftByHand := not ShiftByHand;
     400: EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
     500: NormalizedDot3First := not NormalizedDot3First;
+    601:
+      begin
+        C := Vector3SingleCut(Scene.Attributes.BumpMappingLightAmbientColor);
+        if Glwin.ColorDialog(C) then
+          Scene.Attributes.BumpMappingLightAmbientColor := Vector4Single(C, 1);
+      end;
+    602:
+      begin
+        C := Vector3SingleCut(Scene.Attributes.BumpMappingLightDiffuseColor);
+        if Glwin.ColorDialog(C) then
+          Scene.Attributes.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
+      end;
   end;
 end;
 
@@ -1074,6 +1088,11 @@ begin
 
   M := TMenu.Create('_Dot3');
     M.Append(TMenuItem.Create('_Display normalized version first', 500, 'n'));
+    Result.Append(M);
+
+  M := TMenu.Create('_VRML');
+    M.Append(TMenuItem.Create('Change ambient light color (only when GLSL is used)', 601));
+    M.Append(TMenuItem.Create('Change diffuse light color (only when GLSL is used)', 602));
     Result.Append(M);
 end;
 

@@ -139,6 +139,8 @@ type
     procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
     procedure SetBumpMapping(const Value: boolean); override;
+    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single); override;
+    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single); override;
     procedure SetGLSLShaders(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
@@ -2831,6 +2833,26 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
   if BumpMapping <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBumpMappingLightAmbientColor(
+  const Value: TVector4Single);
+begin
+  if not VectorsPerfectlyEqual(Value, BumpMappingLightAmbientColor) then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBumpMappingLightDiffuseColor(
+  const Value: TVector4Single);
+begin
+  if not VectorsPerfectlyEqual(Value, BumpMappingLightDiffuseColor) then
   begin
     FScenes.CloseGLRenderer;
     inherited;
