@@ -508,9 +508,19 @@ procedure TVRMLGLAnimation.Load(
         'Different nodes classes: "%s" and "%s"',
         [Model1.ClassName, Model2.ClassName]);
 
-    {$ifdef VER2_0}
+    {$ifndef VER_THAT_SUPPORTS_INTERFACES_WITHOUT_BUGS}
+
     { This ugly version (without using interfaces) is only to support
-      compilation with FPC 2.0.4, it will be removed at some point. }
+      compilation with FPC 2.0.4, it will be removed at some point.
+
+      Later: arrghh. This was under "ifdef VER2_0", and the cleaner version
+      seemed to work with FPC 2.2.0...
+      well, but it doesn't, crashed with access violation when Model1,2 are
+      of TNodeComposedShader (for example, try on
+      kambi_vrml_test_suite/kanim/specular_demo_phong_shading/specular_demo.kanim).
+      That's because TNodeComposedShader has some interfaces...
+      Screw this, don't use interfaces for now. Ugly hack below will be used. }
+
     if Model1 is TNodeWWWInline then
     begin
       TNodeWWWInline(Model1).LoadInlined(false);
