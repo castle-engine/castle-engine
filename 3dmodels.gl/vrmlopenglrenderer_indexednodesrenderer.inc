@@ -1021,7 +1021,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
 
     Renderer.BumpMappingGLSLProgram.Enable;
-    Renderer.BumpMappingGLSLAttribWorldSpaceToObject.SetValue(
+    Renderer.BumpMappingGLSLProgram.SetUniform('world_space_to_object',
       Renderer.Render_State.InvertedTransform);
   end;
 

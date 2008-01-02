@@ -850,8 +850,6 @@ type
       and it's detected that bump mapping will be actually used. }
     BumpMappingGLSLProgram: TGLSLProgram;
     BumpMappingGLSLAttribObjectSpaceToTangent: TGLSLAttribute;
-    BumpMappingGLSLAttribLightPosWorldSpace: TGLSLAttribute;
-    BumpMappingGLSLAttribWorldSpaceToObject: TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
@@ -2107,14 +2105,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           BumpMappingGLSLAttribObjectSpaceToTangent :=
             BumpMappingGLSLProgram.CreateAttribute('object_space_to_tangent');
 
-          BumpMappingGLSLAttribLightPosWorldSpace :=
-            BumpMappingGLSLProgram.CreateAttribute('light_position_world_space');
-
-          BumpMappingGLSLAttribWorldSpaceToObject :=
-            BumpMappingGLSLProgram.CreateAttribute('world_space_to_object');
-
           BumpMappingGLSLProgram.Enable;
-          BumpMappingGLSLAttribLightPosWorldSpace.SetValue(
+          BumpMappingGLSLProgram.SetUniform('light_position_world_space',
             BumpMappingLightPosition);
           BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
           BumpMappingGLSLProgram.SetUniform('tex_original', 1);
@@ -2309,8 +2301,6 @@ begin
   { unprepare BumpMappingGLSLProgram }
   FreeAndNil(BumpMappingGLSLProgram);
   FreeAndNil(BumpMappingGLSLAttribObjectSpaceToTangent);
-  FreeAndNil(BumpMappingGLSLAttribLightPosWorldSpace);
-  FreeAndNil(BumpMappingGLSLAttribWorldSpaceToObject);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
@@ -2901,9 +2891,14 @@ procedure TVRMLOpenGLRenderer.SetBumpMappingLightPosition(const Value: TVector3S
 begin
   FBumpMappingLightPosition := Value;
 
-  if BumpMappingGLSLAttribLightPosWorldSpace <> nil then
+  if BumpMappingGLSLProgram <> nil then
+  begin
     { so BumpMappingMethod = bmGLSL and it's already prepared }
-    BumpMappingGLSLAttribLightPosWorldSpace.SetValue(Value);
+    BumpMappingGLSLProgram.Enable;
+    BumpMappingGLSLProgram.SetUniform('light_position_world_space',
+      BumpMappingLightPosition);
+    BumpMappingGLSLProgram.Disable;
+  end;
 end;
 
 end.

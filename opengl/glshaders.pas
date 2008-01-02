@@ -232,23 +232,9 @@ type
           active for your shader.)
       )
 
-      @italic(Design notes:) For simplicity, this interface doesn't
-      allow you to set
-      vectors using different counts as their declared types in shader.
-      That is, OpenGL interface has functions like
-
-@preformatted(
-  glUniform4fv(GLint location, GLsizei count, GLfloat *value)
-)
-
-      The "4" in the name must match array size declared in shader.
-      The given "count" specifies how many values are passed.
-      AFAIK (but not tested), it's allowed to specify different "count"
-      than "4" --- ad then OpenGL "pads" the appropriate passed value.
-      For SetUniform methods below, this is not possible
-      ("count" as a parameter is always equal to the number in function name),
-      I think that this simplifies things without actually losing any
-      functionality.
+      For now, there are no SetUniform versions to set uniform variables
+      of arrays type (that is, using "count" <> 1 for glUniform* calls).
+      Will be done when needed.
 
       @raises(EGLSLUniformNotFound If the variable is not found within
         the program.
@@ -267,6 +253,9 @@ type
     procedure SetUniform(const Name: string; const Value: TVector2Single);
     procedure SetUniform(const Name: string; const Value: TVector3Single);
     procedure SetUniform(const Name: string; const Value: TVector4Single);
+    procedure SetUniform(const Name: string; const Value: TMatrix2Single);
+    procedure SetUniform(const Name: string; const Value: TMatrix3Single);
+    procedure SetUniform(const Name: string; const Value: TMatrix4Single);
     { @groupEnd }
 
     { Set attribute variable value.
@@ -1006,24 +995,24 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer);
 begin
   case Support of
-    gsARBExtension: glUniform2ivARB(GetUniformLocationARB(Name), 2, @Value);
-    gsStandard    : glUniform2iv   (GetUniformLocation   (Name), 2, @Value);
+    gsARBExtension: glUniform2ivARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform2iv   (GetUniformLocation   (Name), 1, @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer);
 begin
   case Support of
-    gsARBExtension: glUniform3ivARB(GetUniformLocationARB(Name), 3, @Value);
-    gsStandard    : glUniform3iv   (GetUniformLocation   (Name), 3, @Value);
+    gsARBExtension: glUniform3ivARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform3iv   (GetUniformLocation   (Name), 1, @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer);
 begin
   case Support of
-    gsARBExtension: glUniform4ivARB(GetUniformLocationARB(Name), 4, @Value);
-    gsStandard    : glUniform4iv   (GetUniformLocation   (Name), 4, @Value);
+    gsARBExtension: glUniform4ivARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform4iv   (GetUniformLocation   (Name), 1, @Value);
   end;
 end;
 
@@ -1038,24 +1027,48 @@ end;
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single);
 begin
   case Support of
-    gsARBExtension: glUniform2fvARB(GetUniformLocationARB(Name), 2, @Value);
-    gsStandard    : glUniform2fv   (GetUniformLocation   (Name), 2, @Value);
+    gsARBExtension: glUniform2fvARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform2fv   (GetUniformLocation   (Name), 1, @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single);
 begin
   case Support of
-    gsARBExtension: glUniform3fvARB(GetUniformLocationARB(Name), 3, @Value);
-    gsStandard    : glUniform3fv   (GetUniformLocation   (Name), 3, @Value);
+    gsARBExtension: glUniform3fvARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform3fv   (GetUniformLocation   (Name), 1, @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single);
 begin
   case Support of
-    gsARBExtension: glUniform4fvARB(GetUniformLocationARB(Name), 4, @Value);
-    gsStandard    : glUniform4fv   (GetUniformLocation   (Name), 4, @Value);
+    gsARBExtension: glUniform4fvARB(GetUniformLocationARB(Name), 1, @Value);
+    gsStandard    : glUniform4fv   (GetUniformLocation   (Name), 1, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single);
+begin
+  case Support of
+    gsARBExtension: glUniformMatrix2fvARB(GetUniformLocationARB(Name), 1, GL_FALSE, @Value);
+    gsStandard    : glUniformMatrix2fv   (GetUniformLocation   (Name), 1, GL_FALSE, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single);
+begin
+  case Support of
+    gsARBExtension: glUniformMatrix3fvARB(GetUniformLocationARB(Name), 1, GL_FALSE, @Value);
+    gsStandard    : glUniformMatrix3fv   (GetUniformLocation   (Name), 1, GL_FALSE, @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single);
+begin
+  case Support of
+    gsARBExtension: glUniformMatrix4fvARB(GetUniformLocationARB(Name), 1, GL_FALSE, @Value);
+    gsStandard    : glUniformMatrix4fv   (GetUniformLocation   (Name), 1, GL_FALSE, @Value);
   end;
 end;
 
