@@ -5,11 +5,9 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-/* TODO: calc light_dir_tangent_v from tangents and lightpos
-   VRMLOpenGLRenderer.Attributes */
-
-attribute vec3 light_position_object_space;
+attribute vec3 light_position_world_space;
 attribute mat3 object_space_to_tangent;
+attribute mat4 world_space_to_object;
 varying vec3 light_dir_tangent;
 
 void main(void)
@@ -19,6 +17,8 @@ void main(void)
   /* Calculate light_dir_tangent, which is crucial for bump mapping.
      This in some way does the same as LightDirectionInTangentSpace
      function in VRMLOpenGLRenderer, but this works in shader. */
+  vec3 light_position_object_space = 
+    vec3(world_space_to_object * vec4(light_position_world_space, 1));
   vec3 light_dir_object_space = light_position_object_space - gl_Vertex;
   light_dir_tangent = object_space_to_tangent * light_dir_object_space;
 

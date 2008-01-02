@@ -749,6 +749,9 @@ type
     FBackgroundValid: boolean;
     procedure FBackgroundInvalidate;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
+
+    function GetBumpMappingLightPosition: TVector3Single;
+    procedure SetBumpMappingLightPosition(const Value: TVector3Single);
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius; { = 1 }
@@ -815,6 +818,34 @@ type
 
       @seealso TVRMLOpenGLRenderer.BumpMappingMethod }
     function BumpMappingMethod: TBumpMappingMethod;
+
+    { Light position used for bump mapping.
+
+      This is meaningful only if you enabled bump mapping
+      (by @code(Attributes.BumpMapping := true)) and we are actually able
+      to use bump mapping (@code(BumpMappingMethod <> bmNone)).
+
+      You can change this at any time, and we will automatically do
+      everything needed to properly update this on next render.
+      But note that when BumpMappingMethod = one of bmDot3* values,
+      changing BumpMappingLightPosition means that we have to rebuild some
+      resources (display lists etc.). So changing BumpMappingLightPosition
+      becomes really costly operation, unless Optimization = roNone.
+
+      In other words: if you plan to change BumpMappingLightPosition
+      really often (I mean, like every frame or such) then make sure that
+      either
+
+      @unorderedList(
+        @item(BumpMappingMethod = bmGLSL (requires newer GL hardware) or)
+        @item(Optimization is left as roNone)
+      )
+
+      But roNone means that you lose some other optimizations, so it may
+      be not desirable... in pratice, it's usually best decision to not update
+      BumpMappingLightPosition too often if BumpMappingMethod = one of bmDot3*. }
+    property BumpMappingLightPosition: TVector3Single
+      read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
   end;
 
   TObjectsListItem_1 = TVRMLFlatSceneGL;
@@ -2561,6 +2592,23 @@ end;
 function TVRMLFlatSceneGL.BumpMappingMethod: TBumpMappingMethod;
 begin
   Result := Renderer.BumpMappingMethod;
+end;
+
+function TVRMLFlatSceneGL.GetBumpMappingLightPosition: TVector3Single;
+begin
+  Result := Renderer.BumpMappingLightPosition;
+end;
+
+procedure TVRMLFlatSceneGL.SetBumpMappingLightPosition(const Value: TVector3Single);
+begin
+  Renderer.BumpMappingLightPosition := Value;
+
+  { For BumpMappingMethod in bmDot3*, we have to remake display lists
+    after BumpMappingLightPosition changed. }
+
+  if (Renderer.BumpMappingMethod in [bmDot3NotNormalized, bmDot3Normalized]) and
+     (Optimization <> roNone) then
+    CloseGLRenderer;
 end;
 
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }

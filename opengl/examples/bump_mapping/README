@@ -431,6 +431,11 @@ How to calculate STangent and TTangent from normal vertex data + tex coord
 data that we usually get in 3D model. See paper (I mean, a real piece
 of paper with my drawing that I'll hopefully remember to take tomorrow).
 
+(Speed notes below are obsolete, from 2007-11. In 2007-12 I implemented
+bump mapping in VRML using GLSL shaders, this allows to use normal
+VRML optimizations like roSceneAsAWhole and speed is much greater,
+pretty much a non-issue with test model.)
+
 Speed: FPS around 30 on chantal. When viewed by
 $ view3dscene \
   ../../../../castle/data/levels/fountain/fountain_bumpdemo_final.wrl \

@@ -809,7 +809,6 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
         end;
 
         Renderer.BumpMappingGLSLAttribObjectSpaceToTangent.SetValue(ToTangent);
-        Renderer.BumpMappingGLSLAttribLightPosObjectSpace.SetValue(LightPositionObjectSpace);
       end;
 
     var
@@ -949,6 +948,10 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+
+    LightPositionObjectSpace := MultMatrixPoint(
+      Renderer.Render_State.InvertedTransform,
+      Renderer.BumpMappingLightPosition);
   end;
 
   procedure EnableForDot3Normalized;
@@ -1000,6 +1003,10 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+
+    LightPositionObjectSpace := MultMatrixPoint(
+      Renderer.Render_State.InvertedTransform,
+      Renderer.BumpMappingLightPosition);
   end;
 
   procedure EnableForGLSL;
@@ -1014,6 +1021,8 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
 
     Renderer.BumpMappingGLSLProgram.Enable;
+    Renderer.BumpMappingGLSLAttribWorldSpaceToObject.SetValue(
+      Renderer.Render_State.InvertedTransform);
   end;
 
 begin
@@ -1025,10 +1034,6 @@ begin
       bmGLSL             : EnableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
-
-    LightPositionObjectSpace := MultMatrixPoint(
-      Renderer.Render_State.InvertedTransform,
-      Renderer.Attributes.BumpMappingLightPosition);
   end;
 
   inherited;

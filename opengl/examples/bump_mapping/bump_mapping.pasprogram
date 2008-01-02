@@ -55,7 +55,7 @@ uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit,
 
   VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
-  VRMLOpenGLRenderer;
+  VRMLOpenGLRenderer, VRMLRendererOptimization;
 
 const
   SceneBoundingBox: TBox3d =
@@ -747,13 +747,15 @@ var
       S += 'Method: ' + MethodNames[Method] + nl;
       if ShiftByHand then
         S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
-        S += 'Shift automatic from tangent space light position' +nl;
+        S += 'Shift automatic from tangent space light position' + nl;
       S += Format('Dot3 normalized first (for quick visual compare): %s', [BoolToStr[NormalizedDot3First]]) +nl;
-      S += Format('Emboss scale: %f', [EmbossScale]) +nl;
+      S += Format('Emboss scale: %f', [EmbossScale]) + nl;
       S += Format('Emboss alpha multiply by blending: %s',
         [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
       S += Format('VRML auto-detected best bump mapping method: %s',
-        [BumpMappingMethodNames[Scene.BumpMappingMethod]]);
+        [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
+      S += Format('VRML optimization used: %s',
+        [RendererOptimizationNames[Scene.Optimization]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -798,7 +800,7 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.Attributes.BumpMappingLightPosition := LightPosition;
+    Scene.BumpMappingLightPosition := LightPosition;
     if Glw.Navigator = Walker then
       Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
@@ -950,10 +952,9 @@ begin
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
-{ TODO bmGLSL }
-{  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
+  if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
     0, -1, true, true) in [bmNone, bmGLSL] then
-    SceneOptimization := roSceneAsAWhole else}
+    SceneOptimization := roSceneAsAWhole else
     SceneOptimization := roNone;
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(
     'vrmldata/levels/fountain/fountain_final.wrl', true),

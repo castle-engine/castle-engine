@@ -162,16 +162,16 @@ function RendererOptimizationOptionsHelp: string;
 function RendererOptimizationFromName(const S: string; IgnoreCase: boolean):
   TGLRendererOptimization;
 
-implementation
-
-uses SysUtils, ParseParametersUnit, KambiUtils;
-
 const
   RendererOptimizationNames: array[TGLRendererOptimization] of string =
   ( 'none',
     'scene-as-a-whole',
     'separate-shape-states',
     'separate-shape-states-no-transform' );
+
+implementation
+
+uses SysUtils, ParseParametersUnit, KambiUtils;
 
   {$define ARRAY_POS_FUNCTION_NAME := RendererOptimizationFromName}
   {$define ARRAY_POS_ARRAY_NAME := RendererOptimizationNames}

@@ -540,16 +540,9 @@ type
       units available). And naturally it comes to use only if
       VRML model will use normalMap extension for some shapes nodes.
 
-      You have to update BumpMappingLightPosition if you enable BumpMapping,
-      to actually specify how bumps should appear. After updating
-      BumpMappingLightPosition, if BumpMappingMethod is bmDot3NotNormalized or
-      bmDot3Normalized, then display lists must be recreated (to recalculate
-      light direction in tangent space). Which practically means that if you
-      want to change BumpMappingLightPosition often, you have to
-      use roNone as Optimization for TVRMLFlatSceneGL.
-      BumpMappingMethod = bmGLSL avoids this problem (light direction
-      in tangent space is calculated then by shader, do display lists don't
-      have to be rebuild).
+      You have to update Renderer.BumpMappingLightPosition if you enable
+      BumpMapping, to actually specify how bumps should appear. See
+      TVRMLOpenGLRenderer.BumpMappingLightPosition.
 
       TODO: implementation of this should still be cleaned up:
       - take texture transform into account correctly
@@ -563,8 +556,6 @@ type
       }
     property BumpMapping: boolean read FBumpMapping write SetBumpMapping
       default false;
-
-    BumpMappingLightPosition: TVector3Single;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -859,7 +850,8 @@ type
       and it's detected that bump mapping will be actually used. }
     BumpMappingGLSLProgram: TGLSLProgram;
     BumpMappingGLSLAttribObjectSpaceToTangent: TGLSLAttribute;
-    BumpMappingGLSLAttribLightPosObjectSpace: TGLSLAttribute;
+    BumpMappingGLSLAttribLightPosWorldSpace: TGLSLAttribute;
+    BumpMappingGLSLAttribWorldSpaceToObject: TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
@@ -936,6 +928,9 @@ type
       Everything else (ARB_multitexturing, GL_TEXTURE0_ARB,
       FirstGLFreeTexture values) is taken care of inside here. }
     procedure ActiveTexture(TextureUnit: Cardinal);
+
+    FBumpMappingLightPosition: TVector3Single;
+    procedure SetBumpMappingLightPosition(const Value: TVector3Single);
   public
     { Constructor.
 
@@ -1044,6 +1039,27 @@ type
       const AttributesBumpMapping, AttributesEnableTextures: boolean):
       TBumpMappingMethod;
 
+    { Sets light position used for bump mapping.
+      This is meaningful if BumpMappingMethod <> bmNone.
+
+      If BumpMappingMethod is bmDot3*, then this simply sets internal variable.
+      You have to actually render model (that is, call RenderBegin +
+      RenderShapeState...) to use new BumpMappingLightPosition.
+      If you stored rendering results in display lists, you have bad luck
+      --- you have to rebuild them. Reason: to recalculate
+      light direction in tangent space.  Which practically means that if you
+      want to change BumpMappingLightPosition often, you have to
+      use roNone as Optimization for TVRMLFlatSceneGL.
+
+      If BumpMappingMethod is bmGLSL, things are better.
+      If the bump mapping shader is already prepared, then setting this property
+      simply sets the uniform value of this shader. And light direction
+      in tangent space is calculated by the shader. So you can simply reuse
+      your display lists. (If the bump mapping shader is not prepared yet,
+      then value set here will be used at preparation... so things work without
+      problems in any case.) }
+    property BumpMappingLightPosition: TVector3Single
+      read FBumpMappingLightPosition write SetBumpMappingLightPosition;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -2086,15 +2102,20 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             to both bound textures }
           BumpMappingGLSLProgram.Link;
 
-          Writeln(BumpMappingGLSLProgram.DebugInfo);
+          { tests: Writeln(BumpMappingGLSLProgram.DebugInfo); }
 
           BumpMappingGLSLAttribObjectSpaceToTangent :=
             BumpMappingGLSLProgram.CreateAttribute('object_space_to_tangent');
 
-          BumpMappingGLSLAttribLightPosObjectSpace :=
-            BumpMappingGLSLProgram.CreateAttribute('light_position_object_space');
+          BumpMappingGLSLAttribLightPosWorldSpace :=
+            BumpMappingGLSLProgram.CreateAttribute('light_position_world_space');
+
+          BumpMappingGLSLAttribWorldSpaceToObject :=
+            BumpMappingGLSLProgram.CreateAttribute('world_space_to_object');
 
           BumpMappingGLSLProgram.Enable;
+          BumpMappingGLSLAttribLightPosWorldSpace.SetValue(
+            BumpMappingLightPosition);
           BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
           BumpMappingGLSLProgram.SetUniform('tex_original', 1);
           { TODO: this should restore previously bound program }
@@ -2288,7 +2309,8 @@ begin
   { unprepare BumpMappingGLSLProgram }
   FreeAndNil(BumpMappingGLSLProgram);
   FreeAndNil(BumpMappingGLSLAttribObjectSpaceToTangent);
-  FreeAndNil(BumpMappingGLSLAttribLightPosObjectSpace);
+  FreeAndNil(BumpMappingGLSLAttribLightPosWorldSpace);
+  FreeAndNil(BumpMappingGLSLAttribWorldSpaceToObject);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
@@ -2873,6 +2895,15 @@ begin
   finally
     RenderShapeStateEnd(Node, State);
   end;
+end;
+
+procedure TVRMLOpenGLRenderer.SetBumpMappingLightPosition(const Value: TVector3Single);
+begin
+  FBumpMappingLightPosition := Value;
+
+  if BumpMappingGLSLAttribLightPosWorldSpace <> nil then
+    { so BumpMappingMethod = bmGLSL and it's already prepared }
+    BumpMappingGLSLAttribLightPosWorldSpace.SetValue(Value);
 end;
 
 end.
