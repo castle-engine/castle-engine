@@ -100,5 +100,8 @@ reject some pixels using any convoluted rule.
 http://www.opengl.org/code/category/C20
 
 Demos:
-- see kambi_vrml_test_suite shaders demos
+- see kambi_vrml_test_suite demos:
+  - shaders.wrl
+  - see specular_demo_phong_shading
+  - see e.g. fountain VRML with toon shading applied
 - see bump mapping in VRML engine, when bmGLSL, implemented using GLSL shaders
