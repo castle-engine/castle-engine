@@ -1091,8 +1091,8 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_VRML');
-    M.Append(TMenuItem.Create('Change ambient light color (only when GLSL is used)', 601));
-    M.Append(TMenuItem.Create('Change diffuse light color (only when GLSL is used)', 602));
+    M.Append(TMenuItem.Create('Change ambient light color (only when GLSL is used) ...', 601));
+    M.Append(TMenuItem.Create('Change diffuse light color (only when GLSL is used) ...', 602));
     Result.Append(M);
 end;
 
