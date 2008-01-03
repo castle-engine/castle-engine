@@ -19,7 +19,8 @@
 '' + LineEnding + 
 '  /* I read normal from texture, this is the very idea of bump mapping.' + LineEnding + 
 '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1]. */' + LineEnding + 
-'  vec3 normal = texture2D(tex_normal_map, gl_TexCoord[0].st) * 2 - vec3(1, 1, 1);' + LineEnding + 
+'  vec3 normal = vec3(' + LineEnding + 
+'    texture2D(tex_normal_map, gl_TexCoord[0].st)) * 2.0 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
 '  /* gl_FragColor = lighting computed mostly just like using OpenGL' + LineEnding + 
 '     fixed-function pipeline, but per-fragment. */' + LineEnding + 
