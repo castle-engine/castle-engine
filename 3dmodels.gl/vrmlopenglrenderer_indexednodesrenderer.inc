@@ -147,9 +147,14 @@ type
     NormalBinding: Integer;
 
     { Initialized in our constructor to bmNone.
-      Set this to Renderer.BumpMappingMethod when you're in subclass
-      able to do bump mapping. }
+      Renderer will set this to Renderer.BumpMappingMethod
+      only if bump mapping should be used and BumpMappingAllowed. }
     BumpMappingMethod: TBumpMappingMethod;
+
+    { Initialized in our constructor to false.
+      Set this @italic(in constructor) (not later) to true when you're in
+      subclass able to do bump mapping. }
+    BumpMappingAllowed: boolean;
 
     procedure Render_Vertex(indexNum: integer); virtual;
     function Render_GetVertex(indexNum: integer): TVector3f;
@@ -722,7 +727,7 @@ end;
 constructor TIndexedFaceSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
-  BumpMappingMethod := Renderer.BumpMappingMethod;
+  BumpMappingAllowed := true;
 end;
 
 procedure TIndexedFaceSetRenderer.GetNormal(

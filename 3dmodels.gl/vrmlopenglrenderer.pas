@@ -2786,10 +2786,12 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       SetGLEnabled(GL_ALPHA_TEST, TextureNode.TextureImage is TAlphaImage);
 
       if (IndexedRenderer <> nil) and
-         (IndexedRenderer.BumpMappingMethod <> bmNone) then
+         IndexedRenderer.BumpMappingAllowed and
+         (BumpMappingMethod <> bmNone) then
       begin
         if TextureReferences.Items[TextureReferencesIndex].TextureNormalMap <> 0 then
         begin
+          IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
           Assert(IndexedRenderer is TIndexedFaceSetRenderer,
             'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
           TIndexedFaceSetRenderer(IndexedRenderer).TexNormalizationCube :=
@@ -2799,11 +2801,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
           TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
             TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
         end else
-        begin
-          { Last chance to resign from BumpMapping: we don't have normalMap to use }
-          IndexedRenderer.BumpMappingMethod := bmNone;
           EnableClassicTexturing;
-        end;
       end else
         EnableClassicTexturing;
 
