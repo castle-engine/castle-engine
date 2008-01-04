@@ -190,6 +190,21 @@ internal, more flexible than ARB vertex/fragment).
   and fix eventual small things (like texture coords for texture2D functions
   should have ".st" qualifiers).
 
+  Some lang notes:
+  - No pointers obviously, so this stays a true high-level lang.
+  - Vectors and matrices are primitive types.
+    Well, actually matrices not so much (they are mostly arrays of vectors),
+    but vectors still. E.g.
+    vec4 <> float[4], vec4 is the primitive optimized type.
+      vec4 v; v.xyz = ...;
+      float[4] v; v[0] = ..., v[1] = ...;
+    Reflects assembly shading langs underneath, and ability to "swizzle"
+    vector components for free.
+  - Note: no int->float type promotion automatically, e.g.
+    vector * 4 incorrect (although tolerated by NVidia, watch out),
+    vector * 4.0 correct.
+  - functions, overloading, in, inout, out params.
+
   See kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/
   for demo how it's used from VRML.
 
