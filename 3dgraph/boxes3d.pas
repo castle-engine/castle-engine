@@ -700,11 +700,12 @@ begin
   end;
 end;
 
-function Box3dSizes(const box: TBox3d): TVector3Single;
+function Box3dSizes(const Box: TBox3d): TVector3Single;
 begin
- result[0] := box[1, 0]-box[0, 0];
- result[1] := box[1, 1]-box[0, 1];
- result[2] := box[1, 2]-box[0, 2];
+  Check(not IsEmptyBox3d(Box), 'Empty box 3d - no size');
+  Result[0] := Box[1, 0] - Box[0, 0];
+  Result[1] := Box[1, 1] - Box[0, 1];
+  Result[2] := Box[1, 2] - Box[0, 2];
 end;
 
 procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
