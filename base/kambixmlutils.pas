@@ -62,7 +62,7 @@ type
   </level>
 )
 
-  If you pass as Element the <level> node, as 'items' as
+  If you pass as Element the <level> node, and 'items' as
   ChildNode, then the TDOMElement representing <items>
   will be returned. If given ChildName will not exist
   @italic(or it will exist more than once (yes, that's checked)),
