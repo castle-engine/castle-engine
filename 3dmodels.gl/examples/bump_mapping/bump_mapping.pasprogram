@@ -18,15 +18,23 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Bump mapping demo.
-  Emboss and dot3 bump mapping.
+{ Bump mapping demo. Three methods:
+  1. Emboss.
+  2. Dot3 (with or without normalization).
+  3. VRML auto-detected. This is not really a single method, VRML engine
+     inside auto-detects and uses one of the following methods
+     - dot3 (with or without normalization).
+     - GLSL
+  GLSL method is by far the best, fastest and best looking approach, although
+  requires the newest hardware (supprorting GLSL through ARB extension
+  or GL >= 2.0 standard).
 
   Keys:
   eE change scale of emboss effect.
   awsd change light position[x, y], qQ change light position[z]
   h switch emboss shift from automatic (from light in tangent space) to by hand
   ijkl change emboss shift (if in "by hand" mode)
-  m changes bump mapping method (emboss / dot3 / dot3 inside vrml)
+  m changes bump mapping method (emboss / dot3 / auto-detected in vrml)
   b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
   n reverts NormalizedDot3First
   enter changes navigation mode (examiner / walker)
@@ -39,12 +47,6 @@
     home: restore default rotation, translation and scale
   and for walker mode
     arrows, etc.: doom like walking, see view3dscene docs
-
-  TODO: VRML demo here is a hack, just to show off bump mapping
-  on non-trivial models.
-  It will be removed soon, and this demo program will not depend
-  on VRMLFlatSceneGL. VRML engine will get proper bump mapping
-  handling, and VRMLs with bump mapping will be viewable in view3dscene.
 }
 program bump_mapping;
 
@@ -53,7 +55,7 @@ uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
   NormalizationCubeMap, GLImages, GLVersionUnit,
-
+  { VRML-related units: }
   VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization;
 
@@ -1014,10 +1016,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
       Method := Succ(Method);
     if Method = bmVRML then
     begin
-      { some preparations for bmVRML, to make it look better.
-        Like all VRML code here, don't look at this: this is only
-        a hack to show off VRML with bump mapping, will be implemented
-        much nicer in view3dscene later. }
+      { some preparations for bmVRML, to make it look better. }
 
       LightPosition := Vector3Single(3, 3, 5);
 

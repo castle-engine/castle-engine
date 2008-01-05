@@ -182,7 +182,6 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/test_font_break \
   opengl/examples/multi_glwindow \
   opengl/examples/multi_texturing_demo \
-  opengl/examples/bump_mapping/bump_mapping \
   opengl/examples/shading_langs/shading_langs_demo \
   opengl/examples/demo_matrix_navigation \
   opengl/examples/fog_coord \
@@ -195,7 +194,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/simpleViewModel \
   3dmodels.gl/examples/demo_animation \
   3dmodels.gl/examples/fog_culling \
-  3dmodels.gl/examples/shadow_volume_test/shadow_volume_test
+  3dmodels.gl/examples/shadow_volume_test/shadow_volume_test \
+  3dmodels.gl/examples/bump_mapping/bump_mapping
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
