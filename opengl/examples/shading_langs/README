@@ -1,4 +1,81 @@
-Notes about shading languages:
+------------------------------------------------------------------------------
+What are shading languages, in short:
+
+OpenGL program is basically
+
+  glLoadMatrix, glMultMatrix (and shortcuts like glLoadIdentity, glTranslate, glScale...)
+
+  glBegin(...)
+
+    gl(... some vertex attrib, like glTexCoord, glMultiTexCoord, glMaterial...)
+    glVertex(...);
+
+    gl(... some vertex attrib, like glTexCoord, glMultiTexCoord, glMaterial...)
+    glVertex(...);
+
+    gl(... some vertex attrib, like glTexCoord, glMultiTexCoord, glMaterial...)
+    glVertex(...);
+
+    ....
+
+  glEnd();
+
+For each glVertex, some work is done.
+1. transform it by projection * modelview matrices,
+2. calculate per-vertex values like color from lighting
+   color =
+     material emission +
+     scene ambient * mat ambient +
+     for each light: (
+       light ambient * mat ambient +
+       light diffuse * mat diffuse * diffuse factor +
+       light specular .... etc.).
+This work may be replaced by vertex shader, to transform in any way we like,
+calculate color by any equation we like (using OpenGL lights parameters or not)
+and some other.
+
+When vertexes make primitives, each primitive is checked (for backface culling)
+and is rasterized. Note that some vertexes
+are shared by more than one primitive, e.g. triangle strips, fans etc.
+The idea of these primitives is that the per-vertex work (whether fixed-function
+or vertex shader) is done only once, and results are reused.
+Fragment = same thing as pixel by default, although some operations like
+glPixelZoom change this correspondence.
+Rasterization calculates coordinates of fragments, each fragment gets as input
+some interpolated values (for example, color results of lighting calculation from
+paragraph above are interpolated for fragment).
+
+Then for each fragment some work is done.
+In fixed-function pipeline, this is mostly to mix color with textures
+(all the multitexture operations set up by glTexEnv are done here) and apply
+fog parameter. This work may be replaced by fragment shader.
+
+There are also geometry shader, for later...
+
+Notes
+- Both shaders *replace* fixed-function work. There's generally
+  no way to say "do exactly the same work as when fixed-function was used,
+  and then pipe the results through this shader...". (there are special
+  commands/variables to do inside shader some part of this, like ftransform
+  and lightProducts, but that's about it).
+
+  This is by design, the idea is that using shaders may be actually
+  *faster* than letting fixed-function pipeline do it's job.
+  That's because fixed-function pipeline does quite a lot of complicated
+  work, and in most cases we don't need it. IOW, shaders are usually
+  written with very specific environment in mind (e.g. "I will use
+  only one light source, and without attenuation").
+
+- There's no requirement to replace both vertex and fragment shaders.
+  It's Ok to replace only one of them, and let the other do it's fixed-function
+  job.
+
+- ... but it's often useful to replace both. When we write both vertex and
+  fragment shaders, we're able to pass from vertex shader to
+  fragment shader any value to interpolate. This is called "varying" variable.
+
+  For example, Phong shading: trivial vertex program to just pass normal
+  for interpolation, and fragment program to calculate lighting per-pixel.
 
 http://en.wikipedia.org/wiki/Shading_language
 
@@ -194,11 +271,39 @@ internal, more flexible than ARB vertex/fragment).
   should have ".st" qualifiers).
 
   Some lang notes:
-  - No pointers obviously, so this stays a true high-level lang.
+  - Communication between OpenGL and shaders:
+    - uniform variables (glGetUniformLocation, glUniform)
+      (settable per-object, that is only outside glBegin / glEnd)
+    - attribute variables (glGetAttribLocation, glVertexAttrib)
+      (settable per-vertex, that is possibly within glBegin / glEnd)
+
+    Communication between vertex and fragment shaders:
+    varying variables, read/write from vs, interpolated and readble in fs.
+
+  - Just like in assembly langs, we have access to some OpenGL state as gl_Xxx
+    variables. Some of it is read-only, some is write-only, some is both,
+    different things available for vs and fs...
+    Vertex shader must set gl_Position,
+    fragment shader most usually will set at least gl_FragColor.
+    See "quick ref guide" or specification, both from
+    http://www.opengl.org/documentation/glsl/, for details.
+
+  - Types: int, bool, float, vectors up to 4 of them (like ivec4, bvec4, vec4).
+    Matrices of floats (various sizes, not necessarily square).
+
+    Samplers: special type for textures, assigned from OpenGL API
+    like a uniform int variable (assigned value indicated which texture
+    unit to associate with this sampler, e.g. assign 1 to say that GL_TEXTURE1
+    is used for this sampler). In shaders, this is an opaque type and can
+    be used to query texture by functions like texture2D.
+
+    No pointers, so this stays a true high-level lang.
+    No strings also, not needed. (after all, there's no i/o obviously).
+
   - Vectors and matrices are primitive types.
-    Well, actually matrices not so much (they are mostly arrays of vectors),
-    but vectors still. E.g.
-    vec4 <> float[4], vec4 is the primitive optimized type. You can access
+    Well, actually matrices not so much (they are preety much just arrays of
+    vectors, column major like for OpenGL API), but vectors still.
+    E.g. vec4 <> float[4], vec4 is the primitive optimized type. You can access
     both arrays and vcetors using [index] syntax, but only vectors have
     special ".x" etc. syntax. E.g.
 
@@ -209,7 +314,7 @@ internal, more flexible than ARB vertex/fragment).
       vec4 v;
       v.xyz = ...;
 
-    Reflects assembly shading langs underneath, and ability to "swizzle"
+    This reflects assembly shading langs underneath, and ability to "swizzle"
     vector components for free. E.g. in
     kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/glsl_some_deform.vs,
     initial code was
@@ -222,6 +327,45 @@ internal, more flexible than ARB vertex/fragment).
     vector * 4 incorrect (although tolerated by NVidia, watch out),
     vector * 4.0 correct.
   - functions, overloading, in, inout, out params.
+  - OpenGL API for shaders (with OpenGL 2.0 standard functions,
+    there are mostly equivalent functions for ARB extension):
+
+    /* Preparation: */
+
+    prog := glCreateProgram();
+
+    shader := glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(shader, ... pass strings containing shader source ...);
+    glCompileShader(shader);
+    glAttachShader(program, shader);
+
+    (same for GL_FRAGMENT_SHADER)
+
+    glLinkProgram(program);
+
+
+    /* Usage: */
+
+    glUseProgram(program);
+    ....
+    glUseProgram(0); // back to fixed-function pipeline
+
+    /* End: */
+
+    /* glDetachShader(...) if you like to be clean */
+    glDeleteProgram(prog);
+
+    More details:
+    - after compilation, you should check
+      glGetShaderiv(shader, GL_COMPILE_STATUS, ...)
+      eventual error message is in glGetShaderInfoLog
+
+    - after linking, you should check
+      glGetProgramiv(program, GL_LINK_STATUS, ...)
+      eventual error message is in glGetProgramInfoLog
+
+    See ../../glshaders.pas for full code of class to handle GLSL programs,
+    using both std GL or ARB versions.
 
   See kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/
   for demo how it's used from VRML.
