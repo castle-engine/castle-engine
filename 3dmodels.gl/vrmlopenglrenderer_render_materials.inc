@@ -22,24 +22,42 @@
   Material etc.). }
 function TVRMLOpenGLRenderer.NodeLit(Node: TNodeGeneralShape): boolean;
 begin
-  Result := not (
-    (Node is TNodePointSet_1) or
-    (Node is TNodePointSet_2) or
-    { VRML 1.0 specification states that lines normals aren't generated
-      --- instead, lines are drawn unlit when there are no normals specified. }
-    ( (Node is TNodeIndexedLineSet_1) and
-      (IndexedRenderer.Render_Normals = inGenerate) ) or
-    { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
-    (Node is TNodeIndexedLineSet_2) or
-    { When doing bump mapping, we turn off lighting, bump mapping will
-      calculate it per-pixel anyway.
+  if ( (IndexedRenderer <> nil) and
+       (IndexedRenderer.BumpMappingMethod <> bmNone) ) then
+  begin
+    { When doing bump mapping by Dot3*, we turn off lighting.
+      Bump mapping will calculate it per-pixel anyway.
 
       In case of Dot3Normalized, UnlitColor will be applied (mixed with
       original texture to give primary_color). In case of Dot3NotNormalized,
       UnlitColor will be ignored (we'll use glColor to pass light dir). }
-    ( (IndexedRenderer <> nil) and
-      (IndexedRenderer.BumpMappingMethod <> bmNone) )
-  );
+
+    { When doing bump mapping by bmGLSL, we always turn on lighting.
+
+      We will calculate lighting using our equations, and actually
+      it's not important whether light will be enabled or not.
+      But it's important that we pass material values for ambient and diffuse
+      (shader uses them), so we should behave like the node is lit.
+
+      (Actually, this will not work when Material node is @nil... then we can't
+      pass any ambient/diffuse lighting values, and results of rendering this
+      with bump mapping are undefined. TODO: fix.)
+    }
+
+    Result := IndexedRenderer.BumpMappingMethod = bmGLSL;
+  end else
+  begin
+    Result := not (
+      (Node is TNodePointSet_1) or
+      (Node is TNodePointSet_2) or
+      { VRML 1.0 specification states that lines normals aren't generated
+        --- instead, lines are drawn unlit when there are no normals specified. }
+      ( (Node is TNodeIndexedLineSet_1) and
+        (IndexedRenderer.Render_Normals = inGenerate) ) or
+      { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
+      (Node is TNodeIndexedLineSet_2)
+    );
+  end;
 end;
 
 procedure TVRMLOpenGLRenderer.Render_MaterialsBegin;

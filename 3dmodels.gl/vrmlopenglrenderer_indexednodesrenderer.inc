@@ -1029,10 +1029,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     Renderer.BumpMappingGLSLProgram.SetUniform('world_space_to_object',
       Renderer.Render_State.InvertedTransform);
 
-    { GLSL program will ignore other lights and other properties of GL_LIGHT0 anyway. }
-
-    glLightv(GL_LIGHT0, GL_AMBIENT, Renderer.Attributes.BumpMappingLightAmbientColor);
-    glLightv(GL_LIGHT0, GL_DIFFUSE, Renderer.Attributes.BumpMappingLightDiffuseColor);
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
   end;
 
 begin

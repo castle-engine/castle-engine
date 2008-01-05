@@ -7,11 +7,18 @@
 
 uniform sampler2D tex_normal_map;
 uniform sampler2D tex_original;
+uniform vec4 light_ambient_color;
+uniform vec4 light_diffuse_color;
 
 varying vec3 light_dir_tangent;
 
 void main(void)
 {
+  /* gl_FragColor = all ambient lighting. */
+  gl_FragColor =
+    gl_FrontLightModelProduct.sceneColor +
+    light_ambient_color * gl_FrontMaterial.ambient;
+
   /* Both light_dir and normal are in tangent space. */
   vec3 light_dir = normalize(light_dir_tangent);
 
@@ -20,12 +27,9 @@ void main(void)
   vec3 normal = vec3(
     texture2D(tex_normal_map, gl_TexCoord[0].st)) * 2.0 - vec3(1, 1, 1);
 
-  /* gl_FragColor = lighting computed mostly just like using OpenGL
-     fixed-function pipeline, but per-fragment. */
-  gl_FragColor =
-    gl_FrontLightModelProduct.sceneColor +
-    gl_FrontLightProduct[0].ambient +
-    gl_FrontLightProduct[0].diffuse * max(dot(normal, light_dir), 0.0);
+  /* gl_FragColor += diffuse lighting. */
+  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
+      max(dot(normal, light_dir), 0.0);
 
   gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);
 

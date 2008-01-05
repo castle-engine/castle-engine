@@ -329,6 +329,10 @@ uses
 
 {$define read_interface}
 
+const
+  DefaultBumpMappingLightAmbientColor: TVector4Single = (0, 0, 0, 1);
+  DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
+
 type
   TBeforeGLVertexProc = procedure (Node: TNodeGeneralShape;
     const Vert: TVector3Single) of object;
@@ -358,8 +362,6 @@ type
     FPointSize: TGLFloat;
     FUseFog: boolean;
     FBumpMapping: boolean;
-    FBumpMappingLightAmbientColor: TVector4Single;
-    FBumpMappingLightDiffuseColor: TVector4Single;
     FGLSLShaders: boolean;
   protected
     { In this class these methods just set value on given property.
@@ -384,8 +386,6 @@ type
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMapping(const Value: boolean); virtual;
-    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single); virtual;
-    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
     { @groupEnd }
   public
@@ -548,6 +548,8 @@ type
       BumpMapping, to actually specify how bumps should appear.
       See TVRMLOpenGLRenderer.BumpMappingLightPosition, or
       TVRMLFlatSceneGL.BumpMappingLightPosition for more comfortable version.
+      See also other TVRMLOpenGLRenderer.BumpMappingLightXxx properties,
+      like TVRMLOpenGLRenderer.BumpMappingLightDiffuseColor.
 
       TODO: implementation of this should still be cleaned up:
       - take texture transform into account correctly
@@ -561,34 +563,6 @@ type
       }
     property BumpMapping: boolean read FBumpMapping write SetBumpMapping
       default false;
-
-    { Ambient color of the light calculated when doing bump mapping.
-
-      When doing bump mapping, we don't use VRML lights. Instead some
-      properties of the light are controlled by
-      TVRMLOpenGLRenderer.BumpMappingLightPosition
-      (or TVRMLFlatSceneGL.BumpMappingLightPosition) and attributes like
-      this one.
-
-      Note that whether this is used depends on BumpMappingMethod used
-      (and this depends on OpenGL capabilities). Some bump mapping methods
-      may not be able to use this. For now, this is used only by bmGLSL method.
-
-      Default value is (0, 0, 0, 1), that is black.
-
-      4th component of the color has the same meaning and use as 4th color
-      component for OpenGL lights. Usually, just set this to 1.0. }
-    property BumpMappingLightAmbientColor: TVector4Single
-      read FBumpMappingLightAmbientColor
-      write SetBumpMappingLightAmbientColor;
-
-    { Diffuse color of the light calculated when doing bump mapping.
-      See also comments at BumpMappingLightAmbientColor.
-
-      Default value is (1, 1, 1, 1), that is white. }
-    property BumpMappingLightDiffuseColor: TVector4Single
-      read FBumpMappingLightDiffuseColor
-      write SetBumpMappingLightDiffuseColor;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -962,6 +936,12 @@ type
 
     FBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
+
+    FBumpMappingLightAmbientColor: TVector4Single;
+    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+
+    FBumpMappingLightDiffuseColor: TVector4Single;
+    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
     { Constructor.
 
@@ -1094,6 +1074,33 @@ type
       problems in any case.) }
     property BumpMappingLightPosition: TVector3Single
       read FBumpMappingLightPosition write SetBumpMappingLightPosition;
+
+    { Ambient color of the light calculated when doing bump mapping.
+
+      When doing bump mapping, we don't use VRML lights. Instead some
+      properties of the light are controlled by BumpMappingLightPosition
+      (or TVRMLFlatSceneGL.BumpMappingLightPosition) and attributes like
+      this one.
+
+      Note that whether this is used depends on BumpMappingMethod used
+      (and this depends on OpenGL capabilities). Some bump mapping methods
+      may not be able to use this. For now, this is used only by bmGLSL method.
+
+      Default value is DefaultBumpMappingLightAmbientColor.
+
+      4th component of the color has the same meaning and use as 4th color
+      component for OpenGL lights. Usually, just set this to 1.0. }
+    property BumpMappingLightAmbientColor: TVector4Single
+      read FBumpMappingLightAmbientColor
+      write SetBumpMappingLightAmbientColor;
+
+    { Diffuse color of the light calculated when doing bump mapping.
+      See also comments at BumpMappingLightAmbientColor.
+
+      Default value is DefaultBumpMappingLightDiffuseColor. }
+    property BumpMappingLightDiffuseColor: TVector4Single
+      read FBumpMappingLightDiffuseColor
+      write SetBumpMappingLightDiffuseColor;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -1873,9 +1880,6 @@ begin
   FPointSize := 3.0;
   FUseFog := true;
   FGLSLShaders := true;
-
-  FBumpMappingLightAmbientColor := Vector4Single(0, 0, 0, 1);
-  FBumpMappingLightDiffuseColor := Vector4Single(1, 1, 1, 1);
 end;
 
 procedure TVRMLRenderingAttributes.SetOnBeforeGLVertex(
@@ -1956,18 +1960,6 @@ begin
   FBumpMapping := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetBumpMappingLightAmbientColor(
-  const Value: TVector4Single);
-begin
-  FBumpMappingLightAmbientColor := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetBumpMappingLightDiffuseColor(
-  const Value: TVector4Single);
-begin
-  FBumpMappingLightDiffuseColor := Value;
-end;
-
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
 begin
   FGLSLShaders := Value;
@@ -2029,6 +2021,9 @@ begin
   FLastGLFreeLight := -1;
 
   FLastGLFreeTexture := -1;
+
+  FBumpMappingLightAmbientColor := DefaultBumpMappingLightAmbientColor;
+  FBumpMappingLightDiffuseColor := DefaultBumpMappingLightDiffuseColor;
 
   FAttributes := AttributesClass.Create;
   TextureReferences := TDynTextureReferenceArray.Create;
@@ -2159,6 +2154,10 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           BumpMappingGLSLProgram.Enable;
           BumpMappingGLSLProgram.SetUniform('light_position_world_space',
             BumpMappingLightPosition);
+          BumpMappingGLSLProgram.SetUniform('light_ambient_color',
+            BumpMappingLightAmbientColor);
+          BumpMappingGLSLProgram.SetUniform('light_diffuse_color',
+            BumpMappingLightDiffuseColor);
           BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
           BumpMappingGLSLProgram.SetUniform('tex_original', 1);
           { TODO: this should restore previously bound program }
@@ -2946,6 +2945,34 @@ begin
     BumpMappingGLSLProgram.Enable;
     BumpMappingGLSLProgram.SetUniform('light_position_world_space',
       BumpMappingLightPosition);
+    BumpMappingGLSLProgram.Disable;
+  end;
+end;
+
+procedure TVRMLOpenGLRenderer.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+begin
+  FBumpMappingLightAmbientColor := Value;
+
+  if BumpMappingGLSLProgram <> nil then
+  begin
+    { so BumpMappingMethod = bmGLSL and it's already prepared }
+    BumpMappingGLSLProgram.Enable;
+    BumpMappingGLSLProgram.SetUniform('light_ambient_color',
+      BumpMappingLightAmbientColor);
+    BumpMappingGLSLProgram.Disable;
+  end;
+end;
+
+procedure TVRMLOpenGLRenderer.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+begin
+  FBumpMappingLightDiffuseColor := Value;
+
+  if BumpMappingGLSLProgram <> nil then
+  begin
+    { so BumpMappingMethod = bmGLSL and it's already prepared }
+    BumpMappingGLSLProgram.Enable;
+    BumpMappingGLSLProgram.SetUniform('light_diffuse_color',
+      BumpMappingLightDiffuseColor);
     BumpMappingGLSLProgram.Disable;
   end;
 end;

@@ -1054,15 +1054,15 @@ begin
     500: NormalizedDot3First := not NormalizedDot3First;
     601:
       begin
-        C := Vector3SingleCut(Scene.Attributes.BumpMappingLightAmbientColor);
+        C := Vector3SingleCut(Scene.BumpMappingLightAmbientColor);
         if Glwin.ColorDialog(C) then
-          Scene.Attributes.BumpMappingLightAmbientColor := Vector4Single(C, 1);
+          Scene.BumpMappingLightAmbientColor := Vector4Single(C, 1);
       end;
     602:
       begin
-        C := Vector3SingleCut(Scene.Attributes.BumpMappingLightDiffuseColor);
+        C := Vector3SingleCut(Scene.BumpMappingLightDiffuseColor);
         if Glwin.ColorDialog(C) then
-          Scene.Attributes.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
+          Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
       end;
   end;
 end;

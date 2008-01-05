@@ -9,11 +9,18 @@
 '' + LineEnding + 
 'uniform sampler2D tex_normal_map;' + LineEnding + 
 'uniform sampler2D tex_original;' + LineEnding + 
+'uniform vec4 light_ambient_color;' + LineEnding + 
+'uniform vec4 light_diffuse_color;' + LineEnding + 
 '' + LineEnding + 
 'varying vec3 light_dir_tangent;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
+'  /* gl_FragColor = all ambient lighting. */' + LineEnding + 
+'  gl_FragColor =' + LineEnding + 
+'/*    gl_FrontLightModelProduct.sceneColor + */' + LineEnding + 
+'    light_ambient_color * gl_FrontMaterial.ambient;' + LineEnding + 
+'' + LineEnding + 
 '  /* Both light_dir and normal are in tangent space. */' + LineEnding + 
 '  vec3 light_dir = normalize(light_dir_tangent);' + LineEnding + 
 '' + LineEnding + 
@@ -22,12 +29,9 @@
 '  vec3 normal = vec3(' + LineEnding + 
 '    texture2D(tex_normal_map, gl_TexCoord[0].st)) * 2.0 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
-'  /* gl_FragColor = lighting computed mostly just like using OpenGL' + LineEnding + 
-'     fixed-function pipeline, but per-fragment. */' + LineEnding + 
-'  gl_FragColor =' + LineEnding + 
-'    gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
-'    gl_FrontLightProduct[0].ambient +' + LineEnding + 
-'    gl_FrontLightProduct[0].diffuse * max(dot(normal, light_dir), 0.0);' + LineEnding + 
+'  /* gl_FragColor += diffuse lighting. */' + LineEnding + 
+'  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 
+'      max(dot(normal, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
 '' + LineEnding + 

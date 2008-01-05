@@ -139,8 +139,6 @@ type
     procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
     procedure SetBumpMapping(const Value: boolean); override;
-    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single); override;
-    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single); override;
     procedure SetGLSLShaders(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
@@ -754,6 +752,12 @@ type
 
     function GetBumpMappingLightPosition: TVector3Single;
     procedure SetBumpMappingLightPosition(const Value: TVector3Single);
+
+    function GetBumpMappingLightAmbientColor: TVector4Single;
+    procedure SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+
+    function GetBumpMappingLightDiffuseColor: TVector4Single;
+    procedure SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius; { = 1 }
@@ -848,6 +852,18 @@ type
       BumpMappingLightPosition too often if BumpMappingMethod = one of bmDot3*. }
     property BumpMappingLightPosition: TVector3Single
       read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
+
+    { Ambient color of light used for bump mapping.
+      This property simply controls corresponding property of underlying
+      Renderer instance, see TVRMLOpenGLRenderer.BumpMappingLightAmbientColor. }
+    property BumpMappingLightAmbientColor: TVector4Single
+      read GetBumpMappingLightAmbientColor write SetBumpMappingLightAmbientColor;
+
+    { Diffuse color of light used for bump mapping.
+      This property simply controls corresponding property of underlying
+      Renderer instance, see TVRMLOpenGLRenderer.BumpMappingLightDiffuseColor. }
+    property BumpMappingLightDiffuseColor: TVector4Single
+      read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
   end;
 
   TObjectsListItem_1 = TVRMLFlatSceneGL;
@@ -2613,6 +2629,26 @@ begin
     CloseGLRenderer;
 end;
 
+function TVRMLFlatSceneGL.GetBumpMappingLightAmbientColor: TVector4Single;
+begin
+  Result := Renderer.BumpMappingLightAmbientColor;
+end;
+
+procedure TVRMLFlatSceneGL.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+begin
+  Renderer.BumpMappingLightAmbientColor := Value;
+end;
+
+function TVRMLFlatSceneGL.GetBumpMappingLightDiffuseColor: TVector4Single;
+begin
+  Result := Renderer.BumpMappingLightDiffuseColor;
+end;
+
+procedure TVRMLFlatSceneGL.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+begin
+  Renderer.BumpMappingLightDiffuseColor := Value;
+end;
+
 { TVRMLSceneRenderingAttributes ---------------------------------------------- }
 
 constructor TVRMLSceneRenderingAttributes.Create;
@@ -2833,26 +2869,6 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
   if BumpMapping <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetBumpMappingLightAmbientColor(
-  const Value: TVector4Single);
-begin
-  if not VectorsPerfectlyEqual(Value, BumpMappingLightAmbientColor) then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetBumpMappingLightDiffuseColor(
-  const Value: TVector4Single);
-begin
-  if not VectorsPerfectlyEqual(Value, BumpMappingLightDiffuseColor) then
   begin
     FScenes.CloseGLRenderer;
     inherited;
