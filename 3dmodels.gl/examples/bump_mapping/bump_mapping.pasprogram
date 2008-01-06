@@ -826,6 +826,21 @@ begin
 
     Translate(0, 4, 0);
     Test(3);
+
+    { We should disable textures on all affected units at the end of this Draw,
+      otherwise TGLModeFrozenScreen displays wrong image.
+      This could be fixed in TGLModeFrozenScreen in FrozenImageDraw
+      by disabling textures on all units... for now, it's easier
+      to just disable textures here.
+
+      TGLModeFrozenScreen is used when doing dialogs, e.g. dialog to save screen.
+      Without this DisableTextures, save screen produces wrong results.
+
+      Probably this makes DisableTextures call at the beginning of Draw useless.
+      For safety, I'll keep it, this is only demo program anyway... VRML engine
+      properly enables/disables textures itself, that's enough for real
+      "production" programs. }
+    DisableTextures;
   end;
 
   RenderStatus;
@@ -1041,16 +1056,12 @@ begin
   case MenuItem.IntData of
     50: NextBumpMappingMethod;
     60: NextNavigator;
-    { TODO: Save screen doesn't work nicely with multitexturing ?
-    100:
-      begin
-        DisableTextures;
-        Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
-      end;}
+    100: Glwin.SaveScreenDialog(FNameAutoInc(Parameters[0] + '_screen_%d.png'));
     200: Glwin.Close;
     300: ShiftByHand := not ShiftByHand;
     400: EmbossAlphaMultiplyByBlending := not EmbossAlphaMultiplyByBlending;
     500: NormalizedDot3First := not NormalizedDot3First;
+    600: { TODO };
     601:
       begin
         C := Vector3SingleCut(Scene.BumpMappingLightAmbientColor);
@@ -1074,8 +1085,8 @@ begin
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Next _bump mapping method', 50, 'm'));
     M.Append(TMenuItem.Create('Next _navigation method', 60, CharEnter));
-    {M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Save screen ...', 100, K_F5));}
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Save screen ...', 100, K_F5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
@@ -1090,6 +1101,8 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_VRML');
+    M.Append(TMenuItem.Create('Open VRML model ...', 600));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change ambient light color (only when GLSL is used) ...', 601));
     M.Append(TMenuItem.Create('Change diffuse light color (only when GLSL is used) ...', 602));
     Result.Append(M);
