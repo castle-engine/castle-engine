@@ -2565,11 +2565,15 @@ begin
  glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 
  { TODO: push/pop is not fully correctly done for multitexturing now:
-   - we should push/pop all texture units environment properties
-   - we should push/pop all texture units matrices
-   - make sure that currently active texture unit is saved ?
-   Right now, we actually assume that on enter, 0th unit is already
-   active, and we only save it's matrix and environment. }
+   - We should push/pop all texture units matrices.
+     Right now, we actually push only 0th texture unit matrix.
+   - Make sure that currently active texture unit is saved ?
+     I'm not sure, does some glPushAttrib param saves this ?
+
+   Push/pop texture state saves environment state of all texture units, so at least
+   we got glTexEnv covered. (this says OpenGL manpage for glPushAttrib,
+   and it applies to both multitexturing by ARB extension and by standard GL).
+ }
  ActiveTexture(0);
  glMatrixMode(GL_TEXTURE); glPushMatrix;
 
