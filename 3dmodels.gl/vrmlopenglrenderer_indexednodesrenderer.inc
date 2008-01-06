@@ -1262,11 +1262,10 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
   end;
 
 begin
-  if BumpMappingMethod <> bmNone then
-    Check(FaceConvex, 'VRML BumpMapping not implemented for non-convex faces yet');
-
   if (Render_Normals = inGenerate) and NormalsFlat then
     glNormalv(Render_GeneratedNormals.Items[StartIndex]);
+
+  CalculateTangentVectors;
 
  if not FaceConvex then
  begin
@@ -1277,8 +1276,6 @@ begin
   glEnd;
  end else
  begin
-   CalculateTangentVectors;
-
    {$ifdef DARWIN}
 
    { On Mac OS X 10.4.9, with Radeon ATI graphic card
