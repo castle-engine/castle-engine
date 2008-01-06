@@ -2168,10 +2168,13 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
 const
   TextureRepeatToGL: array[boolean]of TGLenum = (
-    GL_CLAMP {TODO: change this to CLAMP_TO_EDGE ? GL_CLAMP
-      is useless if VRML doesn't allow to control texture border color,
+    { Maybe change this to CLAMP_TO_EDGE ?
+      GL_CLAMP is useless if VRML doesn't allow to control texture border color,
       and CLAMP_TO_EDGE is the more natural clamping method anyway...
-    }, GL_REPEAT);
+      Hm, but X3D specification seems to indicate that normal clamp is OpenGL's CLAMP,
+      and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*. }
+    GL_CLAMP,
+    GL_REPEAT);
 var
   TextureReference: TTextureReference;
   TextureNode: TNodeGeneralTexture;
