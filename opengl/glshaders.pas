@@ -197,7 +197,17 @@ type
 
     { Returns multiline debug info about current program.
       Things like how it's supported (not at all ? ARB extension ?
-      standard ?), names of active uniform variables etc. }
+      standard ?), names of active uniform and attribute variables etc.
+
+      fglrx (Radeon closed-source OpenGL drivers) are buggy (that's not
+      news, I know...) and they report GL_INVALID_ENUM on some queries
+      here. We detect this, and still produce nice debug message, without
+      raising any exception (after all, we have to workaround fglrx bugs,
+      and try to run our program anyway...). What's important for caller
+      is that we have to check first whether there are any OpenGL errors
+      pending, and raise exceptions on them.
+
+      @raises EOpenGLError If any OpenGL error will be detected. }
     function DebugInfo: string;
 
     { @abstract(What support do we get from current OpenGL context ?)
@@ -714,6 +724,9 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
+  const
+    SCannotGetCount = '  Cannot get variables count (probably buggy fglrx ('+
+      'Radeon closed-source drivers))';
 
   { Fills the UniformNames with the names (and properties)
     of all active uniform variables available by the program.
@@ -737,11 +750,22 @@ function TGLSLProgram.DebugInfo: string;
     Size: TGLint;
     AType: TGLEnum;
     Name: string;
+    ErrorCode: TGLenum;
   begin
     case Support of
       gsARBExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORMS_ARB, @UniformsCount);
+
+          ErrorCode := glGetError();
+          if ErrorCode = GL_INVALID_ENUM then
+          begin
+            UniformNames.Append(SCannotGetCount);
+            Exit;
+          end else
+          if ErrorCode <> GL_NO_ERROR then
+            raise EOpenGLError.Create(ErrorCode, 'GetActiveUniforms');
+
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB, @UniformMaxLength);
 
           for I := 0 to UniformsCount - 1 do
@@ -749,6 +773,7 @@ function TGLSLProgram.DebugInfo: string;
             SetLength(Name, UniformMaxLength);
             glGetActiveUniformARB(ProgramId, I, UniformMaxLength, @ReturnedLength,
               @Size, @AType, PCharOrNil(Name));
+
             SetLength(Name, ReturnedLength);
             UniformNames.Append(Format('  Name: %s, type: %s, size: %d',
               [Name, GLShaderVariableTypeName(AType), Size]));
@@ -758,6 +783,16 @@ function TGLSLProgram.DebugInfo: string;
       gsStandard    :
         begin
           glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORMS, @UniformsCount);
+
+          ErrorCode := glGetError();
+          if ErrorCode = GL_INVALID_ENUM then
+          begin
+            UniformNames.Append(SCannotGetCount);
+            Exit;
+          end else
+          if ErrorCode <> GL_NO_ERROR then
+            raise EOpenGLError.Create(ErrorCode, 'GetActiveUniforms');
+
           glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORM_MAX_LENGTH, @UniformMaxLength);
 
           for I := 0 to UniformsCount - 1 do
@@ -781,11 +816,22 @@ function TGLSLProgram.DebugInfo: string;
     Size: TGLint;
     AType: TGLEnum;
     Name: string;
+    ErrorCode: TGLenum;
   begin
     case Support of
       gsARBExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, @AttribsCount);
+
+          ErrorCode := glGetError();
+          if ErrorCode = GL_INVALID_ENUM then
+          begin
+            AttribNames.Append(SCannotGetCount);
+            Exit;
+          end else
+          if ErrorCode <> GL_NO_ERROR then
+            raise EOpenGLError.Create(ErrorCode, 'GetActiveAttribs');
+
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTE_MAX_LENGTH_ARB, @AttribMaxLength);
 
           for I := 0 to AttribsCount - 1 do
@@ -802,6 +848,16 @@ function TGLSLProgram.DebugInfo: string;
       gsStandard    :
         begin
           glGetProgramiv(ProgramId, GL_ACTIVE_ATTRIBUTES, @AttribsCount);
+
+          ErrorCode := glGetError();
+          if ErrorCode = GL_INVALID_ENUM then
+          begin
+            AttribNames.Append(SCannotGetCount);
+            Exit;
+          end else
+          if ErrorCode <> GL_NO_ERROR then
+            raise EOpenGLError.Create(ErrorCode, 'GetActiveAttribs');
+
           glGetProgramiv(ProgramId, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, @AttribMaxLength);
 
           for I := 0 to AttribsCount - 1 do
@@ -817,10 +873,20 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
+  function ProgramLog: string;
+  begin
+    case Support of
+      gsARBExtension: Result := GetInfoLogARB(ProgramId);
+      gsStandard    : Result := GetProgramInfoLog(ProgramId);
+    end;
+  end;
+
 var
   S: TStringList;
 begin
   Result := 'GLSL program support: ' + SupportNames[Support];
+
+  CheckGLErrors('Check at the beginning of TGLSLProgram.DebugInfo');
 
   S := TStringList.Create;
   try
@@ -831,6 +897,8 @@ begin
     GetActiveAttribs(S);
     Result += NL + 'Active attribs:' + NL + S.Text;
   finally FreeAndNil(S) end;
+
+  Result += NL + 'Program info log:' + NL + ProgramLog;
 end;
 
 procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
@@ -850,6 +918,8 @@ procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
     if Compiled <> 1 then
       raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [GetInfoLogARB(Result)]);
+
+    { tests: Writeln('Shader compiled:', GetInfoLogARB(Result)); }
   end;
 
   { Based on Dean Ellis BasicShader.dpr }
@@ -872,6 +942,8 @@ procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
     if Compiled <> GL_TRUE then
       raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [GetShaderInfoLog(Result)]);
+
+    { tests: Writeln('Shader compiled:', GetShaderInfoLog(Result)); }
   end;
 
 var
