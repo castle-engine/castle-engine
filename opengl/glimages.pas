@@ -60,9 +60,52 @@
 
       This unit checks OpenGL capabilities, and if needed will scale your
       texture to have power of 2 sizes that fit within OpenGL
-      GL_MAX_TEXTURE_SIZE limit. Whether non-power-of-two textures are
-      allowed depends on whether your OpenGL supports
-      ARB_texture_non_power_of_two.)
+      GL_MAX_TEXTURE_SIZE limit.
+
+      @bold(Notes about power-of-two constraint:) Newer OpenGL allows using
+      non-power-of-two textures when extension ARB_texture_non_power_of_two
+      is supported (or version is >= 2.0). We can use this --- the code is
+      ready, just uncomment it in TextureNonPowerOfTwo.
+      But by default we don't use this, that is: we will scale textures
+      to be power of 2, even if we have ARB_texture_non_power_of_two or
+      new OpenGL.
+
+      Reason: well, looks like every vendor screwed it up. Embarassing.
+
+      @unorderedList(
+        @item(On Mesa, small artifacts occur (strange cracks appears on
+          non-power-of-2 texture, see kambi_vrml_test_suite/inlined_textures.wrl).
+          That's the @italic(best) result compared to other vendors, see below.)
+
+        @item(On ATI (fglrx on Linux on Mac Book Pro),
+          the extension is not present and OpenGL 2.0 entry points
+          are not fully present. (Although GL_VERSION claims 2.1 version,
+          glBlendEquationSeparate entry point from GL 2.0 is not present.)
+          For safety, I just assume that ATI is not able to make OpenGL 2.0,
+          so no extension and no 2.0 means textures must be power of two.
+
+          Just for kicks, I tried anyway to pass texture 4x3 (after all,
+          GL_VERSION claims 2.1 so this should be supported), and... uhh...
+          libGL segfaulted. Congrats, ATI.)
+
+        @item(I thought: Mesa is always buggy and Radeon should not be treated
+          as OpenGL 2.0, so I can live with this. Now let's try
+          great NVidia, they will for sure do this right. Well, yes, it works
+          correctly on NVidia (GeForce FX 5200)... but the slowdown is
+          enormous. For trivial box with 4x3 texture (see
+          kambi_vrml_test_suite/inlined_textures.wrl), that normally runs with
+          virtually infinite speed, suddenly the speed becomes like 1 frame per second !
+          Other example when the slowdown is enormous: castle/levels/castle_hall.wrl
+
+          You can test yourself (with view3dscene using
+          kambi_vrml_test_suite/inlined_textures.wrl model;
+          just compile view3dscene to use non-power-of-2 textures;
+          contact me if you want a binary compiled as such for testing.)
+
+          Such slowdown is not acceptable, I prefer to loose texture quality
+          by scaling them to powers of 2 in this case...)
+      )
+    )
   )
 
   Internally, this unit depends on the knowledge on how pixels are stored
@@ -488,12 +531,22 @@ end;
 { ----------------------------------------------------------------------
   Adjusting image size to load them as textures. }
 
+function TextureNonPowerOfTwo: boolean;
+begin
+  Result := false
+    { Using this makes OpenGL *sooo* slow...
+      see e.g. castle/levels/castle_hall_final.wrl
+      model or kambi_vrml_test_suite/inlined_textures.wrl.
+      So it's better to scale textures to be power of 2. }
+    {GL_ARB_texture_non_power_of_two or GL_version_2_0};
+end;
+
 function IsTextureSized(const r: TImage): boolean;
 var maxTexSize: Cardinal;
 begin
  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
 
- if GL_ARB_texture_non_power_of_two then
+ if TextureNonPowerOfTwo then
    Result :=
      (r.Width <= maxTexSize) and
      (r.Height <= maxTexSize) else
@@ -523,7 +576,7 @@ var maxTexSize: Cardinal;
    if size > maxTexSize then
     result := maxTexSize else
    begin
-    if GL_ARB_texture_non_power_of_two or IsPowerOf2(size) then
+    if TextureNonPowerOfTwo or IsPowerOf2(size) then
      result := size else
      result := 1 shl (Biggest2Exponent(size)+1);
      {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
