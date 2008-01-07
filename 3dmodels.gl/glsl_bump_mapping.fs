@@ -27,7 +27,19 @@ void main(void)
   vec3 normal = vec3(
     texture2D(tex_normal_map, gl_TexCoord[0].st)) * 2.0 - vec3(1, 1, 1);
 
-  /* gl_FragColor += diffuse lighting. */
+  /* I want to do two-sided lighting, so I want to have normal
+     pointing from this side of the face that is currently displayed.
+     Current normal is for front face, so negate it if backfacing.
+     Since this is in tangent space, "negate" means only negate it's z
+     component.
+
+     Alt version of this, not using "if" just in case for future:
+       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));
+  */
+  if (!gl_FrontFacing)
+    normal.z = -normal.z;
+
+  /* gl_FragColor += diffuse lighting */
   gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
       max(dot(normal, light_dir), 0.0);
 

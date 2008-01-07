@@ -18,7 +18,7 @@
 '{' + LineEnding + 
 '  /* gl_FragColor = all ambient lighting. */' + LineEnding + 
 '  gl_FragColor =' + LineEnding + 
-'/*    gl_FrontLightModelProduct.sceneColor + */' + LineEnding + 
+'    gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
 '    light_ambient_color * gl_FrontMaterial.ambient;' + LineEnding + 
 '' + LineEnding + 
 '  /* Both light_dir and normal are in tangent space. */' + LineEnding + 
@@ -29,7 +29,19 @@
 '  vec3 normal = vec3(' + LineEnding + 
 '    texture2D(tex_normal_map, gl_TexCoord[0].st)) * 2.0 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
-'  /* gl_FragColor += diffuse lighting. */' + LineEnding + 
+'  /* I want to do two-sided lighting, so I want to have normal' + LineEnding + 
+'     pointing from this side of the face that is currently displayed.' + LineEnding + 
+'     Current normal is for front face, so negate it if backfacing.' + LineEnding + 
+'     Since this is in tangent space, "negate" means only negate it''s z' + LineEnding + 
+'     component.' + LineEnding + 
+'' + LineEnding + 
+'     Alt version of this, not using "if" just in case for future:' + LineEnding + 
+'       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));' + LineEnding + 
+'  */' + LineEnding + 
+'  if (!gl_FrontFacing)' + LineEnding + 
+'    normal.z = -normal.z;' + LineEnding + 
+'' + LineEnding + 
+'  /* gl_FragColor += diffuse lighting */' + LineEnding + 
 '  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 
 '      max(dot(normal, light_dir), 0.0);' + LineEnding + 
 '' + LineEnding + 
