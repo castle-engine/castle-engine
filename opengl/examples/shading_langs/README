@@ -378,7 +378,7 @@ assembly langs actually).
 
     /* End: */
 
-    /* glDetachShader(...) if you like to be clean */
+    /* glDetachShader, glDeleteShader(...) if you like to be clean */
     glDeleteProgram(prog);
 
     More details:

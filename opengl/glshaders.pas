@@ -726,7 +726,7 @@ function TGLSLProgram.DebugInfo: string;
 
   const
     SCannotGetCount = '  Cannot get variables count (probably buggy fglrx ('+
-      'Radeon closed-source drivers))';
+      'Radeon closed-source drivers) or Mesa)';
 
   { Fills the UniformNames with the names (and properties)
     of all active uniform variables available by the program.
@@ -873,7 +873,7 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
-  function ProgramLog: string;
+  function ProgramInfoLog: string;
   begin
     case Support of
       gsARBExtension: Result := GetInfoLogARB(ProgramId);
@@ -881,8 +881,17 @@ function TGLSLProgram.DebugInfo: string;
     end;
   end;
 
+  function ShaderInfoLog(ShaderId: TGLuint): string;
+  begin
+    case Support of
+      gsARBExtension: Result := GetInfoLogARB(ShaderId);
+      gsStandard    : Result := GetShaderInfoLog(ShaderId);
+    end;
+  end;
+
 var
   S: TStringList;
+  I: Integer;
 begin
   Result := 'GLSL program support: ' + SupportNames[Support];
 
@@ -898,7 +907,14 @@ begin
     Result += NL + 'Active attribs:' + NL + S.Text;
   finally FreeAndNil(S) end;
 
-  Result += NL + 'Program info log:' + NL + ProgramLog;
+  for I := 0 to ShaderIds.Count - 1 do
+  begin
+    Result += NL + Format('Shader number %d (OpenGL id %d) log:',
+      [I, ShaderIds.Items[I]]) + NL +
+      ShaderInfoLog(ShaderIds.Items[I]);
+  end;
+
+  Result += NL + 'Program info log:' + NL + ProgramInfoLog;
 end;
 
 procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
@@ -918,8 +934,6 @@ procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
     if Compiled <> 1 then
       raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [GetInfoLogARB(Result)]);
-
-    { tests: Writeln('Shader compiled:', GetInfoLogARB(Result)); }
   end;
 
   { Based on Dean Ellis BasicShader.dpr }
@@ -942,8 +956,6 @@ procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
     if Compiled <> GL_TRUE then
       raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
         [GetShaderInfoLog(Result)]);
-
-    { tests: Writeln('Shader compiled:', GetShaderInfoLog(Result)); }
   end;
 
 var
