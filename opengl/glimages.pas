@@ -58,8 +58,11 @@
       Don't worry about texture size being power of 2, or about maximum texture
       size.
 
-      This unit checks OpenGL capabilities, and if needed will scale your texture
-      to have power of 2 sizes that fit within OpenGL GL_MAX_TEXTURE_SIZE limit.)
+      This unit checks OpenGL capabilities, and if needed will scale your
+      texture to have power of 2 sizes that fit within OpenGL
+      GL_MAX_TEXTURE_SIZE limit. Whether non-power-of-two textures are
+      allowed depends on whether your OpenGL supports
+      ARB_texture_non_power_of_two.)
   )
 
   Internally, this unit depends on the knowledge on how pixels are stored
@@ -489,9 +492,16 @@ function IsTextureSized(const r: TImage): boolean;
 var maxTexSize: Cardinal;
 begin
  maxTexSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
- result := IsPowerOf2(r.Width) and IsPowerOf2(r.Height) and
-   (BiggestPowerOf2(r.Width) <= maxTexSize) and
-   (BiggestPowerOf2(r.Height) <= maxTexSize);
+
+ if GL_ARB_texture_non_power_of_two then
+   Result :=
+     (r.Width <= maxTexSize) and
+     (r.Height <= maxTexSize) else
+   Result :=
+     IsPowerOf2(r.Width) and
+     IsPowerOf2(r.Height) and
+     (BiggestPowerOf2(r.Width) <= maxTexSize) and
+     (BiggestPowerOf2(r.Height) <= maxTexSize);
 end;
 
 procedure ResizeForTextureSize(var r: TImage);
@@ -513,10 +523,10 @@ var maxTexSize: Cardinal;
    if size > maxTexSize then
     result := maxTexSize else
    begin
-    if IsPowerOf2(size) then
+    if GL_ARB_texture_non_power_of_two or IsPowerOf2(size) then
      result := size else
      result := 1 shl (Biggest2Exponent(size)+1);
-     {result jakie otrzymamy w ostatnim przy[isaniu jest na pewno < maxTexSize bo
+     {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < maxTexSize bo
       skoro size <= maxTexSize i not IsPowerOf2(size) to size < maxTexSize a maxTexSize
       samo jest potega dwojki. }
    end;
