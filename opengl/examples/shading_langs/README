@@ -249,6 +249,7 @@ assembly langs actually).
   Many many tutorials and references around the WWW,
   http://www.opengl.org/documentation/glsl/
   http://www.lighthouse3d.com/opengl/glsl/
+  http://developer.3dlabs.com/documents/index.htm#Presentations
   http://www.opengl.org/wiki/index.php/Shading_languages:_GLSL
   http://folk.uio.no/johans/publications/Seland.2006.INF3320.pdf
   http://nehe.gamedev.net/data/articles/article.asp?article=21
@@ -258,12 +259,20 @@ assembly langs actually).
   Although some parts of GLSL could be just compiled to ARB assembly langs
   above, but this may result in non-optimal results.
   Also, some concepts are simply not available in ARB assembly langs
-  (ftransform with real correctness, matching fixed-function results?).
+  (ftransform with real correctness, matching fixed-function results?
+  uniform, varying AFAIK also are not available in ARB progs ?).
   In practice, GLSL is compiled to some internal assembly for each vendor ---
   but usually very similar to ARB assembly, so it's definitely useful to know
   ARB assembly.
 
-  See e.g. Mesa GLSL implementation notes: http://www.mesa3d.org/shading.html
+  See e.g. Mesa GLSL implementation notes:
+  http://www.mesa3d.org/shading.html
+  Demo
+  - run with
+      export LD_LIBRARY_PATH=/home/michalis/installed/mesa/7.0.2/lib/:"$LD_LIBRARY_PATH"
+    shading_langs_demo, bump_mapping demo,
+    view3dscene with shaders and bump mapping demos
+  - glslcompiler --arb --linenumbers --vs vertshader.txt
 
   GLSL is compiled on each GPU, possibly differently. This is it's strength
   vs using Cg to compile to standard ARB (vendor-specific optimizations
@@ -280,6 +289,10 @@ assembly langs actually).
   So if you develop on NVidia, be sure to test afterwards also on ATI/Mesa
   and fix eventual small things (like texture coords for texture2D functions
   should have ".st" qualifiers).
+
+  There's GLSLvalidate
+  http://developer.3dlabs.com/downloads/glslvalidate/index.htm
+  (didn't test, looks like Windows-only, no ready compilation for Linux...).
 
   Some lang notes:
   - Communication between OpenGL and shaders:
