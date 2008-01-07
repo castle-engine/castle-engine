@@ -199,6 +199,7 @@ type
 
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
     TexOriginal, TexNormalMap, TexNormalizationCube: TGLuint;
+    TexOriginalAlpha: boolean;
 
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
@@ -506,8 +507,14 @@ var
               so it cannot be used to produce different behavior). }
           if Renderer.Render_State.ParentShape <> nil then
           begin
-            glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            { When BumpMappingMethod <> bmNone, texture coords will be
+              explicitly taken at each vertex using GetTextureCoord.
+              This glTexCoordPointer would only collide with this. }
+            if BumpMappingMethod = bmNone then
+            begin
+              glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
+              glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            end;
           end else
             GenerateDefaultTextureCoordinates;
         end;
@@ -634,9 +641,10 @@ begin
   if Coord = nil then
     Exit;
 
-  {initialize most important thing we will use with indexed nodes :
-   vertex arrays. Musimy to zainicjowac najpierw bo ponizej NormalsInit
-   (a byc moze kiedys cos wiecej) moga tez zaladowac swoje vertex arrays. }
+  { Initialize vertex arrays that we we will use with indexed nodes.
+    GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
+    eventual normal and texture coord arrays (possibly set by NormalsBegin,
+    TextureBegin). }
   glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
   try
     glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
@@ -922,6 +930,25 @@ end;
 
 procedure TIndexedFaceSetRenderer.Render_Init;
 
+  { pass alpha from primary_color (this is actual material Opacity) *
+    texture alpha }
+  procedure glTexEnvAlphaFromMaterialAndTexture;
+  begin
+    if TexOriginalAlpha then
+    begin
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+    end else
+    begin
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+    end;
+  end;
+
   procedure EnableForDot3NotNormalized;
   begin
     Renderer.ActiveTexture(0);
@@ -949,10 +976,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
 
-    { pass alpha from primary_color (this is actual material Opacity) }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+    glTexEnvAlphaFromMaterialAndTexture;
 
     LightPositionObjectSpace := MultMatrixPoint(
       Renderer.Render_State.InvertedTransform,
@@ -1004,10 +1028,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
     glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
 
-    { pass alpha from primary_color (this is actual material Opacity) }
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+    glTexEnvAlphaFromMaterialAndTexture;
 
     LightPositionObjectSpace := MultMatrixPoint(
       Renderer.Render_State.InvertedTransform,
