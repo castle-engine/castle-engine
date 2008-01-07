@@ -214,14 +214,8 @@ Assembly shading languages:
 ------------------------------------------------------------------------------
 Higher-level shading languages:
 
-They all merge fragment and vertex langs in one syntax (well, much like
-assembly langs actually). What's even more
-important, allows vertex program to easily pass arguments
-to vertex program. (API creates one shader program to which you
-can attach vertex and/or fragment programs, that will communicate).
-At least at the beginning, they were just compiled to assembly langs
-(but nowadays they probably are more built-in, or compiled to something
-internal, more flexible than ARB vertex/fragment).
+They both merge fragment and vertex langs in one syntax (well, much like
+assembly langs actually).
 
 - NVidia Cg
   http://en.wikipedia.org/wiki/Cg_%28programming_language%29
@@ -255,10 +249,27 @@ internal, more flexible than ARB vertex/fragment).
   Many many tutorials and references around the WWW,
   http://www.opengl.org/documentation/glsl/
   http://www.lighthouse3d.com/opengl/glsl/
+  http://www.opengl.org/wiki/index.php/Shading_languages:_GLSL
   http://folk.uio.no/johans/publications/Seland.2006.INF3320.pdf
   http://nehe.gamedev.net/data/articles/article.asp?article=21
   basically just
   http://www.google.com/search?q=glsl
+
+  Although some parts of GLSL could be just compiled to ARB assembly langs
+  above, but this may result in non-optimal results.
+  Also, some concepts are simply not available in ARB assembly langs
+  (ftransform with real correctness, matching fixed-function results?).
+  In practice, GLSL is compiled to some internal assembly for each vendor ---
+  but usually very similar to ARB assembly, so it's definitely useful to know
+  ARB assembly.
+
+  See e.g. Mesa GLSL implementation notes: http://www.mesa3d.org/shading.html
+
+  GLSL is compiled on each GPU, possibly differently. This is it's strength
+  vs using Cg to compile to standard ARB (vendor-specific optimizations
+  may be applied), although this also means that you should test your program
+  on various GPUs. With Cg->ARB, you at least know that ARB program is the same
+  for each GPU.
 
   Note: be sure to test your GLSL not only on NVidia cards.
   NVidia GL tends to be forgiving to various malformed (but reasonable...)
@@ -279,6 +290,8 @@ internal, more flexible than ARB vertex/fragment).
 
     Communication between vertex and fragment shaders:
     varying variables, read/write from vs, interpolated and readble in fs.
+    That's the main reason why we have a "program" that links
+    together many "shaders".
 
   - Just like in assembly langs, we have access to some OpenGL state as gl_Xxx
     variables. Some of it is read-only, some is write-only, some is both,
