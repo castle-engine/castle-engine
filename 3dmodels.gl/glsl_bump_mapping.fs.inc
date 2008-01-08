@@ -35,11 +35,33 @@
 '     Since this is in tangent space, "negate" means only negate it''s z' + LineEnding + 
 '     component.' + LineEnding + 
 '' + LineEnding + 
+'     On fglrx (in ii 324 crypto, "Radeon X300/X550/X1050 Series")' + LineEnding + 
+'     using "gl_FrontFacing" (with and without if) causes' + LineEnding + 
+'     (in ProgramLogInfo)' + LineEnding + 
+'' + LineEnding + 
+'        Link successful.' + LineEnding + 
+'	The GLSL vertex shader will run in software due to the' + LineEnding + 
+'	GLSL fragment shader running in software.' + LineEnding + 
+'	The GLSL fragment shader will run in software -' + LineEnding + 
+'	unsupported language element used.' + LineEnding + 
+'' + LineEnding + 
+'     On NVidia on kocury (home) this also fails.' + LineEnding + 
+'     From "Release Notes for NVIDIA OpenGL Shading Language Support":' + LineEnding + 
+'     "gl_FrontFacing Is Not Available to Fragment Shaders".' + LineEnding + 
+'     http://http.download.nvidia.com/developer/GLSL/GLSL%20Release%20Notes%20for%20Release%2060.pdf' + LineEnding + 
+'     (there''s a workaround, TODO: use this in the future ?)' + LineEnding + 
+'' + LineEnding + 
+'     On Mac Book Pro (chantal) this works Ok.' + LineEnding + 
+'' + LineEnding + 
+'     I guess that I can''t use this, have to live with 1-sided lighting' + LineEnding + 
+'     for bump mapping now.' + LineEnding + 
+'' + LineEnding + 
+'     Version with "if" :' + LineEnding + 
+'       if (!gl_FrontFacing)' + LineEnding + 
+'	 normal.z = -normal.z;' + LineEnding + 
+'' + LineEnding + 
 '     Alt version of this, not using "if" just in case for future:' + LineEnding + 
-'       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));' + LineEnding + 
-'  */' + LineEnding + 
-'  if (!gl_FrontFacing)' + LineEnding + 
-'    normal.z = -normal.z;' + LineEnding + 
+'       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing)); */' + LineEnding + 
 '' + LineEnding + 
 '  /* gl_FragColor += diffuse lighting */' + LineEnding + 
 '  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 

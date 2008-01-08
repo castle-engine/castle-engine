@@ -33,11 +33,33 @@ void main(void)
      Since this is in tangent space, "negate" means only negate it's z
      component.
 
+     On fglrx (in ii 324 crypto, "Radeon X300/X550/X1050 Series")
+     using "gl_FrontFacing" (with and without if) causes
+     (in ProgramLogInfo)
+
+        Link successful.
+	The GLSL vertex shader will run in software due to the
+	GLSL fragment shader running in software.
+	The GLSL fragment shader will run in software -
+	unsupported language element used.
+
+     On NVidia on kocury (home) this also fails.
+     From "Release Notes for NVIDIA OpenGL Shading Language Support":
+     "gl_FrontFacing Is Not Available to Fragment Shaders".
+     http://http.download.nvidia.com/developer/GLSL/GLSL%20Release%20Notes%20for%20Release%2060.pdf
+     (there's a workaround, TODO: use this in the future ?)
+
+     On Mac Book Pro (chantal) this works Ok.
+
+     I guess that I can't use this, have to live with 1-sided lighting
+     for bump mapping now.
+
+     Version with "if" :
+       if (!gl_FrontFacing)
+	 normal.z = -normal.z;
+
      Alt version of this, not using "if" just in case for future:
-       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));
-  */
-  if (!gl_FrontFacing)
-    normal.z = -normal.z;
+       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing)); */
 
   /* gl_FragColor += diffuse lighting */
   gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
