@@ -2267,6 +2267,8 @@ var
   TextureReference: TTextureReference;
   TextureNode: TNodeGeneralTexture;
   FontStyle: TNodeFontStyle_2;
+  HeightMapGrayscale: TGrayscaleImage;
+  OriginalTexture: TImage;
 begin
  { przygotuj font }
  if State.ParentShape = nil then
@@ -2359,8 +2361,6 @@ begin
          GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
          TextureRepeatToGL[TextureNode.RepeatS],
          TextureRepeatToGL[TextureNode.RepeatT]);
-
-
      end;
    end;
 
@@ -2373,11 +2373,29 @@ begin
      if State.ParentShape.HeightMap.IsTextureImage then
      begin
        { TODO: height map textures should be shared by Cache }
-       TextureReference.TextureHeightMap := LoadGLTexture(
-         State.ParentShape.HeightMap.TextureImage,
-         GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
-         TextureRepeatToGL[TextureNode.RepeatS],
-         TextureRepeatToGL[TextureNode.RepeatT]);
+
+       OriginalTexture := State.ParentShape.HeightMap.TextureImage;
+
+       { Calculate HeightMapGrayscale }
+       { TODO: this is not nice to convert here, we should load
+         straight to TGrayscalaImage }
+       if OriginalTexture is TRGBImage then
+         HeightMapGrayscale := TRGBImage(OriginalTexture).ToGrayscale else
+       if OriginalTexture is TGrayscaleImage then
+         HeightMapGrayscale := TGrayscaleImage(OriginalTexture) else
+         HeightMapGrayscale := nil;
+
+       if HeightMapGrayscale <> nil then
+       try
+         TextureReference.TextureHeightMap :=
+           LoadGLTexture(HeightMapGrayscale,
+             GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+             TextureRepeatToGL[TextureNode.RepeatS],
+             TextureRepeatToGL[TextureNode.RepeatT]);
+       finally
+         if HeightMapGrayscale <> OriginalTexture then
+           FreeAndNil(HeightMapGrayscale);
+       end;
      end;
    end;
 
