@@ -495,6 +495,23 @@ normal maps and height maps require filtering for the same reason as
 normal material textures, no escape from this.
 
 ------------------------------------------------------------------------------
+Parallax mapping:
+
+Basic idea is just to do h * E.xy / E.z.
+
+Offset limiting:
+http://www.cs.cmu.edu/afs/cs/academic/class/15462/web.06s/asst/project3/parallax_mapping.pdf
+The above paper proposes "offset limiting", which means simply to drop "/ E.z".
+Demo GLSL implementation.
+
+Problems with parallax mapping: texture must be smooth.
+Steep height differences cause problems, as we quickly hit something else
+(we reach "too far" with texture offset).
+Solution: "steep parallax mapping".
+http://graphics.cs.brown.edu/games/SteepParallax/index.html
+http://graphics.cs.brown.edu/games/SteepParallax/mcguire-steepparallax.pdf
+
+------------------------------------------------------------------------------
 End:
 
 - Environment bump mapping (normal map says how to transform environment
