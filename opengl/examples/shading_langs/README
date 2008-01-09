@@ -256,6 +256,9 @@ assembly langs actually).
   basically just
   http://www.google.com/search?q=glsl
 
+  Show toon shading development (first on vs, _per_vertex version,
+  than to per-fragment), Phong shading development.
+
   Although some parts of GLSL could be just compiled to ARB assembly langs
   above, but this may result in non-optimal results.
   Also, some concepts are simply not available in ARB assembly langs
