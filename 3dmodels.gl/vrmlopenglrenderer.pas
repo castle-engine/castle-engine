@@ -543,6 +543,7 @@ type
       some OpenGL capabilities (some extensions present, and enough texture
       units available). And naturally it comes to use only if
       VRML model will use normalMap extension for some shapes nodes.
+      If heightMap is also defined, parallax mapping will be used.
 
       You have to update Renderer.BumpMappingLightPosition if you enable
       BumpMapping, to actually specify how bumps should appear.
@@ -789,7 +790,7 @@ type
   TTextureReference = record
     TextureNode: TNodeGeneralTexture;
     TextureGL: TGLuint;
-    TextureNormalMap: TGLuint;
+    TextureNormalMap, TextureHeightMap: TGLuint;
   end;
   PTextureReference = ^TTextureReference;
 
@@ -2196,8 +2197,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           { If BumpMappingMethod is bmGLSL, then we checked in BumpMappingMethod
             that support is <> gsNone }
           Assert(BumpMappingGLSLProgram.Support <> gsNone);
-          BumpMappingGLSLProgram.AttachVertexShader({$I glsl_bump_mapping.vs.inc});
-          BumpMappingGLSLProgram.AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
+          BumpMappingGLSLProgram.AttachVertexShader({$I glsl_parallax_bump_mapping.vs.inc});
+          BumpMappingGLSLProgram.AttachFragmentShader({$I glsl_parallax_bump_mapping.fs.inc});
           { set uniform samplers, so that fragment shader has access
             to both bound textures }
           BumpMappingGLSLProgram.Link;
@@ -2216,6 +2217,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             BumpMappingLightDiffuseColor);
           BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
           BumpMappingGLSLProgram.SetUniform('tex_original', 1);
+          BumpMappingGLSLProgram.SetUniform('tex_height_map', 2);
           { TODO: this should restore previously bound program }
           BumpMappingGLSLProgram.Disable;
         end;
@@ -2329,6 +2331,27 @@ begin
          TextureRepeatToGL[TextureNode.RepeatT]);
 
        PrepareBumpMapping;
+     end;
+   end;
+
+   TextureReference.TextureHeightMap := 0;
+   if (BumpMappingMethod <> bmNone) and
+      (State.ParentShape <> nil) and
+      (State.ParentShape.HeightMap <> nil) then
+   begin
+     State.ParentShape.HeightMap.ImagesCache := Cache;
+     if State.ParentShape.HeightMap.IsTextureImage then
+     begin
+       { TODO: normal map textures should be shared by Cache }
+       TextureReference.TextureHeightMap := LoadGLTexture(
+         State.ParentShape.HeightMap.TextureImage,
+         GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
+         TextureRepeatToGL[TextureNode.RepeatS],
+         TextureRepeatToGL[TextureNode.RepeatT]);
+
+       { no need to PrepareBumpMapping, this will be used
+         only if normalMap is also present, and PrepareBumpMapping
+         was called there. }
      end;
    end;
 
@@ -2866,6 +2889,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
             AlphaTest;
           TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
             TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
+          TIndexedFaceSetRenderer(IndexedRenderer).TexHeightMap :=
+            TextureReferences.Items[TextureReferencesIndex].TextureHeightMap;
         end else
           EnableClassicTexturing;
       end else

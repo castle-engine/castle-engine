@@ -95,6 +95,7 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
     property FdNormalMap: TSFNode index 7 read GetFieldAsSFNode;
+    property FdHeightMap: TSFNode index 8 read GetFieldAsSFNode;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -247,7 +248,12 @@ end;
 constructor TNodeKambiAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFNode.Create(Self, 'normalMap',
+    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'heightMap',
     [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
   Fields.Last.Exposed := true;
 end;

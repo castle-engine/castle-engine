@@ -1287,9 +1287,13 @@
       passed as Appearance or Texture node), then returns nil. }
     function Texture: TNodeGeneralTexture;
 
-    { This is like @link(Texture), but it returns NormalMap field
+    { This is like @link(Texture), but it returns normalMap field
       of KambiAppearance. }
     function NormalMap: TNodeGeneralTexture;
+
+    { This is like @link(Texture), but it returns heightMap field
+      of KambiAppearance. }
+    function HeightMap: TNodeGeneralTexture;
 
     { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
@@ -3751,6 +3755,21 @@ begin
     if (A.FdNormalMap.Value <> nil) and
        (A.FdNormalMap.Value is TNodeGeneralTexture) then
       Result := TNodeGeneralTexture(A.FdNormalMap.Value);
+  end;
+end;
+
+function TNodeShape.HeightMap: TNodeGeneralTexture;
+var
+  A: TNodeKambiAppearance;
+begin
+  Result := nil;
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeKambiAppearance) then
+  begin
+    A := TNodeKambiAppearance(FdAppearance.Value);
+    if (A.FdHeightMap.Value <> nil) and
+       (A.FdHeightMap.Value is TNodeGeneralTexture) then
+      Result := TNodeGeneralTexture(A.FdHeightMap.Value);
   end;
 end;
 

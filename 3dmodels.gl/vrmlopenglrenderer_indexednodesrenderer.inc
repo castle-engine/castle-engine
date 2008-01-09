@@ -198,7 +198,7 @@ type
     FaceConvex: boolean;
 
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
-    TexOriginal, TexNormalMap, TexNormalizationCube: TGLuint;
+    TexOriginal, TexNormalMap, TexHeightMap, TexNormalizationCube: TGLuint;
     TexOriginalAlpha: boolean;
 
     { Helpers for bump mapping }
@@ -1045,6 +1045,9 @@ procedure TIndexedFaceSetRenderer.Render_Init;
 
     Renderer.ActiveTexture(1);
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
+
+    Renderer.ActiveTexture(2);
+    glBindTexture(GL_TEXTURE_2D, TexHeightMap);
 
     Renderer.BumpMappingGLSLProgram.Enable;
     Renderer.BumpMappingGLSLProgram.SetUniform('world_space_to_object',
