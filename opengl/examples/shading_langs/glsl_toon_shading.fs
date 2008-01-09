@@ -22,8 +22,6 @@ void main()
      "intensity > 0.95" etc.
      But on fglrx (Radeon closed-source drivers on chantal)
      it looks like constant floats are simply rounded up.
-     (Seems that on Mesa, the same problem is present... possibly this
-     is some shortcoming of older GLSL versions ?)
 
      So I code it to avoid using const floats,
      "intensity * 100 > 95" is equivalent to "intensity > 90 / 100"
