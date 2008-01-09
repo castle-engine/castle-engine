@@ -199,7 +199,7 @@ type
 
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
     TexOriginal, TexNormalMap, TexHeightMap, TexNormalizationCube: TGLuint;
-    TexOriginalAlpha: boolean;
+    TexOriginalAlpha, BmParallax: boolean;
 
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
@@ -821,7 +821,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
           ToTangent[I, 2] := Normal[I];
         end;
 
-        Renderer.BumpMappingGLSLAttribObjectSpaceToTangent.SetValue(ToTangent);
+        Renderer.BmGLSLAttribObjectSpaceToTangent[BmParallax].SetValue(ToTangent);
       end;
 
     var
@@ -1046,11 +1046,14 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     Renderer.ActiveTexture(1);
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
 
-    Renderer.ActiveTexture(2);
-    glBindTexture(GL_TEXTURE_2D, TexHeightMap);
+    if BmParallax then
+    begin
+      Renderer.ActiveTexture(2);
+      glBindTexture(GL_TEXTURE_2D, TexHeightMap);
+    end;
 
-    Renderer.BumpMappingGLSLProgram.Enable;
-    Renderer.BumpMappingGLSLProgram.SetUniform('world_space_to_object',
+    Renderer.BmGLSLProgram[BmParallax].Enable;
+    Renderer.BmGLSLProgram[BmParallax].SetUniform('world_space_to_object',
       Renderer.Render_State.InvertedTransform);
 
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
@@ -1125,8 +1128,11 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     Renderer.ActiveTexture(1);
     glDisable(GL_TEXTURE_2D);
 
-    Renderer.ActiveTexture(2);
-    glDisable(GL_TEXTURE_2D);
+    if BmParallax then
+    begin
+      Renderer.ActiveTexture(2);
+      glDisable(GL_TEXTURE_2D);
+    end;
   end;
 
   procedure DisableForGLSL;
@@ -1134,7 +1140,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     { No need to disable two textures, as we didn't enable them in
       EnableForGLSL (shader doesn't need them enabled). }
 
-    Renderer.BumpMappingGLSLProgram.Disable;
+    Renderer.BmGLSLProgram[BmParallax].Disable;
   end;
 
 begin

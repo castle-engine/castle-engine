@@ -807,7 +807,9 @@ var
       S += Format('VRML auto-detected best bump mapping method: %s',
         [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
       S += Format('VRML optimization used: %s',
-        [RendererOptimizationNames[Scene.Optimization]]);
+        [RendererOptimizationNames[Scene.Optimization]]) + nl;
+      S += Format('VRML parallax mapping allowed: %s',
+        [BoolToStr[Scene.Attributes.BumpMappingParallax]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -1105,6 +1107,8 @@ begin
         if Glwin.ColorDialog(C) then
           Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
       end;
+    650: Scene.Attributes.BumpMappingParallax :=
+           not Scene.Attributes.BumpMappingParallax;
   end;
 end;
 
@@ -1114,28 +1118,31 @@ var
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
-    M.Append(TMenuItem.Create('Next _bump mapping method', 50, 'm'));
-    M.Append(TMenuItem.Create('Next _navigation method', 60, CharEnter));
+    M.Append(TMenuItem.Create('Next _Bump Mapping Method', 50, 'm'));
+    M.Append(TMenuItem.Create('Next _Navigation Method', 60, CharEnter));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Save screen ...', 100, K_F5));
+    M.Append(TMenuItem.Create('_Save Screen ...', 100, K_F5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
 
   M := TMenu.Create('_Emboss');
-    M.Append(TMenuItem.Create('_Shift emboss by hand', 300, 'h'));
-    M.Append(TMenuItem.Create('_Alpha multiply by blending (1 less texture unit needed)', 400, 'b'));
+    M.Append(TMenuItem.Create('_Shift Emboss by Hand', 300, 'h'));
+    M.Append(TMenuItem.Create('_Alpha Multiply by Blending (1 Less Texture Unit Needed)', 400, 'b'));
     Result.Append(M);
 
   M := TMenu.Create('_Dot3');
-    M.Append(TMenuItem.Create('_Display normalized version first', 500, 'n'));
+    M.Append(TMenuItem.Create('_Display Normalized Version First', 500, 'n'));
     Result.Append(M);
 
   M := TMenu.Create('_VRML');
-    M.Append(TMenuItem.Create('Open VRML model ...', 600, CtrlO));
+    M.Append(TMenuItem.Create('_Open VRML Model ...', 600, CtrlO));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Change ambient light color (only when GLSL is used) ...', 601));
-    M.Append(TMenuItem.Create('Change diffuse light color (only when GLSL is used) ...', 602));
+    M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
+    M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Parallax Mapping Allowed', 650, CtrlP,
+      {default value of Scene.Attributes.BumpMappingParallax} true, true));
     Result.Append(M);
 end;
 

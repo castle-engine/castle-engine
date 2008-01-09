@@ -139,6 +139,7 @@ type
     procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
     procedure SetBumpMapping(const Value: boolean); override;
+    procedure SetBumpMappingParallax(const Value: boolean); override;
     procedure SetGLSLShaders(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
@@ -2869,6 +2870,16 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
   if BumpMapping <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetBumpMappingParallax(
+  const Value: boolean);
+begin
+  if BumpMappingParallax <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;

@@ -363,6 +363,7 @@ type
     FUseFog: boolean;
     FBumpMapping: boolean;
     FGLSLShaders: boolean;
+    FBumpMappingParallax: boolean;
   protected
     { In this class these methods just set value on given property.
       In descendants you can do something more here, like automatic
@@ -386,6 +387,7 @@ type
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMapping(const Value: boolean); virtual;
+    procedure SetBumpMappingParallax(const Value: boolean); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
     { @groupEnd }
   public
@@ -567,6 +569,12 @@ type
     }
     property BumpMapping: boolean read FBumpMapping write SetBumpMapping
       default false;
+
+    { If BumpMapping enabled, whether we're allowed to do parallax mapping ?
+      This is only used if BumpMapping = @true, and only if the surface
+      actually has both normalMap and heightMap information. }
+    property BumpMappingParallax: boolean
+      read FBumpMappingParallax write SetBumpMappingParallax default true;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -900,7 +908,10 @@ type
         @item(This honours properties like BumpMappingLightAmbientColor,
           BumpMappingLightDiffuseColor,
           so you can control the light more like normal OpenGL light.)
-      ) }
+      )
+
+      If the heightMap of the surface is available (in addition to normalMap)
+      then this can do parallax mapping. }
     bmGLSL);
 
   TVRMLOpenGLRenderer = class
@@ -930,9 +941,12 @@ type
     BumpMappingMethodIsCached: boolean;
 
     { Will be created by some prepare, if BumpMappingMethod is bmGLSL
-      and it's detected that bump mapping will be actually used. }
-    BumpMappingGLSLProgram: TGLSLProgram;
-    BumpMappingGLSLAttribObjectSpaceToTangent: TGLSLAttribute;
+      and it's detected that bump mapping will be actually used.
+
+      Boolean index indicates whether it's the version with parallax
+      mapping. }
+    BmGLSLProgram: array[boolean] of TGLSLProgram;
+    BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
@@ -1936,6 +1950,7 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := 3.0;
   FUseFog := true;
+  FBumpMappingParallax := true;
   FGLSLShaders := true;
 end;
 
@@ -2015,6 +2030,11 @@ end;
 procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: boolean);
 begin
   FBumpMapping := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetBumpMappingParallax(const Value: boolean);
+begin
+  FBumpMappingParallax := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
@@ -2181,7 +2201,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
     may be actually used. This is supposed to initialize anything related to
     BumpMapping. }
-  procedure PrepareBumpMapping;
+  procedure PrepareBumpMapping(Parallax: boolean);
   begin
     case BumpMappingMethod of
       bmDot3Normalized:
@@ -2191,35 +2211,45 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         end;
 
       bmGLSL:
-        if BumpMappingGLSLProgram = nil then
+        if BmGLSLProgram[Parallax] = nil then
         begin
-          BumpMappingGLSLProgram := TGLSLProgram.Create;
+          BmGLSLProgram[Parallax] := TGLSLProgram.Create;
           { If BumpMappingMethod is bmGLSL, then we checked in BumpMappingMethod
             that support is <> gsNone }
-          Assert(BumpMappingGLSLProgram.Support <> gsNone);
-          BumpMappingGLSLProgram.AttachVertexShader({$I glsl_parallax_bump_mapping.vs.inc});
-          BumpMappingGLSLProgram.AttachFragmentShader({$I glsl_parallax_bump_mapping.fs.inc});
+
+          Assert(BmGLSLProgram[Parallax].Support <> gsNone);
+          if Parallax then
+          begin
+            BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_parallax_bump_mapping.vs.inc});
+            BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_parallax_bump_mapping.fs.inc});
+          end else
+          begin
+            BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_bump_mapping.vs.inc});
+            BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
+          end;
+
           { set uniform samplers, so that fragment shader has access
             to both bound textures }
-          BumpMappingGLSLProgram.Link;
+          BmGLSLProgram[Parallax].Link;
 
-          { tests: Writeln(BumpMappingGLSLProgram.DebugInfo); }
+          { tests: Writeln(BmGLSLProgram[Parallax].DebugInfo); }
 
-          BumpMappingGLSLAttribObjectSpaceToTangent :=
-            BumpMappingGLSLProgram.CreateAttribute('object_space_to_tangent');
+          BmGLSLAttribObjectSpaceToTangent[Parallax] :=
+            BmGLSLProgram[Parallax].CreateAttribute('object_space_to_tangent');
 
-          BumpMappingGLSLProgram.Enable;
-          BumpMappingGLSLProgram.SetUniform('light_position_world_space',
+          BmGLSLProgram[Parallax].Enable;
+          BmGLSLProgram[Parallax].SetUniform('light_position_world_space',
             BumpMappingLightPosition);
-          BumpMappingGLSLProgram.SetUniform('light_ambient_color',
+          BmGLSLProgram[Parallax].SetUniform('light_ambient_color',
             BumpMappingLightAmbientColor);
-          BumpMappingGLSLProgram.SetUniform('light_diffuse_color',
+          BmGLSLProgram[Parallax].SetUniform('light_diffuse_color',
             BumpMappingLightDiffuseColor);
-          BumpMappingGLSLProgram.SetUniform('tex_normal_map', 0);
-          BumpMappingGLSLProgram.SetUniform('tex_original', 1);
-          BumpMappingGLSLProgram.SetUniform('tex_height_map', 2);
+          BmGLSLProgram[Parallax].SetUniform('tex_normal_map', 0);
+          BmGLSLProgram[Parallax].SetUniform('tex_original', 1);
+          if Parallax then
+            BmGLSLProgram[Parallax].SetUniform('tex_height_map', 2);
           { TODO: this should restore previously bound program }
-          BumpMappingGLSLProgram.Disable;
+          BmGLSLProgram[Parallax].Disable;
         end;
     end;
   end;
@@ -2330,7 +2360,7 @@ begin
          TextureRepeatToGL[TextureNode.RepeatS],
          TextureRepeatToGL[TextureNode.RepeatT]);
 
-       PrepareBumpMapping;
+
      end;
    end;
 
@@ -2342,18 +2372,19 @@ begin
      State.ParentShape.HeightMap.ImagesCache := Cache;
      if State.ParentShape.HeightMap.IsTextureImage then
      begin
-       { TODO: normal map textures should be shared by Cache }
+       { TODO: height map textures should be shared by Cache }
        TextureReference.TextureHeightMap := LoadGLTexture(
          State.ParentShape.HeightMap.TextureImage,
          GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
          TextureRepeatToGL[TextureNode.RepeatS],
          TextureRepeatToGL[TextureNode.RepeatT]);
-
-       { no need to PrepareBumpMapping, this will be used
-         only if normalMap is also present, and PrepareBumpMapping
-         was called there. }
      end;
    end;
+
+   if TextureReference.TextureNormalMap <> 0 then
+     PrepareBumpMapping(
+       (TextureReference.TextureHeightMap <> 0) and
+       Attributes.BumpMappingParallax);
 
    TextureReferences.AppendItem(TextureReference);
   end;
@@ -2430,9 +2461,11 @@ begin
   { unprepare TexNormalizationCube }
   glFreeTexture(TexNormalizationCube);
 
-  { unprepare BumpMappingGLSLProgram }
-  FreeAndNil(BumpMappingGLSLProgram);
-  FreeAndNil(BumpMappingGLSLAttribObjectSpaceToTangent);
+  { unprepare BmGLSLProgram }
+  FreeAndNil(BmGLSLProgram[false]);
+  FreeAndNil(BmGLSLProgram[true]);
+  FreeAndNil(BmGLSLAttribObjectSpaceToTangent[false]);
+  FreeAndNil(BmGLSLAttribObjectSpaceToTangent[true]);
 end;
 
 function TVRMLOpenGLRenderer.LastGLFreeLight: integer;
@@ -2826,6 +2859,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
   var
     AlphaTest: boolean;
+    IndexedFaceRenderer: TIndexedFaceSetRenderer;
+    TexReference: PTextureReference;
   begin
     {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 
@@ -2872,25 +2907,26 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
       AlphaTest := TextureNode.TextureImage is TAlphaImage;
 
+      TexReference := TextureReferences.Pointers[TextureReferencesIndex];
+
       if (IndexedRenderer <> nil) and
          IndexedRenderer.BumpMappingAllowed and
          (BumpMappingMethod <> bmNone) then
       begin
-        if TextureReferences.Items[TextureReferencesIndex].TextureNormalMap <> 0 then
+        if TexReference^.TextureNormalMap <> 0 then
         begin
           IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
           Assert(IndexedRenderer is TIndexedFaceSetRenderer,
             'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
-          TIndexedFaceSetRenderer(IndexedRenderer).TexNormalizationCube :=
-            TexNormalizationCube;
-          TIndexedFaceSetRenderer(IndexedRenderer).TexOriginal :=
-            TextureReferences.Items[TextureReferencesIndex].TextureGL;
-          TIndexedFaceSetRenderer(IndexedRenderer).TexOriginalAlpha :=
-            AlphaTest;
-          TIndexedFaceSetRenderer(IndexedRenderer).TexNormalMap :=
-            TextureReferences.Items[TextureReferencesIndex].TextureNormalMap;
-          TIndexedFaceSetRenderer(IndexedRenderer).TexHeightMap :=
-            TextureReferences.Items[TextureReferencesIndex].TextureHeightMap;
+          IndexedFaceRenderer := TIndexedFaceSetRenderer(IndexedRenderer);
+          IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
+          IndexedFaceRenderer.TexOriginal := TexReference^.TextureGL;
+          IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
+          IndexedFaceRenderer.TexNormalMap := TexReference^.TextureNormalMap;
+          IndexedFaceRenderer.TexHeightMap := TexReference^.TextureHeightMap;
+          IndexedFaceRenderer.BmParallax :=
+            (IndexedFaceRenderer.TexHeightMap <> 0) and
+            Attributes.BumpMappingParallax;
         end else
           EnableClassicTexturing;
       end else
@@ -3030,45 +3066,64 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.SetBumpMappingLightPosition(const Value: TVector3Single);
+
+  procedure SetInProgram(Prog: TGLSLProgram);
+  begin
+    if Prog <> nil then
+    begin
+      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      Prog.Enable;
+      Prog.SetUniform('light_position_world_space', BumpMappingLightPosition);
+      Prog.Disable;
+    end;
+  end;
+
 begin
   FBumpMappingLightPosition := Value;
 
-  if BumpMappingGLSLProgram <> nil then
-  begin
-    { so BumpMappingMethod = bmGLSL and it's already prepared }
-    BumpMappingGLSLProgram.Enable;
-    BumpMappingGLSLProgram.SetUniform('light_position_world_space',
-      BumpMappingLightPosition);
-    BumpMappingGLSLProgram.Disable;
-  end;
+  SetInProgram(BmGLSLProgram[false]);
+  SetInProgram(BmGLSLProgram[true]);
 end;
 
+
 procedure TVRMLOpenGLRenderer.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+
+  procedure SetInProgram(Prog: TGLSLProgram);
+  begin
+    if Prog <> nil then
+    begin
+      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      Prog.Enable;
+      Prog.SetUniform('light_ambient_color', BumpMappingLightAmbientColor);
+      Prog.Disable;
+    end;
+  end;
+
 begin
   FBumpMappingLightAmbientColor := Value;
 
-  if BumpMappingGLSLProgram <> nil then
-  begin
-    { so BumpMappingMethod = bmGLSL and it's already prepared }
-    BumpMappingGLSLProgram.Enable;
-    BumpMappingGLSLProgram.SetUniform('light_ambient_color',
-      BumpMappingLightAmbientColor);
-    BumpMappingGLSLProgram.Disable;
-  end;
+  SetInProgram(BmGLSLProgram[false]);
+  SetInProgram(BmGLSLProgram[true]);
 end;
 
 procedure TVRMLOpenGLRenderer.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+
+  procedure SetInProgram(Prog: TGLSLProgram);
+  begin
+    if Prog <> nil then
+    begin
+      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      Prog.Enable;
+      Prog.SetUniform('light_diffuse_color', BumpMappingLightDiffuseColor);
+      Prog.Disable;
+    end;
+  end;
+
 begin
   FBumpMappingLightDiffuseColor := Value;
 
-  if BumpMappingGLSLProgram <> nil then
-  begin
-    { so BumpMappingMethod = bmGLSL and it's already prepared }
-    BumpMappingGLSLProgram.Enable;
-    BumpMappingGLSLProgram.SetUniform('light_diffuse_color',
-      BumpMappingLightDiffuseColor);
-    BumpMappingGLSLProgram.Disable;
-  end;
+  SetInProgram(BmGLSLProgram[false]);
+  SetInProgram(BmGLSLProgram[true]);
 end;
 
 end.
