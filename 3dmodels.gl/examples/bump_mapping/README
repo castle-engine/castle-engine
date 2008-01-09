@@ -505,6 +505,11 @@ The above paper proposes "offset limiting", which means simply to drop "/ E.z".
 Demo GLSL implementation.
 
 Problems with parallax mapping: texture must be smooth.
+Demo brick_1_height_map and brick_1_height_map_smoother for classic parallax.
+With brick_1_height_map_smoother, the artifacts (strange texture stripes)
+disappear, but it's clearly visible that heightmap is too smooth,
+perspective looks a little strange.
+
 Steep height differences cause problems, as we quickly hit something else
 (we reach "too far" with texture offset).
 Solution: "steep parallax mapping".
