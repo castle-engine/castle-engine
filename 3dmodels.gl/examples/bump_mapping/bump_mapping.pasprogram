@@ -1136,12 +1136,15 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_Emboss');
-    M.Append(TMenuItem.Create('_Shift Emboss by Hand', 300, 'h'));
-    M.Append(TMenuItem.Create('_Alpha Multiply by Blending (1 Less Texture Unit Needed)', 400, 'b'));
+    M.Append(TMenuItemChecked.Create('_Shift Emboss by Hand', 300, 'h',
+      ShiftByHand, true));
+    M.Append(TMenuItemChecked.Create('_Alpha Multiply by Blending (1 Less Texture Unit Needed)', 400, 'b',
+      EmbossAlphaMultiplyByBlending, true));
     Result.Append(M);
 
   M := TMenu.Create('_Dot3');
-    M.Append(TMenuItem.Create('_Display Normalized Version First', 500, 'n'));
+    M.Append(TMenuItemChecked.Create('_Display Normalized Version First', 500, 'n',
+      NormalizedDot3First, true));
     Result.Append(M);
 
   M := TMenu.Create('_VRML');
