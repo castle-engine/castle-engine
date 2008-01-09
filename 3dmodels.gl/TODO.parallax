@@ -1,0 +1,14 @@
+marge parallax and no parallax shader code in one file, use #defines
+brick texture: make it work better with steep parallax mapping
+
+later:
+fix gl_FrontFacing (it officially doesn't work on NVidia in FS, it also doesn't really work on some Radeons (on crypto this causes software GLSL, and in effect freezes the program...)). NVidia gives some suggestions for workarounds, see
+  http://developer.download.nvidia.com/opengl/glsl/glsl_release_notes.pdf
+play with http://developer.nvidia.com/object/nvemulate.html
+maybe instead of BumpMappingParallax, make bmGLSLParallax ?
+  then the bmGLSL becomes bmGLSLNormal,
+  and bmDot3 should probably by changed to bmMultiTexDot
+  and Attributes will have only BumpMappingMaximumMethod (bmNone is default).
+describe heightMap VRML extension in kambi_vrml_extensions.php
+maybe incorporate in some node like ParallaxMapping, for heightMapScale and heightMapBias ?
+add field parallaxMapping bool ?
