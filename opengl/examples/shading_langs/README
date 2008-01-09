@@ -273,6 +273,14 @@ assembly langs actually).
     shading_langs_demo, bump_mapping demo,
     view3dscene with shaders and bump mapping demos
   - glslcompiler --arb --linenumbers --vs vertshader.txt
+    like
+    ./glslcompiler -n --fs ~/sources/vrmlengine/trunk/kambi_vrml_game_engine/opengl/examples/shading_langs/glsl_test_loop.fs
+    makes true loop! BGNLOOP;, ENDLOOP;
+
+  NVidia specific GLSL notes:
+  http://developer.download.nvidia.com/opengl/glsl/glsl_release_notes.pdf
+  E.g. half floats are avail in NVidia.
+  EXT_Cg_shader for lazy Cg programmers owning NVidia.(TODO: test)
 
   GLSL is compiled on each GPU, possibly differently. This is it's strength
   vs using Cg to compile to standard ARB (vendor-specific optimizations
