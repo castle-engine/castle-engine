@@ -1295,6 +1295,8 @@
       of KambiAppearance. }
     function HeightMap: TNodeGeneralTexture;
 
+    function HeightMapScale: Single;
+
     { This is like @link(Texture), but it returns TextureTransform
       of Apperance. }
     function TextureTransform: TNodeTextureTransform;
@@ -3771,6 +3773,19 @@ begin
        (A.FdHeightMap.Value is TNodeGeneralTexture) then
       Result := TNodeGeneralTexture(A.FdHeightMap.Value);
   end;
+end;
+
+function TNodeShape.HeightMapScale: Single;
+var
+  A: TNodeKambiAppearance;
+begin
+  if (FdAppearance.Value <> nil) and
+     (FdAppearance.Value is TNodeKambiAppearance) then
+  begin
+    A := TNodeKambiAppearance(FdAppearance.Value);
+    Result := A.FdHeightMapScale.Value;
+  end else
+    Result := DefaultHeightMapScale;
 end;
 
 function TNodeShape.TextureTransform: TNodeTextureTransform;

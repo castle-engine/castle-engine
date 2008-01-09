@@ -12,21 +12,21 @@ uniform sampler2D tex_height_map;
 uniform vec4 light_ambient_color;
 uniform vec4 light_diffuse_color;
 
+uniform float scale;
+uniform float bias;
+
 varying vec3 light_dir_tangent;
 
 varying vec3 point_to_eye_in_tangent_space;
 
 void main(void)
 {
-  /* TODO: scale, shift adjustable by uniform values */
-  const float scale = 0.05;
-  const float bias = - 2.0 * scale;
   /* I take "r" (red) component of tex_height_map.
      When loading texture for tex_height_map, I made sure it's grayscale
      so I'm sure that all rgb components are the same. */
-  float height = float(texture2D(tex_height_map, gl_TexCoord[0].st).r) * scale - bias;
+  float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;
   vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);
-  vec2 texture_coord = height * p_to_eye.xy/* / p_to_eye.z*/;
+  vec2 texture_coord = height * p_to_eye.xy /* / p_to_eye.z*/;
   texture_coord += gl_TexCoord[0].st;
 
   /* gl_FragColor = all ambient lighting. */

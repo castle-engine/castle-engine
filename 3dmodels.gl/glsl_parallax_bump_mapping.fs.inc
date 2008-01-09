@@ -14,21 +14,21 @@
 'uniform vec4 light_ambient_color;' + LineEnding + 
 'uniform vec4 light_diffuse_color;' + LineEnding + 
 '' + LineEnding + 
+'uniform float scale;' + LineEnding + 
+'uniform float bias;' + LineEnding + 
+'' + LineEnding + 
 'varying vec3 light_dir_tangent;' + LineEnding + 
 '' + LineEnding + 
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  /* TODO: scale, shift adjustable by uniform values */' + LineEnding + 
-'  const float scale = 0.05;' + LineEnding + 
-'  const float bias = - 2.0 * scale;' + LineEnding + 
 '  /* I take "r" (red) component of tex_height_map.' + LineEnding + 
 '     When loading texture for tex_height_map, I made sure it''s grayscale' + LineEnding + 
 '     so I''m sure that all rgb components are the same. */' + LineEnding + 
-'  float height = float(texture2D(tex_height_map, gl_TexCoord[0].st).r) * scale - bias;' + LineEnding + 
+'  float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;' + LineEnding + 
 '  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);' + LineEnding + 
-'  vec2 texture_coord = height * p_to_eye.xy/* / p_to_eye.z*/;' + LineEnding + 
+'  vec2 texture_coord = height * p_to_eye.xy /* / p_to_eye.z*/;' + LineEnding + 
 '  texture_coord += gl_TexCoord[0].st;' + LineEnding + 
 '' + LineEnding + 
 '  /* gl_FragColor = all ambient lighting. */' + LineEnding + 

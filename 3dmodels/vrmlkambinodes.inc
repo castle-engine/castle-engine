@@ -96,6 +96,7 @@
     class function ClassNodeTypeName: string; override;
     property FdNormalMap: TSFNode index 7 read GetFieldAsSFNode;
     property FdHeightMap: TSFNode index 8 read GetFieldAsSFNode;
+    property FdHeightMapScale: TSFFloat index 9 read GetFieldAsSFFloat;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -255,6 +256,9 @@ begin
 
   Fields.Add(TSFNode.Create(Self, 'heightMap',
     [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
+  Fields.Last.Exposed := true;
+  
+  Fields.Add(TSFFloat.Create('heightMapScale', DefaultHeightMapScale));
   Fields.Last.Exposed := true;
 end;
 

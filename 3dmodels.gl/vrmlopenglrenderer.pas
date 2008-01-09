@@ -2201,7 +2201,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   { Called when BumpMappingMethod <> bmNone and it's detected that bump mapping
     may be actually used. This is supposed to initialize anything related to
     BumpMapping. }
-  procedure PrepareBumpMapping(Parallax: boolean);
+  procedure PrepareBumpMapping(Parallax: boolean; const HeightMapScale: Single);
   begin
     case BumpMappingMethod of
       bmDot3Normalized:
@@ -2247,7 +2247,11 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           BmGLSLProgram[Parallax].SetUniform('tex_normal_map', 0);
           BmGLSLProgram[Parallax].SetUniform('tex_original', 1);
           if Parallax then
+          begin
             BmGLSLProgram[Parallax].SetUniform('tex_height_map', 2);
+            BmGLSLProgram[Parallax].SetUniform('scale', HeightMapScale);
+            BmGLSLProgram[Parallax].SetUniform('bias', -HeightMapScale/2);
+          end;
           { TODO: this should restore previously bound program }
           BmGLSLProgram[Parallax].Disable;
         end;
@@ -2269,6 +2273,7 @@ var
   FontStyle: TNodeFontStyle_2;
   HeightMapGrayscale: TGrayscaleImage;
   OriginalTexture: TImage;
+  HeightMapScale: Single;
 begin
  { przygotuj font }
  if State.ParentShape = nil then
@@ -2364,6 +2369,9 @@ begin
      end;
    end;
 
+   { Value doesn't matter, will not be used if no heightMap }
+   HeightMapScale := 0.0;
+
    TextureReference.TextureHeightMap := 0;
    if (BumpMappingMethod <> bmNone) and
       (State.ParentShape <> nil) and
@@ -2397,12 +2405,15 @@ begin
            FreeAndNil(HeightMapGrayscale);
        end;
      end;
+
+     HeightMapScale := State.ParentShape.HeightMapScale;
    end;
 
    if TextureReference.TextureNormalMap <> 0 then
      PrepareBumpMapping(
        (TextureReference.TextureHeightMap <> 0) and
-       Attributes.BumpMappingParallax);
+       Attributes.BumpMappingParallax,
+       HeightMapScale);
 
    TextureReferences.AppendItem(TextureReference);
   end;
