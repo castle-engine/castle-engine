@@ -47,6 +47,9 @@
     home: restore default rotation, translation and scale
   and for walker mode
     arrows, etc.: doom like walking, see view3dscene docs
+
+  1st command-line param may be filename of VRML to initially load
+  (otherwise will load default demo in vrmldata/ subdir).
 }
 program bump_mapping;
 
@@ -925,6 +928,9 @@ begin
   UpdateNavigatorProjectionMatrix;
 end;
 
+var
+  VrmlFileName: string = 'vrmldata/levels/fountain/fountain_final.wrl';
+
 procedure InitGL(glwin: TGLWindow);
 const
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
@@ -1019,7 +1025,7 @@ begin
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
-  LoadSceneCore('vrmldata/levels/fountain/fountain_final.wrl');
+  LoadSceneCore(VrmlFileName);
 end;
 
 procedure CloseGL(glwin: TGLWindow);
@@ -1091,9 +1097,12 @@ begin
     500: NormalizedDot3First := not NormalizedDot3First;
     600:
       begin
-        S := '';
+        S := ExtractFilePath(VrmlFileName);
         if Glwin.FileDialog('Open VRML model', S, true) then
+        begin
           LoadScene(S);
+          VrmlFileName := S;
+        end;
       end;
     601:
       begin
@@ -1149,7 +1158,9 @@ end;
 begin
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
-  Parameters.CheckHigh(0);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High >= 1 then
+    VrmlFileName := Parameters[1];
 
   { init Glw.Navigator }
   Examiner := TMatrixExaminer.Create(@Glw.PostRedisplayOnMatrixChanged);
