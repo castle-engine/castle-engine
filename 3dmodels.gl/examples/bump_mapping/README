@@ -515,6 +515,11 @@ Steep height differences cause problems, as we quickly hit something else
 Solution: "steep parallax mapping".
 http://graphics.cs.brown.edu/games/SteepParallax/index.html
 http://graphics.cs.brown.edu/games/SteepParallax/mcguire-steepparallax.pdf
+http://www-static.cc.gatech.edu/grads/d/davidp/parallax_mapping/
+
+Also called "parallax occlusion mapping" (this is *exactly* the same algorithm,
+as far as I read).
+http://ati.amd.com/developer/gdc/2006/GDC06-Tatarchuk-Parallax_Occlusion_Mapping.pdf
 
 ------------------------------------------------------------------------------
 End:
