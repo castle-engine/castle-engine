@@ -21,14 +21,15 @@
 '' + LineEnding + 
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
-'#define STEEP_PARALLAX' + LineEnding + 
+'#define STEEP' + LineEnding + 
+'#define STEEP_SHADOW' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
 '  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);' + LineEnding + 
 '  vec2 texture_coord = gl_TexCoord[0].st;' + LineEnding + 
 '' + LineEnding + 
-'#ifndef STEEP_PARALLAX' + LineEnding + 
+'#ifndef STEEP' + LineEnding + 
 '  /* I take "r" (red) component of tex_height_map.' + LineEnding + 
 '     When loading texture for tex_height_map, I made sure it''s grayscale' + LineEnding + 
 '     so I''m sure that all rgb components are the same. */' + LineEnding + 
@@ -39,7 +40,7 @@
 '  /* At smaller view angles, much more iterations needed, otherwise ugly' + LineEnding + 
 '     aliasing arifacts quickly appear. I saw implementations that mix between' + LineEnding + 
 '     50 and 10 num_stepa --- really a lot of iterations. */' + LineEnding + 
-'  num_steps = mix(num_steps * 3, num_steps, p_to_eye.z);' + LineEnding + 
+'  num_steps = mix(num_steps * 3.0, num_steps, p_to_eye.z);' + LineEnding + 
 '' + LineEnding + 
 '  float step = 1.0 / num_steps;' + LineEnding + 
 '' + LineEnding + 
@@ -88,8 +89,46 @@
 '    normal.z = -normal.z;' + LineEnding + 
 '*/' + LineEnding + 
 '  /* gl_FragColor += diffuse lighting */' + LineEnding + 
+'#ifndef STEEP_SHADOW' + LineEnding + 
 '  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 
 '      max(dot(normal, light_dir), 0.0);' + LineEnding + 
+'' + LineEnding + 
+'  gl_FragColor *= texture2D(tex_original, texture_coord);' + LineEnding + 
+'#else' + LineEnding + 
+'  float diffuse_factor = dot(normal, light_dir);' + LineEnding + 
+'  if (diffuse_factor > 0)' + LineEnding + 
+'  {' + LineEnding + 
+'    /* We basically do the same thing as when we calculate texture_coord' + LineEnding + 
+'       with steep parallax mapping.' + LineEnding + 
+'       Only now we increment height, and we use light_dir instead of' + LineEnding + 
+'       p_to_eye. */' + LineEnding + 
+'    float num_steps = 10.0;' + LineEnding + 
+'    num_steps = mix(num_steps * 3.0, num_steps, light_dir.z);' + LineEnding + 
+'' + LineEnding + 
+'    float step = 1.0 / num_steps;' + LineEnding + 
+'' + LineEnding + 
+'    vec2 delta = light_dir.xy * scale / (light_dir.z * num_steps);' + LineEnding + 
+'' + LineEnding + 
+'    /* Do the 1st step always, otherwise initial height = shadow_map_height' + LineEnding + 
+'       and we would be considered in our own shadow. */' + LineEnding + 
+'    float height = map_height + step;' + LineEnding + 
+'    vec2 shadow_texture_coord = texture_coord + delta;' + LineEnding + 
+'    float shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;' + LineEnding + 
+'' + LineEnding + 
+'    while (shadow_map_height < height && height < 1)' + LineEnding + 
+'    {' + LineEnding + 
+'      height += step;' + LineEnding + 
+'      shadow_texture_coord += delta;' + LineEnding + 
+'      shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;' + LineEnding + 
+'    }' + LineEnding + 
+'' + LineEnding + 
+'    if (shadow_map_height < height)' + LineEnding + 
+'    {' + LineEnding + 
+'      gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 
+'        diffuse_factor;' + LineEnding + 
+'    }' + LineEnding + 
+'  }' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, texture_coord);' + LineEnding + 
 '' + LineEnding + 

@@ -521,6 +521,10 @@ Also called "parallax occlusion mapping" (this is *exactly* the same algorithm,
 as far as I read).
 http://ati.amd.com/developer/gdc/2006/GDC06-Tatarchuk-Parallax_Occlusion_Mapping.pdf
 
+Steep parallax allows us also to do self-shadowing within the surface.
+Trivial, just repeat the mini-ray-tracer algorithm,
+tracing the direction to the light.
+
 ------------------------------------------------------------------------------
 End:
 

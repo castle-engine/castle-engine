@@ -19,14 +19,15 @@ varying vec3 light_dir_tangent;
 
 varying vec3 point_to_eye_in_tangent_space;
 
-#define STEEP_PARALLAX
+#define STEEP
+#define STEEP_SHADOW
 
 void main(void)
 {
   vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);
   vec2 texture_coord = gl_TexCoord[0].st;
 
-#ifndef STEEP_PARALLAX
+#ifndef STEEP
   /* I take "r" (red) component of tex_height_map.
      When loading texture for tex_height_map, I made sure it's grayscale
      so I'm sure that all rgb components are the same. */
@@ -86,8 +87,46 @@ void main(void)
     normal.z = -normal.z;
 */
   /* gl_FragColor += diffuse lighting */
+#ifndef STEEP_SHADOW
   gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
       max(dot(normal, light_dir), 0.0);
+
+  gl_FragColor *= texture2D(tex_original, texture_coord);
+#else
+  float diffuse_factor = dot(normal, light_dir);
+  if (diffuse_factor > 0)
+  {
+    /* We basically do the same thing as when we calculate texture_coord
+       with steep parallax mapping.
+       Only now we increment height, and we use light_dir instead of
+       p_to_eye. */
+    float num_steps = 10.0;
+    num_steps = mix(num_steps * 3.0, num_steps, light_dir.z);
+
+    float step = 1.0 / num_steps;
+
+    vec2 delta = light_dir.xy * scale / (light_dir.z * num_steps);
+
+    /* Do the 1st step always, otherwise initial height = shadow_map_height
+       and we would be considered in our own shadow. */
+    float height = map_height + step;
+    vec2 shadow_texture_coord = texture_coord + delta;
+    float shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;
+
+    while (shadow_map_height < height && height < 1)
+    {
+      height += step;
+      shadow_texture_coord += delta;
+      shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;
+    }
+
+    if (shadow_map_height < height)
+    {
+      gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
+        diffuse_factor;
+    }
+  }
+#endif
 
   gl_FragColor *= texture2D(tex_original, texture_coord);
 
