@@ -21,15 +21,40 @@
 '' + LineEnding + 
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
+'#define STEEP_PARALLAX' + LineEnding + 
+'' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
+'  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);' + LineEnding + 
+'  vec2 texture_coord = gl_TexCoord[0].st;' + LineEnding + 
+'' + LineEnding + 
+'#ifndef STEEP_PARALLAX' + LineEnding + 
 '  /* I take "r" (red) component of tex_height_map.' + LineEnding + 
 '     When loading texture for tex_height_map, I made sure it''s grayscale' + LineEnding + 
 '     so I''m sure that all rgb components are the same. */' + LineEnding + 
 '  float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;' + LineEnding + 
-'  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);' + LineEnding + 
-'  vec2 texture_coord = height * p_to_eye.xy /* / p_to_eye.z*/;' + LineEnding + 
-'  texture_coord += gl_TexCoord[0].st;' + LineEnding + 
+'  texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;' + LineEnding + 
+'#else' + LineEnding + 
+'  const float num_steps = 5.0;' + LineEnding + 
+'  /* step could be simple const too, but we want to avoid letting' + LineEnding + 
+'     Radeon fglrx use float consts (they are incorrectly rounded to ints). */' + LineEnding + 
+'  float step = 1.0;' + LineEnding + 
+'  step /= num_steps;' + LineEnding + 
+'' + LineEnding + 
+'  /* TODO: is offset limiting, i.e. removal of ".z" useful here ?' + LineEnding + 
+'     Paper says "doesn''t matter". Test. */' + LineEnding + 
+'  vec2 delta = p_to_eye.xy * scale / (p_to_eye.z * num_steps);' + LineEnding + 
+'' + LineEnding + 
+'  float height_limit = 1.0;' + LineEnding + 
+'' + LineEnding + 
+'  float map_height = texture2D(tex_height_map, texture_coord).r;' + LineEnding + 
+'  while (map_height < height_limit)' + LineEnding + 
+'  {' + LineEnding + 
+'    height_limit -= step;' + LineEnding + 
+'    texture_coord += delta;' + LineEnding + 
+'    map_height = texture2D(tex_height_map, texture_coord).r;' + LineEnding + 
+'  }' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 '  /* gl_FragColor = all ambient lighting. */' + LineEnding + 
 '  gl_FragColor =' + LineEnding + 

@@ -2250,7 +2250,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           begin
             BmGLSLProgram[Parallax].SetUniform('tex_height_map', 2);
             BmGLSLProgram[Parallax].SetUniform('scale', HeightMapScale);
+            { TODO: temp unused for steep parallax mapping 
             BmGLSLProgram[Parallax].SetUniform('bias', -HeightMapScale/2);
+            }
           end;
           { TODO: this should restore previously bound program }
           BmGLSLProgram[Parallax].Disable;

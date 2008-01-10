@@ -19,15 +19,40 @@ varying vec3 light_dir_tangent;
 
 varying vec3 point_to_eye_in_tangent_space;
 
+#define STEEP_PARALLAX
+
 void main(void)
 {
+  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);
+  vec2 texture_coord = gl_TexCoord[0].st;
+
+#ifndef STEEP_PARALLAX
   /* I take "r" (red) component of tex_height_map.
      When loading texture for tex_height_map, I made sure it's grayscale
      so I'm sure that all rgb components are the same. */
   float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;
-  vec3 p_to_eye = normalize(point_to_eye_in_tangent_space);
-  vec2 texture_coord = height * p_to_eye.xy /* / p_to_eye.z*/;
-  texture_coord += gl_TexCoord[0].st;
+  texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;
+#else
+  const float num_steps = 5.0;
+  /* step could be simple const too, but we want to avoid letting
+     Radeon fglrx use float consts (they are incorrectly rounded to ints). */
+  float step = 1.0;
+  step /= num_steps;
+
+  /* TODO: is offset limiting, i.e. removal of ".z" useful here ?
+     Paper says "doesn't matter". Test. */
+  vec2 delta = p_to_eye.xy * scale / (p_to_eye.z * num_steps);
+
+  float height_limit = 1.0;
+
+  float map_height = texture2D(tex_height_map, texture_coord).r;
+  while (map_height < height_limit)
+  {
+    height_limit -= step;
+    texture_coord += delta;
+    map_height = texture2D(tex_height_map, texture_coord).r;
+  }
+#endif
 
   /* gl_FragColor = all ambient lighting. */
   gl_FragColor =
