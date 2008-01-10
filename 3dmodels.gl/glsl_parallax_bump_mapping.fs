@@ -33,22 +33,28 @@ void main(void)
   float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;
   texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;
 #else
-  const float num_steps = 5.0;
-  /* step could be simple const too, but we want to avoid letting
-     Radeon fglrx use float consts (they are incorrectly rounded to ints). */
-  float step = 1.0;
-  step /= num_steps;
+  float num_steps = 10.0;
+  /* At smaller view angles, much more iterations needed, otherwise ugly
+     aliasing arifacts quickly appear. I saw implementations that mix between
+     50 and 10 num_stepa --- really a lot of iterations. */
+  num_steps = mix(num_steps * 3, num_steps, p_to_eye.z);
 
-  /* TODO: is offset limiting, i.e. removal of ".z" useful here ?
-     Paper says "doesn't matter". Test. */
-  vec2 delta = p_to_eye.xy * scale / (p_to_eye.z * num_steps);
+  float step = 1.0 / num_steps;
 
-  float height_limit = 1.0;
+  /* Should we remove "p_to_eye.z" below, i.e. should we apply
+     "offset limiting" ? In works about steep parallax mapping,
+     p_to_eye.z is present, and in sample steep parallax mapping
+     shader they suggest that it doesn't really matter.
+     My tests confirm this, so I leave p_to_eye.z component. */
+
+  vec2 delta = -p_to_eye.xy * scale / (p_to_eye.z * num_steps);
+
+  float height = 1.0;
 
   float map_height = texture2D(tex_height_map, texture_coord).r;
-  while (map_height < height_limit)
+  while (map_height < height)
   {
-    height_limit -= step;
+    height -= step;
     texture_coord += delta;
     map_height = texture2D(tex_height_map, texture_coord).r;
   }

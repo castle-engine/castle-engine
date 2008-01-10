@@ -35,22 +35,28 @@
 '  float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;' + LineEnding + 
 '  texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;' + LineEnding + 
 '#else' + LineEnding + 
-'  const float num_steps = 5.0;' + LineEnding + 
-'  /* step could be simple const too, but we want to avoid letting' + LineEnding + 
-'     Radeon fglrx use float consts (they are incorrectly rounded to ints). */' + LineEnding + 
-'  float step = 1.0;' + LineEnding + 
-'  step /= num_steps;' + LineEnding + 
+'  float num_steps = 10.0;' + LineEnding + 
+'  /* At smaller view angles, much more iterations needed, otherwise ugly' + LineEnding + 
+'     aliasing arifacts quickly appear. I saw implementations that mix between' + LineEnding + 
+'     50 and 10 num_stepa --- really a lot of iterations. */' + LineEnding + 
+'  num_steps = mix(num_steps * 3, num_steps, p_to_eye.z);' + LineEnding + 
 '' + LineEnding + 
-'  /* TODO: is offset limiting, i.e. removal of ".z" useful here ?' + LineEnding + 
-'     Paper says "doesn''t matter". Test. */' + LineEnding + 
-'  vec2 delta = p_to_eye.xy * scale / (p_to_eye.z * num_steps);' + LineEnding + 
+'  float step = 1.0 / num_steps;' + LineEnding + 
 '' + LineEnding + 
-'  float height_limit = 1.0;' + LineEnding + 
+'  /* Should we remove "p_to_eye.z" below, i.e. should we apply' + LineEnding + 
+'     "offset limiting" ? In works about steep parallax mapping,' + LineEnding + 
+'     p_to_eye.z is present, and in sample steep parallax mapping' + LineEnding + 
+'     shader they suggest that it doesn''t really matter.' + LineEnding + 
+'     My tests confirm this, so I leave p_to_eye.z component. */' + LineEnding + 
+'' + LineEnding + 
+'  vec2 delta = -p_to_eye.xy * scale / (p_to_eye.z * num_steps);' + LineEnding + 
+'' + LineEnding + 
+'  float height = 1.0;' + LineEnding + 
 '' + LineEnding + 
 '  float map_height = texture2D(tex_height_map, texture_coord).r;' + LineEnding + 
-'  while (map_height < height_limit)' + LineEnding + 
+'  while (map_height < height)' + LineEnding + 
 '  {' + LineEnding + 
-'    height_limit -= step;' + LineEnding + 
+'    height -= step;' + LineEnding + 
 '    texture_coord += delta;' + LineEnding + 
 '    map_height = texture2D(tex_height_map, texture_coord).r;' + LineEnding + 
 '  }' + LineEnding + 
