@@ -37,7 +37,7 @@ void main(void)
   /* At smaller view angles, much more iterations needed, otherwise ugly
      aliasing arifacts quickly appear. I saw implementations that mix between
      50 and 10 num_stepa --- really a lot of iterations. */
-  num_steps = mix(num_steps * 3, num_steps, p_to_eye.z);
+  num_steps = mix(num_steps * 3.0, num_steps, p_to_eye.z);
 
   float step = 1.0 / num_steps;
 
