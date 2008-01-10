@@ -528,9 +528,6 @@ End:
   texture coord at each point; this way environment-mapped texture is
   modified with bumps from normal map)
 
-- Parallax mapping (show pdf), change texture coord to indicate
-  correct (with height map) texture place.
-
 - Displacement: actually change geometry. But smartly (like, depending
   on the camera position and dir with respect to surface plane).
   Don't ask me how...
