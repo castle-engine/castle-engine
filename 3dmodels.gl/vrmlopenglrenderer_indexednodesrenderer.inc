@@ -200,6 +200,7 @@ type
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
     TexOriginal, TexNormalMap, TexHeightMap, TexNormalizationCube: TGLuint;
     TexOriginalAlpha, BmParallax: boolean;
+    TexHeightMapScale: Single;
 
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
@@ -1055,6 +1056,14 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     Renderer.BmGLSLProgram[BmParallax].Enable;
     Renderer.BmGLSLProgram[BmParallax].SetUniform('world_space_to_object',
       Renderer.Render_State.InvertedTransform);
+
+    if BmParallax then
+    begin
+      Renderer.BmGLSLProgram[BmParallax].SetUniform('scale', TexHeightMapScale);
+      { TODO: unused for steep parallax mapping, should be done for classic
+      Renderer.BmGLSLProgram[BmParallax].SetUniform('bias', -TexHeightMapScale/2);
+      }
+    end;
 
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));
   end;
