@@ -18,27 +18,27 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Bump mapping demo. Three methods:
+{ Bump mapping demo. Methods:
   1. Emboss.
-  2. Dot3 (with or without normalization).
+  2. Dot3 using multitexturing (with or without normalization).
   3. VRML auto-detected. This is not really a single method, VRML engine
      inside auto-detects and uses one of the following methods
-     - dot3 (with or without normalization).
-     - GLSL
+     - dot3 using multitexturing (with or without normalization).
+     - GLSL (various versions, with parallax mapping,
+       and steep parallax mapping (with self-shadowing))
   GLSL method is by far the best, fastest and best looking approach, although
   requires the newest hardware (supprorting GLSL through ARB extension
   or GL >= 2.0 standard).
 
   Keys:
-  eE change scale of emboss effect.
   awsd change light position[x, y], qQ change light position[z]
-  h switch emboss shift from automatic (from light in tangent space) to by hand
+  eE change scale of emboss effect.
   ijkl change emboss shift (if in "by hand" mode)
-  m changes bump mapping method (emboss / dot3 / auto-detected in vrml)
-  b reverts EmbossAlphaMultiplyByBlending (means that only 2 texture units will be enough)
-  n reverts NormalizedDot3First
   enter changes navigation mode (examiner / walker)
 
+  See menu shortcuts for other keys.
+
+  For navigation:
   Keys the same as [http://vrmlengine.sf.net/view3dscene.php] for examiner mode:
     page up, page down, arrows: rotate the scene
     space: stop rotating
