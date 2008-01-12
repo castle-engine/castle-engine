@@ -22,7 +22,10 @@
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
 '#define STEEP' + LineEnding + 
-'#define STEEP_SHADOW' + LineEnding + 
+'#ifdef STEEP' + LineEnding + 
+'  /* You can define STEEP_SHADOW only if STEEP is defined. */' + LineEnding + 
+'  #define STEEP_SHADOW' + LineEnding + 
+'#endif' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 

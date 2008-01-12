@@ -20,7 +20,10 @@ varying vec3 light_dir_tangent;
 varying vec3 point_to_eye_in_tangent_space;
 
 #define STEEP
-#define STEEP_SHADOW
+#ifdef STEEP
+  /* You can define STEEP_SHADOW only if STEEP is defined. */
+  #define STEEP_SHADOW
+#endif
 
 void main(void)
 {
