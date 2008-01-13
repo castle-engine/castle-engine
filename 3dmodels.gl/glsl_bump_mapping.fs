@@ -67,9 +67,9 @@ void main(void)
 
   gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);
 
-/* This is more close to what bmDot3Normalized method did
+/* This is more close to what bmMultiTexDotNormalized method did
    (but it's less correct and generally worse. I present it here
-   only to visually compare bmDot3Normalized and bmGLSL,
+   only to visually compare bmMultiTexDotNormalized and bmGLSL,
    to see that they are able to calculate the same.)
 */
 /*

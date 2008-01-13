@@ -158,20 +158,4 @@ void main(void)
 #endif
 
   gl_FragColor *= texture2D(tex_original, texture_coord);
-
-/* This is more close to what bmDot3Normalized method did
-   (but it's less correct and generally worse. I present it here
-   only to visually compare bmDot3Normalized and bmGLSL,
-   to see that they are able to calculate the same.)
-*/
-/*
-  gl_FragColor =
-    //gl_FrontLightModelProduct.sceneColor +
-    gl_FrontLightProduct[0].ambient +
-    gl_FrontLightProduct[0].diffuse;
-
-  gl_FragColor *= texture2D(tex_original, texture_coord);
-
-  gl_FragColor *= max(dot(normal, light_dir), 0.0);
-*/
 }

@@ -834,7 +834,7 @@ type
 
       You can change this at any time, and we will automatically do
       everything needed to properly update this on next render.
-      But note that when BumpMappingMethod = one of bmDot3* values,
+      But note that when BumpMappingMethod = one of bmMultiTex* values,
       changing BumpMappingLightPosition means that we have to rebuild some
       resources (display lists etc.). So changing BumpMappingLightPosition
       becomes really costly operation, unless Optimization = roNone.
@@ -850,7 +850,7 @@ type
 
       But roNone means that you lose some other optimizations, so it may
       be not desirable... in pratice, it's usually best decision to not update
-      BumpMappingLightPosition too often if BumpMappingMethod = one of bmDot3*. }
+      BumpMappingLightPosition too often if BumpMappingMethod = one of bmMultiTex*. }
     property BumpMappingLightPosition: TVector3Single
       read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
 
@@ -2622,10 +2622,11 @@ procedure TVRMLFlatSceneGL.SetBumpMappingLightPosition(const Value: TVector3Sing
 begin
   Renderer.BumpMappingLightPosition := Value;
 
-  { For BumpMappingMethod in bmDot3*, we have to remake display lists
+  { For BumpMappingMethod in bmMultiTex*, we have to remake display lists
     after BumpMappingLightPosition changed. }
 
-  if (Renderer.BumpMappingMethod in [bmDot3NotNormalized, bmDot3Normalized]) and
+  if (Renderer.BumpMappingMethod in
+       [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized]) and
      (Optimization <> roNone) then
     CloseGLRenderer;
 end;

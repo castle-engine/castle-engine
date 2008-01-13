@@ -879,7 +879,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
 
     { set all textures coordinates }
     case BumpMappingMethod of
-      bmDot3NotNormalized:
+      bmMultiTexDotNotNormalized:
         begin
           LightDirTangent := CalculateLightDirTangent;
           NormalizeTo1st(LightDirTangent);
@@ -893,7 +893,7 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
           glMultiTexCoord2fARB(GL_TEXTURE1_ARB, Tex[0], Tex[1]);
         end;
 
-      bmDot3Normalized:
+      bmMultiTexDotNormalized:
         begin
           LightDirTangent := CalculateLightDirTangent;
           glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
@@ -950,7 +950,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     end;
   end;
 
-  procedure EnableForDot3NotNormalized;
+  procedure EnableForMultiTexDotNotNormalized;
   begin
     Renderer.ActiveTexture(0);
     glBindTexture(GL_TEXTURE_2D, TexNormalMap);
@@ -984,7 +984,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
       Renderer.BumpMappingLightPosition);
   end;
 
-  procedure EnableForDot3Normalized;
+  procedure EnableForMultiTexDotNormalized;
   begin
     { texture unit 0: just lookup your coordinates (which are
       3D lighting dir, not normalized) in cube map.
@@ -1038,7 +1038,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
 
   procedure EnableForGLSL;
   begin
-    { This binds textures in the same way as EnableForDot3NotNormalized,
+    { This binds textures in the same way as EnableForMultiTexDotNotNormalized,
       but this doesn't call glTexEnvi or glEnable(GL_TEXTURE_2D)
       (it's useless, shader will control this). }
     Renderer.ActiveTexture(0);
@@ -1071,9 +1071,9 @@ begin
   if BumpMappingMethod <> bmNone then
   begin
     case BumpMappingMethod of
-      bmDot3NotNormalized: EnableForDot3NotNormalized;
-      bmDot3Normalized   : EnableForDot3Normalized;
-      bmGLSL             : EnableForGLSL;
+      bmMultiTexDotNotNormalized: EnableForMultiTexDotNotNormalized;
+      bmMultiTexDotNormalized   : EnableForMultiTexDotNormalized;
+      bmGLSL                    : EnableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;
@@ -1116,7 +1116,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     - the currently bound texture is left unspecified
     These must be set always when anything will enable some texture. }
 
-  procedure DisableForDot3NotNormalized;
+  procedure DisableForMultiTexDotNotNormalized;
   begin
     Renderer.ActiveTexture(0);
     glDisable(GL_TEXTURE_2D);
@@ -1125,7 +1125,7 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     glDisable(GL_TEXTURE_2D);
   end;
 
-  procedure DisableForDot3Normalized;
+  procedure DisableForMultiTexDotNormalized;
   begin
     { texture unit 0: just lookup your coordinates (which are
       3D lighting dir, not normalized) in cube map.
@@ -1158,9 +1158,9 @@ begin
   if BumpMappingMethod <> bmNone then
   begin
     case BumpMappingMethod of
-      bmDot3NotNormalized: DisableForDot3NotNormalized;
-      bmDot3Normalized   : DisableForDot3Normalized;
-      bmGLSL             : DisableForGLSL;
+      bmMultiTexDotNotNormalized: DisableForMultiTexDotNotNormalized;
+      bmMultiTexDotNormalized   : DisableForMultiTexDotNormalized;
+      bmGLSL                    : DisableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;

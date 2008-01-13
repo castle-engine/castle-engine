@@ -14,7 +14,7 @@ Like 2D effect. Take image, shift, subtract --- this tells how to scale color
 More math speaking, we're calculating derivative, actually gradient
 (gradient = 2d derivative) and calculating gradient is how we calculate normals
 from height map. This is also the answer to "auto generation of normal
-maps from height maps", useful for dot3 method much later.
+maps from height maps", useful for dot method much later.
 
 First, overview of OpenGL multitexturing:
 
@@ -256,7 +256,7 @@ http://www.realtimerendering.com/#texture
 
 TODO: auto generation of lighter images for emboss
 ------------------------------------------------------------------------------
-Dot3 bump mapping:
+Dot bump mapping (using multitexturing):
 
 Requirement: texture combine function DOT3_RGB_ARB. Added by
 ARB_texture_env_dot3 extension (obviously depends on ARB_multitexture
@@ -301,11 +301,11 @@ Idea:
       Although you could add ambient by another texture unit, adding
       some constant color.
 
-      And dot3 also allows to calculate speculars: probably 2nd pass needed
+      And this method also allows to calculate speculars: probably 2nd pass needed
       for this, and some tricks with textures or pixel shader to calculate
       exponent in texture unit, newer pixel shader has calculating exps
       built-in. I didn't do it, but Haines+Moller say it's doable all right,
-      and in fact this is one of advantages of dot3 over emboss.
+      and in fact this is one of advantages of dot product over emboss.
 
    b) texCoord3f (texture coords are obviously interpolated by gl).
       Then texture unit can use
@@ -327,7 +327,7 @@ bump_amount in emboss bump mapping.
 
 http://nehe.gamedev.net/data/articles/article.asp?article=20
 
-Nice explanation of dot3:
+Nice explanation of dot product bump mapping (using multitex):
 http://www.paulsprojects.net/tutorials/simplebump/simplebump.html
 (testing shell_normalmap from there)
 (although there code does 2-pass, while we did 1-pass with 3 texture units
@@ -495,6 +495,12 @@ normal maps and height maps require filtering for the same reason as
 normal material textures, no escape from this.
 
 ------------------------------------------------------------------------------
+See
+../../glsl_bump_mapping.vs
+../../glsl_bump_mapping.fs
+for implementation of bump mapping using GLSL.
+
+------------------------------------------------------------------------------
 Parallax mapping:
 
 Basic idea is just to do h * E.xy / E.z.
@@ -524,6 +530,11 @@ http://ati.amd.com/developer/gdc/2006/GDC06-Tatarchuk-Parallax_Occlusion_Mapping
 Steep parallax allows us also to do self-shadowing within the surface.
 Trivial, just repeat the mini-ray-tracer algorithm,
 tracing the direction to the light.
+
+See
+../../glsl_parallax_bump_mapping.vs
+../../glsl_parallax_bump_mapping.fs
+for implementation of this in GLSL.
 
 ------------------------------------------------------------------------------
 End:

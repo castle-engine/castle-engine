@@ -558,7 +558,7 @@ type
 
       There are some TODOs related to this:
       @unorderedList(
-        @item(bmDot3* methods dont' take texture transform into account correctly.)
+        @item(bmMultiTexDot* methods don't take texture transform into account correctly.)
         @item(
           We are able to calculate s/t tangent vectors (and so do bump mapping)
           only on IndexedFaceSet with explicit texture coords for now.
@@ -847,12 +847,12 @@ type
     { No bump mapping done. }
     bmNone,
 
-    { Most primitive dot3 bump mapping using multitexturing.
+    { Most primitive "dot" bump mapping using multitexturing.
       Requires 2 texture units.
 
       Light position in tangent space is calculated each time we render the
       scene. This is important if you change
-      TVRMLOpenGLRenderer.BumpMappingLightPosition: with bmDot3NotNormalized,
+      TVRMLOpenGLRenderer.BumpMappingLightPosition: with bmMultiTexDot*,
       after changing BumpMappingLightPosition you have to render the scene
       using TVRMLOpenGLRenderer again. Which means that display lists
       built by TVRMLFlatSceneGL cannot be reused.
@@ -870,20 +870,24 @@ type
           "no optimization" and the whole rendering of your model may suffer...
           In other words, this solution is suitable only if your model is
           relatively simple, such that rendering it with roNone is Ok.)) }
-    bmDot3NotNormalized,
+    bmMultiTexDotNotNormalized,
 
-    { Dot3 bump mapping using multitexturing (with normalization using cube map).
+    { Dot product bump mapping using multitexturing
+      (with normalization using cube map).
       Requires 3 texture units.
 
-      This is very similar to previous method (bmDot3NotNormalized), but
+      This is very similar to previous method (bmMultiTexDotNotNormalized), but
       normalizes normals at each pixel by special cube map. This makes better
       effect, but means that 1 more texture unit is required.
 
-      All other comments about bmDot3NotNormalized apply also here.
+      All other comments about bmMultiTexDotNotNormalized apply also here.
       In particular, if you use TVRMLFlatSceneGL then either
-      1. don't modify BumpMappingLightPosition too often or
-      2. use roNone optimization. }
-    bmDot3Normalized,
+      @orderedList(
+        @itemSpacing compact
+        @item don't modify BumpMappingLightPosition too often or
+        @item use roNone optimization.
+      ) }
+    bmMultiTexDotNormalized,
 
     { Normal (calculate light by "dot" per pixel) bump mapping using GLSL
       shader.
@@ -1135,7 +1139,7 @@ type
     { Sets light position used for bump mapping.
       This is meaningful if BumpMappingMethod <> bmNone.
 
-      If BumpMappingMethod is bmDot3*, then this simply sets internal variable.
+      If BumpMappingMethod is bmMultiTexDot*, then this simply sets internal variable.
       You have to actually render model (that is, call RenderBegin +
       RenderShapeState...) to use new BumpMappingLightPosition.
       If you stored rendering results in display lists, you have bad luck
@@ -2219,7 +2223,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     ProgramDefines: string;
   begin
     case BumpMappingMethod of
-      bmDot3Normalized:
+      bmMultiTexDotNormalized:
         if TexNormalizationCube = 0 then
         begin
           TexNormalizationCube := MakeNormalizationCubeMap;
@@ -2630,21 +2634,23 @@ begin
     { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
     GL_ARB_texture_env_dot3 and
 
-    { 2 texture units for Dot3 (without normalization; GLSL does
-      normalization in shader, so it also requires only 2 units) }
+    { At least 2 texture units (for MultiTexDotNotNormalized,
+      or for GLSL that does normalization in shader, without
+      the need for additional texture) }
     (TextureUnitsAvailable >= 2) then
   begin
+    { TODO: parallax requires one more tex unit }
     if TGLSLProgram.ClassSupport <> gsNone then
       Result := bmGLSL else
     if
-      { ARB_texture_cube_map required for Dot3Normalized (TODO: standard since 1.3, see above comments) }
+      { ARB_texture_cube_map required for bmMultiTexDotNormalized (TODO: standard since 1.3, see above comments) }
       GL_ARB_texture_cube_map and
 
-      { 2 texture units for Dot3Normalized }
+      { one more texture unit for bmMultiTexDotNormalized }
       (TextureUnitsAvailable >= 3) then
 
-      Result := bmDot3Normalized else
-      Result := bmDot3NotNormalized;
+      Result := bmMultiTexDotNormalized else
+      Result := bmMultiTexDotNotNormalized;
   end else
     Result := bmNone;
 end;

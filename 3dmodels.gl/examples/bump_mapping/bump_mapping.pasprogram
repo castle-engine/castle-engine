@@ -72,7 +72,7 @@ const
     ( 14,  8,  3) );
 
 type
-  TBumpMethod = (bmEmboss, bmDot3, bmVRML);
+  TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
 
 var
   { normal texture is for all methods, bumps in alpha for emboss only }
@@ -93,7 +93,7 @@ var
 
   Scene: TVRMLFlatSceneGL;
 
-  { Vars below for emboss only }
+  { Vars below for bmEmboss only }
 
   LighterAndBumpTex: array [0..High(NormalAndBumpTex)] of TGLuint;
 
@@ -107,13 +107,15 @@ var
 
   EmbossAlphaMultiplyByBlending: boolean = false;
 
-  { Vars below for dot3 only }
+  { Vars below for bmMultiTexDot only }
 
   NormalMap: array [0..High(NormalAndBumpTex)] of TGLuint;
 
   NormalizationCubeTex: TGLuint;
 
   NormalizedDot3First: boolean = false;
+
+  { Vars below for bmVRML only }
 
   { Default TVRMLRenderingAttributes.BumpMappingParallax is false for now,
     for maximum stability, but in this program by default parallax is allowed
@@ -789,7 +791,7 @@ var
 
     case Method of
       bmEmboss: DrawEmbossCubes;
-      bmDot3: DrawDot3Cubes;
+      bmMultiTexDot: DrawDot3Cubes;
       else raise EInternalError.Create('method?');
     end;
   end;
@@ -798,7 +800,8 @@ var
   var
     S: string;
   const
-    MethodNames: array [TBumpMethod] of string = ('emboss', 'dot3', 'built in VRML');
+    MethodNames: array [TBumpMethod] of string =
+    ('emboss', 'dot3 by multitexturing', 'built in VRML');
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_DEPTH_TEST);
@@ -813,7 +816,8 @@ var
       if ShiftByHand then
         S += Format('Shift: %f %f' +nl, [XShift, YShift]) else
         S += 'Shift automatic from tangent space light position' + nl;
-      S += Format('Dot3 normalized first (for quick visual compare): %s', [BoolToStr[NormalizedDot3First]]) +nl;
+      S += Format('Dot3 normalized first (for quick visual compare): %s',
+        [BoolToStr[NormalizedDot3First]]) +nl;
       S += Format('Emboss scale: %f', [EmbossScale]) + nl;
       S += Format('Emboss alpha multiply by blending: %s',
         [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;

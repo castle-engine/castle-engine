@@ -25,11 +25,12 @@ begin
   if ( (IndexedRenderer <> nil) and
        (IndexedRenderer.BumpMappingMethod <> bmNone) ) then
   begin
-    { When doing bump mapping by Dot3*, we turn off lighting.
+    { When doing bump mapping by bmMultiTex*, we turn off lighting.
       Bump mapping will calculate it per-pixel anyway.
 
-      In case of Dot3Normalized, UnlitColor will be applied (mixed with
-      original texture to give primary_color). In case of Dot3NotNormalized,
+      In case of bmMultiTexDotNormalized, UnlitColor will be
+      applied (mixed with original texture to give primary_color).
+      In case of bmMultiTexDotNotNormalized,
       UnlitColor will be ignored (we'll use glColor to pass light dir). }
 
     { When doing bump mapping by bmGLSL, we always turn on lighting.

@@ -69,9 +69,9 @@
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, gl_TexCoord[0].st);' + LineEnding + 
 '' + LineEnding + 
-'/* This is more close to what bmDot3Normalized method did' + LineEnding + 
+'/* This is more close to what bmMultiTexDotNormalized method did' + LineEnding + 
 '   (but it''s less correct and generally worse. I present it here' + LineEnding + 
-'   only to visually compare bmDot3Normalized and bmGLSL,' + LineEnding + 
+'   only to visually compare bmMultiTexDotNormalized and bmGLSL,' + LineEnding + 
 '   to see that they are able to calculate the same.)' + LineEnding + 
 '*/' + LineEnding + 
 '/*' + LineEnding + 

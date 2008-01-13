@@ -160,21 +160,5 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, texture_coord);' + LineEnding + 
-'' + LineEnding + 
-'/* This is more close to what bmDot3Normalized method did' + LineEnding + 
-'   (but it''s less correct and generally worse. I present it here' + LineEnding + 
-'   only to visually compare bmDot3Normalized and bmGLSL,' + LineEnding + 
-'   to see that they are able to calculate the same.)' + LineEnding + 
-'*/' + LineEnding + 
-'/*' + LineEnding + 
-'  gl_FragColor =' + LineEnding + 
-'    //gl_FrontLightModelProduct.sceneColor +' + LineEnding + 
-'    gl_FrontLightProduct[0].ambient +' + LineEnding + 
-'    gl_FrontLightProduct[0].diffuse;' + LineEnding + 
-'' + LineEnding + 
-'  gl_FragColor *= texture2D(tex_original, texture_coord);' + LineEnding + 
-'' + LineEnding + 
-'  gl_FragColor *= max(dot(normal, light_dir), 0.0);' + LineEnding + 
-'*/' + LineEnding + 
 '}' + LineEnding + 
 ''
