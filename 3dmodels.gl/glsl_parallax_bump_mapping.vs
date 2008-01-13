@@ -6,8 +6,6 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-#version 110
-
 uniform vec3 light_position_world_space;
 uniform mat4 world_space_to_object;
 

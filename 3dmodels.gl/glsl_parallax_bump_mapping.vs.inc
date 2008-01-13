@@ -8,8 +8,6 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'#version 110' + LineEnding + 
-'' + LineEnding + 
 'uniform vec3 light_position_world_space;' + LineEnding + 
 'uniform mat4 world_space_to_object;' + LineEnding + 
 '' + LineEnding + 

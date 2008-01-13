@@ -332,6 +332,7 @@ uses
 const
   DefaultBumpMappingLightAmbientColor: TVector4Single = (0, 0, 0, 1);
   DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
+  DefaultBumpMappingParallax = false;
 
 type
   TBeforeGLVertexProc = procedure (Node: TNodeGeneralShape;
@@ -545,7 +546,8 @@ type
       some OpenGL capabilities (some extensions present, and enough texture
       units available). And naturally it comes to use only if
       VRML model will use normalMap extension for some shapes nodes.
-      If heightMap is also defined, parallax mapping will be used.
+      If heightMap is also defined, and BumpMappingParallax is @true,
+      parallax mapping will be used.
 
       You have to update Renderer.BumpMappingLightPosition if you enable
       BumpMapping, to actually specify how bumps should appear.
@@ -574,7 +576,8 @@ type
       This is only used if BumpMapping = @true, and only if the surface
       actually has both normalMap and heightMap information. }
     property BumpMappingParallax: boolean
-      read FBumpMappingParallax write SetBumpMappingParallax default true;
+      read FBumpMappingParallax write SetBumpMappingParallax
+      default DefaultBumpMappingParallax;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -912,7 +915,8 @@ type
       )
 
       If the heightMap of the surface is available (in addition to normalMap)
-      then this can do parallax mapping. }
+      then this can do parallax mapping (steep parallax mapping with
+      self-shadowing, if supported by hardware). }
     bmGLSL);
 
   TVRMLOpenGLRenderer = class
@@ -947,6 +951,11 @@ type
       Boolean index indicates whether it's the version with parallax
       mapping. }
     BmGLSLProgram: array[boolean] of TGLSLProgram;
+    { Only if BumpMappingMethod = bmGLSL and BmGLSLProgram[true] is prepared
+      (GLSL program for bump mapping with parallax mapping)
+      this will indicate whether we prepared version with or without
+      "steep" parallax mapping. }
+    BmSteepParallaxMapping: boolean;
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
@@ -1187,7 +1196,7 @@ const
 implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils, GLVersionUnit, GLImages;
+  KambiStringUtils, GLVersionUnit, GLImages, KambiLog;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1951,7 +1960,7 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := 3.0;
   FUseFog := true;
-  FBumpMappingParallax := true;
+  FBumpMappingParallax := DefaultBumpMappingParallax;
   FGLSLShaders := true;
 end;
 
@@ -2103,6 +2112,9 @@ begin
   FBumpMappingLightAmbientColor := DefaultBumpMappingLightAmbientColor;
   FBumpMappingLightDiffuseColor := DefaultBumpMappingLightDiffuseColor;
 
+  { asumme that "steep" version of parallax mapping is possible }
+  BmSteepParallaxMapping := true;
+
   FAttributes := AttributesClass.Create;
   TextureReferences := TDynTextureReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
@@ -2203,6 +2215,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     may be actually used. This is supposed to initialize anything related to
     BumpMapping. }
   procedure PrepareBumpMapping(Parallax: boolean);
+  var
+    ProgramDefines: string;
   begin
     case BumpMappingMethod of
       bmDot3Normalized:
@@ -2215,23 +2229,67 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
         if BmGLSLProgram[Parallax] = nil then
         begin
           BmGLSLProgram[Parallax] := TGLSLProgram.Create;
+
           { If BumpMappingMethod is bmGLSL, then we checked in BumpMappingMethod
             that support is <> gsNone }
-
           Assert(BmGLSLProgram[Parallax].Support <> gsNone);
-          if Parallax then
-          begin
-            BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_parallax_bump_mapping.vs.inc});
-            BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_parallax_bump_mapping.fs.inc});
-          end else
-          begin
-            BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_bump_mapping.vs.inc});
-            BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
-          end;
 
-          { set uniform samplers, so that fragment shader has access
-            to both bound textures }
-          BmGLSLProgram[Parallax].Link;
+          try
+            if Parallax then
+            begin
+              { ATI Mobility Radeon X1600 (on Mac Book Pro, computer "chantal")
+                says that
+                  #version must occur before any other statement in the program
+                At the same time, NVidia requires this #version... To be
+                absolutely clean, I just place #version here, at the very
+                beginning of shader source. }
+              ProgramDefines := '#version 110' + LineEnding;
+
+              if BmSteepParallaxMapping then
+                ProgramDefines += '#define STEEP' + LineEnding else
+                ProgramDefines += '';
+
+              BmGLSLProgram[Parallax].AttachVertexShader(
+                ProgramDefines + {$I glsl_parallax_bump_mapping.vs.inc});
+              BmGLSLProgram[Parallax].AttachFragmentShader(
+                ProgramDefines + {$I glsl_parallax_bump_mapping.fs.inc});
+            end else
+            begin
+              BmGLSLProgram[Parallax].AttachVertexShader({$I glsl_bump_mapping.vs.inc});
+              BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
+            end;
+
+            { set uniform samplers, so that fragment shader has access
+              to both bound textures }
+            BmGLSLProgram[Parallax].Link;
+
+            if Log then
+              WritelnLog('Bump mapping',
+                Format('Compiled and linked GLSL program for ' +
+                  'bump mapping. Parallax: %s (if true: steep parallax ' +
+                  'with self-shadowing: %s).',
+                  [BoolToStr[Parallax], BoolToStr[BmSteepParallaxMapping]]));
+          except
+            on E: EGLSLError do
+            begin
+              if Parallax and BmSteepParallaxMapping then
+              begin
+                { If we failed with compiling/linking steep parallax mapping,
+                  retry without BmSteepParallaxMapping.
+                  This happens e.g. on NVidia GeForce FX 5200
+                  ("kocury home" computer). }
+                if Log then
+                  WritelnLog('Bump mapping', 'Steep parallax mapping program ' +
+                    'not compiled or linked, falling back to classic parallax.');
+
+                FreeAndNil(BmGLSLProgram[Parallax]);
+                BmSteepParallaxMapping := false;
+                PrepareBumpMapping(Parallax);
+                Exit;
+              end else
+                raise;
+            end;
+          end;
 
           { tests: Writeln(BmGLSLProgram[Parallax].DebugInfo); }
 
@@ -2459,6 +2517,9 @@ begin
   FLastGLFreeTexture := -1;
   BumpMappingMethodIsCached := false;
 
+  { asumme that "steep" version of parallax mapping is possible }
+  BmSteepParallaxMapping := true;
+
   {niszcz fonty}
   for fsfam := Low(fsfam) to High(fsfam) do
     for fsbold := Low(boolean) to High(boolean) do
@@ -2596,6 +2657,10 @@ begin
       Attributes.FirstGLFreeTexture,
       LastGLFreeTexture,
       Attributes.BumpMapping, Attributes.EnableTextures);
+
+    if Log then
+      WritelnLog('Bump mapping', 'Bump mapping method detected: "' +
+        BumpMappingMethodNames[BumpMappingMethodCached] + '"');
 
     BumpMappingMethodIsCached := true;
   end;

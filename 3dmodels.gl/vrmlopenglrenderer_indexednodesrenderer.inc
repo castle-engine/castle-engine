@@ -1060,9 +1060,8 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     if BmParallax then
     begin
       Renderer.BmGLSLProgram[BmParallax].SetUniform('scale', TexHeightMapScale);
-      { TODO: unused for steep parallax mapping, should be done for classic
-      Renderer.BmGLSLProgram[BmParallax].SetUniform('bias', -TexHeightMapScale/2);
-      }
+      if not Renderer.BmSteepParallaxMapping then
+        Renderer.BmGLSLProgram[BmParallax].SetUniform('bias', -TexHeightMapScale/2);
     end;
 
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 1, 1));

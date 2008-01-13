@@ -21,7 +21,11 @@
 '' + LineEnding + 
 'varying vec3 point_to_eye_in_tangent_space;' + LineEnding + 
 '' + LineEnding + 
+'/* This will be defined (or not) right before compilation of this file,' + LineEnding + 
+'   see VRMLOpenGLRenderer.pas.' + LineEnding + 
 '#define STEEP' + LineEnding + 
+'*/' + LineEnding + 
+'' + LineEnding + 
 '#ifdef STEEP' + LineEnding + 
 '  /* You can define STEEP_SHADOW only if STEEP is also defined.' + LineEnding + 
 '     (Although it is possible to implement self-shadowing with still shifting' + LineEnding + 
@@ -36,11 +40,11 @@
 '   fast on ATI on MacBookPro.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'const int steep_steps_min = 10;' + LineEnding + 
-'const int steep_steps_max = 30;' + LineEnding + 
+'const float steep_steps_min = 10.0;' + LineEnding + 
+'const float steep_steps_max = 30.0;' + LineEnding + 
 '' + LineEnding + 
-'const int steep_shadow_steps_min = 10;' + LineEnding + 
-'const int steep_shadow_steps_max = 30;' + LineEnding + 
+'const float steep_shadow_steps_min = 10.0;' + LineEnding + 
+'const float steep_shadow_steps_max = 30.0;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 

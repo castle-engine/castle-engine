@@ -50,6 +50,9 @@
 
   1st command-line param may be filename of VRML to initially load
   (otherwise will load default demo in vrmldata/ subdir).
+  You may run with --log to see many log messages, in particular
+  the ones starting with "Bump mapping" --- they will tell you e.g.
+  whether steep parallax mapping program is successfully compiled and used.
 }
 program bump_mapping;
 
@@ -58,6 +61,7 @@ uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, Keys,
   NormalizationCubeMap, GLImages, GLVersionUnit,
+  ParseParametersUnit, KambiLog,
   { VRML-related units: }
   VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization;
@@ -110,6 +114,11 @@ var
   NormalizationCubeTex: TGLuint;
 
   NormalizedDot3First: boolean = false;
+
+  { Default TVRMLRenderingAttributes.BumpMappingParallax is false for now,
+    for maximum stability, but in this program by default parallax is allowed
+    (to show the effect). }
+  ParallaxMappingAllowed: boolean = true;
 
 { ---------------------------------------------------------------------------- }
 
@@ -197,6 +206,7 @@ begin
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
   Scene.Attributes.BumpMapping := true;
+  Scene.Attributes.BumpMappingParallax := ParallaxMappingAllowed;
 end;
 
 { Some preparations for bmVRML, to make it look better.
@@ -812,7 +822,7 @@ var
       S += Format('VRML optimization used: %s',
         [RendererOptimizationNames[Scene.Optimization]]) + nl;
       S += Format('VRML parallax mapping allowed: %s',
-        [BoolToStr[Scene.Attributes.BumpMappingParallax]]);
+        [BoolToStr[ParallaxMappingAllowed]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -1116,8 +1126,12 @@ begin
         if Glwin.ColorDialog(C) then
           Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
       end;
-    650: Scene.Attributes.BumpMappingParallax :=
-           not Scene.Attributes.BumpMappingParallax;
+    650:
+      begin
+        Assert(ParallaxMappingAllowed = Scene.Attributes.BumpMappingParallax);
+        ParallaxMappingAllowed := not ParallaxMappingAllowed;
+        Scene.Attributes.BumpMappingParallax := ParallaxMappingAllowed;
+      end;
   end;
 end;
 
@@ -1154,13 +1168,26 @@ begin
     M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Parallax Mapping Allowed', 650, CtrlP,
-      {default value of Scene.Attributes.BumpMappingParallax} true, true));
+      ParallaxMappingAllowed, true));
     Result.Append(M);
 end;
+
+const
+  Options: array[0..0] of TOption =
+  ( (Short:  #0; Long: 'log'; Argument: oaNone) );
+
+  procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+    const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+  begin
+    case OptionNum of
+      0: InitializeLog('(no version)');
+    end;
+  end;
 
 begin
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
+  ParseParameters(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
   if Parameters.High >= 1 then
     VrmlFileName := Parameters[1];
