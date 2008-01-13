@@ -21,9 +21,24 @@ varying vec3 point_to_eye_in_tangent_space;
 
 #define STEEP
 #ifdef STEEP
-  /* You can define STEEP_SHADOW only if STEEP is defined. */
+  /* You can define STEEP_SHADOW only if STEEP is also defined.
+     (Although it is possible to implement self-shadowing with still shifting
+     tex coord with classic (no steep) parallax mapping, it's not implemented.)
+  */
   #define STEEP_SHADOW
 #endif
+
+/* Number of steps for steep mapping.
+   I saw implementations that mix between 50 and 10 num_steps.
+   Mixing between 10 and 30 seems to give quite good results, and is really
+   fast on ATI on MacBookPro.
+*/
+
+const int steep_steps_min = 10;
+const int steep_steps_max = 30;
+
+const int steep_shadow_steps_min = 10;
+const int steep_shadow_steps_max = 30;
 
 void main(void)
 {
@@ -37,11 +52,9 @@ void main(void)
   float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;
   texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;
 #else
-  float num_steps = 10.0;
   /* At smaller view angles, much more iterations needed, otherwise ugly
-     aliasing arifacts quickly appear. I saw implementations that mix between
-     50 and 10 num_stepa --- really a lot of iterations. */
-  num_steps = mix(num_steps * 3.0, num_steps, p_to_eye.z);
+     aliasing arifacts quickly appear. */
+  float num_steps = mix(steep_steps_max, steep_steps_min, p_to_eye.z);
 
   float step = 1.0 / num_steps;
 
@@ -56,6 +69,21 @@ void main(void)
   float height = 1.0;
 
   float map_height = texture2D(tex_height_map, texture_coord).r;
+
+  /* It's known problem that NVidia GeForce FX 5200 fails here with
+
+       error C5011: profile does not support "while" statements
+       and "while" could not be unrolled.
+
+     I could workaround this problem (by using
+       for (int i = 0; i < steep_steps_max; i++)
+     loop and
+       if (! (map_height < height)) break;
+     , this is possible to unroll). But it turns out that this still
+     (even with steep_steps_max = 1) works much too slow on this hardware...
+     so I simply fallback to non-steep version of parallax mapping
+     if this doesn't compile. */
+
   while (map_height < height)
   {
     height -= step;
@@ -77,34 +105,28 @@ void main(void)
   vec3 normal = vec3(
     texture2D(tex_normal_map, texture_coord)) * 2.0 - vec3(1, 1, 1);
 
-  /* I want to do two-sided lighting, so I want to have normal
-     pointing from this side of the face that is currently displayed.
-     Current normal is for front face, so negate it if backfacing.
-     Since this is in tangent space, "negate" means only negate it's z
-     component.
+  /* TODO: two-sided lighting.
+     See glsl_bump_mapping.fs for comments why it's not done now.
 
-     Alt version of this, not using "if" just in case for future:
-       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));
-  */
-/*  if (!gl_FrontFacing)
+  if (!gl_FrontFacing)
     normal.z = -normal.z;
-*/
+  */
+
   /* gl_FragColor += diffuse lighting */
+  float diffuse_factor = dot(normal, light_dir);
 #ifndef STEEP_SHADOW
   gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *
-      max(dot(normal, light_dir), 0.0);
+      max(diffuse_factor, 0.0);
 
   gl_FragColor *= texture2D(tex_original, texture_coord);
 #else
-  float diffuse_factor = dot(normal, light_dir);
-  if (diffuse_factor > 0)
+  if (diffuse_factor > 0.0)
   {
     /* We basically do the same thing as when we calculate texture_coord
        with steep parallax mapping.
        Only now we increment height, and we use light_dir instead of
        p_to_eye. */
-    float num_steps = 10.0;
-    num_steps = mix(num_steps * 3.0, num_steps, light_dir.z);
+    float num_steps = mix(steep_shadow_steps_max, steep_shadow_steps_min, light_dir.z);
 
     float step = 1.0 / num_steps;
 
@@ -116,7 +138,7 @@ void main(void)
     vec2 shadow_texture_coord = texture_coord + delta;
     float shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;
 
-    while (shadow_map_height < height && height < 1)
+    while (shadow_map_height < height && height < 1.0)
     {
       height += step;
       shadow_texture_coord += delta;

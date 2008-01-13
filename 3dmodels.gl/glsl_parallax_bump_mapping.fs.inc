@@ -23,9 +23,24 @@
 '' + LineEnding + 
 '#define STEEP' + LineEnding + 
 '#ifdef STEEP' + LineEnding + 
-'  /* You can define STEEP_SHADOW only if STEEP is defined. */' + LineEnding + 
+'  /* You can define STEEP_SHADOW only if STEEP is also defined.' + LineEnding + 
+'     (Although it is possible to implement self-shadowing with still shifting' + LineEnding + 
+'     tex coord with classic (no steep) parallax mapping, it''s not implemented.)' + LineEnding + 
+'  */' + LineEnding + 
 '  #define STEEP_SHADOW' + LineEnding + 
 '#endif' + LineEnding + 
+'' + LineEnding + 
+'/* Number of steps for steep mapping.' + LineEnding + 
+'   I saw implementations that mix between 50 and 10 num_steps.' + LineEnding + 
+'   Mixing between 10 and 30 seems to give quite good results, and is really' + LineEnding + 
+'   fast on ATI on MacBookPro.' + LineEnding + 
+'*/' + LineEnding + 
+'' + LineEnding + 
+'const int steep_steps_min = 10;' + LineEnding + 
+'const int steep_steps_max = 30;' + LineEnding + 
+'' + LineEnding + 
+'const int steep_shadow_steps_min = 10;' + LineEnding + 
+'const int steep_shadow_steps_max = 30;' + LineEnding + 
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
@@ -39,11 +54,9 @@
 '  float height = texture2D(tex_height_map, gl_TexCoord[0].st).r * scale - bias;' + LineEnding + 
 '  texture_coord += height * p_to_eye.xy /* / p_to_eye.z*/;' + LineEnding + 
 '#else' + LineEnding + 
-'  float num_steps = 10.0;' + LineEnding + 
 '  /* At smaller view angles, much more iterations needed, otherwise ugly' + LineEnding + 
-'     aliasing arifacts quickly appear. I saw implementations that mix between' + LineEnding + 
-'     50 and 10 num_stepa --- really a lot of iterations. */' + LineEnding + 
-'  num_steps = mix(num_steps * 3.0, num_steps, p_to_eye.z);' + LineEnding + 
+'     aliasing arifacts quickly appear. */' + LineEnding + 
+'  float num_steps = mix(steep_steps_max, steep_steps_min, p_to_eye.z);' + LineEnding + 
 '' + LineEnding + 
 '  float step = 1.0 / num_steps;' + LineEnding + 
 '' + LineEnding + 
@@ -58,6 +71,21 @@
 '  float height = 1.0;' + LineEnding + 
 '' + LineEnding + 
 '  float map_height = texture2D(tex_height_map, texture_coord).r;' + LineEnding + 
+'' + LineEnding + 
+'  /* It''s known problem that NVidia GeForce FX 5200 fails here with' + LineEnding + 
+'' + LineEnding + 
+'       error C5011: profile does not support "while" statements' + LineEnding + 
+'       and "while" could not be unrolled.' + LineEnding + 
+'' + LineEnding + 
+'     I could workaround this problem (by using' + LineEnding + 
+'       for (int i = 0; i < steep_steps_max; i++)' + LineEnding + 
+'     loop and' + LineEnding + 
+'       if (! (map_height < height)) break;' + LineEnding + 
+'     , this is possible to unroll). But it turns out that this still' + LineEnding + 
+'     (even with steep_steps_max = 1) works much too slow on this hardware...' + LineEnding + 
+'     so I simply fallback to non-steep version of parallax mapping' + LineEnding + 
+'     if this doesn''t compile. */' + LineEnding + 
+'' + LineEnding + 
 '  while (map_height < height)' + LineEnding + 
 '  {' + LineEnding + 
 '    height -= step;' + LineEnding + 
@@ -79,34 +107,28 @@
 '  vec3 normal = vec3(' + LineEnding + 
 '    texture2D(tex_normal_map, texture_coord)) * 2.0 - vec3(1, 1, 1);' + LineEnding + 
 '' + LineEnding + 
-'  /* I want to do two-sided lighting, so I want to have normal' + LineEnding + 
-'     pointing from this side of the face that is currently displayed.' + LineEnding + 
-'     Current normal is for front face, so negate it if backfacing.' + LineEnding + 
-'     Since this is in tangent space, "negate" means only negate it''s z' + LineEnding + 
-'     component.' + LineEnding + 
+'  /* TODO: two-sided lighting.' + LineEnding + 
+'     See glsl_bump_mapping.fs for comments why it''s not done now.' + LineEnding + 
 '' + LineEnding + 
-'     Alt version of this, not using "if" just in case for future:' + LineEnding + 
-'       normal.z -= normal.z * 2.0 * (1.0 - float(gl_FrontFacing));' + LineEnding + 
-'  */' + LineEnding + 
-'/*  if (!gl_FrontFacing)' + LineEnding + 
+'  if (!gl_FrontFacing)' + LineEnding + 
 '    normal.z = -normal.z;' + LineEnding + 
-'*/' + LineEnding + 
+'  */' + LineEnding + 
+'' + LineEnding + 
 '  /* gl_FragColor += diffuse lighting */' + LineEnding + 
+'  float diffuse_factor = dot(normal, light_dir);' + LineEnding + 
 '#ifndef STEEP_SHADOW' + LineEnding + 
 '  gl_FragColor += light_diffuse_color * gl_FrontMaterial.diffuse *' + LineEnding + 
-'      max(dot(normal, light_dir), 0.0);' + LineEnding + 
+'      max(diffuse_factor, 0.0);' + LineEnding + 
 '' + LineEnding + 
 '  gl_FragColor *= texture2D(tex_original, texture_coord);' + LineEnding + 
 '#else' + LineEnding + 
-'  float diffuse_factor = dot(normal, light_dir);' + LineEnding + 
-'  if (diffuse_factor > 0)' + LineEnding + 
+'  if (diffuse_factor > 0.0)' + LineEnding + 
 '  {' + LineEnding + 
 '    /* We basically do the same thing as when we calculate texture_coord' + LineEnding + 
 '       with steep parallax mapping.' + LineEnding + 
 '       Only now we increment height, and we use light_dir instead of' + LineEnding + 
 '       p_to_eye. */' + LineEnding + 
-'    float num_steps = 10.0;' + LineEnding + 
-'    num_steps = mix(num_steps * 3.0, num_steps, light_dir.z);' + LineEnding + 
+'    float num_steps = mix(steep_shadow_steps_max, steep_shadow_steps_min, light_dir.z);' + LineEnding + 
 '' + LineEnding + 
 '    float step = 1.0 / num_steps;' + LineEnding + 
 '' + LineEnding + 
@@ -118,7 +140,7 @@
 '    vec2 shadow_texture_coord = texture_coord + delta;' + LineEnding + 
 '    float shadow_map_height = texture2D(tex_height_map, shadow_texture_coord).r;' + LineEnding + 
 '' + LineEnding + 
-'    while (shadow_map_height < height && height < 1)' + LineEnding + 
+'    while (shadow_map_height < height && height < 1.0)' + LineEnding + 
 '    {' + LineEnding + 
 '      height += step;' + LineEnding + 
 '      shadow_texture_coord += delta;' + LineEnding + 
