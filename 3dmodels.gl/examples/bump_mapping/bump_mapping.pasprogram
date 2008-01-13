@@ -27,7 +27,7 @@
      - GLSL (various versions, with parallax mapping,
        and steep parallax mapping (with self-shadowing))
   GLSL method is by far the best, fastest and best looking approach, although
-  requires the newest hardware (supprorting GLSL through ARB extension
+  requires the newest hardware (supporting GLSL through ARB extension
   or GL >= 2.0 standard).
 
   Keys:
