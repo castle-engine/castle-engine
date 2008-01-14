@@ -2486,12 +2486,16 @@ begin
      end;
    end;
 
+   TextureReferences.AppendItem(TextureReference);
+
+   { Note: do PrepareBumpMapping *after* TextureReferences.AppendItem.
+     This way in case of errors (some GLSL errors on current OpenGL ?)
+     we exit with nice state, able to free this texture reference later. }
+
    if TextureReference.TextureNormalMap <> 0 then
      PrepareBumpMapping(
        (TextureReference.TextureHeightMap <> 0) and
        (BumpMappingMethod >= bmGLSLParallax));
-
-   TextureReferences.AppendItem(TextureReference);
   end;
  end;
 

@@ -134,6 +134,18 @@ void main(void)
 
   if (!gl_FrontFacing)
     normal.z = -normal.z;
+
+  Hmm, idea: using p_to_eye, I can handle two-sided lighting in parallax
+  version by
+
+  if (p_to_eye.z < 0.0)
+    normal.z = -normal.z;
+
+  This is for sure Ok with no-steep version. Check what should be done
+  for steep version ? Besides, this doesn't fix the non-parallax version
+  in glsl_bump_mapping.fs (p_to_eye is not calculated there,
+  and it would silly (too much waste of time for something so seldom used ?)
+  to calculate it only for the purpose of two-sided lighting ?).
   */
 
   /* gl_FragColor += diffuse lighting */
