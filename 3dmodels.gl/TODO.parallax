@@ -2,6 +2,3 @@ marge parallax and no parallax shader code in one file, use #defines
 fix gl_FrontFacing (it officially doesn't work on NVidia in FS, it also doesn't really work on some Radeons (on crypto this causes software GLSL, and in effect freezes the program...)). NVidia gives some suggestions for workarounds, see
   http://developer.download.nvidia.com/opengl/glsl/glsl_release_notes.pdf
 play with http://developer.nvidia.com/object/nvemulate.html
-describe heightMap VRML extension in kambi_vrml_extensions.php
-maybe incorporate in some node like ParallaxMapping, for heightMapScale and heightMapBias ?
-add field parallaxMapping bool ?
