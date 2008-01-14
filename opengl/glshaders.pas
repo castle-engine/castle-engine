@@ -36,7 +36,7 @@
       or support built-in (newer OpenGL versions, >= 2.0).
 
       All three cases are automatically handled inside, so usually you
-      do not have to care about this details. Note that "none" support
+      do not have to care about these details. Note that "none" support
       (on older OpenGL version with no appropriate ARB extensions)
       means that shaders are not really initialized at all.))
 }
