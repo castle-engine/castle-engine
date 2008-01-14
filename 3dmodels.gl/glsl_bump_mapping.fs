@@ -69,7 +69,7 @@ void main(void)
 
 /* This is more close to what bmMultiTexDotNormalized method did
    (but it's less correct and generally worse. I present it here
-   only to visually compare bmMultiTexDotNormalized and bmGLSL,
+   only to visually compare bmMultiTexDotNormalized and bmGLSLNormal,
    to see that they are able to calculate the same.)
 */
 /*

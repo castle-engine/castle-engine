@@ -117,10 +117,10 @@ var
 
   { Vars below for bmVRML only }
 
-  { Default TVRMLRenderingAttributes.BumpMappingParallax is false for now,
-    for maximum stability, but in this program by default parallax is allowed
+  { Default TVRMLRenderingAttributes.BumpMappingMaximum is bmNone,
+    but in this program by default the best method is allowed
     (to show the effect). }
-  ParallaxMappingAllowed: boolean = true;
+  BumpMappingMaximum: TBumpMappingMethod = High(TBumpMappingMethod);
 
 { ---------------------------------------------------------------------------- }
 
@@ -195,8 +195,13 @@ var
 begin
   FreeAndNil(Scene);
 
+  { It would be better to match Scene.Optimization with
+    *current* BumpMappingMaximum, not with
+    High(TBumpMappingMethod). Will be done when Scene.Optimization
+    will be settable during lifetime of TVRMLOpenGLRenderer. }
+
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
-    0, -1, true, true) in [bmNone, bmGLSL] then
+    0, -1, High(TBumpMappingMethod), true) in [bmNone] + bmGLSLAll then
     SceneOptimization := roSceneAsAWhole else
     SceneOptimization := roNone;
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(FileName, true),
@@ -207,8 +212,7 @@ begin
   Scene.DefaultShapeStateOctree :=
     Scene.CreateShapeStateOctree('Building ShapeState octree');
 
-  Scene.Attributes.BumpMapping := true;
-  Scene.Attributes.BumpMappingParallax := ParallaxMappingAllowed;
+  Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
 end;
 
 { Some preparations for bmVRML, to make it look better.
@@ -219,6 +223,9 @@ var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
   LightPosition := Vector3Single(3, 3, 5);
+
+  { When bmVRML, these two should always be equal }
+  Scene.BumpMappingLightPosition := LightPosition;
 
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
   Walker.Init(CamPos,
@@ -821,12 +828,12 @@ var
       S += Format('Emboss scale: %f', [EmbossScale]) + nl;
       S += Format('Emboss alpha multiply by blending: %s',
         [BoolToStr[EmbossAlphaMultiplyByBlending]]) + nl;
+      S += Format('VRML maximum bump mapping method allowed: %s',
+        [BumpMappingMethodNames[BumpMappingMaximum]]) + nl;
       S += Format('VRML auto-detected best bump mapping method: %s',
         [BumpMappingMethodNames[Scene.BumpMappingMethod]]) + nl;
       S += Format('VRML optimization used: %s',
         [RendererOptimizationNames[Scene.Optimization]]) + nl;
-      S += Format('VRML parallax mapping allowed: %s',
-        [BoolToStr[ParallaxMappingAllowed]]);
 
       Font.Projection2DPrintStrings(5, 5, S);
     glPopAttrib;
@@ -871,7 +878,6 @@ begin
       so I change it back to default GL value. }
     glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
 
-    Scene.BumpMappingLightPosition := LightPosition;
     if Glw.Navigator = Walker then
       Scene.RenderFrustumOctree(Glw.NavWalker.Frustum, tgAll) else
       Scene.Render(nil, tgAll);
@@ -1049,18 +1055,32 @@ begin
 end;
 
 procedure Idle(glwin: TGLWindow);
+var
+  LightPositionChanged: boolean;
+
+  procedure ChangeLightPosition(Coord, Change: Integer);
+  begin
+    LightPosition[Coord] += Change * Glwin.IdleCompSpeed / 10;
+    LightPositionChanged := true;
+  end;
+
 begin
-  if Glwin.KeysDown[K_A] then LightPosition[0] -= Glwin.IdleCompSpeed / 10;
-  if Glwin.KeysDown[K_D] then LightPosition[0] += Glwin.IdleCompSpeed / 10;
-  if Glwin.KeysDown[K_S] then LightPosition[1] -= Glwin.IdleCompSpeed / 10;
-  if Glwin.KeysDown[K_W] then LightPosition[1] += Glwin.IdleCompSpeed / 10;
+  LightPositionChanged := false;
+
+  if Glwin.KeysDown[K_A] then ChangeLightPosition(0, -1);
+  if Glwin.KeysDown[K_D] then ChangeLightPosition(0,  1);
+  if Glwin.KeysDown[K_S] then ChangeLightPosition(1, -1);
+  if Glwin.KeysDown[K_W] then ChangeLightPosition(1,  1);
 
   if Glwin.KeysDown[K_Q] then
   begin
     if mkShift in Glwin.ModifiersDown then
-      LightPosition[2] += Glwin.IdleCompSpeed / 10 else
-      LightPosition[2] -= Glwin.IdleCompSpeed / 10;
+      ChangeLightPosition(2,  1) else
+      ChangeLightPosition(2, -1);
   end;
+
+  if LightPositionChanged and (Method = bmVRML) then
+    Scene.BumpMappingLightPosition := LightPosition;
 
   if Glwin.KeysDown[K_J] then XShift -= Glwin.IdleCompSpeed / 1000;
   if Glwin.KeysDown[K_L] then XShift += Glwin.IdleCompSpeed / 1000;
@@ -1130,18 +1150,39 @@ begin
         if Glwin.ColorDialog(C) then
           Scene.BumpMappingLightDiffuseColor := Vector4Single(C, 1);
       end;
-    650:
+
+    1100..1200:
       begin
-        Assert(ParallaxMappingAllowed = Scene.Attributes.BumpMappingParallax);
-        ParallaxMappingAllowed := not ParallaxMappingAllowed;
-        Scene.Attributes.BumpMappingParallax := ParallaxMappingAllowed;
+        Assert(BumpMappingMaximum = Scene.Attributes.BumpMappingMaximum);
+        BumpMappingMaximum := TBumpMappingMethod(MenuItem.IntData - 1100);
+        Scene.Attributes.BumpMappingMaximum := BumpMappingMaximum;
       end;
   end;
 end;
 
 function CreateMainMenu: TMenu;
+
+  procedure AppendBumpMappingMethods(M: TMenu);
+  var
+    BM: TBumpMappingMethod;
+    Radio: TMenuItemRadio;
+    RadioGroup: TMenuItemRadioGroup;
+  begin
+    RadioGroup := nil;
+    for BM := Low(BM) to High(BM) do
+    begin
+      Radio := TMenuItemRadio.Create(
+        SQuoteMenuEntryCaption(BumpMappingMethodNames[BM]),
+        Ord(BM) + 1100, BM = BumpMappingMaximum, true);
+      if RadioGroup = nil then
+        RadioGroup := Radio.Group else
+        Radio.Group := RadioGroup;
+      M.Append(Radio);
+    end;
+  end;
+
 var
-  M: TMenu;
+  M, M2: TMenu;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
@@ -1168,11 +1209,12 @@ begin
   M := TMenu.Create('_VRML');
     M.Append(TMenuItem.Create('_Open VRML Model ...', 600, CtrlO));
     M.Append(TMenuSeparator.Create);
+    M2 := TMenu.Create('Maximum bump mapping method allowed');
+      AppendBumpMappingMethods(M2);
+      M.Append(M2);
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change _Ambient Light Color (Only When GLSL Is Used) ...', 601));
     M.Append(TMenuItem.Create('Change _Diffuse Light Color (Only When GLSL Is Used) ...', 602));
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('_Parallax Mapping Allowed', 650, CtrlP,
-      ParallaxMappingAllowed, true));
     Result.Append(M);
 end;
 

@@ -420,5 +420,6 @@ Demos:
   - see specular_demo_phong_shading
   - see e.g. fountain VRML with toon shading applied
 
-- see bump mapping in VRML engine, when bmGLSL, implemented using GLSL shaders
+- see bump mapping in VRML engine, when bmGLSLNormal and bmGLSLParallax,
+  implemented using GLSL shaders,
   see parallax bump mapping, examples in kambi_vrml_test_suite

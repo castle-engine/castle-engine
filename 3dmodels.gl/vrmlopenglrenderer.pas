@@ -332,12 +332,109 @@ uses
 const
   DefaultBumpMappingLightAmbientColor: TVector4Single = (0, 0, 0, 1);
   DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
-  DefaultBumpMappingParallax = false;
 
 type
   TBeforeGLVertexProc = procedure (Node: TNodeGeneralShape;
     const Vert: TVector3Single) of object;
 
+  { Various bump mapping methods. Generally sorted from worst one
+    (bmNone, which does no bump mapping) to the best.
+    Which one is chosen is determined at runtime, based on OpenGL capabilities,
+    and on TVRMLRenderingAttributes.BumpMappingMaximum. }
+  TBumpMappingMethod = (
+    { No bump mapping done. }
+    bmNone,
+
+    { Most primitive "dot" bump mapping using multitexturing.
+      Requires 2 texture units.
+
+      Light position in tangent space is calculated each time we render the
+      scene. This is important if you change
+      TVRMLOpenGLRenderer.BumpMappingLightPosition: with bmMultiTex*,
+      after changing BumpMappingLightPosition you have to render the scene
+      using TVRMLOpenGLRenderer again. Which means that display lists
+      built by TVRMLFlatSceneGL cannot be reused.
+
+      If you use TVRMLFlatSceneGL this means that either:
+
+      @unorderedList(
+        @item(You use optimizations with display lists, like roSceneAsAWhole.
+          Then changing BumpMappingLightPosition is very costly operation
+          (display ilsts must be rebuild), so you should not do this
+          e.g. every frame.)
+
+        @item(Or you can use optimization roNone. Then changing
+          BumpMappingLightPosition is not costly. But, roNone generally means
+          "no optimization" and the whole rendering of your model may suffer...
+          In other words, this solution is suitable only if your model is
+          relatively simple, such that rendering it with roNone is Ok.)) }
+    bmMultiTexDotNotNormalized,
+
+    { Dot product bump mapping using multitexturing
+      (with normalization using cube map).
+      Requires 3 texture units.
+
+      This is very similar to previous method (bmMultiTexDotNotNormalized), but
+      normalizes normals at each pixel by special cube map. This makes better
+      effect, but means that 1 more texture unit is required.
+
+      All other comments about bmMultiTexDotNotNormalized apply also here.
+      In particular, if you use TVRMLFlatSceneGL then either
+      @orderedList(
+        @itemSpacing compact
+        @item don't modify BumpMappingLightPosition too often or
+        @item use roNone optimization.
+      ) }
+    bmMultiTexDotNormalized,
+
+    { Normal (calculate light by "dot" per pixel) bump mapping using GLSL
+      shader.
+
+      This requires OpenGL that supports GLSL. It's highly superior over
+      previous (multitexturing without GLSL) methods, since it's more flexible
+      and also changing it's parameters doesn't require to regenerate display
+      lists.
+
+      @orderedList(
+        @item(Light position in tangent space is calculated by shader program.
+          In short, this means that you can use good renderer optimization
+          (like roSceneAsAWhole) even if you change BumpMappingLightPosition
+          every frame. )
+
+        @item(Previous methods generally break features such as ambient (as they
+          modulate per-pixel lighting like
+          (lighting_per_pixel * material * original_texture),
+          while it should be (ambient + lighting_per_pixel * material) *
+          original_texture). Actually, other methods mostly ignore
+          material properties.
+
+          This method honours material ambient and diffuse properties
+          like it should. )
+
+        @item(This honours properties like BumpMappingLightAmbientColor,
+          BumpMappingLightDiffuseColor,
+          so you can control the light more like normal OpenGL light.)
+      ) }
+    bmGLSLNormal,
+
+    { This is like bmGLSLNormal, but additionally (if the heightMap of the surface
+      is available) this will do parallax mapping.
+      Steep parallax mapping with self-shadowing,
+      if supported by hardware, otherwise classic parallax mapping
+      (with offset limiting, i.e. with E.z component removed).
+
+      Parallax mapping, in short, means that the texture coordinate is perturbed,
+      based on texture heightMap topology and camera direction, to create
+      illusion of 3D shape instead of flat texture.
+      This makes e.g. the bricks on the texture really
+      visible as "standing out", in 3D, from the wall. And self-shadowing
+      means that these bricks even cast appropriate shadows on each other. }
+    bmGLSLParallax);
+
+const
+  DefaultBumpMappingMaximum = bmNone;
+
+type
   { These are various properties that control rendering done
     with @link(TVRMLOpenGLRenderer).
 
@@ -362,9 +459,8 @@ type
     FTextureMagFilter: TGLint;
     FPointSize: TGLFloat;
     FUseFog: boolean;
-    FBumpMapping: boolean;
+    FBumpMappingMaximum: TBumpMappingMethod;
     FGLSLShaders: boolean;
-    FBumpMappingParallax: boolean;
   protected
     { In this class these methods just set value on given property.
       In descendants you can do something more here, like automatic
@@ -387,8 +483,7 @@ type
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
     procedure SetPointSize(const Value: TGLFloat); virtual;
     procedure SetUseFog(const Value: boolean); virtual;
-    procedure SetBumpMapping(const Value: boolean); virtual;
-    procedure SetBumpMappingParallax(const Value: boolean); virtual;
+    procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
     { @groupEnd }
   public
@@ -540,17 +635,21 @@ type
     property UseFog: boolean
       read FUseFog write SetUseFog default true;
 
-    { Enable bump mapping.
+    { Enable bump mapping. This sets maximum allowed bump mapping method
+      (actual method used may be lower, depending on OpenGL capabilities
+      and information provided in VRML model, like normalMap and heightMap).
+      Set to bmNone (default) to disable using bump mapping.
+      Set to High(TBumpMappingMethod) to enable best implemented bump mapping.
 
       To actually use this, it requires also
       some OpenGL capabilities (some extensions present, and enough texture
       units available). And naturally it comes to use only if
-      VRML model will use normalMap extension for some shapes nodes.
-      If heightMap is also defined, and BumpMappingParallax is @true,
-      parallax mapping will be used.
+      VRML model will specify normalMap field for some shapes nodes.
+      For parallax mapping, heightMap is also needed.
 
-      You have to update Renderer.BumpMappingLightPosition if you enable
-      BumpMapping, to actually specify how bumps should appear.
+      You have to update Renderer.BumpMappingLightPosition if enable bump
+      mappping (that is, you set BumpMappingMaximum to something <> bmNone),
+      to actually specify how bumps should appear.
       See TVRMLOpenGLRenderer.BumpMappingLightPosition, or
       TVRMLFlatSceneGL.BumpMappingLightPosition for more comfortable version.
       See also other TVRMLOpenGLRenderer.BumpMappingLightXxx properties,
@@ -558,26 +657,21 @@ type
 
       There are some TODOs related to this:
       @unorderedList(
-        @item(bmMultiTexDot* methods don't take texture transform into account correctly.)
+        @item(bmMultiTex* methods don't take texture transform into account correctly.)
         @item(
           We are able to calculate s/t tangent vectors (and so do bump mapping)
           only on IndexedFaceSet with explicit texture coords for now.
           IndexedFaceSet with autogenerated texture coords and other primitives
           should be done one day.)
-        @item(For each texture, there must always be the same bump map
+        @item(For each texture, there must always be the same
+          normalMap and heightMap
           (since we store it in the same textureReference).)
       )
       See other TODOs in this file.
     }
-    property BumpMapping: boolean read FBumpMapping write SetBumpMapping
-      default false;
-
-    { If BumpMapping enabled, whether we're allowed to do parallax mapping ?
-      This is only used if BumpMapping = @true, and only if the surface
-      actually has both normalMap and heightMap information. }
-    property BumpMappingParallax: boolean
-      read FBumpMappingParallax write SetBumpMappingParallax
-      default DefaultBumpMappingParallax;
+    property BumpMappingMaximum: TBumpMappingMethod
+      read FBumpMappingMaximum write SetBumpMappingMaximum
+      default bmNone;
 
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
@@ -840,89 +934,6 @@ type
     function ProgramNodeIndex(ProgramNode: TNodeComposedShader): Integer;
   end;
 
-  { Various bump mapping methods. Generally sorted from worst one
-    (bmNone, which does no bump mapping) to the best.
-    Which one is chosen is determined at runtime, based on OpenGL capabilities. }
-  TBumpMappingMethod = (
-    { No bump mapping done. }
-    bmNone,
-
-    { Most primitive "dot" bump mapping using multitexturing.
-      Requires 2 texture units.
-
-      Light position in tangent space is calculated each time we render the
-      scene. This is important if you change
-      TVRMLOpenGLRenderer.BumpMappingLightPosition: with bmMultiTexDot*,
-      after changing BumpMappingLightPosition you have to render the scene
-      using TVRMLOpenGLRenderer again. Which means that display lists
-      built by TVRMLFlatSceneGL cannot be reused.
-
-      If you use TVRMLFlatSceneGL this means that either:
-
-      @unorderedList(
-        @item(You use optimizations with display lists, like roSceneAsAWhole.
-          Then changing BumpMappingLightPosition is very costly operation
-          (display ilsts must be rebuild), so you should not do this
-          e.g. every frame.)
-
-        @item(Or you can use optimization roNone. Then changing
-          BumpMappingLightPosition is not costly. But, roNone generally means
-          "no optimization" and the whole rendering of your model may suffer...
-          In other words, this solution is suitable only if your model is
-          relatively simple, such that rendering it with roNone is Ok.)) }
-    bmMultiTexDotNotNormalized,
-
-    { Dot product bump mapping using multitexturing
-      (with normalization using cube map).
-      Requires 3 texture units.
-
-      This is very similar to previous method (bmMultiTexDotNotNormalized), but
-      normalizes normals at each pixel by special cube map. This makes better
-      effect, but means that 1 more texture unit is required.
-
-      All other comments about bmMultiTexDotNotNormalized apply also here.
-      In particular, if you use TVRMLFlatSceneGL then either
-      @orderedList(
-        @itemSpacing compact
-        @item don't modify BumpMappingLightPosition too often or
-        @item use roNone optimization.
-      ) }
-    bmMultiTexDotNormalized,
-
-    { Normal (calculate light by "dot" per pixel) bump mapping using GLSL
-      shader.
-
-      This requires OpenGL that supports GLSL. It's highly superior over
-      previous (multitexturing without GLSL) methods, since it's more flexible
-      and also changing it's parameters doesn't require to regenerate display
-      lists.
-
-      @orderedList(
-        @item(Light position in tangent space is calculated by shader program.
-          In short, this means that you can use good renderer optimization
-          (like roSceneAsAWhole) even if you change BumpMappingLightPosition
-          every frame. )
-
-        @item(Previous methods generally break features such as ambient (as they
-          modulate per-pixel lighting like
-          (lighting_per_pixel * material * original_texture),
-          while it should be (ambient + lighting_per_pixel * material) *
-          original_texture). Actually, other methods mostly ignore
-          material properties.
-
-          This method honours material ambient and diffuse properties
-          like it should. )
-
-        @item(This honours properties like BumpMappingLightAmbientColor,
-          BumpMappingLightDiffuseColor,
-          so you can control the light more like normal OpenGL light.)
-      )
-
-      If the heightMap of the surface is available (in addition to normalMap)
-      then this can do parallax mapping (steep parallax mapping with
-      self-shadowing, if supported by hardware). }
-    bmGLSL);
-
   TVRMLOpenGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -949,17 +960,25 @@ type
     BumpMappingMethodCached: TBumpMappingMethod;
     BumpMappingMethodIsCached: boolean;
 
-    { Will be created by some prepare, if BumpMappingMethod is bmGLSL
+    { Will be created by some prepare, if BumpMappingMethod is bmGLSLAll
       and it's detected that bump mapping will be actually used.
 
       Boolean index indicates whether it's the version with parallax
       mapping. }
     BmGLSLProgram: array[boolean] of TGLSLProgram;
-    { Only if BumpMappingMethod = bmGLSL and BmGLSLProgram[true] is prepared
+
+    { Only if BumpMappingMethod in bmGLSLAll and BmGLSLProgram[true] is prepared
       (GLSL program for bump mapping with parallax mapping)
       this will indicate whether we prepared version with or without
-      "steep" parallax mapping. }
+      "steep" parallax mapping.
+
+      Note that I didn't add another TBumpMappingMethod value, like
+      bmGLSLSteepParallax, because availability of steep parallax mapping
+      is checked only when it's program is actually compiled.
+      Failure to compile causes us to fallback to normal parallax, without
+      steep improvements. }
     BmSteepParallaxMapping: boolean;
+
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
     TextureReferences: TDynTextureReferenceArray;
@@ -1101,16 +1120,14 @@ type
     procedure RenderShapeState(Node: TNodeGeneralShape;
       State: TVRMLGraphTraverseState);
 
-    { This checks Attributes (mainly Attributes.BumpMapping) and OpenGL
+    { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
       context capabilities to check which bump mapping method (if any)
       should be used.
 
-      More precisely: this checks Attributes.BumpMapping,
-      Attributes.EnableTextures. Then check are appropriate OpenGL extensions
-      present (GL_ARB_multitexture and friends). Then checks are enough
-      texture units available (using First/LastGLFreeTexture).
-      For bmGLSL, also GLSL availability (as standard or ARB extension)
-      is checked.
+      More precisely: this checks Attributes.BumpMappingMaximum,
+      Attributes.EnableTextures. Then checks are appropriate OpenGL capabilities
+      present (GL_ARB_multitexture and friends, GLSL for better methods).
+      Then checks are enough texture units available (using First/LastGLFreeTexture).
 
       This method is mainly for debugging purposes, as this class handles everything
       related to bump mapping inside. This function may be usable for you
@@ -1133,13 +1150,14 @@ type
     class function GLContextBumpMappingMethod(
       const FirstGLFreeTexture: Cardinal;
       ALastGLFreeTexture: Integer;
-      const AttributesBumpMapping, AttributesEnableTextures: boolean):
+      const AttributesBumpMappingMaximum: TBumpMappingMethod;
+      const AttributesEnableTextures: boolean):
       TBumpMappingMethod;
 
     { Sets light position used for bump mapping.
       This is meaningful if BumpMappingMethod <> bmNone.
 
-      If BumpMappingMethod is bmMultiTexDot*, then this simply sets internal variable.
+      If BumpMappingMethod is in bmMultiTexAll, then this simply sets internal variable.
       You have to actually render model (that is, call RenderBegin +
       RenderShapeState...) to use new BumpMappingLightPosition.
       If you stored rendering results in display lists, you have bad luck
@@ -1148,7 +1166,7 @@ type
       want to change BumpMappingLightPosition often, you have to
       use roNone as Optimization for TVRMLFlatSceneGL.
 
-      If BumpMappingMethod is bmGLSL, things are better.
+      If BumpMappingMethod is in bmGLSLAll, things are better.
       If the bump mapping shader is already prepared, then setting this property
       simply sets the uniform value of this shader. And light direction
       in tangent space is calculated by the shader. So you can simply reuse
@@ -1167,7 +1185,8 @@ type
 
       Note that whether this is used depends on BumpMappingMethod used
       (and this depends on OpenGL capabilities). Some bump mapping methods
-      may not be able to use this. For now, this is used only by bmGLSL method.
+      may not be able to use this. For now, this is used only by bmGLSLAll
+      methods.
 
       Default value is DefaultBumpMappingLightAmbientColor.
 
@@ -1193,7 +1212,11 @@ const
   ( 'None',
     'Dot (multitex, not normalized)',
     'Dot (multitex, normalized by cube map)',
-    'Dot (by GLSL)' );
+    'Dot (by GLSL)',
+    'Dot with steep parallax (by GLSL)' );
+
+  bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
+  bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
 
 {$undef read_interface}
 
@@ -1964,7 +1987,7 @@ begin
   FTextureMagFilter := GL_LINEAR;
   FPointSize := 3.0;
   FUseFog := true;
-  FBumpMappingParallax := DefaultBumpMappingParallax;
+  FBumpMappingMaximum := bmNone;
   FGLSLShaders := true;
 end;
 
@@ -2041,14 +2064,10 @@ begin
   FUseFog := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: boolean);
+procedure TVRMLRenderingAttributes.SetBumpMappingMaximum(
+  const Value: TBumpMappingMethod);
 begin
-  FBumpMapping := Value;
-end;
-
-procedure TVRMLRenderingAttributes.SetBumpMappingParallax(const Value: boolean);
-begin
-  FBumpMappingParallax := Value;
+  FBumpMappingMaximum := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetGLSLShaders(const Value: boolean);
@@ -2229,13 +2248,14 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           TexNormalizationCube := MakeNormalizationCubeMap;
         end;
 
-      bmGLSL:
+      bmGLSLNormal,
+      bmGLSLParallax:
         if BmGLSLProgram[Parallax] = nil then
         begin
           BmGLSLProgram[Parallax] := TGLSLProgram.Create;
 
-          { If BumpMappingMethod is bmGLSL, then we checked in BumpMappingMethod
-            that support is <> gsNone }
+          { If BumpMappingMethod is in bmGLSLAll, then we checked in
+            BumpMappingMethod that support is <> gsNone }
           Assert(BmGLSLProgram[Parallax].Support <> gsNone);
 
           try
@@ -2263,8 +2283,6 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
               BmGLSLProgram[Parallax].AttachFragmentShader({$I glsl_bump_mapping.fs.inc});
             end;
 
-            { set uniform samplers, so that fragment shader has access
-              to both bound textures }
             BmGLSLProgram[Parallax].Link;
 
             if Log then
@@ -2307,6 +2325,9 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
             BumpMappingLightAmbientColor);
           BmGLSLProgram[Parallax].SetUniform('light_diffuse_color',
             BumpMappingLightDiffuseColor);
+
+          { set uniform samplers, so that fragment shader has access
+            to all bound textures }
           BmGLSLProgram[Parallax].SetUniform('tex_normal_map', 0);
           BmGLSLProgram[Parallax].SetUniform('tex_original', 1);
           if Parallax then
@@ -2468,7 +2489,7 @@ begin
    if TextureReference.TextureNormalMap <> 0 then
      PrepareBumpMapping(
        (TextureReference.TextureHeightMap <> 0) and
-       Attributes.BumpMappingParallax);
+       (BumpMappingMethod >= bmGLSLParallax));
 
    TextureReferences.AppendItem(TextureReference);
   end;
@@ -2586,7 +2607,8 @@ end;
 class function TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
   const FirstGLFreeTexture: Cardinal;
   ALastGLFreeTexture: Integer;
-  const AttributesBumpMapping, AttributesEnableTextures: boolean):
+  const AttributesBumpMappingMaximum: TBumpMappingMethod;
+  const AttributesEnableTextures: boolean):
   TBumpMappingMethod;
 var
   TextureUnitsAvailable: Cardinal;
@@ -2610,7 +2632,7 @@ begin
 
   TextureUnitsAvailable := ALastGLFreeTexture - FirstGLFreeTexture + 1;
 
-  if AttributesBumpMapping and
+  if (AttributesBumpMappingMaximum > bmNone) and
      AttributesEnableTextures and
 
     { EXT_texture_env_combine (standard since 1.3) required }
@@ -2639,11 +2661,16 @@ begin
       the need for additional texture) }
     (TextureUnitsAvailable >= 2) then
   begin
-    { TODO: parallax requires one more tex unit }
     if TGLSLProgram.ClassSupport <> gsNone then
-      Result := bmGLSL else
-    if
-      { ARB_texture_cube_map required for bmMultiTexDotNormalized (TODO: standard since 1.3, see above comments) }
+    begin
+      { parallax mapping requires one more texture, since height map must be
+        passed too. }
+      if TextureUnitsAvailable >= 3 then
+        Result := bmGLSLParallax else
+        Result := bmGLSLNormal;
+    end else
+    if { ARB_texture_cube_map required for bmMultiTexDotNormalized
+         (TODO: standard since 1.3, see above comments) }
       GL_ARB_texture_cube_map and
 
       { one more texture unit for bmMultiTexDotNormalized }
@@ -2653,6 +2680,9 @@ begin
       Result := bmMultiTexDotNotNormalized;
   end else
     Result := bmNone;
+
+  if Result > AttributesBumpMappingMaximum then
+    Result := AttributesBumpMappingMaximum;
 end;
 
 function TVRMLOpenGLRenderer.BumpMappingMethod: TBumpMappingMethod;
@@ -2662,7 +2692,7 @@ begin
     BumpMappingMethodCached := GLContextBumpMappingMethod(
       Attributes.FirstGLFreeTexture,
       LastGLFreeTexture,
-      Attributes.BumpMapping, Attributes.EnableTextures);
+      Attributes.BumpMappingMaximum, Attributes.EnableTextures);
 
     if Log then
       WritelnLog('Bump mapping', 'Bump mapping method detected: "' +
@@ -3018,9 +3048,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
           IndexedFaceRenderer.TexNormalMap := TexReference^.TextureNormalMap;
           IndexedFaceRenderer.TexHeightMap := TexReference^.TextureHeightMap;
           IndexedFaceRenderer.TexHeightMapScale := TexReference^.TexHeightMapScale;
-          IndexedFaceRenderer.BmParallax :=
-            (IndexedFaceRenderer.TexHeightMap <> 0) and
-            Attributes.BumpMappingParallax;
+          { use parallax only if the model actually has heightMap }
+          if (IndexedFaceRenderer.TexHeightMap = 0) and
+             (IndexedRenderer.BumpMappingMethod >= bmGLSLParallax) then
+            IndexedRenderer.BumpMappingMethod := bmGLSLNormal;
         end else
           EnableClassicTexturing;
       end else
@@ -3165,7 +3196,7 @@ procedure TVRMLOpenGLRenderer.SetBumpMappingLightPosition(const Value: TVector3S
   begin
     if Prog <> nil then
     begin
-      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
       Prog.Enable;
       Prog.SetUniform('light_position_world_space', BumpMappingLightPosition);
       Prog.Disable;
@@ -3186,7 +3217,7 @@ procedure TVRMLOpenGLRenderer.SetBumpMappingLightAmbientColor(const Value: TVect
   begin
     if Prog <> nil then
     begin
-      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
       Prog.Enable;
       Prog.SetUniform('light_ambient_color', BumpMappingLightAmbientColor);
       Prog.Disable;
@@ -3206,7 +3237,7 @@ procedure TVRMLOpenGLRenderer.SetBumpMappingLightDiffuseColor(const Value: TVect
   begin
     if Prog <> nil then
     begin
-      { so BumpMappingMethod = bmGLSL and it's already prepared }
+      { so BumpMappingMethod >= bmGLSLNormal and it's already prepared }
       Prog.Enable;
       Prog.SetUniform('light_diffuse_color', BumpMappingLightDiffuseColor);
       Prog.Disable;

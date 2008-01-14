@@ -138,8 +138,7 @@ type
     procedure SetTextureMagFilter(const Value: TGLint); override;
     procedure SetPointSize(const Value: TGLFloat); override;
     procedure SetUseFog(const Value: boolean); override;
-    procedure SetBumpMapping(const Value: boolean); override;
-    procedure SetBumpMappingParallax(const Value: boolean); override;
+    procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); override;
     procedure SetGLSLShaders(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
@@ -815,9 +814,9 @@ type
 
     { @abstract(Which bump mapping method will be used ?)
 
-      This is decided and controlled internally, based on current OpenGL
-      capabilities (the only things you can control
-      are Attributes.EnableTextures and Attributes.BumpMapping properties).
+      This is decided and controlled internally, based on
+      Attributes.BumpMappingMaximum, Attributes.EnableTextures,
+      and current OpenGL capabilities.
       So the only use of this function is when you want to report this
       to user, or for debug purposes etc.
 
@@ -829,12 +828,13 @@ type
     { Light position used for bump mapping.
 
       This is meaningful only if you enabled bump mapping
-      (by @code(Attributes.BumpMapping := true)) and we are actually able
-      to use bump mapping (@code(BumpMappingMethod <> bmNone)).
+      and we are actually able to use bump mapping
+      (@code(BumpMappingMethod <> bmNone), and BumpMappingMethod
+      is capped by @code(Attributes.BumpMappingMaximum)).
 
       You can change this at any time, and we will automatically do
       everything needed to properly update this on next render.
-      But note that when BumpMappingMethod = one of bmMultiTex* values,
+      But note that when BumpMappingMethod = one of bmMultiTexAll values,
       changing BumpMappingLightPosition means that we have to rebuild some
       resources (display lists etc.). So changing BumpMappingLightPosition
       becomes really costly operation, unless Optimization = roNone.
@@ -844,13 +844,13 @@ type
       either
 
       @unorderedList(
-        @item(BumpMappingMethod = bmGLSL (requires newer GL hardware) or)
+        @item(BumpMappingMethod in bmGLSLAll (requires newer GL hardware) or)
         @item(Optimization is left as roNone)
       )
 
       But roNone means that you lose some other optimizations, so it may
       be not desirable... in pratice, it's usually best decision to not update
-      BumpMappingLightPosition too often if BumpMappingMethod = one of bmMultiTex*. }
+      BumpMappingLightPosition too often if BumpMappingMethod = one of bmMultiTexAll. }
     property BumpMappingLightPosition: TVector3Single
       read GetBumpMappingLightPosition write SetBumpMappingLightPosition;
 
@@ -2622,11 +2622,10 @@ procedure TVRMLFlatSceneGL.SetBumpMappingLightPosition(const Value: TVector3Sing
 begin
   Renderer.BumpMappingLightPosition := Value;
 
-  { For BumpMappingMethod in bmMultiTex*, we have to remake display lists
+  { For BumpMappingMethod in bmMultiTexAll, we have to remake display lists
     after BumpMappingLightPosition changed. }
 
-  if (Renderer.BumpMappingMethod in
-       [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized]) and
+  if (Renderer.BumpMappingMethod in bmMultiTexAll) and
      (Optimization <> roNone) then
     CloseGLRenderer;
 end;
@@ -2868,19 +2867,10 @@ begin
   end;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBumpMapping(const Value: boolean);
+procedure TVRMLSceneRenderingAttributes.SetBumpMappingMaximum(
+  const Value: TBumpMappingMethod);
 begin
-  if BumpMapping <> Value then
-  begin
-    FScenes.CloseGLRenderer;
-    inherited;
-  end;
-end;
-
-procedure TVRMLSceneRenderingAttributes.SetBumpMappingParallax(
-  const Value: boolean);
-begin
-  if BumpMappingParallax <> Value then
+  if BumpMappingMaximum <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;

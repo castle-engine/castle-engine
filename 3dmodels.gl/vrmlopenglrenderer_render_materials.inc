@@ -33,7 +33,7 @@ begin
       In case of bmMultiTexDotNotNormalized,
       UnlitColor will be ignored (we'll use glColor to pass light dir). }
 
-    { When doing bump mapping by bmGLSL, we always turn on lighting.
+    { When doing bump mapping in bmGLSLAll, we always turn on lighting.
 
       We will calculate lighting using our equations, and actually
       it's not important whether light will be enabled or not.
@@ -45,7 +45,7 @@ begin
       with bump mapping are undefined. TODO: fix.)
     }
 
-    Result := IndexedRenderer.BumpMappingMethod = bmGLSL;
+    Result := IndexedRenderer.BumpMappingMethod in bmGLSLAll;
   end else
   begin
     Result := not (

@@ -199,7 +199,7 @@ type
 
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
     TexOriginal, TexNormalMap, TexHeightMap, TexNormalizationCube: TGLuint;
-    TexOriginalAlpha, BmParallax: boolean;
+    TexOriginalAlpha: boolean;
     TexHeightMapScale: Single;
 
     { Helpers for bump mapping }
@@ -822,7 +822,8 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
           ToTangent[I, 2] := Normal[I];
         end;
 
-        Renderer.BmGLSLAttribObjectSpaceToTangent[BmParallax].SetValue(ToTangent);
+        Renderer.BmGLSLAttribObjectSpaceToTangent[
+          BumpMappingMethod >= bmGLSLParallax].SetValue(ToTangent);
       end;
 
     var
@@ -905,7 +906,8 @@ procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
           glMultiTexCoord2fARB(GL_TEXTURE2_ARB, Tex[0], Tex[1]);
         end;
 
-      bmGLSL:
+      bmGLSLNormal,
+      bmGLSLParallax:
         begin
           SetBumpMappingAttribs;
           glMultiTexCoord2fARB(GL_TEXTURE0_ARB, Tex[0], Tex[1]);
@@ -1037,6 +1039,8 @@ procedure TIndexedFaceSetRenderer.Render_Init;
   end;
 
   procedure EnableForGLSL;
+  var
+    BmParallax: boolean;
   begin
     { This binds textures in the same way as EnableForMultiTexDotNotNormalized,
       but this doesn't call glTexEnvi or glEnable(GL_TEXTURE_2D)
@@ -1046,6 +1050,8 @@ procedure TIndexedFaceSetRenderer.Render_Init;
 
     Renderer.ActiveTexture(1);
     glBindTexture(GL_TEXTURE_2D, TexOriginal);
+
+    BmParallax := BumpMappingMethod >= bmGLSLParallax;
 
     if BmParallax then
     begin
@@ -1073,7 +1079,8 @@ begin
     case BumpMappingMethod of
       bmMultiTexDotNotNormalized: EnableForMultiTexDotNotNormalized;
       bmMultiTexDotNormalized   : EnableForMultiTexDotNormalized;
-      bmGLSL                    : EnableForGLSL;
+      bmGLSLNormal,
+      bmGLSLParallax            : EnableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;
@@ -1136,19 +1143,16 @@ procedure TIndexedFaceSetRenderer.Render_Fini;
     Renderer.ActiveTexture(1);
     glDisable(GL_TEXTURE_2D);
 
-    if BmParallax then
-    begin
-      Renderer.ActiveTexture(2);
-      glDisable(GL_TEXTURE_2D);
-    end;
+    Renderer.ActiveTexture(2);
+    glDisable(GL_TEXTURE_2D);;
   end;
 
   procedure DisableForGLSL;
   begin
-    { No need to disable two textures, as we didn't enable them in
+    { No need to disable textures, as we didn't enable them in
       EnableForGLSL (shader doesn't need them enabled). }
 
-    Renderer.BmGLSLProgram[BmParallax].Disable;
+    Renderer.BmGLSLProgram[BumpMappingMethod >= bmGLSLParallax].Disable;
   end;
 
 begin
@@ -1160,7 +1164,8 @@ begin
     case BumpMappingMethod of
       bmMultiTexDotNotNormalized: DisableForMultiTexDotNotNormalized;
       bmMultiTexDotNormalized   : DisableForMultiTexDotNormalized;
-      bmGLSL                    : DisableForGLSL;
+      bmGLSLNormal,
+      bmGLSLParallax            : DisableForGLSL;
       else raise EInternalError.Create('BumpMappingMethod ?');
     end;
   end;

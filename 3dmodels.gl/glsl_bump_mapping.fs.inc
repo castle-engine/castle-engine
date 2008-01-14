@@ -71,7 +71,7 @@
 '' + LineEnding + 
 '/* This is more close to what bmMultiTexDotNormalized method did' + LineEnding + 
 '   (but it''s less correct and generally worse. I present it here' + LineEnding + 
-'   only to visually compare bmMultiTexDotNormalized and bmGLSL,' + LineEnding + 
+'   only to visually compare bmMultiTexDotNormalized and bmGLSLNormal,' + LineEnding + 
 '   to see that they are able to calculate the same.)' + LineEnding + 
 '*/' + LineEnding + 
 '/*' + LineEnding + 
