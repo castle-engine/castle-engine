@@ -526,9 +526,9 @@ type
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions);
 
-    { Render : probably the most important function in this class,
-      often it is the reason why this class is used.
-      Render renders this VRML scene.
+    { Renders this VRML scene for OpenGL.
+      This is probably the most important function in this class,
+      usually it is the very reason why this class is used.
 
       It uses internal @link(TVRMLOpenGLRenderer) instance.
       Although this internal object is not accessible to your code,

@@ -18,13 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Type TBox3d (rectangular prism with all sides
-  parallel to basic planes X = 0, Y = 0 and Z = 0) and many operations on it.
-  This is sometimes called AABB, "axis-aligned bounding box".
-
-  This is a handy type, because it's easy to implement many
-  operations on it in a fast manner.
-}
+{ Type TBox3d and many operations on it. }
 unit Boxes3d;
 
 interface
@@ -34,7 +28,14 @@ uses VectorMath, SysUtils, KambiUtils;
 {$define read_interface}
 
 type
-  { First point always has all the smaller coords, second point has all
+  { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
+    X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
+    box".
+
+    This is a handy type, because it's easy to implement many
+    operations on it in a fast manner.
+
+    First point always has all the smaller coords, second point has all
     the larger coords. I.e. always
 @preformatted(
   Box[0, 0] <= Box[1, 0] and
@@ -61,7 +62,7 @@ const
 
   But actually it works a little faster, by utilizing the assumption
   that EmptyBox3d is the only allowed value that breaks
-  Box[0, 0] <= Box[1, 0] rule. }
+  @code(Box[0, 0] <= Box[1, 0]) rule. }
 function IsEmptyBox3d(const Box: TBox3d): boolean;
 
 function Box3d(const p0, p1: TVector3Single): TBox3d;
@@ -115,14 +116,19 @@ type
   TGetIndexFromIndexNumFunc = function(indexNum: integer): integer of object;
   TGetVertexFromIndexFunc = function(index: integer): TVector3Single of object;
 
-{ oblicz bounding box (czyli najmniejszy prostopadloscian o bokach
-  rownoleglych do plaszczyzn wspolrzednych) dla zbioru punktow 3d.
-  Jesli VertsCount = 0 to zwroci EmptyBox3d.
-  Wersja z matryca mnozy kazdy punkt przez zadane matrix.
-  Wersja z funkcja jako parametrem - funkcja jest odpytywana dla indeksow
-  0..VertsCount-1.
+{ Calculate bounding box of a set of 3D points.
+  This calculates the smallest possible box enclosing all given points.
+  For VertsCount = 0 this returns EmptyBox3d.
 
-  As usual, VertsStride = 0 means VertsStride = SizeOf(TVector3Single) }
+  Overloaded version with Transform parameter transforms each point
+  by given matrix.
+
+  Overloaded version with GetVertex as a function uses GetVertex to query
+  for indexes from [0 .. VertsCount - 1] range.
+
+  As usual, VertsStride = 0 means VertsStride = SizeOf(TVector3Single).
+
+  @groupBegin }
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3d; overload;
 function CalculateBoundingBox(
@@ -131,14 +137,24 @@ function CalculateBoundingBox(
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3d; overload;
+{ @groupEnd }
 
-{ inna wersja CalculateBoundingBox : funkcja GetVertIndex
-    zwraca dla liczb od 0 do VertsIndicesCount-1 kolejne indeksy.
-    Jezeli indeks jest >=0 to z kolei funkcja GetVertex zwraca vertex
-    o takim numerze (jezeli indeks jest < 0 to ignorujemy go, to znaczy
-    taki indeks nie generuje nam zadnego vertexu).
-    Zwracamy bounding box wszystkich tak otrzymanych vertexow.
-  Wersja z ostatnim parametrem - matryca mnozy kazdy element przez ta matrix. }
+{ Calculate bounding box of a set of indexed 3D points.
+
+  This is much like CalculateBoundingBox, except there are two functions:
+  For each number in [0 .. VertsIndicesCount - 1] range, GetVertIndex
+  returns an index. If this index is >= 0 then it's used to query
+  GetVertex function to get actual vertex position.
+
+  Indexes < 0 are ignored, this is sometimes comfortable. E.g. for VRML models,
+  you often have a list of indexes with -1 in between marking end of faces.
+
+  Returns smallest box enclosing all vertexes.
+
+  Overloaded version with Transform parameter transforms each point
+  by given matrix.
+
+  @groupBegin }
 function CalculateBoundingBoxFromIndices(
   GetVertIndex: TGetIndexFromIndexNumFunc;
   VertsIndicesCount: integer;
@@ -148,27 +164,33 @@ function CalculateBoundingBoxFromIndices(
   VertsIndicesCount: integer;
   GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4Single): TBox3d; overload;
+{ @groupEnd }
 
-{ Box3dSum (i To1st, gdzie wynik jest umieszczany z powrotem w pierwszym
-  argumencie) : oblicz najmniejszy box3d taki ktory by obejmowal oba
-  zadane box'y. }
+{ Sum two TBox3d values. This calculates the smallest box that encloses
+  both Box1 and Box2.
+
+  Box3dSumTo1st places the result of calculation back in Box1 argument.
+
+  @groupBegin }
 function Box3dSum(const box1, box2: TBox3d): TBox3d;
 procedure Box3dSumTo1st(var box1: TBox3d; const box2: TBox3d); overload;
+{ @groupEnd }
 
 { This enlarges Box1 so that it contains given Point. }
 procedure Box3dSumTo1st(var box1: TBox3d; const Point: TVector3Single); overload;
 
-{ trzy rozmiary box'a }
+{ Three box sizes. }
 function Box3dSizes(const box: TBox3d): TVector3Single;
 
-{ wstawia pod allpoints[0], [1], .. [7] wszystkie rogi pudelka box}
+{ Calculates eight corners of the box, placing them in AllPoints^[0 .. 7]. }
 procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
 
-{ bierze bbbox, transformuje je matryca Matrix (a wiec byc moze skaluje,
-  przesuwa i obraca) (tak otrzymany prostopadloscian juz nie jest
-  box3d bo jego scianki niekoniecznie sa rownolegle do plaszczyzn
-  x = 0, y = 0 i z = 0) i oblicza bounding box obejmujace tak otrzymany
-  prostopadloscian. }
+{ Transforms the box by given matrix. More precisely, transforms all
+  8 box corners, and makes new box enclosing these 8 points.
+
+  Since this is axis-aligned box, rotating etc. of the box usually makes
+  larger box (this is the primary disadvantage of axis-aligned boxes,
+  as opposed to oriented boxes). }
 function BoundingBoxTransform(const bbox: TBox3d;
   const Matrix: TMatrix4Single): TBox3d;
 
@@ -188,29 +210,38 @@ procedure Box3dClamp(var point: TVector3Double; const box: TBox3d); overload;
 
 function TriangleBoundingBox(const T: TTriangle3Single): TBox3d;
 
-{ TryBoxRayClosestIntersection znajduje przeciecie Boxa z promieniem
-  najblizsze do Ray0, traktujac Box jako szesc wielokatow (tzn.
-  przeciecie musi sie znalezc na ktoryms z bokow, nawet jezeli Ray0
-  jest w srodku Boxa).
+{ TryBoxRayClosestIntersection calculates intersection between the
+  ray (returns closest intersection to Ray0) and the box.
+
+  The box is treated just like a set of 6 rectangles in 3D.
+  This means that the intersection will always be placed on one of the
+  box sides, even if Ray0 starts inside the box.
+  See TryBoxRayEntrance for the other version.
 
   Returns also IntersectionDistance, which is the distance to the Intersection
   relative to RayVector (i.e. Intersection is always = Ray0 +
-  IntersectionDistance * RayVector). }
-function TryBoxRayClosestIntersection(
-  out Intersection: TVector3Single;
-  out IntersectionDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryBoxRayClosestIntersection(
-  out Intersection: TVector3Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
-function TryBoxRayClosestIntersection(
-  out IntersectionDistance: Single;
-  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+  IntersectionDistance * RayVector).
 
-{ TryBoxRayEntrance traktuje Box jako zamknieta bryle - jezeli Ray0
-  jest na zewnatrz Boxa to odpowiedz jest taka sama jak
-  TryBoxRayClosestIntersection, jezeli Ray0 jest w Boxie to
-  TryBoxRayEntrance zwroci po prostu Ray0. }
+  @groupBegin }
+function TryBoxRayClosestIntersection(
+  out Intersection: TVector3Single;
+  out IntersectionDistance: Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryBoxRayClosestIntersection(
+  out Intersection: TVector3Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+function TryBoxRayClosestIntersection(
+  out IntersectionDistance: Single;
+  const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean; overload;
+{ @groupEnd }
+
+{ TryBoxRayEntrance calculates intersection between the
+  ray (returns closest intersection to Ray0) and the box, treating the box
+  as a filled volume.
+
+  This means that if Ray0 is inside the box, TryBoxRayEntrance simply returns
+  Ray0. If Ray0 is outside of the box, the answer is the same
+  as with TryBoxRayClosestIntersection. }
 function TryBoxRayEntrance(out Entrance: TVector3Single;
   const Box: TBox3d; const Ray0, RayVector: TVector3Single): boolean;
 

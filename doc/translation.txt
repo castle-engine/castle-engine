@@ -13,7 +13,7 @@ will be implemented).
 
   3dgraph/
 |   backgroundbase.pas
-|   boxes3d.pas
+D   boxes3d.pas
 D   convexhullunit.pas
 D   keys.pas
 |   matrixnavigation.pas
