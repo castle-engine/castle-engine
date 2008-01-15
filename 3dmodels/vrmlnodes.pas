@@ -2291,7 +2291,7 @@ type
   So if you pass NilIfUnresolvedUSE = @true, this function will do
   VRMLNonFatalError and simply return @nil.
 
-  @raises(EVRMLSyntaxError On various parsing errors.)
+  @raises(EVRMLParserError On various parsing errors.)
   @raises(EVRMLUnknownNodeNotAllowed On a special parsing error:
     we got unknown node name, and AllowedNodes was @false.
 

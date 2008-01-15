@@ -208,6 +208,7 @@ procedure Save_Strings(IniFile: TIniFile; const section: string; Strs: TStrings)
       in environment variable, also separated by PathSeparator.
       This is suitable for parsing environment variable like
       $PATH or $LD_LIBRARY_PATH.)
+  )
 
   All appended directories are guaranteed to end with PathDelim.
 
