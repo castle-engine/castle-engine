@@ -449,9 +449,11 @@ const
    }
   AL_ENV_HIGH_FREQUENCY_REFERENCE_IASIG = $300B;
 
-  { See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_mp3 }
+  { MP3 format.
+    See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_mp3 }
   AL_FORMAT_MP3_EXT = $10020;
 
-  { See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_vorbis }
+  { Ogg Vorbis format.
+    See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_vorbis }
   AL_FORMAT_VORBIS_EXT = $10003;
 

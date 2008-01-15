@@ -182,7 +182,7 @@ procedure Box3dSumTo1st(var box1: TBox3d; const Point: TVector3Single); overload
 { Three box sizes. }
 function Box3dSizes(const box: TBox3d): TVector3Single;
 
-{ Calculates eight corners of the box, placing them in AllPoints^[0 .. 7]. }
+{ Calculates eight corners of the box, placing them in AllPoints^[0..7]. }
 procedure Box3dGetAllPoints(allpoints: PVector3Single; const box: TBox3d);
 
 { Transforms the box by given matrix. More precisely, transforms all
@@ -311,9 +311,9 @@ function Box3dSqrRadius(const Box: TBox3d): Single;
   (not it's Sqr). Speed note: you pay here one Sqrt operation. }
 function Box3dRadius(const Box: TBox3d): Single;
 
-{ This is like projecting Box on XY plane (i.e. we just ignore Z
+{ This is like projecting Box on XY plane (that is, we just ignore Z
   coords of Box points here), and then calculates maximum Sqr(distance)
-  in place XY of 4 Box corners to point (0, 0). }
+  in plane XY of 4 Box corners to point (0, 0). }
 function Box3dXYSqrRadius(const Box: TBox3d): Single;
 
 { Just like Box3dXYSqrRadius, but this returns correct value

@@ -185,7 +185,7 @@ procedure FreeWithContentsAndNil(var Obj);
 { Add some strings to TStrings }
 procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); overload;
 
-{ Add all strings from string array to TStrings object }
+{ Add all strings from string array to TStrings object. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
 
 { wersje z IniFile : zapisuja klucze o nazwach Count i ItemXxx gdzie Xxx to numer stringa
@@ -193,17 +193,29 @@ procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings)
 procedure Load_Strings(IniFile: TIniFile; const section: string; Strs: TStrings); overload;
 procedure Save_Strings(IniFile: TIniFile; const section: string; Strs: TStrings); overload;
 
-{ ponizsze trzy funkcje dopisuja do listy slist katalogi znalezione w :
-  pliku o podanej nazwie (jesli plik nie istnieje (lub nie mozna go odczytac),
-    nie nie dopisze (ale nie wyrzuci w jakikolwiek sposob bledu),
-    puste linie w pliku (zlozone z samych bialych znakow) zostana wyeliminowane),
-  podanej liscie katalogow (rozdzielonej PathSeparator'em)
-  podanej zmiennej srodowiska (np. PATH czy LD_LIBRARY_PATH; jej wartosc
-    zostanie potraktowana jako lista katalogow rozdzielona PathSeparator'em)
-  Wszystkie katalogi sa juz na pewno zakonczone PathDelim.  }
+{ Append to SList some directiories.
+
+  @unorderedList(
+    @item(AddPathsFromFileLines reads directiories list from given file.
+      If the file doesn't exist or is not readable, will append nothing,
+      without raising any error. Empty lines (only whitespace)
+      in file are ignored.)
+
+    @item(AddPathsFromPathList reads directiories from a list
+      separated by PathSeparator.)
+
+    @item(AddPathsFromEnvironmentVar reads directiories from a list
+      in environment variable, also separated by PathSeparator.
+      This is suitable for parsing environment variable like
+      $PATH or $LD_LIBRARY_PATH.)
+
+  All appended directories are guaranteed to end with PathDelim.
+
+  @groupBegin }
 procedure AddPathsFromFileLines(slist: TStrings; const fname: string);
 procedure AddPathsFromEnvironmentVar(slist: TStrings; const varname: string);
 procedure AddPathsFromPathList(slist: TStrings; const pathlist: string);
+{ @groupEnd }
 
 { zwraca wszystkie stringi z slist sklejone separatorem. }
 function StringsSeparated(slist: TStrings; const separator: string): string;

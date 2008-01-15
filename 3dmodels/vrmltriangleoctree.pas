@@ -583,7 +583,7 @@ type
     constructor Create(AOneItemIndex: Integer);
   end;
 
-{ zwraca czy swiatlo VRMLa (punktowe lub kierunkowe) Light dociera do punktu
+{ Checks whether VRML Light (point or directional) lights at scene point
   LightedPoint.
 
   "Dociera do punktu" to znaczy

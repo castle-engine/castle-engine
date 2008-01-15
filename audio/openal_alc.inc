@@ -8,26 +8,26 @@
 { #define ALC_VERSION_0_1         1 }
 
 var
-
+  { }
   alcCreateContext : function( dev:PALCdevice; attrlist:PALint ):PALCcontext; alc_call
 
   {*
    * There is no current context, as we can mix
    *  several active contexts. But al* calls
    *  only affect the current context.
-   }
+   } { }
   alcMakeContextCurrent : function( alcHandle:PALCcontext ):TALCenum; alc_call
 
-  {*
-   * Perform processing on a synced context, non-op on a asynchronous
-   * context.
-   }
+  {
+    Perform processing on a synced context, non-op on a asynchronous
+    context.
+  }
   alcProcessContext : function( alcHandle:PALCcontext ):PALCcontext; alc_call
 
-  {*
-   * Suspend processing on an asynchronous context, non-op on a
-   * synced context.
-   }
+  {
+    Suspend processing on an asynchronous context, non-op on a
+    synced context.
+  }
   alcSuspendContext : procedure( alcHandle:PALCcontext ); alc_call
 
   alcDestroyContext : function( alcHandle:PALCcontext ):TALCenum; alc_call
@@ -47,6 +47,6 @@ var
 
   {*
    * Query functions
-   }
+   } { }
   alcGetString : function(deviceHandle:PALCdevice; token:TALenum):PChar; alc_call
   alcGetIntegerv : procedure(deviceHandle:PALCdevice; token:TALenum; size:TALsizei; dest:PALint); alc_call

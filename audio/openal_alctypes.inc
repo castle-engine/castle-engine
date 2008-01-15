@@ -1,6 +1,6 @@
 { translation of AL/alctypes.h }
 
-type 
+type
   TALCdevice = record end;
   PALCdevice = ^TALCdevice;
   TALCcontext = record end;
@@ -19,17 +19,17 @@ const
   {$ifdef UNIX}
   {*
    * followed by <int> Hz
-   }
+   } { }
   ALC_FREQUENCY = $100;
 
   {*
    * followed by <int> Hz
-   }
+   } { }
   ALC_REFRESH = $101;
 
   {*
    * followed by AL_TRUE, AL_FALSE
-   }
+   } { }
   ALC_SYNC = $102;
   {$endif}
 
@@ -37,41 +37,41 @@ const
    * errors
    }
 
-  {*
-   * No error
-   }
+  {
+    No error.
+  }
   ALC_NO_ERROR = 0;
 
-  {*
-   * No device
-   }
+  {
+    No device.
+  }
   ALC_INVALID_DEVICE = $200;
 
-  {*
-   * invalid context ID
-   }
+  {
+    Invalid context ID.
+  }
   ALC_INVALID_CONTEXT = $201;
 
-  {*
-   * bad enum
-   }
+  {
+    Bad enum.
+  }
   ALC_INVALID_ENUM = $202;
 
-  {*
-   * bad value
-   }
+  {
+    Bad value.
+  }
   ALC_INVALID_VALUE = $203;
 
-  {*
-   * Out of memory.
-   }
+  {
+    Out of memory.
+  }
   ALC_OUT_OF_MEMORY = $204;
 
 
   {$ifdef UNIX}
-  {*
-   * The Specifier string for default device
-   }
+  {
+    The Specifier string for default device.
+  }
   ALC_DEFAULT_DEVICE_SPECIFIER = $300;
   ALC_DEVICE_SPECIFIER = $301;
   ALC_EXTENSIONS = $302;
@@ -83,9 +83,9 @@ const
   ALC_ALL_ATTRIBUTES = $306;
   {$endif}
 
-  {$ifdef MSWINDOWS}  
+  {$ifdef MSWINDOWS}
   { Kambi: strange, but Windows (Creative) OpenAL implementation has different
-    values for these consts. }
+    values for these consts. } { }
   ALC_MAJOR_VERSION = $1000;
   ALC_MINOR_VERSION = $1001;
   ALC_ATTRIBUTES_SIZE = $1002;
@@ -102,6 +102,6 @@ const
 
   {*
    * Not sure if the following are conformant
-   }
+   } { }
   ALC_FALSE = 0;
   ALC_TRUE = 1; { Kambi: to bylo zapisane w C jako (!(ALC_FALSE)) }

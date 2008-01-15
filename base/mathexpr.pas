@@ -282,7 +282,9 @@ type
   end;
 
 { exceptions ------------------------------------------------------------ }
+
 type
+  { }
   EWrongMathExpr = class(Exception);
   EWrongMathFunction = class(EWrongMathExpr);
   EUndefinedVariable = class(EWrongMathExpr)
@@ -291,6 +293,7 @@ type
 
 { global funcs ---------------------------------------------------------- }
 
+{ }
 function AddFloat(a, b: Float): Float;
 function SubtractFloat(a, b: Float): Float;
 function MultiplyFloat(a, b: Float): Float;

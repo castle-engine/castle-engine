@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2005,2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -19,8 +19,9 @@
 }
 
 
-{ Tlumaczenie headerow AL/al.h, AL/alc.h, AL/alut.h (razem z headerami
-  wlaczanymi z tamtych, a wiec AL/altypes.h i AL/alctypes.h).
+{ OpenAL library functions.
+  This is a translation of OpenAL C headers: @code(AL/al.h, AL/alc.h, AL/alut.h)
+  (and included headers: @code(AL/altypes.h, AL/alctypes.h)).
 
   Ogolne strategie tlumaczenia :
   @unorderedList(
@@ -111,32 +112,40 @@ uses SysUtils, VectorMath;
 {$I OpenAL_alc.inc}
 {$I OpenAL_alut.inc}
 
-{ --------------------------------------------------------------
-  some things to make this unit cooperate nicely with VectorMath.
+{ ---------------------------------------------------------------------------- }
+
+{ @section(Make this unit cooperate nicely with VectorMath.)
+
   Definitions of types below are connected with definitions in OpenAL_altypes.inc
-  - if you change some type in OpenAL_altypes.inc you have to adjust definitions
+  --- if you change some type in OpenAL_altypes.inc you have to adjust definitions
   below as well. (that's because we use constructions like
     TALVector3f = TVector3Single
   instead of
     TALVector3f = array[0..2]of TALSingle.
-  We _depend_ on the fact that first definition is actually equal to the
+  We @italic(depend) on the fact that first definition is actually equal to the
   second one. However, we use the first definition because then compiler
   knows that TALVector3f and TVector3Single are the same types and we are
   able to use TALVector3f everywhere where we can use TVector3Single).
 }
 
 type
+  { }
   TALVector3f = TVector3Single;
   TALVector3d = TVector3Double;
-  { TwoVectors : useful for OpenAL's listener ORIENTATION property }
+  { TwoVectors type is useful for OpenAL's listener ORIENTATION property.
+    @groupBegin }
   TALTwoVectors3f = array[0..1]of TALVector3f;
   TALTwoVectors3d = array[0..1]of TALVector3d;
+  { @groupEnd }
 
-{ --------------------------------------------------------------
-  some things to make possible checking of OpenAL availability at runtime
-  (not at compile time). This makes possible including sound support
-  in your program as an _option_, not requirement (and this is usually
-  nice thing to do), i.e. program that includes OpenAL unit CAN work
+{ ---------------------------------------------------------------------------- }
+
+{ @section(Make possible checking of OpenAL availability at runtime
+    (not at compile time)).
+
+  This makes possible including sound support
+  in your program as an @italic(option), not requirement (and this is usually
+  nice thing to do), i.e. program that includes OpenAL unit @italic(can) work
   on systems that do not even have any OpenAL implementation (any OpenAL
   dynamic library installed).
 }
@@ -147,6 +156,7 @@ var
     Jezeli not ALInited to zawsze wszystkie pointery na funkcje
     alXxx i alcXxx beda rowne nil. }
   ALInited: boolean = false;
+
   { ALUTInited means that functions alutXxx are loaded (their pointers
     are loaded from appropriate library) AND that ALInited
     is true. I.e. it is not posiible to have (ALUTInited = true and ALInited = false).
@@ -164,9 +174,13 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ sprawdzaja czy odpowiednia zmienna jest true, jezeli nie - EOpenALInitError
-  z odpowiednim mesage. W zasadzie te funkcje istnieja tylko dlatego ze
-  chcialem w nich wlasnie zawrzec standardowe message'y na taka okazje. }
+{ Check is appropriate variable (ALInited, ALUTInited) @true,
+  if not --- raise EOpenALInitError with appropriate message.
+  Actually these trivial procedures are implemented only because
+  I wanted to place inside standard error messages for missing OpenAL
+  functionality.
+
+  @raises EOpenALInitError If appropriate variable is @false. }
 procedure CheckALInited;
 procedure CheckALUTInited;
 
