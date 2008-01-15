@@ -87,7 +87,9 @@ type
     both DefaultValue and Value to the same thing, as this is what
     you usually want.
 
-    Some notes about @link(Assign) semantics here:
+    Some notes about @code(Assign) method (inherited from TPersistent and
+    overridied appropriately in TVRMLField descendants):
+
     @orderedList(
       @item(There are some exceptions, but usually
         assignment is possible only when source and destination field classes

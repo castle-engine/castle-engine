@@ -54,7 +54,7 @@ D   vrmlrendereroptimization.pas
   3dmodels.gl/
 -   backgroundgl.pas
 |   object3dopengl.pas
-|   vrmlflatscenegl.pas
+D   vrmlflatscenegl.pas
 |   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
 D   vrmlglanimation.pas

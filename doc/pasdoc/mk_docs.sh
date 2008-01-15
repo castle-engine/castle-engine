@@ -97,6 +97,7 @@ if (( $# == 0 )); then
             -not '(' \
               '(' -iwholename '*/examples/*.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
+              '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
               '(' -iwholename '*fonts/BFNT_*.pas' ')' \
             ')' \

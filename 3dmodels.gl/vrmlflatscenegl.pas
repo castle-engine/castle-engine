@@ -81,21 +81,29 @@ const
 
   { Default value of Attributes.BlendingDestinationFactor.
 
-    Why isn't it GL_ONE_MINUS_SRC_ALPHA ?
+    Why isn't the default value GL_ONE_MINUS_SRC_ALPHA ?
     See [http://vrmlengine.sourceforge.net/vrml_engine_doc.php],
     chapter "OpenGL rendering", section about "mat transparency
-    using blending".
+    using blending". And comments below.
 
-    Polish: Wada GL_ONE jest fakt ze wynikowy obraz bedzie bardzo jasny
-    tam gdzie widoczne sa obiekty blended. (bo GL_ONE zawsze tylko
-    zwieksza kolor obrazu).
-    Natomiast wada GL_ONE_MINUS_SRC_ALPHA jest fakt ze z wynikowego
-    obrazu moze za szybko zniknac kolor obiektu nie-blended ktory
-    byl za obiektami blended (bo GL_ONE_MINUS_SRC_ALPHA bedzie
-    go za kazdym razem zmniejszala). }
+    In short:
+
+    @unorderedList(
+      @item(The disadvantage of GL_ONE is that resulting image
+        will be bright (maybe too bright) where partially transparent objects
+        are.)
+
+      @item(The disadvantage of GL_ONE_MINUS_SRC_ALPHA is that
+        the color of opaque object behind disappears too quickly from
+        resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
+
+        Also, it requires sorting for 100% correctness, and sorting is not
+        implemented yet. See TVRMLSceneRenderingAttributes.Blending.)
+    ) }
   DefaultBlendingDestinationFactor = GL_ONE {_MINUS_SRC_ALPHA};
 
 type
+  { }
   TGLRendererOptimization = VRMLRendererOptimization.TGLRendererOptimization;
   PGLRendererOptimization = VRMLRendererOptimization.PGLRendererOptimization;
 
@@ -106,8 +114,10 @@ const
   roSeparateShapeStatesNoTransform = VRMLRendererOptimization.roSeparateShapeStatesNoTransform;
 
 type
-  { Internal for TVRMLFlatSceneGL }
+  { Internal for TVRMLFlatSceneGL
+    @exclude }
   TRenderShapeState = procedure(ShapeStateNum: Integer) of object;
+  { @exclude }
   TObjectProcedure = procedure of object;
 
   TTestShapeStateVisibility = function(ShapeStateNum: Integer): boolean
@@ -151,14 +161,48 @@ type
     procedure Assign(Source: TPersistent); override;
     function Equals(SecondValue: TPersistent): boolean; override;
 
-    { jezeli true to elementy sceny z IsAllMaterialsTransparent beda
-      rysowane uzywajac blending OpenGLa. Wpp. wszystko bedzie rysowane
-      jako nieprzezroczyste. }
+    { Correctly render partially transparent objects.
+
+      More precisely: if this is @true, all shapestates with
+      AllMaterialsTransparent will be rendered using OpenGL blending
+      (with depth test off, like they should for OpenGL).
+
+      Note that sorting partially transparent objects is not implemented now,
+      so in rare case some artifacts may appear.
+      However sorting is not implemented now mostly because
+
+      @orderedList(
+        @item(Sorting must be done each
+          time camera position changes, so possibly slows down rendering.)
+
+        @item(Sorting dependent on camera position
+          prevents using roSceneAsAWhole optimization method, so another
+          possible slowdown.)
+
+       @item(In practical scenes (game levels etc.) sorting is seldom needed.
+         When BlendingDestinationFactor is GL_ONE, it's never needed.)
+
+       @item(When sorting is needed, in many hard cases
+         (two partially transparent ojects are close),
+         sorting is still not enough. When sorting objects overlap, sometimes
+         you should sort them by individual triangles.
+         And sometimes you even have to split triangles.)
+
+       @item(In other words: blending artifacts are seldom in practice,
+         and when they occur --- simple sorting of whole objects is often
+         not enough solution anyway.)
+     )
+
+     If this attribute is @false, everything will be rendered as opaque. }
     property Blending: boolean
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
       See OpenGL documentation of glBlendFunc for possible values here.
+
+      See also DefaultBlendingDestinationFactor for comments about
+      GL_ONE and GL_ONE_MINUS_SRC_ALPHA.
+
       @groupBegin }
     property BlendingSourceFactor: TGLenum
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -202,10 +246,10 @@ type
     Connection with particular OpenGL context: from the 1st call
     of [Prepare]Render or Background methods to the next call of
     CloseGL method or the destructor. Everything between
-    must be called within the *same* OpenGL context active.
+    must be called within the @italic(same OpenGL context active).
     In particular: remember that if you called Render method
-    at least once, you *must* destroy this object or at least call
-    it's CloseGL method *before* releasing OpenGL context (that was
+    at least once, you @bold(must) destroy this object or at least call
+    it's CloseGL method @bold(before) releasing OpenGL context (that was
     active during Render). }
   TVRMLFlatSceneGL = class(TVRMLFLatScene)
   private
@@ -225,23 +269,29 @@ type
     procedure RenderBeginSimple;
     procedure RenderEndSimple;
 
-    { wywoluje Renderer.RenderBegin, pozniej na wszystkich elementach
-      ShapeStates[] wywoluje RenderShapeStateProc z ich indexem
-      (tylko o ile TestShapeStateVisibility is not assigned or
-      returns true for given node, and if TransparentGroup includes
-      given shapestate), pozniej Renderer.RenderEnd.
-      Dodatkowo moze robic jeszcze jakies rzeczy z OpenGLem, np. to tutaj
-      realizujemy blending.
+    { Render everything, without using display lists.
 
-      De facto nie wywoluje Renderer.RenderBegin and Renderer.RenderEnd
-      tylko RenderBeginProc i RenderEndProc. Te procedury *musza* wywolac
-      odpowiednie Renderer.RenderBegin/End. Co najwyzej niekiedy
-      moga to opakowac w display liste. Patrz
+      Calls Renderer.RenderBegin.
+      Then on all potentially visible ShapeStates[] calls RenderShapeStateProc.
+      "Potentially visible" is decided by TestShapeStateVisibility
+      (shapestate is visible if TestShapeStateVisibility is @nil or returns
+      @true for this shapestate) and TransparentGroup must include
+      given shapestate.
+      At the end calls Renderer.RenderEnd.
+
+      Additionally this implements blending, looking at Attributes.Blending*,
+      setting appropriate OpenGL state and rendering partially transparent
+      shapestates before all opaque objects.
+
+      De facto this doesn't directly call Renderer.RenderBegin and Renderer.RenderEnd,
+      it only calls RenderBeginProc and RenderEndProc. These @bold(have) to
+      do Renderer.RenderBegin / Renderer.RenderEnd word as appropriate,
+      although they may implement this by using display list. See
       RenderBeginSimple and RenderEndSimple.
 
-      Jesli chcesz przekaz
-      RenderBeginProc, RenderEndProc = nil, wtedy musisz sam sie upewnic
-      ze je wywolasz naokolo RenderShapeStatesNoDisplayList
+      You may pass RenderBeginProc, RenderEndProc = @nil, then
+      you have to make sure yourself that you call them around
+      RenderShapeStatesNoDisplayList
       (this is needed because roSceneAsAWhole needs to honour
       RenderBeginEndToDisplayList).
 
@@ -258,13 +308,17 @@ type
       RenderBeginProc, RenderEndProc: TObjectProcedure;
       TransparentGroup: TTransparentGroup);
 
-    { niszcz powiazania z kontekstem OpenGLa obiektu Renderer i ew. wszelkich
-      wygenerowanych na podstawie niego rzeczy (w tym momencie oznacza
-      to SAAW_DisplayList i SSSX_DisplayLists).
-      Nie niszcz powiazan Background.
-      Ta procedura jest uzyteczna aby ja wywolac np. gdy zmieniamy
-      Attrib (bo one (poza ColorModulatorami) wymagaja tylko odlaczenia
-      kontekstu OpenGLa od Renderera, Background nie musi byc invalidated) }
+    { Destroy any associations of Renderer with OpenGL context.
+
+      This also destroys associations with OpenGL context in this class
+      @italic(that were made using Renderer). Currently this means
+      SAAW_DisplayList and SSSX_DisplayLists. This doesn't destroy other
+      associations, like Background.
+
+      This is useful to call when we change something in Attributes,
+      since changing most Attributes (besides color modulators ?)
+      requires that we disconnect Renderer from OpenGL context.
+      Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
 
     FLastRender_RenderedShapeStatesCount: Cardinal;
@@ -282,7 +336,7 @@ type
       Renderer.RenderBegin and Renderer.RenderEnd calls inside
       display lists too.
 
-      However, stupid Mesa 6.4.2 bug prevents using EXT_fog_coord calls
+      However, Mesa 6.4.2 bug prevents using EXT_fog_coord calls
         glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
         glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
       inside a display list (they cause OpenGL error GL_INVALID_ENUM).
@@ -318,8 +372,8 @@ type
       When Optimization = roSceneAsAWhole, 0 means "not initialized" . }
     SAAW_DisplayList: array [TTransparentGroup] of TGLuint;
 
-    { Przygotuje wszystko. Wywoluj tylko gdy
-      Optimization = roSceneAsAWhole i
+    { Prepare everything. Call only whem
+      Optimization = roSceneAsAWhole and
       SAAW_DisplayList[TransparentGroup] = 0.
 
       This calls RenderShapeStatesNoDisplayList so this sets
@@ -405,7 +459,7 @@ type
       AOptimization: TGLRendererOptimization;
       ACache: TVRMLOpenGLRendererContextCache = nil);
 
-    { This is a very special constructor, that forces this class to use
+    { A very special constructor, that forces this class to use
       provided AProvidedRenderer.
 
       Note that this renderer must be created with AttributesClass
@@ -508,10 +562,9 @@ type
       Don't try to put Render inside OpenGL's display-list,
       the point is that Render can internally create such display-list
       and manage it itself. So you don't have to worry about such things.
-      W ten sposob
-      kod z zewnatrz uzywajacy tej klasy moze zapomniec o zawilosciach
-      interfejsu VRMLOpenGLRenderera (i skupic sie na zawilosciach interfejsu
-      tej klasy, TVRMLFlatSceneGLa).
+      This also means that code using this class doesn't care about
+      complexity of using VRMLOpenGLRenderer (and care only about
+      complexity of using this class, TVRMLFlatSceneGL :) ).
 
       Some additional notes (specific to TVRMLFlatSceneGL.Render,
       not to the VRMLOpenGLRenderer):
@@ -617,16 +670,21 @@ type
     property LastRender_AllShapeStatesCount: Cardinal
       read FLastRender_AllShapeStatesCount;
 
-    { metoda optymalizacji wyswietlania w OpenGLu danego obiektu.
-      Po utworzeniu tego obiektu ta metoda juz bedzie zawsze ta sama.
-      Jest to dosc wewnetrzna sprawa ale decyzja o tym jaka optymalizacja
-      bedzie najlepsza musi byc podjeta z zewnatrz tej klasy; wszystko
-      zalezy od tego jak chcesz takiej klasy uzywac - czy bedziesz czesto
-      zmienial graf VRMLa czy moze graf VRMLa w RootNode bedzie juz staly przez
-      caly czas zycia tego obiektu ? Czy bedziesz ogladal zawsze scene
-      z daleka obejmujac na ekranie wszystkie elementy sceny czy tez
-      bedziesz raczej wchodzil w srodek sceny, a wiec we Frustum widzenia
-      zazwyczaj bedzie sie zawierala tylko czesc sceny ? }
+    { Optimization method used to render this model.
+
+      This is the only way how you can control internal behavior of this
+      class with regards to OpenGL display lists. You have to decide
+      which method is best, based on expected usage of this model:
+      Are you going to (often) change the model structure at runtime ?
+      Is user going to see the scene usually as a whole, or only small
+      part of it (more precisely, is frustum culling sensible in this case) ?
+
+      See VRMLRendererOptimization.TGLRendererOptimization
+      for discussion about various values you can set here.
+
+      Currently this is read-only after you created @className instance,
+      possibly this will be changed in the future. (But changing
+      this at run-time will remain costly operation anyway.) }
     property Optimization: TGLRendererOptimization read FOptimization;
 
     procedure ChangedAll; override;
@@ -788,16 +846,15 @@ type
       current OpenGL context after you used this function. }
     function Background: TBackgroundGL;
 
-    { Atrybuty renderowania. Wszystkie atrybuty renderowania mozesz
-      zmieniac w dowolnym momencie. Nawet atrybuty zdefiniowane
-      i wykonywane przez TVRMLOpenGLRenderera; mimo ze TVRMLOpenGLRenderer
-      mial bardziej restrykcyjna polityke kiedy mozna bylo modyfikowac
-      Attributes.
+    { Rendering attributes.
 
-      Chociaz powinienes zdawac sobie sprawe z faktu ze zmiana wartosci
-      atrybutu moze spowodowac ze nastepne
-      wywolanie Render bedzie musialo sobie cos przeliczac od nowa
-      (wywolanie PrepareRender moze miec sens w takiej sytuacji).
+      You are free to change them all at any time.
+      Although note that changing some attributes (the ones defined
+      in base TVRMLRenderingAttributes class) may be a costly operation
+      (next PrepareRender or Render call may need to recalculate some things,
+      some display lists need to be rebuild etc.).
+      So don't change them e.g. every frame. You should use
+      Optimization = roNone if you really have to change attributes every frame.
 
       Note for ColorModulatorSingle/Byte properties:
       In addition to effects described at TVRMLOpenGLRenderer,
