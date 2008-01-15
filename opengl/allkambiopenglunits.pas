@@ -14,6 +14,7 @@ uses
   curve,
   glimages,
   glmenu,
+  glshaders,
   glsoundmenu,
   glversionunit,
   glw_demo,
