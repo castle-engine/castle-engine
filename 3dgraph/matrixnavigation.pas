@@ -36,7 +36,7 @@ const
   DefaultHeadBobbing = 0.1;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
-  DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18;
+  DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
   DefaultRotationHorizontalSpeed = 3.0;
   DefaultRotationVerticalSpeed = 2.0;
   DefaultFallingDownSpeedIncrease = 13/12;
@@ -179,32 +179,55 @@ type
       read FOnChanged write FOnChanged;
   end;
 
-  { TMatrixNavigator to taka klasa ktora pozwala w specjalistyczny sposob
-    operowac na macierzy. Ten specjalistyczny sposob polega na tym ze
-    za pomoca tej macierzy mozna robic dosc ogolne rzeczy na hipotetycznym
-    obiekcie 3d ktory bylby transformowany przez ta macierz
-    - np. zeby mozna bylo obracac obiekt jakby byl modelem (TMatrixExaminer)
-    albo zeby mozna bylo chodzic po modelu (TMatrixWalker).
+  { TMatrixNavigator implements user navigation in 3D scene.
+    You control navigation parameters and provide user input
+    to this class by various methods and properties.
+    And on the "output", this class generates a simple 4x4 matrix by
+    @link(Matrix) method.
 
-    Jak uzywac tej klasy w typowy sposob z TGLWindow + OpenGLem ?
-    - Stworz obiekt podklasy TMatrixNavigator w programie, definujac mu
-      odpowiednie OnMatrixChanged (typowo robiace cos jak glwin.PostRedisplay)
-    - zdefiniuj mu odpowiednie wlasciwosci startowe
-      (najlepiej do tego celu uzyc metod Init zdefiniowanych w kazdej podklasie
-      z innymi parametrami - dostosowanymi do tego jakiego initu wymaga
-      klasa; one zainicjuja stan poczatkowy klasy, wymagajac od ciebie podania
-      zasadniczych walsciwosci dla obiektu (ktore nie moga miec zbyt uzytecznych
-      domyslnych stanow)).
-    - jezeli navigator is TMatrixNavigatorWithIdle to w OnIdle wywoluj
-      navigator.Idle
-    - W OnDraw uzyj transformacji glMultMatrix(navigator.Matrix)
-    - W OnKeyDown uzywaj KeyDown,
-      mozesz tez uzywac w dowolnym momencie odpowiednich, specyficznych dla danej
-      podklasy, procedury zmieniajacych navigatora jak Rotate, Move, ScaleBy,
-      StopRotating itd.
+    In the most common case, when using this
+    with OpenGL program, you can simply load this matrix like
+    @code(glLoadMatrix(Navigator.Matrix);) at the beginning of your
+    Display, Draw etc. function. In other words,
+    @code(glLoadMatrix(Navigator.Matrix);) is a drop-in replacement
+    for calls like @code(gluLookAt) that setup a camera.
 
-    Po prostsza metode uzycia: patrz TGLWindowNavigated, ono zajmuje sie
-    wykonaniem czesci opisanych powyzej rzeczy automatycznie. }
+    This class is not tied to any OpenGL specifics, any VRML specifics,
+    and GLWindow etc. --- this class is fully flexible and may be used
+    in any 3D program, whether using GLWindow, OpenGL or not.
+
+    Various TMatrixNavigator descendants implement various navigation
+    methods, for example TMatrixExaminer allows the user to rotate
+    and scale the model (imagine that you're holding a 3D model in your
+    hands and you look at it from various sides) and TMatrixWalker
+    implements typical navigation in the style of first-person shooter
+    games.
+
+    Short guide how to use any descendant of this class in typical scenario:
+
+    @orderedList(
+      @item(Create an instance of some class descendant from TMatrixNavigator,
+        supplying OnMatrixChanged callback (typicall a procedure that simply
+        does Glwin.PostRedisplay).)
+
+      @item(Define start properties of this class. Each TMatrixNavigator
+        should have an @code(Init) method, these are designed to take
+        a couple of the most critical configuration parameters.)
+
+      @item(Call navigator events when you receive them from the user.
+        For example, in your OnKeyDown callback, you want to call
+        @code(Navigator.KeyDown) passing the parameters of pressed key.
+        If your OnIdle callback you want to call @code(Navigator.Idle)
+        (assuming that you work with TMatrixNavigatorWithIdle descendant).
+
+        If you plan to use this with TGLWindow, then consider using
+        TGLWindowNavigated class, this will take care of passing events
+        to appropriate navigator calls.)
+
+      @item(Call @code(glMultMatrix(Navigator.Matrix)) or
+        @code(glLoadMatrix(Navigator.Matrix)) at the beginning of your
+        OnDraw callback.)
+    ) }
   TMatrixNavigator = class
   protected
     { In this class this calls OnMatrixChanged (if assigned),
