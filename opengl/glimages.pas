@@ -135,7 +135,7 @@ const
   GLImageClasses: array [0..2] of TImageClass = (
     TRGBImage, TAlphaImage, TGrayscaleImage);
 
-{ Functions below return appropriate GL_xxx format and type
+{ These functions return appropriate GL_xxx format and type
   for given TImage descendant. If you will pass here Img
   that is not a descendant of one of GLImageClasses,
   they will return GL_INVALID_ENUM.
@@ -159,9 +159,12 @@ const
   So this way ImageDraw does not do any checks using GLImageFormats,
   even when compiled with -dDEBUG. Everything is done in OpenGL.
   And, in practice, current OpenGL implementations *will* signal errors
-  so things are checked.). }
+  so things are checked.).
+
+  @groupBegin }
 function ImageGLFormat(const Img: TImage): TGLenum;
 function ImageGLType(const Img: TImage): TGLenum;
+{ @groupEnd }
 
 { Loading images ------------------------------------------------------------- }
 
@@ -176,7 +179,8 @@ function LoadImageToDisplayList(const FileName: string;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint; overload;
 
-{ This calls appropriate glDrawPixels on this image.
+{ Draws the image as 2D on screen.
+  This calls OpenGL glDrawPixels command on this image.
 
   Don't worry about OpenGL's UNPACK_ALIGNMENT,
   we will take care here about this
@@ -190,10 +194,11 @@ procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
 { Same as @link(ImageDraw), but will omit 1st CutX columns (1st from the left)
   and 1st CutY rows (1st from down).
 
-  Yes, this is implemented using
-  glPixelStorei(GL_UNPACK_ ROW_LENGTH, SKIP_PIXELS / SKIP_ROWS).
-  But don't worry, we will take care here of changing (and later restoring
-  to previous values) such settings, just like GL_UNPACK_ALIGNMENT. }
+  This is implemented using
+  glPixelStorei(GL_UNPACK_ROW_LENGTH / GL_UNPACK_SKIP_PIXELS /
+  GL_UNPACK_SKIP_ROWS). So it works fast.
+  Don't worry, we will take care here of changing (and later restoring
+  to previous values) such unpack settings, just like GL_UNPACK_ALIGNMENT. }
 procedure ImageDrawCutted(const image: TImage; cutx, cuty: cardinal);
 
 { This creates new display list with a call to ImageDraw(Img) inside. }
@@ -227,10 +232,11 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
   if you have double-buffered window, of course.
 }
 
-{ SaveScreen_noflush : saves the current color buffer contents
-  to an image file (sidenote: useful function to generate image
+{ Saves the current color buffer contents
+  to an image file or to TRGBImage object.
+  Sidenote: useful function to generate image
   filename for game screenshots is @link(FnameAutoInc) in @link(KambiUtils)
-  unit) or to TRGBImage object.
+  unit.
 
   It does glReadBuffer(ReadBuffer) and then glReadPixels
   with appropriate parameters. In case of overloaded version
@@ -245,87 +251,45 @@ function ImageDrawToDisplayList(const img: TImage): TGLuint;
   before using this function.
 
   Note that you can pass here any ReadBuffer value allowed by
-  glReadBuffer OpenGL function). }
+  glReadBuffer OpenGL function).
+
+  @groupBegin }
 procedure SaveScreen_noflush(const FileName: string; ReadBuffer: TGLenum); overload;
 function SaveScreen_noflush(ReadBuffer: TGLenum): TRGBImage; overload;
 function SaveScreen_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
+{ @groupEnd }
 
-{ SaveScreenToDisplayList_noflush saves the current color buffer (like
-  @link(SaveScreen_noflush)) into the display list,
-  i.e. it returns newly created display list that contains
-  call to ImageDraw appropriate image. }
+{ Saves the current color buffer (captured like
+  @link(SaveScreen_noflush)) into the display list to redraw it.
+  That is, it returns newly created display list that contains
+  call to ImageDraw on a captured image.
+
+  @groupBegin }
 function SaveScreenToDisplayList_noflush(ReadBuffer: TGLenum): TGLuint; overload;
 function SaveScreenToDisplayList_noflush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TGLuint; overload;
+{ @groupEnd }
 
 { ----------------------------------------------------------------------
   Adjusting image size to load them as textures. }
 
-{ Ta procedura wywola ResizeToImage aby dostosowac obrazek do wymiarow jakie
-  OpenGL dopuszcza jako wymiary tekstur.
-  Postara sie przy tym aby resizowac mozliwie do wiekszego formatu niz sam
-  obrazek (a wiec nie tracic nic z jakosci obrazka).
-  Jezeli ladujesz tekstury przez jakies LoadGLTexture* nie musisz uzywac tej funkcji -
-  LoadGLTextures uzyje jej automatycznie. }
+{ Resizes the image to a size accepted as texture size for OpenGL.
+  It tries to resize to larger size, not smaller, to avoid losing image
+  information. Usually you don't have to call this, LoadGLTexture*
+  functions call it automatically when needed.
+
+  @groupBegin }
 procedure ResizeForTextureSize(var r: TImage);
 function ResizeToTextureSize(const r: TImage): TImage;
+{ @groupEnd }
 
-{ czy tekstura ma dobre rozmiary aby je przekazac do glTexImage2d ? Korzysta
-  z glGet(GL_MAX_TEXTURE_SIZE) a wiec mimo ze nie zmienia w zaden sposob stanu
-  OpenGL'a wymaga istnienia gl contextu no i jej odpowiedz nie jest uniwersalna;
-  dotyczy tylko tej konkretnej implementacji OpenGL'a na ktorej dziala program. }
+{ Tests if texture has proper size for OpenGL, that is for passing
+  it to glTexImage2d. This checks glGet(GL_MAX_TEXTURE_SIZE),
+  so requires initialized OpenGL context. }
 function IsTextureSized(const r: TImage): boolean;
 
-{ ladowanie tekstur ---------------------------------------------------------- }
-
-{ LoadGLTextures loads a set of textures and prepares them for using with OpenGL.
-
-  Each texture is loaded using LoadRGBImage so only RGB textures are supported
-  for now. This may change some day.
-
-   iloscTextur - wiadomo co okresla,
-   textury to adres TGLuint (lub tablicy TGLuint) do których zostana zaladowane
-     przydzielone numery bitmap. textury^ powinny miec miejsce na
-     iloscTextur x SizeOf(TGLuint).
-   textureFnames to nazwy plików z teksturami (ew. '', patrz ni¿ej, ale w tym przypadku
-     to nie bêdzie mia³o zastosowania (raczej nie) - bo ka¿da tekstura ma taki sam
-     minFilter i magfilter)
-   textureInfos to info o teksturach. Tablica musi mieæ ich co najmniej iloscTextur.
-     filename = zwyczajne nazwy plików. Jesli jakis plik nie istnieje, wyrzucamy wyjatek
-     EFileOpenError. Jesli filename = ''=nil to procedura wie ¿e ma wziac bitmapê z pliku z
-     poprzedniego rekordu (te sama bitmapê, ale mo¿esz tym razem np. daæ jej inne
-     min/magFilter).
-   min/magFilter - wiadomo co. Jesli sa w nich jakies flagi z MIPMAP, to bitmapa bêdzie
-     zbudowana przy u¿yciu gluBuild2dMipmaps, zamiast (standardowo) glTexImage2D.
-   TextureProc - jezeli <> nil to mozna tu podac procedure ktora bedzie wywolywana
-     dla kazdej zaladowanej tekstury (np. mozna tu podac 'MakeBlackAndWhite' aby
-     zaladowac tekstury jako czarno-biale ).
-
-  Jezeli Enable2DTextures to zrobi potem glEnable(GL_TEXTURE_2D) (ten parametr
-    jest po to zebys nigdy o tym nie zapomnial)
-  WrapS, T jesli nie beda podane to zostana uzyte domyslne wartosci OpenGLa
-    dla nowych tekstur.
-
-  Tekstury moga miec dowolne rozmiary, nawet jesli nie uzywasz mipmap. Innymi slowy,
-    jezeli nie uzywasz mipmap tekstura zostanie zresizowana do rozmiarow akceptowalnych
-    przez glTexImage2d przez ResizeForTextureSize. }
-type
-  TTextureInfo = record
-    filename: string;
-    minFilter, magFilter: TGLint;
-  end;
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureInfos: array of TTextureInfo; Enable2DTextures: boolean;
-  TextureProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}); overload;
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureFNames: array of string; Enable2DTextures: boolean;
-  MinFilter, MagFilter: TGLEnum;
-  TextureProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}); overload;
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureFNames: array of string; Enable2DTextures: boolean;
-  MinFilter, MagFilter, WrapS, WrapT: TGLEnum;
-  TextureProc: TProcedureRGBImage {$IFDEF DEFPARS}=nil{$ENDIF}); overload;
+{ Loading textures ----------------------------------------------------------- }
 
 { Load new texture. It generates new texture number by glGenTextures.
   This takes care of UNPACK_ALIGNMENT (if needed, we'll change it and
@@ -590,8 +554,8 @@ begin
  result := r.MakeResized(BestTexSize(r.Width), BestTexSize(r.Height));
 end;
 
-{implementacja procedur LoadGLTextures_XXX
-------------------------------------------------------------------------------------------}
+{ implementacja procedur LoadGLTextures_XXX
+  -----------------------------------------------------------------------------}
 
 function LoadGLTexture(const image: TImage; minFilter, magFilter: TGLenum;
   GrayscaleIsAlpha: boolean): TGLuint;
@@ -740,42 +704,6 @@ begin
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, WrapS);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, WrapT);
 end;
-
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureInfos: array of TTextureInfo; Enable2DTextures: boolean;
-  TextureProc: TProcedureRGBImage{=nil});
-
-  function getFilename(i: integer): string; begin result := textureInfos[i].filename end;
-  function getMinFilter(i: integer): TGLenum; begin result := textureInfos[i].minFilter end;
-  function getMagFilter(i: integer): TGLenum; begin result := textureInfos[i].magFilter end;
-
-{$define LOAD_GL_GENERATED_TEXTURE_POST_PARAMETERS:=}
-{$Include LoadGLTextures_core.inc}
-
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureFNames: array of string; Enable2DTextures: boolean;
-  minFilter, magFilter: TGLenum; TextureProc: TProcedureRGBImage{=nil});
-
-  function getFilename(i: integer): string; begin result := textureFnames[i] end;
-  function getMinFilter(i: integer): TGLenum; begin result := minFilter end;
-  function getMagFilter(i: integer): TGLenum; begin result := magFilter end;
-
-{$define LOAD_GL_GENERATED_TEXTURE_POST_PARAMETERS:=}
-{$Include LoadGLTextures_core.inc}
-
-procedure LoadGLTextures(iloscTekstur: integer; textury: PGLuint;
-  const textureFNames: array of string; Enable2DTextures: boolean;
-  minFilter, magFilter, WrapS, WrapT: TGLenum;
-  TextureProc: TProcedureRGBImage{=nil});
-
-  function getFilename(i: integer): string; begin result := textureFnames[i] end;
-  function getMinFilter(i: integer): TGLenum; begin result := minFilter end;
-  function getMagFilter(i: integer): TGLenum; begin result := magFilter end;
-
-{$define LOAD_GL_GENERATED_TEXTURE_POST_PARAMETERS:=, WrapS, WrapT}
-{$Include LoadGLTextures_core.inc}
-
-{$undef LOAD_GL_GENERATED_TEXTURE_POST_PARAMETERS}
 
 function LoadGLTextureModulated(const Image: TImage; MinFilter, MagFilter,
   WrapS, WrapT: TGLenum; ColorModulatorByte: TColorModulatorByteFunc): TGLuint;

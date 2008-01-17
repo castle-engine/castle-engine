@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2005,2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -20,18 +20,22 @@
 
 { @abstract(Progress bar displayed in OpenGL inside GLWindow window.)
 
-  Rejestruje odpowiednie funkcje modulu ProgressUnit w RegisterProgresGL.
+  Simply set @code(ProgressGLInterface.Window) to your TGLWindow
+  instance, and assign
 
-  Pomiedzy Progress.Init a Fini nie powinienes nic robic z okienkiem
-  ktore przekazesz jako parametr dla RegisterProgressGL. Jego callbacki
-  beda zmienione, stan kontekstu OpenGL'a tez bedzie zmieniony.
-  Wiec nic z nimi nie rob.
+@longCode(#  Progress.UserInterface := ProgressGLInterface;#)
 
-  Pamietaj aby po Progress.Init wywolac zawsze Progress.Fini (najlepiej
-  w konstrukcji
-    Progress.Init; try.....finally Progress.Fini end
-  ) a wszystko (callbacki, stan OpenGL'a) bedzie przywrocone po
-  Progress.Fini. }
+  Between Progress.Init and Fini you shouldn't do anything with
+  window set as @code(ProgressGLInterface.Window).
+  It's callbacks will be temporarily swapped and it will be used
+  to render progress bar.
+
+  As usual, remember to always call Progress.Fini if you called
+  Progress.Init. Progress.Fini restores original callbacks and OpenGL
+  state of your window. Usually it's best and safest to use try..finally
+  block like
+
+@longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
 
 
 unit ProgressGL;
@@ -50,7 +54,7 @@ const
 type
   TProgressGLInterface = class(TProgressUserInterface)
   private
-    { obraz tla (ekran w momencie Init) }
+    { Background image (screen captured at the moment of Init call) }
     list_drawProgressBG: TGLuint;
     ProgressFont: TGLBitmapFont_Abstract;
     FWindow: TGLWindow;
@@ -59,7 +63,8 @@ type
   public
     constructor Create;
 
-    { Assign this before doing Init. Don't change this when we are
+    { Window used to render the progress bar.
+      Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
     property Window: TGLWindow read FWindow write FWindow;
 
@@ -76,8 +81,9 @@ type
   end;
 
 var
-  { created in initialization, freed in finalization }
-  ProgressGLInterface :TProgressGLInterface;
+  { Assign this to Progress.UserInterface to use OpenGL progress bar.
+    This instance is created in initialization, freed in finalization. }
+  ProgressGLInterface: TProgressGLInterface;
 
 implementation
 

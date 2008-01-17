@@ -230,85 +230,104 @@ type
     ) }
   TMatrixNavigator = class
   protected
-    { In this class this calls OnMatrixChanged (if assigned),
-      (this may also do some other internal things (e.g. recalculating
-      the frustum in TMatrixWalker), so always call inherited in
-      descendants). }
+    { This is called always when @link(Matrix) changed.
+      Actually, when any
+      property (of this class or descendant) changed, for example even
+      changes to TMatrixWalker.MoveHorizontalSpeed result in matrix
+      changed event.
+
+      In this class this simply calls OnMatrixChanged (if assigned).
+
+      (It may also do some other internal things (e.g. recalculating
+      the frustum in TMatrixWalker), so always call inherited when
+      overriding this.) }
     procedure MatrixChanged; virtual;
   public
-    { OnMatrixChanged bedzie wywolywane zawsze gdy funkcja Matrix
-      zacznie zwracac inne wartosci LUB gdy jakakolwiek wartosc wlasciwosci
-      podklasy ulegnie zmianie (jak np. MoveHorizontalSpeed w TMatrixWalker).
-      Moze byc = nil ale zazwyczaj nie powinna - CHCESZ przeciez reagowac na
-      zmiany, prawda ? Pamietaj ze kazda zmiana macierzy spowoduje natychmiastowe
-      wywolanie OnMatrixChanged - wiec napisz OnMatrixChanged tak zeby dzialalo
-      zawsze gdy bedziesz wywolywal jakas metode na tym obiekcie. }
+    { Event called always when @link(Matrix) changed. Actually, when any
+      property (of this class or descendant) changed, for example even
+      changes to TMatrixWalker.MoveHorizontalSpeed result in matrix changed
+      event.
+
+      It may be @nil but usually you really want to react to matrix changes.
+      Be careful when writing this callback, any change of navigator
+      property may cause this, so be prepared to handle OnMatrixChanged
+      at every time. }
     OnMatrixChanged: TMatrixNavigatorNotifyFunc;
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       virtual;
 
-    { zwraca aktualna macierz przez ktora powinienes przemnozyc kazdy
-      punkt sceny po ktorej nawigujesz, tzn. kazdy punkt P powinien
-      byc wyswietlony jako Matrix*P. }
+    { Current camera matrix. You should multiply every 3D point of your
+      scene by this matrix, which usually simply means that you should
+      do @code(glLoadMatrix) or @code(glMultMatrix) of this matrix. }
     function Matrix: TMatrix4Single; virtual; abstract;
-    { zwraca tylko obroty z aktualnej macierzy (bez skalowania, bez przesuniec);
-      przydatne aby zastosowac nieba w rodzaju node'a Background VRMLa 97. }
+
+    { Extract only rotation from your current camera @link(Matrix).
+      This is useful for rendering skybox in 3D programs
+      (e.g. for Background VRML 97 node). }
     function RotationOnlyMatrix: TMatrix4Single; virtual; abstract;
 
-    { Zwraca true jezeli jakos obsluzyl klawisz c/key.
+    (*Handle key press event.
+      Returns @true if the key was somehow handled.
 
-      W tej klasie zawsze zwraca false - w podklasach powinny dzialac na
-      zasadzie
-        result := inherited;
-        if result then exit;
-        ...i dzialamy, tzn. zawsze obsluga w klasach nadrzednych ma priorytet
-        nad osbluga w podklasach.
+      In this class this always returns @false, when implementing
+      in descendants you should override it like
 
-      Mozesz podac stan aktualnie wcisnietych klawiszy w KeysDown.
-      Podaj nil jezeli nie chcesz tego podawac. (zawartosc podanego KeysDown
-      nie bedzie zmieniana, bierzemy wskaznik tylko dlatego zebys mogl przekazac
-      nil) }
+      @longCode(#
+  Result := inherited;
+  if Result then Exit;
+  { ... And do the job here.
+    In other words, the handling of keys in inherited
+    class should have a priority. }
+#)
+
+      @param(KeysDown You can pass here a boolean table indicating
+        which keys are pressed. You can pass @nil if you don't know this.
+
+        (Contents of table passed here will never be modified anyway.
+        This is a pointer only so that you can simply pass @nil here.)) *)
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; virtual;
 
-    { Handle mouse down event.
+    (*Handle mouse down event.
 
       Just like KeyDown, this returns whether the event was handled.
       Descendants should always override this like
-        Result := inherited;
-        if Result then Exit; }
+      @longCode(#
+  Result := inherited;
+  if Result then Exit;
+  { ... do the job here ... }
+#) *)
     function MouseDown(Button: TMouseButton): boolean; virtual;
   end;
 
   TMatrixNavigatorClass = class of TMatrixNavigator;
 
-  { This is a navigator that has an Idle method that should be called
-    as often as possible. }
+  { A descendant of @inherited that has an Idle method. }
   TMatrixNavigatorWithIdle = class(TMatrixNavigator)
   public
     { Call this often, to respond to user actions and to perform
-      other animations (falling down due to gravity in Walk mode,
-      rotating modelin Examine mode, and many more).
+      other tasks (falling down due to gravity in Walker mode,
+      rotating model in Examine mode, and many more).
 
       @param(CompSpeed Should be calculated like TGLWindow.IdleCompSpeed,
         and usually it's in fact just taken from Glwin.IdleCompSpeed.)
 
       @param(KeysDown What keys are pressed currently ?
-        Powinienes tu podac klawisze w rodzaju glwin.KeysDown.
-        Ew. mozesz tu podac nil -
-        ale pamietaj ze wtedy nie pozwalasz userowi sterowac w domyslny sposob
-        navigatorem, musisz wtedy sam zadbac o odpowiednie sterowanie.
-        (zawartosc KeysDown nie bedzie zmieniana).)
+        You pass here a pointer to a boolean table indicating
+        which keys are currently pressed. Or you can pass @nil
+        here if you don't know it. Just like for @link(KeyDown) merhod.)
 
-      @param(MousePressed What mouse buttons are currently down ?) }
+      @param(MousePressed Which mouse buttons are currently pressed ?) }
     procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
       const MousePressed: TMouseButtons); virtual; abstract;
   end;
 
   T3BoolInputs = array [0..2, boolean] of TInputShortcut;
 
-  { ogladanie modelu. Model jest wyswietlany wokol punktu MoveAmount,
-    nastepnie obracany o RotationAngle i skalowany o ScaleFactor
-    (juz wzgledem tego punktu MoveAmount). }
+  { Navigate the 3D model in examine mode, like you would hold
+    a box with the model inside.
+    The model is displayed around MoveAmount 3D point,
+    it's rotated by RotationAngle and scaled by ScaleFactor
+    (scaled around MoveAmount point). }
   TMatrixExaminer = class(TMatrixNavigatorWithIdle)
   private
     FRotationsSpeed, FRotationsAngle, FMoveAMount, FModelBoxMiddle: TVector3Single;
@@ -341,52 +360,76 @@ type
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
     function MouseDown(Button: TMouseButton): boolean; override;
 
-    { wlasciwosci ------------------------------------------------------------- }
+    { Current camera properties ---------------------------------------------- }
 
-    { RotationsSpeed[0] to szybkosc z jaka zmienia sie RotationsAngle[0] w czasie
-        Idle. RotationsAngle[0] wyznacza obrot wokol osi X (wektora 1, 0, 0)
-        (w stopniach). Analogicznie dla indeksow [1] i [2].
-        Obroty sa robione wzgledem srodka ModelBox
-      MoveAmount okresla jak ma byc przetransformowany punkt (0, 0, 0) modelu
-        (poczatkowo bedziesz pewnie chcial zepewne zeby bylo tak ze srodek
-        modelu jest widoczny na ekranie, a wiec np. cos w rodzaju
-          MoveAmount := ObjectMiddle + (0, 0, -2*ObjectSize)
-      ScaleFactor okresla jak obiekt bedzie skalowany (skalowanie tez bedzie
-        wokol punktu ModelCenter)
-      Idea jest taka zeby ScaleFactor, MoveAmount, RotationsSpeed
-        byly modyfikowane przez usera a RotationsAngle byly pozostawione sobie
-        samemu. ModelBox wymaga jednokrotnej inicjalizacji i potem czesto moze
-        juz byc stale do konca programu. }
-    property RotationsSpeed: TVector3Single read FRotationsSpeed write SetRotationsSpeed; { =(0, 0, 0) }
-    property RotationsAngle: TVector3Single read FRotationsAngle write SetRotationsAngle; { =(0, 0, 0) }
-    property ScaleFactor: Single read FScaleFactor write SetScaleFactor; { =1 }
-    property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount; { =(0, 0, 0) }
+    { RotationsAngle is the current rotation of the model, around each base
+      axis. RotationsSpeed is the speed how fast RotationsAngle change.
+      Rotation is done around ModelBox middle (with MoveAmount added).
+      Default values of these are zero vectors.
+      @groupBegin }
+    property RotationsSpeed: TVector3Single
+      read FRotationsSpeed write SetRotationsSpeed;
+    property RotationsAngle: TVector3Single
+      read FRotationsAngle write SetRotationsAngle;
+    { @groupEnd }
+
+    { MoveAmount says how to translate the model.
+      It's always added to the middle of ModelBox, this is usually
+      comfortable.
+
+      The default value of this is zero vector.
+      If you want to just see the whole model,
+      you may want to set this to something like
+
+        @preformatted(MoveAmount := Middle of ModelBox + (0, 0, -2 * ModelSize))
+
+      Actually, @link(Init) method does the above for you. }
+    property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
+
+    { How the mode is scaled. Scaling is done around MoveAmount added to
+      the middle of ModelBox. }
+    property ScaleFactor: Single
+      read FScaleFactor write SetScaleFactor default 1;
+
+    { The aproximate size of 3D model that will be viewed.
+      This is the crucial property of this class that you have to set,
+      to make the navigation work best.
+
+      The idea is that usually this is the only property that you have to set.
+      ScaleFactor, MoveAmount, RotationsSpeed will be almost directly
+      controlled by user (through KeyDown and other events).
+      RotationsAngle will be automatically modified by @link(Idle).
+
+      So often you only need to set ModelBox, once,
+      and everything else will work smoothly. }
     property ModelBox: TBox3d read FModelBox write SetModelBox; { = EmptyBox3d }
 
-    { ustawi ModelBox i ustawi MoveAmount zeby model byl
-      dobrze widoczny gdy patrzymy z punktu (0, 0, 0) w strone (0, 0, -1),
-      pozostale wartosci ustawi na ich defaultowe wartosci jakie maja
-      zaraz po utworzeniu obiektu.
-      Innymi slowy zrobi SetModelBox + Home. (czasem mozesz chciec
-      wykonac samo SetModelBox zamiast Init, przyklad - patrz sgk_shadows)
+    { Initializes most important properties of this class:
+      ModelBox, and MoveAmount. MoveAmount is set such that
+      ModelBox is nicely viewed.
 
-      TODO: zrobic parametr MoveAmountDefaultZero: boolean,
-      przyda sie w sgk_shadows }
+      Rest of the properties will be set to their default values.
+
+      In other words, this is just a shortcut to setting ModelBox
+      and then calling @link(Home). }
     procedure Init(const AModelBox: TBox3d);
     procedure Home;
 
-    { -------------------------------------------------------------------------
-      akcje na obiekcie na ktore zazwyczaj bedziesz chcial pozwolic userowi  }
+    { Methods performing navigation.
+      Usually you want to just leave this for user to control. --------------- }
 
-    { obiekt caly czas obraca sie o RotationsSpeed.
-      StopRotating sprawia ze RotationSpeed:=(0, 0, 0).
-      Rotate natomiast dodaje do RotationSpeed[coord] SpeedChange (w stopniach). }
+    { StopRotating sets RotationsSpeed to zero, stopping the rotation of
+      the model. }
     procedure StopRotating;
+
+    { Rotate adds SpeedChange (in degrees) to RotationSpeed[Coord],
+      thus making rotation faster. }
     procedure Rotate(coord: integer; const SpeedChange: Single);
+
     procedure Scale(const ScaleBy: Single);
     procedure Move(coord: integer; const MoveDistance: Single);
 
-    { klawisze ---------------------------------------- }
+    { User inputs ------------------------------------------------------------ }
 
     { TODO: tak samo jak TMatrixWalker, przydaloby sie moc podawac
       tutaj za jednym zamachem char+TKey+modifiers zamiast tylko char
@@ -420,7 +463,7 @@ type
     out IsAboveTheGround: boolean; out SqrHeightAboveTheGround: Single)
     of object;
 
-  { Walking (DOOM-like moving) over the model.
+  { Navigation by walking (first-person-shooter-like moving) in 3D scene.
     Camera is defined by it's position, looking direction
     and up vector, user can rotate and move camera using various keys. }
   TMatrixWalker = class(TMatrixNavigatorWithIdle)
@@ -648,13 +691,16 @@ type
 
     { General stuff ----------------------------------------------------- }
 
-    { Move*Speed sa na poczatku rowne 1 zebys mogl userowi wyswietlac
-      te zmienne jako jakas "szybkosc" gdzie 1 oznacza ruch w/g dlugosci
-      wektora dir. }
+    { Moving speeds. Default values for both are 1.0,
+      this is comfortable to display them to user (you can nicely
+      display "1.0" as default moving speed). Note that the length
+      of CameraDir also affects moving speed.
+      @groupBegin }
     property MoveHorizontalSpeed: Single
       read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
     property MoveVerticalSpeed: Single
       read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
+    { @groupEnd }
 
     property RotationHorizontalSpeed: Single
       read FRotationHorizontalSpeed write FRotationHorizontalSpeed
@@ -914,17 +960,20 @@ type
 
     { Things related to frustum ---------------------------------------- }
 
-    { This is initially IdentityMatrix4Single.
+    { Projection matrix that you should pass here to have Frustum
+      calculated for you.
+
+      This is initially IdentityMatrix4Single.
       This is not modified anywhere from this class.
       *You* should modify it, you should set it to projection matrix
-       that you use, if you want to use Frustum value.
+      that you use, if you want to use Frustum value.
       This is used whenever Frustum is recalculated. }
     property ProjectionMatrix: TMatrix4Single
       read FProjectionMatrix write SetProjectionMatrix;
 
-    { This is recalculated based on @link(ProjectionMatrix) and @link(Matrix)
-      whenever one of these properties change.
-      This specifies the viewing frustum derived from these properties.
+    { The current camera (viewing frustum, based on
+      @link(ProjectionMatrix) (set by you) and @link(Matrix) (calculated here).
+      This is recalculated whenever one of these two properties change.
       Be sure to set @link(ProjectionMatrix) before using this. }
     property Frustum: TFrustum read FFrustum;
 

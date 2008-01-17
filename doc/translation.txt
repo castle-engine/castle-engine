@@ -16,7 +16,7 @@ will be implemented).
 D   boxes3d.pas
 D   convexhullunit.pas
 D   keys.pas
-|   matrixnavigation.pas
+D   matrixnavigation.pas
 D   polynomials.pas
 |   rayswindow.pas
 |   spacefillingcurves.pas
@@ -127,12 +127,12 @@ D   glw_win.pas
 -   openglfonts.pas
 -   openglh.pas
 D   openglttfonts.pas
--   progressgl.pas
+D   progressgl.pas
 -   timemessages.pas
 D   glmenu.pas
 D   glsoundmenu.pas
 D   shadowvolumesutils.pas
-|   glimages.pas
+D   glimages.pas
 D   glshaders.pas
 
 ------------------------------------------------------------
