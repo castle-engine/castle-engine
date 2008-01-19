@@ -158,6 +158,11 @@ begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2];
 end;
 
+function VectorDotProduct(const v1, v2: TYPE_VECTOR4): TYPE_SCALAR;
+begin
+ result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+ v1[3]*v2[3];
+end;
+
 function VectorMultEachPos(const v1, v2: TYPE_VECTOR3): TYPE_VECTOR3;
 begin
  result[0] := v1[0] * v2[0];

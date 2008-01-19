@@ -834,9 +834,13 @@ function VectorLenSqr(const v: TVector3Byte): Integer; overload;
 function VectorProduct(const v1, v2: TVector3Double): TVector3Double; overload;
 function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
 
-{ iloczyn skalarny dwoch wektorow }
+{ Dot product (aka scalar product) of two vectors.
+  @grouupBegin }
 function VectorDotProduct(const v1, v2: TVector3Single): Single; overload;
 function VectorDotProduct(const v1, v2: TVector3Double): Double; overload;
+function VectorDotProduct(const v1, v2: TVector4Single): Single; overload;
+function VectorDotProduct(const v1, v2: TVector4Double): Double; overload;
+{ @groupEnd }
 
 { mnozy dwa wektory na zasadzie mnozenia odpowiadajacych sobie pozycji,
   tzn. dla wektorow i elementowych result[j] := v1[j] * v2[j]
