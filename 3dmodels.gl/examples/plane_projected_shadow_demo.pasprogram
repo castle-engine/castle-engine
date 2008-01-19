@@ -148,9 +148,14 @@ begin
 
     glPushMatrix();
       glMultMatrix(PlaneProjectedShadowMatrix(Plane, LightPosition));
-      glPushAttrib(GL_ENABLE_BIT);
+      glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
         glDisable(GL_LIGHTING);
-        glColorv(Vector4Single(0, 0, 0, 0.5));
+        glColorv(Vector4Single(0, 0, 0, 0.2));
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glDepthMask(GL_FALSE);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-10, -10);

@@ -704,6 +704,8 @@ begin
   inherited;
   glPushAttrib(GL_POLYGON_BIT);
 
+  if Renderer.Attributes.PureGeometry then Exit;
+
   { zmieniamy glFrontFace na GL_CW jesli VertexOrdering jest clockwise.
     W ten sposob mowimy OpenGL'owi ktorym faces robic cull o ile
     za chwile wlaczymy culling i mowimy tez z ktorej strony polygonow
