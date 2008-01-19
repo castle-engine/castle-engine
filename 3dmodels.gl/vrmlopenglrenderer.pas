@@ -461,6 +461,7 @@ type
     FUseFog: boolean;
     FBumpMappingMaximum: TBumpMappingMethod;
     FGLSLShaders: boolean;
+    FPureGeometry: boolean;
   protected
     { In this class these methods just set value on given property.
       In descendants you can do something more here, like automatic
@@ -485,6 +486,7 @@ type
     procedure SetUseFog(const Value: boolean); virtual;
     procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); virtual;
     procedure SetGLSLShaders(const Value: boolean); virtual;
+    procedure SetPureGeometry(const Value: boolean); virtual;
     { @groupEnd }
   public
     constructor Create; virtual;
@@ -676,6 +678,33 @@ type
     { @abstract(Use shaders defined in VRML file in GLSL language ?) }
     property GLSLShaders: boolean read FGLSLShaders write SetGLSLShaders
       default true;
+
+    { Use this to render pure geometry, without any colors, materials, etc.
+      If this is @true, only pure geometry will be rendered.
+      This means that the rendering of the model will be equivalent to
+      calling only @code(glBegin(...)), then @code(glVertex(...)),
+      then @code(glEnd). Actually, some additional calls may be done
+      (to push/pop/multiply current modelview matrix, and to realize
+      drawing of vertexes by vertex arrays).
+      But the point is that no OpenGL state, besides the absolute minimum to render
+      polygons at their correct places, will be touched.
+
+      For example, Renderer will not set any color (no glColor calls),
+      will not set any material
+      (no glMaterial calls), will not set any texture coordinates and
+      will not bind any texture, will not enable any depth testing, fog and
+      everything else.
+
+      This is only useful for some special OpenGL tricks. For example if you
+      want, for whatever reason, to set glColor and/or glMaterial
+      and/or texturing by yourself, for the whole model.
+      A practical example of use is to render plane-projected shadows,
+      see kambi_vrml_game_engine/3dmodels.gl/examples/plane_projected_shadow_demo.pasprogram.
+      In this program, we must be able to render any VRML model with pure
+      black color, possibly (when using stenciling) withuout even depth
+      testing. }
+    property PureGeometry: boolean
+      read FPureGeometry write SetPureGeometry default false;
   end;
 
   TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
@@ -1151,7 +1180,7 @@ type
       const FirstGLFreeTexture: Cardinal;
       ALastGLFreeTexture: Integer;
       const AttributesBumpMappingMaximum: TBumpMappingMethod;
-      const AttributesEnableTextures: boolean):
+      const AttributesEnableTextures, AttributesPureGeometry: boolean):
       TBumpMappingMethod;
 
     { Sets light position used for bump mapping.
@@ -2075,6 +2104,11 @@ begin
   FGLSLShaders := Value;
 end;
 
+procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
+begin
+  FPureGeometry := Value;
+end;
+
 function TVRMLRenderingAttributes.SmoothNormalsGLU: TGLenum;
 begin
   if SmoothShading then
@@ -2186,7 +2220,8 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     ExistingReferenceIndex: Integer;
   begin
     { prepare GLSLProgram }
-    if Attributes.GLSLShaders and
+    if (not Attributes.PureGeometry) and
+       Attributes.GLSLShaders and
        (State.ParentShape <> nil) and
        (State.ParentShape.Appearance <> nil) then
     begin
@@ -2407,7 +2442,8 @@ begin
 
  { przygotuj teksture }
  TextureNode := State.Texture;
- if (TextureNode <> nil) and
+ if (not Attributes.PureGeometry) and
+    (TextureNode <> nil) and
     (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
   TextureNode.ImagesCache := Cache;
@@ -2612,7 +2648,7 @@ class function TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
   const FirstGLFreeTexture: Cardinal;
   ALastGLFreeTexture: Integer;
   const AttributesBumpMappingMaximum: TBumpMappingMethod;
-  const AttributesEnableTextures: boolean):
+  const AttributesEnableTextures, AttributesPureGeometry: boolean):
   TBumpMappingMethod;
 var
   TextureUnitsAvailable: Cardinal;
@@ -2638,6 +2674,7 @@ begin
 
   if (AttributesBumpMappingMaximum > bmNone) and
      AttributesEnableTextures and
+     (not AttributesPureGeometry) and
 
     { EXT_texture_env_combine (standard since 1.3) required }
     (GL_EXT_texture_env_combine or GL_version_1_3) and
@@ -2696,7 +2733,8 @@ begin
     BumpMappingMethodCached := GLContextBumpMappingMethod(
       Attributes.FirstGLFreeTexture,
       LastGLFreeTexture,
-      Attributes.BumpMappingMaximum, Attributes.EnableTextures);
+      Attributes.BumpMappingMaximum, Attributes.EnableTextures,
+      Attributes.PureGeometry);
 
     if Log then
       WritelnLog('Bump mapping', 'Bump mapping method detected: "' +
@@ -2823,35 +2861,39 @@ begin
 
  {init our OpenGL state}
  glMatrixMode(GL_MODELVIEW);
- glDisable(GL_COLOR_MATERIAL);
- glDisable(GL_TEXTURE_GEN_S);
- glDisable(GL_TEXTURE_GEN_T);
- glDisable(GL_TEXTURE_GEN_Q);
- glEnable(GL_NORMALIZE);
- glPointSize(Attributes.PointSize);
- glEnable(GL_DEPTH_TEST);
- glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
- {podczas renderowania Indexed_Faces_Or_Triangles mozemy na chwile wlaczac
-  GL_CULL_FACE, mozemy tez zmieniac na chwile glFrontFace,
-  mozemy tez zmieniac glCullFace.}
- glFrontFace(GL_CCW);
- glCullFace(GL_BACK);
- glDisable(GL_CULL_FACE);
+ if not Attributes.PureGeometry then
+ begin
+   glDisable(GL_COLOR_MATERIAL);
+   glDisable(GL_TEXTURE_GEN_S);
+   glDisable(GL_TEXTURE_GEN_T);
+   glDisable(GL_TEXTURE_GEN_Q);
+   glEnable(GL_NORMALIZE);
+   glPointSize(Attributes.PointSize);
+   glEnable(GL_DEPTH_TEST);
+   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
- glDisable(GL_ALPHA_TEST);
- {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
- glAlphaFunc(GL_GEQUAL, 0.5);
+   {podczas renderowania Indexed_Faces_Or_Triangles mozemy na chwile wlaczac
+    GL_CULL_FACE, mozemy tez zmieniac na chwile glFrontFace,
+    mozemy tez zmieniac glCullFace.}
+   glFrontFace(GL_CCW);
+   glCullFace(GL_BACK);
+   glDisable(GL_CULL_FACE);
 
- if Attributes.SmoothShading then
-  glShadeModel(GL_SMOOTH) else
-  glShadeModel(GL_FLAT);
+   glDisable(GL_ALPHA_TEST);
+   {AlphaFunc uzywane tylko dla textures i tam taka wartosc jest dobra}
+   glAlphaFunc(GL_GEQUAL, 0.5);
 
- if Attributes.UseLights then
-   for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
-     glDisable(GL_LIGHT0+i);
+   if Attributes.SmoothShading then
+    glShadeModel(GL_SMOOTH) else
+    glShadeModel(GL_FLAT);
 
- SetupFog(FogNode);
+   if Attributes.UseLights then
+     for i := Attributes.FirstGLFreeLight to LastGLFreeLight do
+       glDisable(GL_LIGHT0+i);
+
+   SetupFog(FogNode);
+ end;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderEnd;
@@ -2989,6 +3031,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     IndexedFaceRenderer: TIndexedFaceSetRenderer;
     TexReference: PTextureReference;
   begin
+    if Attributes.PureGeometry then Exit;
+
     {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 
     {notka : nalezy tu zauwazyc ze robimy alphaTest ale jezeli
@@ -3085,7 +3129,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   begin
     UsedGLSLProgram := nil;
 
-    if (State.ParentShape <> nil) and
+    if (not Attributes.PureGeometry) and
+       (State.ParentShape <> nil) and
        (State.ParentShape.Appearance <> nil) then
     begin
       for I := 0 to State.ParentShape.Appearance.FdShaders.Items.Count - 1 do

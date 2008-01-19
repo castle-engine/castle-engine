@@ -201,7 +201,7 @@ begin
     will be settable during lifetime of TVRMLOpenGLRenderer. }
 
   if TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
-    0, -1, High(TBumpMappingMethod), true) in [bmNone] + bmGLSLAll then
+    0, -1, High(TBumpMappingMethod), true, false) in [bmNone] + bmGLSLAll then
     SceneOptimization := roSceneAsAWhole else
     SceneOptimization := roNone;
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(FileName, true),

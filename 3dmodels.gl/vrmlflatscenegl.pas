@@ -150,6 +150,7 @@ type
     procedure SetUseFog(const Value: boolean); override;
     procedure SetBumpMappingMaximum(const Value: TBumpMappingMethod); override;
     procedure SetGLSLShaders(const Value: boolean); override;
+    procedure SetPureGeometry(const Value: boolean); override;
 
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
@@ -1259,6 +1260,17 @@ const
     end;
   end;
 
+  procedure RenderAllAsOpaque;
+  var
+    ShapeStateNum: Integer;
+  begin
+    if TransparentGroup in AllOrOpaque then
+    begin
+      for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+        TestRenderShapeStateProc(ShapeStateNum);
+    end;
+  end;
+
 var
   ShapeStateNum: integer;
   TransparentObjectsExists: boolean;
@@ -1269,72 +1281,75 @@ begin
   if Assigned(RenderBeginProc) then
     RenderBeginProc;
   try
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-    try
-      { TODO - niestety, jezeli jeden shape uzywa wielu materialow z ktorych
-        niektore sa opaque a niektore nie to wynik renderowania nie bedzie
-        za dobry. Idealnym rozwiazaniem byloby rozbijac tu renderowanie
-        na trojkaty - ale ponizej, dla szybkosci, renderujemy cale
-        shape'y. W zwiazku z tym zdecydowalem ze jezeli shape uzywa jakiegos
-        materialu i nie wszystkie elementy tego materialu sa transparent
-        to renderujemy shape jako opaque - wpp. renderujemy shape jako
-        transparent. W rezultacie jezeli chcesz zeby shape byl renderowany
-        z uwzglednieniem partial transparency to musisz zrobic tak zeby
-        shape uzywal materialu ktorego pole Transparency ma wszystkie
-        elementy > 0.
+    if Attributes.PureGeometry then
+    begin
+      { When PureGeometry, we don't want to do anything with glDepthMask
+        or GL_BLEND enable state. Just render everything. }
+      RenderAllAsOpaque;
+    end else
+    begin
+      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+      try
+        { TODO - niestety, jezeli jeden shape uzywa wielu materialow z ktorych
+          niektore sa opaque a niektore nie to wynik renderowania nie bedzie
+          za dobry. Idealnym rozwiazaniem byloby rozbijac tu renderowanie
+          na trojkaty - ale ponizej, dla szybkosci, renderujemy cale
+          shape'y. W zwiazku z tym zdecydowalem ze jezeli shape uzywa jakiegos
+          materialu i nie wszystkie elementy tego materialu sa transparent
+          to renderujemy shape jako opaque - wpp. renderujemy shape jako
+          transparent. W rezultacie jezeli chcesz zeby shape byl renderowany
+          z uwzglednieniem partial transparency to musisz zrobic tak zeby
+          shape uzywal materialu ktorego pole Transparency ma wszystkie
+          elementy > 0.
 
-        TODO - powinnismy rysowac obiekty partially transparent od najdalszego
-        do najblizszego zeby zapewnic dobry wyglad w miejscach gdzie kilka
-        partially transparent obiektow zachodzi na siebie.
+          TODO - powinnismy rysowac obiekty partially transparent od najdalszego
+          do najblizszego zeby zapewnic dobry wyglad w miejscach gdzie kilka
+          partially transparent obiektow zachodzi na siebie.
 
-        Note for AllMaterialsTransparent: it's important here that we use
-        AllMaterialsTransparent from TVRMLShapeState, because this is cached
-        in TVRMLShapeState. If we would directly call
-        State.LastNodes.Material.IsAllMaterialsTransparent then
-        our trick with freeing RootNode to conserve memory
-        (see TVRMLFlatScene.RootNode docs) would make calling Render
-        impossible with optimization roSeparateShapeStates.
-      }
+          Note for AllMaterialsTransparent: it's important here that we use
+          AllMaterialsTransparent from TVRMLShapeState, because this is cached
+          in TVRMLShapeState. If we would directly call
+          State.LastNodes.Material.IsAllMaterialsTransparent then
+          our trick with freeing RootNode to conserve memory
+          (see TVRMLFlatScene.RootNode docs) would make calling Render
+          impossible with optimization roSeparateShapeStates.
+        }
 
-      glDepthMask(GL_TRUE);
-      glDisable(GL_BLEND);
-      if Attributes.Blending then
-      begin
-        { uzywamy zmiennej TransparentObjectsExists aby ew. (jesli na scenie
-          nie ma zadnych obiektow ktore chcemy renderowac z blending)
-          zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
-          itd. i nie iterowac ponownie po liscie ShapeStates }
-        TransparentObjectsExists := false;
-
-        { draw fully opaque objects }
-        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-          if not ShapeStates[ShapeStateNum].AllMaterialsTransparent then
-          begin
-            if TransparentGroup in AllOrOpaque then
-              TestRenderShapeStateProc(ShapeStateNum);
-          end else
-            TransparentObjectsExists := true;
-
-        { draw partially transparent objects }
-        if TransparentObjectsExists and
-           (TransparentGroup in AllOrTransparent) then
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        if Attributes.Blending then
         begin
-          glDepthMask(GL_FALSE);
-          glEnable(GL_BLEND);
-          glBlendFunc(Attributes.BlendingSourceFactor,
-                      Attributes.BlendingDestinationFactor);
-          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-            if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
-              TestRenderShapeStateProc(ShapeStateNum);
-        end;
-      end else
-      if TransparentGroup in AllOrOpaque then
-      begin
-        for ShapeStateNum := 0 to ShapeStates.Count - 1 do
-          TestRenderShapeStateProc(ShapeStateNum);
-      end;
+          { uzywamy zmiennej TransparentObjectsExists aby ew. (jesli na scenie
+            nie ma zadnych obiektow ktore chcemy renderowac z blending)
+            zaoszczedzic czas i nie robic zmian stanu OpenGLa glDepthMask(GL_FALSE);
+            itd. i nie iterowac ponownie po liscie ShapeStates }
+          TransparentObjectsExists := false;
 
-    finally glPopAttrib end;
+          { draw fully opaque objects }
+          for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+            if not ShapeStates[ShapeStateNum].AllMaterialsTransparent then
+            begin
+              if TransparentGroup in AllOrOpaque then
+                TestRenderShapeStateProc(ShapeStateNum);
+            end else
+              TransparentObjectsExists := true;
+
+          { draw partially transparent objects }
+          if TransparentObjectsExists and
+             (TransparentGroup in AllOrTransparent) then
+          begin
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glBlendFunc(Attributes.BlendingSourceFactor,
+                        Attributes.BlendingDestinationFactor);
+            for ShapeStateNum := 0 to ShapeStates.Count - 1 do
+              if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
+                TestRenderShapeStateProc(ShapeStateNum);
+          end;
+        end else
+          RenderAllAsOpaque;
+      finally glPopAttrib end;
+    end;
   finally
     if Assigned(RenderEndProc) then
       RenderEndProc;
@@ -2937,6 +2952,15 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetGLSLShaders(const Value: boolean);
 begin
   if GLSLShaders <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetPureGeometry(const Value: boolean);
+begin
+  if PureGeometry <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
