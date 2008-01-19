@@ -65,6 +65,8 @@ var
 
   ShadowBlend: boolean = false;
   UseStencil: boolean = true;
+  Shadow: boolean = true;
+  Mirror: boolean = true;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -100,9 +102,92 @@ procedure Draw(Glwin: TGLWindow);
   end;
 
 var
+  Plane: TVector4Single;
+
+  procedure DoShadow;
+  begin
+    glPushMatrix();
+      glMultMatrix(PlaneProjectedShadowMatrix(Plane, LightPosition));
+      glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_LIGHTING);
+        glColorv(Vector4Single(0, 0, 0, 0.2));
+
+        if ShadowBlend then
+        begin
+          glEnable(GL_BLEND);
+          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        end;
+
+        glDepthMask(GL_FALSE);
+
+        if UseStencil then
+        begin
+          { stencil is already set such that only drawing over stencil is allowed }
+          glDisable(GL_DEPTH_TEST);
+        end else
+        begin
+          glEnable(GL_POLYGON_OFFSET_FILL);
+          glEnable(GL_POLYGON_OFFSET_LINE);
+          glEnable(GL_POLYGON_OFFSET_POINT);
+          glPolygonOffset(-10, -10);
+        end;
+
+        glPushMatrix();
+          glRotatef(RotationAngle, 1, 1, 1);
+          { Render scene for shadow.
+            SceneForShadow is a normal VRML model and it's rendered
+            almost exactly like Scene (the same set of glVertex etc.),
+            but it's rendered with Attributes.PureGeometry = @true
+            (we want it's color to be consistently black). }
+          SceneForShadow.Render(nil, tgAll);
+        glPopMatrix();
+      glPopAttrib();
+    glPopMatrix();
+  end;
+
+  procedure DrawFloor; forward;
+
+  procedure DoMirror;
+  begin
+    glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
+
+      glPushMatrix();
+        { TODO: make reflection matrix based on Plane equation }
+        glTranslatef(0, 0, -Plane[3]);
+        glScalef(1, 1, -1);
+        glTranslatef(0, 0,  Plane[3]);
+
+        glRotatef(RotationAngle, 1, 1, 1);
+        { Render scene for mirror. This is rendered just as usual,
+          with depth testing working, opaque/transparent materials
+          inside working as usual etc. }
+        Scene.Render(nil, tgAll);
+      glPopMatrix();
+
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      DrawFloor;
+    glPopAttrib();
+  end;
+
+var
   Box: TBox3d;
   BoxMaxSize: Single;
-  Plane: TVector4Single;
+
+  procedure DrawFloor;
+  begin
+    { Render the plane where the shadow lies.
+      The plane size and position is calculated to have a nice shadow receiver
+      for Scene. }
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.5));
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.5));
+
+    DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
+                Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
+                Box[0, 2] - BoxMaxSize, 2,
+                0, 0, true);
+  end;
+
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
@@ -128,12 +213,6 @@ begin
       Scene.Render(nil, tgAll);
     glPopMatrix();
 
-    { Render the plane where the shadow lies.
-      The plane size and position is calculated to have a nice shadow receiver
-      for Scene. }
-    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 1));
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 1));
-
     BoxMaxSize := Box3dMaxSize(Box);
 
     { set stencil to 1 where plane is drawn }
@@ -144,54 +223,38 @@ begin
       glEnable(GL_STENCIL_TEST);
     end;
 
-    DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
-                Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
-                Box[0, 2] - BoxMaxSize, 2,
-                0, 0, true);
+    { For Mirror, we draw only to stencil buffer now. DoMirror will
+      use this, and call DrawFloor once again to fill also depth/color
+      buffers. }
+    if Mirror then
+    begin
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+      glDepthMask(GL_FALSE);
+    end;
+    DrawFloor;
+    if Mirror then
+    begin
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glDepthMask(GL_TRUE);
+    end;
 
     { Plane equation is Z = Box[0, 2] - BoxMaxSize, so it's
         0 * x + 0 * y + 1 * z - (Box[0, 2] - BoxMaxSize) = 0
     }
     Plane := Vector4Single(0, 0, 1, - (Box[0, 2] - BoxMaxSize));
 
-    glPushMatrix();
-      glMultMatrix(PlaneProjectedShadowMatrix(Plane, LightPosition));
-      glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_LIGHTING);
-        glColorv(Vector4Single(0, 0, 0, 0.2));
+    { everything else is drawn only on the floor }
+    if UseStencil then
+    begin
+      glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+      glStencilFunc(GL_EQUAL, 1, 1);
+    end;
 
-        if ShadowBlend then
-        begin
-          glEnable(GL_BLEND);
-          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        end;
+    if Mirror then
+      DoMirror;
 
-        glDepthMask(GL_FALSE);
-
-        if UseStencil then
-        begin
-          glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-          glStencilFunc(GL_EQUAL, 1, 1);
-          glDisable(GL_DEPTH_TEST);
-        end else
-        begin
-          glEnable(GL_POLYGON_OFFSET_FILL);
-          glEnable(GL_POLYGON_OFFSET_LINE);
-          glEnable(GL_POLYGON_OFFSET_POINT);
-          glPolygonOffset(-10, -10);
-        end;
-
-        glPushMatrix();
-          glRotatef(RotationAngle, 1, 1, 1);
-          { Render scene for shadow.
-            SceneForShadow is a normal VRML model and it's rendered
-            almost exactly like Scene (the same set of glVertex etc.),
-            but it's rendered with Attributes.PureGeometry = @true
-            (we want it's color to be consistently black). }
-          SceneForShadow.Render(nil, tgAll);
-        glPopMatrix();
-      glPopAttrib();
-    glPopMatrix();
+    if Shadow then
+      DoShadow;
 
     if UseStencil then
       glDisable(GL_STENCIL_TEST);
@@ -287,6 +350,8 @@ begin
         end;
       end;
     12: Glwin.Close;
+    70: Shadow := not Shadow;
+    80: Mirror := not Mirror;
     90: UseStencil := not UseStencil;
     100: ShadowBlend := not ShadowBlend;
   end;
@@ -304,6 +369,9 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create('_Shadow', 70, Shadow, true));
+    M.Append(TMenuItemChecked.Create('_Mirror', 80, Mirror, true));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('Use stencil buffer', 90, UseStencil, true));
     M.Append(TMenuItemChecked.Create(
       '_Shadow by blending (looks better, but on most models causes artifacts)',
