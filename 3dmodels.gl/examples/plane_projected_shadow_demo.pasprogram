@@ -22,12 +22,9 @@
 
 { Pretty simple plane-projected shadow demo.
 
-  Based on simpleViewModel.dpr. Added (trivial) code to make
+  Based on simpleViewModel.dpr. Added code to make
   projected shadow, and allows to load model in VRML (or any other supported
   format like 3DS, MD3, Wavefront OBJ etc.) by menu.
-
-  TODO:
-  - use stenciling to reduce pixels fighting
 
   Keys:
     awsd change light position[x, y], qQ change light position[z]
@@ -67,6 +64,7 @@ var
   RotationAngle: Single;
 
   ShadowBlend: boolean = false;
+  UseStencil: boolean = true;
 
 procedure Draw(Glwin: TGLWindow);
 
@@ -106,7 +104,7 @@ var
   BoxMaxSize: Single;
   Plane: TVector4Single;
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
   glLoadMatrix(glw.Navigator.Matrix);
 
   glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
@@ -124,7 +122,13 @@ begin
   Box := Scene.BoundingBox;
   if not IsEmptyBox3d(Box) then
   begin
-    { First, render the plane where the shadow lies.
+    glPushMatrix();
+      glRotatef(RotationAngle, 1, 1, 1);
+      { Render normal Scene }
+      Scene.Render(nil, tgAll);
+    glPopMatrix();
+
+    { Render the plane where the shadow lies.
       The plane size and position is calculated to have a nice shadow receiver
       for Scene. }
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 1));
@@ -132,16 +136,18 @@ begin
 
     BoxMaxSize := Box3dMaxSize(Box);
 
+    { set stencil to 1 where plane is drawn }
+    if UseStencil then
+    begin
+      glStencilFunc(GL_ALWAYS, 1, 1);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+      glEnable(GL_STENCIL_TEST);
+    end;
+
     DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
                 Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
                 Box[0, 2] - BoxMaxSize, 2,
                 0, 0, true);
-
-    glPushMatrix();
-      glRotatef(RotationAngle, 1, 1, 1);
-      { Render normal Scene }
-      Scene.Render(nil, tgAll);
-    glPopMatrix();
 
     { Plane equation is Z = Box[0, 2] - BoxMaxSize, so it's
         0 * x + 0 * y + 1 * z - (Box[0, 2] - BoxMaxSize) = 0
@@ -162,10 +168,18 @@ begin
 
         glDepthMask(GL_FALSE);
 
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glEnable(GL_POLYGON_OFFSET_POINT);
-        glPolygonOffset(-10, -10);
+        if UseStencil then
+        begin
+          glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+          glStencilFunc(GL_EQUAL, 1, 1);
+          glDisable(GL_DEPTH_TEST);
+        end else
+        begin
+          glEnable(GL_POLYGON_OFFSET_FILL);
+          glEnable(GL_POLYGON_OFFSET_LINE);
+          glEnable(GL_POLYGON_OFFSET_POINT);
+          glPolygonOffset(-10, -10);
+        end;
 
         glPushMatrix();
           glRotatef(RotationAngle, 1, 1, 1);
@@ -178,6 +192,9 @@ begin
         glPopMatrix();
       glPopAttrib();
     glPopMatrix();
+
+    if UseStencil then
+      glDisable(GL_STENCIL_TEST);
   end;
 end;
 
@@ -270,6 +287,7 @@ begin
         end;
       end;
     12: Glwin.Close;
+    90: UseStencil := not UseStencil;
     100: ShadowBlend := not ShadowBlend;
   end;
 end;
@@ -286,9 +304,10 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create('Use stencil buffer', 90, UseStencil, true));
     M.Append(TMenuItemChecked.Create(
-      '_Shadow by blending (looks better, but on most models causes artifacts)', 100,
-      ShadowBlend, true));
+      '_Shadow by blending (looks better, but on most models causes artifacts)',
+      100, ShadowBlend, true));
     Result.Append(M);
 end;
 
@@ -327,6 +346,8 @@ begin
     Glw.OnMenuCommand := @MenuCommand;
 
     Glw.AutoRedisplay := true;
+
+    Glw.StencilBufferBits := 1;
 
     Glw.OnInit := @Init;
     Glw.OnClose := @Close;
