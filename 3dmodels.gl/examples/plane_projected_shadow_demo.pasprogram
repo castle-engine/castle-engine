@@ -66,6 +66,8 @@ var
 
   RotationAngle: Single;
 
+  ShadowBlend: boolean = false;
+
 procedure Draw(Glwin: TGLWindow);
 
   function PlaneProjectedShadowMatrix(
@@ -152,12 +154,17 @@ begin
         glDisable(GL_LIGHTING);
         glColorv(Vector4Single(0, 0, 0, 0.2));
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if ShadowBlend then
+        begin
+          glEnable(GL_BLEND);
+          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        end;
 
         glDepthMask(GL_FALSE);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glEnable(GL_POLYGON_OFFSET_POINT);
         glPolygonOffset(-10, -10);
 
         glPushMatrix();
@@ -237,18 +244,6 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-function CreateMainMenu: TMenu;
-var
-  M: TMenu;
-begin
-  Result := TMenu.Create('Main menu');
-  M := TMenu.Create('_File');
-    M.Append(TMenuItem.Create('_Open ...',         10, CtrlO));
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Exit',             12, CharEscape));
-    Result.Append(M);
-end;
-
 procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
 var
   S: string;
@@ -275,7 +270,26 @@ begin
         end;
       end;
     12: Glwin.Close;
+    100: ShadowBlend := not ShadowBlend;
   end;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_File');
+    M.Append(TMenuItem.Create('_Open ...',         10, CtrlO));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit',             12, CharEscape));
+    Result.Append(M);
+
+  M := TMenu.Create('_View');
+    M.Append(TMenuItemChecked.Create(
+      '_Shadow by blending (looks better, but on most models causes artifacts)', 100,
+      ShadowBlend, true));
+    Result.Append(M);
 end;
 
 { main program --------------------------------------------------------------- }

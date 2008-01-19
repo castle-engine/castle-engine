@@ -453,9 +453,10 @@ begin
 
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so we correct it now. }
-  with Render_State.LastNodes.Material do
-    glColorv(Vector4f(Attributes.ColorModulated(
-      DiffuseColor3Single(0)), Opacity(0)));
+  if not Attributes.PureGeometry then
+    with Render_State.LastNodes.Material do
+      glColorv(Vector4f(Attributes.ColorModulated(
+        DiffuseColor3Single(0)), Opacity(0)));
 
   Node.CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
   glBegin(GL_POINTS);
@@ -468,7 +469,8 @@ procedure RenderPointSet_2(Node: TNodePointSet_2);
 
   procedure SetColor(const Color: TVector3Single);
   begin
-    glColorv(Attributes.ColorModulated(Color));
+    if not Attributes.PureGeometry then
+      glColorv(Attributes.ColorModulated(Color));
   end;
 
 var

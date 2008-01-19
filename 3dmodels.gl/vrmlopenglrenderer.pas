@@ -2917,7 +2917,6 @@ begin
   glNormalv(TriangleNormal(Tri));
 
   glBegin(GL_TRIANGLES);
-
     glVertexv(Tri[0]);
     glVertexv(Tri[1]);
     glVertexv(Tri[2]);
@@ -3258,7 +3257,6 @@ begin
   SetInProgram(BmGLSLProgram[false]);
   SetInProgram(BmGLSLProgram[true]);
 end;
-
 
 procedure TVRMLOpenGLRenderer.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
 

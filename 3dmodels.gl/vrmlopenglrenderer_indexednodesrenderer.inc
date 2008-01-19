@@ -1482,6 +1482,8 @@ begin
   { We use Material_BoundOpacity since we do not want to change
     material opacity here, only it's RGB part. }
 
+  if Renderer.Attributes.PureGeometry then Exit;
+
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
     Vector4f(Renderer.Attributes.ColorModulated(AColor),
     Renderer.Material_BoundOpacity));
@@ -1651,7 +1653,8 @@ end;
 
 procedure TIndexedLineSet_2Renderer.SetColor(const AColor: TVector3Single);
 begin
-  glColorv(Renderer.Attributes.ColorModulated(AColor));
+  if not Renderer.Attributes.PureGeometry then
+    glColorv(Renderer.Attributes.ColorModulated(AColor));
 end;
 
 procedure TIndexedLineSet_2Renderer.Render_Init;
