@@ -84,6 +84,30 @@ var
 const
   ClearColor: TVector4Single = (0.5, 0.5, 0.5, 1);
 
+var
+  PlaneConstCoord: Integer = 2;
+  { PlaneOtherCoord* are always the other 2 numbers from 0..2 range,
+    ordered, left over from PlaneConstCoord. }
+  PlaneOtherCoord1: Integer = 0;
+  PlaneOtherCoord2: Integer = 1;
+
+function Vector3Split(const ValueOnConstCoord, ValueOnOtherCoords: Single):
+  TVector3Single;
+begin
+  Result[PlaneConstCoord] := ValueOnConstCoord;
+  Result[PlaneOtherCoord1] := ValueOnOtherCoords;
+  Result[PlaneOtherCoord2] := ValueOnOtherCoords;
+end;
+
+function Vector4Split(const ValueOnConstCoord, ValueOnOtherCoords,
+  ValueLast: Single): TVector4Single;
+begin
+  Result[PlaneConstCoord] := ValueOnConstCoord;
+  Result[PlaneOtherCoord1] := ValueOnOtherCoords;
+  Result[PlaneOtherCoord2] := ValueOnOtherCoords;
+  Result[3] := ValueLast;
+end;
+
 procedure Draw(Glwin: TGLWindow);
 
   function PlaneProjectedShadowMatrix(
@@ -203,8 +227,6 @@ var
       glMatrixMode(GL_MODELVIEW);
     end;
 
-  const
-    PlaneClipZ: TVector4d = (0, 0, 1, 0);
   begin
     { In this simple demo program, I could clear depth here just by
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -221,11 +243,11 @@ var
       glEnable(GL_CLIP_PLANE0);
 
         glPushMatrix();
-          { TODO: make reflection matrix based on Plane equation }
-          glTranslatef(0, 0, -Plane[3]);
-          glScalef(1, 1, -1);
-          glClipPlane(GL_CLIP_PLANE0, PlaneClipZ);
-          glTranslatef(0, 0,  Plane[3]);
+          { TODO: make reflection matrix based on any Plane equation }
+          glTranslatev(Vector3Split(-Plane[3], 0));
+          glScalev(Vector3Split(-1, 1));
+          glClipPlane(GL_CLIP_PLANE0, Vector4Double(Vector4Split(1, 0, 0)));
+          glTranslatev(Vector3Split( Plane[3], 0));
 
           { reposition light in new space, so it's also mirrored as it should be }
           glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
@@ -265,9 +287,10 @@ var
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.3));
     glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.3));
 
-    DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
-                Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
-                Box[0, 2] - PlaneDistance * BoxMaxSize, 2,
+    DrawGLPlane(Box[0, PlaneOtherCoord1] - BoxMaxSize, Box[0, PlaneOtherCoord2] - BoxMaxSize,
+                Box[1, PlaneOtherCoord1] + BoxMaxSize, Box[1, PlaneOtherCoord2] + BoxMaxSize,
+                Box[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
+                PlaneConstCoord,
                 0, 0, true);
   end;
 
@@ -360,10 +383,14 @@ begin
       glDepthMask(GL_TRUE);
     end;
 
-    { Plane equation is Z = Box[0, 2] - PlaneDistance * BoxMaxSize, so it's
+    { Calculate Plane.
+      Assumuing PlaneConstCoord = 2,Plane equation is
+        Z = Box[0, 2] - PlaneDistance * BoxMaxSize
+      So it's
         0 * x + 0 * y + 1 * z - (Box[0, 2] - PlaneDistance * BoxMaxSize) = 0
     }
-    Plane := Vector4Single(0, 0, 1, - (Box[0, 2] - PlaneDistance * BoxMaxSize));
+    Plane := Vector4Split(1, 0,
+      - (Box[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize));
 
     { everything else is drawn only on the floor }
     if UseStencil then
@@ -479,6 +506,11 @@ begin
         end;
       end;
     12: Glwin.Close;
+    60..62:
+      begin
+        PlaneConstCoord := MenuItem.IntData - 60;
+        RestOf3dCoords(PlaneConstCoord, PlaneOtherCoord1, PlaneOtherCoord2);
+      end;
     70: Shadow := not Shadow;
     80: Mirror := not Mirror;
     90: UseStencil := not UseStencil;
@@ -489,6 +521,8 @@ end;
 function CreateMainMenu: TMenu;
 var
   M: TMenu;
+  R: TMenuItemRadio;
+  RG: TMenuItemRadioGroup;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_File');
@@ -498,6 +532,20 @@ begin
     Result.Append(M);
 
   M := TMenu.Create('_View');
+
+    R := TMenuItemRadio.Create('_Plane X = const', 60, PlaneConstCoord = 0, true);
+    RG := R.Group;
+    M.Append(R);
+
+    R := TMenuItemRadio.Create('_Plane Y = const', 61, PlaneConstCoord = 1, true);
+    R.Group := RG;
+    M.Append(R);
+
+    R := TMenuItemRadio.Create('_Plane Z = const', 62, PlaneConstCoord = 2, true);
+    R.Group := RG;
+    M.Append(R);
+
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Shadow', 70, Shadow, true));
     M.Append(TMenuItemChecked.Create('_Mirror', 80, Mirror, true));
     M.Append(TMenuSeparator.Create);

@@ -404,6 +404,11 @@ procedure glTranslatev(const V: TVector3d); overload;
 procedure glTranslatev(const V: TVector3_Single); overload;
 procedure glTranslatev(const V: TVector3_Double); overload;
 
+procedure glScalev(const V: TVector3f); overload;
+procedure glScalev(const V: TVector3d); overload;
+procedure glScalev(const V: TVector3_Single); overload;
+procedure glScalev(const V: TVector3_Double); overload;
+
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
 
@@ -1281,6 +1286,12 @@ procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2])
 
 procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
 procedure glTranslatev(const V: TVector3_Double); begin glTranslated(V.Data[0], V.Data[1], V.Data[2]); end;
+
+procedure glScalev(const V: TVector3f); begin glScalef(V[0], V[1], V[2]); end;
+procedure glScalev(const V: TVector3d); begin glScaled(V[0], V[1], V[2]); end;
+
+procedure glScalev(const V: TVector3_Single); begin glScalef(V.Data[0], V.Data[1], V.Data[2]); end;
+procedure glScalev(const V: TVector3_Double); begin glScaled(V.Data[0], V.Data[1], V.Data[2]); end;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); begin glRotated(Angle, V[0], V[1], V[2]); end;
