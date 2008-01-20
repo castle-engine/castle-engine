@@ -81,6 +81,9 @@ var
   Shadow: boolean = false;
   Mirror: boolean = true;
 
+const
+  ClearColor: TVector4Single = (0.5, 0.5, 0.5, 1);
+
 procedure Draw(Glwin: TGLWindow);
 
   function PlaneProjectedShadowMatrix(
@@ -207,8 +210,8 @@ var
     { Render the plane where the shadow lies.
       The plane size and position is calculated to have a nice shadow receiver
       for Scene. }
-    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.5));
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.5));
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.3));
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.3));
 
     DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
                 Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
@@ -264,7 +267,7 @@ begin
     begin
       glDisable(GL_LIGHTING);
       glDepthMask(GL_FALSE);
-      glColor3f(0, 0, 0);
+      glColorv(ClearColor);
     end;
 
     DrawFloor;
@@ -308,7 +311,7 @@ begin
 
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-  glClearColor(0.5, 0.5, 0.5, 1);
+  glClearColor(ClearColor[0], ClearColor[1], ClearColor[2], ClearColor[3]);
 
   glPointSize(10);
 end;
