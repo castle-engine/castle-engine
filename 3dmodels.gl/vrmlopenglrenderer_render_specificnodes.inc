@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -81,14 +81,13 @@ begin
 
     if MarkFrontFaces then
     begin
-      { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
-        promises never to do this. }
-      glFrontFace(GL_CW);
-      { normal pointing from CW }
-      glNormal3f(0, 0, 1);
-    end else
-      { normal pointing from CCW }
-      glNormal3f(0, 0, -1);
+      { Outside face is CW now, so cull CCW. CCW = front face
+        (remember, we can't use glFrontFace, we have to work with glCullFace here) }
+      glCullFace(GL_FRONT);
+    end;
+
+    { normal pointing from CCW }
+    glNormal3f(0, 0, -1);
 
     for I := 0 to Strings.Count - 1 do
     begin
@@ -111,9 +110,11 @@ begin
     if Depth <> 0 then
     begin
       if MarkFrontFaces then
-        { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
-          promises never to do this. }
-        glFrontFace(GL_CCW);
+      begin
+        { Outside face is CCW now, so cull CW. CW = back face
+          (remember, we can't use glFrontFace, we have to work with glCullFace here) }
+        glCullFace(GL_BACK);
+      end;
 
       { Normal pointing from CCW.
         If not MarkFrontFaces, then it's default that front face is CCW.  }
