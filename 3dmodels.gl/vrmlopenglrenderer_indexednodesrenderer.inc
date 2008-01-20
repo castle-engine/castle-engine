@@ -57,8 +57,9 @@ type
       @item(
         If and only if Render_Normals = inGenerate
         you have to make appropriate glNormal calls.
-        Normals should always be oriented accoriding to
-        Render_NormalsFromCCW.
+        Normals should always point from CCW (you *do not* check here FrontFaceCcw
+        field, as we *do not* call glFrontFace anywhere).
+
         If Render_Normals <> inGenerate then we handle everything
         related to normals in this class.)
 
@@ -94,7 +95,9 @@ type
       generate them). }
     function GetTextureCoord(IndexNum: integer; out Tex: TVector2Single): boolean;
 
-    { Pretty much analogous to GetTextureCoord.
+    { Pretty much analogous to GetTextureCoord. Returns normal always from
+      CCW (just like we pass to OpenGL always CCW normals, since we always
+      assume front face = CCW).
 
       Override this in descendants only to handle
       Render_Normals = inGenerate case. }
@@ -139,7 +142,7 @@ type
       and it's up to you how to make the normals.
       Also NormalBinding is ignored in this case. }
     NormalIndex: TMFLong;
-    Normal: TMFVec3f;
+    StoredNormal: TMFVec3f;
     { You can leave MaterialIndex as nil if you are sure that
       MaterialBinding will not be any _INDEXED value. }
     MaterialIndex: TMFLong;
@@ -155,6 +158,16 @@ type
       Set this @italic(in constructor) (not later) to true when you're in
       subclass able to do bump mapping. }
     BumpMappingAllowed: boolean;
+
+    { Will be set to StoredNormal or it's inverted version, to keep
+      pointing from CCW. }
+    CcwNormal: TDynVector3SingleArray;
+
+    { This will actually be modified and used
+      by TIndexedFaces_Or_TrianglesRenderer, see there for comments.
+      For other classes, this should't be important.
+      Yes, it's a little unclean to declare it here. }
+    FrontFaceCcw: boolean;
 
     procedure Render_Vertex(indexNum: integer); virtual;
     function Render_GetVertex(indexNum: integer): TVector3f;
@@ -173,9 +186,15 @@ type
     procedure Render_Fini; override;
 
     { Set these in descendant's constructor. }
-    { czy normale wychodza / maja wychodzic z CCW ?
-      Ta zmienna odzwierciedla stan glFronFace jaki ustawilismy OpenGL'owi. }
-    Render_NormalsFromCCW: boolean;
+    { FrontFaceCcw declared in TGeneralIndexedRenderer, but documented here:
+
+      FrontFaceCcw says from which face side normals in VRML file point out,
+      and which faces should be culled if CullBackFaces.
+
+      Note that we *do not* implement these by glFrontFace, we do a little
+      more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
+      for explanation (hint: plane mirrors). }
+
     CullBackFaces: boolean;
   end;
 
@@ -317,11 +336,11 @@ procedure TGeneralIndexedRenderer.GetNormal(
   IndexNum: integer; out N: TVector3Single);
 begin
   case Render_Normals of
-    inOverall: N := Normal.Items.Items[0];
+    inOverall: N := CcwNormal.Items[0];
     inUseSpecifiedPerVertex:
-      N := Normal.Items.Items[CoordIndex.Items.Items[IndexNum]];
+      N := CcwNormal.Items[CoordIndex.Items.Items[IndexNum]];
     inUseSpecifiedPerVertexIndexed:
-      N := Normal.Items.Items[NormalIndex.Items.Items[indexNum]];
+      N := CcwNormal.Items[NormalIndex.Items.Items[indexNum]];
     else
       raise EInternalError.Create('GetNormal: Render_Normals ?');
   end;
@@ -355,7 +374,7 @@ begin
     { We could use GetNormal(IndexNum) here, but since we already checked
       Render_Normals, we do it more directly. But the result is the same
       as if we had used GetNormal. }
-    glNormalv(Normal.Items.Items[NormalIndex.Items.Items[indexNum]]);
+    glNormalv(CcwNormal.Items[NormalIndex.Items.Items[indexNum]]);
   end;
 
   case Render_Materials of
@@ -382,7 +401,7 @@ begin
   Render_Normals := inGenerate;
   NormalsFlat := false;
 
-  if (Normal = nil) or (NormalIndex = nil) then
+  if (StoredNormal = nil) or (NormalIndex = nil) then
     Exit;
 
   case NormalBinding of
@@ -398,7 +417,7 @@ begin
         NormalsFlat := false;
       end;
     BIND_OVERALL:
-      if Normal.Count > 0 then
+      if StoredNormal.Count > 0 then
       begin
         Render_Normals := inOverall;
         NormalsFlat := true;
@@ -415,7 +434,7 @@ begin
     tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
     normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
     zostanie mimo wszystko dobrze odczytany i wyswietlony. }
-  if Normal.Count = 0 then
+  if StoredNormal.Count = 0 then
   begin
     Render_Normals := inGenerate;
     NormalsFlat := false;
@@ -541,14 +560,24 @@ var
 
   procedure NormalsBegin;
   begin
+    if StoredNormal <> nil then
+    begin
+      if FrontFaceCcw then
+        CcwNormal := StoredNormal.Items else
+      begin
+        CcwNormal := TDynVector3SingleArray.Create;
+        CcwNormal.AssignNegated(StoredNormal.Items);
+      end;
+    end;
+
    { podejmij pewna inicjalizacje juz PO ustaleniu Render_Normals }
    case Render_Normals of
-    inOverall: glNormalv(Normal.Items.Items[0]);
+    inOverall: glNormalv(CcwNormal.Items[0]);
     inUseSpecifiedPerVertex:
       begin
        {w tym przypadku mozemy uzyc vertex array dla normali bo
         indeks vertexu = indeks normala}
-       glNormalPointer(GL_FLOAT, 0, Normal.Items.Items);
+       glNormalPointer(GL_FLOAT, 0, CcwNormal.Items);
        glEnableClientState(GL_NORMAL_ARRAY);
       end;
    end;
@@ -556,6 +585,8 @@ var
 
   procedure NormalsEnd;
   begin
+    if (StoredNormal <> nil) and (not FrontFaceCcw) then
+      FreeAndNil(CcwNormal);
   end;
 
   procedure MaterialsBegin;
@@ -706,25 +737,30 @@ begin
 
   if Renderer.Attributes.PureGeometry then Exit;
 
-  { zmieniamy glFrontFace na GL_CW jesli VertexOrdering jest clockwise.
-    W ten sposob mowimy OpenGL'owi ktorym faces robic cull o ile
-    za chwile wlaczymy culling i mowimy tez z ktorej strony polygonow
-    wychodza normale (my wprawdzie moglibysmy sobie generowac normale
-    z dowolnej strony z ktorej chcemy ale normale w pliku VRML'a sa
-    zapisane zgodnie z aktualna orientacja vertexOrdering / ccw). }
-  if not Render_NormalsFromCCW then
-    glFrontFace(GL_CW);
+  { If vertex ordering is consistent and object is SOLID than we use OpenGL's
+    backface culling.
 
-  { if vertex ordering is consistent and object is SOLID than we use OpenGL's
-    backface culling. Warning : we should check viewer position to know
+    In theory, we should check viewer position to know
     whether to cull outside or inside polygons because if the viewer is inside
     the object we should cull outside polygons. But luckily for us (because
     it's extremely difficult to decide whether a point in space is
     inside or outside such solid object) VRML 1.0 specification states clearly
     that if an object is SOLID we can assume that the viewer is ALWAYS OUTSIDE
-    OF IT. So we cull faces inside. }
+    OF IT. So we cull faces inside.
+
+    If FrontFaceCcw then we have to cull CW faces.
+    But note that we do not want to call OpenGL glFrontFace
+    (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
+    glCullFace. Since we assume that front = always CCW, so we know how to call
+    glCullFace.
+  }
   if CullBackFaces then
+  begin
     glEnable(GL_CULL_FACE);
+    if FrontFaceCcw then
+      glCullFace(GL_BACK) else
+      glCullFace(GL_FRONT);
+  end;
 end;
 
 procedure TIndexedFaces_Or_TrianglesRenderer.Render_Fini;
@@ -1102,12 +1138,12 @@ begin
     if Renderer.Attributes.SmoothShading and (CreaseAngle <> 0) then
     begin
       Render_GeneratedNormals := CreateNormals(
-        CoordIndex.Items, Coord.Items, CreaseAngle, Render_NormalsFromCCW);
+        CoordIndex.Items, Coord.Items, CreaseAngle, true);
       NormalsFlat := false;
     end else
     begin
       Render_GeneratedNormals := CreateFlatNormals(
-        CoordIndex.Items, Coord.Items, Render_NormalsFromCCW);
+        CoordIndex.Items, Coord.Items, true);
       NormalsFlat := true;
     end;
   end;
@@ -1407,7 +1443,7 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
   NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
@@ -1418,7 +1454,7 @@ begin
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
     nie podadza vertexOrdering innego niz UNKNOWN) }
-  Render_NormalsFromCCW := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
   CullBackFaces :=
     (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
@@ -1447,7 +1483,7 @@ begin
   NormalIndex := ANode.FdNormalIndex;
   if (ANode.FdNormal.Value <> nil) and
      (ANode.FdNormal.Value is TNodeNormal) then
-    Normal := TNodeNormal(ANode.FdNormal.Value).FdVector;
+    StoredNormal := TNodeNormal(ANode.FdNormal.Value).FdVector;
 
   if ANode.FdNormalPerVertex.Value then
   begin
@@ -1463,7 +1499,7 @@ begin
 
   MaterialBinding := BIND_DEFAULT;
 
-  Render_NormalsFromCCW := ANode.FdCcw.Value;
+  FrontFaceCcw := ANode.FdCcw.Value;
   CullBackFaces := ANode.FdSolid.Value;
   CreaseAngle := ANode.FdCreaseAngle.Value;
   FaceConvex := ANode.FdConvex.Value;
@@ -1534,7 +1570,7 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
   NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
@@ -1545,7 +1581,7 @@ begin
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
     nie podadza vertexOrdering innego niz UNKNOWN) }
-  Render_NormalsFromCCW := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
   CullBackFaces :=
     (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
@@ -1566,7 +1602,7 @@ procedure TIndexedTriangleMesh_1Renderer.Render_Face(const AFaceNumber: Cardinal
     Tri[1] := Render_GetVertex(v2);
     Tri[2] := Render_GetVertex(v3);
     Norm := TriangleNormal(Tri);
-    if not Render_NormalsFromCCW then VectorNegateTo1st(Norm);
+    { We always pass to OpenGL normals from CCW, so Norm is Ok. }
     glNormalv(Norm);
    end;
 
@@ -1621,7 +1657,7 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  Normal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
   NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;

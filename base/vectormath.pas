@@ -385,7 +385,9 @@ type
   {$I dynarray_1.inc}
   TArray_Vector3Single = TInfiniteArray_1;
   PArray_Vector3Single = PInfiniteArray_1;
-  TDynVector3SingleArray = TDynArray_1;
+  TDynVector3SingleArray = class(TDynArray_1)
+    procedure AssignNegated(Source: TDynVector3SingleArray);
+  end;
 
   TDynArrayItem_2 = TVector2Single;
   PDynArrayItem_2 = PVector2Single;
@@ -1960,6 +1962,17 @@ uses Math, KambiStringUtils;
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 {$I dynarray_5.inc}
+
+{ TDynVector3SingleArray ----------------------------------------------------- }
+
+procedure TDynVector3SingleArray.AssignNegated(Source: TDynVector3SingleArray);
+var
+  I: Integer;
+begin
+  Assign(Source);
+  for I := 0 to Count - 1 do
+    VectorNegateTo1st(Items[I]);
+end;
 
 { FloatsEqual ------------------------------------------------------------- }
 

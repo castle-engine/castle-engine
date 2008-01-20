@@ -222,6 +222,31 @@
       Just like for any other OpenGL program, you may want to set this
       to GL_NICEST (if you have to render models that may look bad
       when fog is interpolated without perspective correction).)
+
+    @item(glFrontFace is assumed to be CCW (OpenGL default) but not manipulated
+      by this unit anywhere.
+
+      So our normals passed to OpenGL always point from CCW side.
+      Even if you supplied in VRML file normals pointing from CW
+      (indicated e.g. by IndexedFaceSet.ccw = FALSE field in VRML 97),
+      we will internally invert them and pass inverted ones to OpenGL.
+      And when culling faces, we switch using @code(glCullFace(
+      GL_BACK / GL_FRONT)), not by switching front face.
+
+      Why so much work was done to always work with front face = CCW assumption ?
+      Because this is very handy when you render mirrors by using
+      @code(Scale(1, 1, -1)) trick. See
+      [http://www.opengl.org/resources/code/samples/mjktips/Reflect.html]
+      and example program
+      @code(kambi_vrml_game_engine/3dmodels.gl/examples/plane_mirror_and_shadow.pasprogram).
+      With such strange scale, CCW and CW invert places. Sides that were
+      CCW normally are now CW. This means that you want to call @code(glFrontFace(GL_CW))
+      temporarily when rendering scene in the mirror. This way scene in the mirror
+      will have correct normals and backface culling.
+
+      Since we don't touch @code(glFrontFace) anywhere, this is possible to you.
+      And you can reuse display lists etc. for the scene in the mirror.
+    )
   )
 
   @bold(Notki o Triagles/VerticesCount :)
@@ -248,28 +273,13 @@
   Triangulate - musialaby zwracac vertexy + indeksy do vertexow,
   zamiast po prostu kazdy trojkat = 3 vertexy jak teraz.
 
-  @bold(About GL extensions :)
+  @bold(About OpenGL extensions :)
 
-  You should always call
-
-  @longCode(
-  ReadImplementationProperties;
-  LoadProcExtensions;)
-
-  before using this unit. If you initialize OpenGL context using GLWindow
-  unit then this will be done for you automatically (during TGLWindow.Init).
-
-  This unit may use GLVersion and GLUVersion and related variables.
-  Also it may use some OpenGL extensions. Right now this includes
-
-  @orderedList(
-    @item(GL_EXT_compiled_vertex_array extension if it's
-      available. Although, honestly, I didn't observe any speed
-      improvements from using this extension (even when using TVRMLFlatSceneGL
-      with RendererOptimization = roNone), but, anyway, this can't hurt us.)
-
-    @item(GL_EXT_fog_coord for volumetric fog.)
-  )
+  You should always call LoadAllExtensions before using this unit.
+  This unit may use various OpenGL extensions and check OpenGL version.
+  If you initialize OpenGL context using our GLWindow unit or
+  TKamOpenGLControl then this will be done for you automatically during
+  GL context initialization.
 }
 
 unit VRMLOpenGLRenderer;
@@ -2873,10 +2883,11 @@ begin
    glEnable(GL_DEPTH_TEST);
    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-   {podczas renderowania Indexed_Faces_Or_Triangles mozemy na chwile wlaczac
-    GL_CULL_FACE, mozemy tez zmieniac na chwile glFrontFace,
-    mozemy tez zmieniac glCullFace.}
-   glFrontFace(GL_CCW);
+   { While rendering Indexed_Faces_Or_Triangles we may temporarily
+     enable/disable GL_CULL_FACE and change glCullFace. We want to make
+     sure from what state we start, so we set if here.
+     Note that we *do not* set glFrontFace --- see comments at the beginning
+     of this unit to know why. }
    glCullFace(GL_BACK);
    glDisable(GL_CULL_FACE);
 

@@ -186,8 +186,13 @@ var
           glRotatef(RotationAngle, 1, 1, 1);
           { Render scene for mirror. This is rendered just as usual,
             with depth testing working, opaque/transparent materials
-            inside working as usual etc. }
+            inside working as usual etc.
+
+            We swap CCW to CW --- sides that were CCW previously (and had to
+            be culled, or have normal vectors pointing from them) are now CW. }
+          glFrontFace(GL_CW);
           Scene.Render(nil, tgAll);
+          glFrontFace(GL_CCW);
         glPopMatrix();
 
         { back light to normal (non-mirrored) position }
