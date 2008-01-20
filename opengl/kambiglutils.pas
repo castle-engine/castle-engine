@@ -407,6 +407,8 @@ procedure glTranslatev(const V: TVector3_Double); overload;
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
 procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
 
+procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
+
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); overload;
@@ -1291,6 +1293,11 @@ procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
 
 procedure glVertexv(const v: TVector4_Double);  begin glVertex4dv(@v.Data); end;
 procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
+
+procedure glClipPlane(plane: GLenum; const V: TVector4d);
+begin
+  GL.glClipPlane(plane, @V);
+end;
 
 {$ifdef IMPLEMENT_OPENGL_STUBS}
 

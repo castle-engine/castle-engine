@@ -29,6 +29,8 @@
   Keys:
     awsd change light position[x, y], qQ change light position[z]
 
+    pP to change plane distance to the object
+
     Navigation: like view3dscene in Examine mode,
     see http://vrmlengine.sourceforge.net/view3dscene.php.
 
@@ -63,9 +65,11 @@ var
 
   RotationAngle: Single;
 
+  PlaneDistance: Single = 1.0;
+
   ShadowBlend: boolean = false;
   UseStencil: boolean = true;
-  Shadow: boolean = true;
+  Shadow: boolean = false;
   Mirror: boolean = true;
 
 procedure Draw(Glwin: TGLWindow);
@@ -148,21 +152,36 @@ var
   procedure DrawFloor; forward;
 
   procedure DoMirror;
+  const
+    PlaneClipZ: TVector4d = (0, 0, 1, 0);
   begin
+    glClear(GL_DEPTH_BUFFER_BIT);
+
     glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
 
-      glPushMatrix();
-        { TODO: make reflection matrix based on Plane equation }
-        glTranslatef(0, 0, -Plane[3]);
-        glScalef(1, 1, -1);
-        glTranslatef(0, 0,  Plane[3]);
+      glEnable(GL_CLIP_PLANE0);
 
-        glRotatef(RotationAngle, 1, 1, 1);
-        { Render scene for mirror. This is rendered just as usual,
-          with depth testing working, opaque/transparent materials
-          inside working as usual etc. }
-        Scene.Render(nil, tgAll);
-      glPopMatrix();
+        glPushMatrix();
+          { TODO: make reflection matrix based on Plane equation }
+          glTranslatef(0, 0, -Plane[3]);
+          glScalef(1, 1, -1);
+          glClipPlane(GL_CLIP_PLANE0, PlaneClipZ);
+          glTranslatef(0, 0,  Plane[3]);
+
+          { reposition light in new space, so it's also mirrored as it should be }
+          glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+
+          glRotatef(RotationAngle, 1, 1, 1);
+          { Render scene for mirror. This is rendered just as usual,
+            with depth testing working, opaque/transparent materials
+            inside working as usual etc. }
+          Scene.Render(nil, tgAll);
+        glPopMatrix();
+
+        { back light to normal (non-mirrored) position }
+        glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+
+      glDisable(GL_CLIP_PLANE0);
 
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -184,7 +203,7 @@ var
 
     DrawGLPlane(Box[0, 0] - BoxMaxSize, Box[0, 1] - BoxMaxSize,
                 Box[1, 0] + BoxMaxSize, Box[1, 1] + BoxMaxSize,
-                Box[0, 2] - BoxMaxSize, 2,
+                Box[0, 2] - PlaneDistance * BoxMaxSize, 2,
                 0, 0, true);
   end;
 
@@ -207,9 +226,9 @@ begin
   Box := Scene.BoundingBox;
   if not IsEmptyBox3d(Box) then
   begin
+    { Render normal Scene }
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
-      { Render normal Scene }
       Scene.Render(nil, tgAll);
     glPopMatrix();
 
@@ -223,25 +242,34 @@ begin
       glEnable(GL_STENCIL_TEST);
     end;
 
-    { For Mirror, we draw only to stencil buffer now. DoMirror will
-      use this, and call DrawFloor once again to fill also depth/color
-      buffers. }
+    { For shadow, first draw of floor draws floor normally (with lighting etc.)
+      to color, depth and stencil buffer.
+
+      For mirror, this is more difficult.
+      - stencil buffer: yes, draw there
+
+      Depth and color: prepare this for drawing mirrored scene soon
+      in DoMirror. We should clear them. I clear color buffer by drawing
+      solid black color. Depth will be cleared just by glClear in DoMirror. }
     if Mirror then
     begin
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+      glDisable(GL_LIGHTING);
       glDepthMask(GL_FALSE);
+      glColor3f(0, 0, 0);
     end;
+
     DrawFloor;
+
     if Mirror then
     begin
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glEnable(GL_LIGHTING);
       glDepthMask(GL_TRUE);
     end;
 
-    { Plane equation is Z = Box[0, 2] - BoxMaxSize, so it's
-        0 * x + 0 * y + 1 * z - (Box[0, 2] - BoxMaxSize) = 0
+    { Plane equation is Z = Box[0, 2] - PlaneDistance * BoxMaxSize, so it's
+        0 * x + 0 * y + 1 * z - (Box[0, 2] - PlaneDistance * BoxMaxSize) = 0
     }
-    Plane := Vector4Single(0, 0, 1, - (Box[0, 2] - BoxMaxSize));
+    Plane := Vector4Single(0, 0, 1, - (Box[0, 2] - PlaneDistance * BoxMaxSize));
 
     { everything else is drawn only on the floor }
     if UseStencil then
@@ -317,6 +345,13 @@ begin
     if mkShift in Glwin.ModifiersDown then
       ChangeLightPosition(2,  1) else
       ChangeLightPosition(2, -1);
+  end;
+
+  if Glwin.KeysDown[K_P] then
+  begin
+    if mkShift in Glwin.ModifiersDown then
+      PlaneDistance -= Glwin.IdleCompSpeed / 10 else
+      PlaneDistance += Glwin.IdleCompSpeed / 10;
   end;
 
   RotationAngle += Glwin.IdleCompSpeed / 10;
