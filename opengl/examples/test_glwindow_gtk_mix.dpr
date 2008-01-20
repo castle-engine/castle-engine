@@ -81,16 +81,19 @@ begin
  glScalef(0.1, 0.1, 0.1);
  glRotatef(40, 0, 1, 0);
  glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-   Vector4Single(0.1, 0.1, 0.0, 1.0));
+   Vector4Single(1, 1, 0, 1));
  Font.Print(gtk_entry_get_text(GTK_ENTRY(Entry)));
 end;
 
 procedure Init(glwin: TGLWindow);
 begin
- Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 1);
+ Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 10);
  glEnable(GL_DEPTH_TEST);
  glEnable(GL_LIGHT0);
  glEnable(GL_LIGHTING);
+ glEnable(GL_NORMALIZE);
+ glShadeModel(GL_FLAT);
+ glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 end;
 
 procedure Close(glwin: TGLWindow);

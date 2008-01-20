@@ -86,7 +86,7 @@ begin
       glCullFace(GL_FRONT);
     end;
 
-    { normal pointing from CCW }
+    { Normal pointing from CCW. }
     glNormal3f(0, 0, -1);
 
     for I := 0 to Strings.Count - 1 do
@@ -116,8 +116,7 @@ begin
         glCullFace(GL_BACK);
       end;
 
-      { Normal pointing from CCW.
-        If not MarkFrontFaces, then it's default that front face is CCW.  }
+      { Normal pointing from CCW. }
       glNormal3f(0, 0, -1);
 
       for I := 0 to Strings.Count - 1 do

@@ -92,7 +92,17 @@ type
         Otherwise, when Depth = 0, the resulting letters will be flat.
         Note that Depth > 0 (i.e. 3D objects) increases triangle count
         of resulting letters, so the font with Depth > 0 will be rendered
-        slower than the same font with Depth = 0.)
+        slower than the same font with Depth = 0.
+
+        When Depth > 0, we automatically generate proper normals pointing
+        out from CCW (for both front and back caps and side).
+        For Depth < 0 results are undefined, don't use !
+
+        When Depth = 0, no normals are generated.
+        It's guaranteed that normal (0, 0, -1) points from CCW side, so you
+        can call glNormal yourself if you want (and adjust it for your
+        current glFrontFace setting).
+      )
 
       @param(OnlyLines
         If @true then the font will be only a "skeleton" (only lines,
@@ -140,7 +150,8 @@ type
 
       This generates proper normal vectors. For now, they are only suitable
       for flat shading, so be sure to render fonts with flat shading if using
-      this.
+      this. Generated normals point out from CCW side,
+      when Depth > 0 (when Depth < 0, things are reversed, so normals are from CW).
 
       PrintTexturedExtrusionAndMove version generates also proper
       texture coordinates (matching coordinates made by PrintTexturedAndMove).
@@ -300,13 +311,18 @@ begin
    Znak := TTFont^[Chr(i)];
    glNewList(i+base, GL_COMPILE);
 
+   if Depth <> 0 then glNormal3f(0, 0, -1);
+
    TesselatedPolygon(0);
 
    if depth <> 0 then
    begin
-    TesselatedPolygon(depth); {narysuj na glebokosci depth kopie poligonu}
-    
-    CharExtrusionPrint(Chr(I), Depth, onlyLines);
+     { Draw copy of polygons on Depth. This still gets
+       normal (0, 0, -1), set above for the 1st copy at Depth = 0.  }
+     TesselatedPolygon(depth);
+
+     { Draw sides. CharExtrusionPrint will produce appropriate normal vectors. }
+     CharExtrusionPrint(Chr(I), Depth, onlyLines);
    end;
 
    glEndList;
