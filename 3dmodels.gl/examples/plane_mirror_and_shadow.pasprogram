@@ -164,12 +164,59 @@ var
   procedure DrawFloor; forward;
 
   procedure DoMirror;
+
+    { Clears depth buffer (sets it's values to 1, i.e. maximum).
+      Contrary to glClear(GL_DEPTH_BUFFER_BIT), this honours stencil test,
+      since it does the job by rasterizing a rectangle over the screen.
+
+      Assumes that current matrix mode is modelview
+      (it pushes / pops matrices and attribs and at the end restores
+      matrix mode to modelview).
+
+      Tests show that it has no impact on speed, it's really fast,
+      just like glClear(GL_DEPTH_BUFFER_BIT).  }
+    procedure ClearDepthBufferHonouringStencil;
+    begin
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix;
+      glLoadIdentity;
+
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix;
+        glLoadIdentity;
+
+        glPushAttrib(GL_ENABLE_BIT or GL_COLOR_BUFFER_BIT or GL_VIEWPORT_BIT
+          or GL_DEPTH_BUFFER_BIT);
+          glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
+          glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
+
+          glDepthFunc(GL_ALWAYS); { saved by GL_DEPTH_BUFFER_BIT }
+          glDepthRange(1, 1); { saved by GL_VIEWPORT_BIT }
+
+          glRectf(-1, -1, 1,  1);
+        glPopAttrib;
+      glPopMatrix;
+
+      glMatrixMode(GL_PROJECTION);
+      glPopMatrix;
+
+      glMatrixMode(GL_MODELVIEW);
+    end;
+
   const
     PlaneClipZ: TVector4d = (0, 0, 1, 0);
   begin
-    glClear(GL_DEPTH_BUFFER_BIT);
+    { In this simple demo program, I could clear depth here just by
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
+      In more general, real-world program (when multiple non-coplanar mirrors
+      may be present on the scene, that is something like DoMirror
+      may be called multiple times) more intelligent approach is needed,
+      that clears the depth buffer only where stencil allows (we will later
+      set this to mirror's depth anyway, at the end of DoMirror). }
+    ClearDepthBufferHonouringStencil;
+
+    glPushAttrib(GL_ENABLE_BIT);
 
       glEnable(GL_CLIP_PLANE0);
 
@@ -262,16 +309,46 @@ begin
     { For shadow, first draw of floor draws floor normally (with lighting etc.)
       to color, depth and stencil buffer.
 
-      For mirror, this is more difficult.
-      - stencil buffer: yes, draw there
+      For mirror, this is more difficult. We also want to draw to stencil
+      buffer, to prepare it's test. For color and depth buffers: we just
+      want to clear them. This way we prepare for drawing mirrored scene
+      in them. So we clear color buffer to ClearColor.
+      Depth buffer will be cleared later in DoMirror.
 
-      Depth and color: prepare this for drawing mirrored scene soon
-      in DoMirror. We should clear them. I clear color buffer by drawing
-      solid black color. Depth will be cleared just by glClear in DoMirror. }
+      Note: in this simple demo program, it would be easier to just draw mirror
+      *first* in Draw, before anything else is drawn. Then we're sure that
+      color and depth buffer are clear, so no need to clear them.
+
+      Disadvantages:
+      - (Really small one:) this will cover more pixels, since mirror
+        could possibly be occluded later by some objects. But this is really
+        minor (non-existent, really) problem.
+
+      - Real problem: such approach would break in a real-world program, when
+
+        1. There can be more than 1 mirror (I mean, more than 1 mirror plane)
+           in a scene, and mirrors may partially occlude each other.
+           So I have to resort mirrors visibility while drawing them anyway,
+           so the depth buffer can't stay always clear. (Otherwise, I would have
+           to render to depth buffer everything else (including other mirrors)
+           to get mirror visibility, to not override other mirrors.
+           This makes one additional pass for each mirror, so is not acceptable.)
+
+        2. Mirror surface itself may be partially transparent.
+           (Example: a glass window, this is both partially transparent and mirror;
+           TODO: very promising example, make a model with it actually to demo)
+           So, like other partially transparent objects, it should be rendered
+           after all opaque objects are rendered.
+
+       So in a real-world general program, drawing mirror *first* doesn't really
+       help. It would only work for this simple demo program with only 1 mirror.
+       I decided to implement here a more complicated but also closer
+       to real-world approach.
+    }
     if Mirror then
     begin
-      glDisable(GL_LIGHTING);
       glDepthMask(GL_FALSE);
+      glDisable(GL_LIGHTING);
       glColorv(ClearColor);
     end;
 
