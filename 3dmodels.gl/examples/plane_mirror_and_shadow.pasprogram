@@ -20,11 +20,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Pretty simple plane-projected shadow demo.
+{ Demo of mirror plane and plane-projected shadows.
+  Since they both utilize similar technique with stencil buffer,
+  it was comfortable to implement them both in one demo program.
 
-  Based on simpleViewModel.dpr. Added code to make
-  projected shadow, and allows to load model in VRML (or any other supported
-  format like 3DS, MD3, Wavefront OBJ etc.) by menu.
+  Some docs about this on WWW (I also used some old knowledge, and
+  "Real-time rendering" by Moller + Haines):
+  - mirror:
+    http://www.opengl.org/resources/code/samples/mjktips/Reflect.html
+    http://www.opengl.org/resources/code/samples/mjktips/TimHall_Reflections.txt
+  - plane-projected shadows:
+    first part of http://www.devmaster.net/articles/shadows/
+    http://www.devmaster.net/articles/shadowprojection/
 
   Keys:
     awsd change light position[x, y], qQ change light position[z]
@@ -41,12 +48,14 @@
     If not given, a simple internal cube model is loaded.
 
     You can later change it using "Open" menu item anyway.
+    You can load any model in VRML (or any other supported
+    format like 3DS, MD3, Wavefront OBJ etc.).
     Hint: look in kambi_vrml_test_suite,
     [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
     for some interesting models. See e.g. there for
     vrml_2/teapot.wrl if you want your familiar teapot :)
 }
-program plane_projected_shadow_demo;
+program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,

@@ -196,7 +196,7 @@ EXAMPLES_BASE_NAMES := \
   3dmodels.gl/examples/fog_culling \
   3dmodels.gl/examples/shadow_volume_test/shadow_volume_test \
   3dmodels.gl/examples/bump_mapping/bump_mapping \
-  3dmodels.gl/examples/plane_projected_shadow_demo
+  3dmodels.gl/examples/plane_mirror_and_shadow
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   audio/examples/test_al_source_allocator \
