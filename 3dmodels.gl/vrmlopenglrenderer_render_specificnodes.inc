@@ -81,6 +81,8 @@ begin
 
     if MarkFrontFaces then
     begin
+      { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
+        promises never to do this. }
       glFrontFace(GL_CW);
       { normal pointing from CW }
       glNormal3f(0, 0, 1);
@@ -109,6 +111,8 @@ begin
     if Depth <> 0 then
     begin
       if MarkFrontFaces then
+        { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
+          promises never to do this. }
         glFrontFace(GL_CCW);
 
       { Normal pointing from CCW.
@@ -605,6 +609,8 @@ begin
       glShadeModel(GL_FLAT);
 
       if not Node.FdCcw.Value then
+        { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
+          promises never to do this. }
         glFrontFace(GL_CW);
 
       if Node.FdSolid.Value then
