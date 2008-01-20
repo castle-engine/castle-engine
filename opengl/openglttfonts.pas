@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2006 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -125,12 +125,12 @@ type
     { @groupEnd }
 
     { Render extrusion of given text. This renders the side walls of text
-      that would be created when pushing the text into z = -Depth.
+      that would be created when pushing the text into z = Depth.
 
       If you want to render letters as solid 3D objects, then the text
       has three parts: front cap (you get this by normal Print or PrintAndMove
       or PrintTexturedAndMove), back cap (this is the same thing as front cap
-      but with z = -Depth) and extrusion (connecting front cap and back cap;
+      but with z = Depth) and extrusion (connecting front cap and back cap;
       this is rendered using this method).
 
       This is supposed to be used on text created with Depth = 0 at
@@ -305,10 +305,8 @@ begin
    if depth <> 0 then
    begin
     TesselatedPolygon(depth); {narysuj na glebokosci depth kopie poligonu}
-
-    { Although CharExtrusionPrint prints at z = -Depth, we want from
-      here to print at +Depth for compatibility with old code. }
-    CharExtrusionPrint(Chr(I), -Depth, onlyLines);
+    
+    CharExtrusionPrint(Chr(I), Depth, onlyLines);
    end;
 
    glEndList;
@@ -484,8 +482,8 @@ begin
 
           Normal := TriangleNormal(
             Vector3Single(    Character^.X,     Character^.Y, 0),
-            Vector3Single(NextCharacter^.X, NextCharacter^.Y, 0),
-            Vector3Single(    Character^.X,     Character^.Y, -Depth));
+            Vector3Single(    Character^.X,     Character^.Y, Depth),
+            Vector3Single(NextCharacter^.X, NextCharacter^.Y, 0));
 
           Inc(poz);
         end;
