@@ -228,7 +228,7 @@ const
   -- KeysDown for all TModifierKey.)
 
   Version with "PKeysBooleans" parameter returns [] (empty set)
-  when KeysDown = nil. This may be useful sometimes.
+  when KeysDown = @nil. This may be useful sometimes.
 
   @groupBegin }
 function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys; overload;

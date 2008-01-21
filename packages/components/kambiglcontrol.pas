@@ -25,7 +25,8 @@ type
     and set GLVersion variables, descripting OpenGL version
     and available extensions.
 
-    TODO: integrate also MouseLook features of TMatrixNavigator. }
+    TODO: integrate also MouseLook features of TMatrixNavigator,
+    call MouseMove from TMatrixWalker and TMatrixExaminer. }
   TKamOpenGLControl = class(TOpenGLControl)
   private
     FOwnsNavigator: boolean;

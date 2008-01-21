@@ -4216,7 +4216,12 @@ var
   MiddleScreenWidth: Integer;
   MiddleScreenHeight: Integer;
 begin
-  inherited;
+  if not (
+    ReallyUseNavigator and
+    (Navigator is TMatrixExaminer) and
+    TMatrixExaminer(Navigator).MouseMove(
+      MouseX, MouseY, NewX, NewY, MousePressed, @KeysDown)) then
+    inherited;
 
   if ReallyUseMouseLook then
   begin

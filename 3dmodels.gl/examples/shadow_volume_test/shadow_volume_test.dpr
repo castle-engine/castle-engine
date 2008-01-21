@@ -500,6 +500,12 @@ begin
   ShadowCasterNav.KeyDown(key, c, @Glwin.KeysDown);
 end;
 
+procedure MouseMove(Glwin: TGLWindow; NewX, NewY: integer);
+begin
+  ShadowCasterNav.MouseMove(Glwin.MouseX, Glwin.MouseY, NewX, NewY,
+    Glwin.MousePressed, @Glwin.KeysDown);
+end;
+
 { menu ----------------------------------------------------------------------- }
 
 procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
@@ -704,6 +710,7 @@ begin
     Glw.OnResize := @ResizeGL;
     Glw.OnIdle := @IdleGL;
     Glw.OnKeyDown := @KeyDown;
+    Glw.OnMouseMove := @MouseMove;
     Glw.InitLoop;
   finally
     ShadowCasterNav.Free;

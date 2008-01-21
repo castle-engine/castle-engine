@@ -227,7 +227,10 @@ type
       @item(Call @code(glMultMatrix(Navigator.Matrix)) or
         @code(glLoadMatrix(Navigator.Matrix)) at the beginning of your
         OnDraw callback.)
-    ) }
+    )
+
+    See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.dpr)
+    example program in engine sources for simple demo how to use this class. }
   TMatrixNavigator = class
   protected
     { This is called always when @link(Matrix) changed.
@@ -359,6 +362,12 @@ type
       const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
     function MouseDown(Button: TMouseButton): boolean; override;
+
+    { Mose move event.
+
+      Like for KeyDown and Idle, you can pass @nil if you don't know this. }
+    function MouseMove(OldX, OldY, NewX, NewY: Integer;
+      const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -1464,7 +1473,7 @@ begin
   FInput_ScaleLarger := TInputShortcut.Create(K_Numpad_Plus, K_None, false, mbLeft);
   FInput_ScaleSmaller := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
   FInput_Home := TInputShortcut.Create(K_Home, K_None, false, mbLeft);
-  FInput_StopRotating := TInputShortcut.Create(K_Space, K_None, false, mbLeft);
+  FInput_StopRotating := TInputShortcut.Create(K_Space, K_None, true, mbLeft);
 end;
 
 destructor TMatrixExaminer.Destroy;
@@ -1641,6 +1650,108 @@ begin
   if Result then Exit;
 
   Result := EventDown(true, K_None, Button);
+end;
+
+function TMatrixExaminer.MouseMove(OldX, OldY, NewX, NewY: Integer;
+  const MousePressed: TMouseButtons; KeysDown: PKeysBooleans): boolean;
+var
+  Size: Single;
+  ModsDown: TModifierKeys;
+begin
+  Result := false;
+
+  { Shortcuts: I'll try to make them intelligent, which means
+    "mostly matching shortcuts in other programs" (like Blender) and
+    "accessible to all users" (which means that e.g. I don't want to use
+    middle mouse button, as many users have only 2 mouse buttons (or even 1),
+    besides GNOME hig says users seldom try out other than the 1st button).
+
+    Let's check what others use:
+
+    Blender:
+    - rotating: on bmMiddle
+    - moving left/right/down/up: on Shift + mbMiddle
+    - moving closer/further: on Ctrl + mbMiddle
+      (moving down brings closer, up brings further; horizontal move ignored)
+    Both Shift and Ctrl pressed do nothing.
+
+    vrweb:
+    - rotating: mbMiddle
+    - moving closer/further: mbRight (like in Blender: down closer, up further,
+      horizontal doesn't matter)
+    - moving left/right/down/up: mbLeft
+
+    GIMP normalmap 3d preview:
+    - rotating: mbLeft
+    - moving closer/further: mbRight (like in Blender: down closer, up further,
+      horizontal doesn't matter)
+    - no moving left/right/down/up.
+
+    My thoughts and conclusions:
+    - rotating seems most natural in Examine mode (that's where this navigation
+      mode is the most comfortable), so it should be on bmLeft (like normalmap)
+      with no modifiers (like Blender).
+    - moving closer/further: 2nd most important in Examine mode, in my opinion.
+      Goes to mbRight. For people with 1 mouse button, and Blender analogy,
+      it's also on Ctrl + mbLeft.
+    - moving left/right/down/up: mbMiddle.
+      For people with no middle button, and Blender analogy, it's also on
+      Shift + mbLeft.
+
+    This achieves a couple of nice goals:
+    - everything is available with only mbLeft, for people with 1 mouse button.
+    - Blender analogy: you can say to just switch "mbMiddle" to "mbLeft",
+      and it works the same
+    - OTOH, for people with 3 mouse buttons, that do not catch the fact that
+      keyboard modifiers change the navigation, also each mb (without modifier)
+      does something different.
+  }
+
+  { Optimization, since MouseMove occurs very often: when nothing pressed,
+    do nothing. }
+  if MousePressed = [] then Exit;
+
+  ModsDown := ModifiersDown(KeysDown) * [mkShift, mkCtrl];
+
+  { Rotating }
+  if (mbLeft in MousePressed) and (ModsDown = []) then
+  begin
+    FRotationsAngle[1] += (NewX - OldX) / 2;
+    FRotationsAngle[0] += (NewY - OldY) / 2;
+    MatrixChanged;
+    Result := true;
+  end else
+
+  { Moving uses box size, so requires non-empty box. }
+
+  { Note: checks for (ModsDown = []) are not really needed below,
+    mkRight / Middle don't serve any other purpose anyway.
+    But I think that it improves user ability to "discover" these shortcuts
+    and keys, otherwise it seems strange that shift/ctrl change the
+    meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
+
+  { Moving closer/further }
+  if (not IsEmptyBox3d(FModelBox)) and
+     ( ( (mbRight in MousePressed) and (ModsDown = []) ) or
+       ( (mbLeft in MousePressed) and (ModsDown = [mkCtrl]) ) ) then
+  begin
+    Size := Box3dAvgSize(FModelBox);
+    FMoveAmount[2] += Size * (NewY - OldY) / 200;
+    MatrixChanged;
+    Result := true;
+  end;
+
+  { Moving left/right/down/up }
+  if (not IsEmptyBox3d(FModelBox)) and
+     ( ( (mbMiddle in MousePressed) and (ModsDown = []) ) or
+       ( (mbLeft in MousePressed) and (ModsDown = [mkShift]) ) ) then
+  begin
+    Size := Box3dAvgSize(FModelBox);
+    FMoveAmount[0] -= Size * (OldX - NewX) / 200;
+    FMoveAmount[1] -= Size * (NewY - OldY) / 200;
+    MatrixChanged;
+    Result := true;
+  end;
 end;
 
 { TMatrixWalker ---------------------------------------------------------------- }
