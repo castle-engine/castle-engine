@@ -42,13 +42,13 @@ void main()
 
   */
 
-  colour = vec4(1, 1, 0, 1);
-  if (intensity * 100 <= 95)
+  colour = vec4(1.0, 1.0, 0.0, 1.0);
+  if (intensity * 100.0 <= 95.0)
   {
     colour /= 4.0;
-    if (intensity * 100 > 50)
+    if (intensity * 100.0 > 50.0)
       colour *= 3.0; else
-    if (intensity * 100 > 25)
+    if (intensity * 100.0 > 25.0)
       colour *= 2.0;
     /* else stays as vec4(0.25, 0.25, 0, 1); */
   }
