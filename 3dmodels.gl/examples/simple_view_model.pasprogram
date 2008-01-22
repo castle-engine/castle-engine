@@ -38,7 +38,7 @@
   Note that this example exposes some shortcomings that are not fixed here
   for the sake of simplicity of this example.
   They are all fixed in a more sophisticated version of this example
-  in file simpleViewModel_2.dpr.
+  in file simple_view_model_2.pasprogram.
   - In this program starting camera position is *not* read from file.
     Camera always starts positioned at the middle of 3d model,
     looking in (1, 0, 0) direction with up vector (0, 1, 0).

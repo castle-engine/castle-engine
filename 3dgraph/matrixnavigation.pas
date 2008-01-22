@@ -229,7 +229,7 @@ type
         OnDraw callback.)
     )
 
-    See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.dpr)
+    See @code(kambi_vrml_game_engine/opengl/examples/demo_matrix_navigation.pasprogram)
     example program in engine sources for simple demo how to use this class. }
   TMatrixNavigator = class
   protected

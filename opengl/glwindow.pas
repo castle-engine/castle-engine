@@ -205,7 +205,8 @@
   EventMenuCommand (OnMenuCommand) when user clicks some menu item.
   Other implementations (XLIB for now) ignore MainMenu.
 
-  See examples/menuTest.dpr for an example how to use menu.
+  See @code(kambi_vrml_game_engine/opengl/examples/menu_test.pasprogram)
+  for an example how to use menu.
 
   4/2004:
   You can use modal dialogs for things such as file selection.
@@ -1380,8 +1381,8 @@ type
 
       This is a sensible and consequential approach -- EventInit (OnInit)
       is always the first executed callback and EventClose (OnClose)
-      is always last. Some examples (like glWinEvents) confirm that this
-      is really useful.
+      is always last. Some examples (like gl_win_events.pasprogram)
+      confirm that this is really useful.
 
       One more thing: in EventInit (OnInit) you already have valid
       Width/Height values, i.e. those values were already adjusted
@@ -1798,8 +1799,8 @@ type
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Init
       with MainMenu <> nil.
-      See examples/menu_test_alternative.dpr for demo of changing
-      value of MainMenu while window is not Closed.
+      See @code(kambi_vrml_game_engine/opengl/examples/menu_test_alternative.pasprogram)
+      for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled
       for all menu items inside, of course).
@@ -2556,7 +2557,7 @@ type
 
         Note: it is NOT guaranteed that we are inside Loop method
         when calling this function, i.e. it may be the case that noone ever
-        called glwm.Loop (e.g. in kulki.dpr, where everything is done
+        called glwm.Loop (e.g. in @code(kambi_lines) game, where everything is done
         using while ProcessMessages do ...), but still it must be valid to call
         Quit and QuitWhenNoWindowsActive in such situation.
         Also it must be valid to call Quit and QuitWhenNoWindowsActive more

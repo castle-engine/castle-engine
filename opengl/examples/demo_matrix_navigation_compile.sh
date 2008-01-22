@@ -3,4 +3,4 @@ set -eu
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg opengl/examples/demo_matrix_navigation.dpr
+fpc -dRELEASE @kambi.cfg opengl/examples/demo_matrix_navigation.pasprogram

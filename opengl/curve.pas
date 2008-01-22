@@ -169,8 +169,9 @@ type
       (ignoring Z-coord of ControlPoints). }
     procedure RenderConvexHull;
 
-    { This is virtual because it's called by CreateDivideMathExprCurve.
-      It's also useful in many places in curves.dpr. }
+    { Constructor.
+      This is virtual because it's called by CreateDivideMathExprCurve.
+      It's also useful in many places in curves.pasprogram. }
     constructor Create(const ATBegin, ATEnd: Float); virtual;
 
     { Calculates ControlPoints taking Point(i, ControlPointsCount-1)

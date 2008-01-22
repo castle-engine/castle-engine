@@ -174,10 +174,10 @@ EXAMPLES_BASE_NAMES := \
   base/examples/test_platform_specific_utils \
   base/examples/kambi_calc \
   images/examples/image_convert \
-  images/tools/imageToPas \
-  opengl/examples/glWinEvents \
+  images/tools/image_to_pas \
+  opengl/examples/gl_win_events \
   opengl/examples/menu_test_alternative \
-  opengl/examples/menuTest \
+  opengl/examples/menu_test \
   opengl/examples/test_glwindow_gtk_mix \
   opengl/examples/test_font_break \
   opengl/examples/multi_glwindow \
@@ -190,8 +190,8 @@ EXAMPLES_BASE_NAMES := \
   3dmodels/examples/test_blender_exported_hierarchy \
   3dmodels/tools/gen_light_map \
   3dmodels/tools/md3tovrmlsequence \
-  3dmodels.gl/examples/simpleViewModel_2 \
-  3dmodels.gl/examples/simpleViewModel \
+  3dmodels.gl/examples/simple_view_model_2 \
+  3dmodels.gl/examples/simple_view_model \
   3dmodels.gl/examples/demo_animation \
   3dmodels.gl/examples/fog_culling \
   3dmodels.gl/examples/shadow_volume_test/shadow_volume_test \
@@ -225,7 +225,7 @@ info:
 
 check_is_gpl_licensed:
 	find . '(' -type d -name '.svn' -prune ')' -or \
-	       '(' -type f '(' -iname '*.pas' -or -iname '*.dpr' ')' \
+	       '(' -type f '(' -iname '*.pas' -or -iname '*.pasprogram' ')' \
 	           -exec check_is_gpl_licensed '{}' ';' ')'
 
 # cleaning ------------------------------------------------------------

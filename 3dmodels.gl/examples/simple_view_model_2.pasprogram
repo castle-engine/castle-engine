@@ -18,9 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ This is the next version of simpleViewModel.dpr.
+{ This is the next version of simple_view_model.pasprogram.
   If you want to learn how to use my units, you should first understand
-  sources of simpleViewModel.dpr, then move to this example.
+  sources of simple_view_model.pasprogram, then move to this example.
 
   This version adds:
 

@@ -1410,7 +1410,7 @@ begin
      mysterious problems.
 
      Simple test case with some comments is in
-     gtk.testy/test_changing_menu/test_changing_menu.dpr.
+     gtk.testy/test_changing_menu/test_changing_menu.pasprogram.
 
      Experiments show that giving priority G_PRIORITY_DEFAULT_IDLE is OK.
 

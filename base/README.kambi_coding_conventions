@@ -17,10 +17,6 @@ of documentation, see
   dependency on Lazarus library LCL, while almost all of my programs don't
   depend on it and can be compiled with pure FPC installation.
 
-  Many programs also use *.dpr as extension for main program file.
-  I used this extension for a long time, even though all programs here
-  are FPC-only.
-
 - Whenever I was modifying Pascal sources of someone else
   I was marking my modifications by word "Kambi" somewhere in comments.
   "Kambi+" means that I added something,

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2006 Michalis Kamburelis.
+  Copyright 2004-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { A simple program using GLWindow.
@@ -24,7 +26,7 @@
   Shows menu, submenus, menus with keyboard shortcuts, checked menu items,
   radio menu items, adding menus at runtime, using menu mnemonics. }
 
-program MenuTest;
+program menu_test;
 
 {$apptype CONSOLE}
 

@@ -722,6 +722,6 @@ end.
 
 {
   Local Variables:
-  compile-command: "fpcdebug shadow_volume_test.dpr"
+  compile-command: "fpcdebug shadow_volume_test.pasprogram"
   End:
 }

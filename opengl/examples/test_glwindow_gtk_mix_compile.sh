@@ -8,7 +8,7 @@ set -eu
 rm -f opengl/glwindow.ppu opengl/glwindow.o
 
 fpc -dRELEASE @kambi.cfg -dGLWINDOW_GTK_2 \
-  opengl/examples/test_glwindow_gtk_mix.dpr
+  opengl/examples/test_glwindow_gtk_mix.pasprogram
   
 # Allow other examples to be compiled by default with WinAPI backend
 # (instead of GTK2)
