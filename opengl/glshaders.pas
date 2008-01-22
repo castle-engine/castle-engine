@@ -210,6 +210,10 @@ type
       @raises EOpenGLError If any OpenGL error will be detected. }
     function DebugInfo: string;
 
+    { This is program log, given to you from OpenGL after the program
+      is linked. }
+    function ProgramInfoLog: string;
+
     { @abstract(What support do we get from current OpenGL context ?)
       This is much like @link(Support), but it's a class function. }
     class function ClassSupport: TGLSupport;
@@ -686,6 +690,15 @@ begin
     Result := gsNone;
 end;
 
+function TGLSLProgram.ProgramInfoLog: string;
+begin
+  case Support of
+    gsARBExtension: Result := GetInfoLogARB(ProgramId);
+    gsStandard    : Result := GetProgramInfoLog(ProgramId);
+    else Result := '';
+  end;
+end;
+
 function TGLSLProgram.DebugInfo: string;
 
   function GLShaderVariableTypeName(AType: TGLenum): string;
@@ -870,14 +883,6 @@ function TGLSLProgram.DebugInfo: string;
               [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
-    end;
-  end;
-
-  function ProgramInfoLog: string;
-  begin
-    case Support of
-      gsARBExtension: Result := GetInfoLogARB(ProgramId);
-      gsStandard    : Result := GetProgramInfoLog(ProgramId);
     end;
   end;
 
