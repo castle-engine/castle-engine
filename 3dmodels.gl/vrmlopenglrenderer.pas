@@ -2336,6 +2336,20 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
                   'bump mapping. Parallax: %s (if true: steep parallax ' +
                   'with self-shadowing: %s).',
                   [BoolToStr[Parallax], BoolToStr[BmSteepParallaxMapping]]));
+
+            { Detect software shaders, e.g. done by
+                Radeon X300/X550/X1050 Series (crypto on ii.324)
+              Works awfully slow with software rendering. }
+            if Pos('shader will run in software due to the',
+              BmGLSLProgram[Parallax].ProgramInfoLog) > 0 then
+            begin
+              WritelnLog('Bump mapping',
+                Format('Shader rejected, seems it will run in software. ' +
+                  'Program info is "%s"', [BmGLSLProgram[Parallax].ProgramInfoLog]));
+
+              raise EGLSLError.Create(
+                'Shader will be run in software, don''t use');
+            end;
           except
             on E: EGLSLError do
             begin
