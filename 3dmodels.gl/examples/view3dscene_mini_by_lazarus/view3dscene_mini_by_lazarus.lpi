@@ -2,12 +2,11 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="/"/>
-    <Version Value="5"/>
+    <Version Value="6"/>
     <General>
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
@@ -23,21 +22,21 @@
     </RunParams>
     <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="LCL"/>
-      </Item1>
-      <Item2>
-        <PackageName Value="LazOpenGLContext"/>
-        <MinVersion Valid="True"/>
-      </Item2>
-      <Item3>
-        <PackageName Value="kambi_units"/>
-      </Item3>
-      <Item4>
         <PackageName Value="kambi_components"/>
         <MinVersion Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="kambi_units"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LazOpenGLContext"/>
+        <MinVersion Valid="True"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="14">
       <Unit0>
         <Filename Value="view3dscene_mini_by_lazarus.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -52,27 +51,25 @@
         <IsPartOfProject Value="True"/>
         <ResourceFilename Value="mainf.lrs"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="7" Y="323"/>
-        <TopLine Value="284"/>
-        <EditorIndex Value="0"/>
+        <CursorPos X="30" Y="130"/>
+        <TopLine Value="114"/>
         <UsageCount Value="33"/>
-        <Loaded Value="True"/>
+        <Bookmarks Count="1">
+          <Item0 X="12" Y="130" ID="1"/>
+        </Bookmarks>
       </Unit1>
       <Unit2>
         <Filename Value="../../../packages/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="5" Y="32"/>
+        <CursorPos X="31" Y="8"/>
         <TopLine Value="1"/>
         <UsageCount Value="11"/>
-        <Bookmarks Count="1">
-          <Item0 X="22" Y="376" ID="1"/>
-        </Bookmarks>
       </Unit2>
       <Unit3>
         <Filename Value="../../../opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="46" Y="585"/>
-        <TopLine Value="571"/>
+        <CursorPos X="3" Y="285"/>
+        <TopLine Value="270"/>
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
@@ -134,6 +131,20 @@
         <UsageCount Value="10"/>
         <SyntaxHighlighter Value="LFM"/>
       </Unit11>
+      <Unit12>
+        <Filename Value="../../../../../../../fpc-installation/lazarus-current/src/components/opengl/openglcontext.pas"/>
+        <UnitName Value="OpenGLContext"/>
+        <CursorPos X="36" Y="84"/>
+        <TopLine Value="79"/>
+        <UsageCount Value="10"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../../../../../../../fpc-installation/lazarus-current/src/lcl/controls.pp"/>
+        <UnitName Value="Controls"/>
+        <CursorPos X="73" Y="939"/>
+        <TopLine Value="908"/>
+        <UsageCount Value="10"/>
+      </Unit13>
     </Units>
     <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>

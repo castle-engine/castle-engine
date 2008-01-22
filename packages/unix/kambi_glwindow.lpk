@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <Package Version="2">
+  <Package Version="3">
     <Name Value="kambi_glwindow"/>
     <CompilerOptions>
       <Version Value="5"/>
@@ -26,6 +26,10 @@
         <Generate Value="Faster"/>
       </CodeGeneration>
       <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
@@ -34,7 +38,7 @@ This unit cannot be installed under Lazarus, it's only for being used in other p
     <Files Count="9">
       <Item1>
         <Filename Value="../../opengl/glwindow.pas"/>
-        <UnitName Value="glwindow"/>
+        <UnitName Value="GLWindow"/>
       </Item1>
       <Item2>
         <Filename Value="../../opengl/timemessages.pas"/>
@@ -71,11 +75,11 @@ This unit cannot be installed under Lazarus, it's only for being used in other p
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
-        <PackageName Value="kambi_units"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
         <MinVersion Major="1" Valid="True"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="kambi_units"/>
       </Item2>
     </RequiredPkgs>
     <UsageOptions>

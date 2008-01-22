@@ -127,7 +127,7 @@ procedure TMain.GLControlGLContextInit(Sender: TObject);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
-  GLControl.Resize;
+  GLControlResize(GLControl);
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);

@@ -124,7 +124,7 @@ procedure Register;
 
 implementation
 
-uses LCLType, RaysWindow, GL, GLU, GLExt;
+uses LCLType, RaysWindow, GL, GLU, GLExt, KambiGLUtils;
 
 procedure Register;
 begin
