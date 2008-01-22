@@ -144,8 +144,8 @@
         <UsageCount Value="25"/>
       </Unit13>
       <Unit14>
-        <Filename Value="../audio/ogg.pas"/>
-        <UnitName Value="Ogg"/>
+        <Filename Value="../audio/kambiogg.pas"/>
+        <UnitName Value="KambiOgg"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="0"/>
@@ -155,7 +155,7 @@
     </Units>
     <JumpHistory Count="1" HistoryIndex="0">
       <Position1>
-        <Filename Value="../audio/ogg.pas"/>
+        <Filename Value="../audio/kambiogg.pas"/>
         <Caret Line="1" Column="1" TopLine="1"/>
       </Position1>
     </JumpHistory>

@@ -13,7 +13,7 @@ uses
   alsourceallocator,
   alutils,
   gamesoundengine,
-  ogg,
+  kambiogg,
   openal,
   soundfile,
   vorbiscodec,

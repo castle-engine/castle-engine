@@ -1,5 +1,15 @@
-{ Minimal translation of C /usr/include/ogg/ogg.h header. }
-unit Ogg;
+{ Minimal translation of C /usr/include/ogg/ogg.h header.
+
+  Renamed to KambiOgg, to avoid name clash with FPC's Ogg unit.
+  In the future, this may be removed in favor of simply using
+  FPC's Ogg unit. Although, from the 1st glance, it will require
+  fixing FPC's Ogg unit --- it will fail when Ogg lib is not available,
+  while my Ogg and VorbisFile units are made such that they can continue
+  (function pointers are loaded in initialization and failure only 
+  casues setting some bool variable to @false).
+  Actually, Ogg unit doesn't link at all to ogg library (it's not needed,
+  only structs are needed). }
+unit KambiOgg;
 
 {$packrecords C}
 

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <Package Version="2">
+  <Package Version="3">
     <Name Value="kambi_units"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
@@ -35,12 +35,12 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this unit, it's required by all other programs and packages that are part of Kambi VRML game engine.
+    <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this package, it's required by all other programs and packages that are part of Kambi VRML game engine.
 "/>
     <License Value="GNU GPL >= 2
 "/>
     <Version Major="1"/>
-    <Files Count="106">
+    <Files Count="105">
       <Item1>
         <Filename Value="../../3dgraph/backgroundbase.pas"/>
         <UnitName Value="BackgroundBase"/>
@@ -218,8 +218,8 @@
         <UnitName Value="GameSoundEngine"/>
       </Item44>
       <Item45>
-        <Filename Value="../../audio/ogg.pas"/>
-        <UnitName Value="Ogg"/>
+        <Filename Value="../../audio/kambiogg.pas"/>
+        <UnitName Value="KambiOgg"/>
       </Item45>
       <Item46>
         <Filename Value="../../audio/openal.pas"/>
@@ -442,29 +442,25 @@
         <UnitName Value="OpenGLFonts"/>
       </Item100>
       <Item101>
-        <Filename Value="../../opengl/openglh.pas"/>
-        <UnitName Value="OpenGLh"/>
-      </Item101>
-      <Item102>
         <Filename Value="../../opengl/openglttfonts.pas"/>
         <UnitName Value="OpenGLTTFonts"/>
-      </Item102>
-      <Item103>
+      </Item101>
+      <Item102>
         <Filename Value="../../opengl/shadowvolumeshelper.pas"/>
         <UnitName Value="ShadowVolumesHelper"/>
-      </Item103>
-      <Item104>
+      </Item102>
+      <Item103>
         <Filename Value="../../opengl/unix/kambixf86vmode.pas"/>
         <UnitName Value="KambiXF86VMode"/>
-      </Item104>
-      <Item105>
+      </Item103>
+      <Item104>
         <Filename Value="../../opengl/unix/xlibutils.pas"/>
         <UnitName Value="XlibUtils"/>
-      </Item105>
-      <Item106>
+      </Item104>
+      <Item105>
         <Filename Value="../../net/kambiurlutils.pas"/>
         <UnitName Value="KambiURLUtils"/>
-      </Item106>
+      </Item105>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

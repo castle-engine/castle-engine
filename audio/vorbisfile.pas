@@ -9,7 +9,7 @@ unit VorbisFile;
 
 interface
 
-uses CTypes, VorbisCodec, Ogg;
+uses CTypes, VorbisCodec, KambiOgg;
 
 const
   NOTOPEN   = 0;
