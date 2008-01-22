@@ -53,7 +53,7 @@ var
 
 implementation
 
-uses VectorMath, ALUtils, OpenAL, KambiUtils, KambiStringUtils;
+uses VectorMath, ALUtils, KambiOpenAL, KambiUtils, KambiStringUtils;
 
 { TMain }
 

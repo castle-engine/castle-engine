@@ -14,7 +14,7 @@ uses
   alutils,
   gamesoundengine,
   kambiogg,
-  openal,
+  kambiopenal,
   soundfile,
   vorbiscodec,
   vorbisdecoder,

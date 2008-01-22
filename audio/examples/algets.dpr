@@ -30,7 +30,7 @@
   be loaded as OpenAL sound, and some additional tests will be performed. }
 program algets;
 
-uses OpenAL, ALUtils, SysUtils, KambiUtils, VectorMath, SoundFile,
+uses KambiOpenAL, ALUtils, SysUtils, KambiUtils, VectorMath, SoundFile,
   KambiStringUtils;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.

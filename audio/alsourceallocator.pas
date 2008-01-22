@@ -23,7 +23,7 @@ unit ALSourceAllocator;
 
 interface
 
-uses SysUtils, OpenAL, KambiClassUtils, KambiUtils;
+uses SysUtils, KambiOpenAL, KambiClassUtils, KambiUtils;
 
 {$define read_interface}
 

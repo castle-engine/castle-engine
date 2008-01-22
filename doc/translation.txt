@@ -62,7 +62,7 @@ D   vrmlglheadlight.pas
 
   audio/
 D   alutils.pas
--   openal.pas
+-   kambiopenal.pas
 D   soundwav.pas
 D   alsourceallocator.pas
 D   gamesoundengine.pas

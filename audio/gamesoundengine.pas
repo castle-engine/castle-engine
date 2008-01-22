@@ -23,7 +23,7 @@ unit GameSoundEngine;
 
 interface
 
-uses Classes, VectorMath, OpenAL, ALSourceAllocator, SysUtils,
+uses Classes, VectorMath, KambiOpenAL, ALSourceAllocator, SysUtils,
   KambiUtils, KambiXMLCfg;
 
 {$define read_interface}

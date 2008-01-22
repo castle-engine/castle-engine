@@ -178,8 +178,8 @@
         <UnitName Value="ALUtils"/>
       </Item33>
       <Item34>
-        <Filename Value="..\..\audio\openal.pas"/>
-        <UnitName Value="OpenAL"/>
+        <Filename Value="..\..\audio\kambiopenal.pas"/>
+        <UnitName Value="KambiOpenAL"/>
       </Item34>
       <Item35>
         <Filename Value="..\..\audio\soundwav.pas"/>

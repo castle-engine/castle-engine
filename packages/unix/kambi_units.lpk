@@ -222,8 +222,8 @@
         <UnitName Value="KambiOgg"/>
       </Item45>
       <Item46>
-        <Filename Value="../../audio/openal.pas"/>
-        <UnitName Value="OpenAL"/>
+        <Filename Value="../../audio/kambiopenal.pas"/>
+        <UnitName Value="KambiOpenAL"/>
       </Item46>
       <Item47>
         <Filename Value="../../audio/soundfile.pas"/>

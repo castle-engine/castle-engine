@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005,2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -22,6 +22,13 @@
 { OpenAL library functions.
   This is a translation of OpenAL C headers: @code(AL/al.h, AL/alc.h, AL/alut.h)
   (and included headers: @code(AL/altypes.h, AL/alctypes.h)).
+
+  Renamed to KambiOpenAL (from OpenAL) to avoid clash with FPC's OpenAL
+  unit. In the future, we may drop to using FPC's OpenAL unit, for now
+  this unit has at least one advantage over FPC's OpenAL unit: if OpenAL
+  library is not present (so, dylib or dll), it will simply set
+  ALInited to @false. While FPC's OpenAL unit links to OpenAL using "external"
+  and will fail when library is not present at runtime.
 
   Ogolne strategie tlumaczenia :
   @unorderedList(
@@ -75,7 +82,7 @@
   jak i zmiennych AL/ALUTInited.
 }
 
-unit OpenAL;
+unit KambiOpenAL;
 
 { Zdefiniuj dla danej platformy czego oczekujemy od jej wersji OpenALa
   (o ile w ogole bedzie obecna w danym systemie) :

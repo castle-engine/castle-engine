@@ -2,7 +2,7 @@ unit VorbisDecoder;
 
 interface
 
-uses SysUtils, Classes, OpenAL;
+uses SysUtils, Classes, KambiOpenAL;
 
 type
   EVorbisFileError = class(Exception);

@@ -28,7 +28,7 @@ unit SoundFile;
 
 interface
 
-uses SysUtils, KambiUtils, Classes, OpenAL;
+uses SysUtils, KambiUtils, Classes, KambiOpenAL;
 
 type
   ESoundFormatNotSupportedByOpenAL = class(Exception);
