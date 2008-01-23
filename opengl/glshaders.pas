@@ -103,6 +103,7 @@ type
 
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
+  EGLSLRunningInSoftware = class(EGLSLError);
   EGLSLUniformNotFound = class(EGLSLError);
   EGLSLAttributeNotFound = class(EGLSLError);
 
@@ -186,8 +187,12 @@ type
 
       @raises(EGLSLProgramLinkError If the program cannot be linked,
         exception message contains precise description from OpenGL where
-        the error is.) }
-    procedure Link;
+        the error is.)
+
+      @raises(EGLSLRunningInSoftware If the program will be linked
+        successfully, but RequireRunningInHardware = @true and the program
+        will be detected to be running in software.) }
+    procedure Link(RequireRunningInHardware: boolean);
 
     { Enable (use) this program. }
     procedure Enable;
@@ -210,9 +215,19 @@ type
       @raises EOpenGLError If any OpenGL error will be detected. }
     function DebugInfo: string;
 
-    { This is program log, given to you from OpenGL after the program
+    { This is program info log, given to you from OpenGL after the program
       is linked. }
     function ProgramInfoLog: string;
+
+    { After the program is linked, you can check this.
+
+      Note that this is necessarily implemented in quite hacky way (by
+      looking at ProgramInfoLog), there is no way currently (AFAIK ?)
+      to get this information cleanly from OpenGL.
+      In case of doubts, we try to "trust" OpenGL to execute shader in hardware.
+      Return @false only when we see clear indication in ProgramInfoLog that
+      it'll run in software. }
+    function RunningInHardware: boolean;
 
     { @abstract(What support do we get from current OpenGL context ?)
       This is much like @link(Support), but it's a class function. }
@@ -920,6 +935,9 @@ begin
   end;
 
   Result += NL + 'Program info log:' + NL + ProgramInfoLog;
+
+  Result += NL + 'Program detected as running in hardware: ' +
+    BoolToStr[RunningInHardware];
 end;
 
 procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
@@ -1019,7 +1037,7 @@ begin
   ShaderIds.Count := 0;
 end;
 
-procedure TGLSLProgram.Link;
+procedure TGLSLProgram.Link(RequireRunningInHardware: boolean);
 var
   Linked: TGLuint;
 begin
@@ -1041,6 +1059,19 @@ begin
             GetProgramInfoLog(ProgramId));
       end;
   end;
+
+  if RequireRunningInHardware and (not RunningInHardware) then
+    raise EGLSLRunningInSoftware.CreateFmt(
+      'GLSL shader linked but rejected, as it seems it will run in software.' +
+      'Program info log is "%s"', [ProgramInfoLog]);
+end;
+
+function TGLSLProgram.RunningInHardware: boolean;
+begin
+  { This is good at least for capturing shaders running in software on
+      Radeon X300/X550/X1050 Series (crypto on ii.324), Linux fglrx. }
+
+  Result := Pos('shader will run in software due to the', ProgramInfoLog) = 0;
 end;
 
 procedure TGLSLProgram.Enable;

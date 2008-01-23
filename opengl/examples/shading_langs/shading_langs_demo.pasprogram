@@ -245,7 +245,8 @@ begin
   GLSLProgram := TGLSLProgram.Create;
   GLSLProgram.AttachVertexShader(FileToString(GLSLProgramBaseName + '.vs'));
   GLSLProgram.AttachFragmentShader(FileToString(GLSLProgramBaseName + '.fs'));
-  GLSLProgram.Link;
+  { For this test program, we eventually allow shader to run in software }
+  GLSLProgram.Link(false);
   Writeln(GLSLProgram.DebugInfo);
 
   Tex[0] := LoadTexture('../../../../castle/data/textures/023pierres.jpg');
@@ -297,7 +298,8 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
       GLSLProgram.DetachAllShaders;
       GLSLProgram.AttachVertexShader(FileToString(ChangeFileExt(S,'.vs')));
       GLSLProgram.AttachFragmentShader(FileToString(ChangeFileExt(S,'.fs')));
-      GLSLProgram.Link;
+      { For this test program, we eventually allow shader to run in software }
+      GLSLProgram.Link(false);
       Writeln(GLSLProgram.DebugInfo);
     end;
   end;
