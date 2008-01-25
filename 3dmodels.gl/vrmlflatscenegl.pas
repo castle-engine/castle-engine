@@ -125,6 +125,59 @@ type
 
   TVRMLFlatSceneGLsList = class;
 
+  { Values for TVRMLSceneRenderingAttributes.WireframeEffect.
+
+    Generally, two other attributes may affect the way wireframe is rendered:
+    TVRMLSceneRenderingAttributes.WireframeColor and
+    TVRMLSceneRenderingAttributes.WireframeWidth, quite self-explanatory. }
+  TVRMLWireframeEffect = (
+
+    { Default setting, model polygons are simply passed to OpenGL.
+      Whether this results in filled or wireframe look, depends on OpenGL
+      glPolygonMode setting, filled by default. }
+    weNormal,
+
+    { The model is rendered in wireframe mode.
+
+      Depending on TVRMLSceneRenderingAttributes.PureGeometry value:
+
+      @unorderedList(
+        @item(If PureGeometry then WireframeColor and WireframeWidth
+          are used as wireframe line color/width.)
+
+        @item(If not PureGeometry, then lines are colored
+          and potentially textured and lighted just like their corresponding
+          triangles would be colored.)
+      ) }
+    weWireframeOnly,
+
+    { The model is rendered as normal, with it's wireframe version visible
+      on top. This is most often called "solid wireframe", since the intention
+      is too see wireframe version of the model but still render shapes
+      solid (e.g. filled polygons with depth test).
+
+      WireframeColor and WireframeWidth are used as wireframe
+      line color/width (regardless of current PureGeometry value).
+
+      This usually gives best results when PureGeometry is on.
+      Then current glColor sets the color of the solid model
+      (and, like said before, WireframeColor sets wireframe color). }
+    weSolidWireframe,
+
+    { The model is rendered as normal, with silhouette outlined around it.
+      This works quite like weSolidWireframe, except that weSolidWireframe
+      makes the wireframe mesh slightly in front the model, while weSilhouette
+      makes the wireframe mesh slightly at the back of the model. This way
+      only the silhouette is visible from the wireframe rendering.
+
+      WireframeColor and WireframeWidth are used as silhouette
+      line color/width (regardless of current PureGeometry value).
+
+      This is sometimes sensible to use with PureGeometry = @true.
+      Then current glColor sets the color of the solid model
+      (and, like said before, WireframeColor sets wireframe color) }
+    weSilhouette);
+
   TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
   private
     { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
@@ -133,6 +186,9 @@ type
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
     FBlendingDestinationFactor: TGLenum;
+    FWireframeColor: TVector3Single;
+    FWireframeWidth: Single;
+    FWireframeEffect: TVRMLWireframeEffect;
   protected
     procedure SetOnBeforeGLVertex(const Value: TBeforeGLVertexProc); override;
     procedure SetSmoothShading(const Value: boolean); override;
@@ -211,6 +267,26 @@ type
     property BlendingDestinationFactor: TGLenum
       read FBlendingDestinationFactor write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
+    { @groupEnd }
+
+    { You can use this to turn on some effects related to rendering model
+      in special modes.
+
+      When this is weNormal (default), nothing special is
+      done, which means that model polygons are simply passed to OpenGL.
+      Whether this results in filled or wireframe, depends on OpenGL
+      glPolygonMode setting, filled by default.
+
+      See description of TVRMLWireframeEffect for what other modes do. }
+    property WireframeEffect: TVRMLWireframeEffect
+      read FWireframeEffect write FWireframeEffect default weNormal;
+
+    { Wireframe color and width, used with some WireframeEffect values.
+      @groupBegin }
+    property WireframeColor: TVector3Single
+      read FWireframeColor write FWireframeColor;
+    property WireframeWidth: Single
+      read FWireframeWidth write FWireframeWidth;
     { @groupEnd }
   end;
 
@@ -1705,36 +1781,54 @@ end;
 procedure TVRMLFlatSceneGL.Render(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   TransparentGroup: TTransparentGroup);
+
+  procedure RenderNormal;
+  begin
+    case Optimization of
+      roNone:
+        begin
+          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} PrepareAndRenderShapeStateSimple,
+            {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
+            {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
+            TransparentGroup);
+        end;
+      roSceneAsAWhole:
+        SAAW_Render(TransparentGroup);
+      roSeparateShapeStates:
+        begin
+          { build display lists (if needed) and render all shape states }
+          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
+            TransparentGroup);
+        end;
+      roSeparateShapeStatesNoTransform:
+        begin
+          { build display lists (if needed) and render all shape states }
+          RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
+            {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
+            TransparentGroup);
+        end;
+    end;
+  end;
+
 begin
-  case Optimization of
-    roNone:
+  case Attributes.WireframeEffect of
+    weNormal: RenderNormal;
+    weWireframeOnly:
       begin
-        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-          {$ifdef FPC_OBJFPC} @ {$endif} PrepareAndRenderShapeStateSimple,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderBeginSimple,
-          {$ifdef FPC_OBJFPC} @ {$endif} RenderEndSimple,
-          TransparentGroup);
+        glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT or GL_CURRENT_BIT);
+          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+          glLineWidth(Attributes.WireframeWidth); { saved by GL_LINE_BIT }
+          glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
+          RenderNormal;
+        glPopAttrib;
       end;
-    roSceneAsAWhole:
-      SAAW_Render(TransparentGroup);
-    roSeparateShapeStates:
-      begin
-        { build display lists (if needed) and render all shape states }
-        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSS_RenderShapeState,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
-          TransparentGroup);
-      end;
-    roSeparateShapeStatesNoTransform:
-      begin
-        { build display lists (if needed) and render all shape states }
-        RenderShapeStatesNoDisplayList(TestShapeStateVisibility,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSNT_RenderShapeState,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderBegin,
-          {$ifdef FPC_OBJFPC} @ {$endif} SSSX_RenderEnd,
-          TransparentGroup);
-      end;
+    else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
   end;
 end;
 
