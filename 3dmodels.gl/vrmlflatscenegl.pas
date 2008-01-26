@@ -113,6 +113,9 @@ const
   roSeparateShapeStates = VRMLRendererOptimization.roSeparateShapeStates;
   roSeparateShapeStatesNoTransform = VRMLRendererOptimization.roSeparateShapeStatesNoTransform;
 
+  DefaultWireframeWidth = 3.0;
+  DefaultWireframeColor: TVector3Single = (0, 0, 0);
+
 type
   { Internal for TVRMLFlatSceneGL
     @exclude }
@@ -139,15 +142,20 @@ type
 
     { The model is rendered in wireframe mode.
 
+      WireframeWidth is used as wireframe line width (regardless of
+      PureGeometry).
+
       Depending on TVRMLSceneRenderingAttributes.PureGeometry value:
 
       @unorderedList(
-        @item(If PureGeometry then WireframeColor and WireframeWidth
-          are used as wireframe line color/width.)
+        @item(If PureGeometry then WireframeColor is used as wireframe
+          line color.)
 
         @item(If not PureGeometry, then lines are colored
-          and potentially textured and lighted just like their corresponding
-          triangles would be colored.)
+          and potentially lighted and textured just like their corresponding
+          triangles would be colored. So you can control lighting using
+          OpenGL GL_LIGHTING setting and UseLights attribute, and you
+          can control texturing by EnableTextures attribute.)
       ) }
     weWireframeOnly,
 
@@ -161,7 +169,22 @@ type
 
       This usually gives best results when PureGeometry is on.
       Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color). }
+      (and, like said before, WireframeColor sets wireframe color).
+
+      TODO: Note that for PureGeometry = @false, the wireframe will still
+      be textured if original model were textured. Also wireframe color
+      will be affected by GLSL shaders, if model defined any.
+      (Wireframe will never be lighted, this is taken care of properly).
+      This is bad, as I would like to never texture or shade the wireframe,
+      regardless of PureGeometry. Basically, the wireframe part should behave
+      always like PureGeometry = @true, regardless of the filled model
+      PureGeometry setting.
+      For now, avoid using weSolidWireframe with PureGeometry = @false if
+      your model may have textures or shaders.
+      There's no way currently to reuse the same display list, while having
+      normal model textured/shaded and wireframe not textured/shaded.
+      If you really need this effect, you'll need two TVRMLFlatSceneGL
+      instances with different attributes rendering the same model. }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -175,7 +198,11 @@ type
 
       This is sometimes sensible to use with PureGeometry = @true.
       Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color) }
+      (and, like said before, WireframeColor sets wireframe color)
+
+      TODO: Note that for PureGeometry = @false, the wireframe will still
+      be textured/shaded if original model were textured or used GLSL shaders.
+      See weSolidWireframe TODO notes. }
     weSilhouette);
 
   TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
@@ -282,11 +309,14 @@ type
       read FWireframeEffect write FWireframeEffect default weNormal;
 
     { Wireframe color and width, used with some WireframeEffect values.
+
+      Default value of WireframeColor is DefaultWireframeColor.
+
       @groupBegin }
     property WireframeColor: TVector3Single
       read FWireframeColor write FWireframeColor;
     property WireframeWidth: Single
-      read FWireframeWidth write FWireframeWidth;
+      read FWireframeWidth write FWireframeWidth default DefaultWireframeWidth;
     { @groupEnd }
   end;
 
@@ -1816,16 +1846,44 @@ procedure TVRMLFlatSceneGL.Render(
     end;
   end;
 
+  procedure RenderWireframe(UseWireframeColor: boolean);
+  begin
+    glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+      glLineWidth(Attributes.WireframeWidth); { saved by GL_LINE_BIT }
+      if UseWireframeColor then
+      begin
+        glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
+        glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
+        glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
+      end;
+      RenderNormal;
+    glPopAttrib;
+  end;
+
 begin
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;
-    weWireframeOnly:
+    weWireframeOnly: RenderWireframe(Attributes.PureGeometry);
+    weSolidWireframe:
       begin
-        glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT or GL_CURRENT_BIT);
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-          glLineWidth(Attributes.WireframeWidth); { saved by GL_LINE_BIT }
-          glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
+        glPushAttrib(GL_POLYGON_BIT);
+          { enable polygon offset for everything (whole scene) }
+          glEnable(GL_POLYGON_OFFSET_FILL);
+          glEnable(GL_POLYGON_OFFSET_LINE);
+          glEnable(GL_POLYGON_OFFSET_POINT);
+          glPolygonOffset(1, 1);
           RenderNormal;
+        glPopAttrib;
+        RenderWireframe(true);
+      end;
+    weSilhouette:
+      begin
+        RenderNormal;
+        glPushAttrib(GL_POLYGON_BIT);
+          glEnable(GL_POLYGON_OFFSET_LINE);
+          glPolygonOffset(5, 5);
+          RenderWireframe(true);
         glPopAttrib;
       end;
     else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
@@ -2825,6 +2883,10 @@ begin
   FBlending := true;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
+
+  FWireframeEffect := weNormal;
+  FWireframeWidth := DefaultWireframeWidth;
+  FWireframeColor := DefaultWireframeColor;
 
   FScenes := TVRMLFlatSceneGLsList.Create;
 end;
