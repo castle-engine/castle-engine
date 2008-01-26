@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005,2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { @abstract(Converting 3D models to VRML.
@@ -58,6 +60,8 @@ procedure LoadMD3AsVRMLSequence(
   var Optimization: TGLRendererOptimization;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
+
+function LoadColladaAsVRML(const FileName: string): TVRMLNode;
 
 { This guesses model format basing on ExtractFileExt(filename),
   then loads model converting it to VRML with appropriate
@@ -108,7 +112,7 @@ procedure LoadAsVRMLSequence(
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLAnimation;
+  KambiStringUtils, VRMLAnimation, DOM, XMLRead, KambiXMLUtils;
 
 function ToVRMLName(const s: string): string;
 const
@@ -724,10 +728,144 @@ begin
   finally FreeAndNil(Md3) end;
 end;
 
+function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+
+  procedure ReadMaterial(MatElement: TDOMElement);
+  var
+    ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    MatId, MatName, ParamName: string;
+    I: Integer;
+  begin
+    if DOMGetAttribute(MatElement, 'id', MatId) and
+       DOMGetAttribute(MatElement, 'name', MatName) then
+    begin
+      ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
+      if ShaderElement <> nil then
+      begin
+         TechniqueElement := DOMGetChildElement(ShaderElement, 'technique', false);
+         if TechniqueElement <> nil then
+         begin
+           PassElement := DOMGetChildElement(TechniqueElement, 'pass', false);
+           if PassElement <> nil then
+           begin
+             ProgramElement := DOMGetChildElement(PassElement, 'program', false);
+             if ProgramElement <> nil then
+             begin
+               Children := ProgramElement.ChildNodes;
+               try
+                 for I := 0 to Children.Count - 1 do
+                 begin
+                   ChildNode := Children.Item[I];
+                   if ChildNode.NodeType = ELEMENT_NODE then
+                   begin
+                     ChildElement := ChildNode as TDOMElement;
+                     if ChildElement.TagName = 'param' then
+                     begin
+                       if DOMGetAttribute(ChildElement, 'name', ParamName) then
+                       begin
+                         Writeln('got name ', ParamName);
+                       end;
+                     end;
+                   end;
+                 end;
+               finally Children.Release; end
+             end;
+           end;
+         end;
+      end;
+    end;
+    { don't support materials without id and name for now }
+  end;
+
+  procedure ReadLibraryElement(LibraryElement: TDOMElement);
+
+    procedure ReadMaterialLibrary;
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+    begin
+      Children := LibraryElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'material' then
+              ReadMaterial(ChildElement);
+              { other ChildElement.TagName not supported for now }
+          end;
+        end;
+      finally Children.Release; end
+    end;
+
+  var
+    LibraryType: string;
+  begin
+    if DOMGetAttribute(LibraryElement, 'type', LibraryType) then
+    begin
+      if LibraryType = 'MATERIAL' then
+        ReadMaterialLibrary;
+        { other LibraryType not supported for now }
+    end;
+  end;
+
+  procedure ReadSceneElement(SceneElement: TDOMElement);
+  begin
+  end;
+
+var
+  Doc: TXMLDocument;
+  WWWBasePath, Version: string;
+  I: Integer;
+  DocChildren: TDOMNodeList;
+  ChildNode: TDOMNode;
+  ChildElement: TDOMElement;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+
+  ReadXMLFile(Doc, FileName);
+  try
+    Check(Doc.DocumentElement.TagName = 'COLLADA',
+      'Root node of Collada file must be <COLLADA>');
+
+    { tests: (in the future, I should somewhat test this Version is it supported)
+    if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+      Writeln('Version is "', Version, '"') else
+      Writeln('Unknown version');
+    }
+
+    Result := TNodeGroup_2.Create('', WWWBasePath);
+
+    DocChildren := Doc.DocumentElement.ChildNodes;
+    try
+      for I := 0 to DocChildren.Count - 1 do
+      begin
+        ChildNode := DocChildren.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'library' then
+            ReadLibraryElement(ChildElement) else
+          if ChildElement.TagName = 'scene' then
+            ReadSceneElement(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally DocChildren.Release; end
+  finally FreeAndNil(Doc); end;
+end;
+
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
-  Extensions: array [0..7] of string =
-  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.wrz', '.md3');
+  Extensions: array [0..8] of string =
+  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.wrz', '.md3', '.dae');
 var
   Ext: string;
 begin
@@ -741,6 +879,7 @@ begin
       2: result := LoadOBJAsVRML(filename);
       3..6: result := ParseVRMLFile(filename, false);
       7: Result := LoadMD3AsVRML(FileName);
+      8: Result := LoadColladaAsVRML(FileName);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);
