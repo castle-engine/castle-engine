@@ -698,6 +698,8 @@ type
       drawing of vertexes by vertex arrays).
       But the point is that no OpenGL state, besides the absolute minimum to render
       polygons at their correct places, will be touched.
+      Oh, and backface culling will be correctly enabled (glCullFace mode,
+      GL_CULL_FACE flag) as appropriate.
 
       For example, Renderer will not set any color (no glColor calls),
       will not set any material
@@ -3041,7 +3043,11 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     IndexedFaceRenderer: TIndexedFaceSetRenderer;
     TexReference: PTextureReference;
   begin
-    if Attributes.PureGeometry then Exit;
+    if Attributes.PureGeometry then
+    begin
+      Render_TexCoordsNeeded := false;
+      Exit;
+    end;
 
     {ponizej zarzadzamy wlasciwosciami alphaTest(+enabled), i texture2d enabled}
 

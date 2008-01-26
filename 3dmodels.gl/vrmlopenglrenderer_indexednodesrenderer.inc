@@ -735,8 +735,6 @@ begin
   inherited;
   glPushAttrib(GL_POLYGON_BIT);
 
-  if Renderer.Attributes.PureGeometry then Exit;
-
   { If vertex ordering is consistent and object is SOLID than we use OpenGL's
     backface culling.
 

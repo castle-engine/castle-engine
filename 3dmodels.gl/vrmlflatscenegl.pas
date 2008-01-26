@@ -1869,10 +1869,10 @@ begin
       begin
         glPushAttrib(GL_POLYGON_BIT);
           { enable polygon offset for everything (whole scene) }
-          glEnable(GL_POLYGON_OFFSET_FILL);
-          glEnable(GL_POLYGON_OFFSET_LINE);
-          glEnable(GL_POLYGON_OFFSET_POINT);
-          glPolygonOffset(1, 1);
+          glEnable(GL_POLYGON_OFFSET_FILL); { saved  by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved  by GL_POLYGON_BIT }
+          glEnable(GL_POLYGON_OFFSET_POINT); { saved  by GL_POLYGON_BIT }
+          glPolygonOffset(1, 1); { saved  by GL_POLYGON_BIT }
           RenderNormal;
         glPopAttrib;
         RenderWireframe(true);
@@ -1881,8 +1881,19 @@ begin
       begin
         RenderNormal;
         glPushAttrib(GL_POLYGON_BIT);
-          glEnable(GL_POLYGON_OFFSET_LINE);
-          glPolygonOffset(5, 5);
+          glEnable(GL_POLYGON_OFFSET_LINE); { saved  by GL_POLYGON_BIT }
+          glPolygonOffset(5, 5); { saved  by GL_POLYGON_BIT }
+          { PureGeometry still does backface culling.
+            This is very good in this case. When PureGeometry and weSilhouette,
+            and objects are solid (so backface culling is used) we can
+            significantly improve the effect by reverting glFrontFace,
+            this way we will cull *front* faces. This will not be noticed
+            in case of PureGeometry will single solid color, and it will
+            improve the silhouette look, since front-face edges will not be
+            rendered at all (no need to even hide them by glPolygonOffset,
+            which is somewhat sloppy). }
+          if Attributes.PureGeometry then
+            glFrontFace(GL_CW); { saved  by GL_POLYGON_BIT }
           RenderWireframe(true);
         glPopAttrib;
       end;
