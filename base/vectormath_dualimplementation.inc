@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 { dual implementation, czyli kod ktory piszemy jednoczesnie w dwoch
@@ -64,6 +66,11 @@ begin
   Tmp := V1;
   V1 := V2;
   V2 := Tmp;
+end;
+
+function VectorAverage(const V: TYPE_VECTOR3): TYPE_SCALAR;
+begin
+  Result := (V[0] + V[1] + V[2]) / 3;
 end;
 
 operator := (const V: TYPE_VECTOR2_OBJECT): TYPE_VECTOR2;

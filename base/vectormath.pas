@@ -659,6 +659,9 @@ procedure SwapValues(var V1, V2: TVector3Double); overload;
 procedure SwapValues(var V1, V2: TVector4Single); overload;
 procedure SwapValues(var V1, V2: TVector4Double); overload;
 
+function VectorAverage(const V: TVector3Single): Single; overload;
+function VectorAverage(const V: TVector3Double): Double; overload;
+
 { VLerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
   Zwraca (1-a)*V1 + a*V2 (no, troche inaczej zapisane dla szybkosci). }
 function VLerp(const a: Single; V1, V2: TVector2Integer): TVector2Single; overload;
