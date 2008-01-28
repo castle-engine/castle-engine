@@ -112,7 +112,8 @@ procedure LoadAsVRMLSequence(
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLAnimation, DOM, XMLRead, KambiXMLUtils;
+  KambiStringUtils, VRMLAnimation, DOM, XMLRead, KambiXMLUtils,
+  DataErrors;
 
 function ToVRMLName(const s: string): string;
 const
@@ -729,6 +730,8 @@ begin
 end;
 
 function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+var
+  WWWBasePath: string;
 
   procedure ReadMaterial(MatElement: TDOMElement);
   var
@@ -820,9 +823,18 @@ function LoadColladaAsVRML(const FileName: string): TVRMLNode;
   begin
   end;
 
+  procedure AddInfo(Element: TNodeGroup_2; const S: string);
+  var
+    Info: TNodeInfo;
+  begin
+    Info := TNodeInfo.Create('', WWWBasePath);
+    Element.FdChildren.AddItem(Info);
+    Info.FdString.Value := S;
+  end;
+
 var
   Doc: TXMLDocument;
-  WWWBasePath, Version: string;
+  Version: string;
   I: Integer;
   DocChildren: TDOMNodeList;
   ChildNode: TDOMNode;
@@ -835,30 +847,36 @@ begin
     Check(Doc.DocumentElement.TagName = 'COLLADA',
       'Root node of Collada file must be <COLLADA>');
 
-    { tests: (in the future, I should somewhat test this Version is it supported)
-    if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
-      Writeln('Version is "', Version, '"') else
-      Writeln('Unknown version');
-    }
+    if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+    begin
+      Version := '';
+      DataNonFatalError('<COLLADA> element misses "version" attribute');
+    end;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
-
-    DocChildren := Doc.DocumentElement.ChildNodes;
     try
-      for I := 0 to DocChildren.Count - 1 do
-      begin
-        ChildNode := DocChildren.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
+
+      DocChildren := Doc.DocumentElement.ChildNodes;
+      try
+        for I := 0 to DocChildren.Count - 1 do
         begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'library' then
-            ReadLibraryElement(ChildElement) else
-          if ChildElement.TagName = 'scene' then
-            ReadSceneElement(ChildElement);
-            { other ChildElement.TagName not supported for now }
+          ChildNode := DocChildren.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'library' then
+              ReadLibraryElement(ChildElement) else
+            if ChildElement.TagName = 'scene' then
+              ReadSceneElement(ChildElement);
+              { other ChildElement.TagName not supported for now }
+          end;
         end;
-      end;
-    finally DocChildren.Release; end
+      finally DocChildren.Release; end;
+
+      AddInfo(Result as TNodeGroup_2,
+        'Converted from Collada version "' + Version + '" by ' +
+        'Kambi VRML game engine [http://vrmlengine.sourceforge.net/]');
+    except FreeAndNil(Result); raise; end;
   finally FreeAndNil(Doc); end;
 end;
 
