@@ -1418,7 +1418,9 @@ type
 
   TObjectsListItem_3 = TVRMLNode;
   {$I objectslist_3.inc}
-  TVRMLNodesList = class(TObjectsList_3);
+  TVRMLNodesList = class(TObjectsList_3)
+    function FindNodeName(const Name: string): Integer;
+  end;
 
   TVRMLNodeClassesList = class(TList)
   private
@@ -2521,6 +2523,16 @@ resourcestring
     'exposedField keyword) but found %s';
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
+
+{ TVRMLNodesList ------------------------------------------------------------- }
+
+function TVRMLNodesList.FindNodeName(const Name: string): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].NodeName = Name then
+      Exit;
+  Result := -1;
+end;
 
 { TDynActiveLightArray --------------------------------------------------------- }
 

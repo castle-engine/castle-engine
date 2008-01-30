@@ -113,7 +113,7 @@ implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, DOM, XMLRead, KambiXMLUtils,
-  DataErrors;
+  DataErrors, KambiClassUtils;
 
 function ToVRMLName(const s: string): string;
 const
@@ -732,7 +732,21 @@ end;
 function LoadColladaAsVRML(const FileName: string): TVRMLNode;
 var
   WWWBasePath: string;
+
+  { List of VRML Material nodes storing Collada effects.
+    They are kept for handling instance_effect in <material> node, which will
+    copy items from this list into Materials list. Materials list will keep
+    names of the materials, forgetting about names of effects.
+    Many materials may refer to a single effect, that's why for Materials
+    list we will copy effects (not just make a reference to them). }
+  Effects: TVRMLNodesList;
+
+  { Another list of VRML Material nodes, this time storing Collada materials. }
+  Materials: TVRMLNodesList;
+
   ResultModel: TNodeGroup_2 absolute Result;
+
+  Version14: boolean; //< Collada version >= 1.4.x
 
   { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x. }
   function ReadColorOrTexture(Element: TDOMElement): TVector3Single;
@@ -757,8 +771,7 @@ var
   end;
 
   { Read <effect>. Only for Collada >= 1.4.x. }
-  procedure ReadEffect(EffectsSwitch: TNodeSwitch_2;
-    EffectElement: TDOMElement);
+  procedure ReadEffect(EffectElement: TDOMElement);
   var
     Effect: TNodeMaterial_2;
     Id: string;
@@ -772,7 +785,7 @@ var
       Id := '';
 
     Effect := TNodeMaterial_2.Create(Id, WWWBasePath);
-    EffectsSwitch.FdChoice.AddItem(Effect);
+    Effects.Add(Effect);
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
     if ProfileElement <> nil then
@@ -846,14 +859,10 @@ var
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
-    EffectsSwitch: TNodeSwitch_2;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
-
-    EffectsSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
-    ResultModel.FdChildren.AddItem(EffectsSwitch);
 
     Children := LibraryElement.ChildNodes;
     try
@@ -864,7 +873,7 @@ var
         begin
           ChildElement := ChildNode as TDOMElement;
           if ChildElement.TagName = 'effect' then
-            ReadEffect(EffectsSwitch, ChildElement);
+            ReadEffect(ChildElement);
             { other ChildElement.TagName not supported for now }
         end;
       end;
@@ -872,8 +881,7 @@ var
   end;
 
   { Read <material>. }
-  procedure ReadMaterial(MaterialsSwitch: TNodeSwitch_2;
-    MatElement: TDOMElement);
+  procedure ReadMaterial(MatElement: TDOMElement);
 
     function ReadParamAsVector3(Element: TDOMElement): TVector3Single;
     var
@@ -910,103 +918,142 @@ var
     end;
 
   var
-    ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    MatId, ParamName: string;
-    I: Integer;
-    Mat: TNodeMaterial_2;
+    MatId: string;
+
+    { For Collada < 1.4.x }
+    procedure TryCollada13;
+    var
+      ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      ParamName: string;
+      I: Integer;
+      Mat: TNodeMaterial_2;
+    begin
+      Mat := TNodeMaterial_2.Create(MatId, WWWBasePath);
+      Materials.Add(Mat);
+
+      ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
+      if ShaderElement <> nil then
+      begin
+         TechniqueElement := DOMGetChildElement(ShaderElement, 'technique', false);
+         if TechniqueElement <> nil then
+         begin
+           PassElement := DOMGetChildElement(TechniqueElement, 'pass', false);
+           if PassElement <> nil then
+           begin
+             ProgramElement := DOMGetChildElement(PassElement, 'program', false);
+             if ProgramElement <> nil then
+             begin
+               Children := ProgramElement.ChildNodes;
+               try
+                 for I := 0 to Children.Count - 1 do
+                 begin
+                   ChildNode := Children.Item[I];
+                   if ChildNode.NodeType = ELEMENT_NODE then
+                   begin
+                     ChildElement := ChildNode as TDOMElement;
+                     if ChildElement.TagName = 'param' then
+                     begin
+                       if DOMGetAttribute(ChildElement, 'name', ParamName) then
+                       begin
+                         if ParamName = 'EMISSION' then
+                           Mat.FdEmissiveColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'AMBIENT' then
+                           Mat.FdAmbientIntensity.Value := VectorAverage(
+                             ReadParamAsVector3(ChildElement)) else
+
+                         if ParamName = 'DIFFUSE' then
+                           Mat.FdDiffuseColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'SPECULAR' then
+                           Mat.FdSpecularColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'SHININESS' then
+                           Mat.FdShininess.Value :=
+                             ReadParamAsFloat(ChildElement) / 128.0 else
+
+                         if ParamName = 'REFLECTIVE' then
+                           {Mat.FdMirrorColor.Value := }
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'REFLECTIVITY' then
+                           Mat.FdMirror.Value :=
+                             ReadParamAsFloat(ChildElement) else
+
+                         (*
+                         Blender Collada 1.3.1 sets type to "float" here
+                         (although content inicates "float3", consistently with
+                         what is in Collada 1.4.1 spec.)
+                         I don't handle this anyway, so I just ignore it for now,
+                         until I'll read Collada 1.3.1 spec and report this to
+                         Blender.
+
+                         if ParamName = 'TRANSPARENT' then
+                           {Mat.FdTransparencyColor.Value := }
+                             ReadParamAsVector3(ChildElement) else
+                         *)
+
+                         if ParamName = 'TRANSPARENCY' then
+                           Mat.FdTransparency.Value :=
+                             ReadParamAsFloat(ChildElement);
+
+                         { other ParamName not handled }
+                       end;
+                     end;
+                   end;
+                 end;
+               finally Children.Release; end
+             end;
+           end;
+         end;
+      end;
+    end;
+
+    { For Collada >= 1.4.x }
+    procedure TryCollada14;
+    var
+      InstanceEffect: TDOMElement;
+      EffectId: string;
+      Mat: TNodeMaterial_2;
+      EffectIndex: Integer;
+    begin
+      if MatId = '' then Exit;
+
+      InstanceEffect := DOMGetChildElement(MatElement, 'instance_effect', false);
+      if InstanceEffect <> nil then
+      begin
+        if DOMGetAttribute(InstanceEffect, 'url', EffectId) and
+           SCharIs(EffectId, 1, '#') then
+        begin
+          Delete(EffectId, 1, 1); { delete initial '#' char }
+          Writeln('instantiating effect ', EffectId, ' as material ', MatId);
+
+          EffectIndex := Effects.FindNodeName(EffectId);
+          if EffectIndex <> -1 then
+          begin
+            Mat := VRMLNodeDeepCopy(Effects[EffectIndex]) as TNodeMaterial_2;
+            Mat.NodeName := MatId;
+            Materials.Add(Mat);
+          end else
+            DataNonFatalError(Format('Collada material "%s" references ' +
+              'non-existing effect "%s"', [MatId, EffectId]));
+        end;
+      end;
+    end;
+
   begin
     if not DOMGetAttribute(MatElement, 'id', MatId) then
       MatId := '';
 
-    Mat := TNodeMaterial_2.Create(MatId, WWWBasePath);
-    MaterialsSwitch.FdChoice.AddItem(Mat);
-
-    { Collada < 1.4.x }
-    ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
-    if ShaderElement <> nil then
-    begin
-       TechniqueElement := DOMGetChildElement(ShaderElement, 'technique', false);
-       if TechniqueElement <> nil then
-       begin
-         PassElement := DOMGetChildElement(TechniqueElement, 'pass', false);
-         if PassElement <> nil then
-         begin
-           ProgramElement := DOMGetChildElement(PassElement, 'program', false);
-           if ProgramElement <> nil then
-           begin
-             Children := ProgramElement.ChildNodes;
-             try
-               for I := 0 to Children.Count - 1 do
-               begin
-                 ChildNode := Children.Item[I];
-                 if ChildNode.NodeType = ELEMENT_NODE then
-                 begin
-                   ChildElement := ChildNode as TDOMElement;
-                   if ChildElement.TagName = 'param' then
-                   begin
-                     if DOMGetAttribute(ChildElement, 'name', ParamName) then
-                     begin
-                       if ParamName = 'EMISSION' then
-                         Mat.FdEmissiveColor.Value :=
-                           ReadParamAsVector3(ChildElement) else
-
-                       if ParamName = 'AMBIENT' then
-                         Mat.FdAmbientIntensity.Value := VectorAverage(
-                           ReadParamAsVector3(ChildElement)) else
-
-                       if ParamName = 'DIFFUSE' then
-                         Mat.FdDiffuseColor.Value :=
-                           ReadParamAsVector3(ChildElement) else
-
-                       if ParamName = 'SPECULAR' then
-                         Mat.FdSpecularColor.Value :=
-                           ReadParamAsVector3(ChildElement) else
-
-                       if ParamName = 'SHININESS' then
-                         Mat.FdShininess.Value :=
-                           ReadParamAsFloat(ChildElement) / 128.0 else
-
-                       if ParamName = 'REFLECTIVE' then
-                         {Mat.FdMirrorColor.Value := }
-                           ReadParamAsVector3(ChildElement) else
-
-                       if ParamName = 'REFLECTIVITY' then
-                         Mat.FdMirror.Value :=
-                           ReadParamAsFloat(ChildElement) else
-
-                       (*
-                       Blender Collada 1.3.1 sets type to "float" here
-                       (although content inicates "float3", consistently with
-                       what is in Collada 1.4.1 spec.)
-                       I don't handle this anyway, so I just ignore it for now,
-                       until I'll read Collada 1.3.1 spec and report this to
-                       Blender.
-
-                       if ParamName = 'TRANSPARENT' then
-                         {Mat.FdTransparencyColor.Value := }
-                           ReadParamAsVector3(ChildElement) else
-                       *)
-
-                       if ParamName = 'TRANSPARENCY' then
-                         Mat.FdTransparency.Value :=
-                           ReadParamAsFloat(ChildElement);
-
-                       { other ParamName not handled }
-                     end;
-                   end;
-                 end;
-               end;
-             finally Children.Release; end
-           end;
-         end;
-       end;
-    end;
-
-    { Collada >= 1.4.x }
-    { TODO: read at least instance_effect }
+    if Version14 then
+      TryCollada14 else
+      TryCollada13;
   end;
 
   { Read <library_materials> (Collada >= 1.4.x) or
@@ -1017,14 +1064,10 @@ var
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
-    MaterialsSwitch: TNodeSwitch_2;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
-
-    MaterialsSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
-    ResultModel.FdChildren.AddItem(MaterialsSwitch);
 
     Children := LibraryElement.ChildNodes;
     try
@@ -1035,7 +1078,7 @@ var
         begin
           ChildElement := ChildNode as TDOMElement;
           if ChildElement.TagName = 'material' then
-            ReadMaterial(MaterialsSwitch, ChildElement);
+            ReadMaterial(ChildElement);
             { other ChildElement.TagName not supported for now }
         end;
       end;
@@ -1077,6 +1120,9 @@ var
   ChildNode: TDOMNode;
   ChildElement: TDOMElement;
 begin
+  Effects := nil;
+  Materials := nil;
+
   ReadXMLFile(Doc, FileName);
   try
     Check(Doc.DocumentElement.TagName = 'COLLADA',
@@ -1085,9 +1131,14 @@ begin
     if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
     begin
       Version := '';
+      Version14 := false;
       DataNonFatalError('<COLLADA> element misses "version" attribute');
+    end else
+    begin
+      { TODO: uhm, terrible hack... I should move my lazy ass and tokenize
+        Version properly. }
+      Version14 := IsPrefix('1.4.', Version);
     end;
-
 
     if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
     begin
@@ -1096,6 +1147,9 @@ begin
       WWWBasePath := ExpandFileName(WWWBasePath);
     end else
       WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+
+    Effects := TVRMLNodesList.Create;
+    Materials := TVRMLNodesList.Create;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
     try
@@ -1125,7 +1179,12 @@ begin
         'Converted from Collada version "' + Version + '" by ' +
         'Kambi VRML game engine [http://vrmlengine.sourceforge.net/]');
     except FreeAndNil(Result); raise; end;
-  finally FreeAndNil(Doc); end;
+  finally
+    FreeAndNil(Doc);
+    FreeWithContentsAndNil(Effects);
+    { TODO: these may be refereced somewhere, only without parents should be freed. }
+    FreeWithContentsAndNil(Materials);
+  end;
 end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
