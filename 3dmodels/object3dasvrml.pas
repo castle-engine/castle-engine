@@ -1088,6 +1088,8 @@ var
   { Read <geometry> }
   procedure ReadGeometry(GeometryElement: TDOMElement);
   var
+    GeometryId: string;
+
     { Text is the name of the source, Object is the TDynVector3SingleArray
       instance containing this source's data. }
     SourcesList: TStringList;
@@ -1197,6 +1199,7 @@ var
     Vertices: TDynVector3SingleArray;
     VerticesId: string;
 
+    { Read <vertices> within <mesh> }
     procedure ReadVertices(VerticesElement: TDOMElement);
     var
       Children: TDOMNodeList;
@@ -1245,8 +1248,105 @@ var
         ' with semantic="POSITION" and some source attribute');
     end;
 
+    { Read <polygons> within <mesh> }
+    procedure ReadPolygons(PolygonsElement: TDOMElement);
+    var
+      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      VerticesOffset: Integer;
+      InputsCount: Integer;
+
+      procedure AddPolygon(const Indexes: string);
+      var
+        SeekPos, Index, CurrentInput: Integer;
+        Token: string;
+      begin
+        CurrentInput := 0;
+        SeekPos := 1;
+
+        repeat
+          Token := NextToken(Indexes, SeekPos, WhiteSpaces);
+          if Token = '' then Break;
+          Index := StrToInt(Token);
+
+          { for now, we just ignore indexes to other inputs }
+          if CurrentInput = VerticesOffset then
+            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+
+          Inc(CurrentInput);
+          if CurrentInput = InputsCount then CurrentInput := 0;
+        until false;
+
+        IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+      end;
+
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+      Shape: TNodeShape;
+      Coord: TNodeCoordinate;
+      PolygonsCount: Integer;
+      InputSemantic, InputSource: string;
+    begin
+      if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
+        PolygonsCount := 0;
+
+      VerticesOffset := 0;
+
+      { TODO: for testing, I just add IndexedFaceSet inside a Shape to the main
+        model. Later, I'll store a list of Geometries (just like I have
+        Effects and Materials) and use them from scene nodes. }
+
+      Shape := TNodeShape.Create('', WWWBasePath);
+      ResultModel.FdChildren.AddItem(Shape);
+
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      Shape.FdGeometry.Value := IndexedFaceSet;
+      IndexedFaceSet.FdCoordIndex.Items.Count := 0;
+      IndexedFaceSet.FdSolid.Value := false;
+
+      Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
+      IndexedFaceSet.FdCoord.Value := Coord;
+      Coord.FdPoint.Items.Assign(Vertices);
+
+      InputsCount := 0;
+
+      Children := PolygonsElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'input' then
+            begin
+              { we must count all inputs, since parsing <p> elements depends
+                on InputsCount }
+              Inc(InputsCount);
+              if DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
+                 (InputSemantic = 'VERTEX') then
+              begin
+                if not (DOMGetAttribute(ChildElement, 'source', InputSource) and
+                        (InputSource = '#' + VerticesId))  then
+                  DataNonFatalError('Collada: <input> with semantic="VERTEX" ' +
+                    '(of <polygons> element within <mesh>) does not reference ' +
+                    '<vertices> element within the same <mesh>');
+
+                { Collada requires offset in this case.
+                  For us, if there's no offset, just leave VerticesOffset as it was. }
+                DOMGetIntegerAttribute(ChildElement, 'offset', VerticesOffset);
+              end;
+            end else
+            if ChildElement.TagName = 'p' then
+              AddPolygon(DOMGetTextData(ChildElement));
+          end;
+        end;
+      finally Children.Release; end;
+    end;
+
   var
-    GeometryId: string;
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
     ChildElement, Mesh: TDOMElement;
@@ -1272,8 +1372,8 @@ var
                 ReadSource(ChildElement) else
               if ChildElement.TagName = 'vertices' then
                 ReadVertices(ChildElement) else
-              {if ChildElement.TagName = 'polygons' then
-                ReadPolygons(ChildElement)};
+              if ChildElement.TagName = 'polygons' then
+                ReadPolygons(ChildElement);
                 { other ChildElement.TagName not supported for now }
             end;
           end;
