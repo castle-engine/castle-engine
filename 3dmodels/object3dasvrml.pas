@@ -113,7 +113,7 @@ implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, DOM, XMLRead, KambiXMLUtils,
-  DataErrors, KambiClassUtils;
+  DataErrors, Classes, KambiClassUtils;
 
 function ToVRMLName(const s: string): string;
 const
@@ -1032,7 +1032,7 @@ var
            SCharIs(EffectId, 1, '#') then
         begin
           Delete(EffectId, 1, 1); { delete initial '#' char }
-          Writeln('instantiating effect ', EffectId, ' as material ', MatId);
+          { tests: Writeln('instantiating effect ', EffectId, ' as material ', MatId); }
 
           EffectIndex := Effects.FindNodeName(EffectId);
           if EffectIndex <> -1 then
@@ -1085,6 +1085,232 @@ var
     finally Children.Release; end
   end;
 
+  { Read <geometry> }
+  procedure ReadGeometry(GeometryElement: TDOMElement);
+  var
+    { Text is the name of the source, Object is the TDynVector3SingleArray
+      instance containing this source's data. }
+    SourcesList: TStringList;
+
+    { Read <source> within <mesh>.
+
+      This is quite limited compared to what Collada offers, actually
+      we understand only float_array data accessed by accessor with
+      three parameters (although any accessor.stride >= 3).
+
+      In other words, <source> simply defines a named array of TVector3Single
+      for us. }
+    procedure ReadSource(SourceElement: TDOMElement);
+    var
+      FloatArray, Technique, Accessor: TDOMElement;
+      SeekPos, FloatArrayCount, I, AccessorCount, AccessorStride,
+        AccessorOffset: Integer;
+      Floats: TDynFloatArray;
+      SourceId, FloatArrayContents, Token, AccessorSource: string;
+      Source: TDynVector3SingleArray;
+    begin
+      if not DOMGetAttribute(SourceElement, 'id', SourceId) then
+        SourceId := '';
+
+      FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
+      if FloatArray <> nil then
+      begin
+        if not DOMGetIntegerAttribute(FloatArray, 'count', FloatArrayCount) then
+        begin
+          FloatArrayCount := 0;
+          DataNonFatalError('Collada <float_array> without a count attribute');
+        end;
+
+        Floats := TDynFloatArray.Create(FloatArrayCount);
+        try
+          FloatArrayContents := DOMGetTextData(FloatArray);
+
+          SeekPos := 1;
+          for I := 0 to FloatArrayCount - 1 do
+          begin
+            Token := NextToken(FloatArrayContents, SeekPos, WhiteSpaces);
+            if Token = '' then
+            begin
+              DataNonFatalError('Collada: actual number of tokens in <float_array>' +
+                ' less than declated in the count attribute');
+              Break;
+            end;
+            Floats.Items[I] := StrToFloat(Token);
+          end;
+
+          Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
+          if Technique = nil then
+          begin
+            Technique := DOMGetChildElement(SourceElement, 'technique', false);
+            { TODO: actually, I should search for technique with profile="COMMON"
+              in this case, right ? }
+          end;
+
+          if Technique <> nil then
+          begin
+            Accessor := DOMGetChildElement(Technique, 'accessor', false);
+
+            { read <accessor> attributes }
+
+            if not DOMGetIntegerAttribute(Accessor, 'count', AccessorCount) then
+            begin
+              DataNonFatalError('Collada: <accessor> has no count attribute');
+              AccessorCount := 0;
+            end;
+
+            if not DOMGetIntegerAttribute(Accessor, 'stride', AccessorStride) then
+              { default, according to Collada spec }
+              AccessorStride := 1;
+
+            if not DOMGetIntegerAttribute(Accessor, 'offset', AccessorOffset) then
+              { default, according to Collada spec }
+              AccessorOffset := 0;
+
+            if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
+            begin
+              DataNonFatalError('Collada: <accessor> has no source attribute');
+              AccessorSource := '';
+            end;
+            { TODO: we ignore AccessorSource, just assume that it refers to
+              float_array within this <source> }
+
+            if AccessorStride >= 3 then
+            begin
+              Source := TDynVector3SingleArray.Create(AccessorCount);
+              for I := 0 to AccessorCount - 1 do
+              begin
+                Source.Items[I][0] := Floats.Items[AccessorOffset + AccessorStride * I    ];
+                Source.Items[I][1] := Floats.Items[AccessorOffset + AccessorStride * I + 1];
+                Source.Items[I][2] := Floats.Items[AccessorOffset + AccessorStride * I + 2];
+              end;
+              { tests: Writeln('added source ', SourceId, ' with ', AccessorCount, ' items'); }
+              SourcesList.AddObject(SourceId, Source);
+            end;
+          end;
+        finally FreeAndNil(Floats); end;
+      end;
+    end;
+
+  var
+    { This is just a reference to one of the objects on SourcesList --- the one
+      referenced by <vertices> element. }
+    Vertices: TDynVector3SingleArray;
+    VerticesId: string;
+
+    procedure ReadVertices(VerticesElement: TDOMElement);
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+      InputSemantic, InputSource: string;
+      InputSourceIndex: Integer;
+    begin
+      if not DOMGetAttribute(VerticesElement, 'id', VerticesId) then
+        VerticesId := '';
+
+      Children := VerticesElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if (ChildElement.TagName = 'input') and
+               DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
+               (InputSemantic = 'POSITION') and
+               DOMGetAttribute(ChildElement, 'source', InputSource) and
+               SCharIs(InputSource, 1, '#') then
+            begin
+              Delete(InputSource, 1, 1); { delete leading '#' char }
+              InputSourceIndex := SourcesList.IndexOf(InputSource);
+              if InputSourceIndex <> -1 then
+              begin
+                Vertices := SourcesList.Objects[InputSourceIndex] as
+                  TDynVector3SingleArray;
+                Exit;
+              end else
+              begin
+                DataNonFatalError(Format('Collada: source attribute ' +
+                  '(of <input> element within <vertices>) ' +
+                  'references non-existing source "%s"', [InputSource]));
+              end;
+            end;
+          end;
+        end;
+      finally Children.Release; end;
+
+      DataNonFatalError('Collada: <vertices> element has no <input> child' +
+        ' with semantic="POSITION" and some source attribute');
+    end;
+
+  var
+    GeometryId: string;
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement, Mesh: TDOMElement;
+    I: Integer;
+  begin
+    if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
+      GeometryId := '';
+
+    Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
+    if Mesh <> nil then
+    begin
+      SourcesList := TStringList.Create;
+      try
+        Children := Mesh.ChildNodes;
+        try
+          for I := 0 to Children.Count - 1 do
+          begin
+            ChildNode := Children.Item[I];
+            if ChildNode.NodeType = ELEMENT_NODE then
+            begin
+              ChildElement := ChildNode as TDOMElement;
+              if ChildElement.TagName = 'source' then
+                ReadSource(ChildElement) else
+              if ChildElement.TagName = 'vertices' then
+                ReadVertices(ChildElement) else
+              {if ChildElement.TagName = 'polygons' then
+                ReadPolygons(ChildElement)};
+                { other ChildElement.TagName not supported for now }
+            end;
+          end;
+        finally Children.Release; end
+      finally StringList_FreeWithContentsAndNil(SourcesList); end;
+    end;
+  end;
+
+  { Read <library_geometries> (Collada >= 1.4.x) or
+    <library type="GEOMETRY"> (Collada < 1.4.x). }
+  procedure ReadLibraryGeometries(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'geometry' then
+            ReadGeometry(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
   { Read <library> element.
     Only for Collada < 1.4.x (Collada >= 1.4.x has  <library_xxx> elements). }
   procedure ReadLibrary(LibraryElement: TDOMElement);
@@ -1094,7 +1320,9 @@ var
     if DOMGetAttribute(LibraryElement, 'type', LibraryType) then
     begin
       if LibraryType = 'MATERIAL' then
-        ReadLibraryMaterials(LibraryElement);
+        ReadLibraryMaterials(LibraryElement) else
+      if LibraryType = 'GEOMETRY' then
+        ReadLibraryGeometries(LibraryElement);
         { other LibraryType not supported for now }
     end;
   end;
@@ -1168,6 +1396,8 @@ begin
               ReadLibraryMaterials(ChildElement) else
             if ChildElement.TagName = 'library_effects' then { only Collada >= 1.4.x }
               ReadLibraryEffects(ChildElement) else
+            if ChildElement.TagName = 'library_geometries' then { only Collada >= 1.4.x }
+              ReadLibraryGeometries(ChildElement) else
             if ChildElement.TagName = 'scene' then
               ReadSceneElement(ChildElement);
               { other ChildElement.TagName not supported for now }

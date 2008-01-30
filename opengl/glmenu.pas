@@ -1048,14 +1048,10 @@ begin
 end;
 
 destructor TGLMenu.Destroy;
-var
-  I: Integer;
 begin
   CloseGL;
 
-  for I := 0 to Items.Count - 1 do
-    Items.Objects[I].Free;
-  FreeAndNil(FItems);
+  StringList_FreeWithContentsAndNil(FItems);
 
   FreeAndNil(FAccessoryAreas);
   FreeAndNil(FAreas);
