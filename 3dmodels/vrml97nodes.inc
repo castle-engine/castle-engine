@@ -35,23 +35,31 @@
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   end;
 
-  TNodeAnchor = class(TNodeGeneralGrouping)
+  TNodeX3DGroupingNode = class(TNodeGeneralGrouping)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { eventIn      MFNode   addChildren } { }
+    { eventIn      MFNode   removeChildren } { }
+    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
+    property Fdmetadata: TSFNode index 1 read GetFieldAsSFNode;
+    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
+    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+
+    function ChildrenField: TMFNode; override;
+  end;
+
+  TNodeAnchor = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      MFNode   addChildren } { }
-    { eventIn      MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property Fddescription: TSFString index 1 read GetFieldAsSFString;
-    property Fdparameter: TMFString index 2 read GetFieldAsMFString;
-    property Fdurl: TMFString index 3 read GetFieldAsMFString;
-    property FdbboxCenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 5 read GetFieldAsSFVec3f;
 
-    function ChildrenField: TMFNode; override;
+    property Fddescription: TSFString index 4 read GetFieldAsSFString;
+    property Fdparameter: TMFString index 5 read GetFieldAsMFString;
+    property Fdurl: TMFString index 6 read GetFieldAsMFString;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -194,21 +202,15 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeBillboard = class(TNodeGeneralGrouping)
+  TNodeBillboard = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      MFNode   addChildren } { }
-    { eventIn      MFNode   removeChildren } { }
-    property FdaxisOfRotation: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
-    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
 
-    function ChildrenField: TMFNode; override;
+    property FdaxisOfRotation: TSFVec3f index 4 read GetFieldAsSFVec3f;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -231,23 +233,17 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCollision = class(TNodeGeneralGrouping)
+  TNodeCollision = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      MFNode   addChildren } { }
-    { eventIn      MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property Fdcollide: TSFBool index 1 read GetFieldAsSFBool;
-    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
-    property Fdproxy: TSFNode index 4 read GetFieldAsSFNode;
-    { eventOut     SFTime   collideTime } { }
 
-    function ChildrenField: TMFNode; override;
+    property Fdcollide: TSFBool index 4 read GetFieldAsSFBool;
+    property Fdproxy: TSFNode index 5 read GetFieldAsSFNode;
+    { eventOut     SFTime   collideTime } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -589,16 +585,14 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeGeoLocation = class(TNodeGeneralGrouping)
+  TNodeGeoLocation = class(TNodeX3DGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdgeoCoords: TSFString index 0 read GetFieldAsSFString;
-    property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
-    property FdgeoOrigin: TSFNode index 2 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 3 read GetFieldAsMFString;
 
-    function ChildrenField: TMFNode; override;
+    property FdgeoCoords: TSFString index 4 read GetFieldAsSFString;
+    property FdgeoOrigin: TSFNode index 5 read GetFieldAsSFNode;
+    property FdgeoSystem: TMFString index 6 read GetFieldAsMFString;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -714,23 +708,16 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeGroup_2 = class(TNodeGeneralGrouping)
+  TNodeGroup_2 = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      MFNode  addChildren } { }
-    { eventIn      MFNode  removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property FdbboxCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 2 read GetFieldAsSFVec3f;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
-
-    function ChildrenField: TMFNode; override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1012,18 +999,12 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNurbsGroup = class(TNodeGeneralGrouping)
+  TNodeNurbsGroup = class(TNodeX3DGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn       MFNode   addChildren } { }
-    { eventIn       MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property FdtessellationScale: TSFFloat index 1 read GetFieldAsSFFloat;
-    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
 
-    function ChildrenField: TMFNode; override;
+    property FdtessellationScale: TSFFloat index 4 read GetFieldAsSFFloat;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1486,7 +1467,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeTransform_2 = class(TNodeGeneralGrouping)
+  TNodeTransform_2 = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -1494,21 +1475,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      MFNode      addChildren } { }
-    { eventIn      MFNode      removeChildren } { }
-    property Fdcenter: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property Fdchildren: TMFNode index 1 read GetFieldAsMFNode;
-    property Fdrotation: TSFRotation index 2 read GetFieldAsSFRotation;
-    property Fdscale: TSFVec3f index 3 read GetFieldAsSFVec3f;
-    property FdscaleOrientation: TSFRotation index 4 read GetFieldAsSFRotation;
-    property Fdtranslation: TSFVec3f index 5 read GetFieldAsSFVec3f;
-    property FdbboxCenter: TSFVec3f index 6 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 7 read GetFieldAsSFVec3f;
+
+    property Fdcenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property Fdrotation: TSFRotation index 5 read GetFieldAsSFRotation;
+    property Fdscale: TSFVec3f index 6 read GetFieldAsSFVec3f;
+    property FdscaleOrientation: TSFRotation index 7 read GetFieldAsSFRotation;
+    property Fdtranslation: TSFVec3f index 8 read GetFieldAsSFVec3f;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
-
-    function ChildrenField: TMFNode; override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1693,6 +1668,28 @@ begin
   inherited;
 end;
 
+constructor TNodeX3DGroupingNode.Create(
+  const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
+
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
+  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+end;
+
+function TNodeX3DGroupingNode.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
 class function TNodeAnchor.ClassNodeTypeName: string;
 begin
   Result := 'Anchor';
@@ -1707,19 +1704,9 @@ end;
 constructor TNodeAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('parameter', [])); Fields.Last.Exposed := true;
   Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-end;
-
-function TNodeAnchor.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeAnchor.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -1943,17 +1930,8 @@ end;
 constructor TNodeBillboard.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0))); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-end;
-
-function TNodeBillboard.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
+  Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0)));
+  Fields.Last.Exposed := true;
 end;
 
 procedure TNodeBillboard.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -1995,19 +1973,9 @@ end;
 constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
   Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
   Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
-end;
-
-function TNodeCollision.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -2582,14 +2550,8 @@ constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
   Fields.Add(TSFString.Create('geoCoords', '')); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-end;
-
-function TNodeGeoLocation.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 class function TNodeGeoLOD.ClassNodeTypeName: string;
@@ -2751,21 +2713,11 @@ end;
 constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
 
 class function TNodeGroup_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
-end;
-
-function TNodeGroup_2.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeGroup_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -3287,17 +3239,7 @@ end;
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-end;
-
-function TNodeNurbsGroup.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
@@ -4148,26 +4090,16 @@ end;
 constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('translation', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
 end;
 
 class function TNodeTransform_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
-end;
-
-function TNodeTransform_2.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeTransform_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
