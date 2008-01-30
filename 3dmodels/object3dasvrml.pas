@@ -744,6 +744,10 @@ var
   { Another list of VRML Material nodes, this time storing Collada materials. }
   Materials: TVRMLNodesList;
 
+  { List of VRML IndexedFaceSet nodes (in general, these are nodes suitable
+    for Shape.geometry field) representing <geometry> Collada elements. }
+  Geometries: TVRMLNodesList;
+
   ResultModel: TNodeGroup_2 absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
@@ -1106,7 +1110,7 @@ var
     var
       FloatArray, Technique, Accessor: TDOMElement;
       SeekPos, FloatArrayCount, I, AccessorCount, AccessorStride,
-        AccessorOffset: Integer;
+        AccessorOffset, MinCount: Integer;
       Floats: TDynFloatArray;
       SourceId, FloatArrayContents, Token, AccessorSource: string;
       Source: TDynVector3SingleArray;
@@ -1178,6 +1182,21 @@ var
 
             if AccessorStride >= 3 then
             begin
+              { Max index accessed is
+                  AccessorOffset + AccessorStride * (AccessorCount - 1) + 2.
+                Minimum count is +1 to this.
+                Check do we have enough floats. }
+              MinCount := AccessorOffset + AccessorStride * (AccessorCount - 1) + 3;
+              if Floats.Count < MinCount then
+              begin
+                DataNonFatalError(Format('Collada: <accessor> count requires at least %d float ' +
+                  'values (offset %d + stride %d * (count %d - 1) + 3) in <float_array>, ' +
+                  'but only %d are avilable', [MinCount,
+                    AccessorOffset, AccessorStride, AccessorCount, Floats.Count]));
+                { force AccessorCount smaller }
+                AccessorCount := (Floats.Count - AccessorOffset) div AccessorStride;
+              end;
+
               Source := TDynVector3SingleArray.Create(AccessorCount);
               for I := 0 to AccessorCount - 1 do
               begin
@@ -1284,7 +1303,6 @@ var
       ChildNode: TDOMNode;
       ChildElement: TDOMElement;
       I: Integer;
-      Shape: TNodeShape;
       Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
@@ -1294,15 +1312,9 @@ var
 
       VerticesOffset := 0;
 
-      { TODO: for testing, I just add IndexedFaceSet inside a Shape to the main
-        model. Later, I'll store a list of Geometries (just like I have
-        Effects and Materials) and use them from scene nodes. }
-
-      Shape := TNodeShape.Create('', WWWBasePath);
-      ResultModel.FdChildren.AddItem(Shape);
-
       IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
-      Shape.FdGeometry.Value := IndexedFaceSet;
+      Geometries.Add(IndexedFaceSet);
+
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
 
@@ -1427,8 +1439,130 @@ var
     end;
   end;
 
-  procedure ReadSceneElement(SceneElement: TDOMElement);
+  { Read <matrix> element, add appropriate VRML MatrixTransform to ParentGroup node. }
+  procedure ReadMatrix(ParentGroup: TNodeX3DGroupingNode; MatrixElement: TDOMElement);
+  var
+    SeekPos: Integer;
+    M: TNodeMatrixTransform;
+    Row, Col: Integer;
+    Token, Indexes: string;
   begin
+    { We have to use VRML 1.0 to express matrix transform. }
+    M := TNodeMatrixTransform.Create('', WWWBasePath);
+    ParentGroup.FdChildren.AddItem(M);
+
+    Indexes := DOMGetTextData(MatrixElement);
+
+    SeekPos := 1;
+
+    for Row := 0 to 3 do
+      for Col := 0 to 3 do
+      begin
+        Token := NextToken(Indexes, SeekPos, WhiteSpaces);
+        if Token = '' then
+        begin
+          DataNonFatalError('Collada <matrix> has not enough items');
+          Break;
+        end;
+        M.FdMatrix.Matrix[Col, Row] := StrToFloat(Token);
+      end;
+  end;
+
+  { Read <node> element, add it to ParentGroup. }
+  procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
+    NodeElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    NodeId: string;
+    Matrix, Instance: TDOMElement;
+    NodeTransform: TNodeTransform_2;
+    Shape: TNodeShape;
+    GeometryId: string;
+    GeometryIndex: Integer;
+  begin
+    if not DOMGetAttribute(NodeElement, 'id', NodeId) then
+      NodeId := '';
+
+    NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath);
+    ParentGroup.FdChildren.AddItem(NodeTransform);
+
+    { TODO: other transform properties, setting NodeTransform fields. }
+
+    Matrix := DOMGetChildElement(NodeElement, 'matrix', false);
+    if Matrix <> nil then
+    begin
+      ReadMatrix(NodeTransform, Matrix);
+    end;
+
+    Instance := DOMGetChildElement(NodeElement, 'instance', false);
+    if (Instance <> nil) and
+       DOMGetAttribute(Instance, 'url', GeometryId) and
+       SCharIs(GeometryId, 1, '#') then
+    begin
+      Delete(GeometryId, 1, 1);
+      GeometryIndex := Geometries.FindNodeName(GeometryId);
+      if GeometryIndex = -1 then
+      begin
+        DataNonFatalError(Format('Collada <node> "%s" instantiates non-existing ' +
+          '<geometry> element "%s"', [NodeId, GeometryId]));
+      end else
+      begin
+        Shape := TNodeShape.Create('', WWWBasePath);
+        NodeTransform.FdChildren.AddItem(Shape);
+        Shape.FdGeometry.Value := Geometries[GeometryIndex];
+      end;
+    end;
+
+    Children := NodeElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'node' then
+            ReadNodeElement(NodeTransform, ChildElement);
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
+  { Read <scene> element. }
+  procedure ReadSceneElement(SceneElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    SceneId: string;
+    Group: TNodeGroup_2;
+  begin
+    if not DOMGetAttribute(SceneElement, 'id', SceneId) then
+      SceneId := '';
+
+    if not Version14 then
+    begin
+      Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
+      ResultModel.FdChildren.AddItem(Group);
+
+      Children := SceneElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'node' then
+              ReadNodeElement(Group, ChildElement);
+          end;
+        end;
+      finally Children.Release; end
+    end;
   end;
 
   procedure AddInfo(Element: TNodeGroup_2; const S: string);
@@ -1450,6 +1584,7 @@ var
 begin
   Effects := nil;
   Materials := nil;
+  Geometries := nil;
 
   ReadXMLFile(Doc, FileName);
   try
@@ -1478,6 +1613,7 @@ begin
 
     Effects := TVRMLNodesList.Create;
     Materials := TVRMLNodesList.Create;
+    Geometries := TVRMLNodesList.Create;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
     try
@@ -1514,6 +1650,8 @@ begin
     FreeWithContentsAndNil(Effects);
     { TODO: these may be refereced somewhere, only without parents should be freed. }
     FreeWithContentsAndNil(Materials);
+    { TODO: these may be refereced somewhere, only without parents should be freed. }
+//    FreeWithContentsAndNil(Geometries);
   end;
 end;
 
