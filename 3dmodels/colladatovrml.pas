@@ -630,7 +630,7 @@ var
       Shape := TNodeShape.Create(GeometryId, WWWBasePath);
       Geometries.Add(Shape);
 
-      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
       Shape.FdGeometry.Value := IndexedFaceSet;
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
@@ -884,6 +884,8 @@ var
     NodeId: string;
     GeometryId: string;
     GeometryIndex: Integer;
+    V3: TVector3Single;
+    V4: TVector4Single;
   begin
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
@@ -918,15 +920,21 @@ var
           end else
           if ChildElement.TagName = 'rotate' then
           begin
-            NestedTransform;
-            NodeTransform.FdRotation.ValueDeg := Vector4SingleFromStr(
-              DOMGetTextData(ChildElement));
+            V4 := Vector4SingleFromStr(DOMGetTextData(ChildElement));
+            if V4[3] <> 0.0 then
+            begin
+              NestedTransform;
+              NodeTransform.FdRotation.ValueDeg := V4;
+            end;
           end else
           if ChildElement.TagName = 'scale' then
           begin
-            NestedTransform;
-            NodeTransform.FdScale.Value := Vector3SingleFromStr(
-              DOMGetTextData(ChildElement));
+            V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
+            if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
+            begin
+              NestedTransform;
+              NodeTransform.FdScale.Value := V3;
+            end;
           end else
           if ChildElement.TagName = 'lookat' then
           begin
@@ -940,9 +948,12 @@ var
           end else
           if ChildElement.TagName = 'translate' then
           begin
-            NestedTransform;
-            NodeTransform.FdTranslation.Value := Vector3SingleFromStr(
-              DOMGetTextData(ChildElement));
+            V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
+            if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
+            begin
+              NestedTransform;
+              NodeTransform.FdTranslation.Value := V3;
+            end;
           end;
         end;
       end;
