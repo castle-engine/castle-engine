@@ -1650,8 +1650,7 @@ begin
     FreeWithContentsAndNil(Effects);
     { TODO: these may be refereced somewhere, only without parents should be freed. }
     FreeWithContentsAndNil(Materials);
-    { TODO: these may be refereced somewhere, only without parents should be freed. }
-//    FreeWithContentsAndNil(Geometries);
+    VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
   end;
 end;
 

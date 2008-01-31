@@ -837,8 +837,13 @@ type
       ExtractChild always returns extracted child. }
     function ExtractChild(I: Integer): TVRMLNode;
 
+    { All nodes where this node is referenced as a child.
+      This counts "parents" in the VRML 1.0 / Inventor sense.
+
+      @groupBegin }
     property ParentNodes[i: integer]:TVRMLNode read GetParentNodesItem;
     function ParentNodesCount: integer;
+    { @groupEnd }
 
     { This lists all SFNode and MFNode fields where this node is referenced.
       This is somewhat analogous for ParentNodes, but for VRML 2.0.
@@ -846,11 +851,14 @@ type
       ParentFieldsNode is just for your comfort, it returns always
       appropriate field's ParentNode property value
       (i.e. @code((ParentField[Index] as TSFNode).ParentNode)
-      or @code((ParentField[Index] as TMFNode).ParentNode)). }
+      or @code((ParentField[Index] as TMFNode).ParentNode)).
+
+      @groupBegin }
     property ParentFields[Index: Integer]: TVRMLField read GetParentFieldsItem;
     property ParentFieldsNode[Index: Integer]: TVRMLNode
       read GetParentFieldsNodeItem;
     function ParentFieldsCount: Integer;
+    { @groupEnd }
 
     { Free this object (if it's not @nil) @italic(also removing
       it from @bold(all) parent nodes and fields).
@@ -2375,6 +2383,10 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
   node classess are present, with the same names, field values etc. }
 function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
 
+{ Free all VRML nodes with no parents on the list, then free and @nil the list
+  itself. }
+procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
+
 const
   VRMLCameraKindToStr: array[TVRMLCameraKind]of string =
   ('Orthographic', 'Perspective');
@@ -2532,6 +2544,19 @@ begin
     if Items[Result].NodeName = Name then
       Exit;
   Result := -1;
+end;
+
+procedure VRMLNodesList_FreeWithNonParentedContentsAndNil(var List: TVRMLNodesList);
+var
+  I: Integer;
+begin
+  if List <> nil then
+  begin
+    for I := 0 to List.Count - 1 do
+      if List.Items[I].ParentNodesCount + List.Items[I].ParentFieldsCount = 0 then
+        List.Items[I].Free;
+    FreeAndNil(List);
+  end;
 end;
 
 { TDynActiveLightArray --------------------------------------------------------- }
