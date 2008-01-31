@@ -1,0 +1,1119 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Convert Collada to VRML. }
+unit ColladaToVRML;
+
+interface
+
+uses VRMLNodes;
+
+{ Load Collada file as VRML node.
+
+  Written based on Collada 1.3.1 and 1.4.1 specifications.
+  Should handle any Collada 1.3.x or 1.4.x version.
+
+  Resulting VRML is VRML 2.0. }
+function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+
+implementation
+
+uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
+  DOM, XMLRead, KambiXMLUtils, DataErrors, Classes, KambiClassUtils;
+
+function LoadColladaAsVRML(const FileName: string): TVRMLNode;
+var
+  WWWBasePath: string;
+
+  { List of VRML Material nodes storing Collada effects.
+    They are kept for handling instance_effect in <material> node, which will
+    copy items from this list into Materials list. Materials list will keep
+    names of the materials, forgetting about names of effects.
+    Many materials may refer to a single effect, that's why for Materials
+    list we will copy effects (not just make a reference to them). }
+  Effects: TVRMLNodesList;
+
+  { Another list of VRML Material nodes, this time storing Collada materials. }
+  Materials: TVRMLNodesList;
+
+  { List of VRML Shape nodes representing <geometry> Collada elements. }
+  Geometries: TVRMLNodesList;
+
+  ResultModel: TNodeGroup_2 absolute Result;
+
+  Version14: boolean; //< Collada version >= 1.4.x
+
+  { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x. }
+  function ReadColorOrTexture(Element: TDOMElement): TVector3Single;
+  var
+    ColorElement: TDOMElement;
+  begin
+    ColorElement := DOMGetChildElement(Element, 'color', true);
+    { I simply drop 4th color component, I don't know what's the use of this
+      (alpha is exposed by effect/materials parameter transparency, so color
+      alpha is supposed to mean something else ?). }
+    Result := Vector3SingleCut(
+      Vector4SingleFromStr(DOMGetTextData(ColorElement)));
+  end;
+
+  { Read elements of type "common_float_or_param_type" in Collada >= 1.4.x. }
+  function ReadFloatOrParam(Element: TDOMElement): Float;
+  var
+    FloatElement: TDOMElement;
+  begin
+    FloatElement := DOMGetChildElement(Element, 'float', true);
+    Result := StrToFloat(DOMGetTextData(FloatElement));
+  end;
+
+  { Read <effect>. Only for Collada >= 1.4.x. }
+  procedure ReadEffect(EffectElement: TDOMElement);
+  var
+    Effect: TNodeMaterial_2;
+    Id: string;
+    ProfileElement, TechniqueElement, PhongElement: TDOMElement;
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+  begin
+    if not DOMGetAttribute(EffectElement, 'id', Id) then
+      Id := '';
+
+    Effect := TNodeMaterial_2.Create(Id, WWWBasePath);
+    Effects.Add(Effect);
+
+    ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
+    if ProfileElement <> nil then
+    begin
+       TechniqueElement := DOMGetChildElement(ProfileElement, 'technique', false);
+       if TechniqueElement <> nil then
+       begin
+         PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
+         if PhongElement <> nil then
+         begin
+           Children := PhongElement.ChildNodes;
+           try
+             for I := 0 to Children.Count - 1 do
+             begin
+               ChildNode := Children.Item[I];
+               if ChildNode.NodeType = ELEMENT_NODE then
+               begin
+                 ChildElement := ChildNode as TDOMElement;
+
+                 if ChildElement.TagName = 'emission' then
+                   Effect.FdEmissiveColor.Value :=
+                     ReadColorOrTexture(ChildElement) else
+
+                 if ChildElement.TagName = 'ambient' then
+                   Effect.FdAmbientIntensity.Value := VectorAverage(
+                     ReadColorOrTexture(ChildElement)) else
+
+                 if ChildElement.TagName = 'diffuse' then
+                   Effect.FdDiffuseColor.Value :=
+                     ReadColorOrTexture(ChildElement) else
+
+                 if ChildElement.TagName = 'specular' then
+                   Effect.FdSpecularColor.Value :=
+                     ReadColorOrTexture(ChildElement) else
+
+                 if ChildElement.TagName = 'shininess' then
+                   Effect.FdShininess.Value :=
+                     ReadFloatOrParam(ChildElement) / 128.0 else
+
+                 if ChildElement.TagName = 'reflective' then
+                   {Effect.FdMirrorColor.Value := }
+                     ReadColorOrTexture(ChildElement) else
+
+                 if ChildElement.TagName = 'reflectivity' then
+                   Effect.FdMirror.Value :=
+                     ReadFloatOrParam(ChildElement) else
+
+                 if ChildElement.TagName = 'transparent' then
+                   {Effect.FdTransparencyColor.Value := }
+                     ReadColorOrTexture(ChildElement) else
+
+                 if ChildElement.TagName = 'transparency' then
+                   Effect.FdTransparency.Value :=
+                     ReadFloatOrParam(ChildElement) else
+
+                 if ChildElement.TagName = 'index_of_refraction' then
+                   {Effect.FdIndexOfRefraction.Value := }
+                     ReadFloatOrParam(ChildElement);
+               end;
+             end;
+           finally Children.Release; end
+         end;
+       end;
+    end;
+  end;
+
+  { Read <library_effects>. Only for Collada >= 1.4.x. }
+  procedure ReadLibraryEffects(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'effect' then
+            ReadEffect(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
+  { Read <material>. }
+  procedure ReadMaterial(MatElement: TDOMElement);
+
+    function ReadParamAsVector3(Element: TDOMElement): TVector3Single;
+    var
+      AType: string;
+    begin
+      if not DOMGetAttribute(Element, 'type', AType) then
+      begin
+        DataNonFatalError('<param> has no type attribute');
+        Result := ZeroVector3Single;
+      end else
+      if AType <> 'float3' then
+      begin
+        DataNonFatalError('Expected <param> with type "float3"');
+        Result := ZeroVector3Single;
+      end else
+        Result := Vector3SingleFromStr(DOMGetTextData(Element));
+    end;
+
+    function ReadParamAsFloat(Element: TDOMElement): Float;
+    var
+      AType: string;
+    begin
+      if not DOMGetAttribute(Element, 'type', AType) then
+      begin
+        DataNonFatalError('<param> has no type attribute');
+        Result := 0;
+      end else
+      if AType <> 'float' then
+      begin
+        DataNonFatalError('Expected <param> with type "float"');
+        Result := 0;
+      end else
+        Result := StrToFloat(DOMGetTextData(Element));
+    end;
+
+  var
+    MatId: string;
+
+    { For Collada < 1.4.x }
+    procedure TryCollada13;
+    var
+      ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      ParamName: string;
+      I: Integer;
+      Mat: TNodeMaterial_2;
+    begin
+      Mat := TNodeMaterial_2.Create(MatId, WWWBasePath);
+      Materials.Add(Mat);
+
+      ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
+      if ShaderElement <> nil then
+      begin
+         TechniqueElement := DOMGetChildElement(ShaderElement, 'technique', false);
+         if TechniqueElement <> nil then
+         begin
+           PassElement := DOMGetChildElement(TechniqueElement, 'pass', false);
+           if PassElement <> nil then
+           begin
+             ProgramElement := DOMGetChildElement(PassElement, 'program', false);
+             if ProgramElement <> nil then
+             begin
+               Children := ProgramElement.ChildNodes;
+               try
+                 for I := 0 to Children.Count - 1 do
+                 begin
+                   ChildNode := Children.Item[I];
+                   if ChildNode.NodeType = ELEMENT_NODE then
+                   begin
+                     ChildElement := ChildNode as TDOMElement;
+                     if ChildElement.TagName = 'param' then
+                     begin
+                       if DOMGetAttribute(ChildElement, 'name', ParamName) then
+                       begin
+                         if ParamName = 'EMISSION' then
+                           Mat.FdEmissiveColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'AMBIENT' then
+                           Mat.FdAmbientIntensity.Value := VectorAverage(
+                             ReadParamAsVector3(ChildElement)) else
+
+                         if ParamName = 'DIFFUSE' then
+                           Mat.FdDiffuseColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'SPECULAR' then
+                           Mat.FdSpecularColor.Value :=
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'SHININESS' then
+                           Mat.FdShininess.Value :=
+                             ReadParamAsFloat(ChildElement) / 128.0 else
+
+                         if ParamName = 'REFLECTIVE' then
+                           {Mat.FdMirrorColor.Value := }
+                             ReadParamAsVector3(ChildElement) else
+
+                         if ParamName = 'REFLECTIVITY' then
+                           Mat.FdMirror.Value :=
+                             ReadParamAsFloat(ChildElement) else
+
+                         (*
+                         Blender Collada 1.3.1 exporter bug: it sets
+                         type of TRANSPARENT param as "float".
+                         Although content inicates "float3",
+                         like Collada 1.3.1 spec requires (page 129),
+                         and consistently with what is in Collada 1.4.1 spec.
+
+                         I don't handle this anyway, so I just ignore it for now.
+                         Should be reported to Blender.
+
+                         if ParamName = 'TRANSPARENT' then
+                           {Mat.FdTransparencyColor.Value := }
+                             ReadParamAsVector3(ChildElement) else
+                         *)
+
+                         if ParamName = 'TRANSPARENCY' then
+                           Mat.FdTransparency.Value :=
+                             ReadParamAsFloat(ChildElement);
+
+                         { other ParamName not handled }
+                       end;
+                     end;
+                   end;
+                 end;
+               finally Children.Release; end
+             end;
+           end;
+         end;
+      end;
+    end;
+
+    { For Collada >= 1.4.x }
+    procedure TryCollada14;
+    var
+      InstanceEffect: TDOMElement;
+      EffectId: string;
+      Mat: TNodeMaterial_2;
+      EffectIndex: Integer;
+    begin
+      if MatId = '' then Exit;
+
+      InstanceEffect := DOMGetChildElement(MatElement, 'instance_effect', false);
+      if InstanceEffect <> nil then
+      begin
+        if DOMGetAttribute(InstanceEffect, 'url', EffectId) and
+           SCharIs(EffectId, 1, '#') then
+        begin
+          Delete(EffectId, 1, 1); { delete initial '#' char }
+          { tests: Writeln('instantiating effect ', EffectId, ' as material ', MatId); }
+
+          EffectIndex := Effects.FindNodeName(EffectId);
+          if EffectIndex <> -1 then
+          begin
+            Mat := VRMLNodeDeepCopy(Effects[EffectIndex]) as TNodeMaterial_2;
+            Mat.NodeName := MatId;
+            Materials.Add(Mat);
+          end else
+            DataNonFatalError(Format('Collada material "%s" references ' +
+              'non-existing effect "%s"', [MatId, EffectId]));
+        end;
+      end;
+    end;
+
+  begin
+    if not DOMGetAttribute(MatElement, 'id', MatId) then
+      MatId := '';
+
+    if Version14 then
+      TryCollada14 else
+      TryCollada13;
+  end;
+
+  { Read <library_materials> (Collada >= 1.4.x) or
+    <library type="MATERIAL"> (Collada < 1.4.x). }
+  procedure ReadLibraryMaterials(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'material' then
+            ReadMaterial(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
+  { Read <geometry> }
+  procedure ReadGeometry(GeometryElement: TDOMElement);
+  var
+    GeometryId: string;
+
+    { Text is the name of the source, Object is the TDynVector3SingleArray
+      instance containing this source's data. }
+    SourcesList: TStringList;
+
+    { Read <source> within <mesh>.
+
+      This is quite limited compared to what Collada offers, actually
+      we understand only float_array data accessed by accessor with
+      three parameters (although any accessor.stride >= 3).
+
+      In other words, <source> simply defines a named array of TVector3Single
+      for us. }
+    procedure ReadSource(SourceElement: TDOMElement);
+    var
+      FloatArray, Technique, Accessor: TDOMElement;
+      SeekPos, FloatArrayCount, I, AccessorCount, AccessorStride,
+        AccessorOffset, MinCount: Integer;
+      Floats: TDynFloatArray;
+      SourceId, FloatArrayContents, Token, AccessorSource: string;
+      Source: TDynVector3SingleArray;
+    begin
+      if not DOMGetAttribute(SourceElement, 'id', SourceId) then
+        SourceId := '';
+
+      FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
+      if FloatArray <> nil then
+      begin
+        if not DOMGetIntegerAttribute(FloatArray, 'count', FloatArrayCount) then
+        begin
+          FloatArrayCount := 0;
+          DataNonFatalError('Collada <float_array> without a count attribute');
+        end;
+
+        Floats := TDynFloatArray.Create(FloatArrayCount);
+        try
+          FloatArrayContents := DOMGetTextData(FloatArray);
+
+          SeekPos := 1;
+          for I := 0 to FloatArrayCount - 1 do
+          begin
+            Token := NextToken(FloatArrayContents, SeekPos, WhiteSpaces);
+            if Token = '' then
+            begin
+              DataNonFatalError('Collada: actual number of tokens in <float_array>' +
+                ' less than declated in the count attribute');
+              Break;
+            end;
+            Floats.Items[I] := StrToFloat(Token);
+          end;
+
+          Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
+          if Technique = nil then
+          begin
+            Technique := DOMGetChildElement(SourceElement, 'technique', false);
+            { TODO: actually, I should search for technique with profile="COMMON"
+              in this case, right ? }
+          end;
+
+          if Technique <> nil then
+          begin
+            Accessor := DOMGetChildElement(Technique, 'accessor', false);
+
+            { read <accessor> attributes }
+
+            if not DOMGetIntegerAttribute(Accessor, 'count', AccessorCount) then
+            begin
+              DataNonFatalError('Collada: <accessor> has no count attribute');
+              AccessorCount := 0;
+            end;
+
+            if not DOMGetIntegerAttribute(Accessor, 'stride', AccessorStride) then
+              { default, according to Collada spec }
+              AccessorStride := 1;
+
+            if not DOMGetIntegerAttribute(Accessor, 'offset', AccessorOffset) then
+              { default, according to Collada spec }
+              AccessorOffset := 0;
+
+            if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
+            begin
+              DataNonFatalError('Collada: <accessor> has no source attribute');
+              AccessorSource := '';
+            end;
+            { TODO: we ignore AccessorSource, just assume that it refers to
+              float_array within this <source> }
+
+            if AccessorStride >= 3 then
+            begin
+              { Max index accessed is
+                  AccessorOffset + AccessorStride * (AccessorCount - 1) + 2.
+                Minimum count is +1 to this.
+                Check do we have enough floats. }
+              MinCount := AccessorOffset + AccessorStride * (AccessorCount - 1) + 3;
+              if Floats.Count < MinCount then
+              begin
+                DataNonFatalError(Format('Collada: <accessor> count requires at least %d float ' +
+                  'values (offset %d + stride %d * (count %d - 1) + 3) in <float_array>, ' +
+                  'but only %d are avilable', [MinCount,
+                    AccessorOffset, AccessorStride, AccessorCount, Floats.Count]));
+                { force AccessorCount smaller }
+                AccessorCount := (Floats.Count - AccessorOffset) div AccessorStride;
+              end;
+
+              Source := TDynVector3SingleArray.Create(AccessorCount);
+              for I := 0 to AccessorCount - 1 do
+              begin
+                Source.Items[I][0] := Floats.Items[AccessorOffset + AccessorStride * I    ];
+                Source.Items[I][1] := Floats.Items[AccessorOffset + AccessorStride * I + 1];
+                Source.Items[I][2] := Floats.Items[AccessorOffset + AccessorStride * I + 2];
+              end;
+              { tests: Writeln('added source ', SourceId, ' with ', AccessorCount, ' items'); }
+              SourcesList.AddObject(SourceId, Source);
+            end;
+          end;
+        finally FreeAndNil(Floats); end;
+      end;
+    end;
+
+  var
+    { This is just a reference to one of the objects on SourcesList --- the one
+      referenced by <vertices> element. }
+    Vertices: TDynVector3SingleArray;
+    VerticesId: string;
+
+    { Read <vertices> within <mesh> }
+    procedure ReadVertices(VerticesElement: TDOMElement);
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+      InputSemantic, InputSource: string;
+      InputSourceIndex: Integer;
+    begin
+      if not DOMGetAttribute(VerticesElement, 'id', VerticesId) then
+        VerticesId := '';
+
+      Children := VerticesElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if (ChildElement.TagName = 'input') and
+               DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
+               (InputSemantic = 'POSITION') and
+               DOMGetAttribute(ChildElement, 'source', InputSource) and
+               SCharIs(InputSource, 1, '#') then
+            begin
+              Delete(InputSource, 1, 1); { delete leading '#' char }
+              InputSourceIndex := SourcesList.IndexOf(InputSource);
+              if InputSourceIndex <> -1 then
+              begin
+                Vertices := SourcesList.Objects[InputSourceIndex] as
+                  TDynVector3SingleArray;
+                Exit;
+              end else
+              begin
+                DataNonFatalError(Format('Collada: source attribute ' +
+                  '(of <input> element within <vertices>) ' +
+                  'references non-existing source "%s"', [InputSource]));
+              end;
+            end;
+          end;
+        end;
+      finally Children.Release; end;
+
+      DataNonFatalError('Collada: <vertices> element has no <input> child' +
+        ' with semantic="POSITION" and some source attribute');
+    end;
+
+    { Read <polygons> within <mesh> }
+    procedure ReadPolygons(PolygonsElement: TDOMElement);
+    var
+      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      VerticesOffset: Integer;
+      InputsCount: Integer;
+
+      procedure AddPolygon(const Indexes: string);
+      var
+        SeekPos, Index, CurrentInput: Integer;
+        Token: string;
+      begin
+        CurrentInput := 0;
+        SeekPos := 1;
+
+        repeat
+          Token := NextToken(Indexes, SeekPos, WhiteSpaces);
+          if Token = '' then Break;
+          Index := StrToInt(Token);
+
+          { for now, we just ignore indexes to other inputs }
+          if CurrentInput = VerticesOffset then
+            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+
+          Inc(CurrentInput);
+          if CurrentInput = InputsCount then CurrentInput := 0;
+        until false;
+
+        IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+      end;
+
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+      Coord: TNodeCoordinate;
+      PolygonsCount: Integer;
+      InputSemantic, InputSource: string;
+      Shape: TNodeShape;
+      MaterialId: string;
+      MaterialIndex: Integer;
+    begin
+      if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
+        PolygonsCount := 0;
+
+      VerticesOffset := 0;
+
+      Shape := TNodeShape.Create(GeometryId, WWWBasePath);
+      Geometries.Add(Shape);
+
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      Shape.FdGeometry.Value := IndexedFaceSet;
+      IndexedFaceSet.FdCoordIndex.Items.Count := 0;
+      IndexedFaceSet.FdSolid.Value := false;
+      { For VRML >= 2.0, creaseAngle is 0 by default.
+        But, since I currently ignore normals in Collada file, it's better
+        to have some non-zero creaseAngle by default. }
+      IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+
+      Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
+      IndexedFaceSet.FdCoord.Value := Coord;
+      Coord.FdPoint.Items.Assign(Vertices);
+
+      if DOMGetAttribute(PolygonsElement, 'material', MaterialId) then
+      begin
+        { Collada 1.4.1 spec says that this is just material name.
+          Collada 1.3.1 spec says that this is URL. }
+        if (not Version14) and SCharIs(MaterialId, 1, '#') then
+          Delete(MaterialId, 1, 1);
+
+        MaterialIndex := Materials.FindNodeName(MaterialId);
+        if MaterialIndex = -1 then
+        begin
+          DataNonFatalError(Format('Collada <polygons> node (within geometry ' +
+            '"%s") references non-existing material name "%s"',
+            [GeometryId, MaterialId]));
+        end else
+        begin
+          Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
+          (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
+            Materials[MaterialIndex];
+        end;
+      end;
+
+      InputsCount := 0;
+
+      Children := PolygonsElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'input' then
+            begin
+              { we must count all inputs, since parsing <p> elements depends
+                on InputsCount }
+              Inc(InputsCount);
+              if DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
+                 (InputSemantic = 'VERTEX') then
+              begin
+                if not (DOMGetAttribute(ChildElement, 'source', InputSource) and
+                        (InputSource = '#' + VerticesId))  then
+                  DataNonFatalError('Collada: <input> with semantic="VERTEX" ' +
+                    '(of <polygons> element within <mesh>) does not reference ' +
+                    '<vertices> element within the same <mesh>');
+
+                { Collada requires offset in this case.
+                  For us, if there's no offset, just leave VerticesOffset as it was. }
+                DOMGetIntegerAttribute(ChildElement, 'offset', VerticesOffset);
+              end;
+            end else
+            if ChildElement.TagName = 'p' then
+              AddPolygon(DOMGetTextData(ChildElement));
+          end;
+        end;
+      finally Children.Release; end;
+    end;
+
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement, Mesh: TDOMElement;
+    I: Integer;
+  begin
+    if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
+      GeometryId := '';
+
+    Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
+    if Mesh <> nil then
+    begin
+      SourcesList := TStringList.Create;
+      try
+        Children := Mesh.ChildNodes;
+        try
+          for I := 0 to Children.Count - 1 do
+          begin
+            ChildNode := Children.Item[I];
+            if ChildNode.NodeType = ELEMENT_NODE then
+            begin
+              ChildElement := ChildNode as TDOMElement;
+              if ChildElement.TagName = 'source' then
+                ReadSource(ChildElement) else
+              if ChildElement.TagName = 'vertices' then
+                ReadVertices(ChildElement) else
+              if ChildElement.TagName = 'polygons' then
+                ReadPolygons(ChildElement);
+                { other ChildElement.TagName not supported for now }
+            end;
+          end;
+        finally Children.Release; end
+      finally StringList_FreeWithContentsAndNil(SourcesList); end;
+    end;
+  end;
+
+  { Read <library_geometries> (Collada >= 1.4.x) or
+    <library type="GEOMETRY"> (Collada < 1.4.x). }
+  procedure ReadLibraryGeometries(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'geometry' then
+            ReadGeometry(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
+  { Read <library> element.
+    Only for Collada < 1.4.x (Collada >= 1.4.x has  <library_xxx> elements). }
+  procedure ReadLibrary(LibraryElement: TDOMElement);
+  var
+    LibraryType: string;
+  begin
+    if DOMGetAttribute(LibraryElement, 'type', LibraryType) then
+    begin
+      if LibraryType = 'MATERIAL' then
+        ReadLibraryMaterials(LibraryElement) else
+      if LibraryType = 'GEOMETRY' then
+        ReadLibraryGeometries(LibraryElement);
+        { other LibraryType not supported for now }
+    end;
+  end;
+
+  { Read <matrix> element, add appropriate VRML MatrixTransform to ParentGroup node. }
+  procedure ReadMatrix(ParentGroup: TNodeX3DGroupingNode; MatrixElement: TDOMElement);
+  var
+    SeekPos: Integer;
+    M: TNodeMatrixTransform;
+    Row, Col: Integer;
+    Token, Content: string;
+  begin
+    { We have to use VRML 1.0 to express matrix transform. }
+    M := TNodeMatrixTransform.Create('', WWWBasePath);
+    ParentGroup.FdChildren.AddItem(M);
+
+    Content := DOMGetTextData(MatrixElement);
+
+    SeekPos := 1;
+
+    for Row := 0 to 3 do
+      for Col := 0 to 3 do
+      begin
+        Token := NextToken(Content, SeekPos, WhiteSpaces);
+        if Token = '' then
+        begin
+          DataNonFatalError('Collada <matrix> has not enough items');
+          Break;
+        end;
+        M.FdMatrix.Matrix[Col, Row] := StrToFloat(Token);
+      end;
+  end;
+
+  { Read <lookat> element, add appropriate VRML MatrixTransform to ParentGroup node. }
+  procedure ReadLookAt(ParentGroup: TNodeX3DGroupingNode; MatrixElement: TDOMElement);
+  var
+    SeekPos: Integer;
+    Content: string;
+
+    function ReadVector(var Vector: TVector3Single): boolean;
+    var
+      Token: string;
+      I: Integer;
+    begin
+      Result := true;
+
+      for I := 0 to 2 do
+      begin
+        Token := NextToken(Content, SeekPos, WhiteSpaces);
+        if Token = '' then
+        begin
+          DataNonFatalError('Collada: unexpected end of data of <lookat>');
+          Exit(false);
+        end;
+        Vector[I] := StrToFloat(Token);
+      end;
+    end;
+
+  var
+    M: TNodeMatrixTransform;
+    Eye, Center, Up: TVector3Single;
+  begin
+    { We have to use VRML 1.0 to express matrix transform. }
+    M := TNodeMatrixTransform.Create('', WWWBasePath);
+    ParentGroup.FdChildren.AddItem(M);
+
+    Content := DOMGetTextData(MatrixElement);
+
+    SeekPos := 1;
+
+    if ReadVector(Eye) and
+       ReadVector(Center) and
+       ReadVector(Up) then
+      M.FdMatrix.Matrix := LookAtMatrix(Eye, Center, Up);
+  end;
+
+  { Read <node> element, add it to ParentGroup. }
+  procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
+    NodeElement: TDOMElement);
+  var
+    NodeTransform: TNodeTransform_2;
+
+    { Create new Transform node, place it as a child of current Transform node
+      and switch current Transform node to the new one.
+
+      The idea is that each
+      Collada transformation creates new nested VRML Transform node
+      (since Collada transformations may represent any transformation,
+      not necessarily representable by a single VRML Transform node).  }
+    procedure NestedTransform;
+    var
+      NewNodeTransform: TNodeTransform_2;
+    begin
+      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
+      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+
+      NodeTransform := NewNodeTransform;
+    end;
+
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    NodeId: string;
+    GeometryId: string;
+    GeometryIndex: Integer;
+  begin
+    if not DOMGetAttribute(NodeElement, 'id', NodeId) then
+      NodeId := '';
+
+    NodeTransform := TNodeTransform_2.Create(NodeId, WWWBasePath);
+    ParentGroup.FdChildren.AddItem(NodeTransform);
+
+    { First iterate to gather all transformations.
+
+      For Collada 1.4, this shouldn't be needed (spec says that
+      transforms must be before all instantiations).
+
+      But Collada 1.3.1 specification doesn't say anything about the order.
+      And e.g. Blender Collada 1.3 exporter in fact generates files
+      with <instantiate> first, then <matrix>, and yes: it expects matrix
+      should affect instantiated object. So the bottom line is that for
+      Collada 1.3, I must first gather all transforms, then do instantiations. }
+
+    Children := NodeElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'matrix' then
+          begin
+            { In this case, I simply add VRML 1.0 MatrixTransform to current
+              NodeTransform }
+            ReadMatrix(NodeTransform, ChildElement);
+          end else
+          if ChildElement.TagName = 'rotate' then
+          begin
+            NestedTransform;
+            NodeTransform.FdRotation.ValueDeg := Vector4SingleFromStr(
+              DOMGetTextData(ChildElement));
+          end else
+          if ChildElement.TagName = 'scale' then
+          begin
+            NestedTransform;
+            NodeTransform.FdScale.Value := Vector3SingleFromStr(
+              DOMGetTextData(ChildElement));
+          end else
+          if ChildElement.TagName = 'lookat' then
+          begin
+            { In this case, I simply add VRML 1.0 MatrixTransform to current
+              NodeTransform }
+            ReadLookAt(NodeTransform, ChildElement);
+          end else
+          if ChildElement.TagName = 'skew' then
+          begin
+            { TODO }
+          end else
+          if ChildElement.TagName = 'translate' then
+          begin
+            NestedTransform;
+            NodeTransform.FdTranslation.Value := Vector3SingleFromStr(
+              DOMGetTextData(ChildElement));
+          end;
+        end;
+      end;
+    finally Children.Release; end;
+
+    { Now iterate to read instantiations and recursive nodes. }
+
+    Children := NodeElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'instance' then
+          begin
+            if DOMGetAttribute(ChildElement, 'url', GeometryId) and
+               SCharIs(GeometryId, 1, '#') then
+            begin
+              Delete(GeometryId, 1, 1);
+              GeometryIndex := Geometries.FindNodeName(GeometryId);
+              if GeometryIndex = -1 then
+              begin
+                DataNonFatalError(Format('Collada <node> "%s" instantiates non-existing ' +
+                  '<geometry> element "%s"', [NodeId, GeometryId]));
+              end else
+              begin
+                NodeTransform.FdChildren.AddItem(Geometries[GeometryIndex]);
+              end;
+            end;
+          end else
+          if ChildElement.TagName = 'node' then
+            ReadNodeElement(NodeTransform, ChildElement);
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
+  { Read <scene> element. }
+  procedure ReadSceneElement(SceneElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    SceneId: string;
+    Group: TNodeGroup_2;
+  begin
+    if not DOMGetAttribute(SceneElement, 'id', SceneId) then
+      SceneId := '';
+
+    if not Version14 then
+    begin
+      Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
+      ResultModel.FdChildren.AddItem(Group);
+
+      Children := SceneElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'node' then
+              ReadNodeElement(Group, ChildElement);
+          end;
+        end;
+      finally Children.Release; end
+    end;
+  end;
+
+  procedure AddInfo(Element: TNodeGroup_2; const S: string);
+  var
+    Info: TNodeInfo;
+  begin
+    Info := TNodeInfo.Create('', WWWBasePath);
+    Element.FdChildren.AddItem(Info);
+    Info.FdString.Value := S;
+  end;
+
+var
+  Doc: TXMLDocument;
+  Version: string;
+  I: Integer;
+  DocChildren: TDOMNodeList;
+  ChildNode: TDOMNode;
+  ChildElement: TDOMElement;
+begin
+  Effects := nil;
+  Materials := nil;
+  Geometries := nil;
+
+  ReadXMLFile(Doc, FileName);
+  try
+    Check(Doc.DocumentElement.TagName = 'COLLADA',
+      'Root node of Collada file must be <COLLADA>');
+
+    if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+    begin
+      Version := '';
+      Version14 := false;
+      DataNonFatalError('<COLLADA> element misses "version" attribute');
+    end else
+    begin
+      { TODO: uhm, terrible hack... I should move my lazy ass and tokenize
+        Version properly. }
+      Version14 := IsPrefix('1.4.', Version);
+    end;
+
+    if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
+    begin
+      { COLLADA.base is exactly for the same purpose as WWWBasePath.
+        Use it (making sure it's absolute path). }
+      WWWBasePath := ExpandFileName(WWWBasePath);
+    end else
+      WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+
+    Effects := TVRMLNodesList.Create;
+    Materials := TVRMLNodesList.Create;
+    Geometries := TVRMLNodesList.Create;
+
+    Result := TNodeGroup_2.Create('', WWWBasePath);
+    try
+
+      DocChildren := Doc.DocumentElement.ChildNodes;
+      try
+        for I := 0 to DocChildren.Count - 1 do
+        begin
+          ChildNode := DocChildren.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'library' then { only Collada < 1.4.x }
+              ReadLibrary(ChildElement) else
+            if ChildElement.TagName = 'library_materials' then { only Collada >= 1.4.x }
+              ReadLibraryMaterials(ChildElement) else
+            if ChildElement.TagName = 'library_effects' then { only Collada >= 1.4.x }
+              ReadLibraryEffects(ChildElement) else
+            if ChildElement.TagName = 'library_geometries' then { only Collada >= 1.4.x }
+              ReadLibraryGeometries(ChildElement) else
+            if ChildElement.TagName = 'scene' then
+              ReadSceneElement(ChildElement);
+              { other ChildElement.TagName not supported for now }
+          end;
+        end;
+      finally DocChildren.Release; end;
+
+      AddInfo(Result as TNodeGroup_2,
+        'Converted from Collada version "' + Version + '" by ' +
+        'Kambi VRML game engine [http://vrmlengine.sourceforge.net/]');
+    except FreeAndNil(Result); raise; end;
+  finally
+    FreeAndNil(Doc);
+    FreeWithContentsAndNil(Effects);
+
+    { Note: if some material will be used by some geometry, but the
+      geometry will not be used, everything will be still Ok
+      (no memory leak). First freeing over Materials will not free this
+      material (since it's used), but then freeing over Geometries will
+      free the geometry together with material (since material usage will
+      drop to zero).
+
+      This means that also other complicated case, when one material is
+      used twice, once by unused geometry node, second time by used geometry
+      node, is also Ok. }
+
+    VRMLNodesList_FreeWithNonParentedContentsAndNil(Materials);
+    VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
+  end;
+end;
+
+end.

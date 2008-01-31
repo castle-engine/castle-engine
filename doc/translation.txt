@@ -23,6 +23,7 @@ D   polynomials.pas
 D   spheresampling.pas
 
   3dmodels/
+D   colladatovrml.pas
 -   illummodels.pas
 |   kambioctree.pas
 -   normalscalculator.pas
