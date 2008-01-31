@@ -1446,7 +1446,7 @@ begin
  Fields.Add(TSFEnum.Create('vertexOrdering', A1, VERTORDER_UNKNOWN));
  Fields.Add(TSFEnum.Create('shapeType', A2, SHTYPE_UNKNOWN));
  Fields.Add(TSFEnum.Create('faceType', A3, FACETYPE_CONVEX));
- Fields.Add(TSFFloat.Create('creaseAngle', 0.5));
+ Fields.Add(TSFFloat.Create('creaseAngle', DefaultVRML1CreaseAngle));
 end;
 
 class function TNodeShapeHints.ClassNodeTypeName: string;

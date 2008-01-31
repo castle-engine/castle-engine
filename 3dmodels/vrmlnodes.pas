@@ -2443,6 +2443,7 @@ const
   TEXWRAP_CLAMP = 1;
 
   DefaultHeightMapScale = 0.01;
+  DefaultVRML1CreaseAngle = 0.5;
 
 { TODO: these Detail parameters below should depend on object's distance
   from viewer. But there is a problem : we need those parameters defined
