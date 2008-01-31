@@ -58,6 +58,11 @@ var
   { List of VRML Shape nodes representing <geometry> Collada elements. }
   Geometries: TVRMLNodesList;
 
+  { List of VRML Shape nodes representing <visual_scene> Collada elements,
+    for Collada >= 1.4.x (for Collada < 1.4.x, the <scene> element is directly
+    placed as a rendered scene). }
+  VisualScenes: TVRMLNodesList;
+
   ResultModel: TNodeGroup_2 absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
@@ -969,7 +974,8 @@ var
         if ChildNode.NodeType = ELEMENT_NODE then
         begin
           ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'instance' then
+          if (ChildElement.TagName = 'instance') or
+             (ChildElement.TagName = 'instance_geometry') then
           begin
             if DOMGetAttribute(ChildElement, 'url', GeometryId) and
                SCharIs(GeometryId, 1, '#') then
@@ -993,38 +999,140 @@ var
     finally Children.Release; end
   end;
 
-  { Read <scene> element. }
-  procedure ReadSceneElement(SceneElement: TDOMElement);
+  { Read <node> sequence within given SceneElement, adding nodes to Group.
+    This is used to handle <visual_scene> for Collada 1.4.x
+    and <scene> for Collada 1.3.x. }
+  procedure ReadNodesSequence(Group: TNodeX3DGroupingNode;
+    SceneElement: TDOMElement);
   var
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
-    SceneId: string;
-    Group: TNodeGroup_2;
   begin
-    if not DOMGetAttribute(SceneElement, 'id', SceneId) then
-      SceneId := '';
+    Children := SceneElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'node' then
+            ReadNodeElement(Group, ChildElement);
+        end;
+      end;
+    finally Children.Release; end
+  end;
 
-    if not Version14 then
+  { Read <scene> element. }
+  procedure ReadSceneElement(SceneElement: TDOMElement);
+  var
+    SceneId: string;
+
+    procedure Collada14;
+    var
+      InstanceVisualScene: TDOMElement;
+      VisualSceneId: string;
+      VisualSceneIndex: Integer;
+    begin
+      InstanceVisualScene := DOMGetChildElement(SceneElement,
+        'instance_visual_scene', false);
+      if InstanceVisualScene <> nil then
+      begin
+        if DOMGetAttribute(InstanceVisualScene, 'url', VisualSceneId) and
+           SCharIs(VisualSceneId, 1, '#') then
+        begin
+          Delete(VisualSceneId, 1, 1);
+          VisualSceneIndex := VisualScenes.FindNodeName(VisualSceneId);
+          if VisualSceneIndex = -1 then
+          begin
+            DataNonFatalError(Format('Collada <instance_visual_scene> instantiates non-existing ' +
+              '<visual_scene> element "%s"', [VisualSceneId]));
+          end else
+          begin
+            ResultModel.FdChildren.AddItem(VisualScenes[VisualSceneIndex]);
+          end;
+        end;
+      end;
+    end;
+
+    procedure Collada13;
+    var
+      Group: TNodeGroup_2;
     begin
       Group := TNodeGroup_2.Create(SceneId, WWWBasePath);
       ResultModel.FdChildren.AddItem(Group);
 
-      Children := SceneElement.ChildNodes;
-      try
-        for I := 0 to Children.Count - 1 do
-        begin
-          ChildNode := Children.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
-          begin
-            ChildElement := ChildNode as TDOMElement;
-            if ChildElement.TagName = 'node' then
-              ReadNodeElement(Group, ChildElement);
-          end;
-        end;
-      finally Children.Release; end
+      ReadNodesSequence(Group, SceneElement);
     end;
+
+  begin
+    if not DOMGetAttribute(SceneElement, 'id', SceneId) then
+      SceneId := '';
+
+    { <scene> element is different in two Collada versions, it's most clear
+      to just branch and do different procedure depending on Collada version. }
+
+    if Version14 then
+      Collada14 else
+      Collada13;
+  end;
+
+  { Read <visual_scene>. Obtained scene VRML node is added both
+    to VisualScenes list and VisualScenesSwitch.choice. }
+  procedure ReadVisualScene(VisualScenesSwitch: TNodeSwitch_2;
+    VisualSceneElement: TDOMElement);
+  var
+    VisualSceneId: string;
+    Group: TNodeGroup_2;
+  begin
+    if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
+      VisualSceneId := '';
+
+    Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath);
+    VisualScenes.Add(Group);
+    VisualScenesSwitch.FdChoice.AddItem(Group);
+
+    ReadNodesSequence(Group, VisualSceneElement);
+  end;
+
+  { Read <library_visual_scenes> from Collada 1.4.x }
+  procedure ReadLibraryVisualScenes(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+    VisualScenesSwitch: TNodeSwitch_2;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    { Library of visual scenes is simply a VRML Switch, with each
+      scene inside as one choice. This way we export to VRML all
+      scenes from Collada, even those not chosen as current scene.
+      That's good --- it's always nice to keep some data when
+      converting. }
+
+    VisualScenesSwitch := TNodeSwitch_2.Create(LibraryId, WWWBasePath);
+    ResultModel.FdChildren.AddItem(VisualScenesSwitch);
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'visual_scene' then
+            ReadVisualScene(VisualScenesSwitch, ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
   end;
 
   procedure AddInfo(Element: TNodeGroup_2; const S: string);
@@ -1047,6 +1155,7 @@ begin
   Effects := nil;
   Materials := nil;
   Geometries := nil;
+  VisualScenes := nil;
 
   ReadXMLFile(Doc, FileName);
   try
@@ -1076,6 +1185,7 @@ begin
     Effects := TVRMLNodesList.Create;
     Materials := TVRMLNodesList.Create;
     Geometries := TVRMLNodesList.Create;
+    VisualScenes := TVRMLNodesList.Create;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
     try
@@ -1096,7 +1206,9 @@ begin
               ReadLibraryEffects(ChildElement) else
             if ChildElement.TagName = 'library_geometries' then { only Collada >= 1.4.x }
               ReadLibraryGeometries(ChildElement) else
-            if ChildElement.TagName = 'scene' then
+            if ChildElement.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
+              ReadLibraryVisualScenes(ChildElement) else
+            if ChildElement.TagName = 'scene' then { only for Collada < 1.4.x }
               ReadSceneElement(ChildElement);
               { other ChildElement.TagName not supported for now }
           end;
@@ -1124,6 +1236,8 @@ begin
 
     VRMLNodesList_FreeWithNonParentedContentsAndNil(Materials);
     VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
+
+    VRMLNodesList_FreeWithNonParentedContentsAndNil(VisualScenes);
   end;
 end;
 
