@@ -739,12 +739,26 @@ type
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
     function GetValue: TVector4Single;
     procedure SetValue(const AValue: TVector4Single);
+    function GetValueDeg: TVector4Single;
+    procedure SetValueDeg(const AValue: TVector4Single);
   public
     constructor Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
 
     Axis: TVector3Single;
     RotationRad: Single;
+
+    { Current rotation value, with last component expressing rotation in radians.
+
+      This internally gets / sets values from @link(Axis), @link(RotationRad),
+      it only presents them to you differently. }
     property Value: TVector4Single read GetValue write SetValue;
+
+    { Current rotation value, with last component expressing rotation in degrees.
+
+      So this is just like @link(Value), but last component is in degrees.
+      This internally gets / sets values from @link(Axis), @link(RotationRad),
+      it only presents them to you differently. }
+    property ValueDeg: TVector4Single read GetValueDeg write SetValueDeg;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     { Rotate point Pt around Self. }
@@ -2142,6 +2156,20 @@ begin
  Axis[1] := AValue[1];
  Axis[2] := AValue[2];
  RotationRad := AValue[3];
+end;
+
+function TSFRotation.GetValueDeg: TVector4Single;
+begin
+  Move(Axis[0], Result[0], SizeOf(Single) * 3);
+  Result[3] := RadToDeg(RotationRad);
+end;
+
+procedure TSFRotation.SetValueDeg(const AValue: TVector4Single);
+begin
+ Axis[0] := AValue[0];
+ Axis[1] := AValue[1];
+ Axis[2] := AValue[2];
+ RotationRad := DegToRad(AValue[3]);
 end;
 
 procedure TSFRotation.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
