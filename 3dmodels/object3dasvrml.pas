@@ -744,8 +744,7 @@ var
   { Another list of VRML Material nodes, this time storing Collada materials. }
   Materials: TVRMLNodesList;
 
-  { List of VRML IndexedFaceSet nodes (in general, these are nodes suitable
-    for Shape.geometry field) representing <geometry> Collada elements. }
+  { List of VRML Shape nodes representing <geometry> Collada elements. }
   Geometries: TVRMLNodesList;
 
   ResultModel: TNodeGroup_2 absolute Result;
@@ -1306,21 +1305,53 @@ var
       Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
+      Shape: TNodeShape;
+      MaterialId: string;
+      MaterialIndex: Integer;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
 
       VerticesOffset := 0;
 
-      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
-      Geometries.Add(IndexedFaceSet);
+      Shape := TNodeShape.Create(GeometryId, WWWBasePath);
+      Geometries.Add(Shape);
 
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      Shape.FdGeometry.Value := IndexedFaceSet;
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
+      { For VRML >= 2.0, creaseAngle is 0 by default.
+        But, since I currently ignore normals in Collada file, it's better
+        to have some non-zero creaseAngle by default. }
+      IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
 
       Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
       IndexedFaceSet.FdCoord.Value := Coord;
       Coord.FdPoint.Items.Assign(Vertices);
+
+      if DOMGetAttribute(PolygonsElement, 'material', MaterialId) then
+      begin
+        { Collada 1.4 spec says that this is just material name.
+          But Blender Collada 1.3 exporter (I didn't actually check Collada 1.3
+          spec) puts here URL, i.e. has "#" at the beginning.
+          I just handle both cases by simply stripping "#" if exists. }
+        if SCharIs(MaterialId, 1, '#') then
+          Delete(MaterialId, 1, 1);
+
+        MaterialIndex := Materials.FindNodeName(MaterialId);
+        if MaterialIndex = -1 then
+        begin
+          DataNonFatalError(Format('Collada <polygons> node (within geometry ' +
+            '"%s") references non-existing material name "%s"',
+            [GeometryId, MaterialId]));
+        end else
+        begin
+          Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
+          (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
+            Materials[MaterialIndex];
+        end;
+      end;
 
       InputsCount := 0;
 
@@ -1472,13 +1503,31 @@ var
   procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
     NodeElement: TDOMElement);
   var
+    NodeTransform: TNodeTransform_2;
+
+    { Create new Transform node, place it as a child of current Transform node
+      and switch current Transform node to the new one.
+
+      The idea is that each
+      Collada transformation creates new nested VRML Transform node
+      (since Collada transformations may represent any transformation,
+      not necessarily representable by a single VRML Transform node).  }
+    procedure NestedTransform;
+    var
+      NewNodeTransform: TNodeTransform_2;
+    begin
+      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
+      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+
+      NodeTransform := NewNodeTransform;
+    end;
+
+  var
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
     NodeId: string;
-    NodeTransform: TNodeTransform_2;
-    Shape: TNodeShape;
     GeometryId: string;
     GeometryIndex: Integer;
   begin
@@ -1513,9 +1562,15 @@ var
           end else
           if ChildElement.TagName = 'rotate' then
           begin
+            NestedTransform;
+            NodeTransform.FdRotation.ValueDeg := Vector4SingleFromStr(
+              DOMGetTextData(ChildElement));
           end else
           if ChildElement.TagName = 'scale' then
           begin
+            NestedTransform;
+            NodeTransform.FdScale.Value := Vector3SingleFromStr(
+              DOMGetTextData(ChildElement));
           end else
           if ChildElement.TagName = 'lookat' then
           begin
@@ -1527,6 +1582,9 @@ var
           end else
           if ChildElement.TagName = 'translate' then
           begin
+            NestedTransform;
+            NodeTransform.FdTranslation.Value := Vector3SingleFromStr(
+              DOMGetTextData(ChildElement));
           end;
         end;
       end;
@@ -1555,9 +1613,7 @@ var
                   '<geometry> element "%s"', [NodeId, GeometryId]));
               end else
               begin
-                Shape := TNodeShape.Create('', WWWBasePath);
-                NodeTransform.FdChildren.AddItem(Shape);
-                Shape.FdGeometry.Value := Geometries[GeometryIndex];
+                NodeTransform.FdChildren.AddItem(Geometries[GeometryIndex]);
               end;
             end;
           end else
@@ -1685,8 +1741,19 @@ begin
   finally
     FreeAndNil(Doc);
     FreeWithContentsAndNil(Effects);
-    { TODO: these may be refereced somewhere, only without parents should be freed. }
-    FreeWithContentsAndNil(Materials);
+
+    { Note: if some material will be used by some geometry, but the
+      geometry will not be used, everything will be still Ok
+      (no memory leak). First freeing over Materials will not free this
+      material (since it's used), but then freeing over Geometries will
+      free the geometry together with material (since material usage will
+      drop to zero).
+
+      This means that also other complicated case, when one material is
+      used twice, once by unused geometry node, second time by used geometry
+      node, is also Ok. }
+
+    VRMLNodesList_FreeWithNonParentedContentsAndNil(Materials);
     VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
   end;
 end;
