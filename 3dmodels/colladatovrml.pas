@@ -27,10 +27,21 @@ interface
 
 uses VRMLNodes;
 
-{ Load Collada file as VRML node.
+{ Load Collada file as VRML.
 
   Written based on Collada 1.3.1 and 1.4.1 specifications.
   Should handle any Collada 1.3.x or 1.4.x version.
+  This basically means that any existing Collada version should
+  be supported. From
+  http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6,
+  "The specification stayed quite stable between 1.1 and 1.3.1" --- which
+  means that support for 1.3.1 actually includes support for anything existing
+  with version <= 1.3.1. And  1.4.1 is currently the newest release.
+  To sum it up, everything existing should be handled...
+
+  Although don't expect to handle all Collada features --- many things
+  are missing currently, what should work currently is geometry and
+  standard (without shaders) materials.
 
   Resulting VRML is VRML 2.0. }
 function LoadColladaAsVRML(const FileName: string): TVRMLNode;
@@ -55,8 +66,16 @@ var
   { Another list of VRML Material nodes, this time storing Collada materials. }
   Materials: TVRMLNodesList;
 
-  { List of VRML Shape nodes representing <geometry> Collada elements. }
+  { List of VRML IndexedFaceSet (generally, anything suitable for Shape.geometry)
+    nodes representing <geometry> Collada elements. }
   Geometries: TVRMLNodesList;
+
+  { For each item on Geometries list, this is specified material name.
+    For Collada 1.3.x, this is just a name of material in material library.
+    For Collada 1.4.x, when instantiating node you specify which material
+    links to what GeometryMaterialName, so GeometriesMaterialNames is
+    needed. }
+  GeometriesMaterialNames: TStringList;
 
   { List of VRML Shape nodes representing <visual_scene> Collada elements,
     for Collada >= 1.4.x (for Collada < 1.4.x, the <scene> element is directly
@@ -623,20 +642,15 @@ var
       Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
-      Shape: TNodeShape;
       MaterialId: string;
-      MaterialIndex: Integer;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
 
       VerticesOffset := 0;
 
-      Shape := TNodeShape.Create(GeometryId, WWWBasePath);
-      Geometries.Add(Shape);
-
-      IndexedFaceSet := TNodeIndexedFaceSet_2.Create('', WWWBasePath);
-      Shape.FdGeometry.Value := IndexedFaceSet;
+      IndexedFaceSet := TNodeIndexedFaceSet_2.Create(GeometryId, WWWBasePath);
+      Geometries.Add(IndexedFaceSet);
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
       { For VRML >= 2.0, creaseAngle is 0 by default.
@@ -655,19 +669,9 @@ var
         if (not Version14) and SCharIs(MaterialId, 1, '#') then
           Delete(MaterialId, 1, 1);
 
-        MaterialIndex := Materials.FindNodeName(MaterialId);
-        if MaterialIndex = -1 then
-        begin
-          DataNonFatalError(Format('Collada <polygons> node (within geometry ' +
-            '"%s") references non-existing material name "%s"',
-            [GeometryId, MaterialId]));
-        end else
-        begin
-          Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
-          (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
-            Materials[MaterialIndex];
-        end;
-      end;
+        GeometriesMaterialNames.Append(MaterialId);
+      end else
+        GeometriesMaterialNames.Append('');
 
       InputsCount := 0;
 
@@ -881,6 +885,56 @@ var
       NodeTransform := NewNodeTransform;
     end;
 
+    procedure AddMaterial(Shape: TNodeShape; MaterialId: string;
+      InstantiatingElement: TDOMElement);
+    var
+      MaterialIndex: Integer;
+      BindMaterial, Technique, InstanceMaterial: TDOMElement;
+      InstanceMaterialSymbol, InstanceMaterialTarget: string;
+    begin
+      if MaterialId = '' then Exit;
+
+      { For InstantiatingElement = instance_geometry (Collada 1.4.x), this
+        must be present.
+        For InstantiatingElement = instance (Collada 1.3.x), this must not
+        be present.
+        (But we actually don't check these conditions, just handle any case.) }
+      BindMaterial := DOMGetChildElement(InstantiatingElement, 'bind_material', false);
+      if BindMaterial <> nil then
+      begin
+        Technique := DOMGetChildElement(BindMaterial, 'technique_common', false);
+        if Technique <> nil then
+        begin
+          InstanceMaterial := DOMGetChildElement(Technique, 'instance_material', false);
+          if (InstanceMaterial <> nil) and
+             DOMGetAttribute(InstanceMaterial, 'symbol', InstanceMaterialSymbol) and
+             (InstanceMaterialSymbol = MaterialId) and
+             DOMGetAttribute(InstanceMaterial, 'target', InstanceMaterialTarget) then
+          begin
+            { this should be true, target is URL }
+            if SCharIs(InstanceMaterialTarget, 1, '#') then
+              Delete(InstanceMaterialTarget, 1, 1);
+
+            { replace MaterialId with what is indicated by
+                <instance_material target="..."> }
+            MaterialId := InstanceMaterialTarget;
+          end;
+        end;
+      end;
+
+      MaterialIndex := Materials.FindNodeName(MaterialId);
+      if MaterialIndex = -1 then
+      begin
+        DataNonFatalError(Format('Collada: referencing non-existing material name "%s"',
+          [MaterialId]));
+      end else
+      begin
+        Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
+        (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
+          Materials[MaterialIndex];
+      end;
+    end;
+
   var
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
@@ -891,6 +945,7 @@ var
     GeometryIndex: Integer;
     V3: TVector3Single;
     V4: TVector4Single;
+    Shape: TNodeShape;
   begin
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
@@ -988,7 +1043,12 @@ var
                   '<geometry> element "%s"', [NodeId, GeometryId]));
               end else
               begin
-                NodeTransform.FdChildren.AddItem(Geometries[GeometryIndex]);
+                Shape := TNodeShape.Create('', WWWBasePath);
+                NodeTransform.FdChildren.AddItem(Shape);
+                Shape.FdGeometry.Value := Geometries[GeometryIndex];
+
+                AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
+                  ChildElement);
               end;
             end;
           end else
@@ -1155,6 +1215,7 @@ begin
   Effects := nil;
   Materials := nil;
   Geometries := nil;
+  GeometriesMaterialNames := nil;
   VisualScenes := nil;
 
   ReadXMLFile(Doc, FileName);
@@ -1185,6 +1246,7 @@ begin
     Effects := TVRMLNodesList.Create;
     Materials := TVRMLNodesList.Create;
     Geometries := TVRMLNodesList.Create;
+    GeometriesMaterialNames := TStringList.Create;
     VisualScenes := TVRMLNodesList.Create;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
@@ -1236,6 +1298,8 @@ begin
 
     VRMLNodesList_FreeWithNonParentedContentsAndNil(Materials);
     VRMLNodesList_FreeWithNonParentedContentsAndNil(Geometries);
+
+    FreeAndNil(GeometriesMaterialNames);
 
     VRMLNodesList_FreeWithNonParentedContentsAndNil(VisualScenes);
   end;
