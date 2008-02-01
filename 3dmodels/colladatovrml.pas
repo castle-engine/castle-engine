@@ -826,7 +826,7 @@ var
   end;
 
   { Read <matrix> or <bind_shape_matrix> element to given Matrix. }
-  procedure ReadMatrix(Matrix: TMatrix4Single;
+  procedure ReadMatrix(var Matrix: TMatrix4Single;
     MatrixElement: TDOMElement); overload;
   var
     SeekPos: Integer;
@@ -910,25 +910,6 @@ var
   { Read <node> element, add it to ParentGroup. }
   procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
     NodeElement: TDOMElement);
-  var
-    NodeTransform: TNodeTransform_2;
-
-    { Create new Transform node, place it as a child of current Transform node
-      and switch current Transform node to the new one.
-
-      The idea is that each
-      Collada transformation creates new nested VRML Transform node
-      (since Collada transformations may represent any transformation,
-      not necessarily representable by a single VRML Transform node).  }
-    procedure NestedTransform;
-    var
-      NewNodeTransform: TNodeTransform_2;
-    begin
-      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
-      NodeTransform.FdChildren.AddItem(NewNodeTransform);
-
-      NodeTransform := NewNodeTransform;
-    end;
 
     procedure AddMaterial(Shape: TNodeShape; MaterialId: string;
       InstantiatingElement: TDOMElement);
@@ -980,17 +961,119 @@ var
       end;
     end;
 
+    { Read <instance_geometry>, adding resulting VRML node into
+      ParentGroup. Actually, this is also for reading <instance> in Collada 1.3.1. }
+    procedure ReadInstanceGeometry(ParentGroup: TNodeX3DGroupingNode;
+      InstantiatingElement: TDOMElement);
+    var
+      GeometryId: string;
+      GeometryIndex: Integer;
+      Shape: TNodeShape;
+    begin
+      if DOMGetAttribute(InstantiatingElement, 'url', GeometryId) and
+         SCharIs(GeometryId, 1, '#') then
+      begin
+        Delete(GeometryId, 1, 1);
+        GeometryIndex := Geometries.FindNodeName(GeometryId);
+        if GeometryIndex = -1 then
+        begin
+          DataNonFatalError(Format('Collada <node> instantiates non-existing ' +
+            '<geometry> element "%s"', [GeometryId]));
+        end else
+        begin
+          Shape := TNodeShape.Create('', WWWBasePath);
+          ParentGroup.FdChildren.AddItem(Shape);
+          Shape.FdGeometry.Value := Geometries[GeometryIndex];
+
+          AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
+            InstantiatingElement);
+        end;
+      end;
+    end;
+
+    { Read <instance_controller>, adding resulting VRML node into
+      ParentGroup. }
+    procedure ReadInstanceController(ParentGroup: TNodeX3DGroupingNode;
+      InstantiatingElement: TDOMElement);
+    var
+      ControllerId: string;
+      ControllerIndex: Integer;
+      Controller: TColladaController;
+      Shape: TNodeShape;
+      Group: TNodeGroup_2;
+      M: TNodeMatrixTransform;
+      GeometryIndex: Integer;
+    begin
+      if DOMGetAttribute(InstantiatingElement, 'url', ControllerId) and
+         SCharIs(ControllerId, 1, '#') then
+      begin
+        Delete(ControllerId, 1, 1);
+        ControllerIndex := Controllers.FindName(ControllerId);
+        if ControllerIndex = -1 then
+        begin
+          DataNonFatalError(Format('Collada <node> instantiates non-existing ' +
+            '<controller> element "%s"', [ControllerId]));
+        end else
+        begin
+          Controller := Controllers[ControllerIndex];
+
+          GeometryIndex := Geometries.FindNodeName(Controller.Source);
+          if GeometryIndex = -1 then
+          begin
+            DataNonFatalError(Format('Collada <controller> references non-existing ' +
+              '<geometry> element "%s"', [Controller.Source]));
+          end else
+          begin
+            Group := TNodeGroup_2.Create('', WWWBasePath);
+            ParentGroup.FdChildren.AddItem(Group);
+
+            if not Controller.BoundShapeMatrixIdentity then
+            begin
+              { We have to use VRML 1.0 to express matrix transform. }
+              M := TNodeMatrixTransform.Create('', WWWBasePath);
+              Group.FdChildren.AddItem(M);
+              M.FdMatrix.Matrix := Controller.BoundShapeMatrix;
+            end;
+
+            Shape := TNodeShape.Create('', WWWBasePath);
+            Group.FdChildren.AddItem(Shape);
+            Shape.FdGeometry.Value := Geometries[GeometryIndex];
+
+            AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
+              InstantiatingElement);
+          end;
+        end;
+      end;
+    end;
+
+  var
+    NodeTransform: TNodeTransform_2;
+
+    { Create new Transform node, place it as a child of current Transform node
+      and switch current Transform node to the new one.
+
+      The idea is that each
+      Collada transformation creates new nested VRML Transform node
+      (since Collada transformations may represent any transformation,
+      not necessarily representable by a single VRML Transform node).  }
+    procedure NestedTransform;
+    var
+      NewNodeTransform: TNodeTransform_2;
+    begin
+      NewNodeTransform := TNodeTransform_2.Create('', WWWBasePath);
+      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+
+      NodeTransform := NewNodeTransform;
+    end;
+
   var
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
     NodeId: string;
-    GeometryId: string;
-    GeometryIndex: Integer;
     V3: TVector3Single;
     V4: TVector4Single;
-    Shape: TNodeShape;
   begin
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
@@ -1076,27 +1159,9 @@ var
           ChildElement := ChildNode as TDOMElement;
           if (ChildElement.TagName = 'instance') or
              (ChildElement.TagName = 'instance_geometry') then
-          begin
-            if DOMGetAttribute(ChildElement, 'url', GeometryId) and
-               SCharIs(GeometryId, 1, '#') then
-            begin
-              Delete(GeometryId, 1, 1);
-              GeometryIndex := Geometries.FindNodeName(GeometryId);
-              if GeometryIndex = -1 then
-              begin
-                DataNonFatalError(Format('Collada <node> "%s" instantiates non-existing ' +
-                  '<geometry> element "%s"', [NodeId, GeometryId]));
-              end else
-              begin
-                Shape := TNodeShape.Create('', WWWBasePath);
-                NodeTransform.FdChildren.AddItem(Shape);
-                Shape.FdGeometry.Value := Geometries[GeometryIndex];
-
-                AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
-                  ChildElement);
-              end;
-            end;
-          end else
+            ReadInstanceGeometry(NodeTransform, ChildElement) else
+          if ChildElement.TagName = 'instance_controller' then
+            ReadInstanceController(NodeTransform, ChildElement) else
           if ChildElement.TagName = 'node' then
             ReadNodeElement(NodeTransform, ChildElement);
         end;
