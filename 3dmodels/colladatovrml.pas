@@ -651,37 +651,14 @@ var
         ' with semantic="POSITION" and some source attribute');
     end;
 
-    { Read <polygons> within <mesh> }
-    procedure ReadPolygons(PolygonsElement: TDOMElement);
-    var
-      IndexedFaceSet: TNodeIndexedFaceSet_2;
-      VerticesOffset: Integer;
-      InputsCount: Integer;
-
-      procedure AddPolygon(const Indexes: string);
-      var
-        SeekPos, Index, CurrentInput: Integer;
-        Token: string;
-      begin
-        CurrentInput := 0;
-        SeekPos := 1;
-
-        repeat
-          Token := NextToken(Indexes, SeekPos, WhiteSpaces);
-          if Token = '' then Break;
-          Index := StrToInt(Token);
-
-          { for now, we just ignore indexes to other inputs }
-          if CurrentInput = VerticesOffset then
-            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
-
-          Inc(CurrentInput);
-          if CurrentInput = InputsCount then CurrentInput := 0;
-        until false;
-
-        IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
-      end;
-
+    { Read common things of <polygons> and <polylist> within <mesh>.
+      - Creates IndexedFaceSet, initializes it's coord and some other
+        fiels (but leaves coordIndex empty).
+      - Adds appropriate things to Geometries and GeometriesMaterialNames
+      - Reads <input> children, to calculate InputsCount and VerticesOffset. }
+    procedure ReadPolyCommon(PolygonsElement: TDOMElement;
+      out IndexedFaceSet: TNodeIndexedFaceSet_2;
+      out InputsCount, VerticesOffset: Integer);
     var
       Children: TDOMNodeList;
       ChildNode: TDOMNode;
@@ -749,12 +726,120 @@ var
                   For us, if there's no offset, just leave VerticesOffset as it was. }
                 DOMGetIntegerAttribute(ChildElement, 'offset', VerticesOffset);
               end;
-            end else
+            end;
+          end;
+        end;
+      finally Children.Release; end;
+    end;
+
+    { Read <polygons> within <mesh> }
+    procedure ReadPolygons(PolygonsElement: TDOMElement);
+    var
+      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      InputsCount: Integer;
+      VerticesOffset: Integer;
+
+      procedure AddPolygon(const Indexes: string);
+      var
+        SeekPos, Index, CurrentInput: Integer;
+        Token: string;
+      begin
+        CurrentInput := 0;
+        SeekPos := 1;
+
+        repeat
+          Token := NextToken(Indexes, SeekPos, WhiteSpaces);
+          if Token = '' then Break;
+          Index := StrToInt(Token);
+
+          { for now, we just ignore indexes to other inputs }
+          if CurrentInput = VerticesOffset then
+            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+
+          Inc(CurrentInput);
+          if CurrentInput = InputsCount then CurrentInput := 0;
+        until false;
+
+        IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+      end;
+
+    var
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
+    begin
+      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount, VerticesOffset);
+
+      Children := PolygonsElement.ChildNodes;
+      try
+        for I := 0 to Children.Count - 1 do
+        begin
+          ChildNode := Children.Item[I];
+          if ChildNode.NodeType = ELEMENT_NODE then
+          begin
+            ChildElement := ChildNode as TDOMElement;
             if ChildElement.TagName = 'p' then
               AddPolygon(DOMGetTextData(ChildElement));
           end;
         end;
       finally Children.Release; end;
+    end;
+
+    { Read <polylist> within <mesh> }
+    procedure ReadPolylist(PolygonsElement: TDOMElement);
+    var
+      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      InputsCount: Integer;
+      VerticesOffset: Integer;
+      VCount, P: TDOMElement;
+      VCountContent, PContent, Token: string;
+      SeekPosVCount, SeekPosP, ThisPolygonCount, CurrentInput, I, Index: Integer;
+    begin
+      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount, VerticesOffset);
+
+      VCount := DOMGetChildElement(PolygonsElement, 'vcount', false);
+      P := DOMGetChildElement(PolygonsElement, 'p', false);
+
+      if (VCount <> nil) and (P <> nil) then
+      begin
+        VCountContent := DOMGetTextData(VCount);
+        PContent := DOMGetTextData(P);
+
+        { we will parse both VCountContent and PContent now, at the same time }
+
+        SeekPosVCount := 1;
+        SeekPosP := 1;
+
+        repeat
+          Token := NextToken(VCountContent, SeekPosVCount, WhiteSpaces);
+          if Token = '' then Break; { end of polygons }
+
+          ThisPolygonCount := StrToInt(Token);
+
+          CurrentInput := 0;
+
+          for I := 0 to ThisPolygonCount - 1 do
+          begin
+            Token := NextToken(PContent, SeekPosP, WhiteSpaces);
+            if Token = '' then
+            begin
+              DataNonFatalError('Collada: unexpected end of <p> data in <polylist>');
+              Exit;
+            end;
+            Index := StrToInt(Token);
+
+            { for now, we just ignore indexes to other inputs }
+            if CurrentInput = VerticesOffset then
+              IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+
+            Inc(CurrentInput);
+            if CurrentInput = InputsCount then CurrentInput := 0;
+          end;
+
+          IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+        until false;
+      end;
     end;
 
   var
@@ -784,6 +869,8 @@ var
               if ChildElement.TagName = 'vertices' then
                 ReadVertices(ChildElement) else
               if ChildElement.TagName = 'polygons' then
+                ReadPolygons(ChildElement) else
+              if ChildElement.TagName = 'polylist' then
                 ReadPolygons(ChildElement);
                 { other ChildElement.TagName not supported for now }
             end;
