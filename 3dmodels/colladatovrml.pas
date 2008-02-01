@@ -1017,6 +1017,10 @@ var
       MaterialIndex: Integer;
       BindMaterial, Technique, InstanceMaterial: TDOMElement;
       InstanceMaterialSymbol, InstanceMaterialTarget: string;
+      Children: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
+      I: Integer;
     begin
       if MaterialId = '' then Exit;
 
@@ -1031,20 +1035,34 @@ var
         Technique := DOMGetChildElement(BindMaterial, 'technique_common', false);
         if Technique <> nil then
         begin
-          InstanceMaterial := DOMGetChildElement(Technique, 'instance_material', false);
-          if (InstanceMaterial <> nil) and
-             DOMGetAttribute(InstanceMaterial, 'symbol', InstanceMaterialSymbol) and
-             (InstanceMaterialSymbol = MaterialId) and
-             DOMGetAttribute(InstanceMaterial, 'target', InstanceMaterialTarget) then
-          begin
-            { this should be true, target is URL }
-            if SCharIs(InstanceMaterialTarget, 1, '#') then
-              Delete(InstanceMaterialTarget, 1, 1);
+          { read <instance_material list inside.
+            This may contain multiple materials, but actually we're only
+            interested in a single material, so we look for material with
+            symbol = MaterialId. }
+          Children := Technique.ChildNodes;
+          try
+            for I := 0 to Children.Count - 1 do
+            begin
+              ChildNode := Children.Item[I];
+              if ChildNode.NodeType = ELEMENT_NODE then
+              begin
+                ChildElement := ChildNode as TDOMElement;
+                if (ChildElement.TagName = 'instance_material') and
+                   DOMGetAttribute(ChildElement, 'symbol', InstanceMaterialSymbol) and
+                   (InstanceMaterialSymbol = MaterialId) and
+                   DOMGetAttribute(ChildElement, 'target', InstanceMaterialTarget) then
+                begin
+                  { this should be true, target is URL }
+                  if SCharIs(InstanceMaterialTarget, 1, '#') then
+                    Delete(InstanceMaterialTarget, 1, 1);
 
-            { replace MaterialId with what is indicated by
-                <instance_material target="..."> }
-            MaterialId := InstanceMaterialTarget;
-          end;
+                  { replace MaterialId with what is indicated by
+                      <instance_material target="..."> }
+                  MaterialId := InstanceMaterialTarget;
+                end;
+              end;
+            end;
+          finally Children.Release; end;
         end;
       end;
 
