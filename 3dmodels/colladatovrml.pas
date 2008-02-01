@@ -819,7 +819,7 @@ var
 
           CurrentInput := 0;
 
-          for I := 0 to ThisPolygonCount - 1 do
+          for I := 0 to ThisPolygonCount * InputsCount - 1 do
           begin
             Token := NextToken(PContent, SeekPosP, WhiteSpaces);
             if Token = '' then
@@ -871,7 +871,7 @@ var
               if ChildElement.TagName = 'polygons' then
                 ReadPolygons(ChildElement) else
               if ChildElement.TagName = 'polylist' then
-                ReadPolygons(ChildElement);
+                ReadPolylist(ChildElement);
                 { other ChildElement.TagName not supported for now }
             end;
           end;
@@ -1015,7 +1015,7 @@ var
       InstantiatingElement: TDOMElement);
     var
       MaterialIndex: Integer;
-      BindMaterial, Technique, InstanceMaterial: TDOMElement;
+      BindMaterial, Technique: TDOMElement;
       InstanceMaterialSymbol, InstanceMaterialTarget: string;
       Children: TDOMNodeList;
       ChildNode: TDOMNode;
