@@ -126,12 +126,19 @@ var
   var
     ColorElement: TDOMElement;
   begin
-    ColorElement := DOMGetChildElement(Element, 'color', true);
-    { I simply drop 4th color component, I don't know what's the use of this
-      (alpha is exposed by effect/materials parameter transparency, so color
-      alpha is supposed to mean something else ?). }
-    Result := Vector3SingleCut(
-      Vector4SingleFromStr(DOMGetTextData(ColorElement)));
+    ColorElement := DOMGetChildElement(Element, 'color', false);
+
+    if ColorElement <> nil then
+    begin
+      { I simply drop 4th color component, I don't know what's the use of this
+        (alpha is exposed by effect/materials parameter transparency, so color
+        alpha is supposed to mean something else ?). }
+      Result := Vector3SingleCut(
+        Vector4SingleFromStr(DOMGetTextData(ColorElement)));
+    end else
+      { We don't support anything else than <color> here, just use
+        default white color eventually. }
+      Result := Vector3Single(1, 1, 1);
   end;
 
   { Read elements of type "common_float_or_param_type" in Collada >= 1.4.x. }
@@ -139,8 +146,14 @@ var
   var
     FloatElement: TDOMElement;
   begin
-    FloatElement := DOMGetChildElement(Element, 'float', true);
-    Result := StrToFloat(DOMGetTextData(FloatElement));
+    FloatElement := DOMGetChildElement(Element, 'float', false);
+    if FloatElement <> nil then
+    begin
+      Result := StrToFloat(DOMGetTextData(FloatElement));
+    end else
+      { We don't support anything else than <float> here, just use
+        default 1 eventually. }
+      Result := 1.0;
   end;
 
   { Read <effect>. Only for Collada >= 1.4.x. }
