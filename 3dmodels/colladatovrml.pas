@@ -51,6 +51,37 @@ implementation
 uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
   DOM, XMLRead, KambiXMLUtils, DataErrors, Classes, KambiClassUtils;
 
+{$define read_interface}
+{$define read_implementation}
+
+{ TColladaController, TColladaControllersList -------------------------------- }
+
+type
+  TColladaController = class
+    Name: string;
+    Source: string;
+    BoundShapeMatrix: TMatrix4Single;
+    BoundShapeMatrixIdentity: boolean;
+  end;
+
+  TObjectsListItem_1 = TColladaController;
+  {$I objectslist_1.inc}
+
+type
+  TColladaControllersList = class(TObjectsList_1)
+    function FindName(const Name: string): Integer;
+  end;
+
+function TColladaControllersList.FindName(const Name: string): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Items[Result].Name = Name then
+      Exit;
+  Result := -1;
+end;
+
+{ LoadColladaAsVRML ---------------------------------------------------------- }
+
 function LoadColladaAsVRML(const FileName: string): TVRMLNode;
 var
   WWWBasePath: string;
@@ -85,6 +116,10 @@ var
   ResultModel: TNodeGroup_2 absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
+
+  { List of all controllers, read from library_controllers, used by
+    instance_controller. }
+  Controllers: TColladaControllersList;
 
   { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x. }
   function ReadColorOrTexture(Element: TDOMElement): TVector3Single;
@@ -790,18 +825,14 @@ var
     end;
   end;
 
-  { Read <matrix> element, add appropriate VRML MatrixTransform to ParentGroup node. }
-  procedure ReadMatrix(ParentGroup: TNodeX3DGroupingNode; MatrixElement: TDOMElement);
+  { Read <matrix> or <bind_shape_matrix> element to given Matrix. }
+  procedure ReadMatrix(Matrix: TMatrix4Single;
+    MatrixElement: TDOMElement); overload;
   var
     SeekPos: Integer;
-    M: TNodeMatrixTransform;
     Row, Col: Integer;
     Token, Content: string;
   begin
-    { We have to use VRML 1.0 to express matrix transform. }
-    M := TNodeMatrixTransform.Create('', WWWBasePath);
-    ParentGroup.FdChildren.AddItem(M);
-
     Content := DOMGetTextData(MatrixElement);
 
     SeekPos := 1;
@@ -812,11 +843,25 @@ var
         Token := NextToken(Content, SeekPos, WhiteSpaces);
         if Token = '' then
         begin
-          DataNonFatalError('Collada <matrix> has not enough items');
+          DataNonFatalError('Collada: Matrix (<matrix> or <bind_shape_matrix> ' +
+            'element) has not enough items');
           Break;
         end;
-        M.FdMatrix.Matrix[Col, Row] := StrToFloat(Token);
+        Matrix[Col, Row] := StrToFloat(Token);
       end;
+  end;
+
+  { Read <matrix> element, add appropriate VRML MatrixTransform to ParentGroup node. }
+  procedure ReadMatrix(ParentGroup: TNodeX3DGroupingNode;
+    MatrixElement: TDOMElement); overload;
+  var
+    M: TNodeMatrixTransform;
+  begin
+    { We have to use VRML 1.0 to express matrix transform. }
+    M := TNodeMatrixTransform.Create('', WWWBasePath);
+    ParentGroup.FdChildren.AddItem(M);
+
+    ReadMatrix(M.FdMatrix.Matrix, MatrixElement);
   end;
 
   { Read <lookat> element, add appropriate VRML MatrixTransform to ParentGroup node. }
@@ -1195,6 +1240,66 @@ var
     finally Children.Release; end
   end;
 
+  { Read <controller> from Collada 1.4.x }
+  procedure ReadController(ControllerElement: TDOMElement);
+  var
+    Controller: TColladaController;
+    Skin, BindShapeMatrix: TDOMElement;
+  begin
+    Controller := TColladaController.Create;
+    Controllers.Add(Controller);
+    Controller.BoundShapeMatrixIdentity := true;
+
+    if not DOMGetAttribute(ControllerElement, 'id', Controller.Name) then
+      Controller.Name := '';
+
+    Skin := DOMGetChildElement(ControllerElement, 'skin', false);
+    if Skin <> nil then
+    begin
+      if DOMGetAttribute(Skin, 'source', Controller.Source) then
+      begin
+        { this should be true, controller.source is URL }
+        if SCharIs(Controller.Source, 1, '#') then
+          Delete(Controller.Source, 1, 1);
+      end;
+
+      BindShapeMatrix := DOMGetChildElement(Skin, 'bind_shape_matrix', false);
+      if BindShapeMatrix <> nil then
+      begin
+        Controller.BoundShapeMatrixIdentity := false;
+        ReadMatrix(Controller.BoundShapeMatrix, BindShapeMatrix);
+      end;
+    end;
+  end;
+
+  { Read <library_controllers> from Collada 1.4.x }
+  procedure ReadLibraryControllers(LibraryElement: TDOMElement);
+  var
+    Children: TDOMNodeList;
+    ChildNode: TDOMNode;
+    ChildElement: TDOMElement;
+    I: Integer;
+    LibraryId: string;
+  begin
+    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+      LibraryId := '';
+
+    Children := LibraryElement.ChildNodes;
+    try
+      for I := 0 to Children.Count - 1 do
+      begin
+        ChildNode := Children.Item[I];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          if ChildElement.TagName = 'controller' then
+            ReadController(ChildElement);
+            { other ChildElement.TagName not supported for now }
+        end;
+      end;
+    finally Children.Release; end
+  end;
+
   procedure AddInfo(Element: TNodeGroup_2; const S: string);
   var
     Info: TNodeInfo;
@@ -1217,6 +1322,7 @@ begin
   Geometries := nil;
   GeometriesMaterialNames := nil;
   VisualScenes := nil;
+  Controllers := nil;
 
   ReadXMLFile(Doc, FileName);
   try
@@ -1248,6 +1354,7 @@ begin
     Geometries := TVRMLNodesList.Create;
     GeometriesMaterialNames := TStringList.Create;
     VisualScenes := TVRMLNodesList.Create;
+    Controllers := TColladaControllersList.Create;
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
     try
@@ -1270,7 +1377,9 @@ begin
               ReadLibraryGeometries(ChildElement) else
             if ChildElement.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
               ReadLibraryVisualScenes(ChildElement) else
-            if ChildElement.TagName = 'scene' then { only for Collada < 1.4.x }
+            if ChildElement.TagName = 'library_controllers' then { only Collada >= 1.4.x }
+              ReadLibraryControllers(ChildElement) else
+            if ChildElement.TagName = 'scene' then
               ReadSceneElement(ChildElement);
               { other ChildElement.TagName not supported for now }
           end;
@@ -1302,6 +1411,8 @@ begin
     FreeAndNil(GeometriesMaterialNames);
 
     VRMLNodesList_FreeWithNonParentedContentsAndNil(VisualScenes);
+
+    FreeWithContentsAndNil(Controllers);
   end;
 end;
 
