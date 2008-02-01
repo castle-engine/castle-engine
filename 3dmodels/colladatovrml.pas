@@ -181,6 +181,16 @@ var
        if TechniqueElement <> nil then
        begin
          PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
+
+         { We actually treat <phong> and <blinn> elements the same.
+
+           VRML 2.0 lighting equations specify that always Blinn
+           (half-vector) technique is used. What's much more practically
+           important, OpenGL uses Blinn method. So actually I always do
+           blinn method (at least for real-time rendering). }
+         if PhongElement = nil then
+           PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
+
          if PhongElement <> nil then
          begin
            { Initialize, in case no <transparent> child. }
