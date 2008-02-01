@@ -651,7 +651,7 @@ var
         ' with semantic="POSITION" and some source attribute');
     end;
 
-    { Read common things of <polygons> and <polylist> within <mesh>.
+    { Read common things of <polygons> and <polylist> and similar within <mesh>.
       - Creates IndexedFaceSet, initializes it's coord and some other
         fiels (but leaves coordIndex empty).
       - Adds appropriate things to Geometries and GeometriesMaterialNames
@@ -842,6 +842,51 @@ var
       end;
     end;
 
+    { Read <triangles> within <mesh> }
+    procedure ReadTriangles(PolygonsElement: TDOMElement);
+    var
+      IndexedFaceSet: TNodeIndexedFaceSet_2;
+      InputsCount: Integer;
+      VerticesOffset: Integer;
+      P: TDOMElement;
+      PContent, Token: string;
+      SeekPosP, CurrentInput, Index, VertexNumber: Integer;
+    begin
+      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount, VerticesOffset);
+
+      P := DOMGetChildElement(PolygonsElement, 'p', false);
+      if P <> nil then
+      begin
+        PContent := DOMGetTextData(P);
+
+        SeekPosP := 1;
+        CurrentInput := 0;
+        VertexNumber := 0;
+
+        repeat
+          Token := NextToken(PContent, SeekPosP, WhiteSpaces);
+          if Token = '' then Break; { end of triangles }
+          Index := StrToInt(Token);
+
+          { for now, we just ignore indexes to other inputs }
+          if CurrentInput = VerticesOffset then
+            IndexedFaceSet.FdCoordIndex.Items.AppendItem(Index);
+
+          Inc(CurrentInput);
+          if CurrentInput = InputsCount then
+          begin
+            CurrentInput := 0;
+            Inc(VertexNumber);
+            if VertexNumber = 3 then
+            begin
+              VertexNumber := 0;
+              IndexedFaceSet.FdCoordIndex.Items.AppendItem(-1);
+            end;
+          end;
+        until false;
+      end;
+    end;
+
   var
     Children: TDOMNodeList;
     ChildNode: TDOMNode;
@@ -871,7 +916,9 @@ var
               if ChildElement.TagName = 'polygons' then
                 ReadPolygons(ChildElement) else
               if ChildElement.TagName = 'polylist' then
-                ReadPolylist(ChildElement);
+                ReadPolylist(ChildElement) else
+              if ChildElement.TagName = 'triangles' then
+                ReadTriangles(ChildElement);
                 { other ChildElement.TagName not supported for now }
             end;
           end;
