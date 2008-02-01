@@ -1423,6 +1423,16 @@ begin
 
     Result := TNodeGroup_2.Create('', WWWBasePath);
     try
+      { First read library_effects.
+
+        Effects may be referenced by materials,
+        and there's no guarantee that library_effects will occur before
+        library_materials. Testcase: COLLLADA 1.4.1 Basic Samples/Cube/cube.dae.
+
+        library_effects is only for Collada >= 1.4.x. }
+      ChildElement := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      if ChildElement <> nil then
+        ReadLibraryEffects(ChildElement);
 
       DocChildren := Doc.DocumentElement.ChildNodes;
       try
@@ -1436,8 +1446,6 @@ begin
               ReadLibrary(ChildElement) else
             if ChildElement.TagName = 'library_materials' then { only Collada >= 1.4.x }
               ReadLibraryMaterials(ChildElement) else
-            if ChildElement.TagName = 'library_effects' then { only Collada >= 1.4.x }
-              ReadLibraryEffects(ChildElement) else
             if ChildElement.TagName = 'library_geometries' then { only Collada >= 1.4.x }
               ReadLibraryGeometries(ChildElement) else
             if ChildElement.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
