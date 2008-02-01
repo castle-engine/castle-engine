@@ -166,6 +166,7 @@ var
     ChildNode: TDOMNode;
     ChildElement: TDOMElement;
     I: Integer;
+    TransparencyColor: TVector3Single;
   begin
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
@@ -182,6 +183,9 @@ var
          PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
          if PhongElement <> nil then
          begin
+           { Initialize, in case no <transparent> child. }
+           TransparencyColor := ZeroVector3Single;
+
            Children := PhongElement.ChildNodes;
            try
              for I := 0 to Children.Count - 1 do
@@ -220,7 +224,7 @@ var
                      ReadFloatOrParam(ChildElement) else
 
                  if ChildElement.TagName = 'transparent' then
-                   {Effect.FdTransparencyColor.Value := }
+                   TransparencyColor :=
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'transparency' then
@@ -232,7 +236,22 @@ var
                      ReadFloatOrParam(ChildElement);
                end;
              end;
-           finally Children.Release; end
+           finally Children.Release; end;
+
+           { Collada says (e.g.
+             https://collada.org/public_forum/viewtopic.php?t=386)
+             to multiply TransparencyColor by Transparency.
+             Although I do not handle TransparencyColor, I still have to do
+             this, as there are many models with Transparency = 1 and
+             TransparencyColor = (0, 0, 0). }
+           Effect.FdTransparency.Value :=
+             Effect.FdTransparency.Value * VectorAverage(TransparencyColor);
+
+           { make sure to not mistakenly use blending on model that should
+             be opaque, but has Effect.FdTransparency.Value = some small
+             epsilon, due to numeric errors in above multiply. }
+           if IsZero(Effect.FdTransparency.Value) then
+             Effect.FdTransparency.Value := 0.0;
          end;
        end;
     end;
