@@ -10,6 +10,7 @@ unit AllKambi3dModelsUnits;
 interface
 
 uses
+  colladatovrml,
   illummodels,
   kambioctree,
   normalscalculator,

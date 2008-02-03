@@ -21,8 +21,8 @@
 }
 
 { @abstract(Converting 3D models to VRML.
-  Converts models in various formats (3DS, MD3 etc.)
-  to one or more (static or animation) VRML nodes.)
+    Converts models in various formats to one or more
+    (static or animation) VRML nodes.)
 
   Note: for VRML 1.0, remember that you may want to embed returned
   @link(TVRMLNode) objects inside VRML Separator node before

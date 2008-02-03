@@ -49,7 +49,7 @@
 
     You can later change it using "Open" menu item anyway.
     You can load any model in VRML (or any other supported
-    format like 3DS, MD3, Wavefront OBJ etc.).
+    format, see [http://vrmlengine.sourceforge.net/view3dscene.php]).
     Hint: look in kambi_vrml_test_suite,
     [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php]
     for some interesting models. See e.g. there for
