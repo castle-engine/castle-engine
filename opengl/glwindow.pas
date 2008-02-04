@@ -1155,7 +1155,14 @@ type
       'ProviderName provided depth buffer with ProvidedStencilBits but StencilBufferBits
       required' - i.e. this message states _what_ requirements can not be fullfilled
       and what API (e.g. ProviderName = 'Glut' / 'ChoosePixelFormat') is responsible for
-      this. }
+      this.
+
+      Note that ProvidedMultiSampling is not checked if MultiSampling is <= 1.
+      In other words, if multisampling was not required, ProvidedMultiSampling
+      doesn't matter --- it's Ok even ProvidedMultiSampling = 0 and
+      MultiSampling = 1, which happens commonly (since our MultiSampling = 1 means
+      "no multisampling" and is default, but most backends returns num_samples
+      (or something equivalent) as = 0 when multisampling not supported). }
     procedure CheckRequestedBufferAttributes(const ProviderName: string;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,

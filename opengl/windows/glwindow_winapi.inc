@@ -571,11 +571,73 @@ begin
 end;
 
 procedure TGLWindow.InitWinSystemDepend;
+
+  { Both SetPixelFormat* set pixel format (required context capabilities)
+    of Windows H_Dc device context. They try to set it, and eventually rise some
+    exception (e.g. by CheckRequestedBufferAttributes) if it's not possible.
+
+    SetPixelFormat_WGLChoose tries to use wglChoosePixelFormat, which is generally
+    much better, more flexible, most of all: it allows to set multisampling
+    parameters, which is not possible by classic ChoosePixelFormat.
+
+    But wglChoosePixelFormat is not guaranteed to exist, so if it doesn't --- we
+    fall back on classic ChoosePixelFormat by calling SetPixelFormat_ClassicChoose. }
+  procedure SetPixelFormat_ClassicChoose;
+  var
+    PixelFormat: integer;
+    pfd: Tpixelformatdescriptor;
+  begin
+    FillChar(pfd, SizeOf(pfd), 0);
+    with pfd do begin
+     nSize := SizeOf(TPIXELFORMATDESCRIPTOR);
+     nVersion := 1;
+     dwFlags := PFD_DRAW_TO_WINDOW              // Format Must Support Window
+       or PFD_SUPPORT_OPENGL;                  // Format Must Support OpenGL
+     if doubleBuffer then dwFlags := dwFlags or PFD_DOUBLEBUFFER;
+     iPixelType := PFD_TYPE_RGBA;              // Request An RGBA Format
+     cColorBits := ColorBits; // WinAPI accepts here 0 as "default"
+     cAlphaBits := AlphaBits;
+     cDepthBits := DepthBufferBits;
+     cStencilBits := StencilBufferBits;
+     { niestety cAccumRed/Green/Blue/AlphaBits sa ignorowane - musimy probowac poradzic sobie
+       przy pomocy cAccumBits. }
+     cAccumBits := RoundUpToMultiply(AccumBufferBits[0], 8) +
+                   RoundUpToMultiply(AccumBufferBits[1], 8) +
+                   RoundUpToMultiply(AccumBufferBits[2], 8) +
+                   RoundUpToMultiply(AccumBufferBits[3], 8);
+     iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
+    end;
+    PixelFormat := ChoosePixelFormat(h_Dc, pfd);
+    KambiOSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
+
+    { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBufferBits, StencilBufferBits i
+      AccumBufferBits - to dlatego ze ChoosePixelFormat nie gwarantowalo nam ze dostaniemy
+      rzeczywiscie to co chcemy, a w przypadku AccumBufferBits nie bylismy nawet w stanie
+      powiedziec tego co trzeba ChoosePixelFormat.
+
+      TODO:  na dluzsza mete dobrym rozwiazaniem bedzie tu zaimplementowanie samemu
+      przegladania dostepnych pixel formats i wybierania samemu najlepszego pixel format. }
+    DescribePixelFormat(h_Dc, PixelFormat, SizeOf(pfd), pfd);
+    CheckRequestedBufferAttributes('ChoosePixelFormat',
+      pfd.cStencilBits, pfd.cDepthBits, pfd.cAlphaBits,
+      pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
+      0 { we have to assume that ChoosePixelFormat returns context
+          without multisampling abiilty });
+
+    { skoro PixelFormat jest akceptowalny to wybierz go. Przekazywanie pfd w ponizszej
+      funkcji nie jest wazne i wlasciwie moznaby z niego zrezygnowac, o ile dobrze rozumiem
+      help do winapi. Wazne jest zeby przekazac wybrany PixelFormat. }
+    KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
+  end;
+
+  procedure SetPixelFormat_WGLChoose;
+  begin
+    { TODO: use wglChoosePixelFormat }
+    SetPixelFormat_ClassicChoose;
+  end;
+
 var
-  PixelFormat: integer;
-  dwExStyle,
-  dwStyle: dword;
-  pfd: Tpixelformatdescriptor;
+  dwExStyle, dwStyle: dword;
   WindowRect, ClientRect: TRect;
   H_Menu: HMenu;
 begin
@@ -653,45 +715,7 @@ begin
  h_Dc := GetDC(h_Wnd);
  Check ( h_Dc <> 0, 'GetDC failed');
 
- FillChar(pfd, SizeOf(pfd), 0);
- with pfd do begin
-  nSize := SizeOf(TPIXELFORMATDESCRIPTOR);
-  nVersion := 1;
-  dwFlags := PFD_DRAW_TO_WINDOW              // Format Must Support Window
-    or PFD_SUPPORT_OPENGL;                  // Format Must Support OpenGL
-  if doubleBuffer then dwFlags := dwFlags or PFD_DOUBLEBUFFER;
-  iPixelType := PFD_TYPE_RGBA;              // Request An RGBA Format
-  cColorBits := ColorBits; // WinAPI accepts here 0 as "default"
-  cAlphaBits := AlphaBits;
-  cDepthBits := DepthBufferBits;
-  cStencilBits := StencilBufferBits;
-  { niestety cAccumRed/Green/Blue/AlphaBits sa ignorowane - musimy probowac poradzic sobie
-    przy pomocy cAccumBits. }
-  cAccumBits := RoundUpToMultiply(AccumBufferBits[0], 8) +
-                RoundUpToMultiply(AccumBufferBits[1], 8) +
-                RoundUpToMultiply(AccumBufferBits[2], 8) +
-                RoundUpToMultiply(AccumBufferBits[3], 8);
-  iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
- end;
- PixelFormat := ChoosePixelFormat(h_Dc, pfd);
- KambiOSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
-
- { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBufferBits, StencilBufferBits i
-   AccumBufferBits - to dlatego ze ChoosePixelFormat nie gwarantowalo nam ze dostaniemy
-   rzeczywiscie to co chcemy, a w przypadku AccumBufferBits nie bylismy nawet w stanie
-   powiedziec tego co trzeba ChoosePixelFormat.
-
-   TODO:  na dluzsza mete dobrym rozwiazaniem bedzie tu zaimplementowanie samemu
-   przegladania dostepnych pixel formats i wybierania samemu najlepszego pixel format. }
- DescribePixelFormat(h_Dc, PixelFormat, SizeOf(pfd), pfd);
- CheckRequestedBufferAttributes('ChoosePixelFormat',
-   pfd.cStencilBits, pfd.cDepthBits, pfd.cAlphaBits,
-   pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits);
-
- { skoro PixelFormat jest akceptowalny to wybierz go. Przekazywanie pfd w ponizszej
-   funkcji nie jest wazne i wlasciwie moznaby z niego zrezygnowac, o ile dobrze rozumiem
-   help do winapi. Wazne jest zeby przekazac wybrany PixelFormat. }
- KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
+ SetPixelFormat_WGLChoose;
 
  if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
   raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
