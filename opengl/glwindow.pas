@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -611,7 +611,7 @@ uses
   SysUtils, Math, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GLUT} KambiGlut, {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows, Rects, {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, Glx, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, Glx, KambiGlx, {$endif}
   {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
@@ -874,7 +874,7 @@ type
 
       OpenGL context must be initialized honouring these properties:
         DoubleBuffer, StencilBufferBits, DepthBufferBits, AlphaBits,
-        AccumBufferBits }
+        AccumBufferBits, MultiSampling }
     procedure InitImplDepend;
 
     { Podobnie jak z Init i InitImplDepend jest tez z Close, wystarczy napisac
@@ -1159,11 +1159,12 @@ type
     procedure CheckRequestedBufferAttributes(const ProviderName: string;
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-      ProvidedAccumAlphaBits: Cardinal);
+      ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
 
     FDepthBufferBits: Cardinal;
     FStencilBufferBits: Cardinal;
     FAlphaBits: Cardinal;
+    FMultiSampling: Cardinal;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1479,6 +1480,32 @@ type
       @link(Init) will raise an error. }
     property StencilBufferBits: Cardinal
       read FStencilBufferBits write FStencilBufferBits default 0;
+
+    { How many samples are required for multisampling.
+      1 means that no multisampling is required.
+      Values larger than 1 means that we require OpenGL context with
+      multisampling capabilities (GLX_ARB_multisample for glX on Unix
+      or WGL_ARB_multisample for wgl on Windows). MultiSampling says how
+      many samples per pixel should be done (try typical 2 or 4 values).
+
+      So the only thing remaining for your program to make anti-aliasing
+      working is to use core OpenGL extension GL_ARB_multisample:
+      [http://opengl.org/registry/specs/ARB/multisample.txt].
+      In the usual case, this means simply to call
+
+      @longCode(#  if GL_ARB_multisample then glEnable(GL_MULTISAMPLE_ARB); #)
+
+      and
+
+      @longCode(#  if GL_ARB_multisample then glDisable(GL_MULTISAMPLE_ARB); #)
+
+      Just like with other XxxBufferBits property, we may get more
+      samples than we requested (e.g. if you request 3, you will most probably
+      get 4...). But we will never get less --- if window system
+      will not be able to provide GL context with requested number of bits,
+      @link(Init) will raise an error. }
+    property MultiSampling: Cardinal
+      read FMultiSampling write FMultiSampling default 1;
 
     { Required number of bits in alpha channel of color buffer.
       Zero means that alpha channel is not needed.
@@ -2896,6 +2923,7 @@ begin
  minHeight := 100; maxHeight := 4000;
  DepthBufferBits := DefaultDepthBufferBits;
  FCursor := gcDefault;
+ FMultiSampling := 1;
 
  OwnsMainMenu := true;
 
@@ -3942,12 +3970,14 @@ begin
   result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [AccumBufferBits[0], AccumBufferBits[1],
      AccumBufferBits[2], AccumBufferBits[3]]);
+ if MultiSampling > 1 then
+  result += Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
 
 procedure TGLWindow.CheckRequestedBufferAttributes(const ProviderName: string;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
   ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
-  ProvidedAccumAlphaBits: Cardinal);
+  ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
 
   procedure CheckRequestedBits(const Name: string; RequestedBits, ProvidedBits: Cardinal);
   begin
@@ -3965,6 +3995,19 @@ begin
  CheckRequestedBits('accumulation buffer''s green channel', AccumBufferBits[1], ProvidedAccumGreenBits);
  CheckRequestedBits('accumulation buffer''s blue channel' , AccumBufferBits[2], ProvidedAccumBlueBits);
  CheckRequestedBits('accumulation buffer''s alpha channel', AccumBufferBits[3], ProvidedAccumAlphaBits);
+
+ { If MultiSampling <= 1, this means that multisampling not required,
+   so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
+   (as most backends report no multisampling as num samples = 0), it's all Ok. }
+
+ if MultiSampling > 1 then
+ begin
+   if ProvidedMultiSampling < MultiSampling then
+    raise EGLContextNotPossible.CreateFmt('%s provided OpenGL context with %d ' +
+      'samples for multisampling (<= 1 means that no multisampling was provided) ' +
+      'but at last %d samples for multisampling is required',
+      [ ProviderName, ProvidedMultiSampling, MultiSampling ]);
+ end;
 end;
 
 { TGLWindowDemo ---------------------------------------------------------------- }

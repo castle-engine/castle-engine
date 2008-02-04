@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 {$ifdef read_tglwindow_interface}
@@ -352,6 +354,8 @@ begin
   GlutDispMode := GlutDispMode or GLUT_ALPHA;
  if not IsZeroVector(AccumBufferBits) then
   GlutDispMode := GlutDispMode or GLUT_ACCUM;
+ if MultiSampling > 1 then
+  GlutDispMode := GlutDispMode or GLUT_MULTISAMPLE;
 
  glutInitDisplayMode(GlutDispMode);
 
@@ -368,10 +372,12 @@ begin
 
  { sprawdz czy zadane *Bits sa spelnione. Sprawdzamy to dopiero po
    glutCreateWindow. }
- CheckRequestedBufferAttributes('Glut', glutGet(GLUT_WINDOW_STENCIL_SIZE),
+ CheckRequestedBufferAttributes('GlutInitDisplayMode',
+   glutGet(GLUT_WINDOW_STENCIL_SIZE),
    glutGet(GLUT_WINDOW_DEPTH_SIZE), glutGet(GLUT_WINDOW_ALPHA_SIZE),
    glutGet(GLUT_WINDOW_ACCUM_RED_SIZE), glutGet(GLUT_WINDOW_ACCUM_GREEN_SIZE),
-   glutGet(GLUT_WINDOW_ACCUM_BLUE_SIZE), glutGet(GLUT_WINDOW_ACCUM_ALPHA_SIZE));
+   glutGet(GLUT_WINDOW_ACCUM_BLUE_SIZE), glutGet(GLUT_WINDOW_ACCUM_ALPHA_SIZE),
+   glutGet(GLUT_WINDOW_NUM_SAMPLES));
 
  glwm.ActiveAdd(Self);
  glutReshapeFunc(@reshapeByGlut);

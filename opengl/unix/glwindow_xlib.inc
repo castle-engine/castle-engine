@@ -122,14 +122,16 @@ const
 { TGLWindow --------------------------------------------------------  }
 
 procedure TGLWindow.InitWinSystemDepend;
-var sizeHints: TXSizeHints;
-    AttrValueMask: Cardinal;
-    attr: TXSetWindowAttributes;
-    WindTitleProp: TXTextProperty;
-    ClassHint: TXClassHint;
-    WMHints: TXWMHints;
-    PWindTitle: PChar;
-    VisualAttr: TDynLongIntArray;
+var
+  sizeHints: TXSizeHints;
+  AttrValueMask: Cardinal;
+  attr: TXSetWindowAttributes;
+  WindTitleProp: TXTextProperty;
+  ClassHint: TXClassHint;
+  WMHints: TXWMHints;
+  PWindTitle: PChar;
+  VisualAttr: TDynLongIntArray;
+  GlxExtensions: string;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
@@ -138,20 +140,50 @@ begin
 
  VisualAttr := TDynLongIntArray.Create;
  try
-  VisualAttr.AllowedCapacityOverflow := 20;
-  if DoubleBuffer then VisualAttr.AppendItem(GLX_DOUBLEBUFFER);
-  VisualAttr.AppendArray([
-    GLX_RGBA,
-    { Ponizsze rozmiary buforow sa zawsze w bitach }
-    GLX_DEPTH_SIZE, DepthBufferBits,
-    GLX_STENCIL_SIZE, StencilBufferBits,
-    GLX_ALPHA_SIZE, AlphaBits,
-    GLX_ACCUM_RED_SIZE, AccumBufferBits[0],
-    GLX_ACCUM_GREEN_SIZE, AccumBufferBits[1],
-    GLX_ACCUM_BLUE_SIZE, AccumBufferBits[2],
-    GLX_ACCUM_ALPHA_SIZE, AccumBufferBits[3],
-    None ]);
-  viinfo := glXChooseVisual(Glwm.XDisplay, Glwm.XScreen, @VisualAttr.Items[0]);
+   VisualAttr.AllowedCapacityOverflow := 20;
+   if DoubleBuffer then
+     VisualAttr.AppendItem(GLX_DOUBLEBUFFER);
+   VisualAttr.AppendArray([
+     GLX_RGBA,
+     { Buffer sizes below are all in bits. }
+     GLX_DEPTH_SIZE, DepthBufferBits,
+     GLX_STENCIL_SIZE, StencilBufferBits,
+     GLX_ALPHA_SIZE, AlphaBits,
+     GLX_ACCUM_RED_SIZE, AccumBufferBits[0],
+     GLX_ACCUM_GREEN_SIZE, AccumBufferBits[1],
+     GLX_ACCUM_BLUE_SIZE, AccumBufferBits[2],
+     GLX_ACCUM_ALPHA_SIZE, AccumBufferBits[3] ]);
+
+   if MultiSampling > 1 then
+   begin
+     { Check is even querying glX extensions supported }
+     if glXQueryExtensionsString <> nil then
+     begin
+       { Check GLX_ARB_multisample suported }
+       GlxExtensions := glXQueryExtensionsString(Glwm.XDisplay, Glwm.XScreen);
+       if Log then
+         WritelnLog('glX', 'glX extensions: ' + GlxExtensions);
+       if glext_ExtensionSupported('GLX_ARB_multisample', GlxExtensions) then
+       begin
+         VisualAttr.AppendArray([
+           GLX_SAMPLE_BUFFERS_ARB, 1,
+           GLX_SAMPLES_ARB, MultiSampling ]);
+         if Log then
+           WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
+       end else
+         raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
+           'requested, but GLX_ARB_multisample not supported on this screen',
+           [MultiSampling]);
+     end else
+       raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
+         'requested, but glX too old: even glXQueryExtensionsString not available',
+         [MultiSampling]);
+   end;
+
+   { end of VisualAttr array }
+   VisualAttr.AppendItem(None);
+
+   viinfo := glXChooseVisual(Glwm.XDisplay, Glwm.XScreen, @VisualAttr.Items[0]);
  finally FreeAndNil(VisualAttr) end;
 
  if viinfo = nil then
@@ -602,7 +634,7 @@ begin
   if not InitializeXDisplayDone then
   begin
     FXScreen := XDefaultScreen(XDisplay);
-    
+
     Pointer(glXQueryExtension) := Glx.glXQueryExtension;
 
     Check( glXQueryExtension(XDisplay, nil, nil),

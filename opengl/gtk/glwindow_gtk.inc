@@ -953,7 +953,8 @@ begin
  VisualAttr := TDynLongIntArray.Create;
  try
   VisualAttr.AllowedCapacityOverflow := 20;
-  if DoubleBuffer then VisualAttr.AppendItem(GDK_GL_DOUBLEBUFFER);
+  if DoubleBuffer then
+    VisualAttr.AppendItem(GDK_GL_DOUBLEBUFFER);
   VisualAttr.AppendArray([
     GDK_GL_RGBA,
     { Note that sizes of buffers in VisualAttr must be given in bits
@@ -974,8 +975,24 @@ begin
     GDK_GL_ACCUM_RED_SIZE, AccumBufferBits[0],
     GDK_GL_ACCUM_GREEN_SIZE, AccumBufferBits[1],
     GDK_GL_ACCUM_BLUE_SIZE, AccumBufferBits[2],
-    GDK_GL_ACCUM_ALPHA_SIZE, AccumBufferBits[3],
-    GDK_GL_ATTRIB_LIST_NONE ]);
+    GDK_GL_ACCUM_ALPHA_SIZE, AccumBufferBits[3] ]);
+
+  if MultiSampling > 1 then
+  begin
+    {$ifdef GLWINDOW_GTK_2}
+    { I guess that gtkglext should internally check for
+      glXQueryExtensionsString and GLX_ARB_multisample availability. }
+    VisualAttr.AppendArray([
+      GDK_GL_SAMPLE_BUFFERS, 1,
+      GDK_GL_SAMPLES, MultiSampling ]);
+    {$else}
+    { Look like multisampling control is not available with old Gtk GLArea. }
+    ContextNotPossible
+    {$endif}
+  end;
+
+  { end of VisualAttr list }
+  VisualAttr.AppendItem(GDK_GL_ATTRIB_LIST_NONE);
 
   {$ifdef GLWINDOW_GTK_2}
 

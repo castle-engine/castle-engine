@@ -2203,18 +2203,33 @@ function GLCapsString: string;
       Result := 'ARB_texture_cube_map not available';
   end;
 
+  function GetSampleBuffers: string;
+  begin
+    if GL_ARB_multisample then
+      Result := GetBoolean(GL_SAMPLE_BUFFERS_ARB) else
+      Result := 'GL_ARB_multisample not available';
+  end;
+
+  function GetSamples: string;
+  begin
+    if GL_ARB_multisample then
+      Result := GetInteger(GL_SAMPLES_ARB) else
+      Result := 'GL_ARB_multisample not available';
+  end;
+
 begin
  result:=
   ProgramName +' - OpenGL capabilities : ' +nl+
   nl+
 
-  '--- glGetString queries results :' +nl+
+  '--- OpenGL string queries :' +nl+
   'GL_VERSION : ' +glGetString(GL_VERSION) +nl+
   ParsedGLVersionReport(GLVersion) +nl+
   'GL_VENDOR : ' +glGetString(GL_VENDOR) +nl+
   'GL_RENDERER : ' +glGetString(GL_RENDERER) +nl+
   'GL_EXTENSIONS : ' +glGetString(GL_EXTENSIONS) +nl+
   nl+
+
   '--- Which OpenGL entry points are actually available ?' +nl+
   '    (checks both version string and actual availability, to detect buggy OpenGL)' +nl+
   '1.2 : ' + BoolToStr[GL_version_1_2] +nl+
@@ -2223,14 +2238,14 @@ begin
   '1.5 : ' + BoolToStr[GL_version_1_5] +nl+
   '2.0 : ' + BoolToStr[GL_version_2_0] +nl+
   nl+
-  '--- gluGetString queries results : '+nl+
+
+  '--- GLU string queries : '+nl+
   'GLU_VERSION : ' +gluGetString(GLU_VERSION) +nl+
   ParsedVersionReport(GLUVersion) +nl+
   'GLU_EXTENSIONS : '+gluGetString(GLU_EXTENSIONS) +nl+
   nl+
 
-  '--- glGetInteger queries results :' +nl+
-  'current buffer bit depths : ' +nl+
+  '--- Current buffer bit depths : ' +nl+
   'GL_RED/GREEN/BLUE/ALPHA_BITS : ' +GetInteger(GL_RED_BITS) +' / '
                                     +GetInteger(GL_GREEN_BITS) +' / '
                                     +GetInteger(GL_BLUE_BITS) +' / '
@@ -2243,9 +2258,12 @@ begin
                                           +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
                                           +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
   'GL_DOUBLEBUFFER : ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
+  NL+
+  'GL_SAMPLE_BUFFERS_ARB : ' + GetSampleBuffers + NL+
+  'GL_SAMPLES_ARB : ' + GetSamples + NL+
   nl+
 
-  'max capabilities - stack depths :' +nl+
+  '--- Max capabilities (stack depths) :' +nl+
   'GL_MAX_ATTRIB_STACK_DEPTH : ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
   'GL_MAX_CLIENT_ATTRIB_STACK_DEPTH : ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
   'GL_MAX_MODELVIEW_STACK_DEPTH : ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
@@ -2254,7 +2272,7 @@ begin
   'GL_MAX_NAME_STACK_DEPTH : ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
   nl+
 
-  'max capabilities - others : ' +nl+
+  '--- Max capabilities (others) : ' +nl+
   'GL_MAX_CLIP_PLANES : ' +GetInteger(GL_MAX_CLIP_PLANES) +nl+
   'GL_MAX_EVAL_ORDER : ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
   'GL_MAX_LIGHTS : ' +GetInteger(GL_MAX_LIGHTS) +nl+
