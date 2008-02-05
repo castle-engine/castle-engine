@@ -1900,7 +1900,7 @@ type
 
     property Closed: boolean read FClosed;
 
-    { Initialize window (create window with GL context, show window).
+    (*Initialize window (create window with GL context, show window).
 
       @unorderedList(
         @item(Create window, it's OpenGL area, optionally it's menu.)
@@ -1922,11 +1922,33 @@ type
 
       Call to Init is ignored if not Closed., i.e. if window is already inited.
 
-      @raises(EGLContextNotPossible
-        If it's not possible to obtain OpenGL context with specified
-        attributes (e.g. maybe you set (Depth|Stencil|Accum)BufferBits properties
-        to too high values) then @link(EGLContextNotPossible).)
-    }
+      Raises EGLContextNotPossible if it's not possible to obtain
+      OpenGL context with specified attributes.
+      For example, maybe you set (Depth|Stencil|Accum)BufferBits properties
+      to too high values. It's guaranteed that even when EGLContextNotPossible
+      was raised, the window remains in correct (Closed) state, so you
+      can try to lower some requirements and call init once again.
+      For example:
+
+@longCode(#
+  Shadows := true;
+  Glw.StencilBufferBits := 8;
+  try
+    Glw.Init;
+  except
+    on EGLContextNotPossible do
+    begin
+      Shadows := false;
+      Glw.StencilBufferBits := 0;
+      { try to init once again, this time without requesting stencil buffer }
+      Glw.Init;
+    end;
+  end;
+#)
+
+      @raises(EGLContextNotPossible If it's not possible to obtain
+        OpenGL context with specified attributes.)
+    *)
     procedure Init;
 
     { Close window.

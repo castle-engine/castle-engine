@@ -30,6 +30,9 @@ const
   MaxAntiAliasing = 4;
   DefaultAntiAliasing = 0;
 
+type
+  TAntiAliasing = Cardinal;
+
 var
   { Anti-aliasing level.
 
@@ -39,7 +42,7 @@ var
     3 - 4 samples, dont_care
     4 and more - 4 samples, nicest (9 taps for NVidia)
   }
-  AntiAliasing: Cardinal = DefaultAntiAliasing;
+  AntiAliasing: TAntiAliasing = DefaultAntiAliasing;
 
 function AntiAliasingGlwMultiSampling: Cardinal;
 
@@ -47,6 +50,8 @@ procedure AntiAliasingGLInit;
 
 procedure AntiAliasingEnable;
 procedure AntiAliasingDisable;
+
+function AntiAliasingToStr(Value: TAntiAliasing): string;
 
 implementation
 
@@ -79,6 +84,17 @@ procedure AntiAliasingDisable;
 begin
   if (AntiAliasing > 0) and GL_ARB_multisample then
     glDisable(GL_MULTISAMPLE_ARB);
+end;
+
+function AntiAliasingToStr(Value: TAntiAliasing): string;
+begin
+  case Value of
+    0: Result := 'None';
+    1: Result := '2 samples (faster)';
+    2: Result := '2 samples (nicer)';
+    3: Result := '4 samples (faster)';
+    else Result := '4 samples (nicer)';
+  end;
 end;
 
 end.
