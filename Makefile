@@ -23,27 +23,27 @@
 #
 # Not-so-commonly-useful targets:
 #
-#   all_allunits_files --
-#     Create special All*Units.pas units in all subdirectories.
+#   container_units --
+#     Create special container All*Units.pas units in all subdirectories.
 #     Note that regenerating these units is not so easy -- you'll
 #     need Emacs and my kambi-pascal-functions.el Elisp
-#     code to do it (not publicly distributed yet, but this will change
-#     in the future; tell me if you want it).
+#     code to do it (available inside SVN repository,
+#     see http://michalis.ii.uni.wroc.pl/).
 #
 #   cleanmore --
 #     Same as clean + delete Emacs backup files (*~) and Delphi backup files
 #     (*.~??? (using *.~* would be too unsafe ?))
 #
-#   clean_special_allunits --
+#   clean_container_units --
 #     Cleans special units All*Units.pas.
-#     This may be uneasy to undo, look at comments at all_allunits_files.
+#     This may be uneasy to undo, look at comments at container_units.
 #
 #   cleanall --
-#     Same as cleanmore + clean_special_allunits.
+#     Same as cleanmore + clean_container_units.
 #     This target should not be called unless you know
 #     that you really want to get rid of ALL files that can be automatically
 #     regenerated. Note that some of the files deleted by this target may
-#     be not easy to regenerate -- see comments at all_allunits_files.
+#     be not easy to regenerate -- see comments at container_units.
 #
 # Internal notes (not important if you do not want to read/modify
 # this Makefile):
@@ -59,7 +59,7 @@
 # To add new subdirectory foo, add rules
 # 1. rule 'foo' to compile everything in foo
 # 2. rule to recreate file foo/allkambifoounits.pas
-# 3. add to $(ALL_ALLUNITS_FILES) to delete on clean_special_allunits
+# 3. add to $(ALL_CONTAINER_UNITS) to delete on clean_container_units
 
 # compiling ------------------------------------------------------------
 
@@ -105,9 +105,11 @@ opengl: opengl/allkambiopenglunits.pas
 
 # creating All*Units.pas files ----------------------------------------
 
+.PHONY: container_units clean_container_units
+
 EMACS_BATCH := emacs -batch --eval="(require 'kambi-pascal-functions)"
 
-ALL_ALLUNITS_FILES := 3dgraph/allkambi3dgraphunits.pas \
+ALL_CONTAINER_UNITS := 3dgraph/allkambi3dgraphunits.pas \
   3dmodels.gl/allkambi3dmodelsglunits.pas \
   3dmodels/allkambi3dmodelsunits.pas \
   audio/allkambiaudiounits.pas \
@@ -119,7 +121,10 @@ ALL_ALLUNITS_FILES := 3dgraph/allkambi3dgraphunits.pas \
 # This is a nice target to call before doing a distribution of my sources,
 # because I always want to distribute these All*Units.pas units.
 # (so noone except me should ever need to run emacs to generate them)
-all_allunits_files: $(ALL_ALLUNITS_FILES)
+container_units: $(ALL_CONTAINER_UNITS)
+
+clean_container_units:
+	rm -f $(ALL_CONTAINER_UNITS)
 
 3dgraph/allkambi3dgraphunits.pas:
 	$(EMACS_BATCH) --eval="(progn \
@@ -230,7 +235,7 @@ check_is_gpl_licensed:
 
 # cleaning ------------------------------------------------------------
 
-.PHONY: clean cleanmore cleanall clean_special_allunits
+.PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
 	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
@@ -254,9 +259,6 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 
-clean_special_allunits:
-	rm -f $(ALL_ALLUNITS_FILES)
-
-cleanall: cleanmore clean_special_allunits
+cleanall: cleanmore clean_container_units
 
 # eof ------------------------------------------------------------

@@ -12,6 +12,7 @@ interface
 uses
   beziercurve,
   curve,
+  glantialiasing,
   glimages,
   glmenu,
   glshaders,
@@ -35,6 +36,7 @@ uses
   shadowvolumeshelper,
   timemessages,
   {$ifdef UNIX}
+  kambiglx,
   kambixf86vmode,
   xlibutils
   {$endif UNIX}
