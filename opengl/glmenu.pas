@@ -1,5 +1,5 @@
 {
-  Copyright 2006,2007 Michalis Kamburelis.
+  Copyright 2006-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -650,7 +650,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils, Images, KambiFilesUtils,
+uses SysUtils, KambiUtils, Images, KambiFilesUtils, KambiClassUtils,
   BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages;
 
 procedure SliderFontInit;
