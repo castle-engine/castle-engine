@@ -630,7 +630,7 @@ procedure TGLWindow.InitWinSystemDepend;
       help do winapi. Wazne jest zeby przekazac wybrany PixelFormat. }
     KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
   end;
-(*
+
   procedure SetPixelFormat_WGLChoose;
   var
     WglExtensions: string;
@@ -744,7 +744,7 @@ procedure TGLWindow.InitWinSystemDepend;
       SetPixelFormat_ClassicChoose;
     end;
   end;
-*)
+
 var
   dwExStyle, dwStyle: dword;
   WindowRect, ClientRect: TRect;
@@ -824,10 +824,7 @@ begin
  h_Dc := GetDC(h_Wnd);
  Check ( h_Dc <> 0, 'GetDC failed');
 
- SetPixelFormat_ClassicChoose;
- { TODO: I want to use here
  SetPixelFormat_WGLChoose;
- as soon as I test it. Also, check then whether multisampling works on Windows. }
 
  if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
   raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
