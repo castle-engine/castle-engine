@@ -32,6 +32,7 @@ const
 
 type
   TAntiAliasing = Cardinal;
+  TAntiAliasingRange = 0..MaxAntiAliasing;
 
 var
   { Anti-aliasing level.
