@@ -202,7 +202,12 @@ begin
    ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
    zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
    GLWindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
-   glwm.Active .}
+   glwm.Active .
+
+   Moreover, temporary windows created by CreateTemporaryWindow in
+   SetPixelFormat_WGLChoose also get here (as they use our
+   Glwm.wndClassName). They don't set Get/SetWindowLongPtr, so Glwin here
+   will be @nil in this case. }
  if glwm.FindWindow(glwin) >= 0 then
   result := glwin.WindowProc(uMsg, wParm, lParm) else
   result := DefWindowProc(hWnd, uMsg, wParm, lParm);
@@ -616,8 +621,11 @@ procedure TGLWindow.InitWinSystemDepend;
       rzeczywiscie to co chcemy, a w przypadku AccumBufferBits nie bylismy nawet w stanie
       powiedziec tego co trzeba ChoosePixelFormat.
 
-      TODO:  na dluzsza mete dobrym rozwiazaniem bedzie tu zaimplementowanie samemu
-      przegladania dostepnych pixel formats i wybierania samemu najlepszego pixel format. }
+      In the future, I may switch to using SetPixelFormat_WGLChoose by default.
+      wglChoosePixelFormatARB makes CheckRequestedBufferAttributes not needed
+      (as wglChoosePixelFormatARB already sensibly guarantees that GL context will
+      satisfy appropriate limits).
+      So this un-elegant code below will not be used (on modern Windowses / GPUs). }
     DescribePixelFormat(h_Dc, PixelFormat, SizeOf(pfd), pfd);
     CheckRequestedBufferAttributes('ChoosePixelFormat',
       pfd.cStencilBits, pfd.cDepthBits, pfd.cAlphaBits,
@@ -633,116 +641,213 @@ procedure TGLWindow.InitWinSystemDepend;
 
   procedure SetPixelFormat_WGLChoose;
   var
+    Temp_h_GLRc: HGLRC;
+    Temp_h_Dc: HDC;
+    Temp_h_Wnd: HWND;
+
+    { We have to create temporary window, just to query wgl. It's useless to
+      call wglGetProcAddress without any GL context active.
+      Yes, I know, this is utterly stupid and brain-dead to create a window
+      just to query wgl extensions, but every OpenGL programmer has to do it
+      (if we want to use e.g. multisampling) --- congrats M$.
+
+      We create this temporary window with absolutely standard, minumum
+      properties --- ideally, any system (supporting OpenGL at all) should
+      be able to create our CreateTemporaryWindow. }
+
+    procedure DestroyTemporaryWindow; forward;
+
+    procedure CreateTemporaryWindow;
+    var
+      PixelFormat: LongInt;
+      pfd: Tpixelformatdescriptor;
+    begin
+      Temp_h_Wnd := 0;
+      Temp_h_Dc := 0;
+      Temp_h_GLRc := 0;
+
+      try
+        { create Temp_H_wnd }
+        Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
+          PChar(Glwm.wndClassName),
+          PChar(FCaption + ' - temporary window for wgl'),
+          WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+          0, 0, 100, 100,
+          0 { no parent window }, 0 { no menu }, hInstance,
+          nil { don't pass anything to WM_CREATE } );
+        Check( Temp_H_Wnd <> 0, 'CreateWindowEx failed');
+
+        { create Temp_h_Dc }
+        Temp_h_Dc := GetDC(Temp_h_Wnd);
+        Check ( Temp_h_Dc <> 0, 'GetDC failed');
+
+        { create and set PixelFormat (must support OpenGL to be able to
+          later do wglCreateContext) }
+        FillChar(pfd, SizeOf(pfd), 0);
+        with pfd do
+        begin
+          nSize := SizeOf(TPIXELFORMATDESCRIPTOR);
+          nVersion := 1;
+          dwFlags := PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL;
+          iPixelType := PFD_TYPE_RGBA;
+          iLayerType := PFD_MAIN_PLANE;
+        end;
+        PixelFormat := ChoosePixelFormat(Temp_h_Dc, pfd);
+        KambiOSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
+        KambiOSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
+
+        { create and make current Temp_h_GLRc }
+        Temp_h_GLRc := wglCreateContext(Temp_h_Dc);
+        KambiOSCheck( Temp_h_GLRc <> 0, 'wglCreateContext' );
+        KambiOSCheck( wglMakeCurrent(Temp_h_Dc, Temp_h_GLRc), 'wglMakeCurrent');
+      except
+        { make sure to finalize all partially initialized window parts }
+        DestroyTemporaryWindow;
+        raise;
+      end;
+    end;
+
+    procedure DestroyTemporaryWindow;
+    begin
+      if Temp_h_GLRc <> 0 then
+      begin
+        wglMakeCurrent(Temp_h_Dc, 0);
+        wglDeleteContext(Temp_h_GLRc);
+        Temp_h_GLRc := 0;
+      end;
+
+      if Temp_h_Dc <> 0 then
+      begin
+        ReleaseDC(Temp_h_Wnd, Temp_h_Dc);
+        Temp_h_Dc := 0;
+      end;
+
+      if Temp_h_Wnd <> 0 then
+      begin
+        DestroyWindow(Temp_h_Wnd);
+        Temp_h_Wnd := 0;
+      end;
+    end;
+
+  var
     WglExtensions: string;
+
+    { GLExt unit doesn't provide this (although it provides related
+      constants, like WGL_SAMPLE_BUFFERS_ARB). I like to check for this
+      explicitly. }
+    function Load_WGL_ARB_multisample: Boolean;
+    begin
+      Result := glext_ExtensionSupported('WGL_ARB_multisample', WglExtensions);
+    end;
+
+  var
     PixelFormat: LongInt;
     ReturnedFormats: UINT;
     VisualAttr: TDynLongIntArray;
     VisualAttrFloat: array [0..1] of Single;
     Success: WINBOOL;
   begin
-    { GLExt unit provides WGL extensions entry points, constants,
-      and ready Load_WGL_xxx functions. But Load_WGL_xxx functions have one
-      problem: they work with wglGetCurrentDC. I have no way to pass
-      to them my H_Dc.
+    CreateTemporaryWindow;
+    try
+      { Note: GLExt unit Load_Xxx procedures work with wglGetCurrentDC
+        (this is passed to wglGetExtensionsStringARB call).
+        That's Ok, this current context is set by our  CreateTemporaryWindow. }
 
-      So I just use entry points and constants from GLExt unit,
-      initializing them myself and checking for extension availability myself. }
-    Pointer(wglGetExtensionsStringARB) := wglGetProcAddress('wglGetExtensionsStringARB');
-    Pointer(wglGetPixelFormatAttribivARB) := wglGetProcAddress('wglGetPixelFormatAttribivARB');
-    Pointer(wglGetPixelFormatAttribfvARB) := wglGetProcAddress('wglGetPixelFormatAttribfvARB');
-    Pointer(wglChoosePixelFormatARB) := wglGetProcAddress('wglChoosePixelFormatARB');
-
-    if wglGetExtensionsStringARB <> nil then
-    begin
-      WglExtensions := wglGetExtensionsStringARB(H_Dc);
-      if Log then
-        WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
-
-      { We check is wglChoosePixelFormatARB assigned just to be absolutely sure
-        that it's really available (although checking WGL_ARB_pixel_format should
-        be enough). }
-
-      if glext_ExtensionSupported('WGL_ARB_pixel_format', WglExtensions) and
-         (wglChoosePixelFormatARB <> nil) then
+      if Load_WGL_ARB_extensions_string then
       begin
-        { Ok, wglChoosePixelFormatARB is available }
+        { Actually, there is no critical reason for me to check
+          WGL_ARB_extensions_string (as every other Load_WGL_Xxx will
+          check it for me anyway).
 
-        VisualAttr := TDynLongIntArray.Create;
-        try
-          VisualAttr.AllowedCapacityOverflow := 20;
-          VisualAttr.AppendArray([
-            WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-            WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-            { If indexed mode will be implemented in GLWindow one day, this can take
-              WGL_TYPE_COLORINDEX_ARB instead of WGL_TYPE_RGBA_ARB. }
-            WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-            WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
-          if DoubleBuffer then
-            VisualAttr.AppendArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
-          VisualAttr.AppendArray([
-            WGL_COLOR_BITS_ARB, ColorBits,
-            WGL_DEPTH_BITS_ARB, DepthBufferBits,
-            WGL_STENCIL_BITS_ARB, StencilBufferBits,
-            WGL_ALPHA_BITS_ARB, AlphaBits,
-            WGL_ACCUM_RED_BITS_ARB, AccumBufferBits[0],
-            WGL_ACCUM_GREEN_BITS_ARB, AccumBufferBits[1],
-            WGL_ACCUM_BLUE_BITS_ARB, AccumBufferBits[2],
-            WGL_ACCUM_ALPHA_BITS_ARB, AccumBufferBits[3] ]);
+          1. But I want to show WglExtensions for debug purposes.
+          2. And I want to implement Load_WGL_ARB_multisample, and reuse
+             my acquired WglExtensions there. }
 
-          if MultiSampling > 1 then
-          begin
-            if glext_ExtensionSupported('WGL_ARB_multisample', WglExtensions) then
-            begin
-              VisualAttr.AppendArray([
-                WGL_SAMPLE_BUFFERS_ARB, 1,
-                WGL_SAMPLES_ARB, MultiSampling ]);
-              if Log then
-                WritelnLog('MultiSampling', 'WGL_ARB_multisample supported, using multisampling');
-            end else
-              raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
-                'requested, but WGL_ARB_multisample not supported',
-                [MultiSampling]);
-          end;
+        WglExtensions := wglGetExtensionsStringARB(Temp_H_Dc);
+        if Log then
+          WritelnLog('wgl', 'wgl extensions: ' + WglExtensions);
 
-          { end of VisualAttr array }
-          VisualAttr.AppendArray([0, 0]);
-
-          FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
-
-          Success := wglChoosePixelFormatARB(H_Dc, @VisualAttr.Items[0],
-            @VisualAttrFloat[0], 1, @PixelFormat, @ReturnedFormats);
-        finally FreeAndNil(VisualAttr) end;
-
-        if Success and (ReturnedFormats >= 1) then
+        if Load_WGL_ARB_pixel_format then
         begin
-          { We could use wglGetPixelFormatAttribivARB (equivalent to "classic"
-            DescribePixelFormat) here to query context we got, and call
-            CheckRequestedBufferAttributes to check whether we really got what
-            we requested.
+          { Ok, wglChoosePixelFormatARB is available }
 
-            But we don't have to: wglChoosePixelFormatARB (see
-            [http://www.opengl.org/registry/specs/ARB/wgl_pixel_format.txt])
-            clearly specifies which limits are "exact", which are "minimum",
-            and we're actually perfectly satisfied with this.
+          VisualAttr := TDynLongIntArray.Create;
+          try
+            VisualAttr.AllowedCapacityOverflow := 20;
+            VisualAttr.AppendArray([
+              WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+              WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+              { If indexed mode will be implemented in GLWindow one day, this can take
+                WGL_TYPE_COLORINDEX_ARB instead of WGL_TYPE_RGBA_ARB. }
+              WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+              WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
+            if DoubleBuffer then
+              VisualAttr.AppendArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
+            VisualAttr.AppendArray([
+              WGL_COLOR_BITS_ARB, ColorBits,
+              WGL_DEPTH_BITS_ARB, DepthBufferBits,
+              WGL_STENCIL_BITS_ARB, StencilBufferBits,
+              WGL_ALPHA_BITS_ARB, AlphaBits,
+              WGL_ACCUM_RED_BITS_ARB, AccumBufferBits[0],
+              WGL_ACCUM_GREEN_BITS_ARB, AccumBufferBits[1],
+              WGL_ACCUM_BLUE_BITS_ARB, AccumBufferBits[2],
+              WGL_ACCUM_ALPHA_BITS_ARB, AccumBufferBits[3] ]);
 
-            So, we're done now :) Just set this pixel format. }
-          KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, nil), 'SetPixelFormat');
+            if MultiSampling > 1 then
+            begin
+              if Load_WGL_ARB_multisample then
+              begin
+                VisualAttr.AppendArray([
+                  WGL_SAMPLE_BUFFERS_ARB, 1,
+                  WGL_SAMPLES_ARB, MultiSampling ]);
+                if Log then
+                  WritelnLog('MultiSampling', 'WGL_ARB_multisample supported, using multisampling');
+              end else
+                raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
+                  'requested, but WGL_ARB_multisample not supported',
+                  [MultiSampling]);
+            end;
+
+            { end of VisualAttr array }
+            VisualAttr.AppendArray([0, 0]);
+
+            FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
+
+            Success := wglChoosePixelFormatARB(H_Dc, @VisualAttr.Items[0],
+              @VisualAttrFloat[0], 1, @PixelFormat, @ReturnedFormats);
+          finally FreeAndNil(VisualAttr) end;
+
+          if Success and (ReturnedFormats >= 1) then
+          begin
+            { We could use wglGetPixelFormatAttribivARB (equivalent to "classic"
+              DescribePixelFormat) here to query context we got, and call
+              CheckRequestedBufferAttributes to check whether we really got what
+              we requested.
+
+              But we don't have to: wglChoosePixelFormatARB (see
+              [http://www.opengl.org/registry/specs/ARB/wgl_pixel_format.txt])
+              clearly specifies which limits are "exact", which are "minimum",
+              and we're actually perfectly satisfied with this.
+
+              So, we're done now :) Just set this pixel format. }
+            KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, nil), 'SetPixelFormat');
+          end else
+            raise EGLContextNotPossible.CreateFmt(
+              'wglChoosePixelFormatARB: pixel format with requested attributes (%s) not found',
+              [ RequestedBufferAttributes ]);
         end else
-          raise EGLContextNotPossible.CreateFmt(
-            'wglChoosePixelFormatARB: pixel format with requested attributes (%s) not found',
-            [ RequestedBufferAttributes ]);
+        begin
+          if Log then
+            WritelnLog('wgl', 'WGL_ARB_pixel_format not available, using classic ChoosePixelFormat');
+          SetPixelFormat_ClassicChoose;
+        end;
       end else
       begin
         if Log then
-          WritelnLog('wgl', 'WGL_ARB_pixel_format not available, using classic ChoosePixelFormat');
+          WritelnLog('wgl', 'wglGetExtensionsStringARB not available, using classic ChoosePixelFormat');
         SetPixelFormat_ClassicChoose;
       end;
-    end else
-    begin
-      if Log then
-        WritelnLog('wgl', 'wglGetExtensionsStringARB not available, using classic ChoosePixelFormat');
-      SetPixelFormat_ClassicChoose;
-    end;
+    finally DestroyTemporaryWindow end;
   end;
 
 var
@@ -824,7 +929,20 @@ begin
  h_Dc := GetDC(h_Wnd);
  Check ( h_Dc <> 0, 'GetDC failed');
 
- SetPixelFormat_WGLChoose;
+ { Actually, everything is implemented such that I can just call
+   here SetPixelFormat_WGLChoose. SetPixelFormat_WGLChoose will eventually
+   fall back to SetPixelFormat_ClassicChoose, if needed.
+
+   For now, SetPixelFormat_ClassicChoose is simply more tested, and
+   SetPixelFormat_WGLChoose is needed only in case of multi-sampling.
+   So, to play it safe, for view3dscene 2.4.0 and engine 1.3.0 release
+   I just call SetPixelFormat_WGLChoose only if multisampling is requested.
+
+   So in the future I may simplify this "if" to just call SetPixelFormat_WGLChoose
+   always. }
+ if MultiSampling > 1 then
+   SetPixelFormat_WGLChoose else
+   SetPixelFormat_ClassicChoose;
 
  if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
   raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
