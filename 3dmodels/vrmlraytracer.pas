@@ -188,7 +188,7 @@ type
   end;
 
   { Classic Whitted-style ray-tracer.
-    See [http://stoma.name/michalis/vrml_engine_doc/output/xsl/html/ch04s02.html]
+    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch04s02.html]
     for documentation.
 
     Make sure that VRML2ActiveLights are properly initialized if you
@@ -212,7 +212,7 @@ type
   end;
 
   { Path tracer. See
-    [http://stoma.name/michalis/vrml_engine_doc/output/xsl/html/ch04s03.html]
+    [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch04s03.html]
     for documentation. }
   TPathTracer = class(TRayTracer)
   public
