@@ -840,7 +840,7 @@ function VectorProduct(const v1, v2: TVector3Double): TVector3Double; overload;
 function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
 
 { Dot product (aka scalar product) of two vectors.
-  @grouupBegin }
+  @groupBegin }
 function VectorDotProduct(const v1, v2: TVector3Single): Single; overload;
 function VectorDotProduct(const v1, v2: TVector3Double): Double; overload;
 function VectorDotProduct(const v1, v2: TVector4Single): Single; overload;

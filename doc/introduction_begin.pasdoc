@@ -165,17 +165,17 @@ units are allowed to be used by units in specific group.
 @definitionList(
   @itemLabel @code(base)
   @item(
-    These units provide some basic functions and classes,
-    in many cases OS-specific.
-    Most important are KambiUtils, KambiClassUtils units which are
-    large units that contain many small and useful things.
+    These units provide some basic functions and classes.
+    Some units hide OS-specific issues.
+    Most important are KambiUtils, KambiClassUtils, KambiFilesUtils and
+    other Kambi*Utils units which contain many useful routines.
 
     There are also some templates
     (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
-    and their duplicated versions in templates/ subdirectory).
+    and their automatically duplicated versions in templates/ subdirectory).
 
     There are also units for parsing and evaluating mathematical expressions
-    (MathExprLexer, MathExprParser, MathExpr), unit ParsingPars
+    (MathExprLexer, MathExprParser, MathExpr), unit @link(ParseParametersUnit)
     for command-line parsing, VectorMath unit with a lot of primitive
     geometry types and functions. And some more.
 
@@ -184,17 +184,24 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(audio)
   @item(
-    These are my audio units. OpenAL header translation (@link(OpenAL)),
-    OpenAL helper routines (ALUtils), simple WAV file reader (SoundWAV).
+    These are my audio units.
+    OpenAL header translation (@link(KambiOpenAL)),
+    OpenAL helper routines (@link(ALUtils)),
+    sound file formats (currently, WAV and OggVorbis) reader (@link(SoundFile)),
+    smart sound sources allocator (@link(ALSourceAllocator))
+    and finally some high-level class to comfortably
+    use this whole thing (@link(GameSoundEngine)).
 
     @italic(Uses:) @code(base).)
 
   @itemLabel @code(images)
   @item(
     This is my @link(Images) unit to load images to 2d pixel arrays.
+    Also an image cache (@link(ImagesCache)) unit, to help avoiding the same
+    images more than once (which is important e.g. when loading game textures).
     Also some things to handle PasJPEG.
-    Also my binding to libpng library (KambiPng)
-    and some helpers (KambiPngUtils).
+    Also my binding to libpng library (@link(KambiPng))
+    and some helpers (@link(KambiPngUtils)).
 
     @italic(Uses:) @code(base).)
 
@@ -214,7 +221,10 @@ units are allowed to be used by units in specific group.
     @italic(Not) dependent on OpenGL and @italic(not) doing anything
     closely related to "processing 3d models".
     These units make some base for units in @code(opengl) and @code(3dmodels)
-    groups. BackgroundBase, MatrixNavigation, SpaceFillingCurves etc.
+    groups. Operating on axis-aligned bounding boxes (Boxes3d),
+    loading skyboxes (BackgroundBase), navigation in 3D world
+    (MatrixNavigation), ray-tracer helpers (SpaceFillingCurves and
+    SphereSampling) etc.
 
     Note: VectorMath unit is considered by me as something more general and
     useful --- so it's in @code(base) group, not here.
@@ -223,11 +233,13 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(opengl)
   @item(
-    Basic units that use OpenGL. OpenGL header (OpenGLh unit),
+    Basic units that use OpenGL.
     GLWindow unit (something like "my glut (with many many enhancements)"),
     OpenGL fonts --- bitmap (OpenGLBmpFonts) and outline (OpenGLTTFonts),
-    various OpenGL helpers (KambiGLUtils, TimeMessages, ProgresGL,
-    GLWinMessages, GLWinInputs).
+    various OpenGL helpers (KambiGLUtils), handling OpenGL images and textures
+    (GLImages), progress bar display in OpenGL window (ProgressGL),
+    messages (GLWinMessages, TimeMessages, GLWinInputs),
+    helpers for shadows (ShadowVolumesHelper) and anti-aliasing (GLAntiAliasing).
 
     @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts).)
 
@@ -237,8 +249,9 @@ units are allowed to be used by units in specific group.
     VRML file reading, writing and processing (VRMLLexer, VRMLFields,
     VRMLNodes), building and using octree based on VRML model (VRMLOctree),
     ray-tracer based on VRML model (VRMLRayTracer),
-    other 3d model formats reading (Object3dGEO, Object3ds, Object3dOBJ)
-    and converting to VRML (Object3dAsVRML).
+    loading animations (VRMLAnimation),
+    other 3d model formats reading (Object3dGEO, Object3ds, Object3dOBJ,
+    ColladaToVRML), and converting to VRML (Object3dAsVRML).
 
     These units do @italic(not) depend on OpenGL.
 
@@ -251,8 +264,10 @@ units are allowed to be used by units in specific group.
     and @code(3dmodels) groups.
 
     First of all, that's VRMLFlatSceneGL unit that provides
-    the most final and complete class for dealing with VRML models and
-    displaying them in OpenGL.
+    the most final and complete class for dealing with static VRML models and
+    displaying them in OpenGL. And there's VRMLGLAnimation, that
+    provides the same thing, but for animations (actually using
+    VRMLFlatSceneGL underneath).
 
     @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts),
       @code(opengl), @code(3dmodels).)

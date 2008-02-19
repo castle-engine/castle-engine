@@ -21,13 +21,13 @@
 { @abstract(A set of general utilities for working with OpenAL.)
 
   This unit provides many comfortable utilities to work with OpenAL.
-  Everything is based on my OpenAL binding in unit @link(OpenAL).
+  Everything is based on my OpenAL binding in unit KambiOpenAL.
   Most important things are BeginAL and EndAL
   procedures for initializing / releasing OpenAL context.
   Also TALSoundFile class is useful to load files into
   OpenAL buffers.
 
-  This unit does @italic(not) use alut* functions from @link(OpenAL),
+  This unit does @italic(not) use alut* functions from KambiOpenAL,
   so your programs will not depend on existence of alut*
   functions in some library. You can define symbol USE_ALUT
   and recompile this unit to use alut* functions, but this
@@ -35,7 +35,7 @@
   unit provides a superset of alut functionality.
 
   When you're using this unit, you shouldn't use any alc*
-  functions and alutInit/alutExit functions from @link(OpenAL).
+  functions and alutInit/alutExit functions from KambiOpenAL.
   The rule is that this unit takes care about such things.
 }
 
@@ -189,7 +189,7 @@ function OpenALOptionsHelp(PrintALCDeviceAsDefault: boolean): string;
 var
   { @true means that you successfully called [Try]BeginAL and you didn't
     call EndAL after it. In other words, this means that you have
-    active OpenAL context (and @link(OpenAL) functions are available,
+    active OpenAL context (and KambiOpenAL functions are available,
     i.e. @link(ALInited) is true and maybe even @link(ALUTInited) = true,
     if you passed CheckForAlut = true to BeginAL). }
   ALActive: boolean = false;
