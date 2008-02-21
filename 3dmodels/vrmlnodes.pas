@@ -2445,6 +2445,8 @@ const
   DefaultHeightMapScale = 0.01;
   DefaultVRML1CreaseAngle = 0.5;
 
+  DefaultViewpointFieldOfView = Pi / 4;
+
 { TODO: these Detail parameters below should depend on object's distance
   from viewer. But there is a problem : we need those parameters defined
   when implementing Vertices/TrianglesCount and Triangulate. }

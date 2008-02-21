@@ -4201,7 +4201,7 @@ constructor TNodeViewpoint.Create(
 begin
   inherited;
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
-  Fields.Add(TSFFloat.Create('fieldOfView', 0.785398)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView)); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFString.Create('description', ''));
   Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
