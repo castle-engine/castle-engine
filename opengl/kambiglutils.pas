@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1016,6 +1016,33 @@ var
     glColorMask(Writeable, Writeable, Writeable, Writeable);
   #) }
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
+
+{ Sets raster position in window coordinates, also the raster position
+  is never clipped.
+
+  This is similar to glWindowPos and actually will simply call
+  glWindowPos if available (if GL version >= 1.4 or ARB_window_pos or
+  MESA_window_pos).
+
+  If not available, it will fall back on a simple
+  implementation that sets identity to projection and modelview and
+  sets a special viewport (setting special viewport means that
+  we can avoid clipping the raster pos, also it means that you
+  don't have to pass here parameters like window width/height --- viewport
+  will appropriately map to your window coordinates).
+
+  What happens to depth value is not specified (although OpenGL
+  ARB_window_pos specifies it, we don't want to specify it,
+  to be able to pull our simple implementation when ARB_window_pos
+  is not available).
+
+  SetWindowPosZero is just a slightly optimized shortcut for SetWindowPos(0, 0).
+
+  @groupBegin }
+procedure SetWindowPos(const X, Y: TGLfloat); overload;
+procedure SetWindowPos(const X, Y: TGLint); overload;
+procedure SetWindowPosZero;
+{ @groupEnd }
 
 {$undef read_interface}
 
@@ -2322,6 +2349,91 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 begin
   glDepthMask(Writeable);
   glColorMask(Writeable, Writeable, Writeable, Writeable);
+end;
+
+procedure SetWindowPos_HackBegin;
+begin
+  { Idea how to implement this --- see
+    [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
+
+  glPushAttrib(GL_TRANSFORM_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix;
+      glLoadIdentity;
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix;
+        glLoadIdentity;
+end;
+
+procedure SetWindowPos_HackEnd;
+begin
+      glPopMatrix;
+      glMatrixMode(GL_PROJECTION);
+    glPopMatrix;
+  glPopAttrib;
+end;
+
+procedure SetWindowPos(const X, Y: TGLfloat);
+begin
+  if GL_version_1_4 then
+  begin
+    glWindowPos2f(X, Y);
+    { tests: Writeln('using std'); }
+  end else
+  if GL_ARB_window_pos then
+  begin
+    glWindowPos2fARB(X, Y);
+    { tests: Writeln('using ARB'); }
+  end else
+  if GL_MESA_window_pos then
+  begin
+    glWindowPos2fMESA(X, Y);
+    { tests: Writeln('using MESA'); }
+  end else
+  begin
+    SetWindowPos_HackBegin;
+
+    glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
+    glRasterPos4f(Frac(X), Frac(Y), 0, 1);
+
+    SetWindowPos_HackEnd;
+  end;
+end;
+
+procedure SetWindowPos(const X, Y: TGLint);
+begin
+  if GL_version_1_4 then
+    glWindowPos2i(X, Y) else
+  if GL_ARB_window_pos then
+    glWindowPos2iARB(X, Y) else
+  if GL_MESA_window_pos then
+    glWindowPos2iMESA(X, Y) else
+  begin
+    SetWindowPos_HackBegin;
+
+    glViewport(X - 1, Y - 1, 2, 2);
+    glRasterPos2i(0, 0);
+
+    SetWindowPos_HackEnd;
+  end;
+end;
+
+procedure SetWindowPosZero;
+begin
+  if GL_version_1_4 then
+    glWindowPos2i(0, 0) else
+  if GL_ARB_window_pos then
+    glWindowPos2iARB(0, 0) else
+  if GL_MESA_window_pos then
+    glWindowPos2iMESA(0, 0) else
+  begin
+    SetWindowPos_HackBegin;
+
+    glViewport(-1, -1, 2, 2);
+    glRasterPos2i(0, 0);
+
+    SetWindowPos_HackEnd;
+  end;
 end;
 
 initialization
