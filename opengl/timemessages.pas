@@ -40,7 +40,7 @@ unit TimeMessages;
 interface
 
 uses GL, GLU, GLExt, GLWindow, Classes, SysUtils, KambiUtils, KambiGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils;
+  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath;
 
 {$define read_interface}
 
@@ -78,6 +78,7 @@ type
     FDisplayPixelWidth: integer;
     FMessageFont: TGLBitmapFont_Abstract;
     procedure PostRedisplayMessages;
+    FColor: TVector3Single;
   public
     { ile messagy mo¿e byc maksymalnie na ekranie }
     maxMessagesCount: integer; { =10 }
@@ -135,6 +136,9 @@ type
       is usefull. }
     function DrawNeeded: boolean;
 
+    { Color used to draw messages. Default value is yellow. }
+    property Color: TVector3Single read FColor write FColor;
+
     { Font used to draw messages. Read-only for now, in the future
       you should be allowed to change it. }
     property MessageFont: TGLBitmapFont_Abstract read FMessageFont;
@@ -151,7 +155,7 @@ type
 
 implementation
 
-uses BFNT_BitstreamVeraSans_Unit, VectorMath, KambiLog;
+uses BFNT_BitstreamVeraSans_Unit, KambiLog;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -175,6 +179,7 @@ begin
  FDisplayPixelWidth := ADisplayPixelWidth;
 
  FMessageFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+ FColor := Yellow3Single;
 end;
 
 destructor TTimeMessagesManager.Destroy;
@@ -246,7 +251,7 @@ var i: integer;
     x, y: integer;
 begin
  glLoadIdentity;
- glColorv(Yellow3Single);
+ glColorv(Color);
  for i := 0 to Messages.Count-1 do
  begin
   {ustal x wzgledem 0..PixelWidth, potem zamien to na 0..GLMaxX}
