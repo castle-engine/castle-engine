@@ -33,6 +33,11 @@ type
     constructor CreateFmt(const S: string; const Args: array of const);
   end;
 
+  TAnimationChangeLoadParametersFunc = procedure (
+    var ScenesPerTime: Cardinal;
+    var Optimization: TGLRendererOptimization;
+    var EqualityEpsilon: Single) of object;
+
   { This is an animation of VRML model done by interpolating between
     any number of model states.
 
@@ -200,23 +205,28 @@ type
       File format is described on
       [http://vrmlengine.sourceforge.net/kanim_format.php].
 
-      Note that after such animation is loaded, you cannot change
-      some of it's rendering parameters like ScenesPerTime and AOptimization
-      --- they are already set as specified in the file.
-      If you need more control from your program's code,
+      You can change some of the loaded parameters by providing ChangeLoadParameters
+      callback (you can provide @nil, if you don't want to change them).
+      ChangeLoadParameters callback is the only way to change some animation rendering
+      parameters, like ScenesPerTime and AOptimization
+      --- after LoadFromFile finished, animation is fully loaded and
+      these parameters cannot be changed anymore.
+
+      If you need more control than simple ChangeLoadParameters callback,
       you should use something more flexible (and less comfortable to use)
       like LoadFromFileToVars class procedure.
 
-      Note that you can change TimeLoop and TimeBackwards --- since these
+      Note that you can always change TimeLoop and TimeBackwards --- since these
       properties are writeable at any time.
 
-      Loaded changes to @true. }
-    procedure LoadFromFile(const FileName: string);
+      @link(Loaded) property changes to @true after calling this. }
+    procedure LoadFromFile(const FileName: string;
+      ChangeLoadParameters: TAnimationChangeLoadParametersFunc = nil);
 
     { This releases all resources allocared by Load (or LoadFromFile).
-      Loaded changes to @false.
+      @link(Loaded) property changes to @false after calling this.
 
-      It's safe to call this even if Loaded is already @false --- then
+      It's safe to call this even if @link(Loaded) is already @false --- then
       this will do nothing. }
     procedure Close;
 
@@ -960,7 +970,8 @@ begin
   finally FreeAndNil(RootNodes) end;
 end;
 
-procedure TVRMLGLAnimation.LoadFromFile(const FileName: string);
+procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
+  ChangeLoadParameters: TAnimationChangeLoadParametersFunc);
 var
   { Vars from LoadFromFileToVars }
   ModelFileNames: TDynStringArray;
@@ -983,6 +994,9 @@ begin
 
     LoadFromFileToVars(FileName, ModelFileNames, Times,
       ScenesPerTime, AOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
+
+    if Assigned(ChangeLoadParameters) then
+      ChangeLoadParameters(ScenesPerTime, AOptimization, EqualityEpsilon);
 
     Assert(ModelFileNames.Length = Times.Length);
     Assert(ModelFileNames.Length >= 1);

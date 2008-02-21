@@ -290,7 +290,8 @@ type
     function GetViewpointCore(
       const OnlyPerspective: boolean;
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      const ViewpointDescription: string):
       TNodeGeneralViewpoint;
 
     FManifoldEdges: TDynManifoldEdgeArray;
@@ -511,11 +512,16 @@ type
       default true;
 
     { GetViewpoint and GetPerspectiveViewpoint return the properties
-      of first defined Viewpoint in VRML file, or some default viewpoint
+      of the defined Viewpoint in VRML file, or some default viewpoint
       properties if no viewpoint is defined in file. They seek for
       nodes Viewpoint (for VRML 2.0), PerspectiveCamera and OrthographicCamera
-      (for VRML 1.0) in scene graph. GetPerspectiveViewpoint omits
-      OrthographicCamera.
+      (for VRML 1.0) in scene graph.
+
+      GetPerspectiveViewpoint omits OrthographicCamera.
+
+      If ViewpointDescription = '', they return the first found Viewpoint.
+      Otherwise, they look for Viewpoint with description field mathing
+      given string.
 
       Jezeli VRML posiada node kamery
       zdefiniowany w aktywnej czesci swojego grafu to oblicza swoje zmienne
@@ -539,11 +545,13 @@ type
       @groupBegin }
     function GetViewpoint(
       out CamKind: TVRMLCameraKind;
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      const ViewpointDescription: string = ''):
       TNodeGeneralViewpoint;
 
     function GetPerspectiveViewpoint(
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single):
+      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      const ViewpointDescription: string = ''):
       TNodeGeneralViewpoint;
     { @groupEnd }
 
@@ -1143,6 +1151,7 @@ type
 
   TFirstViewpointSeeker = class
     OnlyPerspective: boolean;
+    ViewpointDescription: string;
     FoundNode: TNodeGeneralViewpoint;
     FoundTransform: PMatrix4Single;
     procedure Seek(Node: TNodeGeneralViewpoint;
@@ -1153,7 +1162,11 @@ type
     Node: TNodeGeneralViewpoint;
     const Transform: TMatrix4Single);
   begin
-    if (not OnlyPerspective) or (Node.CameraKind = ckPerspective) then
+    if ( (not OnlyPerspective) or
+         (Node.CameraKind = ckPerspective) ) and
+       ( (ViewpointDescription = '') or
+         ( (Node is TNodeViewpoint) and
+           (TNodeViewpoint(Node).FdDescription.Value = ViewpointDescription) ) ) then
     begin
       FoundTransform^ := Transform;
       FoundNode := Node;
@@ -1164,7 +1177,8 @@ type
 function TVRMLFlatScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  const ViewpointDescription: string): TNodeGeneralViewpoint;
 var
   CamTransform: TMatrix4Single;
   Seeker: TFirstViewpointSeeker;
@@ -1173,6 +1187,7 @@ begin
   Seeker := TFirstViewpointSeeker.Create;
   try
     Seeker.OnlyPerspective := OnlyPerspective;
+    Seeker.ViewpointDescription := ViewpointDescription;
     Seeker.FoundTransform := @CamTransform;
     try
       EnumerateViewpoints({$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
@@ -1201,17 +1216,21 @@ end;
 
 function TVRMLFlatScene.GetViewpoint(
   out CamKind: TVRMLCameraKind;
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  const ViewpointDescription: string): TNodeGeneralViewpoint;
 begin
-  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp, GravityUp);
+  Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp, GravityUp,
+    ViewpointDescription);
 end;
 
 function TVRMLFlatScene.GetPerspectiveViewpoint(
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single): TNodeGeneralViewpoint;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  const ViewpointDescription: string): TNodeGeneralViewpoint;
 var
   CamKind: TVRMLCameraKind;
 begin
-  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp, GravityUp);
+  Result := GetViewpointCore(true, CamKind, CamPos, CamDir, CamUp, GravityUp,
+    ViewpointDescription);
   Assert(CamKind = ckPerspective);
 end;
 
