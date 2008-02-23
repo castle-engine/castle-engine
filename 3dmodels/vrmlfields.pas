@@ -2179,7 +2179,15 @@ end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3Single): TVector3Single;
 begin
- result := RotatePointAroundAxisRad(RotationRad, pt, Axis);
+  if not IsZeroVector(Axis) then
+    Result := RotatePointAroundAxisRad(RotationRad, pt, Axis) else
+  begin
+    { Safeguard against rotation around zero vector, which produces unpredictable
+      results (actually, Result would be filled with Nan values).
+      VRML spec says that SFRotation should always specify a normalized vector. }
+    Result := Pt;
+    VRMLNonFatalError('SFRotation field specifies rotation around zero vector');
+  end;
 end;
 
 function TSFRotation.Equals(SecondValue: TVRMLField;
