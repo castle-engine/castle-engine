@@ -1,12 +1,12 @@
 In this directory you can find a couple of Lazarus packages that allow
-to easily use my units in Lazarus programs.
+to easily use Kambi VRML game engine in Lazarus programs.
 
 ----------------------------------------
 I. Packages without components:
 
 Usage:
 
-  1. Open wanted kambi_*.lpk file in Lazarus and compile the package.
+  1. Open wanted kambi_xxx.lpk file in Lazarus and compile the package.
 
   2. When you want to use the units included in kambi_xxx.lpk
      in your program, just add this kambi_xxx package
@@ -19,59 +19,48 @@ Usage:
      appropriate -Fu command-line options for FPC so that FPC
      "sees" units in the package when compiling your program.
 
-What kambi_*.lpk packages are *not*:
+Mini-FAQ about these packages:
 
-  These are only useful to compile my units and use them nicely and cleanly
-  in your Lazarus programs. This is not needed if you don't use
-  Lazarus. Units in this directory don't use any Lazarus units,
-  so you don't need to have Lazarus to compile and run them.
-  You need only FPC. If you don't want to use Lazarus with my units,
-  use ../Makefile to compile all units and use compile.sh scripts
-  to compile each particular program. If you need more flexibility,
-  take a look at ../../kambi.cfg, this specifies actual options
-  used by ../Makefile and all compile.sh scripts.
+- When compiling kambi_glwindow package, I'm getting error indicating that
+  KambiStringUtils unit must be recompiled.
 
-  These packages are *not* intended to be installed in Lazarus.
-  You are supposed to simply use these packages in your programs.
-  You could install them, but there's no reason and no benefit for this
-  (no components will be registered etc.) --- unless you will also install
-  kambi_components package.
+  I don't know the source of this problem, but the workaround is simple:
+  recompile kambi_units package explicitly, and then proceed to compiling
+  kambi_glwindow.
 
-Why there are a couple of packages --- kambi_units, kambi_glwindow etc. :
+  In other words, it may be needed to compile kambi_units package twice in a row
+  for everything to work Ok.
 
-  Because some units do in their "initialization" and "finalization"
-  sections some things that you *do not* want to be done in each
-  program that uses my units.
+- Do I need Lazarus to compile Kambi VRML game engine ?
 
-  The base package is "kambi_units", this is "almost safe"
-  package that doesn't do anything special in it's initialization:
+  No. Packages here are provided to easily compile and use the engine
+  with Lazarus. But actually units in kambi_vrml_game_engine don't use
+  any Lazarus units (LCL) (besides Lazarus-specific components in components/
+  subdirectory, but there's not much for now).
 
-  - OpenGLh unit loads OpenGL library, and fails if OpenGL is not available.
-    This also changes 8087 control word (trick needed to avoid floating
-    point exceptions with most OpenGL implementations, needed on both Windows
-    and Linux --- so actually probably everywhere).
+  So all you actually need is bare FPC installation.
+  Use kambi_vrml_game_engine/Makefile to compile all units and use compile.sh
+  scripts to compile each particular program. If you need more flexibility,
+  take a look at kambi_vrml_game_engine/kambi.cfg, this specifies actual options
+  used by kambi_vrml_game_engine/Makefile and all compile.sh scripts.
 
-  - OpenAL, KambiZlib, KambiPng units load OpenAL, zlib, png
-    libraries (but they don't fail if these libraries don't exist).
+- Should I install these packages ?
 
-  The package "kambi_glwindow" includes GLWindow unit,
-  which means that merely using this package will cause the program
-  to initialize TGLWindowManager class --- this initiates some talk
-  with WindowManager, GTK toolkit, etc. So use this package only
-  if you really want to use GLWindow unit.
+  Usually, no. Unless you also install kambi_components package (see section below),
+  in which case installing kambi_components will require installing also
+  kambi_units package.
 
-  The package "kambi_glwindow_navigated" includes GLW_Navigated unit,
-  this actually creates TGLWindowNavigated instance in it's
-  initialization section.
+  If you don't want kambi_components, then there's no point in installing
+  kambi_units package (kambi_units doesn't register any components etc.).
 
-Some internal notes:
+  For kambi_glwindow_* packages: you even *should not* install them in Lazarus.
+  These packages use GLWindow unit, and merely using this unit
+  will cause the program to initialize TGLWindowManager class --- this initiates
+  some talk with WindowManager, GTK toolkit, etc. You usually don't want your Lazarus
+  installation to do this.
 
-  Useful regexp when synching windows version with unix version:
-    From \.\./\.\./\([.a-z0-9A-Z]*\)/
-    To ..\\..\\\1\\
-
-  Remember to put subpaths unix/ and windows/ only in according version
-  of the package.
+  So kambi_glwindow_* packages are supposed only to be used (that is, required
+  by other projects), never installed in Lazarus.
 
 ----------------------------------------
 II. Package with components (components/kambi_components package):
