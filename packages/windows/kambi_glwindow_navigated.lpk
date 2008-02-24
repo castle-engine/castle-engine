@@ -11,10 +11,23 @@
         <OtherUnitFiles Value="..\..\opengl\"/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <CStyleMacros Value="True"/>
+          <UseAnsiStrings Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
       <CodeGeneration>
+        <Checks>
+          <IOChecks Value="True"/>
+        </Checks>
         <Generate Value="Faster"/>
       </CodeGeneration>
       <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
@@ -30,11 +43,11 @@ This unit cannot be installed under Lazarus, it's only for being used in other p
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">
       <Item1>
-        <PackageName Value="FCL"/>
-        <MinVersion Major="1" Valid="True"/>
+        <PackageName Value="kambi_glwindow"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_glwindow"/>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
       </Item2>
     </RequiredPkgs>
     <UsageOptions>
