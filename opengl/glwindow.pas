@@ -352,6 +352,12 @@ unit GLWindow;
     - Menu mnemonics are not implemented.
       They are simply removed when Caption is displayed.
     - CustomCursor is not implemented. Cursor = gcCursor is treated like gcDefault.
+
+  GLWINDOW_TEMPLATE
+    This is a special dummy implementation, useful only as an example for programmers
+    that want to implement another GLWindow backend (e.g. based on Mac OS X Carbon).
+    It compiles, but actually nothing works --- file glwindow_implementation_template.inc
+    is just a dummy implementation with TO-DO marks that you should fill.
 }
 
 { If GLWindow implementation is not choosen at this point, choose
@@ -370,12 +376,14 @@ unit GLWindow;
        { $define GLWINDOW_GTK_2}
        { $define GLWINDOW_GTK_1}
        { $define GLWINDOW_GLUT}
+       { $define GLWINDOW_TEMPLATE}
      {$endif}
      {$ifdef UNIX}
        {$define GLWINDOW_GTK_2}
        { $define GLWINDOW_GTK_1}
        { $define GLWINDOW_XLIB}
        { $define GLWINDOW_GLUT}
+       { $define GLWINDOW_TEMPLATE}
      {$endif}
     {$endif}
    {$endif}
@@ -501,6 +509,7 @@ unit GLWindow;
 {$ifdef GLWINDOW_WINAPI}  {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
 {$ifdef GLWINDOW_XLIB}    {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
 {$ifdef GLWINDOW_GTK_ANY} {$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
+{$ifdef GLWINDOW_TEMPLATE}{$define GLWINDOW_HAS_PROCESS_MESSAGE} {$endif}
 
 { Does implementation implement TryVideoChange and VideoReset methods ?
   (if this will not be defined, we will use TryVideoChange that always

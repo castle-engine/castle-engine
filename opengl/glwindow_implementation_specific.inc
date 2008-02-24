@@ -25,3 +25,7 @@
 {$ifdef GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
   {$I glwindow_private_modifiers_down.inc}
 {$endif}
+
+{$ifdef GLWINDOW_TEMPLATE}
+  {$I glwindow_implementation_template.inc}
+{$endif}

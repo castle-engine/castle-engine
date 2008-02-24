@@ -1,5 +1,5 @@
 {
-  Copyright 2004 Michalis Kamburelis.
+  Copyright 2004,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -16,6 +16,8 @@
   You should have received a copy of the GNU General Public License
   along with "Kambi VRML game engine"; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
 }
 
 {$ifdef read_tglwindow_private}
@@ -28,100 +30,144 @@
 
 {$ifdef read_implementation}
 
-{ TGLWindow ---------------------------------------- }
+{ TGLWindow ------------------------------------------------------------------ }
 
 procedure TGLWindow.MainMenuChangedImplDepend;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindow.SwapBuffers;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindow.InitImplDepend;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindow.PostRedisplay;
 begin
- if not Closed then TODO
+  if not Closed then { TODO };
 end;
 
-procedure TGLWindow.SetCaption(const Value:string);
+procedure TGLWindow.SetCaption(const Value: string);
 begin
- FCaption:=Value;
- if not Closed then TODO
+  FCaption := Value;
+  if not Closed then { TODO };
 end;
 
 procedure TGLWindow.CloseImplDepend;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindow.MakeCurrent;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindow.CreateImplDepend;
 begin
- TODO
+  { TODO }
 end;
 
-function TGLWindow.FlushRedisplay:boolean;
+procedure TGLWindow.FlushRedisplay;
 begin
- TODO
+  { TODO }
 end;
 
-{ TGLWindow.*Dialog --------------------------------------------------- }
-
-function TGLWindow.FileDialog(const Title:string; var FileName:string;
-  OpenDialog:boolean):boolean;
+procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);
 begin
- TODO
+  if FCursor <> Value then
+  begin
+    FCursor := Value;
+    if not Closed then
+      { TODO UpdateCursor };
+  end;
 end;
 
-function TGLWindow.ColorDialog(var Color:TVector3Single):boolean;
+procedure TGLWindow.SetCustomCursor(const Value: TAlphaImage);
 begin
- TODO
+  { TODO }
+  FCustomCursor := Value;
 end;
 
-{ TGLWindowsManager ------------------------------------------- }
+function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+begin
+  Result := { TODO } true;
+end;
+
+procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  { TODO }
+end;
+
+{ TGLWindow.*Dialog ---------------------------------------------------------- }
+
+function TGLWindow.FileDialog(const Title: string; var FileName: string;
+  OpenDialog: boolean): boolean;
+begin
+  { TODO }
+end;
+
+function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+begin
+  { TODO }
+end;
+
+{ TGLWindowsManager ---------------------------------------------------------- }
+
+{ Note: you can avoid implementing ProcessMessage and ProcessAllMessages
+  if you don't define GLWINDOW_HAS_PROCESS_MESSAGE for your backend.
+  But it's a good idea to try to implement them, as they allow some
+  other features, like GLWinModes and GLWinMessages. }
+
+function TGLWindowsManager.ProcessMessage(AllowSuspend: boolean): boolean;
+begin
+  { TODO }
+end;
+
+function TGLWindowsManager.ProcessAllMessages: boolean;
+begin
+  { TODO }
+end;
 
 procedure TGLWindowsManager.Loop;
-begin 
- TODO
+begin
+  { TODO }
 end;
 
 procedure TGLWindowsManager.QuitWhenNoWindowsActive;
 begin
- TODO
+  { TODO }
 end;
 
 procedure TGLWindowsManager.CreateImplDependent;
 begin
+  { TODO }
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
 begin
+  { TODO }
 end;
 
-function TGLWindowsManager.ScreenWidth:integer;
-begin 
- TODO
-end;
-
-function TGLWindowsManager.ScreenHeight:integer;
-begin 
- TODO
-end;
-
-function TGLWindowsManager.ImplementationName:string;
+function TGLWindowsManager.ScreenWidth: integer;
 begin
- Result:=TODO;
+  { TODO }
+end;
+
+function TGLWindowsManager.ScreenHeight: integer;
+begin
+  { TODO }
+end;
+
+function TGLWindowsManager.ImplementationName: string;
+begin
+  { TODO }
+  Result := 'My Implementation';
 end;
 
 {$endif read_implementation}
