@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="3">
+    <PathDelim Value="\"/>
+    <Name Value="kambi_glwindow"/>
+    <Author Value="Michalis Kamburelis"/>
+    <CompilerOptions>
+      <Version Value="5"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <IncludeFiles Value="..\..\opengl\windows\"/>
+        <OtherUnitFiles Value="..\..\opengl\;..\..\opengl\windows\"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <CStyleMacros Value="True"/>
+          <UseAnsiStrings Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Checks>
+          <IOChecks Value="True"/>
+        </Checks>
+        <Generate Value="Faster"/>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Kambi VRML game engine - GLWindow and units using it.
+This unit cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources.
+"/>
+    <License Value="GNU GPL >= 2"/>
+    <Files Count="10">
+      <Item1>
+        <Filename Value="..\..\opengl\glwindow.pas"/>
+        <UnitName Value="GLWindow"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\opengl\timemessages.pas"/>
+        <UnitName Value="TimeMessages"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\opengl\glwininputs.pas"/>
+        <UnitName Value="GLWinInputs"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\..\opengl\glwinmessages.pas"/>
+        <UnitName Value="GLWinMessages"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\..\opengl\glwinmodes.pas"/>
+        <UnitName Value="GLWinModes"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\..\opengl\progressgl.pas"/>
+        <UnitName Value="ProgressGL"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\..\opengl\glwindowrecentmenu.pas"/>
+        <UnitName Value="GLWindowRecentMenu"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\opengl\glmenu.pas"/>
+        <UnitName Value="GLMenu"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\..\opengl\glsoundmenu.pas"/>
+        <UnitName Value="GLSoundMenu"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\..\opengl\windows\glwindowwinapimenu.pas"/>
+        <UnitName Value="GLWindowWinAPIMenu"/>
+      </Item10>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="kambi_units"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)/\"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
