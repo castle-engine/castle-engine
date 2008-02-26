@@ -2522,6 +2522,32 @@ type
       const ViewAngleDegX, ViewAngleDegY: Single;
       out Ray0, RayVector: TVector3Single);
 
+    { Calculate a ray picked by WindowX, WindowY position on the window,
+      assuming current camera is recorded in Nav.
+
+      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+
+      WindowX, WindowY are given in the same style as MouseX, MouseY:
+      WindowX = 0 is left, WindowY = 0 is top.
+
+      This uses @link(PrimaryRay) call. }
+    procedure RayFromCustomNavigator(
+      Nav: TMatrixWalker;
+      const WindowX, WindowY: Integer;
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      out Ray0, RayVector: TVector3Single);
+
+    { Calculate a ray picked on current mouse position on the window,
+      assuming current camera is recorded in Nav.
+
+      ViewAngleDegX, ViewAngleDegY are your camera view angles.
+
+      This uses @link(PrimaryRay) call. }
+    procedure MousePickedRayFromCustomNavigator(
+      Nav: TMatrixWalker;
+      const ViewAngleDegX, ViewAngleDegY: Single;
+      out Ray0, RayVector: TVector3Single);
+
     { If you use Navigator of class TMatrixWalker with this window
       and you want to use it's MouseLook feature then
       you should call this after you changed Navigator.MouseLook value.
@@ -4255,13 +4281,12 @@ begin
     {$endif};
 end;
 
-procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
+procedure TGLWindowNavigated.RayFromCustomNavigator(
+  Nav: TMatrixWalker;
+  const WindowX, WindowY: Integer;
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
-var
-  Nav: TMatrixWalker;
 begin
-  Nav := Navigator as TMatrixWalker;
   Ray0 := Nav.CameraPos;
   RayVector := PrimaryRay(WindowX, Height - WindowY,
     Width, Height,
@@ -4269,11 +4294,31 @@ begin
     ViewAngleDegX, ViewAngleDegY);
 end;
 
+procedure TGLWindowNavigated.MousePickedRayFromCustomNavigator(
+  Nav: TMatrixWalker;
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  out Ray0, RayVector: TVector3Single);
+begin
+  RayFromCustomNavigator(
+    Nav, MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
+
+procedure TGLWindowNavigated.Ray(const WindowX, WindowY: Integer;
+  const ViewAngleDegX, ViewAngleDegY: Single;
+  out Ray0, RayVector: TVector3Single);
+begin
+  RayFromCustomNavigator(
+    Navigator as TMatrixWalker,
+    WindowX, WindowY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+end;
+
 procedure TGLWindowNavigated.MousePickedRay(
   const ViewAngleDegX, ViewAngleDegY: Single;
   out Ray0, RayVector: TVector3Single);
 begin
-  Ray(MouseX, MouseY, ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
+  MousePickedRayFromCustomNavigator(
+    Navigator as TMatrixWalker,
+    ViewAngleDegX, ViewAngleDegY, Ray0, RayVector);
 end;
 
 function TGLWindowNavigated.ReallyUseMouseLook: boolean;
