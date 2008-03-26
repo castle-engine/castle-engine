@@ -344,7 +344,15 @@ var
       or last material is from some other file. }
     IsMaterial := false;
 
-    SafeReset(F, CombinePaths(BasePath, FileName), true);
+    try
+      SafeReset(F, CombinePaths(BasePath, FileName), true);
+    except
+      on E: EFileOpenError do
+      begin
+        DataNonFatalError(E.Message);
+        Exit;
+      end;
+    end;
     try
       while not Eof(F) do
       begin
