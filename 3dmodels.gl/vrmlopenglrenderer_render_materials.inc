@@ -105,7 +105,7 @@ var
   Stipple: TPolygonStipple;
 {$endif}
 begin
-  if Attributes.PureGeometry then Exit;
+  if Attributes.PureGeometry or (not Attributes.ControlMaterials) then Exit;
 
   Material_BoundOpacity := Opacity;
 

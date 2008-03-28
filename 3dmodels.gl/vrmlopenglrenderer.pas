@@ -462,6 +462,8 @@ type
     FUseLights: boolean;
     FFirstGLFreeLight: Cardinal;
     FLastGLFreeLight: integer;
+    FControlMaterials: boolean;
+    FControlTextures: boolean;
     FEnableTextures: boolean;
     FFirstGLFreeTexture: Cardinal;
     FLastGLFreeTexture: integer;
@@ -487,6 +489,8 @@ type
     procedure SetUseLights(const Value: boolean); virtual;
     procedure SetFirstGLFreeLight(const Value: Cardinal); virtual;
     procedure SetLastGLFreeLight(const Value: integer); virtual;
+    procedure SetControlMaterials(const Value: boolean); virtual;
+    procedure SetControlTextures(const Value: boolean); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
     procedure SetFirstGLFreeTexture(const Value: Cardinal); virtual;
     procedure SetLastGLFreeTexture(const Value: integer); virtual;
@@ -588,13 +592,49 @@ type
     property LastGLFreeLight: integer
       read FLastGLFreeLight write SetLastGLFreeLight default -1;
 
-    { Jezeli not EnableTextures to przez caly czas renderowania
-      sceny jest glDisable(GL_TEXTURE2D). Wiekszosc node'ow powstrzymuje sie
-      wtedy takze od generowania wspolrzednych tekstury wiec mozemy miec
-      maly zysk szybkosci.
+    { If this is @true, then our engine takes care of applying appropriate
+      materials and colors on your model.
 
-      Jezeli jest true to robimy normalnie : gdy jakas tekstura jest aktywna
-      to jej uzywamy, ustawiajac sobie glEnable(GL_TEXTURE2D) gdy trzeba. }
+      For special purposes, you can set this to @false.
+      Then you are expected to set glColor/glMaterial yourself. }
+    property ControlMaterials: boolean
+      read FControlMaterials write SetControlMaterials default true;
+
+    { If this is @true, then our engine takes care of everything related
+      to texturing your model. Textures will be automatically activated
+      (for multitexturing), enabled/disabled, bound, and texture coordinates
+      will be used/generated, according to your VRML model data
+      (and EnableTextures attribute).
+
+      For special purposes, you can set this to @false.
+      Then our engine assumes no control over the
+      enabled/disabled state of OpenGL texturing and the currently bound texture.
+      Texture coordinates will still be generated, if applicable.
+      This is useful when your model specifies texture coordinates but
+      still you want to control from your program which (if any) texture is
+      currently bound and enabled. }
+    property ControlTextures: boolean
+      read FControlTextures write SetControlTextures default true;
+
+    { If ControlTextures is @true, then this property determines
+      whether we should actually take model textures into account.
+      In other words:
+
+      @unorderedList(
+        @item(When ControlTextures = EnableTextures = @true (default),
+          then our engine takes care of everything related to texturing
+          for you: enabling and using textures for textured parts of the model,
+          disabling textures for non-textured parts.)
+
+        @item(When ControlTextures = @true but EnableTextures = @false,
+          you force the engine to ignore textures in your model.
+          The whole scene will be rendered with glDisable(GL_TEXTURE2D),
+          texture coordinates will not be generated etc.
+          This is for special purposes.)
+
+        @item(When ControlTextures = @false, value of EnableTextures
+          doesn't matter. See ControlTextures for description.)
+      ) }
     property EnableTextures: boolean
       read FEnableTextures write SetEnableTextures default true;
 
@@ -1166,7 +1206,8 @@ type
       should be used.
 
       More precisely: this checks Attributes.BumpMappingMaximum,
-      Attributes.EnableTextures. Then checks are appropriate OpenGL capabilities
+      Attributes.ControlTextures, Attributes.EnableTextures.
+      Then checks are appropriate OpenGL capabilities
       present (GL_ARB_multitexture and friends, GLSL for better methods).
       Then checks are enough texture units available (using First/LastGLFreeTexture).
 
@@ -1192,7 +1233,7 @@ type
       const FirstGLFreeTexture: Cardinal;
       ALastGLFreeTexture: Integer;
       const AttributesBumpMappingMaximum: TBumpMappingMethod;
-      const AttributesEnableTextures, AttributesPureGeometry: boolean):
+      const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
       TBumpMappingMethod;
 
     { Sets light position used for bump mapping.
@@ -1980,6 +2021,8 @@ begin
     UseLights := TVRMLRenderingAttributes(Source).UseLights;
     FirstGLFreeLight := TVRMLRenderingAttributes(Source).FirstGLFreeLight;
     LastGLFreeLight := TVRMLRenderingAttributes(Source).LastGLFreeLight;
+    ControlMaterials := TVRMLRenderingAttributes(Source).ControlMaterials;
+    ControlTextures := TVRMLRenderingAttributes(Source).ControlTextures;
     EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
     FirstGLFreeTexture := TVRMLRenderingAttributes(Source).FirstGLFreeTexture;
     LastGLFreeTexture := TVRMLRenderingAttributes(Source).LastGLFreeTexture;
@@ -2004,6 +2047,8 @@ begin
     (TVRMLRenderingAttributes(SecondValue).UseLights = UseLights) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeLight = FirstGLFreeLight) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeLight = LastGLFreeLight) and
+    (TVRMLRenderingAttributes(SecondValue).ControlMaterials = ControlMaterials) and
+    (TVRMLRenderingAttributes(SecondValue).ControlTextures = ControlTextures) and
     (TVRMLRenderingAttributes(SecondValue).EnableTextures = EnableTextures) and
     (TVRMLRenderingAttributes(SecondValue).FirstGLFreeTexture = FirstGLFreeTexture) and
     (TVRMLRenderingAttributes(SecondValue).LastGLFreeTexture = LastGLFreeTexture) and
@@ -2023,6 +2068,8 @@ begin
   FLastGLFreeLight := -1;
   FFirstGLFreeTexture := 0;
   FLastGLFreeTexture := -1;
+  FControlMaterials := true;
+  FControlTextures := true;
   FEnableTextures := true;
   FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
   FTextureMagFilter := GL_LINEAR;
@@ -2068,6 +2115,16 @@ end;
 procedure TVRMLRenderingAttributes.SetLastGLFreeLight(const Value: integer);
 begin
   FLastGLFreeLight := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetControlMaterials(const Value: boolean);
+begin
+  FControlMaterials := Value;
+end;
+
+procedure TVRMLRenderingAttributes.SetControlTextures(const Value: boolean);
+begin
+  FControlTextures := Value;
 end;
 
 procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
@@ -2660,7 +2717,7 @@ class function TVRMLOpenGLRenderer.GLContextBumpMappingMethod(
   const FirstGLFreeTexture: Cardinal;
   ALastGLFreeTexture: Integer;
   const AttributesBumpMappingMaximum: TBumpMappingMethod;
-  const AttributesEnableTextures, AttributesPureGeometry: boolean):
+  const AttributesControlTextures, AttributesEnableTextures, AttributesPureGeometry: boolean):
   TBumpMappingMethod;
 var
   TextureUnitsAvailable: Cardinal;
@@ -2685,6 +2742,7 @@ begin
   TextureUnitsAvailable := ALastGLFreeTexture - FirstGLFreeTexture + 1;
 
   if (AttributesBumpMappingMaximum > bmNone) and
+     AttributesControlTextures and
      AttributesEnableTextures and
      (not AttributesPureGeometry) and
 
@@ -2745,7 +2803,9 @@ begin
     BumpMappingMethodCached := GLContextBumpMappingMethod(
       Attributes.FirstGLFreeTexture,
       LastGLFreeTexture,
-      Attributes.BumpMappingMaximum, Attributes.EnableTextures,
+      Attributes.BumpMappingMaximum,
+      Attributes.ControlTextures,
+      Attributes.EnableTextures,
       Attributes.PureGeometry);
 
     if Log then
@@ -2877,9 +2937,12 @@ begin
  if not Attributes.PureGeometry then
  begin
    glDisable(GL_COLOR_MATERIAL);
-   glDisable(GL_TEXTURE_GEN_S);
-   glDisable(GL_TEXTURE_GEN_T);
-   glDisable(GL_TEXTURE_GEN_Q);
+   if Attributes.ControlTextures then
+   begin
+     glDisable(GL_TEXTURE_GEN_S);
+     glDisable(GL_TEXTURE_GEN_T);
+     glDisable(GL_TEXTURE_GEN_Q);
+   end;
    glEnable(GL_NORMALIZE);
    glPointSize(Attributes.PointSize);
    glEnable(GL_DEPTH_TEST);
@@ -3046,6 +3109,15 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     if Attributes.PureGeometry then
     begin
       Render_TexCoordsNeeded := false;
+      Exit;
+    end;
+
+    if not Attributes.ControlTextures then
+    begin
+      { require texture coordinates, but don't do anything else
+        (like setting active texture, enabling/disabling it, don't even look
+        at VRML texture node.) }
+      Render_TexCoordsNeeded := true;
       Exit;
     end;
 

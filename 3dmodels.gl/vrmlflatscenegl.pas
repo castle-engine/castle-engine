@@ -155,7 +155,7 @@ type
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
           OpenGL GL_LIGHTING setting and UseLights attribute, and you
-          can control texturing by EnableTextures attribute.)
+          can control texturing by ControlTextures/EnableTextures attribute.)
       ) }
     weWireframeOnly,
 
@@ -224,6 +224,8 @@ type
     procedure SetUseLights(const Value: boolean); override;
     procedure SetFirstGLFreeLight(const Value: Cardinal); override;
     procedure SetLastGLFreeLight(const Value: integer); override;
+    procedure SetControlMaterials(const Value: boolean); override;
+    procedure SetControlTextures(const Value: boolean); override;
     procedure SetEnableTextures(const Value: boolean); override;
     procedure SetFirstGLFreeTexture(const Value: Cardinal); override;
     procedure SetLastGLFreeTexture(const Value: integer); override;
@@ -979,8 +981,8 @@ type
     { @abstract(Which bump mapping method will be used ?)
 
       This is decided and controlled internally, based on
-      Attributes.BumpMappingMaximum, Attributes.EnableTextures,
-      and current OpenGL capabilities.
+      Attributes.BumpMappingMaximum, Attributes.ControlTextures,
+      Attributes.EnableTextures, and current OpenGL capabilities.
       So the only use of this function is when you want to report this
       to user, or for debug purposes etc.
 
@@ -3037,6 +3039,24 @@ end;
 procedure TVRMLSceneRenderingAttributes.SetLastGLFreeLight(const Value: integer);
 begin
   if LastGLFreeLight <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetControlMaterials(const Value: boolean);
+begin
+  if ControlMaterials <> Value then
+  begin
+    FScenes.CloseGLRenderer;
+    inherited;
+  end;
+end;
+
+procedure TVRMLSceneRenderingAttributes.SetControlTextures(const Value: boolean);
+begin
+  if ControlTextures <> Value then
   begin
     FScenes.CloseGLRenderer;
     inherited;
