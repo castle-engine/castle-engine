@@ -184,7 +184,7 @@
   sceny VRML'a przez VRMLOpenGLRenderera :
 
   @unorderedList(
-    @item(aktualna macierz MODELVIEW i PROJECTION)
+    @item(aktualna macierz MODELVIEW i PROJECTION i TEXTURE)
 
     @item(glLightModel (GL_LIGHT_MODEL_AMBIENT)
 
@@ -2927,9 +2927,6 @@ begin
    and it applies to both multitexturing by ARB extension and by standard GL).
  }
  ActiveTexture(0);
- glMatrixMode(GL_TEXTURE); glPushMatrix;
-
- glMatrixMode(GL_MODELVIEW);
 
  {init our OpenGL state}
  glMatrixMode(GL_MODELVIEW);
@@ -2976,9 +2973,7 @@ procedure TVRMLOpenGLRenderer.RenderEnd;
 begin
   ActiveTexture(0);
 
-  {pop matrices and attribs (by popping matrix LAST we restore also saved
-   matrix mode)}
-  glMatrixMode(GL_TEXTURE); glPopMatrix;
+  {pop matrices and attribs (popping attrib restores also saved matrix mode)}
   glPopClientAttrib;
   glPopAttrib;
 end;
@@ -3010,19 +3005,19 @@ begin
   ActiveTexture(0);
 
   glMatrixMode(GL_TEXTURE);
+  glPushMatrix;
+
   if State.ParentShape = nil then
-    glLoadMatrix(State.TextureTransform) else
+    glMultMatrix(State.TextureTransform) else
   begin
     TextureTransform := State.ParentShape.TextureTransform;
-    if TextureTransform = nil then
-      glLoadIdentity else
+    if TextureTransform <> nil then
     begin
       { Alternative version of the code below:
-          glLoadMatrix(TextureTransform.Matrix);
+          glMultMatrix(TextureTransform.Matrix);
         See TNodeTextureTransform.Matrix comments.
         Below we do the same thing, but we just implement this
         directly by calling OpenGL commands. }
-      glLoadIdentity;
       with TextureTransform do
       begin
         glTranslatef(
@@ -3312,7 +3307,13 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
 begin
+  glMatrixMode(GL_TEXTURE);
   glPopMatrix;
+
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix;
+
+  { at the end, we're in modelview mode }
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeState(
