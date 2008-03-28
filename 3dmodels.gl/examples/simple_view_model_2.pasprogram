@@ -46,7 +46,7 @@
   - see Scene.Attributes.UseLights line
 }
 
-program simpleViewModel_2;
+program simple_view_model_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
