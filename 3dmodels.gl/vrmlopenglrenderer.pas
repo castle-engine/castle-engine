@@ -3001,31 +3001,35 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
 var
   TextureTransform: TNodeTextureTransform;
 begin
-  { TODO: for bump mapping, this should be done on more than one texture unit. }
-  ActiveTexture(0);
-
-  glMatrixMode(GL_TEXTURE);
-  glPushMatrix;
-
-  if State.ParentShape = nil then
-    glMultMatrix(State.TextureTransform) else
+  if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
+     (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
-    TextureTransform := State.ParentShape.TextureTransform;
-    if TextureTransform <> nil then
+    glMatrixMode(GL_TEXTURE);
+
+    { TODO: for bump mapping, TextureTransform should be done on more than one texture unit. }
+    ActiveTexture(0);
+    glPushMatrix;
+
+    if State.ParentShape = nil then
+      glMultMatrix(State.TextureTransform) else
     begin
-      { Alternative version of the code below:
-          glMultMatrix(TextureTransform.Matrix);
-        See TNodeTextureTransform.Matrix comments.
-        Below we do the same thing, but we just implement this
-        directly by calling OpenGL commands. }
-      with TextureTransform do
+      TextureTransform := State.ParentShape.TextureTransform;
+      if TextureTransform <> nil then
       begin
-        glTranslatef(
-          FdTranslation.Value[0] + FdCenter.Value[0],
-          FdTranslation.Value[1] + FdCenter.Value[1], 0);
-        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
-        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
-        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+        { Alternative version of the code below:
+            glMultMatrix(TextureTransform.Matrix);
+          See TNodeTextureTransform.Matrix comments.
+          Below we do the same thing, but we just implement this
+          directly by calling OpenGL commands. }
+        with TextureTransform do
+        begin
+          glTranslatef(
+            FdTranslation.Value[0] + FdCenter.Value[0],
+            FdTranslation.Value[1] + FdCenter.Value[1], 0);
+          glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
+          glScalef(FdScale.Value[0], FdScale.Value[1], 1);
+          glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
+        end;
       end;
     end;
   end;
@@ -3307,8 +3311,13 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
 begin
-  glMatrixMode(GL_TEXTURE);
-  glPopMatrix;
+  if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
+     (State.ParentShape.TextureTransform <> nil { VRML 2.0 with tex transform }) then
+  begin
+    ActiveTexture(0);
+    glMatrixMode(GL_TEXTURE);
+    glPopMatrix;
+  end;
 
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix;
