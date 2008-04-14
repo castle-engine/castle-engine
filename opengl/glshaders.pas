@@ -675,13 +675,35 @@ begin
     gsStandard    : ProgramId := glCreateProgram         ();
   end;
 
+  { ProgramId = 0 means that an error occured. Citing GL documentation:
+
+    gsARBExtension: ARB_shader_objects spec says about
+      CreateProgramObjectARB(void): "If the program object
+      is created successfully, a handle that can be used to reference it is
+      returned .... If the creation failed the handle returned will be 0."
+
+    gsStandard: glCreateProgram docs say
+      "This function returns 0 if an error occurs creating the program object."
+
+    Looking at glGetError, I don't see any error code there.
+    So I guess that this is just like glGenLists: when zero is returned,
+    I have to raise error that simply creating GLSL program failed.
+  }
+
+  if ProgramId = 0 then
+    raise EGLSLError.Create('Creation of GLSL program failed');
+
   ShaderIds := TDynGLuintArray.Create;
 end;
 
 destructor TGLSLProgram.Destroy;
 begin
   { make sure all shaders are detached and deleted, to free all resources }
-  DetachAllShaders;
+
+  { Destructor may be called if exception raised from constructor,
+    so better check that ShaderIds was created. }
+  if ShaderIds <> nil then
+    DetachAllShaders;
 
   case Support of
     gsARBExtension: glDeleteObjectARB(ProgramId);
