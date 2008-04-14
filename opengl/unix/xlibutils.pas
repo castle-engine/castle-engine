@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -48,12 +48,22 @@ const
 type
   XBool = Xlib.TBool;
 
-  TXStandardColormap_Array = array[0..High(Word)]of TXStandardColormap;
+  TXStandardColormap_Array = array [0..High(Word)] of TXStandardColormap;
   PXStandardColormap_Array = ^TXStandardColormap_Array;
 
 const
-  XBool_true = true;
-  XBool_false = false;
+  {$define XBOOL_IS_INT}
+  {$ifdef VER2_2_0} {$undef XBOOL_IS_INT} {$endif}
+  {$ifdef VER2_0_4} {$undef XBOOL_IS_INT} {$endif}
+  {$ifdef VER2_0_2} {$undef XBOOL_IS_INT} {$endif}
+  {$ifdef VER2_0_0} {$undef XBOOL_IS_INT} {$endif}
+
+  { I know that in current trunk, FPC 2.3.1, this is an integer, so
+    XBOOL_IS_INT stays. }
+
+  { }
+  XBool_true = {$ifdef XBOOL_IS_INT} 1 {$else} true {$endif};
+  XBool_false = {$ifdef XBOOL_IS_INT} 0 {$else} false {$endif};
 
 type
   EXlibError = class(Exception);

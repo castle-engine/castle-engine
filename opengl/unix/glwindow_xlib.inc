@@ -317,7 +317,8 @@ begin
    ALE ponizsze moze nam zaoszczedzic sporo czasu w ProcessMessage
    bo mimo wszystko zapewne zazwyczaj oczywsci kolejke z wiekszosci
    smieci dla tego okienka. }
- while XBool(XCheckWindowEvent(Glwm.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) do ;
+ while XBool(XCheckWindowEvent(
+   Glwm.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) <> XBool_False do ;
 
  if windowXID <> None then begin XDestroyWindow(Glwm.XDisplay, windowXID); windowXID := None end;
  if colormap  <> None then begin XFreeColormap(Glwm.XDisplay, colormap);   colormap := None  end;

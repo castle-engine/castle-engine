@@ -218,9 +218,9 @@ function TGLWindowsManager.ProcessMessage2(AllowSuspend: boolean;
    
    {$ifdef GLWINDOW_XLIB}    
    result := true;
-   if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) then
+   if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) <> XBool_False then
     HandleEvent else
-   if XBool(XCheckTypedEvent(XDisplay, ClientMessage, @event)) then
+   if XBool(XCheckTypedEvent(XDisplay, ClientMessage, @event)) <> XBool_False then
     HandleEvent else
     result := false;
    {$endif} 
