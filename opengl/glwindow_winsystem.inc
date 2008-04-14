@@ -352,8 +352,10 @@ end;
 
 procedure TGLWindowsManager.Loop;
 begin
- QuitPosted := false;
- while ProcessMessage(true) do ;
+  if ActiveCount = 0 then Exit;
+  
+  QuitPosted := false;
+  while ProcessMessage(true) do ;
 end;
 
 procedure TGLWindowsManager.QuitWhenNoWindowsActive;

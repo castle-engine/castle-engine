@@ -2897,7 +2897,16 @@ type
       implemented as glutMainLoop). }
     procedure Quit;
 
-    { Think of it as just a shortcut for "while ProcessMessage do ;" }
+    { Do the event loop.
+      Think of it as just a shortcut for "while ProcessMessage do ;".
+
+      Note that this does nothing if ActiveCount is zero, that is there
+      are no open windows. Besides the obvious reason (you didn't call
+      TGLWindow.Init on any window...) this may also happen if you called
+      Close (or Glwm.Quit) from your window OnInit / OnResize callback.
+      In such case no event would probably reach
+      our program, and user would have no chance to quit, so Loop just refuses
+      to work and exits immediately without any error. }
     procedure Loop;
 
     function ImplementationName: string;
@@ -3083,7 +3092,17 @@ begin
   EventInitCalled := true;
   EventInit;
 
+  { Check Closed here, in case OnInit closed the window
+    (by calling Glwm.Quit (that calls Close on all windows) or direct Close
+    on this window). Note that Close calls
+    CloseImplDepend and generally has *immediate* effect --- that's why
+    doing anything more with window now (like MakeCurrent) would be wrong. }
+  if Closed then Exit;
+
   DoResize(FWidth, FHeight, true);
+
+  { Check Closed here, in case OnResize closed the window. }
+  if Closed then Exit;
 
   { to be SURE that current window's gl context is active,
     even if someone in EventInit changed current gl context }
@@ -3614,7 +3633,7 @@ end;
 procedure TGLWindow.InitLoop;
 begin
  Init;
- glwm.Loop;
+ Glwm.Loop;
 end;
 
 { TGLWindow ParseParameters -------------------------------------------------- }

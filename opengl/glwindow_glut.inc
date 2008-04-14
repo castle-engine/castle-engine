@@ -479,7 +479,9 @@ end;
 
 procedure TGLWindowsManager.Loop;
 begin
- glutMainLoop;
+  if ActiveCount = 0 then Exit;
+
+  glutMainLoop;
 end;
 
 procedure TGLWindowsManager.QuitWhenNoWindowsActive;

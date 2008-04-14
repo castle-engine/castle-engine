@@ -1483,6 +1483,8 @@ end;
 
 procedure TGLWindowsManager.Loop;
 begin
+  if ActiveCount = 0 then Exit;
+  
   { Alternative impl: while ProcessMessage(true) do ; }
   gtk_main();
 end;

@@ -136,6 +136,8 @@ end;
 
 procedure TGLWindowsManager.Loop;
 begin
+  if ActiveCount = 0 then Exit;
+
   { TODO }
 end;
 
