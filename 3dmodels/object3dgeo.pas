@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004 Michalis Kamburelis.
+  Copyright 2002-2004,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -19,7 +19,15 @@
 }
 
 { @abstract(@link(TObject3dGEO) class to read 3d object description from
-  GEO files.) }
+  GEO files.)
+
+  This originally supported only the GEO files for PGK assignment on
+  ii.uni.wroc.pl. I think that they were in some older (or simplified?)
+  version of "Videoscape GEO file format", see
+  [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/].
+  Later I updated this to actually handle the current Videoscape GEO
+  format, at least to handle geometry exported by Blender exporter.
+}
 
 unit Object3dGEO;
 
@@ -32,84 +40,138 @@ type
     Note that contents of Verts and Faces are read-only for user of this unit. }
   TObject3dGEO = class(TObjectBBox)
   private
-    FPolysCount, VertsInPolysCount:Cardinal;
-    FBoundingBox:TBox3d;
+    FBoundingBox: TBox3d;
   public
-    Verts:TDynVector3SingleArray;
-    Faces:TDynVector3CardinalArray;
-    property PolysCount:Cardinal read FPolysCount;
+    Verts: TDynVector3SingleArray;
+    Faces: TDynVector3CardinalArray;
 
-    constructor Create(const fname:string);
+    constructor Create(const fname: string);
     destructor Destroy; override;
-    function BoundingBox:TBox3d; override;
+    function BoundingBox: TBox3d; override;
   end;
 
 implementation
 
-uses KambiFilesUtils;
+uses KambiFilesUtils, KambiStringUtils;
 
 { TObject3dGEO ---------------------------------------------------------------- }
 
-constructor TObject3dGEO.Create(const fname:string);
-var f:TextFile;
-    FaceNum, i,j,ThisPolyCount:integer;
-    FirstVert, LastVert, VertsCount:Cardinal;
+constructor TObject3dGEO.Create(const fname: string);
+type
+  TGEOFormatFlavor = (gfOld, gfMeshColorFaces, gfMeshColorVerts);
+var
+  Flavor: TGEOFormatFlavor;
+
+  function ReadVertexIndex(var F: TextFile): Cardinal;
+  begin
+    Read(F, Result);
+    { In older format, vertex index is 1-based. }
+    if Flavor = gfOld then Dec(Result);
+  end;
+
+  { Read exactly one line of GEO file, reading new face information.
+    Updates Faces. }
+  procedure ReadGEOFace(var F: TextFile);
+  var
+    J, ThisPolyCount: Integer;
+    FirstVert, LastVert: Cardinal;
+    CurrentFace: PVector3Cardinal;
+  begin
+    Read(F, ThisPolyCount);
+
+    Faces.IncLength;
+    CurrentFace := @Faces.Items[Faces.High];
+
+    { odczytaj "na pewniaka" pierwszy trojkat }
+    for j := 0 to 2 do
+      CurrentFace^[j] := ReadVertexIndex(F);
+
+    FirstVert := CurrentFace^[0];
+    LastVert := CurrentFace^[2];
+
+    { dla kazdego nastepnego vertexa polygonu tworz nowy trojkat jako
+      sklejenie FirstVert, LastVert i nowego vertexa. Pilnuj kolejnosci
+      aby wszystkie trojkaty z tego polygonu byly tak zorientowane jak ten
+      polygon.}
+    for j := 3 to ThisPolyCount - 1 do
+    begin
+      Faces.IncLength;
+      CurrentFace := @Faces.Items[Faces.High];
+
+      CurrentFace^[0] := FirstVert;
+      CurrentFace^[1] := LastVert;
+      CurrentFace^[2] := ReadVertexIndex(F);
+
+      LastVert := CurrentFace^[2];
+    end;
+    Readln(f);
+  end;
+
+var
+  f: TextFile;
+  i: Integer;
+  Line: string;
+  VertsCount, PolysCount, VertsInPolysCount: Integer;
 begin
  inherited Create;
- Verts:=TDynVector3SingleArray.Create;
- Faces:=TDynVector3CardinalArray.Create;
+ Verts := TDynVector3SingleArray.Create;
+ Faces := TDynVector3CardinalArray.Create;
 
  SafeReset(f, fname, true);
  try
-  Readln(f, VertsCount, FPolysCount, VertsInPolysCount);
+  { Read first line: magic number (or not existent in older GEO format) }
+  Readln(F, Line);
+  Line := Trim(Line);
+  if SameText(Line, '3DG1') then
+    Flavor := gfMeshColorFaces else
+  if SameText(Line, 'GOUR') then
+    Flavor := gfMeshColorVerts else
+    Flavor := gfOld;
+
+  if Flavor = gfOld then
+  begin
+    { Use current value of Line, for older format the first line contains
+      these counts. }
+    DeFormat(Line, '%d %d %d', [@VertsCount, @PolysCount, @VertsInPolysCount]);
+
+    { Ile mamy Faces trojkatnych ? Mamy liczbe
+      wielokatow = PolysCount. Mamy sumaryczna liczbe wierzcholkow
+      w nich. Na kazdy polygon przypadaja co najmniej 3 wierzcholki
+      i one daja jeden trojkat. Kazdy nadmiarowy wierzcholek,
+      bez wzgledu na to w ktorym polygonie sie znajdzie, spowoduje
+      utworzenie nowego trojkata. Stad
+        FFacesCount := PolysCount + (VertsInPolysCount - PolysCount * 3);
+      czyli
+        Faces.SetLength(VertsInPolysCount - PolysCount * 2);
+
+      To cooperate with other Flavor, we do not set Faces.Count directly,
+      instead we set only AllowedCapacityOverflow.
+    }
+    Faces.AllowedCapacityOverflow := VertsInPolysCount - PolysCount * 2;
+  end else
+  begin
+    { In newer formats, 2nd line contains just VertsCount. }
+    Readln(F, VertsCount);
+    PolysCount := -1;
+  end;
 
   Verts.SetLength(VertsCount);
-  for i:=0 to Verts.Count-1 do
-   Readln(f, Verts.Items[i][0], Verts.Items[i][1], Verts.Items[i][2]);
+  for i := 0 to Verts.Count-1 do
+    Readln(f, Verts.Items[i][0], Verts.Items[i][1], Verts.Items[i][2]);
 
-  { no wlasnie, ile mamy Faces trojkatnych ? Mamy liczbe
-    wielokatow = PolysCount. Mamy sumaryczna liczbe wierzcholkow
-    w nich. Na kazdy polygon przypadaja co najmniej 3 wierzcholki
-    i one daja jeden trojkat. Kazdy nadmiarowy wierzcholek,
-    bez wzgledu na to w ktorym polygonie sie znajdzie, spowoduje
-    utworzenie nowego trojkata. Stad
-  FFacesCount:=PolysCount + (VertsInPolysCount - PolysCount*3);
-    czyli }
-  Faces.SetLength(VertsInPolysCount - PolysCount*2);
-
-  FaceNum:=0; { FaceNum to numer nastepnej wolnej Face[] }
-  for i:=0 to PolysCount-1 do
+  if PolysCount <> -1 then
   begin
-   Read(f, ThisPolyCount);
-   {odczytaj "na pewniaka" pierwszy trojkat. Pamietaj ze w pliku indeksy
-    sa numerowane od 1 a my chcemy od zera.}
-   for j:=0 to 2 do
-   begin
-    Read(f, Faces.Items[FaceNum][j]);
-    Dec(Faces.Items[FaceNum][j]);
-   end;
-   FirstVert:=Faces.Items[FaceNum][0];
-   LastVert:=Faces.Items[FaceNum][2];
-   Inc(FaceNum);
-   {dla kazdego nastepnego vertexa polygonu tworz nowy trojkat jako
-    sklejenie FirstVert, LastVert i nowego vertexa. Pilnuj kolejnosci
-    aby wszystkie trojkaty z tego polygonu byly tak zorientowane jak ten
-    polygon.}
-   for j:=3 to ThisPolyCount-1 do
-   begin
-    Faces.Items[FaceNum][0]:=FirstVert;
-    Faces.Items[FaceNum][1]:=LastVert;
-    Read(f, Faces.Items[FaceNum][2]);
-    Dec(Faces.Items[FaceNum][2]);
-    LastVert:=Faces.Items[FaceNum][2];
-    Inc(FaceNum);
-   end;
-   Readln(f);
+    for i := 0 to PolysCount - 1 do
+      ReadGEOFace(F);
+  end else
+  begin
+    { PolysCount not known. So we just read the file as fas as we can. }
+    while not SeekEof(F) do
+      ReadGEOFace(F);
   end;
-  Assert(FaceNum = Faces.Count, 'GEO file '+fname+' incorrect');
  finally CloseFile(f) end;
 
- fBoundingBox:=CalculateBoundingBox(
+ fBoundingBox := CalculateBoundingBox(
    PVector3Single(Verts.Items), Verts.Count, SizeOf(TVector3Single));
 end;
 
@@ -120,7 +182,9 @@ begin
  inherited;
 end;
 
-function TObject3dGEO.BoundingBox:TBox3d;
-begin result:=FBoundingBox end;
+function TObject3dGEO.BoundingBox: TBox3d;
+begin
+  result := FBoundingBox
+end;
 
 end.
