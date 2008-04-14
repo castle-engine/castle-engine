@@ -53,13 +53,11 @@ type
 
 const
   {$define XBOOL_IS_INT}
-  {$ifdef VER2_2_0} {$undef XBOOL_IS_INT} {$endif}
-  {$ifdef VER2_0_4} {$undef XBOOL_IS_INT} {$endif}
-  {$ifdef VER2_0_2} {$undef XBOOL_IS_INT} {$endif}
-  {$ifdef VER2_0_0} {$undef XBOOL_IS_INT} {$endif}
+  {$ifdef VER2_2} {$undef XBOOL_IS_INT} {$endif}
+  {$ifdef VER2_0} {$undef XBOOL_IS_INT} {$endif}
 
-  { I know that in current trunk, FPC 2.3.1, this is an integer, so
-    XBOOL_IS_INT stays. }
+  { In FPC <= 2.2.1 (current fixes_2_2 branch, 2008-04-14), this was Boolean.
+    In FPC 2.3.1 (current trunk), this is an integer, so XBOOL_IS_INT is needed. }
 
   { }
   XBool_true = {$ifdef XBOOL_IS_INT} 1 {$else} true {$endif};
