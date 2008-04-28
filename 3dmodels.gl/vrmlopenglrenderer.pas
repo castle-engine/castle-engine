@@ -1534,6 +1534,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
     Part: TNodeShaderPart;
     Source: String;
     HasAnyShader: boolean;
+    UniformField: TVRMLField;
   begin
     HasAnyShader := false;
 
@@ -1575,6 +1576,54 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     GLSLProgram.Link(true);
+
+    if ProgramNode.InterfaceDeclarations.Count > 0 then
+    begin
+      { program must be active to set uniform values. }
+      GLSLProgram.Enable;
+
+      for I := 0 to ProgramNode.InterfaceDeclarations.Count - 1 do
+      begin
+        UniformField := ProgramNode.InterfaceDeclarations.Items[I].Field;
+        if UniformField <> nil then
+        begin
+          { Ok, we have a field with a value (interface declarations with
+            fields inside ComposedShader always have a value, we force it
+            when parsing in TNodeComposedShader.ParseNodeBodyElement).
+            So set GLSL uniform variable from this field. }
+
+          try
+            if UniformField is TSFVec3f then
+              GLSLProgram.SetUniform(UniformField.Name, TSFVec3f(UniformField).Value) else
+            if UniformField is TSFVec2f then
+              GLSLProgram.SetUniform(UniformField.Name, TSFVec2f(UniformField).Value);
+
+            { X3D spec "OpenGL shading language (GLSL) binding" says
+              "If the name is not available as a uniform variable in the
+              provided shader source, the values of the node shall be ignored"
+              (although it says when talking about "Vertex attributes",
+              seems they mixed attributes and uniforms meaning in spec?).
+
+              So we catch EGLSLUniformNotFound and don't even report it
+              by VRMLNonFatalError. (Still, we report to debug WritelnLog.) }
+          except
+            on E: EGLSLUniformNotFound do
+            begin
+              if Log then
+                WritelnLog('GLSL', 'ComposedShader specifies uniform variable ' +
+                  'name not found (or not used) in the shader source: ' +
+                  E.Message);
+            end;
+          end;
+
+          { TODO: other field types, full list is in X3D spec in
+            "OpenGL shading language (GLSL) binding" }
+        end;
+      end;
+
+      { TODO: this should restore previously bound program }
+      GLSLProgram.Disable;
+    end;
   end;
 
 var

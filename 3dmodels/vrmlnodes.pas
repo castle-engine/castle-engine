@@ -697,13 +697,15 @@ type
 
         @item(VRML 2.0 Script node has special features (interface declarations),
           not present in other nodes. They have to be parsed and stored
-          in TNodeScript properties.))
+          in TNodeScript properties.
+
+          Same situation for some shader-related nodes like ComposedShader.))
 
       When overriding, always check inherited result first, and exit if
       inherited handled successfully.
       Otherwise either read your stuff and return @true
       (Lexer should advance to the position of next "nodeBodyElement").
-      Or return @false within changing Lexer position. }
+      Or return @false without changing Lexer position. }
     function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; virtual;
 
     { Methods to use when defininf Fd* fields properties,
