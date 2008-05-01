@@ -1300,12 +1300,52 @@ const
   bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
   bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
 
+type
+  { World time, used for animations.
+
+    "Single" type is sometimes *not* enough for this.
+    See view3dscene comments for TAnimationTime. }
+  TWorldTime = Float;
+
+function GetWorldTime: TWorldTime;
+procedure SetWorldTime(const Value: TWorldTime);
+
+{ This is a world time, it is passed to GLSL shaders that define
+  a float uniform with a special name @code(kambi_time).
+
+  @italic(Note that this is, for now, somewhat "hacky" feature.)
+  In the future interface of this may change, and implementation
+  will certainly change: special uniform name will be removed from
+  the implementation, and the same effect will be available by routing
+  VRML TimeSensor to one of ComposedShader fields. This will allow
+  VRML authors to achieve the same effect by standard VRML methods.
+
+  For now, since routes and sensors are not handled, this is a quick
+  and dirty and practically working way to pass your animation time
+  to GLSL shaders, allowing an infinite number of interesting
+  time-dependent shaders.
+
+  Note that for now this is a global property that controls
+  time for all GLSL shaders used in all your VRML models.
+  This will most probably change to something more flexible in the future
+  (although greater care will have to be taken then when sharing the
+  GLSL shader among many VRML models).
+
+  Default value is 0.0 (zero). }
+property WorldTime: TWorldTime read GetWorldTime write SetWorldTime;
+
+{ This tells us whether some GLSL shaders actually used
+  the WorldTime feature. If true, then you probably want to post redisplay
+  always after changing WorldTime (see TGLWindow.PostRedisplay or even
+  TGLWindow.AutoRedisplay), since possibly shaders look different now. }
+function WorldTimeWatchersExist: boolean;
+
 {$undef read_interface}
 
 implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils, GLVersionUnit, GLImages, KambiLog;
+  KambiStringUtils, GLVersionUnit, GLImages, KambiLog, KambiClassUtils;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1316,6 +1356,57 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_6.inc}
 
 {$I openglmac.inc}
+
+{ WorldTime and related -------------------------------------------------- }
+
+type
+  TObjectsListItem_1 = TGLSLProgram;
+  {$define read_interface}
+  {$I objectslist_1.inc}
+  {$undef read_interface}
+
+type
+  TGLSLProgramsList = TObjectsList_1;
+
+const
+  { If a uniform with this name and of type SFFloat is defined
+    then we will use this to pass AnimationTime to the shader.
+
+    TODO: this is a hack, in the future this will be removed and
+    the feature will be available using standard VRML
+    (routing TimeSensor to a ComposedShader field).
+    For now (since events, routing and sensors are not handled)
+    this at least provides this most important variable to the shader. }
+  SUniformTimeName = 'kambi_time';
+
+var
+  WorldTimeWatchers: TGLSLProgramsList;
+  FWorldTime: TWorldTime = 0.0;
+
+function GetWorldTime: TWorldTime;
+begin
+  Result := FWorldTime;
+end;
+
+procedure SetWorldTime(const Value: TWorldTime);
+var
+  I: Integer;
+  Prog: TGLSLProgram;
+begin
+  FWorldTime := Value;
+  for I := 0 to WorldTimeWatchers.Count - 1 do
+  begin
+    Prog := WorldTimeWatchers.Items[I];
+    Prog.Enable;
+    Prog.SetUniform(SUniformTimeName, FWorldTime);
+    Prog.Disable;
+  end;
+end;
+
+function WorldTimeWatchersExist: boolean;
+begin
+  Result := WorldTimeWatchers.Count <> 0;
+end;
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
 
@@ -1596,7 +1687,16 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
             if UniformField is TSFVec3f then
               GLSLProgram.SetUniform(UniformField.Name, TSFVec3f(UniformField).Value) else
             if UniformField is TSFVec2f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFVec2f(UniformField).Value);
+              GLSLProgram.SetUniform(UniformField.Name, TSFVec2f(UniformField).Value) else
+            if UniformField is TSFFloat then
+            begin
+              if UniformField.Name = SUniformTimeName then
+              begin
+                GLSLProgram.SetUniform(UniformField.Name, WorldTime);
+                WorldTimeWatchers.Add(GLSLProgram);
+              end else
+                GLSLProgram.SetUniform(UniformField.Name, TSFFloat(UniformField).Value);
+            end;
 
             { X3D spec "OpenGL shading language (GLSL) binding" says
               "If the name is not available as a uniform variable in the
@@ -1692,6 +1792,7 @@ begin
       {$endif}
       if GLSLProgramCache^.References = 0 then
       begin
+        WorldTimeWatchers.Delete(GLSLProgramCache^.GLSLProgram);
         FreeAndNil(GLSLProgramCache^.GLSLProgram);
         GLSLProgramCaches.Delete(I, 1);
       end;
@@ -3446,4 +3547,8 @@ begin
   SetInProgram(BmGLSLProgram[true]);
 end;
 
+initialization
+  WorldTimeWatchers := TGLSLProgramsList.Create;
+finalization
+  FreeAndNil(WorldTimeWatchers);
 end.
