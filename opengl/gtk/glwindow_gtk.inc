@@ -1313,71 +1313,194 @@ end;
 
 function TGLWindow.RunGtkDialog(ADialog: PGtkWindow;
   ok_button, cancel_button: PGtkWidget): boolean;
-var Data: TDialogData;
-    Mode: TGLModeFrozenScreen;
+var
+  Data: TDialogData;
+  Mode: TGLModeFrozenScreen;
 begin
  Data.Dialog := ADialog;
 
- gtk_signal_connect(GTK_OBJECT(ok_button),
-   'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_ok_clicked),     @Data);
- gtk_signal_connect(GTK_OBJECT(cancel_button),
-   'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_cancel_clicked), @Data);
- gtk_signal_connect(GTK_OBJECT(Data.Dialog),
-   'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
+  gtk_signal_connect(GTK_OBJECT(ok_button),
+    'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_ok_clicked),     @Data);
+  gtk_signal_connect(GTK_OBJECT(cancel_button),
+    'clicked',      GTK_SIGNAL_FUNC(@signal_dialog_cancel_clicked), @Data);
+  gtk_signal_connect(GTK_OBJECT(Data.Dialog),
+    'delete_event', GTK_SIGNAL_FUNC(@signal_dialog_delete_event),   @Data);
 
- gtk_window_set_modal(ADialog, true);
- gtk_window_set_transient_for(ADialog, WindowGtk);
+  gtk_window_set_modal(ADialog, true);
+  gtk_window_set_transient_for(ADialog, WindowGtk);
 
- { prepare Data }
- Data.Answered := false;
+  { prepare Data }
+  Data.Answered := false;
 
- { enter glwin mode }
- { Once I used here @HalfToneStipple to show user that glwin window is
-   temporary disabled. But then I added lines with "gtk_window_set_modal"
-   and "gtk_window_set_transient_for" above and it's no longer necessary.
-   So I don't use it. }
- Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
- try
-  gtk_widget_show(GTK_WIDGET(ADialog));
-  while not Data.Answered do glwm.ProcessMessage(true);
- finally Mode.Free end;
+  { enter glwin mode }
+  { Once I used here @HalfToneStipple to show user that glwin window is
+    temporary disabled. But then I added lines with "gtk_window_set_modal"
+    and "gtk_window_set_transient_for" above and it's no longer necessary.
+    So I don't use it. }
+  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  try
+    gtk_widget_show(GTK_WIDGET(ADialog));
+    while not Data.Answered do glwm.ProcessMessage(true);
+  finally Mode.Free end;
 
- Result := Data.Answer;
+  Result := Data.Answer;
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean): boolean;
-var Dialog: PGtkFileSelection;
+
+{$ifndef GLWINDOW_GTK_1}
+  { FileChooser is available only in GTK >= 2.4.
+    We assume that everyone with GTK 2 has also newer GTK 2, >= 2.4. }
+  {$define USE_FILE_CHOOSER}
+{$endif GLWINDOW_GTK_1}
+
+{$ifdef USE_FILE_CHOOSER}
+
+var
+  Action: TGtkFileChooserAction;
+  OkButtonText: PChar;
+  Dialog: PGtkFileChooserDialog;
+  CFileName: PChar;
+  Mode: TGLModeFrozenScreen;
+  SearchResult: Integer;
+  SearchRecord: TSearchRec;
+  Dir: string;
 begin
- Dialog := PGtkFileSelection(gtk_file_selection_new(PChar(Title)));
- try
-  gtk_file_selection_set_filename(Dialog, PChar(FileName));
-  Result := RunGtkDialog(PGtkWindow(Dialog),
-    Dialog^.ok_button, Dialog^.cancel_button);
-  if Result then
-   FileName := gtk_file_selection_get_filename(Dialog);
- finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+  if OpenDialog then
+  begin
+    Action := GTK_FILE_CHOOSER_ACTION_OPEN;
+    OkButtonText := PChar(GTK_STOCK_OPEN);
+  end else
+  begin
+    Action := GTK_FILE_CHOOSER_ACTION_SAVE;
+    OkButtonText := PChar(GTK_STOCK_SAVE);
+  end;
+
+  Dialog := PGtkFileChooserDialog(gtk_file_chooser_dialog_new(
+    PChar(Title), WindowGtk, Action,
+    PChar(GTK_STOCK_CANCEL), [ GTK_RESPONSE_CANCEL,
+    OkButtonText, GTK_RESPONSE_ACCEPT,
+    nil ]));
+
+{ TODO: add call, only GTK >= 2.8:
+
+  if not OpenDialog then
+  begin
+    gtk_file_chooser_set_do_overwrite_confirmation(Dialog, true);
+  end; }
+
+  { We don't want to simply call gtk_file_chooser_set_filename,
+    as it doesn't behave like we want in all cases.
+
+    gtk_file_chooser_set_filename changes to the dir with file.
+    If the file exists, _set_filename will select it.
+    _set_filename will do nothing if file is not on the list,
+    so in this case it's better to _set_current_name. }
+
+  if FileName = '' then
+  begin
+    { We explicitly allow FileName in the interface of FileDialog,
+      it's equal to FileName = GetCurrentDir (with PathDelim at the end) }
+    gtk_file_chooser_set_current_folder(Dialog, PChar(GetCurrentDir));
+  end else
+  begin
+    { Test in one go whether file exists, and is a regular file or dir. }
+    SearchResult := FindFirst(FileName,
+      { faAnyFile doesn't include faSymLink, don't know why }
+      faAnyFile or faSymLink, SearchRecord);
+
+    if SearchResult = 0 then
+    begin
+      if (faDirectory and SearchRecord.Attr) <> 0 then
+        gtk_file_chooser_set_current_folder(Dialog, PChar(FileName)) else
+        gtk_file_chooser_set_filename(Dialog, PChar(FileName));
+    end else
+    begin
+      Dir := ExtractFileDir(FileName);
+      if Dir = '' then
+        Dir := GetCurrentDir;
+      gtk_file_chooser_set_current_folder(Dialog, PChar(Dir));
+
+      { GTK 2 makes warnings
+
+          (bezier_curves:32196): Gtk-CRITICAL **:
+          gtk_file_chooser_default_set_current_name:
+          assertion `impl->action == GTK_FILE_CHOOSER_ACTION_SAVE ||
+          impl->action == GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER' failed
+
+        when trying to set non-existing base filename for an "open" dialog.
+        That's Ok, I mean non-existing base filename actually doesn't make sense
+        for open dialog...
+        So we don't do it, simply ignoring ExtractFileName(FileName). }
+      if not OpenDialog then
+      begin
+        gtk_file_chooser_set_current_name(Dialog, PChar(ExtractFileName(FileName)));
+      end;
+    end;
+  end;
+
+  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  try
+    { TODO: since we do gtk_dialog_run instead of something like
+        while not Data.Answered do glwm.ProcessMessage(true);,
+      does all callbacks get called as they should? E.g. Idle of other windows?
+      Important for multi-window programs.
+
+      gtk_dialog_run does everything (that in GtkFileSelection version
+      we had to do manually): the dialog is set to modal, it's shown,
+      buttons cause gtk_dialog_run to exit with indicated response,
+      delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT. }
+    Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
+    if Result then
+    begin
+      CFileName := gtk_file_chooser_get_filename(Dialog);
+      { TODO: check, This copies string contents, so we can later free
+        CFileName pointer. }
+      FileName := CFileName;
+      g_free(CFileName);
+    end;
+  finally Mode.Free end;
+
+  gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
-var Dialog: PGtkColorSelectionDialog;
-    GtkColor: array[0..3]of GDouble;
-    i: Integer;
+{$else}
+{ Use older GtkFileSelection }
+var
+  Dialog: PGtkFileSelection;
 begin
- Dialog := PGtkColorSelectionDialog(gtk_color_selection_dialog_new('Choose color'));
- try
-  for i := 0 to 2 do GtkColor[i] := Color[i];
-  gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
+  Dialog := PGtkFileSelection(gtk_file_selection_new(PChar(Title)));
+  try
+    gtk_file_selection_set_filename(Dialog, PChar(FileName));
+    Result := RunGtkDialog(PGtkWindow(Dialog),
+      Dialog^.ok_button, Dialog^.cancel_button);
+    if Result then
+      FileName := gtk_file_selection_get_filename(Dialog);
+  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+end;
+{$endif}
 
-  Result := RunGtkDialog(PGtkWindow(Dialog),
-    Dialog^.ok_button, Dialog^.cancel_button);
+function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+var
+  Dialog: PGtkColorSelectionDialog;
+  GtkColor: array [0..3] of GDouble;
+  i: Integer;
+begin
+  Dialog := PGtkColorSelectionDialog(gtk_color_selection_dialog_new('Choose color'));
+  try
+    for i := 0 to 2 do GtkColor[i] := Color[i];
+    gtk_color_selection_set_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
 
-  if Result then
-  begin
-   gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
-   for i := 0 to 2 do Color[i] := GtkColor[i];
-  end;
- finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+    Result := RunGtkDialog(PGtkWindow(Dialog),
+      Dialog^.ok_button, Dialog^.cancel_button);
+
+    if Result then
+    begin
+      gtk_color_selection_get_color(PGtkColorSelection(Dialog^.colorsel), @GtkColor);
+      for i := 0 to 2 do Color[i] := GtkColor[i];
+    end;
+  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
 { TGLWindowsManager: global idle ------------------------------------------- }
@@ -1484,7 +1607,7 @@ end;
 procedure TGLWindowsManager.Loop;
 begin
   if ActiveCount = 0 then Exit;
-  
+
   { Alternative impl: while ProcessMessage(true) do ; }
   gtk_main();
 end;
