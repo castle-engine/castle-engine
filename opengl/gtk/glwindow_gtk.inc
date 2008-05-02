@@ -1346,6 +1346,21 @@ begin
   Result := Data.Answer;
 end;
 
+{$ifdef GLWINDOW_GTK_2}
+{$define HasGTK2_8}
+
+{ Submitted as http://bugs.freepascal.org/view.php?id=11246 }
+
+{$ifdef HasGTK2_8}
+function gtk_file_chooser_get_do_overwrite_confirmation(
+  chooser:PGtkFileChooser): gboolean;
+  cdecl; external gtklib name 'gtk_file_chooser_get_do_overwrite_confirmation';
+procedure gtk_file_chooser_set_do_overwrite_confirmation(
+  chooser:PGtkFileChooser; do_overwrite_confirmation:gboolean);
+  cdecl; external gtklib name 'gtk_file_chooser_set_do_overwrite_confirmation';
+{$endif}
+{$endif}
+
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean): boolean;
 
@@ -1383,12 +1398,10 @@ begin
     OkButtonText, GTK_RESPONSE_ACCEPT,
     nil ]));
 
-{ TODO: add call, only GTK >= 2.8:
-
   if not OpenDialog then
   begin
     gtk_file_chooser_set_do_overwrite_confirmation(Dialog, true);
-  end; }
+  end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
     as it doesn't behave like we want in all cases.
