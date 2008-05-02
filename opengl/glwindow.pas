@@ -971,8 +971,8 @@ type
       I'll do everything that needs to be done and that is not specific to
       GLWindow-implementation.".
       GLWindow-implementation specific methods should not ever call EventXxx
-      directly (and nothing should ever call OnXxx directly), they should
-      use DoXxx methods.
+      directly (and nothing should ever call OnXxx directly besides EventXxx),
+      they should use DoXxx methods.
 
       Remember that no DoXxx may be called from CloseImplDepend.
 
