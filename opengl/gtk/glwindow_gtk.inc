@@ -1467,8 +1467,7 @@ begin
     if Result then
     begin
       CFileName := gtk_file_chooser_get_filename(Dialog);
-      { TODO: check, This copies string contents, so we can later free
-        CFileName pointer. }
+      { This copies string contents, so we can later free CFileName pointer. }
       FileName := CFileName;
       g_free(CFileName);
     end;
