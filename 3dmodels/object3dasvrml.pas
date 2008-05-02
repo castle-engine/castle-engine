@@ -123,9 +123,9 @@ const
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo';
 
-  VRML_FilePatterns =
+  UncompressedVRML_FilePatterns =
   'All files|*|' +
-  '*VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz';
+  '*VRML (not compressed) (*.wrl)|*.wrl';
 
 implementation
 
