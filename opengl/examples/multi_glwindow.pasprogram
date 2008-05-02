@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2007 Michalis Kamburelis.
+  Copyright 2004-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -150,14 +150,22 @@ begin
 end;
 
 procedure TMyWindow.EventKeyDown(key: TKey; c: char);
+var
+  FileName: string;
 begin
  inherited;
  case c of
   'l':begin
        OnlyLines := not OnlyLines;
-       PostRedisplay
+       PostRedisplay;
       end;
   'c':if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
+  'o':begin
+        FileName := '';
+        { when file dialog is open, note that the other windows
+          are still active as they should. }
+        FileDialog('Test open file dialog', FileName, true);
+      end;
  end;
 end;
 

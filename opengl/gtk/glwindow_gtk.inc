@@ -1455,15 +1455,14 @@ begin
 
   Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
   try
-    { TODO: since we do gtk_dialog_run instead of something like
-        while not Data.Answered do glwm.ProcessMessage(true);,
-      does all callbacks get called as they should? E.g. Idle of other windows?
-      Important for multi-window programs.
-
-      gtk_dialog_run does everything (that in GtkFileSelection version
+    { gtk_dialog_run does everything (that in GtkFileSelection version
       we had to do manually): the dialog is set to modal, it's shown,
       buttons cause gtk_dialog_run to exit with indicated response,
-      delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT. }
+      delete_event also causes normal exit with GTK_RESPONSE_DELETE_EVENT.
+
+      Inside it will do the same thing as a loop of our Glwm.ProcessMessages
+      (because we set up everything properly, such that our Glwm.ProcessMessages
+      just calls gtk_main_iteration, so GTK loop fully performs Glwm loop). }
     Result := gtk_dialog_run(GTK_DIALOG(Dialog)) = GTK_RESPONSE_ACCEPT;
     if Result then
     begin
