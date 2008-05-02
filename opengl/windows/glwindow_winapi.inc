@@ -1058,7 +1058,7 @@ begin
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean): boolean;
+  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 var Struct: TOpenFileName;
     FileNameBuffer: array[0..6000]of char;
     FilePath: string;

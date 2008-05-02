@@ -1362,7 +1362,7 @@ procedure gtk_file_chooser_set_do_overwrite_confirmation(
 {$endif}
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean): boolean;
+  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 
 {$ifndef GLWINDOW_GTK_1}
   { FileChooser is available only in GTK >= 2.4.
@@ -1371,6 +1371,28 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
 {$endif GLWINDOW_GTK_1}
 
 {$ifdef USE_FILE_CHOOSER}
+
+  procedure DialogAddFilters(Dialog: PGtkFileChooserDialog;
+    FileFilters: TFileFiltersList);
+  var
+    I, J: Integer;
+    GtkFilter: PGtkFileFilter;
+    Filter: TFileFilter;
+  begin
+    for I := 0 to FileFilters.Count - 1 do
+    begin
+      GtkFilter := gtk_file_filter_new();
+      Filter := FileFilters[I];
+
+      gtk_file_filter_set_name(GtkFilter, PChar(Filter.Name));
+      for J := 0 to Filter.Patterns.Count - 1 do
+        gtk_file_filter_add_pattern(GtkFilter, PChar(Filter.Patterns[J]));
+      gtk_file_chooser_add_filter(Dialog, GtkFilter);
+
+      if I = FileFilters.DefaultFilter then
+        gtk_file_chooser_set_filter(Dialog, GtkFilter);
+    end;
+  end;
 
 var
   Action: TGtkFileChooserAction;
@@ -1397,6 +1419,9 @@ begin
     PChar(GTK_STOCK_CANCEL), [ GTK_RESPONSE_CANCEL,
     OkButtonText, GTK_RESPONSE_ACCEPT,
     nil ]));
+
+  if FileFilters <> nil then
+    DialogAddFilters(Dialog, FileFilters);
 
   if not OpenDialog then
   begin

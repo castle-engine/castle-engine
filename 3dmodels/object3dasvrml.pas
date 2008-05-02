@@ -107,6 +107,26 @@ procedure LoadAsVRMLSequence(
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
+const
+  { File patterns for files loaded by LoadAsVRMLSequence, suitable
+    for TFileFiltersList.AddFiltersFromString and
+    TGLWindow.FileDialog. }
+  LoadAsVRMLSequence_FilePatterns =
+  'All files|*|' +
+  '*All 3D models|*.wrl;*.gz;*.wrz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  'VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  'Kambi VRML engine animations (*.kanim)|*.kanim|' +
+  'Collada (*.dae)|*.dae|' +
+  'Inventor (*.iv)|*.iv|' +
+  '3D Studio (*.3ds)|*.3ds|' +
+  'Quake 3 engine models (*.md3)|*.md3|' +
+  'Wavefront (*.obj)|*.obj|' +
+  'Videoscape (*.geo)|*.geo';
+
+  VRML_FilePatterns =
+  'All files|*|' +
+  '*VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz';
+
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,

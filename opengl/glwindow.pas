@@ -629,7 +629,8 @@ uses
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
-  RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils;
+  RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
+  GLWindowFileFilters;
 
 {$define read_interface}
 
@@ -2296,9 +2297,19 @@ type
       This is the "Save File" dialog.
 
       Those dialog boxes may allow user for some additional actions,
-      e.g. to create some directories, rename some files etc. }
+      e.g. to create some directories, rename some files etc.
+
+      FileFilters is a set of file filters to present to user.
+      Pass @nil (default) if you do not want to use file file filters,
+      so user will just always see everything. An overloaded version
+      allows you to pass file filters encoded in a single string,
+      this may be slightly more comfortable for call, see
+      TFileFiltersList.AddFiltersFromString
+      for explanation how to encode filters in a string. }
     function FileDialog(const Title: string; var FileName: string;
-      OpenDialog: boolean): boolean;
+      OpenDialog: boolean; FileFilters: TFileFiltersList = nil): boolean; overload;
+    function FileDialog(const Title: string; var FileName: string;
+      OpenDialog: boolean; const FileFilters: string): boolean; overload;
 
     { Shows a dialog window allowing user to choose an RGB color.
       Initial value of Color specifies initial RGB values proposed to the user.
@@ -3578,6 +3589,18 @@ begin
   SaveScreen(ProposedFileName);
 end;
 {$endif}
+
+function TGLWindow.FileDialog(const Title: string; var FileName: string;
+  OpenDialog: boolean; const FileFilters: string): boolean;
+var
+  FFList: TFileFiltersList;
+begin
+  FFList := TFileFiltersList.Create;
+  try
+    FFList.AddFiltersFromString(FileFilters);
+    Result := FileDialog(Title, FileName, OpenDialog, FFList);
+  finally FreeWithContentsAndNil(FFList) end;
+end;
 
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }

@@ -560,7 +560,7 @@ begin
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean): boolean;
+  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 begin
  Result := MessageInputQuery(Self, Title, FileName, taLeft);
 end;
