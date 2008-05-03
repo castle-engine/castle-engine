@@ -1402,7 +1402,7 @@ var
   Mode: TGLModeFrozenScreen;
   SearchResult: Integer;
   SearchRecord: TSearchRec;
-  Dir: string;
+  ExpandedFileName, Dir: string;
 begin
   if OpenDialog then
   begin
@@ -1443,19 +1443,29 @@ begin
     gtk_file_chooser_set_current_folder(Dialog, PChar(GetCurrentDir));
   end else
   begin
+    { GTK likes to get full pathnames, otherwise things like
+
+        (bump_mapping:5494): libgnomevfs-CRITICAL **:
+        gnome_vfs_get_uri_from_local_path:
+        assertion `g_path_is_absolute (local_full_path)' failed
+
+      happen. }
+
+    ExpandedFileName := ExpandFileName(FileName);
+
     { Test in one go whether file exists, and is a regular file or dir. }
-    SearchResult := FindFirst(FileName,
+    SearchResult := FindFirst(ExpandedFileName,
       { faAnyFile doesn't include faSymLink, don't know why }
       faAnyFile or faSymLink, SearchRecord);
 
     if SearchResult = 0 then
     begin
       if (faDirectory and SearchRecord.Attr) <> 0 then
-        gtk_file_chooser_set_current_folder(Dialog, PChar(FileName)) else
-        gtk_file_chooser_set_filename(Dialog, PChar(FileName));
+        gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
+        gtk_file_chooser_set_filename(Dialog, PChar(ExpandedFileName));
     end else
     begin
-      Dir := ExtractFileDir(FileName);
+      Dir := ExtractFileDir(ExpandedFileName);
       if Dir = '' then
         Dir := GetCurrentDir;
       gtk_file_chooser_set_current_folder(Dialog, PChar(Dir));
@@ -1473,7 +1483,8 @@ begin
         So we don't do it, simply ignoring ExtractFileName(FileName). }
       if not OpenDialog then
       begin
-        gtk_file_chooser_set_current_name(Dialog, PChar(ExtractFileName(FileName)));
+        gtk_file_chooser_set_current_name(Dialog,
+          PChar(ExtractFileName(ExpandedFileName)));
       end;
     end;
   end;
