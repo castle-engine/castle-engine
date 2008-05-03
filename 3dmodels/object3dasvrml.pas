@@ -70,6 +70,21 @@ procedure LoadMD3AsVRMLSequence(
   from StdInStream (using GetCurrentDir as WWWBasePath). }
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLNode;
 
+const
+  { File patterns for files loaded by LoadAsVRML, suitable
+    for TFileFiltersList.AddFiltersFromString and
+    TGLWindow.FileDialog. }
+  LoadAsVRML_FilePatterns =
+  'All files|*|' +
+  '*All 3D models|*.wrl;*.gz;*.wrz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  'VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  'Collada (*.dae)|*.dae|' +
+  'Inventor (*.iv)|*.iv|' +
+  '3D Studio (*.3ds)|*.3ds|' +
+  'Quake 3 engine models (*.md3)|*.md3|' +
+  'Wavefront (*.obj)|*.obj|' +
+  'Videoscape (*.geo)|*.geo';
+
 { Load various model formats as animation expressed by VRML sequence.
 
   For model formats that cannot express animations (like GEO or Wavefront OBJ)
