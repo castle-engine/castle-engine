@@ -1,5 +1,5 @@
 {
-  Copyright 2007 Michalis Kamburelis.
+  Copyright 2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -189,6 +189,8 @@ begin
   Fields.Add(TMFNode.Create(Self, 'parts', [TNodeShaderPart]));
   Fields.Last.Exposed := true;
 
+  DefaultContainerField := 'shaders';
+
   FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
 end;
 
@@ -250,6 +252,8 @@ begin
 
   Fields.Add(TMFString.Create('url', []));
   Fields.Last.Exposed := true;
+
+  DefaultContainerField := 'shaders';
 end;
 
 class function TNodePackagedShader.ClassNodeTypeName: string;
@@ -264,6 +268,8 @@ begin
 
   Fields.Add(TMFNode.Create(Self, 'programs', [TNodeShaderProgram]));
   Fields.Last.Exposed := true;
+
+  DefaultContainerField := 'shaders';
 end;
 
 class function TNodeProgramShader.ClassNodeTypeName: string;
@@ -283,6 +289,8 @@ begin
   Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('type', 'VERTEX'));
+
+  DefaultContainerField := 'parts';
 end;
 
 class function TNodeShaderPart.ClassNodeTypeName: string;
@@ -328,6 +336,8 @@ begin
   Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('type', 'VERTEX'));
+
+  DefaultContainerField := 'programs';
 end;
 
 class function TNodeShaderProgram.ClassNodeTypeName: string;

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -616,6 +616,7 @@ type
     FPrototypeInstance: boolean;
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
     FPrototypeInstanceHelpers: TVRMLNode;
+    FDefaultContainerField: string;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1424,6 +1425,11 @@ type
     procedure TraverseBlenderObjects(
       TraversingFunc: TBlenderTraversingFunc); overload;
     { @groupEnd }
+
+    { Default value of "containerField" attribute for this node in X3D XML
+      encoding. }
+    property DefaultContainerField: string
+      read FDefaultContainerField write FDefaultContainerField;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1598,7 +1604,7 @@ type
 { TNodeGeneralShape ---------------------------------------------------- }
 
   { Shape is the only node that produces some visible results
-    during rendering. Basically, most if the VRML language is just
+    during rendering. Most of the VRML language is just
     a method of describing those shapes and many other nodes
     are defined only to set up additional state for shapes
     (materials, transformations, lighting).
@@ -1644,6 +1650,13 @@ type
         Shape nodes don't affect anything in graph traverse state.)
     ) }
   TNodeGeneralShape = class(TVRMLNode)
+  public
+    { Constructor.
+
+      Only sets DefaultContainerField to 'geometry', since this is valid
+      for all X3D nodes descending from TNodeGeneralShape. }
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     { BoundingBox oblicza BoundingBox shape node'a VRMLa ktory podczas
       trawersowania grafu VRML'a ma stan State.
 
@@ -2280,15 +2293,6 @@ var
 
 { global procedures ---------------------------------------------------------- }
 
-type
-  EVRMLUnknownNodeNotAllowed = class(EVRMLParserError)
-  private
-    FNodeName: string;
-  public
-    constructor Create(Lexer: TVRMLLexer; const AMessage, ANodeName: string);
-    property NodeName: string read FNodeName;
-  end;
-
 (*
   Parse VRML node. This parses
   @preformatted([ DEF <nodename> ] <nodetype> { node-content })
@@ -2304,16 +2308,9 @@ type
   VRMLNonFatalError and simply return @nil.
 
   @raises(EVRMLParserError On various parsing errors.)
-  @raises(EVRMLUnknownNodeNotAllowed On a special parsing error:
-    we got unknown node name, and AllowedNodes was @false.
-
-    We have a special error class for this, because in some cases
-    it means that actually the unknown node name could be also
-    unknown field / proto etc. name, so error message for the user should
-    be better.)
 *)
 function ParseNode(Lexer: TVRMLLexer;
-  const AllowedNodes: boolean; NilIfUnresolvedUSE: boolean = false): TVRMLNode;
+  NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
 { Parse whole VRML file, return it's root node.
 
@@ -3078,28 +3075,20 @@ begin
   begin
     Handled := ParseNodeBodyElement(Lexer);
 
-    { VRML 1.0 nodes are handled as a last resort here
+    { VRML 1.0 children nodes are handled as a last resort here
       (that's also why they can't be inside our ParseNodeBodyElement).
       That's because ParseNode just raises exception in case of unknown
       node, so I have to catch first everything else (like "hints" field
       of TNodeShapeHints). }
     if not Handled then
-    try
-      AddChild(ParseNode(Lexer, ParsingAllowedChildren));
-    except
-      on E: EVRMLUnknownNodeNotAllowed do
+    begin
+      if ParsingAllowedChildren then
+        AddChild(ParseNode(Lexer)) else
       begin
-        { In VRML 2.0, this most certainly *doesn't* mean that node is
-          not allowed here. Message like "unknown node xxx not allowed here"
-          would be stupid, as VRML 2.0 doesn't allow direct children nodes.
-          My engine allows them, but only because they are in VRML 1.0.
-          That's why I have to catch, change error message to something better
-          and reraise. }
-        E.Message := E.MessagePositionPrefix(Lexer) +
-          Format('Unknown VRML field, prototype or VRML 1.0 node name ' +
-            '"%s" (and the node doesn''t allow VRML 1.0 style children) inside "%s"',
-            [E.NodeName, NodeTypeName]);
-        raise;
+        raise EVRMLParserError.Create(Lexer,
+          Format('Invalid VRML node content (unknown or not allowed' +
+            ' field, prototype or VRML 1.0-style children) inside "%s": got %s',
+            [NodeTypeName, Lexer.DescribeToken]));
       end;
     end;
   end;
@@ -4158,7 +4147,7 @@ begin
   end else
   begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
-    Value := ParseNode(Lexer, true, true);
+    Value := ParseNode(Lexer, true);
     if (Value <> nil) and
        (not AllowedChildrenAll) and
        (FAllowedChildren.IndexOf(Value) = -1) then
@@ -4375,7 +4364,7 @@ procedure TMFNode.Parse(Lexer: TVRMLLexer;
   var
     Node: TVRMLNode;
   begin
-    Node := ParseNode(Lexer, true);
+    Node := ParseNode(Lexer);
     AddItem(Node);
     if (not AllowedChildrenAll) and
        (FAllowedChildren.IndexOf(Node) = -1) then
@@ -4441,6 +4430,16 @@ end;
 class function TMFNode.VRMLTypeName: string;
 begin
   Result := 'MFNode';
+end;
+
+{ TNodeGeneralShape ---------------------------------------------------------- }
+
+constructor TNodeGeneralShape.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'geometry';
 end;
 
 { TNodeGeneralTexture -------------------------------------------------------- }
@@ -5449,15 +5448,6 @@ begin
     DestinationNodeName, DestinationFieldName]);
 end;
 
-{ EVRMLUnknownNodeNotAllowed ------------------------------------------------- }
-
-constructor EVRMLUnknownNodeNotAllowed.Create(Lexer: TVRMLLexer;
-  const AMessage, ANodeName: string);
-begin
-  inherited Create(Lexer, AMessage);
-  FNodeName := ANodeName;
-end;
-
 { global procedures ---------------------------------------------------------- }
 
 { Internal for ParseIgnoreToMatchingSqBracket and
@@ -5496,7 +5486,7 @@ begin
   ParseIgnoreToMatchingBracket(Lexer, 0, 1);
 end;
 
-function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
+function ParseNode(Lexer: TVRMLLexer;
   NilIfUnresolvedUSE: boolean = false): TVRMLNode;
 
   procedure ParseNamedNode(const nodename: string);
@@ -5514,19 +5504,12 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
       Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
     if NodeClass <> nil then
     begin
-      if not ({result is allowed in AllowedNodes ?} AllowedNodes) then
-        raise EVRMLParserError.Create(Lexer,
-          'Node type "' + NodeClass.ClassNodeTypeName + '" not allowed here');
       Result := NodeClass.Create(nodename, '');
     end else
     begin
       ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
       if ProtoIndex <> -1 then
       begin
-        if not AllowedNodes then
-          raise EVRMLParserError.Create(Lexer,
-            'Node type "' + NodeTypeName + '" (prototype) not allowed here');
-
         Proto := Lexer.ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
         if (Proto is TVRMLExternalPrototype) and
            (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
@@ -5534,9 +5517,6 @@ function ParseNode(Lexer: TVRMLLexer; const AllowedNodes: boolean;
           Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '', Proto);
       end else
       begin
-        if not ({TNodeUnknown is allowed in AllowedNodes ?} AllowedNodes) then
-          raise EVRMLUnknownNodeNotAllowed.Create(Lexer,
-            'Unknown node type "' + NodeTypeName + '" not allowed here', NodeTypeName);
         Result := TNodeUnknown.CreateUnknown(nodename, '', NodeTypeName);
       end;
     end;
@@ -5718,7 +5698,7 @@ function ParseVRMLStatements(
     var
       NewNode: TVRMLNode;
     begin
-      NewNode := ParseNode(Lexer, true);
+      NewNode := ParseNode(Lexer);
 
       if Result = nil then
       begin
