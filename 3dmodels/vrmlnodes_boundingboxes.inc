@@ -282,12 +282,15 @@ function TGI_BBox_Calculator.GetVertexFromIndex(index: integer): TVector3Single;
 begin
   { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
     pytalo o indeksy ujemne. }
-  if Index >= Coord.Count then
-    raise EVRMLError.CreateFmt('Wrong vertex index in indexed node ' +
+  if Index < Coord.Count then
+    Result := Coord.Items.Items[Index] else
+  begin
+    VRMLNonFatalError(Format('Wrong vertex index in indexed node ' +
       '(not enouch points in Coordinate node defined: ' +
       'index is %d, we have only %d vertices)',
-      [Index, Coord.Count]);
-  Result := Coord.Items.Items[Index];
+      [Index, Coord.Count]));
+    Result := ZeroVector3Single;
+  end;
 end;
 
 function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;

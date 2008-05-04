@@ -190,7 +190,7 @@ var
   I: Integer;
 begin
   Count := 0;
-  Lexer := TVRMLLexerFileName.Create(FileName);
+  Lexer := TVRMLLexer.CreateFromFile(FileName);
   try
     AppendItem(CurrentToken);
     while Lexer.Token <> vtEnd do

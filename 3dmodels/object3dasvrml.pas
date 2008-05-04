@@ -76,8 +76,14 @@ const
     TGLWindow.FileDialog. }
   LoadAsVRML_FilePatterns =
   'All files|*|' +
-  '*All 3D models|*.wrl;*.gz;*.wrz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
-  'VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  { TODO:
+    X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
+    and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
+    and X3D binary (*.x3db;*.x3db.gz)
+  }
+  'X3D XML (*.x3d)|*.x3d|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -128,8 +134,14 @@ const
     TGLWindow.FileDialog. }
   LoadAsVRMLSequence_FilePatterns =
   'All files|*|' +
-  '*All 3D models|*.wrl;*.gz;*.wrz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  '*All 3D models|*.wrl;*.gz;*.wrz;*.x3d;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  { TODO:
+    X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
+    and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
+    and X3D binary (*.x3db;*.x3db.gz)
+  }
+  'X3D XML (*.x3d)|*.x3d|' +
   'Kambi VRML engine animations (*.kanim)|*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
@@ -145,7 +157,8 @@ const
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
-  KambiStringUtils, VRMLAnimation, ColladaToVRML;
+  KambiStringUtils, VRMLAnimation, ColladaToVRML,
+  X3DXmlToVRML;
 
 function ToVRMLName(const s: string): string;
 const
@@ -763,8 +776,12 @@ end;
 
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
-  Extensions: array [0..8] of string =
-  ('.geo', '.3ds', '.obj', '.iv', '.wrl', '.gz', '.wrz', '.md3', '.dae');
+  GzExt = '.gz';
+  Extensions: array [0..9] of string =
+  ('.geo', '.3ds', '.obj',
+   '.iv', '.wrl', '.wrl' + GzExt, '.wrz',
+   '.md3', '.dae',
+   '.x3d');
 var
   Ext: string;
 begin
@@ -772,6 +789,8 @@ begin
     result := ParseVRMLFile('-', true) else
   begin
     Ext := ExtractFileExt(filename);
+    if Ext = '.gz' then
+      Ext := ExtractFileExt(DeleteFileExt(FileName)) + Ext;
     case ArrayPosText(Ext, Extensions) of
       0: result := LoadGEOAsVRML(filename);
       1: result := Load3dsAsVRML(filename);
@@ -779,6 +798,7 @@ begin
       3..6: result := ParseVRMLFile(filename, false);
       7: Result := LoadMD3AsVRML(FileName);
       8: Result := LoadColladaAsVRML(FileName);
+      9: Result := LoadX3DXmlAsVRML(FileName);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);

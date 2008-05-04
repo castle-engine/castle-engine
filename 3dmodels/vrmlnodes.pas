@@ -942,11 +942,12 @@ type
       "jak kiedys bedzie". Chwilowo WWWBasePath musi byc lokalna sciezka
       (i to absolutna, bezwzgledna sciezka).
 
-      WWWBasePath jest ustalane w Create, ew. pozniej jest zmieniane w trakcie
-      Parse() na podstawie Lexer.WWWBasePath.
-      W ten sposob np. moglibysmy, gdybysmy tylko chcieli, rozwiazywac
-      wezly jak WWWInline lub Texture2 zaraz po sparsowaniu ich. }
-    property WWWBasePath: string read FWWWBasePath;
+      WWWBasePath is set in constructor, and eventually adjusted by
+      various parsing/converting routines (TVRMLNode.Parse, but also
+      potentially other things from Object3dAsVRML).
+      This way we could, if only we would like to, resolve nodes
+      like Inline or ImageTexture immediately after parsing them. }
+    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
 
     { This returns absolute path, assuming that RelativePath is relative
       path from WWWBasePath or that RelativePath is already absolute. }
@@ -1513,6 +1514,20 @@ type
     property ParentNode: TVRMLNode read FParentNode;
 
     class function VRMLTypeName: string; override;
+
+    { Checks is Child allowed as a value of thia SFNode,
+      and makes VRMLNonFatalError if not.
+
+      Check is allowed is done looking at AllowedChildrenAll
+      and AllowedChildren properties.
+
+      Child must not be @nil.
+
+      VRMLNonFatalError suggests that this Child is used as value
+      of this node. In other words, you should only pass as Child
+      a node that you want to assign as Value to this field,
+      otherwise VRMLNonFatalError message will be a little unsensible. }
+    procedure WarningIfChildNotAllowed(Child: TVRMLNode);
   end;
 
   { MFNode VRML field.
@@ -1599,6 +1614,20 @@ type
     property ParentNode: TVRMLNode read FParentNode;
 
     class function VRMLTypeName: string; override;
+
+    { Checks is Child allowed on the list of nodes of this MFNode,
+      and makes VRMLNonFatalError if not.
+
+      Check is allowed is done looking at AllowedChildrenAll
+      and AllowedChildren properties.
+
+      Child must not be @nil.
+
+      VRMLNonFatalError suggests that this Child is used as value
+      of this node. In other words, you should only pass as Child
+      a node that you want to add (e.g. by AddItem) to this field,
+      otherwise VRMLNonFatalError message will be a little unsensible. }
+    procedure WarningIfChildNotAllowed(Child: TVRMLNode);
   end;
 
 { TNodeGeneralShape ---------------------------------------------------- }
@@ -4123,19 +4152,26 @@ begin
   inherited;
 end;
 
-procedure TSFNode.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
 
   procedure ChildNotAllowed;
   var
     S: string;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
-      [Value.NodeTypeName, Name]);
+      [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
     VRMLNonFatalError(S);
   end;
 
+begin
+  if (not AllowedChildrenAll) and
+     (FAllowedChildren.IndexOf(Child) = -1) then
+    ChildNotAllowed;
+end;
+
+procedure TSFNode.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -4148,10 +4184,8 @@ begin
   begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
     Value := ParseNode(Lexer, true);
-    if (Value <> nil) and
-       (not AllowedChildrenAll) and
-       (FAllowedChildren.IndexOf(Value) = -1) then
-      ChildNotAllowed;
+    if Value <> nil then
+      WarningIfChildNotAllowed(Value);
   end;
 end;
 
@@ -4345,30 +4379,35 @@ begin
     Items[I].AddParentField(Self);
 end;
 
+procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
+
+  procedure ChildNotAllowed;
+  var
+    S: string;
+  begin
+    S := Format('Node "%s" is not allowed in the field "%s"',
+      [Child.NodeTypeName, Name]);
+    if ParentNode <> nil then
+      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+    VRMLNonFatalError(S);
+  end;
+
+begin
+  if (not AllowedChildrenAll) and
+     (FAllowedChildren.IndexOf(Child) = -1) then
+    ChildNotAllowed;
+end;
+
 procedure TMFNode.Parse(Lexer: TVRMLLexer;
   IsClauseAllowed: boolean);
 
   procedure ParseOneItem;
-
-    procedure ChildNotAllowed(Value: TVRMLNode);
-    var
-      S: string;
-    begin
-      S := Format('Node "%s" is not allowed in the field "%s"',
-        [Value.NodeTypeName, Name]);
-      if ParentNode <> nil then
-        S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-      VRMLNonFatalError(S);
-    end;
-
   var
     Node: TVRMLNode;
   begin
     Node := ParseNode(Lexer);
     AddItem(Node);
-    if (not AllowedChildrenAll) and
-       (FAllowedChildren.IndexOf(Node) = -1) then
-      ChildNotAllowed(Node);
+    WarningIfChildNotAllowed(Node);
   end;
 
 begin
@@ -5745,7 +5784,7 @@ function ParseVRMLFile(Stream: TPeekCharStream;
 var
   Lexer: TVRMLLexer;
 begin
-  Lexer := TVRMLLexer.Create(Stream, WWWBasePath);
+  Lexer := TVRMLLexer.Create(Stream, false, WWWBasePath);
   try
     Result := ParseVRMLStatements(Lexer, vtEnd);
     if ProtoNameBinding <> nil then

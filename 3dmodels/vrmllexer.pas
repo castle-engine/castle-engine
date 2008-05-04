@@ -86,7 +86,7 @@ type
     Note that it can read only from @link(TPeekCharStream), not just
     from any TStream. You may have to wrap your stream in some
     @link(TPeekCharStream) descendant (see for example at
-    @link(TVRMLLexerFileName) implementation,
+    @link(CreateFromFile) implementation,
     that creates TFileStream and then wraps it inside
     @link(TBufferedReadStream)). }
   TVRMLLexer = class
@@ -103,6 +103,7 @@ type
     VRMLNameChars, VRMLNameFirstChars: TSetOfChars;
 
     FStream: TPeekCharStream;
+    FOwnsStream: boolean;
 
     { Reads chars from Stream until EOF or some non-white char will
       be approached. Omits VRML comments. Returns as FirstBlack
@@ -116,6 +117,18 @@ type
       Sets fToken and fTokenString to appropriate values
       (i.e. fToken always to vtString, fTokenString to string contents). }
     procedure ReadString;
+
+    { Helpers for implementing constructors. They do everything, besides
+      reading header from the stream (before the first real token)
+      and setting VRMLVerXxx fields, you must do it between the call
+      to CreateCommonBegin and CreateCommonEnd.
+
+      @groupBegin }
+    procedure CreateCommonBegin(AStream: TPeekCharStream;
+      AOwnsStream: boolean;
+      const AWWWBasePath: string);
+    procedure CreateCommonEnd;
+    { @groupEnd }
   public
     { to po prostu strumien ktory dostalismy jako parametr konstruktora.
       Nie mozesz na nim operowac kiedy juz zainicjowales lexera !
@@ -252,7 +265,37 @@ type
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
       @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
-    constructor Create(AStream: TPeekCharStream; const AWWWBasePath: string);
+    constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean;
+      const AWWWBasePath: string);
+
+    constructor CreateFromFile(const FileName: string);
+
+    { Constructor for the case when you only have part of normal
+      VRML tokens stream.
+
+      This is particularly useful to parse fields of X3D in XML encoding.
+      Inside XML attributes we have then a text that can parsed with
+      a classical VRML lexer, to parse fields contents.
+
+      This creates a lexer that works quite like a normal lexer.
+      At creation time it doesn't expect header line (like @code(#VRML 2.0 utf8)),
+      that why you have to supply VRML major and minor version as
+      parameters here. Also it doesn't try to detect gzip header.
+      It simply behaves like we're in the middle of VRML tokens stream.
+
+      Overloaded version with a first parameter as string simply reads
+      tokens from this string (wrapping it in TStringStream and TPeekCharStream).
+
+      @groupBegin }
+    constructor CreateForPartialStream(
+      AStream: TPeekCharStream; AOwnsStream: boolean;
+      const AWWWBasePath: string;
+      const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
+    constructor CreateForPartialStream(const S: string;
+      const AWWWBasePath: string;
+      const AVRMLVerMajor, AVRMLVerMinor: Integer); overload;
+    { @groupEnd }
+
     destructor Destroy; override;
 
     { See TVRMLNode.WWWBasePath for a description of this field.
@@ -275,12 +318,6 @@ type
 
     { This is used when parsing to keep current namespace of prototypes. }
     ProtoNameBinding: TStringList;
-  end;
-
-  TVRMLLexerFileName = class(TVRMLLexer)
-  public
-    constructor Create(const FileName: string);
-    destructor Destroy; override;
   end;
 
   EVRMLLexerError = class(EVRMLError)
@@ -336,7 +373,42 @@ IMPLEMENT_ARRAY_POS
 
 { TVRMLLexer ------------------------------------------------------------- }
 
-constructor TVRMLLexer.Create(AStream: TPeekCharStream;
+procedure TVRMLLexer.CreateCommonBegin(AStream: TPeekCharStream;
+  AOwnsStream: boolean;
+  const AWWWBasePath: string);
+begin
+  inherited Create;
+
+  FStream := AStream;
+  FOwnsStream := AOwnsStream;
+  WWWBasePath := AWWWBasePath;
+
+  NodeNameBinding := TStringListCaseSens.Create;
+  ProtoNameBinding := TStringListCaseSens.Create;
+end;
+
+procedure TVRMLLexer.CreateCommonEnd;
+begin
+  { calculate VRMLWhitespaces, VRMLNoWhitespaces
+    (based on VRMLVerXxx) }
+  VRMLWhitespaces := [' ',#9, #10, #13];
+  if VRMLVerMajor >= 2 then
+    Include(VRMLWhitespaces, ',');
+  VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
+
+  { calculate VRMLNameChars, VRMLNameFirstChars }
+  { These are defined according to vrml97specification on page 24. }
+  VRMLNameChars := AllChars -
+    [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
+  if VRMLVerMajor <= 1 then
+    VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
+  VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
+
+  {read first token}
+  NextToken;
+end;
+
+constructor TVRMLLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean;
   const AWWWBasePath: string);
 const
   VRML1HeaderStart = '#VRML V1.0 ';
@@ -364,12 +436,7 @@ const
 var
   Line: string;
 begin
-  inherited Create;
-  FStream := AStream;
-  WWWBasePath := AWWWBasePath;
-
-  NodeNameBinding := TStringListCaseSens.Create;
-  ProtoNameBinding := TStringListCaseSens.Create;
+  CreateCommonBegin(AStream, AOwnsStream, AWWWBasePath);
 
   { Read first line = signature. }
   Line := Stream.ReadUpto(VRMLLineTerm);
@@ -424,28 +491,48 @@ begin
     raise EVRMLLexerError.Create(Self,
       'VRML signature error : unrecognized signature');
 
-  { calculate VRMLWhitespaces, VRMLNoWhitespaces }
-  VRMLWhitespaces := [' ',#9, #10, #13];
-  if VRMLVerMajor >= 2 then
-    Include(VRMLWhitespaces, ',');
-  VRMLNoWhitespaces := AllChars - VRMLWhitespaces;
+  CreateCommonEnd;
+end;
 
-  { calculate VRMLNameChars, VRMLNameFirstChars }
-  { These are defined according to vrml97specification on page 24. }
-  VRMLNameChars := AllChars -
-    [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
-  if VRMLVerMajor <= 1 then
-    VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
-  VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
+constructor TVRMLLexer.CreateFromFile(const FileName: string);
+var
+  FileStream: TFileStream;
+begin
+  FileStream := TFileStream.Create(FileName, fmOpenRead);
+  Create(
+    TBufferedReadStream.Create(FileStream, true), true,
+    ExtractFilePath(ExpandFilename(FileName)));
+end;
 
-  {read first token}
-  NextToken;
+constructor TVRMLLexer.CreateForPartialStream(
+  AStream: TPeekCharStream; AOwnsStream: boolean;
+  const AWWWBasePath: string;
+  const AVRMLVerMajor, AVRMLVerMinor: Integer);
+begin
+  CreateCommonBegin(AStream, AOwnsStream, AWWWBasePath);
+  FVRMLVerMajor := AVRMLVerMajor;
+  FVRMLVerMinor := AVRMLVerMinor;
+  CreateCommonEnd;
+end;
+
+constructor TVRMLLexer.CreateForPartialStream(const S: string;
+  const AWWWBasePath: string;
+  const AVRMLVerMajor, AVRMLVerMinor: Integer);
+var
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create(S);
+  CreateForPartialStream(
+    TBufferedReadStream.Create(StringStream, true), true,
+    AWWWBasePath, AVRMLVerMajor, AVRMLVerMinor);
 end;
 
 destructor TVRMLLexer.Destroy;
 begin
   FreeAndNil(NodeNameBinding);
   FreeAndNil(ProtoNameBinding);
+  if FOwnsStream then
+    FreeAndNil(Stream);
   inherited;
 end;
 
@@ -501,6 +588,9 @@ function TVRMLLexer.NextToken: TVRMLToken;
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
   var foundKeyword: TVRMLKeyword;
+  const
+    LowerCaseVKTrue = 'true' { LowerCase(VRMLKeywords[vkTRUE]) };
+    LowerCaseVKFalse = 'false' { LowerCase(VRMLKeywords[vkFALSE]) };
   begin
    fTokenName := FirstLetter +Stream.ReadUpto(AllChars - VRMLNameChars);
 
@@ -509,10 +599,33 @@ function TVRMLLexer.NextToken: TVRMLToken;
    if ArrayPosVRMLKeywords(fTokenName, foundKeyword) and
       ( (VRMLVerMajor > 1) or (foundKeyword in VRML10Keywords) ) then
    begin
-    fToken := vtKeyword;
-    fTokenKeyword := foundKeyword;
+     FToken := vtKeyword;
+     FTokenKeyword := foundKeyword;
    end else
-    fToken := vtName;
+   if VRMLVerMajor >= 3 then
+   begin
+     { In X3D XML encoding you should specify SFBool / MFBool values
+       as lower-case. From spec:
+
+         Lower-case strings for true and false are used in order
+         to maximize interoperability with other XML languages.
+
+       In my engine, I relax this rule: in *any* X3D encoding (XML, classic...),
+       you can use either lower-case or upper-case boolean values.
+       This way all valid files are handled. }
+     if FTokenName = LowerCaseVKTrue then
+     begin
+       FToken := vtKeyword;
+       FTokenKeyword := vkTRUE;
+     end else
+     if FTokenName = LowerCaseVKFalse then
+     begin
+       FToken := vtKeyword;
+       FTokenKeyword := vkFALSE;
+     end else
+       FToken := vtName;
+   end else
+     FToken := vtName;
   end;
 
   procedure ReadFloatOrInteger(FirstChar: char);
@@ -779,23 +892,6 @@ begin
     raise EVRMLParserError.Create(Self,
       Format('Expected keyword "%s", got %s', [VRMLKeywords[TokenKeyword],
         DescribeToken]));
-end;
-
-{ TVRMLLexerFileName --------------------------------------------------------- }
-
-constructor TVRMLLexerFileName.Create(const FileName: string);
-var FileStream: TFileStream;
-begin
- FileStream := TFileStream.Create(FileName, fmOpenRead);
- inherited Create(
-   TBufferedReadStream.Create(FileStream, true),
-   ExtractFilePath(ExpandFilename(FileName)));
-end;
-
-destructor TVRMLLexerFileName.Destroy;
-begin
- inherited;
- Stream.Free;
 end;
 
 { EVRMLLexer/ParserError ------------------------------------------------------------ }

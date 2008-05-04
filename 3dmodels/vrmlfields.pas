@@ -183,6 +183,12 @@ type
       by TSFNode and TMFNode). }
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); virtual;
 
+    { Parse field value from X3D XML encoded attribute.
+      Attributes in X3D are generally encoded such that normal
+      @code(Parse(Lexer, false)) call is appropriate,
+      so this is done in this class. }
+    procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); virtual;
+
     { Save the field to the stream.
       If the current field value equals default value and
       SaveWhenDefault is @false (default) then the field will not be saved.
@@ -432,6 +438,8 @@ type
       for equality every item on SecondValue.Items[I] and Items[I]. }
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
+
+    procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1212,6 +1220,11 @@ begin
     FIsClause := false;
 end;
 
+procedure TVRMLField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
+begin
+  Parse(Lexer, false);
+end;
+
 procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
 begin
   FName := Source.Name;
@@ -1357,6 +1370,31 @@ begin
     RawItemsAdd(SingleItem);
    end;
 
+  finally
+    FreeAndNil(SingleItem);
+    RawItems.AllowedCapacityOverflow := 4;
+  end;
+end;
+
+procedure TVRMLSimpleMultField.ParseX3DXmlAttr(Lexer: TVRMLLexer);
+var
+  SingleItem: TVRMLSingleField;
+begin
+  { This is much easier and simpler in XML encoding than it was
+    in classic encoding. We don't have to check for [ and ] tokens,
+    comma is ignored (it was only for VRML 1.0 anyway), we just read
+    single values up to the end of stream. }
+
+  RawItems.SetLength(0);
+
+  RawItems.AllowedCapacityOverflow := 100;
+  SingleItem := CreateItemBeforeParse;
+  try
+    while Lexer.Token <> vtEnd do
+    begin
+      SingleItem.Parse(Lexer, false);
+      RawItemsAdd(SingleItem);
+    end;
   finally
     FreeAndNil(SingleItem);
     RawItems.AllowedCapacityOverflow := 4;
