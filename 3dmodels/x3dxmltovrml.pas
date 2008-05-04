@@ -32,7 +32,7 @@ function LoadX3DXmlAsVRML(const FileName: string): TVRMLNode;
 implementation
 
 uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
-  VRMLLexer, VRMLErrors;
+  VRMLLexer, VRMLErrors, VRMLFields;
 
 type
   EX3DXmlNotAllowedError = class(EVRMLError);
@@ -95,16 +95,23 @@ const
             classical VRML syntax, by specifying SFNode, MFNode fields
             as element attributes. }
 
-          Lexer := TVRMLLexer.CreateForPartialStream(Attr.Value, WWWBasePath,
-            VRMLVerMajor, VRMLVerMinor);
-          try
+          { SFString has quite special interpretation, it's just attrib
+            name. It would not be usefull trying to use TVRMLLexer here,
+            it's easier just to handle this as a special case. }
+          if Node.Fields[Index] is TSFString then
+            TSFString(Node.Fields[Index]).Value := Attr.Value else
+          begin
+            Lexer := TVRMLLexer.CreateForPartialStream(Attr.Value, WWWBasePath,
+              VRMLVerMajor, VRMLVerMinor);
             try
-              Node.Fields[Index].ParseX3DXmlAttr(Lexer);
-            except
-              on E: EVRMLParserError do
-                VRMLNonFatalError('Error when parsing field "' + Attr.Name + '" value: ' + E.Message);
-            end;
-          finally FreeAndNil(Lexer) end;
+              try
+                Node.Fields[Index].ParseX3DXmlAttr(Lexer);
+              except
+                on E: EVRMLParserError do
+                  VRMLNonFatalError('Error when parsing field "' + Attr.Name + '" value: ' + E.Message);
+              end;
+            finally FreeAndNil(Lexer) end;
+          end;
         end else
           VRMLNonFatalError('Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + Node.NodeTypeName + '"');
       end;
