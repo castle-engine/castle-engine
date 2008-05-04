@@ -167,9 +167,15 @@ const
                   MF.AddItem(Child);
                   MF.WarningIfChildNotAllowed(Child);
                 end else
+                begin
+                  FreeAndNil(Child);
                   VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                end;
               end else
+              begin
+                FreeAndNil(Child);
                 VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
+              end;
             end;
           end;
         end;
