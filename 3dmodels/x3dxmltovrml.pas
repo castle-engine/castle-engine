@@ -108,7 +108,21 @@ const
                 Node.Fields[Index].ParseX3DXmlAttr(Lexer);
               except
                 on E: EVRMLParserError do
-                  VRMLNonFatalError('Error when parsing field "' + Attr.Name + '" value: ' + E.Message);
+                begin
+                  if Node.Fields[Index] is TMFString then
+                  begin
+                    { This is very common error, even in models from
+                      http://www.web3d.org/x3d/content/examples/Basic/
+                      Although specification clearly says that MFString
+                      components should always be enclosed within double
+                      quotes. We just do what Xj3D seems to do, that is
+                      we handle this as a single string (producing a warning). }
+                    VRMLNonFatalError('Error when parsing MFString field "' + Attr.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+                    TMFString(Node.Fields[Index]).Items.Count := 0;
+                    TMFString(Node.Fields[Index]).Items.AppendItem(Attr.Value);
+                  end else
+                    VRMLNonFatalError('Error when parsing field "' + Attr.Name + '" value: ' + E.Message);
+                end;
               end;
             finally FreeAndNil(Lexer) end;
           end;
