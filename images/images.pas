@@ -932,6 +932,7 @@ function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
 { File formats managing ----------------------------------------------------- }
 
 type
+  { }
   TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE, ifGIF, ifTGA);
   TImageFormats = set of TImageFormat;
   TRGBImageLoadFunc = function (Stream: TStream): TRGBImage;
@@ -940,66 +941,94 @@ type
     FormatRequired: TImageFormatRequirements;
     ConvertToRequired: boolean): TImage;
   { some day TImageSaveFunc will be added too }
-  { As you can see, each file format must have at least one
-    (default) file extension. }
+
+  { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
+    So TImageFormatInfo.Exts array is indexed from 1,
+    and TImageFormatInfo.ExtsCount must be >= 1, so each file format must have at least one
+    (treated as "default" in some cases) file extension. }
   TImageFormatInfoExtsCount = 1..3;
 
   TImageFormatInfo = record
+    { Human-readble format name.
+
+      Note that this is supposed to be shown to normal user,
+      in save dialog boxes etc. So it should be short and concise. I used to
+      have here long format names like @code(JFIF, JPEG File Interchange Format) or
+      @code(PNG, Portable Network Graphic), but they are too ugly, and unnecessarily
+      resolving format abbrevs. For example, most users probably used JPEG,
+      but not many have to know, or understand, that actually this is image format JFIF;
+      these are technical and historical details that are not needed for normal usage of image
+      operations.
+
+      Saying it directly, I want to keep this FormatName short and concise.
+      This is not a place to educate users what some abbrev means.
+      This is a place to "name" each file format in the most natural way, which
+      usually means to only slightly rephrase typical file format extension.
+
+      In practice, I now copy descriptions from English GIMP open dialog. }
     FormatName: string;
+
     ExtsCount: TImageFormatInfoExtsCount;
-    { These file extensions must be lowercase, without leading dot '.'.
+    { File extensions recognized as this image file format.
+
+      These file extensions must be lowercase, without leading dot '.'.
       First extension is the default extension of this file format
       (some procedures make use of it). }
     Exts: array[TImageFormatInfoExtsCount] of string;
-    LoadRGB: TRGBImageLoadFunc; { = nil if we can't load it from RGB }
-    SaveRGB: TRGBImageSaveFunc; { = nil if we can't save it to RGB }
-    Load: TImageLoadFunc; { = nil if can't load it with alpha channel }
+
+    LoadRGB: TRGBImageLoadFunc; {< = nil if we can't load it from RGB }
+    SaveRGB: TRGBImageSaveFunc; {< = nil if we can't save it to RGB }
+    Load: TImageLoadFunc; {< = nil if can't load it with alpha channel }
   end;
 
 const
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
-  ( ( FormatName: 'BMP, Windows Bitmap';
-      ExtsCount: 1; Exts: ('bmp','','');
+  ( ( FormatName: 'Windows BMP image';
+      ExtsCount: 1; Exts: ('bmp', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP;
       Load: nil),
-    ( FormatName: 'PNG, Portable Network Graphic';
-      ExtsCount: 1; Exts: ('png','','');
+    { Portable Network Graphic } { }
+    ( FormatName: 'PNG image';
+      ExtsCount: 1; Exts: ('png', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPNG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePNG;
       Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyPNG),
-    ( FormatName: 'JFIF, JPEG File Interchange Format';
-      ExtsCount: 2; Exts: ('jpg','jpeg','');
+    { JFIF, JPEG File Interchange Format } { }
+    ( FormatName: 'JPEG image';
+      ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJPEG;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveJPEG;
       Load: nil),
-    ( FormatName: 'PCX Image';
-      ExtsCount: 1; Exts: ('pcx','','');
+    ( FormatName: 'ZSoft PCX image';
+      ExtsCount: 1; Exts: ('pcx', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPCX;
       SaveRGB: nil;
       Load: nil),
-    ( FormatName: 'PPM, Portable Pixel Map';
-      ExtsCount: 1; Exts: ('ppm','','');
+    { Portable Pixel Map } { }
+    ( FormatName: 'PPM image';
+      ExtsCount: 1; Exts: ('ppm', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadPPM;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SavePPM;
       Load: nil),
-    ( FormatName: 'IPLab Image';
-      ExtsCount: 1; Exts: ('ipl','','');
+    ( FormatName: 'IPLab image';
+      ExtsCount: 1; Exts: ('ipl', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadIPL;
       SaveRGB: nil;
       Load: nil),
-    ( FormatName: 'RGBE (RGB+Exponent) Image';
+    ( FormatName: 'RGBE (RGB+Exponent) image';
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadRGBEToByteRGB;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveRGBEFromByteRGB;
       Load: nil),
-    ( FormatName: 'GIF, Graphics Interchange Format';
-      ExtsCount: 1; Exts: ('gif','','');
+    { Graphics Interchange Format } { }
+    ( FormatName: 'GIF image';
+      ExtsCount: 1; Exts: ('gif', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadGIF;
       SaveRGB: nil;
       Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyGIF),
-    ( FormatName: 'TGA, TARGA File Format';
-      ExtsCount: 1; Exts: ('tga','','');
+    ( FormatName: 'TarGA image';
+      ExtsCount: 1; Exts: ('tga', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTGA;
       SaveRGB: nil;
       Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA)
@@ -1039,17 +1068,25 @@ type
 function FindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
 function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
 
-{ te funkcje moga byc czasem wygodne do konstruowania zapytan w rodzaju
-  SaveFileAs, przyklad - patrz glViewImage i RaytraceToWindow.
-  ListImageExtsLong wypisuje rozszerzenia kazdego formatu w osobnej linii,
-    wypisuje tez FormatName. Linie sa rozdzielane przez nl, jak zwykle
-    ostatnia linia NIE jest zakonczona nl.
-    Kazda linia zaczyna sie od LinePrefix, potem od razu jakies nie-biale znaki
-    np. 'ppm - PPM, Portable Pixel Map'
-  ListImageExtsShort wypisuje wszystkie dozwolone rozszerzenia oddzielone
-    ', ' (przecinek + spacja). }
+{ List available image file formats.
+
+  This is basically for debug/info purposes, you can show this to user
+  to let him know which formats are supported (and by which extensions
+  they are recognized). Although almost always a better way to show
+  this to user is just to use SaveImage_FileFilters with a save dialog
+  like TGLWindow.FileDialog, this shows file types in the open/save dialog,
+  so it's most natural and convenient to user.
+
+  ListImageExtsLong produces a multiline info (separated by NL, last line not terminated
+  by NL), shows all extensions and FormatName for each file format.
+  Each line starts with LinePrefix.
+
+  ListImageExtsShort writes all recognized extensions separated by comma (', ').
+
+  @groupBegin }
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
+{ @groupEnd }
 
 { Load[RGB]Image -------------------------------------------------------------- }
 

@@ -214,8 +214,8 @@ procedure InitializeImagesFileFilters;
   function CreateImagesFilters: TFileFiltersList;
   begin
     Result := TFileFiltersList.Create;
-    Result.AddFilter('All files', ['*']);
-    Result.AddFilter('All images', []);
+    Result.AddFilter('All Files', ['*']);
+    Result.AddFilter('All Images', []);
     Result.DefaultFilter := 1;
   end;
 
@@ -227,13 +227,24 @@ procedure InitializeImagesFileFilters;
   begin
     F := TFileFilter.Create;
     Filters.Add(F);
-    F.Name := Format.FormatName;
+    F.Name := Format.FormatName + ' (';
+
     for ExtIndex := 1 to Format.ExtsCount do
     begin
       Pattern := '*.' + Format.Exts[ExtIndex];
-      Filters[Filters.DefaultFilter].Patterns.Append(Pattern); { add to "All images" filter }
+
+      { add to "All images" filter }
+      Filters[Filters.DefaultFilter].Patterns.Append(Pattern);
+
+      { add to this filter }
       F.Patterns.Append(Pattern);
+
+      { add to this filter visible name }
+      if ExtIndex <> 1 then F.Name := F.Name + ', ';
+      F.Name := F.Name + Pattern;
     end;
+
+    F.Name := F.Name + ')';
   end;
 
 var

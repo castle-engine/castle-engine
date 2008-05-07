@@ -75,7 +75,7 @@ const
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
   LoadAsVRML_FileFilters =
-  'All files|*|' +
+  'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
@@ -133,7 +133,7 @@ const
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
   LoadAsVRMLSequence_FileFilters =
-  'All files|*|' +
+  'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
