@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1059,6 +1059,37 @@ end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
+
+  { Prepare string with encoded filter names and patterns, as specified
+    in WinAPI OPENFILENAME reference.
+
+    Note that Windows encoding of OpenFileName has limitations here, since all filters
+    are passed in a string: pattern cannot contain ';', and WinAPI reference
+    says that it also cannot contain a space. }
+  function MakeStrFilter(FileFilters: TFileFiltersList): string;
+  var
+    I, J: Integer;
+    Filter: TFileFilter;
+  begin
+    Result := '';
+    for I := 0 to FileFilters.Count - 1 do
+    begin
+      Filter := FileFilters[I];
+
+      Result += Filter.Name + #0;
+
+      for J := 0 to Filter.Patterns.Count - 1 do
+      begin
+        if J <> 0 then Result += ';';
+        Result += Filter.Patterns[J];
+      end;
+
+      Result += #0;
+    end;
+
+    Result += #0;
+  end;
+
 var Struct: TOpenFileName;
     FileNameBuffer: array[0..6000]of char;
     FilePath: string;
@@ -1096,6 +1127,12 @@ begin
  if OpenDialog then
   Struct.Flags := Struct.Flags or OFN_FILEMUSTEXIST else
   Struct.Flags := Struct.Flags or OFN_OVERWRITEPROMPT or OFN_PATHMUSTEXIST;
+
+ if FileFilters <> nil then
+ begin
+   Struct.lpstrFilter := PChar(MakeStrFilter(FileFilters));
+   Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
+ end;
 
  { enter glwin mode }
  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
