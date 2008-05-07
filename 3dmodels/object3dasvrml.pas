@@ -71,13 +71,13 @@ procedure LoadMD3AsVRMLSequence(
 function LoadAsVRML(const filename: string; AllowStdIn: boolean = false): TVRMLNode;
 
 const
-  { File patterns for files loaded by LoadAsVRML, suitable
+  { File filters for files loaded by LoadAsVRML, suitable
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
-  LoadAsVRML_FilePatterns =
+  LoadAsVRML_FileFilters =
   'All files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
-  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
     and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
@@ -129,13 +129,13 @@ procedure LoadAsVRMLSequence(
   out TimeLoop, TimeBackwards: boolean);
 
 const
-  { File patterns for files loaded by LoadAsVRMLSequence, suitable
+  { File filters for files loaded by LoadAsVRMLSequence, suitable
     for TFileFiltersList.AddFiltersFromString and
     TGLWindow.FileDialog. }
-  LoadAsVRMLSequence_FilePatterns =
+  LoadAsVRMLSequence_FileFilters =
   'All files|*|' +
-  '*All 3D models|*.wrl;*.gz;*.wrz;*.x3d;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
-  'VRML (*.wrl, *.gz, *.wrz)|*.wrl;*.gz;*.wrz|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
     and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
@@ -150,7 +150,7 @@ const
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo';
 
-  UncompressedVRML_FilePatterns =
+  UncompressedVRML_FileFilters =
   'All files|*|' +
   '*VRML (not compressed) (*.wrl)|*.wrl';
 

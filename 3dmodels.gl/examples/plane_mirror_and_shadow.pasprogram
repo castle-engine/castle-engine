@@ -489,7 +489,7 @@ begin
       begin
         S := ExtractFilePath(SceneFileName);
         if Glwin.FileDialog('Open 3d model (VRML etc.) file', S, true,
-          LoadAsVRML_FilePatterns) then
+          LoadAsVRML_FileFilters) then
         begin
           Scene.RootNode.Free;
           Scene.RootNode := nil;
