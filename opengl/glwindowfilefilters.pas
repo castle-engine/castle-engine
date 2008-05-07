@@ -38,7 +38,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    property Name: string read FName;
+    property Name: string read FName write FName;
     property Patterns: TStringList read FPatterns;
   end;
 
@@ -80,11 +80,29 @@ type
     procedure AddFiltersFromString(const FiltersStr: string);
   end;
 
+var
+  { File filters suitable for TGLWindow.FileDialog
+    if you want to choose a file that can be loaded/saved
+    by appropriate functions from Images unit.
+
+    These objects should be treated as read-only outside this unit.
+    Initialization / finalization of this unit automatically take care of them.
+
+    Development notes: Conceptually these would fit better inside Images unit,
+    not GLWindowFileFilters unit, but Images unit cannot depend on
+    opengl-related units.
+
+    @groupBegin }
+  LoadRGBImage_FileFilters: TFileFiltersList;
+  LoadImage_FileFilters: TFileFiltersList;
+  SaveImage_FileFilters: TFileFiltersList;
+  { @groupEnd }
+
 {$undef read_interface}
 
 implementation
 
-uses StrUtils, KambiStringUtils;
+uses StrUtils, KambiStringUtils, Images;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -141,7 +159,7 @@ procedure TFileFiltersList.AddFiltersFromString(const FiltersStr: string);
     Filter := TFileFilter.Create;
     Add(Filter);
 
-    Filter.FName := Name;
+    Filter.Name := Name;
 
     { tests: Writeln('new name: "', Filter.FName, '"'); }
 
@@ -154,7 +172,7 @@ procedure TFileFiltersList.AddFiltersFromString(const FiltersStr: string);
         Part := CopyPos(Patterns, LastSeparator + 1, NextSeparator - 1);
 
       { new Part is a next pattern, add it }
-      Filter.FPatterns.Append(Part);
+      Filter.Patterns.Append(Part);
       { tests: Writeln('new pattern: "', Part, '"'); }
 
       { advance LastSeparator for next loop roll }
@@ -189,4 +207,76 @@ begin
   until LastSeparator = 0;
 end;
 
+{ unit initialization / finalization ----------------------------------------- }
+
+procedure InitializeImagesFileFilters;
+
+  function CreateImagesFilters: TFileFiltersList;
+  begin
+    Result := TFileFiltersList.Create;
+    Result.AddFilter('All files', ['*']);
+    Result.AddFilter('All images', []);
+    Result.DefaultFilter := 1;
+  end;
+
+  procedure AddImageFormat(Filters: TFileFiltersList; Format: TImageFormatInfo);
+  var
+    F: TFileFilter;
+    ExtIndex: Integer;
+    Pattern: string;
+  begin
+    F := TFileFilter.Create;
+    Filters.Add(F);
+    F.Name := Format.FormatName;
+    for ExtIndex := 1 to Format.ExtsCount do
+    begin
+      Pattern := '*.' + Format.Exts[ExtIndex];
+      Filters[Filters.DefaultFilter].Patterns.Append(Pattern); { add to "All images" filter }
+      F.Patterns.Append(Pattern);
+    end;
+  end;
+
+var
+  Format: TImageFormat;
+begin
+  LoadRGBImage_FileFilters := CreateImagesFilters;
+  LoadImage_FileFilters := CreateImagesFilters;
+  SaveImage_FileFilters := CreateImagesFilters;
+
+  for Format := Low(Format) to High(Format) do
+  begin
+    if Assigned(ImageFormatInfos[Format].LoadRGB) then
+    begin
+      AddImageFormat(LoadRGBImage_FileFilters, ImageFormatInfos[Format]);
+
+      { For LoadImage, the allowed formats list is specified implicitly
+        by LoadImage documentation. As it happens, for now every image
+        can be loaded to RGBImage, and so every image can be loaded by
+        LoadImage.
+
+        So actually LoadImage_FileFilters is (for now) always equal
+        to LoadRGBImage_FileFilters. }
+
+      AddImageFormat(LoadImage_FileFilters, ImageFormatInfos[Format]);
+    end;
+
+    { For SaveImage, the allowed formats list is specified implicitly
+      by SaveImage documentation.
+
+      For now, this means that SaveImage can save anything that can be saved
+      to RGB format and additionally directly handles RGBE and PNG image formats.
+      As it happens, these last two formats can also be saved directly from
+      RGB pixel format, so for now check below is simple. }
+
+    if Assigned(ImageFormatInfos[Format].SaveRGB) then
+      AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
+  end;
+end;
+
+initialization
+  InitializeImagesFileFilters;
+finalization
+  FreeWithContentsAndNil(LoadRGBImage_FileFilters);
+  FreeWithContentsAndNil(LoadImage_FileFilters);
+  FreeWithContentsAndNil(SaveImage_FileFilters);
 end.
