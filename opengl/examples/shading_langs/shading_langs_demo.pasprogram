@@ -289,11 +289,16 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   end;
 
   procedure LoadGLSLProgramMenu;
+  const
+    GLSL_FileFilters =
+    'All files|*|' +
+    '*GLSL vertex of fragment shader (*.vs, *.fs)|*.vs;*.fs';
   var
     S: string;
   begin
     S := '';
-    if Glwin.FileDialog('Open file with GLSL fragment or vertex shader', S, true) then
+    if Glwin.FileDialog('Open file with GLSL vertex or fragment shader', S, true,
+      GLSL_FileFilters) then
     begin
       GLSLProgram.DetachAllShaders;
       GLSLProgram.AttachVertexShader(FileToString(ChangeFileExt(S,'.vs')));
@@ -320,7 +325,7 @@ begin
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('Load new ARB vertex program', 10));
     M.Append(TMenuItem.Create('Load new ARB fragment program', 20));
-    M.Append(TMenuItem.Create('Load new GLSL program (fragment must have *.fs extension, vertex *.vs)', 30));
+    M.Append(TMenuItem.Create('Load new GLSL program (vertex shader must have *.vs extension, fragment *.fs)', 30));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 200));
     Result.Append(M);
