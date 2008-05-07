@@ -1090,24 +1090,58 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
     Result += #0;
   end;
 
-var Struct: TOpenFileName;
-    FileNameBuffer: array[0..6000]of char;
-    FilePath: string;
-    Mode: TGLModeFrozenScreen;
+  function SearchFirstPatternWithExtension(const Ext: string): Integer;
+  var
+    I: Integer;
+  begin
+    Result := -1;
+
+    { Look only at extensions '.' + something non-empty.
+      Don't even bother looking at special extensions '' and '.',
+      or things wihout a leading '.', they will not
+      work with our trick anyway, see comments where I use
+      SearchFirstPatternWithExtension. }
+    if (Length(Ext) >= 2) and (Ext[1] = '.') then
+    begin
+      for I := 0 to FileFilters.Count - 1 do
+        if SameText(FileFilters[I].Patterns[0], '*' + Ext) then
+        begin
+          if (Result = -1) or
+             { If we're lucky enough to have more than one match (this may happen
+               e.g. for our "all images" filters that list the sum of other filters)
+               then choose more specific (with less patterns) filter. }
+             (FileFilters[I].Patterns.Count < FileFilters[Result].Patterns.Count) then
+            Result := I;
+        end;
+    end;
+  end;
+
+var
+  Struct: TOpenFileName;
+  FileNameBuffer: array[0..6000]of char;
+  FilePath: string;
+  Mode: TGLModeFrozenScreen;
+  CurrentFileNameExt: string;
+  CurrentFormatIndex: Integer;
 begin
  FillChar(Struct, SizeOf(Struct), 0);
  Struct.lStructSize := SizeOf(Struct);
  Struct.hwndOwner := H_Wnd;
- { We just hope that FileNameBuffer will be ALWAYS sufficiently large.
-   I don't know, this seems to be the only reasonable way to deal with this.
-   Checking CommDlgExtendedError for BUFFER_TOO_SMALL and then decoding
-   required length from lpstrFile is pretty pointless. }
+
  FileNameBuffer := ExtractFileName(FileName);
  Struct.lpstrFile := @FileNameBuffer;
+
+ { As for FileNameBuffer size:
+   we just hope that FileNameBuffer will be ALWAYS sufficiently large.
+   This seems to be the only reasonable way to deal with this.
+   Checking CommDlgExtendedError for BUFFER_TOO_SMALL and then decoding
+   required length from lpstrFile is pretty pointless (after all, you will know
+   the required length, but then how can you ask GetXxxFileName to return again
+   the same filename, without displaying dialog once again?). }
  Struct.nMaxFile := SizeOf(FileNameBuffer);
 
  { We're storing result of ExtractFilePath in FilePath, because pointer
-   Struct.lpstrInitialDir must obviously be valid when I call GetOpenFileName }
+   Struct.lpstrInitialDir must be valid when I call GetOpenFileName }
  FilePath := ExtractFilePath(FileName);
  { In WinAPI help they say that when lpstrInitialDir = nil it uses current dir.
    But that's not true, it uses some other dir (last dir of open dialog box ?).
@@ -1132,6 +1166,79 @@ begin
  begin
    Struct.lpstrFilter := PChar(MakeStrFilter(FileFilters));
    Struct.nFilterIndex := FileFilters.DefaultFilter + 1;
+
+   if not OpenDialog then
+   begin
+     { Note that GetSaveFileName is brain-dead and
+       works really correct only if you pass filename without
+       extension, and user doesn't type any extension. Then GetSaveFileName appends
+       to the output filename the extension from current filter, or lpstrDefExt
+       if current filter doesn't contain any extension (e.g. if current filter has '*'
+       as all files). And then it works Ok.
+
+       It fails tragically if user types some extension. Basically, GetSaveFileName
+       will not change filename extension then, but standard behavior expects that you
+       should save the file with format chosen in filters, that is "save as type" label.
+       So you probably save a file with data format and filename extension totally
+       uncorelated.
+
+       Yes, this stupidity actually happens --- e.g. in M$ Outlook (it's made my M$,
+       so it's supposed to reflect some "standard" usage, right?) saving the email
+       (there are two filters, one is Email (*.eml) and the other HTML (*.htm, *.html)):
+       if you type a.html, and press Enter (leaving data format as Email)...
+       the data format is Email but it's saved to filename named a.html.
+
+       This means that if user types an extension or application proposes an extension
+       then the bad things happen.
+       (Like FireFox: it proposes filename with extension a.htm, so when user changes
+       data format to "text file (*.txt)" the file gets saved to a.htm with text (not direct
+       HTML tags) format)) . Program must (by standard)
+       use data format chosen in the dialog and filename as given --- so they are totally
+       unrelated.
+
+       This also means that it's difficult for user to sensibly save file with extension
+       that is not the 1st pattern of some filter. GetSaveFileName appends only the 1st pattern
+       of current filter, and if you just type the extension then you probably forget to
+       change combo box "save as type".
+
+       What can I do? I want to avoid WinAPI stupidity, and I do not want to return
+       a separate parameter specifying which filter was chosen (to keep interface simple),
+       so I want the filename to be related with data format.
+       I can do one thing: if there exists a filter
+       with current filename extension as it's 1st pattern then I can remove it from
+       filename and set this filter as default. So in typical case things will work Ok,
+       as much as they can, assumig that one of your filters matches your current extension.
+
+       In other cases, "save as type" of my
+       WinAPI dialogs will just be useless, but there's nothing I can do: I have to
+       keep filename with extension in lpstrFile then, and GetSaveFileName will
+       not correlate this with format chosen by combo box "save as type".
+       So I will simply ignore combo box "save as type" (while Windows standard says
+       to ignore extension then; either way, both exits are wrong, since user can very
+       easily save a file with data format and extension not related).
+     }
+     CurrentFileNameExt := ExtractFileExt(FileNameBuffer);
+     CurrentFormatIndex := SearchFirstPatternWithExtension(CurrentFileNameExt);
+     if CurrentFormatIndex <> -1 then
+     begin
+       { We can use workaround described above. }
+       FileNameBuffer := DeleteFileExt(FileNameBuffer);
+       Struct.nFilterIndex := CurrentFormatIndex + 1;
+
+       { If user selects something like "all files" then also append this extension.
+
+         I pass here CurrentFileNameExt without leading dot (since
+         SearchFirstPatternWithExtension returned something <> -1, I know there's
+         a leading dot).
+
+         Note: only first three characters of lpstrDefExt extension are taken
+         into account,  according to WinAPI reference. (and WTF can I do about it?)
+
+         Also note that unregistered extensions are treated somewhat differently.
+         Unfortunately, lpstrDefExt will append then, instead of leaving filename alone. }
+       Struct.lpstrDefExt := PChar(SEnding(CurrentFileNameExt, 2));
+     end;
+   end;
  end;
 
  { enter glwin mode }
