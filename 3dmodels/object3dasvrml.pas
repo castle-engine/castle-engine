@@ -150,10 +150,6 @@ const
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo';
 
-  UncompressedVRML_FileFilters =
-  'All files|*|' +
-  '*VRML (not compressed) (*.wrl)|*.wrl';
-
 implementation
 
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,

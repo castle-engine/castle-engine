@@ -2400,6 +2400,20 @@ procedure SaveToVRMLFile(Node: TVRMLNode;
   const Filename, PrecedingComment: string;
   WriteExpandedPrototype: boolean = false); overload;
 
+const
+  { File filters for TGLWindow.FileDialog if you want to open a file and then
+    pass it to ParseVRMLFile. Note that only ParseVRMLFile that takes a FileName
+    parameter (as a string) can deal with gzip compressed files. }
+  ParseVRMLFile_FileFilters =
+  'All files|*|' +
+  '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
+
+  { File filters for TGLWindow.FileDialog if you want to save a file using
+    SaveToVRMLFile. }
+  SaveToVRMLFile_FileFilters =
+  'All files|*|' +
+  '*VRML (not compressed) (*.wrl)|*.wrl';
+
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
 

@@ -3585,8 +3585,9 @@ end;
 {$ifndef GLWINDOW_GLUT}
 procedure TGLWindow.SaveScreenDialog(ProposedFileName: string);
 begin
- if FileDialog('Save screen to file', ProposedFileName, false) then
-  SaveScreen(ProposedFileName);
+  if FileDialog('Save screen to file', ProposedFileName, false,
+    SaveImage_FileFilters) then
+   SaveScreen(ProposedFileName);
 end;
 {$endif}
 
