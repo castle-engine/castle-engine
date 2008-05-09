@@ -1257,7 +1257,7 @@
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
 
-    { This is a shortcut for FdAppearance.Value.FdTexture.Value.
+    { This is a shortcut for FdAppearance.Value.
       If anything makes this impossible (Apperance field is NULL, or wrong class)
       then returns @nil. }
     function Appearance: TNodeAppearance;

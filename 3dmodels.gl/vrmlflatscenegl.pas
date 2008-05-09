@@ -289,6 +289,9 @@ type
       See also DefaultBlendingDestinationFactor for comments about
       GL_ONE and GL_ONE_MINUS_SRC_ALPHA.
 
+      Note that this is only a default, VRML model can override this
+      for specific shapes by using our extension BlendMode node.
+
       @groupBegin }
     property BlendingSourceFactor: TGLenum
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -1072,7 +1075,7 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages;
+uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1334,6 +1337,83 @@ begin
  Renderer.RenderEnd;
 end;
 
+{ Given blending name (as defined by VRML BlendMode node spec,
+  http://www.instantreality.org/documentation/nodetype/BlendMode/),
+  returns @true and corresponding OpenGL constant as Factor.
+
+  Returns @false if S doesn't match any known name, or it's "none",
+  or it's not supported by current OpenGL implementation (some factors
+  may require newer OpenGL versions), or it's not for this kind
+  (which means it's not for source factor if Source = true,
+  or it's not for dest factor is Source = false).
+
+  If returns @true, then also updates NeedsConstXxx.
+  "Updates" means that always does something like
+    NeedsConstXxx := NeedsConstXxx or <this factor needs them>;
+  so can only change from false to true.
+}
+function BlendingFactorNameToStr(const S: string;
+  out Factor: TGLEnum;
+  var NeedsConstColor, NeedsConstAlpha: boolean;
+  Source: boolean): boolean;
+
+type
+  TBlendingFactor = record
+    Name: string;
+    GL: TGLEnum;
+    Source, Dest: boolean;
+    NeedsConstColor, NeedsConstAlpha: boolean;
+  end;
+
+{ TODO: this is written assuming OpenGL 2.1.
+  For older OpenGL, some of the more exotic combinations may be not allowed
+  or at least require checking for some extensions. }
+
+const
+  BlendingFactors: array [0..15] of TBlendingFactor =
+  (
+    { Three most frequently used values are placed at the beginning of the list,
+      for speedup. }
+    (Name: 'src_alpha'               ; GL: GL_SRC_ALPHA               ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'one_minus_src_alpha'     ; GL: GL_ONE_MINUS_SRC_ALPHA     ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'one'                     ; GL: GL_ONE                     ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+
+    (Name: 'none'                    ; GL: GL_NONE                    ; Source: false; Dest: false; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'zero'                    ; GL: GL_ZERO                    ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'dst_color'               ; GL: GL_DST_COLOR               ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'src_color'               ; GL: GL_SRC_COLOR               ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'one_minus_dst_color'     ; GL: GL_ONE_MINUS_DST_COLOR     ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'one_minus_src_color'     ; GL: GL_ONE_MINUS_SRC_COLOR     ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'dst_alpha'               ; GL: GL_DST_ALPHA               ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'one_minus_dst_alpha'     ; GL: GL_ONE_MINUS_DST_ALPHA     ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: false),
+    (Name: 'src_alpha_saturate'      ; GL: GL_SRC_ALPHA_SATURATE      ; Source: true ; Dest: false; NeedsConstColor: false; NeedsConstAlpha: false),
+
+    (Name: 'constant_color'          ; GL: GL_CONSTANT_COLOR          ; Source: true ; Dest: true ; NeedsConstColor: true ; NeedsConstAlpha: false),
+    (Name: 'one_minus_constant_color'; GL: GL_ONE_MINUS_CONSTANT_COLOR; Source: true ; Dest: true ; NeedsConstColor: true ; NeedsConstAlpha: false),
+    (Name: 'constant_alpha'          ; GL: GL_CONSTANT_ALPHA          ; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: true ),
+    (Name: 'one_minus_constant_alpha'; GL: GL_ONE_MINUS_CONSTANT_ALPHA; Source: true ; Dest: true ; NeedsConstColor: false; NeedsConstAlpha: true )
+  );
+var
+  I: Integer;
+begin
+  for I := Low(BlendingFactors) to High(BlendingFactors) do
+    if BlendingFactors[I].Name = S then
+    begin
+      if Source then
+        Result := BlendingFactors[I].Source else
+        Result := BlendingFactors[I].Dest;
+
+      if Result then
+      begin
+        Factor := BlendingFactors[I].GL;
+        NeedsConstColor := NeedsConstColor or BlendingFactors[I].NeedsConstColor;
+        NeedsConstAlpha := NeedsConstAlpha or BlendingFactors[I].NeedsConstAlpha;
+      end;
+
+      Break;
+    end;
+end;
+
 function TVRMLFlatSceneGL.RenderBeginEndToDisplayList: boolean;
 begin
   Result := not GLVersion.IsMesa;
@@ -1379,9 +1459,67 @@ const
     end;
   end;
 
+  { Determine what blending source/destination factors to use for rendering Shape
+    (looking at Attributes.BlendingXxx and Appearance.blendMode of VRML node).
+    If different than currently set, then change BlendingXxxFactorSet and update
+    by glBlendFunc. This way, we avoid calling glBlendFunc (which is potentially costly,
+    since it changes GL state) too often. }
+  procedure AdjustBlendFunc(ShapeState: TVRMLShapeState;
+    var BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum);
+  var
+    B: TNodeBlendMode;
+    NewSrc, NewDest: TGLEnum;
+    NeedsConstColor, NeedsConstAlpha: boolean;
+  begin
+    NeedsConstColor := false;
+    NeedsConstAlpha := false;
+
+    B := ShapeState.State.BlendMode;
+    if B <> nil then
+    begin
+      if not BlendingFactorNameToStr(B.FdSrcFactor.Value, NewSrc, NeedsConstColor, NeedsConstAlpha, true) then
+        NewSrc := Attributes.BlendingSourceFactor;
+      if not BlendingFactorNameToStr(B.FdDestFactor.Value, NewDest, NeedsConstColor, NeedsConstAlpha, false) then
+        NewDest := Attributes.BlendingDestinationFactor;
+    end else
+    begin
+      NewSrc := Attributes.BlendingSourceFactor;
+      NewDest := Attributes.BlendingDestinationFactor;
+    end;
+
+    if (BlendingSourceFactorSet <> NewSrc) or
+       (BlendingDestinationFactorSet <> NewDest) then
+    begin
+      BlendingSourceFactorSet := NewSrc;
+      BlendingDestinationFactorSet := NewDest;
+      glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+    end;
+
+    { We track last source/dest factor, but we don't track last constant color/alpha.
+      So just set them always, if needed. }
+    if GL_ARB_imaging then
+    begin
+      if NeedsConstColor then
+      begin
+        Assert(B <> nil);
+        glBlendColor(
+          B.FdColor.Value[0],
+          B.FdColor.Value[1],
+          B.FdColor.Value[2],
+          1 - B.FdColorTransparency.Value);
+      end else
+      if NeedsConstAlpha then
+      begin
+        Assert(B <> nil);
+        glBlendColor(0, 0, 0, 1 - B.FdColorTransparency.Value);
+      end;
+    end;
+  end;
+
 var
   ShapeStateNum: integer;
   TransparentObjectsExists: boolean;
+  BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
 begin
   FLastRender_RenderedShapeStatesCount := 0;
   FLastRender_AllShapeStatesCount := ShapeStates.Count;
@@ -1448,11 +1586,19 @@ begin
           begin
             glDepthMask(GL_FALSE);
             glEnable(GL_BLEND);
-            glBlendFunc(Attributes.BlendingSourceFactor,
-                        Attributes.BlendingDestinationFactor);
+
+            { Set glBlendFunc using Attributes.BlendingXxxFactor }
+            BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+            BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+            glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
             for ShapeStateNum := 0 to ShapeStates.Count - 1 do
               if ShapeStates[ShapeStateNum].AllMaterialsTransparent then
+              begin
+                AdjustBlendFunc(ShapeStates[ShapeStateNum],
+                  BlendingSourceFactorSet, BlendingDestinationFactorSet);
                 TestRenderShapeStateProc(ShapeStateNum);
+              end;
           end;
         end else
           RenderAllAsOpaque;

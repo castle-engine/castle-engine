@@ -298,7 +298,7 @@ const
   wzajemnie (rekurencyjnie). }
 
 type
-  {forward declarations}
+  { forward declarations } { }
   TVRMLNodesList = class;
   TNodeGeneralLightsList = class;
   TVRMLNode = class;
@@ -316,6 +316,7 @@ type
   TNodeKambiTriangulation = class;
   TNodeShape = class;
   TNodeGeneralTexture = class;
+  TNodeBlendMode = class;
 
   TVRMLNodeClass = class of TVRMLNode;
 
@@ -546,6 +547,13 @@ type
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
     function Texture: TNodeGeneralTexture;
+
+    { Returns BlendMode for this state, or @nil if not present.
+
+      Details: if ParentShape <> nil (VRML >= 2.0), and it's Appearance <> nil, and it's
+      a KambiAppearance and it has BlendMode <> nil... then returns it.
+      Otherwise @nil. }
+    function BlendMode: TNodeBlendMode;
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -2743,6 +2751,23 @@ begin
   if ParentShape = nil then
     Result := LastNodes.Texture2 else
     Result := ParentShape.Texture;
+end;
+
+function TVRMLGraphTraverseState.BlendMode: TNodeBlendMode;
+var
+  Node: TVRMLNode;
+begin
+  Result := nil;
+  if ParentShape <> nil then
+  begin
+    Node := ParentShape.FdAppearance.Value;
+    if (Node <> nil) and (Node is TNodeKambiAppearance) then
+    begin
+      Node := TNodeKambiAppearance(Node).FdBlendMode.Value;
+      if (Node <> nil) and (Node is TNodeBlendMode) then
+        Result := TNodeBlendMode(Node);
+    end;
+  end;
 end;
 
 function TVRMLGraphTraverseState.CurrentActiveLights: TDynActiveLightArray;
@@ -6057,6 +6082,7 @@ initialization
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
     TNodeText3D,
+    TNodeBlendMode,
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
@@ -6172,6 +6198,7 @@ initialization
     TNodeKambiTriangulation,
     TNodeKambiHeadLight,
     //TNodeText3D,
+    //TNodeBlendMode,
     //TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }

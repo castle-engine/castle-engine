@@ -90,13 +90,43 @@
     function FontStyle: TNodeFontStyle_2;
   end;
 
+  { BlendMode node.
+
+    This is not standard X3D. It's modelled after Avalon extension on
+    [http://www.instantreality.org/].
+    See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
+    and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
+
+    Actually, our version is just a subset of their node. }
+  TNodeBlendMode = class(TVRMLNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    property FdsrcFactor: TSFString index 0 read GetFieldAsSFString;
+    property FddestFactor: TSFString index 1 read GetFieldAsSFString;
+    property Fdcolor: TSFColor index 2 read GetFieldAsSFColor;
+    property FdcolorTransparency: TSFFloat index 3 read GetFieldAsSFFloat;
+  end;
+
   TNodeKambiAppearance = class(TNodeAppearance)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     property FdNormalMap: TSFNode index 7 read GetFieldAsSFNode;
     property FdHeightMap: TSFNode index 8 read GetFieldAsSFNode;
     property FdHeightMapScale: TSFFloat index 9 read GetFieldAsSFFloat;
+
+    { blendMode property.
+
+      This is modelled after Avalon extension on [http://www.instantreality.org/].
+      See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
+      and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
+      It allows you to use BlendMode nodes, which I consider very useful. }
+    property FdBlendMode: TSFNode index 10 read GetFieldAsSFNode;
+
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -234,6 +264,34 @@ begin
     Result := nil;
 end;
 
+class function TNodeBlendMode.ClassNodeTypeName: string;
+begin
+  Result := 'BlendMode';
+end;
+
+class function TNodeBlendMode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeBlendMode.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  Fields.Add(TSFString.Create('srcFactor', 'src_alpha'));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFString.Create('destFactor', 'one_minus_src_alpha'));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFFloat.Create('colorTransparency', 0.0));
+  Fields.Last.Exposed := true;
+end;
+
 class function TNodeKambiAppearance.ClassNodeTypeName: string;
 begin
   Result := 'KambiAppearance';
@@ -257,8 +315,11 @@ begin
   Fields.Add(TSFNode.Create(Self, 'heightMap',
     [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
   Fields.Last.Exposed := true;
-  
+
   Fields.Add(TSFFloat.Create('heightMapScale', DefaultHeightMapScale));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]));
   Fields.Last.Exposed := true;
 end;
 
