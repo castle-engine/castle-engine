@@ -1331,16 +1331,12 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeSphereSensor = class(TVRMLNode)
+  TNodeSphereSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdautoOffset: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdenabled: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdoffset: TSFRotation index 2 read GetFieldAsSFRotation;
-    { eventOut     SFBool     isActive } { }
+    property Fdoffset: TSFRotation index 3 read GetFieldAsSFRotation;
     { eventOut     SFRotation rotation_changed } { }
-    { eventOut     SFVec3f    trackPoint_changed } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -3959,12 +3955,8 @@ constructor TNodeSphereSensor.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('autoOffset', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0)); Fields.Last.Exposed := true;
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
-  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 
   DefaultContainerField := 'children';
 end;
