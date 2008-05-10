@@ -398,19 +398,17 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCylinderSensor = class(TVRMLNode)
+  TNodeCylinderSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdautoOffset: TSFBool index 0 read GetFieldAsSFBool;
-    property FddiskAngle: TSFFloat index 1 read GetFieldAsSFFloat;
-    property Fdenabled: TSFBool index 2 read GetFieldAsSFBool;
-    property FdmaxAngle: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdminAngle: TSFFloat index 4 read GetFieldAsSFFloat;
-    property Fdoffset: TSFFloat index 5 read GetFieldAsSFFloat;
-    { eventOut     SFBool     isActive } { }
+
+    property FddiskAngle: TSFFloat index 3 read GetFieldAsSFFloat;
+    property FdmaxAngle: TSFFloat index 4 read GetFieldAsSFFloat;
+    property FdminAngle: TSFFloat index 5 read GetFieldAsSFFloat;
+    property Fdoffset: TSFFloat index 6 read GetFieldAsSFFloat;
+    property FdaxisRotation: TSFRotation index 7 read GetFieldAsSFRotation;
     { eventOut     SFRotation rotation_changed } { }
-    { eventOut     SFVec3f    trackPoint_changed } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -2233,15 +2231,16 @@ end;
 constructor TNodeCylinderSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFBool.Create('autoOffset', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('diskAngle', 0.262)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFFloat.Create('diskAngle', Pi / 12)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('maxAngle', -1)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('minAngle', 0)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('offset', 0)); Fields.Last.Exposed := true;
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+
+  Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 1, 0), 0));
+  Fields.Last.Exposed := true;
+
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
-  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 
   DefaultContainerField := 'children';
 end;

@@ -28,6 +28,13 @@ type
     { SFBool   [out]    isOver } { }
   end;
 
+  TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    property FdautoOffset: TSFBool index 2 read GetFieldAsSFBool;
+    { SFVec3f  [out]    trackPoint_changed }
+  end;
+
   TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -47,6 +54,17 @@ begin
   Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+end;
+
+constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  Fields.Add(TSFBool.Create('autoOffset', true));
+  Fields.Last.Exposed := true;
+
+  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 end;
 
 constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
