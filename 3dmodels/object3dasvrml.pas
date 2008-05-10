@@ -76,14 +76,13 @@ const
     TGLWindow.FileDialog. }
   LoadAsVRML_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
-    X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
     and X3D binary (*.x3db;*.x3db.gz)
   }
-  'X3D XML (*.x3d)|*.x3d|' +
-  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz)|' +
+  'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
+  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -134,14 +133,13 @@ const
     TGLWindow.FileDialog. }
   LoadAsVRMLSequence_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
-    X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
-    and X3D binary (*.x3db;*.x3db.gz)
+    X3D binary (*.x3db;*.x3db.gz)
   }
-  'X3D XML (*.x3d)|*.x3d|' +
-  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz)|' +
+  'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
+  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
   'Kambi VRML engine animations (*.kanim)|*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
@@ -773,13 +771,13 @@ end;
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
   GzExt = '.gz';
-  Extensions: array [0..12] of string =
+  Extensions: array [0..14] of string =
   ('.geo', '.3ds', '.obj',
    '.iv',
    '.wrl', '.wrl' + GzExt, '.wrz',
    '.x3dv', '.x3dv' + GzExt, '.x3dvz',
    '.md3', '.dae',
-   '.x3d');
+   '.x3d', '.x3dz', '.x3d' + GzExt);
 var
   Ext: string;
 begin
@@ -796,7 +794,8 @@ begin
       3..9: result := ParseVRMLFile(filename, false);
       10: Result := LoadMD3AsVRML(FileName);
       11: Result := LoadColladaAsVRML(FileName);
-      12: Result := LoadX3DXmlAsVRML(FileName);
+      12: Result := LoadX3DXmlAsVRML(FileName, false);
+      13, 14: Result := LoadX3DXmlAsVRML(FileName, true);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);

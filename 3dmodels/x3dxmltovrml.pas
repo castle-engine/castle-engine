@@ -27,12 +27,13 @@ interface
 
 uses VRMLNodes;
 
-function LoadX3DXmlAsVRML(const FileName: string): TVRMLNode;
+function LoadX3DXmlAsVRML(const FileName: string;
+  Gzipped: boolean): TVRMLNode;
 
 implementation
 
 uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
-  VRMLLexer, VRMLErrors, VRMLFields;
+  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream;
 
 type
   EX3DXmlNotAllowedError = class(EVRMLError);
@@ -44,7 +45,8 @@ type
   Like X3D "profile" attribute, the whole <head> element, etc.
 }
 
-function LoadX3DXmlAsVRML(const FileName: string): TVRMLNode;
+function LoadX3DXmlAsVRML(const FileName: string;
+  Gzipped: boolean): TVRMLNode;
 var
   WWWBasePath: string;
 
@@ -483,6 +485,9 @@ var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
 
+  { Eventually used to decompress gzip file. }
+  Stream: TStream;
+
   { This is used the same way as Lexer.NodeNameBinding when
     reading VRML files (that is, in classic VRML encoding).
 
@@ -492,9 +497,15 @@ var
 begin
   WWWBasePath := ExtractFilePath(FileName);
 
+  Stream := nil;
   NodeNameBinding := TStringList.Create;
   try
-    ReadXMLFile(Doc, FileName);
+    if Gzipped then
+    begin
+      Stream := TGZFileStream.Create(FileName, gzOpenRead);
+      ReadXMLFile(Doc, Stream, 'file:/' + WWWBasePath);
+    end else
+      ReadXMLFile(Doc, FileName);
     try
       Check(Doc.DocumentElement.TagName = 'X3D',
         'Root node of X3D file must be <X3D>');
@@ -502,7 +513,10 @@ begin
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
       Result := ParseVRMLStatements(SceneElement, NodeNameBinding);
     finally FreeAndNil(Doc) end;
-  finally FreeAndNil(NodeNameBinding) end;
+  finally
+    FreeAndNil(NodeNameBinding);
+    FreeAndNil(Stream);
+  end;
 end;
 
 end.
