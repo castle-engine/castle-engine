@@ -1109,17 +1109,15 @@
     function RepeatT: boolean; override;
   end;
 
-  TNodePlaneSensor = class(TVRMLNode)
+  TNodePlaneSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdautoOffset: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdenabled: TSFBool index 1 read GetFieldAsSFBool;
-    property FdmaxPosition: TSFVec2f index 2 read GetFieldAsSFVec2f;
-    property FdminPosition: TSFVec2f index 3 read GetFieldAsSFVec2f;
-    property Fdoffset: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    { eventOut     SFBool  isActive } { }
-    { eventOut     SFVec3f trackPoint_changed } { }
+
+    property FdmaxPosition: TSFVec2f index 3 read GetFieldAsSFVec2f;
+    property FdminPosition: TSFVec2f index 4 read GetFieldAsSFVec2f;
+    property Fdoffset: TSFVec3f index 5 read GetFieldAsSFVec3f;
+    property FdaxisRotation: TSFRotation index 6 read GetFieldAsSFRotation;
     { eventOut     SFVec3f translation_changed } { }
 
     function SuggestedVRMLVersion(
@@ -3516,13 +3514,13 @@ constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('autoOffset', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFVec2f.Create('maxPosition', Vector2Single(-1, -1))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec2f.Create('minPosition', Vector2Single(0, 0))); Fields.Last.Exposed := true;
   Fields.Add(TSFVec3f.Create('offset', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
-  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
+
+  Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 0, 1), 0));
+  Fields.Last.Exposed := true;
+
   Events.Add(TVRMLEvent.Create('translation_changed', TSFVec3f, false));
 
   DefaultContainerField := 'children';
