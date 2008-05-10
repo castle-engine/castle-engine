@@ -937,17 +937,19 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNavigationInfo = class(TVRMLNode)
+  TNodeNavigationInfo = class(TNodeX3DBindableNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      SFBool   set_bind } { }
-    property FdavatarSize: TMFFloat index 0 read GetFieldAsMFFloat;
-    property Fdheadlight: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdspeed: TSFFloat index 2 read GetFieldAsSFFloat;
-    property Fdtype: TMFString index 3 read GetFieldAsMFString;
-    property FdvisibilityLimit: TSFFloat index 4 read GetFieldAsSFFloat;
-    { eventOut     SFBool   isBound } { }
+
+    property FdavatarSize: TMFFloat index 1 read GetFieldAsMFFloat;
+    property Fdheadlight: TSFBool index 2 read GetFieldAsSFBool;
+    property Fdspeed: TSFFloat index 3 read GetFieldAsSFFloat;
+    property FdtransitionTime: TSFTime index 4 read GetFieldAsSFTime;
+    property FdtransitionType: TMFString index 5 read GetFieldAsMFString;
+    property Fdtype: TMFString index 6 read GetFieldAsMFString;
+    property FdvisibilityLimit: TSFFloat index 7 read GetFieldAsSFFloat;
+    { SFBool   [out]    transitionComplete }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -3230,13 +3232,14 @@ constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
   Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75])); Fields.Last.Exposed := true;
   Fields.Add(TSFBool.Create('headlight', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('speed', 1.0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFTime.Create('transitionTime', 1.0)); Fields.Last.Exposed := true;
+  Fields.Add(TMFString.Create('transitionType',  ['LINEAR']));
   Fields.Add(TMFString.Create('type', ['WALK', 'ANY'])); Fields.Last.Exposed := true;
   Fields.Add(TSFFloat.Create('visibilityLimit', 0.0)); Fields.Last.Exposed := true;
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  Events.Add(TVRMLEvent.Create('transitionComplete', TSFBool, false));
 
   DefaultContainerField := 'children';
 end;
