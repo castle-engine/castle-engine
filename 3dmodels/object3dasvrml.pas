@@ -80,10 +80,10 @@ const
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
-    and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
     and X3D binary (*.x3db;*.x3db.gz)
   }
   'X3D XML (*.x3d)|*.x3d|' +
+  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz)|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -138,10 +138,10 @@ const
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     X3D XML compressed by gzip (*.x3d.gz;*.x3dz)
-    and X3D classic (*.x3dv;*.x3dvz;*.x3dv.gz)
     and X3D binary (*.x3db;*.x3db.gz)
   }
   'X3D XML (*.x3d)|*.x3d|' +
+  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz)|' +
   'Kambi VRML engine animations (*.kanim)|*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
@@ -773,9 +773,11 @@ end;
 function LoadAsVRML(const filename: string; AllowStdIn: boolean): TVRMLNode;
 const
   GzExt = '.gz';
-  Extensions: array [0..9] of string =
+  Extensions: array [0..12] of string =
   ('.geo', '.3ds', '.obj',
-   '.iv', '.wrl', '.wrl' + GzExt, '.wrz',
+   '.iv',
+   '.wrl', '.wrl' + GzExt, '.wrz',
+   '.x3dv', '.x3dv' + GzExt, '.x3dvz',
    '.md3', '.dae',
    '.x3d');
 var
@@ -791,10 +793,10 @@ begin
       0: result := LoadGEOAsVRML(filename);
       1: result := Load3dsAsVRML(filename);
       2: result := LoadOBJAsVRML(filename);
-      3..6: result := ParseVRMLFile(filename, false);
-      7: Result := LoadMD3AsVRML(FileName);
-      8: Result := LoadColladaAsVRML(FileName);
-      9: Result := LoadX3DXmlAsVRML(FileName);
+      3..9: result := ParseVRMLFile(filename, false);
+      10: Result := LoadMD3AsVRML(FileName);
+      11: Result := LoadColladaAsVRML(FileName);
+      12: Result := LoadX3DXmlAsVRML(FileName);
       else raise Exception.CreateFmt(
         'Unrecognized file extension "%s" for 3D model file "%s"',
         [Ext, FileName]);

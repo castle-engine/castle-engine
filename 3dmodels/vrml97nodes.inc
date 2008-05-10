@@ -1450,17 +1450,13 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeTouchSensor = class(TVRMLNode)
+  TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdenabled: TSFBool index 0 read GetFieldAsSFBool;
     { eventOut     SFVec3f hitNormal_changed } { }
     { eventOut     SFVec3f hitPoint_changed } { }
     { eventOut     SFVec2f hitTexCoord_changed } { }
-    { eventOut     SFBool  isActive } { }
-    { eventOut     SFBool  isOver } { }
-    { eventOut     SFTime  touchTime } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -4217,13 +4213,9 @@ constructor TNodeTouchSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
   Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
   Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
   Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
-  Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
-  Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
 
   DefaultContainerField := 'children';
 end;

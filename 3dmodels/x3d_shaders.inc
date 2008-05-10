@@ -21,11 +21,7 @@
 {$ifdef read_interface}
 
 type
-  TNodeX3DAppearanceChildNode = class(TVRMLNode)
-  public
-  end;
-
-  TNodeX3DMetadataObject = class(TVRMLNode)
+  TNodeX3DAppearanceChildNode = class(TNodeX3DNode)
   public
   end;
 
@@ -36,10 +32,9 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { property Eventactivate: TSFBool index 0 read GetFieldAsSFBool; } { }
-    property Fdmetadata: TSFNode index 0 read GetFieldAsSFNode;
-    { property EventisSelected: TSFBool index 2 read GetFieldAsSFBool; } { }
-    { property EventisValid: TSFBool index 3 read GetFieldAsSFBool; } { }
+    { property Eventactivate: TSFBool index ? read GetFieldAsSFBool; } { }
+    { property EventisSelected: TSFBool index ? read GetFieldAsSFBool; } { }
+    { property EventisValid: TSFBool index ? read GetFieldAsSFBool; } { }
     property Fdlanguage: TSFString index 1 read GetFieldAsSFString;
   end;
 
@@ -116,14 +111,13 @@ type
     property Fdprograms: TMFNode index 2 read GetFieldAsMFNode;
   end;
 
-  TNodeShaderPart = class(TVRMLNode, INodeX3DUrlObject)
+  TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
   private
     FUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdmetadata: TSFNode index 0 read GetFieldAsSFNode;
     property Fdurl: TMFString index 1 read GetFieldAsMFString;
     property Fdtype: TSFString index 2 read GetFieldAsSFString;
 
@@ -143,13 +137,12 @@ type
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TNodeShaderProgram = class(TVRMLNode, INodeX3DUrlObject,
+  TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject,
     INodeX3DProgrammableShaderObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdmetadata: TSFNode index 0 read GetFieldAsSFNode;
     property Fdurl: TMFString index 1 read GetFieldAsMFString;
     property Fdtype: TSFString index 2 read GetFieldAsSFString;
 
@@ -174,9 +167,6 @@ begin
   Events.Add(TVRMLEvent.Create('activate', TSFBool, true));
   Events.Add(TVRMLEvent.Create('isSelected', TSFBool, false));
   Events.Add(TVRMLEvent.Create('isValid', TSFBool, false));
-
-  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('language', ''));
 end;
@@ -282,9 +272,6 @@ constructor TNodeShaderPart.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
-  Fields.Last.Exposed := true;
-
   Fields.Add(TMFString.Create('url', []));
   Fields.Last.Exposed := true;
 
@@ -328,9 +315,6 @@ constructor TNodeShaderProgram.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TMFString.Create('url', []));
   Fields.Last.Exposed := true;

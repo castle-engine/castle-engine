@@ -1903,11 +1903,13 @@ type
 
 { Specific VRML nodes from specifications ------------------------------------ }
 
+{$I x3d_core.inc}
+{$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_shaders_nodes.inc}
+{$I x3d_shaders.inc}
 
 { TNodeUnknown --------------------------------------------------- }
 
@@ -2580,7 +2582,9 @@ uses
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_shaders_nodes.inc}
+{$I x3d_core.inc}
+{$I x3d_pointing_device_sensor.inc}
+{$I x3d_shaders.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -5822,9 +5826,60 @@ function ParseVRMLFile(Stream: TPeekCharStream;
   ProtoNameBinding: TStringList): TVRMLNode;
 var
   Lexer: TVRMLLexer;
+
+  procedure ParseProfile;
+  begin
+    { We allow PROFILE to be omitted, which is not really allowed by
+      X3D spec. But our engine, when writing X3D classic files,
+      doesn't currently output profile, so it's safer to also allow
+      us to read such files. This may change in the future. }
+    if Lexer.TokenIsKeyword(vkPROFILE) then
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'X3D profile name');
+      Lexer.NextToken;
+    end;
+  end;
+
+  procedure ParseComponents;
+  begin
+    while Lexer.TokenIsKeyword(vkCOMPONENT) do
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'X3D component name');
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtColon);
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtInteger, 'X3D component level');
+      Lexer.NextToken;
+    end;
+  end;
+
+  procedure ParseMetas;
+  begin
+    while Lexer.TokenIsKeyword(vkMETA) do
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtString, 'X3D meta key');
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtString, 'X3D meta value');
+      Lexer.NextToken;
+    end;
+  end;
+
 begin
   Lexer := TVRMLLexer.Create(Stream, false, WWWBasePath);
   try
+    { Parse X3D "configuration information": profile, component and meta
+      statements here.
+      TODO: I should save them somewhere, for saving it back to file. }
+    if Lexer.VRMLVerMajor >= 3 then
+    begin
+      ParseProfile;
+      ParseComponents;
+      ParseMetas;
+    end;
+
     Result := ParseVRMLStatements(Lexer, vtEnd);
     if ProtoNameBinding <> nil then
       ProtoNameBinding.Assign(Lexer.ProtoNameBinding);

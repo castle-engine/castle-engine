@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -35,10 +35,18 @@ uses SysUtils, Classes, KambiUtils, KambiStringUtils, KambiClassUtils,
 type
   { Valid keywords for any VRML version. }
   TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
-    vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField);
+    vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField,
+    { X3D-only keywords } { }
+    vkAS, vkCOMPONENT, vkEXPORT, vkIMPORT, vkMETA, vkPROFILE,
+    vkInputOnly, vkOutputOnly, vkInputOutput, vkInitializeOnly);
+
   TVRMLKeywords = set of TVRMLKeyword;
+
 const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
+  VRML20Keywords = [vkDEF .. vkField];
+  X3DKeywords = [Low(TVRMLKeyword) .. High(TVRMLKeyword)] -
+    [vkEventOut, vkExposedField, vkField];
 
 type
   { VRML lexer token }
@@ -59,6 +67,12 @@ type
     { Symbols below are only for VRML >= 2.0.
       They will never be returned by lexer when reading VRML < 2.0 files.  }
     vtPeriod,
+
+    { Symbols below are only for VRML >= 3.0, that is X3D.
+      They will never be returned by lexer when reading VRML < 3.0 files.  }
+    vtColon,
+
+    { Back to version-neutral tokens, suitable for all VRML / X3D versions. }
 
     vtFloat, vtInteger, vtString,
 
@@ -345,7 +359,10 @@ type
 const
   VRMLKeywords: array[TVRMLKeyword]of string = (
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
-    'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field');
+    'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
+    'AS', 'COMPONENT', 'EXPORT', 'IMPORT', 'META', 'PROFILE',
+    'inputOnly', 'outputOnly', 'inputOutput', 'initializeOnly'
+    );
 
 { otoczy s cudzyslowami i zmieni wnetrze s tak zeby wynik mogl byc
   zapisany jako token vtString o wartosci s. Mowiac wprost,
@@ -362,7 +379,7 @@ const
 
   VRMLTokenNames: array[TVRMLToken]of string = (
     'keyword', 'name',
-    '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."',
+    '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of file');
 
 {$I macarraypos.inc}
@@ -411,26 +428,95 @@ end;
 constructor TVRMLLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean;
   const AWWWBasePath: string);
 const
+  GzipHeader = #$1F + #$8B;
+
+  InventorHeaderStart = '#Inventor ';
+
   VRML1HeaderStart = '#VRML V1.0 ';
+  EncodingAscii = 'ascii'; { Used by VRML 1.0 }
+
   VRML2HeaderStart = '#VRML V2.0 ';
   { This is not an official VRML header, but it's used by VRML models on
     [http://www.itl.nist.gov/div897/ctg/vrml/chaco/chaco.html] }
   VRML2DraftHeaderStart = '#VRML Draft #2 V2.0 ';
-  VRML1HeaderAscii = 'ascii';
-  InventorHeaderStart = '#Inventor ';
-  GzipHeader = #$1F + #$8B;
+  EncodingUtf8 = 'utf8'; { Used by VRML >= 2.0 }
 
-  procedure VRML2HeaderReadRest(const Line: string);
+  X3DHeaderStart = '#X3D ';
+
+  procedure Utf8HeaderReadRest(const Line: string);
   var
     Encoding: string;
   begin
-    fVRMLVerMajor := 2;
-    fVRMLVerMinor := 0;
-
     Encoding := NextTokenOnce(Line);
-    if Encoding <> 'utf8' then
+    if Encoding <> EncodingUtf8 then
       raise EVRMLLexerError.Create(Self,
-        'VRML 2.0 signature : only utf8 encoding supported for now');
+        'VRML 2.0 / X3D incorrect signature: only utf8 encoding supported');
+  end;
+
+  { If Prefix is a prefix of S, then return @true and remove this prefix
+    from S. Otherwise return @false (without modifying S). }
+  function IsPrefixRemove(const Prefix: string; var S: string): boolean;
+  begin
+    Result := IsPrefix(Prefix, S);
+    if Result then
+      Delete(S, 1, Length(Prefix));
+  end;
+
+  { Parse and remove Vmajor.minor version number from VRML header line.
+
+    Note that this is slightly more flexible than VRML / X3D classic
+    spec says (they require exactly one space before and after version
+    number, we allow any number of whitespaces). }
+  procedure ParseVersion(var S: string; out Major, Minor: Integer);
+  const
+    SIncorrectSignature = 'Inventor / VRML / X3D Incorrect signature: ';
+    Digits = ['0' .. '9'];
+  var
+    NumStart, I: Integer;
+  begin
+    I := 1;
+
+    { whitespace }
+    while SCharIs(S, I, WhiteSpaces) do Inc(I);
+
+    { "V" }
+    if not SCharIs(S, I, 'V') then
+      raise EVRMLLexerError.Create(Self,
+        SIncorrectSignature + 'Expected "V" and version number');
+    Inc(I);
+
+    { major number }
+    NumStart := I;
+    while SCharIs(S, I, Digits) do Inc(I);
+    try
+      Major := StrToInt(CopyPos(S, NumStart, I - 1));
+    except
+      on E: EConvertError do
+        raise EVRMLLexerError.Create(Self,
+          SIncorrectSignature + 'Incorrect major version number: ' + E.Message);
+    end;
+
+    { dot }
+    if not SCharIs(S, I, '.') then
+      raise EVRMLLexerError.Create(Self,
+        SIncorrectSignature + 'Expected "." between major and minor version number');
+    Inc(I);
+
+    { minor number }
+    NumStart := I;
+    while SCharIs(S, I, Digits) do Inc(I);
+    try
+      Minor := StrToInt(CopyPos(S, NumStart, I - 1));
+    except
+      on E: EConvertError do
+        raise EVRMLLexerError.Create(Self,
+          SIncorrectSignature + 'Incorrect minor version number: ' + E.Message);
+    end;
+
+    { whitespace }
+    while SCharIs(S, I, WhiteSpaces) do Inc(I);
+
+    Delete(S, 1, I - 1);
   end;
 
 var
@@ -455,41 +541,49 @@ begin
     raise EVRMLLexerError.Create(Self,
       'Unexpected end of file on the 1st line');
 
-  if IsPrefix(VRML1HeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(VRML1HeaderStart));
-    fVRMLVerMajor := 1;
-    fVRMLVerMinor := 0;
+  { Recognize various Inventor / VRML / X3D headers,
+    code below goes chronologically through various VRML etc. versions.
 
-    { then must be 'ascii';
-      VRML 1.0 'ascii' may be followed immediately by some black char. }
-    if not IsPrefix(VRML1HeaderAscii, Line) then
-      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature : '+
-        'VRML 1.0 files must have "ascii" encoding');
-  end else
-  if IsPrefix(VRML2HeaderStart, Line) then
+    For now ParseVersion is used only by X3D. But it could be used
+    also by other Inventor / VRML versions. }
+
+  if IsPrefixRemove(InventorHeaderStart, Line) then
   begin
-    Delete(Line, 1, Length(VRML2HeaderStart));
-    VRML2HeaderReadRest(Line);
-  end else
-  if IsPrefix(VRML2DraftHeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(VRML2DraftHeaderStart));
-    VRML2HeaderReadRest(Line);
-  end else
-  if IsPrefix(InventorHeaderStart, Line) then
-  begin
-    Delete(Line, 1, Length(InventorHeaderStart));
-    fVRMLVerMajor := 0;
-    fVRMLVerMinor := 0;
+    FVRMLVerMajor := 0;
+    FVRMLVerMinor := 0;
 
     if not IsPrefix('V1.0 ascii', Line) then
       raise EVRMLLexerError.Create(Self,
         'Inventor signature recognized, but only '+
         'Inventor 1.0 ascii files are supported. Sor'+'ry.');
   end else
+  if IsPrefixRemove(VRML1HeaderStart, Line) then
+  begin
+    FVRMLVerMajor := 1;
+    FVRMLVerMinor := 0;
+
+    { then must be 'ascii';
+      VRML 1.0 'ascii' may be followed immediately by some black char. }
+    if not IsPrefix(EncodingAscii, Line) then
+      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature: '+
+        'VRML 1.0 files must have "ascii" encoding');
+  end else
+  if IsPrefixRemove(VRML2DraftHeaderStart, Line) or
+     IsPrefixRemove(VRML2HeaderStart, Line) then
+  begin
+    FVRMLVerMajor := 2;
+    FVRMLVerMinor := 0;
+    Utf8HeaderReadRest(Line);
+  end else
+  if IsPrefixRemove(X3DHeaderStart, Line) then
+  begin
+    ParseVersion(Line, FVRMLVerMajor, FVRMLVerMinor);
+    Utf8HeaderReadRest(Line);
+  end else
     raise EVRMLLexerError.Create(Self,
       'VRML signature error : unrecognized signature');
+
+  Writeln('got version ', FVRMLVerMajor, ' ', FVRMLVerMinor);
 
   CreateCommonEnd;
 end;
@@ -541,6 +635,8 @@ begin
  repeat
   Stream.ReadUpto(VRMLNoWhitespaces);
   FirstBlack := Stream.ReadChar;
+
+  { TODO: ignore X3D multiline comments also }
 
   { ignore comments }
   if FirstBlack = Ord('#') then
@@ -594,10 +690,12 @@ function TVRMLLexer.NextToken: TVRMLToken;
   begin
    fTokenName := FirstLetter +Stream.ReadUpto(AllChars - VRMLNameChars);
 
-   {teraz zobacz czy fTokenName nie jest przypadkiem keywordem.
-    Jezeli znalazl keyword VRML'a 2.0 w VRML 1.0 - to "nie liczy sie" }
+   { teraz zobacz czy fTokenName nie jest przypadkiem keywordem. }
    if ArrayPosVRMLKeywords(fTokenName, foundKeyword) and
-      ( (VRMLVerMajor > 1) or (foundKeyword in VRML10Keywords) ) then
+      ( ( (VRMLVerMajor <= 1) and (foundKeyword in VRML10Keywords) ) or
+        ( (VRMLVerMajor  = 2) and (foundKeyword in VRML20Keywords) )  or
+        ( (VRMLVerMajor >= 3) and (foundKeyword in X3DKeywords) )
+      ) then
    begin
      FToken := vtKeyword;
      FTokenKeyword := foundKeyword;
@@ -795,6 +893,9 @@ begin
       if (FirstBlackChr = '.') and
          (not Between(Stream.PeekChar, Ord('0'), Ord('9'))) then
         FToken := vtPeriod else
+      { X3D only token }
+      if ( (FirstBlackChr = ':') and (VRMLVerMajor >= 3) ) then
+        FToken := vtColon else
         RecognizeCommonTokens(FirstBlackChr);
     end;
   end;
