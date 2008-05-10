@@ -6035,8 +6035,6 @@ begin
         it more. }
       VRMLHeader := VRML20Header; { fallback is VRML20Header }
 
-    Writeln('saving vers ', VerMajor, VerMinor);
-
     SaveProperties.VerMajor := VerMajor;
     SaveProperties.VerMinor := VerMinor;
 
