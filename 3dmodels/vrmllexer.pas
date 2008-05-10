@@ -821,8 +821,27 @@ function TVRMLLexer.NextToken: TVRMLToken;
      end else
      begin
       { odczytalismy zwyklego integera }
-      fToken := vtInteger;
-      fTokenInteger := StrToInt64(Dig1);
+      FToken := vtInteger;
+      try
+        FTokenInteger := StrToInt64(Dig1);
+      except
+        on E: EConvertError do
+        begin
+          { We failed to use StrToInt64, but it's possibly a valid
+            float value. It's just too large for 64-bit integer... }
+          FToken := vtFloat;
+          try
+            FTokenFloat := StrToFloat(Dig1);
+          except
+            on EFloat: EConvertError do
+              { Raise EConvertError with nice error message,
+                explaining what we did. }
+              raise EConvertError.CreateFmt('Trying to treat "%s" as ' +
+                '64-bit integer failed (%s), trying to treat it as ' +
+                'a float also failed (%s)', [Dig1, E.Message, EFloat.Message]);
+          end;
+        end;
+      end;
      end;
     end;
 
