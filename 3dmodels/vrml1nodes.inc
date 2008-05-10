@@ -516,14 +516,14 @@
 
   { A common class for both VRML 1.0 camera nodes and VRML 2.0 Viewpoint
     node. }
-  TNodeGeneralViewpoint = class(TVRMLNode)
+  TNodeGeneralViewpoint = class(TNodeX3DBindableNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property FdPosition: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property FdOrientation: TSFRotation index 1 read GetFieldAsSFRotation;
-    property FdDirection: TMFVec3f index 2 read GetFieldAsMFVec3f;
-    property FdUp: TMFVec3f index 3 read GetFieldAsMFVec3f;
-    property FdGravityUp: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    property FdPosition: TSFVec3f index 1 read GetFieldAsSFVec3f;
+    property FdOrientation: TSFRotation index 2 read GetFieldAsSFRotation;
+    property FdDirection: TMFVec3f index 3 read GetFieldAsMFVec3f;
+    property FdUp: TMFVec3f index 4 read GetFieldAsMFVec3f;
+    property FdGravityUp: TSFVec3f index 5 read GetFieldAsSFVec3f;
 
     class function CameraKind: TVRMLCameraKind; virtual; abstract;
 
@@ -581,15 +581,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    property FdFocalDistance: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdHeightAngle: TSFFloat index 6 read GetFieldAsSFFloat;
+    property FdFocalDistance: TSFFloat index 6 read GetFieldAsSFFloat;
+    property FdHeightAngle: TSFFloat index 7 read GetFieldAsSFFloat;
 
     { Ignored fields -- they are not part of VRML 1.0 spec
       and I was not able to find any spec for them on the net.
       But some models ([http://www-vrl.umich.edu/sel_prj/EECS498/])
       use them. }
-    property FdNearDistance: TSFFloat index 7 read GetFieldAsSFFloat;
-    property FdFarDistance: TSFFloat index 8 read GetFieldAsSFFloat;
+    property FdNearDistance: TSFFloat index 8 read GetFieldAsSFFloat;
+    property FdFarDistance: TSFFloat index 9 read GetFieldAsSFFloat;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;

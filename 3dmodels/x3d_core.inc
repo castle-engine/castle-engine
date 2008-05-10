@@ -47,6 +47,15 @@ type
   TNodeX3DChildNode = class(TNodeX3DNode)
   end;
 
+  TNodeX3DBindableNode = class(TNodeX3DChildNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { eventIn      SFBool     set_bind } { }
+    { eventOut     SFTime     bindTime } { }
+    { eventOut     SFBool     isBound } { }
+  end;
+
   TNodeX3DSensorNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -77,6 +86,16 @@ begin
 
   Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
   Fields.Last.Exposed := true;
+end;
+
+constructor TNodeX3DBindableNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 end;
 
 constructor TNodeX3DSensorNode.Create(const ANodeName: string;

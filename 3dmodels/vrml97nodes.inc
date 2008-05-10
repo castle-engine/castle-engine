@@ -233,7 +233,12 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCollision = class(TNodeX3DGroupingNode)
+  { X3DSensorNode when it's a secondary ancestor.
+    (When it's primary ancestor, I use class TNodeX3DSensorNode). }
+  INodeX3DSensorNode = interface
+  end;
+
+  TNodeCollision = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -244,6 +249,10 @@
     property Fdcollide: TSFBool index 4 read GetFieldAsSFBool;
     property Fdproxy: TSFNode index 5 read GetFieldAsSFNode;
     { eventOut     SFTime   collideTime } { }
+
+    { This should actually come from ancestor INodeX3DSensorNode } { }
+    property Fdenabled: TSFBool index 6 read GetFieldAsSFBool;
+    { property FdisActive: TSFBool ([out]) } { }
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1504,12 +1513,10 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    { eventIn      SFBool     set_bind } { }
-    property FdfieldOfView: TSFFloat index 5 read GetFieldAsSFFloat;
-    property Fdjump: TSFBool index 6 read GetFieldAsSFBool;
-    property Fddescription: TSFString index 7 read GetFieldAsSFString;
-    { eventOut     SFTime     bindTime } { }
-    { eventOut     SFBool     isBound } { }
+    property FdfieldOfView: TSFFloat index 6 read GetFieldAsSFFloat;
+    property Fdjump: TSFBool index 7 read GetFieldAsSFBool;
+    property Fddescription: TSFString index 8 read GetFieldAsSFString;
+    property FdcenterOfRotation: TSFVec3f index 9 read GetFieldAsSFVec3f;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1990,7 +1997,13 @@ begin
 
   Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
   Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
+
   Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
+
+  Fields.Add(TSFBool.Create('enabled', true));
+  Fields.Last.Exposed := true;
+
+  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
   DefaultContainerField := 'children';
 end;
@@ -4348,12 +4361,17 @@ constructor TNodeViewpoint.Create(
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
-  Fields.Add(TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFBool.Create('jump', TRUE));
+  Fields.Last.Exposed := true;
+
   Fields.Add(TSFString.Create('description', ''));
-  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  Fields.Last.Exposed := true;
+
+  Fields.Add(TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0)));
+  Fields.Last.Exposed := true;
 
   { Default value of position is different for Viewpoint than for VRML 1.0
     cameras (as set by TNodeGeneralViewpoint). }
