@@ -53,9 +53,30 @@ var
 const
   { X3D version numbers. }
   VRMLVerMajor = 3;
-  VRMLVerMinor = 0;
+  VRMLVerMinor = 1;
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
+
+  { Parse ROUTE. Conceptually equivalent to TVRMLRoute.Parse in classic VRML
+    encoding. }
+  procedure ParseRoute(Route: TVRMLRoute;
+    Element: TDOMElement);
+
+    function RequiredAttrib(const AttrName: string): string;
+    begin
+      if not DOMGetAttribute(Element, AttrName, Result) then
+      begin
+        VRMLNonFatalError('Missing ROUTE ' + AttrName + ' attribute');
+        Result := '';
+      end;
+    end;
+
+  begin
+    Route.SourceNodeName := RequiredAttrib('fromNode');
+    Route.SourceFieldName := RequiredAttrib('fromField');
+    Route.DestinationNodeName := RequiredAttrib('toNode');
+    Route.DestinationFieldName := RequiredAttrib('toField');
+  end;
 
   function ParseNode(Element: TDOMElement;
     out ContainerField: string;
@@ -138,10 +159,12 @@ const
       ChildIndex, FieldIndex: Integer;
       ChildrenList: TDOMNodeList;
       ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
       Child: TVRMLNode;
       ContainerField: string;
       SF: TSFNode;
       MF: TMFNode;
+      Route: TVRMLRoute;
     begin
       ChildrenList := Element.ChildNodes;
       try
@@ -150,33 +173,42 @@ const
           ChildNode := ChildrenList.Item[ChildIndex];
           if ChildNode.NodeType = ELEMENT_NODE then
           begin
-            Child := ParseNode(ChildNode as TDOMElement, ContainerField,
-              NodeNameBinding, true);
-            if Child <> nil then
+            ChildElement := ChildNode as TDOMElement;
+            if ChildElement.TagName = 'ROUTE' then
             begin
-              FieldIndex := Node.Fields.NameIndex(ContainerField);
-              if FieldIndex >= 0 then
+              Route := TVRMLRoute.Create;
+              Node.Routes.Add(Route);
+              ParseRoute(Route, ChildElement);
+            end else
+            begin
+              Child := ParseNode(ChildElement, ContainerField,
+                NodeNameBinding, true);
+              if Child <> nil then
               begin
-                if Node.Fields[FieldIndex] is TSFNode then
+                FieldIndex := Node.Fields.NameIndex(ContainerField);
+                if FieldIndex >= 0 then
                 begin
-                  SF := Node.Fields[FieldIndex] as TSFNode;
-                  SF.Value := Child;
-                  SF.WarningIfChildNotAllowed(Child);
-                end else
-                if Node.Fields[FieldIndex] is TMFNode then
-                begin
-                  MF := Node.Fields[FieldIndex] as TMFNode;
-                  MF.AddItem(Child);
-                  MF.WarningIfChildNotAllowed(Child);
+                  if Node.Fields[FieldIndex] is TSFNode then
+                  begin
+                    SF := Node.Fields[FieldIndex] as TSFNode;
+                    SF.Value := Child;
+                    SF.WarningIfChildNotAllowed(Child);
+                  end else
+                  if Node.Fields[FieldIndex] is TMFNode then
+                  begin
+                    MF := Node.Fields[FieldIndex] as TMFNode;
+                    MF.AddItem(Child);
+                    MF.WarningIfChildNotAllowed(Child);
+                  end else
+                  begin
+                    FreeAndNil(Child);
+                    VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                  end;
                 end else
                 begin
                   FreeAndNil(Child);
-                  VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                  VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
                 end;
-              end else
-              begin
-                FreeAndNil(Child);
-                VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
               end;
             end;
           end;
@@ -214,14 +246,7 @@ const
         Prototypes.Add(Proto);
         Proto.Parse(Lexer);
       end else
-      if Lexer.TokenIsKeyword(vkROUTE) then
-      begin
-        Result := true;
-
-        Route := TVRMLRoute.Create;
-        Routes.Add(Route);
-        Route.Parse(Lexer);
-      end; }
+ }
 
   end;
 
@@ -395,17 +420,15 @@ const
     procedure ParseVRMLStatement(Element: TDOMElement);
 
       procedure ParseRouteInternal;
-      {var
-        Route: TVRMLRoute;}
+      var
+        Route: TVRMLRoute;
       begin
-        { TODO:
         Route := TVRMLRoute.Create;
 
         MakeResultHiddenGroup;
         Result.Routes.Add(Route);
 
-        Route.Parse(Lexer);
-        }
+        ParseRoute(Route, Element);
       end;
 
       { You can safely assume that Element.TagName
@@ -495,7 +518,7 @@ var
     does X3D XML encoding guarantee this? }
   NodeNameBinding: TStringList;
 begin
-  WWWBasePath := ExtractFilePath(FileName);
+  WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
   Stream := nil;
   NodeNameBinding := TStringList.Create;
