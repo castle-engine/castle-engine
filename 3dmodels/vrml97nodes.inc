@@ -3733,9 +3733,7 @@ begin
 
   if not Result then
   begin
-    { exposedField is not allowed for Script, grammar specifies
-      "restrictedInterfaceDeclaration" for it. }
-    Result := Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField]);
+    Result := Lexer.TokenIsKeyword(RestrictedInterfaceDeclarationKeywords);
     if Result then
     begin
       I := TVRMLInterfaceDeclaration.Create;

@@ -2566,6 +2566,23 @@ uses
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils;
 
 {$define read_implementation}
+
+const
+  InterfaceDeclarationKeywords =
+  [ { VRML 97 keywords } { }
+    vkEventIn, vkEventOut, vkField, vkExposedField,
+    { X3D keywords } { }
+    vkInputOnly, vkOutputOnly, vkInitializeOnly, vkInputOutput ];
+
+  { Keywords starting restricted interface declaration in VRML.
+    exposedField is not allowed e.g. for Script, grammar specifies
+    "restrictedInterfaceDeclaration" for it. }
+  RestrictedInterfaceDeclarationKeywords =
+  [ { VRML 97 keywords } { }
+    vkEventIn, vkEventOut, vkField,
+    { X3D keywords } { }
+    vkInputOnly, vkOutputOnly, vkInitializeOnly ];
+
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
 {$I objectslist_3.inc}
@@ -2588,8 +2605,9 @@ uses
 
 resourcestring
   SExpectedInterfaceDeclaration =
-    'Expected interface declaration (eventInt, eventOut, field or ' +
-    'exposedField keyword) but found %s';
+    'Expected interface declaration (for VRML 2.0: eventIn, eventOut, field or ' +
+    'exposedField keyword; for X3D: inputOnly, outputOnly, initializeOnly or ' +
+    'inputOutput keyword) but found %s';
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
 
@@ -4673,10 +4691,11 @@ begin
   inherited;
 end;
 
-procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
-  FieldValue, IsClauseAllowed: boolean);
 type
   TVRMLInterfaceDeclationKind = (idEventIn, idEventOut, idField, idExposedField);
+
+procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
+  FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
   Kind: TVRMLInterfaceDeclationKind;
@@ -4690,10 +4709,10 @@ begin
   if Lexer.Token = vtKeyword then
   begin
     case Lexer.TokenKeyword of
-      vkEventIn: Kind := idEventIn;
-      vkEventOut: Kind := idEventOut;
-      vkField: Kind := idField;
-      vkExposedField: Kind := idExposedField;
+      vkEventIn, vkInputOnly: Kind := idEventIn;
+      vkEventOut, vkOutputOnly: Kind := idEventOut;
+      vkField, vkInitializeOnly: Kind := idField;
+      vkExposedField, vkInputOutput: Kind := idExposedField;
       else raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
     end;
@@ -4744,20 +4763,32 @@ end;
 procedure TVRMLInterfaceDeclaration.SaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties;
   FieldValue: boolean);
+
+  function ID(const Kind: TVRMLInterfaceDeclationKind): string;
+  const
+    InterfaceDeclaration: array
+      [ boolean { is it X3D ? },
+        TVRMLInterfaceDeclationKind] of string =
+      ( ('eventIn', 'eventOut', 'field', 'exposedField'),
+        ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );
+  begin
+    Result := InterfaceDeclaration[SaveProperties.VerMajor >= 3, Kind];
+  end;
+
 begin
   if Event <> nil then
   begin
     if Event.InEvent then
-      SaveProperties.WriteIndent('eventIn ') else
-      SaveProperties.WriteIndent('eventOut ');
+      SaveProperties.WriteIndent(ID(idEventIn) + ' ') else
+      SaveProperties.WriteIndent(ID(idEventOut) + ' ');
     SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ' + Event.Name + ' ');
     Event.SaveToStream(SaveProperties);
     SaveProperties.Writeln;
   end else
   begin
     if Field.Exposed then
-      SaveProperties.WriteIndent('exposedField ') else
-      SaveProperties.WriteIndent('field ');
+      SaveProperties.WriteIndent(ID(idExposedField) + ' ') else
+      SaveProperties.WriteIndent(ID(idField) + ' ');
     SaveProperties.Write(Field.VRMLTypeName + ' ');
     { Do not write field only if Field.IsClause is @false and
       FieldValue = @false, so the field has a value but we don't want to
@@ -5079,7 +5110,7 @@ begin
     I := TVRMLInterfaceDeclaration.Create;
     InterfaceDeclarations.Add(I);
 
-    if Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField, vkExposedField]) then
+    if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords) then
     begin
       I.Parse(Lexer, not ExternalProto, false);
     end else
@@ -5829,16 +5860,15 @@ var
 
   procedure ParseProfile;
   begin
-    { We allow PROFILE to be omitted, which is not really allowed by
-      X3D spec. But our engine, when writing X3D classic files,
-      doesn't currently output profile, so it's safer to also allow
-      us to read such files. This may change in the future. }
     if Lexer.TokenIsKeyword(vkPROFILE) then
     begin
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtName, 'X3D profile name');
       Lexer.NextToken;
-    end;
+    end else
+      { We allow PROFILE to be omitted, which is not really allowed by
+        X3D spec. }
+      VRMLNonFatalError('X3D PROFILE statement missing');
   end;
 
   procedure ParseComponents;
@@ -5976,6 +6006,7 @@ procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
 const
   VRML10Header = '#VRML V1.0 ascii';
   VRML20Header = '#VRML V2.0 utf8';
+  X3DHeader = '#X3D V3.1 utf8';
 var
   SaveProperties: TVRMLSaveToStreamProperties;
   VerMajor, VerMinor, SuggestionPriority: Integer;
@@ -5987,23 +6018,39 @@ begin
 
     if Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
     begin
-      if (VerMajor = 1) and (VerMinor = 0) then
+      if VerMajor <= 1 then
         VRMLHeader := VRML10Header else
-      if (VerMajor = 2) and (VerMinor = 0) then
+      if VerMajor = 2 then
         VRMLHeader := VRML20Header else
-        VRMLHeader := VRML20Header; { fallback is VRML20Header }
+      if VerMajor >= 3 then
+        VRMLHeader := X3DHeader;
     end else
       { If nothing is suggested, we use VRML 2.0 header. Reason:
         - For now, SuggestedVRMLVersion doesn't check IsClause.
-          But if IsClause is present anywhere, then this must use VRML 2.0
-          features ("IS" is keyword only in VRML 2.0, it will not be understood
-          in VRML 1.0).
-        - Besides, we should promote newer VRML standard. }
+          But if IsClause is present anywhere, then this must use VRML >= 2.0
+          features ("IS" is keyword only in VRML >= 2.0,
+          it will not be understood in VRML 1.0).
+        - Besides, we should promote newer VRML standard.
+        In the future, this will change to X3D, once my engine will handle
+        it more. }
       VRMLHeader := VRML20Header; { fallback is VRML20Header }
+
+    Writeln('saving vers ', VerMajor, VerMinor);
+
+    SaveProperties.VerMajor := VerMajor;
+    SaveProperties.VerMinor := VerMinor;
 
     SaveProperties.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
     if PrecedingComment <> '' then
       SaveProperties.Writeln('# '+PrecedingComment + NL);
+
+    if VerMajor >= 3 then
+    begin
+      { Just output some profile, as every X3D file should have this.
+        We actually don't detect for now in any way which profile
+        would be best. }
+      SaveProperties.Writeln('PROFILE Interchange' + NL);
+    end;
 
     { Node may be TNodeGroupHidden_* here, that's OK,
       TNodeGroupHidden_*.SaveToStream will magically handle this right. }

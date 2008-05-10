@@ -60,3 +60,8 @@ VRML 97 TODO items:
 Partial X3D TODO list:
 IMPORT / EXPORT mechanism.
 X3D adds many field types, like 4-valued vectors and matrices.
+
+when saving (e.g. from view3dscene), extension doesn't really matter.
+  We save x3d or vrml 1.0/2.0 content, based on what we know about the model.
+  There should be a way for user to force some version? Or just warn
+  user and eventually change extension?

@@ -793,3 +793,55 @@ begin
 end;
 
 }
+
+{ X3D specific nodes --------------------------------------------------------- }
+
+{ They suggest X3D V3.1 (not 3.0, because some features (shaders)
+  are only in ammendment 1 I think, so 3.1 is safer).
+
+  Also, they use priority 2000, so they are slightly stronger than
+  VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
+  will be judged as X3D. And that's Ok, because everything (almost?
+  or just plainly 100% everything?) valid in VRML 97 is also valid
+  in X3D.
+}
+
+function TNodeComposedShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodePackagedShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodeProgramShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodeShaderPart.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodeShaderProgram.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;

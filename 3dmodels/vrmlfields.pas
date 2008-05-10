@@ -54,6 +54,9 @@ type
       calls in the file just like they were in source file. }
     WriteExpandedPrototype: boolean;
 
+    { Which VRML version are we writing. }
+    VerMajor, VerMinor: Integer;
+
     procedure IncIndent;
     procedure DecIndent;
 

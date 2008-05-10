@@ -46,7 +46,7 @@ const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
   VRML20Keywords = [vkDEF .. vkField];
   X3DKeywords = [Low(TVRMLKeyword) .. High(TVRMLKeyword)] -
-    [vkEventOut, vkExposedField, vkField];
+    [vkEventIn, vkEventOut, vkExposedField, vkField];
 
 type
   { VRML lexer token }
@@ -578,6 +578,9 @@ begin
   if IsPrefixRemove(X3DHeaderStart, Line) then
   begin
     ParseVersion(Line, FVRMLVerMajor, FVRMLVerMinor);
+    if FVRMLVerMajor < 3 then
+      raise EVRMLLexerError.Create(Self,
+        'Wrong X3D major version number, should be >= 3');
     Utf8HeaderReadRest(Line);
   end else
     raise EVRMLLexerError.Create(Self,

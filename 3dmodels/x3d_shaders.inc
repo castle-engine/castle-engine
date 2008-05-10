@@ -84,6 +84,9 @@ type
     function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
     procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
       override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodePackagedShader = class(TNodeX3DShaderNode,
@@ -101,6 +104,9 @@ type
     fieldType [out]    fieldName
     fieldType []       fieldName initialValue
     }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeProgramShader = class(TNodeX3DShaderNode)
@@ -109,6 +115,9 @@ type
     class function ClassNodeTypeName: string; override;
 
     property Fdprograms: TMFNode index 2 read GetFieldAsMFNode;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
@@ -135,6 +144,9 @@ type
 
       This is always a full, expanded (i.e. not relative) URL. }
     property UsedFullUrl: string read FUsedFullUrl;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject,
@@ -153,6 +165,9 @@ type
     fieldType [out]    fieldName
     fieldType []       fieldName initialValue
     }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
 {$endif read_interface}
@@ -214,7 +229,7 @@ begin
 
   if not Result then
   begin
-    Result := Lexer.TokenIsKeyword([vkEventIn, vkEventOut, vkField, vkExposedField]);
+    Result := Lexer.TokenIsKeyword(InterfaceDeclarationKeywords);
     if Result then
     begin
       I := TVRMLInterfaceDeclaration.Create;
