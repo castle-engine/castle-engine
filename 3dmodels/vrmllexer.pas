@@ -583,8 +583,6 @@ begin
     raise EVRMLLexerError.Create(Self,
       'VRML signature error : unrecognized signature');
 
-  Writeln('got version ', FVRMLVerMajor, ' ', FVRMLVerMinor);
-
   CreateCommonEnd;
 end;
 
