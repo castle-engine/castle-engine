@@ -8,8 +8,6 @@ VRML 97 TODO items:
 
 - kambi_vrml_test_suite adjust to EXTERNPROTO/PROTOs more
 
-- vrml_engine_doc update: short notice about protos, external protos, and that they are handled
-
 - finish checking NIST tests
 
 - Remaining places where my code temporarily cannot handle VRML 2.0 files,
@@ -31,9 +29,6 @@ VRML 97 TODO items:
     And on freshmeat.
 
     Also fix appropriate section in vrml_engine_doc.
-
-  - "The Castle":
-    make test level in VRML 2.0 for castle
 
 - KambiTriangulation should also be fixed just like DirectionalLight.
   Or maybe it should be made a new field of Apperance ?
@@ -59,3 +54,9 @@ VRML 97 TODO items:
 - 4.6.7 Sensor nodes
   ...
   and further 4.x spec parts, with the exception of 4.8, 4.9, 4.13, 4.14
+
+------------------------------------------------------------------------------
+
+Partial X3D TODO list:
+IMPORT / EXPORT mechanism.
+X3D adds many field types, like 4-valued vectors and matrices.
