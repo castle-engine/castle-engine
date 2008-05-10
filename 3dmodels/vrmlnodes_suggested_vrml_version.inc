@@ -801,8 +801,8 @@ end;
 
   Also, they use priority 2000, so they are slightly stronger than
   VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
-  will be judged as X3D. And that's Ok, because everything (almost?
-  or just plainly 100% everything?) valid in VRML 97 is also valid
+  will be judged as X3D. And that's Ok, because almost everything (incompatible
+  exceptions are e.g. Switch and LOD field name) valid in VRML 97 is also valid
   in X3D.
 }
 
@@ -839,6 +839,22 @@ begin
 end;
 
 function TNodeShaderProgram.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodeSwitch_3.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 1, 2000);
+end;
+
+function TNodeLOD_3.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

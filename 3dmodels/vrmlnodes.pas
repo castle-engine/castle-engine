@@ -1910,6 +1910,8 @@ type
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
 {$I x3d_shaders.inc}
+{$I x3d_grouping.inc}
+{$I x3d_navigation.inc}
 
 { TNodeUnknown --------------------------------------------------- }
 
@@ -2537,7 +2539,30 @@ var
   AllowedGeometryNodes: TVRMLNodeClassesList;
 
 const
+  { URNs used to indicate standard VRML / X3D nodes.
+
+    Funny thing, I actually didn't found anywhere a definite official
+    statement that they are using such-and-such URNs.
+
+    X3D specification refers to RFC
+    [http://www.ietf.org/rfc/rfc3541.txt?number=3541] which, basically,
+    just says "we like URNs and we'll use them" and nothing more.
+    Same thing for VRML 97 spec
+    [http://www.web3d.org/x3d/specifications/vrml/ISO-IEC-14772-VRML97/part1/extensions.html].
+    There is no precise answer e.g. what URN should be used to
+    Indicate some standard VRML 97 / X3D node.
+
+    I constructed URNs below looking at examples in the RFC,
+    annotated by a funny line "The following examples are not
+    guaranteed to be real. They are presented for pedagogical reasons only."
+
+    @groupBegin }
   URNVRML97Nodes = 'urn:web3d:vrml97:node:';
+  URNX3DNodes = 'urn:web3d:x3d:node:';
+  { @groupEnd }
+
+  { URN used to indicate VRML / X3D nodes that are Kambi VRML game engine
+    extensions. }
   URNKambiNodes = 'urn:vrmlengine.sourceforge.net:node:';
 
 {$undef read_interface}
@@ -2602,6 +2627,8 @@ const
 {$I x3d_core.inc}
 {$I x3d_pointing_device_sensor.inc}
 {$I x3d_shaders.inc}
+{$I x3d_grouping.inc}
+{$I x3d_navigation.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -6266,7 +6293,9 @@ initialization
     TNodePackagedShader,
     TNodeProgramShader,
     TNodeShaderPart,
-    TNodeShaderProgram
+    TNodeShaderProgram,
+    TNodeSwitch_3,
+    TNodeLOD_3
     ]);
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
@@ -6395,7 +6424,7 @@ initialization
     //TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
-    TNodeWorldInfo
+    TNodeWorldInfo,
 
     { X3D nodes }
     //TNodeComposedShader,
@@ -6403,6 +6432,8 @@ initialization
     //TNodeProgramShader,
     //TNodeShaderPart,
     //TNodeShaderProgram
+    TNodeSwitch_3,
+    TNodeLOD_3
   ]);
 
   AllowedGeometryNodes := TVRMLNodeClassesList.Create;

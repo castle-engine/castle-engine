@@ -3131,7 +3131,7 @@ end;
 
 class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := VerMajor = 2;
 end;
 
 function TNodeLOD_2.ChildrenField: TMFNode;
@@ -4036,7 +4036,7 @@ end;
 
 class function TNodeSwitch_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
-  Result := VerMajor >= 2;
+  Result := VerMajor = 2;
 end;
 
 function TNodeSwitch_2.ChildrenField: TMFNode;
