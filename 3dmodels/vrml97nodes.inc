@@ -35,6 +35,9 @@
     procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
   end;
 
+  TNodeX3DGeometryNode = class(TNodeX3DNode)
+  end;
+
   TNodeX3DGroupingNode = class(TNodeGeneralGrouping)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -288,10 +291,18 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdbottomRadius: TSFFloat index 0 read GetFieldAsSFFloat;
-    property Fdheight: TSFFloat index 1 read GetFieldAsSFFloat;
-    property Fdside: TSFBool index 2 read GetFieldAsSFBool;
-    property Fdbottom: TSFBool index 3 read GetFieldAsSFBool;
+
+    private FFdbottomRadius: TSFFloat;
+    public property FdbottomRadius: TSFFloat read FFdbottomRadius;
+
+    private FFdheight: TSFFloat;
+    public property Fdheight: TSFFloat read FFdheight;
+
+    private FFdside: TSFBool;
+    public property Fdside: TSFBool read FFdside;
+
+    private FFdbottom: TSFBool;
+    public property Fdbottom: TSFBool read FFdbottom;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -2067,10 +2078,18 @@ end;
 constructor TNodeCone_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('bottomRadius', 1));
-  Fields.Add(TSFFloat.Create('height', 2));
-  Fields.Add(TSFBool.Create('side', TRUE));
-  Fields.Add(TSFBool.Create('bottom', TRUE));
+
+  FFdbottomRadius := TSFFloat.Create('bottomRadius', 1);
+  Fields.Add(FFdbottomRadius);
+
+  FFdheight := TSFFloat.Create('height', 2);
+  Fields.Add(FFdheight);
+
+  FFdside := TSFBool.Create('side', true);
+  Fields.Add(FFdside);
+
+  FFdbottom := TSFBool.Create('bottom', true);
+  Fields.Add(FFdbottom);
 end;
 
 class function TNodeCone_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
