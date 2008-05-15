@@ -464,4 +464,33 @@ begin
   end;
 end;
 
+{ TNodeExtrusion --------------------------------------------------------- }
+
+function TNodeExtrusion.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+var
+  I, J: Integer;
+  E: TVRMLExtrusion;
+  LastY, LastZ: TVector3Single;
+  Transform: TMatrix4Single;
+  Point2d: PVector2Single;
+begin
+  Result := EmptyBox3d;
+
+  E := TVRMLExtrusion.Create;
+  try
+    E.Node := Self;
+    for I := 0 to E.High do
+    begin
+      E.SpineTransformTo1st(I, LastY, LastZ, Transform);
+      for J := 0 to FdCrossSection.Count - 1 do
+      begin
+        Point2d := @FdCrossSection.Items.Items[J];
+        Box3dSumTo1st(Result, MultMatrixPoint(Transform,
+          Vector3Single(Point2d^[0], 0, Point2d^[1])));
+      end;
+    end;
+  finally FreeAndNil(E) end;
+end;
+
 { eof ------------------------------------------------------------------------- }

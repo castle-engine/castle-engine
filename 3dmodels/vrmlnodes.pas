@@ -2588,7 +2588,8 @@ uses
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
-  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils;
+  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
+  VRMLGeometry;
 
 {$define read_implementation}
 

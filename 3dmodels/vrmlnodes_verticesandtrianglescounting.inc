@@ -346,3 +346,29 @@ begin
     Result := FdXDimension.Value * FdZDimension.Value else
     Result := 0;
 end;
+
+{ TNodeExtrusion ------------------------------------------------------------- }
+
+function TNodeExtrusion.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  E: TVRMLExtrusion;
+begin
+  E := TVRMLExtrusion.Create;
+  try
+    E.Node := Self;
+    Result := (E.High + 1) * FdCrossSection.Count;
+  finally FreeAndNil(E) end;
+end;
+
+function TNodeExtrusion.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  E: TVRMLExtrusion;
+begin
+  E := TVRMLExtrusion.Create;
+  try
+    E.Node := Self;
+    Result := (E.High + 1) * FdCrossSection.Count * 2;
+  finally FreeAndNil(E) end;
+end;

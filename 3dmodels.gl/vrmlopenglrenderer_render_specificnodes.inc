@@ -668,4 +668,79 @@ begin
   end;
 end;
 
+{ TNodeExtrusion --------------------------------------------------------- }
+
+procedure RenderExtrusion(Node: TNodeExtrusion);
+type
+  T01 = 0..1;
+var
+  I, J: Integer;
+  E: TVRMLExtrusion;
+  LastY, LastZ: TVector3Single;
+  Transform: array [T01] of TMatrix4Single;
+  Cross: array [T01, T01] of TVector3Single;
+
+  procedure MakeCrossPoint(out Point: TVector3Single; WhichTransform: T01;
+    CrossIndex: Integer);
+  var
+    Point2d: PVector2Single;
+  begin
+    Point2d := @Node.FdCrossSection.Items.Items[CrossIndex];
+    Point := MultMatrixPoint(Transform[WhichTransform],
+      Vector3Single(Point2d^[0], 0, Point2d^[1]));
+  end;
+
+begin
+  glPushAttrib(GL_LIGHTING_BIT { for shade model });
+
+  { TODO: for now we always generate flat normals(1 normal per face) }
+  glShadeModel(GL_FLAT);
+
+  E := TVRMLExtrusion.Create;
+  try
+    E.Node := Node;
+    if E.High > 0 then
+    begin
+      E.SpineTransformTo1st(0, LastY, LastZ, Transform[0]);
+      for I := 1 to E.High do
+      begin
+        E.SpineTransformTo1st(I, LastY, LastZ, Transform[1]);
+
+        glBegin(GL_QUAD_STRIP);
+
+        MakeCrossPoint(Cross[0, 0], 0, Node.FdCrossSection.Count - 1);
+        MakeCrossPoint(Cross[1, 0], 1, Node.FdCrossSection.Count - 1);
+
+        glVertexv(Cross[0, 0]);
+        glVertexv(Cross[1, 0]);
+
+        for J := 0 to Node.FdCrossSection.Count - 1 do
+        begin
+          MakeCrossPoint(Cross[0, 1], 0, J);
+          MakeCrossPoint(Cross[1, 1], 1, J);
+
+          { Normal is average of normals of two triangles. }
+          glNormalv(VectorAdd(
+            TriangleNormal(Cross[0, 0], Cross[1, 0], Cross[1, 1]),
+            TriangleNormal(Cross[0, 0], Cross[1, 1], Cross[0, 1])));
+
+          { Now make a quad using 4 Cross points. }
+          glVertexv(Cross[0, 1]);
+          glVertexv(Cross[1, 1]);
+
+          Cross[0, 0] := Cross[0, 1];
+          Cross[1, 0] := Cross[1, 1];
+        end;
+
+        glEnd();
+
+        { It would be faster to do this by exchanging pointers, TODO? }
+        Transform[0] := Transform[1];
+      end;
+    end;
+  finally FreeAndNil(E) end;
+
+  glPopAttrib;
+end;
+
 { eof ------------------------------------------------------------------------ }

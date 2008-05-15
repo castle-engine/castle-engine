@@ -1345,7 +1345,8 @@ function WorldTimeWatchersExist: boolean;
 implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils, GLVersionUnit, GLImages, KambiLog, KambiClassUtils;
+  KambiStringUtils, GLVersionUnit, GLImages, KambiLog, KambiClassUtils,
+  VRMLGeometry;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -3447,6 +3448,8 @@ begin
           RenderSphere_2(TNodeSphere_2(Node)) else
         if Node is TNodeElevationGrid then
           RenderElevationGrid(TNodeElevationGrid(Node)) else
+        if Node is TNodeExtrusion then
+          RenderExtrusion(TNodeExtrusion(Node)) else
           raise EVRMLOpenGLRenderError.Create(
             'Rendering of node kind '+Node.NodeTypeName+' not implemented');
 
