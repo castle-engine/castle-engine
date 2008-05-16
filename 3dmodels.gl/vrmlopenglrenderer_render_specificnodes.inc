@@ -791,8 +791,42 @@ var
   LastY, LastZ: TVector3Single;
   Cross: array [T01, T01] of TVector3Single;
   TransformCap: TMatrix4Single;
+  IsBeginCapCCW: boolean;
+  Normal: TVector3Single;
 begin
   if Node.FdCrossSection.Count = 0 then Exit;
+
+  { An explanation of ccw and solid fields interpretation for Extrusion:
+
+    "ccw" field actually doesn't say how we should generate normals.
+    Obviously, this is the decision of the implementor, like us,
+    and we always want to generate normals from CCW (see comments
+    at the beginning of this unit to know why we don't want ever to use
+    glFrontFace in this unit).
+    Instead, "ccw" says from which side the normal should go for the sake
+    of solid (if enabled) and one-side lighting (if enabled --- although
+    we always do two_side lighting, for now). The object is visible
+    only from the side where faces are CCW, and lighted only from CCW,
+    unless ccw = FALSE, when it's visible/lighted only when faces are CW.
+
+    Also "ccw" says what normals the user provided, but this is not
+    important for Extrusion --- user cannot provide normals for
+    Extrusion, we always generate them.
+
+    So what does CCW really say for Extrusion?
+    It says which face is visible/lighted.
+    If CCW = true, then we cull inside of the extrusion (assuming solid).
+    If CCW = false, then we cull outside.
+
+    We will use IsBeginCapCCW =
+    when viewed from the positive axis (in local coords of spine 0)
+    on begin cap, is it CCW?
+    In other words, when IsBeginCapCCW then the normal vector
+    (in local coords of spine 0) from CCW is (0, -1, 0).
+    Remember that FdCrossSection specify X, Z values. }
+
+  IsBeginCapCCW := IsPolygon2dCCW(Node.FdCrossSection.Items.ItemsArray,
+    Node.FdCrossSection.Items.Count) > 0;
 
   Transform[0] := @TransformData[0];
   Transform[1] := @TransformData[1];
@@ -826,9 +860,10 @@ begin
           MakeCrossPoint(Cross[1, 1], 1, J);
 
           { Normal is average of normals of two triangles. }
-          glNormalv(VectorAdd(
+          Normal := VectorAdd(
             TriangleNormal(Cross[0, 0], Cross[1, 0], Cross[1, 1]),
-            TriangleNormal(Cross[0, 0], Cross[1, 1], Cross[0, 1])));
+            TriangleNormal(Cross[0, 0], Cross[1, 1], Cross[0, 1]));
+          glNormalv(Normal);
 
           { Now make a quad using 4 Cross points. }
           glVertexv(Cross[0, 1]);
@@ -847,8 +882,6 @@ begin
       end;
     end;
 
-    { TODO: the begin/end cap normal is inevitably wrong in some cases... }
-
     if Node.FdBeginCap.Value or
        Node.FdEndCap.Value then
     begin
@@ -861,7 +894,9 @@ begin
 
         glPushMatrix;
           glMultMatrix(TransformCap);
-          glNormal3f(0, -1, 0);
+          if IsBeginCapCCW then
+            glNormal3f(0, -1, 0) else
+            glNormal3f(0, +1, 0);
           DrawCap;
         glPopMatrix;
       end;
@@ -883,7 +918,9 @@ begin
 
         glPushMatrix;
           glMultMatrix(TransformCap);
-          glNormal3f(0, -1, 0);
+          if IsBeginCapCCW then
+            glNormal3f(0, -1, 0) else
+            glNormal3f(0, +1, 0);
           DrawCap;
         glPopMatrix;
       end;
