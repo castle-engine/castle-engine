@@ -380,7 +380,7 @@ const
   VRMLTokenNames: array[TVRMLToken]of string = (
     'keyword', 'name',
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
-    'float', 'integer', 'string', 'end of file');
+    'float', 'integer', 'string', 'end of stream');
 
 {$I macarraypos.inc}
 {$define ARRAY_POS_FUNCTION_NAME := ArrayPosVRMLKeywords}
