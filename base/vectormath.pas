@@ -395,7 +395,12 @@ type
   {$I dynarray_2.inc}
   TArray_Vector2Single = TInfiniteArray_2;
   PArray_Vector2Single = PInfiniteArray_2;
-  TDynVector2SingleArray = TDynArray_2;
+  TDynVector2SingleArray = class(TDynArray_2)
+  public
+    { Calculate minimum and maximum values for both dimensions of
+      this set of points. Returns @false when Count = 0. }
+    function MinMax(out Min, Max: TVector2Single): boolean;
+  end;
 
   TDynArrayItem_5 = TVector4Single;
   PDynArrayItem_5 = PVector4Single;
@@ -1977,6 +1982,28 @@ begin
   Assign(Source);
   for I := 0 to Count - 1 do
     VectorNegateTo1st(Items[I]);
+end;
+
+{ TDynVector2SingleArray ----------------------------------------------------- }
+
+function TDynVector2SingleArray.MinMax(out Min, Max: TVector2Single): boolean;
+var
+  I: Integer;
+begin
+  Result := Count > 0;
+  if Result then
+  begin
+    Min := Items[0];
+    Max := Items[0];
+    for I := 1 to High do
+    begin
+      if Items[I][0] < Min[0] then Min[0] := Items[I][0] else
+      if Items[I][0] > Max[0] then Max[0] := Items[I][0];
+
+      if Items[I][1] < Min[1] then Min[1] := Items[I][1] else
+      if Items[I][1] > Max[1] then Max[1] := Items[I][1];
+    end;
+  end;
 end;
 
 { FloatsEqual ------------------------------------------------------------- }

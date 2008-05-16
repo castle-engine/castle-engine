@@ -720,23 +720,60 @@ end;
 type
   TExtrusionTriangleProcData = record
     Node: TNodeExtrusion;
+    Render_TexCoordsNeeded: boolean;
+    TexCapsTranslation: Single;
+    TexCapsScale: Single;
+    TexCapsZScale: Single;
   end;
   PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
 
 procedure ExtrusionCapTriangle(const Tri: TVector3Longint;
-  Data: Pointer);
-begin
-  with PExtrusionTriangleProcData(Data)^.Node do
+  TriangleProcData: Pointer);
+var
+  Data: PExtrusionTriangleProcData absolute TriangleProcData;
+
+  procedure CapTexCoord(Index: Integer);
   begin
-    glVertexv(CrossSection3D(Tri[0]));
-    glVertexv(CrossSection3D(Tri[1]));
-    glVertexv(CrossSection3D(Tri[2]));
+    with Data^ do
+      if Render_TexCoordsNeeded then
+      begin
+        glTexCoord2f(
+          (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
+          * TexCapsScale,
+          (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
+          * TexCapsScale * TexCapsZScale);
+      end;
+  end;
+
+begin
+  with Data^ do
+  begin
+    CapTexCoord(Tri[0]);
+    glVertexv(Node.CrossSection3D(Tri[0]));
+    CapTexCoord(Tri[1]);
+    glVertexv(Node.CrossSection3D(Tri[1]));
+    CapTexCoord(Tri[2]);
+    glVertexv(Node.CrossSection3D(Tri[2]));
   end;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderExtrusion(Node: TNodeExtrusion);
+var
+  TexCapsTranslation, TexCapsScale, TexCapsZScale: Single;
 
   procedure DrawCap;
+
+    procedure CapTexCoord(Index: Integer);
+    begin
+      if Render_TexCoordsNeeded then
+      begin
+        glTexCoord2f(
+          (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
+          * TexCapsScale,
+          (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
+          * TexCapsScale * TexCapsZScale);
+      end;
+    end;
 
     procedure DrawConvexCap;
     var
@@ -744,20 +781,29 @@ procedure TVRMLOpenGLRenderer.RenderExtrusion(Node: TNodeExtrusion);
     begin
       glBegin(GL_TRIANGLE_FAN);
         for I := 0 to Node.FdCrossSection.Count - 1 do
+        begin
+          CapTexCoord(I);
           glVertexv(Node.CrossSection3D(I));
+        end;
       glEnd();
     end;
 
   var
     TriangleProcData: TExtrusionTriangleProcData;
   begin
-    TriangleProcData.Node := Node;
-
     if Node.FdConvex.Value then
+    begin
       { We could call TriangulateConvexFace, but it's faster to do it directly,
         using OpenGL triangle_fan }
-      DrawConvexCap else
+      DrawConvexCap;
+    end else
     begin
+      TriangleProcData.Node := Node;
+      TriangleProcData.TexCapsTranslation := TexCapsTranslation;
+      TriangleProcData.TexCapsScale := TexCapsScale;
+      TriangleProcData.TexCapsZScale := TexCapsZScale;
+      TriangleProcData.Render_TexCoordsNeeded := Render_TexCoordsNeeded;
+
       glBegin(GL_TRIANGLES);
         TriangulateFace(nil, Node.FdCrossSection.Count,
           @Node.CrossSection3D, @ExtrusionCapTriangle,
@@ -786,13 +832,34 @@ var
   end;
 
 var
-  I, J: Integer;
   E: TVRMLExtrusion;
+
+  procedure SideTexCoord(SpineIndex, CrossSectionIndex: Integer);
+  var
+    U, V: Single;
+  begin
+    if Render_TexCoordsNeeded then
+    begin
+      { Check ranges, to avoid dividing by zero (eventually the
+        corresponding coord is set to a preditable zero :) ). }
+      if E.High > 0 then
+        V := SpineIndex / E.High else
+        V := 0;
+      if Node.FdCrossSection.Count > 1 then
+        U := CrossSectionIndex / (Node.FdCrossSection.Count - 1) else
+        U := 0;
+      glTexCoord2f(U, V);
+    end;
+  end;
+
+var
+  I, J: Integer;
   LastY, LastZ: TVector3Single;
   Cross: array [T01, T01] of TVector3Single;
   TransformCap: TMatrix4Single;
   IsBeginCapCCW: boolean;
   Normal: TVector3Single;
+  TexCapsMin, TexCapsMax: TVector2Single;
 begin
   if Node.FdCrossSection.Count = 0 then Exit;
 
@@ -901,8 +968,8 @@ begin
         MakeCrossPoint(Cross[1, 0], 1, 0);
         MakeCrossPoint(Cross[0, 0], 0, 0);
 
-        glVertexv(Cross[1, 0]);
-        glVertexv(Cross[0, 0]);
+        SideTexCoord(I    , 0); glVertexv(Cross[1, 0]);
+        SideTexCoord(I - 1, 0); glVertexv(Cross[0, 0]);
 
         for J := 1 to Node.FdCrossSection.Count - 1 do
         begin
@@ -916,8 +983,8 @@ begin
           glNormalv(Normal);
 
           { Now make a quad using 4 Cross points. }
-          glVertexv(Cross[1, 1]);
-          glVertexv(Cross[0, 1]);
+          SideTexCoord(I    , J); glVertexv(Cross[1, 1]);
+          SideTexCoord(I - 1, J); glVertexv(Cross[0, 1]);
 
           Cross[1, 0] := Cross[1, 1];
           Cross[0, 0] := Cross[0, 1];
@@ -935,12 +1002,43 @@ begin
     if Node.FdBeginCap.Value or
        Node.FdEndCap.Value then
     begin
+      if Render_TexCoordsNeeded then
+      begin
+        { calculate TexCapsTranslation, TexCapsScale }
+        TexCapsTranslation := 0;
+        TexCapsScale := 1;
+        if Node.FdCrossSection.Items.MinMax(TexCapsMin, TexCapsMax) then
+        begin
+          if TexCapsMax[0] - TexCapsMin[0] >=
+             TexCapsMax[1] - TexCapsMin[1] then
+          begin
+            if not IsZero(TexCapsMax[0] - TexCapsMin[0]) then
+            begin
+              { scale such that U is along the X of cap.
+                Coord calculation will go like
+                  u := (x - TexCapsMin[0]) / (TexCapsMax[0] - TexCapsMin[0]) }
+              TexCapsTranslation := -TexCapsMin[0];
+              TexCapsScale := 1 /  (TexCapsMax[0] - TexCapsMin[0]);
+            end;
+          end else
+          begin
+            if not IsZero(TexCapsMax[1] - TexCapsMin[1]) then
+            begin
+              TexCapsTranslation := -TexCapsMin[1];
+              TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);
+            end;
+          end;
+        end;
+      end;
+
       if Node.FdBeginCap.Value then
       begin
         { calculate TransformCap.
           Note that LastY, LastZ are just ignored here (they are "out only"
           for Spine = 0). }
         E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
+
+        TexCapsZScale := 1;
 
         glPushMatrix;
           glMultMatrix(TransformCap);
@@ -968,6 +1066,14 @@ begin
         if not Node.FdBeginCap.Value then
           E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
           { else calculations for Node.FdBeginCap.Value already set TransformCap }
+
+        { TexCapsZScale trick is not specified by X3D spec,
+          also it's not disallowed...
+          I don't really know should I do this. Only the image in
+          "Annotated VRML 97 reference" about Extrusion suggests this,
+          and common sense (without this feature, image texture is always
+          flipped on one of the caps). }
+        TexCapsZScale := -1;
 
         glPushMatrix;
           glMultMatrix(TransformCap);
