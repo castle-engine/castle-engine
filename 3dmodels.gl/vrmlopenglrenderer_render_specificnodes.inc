@@ -796,45 +796,88 @@ var
 begin
   if Node.FdCrossSection.Count = 0 then Exit;
 
-  { An explanation of ccw and solid fields interpretation for Extrusion:
-
-    "ccw" field actually doesn't say how we should generate normals.
-    Obviously, this is the decision of the implementor, like us,
-    and we always want to generate normals from CCW (see comments
-    at the beginning of this unit to know why we don't want ever to use
-    glFrontFace in this unit).
-    Instead, "ccw" says from which side the normal should go for the sake
-    of solid (if enabled) and one-side lighting (if enabled --- although
-    we always do two_side lighting, for now). The object is visible
-    only from the side where faces are CCW, and lighted only from CCW,
-    unless ccw = FALSE, when it's visible/lighted only when faces are CW.
-
-    Also "ccw" says what normals the user provided, but this is not
-    important for Extrusion --- user cannot provide normals for
-    Extrusion, we always generate them.
-
-    So what does CCW really say for Extrusion?
-    It says which face is visible/lighted.
-    If CCW = true, then we cull inside of the extrusion (assuming solid).
-    If CCW = false, then we cull outside.
-
-    We will use IsBeginCapCCW =
+  { IsBeginCapCCW =
     when viewed from the positive axis (in local coords of spine 0)
     on begin cap, is it CCW?
     In other words, when IsBeginCapCCW then the normal vector
     (in local coords of spine 0) from CCW is (0, -1, 0).
     Remember that FdCrossSection specify X, Z values. }
-
   IsBeginCapCCW := IsPolygon2dCCW(Node.FdCrossSection.Items.ItemsArray,
     Node.FdCrossSection.Items.Count) > 0;
 
-  Transform[0] := @TransformData[0];
-  Transform[1] := @TransformData[1];
+  glPushAttrib(GL_LIGHTING_BIT { for shade model } or
+    GL_POLYGON_BIT { for glCullFace and CULL_FACE enable state });
 
-  glPushAttrib(GL_LIGHTING_BIT { for shade model });
+  if Node.FdSolid.Value then
+  begin
+    { An explanation of ccw and solid fields interpretation for Extrusion:
+
+      "ccw" field actually doesn't say how we should generate normals.
+      Obviously, this is the decision of the implementor, like us,
+      and we always want to generate normals from CCW (see comments
+      at the beginning of this unit to know why we don't want ever to use
+      glFrontFace in this unit).
+      Instead, "ccw" says from which side the normal should go for the sake
+      of interpreting solid (if enabled) and one-side lighting (if enabled ---
+      although we always do two_side lighting, for now). The object is visible
+      only from the side where faces are CCW, and lighted only from CCW,
+      unless ccw = FALSE, when it's visible/lighted only when faces are CW.
+
+      Also "ccw" says what normals the user provided, but this is not
+      important for Extrusion --- user cannot provide normals for
+      Extrusion, we always generate them.
+
+      So what does CCW really say for Extrusion?
+      It says which face is visible(if solid)/lighted.
+      Assuming the order as spec says
+
+        spine[0](crossSection[0], crossSection[1])
+        spine[1](crossSection[1], crossSection[0])
+
+      then sides which are CCW with the above order should be visible,
+      and CW invisible (assuming solid = TRUE and ccw = TRUE;
+      for ccw = FALSE, visibility is reverted).
+
+      Note that this doesn't precisely say whether inside or outside
+      is visible: direction of spine (increases or decreases Y?)
+      determines whether the above
+      (e.g. for solid = TRUE and ccw = TRUE) will result in culling
+      outside or inside. And this is good, I mean the VRML author
+      has to take care to write crossSection in good direction.
+      We don't have to detect it.
+
+      For sides:
+
+      Now we generate normals from CCW with the same order
+      as spec says. So when CCW = true, we have to cull CW,
+      which is simply back. When CCW = false, we have to cull CCW,
+      which is front.
+
+      For caps:
+
+      (As I understand VRML spec, I should just adjust so that
+      always all outside or all inside is culled).
+      Begin cap with our default order (which is just natural order
+      of crossSection) gets CW on the same side where sides are CCW,
+      so the glCullFace will be reverted there. End cap will have
+      CCW on the same side as sides, so it will have glCullFace just
+      like our sides. }
+
+    { We set below glCullFace for sides of the extrusion.
+      Caps will also be done under GL_CULL_FACE, but they will
+      potentially change glCullFace. }
+
+    if Node.FdCcw.Value then
+      glCullFace(GL_BACK) else
+      glCullFace(GL_FRONT);
+    glEnable(GL_CULL_FACE);
+  end;
 
   { TODO: for now we always generate flat normals(1 normal per face) }
   glShadeModel(GL_FLAT);
+
+  Transform[0] := @TransformData[0];
+  Transform[1] := @TransformData[1];
 
   E := TVRMLExtrusion.Create;
   try
@@ -848,29 +891,36 @@ begin
 
         glBegin(GL_QUAD_STRIP);
 
-        MakeCrossPoint(Cross[0, 0], 0, 0);
-        MakeCrossPoint(Cross[1, 0], 1, 0);
+        { I first render Cross[1, 0], then Cross[0, 0]
+          as this sets direction for the first quad.
+          This isn't really essential, but this way I render points
+          in the same order as indicated by Extrusion X3D / VRML spec,
+          which just helps me wrap my mind around it :) (especially
+          when thinking about this ccw/solid). }
 
-        glVertexv(Cross[0, 0]);
+        MakeCrossPoint(Cross[1, 0], 1, 0);
+        MakeCrossPoint(Cross[0, 0], 0, 0);
+
         glVertexv(Cross[1, 0]);
+        glVertexv(Cross[0, 0]);
 
         for J := 1 to Node.FdCrossSection.Count - 1 do
         begin
-          MakeCrossPoint(Cross[0, 1], 0, J);
           MakeCrossPoint(Cross[1, 1], 1, J);
+          MakeCrossPoint(Cross[0, 1], 0, J);
 
           { Normal is average of normals of two triangles. }
           Normal := VectorAdd(
-            TriangleNormal(Cross[0, 0], Cross[1, 0], Cross[1, 1]),
-            TriangleNormal(Cross[0, 0], Cross[1, 1], Cross[0, 1]));
+            TriangleNormal(Cross[1, 0], Cross[0, 0], Cross[0, 1]),
+            TriangleNormal(Cross[0, 1], Cross[1, 1], Cross[1, 0]));
           glNormalv(Normal);
 
           { Now make a quad using 4 Cross points. }
-          glVertexv(Cross[0, 1]);
           glVertexv(Cross[1, 1]);
+          glVertexv(Cross[0, 1]);
 
-          Cross[0, 0] := Cross[0, 1];
           Cross[1, 0] := Cross[1, 1];
+          Cross[0, 0] := Cross[0, 1];
         end;
 
         glEnd();
@@ -889,11 +939,14 @@ begin
       begin
         { calculate TransformCap.
           Note that LastY, LastZ are just ignored here (they are "out only"
-          for Spine = 0).  }
+          for Spine = 0). }
         E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
 
         glPushMatrix;
           glMultMatrix(TransformCap);
+          if Node.FdCcw.Value then
+            glCullFace(GL_FRONT) else
+            glCullFace(GL_BACK);
           if IsBeginCapCCW then
             glNormal3f(0, -1, 0) else
             glNormal3f(0, +1, 0);
@@ -918,6 +971,9 @@ begin
 
         glPushMatrix;
           glMultMatrix(TransformCap);
+          if Node.FdCcw.Value then
+            glCullFace(GL_BACK) else
+            glCullFace(GL_FRONT);
           if IsBeginCapCCW then
             glNormal3f(0, -1, 0) else
             glNormal3f(0, +1, 0);
