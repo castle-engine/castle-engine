@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2004 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,7 +18,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Triangulating, i.e. decomposing polygons into triangles.) }
+{ @abstract(Triangulating (decomposing possibly non-convex
+  polygons into triangles).) }
 
 unit Triangulator;
 
@@ -27,56 +28,83 @@ interface
 uses SysUtils, VectorMath, KambiUtils;
 
 type
-  TTriangulatorProc = procedure(const Tri:TVector3Longint; Data:Pointer);
+  TTriangulatorProc = procedure(const Tri: TVector3Longint; Data: Pointer);
 
-{ FaceIndices[0]..FaceIndices[FaceIndicesCount-1] zawieraja indeksy
-  do tablicy Vertices. Te indeksy okreslaja kolejne wierzcholki sciany,
-  niekoniecznie convex.
+{ Triangulate potentially non-convex face.
 
-  TriangulateFace rozbija face na trojkaty, dla kazdego trojkata wywolujac
-  TriangulatorProc z drugim parametrem = TriangulatorProcData a
-  pierwszym parametrem ustawionym na indeksy do tablicy FaceIndices[]
-  ktore utworza dany trojkat (zwracamy indeksy a nie gotowe wektory z tablicy
-  Vertices (ani nawet indkesy do Vertices[]) zeby program mogl nie tylko
-  wyciagnac sobie z tablic Vertices[FaceIndices[]] wektory ale takze byc
-  moze z innych tablic wyciagnac informacje towarzyszace dla wierzcholka,
-  a do tego moze byc potrzebny nie tylko indeks do Vertices ale wrecz
-  indeks do FaceIndices - patrz np. w rendererze dla IndexedFaceSet.)
-  Indeksy te sa zwiekszone o AddToIndices (moze byc ujemne) (to jest
-  wygodne gdy FaceIndices to wskaznik do srodka jakiejs tablicy).
+  FaceIndices[0]..FaceIndices[FaceIndicesCount-1] are indices
+  to the Vertices array. They describe the outline of the polygon (face).
 
-  Generowane trojkaty maja taka sama orientacje (normal z CCW) jak
-  oryginalny polygon - tzn. normale wyliczone np. IndexedPolygonNormal
-  na non-convex face beda dobre dla trojkatow po triangulacji tej face
-  przez TriangulateFace.
+  For each resulting triangle we will call TriangulatorProc
+  with Tri (first param of TriangulatorProc) containing indices
+  to FaceIndices[] array. We return indices to FaceIndices
+  (not ready vectors from Vertices, not even indices to Vertices[] array)
+  to allow the caller to obtain all information about the triangle.
+  In the simple case, you can just use Vertices[FaceIndices[Tri[0..2]]]
+  to obtain your triangle, in the more sophisticated cases you have
+  other options to e.g. extract other vertex information from whatever
+  data you have (see e.g. VRML IndexedFaceSet renderer).
 
-  Nie powinienes uzywac tej procedury gdy WIESZ ze face jest convex -
-  wtedy mozna przeciez rozbic face na trojkaty bardzo latwo. Uzywaj
-  tej proc gdy rzeczywiscie face moze byc non-convex - jesli wiesz ze
-  jest convex to uzyj TriangulateConvexFace. }
-procedure TriangulateFace(FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  Generated triangles have the same orientation (normal from ccw etc.)
+  as original polygon. This also means that if you're sure that
+  your polygon is planar (and it should be --- although we handle gracefully
+  small deviations from planar, this procedure doesn't actually handle
+  arbitrary (dis)located 3D data) then normal vector of all your
+  triangles is the same, and is equal to normal vector of original polygon
+  (calculated e.g. by IndexedPolygonNormal).
+
+  Note that you generally shouldn't use this procedure if you @italic(know)
+  that your polygon is convex. Then using this is a waste of time,
+  after all convex polygons can be triangulated much easier.
+  You can use TriangulateConvexFace in this case, which has
+  deliberately very similar interface to this procedure.
+
+  @param(TriangulatorProcData Is just passed unmodified to every
+    TriangulatorProc call (as the second parameter). This is standard
+    method to pass whatever data to your callback.)
+
+  @param(AddToIndices
+    Indexes returned in Tri[0..2] are all incremented by AddToIndices
+    (which may also be negative), this is useful if your FaceIndices
+    is actually a pointer to the middle of some larger indexes array.
+    Just pass 0 if you don't want this.)
+
+  @seeAlso TriangulateConvexFace }
+procedure TriangulateFace(
+  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
   TriangulatorProcData: Pointer; AddToIndices: Longint);
 
-{ proste procedury TriangulateConvexFace i TriangulateTriangleStrip nie
-  potrzebuja FaceIndices ani Vertices. Wystarczy im FaceIndicesCount.
-  One tez zapewniaja konsekwentna orientacje trojkatow (w przypadku TriangleStrip
-  liczy sie orientacja pierwszych trzech wierzcholkow, tzn. kolejno dostajemy
-  v0-v1-v2, v2-v1-v3, v2-v3-v4, v4-v3-v5 itd., podobnie jak w OpenGLu).
-  Zwracam uwage ze TriangleStrip ma po prostu jednoznacznie wyznaczona
-  triangulacje i nie ma w jego przypadku sensu rozwazanie czy jest convex czy
-  non-convex. }
+{ Triangulate convex polygon or triangle strip.
+
+  These perform very easy triangulation. They have deliberately
+  similar interface to TriangulateFace, so they can be used as drop-in
+  replacements for TriangulateFace, when you know that your face is
+  convex or you're dealing with triangle strip.
+
+  Note that they don't even need to know FaceIndices or Vertices,
+  it's enough to know FaceIndicesCount.
+
+  They also guarantee consequent triangles orientation, like TriangulateFace.
+  In case of triangle strip orientation of the first three vertices
+  matters, just like for OpenGL triangle strip primitive.
+
+  @seeAlso TriangulateFace
+
+  @groupBegin }
 procedure TriangulateConvexFace(FaceIndicesCount: integer;
   TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
   AddToIndices: Longint);
+
 procedure TriangulateTriangleStrip(IndicesCount: integer;
   TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
   AddToIndices: Longint);
+{ @groupEnd }
 
 implementation
 
 {$define DEFINE_NEW_TRIANGLE_PROC :=
-procedure NewTriangle(const p0,p1,p2: Longint);
+procedure NewTriangle(const p0, p1, p2: Longint);
 begin
  TriangulatorProc(Vector3Longint(
    p0+AddToIndices,
@@ -119,11 +147,11 @@ var ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
   end;
 
 begin
- { najpierw odrzuc przypadek gdy VertsCount<3 i zrob trywialny przypadek
-   VertsCount=3 }
- if VertsCount=3 then
+ { najpierw odrzuc przypadek gdy VertsCount < 3 i zrob trywialny przypadek
+   VertsCount = 3 }
+ if VertsCount = 3 then
   NewTriangle(0, 1, 2) else
- if VertsCount>3 then
+ if VertsCount > 3 then
  begin
   { wyznacz Center jako prosta srednia z wszystkich punktow }
   Center := ZeroVector3Single;
@@ -138,7 +166,7 @@ begin
   for i := 1 to VertsCount-1 do
   begin
    d := PointsDistance(Center, Verts(i));
-   if d>MaxLen then
+   if d > MaxLen then
    begin
     MaxLen := d;
     MaxLenIndex := i;
@@ -147,7 +175,7 @@ begin
 
   { p1 to indeks najdalszego sposrod Verts, p0 to poprzedni, p2 to nastepny }
   p1 := MaxLenIndex;
-  if p1=0 then p0 := VertsCount-1 else p0 := p1-1;
+  if p1 = 0 then p0 := VertsCount-1 else p0 := p1-1;
   p2 := (p1+1) mod VertsCount;
 
   { TODO - czy tu negate potrzebne ? }
@@ -169,7 +197,7 @@ begin
      p1 := NextNotOut(p0);
      p2 := NextNotOut(p1);
 
-     if p0=Start then break;
+     if p0 = Start then break;
 
      { TODO - czy tu negate potrzebne ? }
      nn := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
@@ -182,7 +210,7 @@ begin
      Empty := True;
 
      for i := 0 to VertsCount-1 do
-      if (not Outs.Items[i]) and (i<>p0) and (i<>p1) and (i<>p2) then
+      if (not Outs.Items[i]) and (i <> p0) and (i <> p1) and (i <> p2) then
       begin
        Empty := Empty and not (
          (VectorDotProduct(E1, VectorSubtract(Verts(i), Verts(p0))) <= - SingleEqualityEpsilon) and
@@ -194,7 +222,7 @@ begin
 
 { TODO - w graz.mgf.wrl jest ten blad i mimo to wszystko dziala ok
   gdy zakomentarzowalem ponizszy check ?
-    if p0=Start then raise Exception.Create('misbuilt polygonal face');}
+    if p0 = Start then raise Exception.Create('misbuilt polygonal face');}
 
     NewTriangle(p0, p1, p2);
 
