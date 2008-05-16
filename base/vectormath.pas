@@ -430,6 +430,8 @@ type
   { }
   EVectorMathInvalidOp = class(Exception);
 
+  TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
+
 const
   ZeroVector3Single: TVector3Single = (0, 0, 0);
   ZeroVector3Double: TVector3Double = (0, 0, 0);

@@ -1108,6 +1108,8 @@ type
     procedure DoGLVertex(const Vert: TVector3Single);
     procedure DoGLArrayElement(const Verts: PArray_Vector3Single; ith: TGLint);
 
+    {$I vrmlopenglrenderer_render_specificnodes.inc}
+
     { ----------------------------------------------------------------- }
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -2976,6 +2978,7 @@ end;
 
 {$I vrmlopenglrenderer_render_glvertex.inc}
 {$I vrmlopenglrenderer_render_materials.inc}
+{$I vrmlopenglrenderer_render_specificnodes.inc}
 
 procedure TVRMLOpenGLRenderer.ActiveTexture(TextureUnit: Cardinal);
 begin
@@ -3203,8 +3206,6 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   Node: TNodeGeneralShape;
   State: TVRMLGraphTraverseState);
-
-  {$I vrmlopenglrenderer_render_specificnodes.inc}
 
   function NodeTextured(Node: TNodeGeneralShape): boolean;
   begin

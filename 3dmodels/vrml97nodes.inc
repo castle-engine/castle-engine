@@ -497,6 +497,11 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
+    { For given Index, return appropriate FdCrossIndex item as 3D vertex.
+      That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
+      (that's how Extrusion is defined in VRML / X3D). }
+    function CrossSection3D(Index: integer): TVector3Single;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -2359,6 +2364,13 @@ begin
   Fields.Add(TMFVec2f.Create('scale', Vector2Single(1, 1)));
   Fields.Add(TSFBool.Create('solid', TRUE));
   Fields.Add(TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]));
+end;
+
+function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
+begin
+  Result[0] := FdCrossSection.Items.Items[Index][0];
+  Result[1] := 0;
+  Result[2] := FdCrossSection.Items.Items[Index][1];
 end;
 
 class function TNodeFog.ClassNodeTypeName: string;

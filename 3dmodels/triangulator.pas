@@ -34,6 +34,9 @@ type
 
   FaceIndices[0]..FaceIndices[FaceIndicesCount-1] are indices
   to the Vertices array. They describe the outline of the polygon (face).
+  You can pass FaceIndices = @nil, this is understood that indices
+  are just 0..FaceIndicesCount-1 (in other words, it's equivalent
+  to setting FaceIndices[0] = 0, FaceIndices[1] = 1 etc.).
 
   For each resulting triangle we will call TriangulatorProc
   with Tri (first param of TriangulatorProc) containing indices
@@ -69,11 +72,19 @@ type
     is actually a pointer to the middle of some larger indexes array.
     Just pass 0 if you don't want this.)
 
-  @seeAlso TriangulateConvexFace }
+  @seeAlso TriangulateConvexFace
+
+  @groupBegin }
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
-  TriangulatorProcData: Pointer; AddToIndices: Longint);
+  TriangulatorProcData: Pointer; AddToIndices: Longint); overload;
+
+procedure TriangulateFace(
+  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
+  TriangulatorProcData: Pointer; AddToIndices: Longint); overload;
+{ @groupEnd }
 
 { Triangulate convex polygon or triangle strip.
 
@@ -123,15 +134,19 @@ end;}
   Postaram sie zmienic ten fakt jak najszybciej i wtedy znikna ponizsze
   "TODO". }
 
-procedure TriangulateFace(FaceIndices: PArray_Longint; FaceIndicesCount: integer;
-  Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
+procedure TriangulateFace(
+  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   TriangulatorProcData: Pointer; AddToIndices: Longint);
+
   DEFINE_NEW_TRIANGLE_PROC
 
   {$define VertsCount := FaceIndicesCount}
   function Verts(i: Longint): TVector3Single;
   begin
-   result := Vertices^[FaceIndices^[i]];
+    if FaceIndices <> nil then
+      Result := Vertices(FaceIndices^[i]) else
+      Result := Vertices(I);
   end;
 
 var ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
@@ -233,15 +248,43 @@ begin
  end;
 end;
 
+type
+  TVerticesGenerator = class
+    Vertices: PArray_Vector3Single;
+    function Generate(Index: integer): TVector3Single;
+  end;
+
+function TVerticesGenerator.Generate(Index: integer): TVector3Single;
+begin
+  Result := Vertices^[Index];
+end;
+
+procedure TriangulateFace(
+  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
+  TriangulatorProcData: Pointer; AddToIndices: Longint);
+var
+  G: TVerticesGenerator;
+begin
+  G := TVerticesGenerator.Create;
+  try
+    G.Vertices := Vertices;
+    TriangulateFace(FaceIndices, FaceIndicesCount,
+      @G.Generate, TriangulatorProc, TriangulatorProcData, AddToIndices);
+  finally FreeAndNil(G); end;
+end;
+
 { proste Triangulate ---------------------------------------------------------- }
 
 procedure TriangulateConvexFace(FaceIndicesCount: integer;
   TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
   AddToIndices: Longint);
   DEFINE_NEW_TRIANGLE_PROC
-var i: integer;
+var
+  I: Integer;
 begin
- for i := 0 to FaceIndicesCount-3 do NewTriangle(0, i+1, i+2);
+  for I := 0 to FaceIndicesCount - 3 do
+    NewTriangle(0, I + 1, I + 2);
 end;
 
 procedure TriangulateTriangleStrip(IndicesCount: integer;

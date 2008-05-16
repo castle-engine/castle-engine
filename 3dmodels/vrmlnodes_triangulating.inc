@@ -646,22 +646,60 @@ end;
 
 { TNodeExtrusion --------------------------------------------------------- }
 
+type
+  TExtrusionTriangleProcData = record
+    Node: TNodeExtrusion;
+    State: TVRMLGraphTraverseState;
+    NewTriangleProc: TNewTriangleProc;
+    TransformCap: TMatrix4Single;
+  end;
+  PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
+
+procedure ExtrusionCapTriangle(const Tri: TVector3Longint;
+  Data: Pointer);
+begin
+  with PExtrusionTriangleProcData(Data)^ do
+  begin
+    NewTriangleProc(Triangle3Single(
+      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[0])),
+      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[1])),
+      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
+      State, Node, 0, -1, -1);
+  end;
+end;
+
 procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+
+  procedure DrawCap(const TransformCap: TMatrix4Single);
+  var
+    TriangleProcData: TExtrusionTriangleProcData;
+  begin
+    TriangleProcData.Node := Self;
+    TriangleProcData.State := State;
+    TriangleProcData.NewTriangleProc := NewTriangleProc;
+    TriangleProcData.TransformCap := TransformCap;
+
+    if FdConvex.Value then
+    begin
+      TriangulateConvexFace(FdCrossSection.Count,
+        @ExtrusionCapTriangle, @TriangleProcData, 0);
+    end else
+    begin
+      TriangulateFace(nil, FdCrossSection.Count,
+        @CrossSection3D, @ExtrusionCapTriangle,
+        @TriangleProcData, 0);
+    end;
+  end;
+
 type
   T01 = 0..1;
 var
-  I, J: Integer;
-  E: TVRMLExtrusion;
-  LastY, LastZ: TVector3Single;
-
   { We have separate pointers and data for matrix, to speed up
     Transform[0] := Transform[1] operation. It's much faster to
     copy a pointer than 16 Single floats. }
   TransformData: array [T01] of TMatrix4Single;
   Transform: array [T01] of PMatrix4Single;
-
-  Cross: array [T01, T01] of TVector3Single;
 
   procedure MakeCrossPoint(out Point: TVector3Single; WhichTransform: T01;
     CrossIndex: Integer);
@@ -673,7 +711,15 @@ var
       Vector3Single(Point2d^[0], 0, Point2d^[1]));
   end;
 
+var
+  I, J: Integer;
+  E: TVRMLExtrusion;
+  LastY, LastZ: TVector3Single;
+  Cross: array [T01, T01] of TVector3Single;
+  TransformCap: TMatrix4Single;
 begin
+  if FdCrossSection.Count = 0 then Exit;
+
   Transform[0] := @TransformData[0];
   Transform[1] := @TransformData[1];
 
@@ -687,10 +733,10 @@ begin
       begin
         E.SpineTransformTo1st(I, LastY, LastZ, Transform[1]^);
 
-        MakeCrossPoint(Cross[0, 0], 0, FdCrossSection.Count - 1);
-        MakeCrossPoint(Cross[1, 0], 1, FdCrossSection.Count - 1);
+        MakeCrossPoint(Cross[0, 0], 0, 0);
+        MakeCrossPoint(Cross[1, 0], 1, 0);
 
-        for J := 0 to FdCrossSection.Count - 1 do
+        for J := 1 to FdCrossSection.Count - 1 do
         begin
           MakeCrossPoint(Cross[0, 1], 0, J);
           MakeCrossPoint(Cross[1, 1], 1, J);
@@ -710,13 +756,36 @@ begin
       end;
     end;
 
-    if FdBeginCap.Value then
+    if FdBeginCap.Value or
+       FdEndCap.Value then
     begin
-      { TODO }
-    end;
-    if FdEndCap.Value then
-    begin
-      { TODO }
+      if FdBeginCap.Value then
+      begin
+        { calculate TransformCap.
+          Note that LastY, LastZ are just ignored here (they are "out only"
+          for Spine = 0).  }
+        E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
+
+        DrawCap(TransformCap);
+      end;
+
+      if FdEndCap.Value then
+      begin
+        { calculate TriangleProcData.TransformEnd. }
+        if E.High > 0 then
+          { We already have it in Transform[0]^.
+            This is most fortunate, otherwise calculating last transform
+            is not easy (we have to iterate over whole spine for correct
+            LastY, LastZ values). }
+          TransformCap := Transform[0]^ else
+          { Then this can be calculated just like TransformBegin
+            (or copied from there, if available) }
+        if not FdBeginCap.Value then
+          E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
+          { else calculations for FdBeginCap.Value already set TransformCap }
+
+        DrawCap(TransformCap);
+      end;
     end;
 
   finally FreeAndNil(E) end;

@@ -113,8 +113,7 @@ function Box3dPointInside(const pt: TVector3Double; const box: TBox3d): boolean;
 function Box3dCubeAroundPoint(const pt: TVector3Single; CubeSize: Single): TBox3d;
 
 type
-  TGetIndexFromIndexNumFunc = function(indexNum: integer): integer of object;
-  TGetVertexFromIndexFunc = function(index: integer): TVector3Single of object;
+  TGetIndexFromIndexNumFunc = function (indexNum: integer): integer of object;
 
 { Calculate bounding box of a set of 3D points.
   This calculates the smallest possible box enclosing all given points.

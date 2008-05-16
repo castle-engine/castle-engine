@@ -39,9 +39,55 @@
     DoBeforeGLVertex w tej chwili, a powinny.
 }
 
-{ AsciiText ------------------------------------------------------------------ }
+{$ifdef read_interface}
 
 procedure Text_Render(
+  const Size, Spacing: Single;
+  const Justify: TVRMLFontJustify;
+  const Strings: TDynStringArray;
+  CurrentFont: TGLOutlineFont;
+  const Depth: Single;
+  const MarkFrontFaces: boolean);
+procedure RenderAsciiText(Node: TNodeAsciiText_1);
+procedure RenderText(Node: TNodeText);
+procedure RenderText3D(Node: TNodeText3D);
+
+procedure RenderBottomDisk(q: PGLuQuadric; radius: TGLdouble);
+
+procedure Cone_Render(
+  const BottomRadius, Height: Single;
+  const Side, Bottom: boolean);
+procedure RenderCone_1(Node: TNodeCone_1);
+procedure RenderCone_2(Node: TNodeCone_2);
+
+procedure Box_Render(const SizeX, SizeY, SizeZ: Single);
+procedure RenderCube_1(Node: TNodeCube_1);
+procedure RenderBox(Node: TNodeBox);
+
+procedure Cylinder_Render(
+  const Height, Radius: Single;
+  const Bottom, Side, Top: boolean);
+procedure RenderCylinder_1(Node: TNodeCylinder_1);
+procedure RenderCylinder_2(Node: TNodeCylinder_2);
+
+procedure RenderPointSet_1(Node: TNodePointSet_1);
+procedure RenderPointSet_2(Node: TNodePointSet_2);
+
+procedure Sphere_Render(const Radius: Single);
+procedure RenderSphere_1(Node: TNodeSphere_1);
+procedure RenderSphere_2(Node: TNodeSphere_2);
+
+procedure RenderElevationGrid(Node: TNodeElevationGrid);
+
+procedure RenderExtrusion(Node: TNodeExtrusion);
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ AsciiText ------------------------------------------------------------------ }
+
+procedure TVRMLOpenGLRenderer.Text_Render(
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const Strings: TDynStringArray;
@@ -169,20 +215,20 @@ begin
   glPopMatrix;
 end;
 
-procedure RenderAsciiText(Node: TNodeAsciiText_1);
+procedure TVRMLOpenGLRenderer.RenderAsciiText(Node: TNodeAsciiText_1);
 begin
   Text_Render(
-    State.LastNodes.FontStyle.FdSize.Value,
+    Render_State.LastNodes.FontStyle.FdSize.Value,
     Node.FdSpacing.Value,
     Node.Justify,
     Node.FdString.Items,
     Cache.Fonts[
-      State.LastNodes.FontStyle.Family,
-      State.LastNodes.FontStyle.Bold,
-      State.LastNodes.FontStyle.Italic].Instance, 0, false);
+      Render_State.LastNodes.FontStyle.Family,
+      Render_State.LastNodes.FontStyle.Bold,
+      Render_State.LastNodes.FontStyle.Italic].Instance, 0, false);
 end;
 
-procedure RenderText(Node: TNodeText);
+procedure TVRMLOpenGLRenderer.RenderText(Node: TNodeText);
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -211,7 +257,7 @@ begin
   Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
 end;
 
-procedure RenderText3D(Node: TNodeText3D);
+procedure TVRMLOpenGLRenderer.RenderText3D(Node: TNodeText3D);
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -255,11 +301,12 @@ end;
 { Cone ----------------------------------------------------------------------- }
 
 { just a shortcuts for names often used in this file }
-{$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.QuadricSlices)}
-{$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
-{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define QUADRIC_SLICES:=(Render_State.LastNodes.KambiTriangulation.QuadricSlices)}
+{$define QUADRIC_STACKS:=(Render_State.LastNodes.KambiTriangulation.QuadricStacks)}
+{$define RECT_DIVISIONS:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
 
-procedure RenderBottomDisk(q: PGLuQuadric; radius: TGLdouble);
+procedure TVRMLOpenGLRenderer.RenderBottomDisk(
+  q: PGLuQuadric; radius: TGLdouble);
 { Render glu disk using quadric q. The disk will have texture applied
   in a way appropriate for bottom disk of VRML's cylinder and cone. }
 begin
@@ -272,7 +319,7 @@ begin
  if Render_TexCoordsNeeded then glPopMatrix;
 end;
 
-procedure Cone_Render(
+procedure TVRMLOpenGLRenderer.Cone_Render(
   const BottomRadius, Height: Single;
   const Side, Bottom: boolean);
 var q: PGLUQuadric;
@@ -292,7 +339,7 @@ begin
    gluCylinder(q, BottomRadius, 0, Height, QUADRIC_SLICES, QUADRIC_STACKS);
   if Bottom then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in
+   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
      [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(1);
    RenderBottomDisk(q, BottomRadius);
@@ -301,7 +348,7 @@ begin
  finally gluDeleteQuadric(q) end;
 end;
 
-procedure RenderCone_1(Node: TNodeCone_1);
+procedure TVRMLOpenGLRenderer.RenderCone_1(Node: TNodeCone_1);
 begin
   Cone_Render(
     Node.FdBottomRadius.Value,
@@ -310,7 +357,7 @@ begin
     Node.FdParts.Flags[CONE_PARTS_BOTTOM]);
 end;
 
-procedure RenderCone_2(Node: TNodeCone_2);
+procedure TVRMLOpenGLRenderer.RenderCone_2(Node: TNodeCone_2);
 begin
   Cone_Render(
     Node.FdBottomRadius.Value,
@@ -321,7 +368,7 @@ end;
 
 { Box ---------------------------------------------------------------------- }
 
-procedure Box_Render(const SizeX, SizeY, SizeZ: Single);
+procedure TVRMLOpenGLRenderer.Box_Render(const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);
@@ -329,13 +376,13 @@ var MatPerPart: boolean;
    if MatPerPart then Render_BindMaterial_1(MatNum);
   end;
 
-{$define DetailX:=(State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailY:=(State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailZ:=(State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailX:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailY:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailZ:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
 
 var x1, y1, z1, x2, y2, z2: TGLfloat;
 begin
- MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
+ MatPerPart := Render_State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
   Render_BindMaterial_1(0); {use first material fot the whole cube}
@@ -369,19 +416,19 @@ begin
  {$undef DetailZ}
 end;
 
-procedure RenderCube_1(Node: TNodeCube_1);
+procedure TVRMLOpenGLRenderer.RenderCube_1(Node: TNodeCube_1);
 begin
   Box_Render(Node.FdWidth.Value, Node.FdHeight.Value, Node.FdDepth.Value);
 end;
 
-procedure RenderBox(Node: TNodeBox);
+procedure TVRMLOpenGLRenderer.RenderBox(Node: TNodeBox);
 begin
   Box_Render(Node.FdSize.Value[0], Node.FdSize.Value[1], Node.FdSize.Value[2]);
 end;
 
 { Cylinder ------------------------------------------------------------------ }
 
-procedure Cylinder_Render(
+procedure TVRMLOpenGLRenderer.Cylinder_Render(
   const Height, Radius: Single;
   const Bottom, Side, Top: boolean);
 var q: PGLUQuadric;
@@ -403,7 +450,7 @@ begin
 
   if Bottom then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in
+   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(2);
    RenderBottomDisk(q, Radius);
@@ -411,7 +458,7 @@ begin
 
   if Top then
   begin
-   if State.LastNodes.MaterialBinding.FdValue.Value in
+   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     Render_BindMaterial_1(1);
    glTranslatef(0, 0, Height);
@@ -422,7 +469,7 @@ begin
  finally gluDeleteQuadric(q) end;
 end;
 
-procedure RenderCylinder_1(Node: TNodeCylinder_1);
+procedure TVRMLOpenGLRenderer.RenderCylinder_1(Node: TNodeCylinder_1);
 begin
   Cylinder_Render(
     Node.FdHeight.Value,
@@ -432,7 +479,7 @@ begin
     Node.FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-procedure RenderCylinder_2(Node: TNodeCylinder_2);
+procedure TVRMLOpenGLRenderer.RenderCylinder_2(Node: TNodeCylinder_2);
 begin
   Cylinder_Render(
     Node.FdHeight.Value,
@@ -444,7 +491,7 @@ end;
 
 { PointSet --------------------------------------------------------------------- }
 
-procedure RenderPointSet_1(Node: TNodePointSet_1);
+procedure TVRMLOpenGLRenderer.RenderPointSet_1(Node: TNodePointSet_1);
 var i, startIndex, numPoints: integer;
 begin
   { TODO: handle various possible material binding here }
@@ -462,14 +509,14 @@ begin
       glColorv(Vector4f(Attributes.ColorModulated(
         DiffuseColor3Single(0)), Opacity(0)));
 
-  Node.CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
+  Node.CalculateRange(Render_State.LastNodes.Coordinate3, startIndex, numPoints);
   glBegin(GL_POINTS);
   for i := startIndex to startIndex+numPoints-1 do
-    DoGLVertex(State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
+    DoGLVertex(Render_State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
   glEnd;
 end;
 
-procedure RenderPointSet_2(Node: TNodePointSet_2);
+procedure TVRMLOpenGLRenderer.RenderPointSet_2(Node: TNodePointSet_2);
 
   procedure SetColor(const Color: TVector3Single);
   begin
@@ -531,7 +578,7 @@ end;
 
 { Sphere ---------------------------------------------------------------------- }
 
-procedure Sphere_Render(const Radius: Single);
+procedure TVRMLOpenGLRenderer.Sphere_Render(const Radius: Single);
 var q: PGLUQuadric;
 begin
  {whole sphere uses materail num 0 and his own normals and we apply
@@ -555,12 +602,12 @@ begin
  if Render_TexCoordsNeeded then glPopMatrix;
 end;
 
-procedure RenderSphere_1(Node: TNodeSphere_1);
+procedure TVRMLOpenGLRenderer.RenderSphere_1(Node: TNodeSphere_1);
 begin
   Sphere_Render(Node.FdRadius.Value);
 end;
 
-procedure RenderSphere_2(Node: TNodeSphere_2);
+procedure TVRMLOpenGLRenderer.RenderSphere_2(Node: TNodeSphere_2);
 begin
   Sphere_Render(Node.FdRadius.Value);
 end;
@@ -571,7 +618,7 @@ end;
 
 { TNodeElevationGrid --------------------------------------------------------- }
 
-procedure RenderElevationGrid(Node: TNodeElevationGrid);
+procedure TVRMLOpenGLRenderer.RenderElevationGrid(Node: TNodeElevationGrid);
 var
   TexCoordUseful: boolean;
 
@@ -670,21 +717,63 @@ end;
 
 { TNodeExtrusion --------------------------------------------------------- }
 
-procedure RenderExtrusion(Node: TNodeExtrusion);
+type
+  TExtrusionTriangleProcData = record
+    Node: TNodeExtrusion;
+  end;
+  PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
+
+procedure ExtrusionCapTriangle(const Tri: TVector3Longint;
+  Data: Pointer);
+begin
+  with PExtrusionTriangleProcData(Data)^.Node do
+  begin
+    glVertexv(CrossSection3D(Tri[0]));
+    glVertexv(CrossSection3D(Tri[1]));
+    glVertexv(CrossSection3D(Tri[2]));
+  end;
+end;
+
+procedure TVRMLOpenGLRenderer.RenderExtrusion(Node: TNodeExtrusion);
+
+  procedure DrawCap;
+
+    procedure DrawConvexCap;
+    var
+      I: Integer;
+    begin
+      glBegin(GL_TRIANGLE_FAN);
+        for I := 0 to Node.FdCrossSection.Count - 1 do
+          glVertexv(Node.CrossSection3D(I));
+      glEnd();
+    end;
+
+  var
+    TriangleProcData: TExtrusionTriangleProcData;
+  begin
+    TriangleProcData.Node := Node;
+
+    if Node.FdConvex.Value then
+      { We could call TriangulateConvexFace, but it's faster to do it directly,
+        using OpenGL triangle_fan }
+      DrawConvexCap else
+    begin
+      glBegin(GL_TRIANGLES);
+        TriangulateFace(nil, Node.FdCrossSection.Count,
+          @Node.CrossSection3D, @ExtrusionCapTriangle,
+          @TriangleProcData, 0);
+      glEnd();
+    end;
+  end;
+
 type
   T01 = 0..1;
 var
-  I, J: Integer;
-  E: TVRMLExtrusion;
-  LastY, LastZ: TVector3Single;
-
   { We have separate pointers and data for matrix, to speed up
     Transform[0] := Transform[1] operation. It's much faster to
     copy a pointer than 16 Single floats. }
   TransformData: array [T01] of TMatrix4Single;
   Transform: array [T01] of PMatrix4Single;
-
-  Cross: array [T01, T01] of TVector3Single;
 
   procedure MakeCrossPoint(out Point: TVector3Single; WhichTransform: T01;
     CrossIndex: Integer);
@@ -696,7 +785,15 @@ var
       Vector3Single(Point2d^[0], 0, Point2d^[1]));
   end;
 
+var
+  I, J: Integer;
+  E: TVRMLExtrusion;
+  LastY, LastZ: TVector3Single;
+  Cross: array [T01, T01] of TVector3Single;
+  TransformCap: TMatrix4Single;
 begin
+  if Node.FdCrossSection.Count = 0 then Exit;
+
   Transform[0] := @TransformData[0];
   Transform[1] := @TransformData[1];
 
@@ -717,13 +814,13 @@ begin
 
         glBegin(GL_QUAD_STRIP);
 
-        MakeCrossPoint(Cross[0, 0], 0, Node.FdCrossSection.Count - 1);
-        MakeCrossPoint(Cross[1, 0], 1, Node.FdCrossSection.Count - 1);
+        MakeCrossPoint(Cross[0, 0], 0, 0);
+        MakeCrossPoint(Cross[1, 0], 1, 0);
 
         glVertexv(Cross[0, 0]);
         glVertexv(Cross[1, 0]);
 
-        for J := 0 to Node.FdCrossSection.Count - 1 do
+        for J := 1 to Node.FdCrossSection.Count - 1 do
         begin
           MakeCrossPoint(Cross[0, 1], 0, J);
           MakeCrossPoint(Cross[1, 1], 1, J);
@@ -749,18 +846,52 @@ begin
         SwapValues(Transform[0], Transform[1]);
       end;
     end;
-  finally FreeAndNil(E) end;
 
-  if Node.FdBeginCap.Value then
-  begin
-    { TODO }
-  end;
-  if Node.FdEndCap.Value then
-  begin
-    { TODO }
-  end;
+    { TODO: the begin/end cap normal is inevitably wrong in some cases... }
+
+    if Node.FdBeginCap.Value or
+       Node.FdEndCap.Value then
+    begin
+      if Node.FdBeginCap.Value then
+      begin
+        { calculate TransformCap.
+          Note that LastY, LastZ are just ignored here (they are "out only"
+          for Spine = 0).  }
+        E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
+
+        glPushMatrix;
+          glMultMatrix(TransformCap);
+          glNormal3f(0, -1, 0);
+          DrawCap;
+        glPopMatrix;
+      end;
+
+      if Node.FdEndCap.Value then
+      begin
+        { calculate TriangleProcData.TransformEnd. }
+        if E.High > 0 then
+          { We already have it in Transform[0]^.
+            This is most fortunate, otherwise calculating last transform
+            is not easy (we have to iterate over whole spine for correct
+            LastY, LastZ values). }
+          TransformCap := Transform[0]^ else
+          { Then this can be calculated just like TransformBegin
+            (or copied from there, if available) }
+        if not Node.FdBeginCap.Value then
+          E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
+          { else calculations for Node.FdBeginCap.Value already set TransformCap }
+
+        glPushMatrix;
+          glMultMatrix(TransformCap);
+          glNormal3f(0, -1, 0);
+          DrawCap;
+        glPopMatrix;
+      end;
+    end;
+
+  finally FreeAndNil(E) end;
 
   glPopAttrib;
 end;
 
-{ eof ------------------------------------------------------------------------ }
+{$endif read_implementation}
