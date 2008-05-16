@@ -242,6 +242,7 @@ var
   begin
     { Same for Spine = 0 and High, as this is the same point actually. }
     Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[High - 1]);
+
     if not IsZeroVector(Y) then
       NormalizeTo1st(Y) else
       FindFirstNonCoincident(Y);
@@ -250,13 +251,11 @@ var
       VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]),
       VectorSubtract(SpinePoints.Items[High - 1], SpinePoints.Items[0]));
 
-    if IsZeroVector(Z) then
-    begin
-      if FindFirstNonColinear(Z) then
-        NormalizeTo1st(Z) else
-        Z := AllColinear(Y);
-    end else
-      NormalizeTo1st(Z);
+    if not IsZeroVector(Z) then
+      NormalizeTo1st(Z) else
+    if FindFirstNonColinear(Z) then
+      NormalizeTo1st(Z) else
+      Z := AllColinear(Y);
   end;
 
 var
@@ -307,6 +306,7 @@ begin
       for this routine. }
 
     Y := VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine - 1]);
+
     if not IsZeroVector(Y) then
       NormalizeTo1st(Y) else
       Y := LastY;
@@ -315,9 +315,9 @@ begin
       VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine]),
       VectorSubtract(SpinePoints.Items[Spine - 1], SpinePoints.Items[Spine]));
 
-    if IsZeroVector(Z) then
-      Z := LastZ else
-      NormalizeTo1st(Z);
+    if not IsZeroVector(Z) then
+      NormalizeTo1st(Z) else
+      Z := LastZ;
   end;
 
   if (Spine > 0) and (VectorDotProduct(LastZ, Z) < 0) then
