@@ -654,7 +654,13 @@ var
   I, J: Integer;
   E: TVRMLExtrusion;
   LastY, LastZ: TVector3Single;
-  Transform: array [T01] of TMatrix4Single;
+
+  { We have separate pointers and data for matrix, to speed up
+    Transform[0] := Transform[1] operation. It's much faster to
+    copy a pointer than 16 Single floats. }
+  TransformData: array [T01] of TMatrix4Single;
+  Transform: array [T01] of PMatrix4Single;
+
   Cross: array [T01, T01] of TVector3Single;
 
   procedure MakeCrossPoint(out Point: TVector3Single; WhichTransform: T01;
@@ -663,20 +669,23 @@ var
     Point2d: PVector2Single;
   begin
     Point2d := @FdCrossSection.Items.Items[CrossIndex];
-    Point := MultMatrixPoint(Transform[WhichTransform],
+    Point := MultMatrixPoint(Transform[WhichTransform]^,
       Vector3Single(Point2d^[0], 0, Point2d^[1]));
   end;
 
 begin
+  Transform[0] := @TransformData[0];
+  Transform[1] := @TransformData[1];
+
   E := TVRMLExtrusion.Create;
   try
     E.Node := Self;
     if E.High > 0 then
     begin
-      E.SpineTransformTo1st(0, LastY, LastZ, Transform[0]);
+      E.SpineTransformTo1st(0, LastY, LastZ, Transform[0]^);
       for I := 1 to E.High do
       begin
-        E.SpineTransformTo1st(I, LastY, LastZ, Transform[1]);
+        E.SpineTransformTo1st(I, LastY, LastZ, Transform[1]^);
 
         MakeCrossPoint(Cross[0, 0], 0, FdCrossSection.Count - 1);
         MakeCrossPoint(Cross[1, 0], 1, FdCrossSection.Count - 1);
@@ -694,9 +703,21 @@ begin
           Cross[1, 0] := Cross[1, 1];
         end;
 
-        { It would be faster to do this by exchanging pointers, TODO? }
-        Transform[0] := Transform[1];
+        { I don't care about preserving current Transform[0]^.
+          But current Transform[1]^ must become Transform[0]^ in the
+          next loop roll. So I exchange pointers. }
+        SwapValues(Transform[0], Transform[1]);
       end;
     end;
+
+    if FdBeginCap.Value then
+    begin
+      { TODO }
+    end;
+    if FdEndCap.Value then
+    begin
+      { TODO }
+    end;
+
   finally FreeAndNil(E) end;
 end;

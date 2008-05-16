@@ -370,5 +370,9 @@ begin
   try
     E.Node := Self;
     Result := (E.High + 1) * FdCrossSection.Count * 2;
+    if FdBeginCap.Value then
+      Result += FdCrossSection.Count - 2;
+    if FdEndCap.Value then
+      Result += FdCrossSection.Count - 2;
   finally FreeAndNil(E) end;
 end;

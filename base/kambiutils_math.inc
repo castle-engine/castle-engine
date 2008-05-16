@@ -33,6 +33,7 @@ procedure SwapValues(var a, b: Double); overload;
 procedure SwapValues(var a, b: Extended); overload;
 {$endif}
 procedure SwapValues(var a, b: char); overload;
+procedure SwapValues(var a, b: Pointer); overload;
 
 { Jesli nie jest mniejsza<=wieksza to zamien wartosciami dwie zmienne.
   Po wywolaniu tych proc. zawsze mniejsza<=wieksza }
@@ -404,6 +405,7 @@ procedure SwapValues(var a, b: Double);   type TT = Double;  {$I kambiutils_impl
 procedure SwapValues(var a, b: Extended); type TT = Extended;{$I kambiutils_implement_swapvalues.inc}
 {$endif}
 procedure SwapValues(var a, b: char);     type TT = char;    {$I kambiutils_implement_swapvalues.inc}
+procedure SwapValues(var a, b: Pointer);  type TT = Pointer; {$I kambiutils_implement_swapvalues.inc}
 
 procedure OrderUp(var mniejsza, wieksza: Int64);    {$I KambiUtils_implement_OrderUp.inc}
 procedure OrderUp(var mniejsza, wieksza: Integer);  {$I KambiUtils_implement_OrderUp.inc}
