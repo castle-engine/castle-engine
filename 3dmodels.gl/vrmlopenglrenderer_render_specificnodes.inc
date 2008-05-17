@@ -820,13 +820,25 @@ begin
       if not NormalPerVertex then
         glShadeModel(GL_FLAT);
 
-      if not Node.FdCcw.Value then
-        { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
-          promises never to do this. }
-        glFrontFace(GL_CW);
-
       if Node.FdSolid.Value then
+      begin
+        { About normals orientation, ccw and solid fields:
+
+          See Extrusion implementation for general notes.
+          In short, ccw only says which side is visible(if solid)/lighted
+          (if one-sided lighting). We always want to generate normals from
+          CCW, and avoid calling glFrontFace.
+
+          Spec says that xSpacing and zSpacing should always be > 0,
+          so always up (where height points to) is visible when ccw = TRUE
+          and solid = TRUE. So flipping ccw simply culls the other face. }
+
+        if Node.FdCcw.Value then
+          glCullFace(GL_BACK) else
+          glCullFace(GL_FRONT);
+
         glEnable(GL_CULL_FACE);
+      end;
 
       for I := 1 to XDimension - 1 do
       begin
