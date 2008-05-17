@@ -1328,6 +1328,10 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
       Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
       Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
 
+      { This is just to shut up FPC 2.2.0 warnings about 
+        TriangleTexCoord not initialized. }
+      TriangleTexCoord[0][0] := 0.0;
+
       HasTangentVectors :=
         { calculate TriangleTexCoord }
         GetTextureCoord(StartIndex    , TriangleTexCoord[0]) and

@@ -620,6 +620,156 @@ end;
 
 procedure TVRMLOpenGLRenderer.RenderElevationGrid(Node: TNodeElevationGrid);
 var
+  { Just shortcuts for appropriate Node fields. }
+  XDimension, ZDimension: Integer;
+
+  { Return normals, calculated or not, for given node.
+
+    Calculated normals are ordered just like VRML / X3D spec says
+    for normals recorded in VRML / X3D file, so you just don't need
+    to care about it. }
+  procedure CalculateNormals(
+    out Normal: TDynVector3SingleArray;
+    out NormalPerVertex: boolean;
+    out NormalGenerated: boolean);
+
+    procedure GenerateNormals;
+    var
+      FaceNormals: TDynVector3SingleArray;
+      VertexNormals: array [0..3] of TVector3Single;
+      VertexNormalsSum: TVector3Single;
+      VertexNormalsCount: Integer;
+
+      procedure AddVertexNormal(const I, J: Integer);
+      begin
+        if Between(I, 0, XDimension - 2) and
+           Between(J, 0, ZDimension - 2) then
+        begin
+          VertexNormals[VertexNormalsCount] :=
+            FaceNormals.Items[I  + J * (XDimension - 1)];
+          VectorAddTo1st(VertexNormalsSum, VertexNormals[VertexNormalsCount]);
+          Inc(VertexNormalsCount);
+        end;
+      end;
+
+    var
+      I, J: Integer;
+      Last1, Last2, Next1, Next2: TVector3Single;
+    begin
+      NormalGenerated := true;
+
+      { Always start by generating flat (per-quad) normals.
+        Later, if creaseAngle > 0, we will use this flat normals to make
+        smooth ones. }
+      NormalPerVertex := false;
+      Normal := TDynVector3SingleArray.Create((XDimension - 1) *
+                                              (ZDimension - 1));
+
+      for I := 1 to XDimension - 1 do
+      begin
+        Last1[0] := Node.FdXSpacing.Value * (I - 1);
+        Last1[1] := Node.FdHeight.Items.Items[I - 1];
+        Last1[2] := 0;
+        Last2[0] := Node.FdXSpacing.Value * I;
+        Last2[1] := Node.FdHeight.Items.Items[I];
+        Last2[2] := 0;
+        { Next X-coordinate will be const for the life of "for J := " below. }
+        Next1[0] := Last1[0];
+        Next2[0] := Last2[0];
+
+        for J := 1 to ZDimension - 1 do
+        begin
+          Next1[1] := Node.FdHeight.Items.Items[
+            I - 1 + J * XDimension];
+          Next1[2] := Node.FdZSpacing.Value * J;
+          Next2[1] := Node.FdHeight.Items.Items[
+            I     + J * XDimension];
+          Next2[2] := Next1[2];
+
+          { As a normal we take avarage normal of two triangles of rendered
+            quad. We have to normalize two sum components
+            (use TriangleNormal, not TriangleDir), otherwise taking
+            the average woudn't be good.
+
+            Also, we normalize resulting VectorAdd, in case we'll want
+            to generate smooth normals (for OpenGL flat rendering,
+            this is actually not needed, as we have GL_NORMALIZE
+            enabled anyway). }
+          Normal.Items[I - 1 + (J - 1) * (XDimension - 1)] :=
+            Normalized(VectorAdd(
+              TriangleNormal(Last2, Last1, Next1),
+              TriangleNormal(Last2, Next1, Next2)));
+
+          Last1 := Next1;
+          Last2 := Next2;
+        end;
+      end;
+
+      if Attributes.SmoothShading and
+         (Node.FdCreaseAngle.Value <> 0) then
+      begin
+        FaceNormals := Normal;
+        Normal := nil;
+        try
+          NormalPerVertex := true;
+          Normal := TDynVector3SingleArray.Create(XDimension * ZDimension);
+
+          for I := 0 to XDimension - 1 do
+          begin
+            for J := 0 to ZDimension - 1 do
+            begin
+              VertexNormalsCount := 0;
+              VertexNormalsSum := ZeroVector3Single;
+              AddVertexNormal(I - 1, J - 1);
+              AddVertexNormal(I    , J - 1);
+              AddVertexNormal(I - 1, J    );
+              AddVertexNormal(I    , J    );
+
+              { TODO: For now, just ignore creaseAngle (we know it's > 0)
+                and smooth all. }
+              if VertexNormalsCount = 0 then
+              begin
+                { special case: no neighbor face for vertex }
+                Assert(XDimension = 1);
+                Assert(ZDimension = 1);
+                Normal.Items[I + J * XDimension] := Vector3Single(0, 1, 0);
+              end else
+              begin
+                Normal.Items[I + J * XDimension] :=
+                  VectorScale(VertexNormalsSum, 1 / VertexNormalsCount);
+              end;
+            end;
+          end;
+        finally FreeAndNil(FaceNormals); end;
+      end;
+    end;
+
+  const
+    SNotEnoughNormals = 'Elevation grid specifies normal node, but with not enough items. Falling back to auto-generation of normals';
+  begin
+    if (Node.FdNormal.Value <> nil) and
+       (Node.FdNormal.Value is TNodeNormal) then
+    begin
+      Normal := TNodeNormal(Node.FdNormal.Value).FdVector.Items;
+      NormalPerVertex := Node.FdNormalPerVertex.Value;
+      NormalGenerated := false;
+
+      { check are enough items available }
+      if (NormalPerVertex and
+           (Normal.Count < XDimension *
+                           ZDimension)) or
+         ((not NormalPerVertex) and
+           (Normal.Count < (XDimension - 1) *
+                           (ZDimension - 1))) then
+      begin
+        VRMLNonFatalError(SNotEnoughNormals);
+        GenerateNormals;
+      end;
+    end else
+      GenerateNormals;
+  end;
+
+var
   TexCoordUseful: boolean;
 
   procedure TextureCoord(const I, J: Integer);
@@ -629,31 +779,46 @@ var
       if TexCoordUseful then
         glTexCoordv(
           TNodeTextureCoordinate(Node.FdTexCoord.Value).FdPoint.
-            Items.Items[I + J * Node.FdXDimension.Value]) else
-        glTexCoord2f(I / (Node.FdXDimension.Value - 1),
-                     J / (Node.FdZDimension.Value - 1));
+            Items.Items[I + J * XDimension]) else
+        glTexCoord2f(I / (XDimension - 1),
+                     J / (ZDimension - 1));
     end;
+  end;
+
+var
+  Normal: TDynVector3SingleArray;
+  NormalPerVertex: boolean;
+  NormalGenerated: boolean;
+
+  procedure VertexNormal(const I, J: Integer);
+  begin
+    if NormalPerVertex then
+      glNormalv(Normal.Items[I + J * XDimension]);
   end;
 
 var
   I, J: Integer;
   Last1, Last2, Next1, Next2: TVector3Single;
 begin
+  XDimension := Node.FdXDimension.Value;
+  ZDimension := Node.FdZDimension.Value;
+
   if Node.IsNotEmpty then
   begin
+    CalculateNormals(Normal, NormalPerVertex, NormalGenerated);
+
     TexCoordUseful :=
       (Node.FdTexCoord.Value <> nil) and
       (Node.FdTexCoord.Value is TNodeTextureCoordinate) and
       (TNodeTextureCoordinate(Node.FdTexCoord.Value).FdPoint.Count >=
-        Node.FdXDimension.Value * Node.FdZDimension.Value);
+        XDimension * ZDimension);
 
     glPushAttrib(
       GL_LIGHTING_BIT { for shade model } or
       GL_POLYGON_BIT { for glFrontFace and GL_CULL_FACE });
 
-      { TODO: for now we always generate normals, and always flat
-        (1 normal per face) }
-      glShadeModel(GL_FLAT);
+      if not NormalPerVertex then
+        glShadeModel(GL_FLAT);
 
       if not Node.FdCcw.Value then
         { TODO: ups, I shouldn't do here glFrontFace, VRMLOpenGLRenderer
@@ -663,7 +828,7 @@ begin
       if Node.FdSolid.Value then
         glEnable(GL_CULL_FACE);
 
-      for I := 1 to Node.FdXDimension.Value - 1 do
+      for I := 1 to XDimension - 1 do
       begin
         glBegin(GL_QUAD_STRIP);
           Last1[0] := Node.FdXSpacing.Value * (I - 1);
@@ -678,32 +843,33 @@ begin
 
           { Vertices are ordered such that face is CCW from up (i.e.
             looking from positive Y axis). }
+
           TextureCoord(I, 0);
+          VertexNormal(I, 0);
           DoGLVertex(Last2);
+
           TextureCoord(I - 1, 0);
+          VertexNormal(I - 1, 0);
           DoGLVertex(Last1);
 
-          for J := 1 to Node.FdZDimension.Value - 1 do
+          for J := 1 to ZDimension - 1 do
           begin
             Next1[1] := Node.FdHeight.Items.Items[
-              I - 1 + J * Node.FdXDimension.Value];
+              I - 1 + J * XDimension];
             Next1[2] := Node.FdZSpacing.Value * J;
             Next2[1] := Node.FdHeight.Items.Items[
-              I     + J * Node.FdXDimension.Value];
+              I     + J * XDimension];
             Next2[2] := Next1[2];
 
-            { As a normal we take avarage normal of two triangles of rendered
-              quad. We do not normalize VectorAdd as we have GL_NORMALIZE
-              enabled anyway. But we have to normalize two sum components
-              (use TriangleNormal, not TriangleDir), otherwise taking
-              the average woudn't be good. }
-            glNormalv(VectorAdd(
-              TriangleNormal(Last2, Last1, Next1),
-              TriangleNormal(Last2, Next1, Next2)));
+            if not NormalPerVertex then
+              glNormalv(Normal.Items[I - 1 + (J - 1) * (XDimension - 1)]);
 
             TextureCoord(I, J);
+            VertexNormal(I, J);
             DoGLVertex(Next2);
+
             TextureCoord(I - 1, J);
+            VertexNormal(I - 1, J);
             DoGLVertex(Next1);
 
             Last1 := Next1;
@@ -712,6 +878,9 @@ begin
         glEnd;
       end;
     glPopAttrib;
+
+    if NormalGenerated then
+      FreeAndNil(Normal);
   end;
 end;
 
@@ -906,7 +1075,7 @@ begin
       for ccw = FALSE, visibility is reverted).
 
       Note that this doesn't precisely say whether inside or outside
-      is visible: direction of spine (increases or decreases Y?)
+      is visible: direction of crossSection (ordered cw or ccw)
       determines whether the above
       (e.g. for solid = TRUE and ccw = TRUE) will result in culling
       outside or inside. And this is good, I mean the VRML author
@@ -948,6 +1117,9 @@ begin
 
   E := TVRMLExtrusion.Create;
   try
+    { This is just to shut up FPC 2.2.0 warnings about Cross not initialized. }
+    Cross[0, 0][0] := 0.0;
+
     E.Node := Node;
     if E.High > 0 then
     begin
