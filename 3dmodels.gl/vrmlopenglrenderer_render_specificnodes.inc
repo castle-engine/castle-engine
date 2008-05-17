@@ -904,7 +904,6 @@ type
     Render_TexCoordsNeeded: boolean;
     TexCapsTranslation: Single;
     TexCapsScale: Single;
-    TexCapsZScale: Single;
   end;
   PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
 
@@ -922,7 +921,7 @@ var
           (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
           * TexCapsScale,
           (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
-          * TexCapsScale * TexCapsZScale);
+          * TexCapsScale);
       end;
   end;
 
@@ -940,7 +939,7 @@ end;
 
 procedure TVRMLOpenGLRenderer.RenderExtrusion(Node: TNodeExtrusion);
 var
-  TexCapsTranslation, TexCapsScale, TexCapsZScale: Single;
+  TexCapsTranslation, TexCapsScale: Single;
 
   procedure DrawCap;
 
@@ -952,7 +951,7 @@ var
           (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
           * TexCapsScale,
           (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
-          * TexCapsScale * TexCapsZScale);
+          * TexCapsScale);
       end;
     end;
 
@@ -982,7 +981,6 @@ var
       TriangleProcData.Node := Node;
       TriangleProcData.TexCapsTranslation := TexCapsTranslation;
       TriangleProcData.TexCapsScale := TexCapsScale;
-      TriangleProcData.TexCapsZScale := TexCapsZScale;
       TriangleProcData.Render_TexCoordsNeeded := Render_TexCoordsNeeded;
 
       glBegin(GL_TRIANGLES);
@@ -1222,8 +1220,6 @@ begin
           for Spine = 0). }
         E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
 
-        TexCapsZScale := 1;
-
         glPushMatrix;
           glMultMatrix(TransformCap);
           if Node.FdCcw.Value then
@@ -1251,13 +1247,24 @@ begin
           E.SpineTransformTo1st(0, LastY, LastZ, TransformCap);
           { else calculations for Node.FdBeginCap.Value already set TransformCap }
 
-        { TexCapsZScale trick is not specified by X3D spec,
-          also it's not disallowed...
-          I don't really know should I do this. Only the image in
-          "Annotated VRML 97 reference" about Extrusion suggests this,
-          and common sense (without this feature, image texture is always
-          flipped on one of the caps). }
-        TexCapsZScale := -1;
+        { I used to have here
+            TexCapsZScale := -1;
+          (see diff between revision 2752 and 2753 for details).
+          This way texture was correctly aligned on both begin and end cap
+          sides. VRML / X3D spec doesn't say whether this is needed,
+          saying only that Z axis aligns with texture T axis. Interpreting
+          it naturally, this suggests that TexCapsZScale should not be done.
+
+          For some time TexCapsZScale trick was present because the image in
+          "Annotated VRML 97 reference" about Extrusion suggests this.
+
+          On the other hand, NIST VRML test (Appearance.ImageTexture test 12,
+          "Test of default Extrusion mapping for JPG files." shows that
+          top cap has reverted texture.
+
+          For now, TexCapsZScale is not done, as this seems more natural
+          with spec (nothing suggests there to do such trick) and passes
+          NIST test. }
 
         glPushMatrix;
           glMultMatrix(TransformCap);
