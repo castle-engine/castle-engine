@@ -897,7 +897,7 @@ begin
   Fields.Add(TMFLong.CreateMFLong('coordIndex', [0], true));
   Fields.Add(TMFLong.Create('materialIndex', [-1]));
   Fields.Add(TMFLong.Create('normalIndex', [-1]));
-  Fields.Add(TMFLong.CreateMFLong('textureCoordIndex', , true));
+  Fields.Add(TMFLong.CreateMFLong('textureCoordIndex', [-1], true));
 end;
 
 class function TNodeIndexedFaceSet_1.ClassNodeTypeName: string;
