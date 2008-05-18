@@ -205,7 +205,7 @@ var
   function AllColinear(const Y: TVector3Single): TVector3Single;
   var
     AngleRad: Single;
-    Rotation: TVector3Single;
+    Rotation, ForPositiveAngleRad, ForNegativeAngleRad: TVector3Single;
   begin
     { Spec: "If the entire spine is collinear,
       the SCP is computed by finding the rotation of a
@@ -224,15 +224,27 @@ var
       Result := UnitVector3Single[2];
     end else
     begin
-      { Now is the rotation by AngleRad or -AngleRad?
-        Lame way of checking this below. }
-      if not VectorsEqual(
-        RotatePointAroundAxisRad(AngleRad, UnitVector3Single[1], Rotation), Y) then
-      begin
+      { Is the rotation by AngleRad or -AngleRad?
+        Lame way of checking this below, we just check which result
+        produces back Y when rotated.
+
+        Note: the first implementation was like
+
+          if not VectorsEqual(ForPositiveAngleRad, Y) then
+          begin
+            AngleRad := -AngleRad;
+            Assert(VectorsEqual(ForNegativeAngleRad, Y));
+          end;
+
+        but this is obviously unsafe because of floating point errors,
+        there was always a chance that both VectorsEqual fail.
+        Fixed below to just choose the best one. }
+      ForPositiveAngleRad := RotatePointAroundAxisRad( AngleRad, UnitVector3Single[1], Rotation);
+      ForNegativeAngleRad := RotatePointAroundAxisRad(-AngleRad, UnitVector3Single[1], Rotation);
+
+      if PointsDistanceSqr(ForPositiveAngleRad, Y) >
+         PointsDistanceSqr(ForNegativeAngleRad, Y) then
         AngleRad := -AngleRad;
-        Assert(VectorsEqual(
-          RotatePointAroundAxisRad(AngleRad, UnitVector3Single[1], Rotation), Y));
-      end;
 
       Result := RotatePointAroundAxisRad(AngleRad, UnitVector3Single[2], Rotation);
     end;
