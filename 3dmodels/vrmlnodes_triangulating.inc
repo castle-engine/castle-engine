@@ -725,6 +725,9 @@ begin
 
   E := TVRMLExtrusion.Create;
   try
+    { This is just to silence FPC 2.2.0 warnings about Cross not initialized. }
+    Cross[0, 0][0] := 0.0;
+
     E.Node := Self;
     if E.High > 0 then
     begin
