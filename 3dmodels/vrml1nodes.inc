@@ -834,20 +834,17 @@ begin
 end;
 
 constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..0]of string = ('');
-      A2: array[0..2]of string = ('LEFT', 'CENTER', 'RIGHT');
-      A3: array[0..0]of Single = (0);
 begin
- inherited;
- Fields.Add(TMFString.Create('string', A1));
- Fields.Add(TSFFloat.Create('spacing', 1));
- Fields.Add(TSFEnum.Create('justification', A2, JUSTIFICATION_LEFT));
- Fields.Add(TMFFloat.Create('width', A3));
+  inherited;
+  Fields.Add(TMFString.Create('string', ['']));
+  Fields.Add(TSFFloat.Create('spacing', 1));
+  Fields.Add(TSFEnum.Create('justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT));
+  Fields.Add(TMFFloat.Create('width', [0]));
 end;
 
 class function TNodeAsciiText_1.ClassNodeTypeName: string;
 begin
- result := 'AsciiText';
+  result := 'AsciiText';
 end;
 
 function TNodeAsciiText_1.Justify: TVRMLFontJustify;
@@ -856,141 +853,135 @@ begin
 end;
 
 constructor TNodeCone_1.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..1]of string = ('SIDES', 'BOTTOM');
 begin
- inherited;
- Fields.Add(TSFBitMask.Create('parts', A1, 'NONE', 'ALL', [true, true]));
- Fields.Add(TSFFloat.Create('bottomRadius', 1, true));
- Fields.Add(TSFFloat.Create('height', 2, true));
+  inherited;
+  Fields.Add(TSFBitMask.Create('parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]));
+  Fields.Add(TSFFloat.Create('bottomRadius', 1, true));
+  Fields.Add(TSFFloat.Create('height', 2, true));
 end;
 
 class function TNodeCone_1.ClassNodeTypeName: string;
 begin
- result := 'Cone';
+  result := 'Cone';
 end;
 
 constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFFloat.Create('width', 2, true));
- Fields.Add(TSFFloat.Create('height', 2, true));
- Fields.Add(TSFFloat.Create('depth', 2, true));
+  inherited;
+  Fields.Add(TSFFloat.Create('width', 2, true));
+  Fields.Add(TSFFloat.Create('height', 2, true));
+  Fields.Add(TSFFloat.Create('depth', 2, true));
 end;
 
 class function TNodeCube_1.ClassNodeTypeName: string;
 begin
- result := 'Cube';
+  result := 'Cube';
 end;
 
 constructor TNodeCylinder_1.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..2]of string = ('SIDES', 'TOP', 'BOTTOM');
 begin
- inherited;
- Fields.Add(TSFBitMask.Create('parts', A1, 'NONE', 'ALL', [true, true, true]));
- Fields.Add(TSFFloat.Create('radius', 1, true));
- Fields.Add(TSFFloat.Create('height', 2, true));
+  inherited;
+  Fields.Add(TSFBitMask.Create('parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]));
+  Fields.Add(TSFFloat.Create('radius', 1, true));
+  Fields.Add(TSFFloat.Create('height', 2, true));
 end;
 
 class function TNodeCylinder_1.ClassNodeTypeName: string;
 begin
- result := 'Cylinder';
+  result := 'Cylinder';
 end;
 
 constructor TNodeGeneralIndexed_1.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..0]of Longint = (0);
-      A2: array[0..0]of Longint = (-1);
 begin
- inherited;
- Fields.Add(TMFLong.CreateMFLong('coordIndex', A1, true));
- Fields.Add(TMFLong.Create('materialIndex', A2));
- Fields.Add(TMFLong.Create('normalIndex', A2));
- Fields.Add(TMFLong.CreateMFLong('textureCoordIndex', A2, true));
+  inherited;
+  Fields.Add(TMFLong.CreateMFLong('coordIndex', [0], true));
+  Fields.Add(TMFLong.Create('materialIndex', [-1]));
+  Fields.Add(TMFLong.Create('normalIndex', [-1]));
+  Fields.Add(TMFLong.CreateMFLong('textureCoordIndex', , true));
 end;
 
 class function TNodeIndexedFaceSet_1.ClassNodeTypeName: string;
 begin
- result := 'IndexedFaceSet';
+  result := 'IndexedFaceSet';
 end;
 
 class function TNodeIndexedLineSet_1.ClassNodeTypeName: string;
 begin
- result := 'IndexedLineSet';
+  result := 'IndexedLineSet';
 end;
 
 constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFLong.Create('startIndex', 0));
- Fields.Add(TSFLong.Create('numPoints', -1));
+  inherited;
+  Fields.Add(TSFLong.Create('startIndex', 0));
+  Fields.Add(TSFLong.Create('numPoints', -1));
 end;
 
 class function TNodePointSet_1.ClassNodeTypeName: string;
 begin
- result := 'PointSet';
+  result := 'PointSet';
 end;
 
 procedure TNodePointSet_1.CalculateRange(LastCoordinate3: TNodeCoordinate3;
   out startIndex, numPoints: integer);
 begin
- startIndex := FdStartIndex.Value;
- numPoints := FdNumPoints.Value;
- if startIndex >= LastCoordinate3.FdPoint.Count then
- begin
-  startIndex := 0;
-  numPoints := 0;
- end else
- begin
-  if startIndex < 0 then
+  startIndex := FdStartIndex.Value;
+  numPoints := FdNumPoints.Value;
+  if startIndex >= LastCoordinate3.FdPoint.Count then
   begin
-   if numPoints >= 0 then numPoints := numPoints+startIndex;
-   startIndex := 0;
-  end;
-
-  {startIndex juz jest na pewno dobry, teraz ew. popraw numPoints}
-  if numPoints >= 0 then
-  begin
-   if startIndex+numPoints > LastCoordinate3.FdPoint.Count then
-    numPoints := LastCoordinate3.FdPoint.Count-startIndex;
+    startIndex := 0;
+    numPoints := 0;
   end else
-   numPoints := LastCoordinate3.FdPoint.Count-startIndex;
- end;
+  begin
+    if startIndex < 0 then
+    begin
+      if numPoints >= 0 then numPoints := numPoints + startIndex;
+      startIndex := 0;
+    end;
+
+    {startIndex juz jest na pewno dobry, teraz ew. popraw numPoints}
+    if numPoints >= 0 then
+    begin
+      if startIndex+numPoints > LastCoordinate3.FdPoint.Count then
+        numPoints := LastCoordinate3.FdPoint.Count - startIndex;
+    end else
+      numPoints := LastCoordinate3.FdPoint.Count - startIndex;
+  end;
 end;
 
 constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFFloat.Create('radius', 1, true));
+  inherited;
+  Fields.Add(TSFFloat.Create('radius', 1, true));
 end;
 
 class function TNodeSphere_1.ClassNodeTypeName: string;
 begin
- result := 'Sphere';
+  result := 'Sphere';
 end;
 
 constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TMFVec3f.Create('point', [Vector3Single(0, 0, 0)]));
+  inherited;
+  Fields.Add(TMFVec3f.Create('point', [Vector3Single(0, 0, 0)]));
 end;
 
 class function TNodeCoordinate3.ClassNodeTypeName: string;
 begin
- result := 'Coordinate3';
+  result := 'Coordinate3';
 end;
 
 constructor TNodeFontStyle_1.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..2]of string = ('SERIF', 'SANS', 'TYPEWRITER');
-      A2: array[0..1]of string = ('BOLD', 'ITALIC');
 begin
- inherited;
- Fields.Add(TSFFloat.Create('size', 10, true));
- Fields.Add(TSFEnum.Create('family', A1, FSFAMILY_SERIF));
- Fields.Add(TSFBitMask.Create('style', A2, 'NONE', '', [false, false]));
+  inherited;
+  Fields.Add(TSFFloat.Create('size', 10, true));
+  Fields.Add(TSFEnum.Create('family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF));
+  Fields.Add(TSFBitMask.Create('style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]));
 end;
 
 class function TNodeFontStyle_1.ClassNodeTypeName: string;
 begin
- result := 'FontStyle';
+  result := 'FontStyle';
 end;
 
 const
@@ -1028,27 +1019,27 @@ end;
 
 constructor TNodeInfo.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFString.Create('string', '<Undefined info>'));
+  inherited;
+  Fields.Add(TSFString.Create('string', '<Undefined info>'));
 end;
 
 class function TNodeInfo.ClassNodeTypeName: string;
 begin
- result := 'Info';
+  result := 'Info';
 end;
 
 constructor TNodeLOD_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TMFFloat.Create('range',[]));
- Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
- fParsingAllowedChildren := true;
- fAllowedChildren := true;
+  inherited;
+  Fields.Add(TMFFloat.Create('range',[]));
+  Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
+  fParsingAllowedChildren := true;
+  fAllowedChildren := true;
 end;
 
 class function TNodeLOD_1.ClassNodeTypeName: string;
 begin
- result := 'LOD';
+  result := 'LOD';
 end;
 
 procedure TNodeLOD_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -1074,54 +1065,55 @@ end;
 
 constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TMFColor.Create('ambientColor', [DefaultMaterial_1AmbientColor]));
- Fields.Add(TMFColor.Create('diffuseColor', [DefaultMaterialDiffuseColor]));
- Fields.Add(TMFColor.Create('specularColor', [DefaultMaterialSpecularColor]));
- Fields.Add(TMFColor.Create('emissiveColor', [DefaultMaterialEmissiveColor]));
- Fields.Add(TMFFloat.Create('shininess', [DefaultMaterialShininess]));
- Fields.Add(TMFFloat.Create('transparency', [DefaultMaterialTransparency]));
+  inherited;
+  Fields.Add(TMFColor.Create('ambientColor', [DefaultMaterial_1AmbientColor]));
+  Fields.Add(TMFColor.Create('diffuseColor', [DefaultMaterialDiffuseColor]));
+  Fields.Add(TMFColor.Create('specularColor', [DefaultMaterialSpecularColor]));
+  Fields.Add(TMFColor.Create('emissiveColor', [DefaultMaterialEmissiveColor]));
+  Fields.Add(TMFFloat.Create('shininess', [DefaultMaterialShininess]));
+  Fields.Add(TMFFloat.Create('transparency', [DefaultMaterialTransparency]));
 
- Fields.Add(TMFFloat.Create('mirror', [DefaultMaterialMirror]));
- Fields.Add(TMFColor.Create('reflSpecular', []));
- Fields.Add(TMFColor.Create('reflDiffuse', []));
- Fields.Add(TMFColor.Create('transSpecular', []));
- Fields.Add(TMFColor.Create('transDiffuse', []));
- Fields.Add(TMFFloat.Create('reflSpecularExp', [DefaultMaterialReflSpecularExp]));
- Fields.Add(TMFFloat.Create('transSpecularExp', [DefaultMaterialTransSpecularExp]));
+  Fields.Add(TMFFloat.Create('mirror', [DefaultMaterialMirror]));
+  Fields.Add(TMFColor.Create('reflSpecular', []));
+  Fields.Add(TMFColor.Create('reflDiffuse', []));
+  Fields.Add(TMFColor.Create('transSpecular', []));
+  Fields.Add(TMFColor.Create('transDiffuse', []));
+  Fields.Add(TMFFloat.Create('reflSpecularExp', [DefaultMaterialReflSpecularExp]));
+  Fields.Add(TMFFloat.Create('transSpecularExp', [DefaultMaterialTransSpecularExp]));
 
- Fields.Add(TSFBool.Create('fogImmune', false));
+  Fields.Add(TSFBool.Create('fogImmune', false));
 end;
 
 class function TNodeMaterial_1.ClassNodeTypeName: string;
 begin
- result := 'Material';
+  result := 'Material';
 end;
 
-{functions below return MatNum Material property. If there doesn't exist
-   enouch properties defined, thay return the last defined. This is useful :
-   for example you can give one ambient, specular, emissive color and
-   define multiple diffuseColors and then you can use multiple materials
-   without defining multiple values for each field.
- VRML specification doesn't state clearly what to do when thare are not enouch
-   material properties - there were some idea of "cycling" mechanism but was
-   later deprecated. So I use the mechanism below - returning to the last defined
-   property number. }
+{ Functions below return MatNum Material property. If there doesn't exist
+  enouch properties defined, thay return the last defined. This is useful :
+  for example you can give one ambient, specular, emissive color and
+  define multiple diffuseColors and then you can use multiple materials
+  without defining multiple values for each field.
+
+  VRML specification doesn't state clearly what to do when thare are not enouch
+  material properties - there was an idea of "cycling" mechanism but was
+  later deprecated. So I use the mechanism below - returning to the last defined
+  property number. }
 
 {$define MATERIAL_FUNCTION_3_SINGLE:=
 function TNodeMaterial_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3Single;
 begin
- if MATERIAL_FUNCTION_FIELD.Count = 0 then
-  result := MATERIAL_FUNCTION_DEFAULT else
-  result := MATERIAL_FUNCTION_FIELD.Items.Items[
-    min(MatNum, MATERIAL_FUNCTION_FIELD.Count-1)];
+  if MATERIAL_FUNCTION_FIELD.Count = 0 then
+    result := MATERIAL_FUNCTION_DEFAULT else
+    result := MATERIAL_FUNCTION_FIELD.Items.Items[
+      min(MatNum, MATERIAL_FUNCTION_FIELD.Count - 1)];
 end;
 
 function TNodeMaterial_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4Single;
 var result3: TVector3Single absolute result;
 begin
- result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
- result[3] := Opacity(MatNum);
+  result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
+  result[3] := Opacity(MatNum);
 end;
 }
 
@@ -1191,7 +1183,7 @@ end;}
 
 function TNodeMaterial_1.Opacity(MatNum: integer): Single;
 begin
- result := 1-Transparency(MatNum);
+  result := 1 - Transparency(MatNum);
 end;
 
 function TNodeMaterial_1.Shininess(MatNum: integer): Single;
@@ -1205,28 +1197,27 @@ function TNodeMaterial_1.ShininessExp(MatNum: integer): Single;
 begin
   Result := Shininess(MatNum);
 
- {zgodnie ze specyfikacja VRML'a zakres 0..1 shininess VRML'a mapuje sie
-  jednostajnie na caly zakres 0..128 OpenGL'a. Super. Robimy clamp
-  na wszelki zas, na wypadek gdybysmy na skutek jakichs bledow nieco wyszli
-  za zakres albo gdyby ktos zapisale zla wartosc w pliku (np. ujemna).
+  { According to VRML specification, shininess must be within 0..1 range,
+    and it maps uniformly to 0..128 range for OpenGL's exponent.
+    That's fine. We do clamp to 0..128 if for whatever small floating
+    point errors we'll get outside the range allowed by OpenGL,
+    and to secure against incorrect negative shininess values in VRML.
 
-  A jezeli odczytana wartosc jest > 2 to zakladamy ze jakis
-  kretyn zapisal nieznormalizowane wartosci Shininess w pliku
-  (tacy sie zdarzaja, patrz helix.wrl).
-  Pisze kretyn a mysle duzo gorzej bo jestem naprawde wkurzony - coraz
-  wiecej musze w kodzie wprowadzac poprawek zeby odczytywac niepoprawnie
-  zapisane VRMLe. A to rotacja wokol wektora (0, 0, 0) (program "Pioneer")
-  a to nieznormalizowany Shininess... }
- if result > 2 then
-  result := Clamped(result,         0.0, 128.0) else
-  result := Clamped(result * 128.0, 0.0, 128.0);
+    To encompass various incorrect VRML files we assume that
+    shininess > 2 means that someone didn't grok the VRML spec,
+    and stored actual exponent in VRML file.
+    This unfortunately happens, see e.g. helix.wrl test. }
+
+  if result > 2 then
+    result := Clamped(result,         0.0, 128.0) else
+    result := Clamped(result * 128.0, 0.0, 128.0);
 end;
 
 function TNodeMaterial_1.OnlyEmissiveMaterial: boolean;
 begin
- result:=(FdAmbientColor.Count = 0) and
-         (FdDiffuseColor.Count = 0) and
-         (FdSpecularColor.Count = 0);
+  result:=(FdAmbientColor.Count = 0) and
+          (FdDiffuseColor.Count = 0) and
+          (FdSpecularColor.Count = 0);
 end;
 
 { cztery funkcje ktore w razie braku wartosci zapisanych w polu (FdXxx.Count = 0)
@@ -1272,13 +1263,13 @@ end;}
 function TNodeMaterial_1.IsAllMaterialsTransparent: boolean;
 var i: Integer;
 begin
- if FdTransparency.Items.Length = 0 then
-  result := DefaultMaterialTransparency > SingleEqualityEpsilon else
- begin
-  for i := 0 to FdTransparency.Items.Length-1 do
-   if FdTransparency.Items.Items[i] <= SingleEqualityEpsilon then Exit(false);
-  result := true;
- end;
+  if FdTransparency.Items.Length = 0 then
+    result := DefaultMaterialTransparency > SingleEqualityEpsilon else
+  begin
+    for i := 0 to FdTransparency.Items.Length-1 do
+      if FdTransparency.Items.Items[i] <= SingleEqualityEpsilon then Exit(false);
+    result := true;
+  end;
 end;
 
 class function TNodeMaterial_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -1287,50 +1278,47 @@ begin
 end;
 
 constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..7]of string = ('DEFAULT', 'OVERALL',
-  'PER_PART', 'PER_PART_INDEXED',
-  'PER_FACE', 'PER_FACE_INDEXED',
-  'PER_VERTEX', 'PER_VERTEX_INDEXED');
 begin
- inherited;
- Fields.Add(TSFEnum.Create('value', A1, 1));
+  inherited;
+  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL',
+    'PER_PART', 'PER_PART_INDEXED',
+    'PER_FACE', 'PER_FACE_INDEXED',
+    'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1));
 end;
 
 class function TNodeMaterialBinding.ClassNodeTypeName: string;
 begin
- result := 'MaterialBinding';
+  result := 'MaterialBinding';
 end;
 
 constructor TNodeNormalBinding.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..7]of string = ('DEFAULT', 'OVERALL',
-  'PER_PART', 'PER_PART_INDEXED',
-  'PER_FACE', 'PER_FACE_INDEXED',
-  'PER_VERTEX', 'PER_VERTEX_INDEXED');
 begin
- inherited;
- Fields.Add(TSFEnum.Create('value', A1, 0));
+  inherited;
+  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL',
+    'PER_PART', 'PER_PART_INDEXED',
+    'PER_FACE', 'PER_FACE_INDEXED',
+    'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0));
 end;
 
 class function TNodeNormalBinding.ClassNodeTypeName: string;
 begin
- result := 'NormalBinding';
+  result := 'NormalBinding';
 end;
 
 constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..1]of string = ('REPEAT', 'CLAMP');
 begin
- inherited;
- Fields.Add(TSFString.Create('filename', ''));
- Fields.Add(TSFImage.Create('image', nil));
- Fields.Add(TSFEnum.Create('wrapS', A1, TEXWRAP_REPEAT));
- Fields.Add(TSFEnum.Create('wrapT', A1, TEXWRAP_REPEAT));
- Fields.Add(TSFEnum.Create('model', ['DECAL'], 0));
- Fields.Add(TSFVec3f.Create('blendColor', Vector3Single(0, 0, 0)));
+  inherited;
+  Fields.Add(TSFString.Create('filename', ''));
+  Fields.Add(TSFImage.Create('image', nil));
+  Fields.Add(TSFEnum.Create('wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT));
+  Fields.Add(TSFEnum.Create('wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT));
+  Fields.Add(TSFEnum.Create('model', ['DECAL'], 0));
+  Fields.Add(TSFVec3f.Create('blendColor', Vector3Single(0, 0, 0)));
 end;
 
 class function TNodeTexture2.ClassNodeTypeName: string;
 begin
- result := 'Texture2';
+  result := 'Texture2';
 end;
 
 function TNodeTexture2.LoadTextureImage(out CacheUsed: boolean): TImage;
@@ -1396,64 +1384,60 @@ end;
 
 constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0)));
- Fields.Add(TSFFloat.Create('rotation', 0));
- Fields.Add(TSFVec2f.Create('scaleFactor', Vector2Single(1, 1)));
- Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0)));
+  inherited;
+  Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0)));
+  Fields.Add(TSFFloat.Create('rotation', 0));
+  Fields.Add(TSFVec2f.Create('scaleFactor', Vector2Single(1, 1)));
+  Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0)));
 end;
 
 class function TNodeTexture2Transform.ClassNodeTypeName: string;
 begin
- result := 'Texture2Transform';
+  result := 'Texture2Transform';
 end;
 
 function TNodeTexture2Transform.TextureMatrixTransformation: TMatrix4Single;
 begin
- result := TranslationMatrix( Vector3Single(
-   VectorAdd(FdTranslation.Value, FdCenter.Value) ));
- result := MultMatrices(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
- result := MultMatrices(result, ScalingMatrix(
-   Vector3Single( FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1 )));
- result := MultMatrices(result, TranslationMatrix(
-   Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
+  result := TranslationMatrix( Vector3Single(
+    VectorAdd(FdTranslation.Value, FdCenter.Value) ));
+  result := MultMatrices(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
+  result := MultMatrices(result, ScalingMatrix(
+    Vector3Single( FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1 )));
+  result := MultMatrices(result, TranslationMatrix(
+    Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
 procedure TNodeTexture2Transform.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
- inherited;
- State.TextureTransform := MultMatrices(State.TextureTransform,
-   TextureMatrixTransformation);
+  inherited;
+  State.TextureTransform := MultMatrices(State.TextureTransform,
+    TextureMatrixTransformation);
 end;
 
 constructor TNodeTextureCoordinate2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TMFVec2f.Create('point', [Vector2Single(0, 0)]));
+  inherited;
+  Fields.Add(TMFVec2f.Create('point', [Vector2Single(0, 0)]));
 end;
 
 class function TNodeTextureCoordinate2.ClassNodeTypeName: string;
 begin
- result := 'TextureCoordinate2';
+  result := 'TextureCoordinate2';
 end;
 
 constructor TNodeShapeHints.Create(const ANodeName: string;
   const AWWWBasePath: string);
-const
-  A1: array[0..2]of string = ('UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE');
-  A2: array[0..1]of string = ('UNKNOWN_SHAPE_TYPE', 'SOLID');
-  A3: array[0..1]of string = ('UNKNOWN_FACE_TYPE', 'CONVEX');
 begin
- inherited;
- Fields.Add(TSFEnum.Create('vertexOrdering', A1, VERTORDER_UNKNOWN));
- Fields.Add(TSFEnum.Create('shapeType', A2, SHTYPE_UNKNOWN));
- Fields.Add(TSFEnum.Create('faceType', A3, FACETYPE_CONVEX));
- Fields.Add(TSFFloat.Create('creaseAngle', DefaultVRML1CreaseAngle));
+  inherited;
+  Fields.Add(TSFEnum.Create('vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN));
+  Fields.Add(TSFEnum.Create('shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN));
+  Fields.Add(TSFEnum.Create('faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX));
+  Fields.Add(TSFFloat.Create('creaseAngle', DefaultVRML1CreaseAngle));
 end;
 
 class function TNodeShapeHints.ClassNodeTypeName: string;
 begin
- result := 'ShapeHints';
+  result := 'ShapeHints';
 end;
 
 function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
@@ -1504,8 +1488,8 @@ end;
 
 constructor TNodeMatrixTransform.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFMatrix.Create('matrix', IdentityMatrix4Single));
+  inherited;
+  Fields.Add(TSFMatrix.Create('matrix', IdentityMatrix4Single));
 end;
 
 class function TNodeMatrixTransform.ClassNodeTypeName: string;
@@ -1533,13 +1517,13 @@ end;
 
 constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
+  inherited;
+  Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
 end;
 
 class function TNodeRotation.ClassNodeTypeName: string;
 begin
- result := 'Rotation';
+  result := 'Rotation';
 end;
 
 procedure TNodeRotation.Transformation(
@@ -1558,8 +1542,8 @@ end;
 
 constructor TNodeScale.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
+  inherited;
+  Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
 end;
 
 class function TNodeScale.ClassNodeTypeName: string;
@@ -1581,17 +1565,17 @@ end;
 
 constructor TNodeTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
- Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
- Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
- Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0));
- Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
+  inherited;
+  Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
+  Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
+  Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
+  Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0));
+  Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
 end;
 
 class function TNodeTransform_1.ClassNodeTypeName: string;
 begin
- result := 'Transform';
+  result := 'Transform';
 end;
 
 procedure TNodeTransform_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
@@ -1649,13 +1633,13 @@ end;
 
 constructor TNodeTranslation.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
+  inherited;
+  Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
 end;
 
 class function TNodeTranslation.ClassNodeTypeName: string;
 begin
- result := 'Translation';
+  result := 'Translation';
 end;
 
 procedure TNodeTranslation.Transformation(
@@ -1718,22 +1702,22 @@ end;
 
 class function TNodeOrthographicCamera.ClassNodeTypeName: string;
 begin
- result := 'OrthographicCamera';
+  result := 'OrthographicCamera';
 end;
 
 class function TNodeOrthographicCamera.CameraKind: TVRMLCameraKind;
 begin
- result := ckOrthographic;
+  result := ckOrthographic;
 end;
 
 class function TNodePerspectiveCamera.ClassNodeTypeName: string;
 begin
- result := 'PerspectiveCamera';
+  result := 'PerspectiveCamera';
 end;
 
 class function TNodePerspectiveCamera.CameraKind: TVRMLCameraKind;
 begin
- result := ckPerspective;
+  result := ckPerspective;
 end;
 
 constructor TNodeGeneralLight.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -1814,13 +1798,13 @@ ATTENUATION_IMPLEMENTATION
 
 constructor TNodeGeneralDirectionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
+  inherited;
+  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
 end;
 
 class function TNodeGeneralDirectionalLight.ClassNodeTypeName: string;
 begin
- result := 'DirectionalLight';
+  result := 'DirectionalLight';
 end;
 
 function TNodeGeneralDirectionalLight.CreateActiveLight(
@@ -1855,20 +1839,20 @@ end;
 
 constructor TNodeSpotLight_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
- Fields.Add(TSFFloat.Create('dropOffRate', 0));
- Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398));
+  inherited;
+  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
+  Fields.Add(TSFFloat.Create('dropOffRate', 0));
+  Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398));
 end;
 
 class function TNodeSpotLight_1.ClassNodeTypeName: string;
 begin
- result := 'SpotLight';
+  result := 'SpotLight';
 end;
 
 function TNodeSpotLight_1.SpotExp: Single;
 begin
- result := FdDropOffRate.Value*128.0;
+  result := FdDropOffRate.Value * 128.0;
 end;
 
 class function TNodeSpotLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -1887,14 +1871,14 @@ end;
 
 constructor TNodeGroup_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- fParsingAllowedChildren := true;
- fAllowedChildren := true;
+  inherited;
+  fParsingAllowedChildren := true;
+  fAllowedChildren := true;
 end;
 
 class function TNodeGroup_1.ClassNodeTypeName: string;
 begin
- result := 'Group';
+  result := 'Group';
 end;
 
 class function TNodeGroup_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -1922,47 +1906,47 @@ end;
 
 constructor TNodeGeneralSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- fParsingAllowedChildren := true;
- fAllowedChildren := true;
+  inherited;
+  fParsingAllowedChildren := true;
+  fAllowedChildren := true;
 end;
 
 procedure TNodeGeneralSeparator.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
- inherited;
- OriginalState := State;
- State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
+  inherited;
+  OriginalState := State;
+  State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
 end;
 
 procedure TNodeGeneralSeparator.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
- State.Free;
- State := OriginalState;
- inherited;
+  State.Free;
+  State := OriginalState;
+  inherited;
 end;
 
 constructor TNodeSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFEnum.Create('renderCulling', ['ON', 'OFF', 'AUTO'], 2));
+  inherited;
+  Fields.Add(TSFEnum.Create('renderCulling', ['ON', 'OFF', 'AUTO'], 2));
 end;
 
 class function TNodeSeparator.ClassNodeTypeName: string;
 begin
- result := 'Separator';
+  result := 'Separator';
 end;
 
 constructor TNodeSwitch_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFLong.Create('whichChild', -1));
- fParsingAllowedChildren := true;
- fAllowedChildren := true;
+  inherited;
+  Fields.Add(TSFLong.Create('whichChild', -1));
+  fParsingAllowedChildren := true;
+  fAllowedChildren := true;
 end;
 
 class function TNodeSwitch_1.ClassNodeTypeName: string;
 begin
- result := 'Switch';
+  result := 'Switch';
 end;
 
 procedure TNodeSwitch_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
@@ -1992,14 +1976,14 @@ end;
 
 constructor TNodeTransformSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- fParsingAllowedChildren := true;
- fAllowedChildren := true;
+  inherited;
+  fParsingAllowedChildren := true;
+  fAllowedChildren := true;
 end;
 
 class function TNodeTransformSeparator.ClassNodeTypeName: string;
 begin
- result := 'TransformSeparator';
+  result := 'TransformSeparator';
 end;
 
 procedure TNodeTransformSeparator.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -2022,43 +2006,42 @@ begin
 end;
 
 constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
-const A1: array[0..1]of string = ('NONE','POINT');
 begin
- inherited;
- Fields.Add(TSFString.Create('name', ''));
- Fields.Add(TSFString.Create('description', ''));
- Fields.Add(TSFEnum.Create('map', A1, 0));
+  inherited;
+  Fields.Add(TSFString.Create('name', ''));
+  Fields.Add(TSFString.Create('description', ''));
+  Fields.Add(TSFEnum.Create('map', ['NONE', 'POINT'], 0));
 end;
 
 class function TNodeWWWAnchor.ClassNodeTypeName: string;
 begin
- result := 'WWWAnchor';
+  result := 'WWWAnchor';
 end;
 
 constructor TNodeWWWInline.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFString.Create('name', ''));
- Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(0, 0, 0)));
- Fields.Add(TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0)));
- Fields.Add(TSFBool.Create('separate', true));
+  inherited;
+  Fields.Add(TSFString.Create('name', ''));
+  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(0, 0, 0)));
+  Fields.Add(TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0)));
+  Fields.Add(TSFBool.Create('separate', true));
 
- fParsingAllowedChildren := false;
- fAllowedChildren := true;
+  fParsingAllowedChildren := false;
+  fAllowedChildren := true;
 end;
 
 class function TNodeWWWInline.ClassNodeTypeName: string;
 begin
- result := 'WWWInline';
+  result := 'WWWInline';
 end;
 
 procedure TNodeWWWInline.LoadInlined(CanReload: boolean);
 begin
- if ChildrenCount > 0 then
- begin
-  if CanReload then RemoveAllChildren else exit;
- end;
- AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
+  if ChildrenCount > 0 then
+  begin
+   if CanReload then RemoveAllChildren else exit;
+  end;
+  AddChild(LoadAsVRML(PathFromWWWBasePath(FdName.Value), false));
 end;
 
 procedure TNodeWWWInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
@@ -2089,13 +2072,13 @@ end;
 
 procedure TNodeWWWInline.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
- if BeforeTraversePushedState then
- begin
-   FreeAndNil(State);
-   State := OriginalState;
- end;
+  if BeforeTraversePushedState then
+  begin
+    FreeAndNil(State);
+    State := OriginalState;
+  end;
 
- inherited;
+  inherited;
 end;
 
 class function TNodeWWWInline.ChildrenSaveToStream: boolean;
