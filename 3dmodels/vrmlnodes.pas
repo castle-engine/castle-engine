@@ -19,131 +19,88 @@
 }
 
 (*
-  @abstract(This unit defines VRML nodes. This is the most important
-  unit for VRML processing, as nodes are the key idea in VRML.)
+  @abstract(Define all VRML / X3D nodes, along with other bulding blocks
+  of VRML / X3D (prototypes, routes etc.).)
 
-  In fact, the whole VRML file is just a VRML node
-  (if necessary, we wrap it inside one "artificial" node,
-  see TNodeHiddenGroup_1 or TNodeHiddenGroup_2),
-  so "processing VRML nodes" means also "processing VRML files".
-  And this unit allows you to read nodes from the stream
-  (with the help of lexer in VRMLLexer unit and parser of VRML fields
-  in VRMLFields unit). We also have here methods to save nodes back
-  to stream.
+  This is the most important unit for VRML processing,
+  as VRML file is basically just a nodes' graph.
+  In fact, we represent VRML file as just one root node
+  (if necessary, we will wrap actual file nodes within
+  one "artificial" node, see TNodeHiddenGroup_1 or TNodeHiddenGroup_2).
 
-  I przede wszystkim metody do przeszukiwania grafu VRML'a na rozne sposoby ---
-  patrz metody Traverse, EnumerateNodes i FindNode. Szczegolnie metoda Traverse
-  jest wazna : pozwala ona zamienic graf VRMl'a na liste par
-  (Node typu TGeneralShapeNode + State : TVRMLGraphTraverseState).
-  Renderowanie takiej listy sprowadza sie teraz do wyrenderowania
-  kazdej takiej pary, czyli kazdego shape'u z odpowiednimi ustawieniami
-  State. To jest cala robota jaka musi wykonac renderer taki jak np.
-  OpenGLRenderer w VRMLOpenGLRenderer (alternatywnie, renderer moze uzywac
-  tez Triangulate).
+  The chapter "Reading, writing, processing VRML scene graph"
+  in the documentation on
+  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
+  is almost completely devoted to documenting the design of this single unit.
 
-  Oraz kazdy node ma zdefiniowane swoje pola i wiele node'ow
-  maja zaimplementowane pewne ogolne metody do operowania
-  na nich (ladowanie zawartosci w node'ach WWWInline i Texture2,
-  funkcja MatrixTransformation w podklasach GeneralTransformation itp.)
-  Node'y z grupy GeneralShape maja kilka istotnych metod jak
-  [Local]BoudingBox, Vertices/TrianglesCount, Triangulate.
+  Nodes can be loaded/saved from stream in "classic" encoding
+  (the only encoding available before X3D), using internally
+  the lexer (in VRMLLexer unit) and parser of VRML fields
+  (in VRMLFields unit).
 
-  Ten modul naturalnie nie zalezy od OpenGL'a. Tak miedzy nami to kiedys
-  zalezal od OpenGL'a i w ogole bylo tu zaimplementowane mnostwo
-  innych rzeczy, m.in. jadro renderera OpenGL'owego i bylo tu naprawde tloczno.
-  Ale teraz juz jest czysto. I jestesmy kompletnie niezalezni od renderera,
-  co jest wazne bo renderer przez OpenGL'a nie jest juz jedynym mozliwym
-  rendererem - mamy juz VRMLRayTracer.
+  For VRML nodes' graph processing, this unit offers a lot TVRMLNode
+  methods. See e.g. TVRMLNode.Traverse, TVRMLNode.EnumerateNodes and
+  TVRMLNode.FindNode. Traverse is especially important, since it
+  walks through VRML graph just as VRML specification says
+  (e.g. visiting only one child from a Switch node's children),
+  gathering some state (useful especially for VRML 1.0, but also
+  used for various things in later VRML versions).
+  When you want to e.g. render VRML graph, you can just traverse
+  the graph and render each pair of State with a geometry node
+  (some TNodeGeneralShape instance).
+  (Alternatively, simple renderer can also use TNodeGeneralShape.Triangulate).
+
+  Many node classes have also specific routines useful for manipulating
+  them (for example loading the contents of various Inline and Texture nodes,
+  extracting transformation from nodes that can change it etc.).
+  TNodeGeneralShape in particular has some useful routines
+  for calculating bounding box, vertex/triangles counts and
+  to triangulate the node.
+
+  This unit doesn't depend on OpenGL, or any other particular rendering
+  method. So it's suitable also for VRMLRayTracer, and every other possible
+  renderer that will ever get implemented.
 
   As for VRML versions handling:
+
   @unorderedList(
     @item(
-      We handle both VRML 1.0 and 2.0.
-      Every correct VRML file should be parsed by this unit.)
+      We handle VRML 1.0, VRML 2.0 (aka 97) and X3D (aka VRML 3.x).
+
+      Every correct VRML / X3D file in classic encoding should be parsed
+      by this unit. (For X3D XML encoding, see X3DXMLToVRML unit).
+      See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]
+      for much more detailed information about supported features.)
 
     @item(
-      Also many Inventor 1.0 files should be correctly parsed.
+      Also many Inventor 1.0 files are correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
       [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_iv_in_vrml].
 
-      TNodeUnknown pozwala omijac parserowi nawet kompletnie
-      nieznane node'y pozbawione pol "fields" i "isA" (z VRML'a 1.0
-      extensibility features). Dlatego jestesmy w stanie odczytac i
-      wyswietlic satysfakcjonujaca czesc wiekszosci plikow Inventora
-      jakie mialem w /usr/share/inventor/demos/. Super !)
-
-    @item(
-      Nawet dla VRMLa 1.0 w wielu miejscach uzywam specyfikacji VRMLa 97:
-      @unorderedList(
-        @item(zeby ustalic rzeczy zdefiniowane w niejasny sposob w specyfikacji
-          VRML 1.0)
-        @item(zeby pododawac do VRMLa 1.0 male drobiazgi z VRMLa 97, jak
-          attenuation swiatel)
-        @item(VRMLRayTracer uzywa modelu oswietlenia zdefiniowanego
-          w specyfikacji VRMLa 97)
-      ))
-
     @item(
       Note that structures in this unit are @italic(not) focused
-      on either VRML 1.0 or VRML 2.0. On the contrary: we try to handle
-      the @italic(sum of VRML 1.0 and 2.0). When reading VRML 1.0,
+      on either VRML 1.0 or VRML >= 2.0. On the contrary: we try to handle
+      the @italic(sum of all VRML and X3D). When reading VRML 1.0,
       many VRML 2.0 constructs (that not conflict with anything in VRML 1.0)
       are allowed, and the other way around too.
 
       Internally, we do not convert VRML 1.0-specific constructs
       to VRML 2.0 constructs (or the other way around).
-      For example, we do not convert VRML 1.0 idea of direct children nodes
-      to VRML 2.0 idea of children nodes embedded in MFNode fields.
-      We just allow both constructs. In fact, you could define here
-      a node that uses both VRML 1.0 children nodes and has some
-      MFNode fields --- in other words, a node invalid in terms of VRML 1.0 spec
-      and invalid in terms of VRML 2.0 spec, but valid if you take
-      "sum of features" of both VRML versions.
-
-      Sometimes this means more work for us, as some similar ideas
-      have to be implemented in two different ways, and then some
-      common access methods (like SmartChild* methods of TVRMLNode)
-      must be done. But the advantage is that we have a clean
-      implementation, that is suited and perfectly conforming
-      to both VRML 1.0 and 2.0.)
+      See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
+      for more in-depth explanation of how, and why, we handle both
+      old-style (Inventor, VRML 1.0) and new-style (VRML 2.0, X3D) VRML
+      syntax.)
   )
 
-  Notka do mechanizmu wczytywania grafu VRMLa : jak widac nie robimy
-  dekonstrukcji w czasie odczytywania sceny - co znaczy tyle ze
-  po odczytaniu calego strumienia jestesmy w stanie zapisac z
-  powrotem do innego strumienia cala scene VRMLa, nie tracac zadnej
-  informacji. O ile oczywiscie na renderowanie i w ogole wiekszosc operacji
-  mozna patrzec jako na jakis rodzaj dekonstrukcji to my zawsze zostajemy
-  w posiadaniu calej informacji o scenie.
-  Sa dwa wyjatki :
-  @orderedList(
-    @item(
-      Inline nodes (WWWInline, Inline, InlineLoadControl) ktore
-      w BeforeTraverse laduje swoja scene jako swoje dziecko)
-
-    @item(
-      w przypadku scen o wielu root node'ach (ktore sa de facto niepoprawne
-      trzymajac sie sciscle specyfikacji VRMLa 1.0, chociaz sa poprawne w
-      VRMLu 97 i ja je dopuszczam takze w VRMLu 1.0, patrz nizej) jezeli
-      root node'ow w pliku byloby wiele to jako root node tworzymy sobie
-      node Group i w nim umieszczamy wszystkie root nodes.
-
-      (Jest to zaimplementowane w ParseVRMLFile. Jest to chyba najbardziej
-      sensowny sposob w jaki mozna to zrobic - w programie bedziemy chcieli
-      przeciez reprezentowac model VRMLa jako jeden obiekt; wiec nalezaloby
-      uzyc TVRMLNodesList, ale wtedy musielibysmy powtorzyc implementacje
-      wielu rzeczy w TVRMLNode takze dla takiej listy; wiec tutaj pomysl:
-      przeciez klasa TNodeGroup jest wlasnie taka prosta lista node'ow.)
-
-      We represent this special "additional" Group node as a TNodeGroupHidden_1/2,
-      @italic(that is a descendant of TNodeGroup (not the other way around)).
-      This way you can entirely forget about this issue and just process
-      the VRML model as you like, and the only downside will be that you
-      will actually work with a different model (with additional Group node)
-      than what was encoded in the file. You can also test for
-      (Node is TNodeGroupHidden_1/2) and recognize this special case.)
-  )
+  Note that when reading VRML files, we generally do not change the
+  VRML graph. So we're able to save exactly the same VRML graph
+  back to another file. See also
+  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/ch02s04.html#id2671890].
+  This makes an excellent opportunity for writing various VRML
+  processing tools, that can simply read the file, change whatever
+  they want, and write the file back --- knowing that the "untouched"
+  parts of VRML graph are preserved nicely.
 
   Takie unikanie dekonstrukcji pozwoli nam
   @orderedList(
@@ -252,21 +209,6 @@
 *)
 
 unit VRMLNodes;
-
-{
-  Known problems:
-  - MFString field with strings not enclosed in double quotes will
-    not be parsed corectly. Moreover, parsing SFStrings not enclosed
-    in double quotes is implemented rather as a "quick & dirty hack"
-    than as a nice solution. Really, it's a weird "feature" of
-    VRML 1.0 (eliminated in VRML 97) to allow strings not enclosed
-    in double quotes.
-    And I know about only ONE program that utilizes it (Blender)
-    and this program uses it only in SFString field (Texture2.filename).
-    So I doubt I will ever fix this -- I would consider it a waste of time,
-    since not enclosing strings in double quotes is something totally
-    useless.
-}
 
 interface
 

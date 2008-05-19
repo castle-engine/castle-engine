@@ -879,7 +879,16 @@
   end;
 
   { A Group node that is added when VRML 1.0 file contains more than one root
-    node. See comments at the beginning of this unit for more info. }
+    node.
+
+    We represent this special "artifical" group as a TNodeGroupHidden_1,
+    @italic(that is a descendant of TNodeGroup_1 (not the other way around)).
+    This way you can entirely forget about this issue and just process
+    the VRML model as you like, and the only downside will be that you
+    will actually work with a very slightly different model
+    (with additional Group node) than what was encoded in the file.
+    You can also test for (Node is TNodeGroupHidden_1/2) and
+    recognize this special case. }
   TNodeGroupHidden_1 = class(TNodeGroup_1)
   public
     (*Save TNodeGroupHidden_* contents to stream.

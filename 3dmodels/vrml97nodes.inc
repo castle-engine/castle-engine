@@ -1193,6 +1193,13 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { A Group node that is added when VRML >= 2.0 file contains more
+    than one node at the root level. (Or contains any prototypes,
+    routes etc. at the root level, as they must all be stored inside
+    some node's properties).
+    
+    See TNodeGroupHidden_1 for some more comments about why this
+    descends from TNodeGroup_2. }
   TNodeGroupHidden_2 = class(TNodeGroup_2)
   public
     (*Save TNodeGroupHidden_* contents to stream.
