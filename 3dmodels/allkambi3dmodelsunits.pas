@@ -28,6 +28,7 @@ uses
   vrmlevents,
   vrmlfields,
   vrmlflatscene,
+  vrmlgeometry,
   vrmllexer,
   vrmllightmap,
   vrmllightset,
@@ -38,7 +39,8 @@ uses
   vrmlscenewaypoints,
   vrmlshapestate,
   vrmlshapestateoctree,
-  vrmltriangleoctree
+  vrmltriangleoctree,
+  x3dxmltovrml
   ;
 
 implementation

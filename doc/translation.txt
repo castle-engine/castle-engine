@@ -137,6 +137,7 @@ D   glsoundmenu.pas
 D   shadowvolumesutils.pas
 D   glimages.pas
 D   glshaders.pas
+D   glwindowfilefilters.pas
 
 ------------------------------------------------------------
 Units that are not intended to be processed by pasdoc:
