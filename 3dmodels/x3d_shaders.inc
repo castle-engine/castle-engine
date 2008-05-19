@@ -32,15 +32,20 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { property Eventactivate: TSFBool index ? read GetFieldAsSFBool; } { }
+    { Event: SFBool, in } { }
+    private FEventactivate: TVRMLEvent;
+    public property Eventactivate: TVRMLEvent read FEventactivate;
 
-    { property EventisSelected: TSFBool index ? read GetFieldAsSFBool; } { }
+    { Event: SFBool, out } { }
+    private FEventisSelected: TVRMLEvent;
+    public property EventisSelected: TVRMLEvent read FEventisSelected;
 
-    { property EventisValid: TSFBool index ? read GetFieldAsSFBool; } { }
+    { Event: SFBool, out } { }
+    private FEventisValid: TVRMLEvent;
+    public property EventisValid: TVRMLEvent read FEventisValid;
 
     private FFdlanguage: TSFString;
     public property Fdlanguage: TSFString read FFdlanguage;
-
   end;
 
   INodeX3DProgrammableShaderObject = interface
@@ -193,11 +198,14 @@ constructor TNodeX3DShaderNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('activate', TSFBool, true));
+  FEventactivate := TVRMLEvent.Create('activate', TSFBool, true);
+  Events.Add(FEventactivate);
 
-  Events.Add(TVRMLEvent.Create('isSelected', TSFBool, false));
+  FEventisSelected := TVRMLEvent.Create('isSelected', TSFBool, false);
+  Events.Add(FEventisSelected);
 
-  Events.Add(TVRMLEvent.Create('isValid', TSFBool, false));
+  FEventisValid := TVRMLEvent.Create('isValid', TSFBool, false);
+  Events.Add(FEventisValid);
 
   FFdlanguage := TSFString.Create('language', '');
   Fields.Add(FFdlanguage);

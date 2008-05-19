@@ -28,7 +28,9 @@ type
     private FFddescription: TSFString;
     public property Fddescription: TSFString read FFddescription;
 
-    { SFBool   [out]    isOver } { }
+    { Event: SFBool, out } { }
+    private FEventisOver: TVRMLEvent;
+    public property EventisOver: TVRMLEvent read FEventisOver;
   end;
 
   TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
@@ -38,13 +40,18 @@ type
     private FFdautoOffset: TSFBool;
     public property FdautoOffset: TSFBool read FFdautoOffset;
 
-    { SFVec3f  [out]    trackPoint_changed }
+    { Event: SFVec3f, out } { }
+    private FEventtrackPoint_changed: TVRMLEvent;
+    public property EventtrackPoint_changed: TVRMLEvent read FEventtrackPoint_changed;
   end;
 
   TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    { SFTime   [out]    touchTime } { }
+
+    { Event: SFTime, out } { }
+    private FEventtouchTime: TVRMLEvent;
+    public property EventtouchTime: TVRMLEvent read FEventtouchTime;
   end;
 
 {$endif read_interface}
@@ -59,7 +66,8 @@ begin
   FFddescription := TSFString.Create('description', '');
   Fields.Add(FFddescription);
 
-  Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+  FEventisOver := TVRMLEvent.Create('isOver', TSFBool, false);
+  Events.Add(FEventisOver);
 end;
 
 constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
@@ -70,7 +78,8 @@ begin
   FFdautoOffset := TSFBool.Create('autoOffset', true);
   Fields.Add(FFdautoOffset);
 
-  Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
+  FEventtrackPoint_changed := TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false);
+  Events.Add(FEventtrackPoint_changed);
 end;
 
 constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
@@ -78,7 +87,8 @@ constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
+  FEventtouchTime := TVRMLEvent.Create('touchTime', TSFTime, false);
+  Events.Add(FEventtouchTime);
 end;
 
 {$endif read_implementation}

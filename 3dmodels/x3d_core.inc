@@ -57,11 +57,17 @@ type
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { eventIn      SFBool     set_bind } { }
+    { Event: SFBool, in } { }
+    private FEventset_bind: TVRMLEvent;
+    public property Eventset_bind: TVRMLEvent read FEventset_bind;
 
-    { eventOut     SFTime     bindTime } { }
+    { Event: SFTime, out } { }
+    private FEventbindTime: TVRMLEvent;
+    public property EventbindTime: TVRMLEvent read FEventbindTime;
 
-    { eventOut     SFBool     isBound } { }
+    { Event: SFBool, out } { }
+    private FEventisBound: TVRMLEvent;
+    public property EventisBound: TVRMLEvent read FEventisBound;
   end;
 
   TNodeX3DSensorNode = class(TNodeX3DChildNode)
@@ -71,7 +77,9 @@ type
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
 
-    { property FdisActive: TSFBool ([out]) } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
   end;
 
 {$endif read_interface}
@@ -104,11 +112,14 @@ constructor TNodeX3DBindableNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  FEventset_bind := TVRMLEvent.Create('set_bind', TSFBool, true);
+  Events.Add(FEventset_bind);
 
-  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+  FEventbindTime := TVRMLEvent.Create('bindTime', TSFTime, false);
+  Events.Add(FEventbindTime);
 
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  FEventisBound := TVRMLEvent.Create('isBound', TSFBool, false);
+  Events.Add(FEventisBound);
 end;
 
 constructor TNodeX3DSensorNode.Create(const ANodeName: string;
@@ -119,7 +130,8 @@ begin
   FFdenabled := TSFBool.Create('enabled', true);
   Fields.Add(FFdenabled);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 end;
 
 {$endif read_implementation}

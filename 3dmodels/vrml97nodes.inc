@@ -42,8 +42,14 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { eventIn      MFNode   addChildren } { }
-    { eventIn      MFNode   removeChildren } { }
+    { Event: MFNode, in } { }
+    private FEventaddChildren: TVRMLEvent;
+    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+
+    { Event: MFNode, in } { }
+    private FEventremoveChildren: TVRMLEvent;
+    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
 
@@ -142,8 +148,13 @@
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
 
-    { eventOut       SFTime   duration_changed } { }
-    { eventOut       SFBool   isActive } { }
+    { Event: SFTime, out } { }
+    private FEventduration_changed: TVRMLEvent;
+    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
+
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -174,7 +185,9 @@
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFBool   set_bind } { }
+    { Event: SFBool, in } { }
+    private FEventset_bind: TVRMLEvent;
+    public property Eventset_bind: TVRMLEvent read FEventset_bind;
 
     private FFdGroundAngle: TMFFloat;
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
@@ -206,7 +219,9 @@
     private FFdSkyColor: TMFColor;
     public property FdSkyColor: TMFColor read FFdSkyColor;
 
-    { eventOut     SFBool   isBound } { }
+    { Event: SFBool, out } { }
+    private FEventisBound: TVRMLEvent;
+    public property EventisBound: TVRMLEvent read FEventisBound;
 
     procedure Parse(Lexer: TVRMLLexer); override;
 
@@ -315,13 +330,17 @@
     private FFdproxy: TSFNode;
     public property Fdproxy: TSFNode read FFdproxy;
 
-    { eventOut     SFTime   collideTime } { }
+    { Event: SFTime, out } { }
+    private FEventcollideTime: TVRMLEvent;
+    public property EventcollideTime: TVRMLEvent read FEventcollideTime;
 
     { This should actually come from ancestor INodeX3DSensorNode } { }
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
 
-    { property FdisActive: TSFBool ([out]) } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -346,7 +365,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -354,7 +375,9 @@
     private FFdkeyValue: TMFColor;
     public property FdkeyValue: TMFColor read FFdkeyValue;
 
-    { eventOut     SFColor value_changed } { }
+    { Event: SFColor, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -396,9 +419,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      MFNode  addChildren } { }
+    { Event: MFNode, in } { }
+    private FEventaddChildren: TVRMLEvent;
+    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
 
-    { eventIn      MFNode  removeChildren } { }
+    { Event: MFNode, in } { }
+    private FEventremoveChildren: TVRMLEvent;
+    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
 
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
@@ -426,9 +453,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      MFNode   addChildren } { }
+    { Event: MFNode, in } { }
+    private FEventaddChildren: TVRMLEvent;
+    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
 
-    { eventIn      MFNode   removeChildren } { }
+    { Event: MFNode, in } { }
+    private FEventremoveChildren: TVRMLEvent;
+    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
 
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
@@ -493,7 +524,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -501,7 +534,9 @@
     private FFdkeyValue: TMFVec3f;
     public property FdkeyValue: TMFVec3f read FFdkeyValue;
 
-    { eventOut     MFVec3f value_changed } { }
+    { Event: MFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -561,7 +596,9 @@
     private FFdaxisRotation: TSFRotation;
     public property FdaxisRotation: TSFRotation read FFdaxisRotation;
 
-    { eventOut     SFRotation rotation_changed } { }
+    { Event: SFRotation, out } { }
+    private FEventrotation_changed: TVRMLEvent;
+    public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -585,7 +622,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      MFFloat  set_height } { }
+    { Event: MFFloat, in } { }
+    private FEventset_height: TVRMLEvent;
+    public property Eventset_height: TVRMLEvent read FEventset_height;
 
     private FFdcolor: TSFNode;
     public property Fdcolor: TSFNode read FFdcolor;
@@ -648,13 +687,21 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn MFVec2f    set_crossSection } { }
+    { Event: MFVec2f, in } { }
+    private FEventset_crossSection: TVRMLEvent;
+    public property Eventset_crossSection: TVRMLEvent read FEventset_crossSection;
 
-    { eventIn MFRotation set_orientation } { }
+    { Event: MFRotation, in } { }
+    private FEventset_orientation: TVRMLEvent;
+    public property Eventset_orientation: TVRMLEvent read FEventset_orientation;
 
-    { eventIn MFVec2f    set_scale } { }
+    { Event: MFVec2f, in } { }
+    private FEventset_scale: TVRMLEvent;
+    public property Eventset_scale: TVRMLEvent read FEventset_scale;
 
-    { eventIn MFVec3f    set_spine } { }
+    { Event: MFVec3f, in } { }
+    private FEventset_spine: TVRMLEvent;
+    public property Eventset_spine: TVRMLEvent read FEventset_spine;
 
     private FFdbeginCap: TSFBool;
     public property FdbeginCap: TSFBool read FFdbeginCap;
@@ -727,8 +774,13 @@
     private FFdAlternative: TSFNode;
     public property FdAlternative: TSFNode read FFdAlternative;
 
-    { eventIn      SFBool   set_bind } { }
-    { eventOut     SFBool   isBound } { }
+    { Event: SFBool, in } { }
+    private FEventset_bind: TVRMLEvent;
+    public property Eventset_bind: TVRMLEvent read FEventset_bind;
+
+    { Event: SFBool, out } { }
+    private FEventisBound: TVRMLEvent;
+    public property EventisBound: TVRMLEvent read FEventisBound;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -819,9 +871,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn        MFFloat    set_height } { }
+    { Event: MFFloat, in } { }
+    private FEventset_height: TVRMLEvent;
+    public property Eventset_height: TVRMLEvent read FEventset_height;
 
-    { eventIn        SFFloat    set_yScale } { }
+    { Event: SFFloat, in } { }
+    private FEventset_yScale: TVRMLEvent;
+    public property Eventset_yScale: TVRMLEvent read FEventset_yScale;
 
     private FFdcolor: TSFNode;
     public property Fdcolor: TSFNode read FFdcolor;
@@ -933,7 +989,9 @@
     private FFdrootNode: TMFNode;
     public property FdrootNode: TMFNode read FFdrootNode;
 
-    { eventOut   MFNode    children } { }
+    { Event: MFNode, out } { }
+    private FEventchildren: TVRMLEvent;
+    public property Eventchildren: TVRMLEvent read FEventchildren;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -983,7 +1041,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn   SFFloat   set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdgeoOrigin: TSFNode;
     public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
@@ -997,9 +1057,13 @@
     private FFdkeyValue: TMFString;
     public property FdkeyValue: TMFString read FFdkeyValue;
 
-    { eventOut  SFString  geovalue_changed } { }
+    { Event: SFString, out } { }
+    private FEventgeovalue_changed: TVRMLEvent;
+    public property Eventgeovalue_changed: TVRMLEvent read FEventgeovalue_changed;
 
-    { eventOut  SFVec3f   value_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1020,19 +1084,33 @@
     private FFdgeoSystem: TMFString;
     public property FdgeoSystem: TMFString read FFdgeoSystem;
 
-    { eventOut      SFVec3f   hitNormal_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventhitNormal_changed: TVRMLEvent;
+    public property EventhitNormal_changed: TVRMLEvent read FEventhitNormal_changed;
 
-    { eventOut      SFVec3f   hitPoint_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventhitPoint_changed: TVRMLEvent;
+    public property EventhitPoint_changed: TVRMLEvent read FEventhitPoint_changed;
 
-    { eventOut      SFVec2f   hitTexCoord_changed } { }
+    { Event: SFVec2f, out } { }
+    private FEventhitTexCoord_changed: TVRMLEvent;
+    public property EventhitTexCoord_changed: TVRMLEvent read FEventhitTexCoord_changed;
 
-    { eventOut      SFString  hitGeoCoord_changed } { }
+    { Event: SFString, out } { }
+    private FEventhitGeoCoord_changed: TVRMLEvent;
+    public property EventhitGeoCoord_changed: TVRMLEvent read FEventhitGeoCoord_changed;
 
-    { eventOut      SFBool    isActive } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
-    { eventOut      SFBool    isOver } { }
+    { Event: SFBool, out } { }
+    private FEventisOver: TVRMLEvent;
+    public property EventisOver: TVRMLEvent read FEventisOver;
 
-    { eventOut      SFTime    touchTime } { }
+    { Event: SFTime, out } { }
+    private FEventtouchTime: TVRMLEvent;
+    public property EventtouchTime: TVRMLEvent read FEventtouchTime;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1044,11 +1122,17 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn        SFBool       set_bind } { }
+    { Event: SFBool, in } { }
+    private FEventset_bind: TVRMLEvent;
+    public property Eventset_bind: TVRMLEvent read FEventset_bind;
 
-    { eventIn        SFString     set_orientation } { }
+    { Event: SFString, in } { }
+    private FEventset_orientation: TVRMLEvent;
+    public property Eventset_orientation: TVRMLEvent read FEventset_orientation;
 
-    { eventIn        SFString     set_position } { }
+    { Event: SFString, in } { }
+    private FEventset_position: TVRMLEvent;
+    public property Eventset_position: TVRMLEvent read FEventset_position;
 
     private FFdfieldOfView: TSFFloat;
     public property FdfieldOfView: TSFFloat read FFdfieldOfView;
@@ -1080,9 +1164,13 @@
     private FFdspeedFactor: TSFFloat;
     public property FdspeedFactor: TSFFloat read FFdspeedFactor;
 
-    { eventOut       SFTime       bindTime } { }
+    { Event: SFTime, out } { }
+    private FEventbindTime: TVRMLEvent;
+    public property EventbindTime: TVRMLEvent read FEventbindTime;
 
-    { eventOut       SFBool       isBound } { }
+    { Event: SFBool, out } { }
+    private FEventisBound: TVRMLEvent;
+    public property EventisBound: TVRMLEvent read FEventisBound;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1146,13 +1234,21 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn       MFInt32 set_colorIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_colorIndex: TVRMLEvent;
+    public property Eventset_colorIndex: TVRMLEvent read FEventset_colorIndex;
 
-    { eventIn       MFInt32 set_coordIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_coordIndex: TVRMLEvent;
+    public property Eventset_coordIndex: TVRMLEvent read FEventset_coordIndex;
 
-    { eventIn       MFInt32 set_normalIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_normalIndex: TVRMLEvent;
+    public property Eventset_normalIndex: TVRMLEvent read FEventset_normalIndex;
 
-    { eventIn       MFInt32 set_texCoordIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_texCoordIndex: TVRMLEvent;
+    public property Eventset_texCoordIndex: TVRMLEvent read FEventset_texCoordIndex;
 
     private FFdcolor: TSFNode;
     public property Fdcolor: TSFNode read FFdcolor;
@@ -1215,9 +1311,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn       MFInt32 set_colorIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_colorIndex: TVRMLEvent;
+    public property Eventset_colorIndex: TVRMLEvent read FEventset_colorIndex;
 
-    { eventIn       MFInt32 set_coordIndex } { }
+    { Event: MFInt32, in } { }
+    private FEventset_coordIndex: TVRMLEvent;
+    public property Eventset_coordIndex: TVRMLEvent read FEventset_coordIndex;
 
     private FFdcolor: TSFNode;
     public property Fdcolor: TSFNode read FFdcolor;
@@ -1292,7 +1392,9 @@
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
-    { eventOut     MFNode    children } { }
+    { Event: MFNode, out } { }
+    private FEventchildren: TVRMLEvent;
+    public property Eventchildren: TVRMLEvent read FEventchildren;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1405,9 +1507,13 @@
     private FFdrepeatT: TSFBool;
     public property FdrepeatT: TSFBool read FFdrepeatT;
 
-    { eventOut     SFTime   duration_changed } { }
+    { Event: SFTime, out } { }
+    private FEventduration_changed: TVRMLEvent;
+    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
 
-    { eventOut     SFBool   isActive } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1440,7 +1546,9 @@
     private FFdvisibilityLimit: TSFFloat;
     public property FdvisibilityLimit: TSFFloat read FFdvisibilityLimit;
 
-    { SFBool   [out]    transitionComplete }
+    { Event: SFBool, out } { }
+    private FEventtransitionComplete: TVRMLEvent;
+    public property EventtransitionComplete: TVRMLEvent read FEventtransitionComplete;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1463,7 +1571,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -1471,7 +1581,9 @@
     private FFdkeyValue: TMFVec3f;
     public property FdkeyValue: TMFVec3f read FFdkeyValue;
 
-    { eventOut     MFVec3f value_changed } { }
+    { Event: MFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1546,7 +1658,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat  set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFddimension: TSFInt32;
     public property Fddimension: TSFInt32 read FFddimension;
@@ -1563,7 +1677,9 @@
     private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
-    { eventOut     SFVec3f  value_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1658,7 +1774,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat    set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -1666,7 +1784,9 @@
     private FFdkeyValue: TMFRotation;
     public property FdkeyValue: TMFRotation read FFdkeyValue;
 
-    { eventOut     SFRotation value_changed } { }
+    { Event: SFRotation, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1715,7 +1835,9 @@
     private FFdaxisRotation: TSFRotation;
     public property FdaxisRotation: TSFRotation read FFdaxisRotation;
 
-    { eventOut     SFVec3f translation_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventtranslation_changed: TVRMLEvent;
+    public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1781,7 +1903,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -1789,7 +1913,9 @@
     private FFdkeyValue: TMFVec3f;
     public property FdkeyValue: TMFVec3f read FFdkeyValue;
 
-    { eventOut     SFVec3f value_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1810,15 +1936,25 @@
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
 
-    { eventOut     SFBool     isActive } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
-    { eventOut     SFVec3f    position_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventposition_changed: TVRMLEvent;
+    public property Eventposition_changed: TVRMLEvent read FEventposition_changed;
 
-    { eventOut     SFRotation orientation_changed } { }
+    { Event: SFRotation, out } { }
+    private FEventorientation_changed: TVRMLEvent;
+    public property Eventorientation_changed: TVRMLEvent read FEventorientation_changed;
 
-    { eventOut     SFTime     enterTime } { }
+    { Event: SFTime, out } { }
+    private FEvententerTime: TVRMLEvent;
+    public property EvententerTime: TVRMLEvent read FEvententerTime;
 
-    { eventOut     SFTime     exitTime } { }
+    { Event: SFTime, out } { }
+    private FEventexitTime: TVRMLEvent;
+    public property EventexitTime: TVRMLEvent read FEventexitTime;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1830,7 +1966,9 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn      SFFloat set_fraction } { }
+    { Event: SFFloat, in } { }
+    private FEventset_fraction: TVRMLEvent;
+    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
 
     private FFdkey: TMFFloat;
     public property Fdkey: TMFFloat read FFdkey;
@@ -1838,7 +1976,9 @@
     private FFdkeyValue: TMFFloat;
     public property FdkeyValue: TMFFloat read FFdkeyValue;
 
-    { eventOut     SFFloat value_changed } { }
+    { Event: SFFloat, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1998,7 +2138,9 @@
     private FFdoffset: TSFRotation;
     public property Fdoffset: TSFRotation read FFdoffset;
 
-    { eventOut     SFRotation rotation_changed } { }
+    { Event: SFRotation, out } { }
+    private FEventrotation_changed: TVRMLEvent;
+    public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -2144,13 +2286,21 @@
     private FFdstopTime: TSFTime;
     public property FdstopTime: TSFTime read FFdstopTime;
 
-    { eventOut     SFTime   cycleTime } { }
+    { Event: SFTime, out } { }
+    private FEventcycleTime: TVRMLEvent;
+    public property EventcycleTime: TVRMLEvent read FEventcycleTime;
 
-    { eventOut     SFFloat  fraction_changed } { }
+    { Event: SFFloat, out } { }
+    private FEventfraction_changed: TVRMLEvent;
+    public property Eventfraction_changed: TVRMLEvent read FEventfraction_changed;
 
-    { eventOut     SFBool   isActive } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
-    { eventOut     SFTime   time } { }
+    { Event: SFTime, out } { }
+    private FEventtime: TVRMLEvent;
+    public property Eventtime: TVRMLEvent read FEventtime;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -2162,11 +2312,17 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventOut     SFVec3f hitNormal_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventhitNormal_changed: TVRMLEvent;
+    public property EventhitNormal_changed: TVRMLEvent read FEventhitNormal_changed;
 
-    { eventOut     SFVec3f hitPoint_changed } { }
+    { Event: SFVec3f, out } { }
+    private FEventhitPoint_changed: TVRMLEvent;
+    public property EventhitPoint_changed: TVRMLEvent read FEventhitPoint_changed;
 
-    { eventOut     SFVec2f hitTexCoord_changed } { }
+    { Event: SFVec2f, out } { }
+    private FEventhitTexCoord_changed: TVRMLEvent;
+    public property EventhitTexCoord_changed: TVRMLEvent read FEventhitTexCoord_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -2210,9 +2366,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    { eventIn       MFNode   addTrimmingContour } { }
+    { Event: MFNode, in } { }
+    private FEventaddTrimmingContour: TVRMLEvent;
+    public property EventaddTrimmingContour: TVRMLEvent read FEventaddTrimmingContour;
 
-    { eventIn       MFNode   removeTrimmingContour } { }
+    { Event: MFNode, in } { }
+    private FEventremoveTrimmingContour: TVRMLEvent;
+    public property EventremoveTrimmingContour: TVRMLEvent read FEventremoveTrimmingContour;
 
     private FFdtrimmingContour: TMFNode;
     public property FdtrimmingContour: TMFNode read FFdtrimmingContour;
@@ -2288,11 +2448,17 @@
     private FFdsize: TSFVec3f;
     public property Fdsize: TSFVec3f read FFdsize;
 
-    { eventOut     SFTime  enterTime } { }
+    { Event: SFTime, out } { }
+    private FEvententerTime: TVRMLEvent;
+    public property EvententerTime: TVRMLEvent read FEvententerTime;
 
-    { eventOut     SFTime  exitTime } { }
+    { Event: SFTime, out } { }
+    private FEventexitTime: TVRMLEvent;
+    public property EventexitTime: TVRMLEvent read FEventexitTime;
 
-    { eventOut     SFBool  isActive } { }
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -2412,9 +2578,11 @@ constructor TNodeX3DGroupingNode.Create(
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
+  Events.Add(FEventaddChildren);
 
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
+  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
+  Events.Add(FEventremoveChildren);
 
   FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
   Fields.Add(FFdchildren);
@@ -2559,9 +2727,11 @@ begin
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
 
-  Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
+  Events.Add(FEventduration_changed);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
 end;
@@ -2570,7 +2740,8 @@ constructor TNodeBackground.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  FEventset_bind := TVRMLEvent.Create('set_bind', TSFBool, true);
+  Events.Add(FEventset_bind);
 
   FFdgroundAngle := TMFFloat.Create('groundAngle', []);
   Fields.Add(FFdgroundAngle);
@@ -2602,7 +2773,8 @@ begin
   FFdskyColor := TMFColor.Create('skyColor', [ZeroVector3Single]);
   Fields.Add(FFdskyColor);
 
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  FEventisBound := TVRMLEvent.Create('isBound', TSFBool, false);
+  Events.Add(FEventisBound);
 
   DefaultContainerField := 'children';
 
@@ -2783,12 +2955,14 @@ begin
   FFdproxy.Exposed := false;
   Fields.Add(FFdproxy);
 
-  Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
+  FEventcollideTime := TVRMLEvent.Create('collideTime', TSFTime, false);
+  Events.Add(FEventcollideTime);
 
   FFdenabled := TSFBool.Create('enabled', true);
   Fields.Add(FFdenabled);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
 end;
@@ -2837,7 +3011,8 @@ constructor TNodeColorInterpolator.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -2845,7 +3020,8 @@ begin
   FFdkeyValue := TMFColor.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFColor, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFColor, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -2902,9 +3078,11 @@ constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
+  Events.Add(FEventaddChildren);
 
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
+  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
+  Events.Add(FEventremoveChildren);
 
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]);
   Fields.Add(FFdchildren);
@@ -2948,9 +3126,11 @@ constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
+  Events.Add(FEventaddChildren);
 
-  Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
+  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
+  Events.Add(FEventremoveChildren);
 
   FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
   Fields.Add(FFdchildren);
@@ -3037,7 +3217,8 @@ constructor TNodeCoordinateInterpolator.Create(const ANodeName: string; const AW
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -3045,7 +3226,8 @@ begin
   FFdkeyValue := TMFVec3f.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -3121,7 +3303,8 @@ begin
   FFdaxisRotation := TSFRotation.Create('axisRotation', Vector3Single(0, 1, 0), 0);
   Fields.Add(FFdaxisRotation);
 
-  Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
+  FEventrotation_changed := TVRMLEvent.Create('rotation_changed', TSFRotation, false);
+  Events.Add(FEventrotation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -3164,7 +3347,8 @@ constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
+  FEventset_height := TVRMLEvent.Create('set_height', TMFFloat, true);
+  Events.Add(FEventset_height);
 
   FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
   Fields.Add(FFdcolor);
@@ -3244,13 +3428,17 @@ constructor TNodeExtrusion.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_crossSection', TMFVec2f, true));
+  FEventset_crossSection := TVRMLEvent.Create('set_crossSection', TMFVec2f, true);
+  Events.Add(FEventset_crossSection);
 
-  Events.Add(TVRMLEvent.Create('set_orientation', TMFRotation, true));
+  FEventset_orientation := TVRMLEvent.Create('set_orientation', TMFRotation, true);
+  Events.Add(FEventset_orientation);
 
-  Events.Add(TVRMLEvent.Create('set_scale', TMFVec2f, true));
+  FEventset_scale := TVRMLEvent.Create('set_scale', TMFVec2f, true);
+  Events.Add(FEventset_scale);
 
-  Events.Add(TVRMLEvent.Create('set_spine', TMFVec3f, true));
+  FEventset_spine := TVRMLEvent.Create('set_spine', TMFVec3f, true);
+  Events.Add(FEventset_spine);
 
   FFdbeginCap := TSFBool.Create('beginCap', TRUE);
   FFdbeginCap.Exposed := false;
@@ -3336,9 +3524,11 @@ begin
   FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
   Fields.Add(FFdalternative);
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  FEventset_bind := TVRMLEvent.Create('set_bind', TSFBool, true);
+  Events.Add(FEventset_bind);
 
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  FEventisBound := TVRMLEvent.Create('isBound', TSFBool, false);
+  Events.Add(FEventisBound);
 
   DefaultContainerField := 'children';
 end;
@@ -3573,9 +3763,11 @@ constructor TNodeGeoElevationGrid.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
+  FEventset_height := TVRMLEvent.Create('set_height', TMFFloat, true);
+  Events.Add(FEventset_height);
 
-  Events.Add(TVRMLEvent.Create('set_yScale', TSFFloat, true));
+  FEventset_yScale := TVRMLEvent.Create('set_yScale', TSFFloat, true);
+  Events.Add(FEventset_yScale);
 
   FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
   Fields.Add(FFdcolor);
@@ -3727,7 +3919,8 @@ begin
   FFdrootNode.Exposed := false;
   Fields.Add(FFdrootNode);
 
-  Events.Add(TVRMLEvent.Create('children', TMFNode, false));
+  FEventchildren := TVRMLEvent.Create('children', TMFNode, false);
+  Events.Add(FEventchildren);
   Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
@@ -3802,7 +3995,8 @@ constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string; const A
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
@@ -3820,10 +4014,12 @@ begin
   FFdkeyValue.Exposed := false;
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('geovalue_changed', TSFString, false));
+  FEventgeovalue_changed := TVRMLEvent.Create('geovalue_changed', TSFString, false);
+  Events.Add(FEventgeovalue_changed);
   Fields.Last.Exposed := false;
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  Events.Add(FEventvalue_changed);
   Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
@@ -3855,19 +4051,26 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
 
-  Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+  FEventhitNormal_changed := TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false);
+  Events.Add(FEventhitNormal_changed);
 
-  Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+  FEventhitPoint_changed := TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false);
+  Events.Add(FEventhitPoint_changed);
 
-  Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
+  FEventhitTexCoord_changed := TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false);
+  Events.Add(FEventhitTexCoord_changed);
 
-  Events.Add(TVRMLEvent.Create('hitGeoCoord_changed', TSFString, false));
+  FEventhitGeoCoord_changed := TVRMLEvent.Create('hitGeoCoord_changed', TSFString, false);
+  Events.Add(FEventhitGeoCoord_changed);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
-  Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+  FEventisOver := TVRMLEvent.Create('isOver', TSFBool, false);
+  Events.Add(FEventisOver);
 
-  Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
+  FEventtouchTime := TVRMLEvent.Create('touchTime', TSFTime, false);
+  Events.Add(FEventtouchTime);
 
   DefaultContainerField := 'children';
 end;
@@ -3887,11 +4090,14 @@ constructor TNodeGeoViewpoint.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+  FEventset_bind := TVRMLEvent.Create('set_bind', TSFBool, true);
+  Events.Add(FEventset_bind);
 
-  Events.Add(TVRMLEvent.Create('set_orientation', TSFString, true));
+  FEventset_orientation := TVRMLEvent.Create('set_orientation', TSFString, true);
+  Events.Add(FEventset_orientation);
 
-  Events.Add(TVRMLEvent.Create('set_position', TSFString, true));
+  FEventset_position := TVRMLEvent.Create('set_position', TSFString, true);
+  Events.Add(FEventset_position);
 
   FFdfieldOfView := TSFFloat.Create('fieldOfView', Pi / 4);
   Fields.Add(FFdfieldOfView);
@@ -3929,9 +4135,11 @@ begin
   FFdspeedFactor.Exposed := false;
   Fields.Add(FFdspeedFactor);
 
-  Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+  FEventbindTime := TVRMLEvent.Create('bindTime', TSFTime, false);
+  Events.Add(FEventbindTime);
 
-  Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
+  FEventisBound := TVRMLEvent.Create('isBound', TSFBool, false);
+  Events.Add(FEventisBound);
 
   DefaultContainerField := 'children';
 end;
@@ -4076,13 +4284,17 @@ constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+  FEventset_colorIndex := TVRMLEvent.Create('set_colorIndex', TMFInt32, true);
+  Events.Add(FEventset_colorIndex);
 
-  Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
+  FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
+  Events.Add(FEventset_coordIndex);
 
-  Events.Add(TVRMLEvent.Create('set_normalIndex', TMFInt32, true));
+  FEventset_normalIndex := TVRMLEvent.Create('set_normalIndex', TMFInt32, true);
+  Events.Add(FEventset_normalIndex);
 
-  Events.Add(TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true));
+  FEventset_texCoordIndex := TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true);
+  Events.Add(FEventset_texCoordIndex);
 
   FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
   Fields.Add(FFdcolor);
@@ -4157,9 +4369,11 @@ constructor TNodeIndexedLineSet_2.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+  FEventset_colorIndex := TVRMLEvent.Create('set_colorIndex', TMFInt32, true);
+  Events.Add(FEventset_colorIndex);
 
-  Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
+  FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
+  Events.Add(FEventset_coordIndex);
 
   FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
   Fields.Add(FFdcolor);
@@ -4290,7 +4504,8 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
 
-  Events.Add(TVRMLEvent.Create('children', TMFNode, false));
+  FEventchildren := TVRMLEvent.Create('children', TMFNode, false);
+  Events.Add(FEventchildren);
 
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
@@ -4491,9 +4706,11 @@ begin
   FFdrepeatT.Exposed := false;
   Fields.Add(FFdrepeatT);
 
-  Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
+  Events.Add(FEventduration_changed);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
 end;
@@ -4534,7 +4751,8 @@ begin
   FFdvisibilityLimit := TSFFloat.Create('visibilityLimit', 0.0);
   Fields.Add(FFdvisibilityLimit);
 
-  Events.Add(TVRMLEvent.Create('transitionComplete', TSFBool, false));
+  FEventtransitionComplete := TVRMLEvent.Create('transitionComplete', TSFBool, false);
+  Events.Add(FEventtransitionComplete);
 
   DefaultContainerField := 'children';
 end;
@@ -4575,7 +4793,8 @@ constructor TNodeNormalInterpolator.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -4583,7 +4802,8 @@ begin
   FFdkeyValue := TMFVec3f.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -4688,7 +4908,8 @@ constructor TNodeNurbsPositionInterpolator.Create(const ANodeName: string; const
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFddimension := TSFInt32.Create('dimension', 0);
   Fields.Add(FFddimension);
@@ -4705,7 +4926,8 @@ begin
   FFdorder := TSFInt32.Create('order', 4);
   Fields.Add(FFdorder);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -4834,7 +5056,8 @@ constructor TNodeOrientationInterpolator.Create(const ANodeName: string; const A
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -4842,7 +5065,8 @@ begin
   FFdkeyValue := TMFRotation.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFRotation, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -4931,7 +5155,8 @@ begin
   FFdaxisRotation := TSFRotation.Create('axisRotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdaxisRotation);
 
-  Events.Add(TVRMLEvent.Create('translation_changed', TSFVec3f, false));
+  FEventtranslation_changed := TVRMLEvent.Create('translation_changed', TSFVec3f, false);
+  Events.Add(FEventtranslation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -5051,7 +5276,8 @@ constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWW
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -5059,7 +5285,8 @@ begin
   FFdkeyValue := TMFVec3f.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -5088,15 +5315,20 @@ begin
   FFdenabled := TSFBool.Create('enabled', TRUE);
   Fields.Add(FFdenabled);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
-  Events.Add(TVRMLEvent.Create('position_changed', TSFVec3f, false));
+  FEventposition_changed := TVRMLEvent.Create('position_changed', TSFVec3f, false);
+  Events.Add(FEventposition_changed);
 
-  Events.Add(TVRMLEvent.Create('orientation_changed', TSFRotation, false));
+  FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
+  Events.Add(FEventorientation_changed);
 
-  Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
+  Events.Add(FEvententerTime);
 
-  Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
+  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
+  Events.Add(FEventexitTime);
 
   DefaultContainerField := 'children';
 end;
@@ -5116,7 +5348,8 @@ constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  Events.Add(FEventset_fraction);
 
   FFdkey := TMFFloat.Create('key', []);
   Fields.Add(FFdkey);
@@ -5124,7 +5357,8 @@ begin
   FFdkeyValue := TMFFloat.Create('keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  Events.Add(TVRMLEvent.Create('value_changed', TSFFloat, false));
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
+  Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -5432,7 +5666,8 @@ begin
   FFdoffset := TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0);
   Fields.Add(FFdoffset);
 
-  Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
+  FEventrotation_changed := TVRMLEvent.Create('rotation_changed', TSFRotation, false);
+  Events.Add(FEventrotation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -5703,13 +5938,17 @@ begin
   FFdstopTime := TSFTime.Create('stopTime', 0);
   Fields.Add(FFdstopTime);
 
-  Events.Add(TVRMLEvent.Create('cycleTime', TSFTime, false));
+  FEventcycleTime := TVRMLEvent.Create('cycleTime', TSFTime, false);
+  Events.Add(FEventcycleTime);
 
-  Events.Add(TVRMLEvent.Create('fraction_changed', TSFFloat, false));
+  FEventfraction_changed := TVRMLEvent.Create('fraction_changed', TSFFloat, false);
+  Events.Add(FEventfraction_changed);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
-  Events.Add(TVRMLEvent.Create('time', TSFTime, false));
+  FEventtime := TVRMLEvent.Create('time', TSFTime, false);
+  Events.Add(FEventtime);
 
   DefaultContainerField := 'children';
 end;
@@ -5729,11 +5968,14 @@ constructor TNodeTouchSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+  FEventhitNormal_changed := TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false);
+  Events.Add(FEventhitNormal_changed);
 
-  Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+  FEventhitPoint_changed := TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false);
+  Events.Add(FEventhitPoint_changed);
 
-  Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
+  FEventhitTexCoord_changed := TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false);
+  Events.Add(FEventhitTexCoord_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -5854,9 +6096,11 @@ constructor TNodeTrimmedSurface.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Events.Add(TVRMLEvent.Create('addTrimmingContour', TMFNode, true));
+  FEventaddTrimmingContour := TVRMLEvent.Create('addTrimmingContour', TMFNode, true);
+  Events.Add(FEventaddTrimmingContour);
 
-  Events.Add(TVRMLEvent.Create('removeTrimmingContour', TMFNode, true));
+  FEventremoveTrimmingContour := TVRMLEvent.Create('removeTrimmingContour', TMFNode, true);
+  Events.Add(FEventremoveTrimmingContour);
 
   FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
   Fields.Add(FFdtrimmingContour);
@@ -5963,11 +6207,14 @@ begin
   FFdsize := TSFVec3f.Create('size', ZeroVector3Single);
   Fields.Add(FFdsize);
 
-  Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
+  Events.Add(FEvententerTime);
 
-  Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
+  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
+  Events.Add(FEventexitTime);
 
-  Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
 end;

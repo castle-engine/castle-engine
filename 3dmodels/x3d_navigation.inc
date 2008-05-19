@@ -43,7 +43,9 @@
     private FFdforceTransitions: TSFBool;
     public property FdforceTransitions: TSFBool read FFdforceTransitions;
 
-    { SFInt32 [out]    level_changed }
+    { Event: SFInt32, out } { }
+    private FEventlevel_changed: TVRMLEvent;
+    public property Eventlevel_changed: TVRMLEvent read FEventlevel_changed;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -86,7 +88,8 @@ begin
   FFdforceTransitions.Exposed := false;
   Fields.Add(FFdforceTransitions);
 
-  Events.Add(TVRMLEvent.Create('level_changed', TSFInt32, false));
+  FEventlevel_changed := TVRMLEvent.Create('level_changed', TSFInt32, false);
+  Events.Add(FEventlevel_changed);
 
   DefaultContainerField := 'children';
 end;
