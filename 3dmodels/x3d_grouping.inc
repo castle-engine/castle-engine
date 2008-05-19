@@ -37,7 +37,8 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdwhichChoice: TSFInt32 index 4 read GetFieldAsSFInt32;
+    private FFdwhichChoice: TSFInt32;
+    public property FdwhichChoice: TSFInt32 read FFdwhichChoice;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -68,7 +69,8 @@ constructor TNodeSwitch_3.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  Fields.Add(TSFInt32.Create('whichChoice', -1));
+  FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
+  Fields.Add(FFdwhichChoice);
 
   DefaultContainerField := 'children';
 end;

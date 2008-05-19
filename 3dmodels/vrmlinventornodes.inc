@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -33,8 +33,12 @@
   TNodeRotationXYZ = class(TNodeGeneralTransformation)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdAxis: TSFEnum index 0 read GetFieldAsSFEnum;
-    property FdAngle: TSFFloat index 1 read GetFieldAsSFFloat;
+
+    private FFdAxis: TSFEnum;
+    public property FdAxis: TSFEnum read FFdAxis;
+
+    private FFdAngle: TSFFloat;
+    public property FdAngle: TSFFloat read FFdAngle;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function AverageScaleTransform: Single; override;
@@ -49,14 +53,18 @@ end;
 
 constructor TNodeRotationXYZ.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFEnum.Create('axis' , ['X', 'Y', 'Z'], 0));
- Fields.Add(TSFFloat.Create('angle', 0));
+  inherited;
+
+  FFdaxis := TSFEnum.Create('axis' , ['X', 'Y', 'Z'], 0);
+  Fields.Add(FFdaxis);
+
+  FFdangle := TSFFloat.Create('angle', 0);
+  Fields.Add(FFdangle);
 end;
 
 class function TNodeRotationXYZ.ClassNodeTypeName: string;
 begin
- Result := 'RotationXYZ';
+  Result := 'RotationXYZ';
 end;
 
 procedure TNodeRotationXYZ.Transformation(

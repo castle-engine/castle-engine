@@ -24,8 +24,12 @@ type
   TNodeX3DMetadataObject = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property Fdname: TSFString index 0 read GetFieldAsSFString;
-    property Fdreference: TSFString index 1 read GetFieldAsSFString;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
   end;
 
   { Base X3D node.
@@ -41,7 +45,9 @@ type
   TNodeX3DNode = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property Fdmetadata: TSFNode index 0 read GetFieldAsSFNode;
+
+    private FFdmetadata: TSFNode;
+    public property Fdmetadata: TSFNode read FFdmetadata;
   end;
 
   TNodeX3DChildNode = class(TNodeX3DNode)
@@ -52,14 +58,19 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     { eventIn      SFBool     set_bind } { }
+
     { eventOut     SFTime     bindTime } { }
+
     { eventOut     SFBool     isBound } { }
   end;
 
   TNodeX3DSensorNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property Fdenabled: TSFBool index 1 read GetFieldAsSFBool;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
     { property FdisActive: TSFBool ([out]) } { }
   end;
 
@@ -72,9 +83,11 @@ constructor TNodeX3DMetadataObject.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('name', ''));
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
 
-  Fields.Add(TSFString.Create('reference', ''));
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
 end;
 
 constructor TNodeX3DNode.Create(const ANodeName: string;
@@ -82,7 +95,8 @@ constructor TNodeX3DNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
+  FFdmetadata := TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]);
+  Fields.Add(FFdmetadata);
 end;
 
 constructor TNodeX3DBindableNode.Create(const ANodeName: string;
@@ -102,7 +116,8 @@ constructor TNodeX3DSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('enabled', true));
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
 
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 end;

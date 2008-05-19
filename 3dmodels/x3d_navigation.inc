@@ -34,9 +34,15 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdcenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property Fdrange: TMFFloat index 5 read GetFieldAsMFFloat;
-    property FdforceTransitions: TSFBool index 6 read GetFieldAsSFBool;
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdrange: TMFFloat;
+    public property Fdrange: TMFFloat read FFdrange;
+
+    private FFdforceTransitions: TSFBool;
+    public property FdforceTransitions: TSFBool read FFdforceTransitions;
+
     { SFInt32 [out]    level_changed }
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -68,14 +74,17 @@ constructor TNodeLOD_3.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  FFdcenter.Exposed := false;
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TMFFloat.Create('range', []));
-  Fields.Last.Exposed := false;
+  FFdrange := TMFFloat.Create('range', []);
+  FFdrange.Exposed := false;
+  Fields.Add(FFdrange);
 
-  Fields.Add(TSFBool.Create('forceTransitions', false));
-  Fields.Last.Exposed := false;
+  FFdforceTransitions := TSFBool.Create('forceTransitions', false);
+  FFdforceTransitions.Exposed := false;
+  Fields.Add(FFdforceTransitions);
 
   Events.Add(TVRMLEvent.Create('level_changed', TSFInt32, false));
 

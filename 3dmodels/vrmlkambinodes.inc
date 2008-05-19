@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -26,9 +26,14 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdQuadricSlices: TSFLong index 0 read GetFieldAsSFLong;
-    property FdQuadricStacks: TSFLong index 1 read GetFieldAsSFLong;
-    property FdRectDivisions: TSFLong index 2 read GetFieldAsSFLong;
+    private FFdQuadricSlices: TSFLong;
+    public property FdQuadricSlices: TSFLong read FFdQuadricSlices;
+
+    private FFdQuadricStacks: TSFLong;
+    public property FdQuadricStacks: TSFLong read FFdQuadricStacks;
+
+    private FFdRectDivisions: TSFLong;
+    public property FdRectDivisions: TSFLong read FFdRectDivisions;
 
     { zwracaja wartosc z odpowiedniego pola FdXxx lub,
       jesli ta wartosc jest -1, zwracaja Detail_Xxx.
@@ -49,13 +54,27 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdAmbientIntensity: TSFFloat index 0 read GetFieldAsSFFloat;
-    property FdAttenuation: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property FdColor: TSFColor index 2 read GetFieldAsSFColor;
-    property FdIntensity: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdSpot: TSFBool index 4 read GetFieldAsSFBool;
-    property FdSpotCutOffAngle: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdSpotDropOffRate: TSFFloat index 6 read GetFieldAsSFFloat;
+
+    private FFdAmbientIntensity: TSFFloat;
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
+
+    private FFdAttenuation: TSFVec3f;
+    public property FdAttenuation: TSFVec3f read FFdAttenuation;
+
+    private FFdColor: TSFColor;
+    public property FdColor: TSFColor read FFdColor;
+
+    private FFdIntensity: TSFFloat;
+    public property FdIntensity: TSFFloat read FFdIntensity;
+
+    private FFdSpot: TSFBool;
+    public property FdSpot: TSFBool read FFdSpot;
+
+    private FFdSpotCutOffAngle: TSFFloat;
+    public property FdSpotCutOffAngle: TSFFloat read FFdSpotCutOffAngle;
+
+    private FFdSpotDropOffRate: TSFFloat;
+    public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
     class function URNMatching(const URN: string): boolean; override;
   end;
@@ -65,16 +84,26 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdstring: TMFString index 0 read GetFieldAsMFString;
-    property FdfontStyle: TSFNode index 1 read GetFieldAsSFNode;
-    property Fdlength: TMFFloat index 2 read GetFieldAsMFFloat;
-    property FdmaxExtent: TSFFloat index 3 read GetFieldAsSFFloat;
+    private FFdstring: TMFString;
+    public property Fdstring: TMFString read FFdstring;
+
+    private FFdfontStyle: TSFNode;
+    public property FdfontStyle: TSFNode read FFdfontStyle;
+
+    private FFdlength: TMFFloat;
+    public property Fdlength: TMFFloat read FFdlength;
+
+    private FFdmaxExtent: TSFFloat;
+    public property FdmaxExtent: TSFFloat read FFdmaxExtent;
 
     { Fields added compared to normal Text node: }
 
     { }
-    property FdDepth: TSFFloat index 4 read GetFieldAsSFFloat;
-    property FdSolid: TSFBool index 5 read GetFieldAsSFBool;
+    private FFdDepth: TSFFloat;
+    public property FdDepth: TSFFloat read FFdDepth;
+
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -104,10 +133,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    property FdsrcFactor: TSFString index 0 read GetFieldAsSFString;
-    property FddestFactor: TSFString index 1 read GetFieldAsSFString;
-    property Fdcolor: TSFColor index 2 read GetFieldAsSFColor;
-    property FdcolorTransparency: TSFFloat index 3 read GetFieldAsSFFloat;
+    private FFdsrcFactor: TSFString;
+    public property FdsrcFactor: TSFString read FFdsrcFactor;
+
+    private FFddestFactor: TSFString;
+    public property FddestFactor: TSFString read FFddestFactor;
+
+    private FFdcolor: TSFColor;
+    public property Fdcolor: TSFColor read FFdcolor;
+
+    private FFdcolorTransparency: TSFFloat;
+    public property FdcolorTransparency: TSFFloat read FFdcolorTransparency;
   end;
 
   TNodeKambiAppearance = class(TNodeAppearance)
@@ -115,9 +151,14 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdNormalMap: TSFNode index 7 read GetFieldAsSFNode;
-    property FdHeightMap: TSFNode index 8 read GetFieldAsSFNode;
-    property FdHeightMapScale: TSFFloat index 9 read GetFieldAsSFFloat;
+    private FFdNormalMap: TSFNode;
+    public property FdNormalMap: TSFNode read FFdNormalMap;
+
+    private FFdHeightMap: TSFNode;
+    public property FdHeightMap: TSFNode read FFdHeightMap;
+
+    private FFdHeightMapScale: TSFFloat;
+    public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
 
     { blendMode property.
 
@@ -125,7 +166,8 @@
       See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
       and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
       It allows you to use BlendMode nodes, which I consider very useful. }
-    property FdBlendMode: TSFNode index 10 read GetFieldAsSFNode;
+    private FFdBlendMode: TSFNode;
+    public property FdBlendMode: TSFNode read FFdBlendMode;
 
     class function URNMatching(const URN: string): boolean; override;
   end;
@@ -138,15 +180,21 @@ const
 
 constructor TNodeKambiTriangulation.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited;
- Fields.Add(TSFLong.Create('quadricSlices', TriangulationUseDef));
- Fields.Add(TSFLong.Create('quadricStacks', TriangulationUseDef));
- Fields.Add(TSFLong.Create('rectDivisions', TriangulationUseDef));
+  inherited;
+
+  FFdquadricSlices := TSFLong.Create('quadricSlices', TriangulationUseDef);
+  Fields.Add(FFdquadricSlices);
+
+  FFdquadricStacks := TSFLong.Create('quadricStacks', TriangulationUseDef);
+  Fields.Add(FFdquadricStacks);
+
+  FFdrectDivisions := TSFLong.Create('rectDivisions', TriangulationUseDef);
+  Fields.Add(FFdrectDivisions);
 end;
 
 class function TNodeKambiTriangulation.ClassNodeTypeName: string;
 begin
- result := 'KambiTriangulation';
+  result := 'KambiTriangulation';
 end;
 
 {$define TRIANGULATION_DETAIL_FUNC:=
@@ -219,13 +267,27 @@ const
   HeadLightDefaultSpotDropOffRate = 0.0;
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('ambientIntensity', HeadLightDefaultAmbientIntensity));
-  Fields.Add(TSFVec3f.Create('attenuation', HeadLightDefaultAttenuation));
-  Fields.Add(TSFColor.Create('color', HeadLightDefaultColor));
-  Fields.Add(TSFFloat.Create('intensity', HeadLightDefaultIntensity));
-  Fields.Add(TSFBool.Create('spot', HeadLightDefaultSpot));
-  Fields.Add(TSFFloat.Create('spotCutOffAngle', HeadLightDefaultSpotCutOffAngle));
-  Fields.Add(TSFFloat.Create('spotDropOffRate', HeadLightDefaultSpotDropOffRate));
+
+  FFdambientIntensity := TSFFloat.Create('ambientIntensity', HeadLightDefaultAmbientIntensity);
+  Fields.Add(FFdambientIntensity);
+
+  FFdattenuation := TSFVec3f.Create('attenuation', HeadLightDefaultAttenuation);
+  Fields.Add(FFdattenuation);
+
+  FFdcolor := TSFColor.Create('color', HeadLightDefaultColor);
+  Fields.Add(FFdcolor);
+
+  FFdintensity := TSFFloat.Create('intensity', HeadLightDefaultIntensity);
+  Fields.Add(FFdintensity);
+
+  FFdspot := TSFBool.Create('spot', HeadLightDefaultSpot);
+  Fields.Add(FFdspot);
+
+  FFdspotCutOffAngle := TSFFloat.Create('spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
+  Fields.Add(FFdspotCutOffAngle);
+
+  FFdspotDropOffRate := TSFFloat.Create('spotDropOffRate', HeadLightDefaultSpotDropOffRate);
+  Fields.Add(FFdspotDropOffRate);
 end;
 
 class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
@@ -248,12 +310,24 @@ end;
 constructor TNodeText3D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFString.Create('string', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('depth', 0.1, true)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('solid', true)); Fields.Last.Exposed := true;
+
+  FFdstring := TMFString.Create('string', []);
+  Fields.Add(FFdstring);
+
+  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]);
+  Fields.Add(FFdfontStyle);
+
+  FFdlength := TMFFloat.Create('length', []);
+  Fields.Add(FFdlength);
+
+  FFdmaxExtent := TSFFloat.Create('maxExtent', 0.0);
+  Fields.Add(FFdmaxExtent);
+
+  FFddepth := TSFFloat.Create('depth', 0.1, true);
+  Fields.Add(FFddepth);
+
+  FFdsolid := TSFBool.Create('solid', true);
+  Fields.Add(FFdsolid);
 end;
 
 function TNodeText3D.FontStyle: TNodeFontStyle_2;
@@ -279,17 +353,17 @@ constructor TNodeBlendMode.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('srcFactor', 'src_alpha'));
-  Fields.Last.Exposed := true;
+  FFdsrcFactor := TSFString.Create('srcFactor', 'src_alpha');
+  Fields.Add(FFdsrcFactor);
 
-  Fields.Add(TSFString.Create('destFactor', 'one_minus_src_alpha'));
-  Fields.Last.Exposed := true;
+  FFddestFactor := TSFString.Create('destFactor', 'one_minus_src_alpha');
+  Fields.Add(FFddestFactor);
 
-  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
-  Fields.Last.Exposed := true;
+  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFFloat.Create('colorTransparency', 0.0));
-  Fields.Last.Exposed := true;
+  FFdcolorTransparency := TSFFloat.Create('colorTransparency', 0.0);
+  Fields.Add(FFdcolorTransparency);
 end;
 
 class function TNodeKambiAppearance.ClassNodeTypeName: string;
@@ -308,19 +382,17 @@ constructor TNodeKambiAppearance.Create(const ANodeName: string; const AWWWBaseP
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'normalMap',
-    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
-  Fields.Last.Exposed := true;
+  FFdnormalMap := TSFNode.Create(Self, 'normalMap', [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]);
+  Fields.Add(FFdnormalMap);
 
-  Fields.Add(TSFNode.Create(Self, 'heightMap',
-    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
-  Fields.Last.Exposed := true;
+  FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]);
+  Fields.Add(FFdheightMap);
 
-  Fields.Add(TSFFloat.Create('heightMapScale', DefaultHeightMapScale));
-  Fields.Last.Exposed := true;
+  FFdheightMapScale := TSFFloat.Create('heightMapScale', DefaultHeightMapScale);
+  Fields.Add(FFdheightMapScale);
 
-  Fields.Add(TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]));
-  Fields.Last.Exposed := true;
+  FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
+  Fields.Add(FFdblendMode);
 end;
 
 {$endif read_implementation}

@@ -44,10 +44,17 @@
 
     { eventIn      MFNode   addChildren } { }
     { eventIn      MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property Fdmetadata: TSFNode index 1 read GetFieldAsSFNode;
-    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+    private FFdchildren: TMFNode;
+    public property Fdchildren: TMFNode read FFdchildren;
+
+    private FFdmetadata: TSFNode;
+    public property Fdmetadata: TSFNode read FFdmetadata;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
     function ChildrenField: TMFNode; override;
   end;
@@ -60,9 +67,14 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fddescription: TSFString index 4 read GetFieldAsSFString;
-    property Fdparameter: TMFString index 5 read GetFieldAsMFString;
-    property Fdurl: TMFString index 6 read GetFieldAsMFString;
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
+    private FFdparameter: TMFString;
+    public property Fdparameter: TMFString read FFdparameter;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -77,14 +89,26 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdmaterial: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdtexture: TSFNode index 1 read GetFieldAsSFNode;
-    property FdtextureTransform: TSFNode index 2 read GetFieldAsSFNode;
+    private FFdmaterial: TSFNode;
+    public property Fdmaterial: TSFNode read FFdmaterial;
 
-    property FdfillProperties: TSFNode index 3 read GetFieldAsSFNode;
-    property FdlineProperties: TSFNode index 4 read GetFieldAsSFNode;
-    property Fdmetadata: TSFNode index 5 read GetFieldAsSFNode;
-    property Fdshaders: TMFNode index 6 read GetFieldAsMFNode;
+    private FFdtexture: TSFNode;
+    public property Fdtexture: TSFNode read FFdtexture;
+
+    private FFdtextureTransform: TSFNode;
+    public property FdtextureTransform: TSFNode read FFdtextureTransform;
+
+    private FFdfillProperties: TSFNode;
+    public property FdfillProperties: TSFNode read FFdfillProperties;
+
+    private FFdlineProperties: TSFNode;
+    public property FdlineProperties: TSFNode read FFdlineProperties;
+
+    private FFdmetadata: TSFNode;
+    public property Fdmetadata: TSFNode read FFdmetadata;
+
+    private FFdshaders: TMFNode;
+    public property Fdshaders: TMFNode read FFdshaders;
 
     { This returns FdShaders.Items[Index], if it's a shader node suitable for GLSL
       shader. Otherwise returns @nil. This checks the class of
@@ -100,12 +124,24 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fddescription: TSFString index 0 read GetFieldAsSFString;
-    property Fdloop: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdpitch: TSFFloat index 2 read GetFieldAsSFFloat;
-    property FdstartTime: TSFTime index 3 read GetFieldAsSFTime;
-    property FdstopTime: TSFTime index 4 read GetFieldAsSFTime;
-    property Fdurl: TMFString index 5 read GetFieldAsMFString;
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
+    private FFdloop: TSFBool;
+    public property Fdloop: TSFBool read FFdloop;
+
+    private FFdpitch: TSFFloat;
+    public property Fdpitch: TSFFloat read FFdpitch;
+
+    private FFdstartTime: TSFTime;
+    public property FdstartTime: TSFTime read FFdstartTime;
+
+    private FFdstopTime: TSFTime;
+    public property FdstopTime: TSFTime read FFdstopTime;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
     { eventOut       SFTime   duration_changed } { }
     { eventOut       SFBool   isActive } { }
 
@@ -139,16 +175,37 @@
     class function ClassNodeTypeName: string; override;
 
     { eventIn      SFBool   set_bind } { }
-    property FdGroundAngle: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdGroundColor: TMFColor index 1 read GetFieldAsMFColor;
-    property FdBackUrl: TMFString index 2 read GetFieldAsMFString;
-    property FdBottomUrl: TMFString index 3 read GetFieldAsMFString;
-    property FdFrontUrl: TMFString index 4 read GetFieldAsMFString;
-    property FdLeftUrl: TMFString index 5 read GetFieldAsMFString;
-    property FdRightUrl: TMFString index 6 read GetFieldAsMFString;
-    property FdTopUrl: TMFString index 7 read GetFieldAsMFString;
-    property FdSkyAngle: TMFFloat index 8 read GetFieldAsMFFloat; {  [0, Pi] }
-    property FdSkyColor: TMFColor index 9 read GetFieldAsMFColor; {  [0, 1] }
+
+    private FFdGroundAngle: TMFFloat;
+    public property FdGroundAngle: TMFFloat read FFdGroundAngle;
+
+    private FFdGroundColor: TMFColor;
+    public property FdGroundColor: TMFColor read FFdGroundColor;
+
+    private FFdBackUrl: TMFString;
+    public property FdBackUrl: TMFString read FFdBackUrl;
+
+    private FFdBottomUrl: TMFString;
+    public property FdBottomUrl: TMFString read FFdBottomUrl;
+
+    private FFdFrontUrl: TMFString;
+    public property FdFrontUrl: TMFString read FFdFrontUrl;
+
+    private FFdLeftUrl: TMFString;
+    public property FdLeftUrl: TMFString read FFdLeftUrl;
+
+    private FFdRightUrl: TMFString;
+    public property FdRightUrl: TMFString read FFdRightUrl;
+
+    private FFdTopUrl: TMFString;
+    public property FdTopUrl: TMFString read FFdTopUrl;
+
+    private FFdSkyAngle: TMFFloat;
+    public property FdSkyAngle: TMFFloat read FFdSkyAngle;
+
+    private FFdSkyColor: TMFColor;
+    public property FdSkyColor: TMFColor read FFdSkyColor;
+
     { eventOut     SFBool   isBound } { }
 
     procedure Parse(Lexer: TVRMLLexer); override;
@@ -213,7 +270,8 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdaxisOfRotation: TSFVec3f index 4 read GetFieldAsSFVec3f;
+    private FFdaxisOfRotation: TSFVec3f;
+    public property FdaxisOfRotation: TSFVec3f read FFdaxisOfRotation;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -224,7 +282,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdsize: TSFVec3f index 0 read GetFieldAsSFVec3f;
+
+    private FFdsize: TSFVec3f;
+    public property Fdsize: TSFVec3f read FFdsize;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -249,12 +309,18 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdcollide: TSFBool index 4 read GetFieldAsSFBool;
-    property Fdproxy: TSFNode index 5 read GetFieldAsSFNode;
+    private FFdcollide: TSFBool;
+    public property Fdcollide: TSFBool read FFdcollide;
+
+    private FFdproxy: TSFNode;
+    public property Fdproxy: TSFNode read FFdproxy;
+
     { eventOut     SFTime   collideTime } { }
 
     { This should actually come from ancestor INodeX3DSensorNode } { }
-    property Fdenabled: TSFBool index 6 read GetFieldAsSFBool;
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
     { property FdisActive: TSFBool ([out]) } { }
 
     function SuggestedVRMLVersion(
@@ -266,7 +332,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcolor: TMFColor index 0 read GetFieldAsMFColor;
+
+    private FFdcolor: TMFColor;
+    public property Fdcolor: TMFColor read FFdcolor;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -277,9 +345,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFColor index 1 read GetFieldAsMFColor;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFColor;
+    public property FdkeyValue: TMFColor read FFdkeyValue;
+
     { eventOut     SFColor value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -321,9 +395,13 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      MFNode  addChildren } { }
+
     { eventIn      MFNode  removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
+
+    private FFdchildren: TMFNode;
+    public property Fdchildren: TMFNode read FFdchildren;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -334,7 +412,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdpoint: TMFVec3f index 0 read GetFieldAsMFVec3f;
+
+    private FFdpoint: TMFVec3f;
+    public property Fdpoint: TMFVec3f read FFdpoint;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -345,25 +425,61 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      MFNode   addChildren } { }
+
     { eventIn      MFNode   removeChildren } { }
-    property Fdchildren: TMFNode index 0 read GetFieldAsMFNode;
-    property FdcontrolPoint: TMFVec3f index 1 read GetFieldAsMFVec3f;
-    property FdinputCoord: TMFNode index 2 read GetFieldAsMFNode;
-    property FdinputTransform: TMFNode index 3 read GetFieldAsMFNode;
-    property FdoutputCoord: TMFNode index 4 read GetFieldAsMFNode;
-    property Fdweight: TMFFloat index 5 read GetFieldAsMFFloat;
-    property FdbboxCenter: TSFVec3f index 6 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 7 read GetFieldAsSFVec3f;
-    property FduDimension: TSFInt32 index 8 read GetFieldAsSFInt32;
-    property FduKnot: TMFFloat index 9 read GetFieldAsMFFloat;
-    property FduOrder: TSFInt32 index 10 read GetFieldAsSFInt32;
-    property FdvDimension: TSFInt32 index 11 read GetFieldAsSFInt32;
-    property FdvKnot: TMFFloat index 12 read GetFieldAsMFFloat;
-    property FdvOrder: TSFInt32 index 13 read GetFieldAsSFInt32;
-    property FdwDimension: TSFInt32 index 14 read GetFieldAsSFInt32;
-    property FdwKnot: TMFFloat index 15 read GetFieldAsMFFloat;
-    property FdwOrder: TSFInt32 index 16 read GetFieldAsSFInt32;
+
+    private FFdchildren: TMFNode;
+    public property Fdchildren: TMFNode read FFdchildren;
+
+    private FFdcontrolPoint: TMFVec3f;
+    public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
+
+    private FFdinputCoord: TMFNode;
+    public property FdinputCoord: TMFNode read FFdinputCoord;
+
+    private FFdinputTransform: TMFNode;
+    public property FdinputTransform: TMFNode read FFdinputTransform;
+
+    private FFdoutputCoord: TMFNode;
+    public property FdoutputCoord: TMFNode read FFdoutputCoord;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+
+    private FFduDimension: TSFInt32;
+    public property FduDimension: TSFInt32 read FFduDimension;
+
+    private FFduKnot: TMFFloat;
+    public property FduKnot: TMFFloat read FFduKnot;
+
+    private FFduOrder: TSFInt32;
+    public property FduOrder: TSFInt32 read FFduOrder;
+
+    private FFdvDimension: TSFInt32;
+    public property FdvDimension: TSFInt32 read FFdvDimension;
+
+    private FFdvKnot: TMFFloat;
+    public property FdvKnot: TMFFloat read FFdvKnot;
+
+    private FFdvOrder: TSFInt32;
+    public property FdvOrder: TSFInt32 read FFdvOrder;
+
+    private FFdwDimension: TSFInt32;
+    public property FdwDimension: TSFInt32 read FFdwDimension;
+
+    private FFdwKnot: TMFFloat;
+    public property FdwKnot: TMFFloat read FFdwKnot;
+
+    private FFdwOrder: TSFInt32;
+    public property FdwOrder: TSFInt32 read FFdwOrder;
 
     function ChildrenField: TMFNode; override;
 
@@ -376,9 +492,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFVec3f;
+    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+
     { eventOut     MFVec3f value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -390,11 +512,21 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdbottom: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdheight: TSFFloat index 1 read GetFieldAsSFFloat;
-    property Fdradius: TSFFloat index 2 read GetFieldAsSFFloat;
-    property Fdside: TSFBool index 3 read GetFieldAsSFBool;
-    property Fdtop: TSFBool index 4 read GetFieldAsSFBool;
+
+    private FFdbottom: TSFBool;
+    public property Fdbottom: TSFBool read FFdbottom;
+
+    private FFdheight: TSFFloat;
+    public property Fdheight: TSFFloat read FFdheight;
+
+    private FFdradius: TSFFloat;
+    public property Fdradius: TSFFloat read FFdradius;
+
+    private FFdside: TSFBool;
+    public property Fdside: TSFBool read FFdside;
+
+    private FFdtop: TSFBool;
+    public property Fdtop: TSFBool read FFdtop;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -414,11 +546,21 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FddiskAngle: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdmaxAngle: TSFFloat index 4 read GetFieldAsSFFloat;
-    property FdminAngle: TSFFloat index 5 read GetFieldAsSFFloat;
-    property Fdoffset: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdaxisRotation: TSFRotation index 7 read GetFieldAsSFRotation;
+    private FFddiskAngle: TSFFloat;
+    public property FddiskAngle: TSFFloat read FFddiskAngle;
+
+    private FFdmaxAngle: TSFFloat;
+    public property FdmaxAngle: TSFFloat read FFdmaxAngle;
+
+    private FFdminAngle: TSFFloat;
+    public property FdminAngle: TSFFloat read FFdminAngle;
+
+    private FFdoffset: TSFFloat;
+    public property Fdoffset: TSFFloat read FFdoffset;
+
+    private FFdaxisRotation: TSFRotation;
+    public property FdaxisRotation: TSFRotation read FFdaxisRotation;
+
     { eventOut     SFRotation rotation_changed } { }
 
     function SuggestedVRMLVersion(
@@ -442,20 +584,47 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      MFFloat  set_height } { }
-    property Fdcolor: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdnormal: TSFNode index 1 read GetFieldAsSFNode;
-    property FdtexCoord: TSFNode index 2 read GetFieldAsSFNode;
-    property Fdheight: TMFFloat index 3 read GetFieldAsMFFloat;
-    property Fdccw: TSFBool index 4 read GetFieldAsSFBool;
-    property FdcolorPerVertex: TSFBool index 5 read GetFieldAsSFBool;
-    property FdcreaseAngle: TSFFloat index 6 read GetFieldAsSFFloat;
-    property FdnormalPerVertex: TSFBool index 7 read GetFieldAsSFBool;
-    property Fdsolid: TSFBool index 8 read GetFieldAsSFBool;
-    property FdxDimension: TSFInt32 index 9 read GetFieldAsSFInt32;
-    property FdxSpacing: TSFFloat index 10 read GetFieldAsSFFloat;
-    property FdzDimension: TSFInt32 index 11 read GetFieldAsSFInt32;
-    property FdzSpacing: TSFFloat index 12 read GetFieldAsSFFloat;
+
+    private FFdcolor: TSFNode;
+    public property Fdcolor: TSFNode read FFdcolor;
+
+    private FFdnormal: TSFNode;
+    public property Fdnormal: TSFNode read FFdnormal;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+
+    private FFdheight: TMFFloat;
+    public property Fdheight: TMFFloat read FFdheight;
+
+    private FFdccw: TSFBool;
+    public property Fdccw: TSFBool read FFdccw;
+
+    private FFdcolorPerVertex: TSFBool;
+    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+
+    private FFdcreaseAngle: TSFFloat;
+    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+
+    private FFdnormalPerVertex: TSFBool;
+    public property FdnormalPerVertex: TSFBool read FFdnormalPerVertex;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFdxDimension: TSFInt32;
+    public property FdxDimension: TSFInt32 read FFdxDimension;
+
+    private FFdxSpacing: TSFFloat;
+    public property FdxSpacing: TSFFloat read FFdxSpacing;
+
+    private FFdzDimension: TSFInt32;
+    public property FdzDimension: TSFInt32 read FFdzDimension;
+
+    private FFdzSpacing: TSFFloat;
+    public property FdzSpacing: TSFFloat read FFdzSpacing;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -478,20 +647,44 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn MFVec2f    set_crossSection } { }
+
     { eventIn MFRotation set_orientation } { }
+
     { eventIn MFVec2f    set_scale } { }
+
     { eventIn MFVec3f    set_spine } { }
-    property FdbeginCap: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdccw: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdconvex: TSFBool index 2 read GetFieldAsSFBool;
-    property FdcreaseAngle: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdcrossSection: TMFVec2f index 4 read GetFieldAsMFVec2f;
-    property FdendCap: TSFBool index 5 read GetFieldAsSFBool;
-    property Fdorientation: TMFRotation index 6 read GetFieldAsMFRotation;
-    property Fdscale: TMFVec2f index 7 read GetFieldAsMFVec2f;
-    property Fdsolid: TSFBool index 8 read GetFieldAsSFBool;
-    property Fdspine: TMFVec3f index 9 read GetFieldAsMFVec3f;
+
+    private FFdbeginCap: TSFBool;
+    public property FdbeginCap: TSFBool read FFdbeginCap;
+
+    private FFdccw: TSFBool;
+    public property Fdccw: TSFBool read FFdccw;
+
+    private FFdconvex: TSFBool;
+    public property Fdconvex: TSFBool read FFdconvex;
+
+    private FFdcreaseAngle: TSFFloat;
+    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+
+    private FFdcrossSection: TMFVec2f;
+    public property FdcrossSection: TMFVec2f read FFdcrossSection;
+
+    private FFdendCap: TSFBool;
+    public property FdendCap: TSFBool read FFdendCap;
+
+    private FFdorientation: TMFRotation;
+    public property Fdorientation: TMFRotation read FFdorientation;
+
+    private FFdscale: TMFVec2f;
+    public property Fdscale: TMFVec2f read FFdscale;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFdspine: TMFVec3f;
+    public property Fdspine: TMFVec3f read FFdspine;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -512,13 +705,28 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcolor: TSFColor index 0 read GetFieldAsSFColor;
-    property FdfogType: TSFString index 1 read GetFieldAsSFString;
-    property FdvisibilityRange: TSFFloat index 2 read GetFieldAsSFFloat;
-    property FdVolumetric: TSFBool index 3 read GetFieldAsSFBool;
-    property FdVolumetricDirection: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property FdVolumetricVisibilityStart: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdAlternative: TSFNode index 6 read GetFieldAsSFNode;
+
+    private FFdcolor: TSFColor;
+    public property Fdcolor: TSFColor read FFdcolor;
+
+    private FFdfogType: TSFString;
+    public property FdfogType: TSFString read FFdfogType;
+
+    private FFdvisibilityRange: TSFFloat;
+    public property FdvisibilityRange: TSFFloat read FFdvisibilityRange;
+
+    private FFdVolumetric: TSFBool;
+    public property FdVolumetric: TSFBool read FFdVolumetric;
+
+    private FFdVolumetricDirection: TSFVec3f;
+    public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
+
+    private FFdVolumetricVisibilityStart: TSFFloat;
+    public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
+
+    private FFdAlternative: TSFNode;
+    public property FdAlternative: TSFNode read FFdAlternative;
+
     { eventIn      SFBool   set_bind } { }
     { eventOut     SFBool   isBound } { }
 
@@ -536,15 +744,32 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdfamily: TMFString index 0 read GetFieldAsMFString;
-    property Fdhorizontal: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdjustify: TMFString index 2 read GetFieldAsMFString;
-    property Fdlanguage: TSFString index 3 read GetFieldAsSFString;
-    property FdleftToRight: TSFBool index 4 read GetFieldAsSFBool;
-    property Fdsize: TSFFloat index 5 read GetFieldAsSFFloat;
-    property Fdspacing: TSFFloat index 6 read GetFieldAsSFFloat;
-    property Fdstyle: TSFString index 7 read GetFieldAsSFString;
-    property FdtopToBottom: TSFBool index 8 read GetFieldAsSFBool;
+    private FFdfamily: TMFString;
+    public property Fdfamily: TMFString read FFdfamily;
+
+    private FFdhorizontal: TSFBool;
+    public property Fdhorizontal: TSFBool read FFdhorizontal;
+
+    private FFdjustify: TMFString;
+    public property Fdjustify: TMFString read FFdjustify;
+
+    private FFdlanguage: TSFString;
+    public property Fdlanguage: TSFString read FFdlanguage;
+
+    private FFdleftToRight: TSFBool;
+    public property FdleftToRight: TSFBool read FFdleftToRight;
+
+    private FFdsize: TSFFloat;
+    public property Fdsize: TSFFloat read FFdsize;
+
+    private FFdspacing: TSFFloat;
+    public property Fdspacing: TSFFloat read FFdspacing;
+
+    private FFdstyle: TSFString;
+    public property Fdstyle: TSFString read FFdstyle;
+
+    private FFdtopToBottom: TSFBool;
+    public property FdtopToBottom: TSFBool read FFdtopToBottom;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -575,9 +800,14 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdgeoOrigin: TSFNode index 0 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 1 read GetFieldAsMFString;
-    property Fdpoint: TMFString index 2 read GetFieldAsMFString;
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdpoint: TMFString;
+    public property Fdpoint: TMFString read FFdpoint;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -588,25 +818,61 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn        MFFloat    set_height } { }
+
     { eventIn        SFFloat    set_yScale } { }
-    property Fdcolor: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdnormal: TSFNode index 1 read GetFieldAsSFNode;
-    property FdtexCoord: TSFNode index 2 read GetFieldAsSFNode;
-    property Fdccw: TSFBool index 3 read GetFieldAsSFBool;
-    property FdcolorPerVertex: TSFBool index 4 read GetFieldAsSFBool;
-    property FdcreaseAngle: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdgeoOrigin: TSFNode index 6 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 7 read GetFieldAsMFString;
-    property FdgeoGridOrigin: TSFString index 8 read GetFieldAsSFString;
-    property Fdheight: TMFFloat index 9 read GetFieldAsMFFloat;
-    property FdnormalPerVertex: TSFBool index 10 read GetFieldAsSFBool;
-    property Fdsolid: TSFBool index 11 read GetFieldAsSFBool;
-    property FdxDimension: TSFInt32 index 12 read GetFieldAsSFInt32;
-    property FdxSpacing: TSFString index 13 read GetFieldAsSFString;
-    property FdyScale: TSFFloat index 14 read GetFieldAsSFFloat;
-    property FdzDimension: TSFInt32 index 15 read GetFieldAsSFInt32;
-    property FdzSpacing: TSFString index 16 read GetFieldAsSFString;
+
+    private FFdcolor: TSFNode;
+    public property Fdcolor: TSFNode read FFdcolor;
+
+    private FFdnormal: TSFNode;
+    public property Fdnormal: TSFNode read FFdnormal;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+
+    private FFdccw: TSFBool;
+    public property Fdccw: TSFBool read FFdccw;
+
+    private FFdcolorPerVertex: TSFBool;
+    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+
+    private FFdcreaseAngle: TSFFloat;
+    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdgeoGridOrigin: TSFString;
+    public property FdgeoGridOrigin: TSFString read FFdgeoGridOrigin;
+
+    private FFdheight: TMFFloat;
+    public property Fdheight: TMFFloat read FFdheight;
+
+    private FFdnormalPerVertex: TSFBool;
+    public property FdnormalPerVertex: TSFBool read FFdnormalPerVertex;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFdxDimension: TSFInt32;
+    public property FdxDimension: TSFInt32 read FFdxDimension;
+
+    private FFdxSpacing: TSFString;
+    public property FdxSpacing: TSFString read FFdxSpacing;
+
+    private FFdyScale: TSFFloat;
+    public property FdyScale: TSFFloat read FFdyScale;
+
+    private FFdzDimension: TSFInt32;
+    public property FdzDimension: TSFInt32 read FFdzDimension;
+
+    private FFdzSpacing: TSFString;
+    public property FdzSpacing: TSFString read FFdzSpacing;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -618,9 +884,14 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdgeoCoords: TSFString index 4 read GetFieldAsSFString;
-    property FdgeoOrigin: TSFNode index 5 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 6 read GetFieldAsMFString;
+    private FFdgeoCoords: TSFString;
+    public property FdgeoCoords: TSFString read FFdgeoCoords;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -631,16 +902,37 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcenter: TSFString index 0 read GetFieldAsSFString;
-    property Fdchild1Url: TMFString index 1 read GetFieldAsMFString;
-    property Fdchild2Url: TMFString index 2 read GetFieldAsMFString;
-    property Fdchild3Url: TMFString index 3 read GetFieldAsMFString;
-    property Fdchild4Url: TMFString index 4 read GetFieldAsMFString;
-    property FdgeoOrigin: TSFNode index 5 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 6 read GetFieldAsMFString;
-    property Fdrange: TSFFloat index 7 read GetFieldAsSFFloat;
-    property FdrootUrl: TMFString index 8 read GetFieldAsMFString;
-    property FdrootNode: TMFNode index 9 read GetFieldAsMFNode;
+
+    private FFdcenter: TSFString;
+    public property Fdcenter: TSFString read FFdcenter;
+
+    private FFdchild1Url: TMFString;
+    public property Fdchild1Url: TMFString read FFdchild1Url;
+
+    private FFdchild2Url: TMFString;
+    public property Fdchild2Url: TMFString read FFdchild2Url;
+
+    private FFdchild3Url: TMFString;
+    public property Fdchild3Url: TMFString read FFdchild3Url;
+
+    private FFdchild4Url: TMFString;
+    public property Fdchild4Url: TMFString read FFdchild4Url;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdrange: TSFFloat;
+    public property Fdrange: TSFFloat read FFdrange;
+
+    private FFdrootUrl: TMFString;
+    public property FdrootUrl: TMFString read FFdrootUrl;
+
+    private FFdrootNode: TMFNode;
+    public property FdrootNode: TMFNode read FFdrootNode;
+
     { eventOut   MFNode    children } { }
 
     function SuggestedVRMLVersion(
@@ -652,9 +944,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fddata: TMFNode index 0 read GetFieldAsMFNode;
-    property Fdsummary: TMFString index 1 read GetFieldAsMFString;
-    property Fdurl: TMFString index 2 read GetFieldAsMFString;
+
+    private FFddata: TMFNode;
+    public property Fddata: TMFNode read FFddata;
+
+    private FFdsummary: TMFString;
+    public property Fdsummary: TMFString read FFdsummary;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -665,9 +963,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdgeoSystem: TMFString index 0 read GetFieldAsMFString;
-    property FdgeoCoords: TSFString index 1 read GetFieldAsSFString;
-    property FdrotateYUp: TSFBool index 2 read GetFieldAsSFBool;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdgeoCoords: TSFString;
+    public property FdgeoCoords: TSFString read FFdgeoCoords;
+
+    private FFdrotateYUp: TSFBool;
+    public property FdrotateYUp: TSFBool read FFdrotateYUp;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -678,12 +982,23 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn   SFFloat   set_fraction } { }
-    property FdgeoOrigin: TSFNode index 0 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 1 read GetFieldAsMFString;
-    property Fdkey: TMFFloat index 2 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFString index 3 read GetFieldAsMFString;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFString;
+    public property FdkeyValue: TMFString read FFdkeyValue;
+
     { eventOut  SFString  geovalue_changed } { }
+
     { eventOut  SFVec3f   value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -695,15 +1010,28 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdenabled: TSFBool index 0 read GetFieldAsSFBool;
-    property FdgeoOrigin: TSFNode index 1 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 2 read GetFieldAsMFString;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
     { eventOut      SFVec3f   hitNormal_changed } { }
+
     { eventOut      SFVec3f   hitPoint_changed } { }
+
     { eventOut      SFVec2f   hitTexCoord_changed } { }
+
     { eventOut      SFString  hitGeoCoord_changed } { }
+
     { eventOut      SFBool    isActive } { }
+
     { eventOut      SFBool    isOver } { }
+
     { eventOut      SFTime    touchTime } { }
 
     function SuggestedVRMLVersion(
@@ -715,20 +1043,45 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn        SFBool       set_bind } { }
+
     { eventIn        SFString     set_orientation } { }
+
     { eventIn        SFString     set_position } { }
-    property FdfieldOfView: TSFFloat index 0 read GetFieldAsSFFloat;
-    property Fdheadlight: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdjump: TSFBool index 2 read GetFieldAsSFBool;
-    property FdnavType: TMFString index 3 read GetFieldAsMFString;
-    property Fddescription: TSFString index 4 read GetFieldAsSFString;
-    property FdgeoOrigin: TSFNode index 5 read GetFieldAsSFNode;
-    property FdgeoSystem: TMFString index 6 read GetFieldAsMFString;
-    property Fdorientation: TSFRotation index 7 read GetFieldAsSFRotation;
-    property Fdposition: TSFString index 8 read GetFieldAsSFString;
-    property FdspeedFactor: TSFFloat index 9 read GetFieldAsSFFloat;
+
+    private FFdfieldOfView: TSFFloat;
+    public property FdfieldOfView: TSFFloat read FFdfieldOfView;
+
+    private FFdheadlight: TSFBool;
+    public property Fdheadlight: TSFBool read FFdheadlight;
+
+    private FFdjump: TSFBool;
+    public property Fdjump: TSFBool read FFdjump;
+
+    private FFdnavType: TMFString;
+    public property FdnavType: TMFString read FFdnavType;
+
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
+    private FFdgeoOrigin: TSFNode;
+    public property FdgeoOrigin: TSFNode read FFdgeoOrigin;
+
+    private FFdgeoSystem: TMFString;
+    public property FdgeoSystem: TMFString read FFdgeoSystem;
+
+    private FFdorientation: TSFRotation;
+    public property Fdorientation: TSFRotation read FFdorientation;
+
+    private FFdposition: TSFString;
+    public property Fdposition: TSFString read FFdposition;
+
+    private FFdspeedFactor: TSFFloat;
+    public property FdspeedFactor: TSFFloat read FFdspeedFactor;
+
     { eventOut       SFTime       bindTime } { }
+
     { eventOut       SFBool       isBound } { }
 
     function SuggestedVRMLVersion(
@@ -769,9 +1122,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdurl: TMFString index 0 read GetFieldAsMFString;
-    property FdrepeatS: TSFBool index 1 read GetFieldAsSFBool;
-    property FdrepeatT: TSFBool index 2 read GetFieldAsSFBool;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdrepeatS: TSFBool;
+    public property FdrepeatS: TSFBool read FFdrepeatS;
+
+    private FFdrepeatT: TSFBool;
+    public property FdrepeatT: TSFBool read FFdrepeatT;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -786,24 +1145,56 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn       MFInt32 set_colorIndex } { }
+
     { eventIn       MFInt32 set_coordIndex } { }
+
     { eventIn       MFInt32 set_normalIndex } { }
+
     { eventIn       MFInt32 set_texCoordIndex } { }
-    property Fdcolor: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdcoord: TSFNode index 1 read GetFieldAsSFNode;
-    property Fdnormal: TSFNode index 2 read GetFieldAsSFNode;
-    property FdtexCoord: TSFNode index 3 read GetFieldAsSFNode;
-    property Fdccw: TSFBool index 4 read GetFieldAsSFBool;
-    property FdcolorIndex: TMFInt32 index 5 read GetFieldAsMFInt32;
-    property FdcolorPerVertex: TSFBool index 6 read GetFieldAsSFBool;
-    property Fdconvex: TSFBool index 7 read GetFieldAsSFBool;
-    property FdcoordIndex: TMFInt32 index 8 read GetFieldAsMFInt32;
-    property FdcreaseAngle: TSFFloat index 9 read GetFieldAsSFFloat;
-    property FdnormalIndex: TMFInt32 index 10 read GetFieldAsMFInt32;
-    property FdnormalPerVertex: TSFBool index 11 read GetFieldAsSFBool;
-    property Fdsolid: TSFBool index 12 read GetFieldAsSFBool;
-    property FdtexCoordIndex: TMFInt32 index 13 read GetFieldAsMFInt32;
+
+    private FFdcolor: TSFNode;
+    public property Fdcolor: TSFNode read FFdcolor;
+
+    private FFdcoord: TSFNode;
+    public property Fdcoord: TSFNode read FFdcoord;
+
+    private FFdnormal: TSFNode;
+    public property Fdnormal: TSFNode read FFdnormal;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+
+    private FFdccw: TSFBool;
+    public property Fdccw: TSFBool read FFdccw;
+
+    private FFdcolorIndex: TMFInt32;
+    public property FdcolorIndex: TMFInt32 read FFdcolorIndex;
+
+    private FFdcolorPerVertex: TSFBool;
+    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+
+    private FFdconvex: TSFBool;
+    public property Fdconvex: TSFBool read FFdconvex;
+
+    private FFdcoordIndex: TMFInt32;
+    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+
+    private FFdcreaseAngle: TSFFloat;
+    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+
+    private FFdnormalIndex: TMFInt32;
+    public property FdnormalIndex: TMFInt32 read FFdnormalIndex;
+
+    private FFdnormalPerVertex: TSFBool;
+    public property FdnormalPerVertex: TSFBool read FFdnormalPerVertex;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFdtexCoordIndex: TMFInt32;
+    public property FdtexCoordIndex: TMFInt32 read FFdtexCoordIndex;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -823,13 +1214,25 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn       MFInt32 set_colorIndex } { }
+
     { eventIn       MFInt32 set_coordIndex } { }
-    property Fdcolor: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdcoord: TSFNode index 1 read GetFieldAsSFNode;
-    property FdcolorIndex: TMFInt32 index 2 read GetFieldAsMFInt32;
-    property FdcolorPerVertex: TSFBool index 3 read GetFieldAsSFBool;
-    property FdcoordIndex: TMFInt32 index 4 read GetFieldAsMFInt32;
+
+    private FFdcolor: TSFNode;
+    public property Fdcolor: TSFNode read FFdcolor;
+
+    private FFdcoord: TSFNode;
+    public property Fdcoord: TSFNode read FFdcoord;
+
+    private FFdcolorIndex: TMFInt32;
+    public property FdcolorIndex: TMFInt32 read FFdcolorIndex;
+
+    private FFdcolorPerVertex: TSFBool;
+    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+
+    private FFdcoordIndex: TMFInt32;
+    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -851,9 +1254,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdurl: TMFString index 0 read GetFieldAsMFString;
-    property FdbboxCenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 2 read GetFieldAsSFVec3f;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -870,10 +1279,19 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdload: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdurl: TMFString index 1 read GetFieldAsMFString;
-    property FdbboxCenter: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdbboxSize: TSFVec3f index 3 read GetFieldAsSFVec3f;
+
+    private FFdload: TSFBool;
+    public property Fdload: TSFBool read FFdload;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+
     { eventOut     MFNode    children } { }
 
     function SuggestedVRMLVersion(
@@ -892,9 +1310,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdlevel: TMFNode index 0 read GetFieldAsMFNode;
-    property Fdcenter: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property Fdrange: TMFFloat index 2 read GetFieldAsMFFloat;
+
+    private FFdlevel: TMFNode;
+    public property Fdlevel: TMFNode read FFdlevel;
+
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdrange: TMFFloat;
+    public property Fdrange: TMFFloat read FFdrange;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -910,14 +1334,30 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdambientIntensity: TSFFloat index 0 read GetFieldAsSFFloat;
-    property FddiffuseColor: TSFColor index 1 read GetFieldAsSFColor;
-    property FdemissiveColor: TSFColor index 2 read GetFieldAsSFColor;
-    property Fdshininess: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdspecularColor: TSFColor index 4 read GetFieldAsSFColor;
-    property Fdtransparency: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdFogImmune: TSFBool index 6 read GetFieldAsSFBool;
-    property FdMirror: TSFFloat index 7 read GetFieldAsSFFloat;
+
+    private FFdambientIntensity: TSFFloat;
+    public property FdambientIntensity: TSFFloat read FFdambientIntensity;
+
+    private FFddiffuseColor: TSFColor;
+    public property FddiffuseColor: TSFColor read FFddiffuseColor;
+
+    private FFdemissiveColor: TSFColor;
+    public property FdemissiveColor: TSFColor read FFdemissiveColor;
+
+    private FFdshininess: TSFFloat;
+    public property Fdshininess: TSFFloat read FFdshininess;
+
+    private FFdspecularColor: TSFColor;
+    public property FdspecularColor: TSFColor read FFdspecularColor;
+
+    private FFdtransparency: TSFFloat;
+    public property Fdtransparency: TSFFloat read FFdtransparency;
+
+    private FFdFogImmune: TSFBool;
+    public property FdFogImmune: TSFBool read FFdFogImmune;
+
+    private FFdMirror: TSFFloat;
+    public property FdMirror: TSFFloat read FFdMirror;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -943,14 +1383,30 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdloop: TSFBool index 0 read GetFieldAsSFBool;
-    property Fdspeed: TSFFloat index 1 read GetFieldAsSFFloat;
-    property FdstartTime: TSFTime index 2 read GetFieldAsSFTime;
-    property FdstopTime: TSFTime index 3 read GetFieldAsSFTime;
-    property Fdurl: TMFString index 4 read GetFieldAsMFString;
-    property FdrepeatS: TSFBool index 5 read GetFieldAsSFBool;
-    property FdrepeatT: TSFBool index 6 read GetFieldAsSFBool;
+
+    private FFdloop: TSFBool;
+    public property Fdloop: TSFBool read FFdloop;
+
+    private FFdspeed: TSFFloat;
+    public property Fdspeed: TSFFloat read FFdspeed;
+
+    private FFdstartTime: TSFTime;
+    public property FdstartTime: TSFTime read FFdstartTime;
+
+    private FFdstopTime: TSFTime;
+    public property FdstopTime: TSFTime read FFdstopTime;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdrepeatS: TSFBool;
+    public property FdrepeatS: TSFBool read FFdrepeatS;
+
+    private FFdrepeatT: TSFBool;
+    public property FdrepeatT: TSFBool read FFdrepeatT;
+
     { eventOut     SFTime   duration_changed } { }
+
     { eventOut     SFBool   isActive } { }
 
     function SuggestedVRMLVersion(
@@ -963,13 +1419,27 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdavatarSize: TMFFloat index 1 read GetFieldAsMFFloat;
-    property Fdheadlight: TSFBool index 2 read GetFieldAsSFBool;
-    property Fdspeed: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdtransitionTime: TSFTime index 4 read GetFieldAsSFTime;
-    property FdtransitionType: TMFString index 5 read GetFieldAsMFString;
-    property Fdtype: TMFString index 6 read GetFieldAsMFString;
-    property FdvisibilityLimit: TSFFloat index 7 read GetFieldAsSFFloat;
+    private FFdavatarSize: TMFFloat;
+    public property FdavatarSize: TMFFloat read FFdavatarSize;
+
+    private FFdheadlight: TSFBool;
+    public property Fdheadlight: TSFBool read FFdheadlight;
+
+    private FFdspeed: TSFFloat;
+    public property Fdspeed: TSFFloat read FFdspeed;
+
+    private FFdtransitionTime: TSFTime;
+    public property FdtransitionTime: TSFTime read FFdtransitionTime;
+
+    private FFdtransitionType: TMFString;
+    public property FdtransitionType: TMFString read FFdtransitionType;
+
+    private FFdtype: TMFString;
+    public property Fdtype: TMFString read FFdtype;
+
+    private FFdvisibilityLimit: TSFFloat;
+    public property FdvisibilityLimit: TSFFloat read FFdvisibilityLimit;
+
     { SFBool   [out]    transitionComplete }
 
     function SuggestedVRMLVersion(
@@ -981,7 +1451,10 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdvector: TMFVec3f index 0 read GetFieldAsMFVec3f;
+
+    private FFdvector: TMFVec3f;
+    public property Fdvector: TMFVec3f read FFdvector;
+
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -989,9 +1462,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFVec3f;
+    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+
     { eventOut     MFVec3f value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1003,11 +1482,21 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdcontrolPoint: TMFVec3f index 0 read GetFieldAsMFVec3f;
-    property Fdweight: TMFFloat index 1 read GetFieldAsMFFloat;
-    property Fdtessellation: TSFInt32 index 2 read GetFieldAsSFInt32;
-    property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
-    property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
+
+    private FFdcontrolPoint: TMFVec3f;
+    public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFdtessellation: TSFInt32;
+    public property Fdtessellation: TSFInt32 read FFdtessellation;
+
+    private FFdknot: TMFFloat;
+    public property Fdknot: TMFFloat read FFdknot;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1018,11 +1507,21 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdcontrolPoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
-    property Fdtessellation: TSFInt32 index 1 read GetFieldAsSFInt32;
-    property Fdweight: TMFFloat index 2 read GetFieldAsMFFloat;
-    property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
-    property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
+
+    private FFdcontrolPoint: TMFVec2f;
+    public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
+
+    private FFdtessellation: TSFInt32;
+    public property Fdtessellation: TSFInt32 read FFdtessellation;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFdknot: TMFFloat;
+    public property Fdknot: TMFFloat read FFdknot;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1034,7 +1533,8 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdtessellationScale: TSFFloat index 4 read GetFieldAsSFFloat;
+    private FFdtessellationScale: TSFFloat;
+    public property FdtessellationScale: TSFFloat read FFdtessellationScale;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1045,12 +1545,24 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat  set_fraction } { }
-    property Fddimension: TSFInt32 index 0 read GetFieldAsSFInt32;
-    property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
-    property FdkeyWeight: TMFFloat index 2 read GetFieldAsMFFloat;
-    property Fdknot: TMFFloat index 3 read GetFieldAsMFFloat;
-    property Fdorder: TSFInt32 index 4 read GetFieldAsSFInt32;
+
+    private FFddimension: TSFInt32;
+    public property Fddimension: TSFInt32 read FFddimension;
+
+    private FFdkeyValue: TMFVec3f;
+    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+
+    private FFdkeyWeight: TMFFloat;
+    public property FdkeyWeight: TMFFloat read FFdkeyWeight;
+
+    private FFdknot: TMFFloat;
+    public property Fdknot: TMFFloat read FFdknot;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+
     { eventOut     SFVec3f  value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1062,19 +1574,45 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdcontrolPoint: TMFVec3f index 0 read GetFieldAsMFVec3f;
-    property FdtexCoord: TSFNode index 1 read GetFieldAsSFNode;
-    property FduTessellation: TSFInt32 index 2 read GetFieldAsSFInt32;
-    property FdvTessellation: TSFInt32 index 3 read GetFieldAsSFInt32;
-    property Fdweight: TMFFloat index 4 read GetFieldAsMFFloat;
-    property Fdccw: TSFBool index 5 read GetFieldAsSFBool;
-    property Fdsolid: TSFBool index 6 read GetFieldAsSFBool;
-    property FduDimension: TSFInt32 index 7 read GetFieldAsSFInt32;
-    property FduKnot: TMFFloat index 8 read GetFieldAsMFFloat;
-    property FduOrder: TSFInt32 index 9 read GetFieldAsSFInt32;
-    property FdvDimension: TSFInt32 index 10 read GetFieldAsSFInt32;
-    property FdvKnot: TMFFloat index 11 read GetFieldAsMFFloat;
-    property FdvOrder: TSFInt32 index 12 read GetFieldAsSFInt32;
+
+    private FFdcontrolPoint: TMFVec3f;
+    public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
+
+    private FFdtexCoord: TSFNode;
+    public property FdtexCoord: TSFNode read FFdtexCoord;
+
+    private FFduTessellation: TSFInt32;
+    public property FduTessellation: TSFInt32 read FFduTessellation;
+
+    private FFdvTessellation: TSFInt32;
+    public property FdvTessellation: TSFInt32 read FFdvTessellation;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFdccw: TSFBool;
+    public property Fdccw: TSFBool read FFdccw;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    private FFduDimension: TSFInt32;
+    public property FduDimension: TSFInt32 read FFduDimension;
+
+    private FFduKnot: TMFFloat;
+    public property FduKnot: TMFFloat read FFduKnot;
+
+    private FFduOrder: TSFInt32;
+    public property FduOrder: TSFInt32 read FFduOrder;
+
+    private FFdvDimension: TSFInt32;
+    public property FdvDimension: TSFInt32 read FFdvDimension;
+
+    private FFdvKnot: TMFFloat;
+    public property FdvKnot: TMFFloat read FFdvKnot;
+
+    private FFdvOrder: TSFInt32;
+    public property FdvOrder: TSFInt32 read FFdvOrder;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1085,14 +1623,30 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdcontrolPoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
-    property Fdweight: TMFFloat index 1 read GetFieldAsMFFloat;
-    property FduDimension: TSFInt32 index 2 read GetFieldAsSFInt32;
-    property FduKnot: TMFFloat index 3 read GetFieldAsMFFloat;
-    property FduOrder: TSFInt32 index 4 read GetFieldAsSFInt32;
-    property FdvDimension: TSFInt32 index 5 read GetFieldAsSFInt32;
-    property FdvKnot: TMFFloat index 6 read GetFieldAsMFFloat;
-    property FdvOrder: TSFInt32 index 7 read GetFieldAsSFInt32;
+
+    private FFdcontrolPoint: TMFVec2f;
+    public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
+
+    private FFdweight: TMFFloat;
+    public property Fdweight: TMFFloat read FFdweight;
+
+    private FFduDimension: TSFInt32;
+    public property FduDimension: TSFInt32 read FFduDimension;
+
+    private FFduKnot: TMFFloat;
+    public property FduKnot: TMFFloat read FFduKnot;
+
+    private FFduOrder: TSFInt32;
+    public property FduOrder: TSFInt32 read FFduOrder;
+
+    private FFdvDimension: TSFInt32;
+    public property FdvDimension: TSFInt32 read FFdvDimension;
+
+    private FFdvKnot: TMFFloat;
+    public property FdvKnot: TMFFloat read FFdvKnot;
+
+    private FFdvOrder: TSFInt32;
+    public property FdvOrder: TSFInt32 read FFdvOrder;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1103,9 +1657,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat    set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFRotation index 1 read GetFieldAsMFRotation;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFRotation;
+    public property FdkeyValue: TMFRotation read FFdkeyValue;
+
     { eventOut     SFRotation value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1119,9 +1679,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdimage: TSFImage index 0 read GetFieldAsSFImage;
-    property FdrepeatS: TSFBool index 1 read GetFieldAsSFBool;
-    property FdrepeatT: TSFBool index 2 read GetFieldAsSFBool;
+
+    private FFdimage: TSFImage;
+    public property Fdimage: TSFImage read FFdimage;
+
+    private FFdrepeatS: TSFBool;
+    public property FdrepeatS: TSFBool read FFdrepeatS;
+
+    private FFdrepeatT: TSFBool;
+    public property FdrepeatT: TSFBool read FFdrepeatT;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1137,10 +1703,18 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property FdmaxPosition: TSFVec2f index 3 read GetFieldAsSFVec2f;
-    property FdminPosition: TSFVec2f index 4 read GetFieldAsSFVec2f;
-    property Fdoffset: TSFVec3f index 5 read GetFieldAsSFVec3f;
-    property FdaxisRotation: TSFRotation index 6 read GetFieldAsSFRotation;
+    private FFdmaxPosition: TSFVec2f;
+    public property FdmaxPosition: TSFVec2f read FFdmaxPosition;
+
+    private FFdminPosition: TSFVec2f;
+    public property FdminPosition: TSFVec2f read FFdminPosition;
+
+    private FFdoffset: TSFVec3f;
+    public property Fdoffset: TSFVec3f read FFdoffset;
+
+    private FFdaxisRotation: TSFRotation;
+    public property FdaxisRotation: TSFRotation read FFdaxisRotation;
+
     { eventOut     SFVec3f translation_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1151,7 +1725,9 @@
   TNodePointLight_2 = class(TNodeGeneralPointLight)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    property Fdradius: TSFFloat index 8 read GetFieldAsSFFloat;
+
+    private FFdradius: TSFFloat;
+    public property Fdradius: TSFFloat read FFdradius;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1167,8 +1743,12 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcolor: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdcoord: TSFNode index 1 read GetFieldAsSFNode;
+
+    private FFdcolor: TSFNode;
+    public property Fdcolor: TSFNode read FFdcolor;
+
+    private FFdcoord: TSFNode;
+    public property Fdcoord: TSFNode read FFdcoord;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1187,7 +1767,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdpoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
+
+    private FFdpoint: TMFVec2f;
+    public property Fdpoint: TMFVec2f read FFdpoint;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1198,9 +1780,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFVec3f index 1 read GetFieldAsMFVec3f;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFVec3f;
+    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+
     { eventOut     SFVec3f value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1212,13 +1800,24 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcenter: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property Fdsize: TSFVec3f index 1 read GetFieldAsSFVec3f;
-    property Fdenabled: TSFBool index 2 read GetFieldAsSFBool;
+
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdsize: TSFVec3f;
+    public property Fdsize: TSFVec3f read FFdsize;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
     { eventOut     SFBool     isActive } { }
+
     { eventOut     SFVec3f    position_changed } { }
+
     { eventOut     SFRotation orientation_changed } { }
+
     { eventOut     SFTime     enterTime } { }
+
     { eventOut     SFTime     exitTime } { }
 
     function SuggestedVRMLVersion(
@@ -1230,9 +1829,15 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn      SFFloat set_fraction } { }
-    property Fdkey: TMFFloat index 0 read GetFieldAsMFFloat;
-    property FdkeyValue: TMFFloat index 1 read GetFieldAsMFFloat;
+
+    private FFdkey: TMFFloat;
+    public property Fdkey: TMFFloat read FFdkey;
+
+    private FFdkeyValue: TMFFloat;
+    public property FdkeyValue: TMFFloat read FFdkeyValue;
+
     { eventOut     SFFloat value_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1250,9 +1855,15 @@
     destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
-    property Fdurl: TMFString index 0 read GetFieldAsMFString;
-    property FddirectOutput: TSFBool index 1 read GetFieldAsSFBool;
-    property FdmustEvaluate: TSFBool index 2 read GetFieldAsSFBool;
+
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFddirectOutput: TSFBool;
+    public property FddirectOutput: TSFBool read FFddirectOutput;
+
+    private FFdmustEvaluate: TSFBool;
+    public property FdmustEvaluate: TSFBool read FFdmustEvaluate;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1275,8 +1886,11 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdappearance: TSFNode index 0 read GetFieldAsSFNode;
-    property Fdgeometry: TSFNode index 1 read GetFieldAsSFNode;
+    private FFdappearance: TSFNode;
+    public property Fdappearance: TSFNode read FFdappearance;
+
+    private FFdgeometry: TSFNode;
+    public property Fdgeometry: TSFNode read FFdgeometry;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1319,16 +1933,36 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fddirection: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property Fdintensity: TSFFloat index 1 read GetFieldAsSFFloat;
-    property Fdlocation: TSFVec3f index 2 read GetFieldAsSFVec3f;
-    property FdmaxBack: TSFFloat index 3 read GetFieldAsSFFloat;
-    property FdmaxFront: TSFFloat index 4 read GetFieldAsSFFloat;
-    property FdminBack: TSFFloat index 5 read GetFieldAsSFFloat;
-    property FdminFront: TSFFloat index 6 read GetFieldAsSFFloat;
-    property Fdpriority: TSFFloat index 7 read GetFieldAsSFFloat;
-    property Fdsource: TSFNode index 8 read GetFieldAsSFNode;
-    property Fdspatialize: TSFBool index 9 read GetFieldAsSFBool;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdintensity: TSFFloat;
+    public property Fdintensity: TSFFloat read FFdintensity;
+
+    private FFdlocation: TSFVec3f;
+    public property Fdlocation: TSFVec3f read FFdlocation;
+
+    private FFdmaxBack: TSFFloat;
+    public property FdmaxBack: TSFFloat read FFdmaxBack;
+
+    private FFdmaxFront: TSFFloat;
+    public property FdmaxFront: TSFFloat read FFdmaxFront;
+
+    private FFdminBack: TSFFloat;
+    public property FdminBack: TSFFloat read FFdminBack;
+
+    private FFdminFront: TSFFloat;
+    public property FdminFront: TSFFloat read FFdminFront;
+
+    private FFdpriority: TSFFloat;
+    public property Fdpriority: TSFFloat read FFdpriority;
+
+    private FFdsource: TSFNode;
+    public property Fdsource: TSFNode read FFdsource;
+
+    private FFdspatialize: TSFBool;
+    public property Fdspatialize: TSFBool read FFdspatialize;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1339,7 +1973,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdradius: TSFFloat index 0 read GetFieldAsSFFloat;
+
+    private FFdradius: TSFFloat;
+    public property Fdradius: TSFFloat read FFdradius;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1358,7 +1994,10 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdoffset: TSFRotation index 3 read GetFieldAsSFRotation;
+
+    private FFdoffset: TSFRotation;
+    public property Fdoffset: TSFRotation read FFdoffset;
+
     { eventOut     SFRotation rotation_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1370,10 +2009,18 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdbeamWidth: TSFFloat index 8 read GetFieldAsSFFloat;
-    property FdcutOffAngle: TSFFloat index 9 read GetFieldAsSFFloat;
-    property Fddirection: TSFVec3f index 10 read GetFieldAsSFVec3f;
-    property Fdradius: TSFFloat index 11 read GetFieldAsSFFloat;
+
+    private FFdbeamWidth: TSFFloat;
+    public property FdbeamWidth: TSFFloat read FFdbeamWidth;
+
+    private FFdcutOffAngle: TSFFloat;
+    public property FdcutOffAngle: TSFFloat read FFdcutOffAngle;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdradius: TSFFloat;
+    public property Fdradius: TSFFloat read FFdradius;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1392,8 +2039,12 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdchoice: TMFNode index 0 read GetFieldAsMFNode;
-    property FdwhichChoice: TSFInt32 index 1 read GetFieldAsSFInt32;
+
+    private FFdchoice: TMFNode;
+    public property Fdchoice: TMFNode read FFdchoice;
+
+    private FFdwhichChoice: TSFInt32;
+    public property FdwhichChoice: TSFInt32 read FFdwhichChoice;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1409,10 +2060,18 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdstring: TMFString index 0 read GetFieldAsMFString;
-    property FdfontStyle: TSFNode index 1 read GetFieldAsSFNode;
-    property Fdlength: TMFFloat index 2 read GetFieldAsMFFloat;
-    property FdmaxExtent: TSFFloat index 3 read GetFieldAsSFFloat;
+
+    private FFdstring: TMFString;
+    public property Fdstring: TMFString read FFdstring;
+
+    private FFdfontStyle: TSFNode;
+    public property FdfontStyle: TSFNode read FFdfontStyle;
+
+    private FFdlength: TMFFloat;
+    public property Fdlength: TMFFloat read FFdlength;
+
+    private FFdmaxExtent: TSFFloat;
+    public property FdmaxExtent: TSFFloat read FFdmaxExtent;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1432,7 +2091,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdpoint: TMFVec2f index 0 read GetFieldAsMFVec2f;
+
+    private FFdpoint: TMFVec2f;
+    public property Fdpoint: TMFVec2f read FFdpoint;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1443,10 +2104,18 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcenter: TSFVec2f index 0 read GetFieldAsSFVec2f;
-    property Fdrotation: TSFFloat index 1 read GetFieldAsSFFloat;
-    property Fdscale: TSFVec2f index 2 read GetFieldAsSFVec2f;
-    property Fdtranslation: TSFVec2f index 3 read GetFieldAsSFVec2f;
+
+    private FFdcenter: TSFVec2f;
+    public property Fdcenter: TSFVec2f read FFdcenter;
+
+    private FFdrotation: TSFFloat;
+    public property Fdrotation: TSFFloat read FFdrotation;
+
+    private FFdscale: TSFVec2f;
+    public property Fdscale: TSFVec2f read FFdscale;
+
+    private FFdtranslation: TSFVec2f;
+    public property Fdtranslation: TSFVec2f read FFdtranslation;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1459,14 +2128,28 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdcycleInterval: TSFTime index 0 read GetFieldAsSFTime;
-    property Fdenabled: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdloop: TSFBool index 2 read GetFieldAsSFBool;
-    property FdstartTime: TSFTime index 3 read GetFieldAsSFTime;
-    property FdstopTime: TSFTime index 4 read GetFieldAsSFTime;
+
+    private FFdcycleInterval: TSFTime;
+    public property FdcycleInterval: TSFTime read FFdcycleInterval;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    private FFdloop: TSFBool;
+    public property Fdloop: TSFBool read FFdloop;
+
+    private FFdstartTime: TSFTime;
+    public property FdstartTime: TSFTime read FFdstartTime;
+
+    private FFdstopTime: TSFTime;
+    public property FdstopTime: TSFTime read FFdstopTime;
+
     { eventOut     SFTime   cycleTime } { }
+
     { eventOut     SFFloat  fraction_changed } { }
+
     { eventOut     SFBool   isActive } { }
+
     { eventOut     SFTime   time } { }
 
     function SuggestedVRMLVersion(
@@ -1478,8 +2161,11 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventOut     SFVec3f hitNormal_changed } { }
+
     { eventOut     SFVec3f hitPoint_changed } { }
+
     { eventOut     SFVec2f hitTexCoord_changed } { }
 
     function SuggestedVRMLVersion(
@@ -1496,11 +2182,20 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdcenter: TSFVec3f index 4 read GetFieldAsSFVec3f;
-    property Fdrotation: TSFRotation index 5 read GetFieldAsSFRotation;
-    property Fdscale: TSFVec3f index 6 read GetFieldAsSFVec3f;
-    property FdscaleOrientation: TSFRotation index 7 read GetFieldAsSFRotation;
-    property Fdtranslation: TSFVec3f index 8 read GetFieldAsSFVec3f;
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdrotation: TSFRotation;
+    public property Fdrotation: TSFRotation read FFdrotation;
+
+    private FFdscale: TSFVec3f;
+    public property Fdscale: TSFVec3f read FFdscale;
+
+    private FFdscaleOrientation: TSFRotation;
+    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+
+    private FFdtranslation: TSFVec3f;
+    public property Fdtranslation: TSFVec3f read FFdtranslation;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1514,10 +2209,16 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+
     { eventIn       MFNode   addTrimmingContour } { }
+
     { eventIn       MFNode   removeTrimmingContour } { }
-    property FdtrimmingContour: TMFNode index 0 read GetFieldAsMFNode;
-    property Fdsurface: TSFNode index 1 read GetFieldAsSFNode;
+
+    private FFdtrimmingContour: TMFNode;
+    public property FdtrimmingContour: TMFNode read FFdtrimmingContour;
+
+    private FFdsurface: TSFNode;
+    public property Fdsurface: TSFNode read FFdsurface;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1528,10 +2229,18 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property FdfieldOfView: TSFFloat index 6 read GetFieldAsSFFloat;
-    property Fdjump: TSFBool index 7 read GetFieldAsSFBool;
-    property Fddescription: TSFString index 8 read GetFieldAsSFString;
-    property FdcenterOfRotation: TSFVec3f index 9 read GetFieldAsSFVec3f;
+
+    private FFdfieldOfView: TSFFloat;
+    public property FdfieldOfView: TSFFloat read FFdfieldOfView;
+
+    private FFdjump: TSFBool;
+    public property Fdjump: TSFBool read FFdjump;
+
+    private FFddescription: TSFString;
+    public property Fddescription: TSFString read FFddescription;
+
+    private FFdcenterOfRotation: TSFVec3f;
+    public property FdcenterOfRotation: TSFVec3f read FFdcenterOfRotation;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1569,11 +2278,20 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdcenter: TSFVec3f index 0 read GetFieldAsSFVec3f;
-    property Fdenabled: TSFBool index 1 read GetFieldAsSFBool;
-    property Fdsize: TSFVec3f index 2 read GetFieldAsSFVec3f;
+
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    private FFdsize: TSFVec3f;
+    public property Fdsize: TSFVec3f read FFdsize;
+
     { eventOut     SFTime  enterTime } { }
+
     { eventOut     SFTime  exitTime } { }
+
     { eventOut     SFBool  isActive } { }
 
     function SuggestedVRMLVersion(
@@ -1585,8 +2303,11 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    property Fdinfo: TMFString index 0 read GetFieldAsMFString;
-    property Fdtitle: TSFString index 1 read GetFieldAsSFString;
+    private FFdinfo: TMFString;
+    public property Fdinfo: TMFString read FFdinfo;
+
+    private FFdtitle: TSFString;
+    public property Fdtitle: TSFString read FFdtitle;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1695,15 +2416,19 @@ begin
 
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
 
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
+  FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
+  Fields.Add(FFdchildren);
 
-  Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
+  FFdmetadata := TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]);
+  Fields.Add(FFdmetadata);
 
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
 
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Last.Exposed := false;
+  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
 end;
 
 function TNodeX3DGroupingNode.ChildrenField: TMFNode;
@@ -1726,11 +2451,14 @@ constructor TNodeAnchor.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('description', ''));
+  FFddescription := TSFString.Create('description', '');
+  Fields.Add(FFddescription);
 
-  Fields.Add(TMFString.Create('parameter', []));
+  FFdparameter := TMFString.Create('parameter', []);
+  Fields.Add(FFdparameter);
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
   DefaultContainerField := 'children';
 end;
@@ -1758,23 +2486,26 @@ constructor TNodeAppearance.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'material',
-    [TNodeMaterial_2]));
+  FFdmaterial := TSFNode.Create(Self, 'material', [TNodeMaterial_2]);
+  Fields.Add(FFdmaterial);
 
-  Fields.Add(TSFNode.Create(Self, 'texture',
-    [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
+  FFdtexture := TSFNode.Create(Self, 'texture', [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]);
+  Fields.Add(FFdtexture);
 
-  Fields.Add(TSFNode.Create(Self, 'textureTransform',
-    [TNodeTextureTransform]));
+  FFdtextureTransform := TSFNode.Create(Self, 'textureTransform', [TNodeTextureTransform]);
+  Fields.Add(FFdtextureTransform);
 
-  Fields.Add(TSFNode.Create(Self, 'fillProperties', [{TNodeFillProperties}]));
+  FFdfillProperties := TSFNode.Create(Self, 'fillProperties', [{TNodeFillProperties}]);
+  Fields.Add(FFdfillProperties);
 
-  Fields.Add(TSFNode.Create(Self, 'lineProperties', [{TNodeLineProperties}]));
+  FFdlineProperties := TSFNode.Create(Self, 'lineProperties', [{TNodeLineProperties}]);
+  Fields.Add(FFdlineProperties);
 
-  Fields.Add(TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]));
+  FFdmetadata := TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]);
+  Fields.Add(FFdmetadata);
 
-  Fields.Add(TMFNode.Create(Self, 'shaders', [
-    TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]));
+  FFdshaders := TMFNode.Create(Self, 'shaders', [TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]);
+  Fields.Add(FFdshaders);
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,
@@ -1810,17 +2541,23 @@ constructor TNodeAudioClip.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('description', ''));
+  FFddescription := TSFString.Create('description', '');
+  Fields.Add(FFddescription);
 
-  Fields.Add(TSFBool.Create('loop', FALSE));
+  FFdloop := TSFBool.Create('loop', FALSE);
+  Fields.Add(FFdloop);
 
-  Fields.Add(TSFFloat.Create('pitch', 1.0));
+  FFdpitch := TSFFloat.Create('pitch', 1.0);
+  Fields.Add(FFdpitch);
 
-  Fields.Add(TSFTime.Create('startTime', 0));
+  FFdstartTime := TSFTime.Create('startTime', 0);
+  Fields.Add(FFdstartTime);
 
-  Fields.Add(TSFTime.Create('stopTime', 0));
+  FFdstopTime := TSFTime.Create('stopTime', 0);
+  Fields.Add(FFdstopTime);
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
   Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
 
@@ -1835,25 +2572,35 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
 
-  Fields.Add(TMFFloat.Create('groundAngle', []));
+  FFdgroundAngle := TMFFloat.Create('groundAngle', []);
+  Fields.Add(FFdgroundAngle);
 
-  Fields.Add(TMFColor.Create('groundColor', []));
+  FFdgroundColor := TMFColor.Create('groundColor', []);
+  Fields.Add(FFdgroundColor);
 
-  Fields.Add(TMFString.Create('backUrl', []));
+  FFdbackUrl := TMFString.Create('backUrl', []);
+  Fields.Add(FFdbackUrl);
 
-  Fields.Add(TMFString.Create('bottomUrl', []));
+  FFdbottomUrl := TMFString.Create('bottomUrl', []);
+  Fields.Add(FFdbottomUrl);
 
-  Fields.Add(TMFString.Create('frontUrl', []));
+  FFdfrontUrl := TMFString.Create('frontUrl', []);
+  Fields.Add(FFdfrontUrl);
 
-  Fields.Add(TMFString.Create('leftUrl', []));
+  FFdleftUrl := TMFString.Create('leftUrl', []);
+  Fields.Add(FFdleftUrl);
 
-  Fields.Add(TMFString.Create('rightUrl', []));
+  FFdrightUrl := TMFString.Create('rightUrl', []);
+  Fields.Add(FFdrightUrl);
 
-  Fields.Add(TMFString.Create('topUrl', []));
+  FFdtopUrl := TMFString.Create('topUrl', []);
+  Fields.Add(FFdtopUrl);
 
-  Fields.Add(TMFFloat.Create('skyAngle', []));
+  FFdskyAngle := TMFFloat.Create('skyAngle', []);
+  Fields.Add(FFdskyAngle);
 
-  Fields.Add(TMFColor.Create('skyColor', [ZeroVector3Single]));
+  FFdskyColor := TMFColor.Create('skyColor', [ZeroVector3Single]);
+  Fields.Add(FFdskyColor);
 
   Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
@@ -1981,7 +2728,8 @@ constructor TNodeBillboard.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0)));
+  FFdaxisOfRotation := TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0));
+  Fields.Add(FFdaxisOfRotation);
 
   DefaultContainerField := 'children';
 end;
@@ -2009,7 +2757,8 @@ constructor TNodeBox.Create(const ANodeName: string; const AWWWBasePath: string)
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('size', Vector3Single(2, 2, 2)));
+  FFdsize := TSFVec3f.Create('size', Vector3Single(2, 2, 2));
+  Fields.Add(FFdsize);
 end;
 
 class function TNodeCollision.ClassNodeTypeName: string;
@@ -2027,14 +2776,17 @@ constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('collide', TRUE));
+  FFdcollide := TSFBool.Create('collide', TRUE);
+  Fields.Add(FFdcollide);
 
-  Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
-  Fields.Last.Exposed := false;
+  FFdproxy := TSFNode.Create(Self, 'proxy', AllowedChildrenNodes);
+  FFdproxy.Exposed := false;
+  Fields.Add(FFdproxy);
 
   Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
 
-  Fields.Add(TSFBool.Create('enabled', true));
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
 
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
@@ -2064,7 +2816,8 @@ constructor TNodeColor.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TMFColor.Create('color', []));
+  FFdcolor := TMFColor.Create('color', []);
+  Fields.Add(FFdcolor);
 
   DefaultContainerField := 'color';
 end;
@@ -2086,9 +2839,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFColor.Create('keyValue', []));
+  FFdkeyValue := TMFColor.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TSFColor, false));
 
@@ -2151,8 +2906,8 @@ begin
 
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
 
-  Fields.Add(TMFNode.Create(Self, 'children',
-    [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]));
+  FFdchildren := TMFNode.Create(Self, 'children', [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]);
+  Fields.Add(FFdchildren);
 
   DefaultContainerField := 'trimmingContour';
 end;
@@ -2172,7 +2927,8 @@ constructor TNodeCoordinate.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('point', []));
+  FFdpoint := TMFVec3f.Create('point', []);
+  Fields.Add(FFdpoint);
 
   DefaultContainerField := 'coord';
 end;
@@ -2196,50 +2952,67 @@ begin
 
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
 
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
+  FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
+  Fields.Add(FFdchildren);
 
-  Fields.Add(TMFVec3f.Create('controlPoint', []));
+  FFdcontrolPoint := TMFVec3f.Create('controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
 
-  Fields.Add(TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]));
+  FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]);
+  Fields.Add(FFdinputCoord);
 
-  Fields.Add(TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2]));
+  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2]);
+  Fields.Add(FFdinputTransform);
 
-  Fields.Add(TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]));
+  FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]);
+  Fields.Add(FFdoutputCoord);
 
-  Fields.Add(TMFFloat.Create('weight', []));
+  FFdweight := TMFFloat.Create('weight', []);
+  Fields.Add(FFdweight);
 
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
 
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Last.Exposed := false;
+  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
 
-  Fields.Add(TSFInt32.Create('uDimension', 0));
-  Fields.Last.Exposed := false;
+  FFduDimension := TSFInt32.Create('uDimension', 0);
+  FFduDimension.Exposed := false;
+  Fields.Add(FFduDimension);
 
-  Fields.Add(TMFFloat.Create('uKnot', []));
-  Fields.Last.Exposed := false;
+  FFduKnot := TMFFloat.Create('uKnot', []);
+  FFduKnot.Exposed := false;
+  Fields.Add(FFduKnot);
 
-  Fields.Add(TSFInt32.Create('uOrder', 2));
-  Fields.Last.Exposed := false;
+  FFduOrder := TSFInt32.Create('uOrder', 2);
+  FFduOrder.Exposed := false;
+  Fields.Add(FFduOrder);
 
-  Fields.Add(TSFInt32.Create('vDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdvDimension := TSFInt32.Create('vDimension', 0);
+  FFdvDimension.Exposed := false;
+  Fields.Add(FFdvDimension);
 
-  Fields.Add(TMFFloat.Create('vKnot', []));
-  Fields.Last.Exposed := false;
+  FFdvKnot := TMFFloat.Create('vKnot', []);
+  FFdvKnot.Exposed := false;
+  Fields.Add(FFdvKnot);
 
-  Fields.Add(TSFInt32.Create('vOrder', 2));
-  Fields.Last.Exposed := false;
+  FFdvOrder := TSFInt32.Create('vOrder', 2);
+  FFdvOrder.Exposed := false;
+  Fields.Add(FFdvOrder);
 
-  Fields.Add(TSFInt32.Create('wDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdwDimension := TSFInt32.Create('wDimension', 0);
+  FFdwDimension.Exposed := false;
+  Fields.Add(FFdwDimension);
 
-  Fields.Add(TMFFloat.Create('wKnot', []));
-  Fields.Last.Exposed := false;
+  FFdwKnot := TMFFloat.Create('wKnot', []);
+  FFdwKnot.Exposed := false;
+  Fields.Add(FFdwKnot);
 
-  Fields.Add(TSFInt32.Create('wOrder', 2));
-  Fields.Last.Exposed := false;
+  FFdwOrder := TSFInt32.Create('wOrder', 2);
+  FFdwOrder.Exposed := false;
+  Fields.Add(FFdwOrder);
 
   DefaultContainerField := 'children';
 end;
@@ -2266,9 +3039,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFVec3f.Create('keyValue', []));
+  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 
@@ -2290,20 +3065,25 @@ constructor TNodeCylinder_2.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('bottom', TRUE));
-  Fields.Last.Exposed := false;
+  FFdbottom := TSFBool.Create('bottom', TRUE);
+  FFdbottom.Exposed := false;
+  Fields.Add(FFdbottom);
 
-  Fields.Add(TSFFloat.Create('height', 2));
-  Fields.Last.Exposed := false;
+  FFdheight := TSFFloat.Create('height', 2);
+  FFdheight.Exposed := false;
+  Fields.Add(FFdheight);
 
-  Fields.Add(TSFFloat.Create('radius', 1));
-  Fields.Last.Exposed := false;
+  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius.Exposed := false;
+  Fields.Add(FFdradius);
 
-  Fields.Add(TSFBool.Create('side', TRUE));
-  Fields.Last.Exposed := false;
+  FFdside := TSFBool.Create('side', TRUE);
+  FFdside.Exposed := false;
+  Fields.Add(FFdside);
 
-  Fields.Add(TSFBool.Create('top', TRUE));
-  Fields.Last.Exposed := false;
+  FFdtop := TSFBool.Create('top', TRUE);
+  FFdtop.Exposed := false;
+  Fields.Add(FFdtop);
 end;
 
 class function TNodeCylinder_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2326,15 +3106,20 @@ constructor TNodeCylinderSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('diskAngle', Pi / 12));
+  FFddiskAngle := TSFFloat.Create('diskAngle', Pi / 12);
+  Fields.Add(FFddiskAngle);
 
-  Fields.Add(TSFFloat.Create('maxAngle', -1));
+  FFdmaxAngle := TSFFloat.Create('maxAngle', -1);
+  Fields.Add(FFdmaxAngle);
 
-  Fields.Add(TSFFloat.Create('minAngle', 0));
+  FFdminAngle := TSFFloat.Create('minAngle', 0);
+  Fields.Add(FFdminAngle);
 
-  Fields.Add(TSFFloat.Create('offset', 0));
+  FFdoffset := TSFFloat.Create('offset', 0);
+  Fields.Add(FFdoffset);
 
-  Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 1, 0), 0));
+  FFdaxisRotation := TSFRotation.Create('axisRotation', Vector3Single(0, 1, 0), 0);
+  Fields.Add(FFdaxisRotation);
 
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
 
@@ -2381,41 +3166,54 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
 
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeNormal]);
+  Fields.Add(FFdnormal);
 
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 
-  Fields.Add(TMFFloat.Create('height', []));
-  Fields.Last.Exposed := false;
+  FFdheight := TMFFloat.Create('height', []);
+  FFdheight.Exposed := false;
+  Fields.Add(FFdheight);
 
-  Fields.Add(TSFBool.Create('ccw', TRUE));
-  Fields.Last.Exposed := false;
+  FFdccw := TSFBool.Create('ccw', TRUE);
+  FFdccw.Exposed := false;
+  Fields.Add(FFdccw);
 
-  Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', TRUE);
+  FFdcolorPerVertex.Exposed := false;
+  Fields.Add(FFdcolorPerVertex);
 
-  Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Last.Exposed := false;
+  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle.Exposed := false;
+  Fields.Add(FFdcreaseAngle);
 
-  Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdnormalPerVertex := TSFBool.Create('normalPerVertex', TRUE);
+  FFdnormalPerVertex.Exposed := false;
+  Fields.Add(FFdnormalPerVertex);
 
-  Fields.Add(TSFBool.Create('solid', TRUE));
-  Fields.Last.Exposed := false;
+  FFdsolid := TSFBool.Create('solid', TRUE);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
 
-  Fields.Add(TSFInt32.Create('xDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdxDimension := TSFInt32.Create('xDimension', 0);
+  FFdxDimension.Exposed := false;
+  Fields.Add(FFdxDimension);
 
-  Fields.Add(TSFFloat.Create('xSpacing', 1.0));
-  Fields.Last.Exposed := false;
+  FFdxSpacing := TSFFloat.Create('xSpacing', 1.0);
+  FFdxSpacing.Exposed := false;
+  Fields.Add(FFdxSpacing);
 
-  Fields.Add(TSFInt32.Create('zDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdzDimension := TSFInt32.Create('zDimension', 0);
+  FFdzDimension.Exposed := false;
+  Fields.Add(FFdzDimension);
 
-  Fields.Add(TSFFloat.Create('zSpacing', 1.0));
-  Fields.Last.Exposed := false;
+  FFdzSpacing := TSFFloat.Create('zSpacing', 1.0);
+  FFdzSpacing.Exposed := false;
+  Fields.Add(FFdzSpacing);
 end;
 
 function TNodeElevationGrid.IsNotEmpty: boolean;
@@ -2454,35 +3252,45 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_spine', TMFVec3f, true));
 
-  Fields.Add(TSFBool.Create('beginCap', TRUE));
-  Fields.Last.Exposed := false;
+  FFdbeginCap := TSFBool.Create('beginCap', TRUE);
+  FFdbeginCap.Exposed := false;
+  Fields.Add(FFdbeginCap);
 
-  Fields.Add(TSFBool.Create('ccw', TRUE));
-  Fields.Last.Exposed := false;
+  FFdccw := TSFBool.Create('ccw', TRUE);
+  FFdccw.Exposed := false;
+  Fields.Add(FFdccw);
 
-  Fields.Add(TSFBool.Create('convex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdconvex := TSFBool.Create('convex', TRUE);
+  FFdconvex.Exposed := false;
+  Fields.Add(FFdconvex);
 
-  Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Last.Exposed := false;
+  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle.Exposed := false;
+  Fields.Add(FFdcreaseAngle);
 
-  Fields.Add(TMFVec2f.Create('crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1), Vector2Single(-1, -1),  Vector2Single(-1, 1),  Vector2Single(1, 1) ]));
-  Fields.Last.Exposed := false;
+  FFdcrossSection := TMFVec2f.Create('crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1), Vector2Single(-1, -1),  Vector2Single(-1, 1),  Vector2Single(1, 1) ]);
+  FFdcrossSection.Exposed := false;
+  Fields.Add(FFdcrossSection);
 
-  Fields.Add(TSFBool.Create('endCap', TRUE));
-  Fields.Last.Exposed := false;
+  FFdendCap := TSFBool.Create('endCap', TRUE);
+  FFdendCap.Exposed := false;
+  Fields.Add(FFdendCap);
 
-  Fields.Add(TMFRotation.Create('orientation', [ Vector4Single(0, 0, 1, 0) ] ));
-  Fields.Last.Exposed := false;
+  FFdorientation := TMFRotation.Create('orientation', [ Vector4Single(0, 0, 1, 0) ] );
+  FFdorientation.Exposed := false;
+  Fields.Add(FFdorientation);
 
-  Fields.Add(TMFVec2f.Create('scale', Vector2Single(1, 1)));
-  Fields.Last.Exposed := false;
+  FFdscale := TMFVec2f.Create('scale', Vector2Single(1, 1));
+  FFdscale.Exposed := false;
+  Fields.Add(FFdscale);
 
-  Fields.Add(TSFBool.Create('solid', TRUE));
-  Fields.Last.Exposed := false;
+  FFdsolid := TSFBool.Create('solid', TRUE);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
 
-  Fields.Add(TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]));
-  Fields.Last.Exposed := false;
+  FFdspine := TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]);
+  FFdspine.Exposed := false;
+  Fields.Add(FFdspine);
 end;
 
 function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
@@ -2507,19 +3315,26 @@ constructor TNodeFog.Create(const ANodeName: string; const AWWWBasePath: string)
 begin
   inherited;
 
-  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFString.Create('fogType', 'LINEAR'));
+  FFdfogType := TSFString.Create('fogType', 'LINEAR');
+  Fields.Add(FFdfogType);
 
-  Fields.Add(TSFFloat.Create('visibilityRange', 0));
+  FFdvisibilityRange := TSFFloat.Create('visibilityRange', 0);
+  Fields.Add(FFdvisibilityRange);
 
-  Fields.Add(TSFBool.Create('volumetric', false));
+  FFdvolumetric := TSFBool.Create('volumetric', false);
+  Fields.Add(FFdvolumetric);
 
-  Fields.Add(TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0)));
+  FFdvolumetricDirection := TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0));
+  Fields.Add(FFdvolumetricDirection);
 
-  Fields.Add(TSFFloat.Create('volumetricVisibilityStart', 0));
+  FFdvolumetricVisibilityStart := TSFFloat.Create('volumetricVisibilityStart', 0);
+  Fields.Add(FFdvolumetricVisibilityStart);
 
-  Fields.Add(TSFNode.Create(Self, 'alternative', [TNodeFog]));
+  FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
+  Fields.Add(FFdalternative);
 
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
 
@@ -2550,23 +3365,32 @@ constructor TNodeFontStyle_2.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('family', ['SERIF']));
+  FFdfamily := TMFString.Create('family', ['SERIF']);
+  Fields.Add(FFdfamily);
 
-  Fields.Add(TSFBool.Create('horizontal', TRUE));
+  FFdhorizontal := TSFBool.Create('horizontal', TRUE);
+  Fields.Add(FFdhorizontal);
 
-  Fields.Add(TMFString.Create('justify', ['BEGIN']));
+  FFdjustify := TMFString.Create('justify', ['BEGIN']);
+  Fields.Add(FFdjustify);
 
-  Fields.Add(TSFString.Create('language', ''));
+  FFdlanguage := TSFString.Create('language', '');
+  Fields.Add(FFdlanguage);
 
-  Fields.Add(TSFBool.Create('leftToRight', TRUE));
+  FFdleftToRight := TSFBool.Create('leftToRight', TRUE);
+  Fields.Add(FFdleftToRight);
 
-  Fields.Add(TSFFloat.Create('size', DefaultSize));
+  FFdsize := TSFFloat.Create('size', DefaultSize);
+  Fields.Add(FFdsize);
 
-  Fields.Add(TSFFloat.Create('spacing', DefaultSpacing));
+  FFdspacing := TSFFloat.Create('spacing', DefaultSpacing);
+  Fields.Add(FFdspacing);
 
-  Fields.Add(TSFString.Create('style', 'PLAIN'));
+  FFdstyle := TSFString.Create('style', 'PLAIN');
+  Fields.Add(FFdstyle);
 
-  Fields.Add(TSFBool.Create('topToBottom', TRUE));
+  FFdtopToBottom := TSFBool.Create('topToBottom', TRUE);
+  Fields.Add(FFdtopToBottom);
 
   DefaultContainerField := 'fontStyle';
 end;
@@ -2720,13 +3544,16 @@ constructor TNodeGeoCoordinate.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TMFString.Create('point', []));
+  FFdpoint := TMFString.Create('point', []);
+  Fields.Add(FFdpoint);
 
   DefaultContainerField := 'coord';
 end;
@@ -2750,53 +3577,70 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_yScale', TSFFloat, true));
 
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeNormal]);
+  Fields.Add(FFdnormal);
 
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 
-  Fields.Add(TSFBool.Create('ccw', TRUE));
-  Fields.Last.Exposed := false;
+  FFdccw := TSFBool.Create('ccw', TRUE);
+  FFdccw.Exposed := false;
+  Fields.Add(FFdccw);
 
-  Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', TRUE);
+  FFdcolorPerVertex.Exposed := false;
+  Fields.Add(FFdcolorPerVertex);
 
-  Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Last.Exposed := false;
+  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle.Exposed := false;
+  Fields.Add(FFdcreaseAngle);
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TSFString.Create('geoGridOrigin', '0 0 0'));
-  Fields.Last.Exposed := false;
+  FFdgeoGridOrigin := TSFString.Create('geoGridOrigin', '0 0 0');
+  FFdgeoGridOrigin.Exposed := false;
+  Fields.Add(FFdgeoGridOrigin);
 
-  Fields.Add(TMFFloat.Create('height', []));
-  Fields.Last.Exposed := false;
+  FFdheight := TMFFloat.Create('height', []);
+  FFdheight.Exposed := false;
+  Fields.Add(FFdheight);
 
-  Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdnormalPerVertex := TSFBool.Create('normalPerVertex', TRUE);
+  FFdnormalPerVertex.Exposed := false;
+  Fields.Add(FFdnormalPerVertex);
 
-  Fields.Add(TSFBool.Create('solid', TRUE));
-  Fields.Last.Exposed := false;
+  FFdsolid := TSFBool.Create('solid', TRUE);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
 
-  Fields.Add(TSFInt32.Create('xDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdxDimension := TSFInt32.Create('xDimension', 0);
+  FFdxDimension.Exposed := false;
+  Fields.Add(FFdxDimension);
 
-  Fields.Add(TSFString.Create('xSpacing', '1.0'));
-  Fields.Last.Exposed := false;
+  FFdxSpacing := TSFString.Create('xSpacing', '1.0');
+  FFdxSpacing.Exposed := false;
+  Fields.Add(FFdxSpacing);
 
-  Fields.Add(TSFFloat.Create('yScale', 1.0));
-  Fields.Last.Exposed := false;
+  FFdyScale := TSFFloat.Create('yScale', 1.0);
+  FFdyScale.Exposed := false;
+  Fields.Add(FFdyScale);
 
-  Fields.Add(TSFInt32.Create('zDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdzDimension := TSFInt32.Create('zDimension', 0);
+  FFdzDimension.Exposed := false;
+  Fields.Add(FFdzDimension);
 
-  Fields.Add(TSFString.Create('zSpacing', '1.0'));
-  Fields.Last.Exposed := false;
+  FFdzSpacing := TSFString.Create('zSpacing', '1.0');
+  FFdzSpacing.Exposed := false;
+  Fields.Add(FFdzSpacing);
 end;
 
 class function TNodeGeoLocation.ClassNodeTypeName: string;
@@ -2814,13 +3658,16 @@ constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('geoCoords', ''));
+  FFdgeoCoords := TSFString.Create('geoCoords', '');
+  Fields.Add(FFdgeoCoords);
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
   DefaultContainerField := 'children';
 end;
@@ -2840,35 +3687,45 @@ constructor TNodeGeoLOD.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('center', ''));
-  Fields.Last.Exposed := false;
+  FFdcenter := TSFString.Create('center', '');
+  FFdcenter.Exposed := false;
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TMFString.Create('child1Url', []));
-  Fields.Last.Exposed := false;
+  FFdchild1Url := TMFString.Create('child1Url', []);
+  FFdchild1Url.Exposed := false;
+  Fields.Add(FFdchild1Url);
 
-  Fields.Add(TMFString.Create('child2Url', []));
-  Fields.Last.Exposed := false;
+  FFdchild2Url := TMFString.Create('child2Url', []);
+  FFdchild2Url.Exposed := false;
+  Fields.Add(FFdchild2Url);
 
-  Fields.Add(TMFString.Create('child3Url', []));
-  Fields.Last.Exposed := false;
+  FFdchild3Url := TMFString.Create('child3Url', []);
+  FFdchild3Url.Exposed := false;
+  Fields.Add(FFdchild3Url);
 
-  Fields.Add(TMFString.Create('child4Url', []));
-  Fields.Last.Exposed := false;
+  FFdchild4Url := TMFString.Create('child4Url', []);
+  FFdchild4Url.Exposed := false;
+  Fields.Add(FFdchild4Url);
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TSFFloat.Create('range', 10));
-  Fields.Last.Exposed := false;
+  FFdrange := TSFFloat.Create('range', 10);
+  FFdrange.Exposed := false;
+  Fields.Add(FFdrange);
 
-  Fields.Add(TMFString.Create('rootUrl', []));
-  Fields.Last.Exposed := false;
+  FFdrootUrl := TMFString.Create('rootUrl', []);
+  FFdrootUrl.Exposed := false;
+  Fields.Add(FFdrootUrl);
 
-  Fields.Add(TMFNode.Create(Self, 'rootNode', AllowedChildrenNodes));
-  Fields.Last.Exposed := false;
+  FFdrootNode := TMFNode.Create(Self, 'rootNode', AllowedChildrenNodes);
+  FFdrootNode.Exposed := false;
+  Fields.Add(FFdrootNode);
 
   Events.Add(TVRMLEvent.Create('children', TMFNode, false));
   Fields.Last.Exposed := false;
@@ -2891,11 +3748,14 @@ constructor TNodeGeoMetadata.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'data', AllowedChildrenNodes));
+  FFddata := TMFNode.Create(Self, 'data', AllowedChildrenNodes);
+  Fields.Add(FFddata);
 
-  Fields.Add(TMFString.Create('summary', []));
+  FFdsummary := TMFString.Create('summary', []);
+  Fields.Add(FFdsummary);
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
   DefaultContainerField := 'children';
 end;
@@ -2915,11 +3775,14 @@ constructor TNodeGeoOrigin.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TSFString.Create('geoCoords', ''));
+  FFdgeoCoords := TSFString.Create('geoCoords', '');
+  Fields.Add(FFdgeoCoords);
 
-  Fields.Add(TSFBool.Create('rotateYUp', FALSE));
+  FFdrotateYUp := TSFBool.Create('rotateYUp', FALSE);
+  Fields.Add(FFdrotateYUp);
 
   DefaultContainerField := 'geoOrigin';
 end;
@@ -2941,17 +3804,21 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TMFFloat.Create('key', []));
-  Fields.Last.Exposed := false;
+  FFdkey := TMFFloat.Create('key', []);
+  FFdkey.Exposed := false;
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFString.Create('keyValue', []));
-  Fields.Last.Exposed := false;
+  FFdkeyValue := TMFString.Create('keyValue', []);
+  FFdkeyValue.Exposed := false;
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('geovalue_changed', TSFString, false));
   Fields.Last.Exposed := false;
@@ -2977,13 +3844,16 @@ constructor TNodeGeoTouchSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('enabled', TRUE));
+  FFdenabled := TSFBool.Create('enabled', TRUE);
+  Fields.Add(FFdenabled);
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
   Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
 
@@ -3023,31 +3893,41 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_position', TSFString, true));
 
-  Fields.Add(TSFFloat.Create('fieldOfView', Pi / 4));
+  FFdfieldOfView := TSFFloat.Create('fieldOfView', Pi / 4);
+  Fields.Add(FFdfieldOfView);
 
-  Fields.Add(TSFBool.Create('headlight', TRUE));
+  FFdheadlight := TSFBool.Create('headlight', TRUE);
+  Fields.Add(FFdheadlight);
 
-  Fields.Add(TSFBool.Create('jump', TRUE));
+  FFdjump := TSFBool.Create('jump', TRUE);
+  Fields.Add(FFdjump);
 
-  Fields.Add(TMFString.Create('navType', ['EXAMINE','ANY']));
+  FFdnavType := TMFString.Create('navType', ['EXAMINE','ANY']);
+  Fields.Add(FFdnavType);
 
-  Fields.Add(TSFString.Create('description', ''));
-  Fields.Last.Exposed := false;
+  FFddescription := TSFString.Create('description', '');
+  FFddescription.Exposed := false;
+  Fields.Add(FFddescription);
 
-  Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
-  Fields.Last.Exposed := false;
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdgeoOrigin.Exposed := false;
+  Fields.Add(FFdgeoOrigin);
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
-  Fields.Last.Exposed := false;
+  FFdgeoSystem := TMFString.Create('geoSystem', ['GD','WE']);
+  FFdgeoSystem.Exposed := false;
+  Fields.Add(FFdgeoSystem);
 
-  Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
-  Fields.Last.Exposed := false;
+  FFdorientation := TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0);
+  FFdorientation.Exposed := false;
+  Fields.Add(FFdorientation);
 
-  Fields.Add(TSFString.Create('position', '0 0 100000'));
-  Fields.Last.Exposed := false;
+  FFdposition := TSFString.Create('position', '0 0 100000');
+  FFdposition.Exposed := false;
+  Fields.Add(FFdposition);
 
-  Fields.Add(TSFFloat.Create('speedFactor', 1.0));
-  Fields.Last.Exposed := false;
+  FFdspeedFactor := TSFFloat.Create('speedFactor', 1.0);
+  FFdspeedFactor.Exposed := false;
+  Fields.Add(FFdspeedFactor);
 
   Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
 
@@ -3122,13 +4002,16 @@ constructor TNodeImageTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFBool.Create('repeatS', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
+  FFdrepeatS.Exposed := false;
+  Fields.Add(FFdrepeatS);
 
-  Fields.Add(TSFBool.Create('repeatT', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
+  FFdrepeatT.Exposed := false;
+  Fields.Add(FFdrepeatT);
 
   DefaultContainerField := 'texture';
 end;
@@ -3201,43 +4084,57 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true));
 
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
+  Fields.Add(FFdcoord);
 
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeNormal]);
+  Fields.Add(FFdnormal);
 
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]);
+  Fields.Add(FFdtexCoord);
 
-  Fields.Add(TSFBool.Create('ccw', TRUE));
-  Fields.Last.Exposed := false;
+  FFdccw := TSFBool.Create('ccw', TRUE);
+  FFdccw.Exposed := false;
+  Fields.Add(FFdccw);
 
-  Fields.Add(TMFInt32.Create('colorIndex', []));
-  Fields.Last.Exposed := false;
+  FFdcolorIndex := TMFInt32.Create('colorIndex', []);
+  FFdcolorIndex.Exposed := false;
+  Fields.Add(FFdcolorIndex);
 
-  Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', TRUE);
+  FFdcolorPerVertex.Exposed := false;
+  Fields.Add(FFdcolorPerVertex);
 
-  Fields.Add(TSFBool.Create('convex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdconvex := TSFBool.Create('convex', TRUE);
+  FFdconvex.Exposed := false;
+  Fields.Add(FFdconvex);
 
-  Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
-  Fields.Last.Exposed := false;
+  FFdcoordIndex := TMFInt32.CreateMFLong('coordIndex', [], true);
+  FFdcoordIndex.Exposed := false;
+  Fields.Add(FFdcoordIndex);
 
-  Fields.Add(TSFFloat.Create('creaseAngle', 0));
-  Fields.Last.Exposed := false;
+  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle.Exposed := false;
+  Fields.Add(FFdcreaseAngle);
 
-  Fields.Add(TMFInt32.Create('normalIndex', []));
-  Fields.Last.Exposed := false;
+  FFdnormalIndex := TMFInt32.Create('normalIndex', []);
+  FFdnormalIndex.Exposed := false;
+  Fields.Add(FFdnormalIndex);
 
-  Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdnormalPerVertex := TSFBool.Create('normalPerVertex', TRUE);
+  FFdnormalPerVertex.Exposed := false;
+  Fields.Add(FFdnormalPerVertex);
 
-  Fields.Add(TSFBool.Create('solid', TRUE));
-  Fields.Last.Exposed := false;
+  FFdsolid := TSFBool.Create('solid', TRUE);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
 
-  Fields.Add(TMFInt32.CreateMFLong('texCoordIndex', [], true));
-  Fields.Last.Exposed := false;
+  FFdtexCoordIndex := TMFInt32.CreateMFLong('texCoordIndex', [], true);
+  FFdtexCoordIndex.Exposed := false;
+  Fields.Add(FFdtexCoordIndex);
 end;
 
 class function TNodeIndexedFaceSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3264,18 +4161,23 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
 
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
+  Fields.Add(FFdcoord);
 
-  Fields.Add(TMFInt32.Create('colorIndex', []));
-  Fields.Last.Exposed := false;
+  FFdcolorIndex := TMFInt32.Create('colorIndex', []);
+  FFdcolorIndex.Exposed := false;
+  Fields.Add(FFdcolorIndex);
 
-  Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
-  Fields.Last.Exposed := false;
+  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', TRUE);
+  FFdcolorPerVertex.Exposed := false;
+  Fields.Add(FFdcolorPerVertex);
 
-  Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
-  Fields.Last.Exposed := false;
+  FFdcoordIndex := TMFInt32.CreateMFLong('coordIndex', [], true);
+  FFdcoordIndex.Exposed := false;
+  Fields.Add(FFdcoordIndex);
 end;
 
 class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3298,13 +4200,16 @@ constructor TNodeInline.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
 
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Last.Exposed := false;
+  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
 
   DefaultContainerField := 'children';
 
@@ -3371,15 +4276,19 @@ constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('load', TRUE));
+  FFdload := TSFBool.Create('load', TRUE);
+  Fields.Add(FFdload);
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
 
-  Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
-  Fields.Last.Exposed := false;
+  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
 
   Events.Add(TVRMLEvent.Create('children', TMFNode, false));
 
@@ -3455,13 +4364,16 @@ constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'level', AllowedChildrenNodes));
+  FFdlevel := TMFNode.Create(Self, 'level', AllowedChildrenNodes);
+  Fields.Add(FFdlevel);
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
-  Fields.Last.Exposed := false;
+  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  FFdcenter.Exposed := false;
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TMFFloat.Create('range', []));
-  Fields.Last.Exposed := false;
+  FFdrange := TMFFloat.Create('range', []);
+  FFdrange.Exposed := false;
+  Fields.Add(FFdrange);
 
   DefaultContainerField := 'children';
 end;
@@ -3499,21 +4411,29 @@ constructor TNodeMaterial_2.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity));
+  FFdambientIntensity := TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity);
+  Fields.Add(FFdambientIntensity);
 
-  Fields.Add(TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor));
+  FFddiffuseColor := TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor);
+  Fields.Add(FFddiffuseColor);
 
-  Fields.Add(TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor));
+  FFdemissiveColor := TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor);
+  Fields.Add(FFdemissiveColor);
 
-  Fields.Add(TSFFloat.Create('shininess', DefaultMaterialShininess));
+  FFdshininess := TSFFloat.Create('shininess', DefaultMaterialShininess);
+  Fields.Add(FFdshininess);
 
-  Fields.Add(TSFColor.Create('specularColor', DefaultMaterialSpecularColor));
+  FFdspecularColor := TSFColor.Create('specularColor', DefaultMaterialSpecularColor);
+  Fields.Add(FFdspecularColor);
 
-  Fields.Add(TSFFloat.Create('transparency', DefaultMaterialTransparency));
+  FFdtransparency := TSFFloat.Create('transparency', DefaultMaterialTransparency);
+  Fields.Add(FFdtransparency);
 
-  Fields.Add(TSFBool.Create('fogImmune', false));
+  FFdfogImmune := TSFBool.Create('fogImmune', false);
+  Fields.Add(FFdfogImmune);
 
-  Fields.Add(TSFFloat.Create('mirror', DefaultMaterialMirror));
+  FFdmirror := TSFFloat.Create('mirror', DefaultMaterialMirror);
+  Fields.Add(FFdmirror);
 
   DefaultContainerField := 'material';
 end;
@@ -3548,21 +4468,28 @@ constructor TNodeMovieTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('loop', FALSE));
+  FFdloop := TSFBool.Create('loop', FALSE);
+  Fields.Add(FFdloop);
 
-  Fields.Add(TSFFloat.Create('speed', 1.0));
+  FFdspeed := TSFFloat.Create('speed', 1.0);
+  Fields.Add(FFdspeed);
 
-  Fields.Add(TSFTime.Create('startTime', 0));
+  FFdstartTime := TSFTime.Create('startTime', 0);
+  Fields.Add(FFdstartTime);
 
-  Fields.Add(TSFTime.Create('stopTime', 0));
+  FFdstopTime := TSFTime.Create('stopTime', 0);
+  Fields.Add(FFdstopTime);
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFBool.Create('repeatS', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
+  FFdrepeatS.Exposed := false;
+  Fields.Add(FFdrepeatS);
 
-  Fields.Add(TSFBool.Create('repeatT', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
+  FFdrepeatT.Exposed := false;
+  Fields.Add(FFdrepeatT);
 
   Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
 
@@ -3586,19 +4513,26 @@ constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]));
+  FFdavatarSize := TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]);
+  Fields.Add(FFdavatarSize);
 
-  Fields.Add(TSFBool.Create('headlight', TRUE));
+  FFdheadlight := TSFBool.Create('headlight', TRUE);
+  Fields.Add(FFdheadlight);
 
-  Fields.Add(TSFFloat.Create('speed', 1.0));
+  FFdspeed := TSFFloat.Create('speed', 1.0);
+  Fields.Add(FFdspeed);
 
-  Fields.Add(TSFTime.Create('transitionTime', 1.0));
+  FFdtransitionTime := TSFTime.Create('transitionTime', 1.0);
+  Fields.Add(FFdtransitionTime);
 
-  Fields.Add(TMFString.Create('transitionType',  ['LINEAR']));
+  FFdtransitionType := TMFString.Create('transitionType',  ['LINEAR']);
+  Fields.Add(FFdtransitionType);
 
-  Fields.Add(TMFString.Create('type', ['WALK', 'ANY']));
+  FFdtype := TMFString.Create('type', ['WALK', 'ANY']);
+  Fields.Add(FFdtype);
 
-  Fields.Add(TSFFloat.Create('visibilityLimit', 0.0));
+  FFdvisibilityLimit := TSFFloat.Create('visibilityLimit', 0.0);
+  Fields.Add(FFdvisibilityLimit);
 
   Events.Add(TVRMLEvent.Create('transitionComplete', TSFBool, false));
 
@@ -3620,7 +4554,8 @@ constructor TNodeNormal.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('vector', []));
+  FFdvector := TMFVec3f.Create('vector', []);
+  Fields.Add(FFdvector);
 
   DefaultContainerField := 'normal';
 end;
@@ -3642,9 +4577,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFVec3f.Create('keyValue', []));
+  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 
@@ -3666,17 +4603,22 @@ constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('controlPoint', []));
+  FFdcontrolPoint := TMFVec3f.Create('controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
 
-  Fields.Add(TMFFloat.Create('weight', []));
+  FFdweight := TMFFloat.Create('weight', []);
+  Fields.Add(FFdweight);
 
-  Fields.Add(TSFInt32.Create('tessellation', 0));
+  FFdtessellation := TSFInt32.Create('tessellation', 0);
+  Fields.Add(FFdtessellation);
 
-  Fields.Add(TMFFloat.Create('knot', []));
-  Fields.Last.Exposed := false;
+  FFdknot := TMFFloat.Create('knot', []);
+  FFdknot.Exposed := false;
+  Fields.Add(FFdknot);
 
-  Fields.Add(TSFInt32.Create('order', 3));
-  Fields.Last.Exposed := false;
+  FFdorder := TSFInt32.Create('order', 3);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
 end;
 
 class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
@@ -3694,17 +4636,22 @@ constructor TNodeNurbsCurve2D.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TMFVec2f.Create('controlPoint', []));
+  FFdcontrolPoint := TMFVec2f.Create('controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
 
-  Fields.Add(TSFInt32.Create('tessellation', 0));
+  FFdtessellation := TSFInt32.Create('tessellation', 0);
+  Fields.Add(FFdtessellation);
 
-  Fields.Add(TMFFloat.Create('weight', []));
+  FFdweight := TMFFloat.Create('weight', []);
+  Fields.Add(FFdweight);
 
-  Fields.Add(TMFFloat.Create('knot', []));
-  Fields.Last.Exposed := false;
+  FFdknot := TMFFloat.Create('knot', []);
+  FFdknot.Exposed := false;
+  Fields.Add(FFdknot);
 
-  Fields.Add(TSFInt32.Create('order', 3));
-  Fields.Last.Exposed := false;
+  FFdorder := TSFInt32.Create('order', 3);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
 end;
 
 class function TNodeNurbsGroup.ClassNodeTypeName: string;
@@ -3722,7 +4669,8 @@ constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('tessellationScale', 1.0));
+  FFdtessellationScale := TSFFloat.Create('tessellationScale', 1.0);
+  Fields.Add(FFdtessellationScale);
 end;
 
 class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
@@ -3742,15 +4690,20 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TSFInt32.Create('dimension', 0));
+  FFddimension := TSFInt32.Create('dimension', 0);
+  Fields.Add(FFddimension);
 
-  Fields.Add(TMFVec3f.Create('keyValue', []));
+  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
-  Fields.Add(TMFFloat.Create('keyWeight', []));
+  FFdkeyWeight := TMFFloat.Create('keyWeight', []);
+  Fields.Add(FFdkeyWeight);
 
-  Fields.Add(TMFFloat.Create('knot', []));
+  FFdknot := TMFFloat.Create('knot', []);
+  Fields.Add(FFdknot);
 
-  Fields.Add(TSFInt32.Create('order', 4));
+  FFdorder := TSFInt32.Create('order', 4);
+  Fields.Add(FFdorder);
 
   Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 
@@ -3772,39 +4725,52 @@ constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('controlPoint', []));
+  FFdcontrolPoint := TMFVec3f.Create('controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
 
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface]));
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface]);
+  Fields.Add(FFdtexCoord);
 
-  Fields.Add(TSFInt32.Create('uTessellation', 0));
+  FFduTessellation := TSFInt32.Create('uTessellation', 0);
+  Fields.Add(FFduTessellation);
 
-  Fields.Add(TSFInt32.Create('vTessellation', 0));
+  FFdvTessellation := TSFInt32.Create('vTessellation', 0);
+  Fields.Add(FFdvTessellation);
 
-  Fields.Add(TMFFloat.Create('weight', []));
+  FFdweight := TMFFloat.Create('weight', []);
+  Fields.Add(FFdweight);
 
-  Fields.Add(TSFBool.Create('ccw', TRUE));
-  Fields.Last.Exposed := false;
+  FFdccw := TSFBool.Create('ccw', TRUE);
+  FFdccw.Exposed := false;
+  Fields.Add(FFdccw);
 
-  Fields.Add(TSFBool.Create('solid', TRUE));
-  Fields.Last.Exposed := false;
+  FFdsolid := TSFBool.Create('solid', TRUE);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
 
-  Fields.Add(TSFInt32.Create('uDimension', 0));
-  Fields.Last.Exposed := false;
+  FFduDimension := TSFInt32.Create('uDimension', 0);
+  FFduDimension.Exposed := false;
+  Fields.Add(FFduDimension);
 
-  Fields.Add(TMFFloat.Create('uKnot', []));
-  Fields.Last.Exposed := false;
+  FFduKnot := TMFFloat.Create('uKnot', []);
+  FFduKnot.Exposed := false;
+  Fields.Add(FFduKnot);
 
-  Fields.Add(TSFInt32.Create('uOrder', 3));
-  Fields.Last.Exposed := false;
+  FFduOrder := TSFInt32.Create('uOrder', 3);
+  FFduOrder.Exposed := false;
+  Fields.Add(FFduOrder);
 
-  Fields.Add(TSFInt32.Create('vDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdvDimension := TSFInt32.Create('vDimension', 0);
+  FFdvDimension.Exposed := false;
+  Fields.Add(FFdvDimension);
 
-  Fields.Add(TMFFloat.Create('vKnot', []));
-  Fields.Last.Exposed := false;
+  FFdvKnot := TMFFloat.Create('vKnot', []);
+  FFdvKnot.Exposed := false;
+  Fields.Add(FFdvKnot);
 
-  Fields.Add(TSFInt32.Create('vOrder', 3));
-  Fields.Last.Exposed := false;
+  FFdvOrder := TSFInt32.Create('vOrder', 3);
+  FFdvOrder.Exposed := false;
+  Fields.Add(FFdvOrder);
 end;
 
 class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
@@ -3822,27 +4788,35 @@ constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWB
 begin
   inherited;
 
-  Fields.Add(TMFVec2f.Create('controlPoint', []));
+  FFdcontrolPoint := TMFVec2f.Create('controlPoint', []);
+  Fields.Add(FFdcontrolPoint);
 
-  Fields.Add(TMFFloat.Create('weight', []));
+  FFdweight := TMFFloat.Create('weight', []);
+  Fields.Add(FFdweight);
 
-  Fields.Add(TSFInt32.Create('uDimension', 0));
-  Fields.Last.Exposed := false;
+  FFduDimension := TSFInt32.Create('uDimension', 0);
+  FFduDimension.Exposed := false;
+  Fields.Add(FFduDimension);
 
-  Fields.Add(TMFFloat.Create('uKnot', []));
-  Fields.Last.Exposed := false;
+  FFduKnot := TMFFloat.Create('uKnot', []);
+  FFduKnot.Exposed := false;
+  Fields.Add(FFduKnot);
 
-  Fields.Add(TSFInt32.Create('uOrder', 3));
-  Fields.Last.Exposed := false;
+  FFduOrder := TSFInt32.Create('uOrder', 3);
+  FFduOrder.Exposed := false;
+  Fields.Add(FFduOrder);
 
-  Fields.Add(TSFInt32.Create('vDimension', 0));
-  Fields.Last.Exposed := false;
+  FFdvDimension := TSFInt32.Create('vDimension', 0);
+  FFdvDimension.Exposed := false;
+  Fields.Add(FFdvDimension);
 
-  Fields.Add(TMFFloat.Create('vKnot', []));
-  Fields.Last.Exposed := false;
+  FFdvKnot := TMFFloat.Create('vKnot', []);
+  FFdvKnot.Exposed := false;
+  Fields.Add(FFdvKnot);
 
-  Fields.Add(TSFInt32.Create('vOrder', 3));
-  Fields.Last.Exposed := false;
+  FFdvOrder := TSFInt32.Create('vOrder', 3);
+  FFdvOrder.Exposed := false;
+  Fields.Add(FFdvOrder);
 end;
 
 class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
@@ -3862,9 +4836,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFRotation.Create('keyValue', []));
+  FFdkeyValue := TMFRotation.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TSFRotation, false));
 
@@ -3886,13 +4862,16 @@ constructor TNodePixelTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFImage.Create('image', nil));
+  FFdimage := TSFImage.Create('image', nil);
+  Fields.Add(FFdimage);
 
-  Fields.Add(TSFBool.Create('repeatS', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
+  FFdrepeatS.Exposed := false;
+  Fields.Add(FFdrepeatS);
 
-  Fields.Add(TSFBool.Create('repeatT', TRUE));
-  Fields.Last.Exposed := false;
+  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
+  FFdrepeatT.Exposed := false;
+  Fields.Add(FFdrepeatT);
 
   DefaultContainerField := 'texture';
 end;
@@ -3940,13 +4919,17 @@ constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFVec2f.Create('maxPosition', Vector2Single(-1, -1)));
+  FFdmaxPosition := TSFVec2f.Create('maxPosition', Vector2Single(-1, -1));
+  Fields.Add(FFdmaxPosition);
 
-  Fields.Add(TSFVec2f.Create('minPosition', Vector2Single(0, 0)));
+  FFdminPosition := TSFVec2f.Create('minPosition', Vector2Single(0, 0));
+  Fields.Add(FFdminPosition);
 
-  Fields.Add(TSFVec3f.Create('offset', ZeroVector3Single));
+  FFdoffset := TSFVec3f.Create('offset', ZeroVector3Single);
+  Fields.Add(FFdoffset);
 
-  Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 0, 1), 0));
+  FFdaxisRotation := TSFRotation.Create('axisRotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdaxisRotation);
 
   Events.Add(TVRMLEvent.Create('translation_changed', TSFVec3f, false));
 
@@ -3971,7 +4954,8 @@ begin
   FdLocation.Value := ZeroVector3Single;
   FdLocation.DefaultValue := ZeroVector3Single;
 
-  Fields.Add(TSFFloat.Create('radius', 100));
+  FFdradius := TSFFloat.Create('radius', 100);
+  Fields.Add(FFdradius);
 
   DefaultContainerField := 'children';
 end;
@@ -4021,9 +5005,11 @@ constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
+  Fields.Add(FFdcolor);
 
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
+  Fields.Add(FFdcoord);
 end;
 
 class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -4046,7 +5032,8 @@ constructor TNodePolyline2D.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TMFVec2f.Create('point', []));
+  FFdpoint := TMFVec2f.Create('point', []);
+  Fields.Add(FFdpoint);
 end;
 
 class function TNodePositionInterpolator.ClassNodeTypeName: string;
@@ -4066,9 +5053,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFVec3f.Create('keyValue', []));
+  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 
@@ -4090,11 +5079,14 @@ constructor TNodeProximitySensor.Create(const ANodeName: string; const AWWWBaseP
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single));
+  FFdsize := TSFVec3f.Create('size', ZeroVector3Single);
+  Fields.Add(FFdsize);
 
-  Fields.Add(TSFBool.Create('enabled', TRUE));
+  FFdenabled := TSFBool.Create('enabled', TRUE);
+  Fields.Add(FFdenabled);
 
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
@@ -4126,9 +5118,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
 
-  Fields.Add(TMFFloat.Create('key', []));
+  FFdkey := TMFFloat.Create('key', []);
+  Fields.Add(FFdkey);
 
-  Fields.Add(TMFFloat.Create('keyValue', []));
+  FFdkeyValue := TMFFloat.Create('keyValue', []);
+  Fields.Add(FFdkeyValue);
 
   Events.Add(TVRMLEvent.Create('value_changed', TSFFloat, false));
 
@@ -4150,13 +5144,16 @@ constructor TNodeScript.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFBool.Create('directOutput', FALSE));
-  Fields.Last.Exposed := false;
+  FFddirectOutput := TSFBool.Create('directOutput', FALSE);
+  FFddirectOutput.Exposed := false;
+  Fields.Add(FFddirectOutput);
 
-  Fields.Add(TSFBool.Create('mustEvaluate', FALSE));
-  Fields.Last.Exposed := false;
+  FFdmustEvaluate := TSFBool.Create('mustEvaluate', FALSE);
+  FFdmustEvaluate.Exposed := false;
+  Fields.Add(FFdmustEvaluate);
 
   DefaultContainerField := 'children';
 
@@ -4213,9 +5210,11 @@ constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance, TNodeKambiAppearance]));
+  FFdappearance := TSFNode.Create(Self, 'appearance', [TNodeAppearance, TNodeKambiAppearance]);
+  Fields.Add(FFdappearance);
 
-  Fields.Add(TSFNode.Create(Self, 'geometry', AllowedGeometryNodes));
+  FFdgeometry := TSFNode.Create(Self, 'geometry', AllowedGeometryNodes);
+  Fields.Add(FFdgeometry);
 
   DefaultContainerField := 'children';
 end;
@@ -4356,26 +5355,36 @@ constructor TNodeSound.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, 1)));
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, 1));
+  Fields.Add(FFddirection);
 
-  Fields.Add(TSFFloat.Create('intensity', 1));
+  FFdintensity := TSFFloat.Create('intensity', 1);
+  Fields.Add(FFdintensity);
 
-  Fields.Add(TSFVec3f.Create('location', ZeroVector3Single));
+  FFdlocation := TSFVec3f.Create('location', ZeroVector3Single);
+  Fields.Add(FFdlocation);
 
-  Fields.Add(TSFFloat.Create('maxBack', 10));
+  FFdmaxBack := TSFFloat.Create('maxBack', 10);
+  Fields.Add(FFdmaxBack);
 
-  Fields.Add(TSFFloat.Create('maxFront', 10));
+  FFdmaxFront := TSFFloat.Create('maxFront', 10);
+  Fields.Add(FFdmaxFront);
 
-  Fields.Add(TSFFloat.Create('minBack', 1));
+  FFdminBack := TSFFloat.Create('minBack', 1);
+  Fields.Add(FFdminBack);
 
-  Fields.Add(TSFFloat.Create('minFront', 1));
+  FFdminFront := TSFFloat.Create('minFront', 1);
+  Fields.Add(FFdminFront);
 
-  Fields.Add(TSFFloat.Create('priority', 0));
+  FFdpriority := TSFFloat.Create('priority', 0);
+  Fields.Add(FFdpriority);
 
-  Fields.Add(TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture]));
+  FFdsource := TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture]);
+  Fields.Add(FFdsource);
 
-  Fields.Add(TSFBool.Create('spatialize', TRUE));
-  Fields.Last.Exposed := false;
+  FFdspatialize := TSFBool.Create('spatialize', TRUE);
+  FFdspatialize.Exposed := false;
+  Fields.Add(FFdspatialize);
 
   DefaultContainerField := 'children';
 end;
@@ -4395,8 +5404,9 @@ constructor TNodeSphere_2.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('radius', 1));
-  Fields.Last.Exposed := false;
+  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius.Exposed := false;
+  Fields.Add(FFdradius);
 end;
 
 class function TNodeSphere_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -4419,7 +5429,8 @@ constructor TNodeSphereSensor.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0));
+  FFdoffset := TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0);
+  Fields.Add(FFdoffset);
 
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
 
@@ -4441,13 +5452,17 @@ constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('beamWidth', Pi / 2));
+  FFdbeamWidth := TSFFloat.Create('beamWidth', Pi / 2);
+  Fields.Add(FFdbeamWidth);
 
-  Fields.Add(TSFFloat.Create('cutOffAngle', Pi / 4));
+  FFdcutOffAngle := TSFFloat.Create('cutOffAngle', Pi / 4);
+  Fields.Add(FFdcutOffAngle);
 
-  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
+  Fields.Add(FFddirection);
 
-  Fields.Add(TSFFloat.Create('radius', 100));
+  FFdradius := TSFFloat.Create('radius', 100);
+  Fields.Add(FFdradius);
 
   { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
     see comments at ambientIntensity in implementation of TPointLight_2.
@@ -4494,9 +5509,11 @@ constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'choice', AllowedChildrenNodes));
+  FFdchoice := TMFNode.Create(Self, 'choice', AllowedChildrenNodes);
+  Fields.Add(FFdchoice);
 
-  Fields.Add(TSFInt32.Create('whichChoice', -1));
+  FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
+  Fields.Add(FFdwhichChoice);
 
   DefaultContainerField := 'children';
 end;
@@ -4532,13 +5549,17 @@ constructor TNodeText.Create(const ANodeName: string; const AWWWBasePath: string
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('string', []));
+  FFdstring := TMFString.Create('string', []);
+  Fields.Add(FFdstring);
 
-  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]));
+  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]);
+  Fields.Add(FFdfontStyle);
 
-  Fields.Add(TMFFloat.Create('length', []));
+  FFdlength := TMFFloat.Create('length', []);
+  Fields.Add(FFdlength);
 
-  Fields.Add(TSFFloat.Create('maxExtent', 0.0));
+  FFdmaxExtent := TSFFloat.Create('maxExtent', 0.0);
+  Fields.Add(FFdmaxExtent);
 end;
 
 function TNodeText.FontStyle: TNodeFontStyle_2;
@@ -4564,7 +5585,8 @@ constructor TNodeTextureCoordinate.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  Fields.Add(TMFVec2f.Create('point', []));
+  FFdpoint := TMFVec2f.Create('point', []);
+  Fields.Add(FFdpoint);
 
   DefaultContainerField := 'texCoord';
 end;
@@ -4584,13 +5606,17 @@ constructor TNodeTextureTransform.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0)));
+  FFdcenter := TSFVec2f.Create('center', Vector2Single(0, 0));
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TSFFloat.Create('rotation', 0));
+  FFdrotation := TSFFloat.Create('rotation', 0);
+  Fields.Add(FFdrotation);
 
-  Fields.Add(TSFVec2f.Create('scale', Vector2Single(1, 1)));
+  FFdscale := TSFVec2f.Create('scale', Vector2Single(1, 1));
+  Fields.Add(FFdscale);
 
-  Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0)));
+  FFdtranslation := TSFVec2f.Create('translation', Vector2Single(0, 0));
+  Fields.Add(FFdtranslation);
 
   DefaultContainerField := 'textureTransform';
 end;
@@ -4662,15 +5688,20 @@ constructor TNodeTimeSensor.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFTime.Create('cycleInterval', 1));
+  FFdcycleInterval := TSFTime.Create('cycleInterval', 1);
+  Fields.Add(FFdcycleInterval);
 
-  Fields.Add(TSFBool.Create('enabled', TRUE));
+  FFdenabled := TSFBool.Create('enabled', TRUE);
+  Fields.Add(FFdenabled);
 
-  Fields.Add(TSFBool.Create('loop', FALSE));
+  FFdloop := TSFBool.Create('loop', FALSE);
+  Fields.Add(FFdloop);
 
-  Fields.Add(TSFTime.Create('startTime', 0));
+  FFdstartTime := TSFTime.Create('startTime', 0);
+  Fields.Add(FFdstartTime);
 
-  Fields.Add(TSFTime.Create('stopTime', 0));
+  FFdstopTime := TSFTime.Create('stopTime', 0);
+  Fields.Add(FFdstopTime);
 
   Events.Add(TVRMLEvent.Create('cycleTime', TSFTime, false));
 
@@ -4722,15 +5753,20 @@ constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
+  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdrotation);
 
-  Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1)));
+  FFdscale := TSFVec3f.Create('scale', Vector3Single(1, 1, 1));
+  Fields.Add(FFdscale);
 
-  Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0));
+  FFdscaleOrientation := TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdscaleOrientation);
 
-  Fields.Add(TSFVec3f.Create('translation', ZeroVector3Single));
+  FFdtranslation := TSFVec3f.Create('translation', ZeroVector3Single);
+  Fields.Add(FFdtranslation);
 
   DefaultContainerField := 'children';
 end;
@@ -4822,9 +5858,11 @@ begin
 
   Events.Add(TVRMLEvent.Create('removeTrimmingContour', TMFNode, true));
 
-  Fields.Add(TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]));
+  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
+  Fields.Add(FFdtrimmingContour);
 
-  Fields.Add(TSFNode.Create(Self, 'surface', [TNodeNurbsSurface]));
+  FFdsurface := TSFNode.Create(Self, 'surface', [TNodeNurbsSurface]);
+  Fields.Add(FFdsurface);
 end;
 
 class function TNodeViewpoint.ClassNodeTypeName: string;
@@ -4843,13 +5881,17 @@ constructor TNodeViewpoint.Create(
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView));
+  FFdfieldOfView := TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView);
+  Fields.Add(FFdfieldOfView);
 
-  Fields.Add(TSFBool.Create('jump', TRUE));
+  FFdjump := TSFBool.Create('jump', TRUE);
+  Fields.Add(FFdjump);
 
-  Fields.Add(TSFString.Create('description', ''));
+  FFddescription := TSFString.Create('description', '');
+  Fields.Add(FFddescription);
 
-  Fields.Add(TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0)));
+  FFdcenterOfRotation := TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdcenterOfRotation);
 
   { Default value of position is different for Viewpoint than for VRML 1.0
     cameras (as set by TNodeGeneralViewpoint). }
@@ -4912,11 +5954,14 @@ constructor TNodeVisibilitySensor.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  Fields.Add(FFdcenter);
 
-  Fields.Add(TSFBool.Create('enabled', TRUE));
+  FFdenabled := TSFBool.Create('enabled', TRUE);
+  Fields.Add(FFdenabled);
 
-  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single));
+  FFdsize := TSFVec3f.Create('size', ZeroVector3Single);
+  Fields.Add(FFdsize);
 
   Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
 
@@ -4942,11 +5987,13 @@ constructor TNodeWorldInfo.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('info', []));
-  Fields.Last.Exposed := false;
+  FFdinfo := TMFString.Create('info', []);
+  FFdinfo.Exposed := false;
+  Fields.Add(FFdinfo);
 
-  Fields.Add(TSFString.Create('title', ''));
-  Fields.Last.Exposed := false;
+  FFdtitle := TSFString.Create('title', '');
+  FFdtitle.Exposed := false;
+  Fields.Add(FFdtitle);
 
   DefaultContainerField := 'children';
 end;

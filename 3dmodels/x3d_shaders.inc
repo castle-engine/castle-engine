@@ -33,9 +33,14 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     { property Eventactivate: TSFBool index ? read GetFieldAsSFBool; } { }
+
     { property EventisSelected: TSFBool index ? read GetFieldAsSFBool; } { }
+
     { property EventisValid: TSFBool index ? read GetFieldAsSFBool; } { }
-    property Fdlanguage: TSFString index 1 read GetFieldAsSFString;
+
+    private FFdlanguage: TSFString;
+    public property Fdlanguage: TSFString read FFdlanguage;
+
   end;
 
   INodeX3DProgrammableShaderObject = interface
@@ -50,7 +55,8 @@ type
 
     class function ClassNodeTypeName: string; override;
 
-    property Fdparts: TMFNode index 2 read GetFieldAsMFNode;
+    private FFdparts: TMFNode;
+    public property Fdparts: TMFNode read FFdparts;
 
     { TODO:
     # And any number of:
@@ -95,7 +101,8 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdurl: TMFString index 2 read GetFieldAsMFString;
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
 
     { TODO:
     # And any number of:
@@ -114,7 +121,8 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdprograms: TMFNode index 2 read GetFieldAsMFNode;
+    private FFdprograms: TMFNode;
+    public property Fdprograms: TMFNode read FFdprograms;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -127,8 +135,11 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdurl: TMFString index 1 read GetFieldAsMFString;
-    property Fdtype: TSFString index 2 read GetFieldAsSFString;
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdtype: TSFString;
+    public property Fdtype: TSFString read FFdtype;
 
     { Load shader code from node's URL field.
 
@@ -155,8 +166,11 @@ type
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
-    property Fdurl: TMFString index 1 read GetFieldAsMFString;
-    property Fdtype: TSFString index 2 read GetFieldAsSFString;
+    private FFdurl: TMFString;
+    public property Fdurl: TMFString read FFdurl;
+
+    private FFdtype: TSFString;
+    public property Fdtype: TSFString read FFdtype;
 
     { TODO:
     # And any number of:
@@ -185,7 +199,8 @@ begin
 
   Events.Add(TVRMLEvent.Create('isValid', TSFBool, false));
 
-  Fields.Add(TSFString.Create('language', ''));
+  FFdlanguage := TSFString.Create('language', '');
+  Fields.Add(FFdlanguage);
 end;
 
 constructor TNodeComposedShader.Create(const ANodeName: string;
@@ -193,7 +208,8 @@ constructor TNodeComposedShader.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'parts', [TNodeShaderPart]));
+  FFdparts := TMFNode.Create(Self, 'parts', [TNodeShaderPart]);
+  Fields.Add(FFdparts);
 
   DefaultContainerField := 'shaders';
 
@@ -256,7 +272,8 @@ constructor TNodePackagedShader.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
   DefaultContainerField := 'shaders';
 end;
@@ -271,7 +288,8 @@ constructor TNodeProgramShader.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'programs', [TNodeShaderProgram]));
+  FFdprograms := TMFNode.Create(Self, 'programs', [TNodeShaderProgram]);
+  Fields.Add(FFdprograms);
 
   DefaultContainerField := 'shaders';
 end;
@@ -286,10 +304,12 @@ constructor TNodeShaderPart.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFString.Create('type', 'VERTEX'));
-  Fields.Last.Exposed := false;
+  FFdtype := TSFString.Create('type', 'VERTEX');
+  FFdtype.Exposed := false;
+  Fields.Add(FFdtype);
 
   DefaultContainerField := 'parts';
 end;
@@ -330,10 +350,12 @@ constructor TNodeShaderProgram.Create(const ANodeName: string;
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', []));
+  FFdurl := TMFString.Create('url', []);
+  Fields.Add(FFdurl);
 
-  Fields.Add(TSFString.Create('type', 'VERTEX'));
-  Fields.Last.Exposed := false;
+  FFdtype := TSFString.Create('type', 'VERTEX');
+  FFdtype.Exposed := false;
+  Fields.Add(FFdtype);
 
   DefaultContainerField := 'programs';
 end;
