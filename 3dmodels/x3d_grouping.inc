@@ -69,7 +69,6 @@ begin
   inherited;
 
   Fields.Add(TSFInt32.Create('whichChoice', -1));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'children';
 end;

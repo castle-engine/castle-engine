@@ -836,9 +836,13 @@ end;
 constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFString.Create('string', ['']));
+
   Fields.Add(TSFFloat.Create('spacing', 1));
+
   Fields.Add(TSFEnum.Create('justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT));
+
   Fields.Add(TMFFloat.Create('width', [0]));
 end;
 
@@ -855,8 +859,11 @@ end;
 constructor TNodeCone_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFBitMask.Create('parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]));
+
   Fields.Add(TSFFloat.Create('bottomRadius', 1, true));
+
   Fields.Add(TSFFloat.Create('height', 2, true));
 end;
 
@@ -868,8 +875,11 @@ end;
 constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFFloat.Create('width', 2, true));
+
   Fields.Add(TSFFloat.Create('height', 2, true));
+
   Fields.Add(TSFFloat.Create('depth', 2, true));
 end;
 
@@ -881,8 +891,11 @@ end;
 constructor TNodeCylinder_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFBitMask.Create('parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]));
+
   Fields.Add(TSFFloat.Create('radius', 1, true));
+
   Fields.Add(TSFFloat.Create('height', 2, true));
 end;
 
@@ -894,9 +907,13 @@ end;
 constructor TNodeGeneralIndexed_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFLong.CreateMFLong('coordIndex', [0], true));
+
   Fields.Add(TMFLong.Create('materialIndex', [-1]));
+
   Fields.Add(TMFLong.Create('normalIndex', [-1]));
+
   Fields.Add(TMFLong.CreateMFLong('textureCoordIndex', [-1], true));
 end;
 
@@ -913,7 +930,9 @@ end;
 constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFLong.Create('startIndex', 0));
+
   Fields.Add(TSFLong.Create('numPoints', -1));
 end;
 
@@ -952,6 +971,7 @@ end;
 constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFFloat.Create('radius', 1, true));
 end;
 
@@ -963,6 +983,7 @@ end;
 constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFVec3f.Create('point', [Vector3Single(0, 0, 0)]));
 end;
 
@@ -974,8 +995,11 @@ end;
 constructor TNodeFontStyle_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFFloat.Create('size', 10, true));
+
   Fields.Add(TSFEnum.Create('family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF));
+
   Fields.Add(TSFBitMask.Create('style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]));
 end;
 
@@ -1020,6 +1044,7 @@ end;
 constructor TNodeInfo.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFString.Create('string', '<Undefined info>'));
 end;
 
@@ -1031,8 +1056,11 @@ end;
 constructor TNodeLOD_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFFloat.Create('range',[]));
+
   Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
+
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
 end;
@@ -1066,19 +1094,31 @@ end;
 constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFColor.Create('ambientColor', [DefaultMaterial_1AmbientColor]));
+
   Fields.Add(TMFColor.Create('diffuseColor', [DefaultMaterialDiffuseColor]));
+
   Fields.Add(TMFColor.Create('specularColor', [DefaultMaterialSpecularColor]));
+
   Fields.Add(TMFColor.Create('emissiveColor', [DefaultMaterialEmissiveColor]));
+
   Fields.Add(TMFFloat.Create('shininess', [DefaultMaterialShininess]));
+
   Fields.Add(TMFFloat.Create('transparency', [DefaultMaterialTransparency]));
 
   Fields.Add(TMFFloat.Create('mirror', [DefaultMaterialMirror]));
+
   Fields.Add(TMFColor.Create('reflSpecular', []));
+
   Fields.Add(TMFColor.Create('reflDiffuse', []));
+
   Fields.Add(TMFColor.Create('transSpecular', []));
+
   Fields.Add(TMFColor.Create('transDiffuse', []));
+
   Fields.Add(TMFFloat.Create('reflSpecularExp', [DefaultMaterialReflSpecularExp]));
+
   Fields.Add(TMFFloat.Create('transSpecularExp', [DefaultMaterialTransSpecularExp]));
 
   Fields.Add(TSFBool.Create('fogImmune', false));
@@ -1280,10 +1320,8 @@ end;
 constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL',
-    'PER_PART', 'PER_PART_INDEXED',
-    'PER_FACE', 'PER_FACE_INDEXED',
-    'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1));
+
+  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1));
 end;
 
 class function TNodeMaterialBinding.ClassNodeTypeName: string;
@@ -1294,10 +1332,8 @@ end;
 constructor TNodeNormalBinding.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL',
-    'PER_PART', 'PER_PART_INDEXED',
-    'PER_FACE', 'PER_FACE_INDEXED',
-    'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0));
+
+  Fields.Add(TSFEnum.Create('value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0));
 end;
 
 class function TNodeNormalBinding.ClassNodeTypeName: string;
@@ -1308,11 +1344,17 @@ end;
 constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFString.Create('filename', ''));
+
   Fields.Add(TSFImage.Create('image', nil));
+
   Fields.Add(TSFEnum.Create('wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT));
+
   Fields.Add(TSFEnum.Create('wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT));
+
   Fields.Add(TSFEnum.Create('model', ['DECAL'], 0));
+
   Fields.Add(TSFVec3f.Create('blendColor', Vector3Single(0, 0, 0)));
 end;
 
@@ -1385,9 +1427,13 @@ end;
 constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0)));
+
   Fields.Add(TSFFloat.Create('rotation', 0));
+
   Fields.Add(TSFVec2f.Create('scaleFactor', Vector2Single(1, 1)));
+
   Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0)));
 end;
 
@@ -1417,6 +1463,7 @@ end;
 constructor TNodeTextureCoordinate2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TMFVec2f.Create('point', [Vector2Single(0, 0)]));
 end;
 
@@ -1429,9 +1476,13 @@ constructor TNodeShapeHints.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFEnum.Create('vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN));
+
   Fields.Add(TSFEnum.Create('shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN));
+
   Fields.Add(TSFEnum.Create('faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX));
+
   Fields.Add(TSFFloat.Create('creaseAngle', DefaultVRML1CreaseAngle));
 end;
 
@@ -1489,6 +1540,7 @@ end;
 constructor TNodeMatrixTransform.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFMatrix.Create('matrix', IdentityMatrix4Single));
 end;
 
@@ -1518,6 +1570,7 @@ end;
 constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
 end;
 
@@ -1543,6 +1596,7 @@ end;
 constructor TNodeScale.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
 end;
 
@@ -1566,10 +1620,15 @@ end;
 constructor TNodeTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
+
   Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
+
   Fields.Add(TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1)));
+
   Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0));
+
   Fields.Add(TSFVec3f.Create('center', Vector3Single(0, 0, 0)));
 end;
 
@@ -1634,6 +1693,7 @@ end;
 constructor TNodeTranslation.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('translation', Vector3Single(0, 0, 0)));
 end;
 
@@ -1657,10 +1717,15 @@ constructor TNodeGeneralViewpoint.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('position', Vector3Single(0, 0, 1)));
+
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
+
   Fields.Add(TMFVec3f.Create('direction', []));
+
   Fields.Add(TMFVec3f.Create('up', []));
+
   Fields.Add(TSFVec3f.Create('gravityUp', StdVRMLGravityUp));
 end;
 
@@ -1694,9 +1759,13 @@ constructor TNodeGeneralVRML1Camera.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFFloat.Create('focalDistance', 5, true));
-  Fields.Add(TSFFloat.Create('heightAngle', 0.785398, true));
+
+  Fields.Add(TSFFloat.Create('heightAngle', Pi / 4, true));
+
   Fields.Add(TSFFloat.Create('nearDistance', 0));
+
   Fields.Add(TSFFloat.Create('farDistance', 0));
 end;
 
@@ -1723,12 +1792,18 @@ end;
 constructor TNodeGeneralLight.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFBool.Create('on', true)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('intensity', 1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('ambientIntensity', -1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('kambiShadows', false)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('kambiShadowsMain', false)); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFBool.Create('on', true));
+
+  Fields.Add(TSFFloat.Create('intensity', 1));
+
+  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+
+  Fields.Add(TSFFloat.Create('ambientIntensity', -1));
+
+  Fields.Add(TSFBool.Create('kambiShadows', false));
+
+  Fields.Add(TSFBool.Create('kambiShadowsMain', false));
 end;
 
 function TNodeGeneralLight.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
@@ -1747,8 +1822,10 @@ end;
 constructor TNodeGeneralPositionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFVec3f.Create('location', Vector3Single(0, 0, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0))); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFVec3f.Create('location', Vector3Single(0, 0, 1)));
+
+  Fields.Add(TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0)));
 end;
 
 function TNodeGeneralPositionalLight.DistanceNeededForAttenuation: boolean;
@@ -1799,7 +1876,8 @@ ATTENUATION_IMPLEMENTATION
 constructor TNodeGeneralDirectionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
 end;
 
 class function TNodeGeneralDirectionalLight.ClassNodeTypeName: string;
@@ -1840,9 +1918,12 @@ end;
 constructor TNodeSpotLight_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
+
   Fields.Add(TSFFloat.Create('dropOffRate', 0));
-  Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398));
+
+  Fields.Add(TSFFloat.Create('cutOffAngle', Pi / 4));
 end;
 
 class function TNodeSpotLight_1.ClassNodeTypeName: string;
@@ -1928,6 +2009,7 @@ end;
 constructor TNodeSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFEnum.Create('renderCulling', ['ON', 'OFF', 'AUTO'], 2));
 end;
 
@@ -1939,6 +2021,7 @@ end;
 constructor TNodeSwitch_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFLong.Create('whichChild', -1));
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
@@ -2008,8 +2091,11 @@ end;
 constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFString.Create('name', ''));
+
   Fields.Add(TSFString.Create('description', ''));
+
   Fields.Add(TSFEnum.Create('map', ['NONE', 'POINT'], 0));
 end;
 
@@ -2021,9 +2107,13 @@ end;
 constructor TNodeWWWInline.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFString.Create('name', ''));
+
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(0, 0, 0)));
+
   Fields.Add(TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0)));
+
   Fields.Add(TSFBool.Create('separate', true));
 
   fParsingAllowedChildren := false;

@@ -1690,17 +1690,20 @@ constructor TNodeX3DGroupingNode.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
 
   Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+  Fields.Last.Exposed := false;
 end;
 
 function TNodeX3DGroupingNode.ChildrenField: TMFNode;
@@ -1723,9 +1726,11 @@ constructor TNodeAnchor.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('parameter', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TSFString.Create('description', ''));
+
+  Fields.Add(TMFString.Create('parameter', []));
+
+  Fields.Add(TMFString.Create('url', []));
 
   DefaultContainerField := 'children';
 end;
@@ -1752,30 +1757,24 @@ end;
 constructor TNodeAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFNode.Create(Self, 'material',
     [TNodeMaterial_2]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'texture',
     [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'textureTransform',
     [TNodeTextureTransform]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'fillProperties', [{TNodeFillProperties}]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'lineProperties', [{TNodeLineProperties}]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TMFNode.Create(Self, 'shaders', [
     TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]));
-  Fields.Last.Exposed := true;
 
   { In edition 2 of X3D XML encoding, this is empty... but in earlier
     versions, this was "appearance" and this seems more sensible,
@@ -1811,13 +1810,20 @@ constructor TNodeAudioClip.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('description', '')); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('loop', FALSE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('pitch', 1.0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TSFString.Create('description', ''));
+
+  Fields.Add(TSFBool.Create('loop', FALSE));
+
+  Fields.Add(TSFFloat.Create('pitch', 1.0));
+
+  Fields.Add(TSFTime.Create('startTime', 0));
+
+  Fields.Add(TSFTime.Create('stopTime', 0));
+
+  Fields.Add(TMFString.Create('url', []));
+
   Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -1828,16 +1834,27 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
-  Fields.Add(TMFFloat.Create('groundAngle', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFColor.Create('groundColor', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('backUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('bottomUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('frontUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('leftUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('rightUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('topUrl', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('skyAngle', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFColor.Create('skyColor', [ZeroVector3Single])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('groundAngle', []));
+
+  Fields.Add(TMFColor.Create('groundColor', []));
+
+  Fields.Add(TMFString.Create('backUrl', []));
+
+  Fields.Add(TMFString.Create('bottomUrl', []));
+
+  Fields.Add(TMFString.Create('frontUrl', []));
+
+  Fields.Add(TMFString.Create('leftUrl', []));
+
+  Fields.Add(TMFString.Create('rightUrl', []));
+
+  Fields.Add(TMFString.Create('topUrl', []));
+
+  Fields.Add(TMFFloat.Create('skyAngle', []));
+
+  Fields.Add(TMFColor.Create('skyColor', [ZeroVector3Single]));
+
   Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -1965,7 +1982,6 @@ begin
   inherited;
 
   Fields.Add(TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0)));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'children';
 end;
@@ -1992,6 +2008,7 @@ end;
 constructor TNodeBox.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFVec3f.Create('size', Vector3Single(2, 2, 2)));
 end;
 
@@ -2010,13 +2027,14 @@ constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('collide', TRUE)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('collide', TRUE));
+
   Fields.Add(TSFNode.Create(Self, 'proxy', AllowedChildrenNodes));
+  Fields.Last.Exposed := false;
 
   Events.Add(TVRMLEvent.Create('collideTime', TSFTime, false));
 
   Fields.Add(TSFBool.Create('enabled', true));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
@@ -2046,7 +2064,7 @@ constructor TNodeColor.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TMFColor.Create('color', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFColor.Create('color', []));
 
   DefaultContainerField := 'color';
 end;
@@ -2067,8 +2085,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFColor.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFColor.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFColor, false));
 
   DefaultContainerField := 'children';
@@ -2090,15 +2111,19 @@ begin
   inherited;
 
   FFdbottomRadius := TSFFloat.Create('bottomRadius', 1);
+  FFdbottomRadius.Exposed := false;
   Fields.Add(FFdbottomRadius);
 
   FFdheight := TSFFloat.Create('height', 2);
+  FFdheight.Exposed := false;
   Fields.Add(FFdheight);
 
   FFdside := TSFBool.Create('side', true);
+  FFdside.Exposed := false;
   Fields.Add(FFdside);
 
   FFdbottom := TSFBool.Create('bottom', true);
+  FFdbottom.Exposed := false;
   Fields.Add(FFdbottom);
 end;
 
@@ -2121,11 +2146,13 @@ end;
 constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
+
   Fields.Add(TMFNode.Create(Self, 'children',
     [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'trimmingContour';
 end;
@@ -2145,7 +2172,7 @@ constructor TNodeCoordinate.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('point', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFVec3f.Create('point', []));
 
   DefaultContainerField := 'coord';
 end;
@@ -2166,24 +2193,53 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('addChildren', TMFNode, true));
+
   Events.Add(TVRMLEvent.Create('removeChildren', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes)); Fields.Last.Exposed := true;
-  Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate])); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2])); Fields.Last.Exposed := true;
-  Fields.Add(TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFNode.Create(Self, 'children', AllowedChildrenNodes));
+
+  Fields.Add(TMFVec3f.Create('controlPoint', []));
+
+  Fields.Add(TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]));
+
+  Fields.Add(TMFNode.Create(Self, 'inputTransform', [TNodeTransform_2]));
+
+  Fields.Add(TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]));
+
+  Fields.Add(TMFFloat.Create('weight', []));
+
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('uDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('uKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('uOrder', 2));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('vKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vOrder', 2));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('wDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('wKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('wOrder', 2));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -2209,8 +2265,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFVec3f.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 
   DefaultContainerField := 'children';
@@ -2230,11 +2289,21 @@ end;
 constructor TNodeCylinder_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFBool.Create('bottom', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('height', 2));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('radius', 1));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('side', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('top', TRUE));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeCylinder_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2257,13 +2326,15 @@ constructor TNodeCylinderSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('diskAngle', Pi / 12)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('maxAngle', -1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('minAngle', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('offset', 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('diskAngle', Pi / 12));
+
+  Fields.Add(TSFFloat.Create('maxAngle', -1));
+
+  Fields.Add(TSFFloat.Create('minAngle', 0));
+
+  Fields.Add(TSFFloat.Create('offset', 0));
 
   Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 1, 0), 0));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
 
@@ -2307,20 +2378,44 @@ end;
 constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+
   Fields.Add(TMFFloat.Create('height', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('ccw', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('solid', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('xDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('xSpacing', 1.0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('zDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('zSpacing', 1.0));
+  Fields.Last.Exposed := false;
 end;
 
 function TNodeElevationGrid.IsNotEmpty: boolean;
@@ -2350,20 +2445,44 @@ end;
 constructor TNodeExtrusion.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('set_crossSection', TMFVec2f, true));
+
   Events.Add(TVRMLEvent.Create('set_orientation', TMFRotation, true));
+
   Events.Add(TVRMLEvent.Create('set_scale', TMFVec2f, true));
+
   Events.Add(TVRMLEvent.Create('set_spine', TMFVec3f, true));
+
   Fields.Add(TSFBool.Create('beginCap', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('ccw', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('convex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFVec2f.Create('crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1), Vector2Single(-1, -1),  Vector2Single(-1, 1),  Vector2Single(1, 1) ]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('endCap', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFRotation.Create('orientation', [ Vector4Single(0, 0, 1, 0) ] ));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFVec2f.Create('scale', Vector2Single(1, 1)));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('solid', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]));
+  Fields.Last.Exposed := false;
 end;
 
 function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
@@ -2388,14 +2507,22 @@ constructor TNodeFog.Create(const ANodeName: string; const AWWWBasePath: string)
 begin
   inherited;
 
-  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFString.Create('fogType', 'LINEAR')); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('visibilityRange', 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFColor.Create('color', Vector3Single(1, 1, 1)));
+
+  Fields.Add(TSFString.Create('fogType', 'LINEAR'));
+
+  Fields.Add(TSFFloat.Create('visibilityRange', 0));
+
   Fields.Add(TSFBool.Create('volumetric', false));
+
   Fields.Add(TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0)));
+
   Fields.Add(TSFFloat.Create('volumetricVisibilityStart', 0));
+
   Fields.Add(TSFNode.Create(Self, 'alternative', [TNodeFog]));
+
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+
   Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -2424,13 +2551,21 @@ begin
   inherited;
 
   Fields.Add(TMFString.Create('family', ['SERIF']));
+
   Fields.Add(TSFBool.Create('horizontal', TRUE));
+
   Fields.Add(TMFString.Create('justify', ['BEGIN']));
+
   Fields.Add(TSFString.Create('language', ''));
+
   Fields.Add(TSFBool.Create('leftToRight', TRUE));
+
   Fields.Add(TSFFloat.Create('size', DefaultSize));
+
   Fields.Add(TSFFloat.Create('spacing', DefaultSpacing));
+
   Fields.Add(TSFString.Create('style', 'PLAIN'));
+
   Fields.Add(TSFBool.Create('topToBottom', TRUE));
 
   DefaultContainerField := 'fontStyle';
@@ -2586,7 +2721,11 @@ begin
   inherited;
 
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('point', []));
 
   DefaultContainerField := 'coord';
@@ -2606,25 +2745,58 @@ end;
 constructor TNodeGeoElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('set_height', TMFFloat, true));
+
   Events.Add(TVRMLEvent.Create('set_yScale', TSFFloat, true));
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+
   Fields.Add(TSFBool.Create('ccw', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFString.Create('geoGridOrigin', '0 0 0'));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('height', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('solid', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('xDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFString.Create('xSpacing', '1.0'));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('yScale', 1.0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('zDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFString.Create('zSpacing', '1.0'));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeGeoLocation.ClassNodeTypeName: string;
@@ -2642,9 +2814,13 @@ constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFString.Create('geoCoords', '')); Fields.Last.Exposed := true;
+  Fields.Add(TSFString.Create('geoCoords', ''));
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -2665,16 +2841,37 @@ begin
   inherited;
 
   Fields.Add(TSFString.Create('center', ''));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('child1Url', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('child2Url', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('child3Url', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('child4Url', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('range', 10));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('rootUrl', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFNode.Create(Self, 'rootNode', AllowedChildrenNodes));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('children', TMFNode, false));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -2694,9 +2891,11 @@ constructor TNodeGeoMetadata.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'data', AllowedChildrenNodes)); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('summary', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'data', AllowedChildrenNodes));
+
+  Fields.Add(TMFString.Create('summary', []));
+
+  Fields.Add(TMFString.Create('url', []));
 
   DefaultContainerField := 'children';
 end;
@@ -2716,8 +2915,10 @@ constructor TNodeGeoOrigin.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('geoSystem', ['GD','WE'])); Fields.Last.Exposed := true;
-  Fields.Add(TSFString.Create('geoCoords', '')); Fields.Last.Exposed := true;
+  Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+
+  Fields.Add(TSFString.Create('geoCoords', ''));
+
   Fields.Add(TSFBool.Create('rotateYUp', FALSE));
 
   DefaultContainerField := 'geoOrigin';
@@ -2739,12 +2940,24 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('key', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('keyValue', []));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('geovalue_changed', TSFString, false));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -2764,15 +2977,26 @@ constructor TNodeGeoTouchSensor.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('enabled', TRUE));
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+
   Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+
   Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
+
   Events.Add(TVRMLEvent.Create('hitGeoCoord_changed', TSFString, false));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+
   Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
+
   Events.Add(TVRMLEvent.Create('touchTime', TSFTime, false));
 
   DefaultContainerField := 'children';
@@ -2794,19 +3018,39 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+
   Events.Add(TVRMLEvent.Create('set_orientation', TSFString, true));
+
   Events.Add(TVRMLEvent.Create('set_position', TSFString, true));
-  Fields.Add(TSFFloat.Create('fieldOfView', 0.785398)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('headlight', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('jump', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('navType', ['EXAMINE','ANY'])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFFloat.Create('fieldOfView', Pi / 4));
+
+  Fields.Add(TSFBool.Create('headlight', TRUE));
+
+  Fields.Add(TSFBool.Create('jump', TRUE));
+
+  Fields.Add(TMFString.Create('navType', ['EXAMINE','ANY']));
+
   Fields.Add(TSFString.Create('description', ''));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFString.Create('geoSystem', ['GD','WE']));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFString.Create('position', '0 0 100000'));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('speedFactor', 1.0));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -2878,9 +3122,13 @@ constructor TNodeImageTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFString.Create('url', []));
+
   Fields.Add(TSFBool.Create('repeatS', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('repeatT', TRUE));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'texture';
 end;
@@ -2944,24 +3192,52 @@ end;
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+
   Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
+
   Events.Add(TVRMLEvent.Create('set_normalIndex', TMFInt32, true));
+
   Events.Add(TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true));
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
+
+  Fields.Add(TSFNode.Create(Self, 'normal', [TNodeNormal]));
+
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate]));
+
   Fields.Add(TSFBool.Create('ccw', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFInt32.Create('colorIndex', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('convex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFFloat.Create('creaseAngle', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFInt32.Create('normalIndex', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('normalPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('solid', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFInt32.CreateMFLong('texCoordIndex', [], true));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeIndexedFaceSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2983,13 +3259,23 @@ end;
 constructor TNodeIndexedLineSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('set_colorIndex', TMFInt32, true));
+
   Events.Add(TVRMLEvent.Create('set_coordIndex', TMFInt32, true));
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
+
   Fields.Add(TMFInt32.Create('colorIndex', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('colorPerVertex', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFInt32.CreateMFLong('coordIndex', [], true));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3012,9 +3298,13 @@ constructor TNodeInline.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFString.Create('url', []));
+
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 
@@ -3080,10 +3370,17 @@ end;
 constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFBool.Create('load', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFBool.Create('load', TRUE));
+
+  Fields.Add(TMFString.Create('url', []));
+
   Fields.Add(TSFVec3f.Create('bboxCenter', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1)));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('children', TMFNode, false));
 
   FParsingAllowedChildren := false;
@@ -3158,9 +3455,13 @@ constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'level', AllowedChildrenNodes)); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'level', AllowedChildrenNodes));
+
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('range', []));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -3198,13 +3499,20 @@ constructor TNodeMaterial_2.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('shininess', DefaultMaterialShininess)); Fields.Last.Exposed := true;
-  Fields.Add(TSFColor.Create('specularColor', DefaultMaterialSpecularColor)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('transparency', DefaultMaterialTransparency)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('fogImmune', false)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity));
+
+  Fields.Add(TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor));
+
+  Fields.Add(TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor));
+
+  Fields.Add(TSFFloat.Create('shininess', DefaultMaterialShininess));
+
+  Fields.Add(TSFColor.Create('specularColor', DefaultMaterialSpecularColor));
+
+  Fields.Add(TSFFloat.Create('transparency', DefaultMaterialTransparency));
+
+  Fields.Add(TSFBool.Create('fogImmune', false));
+
   Fields.Add(TSFFloat.Create('mirror', DefaultMaterialMirror));
 
   DefaultContainerField := 'material';
@@ -3240,14 +3548,24 @@ constructor TNodeMovieTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFBool.Create('loop', FALSE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('speed', 1.0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TSFBool.Create('loop', FALSE));
+
+  Fields.Add(TSFFloat.Create('speed', 1.0));
+
+  Fields.Add(TSFTime.Create('startTime', 0));
+
+  Fields.Add(TSFTime.Create('stopTime', 0));
+
+  Fields.Add(TMFString.Create('url', []));
+
   Fields.Add(TSFBool.Create('repeatS', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('repeatT', TRUE));
+  Fields.Last.Exposed := false;
+
   Events.Add(TVRMLEvent.Create('duration_changed', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -3268,13 +3586,20 @@ constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePa
 begin
   inherited;
 
-  Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75])); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('headlight', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('speed', 1.0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('transitionTime', 1.0)); Fields.Last.Exposed := true;
+  Fields.Add(TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]));
+
+  Fields.Add(TSFBool.Create('headlight', TRUE));
+
+  Fields.Add(TSFFloat.Create('speed', 1.0));
+
+  Fields.Add(TSFTime.Create('transitionTime', 1.0));
+
   Fields.Add(TMFString.Create('transitionType',  ['LINEAR']));
-  Fields.Add(TMFString.Create('type', ['WALK', 'ANY'])); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('visibilityLimit', 0.0)); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFString.Create('type', ['WALK', 'ANY']));
+
+  Fields.Add(TSFFloat.Create('visibilityLimit', 0.0));
+
   Events.Add(TVRMLEvent.Create('transitionComplete', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -3295,7 +3620,7 @@ constructor TNodeNormal.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFVec3f.Create('vector', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFVec3f.Create('vector', []));
 
   DefaultContainerField := 'normal';
 end;
@@ -3316,8 +3641,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFVec3f.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TMFVec3f, false));
 
   DefaultContainerField := 'children';
@@ -3337,11 +3665,18 @@ end;
 constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('tessellation', 0)); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFVec3f.Create('controlPoint', []));
+
+  Fields.Add(TMFFloat.Create('weight', []));
+
+  Fields.Add(TSFInt32.Create('tessellation', 0));
+
   Fields.Add(TMFFloat.Create('knot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('order', 3));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
@@ -3358,11 +3693,18 @@ end;
 constructor TNodeNurbsCurve2D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFVec2f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('tessellation', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFVec2f.Create('controlPoint', []));
+
+  Fields.Add(TSFInt32.Create('tessellation', 0));
+
+  Fields.Add(TMFFloat.Create('weight', []));
+
   Fields.Add(TMFFloat.Create('knot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('order', 3));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeNurbsGroup.ClassNodeTypeName: string;
@@ -3379,7 +3721,8 @@ end;
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('tessellationScale', 1.0)); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFFloat.Create('tessellationScale', 1.0));
 end;
 
 class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
@@ -3398,11 +3741,17 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TSFInt32.Create('dimension', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('keyWeight', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('knot', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('order', 4)); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFInt32.Create('dimension', 0));
+
+  Fields.Add(TMFVec3f.Create('keyValue', []));
+
+  Fields.Add(TMFFloat.Create('keyWeight', []));
+
+  Fields.Add(TMFFloat.Create('knot', []));
+
+  Fields.Add(TSFInt32.Create('order', 4));
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 
   DefaultContainerField := 'children';
@@ -3422,19 +3771,40 @@ end;
 constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFVec3f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface])); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('uTessellation', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('vTessellation', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFVec3f.Create('controlPoint', []));
+
+  Fields.Add(TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface]));
+
+  Fields.Add(TSFInt32.Create('uTessellation', 0));
+
+  Fields.Add(TSFInt32.Create('vTessellation', 0));
+
+  Fields.Add(TMFFloat.Create('weight', []));
+
   Fields.Add(TSFBool.Create('ccw', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('solid', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('uDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('uKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('uOrder', 3));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('vKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vOrder', 3));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
@@ -3451,14 +3821,28 @@ end;
 constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFVec2f.Create('controlPoint', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('weight', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFVec2f.Create('controlPoint', []));
+
+  Fields.Add(TMFFloat.Create('weight', []));
+
   Fields.Add(TSFInt32.Create('uDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('uKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('uOrder', 3));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vDimension', 0));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('vKnot', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFInt32.Create('vOrder', 3));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
@@ -3477,8 +3861,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFRotation.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFRotation.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFRotation, false));
 
   DefaultContainerField := 'children';
@@ -3499,9 +3886,13 @@ constructor TNodePixelTexture.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFImage.Create('image', nil)); Fields.Last.Exposed := true;
+  Fields.Add(TSFImage.Create('image', nil));
+
   Fields.Add(TSFBool.Create('repeatS', TRUE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('repeatT', TRUE));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'texture';
 end;
@@ -3549,12 +3940,13 @@ constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFVec2f.Create('maxPosition', Vector2Single(-1, -1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec2f.Create('minPosition', Vector2Single(0, 0))); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('offset', ZeroVector3Single)); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec2f.Create('maxPosition', Vector2Single(-1, -1)));
+
+  Fields.Add(TSFVec2f.Create('minPosition', Vector2Single(0, 0)));
+
+  Fields.Add(TSFVec3f.Create('offset', ZeroVector3Single));
 
   Fields.Add(TSFRotation.Create('axisRotation', Vector3Single(0, 0, 1), 0));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('translation_changed', TSFVec3f, false));
 
@@ -3579,7 +3971,7 @@ begin
   FdLocation.Value := ZeroVector3Single;
   FdLocation.DefaultValue := ZeroVector3Single;
 
-  Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
+  Fields.Add(TSFFloat.Create('radius', 100));
 
   DefaultContainerField := 'children';
 end;
@@ -3628,8 +4020,10 @@ end;
 constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate])); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFNode.Create(Self, 'color', [TNodeColor]));
+
+  Fields.Add(TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]));
 end;
 
 class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3651,7 +4045,8 @@ end;
 constructor TNodePolyline2D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFVec2f.Create('point', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFVec2f.Create('point', []));
 end;
 
 class function TNodePositionInterpolator.ClassNodeTypeName: string;
@@ -3670,8 +4065,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFVec3f.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFVec3f.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFVec3f, false));
 
   DefaultContainerField := 'children';
@@ -3692,13 +4090,20 @@ constructor TNodeProximitySensor.Create(const ANodeName: string; const AWWWBaseP
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+
+  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single));
+
+  Fields.Add(TSFBool.Create('enabled', TRUE));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+
   Events.Add(TVRMLEvent.Create('position_changed', TSFVec3f, false));
+
   Events.Add(TVRMLEvent.Create('orientation_changed', TSFRotation, false));
+
   Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
 
   DefaultContainerField := 'children';
@@ -3720,8 +4125,11 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_fraction', TSFFloat, true));
-  Fields.Add(TMFFloat.Create('key', [])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('keyValue', [])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFFloat.Create('key', []));
+
+  Fields.Add(TMFFloat.Create('keyValue', []));
+
   Events.Add(TVRMLEvent.Create('value_changed', TSFFloat, false));
 
   DefaultContainerField := 'children';
@@ -3742,9 +4150,13 @@ constructor TNodeScript.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  Fields.Add(TMFString.Create('url', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFString.Create('url', []));
+
   Fields.Add(TSFBool.Create('directOutput', FALSE));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('mustEvaluate', FALSE));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 
@@ -3801,8 +4213,9 @@ constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance, TNodeKambiAppearance])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'geometry', AllowedGeometryNodes)); Fields.Last.Exposed := true;
+  Fields.Add(TSFNode.Create(Self, 'appearance', [TNodeAppearance, TNodeKambiAppearance]));
+
+  Fields.Add(TSFNode.Create(Self, 'geometry', AllowedGeometryNodes));
 
   DefaultContainerField := 'children';
 end;
@@ -3943,16 +4356,26 @@ constructor TNodeSound.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('intensity', 1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('location', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('maxBack', 10)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('maxFront', 10)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('minBack', 1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('minFront', 1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('priority', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture])); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, 1)));
+
+  Fields.Add(TSFFloat.Create('intensity', 1));
+
+  Fields.Add(TSFVec3f.Create('location', ZeroVector3Single));
+
+  Fields.Add(TSFFloat.Create('maxBack', 10));
+
+  Fields.Add(TSFFloat.Create('maxFront', 10));
+
+  Fields.Add(TSFFloat.Create('minBack', 1));
+
+  Fields.Add(TSFFloat.Create('minFront', 1));
+
+  Fields.Add(TSFFloat.Create('priority', 0));
+
+  Fields.Add(TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture]));
+
   Fields.Add(TSFBool.Create('spatialize', TRUE));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;
@@ -3971,7 +4394,9 @@ end;
 constructor TNodeSphere_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Fields.Add(TSFFloat.Create('radius', 1));
+  Fields.Last.Exposed := false;
 end;
 
 class function TNodeSphere_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3994,7 +4419,8 @@ constructor TNodeSphereSensor.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  Fields.Add(TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFRotation.Create('offset', Vector3Single(0, 1, 0), 0));
+
   Events.Add(TVRMLEvent.Create('rotation_changed', TSFRotation, false));
 
   DefaultContainerField := 'children';
@@ -4014,10 +4440,14 @@ end;
 constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TSFFloat.Create('beamWidth', 1.570796)); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('cutOffAngle', 0.785398)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('radius', 100)); Fields.Last.Exposed := true;
+
+  Fields.Add(TSFFloat.Create('beamWidth', Pi / 2));
+
+  Fields.Add(TSFFloat.Create('cutOffAngle', Pi / 4));
+
+  Fields.Add(TSFVec3f.Create('direction', Vector3Single(0, 0, -1)));
+
+  Fields.Add(TSFFloat.Create('radius', 100));
 
   { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
     see comments at ambientIntensity in implementation of TPointLight_2.
@@ -4064,8 +4494,9 @@ constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  Fields.Add(TMFNode.Create(Self, 'choice', AllowedChildrenNodes)); Fields.Last.Exposed := true;
-  Fields.Add(TSFInt32.Create('whichChoice', -1)); Fields.Last.Exposed := true;
+  Fields.Add(TMFNode.Create(Self, 'choice', AllowedChildrenNodes));
+
+  Fields.Add(TSFInt32.Create('whichChoice', -1));
 
   DefaultContainerField := 'children';
 end;
@@ -4100,10 +4531,14 @@ end;
 constructor TNodeText.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  Fields.Add(TMFString.Create('string', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2])); Fields.Last.Exposed := true;
-  Fields.Add(TMFFloat.Create('length', [])); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('maxExtent', 0.0)); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFString.Create('string', []));
+
+  Fields.Add(TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]));
+
+  Fields.Add(TMFFloat.Create('length', []));
+
+  Fields.Add(TSFFloat.Create('maxExtent', 0.0));
 end;
 
 function TNodeText.FontStyle: TNodeFontStyle_2;
@@ -4129,7 +4564,7 @@ constructor TNodeTextureCoordinate.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  Fields.Add(TMFVec2f.Create('point', [])); Fields.Last.Exposed := true;
+  Fields.Add(TMFVec2f.Create('point', []));
 
   DefaultContainerField := 'texCoord';
 end;
@@ -4149,10 +4584,13 @@ constructor TNodeTextureTransform.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0))); Fields.Last.Exposed := true;
-  Fields.Add(TSFFloat.Create('rotation', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec2f.Create('scale', Vector2Single(1, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0))); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec2f.Create('center', Vector2Single(0, 0)));
+
+  Fields.Add(TSFFloat.Create('rotation', 0));
+
+  Fields.Add(TSFVec2f.Create('scale', Vector2Single(1, 1)));
+
+  Fields.Add(TSFVec2f.Create('translation', Vector2Single(0, 0)));
 
   DefaultContainerField := 'textureTransform';
 end;
@@ -4224,14 +4662,22 @@ constructor TNodeTimeSensor.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  Fields.Add(TSFTime.Create('cycleInterval', 1)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('loop', FALSE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('startTime', 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFTime.Create('stopTime', 0)); Fields.Last.Exposed := true;
+  Fields.Add(TSFTime.Create('cycleInterval', 1));
+
+  Fields.Add(TSFBool.Create('enabled', TRUE));
+
+  Fields.Add(TSFBool.Create('loop', FALSE));
+
+  Fields.Add(TSFTime.Create('startTime', 0));
+
+  Fields.Add(TSFTime.Create('stopTime', 0));
+
   Events.Add(TVRMLEvent.Create('cycleTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('fraction_changed', TSFFloat, false));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
+
   Events.Add(TVRMLEvent.Create('time', TSFTime, false));
 
   DefaultContainerField := 'children';
@@ -4253,7 +4699,9 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('hitNormal_changed', TSFVec3f, false));
+
   Events.Add(TVRMLEvent.Create('hitPoint_changed', TSFVec3f, false));
+
   Events.Add(TVRMLEvent.Create('hitTexCoord_changed', TSFVec2f, false));
 
   DefaultContainerField := 'children';
@@ -4274,11 +4722,15 @@ constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1))); Fields.Last.Exposed := true;
-  Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('translation', ZeroVector3Single)); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+
+  Fields.Add(TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0));
+
+  Fields.Add(TSFVec3f.Create('scale', Vector3Single(1, 1, 1)));
+
+  Fields.Add(TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0));
+
+  Fields.Add(TSFVec3f.Create('translation', ZeroVector3Single));
 
   DefaultContainerField := 'children';
 end;
@@ -4365,10 +4817,14 @@ end;
 constructor TNodeTrimmedSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
   Events.Add(TVRMLEvent.Create('addTrimmingContour', TMFNode, true));
+
   Events.Add(TVRMLEvent.Create('removeTrimmingContour', TMFNode, true));
-  Fields.Add(TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D])); Fields.Last.Exposed := true;
-  Fields.Add(TSFNode.Create(Self, 'surface', [TNodeNurbsSurface])); Fields.Last.Exposed := true;
+
+  Fields.Add(TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]));
+
+  Fields.Add(TSFNode.Create(Self, 'surface', [TNodeNurbsSurface]));
 end;
 
 class function TNodeViewpoint.ClassNodeTypeName: string;
@@ -4388,16 +4844,12 @@ begin
   inherited;
 
   Fields.Add(TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFBool.Create('jump', TRUE));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('description', ''));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0)));
-  Fields.Last.Exposed := true;
 
   { Default value of position is different for Viewpoint than for VRML 1.0
     cameras (as set by TNodeGeneralViewpoint). }
@@ -4460,11 +4912,16 @@ constructor TNodeVisibilitySensor.Create(const ANodeName: string; const AWWWBase
 begin
   inherited;
 
-  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single)); Fields.Last.Exposed := true;
-  Fields.Add(TSFBool.Create('enabled', TRUE)); Fields.Last.Exposed := true;
-  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single)); Fields.Last.Exposed := true;
+  Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+
+  Fields.Add(TSFBool.Create('enabled', TRUE));
+
+  Fields.Add(TSFVec3f.Create('size', ZeroVector3Single));
+
   Events.Add(TVRMLEvent.Create('enterTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('exitTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 
   DefaultContainerField := 'children';
@@ -4486,7 +4943,10 @@ begin
   inherited;
 
   Fields.Add(TMFString.Create('info', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFString.Create('title', ''));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
 end;

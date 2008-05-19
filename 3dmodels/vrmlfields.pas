@@ -247,8 +247,9 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; virtual;
 
-    { Is this an "exposedField" in VRML 97 ? }
-    property Exposed: boolean read FExposed write FExposed;
+    { Does this field generate/accept events, that is
+      an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
+    property Exposed: boolean read FExposed write FExposed default true;
 
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
@@ -1176,6 +1177,7 @@ constructor TVRMLField.CreateUndefined(const AName: string);
 begin
   inherited Create;
   FName := AName;
+  FExposed := true;
 end;
 
 procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;

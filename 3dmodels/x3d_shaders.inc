@@ -180,7 +180,9 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('activate', TSFBool, true));
+
   Events.Add(TVRMLEvent.Create('isSelected', TSFBool, false));
+
   Events.Add(TVRMLEvent.Create('isValid', TSFBool, false));
 
   Fields.Add(TSFString.Create('language', ''));
@@ -192,7 +194,6 @@ begin
   inherited;
 
   Fields.Add(TMFNode.Create(Self, 'parts', [TNodeShaderPart]));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'shaders';
 
@@ -256,7 +257,6 @@ begin
   inherited;
 
   Fields.Add(TMFString.Create('url', []));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'shaders';
 end;
@@ -272,7 +272,6 @@ begin
   inherited;
 
   Fields.Add(TMFNode.Create(Self, 'programs', [TNodeShaderProgram]));
-  Fields.Last.Exposed := true;
 
   DefaultContainerField := 'shaders';
 end;
@@ -288,9 +287,9 @@ begin
   inherited;
 
   Fields.Add(TMFString.Create('url', []));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('type', 'VERTEX'));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'parts';
 end;
@@ -332,9 +331,9 @@ begin
   inherited;
 
   Fields.Add(TMFString.Create('url', []));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('type', 'VERTEX'));
+  Fields.Last.Exposed := false;
 
   DefaultContainerField := 'programs';
 end;

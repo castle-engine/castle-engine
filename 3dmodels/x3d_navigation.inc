@@ -69,8 +69,13 @@ begin
   inherited;
 
   Fields.Add(TSFVec3f.Create('center', ZeroVector3Single));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TMFFloat.Create('range', []));
+  Fields.Last.Exposed := false;
+
   Fields.Add(TSFBool.Create('forceTransitions', false));
+  Fields.Last.Exposed := false;
 
   Events.Add(TVRMLEvent.Create('level_changed', TSFInt32, false));
 

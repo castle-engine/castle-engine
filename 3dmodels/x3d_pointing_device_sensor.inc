@@ -51,7 +51,6 @@ begin
   inherited;
 
   Fields.Add(TSFString.Create('description', ''));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('isOver', TSFBool, false));
 end;
@@ -62,7 +61,6 @@ begin
   inherited;
 
   Fields.Add(TSFBool.Create('autoOffset', true));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false));
 end;

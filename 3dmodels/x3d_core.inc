@@ -73,10 +73,8 @@ begin
   inherited;
 
   Fields.Add(TSFString.Create('name', ''));
-  Fields.Last.Exposed := true;
 
   Fields.Add(TSFString.Create('reference', ''));
-  Fields.Last.Exposed := true;
 end;
 
 constructor TNodeX3DNode.Create(const ANodeName: string;
@@ -85,7 +83,6 @@ begin
   inherited;
 
   Fields.Add(TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]));
-  Fields.Last.Exposed := true;
 end;
 
 constructor TNodeX3DBindableNode.Create(const ANodeName: string;
@@ -94,7 +91,9 @@ begin
   inherited;
 
   Events.Add(TVRMLEvent.Create('set_bind', TSFBool, true));
+
   Events.Add(TVRMLEvent.Create('bindTime', TSFTime, false));
+
   Events.Add(TVRMLEvent.Create('isBound', TSFBool, false));
 end;
 
@@ -104,7 +103,6 @@ begin
   inherited;
 
   Fields.Add(TSFBool.Create('enabled', true));
-  Fields.Last.Exposed := true;
 
   Events.Add(TVRMLEvent.Create('isActive', TSFBool, false));
 end;
