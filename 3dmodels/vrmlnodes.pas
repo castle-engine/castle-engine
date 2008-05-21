@@ -1924,7 +1924,7 @@ type
       Lexer: TVRMLLexer);
   end;
 
-{ TVRMLInterfaceDeclation ---------------------------------------------------- }
+{ TVRMLInterfaceDeclaration -------------------------------------------------- }
 
   TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
 
