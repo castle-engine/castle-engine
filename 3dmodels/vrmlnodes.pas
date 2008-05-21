@@ -1926,6 +1926,8 @@ type
 
 { TVRMLInterfaceDeclation ---------------------------------------------------- }
 
+  TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
+
   { Interface declaration, used in VRML (exposed) prototypes and scripts.
     See VRML 2.0 spec.
 
@@ -1951,8 +1953,20 @@ type
   public
     destructor Destroy; override;
 
-    property Event: TVRMLEvent read FEvent;
-    property Field: TVRMLField read FField;
+    { Field or event of this interface declaration.
+      Exactly one of the Event or Field is non-nil after parsing,
+      never both.
+
+      You can assign to these properties, to constructs interface
+      declarations (and so also prototypes) in your own code
+      (e.g. this is used X3D XML reader). Just be careful, and remember
+      that this object owns Field/Event (that is, will free them
+      at destruction).
+
+      @groupBegin }
+    property Event: TVRMLEvent read FEvent write FEvent;
+    property Field: TVRMLField read FField write FField;
+    { @groupEnd }
 
     procedure Parse(Lexer: TVRMLLexer;
       FieldValue, IsClauseAllowed: boolean); virtual;
@@ -2103,7 +2117,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    property Name: string read FName;
+    property Name: string read FName write FName;
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
 
@@ -2142,8 +2156,13 @@ type
       VRML node, just like we do when reading whole VRML file:
       if the whole thing is exactly one VRML node, then this is this node.
       Otherwise, we wrap inside artificial TNodeGroupHidden_1 or
-      TNodeGroupHidden_2. }
-    property Node: TVRMLNode read FNode;
+      TNodeGroupHidden_2.
+
+      You have permission to write to this property, to be able to
+      write code that constructs prototypes (like needed by X3D XML reader).
+      Just be careful. This node is owned by prototype instance (will be
+      freed at destructor). }
+    property Node: TVRMLNode read FNode write FNode;
   end;
 
   TVRMLExternalPrototype = class(TVRMLPrototypeBase)
@@ -4661,14 +4680,11 @@ begin
   inherited;
 end;
 
-type
-  TVRMLInterfaceDeclationKind = (idEventIn, idEventOut, idField, idExposedField);
-
 procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
-  Kind: TVRMLInterfaceDeclationKind;
+  Kind: TVRMLAccessType;
   FieldType: TVRMLFieldClass;
   Name: string;
 begin
@@ -4679,10 +4695,10 @@ begin
   if Lexer.Token = vtKeyword then
   begin
     case Lexer.TokenKeyword of
-      vkEventIn, vkInputOnly: Kind := idEventIn;
-      vkEventOut, vkOutputOnly: Kind := idEventOut;
-      vkField, vkInitializeOnly: Kind := idField;
-      vkExposedField, vkInputOutput: Kind := idExposedField;
+      vkEventIn, vkInputOnly: Kind := atInputOnly;
+      vkEventOut, vkOutputOnly: Kind := atOutputOnly;
+      vkField, vkInitializeOnly: Kind := atInitializeOnly;
+      vkExposedField, vkInputOutput: Kind := atInputOutput;
       else raise EVRMLParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
     end;
@@ -4704,13 +4720,12 @@ begin
 
   { we know everything now to create Event/Field instance }
   case Kind of
-    idEventIn: FEvent := TVRMLEvent.Create(Name, FieldType, true);
-    idEventOut: FEvent := TVRMLEvent.Create(Name, FieldType, false);
-    idField: FField := FieldType.CreateUndefined(Name);
-    idExposedField:
+    atInputOnly, atOutputOnly:
+      FEvent := TVRMLEvent.Create(Name, FieldType, Kind = atInputOnly);
+    atInitializeOnly, atInputOutput:
       begin
         FField := FieldType.CreateUndefined(Name);
-        FField.Exposed := true;
+        FField.Exposed := Kind = atInputOutput;
       end;
     else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
   end;
@@ -4734,31 +4749,31 @@ procedure TVRMLInterfaceDeclaration.SaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties;
   FieldValue: boolean);
 
-  function ID(const Kind: TVRMLInterfaceDeclationKind): string;
+  function ATName(const AcessType: TVRMLAccessType): string;
   const
-    InterfaceDeclaration: array
+    Names: array
       [ boolean { is it X3D ? },
-        TVRMLInterfaceDeclationKind] of string =
+        TVRMLAccessType] of string =
       ( ('eventIn', 'eventOut', 'field', 'exposedField'),
         ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );
   begin
-    Result := InterfaceDeclaration[SaveProperties.VerMajor >= 3, Kind];
+    Result := Names[SaveProperties.VerMajor >= 3, AcessType];
   end;
 
 begin
   if Event <> nil then
   begin
     if Event.InEvent then
-      SaveProperties.WriteIndent(ID(idEventIn) + ' ') else
-      SaveProperties.WriteIndent(ID(idEventOut) + ' ');
+      SaveProperties.WriteIndent(ATName(atInputOnly) + ' ') else
+      SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
     SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ' + Event.Name + ' ');
     Event.SaveToStream(SaveProperties);
     SaveProperties.Writeln;
   end else
   begin
     if Field.Exposed then
-      SaveProperties.WriteIndent(ID(idExposedField) + ' ') else
-      SaveProperties.WriteIndent(ID(idField) + ' ');
+      SaveProperties.WriteIndent(ATName(atInputOutput) + ' ') else
+      SaveProperties.WriteIndent(ATName(atInitializeOnly) + ' ');
     SaveProperties.Write(Field.VRMLTypeName + ' ');
     { Do not write field only if Field.IsClause is @false and
       FieldValue = @false, so the field has a value but we don't want to

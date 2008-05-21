@@ -797,12 +797,15 @@ end;
 
 procedure TObjectsList_Abstract.FreeWithContents;
 begin
- if Self <> nil then
- begin
-  FreeContents;
-  {pod FPC samo Destroy (nie wywolane przez Self) nie zwolni pamieci ?!?}
-  Self.Destroy;
- end;
+  if Self <> nil then
+  begin
+    FreeContents;
+  
+    { This is written as "Self.Destroy" to actually do the desctruction,
+      freeing memory etc. If I would just call it "Destroy", it would
+      perform what destructor does but leaving object instance unfreed. }
+    Self.Destroy;
+  end;
 end;
 
 procedure FreeWithContentsAndNil(var Obj);

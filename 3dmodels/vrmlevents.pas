@@ -47,8 +47,8 @@ type
     property Name: string read FName;
     property FieldClass: TVRMLFieldClass read FFieldClass;
 
-    property IsClause: boolean read FIsClause;
-    property IsClauseName: string read FIsClauseName;
+    property IsClause: boolean read FIsClause write FIsClause;
+    property IsClauseName: string read FIsClauseName write FIsClauseName;
 
     { @abstract(Is it "in" or "out" event ?) }
     property InEvent: boolean read FInEvent;

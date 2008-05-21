@@ -93,6 +93,63 @@ function DOMGetChildElement(const Element: TDOMElement;
   So this procedure should still work OK in this case. }
 function DOMGetTextData(const Element: TDOMElement): string;
 
+type
+  { Handy class to iterate over all children elements of given XML element.
+
+    Without this, typical iteration looks like
+
+@longCode(#
+var
+  Index: Integer;
+  ChildrenList: TDOMNodeList;
+  ChildNode: TDOMNode;
+  ChildElement: TDOMElement;
+begin
+  ChildrenList := Element.ChildNodes;
+  try
+    for Index := 0 to ChildrenList.Count - 1 do
+    begin
+      ChildNode := ChildrenList.Item[Index];
+      if ChildNode.NodeType = ELEMENT_NODE then
+      begin
+        ChildElement := ChildNode as TDOMElement;
+        ... here goes your code to process ChildElement ...
+      end;
+    end;
+  finally ChildrenList.Release; end;
+end;
+#)
+
+    ... which is an easy code, but it becomes tiresome
+    to write this over and over again, especially
+    for units that heavily process XML (like X3D XML or Collada readers).
+    So this class allows you to write instead
+
+@longCode(#
+var
+  I: TXMLElementIterator;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#) }
+  TXMLElementIterator = class
+  private
+    ChildNodes: TDOMNodeList;
+    ChildIndex: Integer;
+    FCurrent: TDOMElement;
+  public
+    constructor Create(ParentElement: TDOMElement);
+    destructor Destroy; override;
+    function GetNext: boolean;
+    property Current: TDOMElement read FCurrent;
+  end;
+
 implementation
 
 uses KambiUtils;
@@ -236,6 +293,45 @@ begin
       end;
     end;
   finally Children.Release end;
+end;
+
+{ TXMLElementIterator -------------------------------------------------------- }
+
+constructor TXMLElementIterator.Create(ParentElement: TDOMElement);
+begin
+  inherited Create;
+  ChildNodes := ParentElement.ChildNodes;
+  ChildIndex := -1;
+end;
+
+destructor TXMLElementIterator.Destroy;
+begin
+  ChildNodes.Release;
+  inherited;
+end;
+
+function TXMLElementIterator.GetNext: boolean;
+var
+  ChildNode: TDOMNode;
+begin
+  repeat
+    Inc(ChildIndex);
+
+    if ChildIndex >= Integer(ChildNodes.Count) then
+    begin
+      Result := false;
+      Break;
+    end else
+    begin
+      ChildNode := ChildNodes[ChildIndex];
+      if ChildNode.NodeType = ELEMENT_NODE then
+      begin
+        Result := true;
+        FCurrent := ChildNode as TDOMElement;
+        Break;
+      end;
+    end;
+  until false;
 end;
 
 end.

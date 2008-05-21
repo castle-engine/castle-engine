@@ -33,11 +33,13 @@ function LoadX3DXmlAsVRML(const FileName: string;
 implementation
 
 uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
-  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream;
+  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream, VRMLEvents,
+  KambiClassUtils;
 
 type
-  EX3DXmlNotAllowedError = class(EVRMLError);
-  EX3DXmlUnknownNodeNotAllowed = class(EVRMLError);
+  EX3DXmlError = class(EVRMLError);
+  EX3DXmlNotAllowedError = class(EX3DXmlError);
+  EX3DXmlUnknownNodeNotAllowed = class(EX3DXmlError);
 
 { TODO: this is a hasty implementation.
   I should read X3D spec about XML encoding once again, this time carefully
@@ -50,12 +52,30 @@ function LoadX3DXmlAsVRML(const FileName: string;
 var
   WWWBasePath: string;
 
+  { This is used the same way as Lexer.NodeNameBinding when
+    reading VRML files (that is, in classic VRML encoding).
+
+    TODO: this means that each USE must occur after it's DEF,
+    does X3D XML encoding guarantee this? }
+  NodeNameBinding: TStringList;
+
+  ProtoNamebinding: TStringList;
+
 const
   { X3D version numbers. }
   VRMLVerMajor = 3;
   VRMLVerMinor = 1;
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
+  SNull = 'NULL';
+
+  function ParseNode(Element: TDOMElement;
+    out ContainerField: string;
+    NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
+  function ParseVRMLStatements(Element: TDOMElement): TVRMLNode; forward;
+  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement); forward;
+  procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
+    Element: TDOMElement); forward;
 
   { Parse ROUTE. Conceptually equivalent to TVRMLRoute.Parse in classic VRML
     encoding. }
@@ -78,24 +98,168 @@ const
     Route.DestinationFieldName := RequiredAttrib('toField');
   end;
 
-  function ParseNode(Element: TDOMElement;
-    out ContainerField: string;
-    NodeNameBinding: TStringList;
-    NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
+  procedure ParseFieldValueFromAttribute(Field: TVRMLField;
+    const Value: string);
+  var
+    Lexer: TVRMLLexer;
+    SF: TSFNode;
+    MF: TMFNode;
+    Node: TVRMLNode;
+    NodeIndex: Integer;
+  begin
+    if Field is TSFString then
+    begin
+      { SFString has quite special interpretation, it's just attrib
+        name. It would not be usefull trying to use TVRMLLexer here,
+        it's easier just to handle this as a special case. }
+      TSFString(Field).Value := Value;
+    end else
+    if Field is TSFNode then
+    begin
+      { For SFNode and MFNode, X3D XML encoding has special handling:
+        field value just indicates the node name, or NULL.
+        (other values for SFNode / MFNode cannot be expressed inside
+        the attribute). }
+
+      SF := Field as TSFNode;
+
+      { get appropriate node }
+      NodeIndex := NodeNameBinding.IndexOf(Value);
+      if NodeIndex = -1 then
+      begin
+        if Value = SNull then
+          SF.Value := nil else
+          VRMLNonFatalError(Format('Invalid node name for SFNode field: "%s"', [Value]));
+      end else
+      begin
+        Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
+        SF.Value := Node;
+        SF.WarningIfChildNotAllowed(Node);
+      end;
+    end else
+    if Field is TMFNode then
+    begin
+      MF := Field as TMFNode;
+
+      { get appropriate node }
+      NodeIndex := NodeNameBinding.IndexOf(Value);
+      if NodeIndex = -1 then
+      begin
+        { NULL not allowed for MFNode, like for SFNode }
+        VRMLNonFatalError(Format('Invalid node name for MFNode field: "%s"', [Value]));
+      end else
+      begin
+        Node := TVRMLNode(NodeNameBinding.Objects[NodeIndex]);
+        MF.AddItem(Node);
+        MF.WarningIfChildNotAllowed(Node);
+      end;
+    end else
+    begin
+      Lexer := TVRMLLexer.CreateForPartialStream(Value, WWWBasePath,
+        VRMLVerMajor, VRMLVerMinor);
+      try
+        try
+          Field.ParseX3DXmlAttr(Lexer);
+        except
+          on E: EVRMLParserError do
+          begin
+            if Field is TMFString then
+            begin
+              { This is very common error, even in models from
+                http://www.web3d.org/x3d/content/examples/Basic/
+                Although specification clearly says that MFString
+                components should always be enclosed within double
+                quotes. We just do what Xj3D seems to do, that is
+                we handle this as a single string (producing a warning). }
+              VRMLNonFatalError('Error when parsing MFString field "' + Field.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+              TMFString(Field).Items.Count := 0;
+              TMFString(Field).Items.AppendItem(Value);
+            end else
+              VRMLNonFatalError('Error when parsing field "' + Field.Name + '" value: ' + E.Message);
+          end;
+        end;
+      finally FreeAndNil(Lexer) end;
+    end;
+  end;
+
+  { Checks is Element a correct <connect> element, extracting
+    nodeField and protoField value. Returns @true if all Ok, otherwise
+    returns @false. }
+  function ParseConnectElement(Element: TDOMElement;
+    out NodeField, ProtoField: string): boolean;
+  begin
+    Result := false;
+
+    if Element.TagName <> 'connect' then
+    begin
+      VRMLNonFatalError('Only <connect> elements are allowed inside <IS> element');
+      Exit;
+    end;
+
+    if not DOMGetAttribute(Element, 'nodeField', NodeField) then
+    begin
+      VRMLNonFatalError('Missing "nodeField" inside <connect> element');
+      Exit;
+    end;
+
+    if not DOMGetAttribute(Element, 'protoField', ProtoField) then
+    begin
+      VRMLNonFatalError('Missing "protoField" inside <connect> element');
+      Exit;
+    end;
+
+    Result := true;
+  end;
+
+  { Look only inside Element children, to read SFNode / MFNode field value. }
+  procedure ParseFieldValueFromElement(Field: TVRMLField; Element: TDOMElement);
+  var
+    Child: TVRMLNode;
+    SF: TSFNode;
+    MF: TMFNode;
+    I: TXMLElementIterator;
+    ContainerFieldDummy: string;
+  begin
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        Child := ParseNode(I.Current,
+          ContainerFieldDummy { ignore containerField }, true);
+        if Child <> nil then
+        begin
+          if Field is TSFNode then
+          begin
+            SF := Field as TSFNode;
+            SF.Value := Child;
+            SF.WarningIfChildNotAllowed(Child);
+          end else
+          if Field is TMFNode then
+          begin
+            MF := Field as TMFNode;
+            MF.AddItem(Child);
+            MF.WarningIfChildNotAllowed(Child);
+          end else
+          begin
+            FreeAndNil(Child);
+            VRMLNonFatalError('X3D field "' + Field.Name + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+          end;
+        end;
+      end;
+    finally FreeAndNil(I) end;
+  end;
 
   { Parse node body, i.e. mainly node's fields.
     This is roughly equivalent to TVRMLNode.Parse in classic VRML encoding
     parser. }
   procedure ParseNodeBody(Node: TVRMLNode;
-    Element: TDOMElement;
-    NodeNameBinding: TStringList);
+    Element: TDOMElement);
 
     procedure ParseXMLAttributes;
     var
       Attr: TDOMAttr;
       AttrNode: TDOMNode;
       AttrIndex, Index: Integer;
-      Lexer: TVRMLLexer;
     begin
       { enumerate over all attributes }
       for AttrIndex := 0 to Element.Attributes.Length - 1 do
@@ -113,141 +277,134 @@ const
         Index := Node.Fields.NameIndex(Attr.Name);
         if Index >= 0 then
         begin
-          { Note that we allow here something more than X3D XML encoding:
-            you can even specify SFNode, MFNode fields using
-            classical VRML syntax, by specifying SFNode, MFNode fields
-            as element attributes. }
-
-          { SFString has quite special interpretation, it's just attrib
-            name. It would not be usefull trying to use TVRMLLexer here,
-            it's easier just to handle this as a special case. }
-          if Node.Fields[Index] is TSFString then
-            TSFString(Node.Fields[Index]).Value := Attr.Value else
-          begin
-            Lexer := TVRMLLexer.CreateForPartialStream(Attr.Value, WWWBasePath,
-              VRMLVerMajor, VRMLVerMinor);
-            try
-              try
-                Node.Fields[Index].ParseX3DXmlAttr(Lexer);
-              except
-                on E: EVRMLParserError do
-                begin
-                  if Node.Fields[Index] is TMFString then
-                  begin
-                    { This is very common error, even in models from
-                      http://www.web3d.org/x3d/content/examples/Basic/
-                      Although specification clearly says that MFString
-                      components should always be enclosed within double
-                      quotes. We just do what Xj3D seems to do, that is
-                      we handle this as a single string (producing a warning). }
-                    VRMLNonFatalError('Error when parsing MFString field "' + Attr.Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
-                    TMFString(Node.Fields[Index]).Items.Count := 0;
-                    TMFString(Node.Fields[Index]).Items.AppendItem(Attr.Value);
-                  end else
-                    VRMLNonFatalError('Error when parsing field "' + Attr.Name + '" value: ' + E.Message);
-                end;
-              end;
-            finally FreeAndNil(Lexer) end;
-          end;
+          ParseFieldValueFromAttribute(Node.Fields[Index], Attr.Value);
         end else
           VRMLNonFatalError('Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + Node.NodeTypeName + '"');
       end;
     end;
 
     procedure ParseXMLChildrenNodes;
+
+      procedure ParseISStatement(ISElement: TDOMElement);
+      var
+        I: TXMLElementIterator;
+        NodeField, ProtoField: string;
+        Index: Integer;
+        InEvent: boolean;
+      begin
+        I := TXMLElementIterator.Create(ISElement);
+        try
+          while I.GetNext do
+            if ParseConnectElement(I.Current, NodeField, ProtoField) then
+            begin
+              { NodeField may be the name of field or event inside this
+                node. }
+              Index := Node.Fields.NameIndex(NodeField);
+              if Index <> -1 then
+              begin
+                Node.Fields[Index].IsClause := true;
+                Node.Fields[Index].IsClauseName := ProtoField;
+                Continue;
+              end;
+
+              Index := Node.Fields.IndexOfExposedEvent(NodeField, InEvent);
+              if Index <> -1 then
+              begin
+                { TODO: I should assign IS to the event here }
+                {
+                Node.Fields[Index].ExposedEvents[InEvent].IsClause := true;
+                Node.Fields[Index].ExposedEvents[InEvent].IsClauseName := ProtoField;
+                }
+                Continue;
+              end;
+
+              Index := Node.Events.IndexOf(NodeField);
+              if Index <> -1 then
+              begin
+                Node.Events[Index].IsClause := true;
+                Node.Events[Index].IsClauseName := ProtoField;
+                Continue;
+              end;
+
+              VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+            end;
+        finally FreeAndNil(I) end;
+      end;
+
     var
-      ChildIndex, FieldIndex: Integer;
-      ChildrenList: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
+      FieldIndex: Integer;
       Child: TVRMLNode;
       ContainerField: string;
       SF: TSFNode;
       MF: TMFNode;
       Route: TVRMLRoute;
+      I: TXMLElementIterator;
+      Proto: TVRMLPrototype;
+      ExternProto: TVRMLExternalPrototype;
     begin
-      ChildrenList := Element.ChildNodes;
+      I := TXMLElementIterator.Create(Element);
       try
-        for ChildIndex := 0 to ChildrenList.Count - 1 do
+        while I.GetNext do
         begin
-          ChildNode := ChildrenList.Item[ChildIndex];
-          if ChildNode.NodeType = ELEMENT_NODE then
+          if I.Current.TagName = 'ROUTE' then
           begin
-            ChildElement := ChildNode as TDOMElement;
-            if ChildElement.TagName = 'ROUTE' then
+            Route := TVRMLRoute.Create;
+            Node.Routes.Add(Route);
+            ParseRoute(Route, I.Current);
+          end else
+          if I.Current.TagName = 'IS' then
+          begin
+            ParseISStatement(I.Current);
+          end else
+          if I.Current.TagName = 'ProtoDeclare' then
+          begin
+            Proto := TVRMLPrototype.Create;
+            Node.Prototypes.Add(Proto);
+            ParsePrototype(Proto, I.Current);
+          end else
+          if I.Current.TagName = 'ExternProtoDeclare' then
+          begin
+            ExternProto := TVRMLExternalPrototype.Create;
+            Node.Prototypes.Add(ExternProto);
+            ParseExternalPrototype(ExternProto, I.Current);
+          end else
+          begin
+            Child := ParseNode(I.Current, ContainerField, true);
+            if Child <> nil then
             begin
-              Route := TVRMLRoute.Create;
-              Node.Routes.Add(Route);
-              ParseRoute(Route, ChildElement);
-            end else
-            begin
-              Child := ParseNode(ChildElement, ContainerField,
-                NodeNameBinding, true);
-              if Child <> nil then
+              FieldIndex := Node.Fields.NameIndex(ContainerField);
+              if FieldIndex >= 0 then
               begin
-                FieldIndex := Node.Fields.NameIndex(ContainerField);
-                if FieldIndex >= 0 then
+                if Node.Fields[FieldIndex] is TSFNode then
                 begin
-                  if Node.Fields[FieldIndex] is TSFNode then
-                  begin
-                    SF := Node.Fields[FieldIndex] as TSFNode;
-                    SF.Value := Child;
-                    SF.WarningIfChildNotAllowed(Child);
-                  end else
-                  if Node.Fields[FieldIndex] is TMFNode then
-                  begin
-                    MF := Node.Fields[FieldIndex] as TMFNode;
-                    MF.AddItem(Child);
-                    MF.WarningIfChildNotAllowed(Child);
-                  end else
-                  begin
-                    FreeAndNil(Child);
-                    VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
-                  end;
+                  SF := Node.Fields[FieldIndex] as TSFNode;
+                  SF.Value := Child;
+                  SF.WarningIfChildNotAllowed(Child);
+                end else
+                if Node.Fields[FieldIndex] is TMFNode then
+                begin
+                  MF := Node.Fields[FieldIndex] as TMFNode;
+                  MF.AddItem(Child);
+                  MF.WarningIfChildNotAllowed(Child);
                 end else
                 begin
                   FreeAndNil(Child);
-                  VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
+                  VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
                 end;
+              end else
+              begin
+                FreeAndNil(Child);
+                VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
               end;
             end;
           end;
         end;
-      finally ChildrenList.Release; end;
+      finally FreeAndNil(I) end;
     end;
 
   begin
     ParseXMLAttributes;
     ParseXMLChildrenNodes;
-
-    { TODO from classic encoding:
-
-      I := Events.IndexOf(Lexer.TokenName);
-      if I >= 0 then
-      begin
-        Result := true;
-        Lexer.NextToken;
-        Events[I].Parse(Lexer);
-      end else
-
-      if Lexer.TokenIsKeyword(vkPROTO) then
-      begin
-        Result := true;
-
-        Proto := TVRMLPrototype.Create;
-        Prototypes.Add(Proto);
-        Proto.Parse(Lexer);
-      end else
-      if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
-      begin
-        Result := true;
-
-        Proto := TVRMLExternalPrototype.Create;
-        Prototypes.Add(Proto);
-        Proto.Parse(Lexer);
-      end else
- }
-
   end;
 
   (*
@@ -279,53 +436,91 @@ const
 
   function ParseNode(Element: TDOMElement;
     out ContainerField: string;
-    NodeNameBinding: TStringList;
     NilIfUnresolvedUSE: boolean): TVRMLNode;
 
     procedure ParseNamedNode(const NodeName: string);
     var
       NodeClass: TVRMLNodeClass;
       NodeTypeName: string;
-      //ProtoIndex: Integer;
-      //Proto: TVRMLPrototypeBase;
+      ProtoName: string;
+      ProtoIndex: Integer;
+      Proto: TVRMLPrototypeBase;
+      ProtoIter: TXMLElementIterator;
+      FieldActualValue, FieldName: string;
+      FieldIndex: Integer;
     begin
       NodeTypeName := Element.TagName;
 
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
-        VRMLVerMajor, VRMLVerMinor);
-      if NodeClass <> nil then
+      if NodeTypeName = 'ProtoInstance' then
       begin
-        Result := NodeClass.Create(NodeName, WWWBasePath);
+        if not DOMGetAttribute(Element, 'name', ProtoName) then
+          raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
+
+        ProtoIndex := ProtoNameBinding.IndexOf(ProtoName);
+        if ProtoIndex = -1 then
+          raise EX3DXmlError.CreateFmt('<ProtoInstance> specifies unknown prototype name "%s"', [ProtoName]);
+
+        Proto := ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
+        if (Proto is TVRMLExternalPrototype) and
+           (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
+          Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, WWWBasePath) else
+          Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath, Proto);
+
+        { parse field values from <fieldValue> elements }
+        ProtoIter := TXMLElementIterator.Create(Element);
+        try
+          while ProtoIter.GetNext do
+          begin
+            if ProtoIter.Current.TagName <> 'fieldValue' then
+            begin
+              VRMLNonFatalError('X3D XML: only <fieldValue> elements expected in prototype instantiation');
+              Continue;
+            end;
+
+            if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
+            begin
+              VRMLNonFatalError('X3D XML: missing "name" attribute for <fieldValue> element');
+              Continue;
+            end;
+
+            FieldIndex := Result.Fields.NameIndex(FieldName);
+            if FieldIndex = -1 then
+            begin
+              VRMLNonFatalError(Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+              Continue;
+            end;
+
+            if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
+              ParseFieldValueFromAttribute(Result.Fields[FieldIndex], FieldActualValue) else
+              ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
+          end;
+        finally FreeAndNil(ProtoIter) end;
+
+        { If it was normal (non-external) prototype, then instantiate
+          it now (this sort-of expands prototype "macro" in place). }
+        if Result is TVRMLPrototypeNode then
+        try
+          Result := TVRMLPrototypeNode(Result).Instantiate;
+        except
+          on E: EVRMLPrototypeInstantiateError do
+            { Just write E.Message and silence the exception.
+              Result will simply remain as TVRMLPrototypeNode instance in this case. }
+            VRMLNonFatalError(E.Message);
+        end;
       end else
       begin
-        {}{TODO:
-        ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
-        if ProtoIndex <> -1 then
+        NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
+          VRMLVerMajor, VRMLVerMinor);
+        if NodeClass <> nil then
         begin
-          Proto := Lexer.ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
-          if (Proto is TVRMLExternalPrototype) and
-             (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-            Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, WWWBasePath) else
-            Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath, Proto);
-        end else}
+          Result := NodeClass.Create(NodeName, WWWBasePath);
+        end else
         begin
           Result := TNodeUnknown.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
         end;
+
+        ParseNodeBody(Result, Element);
       end;
-
-      ParseNodeBody(Result, Element, NodeNameBinding);
-
-      {}(*TODO:
-
-      if Result is TVRMLPrototypeNode then
-      try
-        Result := TVRMLPrototypeNode(Result).Instantiate;
-      except
-        on E: EX3DXmlPrototypeInstantiateError do
-          { Just write E.Message and silence the exception.
-            Result will simply remain as TVRMLPrototypeNode instance in this case. }
-          VRMLNonFatalError(E.Message);
-      end;*)
 
       { TODO: this has a problem, see classic VRML ParseNode
         comment starting with "Cycles in VRML graph are bad..." }
@@ -379,6 +574,184 @@ const
     except FreeAndNil(Result); raise end;
   end;
 
+  { Equivalent to TVRMLEvent.Parse }
+  (*
+  procedure ParseEvent(Event: TVRMLEvent; Element: TDOMElement);
+  begin
+    ElementIs := DOMGetChildElement(Element, 'IS',
+  end;
+  TODO
+  *)
+
+  { This is equivalent to TVRMLInterfaceDeclaration.Parse
+    in classic VRML parser. }
+  procedure ParseInterfaceDeclaration(
+    I: TVRMLInterfaceDeclaration; Element: TDOMElement;
+    FieldValue, IsClauseAllowed: boolean);
+  var
+    AccessType: TVRMLAccessType;
+    AccessTypeIndex: Integer;
+    AccessTypeName: string;
+    FieldTypeName: string;
+    FieldType: TVRMLFieldClass;
+    Name, FieldActualValue: string;
+  begin
+    { clear instance before parsing }
+    I.Event.Free; I.Event := nil;
+    I.Field.Free; I.Field := nil;
+
+    { calculate AccessType }
+    if DOMGetAttribute(Element, 'accessType', AccessTypeName) then
+    begin
+      AccessTypeIndex := ArrayPosStr(AccessTypeName,
+        ['inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput']);
+      if AccessTypeIndex <> -1 then
+        AccessType := TVRMLAccessType(AccessTypeIndex) else
+        raise EX3DXmlError.CreateFmt('Access type "%s" unknown', [AccessTypeName]);
+    end else
+      raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
+
+    { calculate FieldType }
+    if DOMGetAttribute(Element, 'type', FieldTypeName) then
+    begin
+      FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+      if FieldType = nil then
+        raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldTypeName]);
+    end else
+      raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
+
+    if not DOMGetAttribute(Element, 'name', Name) then
+      raise EX3DXmlError.Create('Missing name in X3D interface declaration');
+
+    { we know everything now to create Event/Field instance }
+    case AccessType of
+      atInputOnly, atOutputOnly:
+        I.Event := TVRMLEvent.Create(Name, FieldType, AccessType = atInputOnly);
+      atInitializeOnly, atInputOutput:
+        begin
+          I.Field := FieldType.CreateUndefined(Name);
+          I.Field.Exposed := AccessType = atInputOutput;
+        end;
+      else raise EInternalError.Create('AccessType ?');
+    end;
+
+    if I.Event <> nil then
+    begin
+      {TODO if IsClauseAllowed then
+        ParseEvent(I.Event, Element};
+    end else
+    begin
+      if FieldValue then
+      begin
+        if DOMGetAttribute(Element, 'value', FieldActualValue) then
+          ParseFieldValueFromAttribute(I.Field, FieldActualValue) else
+          ParseFieldValueFromElement(I.Field, Element);
+      end else
+      {TODO if IsClauseAllowed then
+        Field.ParseIsClause(Lexer)};
+    end;
+  end;
+
+  { Handle sequence of <field> elements.
+    This is equivalent to TVRMLPrototypeBase.ParseInterfaceDeclarations
+    in classic VRML parser. }
+  procedure ParseInterfaceDeclarations(
+    Proto: TVRMLPrototypeBase;
+    Element: TDOMElement; ExternalProto: boolean);
+  var
+    I: TVRMLInterfaceDeclaration;
+    Iter: TXMLElementIterator;
+  begin
+    Iter := TXMLElementIterator.Create(Element);
+    try
+      while Iter.GetNext do
+      begin
+        if Iter.Current.TagName = 'field' then
+        begin
+          I := TVRMLInterfaceDeclaration.Create;
+          Proto.InterfaceDeclarations.Add(I);
+          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, false);
+        end else
+          VRMLNonFatalError('X3D XML: only <field> elements expected in prototype interface');
+      end;
+    finally FreeAndNil(Iter) end;
+  end;
+
+  { Equivalent to TVRMLPrototype.Parse }
+  procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement);
+  var
+    OldNodeNameBinding: TStringList;
+    OldProtoNameBinding: TStringList;
+    Name: string;
+    E: TDOMElement;
+  begin
+    Proto.WWWBasePath := WWWBasePath;
+
+    if DOMGetAttribute(Element, 'name', Name) then
+      Proto.Name := Name else
+      raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
+
+    E := DOMGetChildElement(Element, 'ProtoInterface', false);
+    if E <> nil then
+      ParseInterfaceDeclarations(Proto, E, false);
+
+    E := DOMGetChildElement(Element, 'ProtoBody', false);
+    if E = nil then
+      raise EX3DXmlError.Create('Missing <ProtoBody> inside <ProtoDeclare> element');
+
+    Proto.Node.Free; Proto.Node := nil;
+
+    { VRML 2.0 spec explicitly says that inside prototype has it's own DEF/USE
+      scope, completely independent from the outside. So we create
+      new NodeNameBinding for parsing prototype. }
+    OldNodeNameBinding := NodeNameBinding;
+    NodeNameBinding := TStringListCaseSens.Create;
+    try
+      { Also prototype name scope is local within the prototype,
+        however it starts from current prototype name scope (not empty,
+        like in case of NodeNameBinding). So prototypes defined outside
+        are available inside, but nested prototypes inside are not
+        available outside. }
+      OldProtoNameBinding := ProtoNameBinding;
+      ProtoNameBinding := TStringListCaseSens.Create;
+      try
+        ProtoNameBinding.Assign(OldProtoNameBinding);
+        Proto.Node := ParseVRMLStatements(E);
+      finally
+        FreeAndNil(ProtoNameBinding);
+        ProtoNameBinding := OldProtoNameBinding;
+      end;
+    finally
+      FreeAndNil(NodeNameBinding);
+      NodeNameBinding := OldNodeNameBinding;
+    end;
+
+    Proto.Bind(ProtoNameBinding);
+  end;
+
+  { Equivalent to TVRMLExternalPrototype.Parse }
+  procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
+    Element: TDOMElement);
+  var
+    Name, URLListValue: string;
+  begin
+    Proto.WWWBasePath := WWWBasePath;
+
+    if DOMGetAttribute(Element, 'name', Name) then
+      Proto.Name := Name else
+      raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
+
+    ParseInterfaceDeclarations(Proto, Element, true);
+
+    if DOMGetAttribute(Element, 'url', URLListValue) then
+      ParseFieldValueFromAttribute(Proto.URLList, URLListValue) else
+      raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
+
+    Proto.Bind(ProtoNameBinding);
+
+    Proto.LoadReferenced;
+  end;
+
   { This parses a sequence of X3D statements: any number of nodes,
     (external) protypes, routes. This is good to use to parse whole VRML file,
     or a (non-external) prototype content.
@@ -390,8 +763,7 @@ const
     Returns a single VRML node. If there was exactly one statement
     and it was a node statement, returns this node. Otherwise,
     returns everything read wrapped in artifical TNodeGroupHidden_2 instance. }
-  function ParseVRMLStatements(Element: TDOMElement;
-    NodeNameBinding: TStringList): TVRMLNode;
+  function ParseVRMLStatements(Element: TDOMElement): TVRMLNode;
 
     { Create hidden group node. }
     function CreateHiddenGroup: TVRMLNode;
@@ -434,19 +806,19 @@ const
       { You can safely assume that Element.TagName
         indicates proto or externproto. }
       procedure ParseProtoStatement;
-      {var
-        Proto: TVRMLPrototypeBase;}
+      var
+        Proto: TVRMLPrototypeBase;
       begin
-        { TODO:
-        if Lexer.TokenKeyword = vkPROTO then
+        if Element.TagName = 'ProtoDeclare' then
           Proto := TVRMLPrototype.Create else
           Proto := TVRMLExternalPrototype.Create;
 
         MakeResultHiddenGroup;
         Result.Prototypes.Add(Proto);
 
-        Proto.Parse(Lexer);
-        }
+        if Proto is TVRMLPrototype then
+          ParsePrototype(Proto as TVRMLPrototype, Element) else
+          ParseExternalPrototype(Proto as TVRMLExternalPrototype, Element);
       end;
 
       procedure ParseNodeInternal;
@@ -454,8 +826,7 @@ const
         NewNode: TVRMLNode;
         ContainerFieldDummy: string;
       begin
-        NewNode := ParseNode(Element, ContainerFieldDummy,
-          NodeNameBinding, false);
+        NewNode := ParseNode(Element, ContainerFieldDummy, false);
 
         if Result = nil then
         begin
@@ -483,21 +854,17 @@ const
     end;
 
   var
-    I: Integer;
-    DocChildren: TDOMNodeList;
-    ChildNode: TDOMNode;
+    I: TXMLElementIterator;
   begin
     Result := nil;
     try
-      DocChildren := Element.ChildNodes;
+      I := TXMLElementIterator.Create(Element);
       try
-        for I := 0 to DocChildren.Count - 1 do
+        while I.GetNext do
         begin
-          ChildNode := DocChildren.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
-            ParseVRMLStatement(ChildNode as TDOMElement);
+          ParseVRMLStatement(I.Current);
         end;
-      finally DocChildren.Release; end;
+      finally FreeAndNil(I) end;
 
       if Result = nil then
         Result := CreateHiddenGroup;
@@ -510,19 +877,16 @@ var
 
   { Eventually used to decompress gzip file. }
   Stream: TStream;
-
-  { This is used the same way as Lexer.NodeNameBinding when
-    reading VRML files (that is, in classic VRML encoding).
-
-    TODO: this means that each USE must occur after it's DEF,
-    does X3D XML encoding guarantee this? }
-  NodeNameBinding: TStringList;
 begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
   Stream := nil;
-  NodeNameBinding := TStringList.Create;
+  NodeNameBinding := nil;
+  ProtoNameBinding := nil;
   try
+    NodeNameBinding := TStringList.Create;
+    ProtoNameBinding := TStringList.Create;
+
     if Gzipped then
     begin
       Stream := TGZFileStream.Create(FileName, gzOpenRead);
@@ -534,10 +898,11 @@ begin
         'Root node of X3D file must be <X3D>');
 
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
-      Result := ParseVRMLStatements(SceneElement, NodeNameBinding);
+      Result := ParseVRMLStatements(SceneElement);
     finally FreeAndNil(Doc) end;
   finally
     FreeAndNil(NodeNameBinding);
+    FreeAndNil(ProtoNameBinding);
     FreeAndNil(Stream);
   end;
 end;
