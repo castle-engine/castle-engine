@@ -92,7 +92,7 @@ type
       Conceptually, we think of such field as "without any value".
       So Equals and EqualsDefaultValue will always return @false for such field.
       Yes, pretty much like in SQL the "null" value.
-      
+
       @groupBegin }
     property IsClause: boolean read FIsClause write FIsClause;
     property IsClauseName: string read FIsClauseName write FIsClauseName;
@@ -1361,7 +1361,7 @@ begin
   begin
     Result := -1;
   end;
-  
+
   if Result <> -1 then
   begin
     Event := Items[Result].ExposedEvents[InEvent];
