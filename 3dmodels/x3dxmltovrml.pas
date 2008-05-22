@@ -78,7 +78,7 @@ const
     Element: TDOMElement); forward;
   procedure ParseInterfaceDeclaration(
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue, IsClauseAllowed: boolean); forward;
+    FieldValue: boolean); forward;
 
   { Parse ROUTE. Conceptually equivalent to TVRMLRoute.Parse in classic VRML
     encoding. }
@@ -299,7 +299,7 @@ const
           while I.GetNext do
             if ParseConnectElement(I.Current, NodeField, ProtoField) then
             begin
-              NodeFieldOrEvent := Node.FieldOrEvent(NodeField);
+              NodeFieldOrEvent := Node.FieldOrEvent(NodeField, true);
               if NodeFieldOrEvent <> nil then
               begin
                 NodeFieldOrEvent.IsClause := true;
@@ -352,7 +352,7 @@ const
           begin
             IDecl := TVRMLInterfaceDeclaration.Create;
             try
-              ParseInterfaceDeclaration(IDecl, I.Current, true, true);
+              ParseInterfaceDeclaration(IDecl, I.Current, true);
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
                 Node.InterfaceDeclarations.Add(IDecl) else
               begin
@@ -570,20 +570,20 @@ const
     except FreeAndNil(Result); raise end;
   end;
 
-  { Equivalent to TVRMLEvent.Parse }
-  (*
-  procedure ParseEvent(Event: TVRMLEvent; Element: TDOMElement);
-  begin
-    ElementIs := DOMGetChildElement(Element, 'IS',
-  end;
-  TODO
-  *)
-
   { This is equivalent to TVRMLInterfaceDeclaration.Parse
-    in classic VRML parser. }
+    in classic VRML parser.
+
+    Note that in classic VRML parser we had here IsClauseAllowed: boolean
+    parameter, this was set to @true when parsing InterfaceDeclarations
+    of special nodes (Script, ComposedShader etc.), since they could
+    have IS clause (at least, as far as I understood the spec).
+    But for X3D XML encoding, it's not available, since (AFAI understand
+    the X3D XML encoding spec) the <IS> element inside node body may
+    point from nodeField to any interface field of this node, including
+    InterfaceDeclarations. So ParseISStatement handles this. }
   procedure ParseInterfaceDeclaration(
     I: TVRMLInterfaceDeclaration; Element: TDOMElement;
-    FieldValue, IsClauseAllowed: boolean);
+    FieldValue: boolean);
   var
     AccessType: TVRMLAccessType;
     AccessTypeIndex: Integer;
@@ -593,8 +593,8 @@ const
     Name, FieldActualValue: string;
   begin
     { clear instance before parsing }
-    I.Event.Free; I.Event := nil;
-    I.Field.Free; I.Field := nil;
+    I.FieldOrEvent.Free;
+    I.FieldOrEvent := nil;
 
     { calculate AccessType }
     if DOMGetAttribute(Element, 'accessType', AccessTypeName) then
@@ -622,10 +622,10 @@ const
     { we know everything now to create Event/Field instance }
     case AccessType of
       atInputOnly, atOutputOnly:
-        I.Event := TVRMLEvent.Create(Name, FieldType, AccessType = atInputOnly);
+        I.FieldOrEvent := TVRMLEvent.Create(Name, FieldType, AccessType = atInputOnly);
       atInitializeOnly, atInputOutput:
         begin
-          I.Field := FieldType.CreateUndefined(Name);
+          I.FieldOrEvent := FieldType.CreateUndefined(Name);
           I.Field.Exposed := AccessType = atInputOutput;
         end;
       else raise EInternalError.Create('AccessType ?');
@@ -633,8 +633,9 @@ const
 
     if I.Event <> nil then
     begin
-      {TODO if IsClauseAllowed then
-        ParseEvent(I.Event, Element};
+      { Classic VRML parser has here
+          if IsClauseAllowed then I.Event.Parse(Lexer);
+        but for X3D XML encoding this is not needed, see comments above. }
     end else
     begin
       if FieldValue then
@@ -642,9 +643,11 @@ const
         if DOMGetAttribute(Element, 'value', FieldActualValue) then
           ParseFieldValueFromAttribute(I.Field, FieldActualValue) else
           ParseFieldValueFromElement(I.Field, Element);
-      end else
-      {TODO if IsClauseAllowed then
-        Field.ParseIsClause(Lexer)};
+      end;
+
+      { Classic VRML parser has here
+          else if IsClauseAllowed then I.Field.ParseIsClause(Lexer);
+        but for X3D XML encoding this is not needed, see comments above. }
     end;
   end;
 
@@ -666,7 +669,7 @@ const
         begin
           I := TVRMLInterfaceDeclaration.Create;
           Proto.InterfaceDeclarations.Add(I);
-          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto, false);
+          ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto);
         end else
           VRMLNonFatalError('X3D XML: only <field> elements expected in prototype interface');
       end;

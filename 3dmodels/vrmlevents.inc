@@ -28,14 +28,12 @@
     We don't do nothing more with VRML events for now... }
   TVRMLEvent = class(TVRMLFieldOrEvent)
   private
-    FName: string;
     FFieldClass: TVRMLFieldClass;
     FInEvent: boolean;
   public
     constructor Create(const AName: string;
       const AFieldClass: TVRMLFieldClass; const AInEvent: boolean);
 
-    property Name: string read FName;
     property FieldClass: TVRMLFieldClass read FFieldClass;
 
     { @abstract(Is it "in" or "out" event ?) }
@@ -73,13 +71,7 @@ end;
 
 procedure TVRMLEvent.Parse(Lexer: TVRMLLexer);
 begin
-  FIsClause := Lexer.TokenIsKeyword(vkIS);
-  if FIsClause then
-  begin
-    Lexer.NextToken;
-    FIsClauseName := Lexer.TokenName;
-    Lexer.NextToken;
-  end;
+  ParseIsClause(Lexer);
 end;
 
 procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);

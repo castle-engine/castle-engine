@@ -80,11 +80,25 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
 
+  { Common class for VRML field or event. }
   TVRMLFieldOrEvent = class(TPersistent)
   private
     FIsClause: boolean;
     FIsClauseName: string;
+
+    FName: string;
   public
+    { Name of the field or event.
+
+      Normal fields/events are inside some VRML node, and then
+      they should have a name <> ''. But in some special cases I use
+      fields without a name, then this is ''.
+
+      Note that you cannot change this after object creation, since
+      Name is used for various purposes (like to generate names for
+      TVRMLField.ExposedEvents). }
+    property Name: string read FName;
+
     { Does the field/event reference other field by "IS" clause.
       This is usually caused by specifying "IS" clause instead
       of field value in VRML file.
@@ -97,6 +111,11 @@ type
     property IsClause: boolean read FIsClause write FIsClause;
     property IsClauseName: string read FIsClauseName write FIsClauseName;
     { @groupEnd }
+
+    { Parse only "IS" clause, if it's not present --- don't do nothing.
+      For example, for the TVRMLField descendant, this does not try to parse
+      field value. }
+    procedure ParseIsClause(Lexer: TVRMLLexer);
   end;
 
   { Base class for all VRML fields.
@@ -132,7 +151,6 @@ type
     FExposedEvents: array [boolean] of TVRMLEvent;
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
   protected
-    FName: string;
 
     { Save field value to a stream. Must be overriden for each specific
       field. SaveToStream writes Indent, Name, ' ', then calls SaveToStreamValue,
@@ -152,14 +170,6 @@ type
 
     procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
   public
-    { Name of the field. Normal fields are inside some VRML node, and then
-      they should have a name <> ''. But in some special cases I use
-      fields without a name, then this is ''.
-
-      Note that you change this after object creation, name is used
-      for various purposes (like also to name ExposedEvents). }
-    property Name: string read fName;
-
     { Normal constrctor.
 
       @italic(Descendants implementors notes:)
@@ -284,10 +294,6 @@ type
 
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
-
-    { Parse only "IS" clause, if it's not present --- don't try to parse
-      field value. }
-    procedure ParseIsClause(Lexer: TVRMLLexer);
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -1193,6 +1199,19 @@ begin
   DoDiscardNextIndent := true;
 end;
 
+{ TVRMLFieldOrEvent ---------------------------------------------------------- }
+
+procedure TVRMLFieldOrEvent.ParseIsClause(Lexer: TVRMLLexer);
+begin
+  FIsClause := Lexer.TokenIsKeyword(vkIS);
+  if FIsClause then
+  begin
+    Lexer.NextToken;
+    FIsClauseName := Lexer.TokenName;
+    Lexer.NextToken;
+  end;
+end;
+
 { TVRMLField ------------------------------------------------------------- }
 
 constructor TVRMLField.Create(const AName: string);
@@ -1263,17 +1282,6 @@ function TVRMLField.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
   Result := (not IsClause) and (SecondValue.Name = Name);
-end;
-
-procedure TVRMLField.ParseIsClause(Lexer: TVRMLLexer);
-begin
-  FIsClause := Lexer.TokenIsKeyword(vkIS);
-  if FIsClause then
-  begin
-    Lexer.NextToken;
-    FIsClauseName := Lexer.TokenName;
-    Lexer.NextToken;
-  end;
 end;
 
 procedure TVRMLField.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);

@@ -724,12 +724,26 @@ type
     property Events: TVRMLEventsList read FEvents;
 
     { Search by name for given field or event (exposed by some field or not).
+
+      If SearchInterfaceDeclarations, then will also search
+      InterfaceDeclarations, if available (if HasInterfaceDeclarations <> []).
+      For most cases, you want this as @true, since you want to treat
+      InterfaceDeclarations mostly as regular fields/events.
+
       @nil if not found. }
-    function FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
+    function FieldOrEvent(const Name: string;
+      SearchInterfaceDeclarations: boolean): TVRMLFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
+
+      If SearchInterfaceDeclarations, then will also search
+      InterfaceDeclarations, if available (if HasInterfaceDeclarations <> []).
+      For most cases, you want this as @true, since you want to treat
+      InterfaceDeclarations mostly as regular fields/events.
+
       @nil if not found. }
-    function AnyEvent(const Name: string): TVRMLEvent;
+    function AnyEvent(const Name: string;
+      SearchInterfaceDeclarations: boolean): TVRMLEvent;
 
     { Children property lists children VRML nodes, in the sense of VRML 1.0.
       In VRML 2.0, nodes never have any Children nodes expressed on this
@@ -1972,41 +1986,49 @@ type
   { Interface declaration, used in VRML (exposed) prototypes and scripts.
     See VRML 2.0 spec.
 
-    Each interface specification is either a field or an event,
-    so exactly one of the @link(Field) or @link(Event) properties
-    is initialized (non-nil) after parsing.
+    Each interface specification is a field or an event, stored
+    in FieldOrEvent. FieldOrEvent is @nil before parsing.
 
     Field value is not initialized if you passed FieldValue = @false
-    to @link(Parse) (although Field.IsClause and IsClauseName will
+    to @link(Parse) (although IsClause and IsClauseName will
     always be initialized). FieldValue = @true is used for prototype
     (not external) declarations and scripts.
     In the future maybe some property like
     FieldValueInitialized will be exposed here, if needed at some point.
 
     Interface declaration doesn't have much properties, since all
-    the information is contained within @link(Field) or @link(Event)
+    the information is contained within FieldOrEvent
     instance, like Name, field class type, out or in (in case of event),
     exposed or not (in case of field), IsClause and IsClauseName. }
   TVRMLInterfaceDeclaration = class
   private
-    FEvent: TVRMLEvent;
+    FFieldOrEvent: TVRMLFieldOrEvent;
+
+    { kept in synch with FFieldOrEvent by SetFieldOrEvent }
     FField: TVRMLField;
+    FEvent: TVRMLEvent;
+
+    procedure SetFieldOrEvent(const Value: TVRMLFieldOrEvent);
   public
     destructor Destroy; override;
 
     { Field or event of this interface declaration.
-      Exactly one of the Event or Field is non-nil after parsing,
-      never both.
+      Is non-nil after parsing.
 
-      You can assign to these properties, to constructs interface
+      You can assign to this property, to constructs interface
       declarations (and so also prototypes) in your own code
       (e.g. this is used X3D XML reader). Just be careful, and remember
-      that this object owns Field/Event (that is, will free them
-      at destruction).
+      that this object owns FieldOrEvent (that is, will free it
+      at destruction). }
+    property FieldOrEvent: TVRMLFieldOrEvent
+      read FFieldOrEvent write SetFieldOrEvent;
 
+    { Return FieldOrEvent casted as appropriate class.
+      @nil if such cast is not possible, for example when
+      FieldOrEvent is an event and you try to use Field method.
       @groupBegin }
-    property Event: TVRMLEvent read FEvent write FEvent;
-    property Field: TVRMLField read FField write FField;
+    property Field: TVRMLField read FField;
+    property Event: TVRMLEvent read FEvent;
     { @groupEnd }
 
     procedure Parse(Lexer: TVRMLLexer;
@@ -2033,9 +2055,17 @@ type
   {$I objectslist_2.inc}
   TVRMLInterfaceDeclarationsList = class(TObjectsList_2)
   public
-    { Find item with Field <> nil and Field.Name matching FieldName.
+    { Find field or event with given Name.
       @nil if not found. }
-    function TryFindFieldName(const FieldName: string): TVRMLField;
+    function TryFindName(const Name: string): TVRMLFieldOrEvent;
+
+    { Find field with given Name.
+      @nil if not found. }
+    function TryFindFieldName(const Name: string): TVRMLField;
+
+    { Find event with given Name.
+      @nil if not found. }
+    function TryFindEventName(const Name: string): TVRMLEvent;
   end;
 
 { TVRMLPrototype ------------------------------------------------------------- }
@@ -3341,7 +3371,7 @@ begin
       Fields[I].Parse(Lexer, true);
     end else
     begin
-      Event := AnyEvent(Lexer.TokenName);
+      Event := AnyEvent(Lexer.TokenName, true);
       if Event <> nil then
       begin
         Result := true;
@@ -4200,7 +4230,8 @@ begin
   finally InitialState.Free end;
 end;
 
-function TVRMLNode.FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
+function TVRMLNode.FieldOrEvent(const Name: string;
+  SearchInterfaceDeclarations: boolean): TVRMLFieldOrEvent;
 var
   I: Integer;
 begin
@@ -4216,10 +4247,18 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
+  if SearchInterfaceDeclarations and (InterfaceDeclarations <> nil) then
+  begin
+    Result := InterfaceDeclarations.TryFindName(Name);
+    if Result <> nil then
+      Exit;
+  end;
+
   Result := nil; { not found }
 end;
 
-function TVRMLNode.AnyEvent(const Name: string): TVRMLEvent;
+function TVRMLNode.AnyEvent(const Name: string;
+  SearchInterfaceDeclarations: boolean): TVRMLEvent;
 var
   I: Integer;
 begin
@@ -4230,6 +4269,13 @@ begin
   I := Events.IndexOf(Name);
   if I <> -1 then
     Exit(Events[I]);
+
+  if SearchInterfaceDeclarations and (InterfaceDeclarations <> nil) then
+  begin
+    Result := InterfaceDeclarations.TryFindEventName(Name);
+    if Result <> nil then
+      Exit;
+  end;
 
   Result := nil; { not found }
 end;
@@ -4803,9 +4849,34 @@ end;
 
 destructor TVRMLInterfaceDeclaration.Destroy;
 begin
-  FreeAndNil(FEvent);
-  FreeAndNil(FField);
+  FreeAndNil(FFieldOrEvent);
+  FField := nil;
+  FEvent := nil;
+
   inherited;
+end;
+
+procedure TVRMLInterfaceDeclaration.SetFieldOrEvent(
+  const Value: TVRMLFieldOrEvent);
+begin
+  FFieldOrEvent := Value;
+
+  { set FField and FEvent, for fast access to them }
+  if FFieldOrEvent = nil then
+  begin
+    FField := nil;
+    FEvent := nil;
+  end else
+  if FFieldOrEvent is TVRMLField then
+  begin
+    FField := TVRMLField(FFieldOrEvent);
+    FEvent := nil;
+  end else
+  begin
+    Assert(FFieldOrEvent is TVRMLEvent);
+    FField := nil;
+    FEvent := TVRMLEvent(FFieldOrEvent);
+  end;
 end;
 
 procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer;
@@ -4817,8 +4888,8 @@ var
   Name: string;
 begin
   { clear instance before parsing }
-  FreeAndNil(FEvent);
-  FreeAndNil(FField);
+  FieldOrEvent.Free;
+  FieldOrEvent := nil;
 
   if Lexer.Token = vtKeyword then
   begin
@@ -4849,11 +4920,11 @@ begin
   { we know everything now to create Event/Field instance }
   case Kind of
     atInputOnly, atOutputOnly:
-      FEvent := TVRMLEvent.Create(Name, FieldType, Kind = atInputOnly);
+      FieldOrEvent := TVRMLEvent.Create(Name, FieldType, Kind = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
-        FField := FieldType.CreateUndefined(Name);
-        FField.Exposed := Kind = atInputOutput;
+        FieldOrEvent := FieldType.CreateUndefined(Name);
+        Field.Exposed := Kind = atInputOutput;
       end;
     else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
   end;
@@ -4943,16 +5014,45 @@ end;
 
 { TVRMLInterfaceDeclarationsList --------------------------------------------- }
 
-function TVRMLInterfaceDeclarationsList.TryFindFieldName(const FieldName: string): TVRMLField;
+function TVRMLInterfaceDeclarationsList.TryFindName(
+  const Name: string): TVRMLFieldOrEvent;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
-    Result := Items[I].Field;
-    if (Result <> nil) and (Result.Name = FieldName) then
+    Result := Items[I].FieldOrEvent;
+    if Result.Name = Name then
       Exit;
   end;
+  Result := nil;
+end;
+
+function TVRMLInterfaceDeclarationsList.TryFindFieldName(const Name: string): TVRMLField;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].FieldOrEvent is TVRMLField then
+    begin
+      Result := Items[I].Field;
+      if Result.Name = Name then
+        Exit;
+    end;
+  Result := nil;
+end;
+
+function TVRMLInterfaceDeclarationsList.TryFindEventName(const Name: string): TVRMLEvent;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].FieldOrEvent is TVRMLEvent then
+    begin
+      Result := Items[I].Event;
+      if Result.Name = Name then
+        Exit;
+    end;
   Result := nil;
 end;
 
@@ -5039,7 +5139,7 @@ procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
     in our own exposedFields). }
   function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
   begin
-    Result := Field.Exposed and (AnyEvent(Field.IsClauseName) <> nil);
+    Result := Field.Exposed and (AnyEvent(Field.IsClauseName, true) <> nil);
   end;
 
 var
