@@ -34,7 +34,7 @@ implementation
 
 uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
   VRMLLexer, VRMLErrors, VRMLFields, KambiZStream,
-  KambiClassUtils;
+  KambiClassUtils, KambiStringUtils;
 
 type
   EX3DXmlError = class(EVRMLError);
@@ -52,6 +52,10 @@ function LoadX3DXmlAsVRML(const FileName: string;
 var
   WWWBasePath: string;
 
+  { X3D version numbers. }
+  VRMLVerMajor: Integer;
+  VRMLVerMinor: Integer;
+
   { This is used the same way as Lexer.NodeNameBinding when
     reading VRML files (that is, in classic VRML encoding).
 
@@ -62,9 +66,6 @@ var
   ProtoNamebinding: TStringList;
 
 const
-  { X3D version numbers. }
-  VRMLVerMajor = 3;
-  VRMLVerMinor = 1;
   SAttrContainerField = 'containerField';
   SAttrDEF = 'DEF';
   SNull = 'NULL';
@@ -889,6 +890,8 @@ var
 
   { Eventually used to decompress gzip file. }
   Stream: TStream;
+
+  Profile, Version: string;
 begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
@@ -907,7 +910,31 @@ begin
       ReadXMLFile(Doc, FileName);
     try
       Check(Doc.DocumentElement.TagName = 'X3D',
-        'Root node of X3D file must be <X3D>');
+        'Root element of X3D file must be <X3D>');
+
+      { parse "version" attribute }
+      if DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+      begin
+        DeFormat(Version, '%d.%d', [@VRMLVerMajor, @VRMLVerMinor]);
+        if VRMLVerMajor < 3 then
+        begin
+          VRMLNonFatalError(Format('X3D version number too low (%d.%d)', [VRMLVerMajor, VRMLVerMinor]));
+          VRMLVerMajor := 3;
+          VRMLVerMinor := 2;
+        end;
+      end else
+      begin
+        { Max X3D version number supported }
+        VRMLVerMajor := 3;
+        VRMLVerMinor := 2;
+        VRMLNonFatalError(Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
+      end;
+
+      { parse "profile" attribute }
+      if not DOMGetAttribute(Doc.DocumentElement, 'profile', Profile) then
+        { We allow PROFILE to be omitted.
+          Actually, we do not use profile for anything right now. }
+        VRMLNonFatalError('X3D "profile" attribute missing');
 
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
       Result := ParseVRMLStatements(SceneElement);
