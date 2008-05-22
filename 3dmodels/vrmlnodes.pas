@@ -3371,7 +3371,12 @@ begin
       Fields[I].Parse(Lexer, true);
     end else
     begin
-      Event := AnyEvent(Lexer.TokenName, true);
+      Event := AnyEvent(Lexer.TokenName,
+        { "IS" clauses for events inside additional InterfaceDeclarations
+          will be specified at that InterfaceDeclaration's time.
+          So TVRMLInterfaceDeclaration.Parse worries about it, not we,
+          so we don't search here inside InterfaceDeclarations. }
+        false);
       if Event <> nil then
       begin
         Result := true;
@@ -5139,7 +5144,14 @@ procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
     in our own exposedFields). }
   function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
   begin
-    Result := Field.Exposed and (AnyEvent(Field.IsClauseName, true) <> nil);
+    Result := Field.Exposed and (AnyEvent(Field.IsClauseName,
+      { It doesn't matter whether this parameter is false/true.
+        That's because TVRMLPrototypeNode has always HasInterfaceDeclarations
+        = [], in other words when instantiating a prototype you cannot
+        add additional interface decls (like for Script or ComposedShader nodes).
+        For the future, I set this to true, in case it will
+        be possible some day. }
+      true) <> nil);
   end;
 
 var
