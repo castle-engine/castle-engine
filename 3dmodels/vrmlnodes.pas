@@ -2018,6 +2018,15 @@ type
       at the beginning of some line. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       FieldValue: boolean);
+
+    { Returns access type, corresponding to current @link(Event)
+      and @link(Field) values.
+
+      Result is undefined if both Event
+      and Field are @nil (which may happen when it's not initialized
+      (e.g. parsed) yet) or when both are non-nil (which should never
+      happen). }
+    function AccessType: TVRMLAccessType;
   end;
 
   TObjectsListItem_2 = TVRMLInterfaceDeclaration;
@@ -4912,6 +4921,24 @@ begin
       SaveProperties.Writeln(Field.Name);
     end;
   end;
+end;
+
+function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
+begin
+  if Event <> nil then
+  begin
+    if Event.InEvent then
+      Result := atInputOnly else
+      Result := atOutputOnly;
+  end else
+  if Field <> nil then
+  begin
+    if Field.Exposed then
+      Result := atInputOutput else
+      Result := atInitializeOnly;
+  end else
+    { Result is undefined in this case, but we don't want to signal any error }
+    Result := atInitializeOnly
 end;
 
 { TVRMLInterfaceDeclarationsList --------------------------------------------- }

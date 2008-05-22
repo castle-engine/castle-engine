@@ -76,6 +76,9 @@ const
   procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement); forward;
   procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
     Element: TDOMElement); forward;
+  procedure ParseInterfaceDeclaration(
+    I: TVRMLInterfaceDeclaration; Element: TDOMElement;
+    FieldValue, IsClauseAllowed: boolean); forward;
 
   { Parse ROUTE. Conceptually equivalent to TVRMLRoute.Parse in classic VRML
     encoding. }
@@ -317,6 +320,7 @@ const
       I: TXMLElementIterator;
       Proto: TVRMLPrototype;
       ExternProto: TVRMLExternalPrototype;
+      IDecl: TVRMLInterfaceDeclaration;
     begin
       I := TXMLElementIterator.Create(Element);
       try
@@ -343,6 +347,22 @@ const
             ExternProto := TVRMLExternalPrototype.Create;
             Node.Prototypes.Add(ExternProto);
             ParseExternalPrototype(ExternProto, I.Current);
+          end else
+          if I.Current.TagName = 'field' then
+          begin
+            IDecl := TVRMLInterfaceDeclaration.Create;
+            try
+              ParseInterfaceDeclaration(IDecl, I.Current, true, true);
+              if IDecl.AccessType in Node.HasInterfaceDeclarations then
+                Node.InterfaceDeclarations.Add(IDecl) else
+              begin
+                FreeAndNil(IDecl);
+                VRMLNonFatalError('X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
+              end;
+            except
+              FreeAndNil(IDecl);
+              raise;
+            end;
           end else
           begin
             Child := ParseNode(I.Current, ContainerField, true);
