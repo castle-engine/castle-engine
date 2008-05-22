@@ -1360,7 +1360,9 @@ begin
   if (Result <> -1) and (not Items[Result].Exposed) then
   begin
     Result := -1;
-  end else
+  end;
+  
+  if Result <> -1 then
   begin
     Event := Items[Result].ExposedEvents[InEvent];
   end;
