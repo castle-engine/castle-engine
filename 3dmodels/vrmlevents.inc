@@ -18,37 +18,25 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ }
-unit VRMLEvents;
 
-interface
+{$ifdef read_interface}
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils, VRMLFields, VRMLLexer;
-
-{$define read_interface}
-
-type
   { VRML event.
 
     This is really dummy thing for now, used only to parse and store
     parsed events information.
     We don't do nothing more with VRML events for now... }
-  TVRMLEvent = class
+  TVRMLEvent = class(TVRMLFieldOrEvent)
   private
     FName: string;
     FFieldClass: TVRMLFieldClass;
     FInEvent: boolean;
-    FIsClause: boolean;
-    FIsClauseName: string;
   public
     constructor Create(const AName: string;
       const AFieldClass: TVRMLFieldClass; const AInEvent: boolean);
 
     property Name: string read FName;
     property FieldClass: TVRMLFieldClass read FFieldClass;
-
-    property IsClause: boolean read FIsClause write FIsClause;
-    property IsClauseName: string read FIsClauseName write FIsClauseName;
 
     { @abstract(Is it "in" or "out" event ?) }
     property InEvent: boolean read FInEvent;
@@ -61,19 +49,17 @@ type
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
   end;
 
-  TObjectsListItem_1 = TVRMLEvent;
-  {$I objectslist_1.inc}
-  TVRMLEventsList = class(TObjectsList_1)
+  TObjectsListItem_3 = TVRMLEvent;
+  {$I objectslist_3.inc}
+  TVRMLEventsList = class(TObjectsList_3)
   public
     function IndexOf(const Name: string): Integer;
   end;
 
-{$undef read_interface}
+{$endif read_interface}
 
-implementation
-
-{$define read_implementation}
-{$I objectslist_1.inc}
+{$ifdef read_implementation}
+{$I objectslist_3.inc}
 
 constructor TVRMLEvent.Create(
   const AName: string; const AFieldClass: TVRMLFieldClass;
@@ -111,4 +97,4 @@ begin
   Result := -1;
 end;
 
-end.
+{$endif read_implementation}

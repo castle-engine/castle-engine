@@ -33,7 +33,7 @@ function LoadX3DXmlAsVRML(const FileName: string;
 implementation
 
 uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
-  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream, VRMLEvents,
+  VRMLLexer, VRMLErrors, VRMLFields, KambiZStream,
   KambiClassUtils;
 
 type
@@ -274,7 +274,7 @@ const
            (Attr.Name = SAttrDEF) then
           Continue;
 
-        Index := Node.Fields.NameIndex(Attr.Name);
+        Index := Node.Fields.IndexOf(Attr.Name);
         if Index >= 0 then
         begin
           ParseFieldValueFromAttribute(Node.Fields[Index], Attr.Value);
@@ -289,44 +289,20 @@ const
       var
         I: TXMLElementIterator;
         NodeField, ProtoField: string;
-        Index: Integer;
-        InEvent: boolean;
+        NodeFieldOrEvent: TVRMLFieldOrEvent;
       begin
         I := TXMLElementIterator.Create(ISElement);
         try
           while I.GetNext do
             if ParseConnectElement(I.Current, NodeField, ProtoField) then
             begin
-              { NodeField may be the name of field or event inside this
-                node. }
-              Index := Node.Fields.NameIndex(NodeField);
-              if Index <> -1 then
+              NodeFieldOrEvent := Node.FieldOrEvent(NodeField);
+              if NodeFieldOrEvent <> nil then
               begin
-                Node.Fields[Index].IsClause := true;
-                Node.Fields[Index].IsClauseName := ProtoField;
-                Continue;
-              end;
-
-              Index := Node.Fields.IndexOfExposedEvent(NodeField, InEvent);
-              if Index <> -1 then
-              begin
-                { TODO: I should assign IS to the event here }
-                {
-                Node.Fields[Index].ExposedEvents[InEvent].IsClause := true;
-                Node.Fields[Index].ExposedEvents[InEvent].IsClauseName := ProtoField;
-                }
-                Continue;
-              end;
-
-              Index := Node.Events.IndexOf(NodeField);
-              if Index <> -1 then
-              begin
-                Node.Events[Index].IsClause := true;
-                Node.Events[Index].IsClauseName := ProtoField;
-                Continue;
-              end;
-
-              VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+                NodeFieldOrEvent.IsClause := true;
+                NodeFieldOrEvent.IsClauseName := ProtoField;
+              end else
+                VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
             end;
         finally FreeAndNil(I) end;
       end;
@@ -372,7 +348,7 @@ const
             Child := ParseNode(I.Current, ContainerField, true);
             if Child <> nil then
             begin
-              FieldIndex := Node.Fields.NameIndex(ContainerField);
+              FieldIndex := Node.Fields.IndexOf(ContainerField);
               if FieldIndex >= 0 then
               begin
                 if Node.Fields[FieldIndex] is TSFNode then
@@ -483,7 +459,7 @@ const
               Continue;
             end;
 
-            FieldIndex := Result.Fields.NameIndex(FieldName);
+            FieldIndex := Result.Fields.IndexOf(FieldName);
             if FieldIndex = -1 then
             begin
               VRMLNonFatalError(Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));

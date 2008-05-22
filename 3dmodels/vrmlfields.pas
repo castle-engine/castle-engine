@@ -34,6 +34,8 @@ type
   EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
   EVRMLFieldAssignFromIsClause = class(EVRMLFieldAssign);
 
+  TVRMLEvent = class;
+
   TVRMLSaveToStreamProperties = class
   private
     Indent: string;
@@ -78,6 +80,25 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
 
+  TVRMLFieldOrEvent = class(TPersistent)
+  private
+    FIsClause: boolean;
+    FIsClauseName: string;
+  public
+    { Does the field/event reference other field by "IS" clause.
+      This is usually caused by specifying "IS" clause instead
+      of field value in VRML file.
+
+      Conceptually, we think of such field as "without any value".
+      So Equals and EqualsDefaultValue will always return @false for such field.
+      Yes, pretty much like in SQL the "null" value.
+      
+      @groupBegin }
+    property IsClause: boolean read FIsClause write FIsClause;
+    property IsClauseName: string read FIsClauseName write FIsClauseName;
+    { @groupEnd }
+  end;
+
   { Base class for all VRML fields.
 
     Common notes for all descendants: most of them expose field or property
@@ -103,11 +124,13 @@ type
         If you want to copy only the current value, use AssignValue
         (or AssignLerp, where available).))
   }
-  TVRMLField = class(TPersistent)
+  TVRMLField = class(TVRMLFieldOrEvent)
   private
     FExposed: boolean;
-    FIsClause: boolean;
-    FIsClauseName: string;
+    procedure SetExposed(Value: boolean);
+
+    FExposedEvents: array [boolean] of TVRMLEvent;
+    function GetExposedEvents(InEvent: boolean): TVRMLEvent;
   protected
     FName: string;
 
@@ -131,7 +154,10 @@ type
   public
     { Name of the field. Normal fields are inside some VRML node, and then
       they should have a name <> ''. But in some special cases I use
-      fields without a name, then this is ''. }
+      fields without a name, then this is ''.
+
+      Note that you change this after object creation, name is used
+      for various purposes (like also to name ExposedEvents). }
     property Name: string read fName;
 
     { Normal constrctor.
@@ -251,22 +277,17 @@ type
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
     property Exposed: boolean read FExposed write FExposed default true;
 
+    { These are the set_xxx and xxx_changed events exposed by this field.
+      @nil if Exposed is @false. }
+    property ExposedEvents [InEvent: boolean]: TVRMLEvent
+      read GetExposedEvents;
+
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
 
     { Parse only "IS" clause, if it's not present --- don't try to parse
       field value. }
     procedure ParseIsClause(Lexer: TVRMLLexer);
-
-    { Does the field reference other field by "IS" clause.
-      This is usually caused by specifying "IS" clause instead
-      of field value in VRML file.
-
-      Conceptually, we think of such field as "without any value".
-      So Equals and EqualsDefaultValue will always return @false for such field.
-      Yes, pretty much like in SQL the "null" value. }
-    property IsClause: boolean read FIsClause write FIsClause;
-    property IsClauseName: string read FIsClauseName write FIsClauseName;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -323,13 +344,15 @@ type
     property ByName[const AName: string]:TVRMLField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
-    function NameIndex(const AName: string): integer;
+    function IndexOf(const AName: string): integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
-      exposed fields (i.e. set_xxx or xxx_changed). Returns index of event,
-      and whether it's "in" or "out" event if true. Otherwise returns -1. }
+      exposed fields (i.e. set_xxx or xxx_changed). If yes, then
+      returns index of event, and the event reference itself
+      (so always @code(Fields[ReturnedIndex].ExposedEvent[ReturnedEvent.InEvent]
+      = ReturnedEvent)). Otherwise, returns -1. }
     function IndexOfExposedEvent(const EventName: string;
-      out InEvent: boolean): Integer;
+      out Event: TVRMLEvent): Integer;
   end;
 
   TVRMLSingleField = class(TVRMLField)
@@ -1085,6 +1108,8 @@ type
     function FieldTypeNameToClass(const TypeName: string): TVRMLFieldClass;
   end;
 
+  {$I vrmlevents.inc}
+
 var
   VRMLFieldsManager: TVRMLFieldsManager;
 
@@ -1097,6 +1122,8 @@ uses Math, VRMLErrors;
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
+
+{$I vrmlevents.inc}
 
 { TVRMLSaveToStreamProperties ------------------------------------------------ }
 
@@ -1177,7 +1204,38 @@ constructor TVRMLField.CreateUndefined(const AName: string);
 begin
   inherited Create;
   FName := AName;
-  FExposed := true;
+
+  { Set Exposed to true by the property, to force FExposedEvents initialization }
+  FExposed := false;
+  Exposed := true;
+end;
+
+function TVRMLField.GetExposedEvents(InEvent: boolean): TVRMLEvent;
+begin
+  Result := FExposedEvents[InEvent];
+end;
+
+const
+  SetPrefix = 'set_';
+  ChangedSuffix = '_changed';
+
+procedure TVRMLField.SetExposed(Value: boolean);
+begin
+  if Value <> Exposed then
+  begin
+    FExposed := Value;
+    if Exposed then
+    begin
+      FExposedEvents[false] := TVRMLEvent.Create(Name + ChangedSuffix,
+        TVRMLFieldClass(Self.ClassType), false);
+      FExposedEvents[true] := TVRMLEvent.Create(SetPrefix + Name,
+        TVRMLFieldClass(Self.ClassType), true);
+    end else
+    begin
+      FreeAndNil(FExposedEvents[false]);
+      FreeAndNil(FExposedEvents[true]);
+    end;
+  end;
 end;
 
 procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
@@ -1257,7 +1315,7 @@ end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
 
-function TVRMLFieldsList.NameIndex(const AName: string): integer;
+function TVRMLFieldsList.IndexOf(const AName: string): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].Name = AName then exit;
@@ -1267,34 +1325,45 @@ end;
 function TVRMLFieldsList.GetByName(const AName: string): TVRMLField;
 var i: integer;
 begin
- i := NameIndex(AName);
+ i := IndexOf(AName);
  if i >= 0 then
   result := Items[i] else
   raise Exception.Create('Field name '+AName+' not found');
 end;
 
 function TVRMLFieldsList.IndexOfExposedEvent(const EventName: string;
-  out InEvent: boolean): Integer;
-const
-  SetPrefix = 'set_';
-  ChangedSuffix = '_changed';
+  out Event: TVRMLEvent): Integer;
+var
+  InEvent: boolean;
 begin
+  { This implementation is quite optimized.
+    Instead of browsing all fields and their ExposedEvents,
+    looking for EventName event, instead we examine EventName
+    to look whether this has any chance of being set_xxx or xxx_changed
+    event. So we utilize the fact that exposed events have consistent
+    naming. }
+
   if IsPrefix(SetPrefix, EventName, false) then
   begin
     InEvent := true;
-    Result := NameIndex(SEnding(EventName, Length(SetPrefix) + 1));
+    Result := IndexOf(SEnding(EventName, Length(SetPrefix) + 1));
   end else
   if IsSuffix(ChangedSuffix, EventName, false) then
   begin
     InEvent := false;
-    Result := NameIndex(Copy(EventName, 1,
+    Result := IndexOf(Copy(EventName, 1,
       Length(EventName) - Length(ChangedSuffix)));
   end else
     Result := -1;
 
   { check is field really exposed now }
   if (Result <> -1) and (not Items[Result].Exposed) then
+  begin
     Result := -1;
+  end else
+  begin
+    Event := Items[Result].ExposedEvents[InEvent];
+  end;
 end;
 
 { TVRMLMultField ------------------------------------------------------------- }

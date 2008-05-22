@@ -214,7 +214,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  VRMLEvents, ImagesCache, KambiInterfaces;
+  ImagesCache, KambiInterfaces;
 
 {$define read_interface}
 
@@ -711,7 +711,17 @@ type
       All fields on this list are owned by this object. }
     property Fields: TVRMLFieldsList read FFields;
 
+    { Explicit events (that is, not exposed by some field) of this node.
+      For exposed events, see each field's property ExposedEvents. }
     property Events: TVRMLEventsList read FEvents;
+
+    { Search by name for given field or event (exposed by some field or not).
+      @nil if not found. }
+    function FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
+
+    { Search by name for given event (exposed by some field or not).
+      @nil if not found. }
+    function AnyEvent(const Name: string): TVRMLEvent;
 
     { Children property lists children VRML nodes, in the sense of VRML 1.0.
       In VRML 2.0, nodes never have any Children nodes expressed on this
@@ -3253,6 +3263,7 @@ var
   I: integer;
   Route: TVRMLRoute;
   Proto: TVRMLPrototypeBase;
+  Event: TVRMLEvent;
 begin
   Result := false;
 
@@ -3262,7 +3273,7 @@ begin
     all VRML versions allow to define your own nodes and fields. }
   if Lexer.Token = vtName then
   begin
-    I := Fields.NameIndex(Lexer.TokenName);
+    I := Fields.IndexOf(Lexer.TokenName);
     if I >= 0 then
     begin
       Result := true;
@@ -3282,12 +3293,12 @@ begin
       Fields[I].Parse(Lexer, true);
     end else
     begin
-      I := Events.IndexOf(Lexer.TokenName);
-      if I >= 0 then
+      Event := AnyEvent(Lexer.TokenName);
+      if Event <> nil then
       begin
         Result := true;
         Lexer.NextToken;
-        Events[I].Parse(Lexer);
+        Event.Parse(Lexer);
       end else
       if Lexer.TokenName = 'fields' then
       begin
@@ -4124,6 +4135,40 @@ begin
   finally InitialState.Free end;
 end;
 
+function TVRMLNode.FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
+var
+  I: Integer;
+begin
+  I := Fields.IndexOf(Name);
+  if I <> -1 then
+    Exit(Fields[I]);
+
+  I := Fields.IndexOfExposedEvent(Name, TVRMLEvent(Result));
+  if I <> -1 then
+    Exit; { Result is already set }
+
+  I := Events.IndexOf(Name);
+  if I <> -1 then
+    Exit(Events[I]);
+
+  Result := nil; { not found }
+end;
+
+function TVRMLNode.AnyEvent(const Name: string): TVRMLEvent;
+var
+  I: Integer;
+begin
+  I := Fields.IndexOfExposedEvent(Name, Result);
+  if I <> -1 then
+    Exit; { Result is already set }
+
+  I := Events.IndexOf(Name);
+  if I <> -1 then
+    Exit(Events[I]);
+
+  Result := nil; { not found }
+end;
+
 { TVRMLNodeClassesList ------------------------------------------------------- }
 
 function TVRMLNodeClassesList.GetItems(Index: Integer): TVRMLNodeClass;
@@ -4892,12 +4937,8 @@ procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
     one of our events (either explicit ones, in Events, or implicit,
     in our own exposedFields). }
   function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
-  var
-    DummyInEvent: boolean;
   begin
-    Result := Field.Exposed and
-      ( (Events.IndexOf(Field.IsClauseName) <> -1) or
-        (Fields.IndexOfExposedEvent(Field.IsClauseName, DummyInEvent) <> -1) );
+    Result := Field.Exposed and (AnyEvent(Field.IsClauseName) <> nil);
   end;
 
 var
@@ -4911,7 +4952,7 @@ begin
     InstanceField := Child.Fields[I];
     if InstanceField.IsClause then
     begin
-      OurFieldIndex := Fields.NameIndex(InstanceField.IsClauseName);
+      OurFieldIndex := Fields.IndexOf(InstanceField.IsClauseName);
       if OurFieldIndex <> -1 then
       begin
         OurField := Fields[OurFieldIndex];
@@ -5030,7 +5071,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
     for FieldIndex := 0 to Fields.Count - 1 do
     begin
       F := Fields[FieldIndex];
-      I := NodeExternalPrototype.Fields.NameIndex(F.Name);
+      I := NodeExternalPrototype.Fields.IndexOf(F.Name);
       if I <> -1 then
       begin
         { In case of type mismatch, FieldsAssignValue will make nice
