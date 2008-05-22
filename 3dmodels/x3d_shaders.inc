@@ -52,49 +52,19 @@ type
   end;
 
   TNodeComposedShader = class(TNodeX3DShaderNode, INodeX3DProgrammableShaderObject)
-  private
-    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
 
     private FFdparts: TMFNode;
     public property Fdparts: TMFNode read FFdparts;
 
-    { TODO:
-    # And any number of:
-    fieldType []       fieldName
-    fieldType [in]     fieldName
-    fieldType [out]    fieldName
-    fieldType [in,out] fieldName
-
-    These are sort of handled... They are parsed pretty much just like
-    similar construct in Script node. I openly admit that I don't precisely
-    grok the X3D specification at this point. I understood VRML 97 specification
-    about Script node, and as far as I understood it seems that
-    X3D Script and ComposedShader just expect the same syntax.
-
-    But it needs testing. Does anyone have some reliable examples of
-    X3D files with shaders, that follow X3D specification?
-    I didn't found much by google (although from
-    what I've seen it seems that my implementation is correct, will
-    get more testing when X3D XML flavor is done).
-    }
-
     { Returns string describing all used URLs in our ShaderPart nodes.
       More precisely, all UsedFullUrl in ShaderPart nodes inside out parts field.
       This provides some description of this node's contents after ShaderPart nodes
       are loaded, so is useful for debug purposes. }
     function DescribeUsedUrls: string;
-
-    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
-      read FInterfaceDeclarations;
-
-    function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
-    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
-      override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -221,13 +191,7 @@ begin
 
   DefaultContainerField := 'shaders';
 
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
-end;
-
-destructor TNodeComposedShader.Destroy;
-begin
-  FreeWithContentsAndNil(FInterfaceDeclarations);
-  inherited;
+  HasInterfaceDeclarations := AllAccessTypes;
 end;
 
 class function TNodeComposedShader.ClassNodeTypeName: string;
@@ -244,35 +208,6 @@ begin
     if FdParts.Items[I] is TNodeShaderPart then
       Result += ' ' + TNodeShaderPart(FdParts.Items[I]).UsedFullUrl;
   Result += ')';
-end;
-
-function TNodeComposedShader.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
-var
-  I: TVRMLInterfaceDeclaration;
-begin
-  Result := inherited;
-
-  if not Result then
-  begin
-    Result := Lexer.TokenIsKeyword(InterfaceDeclarationKeywords);
-    if Result then
-    begin
-      I := TVRMLInterfaceDeclaration.Create;
-      InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, true, true);
-    end;
-  end;
-end;
-
-procedure TNodeComposedShader.SaveContentsToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
-var
-  I: Integer;
-begin
-  for I := 0 to InterfaceDeclarations.Count - 1 do
-    InterfaceDeclarations[I].SaveToStream(SaveProperties, true);
-
-  inherited;
 end;
 
 constructor TNodePackagedShader.Create(const ANodeName: string;

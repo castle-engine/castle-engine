@@ -1197,7 +1197,7 @@
     than one node at the root level. (Or contains any prototypes,
     routes etc. at the root level, as they must all be stored inside
     some node's properties).
-    
+
     See TNodeGroupHidden_1 for some more comments about why this
     descends from TNodeGroup_2. }
   TNodeGroupHidden_2 = class(TNodeGroup_2)
@@ -1992,14 +1992,9 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TVRMLInterfaceDeclarationsList = class;
-
   TNodeScript = class(TVRMLNode)
-  private
-    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
 
@@ -2015,13 +2010,6 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-
-    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
-      read FInterfaceDeclarations;
-
-    function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
-    procedure SaveContentsToStream(SaveProperties: TVRMLSaveToStreamProperties);
-      override;
   end;
 
   TNodeTextureTransform = class;
@@ -5398,42 +5386,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
-end;
-
-destructor TNodeScript.Destroy;
-begin
-  FreeWithContentsAndNil(FInterfaceDeclarations);
-  inherited;
-end;
-
-function TNodeScript.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
-var
-  I: TVRMLInterfaceDeclaration;
-begin
-  Result := inherited;
-
-  if not Result then
-  begin
-    Result := Lexer.TokenIsKeyword(RestrictedInterfaceDeclarationKeywords);
-    if Result then
-    begin
-      I := TVRMLInterfaceDeclaration.Create;
-      InterfaceDeclarations.Add(I);
-      I.Parse(Lexer, true, true);
-    end;
-  end;
-end;
-
-procedure TNodeScript.SaveContentsToStream(
-  SaveProperties: TVRMLSaveToStreamProperties);
-var
-  I: Integer;
-begin
-  for I := 0 to InterfaceDeclarations.Count - 1 do
-    InterfaceDeclarations[I].SaveToStream(SaveProperties, true);
-
-  inherited;
+  HasInterfaceDeclarations := RestrictedAccessTypes;
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;

@@ -532,6 +532,11 @@ type
   TVRMLPrototypeBasesList = class;
   TVRMLRoutesList = class;
 
+  TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
+  TVRMLAccessTypes = set of TVRMLAccessType;
+
+  TVRMLInterfaceDeclarationsList = class;
+
   { VRML node.
 
     Descendant implementors note: Each descendant should
@@ -567,6 +572,9 @@ type
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
     FPrototypeInstanceHelpers: TVRMLNode;
     FDefaultContainerField: string;
+    FHasInterfaceDeclarations: TVRMLAccessTypes;
+    procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
+    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1391,6 +1399,31 @@ type
       encoding. }
     property DefaultContainerField: string
       read FDefaultContainerField write FDefaultContainerField;
+
+    { For some special VRML / X3D nodes (like Script, ComposedShader)
+      that allow the definition of additional fields/events within.
+      If HasInterfaceDeclarations is not [], then InterfaceDeclarations
+      will be non-nil and parser (classic VRML parser in this unit,
+      X3D XML reader too) will read this from VRML files.
+
+      In X3D specification this is marked like
+
+@preformatted(
+  # And any number of:
+  fieldType [in]     fieldName
+  fieldType [in,out] fieldName    initialValue
+  fieldType [out]    fieldName
+  fieldType []       fieldName    initialValue
+)
+
+      @groupBegin }
+    property HasInterfaceDeclarations: TVRMLAccessTypes
+      read FHasInterfaceDeclarations
+      write SetHasInterfaceDeclarations default [];
+
+    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
+      read FInterfaceDeclarations;
+    { @groupEnd }
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -1935,8 +1968,6 @@ type
   end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
-
-  TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
 
   { Interface declaration, used in VRML (exposed) prototypes and scripts.
     See VRML 2.0 spec.
@@ -2536,6 +2567,10 @@ const
     extensions. }
   URNKambiNodes = 'urn:vrmlengine.sourceforge.net:node:';
 
+const
+  AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
+  RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
+
 {$undef read_interface}
 
 implementation
@@ -2563,22 +2598,6 @@ uses
   VRMLGeometry;
 
 {$define read_implementation}
-
-const
-  InterfaceDeclarationKeywords =
-  [ { VRML 97 keywords } { }
-    vkEventIn, vkEventOut, vkField, vkExposedField,
-    { X3D keywords } { }
-    vkInputOnly, vkOutputOnly, vkInitializeOnly, vkInputOutput ];
-
-  { Keywords starting restricted interface declaration in VRML.
-    exposedField is not allowed e.g. for Script, grammar specifies
-    "restrictedInterfaceDeclaration" for it. }
-  RestrictedInterfaceDeclarationKeywords =
-  [ { VRML 97 keywords } { }
-    vkEventIn, vkEventOut, vkField,
-    { X3D keywords } { }
-    vkInputOnly, vkOutputOnly, vkInitializeOnly ];
 
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
@@ -2609,6 +2628,20 @@ resourcestring
     'inputOutput keyword) but found %s';
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
+
+function InterfaceDeclarationKeywords(
+  const AccessTypes: TVRMLAccessTypes): TVRMLKeywords;
+begin
+  Result := [];
+  if atInputOnly in AccessTypes then
+    Result += [vkEventIn, vkInputOnly];
+  if atOutputOnly in AccessTypes then
+    Result += [vkEventOut, vkOutputOnly];
+  if atInitializeOnly in AccessTypes then
+    Result += [vkField, vkInitializeOnly];
+  if atInputOutput in AccessTypes then
+    Result += [vkExposedField, vkInputOutput];
+end;
 
 { TVRMLNodesList ------------------------------------------------------------- }
 
@@ -2802,45 +2835,50 @@ end;
 
 constructor TVRMLNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
- inherited Create;
- FAllowedChildren := false;
- FParsingAllowedChildren := false;
+  inherited Create;
+  FAllowedChildren := false;
+  FParsingAllowedChildren := false;
 
- FNodeName := ANodeName;
- FWWWBasePath := AWWWBasePath;
+  FNodeName := ANodeName;
+  FWWWBasePath := AWWWBasePath;
 
- FChildren := TVRMLNodesList.Create;
- FParentNodes := TVRMLNodesList.Create;
- FParentFields := TVRMLFieldsList.Create;
- FFields := TVRMLFieldsList.Create;
+  FChildren := TVRMLNodesList.Create;
+  FParentNodes := TVRMLNodesList.Create;
+  FParentFields := TVRMLFieldsList.Create;
+  FFields := TVRMLFieldsList.Create;
 
- FEvents := TVRMLEventsList.Create;
+  FEvents := TVRMLEventsList.Create;
 
- FPrototypes := TVRMLPrototypeBasesList.Create;
- FRoutes := TVRMLRoutesList.Create;
+  FPrototypes := TVRMLPrototypeBasesList.Create;
+  FRoutes := TVRMLRoutesList.Create;
+
+  FHasInterfaceDeclarations := [];
+  FInterfaceDeclarations := nil;
 end;
 
 destructor TVRMLNode.Destroy;
 begin
- if FChildren <> nil then RemoveAllChildren;
+  FreeWithContentsAndNil(FInterfaceDeclarations);
 
- if PrototypeInstance then
- begin
-   FreeAndNil(FPrototypeInstanceSourceNode);
-   FreeAndNil(FPrototypeInstanceHelpers);
-   FPrototypeInstance := false;
- end;
+  if FChildren <> nil then RemoveAllChildren;
 
- FreeWithContentsAndNil(FPrototypes);
- FreeWithContentsAndNil(FRoutes);
+  if PrototypeInstance then
+  begin
+    FreeAndNil(FPrototypeInstanceSourceNode);
+    FreeAndNil(FPrototypeInstanceHelpers);
+    FPrototypeInstance := false;
+  end;
 
- FreeWithContentsAndNil(FEvents);
+  FreeWithContentsAndNil(FPrototypes);
+  FreeWithContentsAndNil(FRoutes);
 
- FreeWithContentsAndNil(FFields);
- FreeAndNil(FChildren);
- FreeAndNil(FParentNodes);
- FreeAndNil(FParentFields);
- inherited;
+  FreeWithContentsAndNil(FEvents);
+
+  FreeWithContentsAndNil(FFields);
+  FreeAndNil(FChildren);
+  FreeAndNil(FParentNodes);
+  FreeAndNil(FParentFields);
+  inherited;
 end;
 
 procedure TVRMLNode.AddChild(Index: Integer; child: TVRMLNode);
@@ -3264,6 +3302,7 @@ var
   Route: TVRMLRoute;
   Proto: TVRMLPrototypeBase;
   Event: TVRMLEvent;
+  IDecl: TVRMLInterfaceDeclaration;
 begin
   Result := false;
 
@@ -3313,6 +3352,17 @@ begin
         ParseExtensibilityIsA;
       end;
     end;
+  end else
+  if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(HasInterfaceDeclarations)) then
+  begin
+    Result := true;
+
+    { since we're here, HasInterfaceDeclarations is <> [] }
+    Assert(InterfaceDeclarations <> nil);
+
+    IDecl := TVRMLInterfaceDeclaration.Create;
+    InterfaceDeclarations.Add(IDecl);
+    IDecl.Parse(Lexer, true, true);
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
   begin
@@ -3700,6 +3750,12 @@ procedure TVRMLNode.SaveContentsToStream(
 var
   I: integer;
 begin
+  if HasInterfaceDeclarations <> [] then
+  begin
+    for I := 0 to InterfaceDeclarations.Count - 1 do
+      InterfaceDeclarations[I].SaveToStream(SaveProperties, true);
+  end;
+
   (*Write all prototypes at the beginning. Prototype cannot depend
     on whatever is defined by children nodes (in particular, since
     prototypes have separate DEF / USE namespace), so it's safe to just
@@ -4167,6 +4223,24 @@ begin
     Exit(Events[I]);
 
   Result := nil; { not found }
+end;
+
+procedure TVRMLNode.SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
+begin
+  if Value <> HasInterfaceDeclarations then
+  begin
+    FHasInterfaceDeclarations := Value;
+    if HasInterfaceDeclarations <> [] then
+    begin
+      { make sure InterfaceDeclarations is non-nil }
+      if FInterfaceDeclarations = nil then
+        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
+    end else
+    begin
+      { make sure InterfaceDeclarations is nil }
+      FreeWithContentsAndNil(FInterfaceDeclarations);
+    end;
+  end;
 end;
 
 { TVRMLNodeClassesList ------------------------------------------------------- }
@@ -5136,7 +5210,7 @@ begin
     I := TVRMLInterfaceDeclaration.Create;
     InterfaceDeclarations.Add(I);
 
-    if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords) then
+    if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(AllAccessTypes)) then
     begin
       I.Parse(Lexer, not ExternalProto, false);
     end else
