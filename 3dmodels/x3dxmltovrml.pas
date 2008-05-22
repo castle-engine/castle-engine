@@ -444,6 +444,7 @@ const
       ProtoIter: TXMLElementIterator;
       FieldActualValue, FieldName: string;
       FieldIndex: Integer;
+      ExplicitContainerField: string;
     begin
       NodeTypeName := Element.TagName;
 
@@ -522,6 +523,9 @@ const
         comment starting with "Cycles in VRML graph are bad..." }
 
       Result.Bind(NodeNameBinding);
+
+      if DOMGetAttribute(Element, SAttrContainerField, ExplicitContainerField) then
+        Result.ExplicitContainerField := ExplicitContainerField;
     end;
 
   var
@@ -560,11 +564,20 @@ const
         of X3D specification, in both situations element may have
         containerField attribute.
 
-        TODO: hm, if USEd element also had containerField, then this should
-        be taken into account? So we also need TVRMLNode.ContainerField,
-        set by ParseNamedNode but not by <USE> case? }
+        Also note that we take into account both
+        DefaultContainerField and ExplicitContainerField.
+        ExplicitContainerField is needed --- imagine a node with DEF
+        has explicit "containerField" attribute, then this takes precedence
+        over implicit DefaultContainerField, and has to be stored
+        in Result instance.
+
+        It can be overriden at each USE of this node. }
       if Result <> nil then
-        ContainerField := Result.DefaultContainerField;
+      begin
+        if Result.ExplicitContainerField <> '' then
+          ContainerField := Result.ExplicitContainerField else
+          ContainerField := Result.DefaultContainerField;
+      end;
       DOMGetAttribute(Element, SAttrContainerField, ContainerField);
 
     except FreeAndNil(Result); raise end;

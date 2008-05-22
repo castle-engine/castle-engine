@@ -572,6 +572,7 @@ type
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
     FPrototypeInstanceHelpers: TVRMLNode;
     FDefaultContainerField: string;
+    FExplicitContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
@@ -1413,6 +1414,12 @@ type
       encoding. }
     property DefaultContainerField: string
       read FDefaultContainerField write FDefaultContainerField;
+
+    { Value of "containerField" attribute specified explicitly
+      for this node in X3D XML encoding. This is practically usable
+      (read/write) only by X3D XML reader. }
+    property ExplicitContainerField: string
+      read FExplicitContainerField write FExplicitContainerField;
 
     { For some special VRML / X3D nodes (like Script, ComposedShader)
       that allow the definition of additional fields/events within.
