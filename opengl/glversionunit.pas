@@ -37,8 +37,12 @@ interface
 
 type
   { This is used to store OpenGL libraries (core OpenGL or GLU)
-    version information. As obtained from glGetString(GL_VERSION)
-    or gluGetString(GLU_VERSION), by LoadAllExtensions. }
+    version information.
+
+    As obtained from glGetString(GL_VERSION)
+    or gluGetString(GLU_VERSION), also by glGetString(GL_VENDOR).
+
+    This is usually created by KambiGLUtils.LoadAllExtensions. }
   TGenericGLVersion = class
   public
     constructor Create(const VersionString: string);
@@ -66,8 +70,12 @@ type
   end;
 
   TGLVersion = class(TGenericGLVersion)
+  private
+    FVendor: string;
+    FIsVendorATI: boolean;
+    FIsFglrx: boolean;
   public
-    constructor Create(const VersionString: string);
+    constructor Create(const VersionString, AVendor: string);
 
     { Using VendorSpecific information (extracted by base TGenericGLVersion)
       we can detect whether we the OpenGL implementation is Mesa (check IsMesa)
@@ -78,15 +86,23 @@ type
     MesaMinor: Integer;
     MesaRelease: Integer;
     { @groupEnd }
+
+    property Vendor: string read FVendor;
+
+    { Is the Vendor ATI ? In other words, is it an ATI GPU with ATI drivers. }
+    property IsVendorATI: boolean read FIsVendorATI;
+
+    { Is the Vendor ATI and we're on Linux? }
+    property IsFglrx: boolean read FIsFglrx;
   end;
 
 var
-  { Core OpenGL version information, as obtained from
-    glGetString(GL_VERSION) by ReadImplementationProperties. }
+  { Core OpenGL version information.
+    This is usually created by KambiGLUtils.LoadAllExtensions. }
   GLVersion: TGLVersion;
 
-  { GLU version information, as obtained from
-    gluGetString(GLU_VERSION) by ReadImplementationProperties. }
+  { GLU version information.
+    This is usually created by KambiGLUtils.LoadAllExtensions. }
   GLUVersion: TGenericGLVersion;
 
 implementation
@@ -188,14 +204,14 @@ end;
 
 { TGLVersion ----------------------------------------------------------------- }
 
-constructor TGLVersion.Create(const VersionString: string);
+constructor TGLVersion.Create(const VersionString, AVendor: string);
 const
   Digits = ['0'..'9'];
 var
   NumberBegin, I: Integer;
   VendorName: string;
 begin
-  inherited;
+  inherited Create(VersionString);
 
   try
     I := 1;
@@ -266,6 +282,16 @@ begin
     { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
       string) ignore the problem. }
   end;
+
+  FVendor := AVendor;
+
+  { Although "ATI Technologies Inc." is usually found,
+    according to http://delphi3d.net/hardware/listreports.php
+    also just "ATI" is possible. }
+
+  FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
+
+  FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
 end;
 
 finalization

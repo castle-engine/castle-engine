@@ -1086,7 +1086,7 @@ procedure LoadAllExtensions;
 
 begin
  FreeAndNil(GLVersion);
- GLVersion := TGLVersion.Create(glGetString(GL_VERSION));
+ GLVersion := TGLVersion.Create(glGetString(GL_VERSION), glGetString(GL_VENDOR));
 
  FreeAndNil(GLUVersion);
  { gluGetString is valid for version 1.1 or later }
