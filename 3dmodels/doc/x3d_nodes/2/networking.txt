@@ -1,0 +1,27 @@
+X3DNetworkSensorNode : X3DSensorNode {
+}
+
+X3DUrlObject {
+  MFString [in, out] url [] [urn];
+}
+
+Anchor : X3DGroupingNode { 
+  SFString [in,out] description    ""
+  MFString [in,out] parameter      []
+  MFString [in,out] url            []       [url or urn]
+}
+
+Inline : X3DChildNode, X3DBoundedObject, X3DUrlObject {
+  SFBool   [in,out] load       TRUE
+  MFString [in,out] url        []       [url or urn]
+  SFVec3f  []       bboxCenter 0 0 0    (-Inf,Inf)
+  SFVec3f  []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
+}
+
+LoadSensor : X3DNetworkSensorNode {
+  SFTime  [in,out] timeOut   0
+  MFNode  [in,out] watchList []   [X3DUrlObject]
+  SFBool  [out]    isLoaded
+  SFTime  [out]    loadTime
+  SFFloat [out]    progress
+}

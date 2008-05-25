@@ -1,0 +1,39 @@
+X3DLayoutNode : X3DChildNode {
+}
+
+Layout : X3DLayoutNode {
+   MFString [in,out] align       ["CENTER","CENTER"] ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"]
+   MFFloat  [in,out] offset      [0,0]               (-Inf,Inf)
+   MFString [in,out] offsetUnits ["WORLD","WORLD"]   ["WORLD","FRACTION","PIXEL"]
+   MFString [in,out] scaleMode   ["NONE","NONE"]     ["NONE","FRACTION","STRETCH","PIXEL"]
+   MFFloat  [in,out] size        [1,1]               (0,Inf)
+   MFString [in,out] sizeUnits   ["WORLD","WORLD"]   ["WORLD","FRACTION","PIXEL"]
+}
+
+LayoutGroup : X3DGroupingNode {
+   SFNode  [in,out] layout         NULL  [X3DLayoutNode]
+   SFNode  [in,out] viewport       NULL  [X3DViewportNode]
+}
+
+LayoutLayer : X3DLayerNode {
+  MFNode [in]     addChildren    []   [X3DChildNode]
+  MFNode [in]     removeChildren []   [X3DChildNode]
+  MFNode [in,out] children       []   [X3DChildNode]
+  SFNode [in,out] layout         NULL [X3DLayoutNode]
+}
+
+ScreenFontStyle : X3DFontStyleNode {
+  MFString []       family      "SERIF"
+  SFBool   []       horizontal  TRUE
+  MFString []       justify     "BEGIN" ["BEGIN","END","FIRST","MIDDLE",""]
+  SFString []       language    ""
+  SFBool   []       leftToRight TRUE
+  SFFloat  []       pointSize   12.0    (0,Inf)
+  SFFloat  []       spacing     1.0     [0,Inf)
+  SFString []       style       "PLAIN" ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""]
+  SFBool   []       topToBottom TRUE
+}
+
+ScreenGroup : X3DGroupingNode {
+}
+

@@ -1,0 +1,48 @@
+X3DBackgroundNode : X3DBindableNode { 
+  MFFloat [in,out] groundAngle   []      [0,Pi/2]
+  MFColor [in,out] groundColor   []      [0,1]
+  MFFloat [in,out] skyAngle      []      [0,Pi]
+  MFColor [in,out] skyColor      0 0 0   [0,1]
+  SFFloat [in,out] transparency  0       [0,1]
+}
+
+X3DFogObject {
+  SFColor  [in,out] color           1 1 1    [0,1]
+  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
+  SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+}
+
+Background : X3DBackgroundNode {
+  MFString [in,out] backUrl      []    [URI]
+  MFString [in,out] bottomUrl    []    [URI]
+  MFString [in,out] frontUrl     []    [URI]
+  MFString [in,out] leftUrl      []    [URI]
+  MFString [in,out] rightUrl     []    [URI]
+  MFString [in,out] topUrl       []    [URI]
+}
+
+Fog : X3DBindableNode, X3DFogObject {
+  SFColor  [in,out] color           1 1 1    [0,1]
+  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
+  SFFloat  [in,out] visibilityRange 0        [0,Inf)
+}
+
+FogCoordinate : X3DGeometricPropertyNode {
+  MFFloat [in,out] depth    []   [0,1]
+}
+
+LocalFog : X3DChildNode, X3DFogObject {
+  SFColor  [in,out] color           1 1 1    [0,1]
+  SFBool   [in,out] enabled         TRUE
+  SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
+  SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+}
+
+TextureBackground : X3DBackgroundNode {
+  SFNode  [in,out] backTexture   NULL  [X3DTextureNode]
+  SFNode  [in,out] bottomTexture NULL  [X3DTextureNode]
+  SFNode  [in,out] frontTexture  NULL  [X3DTextureNode]
+  SFNode  [in,out] leftTexture   NULL  [X3DTextureNode]
+  SFNode  [in,out] rightTexture  NULL  [X3DTextureNode]
+  SFNode  [in,out] topTexture    NULL  [X3DTextureNode]
+}

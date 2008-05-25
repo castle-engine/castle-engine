@@ -1,0 +1,10 @@
+X3DScriptNode : X3DChildNode,X3DURLObject {
+  MFString [in,out] url      []   [URI]
+}
+
+Script : X3DScriptNode {
+  SFBool    []       directOutput FALSE
+  SFBool    []       mustEvaluate FALSE
+  # And any number of
+}
+

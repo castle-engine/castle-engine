@@ -1,0 +1,22 @@
+X3DEnvironmentalSensorNode : X3DSensorNode {
+  SFVec3f [in,out] center    0 0 0 (-Inf,Inf)
+  SFVec3f [in,out] size      0 0 0 (-Inf,Inf)
+  SFTime  [out]    enterTime
+  SFTime  [out]    exitTime
+}
+
+ProximitySensor : X3DEnvironmentalSensorNode {
+  SFVec3f    [out]    centerOfRotation_changed
+  SFRotation [out]    orientation_changed
+  SFVec3f    [out]    position_changed
+}
+
+TransformSensor : X3DEnvironmentalSensorNode {
+  SFNode     [in,out] targetObject        NULL  [X3DGroupingNode|X3DShapeNode]
+  SFRotation [out]    orientation_changed
+  SFVec3f    [out]    position_changed
+}
+
+VisibilitySensor : X3DEnvironmentalSensorNode {
+}
+

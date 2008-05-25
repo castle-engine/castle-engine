@@ -1,0 +1,25 @@
+X3DSoundNode : X3DChildNode { 
+}
+
+X3DSoundSourceNode : X3DTimeDependentNode { 
+  SFString [in,out] description      ""
+  SFFloat  [in,out] pitch            1.0  (0,Inf)
+  SFTime   [out]    duration_changed
+}
+
+AudioClip : X3DSoundSourceNode, X3DUrlObject {
+  MFString [in,out] url              []    [urn]
+}
+
+Sound : X3DSoundNode {
+  SFVec3f [in,out] direction  0 0 1 (-Inf,Inf)
+  SFFloat [in,out] intensity  1     [0,1]
+  SFVec3f [in,out] location   0 0 0 (-Inf,Inf)
+  SFFloat [in,out] maxBack    10    [0,Inf)
+  SFFloat [in,out] maxFront   10    [0,Inf)
+  SFFloat [in,out] minBack    1     [0,Inf)
+  SFFloat [in,out] minFront   1     [0,Inf)
+  SFFloat [in,out] priority   0     [0,1]
+  SFNode  [in,out] source     NULL  [X3DSoundSourceNode]
+  SFBool  []       spatialize TRUE
+}

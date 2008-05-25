@@ -1,0 +1,210 @@
+DISEntityManager : X3DChildNode {
+  SFString [in,out] address         "localhost"
+  SFInt32  [in,out] applicationID   1           [0,65535]
+  MFNode   [in,out] mapping         []          [DISEntityTypeMapping]
+  SFInt32  [in,out] port            0           [0,65535]
+  SFInt32  [in,out] siteID          0           [0,65535]
+  MFNode   [out]    addedEntities
+  MFNode   [out]    removedEntities
+}
+
+DISEntityTypeMapping : X3DInfoNode {
+  MFString [in,out] url         []   [URI]
+  SFInt32  []       category    0    [0,255]
+  SFInt32  []       country     0    [0,65535]
+  SFInt32  []       domain      0    [0,255]
+  SFInt32  []       extra       0    [0,255]
+  SFInt32  []       kind        0    [0,255]
+  SFInt32  []       specific    0    [0,255]
+  SFInt32  []       subcategory 0    [0,255]
+}
+
+EspduTransform : X3DGroupingNode, X3DSensorNode { 
+  SFFloat    [in]     set_articulationParameterValue0                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue1                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue2                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue3                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue4                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue5                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue6                         (-Inf,Inf)
+  SFFloat    [in]     set_articulationParameterValue7                         (-Inf,Inf)
+  SFString   [in,out] address                                    "localhost"
+  SFInt32    [in,out] applicationID                              1            [0,65535]
+  SFInt32    [in,out] articulationParameterCount                 0            [0,78]
+  MFInt32    [in,out] articulationParameterDesignatorArray       []           [0,255]
+  MFInt32    [in,out] articulationParameterChangeIndicatorArray  []           [0,255]
+  MFInt32    [in,out] articulationParameterIdPartAttachedToArray []           [0,65535]
+  MFInt32    [in,out] articulationParameterTypeArray             []     
+  MFFloat    [in,out] articulationParameterArray                 []           (-Inf,Inf)
+  SFVec3f    [in,out] center                                     0 0 0        (-Inf,Inf)
+  SFInt32    [in,out] collisionType                              0            [0,255]
+  SFInt32    [in,out] deadReckoning                              0            [0,255]
+  SFVec3f    [in,out] detonationLocation                         0 0 0        (-Inf,Inf)
+  SFVec3f    [in,out] detonationRelativeLocation                 0 0 0        (-Inf,Inf)
+  SFInt32    [in,out] detonationResult                           0            [0,255]
+  SFBool     [in,out] enabled                                    TRUE
+  SFInt32    [in,out] entityCategory                             0            [0,255]
+  SFInt32    [in,out] entityCountry                              0            [0,65535]
+  SFInt32    [in,out] entityDomain                               0            [0,255]
+  SFInt32    [in,out] entityExtra                                0            [0,255]
+  SFInt32    [in,out] entityID                                   0            [0,65535]
+  SFInt32    [in,out] entityKind                                 0            [0,255]
+  SFInt32    [in,out] entitySpecific                             0            [0,255]
+  SFInt32    [in,out] entitySubCategory                          0            [0,255]
+  SFInt32    [in,out] eventApplicationID                         1            [0,65535]
+  SFInt32    [in,out] eventEntityID                              0            [0,65535]
+  SFInt32    [in,out] eventNumber                                0            [0,65355]
+  SFInt32    [in,out] eventSiteID                                0            [0,65535]
+  SFBool     [in,out] fired1                                     FALSE
+  SFBool     [in,out] fired2                                     FALSE
+  SFInt32    [in,out] fireMissionIndex                           0            [0,65535]
+  SFFloat    [in,out] firingRange                                0.0          (0,Inf)
+  SFInt32    [in,out] firingRate                                 0            [0,65535]
+  SFInt32    [in,out] forceID                                    0            [0,255]
+  SFInt32    [in,out] fuse                                       0            [0,65535]
+  SFVec3f    [in,out] linearVelocity                             0 0 0        (-Inf,Inf)
+  SFVec3f    [in,out] linearAcceleration                         0 0 0        (-Inf,Inf)
+  SFString   [in,out] marking                                    ""
+  SFString   [in,out] multicastRelayHost                         ""
+  SFInt32    [in,out] multicastRelayPort                         0             
+  SFInt32    [in,out] munitionApplicationID                      1            [0,65535]
+  SFVec3f    [in,out] munitionEndPoint                           0 0 0        (-Inf,Inf)
+  SFInt32    [in,out] munitionEntityID                           0            [0,65535]
+  SFInt32    [in,out] munitionQuantity                           0            [0,65535]
+  SFInt32    [in,out] munitionSiteID                             0            [0,65535]
+  SFVec3f    [in,out] munitionStartPoint                         0 0 0        (-Inf,Inf)
+  SFString   [in,out] networkMode                                "standAlone" ["standAlone"|"networkReader"|"networkWriter"]
+  SFInt32    [in,out] port                                       0            [0,65535]
+  SFTime     [in,out] readInterval                               0.1          [0,Inf)
+  SFRotation [in,out] rotation                                   0 0 1 0      (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] scale                                      1 1 1        (-Inf,Inf)
+  SFRotation [in,out] scaleOrientation                           0 0 1 0      (-Inf,Inf)|[-1,1]
+  SFInt32    [in,out] siteID                                     0            [0,65535]
+  SFVec3f    [in,out] translation                                0 0 0        (-Inf,Inf)
+  SFInt32    [in,out] warhead                                    0            [0,65535]
+  SFTime     [in,out] writeInterval                              1.0          [0,Inf)
+  SFFloat    [out]    articulationParameterValue0_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue1_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue2_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue3_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue4_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue5_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue6_changed        0.0          (-Inf,Inf)
+  SFFloat    [out]    articulationParameterValue7_changed        0.0          (-Inf,Inf)
+  SFTime     [out]    collideTime                                0            [0,Inf)
+  SFTime     [out]    detonateTime                               0            [0,Inf)
+  SFTime     [out]    firedTime                                  0            [0,Inf)
+  SFBool     [out]    isActive                                   FALSE
+  SFBool     [out]    isCollided                                 FALSE                     
+  SFBool     [out]    isDetonated                                FALSE                    
+  SFBool     [out]    isNetworkReader                            FALSE
+  SFBool     [out]    isNetworkWriter                            FALSE
+  SFBool     [out]    isRtpHeaderHeard                           FALSE
+  SFBool     [out]    isStandAlone                               FALSE
+  SFTime     [out]    timestamp                                  0            [0,Inf)
+  SFBool     []       rtpHeaderExpected                          FALSE
+}
+
+ReceiverPdu : X3DSensorNode, X3DBoundedObject {
+  SFString [in,out] address                  "localhost"
+  SFInt32  [in,out] applicationID            1            [0,65535]
+  SFInt32  [in,out] entityID                 0            [0,65535]
+  SFString [in,out] multicastRelayHost       ""
+  SFInt32  [in,out] multicastRelayPort       0     
+  SFString [in,out] networkMode              "standAlone" ["standAlone"|"networkReader"|"networkWriter"]
+  SFInt32  [in,out] port                     0            [0,65535]
+  SFInt32  [in,out] radioID                  0            [0,65535]
+  SFFloat  [in,out] readInterval             0.1          [0,Inf)
+  SFFloat  [in,out] receivedPower            0.0          [0,Inf)
+  SFInt32  [in,out] receiverState            0            [0,65535]
+  SFBool   [in,out] rtpHeaderExpected        FALSE
+  SFInt32  [in,out] siteID                   0            [0,65535]
+  SFInt32  [in,out] transmitterApplicationID 1            [0,65535]
+  SFInt32  [in,out] transmitterEntityID      0            [0,65535]
+  SFInt32  [in,out] transmitterRadioID       0            [0,65535]
+  SFInt32  [in,out] transmitterSiteID        0            [0,65535]           
+  SFInt32  [in,out] whichGeometry            1            [-1,Inf)
+  SFFloat  [in,out] writeInterval            1.0          [0,Inf)
+  SFBool   [out]    isNetworkReader          FALSE
+  SFBool   [out]    isNetworkWriter          FALSE
+  SFBool   [out]    isRtpHeaderHeard         FALSE
+  SFBool   [out]    isStandAlone             FALSE
+  SFTime   [out]    timestamp                0
+  SFVec3f  []       bboxCenter               0 0 0        (-Inf,Inf)
+  SFVec3f  []       bboxSize                 -1 -1 -1     [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1
+}
+
+SignalPdu : X3DSensorNode, X3DBoundedObject {
+  SFString [in,out] address            "localhost"
+  SFInt32  [in,out] applicationID      1            [0,65535]
+  MFInt32  [in,out] data               []           [0,255]                  
+  SFInt32  [in,out] dataLength         0            [0,65535]
+  SFInt32  [in,out] encodingScheme     0            [0,65535]
+  SFInt32  [in,out] entityID           0            [0,65535]
+  SFString [in,out] multicastRelayHost ""
+  SFInt32  [in,out] multicastRelayPort 0           
+  SFString [in,out] networkMode        "standAlone" ["standAlone"|"networkReader"|"networkWriter"]
+  SFInt32  [in,out] port               0            [0,65535]
+  SFInt32  [in,out] radioID            0            [0,65535]
+  SFFloat  [in,out] readInterval       0.1          [0,Inf)
+  SFBool   [in,out] rtpHeaderExpected  FALSE
+  SFInt32  [in,out] sampleRate         0            [0,65535]
+  SFInt32  [in,out] samples            0            [0,65535]
+  SFInt32  [in,out] siteID             0            [0,65535]
+  SFInt32  [in,out] tdlType            0            [0,65535]
+  SFInt32  [in,out] whichGeometry      1            [-1,Inf)
+  SFFloat  [in,out] writeInterval      1.0          [0,Inf)
+  SFBool   [out]    isNetworkReader
+  SFBool   [out]    isNetworkWriter
+  SFBool   [out]    isRtpHeaderHeard
+  SFBool   [out]    isStandAlone
+  SFTime   [out]    timestamp
+  SFVec3f  []       bboxCenter         0 0 0        (-Inf,Inf)
+  SFVec3f  []       bboxSize           -1 -1 -1     [0,Inf) or -1 -1 -1
+}
+
+TransmitterPdu : X3DSensorNode, X3DBoundedObject { 
+  SFString [in,out] address                            "localhost"
+  SFVec3f  [in,out] antennaLocation                    0 0 0        (-Inf,Inf)
+  SFInt32  [in,out] antennaPatternLength               0            [0,65535]
+  SFInt32  [in,out] antennaPatternType                 0            [0,65535]
+  SFInt32  [in,out] applicationID                      1            [0,65535]
+  SFInt32  [in,out] cryptoKeyID                        0            [0,65535]           
+  SFInt32  [in,out] cryptoSystem                       0            [0,65535]
+  SFInt32  [in,out] entityID                           0            [0,65535]
+  SFInt32  [in,out] frequency                          0     
+  SFInt32  [in,out] inputSource                        0            [0,255]
+  SFInt32  [in,out] lengthOfModulationParameters       0            [0,255]
+  SFInt32  [in,out] modulationTypeDetail               0            [0,65535]
+  SFInt32  [in,out] modulationTypeMajor                0            [0,65535]
+  SFInt32  [in,out] modulationTypeSpreadSpectrum       0            [0,65535]
+  SFInt32  [in,out] modulationTypeSystem               0            [0,65535]
+  SFString [in,out] multicastRelayHost                 ""
+  SFInt32  [in,out] multicastRelayPort                 0           
+  SFString [in,out] networkMode                        "standAlone" ["standAlone"|"networkReader"|"networkWriter"]
+  SFInt32  [in,out] port                               0            [0,65535]
+  SFFloat  [in,out] power                              0.0          [0,Inf)
+  SFInt32  [in,out] radioEntityTypeCategory            0            [0,255]
+  SFInt32  [in,out] radioEntityTypeCountry             0            [0,65535]
+  SFInt32  [in,out] radioEntityTypeDomain              0            [0,255]
+  SFInt32  [in,out] radioEntityTypeKind                0            [0,255]
+  SFInt32  [in,out] radioEntityTypeNomenclature        0            [0,255]
+  SFInt32  [in,out] radioEntityTypeNomenclatureVersion 0            [0,65535]
+  SFInt32  [in,out] radioID                            0            [0,255]
+  SFFloat  [in,out] readInterval                       0.1          [0,Inf)
+  SFVec3f  [in,out] relativeAntennaLocation            0 0 0        (-Inf,Inf)
+  SFBool   [in,out] rtpHeaderExpected                  FALSE
+  SFInt32  [in,out] siteID                             0            [0,65535]
+  SFFloat  [in,out] transmitFrequencyBandwidth         0.0          (-Inf,Inf)
+  SFInt32  [in,out] transmitState                      0            [0,255]
+  SFInt32  [in,out] whichGeometry                      1            [-1,Inf)
+  SFFloat  [in,out] writeInterval                      1.0          [0,Inf)
+  SFBool   [out]    isNetworkReader                    FALSE
+  SFBool   [out]    isNetworkWriter                    FALSE
+  SFBool   [out]    isRtpHeaderHeard                   FALSE
+  SFBool   [out]    isStandAlone                       FALSE
+  SFTime   [out]    timestamp                          0
+  SFVec3f  []       bboxCenter                         0 0 0        (-Inf,Inf)
+  SFVec3f  []       bboxSize                           -1 -1 -1     [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1
+}
+

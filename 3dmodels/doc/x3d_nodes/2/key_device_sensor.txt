@@ -1,0 +1,19 @@
+X3DKeyDeviceSensorNode : X3DSensorNode {
+}
+
+KeySensor : X3DKeyDeviceSensorNode {
+  SFInt32  [out]    actionKeyPress   
+  SFInt32  [out]    actionKeyRelease 
+  SFBool   [out]    altKey           
+  SFBool   [out]    controlKey       
+  SFString [out]    keyPress         
+  SFString [out]    keyRelease       
+  SFBool   [out]    shiftKey         
+}
+
+StringSensor  : X3DKeyDeviceSensorNode {
+  SFBool   [in,out] deletionAllowed TRUE
+  SFString [out]    enteredText       
+  SFString [out]    finalText         
+}
+

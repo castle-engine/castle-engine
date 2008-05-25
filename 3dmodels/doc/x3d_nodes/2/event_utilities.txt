@@ -1,0 +1,48 @@
+X3DSequencerNode : X3DChildNode { 
+  SFBool       [in]     next
+  SFBool       [in]     previous
+  SFFloat      [in]     set_fraction       (-Inf,Inf)
+  MFFloat      [in,out] key           []   (-Inf,Inf)
+}
+
+X3DTriggerNode : X3DChildNode  {
+}
+
+BooleanFilter : X3DChildNode {
+  SFBool [in]     set_boolean
+  SFBool [out]    inputFalse
+  SFBool [out]    inputNegate
+  SFBool [out]    inputTrue
+}
+
+BooleanSequencer : X3DSequencerNode {
+  MFBool  [in,out] keyValue 	 [] 
+  SFBool  [out]    value_changed
+}
+
+BooleanToggle : X3DChildNode {
+  SFBool [in]     set_boolean
+  SFBool [in,out] toggle      FALSE 
+}
+
+BooleanTrigger : X3DTriggerNode {
+  SFTime [in]     set_triggerTime
+  SFBool [out]    triggerTrue 
+}
+
+IntegerSequencer : X3DSequencerNode {
+  MFInt32 [in,out] keyValue      []   (-Inf,Inf)
+  SFInt32 [out]    value_changed
+}
+
+IntegerTrigger : X3DTriggerNode {
+  SFBool  [in]     set_boolean
+  SFInt32 [in,out] integerKey        (-Inf,Inf)
+  SFInt32 [out]    triggerValue  
+}
+
+TimeTrigger : X3DTriggerNode {
+  SFBool [in]     set_boolean
+  SFTime [out]    triggerTime
+}
+

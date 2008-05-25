@@ -1,0 +1,81 @@
+X3DInterpolatorNode : X3DChildNode { 
+  SFFloat      [in]     set_fraction       (-Inf,Inf)
+  MFFloat      [in,out] key           []   (-Inf,Inf)
+}
+
+ColorInterpolator : X3DInterpolatorNode {
+  MFColor [in,out] keyValue      []   [0,1]
+  SFColor [out]    value_changed
+}
+
+CoordinateInterpolator : X3DInterpolatorNode {
+  MFVec3f [in,out] keyValue      []   (-Inf,Inf)
+  MFVec3f [out]    value_changed
+}
+
+CoordinateInterpolator2D : X3DInterpolatorNode {
+  MFVec2f [in,out] keyValue      []   (-Inf,Inf)
+  MFVec2f [out]    value_changed
+}
+
+EaseInEaseOut : X3DNode {
+  SFFloat [in]     set_fraction                  (-Inf,Inf)
+  MFVec2f [in,out] easeInEaseOut            []   (-Inf,Inf)
+  MFFloat [in,out] key                      []   (-Inf,Inf) 
+  SFFloat [out]    modifiedFraction_changed
+}
+
+NormalInterpolator : X3DInterpolatorNode {
+  MFVec3f [in,out] keyValue      []   (-Inf,Inf)
+  MFVec3f [out]    value_changed
+}
+
+OrientationInterpolator : X3DInterpolatorNode {
+  MFRotation [in,out] keyValue      []   [-1,1] or (-Inf,Inf)
+  SFRotation [out]    value_changed
+}
+
+PositionInterpolator : X3DInterpolatorNode {
+  MFVec3f [in,out] keyValue      []   (-Inf,Inf)
+  SFVec3f [out]    value_changed
+}
+
+PositionInterpolator2D : X3DInterpolatorNode {
+  MFVec2f [in,out] keyValue      []   (-Inf,Inf)
+  SFVec2f [out]    value_changed
+}
+
+ScalarInterpolator : X3DInterpolatorNode {
+  MFFloat [in,out] keyValue      []   (-Inf,Inf)
+  SFFloat [out]    value_changed
+}
+
+SplinePositionInterpolator : X3DInterpolatorNode {
+  SFBool  [in,out] closed            FALSE
+  MFVec3f [in,out] keyValue          []    (-Inf,Inf)
+  MFVec3f [in,out] keyVelocity       []    (-Inf,Inf)
+  SFBool  [in,out] normalizeVelocity FALSE
+  SFVec3f [out]    value_changed
+}
+
+SplinePositionInterpolator2D : X3DInterpolatorNode {
+  SFBool  [in,out] closed            FALSE
+  MFVec2f [in,out] keyValue          []    (-Inf,Inf)
+  MFVec2f [in,out] keyVelocity       []    (-Inf,Inf)
+  SFBool  [in,out] normalizeVelocity FALSE
+  SFVec2f [out]    value_changed
+}
+
+SplineScalarInterpolator : X3DInterpolatorNode {
+  SFBool  [in,out] closed            FALSE
+  MFFloat [in,out] keyValue          []    (-Inf,Inf)
+  MFFloat [in,out] keyVelocity       []    (-Inf,Inf)
+  SFBool  [in,out] normalizeVelocity FALSE
+  SFFloat [out]    value_changed
+}
+
+SquadOrientationInterpolator : X3DInterpolatorNode {
+  MFRotation [in,out] keyValue          []    (-Inf,Inf)
+  SFBool     [in,out] normalizeVelocity FALSE
+  SFRotation [out]    value_changed
+}

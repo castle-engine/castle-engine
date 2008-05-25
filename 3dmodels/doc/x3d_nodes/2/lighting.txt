@@ -1,0 +1,26 @@
+X3DLightNode : X3DChildNode { 
+  SFBool  [in,out] global           FALSE
+}
+
+DirectionalLight : X3DLightNode {
+  SFVec3f [in,out] direction        0 0 -1 (-Inf,Inf)
+  # TODO: global by default is FALSE
+}
+
+PointLight : X3DLightNode {
+  SFVec3f [in,out] attenuation      1 0 0 [0,Inf)
+  # TODO: global by default is TRUE
+  SFVec3f [in,out] location         0 0 0 (-Inf,Inf)
+  SFFloat [in,out] radius           100   [0,Inf)
+}
+
+SpotLight : X3DLightNode {
+  SFVec3f [in,out] attenuation      1 0 0    [0,Inf)
+  SFFloat [in,out] beamWidth        Pi/2      (0,Pi/2]
+  SFFloat [in,out] cutOffAngle      Pi/4      (0,Pi/2]
+  SFVec3f [in,out] direction        0 0 -1   (-Inf,Inf)
+  # TODO: global by default is TRUE
+  SFVec3f [in,out] location         0 0 0    (-Inf,Inf)
+  SFFloat [in,out] radius           100      [0,Inf)
+}
+

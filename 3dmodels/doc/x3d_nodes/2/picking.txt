@@ -1,0 +1,34 @@
+X3DPickableObject {
+  MFString [in,out] objectType "ALL" ["ALL"|"NONE"|"TERRAIN"|...]
+  SFBool   [in,out] pickable   TRUE
+}
+
+X3DPickSensorNode : X3DSensorNode {
+  MFString [in,out] objectType       "ALL"     ["ALL","NONE","TERRAIN",...]
+  SFNode   [in,out] pickingGeometry  NULL      [X3DGeometryNode]
+  MFNode   [in,out] pickTarget       []        [X3DGroupingNode|X3DShapeNode|X3DInlineNode]
+  MFNode   [out]    pickedGeometry
+  SFString []       intersectionType "BOUNDS"  ["GEOMETRY"|"BOUNDS"]
+  SFString []       sortOrder        "CLOSEST" ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"]
+}
+
+LinePickSensor : X3DPickSensorNode {
+  MFVec3f  [out]    pickedNormal
+  MFVec3f  [out]    pickedPoint
+  MFVec3f  [out]    pickedTextureCoordinate
+}
+
+PickableGroup : X3DGroupingNode, X3DPickableObject {
+  MFString [in,out] objectType     "ALL"    ["ALL","NONE","TERRAIN",...]
+  SFBool   [in,out] pickable       TRUE
+}
+
+PointPickSensor : X3DPickSensorNode {
+  MFVec3f  [out]    pickedPoint
+}
+
+PrimitivePickSensor : X3DPickSensorNode {
+}
+
+VolumePickSensor : X3DPickSensorNode {
+}

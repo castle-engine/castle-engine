@@ -1,0 +1,49 @@
+X3DShaderNode : X3DAppearanceChildNode {
+  SFBool   [in]     activate
+  SFBool   [out]    isSelected
+  SFBool   [out]    isValid
+  SFString []       language   ""   ["CG"|"GLSL"|"HLSL"|...]
+}
+
+X3DVertexAttributeNode : X3DGeometricPropertyNode {
+  SFString []       name     "" 
+}
+
+ComposedShader : X3DShaderNode, X3DProgrammableShaderObject {
+  MFNode    [in,out] parts      []   [ShaderPart]
+  # And any number of:
+}
+
+FloatVertexAttribute : X3DVertexAttributeNode {
+  MFFloat  [in,out] value  		  []   (-Inf,Inf)
+  SFInt32  []       numComponents 4    [1..4]
+}
+
+Matrix3VertexAttribute : X3DVertexAttributeNode {
+  MFMatrix3f [in,out] value    []   (-Inf,Inf)
+}
+
+Matrix4VertexAttribute : X3DVertexAttributeNode {
+  MFMatrix4f [in,out] value    []   (-Inf,Inf)
+}
+
+PackagedShader : X3DShaderNode, X3DUrlObject, X3DProgrammableShaderObject {
+  MFString  [in,out] url        []   [URI]
+  # And any number of:
+}
+
+ProgramShader : X3DShaderNode {
+  MFNode   [in,out] programs   []   [ShaderProgram]
+}
+
+ShaderPart : X3DNode, X3DUrlObject {
+  MFString [in,out] url      []         [URI]
+  SFString []       type     "VERTEX"   ["VERTEX"|"FRAGMENT"]
+}
+
+ShaderProgram : X3DNode, X3DUrlObject, X3DProgrammableShaderObject {
+  MFString  [in,out] url       []           [URI]
+  SFString  []       type      "VERTEX"     ["VERTEX"|"FRAGMENT"]
+  # And any number of:
+}
+

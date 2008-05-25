@@ -1,0 +1,24 @@
+X3DLayerNode : X3DNode {
+  SFBool [in,out] isPickable TRUE
+  SFNode [in,out] viewport NULL [X3DViewportNode]
+}
+
+X3DViewportNode : X3DGroupingNode {
+}
+
+Layer : X3DLayerNode { 
+  MFNode [in]     addChildren    []    [X3DChildNode]
+  MFNode [in]     removeChildren []    [X3DChildNode]
+  MFNode [in,out] children       []    [X3DChildNode]
+}
+
+LayerSet : X3DNode { 
+  SFInt32 [in,out]  activeLayer 0    (-Inf,Inf)
+  MFNode  [in,out]  layers      []   [X3DLayerNode]
+  MFInt32 [in,out]  order       [0]   (0,Inf)
+}
+
+Viewport : X3DGroupingNode, X3DBoundedObject {
+  MFFloat [in,out] clipBoundary   0 1 0 1  [0,1]
+}
+

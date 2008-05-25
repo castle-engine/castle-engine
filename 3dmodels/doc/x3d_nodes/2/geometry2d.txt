@@ -1,0 +1,41 @@
+Arc2D : X3DGeometryNode { 
+  SFFloat []       endAngle   Pi/2   [-2Pi,2Pi]
+  SFFloat []       radius     1     (0,Inf)
+  SFFloat []       startAngle 0     [-2Pi,2Pi]
+}
+
+ArcClose2D : X3DGeometryNode { 
+  SFString []       closureType "PIE" ["PIE"|"CHORD"]
+  SFFloat  []       endAngle    Pi/2   [-2Pi,2Pi]
+  SFFloat  []       radius      1     (0,Inf)
+  SFBool   []       solid       FALSE
+  SFFloat  []       startAngle  0     [-2Pi,2Pi]
+}
+
+Circle2D : X3DGeometryNode { 
+  SFFloat []       radius   1     (0,Inf)
+}
+
+Disk2D : X3DGeometryNode { 
+ SFFloat []       innerRadius 0     [0,Inf)
+ SFFloat []       outerRadius 1     (0,Inf)
+ SFBool  []       solid       FALSE
+}
+
+Polyline2D : X3DGeometryNode { 
+  MFVec2f []       lineSegments []    (-Inf,Inf)
+}
+
+Polypoint2D : X3DGeometryNode { 
+  MFVec2f [in,out] point    []    (-Inf,Inf)
+}
+
+Rectangle2D : X3DGeometryNode { 
+  SFVec2f []       size     2 2   (0,Inf)
+  SFBool  []       solid    FALSE
+}
+
+TriangleSet2D : X3DGeometryNode { 
+  MFVec2f [in,out] vertices []    (-Inf,Inf)
+  SFBool  []       solid    FALSE
+}

@@ -1,0 +1,23 @@
+X3DEnvironmentTextureNode : X3DTextureNode {
+}
+
+ComposedCubeMapTexture : X3DEnvironmentTextureNode {
+  SFNode [in,out] back     NULL [X3DTexture2DNode]
+  SFNode [in,out] bottom   NULL [X3DTexture2DNode]
+  SFNode [in,out] front    NULL [X3DTexture2DNode]
+  SFNode [in,out] left     NULL [X3DTexture2DNode]
+  SFNode [in,out] right    NULL [X3DTexture2DNode]
+  SFNode [in,out] top      NULL [X3DTexture2DNode]
+}
+
+GeneratedCubeMapTexture : X3DEnvironmentTextureNode {
+  SFString [in,out] update            "NONE" ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+  SFInt32  []       size              128    (0,Inf)
+  SFNode   []       textureProperties NULL   [TextureProperties]
+}
+
+ImageCubeMapTexture : X3DEnvironmentTextureNode, X3DUrlObject {
+  MFString [in,out] url               []   [URI]
+  SFNode   []       textureProperties NULL [TextureProperties]
+}
+

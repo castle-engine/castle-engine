@@ -1,0 +1,61 @@
+HAnimDisplacer : X3DGeometricPropertyNode {
+  MFInt32  [in,out] coordIndex    []   [0,Inf) or -1
+  MFVec3f  [in,out] displacements []
+  SFString [in,out] name          ""
+  SFFloat  [in,out] weight        0.0  (-Inf,Inf)
+}
+
+HAnimHumanoid : X3DChildNode, X3DBoundedObject {
+  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
+  MFString   [in,out] info             []
+  MFNode     [in,out] joints           []       [HAnimJoint]
+  SFString   [in,out] name             ""
+  SFRotation [in,out] rotation         0 0 1 0  (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0  (-Inf,Inf)|[-1,1]
+  MFNode     [in,out] segments         []       [HAnimSegment]
+  MFNode     [in,out] sites            []       [HAnimSite]
+  MFNode     [in,out] skeleton         []       [HAnimJoint, HAnimSite]
+  MFNode     [in,out] skin             []       [X3DChildNode]
+  SFNode     [in,out] skinCoord        NULL     [X3DCoordinateNode]
+  SFNode     [in,out] skinNormal       NULL     [X3DNormalNode]
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
+  SFString   [in,out] version          ""
+  MFNode     [in,out] viewpoints       []       [HAnimSite]
+  SFVec3f    []       bboxCenter       0 0 0    (-Inf,Inf)
+  SFVec3f    []       bboxSize         -1 -1 -1 [0,Inf) or -1 -1 -1
+}
+
+HAnimJoint : X3DGroupingNode {
+  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
+  MFNode     [in,out] displacers       []       [HAnimDisplacer]
+  SFRotation [in,out] limitOrientation 0 0 1 0  (-Inf,Inf)|[-1,1]
+  MFFloat    [in,out] llimit           []       (-Inf,Inf)
+  SFString   [in,out] name             ""
+  SFRotation [in,out] rotation         0 0 1 0  (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0  (-Inf,Inf)|[-1,1]
+  MFInt32    [in,out] skinCoordIndex   []
+  MFFloat    [in,out] skinCoordWeight  []
+  MFFloat    [in,out] stiffness        [0 0 0]  [0,1]
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
+  MFFloat    [in,out] ulimit           []       (-Inf,Inf)
+}
+
+HAnimSegment : X3DGroupingNode {
+  SFVec3f  [in,out] centerOfMass     0 0 0               (-Inf,Inf)
+  SFNode   [in,out] coord            NULL                [X3DCoordinateNode]
+  MFNode   [in,out] displacers       []                  [HAnimDisplacer]
+  SFFloat  [in,out] mass             0                   [0,Inf)
+  MFFloat  [in,out] momentsOfInertia [0 0 0 0 0 0 0 0 0] [0,Inf)
+  SFString [in,out] name             ""
+}
+
+HAnimSite : X3DGroupingNode {
+  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
+  SFString   [in,out] name             ""
+  SFRotation [in,out] rotation         0 0 1 0  (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0  (-Inf,Inf)|[-1,1]
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)|[-1,1]
+}

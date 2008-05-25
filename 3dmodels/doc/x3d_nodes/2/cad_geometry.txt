@@ -1,0 +1,36 @@
+X3DProductStructureChildNode : X3DChildNode {
+  SFString [in,out] name ""
+}
+
+CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
+  SFString [in,out] name           ""
+}
+
+CADFace : X3DProductStructureChildNode, X3DBoundedObject {
+  SFNode   [in,out] shape      NULL     [X3DShapeNode, LOD]
+  SFVec3f  []       bboxCenter 0 0 0    (-Inf, Inf)
+  SFVec3f  []       bboxSize   -1 -1 -1 [0, Inf) or -1 -1 -1
+}
+
+CADLayer : X3DGroupingNode {
+  SFString [in,out] name           ""
+  MFBool   [in,out] visible        []
+}
+
+CADPart : X3DGroupingNode, X3DProductStructureChildNode {
+  SFVec3f    [in,out] center           0 0 0    (-Inf,Inf)
+  SFString   [in,out] name             ""
+  SFRotation [in,out] rotation         0 0 1 0  [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] scale            1 1 1    (0,Inf)
+  SFRotation [in,out] scaleOrientation 0 0 1 0  [-1,1] or (-Inf,Inf)
+  SFVec3f    [in,out] translation      0 0 0    (-Inf,Inf)
+}
+
+IndexedQuadSet : X3DComposedGeometryNode {
+  MFInt32 [in]     set_index       []   [0,Inf)
+  MFInt32 []       index           []   [0,Inf)
+}
+
+QuadSet : X3DComposedGeometryNode {
+}
+
