@@ -5386,7 +5386,11 @@ begin
 
   DefaultContainerField := 'children';
 
-  HasInterfaceDeclarations := RestrictedAccessTypes;
+  { VRML 97 says this is RestrictedAccessTypes.
+    But X3D, (both the general spec, and X3D classic encoding grammar,
+    so it's not by accident) allows here all access types,
+    including inputOutput. }
+  HasInterfaceDeclarations := AllAccessTypes;
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;
