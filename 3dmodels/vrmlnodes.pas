@@ -668,37 +668,6 @@ type
       Or return @false without changing Lexer position. }
     function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; virtual;
 
-    { Methods to use when defininf Fd* fields properties,
-      to allow comfortable access to node's specific fields.
-      @groupBegin }
-    function GetField(i: integer): TVRMLField;
-    function GetFieldAsSFBitMask(i: integer): TSFBitMask;
-    function GetFieldAsSFBool(i: integer): TSFBool;
-    function GetFieldAsSFColor(i: integer): TSFColor;
-    function GetFieldAsSFEnum(i: integer): TSFEnum;
-    function GetFieldAsSFFloat(i: integer): TSFFloat;
-    function GetFieldAsSFTime(i: integer): TSFTime;
-    function GetFieldAsSFImage(i: integer): TSFImage;
-    function GetFieldAsSFLong(i: integer): TSFLong;
-    function GetFieldAsSFInt32(i: integer): TSFInt32;
-    function GetFieldAsSFMatrix(i: integer): TSFMatrix;
-    function GetFieldAsSFRotation(i: integer): TSFRotation;
-    function GetFieldAsSFString(i: integer): TSFString;
-    function GetFieldAsSFVec2f(i: integer): TSFVec2f;
-    function GetFieldAsSFVec3f(i: integer): TSFVec3f;
-    function GetFieldAsSFNode(i: integer): TSFNode;
-    function GetFieldAsMFColor(i: integer): TMFColor;
-    function GetFieldAsMFLong(i: integer): TMFLong;
-    function GetFieldAsMFInt32(i: integer): TMFInt32;
-    function GetFieldAsMFVec2f(i: integer): TMFVec2f;
-    function GetFieldAsMFVec3f(i: integer): TMFVec3f;
-    function GetFieldAsMFRotation(i: integer): TMFRotation;
-    function GetFieldAsMFFloat(i: integer): TMFFloat;
-    function GetFieldAsMFTime(i: integer): TMFTime;
-    function GetFieldAsMFString(i: integer): TMFString;
-    function GetFieldAsMFNode(i: integer): TMFNode;
-    { @groupEnd }
-
     (* This will be called by SaveToStream within { }.
        Usually you want to save here what you read in your overridden
        ParseNodeBodyElement. *)
@@ -3191,33 +3160,6 @@ class function TVRMLNode.ClassNodeTypeName: string;
 begin
  result := '';
 end;
-
-function TVRMLNode.GetField(i: integer): TVRMLField; begin result := Fields[i] end;
-function TVRMLNode.GetFieldAsSFBitMask(i: integer): TSFBitMask; begin result := TSFBitMask(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFBool(i: integer): TSFBool; begin result := TSFBool(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFColor(i: integer): TSFColor; begin result := TSFColor(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFEnum(i: integer): TSFEnum; begin result := TSFEnum(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFFloat(i: integer): TSFFloat; begin result := TSFFloat(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFTime(i: integer): TSFTime; begin result := TSFTime(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFImage(i: integer): TSFImage; begin result := TSFImage(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFLong(i: integer): TSFLong; begin result := TSFLong(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFInt32(i: integer): TSFInt32; begin result := TSFInt32(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFMatrix(i: integer): TSFMatrix; begin result := TSFMatrix(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFRotation(i: integer): TSFRotation; begin result := TSFRotation(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFString(i: integer): TSFString; begin result := TSFString(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFVec2f(i: integer): TSFVec2f; begin result := TSFVec2f(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFVec3f(i: integer): TSFVec3f; begin result := TSFVec3f(Fields[i]) end;
-function TVRMLNode.GetFieldAsSFNode(i: integer): TSFNode; begin result := TSFNode(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFColor(i: integer): TMFColor; begin result := TMFColor(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFLong(i: integer): TMFLong; begin result := TMFLong(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFInt32(i: integer): TMFInt32; begin result := TMFInt32(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFVec2f(i: integer): TMFVec2f; begin result := TMFVec2f(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFVec3f(i: integer): TMFVec3f; begin result := TMFVec3f(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFRotation(i: integer): TMFRotation; begin result := TMFRotation(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFFloat(i: integer): TMFFloat; begin result := TMFFloat(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFTime(i: integer): TMFTime; begin result := TMFTime(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFString(i: integer): TMFString; begin result := TMFString(Fields[i]) end;
-function TVRMLNode.GetFieldAsMFNode(i: integer): TMFNode; begin result := TMFNode(Fields[i]) end;
 
 constructor TVRMLNode.CreateParse(const ANodeName: string; Lexer: TVRMLLexer);
 begin
