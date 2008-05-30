@@ -1,0 +1,297 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Reads nodes definition from text file on stdin,
+  in a format like X3D specification
+  (see ../doc/x3d_nodes/2/*.txt files) and outputs on stdout Pascal include
+  file that for each VRML node defines appropriate Pascal class
+  (with appropriate fields, events, field default values, etc.).
+
+  Generated VRML class can be directly used inside unit like VRMLNodes
+  to allow our engine to recognize and parse all fields of given node. }
+program x3d_nodes_spec_to_pascal;
+
+uses SysUtils, Classes, KambiClassUtils, VRMLLexer, VRMLFields,
+  KambiStringUtils, VRMLNodes;
+
+var
+  InterfaceLines: TMemoryStream;
+  ImplementationLines: TMemoryStream;
+
+var
+  NodeType: string;
+  IsInterface: boolean;
+
+procedure ParseNodeStartLine(const Line: string);
+const
+  Delimiters = WhiteSpaces + [','];
+var
+  SeekPos: Integer;
+  SomeAncestorFound: boolean;
+  Token: string;
+begin
+  SeekPos := 1;
+
+  Token := NextToken(Line, SeekPos, Delimiters);
+  NodeType := Token;
+  IsInterface := IsSuffix('Object', NodeType, false);
+
+  if IsInterface then
+    WriteStr(InterfaceLines, '  INode' + NodeType + ' = interface(') else
+    WriteStr(InterfaceLines, '  TNode' + NodeType + ' = class(');
+
+  SomeAncestorFound := false;
+
+  Token := NextToken(Line, SeekPos, Delimiters);
+  if Token = ':' then
+  begin
+    repeat
+      Token := NextToken(Line, SeekPos, Delimiters);
+      if (Token = '') or (Token = '{') then break;
+
+      if SomeAncestorFound then
+      begin
+        WriteStr(InterfaceLines, ', INode' + Token);
+      end else
+      begin
+        if IsInterface then
+          WriteStr(InterfaceLines, 'INode' + Token) else
+          WriteStr(InterfaceLines, 'TNode' + Token);
+        SomeAncestorFound := true;
+      end;
+    until false;
+  end;
+
+  if not SomeAncestorFound then
+    if IsInterface then
+      WriteStr(InterfaceLines, 'IVRMLNode') else
+      WriteStr(InterfaceLines, 'TVRMLNode');
+
+  Assert(Token = '{');
+
+  WritelnStr(InterfaceLines, ')');
+
+  if not IsInterface then
+  begin
+    WritelnStr(InterfaceLines,
+      '  public' + LineEnding +
+      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;' + LineEnding +
+      '    class function ClassNodeTypeName: string; override;' + LineEnding +
+      '    function SuggestedVRMLVersion(' + LineEnding +
+      '      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;');
+
+    WritelnStr(ImplementationLines,
+      'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + LineEnding +
+      '  const AWWWBasePath: string);' + LineEnding +
+      'begin' + LineEnding +
+      '  inherited;');
+  end;
+end;
+
+procedure ParseNodeInsideLine(const Line: string);
+const
+  BoolToStrLowerCase: array[boolean] of string=('false','true');
+var
+  FieldType, FieldName, AccessTypeName, EventInOrOut: string;
+  AccessType: TVRMLAccessType;
+  SeekPos: Integer;
+  NodeField: boolean;
+  NodeFieldAllowedChildren, FieldDefaultValue, FieldComment, FieldExposedLine: string;
+begin
+  SeekPos := 1;
+
+  FieldType := NextToken(Line, SeekPos, WhiteSpaces);
+  NodeField := (FieldType = 'SFNode') or (FieldType = 'MFNode');
+
+  if FieldType = '#' then
+  begin
+    { special case, this is not a field, just abort now }
+    WritelnStr(InterfaceLines, LineEnding + '    { ' + Line + '}');
+    Exit;
+  end;
+
+  AccessTypeName := NextToken(Line, SeekPos, WhiteSpaces);
+  if AccessTypeName = '[]' then
+    AccessType := atInitializeOnly else
+  if AccessTypeName = '[in]' then
+    AccessType := atInputOnly else
+  if AccessTypeName = '[out]' then
+    AccessType := atOutputOnly else
+  if AccessTypeName = '[in,out]' then
+    AccessType := atInputOutput else
+    Assert(false, 'unknown AccessTypeName "' + AccessTypeName + '"');
+
+  FieldName := NextToken(Line, SeekPos, WhiteSpaces);
+
+  while SCharIs(Line, SeekPos, WhiteSpaces) do Inc(SeekPos);
+
+  if SCharIs(Line, SeekPos, '[') then
+  begin
+    FieldDefaultValue := '[';
+    Inc(SeekPos);
+    while (SeekPos <= Length(Line)) and (Line[SeekPos] <> ']') do
+    begin
+      FieldDefaultValue += Line[SeekPos];
+      Inc(SeekPos);
+    end;
+    FieldDefaultValue += ']';
+    Inc(SeekPos);
+  end else
+    FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces);
+
+  StringReplaceAllTo1st(FieldDefaultValue, '"', '''', false);
+
+  FieldComment := Trim(SEnding(Line, SeekPos));
+
+  if AccessType in [atInputOnly, atOutputOnly] then
+  begin
+    if AccessType = atInputOnly then
+      EventInOrOut := 'in' else
+      EventInOrOut := 'out';
+    if IsInterface then
+      WritelnStr(InterfaceLines,
+        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + LineEnding +
+        '    property Event' + FieldName + ': TVRMLEvent { read GetEvent' + FieldName + ' };') else
+    begin
+      WritelnStr(InterfaceLines,
+        LineEnding +
+        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + LineEnding +
+        '    private FEvent' + FieldName + ': TVRMLEvent;' + LineEnding +
+        '    public property Event' + FieldName + ': TVRMLEvent read FEvent' + FieldName + ';');
+
+      WritelnStr(ImplementationLines,
+        LineEnding +
+        '  FEvent' + FieldName + ' := TVRMLEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + LineEnding +
+        '  Events.Add(FEvent' + FieldName + ');');
+    end;
+  end else
+  begin
+    if IsInterface then
+      WritelnStr(InterfaceLines,
+        '    property Fd' + FieldName + ': T' + FieldType + ' { read GetFd' + FieldName + ' }; { }') else
+    begin
+      WritelnStr(InterfaceLines,
+        LineEnding +
+        '    private FFd' + FieldName + ': T' + FieldType + ';' + LineEnding +
+        '    public property Fd' + FieldName + ': T' + FieldType + ' read FFd' + FieldName + ';');
+
+      if AccessType = atInitializeOnly then
+        FieldExposedLine := '  FFd' + FieldName + '.Exposed := false;' + LineEnding else
+        FieldExposedLine := '';
+
+      if NodeField then
+      begin
+        { Although NULL is sensible only for SFNode and [] is sensible only
+          for MFNode, X3D specification switches them in many places
+          --- too many to fix them, it's easier to just ignore
+          the difference here. }
+        Assert( (FieldDefaultValue = 'NULL') or
+                (FieldDefaultValue = '[]') );
+
+        Assert(FieldComment <> '');
+        Assert(FieldComment[1] = '[');
+        Assert(FieldComment[Length(FieldComment)] = ']');
+        NodeFieldAllowedChildren := Copy(FieldComment, 2, Length(FieldComment) - 2);
+
+        WritelnStr(ImplementationLines,
+          LineEnding +
+          '  FFd' + FieldName + ' := T' + FieldType + '.Create(Self, ''' + FieldName + ''', [' + NodeFieldAllowedChildren + ']);' + LineEnding +
+          FieldExposedLine +
+          '  Fields.Add(FFd' + FieldName + ');');
+      end else
+      begin
+        WritelnStr(ImplementationLines,
+          LineEnding +
+          '  FFd' + FieldName + ' := T' + FieldType + '.Create(''' + FieldName + ''', ' + FieldDefaultValue + ');' + LineEnding +
+          FieldExposedLine +
+          '  Fields.Add(FFd' + FieldName + ');');
+        if FieldComment <> '' then
+          WritelnStr(ImplementationLines,
+            '  { X3D specification comment: ' + FieldComment + ' }');
+      end;
+    end;
+  end;
+end;
+
+procedure ParseNodeEnd;
+begin
+  WritelnStr(InterfaceLines, '  end;' + LineEnding);
+
+  if not IsInterface then
+    WritelnStr(ImplementationLines,
+      LineEnding +
+      '  DefaultContainerField := ''children'';' + LineEnding +
+      'end;' + LineEnding +
+      LineEnding +
+      'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + LineEnding +
+      'begin' + LineEnding +
+      '  Result := ''' + NodeType + ''';' + LineEnding +
+      'end;' + LineEnding +
+      LineEnding +
+      'function TNode' + NodeType + '.SuggestedVRMLVersion(' + LineEnding +
+      '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + LineEnding +
+      'begin' + LineEnding +
+      '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + LineEnding +
+      '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + LineEnding +
+      '    true, 3, 2, 2000);' + LineEnding +
+      'end;' + LineEnding);
+end;
+
+var
+  Line: string;
+begin
+  try
+    InterfaceLines := TMemoryStream.Create;
+    ImplementationLines := TMemoryStream.Create;
+
+    while not Eof do
+    begin
+      Readln(Line);
+      Line := Trim(Line);
+      if Line <> '' then
+      begin
+        ParseNodeStartLine(Line);
+        while not Eof do
+        begin
+          Readln(Line);
+          Line := Trim(Line);
+          if Line <> '}' then
+            ParseNodeInsideLine(Line) else
+            Break;
+        end;
+        ParseNodeEnd;
+      end;
+    end;
+
+    WritelnStr({$I x3d_nodes_spec_to_pascal_preamble.inc});
+    WritelnStr('{$ifdef read_interface}');
+    InterfaceLines.Position := 0;
+    InterfaceLines.SaveToStream(StdOutStream);
+    WritelnStr('{$endif read_interface}' + LineEnding +
+               LineEnding +
+               '{$ifdef read_implementation}');
+    ImplementationLines.Position := 0;
+    ImplementationLines.SaveToStream(StdOutStream);
+    WritelnStr('{$endif read_implementation}');
+  finally
+    FreeAndNil(InterfaceLines);
+    FreeAndNil(ImplementationLines);
+  end;
+end.

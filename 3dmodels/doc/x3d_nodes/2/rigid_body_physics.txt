@@ -35,8 +35,7 @@ CollidableShape : X3DNBodyCollidableNode  {
 CollisionCollection : X3DChildNode {
   MFString [in,out] appliedParameters        "BOUNCE" []
   SFFloat  [in,out] bounce                   0        [0,1]
-  MFNode   [in,out] collidables              NULL     [X3DNBodyCollisionSpaceNode,
-                                                       X3DNBodyCollidableNode]
+  MFNode   [in,out] collidables              NULL     [X3DNBodyCollisionSpaceNode, X3DNBodyCollidableNode]
   SFBool   [in,out] enabled                  TRUE
   SFVec2f  [in,out] frictionCoefficients     0 0      [0,Inf)
   SFFloat  [in,out] minBounceSpeed           0.1      [0,Inf)

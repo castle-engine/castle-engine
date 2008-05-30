@@ -24,7 +24,7 @@ ElevationGrid : X3DGeometryNode {
   MFFloat [in]     set_height
   MFNode  [in,out] attrib          []   [X3DVertexAttributeNode]
   SFNode  [in,out] color           NULL [X3DColorNode]
-  SFNode  [in,out] fogCoord        []   [FogCoordinate]
+  SFNode  [in,out] fogCoord        NULL [FogCoordinate]
   SFNode  [in,out] normal          NULL [X3DNormalNode]
   SFNode  [in,out] texCoord        NULL [X3DTextureCoordinateNode]
   SFBool  []       ccw             TRUE  

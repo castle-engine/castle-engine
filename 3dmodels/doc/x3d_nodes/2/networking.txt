@@ -2,7 +2,7 @@ X3DNetworkSensorNode : X3DSensorNode {
 }
 
 X3DUrlObject {
-  MFString [in, out] url [] [urn];
+  MFString [in,out] url [] [urn];
 }
 
 Anchor : X3DGroupingNode { 

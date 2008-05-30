@@ -62,7 +62,7 @@ TextureCoordinateGenerator : X3DTextureCoordinateNode {
   MFFloat  [in,out] parameter []       [see Table 18.6]
 }
 
-TextureProperties : X3DNode
+TextureProperties : X3DNode {
   SFFloat     [in,out] anisotropicDegree   1.0       [1,Inf)
   SFColorRGBA [in,out] borderColor         0 0 0 0   [0,1]
   SFInt32     [in,out] borderWidth         0         [0,1]
