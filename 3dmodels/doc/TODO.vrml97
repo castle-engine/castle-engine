@@ -69,7 +69,6 @@ X3D adds many field types, like 4-valued vectors and matrices:
   SFVec2d and MFVec2d 
   SFVec4d and MFVec4d 
   SFVec4f and MFVec4f
-  TMFBool
   TMFImage
 
 when saving (e.g. from view3dscene), extension doesn't really matter.

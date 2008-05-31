@@ -436,7 +436,7 @@ type
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { RawItemToString(i) must change RawItems[i] into a string that can be used to
-      store this is text stream.  In descendants, you have to override this. }
+      store this is text stream. In descendants, you have to override this. }
     function RawItemToString(ItemNum: integer): string; virtual; abstract;
 
     { This says when we should do newline when writing this field into a stream.
@@ -887,6 +887,29 @@ type
 { @section(Multiple value (MF) VRML fields) }
 
   { }
+  TMFBool = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: Integer;
+    DefaultValue: boolean;
+  protected
+    function RawItemToString(ItemNum: Integer): string; override;
+  public
+    function Items: TDynBooleanArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string;
+      const InitialContent: array of boolean);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  { }
   TMFColor = class(TVRMLSimpleMultField)
   private
     { Field DefaultValuesCount may have three valid values (for now):
@@ -1085,10 +1108,10 @@ type
 
   TMFString = class(TVRMLSimpleMultField)
   private
-    DefaultValuesCount: integer;
+    DefaultValuesCount: Integer;
     DefaultValue: string;
   protected
-    function RawItemToString(ItemNum: integer): string; override;
+    function RawItemToString(ItemNum: Integer): string; override;
   public
     function Items: TDynStringArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
@@ -2905,7 +2928,7 @@ end;
   z operatorem "=" ma sens.
 
   W tej chwili nie ma klasy MF ktora wymagalaby jakiegos jeszcze innego
-  traktowania ale niektrudno sobie taka wyobrazic. Nie wszystkie
+  traktowania ale nietrudno sobie taka wyobrazic. Nie wszystkie
   typy mozemy przeciez sensownie porownywac operatorem "=" lub CompareMem,
   np. gdybysmy mieli TMFImage.
 
@@ -3012,6 +3035,13 @@ begin
 end;
 }
 
+{$define TMF_CLASS := TMFBool}
+{$define TMF_STATIC_ITEM := boolean}
+{$define TMF_CLASS_ITEM := TSFBool}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynBooleanArray}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
+
 {$define TMF_CLASS := TMFColor}
 {$define TMF_STATIC_ITEM := TVector3Single}
 {$define TMF_CLASS_ITEM := TSFColor}
@@ -3067,6 +3097,20 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynStringArray}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
+
+{ TMFBool ------------------------------------------------------------------ }
+
+function TMFBool.RawItemToString(ItemNum: integer): string;
+begin
+  if Items.Items[ItemNum] then
+    Result := VRMLKeywords[vkTrue] else
+    Result := VRMLKeywords[vkFalse];
+end;
+
+class function TMFBool.VRMLTypeName: string;
+begin
+  Result := 'MFBool';
+end;
 
 { TMFColor ------------------------------------------------------------------- }
 
@@ -3291,30 +3335,20 @@ initialization
   VRMLFieldsManager.RegisterClasses([
     TSFBitMask,
     TSFEnum,
-    TSFBool,
-    TSFColor,
-    TSFFloat,
+    TSFBool,     TMFBool,
+    TSFColor,    TMFColor,
+    TSFFloat,    TMFFloat,
     TSFImage,
-    TSFLong,
-    TSFInt32,
+    TSFLong,     TMFLong,
+    TSFInt32,    TMFInt32,
     TSFMatrix,
-    TSFRotation,
-    TSFString,
-    TSFDouble,
-    TSFTime,
-    TSFVec2f,
-    TSFVec3f,
-    TMFColor,
-    TMFFloat,
-    TMFLong,
-    TMFInt32,
-    TMFRotation,
-    TMFString,
-    TMFDouble,
-    TMFTime,
-    TMFVec2f,
-    TMFVec3f]);
-
+    TSFRotation, TMFRotation,
+    TSFString,   TMFString,
+    TSFDouble,   TMFDouble,
+    TSFTime,     TMFTime,
+    TSFVec2f,    TMFVec2f,
+    TSFVec3f,    TMFVec3f
+    ]);
 finalization
   FreeAndNil(VRMLFieldsManager);
 end.
