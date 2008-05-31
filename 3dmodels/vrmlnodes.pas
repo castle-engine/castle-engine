@@ -6417,7 +6417,7 @@ initialization
     TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
     TNodePointSet_1, TNodeSphere_1,
     TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
-    TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding, TNodeTexture2,
+    TNodeMaterialBinding, TNodeNormalBinding, TNodeTexture2,
     TNodeTexture2Transform,
     TNodeTextureCoordinate2, TNodeShapeHints,
     TNodeMatrixTransform, TNodeRotation,
@@ -6443,11 +6443,9 @@ initialization
     TNodeBillboard,
     TNodeBox,
     TNodeCollision,
-    TNodeColor,
     TNodeColorInterpolator,
     TNodeCone_2,
     TNodeContour2D,
-    TNodeCoordinate,
     TNodeCoordinateDeformer,
     TNodeCoordinateInterpolator,
     TNodeCylinder_2,
@@ -6468,13 +6466,11 @@ initialization
     TNodeGeoViewpoint,
     TNodeImageTexture,
     TNodeIndexedFaceSet_2,
-    TNodeIndexedLineSet_2,
     TNodeInlineLoadControl,
     TNodeLOD_2,
     TNodeMaterial_2,
     TNodeMovieTexture,
     TNodeNavigationInfo,
-    { TNodeNormal, - registered already as VRML 1.0 node }
     TNodeNormalInterpolator,
     TNodeNurbsCurve,
     TNodeNurbsCurve2D,
@@ -6486,7 +6482,6 @@ initialization
     TNodePixelTexture,
     TNodePlaneSensor,
     TNodePointLight_2,
-    TNodePointSet_2,
     TNodePolyline2D,
     TNodePositionInterpolator,
     TNodeProximitySensor,
@@ -6519,6 +6514,7 @@ initialization
   RegisterTimeNodes;
   RegisterNetworkingNodes;
   RegisterGroupingNodes;
+  RegisterRenderingNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
