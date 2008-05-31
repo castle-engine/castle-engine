@@ -53,9 +53,9 @@
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
 
-    private FFdmetadata: TSFNode;
+{    private FFdmetadata: TSFNode;
     public property Fdmetadata: TSFNode read FFdmetadata;
-
+}
     private FFdbboxCenter: TSFVec3f;
     public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
 
@@ -110,9 +110,9 @@
     private FFdlineProperties: TSFNode;
     public property FdlineProperties: TSFNode read FFdlineProperties;
 
-    private FFdmetadata: TSFNode;
+{    private FFdmetadata: TSFNode;
     public property Fdmetadata: TSFNode read FFdmetadata;
-
+}
     private FFdshaders: TMFNode;
     public property Fdshaders: TMFNode read FFdshaders;
 
@@ -2459,22 +2459,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
-
-  TNodeWorldInfo = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-    private FFdinfo: TMFString;
-    public property Fdinfo: TMFString read FFdinfo;
-
-    private FFdtitle: TSFString;
-    public property Fdtitle: TSFString read FFdtitle;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -2582,8 +2566,10 @@ begin
   FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
   Fields.Add(FFdchildren);
 
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]);
-  Fields.Add(FFdmetadata);
+{ will be added automatically, since TNodeX3DGroupingNode
+  will have X3DNode as ancestor 
+  FFdmetadata := TSFNode.Create(Self, 'metadata', [INodeX3DMetadataObject_Descendants]);
+  Fields.Add(FFdmetadata);}
 
   FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
   FFdbboxCenter.Exposed := false;
@@ -2664,9 +2650,11 @@ begin
   FFdlineProperties := TSFNode.Create(Self, 'lineProperties', [{TNodeLineProperties}]);
   Fields.Add(FFdlineProperties);
 
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]);
+{ will be added automatically, since TNodeX3DGroupingNode
+  will have X3DNode as ancestor  }
+(*  FFdmetadata := TSFNode.Create(Self, 'metadata', [{TNodeX3DMetadataObject}]);
   Fields.Add(FFdmetadata);
-
+*)
   FFdshaders := TMFNode.Create(Self, 'shaders', [TNodeComposedShader, TNodePackagedShader,  TNodeProgramShader]);
   Fields.Add(FFdshaders);
 
@@ -6183,29 +6171,4 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeWorldInfo.ClassNodeTypeName: string;
-begin
-  Result := 'WorldInfo';
-end;
-
-class function TNodeWorldInfo.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-constructor TNodeWorldInfo.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdinfo := TMFString.Create('info', []);
-  FFdinfo.Exposed := false;
-  Fields.Add(FFdinfo);
-
-  FFdtitle := TSFString.Create('title', '');
-  FFdtitle.Exposed := false;
-  Fields.Add(FFdtitle);
-
-  DefaultContainerField := 'children';
-end;
 {$endif read_implementation}

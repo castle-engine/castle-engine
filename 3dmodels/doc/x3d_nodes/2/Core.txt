@@ -16,10 +16,10 @@ X3DMetadataObject {
 }
 
 X3DNode {
+  SFNode [in,out] metadata NULL [X3DMetadataObject]
 }
 
 X3DPrototypeInstance : X3DNode {
-  SFNode [in,out] metdata NULL [X3DMetadataObject]
 }
 
 X3DSensorNode  : X3DChildNode {

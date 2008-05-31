@@ -21,17 +21,6 @@
 {$ifdef read_interface}
 
 type
-  TNodeX3DMetadataObject = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
-
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
-  end;
-
   INodeX3DNode = interface(IVRMLNode)
     property Fdmetadata: TSFNode;
   end;
@@ -77,6 +66,17 @@ type
     public property EventisBound: TVRMLEvent read FEventisBound;
   end;
 
+  TNodeX3DInfoNode = class(TNodeX3DChildNode)
+  end;
+
+  INodeX3DMetadataObject = interface(IVRMLNode)
+    property Fdname: TSFString { read GetFdname }; { }
+    property Fdreference: TSFString { read GetFdreference }; { }
+  end;
+
+  TNodeX3DPrototypeInstance = class(TNodeX3DNode)
+  end;
+
   TNodeX3DSensorNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -89,28 +89,128 @@ type
     public property EventisActive: TVRMLEvent read FEventisActive;
   end;
 
+  TNodeMetadataDouble = class(TNodeX3DNode, INodeX3DMetadataObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
+
+    private FFdvalue: TMFDouble;
+    public property Fdvalue: TMFDouble read FFdvalue;
+  end;
+
+  TNodeMetadataFloat = class(TNodeX3DNode, INodeX3DMetadataObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
+
+    private FFdvalue: TMFFloat;
+    public property Fdvalue: TMFFloat read FFdvalue;
+  end;
+
+  TNodeMetadataInteger = class(TNodeX3DNode, INodeX3DMetadataObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
+
+    private FFdvalue: TMFInt32;
+    public property Fdvalue: TMFInt32 read FFdvalue;
+  end;
+
+  TNodeMetadataSet = class(TNodeX3DNode, INodeX3DMetadataObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
+
+    private FFdvalue: TMFNode;
+    public property Fdvalue: TMFNode read FFdvalue;
+  end;
+
+  TNodeMetadataString = class(TNodeX3DNode, INodeX3DMetadataObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+
+    private FFdreference: TSFString;
+    public property Fdreference: TSFString read FFdreference;
+
+    private FFdvalue: TMFString;
+    public property Fdvalue: TMFString read FFdvalue;
+  end;
+
+  TNodeWorldInfo = class(TNodeX3DInfoNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdinfo: TMFString;
+    public property Fdinfo: TMFString read FFdinfo;
+
+    private FFdtitle: TSFString;
+    public property Fdtitle: TSFString read FFdtitle;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-constructor TNodeX3DMetadataObject.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdname := TSFString.Create('name', '');
-  Fields.Add(FFdname);
-
-  FFdreference := TSFString.Create('reference', '');
-  Fields.Add(FFdreference);
-end;
+{ Since for now I don't want to write just interface name,
+  INodeX3DMetadataObject, in allowed classes list, I'll need explicit
+  list of descendants. }
+{$define INodeX3DMetadataObject_Descendants :=
+  TNodeMetadataDouble, TNodeMetadataFloat, TNodeMetadataInteger,
+  TNodeMetadataSet, TNodeMetadataString}
 
 constructor TNodeX3DNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [TNodeX3DMetadataObject]);
+  FFdmetadata := TSFNode.Create(Self, 'metadata', [INodeX3DMetadataObject_Descendants]);
   Fields.Add(FFdmetadata);
 end;
 
@@ -139,6 +239,237 @@ begin
 
   FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
   Events.Add(FEventisActive);
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeMetadataDouble.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
+
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
+
+  FFdvalue := TMFDouble.Create('value', []);
+  Fields.Add(FFdvalue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMetadataDouble.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataDouble';
+end;
+
+function TNodeMetadataDouble.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMetadataDouble.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMetadataFloat.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
+
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
+
+  FFdvalue := TMFFloat.Create('value', []);
+  Fields.Add(FFdvalue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMetadataFloat.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataFloat';
+end;
+
+function TNodeMetadataFloat.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMetadataFloat.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMetadataInteger.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
+
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
+
+  FFdvalue := TMFInt32.Create('value', []);
+  Fields.Add(FFdvalue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMetadataInteger.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataInteger';
+end;
+
+function TNodeMetadataInteger.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMetadataInteger.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMetadataSet.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
+
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
+
+  FFdvalue := TMFNode.Create(Self, 'value', [INodeX3DMetadataObject_Descendants]);
+  Fields.Add(FFdvalue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMetadataSet.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataSet';
+end;
+
+function TNodeMetadataSet.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMetadataSet.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMetadataString.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  Fields.Add(FFdname);
+
+  FFdreference := TSFString.Create('reference', '');
+  Fields.Add(FFdreference);
+
+  FFdvalue := TMFString.Create('value', []);
+  Fields.Add(FFdvalue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMetadataString.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataString';
+end;
+
+function TNodeMetadataString.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMetadataString.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeWorldInfo.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdinfo := TMFString.Create('info', []);
+  FFdinfo.Exposed := false;
+  Fields.Add(FFdinfo);
+
+  FFdtitle := TSFString.Create('title', '');
+  FFdtitle.Exposed := false;
+  Fields.Add(FFdtitle);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeWorldInfo.ClassNodeTypeName: string;
+begin
+  Result := 'WorldInfo';
+end;
+
+function TNodeWorldInfo.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 100);
+end;
+
+class function TNodeWorldInfo.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterCoreNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeMetadataDouble,
+    TNodeMetadataFloat,
+    TNodeMetadataInteger,
+    TNodeMetadataSet,
+    TNodeMetadataString,
+    TNodeWorldInfo
+  ]);
 end;
 
 {$endif read_implementation}

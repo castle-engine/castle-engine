@@ -773,14 +773,6 @@ begin
     true, 2, 0, 100);
 end;
 
-function TNodeWorldInfo.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 100);
-end;
-
 { ------------------------------------------------------------------------------
   Nodes that are present as the same class in both VRML versions:
 
