@@ -44,13 +44,14 @@ var
   WasSomeNode: boolean;
   NodeType: string;
   IsInterface: boolean;
+  IsAbstract: boolean;
 
 procedure ParseNodeStartLine(const Line: string);
 const
   Delimiters = WhiteSpaces + [','];
 var
   SeekPos: Integer;
-  SomeAncestorFound, IsAbstract: boolean;
+  SomeAncestorFound: boolean;
   Token: string;
 begin
   SeekPos := 1;
@@ -99,10 +100,14 @@ begin
   begin
     WritelnStr(InterfaceLines,
       '  public' + NL +
-      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;' + NL +
-      '    class function ClassNodeTypeName: string; override;' + NL +
-      '    function SuggestedVRMLVersion(' + NL +
-      '      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;');
+      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;');
+
+    if not IsAbstract then
+      WritelnStr(InterfaceLines,
+        '    class function ClassNodeTypeName: string; override;' + NL +
+        '    function SuggestedVRMLVersion(' + NL +
+        '      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;' + NL +
+        '    class function URNMatching(const URN: string): boolean; override;');
 
     WritelnStr(ImplementationLines,
       'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + NL +
@@ -329,23 +334,32 @@ begin
   WritelnStr(InterfaceLines, '  end;' + NL);
 
   if not IsInterface then
+  begin
     WritelnStr(ImplementationLines,
       NL +
       '  DefaultContainerField := ''children'';' + NL +
-      'end;' + NL +
-      NL +
-      'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + NL +
-      'begin' + NL +
-      '  Result := ''' + NodeType + ''';' + NL +
-      'end;' + NL +
-      NL +
-      'function TNode' + NodeType + '.SuggestedVRMLVersion(' + NL +
-      '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + NL +
-      'begin' + NL +
-      '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + NL +
-      '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + NL +
-      '    true, 3, 2, 2000);' + NL +
       'end;' + NL);
+    if not IsAbstract then
+      WritelnStr(ImplementationLines,
+        'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + NL +
+        'begin' + NL +
+        '  Result := ''' + NodeType + ''';' + NL +
+        'end;' + NL +
+        NL +
+        'function TNode' + NodeType + '.SuggestedVRMLVersion(' + NL +
+        '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + NL +
+        'begin' + NL +
+        '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + NL +
+        '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + NL +
+        '    true, 3, 2, 2000);' + NL +
+        'end;' + NL +
+        NL +
+        'class function TNode' + NodeType + '.URNMatching(const URN: string): boolean;' + NL +
+        'begin' + NL +
+        '  Result := (inherited URNMatching(URN)) or' + NL +
+        '    (URN = URNX3DNodes + ClassNodeTypeName);' + NL +
+        'end;' + NL);
+  end;
 end;
 
 var
