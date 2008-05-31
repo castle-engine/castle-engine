@@ -112,4 +112,11 @@ begin
     Func(Self, FdChildren.Items[0]);
 end;
 
+function TNodeLOD_3.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
 {$endif read_implementation}

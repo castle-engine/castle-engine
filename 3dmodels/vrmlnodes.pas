@@ -1281,6 +1281,15 @@ type
       (non-standard VRML 1.0 file using my "extension" that allows
       Background node in VRML 1.0).
 
+      X3D nodes suggest V3.2 (not 3.0, because some features (shaders)
+      are only in ammendment 1 I think, so 3.1 is safer and for simplicity
+      (since I looked mostly at 3.2) 3.2 is even better).
+      Also, they use priority 2000, so they are slightly stronger than
+      VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
+      will be judged as X3D. And that's Ok, because almost everything
+      (incompatible exceptions are e.g. Switch and LOD field name)
+      valid in VRML 97 is also valid in X3D.
+
       Default implementation in this class enumerates all
       SFNode and MFNoden fields and Children nodes
       and determines their suggested VRML version. }
@@ -2648,7 +2657,6 @@ uses
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
 {$I vrmlnodes_triangulating.inc}
-{$I vrmlnodes_suggested_vrml_version.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}

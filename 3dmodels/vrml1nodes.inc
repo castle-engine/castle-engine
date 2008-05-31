@@ -1030,6 +1030,14 @@ begin
   Result := VerMajor <= 1;
 end;
 
+function TNodeGeneralShape_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1210,6 +1218,14 @@ begin
   result := 'Coordinate3';
 end;
 
+function TNodeCoordinate3.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeFontStyle_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1262,6 +1278,14 @@ begin
   Result := VerMajor <= 1;
 end;
 
+function TNodeFontStyle_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeInfo.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1273,6 +1297,14 @@ end;
 class function TNodeInfo.ClassNodeTypeName: string;
 begin
   result := 'Info';
+end;
+
+function TNodeInfo.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeLOD_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -1313,6 +1345,14 @@ end;
 class function TNodeLOD_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
+end;
+
+function TNodeLOD_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -1555,6 +1595,14 @@ begin
   Result := VerMajor <= 1;
 end;
 
+function TNodeMaterial_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1568,6 +1616,14 @@ begin
   result := 'MaterialBinding';
 end;
 
+function TNodeMaterialBinding.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeNormalBinding.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1579,6 +1635,14 @@ end;
 class function TNodeNormalBinding.ClassNodeTypeName: string;
 begin
   result := 'NormalBinding';
+end;
+
+function TNodeNormalBinding.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -1670,6 +1734,14 @@ begin
   Result := FdWrapT.Value = TEXWRAP_REPEAT;
 end;
 
+function TNodeTexture2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1710,6 +1782,14 @@ begin
     TextureMatrixTransformation);
 end;
 
+function TNodeTexture2Transform.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeTextureCoordinate2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1721,6 +1801,14 @@ end;
 class function TNodeTextureCoordinate2.ClassNodeTypeName: string;
 begin
   result := 'TextureCoordinate2';
+end;
+
+function TNodeTextureCoordinate2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeShapeHints.Create(const ANodeName: string;
@@ -1779,6 +1867,14 @@ begin
   end;
 end;
 
+function TNodeShapeHints.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 procedure TNodeGeneralTransformation.MiddleTraverse(State: TVRMLGraphTraverseState);
 var
   M, IM: TMatrix4Single;
@@ -1790,6 +1886,14 @@ begin
   State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
 
   State.AverageScaleTransform *= AverageScaleTransform;
+end;
+
+function TNodeGeneralTransformation.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeMatrixTransform.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2036,6 +2140,14 @@ begin
   Fields.Add(FFdfarDistance);
 end;
 
+function TNodeGeneralVRML1Camera.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 class function TNodeOrthographicCamera.ClassNodeTypeName: string;
 begin
   result := 'OrthographicCamera';
@@ -2175,6 +2287,14 @@ begin
   Result := VerMajor <= 1;
 end;
 
+function TNodeDirectionalLight_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeGeneralPointLight.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2189,6 +2309,14 @@ end;
 class function TNodePointLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
+end;
+
+function TNodePointLight_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeSpotLight_1.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2229,6 +2357,14 @@ begin
       FdDirection.Value) );
 end;
 
+function TNodeSpotLight_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeGroup_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2244,6 +2380,14 @@ end;
 class function TNodeGroup_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
+end;
+
+function TNodeGroup_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 procedure TNodeGroupHidden_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
@@ -2283,6 +2427,14 @@ begin
   State.Free;
   State := OriginalState;
   inherited;
+end;
+
+function TNodeGeneralSeparator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2338,6 +2490,14 @@ begin
   Result := VerMajor <= 1;
 end;
 
+function TNodeSwitch_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 constructor TNodeTransformSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2367,6 +2527,14 @@ begin
   State.InvertedTransform := OriginalInvertedTransform;
   State.AverageScaleTransform := OriginalAverageScaleTransform;
   inherited;
+end;
+
+function TNodeTransformSeparator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 
 constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2462,5 +2630,13 @@ end;
 class function TNodeWWWInline.ChildrenSaveToStream: boolean;
 begin
   Result := false;
+end;
+
+function TNodeWWWInline.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
 end;
 {$endif read_implementation}

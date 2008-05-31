@@ -207,6 +207,14 @@ begin
   Result += ')';
 end;
 
+function TNodeComposedShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
 constructor TNodePackagedShader.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -223,6 +231,14 @@ begin
   Result := 'PackagedShader';
 end;
 
+function TNodePackagedShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
 constructor TNodeProgramShader.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -237,6 +253,14 @@ end;
 class function TNodeProgramShader.ClassNodeTypeName: string;
 begin
   Result := 'ProgramShader';
+end;
+
+function TNodeProgramShader.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
 end;
 
 constructor TNodeShaderPart.Create(const ANodeName: string;
@@ -285,6 +309,14 @@ begin
   end;
 end;
 
+function TNodeShaderPart.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
 constructor TNodeShaderProgram.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -305,4 +337,11 @@ begin
   Result := 'ShaderProgram';
 end;
 
+function TNodeShaderProgram.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
 {$endif read_implementation}

@@ -2265,17 +2265,6 @@
 
 {$ifdef read_implementation}
 
-class function TNodeAppearance.ClassNodeTypeName: string;
-begin
-  Result := 'Appearance';
-end;
-
-class function TNodeAppearance.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeAppearance.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2310,6 +2299,17 @@ begin
   DefaultContainerField := 'appearance';
 end;
 
+class function TNodeAppearance.ClassNodeTypeName: string;
+begin
+  Result := 'Appearance';
+end;
+
+class function TNodeAppearance.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeAppearance.GLSLShader(Index: Integer): TNodeComposedShader;
 begin
   if FdShaders.Items[Index] is TNodeComposedShader then
@@ -2322,15 +2322,12 @@ begin
     Result := nil;
 end;
 
-class function TNodeAudioClip.ClassNodeTypeName: string;
+function TNodeAppearance.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
-  Result := 'AudioClip';
-end;
-
-class function TNodeAudioClip.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 constructor TNodeAudioClip.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2362,6 +2359,25 @@ begin
   Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeAudioClip.ClassNodeTypeName: string;
+begin
+  Result := 'AudioClip';
+end;
+
+class function TNodeAudioClip.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+function TNodeAudioClip.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 constructor TNodeBackground.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2513,15 +2529,12 @@ begin
   inherited;
 end;
 
-class function TNodeBillboard.ClassNodeTypeName: string;
+function TNodeBackground.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
-  Result := 'Billboard';
-end;
-
-class function TNodeBillboard.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 100);
 end;
 
 constructor TNodeBillboard.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2534,12 +2547,31 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeBillboard.ClassNodeTypeName: string;
+begin
+  Result := 'Billboard';
+end;
+
+class function TNodeBillboard.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 procedure TNodeBillboard.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
   for I := 0 to FdChildren.Count - 1 do
     Func(Self, FdChildren.Items[I]);
+end;
+
+function TNodeBillboard.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeBox.ClassNodeTypeName: string;
@@ -2559,6 +2591,14 @@ begin
 
   FFdsize := TSFVec3f.Create('size', Vector3Single(2, 2, 2));
   Fields.Add(FFdsize);
+end;
+
+function TNodeBox.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCollision.ClassNodeTypeName: string;
@@ -2603,6 +2643,14 @@ begin
     Func(Self, FdChildren.Items[I]);
 end;
 
+function TNodeCollision.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeColor.ClassNodeTypeName: string;
 begin
   Result := 'Color';
@@ -2622,6 +2670,14 @@ begin
   Fields.Add(FFdcolor);
 
   DefaultContainerField := 'color';
+end;
+
+function TNodeColor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeColorInterpolator.ClassNodeTypeName: string;
@@ -2652,6 +2708,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeColorInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCone_2.ClassNodeTypeName: string;
@@ -2691,6 +2755,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeCone_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeContour2D.ClassNodeTypeName: string;
 begin
   Result := 'Contour2D';
@@ -2718,6 +2790,14 @@ begin
   DefaultContainerField := 'trimmingContour';
 end;
 
+function TNodeContour2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeCoordinate.ClassNodeTypeName: string;
 begin
   Result := 'Coordinate';
@@ -2737,6 +2817,14 @@ begin
   Fields.Add(FFdpoint);
 
   DefaultContainerField := 'coord';
+end;
+
+function TNodeCoordinate.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCoordinateDeformer.ClassNodeTypeName: string;
@@ -2830,6 +2918,14 @@ begin
   Result := FdChildren;
 end;
 
+function TNodeCoordinateDeformer.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateInterpolator';
@@ -2858,6 +2954,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeCoordinateInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCylinder_2.ClassNodeTypeName: string;
@@ -2901,6 +3005,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeCylinder_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeCylinderSensor.ClassNodeTypeName: string;
 begin
   Result := 'CylinderSensor';
@@ -2937,6 +3049,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeCylinderSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 constructor TNodeDirectionalLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2958,6 +3078,14 @@ class function TNodeDirectionalLight_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+function TNodeDirectionalLight_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeElevationGrid.ClassNodeTypeName: string;
@@ -3041,6 +3169,14 @@ begin
     (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
 end;
 
+function TNodeElevationGrid.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeExtrusion.ClassNodeTypeName: string;
 begin
   Result := 'Extrusion';
@@ -3116,6 +3252,14 @@ begin
   Result[2] := FdCrossSection.Items.Items[Index][1];
 end;
 
+function TNodeExtrusion.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeFog.ClassNodeTypeName: string;
 begin
   Result := 'Fog';
@@ -3166,6 +3310,14 @@ begin
   if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
     Result := TNodeFog(FdAlternative.Value) else
     Result := nil;
+end;
+
+function TNodeFog.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 100);
 end;
 
 class function TNodeFontStyle_2.ClassNodeTypeName: string;
@@ -3347,6 +3499,14 @@ begin
   Result := TTF_Font_Results[DefaultFamily, DefaultBold, DefaultItalic];
 end;
 
+function TNodeFontStyle_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeGeoCoordinate.ClassNodeTypeName: string;
 begin
   Result := 'GeoCoordinate';
@@ -3374,6 +3534,14 @@ begin
   Fields.Add(FFdpoint);
 
   DefaultContainerField := 'coord';
+end;
+
+function TNodeGeoCoordinate.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoElevationGrid.ClassNodeTypeName: string;
@@ -3463,6 +3631,14 @@ begin
   Fields.Add(FFdzSpacing);
 end;
 
+function TNodeGeoElevationGrid.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeGeoLocation.ClassNodeTypeName: string;
 begin
   Result := 'GeoLocation';
@@ -3490,6 +3666,14 @@ begin
   Fields.Add(FFdgeoSystem);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeGeoLocation.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoLOD.ClassNodeTypeName: string;
@@ -3554,6 +3738,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeGeoLOD.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeGeoMetadata.ClassNodeTypeName: string;
 begin
   Result := 'GeoMetadata';
@@ -3581,6 +3773,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeGeoMetadata.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeGeoOrigin.ClassNodeTypeName: string;
 begin
   Result := 'GeoOrigin';
@@ -3606,6 +3806,14 @@ begin
   Fields.Add(FFdrotateYUp);
 
   DefaultContainerField := 'geoOrigin';
+end;
+
+function TNodeGeoOrigin.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoPositionInterpolator.ClassNodeTypeName: string;
@@ -3651,6 +3859,14 @@ begin
   Fields.Last.Exposed := false;
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeGeoPositionInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
@@ -3701,6 +3917,14 @@ begin
   Events.Add(FEventtouchTime);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeGeoTouchSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoViewpoint.ClassNodeTypeName: string;
@@ -3770,6 +3994,14 @@ begin
   Events.Add(FEventisBound);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeGeoViewpoint.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeImageTexture.ClassNodeTypeName: string;
@@ -3844,6 +4076,14 @@ end;
 function TNodeImageTexture.RepeatT: boolean;
 begin
   Result := FdRepeatT.Value;
+end;
+
+function TNodeImageTexture.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;
@@ -3931,6 +4171,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeIndexedFaceSet_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
 begin
   Result := 'IndexedLineSet';
@@ -3974,6 +4222,14 @@ end;
 class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeIndexedLineSet_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeInlineLoadControl.ClassNodeTypeName: string;
@@ -4065,6 +4321,14 @@ begin
   Result := false;
 end;
 
+function TNodeInlineLoadControl.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeLOD_2.ClassNodeTypeName: string;
 begin
   Result := 'LOD';
@@ -4110,6 +4374,14 @@ begin
     avoiding whole issue of choosing proper LOD child. }
   if FdLevel.Items.Count >= 1 then
     Func(Self, FdLevel.Items[0]);
+end;
+
+function TNodeLOD_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeMaterial_2.ClassNodeTypeName: string;
@@ -4169,6 +4441,14 @@ begin
   Result := Clamped(FdShininess.Value * 128.0, 0.0, 128.0);
 end;
 
+function TNodeMaterial_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeMovieTexture.ClassNodeTypeName: string;
 begin
   Result := 'MovieTexture';
@@ -4216,6 +4496,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeMovieTexture.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeNavigationInfo.ClassNodeTypeName: string;
 begin
   Result := 'NavigationInfo';
@@ -4256,6 +4544,14 @@ begin
   Events.Add(FEventtransitionComplete);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeNavigationInfo.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 100);
 end;
 
 class function TNodeNormal.ClassNodeTypeName: string;
@@ -4309,6 +4605,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeNormalInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeNurbsCurve.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve';
@@ -4340,6 +4644,14 @@ begin
   FFdorder := TSFInt32.Create('order', 3);
   FFdorder.Exposed := false;
   Fields.Add(FFdorder);
+end;
+
+function TNodeNurbsCurve.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
@@ -4375,6 +4687,14 @@ begin
   Fields.Add(FFdorder);
 end;
 
+function TNodeNurbsCurve2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeNurbsGroup.ClassNodeTypeName: string;
 begin
   Result := 'NurbsGroup';
@@ -4392,6 +4712,14 @@ begin
 
   FFdtessellationScale := TSFFloat.Create('tessellationScale', 1.0);
   Fields.Add(FFdtessellationScale);
+end;
+
+function TNodeNurbsGroup.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
@@ -4431,6 +4759,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeNurbsPositionInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeNurbsSurface.ClassNodeTypeName: string;
@@ -4496,6 +4832,14 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
+function TNodeNurbsSurface.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
 begin
   Result := 'NurbsTextureSurface';
@@ -4542,6 +4886,14 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
+function TNodeNurbsTextureSurface.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
 begin
   Result := 'OrientationInterpolator';
@@ -4570,6 +4922,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeOrientationInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodePixelTexture.ClassNodeTypeName: string;
@@ -4629,6 +4989,14 @@ begin
   Result := FdRepeatT.Value;
 end;
 
+function TNodePixelTexture.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodePlaneSensor.ClassNodeTypeName: string;
 begin
   Result := 'PlaneSensor';
@@ -4660,6 +5028,14 @@ begin
   Events.Add(FEventtranslation_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodePlaneSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 constructor TNodePointLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4716,6 +5092,14 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
+function TNodePointLight_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodePointSet_2.ClassNodeTypeName: string;
 begin
   Result := 'PointSet';
@@ -4743,6 +5127,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodePointSet_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodePolyline2D.ClassNodeTypeName: string;
 begin
   Result := 'Polyline2D';
@@ -4760,6 +5152,14 @@ begin
 
   FFdpoint := TMFVec2f.Create('point', []);
   Fields.Add(FFdpoint);
+end;
+
+function TNodePolyline2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodePositionInterpolator.ClassNodeTypeName: string;
@@ -4790,6 +5190,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodePositionInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeProximitySensor.ClassNodeTypeName: string;
@@ -4834,6 +5242,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeProximitySensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeScalarInterpolator.ClassNodeTypeName: string;
 begin
   Result := 'ScalarInterpolator';
@@ -4862,6 +5278,14 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeScalarInterpolator.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeScript.ClassNodeTypeName: string;
@@ -4897,6 +5321,14 @@ begin
     so it's not by accident) allows here all access types,
     including inputOutput. }
   HasInterfaceDeclarations := AllAccessTypes;
+end;
+
+function TNodeScript.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;
@@ -5044,6 +5476,14 @@ begin
   end;
 end;
 
+function TNodeShape.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeSound.ClassNodeTypeName: string;
 begin
   Result := 'Sound';
@@ -5093,6 +5533,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeSound.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeSphere_2.ClassNodeTypeName: string;
 begin
   Result := 'Sphere';
@@ -5118,6 +5566,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeSphere_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeSphereSensor.ClassNodeTypeName: string;
 begin
   Result := 'SphereSensor';
@@ -5140,6 +5596,14 @@ begin
   Events.Add(FEventrotation_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeSphereSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeSpotLight_2.ClassNodeTypeName: string;
@@ -5199,6 +5663,14 @@ begin
   Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
 end;
 
+function TNodeSpotLight_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeSwitch_2.ClassNodeTypeName: string;
 begin
   Result := 'Switch';
@@ -5239,6 +5711,14 @@ begin
     Func(Self, FdChoice.Items[FdWhichChoice.Value]);
 end;
 
+function TNodeSwitch_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeText.ClassNodeTypeName: string;
 begin
   Result := 'Text';
@@ -5275,6 +5755,14 @@ begin
     Result := nil;
 end;
 
+function TNodeText.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeTextureCoordinate.ClassNodeTypeName: string;
 begin
   Result := 'TextureCoordinate';
@@ -5294,6 +5782,14 @@ begin
   Fields.Add(FFdpoint);
 
   DefaultContainerField := 'texCoord';
+end;
+
+function TNodeTextureCoordinate.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeTextureTransform.ClassNodeTypeName: string;
@@ -5378,6 +5874,14 @@ begin
       Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
+function TNodeTextureTransform.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeTouchSensor.ClassNodeTypeName: string;
 begin
   Result := 'TouchSensor';
@@ -5403,6 +5907,14 @@ begin
   Events.Add(FEventhitTexCoord_changed);
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeTouchSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeTrimmedSurface.ClassNodeTypeName: string;
@@ -5431,6 +5943,14 @@ begin
 
   FFdsurface := TSFNode.Create(Self, 'surface', [TNodeNurbsSurface]);
   Fields.Add(FFdsurface);
+end;
+
+function TNodeTrimmedSurface.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeViewpoint.ClassNodeTypeName: string;
@@ -5507,6 +6027,14 @@ begin
   end;
 end;
 
+function TNodeViewpoint.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
 class function TNodeVisibilitySensor.ClassNodeTypeName: string;
 begin
   Result := 'VisibilitySensor';
@@ -5543,4 +6071,11 @@ begin
   DefaultContainerField := 'children';
 end;
 
+function TNodeVisibilitySensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
 {$endif read_implementation}

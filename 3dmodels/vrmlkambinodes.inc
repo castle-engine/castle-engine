@@ -290,6 +290,14 @@ begin
   Fields.Add(FFdspotDropOffRate);
 end;
 
+function TNodeKambiTriangulation.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 1, 0, 1000);
+end;
+
 class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -336,6 +344,14 @@ begin
      (FdFontStyle.Value is TNodeFontStyle_2) then
     Result := TNodeFontStyle_2(FdFontStyle.Value) else
     Result := nil;
+end;
+
+function TNodeText3D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
 end;
 
 class function TNodeBlendMode.ClassNodeTypeName: string;
