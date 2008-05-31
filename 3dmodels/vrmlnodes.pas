@@ -207,6 +207,15 @@
     rozna od domyslnej to uwzglednimy wszedzie to pole i zapiszemy je w
     razie potrzeby z powrotem do pliku VRMLa.
 
+  Implementation organization notes:
+  - vrml1nodes.inc contains only VRML-1.0 specific nodes
+  - vrml97nodes.inc contains only VRML 97 specific nodes
+  - various x3d_xxx.inc contain X3D nodes belonging to specific xxx component.
+    So most of the nodes (also VRML 97 nodes, since they are usually the same
+    for VRML 97 and X3D) are inside x3d_xxx.inc.
+    That's a nice thing, since X3D components provide a natural way to group
+    the vast number of nodes into files.
+
   Many X3D nodes are declared as both Pascal interface and class.
   That's because we preserve X3D inheritance graph, and when node
   descends from more than one VRML class --- the rest of VRML classes
