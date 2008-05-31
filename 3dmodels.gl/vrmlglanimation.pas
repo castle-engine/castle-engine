@@ -1,5 +1,5 @@
 {
-  Copyright 2006,2007 Michalis Kamburelis.
+  Copyright 2006-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -606,19 +606,34 @@ procedure TVRMLGLAnimation.Load(
           end;
         end}
 
-      if Model1.Fields[I] is TSFColor    then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFDouble   then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFFloat    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFMatrix   then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFMatrix3f then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFMatrix3d then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFMatrix4f then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFMatrix4d then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFRotation then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFTime     then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFVec2f    then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFVec2d    then begin { no need to check anything } end else
       if Model1.Fields[I] is TSFVec3f    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TMFColor    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFTime     then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TSFVec3d    then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFVec4f    then begin { no need to check anything } end else
+      if Model1.Fields[I] is TSFVec4d    then begin { no need to check anything } end else
+
+      if Model1.Fields[I] is TMFDouble   then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFFloat    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFMatrix3f then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFMatrix3d then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFMatrix4f then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFMatrix4d then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFRotation then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFVec2f    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFVec2d    then CheckMFStructuralEquality else
       if Model1.Fields[I] is TMFVec3f    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFFloat    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFVec3d    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFVec4f    then CheckMFStructuralEquality else
+      if Model1.Fields[I] is TMFVec4d    then CheckMFStructuralEquality else
+
       if Model1.Fields[I] is TSFNode     then CheckSFNodesStructurallyEqual(
         TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
       if Model1.Fields[I] is TMFNode     then CheckMFNodesStructurallyEqual(
