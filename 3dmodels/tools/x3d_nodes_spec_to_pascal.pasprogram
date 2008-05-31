@@ -115,7 +115,7 @@ begin
       if WasSomeNode then
         WriteStr(RegistrationLines, ',' + NL) else
         WasSomeNode := true;
-      WriteStr(RegistrationLines, '    ' + NodeType);
+      WriteStr(RegistrationLines, '    TNode' + NodeType);
     end;
   end;
 end;
@@ -391,7 +391,8 @@ begin
     ImplementationLines.Position := 0;
     ImplementationLines.SaveToStream(StdOutStream);
     WritelnStr('procedure Register' + ComponentName + 'Nodes;' + NL +
-               '  NodesManager.RegisterNodeClasses([');
+               '  NodesManager.RegisterNodeClasses([' + NL +
+               'begin');
     RegistrationLines.Position := 0;
     RegistrationLines.SaveToStream(StdOutStream);
     WritelnStr(NL + '  ]);' + NL +
