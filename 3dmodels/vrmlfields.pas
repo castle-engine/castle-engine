@@ -3038,6 +3038,22 @@ begin
      EqualityEpsilon) then
     Exit(false);
 end;
+
+function TMF_CLASS.RawItemToString(ItemNum: Integer): string;
+begin
+  Result := VectorToRawStr(Items.Items[ItemNum])
+end;
+
+procedure TMF_CLASS.AssignLerp(const A: Single; Value1, Value2: TMF_CLASS);
+var
+  I: Integer;
+begin
+  Value1.CheckCountEqual(Value2);
+  Items.Count := Value1.Items.Count;
+
+  for I := 0 to Items.Count - 1 do
+    Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
 }
 
 {$define IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL:=
@@ -3175,40 +3191,12 @@ end;
 
 { TMFVec2f ------------------------------------------------------------------- }
 
-function TMFVec2f.RawItemToString(ItemNum: integer): string;
-begin result := VectorToRawStr(Items.Items[ItemNum]) end;
-
-procedure TMFVec2f.AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
-var
-  I: Integer;
-begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
-
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
-end;
-
 class function TMFVec2f.VRMLTypeName: string;
 begin
   Result := 'MFVec2f';
 end;
 
 { TMFVec3f ------------------------------------------------------------------- }
-
-function TMFVec3f.RawItemToString(ItemNum: integer): string;
-begin result := VectorToRawStr(Items.Items[ItemNum]) end;
-
-procedure TMFVec3f.AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
-var
-  I: Integer;
-begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
-
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
-end;
 
 class function TMFVec3f.VRMLTypeName: string;
 begin
@@ -3224,20 +3212,6 @@ end;
 
 { TMFVec4f ------------------------------------------------------------------- }
 
-function TMFVec4f.RawItemToString(ItemNum: integer): string;
-begin result := VectorToRawStr(Items.Items[ItemNum]) end;
-
-procedure TMFVec4f.AssignLerp(const A: Single; Value1, Value2: TMFVec4f);
-var
-  I: Integer;
-begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
-
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
-end;
-
 class function TMFVec4f.VRMLTypeName: string;
 begin
   Result := 'MFVec4f';
@@ -3251,22 +3225,6 @@ begin
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
-
-function TMFRotation.RawItemToString(ItemNum: Integer): string;
-begin
-  Result := VectorToRawStr(Items.Items[ItemNum])
-end;
-
-procedure TMFRotation.AssignLerp(const A: Single; Value1, Value2: TMFRotation);
-var
-  I: Integer;
-begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
-
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
-end;
 
 class function TMFRotation.VRMLTypeName: string;
 begin
