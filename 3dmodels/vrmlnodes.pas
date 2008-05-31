@@ -1490,7 +1490,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1590,7 +1590,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -4386,7 +4386,7 @@ begin
 end;
 
 function TSFNode.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFNode) and
@@ -4617,7 +4617,7 @@ begin
 end;
 
 function TMFNode.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
     (SecondValue is TMFNode) and
