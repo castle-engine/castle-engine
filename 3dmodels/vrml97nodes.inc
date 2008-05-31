@@ -2574,6 +2574,14 @@ begin
     true, 2, 0, 1000);
 end;
 
+constructor TNodeBox.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdsize := TSFVec3f.Create('size', Vector3Single(2, 2, 2));
+  Fields.Add(FFdsize);
+end;
+
 class function TNodeBox.ClassNodeTypeName: string;
 begin
   Result := 'Box';
@@ -2585,31 +2593,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodeBox.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdsize := TSFVec3f.Create('size', Vector3Single(2, 2, 2));
-  Fields.Add(FFdsize);
-end;
-
 function TNodeBox.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCollision.ClassNodeTypeName: string;
-begin
-  Result := 'Collision';
-end;
-
-class function TNodeCollision.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2635,6 +2624,17 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeCollision.ClassNodeTypeName: string;
+begin
+  Result := 'Collision';
+end;
+
+class function TNodeCollision.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
@@ -2651,6 +2651,16 @@ begin
     true, 2, 0, 1000);
 end;
 
+constructor TNodeColor.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdcolor := TMFColor.Create('color', []);
+  Fields.Add(FFdcolor);
+
+  DefaultContainerField := 'color';
+end;
+
 class function TNodeColor.ClassNodeTypeName: string;
 begin
   Result := 'Color';
@@ -2662,33 +2672,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodeColor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcolor := TMFColor.Create('color', []);
-  Fields.Add(FFdcolor);
-
-  DefaultContainerField := 'color';
-end;
-
 function TNodeColor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeColorInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'ColorInterpolator';
-end;
-
-class function TNodeColorInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeColorInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2710,23 +2699,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeColorInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'ColorInterpolator';
+end;
+
+class function TNodeColorInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeColorInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCone_2.ClassNodeTypeName: string;
-begin
-  Result := 'Cone';
-end;
-
-class function TNodeCone_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCone_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2750,6 +2739,17 @@ begin
   Fields.Add(FFdbottom);
 end;
 
+class function TNodeCone_2.ClassNodeTypeName: string;
+begin
+  Result := 'Cone';
+end;
+
+class function TNodeCone_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeCone_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -2761,17 +2761,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeContour2D.ClassNodeTypeName: string;
-begin
-  Result := 'Contour2D';
-end;
-
-class function TNodeContour2D.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2790,12 +2779,33 @@ begin
   DefaultContainerField := 'trimmingContour';
 end;
 
+class function TNodeContour2D.ClassNodeTypeName: string;
+begin
+  Result := 'Contour2D';
+end;
+
+class function TNodeContour2D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeContour2D.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+constructor TNodeCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdpoint := TMFVec3f.Create('point', []);
+  Fields.Add(FFdpoint);
+
+  DefaultContainerField := 'coord';
 end;
 
 class function TNodeCoordinate.ClassNodeTypeName: string;
@@ -2809,33 +2819,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec3f.Create('point', []);
-  Fields.Add(FFdpoint);
-
-  DefaultContainerField := 'coord';
-end;
-
 function TNodeCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCoordinateDeformer.ClassNodeTypeName: string;
-begin
-  Result := 'CoordinateDeformer';
-end;
-
-class function TNodeCoordinateDeformer.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2913,6 +2902,17 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeCoordinateDeformer.ClassNodeTypeName: string;
+begin
+  Result := 'CoordinateDeformer';
+end;
+
+class function TNodeCoordinateDeformer.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeCoordinateDeformer.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
@@ -2924,17 +2924,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'CoordinateInterpolator';
-end;
-
-class function TNodeCoordinateInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCoordinateInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2956,23 +2945,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'CoordinateInterpolator';
+end;
+
+class function TNodeCoordinateInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeCoordinateInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCylinder_2.ClassNodeTypeName: string;
-begin
-  Result := 'Cylinder';
-end;
-
-class function TNodeCylinder_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCylinder_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3000,6 +2989,17 @@ begin
   Fields.Add(FFdtop);
 end;
 
+class function TNodeCylinder_2.ClassNodeTypeName: string;
+begin
+  Result := 'Cylinder';
+end;
+
+class function TNodeCylinder_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeCylinder_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -3011,17 +3011,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeCylinderSensor.ClassNodeTypeName: string;
-begin
-  Result := 'CylinderSensor';
-end;
-
-class function TNodeCylinderSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeCylinderSensor.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3047,6 +3036,17 @@ begin
   Events.Add(FEventrotation_changed);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeCylinderSensor.ClassNodeTypeName: string;
+begin
+  Result := 'CylinderSensor';
+end;
+
+class function TNodeCylinderSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodeCylinderSensor.SuggestedVRMLVersion(
@@ -3086,17 +3086,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeElevationGrid.ClassNodeTypeName: string;
-begin
-  Result := 'ElevationGrid';
-end;
-
-class function TNodeElevationGrid.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3156,6 +3145,17 @@ begin
   Fields.Add(FFdzSpacing);
 end;
 
+class function TNodeElevationGrid.ClassNodeTypeName: string;
+begin
+  Result := 'ElevationGrid';
+end;
+
+class function TNodeElevationGrid.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeElevationGrid.IsNotEmpty: boolean;
 begin
   Result :=
@@ -3175,17 +3175,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeExtrusion.ClassNodeTypeName: string;
-begin
-  Result := 'Extrusion';
-end;
-
-class function TNodeExtrusion.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeExtrusion.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3245,6 +3234,17 @@ begin
   Fields.Add(FFdspine);
 end;
 
+class function TNodeExtrusion.ClassNodeTypeName: string;
+begin
+  Result := 'Extrusion';
+end;
+
+class function TNodeExtrusion.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
 begin
   Result[0] := FdCrossSection.Items.Items[Index][0];
@@ -3258,17 +3258,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeFog.ClassNodeTypeName: string;
-begin
-  Result := 'Fog';
-end;
-
-class function TNodeFog.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeFog.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3305,6 +3294,17 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeFog.ClassNodeTypeName: string;
+begin
+  Result := 'Fog';
+end;
+
+class function TNodeFog.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeFog.Alternative: TNodeFog;
 begin
   if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
@@ -3318,17 +3318,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 100);
-end;
-
-class function TNodeFontStyle_2.ClassNodeTypeName: string;
-begin
-  Result := 'FontStyle';
-end;
-
-class function TNodeFontStyle_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeFontStyle_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3363,6 +3352,17 @@ begin
   Fields.Add(FFdtopToBottom);
 
   DefaultContainerField := 'fontStyle';
+end;
+
+class function TNodeFontStyle_2.ClassNodeTypeName: string;
+begin
+  Result := 'FontStyle';
+end;
+
+class function TNodeFontStyle_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 class function TNodeFontStyle_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -3507,17 +3507,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeGeoCoordinate.ClassNodeTypeName: string;
-begin
-  Result := 'GeoCoordinate';
-end;
-
-class function TNodeGeoCoordinate.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeGeoCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -3536,23 +3525,23 @@ begin
   DefaultContainerField := 'coord';
 end;
 
+class function TNodeGeoCoordinate.ClassNodeTypeName: string;
+begin
+  Result := 'GeoCoordinate';
+end;
+
+class function TNodeGeoCoordinate.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoElevationGrid.ClassNodeTypeName: string;
-begin
-  Result := 'GeoElevationGrid';
-end;
-
-class function TNodeGeoElevationGrid.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoElevationGrid.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3631,23 +3620,23 @@ begin
   Fields.Add(FFdzSpacing);
 end;
 
+class function TNodeGeoElevationGrid.ClassNodeTypeName: string;
+begin
+  Result := 'GeoElevationGrid';
+end;
+
+class function TNodeGeoElevationGrid.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoElevationGrid.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoLocation.ClassNodeTypeName: string;
-begin
-  Result := 'GeoLocation';
-end;
-
-class function TNodeGeoLocation.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoLocation.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3668,23 +3657,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoLocation.ClassNodeTypeName: string;
+begin
+  Result := 'GeoLocation';
+end;
+
+class function TNodeGeoLocation.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoLocation.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoLOD.ClassNodeTypeName: string;
-begin
-  Result := 'GeoLOD';
-end;
-
-class function TNodeGeoLOD.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoLOD.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3738,23 +3727,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoLOD.ClassNodeTypeName: string;
+begin
+  Result := 'GeoLOD';
+end;
+
+class function TNodeGeoLOD.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoLOD.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoMetadata.ClassNodeTypeName: string;
-begin
-  Result := 'GeoMetadata';
-end;
-
-class function TNodeGeoMetadata.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoMetadata.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3773,23 +3762,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoMetadata.ClassNodeTypeName: string;
+begin
+  Result := 'GeoMetadata';
+end;
+
+class function TNodeGeoMetadata.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoMetadata.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoOrigin.ClassNodeTypeName: string;
-begin
-  Result := 'GeoOrigin';
-end;
-
-class function TNodeGeoOrigin.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoOrigin.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3808,23 +3797,23 @@ begin
   DefaultContainerField := 'geoOrigin';
 end;
 
+class function TNodeGeoOrigin.ClassNodeTypeName: string;
+begin
+  Result := 'GeoOrigin';
+end;
+
+class function TNodeGeoOrigin.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoOrigin.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoPositionInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'GeoPositionInterpolator';
-end;
-
-class function TNodeGeoPositionInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoPositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3861,23 +3850,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoPositionInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'GeoPositionInterpolator';
+end;
+
+class function TNodeGeoPositionInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoPositionInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
-begin
-  Result := 'GeoTouchSensor';
-end;
-
-class function TNodeGeoTouchSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoTouchSensor.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3919,23 +3908,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
+begin
+  Result := 'GeoTouchSensor';
+end;
+
+class function TNodeGeoTouchSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoTouchSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeGeoViewpoint.ClassNodeTypeName: string;
-begin
-  Result := 'GeoViewpoint';
-end;
-
-class function TNodeGeoViewpoint.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeGeoViewpoint.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -3996,23 +3985,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeGeoViewpoint.ClassNodeTypeName: string;
+begin
+  Result := 'GeoViewpoint';
+end;
+
+class function TNodeGeoViewpoint.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeGeoViewpoint.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeImageTexture.ClassNodeTypeName: string;
-begin
-  Result := 'ImageTexture';
-end;
-
-class function TNodeImageTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeImageTexture.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4031,6 +4020,17 @@ begin
   Fields.Add(FFdrepeatT);
 
   DefaultContainerField := 'texture';
+end;
+
+class function TNodeImageTexture.ClassNodeTypeName: string;
+begin
+  Result := 'ImageTexture';
+end;
+
+class function TNodeImageTexture.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodeImageTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
@@ -4084,17 +4084,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;
-begin
-  Result := 'IndexedFaceSet';
-end;
-
-class function TNodeIndexedFaceSet_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4166,6 +4155,17 @@ begin
   Fields.Add(FFdtexCoordIndex);
 end;
 
+class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;
+begin
+  Result := 'IndexedFaceSet';
+end;
+
+class function TNodeIndexedFaceSet_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeIndexedFaceSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -4177,17 +4177,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
-begin
-  Result := 'IndexedLineSet';
-end;
-
-class function TNodeIndexedLineSet_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeIndexedLineSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4219,6 +4208,17 @@ begin
   Fields.Add(FFdcoordIndex);
 end;
 
+class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
+begin
+  Result := 'IndexedLineSet';
+end;
+
+class function TNodeIndexedLineSet_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -4230,17 +4230,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeInlineLoadControl.ClassNodeTypeName: string;
-begin
-  Result := 'InlineLoadControl';
-end;
-
-class function TNodeInlineLoadControl.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4266,6 +4255,17 @@ begin
 
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
+end;
+
+class function TNodeInlineLoadControl.ClassNodeTypeName: string;
+begin
+  Result := 'InlineLoadControl';
+end;
+
+class function TNodeInlineLoadControl.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 procedure TNodeInlineLoadControl.LoadInlined(CanReload: boolean);
@@ -4329,17 +4329,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeLOD_2.ClassNodeTypeName: string;
-begin
-  Result := 'LOD';
-end;
-
-class function TNodeLOD_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -4356,6 +4345,17 @@ begin
   Fields.Add(FFdrange);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeLOD_2.ClassNodeTypeName: string;
+begin
+  Result := 'LOD';
+end;
+
+class function TNodeLOD_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -4382,17 +4382,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeMaterial_2.ClassNodeTypeName: string;
-begin
-  Result := 'Material';
-end;
-
-class function TNodeMaterial_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeMaterial_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4426,6 +4415,17 @@ begin
   DefaultContainerField := 'material';
 end;
 
+class function TNodeMaterial_2.ClassNodeTypeName: string;
+begin
+  Result := 'Material';
+end;
+
+class function TNodeMaterial_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeMaterial_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -4447,17 +4447,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeMovieTexture.ClassNodeTypeName: string;
-begin
-  Result := 'MovieTexture';
-end;
-
-class function TNodeMovieTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeMovieTexture.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4496,23 +4485,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeMovieTexture.ClassNodeTypeName: string;
+begin
+  Result := 'MovieTexture';
+end;
+
+class function TNodeMovieTexture.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeMovieTexture.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNavigationInfo.ClassNodeTypeName: string;
-begin
-  Result := 'NavigationInfo';
-end;
-
-class function TNodeNavigationInfo.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4546,23 +4535,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeNavigationInfo.ClassNodeTypeName: string;
+begin
+  Result := 'NavigationInfo';
+end;
+
+class function TNodeNavigationInfo.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNavigationInfo.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 100);
-end;
-
-class function TNodeNormal.ClassNodeTypeName: string;
-begin
-  Result := 'Normal';
-end;
-
-class function TNodeNormal.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNormal.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4575,12 +4564,12 @@ begin
   DefaultContainerField := 'normal';
 end;
 
-class function TNodeNormalInterpolator.ClassNodeTypeName: string;
+class function TNodeNormal.ClassNodeTypeName: string;
 begin
-  Result := 'NormalInterpolator';
+  Result := 'Normal';
 end;
 
-class function TNodeNormalInterpolator.URNMatching(const URN: string): boolean;
+class function TNodeNormal.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
@@ -4605,23 +4594,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeNormalInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'NormalInterpolator';
+end;
+
+class function TNodeNormalInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNormalInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNurbsCurve.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsCurve';
-end;
-
-class function TNodeNurbsCurve.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4646,23 +4635,23 @@ begin
   Fields.Add(FFdorder);
 end;
 
+class function TNodeNurbsCurve.ClassNodeTypeName: string;
+begin
+  Result := 'NurbsCurve';
+end;
+
+class function TNodeNurbsCurve.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNurbsCurve.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsCurve2D';
-end;
-
-class function TNodeNurbsCurve2D.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNurbsCurve2D.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4687,12 +4676,31 @@ begin
   Fields.Add(FFdorder);
 end;
 
+class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
+begin
+  Result := 'NurbsCurve2D';
+end;
+
+class function TNodeNurbsCurve2D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNurbsCurve2D.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdtessellationScale := TSFFloat.Create('tessellationScale', 1.0);
+  Fields.Add(FFdtessellationScale);
 end;
 
 class function TNodeNurbsGroup.ClassNodeTypeName: string;
@@ -4706,31 +4714,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdtessellationScale := TSFFloat.Create('tessellationScale', 1.0);
-  Fields.Add(FFdtessellationScale);
-end;
-
 function TNodeNurbsGroup.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsPositionInterpolator';
-end;
-
-class function TNodeNurbsPositionInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNurbsPositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4761,23 +4750,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'NurbsPositionInterpolator';
+end;
+
+class function TNodeNurbsPositionInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNurbsPositionInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNurbsSurface.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsSurface';
-end;
-
-class function TNodeNurbsSurface.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4832,23 +4821,23 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
+class function TNodeNurbsSurface.ClassNodeTypeName: string;
+begin
+  Result := 'NurbsSurface';
+end;
+
+class function TNodeNurbsSurface.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNurbsSurface.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsTextureSurface';
-end;
-
-class function TNodeNurbsTextureSurface.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4886,23 +4875,23 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
+class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
+begin
+  Result := 'NurbsTextureSurface';
+end;
+
+class function TNodeNurbsTextureSurface.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeNurbsTextureSurface.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'OrientationInterpolator';
-end;
-
-class function TNodeOrientationInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeOrientationInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4924,23 +4913,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'OrientationInterpolator';
+end;
+
+class function TNodeOrientationInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeOrientationInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodePixelTexture.ClassNodeTypeName: string;
-begin
-  Result := 'PixelTexture';
-end;
-
-class function TNodePixelTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodePixelTexture.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -4959,6 +4948,17 @@ begin
   Fields.Add(FFdrepeatT);
 
   DefaultContainerField := 'texture';
+end;
+
+class function TNodePixelTexture.ClassNodeTypeName: string;
+begin
+  Result := 'PixelTexture';
+end;
+
+class function TNodePixelTexture.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodePixelTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
@@ -4997,17 +4997,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodePlaneSensor.ClassNodeTypeName: string;
-begin
-  Result := 'PlaneSensor';
-end;
-
-class function TNodePlaneSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5028,6 +5017,17 @@ begin
   Events.Add(FEventtranslation_changed);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodePlaneSensor.ClassNodeTypeName: string;
+begin
+  Result := 'PlaneSensor';
+end;
+
+class function TNodePlaneSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodePlaneSensor.SuggestedVRMLVersion(
@@ -5100,17 +5100,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodePointSet_2.ClassNodeTypeName: string;
-begin
-  Result := 'PointSet';
-end;
-
-class function TNodePointSet_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5120,6 +5109,17 @@ begin
 
   FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
   Fields.Add(FFdcoord);
+end;
+
+class function TNodePointSet_2.ClassNodeTypeName: string;
+begin
+  Result := 'PointSet';
+end;
+
+class function TNodePointSet_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -5135,6 +5135,14 @@ begin
     true, 2, 0, 1000);
 end;
 
+constructor TNodePolyline2D.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdpoint := TMFVec2f.Create('point', []);
+  Fields.Add(FFdpoint);
+end;
+
 class function TNodePolyline2D.ClassNodeTypeName: string;
 begin
   Result := 'Polyline2D';
@@ -5146,31 +5154,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodePolyline2D.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec2f.Create('point', []);
-  Fields.Add(FFdpoint);
-end;
-
 function TNodePolyline2D.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodePositionInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'PositionInterpolator';
-end;
-
-class function TNodePositionInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5192,23 +5181,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodePositionInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'PositionInterpolator';
+end;
+
+class function TNodePositionInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodePositionInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeProximitySensor.ClassNodeTypeName: string;
-begin
-  Result := 'ProximitySensor';
-end;
-
-class function TNodeProximitySensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeProximitySensor.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5242,23 +5231,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeProximitySensor.ClassNodeTypeName: string;
+begin
+  Result := 'ProximitySensor';
+end;
+
+class function TNodeProximitySensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeProximitySensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeScalarInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'ScalarInterpolator';
-end;
-
-class function TNodeScalarInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5280,23 +5269,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeScalarInterpolator.ClassNodeTypeName: string;
+begin
+  Result := 'ScalarInterpolator';
+end;
+
+class function TNodeScalarInterpolator.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeScalarInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeScript.ClassNodeTypeName: string;
-begin
-  Result := 'Script';
-end;
-
-class function TNodeScript.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeScript.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5323,23 +5312,23 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
+class function TNodeScript.ClassNodeTypeName: string;
+begin
+  Result := 'Script';
+end;
+
+class function TNodeScript.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeScript.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeShape.ClassNodeTypeName: string;
-begin
-  Result := 'Shape';
-end;
-
-class function TNodeShape.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeShape.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5353,6 +5342,17 @@ begin
   Fields.Add(FFdgeometry);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeShape.ClassNodeTypeName: string;
+begin
+  Result := 'Shape';
+end;
+
+class function TNodeShape.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 procedure TNodeShape.DirectEnumerateActive(
@@ -5484,17 +5484,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeSound.ClassNodeTypeName: string;
-begin
-  Result := 'Sound';
-end;
-
-class function TNodeSound.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeSound.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5533,12 +5522,32 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeSound.ClassNodeTypeName: string;
+begin
+  Result := 'Sound';
+end;
+
+class function TNodeSound.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeSound.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+constructor TNodeSphere_2.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius.Exposed := false;
+  Fields.Add(FFdradius);
 end;
 
 class function TNodeSphere_2.ClassNodeTypeName: string;
@@ -5550,15 +5559,6 @@ class function TNodeSphere_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-constructor TNodeSphere_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdradius := TSFFloat.Create('radius', 1);
-  FFdradius.Exposed := false;
-  Fields.Add(FFdradius);
 end;
 
 class function TNodeSphere_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -5574,17 +5574,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeSphereSensor.ClassNodeTypeName: string;
-begin
-  Result := 'SphereSensor';
-end;
-
-class function TNodeSphereSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeSphereSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5598,23 +5587,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeSphereSensor.ClassNodeTypeName: string;
+begin
+  Result := 'SphereSensor';
+end;
+
+class function TNodeSphereSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeSphereSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeSpotLight_2.ClassNodeTypeName: string;
-begin
-  Result := 'SpotLight';
-end;
-
-class function TNodeSpotLight_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5644,6 +5633,17 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeSpotLight_2.ClassNodeTypeName: string;
+begin
+  Result := 'SpotLight';
+end;
+
+class function TNodeSpotLight_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
@@ -5671,17 +5671,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeSwitch_2.ClassNodeTypeName: string;
-begin
-  Result := 'Switch';
-end;
-
-class function TNodeSwitch_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5693,6 +5682,17 @@ begin
   Fields.Add(FFdwhichChoice);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeSwitch_2.ClassNodeTypeName: string;
+begin
+  Result := 'Switch';
+end;
+
+class function TNodeSwitch_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 class function TNodeSwitch_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -5719,17 +5719,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeText.ClassNodeTypeName: string;
-begin
-  Result := 'Text';
-end;
-
-class function TNodeText.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeText.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5745,6 +5734,17 @@ begin
 
   FFdmaxExtent := TSFFloat.Create('maxExtent', 0.0);
   Fields.Add(FFdmaxExtent);
+end;
+
+class function TNodeText.ClassNodeTypeName: string;
+begin
+  Result := 'Text';
+end;
+
+class function TNodeText.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodeText.FontStyle: TNodeFontStyle_2;
@@ -5763,6 +5763,16 @@ begin
     true, 2, 0, 1000);
 end;
 
+constructor TNodeTextureCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdpoint := TMFVec2f.Create('point', []);
+  Fields.Add(FFdpoint);
+
+  DefaultContainerField := 'texCoord';
+end;
+
 class function TNodeTextureCoordinate.ClassNodeTypeName: string;
 begin
   Result := 'TextureCoordinate';
@@ -5774,33 +5784,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-constructor TNodeTextureCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec2f.Create('point', []);
-  Fields.Add(FFdpoint);
-
-  DefaultContainerField := 'texCoord';
-end;
-
 function TNodeTextureCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeTextureTransform.ClassNodeTypeName: string;
-begin
-  Result := 'TextureTransform';
-end;
-
-class function TNodeTextureTransform.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeTextureTransform.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5820,6 +5809,17 @@ begin
   Fields.Add(FFdtranslation);
 
   DefaultContainerField := 'textureTransform';
+end;
+
+class function TNodeTextureTransform.ClassNodeTypeName: string;
+begin
+  Result := 'TextureTransform';
+end;
+
+class function TNodeTextureTransform.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodeTextureTransform.Matrix: TMatrix4Single;
@@ -5882,17 +5882,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeTouchSensor.ClassNodeTypeName: string;
-begin
-  Result := 'TouchSensor';
-end;
-
-class function TNodeTouchSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeTouchSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -5909,23 +5898,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
+class function TNodeTouchSensor.ClassNodeTypeName: string;
+begin
+  Result := 'TouchSensor';
+end;
+
+class function TNodeTouchSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeTouchSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeTrimmedSurface.ClassNodeTypeName: string;
-begin
-  Result := 'TrimmedSurface';
-end;
-
-class function TNodeTrimmedSurface.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeTrimmedSurface.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5945,23 +5934,23 @@ begin
   Fields.Add(FFdsurface);
 end;
 
+class function TNodeTrimmedSurface.ClassNodeTypeName: string;
+begin
+  Result := 'TrimmedSurface';
+end;
+
+class function TNodeTrimmedSurface.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
 function TNodeTrimmedSurface.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
-end;
-
-class function TNodeViewpoint.ClassNodeTypeName: string;
-begin
-  Result := 'Viewpoint';
-end;
-
-class function TNodeViewpoint.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeViewpoint.Create(
@@ -5987,6 +5976,17 @@ begin
   FdPosition.Value := FdPosition.DefaultValue;
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeViewpoint.ClassNodeTypeName: string;
+begin
+  Result := 'Viewpoint';
+end;
+
+class function TNodeViewpoint.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 class function TNodeViewpoint.CameraKind: TVRMLCameraKind;
@@ -6035,17 +6035,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-class function TNodeVisibilitySensor.ClassNodeTypeName: string;
-begin
-  Result := 'VisibilitySensor';
-end;
-
-class function TNodeVisibilitySensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
 constructor TNodeVisibilitySensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -6069,6 +6058,17 @@ begin
   Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeVisibilitySensor.ClassNodeTypeName: string;
+begin
+  Result := 'VisibilitySensor';
+end;
+
+class function TNodeVisibilitySensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 function TNodeVisibilitySensor.SuggestedVRMLVersion(
