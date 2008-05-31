@@ -654,10 +654,8 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  { SFTime VRML field.
-    VRML requires this to be stored as double-precision float,
-    so I don't use TSFFloat for this. }
-  TSFTime = class(TVRMLSingleField)
+  { SFDouble VRML field. }
+  TSFDouble = class(TVRMLSingleField)
   private
     FValue: Double;
     procedure SetValue(const AValue: Double);
@@ -675,10 +673,14 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFTime);
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFDouble);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFTime = class(TSFDouble)
     class function VRMLTypeName: string; override;
   end;
 
@@ -1052,7 +1054,7 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  TMFTime = class(TVRMLSimpleMultField)
+  TMFDouble = class(TVRMLSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Double;
@@ -1069,10 +1071,15 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFTime);
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFDouble);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFTime = class(TMFDouble)
+  public
     class function VRMLTypeName: string; override;
   end;
 
@@ -1535,7 +1542,7 @@ end;
 
 { simple helpful parsing functions ---------------------------------------- }
 
-{ This returns Float, not just Single, because it's used by TSFTime
+{ This returns Float, not just Single, because it's used by TSFDouble
   that wants double-precision preserved. }
 function ParseFloat(Lexer: TVRMLLexer): Float;
 begin
@@ -1810,9 +1817,9 @@ begin
   Result := 'SFFloat';
 end;
 
-{ TSFTime -------------------------------------------------------------------- }
+{ TSFDouble -------------------------------------------------------------------- }
 
-constructor TSFTime.Create(const AName: string; const AValue: Double);
+constructor TSFDouble.Create(const AName: string; const AValue: Double);
 begin
   inherited Create(AName);
 
@@ -1821,12 +1828,12 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFTime.SetValue(const AValue: Double);
+procedure TSFDouble.SetValue(const AValue: Double);
 begin
   FValue := AValue;
 end;
 
-procedure TSFTime.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSFDouble.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -1834,50 +1841,57 @@ begin
   Value := ParseFloat(Lexer);
 end;
 
-procedure TSFTime.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSFDouble.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
   SaveProperties.Write(FloatToRawStr(Value));
 end;
 
-function TSFTime.EqualsDefaultValue: boolean;
+function TSFDouble.EqualsDefaultValue: boolean;
 begin
   Result := (not IsClause) and DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFTime.Equals(SecondValue: TVRMLField;
+function TSFDouble.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFTime) and
-   FloatsEqual(TSFTime(SecondValue).Value, Value, EqualityEpsilon);
+   (SecondValue is TSFDouble) and
+   FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSFTime.AssignLerp(const A: Double; Value1, Value2: TSFTime);
+procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TSFDouble);
 begin
   Value := Lerp(A, Value1.Value, Value2.Value);
 end;
 
-procedure TSFTime.Assign(Source: TPersistent);
+procedure TSFDouble.Assign(Source: TPersistent);
 begin
-  if Source is TSFTime then
+  if Source is TSFDouble then
   begin
-    DefaultValue       := TSFTime(Source).DefaultValue;
-    DefaultValueExists := TSFTime(Source).DefaultValueExists;
-    FValue             := TSFTime(Source).Value;
+    DefaultValue       := TSFDouble(Source).DefaultValue;
+    DefaultValueExists := TSFDouble(Source).DefaultValueExists;
+    FValue             := TSFDouble(Source).Value;
     VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
 end;
 
-procedure TSFTime.AssignValue(Source: TVRMLField);
+procedure TSFDouble.AssignValue(Source: TVRMLField);
 begin
-  if Source is TSFTime then
+  if Source is TSFDouble then
   begin
     inherited;
-    Value := TSFTime(Source).Value;
+    Value := TSFDouble(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
+
+class function TSFDouble.VRMLTypeName: string;
+begin
+  Result := 'SFDouble';
+end;
+
+{ TSFTime -------------------------------------------------------------------- }
 
 class function TSFTime.VRMLTypeName: string;
 begin
@@ -3040,9 +3054,9 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 
-{$define TMF_CLASS := TMFTime}
+{$define TMF_CLASS := TMFDouble}
 {$define TMF_STATIC_ITEM := Double}
-{$define TMF_CLASS_ITEM := TSFTime}
+{$define TMF_CLASS_ITEM := TSFDouble}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynDoubleArray}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
@@ -3192,12 +3206,12 @@ begin
   Result := 'MFFloat';
 end;
 
-{ TMFTime -------------------------------------------------------------------- }
+{ TMFDouble -------------------------------------------------------------------- }
 
-function TMFTime.RawItemToString(ItemNum: integer): string;
+function TMFDouble.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
 
-procedure TMFTime.AssignLerp(const A: Double; Value1, Value2: TMFTime);
+procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TMFDouble);
 var
   I: Integer;
 begin
@@ -3207,6 +3221,13 @@ begin
  for I := 0 to Items.Count - 1 do
   Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
+
+class function TMFDouble.VRMLTypeName: string;
+begin
+  Result := 'MFDouble';
+end;
+
+{ TMFTime -------------------------------------------------------------------- }
 
 class function TMFTime.VRMLTypeName: string;
 begin
@@ -3279,6 +3300,7 @@ initialization
     TSFMatrix,
     TSFRotation,
     TSFString,
+    TSFDouble,
     TSFTime,
     TSFVec2f,
     TSFVec3f,
@@ -3288,6 +3310,7 @@ initialization
     TMFInt32,
     TMFRotation,
     TMFString,
+    TMFDouble,
     TMFTime,
     TMFVec2f,
     TMFVec3f]);
