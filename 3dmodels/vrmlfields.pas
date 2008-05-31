@@ -564,28 +564,6 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  TSFColor = class(TVRMLSingleField)
-  protected
-    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
-  public
-    constructor Create(const AName: string; const AValue: TVector3Single);
-
-    Value: TVector3Single;
-
-    DefaultValue: TVector3Single;
-    DefaultValueExists: boolean;
-
-    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFColor);
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
-
-    class function VRMLTypeName: string; override;
-  end;
-
   { SFEnum VRML field.
 
     TSFEnum is one of the exceptional field types that cannot
@@ -883,8 +861,29 @@ type
     class function VRMLTypeName: string; override;
   end;
 
+  TSFColor = class(TSFVec3f)
+  public
+    class function VRMLTypeName: string; override;
+  end;
+
 { ---------------------------------------------------------------------------- }
-{ @section(Multiple value (MF) VRML fields) }
+{ @section(Multiple value (MF) VRML fields)
+
+  General implementation comments for MF fields:
+
+    Field DefaultValuesCount may have three valid values (for now):
+    -1 (means "no default value for this field")
+    0 (means "default value of this field is empty")
+    1 (means "default value of this field is one-item array with DefaultValue").
+
+    As you can see, it's not possible to express default values with more
+    than one item. That's OK, because nodes from VRML 1.0 and 2.0 specifications
+    never have such field (and VRML 2.0 prototypes (that have user-defined
+    default field values) actually don't need it). So, for now, more flexible
+    DefaultValuesCount is not needed.
+
+    CreateUndefined sets DefaultValuesCount to -1.
+}
 
   { }
   TMFBool = class(TVRMLSimpleMultField)
@@ -903,43 +902,6 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Single): boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
-
-    class function VRMLTypeName: string; override;
-  end;
-
-  { }
-  TMFColor = class(TVRMLSimpleMultField)
-  private
-    { Field DefaultValuesCount may have three valid values (for now):
-      -1 (means "no default value for this field")
-      0 (means "default value of this field is empty")
-      1 (means "default value of this field is one-item array with DefaultValue").
-
-      As you can see, it's not possible to express default values with more
-      than one item. That's OK, because nodes from VRML 1.0 and 2.0 specifications
-      never have such field (and VRML 2.0 prototypes (that have user-defined
-      default field values) actually don't need it). So, for now, more flexible
-      DefaultValuesCount is not needed.
-
-      CreateUndefined sets DefaultValuesCount to -1. }
-    DefaultValuesCount: integer;
-    DefaultValue: TVector3Single;
-  protected
-    function RawItemToString(ItemNum: integer): string; override;
-  public
-    function Items: TDynVector3SingleArray;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string;
-      const InitialContent: array of TVector3Single);
-    constructor CreateUndefined(const AName: string); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFColor);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1026,6 +988,11 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFColor = class(TMFVec3f)
+  public
     class function VRMLTypeName: string; override;
   end;
 
@@ -1682,78 +1649,6 @@ end;
 class function TSFBool.VRMLTypeName: string;
 begin
   Result := 'SFBool';
-end;
-
-{ TSFColor ------------------------------------------------------------------- }
-
-constructor TSFColor.Create(const AName: string; const AValue: TVector3Single);
-begin
-  inherited Create(AName);
-
-  Value := AValue;
-  DefaultValue := AValue;
-  DefaultValueExists := true;
-end;
-
-procedure TSFColor.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
-begin
-  inherited;
-  if IsClause then Exit;
-
-  ParseVector(Value, Lexer);
-end;
-
-procedure TSFColor.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-begin
-  SaveProperties.Write(VectorToRawStr(Value));
-end;
-
-function TSFColor.EqualsDefaultValue: boolean;
-begin
-  result := (not IsClause) and
-    DefaultValueExists and (DefaultValue[0] = Value[0])
-                       and (DefaultValue[1] = Value[1])
-                       and (DefaultValue[2] = Value[2]);
-end;
-
-function TSFColor.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
-begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFColor) and
-   VectorsEqual(TSFColor(SecondValue).Value, Value, EqualityEpsilon);
-end;
-
-procedure TSFColor.AssignLerp(const A: Single; Value1, Value2: TSFColor);
-begin
- Value := VLerp(A, Value1.Value, Value2.Value);
-end;
-
-procedure TSFColor.Assign(Source: TPersistent);
-begin
- if Source is TSFColor then
- begin
-  DefaultValue       := TSFColor(Source).DefaultValue;
-  DefaultValueExists := TSFColor(Source).DefaultValueExists;
-  Value              := TSFColor(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
-end;
-
-procedure TSFColor.AssignValue(Source: TVRMLField);
-begin
-  if Source is TSFColor then
-  begin
-    inherited;
-    Value := TSFColor(Source).Value;
-  end else
-    AssignValueRaiseInvalidClass(Source);
-end;
-
-class function TSFColor.VRMLTypeName: string;
-begin
-  Result := 'SFColor';
 end;
 
 { TSFFloat ------------------------------------------------------------------- }
@@ -2607,6 +2502,13 @@ begin
   Result := 'SFVec3f';
 end;
 
+{ TSFColor ------------------------------------------------------------------- }
+
+class function TSFColor.VRMLTypeName: string;
+begin
+  Result := 'SFColor';
+end;
+
 { TSFBitMask ------------------------------------------------------------ }
 
 constructor TSFBitMask.Create(const AName: string; const AFlagNames: array of string;
@@ -3042,13 +2944,6 @@ end;
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
-{$define TMF_CLASS := TMFColor}
-{$define TMF_STATIC_ITEM := TVector3Single}
-{$define TMF_CLASS_ITEM := TSFColor}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
 {$define TMF_CLASS := TMFLong}
 {$define TMF_STATIC_ITEM := Longint}
 {$define TMF_CLASS_ITEM := TSFLong}
@@ -3110,27 +3005,6 @@ end;
 class function TMFBool.VRMLTypeName: string;
 begin
   Result := 'MFBool';
-end;
-
-{ TMFColor ------------------------------------------------------------------- }
-
-function TMFColor.RawItemToString(ItemNum: integer): string;
-begin result := VectorToRawStr(Items.Items[ItemNum]) end;
-
-procedure TMFColor.AssignLerp(const A: Single; Value1, Value2: TMFColor);
-var
-  I: Integer;
-begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
-
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
-end;
-
-class function TMFColor.VRMLTypeName: string;
-begin
-  Result := 'MFColor';
 end;
 
 { TMFLong -------------------------------------------------------------------- }
@@ -3204,6 +3078,13 @@ end;
 class function TMFVec3f.VRMLTypeName: string;
 begin
   Result := 'MFVec3f';
+end;
+
+{ TMFColor ------------------------------------------------------------------- }
+
+class function TMFColor.VRMLTypeName: string;
+begin
+  Result := 'MFColor';
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
@@ -3336,7 +3217,6 @@ initialization
     TSFBitMask,
     TSFEnum,
     TSFBool,     TMFBool,
-    TSFColor,    TMFColor,
     TSFFloat,    TMFFloat,
     TSFImage,
     TSFLong,     TMFLong,
@@ -3347,7 +3227,8 @@ initialization
     TSFDouble,   TMFDouble,
     TSFTime,     TMFTime,
     TSFVec2f,    TMFVec2f,
-    TSFVec3f,    TMFVec3f
+    TSFVec3f,    TMFVec3f,
+    TSFColor,    TMFColor
     ]);
 finalization
   FreeAndNil(VRMLFieldsManager);
