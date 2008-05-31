@@ -1,0 +1,317 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{$ifdef read_interface}
+  INodeX3DPickableObject = interface(IVRMLNode)
+    property FdobjectType: TMFString { read GetFdobjectType }; { }
+    property Fdpickable: TSFBool { read GetFdpickable }; { }
+  end;
+
+  TNodeX3DPickSensorNode = class(TNodeX3DSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdobjectType: TMFString;
+    public property FdobjectType: TMFString read FFdobjectType;
+
+    private FFdpickingGeometry: TSFNode;
+    public property FdpickingGeometry: TSFNode read FFdpickingGeometry;
+
+    private FFdpickTarget: TMFNode;
+    public property FdpickTarget: TMFNode read FFdpickTarget;
+
+    { Event: MFNode, out } { }
+    private FEventpickedGeometry: TVRMLEvent;
+    public property EventpickedGeometry: TVRMLEvent read FEventpickedGeometry;
+
+    private FFdintersectionType: TSFString;
+    public property FdintersectionType: TSFString read FFdintersectionType;
+
+    private FFdsortOrder: TSFString;
+    public property FdsortOrder: TSFString read FFdsortOrder;
+  end;
+
+  TNodeLinePickSensor = class(TNodeX3DPickSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: MFVec3f, out } { }
+    private FEventpickedNormal: TVRMLEvent;
+    public property EventpickedNormal: TVRMLEvent read FEventpickedNormal;
+
+    { Event: MFVec3f, out } { }
+    private FEventpickedPoint: TVRMLEvent;
+    public property EventpickedPoint: TVRMLEvent read FEventpickedPoint;
+
+    { Event: MFVec3f, out } { }
+    private FEventpickedTextureCoordinate: TVRMLEvent;
+    public property EventpickedTextureCoordinate: TVRMLEvent read FEventpickedTextureCoordinate;
+  end;
+
+  TNodePickableGroup = class(TNodeX3DGroupingNode, INodeX3DPickableObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdobjectType: TMFString;
+    public property FdobjectType: TMFString read FFdobjectType;
+
+    private FFdpickable: TSFBool;
+    public property Fdpickable: TSFBool read FFdpickable;
+  end;
+
+  TNodePointPickSensor = class(TNodeX3DPickSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: MFVec3f, out } { }
+    private FEventpickedPoint: TVRMLEvent;
+    public property EventpickedPoint: TVRMLEvent read FEventpickedPoint;
+  end;
+
+  TNodePrimitivePickSensor = class(TNodeX3DPickSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeVolumePickSensor = class(TNodeX3DPickSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+constructor TNodeX3DPickSensorNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdobjectType := TMFString.Create('objectType', 'ALL');
+  Fields.Add(FFdobjectType);
+  { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
+
+  FFdpickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [X3DGeometryNode]);
+  Fields.Add(FFdpickingGeometry);
+
+  FFdpickTarget := TMFNode.Create(Self, 'pickTarget', [X3DGroupingNode|X3DShapeNode|X3DInlineNode]);
+  Fields.Add(FFdpickTarget);
+
+  FEventpickedGeometry := TVRMLEvent.Create('pickedGeometry', TMFNode, false);
+  Events.Add(FEventpickedGeometry);
+
+  FFdintersectionType := TSFString.Create('intersectionType', 'BOUNDS');
+  FFdintersectionType.Exposed := false;
+  Fields.Add(FFdintersectionType);
+  { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
+
+  FFdsortOrder := TSFString.Create('sortOrder', 'CLOSEST');
+  FFdsortOrder.Exposed := false;
+  Fields.Add(FFdsortOrder);
+  { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeLinePickSensor.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventpickedNormal := TVRMLEvent.Create('pickedNormal', TMFVec3f, false);
+  Events.Add(FEventpickedNormal);
+
+  FEventpickedPoint := TVRMLEvent.Create('pickedPoint', TMFVec3f, false);
+  Events.Add(FEventpickedPoint);
+
+  FEventpickedTextureCoordinate := TVRMLEvent.Create('pickedTextureCoordinate', TMFVec3f, false);
+  Events.Add(FEventpickedTextureCoordinate);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeLinePickSensor.ClassNodeTypeName: string;
+begin
+  Result := 'LinePickSensor';
+end;
+
+function TNodeLinePickSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeLinePickSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePickableGroup.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdobjectType := TMFString.Create('objectType', 'ALL');
+  Fields.Add(FFdobjectType);
+  { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
+
+  FFdpickable := TSFBool.Create('pickable', true);
+  Fields.Add(FFdpickable);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePickableGroup.ClassNodeTypeName: string;
+begin
+  Result := 'PickableGroup';
+end;
+
+function TNodePickableGroup.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePickableGroup.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePointPickSensor.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventpickedPoint := TVRMLEvent.Create('pickedPoint', TMFVec3f, false);
+  Events.Add(FEventpickedPoint);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePointPickSensor.ClassNodeTypeName: string;
+begin
+  Result := 'PointPickSensor';
+end;
+
+function TNodePointPickSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePointPickSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePrimitivePickSensor.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePrimitivePickSensor.ClassNodeTypeName: string;
+begin
+  Result := 'PrimitivePickSensor';
+end;
+
+function TNodePrimitivePickSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePrimitivePickSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeVolumePickSensor.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeVolumePickSensor.ClassNodeTypeName: string;
+begin
+  Result := 'VolumePickSensor';
+end;
+
+function TNodeVolumePickSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeVolumePickSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterPickingNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeLinePickSensor,
+    TNodePickableGroup,
+    TNodePointPickSensor,
+    TNodePrimitivePickSensor,
+    TNodeVolumePickSensor
+  ]);
+end;
+
+{$endif read_implementation}

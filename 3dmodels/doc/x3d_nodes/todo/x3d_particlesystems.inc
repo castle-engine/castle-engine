@@ -1,0 +1,725 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{$ifdef read_interface}
+  TNodeX3DParticleEmitterNode = class(TNodeX3DNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdspeed: TSFFloat;
+    public property Fdspeed: TSFFloat read FFdspeed;
+
+    private FFdvariation: TSFFloat;
+    public property Fdvariation: TSFFloat read FFdvariation;
+
+    private FFdmass: TSFFloat;
+    public property Fdmass: TSFFloat read FFdmass;
+
+    private FFdsurfaceArea: TSFFloat;
+    public property FdsurfaceArea: TSFFloat read FFdsurfaceArea;
+  end;
+
+  TNodeX3DParticlePhysicsModelNode = class(TNodeX3DNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+  end;
+
+  TNodeBoundedPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdgeometry: TSFNode;
+    public property Fdgeometry: TSFNode read FFdgeometry;
+  end;
+
+  TNodeConeEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdangle: TSFFloat;
+    public property Fdangle: TSFFloat read FFdangle;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdposition: TSFVec3f;
+    public property Fdposition: TSFVec3f read FFdposition;
+  end;
+
+  TNodeExplosionEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdposition: TSFVec3f;
+    public property Fdposition: TSFVec3f read FFdposition;
+  end;
+
+  TNodeGravityPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdforce: TSFVec3f;
+    public property Fdforce: TSFVec3f read FFdforce;
+  end;
+
+  TNodeParticleSystem = class(TNodeX3DShapeNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdcreateParticles: TSFBool;
+    public property FdcreateParticles: TSFBool read FFdcreateParticles;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    private FFdlifetimeVariation: TSFFloat;
+    public property FdlifetimeVariation: TSFFloat read FFdlifetimeVariation;
+
+    private FFdmaxParticles: TSFInt32;
+    public property FdmaxParticles: TSFInt32 read FFdmaxParticles;
+
+    private FFdparticleLifetime: TSFFloat;
+    public property FdparticleLifetime: TSFFloat read FFdparticleLifetime;
+
+    private FFdparticleSize: TSFVec2f;
+    public property FdparticleSize: TSFVec2f read FFdparticleSize;
+
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
+
+    private FFdcolorRamp: TSFNode;
+    public property FdcolorRamp: TSFNode read FFdcolorRamp;
+
+    private FFdcolorKey: TMFFloat;
+    public property FdcolorKey: TMFFloat read FFdcolorKey;
+
+    private FFdemitter: TSFNode;
+    public property Fdemitter: TSFNode read FFdemitter;
+
+    private FFdgeometryType: TSFString;
+    public property FdgeometryType: TSFString read FFdgeometryType;
+
+    private FFdphysics: TMFNode;
+    public property Fdphysics: TMFNode read FFdphysics;
+
+    private FFdtexCoordRamp: TSFNode;
+    public property FdtexCoordRamp: TSFNode read FFdtexCoordRamp;
+
+    private FFdtexCoordKey: TMFFloat;
+    public property FdtexCoordKey: TMFFloat read FFdtexCoordKey;
+  end;
+
+  TNodePointEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdposition: TSFVec3f;
+    public property Fdposition: TSFVec3f read FFdposition;
+  end;
+
+  TNodePolylineEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFInt32, in } { }
+    private FEventset_coordinate: TVRMLEvent;
+    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+
+    private FFdcoord: TSFNode;
+    public property Fdcoord: TSFNode read FFdcoord;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdcoordIndex: TMFInt32;
+    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+  end;
+
+  TNodeSurfaceEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFInt32, in } { }
+    private FEventset_coordinate: TVRMLEvent;
+    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+
+    private FFdcoordIndex: TMFInt32;
+    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+
+    private FFdsurface: TSFNode;
+    public property Fdsurface: TSFNode read FFdsurface;
+  end;
+
+  TNodeVolumeEmitter = class(TNodeX3DParticleEmitterNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFInt32, in } { }
+    private FEventset_coordinate: TVRMLEvent;
+    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+
+    private FFdcoord: TSFNode;
+    public property Fdcoord: TSFNode read FFdcoord;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdcoordIndex: TMFInt32;
+    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+
+    private FFdinternal: TSFBool;
+    public property Fdinternal: TSFBool read FFdinternal;
+  end;
+
+  TNodeWindPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFddirection: TSFVec3f;
+    public property Fddirection: TSFVec3f read FFddirection;
+
+    private FFdgustiness: TSFFloat;
+    public property Fdgustiness: TSFFloat read FFdgustiness;
+
+    private FFdspeed: TSFFloat;
+    public property Fdspeed: TSFFloat read FFdspeed;
+
+    private FFdturbulence: TSFFloat;
+    public property Fdturbulence: TSFFloat read FFdturbulence;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+constructor TNodeX3DParticleEmitterNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdspeed := TSFFloat.Create('speed', 0);
+  Fields.Add(FFdspeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdvariation := TSFFloat.Create('variation', 0.25);
+  Fields.Add(FFdvariation);
+  { X3D specification comment: [0,Inf) }
+
+  FFdmass := TSFFloat.Create('mass', 0);
+  FFdmass.Exposed := false;
+  Fields.Add(FFdmass);
+  { X3D specification comment: [0,Inf) }
+
+  FFdsurfaceArea := TSFFloat.Create('surfaceArea', 0);
+  FFdsurfaceArea.Exposed := false;
+  Fields.Add(FFdsurfaceArea);
+  { X3D specification comment: [0,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeX3DParticlePhysicsModelNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeBoundedPhysicsModel.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdgeometry := TSFNode.Create(Self, 'geometry', [X3DGeometryNode]);
+  Fields.Add(FFdgeometry);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeBoundedPhysicsModel.ClassNodeTypeName: string;
+begin
+  Result := 'BoundedPhysicsModel';
+end;
+
+function TNodeBoundedPhysicsModel.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeBoundedPhysicsModel.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeConeEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdangle := TSFFloat.Create('angle', Pi/4);
+  Fields.Add(FFdangle);
+  { X3D specification comment: [0,Pi] }
+
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  Fields.Add(FFddirection);
+
+  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  Fields.Add(FFdposition);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeConeEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'ConeEmitter';
+end;
+
+function TNodeConeEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeConeEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeExplosionEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  Fields.Add(FFdposition);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeExplosionEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'ExplosionEmitter';
+end;
+
+function TNodeExplosionEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeExplosionEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeGravityPhysicsModel.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdforce := TSFVec3f.Create('force', Vector3Single(0, -9.8, 0));
+  Fields.Add(FFdforce);
+  { X3D specification comment: (Inf,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeGravityPhysicsModel.ClassNodeTypeName: string;
+begin
+  Result := 'GravityPhysicsModel';
+end;
+
+function TNodeGravityPhysicsModel.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeGravityPhysicsModel.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeParticleSystem.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdcreateParticles := TSFBool.Create('createParticles', true);
+  Fields.Add(FFdcreateParticles);
+
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
+
+  FFdlifetimeVariation := TSFFloat.Create('lifetimeVariation', 0.25);
+  Fields.Add(FFdlifetimeVariation);
+  { X3D specification comment: [0,1] }
+
+  FFdmaxParticles := TSFInt32.Create('maxParticles', 200);
+  Fields.Add(FFdmaxParticles);
+  { X3D specification comment: [0,Inf) }
+
+  FFdparticleLifetime := TSFFloat.Create('particleLifetime', 5);
+  Fields.Add(FFdparticleLifetime);
+  { X3D specification comment: [0,Inf) }
+
+  FFdparticleSize := TSFVec2f.Create('particleSize', Vector2Single(0.02, 0.02));
+  Fields.Add(FFdparticleSize);
+  { X3D specification comment: [0,Inf) }
+
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
+
+  FFdcolorRamp := TSFNode.Create(Self, 'colorRamp', [X3DColorNode]);
+  FFdcolorRamp.Exposed := false;
+  Fields.Add(FFdcolorRamp);
+
+  FFdcolorKey := TMFFloat.Create('colorKey', NULL);
+  FFdcolorKey.Exposed := false;
+  Fields.Add(FFdcolorKey);
+  { X3D specification comment: [0,Inf) }
+
+  FFdemitter := TSFNode.Create(Self, 'emitter', [X3DParticleEmitterNode]);
+  FFdemitter.Exposed := false;
+  Fields.Add(FFdemitter);
+
+  FFdgeometryType := TSFString.Create('geometryType', 'QUAD');
+  FFdgeometryType.Exposed := false;
+  Fields.Add(FFdgeometryType);
+  { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
+
+  FFdphysics := TMFNode.Create(Self, 'physics', [X3DParticlePhysicsModelNode]);
+  FFdphysics.Exposed := false;
+  Fields.Add(FFdphysics);
+
+  FFdtexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TextureCoordinate]);
+  FFdtexCoordRamp.Exposed := false;
+  Fields.Add(FFdtexCoordRamp);
+
+  FFdtexCoordKey := TMFFloat.Create('texCoordKey', []);
+  FFdtexCoordKey.Exposed := false;
+  Fields.Add(FFdtexCoordKey);
+  { X3D specification comment: [0,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeParticleSystem.ClassNodeTypeName: string;
+begin
+  Result := 'ParticleSystem';
+end;
+
+function TNodeParticleSystem.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeParticleSystem.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePointEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  Fields.Add(FFddirection);
+
+  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  Fields.Add(FFdposition);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePointEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'PointEmitter';
+end;
+
+function TNodePointEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePointEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePolylineEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  Events.Add(FEventset_coordinate);
+
+  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  Fields.Add(FFdcoord);
+
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  Fields.Add(FFddirection);
+  { X3D specification comment: [-1,1] }
+
+  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex.Exposed := false;
+  Fields.Add(FFdcoordIndex);
+  { X3D specification comment: [0,Inf) or -1 }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePolylineEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'PolylineEmitter';
+end;
+
+function TNodePolylineEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePolylineEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeSurfaceEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  Events.Add(FEventset_coordinate);
+
+  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex.Exposed := false;
+  Fields.Add(FFdcoordIndex);
+  { X3D specification comment: [0,Inf) or -1 }
+
+  FFdsurface := TSFNode.Create(Self, 'surface', [X3DGeometryNode]);
+  FFdsurface.Exposed := false;
+  Fields.Add(FFdsurface);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeSurfaceEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'SurfaceEmitter';
+end;
+
+function TNodeSurfaceEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeSurfaceEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeVolumeEmitter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  Events.Add(FEventset_coordinate);
+
+  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  Fields.Add(FFdcoord);
+
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  Fields.Add(FFddirection);
+  { X3D specification comment: [-1,1] }
+
+  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex.Exposed := false;
+  Fields.Add(FFdcoordIndex);
+  { X3D specification comment: [0,Inf) or -1 }
+
+  FFdinternal := TSFBool.Create('internal', true);
+  FFdinternal.Exposed := false;
+  Fields.Add(FFdinternal);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeVolumeEmitter.ClassNodeTypeName: string;
+begin
+  Result := 'VolumeEmitter';
+end;
+
+function TNodeVolumeEmitter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeVolumeEmitter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeWindPhysicsModel.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, 0));
+  Fields.Add(FFddirection);
+  { X3D specification comment: (Inf,Inf) }
+
+  FFdgustiness := TSFFloat.Create('gustiness', 0.1);
+  Fields.Add(FFdgustiness);
+  { X3D specification comment: [0,Inf) }
+
+  FFdspeed := TSFFloat.Create('speed', 0.1);
+  Fields.Add(FFdspeed);
+  { X3D specification comment: [0,Inf) }
+
+  FFdturbulence := TSFFloat.Create('turbulence', 0);
+  Fields.Add(FFdturbulence);
+  { X3D specification comment: [0,1] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeWindPhysicsModel.ClassNodeTypeName: string;
+begin
+  Result := 'WindPhysicsModel';
+end;
+
+function TNodeWindPhysicsModel.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeWindPhysicsModel.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterParticleSystemsNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeBoundedPhysicsModel,
+    TNodeConeEmitter,
+    TNodeExplosionEmitter,
+    TNodeGravityPhysicsModel,
+    TNodeParticleSystem,
+    TNodePointEmitter,
+    TNodePolylineEmitter,
+    TNodeSurfaceEmitter,
+    TNodeVolumeEmitter,
+    TNodeWindPhysicsModel
+  ]);
+end;
+
+{$endif read_implementation}

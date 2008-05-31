@@ -1,0 +1,993 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{$ifdef read_interface}
+  TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
+  end;
+
+  TNodeX3DDamperNode = class(TNodeX3DFollowerNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodeX3DFollowerNode = class(TNodeX3DChildNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
+  end;
+
+  TNodeColorDamper = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFColor, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFColor, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: SFColor, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TSFColor;
+    public property FdinitialDestination: TSFColor read FFdinitialDestination;
+
+    private FFdinitialValue: TSFColor;
+    public property FdinitialValue: TSFColor read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodeCoordinateDamper = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: MFVec3f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: MFVec3f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: MFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TMFVec3f;
+    public property FdinitialDestination: TMFVec3f read FFdinitialDestination;
+
+    private FFdinitialValue: TMFVec3f;
+    public property FdinitialValue: TMFVec3f read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodeOrientationChaser = class(TNodeX3DChaserNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFRotation, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFRotation, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    { Event: SFRotation, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
+
+    private FFdinitialDestination: TSFRotation;
+    public property FdinitialDestination: TSFRotation read FFdinitialDestination;
+
+    private FFdinitialValue: TSFRotation;
+    public property FdinitialValue: TSFRotation read FFdinitialValue;
+  end;
+
+  TNodeOrientationDamper = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFRotation, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFRotation, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: SFRotation, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TSFRotation;
+    public property FdinitialDestination: TSFRotation read FFdinitialDestination;
+
+    private FFdinitialValue: TSFRotation;
+    public property FdinitialValue: TSFRotation read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodePositionChaser = class(TNodeX3DChaserNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFVec3f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFVec3f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    { Event: SFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
+
+    private FFdinitialDestination: TSFVec3f;
+    public property FdinitialDestination: TSFVec3f read FFdinitialDestination;
+
+    private FFdinitialValue: TSFVec3f;
+    public property FdinitialValue: TSFVec3f read FFdinitialValue;
+  end;
+
+  TNodePositionChaser2D = class(TNodeX3DChaserNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFVec2f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFVec2f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    { Event: SFVec2f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
+
+    private FFdinitialDestination: TSFVec2f;
+    public property FdinitialDestination: TSFVec2f read FFdinitialDestination;
+
+    private FFdinitialValue: TSFVec2f;
+    public property FdinitialValue: TSFVec2f read FFdinitialValue;
+  end;
+
+  TNodePositionDamper = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFVec3f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFVec3f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: SFVec3f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TSFVec3f;
+    public property FdinitialDestination: TSFVec3f read FFdinitialDestination;
+
+    private FFdinitialValue: TSFVec3f;
+    public property FdinitialValue: TSFVec3f read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodePositionDamper2D = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFVec2f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFVec2f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: SFVec2f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TSFVec2f;
+    public property FdinitialDestination: TSFVec2f read FFdinitialDestination;
+
+    private FFdinitialValue: TSFVec2f;
+    public property FdinitialValue: TSFVec2f read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+  TNodeScalarChaser = class(TNodeX3DChaserNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: SFFloat, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: SFFloat, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    { Event: SFFloat, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
+
+    private FFdinitialDestination: TSFFloat;
+    public property FdinitialDestination: TSFFloat read FFdinitialDestination;
+
+    private FFdinitialValue: TSFFloat;
+    public property FdinitialValue: TSFFloat read FFdinitialValue;
+  end;
+
+  TNodeTexCoordDamper2D = class(TNodeX3DDamperNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    { Event: MFVec2f, in } { }
+    private FEventset_destination: TVRMLEvent;
+    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+
+    { Event: MFVec2f, in } { }
+    private FEventset_value: TVRMLEvent;
+    public property Eventset_value: TVRMLEvent read FEventset_value;
+
+    private FFdtau: TSFTime;
+    public property Fdtau: TSFTime read FFdtau;
+
+    private FFdtolerance: TSFFloat;
+    public property Fdtolerance: TSFFloat read FFdtolerance;
+
+    { Event: MFVec2f, out } { }
+    private FEventvalue_changed: TVRMLEvent;
+    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+
+    private FFdinitialDestination: TMFVec2f;
+    public property FdinitialDestination: TMFVec2f read FFdinitialDestination;
+
+    private FFdinitialValue: TMFVec2f;
+    public property FdinitialValue: TMFVec2f read FFdinitialValue;
+
+    private FFdorder: TSFInt32;
+    public property Fdorder: TSFInt32 read FFdorder;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+constructor TNodeX3DChaserNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeX3DDamperNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdtau := TSFTime.Create('tau', 0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0,Inf) }
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeX3DFollowerNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeColorDamper.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFColor, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFColor, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0,Inf) }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFColor, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TSFColor.Create('initialDestination', Vector3Single(0.8, 0.8, 0.8));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFColor.Create('initialValue', Vector3Single(0.8, 0.8, 0.8));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeColorDamper.ClassNodeTypeName: string;
+begin
+  Result := 'ColorDamper';
+end;
+
+function TNodeColorDamper.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeColorDamper.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeCoordinateDamper.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TMFVec3f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TMFVec3f, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0,Inf) }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TMFVec3f.Create('initialDestination', Vector3Single(0, 0, 0));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TMFVec3f.Create('initialValue', Vector3Single(0, 0, 0));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeCoordinateDamper.ClassNodeTypeName: string;
+begin
+  Result := 'CoordinateDamper';
+end;
+
+function TNodeCoordinateDamper.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeCoordinateDamper.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeOrientationChaser.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFRotation, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFRotation, true);
+  Events.Add(FEventset_value);
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
+
+  FFdinitialDestination := TSFRotation.Create('initialDestination', Vector3Single(0, 1, 0), 0);
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFRotation.Create('initialValue', Vector3Single(0, 1, 0), 0);
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeOrientationChaser.ClassNodeTypeName: string;
+begin
+  Result := 'OrientationChaser';
+end;
+
+function TNodeOrientationChaser.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeOrientationChaser.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeOrientationDamper.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFRotation, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFRotation, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0..Inf] }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TSFRotation.Create('initialDestination', Vector3Single(0, 1, 0), 0);
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFRotation.Create('initialValue', Vector3Single(0, 1, 0), 0);
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeOrientationDamper.ClassNodeTypeName: string;
+begin
+  Result := 'OrientationDamper';
+end;
+
+function TNodeOrientationDamper.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeOrientationDamper.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePositionChaser.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFVec3f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFVec3f, true);
+  Events.Add(FEventset_value);
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
+
+  FFdinitialDestination := TSFVec3f.Create('initialDestination', Vector3Single(0, 0, 0));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFVec3f.Create('initialValue', Vector3Single(0, 0, 0));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePositionChaser.ClassNodeTypeName: string;
+begin
+  Result := 'PositionChaser';
+end;
+
+function TNodePositionChaser.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePositionChaser.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePositionChaser2D.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFVec2f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFVec2f, true);
+  Events.Add(FEventset_value);
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
+
+  FFdinitialDestination := TSFVec2f.Create('initialDestination', Vector2Single(0, 0));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+  { X3D specification comment: 0 }
+
+  FFdinitialValue := TSFVec2f.Create('initialValue', Vector2Single(0, 0));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+  { X3D specification comment: 0 }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePositionChaser2D.ClassNodeTypeName: string;
+begin
+  Result := 'PositionChaser2D';
+end;
+
+function TNodePositionChaser2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePositionChaser2D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePositionDamper.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFVec3f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFVec3f, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0,Inf) }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TSFVec3f.Create('initialDestination', Vector3Single(0, 0, 0));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFVec3f.Create('initialValue', Vector3Single(0, 0, 0));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePositionDamper.ClassNodeTypeName: string;
+begin
+  Result := 'PositionDamper';
+end;
+
+function TNodePositionDamper.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePositionDamper.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodePositionDamper2D.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFVec2f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFVec2f, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0.0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0..Inf] }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TSFVec2f.Create('initialDestination', Vector2Single(0, 0));
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFVec2f.Create('initialValue', Vector2Single(0, 0));
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodePositionDamper2D.ClassNodeTypeName: string;
+begin
+  Result := 'PositionDamper2D';
+end;
+
+function TNodePositionDamper2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodePositionDamper2D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeScalarChaser.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TSFFloat, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TSFFloat, true);
+  Events.Add(FEventset_value);
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
+
+  FFdinitialDestination := TSFFloat.Create('initialDestination', 0);
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TSFFloat.Create('initialValue', 0);
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeScalarChaser.ClassNodeTypeName: string;
+begin
+  Result := 'ScalarChaser';
+end;
+
+function TNodeScalarChaser.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeScalarChaser.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeTexCoordDamper2D.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FEventset_destination := TVRMLEvent.Create('set_destination', TMFVec2f, true);
+  Events.Add(FEventset_destination);
+
+  FEventset_value := TVRMLEvent.Create('set_value', TMFVec2f, true);
+  Events.Add(FEventset_value);
+
+  FFdtau := TSFTime.Create('tau', 0.0);
+  Fields.Add(FFdtau);
+  { X3D specification comment: [0,Inf) }
+
+  FFdtolerance := TSFFloat.Create('tolerance', -1);
+  Fields.Add(FFdtolerance);
+  { X3D specification comment: -1 or [0..Inf] }
+
+  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec2f, false);
+  Events.Add(FEventvalue_changed);
+
+  FFdinitialDestination := TMFVec2f.Create('initialDestination', []);
+  FFdinitialDestination.Exposed := false;
+  Fields.Add(FFdinitialDestination);
+
+  FFdinitialValue := TMFVec2f.Create('initialValue', []);
+  FFdinitialValue.Exposed := false;
+  Fields.Add(FFdinitialValue);
+
+  FFdorder := TSFInt32.Create('order', 0);
+  FFdorder.Exposed := false;
+  Fields.Add(FFdorder);
+  { X3D specification comment: [0..5] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeTexCoordDamper2D.ClassNodeTypeName: string;
+begin
+  Result := 'TexCoordDamper2D';
+end;
+
+function TNodeTexCoordDamper2D.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeTexCoordDamper2D.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterFollowersNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeColorDamper,
+    TNodeCoordinateDamper,
+    TNodeOrientationChaser,
+    TNodeOrientationDamper,
+    TNodePositionChaser,
+    TNodePositionChaser2D,
+    TNodePositionDamper,
+    TNodePositionDamper2D,
+    TNodeScalarChaser,
+    TNodeTexCoordDamper2D
+  ]);
+end;
+
+{$endif read_implementation}
