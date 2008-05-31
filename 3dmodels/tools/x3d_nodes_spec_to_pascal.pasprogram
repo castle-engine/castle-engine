@@ -223,10 +223,10 @@ begin
     if (FieldType = 'SFRotation') or
        (FieldType = 'MFRotation') then
     begin
-      FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces) + ', Vector3Single(';
-      FieldDefaultValue += NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue := 'Vector3Single(' + NextToken(Line, SeekPos, WhiteSpaces);
       FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
-      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += '), ' + NextToken(Line, SeekPos, WhiteSpaces);
     end else
       FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces);
     end;
