@@ -2413,9 +2413,11 @@ begin
   Result := 'SFString';
 end;
 
-{ TSFVec2f ------------------------------------------------------------------- }
+{ ----------------------------------------------------------------------------
+  Common SF fields based on vectors implementation }
 
-constructor TSFVec2f.Create(const AName: string; const AValue: TVector2Single);
+{$define IMPLEMENT_SF_CLASS_USING_VECTORS :=
+constructor TSF_CLASS.Create(const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AName);
 
@@ -2424,7 +2426,7 @@ begin
   DefaultValueExists := true;
 end;
 
-procedure TSFVec2f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 begin
   inherited;
   if IsClause then Exit;
@@ -2432,51 +2434,66 @@ begin
   ParseVector(Value, Lexer);
 end;
 
-procedure TSFVec2f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
 begin
   SaveProperties.Write(VectorToRawStr(Value));
 end;
 
-function TSFVec2f.EqualsDefaultValue: boolean;
+function TSF_CLASS.EqualsDefaultValue: boolean;
 begin
   result := (not IsClause) and
     DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
 end;
 
-function TSFVec2f.Equals(SecondValue: TVRMLField;
+function TSF_CLASS.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Single): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFVec2f) and
-   VectorsEqual(TSFVec2f(SecondValue).Value, Value, EqualityEpsilon);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSF_CLASS) and
+    VectorsEqual(TSF_CLASS(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSFVec2f.AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
+procedure TSF_CLASS.AssignLerp(const A: Single; Value1, Value2: TSF_CLASS);
 begin
- Value := VLerp(A, Value1.Value, Value2.Value);
+  Value := VLerp(A, Value1.Value, Value2.Value);
 end;
 
-procedure TSFVec2f.Assign(Source: TPersistent);
+procedure TSF_CLASS.Assign(Source: TPersistent);
 begin
- if Source is TSFVec2f then
- begin
-  DefaultValue       := TSFVec2f(Source).DefaultValue;
-  DefaultValueExists := TSFVec2f(Source).DefaultValueExists;
-  Value              := TSFVec2f(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSF_CLASS then
+  begin
+    DefaultValue       := TSF_CLASS(Source).DefaultValue;
+    DefaultValueExists := TSF_CLASS(Source).DefaultValueExists;
+    Value              := TSF_CLASS(Source).Value;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
-procedure TSFVec2f.AssignValue(Source: TVRMLField);
+procedure TSF_CLASS.AssignValue(Source: TVRMLField);
 begin
-  if Source is TSFVec2f then
+  if Source is TSF_CLASS then
   begin
     inherited;
-    Value := TSFVec2f(Source).Value;
+    Value := TSF_CLASS(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
+}
+
+{$define TSF_CLASS := TSFVec2f}
+{$define TSF_STATIC_ITEM := TVector2Single}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{$define TSF_CLASS := TSFVec3f}
+{$define TSF_STATIC_ITEM := TVector3Single}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{$define TSF_CLASS := TSFVec4f}
+{$define TSF_STATIC_ITEM := TVector4Single}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{ TSFVec2f ------------------------------------------------------------------- }
 
 class function TSFVec2f.VRMLTypeName: string;
 begin
@@ -2484,69 +2501,6 @@ begin
 end;
 
 { TSFVec3f ------------------------------------------------------------------- }
-
-constructor TSFVec3f.Create(const AName: string; const AValue: TVector3Single);
-begin
-  inherited Create(AName);
-
-  Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
-end;
-
-procedure TSFVec3f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
-begin
-  inherited;
-  if IsClause then Exit;
-
-  ParseVector(Value, Lexer);
-end;
-
-procedure TSFVec3f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-begin
-  SaveProperties.Write(VectorToRawStr(Value));
-end;
-
-function TSFVec3f.EqualsDefaultValue: boolean;
-begin
-  result := (not IsClause) and
-    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
-end;
-
-function TSFVec3f.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
-begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFVec3f) and
-   VectorsEqual(TSFVec3f(SecondValue).Value, Value, EqualityEpsilon);
-end;
-
-procedure TSFVec3f.AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
-begin
- Value := VLerp(A, Value1.Value, Value2.Value);
-end;
-
-procedure TSFVec3f.Assign(Source: TPersistent);
-begin
- if Source is TSFVec3f then
- begin
-  DefaultValue       := TSFVec3f(Source).DefaultValue;
-  DefaultValueExists := TSFVec3f(Source).DefaultValueExists;
-  Value              := TSFVec3f(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
-end;
-
-procedure TSFVec3f.AssignValue(Source: TVRMLField);
-begin
-  if Source is TSFVec3f then
-  begin
-    inherited;
-    Value := TSFVec3f(Source).Value;
-  end else
-    AssignValueRaiseInvalidClass(Source);
-end;
 
 class function TSFVec3f.VRMLTypeName: string;
 begin
@@ -2562,75 +2516,12 @@ end;
 
 { TSFVec4f ------------------------------------------------------------------- }
 
-constructor TSFVec4f.Create(const AName: string; const AValue: TVector4Single);
-begin
-  inherited Create(AName);
-
-  Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
-end;
-
-procedure TSFVec4f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
-begin
-  inherited;
-  if IsClause then Exit;
-
-  ParseVector(Value, Lexer);
-end;
-
-procedure TSFVec4f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
-begin
-  SaveProperties.Write(VectorToRawStr(Value));
-end;
-
-function TSFVec4f.EqualsDefaultValue: boolean;
-begin
-  result := (not IsClause) and
-    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
-end;
-
-function TSFVec4f.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
-begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFVec4f) and
-   VectorsEqual(TSFVec4f(SecondValue).Value, Value, EqualityEpsilon);
-end;
-
-procedure TSFVec4f.AssignLerp(const A: Single; Value1, Value2: TSFVec4f);
-begin
- Value := VLerp(A, Value1.Value, Value2.Value);
-end;
-
-procedure TSFVec4f.Assign(Source: TPersistent);
-begin
- if Source is TSFVec4f then
- begin
-  DefaultValue       := TSFVec4f(Source).DefaultValue;
-  DefaultValueExists := TSFVec4f(Source).DefaultValueExists;
-  Value              := TSFVec4f(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
-end;
-
-procedure TSFVec4f.AssignValue(Source: TVRMLField);
-begin
-  if Source is TSFVec4f then
-  begin
-    inherited;
-    Value := TSFVec4f(Source).Value;
-  end else
-    AssignValueRaiseInvalidClass(Source);
-end;
-
 class function TSFVec4f.VRMLTypeName: string;
 begin
   Result := 'SFVec4f';
 end;
 
-{ TSFColorRGBA ------------------------------------------------------------------- }
+{ TSFColorRGBA --------------------------------------------------------------- }
 
 class function TSFColorRGBA.VRMLTypeName: string;
 begin
