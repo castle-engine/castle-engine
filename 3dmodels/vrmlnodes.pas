@@ -1465,6 +1465,16 @@ type
     { This is equivalent to IndexOf(NodeClass.ClassType),
       taking care of necessary typecasts. }
     function IndexOf(Node: TVRMLNode): Integer; overload;
+
+    { This looks for a node class that is ancestor of given Node,
+      in other words that satisfies @code(Node is Items[Result]).
+      So, comparing to IndexOf, this may also find something when
+      IndexOf doesn't, since this doesn't require an exact
+      match --- only "is" match.
+
+      Returns -1 if not found. }
+    function IndexOfAnyAncestor(Node: TVRMLNode): Integer;
+
     procedure Add(Value: TVRMLNodeClass);
   end;
 
@@ -1536,7 +1546,7 @@ type
 
       Child must not be @nil.
 
-      VRMLNonFatalError suggests that this Child is used as value
+      VRMLNonFatalError message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to assign as Value to this field,
       otherwise VRMLNonFatalError message will be a little unsensible. }
@@ -1636,12 +1646,16 @@ type
 
       Child must not be @nil.
 
-      VRMLNonFatalError suggests that this Child is used as value
+      VRMLNonFatalError message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to add (e.g. by AddItem) to this field,
       otherwise VRMLNonFatalError message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
   end;
+
+{ Specific VRML nodes from specifications, part 1 -------------------------- }
+
+{$I x3d_core.inc}
 
 { TNodeGeneralShape ---------------------------------------------------- }
 
@@ -1690,8 +1704,13 @@ type
         Triangles/VerticesCount.)
       @item(
         Shape nodes don't affect anything in graph traverse state.)
-    ) }
-  TNodeGeneralShape = class(TVRMLNode)
+    )
+
+    For X3D, this descends from TNodeX3DNode, and TNodeX3DGeometryNode
+    descends from us. This way in X3D TNodeX3DGeometryNode descends
+    from this, and also X3D hierarchy is preserved (X3DGeometryNode
+    must descend from X3DNode). }
+  TNodeGeneralShape = class(TNodeX3DNode)
   public
     { Constructor.
 
@@ -1906,12 +1925,12 @@ type
     procedure LoadInlined(CanReload: boolean);
   end;
 
-{ Specific VRML nodes from specifications ------------------------------------ }
+{ Specific VRML nodes from specifications, part 2 -------------------------- }
 
-{$I x3d_core.inc}
 {$I x3d_time.inc}
 {$I x3d_grouping.inc}
 {$I x3d_networking.inc}
+{$I x3d_rendering.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2662,6 +2681,7 @@ uses
 {$I x3d_time.inc}
 {$I x3d_grouping.inc}
 {$I x3d_networking.inc}
+{$I x3d_rendering.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -4322,6 +4342,14 @@ begin
   Result := IndexOf(TVRMLNodeClass(Node.ClassType));
 end;
 
+function TVRMLNodeClassesList.IndexOfAnyAncestor(Node: TVRMLNode): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if Node is TVRMLNodeClass(Items[Result]) then
+      Exit;
+  Result := -1;
+end;
+
 procedure TVRMLNodeClassesList.Add(Value: TVRMLNodeClass);
 begin
   inherited Add(Pointer(Value));
@@ -4380,7 +4408,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
 
 begin
   if (not AllowedChildrenAll) and
-     (FAllowedChildren.IndexOf(Child) = -1) then
+     (FAllowedChildren.IndexOfAnyAncestor(Child) = -1) then
     ChildNotAllowed;
 end;
 
@@ -4607,7 +4635,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
 
 begin
   if (not AllowedChildrenAll) and
-     (FAllowedChildren.IndexOf(Child) = -1) then
+     (FAllowedChildren.IndexOfAnyAncestor(Child) = -1) then
     ChildNotAllowed;
 end;
 

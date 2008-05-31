@@ -19,9 +19,13 @@
 }
 
 {$ifdef read_interface}
+  TNodeX3DGeometricPropertyNode = class(TNodeX3DNode)
+  end;
+
+  TNodeX3DGeometryNode = class(TNodeGeneralShape)
+  end;
+
   TNodeX3DColorNode = class(TNodeX3DGeometricPropertyNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeX3DComposedGeometryNode = class(TNodeX3DGeometryNode)
@@ -60,23 +64,9 @@
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-  end;
-
-  TNodeX3DGeometricPropertyNode = class(TNodeX3DNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-  end;
-
-  TNodeX3DGeometryNode = class(TNodeX3DNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeX3DNormalNode = class(TNodeX3DGeometricPropertyNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeClipPlane = class(TNodeX3DChildNode)
@@ -130,7 +120,7 @@
     public property Fdpoint: TMFVec3f read FFdpoint;
   end;
 
-  TNodeIndexedLineSet = class(TNodeX3DGeometryNode)
+  TNodeIndexedLineSet_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -166,6 +156,15 @@
 
     private FFdcoordIndex: TMFInt32;
     public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -252,7 +251,7 @@
     public property Fdvector: TMFVec3f read FFdvector;
   end;
 
-  TNodePointSet = class(TNodeX3DGeometryNode)
+  TNodePointSet_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -271,6 +270,14 @@
 
     private FFdfogCoord: TSFNode;
     public property FdfogCoord: TSFNode read FFdfogCoord;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -306,38 +313,34 @@
     public property FdstripCount: TMFInt32 read FFdstripCount;
   end;
 
+  { TODO: temp dummy classes }
+  TNodeX3DVertexAttributeNode = class(TVRMLNode);
+  TNodeFogCoordinate = class(TVRMLNode);
+  TNodeX3DTextureCoordinateNode = class(TVRMLNode);
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DColorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  DefaultContainerField := 'children';
-end;
-
 constructor TNodeX3DComposedGeometryNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [X3DVertexAttributeNode]);
+  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [FogCoordinate]);
+  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
-  FFdnormal := TSFNode.Create(Self, 'normal', [X3DNormalNode]);
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
   Fields.Add(FFdnormal);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [X3DTextureCoordinateNode]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
 
   FFdccw := TSFBool.Create('ccw', true);
@@ -355,38 +358,6 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
-end;
-
-constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  DefaultContainerField := 'children';
-end;
-
-constructor TNodeX3DGeometricPropertyNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  DefaultContainerField := 'children';
-end;
-
-constructor TNodeX3DGeometryNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  DefaultContainerField := 'children';
-end;
-
-constructor TNodeX3DNormalNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
 
   DefaultContainerField := 'children';
 end;
@@ -430,11 +401,11 @@ constructor TNodeColor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TMFColor.Create('color', [NULL]);
+  FFdcolor := TMFColor.Create('color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'color';
 end;
 
 class function TNodeColor.ClassNodeTypeName: string;
@@ -446,13 +417,15 @@ function TNodeColor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeColor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -461,7 +434,7 @@ constructor TNodeColorRGBA.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TMFColorRGBA.Create('color', [NULL]);
+  FFdcolor := TMFColorRGBA.Create('color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
@@ -492,11 +465,11 @@ constructor TNodeCoordinate.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec3f.Create('point', [NULL]);
+  FFdpoint := TMFVec3f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'coord';
 end;
 
 class function TNodeCoordinate.ClassNodeTypeName: string;
@@ -508,17 +481,19 @@ function TNodeCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCoordinate.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeIndexedLineSet.Create(const ANodeName: string;
+constructor TNodeIndexedLineSet_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -529,16 +504,16 @@ begin
   FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [X3DVertexAttributeNode]);
+  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [FogCoordinate]);
+  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
   FFdcolorIndex := TMFInt32.Create('colorIndex', []);
@@ -554,27 +529,32 @@ begin
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
-
-  DefaultContainerField := 'children';
 end;
 
-class function TNodeIndexedLineSet.ClassNodeTypeName: string;
+class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
 begin
   Result := 'IndexedLineSet';
 end;
 
-function TNodeIndexedLineSet.SuggestedVRMLVersion(
+function TNodeIndexedLineSet_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodeIndexedLineSet.URNMatching(const URN: string): boolean;
+class function TNodeIndexedLineSet_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
 end;
 
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
@@ -687,16 +667,16 @@ constructor TNodeLineSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [X3DVertexAttributeNode]);
+  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [FogCoordinate]);
+  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
   FFdvertexCount := TMFInt32.Create('vertexCount', []);
@@ -734,7 +714,7 @@ begin
   Fields.Add(FFdvector);
   { X3D specification comment: [-1,1] }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'normal';
 end;
 
 class function TNodeNormal.ClassNodeTypeName: string;
@@ -753,46 +733,54 @@ end;
 class function TNodeNormal.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodePointSet.Create(const ANodeName: string;
+constructor TNodePointSet_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [X3DVertexAttributeNode]);
+  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [FogCoordinate]);
+  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodePointSet.ClassNodeTypeName: string;
+class function TNodePointSet_2.ClassNodeTypeName: string;
 begin
   Result := 'PointSet';
 end;
 
-function TNodePointSet.SuggestedVRMLVersion(
+function TNodePointSet_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodePointSet.URNMatching(const URN: string): boolean;
+class function TNodePointSet_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
 end;
 
 constructor TNodeTriangleFanSet.Create(const ANodeName: string;
@@ -891,13 +879,13 @@ begin
     TNodeColor,
     TNodeColorRGBA,
     TNodeCoordinate,
-    TNodeIndexedLineSet,
+    TNodeIndexedLineSet_2,
     TNodeIndexedTriangleFanSet,
     TNodeIndexedTriangleSet,
     TNodeIndexedTriangleStripSet,
     TNodeLineSet,
     TNodeNormal,
-    TNodePointSet,
+    TNodePointSet_2,
     TNodeTriangleFanSet,
     TNodeTriangleSet,
     TNodeTriangleStripSet

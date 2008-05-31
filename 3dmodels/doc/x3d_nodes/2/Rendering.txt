@@ -32,15 +32,15 @@ ClipPlane : X3DChildNode {
 }
 
 Color : X3DColorNode { 
-  MFColor [in,out] color    [NULL] [0,1]
+  MFColor [in,out] color    [] [0,1]
 }
 
 ColorRGBA : X3DColorNode { 
-  MFColorRGBA [in,out] color    [NULL] [0,1]
+  MFColorRGBA [in,out] color    [] [0,1]
 }
 
 Coordinate : X3DCoordinateNode { 
-  MFVec3f [in,out] point    [NULL] (-Inf,Inf)
+  MFVec3f [in,out] point    [] (-Inf,Inf)
 }
 
 IndexedLineSet : X3DGeometryNode {

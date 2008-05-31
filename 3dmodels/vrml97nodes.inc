@@ -23,9 +23,6 @@
   that are only for easier implementation, like TVRMLGroupingNode). } { }
 
 {$ifdef read_interface}
-  TNodeX3DGeometryNode = class(TNodeX3DNode)
-  end;
-
   TNodeX3DShaderNode = class;
   TNodeComposedShader = class;
 
@@ -281,19 +278,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeColor = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcolor: TMFColor;
-    public property Fdcolor: TMFColor read FFdcolor;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeColorInterpolator = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -363,19 +347,6 @@
 
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeCoordinate = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdpoint: TMFVec3f;
-    public property Fdpoint: TMFVec3f read FFdpoint;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1213,48 +1184,6 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeIndexedLineSet_2 = class(TNodeGeneralShape)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: MFInt32, in } { }
-    private FEventset_colorIndex: TVRMLEvent;
-    public property Eventset_colorIndex: TVRMLEvent read FEventset_colorIndex;
-
-    { Event: MFInt32, in } { }
-    private FEventset_coordIndex: TVRMLEvent;
-    public property Eventset_coordIndex: TVRMLEvent read FEventset_coordIndex;
-
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
-
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
-
-    private FFdcolorIndex: TMFInt32;
-    public property FdcolorIndex: TMFInt32 read FFdcolorIndex;
-
-    private FFdcolorPerVertex: TSFBool;
-    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
-
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
-  end;
-
   TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInline)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
@@ -1434,17 +1363,6 @@
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeNormal = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdvector: TMFVec3f;
-    public property Fdvector: TMFVec3f read FFdvector;
-
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -1741,30 +1659,6 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
-  end;
-
-  TNodePointSet_2 = class(TNodeGeneralShape)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
-
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodePolyline2D = class(TVRMLNode)
@@ -2651,35 +2545,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeColor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcolor := TMFColor.Create('color', []);
-  Fields.Add(FFdcolor);
-
-  DefaultContainerField := 'color';
-end;
-
-class function TNodeColor.ClassNodeTypeName: string;
-begin
-  Result := 'Color';
-end;
-
-class function TNodeColor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeColor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeColorInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2791,35 +2656,6 @@ begin
 end;
 
 function TNodeContour2D.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec3f.Create('point', []);
-  Fields.Add(FFdpoint);
-
-  DefaultContainerField := 'coord';
-end;
-
-class function TNodeCoordinate.ClassNodeTypeName: string;
-begin
-  Result := 'Coordinate';
-end;
-
-class function TNodeCoordinate.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -4179,59 +4015,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeIndexedLineSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_colorIndex := TVRMLEvent.Create('set_colorIndex', TMFInt32, true);
-  Events.Add(FEventset_colorIndex);
-
-  FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
-  Events.Add(FEventset_coordIndex);
-
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
-  Fields.Add(FFdcolor);
-
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
-  Fields.Add(FFdcoord);
-
-  FFdcolorIndex := TMFInt32.Create('colorIndex', []);
-  FFdcolorIndex.Exposed := false;
-  Fields.Add(FFdcolorIndex);
-
-  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', TRUE);
-  FFdcolorPerVertex.Exposed := false;
-  Fields.Add(FFdcolorPerVertex);
-
-  FFdcoordIndex := TMFInt32.CreateMFLong('coordIndex', [], true);
-  FFdcoordIndex.Exposed := false;
-  Fields.Add(FFdcoordIndex);
-end;
-
-class function TNodeIndexedLineSet_2.ClassNodeTypeName: string;
-begin
-  Result := 'IndexedLineSet';
-end;
-
-class function TNodeIndexedLineSet_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodeIndexedLineSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-function TNodeIndexedLineSet_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -4552,27 +4335,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 100);
-end;
-
-constructor TNodeNormal.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdvector := TMFVec3f.Create('vector', []);
-  Fields.Add(FFdvector);
-
-  DefaultContainerField := 'normal';
-end;
-
-class function TNodeNormal.ClassNodeTypeName: string;
-begin
-  Result := 'Normal';
-end;
-
-class function TNodeNormal.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
 constructor TNodeNormalInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -5093,41 +4855,6 @@ begin
 end;
 
 function TNodePointLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodePointSet_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeColor]);
-  Fields.Add(FFdcolor);
-
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeCoordinate, TNodeGeoCoordinate]);
-  Fields.Add(FFdcoord);
-end;
-
-class function TNodePointSet_2.ClassNodeTypeName: string;
-begin
-  Result := 'PointSet';
-end;
-
-class function TNodePointSet_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodePointSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-function TNodePointSet_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
