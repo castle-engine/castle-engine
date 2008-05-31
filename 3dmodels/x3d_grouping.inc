@@ -50,6 +50,11 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  INodeX3DBoundedObject = interface(IVRMLNode)
+    property FdbboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
+    property FdbboxSize: TSFVec3f { read GetFdbboxSize }; { }
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

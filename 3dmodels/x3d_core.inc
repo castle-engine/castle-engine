@@ -32,6 +32,10 @@ type
     public property Fdreference: TSFString read FFdreference;
   end;
 
+  INodeX3DNode = interface(IVRMLNode)
+    property Fdmetadata: TSFNode;
+  end;
+
   { Base X3D node.
 
     Almost all X3D nodes inherit from this. (Exception:
@@ -42,7 +46,7 @@ type
     them inherit from this node. For now, this is not done for all nodes,
     because it would force me to recalculate all FdXxx indexes + 1.
     I have to figure out better method than these indexes.) }
-  TNodeX3DNode = class(TVRMLNode)
+  TNodeX3DNode = class(TVRMLNode, INodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -50,7 +54,10 @@ type
     public property Fdmetadata: TSFNode read FFdmetadata;
   end;
 
-  TNodeX3DChildNode = class(TNodeX3DNode)
+  INodeX3DChildNode = interface(INodeX3DNode)
+  end;
+
+  TNodeX3DChildNode = class(TNodeX3DNode, INodeX3DChildNode)
   end;
 
   TNodeX3DBindableNode = class(TNodeX3DChildNode)

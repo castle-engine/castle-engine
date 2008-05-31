@@ -206,6 +206,13 @@
     jesli ktos rzeczywiscie stworzyl plik podajac wlasciwosc "mirror"
     rozna od domyslnej to uwzglednimy wszedzie to pole i zapiszemy je w
     razie potrzeby z powrotem do pliku VRMLa.
+
+  Many X3D nodes are declared as both Pascal interface and class.
+  That's because we preserve X3D inheritance graph, and when node
+  descends from more than one VRML class --- the rest of VRML classes
+  has to be expressed as Pascal interfaces. For now, these interfaces
+  have little use beside simple "is" checking, but they may be more
+  useful in the future.
 *)
 
 unit VRMLNodes;
@@ -326,7 +333,7 @@ type
   TDynArrayItem_1 = TActiveLight;
   PDynArrayItem_1 = PActiveLight;
   {$define DYNARRAY_1_IS_STRUCT}
-  {$I DynArray_1.inc}
+  {$I dynarray_1.inc}
   TDynActiveLightArray = class(TDynArray_1)
   public
     { -1 jesli nie ma }
@@ -537,6 +544,11 @@ type
 
   TVRMLInterfaceDeclarationsList = class;
 
+  { Basic VRML node interface class, all other interfaces for VRML nodes descend
+    from this. }
+  IVRMLNode = interface
+  end;
+
   { VRML node.
 
     Descendant implementors note: Each descendant should
@@ -544,7 +556,7 @@ type
     Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
     Also, you should define FdXxx properties that allow fast,
     comfortable and type-secure way to retrieve and set these fields. }
-  TVRMLNode = class(TNonRefCountedInterfacedObject)
+  TVRMLNode = class(TNonRefCountedInterfacedObject, IVRMLNode)
   private
     fNodeName: string;
     FWWWBasePath: string;
