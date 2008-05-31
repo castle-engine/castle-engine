@@ -1,0 +1,166 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{$ifdef read_interface}
+  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdloop: TSFBool;
+    public property Fdloop: TSFBool read FFdloop;
+
+    private FFdpauseTime: TSFTime;
+    public property FdpauseTime: TSFTime read FFdpauseTime;
+
+    private FFdresumeTime: TSFTime;
+    public property FdresumeTime: TSFTime read FFdresumeTime;
+
+    private FFdstartTime: TSFTime;
+    public property FdstartTime: TSFTime read FFdstartTime;
+
+    private FFdstopTime: TSFTime;
+    public property FdstopTime: TSFTime read FFdstopTime;
+
+    { Event: SFTime, out } { }
+    private FEventelapsedTime: TVRMLEvent;
+    public property EventelapsedTime: TVRMLEvent read FEventelapsedTime;
+
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
+
+    { Event: SFBool, out } { }
+    private FEventisPaused: TVRMLEvent;
+    public property EventisPaused: TVRMLEvent read FEventisPaused;
+  end;
+
+  TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdcycleInterval: TSFTime;
+    public property FdcycleInterval: TSFTime read FFdcycleInterval;
+
+    { Event: SFTime, out } { }
+    private FEventcycleTime: TVRMLEvent;
+    public property EventcycleTime: TVRMLEvent read FEventcycleTime;
+
+    { Event: SFFloat, out } { }
+    private FEventfraction_changed: TVRMLEvent;
+    public property Eventfraction_changed: TVRMLEvent read FEventfraction_changed;
+
+    { Event: SFTime, out } { }
+    private FEventtime: TVRMLEvent;
+    public property Eventtime: TVRMLEvent read FEventtime;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdloop := TSFBool.Create('loop', false);
+  Fields.Add(FFdloop);
+
+  FFdpauseTime := TSFTime.Create('pauseTime', 0);
+  Fields.Add(FFdpauseTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdresumeTime := TSFTime.Create('resumeTime', 0);
+  Fields.Add(FFdresumeTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdstartTime := TSFTime.Create('startTime', 0);
+  Fields.Add(FFdstartTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdstopTime := TSFTime.Create('stopTime', 0);
+  Fields.Add(FFdstopTime);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FEventelapsedTime := TVRMLEvent.Create('elapsedTime', TSFTime, false);
+  Events.Add(FEventelapsedTime);
+
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
+
+  FEventisPaused := TVRMLEvent.Create('isPaused', TSFBool, false);
+  Events.Add(FEventisPaused);
+
+  DefaultContainerField := 'children';
+end;
+
+constructor TNodeTimeSensor.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdcycleInterval := TSFTime.Create('cycleInterval', 1);
+  Fields.Add(FFdcycleInterval);
+  { X3D specification comment: (0,Inf) }
+
+  FEventcycleTime := TVRMLEvent.Create('cycleTime', TSFTime, false);
+  Events.Add(FEventcycleTime);
+
+  FEventfraction_changed := TVRMLEvent.Create('fraction_changed', TSFFloat, false);
+  Events.Add(FEventfraction_changed);
+
+  FEventtime := TVRMLEvent.Create('time', TSFTime, false);
+  Events.Add(FEventtime);
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeTimeSensor.ClassNodeTypeName: string;
+begin
+  Result := 'TimeSensor';
+end;
+
+function TNodeTimeSensor.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Node is since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeTimeSensor.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterTimeNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeTimeSensor
+  ]);
+end;
+
+{$endif read_implementation}

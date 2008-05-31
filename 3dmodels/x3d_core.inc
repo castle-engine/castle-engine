@@ -77,7 +77,16 @@ type
   TNodeX3DPrototypeInstance = class(TNodeX3DNode)
   end;
 
-  TNodeX3DSensorNode = class(TNodeX3DChildNode)
+  { X3DSensorNode when it's a secondary ancestor.
+    (When it's a primary ancestor, I use class TNodeX3DSensorNode.) }
+  INodeX3DSensorNode = interface(INodeX3DChildNode)
+    property Fdenabled: TSFBool;
+
+    { Event: SFBool, out } { }
+    property EventisActive: TVRMLEvent;
+  end;
+
+  TNodeX3DSensorNode = class(TNodeX3DChildNode, INodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 

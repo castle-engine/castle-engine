@@ -1891,6 +1891,7 @@ type
 { Specific VRML nodes from specifications ------------------------------------ }
 
 {$I x3d_core.inc}
+{$I x3d_time.inc}
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2638,11 +2639,13 @@ uses
 {$I vrmlnodes_triangulating.inc}
 {$I vrmlnodes_suggested_vrml_version.inc}
 
+{$I x3d_core.inc}
+{$I x3d_time.inc}
+
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_core.inc}
 {$I x3d_pointing_device_sensor.inc}
 {$I x3d_shaders.inc}
 {$I x3d_grouping.inc}
@@ -6453,7 +6456,6 @@ initialization
     TNodeText,
     TNodeTextureCoordinate,
     TNodeTextureTransform,
-    TNodeTimeSensor,
     TNodeTouchSensor,
     TNodeTransform_2,
     TNodeTrimmedSurface,
@@ -6469,8 +6471,9 @@ initialization
     TNodeSwitch_3,
     TNodeLOD_3
     ]);
-    
+
   RegisterCoreNodes;
+  RegisterTimeNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

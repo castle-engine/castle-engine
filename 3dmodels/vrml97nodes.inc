@@ -311,11 +311,6 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  { X3DSensorNode when it's a secondary ancestor.
-    (When it's primary ancestor, I use class TNodeX3DSensorNode). }
-  INodeX3DSensorNode = interface
-  end;
-
   TNodeCollision = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
   protected
     procedure DirectEnumerateActive(
@@ -2259,47 +2254,6 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function Matrix: TMatrix4Single;
-  end;
-
-  TNodeTimeSensor = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcycleInterval: TSFTime;
-    public property FdcycleInterval: TSFTime read FFdcycleInterval;
-
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
-
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
-
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
-
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
-
-    { Event: SFTime, out } { }
-    private FEventcycleTime: TVRMLEvent;
-    public property EventcycleTime: TVRMLEvent read FEventcycleTime;
-
-    { Event: SFFloat, out } { }
-    private FEventfraction_changed: TVRMLEvent;
-    public property Eventfraction_changed: TVRMLEvent read FEventfraction_changed;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    { Event: SFTime, out } { }
-    private FEventtime: TVRMLEvent;
-    public property Eventtime: TVRMLEvent read FEventtime;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
@@ -5858,51 +5812,6 @@ begin
   Result := MultMatrices(Result,
     TranslationMatrix(
       Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
-end;
-
-class function TNodeTimeSensor.ClassNodeTypeName: string;
-begin
-  Result := 'TimeSensor';
-end;
-
-class function TNodeTimeSensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-constructor TNodeTimeSensor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcycleInterval := TSFTime.Create('cycleInterval', 1);
-  Fields.Add(FFdcycleInterval);
-
-  FFdenabled := TSFBool.Create('enabled', TRUE);
-  Fields.Add(FFdenabled);
-
-  FFdloop := TSFBool.Create('loop', FALSE);
-  Fields.Add(FFdloop);
-
-  FFdstartTime := TSFTime.Create('startTime', 0);
-  Fields.Add(FFdstartTime);
-
-  FFdstopTime := TSFTime.Create('stopTime', 0);
-  Fields.Add(FFdstopTime);
-
-  FEventcycleTime := TVRMLEvent.Create('cycleTime', TSFTime, false);
-  Events.Add(FEventcycleTime);
-
-  FEventfraction_changed := TVRMLEvent.Create('fraction_changed', TSFFloat, false);
-  Events.Add(FEventfraction_changed);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  FEventtime := TVRMLEvent.Create('time', TSFTime, false);
-  Events.Add(FEventtime);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTouchSensor.ClassNodeTypeName: string;
