@@ -866,6 +866,33 @@ type
     class function VRMLTypeName: string; override;
   end;
 
+  TSFVec4f = class(TVRMLSingleField)
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector4Single);
+
+    Value: TVector4Single;
+
+    DefaultValue: TVector4Single;
+    DefaultValueExists: boolean;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec4f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFColorRGBA = class(TSFVec4f)
+  public
+    class function VRMLTypeName: string; override;
+  end;
+
 { ---------------------------------------------------------------------------- }
 { @section(Multiple value (MF) VRML fields)
 
@@ -993,6 +1020,33 @@ type
 
   TMFColor = class(TMFVec3f)
   public
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFVec4f = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TVector4Single;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynVector4SingleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TVector4Single);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Single): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec4f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFColorRGBA = class(TMFVec4f)
     class function VRMLTypeName: string; override;
   end;
 
@@ -2386,8 +2440,7 @@ end;
 function TSFVec2f.EqualsDefaultValue: boolean;
 begin
   result := (not IsClause) and
-    DefaultValueExists and (DefaultValue[0] = Value[0])
-                       and (DefaultValue[1] = Value[1]);
+    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
 end;
 
 function TSFVec2f.Equals(SecondValue: TVRMLField;
@@ -2457,9 +2510,7 @@ end;
 function TSFVec3f.EqualsDefaultValue: boolean;
 begin
   result := (not IsClause) and
-    DefaultValueExists and (DefaultValue[0] = Value[0])
-                       and (DefaultValue[1] = Value[1])
-                       and (DefaultValue[2] = Value[2]);
+    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
 end;
 
 function TSFVec3f.Equals(SecondValue: TVRMLField;
@@ -2507,6 +2558,83 @@ end;
 class function TSFColor.VRMLTypeName: string;
 begin
   Result := 'SFColor';
+end;
+
+{ TSFVec4f ------------------------------------------------------------------- }
+
+constructor TSFVec4f.Create(const AName: string; const AValue: TVector4Single);
+begin
+  inherited Create(AName);
+
+  Value := AValue;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
+procedure TSFVec4f.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+begin
+  inherited;
+  if IsClause then Exit;
+
+  ParseVector(Value, Lexer);
+end;
+
+procedure TSFVec4f.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  SaveProperties.Write(VectorToRawStr(Value));
+end;
+
+function TSFVec4f.EqualsDefaultValue: boolean;
+begin
+  result := (not IsClause) and
+    DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
+end;
+
+function TSFVec4f.Equals(SecondValue: TVRMLField;
+  const EqualityEpsilon: Single): boolean;
+begin
+ Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+   (SecondValue is TSFVec4f) and
+   VectorsEqual(TSFVec4f(SecondValue).Value, Value, EqualityEpsilon);
+end;
+
+procedure TSFVec4f.AssignLerp(const A: Single; Value1, Value2: TSFVec4f);
+begin
+ Value := VLerp(A, Value1.Value, Value2.Value);
+end;
+
+procedure TSFVec4f.Assign(Source: TPersistent);
+begin
+ if Source is TSFVec4f then
+ begin
+  DefaultValue       := TSFVec4f(Source).DefaultValue;
+  DefaultValueExists := TSFVec4f(Source).DefaultValueExists;
+  Value              := TSFVec4f(Source).Value;
+  VRMLFieldAssignCommon(TVRMLField(Source));
+ end else
+  inherited;
+end;
+
+procedure TSFVec4f.AssignValue(Source: TVRMLField);
+begin
+  if Source is TSFVec4f then
+  begin
+    inherited;
+    Value := TSFVec4f(Source).Value;
+  end else
+    AssignValueRaiseInvalidClass(Source);
+end;
+
+class function TSFVec4f.VRMLTypeName: string;
+begin
+  Result := 'SFVec4f';
+end;
+
+{ TSFColorRGBA ------------------------------------------------------------------- }
+
+class function TSFColorRGBA.VRMLTypeName: string;
+begin
+  Result := 'SFColorRGBA';
 end;
 
 { TSFBitMask ------------------------------------------------------------ }
@@ -2965,6 +3093,13 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
+{$define TMF_CLASS := TMFVec4f}
+{$define TMF_STATIC_ITEM := TVector4Single}
+{$define TMF_CLASS_ITEM := TSFVec4f}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_VECTORS
+
 {$define TMF_CLASS := TMFRotation}
 {$define TMF_STATIC_ITEM := TVector4Single}
 {$define TMF_CLASS_ITEM := TSFRotation}
@@ -3085,6 +3220,34 @@ end;
 class function TMFColor.VRMLTypeName: string;
 begin
   Result := 'MFColor';
+end;
+
+{ TMFVec4f ------------------------------------------------------------------- }
+
+function TMFVec4f.RawItemToString(ItemNum: integer): string;
+begin result := VectorToRawStr(Items.Items[ItemNum]) end;
+
+procedure TMFVec4f.AssignLerp(const A: Single; Value1, Value2: TMFVec4f);
+var
+  I: Integer;
+begin
+ Value1.CheckCountEqual(Value2);
+ Items.Count := Value1.Items.Count;
+
+ for I := 0 to Items.Count - 1 do
+  Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+
+class function TMFVec4f.VRMLTypeName: string;
+begin
+  Result := 'MFVec4f';
+end;
+
+{ TMFColorRGBA ------------------------------------------------------------------- }
+
+class function TMFColorRGBA.VRMLTypeName: string;
+begin
+  Result := 'MFColorRGBA';
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
@@ -3228,7 +3391,9 @@ initialization
     TSFTime,     TMFTime,
     TSFVec2f,    TMFVec2f,
     TSFVec3f,    TMFVec3f,
-    TSFColor,    TMFColor
+    TSFColor,    TMFColor,
+    TSFVec4f,    TMFVec4f,
+    TSFColorRGBA,TMFColorRGBA
     ]);
 finalization
   FreeAndNil(VRMLFieldsManager);
