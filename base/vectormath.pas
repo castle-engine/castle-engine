@@ -364,8 +364,6 @@ type
   { The "infinite" arrays, useful for some type-casting hacks }
 
   { }
-  TArray_Vector3Double = packed array[0..MaxInt div SizeOf(TVector3Double)-1]of TVector3Double;
-  PArray_Vector3Double = ^TArray_Vector3Double;
   TArray_Vector3Byte = packed array[0..MaxInt div SizeOf(TVector3Byte)-1]of TVector3Byte;
   PArray_Vector3Byte = ^TArray_Vector3Byte;
   TArray_Vector4Byte = packed array[0..MaxInt div SizeOf(TVector4Byte)-1]of TVector4Byte;
@@ -418,17 +416,29 @@ type
   PArray_Vector3Cardinal = PInfiniteArray_3;
   TDynVector3CardinalArray = TDynArray_3;
 
-  (* Not used for now.
+  TDynArrayItem_6 = TVector2Double;
+  PDynArrayItem_6 = PVector2Double;
+  {$define DYNARRAY_6_IS_STRUCT}
+  {$I dynarray_6.inc}
+  TArray_Vector2Double = TInfiniteArray_6;
+  PArray_Vector2Double = PInfiniteArray_6;
+  TDynVector2DoubleArray = TDynArray_6;
 
-  TDynArrayItem_4 = TMatrix4Single;
-  PDynArrayItem_4 = PMatrix4Single;
-  {$define DYNARRAY_4_IS_STRUCT}
-  {$I DynArray_4.inc}
-  TArray_Matrix4Single = TInfiniteArray_4;
-  PArray_Matrix4Single = PInfiniteArray_4;
-  TDynMatrix4SingleArray = TDynArray_4;
-  {$I DynArray_4.inc}
-  *)
+  TDynArrayItem_7 = TVector3Double;
+  PDynArrayItem_7 = PVector3Double;
+  {$define DYNARRAY_7_IS_STRUCT}
+  {$I dynarray_7.inc}
+  TArray_Vector3Double = TInfiniteArray_7;
+  PArray_Vector3Double = PInfiniteArray_7;
+  TDynVector3DoubleArray = TDynArray_7;
+
+  TDynArrayItem_8 = TVector4Double;
+  PDynArrayItem_8 = PVector4Double;
+  {$define DYNARRAY_8_IS_STRUCT}
+  {$I dynarray_8.inc}
+  TArray_Vector4Double = TInfiniteArray_8;
+  PArray_Vector4Double = PInfiniteArray_8;
+  TDynVector4DoubleArray = TDynArray_8;
 
   { Exceptions }
 
@@ -675,6 +685,9 @@ function VLerp(const a: Single; V1, V2: TVector2Integer): TVector2Single; overlo
 function VLerp(const a: Single; V1, V2: TVector2Single): TVector2Single; overload;
 function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single; overload;
 function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single; overload;
+function VLerp(const a: Double; V1, V2: TVector2Double): TVector2Double; overload;
+function VLerp(const a: Double; V1, V2: TVector3Double): TVector3Double; overload;
+function VLerp(const a: Double; V1, V2: TVector4Double): TVector4Double; overload;
 
 {$ifdef HAS_MATRIX_UNIT}
 function Vector_Init_Lerp(const A: Single; V1, V2: TVector3_Single): TVector3_Single; overload;
@@ -1972,6 +1985,9 @@ uses Math, KambiStringUtils;
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 {$I dynarray_5.inc}
+{$I dynarray_6.inc}
+{$I dynarray_7.inc}
+{$I dynarray_8.inc}
 
 { TDynVector3SingleArray ----------------------------------------------------- }
 
@@ -2320,6 +2336,27 @@ begin
 end;
 
 function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single;
+begin
+ result[0] := V1[0] + a*(V2[0]-V1[0]);
+ result[1] := V1[1] + a*(V2[1]-V1[1]);
+ result[2] := V1[2] + a*(V2[2]-V1[2]);
+ result[3] := V1[3] + a*(V2[3]-V1[3]);
+end;
+
+function VLerp(const a: Double; V1, V2: TVector2Double): TVector2Double;
+begin
+ result[0] := V1[0] + a*(V2[0]-V1[0]);
+ result[1] := V1[1] + a*(V2[1]-V1[1]);
+end;
+
+function VLerp(const a: Double; V1, V2: TVector3Double): TVector3Double;
+begin
+ result[0] := V1[0] + a*(V2[0]-V1[0]);
+ result[1] := V1[1] + a*(V2[1]-V1[1]);
+ result[2] := V1[2] + a*(V2[2]-V1[2]);
+end;
+
+function VLerp(const a: Double; V1, V2: TVector4Double): TVector4Double;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);

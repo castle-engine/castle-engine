@@ -281,7 +281,7 @@ type
       future values (like TSFFloat.MustBeNonnegative).
     }
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; virtual;
+      const EqualityEpsilon: Double): boolean; virtual;
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
@@ -470,7 +470,7 @@ type
       Count and ItemClass are equal. All descendants must check
       for equality every item on SecondValue.Items[I] and Items[I]. }
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
 
     procedure ParseX3DXmlAttr(Lexer: TVRMLLexer); override;
   end;
@@ -535,7 +535,7 @@ type
     destructor Destroy; override;
 
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -557,7 +557,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -591,7 +591,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -624,7 +624,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFFloat);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -650,7 +650,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Double; Value1, Value2: TSFDouble);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -691,7 +691,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -721,7 +721,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -743,7 +743,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -786,7 +786,7 @@ type
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     function EqualsDefaultValue: boolean; override;
 
     procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
@@ -810,7 +810,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -831,7 +831,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -853,7 +853,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -880,7 +880,7 @@ type
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure AssignLerp(const A: Single; Value1, Value2: TSFVec4f);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
@@ -890,6 +890,72 @@ type
 
   TSFColorRGBA = class(TSFVec4f)
   public
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFVec2d = class(TVRMLSingleField)
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector2Double);
+
+    Value: TVector2Double;
+
+    DefaultValue: TVector2Double;
+    DefaultValueExists: boolean;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec2d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFVec3d = class(TVRMLSingleField)
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector3Double);
+
+    Value: TVector3Double;
+
+    DefaultValue: TVector3Double;
+    DefaultValueExists: boolean;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec3d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFVec4d = class(TVRMLSingleField)
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TVector4Double);
+
+    Value: TVector4Double;
+
+    DefaultValue: TVector4Double;
+    DefaultValueExists: boolean;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec4d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
     class function VRMLTypeName: string; override;
   end;
 
@@ -928,7 +994,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -960,7 +1026,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -986,7 +1052,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
     procedure Assign(Source: TPersistent); override;
@@ -1009,7 +1075,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
     procedure Assign(Source: TPersistent); override;
@@ -1037,7 +1103,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFVec4f);
     procedure Assign(Source: TPersistent); override;
@@ -1047,6 +1113,75 @@ type
   end;
 
   TMFColorRGBA = class(TMFVec4f)
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFVec2d = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TVector2Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynVector2DoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TVector2Double);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec2d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFVec3d = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TVector3Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynVector3DoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TVector3Double);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec3d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFVec4d = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TVector4Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynVector4DoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TVector4Double);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec4d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
     class function VRMLTypeName: string; override;
   end;
 
@@ -1065,7 +1200,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFRotation);
     procedure Assign(Source: TPersistent); override;
@@ -1089,7 +1224,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
     procedure Assign(Source: TPersistent); override;
@@ -1113,7 +1248,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
     procedure AssignLerp(const A: Double; Value1, Value2: TMFDouble);
     procedure Assign(Source: TPersistent); override;
@@ -1141,7 +1276,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
-      const EqualityEpsilon: Single): boolean; override;
+      const EqualityEpsilon: Double): boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1330,7 +1465,7 @@ begin
 end;
 
 function TVRMLField.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
   Result := (not IsClause) and (SecondValue.Name = Name);
 end;
@@ -1576,7 +1711,7 @@ begin
 end;
 
 function TVRMLSimpleMultField.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TVRMLSimpleMultField) and
@@ -1586,8 +1721,9 @@ end;
 
 { simple helpful parsing functions ---------------------------------------- }
 
-{ This returns Float, not just Single, because it's used by TSFDouble
-  that wants double-precision preserved. }
+{ This returns Float, not just Single, because it's used by
+  TSFDouble and ParseVector(double version),
+  that want double-precision preserved. }
 function ParseFloat(Lexer: TVRMLLexer): Float;
 begin
   Lexer.CheckTokenIs(TokenNumbers, 'float number');
@@ -1595,11 +1731,18 @@ begin
   Lexer.NextToken;
 end;
 
-procedure ParseVector(var Vector: array of Single; Lexer: TVRMLLexer);
+procedure ParseVector(var Vector: array of Single; Lexer: TVRMLLexer); overload;
 var i: integer;
 begin
- for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
+  for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
+
+procedure ParseVector(var Vector: array of Double; Lexer: TVRMLLexer); overload;
+var i: integer;
+begin
+  for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
+end;
+
 
 function ParseLongWord(Lexer: TVRMLLexer): LongWord;
 begin
@@ -1671,7 +1814,7 @@ begin
 end;
 
 function TSFBool.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFBool) and
@@ -1748,7 +1891,7 @@ begin
 end;
 
 function TSFFloat.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFFloat) and
@@ -1824,7 +1967,7 @@ begin
 end;
 
 function TSFDouble.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFDouble) and
@@ -2034,7 +2177,7 @@ begin
 end;
 
 function TSFImage.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFImage) and
@@ -2114,7 +2257,7 @@ begin
 end;
 
 function TSFLong.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  { Note that this means that SFInt32 and SFLong will actually be considered
    equal. That's Ok, we want this. }
@@ -2188,7 +2331,7 @@ begin
 end;
 
 function TSFMatrix.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFMatrix) and
@@ -2299,7 +2442,7 @@ begin
 end;
 
 function TSFRotation.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFRotation) and
@@ -2379,7 +2522,7 @@ begin
 end;
 
 function TSFString.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFString) and
@@ -2446,14 +2589,14 @@ begin
 end;
 
 function TSF_CLASS.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
     (SecondValue is TSF_CLASS) and
     VectorsEqual(TSF_CLASS(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: Single; Value1, Value2: TSF_CLASS);
+procedure TSF_CLASS.AssignLerp(const A: TSF_SCALAR; Value1, Value2: TSF_CLASS);
 begin
   Value := VLerp(A, Value1.Value, Value2.Value);
 end;
@@ -2482,15 +2625,33 @@ end;
 }
 
 {$define TSF_CLASS := TSFVec2f}
+{$define TSF_SCALAR := Single}
 {$define TSF_STATIC_ITEM := TVector2Single}
 IMPLEMENT_SF_CLASS_USING_VECTORS
 
 {$define TSF_CLASS := TSFVec3f}
+{$define TSF_SCALAR := Single}
 {$define TSF_STATIC_ITEM := TVector3Single}
 IMPLEMENT_SF_CLASS_USING_VECTORS
 
 {$define TSF_CLASS := TSFVec4f}
+{$define TSF_SCALAR := Single}
 {$define TSF_STATIC_ITEM := TVector4Single}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{$define TSF_CLASS := TSFVec2d}
+{$define TSF_SCALAR := Double}
+{$define TSF_STATIC_ITEM := TVector2Double}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{$define TSF_CLASS := TSFVec3d}
+{$define TSF_SCALAR := Double}
+{$define TSF_STATIC_ITEM := TVector3Double}
+IMPLEMENT_SF_CLASS_USING_VECTORS
+
+{$define TSF_CLASS := TSFVec4d}
+{$define TSF_SCALAR := Double}
+{$define TSF_STATIC_ITEM := TVector4Double}
 IMPLEMENT_SF_CLASS_USING_VECTORS
 
 { TSFVec2f ------------------------------------------------------------------- }
@@ -2526,6 +2687,27 @@ end;
 class function TSFColorRGBA.VRMLTypeName: string;
 begin
   Result := 'SFColorRGBA';
+end;
+
+{ TSFVec2d ------------------------------------------------------------------- }
+
+class function TSFVec2d.VRMLTypeName: string;
+begin
+  Result := 'SFVec2d';
+end;
+
+{ TSFVec3d ------------------------------------------------------------------- }
+
+class function TSFVec3d.VRMLTypeName: string;
+begin
+  Result := 'SFVec3d';
+end;
+
+{ TSFVec4d ------------------------------------------------------------------- }
+
+class function TSFVec4d.VRMLTypeName: string;
+begin
+  Result := 'SFVec4d';
 end;
 
 { TSFBitMask ------------------------------------------------------------ }
@@ -2636,7 +2818,7 @@ begin
 end;
 
 function TSFBitMask.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFBitMask) and
@@ -2725,7 +2907,7 @@ begin
 end;
 
 function TSFEnum.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
    (SecondValue is TSFEnum) and
@@ -2867,7 +3049,7 @@ begin
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
 begin
@@ -2891,7 +3073,7 @@ begin
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
 begin
@@ -2916,7 +3098,7 @@ begin
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
 begin
@@ -2935,7 +3117,7 @@ begin
   Result := VectorToRawStr(Items.Items[ItemNum])
 end;
 
-procedure TMF_CLASS.AssignLerp(const A: Single; Value1, Value2: TMF_CLASS);
+procedure TMF_CLASS.AssignLerp(const A: TMF_SCALAR; Value1, Value2: TMF_CLASS);
 var
   I: Integer;
 begin
@@ -2957,7 +3139,7 @@ begin
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
-  const EqualityEpsilon: Single): boolean;
+  const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
 begin
@@ -2990,6 +3172,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_STATIC_ITEM := TVector2Single}
 {$define TMF_CLASS_ITEM := TSFVec2f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2SingleArray}
+{$define TMF_SCALAR := Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -2997,6 +3180,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_STATIC_ITEM := TVector3Single}
 {$define TMF_CLASS_ITEM := TSFVec3f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
+{$define TMF_SCALAR := Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -3004,6 +3188,31 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_STATIC_ITEM := TVector4Single}
 {$define TMF_CLASS_ITEM := TSFVec4f}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+{$define TMF_SCALAR := Single}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_VECTORS
+
+{$define TMF_CLASS := TMFVec2d}
+{$define TMF_STATIC_ITEM := TVector2Double}
+{$define TMF_CLASS_ITEM := TSFVec2d}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2DoubleArray}
+{$define TMF_SCALAR := Double}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_VECTORS
+
+{$define TMF_CLASS := TMFVec3d}
+{$define TMF_STATIC_ITEM := TVector3Double}
+{$define TMF_CLASS_ITEM := TSFVec3d}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3DoubleArray}
+{$define TMF_SCALAR := Double}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_VECTORS
+
+{$define TMF_CLASS := TMFVec4d}
+{$define TMF_STATIC_ITEM := TVector4Double}
+{$define TMF_CLASS_ITEM := TSFVec4d}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4DoubleArray}
+{$define TMF_SCALAR := Double}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -3011,6 +3220,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_STATIC_ITEM := TVector4Single}
 {$define TMF_CLASS_ITEM := TSFRotation}
 {$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+{$define TMF_SCALAR := Single}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_VECTORS
 
@@ -3113,6 +3323,27 @@ end;
 class function TMFColorRGBA.VRMLTypeName: string;
 begin
   Result := 'MFColorRGBA';
+end;
+
+{ TMFVec2d ------------------------------------------------------------------- }
+
+class function TMFVec2d.VRMLTypeName: string;
+begin
+  Result := 'MFVec2d';
+end;
+
+{ TMFVec3d ------------------------------------------------------------------- }
+
+class function TMFVec3d.VRMLTypeName: string;
+begin
+  Result := 'MFVec3d';
+end;
+
+{ TMFVec4d ------------------------------------------------------------------- }
+
+class function TMFVec4d.VRMLTypeName: string;
+begin
+  Result := 'MFVec4d';
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
@@ -3242,6 +3473,9 @@ initialization
     TSFVec3f,    TMFVec3f,
     TSFColor,    TMFColor,
     TSFVec4f,    TMFVec4f,
+    TSFVec2d,    TMFVec2d,
+    TSFVec3d,    TMFVec3d,
+    TSFVec4d,    TMFVec4d,
     TSFColorRGBA,TMFColorRGBA
     ]);
 finalization
