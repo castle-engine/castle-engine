@@ -592,7 +592,15 @@ procedure TVRMLGLAnimation.Load(
           'Different type of field number %d in nodes: "%s" and "%s"',
           [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
 
-      {$define CheckMFStructuralEquality :=
+      if Model1.Fields[I] is TSFNode then
+        CheckSFNodesStructurallyEqual(
+          TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
+      if Model1.Fields[I] is TMFNode then
+        CheckMFNodesStructurallyEqual(
+          TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
+      if Model1.Fields[I].CanAssignLerp then
+      begin
+        if Model1.Fields[I] is TVRMLMultField then
         begin
           try
             (Model1.Fields[I] as TVRMLMultField).CheckCountEqual
@@ -604,43 +612,11 @@ procedure TVRMLGLAnimation.Load(
             on E: EVRMLMultFieldDifferentCount do
               raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
           end;
-        end}
-
-      if Model1.Fields[I] is TSFDouble   then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFFloat    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFMatrix3f then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFMatrix3d then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFMatrix4f then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFMatrix4d then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFRotation then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec2f    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec2d    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec3f    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec3d    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec4f    then begin { no need to check anything } end else
-      if Model1.Fields[I] is TSFVec4d    then begin { no need to check anything } end else
-
-      if Model1.Fields[I] is TMFDouble   then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFFloat    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFMatrix3f then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFMatrix3d then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFMatrix4f then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFMatrix4d then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFRotation then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec2f    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec2d    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec3f    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec3d    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec4f    then CheckMFStructuralEquality else
-      if Model1.Fields[I] is TMFVec4d    then CheckMFStructuralEquality else
-
-      if Model1.Fields[I] is TSFNode     then CheckSFNodesStructurallyEqual(
-        TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFNode     then CheckMFNodesStructurallyEqual(
-        TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
-
-      {$undef CheckMFStructuralEquality}
-
+        end;
+        { Else we have single-value field that can lerp.
+          No need to check anything in this case,
+          it's ready to go (that is, to lerp). }
+      end else
       begin
         { Check fields for equality.
 
@@ -768,25 +744,6 @@ procedure TVRMLGLAnimation.Load(
 
     for I := 0 to Model1.Fields.Count - 1 do
     begin
-      {$define CheckEqualitySetResult :=
-        begin
-          if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
-            Result := false;
-        end}
-
-      if Model1.Fields[I] is TSFColor    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFFloat    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFMatrix   then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFRotation then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFTime     then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFVec2f    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TSFVec3f    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFColor    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFTime     then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFRotation then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFVec2f    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFVec3f    then CheckEqualitySetResult else
-      if Model1.Fields[I] is TMFFloat    then CheckEqualitySetResult else
       if Model1.Fields[I] is TSFNode then
       begin
         if not SFNodesMerge(TSFNode(Model1.Fields[I]),
@@ -798,11 +755,14 @@ procedure TVRMLGLAnimation.Load(
         if not MFNodesMerge(TMFNode(Model1.Fields[I]),
                             TMFNode(Model2.Fields[I])) then
           Result := false;
+      end else
+      if Model1.Fields[I].CanAssignLerp then
+      begin
+        if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
+          Result := false;
       end;
 
       { Other fields were already checked by CheckVRMLModelsStructurallyEqual }
-
-      {$undef CheckEqualitySetResult}
     end;
   end;
 
@@ -852,19 +812,6 @@ procedure TVRMLGLAnimation.Load(
 
       for I := 0 to Model1.Fields.Count - 1 do
       begin
-        if Model1.Fields[I] is TSFColor    then (Result.Fields[I] as TSFColor   ).AssignLerp(A, TSFColor   (Model1.Fields[I]), TSFColor   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFFloat    then (Result.Fields[I] as TSFFloat   ).AssignLerp(A, TSFFloat   (Model1.Fields[I]), TSFFloat   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFMatrix   then (Result.Fields[I] as TSFMatrix  ).AssignLerp(A, TSFMatrix  (Model1.Fields[I]), TSFMatrix  (Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFRotation then (Result.Fields[I] as TSFRotation).AssignLerp(A, TSFRotation(Model1.Fields[I]), TSFRotation(Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFTime     then (Result.Fields[I] as TSFTime    ).AssignLerp(A, TSFTime    (Model1.Fields[I]), TSFTime    (Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFVec2f    then (Result.Fields[I] as TSFVec2f   ).AssignLerp(A, TSFVec2f   (Model1.Fields[I]), TSFVec2f   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TSFVec3f    then (Result.Fields[I] as TSFVec3f   ).AssignLerp(A, TSFVec3f   (Model1.Fields[I]), TSFVec3f   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFColor    then (Result.Fields[I] as TMFColor   ).AssignLerp(A, TMFColor   (Model1.Fields[I]), TMFColor   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFTime     then (Result.Fields[I] as TMFTime    ).AssignLerp(A, TMFTime    (Model1.Fields[I]), TMFTime    (Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFRotation then (Result.Fields[I] as TMFRotation).AssignLerp(A, TMFRotation(Model1.Fields[I]), TMFRotation(Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFVec2f    then (Result.Fields[I] as TMFVec2f   ).AssignLerp(A, TMFVec2f   (Model1.Fields[I]), TMFVec2f   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFVec3f    then (Result.Fields[I] as TMFVec3f   ).AssignLerp(A, TMFVec3f   (Model1.Fields[I]), TMFVec3f   (Model2.Fields[I])) else
-        if Model1.Fields[I] is TMFFloat    then (Result.Fields[I] as TMFFloat   ).AssignLerp(A, TMFFloat   (Model1.Fields[I]), TMFFloat   (Model2.Fields[I])) else
         if Model1.Fields[I] is TSFNode then
         begin
           SFNodeLerp(
@@ -878,6 +825,10 @@ procedure TVRMLGLAnimation.Load(
             (Result.Fields[I] as TMFNode),
             (Model1.Fields[I] as TMFNode),
             (Model2.Fields[I] as TMFNode));
+        end else
+        if Model1.Fields[I].CanAssignLerp then
+        begin
+          Result.Fields[I].AssignLerp(A, Model1.Fields[I], Model2.Fields[I]);
         end else
         begin
           { These fields cannot be interpolated.

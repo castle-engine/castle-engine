@@ -137,7 +137,8 @@ type
       @item(There are some exceptions, but usually
         assignment is possible only when source and destination field classes
         are equal.)
-      @item(Assignment tries to copy everything: name, default value,
+      @item(Assignment (by @link(Assign), inherited from TPersistent)
+        tries to copy everything: name, default value,
         IsClause*, Exposed, and of course current value.
 
         If you want to copy only the current value, use AssignValue
@@ -333,6 +334,42 @@ type
       or Source.IsClause) nothing will be changed (IsClause and Value will
       remain as they were). }
     procedure AssignValue(Source: TVRMLField); virtual;
+
+    { Assigns value to this node calculated from linear interpolation
+      between two given nodes Value1, Value2. Just like other lerp
+      functions in our units (like @link(VectorMath.Lerp)).
+
+      Like AssignValue, this copies only the current value.
+      All other properties (like Name, IsClause, default value)
+      are untouched.
+
+      There are some special precautions for this:
+
+      @unorderedList(
+        @item(First of all, AssignLerp is defined only for fields where
+          CanAssignLerp returns @true, so always check CanAssignLerp first.
+          All float-based VRML fields should have this implemented.)
+
+        @item(Use this only when you know the field actually has some value,
+          that is IsClause = @false.)
+
+        @item(Use this only if Value1 and Value2
+          are equal or descendant of target (Self) class.)
+
+        @item(For multiple-value fields, counts of Value1 and Value2
+          must be equal, or EVRMLMultFieldDifferentCount will be raised.)
+      )
+
+      @raises(EVRMLMultFieldDifferentCount When field is multiple-value
+        VRML field and Value1.Count <> Value2.Count.)
+    }
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); virtual;
+
+    { @abstract(Is AssignLerp usable on this field type?)
+
+      @italic(Descendants implementors notes):
+      In this class, this always returns @false. }
+    function CanAssignLerp: boolean; virtual;
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -622,10 +659,13 @@ type
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFFloat);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -648,10 +688,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFDouble);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -744,9 +787,13 @@ type
     property Value: TMatrix3Single read FValue write FValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix3f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -764,9 +811,12 @@ type
     property Value: TMatrix3Double read FValue write FValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFMatrix3d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -784,9 +834,12 @@ type
     property Value: TMatrix4Single read FValue write FValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix4f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -818,9 +871,12 @@ type
     property Value: TMatrix4Double read FValue write FValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFMatrix4d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -865,7 +921,8 @@ type
       const EqualityEpsilon: Double): boolean; override;
     function EqualsDefaultValue: boolean; override;
 
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFRotation);
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -905,10 +962,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec2f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -927,10 +987,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec3f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -954,10 +1017,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFVec4f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -981,10 +1047,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec2d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1003,10 +1072,13 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec3d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1028,7 +1100,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Double; Value1, Value2: TSFVec4d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1129,8 +1203,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFMatrix3f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1152,8 +1227,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFMatrix3d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1175,8 +1251,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFMatrix4f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1198,8 +1275,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFMatrix4d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1221,8 +1299,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec2f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1244,8 +1323,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec3f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1272,8 +1352,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFVec4f);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1299,8 +1380,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec2d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1322,8 +1404,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec3d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1345,8 +1428,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFVec4d);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1369,8 +1453,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFRotation);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1393,8 +1478,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1417,8 +1503,9 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
-    procedure AssignLerp(const A: Double; Value1, Value2: TMFDouble);
+
+    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1673,6 +1760,16 @@ begin
       '%s (%s) because it has an IS "%s" clause',
       [Source.Name, Source.VRMLTypeName, Source.IsClauseName]);
   FIsClause := false;
+end;
+
+procedure TVRMLField.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+begin
+  { do nothing, CanAssignLerp is false }
+end;
+
+function TVRMLField.CanAssignLerp: boolean;
+begin
+  Result := false;
 end;
 
 { TVRMLFieldsList ------------------------------------------------------------- }
@@ -2067,9 +2164,14 @@ begin
    FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSFFloat.AssignLerp(const A: Single; Value1, Value2: TSFFloat);
+procedure TSFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
- Value := Lerp(A, Value1.Value, Value2.Value);
+ Value := Lerp(A, (Value1 as TSFFloat).Value, (Value2 as TSFFloat).Value);
+end;
+
+function TSFFloat.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 procedure TSFFloat.Assign(Source: TPersistent);
@@ -2142,9 +2244,14 @@ begin
    FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TSFDouble);
+procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
-  Value := Lerp(A, Value1.Value, Value2.Value);
+  Value := Lerp(A, (Value1 as TSFDouble).Value, (Value2 as TSFDouble).Value);
+end;
+
+function TSFDouble.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 procedure TSFDouble.Assign(Source: TPersistent);
@@ -2511,12 +2618,20 @@ begin
    MatricesEqual(TSF_CLASS(SecondValue).FValue, FValue, EqualityEpsilon);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: TSF_SCALAR; Value1, Value2: TSF_CLASS);
+procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
   Column: integer;
+  M1, M2: PSF_STATIC_ITEM;
 begin
+  M1 := @((Value1 as TSF_CLASS).FValue);
+  M2 := @((Value2 as TSF_CLASS).FValue);
   for Column := 0 to TSF_MATRIX_COLS - 1 do
-    FValue[Column] := Lerp(A, Value1.FValue[Column], Value2.FValue[Column]);
+    FValue[Column] := Lerp(A, M1^[Column], M2^[Column]);
+end;
+
+function TSF_CLASS.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 procedure TSF_CLASS.Assign(Source: TPersistent);
@@ -2542,24 +2657,28 @@ end;
 
 {$define TSF_CLASS := TSFMatrix3f}
 {$define TSF_STATIC_ITEM := TMatrix3Single}
+{$define PSF_STATIC_ITEM := PMatrix3Single}
 {$define TSF_MATRIX_COLS := 3}
 {$define TSF_SCALAR := Single}
 IMPLEMENT_SF_CLASS_USING_MATRICES
 
 {$define TSF_CLASS := TSFMatrix3d}
 {$define TSF_STATIC_ITEM := TMatrix3Double}
+{$define PSF_STATIC_ITEM := PMatrix3Double}
 {$define TSF_MATRIX_COLS := 3}
 {$define TSF_SCALAR := Double}
 IMPLEMENT_SF_CLASS_USING_MATRICES
 
 {$define TSF_CLASS := TSFMatrix4f}
 {$define TSF_STATIC_ITEM := TMatrix4Single}
+{$define PSF_STATIC_ITEM := PMatrix4Single}
 {$define TSF_MATRIX_COLS := 4}
 {$define TSF_SCALAR := Single}
 IMPLEMENT_SF_CLASS_USING_MATRICES
 
 {$define TSF_CLASS := TSFMatrix4d}
 {$define TSF_STATIC_ITEM := TMatrix4Double}
+{$define PSF_STATIC_ITEM := PMatrix4Double}
 {$define TSF_MATRIX_COLS := 4}
 {$define TSF_SCALAR := Double}
 IMPLEMENT_SF_CLASS_USING_MATRICES
@@ -2696,10 +2815,15 @@ begin
     (DefaultRotationRad = RotationRad);
 end;
 
-procedure TSFRotation.AssignLerp(const A: Single; Value1, Value2: TSFRotation);
+procedure TSFRotation.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
- Axis        := Lerp(A, Value1.Axis, Value2.Axis);
- RotationRad := Lerp(A, Value1.RotationRad, Value2.RotationRad);
+ Axis        := Lerp(A, (Value1 as TSFRotation).Axis       , (Value2 as TSFRotation).Axis);
+ RotationRad := Lerp(A, (Value1 as TSFRotation).RotationRad, (Value2 as TSFRotation).RotationRad);
+end;
+
+function TSFRotation.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 procedure TSFRotation.Assign(Source: TPersistent);
@@ -2835,9 +2959,14 @@ begin
     VectorsEqual(TSF_CLASS(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: TSF_SCALAR; Value1, Value2: TSF_CLASS);
+procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
-  Value := Lerp(A, Value1.Value, Value2.Value);
+  Value := Lerp(A, (Value1 as TSF_CLASS).Value, (Value2 as TSF_CLASS).Value);
+end;
+
+function TSF_CLASS.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 procedure TSF_CLASS.Assign(Source: TPersistent);
@@ -3356,15 +3485,28 @@ begin
   Result := VectorToRawStr(Items.Items[ItemNum])
 end;
 
-procedure TMF_CLASS.AssignLerp(const A: TMF_SCALAR; Value1, Value2: TMF_CLASS);
+procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
   I: Integer;
+  Val1, Val2: TMF_CLASS;
+  Items1, Items2: TMF_DYN_STATIC_ITEM_ARRAY;
 begin
-  Value1.CheckCountEqual(Value2);
-  Items.Count := Value1.Items.Count;
+  Val1 := Value1 as TMF_CLASS;
+  Val2 := Value2 as TMF_CLASS;
+
+  Val1.CheckCountEqual(Val2);
+  Items.Count := Val1.Items.Count;
+
+  Items1 := Val1.Items;
+  Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+    Items.Items[I] := Lerp(A, Items1.Items[I], Items2.Items[I]);
+end;
+
+function TMF_CLASS.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 }
 
@@ -3401,15 +3543,28 @@ begin
     Result += ' ' + VectorToRawStr(Items.Items[ItemNum][Column]);
 end;
 
-procedure TMF_CLASS.AssignLerp(const A: TMF_SCALAR; Value1, Value2: TMF_CLASS);
+procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
   I: Integer;
+  Val1, Val2: TMF_CLASS;
+  Items1, Items2: TMF_DYN_STATIC_ITEM_ARRAY;
 begin
-  Value1.CheckCountEqual(Value2);
-  Items.Count := Value1.Items.Count;
+  Val1 := Value1 as TMF_CLASS;
+  Val2 := Value2 as TMF_CLASS;
+
+  Val1.CheckCountEqual(Val2);
+  Items.Count := Val1.Items.Count;
+
+  Items1 := Val1.Items;
+  Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+    Items.Items[I] := Lerp(A, Items1.Items[I], Items2.Items[I]);
+end;
+
+function TMF_CLASS.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 }
 
@@ -3706,15 +3861,24 @@ end;
 function TMFFloat.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
 
-procedure TMFFloat.AssignLerp(const A: Single; Value1, Value2: TMFFloat);
+procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
   I: Integer;
+  Val1, Val2: TMFFloat;
 begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
+  Val1 := Value1 as TMFFloat;
+  Val2 := Value2 as TMFFloat;
 
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+  Val1.CheckCountEqual(Val2);
+  Items.Count := Val1.Items.Count;
+
+  for I := 0 to Items.Count - 1 do
+    Items.Items[I] := Lerp(A, Val1.Items.Items[I], Val2.Items.Items[I]);
+end;
+
+function TMFFloat.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 class function TMFFloat.VRMLTypeName: string;
@@ -3727,15 +3891,24 @@ end;
 function TMFDouble.RawItemToString(ItemNum: integer): string;
 begin result := FloatToRawStr(Items.Items[ItemNum]) end;
 
-procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TMFDouble);
+procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 var
   I: Integer;
+  Val1, Val2: TMFDouble;
 begin
- Value1.CheckCountEqual(Value2);
- Items.Count := Value1.Items.Count;
+  Val1 := Value1 as TMFDouble;
+  Val2 := Value2 as TMFDouble;
 
- for I := 0 to Items.Count - 1 do
-  Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+  Val1.CheckCountEqual(Val2);
+  Items.Count := Val1.Items.Count;
+
+  for I := 0 to Items.Count - 1 do
+   Items.Items[I] := Lerp(A, Val1.Items.Items[I], Val2.Items.Items[I]);
+end;
+
+function TMFDouble.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 class function TMFDouble.VRMLTypeName: string;
