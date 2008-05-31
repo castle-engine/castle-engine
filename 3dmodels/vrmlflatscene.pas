@@ -862,7 +862,7 @@ procedure TVRMLFlatScene.ChangedAll;
       if LNode is TNodeSpotLight_2 then
         AddLightRadius(L^, L^.TransfLocation, L^.TransfRadius);
       { Other light types (directional) should be handled by
-        TNodeGeneralGrouping.BeforeTraverse }
+        TVRMLGroupingNode.BeforeTraverse }
     end;
   end;
 

@@ -547,12 +547,12 @@ procedure TVRMLGLAnimation.Load(
       TNodeInlineLoadControl(Model2).LoadInlined(false);
     end;
     {$else}
-    if Supports(Model1, INodeGeneralInline) and
-       Supports(Model2, INodeGeneralInline) then
+    if Supports(Model1, IVRMLInline) and
+       Supports(Model2, IVRMLInline) then
       begin
         { Make sure that *Inline content is loaded now. }
-        (Model1 as INodeGeneralInline).LoadInlined(false);
-        (Model2 as INodeGeneralInline).LoadInlined(false);
+        (Model1 as IVRMLInline).LoadInlined(false);
+        (Model2 as IVRMLInline).LoadInlined(false);
       end;
     {$endif}
 

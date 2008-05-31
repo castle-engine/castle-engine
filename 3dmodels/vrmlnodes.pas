@@ -1875,10 +1875,10 @@ type
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
   end;
 
-{ INodeGeneralInline --------------------------------------------------------- }
+{ IVRMLInline --------------------------------------------------------- }
 
   { Basic interface that should be implemented by all Inline VRML nodes. }
-  INodeGeneralInline = interface
+  IVRMLInline = interface
     { Call LoadInlined to load inlined VRML content @bold(now).
       If Inlined is already loaded,
       than: if CanReload = @true Inlined will be freed and loaded again,
@@ -1892,13 +1892,15 @@ type
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
+{$I x3d_grouping.inc}
+{$I x3d_networking.inc}
+
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
 {$I x3d_shaders.inc}
-{$I x3d_grouping.inc}
 {$I x3d_navigation.inc}
 
 { TNodeUnknown --------------------------------------------------- }
@@ -2641,6 +2643,8 @@ uses
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
+{$I x3d_grouping.inc}
+{$I x3d_networking.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2648,7 +2652,6 @@ uses
 {$I vrmlkambinodes.inc}
 {$I x3d_pointing_device_sensor.inc}
 {$I x3d_shaders.inc}
-{$I x3d_grouping.inc}
 {$I x3d_navigation.inc}
 
 resourcestring
@@ -6389,7 +6392,6 @@ initialization
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
-    TNodeAnchor,
     TNodeAppearance,
     TNodeAudioClip,
     TNodeBackground,
@@ -6423,7 +6425,6 @@ initialization
     TNodeImageTexture,
     TNodeIndexedFaceSet_2,
     TNodeIndexedLineSet_2,
-    TNodeInline,
     TNodeInlineLoadControl,
     TNodeLOD_2,
     TNodeMaterial_2,
@@ -6474,6 +6475,7 @@ initialization
 
   RegisterCoreNodes;
   RegisterTimeNodes;
+  RegisterNetworkingNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

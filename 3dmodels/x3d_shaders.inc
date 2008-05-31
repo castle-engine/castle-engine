@@ -25,9 +25,6 @@ type
   public
   end;
 
-  INodeX3DUrlObject = interface
-  end;
-
   TNodeX3DShaderNode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

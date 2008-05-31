@@ -20,71 +20,10 @@
 
 { This file defines all nodes from VRML 2.0 (aka 97) specification.
   Keep it alphabetically (aside from abstract classes
-  that are only for easier implementation, like TNodeGeneralGrouping). } { }
+  that are only for easier implementation, like TVRMLGroupingNode). } { }
 
 {$ifdef read_interface}
-  { This is a VRML 2.0 grouping node.
-    This will push/pop full TVRMLGraphTraverseState in Before/AfterTraverse.
-    It also propagates DirectionalLights in any child to all children
-    in VRML2ActiceLights. }
-  TNodeGeneralGrouping = class(TVRMLNode)
-  private
-    OriginalState: TVRMLGraphTraverseState;
-  protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-    procedure AfterTraverse(var State: TVRMLGraphTraverseState); override;
-  end;
-
   TNodeX3DGeometryNode = class(TNodeX3DNode)
-  end;
-
-  TNodeX3DGroupingNode = class(TNodeGeneralGrouping)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
-
-    { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
-
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
-
-{    private FFdmetadata: TSFNode;
-    public property Fdmetadata: TSFNode read FFdmetadata;
-}
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
-
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
-
-    function ChildrenField: TMFNode; override;
-  end;
-
-  TNodeAnchor = class(TNodeX3DGroupingNode)
-  protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
-
-    private FFdparameter: TMFString;
-    public property Fdparameter: TMFString read FFdparameter;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeX3DShaderNode = class;
@@ -443,7 +382,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeCoordinateDeformer = class(TNodeGeneralGrouping)
+  TNodeCoordinateDeformer = class(TVRMLGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -949,7 +888,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeGeoLOD = class(TNodeGeneralGrouping)
+  TNodeGeoLOD = class(TVRMLGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1350,32 +1289,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeInline = class(TNodeGeneralGrouping, INodeGeneralInline)
-  protected
-    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
-
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    class function ChildrenSaveToStream: boolean; override;
-
-    procedure LoadInlined(CanReload: boolean);
-  end;
-
-  TNodeInlineLoadControl = class(TNodeGeneralGrouping, INodeGeneralInline)
+  TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInline)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
@@ -1407,7 +1321,7 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeLOD_2 = class(TNodeGeneralGrouping)
+  TNodeLOD_2 = class(TVRMLGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -2164,7 +2078,7 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
-  TNodeSwitch_2 = class(TNodeGeneralGrouping)
+  TNodeSwitch_2 = class(TVRMLGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -2416,163 +2330,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-type
-  TGeneralGroupingEnumerator = class
-    Lights: TDynActiveLightArray;
-    State: TVRMLGraphTraverseState;
-    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
-  end;
-
-  procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
-    Node, Child: TVRMLNode);
-  begin
-    if Child is TNodeGeneralDirectionalLight then
-      { We do CreateActiveLight with State from TNodeGeneralGrouping node,
-        while precisely we should rather use State from TNodeDirectionalLight
-        traverse. But, fortunately, State of TNodeDirectionalLight doesn't
-        change inside (TNodeDirectionalLight doesn't do anything inside
-        BeforeTraverse), so this is the same thing. }
-      State.VRML2ActiveLights.AppendItem(
-        TNodeGeneralDirectionalLight(Child).CreateActiveLight(State));
-  end;
-
-procedure TNodeGeneralGrouping.BeforeTraverse(
-  var State: TVRMLGraphTraverseState);
-var
-  Enumerator: TGeneralGroupingEnumerator;
-begin
-  inherited;
-  OriginalState := State;
-  State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
-
-  (*We append all directional lights to the current State.
-    This is how we implement DirectionalLight scope according to VRML 2.0
-    specification.
-
-    This may seem wasteful to enumerate children twice
-    (first we enumerate here, then actual Traverse enumerates,
-    this time recursively, for the second time). But it turned out to
-    be the fastest and simplest method of propagating DirectionalLight
-    correctly...
-
-    First approach was to add ParentGroup to TActiveLight
-    and do it as post-processing step, i.e. in TVRMLFlatScene in
-    UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
-    But that was 1. even slower, since it must traverse ParentGroup once again
-    for each directional light, and for each shape within this ParentGroup,
-    it must find all it's occurences inside ShapeStates, and add light there
-    2. it fails ugly in case of DEF / USE of shapes.
-
-    See kambi_vrml_test_suite/vrml_2/directional_light_scope.wrl test. Imagine
-    (simplified VRML below) :
-
-      Group {
-        DEF S Shape { .... some sphere .... }
-        Group {
-          USE S
-          DirectionalLight { }
-          USE S
-        }
-        USE S
-      }
-
-    What would happen here ? ParentGroup.Enumerate would find S *two* times.
-    For each of these occurences, it would find *four* shape states with
-    matching node value. So 1. all four spheres would be lighted (incorrect,
-    only two spheres in the middle should be lighted) 2. all of them would
-    be lighted two times by the same light... Fix for 1st problem would
-    require us to record some list of parents within State (which would
-    awfully slow down Traverse work, that already is too crowded). Fix for 2nd
-    problem would require some intelligent avoiding of duplicates
-    (set light only for first node, that is both matching and has the light
-    not set yet).
-
-    It would be quite more convoluted and much slower than
-    simple, correct solution below. *)
-
-  Enumerator := TGeneralGroupingEnumerator.Create;
-  try
-    Enumerator.State := State;
-    DirectEnumerateActive(
-      {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
-  finally FreeAndNil(Enumerator) end;
-end;
-
-procedure TNodeGeneralGrouping.AfterTraverse(
-  var State: TVRMLGraphTraverseState);
-begin
-  FreeAndNil(State);
-  State := OriginalState;
-  inherited;
-end;
-
-constructor TNodeX3DGroupingNode.Create(
-  const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
-  Events.Add(FEventaddChildren);
-
-  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
-  Events.Add(FEventremoveChildren);
-
-  FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
-  Fields.Add(FFdchildren);
-
-{ will be added automatically, since TNodeX3DGroupingNode
-  will have X3DNode as ancestor 
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [INodeX3DMetadataObject_Descendants]);
-  Fields.Add(FFdmetadata);}
-
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
-
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
-end;
-
-function TNodeX3DGroupingNode.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
-end;
-
-class function TNodeAnchor.ClassNodeTypeName: string;
-begin
-  Result := 'Anchor';
-end;
-
-class function TNodeAnchor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-constructor TNodeAnchor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFddescription := TSFString.Create('description', '');
-  Fields.Add(FFddescription);
-
-  FFdparameter := TMFString.Create('parameter', []);
-  Fields.Add(FFdparameter);
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  DefaultContainerField := 'children';
-end;
-
-procedure TNodeAnchor.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
-begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
-end;
 
 class function TNodeAppearance.ClassNodeTypeName: string;
 begin
@@ -4336,82 +4093,6 @@ begin
   Result := VerMajor >= 2;
 end;
 
-class function TNodeInline.ClassNodeTypeName: string;
-begin
-  Result := 'Inline';
-end;
-
-class function TNodeInline.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-constructor TNodeInline.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
-
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
-
-  DefaultContainerField := 'children';
-
-  FParsingAllowedChildren := false;
-  FAllowedChildren := true;
-end;
-
-procedure TNodeInline.LoadInlined(CanReload: boolean);
-var
-  I: Integer;
-  FullUrl: string;
-  NewNode: TVRMLNode;
-begin
-  if ChildrenCount > 0 then
-  begin
-    if CanReload then RemoveAllChildren else Exit;
-  end;
-
-  NewNode := nil;
-
-  for I := 0 to FdUrl.Items.Count - 1 do
-  begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-    try
-      NewNode := LoadAsVRML(PathFromWWWBasePath(FullUrl), false);
-      Break;
-    except
-      on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
-          ' occured when trying to load '+
-          'inline file from URL "' + FullUrl + ' : ' + E.Message);
-    end;
-  end;
-
-  if NewNode <> nil then
-    AddChild(NewNode);
-end;
-
-procedure TNodeInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
-begin
-  inherited;
-  LoadInlined(false);
-end;
-
-class function TNodeInline.ChildrenSaveToStream: boolean;
-begin
-  Result := false;
-end;
-
 class function TNodeInlineLoadControl.ClassNodeTypeName: string;
 begin
   Result := 'InlineLoadControl';
@@ -5893,7 +5574,7 @@ var
 begin
   inherited;
 
-  { Inherited TNodeGeneralGrouping already saved State.Transform and such.
+  { Inherited TVRMLGroupingNode already saved State.Transform and such.
 
     To make InvertedTransform, we multiply inverted matrices in inverted order
     below. }
