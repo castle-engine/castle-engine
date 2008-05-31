@@ -16,7 +16,7 @@ Group : X3DGroupingNode {
 
 StaticGroup : X3DChildNode, X3DBoundedObject {
   MFNode  []       children   []       [X3DChildNode]
-  SFVec3f []       bboxCenter 0 0      (-Inf,Inf)
+  SFVec3f []       bboxCenter 0 0 0    (-Inf,Inf)
   SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
 }
 

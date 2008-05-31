@@ -63,6 +63,58 @@
     function ChildrenField: TMFNode; override;
   end;
 
+  TNodeGroup_2 = class(TNodeX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  { A Group node that is added when VRML >= 2.0 file contains more
+    than one node at the root level. (Or contains any prototypes,
+    routes etc. at the root level, as they must all be stored inside
+    some node's properties).
+
+    See TNodeGroupHidden_1 for some more comments about why this
+    descends from TNodeGroup_2. }
+  TNodeGroupHidden_2 = class(TNodeGroup_2)
+  public
+    (*Save TNodeGroupHidden_* contents to stream.
+
+      TNodeGroupHidden_* is saved to stream in a special way, so that actually
+      only it's contents are written, without surrounding { } braces.
+      This way, when saving, we "undo" the artificial wrapping in
+      TNodeGroupHidden_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
+  end;
+
+  TNodeStaticGroup = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdchildren: TMFNode;
+    public property Fdchildren: TMFNode read FFdchildren;
+
+    private FFdbboxCenter: TSFVec3f;
+    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+
+    private FFdbboxSize: TSFVec3f;
+    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+  end;
+
   { X3D Switch node.
 
     This is implemented as a different class than VRML 2.0 Switch
@@ -91,6 +143,37 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+  end;
+
+  TNodeTransform_2 = class(TNodeX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+    procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    private FFdcenter: TSFVec3f;
+    public property Fdcenter: TSFVec3f read FFdcenter;
+
+    private FFdrotation: TSFRotation;
+    public property Fdrotation: TSFRotation read FFdrotation;
+
+    private FFdscale: TSFVec3f;
+    public property Fdscale: TSFVec3f read FFdscale;
+
+    private FFdscaleOrientation: TSFRotation;
+    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+
+    private FFdtranslation: TSFVec3f;
+    public property Fdtranslation: TSFVec3f read FFdtranslation;
   end;
 
 {$endif read_interface}
@@ -186,6 +269,8 @@ begin
   inherited;
 end;
 
+{$define IX3DChildNode_Descendants := TNodeX3DChildNode}
+
 constructor TNodeX3DGroupingNode.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
@@ -197,21 +282,20 @@ begin
   FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
+  FFdchildren := TMFNode.Create(Self, 'children', [IX3DChildNode_Descendants]);
   Fields.Add(FFdchildren);
-
-{ will be added automatically, since TNodeX3DGroupingNode
-  will have X3DNode as ancestor
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [INodeX3DMetadataObject_Descendants]);
-  Fields.Add(FFdmetadata);}
 
   FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
   FFdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
+  { X3D specification comment: (-Inf,Inf) }
 
   FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
+  { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  DefaultContainerField := 'children';
 end;
 
 function TNodeX3DGroupingNode.ChildrenField: TMFNode;
@@ -219,12 +303,103 @@ begin
   Result := FdChildren;
 end;
 
-class function TNodeSwitch_3.ClassNodeTypeName: string;
+constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
-  Result := 'Switch';
+  inherited;
+
+  DefaultContainerField := 'children';
 end;
 
-class function TNodeSwitch_3.URNMatching(const URN: string): boolean;
+class function TNodeGroup_2.ClassNodeTypeName: string;
+begin
+  Result := 'Group';
+end;
+
+class function TNodeGroup_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeGroup_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
+end;
+
+procedure TNodeGroup_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
+function TNodeGroup_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+procedure TNodeGroupHidden_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: integer;
+begin
+  { Special things for TNodeGroupHidden_2 saving:
+    NodeName is ignored (should be '').
+    Only field "children" is used, and in a special way (we write it's
+    nodes, without writing field name "children [" "]").
+    Other fields are ignored (should never have any meaning). }
+
+  for I := 0 to Prototypes.Count - 1 do
+    Prototypes[I].SaveToStream(SaveProperties);
+
+  for i := 0 to FdChildren.Count - 1 do
+    FdChildren.Items[I].SaveToStream(SaveProperties);
+
+  for I := 0 to Routes.Count - 1 do
+    Routes[I].SaveToStream(SaveProperties);
+end;
+
+constructor TNodeStaticGroup.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdchildren := TMFNode.Create(Self, 'children', [IX3DChildNode_Descendants]);
+  FFdchildren.Exposed := false;
+  Fields.Add(FFdchildren);
+
+  FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));
+  FFdbboxCenter.Exposed := false;
+  Fields.Add(FFdbboxCenter);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize.Exposed := false;
+  Fields.Add(FFdbboxSize);
+  { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeStaticGroup.ClassNodeTypeName: string;
+begin
+  Result := 'StaticGroup';
+end;
+
+function TNodeStaticGroup.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeStaticGroup.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -236,8 +411,20 @@ begin
 
   FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
   Fields.Add(FFdwhichChoice);
+  { X3D specification comment: [-1,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+class function TNodeSwitch_3.ClassNodeTypeName: string;
+begin
+  Result := 'Switch';
+end;
+
+class function TNodeSwitch_3.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
 class function TNodeSwitch_3.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -256,4 +443,137 @@ begin
     Func(Self, FdChildren.Items[FdWhichChoice.Value]);
 end;
 
+function TNodeSwitch_3.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  Fields.Add(FFdcenter);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdrotation);
+  { X3D specification comment: [-1,1] or (-Inf,Inf) }
+
+  FFdscale := TSFVec3f.Create('scale', Vector3Single(1, 1, 1));
+  Fields.Add(FFdscale);
+  { X3D specification comment: (-Inf, Inf) }
+
+  FFdscaleOrientation := TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdscaleOrientation);
+  { X3D specification comment: [-1,1] or (-Inf,Inf) }
+
+  FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdtranslation);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeTransform_2.ClassNodeTypeName: string;
+begin
+  Result := 'Transform';
+end;
+
+class function TNodeTransform_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeTransform_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
+end;
+
+procedure TNodeTransform_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
+end;
+
+procedure TNodeTransform_2.BeforeTraverse(var State: TVRMLGraphTraverseState);
+var
+  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+begin
+  inherited;
+
+  { Inherited TVRMLGroupingNode already saved State.Transform and such.
+
+    To make InvertedTransform, we multiply inverted matrices in inverted order
+    below. }
+
+  TranslationMatrices(VectorAdd(FdTranslation.Value, FdCenter.Value), M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  { Note that even Axis = zero is OK, both M and IM will be identity in
+    this case. }
+  RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  if (FdScale.Value[0] <> 1) or
+     (FdScale.Value[1] <> 1) or
+     (FdScale.Value[2] <> 1) then
+  begin
+    RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
+      MRotateScaleOrient, IMRotateScaleOrient);
+
+    State.Transform := MultMatrices(State.Transform, MRotateScaleOrient);
+    State.InvertedTransform := MultMatrices(IMRotateScaleOrient, State.InvertedTransform);
+
+    { For scaling, we explicitly request that if ScalingFactor contains
+      zero, IM will be forced to be identity. That's because VRML allows
+      scaling factor to have 0 components (we need InvertedTransform only
+      for special tricks). }
+
+    ScalingMatrices(FdScale.Value, true, M, IM);
+    State.Transform := MultMatrices(State.Transform, M);
+    State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+    { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
+      matrices below. Since we want to reverse them now, so normal
+      Transform is multiplied by IM and InvertedTransform is multiplied by M. }
+    State.Transform := MultMatrices(State.Transform, IMRotateScaleOrient);
+    State.InvertedTransform := MultMatrices(MRotateScaleOrient, State.InvertedTransform);
+  end;
+
+  TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
+  State.Transform := MultMatrices(State.Transform, M);
+  State.InvertedTransform := MultMatrices(IM, State.InvertedTransform);
+
+  State.AverageScaleTransform *=
+    (FdScale.Value[0] + FdScale.Value[1] + FdScale.Value[2]) / 3;
+end;
+
+function TNodeTransform_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+procedure RegisterGroupingNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeGroup_2,
+    TNodeStaticGroup,
+    TNodeSwitch_3,
+    TNodeTransform_2
+  ]);
+end;
 {$endif read_implementation}

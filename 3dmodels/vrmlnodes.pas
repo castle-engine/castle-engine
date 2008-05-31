@@ -6430,7 +6430,6 @@ initialization
     TNodeGeoPositionInterpolator,
     TNodeGeoTouchSensor,
     TNodeGeoViewpoint,
-    TNodeGroup_2,
     TNodeImageTexture,
     TNodeIndexedFaceSet_2,
     TNodeIndexedLineSet_2,
@@ -6467,7 +6466,6 @@ initialization
     TNodeTextureCoordinate,
     TNodeTextureTransform,
     TNodeTouchSensor,
-    TNodeTransform_2,
     TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
@@ -6478,13 +6476,13 @@ initialization
     TNodeProgramShader,
     TNodeShaderPart,
     TNodeShaderProgram,
-    TNodeSwitch_3,
     TNodeLOD_3
     ]);
 
   RegisterCoreNodes;
   RegisterTimeNodes;
   RegisterNetworkingNodes;
+  RegisterGroupingNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
