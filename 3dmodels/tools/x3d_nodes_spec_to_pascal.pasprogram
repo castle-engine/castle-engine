@@ -28,8 +28,8 @@
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
 
-uses SysUtils, Classes, KambiClassUtils, VRMLLexer, VRMLFields,
-  KambiStringUtils, VRMLNodes;
+uses SysUtils, Classes, KambiClassUtils, VRMLFields,
+  KambiStringUtils, VRMLNodes, KambiUtils;
 
 var
   InterfaceLines: TMemoryStream;
@@ -91,16 +91,16 @@ begin
   if not IsInterface then
   begin
     WritelnStr(InterfaceLines,
-      '  public' + LineEnding +
-      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;' + LineEnding +
-      '    class function ClassNodeTypeName: string; override;' + LineEnding +
-      '    function SuggestedVRMLVersion(' + LineEnding +
+      '  public' + NL +
+      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;' + NL +
+      '    class function ClassNodeTypeName: string; override;' + NL +
+      '    function SuggestedVRMLVersion(' + NL +
       '      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;');
 
     WritelnStr(ImplementationLines,
-      'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + LineEnding +
-      '  const AWWWBasePath: string);' + LineEnding +
-      'begin' + LineEnding +
+      'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + NL +
+      '  const AWWWBasePath: string);' + NL +
+      'begin' + NL +
       '  inherited;');
   end;
 end;
@@ -111,7 +111,7 @@ const
 var
   FieldType, FieldName, AccessTypeName, EventInOrOut: string;
   AccessType: TVRMLAccessType;
-  SeekPos: Integer;
+  SeekPos, I: Integer;
   NodeField: boolean;
   NodeFieldAllowedChildren, FieldDefaultValue, FieldComment, FieldExposedLine: string;
 begin
@@ -123,7 +123,7 @@ begin
   if FieldType = '#' then
   begin
     { special case, this is not a field, just abort now }
-    WritelnStr(InterfaceLines, LineEnding + '    { ' + Line + '}');
+    WritelnStr(InterfaceLines, NL + '    { ' + Line + '}');
     Exit;
   end;
 
@@ -142,6 +142,19 @@ begin
 
   while SCharIs(Line, SeekPos, WhiteSpaces) do Inc(SeekPos);
 
+  { Parsing field's default value if the most tricky and ad-hoc implementation
+    here. That's because we don't want to just parse the field using
+    parsing routines in TVRMLField unit --- this would loose some things
+    like "Pi/2" expressions. So instead we employ text tricks that often
+    work good enough.
+
+    For example, for MF fields, it's enough to parse to matching "]" character.
+    For SF fields (or MF fields with single init value, i.e. not starting
+    with "[") field types gives us token count for NextToken.
+
+    In case of problems, the unparsed field's value will be in "X3D spec comment",
+    and manual fixing of Pascal include file will be needed.  }
+
   if SCharIs(Line, SeekPos, '[') then
   begin
     FieldDefaultValue := '[';
@@ -154,9 +167,75 @@ begin
     FieldDefaultValue += ']';
     Inc(SeekPos);
   end else
-    FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces);
+  begin
+    if (FieldType = 'SFVec2d') or
+       (FieldType = 'SFVec2f') or
+       (FieldType = 'MFVec2d') or
+       (FieldType = 'MFVec2f') then
+    begin
+      FieldDefaultValue := 'Vector2Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
+    if (FieldType = 'SFColor') or
+       (FieldType = 'SFVec3d') or
+       (FieldType = 'SFVec3f') or
+       (FieldType = 'MFColor') or
+       (FieldType = 'MFVec3d') or
+       (FieldType = 'MFVec3f') then
+    begin
+      FieldDefaultValue := 'Vector3Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
+    if (FieldType = 'SFColorRGBA') or
+       (FieldType = 'SFVec4d') or
+       (FieldType = 'SFVec4f') or
+       (FieldType = 'MFColorRGBA') or
+       (FieldType = 'MFVec4d') or
+       (FieldType = 'MFVec4f') then
+    begin
+      FieldDefaultValue := 'Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
+    if (FieldType = 'SFMatrix4f') or
+       (FieldType = 'SFMatrix4d') or
+       (FieldType = 'MFMatrix4f') or
+       (FieldType = 'MFMatrix4d') then
+    begin
+      FieldDefaultValue := 'Matrix4Single(';
+
+      for I := 1 to 3 do
+      begin
+        FieldDefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+        FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+        FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+        FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
+      end;
+
+      FieldDefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
+    end else
+    begin
+    if (FieldType = 'SFRotation') or
+       (FieldType = 'MFRotation') then
+    begin
+      FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces) + ', Vector3Single(';
+      FieldDefaultValue += NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+      FieldDefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
+    end else
+      FieldDefaultValue := NextToken(Line, SeekPos, WhiteSpaces);
+    end;
+  end;
 
   StringReplaceAllTo1st(FieldDefaultValue, '"', '''', false);
+  { make booleans lowecase, I like them more lowercase }
+  StringReplaceAllTo1st(FieldDefaultValue, 'FALSE', 'false', false);
+  StringReplaceAllTo1st(FieldDefaultValue, 'TRUE', 'true', false);
 
   FieldComment := Trim(SEnding(Line, SeekPos));
 
@@ -167,18 +246,18 @@ begin
       EventInOrOut := 'out';
     if IsInterface then
       WritelnStr(InterfaceLines,
-        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + LineEnding +
+        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + NL +
         '    property Event' + FieldName + ': TVRMLEvent { read GetEvent' + FieldName + ' };') else
     begin
       WritelnStr(InterfaceLines,
-        LineEnding +
-        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + LineEnding +
-        '    private FEvent' + FieldName + ': TVRMLEvent;' + LineEnding +
+        NL +
+        '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + NL +
+        '    private FEvent' + FieldName + ': TVRMLEvent;' + NL +
         '    public property Event' + FieldName + ': TVRMLEvent read FEvent' + FieldName + ';');
 
       WritelnStr(ImplementationLines,
-        LineEnding +
-        '  FEvent' + FieldName + ' := TVRMLEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + LineEnding +
+        NL +
+        '  FEvent' + FieldName + ' := TVRMLEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + NL +
         '  Events.Add(FEvent' + FieldName + ');');
     end;
   end else
@@ -188,12 +267,12 @@ begin
         '    property Fd' + FieldName + ': T' + FieldType + ' { read GetFd' + FieldName + ' }; { }') else
     begin
       WritelnStr(InterfaceLines,
-        LineEnding +
-        '    private FFd' + FieldName + ': T' + FieldType + ';' + LineEnding +
+        NL +
+        '    private FFd' + FieldName + ': T' + FieldType + ';' + NL +
         '    public property Fd' + FieldName + ': T' + FieldType + ' read FFd' + FieldName + ';');
 
       if AccessType = atInitializeOnly then
-        FieldExposedLine := '  FFd' + FieldName + '.Exposed := false;' + LineEnding else
+        FieldExposedLine := '  FFd' + FieldName + '.Exposed := false;' + NL else
         FieldExposedLine := '';
 
       if NodeField then
@@ -211,15 +290,15 @@ begin
         NodeFieldAllowedChildren := Copy(FieldComment, 2, Length(FieldComment) - 2);
 
         WritelnStr(ImplementationLines,
-          LineEnding +
-          '  FFd' + FieldName + ' := T' + FieldType + '.Create(Self, ''' + FieldName + ''', [' + NodeFieldAllowedChildren + ']);' + LineEnding +
+          NL +
+          '  FFd' + FieldName + ' := T' + FieldType + '.Create(Self, ''' + FieldName + ''', [' + NodeFieldAllowedChildren + ']);' + NL +
           FieldExposedLine +
           '  Fields.Add(FFd' + FieldName + ');');
       end else
       begin
         WritelnStr(ImplementationLines,
-          LineEnding +
-          '  FFd' + FieldName + ' := T' + FieldType + '.Create(''' + FieldName + ''', ' + FieldDefaultValue + ');' + LineEnding +
+          NL +
+          '  FFd' + FieldName + ' := T' + FieldType + '.Create(''' + FieldName + ''', ' + FieldDefaultValue + ');' + NL +
           FieldExposedLine +
           '  Fields.Add(FFd' + FieldName + ');');
         if FieldComment <> '' then
@@ -232,26 +311,26 @@ end;
 
 procedure ParseNodeEnd;
 begin
-  WritelnStr(InterfaceLines, '  end;' + LineEnding);
+  WritelnStr(InterfaceLines, '  end;' + NL);
 
   if not IsInterface then
     WritelnStr(ImplementationLines,
-      LineEnding +
-      '  DefaultContainerField := ''children'';' + LineEnding +
-      'end;' + LineEnding +
-      LineEnding +
-      'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + LineEnding +
-      'begin' + LineEnding +
-      '  Result := ''' + NodeType + ''';' + LineEnding +
-      'end;' + LineEnding +
-      LineEnding +
-      'function TNode' + NodeType + '.SuggestedVRMLVersion(' + LineEnding +
-      '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + LineEnding +
-      'begin' + LineEnding +
-      '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + LineEnding +
-      '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + LineEnding +
-      '    true, 3, 2, 2000);' + LineEnding +
-      'end;' + LineEnding);
+      NL +
+      '  DefaultContainerField := ''children'';' + NL +
+      'end;' + NL +
+      NL +
+      'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + NL +
+      'begin' + NL +
+      '  Result := ''' + NodeType + ''';' + NL +
+      'end;' + NL +
+      NL +
+      'function TNode' + NodeType + '.SuggestedVRMLVersion(' + NL +
+      '  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;' + NL +
+      'begin' + NL +
+      '  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);' + NL +
+      '  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,' + NL +
+      '    true, 3, 2, 2000);' + NL +
+      'end;' + NL);
 end;
 
 var
@@ -284,8 +363,8 @@ begin
     WritelnStr('{$ifdef read_interface}');
     InterfaceLines.Position := 0;
     InterfaceLines.SaveToStream(StdOutStream);
-    WritelnStr('{$endif read_interface}' + LineEnding +
-               LineEnding +
+    WritelnStr('{$endif read_interface}' + NL +
+               NL +
                '{$ifdef read_implementation}');
     ImplementationLines.Position := 0;
     ImplementationLines.SaveToStream(StdOutStream);
