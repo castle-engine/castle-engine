@@ -6459,7 +6459,6 @@ initialization
     TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
-    TNodeWorldInfo,
 
     { X3D nodes }
     TNodeComposedShader,
@@ -6470,6 +6469,8 @@ initialization
     TNodeSwitch_3,
     TNodeLOD_3
     ]);
+    
+  RegisterCoreNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
