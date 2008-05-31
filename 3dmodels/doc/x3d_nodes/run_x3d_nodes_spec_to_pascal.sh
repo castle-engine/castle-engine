@@ -2,5 +2,6 @@
 
 for F in 2/*.txt; do
   echo "---- $F";
-  x3d_nodes_spec_to_pascal < "$F" > x3d_`basename "$F" .txt`.inc
+  BBB=`basename "$F" .txt`
+  x3d_nodes_spec_to_pascal "$BBB" < "$F" > x3d_"$BBB".inc
 done

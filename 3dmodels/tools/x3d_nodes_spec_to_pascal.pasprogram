@@ -24,6 +24,10 @@
   file that for each VRML node defines appropriate Pascal class
   (with appropriate fields, events, field default values, etc.).
 
+  Param $1 is the X3D component name (for now used only to name the
+  RegisterXxxNodes procedure, that you should paste call at
+  initialization).
+
   Generated VRML class can be directly used inside unit like VRMLNodes
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
@@ -34,8 +38,10 @@ uses SysUtils, Classes, KambiClassUtils, VRMLFields,
 var
   InterfaceLines: TMemoryStream;
   ImplementationLines: TMemoryStream;
+  RegistrationLines: TMemoryStream;
 
 var
+  WasSomeNode: boolean;
   NodeType: string;
   IsInterface: boolean;
 
@@ -44,7 +50,7 @@ const
   Delimiters = WhiteSpaces + [','];
 var
   SeekPos: Integer;
-  SomeAncestorFound: boolean;
+  SomeAncestorFound, IsAbstract: boolean;
   Token: string;
 begin
   SeekPos := 1;
@@ -52,6 +58,7 @@ begin
   Token := NextToken(Line, SeekPos, Delimiters);
   NodeType := Token;
   IsInterface := IsSuffix('Object', NodeType, false);
+  IsAbstract := IsPrefix('X3D', NodeType, false);
 
   if IsInterface then
     WriteStr(InterfaceLines, '  INode' + NodeType + ' = interface(') else
@@ -102,6 +109,14 @@ begin
       '  const AWWWBasePath: string);' + NL +
       'begin' + NL +
       '  inherited;');
+
+    if not IsAbstract then
+    begin
+      if WasSomeNode then
+        WriteStr(RegistrationLines, ',' + NL) else
+        WasSomeNode := true;
+      WriteStr(RegistrationLines, '    ' + NodeType);
+    end;
   end;
 end;
 
@@ -335,10 +350,17 @@ end;
 
 var
   Line: string;
+  ComponentName: string;
 begin
+  Parameters.CheckHigh(1);
+  ComponentName := Parameters[1];
+
   try
+    RegistrationLines := TMemoryStream.Create;
     InterfaceLines := TMemoryStream.Create;
     ImplementationLines := TMemoryStream.Create;
+
+    WasSomeNode := false;
 
     while not Eof do
     begin
@@ -368,8 +390,15 @@ begin
                '{$ifdef read_implementation}');
     ImplementationLines.Position := 0;
     ImplementationLines.SaveToStream(StdOutStream);
+    WritelnStr('procedure Register' + ComponentName + 'Nodes;' + NL +
+               '  NodesManager.RegisterNodeClasses([');
+    RegistrationLines.Position := 0;
+    RegistrationLines.SaveToStream(StdOutStream);
+    WritelnStr(NL + '  ]);' + NL +
+               'end;' + NL);
     WritelnStr('{$endif read_implementation}');
   finally
+    FreeAndNil(RegistrationLines);
     FreeAndNil(InterfaceLines);
     FreeAndNil(ImplementationLines);
   end;
