@@ -1808,19 +1808,13 @@ end;
 procedure TNodeMatrixTransform.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
-  Matrix := FdMatrix.Matrix;
+  Matrix := FdMatrix.Value;
   InvertedMatrix := IdentityMatrix4Single;
 end;
 
 function TNodeMatrixTransform.AverageScaleTransform: Single;
 begin
-  { This is a simple method of extracting average scaling factor from
-    a matrix. Works OK for combination of identity, scaling,
-    translation matrices.
-    Fails awfully on rotation (and possibly many other) matrices. }
-  Result := ( FdMatrix.Matrix[0, 0] +
-              FdMatrix.Matrix[1, 1] +
-              FdMatrix.Matrix[2, 2] ) / 3;
+  Result := FdMatrix.AverageScaleTransform;
 end;
 
 constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);

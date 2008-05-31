@@ -440,6 +440,38 @@ type
   PArray_Vector4Double = PInfiniteArray_8;
   TDynVector4DoubleArray = TDynArray_8;
 
+  TDynArrayItem_9 = TMatrix3Single;
+  PDynArrayItem_9 = PMatrix3Single;
+  {$define DYNARRAY_9_IS_STRUCT}
+  {$I dynarray_9.inc}
+  TArray_Matrix3Single = TInfiniteArray_9;
+  PArray_Matrix3Single = PInfiniteArray_9;
+  TDynMatrix3SingleArray = TDynArray_9;
+
+  TDynArrayItem_10 = TMatrix3Double;
+  PDynArrayItem_10 = PMatrix3Double;
+  {$define DYNARRAY_10_IS_STRUCT}
+  {$I dynarray_10.inc}
+  TArray_Matrix3Double = TInfiniteArray_10;
+  PArray_Matrix3Double = PInfiniteArray_10;
+  TDynMatrix3DoubleArray = TDynArray_10;
+
+  TDynArrayItem_11 = TMatrix4Single;
+  PDynArrayItem_11 = PMatrix4Single;
+  {$define DYNARRAY_11_IS_STRUCT}
+  {$I dynarray_11.inc}
+  TArray_Matrix4Single = TInfiniteArray_11;
+  PArray_Matrix4Single = PInfiniteArray_11;
+  TDynMatrix4SingleArray = TDynArray_11;
+
+  TDynArrayItem_12 = TMatrix4Double;
+  PDynArrayItem_12 = PMatrix4Double;
+  {$define DYNARRAY_12_IS_STRUCT}
+  {$I dynarray_12.inc}
+  TArray_Matrix4Double = TInfiniteArray_12;
+  PArray_Matrix4Double = PInfiniteArray_12;
+  TDynMatrix4DoubleArray = TDynArray_12;
+
   { Exceptions }
 
   { }
@@ -679,21 +711,28 @@ procedure SwapValues(var V1, V2: TVector4Double); overload;
 function VectorAverage(const V: TVector3Single): Single; overload;
 function VectorAverage(const V: TVector3Double): Double; overload;
 
-{ VLerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
+{ Lerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
   Zwraca (1-a)*V1 + a*V2 (no, troche inaczej zapisane dla szybkosci). }
-function VLerp(const a: Single; V1, V2: TVector2Integer): TVector2Single; overload;
-function VLerp(const a: Single; V1, V2: TVector2Single): TVector2Single; overload;
-function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single; overload;
-function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single; overload;
-function VLerp(const a: Double; V1, V2: TVector2Double): TVector2Double; overload;
-function VLerp(const a: Double; V1, V2: TVector3Double): TVector3Double; overload;
-function VLerp(const a: Double; V1, V2: TVector4Double): TVector4Double; overload;
+function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
+function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single; overload;
+function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single; overload;
+function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single; overload;
+function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double; overload;
+function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double; overload;
+function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double; overload;
+
+{$ifdef FPC}
+function Lerp(const a: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
+function Lerp(const a: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
+function Lerp(const a: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
+function Lerp(const a: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
+{$endif FPC}
 
 {$ifdef HAS_MATRIX_UNIT}
-function Vector_Init_Lerp(const A: Single; V1, V2: TVector3_Single): TVector3_Single; overload;
-function Vector_Init_Lerp(const A: Single; V1, V2: TVector4_Single): TVector4_Single; overload;
-function Vector_Init_Lerp(const A: Double; V1, V2: TVector3_Double): TVector3_Double; overload;
-function Vector_Init_Lerp(const A: Double; V1, V2: TVector4_Double): TVector4_Double; overload;
+function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single; overload;
+function Vector_Init_Lerp(const A: Single; const V1, V2: TVector4_Single): TVector4_Single; overload;
+function Vector_Init_Lerp(const A: Double; const V1, V2: TVector3_Double): TVector3_Double; overload;
+function Vector_Init_Lerp(const A: Double; const V1, V2: TVector4_Double): TVector4_Double; overload;
 {$endif}
 
 { zwraca (1-v2part) * v1 + v2part * v2 czyli cos jak srednia wazona z dwoch wektorow.
@@ -1066,10 +1105,13 @@ function VectorsPerfectlyEqual(const v1, v2: TVector3Double): boolean; overload;
 function VectorsPerfectlyEqual(const v1, v2: TVector4Single): boolean; overload; inline;
 function VectorsPerfectlyEqual(const v1, v2: TVector4Double): boolean; overload; inline;
 
-function MatricesEqual(const M1, M2: TMatrix4Single;
-  const EqualityEpsilon: Single): boolean; overload;
-function MatricesEqual(const M1, M2: TMatrix4Double;
-  const EqualityEpsilon: Double): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix3Double; const EqualityEpsilon: Double): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix4Single; const EqualityEpsilon: Single): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix4Double; const EqualityEpsilon: Double): boolean; overload;
+
+function MatricesPerfectlyEqual(const M1, M2: TMatrix3Single): boolean; overload;
+function MatricesPerfectlyEqual(const M1, M2: TMatrix3Double): boolean; overload;
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Single): boolean; overload;
 function MatricesPerfectlyEqual(const M1, M2: TMatrix4Double): boolean; overload;
 
@@ -1988,6 +2030,10 @@ uses Math, KambiStringUtils;
 {$I dynarray_6.inc}
 {$I dynarray_7.inc}
 {$I dynarray_8.inc}
+{$I dynarray_9.inc}
+{$I dynarray_10.inc}
+{$I dynarray_11.inc}
+{$I dynarray_12.inc}
 
 { TDynVector3SingleArray ----------------------------------------------------- }
 
@@ -2316,26 +2362,26 @@ end;
 
 { some math on vectors ------------------------------------------------------- }
 
-function VLerp(const a: Single; V1, V2: TVector2Integer): TVector2Single;
+function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
 end;
 
-function VLerp(const a: Single; V1, V2: TVector2Single): TVector2Single;
+function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
 end;
 
-function VLerp(const a: Single; V1, V2: TVector3Single): TVector3Single;
+function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
  result[2] := V1[2] + a*(V2[2]-V1[2]);
 end;
 
-function VLerp(const a: Single; V1, V2: TVector4Single): TVector4Single;
+function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
@@ -2343,20 +2389,20 @@ begin
  result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
 
-function VLerp(const a: Double; V1, V2: TVector2Double): TVector2Double;
+function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
 end;
 
-function VLerp(const a: Double; V1, V2: TVector3Double): TVector3Double;
+function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
  result[2] := V1[2] + a*(V2[2]-V1[2]);
 end;
 
-function VLerp(const a: Double; V1, V2: TVector4Double): TVector4Double;
+function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
@@ -2365,14 +2411,14 @@ begin
 end;
 
 {$ifdef HAS_MATRIX_UNIT}
-function Vector_Init_Lerp(const A: Single; V1, V2: TVector3_Single): TVector3_Single;
+function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single;
 begin
   Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
   Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
 end;
 
-function Vector_Init_Lerp(const A: Single; V1, V2: TVector4_Single): TVector4_Single;
+function Vector_Init_Lerp(const A: Single; const V1, V2: TVector4_Single): TVector4_Single;
 begin
   Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
@@ -2380,14 +2426,14 @@ begin
   Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
 
-function Vector_Init_Lerp(const A: Double; V1, V2: TVector3_Double): TVector3_Double;
+function Vector_Init_Lerp(const A: Double; const V1, V2: TVector3_Double): TVector3_Double;
 begin
   Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
   Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
 end;
 
-function Vector_Init_Lerp(const A: Double; V1, V2: TVector4_Double): TVector4_Double;
+function Vector_Init_Lerp(const A: Double; const V1, V2: TVector4_Double): TVector4_Double;
 begin
   Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
@@ -2479,6 +2525,7 @@ end;
 {$define TYPE_VECTOR4 := TVector4Single}
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
+{$define TYPE_MATRIX3 := TMatrix3Single}
 {$define TYPE_MATRIX4 := TMatrix4Single}
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
@@ -2494,6 +2541,7 @@ end;
 {$define TYPE_VECTOR4 := TVector4Double}
 {$define TYPE_TRIANGLE2 := TTriangle2Double}
 {$define TYPE_TRIANGLE3 := TTriangle3Double}
+{$define TYPE_MATRIX3 := TMatrix3Double}
 {$define TYPE_MATRIX4 := TMatrix4Double}
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}
@@ -2514,6 +2562,7 @@ end;
 {$define PTR_TYPE_VECTOR4 := PVector4Single}
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
+{$define TYPE_MATRIX3 := TMatrix3Single}
 {$define TYPE_MATRIX4 := TMatrix4Single}
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Single}
@@ -2532,6 +2581,7 @@ end;
 {$define PTR_TYPE_VECTOR4 := PVector4Double}
 {$define TYPE_TRIANGLE2 := TTriangle2Double}
 {$define TYPE_TRIANGLE3 := TTriangle3Double}
+{$define TYPE_MATRIX3 := TMatrix3Double}
 {$define TYPE_MATRIX4 := TMatrix4Double}
 {$define SCALAR_EQUALITY_EPSILON := DoubleEqualityEpsilon}
 {$define UNIT_VECTOR3 := UnitVector3Double}

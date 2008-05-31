@@ -645,6 +645,25 @@ begin
   Result := CompareMem(@V1, @V2, SizeOf(V1));
 end;
 
+function MatricesEqual(const M1, M2: TYPE_MATRIX3;
+  const EqualityEpsilon: TYPE_SCALAR): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@M1, @M2, SizeOf(M1)) else
+    Result :=
+      (Abs(M1[0, 0] - M2[0, 0]) < EqualityEpsilon) and
+      (Abs(M1[0, 1] - M2[0, 1]) < EqualityEpsilon) and
+      (Abs(M1[0, 2] - M2[0, 2]) < EqualityEpsilon) and
+
+      (Abs(M1[1, 0] - M2[1, 0]) < EqualityEpsilon) and
+      (Abs(M1[1, 1] - M2[1, 1]) < EqualityEpsilon) and
+      (Abs(M1[1, 2] - M2[1, 2]) < EqualityEpsilon) and
+
+      (Abs(M1[2, 0] - M2[2, 0]) < EqualityEpsilon) and
+      (Abs(M1[2, 1] - M2[2, 1]) < EqualityEpsilon) and
+      (Abs(M1[2, 2] - M2[2, 2]) < EqualityEpsilon);
+end;
+
 function MatricesEqual(const M1, M2: TYPE_MATRIX4;
   const EqualityEpsilon: TYPE_SCALAR): boolean;
 begin
@@ -655,18 +674,64 @@ begin
       (Abs(M1[0, 1] - M2[0, 1]) < EqualityEpsilon) and
       (Abs(M1[0, 2] - M2[0, 2]) < EqualityEpsilon) and
       (Abs(M1[0, 3] - M2[0, 3]) < EqualityEpsilon) and
+
       (Abs(M1[1, 0] - M2[1, 0]) < EqualityEpsilon) and
       (Abs(M1[1, 1] - M2[1, 1]) < EqualityEpsilon) and
       (Abs(M1[1, 2] - M2[1, 2]) < EqualityEpsilon) and
       (Abs(M1[1, 3] - M2[1, 3]) < EqualityEpsilon) and
+
       (Abs(M1[2, 0] - M2[2, 0]) < EqualityEpsilon) and
       (Abs(M1[2, 1] - M2[2, 1]) < EqualityEpsilon) and
       (Abs(M1[2, 2] - M2[2, 2]) < EqualityEpsilon) and
       (Abs(M1[2, 3] - M2[2, 3]) < EqualityEpsilon) and
+
       (Abs(M1[3, 0] - M2[3, 0]) < EqualityEpsilon) and
       (Abs(M1[3, 1] - M2[3, 1]) < EqualityEpsilon) and
       (Abs(M1[3, 2] - M2[3, 2]) < EqualityEpsilon) and
       (Abs(M1[3, 3] - M2[3, 3]) < EqualityEpsilon);
+end;
+
+function Lerp(const A: TYPE_SCALAR; const M1, M2: TYPE_MATRIX3): TYPE_MATRIX3;
+begin
+  Result[0, 0] := M1[0, 0] + A * (M2[0, 0] - M1[0, 0]);
+  Result[0, 1] := M1[0, 1] + A * (M2[0, 1] - M1[0, 1]);
+  Result[0, 2] := M1[0, 2] + A * (M2[0, 2] - M1[0, 2]);
+
+  Result[1, 0] := M1[1, 0] + A * (M2[1, 0] - M1[1, 0]);
+  Result[1, 1] := M1[1, 1] + A * (M2[1, 1] - M1[1, 1]);
+  Result[1, 2] := M1[1, 2] + A * (M2[1, 2] - M1[1, 2]);
+
+  Result[2, 0] := M1[2, 0] + A * (M2[2, 0] - M1[2, 0]);
+  Result[2, 1] := M1[2, 1] + A * (M2[2, 1] - M1[2, 1]);
+  Result[2, 2] := M1[2, 2] + A * (M2[2, 2] - M1[2, 2]);
+end;
+
+function Lerp(const A: TYPE_SCALAR; const M1, M2: TYPE_MATRIX4): TYPE_MATRIX4;
+begin
+  Result[0, 0] := M1[0, 0] + A * (M2[0, 0] - M1[0, 0]);
+  Result[0, 1] := M1[0, 1] + A * (M2[0, 1] - M1[0, 1]);
+  Result[0, 2] := M1[0, 2] + A * (M2[0, 2] - M1[0, 2]);
+  Result[0, 3] := M1[0, 3] + A * (M2[0, 3] - M1[0, 3]);
+
+  Result[1, 0] := M1[1, 0] + A * (M2[1, 0] - M1[1, 0]);
+  Result[1, 1] := M1[1, 1] + A * (M2[1, 1] - M1[1, 1]);
+  Result[1, 2] := M1[1, 2] + A * (M2[1, 2] - M1[1, 2]);
+  Result[1, 3] := M1[1, 3] + A * (M2[1, 3] - M1[1, 3]);
+
+  Result[2, 0] := M1[2, 0] + A * (M2[2, 0] - M1[2, 0]);
+  Result[2, 1] := M1[2, 1] + A * (M2[2, 1] - M1[2, 1]);
+  Result[2, 2] := M1[2, 2] + A * (M2[2, 2] - M1[2, 2]);
+  Result[2, 3] := M1[2, 3] + A * (M2[2, 3] - M1[2, 3]);
+
+  Result[3, 0] := M1[3, 0] + A * (M2[3, 0] - M1[3, 0]);
+  Result[3, 1] := M1[3, 1] + A * (M2[3, 1] - M1[3, 1]);
+  Result[3, 2] := M1[3, 2] + A * (M2[3, 2] - M1[3, 2]);
+  Result[3, 3] := M1[3, 3] + A * (M2[3, 3] - M1[3, 3]);
+end;
+
+function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX3): boolean;
+begin
+  Result := CompareMem(@M1, @M2, SizeOf(M1));
 end;
 
 function MatricesPerfectlyEqual(const M1, M2: TYPE_MATRIX4): boolean;

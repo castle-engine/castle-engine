@@ -59,12 +59,7 @@ VRML 97 TODO items:
 
 Partial X3D TODO list:
 IMPORT / EXPORT mechanism.
-X3D adds many field types:
-  SFMatrix3d and MFMatrix3d
-  SFMatrix3f and MFMatrix3f
-  SFMatrix4d and MFMatrix4d
-  SFMatrix4f and MFMatrix4f
-  TMFImage (hm, not used for now by *any* node in X3D spec)
+X3D TMFImage field type (hm, not used for now by *any* node in X3D spec)
 
 when saving (e.g. from view3dscene), extension doesn't really matter.
   We save x3d or vrml 1.0/2.0 content, based on what we know about the model.

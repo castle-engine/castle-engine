@@ -1002,8 +1002,7 @@ var
   end;
 
   { Read <matrix> or <bind_shape_matrix> element to given Matrix. }
-  procedure ReadMatrix(var Matrix: TMatrix4Single;
-    MatrixElement: TDOMElement); overload;
+  function  ReadMatrix(MatrixElement: TDOMElement): TMatrix4Single; overload;
   var
     SeekPos: Integer;
     Row, Col: Integer;
@@ -1023,7 +1022,7 @@ var
             'element) has not enough items');
           Break;
         end;
-        Matrix[Col, Row] := StrToFloat(Token);
+        Result[Col, Row] := StrToFloat(Token);
       end;
   end;
 
@@ -1037,7 +1036,7 @@ var
     M := TNodeMatrixTransform.Create('', WWWBasePath);
     ParentGroup.FdChildren.AddItem(M);
 
-    ReadMatrix(M.FdMatrix.Matrix, MatrixElement);
+    M.FdMatrix.Value := ReadMatrix(MatrixElement);
   end;
 
   { Read <lookat> element, add appropriate VRML MatrixTransform to ParentGroup node. }
@@ -1080,7 +1079,7 @@ var
     if ReadVector(Eye) and
        ReadVector(Center) and
        ReadVector(Up) then
-      M.FdMatrix.Matrix := LookAtMatrix(Eye, Center, Up);
+      M.FdMatrix.Value := LookAtMatrix(Eye, Center, Up);
   end;
 
   { Read <node> element, add it to ParentGroup. }
@@ -1226,7 +1225,7 @@ var
               { We have to use VRML 1.0 to express matrix transform. }
               M := TNodeMatrixTransform.Create('', WWWBasePath);
               Group.FdChildren.AddItem(M);
-              M.FdMatrix.Matrix := Controller.BoundShapeMatrix;
+              M.FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
 
             Shape := TNodeShape.Create('', WWWBasePath);
@@ -1526,7 +1525,7 @@ var
       if BindShapeMatrix <> nil then
       begin
         Controller.BoundShapeMatrixIdentity := false;
-        ReadMatrix(Controller.BoundShapeMatrix, BindShapeMatrix);
+        Controller.BoundShapeMatrix := ReadMatrix(BindShapeMatrix);
       end;
     end;
   end;

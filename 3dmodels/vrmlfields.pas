@@ -733,18 +733,94 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  TSFMatrix = class(TVRMLSingleField)
+  TSFMatrix3f = class(TVRMLSingleField)
+  private
+    FValue: TMatrix3Single;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AMatrix: TMatrix4Single);
+    constructor Create(const AName: string; const AValue: TMatrix3Single);
 
-    Matrix: TMatrix4Single;
+    property Value: TMatrix3Single read FValue write FValue;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
-    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix3f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFMatrix3d = class(TVRMLSingleField)
+  private
+    FValue: TMatrix3Double;
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TMatrix3Double);
+
+    property Value: TMatrix3Double read FValue write FValue;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFMatrix3d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFMatrix4f = class(TVRMLSingleField)
+  private
+    FValue: TMatrix4Single;
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TMatrix4Single);
+
+    property Value: TMatrix4Single read FValue write FValue;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Single; Value1, Value2: TSFMatrix4f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    { Return average scale for current matrix Value.
+
+      Note that this doesn't correctly extract scale from matrix,
+      as that is too difficcult. Insted it does simple extraction,
+      which will work for identity, translation and scaling matrices
+      (but e.g. will fail miserably (generate nonsense results) when
+      looking at some rotation matrices). }
+    function AverageScaleTransform: Single;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  { VRML 1.0 SFMatrix field. }
+  TSFMatrix = class(TSFMatrix4f)
+    class function VRMLTypeName: string; override;
+  end;
+
+  TSFMatrix4d = class(TVRMLSingleField)
+  private
+    FValue: TMatrix4Double;
+  protected
+    procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
+  public
+    constructor Create(const AName: string; const AValue: TMatrix4Double);
+
+    property Value: TMatrix4Double read FValue write FValue;
+
+    procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TSFMatrix4d);
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
 
@@ -1035,6 +1111,98 @@ type
 
   TMFInt32 = class(TMFLong)
   public
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFMatrix3f = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TMatrix3Single;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynMatrix3SingleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TMatrix3Single);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFMatrix3f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFMatrix3d = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TMatrix3Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynMatrix3DoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TMatrix3Double);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFMatrix3d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFMatrix4f = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TMatrix4Single;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynMatrix4SingleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TMatrix4Single);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Single; Value1, Value2: TMFMatrix4f);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
+    class function VRMLTypeName: string; override;
+  end;
+
+  TMFMatrix4d = class(TVRMLSimpleMultField)
+  private
+    DefaultValuesCount: integer;
+    DefaultValue: TMatrix4Double;
+  protected
+    function RawItemToString(ItemNum: integer): string; override;
+  public
+    function Items: TDynMatrix4DoubleArray;
+    procedure RawItemsAdd(Item: TVRMLSingleField); override;
+    constructor Create(const AName: string; const InitialContent: array of TMatrix4Double);
+    constructor CreateUndefined(const AName: string); override;
+
+    function EqualsDefaultValue: boolean; override;
+    function Equals(SecondValue: TVRMLField;
+      const EqualityEpsilon: Double): boolean; override;
+    { @raises(EVRMLMultFieldDifferentCount When Value1.Count <> Value2.Count) }
+    procedure AssignLerp(const A: Double; Value1, Value2: TMFMatrix4d);
+    procedure Assign(Source: TPersistent); override;
+    procedure AssignValue(Source: TVRMLField); override;
+
     class function VRMLTypeName: string; override;
   end;
 
@@ -2302,69 +2470,140 @@ begin
   Result := 'SFInt32';
 end;
 
-{ TSFMatrix ------------------------------------------------------------------ }
+{ ----------------------------------------------------------------------------
+  Common SF fields based on matrices implementation }
 
-constructor TSFMatrix.Create(const AName: string; const AMatrix: TMatrix4Single);
+{$define IMPLEMENT_SF_CLASS_USING_MATRICES :=
+constructor TSF_CLASS.Create(const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AName);
-  Matrix := AMatrix;
+  FValue := AValue;
 end;
 
-procedure TSFMatrix.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
+procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
 var
-  col: integer;
+  Column: integer;
 begin
   inherited;
   if IsClause then Exit;
 
-  for col := 0 to 3 do ParseVector(Matrix[col], Lexer);
+  for Column := 0 to TSF_MATRIX_COLS - 1 do
+    ParseVector(FValue[Column], Lexer);
 end;
 
-procedure TSFMatrix.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TSF_CLASS.SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  Column: integer;
 begin
-  SaveProperties.Writeln(VectorToRawStr(Matrix[0]));
+  SaveProperties.Writeln(VectorToRawStr(FValue[0]));
+
   SaveProperties.IncIndent;
-  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[1]));
-  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[2]));
-  SaveProperties.WritelnIndent(VectorToRawStr(Matrix[3]));
+  for Column := 1 to TSF_MATRIX_COLS - 1 do
+    SaveProperties.WritelnIndent(VectorToRawStr(FValue[Column]));
   SaveProperties.DecIndent;
 end;
 
-function TSFMatrix.Equals(SecondValue: TVRMLField;
+function TSF_CLASS.Equals(SecondValue: TVRMLField;
   const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFMatrix) and
-   MatricesEqual(TSFMatrix(SecondValue).Matrix, Matrix, EqualityEpsilon);
+   (SecondValue is TSF_CLASS) and
+   MatricesEqual(TSF_CLASS(SecondValue).FValue, FValue, EqualityEpsilon);
 end;
 
-procedure TSFMatrix.AssignLerp(const A: Single; Value1, Value2: TSFMatrix);
+procedure TSF_CLASS.AssignLerp(const A: TSF_SCALAR; Value1, Value2: TSF_CLASS);
+var
+  Column: integer;
 begin
- Matrix[0] := VLerp(A, Value1.Matrix[0], Value2.Matrix[0]);
- Matrix[1] := VLerp(A, Value1.Matrix[1], Value2.Matrix[1]);
- Matrix[2] := VLerp(A, Value1.Matrix[2], Value2.Matrix[2]);
- Matrix[3] := VLerp(A, Value1.Matrix[3], Value2.Matrix[3]);
+  for Column := 0 to TSF_MATRIX_COLS - 1 do
+    FValue[Column] := Lerp(A, Value1.FValue[Column], Value2.FValue[Column]);
 end;
 
-procedure TSFMatrix.Assign(Source: TPersistent);
+procedure TSF_CLASS.Assign(Source: TPersistent);
 begin
- if Source is TSFMatrix then
- begin
-  Matrix := TSFMatrix(Source).Matrix;
-  VRMLFieldAssignCommon(TVRMLField(Source));
- end else
-  inherited;
+  if Source is TSF_CLASS then
+  begin
+    FValue := TSF_CLASS(Source).FValue;
+    VRMLFieldAssignCommon(TVRMLField(Source));
+  end else
+    inherited;
 end;
 
-procedure TSFMatrix.AssignValue(Source: TVRMLField);
+procedure TSF_CLASS.AssignValue(Source: TVRMLField);
 begin
-  if Source is TSFMatrix then
+  if Source is TSF_CLASS then
   begin
     inherited;
-    Matrix := TSFMatrix(Source).Matrix;
+    FValue := TSF_CLASS(Source).FValue;
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
+}
+
+{$define TSF_CLASS := TSFMatrix3f}
+{$define TSF_STATIC_ITEM := TMatrix3Single}
+{$define TSF_MATRIX_COLS := 3}
+{$define TSF_SCALAR := Single}
+IMPLEMENT_SF_CLASS_USING_MATRICES
+
+{$define TSF_CLASS := TSFMatrix3d}
+{$define TSF_STATIC_ITEM := TMatrix3Double}
+{$define TSF_MATRIX_COLS := 3}
+{$define TSF_SCALAR := Double}
+IMPLEMENT_SF_CLASS_USING_MATRICES
+
+{$define TSF_CLASS := TSFMatrix4f}
+{$define TSF_STATIC_ITEM := TMatrix4Single}
+{$define TSF_MATRIX_COLS := 4}
+{$define TSF_SCALAR := Single}
+IMPLEMENT_SF_CLASS_USING_MATRICES
+
+{$define TSF_CLASS := TSFMatrix4d}
+{$define TSF_STATIC_ITEM := TMatrix4Double}
+{$define TSF_MATRIX_COLS := 4}
+{$define TSF_SCALAR := Double}
+IMPLEMENT_SF_CLASS_USING_MATRICES
+
+{ TSFMatrix3f ------------------------------------------------------------------ }
+
+class function TSFMatrix3f.VRMLTypeName: string;
+begin
+  Result := 'SFMatrix3f';
+end;
+
+{ TSFMatrix3d ------------------------------------------------------------------ }
+
+class function TSFMatrix3d.VRMLTypeName: string;
+begin
+  Result := 'SFMatrix3d';
+end;
+
+{ TSFMatrix4f ------------------------------------------------------------------ }
+
+class function TSFMatrix4f.VRMLTypeName: string;
+begin
+  Result := 'SFMatrix4f';
+end;
+
+function TSFMatrix4f.AverageScaleTransform: Single;
+begin
+  { This is a simple method of extracting average scaling factor from
+    a matrix. Works OK for combination of identity, scaling,
+    translation matrices.
+    Fails awfully on rotation (and possibly many other) matrices. }
+  Result := ( FValue[0, 0] +
+              FValue[1, 1] +
+              FValue[2, 2] ) / 3;
+end;
+
+{ TSFMatrix4d ------------------------------------------------------------------ }
+
+class function TSFMatrix4d.VRMLTypeName: string;
+begin
+  Result := 'SFMatrix4d';
+end;
+
+{ TSFMatrix ------------------------------------------------------------------ }
 
 class function TSFMatrix.VRMLTypeName: string;
 begin
@@ -2459,8 +2698,8 @@ end;
 
 procedure TSFRotation.AssignLerp(const A: Single; Value1, Value2: TSFRotation);
 begin
- Axis        := VLerp(A, Value1.Axis, Value2.Axis);
- RotationRad :=  Lerp(A, Value1.RotationRad, Value2.RotationRad);
+ Axis        := Lerp(A, Value1.Axis, Value2.Axis);
+ RotationRad := Lerp(A, Value1.RotationRad, Value2.RotationRad);
 end;
 
 procedure TSFRotation.Assign(Source: TPersistent);
@@ -2598,7 +2837,7 @@ end;
 
 procedure TSF_CLASS.AssignLerp(const A: TSF_SCALAR; Value1, Value2: TSF_CLASS);
 begin
-  Value := VLerp(A, Value1.Value, Value2.Value);
+  Value := Lerp(A, Value1.Value, Value2.Value);
 end;
 
 procedure TSF_CLASS.Assign(Source: TPersistent);
@@ -3125,7 +3364,52 @@ begin
   Items.Count := Value1.Items.Count;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := VLerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+    Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
+end;
+}
+
+{$define IMPLEMENT_MF_CLASS_USING_MATRICES:=
+function TMF_CLASS.EqualsDefaultValue: boolean;
+begin
+  result := (not IsClause) and
+    ((DefaultValuesCount = 0) and (Count = 0)) or
+    ((DefaultValuesCount = 1) and (Count = 1) and
+      MatricesPerfectlyEqual(DefaultValue, Items.Items[0]) );
+end;
+
+function TMF_CLASS.Equals(SecondValue: TVRMLField;
+  const EqualityEpsilon: Double): boolean;
+var
+  I: Integer;
+begin
+ Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+   (SecondValue is TMF_CLASS);
+
+ if Result then
+  for I := 0 to Items.Count - 1 do
+   if not MatricesEqual(TMF_CLASS(SecondValue).Items.Items[I], Items.Items[I],
+     EqualityEpsilon) then
+    Exit(false);
+end;
+
+function TMF_CLASS.RawItemToString(ItemNum: Integer): string;
+var
+  Column: Integer;
+begin
+  Result := VectorToRawStr(Items.Items[ItemNum][0]);
+  for Column := 1 to TSF_MATRIX_COLS - 1 do
+    Result += ' ' + VectorToRawStr(Items.Items[ItemNum][Column]);
+end;
+
+procedure TMF_CLASS.AssignLerp(const A: TMF_SCALAR; Value1, Value2: TMF_CLASS);
+var
+  I: Integer;
+begin
+  Value1.CheckCountEqual(Value2);
+  Items.Count := Value1.Items.Count;
+
+  for I := 0 to Items.Count - 1 do
+    Items.Items[I] := Lerp(A, Value1.Items.Items[I], Value2.Items.Items[I]);
 end;
 }
 
@@ -3245,6 +3529,42 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 
+{$define TMF_CLASS := TMFMatrix3f}
+{$define TMF_STATIC_ITEM := TMatrix3Single}
+{$define TMF_CLASS_ITEM := TSFMatrix3f}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3SingleArray}
+{$define TMF_SCALAR := Single}
+{$define TSF_MATRIX_COLS := 3}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_MATRICES
+
+{$define TMF_CLASS := TMFMatrix3d}
+{$define TMF_STATIC_ITEM := TMatrix3Double}
+{$define TMF_CLASS_ITEM := TSFMatrix3d}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3DoubleArray}
+{$define TMF_SCALAR := Double}
+{$define TSF_MATRIX_COLS := 3}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_MATRICES
+
+{$define TMF_CLASS := TMFMatrix4f}
+{$define TMF_STATIC_ITEM := TMatrix4Single}
+{$define TMF_CLASS_ITEM := TSFMatrix4f}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4SingleArray}
+{$define TMF_SCALAR := Single}
+{$define TSF_MATRIX_COLS := 4}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_MATRICES
+
+{$define TMF_CLASS := TMFMatrix4d}
+{$define TMF_STATIC_ITEM := TMatrix4Double}
+{$define TMF_CLASS_ITEM := TSFMatrix4d}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4DoubleArray}
+{$define TMF_SCALAR := Double}
+{$define TSF_MATRIX_COLS := 4}
+IMPLEMENT_MF_CLASS
+IMPLEMENT_MF_CLASS_USING_MATRICES
+
 { TMFBool ------------------------------------------------------------------ }
 
 function TMFBool.RawItemToString(ItemNum: integer): string;
@@ -3288,6 +3608,34 @@ end;
 class function TMFInt32.VRMLTypeName: string;
 begin
   Result := 'MFInt32';
+end;
+
+{ TMFMatrix3f ------------------------------------------------------------------- }
+
+class function TMFMatrix3f.VRMLTypeName: string;
+begin
+  Result := 'Matrix3f';
+end;
+
+{ TMFMatrix3d ------------------------------------------------------------------- }
+
+class function TMFMatrix3d.VRMLTypeName: string;
+begin
+  Result := 'Matrix3d';
+end;
+
+{ TMFMatrix4f ------------------------------------------------------------------- }
+
+class function TMFMatrix4f.VRMLTypeName: string;
+begin
+  Result := 'Matrix4f';
+end;
+
+{ TMFMatrix4d ------------------------------------------------------------------- }
+
+class function TMFMatrix4d.VRMLTypeName: string;
+begin
+  Result := 'Matrix4d';
 end;
 
 { TMFVec2f ------------------------------------------------------------------- }
@@ -3464,7 +3812,13 @@ initialization
     TSFImage,
     TSFLong,     TMFLong,
     TSFInt32,    TMFInt32,
+
+    TSFMatrix3f, TMFMatrix3f,
     TSFMatrix,
+    TSFMatrix3d, TMFMatrix3d,
+    TSFMatrix4f, TMFMatrix4f,
+    TSFMatrix4d, TMFMatrix4d,
+
     TSFRotation, TMFRotation,
     TSFString,   TMFString,
     TSFDouble,   TMFDouble,

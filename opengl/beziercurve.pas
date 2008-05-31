@@ -297,8 +297,8 @@ begin
         ControlPoints.Count = 2. }
       NewCurve := TRationalBezierCurve.Create(ControlPointT(0), ControlPointT(1));
       NewCurve.ControlPoints.AppendItem(ControlPoints.Items[0]);
-      NewCurve.ControlPoints.AppendItem(VLerp(1/3, ControlPoints.Items[0], ControlPoints.Items[1]));
-      NewCurve.ControlPoints.AppendItem(VLerp(2/3, ControlPoints.Items[0], ControlPoints.Items[1]));
+      NewCurve.ControlPoints.AppendItem(Lerp(1/3, ControlPoints.Items[0], ControlPoints.Items[1]));
+      NewCurve.ControlPoints.AppendItem(Lerp(2/3, ControlPoints.Items[0], ControlPoints.Items[1]));
       NewCurve.ControlPoints.AppendItem(ControlPoints.Items[1]);
       NewCurve.Weights.AppendArray([1.0, 1.0, 1.0, 1.0]);
       NewCurve.UpdateControlPoints;
@@ -323,9 +323,9 @@ begin
       S := TDynVector3SingleArray.Create(ControlPoints.Count);
       { calculate S values }
       for i := 1 to S.Count-2 do
-        S.Items[i] := VLerp( (ControlPointT(i+1) - ControlPointT(i))/
-                             (ControlPointT(i+1) - ControlPointT(i-1)),
-                             C.Items[i-1], C.Items[i]);
+        S.Items[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
+                            (ControlPointT(i+1) - ControlPointT(i-1)),
+                            C.Items[i-1], C.Items[i]);
       S.Items[0        ] := VectorSubtract(VectorScale(C.Items[0        ], 2), S.Items[1        ]);
       S.Items[S.Count-1] := VectorSubtract(VectorScale(C.Items[S.Count-2], 2), S.Items[S.Count-2]);
 

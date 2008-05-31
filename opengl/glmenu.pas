@@ -1288,10 +1288,10 @@ begin
     begin
       { Calculate CurrentItemBorderColor }
       if MenuAnimation <= 0.5 then
-        CurrentItemBorderColor := VLerp(
+        CurrentItemBorderColor := Lerp(
           MapRange(MenuAnimation, 0, 0.5, 0, 1),
           CurrentItemBorderColor1, CurrentItemBorderColor2) else
-        CurrentItemBorderColor := VLerp(
+        CurrentItemBorderColor := Lerp(
           MapRange(MenuAnimation, 0.5, 1, 0, 1),
           CurrentItemBorderColor2, CurrentItemBorderColor1);
 
