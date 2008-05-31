@@ -391,8 +391,8 @@ begin
     ImplementationLines.Position := 0;
     ImplementationLines.SaveToStream(StdOutStream);
     WritelnStr('procedure Register' + ComponentName + 'Nodes;' + NL +
-               '  NodesManager.RegisterNodeClasses([' + NL +
-               'begin');
+               'begin' + NL +
+               '  NodesManager.RegisterNodeClasses([');
     RegistrationLines.Position := 0;
     RegistrationLines.SaveToStream(StdOutStream);
     WritelnStr(NL + '  ]);' + NL +
