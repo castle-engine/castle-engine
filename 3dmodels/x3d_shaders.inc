@@ -20,11 +20,6 @@
 
 {$ifdef read_interface}
 
-type
-  TNodeX3DAppearanceChildNode = class(TNodeX3DNode)
-  public
-  end;
-
   TNodeX3DShaderNode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

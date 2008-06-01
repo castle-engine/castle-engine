@@ -322,7 +322,7 @@ type
   TVRMLGeometryNode = class;
   TVRMLLightNode = class;
   TNodeKambiTriangulation = class;
-  TNodeShape = class;
+  TNodeX3DShapeNode = class;
   TVRMLTextureNode = class;
   TNodeBlendMode = class;
 
@@ -500,7 +500,7 @@ type
       texture transformations don't accumulate like modelview transformations. }
     TextureTransform: TMatrix4Single;
 
-    ParentShape: TNodeShape;
+    ParentShape: TNodeX3DShapeNode;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
     constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
@@ -1966,6 +1966,7 @@ type
 {$I x3d_grouping.inc}
 {$I x3d_networking.inc}
 {$I x3d_rendering.inc}
+{$I x3d_shape.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2717,6 +2718,7 @@ uses
 {$I x3d_grouping.inc}
 {$I x3d_networking.inc}
 {$I x3d_rendering.inc}
+{$I x3d_shape.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6472,7 +6474,6 @@ initialization
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
-    TNodeAppearance,
     TNodeAudioClip,
     TNodeBackground,
     TNodeBillboard,
@@ -6503,7 +6504,6 @@ initialization
     TNodeIndexedFaceSet_2,
     TNodeInlineLoadControl,
     TNodeLOD_2,
-    TNodeMaterial_2,
     TNodeMovieTexture,
     TNodeNavigationInfo,
     TNodeNormalInterpolator,
@@ -6522,7 +6522,6 @@ initialization
     TNodeProximitySensor,
     TNodeScalarInterpolator,
     TNodeScript,
-    TNodeShape,
     TNodeSound,
     TNodeSphere_2,
     TNodeSphereSensor,
@@ -6550,6 +6549,7 @@ initialization
   RegisterNetworkingNodes;
   RegisterGroupingNodes;
   RegisterRenderingNodes;
+  RegisterShapeNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
