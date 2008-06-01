@@ -545,7 +545,7 @@ begin
       begin
         NodeMatrix := TNodeMatrixTransform.Create('ShadowCasterNav_Matrix', '');
         try
-          NodeMatrix.FdMatrix.Matrix := ShadowCasterNav.Matrix;
+          NodeMatrix.FdMatrix.Value := ShadowCasterNav.Matrix;
           SavetoVRMLFile(NodeMatrix, StdOutStream, '');
         finally NodeMatrix.Free end;
       end;
