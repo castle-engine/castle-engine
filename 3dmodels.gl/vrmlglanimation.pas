@@ -577,8 +577,8 @@ procedure TVRMLGLAnimation.Load(
     { Yes, the situation below can happen. *Usually* when we know
       that Model1 and Model2 are equal classes then we know that
       they have the same number of fields of the same type.
-      However, for TNodeUnknown, it's not that easy. Two different instances
-      of TNodeUnknown class may have completely different fields,
+      However, for TVRMLUnknownNode, it's not that easy. Two different instances
+      of TVRMLUnknownNode class may have completely different fields,
       so we must safeguard against this. }
     if Model1.Fields.Count <> Model2.Fields.Count then
       raise EModelsStructureDifferent.CreateFmt(
@@ -807,7 +807,7 @@ procedure TVRMLGLAnimation.Load(
       for I := 0 to Model1.ChildrenCount - 1 do
         Result.AddChild(VRMLModelLerp(A, Model1.Children[I], Model2.Children[I]));
 
-      { TODO: for TNodeUnknown, we should fill here Result.Fields.
+      { TODO: for TVRMLUnknownNode, we should fill here Result.Fields.
         Also for TVRMLPrototypeNode. }
 
       for I := 0 to Model1.Fields.Count - 1 do

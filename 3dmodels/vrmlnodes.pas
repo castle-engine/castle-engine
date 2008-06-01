@@ -739,7 +739,7 @@ type
 
       However, there are special node classes that set their Fields differently.
       TVRMLPrototypeNode has their fields set according to it's VRML 2.0 prototype.
-      TNodeUnknown may have it's fields set by VRML 1.0 "fields" feature
+      TVRMLUnknownNode may have it's fields set by VRML 1.0 "fields" feature
       (so it's Fields are initialized by parsing it).
 
       All fields on this list are owned by this object. }
@@ -911,7 +911,7 @@ type
 
       Note that is some special cases AllowedChildren and
       ParsingAllowedChildren values may be changed during object lifetime.
-      Currently, this may concern TNodeUnknown. }
+      Currently, this may concern TVRMLUnknownNode. }
     property AllowedChildren: boolean read fAllowedChildren default false;
     property ParsingAllowedChildren: boolean
       read fParsingAllowedChildren default false;
@@ -964,7 +964,7 @@ type
     { Parse node. This should set values of your fields, VRML 1.0 Children
       list, WWWBasePath.
 
-      In special cases like TNodeUnknown this may
+      In special cases like TVRMLUnknownNode this may
       actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
       feature). }
     procedure Parse(Lexer: TVRMLLexer); virtual;
@@ -999,7 +999,7 @@ type
 
       Nie zmienia sie przez caly czas zycia obiektu, tzn. raz zainicjowana w
       konstruktorze juz taka pozostaje. Even for special nodes, like
-      TNodeUnknown and TVRMLPrototypeNode (where this is determined
+      TVRMLUnknownNode and TVRMLPrototypeNode (where this is determined
       at runtime, since these special nodes are used to instantiate special
       nodes that are not built-in) --- but still even for these special
       nodes, NodeTypeName is constant for the life of this object.
@@ -1014,7 +1014,7 @@ type
       typu wezla VRMLa ktory reprezentuja (a poniewaz kazda klasa wezla VRMLa
       musi miec NodeTypeName <> '' wiec oznacza to ze te wyjatkowe klasy ustalaja
       sobie NodeTypeName w jakis inny, specjalny sposob - jedyny dostepny
-      w tej chwili przyklad tego to TNodeUnknown (chociaz nie wykluczam sobie
+      w tej chwili przyklad tego to TVRMLUnknownNode (chociaz nie wykluczam sobie
       w tym momencie czy nie pojawi sie kiedys jeszcze jakis inny tego typu node))
 
       Jezeli masz do dyspozycji instancje obiektu to nie powinienes uzywac
@@ -1029,7 +1029,7 @@ type
       klasy wezlow VRMLa musza pokrywac albo ClassNodeTypeName (i w ten
       sposob staja sie normalnymi klasami ktore maja zawszetaka sama wartosc
       NodeTypeName dla swojej klasy) albo NodeClassTypeName (i w ten sposob
-      staja sie klasami specjalnymi, jak TNodeUnknown, ktore nie maja
+      staja sie klasami specjalnymi, jak TVRMLUnknownNode, ktore nie maja
       stalej wartosci NodeTypeName). }
     class function ClassNodeTypeName: string; virtual;
 
@@ -1975,12 +1975,12 @@ type
 {$I x3d_shaders.inc}
 {$I x3d_navigation.inc}
 
-{ TNodeUnknown --------------------------------------------------- }
+{ TVRMLUnknownNode --------------------------------------------------- }
 
-  (* @abstract(TNodeUnknown represents a node with an unrecognized type.)
+  (* @abstract(TVRMLUnknownNode represents a node with an unrecognized type.)
 
-    If we approach some node with not recognized name we create TNodeUnknown.
-    TNodeUnknown has very special Parse method.
+    If we approach some node with not recognized name we create TVRMLUnknownNode.
+    TVRMLUnknownNode has very special Parse method.
     We want to use "fields" and "isA" VRML 1.0 extensibility features here.
     (TODO - these extensibility features are not implemented yet;
      for now all unrecognized nodes are of kind 1))
@@ -2029,7 +2029,7 @@ type
     (bo dokladnie to zaszlo --- to jest nieprawidlowy node, ale umiemy sobie
     poradzic).
   *)
-  TNodeUnknown = class(TVRMLNode)
+  TVRMLUnknownNode = class(TVRMLNode)
   private
     fNodeTypeName: string;
   public
@@ -4849,20 +4849,20 @@ begin
   result := not TextureImage.IsNull;
 end;
 
-{ TNodeUnknown ---------------------------------------------------------------- }
+{ TVRMLUnknownNode ---------------------------------------------------------------- }
 
-function TNodeUnknown.NodeTypeName: string;
+function TVRMLUnknownNode.NodeTypeName: string;
 begin
  result := fNodeTypeName;
 end;
 
 procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer); forward;
 
-procedure TNodeUnknown.Parse(Lexer: TVRMLLexer);
+procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer);
 { TODO: tutaj zrobic parsowanie node'ow unknown typu 2) i 3),
   VRMlNonFatalError tez nie trzeba zawsze rzucac. }
 begin
-  { w przypadku TNodeUnknown musimy fAllowedChildren i fParseAllowedChildren
+  { w przypadku TVRMLUnknownNode musimy fAllowedChildren i fParseAllowedChildren
     inicjowac na podstawie parsowania. }
   fAllowedChildren := false;
   fParsingAllowedChildren := false;
@@ -4877,20 +4877,20 @@ begin
     ''' (named '''+NodeName+''')');
 end;
 
-constructor TNodeUnknown.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLUnknownNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
  { ponizej : "bezpiecznik" zeby nigdy nie tworzyc tego node'a normalnie,
    zeby zawsze fNodeTypeName bylo ustalone. }
  raise Exception.Create('You cannot create Unknown node using default constructor');
 end;
 
-constructor TNodeUnknown.CreateUnknown(const ANodeName, AWWWBasePath, ANodeTypeName :string);
+constructor TVRMLUnknownNode.CreateUnknown(const ANodeName, AWWWBasePath, ANodeTypeName :string);
 begin
  inherited Create(ANodeName, AWWWBasePath);
  fNodeTypeName := ANodeTypeName;
 end;
 
-constructor TNodeUnknown.CreateUnknownParse(const ANodeName, ANodeTypeName :string;
+constructor TVRMLUnknownNode.CreateUnknownParse(const ANodeName, ANodeTypeName :string;
   Lexer: TVRMLLexer);
 begin
  CreateUnknown(ANodeName, '', ANodeTypeName);
@@ -5916,7 +5916,7 @@ function ParseNode(Lexer: TVRMLLexer;
           Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '', Proto);
       end else
       begin
-        Result := TNodeUnknown.CreateUnknown(nodename, '', NodeTypeName);
+        Result := TVRMLUnknownNode.CreateUnknown(nodename, '', NodeTypeName);
       end;
     end;
 

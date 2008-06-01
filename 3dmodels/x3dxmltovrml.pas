@@ -512,7 +512,7 @@ const
           Result := NodeClass.Create(NodeName, WWWBasePath);
         end else
         begin
-          Result := TNodeUnknown.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
+          Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
         end;
 
         ParseNodeBody(Result, Element);
