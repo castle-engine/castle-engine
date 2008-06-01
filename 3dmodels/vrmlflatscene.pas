@@ -1547,7 +1547,7 @@ end;
 
 procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(Node: TVRMLNode);
 begin
-  (Node as TNodeGeneralTexture).IsTextureLoaded := false;
+  (Node as TVRMLTextureNode).IsTextureLoaded := false;
 end;
 
 procedure TVRMLFlatScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
@@ -1564,7 +1564,7 @@ begin
   end;
 
   if (frTextureImageInNodes in Resources) and (RootNode <> nil) then
-    RootNode.EnumerateNodes(TNodeGeneralTexture,
+    RootNode.EnumerateNodes(TVRMLTextureNode,
       @FreeResources_UnloadTextureImage, false);
 
   if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then

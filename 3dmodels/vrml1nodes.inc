@@ -432,7 +432,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeTexture2 = class(TNodeGeneralTexture)
+  TNodeTexture2 = class(TVRMLTextureNode)
   protected
     { Texture in this class is loaded z pliku (pole filename)
       lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,

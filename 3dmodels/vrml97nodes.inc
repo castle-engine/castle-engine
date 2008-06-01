@@ -1082,7 +1082,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeImageTexture = class(TNodeGeneralTexture)
+  TNodeImageTexture = class(TVRMLTextureNode)
   protected
     function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
@@ -1593,7 +1593,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodePixelTexture = class(TNodeGeneralTexture)
+  TNodePixelTexture = class(TVRMLTextureNode)
   protected
     function LoadTextureImage(out CacheUsed: boolean): TImage; override;
   public
@@ -1812,15 +1812,15 @@
       If anything makes this impossible (Apperance field is NULL,
       or Appearance.Texture field is NULL, or wrong node class is
       passed as Appearance or Texture node), then returns nil. }
-    function Texture: TNodeGeneralTexture;
+    function Texture: TVRMLTextureNode;
 
     { This is like @link(Texture), but it returns normalMap field
       of KambiAppearance. }
-    function NormalMap: TNodeGeneralTexture;
+    function NormalMap: TVRMLTextureNode;
 
     { This is like @link(Texture), but it returns heightMap field
       of KambiAppearance. }
-    function HeightMap: TNodeGeneralTexture;
+    function HeightMap: TVRMLTextureNode;
 
     function HeightMapScale: Single;
 
@@ -5115,7 +5115,7 @@ begin
     Result := nil;
 end;
 
-function TNodeShape.Texture: TNodeGeneralTexture;
+function TNodeShape.Texture: TVRMLTextureNode;
 var
   A: TNodeAppearance;
 begin
@@ -5125,12 +5125,12 @@ begin
   begin
     A := TNodeAppearance(FdAppearance.Value);
     if (A.FdTexture.Value <> nil) and
-       (A.FdTexture.Value is TNodeGeneralTexture) then
-      Result := TNodeGeneralTexture(A.FdTexture.Value);
+       (A.FdTexture.Value is TVRMLTextureNode) then
+      Result := TVRMLTextureNode(A.FdTexture.Value);
   end;
 end;
 
-function TNodeShape.NormalMap: TNodeGeneralTexture;
+function TNodeShape.NormalMap: TVRMLTextureNode;
 var
   A: TNodeKambiAppearance;
 begin
@@ -5140,12 +5140,12 @@ begin
   begin
     A := TNodeKambiAppearance(FdAppearance.Value);
     if (A.FdNormalMap.Value <> nil) and
-       (A.FdNormalMap.Value is TNodeGeneralTexture) then
-      Result := TNodeGeneralTexture(A.FdNormalMap.Value);
+       (A.FdNormalMap.Value is TVRMLTextureNode) then
+      Result := TVRMLTextureNode(A.FdNormalMap.Value);
   end;
 end;
 
-function TNodeShape.HeightMap: TNodeGeneralTexture;
+function TNodeShape.HeightMap: TVRMLTextureNode;
 var
   A: TNodeKambiAppearance;
 begin
@@ -5155,8 +5155,8 @@ begin
   begin
     A := TNodeKambiAppearance(FdAppearance.Value);
     if (A.FdHeightMap.Value <> nil) and
-       (A.FdHeightMap.Value is TNodeGeneralTexture) then
-      Result := TNodeGeneralTexture(A.FdHeightMap.Value);
+       (A.FdHeightMap.Value is TVRMLTextureNode) then
+      Result := TVRMLTextureNode(A.FdHeightMap.Value);
   end;
 end;
 

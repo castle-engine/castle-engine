@@ -71,10 +71,10 @@
       VRML node Xxx interface, more on this below. They all descend from IVRMLNode.
 
       For now, it's important to note that my own helper TVRMLNode descendants
-      are named like TVRMLXxxNode, like TVRMLGeometryNode.
-      So you can see immediately tell which
-      nodes come from some VRML / X3D specification and which nodes are added
-      by my own engine.
+      are named like TVRMLXxxNode, like TVRMLGeometryNode, TVRMLTextureNode.
+      So you can immediately tell which nodes come from
+      VRML / X3D specification and which nodes are only added by our engine
+      to simplify implementation.
 
       Before X3D, adding my own TVRMLXxxNode classes was the only way to
       add some interesting inheritance among VRML nodes.
@@ -308,7 +308,7 @@ type
   TNodeGeneralLight = class;
   TNodeKambiTriangulation = class;
   TNodeShape = class;
-  TNodeGeneralTexture = class;
+  TVRMLTextureNode = class;
   TNodeBlendMode = class;
 
   TVRMLNodeClass = class of TVRMLNode;
@@ -539,7 +539,7 @@ type
       ParentShape.Texture (note that it may be nil, if Apperance
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
-    function Texture: TNodeGeneralTexture;
+    function Texture: TVRMLTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present.
 
@@ -1844,10 +1844,10 @@ type
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
   end;
 
-{ TNodeGeneralTexture -------------------------------------------------------- }
+{ TVRMLTextureNode -------------------------------------------------------- }
 
-  { Common texture node for all VRML versions. }
-  TNodeGeneralTexture = class(TVRMLNode)
+  { Common texture node for all VRML / X3D texture nodes. }
+  TVRMLTextureNode = class(TVRMLNode)
   private
     { This is always <> nil.
       We use only IsNull to indicate whether we have or have not a texture here. }
@@ -2905,7 +2905,7 @@ begin
   Result := true;
 end;
 
-function TVRMLGraphTraverseState.Texture: TNodeGeneralTexture;
+function TVRMLGraphTraverseState.Texture: TVRMLTextureNode;
 begin
   if ParentShape = nil then
     Result := LastNodes.Texture2 else
@@ -4757,9 +4757,9 @@ begin
   DefaultContainerField := 'geometry';
 end;
 
-{ TNodeGeneralTexture -------------------------------------------------------- }
+{ TVRMLTextureNode -------------------------------------------------------- }
 
-constructor TNodeGeneralTexture.Create(const ANodeName: string;
+constructor TVRMLTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -4768,13 +4768,13 @@ begin
   FIsTextureLoaded := false;
 end;
 
-destructor TNodeGeneralTexture.Destroy;
+destructor TVRMLTextureNode.Destroy;
 begin
   FreeAndNilTextureImage;
   inherited;
 end;
 
-procedure TNodeGeneralTexture.FreeAndNilTextureImage;
+procedure TVRMLTextureNode.FreeAndNilTextureImage;
 begin
   if TextureImageUsedCache <> nil then
   begin
@@ -4784,7 +4784,7 @@ begin
     FreeAndNil(FTextureImage);
 end;
 
-function TNodeGeneralTexture.TextureImage: TImage;
+function TVRMLTextureNode.TextureImage: TImage;
 begin
   { Setting IsTextureLoaded property will initialize FTextureImage. }
   IsTextureLoaded := true;
@@ -4792,7 +4792,7 @@ begin
   Result := FTextureImage;
 end;
 
-procedure TNodeGeneralTexture.SetIsTextureLoaded(Value: boolean);
+procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
 
   procedure DoLoadTexture;
   var
@@ -4844,7 +4844,7 @@ begin
   end;
 end;
 
-function TNodeGeneralTexture.IsTextureImage: boolean;
+function TVRMLTextureNode.IsTextureImage: boolean;
 begin
   result := not TextureImage.IsNull;
 end;

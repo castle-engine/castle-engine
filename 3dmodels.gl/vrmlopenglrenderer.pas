@@ -768,7 +768,7 @@ type
 
   TTextureCache = record
     FullUrl: string;
-    Node: TNodeGeneralTexture;
+    Node: TVRMLTextureNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
     WrapS: TGLenum;
@@ -869,7 +869,7 @@ type
     function Texture_IncReference(
       const TextureImage: TImage;
       const TextureFullUrl: string;
-      const TextureNode: TNodeGeneralTexture;
+      const TextureNode: TVRMLTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrapS, TextureWrapT: TGLenum;
       const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
@@ -974,7 +974,7 @@ type
   end;
 
   TTextureReference = record
-    TextureNode: TNodeGeneralTexture;
+    TextureNode: TVRMLTextureNode;
     TextureGL: TGLuint;
     TextureNormalMap, TextureHeightMap: TGLuint;
     TexHeightMapScale: Single;
@@ -989,7 +989,7 @@ type
   public
     { szuka rekordu z danym TextureNode.
       Zwraca jego indeks lub -1 jesli nie znajdzie. }
-    function TextureNodeIndex(TexNode: TNodeGeneralTexture): integer;
+    function TextureNodeIndex(TexNode: TVRMLTextureNode): integer;
   end;
 
   TGLSLProgramReference = record
@@ -1516,7 +1516,7 @@ end;
 function TVRMLOpenGLRendererContextCache.Texture_IncReference(
   const TextureImage: TImage;
   const TextureFullUrl: string;
-  const TextureNode: TNodeGeneralTexture;
+  const TextureNode: TVRMLTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrapS, TextureWrapT: TGLenum;
   const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
@@ -2357,7 +2357,7 @@ end;
 { TDynTextureReferenceArray ---------------------------------------------------- }
 
 function TDynTextureReferenceArray.TextureNodeIndex(
-  TexNode: TNodeGeneralTexture): integer;
+  TexNode: TVRMLTextureNode): integer;
 begin
  for result := 0 to Count-1 do
   if Items[result].TextureNode = TexNode then exit;
@@ -2608,7 +2608,7 @@ const
     GL_REPEAT);
 var
   TextureReference: TTextureReference;
-  TextureNode: TNodeGeneralTexture;
+  TextureNode: TVRMLTextureNode;
   FontStyle: TNodeFontStyle_2;
   HeightMapGrayscale: TGrayscaleImage;
   OriginalTexture: TImage;
@@ -2770,9 +2770,9 @@ begin
   samego juz utworzonego fontu.}
 
  {niszczymy teksture}
- if Node is TNodeGeneralTexture then
+ if Node is TVRMLTextureNode then
  begin
-  i := TextureReferences.TextureNodeIndex(TNodeGeneralTexture(Node));
+  i := TextureReferences.TextureNodeIndex(TVRMLTextureNode(Node));
   if i >= 0 then
   begin
    Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
@@ -3241,7 +3241,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   procedure InitTextures;
   var
     TextureReferencesIndex: Integer;
-    TextureNode: TNodeGeneralTexture;
+    TextureNode: TVRMLTextureNode;
 
     procedure EnableClassicTexturing;
     begin
