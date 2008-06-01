@@ -318,7 +318,7 @@ begin
   finally Calculator.Free end;
 end;
 
-function TNodeGeneralIndexed_1.BoundingBox(
+function TVRMLIndexedNode_1.BoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   Result := Indexed_BoundingBox(State,
@@ -359,7 +359,7 @@ begin
   finally Calculator.Free end;
 end;
 
-function TNodeGeneralIndexed_1.LocalBoundingBox(
+function TVRMLIndexedNode_1.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   Result := Indexed_LocalBoundingBox(State,

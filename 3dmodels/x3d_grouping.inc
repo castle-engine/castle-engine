@@ -189,14 +189,14 @@ type
   procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    if Child is TNodeGeneralDirectionalLight then
+    if Child is TVRMLDirectionalLightNode then
       { We do CreateActiveLight with State from TVRMLGroupingNode node,
         while precisely we should rather use State from TNodeDirectionalLight
         traverse. But, fortunately, State of TNodeDirectionalLight doesn't
         change inside (TNodeDirectionalLight doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
       State.VRML2ActiveLights.AppendItem(
-        TNodeGeneralDirectionalLight(Child).CreateActiveLight(State));
+        TVRMLDirectionalLightNode(Child).CreateActiveLight(State));
   end;
 
 procedure TVRMLGroupingNode.BeforeTraverse(

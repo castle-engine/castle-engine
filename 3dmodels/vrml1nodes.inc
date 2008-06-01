@@ -137,7 +137,7 @@
   end;
 
   { wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet }
-  TNodeGeneralIndexed_1 = class(TVRMLGeometryNode_1)
+  TVRMLIndexedNode_1 = class(TVRMLGeometryNode_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -159,7 +159,7 @@
   end;
 
   { wspolny rodzic dla IndexedFaceSet i IndexedTriangleMesh }
-  TNodeIndexed_Faces_Or_Triangles_1 = class(TNodeGeneralIndexed_1)
+  TNodeIndexed_Faces_Or_Triangles_1 = class(TVRMLIndexedNode_1)
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
@@ -168,7 +168,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeIndexedLineSet_1 = class(TNodeGeneralIndexed_1)
+  TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)
     class function ClassNodeTypeName: string; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -541,11 +541,11 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { TNodeGeneralTransformation - wspolna klasa dla wszystkich node'ow ktorych
+  { TVRMLTransformationNode - wspolna klasa dla wszystkich node'ow ktorych
     jedynym celem jest zmodyfikowac aktualna macierz modelview.
     Wystarczy ze w kazdej z podklas napiszesz funkcje MatrixTransform: TMatrix4f
     no i oczywiscie zainicjujesz pola danego node'a. }
-  TNodeGeneralTransformation = class(TVRMLNode)
+  TVRMLTransformationNode = class(TVRMLNode)
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
@@ -556,7 +556,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeMatrixTransform = class(TNodeGeneralTransformation)
+  TNodeMatrixTransform = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -582,7 +582,7 @@
     function AverageScaleTransform: Single; override;
   end;
 
-  TNodeRotation = class(TNodeGeneralTransformation)
+  TNodeRotation = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -593,7 +593,7 @@
     function AverageScaleTransform: Single; override;
   end;
 
-  TNodeScale = class(TNodeGeneralTransformation)
+  TNodeScale = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -604,7 +604,7 @@
     function AverageScaleTransform: Single; override;
   end;
 
-  TNodeTransform_1 = class(TNodeGeneralTransformation)
+  TNodeTransform_1 = class(TVRMLTransformationNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -631,7 +631,7 @@
       override;
   end;
 
-  TNodeTranslation = class(TNodeGeneralTransformation)
+  TNodeTranslation = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -646,7 +646,7 @@
 
   { A common class for both VRML 1.0 camera nodes and VRML 2.0 Viewpoint
     node. }
-  TNodeGeneralViewpoint = class(TNodeX3DBindableNode)
+  TVRMLViewpointNode = class(TNodeX3DBindableNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -709,15 +709,15 @@
       )
 
       TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
-      przez CamTransform) for TNodeGeneralVRML1Camera. }
+      przez CamTransform) for TVRMLCameraNode_1. }
     procedure GetCameraVectors(const CamTransform: TMatrix4Single;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
-  TNodeGeneralViewpointClass = class of TNodeGeneralViewpoint;
+  TVRMLViewpointClassNode = class of TVRMLViewpointNode;
 
   { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
-  TNodeGeneralVRML1Camera = class(TNodeGeneralViewpoint)
+  TVRMLCameraNode_1 = class(TVRMLViewpointNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -741,17 +741,17 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeOrthographicCamera = class(TNodeGeneralVRML1Camera)
+  TNodeOrthographicCamera = class(TVRMLCameraNode_1)
     class function ClassNodeTypeName: string; override;
     class function CameraKind: TVRMLCameraKind; override;
   end;
 
-  TNodePerspectiveCamera = class(TNodeGeneralVRML1Camera)
+  TNodePerspectiveCamera = class(TVRMLCameraNode_1)
     class function ClassNodeTypeName: string; override;
     class function CameraKind: TVRMLCameraKind; override;
   end;
 
-  TNodeGeneralLight = class(TVRMLNode)
+  TVRMLLightNode = class(TVRMLNode)
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
@@ -778,11 +778,11 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; virtual;
   end;
 
-  TObjectsListItem_1 = TNodeGeneralLight;
+  TObjectsListItem_1 = TVRMLLightNode;
   {$I objectslist_1.inc}
-  TNodeGeneralLightsList = class(TObjectsList_1);
+  TVRMLLightNodesList = class(TObjectsList_1);
 
-  TNodeGeneralDirectionalLight = class(TNodeGeneralLight)
+  TVRMLDirectionalLightNode = class(TVRMLLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -793,7 +793,7 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
-  TNodeDirectionalLight_1 = class(TNodeGeneralDirectionalLight)
+  TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
@@ -801,7 +801,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeGeneralPositionalLight = class(TNodeGeneralLight)
+  TVRMLPositionalLightNode = class(TVRMLLightNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     private FFdLocation: TSFVec3f;
@@ -828,12 +828,12 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
-  TNodeGeneralPointLight = class(TNodeGeneralPositionalLight)
+  TVRMLPointLightNode = class(TVRMLPositionalLightNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
   end;
 
-  TNodePointLight_1 = class(TNodeGeneralPointLight)
+  TNodePointLight_1 = class(TVRMLPointLightNode)
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
@@ -841,7 +841,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSpotLight_1 = class(TNodeGeneralPositionalLight)
+  TNodeSpotLight_1 = class(TVRMLPositionalLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -904,7 +904,7 @@
     pushes and pops all attribs and matrices.
     It is used in implementation of Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
-  TNodeGeneralSeparator = class(TVRMLNode)
+  TVRMLSeparatorNode = class(TVRMLNode)
   private
     OriginalState: TVRMLGraphTraverseState;
   protected
@@ -917,7 +917,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeSeparator = class(TNodeGeneralSeparator)
+  TNodeSeparator = class(TVRMLSeparatorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -963,7 +963,7 @@
     nigdzie zadnego znaczenia. Trzebaby to zaimplementowac, co wymaga
     1) TURLDataStream, patrz komentarz przy TNodeWWWInline
     2) mechaznimu picking - to juz mamy w view3dscene }
-  TNodeWWWAnchor = class(TNodeGeneralSeparator)
+  TNodeWWWAnchor = class(TVRMLSeparatorNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -1122,7 +1122,7 @@ begin
   result := 'Cylinder';
 end;
 
-constructor TNodeGeneralIndexed_1.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLIndexedNode_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -1875,7 +1875,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-procedure TNodeGeneralTransformation.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TVRMLTransformationNode.MiddleTraverse(State: TVRMLGraphTraverseState);
 var
   M, IM: TMatrix4Single;
 begin
@@ -1888,7 +1888,7 @@ begin
   State.AverageScaleTransform *= AverageScaleTransform;
 end;
 
-function TNodeGeneralTransformation.SuggestedVRMLVersion(
+function TVRMLTransformationNode.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -2075,7 +2075,7 @@ begin
   Result := 1;
 end;
 
-constructor TNodeGeneralViewpoint.Create(
+constructor TVRMLViewpointNode.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2096,7 +2096,7 @@ begin
   Fields.Add(FFdgravityUp);
 end;
 
-procedure TNodeGeneralViewpoint.GetCameraVectors(
+procedure TVRMLViewpointNode.GetCameraVectors(
   const CamTransform: TMatrix4Single;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
@@ -2122,7 +2122,7 @@ begin
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
 end;
 
-constructor TNodeGeneralVRML1Camera.Create(
+constructor TVRMLCameraNode_1.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2140,7 +2140,7 @@ begin
   Fields.Add(FFdfarDistance);
 end;
 
-function TNodeGeneralVRML1Camera.SuggestedVRMLVersion(
+function TVRMLCameraNode_1.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -2168,7 +2168,7 @@ begin
   result := ckPerspective;
 end;
 
-constructor TNodeGeneralLight.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -2191,20 +2191,20 @@ begin
   Fields.Add(FFdkambiShadowsMain);
 end;
 
-function TNodeGeneralLight.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
+function TVRMLLightNode.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result.LightNode := Self;
   Result.Transform := State.Transform;
   Result.AverageScaleTransform := State.AverageScaleTransform;
 end;
 
-procedure TNodeGeneralLight.MiddleTraverse(State: TVRMLGraphTraverseState);
+procedure TVRMLLightNode.MiddleTraverse(State: TVRMLGraphTraverseState);
 begin
   inherited;
   State.VRML1ActiveLights.AppendItem(CreateActiveLight(State));
 end;
 
-constructor TNodeGeneralPositionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -2215,12 +2215,12 @@ begin
   Fields.Add(FFdattenuation);
 end;
 
-function TNodeGeneralPositionalLight.DistanceNeededForAttenuation: boolean;
+function TVRMLPositionalLightNode.DistanceNeededForAttenuation: boolean;
 begin
   Result := (FdAttenuation.Value[1] > 0) or (FdAttenuation.Value[2] > 0);
 end;
 
-function TNodeGeneralPositionalLight.CreateActiveLight(
+function TVRMLPositionalLightNode.CreateActiveLight(
   State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result := inherited;
@@ -2254,13 +2254,13 @@ begin
   result := 1/ KambiUtils.max(FdAttenuation.Value[0], Single(1.0));
 end;}
 
-function TNodeGeneralPositionalLight.Attenuation(const DistanceToLight: Single): Single;
+function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Single): Single;
 ATTENUATION_IMPLEMENTATION
 
-function TNodeGeneralPositionalLight.Attenuation(const DistanceToLight: Double): Double;
+function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
 ATTENUATION_IMPLEMENTATION
 
-constructor TNodeGeneralDirectionalLight.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -2268,12 +2268,12 @@ begin
   Fields.Add(FFddirection);
 end;
 
-class function TNodeGeneralDirectionalLight.ClassNodeTypeName: string;
+class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
 begin
   result := 'DirectionalLight';
 end;
 
-function TNodeGeneralDirectionalLight.CreateActiveLight(
+function TVRMLDirectionalLightNode.CreateActiveLight(
   State: TVRMLGraphTraverseState): TActiveLight;
 begin
   Result := inherited;
@@ -2295,13 +2295,13 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeGeneralPointLight.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLPointLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
-  { no new fields - this is just TNodeGeneralPositionalLight }
+  { no new fields - this is just TVRMLPositionalLightNode }
 end;
 
-class function TNodeGeneralPointLight.ClassNodeTypeName: string;
+class function TVRMLPointLightNode.ClassNodeTypeName: string;
 begin
   Result := 'PointLight';
 end;
@@ -2408,28 +2408,28 @@ begin
     Routes[I].SaveToStream(SaveProperties);
 end;
 
-constructor TNodeGeneralSeparator.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TVRMLSeparatorNode.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
 end;
 
-procedure TNodeGeneralSeparator.BeforeTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLSeparatorNode.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
   inherited;
   OriginalState := State;
   State := TVRMLGraphTraverseState.CreateCopy(OriginalState);
 end;
 
-procedure TNodeGeneralSeparator.AfterTraverse(var State: TVRMLGraphTraverseState);
+procedure TVRMLSeparatorNode.AfterTraverse(var State: TVRMLGraphTraverseState);
 begin
   State.Free;
   State := OriginalState;
   inherited;
 end;
 
-function TNodeGeneralSeparator.SuggestedVRMLVersion(
+function TVRMLSeparatorNode.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

@@ -6,8 +6,8 @@
 var Spot: Single;
     Attenuat: Single;
 
-    LightNode: TNodeGeneralLight;
-    PosLightNode: TNodeGeneralPositionalLight absolute LightNode;
+    LightNode: TVRMLLightNode;
+    PosLightNode: TVRMLPositionalLightNode absolute LightNode;
 
     Factors: TVector3_Single;
     { kierunek od Intersection do zrodla swiatla, normalized }
@@ -98,7 +98,7 @@ begin
    MaterialShininessExp := M1.ShininessExp(IntersectNode.MatNum);
  end;
  {$endif}
- LightNode := TNodeGeneralLight(Light.LightNode);
+ LightNode := TVRMLLightNode(Light.LightNode);
 
  if (not LightNode.FdOn.Value) then
  begin
@@ -110,7 +110,7 @@ begin
    For now lights with non-trivial attenuation put under some transformation
    that does distance scaling will not render as required by VRML 2.0 spec.
    Czyli musze implementowac InvertTransformation ? }
- if LightNode is TNodeGeneralPositionalLight then
+ if LightNode is TVRMLPositionalLightNode then
  begin
   if PosLightNode.DistanceNeededForAttenuation then
    Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Light.TransfLocation) ) else
@@ -119,7 +119,7 @@ begin
   Attenuat := 1;
 
  { LightDirNorm is called "L" in the equation in VRML spec }
- if LightNode is TNodeGeneralPositionalLight then
+ if LightNode is TVRMLPositionalLightNode then
   LightDirNorm := Vector_Get_Normalized(Light.TransfLocation - Point) else
   LightDirNorm := -Light.TransfNormDirection;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony

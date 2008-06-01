@@ -330,7 +330,7 @@ function MakeVRMLCameraNode(Version: TVRMLCameraVersion;
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
-  GeneralViewpoint: TNodeGeneralViewpoint;
+  ViewpointNode: TVRMLViewpointNode;
   Separator: TNodeSeparator;
   Transform_1: TNodeTransform_1;
   Transform_2: TNodeTransform_2;
@@ -342,13 +342,13 @@ begin
     { Then GravityUp is parallel to StdVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      1: GeneralViewpoint := TNodePerspectiveCamera.Create('', '');
-      2: GeneralViewpoint := TNodeViewpoint.Create('', '');
+      1: ViewpointNode := TNodePerspectiveCamera.Create('', '');
+      2: ViewpointNode := TNodeViewpoint.Create('', '');
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
-    GeneralViewpoint.FdPosition.Value := CameraPos;
-    GeneralViewpoint.FdOrientation.Value := CamDirUp2Orient(CameraDir, CameraUp);
-    Result := GeneralViewpoint;
+    ViewpointNode.FdPosition.Value := CameraPos;
+    ViewpointNode.FdOrientation.Value := CamDirUp2Orient(CameraDir, CameraUp);
+    Result := ViewpointNode;
   end else
   begin
     { Then we must transform Viewpoint node, in such way that
@@ -374,13 +374,13 @@ begin
            Transform_1.FdTranslation.Value := CameraPos;
            Transform_1.FdRotation.Value := Rotation;
 
-           GeneralViewpoint := TNodePerspectiveCamera.Create('', '');
-           GeneralViewpoint.FdPosition.Value := ZeroVector3Single;
-           GeneralViewpoint.FdOrientation.Value := Orientation;
+           ViewpointNode := TNodePerspectiveCamera.Create('', '');
+           ViewpointNode.FdPosition.Value := ZeroVector3Single;
+           ViewpointNode.FdOrientation.Value := Orientation;
 
            Separator := TNodeSeparator.Create('', '');
            Separator.AddChild(Transform_1);
-           Separator.AddChild(GeneralViewpoint);
+           Separator.AddChild(ViewpointNode);
 
            Result := Separator;
          end;
@@ -390,11 +390,11 @@ begin
            Transform_2.FdTranslation.Value := CameraPos;
            Transform_2.FdRotation.Value := Rotation;
 
-           GeneralViewpoint := TNodeViewpoint.Create('', '');
-           GeneralViewpoint.FdPosition.Value := ZeroVector3Single;
-           GeneralViewpoint.FdOrientation.Value := Orientation;
+           ViewpointNode := TNodeViewpoint.Create('', '');
+           ViewpointNode.FdPosition.Value := ZeroVector3Single;
+           ViewpointNode.FdOrientation.Value := Orientation;
 
-           Transform_2.FdChildren.AddItem(GeneralViewpoint);
+           Transform_2.FdChildren.AddItem(ViewpointNode);
 
            Result := Transform_2;
          end;

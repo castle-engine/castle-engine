@@ -510,7 +510,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeDirectionalLight_2 = class(TNodeGeneralDirectionalLight)
+  TNodeDirectionalLight_2 = class(TVRMLDirectionalLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -1644,7 +1644,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodePointLight_2 = class(TNodeGeneralPointLight)
+  TNodePointLight_2 = class(TVRMLPointLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -1911,7 +1911,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeSpotLight_2 = class(TNodeGeneralPositionalLight)
+  TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -2076,7 +2076,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeViewpoint = class(TNodeGeneralViewpoint)
+  TNodeViewpoint = class(TVRMLViewpointNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -4804,7 +4804,7 @@ constructor TNodePointLight_2.Create(const ANodeName: string; const AWWWBasePath
 begin
   inherited;
 
-  { Previous fields initialized in TNodeGeneralPointLight and above.
+  { Previous fields initialized in TVRMLPointLightNode and above.
     However the default values of "ambientIntensity" and "location" fields
     are different.
     - ambientIntensity in VRML 1.0 is my extension,
@@ -5698,7 +5698,7 @@ begin
   Fields.Add(FFdcenterOfRotation);
 
   { Default value of position is different for Viewpoint than for VRML 1.0
-    cameras (as set by TNodeGeneralViewpoint). }
+    cameras (as set by TVRMLViewpointNode). }
   FdPosition.DefaultValue := Vector3Single(0, 0, 10);
   FdPosition.Value := FdPosition.DefaultValue;
 

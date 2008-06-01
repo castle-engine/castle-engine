@@ -242,13 +242,13 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
   procedure glLightFromVRMLLightAssumeOn;
 
     { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
-    procedure SetupDirectionalLight(LightNode: TNodeGeneralDirectionalLight);
+    procedure SetupDirectionalLight(LightNode: TVRMLDirectionalLightNode);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(VectorNegate(LightNode.FdDirection.Value), 0));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
     end;
 
-    procedure SetupPointLight(LightNode: TNodeGeneralPointLight);
+    procedure SetupPointLight(LightNode: TVRMLPointLightNode);
     begin
      glLightv(glLightNum, GL_POSITION, Vector4f(LightNode.FdLocation.Value, 1));
      glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
@@ -335,10 +335,10 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
    try
     glMultMatrix(Light.Transform);
 
-    if Light.LightNode is TNodeGeneralDirectionalLight then
-      SetupDirectionalLight(TNodeGeneralDirectionalLight(Light.LightNode)) else
-    if Light.LightNode is TNodeGeneralPointLight then
-      SetupPointLight(TNodeGeneralPointLight(Light.LightNode)) else
+    if Light.LightNode is TVRMLDirectionalLightNode then
+      SetupDirectionalLight(TVRMLDirectionalLightNode(Light.LightNode)) else
+    if Light.LightNode is TVRMLPointLightNode then
+      SetupPointLight(TVRMLPointLightNode(Light.LightNode)) else
     if Light.LightNode is TNodeSpotLight_1 then
       SetupSpotLight_1(TNodeSpotLight_1(Light.LightNode)) else
     if Light.LightNode is TNodeSpotLight_2 then
@@ -348,9 +348,9 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TActiveLight;
     { setup attenuation for OpenGL light }
     SetNoAttenuation := true;
 
-    if (Light.LightNode is TNodeGeneralPositionalLight) then
+    if (Light.LightNode is TVRMLPositionalLightNode) then
     begin
-     Attenuat := TNodeGeneralPositionalLight(Light.LightNode).FdAttenuation.Value;
+     Attenuat := TVRMLPositionalLightNode(Light.LightNode).FdAttenuation.Value;
      if not IsZeroVector(Attenuat) then
      begin
       SetNoAttenuation := false;
@@ -535,9 +535,9 @@ begin
        L^.LightNode.FdKambiShadowsMain.Value then
     begin
       Result := true;
-      if L^.LightNode is TNodeGeneralPositionalLight then
+      if L^.LightNode is TVRMLPositionalLightNode then
         MainLightPosition := Vector4Single(L^.TransfLocation, 1) else
-      if L^.LightNode is TNodeGeneralDirectionalLight then
+      if L^.LightNode is TVRMLDirectionalLightNode then
         MainLightPosition := Vector4Single(L^.TransfNormDirection, 0) else
         raise Exception.CreateFmt('TVRMLLightSetGL.TurnLightsOffForShadows: ' +
           'light node "%s" cannot be used to cast shadows, it has no position ' +

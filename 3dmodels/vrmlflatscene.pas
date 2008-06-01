@@ -51,7 +51,7 @@ type
   { @exclude }
   TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
 
-  TViewpointFunction = procedure (Node: TNodeGeneralViewpoint;
+  TViewpointFunction = procedure (Node: TVRMLViewpointNode;
     const Transform: TMatrix4Single) of object;
 
   { Scene edge that is between exactly two triangles.
@@ -292,7 +292,7 @@ type
       out CamKind: TVRMLCameraKind;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string):
-      TNodeGeneralViewpoint;
+      TVRMLViewpointNode;
 
     FManifoldEdges: TDynManifoldEdgeArray;
     FBorderEdges: TDynBorderEdgeArray;
@@ -540,19 +540,19 @@ type
       dealing with camera node.
 
       Zwraca zawsze znormalizowane CamDir i CamUp i GravityUp ---
-      powody takie same jak dla TNodeGeneralViewpoint.GetCameraVectors.
+      powody takie same jak dla TVRMLViewpointNode.GetCameraVectors.
 
       @groupBegin }
     function GetViewpoint(
       out CamKind: TVRMLCameraKind;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string = ''):
-      TNodeGeneralViewpoint;
+      TVRMLViewpointNode;
 
     function GetPerspectiveViewpoint(
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string = ''):
-      TNodeGeneralViewpoint;
+      TVRMLViewpointNode;
     { @groupEnd }
 
     { This enumerates all viewpoint nodes (Viewpoint (for VRML 2.0),
@@ -561,7 +561,7 @@ type
       For each such node, it calls ViewpointFunction.
 
       Essentially, this is a trivial wrapper over RootNode.Traverse
-      that returns only TNodeGeneralViewpoint. }
+      that returns only TVRMLViewpointNode. }
     procedure EnumerateViewpoints(ViewpointFunction: TViewpointFunction);
 
     { FogNode zwraca aktualny node Fog w tym modelu VRMLa, lub nil jesli
@@ -809,10 +809,10 @@ begin
       TVRMLShapeState.Create(Node as TVRMLGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(State)));
   end else
-  if Node is TNodeGeneralLight then
+  if Node is TVRMLLightNode then
   begin
     ChangedAll_TraversedLights.AppendItem(
-      (Node as TNodeGeneralLight).CreateActiveLight(State));
+      (Node as TVRMLLightNode).CreateActiveLight(State));
   end;
 end;
 
@@ -846,7 +846,7 @@ procedure TVRMLFlatScene.ChangedAll;
   var
     I: Integer;
     L: PActiveLight;
-    LNode: TNodeGeneralLight;
+    LNode: TVRMLLightNode;
   begin
     for I := 0 to ChangedAll_TraversedLights.High do
     begin
@@ -921,7 +921,7 @@ begin
    if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
     ChangedShapeStateFields(i);
  end else
- if (Node is TNodeGeneralLight) then
+ if (Node is TVRMLLightNode) then
  begin
   { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
     gdzie wystepuje jako Active.
@@ -931,7 +931,7 @@ begin
     when construcing ShapeStates list. }
   for i := 0 to ShapeStates.Count-1 do
    if ShapeStates[i].State.CurrentActiveLights.
-        IndexOfLightNode(TNodeGeneralLight(Node)) >= 0 then
+        IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
     ChangedShapeStateFields(i);
  end else
  if (Node is TVRMLGeometryNode) then
@@ -1122,7 +1122,7 @@ type
     ParentInfo: PTraversingInfo);
   begin
     ViewpointFunction(
-      TNodeGeneralViewpoint(ANode),
+      TVRMLViewpointNode(ANode),
       AState.Transform);
   end;
 
@@ -1139,7 +1139,7 @@ begin
       Seeker := TViewpointsSeeker.Create;
       try
         Seeker.ViewpointFunction := ViewpointFunction;
-        RootNode.Traverse(InitialState, TNodeGeneralViewpoint,
+        RootNode.Traverse(InitialState, TVRMLViewpointNode,
           {$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek);
       finally FreeAndNil(Seeker) end;
     finally FreeAndNil(InitialState) end;
@@ -1152,14 +1152,14 @@ type
   TFirstViewpointSeeker = class
     OnlyPerspective: boolean;
     ViewpointDescription: string;
-    FoundNode: TNodeGeneralViewpoint;
+    FoundNode: TVRMLViewpointNode;
     FoundTransform: PMatrix4Single;
-    procedure Seek(Node: TNodeGeneralViewpoint;
+    procedure Seek(Node: TVRMLViewpointNode;
       const Transform: TMatrix4Single);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TNodeGeneralViewpoint;
+    Node: TVRMLViewpointNode;
     const Transform: TMatrix4Single);
   begin
     if ( (not OnlyPerspective) or
@@ -1178,7 +1178,7 @@ function TVRMLFlatScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out CamKind: TVRMLCameraKind;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TNodeGeneralViewpoint;
+  const ViewpointDescription: string): TVRMLViewpointNode;
 var
   CamTransform: TMatrix4Single;
   Seeker: TFirstViewpointSeeker;
@@ -1217,7 +1217,7 @@ end;
 function TVRMLFlatScene.GetViewpoint(
   out CamKind: TVRMLCameraKind;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TNodeGeneralViewpoint;
+  const ViewpointDescription: string): TVRMLViewpointNode;
 begin
   Result := GetViewpointCore(false, CamKind, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
@@ -1225,7 +1225,7 @@ end;
 
 function TVRMLFlatScene.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TNodeGeneralViewpoint;
+  const ViewpointDescription: string): TVRMLViewpointNode;
 var
   CamKind: TVRMLCameraKind;
 begin

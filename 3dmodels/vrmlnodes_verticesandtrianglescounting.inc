@@ -210,7 +210,7 @@ begin
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
-function TNodeGeneralIndexed_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function TVRMLIndexedNode_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   Result := State.LastNodes.Coordinate3.FdPoint.Count;
 end;

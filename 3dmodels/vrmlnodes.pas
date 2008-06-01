@@ -64,14 +64,29 @@
   VRML node classes names, and inheritance:
 
   @unorderedList(
-    @item(Pascal classes named like TNodeXxx implement VRML specification node Xxx.
+    @item(Pascal classes named like TNodeXxx are @bold(official) node classes,
+      that is they implement VRML / X3D specification node Xxx.
+      This also applies to some extension nodes (for example,
+      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php).
+      The important fact is that these node names are somehow available to
+      the user, required by some specification etc.
+
+      X3D abstract node classes also fall into this category (they are
+      specified in X3D specification; although nothing actually forces us
+      to implement these abstract X3D classes, and VRML author cannot directly use
+      them, I decided it's a proper way to define these classes.).
+
       They all descend from TVRMLNode. For example, TNodeIndexedFaceSet.
 
       There are also Pascal interfaces, like INodeXxx that represent
       VRML node Xxx interface, more on this below. They all descend from IVRMLNode.
 
-      For now, it's important to note that my own helper TVRMLNode descendants
-      are named like TVRMLXxxNode, like TVRMLGeometryNode, TVRMLTextureNode.
+      The second group are @bold(unofficial) node classes. These are internal
+      to our engine, help our implementation, and often may help
+      a programmer to process some VRML files --- but they are not visible
+      to final VRML user/author. They are named TVRMLXxxNode,
+      like TVRMLGeometryNode, TVRMLTextureNode, TVRMLLightNode, TVRMLUnknownNode.
+
       So you can immediately tell which nodes come from
       VRML / X3D specification and which nodes are only added by our engine
       to simplify implementation.
@@ -293,7 +308,7 @@ const
 type
   { forward declarations } { }
   TVRMLNodesList = class;
-  TNodeGeneralLightsList = class;
+  TVRMLLightNodesList = class;
   TVRMLNode = class;
   TNodeCoordinate3 = class;
   TNodeShapeHints = class;
@@ -305,7 +320,7 @@ type
   TNodeTexture2 = class;
   TNodeTextureCoordinate2 = class;
   TVRMLGeometryNode = class;
-  TNodeGeneralLight = class;
+  TVRMLLightNode = class;
   TNodeKambiTriangulation = class;
   TNodeShape = class;
   TVRMLTextureNode = class;
@@ -351,15 +366,15 @@ type
     when they are found by traversing VRML file.
 
     @bold(This record may be initialized only by
-    TNodeGeneralLight.CreateActiveLight). }
+    TVRMLLightNode.CreateActiveLight). }
   TActiveLight = record
-    LightNode: TNodeGeneralLight;
+    LightNode: TVRMLLightNode;
 
     Transform: TMatrix4Single;
     AverageScaleTransform: Single;
 
     { TransfLocation to juz przeliczone Transformation*Location dla swiatel
-      TNodeGeneralPositionalLight. }
+      TVRMLPositionalLightNode. }
     TransfLocation: TVector3Single;
 
     { TransfNormDirection to juz
@@ -381,7 +396,7 @@ type
   TDynActiveLightArray = class(TDynArray_1)
   public
     { -1 jesli nie ma }
-    function IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
+    function IndexOfLightNode(LightNode: TVRMLLightNode): integer;
     function Equals(SecondValue: TDynActiveLightArray): boolean;
   end;
   TArray_ActiveLight = TInfiniteArray_1;
@@ -1199,7 +1214,7 @@ type
     function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
 
     { policz ile jest node'ow danej klasy.
-      Uzywajac np. TNodeGeneralLight mozesz
+      Uzywajac np. TVRMLLightNode mozesz
       sprawdzic czy na scenie zostalo zdefiniowane jakiekolwiek swiato.
       Parametr countOnlyActiveNodes ma znaczenie jak zwykle.
 
@@ -1694,51 +1709,36 @@ type
 
 { TVRMLGeometryNode ---------------------------------------------------- }
 
-  { Shape is the only node that produces some visible results
-    during rendering. Most of the VRML language is just
-    a method of describing those shapes and many other nodes
-    are defined only to set up additional state for shapes
+  { Geometry nodes are the only nodes that produces some visible results
+    during rendering. Much of the VRML language is just
+    a method of describing properties how geometry nodes are displayed
     (materials, transformations, lighting).
 
-    Some exceptions to this are camera nodes, sensors (WWWAnchor in VRML 1.0),
-    Info, WorldInfo, Background, Fog. These nodes specify some things
-    that can't be embedded in simple Render command for a node.
-    These things describe
+    A few things that make geometry node special :
     @unorderedList(
-      @item(user interaction with the world (cameras, sensors))
+      @item(Only geometry nodes may have [Local]BoundingBox.)
       @item(
-        some information that has no meaning to us and all we can do about it
-        (besides ignoring it) is to show it to the user (Info, WorldInfo))
-      @item(
-        some information about how to render the world that cannot be just
-        expressed as "modifying the way all subsequent shapes are drawn"
-        (Fog, Background))
-    )
-
-    This class may have some special functionality and it builds
-    comfortable object inheritance hierarchy.
-    For example, now we can use EnumerateNodes(TVRMLGeometryNode).
-
-    A few things that make Shape node special :
-    @unorderedList(
-      @item(Only shape nodes may have [Local]BoundingBox.)
-      @item(
-        Only shape nodes define something visible "in usual way"
-        during rendering (Some other nodes in VRML 2.0 are visible but in an
+        Only geometry nodes define something visible "in usual way"
+        during rendering (Some other nodes in VRML / X3D are visible but in an
         unusual way, like Background and Fog. These nodes must be rendered in
         a special way --- they are not affected in any usual way by the current
         transformation matrix etc.))
+
       @item(
-        Only shape nodes can add triangles to the scene, so the Triangulate
-        method can be defined only for shape nodes.)
+        Only geometry nodes can add triangles to the scene, so the Triangulate
+        method can be defined only for geometry nodes.)
+
       @item(
-        Shape nodes are never "grouping nodes", in particular there's
-        never a shape node that is (direct or indirect) child of another
-        shape node. So there's no need to be concerned whether shape nodes'
+        Geometry nodes are never "grouping nodes", in particular there's
+        never a geometry node that is (direct or indirect) child of another
+        geometry node. So there's no need to be concerned whether geometry nodes'
         children are included in things like [Local]BoundingBox or
         Triangles/VerticesCount.)
+
       @item(
-        Shape nodes don't affect anything in graph traverse state.)
+        Geometry nodes don't affect anything in graph traverse state.
+        (This is important mostly for VRML 1.0, since in newer VRML / X3D
+        "graph traverse state" is not that important.))
     )
 
     For X3D, this descends from TNodeX3DNode, and TNodeX3DGeometryNode
@@ -1753,7 +1753,7 @@ type
       for all X3D nodes descending from TVRMLGeometryNode. }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { BoundingBox oblicza BoundingBox shape node'a VRMLa ktory podczas
+    { BoundingBox oblicza BoundingBox geometry node'a VRMLa ktory podczas
       trawersowania grafu VRML'a ma stan State.
 
       LocalBoundingBox liczy BoundingBox jakby Transform = IdentityMatrix,
@@ -1775,7 +1775,7 @@ type
       Wiec w tej klasie BoundingBox jest zaimplementowany wlasnie jako
       LocalBoundingBox transformowany o State.Transform.
 
-      W kazdej podklasie Shape powinienes pokryc przynajmniej jedna z tych metod
+      W kazdej podklasie powinienes pokryc przynajmniej jedna z tych metod
       --- jak to napisalem powyzej, jezeli nie pokryjesz BoundingBox'a to byc
       moze otrzymany BoundingBox bedzie nieco za duze (co jest w sumie
       dopuszczalne, ale nie do przesady), jezeli nie pokryjesz LocalBoundingBox
@@ -1784,7 +1784,7 @@ type
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
 
-    { kazda podklasa GeneralShape musi pokrywac i implementowac te metody.
+    { kazda podklasa TVRMLGeometryNode musi pokrywac i implementowac te metody.
 
       Te metody zwracaja ilosc trojkatow jaka definiuje [Local]Triangulate
       (z takimi samymi parametrami State i OverTriangulate)
@@ -2773,7 +2773,7 @@ end;
 
 { TDynActiveLightArray --------------------------------------------------------- }
 
-function TDynActiveLightArray.IndexOfLightNode(LightNode: TNodeGeneralLight): integer;
+function TDynActiveLightArray.IndexOfLightNode(LightNode: TVRMLLightNode): integer;
 begin
  for result := 0 to High do
   if Items[result].LightNode = LightNode then exit;

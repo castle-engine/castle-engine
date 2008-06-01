@@ -74,7 +74,7 @@ uses SysUtils;
 procedure TVRMLLightSet.AddToLights(Node: TVRMLNode;
   State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 begin
-  Lights.AppendItem((Node as TNodeGeneralLight).CreateActiveLight(State));
+  Lights.AppendItem((Node as TVRMLLightNode).CreateActiveLight(State));
 end;
 
 procedure TVRMLLightSet.CalculateLights;
@@ -84,7 +84,7 @@ begin
 
  InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
  try
-   RootNode.Traverse(InitialState, TNodeGeneralLight,
+   RootNode.Traverse(InitialState, TVRMLLightNode,
      {$ifdef FPC_OBJFPC} @ {$endif} AddToLights);
  finally InitialState.Free end;
 end;

@@ -30,7 +30,7 @@
   { RotationXYZ node from Inventor. It's not in VRML 1.0 spec.
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
-  TNodeRotationXYZ = class(TNodeGeneralTransformation)
+  TNodeRotationXYZ = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
