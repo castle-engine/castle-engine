@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ TNodeGeneralShape.Triangulate ktore dziala wywolujac LocalTriangulate
+{ TVRMLGeometryNode.Triangulate ktore dziala wywolujac LocalTriangulate
   -----------------------------------------------------------------------------}
 
 { just a shortcuts for names often used in this file }
@@ -32,22 +32,22 @@ type
     NewTriangle: TNewTriangleProc;
     procedure LocalNewTriangle(const Tri: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape;
+      GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangulateRedirect.LocalNewTriangle(const Tri: TTriangle3Single;
-    State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   var i: integer;
       NewT: TTriangle3Single;
   begin
    for i := 0 to 2 do NewT[i] := MultMatrixPoint(Transform^, Tri[i]);
-   NewTriangle(NewT, State, ShapeNode, MatNum,
+   NewTriangle(NewT, State, GeometryNode, MatNum,
      FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 
-procedure TNodeGeneralShape.Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+procedure TVRMLGeometryNode.Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 var tr: TTriangulateRedirect;
 begin
  { klasa TTriangulateRedirect bedzie dzialala jako posrednik :
@@ -87,7 +87,7 @@ end;
 
 procedure LocalTriangulateRect(constCoord: integer;
   const constCoordValue, x1, y1, x2, y2: Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc; MatNum: integer);
 var T: TTriangle3Single;
     i, c1, c2: integer;
@@ -106,11 +106,11 @@ begin
  TriAssign(0, x1, y1);
  TriAssign(1, x1, y2);
  TriAssign(2, x2, y2);
- NewTriangleProc(T, State, ShapeNode, MatNum, -1, -1);
+ NewTriangleProc(T, State, GeometryNode, MatNum, -1, -1);
  TriAssign(0, x1, y1);
  TriAssign(1, x2, y2);
  TriAssign(2, x2, y1);
- NewTriangleProc(T, State, ShapeNode, MatNum, -1, -1);
+ NewTriangleProc(T, State, GeometryNode, MatNum, -1, -1);
 end;
 
 { metody LocalTriangulate konkretnych node'ow ---------------------------------}
@@ -156,7 +156,7 @@ begin
 end;}
 
 procedure Cone_LocalTriangulate(
-  Self: TNodeGeneralShape;
+  Self: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const BottomRadius, Height: Single;
@@ -213,14 +213,14 @@ begin
 end;
 
 procedure Box_LocalTriangulate(
-  Self: TNodeGeneralShape;
+  Self: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
   procedure LocalTriangulateBox3d(const Box: TBox3d;
-    State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
     OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
   { nadaje materialy zgodnie ze specyfikacja VRMLa dla Cube }
   const MaterialsPerPart: array[0..2, boolean]of integer = ((2, 3), (5, 4), (1, 0));
@@ -231,10 +231,10 @@ var MatPerPart: boolean;
     RestOf3dCoords(i, c1, c2);
     if MatPerPart then MatNum := MaterialsPerPart[i, false] else MatNum := 0;
     LocalTriangulateRect(i, Box[0, i], Box[0, c1], Box[0, c2], Box[1, c1], Box[1, c2],
-      State, ShapeNode, OverTriangulate, NewTriangleProc, MatNum);
+      State, GeometryNode, OverTriangulate, NewTriangleProc, MatNum);
     if MatPerPart then MatNum := MaterialsPerPart[i, true] else MatNum := 0;
     LocalTriangulateRect(i, Box[1, i], Box[0, c1], Box[0, c2], Box[1, c1], Box[1, c2],
-      State, ShapeNode, OverTriangulate, NewTriangleProc, MatNum);
+      State, GeometryNode, OverTriangulate, NewTriangleProc, MatNum);
    end;
   end;
 
@@ -262,7 +262,7 @@ begin
 end;
 
 procedure Cylinder_LocalTriangulate(
-  Self: TNodeGeneralShape;
+  Self: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const Height, Radius: Single;
@@ -338,7 +338,7 @@ end;
 type
   TNewTriData = record
     State: TVRMLGraphTraverseState;
-    ShapeNode: TNodeGeneralShape;
+    GeometryNode: TVRMLGeometryNode;
     MatNum: integer;
     Vertices: PArray_Vector3Single;
     FaceIndices: PArray_Longint;
@@ -356,7 +356,7 @@ begin
     Tri[0] := Vertices^[FaceIndices^[TriIndices[0]]];
     Tri[1] := Vertices^[FaceIndices^[TriIndices[1]]];
     Tri[2] := Vertices^[FaceIndices^[TriIndices[2]]];
-    NewTriangleProc(Tri, State, ShapeNode, MatNum,
+    NewTriangleProc(Tri, State, GeometryNode, MatNum,
       FaceCoordIndexBegin, FaceCoordIndexEnd);
   end;
 end;
@@ -368,7 +368,7 @@ end;
   MaterialIndex may be nil if MaterialBinding is not
   anything _INDEXED. }
 procedure IndexedPolygons_LocalTriangulate(
-  Self: TNodeGeneralShape;
+  Self: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   NewTriangleProc: TNewTriangleProc;
   Coord: TMFVec3f; CoordIndex: TMFLong;
@@ -381,7 +381,7 @@ procedure IndexedPolygons_LocalTriangulate(
     NewTriData: TNewTriData;
   begin
     NewTriData.State := State;
-    NewTriData.ShapeNode := Self;
+    NewTriData.GeometryNode := Self;
     NewTriData.MatNum := faceMatNum;
     NewTriData.Vertices := Coord.Items.ItemsArray;
     newTriData.FaceIndices := PArray_Longint(CoordIndex.Items.Pointers[StartIndex]);
@@ -489,7 +489,7 @@ begin
 end;
 
 procedure Sphere_LocalTriangulate(
-  Self: TNodeGeneralShape;
+  Self: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc;
   const FdRadiusValue: Single);

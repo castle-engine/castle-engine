@@ -271,7 +271,7 @@ type
 
     TriangleOctreeToAdd: TVRMLTriangleOctree;
     procedure AddTriangleToOctreeProgress(const Triangle: TTriangle3Single;
-      State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     FDefaultShapeStateOctree: TVRMLShapeStateOctree;
@@ -335,7 +335,7 @@ type
       node'y), zupelnie dowolne pola dowolnych node'ow.
 
       Wywolaj ChangedShapeStateFields(i) gdy zmieniles tylko zawartosci pol
-      node'a ShapeList[i].ShapeNode, node'ow ShapeList[i].State.Last* i
+      node'a ShapeList[i].GeometryNode, node'ow ShapeList[i].State.Last* i
       node'ow ShapeList[i].State.Active*. (i jestes PEWIEN ze node ktorego
       pole zmieniles nie wystepuje w innych ShapeState'ach).
 
@@ -388,7 +388,7 @@ type
       for BoundingBox (answer will be EmptyBox3d),
       you can render such scene (nothing will be rendered) etc.
       Scene RootNode = nil will act quite like a Scene with
-      e.g. no TNodeGeneralShape nodes.
+      e.g. no TVRMLGeometryNode nodes.
 
       Always call ChangedAll when you changed RootNode.
 
@@ -413,7 +413,7 @@ type
 
     { Creates triangle octree and inits it with our BoundingBox
       and adds all triangles from our ShapeStates.
-      (generated using  ShapeNode.Triangulate(State, false, ...)
+      (generated using  GeometryNode.Triangulate(State, false, ...)
       (note : OverTriangulate = false because it's not
       necessary for collision detection))
 
@@ -803,10 +803,10 @@ procedure TVRMLFlatScene.ChangedAll_Traverse(
   1. Add shapes to ShapeStates
   2. Add lights to ChangedAll_TraversedLights }
 begin
-  if Node is TNodeGeneralShape then
+  if Node is TVRMLGeometryNode then
   begin
     ShapeStates.Add(
-      TVRMLShapeState.Create(Node as TNodeGeneralShape,
+      TVRMLShapeState.Create(Node as TVRMLGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(State)));
   end else
   if Node is TNodeGeneralLight then
@@ -934,12 +934,12 @@ begin
         IndexOfLightNode(TNodeGeneralLight(Node)) >= 0 then
     ChangedShapeStateFields(i);
  end else
- if (Node is TNodeGeneralShape) then
+ if (Node is TVRMLGeometryNode) then
  begin
   { node jest Shape'm. Wiec wplynal tylko na ShapeStates gdzie wystepuje jako
-    ShapeNode. }
+    GeometryNode. }
   for i := 0 to ShapeStates.Count-1 do
-   if ShapeStates[i].ShapeNode = Node then
+   if ShapeStates[i].GeometryNode = Node then
     ChangedShapeStateFields(i);
  end else
   { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
@@ -1021,11 +1021,11 @@ end;
 
 procedure TVRMLFlatScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, ShapeNode, MatNum,
+  TriangleOctreeToAdd.AddItemTriangle(Triangle, State, GeometryNode, MatNum,
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
@@ -1046,7 +1046,7 @@ function TVRMLFlatScene.CreateTriangleOctree(
   var i: integer;
   begin
    for i := 0 to ShapeStates.Count-1 do
-    ShapeStates[i].ShapeNode.Triangulate(ShapeStates[i].State, false, AddTriProc);
+    ShapeStates[i].GeometryNode.Triangulate(ShapeStates[i].State, false, AddTriProc);
   end;
 
 begin
@@ -1309,13 +1309,13 @@ type
     TriangleList: TDynTriangle3SingleArray;
     procedure AddTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape;
+      GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
   procedure TTriangleAdder.AddTriangle(const Triangle: TTriangle3Single;
     State: TVRMLGraphTraverseState;
-    ShapeNode: TNodeGeneralShape;
+    GeometryNode: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   begin
     if IsValidTriangle(Triangle) then
@@ -1336,7 +1336,7 @@ begin
       try
         TriangleAdder.TriangleList := Result;
         for I := 0 to ShapeStates.Count - 1 do
-          ShapeStates[I].ShapeNode.Triangulate(
+          ShapeStates[I].GeometryNode.Triangulate(
             ShapeStates[I].State, OverTriangulate,
             {$ifdef FPC_OBJFPC} @ {$endif} TriangleAdder.AddTriangle);
       finally FreeAndNil(TriangleAdder) end;

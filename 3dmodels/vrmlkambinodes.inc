@@ -79,7 +79,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeText3D = class(TNodeGeneralShape)
+  TNodeText3D = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;

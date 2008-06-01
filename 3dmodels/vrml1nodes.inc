@@ -33,14 +33,14 @@
   TNodeGroup_1 and TNodeGroup_2).) } { }
 
 {$ifdef read_interface}
-  { This is descendant of TNodeGeneralShape that is allowed only in
+  { This is descendant of TVRMLGeometryNode that is allowed only in
     VRML <= 1.0.
 
     In VRML 1.0 shape nodes are allowed pretty everywhere,
     while VRML 2.0 has different idea of how shapes are handled
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
-  TNodeGeneralShape_1 = class(TNodeGeneralShape)
+  TVRMLGeometryNode_1 = class(TVRMLGeometryNode)
   public
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -54,7 +54,7 @@
     (after casting by Ord) to JUSTIFICATION_* constants. }
   TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
 
-  TNodeAsciiText_1 = class(TNodeGeneralShape_1)
+  TNodeAsciiText_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -79,7 +79,7 @@
     function Justify: TVRMLFontJustify;
   end;
 
-  TNodeCone_1 = class(TNodeGeneralShape_1)
+  TNodeCone_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -98,7 +98,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCube_1 = class(TNodeGeneralShape_1)
+  TNodeCube_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -117,7 +117,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCylinder_1 = class(TNodeGeneralShape_1)
+  TNodeCylinder_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -137,7 +137,7 @@
   end;
 
   { wspolny rodzic dla IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet }
-  TNodeGeneralIndexed_1 = class(TNodeGeneralShape_1)
+  TNodeGeneralIndexed_1 = class(TVRMLGeometryNode_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -174,7 +174,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodePointSet_1 = class(TNodeGeneralShape_1)
+  TNodePointSet_1 = class(TVRMLGeometryNode_1)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -199,7 +199,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeSphere_1 = class(TNodeGeneralShape_1)
+  TNodeSphere_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -1024,13 +1024,13 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TNodeGeneralShape_1.ForVRMLVersion(
+class function TVRMLGeometryNode_1.ForVRMLVersion(
   const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor <= 1;
 end;
 
-function TNodeGeneralShape_1.SuggestedVRMLVersion(
+function TVRMLGeometryNode_1.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

@@ -28,7 +28,7 @@
   adds some details.
 
   For this class, a VRML scene is just a sequence of pairs
-  (Node: TNodeGeneralShape; State: TVRMLGraphTraverseState).
+  (Node: TVRMLGeometryNode; State: TVRMLGraphTraverseState).
   To render a sequence of such pairs you should:
 
   @orderedList(
@@ -253,7 +253,7 @@
 
   Poniewaz OpenGL oferuje tylko cieniowanie
   Gourauda (no i plaskie cieniowanie, w zaleznosci od Attributes.SmoothShading),
-  idea OverTriangulate = true w VRMLNodes.TNodeGeneralShape.[Local]Triangulate
+  idea OverTriangulate = true w VRMLNodes.TVRMLGeometryNode.[Local]Triangulate
   staje sie uzyteczna. Jest gwarantowane ze ten renderer bedzie uzywal
   dokladnie takich trojkatow jakie generuje metoda Triangulate z
   [Local]Triangulate, a wiec ze powinienes uzywac
@@ -293,13 +293,13 @@ unit VRMLOpenGLRenderer;
 
 { When you define USE_VRML_NODES_TRIANGULATION, an alternative
   rendering method will be used. Each node will be triangulated
-  using TNodeGeneralShape.LocalTriangulate and then this triangle
+  using TVRMLGeometryNode.LocalTriangulate and then this triangle
   will be passed to OpenGL.
 
   This is a proof-of-concept implementation that shows that
-  using TNodeGeneralShape.LocalTriangulate we can render all
+  using TVRMLGeometryNode.LocalTriangulate we can render all
   nodes in the same manner --- no need to write separate rendering
-  routines for various TNodeGeneralShape descendants.
+  routines for various TVRMLGeometryNode descendants.
   All you have to do is to implement triangulating.
 
   This is mainly for testing purposes, it allows you to test
@@ -344,7 +344,7 @@ const
   DefaultBumpMappingLightDiffuseColor: TVector4Single = (1, 1, 1, 1);
 
 type
-  TBeforeGLVertexProc = procedure (Node: TNodeGeneralShape;
+  TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
     const Vert: TVector3Single) of object;
 
   { Various bump mapping methods. Generally sorted from worst one
@@ -513,7 +513,7 @@ type
       (to znaczy TUZ przed glVertex, juz po ustaleniu koloru (glColor),
       glTexCoord, glNormal, glEdgeFlag, no w ogole - wszystkiego).
       Najpierw bedzie wywolana ta procedura z parametrami a)node podklasy
-      TNodeGeneralShape ktory renderuje ten vertex i b)wspolrzedne vertexa
+      TVRMLGeometryNode ktory renderuje ten vertex i b)wspolrzedne vertexa
       przemnozone przez RenderState.Transform. Innymi slowy bedzie to
       wspolrzedna vertexa wzgledem lokalnego ukladu wspolrzednych VRML'a
       (podczas gdy rzeczywista komenda glVertex prawdopodobnie przekaze
@@ -789,12 +789,12 @@ type
 
   { Note that Attributes and State are owned by this record
     (TVRMLOpenGLRendererContextCache will make sure about creating/destroying
-    them), but ShapeNode and FogNode are a references somewhere to the scene
+    them), but GeometryNode and FogNode are a references somewhere to the scene
     (they will be supplied to TVRMLOpenGLRendererContextCache instance)
     and we don't own them. }
   TShapeStateCache = record
     Attributes: TVRMLRenderingAttributes;
-    ShapeNode: TNodeGeneralShape;
+    GeometryNode: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState;
     FogNode: TNodeFog;
     FogDistanceScaling: Single;
@@ -906,7 +906,7 @@ type
 
     function ShapeState_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
-      AShapeNode: TNodeGeneralShape;
+      AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
@@ -914,7 +914,7 @@ type
 
     procedure ShapeState_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
-      AShapeNode: TNodeGeneralShape;
+      AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
@@ -925,7 +925,7 @@ type
 
     function ShapeStateNoTransform_IncReference_Existing(
       AAttributes: TVRMLRenderingAttributes;
-      AShapeNode: TNodeGeneralShape;
+      AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
@@ -933,7 +933,7 @@ type
 
     procedure ShapeStateNoTransform_IncReference_New(
       AAttributes: TVRMLRenderingAttributes;
-      AShapeNode: TNodeGeneralShape;
+      AGeometryNode: TVRMLGeometryNode;
       AState: TVRMLGraphTraverseState;
       AFogNode: TNodeFog;
       const AFogDistanceScaling: Single;
@@ -1079,7 +1079,7 @@ type
 
     { kopie aktualnego State i Node na czas Render }
     Render_State: TVRMLGraphTraverseState;
-    Render_Node: TNodeGeneralShape;
+    Render_Node: TVRMLGeometryNode;
 
     { te dwie zmienne sa wewnetrzne dla funkcji MeterialsBegin/End, BindMaterial }
     Render_Material_ForcedLightDisable: boolean;
@@ -1099,7 +1099,7 @@ type
       const FogImmune: boolean);
 
     { Judge whether the node can be lit. }
-    function NodeLit(Node: TNodeGeneralShape): boolean;
+    function NodeLit(Node: TVRMLGeometryNode): boolean;
 
     { czy Render node'ow musi generowac tex coords ? }
     Render_TexCoordsNeeded: boolean;
@@ -1114,7 +1114,7 @@ type
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
     procedure DrawTriangle(const Tri: TTriangle3Single;
-      State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
     {$endif}
 
@@ -1193,14 +1193,14 @@ type
       const FogDistanceScaling: Single);
     procedure RenderEnd;
 
-    procedure RenderShapeStateBegin(Node: TNodeGeneralShape;
+    procedure RenderShapeStateBegin(Node: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateNoTransform(Node: TNodeGeneralShape;
+    procedure RenderShapeStateNoTransform(Node: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateEnd(Node: TNodeGeneralShape;
+    procedure RenderShapeStateEnd(Node: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
-    procedure RenderShapeState(Node: TNodeGeneralShape;
+    procedure RenderShapeState(Node: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
     { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
@@ -1821,7 +1821,7 @@ end;
 
 function TVRMLOpenGLRendererContextCache.ShapeState_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
-  AShapeNode: TNodeGeneralShape;
+  AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
@@ -1834,7 +1834,7 @@ begin
   begin
     SSCache := ShapeStateCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
-       (SSCache^.ShapeNode = AShapeNode) and
+       (SSCache^.GeometryNode = AGeometryNode) and
        (SSCache^.State.Equals(AState)) and
        FogParametersEqual(
          SSCache^.FogNode, SSCache^.FogDistanceScaling,
@@ -1854,7 +1854,7 @@ end;
 
 procedure TVRMLOpenGLRendererContextCache.ShapeState_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
-  AShapeNode: TNodeGeneralShape;
+  AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
@@ -1865,7 +1865,7 @@ begin
   ShapeStateCaches.IncLength;
   SSCache := ShapeStateCaches.Pointers[ShapeStateCaches.High];
   SSCache^.Attributes := AAttributes;
-  SSCache^.ShapeNode := AShapeNode;
+  SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
   SSCache^.FogNode := AFogNode;
   SSCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -1910,7 +1910,7 @@ end;
 
 function TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_Existing(
   AAttributes: TVRMLRenderingAttributes;
-  AShapeNode: TNodeGeneralShape;
+  AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
@@ -1923,7 +1923,7 @@ begin
   begin
     SSCache := ShapeStateNoTransformCaches.Pointers[I];
     if (SSCache^.Attributes.Equals(AAttributes)) and
-       (SSCache^.ShapeNode = AShapeNode) and
+       (SSCache^.GeometryNode = AGeometryNode) and
        (SSCache^.State.EqualsNoTransform(AState)) and
        FogParametersEqual(
          SSCache^.FogNode, SSCache^.FogDistanceScaling,
@@ -1944,7 +1944,7 @@ end;
 
 procedure TVRMLOpenGLRendererContextCache.ShapeStateNoTransform_IncReference_New(
   AAttributes: TVRMLRenderingAttributes;
-  AShapeNode: TNodeGeneralShape;
+  AGeometryNode: TVRMLGeometryNode;
   AState: TVRMLGraphTraverseState;
   AFogNode: TNodeFog;
   const AFogDistanceScaling: Single;
@@ -1956,7 +1956,7 @@ begin
   SSCache := ShapeStateNoTransformCaches.Pointers[
     ShapeStateNoTransformCaches.High];
   SSCache^.Attributes := AAttributes;
-  SSCache^.ShapeNode := AShapeNode;
+  SSCache^.GeometryNode := AGeometryNode;
   SSCache^.State := AState;
   SSCache^.FogNode := AFogNode;
   SSCache^.FogDistanceScaling := AFogDistanceScaling;
@@ -3135,7 +3135,7 @@ end;
 
 {$ifdef USE_VRML_NODES_TRIANGULATION}
 procedure TVRMLOpenGLRenderer.DrawTriangle(const Tri: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
   Render_BindMaterial_1(MatNum);
@@ -3151,7 +3151,7 @@ end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
-  Node: TNodeGeneralShape;
+  Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 var
   TextureTransform: TNodeTextureTransform;
@@ -3205,10 +3205,10 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
-  Node: TNodeGeneralShape;
+  Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 
-  function NodeTextured(Node: TNodeGeneralShape): boolean;
+  function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
     Result := not (
       (Node is TNodePointSet_2) or
@@ -3463,7 +3463,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
-  Node: TNodeGeneralShape;
+  Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
@@ -3481,7 +3481,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeState(
-  Node: TNodeGeneralShape;
+  Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
   RenderShapeStateBegin(Node, State);

@@ -13,14 +13,14 @@ type
     procedure Traverse(
       BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
       BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-      ShapeNode: TNodeGeneralShape;
+      GeometryNode: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
   end;
 
 procedure TDummy.Traverse(
   BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
   BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-  ShapeNode: TNodeGeneralShape;
+  GeometryNode: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
   Writeln(

@@ -678,7 +678,7 @@ procedure TVRMLGLAnimation.Load(
 
     4. And later the ShapeState cache of TVRMLOpenGLRenderer can speed
        up loading time and conserve memory use, if it sees the same
-       reference to given ShapeNode twice. }
+       reference to given GeometryNode twice. }
   function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;
 
     function SFNodesMerge(Field1, Field2: TSFNode): boolean;

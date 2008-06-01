@@ -347,7 +347,7 @@ type
     and some optimizations (like using OpenGL's display lists)
     that couldn't be achieved inside @link(TVRMLOpenGLRenderer) class
     (because they require looking at rendered VRML model as a whole,
-    not only as a separate ShapeNode+State parts).
+    not only as a separate GeometryNode+State parts).
     See @link(Render) method for more details.
 
     Also this class can provide comfortable management for
@@ -368,11 +368,11 @@ type
     FOptimization: TGLRendererOptimization;
     Renderer: TVRMLOpenGLRenderer;
 
-    { This simply calls Renderer.Render(ShapeStates[ShapeStateNum].ShapeNode,
+    { This simply calls Renderer.Render(ShapeStates[ShapeStateNum].GeometryNode,
       ShapeStates[ShapeStateNum].State); }
     procedure RenderShapeStateSimple(ShapeStateNum: Integer);
 
-    { This simply calls Renderer.Prepare(ShapeStates[ShapeStateNum].ShapeNode)
+    { This simply calls Renderer.Prepare(ShapeStates[ShapeStateNum].GeometryNode)
       and then RenderShapeStateSimple(ShapeStateNum).
       So this cannot be put inside display list. }
     procedure PrepareAndRenderShapeStateSimple(
@@ -658,7 +658,7 @@ type
   for S := each item of ShapeStates list,
     if (TestShapeStateVisibility is not assigned) or
       (TestShapeStateVisibility returns true for given ShapeState) then
-    call Render(S.ShapeNode, S.State)
+    call Render(S.GeometryNode, S.State)
 #))
         @item RenderEnd
       )
@@ -1323,7 +1323,7 @@ end;
 
 procedure TVRMLFlatSceneGL.RenderShapeStateSimple(ShapeStateNum: Integer);
 begin
-  Renderer.RenderShapeState(ShapeStates[ShapeStateNum].ShapeNode,
+  Renderer.RenderShapeState(ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State);
 end;
 
@@ -1720,7 +1720,7 @@ begin
 
   if not Renderer.Cache.ShapeState_IncReference_Existing(
     Attributes,
-    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State,
     FogNode, FogDistanceScaling,
     SSSX_DisplayLists.Items[ShapeStateNum]) then
@@ -1749,7 +1749,7 @@ begin
       ShapeStates[ShapeStateNum].State);
     Renderer.Cache.ShapeState_IncReference_New(
       AttributesCopy,
-      ShapeStates[ShapeStateNum].ShapeNode,
+      ShapeStates[ShapeStateNum].GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
       SSSX_DisplayLists.Items[ShapeStateNum]);
@@ -1774,7 +1774,7 @@ begin
 
   if not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
     Attributes,
-    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State,
     FogNode, FogDistanceScaling,
     SSSX_DisplayLists.Items[ShapeStateNum]) then
@@ -1784,7 +1784,7 @@ begin
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       Renderer.RenderShapeStateNoTransform(
-        ShapeStates[ShapeStateNum].ShapeNode,
+        ShapeStates[ShapeStateNum].GeometryNode,
         ShapeStates[ShapeStateNum].State);
       glEndList;
     except
@@ -1805,7 +1805,7 @@ begin
       ShapeStates[ShapeStateNum].State);
     Renderer.Cache.ShapeStateNoTransform_IncReference_New(
       AttributesCopy,
-      ShapeStates[ShapeStateNum].ShapeNode,
+      ShapeStates[ShapeStateNum].GeometryNode,
       StateCopy,
       FogNode, FogDistanceScaling,
       SSSX_DisplayLists.Items[ShapeStateNum]);
@@ -1819,13 +1819,13 @@ begin
     SSSNT_PrepareShapeState(ShapeStateNum);
 
   Renderer.RenderShapeStateBegin(
-    ShapeStates[ShapeStateNum].ShapeNode,
+    ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State);
   try
     glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
   finally
     Renderer.RenderShapeStateEnd(
-      ShapeStates[ShapeStateNum].ShapeNode,
+      ShapeStates[ShapeStateNum].GeometryNode,
       ShapeStates[ShapeStateNum].State);
   end;
 end;

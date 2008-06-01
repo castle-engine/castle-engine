@@ -321,7 +321,7 @@ type
       czy w ogole jest sens robic drzewo osemkowe na danej scenie.
       Ogolnie, MaxLeafItemsCount i MaxDepth najlepiej jest dostroic do
       sceny - uzyteczna informacja bedzie tu
-      TVRMLScene.CountNodes(TNodeGeneralShape).
+      TVRMLScene.CountNodes(TVRMLGeometryNode).
 
       Note: changing MaxDepth and MaxLeafItemsCount after creating
       octree is allowed, you shouldn't change them if you already put

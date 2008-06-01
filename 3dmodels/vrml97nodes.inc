@@ -229,7 +229,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeBox = class(TNodeGeneralShape)
+  TNodeBox = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -302,7 +302,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeCone_2 = class(TNodeGeneralShape)
+  TNodeCone_2 = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -448,7 +448,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeCylinder_2 = class(TNodeGeneralShape)
+  TNodeCylinder_2 = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -522,7 +522,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeElevationGrid = class(TNodeGeneralShape)
+  TNodeElevationGrid = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -587,7 +587,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeExtrusion = class(TNodeGeneralShape)
+  TNodeExtrusion = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1107,7 +1107,7 @@
     function RepeatT: boolean; override;
   end;
 
-  TNodeIndexedFaceSet_2 = class(TNodeGeneralShape)
+  TNodeIndexedFaceSet_2 = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1873,7 +1873,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeSphere_2 = class(TNodeGeneralShape)
+  TNodeSphere_2 = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1962,7 +1962,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeText = class(TNodeGeneralShape)
+  TNodeText = class(TVRMLGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;

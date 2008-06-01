@@ -19,16 +19,16 @@
 }
 
 { VRMLNodes_BoundingBoxes, czyli implementacja metod BoundingBox
-  dla node'ow wywodzacych sie od TNodeGeneralShape. }
+  dla node'ow wywodzacych sie od TVRMLGeometryNode. }
 
-{ TNodeGeneralShape --------------------------------------------------------- }
+{ TVRMLGeometryNode --------------------------------------------------------- }
 
-function TNodeGeneralShape.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
  result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
 end;
 
-function TNodeGeneralShape.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 var NewState: TVRMLGraphTraverseState;
 begin
  NewState := TVRMLGraphTraverseState.CreateCopy(State);

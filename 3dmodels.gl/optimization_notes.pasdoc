@@ -26,7 +26,7 @@ case when you know that user will usually not see the whole scene.
   @itemLabel What is ShapeState ?
   @item(
     So-called ShapeState is a VRML node that represents some
-    visible shape (for VRML 1.0 this means one of the nodes
+    visible geometry (for VRML 1.0 this means one of the nodes
     AsciiText, Cone, Cube, Cylinder, IndexedFaceSet, IndexedLineSet,
     PointSet, Sphere) accompanied with the "state" of various things when
     this node is used in VRML file. E.g. this VRML file
@@ -40,7 +40,7 @@ case when you know that user will usually not see the whole scene.
   USE MySphere
 )
 
-    consists of @bold(two) shape nodes (named MySphere and MyCone) and has
+    consists of @bold(two) geometry nodes (named MySphere and MyCone) and has
     @bold(three) ShapeStates:
 
     @orderedList(
@@ -50,7 +50,7 @@ case when you know that user will usually not see the whole scene.
       @item MySphere textured by bbb.png
     )
 
-    Many (although not all) VRML nodes are either shape nodes
+    Many (although not all) VRML nodes are either geometry nodes
     (that represent something visible) or nodes that affect subsequent state.
 
     For more details, see source code:
@@ -58,8 +58,9 @@ case when you know that user will usually not see the whole scene.
     @unorderedList(
       @itemSpacing compact
       @item(The "state" is an instance of class @link(TVRMLGraphTraverseState).)
-      @item(The "shape node" is an instance of class @link(TNodeGeneralShape).)
-      @item(The ShapeState is an instance of class @link(TVRMLShapeState).)
+      @item(The "geometry node" is an instance of class @link(TVRMLGeometryNode).)
+      @item(The ShapeState is an instance of class @link(TVRMLShapeState),
+        containing both geometry and it's state.)
     )
 
     Understanding the term "ShapeState" is important, since this is the basis

@@ -22,7 +22,7 @@
   TNodeX3DGeometricPropertyNode = class(TNodeX3DNode)
   end;
 
-  TNodeX3DGeometryNode = class(TNodeGeneralShape)
+  TNodeX3DGeometryNode = class(TVRMLGeometryNode)
   end;
 
   TNodeX3DColorNode = class(TNodeX3DGeometricPropertyNode)

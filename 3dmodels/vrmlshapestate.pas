@@ -37,7 +37,7 @@ type
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere, svAllMaterialsTransparent);
 
-  { This class represents a pair of objects: @link(ShapeNode) and
+  { This class represents a pair of objects: @link(GeometryNode) and
     @link(State). It allows to perform some operations that need
     to know both things.
 
@@ -45,9 +45,9 @@ type
     VerticesCount and TrianglesCount. This means that things work fast,
     but this also means that you must manually call
     @link(Changed)
-    when you changed some properties of ShapeNode or contents of State.
+    when you changed some properties of GeometryNode or contents of State.
 
-    But note that you can't change ShapeNode or State to different
+    But note that you can't change GeometryNode or State to different
     objects --- they are readonly properties.
 
     Also note that if you're using @link(TVRMLFlatScene) class
@@ -62,7 +62,7 @@ type
     FVerticesCountNotOver, FVerticesCountOver,
     FTrianglesCountNotOver, FTrianglesCountOver: Cardinal;
     Validities: TVRMLShapeStateValidities;
-    FShapeNode: TNodeGeneralShape;
+    FGeometryNode: TVRMLGeometryNode;
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
@@ -71,15 +71,15 @@ type
     procedure ValidateBoundingSphere;
     function CalculateIsAllMaterialsTransparent: boolean;
   public
-    { ShapeNode to wskaznik na obiekt w RootNode }
-    property ShapeNode: TNodeGeneralShape read FShapeNode;
+    { GeometryNode to wskaznik na obiekt w RootNode }
+    property GeometryNode: TVRMLGeometryNode read FGeometryNode;
 
     { State is OWNED by this TVRMLShape class - I mean, we will do State.Free
       in destructor }
     property State: TVRMLGraphTraverseState read FState;
 
     { specyfikacja co robia [Local]BoundingBox, VerticesCount i TrianglesCount -
-      patrz VRMLNodes.TNodeGeneralShape }
+      patrz VRMLNodes.TVRMLGeometryNode }
     function LocalBoundingBox: TBox3d;
     function BoundingBox: TBox3d;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
@@ -87,7 +87,7 @@ type
 
     { This calculates bounding sphere basing on BoundingBox.
       In the future this may be changed to use BoundingSphere method
-      of @link(TNodeGeneralShape), when I will implement it.
+      of @link(TVRMLGeometryNode), when I will implement it.
       For now, BoundingSphere is always worse approximation of bounding
       volume than @link(BoundingBox) (i.e. BoundingSphere is always
       larger) but it may be useful in some cases when
@@ -121,19 +121,19 @@ type
     function AllMaterialsTransparent: boolean;
 
     procedure Changed;
-    constructor Create(AShapeNode: TNodeGeneralShape; AState: TVRMLGraphTraverseState);
+    constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
     destructor Destroy; override;
   end;
 
   TObjectsListItem_1 = TVRMLShapeState;
   {$I ObjectsList_1.inc}
   TVRMLShapeStatesList = class(TObjectsList_1)
-    { szuka elementu ktorego ShapeNode.NodeName = ShapeNodeName.
+    { szuka elementu ktorego GeometryNode.NodeName = GeometryNodeName.
       Zwraca jego indeks lub -1 jesli nie znalazl. }
-    function IndexOfShapeNodeName(const ShapeNodeName: string): integer;
+    function IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
 
-    { szuka elementu ktorego ShapeNode ma rodzica o nazwie ParentNodeName,
-      rodzic taki jest szukany metoda ShapeNode.TryFindParentNodeByName. }
+    { szuka elementu ktorego GeometryNode ma rodzica o nazwie ParentNodeName,
+      rodzic taki jest szukany metoda GeometryNode.TryFindParentNodeByName. }
     function IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
 
     { Assuming that the model was created by Blender VRML 1 or 2 exporter,
@@ -166,18 +166,18 @@ implementation
 function TVRMLShapeState.LocalBoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := svLocalBBox}
 {$define PRECALC_VALUE := FLocalBoundingBox}
-{$define PRECALC_VALUE_CALCULATE := ShapeNode.LocalBoundingBox(State)}
+{$define PRECALC_VALUE_CALCULATE := GeometryNode.LocalBoundingBox(State)}
 PRECALC_VALUE_RETURN
 
 function TVRMLShapeState.BoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := svBBox}
 {$define PRECALC_VALUE := FBoundingBox}
-{$define PRECALC_VALUE_CALCULATE := ShapeNode.BoundingBox(State)}
+{$define PRECALC_VALUE_CALCULATE := GeometryNode.BoundingBox(State)}
 PRECALC_VALUE_RETURN
 
 function TVRMLShapeState.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := ShapeNode.VerticesCount(State,OverTriangulate)}
+ {$define PRECALC_VALUE_CALCULATE := GeometryNode.VerticesCount(State,OverTriangulate)}
  if OverTriangulate then
  begin
   {$define PRECALC_VALUE_ENUM := svVerticesCountNotOver}
@@ -193,7 +193,7 @@ end;
 
 function TVRMLShapeState.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
- {$define PRECALC_VALUE_CALCULATE := ShapeNode.TrianglesCount(State,OverTriangulate)}
+ {$define PRECALC_VALUE_CALCULATE := GeometryNode.TrianglesCount(State,OverTriangulate)}
  if OverTriangulate then
  begin
   {$define PRECALC_VALUE_ENUM := svTrianglesCountNotOver}
@@ -268,10 +268,10 @@ function TVRMLShapeState.AllMaterialsTransparent: boolean;
 {$define PRECALC_VALUE_CALCULATE := CalculateIsAllMaterialsTransparent}
 PRECALC_VALUE_RETURN
 
-constructor TVRMLShapeState.Create(AShapeNode: TNodeGeneralShape; AState: TVRMLGraphTraverseState);
+constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin
  inherited Create;
- FShapeNode := AShapeNode;
+ FGeometryNode := AGeometryNode;
  FState := AState;
 end;
 
@@ -283,17 +283,17 @@ end;
 
 { TVRMLShapeStatesList ------------------------------------------------------- }
 
-function TVRMLShapeStatesList.IndexOfShapeNodeName(const ShapeNodeName: string): integer;
+function TVRMLShapeStatesList.IndexOfGeometryNodeName(const GeometryNodeName: string): integer;
 begin
  for result := 0 to Count-1 do
-  if Items[result].ShapeNode.NodeName = ShapeNodeName then exit;
+  if Items[result].GeometryNode.NodeName = GeometryNodeName then exit;
  result := -1;
 end;
 
 function TVRMLShapeStatesList.IndexOfShapeWithParentNamed(const ParentNodeName: string): integer;
 begin
  for result := 0 to Count-1 do
-  if Items[result].ShapeNode.TryFindParentByName(ParentNodeName)<>nil then exit;
+  if Items[result].GeometryNode.TryFindParentByName(ParentNodeName)<>nil then exit;
  result := -1;
 end;
 
@@ -302,8 +302,8 @@ function TVRMLShapeStatesList.IndexOfBlenderMesh(
 begin
   for Result := 0 to Count - 1 do
     if { detect Blender meshes generated by VRML 1 exporter }
-       ( (Items[Result].ShapeNode is TNodeGeneralShape_1) and
-         (Items[Result].ShapeNode.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
+       ( (Items[Result].GeometryNode is TVRMLGeometryNode_1) and
+         (Items[Result].GeometryNode.TryFindDirectParentByName(BlenderMeshName) <> nil) ) or
        { detect Blender meshes generated by VRML 2 (aka 97) exporter }
        ( (Items[Result].State.ParentShape <> nil) and
          (Items[Result].State.ParentShape.TryFindDirectParentByName(

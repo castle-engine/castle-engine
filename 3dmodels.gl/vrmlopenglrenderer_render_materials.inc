@@ -20,7 +20,7 @@
 
 { Judge whether the node can be lit, looking only at Node (not at State,
   Material etc.). }
-function TVRMLOpenGLRenderer.NodeLit(Node: TNodeGeneralShape): boolean;
+function TVRMLOpenGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
 begin
   if ( (IndexedRenderer <> nil) and
        (IndexedRenderer.BumpMappingMethod <> bmNone) ) then
@@ -67,7 +67,7 @@ begin
   Render_Material_BoundMatNum := -1; { no material is bound now }
   Render_Material_LastFogImmune := false;
 
-  if not (Render_Node is TNodeGeneralShape_1) then
+  if not (Render_Node is TVRMLGeometryNode_1) then
     Render_BindMaterial_2;
 end;
 
@@ -188,13 +188,13 @@ end;
 
 { Sets current OpenGL material and color properties for material
   number MatNum from Render_State.LastNodes.Material.
-  This is ignored when Render_Node is not TNodeGeneralShape_1
+  This is ignored when Render_Node is not TVRMLGeometryNode_1
   (then VRML 2.0 approach to materials should be used). }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
 var
   UnlitColor: TVector3Single;
 begin
-  if (not (Render_Node is TNodeGeneralShape_1)) or
+  if (not (Render_Node is TVRMLGeometryNode_1)) or
      (MatNum = Render_Material_BoundMatNum) then
     Exit;
 
@@ -246,7 +246,7 @@ procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
   Material: TNodeMaterial_2;
 begin
-  Assert(not (Render_Node is TNodeGeneralShape_1));
+  Assert(not (Render_Node is TVRMLGeometryNode_1));
 
   if Render_State.ParentShape = nil then
   begin

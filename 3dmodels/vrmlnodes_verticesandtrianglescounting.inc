@@ -19,7 +19,7 @@
 }
 
 { implementacja metod VerticesCount i TrianglesCount dla specyficznych
-  potomkow TNodeGeneralShape }
+  potomkow TVRMLGeometryNode }
 
 { just a shortcuts for names often used in this file }
 {$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.QuadricSlices)}

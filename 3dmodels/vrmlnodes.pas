@@ -47,19 +47,67 @@
   used for various things in later VRML versions).
   When you want to e.g. render VRML graph, you can just traverse
   the graph and render each pair of State with a geometry node
-  (some TNodeGeneralShape instance).
-  (Alternatively, simple renderer can also use TNodeGeneralShape.Triangulate).
+  (some TVRMLGeometryNode instance).
+  (Alternatively, simple renderer can also use TVRMLGeometryNode.Triangulate).
 
   Many node classes have also specific routines useful for manipulating
   them (for example loading the contents of various Inline and Texture nodes,
   extracting transformation from nodes that can change it etc.).
-  TNodeGeneralShape in particular has some useful routines
+  TVRMLGeometryNode in particular has some useful routines
   for calculating bounding box, vertex/triangles counts and
   to triangulate the node.
 
   This unit doesn't depend on OpenGL, or any other particular rendering
   method. So it's suitable also for VRMLRayTracer, and every other possible
   renderer that will ever get implemented.
+
+  VRML node classes names, and inheritance:
+
+  @unorderedList(
+    @item(Pascal classes named like TNodeXxx implement VRML specification node Xxx.
+      They all descend from TVRMLNode. For example, TNodeIndexedFaceSet.
+
+      There are also Pascal interfaces, like INodeXxx that represent
+      VRML node Xxx interface, more on this below. They all descend from IVRMLNode.
+
+      For now, it's important to note that my own helper TVRMLNode descendants
+      are named like TVRMLXxxNode, like TVRMLGeometryNode.
+      So you can see immediately tell which
+      nodes come from some VRML / X3D specification and which nodes are added
+      by my own engine.
+
+      Before X3D, adding my own TVRMLXxxNode classes was the only way to
+      add some interesting inheritance among VRML nodes.
+      This allows to reuse implementation, and also simplifies some processing:
+      for example, you can search the scene for any TVRMLLightNode, this
+      way looking for all PointLight, SpotLight etc. nodes.)
+
+    @item(
+      Optional suffix _1 or _2 or _3 after the node class name indicates that
+      this node class is used only for given major VRML version.
+      _1 means VRML 1.0, _2 means VRML 2.0 (aka 97), _3 means VRML 3.0 (aka X3D).
+      Also _2 sometimes mean both VRML 2.0 and 3.0.
+
+      This suffix is used when there are nodes with the same name in VRML
+      specifications, but they have to be handled by different Pascal classes
+      since they are incompatible.
+
+      For example, we have TNodeIndexedFaceSet_1 for VRML 1.0 and
+      TNodeIndexedFaceSet_2 for VRML >= 2.0 (97, X3D).)
+
+    @item(
+      Since X3D introduced abstract node classes, and defines node
+      inheritance, we follow this by actually defining in our engine
+      all the X3D abstract classes and using them. Inheritance of our
+      Pascal classes reflects inheritance of nodes in X3D specification.
+
+      Many X3D nodes are declared as both Pascal interface and class.
+      That's because we preserve X3D inheritance graph, and when node
+      descends from more than one VRML class --- the rest of VRML classes
+      has to be expressed as Pascal interfaces. For now, these interfaces
+      have little use beside simple "is" checking, but they may be more
+      useful in the future.)
+  )
 
   As for VRML versions handling:
 
@@ -121,15 +169,6 @@
   Specyfikacja VRMLa 1.0 z dodanymi "moimi rozszerzeniami VMRLa"
   [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php] stanowia
   uzasadnienie dla wielu rzeczy ktore robimy w tym module.
-
-  Node'y o nazwach *General* to nie sa koncowe klasy node'ow,
-  to tylko klasy posrednie jak GeneralShape, GeneralLight,
-  GeneralCamera, GeneralTraformation itp. Te klasy pozwalaja
-  nam zaimplementowac jakas funkcjonalnosc dla kilku podobnych
-  klas jednoczesnie, te klasy buduja tez ladne drzewko
-  zaleznosci obiektow dzieki czemu np. w EnumerateNodes mozemy
-  jako parametr podac TNodeGeneralLight aby znalezc wszystkie
-  swiatla na scenie.
 
   24 sierpnia 2003: znaczne osiagniecie : wyeliminowalem typ TVRMLNodeKind
     ktory wyliczal mi wszystkie istniajace klasy node'ow. Dzieki temu
@@ -207,21 +246,17 @@
     rozna od domyslnej to uwzglednimy wszedzie to pole i zapiszemy je w
     razie potrzeby z powrotem do pliku VRMLa.
 
-  Implementation organization notes:
-  - vrml1nodes.inc contains only VRML-1.0 specific nodes
-  - vrml97nodes.inc contains only VRML 97 specific nodes
-  - various x3d_xxx.inc contain X3D nodes belonging to specific xxx component.
-    So most of the nodes (also VRML 97 nodes, since they are usually the same
-    for VRML 97 and X3D) are inside x3d_xxx.inc.
-    That's a nice thing, since X3D components provide a natural way to group
-    the vast number of nodes into files.
+  Implementation files organization notes:
 
-  Many X3D nodes are declared as both Pascal interface and class.
-  That's because we preserve X3D inheritance graph, and when node
-  descends from more than one VRML class --- the rest of VRML classes
-  has to be expressed as Pascal interfaces. For now, these interfaces
-  have little use beside simple "is" checking, but they may be more
-  useful in the future.
+  @unorderedList(
+    @item(vrml1nodes.inc contains only VRML-1.0 specific nodes)
+    @item(vrml97nodes.inc contains only VRML 97 specific nodes)
+    @item(various x3d_xxx.inc contain X3D nodes belonging to specific xxx component.
+      So most of the nodes (also VRML 97 nodes, since they are usually the same
+      for VRML 97 and X3D) are inside x3d_xxx.inc.
+      That's a nice thing, since X3D components provide a natural way to group
+      the vast number of nodes into files.)
+  )
 *)
 
 unit VRMLNodes;
@@ -269,7 +304,7 @@ type
   TNodeNormalBinding = class;
   TNodeTexture2 = class;
   TNodeTextureCoordinate2 = class;
-  TNodeGeneralShape = class;
+  TVRMLGeometryNode = class;
   TNodeGeneralLight = class;
   TNodeKambiTriangulation = class;
   TNodeShape = class;
@@ -529,7 +564,7 @@ type
   TBlenderTraversingFunc = procedure (
     BlenderObjectNode: TVRMLNode; const BlenderObjectName: string;
     BlenderMeshNode: TVRMLNode; const BlenderMeshName: string;
-    ShapeNode: TNodeGeneralShape;
+    GeometryNode: TVRMLGeometryNode;
     State: TVRMLGraphTraverseState) of object;
 
   TEnumerateChildrenFunction =
@@ -539,7 +574,7 @@ type
     procedure (ParentNode, Node: TVRMLNode; var RemoveNode: boolean) of object;
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
-    State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+    State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
     const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer) of object;
 
   TSFNode = class;
@@ -1657,7 +1692,7 @@ type
 
 {$I x3d_core.inc}
 
-{ TNodeGeneralShape ---------------------------------------------------- }
+{ TVRMLGeometryNode ---------------------------------------------------- }
 
   { Shape is the only node that produces some visible results
     during rendering. Most of the VRML language is just
@@ -1682,7 +1717,7 @@ type
 
     This class may have some special functionality and it builds
     comfortable object inheritance hierarchy.
-    For example, now we can use EnumerateNodes(TNodeGeneralShape).
+    For example, now we can use EnumerateNodes(TVRMLGeometryNode).
 
     A few things that make Shape node special :
     @unorderedList(
@@ -1710,12 +1745,12 @@ type
     descends from us. This way in X3D TNodeX3DGeometryNode descends
     from this, and also X3D hierarchy is preserved (X3DGeometryNode
     must descend from X3DNode). }
-  TNodeGeneralShape = class(TNodeX3DNode)
+  TVRMLGeometryNode = class(TNodeX3DNode)
   public
     { Constructor.
 
       Only sets DefaultContainerField to 'geometry', since this is valid
-      for all X3D nodes descending from TNodeGeneralShape. }
+      for all X3D nodes descending from TVRMLGeometryNode. }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     { BoundingBox oblicza BoundingBox shape node'a VRMLa ktory podczas
@@ -4156,13 +4191,13 @@ type
 procedure TBlenderObjectsTraverser.Traverse(Node: TVRMLNode;
   State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 var
-  ShapeNode: TNodeGeneralShape absolute Node;
+  GeometryNode: TVRMLGeometryNode absolute Node;
   BlenderObjectNode: TVRMLNode;
   BlenderObjectName: string;
   BlenderMeshNode: TVRMLNode;
   BlenderMeshName: string;
 begin
-  if ShapeNode is TNodeGeneralShape_1 then
+  if GeometryNode is TVRMLGeometryNode_1 then
   begin
     { Shape node generated by Blender VRML 1.0 exporter should have
       one parent, and this is his mesh. This mesh may have may
@@ -4181,7 +4216,7 @@ begin
           doesn't write this. }
         BlenderObjectName := BlenderObjectNode.NodeName;
         TraversingFunc(BlenderObjectNode, BlenderObjectName,
-          BlenderMeshNode, BlenderMeshName, ShapeNode, State);
+          BlenderMeshNode, BlenderMeshName, GeometryNode, State);
       end;
     end;
   end else
@@ -4209,7 +4244,7 @@ begin
         BlenderObjectNode := ParentInfo^.Node;
         BlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
         TraversingFunc(BlenderObjectNode, BlenderObjectName,
-          BlenderMeshNode, BlenderMeshName, ShapeNode, State);
+          BlenderMeshNode, BlenderMeshName, GeometryNode, State);
       end;
     end;
   end;
@@ -4224,7 +4259,7 @@ begin
   Traverser := TBlenderObjectsTraverser.Create;
   try
     Traverser.TraversingFunc := TraversingFunc;
-    Traverse(State, TNodeGeneralShape, @Traverser.Traverse);
+    Traverse(State, TVRMLGeometryNode, @Traverser.Traverse);
   finally FreeAndNil(Traverser) end;
 end;
 
@@ -4712,9 +4747,9 @@ begin
   Result := 'MFNode';
 end;
 
-{ TNodeGeneralShape ---------------------------------------------------------- }
+{ TVRMLGeometryNode ---------------------------------------------------------- }
 
-constructor TNodeGeneralShape.Create(const ANodeName: string;
+constructor TVRMLGeometryNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;

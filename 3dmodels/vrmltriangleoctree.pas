@@ -101,20 +101,20 @@ type
     TriangleArea: Single;
 
     State: TVRMLGraphTraverseState;
-    ShapeNode: TNodeGeneralShape;
+    GeometryNode: TVRMLGeometryNode;
     MatNum: integer;
 
     { If this triangle is part of a face created by coordIndex field
       (like all faces in IndexedFaceSet) then these fields indicate where
       in this coordIndex this face is located.
 
-      You should look into ShapeNode, get it's coordIndex field,
+      You should look into GeometryNode, get it's coordIndex field,
       and the relevant indexes are between FaceCoordIndexBegin
       and FaceCoordIndexEnd - 1. Index FaceCoordIndexEnd is either
       non-existing (coordIndex list ended) or is the "-1" (faces separator
       on coordIndex fields).
 
-      If this triangle doesn't come from any coordIndex (e.g. because ShapeNode
+      If this triangle doesn't come from any coordIndex (e.g. because GeometryNode
       is a TNodeSphere) than both FaceCoordIndex* are -1. }
     FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
 
@@ -152,7 +152,7 @@ type
 
 { podany Triangle musi byc IsValidTriangle }
 function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
 
 { Sprawdzaj przeciecia z elementem octree item tylko przez
@@ -311,7 +311,7 @@ type
       OctreeItems.AllowedCapacityCount na odpowiednio duza wartosc.  }
     procedure AddItemTriangle(const Triangle: TTriangle3Single;
       State: TVRMLGraphTraverseState;
-      ShapeNode: TNodeGeneralShape;
+      GeometryNode: TVRMLGeometryNode;
       const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 
     { you can use variable below for testing purposes. It is increemented each
@@ -622,7 +622,7 @@ implementation
 { TOctreeItem  ------------------------------------------------------------ }
 
 function CreateOctreeItem(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer): TOctreeItem;
 begin
  result.Triangle := Triangle;
@@ -630,7 +630,7 @@ begin
  result.TriangleArea := TriangleArea(Triangle);
 
  result.State := State;
- result.ShapeNode := ShapeNode;
+ result.GeometryNode := GeometryNode;
  result.MatNum := MatNum;
  result.FaceCoordIndexBegin := FaceCoordIndexBegin;
  result.FaceCoordIndexEnd := FaceCoordIndexEnd;
@@ -940,12 +940,12 @@ end;
 {$endif}
 
 procedure TVRMLTriangleOctree.AddItemTriangle(const Triangle: TTriangle3Single;
-  State: TVRMLGraphTraverseState; ShapeNode: TNodeGeneralShape;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
 begin
  if IsValidTriangle(Triangle) then
  begin
-  OctreeItems.AppendItem(CreateOctreeItem(Triangle, State, ShapeNode, MatNum,
+  OctreeItems.AppendItem(CreateOctreeItem(Triangle, State, GeometryNode, MatNum,
     FaceCoordIndexBegin, FaceCoordIndexEnd));
   TreeRoot.AddItem(OctreeItems.High);
  end;
