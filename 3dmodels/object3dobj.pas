@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005,2007 Michalis Kamburelis.
+  Copyright 2002-2005,2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -414,7 +414,7 @@ var
 var
   F: TextFile;
   LineTok, LineAfterMarker: string;
-  GroupName: string;
+  //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
 begin
   inherited Create;
@@ -444,7 +444,7 @@ begin
         1: TexCoords.AppendItem(ReadTexCoordFromOBJLine(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
         3: Normals.AppendItem(Vector3SingleFromStr(lineAfterMarker));
-        4: GroupName := LineAfterMarker;
+        4: {GroupName := LineAfterMarker};
         5: ReadMaterials(LineAfterMarker);
         6: begin
              if LineAfterMarker = '(null)' then
