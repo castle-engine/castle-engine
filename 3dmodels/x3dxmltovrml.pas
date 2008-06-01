@@ -773,13 +773,13 @@ const
 
     Returns a single VRML node. If there was exactly one statement
     and it was a node statement, returns this node. Otherwise,
-    returns everything read wrapped in artifical TNodeGroupHidden_2 instance. }
+    returns everything read wrapped in artifical TVRMLRootNode_2 instance. }
   function ParseVRMLStatements(Element: TDOMElement): TVRMLNode;
 
     { Create hidden group node. }
     function CreateHiddenGroup: TVRMLNode;
     begin
-      Result := TNodeGroupHidden_2.Create('', WWWBasePath);
+      Result := TVRMLRootNode_2.Create('', WWWBasePath);
     end;
 
     { Change Result to a hidden group node, if it's not already.
@@ -790,8 +790,8 @@ const
       ChildNode: TVRMLNode;
     begin
       if not ( (Result <> nil) and
-               ( (Result is TNodeGroupHidden_1) or
-                 (Result is TNodeGroupHidden_2) ) ) then
+               ( (Result is TVRMLRootNode_1) or
+                 (Result is TVRMLRootNode_2) ) ) then
       begin
         ChildNode := Result;
         Result := CreateHiddenGroup;

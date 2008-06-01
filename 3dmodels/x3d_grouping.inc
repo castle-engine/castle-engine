@@ -84,16 +84,16 @@
     routes etc. at the root level, as they must all be stored inside
     some node's properties).
 
-    See TNodeGroupHidden_1 for some more comments about why this
+    See TVRMLRootNode_1 for some more comments about why this
     descends from TNodeGroup_2. }
-  TNodeGroupHidden_2 = class(TNodeGroup_2)
+  TVRMLRootNode_2 = class(TNodeGroup_2)
   public
-    (*Save TNodeGroupHidden_* contents to stream.
+    (*Save TVRMLRootNode_* contents to stream.
 
-      TNodeGroupHidden_* is saved to stream in a special way, so that actually
+      TVRMLRootNode_* is saved to stream in a special way, so that actually
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
-      TNodeGroupHidden_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+      TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
   end;
 
@@ -344,11 +344,11 @@ begin
     true, 2, 0, 1000);
 end;
 
-procedure TNodeGroupHidden_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
 begin
-  { Special things for TNodeGroupHidden_2 saving:
+  { Special things for TVRMLRootNode_2 saving:
     NodeName is ignored (should be '').
     Only field "children" is used, and in a special way (we write it's
     nodes, without writing field name "children [" "]").

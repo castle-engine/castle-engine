@@ -26,7 +26,7 @@
   as VRML file is basically just a nodes' graph.
   In fact, we represent VRML file as just one root node
   (if necessary, we will wrap actual file nodes within
-  one "artificial" node, see TNodeHiddenGroup_1 or TNodeHiddenGroup_2).
+  one "artificial" node, see TVRMLRootNode_1 or TVRMLRootNode_2).
 
   The chapter "Reading, writing, processing VRML scene graph"
   in the documentation on
@@ -2212,8 +2212,8 @@ type
       Details:
       @unorderedList(
         @item(
-          Prototype.Node may be just a wrapper, i.e. TNodeHiddenGroup_1
-          or TNodeHiddenGroup_2.
+          Prototype.Node may be just a wrapper, i.e. TVRMLRootNode_1
+          or TVRMLRootNode_2.
 
           In this case the first children of Prototype.Node is used
           to create instance. The rest of the wrapper (with this first children
@@ -2298,8 +2298,8 @@ type
       We wrap this all inside a single
       VRML node, just like we do when reading whole VRML file:
       if the whole thing is exactly one VRML node, then this is this node.
-      Otherwise, we wrap inside artificial TNodeGroupHidden_1 or
-      TNodeGroupHidden_2.
+      Otherwise, we wrap inside artificial TVRMLRootNode_1 or
+      TVRMLRootNode_2.
 
       You have permission to write to this property, to be able to
       write code that constructs prototypes (like needed by X3D XML reader).
@@ -5257,7 +5257,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
   var
     NodeCopy: TVRMLNode;
   begin
-    { Even when Proto.Node is a wrapper (TNodeGroupHidden_*),
+    { Even when Proto.Node is a wrapper (TVRMLRootNode_*),
       we want to copy the whole Proto.Node, instead of copying separately
       Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
       This way, DEF / USE links within are preserved as they should.
@@ -5268,8 +5268,8 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       "feels right"). }
     NodeCopy := VRMLNodeDeepCopy(Proto.Node);
 
-    if (Proto.Node is TNodeGroupHidden_1) or
-       (Proto.Node is TNodeGroupHidden_2) then
+    if (Proto.Node is TVRMLRootNode_1) or
+       (Proto.Node is TVRMLRootNode_2) then
     begin
       if NodeCopy.SmartChildrenCount = 0 then
       begin
@@ -5513,8 +5513,8 @@ begin
   SaveProperties.NodeNameBinding := TStringListCaseSens.Create;
   try
     SaveProperties.WritelnIndent('{');
-    { Node may be TNodeGroupHidden_* here, that's OK,
-      TNodeGroupHidden_*.SaveToStream will magically handle this right. }
+    { Node may be TVRMLRootNode_* here, that's OK,
+      TVRMLRootNode_*.SaveToStream will magically handle this right. }
     SaveProperties.IncIndent;
     Node.SaveToStream(SaveProperties);
     SaveProperties.DecIndent;
@@ -6031,8 +6031,8 @@ end;
 
   Returns a single VRML node. If there was exactly one statement
   and it was a node statement, returns this node. Otherwise,
-  returns everything read wrapped in artifical TNodeGroupHidden_1
-  or TNodeGroupHidden_2 instance. }
+  returns everything read wrapped in artifical TVRMLRootNode_1
+  or TVRMLRootNode_2 instance. }
 function ParseVRMLStatements(
   Lexer: TVRMLLexer;
   const EndToken: TVRMLToken): TVRMLNode;
@@ -6040,10 +6040,10 @@ function ParseVRMLStatements(
   { Create hidden group node, appropriate for current VRML version in Lexer. }
   function CreateHiddenGroup: TVRMLNode;
   begin
-    if TNodeGroupHidden_1.ForVRMLVersion(
+    if TVRMLRootNode_1.ForVRMLVersion(
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
-      Result := TNodeGroupHidden_1.Create('', Lexer.WWWBasePath) else
-      Result := TNodeGroupHidden_2.Create('', Lexer.WWWBasePath);
+      Result := TVRMLRootNode_1.Create('', Lexer.WWWBasePath) else
+      Result := TVRMLRootNode_2.Create('', Lexer.WWWBasePath);
   end;
 
   { Change Result to a hidden group node, if it's not already.
@@ -6054,8 +6054,8 @@ function ParseVRMLStatements(
     ChildNode: TVRMLNode;
   begin
     if not ( (Result <> nil) and
-             ( (Result is TNodeGroupHidden_1) or
-               (Result is TNodeGroupHidden_2) ) ) then
+             ( (Result is TVRMLRootNode_1) or
+               (Result is TVRMLRootNode_2) ) ) then
     begin
       ChildNode := Result;
       Result := CreateHiddenGroup;
@@ -6336,8 +6336,8 @@ begin
       SaveProperties.Writeln('PROFILE Interchange' + NL);
     end;
 
-    { Node may be TNodeGroupHidden_* here, that's OK,
-      TNodeGroupHidden_*.SaveToStream will magically handle this right. }
+    { Node may be TVRMLRootNode_* here, that's OK,
+      TVRMLRootNode_*.SaveToStream will magically handle this right. }
     Node.SaveToStream(SaveProperties);
   finally FreeAndNil(SaveProperties) end;
 end;
@@ -6422,17 +6422,17 @@ begin
     try
       Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
 
-      { SaveToVRMLFile silently strips TNodeGroupHidden_* wrapper,
+      { SaveToVRMLFile silently strips TVRMLRootNode_* wrapper,
         and produces file with multiple root nodes.
         ParseVRMLFile should detect that multiple root nodes require wrapping
-        again in TNodeGroupHidden_*, and everything should be Ok
-        (if SourceNode was TNodeGroupHidden_* wrapper, resulting copy also
+        again in TVRMLRootNode_*, and everything should be Ok
+        (if SourceNode was TVRMLRootNode_* wrapper, resulting copy also
         will be). }
       Assert(
-        ( (SourceNode is TNodeGroupHidden_1) or
-          (SourceNode is TNodeGroupHidden_2) ) =
-        ( (Result is TNodeGroupHidden_1) or
-          (Result is TNodeGroupHidden_2) ) );
+        ( (SourceNode is TVRMLRootNode_1) or
+          (SourceNode is TVRMLRootNode_2) ) =
+        ( (Result is TVRMLRootNode_1) or
+          (Result is TVRMLRootNode_2) ) );
     finally FreeAndNil(SPeek) end;
   finally FreeAndNil(S) end;
 end;

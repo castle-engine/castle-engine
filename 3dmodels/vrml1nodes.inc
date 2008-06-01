@@ -881,22 +881,22 @@
   { A Group node that is added when VRML 1.0 file contains more than one root
     node.
 
-    We represent this special "artifical" group as a TNodeGroupHidden_1,
+    We represent this special "artifical" group as a TVRMLRootNode_1,
     @italic(that is a descendant of TNodeGroup_1 (not the other way around)).
     This way you can entirely forget about this issue and just process
     the VRML model as you like, and the only downside will be that you
     will actually work with a very slightly different model
     (with additional Group node) than what was encoded in the file.
-    You can also test for (Node is TNodeGroupHidden_1/2) and
+    You can also test for (Node is TVRMLRootNode_1/2) and
     recognize this special case. }
-  TNodeGroupHidden_1 = class(TNodeGroup_1)
+  TVRMLRootNode_1 = class(TNodeGroup_1)
   public
-    (*Save TNodeGroupHidden_* contents to stream.
+    (*Save TVRMLRootNode_* contents to stream.
 
-      TNodeGroupHidden_* is saved to stream in a special way, so that actually
+      TVRMLRootNode_* is saved to stream in a special way, so that actually
       only it's contents are written, without surrounding { } braces.
       This way, when saving, we "undo" the artificial wrapping in
-      TNodeGroupHidden_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
+      TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
   end;
 
@@ -2390,11 +2390,11 @@ begin
     true, 1, 0, 1000);
 end;
 
-procedure TNodeGroupHidden_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+procedure TVRMLRootNode_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
 begin
-  { Special things for TNodeGroupHidden_1 saving:
+  { Special things for TVRMLRootNode_1 saving:
     NodeName is ignored (should be '').
     Fields are ignored (should never have any meaning). }
 
