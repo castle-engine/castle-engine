@@ -1126,7 +1126,8 @@ constructor TVRMLIndexedNode_1.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
 
-  FFdcoordIndex := TMFLong.CreateMFLong('coordIndex', [0], true);
+  FFdcoordIndex := TMFLong.Create('coordIndex', [0]);
+  FFdcoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdcoordIndex);
 
   FFdmaterialIndex := TMFLong.Create('materialIndex', [-1]);
@@ -1135,7 +1136,8 @@ begin
   FFdnormalIndex := TMFLong.Create('normalIndex', [-1]);
   Fields.Add(FFdnormalIndex);
 
-  FFdtextureCoordIndex := TMFLong.CreateMFLong('textureCoordIndex', [-1], true);
+  FFdtextureCoordIndex := TMFLong.Create('textureCoordIndex', [-1]);
+  FFdtextureCoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdtextureCoordIndex);
 end;
 

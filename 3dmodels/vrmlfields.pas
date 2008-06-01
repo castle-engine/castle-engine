@@ -1170,8 +1170,6 @@ type
     function Items: TDynLongintArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(const AName: string; const InitialContent: array of Longint);
-    constructor CreateMFLong(const AName: string; const InitialContent: array of Longint;
-      const ASaveToStreamLineUptoNegative: boolean);
     constructor CreateUndefined(const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
@@ -3735,13 +3733,6 @@ begin
 end;
 
 { TMFLong -------------------------------------------------------------------- }
-
-constructor TMFLong.CreateMFLong(const AName: string; const InitialContent: array of Longint;
- const ASaveToStreamLineUptoNegative: boolean);
-begin
-  Create(AName, InitialContent);
-  SaveToStreamLineUptoNegative := ASaveToStreamLineUptoNegative;
-end;
 
 function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin

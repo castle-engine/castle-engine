@@ -32,9 +32,14 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCone = class(TNodeX3DGeometryNode)
+  TNodeCone_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -56,9 +61,17 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCylinder = class(TNodeX3DGeometryNode)
+  TNodeCylinder_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -83,6 +96,14 @@
 
     private FFdtop: TSFBool;
     public property Fdtop: TSFBool read FFdtop;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeElevationGrid = class(TNodeX3DGeometryNode)
@@ -141,6 +162,18 @@
 
     private FFdzSpacing: TSFFloat;
     public property FdzSpacing: TSFFloat read FFdzSpacing;
+
+    { This checks whether xDimension and zDimension are >= 2,
+      xSpacing and zSpacing are > 0 and height has at least the
+      required number of values. If this returns @false then
+      it is understood that ElevationGrid is not rendered, doesn't
+      have any vertices/triangles etc. }
+    function IsNotEmpty: boolean;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeExtrusion = class(TNodeX3DGeometryNode)
@@ -196,9 +229,19 @@
 
     private FFdspine: TMFVec3f;
     public property Fdspine: TMFVec3f read FFdspine;
+
+    { For given Index, return appropriate FdCrossIndex item as 3D vertex.
+      That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
+      (that's how Extrusion is defined in VRML / X3D). }
+    function CrossSection3D(Index: integer): TVector3Single;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeIndexedFaceSet = class(TNodeX3DComposedGeometryNode)
+  TNodeIndexedFaceSet_2 = class(TNodeX3DComposedGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -239,9 +282,18 @@
 
     private FFdtexCoordIndex: TMFInt32;
     public property FdtexCoordIndex: TMFInt32 read FFdtexCoordIndex;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeSphere = class(TNodeX3DGeometryNode)
+  TNodeSphere_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -254,6 +306,14 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
+
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
 {$endif read_interface}
@@ -285,17 +345,19 @@ function TNodeBox.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeBox.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCone.Create(const ANodeName: string;
+constructor TNodeCone_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -321,30 +383,35 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
-class function TNodeCone.ClassNodeTypeName: string;
+class function TNodeCone_2.ClassNodeTypeName: string;
 begin
   Result := 'Cone';
 end;
 
-function TNodeCone.SuggestedVRMLVersion(
+function TNodeCone_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodeCone.URNMatching(const URN: string): boolean;
+class function TNodeCone_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeCylinder.Create(const ANodeName: string;
+class function TNodeCone_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
+end;
+
+constructor TNodeCylinder_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -374,27 +441,32 @@ begin
   FFdtop := TSFBool.Create('top', true);
   FFdtop.Exposed := false;
   Fields.Add(FFdtop);
-
-  DefaultContainerField := 'children';
 end;
 
-class function TNodeCylinder.ClassNodeTypeName: string;
+class function TNodeCylinder_2.ClassNodeTypeName: string;
 begin
   Result := 'Cylinder';
 end;
 
-function TNodeCylinder.SuggestedVRMLVersion(
+function TNodeCylinder_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodeCylinder.URNMatching(const URN: string): boolean;
+class function TNodeCylinder_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeCylinder_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
 end;
 
 constructor TNodeElevationGrid.Create(const ANodeName: string;
@@ -405,19 +477,19 @@ begin
   FEventset_height := TVRMLEvent.Create('set_height', TMFFloat, true);
   Events.Add(FEventset_height);
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [X3DVertexAttributeNode]);
+  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [FogCoordinate]);
+  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
-  FFdnormal := TSFNode.Create(Self, 'normal', [X3DNormalNode]);
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
   Fields.Add(FFdnormal);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [X3DTextureCoordinateNode]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
 
   FFdccw := TSFBool.Create('ccw', true);
@@ -478,14 +550,29 @@ function TNodeElevationGrid.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeElevationGrid.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeElevationGrid.IsNotEmpty: boolean;
+begin
+  Result :=
+    (FdXDimension.Value >= 2) and
+    (FdZDimension.Value >= 2) and
+    { VRML spec says that xSpacing and ySpacing shall be > 0.
+      So I understand that when they are = 0 (or < 0) nothing
+      should be rendered. }
+    (FdXSpacing.Value > 0) and
+    (FdZSpacing.Value > 0) and
+    (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
 end;
 
 constructor TNodeExtrusion.Create(const ANodeName: string;
@@ -522,7 +609,7 @@ begin
   Fields.Add(FFdcreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdcrossSection := TMFVec2f.Create('crossSection', [1 1 1 -1 -1 -1 -1 1 1 1]);
+  FFdcrossSection := TMFVec2f.Create('crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1),  Vector2Single(-1, -1), Vector2Single(-1, 1), Vector2Single(1, 1) ]);
   FFdcrossSection.Exposed := false;
   Fields.Add(FFdcrossSection);
   { X3D specification comment: (-Inf,Inf) }
@@ -531,7 +618,7 @@ begin
   FFdendCap.Exposed := false;
   Fields.Add(FFdendCap);
 
-  FFdorientation := TMFRotation.Create('orientation', Vector3Single(0, 0, 1), 0);
+  FFdorientation := TMFRotation.Create('orientation', [ Vector4Single(0, 0, 1, 0) ]);
   FFdorientation.Exposed := false;
   Fields.Add(FFdorientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
@@ -545,12 +632,10 @@ begin
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdspine := TMFVec3f.Create('spine', [0 0 0 0 1 0]);
+  FFdspine := TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]);
   FFdspine.Exposed := false;
   Fields.Add(FFdspine);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeExtrusion.ClassNodeTypeName: string;
@@ -562,17 +647,26 @@ function TNodeExtrusion.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeExtrusion.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeIndexedFaceSet.Create(const ANodeName: string;
+function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
+begin
+  Result[0] := FdCrossSection.Items.Items[Index][0];
+  Result[1] := 0;
+  Result[2] := FdCrossSection.Items.Items[Index][1];
+end;
+
+constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -599,6 +693,7 @@ begin
   Fields.Add(FFdconvex);
 
   FFdcoordIndex := TMFInt32.Create('coordIndex', []);
+  FFdcoordIndex.SaveToStreamLineUptoNegative := true;
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -614,33 +709,39 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdtexCoordIndex := TMFInt32.Create('texCoordIndex', []);
+  FFdtexCoordIndex.SaveToStreamLineUptoNegative := true;
   FFdtexCoordIndex.Exposed := false;
   Fields.Add(FFdtexCoordIndex);
   { X3D specification comment: [-1,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
-class function TNodeIndexedFaceSet.ClassNodeTypeName: string;
+class function TNodeIndexedFaceSet_2.ClassNodeTypeName: string;
 begin
   Result := 'IndexedFaceSet';
 end;
 
-function TNodeIndexedFaceSet.SuggestedVRMLVersion(
+function TNodeIndexedFaceSet_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodeIndexedFaceSet.URNMatching(const URN: string): boolean;
+class function TNodeIndexedFaceSet_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSphere.Create(const ANodeName: string;
+class function TNodeIndexedFaceSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
+end;
+
+constructor TNodeSphere_2.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
@@ -653,39 +754,44 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
-class function TNodeSphere.ClassNodeTypeName: string;
+class function TNodeSphere_2.ClassNodeTypeName: string;
 begin
   Result := 'Sphere';
 end;
 
-function TNodeSphere.SuggestedVRMLVersion(
+function TNodeSphere_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
-class function TNodeSphere.URNMatching(const URN: string): boolean;
+class function TNodeSphere_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TNodeSphere_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor >= 2;
 end;
 
 procedure RegisterGeometry3DNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeBox,
-    TNodeCone,
-    TNodeCylinder,
+    TNodeCone_2,
+    TNodeCylinder_2,
     TNodeElevationGrid,
     TNodeExtrusion,
-    TNodeIndexedFaceSet,
-    TNodeSphere
+    TNodeIndexedFaceSet_2,
+    TNodeSphere_2
   ]);
 end;
 

@@ -1967,6 +1967,7 @@ type
 {$I x3d_networking.inc}
 {$I x3d_rendering.inc}
 {$I x3d_shape.inc}
+{$I x3d_geometry3d.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2719,6 +2720,7 @@ uses
 {$I x3d_networking.inc}
 {$I x3d_rendering.inc}
 {$I x3d_shape.inc}
+{$I x3d_geometry3d.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6477,18 +6479,13 @@ initialization
     TNodeAudioClip,
     TNodeBackground,
     TNodeBillboard,
-    TNodeBox,
     TNodeCollision,
     TNodeColorInterpolator,
-    TNodeCone_2,
     TNodeContour2D,
     TNodeCoordinateDeformer,
     TNodeCoordinateInterpolator,
-    TNodeCylinder_2,
     TNodeCylinderSensor,
     TNodeDirectionalLight_2,
-    TNodeElevationGrid,
-    TNodeExtrusion,
     TNodeFog,
     TNodeFontStyle_2,
     TNodeGeoCoordinate,
@@ -6501,7 +6498,6 @@ initialization
     TNodeGeoTouchSensor,
     TNodeGeoViewpoint,
     TNodeImageTexture,
-    TNodeIndexedFaceSet_2,
     TNodeInlineLoadControl,
     TNodeLOD_2,
     TNodeMovieTexture,
@@ -6523,7 +6519,6 @@ initialization
     TNodeScalarInterpolator,
     TNodeScript,
     TNodeSound,
-    TNodeSphere_2,
     TNodeSphereSensor,
     TNodeSpotLight_2,
     TNodeSwitch_2,
@@ -6550,6 +6545,7 @@ initialization
   RegisterGroupingNodes;
   RegisterRenderingNodes;
   RegisterShapeNodes;
+  RegisterGeometry3DNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
