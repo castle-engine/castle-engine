@@ -50,7 +50,7 @@
   end;
 
   TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
-    IVRMLInline)
+    IVRMLInlineNode)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public

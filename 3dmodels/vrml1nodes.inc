@@ -991,7 +991,7 @@
     ktory moze podawac dane identyfikowane przez URL...
     Moze nie w najblizszym czasie, ale zamierzam cos takiego kiedys
     zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
-  TNodeWWWInline = class(TVRMLNode, IVRMLInline)
+  TNodeWWWInline = class(TVRMLNode, IVRMLInlineNode)
   private
     OriginalState: TVRMLGraphTraverseState;
     BeforeTraversePushedState: boolean;

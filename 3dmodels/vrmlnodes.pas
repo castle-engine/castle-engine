@@ -1947,10 +1947,10 @@ type
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
   end;
 
-{ IVRMLInline --------------------------------------------------------- }
+{ IVRMLInlineNode --------------------------------------------------------- }
 
   { Basic interface that should be implemented by all Inline VRML nodes. }
-  IVRMLInline = interface
+  IVRMLInlineNode = interface(IVRMLNode)
     { Call LoadInlined to load inlined VRML content @bold(now).
       If Inlined is already loaded,
       than: if CanReload = @true Inlined will be freed and loaded again,

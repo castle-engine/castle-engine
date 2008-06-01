@@ -1184,7 +1184,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInline)
+  TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInlineNode)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
