@@ -1870,6 +1870,7 @@ type
 {$I x3d_sound.inc}
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
+{$I x3d_interpolation.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2628,6 +2629,7 @@ uses
 {$I x3d_sound.inc}
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
+{$I x3d_interpolation.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6295,10 +6297,8 @@ initialization
     TNodeBackground,
     TNodeBillboard,
     TNodeCollision,
-    TNodeColorInterpolator,
     TNodeContour2D,
     TNodeCoordinateDeformer,
-    TNodeCoordinateInterpolator,
     TNodeCylinderSensor,
     TNodeFog,
     TNodeGeoCoordinate,
@@ -6313,18 +6313,14 @@ initialization
     TNodeInlineLoadControl,
     TNodeLOD_2,
     TNodeNavigationInfo,
-    TNodeNormalInterpolator,
     TNodeNurbsCurve,
     TNodeNurbsCurve2D,
     TNodeNurbsGroup,
     TNodeNurbsPositionInterpolator,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
-    TNodeOrientationInterpolator,
     TNodePlaneSensor,
-    TNodePositionInterpolator,
     TNodeProximitySensor,
-    TNodeScalarInterpolator,
     TNodeScript,
     TNodeSphereSensor,
     TNodeTouchSensor,
@@ -6352,6 +6348,7 @@ initialization
   RegisterSoundNodes;
   RegisterLightingNodes;
   RegisterTexturingNodes;
+  RegisterInterpolationNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

@@ -188,30 +188,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeColorInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFColor;
-    public property FdkeyValue: TMFColor read FFdkeyValue;
-
-    { Event: SFColor, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeContour2D = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -298,30 +274,6 @@
     public property FdwOrder: TSFInt32 read FFdwOrder;
 
     function ChildrenField: TMFNode; override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeCoordinateInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
-
-    { Event: MFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -797,30 +749,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNormalInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
-
-    { Event: MFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeNurbsCurve = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1000,30 +928,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeOrientationInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFRotation;
-    public property FdkeyValue: TMFRotation read FFdkeyValue;
-
-    { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodePlaneSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1044,30 +948,6 @@
     { Event: SFVec3f, out } { }
     private FEventtranslation_changed: TVRMLEvent;
     public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodePositionInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
-
-    { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1107,30 +987,6 @@
     { Event: SFTime, out } { }
     private FEventexitTime: TVRMLEvent;
     public property EventexitTime: TVRMLEvent read FEventexitTime;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeScalarInterpolator = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
-
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
-
-    private FFdkeyValue: TMFFloat;
-    public property FdkeyValue: TMFFloat read FFdkeyValue;
-
-    { Event: SFFloat, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1547,44 +1403,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeColorInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFColor.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFColor, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeColorInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'ColorInterpolator';
-end;
-
-class function TNodeColorInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeColorInterpolator.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -1712,44 +1530,6 @@ begin
 end;
 
 function TNodeCoordinateDeformer.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeCoordinateInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'CoordinateInterpolator';
-end;
-
-class function TNodeCoordinateInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeCoordinateInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -2505,44 +2285,6 @@ begin
     true, 2, 0, 100);
 end;
 
-constructor TNodeNormalInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeNormalInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'NormalInterpolator';
-end;
-
-class function TNodeNormalInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNormalInterpolator.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2824,44 +2566,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeOrientationInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFRotation.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'OrientationInterpolator';
-end;
-
-class function TNodeOrientationInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeOrientationInterpolator.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2896,44 +2600,6 @@ begin
 end;
 
 function TNodePlaneSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodePositionInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'PositionInterpolator';
-end;
-
-class function TNodePositionInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodePositionInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -2984,44 +2650,6 @@ begin
 end;
 
 function TNodeProximitySensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeScalarInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
-
-  FFdkey := TMFFloat.Create('key', []);
-  Fields.Add(FFdkey);
-
-  FFdkeyValue := TMFFloat.Create('keyValue', []);
-  Fields.Add(FFdkeyValue);
-
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
-  Events.Add(FEventvalue_changed);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeScalarInterpolator.ClassNodeTypeName: string;
-begin
-  Result := 'ScalarInterpolator';
-end;
-
-class function TNodeScalarInterpolator.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeScalarInterpolator.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
