@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -19,18 +19,6 @@
 }
 
 {$ifdef read_interface}
-  TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdautoOffset: TSFBool;
-    public property FdautoOffset: TSFBool read FFdautoOffset;
-
-    { Event: SFVec3f, out } { }
-    private FEventtrackPoint_changed: TVRMLEvent;
-    public property EventtrackPoint_changed: TVRMLEvent read FEventtrackPoint_changed;
-  end;
-
   TNodeX3DPointingDeviceSensorNode = class(TNodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -41,6 +29,18 @@
     { Event: SFBool, out } { }
     private FEventisOver: TVRMLEvent;
     public property EventisOver: TVRMLEvent read FEventisOver;
+  end;
+
+  TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdautoOffset: TSFBool;
+    public property FdautoOffset: TSFBool read FFdautoOffset;
+
+    { Event: SFVec3f, out } { }
+    private FEventtrackPoint_changed: TVRMLEvent;
+    public property EventtrackPoint_changed: TVRMLEvent read FEventtrackPoint_changed;
   end;
 
   TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
@@ -145,20 +145,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdautoOffset := TSFBool.Create('autoOffset', true);
-  Fields.Add(FFdautoOffset);
-
-  FEventtrackPoint_changed := TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false);
-  Events.Add(FEventtrackPoint_changed);
-
-  DefaultContainerField := 'children';
-end;
-
 constructor TNodeX3DPointingDeviceSensorNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -169,8 +155,18 @@ begin
 
   FEventisOver := TVRMLEvent.Create('isOver', TSFBool, false);
   Events.Add(FEventisOver);
+end;
 
-  DefaultContainerField := 'children';
+constructor TNodeX3DDragSensorNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdautoOffset := TSFBool.Create('autoOffset', true);
+  Fields.Add(FFdautoOffset);
+
+  FEventtrackPoint_changed := TVRMLEvent.Create('trackPoint_changed', TSFVec3f, false);
+  Events.Add(FEventtrackPoint_changed);
 end;
 
 constructor TNodeX3DTouchSensorNode.Create(const ANodeName: string;
@@ -180,8 +176,6 @@ begin
 
   FEventtouchTime := TVRMLEvent.Create('touchTime', TSFTime, false);
   Events.Add(FEventtouchTime);
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeCylinderSensor.Create(const ANodeName: string;
@@ -223,13 +217,15 @@ function TNodeCylinderSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeCylinderSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -268,13 +264,15 @@ function TNodePlaneSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodePlaneSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -302,13 +300,15 @@ function TNodeSphereSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeSphereSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -338,13 +338,15 @@ function TNodeTouchSensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeTouchSensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 

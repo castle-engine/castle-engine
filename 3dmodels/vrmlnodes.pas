@@ -1871,8 +1871,8 @@ type
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
+{$I x3d_pointingdevicesensor.inc}
 
-{$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
@@ -2630,12 +2630,12 @@ uses
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
+{$I x3d_pointingdevicesensor.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_pointing_device_sensor.inc}
 {$I x3d_shaders.inc}
 {$I x3d_navigation.inc}
 
@@ -6299,7 +6299,6 @@ initialization
     TNodeCollision,
     TNodeContour2D,
     TNodeCoordinateDeformer,
-    TNodeCylinderSensor,
     TNodeFog,
     TNodeGeoCoordinate,
     TNodeGeoElevationGrid,
@@ -6319,11 +6318,8 @@ initialization
     TNodeNurbsPositionInterpolator,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
-    TNodePlaneSensor,
     TNodeProximitySensor,
     TNodeScript,
-    TNodeSphereSensor,
-    TNodeTouchSensor,
     TNodeTrimmedSurface,
     TNodeViewpoint,
     TNodeVisibilitySensor,
@@ -6349,6 +6345,7 @@ initialization
   RegisterLightingNodes;
   RegisterTexturingNodes;
   RegisterInterpolationNodes;
+  RegisterPointingDeviceSensorNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
