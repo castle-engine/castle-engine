@@ -741,49 +741,10 @@
     class function CameraKind: TVRMLCameraKind; override;
   end;
 
-  TVRMLLightNode = class(TVRMLNode)
-  protected
-    procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdOn: TSFBool;
-    public property FdOn: TSFBool read FFdOn;
-
-    private FFdIntensity: TSFFloat;
-    public property FdIntensity: TSFFloat read FFdIntensity;
-
-    private FFdColor: TSFColor;
-    public property FdColor: TSFColor read FFdColor;
-
-    private FFdAmbientIntensity: TSFFloat;
-    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
-
-    private FFdKambiShadows: TSFBool;
-    public property FdKambiShadows: TSFBool read FFdKambiShadows;
-
-    private FFdKambiShadowsMain: TSFBool;
-    public property FdKambiShadowsMain: TSFBool read FFdKambiShadowsMain;
-
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; virtual;
-  end;
-
-  TObjectsListItem_1 = TVRMLLightNode;
-  {$I objectslist_1.inc}
-  TVRMLLightNodesList = class(TObjectsList_1);
-
-  TVRMLDirectionalLightNode = class(TVRMLLightNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdDirection: TSFVec3f;
-    public property FdDirection: TSFVec3f read FFdDirection;
-
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
-  end;
-
   TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
@@ -791,39 +752,10 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TVRMLPositionalLightNode = class(TVRMLLightNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdLocation: TSFVec3f;
-    public property FdLocation: TSFVec3f read FFdLocation;
-
-    private FFdAttenuation: TSFVec3f;
-    public property FdAttenuation: TSFVec3f read FFdAttenuation;
-
-    { Attenuation obliczaja attenuation (tzn. wzorek 1/max( attenuation[0] + ...)
-      zgodnie ze specyfik. VRMLa 97. Poniewaz obliczenie parametru DistanceToLight
-      moze czasem wiazac sie ze spora strata czasu mozesz sprawdzic najpierw
-      wartosc DistanceNeededForAttenuation --- jezeli jest false, to wartosc
-      parametru DistanceToLight dla Attenutaion() nie ma znaczenia (mozesz
-      podac cokolwiek).
-
-      PAMIETAJ --- DistanceToLight powinien byc w lights coordinate system.
-      TODO: raytracer nie realizuje teraz tego "PAMIETAJ" powyzej
-      TODO: nie wiem czy OpenGL realizuje to "PAMIETAJ" powyzej
-      w swoich swiatlach, check w OpenGL spec }
-    function DistanceNeededForAttenuation: boolean;
-    function Attenuation(const DistanceToLight: Single): Single; overload;
-    function Attenuation(const DistanceToLight: Double): Double; overload;
-
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
-  end;
-
-  TVRMLPointLightNode = class(TVRMLPositionalLightNode)
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-  end;
-
   TNodePointLight_1 = class(TVRMLPointLightNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
@@ -2152,118 +2084,15 @@ begin
   result := ckPerspective;
 end;
 
-constructor TVRMLLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeDirectionalLight_1.Create(const ANodeName: string;
+  const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdon := TSFBool.Create('on', true);
-  Fields.Add(FFdon);
-
-  FFdintensity := TSFFloat.Create('intensity', 1);
-  Fields.Add(FFdintensity);
-
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
-  Fields.Add(FFdcolor);
-
-  FFdambientIntensity := TSFFloat.Create('ambientIntensity', -1);
-  Fields.Add(FFdambientIntensity);
-
-  FFdkambiShadows := TSFBool.Create('kambiShadows', false);
-  Fields.Add(FFdkambiShadows);
-
-  FFdkambiShadowsMain := TSFBool.Create('kambiShadowsMain', false);
-  Fields.Add(FFdkambiShadowsMain);
-end;
-
-function TVRMLLightNode.CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight;
-begin
-  Result.LightNode := Self;
-  Result.Transform := State.Transform;
-  Result.AverageScaleTransform := State.AverageScaleTransform;
-end;
-
-procedure TVRMLLightNode.MiddleTraverse(State: TVRMLGraphTraverseState);
-begin
-  inherited;
-  State.VRML1ActiveLights.AppendItem(CreateActiveLight(State));
-end;
-
-constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdlocation := TSFVec3f.Create('location', Vector3Single(0, 0, 1));
-  Fields.Add(FFdlocation);
-
-  FFdattenuation := TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0));
-  Fields.Add(FFdattenuation);
-end;
-
-function TVRMLPositionalLightNode.DistanceNeededForAttenuation: boolean;
-begin
-  Result := (FdAttenuation.Value[1] > 0) or (FdAttenuation.Value[2] > 0);
-end;
-
-function TVRMLPositionalLightNode.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
-begin
-  Result := inherited;
-
-  Result.TransfLocation := MultMatrixPoint(Result.Transform,
-    FdLocation.Value);
-end;
-
-{$define ATTENUATION_IMPLEMENTATION:=
-begin
- (* moglibysmy tu nie badac czy DistanceNeededForAttenuation i zawsze
-    robic wersje pelna (bo przeciez
-      FdAttenuation.Value[1] * DistanceToLight +
-      FdAttenuation.Value[2] * Sqr(DistanceToLight)
-    i tak bedzie = 0 gdy FdAttenuation.Value[1] = FdAttenuation.Value[2] = 0.
-    Ale wydaje mi sie ze tak jest szybciej - testowanie kosztuje nas
-    troszke czasu ale mozemy sobie w ten sposob ocalic 2 x mnozenie i dodawanie. *)
-
- (* we check whether attenuation = (0, 0, 0). VRML 97 spec says that specifying
-    (0, 0, 0) should be equal to specifying (1, 0, 0). (well, we avoid
-    division by zero possibility this way so it's quite sensible, even
-    if it wastes some time) *)
- if (FdAttenuation.Value[0] = 0) and
-    (FdAttenuation.Value[1] = 0) and
-    (FdAttenuation.Value[2] = 0) then result := 1;
-
- if DistanceNeededForAttenuation then
-  result := 1/ KambiUtils.max(FdAttenuation.Value[0] +
-                   FdAttenuation.Value[1] * DistanceToLight +
-                   FdAttenuation.Value[2] * Sqr(DistanceToLight), Single(1.0)) else
-  result := 1/ KambiUtils.max(FdAttenuation.Value[0], Single(1.0));
-end;}
-
-function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Single): Single;
-ATTENUATION_IMPLEMENTATION
-
-function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
-ATTENUATION_IMPLEMENTATION
-
-constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
-  Fields.Add(FFddirection);
-end;
-
-class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
-begin
-  result := 'DirectionalLight';
-end;
-
-function TVRMLDirectionalLightNode.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
-begin
-  Result := inherited;
-  Result.TransfNormDirection :=
-    Normalized( MultMatrixPointNoTranslation(Result.Transform,
-      FdDirection.Value) );
+  { Default ambientIntensity value for VRML 1.0.
+    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+  FdAmbientIntensity.Value := -1;
+  FdAmbientIntensity.DefaultValue := -1;
 end;
 
 class function TNodeDirectionalLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2279,15 +2108,19 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TVRMLPointLightNode.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodePointLight_1.Create(const ANodeName: string;
+  const AWWWBasePath: string);
 begin
   inherited;
-  { no new fields - this is just TVRMLPositionalLightNode }
-end;
 
-class function TVRMLPointLightNode.ClassNodeTypeName: string;
-begin
-  Result := 'PointLight';
+  { Default ambientIntensity value for VRML 1.0.
+    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+  FdAmbientIntensity.Value := -1;
+  FdAmbientIntensity.DefaultValue := -1;
+
+  { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
+  FdLocation.Value := Vector3Single(0, 0, 1);
+  FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 end;
 
 class function TNodePointLight_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
@@ -2303,9 +2136,19 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeSpotLight_1.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeSpotLight_1.Create(const ANodeName: string;
+  const AWWWBasePath: string);
 begin
   inherited;
+
+  { Default ambientIntensity value for VRML 1.0.
+    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+  FdAmbientIntensity.Value := -1;
+  FdAmbientIntensity.DefaultValue := -1;
+
+  { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
+  FdLocation.Value := Vector3Single(0, 0, 1);
+  FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 
   FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);

@@ -1,5 +1,9 @@
 X3DLightNode : X3DChildNode { 
+  SFFloat [in,out] ambientIntensity 0     [0,1]
+  SFColor [in,out] color            1 1 1 [0,1]
   SFBool  [in,out] global           FALSE
+  SFFloat [in,out] intensity        1     [0,1]
+  SFBool  [in,out] on               TRUE
 }
 
 DirectionalLight : X3DLightNode {

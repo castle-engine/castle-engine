@@ -357,18 +357,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeDirectionalLight_2 = class(TVRMLDirectionalLightNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeFog = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1151,23 +1139,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodePointLight_2 = class(TVRMLPointLightNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
-  end;
-
   TNodePositionInterpolator = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1290,33 +1261,6 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeSpotLight_2 = class(TVRMLPositionalLightNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdbeamWidth: TSFFloat;
-    public property FdbeamWidth: TSFFloat read FFdbeamWidth;
-
-    private FFdcutOffAngle: TSFFloat;
-    public property FdcutOffAngle: TSFFloat read FFdcutOffAngle;
-
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
-
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
   TNodeTextureCoordinate = class(TVRMLNode)
@@ -1976,37 +1920,6 @@ begin
 end;
 
 function TNodeCylinderSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeDirectionalLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
-    see comments at ambientIntensity in implementation of TPointLight_2. }
-  FdAmbientIntensity.Value := 0;
-  FdAmbientIntensity.DefaultValue := 0;
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeDirectionalLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-class function TNodeDirectionalLight_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeDirectionalLight_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -3318,68 +3231,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodePointLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  { Previous fields initialized in TVRMLPointLightNode and above.
-    However the default values of "ambientIntensity" and "location" fields
-    are different.
-    - ambientIntensity in VRML 1.0 is my extension,
-      and the default value differs from VRML 2.0 spec on purpose,
-      to allow VRML 1.0-compat behavior when ambientIntensity is not specified.
-    - location has just different default value between VRML 1.0 and 2.0
-      specifications... Though VRML 2.0 indeed has more sensible default
-      value, so that's another improvement in VRML 2.0. }
-  FdAmbientIntensity.Value := 0;
-  FdAmbientIntensity.DefaultValue := 0;
-  FdLocation.Value := ZeroVector3Single;
-  FdLocation.DefaultValue := ZeroVector3Single;
-
-  FFdradius := TSFFloat.Create('radius', 100);
-  Fields.Add(FFdradius);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodePointLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-function TNodePointLight_2.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
-begin
-  Result := inherited;
-
-  { TODO: For non-uniform scale, this will simply use average scale.
-    This is not fully correct, VRML spec doesn't clarify this
-    but I guess that the intention was that the non-uniform scale will
-    make radius non-uniform, i.e. light volume will not be a regular sphere
-    but some 3d ellipsoid. Unfortunately this would require quite more
-    work, UpdateVRML2ActiveLights would then have to check for collision
-    between
-      sphere transformed by matrix Transform
-    and
-      bounding box
-    which I don't know how to do *easily*... }
-  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
-end;
-
-class function TNodePointLight_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodePointLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -3574,71 +3425,6 @@ begin
 end;
 
 function TNodeSphereSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeSpotLight_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdbeamWidth := TSFFloat.Create('beamWidth', Pi / 2);
-  Fields.Add(FFdbeamWidth);
-
-  FFdcutOffAngle := TSFFloat.Create('cutOffAngle', Pi / 4);
-  Fields.Add(FFdcutOffAngle);
-
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
-  Fields.Add(FFddirection);
-
-  FFdradius := TSFFloat.Create('radius', 100);
-  Fields.Add(FFdradius);
-
-  { Default value of ambientIntensity for VRML 1.0 and 2.0 is different,
-    see comments at ambientIntensity in implementation of TPointLight_2.
-    Same thing for location. }
-  FdAmbientIntensity.Value := 0;
-  FdAmbientIntensity.DefaultValue := 0;
-  FdLocation.DefaultValue := ZeroVector3Single;
-  FdLocation.Value := FdLocation.DefaultValue;
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeSpotLight_2.ClassNodeTypeName: string;
-begin
-  Result := 'SpotLight';
-end;
-
-class function TNodeSpotLight_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodeSpotLight_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor >= 2;
-end;
-
-function TNodeSpotLight_2.CreateActiveLight(
-  State: TVRMLGraphTraverseState): TActiveLight;
-begin
-  Result := inherited;
-
-  Result.TransfNormDirection :=
-    Normalized( MultMatrixPointNoTranslation(Result.Transform,
-      FdDirection.Value) );
-
-  { TODO: For non-uniform scale, this is too easy,
-    see TNodePointLight_2.CreateActiveLight for more comments. }
-  Result.TransfRadius := FdRadius.Value * Result.AverageScaleTransform;
-end;
-
-function TNodeSpotLight_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
