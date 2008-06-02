@@ -1968,6 +1968,7 @@ type
 {$I x3d_rendering.inc}
 {$I x3d_shape.inc}
 {$I x3d_geometry3d.inc}
+{$I x3d_geometry2d.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2721,6 +2722,7 @@ uses
 {$I x3d_rendering.inc}
 {$I x3d_shape.inc}
 {$I x3d_geometry3d.inc}
+{$I x3d_geometry2d.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -3876,7 +3878,8 @@ begin
   for I := 0 to Events.Count - 1 do
     if Events[I].IsClause then
     begin
-      SaveProperties.WriteIndent(Events[I].Name + ' ');
+      SaveProperties.WriteIndent(
+        Events[I].NameForVersion(SaveProperties) + ' ');
       Events[I].SaveToStream(SaveProperties);
       SaveProperties.Writeln;
     end;
@@ -6513,7 +6516,6 @@ initialization
     TNodePixelTexture,
     TNodePlaneSensor,
     TNodePointLight_2,
-    TNodePolyline2D,
     TNodePositionInterpolator,
     TNodeProximitySensor,
     TNodeScalarInterpolator,
@@ -6521,7 +6523,6 @@ initialization
     TNodeSound,
     TNodeSphereSensor,
     TNodeSpotLight_2,
-    TNodeSwitch_2,
     TNodeText,
     TNodeTextureCoordinate,
     TNodeTextureTransform,
@@ -6535,8 +6536,7 @@ initialization
     TNodePackagedShader,
     TNodeProgramShader,
     TNodeShaderPart,
-    TNodeShaderProgram,
-    TNodeLOD_3
+    TNodeShaderProgram
     ]);
 
   RegisterCoreNodes;
@@ -6546,6 +6546,7 @@ initialization
   RegisterRenderingNodes;
   RegisterShapeNodes;
   RegisterGeometry3DNodes;
+  RegisterGeometry2DNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
@@ -6681,8 +6682,8 @@ initialization
     //TNodeProgramShader,
     //TNodeShaderPart,
     //TNodeShaderProgram
-    TNodeSwitch_3,
-    TNodeLOD_3
+    TNodeSwitch_2,
+    TNodeLOD_2
   ]);
 
   AllowedGeometryNodes := TVRMLNodeClassesList.Create;

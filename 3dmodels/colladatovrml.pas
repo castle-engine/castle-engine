@@ -1455,7 +1455,7 @@ var
 
     Group := TNodeGroup_2.Create(VisualSceneId, WWWBasePath);
     VisualScenes.Add(Group);
-    VisualScenesSwitch.FdChoice.AddItem(Group);
+    VisualScenesSwitch.FdChildren.AddItem(Group);
 
     ReadNodesSequence(Group, VisualSceneElement);
   end;

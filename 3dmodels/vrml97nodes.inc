@@ -890,33 +890,6 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeLOD_2 = class(TVRMLGroupingNode)
-  protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdlevel: TMFNode;
-    public property Fdlevel: TMFNode read FFdlevel;
-
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
-
-    private FFdrange: TMFFloat;
-    public property Fdrange: TMFFloat read FFdrange;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function ChildrenField: TMFNode; override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeMovieTexture = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1286,19 +1259,6 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
-  TNodePolyline2D = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdpoint: TMFVec2f;
-    public property Fdpoint: TMFVec2f read FFdpoint;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodePositionInterpolator = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1488,30 +1448,6 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
-  end;
-
-  TNodeSwitch_2 = class(TVRMLGroupingNode)
-  protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdchoice: TMFNode;
-    public property Fdchoice: TMFNode read FFdchoice;
-
-    private FFdwhichChoice: TSFInt32;
-    public property FdwhichChoice: TSFInt32 read FFdwhichChoice;
-
-    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-      override;
-
-    function ChildrenField: TMFNode; override;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeText = class(TVRMLGeometryNode)
@@ -3213,61 +3149,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeLOD_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdlevel := TMFNode.Create(Self, 'level', AllowedChildrenNodes);
-  Fields.Add(FFdlevel);
-
-  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
-  FFdcenter.Exposed := false;
-  Fields.Add(FFdcenter);
-
-  FFdrange := TMFFloat.Create('range', []);
-  FFdrange.Exposed := false;
-  Fields.Add(FFdrange);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeLOD_2.ClassNodeTypeName: string;
-begin
-  Result := 'LOD';
-end;
-
-class function TNodeLOD_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodeLOD_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor = 2;
-end;
-
-function TNodeLOD_2.ChildrenField: TMFNode;
-begin
-  Result := FdLevel;
-end;
-
-procedure TNodeLOD_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-begin
-  { For now we simply always use the best LOD version,
-    avoiding whole issue of choosing proper LOD child. }
-  if FdLevel.Items.Count >= 1 then
-    Func(Self, FdLevel.Items[0]);
-end;
-
-function TNodeLOD_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeMovieTexture.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -3898,33 +3779,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodePolyline2D.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec2f.Create('point', []);
-  Fields.Add(FFdpoint);
-end;
-
-class function TNodePolyline2D.ClassNodeTypeName: string;
-begin
-  Result := 'Polyline2D';
-end;
-
-class function TNodePolyline2D.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodePolyline2D.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodePositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -4241,54 +4095,6 @@ begin
 end;
 
 function TNodeSpotLight_2.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdchoice := TMFNode.Create(Self, 'choice', AllowedChildrenNodes);
-  Fields.Add(FFdchoice);
-
-  FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
-  Fields.Add(FFdwhichChoice);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeSwitch_2.ClassNodeTypeName: string;
-begin
-  Result := 'Switch';
-end;
-
-class function TNodeSwitch_2.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodeSwitch_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
-begin
-  Result := VerMajor = 2;
-end;
-
-function TNodeSwitch_2.ChildrenField: TMFNode;
-begin
-  Result := FdChoice;
-end;
-
-procedure TNodeSwitch_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-begin
-  if Between(FdWhichChoice.Value, 0, FdChoice.Count - 1) then
-    Func(Self, FdChoice.Items[FdWhichChoice.Value]);
-end;
-
-function TNodeSwitch_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

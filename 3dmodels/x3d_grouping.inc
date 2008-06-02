@@ -115,16 +115,16 @@
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
   end;
 
-  { X3D Switch node.
+  { Switch node.
 
-    This is implemented as a different class than VRML 2.0 Switch
-    node (TNodeSwitch_2) as VRML 2.0 Switch is not perfectly compatible.
-    In particular, in X3D field name changed from "choice" to "children".
-    This seems like a trivial change, but note that events, routes,
-    scripts may all refer to the field name, so implementing a simple
-    "alias field name" is actually non-trivial (and not worthy, if it
-    can be fixed by simply making separate TNodeSwitch_3). }
-  TNodeSwitch_3 = class(TNodeX3DGroupingNode)
+    Compatibility node: this class is used for both VRML 97 and X3D.
+    Although field name changed for X3D (in VRML 97, "children"
+    was called "choice"), this is handled seamlessly using our
+    TVRMLFieldOrEvent.AddAlternativeField mechanism. In other words,
+    programmer simply works with FdChildren field, and when reading/writing
+    VRML file we take care to actually use either "children" or "choice" name,
+    depending on used VRML version. }
+  TNodeSwitch_2 = class(TNodeX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -405,9 +405,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-constructor TNodeSwitch_3.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
+  Fdchildren.AddAlternativeName('choice', 2);
 
   FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
   Fields.Add(FFdwhichChoice);
@@ -416,39 +418,41 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSwitch_3.ClassNodeTypeName: string;
+class function TNodeSwitch_2.ClassNodeTypeName: string;
 begin
   Result := 'Switch';
 end;
 
-class function TNodeSwitch_3.URNMatching(const URN: string): boolean;
+class function TNodeSwitch_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSwitch_3.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+class function TNodeSwitch_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
-  Result := VerMajor >= 3;
+  Result := VerMajor >= 2;
 end;
 
-function TNodeSwitch_3.ChildrenField: TMFNode;
+function TNodeSwitch_2.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
 end;
 
-procedure TNodeSwitch_3.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TNodeSwitch_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
     Func(Self, FdChildren.Items[FdWhichChoice.Value]);
 end;
 
-function TNodeSwitch_3.SuggestedVRMLVersion(
+function TNodeSwitch_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -572,7 +576,7 @@ begin
   NodesManager.RegisterNodeClasses([
     TNodeGroup_2,
     TNodeStaticGroup,
-    TNodeSwitch_3,
+    TNodeSwitch_2,
     TNodeTransform_2
   ]);
 end;

@@ -87,6 +87,13 @@ type
     FIsClauseName: string;
 
     FName: string;
+
+    { A really simple (but good enough for now) implementation of
+      AddAlternativeName:
+      - there are only 1, 2, and 3 VRML major versions
+      - each VRML major version has exactly one alt name
+      - alt name is never '' ('' means that alt name doesn't exist) }
+    FAlternativeNames: array [1..3] of string;
   public
     { Name of the field or event.
 
@@ -116,6 +123,39 @@ type
       For example, for the TVRMLField descendant, this does not try to parse
       field value. }
     procedure ParseIsClause(Lexer: TVRMLLexer);
+
+    { Add alternative name for the same field/event, to be used in different
+      VRML version.
+
+      When VRML major version is exactly equal VrmlMajorVersion,
+      the AlternativeName should be used --- for both reading and writing
+      of this field/event. In some cases, when reading, we may also allow
+      all versions (both original and alternative), but this is mostly
+      for implementation simplicity --- don't count on it.
+
+      Alternative names is a very handy mechanism for cases when
+      the only thing that changed between VRML versions is the field
+      name. Example: Switch node's children/choice, LOD node's children/level,
+      Polyline2D lineSegments/point.
+
+      Note that this also works for ExposedEvents with exposed TVRMLField:
+      if a field has alternative names, then it's exposed events always also
+      have appropriate alternative names. }
+    procedure AddAlternativeName(const AlternativeName: string;
+      VrmlMajorVersion: Integer); virtual;
+
+    { Returns if S matches current Name or one of the alternative names.
+      Think about it like simple test "Name = S", but actually this
+      checks also names added by AddAlternativeName method. }
+    function IsName(const S: string): boolean;
+
+    { Return how this field should be named for given VRML version.
+      In almost all cases, this simply returns current Name.
+      But it can also return a name added by AddAlternativeName method. }
+    function NameForVersion(
+      const VrmlMajorVersion, VrmlMinorVersion: Integer): string; overload;
+    function NameForVersion(
+      SaveProperties: TVRMLSaveToStreamProperties): string; overload;
   end;
 
   { Base class for all VRML fields.
@@ -206,6 +246,8 @@ type
       field types were entirely removed from VRML 2.0. }
     constructor CreateUndefined(const AName: string); virtual;
 
+    destructor Destroy; override;
+
     { Parse inits properties from Lexer.
 
       In this class, Parse only sets IsClause and IsClauseName:
@@ -286,7 +328,7 @@ type
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
-    property Exposed: boolean read FExposed write FExposed default true;
+    property Exposed: boolean read FExposed write SetExposed default true;
 
     { These are the set_xxx and xxx_changed events exposed by this field.
       @nil if Exposed is @false. }
@@ -370,6 +412,9 @@ type
       @italic(Descendants implementors notes):
       In this class, this always returns @false. }
     function CanAssignLerp: boolean; virtual;
+
+    procedure AddAlternativeName(const AlternativeName: string;
+      VrmlMajorVersion: Integer); override;
   end;
 
   TVRMLFieldClass = class of TVRMLField;
@@ -1651,6 +1696,46 @@ begin
   end;
 end;
 
+procedure TVRMLFieldOrEvent.AddAlternativeName(const AlternativeName: string;
+  VrmlMajorVersion: Integer);
+begin
+  FAlternativeNames[VrmlMajorVersion] := AlternativeName;
+end;
+
+function TVRMLFieldOrEvent.IsName(const S: string): boolean;
+var
+  I: Integer;
+begin
+  { No field is ever named ''.
+    Actually, we sometimes use '' for special "unnamed fields",
+    in this case it's Ok that no name matches their name.
+    Besides, we don't want empty FAlternativeNames to match when
+    searching for S = ''. }
+
+  if S = '' then
+    Exit(false);
+
+  for I := Low(FAlternativeNames) to High(FAlternativeNames) do
+    if FAlternativeNames[I] = S then
+      Exit(true);
+
+  Result := Name = S;
+end;
+
+function TVRMLFieldOrEvent.NameForVersion(
+  const VrmlMajorVersion, VrmlMinorVersion: Integer): string;
+begin
+  Result := FAlternativeNames[VrmlMajorVersion];
+  if Result = '' then
+    Result := Name;
+end;
+
+function TVRMLFieldOrEvent.NameForVersion(
+  SaveProperties: TVRMLSaveToStreamProperties): string;
+begin
+  Result := NameForVersion(SaveProperties.VerMajor, SaveProperties.VerMinor);
+end;
+
 { TVRMLField ------------------------------------------------------------- }
 
 constructor TVRMLField.Create(const AName: string);
@@ -1668,6 +1753,13 @@ begin
   Exposed := true;
 end;
 
+destructor TVRMLField.Destroy;
+begin
+  FreeAndNil(FExposedEvents[false]);
+  FreeAndNil(FExposedEvents[true]);
+  inherited;
+end;
+
 function TVRMLField.GetExposedEvents(InEvent: boolean): TVRMLEvent;
 begin
   Result := FExposedEvents[InEvent];
@@ -1678,6 +1770,8 @@ const
   ChangedSuffix = '_changed';
 
 procedure TVRMLField.SetExposed(Value: boolean);
+var
+  I: Integer;
 begin
   if Value <> Exposed then
   begin
@@ -1688,6 +1782,16 @@ begin
         TVRMLFieldClass(Self.ClassType), false);
       FExposedEvents[true] := TVRMLEvent.Create(SetPrefix + Name,
         TVRMLFieldClass(Self.ClassType), true);
+
+      for I := Low(FAlternativeNames) to High(FAlternativeNames) do
+        if FAlternativeNames[I] <> '' then
+        begin
+          FExposedEvents[false].AddAlternativeName(
+            FAlternativeNames[I] + ChangedSuffix, I);
+          FExposedEvents[true].AddAlternativeName(
+            SetPrefix + FAlternativeNames[I], I);
+        end;
+
     end else
     begin
       FreeAndNil(FExposedEvents[false]);
@@ -1698,10 +1802,14 @@ end;
 
 procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
   SaveWhenDefault: boolean);
+var
+  N: string;
 begin
   if SaveWhenDefault or (not EqualsDefaultValue) then
   begin
-    if Name <> '' then SaveProperties.WriteIndent(Name + ' ');
+    N := NameForVersion(SaveProperties);
+    if N <> '' then
+      SaveProperties.WriteIndent(N + ' ');
     { We depend here on the fact that EqualsDefaultValue is always @false
       when IsClause, otherwise fields with IsClause could be omitted by
       check "if not EqualsDefaultValue then" above. }
@@ -1741,6 +1849,11 @@ begin
   FExposed := Source.Exposed;
   FIsClause := Source.IsClause;
   FIsClauseName := Source.IsClauseName;
+  FAlternativeNames := Source.FAlternativeNames;
+
+  { TODO: exposed and AlternativeNames should be copied better,
+    to create/free ExposedEvents if needed and to copy FAlternativeNames
+    if needed. }
 end;
 
 procedure TVRMLField.AssignValueRaiseInvalidClass(Source: TVRMLField);
@@ -1770,22 +1883,39 @@ begin
   Result := false;
 end;
 
+procedure TVRMLField.AddAlternativeName(const AlternativeName: string;
+  VrmlMajorVersion: Integer);
+begin
+  inherited;
+
+  if Exposed then
+  begin
+    Assert(FExposedEvents[false] <> nil);
+    Assert(FExposedEvents[true] <> nil);
+
+    FExposedEvents[false].AddAlternativeName(
+      AlternativeName + ChangedSuffix, VrmlMajorVersion);
+    FExposedEvents[true].AddAlternativeName(
+      SetPrefix + AlternativeName, VrmlMajorVersion);
+  end;
+end;
+
 { TVRMLFieldsList ------------------------------------------------------------- }
 
 function TVRMLFieldsList.IndexOf(const AName: string): integer;
 begin
- for result := 0 to Count-1 do
-  if Items[result].Name = AName then exit;
- result := -1;
+  for result := 0 to Count-1 do
+    if Items[result].IsName(AName) then exit;
+  result := -1;
 end;
 
 function TVRMLFieldsList.GetByName(const AName: string): TVRMLField;
 var i: integer;
 begin
- i := IndexOf(AName);
- if i >= 0 then
-  result := Items[i] else
-  raise Exception.Create('Field name '+AName+' not found');
+  i := IndexOf(AName);
+  if i >= 0 then
+    result := Items[i] else
+    raise Exception.Create('Field name '+AName+' not found');
 end;
 
 function TVRMLFieldsList.IndexOfExposedEvent(const EventName: string;

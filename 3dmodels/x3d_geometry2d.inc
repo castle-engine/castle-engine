@@ -91,6 +91,12 @@
     public property Fdsolid: TSFBool read FFdsolid;
   end;
 
+  { Polyline2D node.
+
+    The "lineSegments" field uses our TVRMLField.AddAlternativeName mechanism,
+    and when reading/saving VRML 97 file it will be named "point"
+    (as it was in VRML 97 amendment 1 specification).
+    In X3D normal name, "lineSegments", will be used. }
   TNodePolyline2D = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -324,6 +330,8 @@ begin
   Fields.Add(FFdlineSegments);
   { X3D specification comment: (-Inf,Inf) }
 
+  FFdlineSegments.AddAlternativeName('point', 2);
+
   DefaultContainerField := 'children';
 end;
 
@@ -336,13 +344,15 @@ function TNodePolyline2D.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodePolyline2D.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
