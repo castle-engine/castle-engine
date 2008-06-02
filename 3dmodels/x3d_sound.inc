@@ -140,15 +140,19 @@ function TNodeAudioClip.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeAudioClip.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define IX3DSoundSourceNode_Descendants := TNodeX3DSoundNode, TNodeMovieTexture}
 
 constructor TNodeSound.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -187,7 +191,7 @@ begin
   Fields.Add(FFdpriority);
   { X3D specification comment: [0,1] }
 
-  FFdsource := TSFNode.Create(Self, 'source', [X3DSoundSourceNode]);
+  FFdsource := TSFNode.Create(Self, 'source', [IX3DSoundSourceNode_Descendants]);
   Fields.Add(FFdsource);
 
   FFdspatialize := TSFBool.Create('spatialize', true);
@@ -206,13 +210,15 @@ function TNodeSound.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeSound.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 

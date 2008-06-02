@@ -25,41 +25,6 @@
 {$ifdef read_interface}
   TNodeX3DShaderNode = class;
 
-  TNodeAudioClip = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
-
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
-
-    private FFdpitch: TSFFloat;
-    public property Fdpitch: TSFFloat read FFdpitch;
-
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
-
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    { Event: SFTime, out } { }
-    private FEventduration_changed: TVRMLEvent;
-    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeBackground = class(TVRMLNode)
   private
     FBgImagesLoaded: boolean; { = false }
@@ -1310,46 +1275,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeSound = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
-
-    private FFdintensity: TSFFloat;
-    public property Fdintensity: TSFFloat read FFdintensity;
-
-    private FFdlocation: TSFVec3f;
-    public property Fdlocation: TSFVec3f read FFdlocation;
-
-    private FFdmaxBack: TSFFloat;
-    public property FdmaxBack: TSFFloat read FFdmaxBack;
-
-    private FFdmaxFront: TSFFloat;
-    public property FdmaxFront: TSFFloat read FFdmaxFront;
-
-    private FFdminBack: TSFFloat;
-    public property FdminBack: TSFFloat read FFdminBack;
-
-    private FFdminFront: TSFFloat;
-    public property FdminFront: TSFFloat read FFdminFront;
-
-    private FFdpriority: TSFFloat;
-    public property Fdpriority: TSFFloat read FFdpriority;
-
-    private FFdsource: TSFNode;
-    public property Fdsource: TSFNode read FFdsource;
-
-    private FFdspatialize: TSFBool;
-    public property Fdspatialize: TSFBool read FFdspatialize;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeSphereSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1559,56 +1484,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
-constructor TNodeAudioClip.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFddescription := TSFString.Create('description', '');
-  Fields.Add(FFddescription);
-
-  FFdloop := TSFBool.Create('loop', FALSE);
-  Fields.Add(FFdloop);
-
-  FFdpitch := TSFFloat.Create('pitch', 1.0);
-  Fields.Add(FFdpitch);
-
-  FFdstartTime := TSFTime.Create('startTime', 0);
-  Fields.Add(FFdstartTime);
-
-  FFdstopTime := TSFTime.Create('stopTime', 0);
-  Fields.Add(FFdstopTime);
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
-  Events.Add(FEventduration_changed);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeAudioClip.ClassNodeTypeName: string;
-begin
-  Result := 'AudioClip';
-end;
-
-class function TNodeAudioClip.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeAudioClip.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
 
 constructor TNodeBackground.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
@@ -3667,63 +3542,6 @@ begin
 end;
 
 function TNodeScript.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeSound.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, 1));
-  Fields.Add(FFddirection);
-
-  FFdintensity := TSFFloat.Create('intensity', 1);
-  Fields.Add(FFdintensity);
-
-  FFdlocation := TSFVec3f.Create('location', ZeroVector3Single);
-  Fields.Add(FFdlocation);
-
-  FFdmaxBack := TSFFloat.Create('maxBack', 10);
-  Fields.Add(FFdmaxBack);
-
-  FFdmaxFront := TSFFloat.Create('maxFront', 10);
-  Fields.Add(FFdmaxFront);
-
-  FFdminBack := TSFFloat.Create('minBack', 1);
-  Fields.Add(FFdminBack);
-
-  FFdminFront := TSFFloat.Create('minFront', 1);
-  Fields.Add(FFdminFront);
-
-  FFdpriority := TSFFloat.Create('priority', 0);
-  Fields.Add(FFdpriority);
-
-  FFdsource := TSFNode.Create(Self, 'source', [TNodeAudioClip, TNodeMovieTexture]);
-  Fields.Add(FFdsource);
-
-  FFdspatialize := TSFBool.Create('spatialize', TRUE);
-  FFdspatialize.Exposed := false;
-  Fields.Add(FFdspatialize);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeSound.ClassNodeTypeName: string;
-begin
-  Result := 'Sound';
-end;
-
-class function TNodeSound.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeSound.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

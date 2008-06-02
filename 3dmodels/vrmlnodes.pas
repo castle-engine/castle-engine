@@ -1970,6 +1970,7 @@ type
 {$I x3d_geometry3d.inc}
 {$I x3d_geometry2d.inc}
 {$I x3d_text.inc}
+{$I x3d_sound.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2725,6 +2726,7 @@ uses
 {$I x3d_geometry3d.inc}
 {$I x3d_geometry2d.inc}
 {$I x3d_text.inc}
+{$I x3d_sound.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6481,7 +6483,6 @@ initialization
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
-    TNodeAudioClip,
     TNodeBackground,
     TNodeBillboard,
     TNodeCollision,
@@ -6521,7 +6522,6 @@ initialization
     TNodeProximitySensor,
     TNodeScalarInterpolator,
     TNodeScript,
-    TNodeSound,
     TNodeSphereSensor,
     TNodeSpotLight_2,
     TNodeTextureCoordinate,
@@ -6548,6 +6548,7 @@ initialization
   RegisterGeometry3DNodes;
   RegisterGeometry2DNodes;
   RegisterTextNodes;
+  RegisterSoundNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
