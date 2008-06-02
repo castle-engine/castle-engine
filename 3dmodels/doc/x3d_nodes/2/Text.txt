@@ -14,7 +14,7 @@ FontStyle : X3DFontStyleNode {
 }
 
 Text : X3DGeometryNode {
-  SFNode   [in,out] fontStyle  NULL  [X3FontStyleNode]
+  SFNode   [in,out] fontStyle  NULL  [X3DFontStyleNode]
   MFFloat  [in,out] length     []    [0,Inf)
   SFFloat  [in,out] maxExtent  0.0   [0,Inf)
   MFString [in,out] string     []

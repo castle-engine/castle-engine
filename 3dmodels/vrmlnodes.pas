@@ -1969,6 +1969,7 @@ type
 {$I x3d_shape.inc}
 {$I x3d_geometry3d.inc}
 {$I x3d_geometry2d.inc}
+{$I x3d_text.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2723,6 +2724,7 @@ uses
 {$I x3d_shape.inc}
 {$I x3d_geometry3d.inc}
 {$I x3d_geometry2d.inc}
+{$I x3d_text.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6490,7 +6492,6 @@ initialization
     TNodeCylinderSensor,
     TNodeDirectionalLight_2,
     TNodeFog,
-    TNodeFontStyle_2,
     TNodeGeoCoordinate,
     TNodeGeoElevationGrid,
     TNodeGeoLocation,
@@ -6523,7 +6524,6 @@ initialization
     TNodeSound,
     TNodeSphereSensor,
     TNodeSpotLight_2,
-    TNodeText,
     TNodeTextureCoordinate,
     TNodeTextureTransform,
     TNodeTouchSensor,
@@ -6547,6 +6547,7 @@ initialization
   RegisterShapeNodes;
   RegisterGeometry3DNodes;
   RegisterGeometry2DNodes;
+  RegisterTextNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

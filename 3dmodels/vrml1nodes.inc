@@ -49,11 +49,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  { Font justification that can be specified by FontStyle in
-    justify/justification field. First three fields are equal
-    (after casting by Ord) to JUSTIFICATION_* constants. }
-  TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
-
   TNodeAsciiText_1 = class(TVRMLGeometryNode_1)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -222,11 +217,6 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
-
-  { Font family that can be specified by FontStyle node in family
-    field. First three fields are equal (after casting by Ord) to
-    three values of FSFAMILY_* constants. }
-  TVRMLFontFamily = (ffSerif, ffSans, ffTypeWriter);
 
   TNodeFontStyle_1 = class(TVRMLNode)
   public
@@ -1246,14 +1236,6 @@ class function TNodeFontStyle_1.ClassNodeTypeName: string;
 begin
   result := 'FontStyle';
 end;
-
-const
-  TTF_Font_Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
-  (              {   [],                          [italic],                            [bold],                      [italic, bold] }
-    {serif}      ( ((@TTF_BitstreamVeraSerif),   (@TTF_BitstreamVeraSerif_Italic)),    ((@TTF_BitstreamVeraSerif_Bold),    (@TTF_BitstreamVeraSerif_Bold_Italic)) ),
-    {sans}       ( ((@TTF_BitstreamVeraSans),    (@TTF_BitstreamVeraSans_Italic)),     ((@TTF_BitstreamVeraSans_Bold),     (@TTF_BitstreamVeraSans_Bold_Italic)) ),
-    {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
-  );
 
 function TNodeFontStyle_1.TTF_Font: PTrueTypeFont;
 begin
