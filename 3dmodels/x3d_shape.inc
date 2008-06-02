@@ -266,10 +266,6 @@
     public property Fdtransparency: TSFFloat read FFdtransparency;
   end;
 
-  { TODO: will be defined by later components }
-  TNodeX3DTextureNode = class(TVRMLNode);
-  TNodeX3DTextureTransformNode = class(TVRMLNode);
-
 {$endif read_interface}
 
 {$ifdef read_implementation}

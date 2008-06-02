@@ -24,7 +24,13 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
-  TNodeX3DSoundSourceNode = class(TNodeX3DTimeDependentNode)
+  INodeX3DSoundSourceNode = interface(INodeX3DTimeDependentNode)
+    property Fddescription: TSFString { read FFddescription } { };
+    property Fdpitch: TSFFloat { read FFdpitch } { };
+    property Eventduration_changed: TVRMLEvent { read FEventduration_changed } { };
+  end;
+
+  TNodeX3DSoundSourceNode = class(TNodeX3DTimeDependentNode, INodeX3DSoundSourceNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 

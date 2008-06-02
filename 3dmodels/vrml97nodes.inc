@@ -730,31 +730,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeImageTexture = class(TVRMLTextureNode)
-  protected
-    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
-
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function TextureDescription: string; override;
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
-  end;
-
   TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInlineNode)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
@@ -785,45 +760,6 @@
     class function ChildrenSaveToStream: boolean; override;
 
     procedure LoadInlined(CanReload: boolean);
-  end;
-
-  TNodeMovieTexture = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
-
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
-
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
-
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
-
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
-
-    { Event: SFTime, out } { }
-    private FEventduration_changed: TVRMLEvent;
-    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 
   TNodeNavigationInfo = class(TNodeX3DBindableNode)
@@ -1088,31 +1024,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodePixelTexture = class(TVRMLTextureNode)
-  protected
-    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdimage: TSFImage;
-    public property Fdimage: TSFImage read FFdimage;
-
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
-
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function TextureDescription: string; override;
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
-  end;
-
   TNodePlaneSensor = class(TNodeX3DDragSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1261,43 +1172,6 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeTextureCoordinate = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdpoint: TMFVec2f;
-    public property Fdpoint: TMFVec2f read FFdpoint;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeTextureTransform = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcenter: TSFVec2f;
-    public property Fdcenter: TSFVec2f read FFdcenter;
-
-    private FFdrotation: TSFFloat;
-    public property Fdrotation: TSFFloat read FFdrotation;
-
-    private FFdscale: TSFVec2f;
-    public property Fdscale: TSFVec2f read FFdscale;
-
-    private FFdtranslation: TSFVec2f;
-    public property Fdtranslation: TSFVec2f read FFdtranslation;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    function Matrix: TMatrix4Single;
   end;
 
   TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
@@ -2484,88 +2358,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeImageTexture.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
-  FFdrepeatS.Exposed := false;
-  Fields.Add(FFdrepeatS);
-
-  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
-  FFdrepeatT.Exposed := false;
-  Fields.Add(FFdrepeatT);
-
-  DefaultContainerField := 'texture';
-end;
-
-class function TNodeImageTexture.ClassNodeTypeName: string;
-begin
-  Result := 'ImageTexture';
-end;
-
-class function TNodeImageTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeImageTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
-var
-  I: Integer;
-  FullUrl: string;
-begin
-  Result := nil;
-  CacheUsed := false;
-  FTextureUsedFullUrl := '';
-
-  for I := 0 to FdUrl.Count - 1 do
-  begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
-    try
-      Result := ImagesCache.LoadImage_IncReference(FullUrl);
-      CacheUsed := true;
-      FTextureUsedFullUrl := FullUrl;
-      Break;
-    except
-      on E: Exception do
-        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
-          (chociaz nie musi) }
-        VRMLNonFatalError('Exception ' + E.ClassName +
-          ' occured when trying to load ' +
-          'texture from filename "' + FullUrl + '" : ' + E.Message);
-    end;
-  end;
-end;
-
-function TNodeImageTexture.TextureDescription: string;
-begin
-  if TextureUsedFullUrl <> '' then
-    Result := 'file "' + TextureUsedFullUrl + '"' else
-    Result := 'none';
-end;
-
-function TNodeImageTexture.RepeatS: boolean;
-begin
-  Result := FdRepeatS.Value;
-end;
-
-function TNodeImageTexture.RepeatT: boolean;
-begin
-  Result := FdRepeatT.Value;
-end;
-
-function TNodeImageTexture.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2656,61 +2448,6 @@ begin
 end;
 
 function TNodeInlineLoadControl.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeMovieTexture.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdloop := TSFBool.Create('loop', FALSE);
-  Fields.Add(FFdloop);
-
-  FFdspeed := TSFFloat.Create('speed', 1.0);
-  Fields.Add(FFdspeed);
-
-  FFdstartTime := TSFTime.Create('startTime', 0);
-  Fields.Add(FFdstartTime);
-
-  FFdstopTime := TSFTime.Create('stopTime', 0);
-  Fields.Add(FFdstopTime);
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
-  FFdrepeatS.Exposed := false;
-  Fields.Add(FFdrepeatS);
-
-  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
-  FFdrepeatT.Exposed := false;
-  Fields.Add(FFdrepeatT);
-
-  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
-  Events.Add(FEventduration_changed);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeMovieTexture.ClassNodeTypeName: string;
-begin
-  Result := 'MovieTexture';
-end;
-
-class function TNodeMovieTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeMovieTexture.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -3125,71 +2862,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodePixelTexture.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdimage := TSFImage.Create('image', nil);
-  Fields.Add(FFdimage);
-
-  FFdrepeatS := TSFBool.Create('repeatS', TRUE);
-  FFdrepeatS.Exposed := false;
-  Fields.Add(FFdrepeatS);
-
-  FFdrepeatT := TSFBool.Create('repeatT', TRUE);
-  FFdrepeatT.Exposed := false;
-  Fields.Add(FFdrepeatT);
-
-  DefaultContainerField := 'texture';
-end;
-
-class function TNodePixelTexture.ClassNodeTypeName: string;
-begin
-  Result := 'PixelTexture';
-end;
-
-class function TNodePixelTexture.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodePixelTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
-begin
-  Result := nil;
-  CacheUsed := false;
-
-  if not FdImage.Value.IsNull then
-    Result := FdImage.Value.MakeCopy;
-end;
-
-function TNodePixelTexture.TextureDescription: string;
-begin
-  if not FdImage.Value.IsNull then
-    result := Format('inlined (width = %d; height = %d; with alpha = %s)',
-      [ FdImage.Value.Width, FdImage.Value.Height,
-        BoolToStr[FdImage.Value is TAlphaImage] ]) else
-    result := 'none';
-end;
-
-function TNodePixelTexture.RepeatS: boolean;
-begin
-  Result := FdRepeatS.Value;
-end;
-
-function TNodePixelTexture.RepeatT: boolean;
-begin
-  Result := FdRepeatT.Value;
-end;
-
-function TNodePixelTexture.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodePlaneSensor.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -3425,125 +3097,6 @@ begin
 end;
 
 function TNodeSphereSensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeTextureCoordinate.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdpoint := TMFVec2f.Create('point', []);
-  Fields.Add(FFdpoint);
-
-  DefaultContainerField := 'texCoord';
-end;
-
-class function TNodeTextureCoordinate.ClassNodeTypeName: string;
-begin
-  Result := 'TextureCoordinate';
-end;
-
-class function TNodeTextureCoordinate.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeTextureCoordinate.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeTextureTransform.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcenter := TSFVec2f.Create('center', Vector2Single(0, 0));
-  Fields.Add(FFdcenter);
-
-  FFdrotation := TSFFloat.Create('rotation', 0);
-  Fields.Add(FFdrotation);
-
-  FFdscale := TSFVec2f.Create('scale', Vector2Single(1, 1));
-  Fields.Add(FFdscale);
-
-  FFdtranslation := TSFVec2f.Create('translation', Vector2Single(0, 0));
-  Fields.Add(FFdtranslation);
-
-  DefaultContainerField := 'textureTransform';
-end;
-
-class function TNodeTextureTransform.ClassNodeTypeName: string;
-begin
-  Result := 'TextureTransform';
-end;
-
-class function TNodeTextureTransform.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeTextureTransform.Matrix: TMatrix4Single;
-begin
-  { Note: don't be fooled by a little confusing VRML 2.0 spec
-    wording for TextureTransform, that suggests that VRML 2.0
-    TextureTransform should multiply matrices in reversed
-    order than VRML 1.0. I'm talking about the paragraph
-
-       In matrix transformation notation, where Tc is the
-       untransformed texture coordinate, Tc' is the transformed
-       texture coordinate, C (center), T (translation),
-       R (rotation), and S (scale) are the intermediate
-       transformation matrices,
-
-         Tc' = -C × S × R × C × T × Tc
-
-    VRML TextureTransform node transforms texture *coordinates*.
-    OpenGL texture matrix transforms texture *coordinates*.
-    And above paragraph says about texture *coordinates*.
-    So I'm either ultra-dumb or ultra-smart, but for me
-    the above paragraph is wrong: it says precisely that I should load
-    the *reversed* matrix of what I'm actually loading.
-    If I would follow this, I would actually *not* be
-    conforming to the rest of TextureTransform description in VRML spec.
-
-    Am I the only one fooled by this ? No:
-    [http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4320634]
-
-    So what's the truth (i.e. the correct order, consistent
-    with the whole rest of TextureTransform specification and with
-    other implementations) ?
-    Actually the order is the same for
-    both VRML 1.0 and 2.0, confirmed by experience (reversed
-    order just will not work correctly, e.g. TextureTransform
-    with rotation and center 0.5 0.5 fields specified will
-    not behave correctly) and other implementations
-    (see [http://search.cpan.org/src/LUKKA/FreeWRL-0.14/VRMLFunc.xs]
-    function TextureTransform_Rend). }
-
-  Result :=
-    TranslationMatrix( Vector3Single(
-      FdTranslation.Value[0] + FdCenter.Value[0],
-      FdTranslation.Value[1] + FdCenter.Value[1], 0));
-  Result := MultMatrices(Result,
-    RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  Result := MultMatrices(Result,
-    ScalingMatrix(
-      Vector3Single( FdScale.Value[0], FdScale.Value[1], 1 )));
-  Result := MultMatrices(Result,
-    TranslationMatrix(
-      Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
-end;
-
-function TNodeTextureTransform.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

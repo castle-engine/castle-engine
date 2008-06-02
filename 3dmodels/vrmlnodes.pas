@@ -1844,109 +1844,6 @@ type
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
   end;
 
-{ TVRMLTextureNode -------------------------------------------------------- }
-
-  { Common texture node for all VRML / X3D texture nodes. }
-  TVRMLTextureNode = class(TVRMLNode)
-  private
-    { This is always <> nil.
-      We use only IsNull to indicate whether we have or have not a texture here. }
-    FTextureImage: TImage;
-    { Non-nil only if FTextureImage should be freed using
-      TextureImageUsedCache.LoadImage_DecReference. }
-    TextureImageUsedCache: TImagesCache;
-    FIsTextureLoaded: boolean;
-    procedure SetIsTextureLoaded(Value: boolean);
-
-    FImagesCache: TImagesCache;
-
-    procedure FreeAndNilTextureImage;
-  protected
-    { This loads actual image. It must return newly created TImage
-      instance if texture could be loaded, or nil if no texture could
-      be loaded. You do not care in this method about things like
-      IsImageLoaded --- this method should just always,
-      unconditionally, make everything it can do to load texture.
-
-      You can use VRMLNonFatalError inside, so we're prepared
-      that this may even exit with exception (since VRMLNonFatalError
-      can raise exception).
-
-      You have to return TRGBImage or TAlphaImage here, see TextureImage docs.
-
-      Set CacheUsed to @true if you loaded the image using ImagesCache.
-
-      Also, set FTextureUsedFullUrl here. }
-    function LoadTextureImage(out CacheUsed: boolean): TImage; virtual; abstract;
-    FTextureUsedFullUrl: string;
-  public
-    constructor Create(const ANodeName: string;
-      const AWWWBasePath: string); override;
-    destructor Destroy; override;
-
-    { Texture image, inline or loaded from URL.
-      First call to TextureImage will automatically
-      load the texture, so in simple situations you really
-      don't need to do anything. Just use TextureImage when you want,
-      and things will just work.
-
-      Be sure to set ImagesCache before loading the texture.
-      TODO: allow ImagesCache to be @nil.
-
-      This is never @nil. If the texture is not available for any reason,
-      it's indicated by TextureImage.IsNull. IsTextureImage is a shortcut
-      for "not TextureImage.IsNull" (so note that calling IsTextureImage also
-      may cause texture load).
-
-      IsTextureLoaded says whether the texture is already loaded.
-      Since the texture will be loaded automatically, you're usually
-      not interested in this property. You can read it to e.g. predict
-      if next TextureImage call may take a long time. (You know that
-      if IsTextureLoaded = @true then TextureImage just returns ready
-      image instantly).
-
-      You can also set IsTextureLoaded.
-      Setting to @true means that you request the texture to be loaded @italic(now),
-      if it's not loaded already. Setting to @false may be useful if you want
-      to release resources (e.g. when you want to keep TNodeTexture instance
-      loaded but you know that you will not need TextureImage anymore).
-      You can also set it to @false and then back to @true if you want to
-      request reloading the texture from URL (e.g. if you suspect that
-      the URL contents changed).
-
-      Note that separate IsTextureLoaded and IsTextureImage state
-      means that if the texture loading will fail (e.g.
-      "texture file foo.png does not exist"), it will be reported
-      to VRMLNonFatalError only once, not at every TextureImage call.
-      This is obviously important if you use VRMLNonFatalError to report
-      warnings for user.
-
-      TextureImage class is always in (TRGBImage, TAlphaImage)
-      simply because only these formats are accepted by KambiGLUtils.
-      TODO: this is not nice, we do not want any OpenGL dependency in this unit,
-      even such "ideological" one. }
-    function TextureImage: TImage;
-    function IsTextureImage: boolean;
-    property IsTextureLoaded: boolean
-      read FIsTextureLoaded write SetIsTextureLoaded;
-    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
-
-    { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
-      zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
-      jak i jaka tekstura jest zaladowana. }
-    function TextureDescription: string; virtual; abstract;
-
-    function RepeatS: boolean; virtual; abstract;
-    function RepeatT: boolean; virtual; abstract;
-
-    { Once the image is loaded, this is set to the URL that was used to load
-      this image, or '' if no URL was used. No URL was used may mean that
-      no image was valid, or inlined image was used.
-
-      This is always a full, expanded (i.e. not relative) URL. }
-    property TextureUsedFullUrl: string read FTextureUsedFullUrl;
-  end;
-
 { IVRMLInlineNode --------------------------------------------------------- }
 
   { Basic interface that should be implemented by all Inline VRML nodes. }
@@ -1972,6 +1869,7 @@ type
 {$I x3d_text.inc}
 {$I x3d_sound.inc}
 {$I x3d_lighting.inc}
+{$I x3d_texturing.inc}
 
 {$I x3d_pointing_device_sensor.inc}
 {$I vrml1nodes.inc}
@@ -2729,6 +2627,7 @@ uses
 {$I x3d_text.inc}
 {$I x3d_sound.inc}
 {$I x3d_lighting.inc}
+{$I x3d_texturing.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -4770,98 +4669,6 @@ begin
   DefaultContainerField := 'geometry';
 end;
 
-{ TVRMLTextureNode -------------------------------------------------------- }
-
-constructor TVRMLTextureNode.Create(const ANodeName: string;
-  const AWWWBasePath: string);
-begin
-  inherited;
-  FTextureImage := TRGBImage.Create;
-  TextureImageUsedCache := nil;
-  FIsTextureLoaded := false;
-end;
-
-destructor TVRMLTextureNode.Destroy;
-begin
-  FreeAndNilTextureImage;
-  inherited;
-end;
-
-procedure TVRMLTextureNode.FreeAndNilTextureImage;
-begin
-  if TextureImageUsedCache <> nil then
-  begin
-    TextureImageUsedCache.LoadImage_DecReference(FTextureImage);
-    TextureImageUsedCache := nil;
-  end else
-    FreeAndNil(FTextureImage);
-end;
-
-function TVRMLTextureNode.TextureImage: TImage;
-begin
-  { Setting IsTextureLoaded property will initialize FTextureImage. }
-  IsTextureLoaded := true;
-
-  Result := FTextureImage;
-end;
-
-procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
-
-  procedure DoLoadTexture;
-  var
-    UsedCache: boolean;
-  begin
-    Assert(ImagesCache <> nil, 'ImagesCache must be set before loading the texture');
-
-    FreeAndNilTextureImage;
-
-    try
-      FTextureImage := LoadTextureImage(UsedCache);
-      if UsedCache then
-        TextureImageUsedCache := ImagesCache;
-    except
-      { Even if LoadTextureImage exits with exception, FTextureImage should
-        always remain non-nil.
-        This is all because I just changed Images unit interface to class-like
-        and I want to do minimal changes to VRMLNodes unit to not break
-        anything. TODO -- this will be solved better in the future, by simply
-        allowing TextureImage to be nil at any time. }
-      FTextureImage := TRGBImage.Create;
-      raise;
-    end;
-
-    { LoadTextureImage may raise exception, or it may return @nil in case of
-      trouble (this depends on VRMLNonFatalError, so we can't assume anything).
-      In case it returned nil, comments above still apply:
-      FTextureImage must not be nil. }
-
-    if FTextureImage = nil then
-      FTextureImage := TRGBImage.Create;
-  end;
-
-begin
-  if Value <> FIsTextureLoaded then
-  begin
-    if Value then
-    begin
-      { actually load the texture }
-      DoLoadTexture;
-    end else
-    begin
-      { unload the texture }
-      FreeAndNilTextureImage;
-      FTextureImage := TRGBImage.Create;
-    end;
-
-    FIsTextureLoaded := Value;
-  end;
-end;
-
-function TVRMLTextureNode.IsTextureImage: boolean;
-begin
-  result := not TextureImage.IsNull;
-end;
-
 { TVRMLUnknownNode ---------------------------------------------------------------- }
 
 function TVRMLUnknownNode.NodeTypeName: string;
@@ -6503,10 +6310,8 @@ initialization
     TNodeGeoPositionInterpolator,
     TNodeGeoTouchSensor,
     TNodeGeoViewpoint,
-    TNodeImageTexture,
     TNodeInlineLoadControl,
     TNodeLOD_2,
-    TNodeMovieTexture,
     TNodeNavigationInfo,
     TNodeNormalInterpolator,
     TNodeNurbsCurve,
@@ -6516,15 +6321,12 @@ initialization
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
     TNodeOrientationInterpolator,
-    TNodePixelTexture,
     TNodePlaneSensor,
     TNodePositionInterpolator,
     TNodeProximitySensor,
     TNodeScalarInterpolator,
     TNodeScript,
     TNodeSphereSensor,
-    TNodeTextureCoordinate,
-    TNodeTextureTransform,
     TNodeTouchSensor,
     TNodeTrimmedSurface,
     TNodeViewpoint,
@@ -6549,6 +6351,7 @@ initialization
   RegisterTextNodes;
   RegisterSoundNodes;
   RegisterLightingNodes;
+  RegisterTexturingNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

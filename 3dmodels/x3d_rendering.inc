@@ -316,7 +316,6 @@
   { TODO: temp dummy classes }
   TNodeX3DVertexAttributeNode = class(TVRMLNode);
   TNodeFogCoordinate = class(TVRMLNode);
-  TNodeX3DTextureCoordinateNode = class(TVRMLNode);
 {$endif read_interface}
 
 {$ifdef read_implementation}

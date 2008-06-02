@@ -19,7 +19,18 @@
 }
 
 {$ifdef read_interface}
-  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode)
+  INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
+    property Fdloop: TSFBool { read FFdloop } { };
+    property FdpauseTime: TSFTime { read FFdpauseTime } { };
+    property FdresumeTime: TSFTime { read FFdresumeTime } { };
+    property FdstartTime: TSFTime { read FFdstartTime } { };
+    property FdstopTime: TSFTime { read FFdstopTime } { };
+    property EventelapsedTime: TVRMLEvent { read FEventelapsedTime } { };
+    property EventisActive: TVRMLEvent { read FEventisActive } { };
+    property EventisPaused: TVRMLEvent { read FEventisPaused } { };
+  end;
+
+  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
