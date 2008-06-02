@@ -1872,6 +1872,7 @@ type
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
 {$I x3d_pointingdevicesensor.inc}
+{$I x3d_keydevicesensor.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2631,6 +2632,7 @@ uses
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
 {$I x3d_pointingdevicesensor.inc}
+{$I x3d_keydevicesensor.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6346,6 +6348,7 @@ initialization
   RegisterTexturingNodes;
   RegisterInterpolationNodes;
   RegisterPointingDeviceSensorNodes;
+  RegisterKeyDeviceSensorNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
