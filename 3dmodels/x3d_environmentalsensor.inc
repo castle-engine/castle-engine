@@ -139,13 +139,15 @@ function TNodeProximitySensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeProximitySensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -154,7 +156,7 @@ constructor TNodeTransformSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdtargetObject := TSFNode.Create(Self, 'targetObject', [X3DGroupingNode|X3DShapeNode]);
+  FFdtargetObject := TSFNode.Create(Self, 'targetObject', [TNodeX3DGroupingNode, TNodeX3DShapeNode]);
   Fields.Add(FFdtargetObject);
 
   FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
@@ -202,13 +204,15 @@ function TNodeVisibilitySensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeVisibilitySensor.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 

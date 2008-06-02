@@ -899,45 +899,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeProximitySensor = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
-
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
-
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    { Event: SFVec3f, out } { }
-    private FEventposition_changed: TVRMLEvent;
-    public property Eventposition_changed: TVRMLEvent read FEventposition_changed;
-
-    { Event: SFRotation, out } { }
-    private FEventorientation_changed: TVRMLEvent;
-    public property Eventorientation_changed: TVRMLEvent read FEventorientation_changed;
-
-    { Event: SFTime, out } { }
-    private FEvententerTime: TVRMLEvent;
-    public property EvententerTime: TVRMLEvent read FEvententerTime;
-
-    { Event: SFTime, out } { }
-    private FEventexitTime: TVRMLEvent;
-    public property EventexitTime: TVRMLEvent read FEventexitTime;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeScript = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1029,37 +990,6 @@
     class function ViewpointAngleOfView(
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
-  end;
-
-  TNodeVisibilitySensor = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
-
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
-
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
-
-    { Event: SFTime, out } { }
-    private FEvententerTime: TVRMLEvent;
-    public property EvententerTime: TVRMLEvent read FEvententerTime;
-
-    { Event: SFTime, out } { }
-    private FEventexitTime: TVRMLEvent;
-    public property EventexitTime: TVRMLEvent read FEventexitTime;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
   end;
 {$endif read_interface}
 
@@ -2428,56 +2358,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeProximitySensor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
-  Fields.Add(FFdcenter);
-
-  FFdsize := TSFVec3f.Create('size', ZeroVector3Single);
-  Fields.Add(FFdsize);
-
-  FFdenabled := TSFBool.Create('enabled', TRUE);
-  Fields.Add(FFdenabled);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  FEventposition_changed := TVRMLEvent.Create('position_changed', TSFVec3f, false);
-  Events.Add(FEventposition_changed);
-
-  FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
-  Events.Add(FEventorientation_changed);
-
-  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
-  Events.Add(FEvententerTime);
-
-  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
-  Events.Add(FEventexitTime);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeProximitySensor.ClassNodeTypeName: string;
-begin
-  Result := 'ProximitySensor';
-end;
-
-class function TNodeProximitySensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeProximitySensor.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeScript.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2632,50 +2512,6 @@ begin
 end;
 
 function TNodeViewpoint.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeVisibilitySensor.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
-  Fields.Add(FFdcenter);
-
-  FFdenabled := TSFBool.Create('enabled', TRUE);
-  Fields.Add(FFdenabled);
-
-  FFdsize := TSFVec3f.Create('size', ZeroVector3Single);
-  Fields.Add(FFdsize);
-
-  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
-  Events.Add(FEvententerTime);
-
-  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
-  Events.Add(FEventexitTime);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeVisibilitySensor.ClassNodeTypeName: string;
-begin
-  Result := 'VisibilitySensor';
-end;
-
-class function TNodeVisibilitySensor.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeVisibilitySensor.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

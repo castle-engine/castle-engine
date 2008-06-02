@@ -1873,6 +1873,7 @@ type
 {$I x3d_interpolation.inc}
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
+{$I x3d_environmentalsensor.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2584,7 +2585,7 @@ const
 implementation
 
 uses
-  { fonts for AsciiText }
+  { Fonts for Text, FontStyle, AsciiText nodes }
   { Bitstream Vera Sans }
   TTF_BitstreamVeraSans_Unit,
   TTF_BitstreamVeraSans_Bold_Unit,
@@ -2633,6 +2634,7 @@ uses
 {$I x3d_interpolation.inc}
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
+{$I x3d_environmentalsensor.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6320,11 +6322,9 @@ initialization
     TNodeNurbsPositionInterpolator,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
-    TNodeProximitySensor,
     TNodeScript,
     TNodeTrimmedSurface,
     TNodeViewpoint,
-    TNodeVisibilitySensor,
 
     { X3D nodes }
     TNodeComposedShader,
@@ -6349,6 +6349,7 @@ initialization
   RegisterInterpolationNodes;
   RegisterPointingDeviceSensorNodes;
   RegisterKeyDeviceSensorNodes;
+  RegisterEnvironmentalSensorNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
