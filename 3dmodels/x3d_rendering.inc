@@ -359,8 +359,6 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeClipPlane.Create(const ANodeName: string;

@@ -388,8 +388,11 @@ const
                 end;
               end else
               begin
-                FreeAndNil(Child);
-                VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" in node "' + Node.NodeTypeName + '"');
+                try
+                  VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"');
+                finally
+                  FreeAndNil(Child);
+                end;
               end;
             end;
           end;

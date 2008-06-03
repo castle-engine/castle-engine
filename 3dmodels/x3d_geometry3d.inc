@@ -332,8 +332,6 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeBox.ClassNodeTypeName: string;
@@ -537,8 +535,6 @@ begin
   FFdzSpacing.Exposed := false;
   Fields.Add(FFdzSpacing);
   { X3D specification comment: (0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeElevationGrid.ClassNodeTypeName: string;
