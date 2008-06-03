@@ -1874,13 +1874,13 @@ type
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
+{$I x3d_navigation.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
 {$I x3d_shaders.inc}
-{$I x3d_navigation.inc}
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
@@ -2635,13 +2635,13 @@ uses
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
+{$I x3d_navigation.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
 {$I x3d_shaders.inc}
-{$I x3d_navigation.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -6299,8 +6299,6 @@ initialization
 
     { VRML 2.0 spec nodes }
     TNodeBackground,
-    TNodeBillboard,
-    TNodeCollision,
     TNodeContour2D,
     TNodeCoordinateDeformer,
     TNodeFog,
@@ -6314,8 +6312,6 @@ initialization
     TNodeGeoTouchSensor,
     TNodeGeoViewpoint,
     TNodeInlineLoadControl,
-    TNodeLOD_2,
-    TNodeNavigationInfo,
     TNodeNurbsCurve,
     TNodeNurbsCurve2D,
     TNodeNurbsGroup,
@@ -6324,7 +6320,6 @@ initialization
     TNodeNurbsTextureSurface,
     TNodeScript,
     TNodeTrimmedSurface,
-    TNodeViewpoint,
 
     { X3D nodes }
     TNodeComposedShader,
@@ -6350,6 +6345,7 @@ initialization
   RegisterPointingDeviceSensorNodes;
   RegisterKeyDeviceSensorNodes;
   RegisterEnvironmentalSensorNodes;
+  RegisterNavigationNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

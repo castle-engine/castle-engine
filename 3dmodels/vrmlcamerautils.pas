@@ -346,7 +346,7 @@ begin
       2: ViewpointNode := TNodeViewpoint.Create('', '');
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
-    ViewpointNode.FdPosition.Value := CameraPos;
+    ViewpointNode.Position.Value := CameraPos;
     ViewpointNode.FdOrientation.Value := CamDirUp2Orient(CameraDir, CameraUp);
     Result := ViewpointNode;
   end else
@@ -375,7 +375,7 @@ begin
            Transform_1.FdRotation.Value := Rotation;
 
            ViewpointNode := TNodePerspectiveCamera.Create('', '');
-           ViewpointNode.FdPosition.Value := ZeroVector3Single;
+           ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
            Separator := TNodeSeparator.Create('', '');
@@ -391,7 +391,7 @@ begin
            Transform_2.FdRotation.Value := Rotation;
 
            ViewpointNode := TNodeViewpoint.Create('', '');
-           ViewpointNode.FdPosition.Value := ZeroVector3Single;
+           ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
            Transform_2.FdChildren.AddItem(ViewpointNode);

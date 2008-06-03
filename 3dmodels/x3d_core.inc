@@ -214,6 +214,8 @@ type
   TNodeMetadataDouble, TNodeMetadataFloat, TNodeMetadataInteger,
   TNodeMetadataSet, TNodeMetadataString}
 
+{$define INodeX3DChildNode_Descendants := TNodeX3DChildNode}
+
 constructor TNodeX3DNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin

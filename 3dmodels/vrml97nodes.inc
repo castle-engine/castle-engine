@@ -141,53 +141,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeBillboard = class(TNodeX3DGroupingNode)
-  protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdaxisOfRotation: TSFVec3f;
-    public property FdaxisOfRotation: TSFVec3f read FFdaxisOfRotation;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
-  TNodeCollision = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
-  protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcollide: TSFBool;
-    public property Fdcollide: TSFBool read FFdcollide;
-
-    private FFdproxy: TSFNode;
-    public property Fdproxy: TSFNode read FFdproxy;
-
-    { Event: SFTime, out } { }
-    private FEventcollideTime: TVRMLEvent;
-    public property EventcollideTime: TVRMLEvent read FEventcollideTime;
-
-    { This should actually come from ancestor INodeX3DSensorNode } { }
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeContour2D = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -685,41 +638,6 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeNavigationInfo = class(TNodeX3DBindableNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdavatarSize: TMFFloat;
-    public property FdavatarSize: TMFFloat read FFdavatarSize;
-
-    private FFdheadlight: TSFBool;
-    public property Fdheadlight: TSFBool read FFdheadlight;
-
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
-
-    private FFdtransitionTime: TSFTime;
-    public property FdtransitionTime: TSFTime read FFdtransitionTime;
-
-    private FFdtransitionType: TMFString;
-    public property FdtransitionType: TMFString read FFdtransitionType;
-
-    private FFdtype: TMFString;
-    public property Fdtype: TMFString read FFdtype;
-
-    private FFdvisibilityLimit: TSFFloat;
-    public property FdvisibilityLimit: TSFFloat read FFdvisibilityLimit;
-
-    { Event: SFBool, out } { }
-    private FEventtransitionComplete: TVRMLEvent;
-    public property EventtransitionComplete: TVRMLEvent read FEventtransitionComplete;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeNurbsCurve = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -942,55 +860,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
-
-  TNodeViewpoint = class(TVRMLViewpointNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdfieldOfView: TSFFloat;
-    public property FdfieldOfView: TSFFloat read FFdfieldOfView;
-
-    private FFdjump: TSFBool;
-    public property Fdjump: TSFBool read FFdjump;
-
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
-
-    private FFdcenterOfRotation: TSFVec3f;
-    public property FdcenterOfRotation: TSFVec3f read FFdcenterOfRotation;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-
-    class function CameraKind: TVRMLCameraKind; override;
-
-    { This calculates proper angle of view for typical rectangular
-      display, based on given fieldOfView field value.
-      Result is in radians (just like fieldOfView VRML field).
-
-      If you want to calculate horizontal angle of view then
-      pass as ThisToOtherSizeRatio your window's width / height.
-      If you want to calculate vertical angle of view then
-      pass as ThisToOtherSizeRatio your window's height / width.
-      For this method it doesn't really matter which is horizontal
-      and which is vertical, both are treated the same.
-
-      This works following VRML spec. So the angle of view for
-      smaller window size is set to fieldOfViee. The other angle
-      can always be calculated by AdjustViewAngleRadToAspectRatio
-      (this implements the same equation that is mentioned in VRML spec).
-      The larger angle cannot be larger than Pi, and may force the
-      smaller angle to be smaller than fieldOfView. }
-    function AngleOfView(const ThisToOtherSizeRatio: Single): Single;
-
-    { This is like AngleOfView, but it allows you to specify
-      FieldOfView as a parameter. }
-    class function ViewpointAngleOfView(
-      FieldOfView: Single;
-      const ThisToOtherSizeRatio: Single): Single;
-  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1150,93 +1019,6 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 100);
-end;
-
-constructor TNodeBillboard.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdaxisOfRotation := TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0));
-  Fields.Add(FFdaxisOfRotation);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeBillboard.ClassNodeTypeName: string;
-begin
-  Result := 'Billboard';
-end;
-
-class function TNodeBillboard.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-procedure TNodeBillboard.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
-begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
-end;
-
-function TNodeBillboard.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeCollision.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdcollide := TSFBool.Create('collide', TRUE);
-  Fields.Add(FFdcollide);
-
-  FFdproxy := TSFNode.Create(Self, 'proxy', AllowedChildrenNodes);
-  FFdproxy.Exposed := false;
-  Fields.Add(FFdproxy);
-
-  FEventcollideTime := TVRMLEvent.Create('collideTime', TSFTime, false);
-  Events.Add(FEventcollideTime);
-
-  FFdenabled := TSFBool.Create('enabled', true);
-  Fields.Add(FFdenabled);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeCollision.ClassNodeTypeName: string;
-begin
-  Result := 'Collision';
-end;
-
-class function TNodeCollision.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
-begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
-end;
-
-function TNodeCollision.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
 end;
 
 constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2027,56 +1809,6 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNavigationInfo.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdavatarSize := TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]);
-  Fields.Add(FFdavatarSize);
-
-  FFdheadlight := TSFBool.Create('headlight', TRUE);
-  Fields.Add(FFdheadlight);
-
-  FFdspeed := TSFFloat.Create('speed', 1.0);
-  Fields.Add(FFdspeed);
-
-  FFdtransitionTime := TSFTime.Create('transitionTime', 1.0);
-  Fields.Add(FFdtransitionTime);
-
-  FFdtransitionType := TMFString.Create('transitionType',  ['LINEAR']);
-  Fields.Add(FFdtransitionType);
-
-  FFdtype := TMFString.Create('type', ['WALK', 'ANY']);
-  Fields.Add(FFdtype);
-
-  FFdvisibilityLimit := TSFFloat.Create('visibilityLimit', 0.0);
-  Fields.Add(FFdvisibilityLimit);
-
-  FEventtransitionComplete := TVRMLEvent.Create('transitionComplete', TSFBool, false);
-  Events.Add(FEventtransitionComplete);
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeNavigationInfo.ClassNodeTypeName: string;
-begin
-  Result := 'NavigationInfo';
-end;
-
-class function TNodeNavigationInfo.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNavigationInfo.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 100);
-end;
-
 constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -2430,88 +2162,6 @@ begin
 end;
 
 function TNodeTrimmedSurface.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeViewpoint.Create(
-  const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdfieldOfView := TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView);
-  Fields.Add(FFdfieldOfView);
-
-  FFdjump := TSFBool.Create('jump', TRUE);
-  Fields.Add(FFdjump);
-
-  FFddescription := TSFString.Create('description', '');
-  Fields.Add(FFddescription);
-
-  FFdcenterOfRotation := TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdcenterOfRotation);
-
-  { Default value of position is different for Viewpoint than for VRML 1.0
-    cameras (as set by TVRMLViewpointNode). }
-  FdPosition.DefaultValue := Vector3Single(0, 0, 10);
-  FdPosition.Value := FdPosition.DefaultValue;
-
-  DefaultContainerField := 'children';
-end;
-
-class function TNodeViewpoint.ClassNodeTypeName: string;
-begin
-  Result := 'Viewpoint';
-end;
-
-class function TNodeViewpoint.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-class function TNodeViewpoint.CameraKind: TVRMLCameraKind;
-begin
-  Result := ckPerspective;
-end;
-
-function TNodeViewpoint.AngleOfView(
-  const ThisToOtherSizeRatio: Single): Single;
-begin
-  Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
-end;
-
-class function TNodeViewpoint.ViewpointAngleOfView(
-  FieldOfView: Single;
-  const ThisToOtherSizeRatio: Single): Single;
-var
-  OtherAngle: Single;
-begin
-  Clamp(FieldOfView, 0.01, Pi - 0.01);
-
-  if ThisToOtherSizeRatio < 1 then
-  begin
-    { So the resulting angle is the smaller one. }
-    Result := FieldOfView;
-    OtherAngle :=
-      AdjustViewAngleRadToAspectRatio(Result, 1 / ThisToOtherSizeRatio);
-    if OtherAngle > Pi then
-      Result := AdjustViewAngleRadToAspectRatio(Pi, ThisToOtherSizeRatio);
-  end else
-  begin
-    { So the resulting angle is the larger one. }
-    OtherAngle := FieldOfView;
-    Result :=
-      AdjustViewAngleRadToAspectRatio(OtherAngle, ThisToOtherSizeRatio);
-    if Result > Pi then
-      Result := Pi;
-  end;
-end;
-
-function TNodeViewpoint.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);

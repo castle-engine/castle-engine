@@ -632,84 +632,13 @@
     function AverageScaleTransform: Single; override;
   end;
 
-  TVRMLCameraKind = (ckOrthographic, ckPerspective);
-
-  { A common class for both VRML 1.0 camera nodes and VRML 2.0 Viewpoint
-    node. }
-  TVRMLViewpointNode = class(TNodeX3DBindableNode)
+  { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
+  TVRMLCameraNode_1 = class(TVRMLViewpointNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
-
-    private FFdOrientation: TSFRotation;
-    public property FdOrientation: TSFRotation read FFdOrientation;
-
-    private FFdDirection: TMFVec3f;
-    public property FdDirection: TMFVec3f read FFdDirection;
-
-    private FFdUp: TMFVec3f;
-    public property FdUp: TMFVec3f read FFdUp;
-
-    private FFdGravityUp: TSFVec3f;
-    public property FdGravityUp: TSFVec3f read FFdGravityUp;
-
-    class function CameraKind: TVRMLCameraKind; virtual; abstract;
-
-    { Calculate camera properties in the form of 3 vectors
-      (position + direction + up) based on current field values of
-      this node. Following VRML spec:
-
-@preformatted(
-  CamPos = FdPosition,
-  CamDir = (0, 0, -1) rotated by FdOrientation,
-  CamUp = (0, 1, 0) rotated by FdOrientation,
-  GravityUp = (0, 1, 0) (not rotated by FdOrientation!),
-  and everything is transformed by given CamTransform.
-)
-      (you should give here the actual VRML transformation at the point in file
-      where camera is defined).
-
-      Dodajemy do tego dodatki Kambiego :
-      jesli FdDirection.Length > 0 to CamDirection nie jest liczone z
-      FdOrientation ale jest brane wprost z FdDirection.Items[0].
-      Podobnie dla FdUp.
-
-      Zwraca zawsze znormalizowany CamDir i CamUp i GravityUp bo:
-      @orderedList(
-        @item(
-          zeby zmusic cie do stosowania konsekwentnej zasady wyrazonej na
-          poczatku VRMLNodes i nie pisania kodu ktory w jakis sposob bylby
-          uzalezniony od podawanych tu CamDir. To dlatego ze
-          pola FdOrientation / FdDirection / FdUp tego wezla NIE sluza do
-          podawania czegokolwiek poza kierunkami, a wiec ich dlugosc jest
-          niewazna. No i stosujac FdOrientation, a wiec uzywajac standardowego
-          VRMLa 1.0, nie mozna nawet podac dlugosci FdDirection/FdUp innej
-          niz 1.)
-        @item(
-          Normalizujemy tutaj bo w implementacji tej funkcji czesto wiemy
-          ze nie trzeba normalizowac, np. gdy zwracamy standardowe dir/up
-          kamery obrocone o orientation to nie potrzebujemy robic zadnej
-          normalizacji bo wiemy ze wynik ma dlugosc 1. W ten sytuacji byloby
-          nieoptymalne gdybys musial po wywolaniu tej procedury wywolac
-          NormalizeTo1st(CamDir), bo przeciez czesto w ponizszej procedurze
-          wiadomo ze nie trzea normalizowac (a wiec wywolanie NormalizeTo1st
-          i wywolywany w jego srodku Sqrt sa zbedne).)
-      )
-
-      TODO: FocalDistance powinien tez byc tu zwracany (po przeliczeniu
-      przez CamTransform) for TVRMLCameraNode_1. }
-    procedure GetCameraVectors(const CamTransform: TMatrix4Single;
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
-  end;
-
-  TVRMLViewpointClassNode = class of TVRMLViewpointNode;
-
-  { GeneralCamera - wspolna klasa dla wszystkich kamer VRML'a. }
-  TVRMLCameraNode_1 = class(TVRMLViewpointNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
     private FFdFocalDistance: TSFFloat;
     public property FdFocalDistance: TSFFloat read FFdFocalDistance;
@@ -726,6 +655,8 @@
 
     private FFdFarDistance: TSFFloat;
     public property FdFarDistance: TSFFloat read FFdFarDistance;
+
+    function Position: TSFVec3f; override;
 
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -1991,57 +1922,15 @@ begin
   Result := 1;
 end;
 
-constructor TVRMLViewpointNode.Create(
-  const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 1));
-  Fields.Add(FFdposition);
-
-  FFdorientation := TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdorientation);
-
-  FFddirection := TMFVec3f.Create('direction', []);
-  Fields.Add(FFddirection);
-
-  FFdup := TMFVec3f.Create('up', []);
-  Fields.Add(FFdup);
-
-  FFdgravityUp := TSFVec3f.Create('gravityUp', StdVRMLGravityUp);
-  Fields.Add(FFdgravityUp);
-end;
-
-procedure TVRMLViewpointNode.GetCameraVectors(
-  const CamTransform: TMatrix4Single;
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
-begin
-  CamPos := FdPosition.Value;
-  if FdDirection.Items.Length > 0 then
-    CamDir := FdDirection.Items.Items[0] else
-    CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
-  if FdUp.Items.Length > 0 then
-    CamUp := FdUp.Items.Items[0] else
-    CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
-  GravityUp := FdGravityUp.Value;
-
-  { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
-    jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak MultMatrixPointNoTranslationNoScale }
-  CamPos := MultMatrixPoint(CamTransform, CamPos);
-  CamDir := Normalized( MultMatrixPointNoTranslation(CamTransform, CamDir) );
-  CamUp := Normalized( MultMatrixPointNoTranslation(CamTransform, CamUp) );
-  GravityUp := Normalized( MultMatrixPointNoTranslation(CamTransform, GravityUp) );
-
-  Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
-  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
-end;
-
 constructor TVRMLCameraNode_1.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
+
+  { Note that the default "position" value for VRML 1.0 is different
+    than for VRML >= 2.0 (where is (0, 0, 10)). }
+  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 1));
+  Fields.Add(FFdposition);
 
   FFdfocalDistance := TSFFloat.Create('focalDistance', 5, true);
   Fields.Add(FFdfocalDistance);
@@ -2054,6 +1943,11 @@ begin
 
   FFdfarDistance := TSFFloat.Create('farDistance', 0);
   Fields.Add(FFdfarDistance);
+end;
+
+function TVRMLCameraNode_1.Position: TSFVec3f;
+begin
+  Result := FdPosition;
 end;
 
 function TVRMLCameraNode_1.SuggestedVRMLVersion(
