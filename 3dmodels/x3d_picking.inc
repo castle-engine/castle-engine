@@ -123,14 +123,19 @@ constructor TNodeX3DPickSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create('objectType', 'ALL');
+  FFdobjectType := TMFString.Create('objectType', ['ALL']);
   Fields.Add(FFdobjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdpickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [X3DGeometryNode]);
+  FFdpickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TNodeX3DGeometryNode]);
   Fields.Add(FFdpickingGeometry);
 
-  FFdpickTarget := TMFNode.Create(Self, 'pickTarget', [X3DGroupingNode|X3DShapeNode|X3DInlineNode]);
+  { X3D specification (edition 2) specifies X3DInlineNode as 3rd value on
+    the list of allowed classes for "pickTarget". But there is no X3DInlineNode
+    in the specification... So I just added TNodeInline there (it's the only
+    Inline node for X3D anyway. }
+
+  FFdpickTarget := TMFNode.Create(Self, 'pickTarget', [TNodeX3DGroupingNode, TNodeX3DShapeNode, TNodeInline]);
   Fields.Add(FFdpickTarget);
 
   FEventpickedGeometry := TVRMLEvent.Create('pickedGeometry', TMFNode, false);
@@ -190,7 +195,7 @@ constructor TNodePickableGroup.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create('objectType', 'ALL');
+  FFdobjectType := TMFString.Create('objectType', ['ALL']);
   Fields.Add(FFdobjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 

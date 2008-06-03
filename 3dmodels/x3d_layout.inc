@@ -201,10 +201,10 @@ constructor TNodeLayoutGroup.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdlayout := TSFNode.Create(Self, 'layout', [X3DLayoutNode]);
+  FFdlayout := TSFNode.Create(Self, 'layout', [TNodeX3DLayoutNode]);
   Fields.Add(FFdlayout);
 
-  FFdviewport := TSFNode.Create(Self, 'viewport', [X3DViewportNode]);
+  FFdviewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
   Fields.Add(FFdviewport);
 
   DefaultContainerField := 'children';
@@ -240,10 +240,10 @@ begin
   FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', [X3DChildNode]);
+  FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
   Fields.Add(FFdchildren);
 
-  FFdlayout := TSFNode.Create(Self, 'layout', [X3DLayoutNode]);
+  FFdlayout := TSFNode.Create(Self, 'layout', [TNodeX3DLayoutNode]);
   Fields.Add(FFdlayout);
 
   DefaultContainerField := 'children';
@@ -273,7 +273,7 @@ constructor TNodeScreenFontStyle.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfamily := TMFString.Create('family', 'SERIF');
+  FFdfamily := TMFString.Create('family', ['SERIF']);
   FFdfamily.Exposed := false;
   Fields.Add(FFdfamily);
 
@@ -281,7 +281,7 @@ begin
   FFdhorizontal.Exposed := false;
   Fields.Add(FFdhorizontal);
 
-  FFdjustify := TMFString.Create('justify', 'BEGIN');
+  FFdjustify := TMFString.Create('justify', ['BEGIN']);
   FFdjustify.Exposed := false;
   Fields.Add(FFdjustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }

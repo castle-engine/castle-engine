@@ -297,7 +297,7 @@ constructor TNodeBoundedPhysicsModel.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdgeometry := TSFNode.Create(Self, 'geometry', [X3DGeometryNode]);
+  FFdgeometry := TSFNode.Create(Self, 'geometry', [TNodeX3DGeometryNode]);
   Fields.Add(FFdgeometry);
 
   DefaultContainerField := 'children';
@@ -450,16 +450,16 @@ begin
   FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
-  FFdcolorRamp := TSFNode.Create(Self, 'colorRamp', [X3DColorNode]);
+  FFdcolorRamp := TSFNode.Create(Self, 'colorRamp', [TNodeX3DColorNode]);
   FFdcolorRamp.Exposed := false;
   Fields.Add(FFdcolorRamp);
 
-  FFdcolorKey := TMFFloat.Create('colorKey', NULL);
+  FFdcolorKey := TMFFloat.Create('colorKey', []);
   FFdcolorKey.Exposed := false;
   Fields.Add(FFdcolorKey);
   { X3D specification comment: [0,Inf) }
 
-  FFdemitter := TSFNode.Create(Self, 'emitter', [X3DParticleEmitterNode]);
+  FFdemitter := TSFNode.Create(Self, 'emitter', [TNodeX3DParticleEmitterNode]);
   FFdemitter.Exposed := false;
   Fields.Add(FFdemitter);
 
@@ -468,11 +468,11 @@ begin
   Fields.Add(FFdgeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
 
-  FFdphysics := TMFNode.Create(Self, 'physics', [X3DParticlePhysicsModelNode]);
+  FFdphysics := TMFNode.Create(Self, 'physics', [TNodeX3DParticlePhysicsModelNode]);
   FFdphysics.Exposed := false;
   Fields.Add(FFdphysics);
 
-  FFdtexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TextureCoordinate]);
+  FFdtexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TNodeTextureCoordinate]);
   FFdtexCoordRamp.Exposed := false;
   Fields.Add(FFdtexCoordRamp);
 
@@ -544,14 +544,14 @@ begin
   FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
   FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
   { X3D specification comment: [-1,1] }
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -586,12 +586,12 @@ begin
   FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdsurface := TSFNode.Create(Self, 'surface', [X3DGeometryNode]);
+  FFdsurface := TSFNode.Create(Self, 'surface', [TNodeX3DGeometryNode]);
   FFdsurface.Exposed := false;
   Fields.Add(FFdsurface);
 
@@ -625,14 +625,14 @@ begin
   FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [X3DCoordinateNode]);
+  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
   FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
   { X3D specification comment: [-1,1] }
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', -1);
+  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }

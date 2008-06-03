@@ -1883,6 +1883,15 @@ type
 {$I x3d_scripting.inc}
 {$I x3d_eventutilities.inc}
 {$I x3d_shaders.inc}
+{$I x3d_cadgeometry.inc}
+{$I x3d_texturing3d.inc}
+{$I x3d_cubemaptexturing.inc}
+{$I x3d_layering.inc}
+{$I x3d_layout.inc}
+{$I x3d_rigidbodyphysics.inc}
+{$I x3d_picking.inc}
+{$I x3d_followers.inc}
+{$I x3d_particlesystems.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2651,6 +2660,15 @@ uses
 {$I x3d_scripting.inc}
 {$I x3d_eventutilities.inc}
 {$I x3d_shaders.inc}
+{$I x3d_cadgeometry.inc}
+{$I x3d_texturing3d.inc}
+{$I x3d_cubemaptexturing.inc}
+{$I x3d_layering.inc}
+{$I x3d_layout.inc}
+{$I x3d_rigidbodyphysics.inc}
+{$I x3d_picking.inc}
+{$I x3d_followers.inc}
+{$I x3d_particlesystems.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6347,6 +6365,15 @@ initialization
   RegisterScriptingNodes;
   RegisterEventUtilitiesNodes;
   RegisterShadersNodes;
+  RegisterCADGeometryNodes;
+  RegisterTexturing3DNodes;
+  RegisterCubeMapTexturingNodes;
+  RegisterLayeringNodes;
+  RegisterLayoutNodes;
+  RegisterRigidBodyPhysicsNodes;
+  RegisterPickingNodes;
+  RegisterFollowersNodes;
+  RegisterParticleSystemsNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

@@ -724,13 +724,13 @@ constructor TNodeX3DRigidJointNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbody1 := TSFNode.Create(Self, 'body1', [RigidBody]);
+  FFdbody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
   Fields.Add(FFdbody1);
 
-  FFdbody2 := TSFNode.Create(Self, 'body2', [RigidBody]);
+  FFdbody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
   Fields.Add(FFdbody2);
 
-  FFdforceOutput := TMFString.Create('forceOutput', 'NONE');
+  FFdforceOutput := TMFString.Create('forceOutput', ['NONE']);
   Fields.Add(FFdforceOutput);
   { X3D specification comment: ["ALL","NONE",...] }
 
@@ -778,7 +778,7 @@ constructor TNodeCollidableOffset.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcollidable := TSFNode.Create(Self, 'collidable', [X3DNBodyCollidableNode]);
+  FFdcollidable := TSFNode.Create(Self, 'collidable', [TNodeX3DNBodyCollidableNode]);
   FFdcollidable.Exposed := false;
   Fields.Add(FFdcollidable);
 
@@ -809,7 +809,7 @@ constructor TNodeCollidableShape.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdshape := TSFNode.Create(Self, 'shape', [Shape]);
+  FFdshape := TSFNode.Create(Self, 'shape', [TNodeShape]);
   FFdshape.Exposed := false;
   Fields.Add(FFdshape);
 
@@ -840,7 +840,7 @@ constructor TNodeCollisionCollection.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdappliedParameters := TMFString.Create('appliedParameters', 'BOUNCE');
+  FFdappliedParameters := TMFString.Create('appliedParameters', ['BOUNCE']);
   Fields.Add(FFdappliedParameters);
   { X3D specification comment: [] }
 
@@ -848,7 +848,7 @@ begin
   Fields.Add(FFdbounce);
   { X3D specification comment: [0,1] }
 
-  FFdcollidables := TMFNode.Create(Self, 'collidables', [X3DNBodyCollisionSpaceNode, X3DNBodyCollidableNode]);
+  FFdcollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
   Fields.Add(FFdcollidables);
 
   FFdenabled := TSFBool.Create('enabled', true);
@@ -905,7 +905,7 @@ constructor TNodeCollisionSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcollider := TSFNode.Create(Self, 'collider', [CollisionCollection]);
+  FFdcollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
   Fields.Add(FFdcollider);
 
   FEventintersections := TVRMLEvent.Create('intersections', TMFNode, false);
@@ -941,7 +941,7 @@ constructor TNodeCollisionSpace.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcollidables := TMFNode.Create(Self, 'collidables', [X3DNBodyCollisionSpaceNode,X3DNBodyCollidableNode]);
+  FFdcollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
   Fields.Add(FFdcollidables);
 
   FFduseGeometry := TSFBool.Create('useGeometry', false);
@@ -974,14 +974,14 @@ constructor TNodeContact.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdappliedParameters := TMFString.Create('appliedParameters', 'BOUNCE');
+  FFdappliedParameters := TMFString.Create('appliedParameters', ['BOUNCE']);
   Fields.Add(FFdappliedParameters);
   { X3D specification comment: [] }
 
-  FFdbody1 := TSFNode.Create(Self, 'body1', [RigidBody]);
+  FFdbody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
   Fields.Add(FFdbody1);
 
-  FFdbody2 := TSFNode.Create(Self, 'body2', [RigidBody]);
+  FFdbody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
   Fields.Add(FFdbody2);
 
   FFdbounce := TSFFloat.Create('bounce', 0);
@@ -1004,10 +1004,10 @@ begin
   Fields.Add(FFdfrictionDirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeometry1 := TSFNode.Create(Self, 'geometry1', [X3DNBodyCollidableNode]);
+  FFdgeometry1 := TSFNode.Create(Self, 'geometry1', [TNodeX3DNBodyCollidableNode]);
   Fields.Add(FFdgeometry1);
 
-  FFdgeometry2 := TSFNode.Create(Self, 'geometry2', [X3DNBodyCollidableNode]);
+  FFdgeometry2 := TSFNode.Create(Self, 'geometry2', [TNodeX3DNBodyCollidableNode]);
   Fields.Add(FFdgeometry2);
 
   FFdminbounceSpeed := TSFFloat.Create('minbounceSpeed', 0);
@@ -1318,12 +1318,11 @@ begin
   FFdforces := TMFVec3f.Create('forces', []);
   Fields.Add(FFdforces);
 
-  FFdgeometry := TMFNode.Create(Self, 'geometry', [X3DNBodyCollidableNode]);
+  FFdgeometry := TMFNode.Create(Self, 'geometry', [TNodeX3DNBodyCollidableNode]);
   Fields.Add(FFdgeometry);
 
-  FFdinertia := TSFMatrix3f.Create('inertia', 1);
+  FFdinertia := TSFMatrix3f.Create('inertia', IdentityMatrix3Single);
   Fields.Add(FFdinertia);
-  { X3D specification comment: 0 0  0 1 0  0 0 1 }
 
   FFdlinearDampingFactor := TSFFloat.Create('linearDampingFactor', 0.001);
   Fields.Add(FFdlinearDampingFactor);
@@ -1337,7 +1336,7 @@ begin
   Fields.Add(FFdmass);
   { X3D specification comment: (0,Inf) }
 
-  FFdmassDensityModel := TSFNode.Create(Self, 'massDensityModel', [Sphere, Box, Cone]);
+  FFdmassDensityModel := TSFNode.Create(Self, 'massDensityModel', [TNodeSphere_2, TNodeBox, TNodeCone_2]);
   Fields.Add(FFdmassDensityModel);
 
   FFdorientation := TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0);
@@ -1390,7 +1389,7 @@ begin
   FFdautoDisable := TSFBool.Create('autoDisable', false);
   Fields.Add(FFdautoDisable);
 
-  FFdbodies := TMFNode.Create(Self, 'bodies', [RigidBody]);
+  FFdbodies := TMFNode.Create(Self, 'bodies', [TNodeRigidBody]);
   Fields.Add(FFdbodies);
 
   FFdconstantForceMix := TSFFloat.Create('constantForceMix', 0.0001);
@@ -1427,7 +1426,7 @@ begin
   Fields.Add(FFditerations);
   { X3D specification comment: [0,Inf) }
 
-  FFdjoints := TMFNode.Create(Self, 'joints', [X3DRigidJointNode]);
+  FFdjoints := TMFNode.Create(Self, 'joints', [TNodeX3DRigidJointNode]);
   Fields.Add(FFdjoints);
 
   FFdmaxCorrectionSpeed := TSFFloat.Create('maxCorrectionSpeed', -1);
@@ -1437,7 +1436,7 @@ begin
   FFdpreferAccuracy := TSFBool.Create('preferAccuracy', false);
   Fields.Add(FFdpreferAccuracy);
 
-  FFdcollider := TSFNode.Create(Self, 'collider', [CollisionCollection]);
+  FFdcollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
   FFdcollider.Exposed := false;
   Fields.Add(FFdcollider);
 

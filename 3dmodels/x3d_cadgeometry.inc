@@ -19,7 +19,12 @@
 }
 
 {$ifdef read_interface}
-  TNodeX3DProductStructureChildNode = class(TNodeX3DChildNode)
+  INodeX3DProductStructureChildNode = interface(INodeX3DChildNode)
+    property Fdname: TSFString { read FFdname} { };
+  end;
+
+  TNodeX3DProductStructureChildNode = class(TNodeX3DChildNode,
+    INodeX3DProductStructureChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -173,7 +178,7 @@ constructor TNodeCADFace.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdshape := TSFNode.Create(Self, 'shape', [X3DShapeNode, LOD]);
+  FFdshape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TNodeLOD_2]);
   Fields.Add(FFdshape);
 
   FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));

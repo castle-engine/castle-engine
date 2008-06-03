@@ -149,7 +149,7 @@ begin
   FFdrepeatR.Exposed := false;
   Fields.Add(FFdrepeatR);
 
-  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TextureProperties]);
+  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
 
@@ -161,7 +161,7 @@ constructor TNodeComposedTexture3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdtexture := TMFNode.Create(Self, 'texture', [X3DTexture2DNode]);
+  FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdtexture);
 
   DefaultContainerField := 'children';
@@ -222,7 +222,7 @@ constructor TNodePixelTexture3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdimage := TMFInt32.Create('image', [0 0 0 0]);
+  FFdimage := TMFInt32.Create('image', [0, 0, 0, 0]);
   Fields.Add(FFdimage);
 
   DefaultContainerField := 'children';
@@ -314,10 +314,7 @@ constructor TNodeTextureTransformMatrix3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdmatrix := TSFMatrix4f.Create('matrix', Matrix4Single(    Vector4Single(1, 0, 0, 0),
-    Vector4Single(0, 1, 0, 0),
-    Vector4Single(0, 0, 1, 0),
-    Vector4Single(0, 0, 0, 1)););
+  FFdmatrix := TSFMatrix4f.Create('matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
   { X3D specification comment: (-Inf,Inf) }
 

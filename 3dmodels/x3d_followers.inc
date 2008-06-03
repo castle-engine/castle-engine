@@ -19,12 +19,13 @@
 }
 
 {$ifdef read_interface}
-  TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
+  TNodeX3DFollowerNode = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
+    { Event: SFBool, out } { }
+    private FEventisActive: TVRMLEvent;
+    public property EventisActive: TVRMLEvent read FEventisActive;
   end;
 
   TNodeX3DDamperNode = class(TNodeX3DFollowerNode)
@@ -41,13 +42,12 @@
     public property Fdorder: TSFInt32 read FFdorder;
   end;
 
-  TNodeX3DFollowerNode = class(TNodeX3DChildNode)
+  TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FFdduration: TSFTime;
+    public property Fdduration: TSFTime read FFdduration;
   end;
 
   TNodeColorDamper = class(TNodeX3DDamperNode)
@@ -66,12 +66,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: SFColor, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -81,9 +75,6 @@
 
     private FFdinitialValue: TSFColor;
     public property FdinitialValue: TSFColor read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
   TNodeCoordinateDamper = class(TNodeX3DDamperNode)
@@ -102,12 +93,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: MFVec3f, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -117,9 +102,6 @@
 
     private FFdinitialValue: TMFVec3f;
     public property FdinitialValue: TMFVec3f read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
   TNodeOrientationChaser = class(TNodeX3DChaserNode)
@@ -141,9 +123,6 @@
     { Event: SFRotation, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
 
     private FFdinitialDestination: TSFRotation;
     public property FdinitialDestination: TSFRotation read FFdinitialDestination;
@@ -168,12 +147,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: SFRotation, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -183,9 +156,6 @@
 
     private FFdinitialValue: TSFRotation;
     public property FdinitialValue: TSFRotation read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
   TNodePositionChaser = class(TNodeX3DChaserNode)
@@ -207,9 +177,6 @@
     { Event: SFVec3f, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
 
     private FFdinitialDestination: TSFVec3f;
     public property FdinitialDestination: TSFVec3f read FFdinitialDestination;
@@ -238,9 +205,6 @@
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
 
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
-
     private FFdinitialDestination: TSFVec2f;
     public property FdinitialDestination: TSFVec2f read FFdinitialDestination;
 
@@ -264,12 +228,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: SFVec3f, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -279,9 +237,6 @@
 
     private FFdinitialValue: TSFVec3f;
     public property FdinitialValue: TSFVec3f read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
   TNodePositionDamper2D = class(TNodeX3DDamperNode)
@@ -300,12 +255,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: SFVec2f, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -315,9 +264,6 @@
 
     private FFdinitialValue: TSFVec2f;
     public property FdinitialValue: TSFVec2f read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
   TNodeScalarChaser = class(TNodeX3DChaserNode)
@@ -339,9 +285,6 @@
     { Event: SFFloat, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
-
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
 
     private FFdinitialDestination: TSFFloat;
     public property FdinitialDestination: TSFFloat read FFdinitialDestination;
@@ -366,12 +309,6 @@
     private FEventset_value: TVRMLEvent;
     public property Eventset_value: TVRMLEvent read FEventset_value;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
-
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
-
     { Event: MFVec2f, out } { }
     private FEventvalue_changed: TVRMLEvent;
     public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
@@ -381,23 +318,18 @@
 
     private FFdinitialValue: TMFVec2f;
     public property FdinitialValue: TMFVec2f read FFdinitialValue;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeX3DChaserNode.Create(const ANodeName: string;
+constructor TNodeX3DFollowerNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdduration := TSFTime.Create('duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
-  { X3D specification comment: [0,Inf) }
+  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  Events.Add(FEventisActive);
 
   DefaultContainerField := 'children';
 end;
@@ -423,13 +355,15 @@ begin
   DefaultContainerField := 'children';
 end;
 
-constructor TNodeX3DFollowerNode.Create(const ANodeName: string;
+constructor TNodeX3DChaserNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
+  FFdduration := TSFTime.Create('duration', 0);
+  FFdduration.Exposed := false;
+  Fields.Add(FFdduration);
+  { X3D specification comment: [0,Inf) }
 
   DefaultContainerField := 'children';
 end;
@@ -445,14 +379,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TSFColor, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0,Inf) }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFColor, false);
   Events.Add(FEventvalue_changed);
 
@@ -463,11 +389,6 @@ begin
   FFdinitialValue := TSFColor.Create('initialValue', Vector3Single(0.8, 0.8, 0.8));
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;
@@ -502,14 +423,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TMFVec3f, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0,Inf) }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
   Events.Add(FEventvalue_changed);
 
@@ -520,11 +433,6 @@ begin
   FFdinitialValue := TMFVec3f.Create('initialValue', Vector3Single(0, 0, 0));
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;
@@ -561,11 +469,6 @@ begin
 
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
   Events.Add(FEventvalue_changed);
-
-  FFdduration := TSFTime.Create('duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
-  { X3D specification comment: [0,Inf) }
 
   FFdinitialDestination := TSFRotation.Create('initialDestination', Vector3Single(0, 1, 0), 0);
   FFdinitialDestination.Exposed := false;
@@ -608,14 +511,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TSFRotation, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0..Inf] }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
   Events.Add(FEventvalue_changed);
 
@@ -626,11 +521,6 @@ begin
   FFdinitialValue := TSFRotation.Create('initialValue', Vector3Single(0, 1, 0), 0);
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;
@@ -667,11 +557,6 @@ begin
 
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
   Events.Add(FEventvalue_changed);
-
-  FFdduration := TSFTime.Create('duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
-  { X3D specification comment: [0,Inf) }
 
   FFdinitialDestination := TSFVec3f.Create('initialDestination', Vector3Single(0, 0, 0));
   FFdinitialDestination.Exposed := false;
@@ -717,11 +602,6 @@ begin
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
   Events.Add(FEventvalue_changed);
 
-  FFdduration := TSFTime.Create('duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
-  { X3D specification comment: [0,Inf) }
-
   FFdinitialDestination := TSFVec2f.Create('initialDestination', Vector2Single(0, 0));
   FFdinitialDestination.Exposed := false;
   Fields.Add(FFdinitialDestination);
@@ -765,14 +645,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TSFVec3f, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0,Inf) }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
   Events.Add(FEventvalue_changed);
 
@@ -783,11 +655,6 @@ begin
   FFdinitialValue := TSFVec3f.Create('initialValue', Vector3Single(0, 0, 0));
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;
@@ -822,14 +689,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TSFVec2f, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0.0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0..Inf] }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
   Events.Add(FEventvalue_changed);
 
@@ -840,11 +699,6 @@ begin
   FFdinitialValue := TSFVec2f.Create('initialValue', Vector2Single(0, 0));
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;
@@ -881,11 +735,6 @@ begin
 
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
   Events.Add(FEventvalue_changed);
-
-  FFdduration := TSFTime.Create('duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
-  { X3D specification comment: [0,Inf) }
 
   FFdinitialDestination := TSFFloat.Create('initialDestination', 0);
   FFdinitialDestination.Exposed := false;
@@ -928,14 +777,6 @@ begin
   FEventset_value := TVRMLEvent.Create('set_value', TMFVec2f, true);
   Events.Add(FEventset_value);
 
-  FFdtau := TSFTime.Create('tau', 0.0);
-  Fields.Add(FFdtau);
-  { X3D specification comment: [0,Inf) }
-
-  FFdtolerance := TSFFloat.Create('tolerance', -1);
-  Fields.Add(FFdtolerance);
-  { X3D specification comment: -1 or [0..Inf] }
-
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec2f, false);
   Events.Add(FEventvalue_changed);
 
@@ -946,11 +787,6 @@ begin
   FFdinitialValue := TMFVec2f.Create('initialValue', []);
   FFdinitialValue.Exposed := false;
   Fields.Add(FFdinitialValue);
-
-  FFdorder := TSFInt32.Create('order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-  { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
 end;

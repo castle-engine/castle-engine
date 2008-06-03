@@ -100,22 +100,22 @@ constructor TNodeComposedCubeMapTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdback := TSFNode.Create(Self, 'back', [X3DTexture2DNode]);
+  FFdback := TSFNode.Create(Self, 'back', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdback);
 
-  FFdbottom := TSFNode.Create(Self, 'bottom', [X3DTexture2DNode]);
+  FFdbottom := TSFNode.Create(Self, 'bottom', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdbottom);
 
-  FFdfront := TSFNode.Create(Self, 'front', [X3DTexture2DNode]);
+  FFdfront := TSFNode.Create(Self, 'front', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdfront);
 
-  FFdleft := TSFNode.Create(Self, 'left', [X3DTexture2DNode]);
+  FFdleft := TSFNode.Create(Self, 'left', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdleft);
 
-  FFdright := TSFNode.Create(Self, 'right', [X3DTexture2DNode]);
+  FFdright := TSFNode.Create(Self, 'right', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdright);
 
-  FFdtop := TSFNode.Create(Self, 'top', [X3DTexture2DNode]);
+  FFdtop := TSFNode.Create(Self, 'top', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdtop);
 
   DefaultContainerField := 'children';
@@ -154,7 +154,7 @@ begin
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
-  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TextureProperties]);
+  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
 
@@ -189,7 +189,7 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TextureProperties]);
+  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
 
