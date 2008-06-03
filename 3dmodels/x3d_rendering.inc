@@ -243,8 +243,14 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+
+    { TNodeNormal, as probably the only node in the engine right now,
+      doesn't suggest any VRML version. That's because it's suitable for
+      all VRML versions. }
+    { function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override; }
+
+    { }
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdvector: TMFVec3f;
@@ -715,14 +721,6 @@ end;
 class function TNodeNormal.ClassNodeTypeName: string;
 begin
   Result := 'Normal';
-end;
-
-function TNodeNormal.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
 end;
 
 class function TNodeNormal.URNMatching(const URN: string): boolean;
