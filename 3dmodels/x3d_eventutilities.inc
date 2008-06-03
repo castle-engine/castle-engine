@@ -383,8 +383,11 @@ begin
   FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
 
-  FFdintegerKey := TSFInt32.Create('integerKey', (-Inf,Inf));
+  { X3D specification mistakenly omitted default value for this field...
+    I guess it's 0? }
+  FFdintegerKey := TSFInt32.Create('integerKey', 0);
   Fields.Add(FFdintegerKey);
+  { X3D specification comment: (-Inf,Inf) }
 
   FEventtriggerValue := TVRMLEvent.Create('triggerValue', TSFInt32, false);
   Events.Add(FEventtriggerValue);

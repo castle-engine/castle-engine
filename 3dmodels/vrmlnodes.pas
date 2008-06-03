@@ -1881,6 +1881,7 @@ type
 {$I x3d_nurbs.inc}
 {$I x3d_dis.inc}
 {$I x3d_scripting.inc}
+{$I x3d_eventutilities.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2648,6 +2649,7 @@ uses
 {$I x3d_nurbs.inc}
 {$I x3d_dis.inc}
 {$I x3d_scripting.inc}
+{$I x3d_eventutilities.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6350,6 +6352,7 @@ initialization
   RegisterNURBSNodes;
   RegisterDISNodes;
   RegisterScriptingNodes;
+  RegisterEventUtilitiesNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
