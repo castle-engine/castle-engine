@@ -708,7 +708,7 @@ begin
   Fields.Add(FFdapplicationID);
   { X3D specification comment: [0,65535] }
 
-  FFdmapping := TMFNode.Create(Self, 'mapping', [DISEntityTypeMapping]);
+  FFdmapping := TMFNode.Create(Self, 'mapping', [TNodeDISEntityTypeMapping]);
   Fields.Add(FFdmapping);
 
   FFdport := TSFInt32.Create('port', 0);

@@ -1879,6 +1879,7 @@ type
 {$I x3d_geospatial.inc}
 {$I x3d_h-anim.inc}
 {$I x3d_nurbs.inc}
+{$I x3d_dis.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2644,6 +2645,7 @@ uses
 {$I x3d_geospatial.inc}
 {$I x3d_h-anim.inc}
 {$I x3d_nurbs.inc}
+{$I x3d_dis.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6345,6 +6347,7 @@ initialization
   RegisterGeospatialNodes;
   RegisterHAnimNodes;
   RegisterNURBSNodes;
+  RegisterDISNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
