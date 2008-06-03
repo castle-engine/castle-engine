@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -46,8 +46,28 @@
   end;
 
   TNodeBackground = class(TNodeX3DBackgroundNode)
+  private
+    FBgImagesLoaded: boolean; { = false }
+
+    { if not FBgImagesLoaded it should be always equal to BackgroundImagesNone
+      (this is not important for interface of this class but we will use
+      this in our implementation) }
+    FBgImages: TBackgroundImages;
+
+    { Non-nil only if FBgImages should be freed using
+      UsedCache.LoadImage_DecReference. }
+    UsedCache: TImagesCache;
+
+    procedure SetBgImagesLoaded(const Value: boolean);
+
+    FAllowedBgImagesClasses: TDynArrayImageClasses;
+    function GetBgImages: TBackgroundImages;
+
+    FImagesCache: TImagesCache;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -70,6 +90,55 @@
 
     private FFdtopUrl: TMFString;
     public property FdtopUrl: TMFString read FFdtopUrl;
+
+    procedure Parse(Lexer: TVRMLLexer); override;
+
+    { Pierwsze uzycie BgImages (albo pierwsze uzycie BgImages po Parse)
+      automatycznie zaladuje obrazki z URLi
+      BackUrl/BottomUrl itd. Obrazki dla ktorych zaden osiagalny URL nie byl
+      podany zostana ustawione na ImageNone.
+      Obrazki beda mialy Kind wsrod AllowedBgImagesKinds.
+
+      Obrazki beda zawsze odpowiadaly URLom w polach Fd*Url - dlatego po
+      zrobieniu Parse na tym obiekcie nastepne wywolanie BgImages bedzie
+      ladowalo je od nowa. }
+    property BgImages: TBackgroundImages read GetBgImages;
+
+    { Czy obrazki juz sa zaladowane ? W zasadzie ta funkcja nigdy nie powinna
+      ci byc potrzebna skoro cale ladowanie / zwalnianie obrazkow jest
+      robione automatycznie. Ale moze ci przydac : ona mowi czy najblizsze
+      wywolanie BgImages wywola ReloadBgImages czy nie.
+
+      You can set this to @true to force loading of images now, and you
+      can set to this to @false to force release of background images now.
+      In normal circumstances, you don't need it --- BgImages are automatically
+      loaded on first use, and are automatically freed when necessary.
+
+      If you're sure you want to reload the background images (e.g. when
+      you suspect that images on the disk changed), you may force reload
+      by setting this to @false and then to @true again. }
+    property BgImagesLoaded: boolean read FBgImagesLoaded
+      write SetBgImagesLoaded;
+
+    { Wszystkie obrazki na BgImages (ktore nie sa nil) maja zawsze
+      klase wsrod AllowedBgImagesClasses.
+
+      Aby zapewnic ze to stwierdzenie zawsze zachodzi jezeli BgImages zostalo
+      juz chociaz raz wywolane to zmiana AllowedBgImagesClasses spowoduje
+      uniewaznienie BgImages (tzn. nastepne wywolanie BgImages bedzie
+      musialo przeladowac obrazki od nowa) }
+    property AllowedBgImagesClasses: TDynArrayImageClasses
+      read FAllowedBgImagesClasses; { = [], so all image classes are allowed }
+    procedure SetAllowedBgImagesClasses(const Value: array of TImageClass);
+
+    { Set this to non-nil before background images are loaded, this way bacground
+      images will be loaded from this cache.
+
+      They will also be freed using this
+      cache then (so remember that used cache must remain valid for the lifetime
+      of this node, or you have to call BgImagesLoaded := false explicitly to
+      break the connection from this node to the cache). }
+    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
   end;
 
   TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
@@ -88,6 +157,28 @@
 
     private FFdvisibilityRange: TSFFloat;
     public property FdvisibilityRange: TSFFloat read FFdvisibilityRange;
+
+    { Fields below are Kambi's fog extensions, see
+      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
+
+      @groupBegin }
+    private FFdVolumetric: TSFBool;
+    public property FdVolumetric: TSFBool read FFdVolumetric;
+
+    private FFdVolumetricDirection: TSFVec3f;
+    public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
+
+    private FFdVolumetricVisibilityStart: TSFFloat;
+    public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
+
+    private FFdAlternative: TSFNode;
+    public property FdAlternative: TSFNode read FFdAlternative;
+    { @groupEnd }
+
+    { Returns FdAlternative.Value already typecasted to TNodeFog.
+      If FdAlternative.Value is not of TNodeFog class, returns nil
+      (returns also nil when FdAlternative.Value is nil, obviously). }
+    function Alternative: TNodeFog;
   end;
 
   TNodeFogCoordinate = class(TNodeX3DGeometricPropertyNode)
@@ -211,6 +302,16 @@ begin
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
+
+  ImageClassesAssign(FAllowedBgImagesClasses, []);
+  FBgImagesLoaded := false;
+  FBgImages := BackgroundImagesNone;
+end;
+
+destructor TNodeBackground.Destroy;
+begin
+  BgImagesLoaded := false;
+  inherited;
 end;
 
 class function TNodeBackground.ClassNodeTypeName: string;
@@ -222,14 +323,101 @@ function TNodeBackground.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 100);
 end;
 
 class function TNodeBackground.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
+
+  procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
+  var
+    I: Integer;
+    URL: string;
+  begin
+    FBgImages[bs] := nil;
+    for i := 0 to Urls.Count-1 do
+    begin
+      try
+        URL := PathFromWWWBasePath(Urls.Items.Items[i]);
+        if ImagesCache <> nil then
+        begin
+          { TODO: this doesn't honour AllowedBgImagesClasses for now,
+            ImagesCache.LoadImage_IncReference always loads with
+            AllowedImageClasses = [TRGBImage, TAlphaImage] }
+          FBgImages[bs] := ImagesCache.LoadImage_IncReference(URL);
+        end else
+          FBgImages[bs] := LoadImage(URL, AllowedBgImagesClasses, [], 0, 0);
+        Break;
+      except
+        on E: Exception do
+        begin
+          VRMLNonFatalError('Exception ' + E.ClassName +
+            ' occured when trying to load ' +
+            'background image from URL "' + URL + '" : '+E.Message);
+          { and silence exception }
+        end;
+      end;
+    end;
+  end;
+
+begin
+  if Value <> BgImagesLoaded then
+  begin
+    if Value then
+    begin
+      try
+        LoadImg(bsBack, FdBackUrl);
+        LoadImg(bsBottom, FdBottomUrl);
+        LoadImg(bsFront, FdFrontUrl);
+        LoadImg(bsLeft, FdLeftUrl);
+        LoadImg(bsRight, FdRightUrl);
+        LoadImg(bsTop, FdTopUrl);
+      except
+        { In case of trouble, free the images that were loaded.
+          This may happen if VRMLNonFatalError raises exception and some
+          image cannot be loaded. }
+        BackgroundImagesFreeAll(FbgImages, ImagesCache);
+        raise;
+      end;
+      UsedCache := ImagesCache;
+    end else
+    begin
+      BackgroundImagesFreeAll(FbgImages, UsedCache);
+      UsedCache := nil;
+    end;
+
+    FBgImagesLoaded := Value;
+  end;
+end;
+
+procedure TNodeBackground.Parse(Lexer: TVRMLLexer);
+begin
+  inherited;
+  { Force reload on next BgImages use, since our fields are different now }
+  BgImagesLoaded := false;
+end;
+
+function TNodeBackground.GetBgImages: TBackgroundImages;
+begin
+  BgImagesLoaded := true;
+  Result := FBgImages;
+end;
+
+procedure TNodeBackground.SetAllowedBgImagesClasses(const Value: array of TImageClass);
+begin
+  if not ImageClassesEqual(Value, AllowedBgImagesClasses) then
+  begin
+    ImageClassesAssign(FAllowedBgImagesClasses, Value);
+    BgImagesLoaded := false;
+  end;
 end;
 
 constructor TNodeFog.Create(const ANodeName: string;
@@ -249,6 +437,18 @@ begin
   Fields.Add(FFdvisibilityRange);
   { X3D specification comment: [0,Inf) }
 
+  FFdvolumetric := TSFBool.Create('volumetric', false);
+  Fields.Add(FFdvolumetric);
+
+  FFdvolumetricDirection := TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0));
+  Fields.Add(FFdvolumetricDirection);
+
+  FFdvolumetricVisibilityStart := TSFFloat.Create('volumetricVisibilityStart', 0);
+  Fields.Add(FFdvolumetricVisibilityStart);
+
+  FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
+  Fields.Add(FFdalternative);
+
   DefaultContainerField := 'children';
 end;
 
@@ -261,14 +461,23 @@ function TNodeFog.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 100);
 end;
 
 class function TNodeFog.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeFog.Alternative: TNodeFog;
+begin
+  if (FdAlternative.Value <> nil) and (FdAlternative.Value is TNodeFog) then
+    Result := TNodeFog(FdAlternative.Value) else
+    Result := nil;
 end;
 
 constructor TNodeFogCoordinate.Create(const ANodeName: string;
@@ -349,22 +558,22 @@ constructor TNodeTextureBackground.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbackTexture := TSFNode.Create(Self, 'backTexture', [X3DTextureNode]);
+  FFdbackTexture := TSFNode.Create(Self, 'backTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdbackTexture);
 
-  FFdbottomTexture := TSFNode.Create(Self, 'bottomTexture', [X3DTextureNode]);
+  FFdbottomTexture := TSFNode.Create(Self, 'bottomTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdbottomTexture);
 
-  FFdfrontTexture := TSFNode.Create(Self, 'frontTexture', [X3DTextureNode]);
+  FFdfrontTexture := TSFNode.Create(Self, 'frontTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdfrontTexture);
 
-  FFdleftTexture := TSFNode.Create(Self, 'leftTexture', [X3DTextureNode]);
+  FFdleftTexture := TSFNode.Create(Self, 'leftTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdleftTexture);
 
-  FFdrightTexture := TSFNode.Create(Self, 'rightTexture', [X3DTextureNode]);
+  FFdrightTexture := TSFNode.Create(Self, 'rightTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdrightTexture);
 
-  FFdtopTexture := TSFNode.Create(Self, 'topTexture', [X3DTextureNode]);
+  FFdtopTexture := TSFNode.Create(Self, 'topTexture', [TNodeX3DTextureNode]);
   Fields.Add(FFdtopTexture);
 
   DefaultContainerField := 'children';

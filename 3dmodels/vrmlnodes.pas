@@ -1875,6 +1875,7 @@ type
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
 {$I x3d_navigation.inc}
+{$I x3d_environmentaleffects.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2636,6 +2637,7 @@ uses
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
 {$I x3d_navigation.inc}
+{$I x3d_environmentaleffects.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6298,10 +6300,8 @@ initialization
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
-    TNodeBackground,
     TNodeContour2D,
     TNodeCoordinateDeformer,
-    TNodeFog,
     TNodeGeoCoordinate,
     TNodeGeoElevationGrid,
     TNodeGeoLocation,
@@ -6346,6 +6346,7 @@ initialization
   RegisterKeyDeviceSensorNodes;
   RegisterEnvironmentalSensorNodes;
   RegisterNavigationNodes;
+  RegisterEnvironmentalEffectsNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
