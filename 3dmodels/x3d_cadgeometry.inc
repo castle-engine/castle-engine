@@ -309,8 +309,6 @@ begin
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeIndexedQuadSet.ClassNodeTypeName: string;
@@ -336,8 +334,6 @@ constructor TNodeQuadSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeQuadSet.ClassNodeTypeName: string;

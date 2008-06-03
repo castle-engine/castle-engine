@@ -568,8 +568,6 @@ begin
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) or -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeIndexedTriangleFanSet.ClassNodeTypeName: string;
@@ -603,8 +601,6 @@ begin
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeIndexedTriangleSet.ClassNodeTypeName: string;
@@ -638,8 +634,6 @@ begin
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) or -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeIndexedTriangleStripSet.ClassNodeTypeName: string;
@@ -681,8 +675,6 @@ begin
   FFdvertexCount := TMFInt32.Create('vertexCount', []);
   Fields.Add(FFdvertexCount);
   { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeLineSet.ClassNodeTypeName: string;
@@ -744,8 +736,6 @@ begin
 
   FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePointSet_2.ClassNodeTypeName: string;
@@ -782,8 +772,6 @@ begin
   FFdfanCount := TMFInt32.Create('fanCount', []);
   Fields.Add(FFdfanCount);
   { X3D specification comment: [3,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTriangleFanSet.ClassNodeTypeName: string;
@@ -809,8 +797,6 @@ constructor TNodeTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTriangleSet.ClassNodeTypeName: string;
@@ -840,8 +826,6 @@ begin
   FFdstripCount := TMFInt32.Create('stripCount', []);
   Fields.Add(FFdstripCount);
   { X3D specification comment: [3,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTriangleStripSet.ClassNodeTypeName: string;

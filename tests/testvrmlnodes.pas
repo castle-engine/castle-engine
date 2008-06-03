@@ -43,9 +43,11 @@ type
 
     procedure TestUniqueFields;
 
-    procedure InterfaceSupports;
+    procedure TestInterfaceSupports;
 
     procedure TestAllowedChildren;
+
+    procedure TestContainerField;
   end;
 
 implementation
@@ -244,14 +246,43 @@ begin
 end;
 *)
 
-procedure TTestVRMLNodes.InterfaceSupports;
+procedure TTestVRMLNodes.TestInterfaceSupports;
+var
+  L: TVRMLNodeClassesList;
+
+  function IndexOfAnyAncestorByClass(C: TVRMLNodeClass): boolean;
+  var
+    N: TVRMLNode;
+  begin
+    N := C.Create('', '');
+    try
+      Result := L.IndexOfAnyAncestor(N) <> -1;
+    finally FreeAndNil(N) end;
+  end;
+
 begin
+  { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
+
   Assert(Supports(TNodeGroup_2, INodeX3DChildNode));
+  Assert(Supports(TNodeSwitch_2, INodeX3DChildNode));
   Assert(not Supports(TNodeCone_2, INodeX3DChildNode));
+  Assert(not Supports(TNodeAppearance, INodeX3DChildNode));
   Assert(not Supports(TVRMLNode, INodeX3DChildNode));
   Assert(not Supports(TObject, INodeX3DChildNode));
 
-  { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
+  L := TVRMLNodeClassesList.Create;
+  try
+    L.AddRegisteredImplementing(INodeX3DChildNode);
+    { similar to above tests, but now using L.IndexOfAnyAncestor.
+      So we test IndexOfAnyAncestor and AddRegisteredImplementing,
+      AddRegisteredImplementing also uses "Supports" under the hood
+      and results should be the same. }
+    Assert(IndexOfAnyAncestorByClass(TNodeGroup_2));
+    Assert(IndexOfAnyAncestorByClass(TNodeSwitch_2));
+    Assert(not IndexOfAnyAncestorByClass(TNodeCone_2));
+    Assert(not IndexOfAnyAncestorByClass(TNodeAppearance));
+    Assert(not IndexOfAnyAncestorByClass(TVRMLNode));
+  finally FreeAndNil(L) end;
 end;
 
 procedure TTestVRMLNodes.TestUniqueFields;
@@ -500,11 +531,6 @@ begin
       try
         Assert(Supports(N, INodeX3DChildNode));
       finally FreeAndNil(N) end;
-
-      { Check also INodeX3DChildNode_Descendants list, since this
-        is temporarily used and should match all INodeX3DChildNode
-        descendants. }
-      { TODO }
     except
       on E: Exception do
       begin
@@ -527,6 +553,33 @@ begin
   finally
     FreeAndNil(AllowedGeometryNodes);
     FreeAndNil(AllowedChildrenNodes);
+  end;
+end;
+
+procedure TTestVRMLNodes.TestContainerField;
+var
+  I: Integer;
+  N: TVRMLNode;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+    try
+      if (N is TVRMLGeometryNode) and
+         { TNodeContour2D is an exception, see TNodeContour2D comments.
+           It should be treated as non-geometry node for X3D.
+           Fortunately, containerField is used only for X3D. }
+         (not (N is TNodeContour2D)) then
+      try
+        Assert(N.DefaultContainerField = 'geometry');
+      except
+        on E: Exception do
+        begin
+          Writeln('Failed on ', N.ClassName, ' has containerField=geometry');
+          raise;
+        end;
+      end;
+    finally FreeAndNil(N) end;
   end;
 end;
 

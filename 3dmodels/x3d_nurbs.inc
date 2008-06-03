@@ -499,8 +499,6 @@ begin
   FFdvOrder.Exposed := false;
   Fields.Add(FFdvOrder);
   { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeContour2D.Create(const ANodeName: string;
@@ -630,8 +628,6 @@ begin
   FFdorder.Exposed := false;
   Fields.Add(FFdorder);
   { X3D specification comment: [2,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeNurbsCurve_3.ClassNodeTypeName: string;
@@ -761,8 +757,6 @@ constructor TNodeNurbsPatchSurface.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeNurbsPatchSurface.ClassNodeTypeName: string;
@@ -978,8 +972,6 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeNurbsSweptSurface.ClassNodeTypeName: string;
@@ -1019,8 +1011,6 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeNurbsSwungSurface.ClassNodeTypeName: string;
@@ -1120,8 +1110,6 @@ begin
 
   FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
   Fields.Add(FFdtrimmingContour);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeNurbsTrimmedSurface.ClassNodeTypeName: string;

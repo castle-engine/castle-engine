@@ -511,8 +511,6 @@ begin
   FFdzSpacing.Exposed := false;
   Fields.Add(FFdzSpacing);
   { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoElevationGrid.ClassNodeTypeName: string;

@@ -173,8 +173,6 @@ begin
   FFdstartAngle.Exposed := false;
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeArc2D.ClassNodeTypeName: string;
@@ -224,8 +222,6 @@ begin
   FFdstartAngle.Exposed := false;
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeArcClose2D.ClassNodeTypeName: string;
@@ -256,8 +252,6 @@ begin
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCircle2D.ClassNodeTypeName: string;
@@ -297,8 +291,6 @@ begin
   FFdsolid := TSFBool.Create('solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeDisk2D.ClassNodeTypeName: string;
@@ -331,8 +323,6 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   FFdlineSegments.AddAlternativeName('point', 2);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePolyline2D.ClassNodeTypeName: string;
@@ -364,8 +354,6 @@ begin
   FFdpoint := TMFVec2f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePolypoint2D.ClassNodeTypeName: string;
@@ -400,8 +388,6 @@ begin
   FFdsolid := TSFBool.Create('solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeRectangle2D.ClassNodeTypeName: string;
@@ -435,8 +421,6 @@ begin
   FFdsolid := TSFBool.Create('solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTriangleSet2D.ClassNodeTypeName: string;
