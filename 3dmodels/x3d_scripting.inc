@@ -1,5 +1,5 @@
 {
-  Copyright 2008 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -73,6 +73,12 @@ begin
   Fields.Add(FFdmustEvaluate);
 
   DefaultContainerField := 'children';
+
+  { VRML 97 says this is RestrictedAccessTypes.
+    But X3D, (both the general spec, and X3D classic encoding grammar,
+    so it's not by accident) allows here all access types,
+    including inputOutput. }
+  HasInterfaceDeclarations := AllAccessTypes;
 end;
 
 class function TNodeScript.ClassNodeTypeName: string;
@@ -84,13 +90,15 @@ function TNodeScript.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeScript.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 

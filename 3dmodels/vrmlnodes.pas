@@ -1880,6 +1880,7 @@ type
 {$I x3d_h-anim.inc}
 {$I x3d_nurbs.inc}
 {$I x3d_dis.inc}
+{$I x3d_scripting.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2646,6 +2647,7 @@ uses
 {$I x3d_h-anim.inc}
 {$I x3d_nurbs.inc}
 {$I x3d_dis.inc}
+{$I x3d_scripting.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6315,7 +6317,6 @@ initialization
     TNodeNurbsPositionInterpolator_2,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
-    TNodeScript,
     TNodeTrimmedSurface,
 
     { X3D nodes }
@@ -6348,6 +6349,7 @@ initialization
   RegisterHAnimNodes;
   RegisterNURBSNodes;
   RegisterDISNodes;
+  RegisterScriptingNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

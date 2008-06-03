@@ -286,26 +286,6 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeScript = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
-    class function ClassNodeTypeName: string; override;
-
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    private FFddirectOutput: TSFBool;
-    public property FddirectOutput: TSFBool read FFddirectOutput;
-
-    private FFdmustEvaluate: TSFBool;
-    public property FdmustEvaluate: TSFBool read FFdmustEvaluate;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeTrimmedSurface = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -771,49 +751,6 @@ begin
 end;
 
 function TNodeNurbsTextureSurface.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
-constructor TNodeScript.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FFdurl := TMFString.Create('url', []);
-  Fields.Add(FFdurl);
-
-  FFddirectOutput := TSFBool.Create('directOutput', FALSE);
-  FFddirectOutput.Exposed := false;
-  Fields.Add(FFddirectOutput);
-
-  FFdmustEvaluate := TSFBool.Create('mustEvaluate', FALSE);
-  FFdmustEvaluate.Exposed := false;
-  Fields.Add(FFdmustEvaluate);
-
-  DefaultContainerField := 'children';
-
-  { VRML 97 says this is RestrictedAccessTypes.
-    But X3D, (both the general spec, and X3D classic encoding grammar,
-    so it's not by accident) allows here all access types,
-    including inputOutput. }
-  HasInterfaceDeclarations := AllAccessTypes;
-end;
-
-class function TNodeScript.ClassNodeTypeName: string;
-begin
-  Result := 'Script';
-end;
-
-class function TNodeScript.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeScript.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
