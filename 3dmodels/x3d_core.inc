@@ -72,6 +72,7 @@ type
   end;
 
   INodeX3DMetadataObject = interface(IVRMLNode)
+  ['{2D631FBF-683B-4259-A98D-74589893447C}']
     property Fdname: TSFString { read GetFdname }; { }
     property Fdreference: TSFString { read GetFdreference }; { }
   end;
@@ -82,6 +83,7 @@ type
   { X3DSensorNode when it's a secondary ancestor.
     (When it's a primary ancestor, I use class TNodeX3DSensorNode.) }
   INodeX3DSensorNode = interface(INodeX3DChildNode)
+  ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property Fdenabled: TSFBool;
 
     { Event: SFBool, out } { }
@@ -209,21 +211,12 @@ type
 
 {$ifdef read_implementation}
 
-{ Since for now I don't want to write just interface name,
-  INodeX3DMetadataObject, in allowed classes list, I'll need explicit
-  list of descendants. }
-{$define INodeX3DMetadataObject_Descendants :=
-  TNodeMetadataDouble, TNodeMetadataFloat, TNodeMetadataInteger,
-  TNodeMetadataSet, TNodeMetadataString}
-
-{$define INodeX3DChildNode_Descendants := TNodeX3DChildNode}
-
 constructor TNodeX3DNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
 
-  FFdmetadata := TSFNode.Create(Self, 'metadata', [INodeX3DMetadataObject_Descendants]);
+  FFdmetadata := TSFNode.Create(Self, 'metadata', INodeX3DMetadataObject);
   Fields.Add(FFdmetadata);
 end;
 
@@ -375,7 +368,7 @@ begin
   FFdreference := TSFString.Create('reference', '');
   Fields.Add(FFdreference);
 
-  FFdvalue := TMFNode.Create(Self, 'value', [INodeX3DMetadataObject_Descendants]);
+  FFdvalue := TMFNode.Create(Self, 'value', INodeX3DMetadataObject);
   Fields.Add(FFdvalue);
 
   DefaultContainerField := 'children';

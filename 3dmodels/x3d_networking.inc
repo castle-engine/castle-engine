@@ -25,6 +25,7 @@
   end;
 
   INodeX3DUrlObject = interface(IVRMLNode)
+  ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
     property Fdurl: TMFString { read GetFdurl }; { }
   end;
 
@@ -256,8 +257,6 @@ begin
   Result := false;
 end;
 
-{$define INodeX3DUrlObject_Descendants := } { TODO }
-
 constructor TNodeLoadSensor.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -266,7 +265,7 @@ begin
   FFdtimeOut := TSFTime.Create('timeOut', 0);
   Fields.Add(FFdtimeOut);
 
-  FFdwatchList := TMFNode.Create(Self, 'watchList', [INodeX3DUrlObject_Descendants]);
+  FFdwatchList := TMFNode.Create(Self, 'watchList', INodeX3DUrlObject);
   Fields.Add(FFdwatchList);
 
   FEventisLoaded := TVRMLEvent.Create('isLoaded', TSFBool, false);

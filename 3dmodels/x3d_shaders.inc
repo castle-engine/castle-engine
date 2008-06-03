@@ -48,6 +48,7 @@
   end;
 
   INodeX3DProgrammableShaderObject = interface
+  ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
   end;
 
   TNodeComposedShader = class(TNodeX3DShaderNode, INodeX3DProgrammableShaderObject)

@@ -1527,6 +1527,10 @@ type
     function IndexOfAnyAncestor(Node: TVRMLNode): Integer;
 
     procedure Add(Value: TVRMLNodeClass);
+
+    { Add all node classes registered in NodesManager that implement given
+      interface Interf. }
+    procedure AddRegisteredImplementing(Interf: TGUID);
   end;
 
   { SFNode VRML field.
@@ -1560,6 +1564,10 @@ type
       reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AnAllowedChildren: TVRMLNodeClassesList); overload;
+    { Constructor that initializes AllowedChildren to all
+      classes implementing AllowedChildrenInterface. }
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      AllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
     { This says that all children are allowed, regardless of
@@ -1639,6 +1647,10 @@ type
       reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AnAllowedChildren: TVRMLNodeClassesList); overload;
+    { Constructor that initializes AllowedChildren to all
+      classes implementing AllowedChildrenInterface. }
+    constructor Create(AParentNode: TVRMLNode; const AName: string;
+      AllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
     { This says that all children are allowed, regardless of
@@ -1849,6 +1861,7 @@ type
 
   { Basic interface that should be implemented by all Inline VRML nodes. }
   IVRMLInlineNode = interface(IVRMLNode)
+  ['{70E19208-A2EF-4883-BD04-E7EFF7932F3A}']
     { Call LoadInlined to load inlined VRML content @bold(now).
       If Inlined is already loaded,
       than: if CanReload = @true Inlined will be freed and loaded again,
@@ -4347,6 +4360,15 @@ begin
   inherited Add(Pointer(Value));
 end;
 
+procedure TVRMLNodeClassesList.AddRegisteredImplementing(Interf: TGUID);
+var
+  I: Integer;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+    if Supports(NodesManager.Registered[I], Interf) then
+      Add(NodesManager.Registered[I]);
+end;
+
 { TSFNode --------------------------------------------------------------------- }
 
 constructor TSFNode.CreateUndefined(const AName: string);
@@ -4375,6 +4397,24 @@ begin
 
   FAllowedChildren.Assign(AnAllowedChildren);
   FAllowedChildrenAll := false;
+end;
+
+constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  AllowedChildrenInterface: TGUID);
+var
+  AllowedChildren: TVRMLNodeClassesList;
+begin
+  { TODO: this unnecessarily creates long list of AllowedChildren,
+    and depends on current NodesManager registered nodes.
+    Some day I may improve this, to just store AllowedChildrenInterface
+    inside, and check at runtime "Supports".
+    Same thing for MFNode analogous constructor. }
+
+  AllowedChildren := TVRMLNodeClassesList.Create;
+  AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
+  try
+    Create(AParentNode, AName, AllowedChildren);
+  finally FreeAndNil(AllowedChildren) end;
 end;
 
 destructor TSFNode.Destroy;
@@ -4517,6 +4557,18 @@ begin
 
   FAllowedChildren.Assign(AnAllowedChildren);
   FAllowedChildrenAll := false;
+end;
+
+constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
+  AllowedChildrenInterface: TGUID);
+var
+  AllowedChildren: TVRMLNodeClassesList;
+begin
+  AllowedChildren := TVRMLNodeClassesList.Create;
+  AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
+  try
+    Create(AParentNode, AName, AllowedChildren);
+  finally FreeAndNil(AllowedChildren) end;
 end;
 
 destructor TMFNode.Destroy;

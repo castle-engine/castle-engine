@@ -442,7 +442,7 @@ begin
   FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
-  FFdproxy := TSFNode.Create(Self, 'proxy', [INodeX3DChildNode_Descendants]);
+  FFdproxy := TSFNode.Create(Self, 'proxy', INodeX3DChildNode);
   FFdproxy.Exposed := false;
   Fields.Add(FFdproxy);
 

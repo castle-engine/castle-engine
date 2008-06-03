@@ -40,6 +40,7 @@
   end;
 
   INodeX3DFogObject = interface(IVRMLNode)
+  ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
     property Fdcolor: TSFColor { read GetFdcolor }; { }
     property FdfogType: TSFString { read GetFdfogType }; { }
     property FdvisibilityRange: TSFFloat { read GetFdvisibilityRange }; { }

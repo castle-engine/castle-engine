@@ -25,6 +25,7 @@
   end;
 
   INodeX3DSoundSourceNode = interface(INodeX3DTimeDependentNode)
+  ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property Fddescription: TSFString { read FFddescription } { };
     property Fdpitch: TSFFloat { read FFdpitch } { };
     property Eventduration_changed: TVRMLEvent { read FEventduration_changed } { };
@@ -158,8 +159,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define IX3DSoundSourceNode_Descendants := TNodeX3DSoundNode, TNodeMovieTexture}
-
 constructor TNodeSound.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -197,7 +196,7 @@ begin
   Fields.Add(FFdpriority);
   { X3D specification comment: [0,1] }
 
-  FFdsource := TSFNode.Create(Self, 'source', [IX3DSoundSourceNode_Descendants]);
+  FFdsource := TSFNode.Create(Self, 'source', INodeX3DSoundSourceNode);
   Fields.Add(FFdsource);
 
   FFdspatialize := TSFBool.Create('spatialize', true);

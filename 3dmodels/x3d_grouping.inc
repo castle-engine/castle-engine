@@ -35,6 +35,7 @@
   end;
 
   INodeX3DBoundedObject = interface(IVRMLNode)
+  ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
     property FdbboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdbboxSize: TSFVec3f { read GetFdbboxSize }; { }
   end;
@@ -269,8 +270,6 @@ begin
   inherited;
 end;
 
-{$define IX3DChildNode_Descendants := TNodeX3DChildNode}
-
 constructor TNodeX3DGroupingNode.Create(
   const ANodeName: string; const AWWWBasePath: string);
 begin
@@ -282,7 +281,7 @@ begin
   FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', [IX3DChildNode_Descendants]);
+  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
   Fields.Add(FFdchildren);
 
   FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
@@ -369,7 +368,7 @@ constructor TNodeStaticGroup.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdchildren := TMFNode.Create(Self, 'children', [IX3DChildNode_Descendants]);
+  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
   FFdchildren.Exposed := false;
   Fields.Add(FFdchildren);
 
