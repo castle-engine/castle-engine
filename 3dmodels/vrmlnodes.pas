@@ -1878,6 +1878,7 @@ type
 {$I x3d_environmentaleffects.inc}
 {$I x3d_geospatial.inc}
 {$I x3d_h-anim.inc}
+{$I x3d_nurbs.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2642,6 +2643,7 @@ uses
 {$I x3d_environmentaleffects.inc}
 {$I x3d_geospatial.inc}
 {$I x3d_h-anim.inc}
+{$I x3d_nurbs.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6304,13 +6306,12 @@ initialization
     TNodeKambiAppearance,
 
     { VRML 2.0 spec nodes }
-    TNodeContour2D,
     TNodeCoordinateDeformer,
     TNodeInlineLoadControl,
-    TNodeNurbsCurve,
+    TNodeNurbsCurve_2,
     TNodeNurbsCurve2D,
     TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator,
+    TNodeNurbsPositionInterpolator_2,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
     TNodeScript,
@@ -6344,6 +6345,7 @@ initialization
   RegisterEnvironmentalEffectsNodes;
   RegisterGeospatialNodes;
   RegisterHAnimNodes;
+  RegisterNURBSNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
@@ -6440,7 +6442,7 @@ initialization
       doesn't say is NurbsGroup allowed or not as children node.
       To be fixed when I'll implement NurbsGroup handling. }
     TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator,
+    TNodeNurbsPositionInterpolator_2,
     //TNodeNurbsSurface,
     //TNodeNurbsTextureSurface,
     TNodeOrientationInterpolator,
@@ -6494,7 +6496,7 @@ initialization
     TNodeGeoElevationGrid,
     TNodeIndexedFaceSet_2,
     TNodeIndexedLineSet_2,
-    TNodeNurbsCurve,
+    TNodeNurbsCurve_2,
     TNodeNurbsSurface,
     TNodePointSet_2,
     TNodeSphere_2,

@@ -25,27 +25,6 @@
 {$ifdef read_interface}
   TNodeX3DShaderNode = class;
 
-  TNodeContour2D = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
-
-    { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
-
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TNodeCoordinateDeformer = class(TVRMLGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -149,7 +128,7 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeNurbsCurve = class(TVRMLNode)
+  TNodeNurbsCurve_2 = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -172,31 +151,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
-  end;
 
-  TNodeNurbsCurve2D = class(TVRMLNode)
-  public
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdcontrolPoint: TMFVec2f;
-    public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
-
-    private FFdtessellation: TSFInt32;
-    public property Fdtessellation: TSFInt32 read FFdtessellation;
-
-    private FFdweight: TMFFloat;
-    public property Fdweight: TMFFloat read FFdweight;
-
-    private FFdknot: TMFFloat;
-    public property Fdknot: TMFFloat read FFdknot;
-
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
-    class function URNMatching(const URN: string): boolean; override;
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
   end;
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
@@ -212,7 +168,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNurbsPositionInterpolator = class(TVRMLNode)
+  TNodeNurbsPositionInterpolator_2 = class(TVRMLNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -243,6 +199,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
   end;
 
   TNodeNurbsSurface = class(TVRMLNode)
@@ -374,41 +332,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TNodeContour2D.Create(const ANodeName: string; const AWWWBasePath: string);
-begin
-  inherited;
-
-  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
-  Events.Add(FEventaddChildren);
-
-  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
-  Events.Add(FEventremoveChildren);
-
-  FFdchildren := TMFNode.Create(Self, 'children', [TNodeNurbsCurve2D, TNodePolyline2D, TNodeContour2D]);
-  Fields.Add(FFdchildren);
-
-  DefaultContainerField := 'trimmingContour';
-end;
-
-class function TNodeContour2D.ClassNodeTypeName: string;
-begin
-  Result := 'Contour2D';
-end;
-
-class function TNodeContour2D.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeContour2D.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
-end;
-
 constructor TNodeCoordinateDeformer.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -605,7 +528,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNurbsCurve.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeNurbsCurve_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -627,18 +550,18 @@ begin
   Fields.Add(FFdorder);
 end;
 
-class function TNodeNurbsCurve.ClassNodeTypeName: string;
+class function TNodeNurbsCurve_2.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve';
 end;
 
-class function TNodeNurbsCurve.URNMatching(const URN: string): boolean;
+class function TNodeNurbsCurve_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsCurve.SuggestedVRMLVersion(
+function TNodeNurbsCurve_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
@@ -646,45 +569,9 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNurbsCurve2D.Create(const ANodeName: string; const AWWWBasePath: string);
+class function TNodeNurbsCurve_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
-  inherited;
-
-  FFdcontrolPoint := TMFVec2f.Create('controlPoint', []);
-  Fields.Add(FFdcontrolPoint);
-
-  FFdtessellation := TSFInt32.Create('tessellation', 0);
-  Fields.Add(FFdtessellation);
-
-  FFdweight := TMFFloat.Create('weight', []);
-  Fields.Add(FFdweight);
-
-  FFdknot := TMFFloat.Create('knot', []);
-  FFdknot.Exposed := false;
-  Fields.Add(FFdknot);
-
-  FFdorder := TSFInt32.Create('order', 3);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
-end;
-
-class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
-begin
-  Result := 'NurbsCurve2D';
-end;
-
-class function TNodeNurbsCurve2D.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeNurbsCurve2D.SuggestedVRMLVersion(
-  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
-begin
-  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
-  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 2, 0, 1000);
+  Result := VerMajor = 2;
 end;
 
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -714,7 +601,7 @@ begin
     true, 2, 0, 1000);
 end;
 
-constructor TNodeNurbsPositionInterpolator.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeNurbsPositionInterpolator_2.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -742,23 +629,28 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
+class function TNodeNurbsPositionInterpolator_2.ClassNodeTypeName: string;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
 
-class function TNodeNurbsPositionInterpolator.URNMatching(const URN: string): boolean;
+class function TNodeNurbsPositionInterpolator_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsPositionInterpolator.SuggestedVRMLVersion(
+function TNodeNurbsPositionInterpolator_2.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+class function TNodeNurbsPositionInterpolator_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor = 2;
 end;
 
 constructor TNodeNurbsSurface.Create(const ANodeName: string; const AWWWBasePath: string);

@@ -39,7 +39,7 @@ NurbsCurve : X3DParametricGeometryNode {
   SFNode   [in,out] controlPoint []    [X3DCoordinateNode]
   SFInt32  [in,out] tessellation 0     (-Inf,Inf)
   MFDouble [in,out] weight       []    (0,Inf)
-  SFBoolean []       closed       FALSE 
+  SFBool   []       closed       FALSE 
   MFDouble []       knot         []    (-Inf,Inf)
   SFInt32  []       order        3     [2,Inf)
 }
