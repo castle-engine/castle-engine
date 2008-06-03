@@ -1877,6 +1877,7 @@ type
 {$I x3d_navigation.inc}
 {$I x3d_environmentaleffects.inc}
 {$I x3d_geospatial.inc}
+{$I x3d_h-anim.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2640,6 +2641,7 @@ uses
 {$I x3d_navigation.inc}
 {$I x3d_environmentaleffects.inc}
 {$I x3d_geospatial.inc}
+{$I x3d_h-anim.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6341,6 +6343,7 @@ initialization
   RegisterNavigationNodes;
   RegisterEnvironmentalEffectsNodes;
   RegisterGeospatialNodes;
+  RegisterHAnimNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
