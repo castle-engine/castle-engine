@@ -23,8 +23,6 @@
   that are only for easier implementation, like TVRMLGroupingNode). } { }
 
 {$ifdef read_interface}
-  TNodeX3DShaderNode = class;
-
   TNodeCoordinateDeformer = class(TVRMLGroupingNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;

@@ -312,9 +312,6 @@
     private FFdstripCount: TMFInt32;
     public property FdstripCount: TMFInt32 read FFdstripCount;
   end;
-
-  { TODO: temp dummy classes }
-  TNodeX3DVertexAttributeNode = class(TVRMLNode);
 {$endif read_interface}
 
 {$ifdef read_implementation}

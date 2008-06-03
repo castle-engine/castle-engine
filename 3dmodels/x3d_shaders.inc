@@ -19,7 +19,6 @@
 }
 
 {$ifdef read_interface}
-
   TNodeX3DShaderNode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -40,14 +39,24 @@
     public property Fdlanguage: TSFString read FFdlanguage;
   end;
 
+  TNodeX3DVertexAttributeNode = class(TNodeX3DGeometricPropertyNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+
+    private FFdname: TSFString;
+    public property Fdname: TSFString read FFdname;
+  end;
+
   INodeX3DProgrammableShaderObject = interface
   end;
 
   TNodeComposedShader = class(TNodeX3DShaderNode, INodeX3DProgrammableShaderObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
-
     class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     private FFdparts: TMFNode;
     public property Fdparts: TMFNode read FFdparts;
@@ -57,42 +66,69 @@
       This provides some description of this node's contents after ShaderPart nodes
       are loaded, so is useful for debug purposes. }
     function DescribeUsedUrls: string;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodePackagedShader = class(TNodeX3DShaderNode,
-    INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
+  TNodeFloatVertexAttribute = class(TNodeX3DVertexAttributeNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdvalue: TMFFloat;
+    public property Fdvalue: TMFFloat read FFdvalue;
+
+    private FFdnumComponents: TSFInt32;
+    public property FdnumComponents: TSFInt32 read FFdnumComponents;
+  end;
+
+  TNodeMatrix3VertexAttribute = class(TNodeX3DVertexAttributeNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdvalue: TMFMatrix3f;
+    public property Fdvalue: TMFMatrix3f read FFdvalue;
+  end;
+
+  TNodeMatrix4VertexAttribute = class(TNodeX3DVertexAttributeNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdvalue: TMFMatrix4f;
+    public property Fdvalue: TMFMatrix4f read FFdvalue;
+  end;
+
+  TNodePackagedShader = class(TNodeX3DShaderNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
-
-    { TODO:
-    # And any number of:
-    fieldType [in]     fieldName
-    fieldType [in,out] fieldName initialValue
-    fieldType [out]    fieldName
-    fieldType []       fieldName initialValue
-    }
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeProgramShader = class(TNodeX3DShaderNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     private FFdprograms: TMFNode;
     public property Fdprograms: TMFNode read FFdprograms;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
@@ -101,6 +137,9 @@
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
@@ -122,39 +161,25 @@
 
       This is always a full, expanded (i.e. not relative) URL. }
     property UsedFullUrl: string read FUsedFullUrl;
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject,
-    INodeX3DProgrammableShaderObject)
+  TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
 
     private FFdurl: TMFString;
     public property Fdurl: TMFString read FFdurl;
 
     private FFdtype: TSFString;
     public property Fdtype: TSFString read FFdtype;
-
-    { TODO:
-    # And any number of:
-    fieldType [in]     fieldName
-    fieldType [in,out] fieldName initialValue
-    fieldType [out]    fieldName
-    fieldType []       fieldName initialValue
-    }
-
-    function SuggestedVRMLVersion(
-      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}
-
 constructor TNodeX3DShaderNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -170,7 +195,21 @@ begin
   Events.Add(FEventisValid);
 
   FFdlanguage := TSFString.Create('language', '');
+  FFdlanguage.Exposed := false;
   Fields.Add(FFdlanguage);
+  { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
+end;
+
+constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdname := TSFString.Create('name', '');
+  FFdname.Exposed := false;
+  Fields.Add(FFdname);
+
+  DefaultContainerField := 'children';
 end;
 
 constructor TNodeComposedShader.Create(const ANodeName: string;
@@ -210,6 +249,110 @@ begin
     true, 3, 2, 2000);
 end;
 
+class function TNodeComposedShader.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeFloatVertexAttribute.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdvalue := TMFFloat.Create('value', []);
+  Fields.Add(FFdvalue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  FFdnumComponents := TSFInt32.Create('numComponents', 4);
+  FFdnumComponents.Exposed := false;
+  Fields.Add(FFdnumComponents);
+  { X3D specification comment: [1..4] }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeFloatVertexAttribute.ClassNodeTypeName: string;
+begin
+  Result := 'FloatVertexAttribute';
+end;
+
+function TNodeFloatVertexAttribute.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeFloatVertexAttribute.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMatrix3VertexAttribute.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdvalue := TMFMatrix3f.Create('value', []);
+  Fields.Add(FFdvalue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMatrix3VertexAttribute.ClassNodeTypeName: string;
+begin
+  Result := 'Matrix3VertexAttribute';
+end;
+
+function TNodeMatrix3VertexAttribute.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMatrix3VertexAttribute.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+constructor TNodeMatrix4VertexAttribute.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdvalue := TMFMatrix4f.Create('value', []);
+  Fields.Add(FFdvalue);
+  { X3D specification comment: (-Inf,Inf) }
+
+  DefaultContainerField := 'children';
+end;
+
+class function TNodeMatrix4VertexAttribute.ClassNodeTypeName: string;
+begin
+  Result := 'Matrix4VertexAttribute';
+end;
+
+function TNodeMatrix4VertexAttribute.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 3, 2, 2000);
+end;
+
+class function TNodeMatrix4VertexAttribute.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
 constructor TNodePackagedShader.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -217,8 +360,11 @@ begin
 
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
+  { X3D specification comment: [URI] }
 
   DefaultContainerField := 'shaders';
+
+  HasInterfaceDeclarations := AllAccessTypes;
 end;
 
 class function TNodePackagedShader.ClassNodeTypeName: string;
@@ -232,6 +378,12 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 3, 2, 2000);
+end;
+
+class function TNodePackagedShader.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
 constructor TNodeProgramShader.Create(const ANodeName: string;
@@ -258,6 +410,12 @@ begin
     true, 3, 2, 2000);
 end;
 
+class function TNodeProgramShader.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
 constructor TNodeShaderPart.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -265,10 +423,12 @@ begin
 
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
+  { X3D specification comment: [URI] }
 
   FFdtype := TSFString.Create('type', 'VERTEX');
   FFdtype.Exposed := false;
   Fields.Add(FFdtype);
+  { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'parts';
 end;
@@ -312,6 +472,12 @@ begin
     true, 3, 2, 2000);
 end;
 
+class function TNodeShaderPart.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
 constructor TNodeShaderProgram.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -319,12 +485,16 @@ begin
 
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
+  { X3D specification comment: [URI] }
 
   FFdtype := TSFString.Create('type', 'VERTEX');
   FFdtype.Exposed := false;
   Fields.Add(FFdtype);
+  { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'programs';
+
+  HasInterfaceDeclarations := AllAccessTypes;
 end;
 
 class function TNodeShaderProgram.ClassNodeTypeName: string;
@@ -338,5 +508,25 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 3, 2, 2000);
+end;
+
+class function TNodeShaderProgram.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure RegisterShadersNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeComposedShader,
+    TNodeFloatVertexAttribute,
+    TNodeMatrix3VertexAttribute,
+    TNodeMatrix4VertexAttribute,
+    TNodePackagedShader,
+    TNodeProgramShader,
+    TNodeShaderPart,
+    TNodeShaderProgram
+  ]);
 end;
 {$endif read_implementation}

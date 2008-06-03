@@ -1882,12 +1882,12 @@ type
 {$I x3d_dis.inc}
 {$I x3d_scripting.inc}
 {$I x3d_eventutilities.inc}
+{$I x3d_shaders.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_shaders.inc}
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
@@ -2650,12 +2650,12 @@ uses
 {$I x3d_dis.inc}
 {$I x3d_scripting.inc}
 {$I x3d_eventutilities.inc}
+{$I x3d_shaders.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
-{$I x3d_shaders.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -6319,14 +6319,7 @@ initialization
     TNodeNurbsPositionInterpolator_2,
     TNodeNurbsSurface,
     TNodeNurbsTextureSurface,
-    TNodeTrimmedSurface,
-
-    { X3D nodes }
-    TNodeComposedShader,
-    TNodePackagedShader,
-    TNodeProgramShader,
-    TNodeShaderPart,
-    TNodeShaderProgram
+    TNodeTrimmedSurface
     ]);
 
   RegisterCoreNodes;
@@ -6353,6 +6346,7 @@ initialization
   RegisterDISNodes;
   RegisterScriptingNodes;
   RegisterEventUtilitiesNodes;
+  RegisterShadersNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
