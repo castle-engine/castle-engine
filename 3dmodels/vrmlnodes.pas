@@ -6309,7 +6309,6 @@ initialization
     TNodeCoordinateDeformer,
     TNodeInlineLoadControl,
     TNodeNurbsCurve_2,
-    TNodeNurbsCurve2D,
     TNodeNurbsGroup,
     TNodeNurbsPositionInterpolator_2,
     TNodeNurbsSurface,
