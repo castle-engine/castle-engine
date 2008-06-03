@@ -69,14 +69,9 @@ GeoPositionInterpolator : X3DInterpolatorNode {
 }
 
 GeoProximitySensor : X3DEnvironmentalSensorNode {
-  SFBool     [in,out] enabled                  TRUE
   SFVec3d    [in,out] geoCenter                0 0 0       (-Inf,Inf)
-  SFVec3f    [in,out] size                     0 0 0       [0,Inf)
   SFVec3f    [out]    centerOfRotation_changed
-  SFTime     [out]    enterTime
-  SFTime     [out]    exitTime
   SFVec3d    [out]    geoCoord_changed
-  SFBool     [out]    isActive
   SFRotation [out]    orientation_changed
   SFVec3f    [out]    position_changed
   SFNode     []       geoOrigin                NULL        [GeoOrigin]

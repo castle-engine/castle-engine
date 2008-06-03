@@ -1876,6 +1876,7 @@ type
 {$I x3d_environmentalsensor.inc}
 {$I x3d_navigation.inc}
 {$I x3d_environmentaleffects.inc}
+{$I x3d_geospatial.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -2638,6 +2639,7 @@ uses
 {$I x3d_environmentalsensor.inc}
 {$I x3d_navigation.inc}
 {$I x3d_environmentaleffects.inc}
+{$I x3d_geospatial.inc}
 
 {$I vrml1nodes.inc}
 {$I vrmlinventornodes.inc}
@@ -6302,15 +6304,6 @@ initialization
     { VRML 2.0 spec nodes }
     TNodeContour2D,
     TNodeCoordinateDeformer,
-    TNodeGeoCoordinate,
-    TNodeGeoElevationGrid,
-    TNodeGeoLocation,
-    TNodeGeoLOD,
-    TNodeGeoMetadata,
-    TNodeGeoOrigin,
-    TNodeGeoPositionInterpolator,
-    TNodeGeoTouchSensor,
-    TNodeGeoViewpoint,
     TNodeInlineLoadControl,
     TNodeNurbsCurve,
     TNodeNurbsCurve2D,
@@ -6347,6 +6340,7 @@ initialization
   RegisterEnvironmentalSensorNodes;
   RegisterNavigationNodes;
   RegisterEnvironmentalEffectsNodes;
+  RegisterGeospatialNodes;
 
   AllowedChildrenNodes := TVRMLNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([

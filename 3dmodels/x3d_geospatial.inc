@@ -18,6 +18,25 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{ GEO X3D component.
+
+  Note that this is slightly incompatible with the VRML 97 definition of
+  the same nodes. And this incompatibility is not fixed here.
+  When (if ever) I decide to implement Geo, it will be X3D-compatible only.
+  Since I didn't ever implement VRML 97 GEO component, and I do not have current
+  plans to implement X3D GEO component, and GEO is optional anyway in VRML 97,
+  I decided GEO is just not important enough for me to try to
+  parse VRML 97 GEO nodes.
+
+  Incompatible differences in VRML 97 are mainly caused by the fact
+  that double-precision field types were not available in VRML 97.
+  And GEO really needed them. So many fields had to be defined as SFString
+  type, while in X3D that are SFDouble, SFVec2d, SFVec3d etc.
+  Examples:
+  - GeoElevationGrid: xSpacing, zSpacing, geoGridOrigin
+  - GeoOrigin: geoCoords
+}
+
 {$ifdef read_interface}
   TNodeGeoCoordinate = class(TNodeX3DCoordinateNode)
   public
@@ -119,7 +138,7 @@
     public property FdgeoSystem: TMFString read FFdgeoSystem;
   end;
 
-  TNodeGeoLOD = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  TNodeGeoLOD = class(TVRMLGroupingNode, INodeX3DBoundedObject)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -242,34 +261,16 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
-
     private FFdgeoCenter: TSFVec3d;
     public property FdgeoCenter: TSFVec3d read FFdgeoCenter;
-
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
 
     { Event: SFVec3f, out } { }
     private FEventcenterOfRotation_changed: TVRMLEvent;
     public property EventcenterOfRotation_changed: TVRMLEvent read FEventcenterOfRotation_changed;
 
-    { Event: SFTime, out } { }
-    private FEvententerTime: TVRMLEvent;
-    public property EvententerTime: TVRMLEvent read FEvententerTime;
-
-    { Event: SFTime, out } { }
-    private FEventexitTime: TVRMLEvent;
-    public property EventexitTime: TVRMLEvent read FEventexitTime;
-
     { Event: SFVec3d, out } { }
     private FEventgeoCoord_changed: TVRMLEvent;
     public property EventgeoCoord_changed: TVRMLEvent read FEventgeoCoord_changed;
-
-    { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
 
     { Event: SFRotation, out } { }
     private FEventorientation_changed: TVRMLEvent;
@@ -397,7 +398,7 @@ begin
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -418,13 +419,15 @@ function TNodeGeoCoordinate.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
-    true, 3, 2, 2000);
+    true, 2, 0, 1000);
 end;
 
 class function TNodeGeoCoordinate.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -436,13 +439,13 @@ begin
   FEventset_height := TVRMLEvent.Create('set_height', TMFDouble, true);
   Events.Add(FEventset_height);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [X3DColorNode]);
+  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
   Fields.Add(FFdcolor);
 
-  FFdnormal := TSFNode.Create(Self, 'normal', [X3DNormalNode]);
+  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
   Fields.Add(FFdnormal);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [X3DTextureCoordinateNode]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
 
   FFdyScale := TSFFloat.Create('yScale', 1.0);
@@ -462,12 +465,12 @@ begin
   Fields.Add(FFdcreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdgeoGridOrigin := TSFVec3d.Create('geoGridOrigin', Vector3Single(0, 0, 0));
+  FFdgeoGridOrigin := TSFVec3d.Create('geoGridOrigin', Vector3Double(0, 0, 0));
   FFdgeoGridOrigin.Exposed := false;
   Fields.Add(FFdgeoGridOrigin);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -476,7 +479,7 @@ begin
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdheight := TMFDouble.Create('height', [0 0]);
+  FFdheight := TMFDouble.Create('height', [0, 0]);
   FFdheight.Exposed := false;
   Fields.Add(FFdheight);
   { X3D specification comment: (-Inf,Inf) }
@@ -521,6 +524,7 @@ function TNodeGeoElevationGrid.SuggestedVRMLVersion(
   out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
 begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { There is very similar, but not 100% compatible node in VRML 97 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 3, 2, 2000);
 end;
@@ -528,6 +532,8 @@ end;
 class function TNodeGeoElevationGrid.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
+    { There is very similar, but not 100% compatible node in VRML 97 }
+    { (URN = URNVRML97Nodes + ClassNodeTypeName) or }
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
@@ -536,11 +542,11 @@ constructor TNodeGeoLocation.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdgeoCoords := TSFVec3d.Create('geoCoords', Vector3Single(0, 0, 0));
+  FFdgeoCoords := TSFVec3d.Create('geoCoords', Vector3Double(0, 0, 0));
   Fields.Add(FFdgeoCoords);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -582,7 +588,7 @@ begin
   FEventlevel_changed := TVRMLEvent.Create('level_changed', TSFInt32, false);
   Events.Add(FEventlevel_changed);
 
-  FFdcenter := TSFVec3d.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3d.Create('center', Vector3Double(0, 0, 0));
   FFdcenter.Exposed := false;
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -607,7 +613,7 @@ begin
   Fields.Add(FFdchild4Url);
   { X3D specification comment: [URI] }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -626,7 +632,7 @@ begin
   Fields.Add(FFdrootUrl);
   { X3D specification comment: [URI] }
 
-  FFdrootNode := TMFNode.Create(Self, 'rootNode', [X3DChildNode]);
+  FFdrootNode := TMFNode.Create(Self, 'rootNode', [TNodeX3DChildNode]);
   FFdrootNode.Exposed := false;
   Fields.Add(FFdrootNode);
 
@@ -667,7 +673,7 @@ constructor TNodeGeoMetadata.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddata := TMFNode.Create(Self, 'data', [urn]);
+  FFddata := TMFNode.Create(Self, 'data', []);
   Fields.Add(FFddata);
 
   FFdsummary := TMFString.Create('summary', []);
@@ -704,7 +710,7 @@ constructor TNodeGeoOrigin.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdgeoCoords := TSFVec3d.Create('geoCoords', Vector3Single(0, 0, 0));
+  FFdgeoCoords := TSFVec3d.Create('geoCoords', Vector3Double(0, 0, 0));
   Fields.Add(FFdgeoCoords);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -753,7 +759,7 @@ begin
   FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
   Events.Add(FEventvalue_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -789,31 +795,15 @@ constructor TNodeGeoProximitySensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create('enabled', true);
-  Fields.Add(FFdenabled);
-
-  FFdgeoCenter := TSFVec3d.Create('geoCenter', Vector3Single(0, 0, 0));
+  FFdgeoCenter := TSFVec3d.Create('geoCenter', Vector3Double(0, 0, 0));
   Fields.Add(FFdgeoCenter);
   { X3D specification comment: (-Inf,Inf) }
-
-  FFdsize := TSFVec3f.Create('size', Vector3Single(0, 0, 0));
-  Fields.Add(FFdsize);
-  { X3D specification comment: [0,Inf) }
 
   FEventcenterOfRotation_changed := TVRMLEvent.Create('centerOfRotation_changed', TSFVec3f, false);
   Events.Add(FEventcenterOfRotation_changed);
 
-  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
-  Events.Add(FEvententerTime);
-
-  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
-  Events.Add(FEventexitTime);
-
   FEventgeoCoord_changed := TVRMLEvent.Create('geoCoord_changed', TSFVec3d, false);
   Events.Add(FEventgeoCoord_changed);
-
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
-  Events.Add(FEventisActive);
 
   FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
   Events.Add(FEventorientation_changed);
@@ -821,7 +811,7 @@ begin
   FEventposition_changed := TVRMLEvent.Create('position_changed', TSFVec3f, false);
   Events.Add(FEventposition_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -869,7 +859,7 @@ begin
   FEventhitGeoCoord_changed := TVRMLEvent.Create('hitGeoCoord_changed', TSFVec3d, false);
   Events.Add(FEventhitGeoCoord_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -905,7 +895,7 @@ constructor TNodeGeoTransform.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdgeoCenter := TSFVec3d.Create('geoCenter', Vector3Single(0, 0, 0));
+  FFdgeoCenter := TSFVec3d.Create('geoCenter', Vector3Double(0, 0, 0));
   Fields.Add(FFdgeoCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -925,7 +915,7 @@ begin
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -977,7 +967,7 @@ begin
   FFdnavType := TMFString.Create('navType', ['EXAMINE','ANY']);
   Fields.Add(FFdnavType);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [GeoOrigin]);
+  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
   FFdgeoOrigin.Exposed := false;
   Fields.Add(FFdgeoOrigin);
 
@@ -986,7 +976,7 @@ begin
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdposition := TSFVec3d.Create('position', Vector3Single(0, 0, 100000));
+  FFdposition := TSFVec3d.Create('position', Vector3Double(0, 0, 100000));
   FFdposition.Exposed := false;
   Fields.Add(FFdposition);
   { X3D specification comment: (-Inf,Inf) }
