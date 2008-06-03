@@ -606,6 +606,7 @@ type
   { Basic VRML node interface class, all other interfaces for VRML nodes descend
     from this. }
   IVRMLNode = interface
+  ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
   end;
 
   { VRML node.
@@ -1508,7 +1509,7 @@ type
     procedure SetItems(Index: Integer; Value: TVRMLNodeClass);
   public
     property Items[Index: Integer]: TVRMLNodeClass
-      read GetItems write SetItems;
+      read GetItems write SetItems; default;
     procedure AssignArray(
       const AItemsArray: array of TVRMLNodeClass);
     function IndexOf(NodeClass: TVRMLNodeClass): Integer; overload;
@@ -2307,8 +2308,10 @@ type
   ENodeClassRegisterError = class(ENodesManagerError);
   TNodesManager = class
   private
-    { Strings[] to ClassNodeTypeName. Objects[] to odpowiednie klasy. }
-    Registered: TStringList;
+    { Strings[] is ClassNodeTypeName. Objects[] is the actual class
+      (typecast to TVRMLNodeClass is safe). }
+    FRegistered: TStringList;
+    function GetRegistered(Index: Integer): TVRMLNodeClass;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2353,6 +2356,14 @@ type
     { Return class that matches given URL. This is useful for EXTERNROTOs.
       Returns @nil if not found. }
     function URNToClass(const URN: string): TVRMLNodeClass;
+
+    { Enumerate all registered classes, from Registered[0] to
+      Registered[RegisteredCount - 1].
+
+      @groupBegin }
+    property Registered [Index: Integer]: TVRMLNodeClass read GetRegistered;
+    function RegisteredCount: Cardinal;
+    { @groupEnd }
   end;
 
 var
@@ -2560,10 +2571,6 @@ const
   MinQuadricSlices: Cardinal = 3; { mimo ze OpenGL akceptuje minimum 2, ale dla 2 wynik jest bez sensu }
   MinQuadricStacks: Cardinal = 1;
   MinRectDivisions: Cardinal = 0;
-
-var
-  AllowedChildrenNodes: TVRMLNodeClassesList;
-  AllowedGeometryNodes: TVRMLNodeClassesList;
 
 const
   { URNs used to indicate standard VRML / X3D nodes.
@@ -5576,51 +5583,52 @@ end;
 
 constructor TNodesManager.Create;
 begin
- inherited;
- Registered := TStringListCaseSens.Create;
+  inherited;
+  FRegistered := TStringListCaseSens.Create;
 end;
 
 destructor TNodesManager.Destroy;
 begin
- Registered.Free;
- inherited;
+  FRegistered.Free;
+  inherited;
 end;
 
 procedure TNodesManager.RegisterNodeClass(NodeClass: TVRMLNodeClass);
 begin
- if NodeClass.ClassNodeTypeName = '' then
-  raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
-   'empty ClassNodeTypeName so it cannot be registered in TNodesManager');
+  if NodeClass.ClassNodeTypeName = '' then
+    raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
+      'empty ClassNodeTypeName so it cannot be registered in TNodesManager');
 
- if Registered.IndexOfObject(TObject(Pointer(NodeClass))) <> -1 then
-  raise ENodesManagerError.Create('Class '+NodeClass.ClassName+
-    ' was already registered in TNodesManager');
+  if FRegistered.IndexOfObject(TObject(Pointer(NodeClass))) <> -1 then
+    raise ENodesManagerError.Create('Class '+NodeClass.ClassName+
+      ' was already registered in TNodesManager');
 
- Registered.AddObject(NodeClass.ClassNodeTypeName, TObject(Pointer(NodeClass)));
+  FRegistered.AddObject(NodeClass.ClassNodeTypeName, TObject(Pointer(NodeClass)));
 end;
 
 procedure TNodesManager.RegisterNodeClasses(
   const NodeClasses: array of TVRMLNodeClass);
-var i: Integer;
+var
+  I: Integer;
 begin
- for i := 0 to High(NodeClasses) do RegisterNodeClass(NodeClasses[i]);
+  for i := 0 to High(NodeClasses) do RegisterNodeClass(NodeClasses[i]);
 end;
 
 procedure TNodesManager.UnRegisterNodeClass(NodeClass: TVRMLNodeClass;
   ErrorIfNotRegistered: boolean);
 var i: Integer;
 begin
- if NodeClass.ClassNodeTypeName = '' then
-  raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
-   'empty ClassNodeTypeName so it cannot be unregistered (or even registered) '+
-   'in TNodesManager');
+  if NodeClass.ClassNodeTypeName = '' then
+    raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
+      'empty ClassNodeTypeName so it cannot be unregistered (or even registered) '+
+      'in TNodesManager');
 
- i := Registered.IndexOfObject(TObject(Pointer(NodeClass)));
- if i <> - 1 then
-  Registered.Delete(i) else
- if ErrorIfNotRegistered then
-  ENodesManagerError.Create('Node class "' + NodeClass.ClassName +
-    '" was not registered, so you cannot unregister it');
+  i := FRegistered.IndexOfObject(TObject(Pointer(NodeClass)));
+  if i <> - 1 then
+    FRegistered.Delete(i) else
+  if ErrorIfNotRegistered then
+    ENodesManagerError.Create('Node class "' + NodeClass.ClassName +
+      '" was not registered, so you cannot unregister it');
 end;
 
 function TNodesManager.NodeTypeNameToClass(const ANodeTypeName: string;
@@ -5628,10 +5636,10 @@ function TNodesManager.NodeTypeNameToClass(const ANodeTypeName: string;
 var
   I: Integer;
 begin
-  for I := 0 to Registered.Count - 1 do
+  for I := 0 to FRegistered.Count - 1 do
   begin
-    Result := TVRMLNodeClass(Registered.Objects[I]);
-    if (Registered[I] = ANodeTypeName) and
+    Result := TVRMLNodeClass(FRegistered.Objects[I]);
+    if (FRegistered[I] = ANodeTypeName) and
        Result.ForVRMLVersion(VerMajor, VerMinor) then
       Exit;
   end;
@@ -5642,13 +5650,23 @@ function TNodesManager.URNToClass(const URN: string): TVRMLNodeClass;
 var
   I: Integer;
 begin
-  for I := 0 to Registered.Count - 1 do
+  for I := 0 to FRegistered.Count - 1 do
   begin
-    Result := TVRMLNodeClass(Registered.Objects[I]);
+    Result := TVRMLNodeClass(FRegistered.Objects[I]);
     if Result.URNMatching(URN) then
       Exit;
   end;
   Result := nil;
+end;
+
+function TNodesManager.GetRegistered(Index: Integer): TVRMLNodeClass;
+begin
+  Result := TVRMLNodeClass(FRegistered.Objects[Index]);
+end;
+
+function TNodesManager.RegisteredCount: Cardinal;
+begin
+  Result := FRegistered.Count;
 end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
@@ -6301,44 +6319,13 @@ initialization
   VRMLFieldsManager.RegisterClasses([TSFNode, TMFNode]);
 
   NodesManager := TNodesManager.Create;
-  NodesManager.RegisterNodeClasses([
-    { Inventor spec nodes }
-    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
 
-    { VRML 1.0 spec nodes }
-    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
-    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
-    TNodePointSet_1, TNodeSphere_1,
-    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
-    TNodeMaterialBinding, TNodeNormalBinding, TNodeTexture2,
-    TNodeTexture2Transform,
-    TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform, TNodeRotation,
-    TNodeScale, TNodeTransform_1,
-    TNodeTranslation,
-    TNodeOrthographicCamera, TNodePerspectiveCamera,
-    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
-    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
-    TNodeWWWAnchor,
-    TNodeWWWInline,
+  RegistedInventorNodes;
+  RegisterVRML1Nodes;
+  RegisterVRML97Nodes;
+  RegisterKambiNodes;
 
-    { Kambi non-standard nodes }
-    TNodeKambiTriangulation,
-    TNodeKambiHeadLight,
-    TNodeText3D,
-    TNodeBlendMode,
-    TNodeKambiAppearance,
-
-    { VRML 2.0 spec nodes }
-    TNodeCoordinateDeformer,
-    TNodeInlineLoadControl,
-    TNodeNurbsCurve_2,
-    TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator_2,
-    TNodeNurbsSurface,
-    TNodeNurbsTextureSurface,
-    TNodeTrimmedSurface
-    ]);
+  { X3D components registration : }
 
   RegisterCoreNodes;
   RegisterTimeNodes;
@@ -6374,166 +6361,6 @@ initialization
   RegisterPickingNodes;
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
-
-  AllowedChildrenNodes := TVRMLNodeClassesList.Create;
-  AllowedChildrenNodes.AssignArray([
-    { We add all nodes for VRML < 2.0, because we allow
-      to mix VRML 1.0 inside VRML 2.0. }
-
-    { Inventor spec nodes }
-    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
-
-    { VRML 1.0 spec nodes }
-    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
-    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
-    TNodePointSet_1, TNodeSphere_1,
-    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
-    TNodeMaterialBinding, TNodeNormal, TNodeNormalBinding, TNodeTexture2,
-    TNodeTexture2Transform,
-    TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform, TNodeRotation,
-    TNodeScale, TNodeTransform_1,
-    TNodeTranslation,
-    TNodeOrthographicCamera, TNodePerspectiveCamera,
-    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
-    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
-    TNodeWWWAnchor,
-    TNodeWWWInline,
-
-    { Kambi non-standard nodes }
-    TNodeKambiTriangulation,
-    TNodeKambiHeadLight,
-    //TNodeText3D,
-    //TNodeBlendMode,
-    //TNodeKambiAppearance,
-
-    { VRML 2.0 spec nodes }
-    TNodeAnchor,
-    //TNodeAppearance,
-    //TNodeAudioClip,
-    TNodeBackground,
-    TNodeBillboard,
-    //TNodeBox,
-    TNodeCollision,
-    //TNodeColor,
-    TNodeColorInterpolator,
-    //TNodeCone_2,
-    //TNodeContour2D,
-    //TNodeCoordinate,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is CoordinateDeformer allowed or not as children node.
-      To be fixed when I'll implement CoordinateDeformer handling. }
-    TNodeCoordinateDeformer,
-    TNodeCoordinateInterpolator,
-    //TNodeCylinder_2,
-    TNodeCylinderSensor,
-    TNodeDirectionalLight_2,
-    //TNodeElevationGrid,
-    //TNodeExtrusion,
-    TNodeFog,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is TNodeFontStyle allowed as children node,
-      but FontStyle docs say that it's only for Text.fontStyle. }
-    //TNodeFontStyle_2,
-    //TNodeGeoCoordinate,
-    //TNodeGeoElevationGrid,
-    TNodeGeoLocation,
-    TNodeGeoLOD,
-    TNodeGeoMetadata,
-    //TNodeGeoOrigin,
-    TNodeGeoPositionInterpolator,
-    TNodeGeoTouchSensor,
-    TNodeGeoViewpoint,
-    TNodeGroup_2,
-    //TNodeImageTexture,
-    //TNodeIndexedFaceSet_2,
-    //TNodeIndexedLineSet_2,
-    TNodeInline,
-    { VRML 2.0 spec doesn't say InlineLoadControl is valid children
-      node, it also doesn't say it's not valid. Common sense says
-      it's valid. }
-    TNodeInlineLoadControl,
-    TNodeLOD_2,
-    //TNodeMaterial_2,
-    //TNodeMovieTexture,
-    TNodeNavigationInfo,
-    { Normal node is not a valid children node for VRML 2.0.
-      But we don't have separate TNodeNormal_1 and TNodeNormal_2 classes,
-      so node normal was already added here as all other VRML 1.0 nodes.
-      So it's allowed children node for us --- in the spirit thst
-      we allow to mix VRML 1.0 and 2.0. }
-    //{ TNodeNormal, - registered already as VRML 1.0 node }
-    TNodeNormalInterpolator,
-    //TNodeNurbsCurve,
-    //TNodeNurbsCurve2D,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is NurbsGroup allowed or not as children node.
-      To be fixed when I'll implement NurbsGroup handling. }
-    TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator_2,
-    //TNodeNurbsSurface,
-    //TNodeNurbsTextureSurface,
-    TNodeOrientationInterpolator,
-    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is PixelTexture allowed or not as children node.
-      But common sense says it's only for Appearance.texture field. }
-    //TNodePixelTexture,
-    TNodePlaneSensor,
-    TNodePointLight_2,
-    //TNodePointSet_2,
-    //TNodePolyline2D,
-    TNodePositionInterpolator,
-    TNodeProximitySensor,
-    TNodeScalarInterpolator,
-    TNodeScript,
-    TNodeShape,
-    TNodeSound,
-    //TNodeSphere_2,
-    TNodeSphereSensor,
-    TNodeSpotLight_2,
-    TNodeSwitch_2,
-    //TNodeText,
-    //TNodeTextureCoordinate,
-    //TNodeTextureTransform,
-    TNodeTimeSensor,
-    TNodeTouchSensor,
-    TNodeTransform_2,
-    //TNodeTrimmedSurface,
-    TNodeViewpoint,
-    TNodeVisibilitySensor,
-    TNodeWorldInfo,
-
-    { X3D nodes }
-    //TNodeComposedShader,
-    //TNodePackagedShader,
-    //TNodeProgramShader,
-    //TNodeShaderPart,
-    //TNodeShaderProgram
-    TNodeSwitch_2,
-    TNodeLOD_2
-  ]);
-
-  AllowedGeometryNodes := TVRMLNodeClassesList.Create;
-  AllowedGeometryNodes.AssignArray([
-    TNodeBox,
-    TNodeCone_2,
-    TNodeContour2D,
-    TNodeCylinder_2,
-    TNodeElevationGrid,
-    TNodeExtrusion,
-    TNodeGeoElevationGrid,
-    TNodeIndexedFaceSet_2,
-    TNodeIndexedLineSet_2,
-    TNodeNurbsCurve_2,
-    TNodeNurbsSurface,
-    TNodePointSet_2,
-    TNodeSphere_2,
-    TNodeText,
-    TNodeText3D,
-    TNodeTrimmedSurface
-  ]);
 finalization
-  FreeAndNil(AllowedGeometryNodes);
-  FreeAndNil(AllowedChildrenNodes);
   FreeAndNil(NodesManager);
 end.

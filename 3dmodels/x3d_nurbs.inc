@@ -81,7 +81,14 @@
     public property FdvOrder: TSFInt32 read FFdvOrder;
   end;
 
-  TNodeContour2D = class(TNodeX3DNode)
+  { Contour2D.
+
+    For VRML 2.0, this is TNodeX3DGeometryNode, since VRML 2.0 specification
+    explicitly says it's valid geometry node. For X3D specification, this was only
+    TNodeX3DNode. When implementing NURBS, I will have to either handle
+    both VRML 2.0 and X3D cases at once, or just split this class into
+    two separate TNodeContour2D_2 and TNodeContour2D_3. }
+  TNodeContour2D = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;

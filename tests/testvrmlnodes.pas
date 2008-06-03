@@ -39,7 +39,13 @@ type
       Deactivated... it can't check like this, lexer tokens may be
       different due to the order of fields.
     }
-    { procedure TestParseSaveToFile; }
+    { procedure TestParseSaveToFile; } { }
+
+    procedure TestUniqueFields;
+
+    procedure InterfaceSupports;
+
+    procedure TestAllowedChildren;
   end;
 
 implementation
@@ -237,6 +243,292 @@ begin
   TestReadWrite('../../kambi_vrml_test_suite/vrml_2/proto_nested.wrl');
 end;
 *)
+
+procedure TTestVRMLNodes.InterfaceSupports;
+begin
+  Assert(Supports(TNodeGroup_2, INodeX3DChildNode));
+  Assert(not Supports(TNodeCone_2, INodeX3DChildNode));
+  Assert(not Supports(TVRMLNode, INodeX3DChildNode));
+  Assert(not Supports(TObject, INodeX3DChildNode));
+
+  { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
+end;
+
+procedure TTestVRMLNodes.TestUniqueFields;
+var
+  I, J, K: Integer;
+  N: TVRMLNode;
+  CurrentName: string;
+begin
+  for I := 0 to NodesManager.RegisteredCount - 1 do
+  begin
+    N := NodesManager.Registered[I].Create('', '');
+
+    { Writeln(N.NodeTypeName, ' ', Supports(N, INodeX3DChildNode)); }
+
+    { Test that all fields, events names are different.
+
+      Doesn't detect if two alternative names match each other for now!
+      (Although will detect if some alternative name will match non-alternative
+      name, since uses IsName comparison).
+
+      Also, doesn't check the implicitly exposed events for now. }
+
+    for J := 0 to N.Fields.Count - 1 do
+    begin
+      CurrentName := N.Fields[J].Name;
+      for K := 0 to N.Fields.Count - 1 do
+        Assert((K = J) or (not N.Fields[K].IsName(CurrentName)));
+      for K := 0 to N.Events.Count - 1 do
+        Assert(not N.Events[K].IsName(CurrentName));
+    end;
+
+    for J := 0 to N.Events.Count - 1 do
+    begin
+      CurrentName := N.Events[J].Name;
+      for K := 0 to N.Fields.Count - 1 do
+        Assert(not N.Fields[K].IsName(CurrentName));
+      for K := 0 to N.Events.Count - 1 do
+        Assert((K = J) or (not N.Events[K].IsName(CurrentName)));
+    end;
+  end;
+end;
+
+procedure TTestVRMLNodes.TestAllowedChildren;
+var
+  AllowedChildrenNodes: TVRMLNodeClassesList;
+  AllowedGeometryNodes: TVRMLNodeClassesList;
+  I: Integer;
+  N: TVRMLNode;
+begin
+  { AllowedChildrenNodes and AllowedGeometryNodes were written before X3D
+    transition. I didn't then check AllowedChildren using some general
+    inheritance classes, like X3D, but I had simply long lists for
+    some properties.
+
+    They were removed from VRMLNodes, since using X3D inheritance
+    is obiously much simpler and long-term solution. For example,
+    all children nodes simply inherit from TNodeX3DChildNode
+    (actually, INodeX3DChildNode, and since FPC "Supports" doesn't work
+    we simply have INodeX3DChildNode_Descendants lists... still, it's much
+    shorter list than AllowedChildrenNodes).
+    This avoids the need to maintain long lists like these below, that would be
+    nightmare considering large number of X3D nodes.
+
+    Still, since I already wrote these lists, they are used below
+    for testing. To make sure X3D inheritance didn't break any
+    previous behavior, all classes on AllowedChildrenNodes must inherit
+    from TNodeX3DChildNode, and similat for geometry nodes. }
+
+  AllowedChildrenNodes := TVRMLNodeClassesList.Create;
+  AllowedChildrenNodes.AssignArray([
+    { We add all nodes for VRML < 2.0, because we allow
+      to mix VRML 1.0 inside VRML 2.0. }
+
+    { Inventor spec nodes }
+    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
+
+    { VRML 1.0 spec nodes }
+    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
+    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
+    TNodePointSet_1, TNodeSphere_1,
+    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
+
+    { TNodeNormal used to also be allowed here, but it's also used by X3D,
+      and I don't want to mess X3D inheritance by making TNodeNormal descendant
+      of INodeX3DChildNode --- which is required only when you mix VRML 1.0
+      and X3D... When mixing VRML 1.0 and VRML >= 2.0 in a singe file,
+      you will have to live with warnings about Normal not allowed as
+      children in VRML >= 2.0 nodes.
+
+      Also TNodeTexture2 was here, but is removed: I don't want to mess
+      X3D inheritance just for VRML 1.0 + 2.0 mixing feature. }
+
+    TNodeMaterialBinding, TNodeNormalBinding,
+    TNodeTexture2Transform,
+    TNodeTextureCoordinate2, TNodeShapeHints,
+    TNodeMatrixTransform, TNodeRotation,
+    TNodeScale, TNodeTransform_1,
+    TNodeTranslation,
+    TNodeOrthographicCamera, TNodePerspectiveCamera,
+    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
+    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
+    TNodeWWWAnchor,
+    TNodeWWWInline,
+
+    { Kambi non-standard nodes }
+    TNodeKambiTriangulation,
+    TNodeKambiHeadLight,
+    //TNodeText3D,
+    //TNodeBlendMode,
+    //TNodeKambiAppearance,
+
+    { VRML 2.0 spec nodes }
+    TNodeAnchor,
+    //TNodeAppearance,
+    //TNodeAudioClip,
+    TNodeBackground,
+    TNodeBillboard,
+    //TNodeBox,
+    TNodeCollision,
+    //TNodeColor,
+    TNodeColorInterpolator,
+    //TNodeCone_2,
+    //TNodeContour2D,
+    //TNodeCoordinate,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is CoordinateDeformer allowed or not as children node.
+      To be fixed when I'll implement CoordinateDeformer handling. }
+    TNodeCoordinateDeformer,
+    TNodeCoordinateInterpolator,
+    //TNodeCylinder_2,
+    TNodeCylinderSensor,
+    TNodeDirectionalLight_2,
+    //TNodeElevationGrid,
+    //TNodeExtrusion,
+    TNodeFog,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is TNodeFontStyle allowed as children node,
+      but FontStyle docs say that it's only for Text.fontStyle. }
+    //TNodeFontStyle_2,
+    //TNodeGeoCoordinate,
+    //TNodeGeoElevationGrid,
+    TNodeGeoLocation,
+    TNodeGeoLOD,
+    TNodeGeoMetadata,
+    //TNodeGeoOrigin,
+    TNodeGeoPositionInterpolator,
+    TNodeGeoTouchSensor,
+    TNodeGeoViewpoint,
+    TNodeGroup_2,
+    //TNodeImageTexture,
+    //TNodeIndexedFaceSet_2,
+    //TNodeIndexedLineSet_2,
+    TNodeInline,
+    { VRML 2.0 spec doesn't say InlineLoadControl is valid children
+      node, it also doesn't say it's not valid. Common sense says
+      it's valid. }
+    TNodeInlineLoadControl,
+    TNodeLOD_2,
+    //TNodeMaterial_2,
+    //TNodeMovieTexture,
+    TNodeNavigationInfo,
+    { Normal node is not a valid children node for VRML 2.0.
+      But we don't have separate TNodeNormal_1 and TNodeNormal_2 classes,
+      so node normal was already added here as all other VRML 1.0 nodes.
+      So it's allowed children node for us --- in the spirit thst
+      we allow to mix VRML 1.0 and 2.0. }
+    //{ TNodeNormal, - registered already as VRML 1.0 node }
+    TNodeNormalInterpolator,
+    //TNodeNurbsCurve,
+    //TNodeNurbsCurve2D,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is NurbsGroup allowed or not as children node.
+      To be fixed when I'll implement NurbsGroup handling. }
+    TNodeNurbsGroup,
+    TNodeNurbsPositionInterpolator_2,
+    //TNodeNurbsSurface,
+    //TNodeNurbsTextureSurface,
+    TNodeOrientationInterpolator,
+    { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
+      doesn't say is PixelTexture allowed or not as children node.
+      But common sense says it's only for Appearance.texture field. }
+    //TNodePixelTexture,
+    TNodePlaneSensor,
+    TNodePointLight_2,
+    //TNodePointSet_2,
+    //TNodePolyline2D,
+    TNodePositionInterpolator,
+    TNodeProximitySensor,
+    TNodeScalarInterpolator,
+    TNodeScript,
+    TNodeShape,
+    TNodeSound,
+    //TNodeSphere_2,
+    TNodeSphereSensor,
+    TNodeSpotLight_2,
+    TNodeSwitch_2,
+    //TNodeText,
+    //TNodeTextureCoordinate,
+    //TNodeTextureTransform,
+    TNodeTimeSensor,
+    TNodeTouchSensor,
+    TNodeTransform_2,
+    //TNodeTrimmedSurface,
+    TNodeViewpoint,
+    TNodeVisibilitySensor,
+    TNodeWorldInfo,
+
+    { X3D nodes }
+    //TNodeComposedShader,
+    //TNodePackagedShader,
+    //TNodeProgramShader,
+    //TNodeShaderPart,
+    //TNodeShaderProgram
+    TNodeSwitch_2,
+    TNodeLOD_2
+  ]);
+
+  AllowedGeometryNodes := TVRMLNodeClassesList.Create;
+  AllowedGeometryNodes.AssignArray([
+    TNodeBox,
+    TNodeCone_2,
+    TNodeContour2D,
+    TNodeCylinder_2,
+    TNodeElevationGrid,
+    TNodeExtrusion,
+    TNodeGeoElevationGrid,
+    TNodeIndexedFaceSet_2,
+    TNodeIndexedLineSet_2,
+    TNodeNurbsCurve_2,
+    TNodeNurbsSurface,
+    TNodePointSet_2,
+    TNodeSphere_2,
+    TNodeText,
+    TNodeText3D,
+    TNodeTrimmedSurface
+  ]);
+
+  try
+    for I := 0 to AllowedChildrenNodes.Count - 1 do
+    try
+      Assert(Supports(AllowedChildrenNodes[I], INodeX3DChildNode));
+
+      { Just to make sure, check also the created class
+        (I don't trust FPC interfaces for now...) }
+      N := AllowedChildrenNodes[I].Create('', '');
+      try
+        Assert(Supports(N, INodeX3DChildNode));
+      finally FreeAndNil(N) end;
+
+      { Check also INodeX3DChildNode_Descendants list, since this
+        is temporarily used and should match all INodeX3DChildNode
+        descendants. }
+      { TODO }
+    except
+      on E: Exception do
+      begin
+        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is INodeX3DChildNode');
+        raise;
+      end;
+    end;
+
+    for I := 0 to AllowedGeometryNodes.Count - 1 do
+    try
+      Assert(AllowedGeometryNodes[I].InheritsFrom(TNodeX3DGeometryNode));
+    except
+      on E: Exception do
+      begin
+        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TNodeX3DGeometryNode');
+        raise;
+      end;
+    end;
+
+  finally
+    FreeAndNil(AllowedGeometryNodes);
+    FreeAndNil(AllowedChildrenNodes);
+  end;
+end;
 
 initialization
  RegisterTest(TTestVRMLNodes);

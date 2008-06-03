@@ -18,9 +18,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ This file defines all nodes from VRML 2.0 (aka 97) specification.
-  Keep it alphabetically (aside from abstract classes
-  that are only for easier implementation, like TVRMLGroupingNode). } { }
+{ This file defines all nodes from VRML 2.0 (aka 97) specification
+  (that didn't make it into X3D). } { }
 
 {$ifdef read_interface}
   TNodeCoordinateDeformer = class(TVRMLGroupingNode)
@@ -126,7 +125,7 @@
     procedure LoadInlined(CanReload: boolean);
   end;
 
-  TNodeNurbsCurve_2 = class(TVRMLNode)
+  TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -166,7 +165,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNurbsPositionInterpolator_2 = class(TVRMLNode)
+  TNodeNurbsPositionInterpolator_2 = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -201,7 +200,7 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
   end;
 
-  TNodeNurbsSurface = class(TVRMLNode)
+  TNodeNurbsSurface = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -284,7 +283,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeTrimmedSurface = class(TVRMLNode)
+  TNodeTrimmedSurface = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -320,7 +319,7 @@ begin
   FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', AllowedChildrenNodes);
+  FFdchildren := TMFNode.Create(Self, 'children', [IX3DChildNode_Descendants]);
   Fields.Add(FFdchildren);
 
   FFdcontrolPoint := TMFVec3f.Create('controlPoint', []);
@@ -790,5 +789,19 @@ begin
   Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+procedure RegisterVRML97Nodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeCoordinateDeformer,
+    TNodeInlineLoadControl,
+    TNodeNurbsCurve_2,
+    TNodeNurbsGroup,
+    TNodeNurbsPositionInterpolator_2,
+    TNodeNurbsSurface,
+    TNodeNurbsTextureSurface,
+    TNodeTrimmedSurface
+  ]);
 end;
 {$endif read_implementation}

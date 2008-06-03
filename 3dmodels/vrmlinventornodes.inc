@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Inventor nodes that didn't make it into VRML version. } { }
+{ Inventor nodes that didn't make it into any VRML version. } { }
 
 {$ifdef read_interface}
   { IndexedTriangleMesh --- from Inventor 1.0. }
@@ -80,5 +80,13 @@ end;
 function TNodeRotationXYZ.AverageScaleTransform: Single;
 begin
   Result := 1;
+end;
+
+procedure RegistedInventorNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeIndexedTriangleMesh_1,
+    TNodeRotationXYZ
+  ]);
 end;
 {$endif read_implementation}

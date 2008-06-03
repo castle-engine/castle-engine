@@ -22,7 +22,7 @@
   See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php]. } { }
 
 {$ifdef read_interface}
-  TNodeKambiTriangulation = class(TVRMLNode)
+  TNodeKambiTriangulation = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -50,7 +50,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeKambiHeadLight = class(TVRMLNode)
+  TNodeKambiHeadLight = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -79,7 +79,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeText3D = class(TVRMLGeometryNode)
+  TNodeText3D = class(TNodeX3DGeometryNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -409,6 +409,17 @@ begin
 
   FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
   Fields.Add(FFdblendMode);
+end;
+
+procedure RegisterKambiNodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeKambiTriangulation,
+    TNodeKambiHeadLight,
+    TNodeText3D,
+    TNodeBlendMode,
+    TNodeKambiAppearance
+  ]);
 end;
 
 {$endif read_implementation}

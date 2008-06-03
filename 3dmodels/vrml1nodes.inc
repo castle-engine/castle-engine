@@ -24,13 +24,18 @@
 
   If a node is present in both VRML 1.0
   and later (2.0 aka 97) specifications @bold(and) it's implemented using
-  the same class in our engine, then it goes to vrml97nodes.inc file,
+  the same class in our engine, then it goes to vrml97* or x3d* file,
   not here. So this is for VRML 1.0-only nodes.
 
   (The above doesn't concern much nodes. Most nodes in VRML 1.0 and 97
   specifications are different enough that even when they have the same
   name (like Group) we implement them using different classes (like
-  TNodeGroup_1 and TNodeGroup_2).) } { }
+  TNodeGroup_1 and TNodeGroup_2).)
+
+  Note that most VRML 1 nodes descend from TNodeX3DChildNode,
+  this way we can use them inside VRML >= 2.0 group nodes and
+  mix VRML 1.0 and greater versions.
+} { }
 
 {$ifdef read_interface}
   { This is descendant of TVRMLGeometryNode that is allowed only in
@@ -40,7 +45,7 @@
     while VRML 2.0 has different idea of how shapes are handled
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
-  TVRMLGeometryNode_1 = class(TVRMLGeometryNode)
+  TVRMLGeometryNode_1 = class(TVRMLGeometryNode, INodeX3DChildNode)
   public
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -207,7 +212,7 @@
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
-  TNodeCoordinate3 = class(TVRMLNode)
+  TNodeCoordinate3 = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -218,7 +223,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeFontStyle_1 = class(TVRMLNode)
+  TNodeFontStyle_1 = class(TNodeX3DChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -244,7 +249,7 @@
     function TTF_Font: PTrueTypeFont;
   end;
 
-  TNodeInfo = class(TVRMLNode)
+  TNodeInfo = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -255,7 +260,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeLOD_1 = class(TVRMLNode)
+  TNodeLOD_1 = class(TNodeX3DChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -276,7 +281,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeMaterial_1 = class(TVRMLNode)
+  TNodeMaterial_1 = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -400,7 +405,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeMaterialBinding = class(TVRMLNode)
+  TNodeMaterialBinding = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -411,7 +416,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeNormalBinding = class(TVRMLNode)
+  TNodeNormalBinding = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -472,7 +477,7 @@
     function RepeatT: boolean; override;
   end;
 
-  TNodeTexture2Transform = class(TVRMLNode)
+  TNodeTexture2Transform = class(TNodeX3DChildNode)
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
@@ -497,7 +502,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeTextureCoordinate2 = class(TVRMLNode)
+  TNodeTextureCoordinate2 = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -508,7 +513,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeShapeHints = class(TVRMLNode)
+  TNodeShapeHints = class(TNodeX3DChildNode)
   private
     function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
   public
@@ -535,7 +540,7 @@
     jedynym celem jest zmodyfikowac aktualna macierz modelview.
     Wystarczy ze w kazdej z podklas napiszesz funkcje MatrixTransform: TMatrix4f
     no i oczywiscie zainicjujesz pola danego node'a. }
-  TVRMLTransformationNode = class(TVRMLNode)
+  TVRMLTransformationNode = class(TNodeX3DChildNode)
   protected
     procedure MiddleTraverse(State: TVRMLGraphTraverseState); override;
   public
@@ -720,7 +725,7 @@
     function CreateActiveLight(State: TVRMLGraphTraverseState): TActiveLight; override;
   end;
 
-  TNodeGroup_1 = class(TVRMLNode)
+  TNodeGroup_1 = class(TNodeX3DChildNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -757,7 +762,7 @@
     pushes and pops all attribs and matrices.
     It is used in implementation of Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
-  TVRMLSeparatorNode = class(TVRMLNode)
+  TVRMLSeparatorNode = class(TNodeX3DChildNode)
   private
     OriginalState: TVRMLGraphTraverseState;
   protected
@@ -779,7 +784,7 @@
     public property FdRenderCulling: TSFEnum read FFdRenderCulling;
   end;
 
-  TNodeSwitch_1 = class(TVRMLNode)
+  TNodeSwitch_1 = class(TNodeX3DChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -797,7 +802,7 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeTransformSeparator = class(TVRMLNode)
+  TNodeTransformSeparator = class(TNodeX3DChildNode)
   private
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalAverageScaleTransform: Single;
@@ -844,7 +849,7 @@
     ktory moze podawac dane identyfikowane przez URL...
     Moze nie w najblizszym czasie, ale zamierzam cos takiego kiedys
     zaimplementowac - szkielet (dla http) juz zrobilem w iswb. }
-  TNodeWWWInline = class(TVRMLNode, IVRMLInlineNode)
+  TNodeWWWInline = class(TNodeX3DChildNode, IVRMLInlineNode)
   private
     OriginalState: TVRMLGraphTraverseState;
     BeforeTraversePushedState: boolean;
@@ -2360,4 +2365,26 @@ begin
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 1, 0, 1000);
 end;
+
+procedure RegisterVRML1Nodes;
+begin
+  NodesManager.RegisterNodeClasses([
+    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
+    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
+    TNodePointSet_1, TNodeSphere_1,
+    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
+    TNodeMaterialBinding, TNodeNormalBinding, TNodeTexture2,
+    TNodeTexture2Transform,
+    TNodeTextureCoordinate2, TNodeShapeHints,
+    TNodeMatrixTransform, TNodeRotation,
+    TNodeScale, TNodeTransform_1,
+    TNodeTranslation,
+    TNodeOrthographicCamera, TNodePerspectiveCamera,
+    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
+    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
+    TNodeWWWAnchor,
+    TNodeWWWInline
+  ]);
+end;
+
 {$endif read_implementation}
