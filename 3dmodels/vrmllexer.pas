@@ -419,6 +419,13 @@ begin
     [#0..#$1f, ' ', '''', '"', '#', ',', '.', '[', ']', '\', '{', '}'];
   if VRMLVerMajor <= 1 then
     VRMLNameChars := VRMLNameChars - ['(', ')', '|'];
+  if VRMLVerMajor >= 3 then
+    { X3D standard has a little less characters allowed.
+      In particular, ':' (unicode 0x3a) is not allowed and should not be,
+      because component statements are separated by vtColon.
+      Detailed spec is in "IdFirstChar" and "IdRestChars" on X3D classic VRML
+      spec grammat. }
+    VRMLNameChars := VRMLNameChars - [':'];
   VRMLNameFirstChars := VRMLNameChars - ['0'..'9', '-','+'];
 
   {read first token}
