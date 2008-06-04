@@ -6220,7 +6220,7 @@ procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
 const
   VRML10Header = '#VRML V1.0 ascii';
   VRML20Header = '#VRML V2.0 utf8';
-  X3DHeader = '#X3D V3.1 utf8';
+  X3DHeader = '#X3D V%d.%d utf8';
 var
   SaveProperties: TVRMLSaveToStreamProperties;
   VerMajor, VerMinor, SuggestionPriority: Integer;
@@ -6237,17 +6237,17 @@ begin
       if VerMajor = 2 then
         VRMLHeader := VRML20Header else
       if VerMajor >= 3 then
-        VRMLHeader := X3DHeader;
+        VRMLHeader := Format(X3DHeader, [VerMajor, VerMinor]) else
     end else
-      { If nothing is suggested, we use VRML 2.0 header. Reason:
+    begin
+      { If nothing is suggested, we use X3D 3.2 header. Reason:
         - For now, SuggestedVRMLVersion doesn't check IsClause.
           But if IsClause is present anywhere, then this must use VRML >= 2.0
           features ("IS" is keyword only in VRML >= 2.0,
           it will not be understood in VRML 1.0).
-        - Besides, we should promote newer VRML standard.
-        In the future, this will change to X3D, once my engine will handle
-        it more. }
-      VRMLHeader := VRML20Header; { fallback is VRML20Header }
+        - Besides, we should promote newer VRML standard. }
+      VRMLHeader := Format(X3DHeader, [3, 2]);
+    end;
 
     SaveProperties.VerMajor := VerMajor;
     SaveProperties.VerMinor := VerMinor;
