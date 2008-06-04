@@ -779,28 +779,13 @@ const
     returns everything read wrapped in artifical TVRMLRootNode_2 instance. }
   function ParseVRMLStatements(Element: TDOMElement): TVRMLNode;
 
-    { Create hidden group node. }
-    function CreateHiddenGroup: TVRMLNode;
+    { Create root group node. }
+    function CreateRootNode: TVRMLNode;
     begin
       Result := TVRMLRootNode_2.Create('', WWWBasePath);
-    end;
-
-    { Change Result to a hidden group node, if it's not already.
-      If previous Result was <> @nil,
-      then it will be inserted as first child of this new hidden group. }
-    procedure MakeResultHiddenGroup;
-    var
-      ChildNode: TVRMLNode;
-    begin
-      if not ( (Result <> nil) and
-               ( (Result is TVRMLRootNode_1) or
-                 (Result is TVRMLRootNode_2) ) ) then
-      begin
-        ChildNode := Result;
-        Result := CreateHiddenGroup;
-        if ChildNode <> nil then
-          Result.SmartAddChild(ChildNode);
-      end;
+      TVRMLRootNode_2(Result).ForceVersion := true;
+      TVRMLRootNode_2(Result).ForceVersionMajor := VRMLVerMajor;
+      TVRMLRootNode_2(Result).ForceVersionMinor := VRMLVerMinor;
     end;
 
     procedure ParseVRMLStatement(Element: TDOMElement);
@@ -810,10 +795,7 @@ const
         Route: TVRMLRoute;
       begin
         Route := TVRMLRoute.Create;
-
-        MakeResultHiddenGroup;
         Result.Routes.Add(Route);
-
         ParseRoute(Route, Element);
       end;
 
@@ -827,7 +809,6 @@ const
           Proto := TVRMLPrototype.Create else
           Proto := TVRMLExternalPrototype.Create;
 
-        MakeResultHiddenGroup;
         Result.Prototypes.Add(Proto);
 
         if Proto is TVRMLPrototype then
@@ -841,21 +822,7 @@ const
         ContainerFieldDummy: string;
       begin
         NewNode := ParseNode(Element, ContainerFieldDummy, false);
-
-        if Result = nil then
-        begin
-          { This will happen on 1st ParseNode call. }
-          Result := NewNode;
-        end else
-        begin
-          { Result <> nil, so make sure it's a hidden group
-            (we don't want to insert NewNode into normal node).
-            This will happen on 2nd ParseNode call.
-            Result is now assigned, but we want to add 2nd node: so we wrap
-            current Result (and NewNode too) together in a hidden Group node. }
-          MakeResultHiddenGroup;
-          Result.SmartAddChild(NewNode);
-        end;
+        Result.SmartAddChild(NewNode);
       end;
 
     begin
@@ -870,7 +837,7 @@ const
   var
     I: TXMLElementIterator;
   begin
-    Result := nil;
+    Result := CreateRootNode;
     try
       I := TXMLElementIterator.Create(Element);
       try
@@ -879,9 +846,6 @@ const
           ParseVRMLStatement(I.Current);
         end;
       finally FreeAndNil(I) end;
-
-      if Result = nil then
-        Result := CreateHiddenGroup;
     except FreeAndNil(Result); raise end;
   end;
 

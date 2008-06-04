@@ -88,6 +88,10 @@
     See TVRMLRootNode_1 for some more comments about why this
     descends from TNodeGroup_2. }
   TVRMLRootNode_2 = class(TNodeGroup_2)
+  private
+    FForceVersion: boolean;
+    FForceVersionMajor: Integer;
+    FForceVersionMinor: Integer;
   public
     (*Save TVRMLRootNode_* contents to stream.
 
@@ -96,6 +100,19 @@
       This way, when saving, we "undo" the artificial wrapping in
       TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
+
+    { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
+      return suggest ForceVersionMajor, ForceVersionMinor with strong
+      priority.
+
+      @groupBegin }
+    property ForceVersion: boolean read FForceVersion write FForceVersion default false;
+    property ForceVersionMajor: Integer read FForceVersionMajor write FForceVersionMajor;
+    property ForceVersionMinor: Integer read FForceVersionMinor write FForceVersionMinor;
+    { @groupEnd }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   TNodeStaticGroup = class(TNodeX3DChildNode, INodeX3DBoundedObject)
@@ -361,6 +378,15 @@ begin
 
   for I := 0 to Routes.Count - 1 do
     Routes[I].SaveToStream(SaveProperties);
+end;
+
+function TVRMLRootNode_2.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  if ForceVersion then
+    AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+      true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
 end;
 
 constructor TNodeStaticGroup.Create(const ANodeName: string;

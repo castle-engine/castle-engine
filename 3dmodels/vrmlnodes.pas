@@ -1318,28 +1318,40 @@ type
       that have different VRML version suggestions, then the one
       with greater SuggestionPriority "wins".
 
-      Right now I use SuggestionPriority 1000 for nodes
-      that are only in one VRML version, according to VRML 1.0 and 2.0
-      specs (with my extensions), and SuggestionPriority 100 for
-      VRML 2.0 nodes that are also allowed in VRML 1.0
-      by my extensions
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php].
-      This way e.g. if your VRML hierarchy consists only of
-      a single TNodeBackground node, then the result will be saved as VRML 2.0
-      (as this will give VRML 2.0-compliant file).
-      But if your VRML hierarchy has for example TNodeBackground node inside
-      TNodeGroup_1, then the result will be VRML 1.0 file
-      (non-standard VRML 1.0 file using my "extension" that allows
-      Background node in VRML 1.0).
+      Currently used priorities:
 
-      X3D nodes suggest V3.2 (not 3.0, because some features (shaders)
-      are only in ammendment 1 I think, so 3.1 is safer and for simplicity
-      (since I looked mostly at 3.2) 3.2 is even better).
-      Also, they use priority 2000, so they are slightly stronger than
-      VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
-      will be judged as X3D. And that's Ok, because almost everything
-      (incompatible exceptions are e.g. Switch and LOD field name)
-      valid in VRML 97 is also valid in X3D.
+      @unorderedList(
+        @item(1000 for nodes that are only in VRML <= 1.0,
+          or only in VRML >= 2.0. This applies to majority of nodes.)
+
+        @item(100 for nodes that are only for VRML >= 2.0 according to specifications,
+          but in our engine they were often used also in VRML 1.0 files.
+          That is possible thanks to our implementation, see
+          [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_mix_vrml_1_2].
+          This concerns Fog, Background and a few other nodes.
+
+          By using weaker priority for such nodes, VRML 1.0 files with
+          "bits" of VRML 2.0 will be retained as VRML 1.0. (They are readable
+          only by our engine anyway.) On the other hand, only Background
+          node will be correctly saved as VRML 2.0 file.)
+
+        @item(2000 for nodes that are only in X3D, that is VRML >= 3.0.
+
+          X3D nodes suggest version 3.2 (not 3.0, because some features (shaders)
+          are only in ammendment 1 I think, so 3.1 is safer and for simplicity
+          (since I looked mostly at 3.2) 3.2 is even better).
+
+          They use priority 2000, so they are slightly stronger than
+          VRML 97 nodes. This way a model with mixed VRML 97 and X3D nodes
+          will be judged as X3D. And that's Ok, because almost everything
+          (incompatible exceptions are some NURBS and geo changes)
+          valid in VRML 97 is also valid in X3D.)
+
+        @item(10 * 1000 is used by TVRMLRootNode_1 and TVRMLRootNode_2
+          ForceVersion mechanism. This way we can always force VRML version
+          using this node, which is useful to write files with the same
+          VRML version as was read from disk.)
+      )
 
       Default implementation in this class enumerates all
       SFNode and MFNoden fields and Children nodes
@@ -5965,30 +5977,22 @@ function ParseVRMLStatements(
   Lexer: TVRMLLexer;
   const EndToken: TVRMLToken): TVRMLNode;
 
-  { Create hidden group node, appropriate for current VRML version in Lexer. }
-  function CreateHiddenGroup: TVRMLNode;
+  { Create root group node, appropriate for current VRML version in Lexer. }
+  function CreateRootNode: TVRMLNode;
   begin
     if TVRMLRootNode_1.ForVRMLVersion(
         Lexer.VRMLVerMajor, Lexer.VRMLVerMinor) then
-      Result := TVRMLRootNode_1.Create('', Lexer.WWWBasePath) else
-      Result := TVRMLRootNode_2.Create('', Lexer.WWWBasePath);
-  end;
-
-  { Change Result to a hidden group node, if it's not already.
-    If previous Result was <> @nil,
-    then it will be inserted as first child of this new hidden group. }
-  procedure MakeResultHiddenGroup;
-  var
-    ChildNode: TVRMLNode;
-  begin
-    if not ( (Result <> nil) and
-             ( (Result is TVRMLRootNode_1) or
-               (Result is TVRMLRootNode_2) ) ) then
     begin
-      ChildNode := Result;
-      Result := CreateHiddenGroup;
-      if ChildNode <> nil then
-        Result.SmartAddChild(ChildNode);
+      Result := TVRMLRootNode_1.Create('', Lexer.WWWBasePath);
+      TVRMLRootNode_1(Result).ForceVersion := true;
+      TVRMLRootNode_1(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
+      TVRMLRootNode_1(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
+    end else
+    begin
+      Result := TVRMLRootNode_2.Create('', Lexer.WWWBasePath);
+      TVRMLRootNode_2(Result).ForceVersion := true;
+      TVRMLRootNode_2(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
+      TVRMLRootNode_2(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
     end;
   end;
 
@@ -5999,10 +6003,7 @@ function ParseVRMLStatements(
       Route: TVRMLRoute;
     begin
       Route := TVRMLRoute.Create;
-
-      MakeResultHiddenGroup;
       Result.Routes.Add(Route);
-
       Route.Parse(Lexer);
     end;
 
@@ -6014,10 +6015,7 @@ function ParseVRMLStatements(
       if Lexer.TokenKeyword = vkPROTO then
         Proto := TVRMLPrototype.Create else
         Proto := TVRMLExternalPrototype.Create;
-
-      MakeResultHiddenGroup;
       Result.Prototypes.Add(Proto);
-
       Proto.Parse(Lexer);
     end;
 
@@ -6026,21 +6024,7 @@ function ParseVRMLStatements(
       NewNode: TVRMLNode;
     begin
       NewNode := ParseNode(Lexer);
-
-      if Result = nil then
-      begin
-        { This will happen on 1st ParseNode call. }
-        Result := NewNode;
-      end else
-      begin
-        { Result <> nil, so make sure it's a hidden group
-          (we don't want to insert NewNode into normal node).
-          This will happen on 2nd ParseNode call.
-          Result is now assigned, but we want to add 2nd node: so we wrap
-          current Result (and NewNode too) together in a hidden Group node. }
-        MakeResultHiddenGroup;
-        Result.SmartAddChild(NewNode);
-      end;
+      Result.SmartAddChild(NewNode);
     end;
 
   begin
@@ -6054,15 +6038,36 @@ function ParseVRMLStatements(
   end;
 
 begin
-  Result := nil;
+  { We used to have more conservative mechanism here when it comes to using
+    CreateRootNode: we used to start with Result = nil.
+    First ParseNodeInternal simply set the Result to it's contents.
+    ParseProtoStatement, ParseRouteInternal and second and subsequent
+    ParseNodeInternal calls called CreateRootNode, and added previous
+    content as new root node child.
+
+    This was an unnecessarily complicated mechanism. The history is that
+    initially, for correct VRML 1.0, the whole concept of RootGroup was
+    not needed. It became needed since VRML 2.0, to
+    - store multiple root nodes of VRML 2.0 file
+    - and many VRML 1.0 files also used (incorrectly) the "multiple root nodes"
+      feature
+    - also, VRML 2.0 routes and prototypes declared at global scope had
+      to be stored in a root group
+    - Finally, ForceVersion mechanism is available for RootGroup to force
+      writing of specific VRML version.
+    - And for X3D, TVRMLRootNode_2 will have to be enhanced
+      to keep other top-level X3D data: profile, components, meta statements.
+
+    So now, we simply always create root node by ParseVRMLStatements
+    (although the interface should not guarantee this, in case I'll change
+    my mind later). }
+
+  Result := CreateRootNode;
   try
     while Lexer.Token <> EndToken do
     begin
       ParseVRMLStatement;
     end;
-
-    if Result = nil then
-      Result := CreateHiddenGroup;
   except FreeAndNil(Result); raise end;
 end;
 

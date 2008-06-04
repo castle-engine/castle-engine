@@ -748,6 +748,10 @@
     You can also test for (Node is TVRMLRootNode_1/2) and
     recognize this special case. }
   TVRMLRootNode_1 = class(TNodeGroup_1)
+  private
+    FForceVersion: boolean;
+    FForceVersionMajor: Integer;
+    FForceVersionMinor: Integer;
   public
     (*Save TVRMLRootNode_* contents to stream.
 
@@ -756,6 +760,19 @@
       This way, when saving, we "undo" the artificial wrapping in
       TVRMLRootNode_* that was done by ParseVRMLStatements and ParseVRMLFile. *)
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);  override;
+
+    { Set ForceVersion to @true to make SuggestedVRMLVersion of this class
+      return suggest ForceVersionMajor, ForceVersionMinor with strong
+      priority.
+
+      @groupBegin }
+    property ForceVersion: boolean read FForceVersion write FForceVersion default false;
+    property ForceVersionMajor: Integer read FForceVersionMajor write FForceVersionMajor;
+    property ForceVersionMinor: Integer read FForceVersionMinor write FForceVersionMinor;
+    { @groupEnd }
+
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
   { A general class that can ce used as a separator, something that
@@ -2132,6 +2149,15 @@ begin
 
   for I := 0 to Routes.Count - 1 do
     Routes[I].SaveToStream(SaveProperties);
+end;
+
+function TVRMLRootNode_1.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  if ForceVersion then
+    AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+      true, ForceVersionMajor, ForceVersionMinor, 10 * 1000);
 end;
 
 constructor TVRMLSeparatorNode.Create(const ANodeName: string; const AWWWBasePath: string);
