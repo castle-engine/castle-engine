@@ -199,6 +199,8 @@ begin
   FFdlanguage.Exposed := false;
   Fields.Add(FFdlanguage);
   { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
+
+  DefaultContainerField := 'shaders';
 end;
 
 constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;
@@ -210,7 +212,7 @@ begin
   FFdname.Exposed := false;
   Fields.Add(FFdname);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'attrib';
 end;
 
 constructor TNodeComposedShader.Create(const ANodeName: string;
@@ -220,8 +222,6 @@ begin
 
   FFdparts := TMFNode.Create(Self, 'parts', [TNodeShaderPart]);
   Fields.Add(FFdparts);
-
-  DefaultContainerField := 'shaders';
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;
@@ -269,8 +269,6 @@ begin
   FFdnumComponents.Exposed := false;
   Fields.Add(FFdnumComponents);
   { X3D specification comment: [1..4] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeFloatVertexAttribute.ClassNodeTypeName: string;
@@ -300,8 +298,6 @@ begin
   FFdvalue := TMFMatrix3f.Create('value', []);
   Fields.Add(FFdvalue);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMatrix3VertexAttribute.ClassNodeTypeName: string;
@@ -331,8 +327,6 @@ begin
   FFdvalue := TMFMatrix4f.Create('value', []);
   Fields.Add(FFdvalue);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMatrix4VertexAttribute.ClassNodeTypeName: string;
@@ -363,8 +357,6 @@ begin
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  DefaultContainerField := 'shaders';
-
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
@@ -394,8 +386,6 @@ begin
 
   FFdprograms := TMFNode.Create(Self, 'programs', [TNodeShaderProgram]);
   Fields.Add(FFdprograms);
-
-  DefaultContainerField := 'shaders';
 end;
 
 class function TNodeProgramShader.ClassNodeTypeName: string;

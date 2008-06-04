@@ -490,7 +490,7 @@ begin
   Fields.Add(FFddepth);
   { X3D specification comment: [0,1] }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'fogCoord';
 end;
 
 class function TNodeFogCoordinate.ClassNodeTypeName: string;

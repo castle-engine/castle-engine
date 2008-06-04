@@ -694,8 +694,6 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeX3DNBodyCollisionSpaceNode.Create(const ANodeName: string;
@@ -715,8 +713,6 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeX3DRigidJointNode.Create(const ANodeName: string;
@@ -734,7 +730,7 @@ begin
   Fields.Add(FFdforceOutput);
   { X3D specification comment: ["ALL","NONE",...] }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'joints';
 end;
 
 constructor TNodeBallJoint.Create(const ANodeName: string;
@@ -750,8 +746,6 @@ begin
 
   FEventbody2AnchorPoint := TVRMLEvent.Create('body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventbody2AnchorPoint);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeBallJoint.ClassNodeTypeName: string;
@@ -781,8 +775,6 @@ begin
   FFdcollidable := TSFNode.Create(Self, 'collidable', [TNodeX3DNBodyCollidableNode]);
   FFdcollidable.Exposed := false;
   Fields.Add(FFdcollidable);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCollidableOffset.ClassNodeTypeName: string;
@@ -812,8 +804,6 @@ begin
   FFdshape := TSFNode.Create(Self, 'shape', [TNodeShape]);
   FFdshape.Exposed := false;
   Fields.Add(FFdshape);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCollidableShape.ClassNodeTypeName: string;
@@ -877,8 +867,6 @@ begin
   FFdsurfaceSpeed := TSFVec2f.Create('surfaceSpeed', Vector2Single(0, 0));
   Fields.Add(FFdsurfaceSpeed);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCollisionCollection.ClassNodeTypeName: string;
@@ -913,8 +901,6 @@ begin
 
   FEventcontacts := TVRMLEvent.Create('contacts', TMFNode, false);
   Events.Add(FEventcontacts);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCollisionSensor.ClassNodeTypeName: string;
@@ -1137,8 +1123,6 @@ begin
 
   FEventhinge2AngleRate := TVRMLEvent.Create('hinge2AngleRate', TSFFloat, false);
   Events.Add(FEventhinge2AngleRate);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeDoubleAxisHingeJoint.ClassNodeTypeName: string;
@@ -1247,8 +1231,6 @@ begin
   FFdautoCalc := TSFBool.Create('autoCalc', false);
   FFdautoCalc.Exposed := false;
   Fields.Add(FFdautoCalc);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMotorJoint.ClassNodeTypeName: string;
@@ -1356,7 +1338,7 @@ begin
   FFduseGlobalGravity := TSFBool.Create('useGlobalGravity', true);
   Fields.Add(FFduseGlobalGravity);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'bodies';
 end;
 
 class function TNodeRigidBody.ClassNodeTypeName: string;
@@ -1439,8 +1421,6 @@ begin
   FFdcollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
   FFdcollider.Exposed := false;
   Fields.Add(FFdcollider);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeRigidBodyCollection.ClassNodeTypeName: string;
@@ -1498,8 +1478,6 @@ begin
 
   FEventbody2AnchorPoint := TVRMLEvent.Create('body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventbody2AnchorPoint);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeSingleAxisHingeJoint.ClassNodeTypeName: string;
@@ -1550,8 +1528,6 @@ begin
 
   FEventseparationRate := TVRMLEvent.Create('separationRate', TSFFloat, false);
   Events.Add(FEventseparationRate);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeSliderJoint.ClassNodeTypeName: string;
@@ -1614,8 +1590,6 @@ begin
 
   FEventbody2Axis := TVRMLEvent.Create('body2Axis', TSFVec3f, false);
   Events.Add(FEventbody2Axis);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeUniversalJoint.ClassNodeTypeName: string;

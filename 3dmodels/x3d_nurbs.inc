@@ -546,7 +546,7 @@ constructor TNodeContourPolyline2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'geometry';
 end;
 
 class function TNodeContourPolyline2D.ClassNodeTypeName: string;
@@ -576,8 +576,6 @@ begin
   FFdpoint := TMFVec3d.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeCoordinateDouble.ClassNodeTypeName: string;
@@ -681,7 +679,7 @@ begin
   Fields.Add(FFdorder);
   { X3D specification comment: [2,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'geometry';
 end;
 
 class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
@@ -1075,7 +1073,7 @@ begin
   Fields.Add(FFdvOrder);
   { X3D specification comment: [2,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'texCoord';
 end;
 
 class function TNodeNurbsTextureCoordinate.ClassNodeTypeName: string;

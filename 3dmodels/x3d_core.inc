@@ -49,6 +49,8 @@ type
   end;
 
   TNodeX3DChildNode = class(TNodeX3DNode, INodeX3DChildNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeX3DBindableNode = class(TNodeX3DChildNode)
@@ -220,6 +222,18 @@ begin
   Fields.Add(FFdmetadata);
 end;
 
+constructor TNodeX3DChildNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  { It's natural that X3DChildNode goes into "children" node of parent.
+    Actually, this makes many other
+      DefaultContainerField := 'children'
+    lines in our x3d_*.inc include files useless. }
+  DefaultContainerField := 'children';
+end;
+
 constructor TNodeX3DBindableNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -245,8 +259,6 @@ begin
 
   FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
   Events.Add(FEventisActive);
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeMetadataDouble.Create(const ANodeName: string;
@@ -263,7 +275,7 @@ begin
   FFdvalue := TMFDouble.Create('value', []);
   Fields.Add(FFdvalue);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'metadata';
 end;
 
 class function TNodeMetadataDouble.ClassNodeTypeName: string;
@@ -299,7 +311,7 @@ begin
   FFdvalue := TMFFloat.Create('value', []);
   Fields.Add(FFdvalue);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'metadata';
 end;
 
 class function TNodeMetadataFloat.ClassNodeTypeName: string;
@@ -335,7 +347,7 @@ begin
   FFdvalue := TMFInt32.Create('value', []);
   Fields.Add(FFdvalue);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'metadata';
 end;
 
 class function TNodeMetadataInteger.ClassNodeTypeName: string;
@@ -371,7 +383,7 @@ begin
   FFdvalue := TMFNode.Create(Self, 'value', INodeX3DMetadataObject);
   Fields.Add(FFdvalue);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'metadata';
 end;
 
 class function TNodeMetadataSet.ClassNodeTypeName: string;
@@ -407,7 +419,7 @@ begin
   FFdvalue := TMFString.Create('value', []);
   Fields.Add(FFdvalue);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'metadata';
 end;
 
 class function TNodeMetadataString.ClassNodeTypeName: string;
@@ -441,8 +453,6 @@ begin
   FFdtitle := TSFString.Create('title', '');
   FFdtitle.Exposed := false;
   Fields.Add(FFdtitle);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeWorldInfo.ClassNodeTypeName: string;

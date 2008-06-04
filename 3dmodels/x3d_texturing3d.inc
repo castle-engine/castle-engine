@@ -152,8 +152,6 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeComposedTexture3D.Create(const ANodeName: string;
@@ -163,8 +161,6 @@ begin
 
   FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdtexture);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeComposedTexture3D.ClassNodeTypeName: string;
@@ -194,8 +190,6 @@ begin
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeImageTexture3D.ClassNodeTypeName: string;
@@ -224,8 +218,6 @@ begin
 
   FFdimage := TMFInt32.Create('image', [0, 0, 0, 0]);
   Fields.Add(FFdimage);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePixelTexture3D.ClassNodeTypeName: string;
@@ -255,8 +247,6 @@ begin
   FFdpoint := TMFVec3f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTextureCoordinate3D.ClassNodeTypeName: string;
@@ -286,8 +276,6 @@ begin
   FFdpoint := TMFVec4f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTextureCoordinate4D.ClassNodeTypeName: string;
@@ -317,8 +305,6 @@ begin
   FFdmatrix := TSFMatrix4f.Create('matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTextureTransformMatrix3D.ClassNodeTypeName: string;
@@ -360,8 +346,6 @@ begin
   FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTextureTransform3D.ClassNodeTypeName: string;

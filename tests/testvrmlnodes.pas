@@ -1,3 +1,4 @@
+{ -*- compile-command: "./compile_console.sh" -*- }
 {
   Copyright 2004-2007 Michalis Kamburelis.
 
@@ -42,12 +43,10 @@ type
     { procedure TestParseSaveToFile; } { }
 
     procedure TestUniqueFields;
-
     procedure TestInterfaceSupports;
-
     procedure TestAllowedChildren;
-
-    procedure TestContainerField;
+    procedure TestContainerFieldList;
+    procedure TestContainerFieldGeometry;
   end;
 
 implementation
@@ -556,7 +555,274 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestContainerField;
+procedure TTestVRMLNodes.TestContainerFieldList;
+const
+  { This is pasted, and then processed by regexps, from X3D XML
+    encoding specification (chapter 6 "Encoding of nodes").
+
+    This allows me to easily test (and see at a glance all errors)
+    all containerField values. And when fixing the containerField values,
+    I can run the test once again to see I didn't break anything...
+    just perfect. }
+  ContainerFieldStr =
+    'Anchor=children' + NL +
+    { There's a bug about this in X3D spec, see Appearance node implementation comments. }
+    'Appearance=appearance' + NL +
+    'Arc2D=geometry' + NL +
+    'ArcClose2D=geometry' + NL +
+    'AudioClip=children' + NL +
+    'Background=children' + NL +
+    'BallJoint=joints' + NL +
+    'Billboard=children' + NL +
+    'BooleanFilter=children' + NL +
+    'BooleanSequencer=children' + NL +
+    'BooleanToggle=children' + NL +
+    'BooleanTrigger=children' + NL +
+    'BoundedPhysicsModel=physics' + NL +
+    'Box=geometry' + NL +
+    'CADAssembly=children' + NL +
+    'CADFace=children' + NL +
+    'CADLayer=children' + NL +
+    'CADPart=children' + NL +
+    'Circle2D=geometry' + NL +
+    { There's a bug about this in X3D spec, see ClipPlane node implementation comments. }
+    'ClipPlane=children' + NL +
+    'CollidableOffset=children' + NL +
+    'CollidableShape=children' + NL +
+    'Collision=children' + NL +
+    'CollisionCollection=children' + NL +
+    'CollisionSensor=children' + NL +
+    'CollisionSpace=children' + NL +
+    'Color=color' + NL +
+    'ColorDamper=children' + NL +
+    'ColorInterpolator=children' + NL +
+    'ColorRGBA=color' + NL +
+    'ComposedCubeMapTexture=texture' + NL +
+    'ComposedShader=shaders' + NL +
+    'ComposedTexture3D=texture' + NL +
+    'Cone=geometry' + NL +
+    'ConeEmitter=emitter' + NL +
+    'Contact=children' + NL +
+    'Contour2D=trimmingContour' + NL +
+    'ContourPolyline2D=geometry' + NL +
+    'Coordinate=coord' + NL +
+    'CoordinateDamper=children' + NL +
+    'CoordinateDouble=coord' + NL +
+    'CoordinateInterpolator=children' + NL +
+    'CoordinateInterpolator2D=children' + NL +
+    'Cylinder=geometry' + NL +
+    'CylinderSensor=children' + NL +
+    'DirectionalLight=children' + NL +
+    'DISEntityManager=children' + NL +
+    'DISEntityTypeMapping=children' + NL +
+    'Disk2D=geometry' + NL +
+    'DoubleAxisHingeJoint=joints' + NL +
+    'EaseInEaseOut=children' + NL +
+    'ElevationGrid=geometry' + NL +
+    'EspduTransform=children' + NL +
+    'ExplosionEmitter=emitter' + NL +
+    'Extrusion=geometry' + NL +
+    'FillProperties=fillProperties' + NL +
+    'FloatVertexAttribute=attrib' + NL +
+    'Fog=children' + NL +
+    'FogCoordinate=fogCoord' + NL +
+    'FontStyle=fontStyle' + NL +
+    'ForcePhysicsModel=physics' + NL +
+    'GeneratedCubeMapTexture=texture' + NL +
+    'GeoCoordinate=coord' + NL +
+    'GeoElevationGrid=geometry' + NL +
+    'GeoLocation=children' + NL +
+    'GeoLOD=children' + NL +
+    'GeoMetadata=children' + NL +
+    'GeoOrigin=geoOrigin' + NL +
+    'GeoPositionInterpolator=children' + NL +
+    'GeoTouchSensor=children' + NL +
+    'GeoTransform=children' + NL +
+    'GeoViewpoint=children' + NL +
+    'Group=children' + NL +
+    'HAnimDisplacer=displacers' + NL +
+    'HAnimHumanoid=children' + NL +
+    'HAnimJoint=children' + NL +
+    'HAnimSegment=children' + NL +
+    'HAnimSite=children' + NL +
+    'ImageCubeMapTexture=texture' + NL +
+    'ImageTexture=texture' + NL +
+    'ImageTexture3D=texture' + NL +
+    'IndexedFaceSet=geometry' + NL +
+    'IndexedLineSet=geometry' + NL +
+    'IndexedQuadSet=geometry' + NL +
+    'IndexedTriangleFanSet=geometry' + NL +
+    'IndexedTriangleSet=geometry' + NL +
+    'IndexedTriangleStripSet=geometry' + NL +
+    'Inline=children' + NL +
+    'IntegerSequencer=children' + NL +
+    'IntegerTrigger=children' + NL +
+    'KeySensor=children' + NL +
+    'Layer=layers' + NL +
+    'LayerSet=children' + NL +
+    'Layout=children' + NL +
+    'LayoutGroup=children' + NL +
+    'LayoutLayer=layers' + NL +
+    'LinePickSensor=children' + NL +
+    'LineProperties=lineProperties' + NL +
+    'LineSet=geometry' + NL +
+    'LoadSensor=children' + NL +
+    'LocalFog=children' + NL +
+    'LOD=children' + NL +
+    'Material=material' + NL +
+    'Matrix3VertexAttribute=attrib' + NL +
+    'Matrix4VertexAttribute=attrib' + NL +
+    'MetadataDouble=metadata' + NL +
+    'MetadataFloat=metadata' + NL +
+    'MetadataInteger=metadata' + NL +
+    'MetadataSet=metadata' + NL +
+    'MetadataString=metadata' + NL +
+    'MotorJoint=joints' + NL +
+    { There's a bug about this in X3D spec, claims that MovieTexture
+      should have "children" but it's nonsense, MovieTexture is not a child node,
+      it should have "texture". }
+    'MovieTexture=texture' + NL +
+    'MultiTexture=texture' + NL +
+    'MultiTextureCoordinate=texCoord' + NL +
+    'MultiTextureTransform=textureTransform' + NL +
+    'NavigationInfo=children' + NL +
+    'Normal=normal' + NL +
+    'NormalInterpolator=children' + NL +
+    'NurbsCurve=geometry' + NL +
+    'NurbsCurve2D=geometry' + NL +
+    'NurbsOrientationInterpolator=children' + NL +
+    'NurbsPatchSurface=geometry' + NL +
+    'NurbsPositionInterpolator=children' + NL +
+    'NurbsSet=children' + NL +
+    'NurbsSurfaceInterpolator=children' + NL +
+    'NurbsSweptSurface=geometry' + NL +
+    'NurbsSwungSurface=geometry' + NL +
+    'NurbsTextureCoordinate=texCoord' + NL +
+    'NurbsTrimmedSurface=geometry' + NL +
+    'OrientationChaser=children' + NL +
+    'OrientationDamper=children' + NL +
+    'OrientationInterpolator=children' + NL +
+    'OrthoViewpoint=children' + NL +
+    'PackagedShader=shaders' + NL +
+    'ParticleSystem=children' + NL +
+    'PickableGroup=children' + NL +
+    'PixelTexture=texture' + NL +
+    'PixelTexture3D=texture' + NL +
+    'PlaneSensor=children' + NL +
+    'PointEmitter=emitter' + NL +
+    'PointLight=children' + NL +
+    'PointPicker=children' + NL +
+    'PointSet=geometry' + NL +
+    'Polyline2D=geometry' + NL +
+    'PolylineEmitter=emitter' + NL +
+    'Polypoint2D=geometry' + NL +
+    'PositionChaser=children' + NL +
+    'PositionChaser2D=children' + NL +
+    'PositionDamper=children' + NL +
+    'PositionDamper2D=children' + NL +
+    'PositionInterpolator=children' + NL +
+    'PositionInterpolator2D=children' + NL +
+    'PrimitivePicker=children' + NL +
+    'ProgramShader=shaders' + NL +
+    'ProtoInstance=children' + NL +
+    'ProximitySensor=children' + NL +
+    'QuadSet=geometry' + NL +
+    'ReceiverPdu=children' + NL +
+    'Rectangle2D=geometry' + NL +
+    'RigidBody=bodies' + NL +
+    'RigidBodyCollection=children' + NL +
+    'ScalarChaser=children' + NL +
+    'ScalarInterpolator=children' + NL +
+    'ScreenFontStyle=fontStyle' + NL +
+    'ScreenGroup=children' + NL +
+    'Script=children' + NL +
+    'ShaderPart=parts' + NL +
+    'ShaderProgram=programs' + NL +
+    'Shape=children' + NL +
+    'SignalPdu=children' + NL +
+    'SingleAxisHingeJoint=joints' + NL +
+    'SliderJoint=joints' + NL +
+    'Sound=children' + NL +
+    'Sphere=geometry' + NL +
+    'SphereSensor=children' + NL +
+    'SplinePositionInterpolator=children' + NL +
+    'SplinePositionInterpolator2D=children' + NL +
+    'SplineScalarInterpolator=children' + NL +
+    'SpotLight=children' + NL +
+    'SquadOrientationInterpolator=children' + NL +
+    'StaticGroup=children' + NL +
+    'StringSensor=children' + NL +
+    'SurfaceEmitter=emitter' + NL +
+    'Switch=children' + NL +
+    'TexCoordDamper=children' + NL +
+    'Text=geometry' + NL +
+    'TextureBackground=children' + NL +
+    'TextureCoordinate=texCoord' + NL +
+    'TextureCoordinate3D=texCoord' + NL +
+    'TextureCoordinate4D=texCoord' + NL +
+    'TextureCoordinateGenerator=texCoord' + NL +
+    'TextureMatrixTransform=textureTransform' + NL +
+    { There's a bug in X3D spec here, claims it's lineProperties }
+    'TextureProperties=textureProperties' + NL +
+    'TextureTransform=textureTransform' + NL +
+    'TextureTransform3D=textureTransform' + NL +
+    'TimeSensor=children' + NL +
+    'TimeTrigger=children' + NL +
+    'TouchSensor=children' + NL +
+    'Transform=children' + NL +
+    'TransformSensor=children' + NL +
+    'TransmitterPdu=children' + NL +
+    'TriangleFanSet=geometry' + NL +
+    'TriangleSet=geometry' + NL +
+    'TriangleSet2D=geometry' + NL +
+    'TriangleStripSet=geometry' + NL +
+    'TwoSidedMaterial=material' + NL +
+    'UniversalJoint=joints' + NL +
+    'Viewpoint=children' + NL +
+    'ViewpointGroup=children' + NL +
+    'Viewport=children' + NL +
+    'VisibilitySensor=children' + NL +
+    'VolumeEmitter=emitter' + NL +
+    'VolumePickSensor=children' + NL +
+    'WindPhysicsModel=physics' + NL +
+    'WorldInfo=children';
+var
+  ContainerFieldList: TStringList;
+  I, Index: Integer;
+  N: TVRMLNode;
+begin
+  ContainerFieldList := TStringList.Create;
+  try
+    ContainerFieldList.Text := ContainerFieldStr;
+
+    { First check that TStringList.IndexOfName works as expected }
+    Assert(ContainerFieldList.IndexOfName('WorldInfo') <> -1);
+    Assert(ContainerFieldList.IndexOfName('Anchor') <> -1);
+    Assert(ContainerFieldList.IndexOfName('NotExisting') = -1);
+
+    for I := 0 to NodesManager.RegisteredCount - 1 do
+    begin
+      N := NodesManager.Registered[I].Create('', '');
+      try
+        Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
+        if Index <> -1 then
+        try
+          Assert(ContainerFieldList.ValueFromIndex[Index] = N.DefaultContainerField);
+        except
+          on E: Exception do
+          begin
+            Writeln('Failed on ', N.ClassName, ' containerField, is "',
+              N.DefaultContainerField, '", should be "',
+              ContainerFieldList.ValueFromIndex[Index], '"');
+            raise;
+          end;
+        end;
+      finally FreeAndNil(N) end;
+    end;
+  finally FreeAndNil(ContainerFieldList) end;
+end;
+
+procedure TTestVRMLNodes.TestContainerFieldGeometry;
 var
   I: Integer;
   N: TVRMLNode;

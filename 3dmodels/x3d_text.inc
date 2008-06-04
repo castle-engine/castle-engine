@@ -20,6 +20,8 @@
 
 {$ifdef read_interface}
   TNodeX3DFontStyleNode = class(TNodeX3DNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   { Font family that can be specified by FontStyle node in family
@@ -136,6 +138,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+constructor TNodeX3DFontStyleNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'fontStyle';
+end;
+
 const
   TTF_Font_Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
   (              {   [],                          [italic],                            [bold],                      [italic, bold] }
@@ -188,8 +198,6 @@ begin
   FFdtopToBottom := TSFBool.Create('topToBottom', true);
   FFdtopToBottom.Exposed := false;
   Fields.Add(FFdtopToBottom);
-
-  DefaultContainerField := 'fontStyle';
 end;
 
 class function TNodeFontStyle_2.ClassNodeTypeName: string;

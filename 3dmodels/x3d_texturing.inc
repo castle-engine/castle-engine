@@ -695,8 +695,6 @@ begin
 
   FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTextureNode]);
   Fields.Add(FFdtexture);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMultiTexture.ClassNodeTypeName: string;
@@ -725,8 +723,6 @@ begin
 
   FFdtexCoord := TMFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMultiTextureCoordinate.ClassNodeTypeName: string;
@@ -755,8 +751,6 @@ begin
 
   FFdtextureTransform := TMFNode.Create(Self, 'textureTransform', [TNodeX3DTextureTransformNode]);
   Fields.Add(FFdtextureTransform);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeMultiTextureTransform.ClassNodeTypeName: string;
@@ -845,8 +839,6 @@ begin
   FFdpoint := TMFVec2f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'texCoord';
 end;
 
 class function TNodeTextureCoordinate.ClassNodeTypeName: string;
@@ -882,8 +874,6 @@ begin
   FFdparameter := TMFFloat.Create('parameter', []);
   Fields.Add(FFdparameter);
   { X3D specification comment: [see Table 18.6] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTextureCoordinateGenerator.ClassNodeTypeName: string;
@@ -954,7 +944,9 @@ begin
   FFdgenerateMipMaps.Exposed := false;
   Fields.Add(FFdgenerateMipMaps);
 
-  DefaultContainerField := 'children';
+  { X3D XML spec (edition 2) mistakenyl claims it should be
+    "lineProperties", which is nonsense... I set this to "textureProperties". }
+  DefaultContainerField := 'textureProperties';
 end;
 
 class function TNodeTextureProperties.ClassNodeTypeName: string;
@@ -996,8 +988,6 @@ begin
   FFdtranslation := TSFVec2f.Create('translation', Vector2Single(0, 0));
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'textureTransform';
 end;
 
 class function TNodeTextureTransform.ClassNodeTypeName: string;

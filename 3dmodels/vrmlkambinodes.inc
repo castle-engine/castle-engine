@@ -127,7 +127,7 @@
     and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
 
     Actually, our version is just a subset of their node. }
-  TNodeBlendMode = class(TVRMLNode)
+  TNodeBlendMode = class(TNodeX3DAppearanceChildNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -380,6 +380,8 @@ begin
 
   FFdcolorTransparency := TSFFloat.Create('colorTransparency', 0.0);
   Fields.Add(FFdcolorTransparency);
+
+  DefaultContainerField := 'blendMode';
 end;
 
 class function TNodeKambiAppearance.ClassNodeTypeName: string;
@@ -398,10 +400,10 @@ constructor TNodeKambiAppearance.Create(const ANodeName: string; const AWWWBaseP
 begin
   inherited;
 
-  FFdnormalMap := TSFNode.Create(Self, 'normalMap', [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]);
+  FFdnormalMap := TSFNode.Create(Self, 'normalMap', [TNodeX3DTextureNode]);
   Fields.Add(FFdnormalMap);
 
-  FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeImageTexture, TNodeMovieTexture, TNodePixelTexture]);
+  FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeX3DTextureNode]);
   Fields.Add(FFdheightMap);
 
   FFdheightMapScale := TSFFloat.Create('heightMapScale', DefaultHeightMapScale);

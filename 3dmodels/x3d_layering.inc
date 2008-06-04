@@ -99,15 +99,13 @@ begin
   FFdviewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
   Fields.Add(FFdviewport);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'layers';
 end;
 
 constructor TNodeX3DViewportNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeLayer.Create(const ANodeName: string;
@@ -123,8 +121,6 @@ begin
 
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
   Fields.Add(FFdchildren);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeLayer.ClassNodeTypeName: string;
@@ -192,8 +188,6 @@ begin
   FFdclipBoundary := TMFFloat.Create('clipBoundary', [0.0]);
   Fields.Add(FFdclipBoundary);
   { X3D specification comment: 1 0 1  [0,1] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeViewport.ClassNodeTypeName: string;

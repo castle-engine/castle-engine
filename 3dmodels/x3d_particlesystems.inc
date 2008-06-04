@@ -278,7 +278,7 @@ begin
   Fields.Add(FFdsurfaceArea);
   { X3D specification comment: [0,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'emitter';
 end;
 
 constructor TNodeX3DParticlePhysicsModelNode.Create(const ANodeName: string;
@@ -289,7 +289,7 @@ begin
   FFdenabled := TSFBool.Create('enabled', true);
   Fields.Add(FFdenabled);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'physics';
 end;
 
 constructor TNodeBoundedPhysicsModel.Create(const ANodeName: string;
@@ -299,8 +299,6 @@ begin
 
   FFdgeometry := TSFNode.Create(Self, 'geometry', [TNodeX3DGeometryNode]);
   Fields.Add(FFdgeometry);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeBoundedPhysicsModel.ClassNodeTypeName: string;
@@ -336,8 +334,6 @@ begin
 
   FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeConeEmitter.ClassNodeTypeName: string;
@@ -366,8 +362,6 @@ begin
 
   FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeExplosionEmitter.ClassNodeTypeName: string;
@@ -397,8 +391,6 @@ begin
   FFdforce := TSFVec3f.Create('force', Vector3Single(0, -9.8, 0));
   Fields.Add(FFdforce);
   { X3D specification comment: (Inf,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGravityPhysicsModel.ClassNodeTypeName: string;
@@ -480,8 +472,6 @@ begin
   FFdtexCoordKey.Exposed := false;
   Fields.Add(FFdtexCoordKey);
   { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeParticleSystem.ClassNodeTypeName: string;
@@ -513,8 +503,6 @@ begin
 
   FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePointEmitter.ClassNodeTypeName: string;
@@ -555,8 +543,6 @@ begin
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodePolylineEmitter.ClassNodeTypeName: string;
@@ -594,8 +580,6 @@ begin
   FFdsurface := TSFNode.Create(Self, 'surface', [TNodeX3DGeometryNode]);
   FFdsurface.Exposed := false;
   Fields.Add(FFdsurface);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeSurfaceEmitter.ClassNodeTypeName: string;
@@ -640,8 +624,6 @@ begin
   FFdinternal := TSFBool.Create('internal', true);
   FFdinternal.Exposed := false;
   Fields.Add(FFdinternal);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeVolumeEmitter.ClassNodeTypeName: string;
@@ -683,8 +665,6 @@ begin
   FFdturbulence := TSFFloat.Create('turbulence', 0);
   Fields.Add(FFdturbulence);
   { X3D specification comment: [0,1] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeWindPhysicsModel.ClassNodeTypeName: string;

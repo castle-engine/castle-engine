@@ -91,8 +91,6 @@ constructor TNodeX3DEnvironmentTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 constructor TNodeComposedCubeMapTexture.Create(const ANodeName: string;
@@ -117,8 +115,6 @@ begin
 
   FFdtop := TSFNode.Create(Self, 'top', [TNodeX3DTexture2DNode]);
   Fields.Add(FFdtop);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeComposedCubeMapTexture.ClassNodeTypeName: string;
@@ -157,8 +153,6 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeneratedCubeMapTexture.ClassNodeTypeName: string;
@@ -192,8 +186,6 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeImageCubeMapTexture.ClassNodeTypeName: string;

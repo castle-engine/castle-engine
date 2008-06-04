@@ -227,7 +227,7 @@ begin
   Fields.Add(FFdweight);
   { X3D specification comment: (-Inf,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'displacers';
 end;
 
 class function TNodeHAnimDisplacer.ClassNodeTypeName: string;

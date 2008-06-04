@@ -245,8 +245,6 @@ begin
 
   FFdlayout := TSFNode.Create(Self, 'layout', [TNodeX3DLayoutNode]);
   Fields.Add(FFdlayout);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeLayoutLayer.ClassNodeTypeName: string;
@@ -312,8 +310,6 @@ begin
   FFdtopToBottom := TSFBool.Create('topToBottom', true);
   FFdtopToBottom.Exposed := false;
   Fields.Add(FFdtopToBottom);
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeScreenFontStyle.ClassNodeTypeName: string;

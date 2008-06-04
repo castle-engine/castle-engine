@@ -26,6 +26,8 @@
   end;
 
   TNodeX3DColorNode = class(TNodeX3DGeometricPropertyNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeX3DComposedGeometryNode = class(TNodeX3DGeometryNode)
@@ -64,6 +66,8 @@
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
   TNodeX3DNormalNode = class(TNodeX3DGeometricPropertyNode)
@@ -321,6 +325,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+constructor TNodeX3DColorNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'color';
+end;
+
 constructor TNodeX3DComposedGeometryNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -361,6 +373,14 @@ begin
   Fields.Add(FFdsolid);
 end;
 
+constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  DefaultContainerField := 'coord';
+end;
+
 constructor TNodeClipPlane.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -373,7 +393,10 @@ begin
   Fields.Add(FFdplane);
   { X3D specification comment: [0,1] }
 
-  DefaultContainerField := 'children';
+  { X3D specification (XML encoding, edition 2)
+    says that containerField of this should be "color"... which doesn't
+    make sense? I leave DefaultContainerField as "children"
+    (inherited from X3DChilNode. }
 end;
 
 class function TNodeClipPlane.ClassNodeTypeName: string;
@@ -403,8 +426,6 @@ begin
   FFdcolor := TMFColor.Create('color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
-
-  DefaultContainerField := 'color';
 end;
 
 class function TNodeColor.ClassNodeTypeName: string;
@@ -436,8 +457,6 @@ begin
   FFdcolor := TMFColorRGBA.Create('color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeColorRGBA.ClassNodeTypeName: string;
@@ -467,8 +486,6 @@ begin
   FFdpoint := TMFVec3f.Create('point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
-
-  DefaultContainerField := 'coord';
 end;
 
 class function TNodeCoordinate.ClassNodeTypeName: string;

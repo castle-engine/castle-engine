@@ -301,8 +301,6 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 procedure TNodeX3DShapeNode.DirectEnumerateActive(
@@ -508,7 +506,7 @@ begin
   Fields.Add(FFdhatchStyle);
   { X3D specification comment: [0,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'fillProperties';
 end;
 
 class function TNodeFillProperties.ClassNodeTypeName: string;
@@ -546,7 +544,7 @@ begin
   Fields.Add(FFdlinewidthScaleFactor);
   { X3D specification comment: (-Inf,Inf) }
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'lineProperties';
 end;
 
 class function TNodeLineProperties.ClassNodeTypeName: string;
@@ -602,8 +600,6 @@ begin
 
   FFdmirror := TSFFloat.Create('mirror', DefaultMaterialMirror);
   Fields.Add(FFdmirror);
-
-  DefaultContainerField := 'material';
 end;
 
 class function TNodeMaterial_2.ClassNodeTypeName: string;
@@ -646,8 +642,6 @@ constructor TNodeShape.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeShape.ClassNodeTypeName: string;
@@ -726,8 +720,6 @@ begin
   FFdtransparency := TSFFloat.Create('transparency', 0);
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeTwoSidedMaterial.ClassNodeTypeName: string;

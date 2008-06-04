@@ -406,8 +406,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoCoordinate.ClassNodeTypeName: string;
@@ -552,8 +550,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoLocation.ClassNodeTypeName: string;
@@ -643,8 +639,6 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoLOD.ClassNodeTypeName: string;
@@ -680,8 +674,6 @@ begin
   FFdurl := TMFString.Create('url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoMetadata.ClassNodeTypeName: string;
@@ -721,7 +713,7 @@ begin
   FFdrotateYUp.Exposed := false;
   Fields.Add(FFdrotateYUp);
 
-  DefaultContainerField := 'children';
+  DefaultContainerField := 'geoOrigin';
 end;
 
 class function TNodeGeoOrigin.ClassNodeTypeName: string;
@@ -765,8 +757,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoPositionInterpolator.ClassNodeTypeName: string;
@@ -817,8 +807,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoProximitySensor.ClassNodeTypeName: string;
@@ -865,8 +853,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoTouchSensor.ClassNodeTypeName: string;
@@ -921,8 +907,6 @@ begin
   FFdgeoSystem.Exposed := false;
   Fields.Add(FFdgeoSystem);
   { X3D specification comment: [see 25.2.3] }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoTransform.ClassNodeTypeName: string;
@@ -983,8 +967,6 @@ begin
   FFdspeedFactor.Exposed := false;
   Fields.Add(FFdspeedFactor);
   { X3D specification comment: [0,Inf) }
-
-  DefaultContainerField := 'children';
 end;
 
 class function TNodeGeoViewpoint.ClassNodeTypeName: string;
