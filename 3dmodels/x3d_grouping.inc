@@ -80,6 +80,11 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { Interface common for all TVRMLRootNode_* versions. }
+  IVRMLRootNode = interface(IVRMLNode)
+  ['{3BBD44B0-792A-4715-BA62-352A76756D59}']
+  end;
+
   { A Group node that is added when VRML >= 2.0 file contains more
     than one node at the root level. (Or contains any prototypes,
     routes etc. at the root level, as they must all be stored inside
@@ -87,7 +92,7 @@
 
     See TVRMLRootNode_1 for some more comments about why this
     descends from TNodeGroup_2. }
-  TVRMLRootNode_2 = class(TNodeGroup_2)
+  TVRMLRootNode_2 = class(TNodeGroup_2, IVRMLRootNode)
   private
     FForceVersion: boolean;
     FForceVersionMajor: Integer;

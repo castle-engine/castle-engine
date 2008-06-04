@@ -747,7 +747,7 @@
     (with additional Group node) than what was encoded in the file.
     You can also test for (Node is TVRMLRootNode_1/2) and
     recognize this special case. }
-  TVRMLRootNode_1 = class(TNodeGroup_1)
+  TVRMLRootNode_1 = class(TNodeGroup_1, IVRMLRootNode)
   private
     FForceVersion: boolean;
     FForceVersionMajor: Integer;

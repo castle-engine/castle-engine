@@ -6317,6 +6317,7 @@ function VRMLNodeDeepCopy(SourceNode: TVRMLNode): TVRMLNode;
 var
   S: TMemoryStream;
   SPeek: TPeekCharStream;
+  NewResult: TVRMLNode;
 begin
   S := TMemoryStream.Create;
   try
@@ -6342,7 +6343,7 @@ begin
          This may hurt performance badly in case of nested large prototypes,
          as prototype Instantiate itself uses VRMLNodeDeepCopy.
 
-      2. Moerover, this can cause actual errors, see e.g.
+      2. Moreover, this can cause actual errors, see e.g.
          kambi_vrml_test_suite/vrml_2/proto_nested.wrl test.
          Reason: inside a prototype, we may use a prototype defined at higher
          level. Which means that this prototype definition will not be
@@ -6355,17 +6356,27 @@ begin
     try
       Result := ParseVRMLFile(SPeek, SourceNode.WWWBasePath);
 
-      { SaveToVRMLFile silently strips TVRMLRootNode_* wrapper,
-        and produces file with multiple root nodes.
-        ParseVRMLFile should detect that multiple root nodes require wrapping
-        again in TVRMLRootNode_*, and everything should be Ok
-        (if SourceNode was TVRMLRootNode_* wrapper, resulting copy also
-        will be). }
+      { SaveToVRMLFile always strips TVRMLRootNode_* wrapper.
+        ParseVRMLFile adds TVRMLRootNode_* wrapper,
+        currently always.
+
+        We want to guarantee that Result has a wrapper if and only if
+        SourceNode has a wrapper. So we optionally strip the wrapper
+        added by ParseVRMLFile. }
+      if (not Supports(SourceNode, IVRMLRootNode)) and
+         Supports(Result, IVRMLRootNode) then
+      begin
+        Assert(Result.SmartChildrenCount = 1);
+        NewResult := Result.SmartExtractChild(0);
+        FreeAndNil(Result);
+        Result := NewResult;
+      end;
+
       Assert(
-        ( (SourceNode is TVRMLRootNode_1) or
-          (SourceNode is TVRMLRootNode_2) ) =
-        ( (Result is TVRMLRootNode_1) or
-          (Result is TVRMLRootNode_2) ) );
+        Supports(SourceNode, IVRMLRootNode) =
+        Supports(Result, IVRMLRootNode) );
+
+      Assert(SourceNode.ClassType = Result.ClassType);
     finally FreeAndNil(SPeek) end;
   finally FreeAndNil(S) end;
 end;
