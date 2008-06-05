@@ -3452,8 +3452,8 @@ begin
           RenderElevationGrid(TNodeElevationGrid(Node)) else
         if Node is TNodeExtrusion then
           RenderExtrusion(TNodeExtrusion(Node)) else
-          raise EVRMLOpenGLRenderError.Create(
-            'Rendering of node kind '+Node.NodeTypeName+' not implemented');
+          VRMLNonFatalError(
+            'Rendering of node kind "' + Node.NodeTypeName + '" not implemented');
 
         {$endif USE_VRML_NODES_TRIANGULATION}
 

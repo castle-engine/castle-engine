@@ -118,6 +118,8 @@
 
     private FFdzSpacing: TSFDouble;
     public property FdzSpacing: TSFDouble read FFdzSpacing;
+    
+    GeometryNotImplemented
   end;
 
   TNodeGeoLocation = class(TNodeX3DGroupingNode)
@@ -532,6 +534,9 @@ begin
     { (URN = URNVRML97Nodes + ClassNodeTypeName) or }
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeGeoElevationGrid}
+GeometryNotImplemented
 
 constructor TNodeGeoLocation.Create(const ANodeName: string;
   const AWWWBasePath: string);

@@ -119,6 +119,8 @@
 
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
+
+    GeometryNotImplemented
   end;
 
   TNodeQuadSet = class(TNodeX3DComposedGeometryNode)
@@ -128,6 +130,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    GeometryNotImplemented
   end;
 
 {$endif read_interface}
@@ -330,6 +334,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeIndexedQuadSet}
+GeometryNotImplemented
+
 constructor TNodeQuadSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -354,6 +361,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeQuadSet}
+GeometryNotImplemented
 
 procedure RegisterCADGeometryNodes;
 begin

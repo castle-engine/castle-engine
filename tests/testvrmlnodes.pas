@@ -24,7 +24,7 @@ unit TestVRMLNodes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, VRMLNodes;
 
 type
   TTestVRMLNodes = class(TTestCase)
@@ -47,11 +47,16 @@ type
     procedure TestAllowedChildren;
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
+    procedure TestGeometryNodesImplemented;
+  private
+    procedure DummyTriangleProc(const Tri: TTriangle3Single;
+      State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
   end;
 
 implementation
 
-uses KambiUtils, VRMLNodes, VRMLLexer, KambiClassUtils, KambiFilesUtils;
+uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -805,7 +810,9 @@ begin
       N := NodesManager.Registered[I].Create('', '');
       try
         Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
-        if Index <> -1 then
+        if (Index <> -1) and
+           (not (N is TNodeFontStyle_1)) and
+           (not (N is TNodeMaterial_1)) then
         try
           Assert(ContainerFieldList.ValueFromIndex[Index] = N.DefaultContainerField);
         except
@@ -847,6 +854,51 @@ begin
       end;
     finally FreeAndNil(N) end;
   end;
+end;
+
+procedure TTestVRMLNodes.DummyTriangleProc(const Tri: TTriangle3Single;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+begin
+end;
+
+procedure TTestVRMLNodes.TestGeometryNodesImplemented;
+var
+  I: Integer;
+  N: TVRMLNode;
+  State: TVRMLGraphTraverseState;
+begin
+  State := TVRMLGraphTraverseState.Create;
+  try
+    for I := 0 to NodesManager.RegisteredCount - 1 do
+    begin
+      N := NodesManager.Registered[I].Create('', '');
+      try
+        if N is TVRMLGeometryNode then
+        try
+          { just test that abstract methods are overriden, and don't crash }
+          (N as TVRMLGeometryNode).BoundingBox(State);
+          (N as TVRMLGeometryNode).LocalBoundingBox(State);
+          (N as TVRMLGeometryNode).VerticesCount(State, true);
+          (N as TVRMLGeometryNode).VerticesCount(State, false);
+          (N as TVRMLGeometryNode).TrianglesCount(State, true);
+          (N as TVRMLGeometryNode).TrianglesCount(State, false);
+// this is known to be not implemented for some nodes
+//          (N as TVRMLGeometryNode).Triangulate(State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).Triangulate(State, false, @DummyTriangleProc);
+// this is known to be not implemented for some nodes
+//          (N as TVRMLGeometryNode).LocalTriangulate(State, true, @DummyTriangleProc);
+          (N as TVRMLGeometryNode).LocalTriangulate(State, false, @DummyTriangleProc);
+        except
+          on E: Exception do
+          begin
+            Writeln('Failed on ', N.ClassName, ' implementation');
+            raise;
+          end;
+        end;
+      finally FreeAndNil(N) end;
+    end;
+  finally FreeAndNil(State) end;
 end;
 
 initialization

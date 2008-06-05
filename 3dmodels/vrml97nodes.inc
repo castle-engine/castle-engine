@@ -150,6 +150,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean; override;
+
+    GeometryNotImplemented
   end;
 
   TNodeNurbsGroup = class(TNodeX3DGroupingNode)
@@ -247,6 +249,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    GeometryNotImplemented
   end;
 
   TNodeNurbsTextureSurface = class(TVRMLNode)
@@ -305,6 +309,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    GeometryNotImplemented
   end;
 {$endif read_interface}
 
@@ -551,6 +557,9 @@ begin
   Result := VerMajor = 2;
 end;
 
+{$define TGeometryNotImplemented := TNodeNurbsCurve_2}
+GeometryNotImplemented
+
 constructor TNodeNurbsGroup.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -701,6 +710,9 @@ begin
     true, 2, 0, 1000);
 end;
 
+{$define TGeometryNotImplemented := TNodeNurbsSurface}
+GeometryNotImplemented
+
 constructor TNodeNurbsTextureSurface.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
@@ -790,6 +802,9 @@ begin
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
 end;
+
+{$define TGeometryNotImplemented := TNodeTrimmedSurface}
+GeometryNotImplemented
 
 procedure RegisterVRML97Nodes;
 begin

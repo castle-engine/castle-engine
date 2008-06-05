@@ -185,6 +185,8 @@
 
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
+
+    GeometryNotImplemented
   end;
 
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -201,6 +203,8 @@
 
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
+
+    GeometryNotImplemented
   end;
 
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -217,6 +221,8 @@
 
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
+
+    GeometryNotImplemented
   end;
 
   TNodeLineSet = class(TNodeX3DGeometryNode)
@@ -241,6 +247,8 @@
 
     private FFdvertexCount: TMFInt32;
     public property FdvertexCount: TMFInt32 read FFdvertexCount;
+
+    GeometryNotImplemented
   end;
 
   TNodeNormal = class(TNodeX3DNormalNode)
@@ -300,6 +308,8 @@
 
     private FFdfanCount: TMFInt32;
     public property FdfanCount: TMFInt32 read FFdfanCount;
+
+    GeometryNotImplemented
   end;
 
   TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -309,6 +319,8 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    GeometryNotImplemented
   end;
 
   TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -321,6 +333,8 @@
 
     private FFdstripCount: TMFInt32;
     public property FdstripCount: TMFInt32 read FFdstripCount;
+
+    GeometryNotImplemented
   end;
 {$endif read_interface}
 
@@ -606,6 +620,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeIndexedTriangleFanSet}
+GeometryNotImplemented
+
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -639,6 +656,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeIndexedTriangleSet}
+GeometryNotImplemented
+
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -671,6 +691,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeIndexedTriangleStripSet}
+GeometryNotImplemented
 
 constructor TNodeLineSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -712,6 +735,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeLineSet}
+GeometryNotImplemented
 
 constructor TNodeNormal.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -810,6 +836,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeTriangleFanSet}
+GeometryNotImplemented
+
 constructor TNodeTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -834,6 +863,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeTriangleSet}
+GeometryNotImplemented
 
 constructor TNodeTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -863,6 +895,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeTriangleStripSet}
+GeometryNotImplemented
 
 procedure RegisterRenderingNodes;
 begin

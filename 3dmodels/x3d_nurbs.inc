@@ -32,6 +32,7 @@
   end;
 
   TNodeX3DParametricGeometryNode = class(TNodeX3DGeometryNode)
+    GeometryNotImplemented
   end;
 
   TNodeX3DNurbsSurfaceGeometryNode = class(TNodeX3DParametricGeometryNode)
@@ -106,6 +107,8 @@
 
     private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
+    
+    GeometryNotImplemented
   end;
 
   TNodeContourPolyline2D = class(TNodeX3DNurbsControlCurveNode)
@@ -435,6 +438,9 @@ begin
   DefaultContainerField := 'children';
 end;
 
+{$define TGeometryNotImplemented := TNodeX3DParametricGeometryNode}
+GeometryNotImplemented
+
 constructor TNodeX3DNurbsSurfaceGeometryNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -540,6 +546,9 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeContour2D}
+GeometryNotImplemented
 
 constructor TNodeContourPolyline2D.Create(const ANodeName: string;
   const AWWWBasePath: string);

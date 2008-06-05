@@ -35,6 +35,8 @@
 
     private FFdstartAngle: TSFFloat;
     public property FdstartAngle: TSFFloat read FFdstartAngle;
+
+    GeometryNotImplemented
   end;
 
   TNodeArcClose2D = class(TNodeX3DGeometryNode)
@@ -59,6 +61,8 @@
 
     private FFdstartAngle: TSFFloat;
     public property FdstartAngle: TSFFloat read FFdstartAngle;
+
+    GeometryNotImplemented
   end;
 
   TNodeCircle2D = class(TNodeX3DGeometryNode)
@@ -71,6 +75,8 @@
 
     private FFdradius: TSFFloat;
     public property Fdradius: TSFFloat read FFdradius;
+
+    GeometryNotImplemented
   end;
 
   TNodeDisk2D = class(TNodeX3DGeometryNode)
@@ -89,6 +95,8 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    GeometryNotImplemented
   end;
 
   { Polyline2D node.
@@ -107,6 +115,8 @@
 
     private FFdlineSegments: TMFVec2f;
     public property FdlineSegments: TMFVec2f read FFdlineSegments;
+
+    GeometryNotImplemented
   end;
 
   TNodePolypoint2D = class(TNodeX3DGeometryNode)
@@ -119,6 +129,8 @@
 
     private FFdpoint: TMFVec2f;
     public property Fdpoint: TMFVec2f read FFdpoint;
+
+    GeometryNotImplemented
   end;
 
   TNodeRectangle2D = class(TNodeX3DGeometryNode)
@@ -134,6 +146,8 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    GeometryNotImplemented
   end;
 
   TNodeTriangleSet2D = class(TNodeX3DGeometryNode)
@@ -149,6 +163,8 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    GeometryNotImplemented
   end;
 
 {$endif read_interface}
@@ -193,6 +209,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeArc2D}
+GeometryNotImplemented
 
 constructor TNodeArcClose2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -243,6 +262,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeArcClose2D}
+GeometryNotImplemented
+
 constructor TNodeCircle2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -272,6 +294,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeCircle2D}
+GeometryNotImplemented
 
 constructor TNodeDisk2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -312,6 +337,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeDisk2D}
+GeometryNotImplemented
+
 constructor TNodePolyline2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -346,6 +374,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodePolyline2D}
+GeometryNotImplemented
+
 constructor TNodePolypoint2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -374,6 +405,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodePolypoint2D}
+GeometryNotImplemented
 
 constructor TNodeRectangle2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -409,6 +443,9 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+{$define TGeometryNotImplemented := TNodeRectangle2D}
+GeometryNotImplemented
+
 constructor TNodeTriangleSet2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -441,6 +478,9 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+{$define TGeometryNotImplemented := TNodeTriangleSet2D}
+GeometryNotImplemented
 
 procedure RegisterGeometry2DNodes;
 begin
