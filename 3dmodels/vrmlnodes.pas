@@ -4260,14 +4260,22 @@ function TVRMLNode.FieldOrEvent(const Name: string;
   SearchInterfaceDeclarations: boolean): TVRMLFieldOrEvent;
 var
   I: Integer;
+  ResultEvent: TVRMLEvent;
 begin
   I := Fields.IndexOf(Name);
   if I <> -1 then
     Exit(Fields[I]);
 
-  I := Fields.IndexOfExposedEvent(Name, TVRMLEvent(Result));
+  { I use helper ResultEvent below, instead of passing
+    "TVRMLEvent(Result)" as last param: don't know why,
+    but with FPC 2.2.0 this cast may fail (even though it shouldn't
+    be checked at all?), testcase:
+      view3dscene www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
+  }
+
+  I := Fields.IndexOfExposedEvent(Name, ResultEvent);
   if I <> -1 then
-    Exit; { Result is already set }
+    Exit(ResultEvent);
 
   I := Events.IndexOf(Name);
   if I <> -1 then
@@ -5839,21 +5847,37 @@ function ParseNode(Lexer: TVRMLLexer;
     NodeTypeName := Lexer.TokenName;
     Lexer.NextToken;
 
-    NodeClass := NodesManager.NodeTypeNameToClass(Lexer.TokenName,
-      Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
-    if NodeClass <> nil then
+    { VRML / X3D specifications say it is an error for a PROTO to have
+      the same name as built-in node. I didn't found any definite
+      statements about EXTERNPROTO names, although I vaguely remember
+      some notes that EXTERNPROTO name should take precedence over
+      built-in names. And this seems most sensible. Especially for
+      nodes that were not available in older VRML / X3D editions and
+      were declared (possibly slightly sensible) using EXTERNPROTOs,
+      it's a good thing to use EXTERNPROTOs: they were probably most
+      current with respect to given VRML file. Examples are CAD
+      test files from
+      http://www.web3d.org/x3d/content/examples/Basic/CAD/
+
+      So we first search for NodeTypeName among protos.
+      Only when this failed, we look at built-in nodes in NodesManager.
+    }
+
+    ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
+    if ProtoIndex <> -1 then
     begin
-      Result := NodeClass.Create(nodename, '');
+      Proto := Lexer.ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
+      if (Proto is TVRMLExternalPrototype) and
+         (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
+        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, '') else
+        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '', Proto);
     end else
     begin
-      ProtoIndex := Lexer.ProtoNameBinding.IndexOf(NodeTypeName);
-      if ProtoIndex <> -1 then
+      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName,
+        Lexer.VRMLVerMajor, Lexer.VRMLVerMinor);
+      if NodeClass <> nil then
       begin
-        Proto := Lexer.ProtoNameBinding.Objects[ProtoIndex] as TVRMLPrototypeBase;
-        if (Proto is TVRMLExternalPrototype) and
-           (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-          Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, '') else
-          Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, '', Proto);
+        Result := NodeClass.Create(nodename, '');
       end else
       begin
         Result := TVRMLUnknownNode.CreateUnknown(nodename, '', NodeTypeName);
