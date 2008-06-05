@@ -85,6 +85,9 @@
     { Event: SFTime, out } { }
     private FEventtime: TVRMLEvent;
     public property Eventtime: TVRMLEvent read FEventtime;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
   end;
 
 {$endif read_interface}
@@ -143,6 +146,9 @@ begin
 
   FEventtime := TVRMLEvent.Create('time', TSFTime, false);
   Events.Add(FEventtime);
+
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
 
   DefaultContainerField := 'children';
 end;
