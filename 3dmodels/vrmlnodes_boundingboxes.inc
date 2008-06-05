@@ -25,7 +25,7 @@
 
 function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
 begin
- result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
+  Result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
 end;
 
 function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;

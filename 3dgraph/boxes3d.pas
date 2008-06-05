@@ -756,6 +756,9 @@ var
   BoxPoints: array [0..7] of TVector3Single;
   i: integer;
 begin
+  if IsEmptyBox3d(BBox) then
+    Exit(EmptyBox3d);
+
   Box3dGetAllPoints(@boxpoints, bbox);
   for i := 0 to 7 do boxpoints[i] := MultMatrixPoint(Matrix, boxpoints[i]);
 
