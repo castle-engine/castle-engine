@@ -59,7 +59,7 @@ var
 
     TODO: this means that each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
-  NodeNameBinding: TStringList;
+  NodeNameBinding: TNodeNameBinding;
 
   ProtoNamebinding: TStringList;
 
@@ -697,7 +697,7 @@ const
   { Equivalent to TVRMLPrototype.Parse }
   procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement);
   var
-    OldNodeNameBinding: TStringList;
+    OldNodeNameBinding: TNodeNameBinding;
     OldProtoNameBinding: TStringList;
     Name: string;
     E: TDOMElement;
@@ -722,7 +722,7 @@ const
       scope, completely independent from the outside. So we create
       new NodeNameBinding for parsing prototype. }
     OldNodeNameBinding := NodeNameBinding;
-    NodeNameBinding := TStringListCaseSens.Create;
+    NodeNameBinding := TNodeNameBinding.Create;
     try
       { Also prototype name scope is local within the prototype,
         however it starts from current prototype name scope (not empty,
@@ -867,7 +867,7 @@ begin
   NodeNameBinding := nil;
   ProtoNameBinding := nil;
   try
-    NodeNameBinding := TStringList.Create;
+    NodeNameBinding := TNodeNameBinding.Create;
     ProtoNameBinding := TStringList.Create;
 
     if Gzipped then

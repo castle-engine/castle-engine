@@ -2645,6 +2645,40 @@ const
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
 
+type
+  TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
+
+  TDynArrayItem_2 = TNodeDestructionNotification;
+  PDynArrayItem_2 = ^TNodeDestructionNotification;
+  {$define DYNARRAY_2_IS_FUNCTION}
+  {$define DYNARRAY_2_USE_EQUALITY}
+  {$I dynarray_2.inc}
+  TDynNodeDestructionNotificationArray = class(TDynArray_2)
+  public
+    { This calls all functions (all Items) passing them Node parameter. }
+    procedure ExecuteAll(Node: TVRMLNode);
+  end;
+
+  { List to keep node names while parsing VRML file.
+    This assumes that all strings are node names and their Objects[]
+    are TVRMLNode instances with given names.
+
+    The only advantage of using this is that it registers and unregisters
+    itself for NodeDestructionNotifications, so if any node may be
+    destroyed during parsing, it will also be removed from this list. }
+  TNodeNameBinding = class(TStringListCaseSens)
+  private
+    procedure DestructionNotification(Node: TVRMLNode);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+var
+  { Functions registered here will be called when any TVRMLNode descendant
+    will be destroyed. }
+  NodeDestructionNotifications: TDynNodeDestructionNotificationArray;
+
 {$undef read_interface}
 
 implementation
@@ -2700,6 +2734,7 @@ uses
 {$I objectslist_4.inc}
 {$I objectslist_5.inc}
 {$I dynarray_1.inc}
+{$I dynarray_2.inc}
 
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
@@ -2982,6 +3017,8 @@ end;
 
 destructor TVRMLNode.Destroy;
 begin
+  NodeDestructionNotifications.ExecuteAll(Self);
+
   FreeWithContentsAndNil(FInterfaceDeclarations);
 
   if FChildren <> nil then RemoveAllChildren;
@@ -3002,6 +3039,7 @@ begin
   FreeAndNil(FChildren);
   FreeAndNil(FParentNodes);
   FreeAndNil(FParentFields);
+
   inherited;
 end;
 
@@ -6443,9 +6481,44 @@ begin
   finally FreeAndNil(S) end;
 end;
 
+{ TDynNodeDestructionNotifications ------------------------------------------- }
+
+procedure TDynNodeDestructionNotificationArray.ExecuteAll(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  for I := 0 to Length - 1 do
+    Items[I](Node);
+end;
+
+{ TNodeNameBinding ----------------------------------------------------------- }
+
+constructor TNodeNameBinding.Create;
+begin
+  inherited;
+  NodeDestructionNotifications.AppendItem(@DestructionNotification);
+end;
+
+destructor TNodeNameBinding.Destroy;
+begin
+  NodeDestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+  inherited;
+end;
+
+procedure TNodeNameBinding.DestructionNotification(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  I := IndexOfObject(Node);
+  if I >= 0 then
+    Delete(I);
+end;
+
 { unit init/fini ------------------------------------------------------------ }
 
 initialization
+  NodeDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
+
   VRMLFieldsManager.RegisterClasses([TSFNode, TMFNode]);
 
   NodesManager := TNodesManager.Create;
@@ -6493,4 +6566,5 @@ initialization
   RegisterParticleSystemsNodes;
 finalization
   FreeAndNil(NodesManager);
+  FreeAndNil(NodeDestructionNotifications);
 end.

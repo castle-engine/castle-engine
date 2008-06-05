@@ -376,8 +376,8 @@ function TDynArray_19.EqualItems(const Item1, Item2: TDynArrayItem_19): boolean;
 begin
  {$ifdef DYNARRAY_19_USE_EQUALITY_OP}
  Result := (
-   {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} Item1 =
-   {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} Item2);
+   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} {$endif} Item1 =
+   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} {$endif} Item2);
  {$else}
    {$ifdef DYNARRAY_19_USE_EQUALITY_COMPAREMEM}
    result := CompareMem(@Item1, @Item2, SizeOf(TDynArrayItem_19));
