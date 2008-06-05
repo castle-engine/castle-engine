@@ -60,10 +60,17 @@
 
       You have to return TRGBImage or TAlphaImage here, see TextureImage docs.
 
-      Set CacheUsed to @true if you loaded the image using ImagesCache.
+      Set CacheUsed here. @true means you loaded the image using ImagesCache.
 
-      Also, set FTextureUsedFullUrl here. }
-    function LoadTextureImage(out CacheUsed: boolean): TImage; virtual; abstract;
+      Also, set FTextureUsedFullUrl here.
+
+      In this class, this simply produces VRMLNonFatalError with
+      "not implemented" message and returns @nil. It's not declared
+      as abstract, because there are classes descending from this,
+      like MovieTexture, and we want to at least be able to parse them
+      and then ignore (while not overriden abstract method would cause
+      simple crashes). }
+    function LoadTextureImage(out CacheUsed: boolean): TImage; virtual;
     FTextureUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string;
@@ -119,8 +126,12 @@
 
     { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
       zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
-      jak i jaka tekstura jest zaladowana. }
-    function TextureDescription: string; virtual; abstract;
+      jak i jaka tekstura jest zaladowana.
+
+      In this class, simply returns NodeTypeName and informs it's
+      not implemented. You most definitely
+      want to override this and say something more descriptive. }
+    function TextureDescription: string; virtual;
 
     function RepeatS: boolean; virtual; abstract;
     function RepeatT: boolean; virtual; abstract;
@@ -145,6 +156,9 @@
 
     private FFdtextureProperties: TSFNode;
     public property FdtextureProperties: TSFNode read FFdtextureProperties;
+
+    function RepeatS: boolean; override;
+    function RepeatT: boolean; override;
   end;
 
   TNodeX3DTextureTransformNode = class(TNodeX3DAppearanceChildNode)
@@ -166,8 +180,6 @@
     public property Fdurl: TMFString read FFdurl;
 
     function TextureDescription: string; override;
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
   end;
 
   TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
@@ -284,8 +296,6 @@
     public property Fdimage: TSFImage read FFdimage;
 
     function TextureDescription: string; override;
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
   end;
 
   TNodeTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
@@ -498,6 +508,20 @@ begin
   result := not TextureImage.IsNull;
 end;
 
+function TVRMLTextureNode.LoadTextureImage(out CacheUsed: boolean): TImage;
+begin
+  Result := nil;
+  CacheUsed := false;
+  FTextureUsedFullUrl := '';
+
+  VRMLNonFatalError(Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+end;
+
+function TVRMLTextureNode.TextureDescription: string;
+begin
+  Result := Format('Texture type "%s" (not implemented)', [NodeTypeName]);
+end;
+
 { TNodeX3DTexture2DNode ------------------------------------------------------ }
 
 constructor TNodeX3DTexture2DNode.Create(const ANodeName: string;
@@ -516,6 +540,16 @@ begin
   FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
   FFdtextureProperties.Exposed := false;
   Fields.Add(FFdtextureProperties);
+end;
+
+function TNodeX3DTexture2DNode.RepeatS: boolean;
+begin
+  Result := FdRepeatS.Value;
+end;
+
+function TNodeX3DTexture2DNode.RepeatT: boolean;
+begin
+  Result := FdRepeatT.Value;
 end;
 
 constructor TNodeX3DTextureTransformNode.Create(const ANodeName: string;
@@ -590,16 +624,6 @@ begin
   if TextureUsedFullUrl <> '' then
     Result := 'file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
-end;
-
-function TNodeImageTexture.RepeatS: boolean;
-begin
-  Result := FdRepeatS.Value;
-end;
-
-function TNodeImageTexture.RepeatT: boolean;
-begin
-  Result := FdRepeatT.Value;
 end;
 
 constructor TNodeMovieTexture.Create(const ANodeName: string;
@@ -819,16 +843,6 @@ begin
       [ FdImage.Value.Width, FdImage.Value.Height,
         BoolToStr[FdImage.Value is TAlphaImage] ]) else
     result := 'none';
-end;
-
-function TNodePixelTexture.RepeatS: boolean;
-begin
-  Result := FdRepeatS.Value;
-end;
-
-function TNodePixelTexture.RepeatT: boolean;
-begin
-  Result := FdRepeatT.Value;
 end;
 
 constructor TNodeTextureCoordinate.Create(const ANodeName: string;
