@@ -1409,7 +1409,7 @@ type
 
       Then PrototypeInstanceSourceNode is non-nil and indicates
       parsed prototype node (and PrototypeInstanceSourceNode.Prototype
-      given you even a link to the actual prototype specification).
+      gives you even a link to the actual prototype specification).
 
       PrototypeInstanceHelpers may be @nil if empty, or may contain
       a list of other nodes duplicated along with the main prototype node.
@@ -1422,6 +1422,16 @@ type
 
       We don't really routes or scripts yet, so these nodes are just
       useless for now... But should become useful at some point.
+
+      TODO: memory leaks are known to be possible in some difficult cases
+      with PrototypeInstanceHelpers. See e.g.
+      kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak.wrl
+      for simple testcase. Reason: PrototypeInstanceHelpers may contain,
+      by DEF statements, links to Self.
+      This causes circular dependency (Self is child of some node on
+      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
+      be freed only if Self is freed) causing some memory to be left
+      always allocated.
 
       @groupBegin }
     property PrototypeInstance: boolean read FPrototypeInstance;
