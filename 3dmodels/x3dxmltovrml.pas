@@ -251,6 +251,28 @@ const
     finally FreeAndNil(I) end;
   end;
 
+  procedure ParseISStatement(Node: TVRMLNode; ISElement: TDOMElement);
+  var
+    I: TXMLElementIterator;
+    NodeField, ProtoField: string;
+    NodeFieldOrEvent: TVRMLFieldOrEvent;
+  begin
+    I := TXMLElementIterator.Create(ISElement);
+    try
+      while I.GetNext do
+        if ParseConnectElement(I.Current, NodeField, ProtoField) then
+        begin
+          NodeFieldOrEvent := Node.FieldOrEvent(NodeField, true);
+          if NodeFieldOrEvent <> nil then
+          begin
+            NodeFieldOrEvent.IsClause := true;
+            NodeFieldOrEvent.IsClauseName := ProtoField;
+          end else
+            VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+        end;
+    finally FreeAndNil(I) end;
+  end;
+
   { Parse node body, i.e. mainly node's fields.
     This is roughly equivalent to TVRMLNode.Parse in classic VRML encoding
     parser. }
@@ -286,29 +308,6 @@ const
     end;
 
     procedure ParseXMLChildrenNodes;
-
-      procedure ParseISStatement(ISElement: TDOMElement);
-      var
-        I: TXMLElementIterator;
-        NodeField, ProtoField: string;
-        NodeFieldOrEvent: TVRMLFieldOrEvent;
-      begin
-        I := TXMLElementIterator.Create(ISElement);
-        try
-          while I.GetNext do
-            if ParseConnectElement(I.Current, NodeField, ProtoField) then
-            begin
-              NodeFieldOrEvent := Node.FieldOrEvent(NodeField, true);
-              if NodeFieldOrEvent <> nil then
-              begin
-                NodeFieldOrEvent.IsClause := true;
-                NodeFieldOrEvent.IsClauseName := ProtoField;
-              end else
-                VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
-            end;
-        finally FreeAndNil(I) end;
-      end;
-
     var
       FieldIndex: Integer;
       Child: TVRMLNode;
@@ -333,7 +332,7 @@ const
           end else
           if I.Current.TagName = 'IS' then
           begin
-            ParseISStatement(I.Current);
+            ParseISStatement(Node, I.Current);
           end else
           if I.Current.TagName = 'ProtoDeclare' then
           begin
@@ -470,28 +469,32 @@ const
         try
           while ProtoIter.GetNext do
           begin
-            if ProtoIter.Current.TagName <> 'fieldValue' then
+            if ProtoIter.Current.TagName = 'fieldValue' then
             begin
-              VRMLNonFatalError('X3D XML: only <fieldValue> elements expected in prototype instantiation');
-              Continue;
-            end;
+              if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
+              begin
+                VRMLNonFatalError('X3D XML: missing "name" attribute for <fieldValue> element');
+                Continue;
+              end;
 
-            if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
+              FieldIndex := Result.Fields.IndexOf(FieldName);
+              if FieldIndex = -1 then
+              begin
+                VRMLNonFatalError(Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+                Continue;
+              end;
+
+              if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
+                ParseFieldValueFromAttribute(Result.Fields[FieldIndex], FieldActualValue) else
+                ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
+            end else
+            if ProtoIter.Current.TagName = 'IS' then
             begin
-              VRMLNonFatalError('X3D XML: missing "name" attribute for <fieldValue> element');
-              Continue;
-            end;
-
-            FieldIndex := Result.Fields.IndexOf(FieldName);
-            if FieldIndex = -1 then
+              ParseISStatement(Result, ProtoIter.Current);
+            end else
             begin
-              VRMLNonFatalError(Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
-              Continue;
+              VRMLNonFatalError(Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
             end;
-
-            if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
-              ParseFieldValueFromAttribute(Result.Fields[FieldIndex], FieldActualValue) else
-              ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
           end;
         finally FreeAndNil(ProtoIter) end;
 
