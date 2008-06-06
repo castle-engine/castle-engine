@@ -301,6 +301,8 @@ begin
 end;
 
 function TNodeFontStyle_2.Justify: TVRMLFontJustify;
+const
+  SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 begin
   if FdJustify.Items.Count = 0 then
     Result := fjBegin else
@@ -312,6 +314,24 @@ begin
       Result := fjMiddle else
     if FdJustify.Items[0] = 'END' then
       Result := fjEnd else
+
+    { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
+    if FdJustify.Items[0] = 'LEFT' then
+    begin
+      VRMLNonFatalError(Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      Result := fjBegin;
+    end else
+    if FdJustify.Items[0] = 'CENTER' then
+    begin
+      VRMLNonFatalError(Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      Result := fjMiddle;
+    end else
+    if FdJustify.Items[0] = 'RIGHT' then
+    begin
+      VRMLNonFatalError(Format(SJustifyObsolete, ['RIGHT', 'END']));
+      Result := fjEnd;
+    end else
+
     begin
       Result := fjBegin;
       VRMLNonFatalError('Font justify "' + FdJustify.Items[0] +
