@@ -1,5 +1,6 @@
+{ -*- compile-command: "./compile_console.sh" -*- }
 {
-  Copyright 2004-2005 Michalis Kamburelis.
+  Copyright 2004-2005,2008 Michalis Kamburelis.
 
   This file is part of test_kambi_units.
 
@@ -25,7 +26,7 @@ unit TestKambiStringUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry; 
+  Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
   TTestKambiStringUtils= class(TTestCase)
@@ -35,6 +36,7 @@ type
     procedure TestSReplacePercent;
     procedure TestIntToStr2;
     procedure TestIntToStrThousandSep;
+    procedure TestCompressWhiteSpace;
   end;
 
 implementation
@@ -87,7 +89,7 @@ begin
   Assert(I = 123);
   Assert(S = '');
   Assert(S2 = 'foo');
-  
+
   { Test %s at the end of data can be '' }
   DeFormat('123 ', '%d %s', [@i, @s], true, true);
   Assert(I = 123);
@@ -165,6 +167,16 @@ begin
  Test(12345, '12' +ThousandSeparator+ '345');
  Test(123456, '123' +ThousandSeparator+ '456');
  Test(7123456, '7' +ThousandSeparator+ '123' +ThousandSeparator+ '456');
+end;
+
+procedure TTestKambiStringUtils.TestCompressWhiteSpace;
+begin
+  Assert(SCompressWhiteSpace('') = '');
+  Assert(SCompressWhiteSpace('a') = 'a');
+  Assert(SCompressWhiteSpace(' ') = ' ');
+  Assert(SCompressWhiteSpace('     ') = ' ');
+  Assert(SCompressWhiteSpace(' blah blah ') = ' blah blah ');
+  Assert(SCompressWhiteSpace('   blah  ' + CharTab + 'blah ' + NL) = ' blah blah ');
 end;
 
 initialization

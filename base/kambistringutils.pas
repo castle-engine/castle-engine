@@ -717,6 +717,13 @@ const
 
 function DescribeKey(c: char): string;
 
+{ Replace any number of consecutive whitespace (including newlines)
+  with a single whitespace. This is nice when you have a string
+  (possibly multiline) supplied by user, and you want to use this
+  for some UI item (like window's caption or menu item) --- this
+  "sanitizes" whitespace inside such string. }
+function SCompressWhiteSpace(const S: string): string;
+
 implementation
 
 uses KambiFilesUtils;
@@ -1912,8 +1919,6 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
-{ describe chars ---------------------------------------- }
-
 function DescribeKey(c: char): string;
 
   function DescribeCtrlKey(c: char): string;
@@ -1934,6 +1939,55 @@ begin
     Result := DescribeCtrlKey(c) else
     Result := c;
  end;
+end;
+
+function SCompressWhiteSpace(const S: string): string;
+var
+  ResultPos: Integer; { this is always next free result position }
+  SPos: Integer; { this is always next unhandled S position }
+  NextSPos: Integer;
+begin
+  ResultPos := 1;
+  SPos := 1;
+  SetLength(Result, Length(S)); { resulting string is at most as long as S }
+
+  if SCharIs(S, 1, WhiteSpaces) then
+  begin
+    Result[1] := ' ';
+    Inc(ResultPos);
+    while SCharIs(S, SPos, WhiteSpaces) do Inc(SPos);
+  end;
+
+  while SPos <= Length(S) do
+  begin
+    Assert(not (S[SPos] in WhiteSpaces));
+
+    { read next non-white-space chunk }
+
+    NextSPos := SPos + 1;
+    while (NextSPos <= Length(S)) and
+          not (S[NextSPos] in WhiteSpaces) do
+      Inc(NextSPos);
+
+    Move(S[SPos], Result[ResultPos], NextSPos - SPos);
+
+    ResultPos += NextSPos - SPos;
+    SPos := NextSPos;
+
+    { omit next white-space chunk }
+
+    if SCharIs(S, SPos, WhiteSpaces) then
+    begin
+      Result[ResultPos] := ' ';
+      Inc(ResultPos);
+      while SCharIs(S, SPos, WhiteSpaces) do Inc(SPos);
+    end;
+  end;
+
+  { assert we didn't do buffer overflow just now }
+  Assert(ResultPos - 1 <= Length(Result));
+
+  SetLength(Result, ResultPos - 1);
 end;
 
 end.

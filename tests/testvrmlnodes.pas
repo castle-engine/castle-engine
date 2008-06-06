@@ -1,6 +1,6 @@
 { -*- compile-command: "./compile_console.sh" -*- }
 {
-  Copyright 2004-2007 Michalis Kamburelis.
+  Copyright 2004-2008 Michalis Kamburelis.
 
   This file is part of test_kambi_units.
 
