@@ -1338,7 +1338,7 @@ function GetWorldTime: TWorldTime;
 procedure SetWorldTime(const Value: TWorldTime);
 
 { This is a world time, it is passed to GLSL shaders that define
-  a float uniform with a special name @code(kambi_time).
+  a float/double/time uniform with a special name @code(kambi_time).
 
   @italic(Note that this is, for now, somewhat "hacky" feature.)
   In the future interface of this may change, and implementation
@@ -1397,7 +1397,8 @@ type
   TGLSLProgramsList = TObjectsList_1;
 
 const
-  { If a uniform with this name and of type SFFloat is defined
+  { If a GLSL shader in X3D will have uniform with this name
+    (and of type SFFloat or SFDouble or SFTime)
     then we will use this to pass AnimationTime to the shader.
 
     TODO: this is a hack, in the future this will be removed and
@@ -1723,10 +1724,24 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
             So set GLSL uniform variable from this field. }
 
           try
-            if UniformField is TSFVec3f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFVec3f(UniformField).Value) else
+            if UniformField is TSFLong then
+              { Handling of SFLong also takes care of SFInt32. }
+              GLSLProgram.SetUniform(UniformField.Name, TSFLong(UniformField).Value) else
             if UniformField is TSFVec2f then
               GLSLProgram.SetUniform(UniformField.Name, TSFVec2f(UniformField).Value) else
+            if UniformField is TSFVec3f then
+              { Handling of SFVec3f also takes care of SFColor.
+                Although X3D spec says SFColor should go to vec4, not vec3,
+                but this is an error? SFColor has just 3 components... }
+              GLSLProgram.SetUniform(UniformField.Name, TSFVec3f(UniformField).Value) else
+            if UniformField is TSFVec4f then
+              GLSLProgram.SetUniform(UniformField.Name, TSFVec4f(UniformField).Value) else
+            if UniformField is TSFRotation then
+              GLSLProgram.SetUniform(UniformField.Name, TSFRotation(UniformField).Value) else
+            if UniformField is TSFMatrix3f then
+              GLSLProgram.SetUniform(UniformField.Name, TSFMatrix3f(UniformField).Value) else
+            if UniformField is TSFMatrix4f then
+              GLSLProgram.SetUniform(UniformField.Name, TSFMatrix4f(UniformField).Value) else
             if UniformField is TSFFloat then
             begin
               if UniformField.Name = SUniformTimeName then
@@ -1735,8 +1750,22 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
                 WorldTimeWatchers.Add(GLSLProgram);
               end else
                 GLSLProgram.SetUniform(UniformField.Name, TSFFloat(UniformField).Value);
+            end else
+            if UniformField is TSFDouble then
+            begin
+              { Handling SFDouble also takes care of it's descendant SFTime }
+              if UniformField.Name = SUniformTimeName then
+              begin
+                GLSLProgram.SetUniform(UniformField.Name, WorldTime);
+                WorldTimeWatchers.Add(GLSLProgram);
+              end else
+                GLSLProgram.SetUniform(UniformField.Name, TSFDouble(UniformField).Value);
             end;
 
+            { TODO: other field types, full list is in X3D spec in
+              "OpenGL shading language (GLSL) binding" }
+
+          except
             { X3D spec "OpenGL shading language (GLSL) binding" says
               "If the name is not available as a uniform variable in the
               provided shader source, the values of the node shall be ignored"
@@ -1745,7 +1774,6 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
 
               So we catch EGLSLUniformNotFound and don't even report it
               by VRMLNonFatalError. (Still, we report to debug WritelnLog.) }
-          except
             on E: EGLSLUniformNotFound do
             begin
               if Log then
@@ -1754,9 +1782,6 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
                   E.Message);
             end;
           end;
-
-          { TODO: other field types, full list is in X3D spec in
-            "OpenGL shading language (GLSL) binding" }
         end;
       end;
 
