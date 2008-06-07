@@ -516,12 +516,20 @@ const
         if NodeClass <> nil then
         begin
           Result := NodeClass.Create(NodeName, WWWBasePath);
+          ParseNodeBody(Result, Element);
         end else
         begin
           Result := TVRMLUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
-        end;
 
-        ParseNodeBody(Result, Element);
+          { In classic VRML parser, we had special TVRMLUnknownNode.Parse
+            that performed the "magic" trick of
+            ParseIgnoreToMatchingCurlyBracket. This is not needed for
+            X3D XML, we can simply omit the node by not looking
+            at it's attributes. All we need to do is to make
+            VRMLNonFatalError warning. }
+
+          VRMLNonFatalError('Unknown X3D node type "' + NodeTypeName + '"');
+        end;
       end;
 
       { TODO: this has a problem, see classic VRML ParseNode
