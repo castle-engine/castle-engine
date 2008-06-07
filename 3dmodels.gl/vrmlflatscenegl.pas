@@ -1086,7 +1086,7 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images;
+uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1371,10 +1371,6 @@ type
     NeedsConstColor, NeedsConstAlpha: boolean;
   end;
 
-{ TODO: this is written assuming OpenGL 2.1.
-  For older OpenGL, some of the more exotic combinations may be not allowed
-  or at least require checking for some extensions. }
-
 const
   BlendingFactors: array [0..15] of TBlendingFactor =
   (
@@ -1402,6 +1398,8 @@ const
 var
   I: Integer;
 begin
+  Result := false;
+
   for I := Low(BlendingFactors) to High(BlendingFactors) do
     if BlendingFactors[I].Name = S then
     begin
@@ -1412,6 +1410,40 @@ begin
       if Result then
       begin
         Factor := BlendingFactors[I].GL;
+
+        { check is GL version enough, or some GL extensions available
+          for more exotic factors. }
+
+        if BlendingFactors[I].NeedsConstColor or
+           BlendingFactors[I].NeedsConstAlpha then
+        begin
+          if (not (GL_ARB_imaging or GL_version_1_4)) or GLVersion.IsFglrx then
+          begin
+            if Log then
+              WritelnLog('Blending', Format('Blending factor "%s" requires OpenGL 1.4 or ARB_imaging extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+            Exit(false);
+          end;
+        end;
+
+        if not GL_version_1_4 then
+        begin
+          if ((Factor = GL_SRC_COLOR) or
+              (Factor = GL_ONE_MINUS_SRC_COLOR)) and Source then
+          begin
+            if Log then
+              WritelnLog('Blending', Format('Blending factor "%s" as "source" requires OpenGL 1.4', [S]));
+            Exit(false);
+          end;
+
+          if ((Factor = GL_DST_COLOR) or
+              (Factor = GL_ONE_MINUS_DST_COLOR)) and not Source then
+          begin
+            if Log then
+              WritelnLog('Blending', Format('Blending factor "%s" as "destination" requires OpenGL 1.4', [S]));
+            Exit(false);
+          end;
+        end;
+
         NeedsConstColor := NeedsConstColor or BlendingFactors[I].NeedsConstColor;
         NeedsConstAlpha := NeedsConstAlpha or BlendingFactors[I].NeedsConstAlpha;
       end;
