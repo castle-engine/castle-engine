@@ -1760,7 +1760,8 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
                 WorldTimeWatchers.Add(GLSLProgram);
               end else
                 GLSLProgram.SetUniform(UniformField.Name, TSFDouble(UniformField).Value);
-            end;
+            end else
+              VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformField.VRMLTypeName + '" not supported');
 
             { TODO: other field types, full list is in X3D spec in
               "OpenGL shading language (GLSL) binding" }
