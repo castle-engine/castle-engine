@@ -1328,7 +1328,7 @@ procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
       Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
       Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
 
-      { This is just to shut up FPC 2.2.0 warnings about 
+      { This is just to shut up FPC 2.2.0 warnings about
         TriangleTexCoord not initialized. }
       TriangleTexCoord[0][0] := 0.0;
 
@@ -1595,46 +1595,48 @@ end;
 procedure TIndexedTriangleMesh_1Renderer.Render_Face(const AFaceNumber: Cardinal;
   startIndex, endIndex: integer);
 
-  procedure triangle(v1, v2, v3: integer);
-  var Tri: TTriangle3Single;
-      Norm: TVector3Single;
+  procedure DoNormal(const v1, v2, v3: integer);
   begin
-   { TODO: for IndexedTriangleMesh we always generate flat normals }
-   if Render_Normals = inGenerate then
-   begin
-    Tri[0] := Render_GetVertex(v1);
-    Tri[1] := Render_GetVertex(v2);
-    Tri[2] := Render_GetVertex(v3);
-    Norm := TriangleNormal(Tri);
-    { We always pass to OpenGL normals from CCW, so Norm is Ok. }
-    glNormalv(Norm);
-   end;
-
-   Render_Vertex(v1);
-   Render_Vertex(v2);
-   Render_Vertex(v3);
+    { TODO: for IndexedTriangleMesh we always generate flat normals }
+    if Render_Normals = inGenerate then
+    begin
+      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+      glNormalv(TriangleNormal(
+        Render_GetVertex(V1),
+        Render_GetVertex(V2),
+        Render_GetVertex(V3)));
+    end;
   end;
 
-var normalOrder: boolean;
+var
+  NormalOrder: boolean;
 begin
- {ponizej wykonujemy "recznie" GL_TRIANGLE_STRIP. Wszystko dlatego
-  ze musimy punktom, ktore dla GL_TRIANGLE_STRIP bylyby tymi samymi,
-  podac rozne wektory normalne.}
- glBegin(GL_TRIANGLES);
+  if StartIndex + 2 < EndIndex then
+  begin
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
 
- normalOrder := true;
- while startIndex+2 < endIndex do
- begin
-  if normalOrder then
-   triangle(startIndex, startIndex+1, startIndex+2) else
-   triangle(startIndex+1, startIndex, startIndex+2);
-  Inc(startIndex);
-  {musimy za kazdym razem zmieniac normalOrder zeby zachowac konsekwentne
-   ulozenie trojkatow.}
-  normalOrder := not normalOrder;
- end;
+      glBegin(GL_TRIANGLE_STRIP);
 
- glEnd;
+      Render_Vertex(StartIndex);
+      Render_Vertex(StartIndex + 1);
+
+      NormalOrder := true;
+
+      while StartIndex + 2 < EndIndex do
+      begin
+        if NormalOrder then
+          DoNormal(StartIndex    , StartIndex + 1, StartIndex + 2) else
+          DoNormal(StartIndex + 1, StartIndex    , StartIndex + 2);
+        Render_Vertex(StartIndex + 2);
+        Inc(StartIndex);
+        NormalOrder := not NormalOrder;
+      end;
+
+      glEnd;
+
+    glPopAttrib();
+  end;
 end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
