@@ -1,0 +1,52 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Tests does image have simple yes/no alpha channel or not.
+  This is basically a test of TAlphaImage.IsAlphaSimpleYesNo
+  implementation.
+
+  $1 param = image filename
+  $2 = AlphaTolerance      , see TAlphaImage.IsAlphaSimpleYesNo reference
+  $3 = WrongPixelsTolerance, see TAlphaImage.IsAlphaSimpleYesNo reference
+}
+
+uses SysUtils, KambiUtils, Images;
+
+var
+  Image: TImage;
+  AlphaTolerance: Byte;
+  WrongPixelsTolerance: Single;
+begin
+  Parameters.CheckHigh(3);
+  Image := LoadImage(Parameters[1], [], []);
+  try
+    AlphaTolerance := StrToInt(Parameters[2]);
+    WrongPixelsTolerance := StrToFloat(Parameters[3]);
+    Write(Parameters[1], ': ');
+    case Image.AlphaChannelType(AlphaTolerance, WrongPixelsTolerance) of
+      atNone: Writeln('no alpha channel');
+      atSimpleYesNo: Writeln('simple yes/no alpha');
+      atFullRange: Writeln('whole range alpha');
+      else raise EInternalError.Create('AlphaChannelType?');
+    end;
+  finally FreeAndNil(Image) end;
+end.

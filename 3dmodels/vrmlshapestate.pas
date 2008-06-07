@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2006,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -35,7 +35,7 @@ type
   TVRMLShapeStateValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere, svAllMaterialsTransparent);
+    svBoundingSphere);
 
   { This class represents a pair of objects: @link(GeometryNode) and
     @link(State). It allows to perform some operations that need
@@ -66,10 +66,8 @@ type
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
-    FAllMaterialsTransparent: boolean;
 
     procedure ValidateBoundingSphere;
-    function CalculateIsAllMaterialsTransparent: boolean;
   public
     { GeometryNode to wskaznik na obiekt w RootNode }
     property GeometryNode: TVRMLGeometryNode read FGeometryNode;
@@ -117,8 +115,6 @@ type
       But it may be a little faster since it avoids some small speed problems. }
     function FrustumBoundingSphereCollisionPossibleSimple(
       const Frustum: TFrustum): boolean;
-
-    function AllMaterialsTransparent: boolean;
 
     procedure Changed;
     constructor Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
@@ -249,24 +245,6 @@ begin
  Result := FrustumSphereCollisionPossibleSimple(Frustum,
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
-
-function TVRMLShapeState.CalculateIsAllMaterialsTransparent: boolean;
-var
-  M: TNodeMaterial_2;
-begin
-  if State.ParentShape <> nil then
-  begin
-    M := State.ParentShape.Material;
-    Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
-  end else
-    Result := State.LastNodes.Material.IsAllMaterialsTransparent;
-end;
-
-function TVRMLShapeState.AllMaterialsTransparent: boolean;
-{$define PRECALC_VALUE_ENUM := svAllMaterialsTransparent}
-{$define PRECALC_VALUE := FAllMaterialsTransparent}
-{$define PRECALC_VALUE_CALCULATE := CalculateIsAllMaterialsTransparent}
-PRECALC_VALUE_RETURN
 
 constructor TVRMLShapeState.Create(AGeometryNode: TVRMLGeometryNode; AState: TVRMLGraphTraverseState);
 begin

@@ -396,7 +396,7 @@
       false (jest to sprzeczne z matematyczna (i intuicyjna) definicja
       kwalifikatora "all" ktora mowi ze "kazde zdanie kwalifikowane
       'dla kazdego' jest prawdziwe dla zbioru pustego") }
-    function IsAllMaterialsTransparent: boolean;
+    function AllMaterialsTransparent: boolean;
 
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
@@ -1447,7 +1447,7 @@ end;}
 {$undef MATERIAL_FUNCTION_FIELD}
 {$undef MATERIAL_FUNCTION_CALCULATE}
 
-function TNodeMaterial_1.IsAllMaterialsTransparent: boolean;
+function TNodeMaterial_1.AllMaterialsTransparent: boolean;
 var i: Integer;
 begin
   if FdTransparency.Items.Length = 0 then

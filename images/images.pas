@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -196,6 +196,10 @@ interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, KambiPngUtils, KambiPasJpeg;
+
+type
+  { See TImage.AlphaChannelType. }
+  TAlphaChannelType = (atNone, atSimpleYesNo, atFullRange);
 
 { Colors ------------------------------------------------------------ }
 
@@ -553,6 +557,47 @@ type
     procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal);
     procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
     { @groupEnd }
+
+    { @abstract(Check does image have an alpha channel,
+      and if yes analyze alpha channel: is it a single yes-no (only full
+      or none values), or does it have alpha values in between?)
+
+      This is quite useful for automatic detection how alpha textures
+      should be displayed: for simple yes/no alpha, OpenGL alpha_test
+      is a simple solution. For full range alpha, OpenGL blending should
+      be used. Blending is a little problematic, since it requires
+      special rendering order, since it doesn't cooperate nicely with
+      Z-buffer. That's why we try to detect simple yes/no alpha textures,
+      so that we're able to use simpler alpha test for them.
+
+      This method analyzes every pixel. It's alpha is considered "simple"
+      if it's <= AlphaTolerance, or >= 255 - AlphaTolerance.
+      So for the default AlphaTolerance, "simple" alpha means only exactly
+      0 or 255 (maximum Byte values).
+      The method returns true if the ratio of non-simple pixels is
+      WrongPixelsTolerance. For example, default WrongPixelsTolerance = 0
+      means that every pixel must have "simple" alpha channel.
+      Greated WrongPixelsTolerance values may allow some tolerance,
+      for example WrongPixelsTolerance = 0.01 allows 1 percent of pixels
+      to fail the "simple alpha" test and the image can still be considered
+      "simple yes/no alpha channel".
+
+      In summary, default Tolerance values are 0, so exactly all pixels
+      must have exactly full or exactly none alpha. Increasing
+      tolerance values (for example, AlphaTolerance = 5
+      and WrongPixelsTolerance = 0.01 may be good start --- still conservative
+      enough, and tolerate small deviations) allows you to accept
+      more images as simple yes/no alpha. Of course too large tolerance
+      values have no sense --- AlphaTolerance >= 128, or WrongPixelsTolerance >= 1.0
+      will cause all images to be accepted as "simple yes/no alpha".
+
+      @italic(Descendants implementors notes:) in this class, this simply
+      always returns atNone. For descendants that have alpha channel,
+      implement it, honouring AlphaTolerance and WrongPixelsTolerance as
+      described. }
+    function AlphaChannelType(
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -728,6 +773,10 @@ type
       images must have the same size, and this is the resulting
       size of this image after Compose call. }
     procedure Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
+
+    function AlphaChannelType(
+      const AlphaTolerance: Byte = 0;
+      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
   end;
 
   { Color is encoded as 3 mantisas + 1 exponent,
@@ -1672,6 +1721,13 @@ begin
   Image.CopyFrom(Self, X0, Y0);
 end;
 
+function TImage.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+begin
+  Result := atNone;
+end;
+
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 function InImageClasses(ImageClass: TImageClass;
@@ -2043,6 +2099,57 @@ begin
     Inc(PtrRGB);
     Inc(PtrGrayscale);
   end;
+end;
+
+function TAlphaImage.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+var
+  PtrAlpha: PVector4Byte;
+  I, WrongPixels, AllPixels: Cardinal;
+begin
+  WrongPixels := 0;
+  AllPixels := Width * Height;
+
+  PtrAlpha := AlphaPixels;
+
+  if WrongPixelsTolerance = 0 then
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^[3] > AlphaTolerance) and
+         (PtrAlpha^[3] < 255 - AlphaTolerance) then
+        { Special case for WrongPixelsTolerance = exactly 0.
+          Avoids the cases when float "WrongPixels / AllPixels"
+          may be so small that it's equal to 0, which would
+          cause some wrong pixels to "slip" even with
+          WrongPixelsTolerance = 0. }
+        Exit(atFullRange);
+      Inc(PtrAlpha);
+    end;
+  end else
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^[3] > AlphaTolerance) and
+         (PtrAlpha^[3] < 255 - AlphaTolerance) then
+      begin
+        Inc(WrongPixels);
+        { From the speed point of view, is it sensible to test
+          WrongPixelsTolerance at each WrongPixels increment?
+          On one hand, we can Exit with false faster.
+          On the other hand, we lose time for checking it many times,
+          if WrongPixelsTolerance is larger.
+          Well, sensible WrongPixelsTolerance are very small --- so I
+          think this is Ok to check this every time. }
+        if WrongPixels / AllPixels > WrongPixelsTolerance then
+          Exit(atFullRange);
+      end;
+      Inc(PtrAlpha);
+    end;
+  end;
+
+  Result := atSimpleYesNo;
 end;
 
 { TRGBEImage ------------------------------------------------------------ }

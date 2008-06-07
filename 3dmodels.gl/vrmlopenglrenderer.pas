@@ -776,6 +776,12 @@ type
     ColorModulator: TColorModulatorByteFunc;
     References: Cardinal;
     GLName: TGLuint;
+    { This is the saved result of TImage.AlphaChannelType.
+
+      Detecting AlphaChannelType is a little time-consuming
+      (iteration over all pixels is needed),
+      so it's done only once and kept in the cache, just like GLName. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTextureCache = ^TTextureCache;
 
@@ -872,7 +878,8 @@ type
       const TextureNode: TVRMLTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrapS, TextureWrapT: TGLenum;
-      const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
+      const TextureColorModulator: TColorModulatorByteFunc;
+      out AlphaChannelType: TAlphaChannelType): TGLuint;
 
     procedure Texture_DecReference(
       const TextureGLName: TGLuint);
@@ -978,6 +985,8 @@ type
     TextureGL: TGLuint;
     TextureNormalMap, TextureHeightMap: TGLuint;
     TexHeightMapScale: Single;
+    { This is the saved result of TImage.AlphaChannelType. }
+    AlphaChannelType: TAlphaChannelType;
   end;
   PTextureReference = ^TTextureReference;
 
@@ -1287,6 +1296,22 @@ type
     property BumpMappingLightDiffuseColor: TVector4Single
       read FBumpMappingLightDiffuseColor
       write SetBumpMappingLightDiffuseColor;
+
+    { Get calculated TImage.AlphaChannelType for texture in our cache.
+
+      Returns @false if texture is not in the cache. If you want to make
+      sure the texture is in the cache make sure that
+      @unorderedList(
+        @item(Texture node was previously prepared
+          (passed to @link(Prepare) method along with some state,
+          as State.Texture),)
+        @item(Attributes.PureGeometry = @false,)
+        @item(and node must have some image
+          (check TextureNode.IsTextureImage))
+      ) }
+    function PreparedTextureAlphaChannelType(
+      TextureNode: TVRMLTextureNode;
+      out AlphaChannelType: TAlphaChannelType): boolean;
   end;
 
   EVRMLOpenGLRenderError = class(EVRMLError);
@@ -1519,7 +1544,8 @@ function TVRMLOpenGLRendererContextCache.Texture_IncReference(
   const TextureNode: TVRMLTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrapS, TextureWrapT: TGLenum;
-  const TextureColorModulator: TColorModulatorByteFunc): TGLuint;
+  const TextureColorModulator: TColorModulatorByteFunc;
+  out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
   TextureCached: PTextureCache;
@@ -1563,6 +1589,7 @@ begin
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
       Writeln('++ : ', TextureFullUrl, ' : ', TextureCached^.References);
       {$endif}
+      AlphaChannelType := TextureCached^.AlphaChannelType;
       Exit(TextureCached^.GLName);
     end;
   end;
@@ -1586,6 +1613,15 @@ begin
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLName := Result;
+
+  { calculate and save AlphaChannelType in the cache }
+  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelType(5, 0.1);
+  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+    WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
+      ' detected as simple yes/no alpha channel: ' +
+      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+
+  AlphaChannelType := TextureCached^.AlphaChannelType;
 
   {$ifdef DEBUG_VRML_RENDERER_CACHE}
   Writeln('++ : ', TextureFullUrl, ' : ', 1);
@@ -2664,6 +2700,9 @@ begin
  end;
 
  { przygotuj teksture }
+ { Conditions below describing when the texture is added to the cache
+   are reflected in PreparedTextureAlphaChannelType interface. }
+
  TextureNode := State.Texture;
  if (not Attributes.PureGeometry) and
     (TextureNode <> nil) and
@@ -2681,7 +2720,10 @@ begin
      Attributes.TextureMagFilter,
      TextureRepeatToGL[TextureNode.RepeatS],
      TextureRepeatToGL[TextureNode.RepeatT],
-     Attributes.ColorModulatorByte);
+     Attributes.ColorModulatorByte,
+     { This way, our AlphaChannelType is calculated (or taken from cache)
+       by Texture_IncReference }
+     TextureReference.AlphaChannelType);
 
    { TODO: for now, bump mapping is used only if the node has normal texture
      too. It should be possible to use bump mapping even if the node is colored
@@ -2970,6 +3012,20 @@ begin
   end;
 
   Result := BumpMappingMethodCached;
+end;
+
+function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
+  TextureNode: TVRMLTextureNode;
+  out AlphaChannelType: TAlphaChannelType): boolean;
+var
+  TextureReferencesIndex: Integer;
+begin
+  TextureReferencesIndex := TextureReferences.TextureNodeIndex(
+    TextureNode);
+
+  Result := TextureReferencesIndex <> -1;
+  if Result then
+    AlphaChannelType := TextureReferences.Items[TextureReferencesIndex].AlphaChannelType;
 end;
 
 { Render ---------------------------------------------------------------------- }
@@ -3293,9 +3349,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
      (Dementi - chyba alpha swiatla w OpenGLu nie ma wplywu
       na wyliczone alpha vertexu. Do czego jest alpha swiatla ?)
 
-     To wszystko bedzie mialo wieksze znaczenie gdy zaimplementuje
-     pelne partial-transparency na teksturach (nie tylko 0-1 jak jest teraz)
-     i ktos zechce kombinowac finezyjne transparency
+     To wszystko ma wieksze znaczenie gdy
+     ktos zechce kombinowac finezyjne transparency
      materialu z finezyjnym (nie-0-1-kowym) kanalem alpha textury.
     }
     TextureNode := State.Texture;
@@ -3316,9 +3371,9 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
         'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
         'You must call TVRMLOpenGLRenderer.Prepare first');
 
-      AlphaTest := TextureNode.TextureImage is TAlphaImage;
-
       TexReference := TextureReferences.Pointers[TextureReferencesIndex];
+
+      AlphaTest := TexReference^.AlphaChannelType = atSimpleYesNo;
 
       if (IndexedRenderer <> nil) and
          IndexedRenderer.BumpMappingAllowed and
