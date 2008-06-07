@@ -25,7 +25,8 @@
     in VRML2ActiceLights.
 
     To keep X3D hierarchy, this descends from X3DChildNode.
-    This way TNodeX3DGroupingNode inherits also from X3DChildNode. }
+    This way TNodeX3DGroupingNode and TNodeStaticGroup inherit
+    also from X3DChildNode. }
   TVRMLGroupingNode = class(TNodeX3DChildNode)
   private
     OriginalState: TVRMLGraphTraverseState;
@@ -120,7 +121,10 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeStaticGroup = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -136,6 +140,8 @@
 
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
+
+    function ChildrenField: TMFNode; override;
   end;
 
   { Switch node.
@@ -433,6 +439,19 @@ class function TNodeStaticGroup.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeStaticGroup.ChildrenField: TMFNode;
+begin
+  Result := FdChildren;
+end;
+
+procedure TNodeStaticGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to FdChildren.Count - 1 do
+    Func(Self, FdChildren.Items[I]);
 end;
 
 constructor TNodeSwitch_2.Create(const ANodeName: string; const AWWWBasePath: string);

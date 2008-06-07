@@ -517,11 +517,11 @@ type
       nodes Viewpoint (for VRML 2.0), PerspectiveCamera and OrthographicCamera
       (for VRML 1.0) in scene graph.
 
-      GetPerspectiveViewpoint omits OrthographicCamera.
+      GetPerspectiveViewpoint omits OrthographicCamera andy OrthoViewpoint.
 
-      If ViewpointDescription = '', they return the first found Viewpoint.
-      Otherwise, they look for Viewpoint with description field mathing
-      given string.
+      If ViewpointDescription = '', they return the first found viewpoint node.
+      Otherwise, they look for Viewpoint or OrthoViewpoint (any X3DViewpointNode
+      actually) with description field mathing given string.
 
       Jezeli VRML posiada node kamery
       zdefiniowany w aktywnej czesci swojego grafu to oblicza swoje zmienne
@@ -1165,8 +1165,8 @@ type
     if ( (not OnlyPerspective) or
          (Node.CameraKind = ckPerspective) ) and
        ( (ViewpointDescription = '') or
-         ( (Node is TNodeViewpoint) and
-           (TNodeViewpoint(Node).FdDescription.Value = ViewpointDescription) ) ) then
+         ( (Node is TNodeX3DViewpointNode) and
+           (TNodeX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
     begin
       FoundTransform^ := Transform;
       FoundNode := Node;
