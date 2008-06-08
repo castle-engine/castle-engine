@@ -79,7 +79,7 @@ type
         in descendants. Everything related to textures is already
         handled in this class.)
     ) }
-  TGeneralIndexedRenderer = class(TVRMLMeshRenderer)
+  TGeneralIndexedRenderer = class(TAbstractCoordinateRenderer)
   private
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
@@ -102,6 +102,13 @@ type
       Override this in descendants only to handle
       Render_Normals = inGenerate case. }
     procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
+
+    { Used only by TextureBegin/End }
+    TextureGenerated: boolean;
+  protected
+    procedure RenderCoordinate; override;
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
   public
     { Constructor initializes various fields of this class.
       Don't do any OpenGL state changes here (initialization of OpenGL state
@@ -124,8 +131,6 @@ type
 
     { Set these in descendant's constructor. }
     CoordIndex: TMFLong;
-    { If Coord = nil then nothing will be rendered. }
-    Coord: TMFVec3f;
     { You can leave TexCoordIndex as nil only if you are
       sure that Renderer.Render_TexCoordsNeeded will be @false.
       One way to ensure this is to modify NodeTextured function. }
@@ -163,8 +168,6 @@ type
 
     procedure Render_Init; virtual;
     procedure Render_Fini; virtual;
-
-    procedure Render; override;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -427,10 +430,7 @@ begin
   end;
 end;
 
-procedure TGeneralIndexedRenderer.Render;
-var
-  { Used only by TextureBegin/End }
-  TextureGenerated: boolean;
+procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
 
   { setup texture-related things }
   procedure TextureBegin;
@@ -528,15 +528,6 @@ var
     end;
   end;
 
-  procedure TextureEnd;
-  begin
-    if TextureGenerated then
-    begin
-      glDisable(GL_TEXTURE_GEN_S);
-      glDisable(GL_TEXTURE_GEN_T);
-    end;
-  end;
-
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
    result:=(MFIndexes.Count > 0) and
@@ -566,12 +557,6 @@ var
        glEnableClientState(GL_NORMAL_ARRAY);
       end;
    end;
-  end;
-
-  procedure NormalsEnd;
-  begin
-    if (StoredNormal <> nil) and (not FrontFaceCcw) then
-      FreeAndNil(CcwNormal);
   end;
 
   procedure MaterialsBegin;
@@ -627,85 +612,66 @@ var
    if Render_Materials = imOverall then Renderer.Render_BindMaterial_1(0);
   end;
 
-var
-  { This is used only by LockArraysBegin and LockArraysEnd. }
-  UseLockArrays: boolean;
+begin
+  TextureBegin;
+  MaterialsBegin;
+  NormalsBegin;
+end;
 
-  procedure LockArraysBegin;
+procedure TGeneralIndexedRenderer.RenderCoordinateEnd;
+
+  procedure TextureEnd;
   begin
-    { See
-      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
-      for description of GL_EXT_compiled_vertex_array.
-
-      Note that I can't use it when Coord has no items
-      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
-    UseLockArrays := GL_EXT_compiled_vertex_array and
-      (Coord.Items.Count <> 0);
-    if UseLockArrays then
-      glLockArraysEXT(0, Coord.Items.Count);
+    if TextureGenerated then
+    begin
+      glDisable(GL_TEXTURE_GEN_S);
+      glDisable(GL_TEXTURE_GEN_T);
+    end;
   end;
 
-  procedure LockArraysEnd;
+  procedure NormalsEnd;
   begin
-    if UseLockArrays then
-      glUnlockArraysEXT;
+    if (StoredNormal <> nil) and (not FrontFaceCcw) then
+      FreeAndNil(CcwNormal);
   end;
 
+begin
+  NormalsEnd;
+  TextureEnd;
+end;
+
+procedure TGeneralIndexedRenderer.RenderCoordinate;
 var
   startIndex, endIndex: integer;
   FaceNumber: Cardinal;
 begin
-  if Coord = nil then
-    Exit;
-
-  { Initialize vertex arrays that we we will use with indexed nodes.
-    GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
-    eventual normal and texture coord arrays (possibly set by NormalsBegin,
-    TextureBegin). }
-  glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+  Render_Init;
   try
-    glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
-    glEnableClientState(GL_VERTEX_ARRAY);
 
-    {initialize rendering}
-    TextureBegin;
-    MaterialsBegin;
-    NormalsBegin;
-    { Lock arrays after setting up all arrays. }
-    LockArraysBegin;
-    Render_Init;
-    try
+    {wlasciwe rendering : wywoluj Render_Face}
+    startIndex := 0;
+    faceNumber := 0;
+    while startIndex < CoordIndex.Count do
+    begin
+      endIndex := startIndex;
+      while (endIndex < CoordIndex.Count) and
+            (CoordIndex.Items.Items[endIndex] >= 0) do
+        Inc(endIndex);
 
-      {wlasciwe rendering : wywoluj Render_Face}
-      startIndex := 0;
-      faceNumber := 0;
-      while startIndex < CoordIndex.Count do
-      begin
-        endIndex := startIndex;
-        while (endIndex < CoordIndex.Count) and
-              (CoordIndex.Items.Items[endIndex] >= 0) do
-          Inc(endIndex);
-
-        case Render_Materials of
-          imUseSpecifiedPerFace:
-            Renderer.Render_BindMaterial_1(faceNumber);
-          imUseSpecifiedPerFaceIndexed:
-            Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
-        end;
-
-        Render_Face(FaceNumber, startIndex, endIndex);
-        Inc(faceNumber);
-        startIndex := endIndex+1;
+      case Render_Materials of
+        imUseSpecifiedPerFace:
+          Renderer.Render_BindMaterial_1(faceNumber);
+        imUseSpecifiedPerFaceIndexed:
+          Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
       end;
-    finally
 
-      {finalize rendering}
-      Render_Fini;
-      LockArraysEnd;
-      NormalsEnd;
-      TextureEnd;
+      Render_Face(FaceNumber, startIndex, endIndex);
+      Inc(faceNumber);
+      startIndex := endIndex+1;
     end;
-  finally glPopClientAttrib; end;
+  finally
+    Render_Fini;
+  end;
 end;
 
 { Render_Init / Fini w tej klasie nie sa abstract zeby umozliwic zawsze

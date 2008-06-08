@@ -37,7 +37,12 @@
 
   - Since all classes within this file and VRMLOpenGLRenderer live
     in one Pascal unit, we could break it and access each other's
-    private fields etc. We try to not do it.
+    private fields etc. We try to not do it. We try to have a clean
+    documented interface. Experience with TGeneralIndexedRenderer
+    taught me that this has to be really flexible and designed for
+    long-term work, to encompass many nodes and features. So, while
+    this is internal for VRMLOpenGLRenderer, it still must be implemented
+    and documented cleanly.
 
   - In the future, this may be abstracted from OpenGL and uses as a basis
     also for TVRMLGeometryNode.Triangulate methods implementation.
@@ -119,6 +124,46 @@ type
 
   TExtrusionRenderer = class(TVRMLMeshRenderer)
     procedure Render; override;
+  end;
+
+  { Base abstract class for rendering nodes with explicit "coord" field.
+    (Both IndexedXxx and not indexed).
+
+    Usage:
+    - You must set Coord field in constructor, or (if Coord = @nil)
+      nothing will be rendered.
+
+    - Don't override Render --- this is already overridden here
+      to do everything necessary. Instead, override
+        RenderCoordinate
+        RenderCoordinateBegin
+        RenderCoordinateEnd
+
+      These are called only when Coord is assigned.
+
+      Render pushes client attribs and sets up vertex array for Coord.
+      Then calls RenderCoordinateBegin and then locks arrays.
+      So RenderCoordinateBegin is a good place to initialize other
+      OpenGL arrays (for example, for texture coordinates or normal
+      coordinates) if you want.
+
+      Inside, RenderCoordinate is called.
+
+      Then arrays are unlocked, RenderCoordinateEnd is called (so it
+      should finalize whatever needs to be finalized for previous
+      RenderCoordinateBegin call) and client attribs are popped.
+  }
+  TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
+  protected
+    { Coordinates, usually taken from (coord as Coordinate).points field.
+      If @nil then nothing will be rendered. }
+    Coord: TMFVec3f;
+
+    procedure Render; override;
+
+    procedure RenderCoordinate; virtual; abstract;
+    procedure RenderCoordinateBegin; virtual; abstract;
+    procedure RenderCoordinateEnd; virtual; abstract;
   end;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
@@ -992,3 +1037,53 @@ begin
   glPopAttrib;
 end;
 
+{ TAbstractCoordinateRenderer ------------------------------------------------ }
+
+procedure TAbstractCoordinateRenderer.Render;
+var
+  { This is used only by LockArraysBegin and LockArraysEnd. }
+  UseLockArrays: boolean;
+
+  procedure LockArraysBegin;
+  begin
+    { See
+      [http://www.opengl.org/documentation/specs/version1.2/EXTspecs/compiled_vertex_array.txt]
+      for description of GL_EXT_compiled_vertex_array.
+
+      Note that I can't use it when Coord has no items
+      (because glLockArraysEXT(0, 0) causes OpenGL error "invalid value".) }
+    UseLockArrays := GL_EXT_compiled_vertex_array and
+      (Coord.Items.Count <> 0);
+    if UseLockArrays then
+      glLockArraysEXT(0, Coord.Items.Count);
+  end;
+
+  procedure LockArraysEnd;
+  begin
+    if UseLockArrays then
+      glUnlockArraysEXT;
+  end;
+
+begin
+  if Coord = nil then
+    Exit;
+
+  { Initialize vertex arrays that we we will use with indexed nodes.
+    GL_CLIENT_VERTEX_ARRAY_BIT pushes state of every vertex array, including
+    eventual normal and texture coord arrays (possibly set by
+    RenderCoordinateBegin). }
+  glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+  try
+    glVertexPointer(3, GL_FLOAT, 0, Coord.Items.Items);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    RenderCoordinateBegin;
+    try
+      { Lock arrays after setting up all arrays. }
+      LockArraysBegin;
+      try
+        RenderCoordinate;
+      finally LockArraysEnd; end;
+    finally RenderCoordinateEnd; end;
+  finally glPopClientAttrib; end;
+end;
