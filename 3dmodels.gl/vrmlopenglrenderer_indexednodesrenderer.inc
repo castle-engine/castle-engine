@@ -1421,9 +1421,7 @@ begin
   inherited Create(ARenderer);
 
   CoordIndex := ANode.FdCoordIndex;
-  if (ANode.FdCoord.Value <> nil) and
-     (ANode.FdCoord.Value is TNodeCoordinate) then
-    Coord := TNodeCoordinate(ANode.FdCoord.Value).FdPoint;
+  Coord := ANode.Coord;
   TexCoordIndex := ANode.FdTexCoordIndex;
   if (ANode.FdTexCoord.Value <> nil) and
      (ANode.FdTexCoord.Value is TNodeTextureCoordinate) then
@@ -1625,9 +1623,7 @@ begin
   inherited Create(ARenderer);
 
   CoordIndex := ANode.FdCoordIndex;
-  if (ANode.FdCoord.Value <> nil) and
-     (ANode.FdCoord.Value is TNodeCoordinate) then
-    Coord := TNodeCoordinate(ANode.FdCoord.Value).FdPoint;
+  Coord := ANode.Coord;
 
   MaterialBinding := BIND_DEFAULT;
 

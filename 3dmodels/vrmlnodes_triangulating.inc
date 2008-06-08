@@ -793,3 +793,17 @@ begin
 
   finally FreeAndNil(E) end;
 end;
+
+{ X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
+
+procedure TNodeIndexedTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
+
+procedure TNodeTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;

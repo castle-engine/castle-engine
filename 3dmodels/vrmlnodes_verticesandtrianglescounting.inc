@@ -249,8 +249,8 @@ end;
 
 function TNodeIndexedFaceSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
-  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+  if Coord <> nil then
+    Result := Coord.Count else
     Result := 0;
 end;
 
@@ -266,8 +266,8 @@ end;
 
 function TNodeIndexedLineSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
-  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+  if Coord <> nil then
+    Result := Coord.Count else
     Result := 0;
 end;
 
@@ -378,4 +378,41 @@ begin
         Result += Cardinal(FdCrossSection.Count) - 2;
     end;
   finally FreeAndNil(E) end;
+end;
+
+{ X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
+
+function TNodeIndexedTriangleSet.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := Coord.Count else
+    Result := 0;
+end;
+
+function TNodeIndexedTriangleSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := FdIndex.Count div 3 else
+    { If Coord is non-nil but has not enough items as indexed by
+      CoordIndex, it's invalid according to X3D spec.
+      So we don't worry about this case. }
+    Result := 0;
+end;
+
+function TNodeTriangleSet.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := Coord.Count else
+    Result := 0;
+end;
+
+function TNodeTriangleSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := Coord.Count div 3 else
+    Result := 0;
 end;

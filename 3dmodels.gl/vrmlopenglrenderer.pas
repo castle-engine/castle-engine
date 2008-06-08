@@ -3321,6 +3321,9 @@ var
       ExposedMeshRenderer := TElevationGridRenderer.Create(Self) else
     if Node is TNodeExtrusion then
       ExposedMeshRenderer := TExtrusionRenderer.Create(Self) else
+    if (Node is TNodeTriangleSet) or
+       (Node is TNodeIndexedTriangleSet) then
+      ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
 
     if MeshRenderer <> nil then

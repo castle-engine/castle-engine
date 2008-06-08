@@ -63,6 +63,10 @@
 
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
+
+    { Returns coord.point field, assuming that coord is set and
+      specifies Coordinate node. Otherwise returns @nil. }
+    function Coord: TMFVec3f;
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
@@ -169,6 +173,10 @@
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    { Returns coord.point field, assuming that coord is set and
+      specifies Coordinate node. Otherwise returns @nil. }
+    function Coord: TMFVec3f;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -204,7 +212,11 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -296,6 +308,10 @@
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    { Returns coord.point field, assuming that coord is set and
+      specifies Coordinate node. Otherwise returns @nil. }
+    function Coord: TMFVec3f;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -320,7 +336,11 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
@@ -385,6 +405,14 @@ begin
   FFdsolid := TSFBool.Create('solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
+end;
+
+function TNodeX3DComposedGeometryNode.Coord: TMFVec3f;
+begin
+  if (FdCoord.Value <> nil) and
+     (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
 end;
 
 constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
@@ -587,6 +615,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodeIndexedLineSet_2.Coord: TMFVec3f;
+begin
+  if (FdCoord.Value <> nil) and
+     (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -655,9 +691,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeIndexedTriangleSet}
-GeometryNotImplemented
 
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -807,6 +840,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
+function TNodePointSet_2.Coord: TMFVec3f;
+begin
+  if (FdCoord.Value <> nil) and
+     (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
 constructor TNodeTriangleFanSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -863,9 +904,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeTriangleSet}
-GeometryNotImplemented
 
 constructor TNodeTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);

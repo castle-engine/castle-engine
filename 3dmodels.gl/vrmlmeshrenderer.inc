@@ -180,11 +180,21 @@ type
       (use State.Transform if you want to get global coordinates). }
     function GetVertex(IndexNum: integer): TVector3f;
 
+    { Count of indexes. You can pass index between 0 and CoordCount - 1
+      to various methods taking an index, like RenderVertex. }
+    function CoordCount: Integer;
+
     procedure Render; override;
 
     procedure RenderCoordinate; virtual; abstract;
-    procedure RenderCoordinateBegin; virtual; abstract;
-    procedure RenderCoordinateEnd; virtual; abstract;
+    procedure RenderCoordinateBegin; virtual;
+    procedure RenderCoordinateEnd; virtual;
+  end;
+
+  { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
+  TTriangleSetRenderer = class(TAbstractCoordinateRenderer)
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    procedure RenderCoordinate; override;
   end;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
@@ -1109,6 +1119,16 @@ begin
   finally glPopClientAttrib; end;
 end;
 
+procedure TAbstractCoordinateRenderer.RenderCoordinateBegin;
+begin
+  { nothing to do in this class }
+end;
+
+procedure TAbstractCoordinateRenderer.RenderCoordinateEnd;
+begin
+  { nothing to do in this class }
+end;
+
 procedure TAbstractCoordinateRenderer.RenderVertex(IndexNum: integer);
 var
   VertexNum: integer;
@@ -1129,4 +1149,51 @@ begin
     VertexNum := IndexNum;
 
   Result := Coord.Items.Items[VertexNum];
+end;
+
+function TAbstractCoordinateRenderer.CoordCount: Integer;
+begin
+  if CoordIndex <> nil then
+    Result := CoordIndex.Items.Count else
+    Result := Coord.Items.Count;
+end;
+
+{ TTriangleSetRenderer ------------------------------------------------------- }
+
+constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+
+  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
+  if Geometry is TNodeIndexedTriangleSet then
+  begin
+    CoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
+  end;
+end;
+
+procedure TTriangleSetRenderer.RenderCoordinate;
+var
+  I: Integer;
+begin
+  I := 0;
+  glBegin(GL_TRIANGLES);
+    { X3D spec says "If the Coordinate node does not contain
+      a multiple of three coordinate values, the remaining
+      vertices shall be ignored.".
+      So we silently ignore any vertices above multiple of 3. }
+    while I + 2 < CoordCount do
+    begin
+      { TODO: for now, we always generate flat normals }
+      glNormalv(TriangleNormal(
+        GetVertex(I    ),
+        GetVertex(I + 1),
+        GetVertex(I + 2)));
+
+      RenderVertex(I    );
+      RenderVertex(I + 1);
+      RenderVertex(I + 2);
+
+      I += 3;
+    end;
+  glEnd();
 end;
