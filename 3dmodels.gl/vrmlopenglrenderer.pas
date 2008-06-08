@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1082,9 +1082,9 @@ type
     { ------------------------------------------------------------
       Rzeczy z ktorych mozna korzystac tylko w czasie Render. }
 
-    { IndexedRenderer. Actually of TGeneralIndexedRenderer class, but I really
-      don't want to expose TGeneralIndexedRenderer class in the interface. }
-    ExposedIndexedRenderer: TObject;
+    { Our mesh renderer. Actually of TVRMLMeshRenderer class, but I really
+      don't want to expose TVRMLMeshRenderer class in the interface. }
+    ExposedMeshRenderer: TObject;
 
     { kopie aktualnego State i Node na czas Render }
     Render_State: TVRMLGraphTraverseState;
@@ -1112,10 +1112,6 @@ type
 
     { czy Render node'ow musi generowac tex coords ? }
     Render_TexCoordsNeeded: boolean;
-
-    procedure DoBeforeGLVertex(const Vert: TVector3Single);
-    procedure DoGLVertex(const Vert: TVector3Single);
-    procedure DoGLArrayElement(const Verts: PArray_Vector3Single; ith: TGLint);
 
     {$I vrmlopenglrenderer_render_specificnodes.inc}
 
@@ -1384,6 +1380,8 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_6.inc}
 
 {$I openglmac.inc}
+
+{$I vrmlmeshrenderer.inc}
 
 { WorldTime and related -------------------------------------------------- }
 
@@ -3057,9 +3055,8 @@ end;
 { Render ---------------------------------------------------------------------- }
 
 {$I vrmlopenglrenderer_indexednodesrenderer.inc}
-{$define IndexedRenderer := TGeneralIndexedRenderer(ExposedIndexedRenderer) }
+{$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-{$I vrmlopenglrenderer_render_glvertex.inc}
 {$I vrmlopenglrenderer_render_materials.inc}
 {$I vrmlopenglrenderer_render_specificnodes.inc}
 
@@ -3289,6 +3286,8 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
+var
+  IndexedRenderer: TGeneralIndexedRenderer;
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -3297,27 +3296,42 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       (Node is TNodeIndexedLineSet_2));
   end;
 
-  { If current Node should be rendered using one of TGeneralIndexedRenderer
-    classes, then create appropriate IndexedRenderer. Takes care
-    of initializing IndexedRenderer, so you have to call only
-    IndexedRendered.Render.
-    Otherwise, IndexedRenderer is set to @nil. }
-  procedure InitIndexedRenderer;
+  { If current Node should be rendered using one of TVRMLMeshRenderer
+    classes, then create appropriate MeshRenderer. Takes care
+    of initializing MeshRenderer, so you have to call only
+    MeshRenderer.Render.
+    Otherwise, MeshRenderer is set to @nil. }
+  procedure InitMeshRenderer;
   begin
     if Node is TNodeIndexedTriangleMesh_1 then
-      ExposedIndexedRenderer := TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node)) else
+      ExposedMeshRenderer := TIndexedTriangleMesh_1Renderer.Create(Self, TNodeIndexedTriangleMesh_1(Node)) else
     if Node is TNodeIndexedFaceSet_1 then
-      ExposedIndexedRenderer := TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node)) else
+      ExposedMeshRenderer := TIndexedFaceSet_1Renderer.Create(Self, TNodeIndexedFaceSet_1(Node)) else
     if Node is TNodeIndexedFaceSet_2 then
-      ExposedIndexedRenderer := TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node)) else
+      ExposedMeshRenderer := TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node)) else
     if Node is TNodeIndexedLineSet_1 then
-      ExposedIndexedRenderer := TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node)) else
+      ExposedMeshRenderer := TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node)) else
     if Node is TNodeIndexedLineSet_2 then
-      ExposedIndexedRenderer := TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node)) else
-      ExposedIndexedRenderer := nil;
+      ExposedMeshRenderer := TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node)) else
+    if Node is TNodePointSet_1 then
+      ExposedMeshRenderer := TPointSet_1Renderer.Create(Self) else
+    if Node is TNodePointSet_2 then
+      ExposedMeshRenderer := TPointSet_2Renderer.Create(Self) else
+    if Node is TNodeElevationGrid then
+      ExposedMeshRenderer := TElevationGridRenderer.Create(Self) else
+    if Node is TNodeExtrusion then
+      ExposedMeshRenderer := TExtrusionRenderer.Create(Self) else
+      ExposedMeshRenderer := nil;
 
-    if IndexedRenderer <> nil then
-      IndexedRenderer.CalculateRender_Normals;
+    if MeshRenderer <> nil then
+    begin
+      if MeshRenderer is TGeneralIndexedRenderer then
+        IndexedRenderer := TGeneralIndexedRenderer(MeshRenderer) else
+        IndexedRenderer := nil;
+
+      if IndexedRenderer <> nil then
+        IndexedRenderer.CalculateRender_Normals;
+    end;
   end;
 
   procedure InitTextures;
@@ -3485,7 +3499,7 @@ begin
 
   RenderShadersBegin;
   try
-    InitIndexedRenderer;
+    InitMeshRenderer;
     try
       InitTextures;
 
@@ -3501,8 +3515,8 @@ begin
 
         {$else}
 
-        if IndexedRenderer <> nil then
-          IndexedRenderer.Render else
+        if MeshRenderer <> nil then
+          MeshRenderer.Render else
         if Node is TNodeAsciiText_1 then
           RenderAsciiText(TNodeAsciiText_1(Node)) else
         if Node is TNodeText then
@@ -3521,25 +3535,17 @@ begin
           RenderCylinder_1(TNodeCylinder_1(Node)) else
         if Node is TNodeCylinder_2 then
           RenderCylinder_2(TNodeCylinder_2(Node)) else
-        if Node is TNodePointSet_1 then
-          RenderPointSet_1(TNodePointSet_1(Node)) else
-        if Node is TNodePointSet_2 then
-          RenderPointSet_2(TNodePointSet_2(Node)) else
         if Node is TNodeSphere_1 then
           RenderSphere_1(TNodeSphere_1(Node)) else
         if Node is TNodeSphere_2 then
           RenderSphere_2(TNodeSphere_2(Node)) else
-        if Node is TNodeElevationGrid then
-          RenderElevationGrid(TNodeElevationGrid(Node)) else
-        if Node is TNodeExtrusion then
-          RenderExtrusion(TNodeExtrusion(Node)) else
           VRMLNonFatalError(
             'Rendering of node kind "' + Node.NodeTypeName + '" not implemented');
 
         {$endif USE_VRML_NODES_TRIANGULATION}
 
       finally Render_MaterialsEnd end;
-    finally FreeAndNil(ExposedIndexedRenderer); end;
+    finally FreeAndNil(ExposedMeshRenderer); end;
   finally RenderShadersEnd; end;
 end;
 

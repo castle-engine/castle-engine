@@ -22,8 +22,8 @@
   Material etc.). }
 function TVRMLOpenGLRenderer.NodeLit(Node: TVRMLGeometryNode): boolean;
 begin
-  if ( (IndexedRenderer <> nil) and
-       (IndexedRenderer.BumpMappingMethod <> bmNone) ) then
+  if ( (MeshRenderer <> nil) and
+       (MeshRenderer.BumpMappingMethod <> bmNone) ) then
   begin
     { When doing bump mapping by bmMultiTex*, we turn off lighting.
       Bump mapping will calculate it per-pixel anyway.
@@ -45,7 +45,7 @@ begin
       with bump mapping are undefined. TODO: fix.)
     }
 
-    Result := IndexedRenderer.BumpMappingMethod in bmGLSLAll;
+    Result := MeshRenderer.BumpMappingMethod in bmGLSLAll;
   end else
   begin
     Result := not (
@@ -54,7 +54,7 @@ begin
       { VRML 1.0 specification states that lines normals aren't generated
         --- instead, lines are drawn unlit when there are no normals specified. }
       ( (Node is TNodeIndexedLineSet_1) and
-        (IndexedRenderer.Render_Normals = inGenerate) ) or
+        ((MeshRenderer as TIndexedLineSet_1Renderer).Render_Normals = inGenerate) ) or
       { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
       (Node is TNodeIndexedLineSet_2)
     );

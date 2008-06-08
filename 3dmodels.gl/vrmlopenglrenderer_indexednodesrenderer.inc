@@ -79,7 +79,7 @@ type
         in descendants. Everything related to textures is already
         handled in this class.)
     ) }
-  TGeneralIndexedRenderer = class
+  TGeneralIndexedRenderer = class(TVRMLMeshRenderer)
   private
     Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
@@ -107,9 +107,6 @@ type
       Don't do any OpenGL state changes here (initialization of OpenGL state
       should go to Render_Init). }
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
-
-    { This is set in our constructor. }
-    Renderer: TVRMLOpenGLRenderer;
 
     { This will be set by CalculateRender_Normals.
 
@@ -149,16 +146,6 @@ type
     MaterialBinding: Integer;
     NormalBinding: Integer;
 
-    { Initialized in our constructor to bmNone.
-      Renderer will set this to Renderer.BumpMappingMethod
-      only if bump mapping should be used and BumpMappingAllowed. }
-    BumpMappingMethod: TBumpMappingMethod;
-
-    { Initialized in our constructor to false.
-      Set this @italic(in constructor) (not later) to true when you're in
-      subclass able to do bump mapping. }
-    BumpMappingAllowed: boolean;
-
     { Will be set to StoredNormal or it's inverted version, to keep
       pointing from CCW. }
     CcwNormal: TDynVector3SingleArray;
@@ -177,7 +164,7 @@ type
     procedure Render_Init; virtual;
     procedure Render_Fini; virtual;
 
-    procedure Render;
+    procedure Render; override;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -299,8 +286,7 @@ type
 
 constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
-  inherited Create;
-  Renderer := ARenderer;
+  inherited;
 end;
 
 function TGeneralIndexedRenderer.GetTextureCoord(
@@ -317,7 +303,7 @@ begin
   if (Renderer.Render_TexCoordsNeeded) and
      (TexCoord <> nil) and
      (TexCoordIndex.Count < CoordIndex.Count) and
-     (Renderer.Render_State.ParentShape <> nil) then
+     (State.ParentShape <> nil) then
   begin
     Result := true;
     { TextureBegin sets in this case
@@ -384,7 +370,7 @@ begin
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
 
-  Renderer.DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
+  DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
 end;
 
 function TGeneralIndexedRenderer.Render_GetVertex(indexNum: integer): TVector3f;
@@ -483,8 +469,7 @@ var
       s_gen, t_gen: TVector4f;
       SCoord, TCoord, c1, c2: integer;
     begin
-      localBBox := Renderer.Render_Node.LocalBoundingBox(
-        Renderer.Render_State);
+      localBBox := Geometry.LocalBoundingBox(State);
 
       {oblicz rozmiary localBBox. SCoord to wspolrzedna na ktorej rozmiar jest
        najwiekszy, TCoord to druga wspolrzedna (gdyby jakies wspolrzedne
@@ -525,7 +510,7 @@ var
               coordinates should be generated (that's because for
               VRML 1.0 there is always some TexCoord <> nil,
               so it cannot be used to produce different behavior). }
-          if Renderer.Render_State.ParentShape <> nil then
+          if State.ParentShape <> nil then
           begin
             { When BumpMappingMethod <> bmNone, texture coords will be
               explicitly taken at each vertex using GetTextureCoord.
@@ -1018,7 +1003,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvAlphaFromMaterialAndTexture;
 
     LightPositionObjectSpace := MultMatrixPoint(
-      Renderer.Render_State.InvertedTransform,
+      State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
   end;
 
@@ -1070,7 +1055,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
     glTexEnvAlphaFromMaterialAndTexture;
 
     LightPositionObjectSpace := MultMatrixPoint(
-      Renderer.Render_State.InvertedTransform,
+      State.InvertedTransform,
       Renderer.BumpMappingLightPosition);
   end;
 
@@ -1097,7 +1082,7 @@ procedure TIndexedFaceSetRenderer.Render_Init;
 
     Renderer.BmGLSLProgram[BmParallax].Enable;
     Renderer.BmGLSLProgram[BmParallax].SetUniform('world_space_to_object',
-      Renderer.Render_State.InvertedTransform);
+      State.InvertedTransform);
 
     if BmParallax then
     begin
@@ -1441,17 +1426,17 @@ begin
   inherited Create(ARenderer);
 
   CoordIndex := ANode.FdCoordIndex;
-  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  Coord := State.LastNodes.Coordinate3.FdPoint;
   TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
-  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
-  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
-  SH := Renderer.Render_State.LastNodes.ShapeHints;
+  SH := State.LastNodes.ShapeHints;
 
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
@@ -1570,17 +1555,17 @@ begin
   inherited Create(ARenderer);
 
   CoordIndex := ANode.FdCoordIndex;
-  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  Coord := State.LastNodes.Coordinate3.FdPoint;
   TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
-  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
-  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
-  SH := Renderer.Render_State.LastNodes.ShapeHints;
+  SH := State.LastNodes.ShapeHints;
 
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
@@ -1659,15 +1644,15 @@ begin
   inherited Create(ARenderer);
 
   CoordIndex := ANode.FdCoordIndex;
-  Coord := Renderer.Render_State.LastNodes.Coordinate3.FdPoint;
+  Coord := State.LastNodes.Coordinate3.FdPoint;
   TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := Renderer.Render_State.LastNodes.TextureCoordinate2.FdPoint;
+  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := Renderer.Render_State.LastNodes.Normal.FdVector;
+  StoredNormal := State.LastNodes.Normal.FdVector;
   MaterialIndex := ANode.FdMaterialIndex;
 
-  NormalBinding := Renderer.Render_State.LastNodes.NormalBinding.FdValue.Value;
-  MaterialBinding := Renderer.Render_State.LastNodes.MaterialBinding.FdValue.Value;
+  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 end;
 
 { TIndexedLineSet_2Renderer -------------------------------------------------- }
@@ -1718,7 +1703,7 @@ begin
        Material = NULL makes unlit white color) }
   if Color = nil then
   begin
-    Material := Renderer.Render_State.ParentShape.Material;
+    Material := State.ParentShape.Material;
     if Material <> nil then
       SetColor(Material.FdEmissiveColor.Value) else
       SetColor(White3Single);
