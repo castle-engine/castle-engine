@@ -113,8 +113,22 @@ const
     begin
       { SFString has quite special interpretation, it's just attrib
         name. It would not be usefull trying to use TVRMLLexer here,
-        it's easier just to handle this as a special case. }
-      TSFString(Field).Value := Value;
+        it's easier just to handle this as a special case.
+
+        Uhm... some X3D XML files commit the reverse mistake
+        as for MFString: they *include* additional quotes around the string.
+        Spec says that for SFString, such quotes are not needed.
+        Example: openlibraries trunk/media files.
+
+        I detect this, warn and strip quotes. }
+      if (Length(Value) >= 2) and
+         (Value[1] = '"') and
+         (Value[Length(Value)] = '"') then
+      begin
+        VRMLNonFatalError('X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + Value + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
+        TSFString(Field).Value := Copy(Value, 2, Length(Value) - 2);
+      end else
+        TSFString(Field).Value := Value;
     end else
     if Field is TSFNode then
     begin
