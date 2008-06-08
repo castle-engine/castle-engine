@@ -1201,6 +1201,8 @@ type
     DefaultValuesCount: integer;
     DefaultValue: Longint;
     FSaveToStreamLineUptoNegative: boolean;
+    function GetItemsSafe(Index: Integer): LongInt;
+    procedure SetItemsSafe(Index: Integer; const Value: LongInt);
   protected
     function RawItemToString(ItemNum: integer): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
@@ -1224,6 +1226,12 @@ type
     procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
+
+    { This accesses Items[], always checking for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLNonFatalError. }
+    property ItemsSafe[Index: Integer]: LongInt
+      read GetItemsSafe write SetItemsSafe;
   end;
 
   TMFInt32 = class(TMFLong)
@@ -1355,6 +1363,8 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
+    function GetItemsSafe(Index: Integer): TVector3Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector3Single);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -1373,6 +1383,12 @@ type
     procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
+
+    { This accesses to Items[], and always checks for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLNonFatalError. }
+    property ItemsSafe[Index: Integer]: TVector3Single
+      read GetItemsSafe write SetItemsSafe;
   end;
 
   TMFColor = class(TMFVec3f)
@@ -3879,6 +3895,25 @@ begin
   Result := 'MFLong';
 end;
 
+function TMFLong.GetItemsSafe(Index: Integer): LongInt;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Result := Items.Items[Index] else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    Result := 0;
+  end;
+end;
+
+procedure TMFLong.SetItemsSafe(Index: Integer; const Value: LongInt);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.Items[Index] := Value else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+  end;
+end;
+
 { TMFInt32 ------------------------------------------------------------------- }
 
 class function TMFInt32.VRMLTypeName: string;
@@ -3926,6 +3961,25 @@ end;
 class function TMFVec3f.VRMLTypeName: string;
 begin
   Result := 'MFVec3f';
+end;
+
+function TMFVec3f.GetItemsSafe(Index: Integer): TVector3Single;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Result := Items.Items[Index] else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    Result := ZeroVector3Single;
+  end;
+end;
+
+procedure TMFVec3f.SetItemsSafe(Index: Integer; const Value: TVector3Single);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.Items[Index] := Value else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+  end;
 end;
 
 { TMFColor ------------------------------------------------------------------- }

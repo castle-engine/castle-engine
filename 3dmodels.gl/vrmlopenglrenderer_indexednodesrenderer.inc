@@ -225,9 +225,9 @@ type
 
   TIndexedFaceSet_2Renderer = class(TIndexedFaceSetRenderer)
   private
-    Color: TDynVector3SingleArray;
+    Color: TMFVec3f;
     ColorPerVertex: boolean;
-    ColorIndex: TDynLongintArray;
+    ColorIndex: TMFLong;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedFaceSet_2);
@@ -268,9 +268,9 @@ type
 
   TIndexedLineSet_2Renderer = class(TIndexedLineSetRenderer)
   private
-    Color: TDynVector3SingleArray;
+    Color: TMFVec3f;
     ColorPerVertex: boolean;
-    ColorIndex: TDynLongintArray;
+    ColorIndex: TMFLong;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedLineSet_2);
@@ -1453,10 +1453,10 @@ begin
   { calculate Color, ColorPerVertex, ColorIndex fields }
   if (ANode.FdColor.Value <> nil) and
      (ANode.FdColor.Value is TNodeColor) then
-    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items else
+    Color := TNodeColor(ANode.FdColor.Value).FdColor else
     Color := nil;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
-  ColorIndex := ANode.FdColorIndex.Items;
+  ColorIndex := ANode.FdColorIndex;
 end;
 
 procedure TIndexedFaceSet_2Renderer.SetLitColor(const AColor: TVector3Single);
@@ -1482,8 +1482,8 @@ begin
   if (Color <> nil) and ColorPerVertex then
   begin
     if ColorIndex.Count <> 0 then
-      SetLitColor(Color.Items[ColorIndex.Items[IndexNum]]) else
-      SetLitColor(Color.Items[CoordIndex.Items[IndexNum]]);
+      SetLitColor(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
+      SetLitColor(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]);
   end;
 
   inherited;
@@ -1496,8 +1496,8 @@ begin
   if (Color <> nil) and (not ColorPerVertex) then
   begin
     if ColorIndex.Count <> 0 then
-      SetLitColor(Color.Items[ColorIndex.Items[AFaceNumber]]) else
-      SetLitColor(Color.Items[AFaceNumber]);
+      SetLitColor(Color.ItemsSafe[ColorIndex.ItemsSafe[AFaceNumber]]) else
+      SetLitColor(Color.ItemsSafe[AFaceNumber]);
   end;
 
   inherited;
@@ -1629,10 +1629,10 @@ begin
 
   if (ANode.FdColor.Value <> nil) and
      (ANode.FdColor.Value is TNodeColor) then
-    Color := TNodeColor(ANode.FdColor.Value).FdColor.Items else
+    Color := TNodeColor(ANode.FdColor.Value).FdColor else
     Color := nil;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
-  ColorIndex := ANode.FdColorIndex.Items;
+  ColorIndex := ANode.FdColorIndex;
 end;
 
 procedure TIndexedLineSet_2Renderer.SetColor(const AColor: TVector3Single);
@@ -1673,8 +1673,8 @@ begin
   if (Color <> nil) and ColorPerVertex then
   begin
     if ColorIndex.Count <> 0 then
-      SetColor(Color.Items[ColorIndex.Items[IndexNum]]) else
-      SetColor(Color.Items[CoordIndex.Items[IndexNum]]);
+      SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
+      SetColor(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]);
   end;
 
   inherited;
@@ -1687,8 +1687,8 @@ begin
   if (Color <> nil) and (not ColorPerVertex) then
   begin
     if ColorIndex.Count <> 0 then
-      SetColor(Color.Items[ColorIndex.Items[AFaceNumber]]) else
-      SetColor(Color.Items[AFaceNumber]);
+      SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[AFaceNumber]]) else
+      SetColor(Color.ItemsSafe[AFaceNumber]);
   end;
 
   inherited;

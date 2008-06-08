@@ -1133,8 +1133,22 @@ procedure TAbstractCoordinateRenderer.RenderVertex(IndexNum: integer);
 var
   VertexNum: integer;
 begin
+  { This assertion should never fail, it's the responsibility
+    of the programmer. }
+  Assert(IndexNum < CoordCount);
+
   if CoordIndex <> nil then
-    VertexNum := CoordIndex.Items.Items[IndexNum] else
+  begin
+    VertexNum := CoordIndex.Items.Items[IndexNum];
+    if VertexNum >= Coord.Count then
+    begin
+      VRMLNonFatalError(Format('Wrong vertex index in indexed node %s ' +
+        '(not enouch points in Coordinate node defined: ' +
+        'index is %d, we have only %d vertices)',
+        [Geometry.NodeTypeName, VertexNum, Coord.Count]));
+      Exit;
+    end;
+  end else
     VertexNum := IndexNum;
 
   DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
@@ -1144,8 +1158,22 @@ function TAbstractCoordinateRenderer.GetVertex(IndexNum: integer): TVector3f;
 var
   VertexNum: integer;
 begin
+  { This assertion should never fail, it's the responsibility
+    of the programmer. }
+  Assert(IndexNum < CoordCount);
+
   if CoordIndex <> nil then
-    VertexNum := CoordIndex.Items.Items[IndexNum] else
+  begin
+    VertexNum := CoordIndex.Items.Items[IndexNum];
+    if VertexNum >= Coord.Count then
+    begin
+      VRMLNonFatalError(Format('Wrong vertex index in indexed node %s ' +
+        '(not enouch points in Coordinate node defined: ' +
+        'index is %d, we have only %d vertices)',
+        [Geometry.NodeTypeName, VertexNum, Coord.Count]));
+      Exit(ZeroVector3Single);
+    end;
+  end else
     VertexNum := IndexNum;
 
   Result := Coord.Items.Items[VertexNum];
