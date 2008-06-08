@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2007 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -29,14 +29,17 @@ type
     IndexedFaceSet (both for VRML 1.0 and 2.0), IndexedTriangleMesh,
     IndexedLineSet (both for VRML 1.0 and 2.0).
 
+    This is a descendant of TAbstractCoordinateRenderer
+    that must always have CoordIndex assigned (it's always indexed).
+
     What you have to do to implement a descendant ?
 
     @unorderedList(
       @item(
         You have to override Render_Face where you will render
-        your face by calling Render_Vertex to render vertexes.
+        your face by calling RenderVertex to render vertexes.
         It's your responsibility to call appropriate glBegin / glEnd
-        around Render_Vertex calls.
+        around RenderVertex calls.
 
         Render_Face must render all points between startIndex to endIndex - 1
         (StartIndex and EndIndex are used to index CoordIndex array).
@@ -85,7 +88,7 @@ type
     Render_Materials: TRenderIndexedMaterials;
 
     { Return texture coordinate for given vertex, identified by IndexNum
-      (IndexNum has the same meaning as for Render_Vertex).
+      (IndexNum has the same meaning as for RenderVertex).
 
       Returns @false if no texture coords are available.
 
@@ -129,8 +132,6 @@ type
       be equal --- this may be useful for various optimization purposes. }
     NormalsFlat: boolean;
 
-    { Set these in descendant's constructor. }
-    CoordIndex: TMFLong;
     { You can leave TexCoordIndex as nil only if you are
       sure that Renderer.Render_TexCoordsNeeded will be @false.
       One way to ensure this is to modify NodeTextured function. }
@@ -161,8 +162,7 @@ type
       Yes, it's a little unclean to declare it here. }
     FrontFaceCcw: boolean;
 
-    procedure Render_Vertex(indexNum: integer); virtual;
-    function Render_GetVertex(indexNum: integer): TVector3f;
+    procedure RenderVertex(indexNum: integer); override;
     procedure Render_Face(const AFaceNumber: Cardinal;
       startIndex, endIndex: integer); virtual; abstract;
 
@@ -198,7 +198,7 @@ type
 
     procedure Render_Init; override;
     procedure Render_Fini; override;
-    procedure Render_Vertex(indexNum: integer); override;
+    procedure RenderVertex(indexNum: integer); override;
     procedure Render_Face(const AFaceNumber: Cardinal;
       startIndex, endIndex: integer); override;
 
@@ -232,7 +232,7 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedFaceSet_2);
 
-    procedure Render_Vertex(indexNum: integer); override;
+    procedure RenderVertex(indexNum: integer); override;
     procedure Render_Face(const AFaceNumber: Cardinal;
       startIndex, endIndex: integer); override;
 
@@ -280,7 +280,7 @@ type
     procedure SetColor(const AColor: TVector3Single);
 
     procedure Render_Init; override;
-    procedure Render_Vertex(indexNum: integer); override;
+    procedure RenderVertex(indexNum: integer); override;
     procedure Render_Face(const AFaceNumber: Cardinal;
       startIndex, endIndex: integer); override;
   end;
@@ -296,7 +296,7 @@ function TGeneralIndexedRenderer.GetTextureCoord(
   IndexNum: integer; out Tex: TVector2Single): boolean;
 begin
   { The logic of this is synchronized with TextureBegin and
-    Render_Vertex logic. Ideally, this should calculate the
+    RenderVertex logic. Ideally, this should calculate the
     same texture coordinate that is effectively used by OpenGL. }
   if Render_UseTextureCoordIndex then
   begin
@@ -335,7 +335,7 @@ begin
   end;
 end;
 
-procedure TGeneralIndexedRenderer.Render_Vertex(indexNum: integer);
+procedure TGeneralIndexedRenderer.RenderVertex(indexNum: integer);
 var
   VertexNum: integer;
 begin
@@ -355,7 +355,7 @@ begin
 
   { If case of other Render_Normals, this will be handled elsewhere:
     - inOverall is handled in NormalsBegin
-    - inGenerate is handled in Render_Vertex/Face as appropriate in descendants
+    - inGenerate is handled in RenderVertex/Face as appropriate in descendants
     - inUseSpecifiedPerVertex is also set up in NormalsBegin,
       so glDrawElement will magically do this. }
   if Render_Normals = inUseSpecifiedPerVertexIndexed then
@@ -373,12 +373,7 @@ begin
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
 
-  DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
-end;
-
-function TGeneralIndexedRenderer.Render_GetVertex(indexNum: integer): TVector3f;
-begin
-  result := Coord.Items.Items[CoordIndex.Items.Items[indexNum]];
+  inherited;
 end;
 
 procedure TGeneralIndexedRenderer.CalculateRender_Normals;
@@ -581,7 +576,7 @@ procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
    begin
      { With older Mesa (confirmed that the bug is with 5.1 and is not with
        6.4.2) when you use BindMaterial_1 inside
-       TGeneralIndexedRenderer.Render_Vertex it causes later
+       TGeneralIndexedRenderer.RenderVertex it causes later
        glPopAttrib (in RenderEnd) to crash with SIGSEGV.
        gdb backtrace starts with
 
@@ -734,7 +729,7 @@ begin
     inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.Render_Vertex(indexNum: integer);
+procedure TIndexedFaceSetRenderer.RenderVertex(indexNum: integer);
 
   procedure DoBumpMapping;
   var
@@ -1160,9 +1155,9 @@ end;
 
 procedure Render_Triangulated(const TriIndices: TVector3Longint; Data: Pointer);
 begin
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[0]);
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[1]);
- TIndexedFaceSetRenderer(Data).Render_Vertex(TriIndices[2]);
+ TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[0]);
+ TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[1]);
+ TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[2]);
 end;
 
 procedure TIndexedFaceSetRenderer.Render_Face(const AFaceNumber: Cardinal;
@@ -1372,7 +1367,7 @@ begin
   glBegin(GL_TRIANGLE_FAN);
   while startIndex < endIndex do
   begin
-   Render_Vertex(startIndex);
+   RenderVertex(startIndex);
    Inc(startIndex);
   end;
   glEnd;
@@ -1483,7 +1478,7 @@ begin
     Renderer.Material_BoundOpacity));
 end;
 
-procedure TIndexedFaceSet_2Renderer.Render_Vertex(IndexNum: integer);
+procedure TIndexedFaceSet_2Renderer.RenderVertex(IndexNum: integer);
 begin
   { Implement different color per vertex here. }
   if (Color <> nil) and ColorPerVertex then
@@ -1553,9 +1548,9 @@ procedure TIndexedTriangleMesh_1Renderer.Render_Face(const AFaceNumber: Cardinal
     begin
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
       glNormalv(TriangleNormal(
-        Render_GetVertex(V1),
-        Render_GetVertex(V2),
-        Render_GetVertex(V3)));
+        GetVertex(V1),
+        GetVertex(V2),
+        GetVertex(V3)));
     end;
   end;
 
@@ -1569,8 +1564,8 @@ begin
 
       glBegin(GL_TRIANGLE_STRIP);
 
-      Render_Vertex(StartIndex);
-      Render_Vertex(StartIndex + 1);
+      RenderVertex(StartIndex);
+      RenderVertex(StartIndex + 1);
 
       NormalOrder := true;
 
@@ -1579,7 +1574,7 @@ begin
         if NormalOrder then
           DoNormal(StartIndex    , StartIndex + 1, StartIndex + 2) else
           DoNormal(StartIndex + 1, StartIndex    , StartIndex + 2);
-        Render_Vertex(StartIndex + 2);
+        RenderVertex(StartIndex + 2);
         Inc(StartIndex);
         NormalOrder := not NormalOrder;
       end;
@@ -1597,7 +1592,7 @@ procedure TIndexedLineSetRenderer.Render_Face(const AFaceNumber: Cardinal;
 var i: integer;
 begin
   glBegin(GL_LINE_STRIP);
-  for i := startIndex to endIndex - 1 do Render_Vertex(i);
+  for i := startIndex to endIndex - 1 do RenderVertex(i);
   glEnd;
 end;
 
@@ -1676,7 +1671,7 @@ begin
   end;
 end;
 
-procedure TIndexedLineSet_2Renderer.Render_Vertex(IndexNum: integer);
+procedure TIndexedLineSet_2Renderer.RenderVertex(IndexNum: integer);
 begin
   { Implement different color per vertex here. }
   if (Color <> nil) and ColorPerVertex then

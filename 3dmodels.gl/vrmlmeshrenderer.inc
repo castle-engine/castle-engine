@@ -159,6 +159,27 @@ type
       If @nil then nothing will be rendered. }
     Coord: TMFVec3f;
 
+    { Coordinate index. Set this in descendant's constructor if it's
+      indexed geometry.
+
+      If @nil, then RenderVertex (and all other
+      routines taking some index) will just directly index Coord
+      (this is useful for non-indexed geometry, like TriangleSet
+      instead of IndexedTriangleSet). }
+    CoordIndex: TMFLong;
+
+    { Use this in descendants as analogy of glVertex / glDrawElement.
+      This sends vertex to OpenGL (using TVRMLMeshRenderer.DoGLDrawElement,
+      but this is internal information :) ). Given IndexNum
+      indexes Coord, or if (CoordIndex is assigned) indexes CoordIndex
+      (and CoordIndex then indexes actual Coord). }
+    procedure RenderVertex(IndexNum: integer); virtual;
+
+    { This gets vertex coordinate, exactly the same as would be
+      rendered by RenderVertex. Returned vertex is in local coordinate space
+      (use State.Transform if you want to get global coordinates). }
+    function GetVertex(IndexNum: integer): TVector3f;
+
     procedure Render; override;
 
     procedure RenderCoordinate; virtual; abstract;
@@ -1086,4 +1107,26 @@ begin
       finally LockArraysEnd; end;
     finally RenderCoordinateEnd; end;
   finally glPopClientAttrib; end;
+end;
+
+procedure TAbstractCoordinateRenderer.RenderVertex(IndexNum: integer);
+var
+  VertexNum: integer;
+begin
+  if CoordIndex <> nil then
+    VertexNum := CoordIndex.Items.Items[IndexNum] else
+    VertexNum := IndexNum;
+
+  DoGLArrayElement(Coord.Items.ItemsArray, VertexNum);
+end;
+
+function TAbstractCoordinateRenderer.GetVertex(IndexNum: integer): TVector3f;
+var
+  VertexNum: integer;
+begin
+  if CoordIndex <> nil then
+    VertexNum := CoordIndex.Items.Items[IndexNum] else
+    VertexNum := IndexNum;
+
+  Result := Coord.Items.Items[VertexNum];
 end;
