@@ -441,3 +441,22 @@ begin
     Result := FdStripCount.Items.Sum - FdStripCount.Items.Count * 2 else
     Result := 0;
 end;
+
+function TNodeIndexedQuadSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := 2 * (FdIndex.Count div 4) else
+    { If Coord is non-nil but has not enough items as indexed by
+      CoordIndex, it's invalid according to X3D spec.
+      So we don't worry about this case. }
+    Result := 0;
+end;
+
+function TNodeQuadSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := 2 * (Coord.Count div 4) else
+    Result := 0;
+end;

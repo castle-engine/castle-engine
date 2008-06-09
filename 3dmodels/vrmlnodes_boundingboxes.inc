@@ -613,4 +613,38 @@ begin
     Result := EmptyBox3d;
 end;
 
+{ TNodeIndexedQuadSet ---------------------------------------------------- }
+
+function TNodeIndexedQuadSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeIndexedQuadSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeQuadSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_LocalBoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeQuadSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_BoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
 { eof ------------------------------------------------------------------------ }

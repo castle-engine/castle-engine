@@ -264,6 +264,14 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+  { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
+  TQuadSetRenderer = class(TAbstractCoordinateRenderer)
+  protected
+    procedure RenderCoordinate; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+  end;
+
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
 constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
@@ -1487,4 +1495,45 @@ begin
 
     glPopAttrib();
   end;
+end;
+
+{ TQuadSetRenderer ------------------------------------------------------- }
+
+constructor TQuadSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+
+  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
+  if Geometry is TNodeIndexedQuadSet then
+  begin
+    CoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
+  end;
+end;
+
+procedure TQuadSetRenderer.RenderCoordinate;
+var
+  I: Integer;
+  Normal: TVector3Single;
+begin
+  I := 0;
+  glBegin(GL_QUADS);
+    { X3D spec says to silently ignore any vertices above multiple of 4. }
+    while I + 3 < CoordCount do
+    begin
+      { Normal is average of normals of two triangles. }
+      Normal := VectorAdd(
+        TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
+        TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3)));
+
+      { TODO: for now, we always generate flat normals }
+      glNormalv(Normal);
+
+      RenderVertex(I    );
+      RenderVertex(I + 1);
+      RenderVertex(I + 2);
+      RenderVertex(I + 3);
+
+      I += 4;
+    end;
+  glEnd();
 end;

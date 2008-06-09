@@ -3330,6 +3330,9 @@ var
     if (Node is TNodeTriangleStripSet) or
        (Node is TNodeIndexedTriangleStripSet) then
       ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
+    if (Node is TNodeQuadSet) or
+       (Node is TNodeIndexedQuadSet) then
+      ExposedMeshRenderer := TQuadSetRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
 
     if MeshRenderer <> nil then

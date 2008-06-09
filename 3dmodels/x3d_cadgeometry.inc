@@ -120,7 +120,10 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeQuadSet = class(TNodeX3DComposedGeometryNode)
@@ -131,7 +134,10 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
 {$endif read_interface}
@@ -334,9 +340,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeIndexedQuadSet}
-GeometryNotImplemented
-
 constructor TNodeQuadSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -361,9 +364,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeQuadSet}
-GeometryNotImplemented
 
 procedure RegisterCADGeometryNodes;
 begin

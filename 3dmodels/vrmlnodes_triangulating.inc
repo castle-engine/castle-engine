@@ -831,3 +831,15 @@ procedure TNodeTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
 begin
   { TODO }
 end;
+
+procedure TNodeIndexedQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
+
+procedure TNodeQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
