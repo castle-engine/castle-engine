@@ -186,13 +186,68 @@ type
 
     procedure Render; override;
 
+    { Override these to plug your rendering algorithm.
+      See the description of this class @className for usage overview
+      of these methods.
+
+      When overriding RenderCoordinateBegin, always call inherited
+      at the begin. When overriding RenderCoordinateEnd, always call inherited
+      at the end.
+
+      @groupBegin }
     procedure RenderCoordinate; virtual; abstract;
     procedure RenderCoordinateBegin; virtual;
     procedure RenderCoordinateEnd; virtual;
+    { @groupEnd }
+
+    { RenderCoordsRanges iterates over CoordIndex, passing each
+      range of non-negative indexes to RenderCoordsRange.
+
+      You can use this only when CoordIndex <> nil, and it's
+      sensible only when VRML specification says that coordIndex
+      may be negative to separate some various-length parts of the
+      coordinates. The most typical example of this is IndexedFaceSet,
+      where each "range of non-negative indexes" is simply a polygon.
+
+      RenderCoordsRange is supposed to render the parts of the mesh
+      between StartIndex and EndIndex - 1 vertices.
+      StartIndex and EndIndex are indexes to CoordIndex array.
+      It's guaranteed that all indexes between
+      StartIndex and EndIndex - 1 are non-negative, and they are surrounded
+      by negative or by the ends of CoordIndex array.
+      In other words, RenderCoordsRange always gets indexes specifying
+      a complete face in the sense of IndexedFaceSet and similar
+      nodes.
+
+      As always, it's your responsibility to call appropriate glBegin / glEnd
+      around RenderVertex calls --- maybe within each RenderCoordsRange,
+      maybe the whole RenderCoordsRanges call is within such glbegin/end.
+
+      @groupBegin }
+    procedure RenderCoordsRange(
+      const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); virtual;
+    procedure RenderCoordsRanges;
+    { @groupEnd }
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetRenderer = class(TAbstractCoordinateRenderer)
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    procedure RenderCoordinate; override;
+  end;
+
+  { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
+  TTriangleFanSetRenderer = class(TAbstractCoordinateRenderer)
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    procedure RenderCoordinate; override;
+  end;
+
+  { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet node.
+
+    TODO: Inventor's IndexedTriangleMesh_1 should also be
+    renderer by this, obsoleting TIndexedTriangleMesh_1Renderer. }
+  TTriangleStripSetRenderer = class(TAbstractCoordinateRenderer)
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
     procedure RenderCoordinate; override;
   end;
@@ -1186,6 +1241,33 @@ begin
     Result := Coord.Items.Count;
 end;
 
+procedure TAbstractCoordinateRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
+begin
+  { nothing to do in this class }
+end;
+
+procedure TAbstractCoordinateRenderer.RenderCoordsRanges;
+var
+  StartIndex, EndIndex: integer;
+  RangeNumber: Cardinal;
+begin
+  Assert(CoordIndex <> nil);
+  StartIndex := 0;
+  RangeNumber := 0;
+  while StartIndex < CoordIndex.Count do
+  begin
+    EndIndex := StartIndex;
+    while (EndIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[EndIndex] >= 0) do
+      Inc(EndIndex);
+    RenderCoordsRange(RangeNumber, StartIndex, EndIndex);
+    Inc(RangeNumber);
+    StartIndex := EndIndex + 1;
+  end;
+end;
+
 { TTriangleSetRenderer ------------------------------------------------------- }
 
 constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
@@ -1224,4 +1306,40 @@ begin
       I += 3;
     end;
   glEnd();
+end;
+
+{ TTriangleFanSetRenderer ---------------------------------------------------- }
+
+constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+
+  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
+  if Geometry is TNodeIndexedTriangleFanSet then
+  begin
+    CoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
+  end;
+end;
+
+procedure TTriangleFanSetRenderer.RenderCoordinate;
+begin
+  { TODO }
+end;
+
+{ TTriangleStripSetRenderer -------------------------------------------------- }
+
+constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+
+  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
+  if Geometry is TNodeIndexedTriangleStripSet then
+  begin
+    CoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
+  end;
+end;
+
+procedure TTriangleStripSetRenderer.RenderCoordinate;
+begin
+  { TODO }
 end;

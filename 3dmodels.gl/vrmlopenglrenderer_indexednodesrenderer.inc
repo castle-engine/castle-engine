@@ -36,26 +36,8 @@ type
 
     @unorderedList(
       @item(
-        You have to override RenderFace where you will render
-        your face by calling RenderVertex to render vertexes.
-        It's your responsibility to call appropriate glBegin / glEnd
-        around RenderVertex calls.
-
-        RenderFace must render all points between startIndex to endIndex - 1
-        (StartIndex and EndIndex are used to index CoordIndex array).
-
-        When implementing RenderFace you can safely assume
-        that all indexes between
-        startIndex to endIndex - 1 are <> -1, and they are surrounded
-        by -1 indexes or by the end of CoordIndex array.
-        In other words, RenderFace always gets indexes specifying
-        a complete face in the sense of IndexedFaceSet and similar
-        nodes.)
-
-      @item(
-        You can override RenderCoordinateBegin and RenderCoordinateEnd,
-        although you don't have to (but if you do --- remember
-        to call inherited, as always).)
+        You have to override RenderCoordsRange where you will render
+        your face by calling RenderVertex to render vertexes.)
 
       @item(
         If and only if Render_Normals = inGenerate
@@ -122,7 +104,7 @@ type
 
       CalculateRender_Normals must be called after constructor but before
       Render, so Render_Normals be already available for RenderCoordinateBegin,
-      RenderFace etc. }
+      RenderCoordsRange etc. }
     Render_Normals: TRenderIndexedNormals;
     procedure CalculateRender_Normals;
 
@@ -163,8 +145,8 @@ type
     FrontFaceCcw: boolean;
 
     procedure RenderVertex(indexNum: integer); override;
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); virtual; abstract;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: integer); override;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -196,8 +178,8 @@ type
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
     procedure RenderVertex(indexNum: integer); override;
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); override;
 
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
@@ -230,8 +212,8 @@ type
       ANode: TNodeIndexedFaceSet_2);
 
     procedure RenderVertex(indexNum: integer); override;
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); override;
 
     { Sets both glColor(...) and
       glMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE, ...) colors.
@@ -247,14 +229,14 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedTriangleMesh_1);
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); override;
   end;
 
   TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
   public
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); override;
   end;
 
   TIndexedLineSet_1Renderer = class(TIndexedLineSetRenderer)
@@ -278,8 +260,8 @@ type
 
     procedure RenderCoordinateBegin; override;
     procedure RenderVertex(indexNum: integer); override;
-    procedure RenderFace(const AFaceNumber: Cardinal;
-      startIndex, endIndex: integer); override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      StartIndex, EndIndex: Integer); override;
   end;
 
 { TGeneralIndexedRenderer ----------------------------------------------------- }
@@ -635,30 +617,19 @@ begin
 end;
 
 procedure TGeneralIndexedRenderer.RenderCoordinate;
-var
-  startIndex, endIndex: integer;
-  FaceNumber: Cardinal;
 begin
-  {wlasciwe rendering : wywoluj RenderFace}
-  startIndex := 0;
-  faceNumber := 0;
-  while startIndex < CoordIndex.Count do
-  begin
-    endIndex := startIndex;
-    while (endIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[endIndex] >= 0) do
-      Inc(endIndex);
+  RenderCoordsRanges;
+end;
 
-    case Render_Materials of
-      imUseSpecifiedPerFace:
-        Renderer.Render_BindMaterial_1(faceNumber);
-      imUseSpecifiedPerFaceIndexed:
-        Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[faceNumber]);
-    end;
-
-    RenderFace(FaceNumber, startIndex, endIndex);
-    Inc(faceNumber);
-    startIndex := endIndex+1;
+procedure TGeneralIndexedRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
+begin
+  case Render_Materials of
+    imUseSpecifiedPerFace:
+      Renderer.Render_BindMaterial_1(RangeNumber);
+    imUseSpecifiedPerFaceIndexed:
+      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber]);
   end;
 end;
 
@@ -891,7 +862,7 @@ procedure TIndexedFaceSetRenderer.RenderVertex(indexNum: integer);
 
 begin
   { For Render_Normals = inGenerate and NormalsFlat, we'll handle this
-    in RenderFace. }
+    in RenderCoordsRange. }
   if (Render_Normals = inGenerate) and (not NormalsFlat) then
     glNormalv(Render_GeneratedNormals.Items[indexNum]);
 
@@ -1149,8 +1120,9 @@ begin
  TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[2]);
 end;
 
-procedure TIndexedFaceSetRenderer.RenderFace(const AFaceNumber: Cardinal;
-  startIndex, endIndex: integer);
+procedure TIndexedFaceSetRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
 
   { Calculates HasTangentVectors, STangent, TTangent }
   procedure CalculateTangentVectors;
@@ -1280,6 +1252,8 @@ procedure TIndexedFaceSetRenderer.RenderFace(const AFaceNumber: Cardinal;
   end;
 
 begin
+  inherited;
+
   if (Render_Normals = inGenerate) and NormalsFlat then
     glNormalv(Render_GeneratedNormals.Items[StartIndex]);
 
@@ -1478,15 +1452,16 @@ begin
   inherited;
 end;
 
-procedure TIndexedFaceSet_2Renderer.RenderFace(const AFaceNumber: Cardinal;
-  startIndex, endIndex: integer);
+procedure TIndexedFaceSet_2Renderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
 begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then
   begin
     if ColorIndex.Count <> 0 then
-      SetLitColor(Color.ItemsSafe[ColorIndex.ItemsSafe[AFaceNumber]]) else
-      SetLitColor(Color.ItemsSafe[AFaceNumber]);
+      SetLitColor(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+      SetLitColor(Color.ItemsSafe[RangeNumber]);
   end;
 
   inherited;
@@ -1525,8 +1500,9 @@ begin
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 end;
 
-procedure TIndexedTriangleMesh_1Renderer.RenderFace(const AFaceNumber: Cardinal;
-  startIndex, endIndex: integer);
+procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
@@ -1544,6 +1520,8 @@ procedure TIndexedTriangleMesh_1Renderer.RenderFace(const AFaceNumber: Cardinal;
 var
   NormalOrder: boolean;
 begin
+  inherited;
+
   if StartIndex + 2 < EndIndex then
   begin
     glPushAttrib(GL_LIGHTING_BIT { for shade model });
@@ -1574,10 +1552,13 @@ end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
 
-procedure TIndexedLineSetRenderer.RenderFace(const AFaceNumber: Cardinal;
-  startIndex, endIndex: integer);
+procedure TIndexedLineSetRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
 var i: integer;
 begin
+  inherited;
+
   glBegin(GL_LINE_STRIP);
   for i := startIndex to endIndex - 1 do RenderVertex(i);
   glEnd;
@@ -1669,15 +1650,16 @@ begin
   inherited;
 end;
 
-procedure TIndexedLineSet_2Renderer.RenderFace(const AFaceNumber: Cardinal;
-  startIndex, endIndex: integer);
+procedure TIndexedLineSet_2Renderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  StartIndex, EndIndex: Integer);
 begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then
   begin
     if ColorIndex.Count <> 0 then
-      SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[AFaceNumber]]) else
-      SetColor(Color.ItemsSafe[AFaceNumber]);
+      SetColor(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+      SetColor(Color.ItemsSafe[RangeNumber]);
   end;
 
   inherited;
