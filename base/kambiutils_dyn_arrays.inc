@@ -97,13 +97,13 @@ type
       FLength (only by SetLengthNoInitFini) and
       FAllowedCapacityOverflow (only by SetAllowedCapacityCount).
       In these methods we care about keeping assertions
-        Length <= Capacity 
-      and 
+        Length <= Capacity
+      and
         (Capacity-Length) <= AllowedCapacityOverflow.
 
       Note that items with indexes Length .. Capacity-1 are never
       read/written and are never supposed to be initialized by Initialize.
-      So only on items with indexes 0 .. Length-1 you can call 
+      So only on items with indexes 0 .. Length-1 you can call
       Initialize / Finalize, other indexes are just our "safety bag
       of memory" and are not used by SetLength implementation in descendants
       that call Initialize / Finalize. }
@@ -164,39 +164,64 @@ type
 
 { Declare all TDynXxxArray for standard Pascal types }
 
-{$define DYNARRAY_1_USE_EQUALITY_OP}
-{$define DYNARRAY_2_USE_EQUALITY_OP}
-{$define DYNARRAY_3_USE_EQUALITY_OP}
-{$define DYNARRAY_4_USE_EQUALITY_OP}
-{$define DYNARRAY_5_USE_EQUALITY_OP}
-{$define DYNARRAY_6_USE_EQUALITY_OP}
-{$define DYNARRAY_7_USE_EQUALITY_OP}
-{$define DYNARRAY_8_USE_EQUALITY_OP}
-{$define DYNARRAY_9_USE_EQUALITY_OP}
-{$define DYNARRAY_10_USE_EQUALITY_OP}
-{$define DYNARRAY_11_USE_EQUALITY_OP}
-{$define DYNARRAY_12_USE_EQUALITY_OP}
-{$define DYNARRAY_13_USE_EQUALITY_OP}
-{$define DYNARRAY_14_USE_EQUALITY_OP}
-{$define DYNARRAY_15_USE_EQUALITY_OP}
-{$define DYNARRAY_15_IS_INIT_FINI_TYPE}
-{$define DYNARRAY_16_USE_EQUALITY_OP}
 type
+  {$define DYNARRAY_1_USE_EQUALITY_OP}
+  {$define DYNARRAY_1_USE_PLUSMINUS_OP}
   TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below}      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
+
+  {$define DYNARRAY_2_USE_EQUALITY_OP}
+  {$define DYNARRAY_2_USE_PLUSMINUS_OP}
   TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}  TDynIntegerArray  = TDynArray_2 ; TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
+
+  {$define DYNARRAY_3_USE_EQUALITY_OP}
+  {$define DYNARRAY_3_USE_PLUSMINUS_OP}
   TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below}         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
+
+  {$define DYNARRAY_4_USE_EQUALITY_OP}
+  { Don't set USE_PLUSMINUS_OP here, as the sum may often not fit in the Byte }
   TDynArrayItem_4  = Byte    ; PDynArrayItem_4  = PByte    ; {$I dynarray_4.inc}  TDynByteArray     = TDynArray_4 ; TArray_Byte     = TInfiniteArray_4 ; PArray_Byte     = PInfiniteArray_4 ;
+
+  {$define DYNARRAY_5_USE_EQUALITY_OP}
   TDynArrayItem_5  = Shortint; PDynArrayItem_5  = PShortint; {$I dynarray_5.inc}  TDynShortintArray = TDynArray_5 ; TArray_Shortint = TInfiniteArray_5 ; PArray_Shortint = PInfiniteArray_5 ;
+
+  {$define DYNARRAY_6_USE_EQUALITY_OP}
   TDynArrayItem_6  = Smallint; PDynArrayItem_6  = PSmallint; {$I dynarray_6.inc}  TDynSmallintArray = TDynArray_6 ; TArray_Smallint = TInfiniteArray_6 ; PArray_Smallint = PInfiniteArray_6 ;
+
+  {$define DYNARRAY_7_USE_EQUALITY_OP}
   TDynArrayItem_7  = Word    ; PDynArrayItem_7  = PWord    ; {$I dynarray_7.inc}  TDynWordArray     = TDynArray_7 ; TArray_Word     = TInfiniteArray_7 ; PArray_Word     = PInfiniteArray_7 ;
+
+  {$define DYNARRAY_8_USE_EQUALITY_OP}
+  {$define DYNARRAY_8_USE_PLUSMINUS_OP}
   TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}  TDynLongintArray  = TDynArray_8 ; TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
+
+  {$define DYNARRAY_9_USE_EQUALITY_OP}
+  {$define DYNARRAY_9_USE_PLUSMINUS_OP}
   TDynArrayItem_9  = Int64   ; PDynArrayItem_9  = PInt64   ; {$I dynarray_9.inc}  TDynInt64Array    = TDynArray_9 ; TArray_Int64    = TInfiniteArray_9 ; PArray_Int64    = PInfiniteArray_9 ;
+
+  {$define DYNARRAY_10_USE_EQUALITY_OP}
+  {$define DYNARRAY_10_USE_PLUSMINUS_OP}
   TDynArrayItem_10 = Extended; PDynArrayItem_10 = PExtended; {$I dynarray_10.inc} TDynExtendedArray = TDynArray_10; TArray_Extended = TInfiniteArray_10; PArray_Extended = PInfiniteArray_10;
+
+  {$define DYNARRAY_11_USE_EQUALITY_OP}
+  {$define DYNARRAY_11_USE_PLUSMINUS_OP}
   TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} TDynDoubleArray   = TDynArray_11; TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
+
+  {$define DYNARRAY_12_USE_EQUALITY_OP}
+  {$define DYNARRAY_12_USE_PLUSMINUS_OP}
   TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below}        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
+
+  {$define DYNARRAY_13_USE_EQUALITY_OP}
   TDynArrayItem_13 = Pointer ; PDynArrayItem_13 = PPointer ; {$I dynarray_13.inc} TDynPointerArray  = TDynArray_13; TArray_Pointer  = TInfiniteArray_13; PArray_Pointer  = PInfiniteArray_13;
+
+  {$define DYNARRAY_14_USE_EQUALITY_OP}
+  {$define DYNARRAY_14_USE_PLUSMINUS_OP}
   TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} TDynLongWordArray = TDynArray_14; TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
+
+  {$define DYNARRAY_15_USE_EQUALITY_OP}
+  {$define DYNARRAY_15_IS_INIT_FINI_TYPE}
   TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} TDynStringArray   = TDynArray_15; TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
+
+  {$define DYNARRAY_16_USE_EQUALITY_OP}
   TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below}       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
 
   TDynSingleArray = class;

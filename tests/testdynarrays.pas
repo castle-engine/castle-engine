@@ -102,13 +102,17 @@ begin
   iarr := TDynIntegerArray.Create;
   iarr2 := TDynIntegerArray.Create;
   Assert(iarr.Equal(iarr2));
+  Assert(iarr.Sum = 0);
+  Assert(iarr2.Sum = 0);
 
   iarr.AppendArray([1, 3, 6, 8]);
   Assert(not iarr.Equal(iarr2));
+  Assert(iarr.Sum = 1 + 3 + 6 + 8);
   iarr2.AppendArray([1, 3, 6, 8]);
   Assert(iarr.Equal(iarr2));
   iarr2.Insert(0, 99);
   Assert(not iarr.Equal(iarr2));
+  Assert(iarr2.Sum = iarr.Sum + 99);
   Assert(iarr2.Equal([99, 1, 3, 6, 8]));
 
   iarr.Assign(iarr2);

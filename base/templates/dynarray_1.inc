@@ -215,10 +215,6 @@
     procedure DeleteAllEqual(const Value: TDynArrayItem_1);
     {$endif}
 
-(*   TODO, as soon as this will be needed somewhere:
- {$ifdef DYNARRAY_USE_PLUSMINUS_OP}
-    function Sum: TDynArrayItem_1 *)
-
     { Just like Delete from Pascal's RTL on strings:
       deletes Count items starting from position Index.
       Length of array will be decreased by Count items,
@@ -259,6 +255,10 @@
     procedure SortByObject(IsSmallerFunc: TDynArrayItemIsSmallerFuncByObject_1;
       FirstIndex, LastIndex: integer;
       CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
+
+    {$ifdef DYNARRAY_1_USE_PLUSMINUS_OP}
+    function Sum: TDynArrayItem_1;
+    {$endif DYNARRAY_1_USE_PLUSMINUS_OP}
   end;
 
 {$endif}
@@ -565,5 +565,16 @@ begin
    FirstIndex, LastIndex,
    CountToUseSimpleSort);
 end;
+
+{$ifdef DYNARRAY_1_USE_PLUSMINUS_OP}
+function TDynArray_1.Sum: TDynArrayItem_1;
+var
+  I: Integer;
+begin
+  Result := 0; { this will be improved to some macro like DYNARRAY_ZERO_ITEM }
+  for I := 0 to High do
+    Result := Result + Items[I];
+end;
+{$endif DYNARRAY_1_USE_PLUSMINUS_OP}
 
 {$endif}
