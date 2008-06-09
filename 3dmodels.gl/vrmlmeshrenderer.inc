@@ -210,10 +210,10 @@ type
       where each "range of non-negative indexes" is simply a polygon.
 
       RenderCoordsRange is supposed to render the parts of the mesh
-      between StartIndex and EndIndex - 1 vertices.
-      StartIndex and EndIndex are indexes to CoordIndex array.
+      between BeginIndex and EndIndex - 1 vertices.
+      BeginIndex and EndIndex are indexes to CoordIndex array.
       It's guaranteed that all indexes between
-      StartIndex and EndIndex - 1 are non-negative, and they are surrounded
+      BeginIndex and EndIndex - 1 are non-negative, and they are surrounded
       by negative or by the ends of CoordIndex array.
       In other words, RenderCoordsRange always gets indexes specifying
       a complete face in the sense of IndexedFaceSet and similar
@@ -226,21 +226,28 @@ type
       @groupBegin }
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); virtual;
+      BeginIndex, EndIndex: Integer); virtual;
     procedure RenderCoordsRanges;
     { @groupEnd }
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetRenderer = class(TAbstractCoordinateRenderer)
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+  protected
     procedure RenderCoordinate; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetRenderer = class(TAbstractCoordinateRenderer)
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+  protected
     procedure RenderCoordinate; override;
+    procedure RenderCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet node.
@@ -248,8 +255,13 @@ type
     TODO: Inventor's IndexedTriangleMesh_1 should also be
     renderer by this, obsoleting TIndexedTriangleMesh_1Renderer. }
   TTriangleStripSetRenderer = class(TAbstractCoordinateRenderer)
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+  protected
     procedure RenderCoordinate; override;
+    procedure RenderCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
@@ -359,7 +371,7 @@ end;
 
 procedure TPointSet_1Renderer.Render;
 var
-  i, startIndex, numPoints: integer;
+  i, BeginIndex, numPoints: integer;
   Node: TNodePointSet_1;
 begin
   Node := Geometry as TNodePointSet_1;
@@ -378,9 +390,9 @@ begin
       glColorv(Vector4f(Attributes.ColorModulated(
         DiffuseColor3Single(0)), Opacity(0)));
 
-  Node.CalculateRange(State.LastNodes.Coordinate3, startIndex, numPoints);
+  Node.CalculateRange(State.LastNodes.Coordinate3, BeginIndex, numPoints);
   glBegin(GL_POINTS);
-  for i := startIndex to startIndex+numPoints-1 do
+  for i := BeginIndex to BeginIndex+numPoints-1 do
     DoGLVertex(State.LastNodes.Coordinate3.FdPoint.Items.Items[i]);
   glEnd;
 end;
@@ -1243,28 +1255,28 @@ end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 begin
   { nothing to do in this class }
 end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordsRanges;
 var
-  StartIndex, EndIndex: integer;
+  BeginIndex, EndIndex: integer;
   RangeNumber: Cardinal;
 begin
   Assert(CoordIndex <> nil);
-  StartIndex := 0;
+  BeginIndex := 0;
   RangeNumber := 0;
-  while StartIndex < CoordIndex.Count do
+  while BeginIndex < CoordIndex.Count do
   begin
-    EndIndex := StartIndex;
+    EndIndex := BeginIndex;
     while (EndIndex < CoordIndex.Count) and
           (CoordIndex.Items.Items[EndIndex] >= 0) do
       Inc(EndIndex);
-    RenderCoordsRange(RangeNumber, StartIndex, EndIndex);
+    RenderCoordsRange(RangeNumber, BeginIndex, EndIndex);
     Inc(RangeNumber);
-    StartIndex := EndIndex + 1;
+    BeginIndex := EndIndex + 1;
   end;
 end;
 
@@ -1322,8 +1334,71 @@ begin
 end;
 
 procedure TTriangleFanSetRenderer.RenderCoordinate;
+var
+  FanCount: TDynLongIntArray;
+  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  { TODO }
+  if CoordIndex <> nil then
+    RenderCoordsRanges else
+  begin
+    FanCount := (Geometry as TNodeTriangleFanSet).FdFanCount.Items;
+    EndIndex := 0;
+    for RangeNumber := 0 to FanCount.Count - 1 do
+    begin
+      BeginIndex := EndIndex;
+      EndIndex := BeginIndex + FanCount.Items[RangeNumber];
+      { Note that EndIndex *may* be equal to CoordCount,
+        as EndIndex is not taken into account by RenderCoordsRange. }
+      if EndIndex > CoordCount then
+      begin
+        VRMLNonFatalError('Too much fans (not enough coordinates) in ' + Geometry.NodeTypeName);
+        Break;
+      end;
+      if EndIndex - BeginIndex >= 3 then
+        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
+        VRMLNonFatalError('Fan count is less than 3 in ' + Geometry.NodeTypeName);
+    end;
+  end;
+end;
+
+procedure TTriangleFanSetRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+
+  procedure DoNormal(const v1, v2, v3: integer);
+  begin
+    { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+    glNormalv(TriangleNormal(
+      GetVertex(V1),
+      GetVertex(V2),
+      GetVertex(V3)));
+  end;
+
+begin
+  inherited;
+
+  if BeginIndex + 2 < EndIndex then
+  begin
+    { TODO: for now we always generate flat normals }
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
+
+      glBegin(GL_TRIANGLE_FAN);
+
+      RenderVertex(BeginIndex);
+      RenderVertex(BeginIndex + 1);
+
+      while BeginIndex + 2 < EndIndex do
+      begin
+        DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
+        RenderVertex(BeginIndex + 2);
+        Inc(BeginIndex);
+      end;
+
+      glEnd;
+
+    glPopAttrib();
+  end;
 end;
 
 { TTriangleStripSetRenderer -------------------------------------------------- }
@@ -1340,6 +1415,76 @@ begin
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordinate;
+var
+  StripCount: TDynLongIntArray;
+  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  { TODO }
+  if CoordIndex <> nil then
+    RenderCoordsRanges else
+  begin
+    StripCount := (Geometry as TNodeTriangleStripSet).FdStripCount.Items;
+    EndIndex := 0;
+    for RangeNumber := 0 to StripCount.Count - 1 do
+    begin
+      BeginIndex := EndIndex;
+      EndIndex := BeginIndex + StripCount.Items[RangeNumber];
+      { Note that EndIndex *may* be equal to CoordCount,
+        as EndIndex is not taken into account by RenderCoordsRange. }
+      if EndIndex > CoordCount then
+      begin
+        VRMLNonFatalError('Too much strips (not enough coordinates) in ' + Geometry.NodeTypeName);
+        Break;
+      end;
+      if EndIndex - BeginIndex >= 3 then
+        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
+        VRMLNonFatalError('Strip count is less than 3 in ' + Geometry.NodeTypeName);
+    end;
+  end;
+end;
+
+procedure TTriangleStripSetRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+
+  procedure DoNormal(const v1, v2, v3: integer);
+  begin
+    { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+    glNormalv(TriangleNormal(
+      GetVertex(V1),
+      GetVertex(V2),
+      GetVertex(V3)));
+  end;
+
+var
+  NormalOrder: boolean;
+begin
+  inherited;
+
+  if BeginIndex + 2 < EndIndex then
+  begin
+    { TODO: for now we always generate flat normals }
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
+
+      glBegin(GL_TRIANGLE_STRIP);
+
+      RenderVertex(BeginIndex);
+      RenderVertex(BeginIndex + 1);
+
+      NormalOrder := true;
+
+      while BeginIndex + 2 < EndIndex do
+      begin
+        if NormalOrder then
+          DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+          DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+        RenderVertex(BeginIndex + 2);
+        Inc(BeginIndex);
+        NormalOrder := not NormalOrder;
+      end;
+
+      glEnd;
+
+    glPopAttrib();
+  end;
 end;

@@ -67,6 +67,8 @@
     { Returns coord.point field, assuming that coord is set and
       specifies Coordinate node. Otherwise returns @nil. }
     function Coord: TMFVec3f;
+
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
@@ -194,7 +196,10 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -214,7 +219,6 @@
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -234,7 +238,10 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeLineSet = class(TNodeX3DGeometryNode)
@@ -325,7 +332,10 @@
     private FFdfanCount: TMFInt32;
     public property FdfanCount: TMFInt32 read FFdfanCount;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
@@ -338,7 +348,6 @@
 
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -354,7 +363,10 @@
     private FFdstripCount: TMFInt32;
     public property FdstripCount: TMFInt32 read FFdstripCount;
 
-    GeometryNotImplemented
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 {$endif read_interface}
 
@@ -656,9 +668,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeIndexedTriangleFanSet}
-GeometryNotImplemented
-
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -724,9 +733,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeIndexedTriangleStripSet}
-GeometryNotImplemented
 
 constructor TNodeLineSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -877,9 +883,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeTriangleFanSet}
-GeometryNotImplemented
-
 constructor TNodeTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -933,9 +936,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeTriangleStripSet}
-GeometryNotImplemented
 
 procedure RegisterRenderingNodes;
 begin

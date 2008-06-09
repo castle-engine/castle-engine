@@ -217,34 +217,37 @@ end;
 
 function IndexedPolygons_TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  CoordIndex: TMFLong): Cardinal;
+  CoordIndex: TMFLong; Coord: TMFVec3f): Cardinal;
 var
-  startIndex, endIndex: integer;
+  BeginIndex, EndIndex: integer;
 begin
-  startIndex := 0;
-  result := 0;
-  while startIndex < CoordIndex.Count do
-  begin
-    endIndex := startIndex;
-    while (endIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[endIndex] <> -1) do
-      Inc(endIndex);
+  if Coord = nil then
+    Exit(0);
 
-    result += Cardinal(max(endIndex-startIndex - 2, 0));
-    startIndex := endIndex + 1;
+  BeginIndex := 0;
+  result := 0;
+  while BeginIndex < CoordIndex.Count do
+  begin
+    EndIndex := BeginIndex;
+    while (EndIndex < CoordIndex.Count) and
+          (CoordIndex.Items.Items[EndIndex] <> -1) do
+      Inc(EndIndex);
+
+    result += Cardinal(Max(EndIndex - BeginIndex - 2, 0));
+    BeginIndex := EndIndex + 1;
   end;
 end;
 
 function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex);
+    FdCoordIndex, State.LastNodes.Coordinate3.FdPoint);
 end;
 
 function TNodeIndexedFaceSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex);
+    FdCoordIndex, Coord);
 end;
 
 function TNodeIndexedFaceSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
@@ -290,8 +293,8 @@ end;
 
 function TNodePointSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
-  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint.Count else
+  if Coord <> nil then
+    Result := Coord.Count else
     Result := 0;
 end;
 
@@ -382,7 +385,7 @@ end;
 
 { X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
 
-function TNodeIndexedTriangleSet.VerticesCount(
+function TNodeX3DComposedGeometryNode.VerticesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   if Coord <> nil then
@@ -401,18 +404,40 @@ begin
     Result := 0;
 end;
 
-function TNodeTriangleSet.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
-end;
-
 function TNodeTriangleSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   if Coord <> nil then
     Result := Coord.Count div 3 else
+    Result := 0;
+end;
+
+function TNodeIndexedTriangleFanSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, Coord);
+end;
+
+function TNodeTriangleFanSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    { For each fan, add it's count - 2. }
+    Result := FdFanCount.Items.Sum - FdFanCount.Items.Count * 2 else
+    Result := 0;
+end;
+
+function TNodeIndexedTriangleStripSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, Coord);
+end;
+
+function TNodeTriangleStripSet.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    { For each strip, add it's count - 2. }
+    Result := FdStripCount.Items.Sum - FdStripCount.Items.Count * 2 else
     Result := 0;
 end;

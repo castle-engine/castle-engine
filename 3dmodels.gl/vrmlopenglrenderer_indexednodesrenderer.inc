@@ -146,7 +146,7 @@ type
 
     procedure RenderVertex(indexNum: integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: integer); override;
+      BeginIndex, EndIndex: integer); override;
   end;
 
   TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
@@ -179,7 +179,7 @@ type
     procedure RenderCoordinateEnd; override;
     procedure RenderVertex(indexNum: integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); override;
+      BeginIndex, EndIndex: Integer); override;
 
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
@@ -213,7 +213,7 @@ type
 
     procedure RenderVertex(indexNum: integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); override;
+      BeginIndex, EndIndex: Integer); override;
 
     { Sets both glColor(...) and
       glMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE, ...) colors.
@@ -230,13 +230,13 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedTriangleMesh_1);
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); override;
+      BeginIndex, EndIndex: Integer); override;
   end;
 
   TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
   public
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); override;
+      BeginIndex, EndIndex: Integer); override;
   end;
 
   TIndexedLineSet_1Renderer = class(TIndexedLineSetRenderer)
@@ -261,7 +261,7 @@ type
     procedure RenderCoordinateBegin; override;
     procedure RenderVertex(indexNum: integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      StartIndex, EndIndex: Integer); override;
+      BeginIndex, EndIndex: Integer); override;
   end;
 
 { TGeneralIndexedRenderer ----------------------------------------------------- }
@@ -623,7 +623,7 @@ end;
 
 procedure TGeneralIndexedRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 begin
   case Render_Materials of
     imUseSpecifiedPerFace:
@@ -1122,7 +1122,7 @@ end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 
   { Calculates HasTangentVectors, STangent, TTangent }
   procedure CalculateTangentVectors;
@@ -1228,12 +1228,12 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
     TriangleTexCoord: TTriangle2Single;
   begin
     HasTangentVectors := false;
-    if (BumpMappingMethod <> bmNone) and (StartIndex + 2 < EndIndex) then
+    if (BumpMappingMethod <> bmNone) and (BeginIndex + 2 < EndIndex) then
     begin
       { calculate Triangle3D }
-      Triangle3D[0] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex]];
-      Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 1]];
-      Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[StartIndex + 2]];
+      Triangle3D[0] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[BeginIndex]];
+      Triangle3D[1] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[BeginIndex + 1]];
+      Triangle3D[2] := Coord.Items.ItemsArray^[CoordIndex.Items.Items[BeginIndex + 2]];
 
       { This is just to shut up FPC 2.2.0 warnings about
         TriangleTexCoord not initialized. }
@@ -1241,9 +1241,9 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
 
       HasTangentVectors :=
         { calculate TriangleTexCoord }
-        GetTextureCoord(StartIndex    , TriangleTexCoord[0]) and
-        GetTextureCoord(StartIndex + 1, TriangleTexCoord[1]) and
-        GetTextureCoord(StartIndex + 2, TriangleTexCoord[2]) and
+        GetTextureCoord(BeginIndex    , TriangleTexCoord[0]) and
+        GetTextureCoord(BeginIndex + 1, TriangleTexCoord[1]) and
+        GetTextureCoord(BeginIndex + 2, TriangleTexCoord[2]) and
         { calculate STangent, TTangent }
         CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
         CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
@@ -1255,16 +1255,16 @@ begin
   inherited;
 
   if (Render_Normals = inGenerate) and NormalsFlat then
-    glNormalv(Render_GeneratedNormals.Items[StartIndex]);
+    glNormalv(Render_GeneratedNormals.Items[BeginIndex]);
 
   CalculateTangentVectors;
 
  if not FaceConvex then
  begin
   glBegin(GL_TRIANGLES);
-  TriangulateFace(Addr(CoordIndex.Items.Items[StartIndex]),
-    EndIndex-StartIndex, Coord.Items.ItemsArray,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, StartIndex);
+  TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
+    EndIndex-BeginIndex, Coord.Items.ItemsArray,
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, BeginIndex);
   glEnd;
  end else
  begin
@@ -1289,8 +1289,8 @@ begin
      GL_TRIANGLE_FAN entirely for now on Darwin. }
 
   glBegin(GL_TRIANGLES);
-  TriangulateConvexFace(EndIndex-StartIndex,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, StartIndex);
+  TriangulateConvexFace(EndIndex-BeginIndex,
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, BeginIndex);
   glEnd;
 
   {$else DARWIN}
@@ -1328,10 +1328,10 @@ begin
     obiektu wireframe. }
 
   glBegin(GL_TRIANGLE_FAN);
-  while startIndex < endIndex do
+  while BeginIndex < endIndex do
   begin
-   RenderVertex(startIndex);
-   Inc(startIndex);
+   RenderVertex(BeginIndex);
+   Inc(BeginIndex);
   end;
   glEnd;
 
@@ -1454,7 +1454,7 @@ end;
 
 procedure TIndexedFaceSet_2Renderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then
@@ -1502,11 +1502,14 @@ end;
 
 procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
+
+{ TODO: this is just a copy of TTriangleStripSetRenderer.RenderCoordsRange,
+  and should be deleted (once all our ancestors functionality will be
+  moved to TTriangleStripSetRenderer and TAbstractCoordinateRenderer. }
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    { TODO: for IndexedTriangleMesh we always generate flat normals }
     if Render_Normals = inGenerate then
     begin
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
@@ -1522,25 +1525,26 @@ var
 begin
   inherited;
 
-  if StartIndex + 2 < EndIndex then
+  if BeginIndex + 2 < EndIndex then
   begin
+    { TODO: for now we always generate flat normals }
     glPushAttrib(GL_LIGHTING_BIT { for shade model });
     glShadeModel(GL_FLAT);
 
       glBegin(GL_TRIANGLE_STRIP);
 
-      RenderVertex(StartIndex);
-      RenderVertex(StartIndex + 1);
+      RenderVertex(BeginIndex);
+      RenderVertex(BeginIndex + 1);
 
       NormalOrder := true;
 
-      while StartIndex + 2 < EndIndex do
+      while BeginIndex + 2 < EndIndex do
       begin
         if NormalOrder then
-          DoNormal(StartIndex    , StartIndex + 1, StartIndex + 2) else
-          DoNormal(StartIndex + 1, StartIndex    , StartIndex + 2);
-        RenderVertex(StartIndex + 2);
-        Inc(StartIndex);
+          DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+          DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+        RenderVertex(BeginIndex + 2);
+        Inc(BeginIndex);
         NormalOrder := not NormalOrder;
       end;
 
@@ -1554,13 +1558,13 @@ end;
 
 procedure TIndexedLineSetRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 var i: integer;
 begin
   inherited;
 
   glBegin(GL_LINE_STRIP);
-  for i := startIndex to endIndex - 1 do RenderVertex(i);
+  for i := BeginIndex to endIndex - 1 do RenderVertex(i);
   glEnd;
 end;
 
@@ -1652,7 +1656,7 @@ end;
 
 procedure TIndexedLineSet_2Renderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
-  StartIndex, EndIndex: Integer);
+  BeginIndex, EndIndex: Integer);
 begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then

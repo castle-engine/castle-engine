@@ -807,3 +807,27 @@ procedure TNodeTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
 begin
   { TODO }
 end;
+
+procedure TNodeIndexedTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
+
+procedure TNodeTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
+
+procedure TNodeIndexedTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;
+
+procedure TNodeTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { TODO }
+end;

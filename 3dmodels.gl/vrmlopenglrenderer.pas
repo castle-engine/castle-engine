@@ -3324,6 +3324,12 @@ var
     if (Node is TNodeTriangleSet) or
        (Node is TNodeIndexedTriangleSet) then
       ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else
+    if (Node is TNodeTriangleFanSet) or
+       (Node is TNodeIndexedTriangleFanSet) then
+      ExposedMeshRenderer := TTriangleFanSetRenderer.Create(Self) else
+    if (Node is TNodeTriangleStripSet) or
+       (Node is TNodeIndexedTriangleStripSet) then
+      ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
 
     if MeshRenderer <> nil then

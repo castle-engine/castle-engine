@@ -511,7 +511,7 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-{ X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
+{ TNodeIndexedTriangleSet ---------------------------------------------------- }
 
 function TNodeIndexedTriangleSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
@@ -538,6 +538,74 @@ begin
 end;
 
 function TNodeTriangleSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_BoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
+{ TNodeIndexedTriangleFanSet ------------------------------------------------- }
+
+function TNodeIndexedTriangleFanSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeIndexedTriangleFanSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeTriangleFanSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_LocalBoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeTriangleFanSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_BoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
+{ TNodeIndexedTriangleStripSet ------------------------------------------------- }
+
+function TNodeIndexedTriangleStripSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeIndexedTriangleStripSet.BoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeTriangleStripSet.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := Coords_LocalBoundingBox(State, Coord) else
+    Result := EmptyBox3d;
+end;
+
+function TNodeTriangleStripSet.BoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   if Coord <> nil then
