@@ -2952,11 +2952,12 @@ begin
 
   Result := (ParentShape = SecondValue.ParentShape);
 
-  for I := 0 to HighTraverseStateLastNodes do
-    if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
-      Exit(false);
-
-  Result := true;
+  if Result then
+  begin
+    for I := 0 to HighTraverseStateLastNodes do
+      if SecondValue.LastNodes.Nodes[I] <> LastNodes.Nodes[I] then
+        Exit(false);
+  end;
 end;
 
 function TVRMLGraphTraverseState.Texture: TVRMLTextureNode;
