@@ -39,6 +39,7 @@ and is rasterized. Note that some vertexes
 are shared by more than one primitive, e.g. triangle strips, fans etc.
 The idea of these primitives is that the per-vertex work (whether fixed-function
 or vertex shader) is done only once, and results are reused.
+
 Fragment = same thing as pixel by default, although some operations like
 glPixelZoom change this correspondence.
 Rasterization calculates coordinates of fragments, each fragment gets as input
@@ -122,18 +123,20 @@ Assembly shading languages:
     rcp/rsq, dp3/dp4).
   - Special for fragment: texture lookup (tex and friends).
 
-    Note the "pipeline" requirement is not present in shaders.
+    Note that the "pipeline" constraint, present when we were
+    playing with multitexturing without shaders (GL_ARB_multitexture,
+    GL_EXT_texture_env_combine) is not present in shaders.
     In one program I can access any texture coordinate and sample any texture.
     E.g. for ARB vertex program see fragment.texcoord[n], texture[n],
     operations like TEX, TXP.
 
       TEX some_result, some_coordinate, texture[some_texture_unit_number], 2D;
 
-    So we can avoid the multitexture constraint that the calculations can
-    only access calculation result from previous texture unit.
+    So we can avoid the previous multitexture constraint that forced the
+    calculations to access only results from previous texture unit.
 
   - Note: no real "if" to make execution of shaders in parallel possible.
-    There are only cheats like "CMP" - conditional copy,
+    There are only "cheats" like "CMP" --- conditional copy,
       CMP result a b c
     means
       result := if a < 0 then b else c;
@@ -144,8 +147,8 @@ Assembly shading languages:
     Sure you can do tricks with this, actually you can emulate whole "if"
     (in the worst case, just set some variable based on the result of comparison,
     then perform both branches of "if", one after the other,
-    multiply result if 1st branch with SLT result,
-    multiply result if 2nd branch with (1-SLT result)).
+    multiply result of the 1st branch with SLT result,
+    multiply result of the 2nd branch with (1-SLT result)).
 
     You can play with assembler languages, by compiling GLSL to it by cgc:
       cgc -oglsl -profile arbfp1 glsl_test_if.fs
@@ -355,7 +358,7 @@ assembly langs actually).
 
     This reflects assembly shading langs underneath, and ability to "swizzle"
     vector components for free. E.g. in
-    kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/glsl_some_deform.vs,
+    kambi_vrml_test_suite/x3d/shaders/glsl_some_deform.vs,
     initial code was
       v[0] += v[1];
       v[2] += v[1];
@@ -406,8 +409,8 @@ assembly langs actually).
     See ../../glshaders.pas for full code of class to handle GLSL programs,
     using both std GL or ARB versions.
 
-  See kambi_vrml_test_suite/vrml_2/kambi_extensions/shaders/
-  for demo how it's used from VRML.
+  See kambi_vrml_test_suite/x3d/shaders/
+  for demo how it's used from X3D (aka VRML 3.0).
 
   http://www.opengl.org/code/category/C20
 
@@ -416,10 +419,11 @@ More:
 
 Demos:
 - see kambi_vrml_test_suite demos:
-  - shaders.wrl
+  - shaders.x3dv
   - see specular_demo_phong_shading
   - see e.g. fountain VRML with toon shading applied
 
 - see bump mapping in VRML engine, when bmGLSLNormal and bmGLSLParallax,
   implemented using GLSL shaders,
-  see parallax bump mapping, examples in kambi_vrml_test_suite
+  see parallax bump mapping,
+  examples in kambi_vrml_test_suite/vrml_2/kambi_extensions/bump_mapping
