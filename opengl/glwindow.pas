@@ -626,7 +626,7 @@ uses
   {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
-  {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, {$endif}
+  {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   {$ifdef GLWINDOW_LOGFILE} LogFile, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, Keys, MatrixNavigation,
   RaysWindow, KambiStringUtils, KambiFilesUtils, KambiTimeUtils,

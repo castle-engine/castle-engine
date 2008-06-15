@@ -194,6 +194,21 @@ private
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
   {$endif}
+
+  {$ifdef GLWINDOW_GTK_2}
+  { These functions are only in GTK >= 2.8. For example fink (stable) has only
+    GTK 2.6 for now, so we have to be careful and use them only if they can be
+    loaded from GTK lib.
+
+    Normal definitions submitted as http://bugs.freepascal.org/view.php?id=11246 }
+
+  gtk_file_chooser_get_do_overwrite_confirmation: function (
+    chooser:PGtkFileChooser): gboolean; cdecl;
+  gtk_file_chooser_set_do_overwrite_confirmation: procedure (
+    chooser:PGtkFileChooser; do_overwrite_confirmation:gboolean); cdecl;
+
+  LibGtk: TDynLib;
+  {$endif GLWINDOW_GTK_2}
 public
   {$ifdef GLWINDOW_GTK_2}
   { Set XDisplay name, this will be used for all TGLWindow
@@ -1346,21 +1361,6 @@ begin
   Result := Data.Answer;
 end;
 
-{$ifdef GLWINDOW_GTK_2}
-{$define HasGTK2_8}
-
-{ Submitted as http://bugs.freepascal.org/view.php?id=11246 }
-
-{$ifdef HasGTK2_8}
-function gtk_file_chooser_get_do_overwrite_confirmation(
-  chooser:PGtkFileChooser): gboolean;
-  cdecl; external gtklib name 'gtk_file_chooser_get_do_overwrite_confirmation';
-procedure gtk_file_chooser_set_do_overwrite_confirmation(
-  chooser:PGtkFileChooser; do_overwrite_confirmation:gboolean);
-  cdecl; external gtklib name 'gtk_file_chooser_set_do_overwrite_confirmation';
-{$endif}
-{$endif}
-
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 
@@ -1425,7 +1425,8 @@ begin
 
   if not OpenDialog then
   begin
-    gtk_file_chooser_set_do_overwrite_confirmation(Dialog, true);
+    if Assigned(Glwm.gtk_file_chooser_set_do_overwrite_confirmation) then
+      Glwm.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, true);
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1765,6 +1766,24 @@ begin
   GlobalIdleInstalled := true;
 
   QuitPosted := false;
+
+{$ifdef GLWINDOW_GTK_2}
+
+  { These are available only in GTK 2.8.
+    We want to cooperate even with GTK 2.6 (in Mac OS X fink stable),
+    so we have to laod them dynamically. }
+  gtk_file_chooser_get_do_overwrite_confirmation := nil;
+  gtk_file_chooser_set_do_overwrite_confirmation := nil;
+
+  LibGtk := TDynLib.Load(gtklib, false);
+  if LibGtk <> nil then
+  begin
+    LibGtk.SymbolErrorBehaviour := seReturnNil;
+    Pointer(gtk_file_chooser_get_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_get_do_overwrite_confirmation');
+    Pointer(gtk_file_chooser_set_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_set_do_overwrite_confirmation');
+  end;
+
+{$endif GLWINDOW_GTK_2}
 end;
 
 procedure TGLWindowsManager.DestroyImplDependent;
@@ -1784,6 +1803,12 @@ begin
       {$endif}
       Cursors[C] := nil;
     end;
+
+{$ifdef GLWINDOW_GTK_2}
+  FreeAndNil(LibGtk);
+  gtk_file_chooser_get_do_overwrite_confirmation := nil;
+  gtk_file_chooser_set_do_overwrite_confirmation := nil;
+{$endif GLWINDOW_GTK_2}
 end;
 
 { When GLWINDOW_USE_XF86VMODE, then glwindow_xf86vmode.inc
