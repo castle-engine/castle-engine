@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004,2007 Michalis Kamburelis.
+  Copyright 2002-2004, 2007 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -26,24 +26,24 @@
   Jesli plik ma kilka rozszerzen, obcina TYLKO ostatnie.
   Jesli plik nie mial rozszerzenia, nic nie obcina.
   Kiedys jako FilenameWithoutExt. }
-function DeleteFileExt(const filename:string):string;
+function DeleteFileExt(const filename: string): string;
 
 { wyciaga z filename nazwe pliku bez dysku, katalogu i ostatniego rozszerzenia }
-function ExtractOnlyFilename(const filename:string):string;
+function ExtractOnlyFilename(const filename: string): string;
 
 { ChangeFilePath zwraca fname ze sciezka ustawiona na NewPath.
   (newPath musi zawierac koncowy PathDelim) }
-function ChangeFilePath(const fname, NewPath:string):string;
+function ChangeFilePath(const fname, NewPath: string): string;
 
 { podwaja w stringu znaki PathDelim }
-function DuplicateSlash(const s:string):string;
+function DuplicateSlash(const s: string): string;
 
 { zwraca true jesli c = PathDelim, pod Windows zwraca true takze gdy c = '/'.
   ( Bo pod Windows '/' nie jest PathDelim ale tak naprawde jest akceptowane przez funkcje
   WinAPI (wiec w zasadzie przez wszystko) zamiast PathDelim, wiec gdzieniegdzie jest
   uzywane (takze przeze mnie) zamiast PathDelim - przynajmniej w moim przypadku
   jest to przyzwyczajenie z Linuxa.)  }
-function IsPathDelim(c:char):boolean;
+function IsPathDelim(c: char): boolean;
 
 { Moje funkcje Incl/ExclPathDelim robia prawie to samo co Include/ExcludeTrailingPathDelimiter
   a maja mniej meczace nazwy. A wiec, zeby powiedziec to jasno :
@@ -55,13 +55,13 @@ function IsPathDelim(c:char):boolean;
   Pewne roznice z wersjami SysUtils moga byc: te funkcje nie dzialaja na
   stringach MBCS. Ponadto uzywaja mojej IsPathDelim ktora uwzglednia fakt
   ze pod Windows '/' jest tak naprawde akceptowalnym path delimitorem. }
-function InclPathDelim(const s:string):string;
-function ExclPathDelim(const s:string):string;
+function InclPathDelim(const s: string): string;
+function ExclPathDelim(const s: string): string;
 
 { fname moze byc bezwzgledne lub wzgledne wzgledem CurrentDir.
   Zwroci fname wzgledne wzgledem CurrentDir, tzn. odpowiednio zmodyfikuje
   fname bezwzgledne lub przepisze bez zmian fname wzgledne. }
-function RelativeFilename(const fname:string):string;
+function RelativeFilename(const fname: string): string;
 
 { fname is absolute filename or relative (with respect to CurrentDir).
   This function maybe will convert fname to absolute filename and
@@ -79,35 +79,37 @@ function RelativeFilename(const fname:string):string;
   The exact operations are not specified here. Current implementation
   returns relative filename if fname is in CurrentDir or subdirectory,
   else it returns absolute filename. }
-function NiceFileName(const fname:string):string;
+function NiceFileName(const fname: string): string;
 
-{ sprawdza czy sciezka podana w path jest absolutna. path moze
-  wskazywac na katalog (i byc zakoncone PathDelim lub nie), moze
-  tez wskazywac na plik. Czyli zupelnie dowolnie.
-  Uwaga pod Windowsa : sciezka 'c:\autoexec.bat' jest absolutna, naturalnie.
-    Sciezka 'autoexec.bat' naturalnie nie jest absolutna.
-    Ale co ze sciezka '\autoexec.bat' ? Okresla ona katalog (w postaci
-    bezwzglednej) ale nie okresla dysku. Jest to jedna z zalet UNIXowego
-    podejscia (spojne drzewo katalogow), tam nie ma takiego problemu.
-    W kazdym razie, sciezka '\autoexec.bat' NIE JEST absolutna no bo nie
-    uwzglednia wszystkiego.
+{ Check is the given Path absolute.
 
-    Tym niemniej, zaimplementowalem tez funkcje IsPathAbsoluteOnDrive
-    ktora dziala tak samo jak IsPathAbsolute tyle ze DODATKOWO
-    dla sciezek w rodzaju '\autoexec.bat' odpowiada true (dla sciezek
-    'c:\autoexec.bat' oczywiscie tez ciagle odpowiada true; pod nie-Windowsem
-    obie te funkcje robia to samo.)  }
-function IsPathAbsolute(const path:string):boolean;
-function IsPathAbsoluteOnDrive(const path:string):boolean;
+  Path may point to directory or normal file,
+  it doesn't matter. Also it doesn't matter whether Path ends with PathDelim or not.
+
+  Note for Windows: while it's obvious that @code('c:\autoexec.bat') is an
+  absolute path, and @code('autoexec.bat') is not, there's a question
+  whether path like @code('\autoexec.bat') is absolute? It doesn't specify
+  drive letter, but it does specify full directory hierarchy on some drive.
+  This function treats this as @italic(not absolute), on the reasoning that
+  "not all information is contained in Path".
+
+  @seealso IsPathAbsoluteOnDrive }
+function IsPathAbsolute(const Path: string): boolean;
+
+{ Just like IsPathAbsolute, but on Windows accepts also paths that specify
+  full directory tree without drive letter.
+
+  @seealso IsPathAbsolute }
+function IsPathAbsoluteOnDrive(const Path: string): boolean;
 
 { czy nazwa katalogu to nazwa specjalna ? Np. '.' albo '..'. dirname nie moze
   byc zadna sciezka ani nic w tym stylu, zadnych ozdobnikow, to jest
-  twarde sprawdzanie czy dirname='.' lub '..' (plus pewne zabezpieczenia,
+  twarde sprawdzanie czy dirname = '.' lub '..' (plus pewne zabezpieczenia,
   patrz implementacja; Uzywaj tej f-cji zamiast wykonywac te porownania recznie). }
-function SpecialDirName(const dirname:string):boolean;
+function SpecialDirName(const dirname: string): boolean;
 
 { Returns DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName); }
-function AppendToFilename(const FileName, Suffix:string):string;
+function AppendToFilename(const FileName, Suffix: string): string;
 
 { Same as ExpandFileName, but knows that FilePath contains only a path
   and will ALWAYS work as it should (not Delphi's nor FPC's guarantee
@@ -117,99 +119,98 @@ function AppendToFilename(const FileName, Suffix:string):string;
 
   Note: '' is treated as current dir (as it always should be, because
   ExtractFilePath('file') = '' and 'file' is in current dir. }
-function ExpandFilePath(const FilePath:string):string;
+function ExpandFilePath(const FilePath: string): string;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function DeleteFileExt(const filename:string):string;
-var i:integer;
+function DeleteFileExt(const filename: string): string;
+var i: integer;
 begin
- for i:=Length(filename) downto 1 do
-  if filename[i]='.' then begin result:=Copy(filename,1,i-1); exit end else
-   if filename[i]=PathDelim then break;
- result:=filename;
+ for i := Length(filename) downto 1 do
+  if filename[i] = '.' then begin result := Copy(filename, 1, i-1); exit end else
+   if filename[i] = PathDelim then break;
+ result := filename;
 end;
 
-function ExtractOnlyFilename(const filename:string):string;
+function ExtractOnlyFilename(const filename: string): string;
 begin
- result:=DeleteFileExt(ExtractFilename(filename));
+ result := DeleteFileExt(ExtractFilename(filename));
 end;
 
-function ChangeFilePath(const fname, NewPath:string):string;
+function ChangeFilePath(const fname, NewPath: string): string;
 begin
- result:=NewPath + ExtractFileName(fname);
+ result := NewPath + ExtractFileName(fname);
 end;
 
-function DuplicateSlash(const s:string):string;
-var i:integer;
+function DuplicateSlash(const s: string): string;
+var i: integer;
 begin
- result:=s;
- i:=1;
- while i<=length(result) do
+ result := s;
+ i := 1;
+ while i <= length(result) do
  begin
-  if result[i]=PathDelim then begin Insert(PathDelim,result,i); Inc(i) end;
+  if result[i] = PathDelim then begin Insert(PathDelim, result, i); Inc(i) end;
   Inc(i);
  end;
 end;
 
-function IsPathDelim(c:char):boolean;
+function IsPathDelim(c: char): boolean;
 begin
- result:=(c=PathDelim) {$ifdef MSWINDOWS} or (c='/') {$endif};
+ result:=(c = PathDelim) {$ifdef MSWINDOWS} or (c = '/') {$endif};
 end;
 
-function InclPathDelim(const s:string):string;
-var L:Integer;
+function InclPathDelim(const s: string): string;
+var L: Integer;
 begin
- L:=Length(S);
- if (L=0) or (not IsPathDelim(S[L])) then result:=S+PathDelim else result:=S;
+ L := Length(S);
+ if (L = 0) or (not IsPathDelim(S[L])) then result := S+PathDelim else result := S;
 end;
 
-function ExclPathDelim(const s:string):string;
-var L:Integer;
+function ExclPathDelim(const s: string): string;
+var L: Integer;
 begin
- L:=Length(S);
- if (L>0) and IsPathDelim(S[L]) then Dec(L);
- Result:=Copy(S,1,L);
+ L := Length(S);
+ if (L > 0) and IsPathDelim(S[L]) then Dec(L);
+ Result := Copy(S, 1, L);
 end;
 
-function RelativeFilename(const fname:string):string;
+function RelativeFilename(const fname: string): string;
 begin
  if IsPathAbsolute(fname) then
-  Result:=ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
+  Result := ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
     fname) else
  { TODO: MSWINDOWS - chyba nie trzeba uwzgledniac tu
    IsPathAbsoluteOnDrive(fname) ? }
-  Result:=fname;
+  Result := fname;
 end;
 
-function NiceFileName(const fname:string):string;
-var AbsoluteFname:string;
+function NiceFileName(const fname: string): string;
+var AbsoluteFname: string;
 begin
- AbsoluteFname:=ExpandFileName(fname);
+ AbsoluteFname := ExpandFileName(fname);
  { It's important that we end InclPathDelim(GetCurrentDir) and
    ExtractFilePath(AbsoluteFname) always with PathDelim, it makes sure that
    IsPrefix actually checks is one file in subdirectory of another. }
  if IsPrefix( InclPathDelim(GetCurrentDir), ExtractFilePath(AbsoluteFname) ) then
-  Result:=RelativeFilename(fname) else
-  Result:=AbsoluteFname;
+  Result := RelativeFilename(fname) else
+  Result := AbsoluteFname;
 end;
 
-function IsPathAbsolute(const path:string):boolean;
+function IsPathAbsolute(const Path: string): boolean;
 begin
- {$ifdef UNIX} result:=SCharIs(path,1,PathDelim)
- {$else} result:=SCharIs(path,2,DriveDelim)
- {$endif}
+  Result := {$ifdef UNIX} SCharIs(Path, 1, PathDelim) {$endif}
+            {$ifdef MSWINDOWS} SCharIs(Path, 2, DriveDelim) {$endif};
 end;
 
-function IsPathAbsoluteOnDrive(const path:string):boolean;
+function IsPathAbsoluteOnDrive(const Path: string): boolean;
 begin
- result:=IsPathAbsolute(path)
-   {$ifdef MSWINDOWS} or SCharIs(path,1,PathDelim) {$endif}
+  Result := IsPathAbsolute(Path)
+    {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
 end;
 
-function SpecialDirName(const dirname:string):boolean;
+function SpecialDirName(const dirname: string): boolean;
 begin
  { Microsoft swego czasu straszyl ze w systemie beda zdefiniowane katalogi ...
      i .... jako katalog-dziadek i pradziadek tak jak obecnie sa .. jako rodzic i
@@ -222,21 +223,21 @@ begin
    Pod linuxem (i prawdopodobnie kazdym innym nie-Windowsem)
    ... i .... to zupelnie legalne nazwy plikow dlatego
    ten check nie moze istniec pod nie-Windowsem. }
- result:=ArrayPosStr(dirname,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}])>=0;
+ result := ArrayPosStr(dirname,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}]) >= 0;
 end;
 
-function AppendToFilename(const FileName, Suffix:string):string;
+function AppendToFilename(const FileName, Suffix: string): string;
 begin
  { I know, this can be optimized, as DeleteFileExt and ExtractFileExt
    do almost the same work twice. }
- Result:=DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName);
+ Result := DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName);
 end;
 
-function ExpandFilePath(const FilePath:string):string;
+function ExpandFilePath(const FilePath: string): string;
 begin
  if FilePath = '' then
-  Result:=InclPathDelim(GetCurrentDir) else
-  Result:=ExtractFilePath( ExpandFileName(InclPathDelim(FilePath) +
+  Result := InclPathDelim(GetCurrentDir) else
+  Result := ExtractFilePath( ExpandFileName(InclPathDelim(FilePath) +
     'dummy_file_name' ));
 
  { note : doing here something like
