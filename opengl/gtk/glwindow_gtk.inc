@@ -203,9 +203,15 @@ private
     Normal definitions submitted as http://bugs.freepascal.org/view.php?id=11246 }
 
   gtk_file_chooser_get_do_overwrite_confirmation: function (
-    chooser:PGtkFileChooser): gboolean; cdecl;
+    chooser: PGtkFileChooser): gboolean; cdecl;
   gtk_file_chooser_set_do_overwrite_confirmation: procedure (
-    chooser:PGtkFileChooser; do_overwrite_confirmation:gboolean); cdecl;
+    chooser: PGtkFileChooser; do_overwrite_confirmation: gboolean); cdecl;
+
+  { Since GTK 2.6.
+    (Although I officially require GTK 2.6, this function is really
+    not critical, so I load it dynamically.) }
+  gtk_window_set_icon_name: procedure (
+    window: PGtkWindow; const name: PGChar); cdecl;
 
   LibGtk: TDynLib;
   {$endif GLWINDOW_GTK_2}
@@ -954,6 +960,10 @@ begin
    ) );
  {$else}
  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+
+ if (GtkIconName <> '') and
+    Assigned(Glwm.gtk_window_set_icon_name) then
+   Glwm.gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
  {$endif}
 
  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
@@ -1774,6 +1784,7 @@ begin
     so we have to laod them dynamically. }
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
+  gtk_window_set_icon_name := nil;
 
   LibGtk := TDynLib.Load(gtklib, false);
   if LibGtk <> nil then
@@ -1781,6 +1792,7 @@ begin
     LibGtk.SymbolErrorBehaviour := seReturnNil;
     Pointer(gtk_file_chooser_get_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_get_do_overwrite_confirmation');
     Pointer(gtk_file_chooser_set_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_set_do_overwrite_confirmation');
+    Pointer(gtk_window_set_icon_name) := LibGtk.Symbol('gtk_window_set_icon_name');
   end;
 
 {$endif GLWINDOW_GTK_2}
@@ -1808,6 +1820,7 @@ begin
   FreeAndNil(LibGtk);
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
+  gtk_window_set_icon_name := nil;
 {$endif GLWINDOW_GTK_2}
 end;
 

@@ -1184,6 +1184,7 @@ type
     FStencilBufferBits: Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
+    FGtkIconName: string;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1555,6 +1556,18 @@ type
          IndexBufferBits: Cardinal; = ????
          IndexedColorBuffer: boolean; { = false }
     *)
+
+    { Name of the icon for this window used by GTK 2 backend.
+
+      This is simply passed to @code(gtk_window_set_icon_name),
+      see [http://library.gnome.org/devel/gtk/stable/GtkWindow.html#gtk-window-set-icon-name].
+      This allows you to use an installed icon (in /usr/share/icons/
+      or ~/.local/share/icons/) for your program. See
+      [http://library.gnome.org/devel/integration-guide/stable/icons.html.en]
+      for short information how and where to install your icons.
+
+      It's ignored on non-GTK 2 backends. }
+    property GtkIconName: string read FGtkIconName write FGtkIconName;
   public
 
     { -----------------------------------------------------------------------
