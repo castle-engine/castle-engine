@@ -90,7 +90,7 @@ D   mathexprlexer.pas
 -   mathexprparser.pas
 -   mathexpr.pas
 -   parseparametersunit.pas
--   progressconsole.pas
+D   progressconsole.pas
 |   progressunit.pas
 D   rects.pas
 |   vectormath.pas

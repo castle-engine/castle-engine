@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2005 Michalis Kamburelis.
+  Copyright 2002-2005,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,22 +18,32 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Unit zarzadzajacy progressem na konsoli (na StdErr, dokladniej).)
+{ @abstract(Progress bar displayed on console (actually, on StdErr).)
 
-  To jest prosty progress ktory wyswietla tytulik otoczony nawiasami []
-  i potem w linijce ponizej biegna kropeczki. Specjalnie zostal tak
-  napisany zeby nie wymagac zadnego modulu crt, ncurses, WinConsole
-  itp. Wystarcza mu proste Write na StdErr ! Dzieki temu mozemy
-  nawet zostac przekierowani do pliku i nic nie zauwazymy !
+  You can assign ProgressConsoleInterface to Progress.UserInterface,
+  like
 
-  Po ladniejszy progress, ktory wyglada lepiej i jest naprawde
-  konsolowy (a nie tylko na StdErr) patrz ProgressVideo.
+  @longCode(#  Progress.UserInterface := ProgressGLInterface;#)
 
-  Niczego nie wypisuj na StdErr w czasie gdy ten program dziala.
+  and then all progress bars will be displayed on console.
 
-  Rejestruje odpowiednie funkcje modulu ProgressUnit w RegisterProgressConsole.
+  This displays a title surrounded by [] characters and the progress
+  is indicated by displaying dots. This way we visualize progress
+  incrementing from 0 to 100%, and at the same time we use only
+  normal streaming I/O on StdErr. Totally no console/terminal specific
+  operations, no special codes, no Crt / Curses unit's used etc.
+  So this unit doesn't create any terminal compatibility problems,
+  doesn't mess standard input/output/error streams etc.
+
+  The only restriction is that you should not output anything
+  (on stdout and stderr) to not mess the displayed progress bar.
+  Of course, the worse that will happen is that the progress bar
+  will stop looking good for user, nothing more.
+
+  If you really want a progress bar that uses your terminal capabilities
+  see ProgressVideo unit, that displays progress on terminal by FPC's
+  Video unit.
 }
-
 unit ProgressConsole;
 
 {$I kambiconf.inc}
@@ -43,9 +53,11 @@ interface
 uses ProgressUnit;
 
 type
+  { }
   TProgressConsoleInterface = class(TProgressUserInterface)
   private
-    KropeczkiWritten: Integer; {bedzie sie zmieniac od 0 do ConsoleWidth}
+    { will grow from 0 to ConsoleWidth }
+    KropeczkiWritten: Integer;
   public
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -53,7 +65,8 @@ type
   end;
 
 var
-  { created in initialization, freed in finalization }
+  { Assign this to Progress.UserInterface to use console progress bar.
+    This instance is created in initialization, freed in finalization. }
   ProgressConsoleInterface :TProgressConsoleInterface;
 
 implementation
