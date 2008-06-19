@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ TVRMLLexer class and helpers. }
+{ VRML lexer: TVRMLLexer class and helpers. }
 unit VRMLLexer;
 
 { Every newly read token will be reported with LogWrite.
@@ -33,10 +33,10 @@ uses SysUtils, Classes, KambiUtils, KambiStringUtils, KambiClassUtils,
   Math, VRMLErrors {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
 
 type
-  { Valid keywords for any VRML version. }
+  { Valid keywords for all VRML / X3D versions. }
   TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
     vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField,
-    { X3D-only keywords } { }
+    { X3D-only keywords below } { }
     vkAS, vkCOMPONENT, vkEXPORT, vkIMPORT, vkMETA, vkPROFILE,
     vkInputOnly, vkOutputOnly, vkInputOutput, vkInitializeOnly);
 
@@ -49,36 +49,46 @@ const
     [vkEventIn, vkEventOut, vkExposedField, vkField];
 
 type
-  { VRML lexer token }
+  { VRML lexer token. }
   TVRMLToken = (
     vtKeyword,
     vtName,
 
-    { Symbols for all VRML versions }
+    { Symbols for all VRML versions.
+      @groupBegin }
     vtOpenCurlyBracket, vtCloseCurlyBracket,
     vtOpenSqBracket, vtCloseSqBracket,
+    { @groupEnd }
 
     { Symbols below are only for VRML <= 1.0.
       In VRML 2.0, they are no longer valid symbols
       (comma is even considered a whitespace).
-      They will never be returned by lexer when reading VRML >= 2.0 files. }
+      They will never be returned by lexer when reading VRML >= 2.0 files.
+
+      @groupBegin }
     vtOpenBracket, vtCloseBracket, vtBar, vtComma,
+    { @groupEnd }
 
     { Symbols below are only for VRML >= 2.0.
-      They will never be returned by lexer when reading VRML < 2.0 files.  }
+      They will never be returned by lexer when reading VRML < 2.0 files.
+      @groupBegin }
     vtPeriod,
+    { @groupEnd }
 
     { Symbols below are only for VRML >= 3.0, that is X3D.
-      They will never be returned by lexer when reading VRML < 3.0 files.  }
+      They will never be returned by lexer when reading VRML < 3.0 files.
+      @groupBegin }
     vtColon,
+    { @groupEnd }
 
-    { Back to version-neutral tokens, suitable for all VRML / X3D versions. }
-
+    { Back to version-neutral tokens, suitable for all VRML / X3D versions.
+      @groupBegin }
     vtFloat, vtInteger, vtString,
+    { @groupEnd }
 
     { vtEnd means that we're standing at the end of stream, no more tokens.
-      Subsequent reads NextToken from stream will always result in
-      vtEnd (they will not raise an error). }
+      From this point, further reads using NextToken from stream will
+      always result in vtEnd (they will not raise an error). }
     vtEnd);
   TVRMLTokens = set of TVRMLToken;
 
@@ -95,9 +105,9 @@ type
 
     Remember that VRML is case-sensitive, so TokenName and TokenString
     should be compared in case-sensitive manner. Also note that
-    for VRML >= 2.0 these fields contain UTF-8 encoded string.
+    for VRML >= 2.0 these fields contain UTF-8 encoded strings.
 
-    Note that it can read only from @link(TPeekCharStream), not just
+    Note that this lexer can read only from @link(TPeekCharStream), not just
     from any TStream. You may have to wrap your stream in some
     @link(TPeekCharStream) descendant (see for example at
     @link(CreateFromFile) implementation,
@@ -144,136 +154,6 @@ type
     procedure CreateCommonEnd;
     { @groupEnd }
   public
-    { to po prostu strumien ktory dostalismy jako parametr konstruktora.
-      Nie mozesz na nim operowac kiedy juz zainicjowales lexera !
-      Ale mozesz np. sprawdzic jego Position aby wiedziec gdzie mniej
-      wiecej bylismy w strumieniu gdy wystapil blad lexera. }
-    property Stream: TPeekCharStream read FStream;
-
-    { These indicate VRML version, as recorded in VRML file header.
-
-      The only versions allowed by any VRML specifications
-      are 1.0 and 2.0. Moreover we handle Inventor 1.0 ascii,
-      then we set VRMLVerMajor and VRMLVerMinor both to 0
-      (as historically Inventor is a predecessor to VRML 1.0).
-
-      @groupBegin }
-    property VRMLVerMajor: integer read fVRMLVerMajor;
-    property VRMLVerMinor: integer read fVRMLVerMinor;
-    { @groupEnd }
-
-    { Token na jakim aktualnie stoimy. Odpowiednie pola TokenKeyword,
-      TokenName, TokenFloat i TokenInteger maja defined wartosci tylko
-      jezeli typ tokenu jest odpowiedni. }
-    property Token: TVRMLToken read fToken;
-
-    { When Token = vtKeyword, TokenKeyword points to appropriate keyword.
-      Jezeli VRMLVersion = 1.0 to na pewno TokenKeyword in VRML10Keywords.
-      Innymi slowy, gdy czytamy VRML 1.0 np. string "PROTO" zostanie potraktowany
-      jako token Name, nie keyword. I tak jest dobrze. }
-    property TokenKeyword: TVRMLKeyword read fTokenKeyword;
-
-    { When Token = vtName, TokenName contains appropriate VRML name.
-
-      Name syntax as in specification on page 24 (really 32 in pdf) of
-      vrml97specification.pdf. It can be a user name for something (for a node,
-      for example) but it can also be a name of a node type or a node field
-      or an enumerated field constant ... it can be @italic(anything)
-      except keyword.
-
-      Note that this is supposed to contain UTF-8 encoded string for VRML 2.0. }
-    property TokenName: string read fTokenName;
-
-    { When Token = vtFloat or vtInteger, TokenFloat contains a value of
-      this token.
-
-      VRML float token corresponds to Pascal Float type,
-      in VRML it's expressed in the followin form:
-      @preformatted(
-        [("-"|"+")]
-        (digit+ [ "." digit+ ] | "." digit+)
-        [ "e"|"E" [("-"|"+")] digit+ ]
-      )
-
-      For vtInteger you have the same thing in TokenInteger,
-      TokenFloat is also initialized to the same value for your comfort
-      (every integer value is also a float, after all). }
-    property TokenFloat: Float read fTokenFloat;
-
-    { When Token = vtInteger, TokenInteger contains appropriate value.
-
-      VRML integer token corresponds to Pascal Int64 type,
-      in VRML it's expressed in the followin form:
-      @preformatted(
-        (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
-      ) }
-    property TokenInteger: Int64 read fTokenInteger;
-
-    property TokenString: string read fTokenString;
-
-    { NextToken reads next token from stream, initializing appropriately
-      all Token* properties. For comfort, this returs the Token value. }
-    function NextToken: TVRMLToken;
-
-    { uzywaj gdy wiesz ze nastepny token MUSI byc vtName i zeby w zwiazku z
-      tym lekser odczytal nastepny token jako vtName. Pamietaj ze moze
-      to powodowac odczytanie jako vtName czegos co nie jest poprawna
-      nazwa node'a w VRML'u ! Ale moze byc uzyteczne jesli jakis inny
-      program zapisywal plik VRML'a nie patrzac na to czy tworzy prawidlowe
-      czy nie nazwy VRML'a (np. mgf2inv potrafi zapisac nazwe "0" (tak jest,
-      zero, co oczywiscie zostanie odczytane jako vtInteger), gdzie indziej
-      znalazlem przykladowe VRMLe z nazwa node'a "Crab!" (tak, z "!" i
-      cudzyslowem)).
-
-      Uzywajac tej procedury bedziesz w stanie odczytac takie VRMLe ze zlymi
-      nazwami node'ow (pamietajac ze zawsze przed nazwa node'a jest USE
-      lub DEF wiec wiadomo kiedy nalezy sie spodziewac vtName i wtedy wlasnie
-      trzeba uzyc NextTokenForceVTName.)
-
-      Wyjatek EParserError (bo to przeciez blad parsowania, nie leksera) jesli
-      mimo wszystko nie uda sie odczytac tokenu vtName. }
-    procedure NextTokenForceVTName;
-
-    { Similiar to NextTokenForceVTName: use this like a shortcut for
-        NextToken;
-        CheckTokenIs(vtString);
-      but it is NOT equivalent to such instructions. This is because
-      VRML 1.0 allowed rather strange thing: string may be not enclosed
-      in double quotes if it does not contain a space. This "feature"
-      is not present in VRML 97, but, unfortunately, I'm trying to handle
-      VRML 1.0 here so I have to conform to this specification.
-      In particular, Blender generates VRML 1.0 files with Texture2.filename
-      fields not enclosed in double quotes. So this "feature" is actually
-      used by someone... So I have to implement this.
-
-      Usual NextToken will not be able to return vtString if it approaches
-      a string not enclosed in double quotes. But THIS function
-      will be able to handle it. So always use this function when
-      you expect a string, this ensures
-      that we will correctly parse any valid VRML 1.0 file.
-
-      (unfortunately I'm not doing this now when parsing MFString,
-      this would just require too "unclean" code; I'm using this
-      function only before calling parse on SFString field from
-      TVRMLNode.Parse.) }
-    procedure NextTokenForceVTString;
-
-    { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }
-    function TokenIsKeyword(const Keyword: TVRMLKeyword): boolean; overload;
-    function TokenIsKeyword(const Keywords: TVRMLKeywords): boolean; overload;
-
-    { skonstruuj tekstowy opis tokenu ktory nadaje sie do pokazania
-      userowi. }
-    function DescribeToken: string;
-
-    { Check is token = Tok, if not -> parser error "expected token >>tok<<".
-      You can provide your own description for Tok or default desciption
-      for token will be used. }
-    procedure CheckTokenIs(Tok: TVRMLToken); overload;
-    procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
-    procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
-    procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
-
     { Standard constructor.
       After constructor call, VRMLVerMajor and VRMLVerMinor are already set,
       it's checked that file is not compressed by gzip, and the first
@@ -312,6 +192,129 @@ type
 
     destructor Destroy; override;
 
+    { The stream we're reading.
+      This is simply the AStream that you passed to the constructor
+      of this class.
+
+      Note that you can't operate on this stream from outside while lexer
+      works, this could confuse the lexer. But you're free to read
+      some stream properties, e.g. check Stream.Position. }
+    property Stream: TPeekCharStream read FStream;
+
+    { These indicate VRML version, as recorded in VRML file header.
+
+      VRML 1.0, 2.0, X3D (various 3.x) and so on --- there are various
+      possible values for this. For Inventor 1.0 ascii,
+      we set VRMLVerMajor and VRMLVerMinor both to 0
+      (as historically Inventor is a predecessor to VRML 1.0).
+
+      @groupBegin }
+    property VRMLVerMajor: integer read fVRMLVerMajor;
+    property VRMLVerMinor: integer read fVRMLVerMinor;
+    { @groupEnd }
+
+    { Token we're currently standing on.
+      TokenKeyword, TokenName, TokenFloat and TokenInteger have defined
+      values only when token type is appropriate. }
+    property Token: TVRMLToken read fToken;
+
+    { When Token = vtKeyword, TokenKeyword points to appropriate keyword.
+
+      When VRMLVerMajor = 1, then you can be sure that TokenKeyword is
+      in VRML10Keywords. Analogous for VRML20Keywords and X3DKeywords.
+      So e.g. in VRML 1.0 "PROTO" will be treated like a normal name,
+      not a start of prototype. }
+    property TokenKeyword: TVRMLKeyword read fTokenKeyword;
+
+    { When Token = vtName, TokenName contains appropriate VRML name.
+
+      Name syntax as in specification on page 24 (really 32 in pdf) of
+      vrml97specification.pdf. It can be a user name for something (for a node,
+      for example) but it can also be a name of a node type or a node field
+      or an enumerated field constant ... it can be @italic(anything)
+      except keyword.
+
+      Note that this is supposed to contain UTF-8 encoded string for VRML >= 2.0. }
+    property TokenName: string read fTokenName;
+
+    { When Token = vtFloat or vtInteger, TokenFloat contains a value of
+      this token.
+
+      For vtInteger you have the same thing in TokenInteger,
+      TokenFloat is also initialized to the same value for your comfort
+      (every integer value is also a float, after all). }
+    property TokenFloat: Float read fTokenFloat;
+
+    { When Token = vtInteger, TokenInteger contains appropriate value. }
+    property TokenInteger: Int64 read fTokenInteger;
+
+    { When Token = vtString, TokenString contains string value. }
+    property TokenString: string read fTokenString;
+
+    { NextToken reads next token from stream, initializing appropriately
+      all Token* properties. For comfort, this returs the new value of
+      @link(Token) property. }
+    function NextToken: TVRMLToken;
+
+    { Read the next token, knowing that it @italic(must) be vtName token.
+      This is basically a dirty hack to read some incorrect VRML files,
+      that use not allowed characters in VRML names. This allows us to
+      accept as a vtName some characters that normally (when using normal
+      NextToken) would get interpreted as other token.
+
+      For example, mgf2inv can write name @code(0) (a zero, that would be
+      read as vtInteger token in normal circumstances), on some WWW page
+      I found sample VRML models with node name @code("Crab!") (yes,
+      with exclamation mark and double quotes as part of the node name).
+
+      @raises(EParserError When we really really cannot interpret contents
+        as vtName token here --- currently this may happen only if end of
+        stream is reached. Note that this is reported as a parsing error.) }
+    procedure NextTokenForceVTName;
+
+    { Read the next token, knowing that it @italic(must) be vtString token.
+
+      Similiar to NextTokenForceVTName: use this like a shortcut for
+@longCode(#
+  NextToken;
+  CheckTokenIs(vtString);
+#)
+      but it is not equivalent to such instructions. This is because
+      VRML 1.0 allowed rather strange thing: string may be not enclosed
+      in double quotes if it does not contain a space. This "feature"
+      is not present in VRML >= 2.0, but, unfortunately, I'm trying to handle
+      VRML 1.0 here so I have to conform to this specification.
+      In particular, Blender generates VRML 1.0 files with Texture2.filename
+      fields not enclosed in double quotes. So this "feature" is actually
+      used by someone... So I have to implement this.
+
+      Usual NextToken will not be able to return vtString if it approaches
+      a string not enclosed in double quotes. But THIS function
+      will be able to handle it. So always use this function when
+      you expect a string, this ensures
+      that we will correctly parse any valid VRML 1.0 file.
+
+      (unfortunately I'm not doing this now when parsing MFString,
+      this would just require too "unclean" code; I'm using this
+      function only before calling parse on SFString field from
+      TVRMLNode.Parse.) }
+    procedure NextTokenForceVTString;
+
+    { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }
+    function TokenIsKeyword(const Keyword: TVRMLKeyword): boolean; overload;
+    function TokenIsKeyword(const Keywords: TVRMLKeywords): boolean; overload;
+
+    { Nice textual description of current token, suitable to show to user. }
+    function DescribeToken: string;
+
+    { Check is token = Tok, if not -> parser error "expected token 'tok'".
+      You can provide your own description for Tok or default desciption
+      for token will be used. }
+    procedure CheckTokenIs(Tok: TVRMLToken); overload;
+    procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
+    procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
+    procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
+
     { See TVRMLNode.WWWBasePath for a description of this field.
 
       This field is not used anywhere in the Lexer but it MUST be defined
@@ -321,13 +324,14 @@ type
 
     { This is used when parsing to keep current namespace for DEF/USE.
 
-      NodeNameBinding jest lista bez duplikatow okreslajaca wszystkie dotychczasowe
-      nazwy node'ow razem z ich instancjami. Jezeli kilka instancji mialo takie
-      samo NodeName to na liscie znajduje sie ostatni z nich (ostatni w sensie
-      pozycji w pliku, czy raczej w strumieniu tokenow Lexera). Tym samym
-      jest chyba jasne do czego uzywamy NodeNameBinding : do realizacji
-      konstrukcji "USE <nodename>". Procedura ParseNode nie moze modyfikowac
-      tej listy, to zadania ma wykonywac TVRMLNode.Parse. }
+      NodeNameBinding is a list without duplicates with all
+      currently known node names. Objects[] of this list point to
+      actual TVRMLNode instances. If many instances had the same NodeName,
+      only the last instance will be referenced here, following VRML spec
+      (last DEF takes precedence).
+
+      Internal notes: ParseNode doesn't modify this, only TVRMLNode.Parse
+      can do this. }
     NodeNameBinding: TStringList;
 
     { This is used when parsing to keep current namespace of prototypes. }
@@ -364,9 +368,16 @@ const
     'inputOnly', 'outputOnly', 'inputOutput', 'initializeOnly'
     );
 
-{ otoczy s cudzyslowami i zmieni wnetrze s tak zeby wynik mogl byc
-  zapisany jako token vtString o wartosci s. Mowiac wprost,
-  zamieni wszystkie " na \" i wszystkie \ na \\. }
+{ Returns characters that you can put in VRML stream, to be understood
+  as VRML string with contents S. In other words, this just adds
+  double quotes around S and prepends backslash to all " and \ inside S.
+
+  For example:
+
+@longCode(#
+  StringToVRMLStringToken('foo') = '"foo"'
+  StringToVRMLStringToken('say "yes"') = '"say \"yes\""'
+#) }
 function StringToVRMLStringToken(const s: string): string;
 
 implementation
@@ -733,6 +744,22 @@ function TVRMLLexer.NextToken: TVRMLToken;
    end else
      FToken := vtName;
   end;
+
+  {
+    VRML float token corresponds to Pascal Float type,
+    in VRML it's expressed in the followin form:
+    @preformatted(
+      [("-"|"+")]
+      (digit+ [ "." digit+ ] | "." digit+)
+      [ "e"|"E" [("-"|"+")] digit+ ]
+    )
+
+    VRML integer token corresponds to Pascal Int64 type,
+    in VRML it's expressed in the followin form:
+    @preformatted(
+      (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
+    ) }
+  }
 
   procedure ReadFloatOrInteger(FirstChar: char);
   const

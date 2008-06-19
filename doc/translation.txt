@@ -38,8 +38,8 @@ D   triangulator.pas
 D   vrmlanimation.pas
 D   vrmlerrors.pas
 D   vrmlfields.pas
-|   vrmlflatscene.pas
-|   vrmllexer.pas
+D   vrmlflatscene.pas
+D   vrmllexer.pas
 |   vrmllightmap.pas
 -   vrmllightset.pas
 D   vrmlnodesdetailoptions.pas

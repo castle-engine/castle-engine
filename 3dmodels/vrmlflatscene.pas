@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(@link(TVRMLFlatScene) class.) }
+{ @abstract(VRML scene as @link(TVRMLFlatScene) class.) }
 
 unit VRMLFlatScene;
 
@@ -103,11 +103,11 @@ type
   private
   end;
 
-  { Scene edge that has no neighbors, i.e. border edge.
+  { Scene edge that has one neighbor, i.e. border edge.
     It's used by @link(TVRMLFlatScene.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
-    { Index to get vertexes of this edge.
+    { Index to get vertex of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
       using TVRMLFlatScene.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
@@ -126,7 +126,7 @@ type
   TDynBorderEdgeArray = TDynArray_3;
 
   { These are various features that may be freed by
-    TVRMLFlatSceneGL.FreeResources.
+    TVRMLFlatScene.FreeResources.
 
     @italic(Warning): This is for experienced usage of TVRMLFlatScene.
     Everything is explained in detail below, but still  --- if you have some
@@ -225,23 +225,24 @@ type
     view of the scene (in @link(RootNode)) and a flattened view of the same scene
     (in @link(ShapeStates) list).
 
-    Unfortunately this means that things get a little more complicated
-    if you want to dynamically change the scene.
+    Note that when you use this class and you dynamically
+    change the scene within RootNode, you'll have to use our
+    @code(Changed*) methods to notify this class about changes.
     Although whole @link(TVRMLNode) class works very nicely and you
     can freely change any part of it, add, delete and move nodes around
-    and change their properties, this is no longer so easy with
-    @link(TVRMLFlatScene). Basically you can just call @link(ChangedAll)
-    after changing some things inside @link(RootNode), but you should
+    and change their properties, this class has to be manually (for now)
+    notified about such changes. Basically you can just call @link(ChangedAll)
+    after changing anything inside @link(RootNode), but you should
     also take a look at other @code(Changed*) methods defined here.
 
     In exchange, this class provides many functionality and most
     things work very quickly if the scene is more-or-less static.
-    E.g. methods [Local]BoundingBox, Vertices/TrianglesCount cache
-    their results so after the first call to @link(TrianglesCount)
+    E.g. methods LocalBoundingBox, BoundingBox, VerticesCount, TrianglesCount
+    cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
     that scene did not changed much). And the @link(ShapeStates) list
-    is the key to various processing of the scene, most important
-    it's the key to write a flexible OpenGL renderer of the VRML scene.
+    is the main trick for various processing of the scene, most important
+    it's the main trick to write a flexible OpenGL renderer of the VRML scene.
 
     Also, VRML2ActiveLights are magically updated for all states in
     ShapeStates list. This is crucial for lights rendering in VRML 2.0. }
@@ -306,7 +307,9 @@ type
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
 
-    { ShapeStates contents are read-only from outside.
+    { List of shape+states within this VRML scene.
+
+      ShapeStates contents are read-only from outside.
 
       Note that the only place where ShapeStates length is changed
       in this class is ChangedAll procedure.
@@ -326,36 +329,45 @@ type
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
 
-    { ta klasa zapamietuje sobie pewne przeliczone rzeczy w swoich polach,
-      w zwiazku z czym musi byc powiadamiana gdy dokonasz jakichs zmian w
-      strukturze RootNode.
+    { Methods to notify this class about changes to the underlying RootNode
+      graph. Since this class caches some things, it has to be notified
+      when you manually change something within RootNode graph.
 
-      Wywolaj ChangedAll gdy zmieniles po prostu cokolwiek - zupelnie cala
-      scene VRML'a zapisana w RootNode (dodales/usunales/przesunales jakies
-      node'y), zupelnie dowolne pola dowolnych node'ow.
+      Call ChangedAll to notify that "potentially everything changed",
+      including adding/removal of some nodes within RootNode and changing their
+      fields' values.
+      This causes recalculation of all things dependent on RootNode.
+      It's more optimal to use one of the other Changed* methods, when possible.
 
-      Wywolaj ChangedShapeStateFields(i) gdy zmieniles tylko zawartosci pol
-      node'a ShapeList[i].GeometryNode, node'ow ShapeList[i].State.Last* i
-      node'ow ShapeList[i].State.Active*. (i jestes PEWIEN ze node ktorego
-      pole zmieniles nie wystepuje w innych ShapeState'ach).
+      Call ChangedShapeStateFields(ShapeStateNum) if you only changed
+      values of fields within ShapeList[ShapeStateNum].GeometryNode,
+      ShapeList[ShapeStateNum].State.Last* and
+      ShapeList[ShapeStateNum].State.Active*. (And you're sure that
+      these nodes are not shared by other shape+states using VRML DEF/USE
+      mechanism.)
 
-      Wywolaj ChangedFields gdy zmieniles pola danego Node'a. Mozesz podac
-      Node ktory jest lub ktorego nie ma w aktualnym grafie VRML'a zaczepionym
-      w RootNode, moze byc w czesci aktywnej lub nieaktywnej (takiej do ktorej
-      nie dociera Traverse) tego grafu, moze byc Node'm dowolnej klasy,
-      moze byc takze jednym z Node'ow StateDefaultNodes ktory wziales z
-      jakiegos State.LastNodes[] - to wszystko tutaj uwzglednimy i wywolanie
-      ChangedFields rozlozy sie na wywolania innych Changed.
-      To jest prawdopodobnie najwygodniejsze sposrod Changed*.
+      Call ChangedFields when you only changed field values of given Node.
+      This does relatively intelligent discovery of what could be possibly
+      affected by changing this node, and updates/invalidates
+      cache only where needed. It's acceptable to pass here a Node that
+      isn't in the active VRML graph part (that is not reached by Traverse
+      method), or even that isn't in the RootNode
+      graph at all. Node can also be one of StateDefaultNodes that you took
+      from one of State.LastNodes[]. So we really handle all cases here,
+      and passing any node is fine here, and we'll try to intelligently
+      detect what this change implicates for this VRML scene.
 
-      Notka dla implementatorow podklas : jak widac ChangedAll i
-      ChangedShapeStateFields  sa wirtualne i moga byc pokryte. Oczywiscie
-      musisz wywolac inherited w podklasie. ChangedAll jest wywolywane
-      pod koniec konstruktora w tej klasie, wiec wystarczy ze cala inicjalizacje
-      umiescisz w ChangedAll. }
+      @italic(Descendant implementors notes:) ChangedAll and
+      ChangedShapeStateFields are virtual, so of course you can override them
+      (remember to always call @code(inherited)). ChangedAll is also
+      called by constructor of this class, so you can put a lot of your
+      initialization there (instead of in the constructor).
+
+      @groupBegin }
     procedure ChangedAll; virtual;
     procedure ChangedShapeStateFields(ShapeStateNum: Integer); virtual;
     procedure ChangedFields(Node: TVRMLNode);
+    { @groupEnd }
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
@@ -366,7 +378,8 @@ type
       Also write how many Info nodes there are in the scene. }
     procedure WritelnInfoNodes;
 
-    { This class can be viewed as a wrapper around specified RootNode.
+    { Actual VRML graph defining this VRML scene.
+      This class can be viewed as a wrapper around specified RootNode.
 
       As such it is allowed to change contents of RootNode
       (however, this object requires notification of such changes
@@ -408,7 +421,7 @@ type
       instances. }
     property RootNode: TVRMLNode read FRootNode write FRootNode;
 
-    { jezeli OwnsRootNode to zwolni go w destruktorze }
+    { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
 
     { Creates triangle octree and inits it with our BoundingBox
@@ -429,12 +442,15 @@ type
       created octree object. It does *not* set value of property
       @link(DefaultTriangleOctree). But of course you can use it
       (and you often will) in code like
-        Scene.DefaultTriangleOctree := Scene.CreateTriangleOctree(...)
-    }
+
+      @longCode(#  Scene.DefaultTriangleOctree := Scene.CreateTriangleOctree(...) #)
+
+      @groupBegin }
     function CreateTriangleOctree(const ProgressTitle: string):
       TVRMLTriangleOctree; overload;
     function CreateTriangleOctree(AMaxDepth, AMaxLeafItemsCount: integer;
       const ProgressTitle: string): TVRMLTriangleOctree; overload;
+    { @groupEnd }
 
     { Creates shapestate octree and inits it with our BoundingBox
       and adds all our ShapeStates.
@@ -449,12 +465,15 @@ type
       created octree object. It does *not* set value of property
       @link(DefaultShapeStateOctree). But of course you can use it
       (and you often will) in code like
-        Scene.DefaultShapeStateOctree := Scene.CreateShapeStateOctree(...)
-    }
+
+      @longCode(#  Scene.DefaultShapeStateOctree := Scene.CreateShapeStateOctree(...) #)
+
+      @groupBegin }
     function CreateShapeStateOctree(const ProgressTitle: string):
       TVRMLShapeStateOctree; overload;
     function CreateShapeStateOctree(AMaxDepth, AMaxLeafItemsCount: integer;
       const ProgressTitle: string): TVRMLShapeStateOctree; overload;
+    { @groupEnd }
 
     { Notes for both DefaultTriangleOctree and
       DefaultShapeStateOctree:
@@ -496,7 +515,8 @@ type
       In any case, these properties are not managed by this object.
       E.g. these octrees are not automaticaly rebuild when you
       call ChangedAll.
-    }
+
+      @groupBegin }
     property DefaultTriangleOctree: TVRMLTriangleOctree
       read FDefaultTriangleOctree write FDefaultTriangleOctree;
 
@@ -510,12 +530,14 @@ type
     property OwnsDefaultShapeStateOctree: boolean
       read FOwnsDefaultShapeStateOctree write FOwnsDefaultShapeStateOctree
       default true;
+    { @groupEnd }
 
     { GetViewpoint and GetPerspectiveViewpoint return the properties
       of the defined Viewpoint in VRML file, or some default viewpoint
-      properties if no viewpoint is defined in file. They seek for
-      nodes Viewpoint (for VRML 2.0), PerspectiveCamera and OrthographicCamera
-      (for VRML 1.0) in scene graph.
+      properties if no viewpoint is found in RootNode graph. They seek for
+      nodes Viewpoint (for VRML 97) or OrthoViewpoint (any X3DViewpointNode
+      actually, for X3D), PerspectiveCamera and OrthographicCamera
+      (for VRML 1.0) in the scene graph.
 
       GetPerspectiveViewpoint omits OrthographicCamera andy OrthoViewpoint.
 
@@ -523,12 +545,12 @@ type
       Otherwise, they look for Viewpoint or OrthoViewpoint (any X3DViewpointNode
       actually) with description field mathing given string.
 
-      Jezeli VRML posiada node kamery
-      zdefiniowany w aktywnej czesci swojego grafu to oblicza swoje zmienne
-      "out" na podstawie tego node'a, wpp. zwraca domyslne ulozenia kamery
-      w VRMLu, zgodnie ze specyfik. VRMLa (tzn. CamPos = (0, 0, 1),
-      CamDir = (0, 0, -1), CamUp = GravityUp = (0, 1, 0), CamType = ctPerspective
-      (ze domyslna kamera jest ctPerspective to juz sam sobie dopowiedzialem)).
+      If some viewpoint will be found (in the active VRML graph
+      under RootNode), then "out" parameters
+      will be calculated to this viewpoint position, direction etc.
+      If no such thing is found in the VRML graph, then returns
+      default viewpoint properties from VRML spec (CamPos = (0, 0, 1),
+      CamDir = (0, 0, -1), CamUp = GravityUp = (0, 1, 0), CamType = ctPerspective).
 
       If camera properties were found in some node,
       it returns this node. Otherwise it returns nil.
@@ -539,8 +561,8 @@ type
       is that you don't @italic(have) to care about details of
       dealing with camera node.
 
-      Zwraca zawsze znormalizowane CamDir i CamUp i GravityUp ---
-      powody takie same jak dla TVRMLViewpointNode.GetCameraVectors.
+      Returned CamDir and CamUp and GravityUp are always normalized ---
+      reasons the same as for TVRMLViewpointNode.GetCameraVectors.
 
       @groupBegin }
     function GetViewpoint(
@@ -555,30 +577,33 @@ type
       TVRMLViewpointNode;
     { @groupEnd }
 
-    { This enumerates all viewpoint nodes (Viewpoint (for VRML 2.0),
-      PerspectiveCamera and OrthographicCamera (for VRML 1.0))
-      in scene graph.
+    { This enumerates all viewpoint nodes (any X3DViewpointNode
+      for VRML >= 2.0, PerspectiveCamera and OrthographicCamera for VRML 1.0)
+      in the scene graph.
       For each such node, it calls ViewpointFunction.
 
       Essentially, this is a trivial wrapper over RootNode.Traverse
       that returns only TVRMLViewpointNode. }
     procedure EnumerateViewpoints(ViewpointFunction: TViewpointFunction);
 
-    { FogNode zwraca aktualny node Fog w tym modelu VRMLa, lub nil jesli
-      nie ma aktywnego node'u fog.
+    { Return fog defined by this VRML scene.
 
-      FogDistanceScaling zwraca skalowanie tego node'a, wziete
-      z transformacji w miejscu gdzie sie znajduje node Fog w hierarchii VRMLa.
+      FogNode returns current Fog node defined by this VRML model,
+      or @nil if not found.
+
+      FogDistanceScaling returns scaling of this FogNode, taken
+      from the transformation of FogNode in VRML graph.
       You should always multiply FogNode.FdVisibilityRange.Value
       by FogDistanceScaling when applying (rendering etc.) this fog node.
       Value of FogDistanceScaling is undefined if FogNode = nil.
 
-      Wyniki tych funkcji sa "cachowane" wiec nie ma strachu - mozna uzywac
-      tych funkcji czesto, dopoki nie bedziesz w miedzyczasie zmienial modelu
-      VRMLa to te funkcje beda prosto zwracaly juz przeliczone wyniki,
-      bez zadnej straty czasu. }
+      Results of this functions are cached, so you can call them often,
+      and they'll work fast, assuming the scene doesn't change.
+
+      @groupBegin }
     function FogNode: TNodeFog;
     function FogDistanceScaling: Single;
+    { @groupEnd }
 
     { This returns an array of all triangles of this scene.
       I.e. it triangulates the scene, adding all non-degenerated
@@ -660,20 +685,13 @@ type
       ManifoldShared: TDynManifoldEdgeArray;
       BorderShared: TDynBorderEdgeArray);
 
+    { Frees some scene resources, to conserve memory.
+      See TVRMLSceneFreeResources documentation. }
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
   end;
 
-{ TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
-  Changed. Byloby to bardzo wygodne, prawda ? Obecnie wszystkie node'y
-  maja juz liste swoich Parents; na pewno bedziemy musieli to zrobic
-  takze dla wszystkich TVRMLField. I jeszcze trzeba zrobic mechanizm zeby
-  node mogl przeslac informacje wyzej, do TVRMLShapeState lub
-  TVRMLFlatScene. Sporo tu do zrobienia - jak tylko mi sie to
-  skrystalizuje zrobie to.
-}
-
 var
-  { StateDefaultNodes, used as a starting state nodes for TVRMLFlatScene
+  { Starting state nodes for TVRMLFlatScene
     and descendants when traversing VRML tree.
 
     It's needed that various TVRMLFlatScene instances use the same
@@ -697,6 +715,17 @@ uses VRMLFields, VRMLCameraUtils;
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
+
+{ TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
+  Changed. Byloby to bardzo wygodne, prawda ? Obecnie wszystkie node'y
+  maja juz liste swoich Parents; na pewno bedziemy musieli to zrobic
+  takze dla wszystkich TVRMLField. I jeszcze trzeba zrobic mechanizm zeby
+  node mogl przeslac informacje wyzej, do TVRMLShapeState lub
+  TVRMLFlatScene. Sporo tu do zrobienia - jak tylko mi sie to
+  skrystalizuje zrobie to.
+
+  This will be essentially done when events/routes mechanism will be done.
+}
 
 { TVRMLFlatScene ----------------------------------------------------------- }
 
