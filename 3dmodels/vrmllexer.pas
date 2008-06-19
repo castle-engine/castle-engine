@@ -758,7 +758,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
     in VRML it's expressed in the followin form:
     @preformatted(
       (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
-    ) }
+    )
   }
 
   procedure ReadFloatOrInteger(FirstChar: char);
