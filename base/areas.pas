@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2006,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,24 +18,21 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Modul tworzacy takiego managera obszarow.
-  Idea jest taka ze tworzysz sobie wiele obszarow o roznym ksztalcie
-  i na roznej pozycji i potem dodajesz te obszary kiedy i jak chcesz
-  do areas managera czyli obiektu AreasMan.)
+{ Areas (2D rectangles) manager. Main use is to detect in which
+  2D area on the screen user clicked with mouse.
 
-  Sens tego taki ze potem mozesz przegladac i przeszukac
-  te area w wygodny sposob. Ten modul zostal stworzony
-  na potrzeby szklane_setup kiedy to chcialem napisac programik
-  przy uzyciu GLWindow ktory oferowalby dosc przyjemny sposob
-  komunikacji z uzytkownikiem - a wiec np. chcialem aby przesuwanie
-  myszki nad napisami / przyciskami czynilo je aktywnymi. Do tego
-  potrzebowalem wlasnie takiego moduliku ktory zajmowalby sie
-  zarzadzaniem obszarow na ekranie zajmowanych przez te napisy
-  i przyciski.
+  The usual use is to create many areas and add them to DefaultAreas manager.
+  Then you can query DefaultAreas.FindArea to find an area containing
+  given X, Y position.
 
-  Ten modul nie jest wiec zbyt ciekawy. Ale mozliwe ze kiedys
-  przerobie go na managera kontrolek rysowanych pod OpenGLem -
-  - a to juz bedzie calkiem ciekawe.
+  This is not a terribly interesting unit. In fact, it's
+  a very trivial, short and boring unit. The idea was that
+  I may eventually implement other area shapes (not only rectangles),
+  more intelligent area searching code and generally use this as a basis
+  for simple 2D widgetset in OpenGL. Then things here would get
+  more interesting.
+
+  For now, it's used e.g. by OpenGL menu in GLMenu unit.
 }
 
 unit Areas;
@@ -61,12 +58,14 @@ type
   TDynAreaArray = class(TDynArray_1)
   public
 
-    { FindArea zwraca indeks piewszej area (sprawdzajac od KONCA tablicy Areas)
-      ktora zawiere punkt o wspolrzednych x, y. Sprawdzanie wykonywane jest od
-      konca w ten sposob traktujac obszary bardziej na koncu jako te bardziej
-      na wierzchu.
+    { FindArea returns index of the area that contains point (X, Y).
 
-      Zwraca -1 jesli nie znajdzie. }
+      @italic(It returns the index of the @bold(last) area, that is:
+      it searches from the end of the list.) This way the areas added
+      later by AppendItem method are treated as being on top of previous
+      areas, which is more intuitive.
+
+      Returns -1 if not found. }
     function FindArea(const X, Y: Single): integer;
   end;
 
@@ -74,6 +73,7 @@ function Area(const X0, Y0, Width, Height: Single;
   const UserData: Pointer = nil): TArea;
 
 { TODO: unused anywhere, so untested. }
+{ }
 function AreasSum(const Area1, Area2: TArea): TArea;
 
 function PointInArea(const X, Y: Single; const Area: TArea): boolean;

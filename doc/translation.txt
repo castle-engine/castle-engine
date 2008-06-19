@@ -71,7 +71,7 @@ D   alsourceallocator.pas
 D   gamesoundengine.pas
 
   base/
--   areas.pas
+D   areas.pas
 D   dataerrors.pas
 |   enumeratefiles.pas
 D   intrects.pas
