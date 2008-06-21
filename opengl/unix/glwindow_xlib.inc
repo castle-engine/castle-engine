@@ -212,9 +212,13 @@ begin
    left, top, width, height,
    0, viinfo^.depth, InputOutput, viinfo^.visual,
    AttrValueMask, @attr);
- if FFullscreen then
+
+ if FFullscreen and WindowVisible then
  begin
-  XMapWindow(Glwm.XDisplay, windowXID); { MapWindow musi byc przed Grabami ponizej }
+   { XMapWindow must be called before doing all the "grab" operations.
+     This also means that this whole piece of code cannot be done
+     when WindowVisible = @false. }
+  XMapWindow(Glwm.XDisplay, windowXID);
   check( XGrabKeyboard(Glwm.XDisplay, windowXID, XBool_True, GrabModeAsync, GrabModeAsync,
      CurrentTime) = GrabSuccess, 'cannot grab the keyboard');
   check( XGrabPointer(Glwm.XDisplay, windowXID, XBool_True,
@@ -281,7 +285,8 @@ begin
   StrDispose(ClassHint.res_name);
   StrDispose(ClassHint.res_class);
 
-  XMapWindow(Glwm.XDisplay, windowXID);
+  if WindowVisible then
+    XMapWindow(Glwm.XDisplay, windowXID);
  end;
  glcontext := glXCreateContext(Glwm.XDisplay, viinfo, nil, true);
  check( glcontext <> nil, 'could not create rendering context');
@@ -302,7 +307,7 @@ begin
   glcontext := nil;
  end;
 
- if FFullscreen then
+ if FFullscreen and WindowVisible then
  begin
   XUnGrabPointer(Glwm.XDisplay, CurrentTime);
   XUnGrabKeyboard(Glwm.XDisplay, CurrentTime);
@@ -322,7 +327,7 @@ begin
 
  if windowXID <> None then begin XDestroyWindow(Glwm.XDisplay, windowXID); windowXID := None end;
  if colormap  <> None then begin XFreeColormap(Glwm.XDisplay, colormap);   colormap := None  end;
- if viinfo    <> nil  then begin XFree(viinfo);                           viinfo := nil     end;
+ if viinfo    <> nil  then begin XFree(viinfo);                            viinfo := nil     end;
 end;
 
 procedure TGLWindow.SetCursor(const Value: TGLWindowCursor);

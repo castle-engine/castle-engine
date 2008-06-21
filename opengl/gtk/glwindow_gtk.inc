@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2007 Michalis Kamburelis.
+  Copyright 2004-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1185,11 +1185,30 @@ begin
  gtk_window_set_screen(WindowGtk, Glwm.XScreenGdk);
  {$endif}
 
- { Show WindowGtk, it will also make visible all other widgets.
-   If I understand everything right, gtk_widget_show realizes the widget
-   before returning (but does not necessarily map the Gdk window,
-   one can use gtk_widget_show_now for this; but I don't need it) }
- gtk_widget_show(GTK_WIDGET(WindowGtk));
+ if WindowVisible then
+ begin
+   { Show WindowGtk, it will also make visible all other widgets.
+     (Their "gtk_widget_show" calls only scheduled them to be shown
+     when this top-level window is shown.)
+
+     gtk_widget_show also realizes (allocates X resources) the widget
+     and all it's children before returning (but does not necessarily
+     map the Gdk window *now*, one can use gtk_widget_show_now for this;
+     but I don't need it) }
+   gtk_widget_show(GTK_WIDGET(WindowGtk));
+ end else
+ begin
+   { We want to realize all our GTK resources now, to finish
+     our initialization. So we can call gtk_widget_realize.
+     This automatically realizes parents of passed object, so if I pass here
+     GLAreaGtk, then also WindowGtk will get realized, and that's all I need.
+
+     See [http://library.gnome.org/devel/gtk/stable/GtkWidget.html#gtk-widget-realize]
+     and [http://developer.gnome.org/doc/GGAD/faqs.html]
+     ("When do I need to call gtk_widget_realize() vs. gtk_widget_show()?"
+     question). }
+   gtk_widget_realize(GTK_WIDGET(GLAreaGtk));
+ end;
 
  { From this point I require that WindowGtk is realized (has associated
    GdkWindow, i.e. I can use GTK_WIDGET(WindowGtk).Window).
@@ -1275,7 +1294,8 @@ begin
    as soon as it can be freed). }
  if WindowGtk <> nil then
  begin
-  gtk_widget_hide(GTK_WIDGET(WindowGtk));
+  if WindowVisible then
+    gtk_widget_hide(GTK_WIDGET(WindowGtk));
 
   { Doing here
       gtk_widget_unref(GTK_WIDGET(WindowGtk));

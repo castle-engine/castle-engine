@@ -1185,6 +1185,7 @@ type
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FGtkIconName: string;
+    FWindowVisible: boolean;
   public
 
     { EventXxx virtual methods -------------------------------------------------
@@ -1568,6 +1569,25 @@ type
 
       It's ignored on non-GTK 2 backends. }
     property GtkIconName: string read FGtkIconName write FGtkIconName;
+
+    { @abstract(Should this window be actually displayed on the desktop?
+      Set to @false for special tricks.)
+
+      As you can guess, in 99% you want to leave this as @true, as the
+      main purpose of the window is to actually be visible and interactive
+      on the desktop, right? But in some very special cases you really
+      need some OpenGL context but you don't want to display a visible
+      window for the user to see. One example is the @--screenshot
+      option of view3dscene, see
+      [http://vrmlengine.sourceforge.net/view3dscene.php#section_screenshot].
+
+      A cleaner way to achieve this would be to actually initialize
+      content to render to off-screen bitmap. This is possibly faster,
+      and gives you more possibilities (e.g. window size doesn't limit
+      the screenshot size, liki it @italic(can) with current approach).
+      But this is the more reliable, easily implemented way, so for now it's
+      very useful. }
+    property WindowVisible: boolean read FWindowVisible write FWindowVisible default true;
   public
 
     { -----------------------------------------------------------------------
@@ -3023,6 +3043,7 @@ begin
  DepthBufferBits := DefaultDepthBufferBits;
  FCursor := gcDefault;
  FMultiSampling := 1;
+ FWindowVisible := true;
 
  OwnsMainMenu := true;
 
@@ -3602,7 +3623,6 @@ begin
     SaveImage_FileFilters) then
    SaveScreen(ProposedFileName);
 end;
-{$endif}
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; const FileFilters: string): boolean;
@@ -3615,6 +3635,7 @@ begin
     Result := FileDialog(Title, FileName, OpenDialog, FFList);
   finally FreeWithContentsAndNil(FFList) end;
 end;
+{$endif}
 
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }

@@ -359,6 +359,8 @@ begin
 
  glutInitDisplayMode(GlutDispMode);
 
+ { WindowVisible property: no way to implement this with glutCreateWindow? }
+
  if fullscreen then
  begin
   glutHwnd := glutCreateWindow(PChar(FCaption));
