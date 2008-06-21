@@ -560,13 +560,28 @@ type
   contains more than once the same character C, or if any character C
   in Replaces array is equal to PercentChar.
 
+  ReplacementsDone, if passed, will return how many replacements were done.
+  Not counting "meaningless" replacements of pair of PercentChar to one
+  PercentChar (that is, we count only actual replacements from Replaces
+  array).
+
   @raises(EUnknownPercentFormat In case of error in InitialFormat string,
-    if ErrorOnUnknownPercentFormat is @true.) }
+    if ErrorOnUnknownPercentFormat is @true.)
+
+  @groupBegin }
+function SPercentReplace(const InitialFormat: string;
+  const Replaces: array of TPercentReplace;
+  out ReplacementsDone: Cardinal;
+  ErrorOnUnknownPercentFormat: boolean = true;
+  PercentChar: char ='%';
+  IgnoreCase: boolean = false): string; overload;
+
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   ErrorOnUnknownPercentFormat: boolean = true;
   PercentChar: char ='%';
   IgnoreCase: boolean = false): string; overload;
+{ @groupEnd }
 
 function AnsiUpperCaseChar(C: char): char;
 function AnsiLowerCaseChar(C: char): char;
@@ -1559,8 +1574,12 @@ begin
  result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
 end;
 
-function SPercentReplace(const InitialFormat: string; const Replaces: array of TPercentReplace;
-  ErrorOnUnknownPercentFormat: boolean; PercentChar: char; IgnoreCase: boolean): string;
+function SPercentReplace(const InitialFormat: string;
+  const Replaces: array of TPercentReplace;
+  out ReplacementsDone: Cardinal;
+  ErrorOnUnknownPercentFormat: boolean;
+  PercentChar: char;
+  IgnoreCase: boolean): string;
 
   function ReplaceWithC(c: char): Integer;
   var i: Integer;
@@ -1592,6 +1611,7 @@ begin
    przepisywac do result po jednym znaku). }
  result := '';
  Format := InitialFormat;
+ ReplacementsDone := 0;
 
  while Format <> '' do
  begin
@@ -1612,9 +1632,12 @@ begin
       UnknownPercentFormat('"'+PercentChar+Format[p+1]+'"');
      result := result +PercentChar +Format[p+1];
     end else
+    begin
      result := result +Replaces[ReplNum].s;
+     Inc(ReplacementsDone);
+    end;
    end;
-   { obietnij wykonana czesc z Format }
+   { obetnij wykonana czesc z Format }
    Delete(Format, 1, p+1);
   end else
   begin
@@ -1625,6 +1648,19 @@ begin
    Exit;
   end;
  end;
+end;
+
+function SPercentReplace(const InitialFormat: string;
+  const Replaces: array of TPercentReplace;
+  ErrorOnUnknownPercentFormat: boolean;
+  PercentChar: char;
+  IgnoreCase: boolean): string;
+var
+  ReplacementsDone: Cardinal;
+begin
+  Result := SPercentReplace(InitialFormat, Replaces, ReplacementsDone,
+    ErrorOnUnknownPercentFormat, PercentChar, IgnoreCase);
+  { returned ReplacementsDone will simply be ignored }
 end;
 
 function AnsiUpperCaseChar(C: char): char;
