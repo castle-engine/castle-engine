@@ -23,7 +23,7 @@
   You can assign ProgressConsoleInterface to Progress.UserInterface,
   like
 
-  @longCode(#  Progress.UserInterface := ProgressGLInterface;#)
+  @longCode(#  Progress.UserInterface := ProgressConsoleInterface;#)
 
   and then all progress bars will be displayed on console.
 
