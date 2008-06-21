@@ -2975,7 +2975,7 @@ implementation
 uses ParseParametersUnit, KambiLog, GLImages
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
-  {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
+  {$ifdef GLWINDOW_GTK_ANY}, GLWinModes, EnumerateFiles {$endif}
   {$ifdef GLWINDOW_WINAPI}, GLWinModes, GLWindowWinAPIMenu {$endif}
   {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif};
 
