@@ -1465,9 +1465,7 @@ begin
     ExpandedFileName := ExpandFileName(FileName);
 
     { Test in one go whether file exists, and is a regular file or dir. }
-    SearchResult := FindFirst(ExpandedFileName,
-      { faAnyFile doesn't include faSymLink, don't know why }
-      faAnyFile or faSymLink, SearchRecord);
+    SearchResult := FindFirst(ExpandedFileName, faReallyAnyFile, SearchRecord);
 
     if SearchResult = 0 then
     begin

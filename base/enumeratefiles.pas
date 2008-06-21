@@ -51,6 +51,10 @@ const
     @italic(Possibly) writeable, not @italic(writeable for sure). }
   RegularWriteableFileAttr = RegularFileAttr and (not faReadOnly);
 
+  { This is really any file. Since FPC's faAnyFile doesn't include faSymLink,
+    faReallyAnyFile does contain faSymLink. }
+  faReallyAnyFile = faAnyFile or faSymLink;
+
 type
   TEnumeratedFileInfo = record
     { SearchRec, as returned by FindFirst / FindNext }
