@@ -729,6 +729,7 @@ const
   CharTab = #9;
   CharEnter = #13;
   CharEscape = #27;
+  CharDelete = #127;
 
 function DescribeKey(c: char): string;
 

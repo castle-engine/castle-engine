@@ -1161,19 +1161,26 @@ begin
  md := TMessageData(glwin.UserData);
  id := PInputData(md.userdata);
 
+ { Under Windows, pressing ctrl+backspace causes key = K_BackSpace with
+   character = CharDelete. That is, Windows automatically replaces ctrl+backspace
+   with delete (leaving it ambigous what should I do --- look at key code or
+   character?). Here, I want to detect ctrl+backspace, and not detect "real" delete
+   key presses (that may be handled in the future, right now there's no cursor
+   so delete doesn't work, only backspace). So I just look at both Key and C
+   to detect backspace. }
+ if (C = CharBackSpace) or (Key = K_BackSpace) then
+ begin
+   if md.SAdditional <> '' then
+     if mkCtrl in Glwin.ModifiersDown then
+       md.SetSAdditional(glwin, '') else
+       md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
+ end else
  case c of
   CharEnter:
     if Length(md.SAdditional) >= id^.answerMinLen then
      md.answered := true else
      MessageOk(glwin, Format('You must enter at least %d characters.',
        [id^.answerMinLen]), taMiddle);
-  CharBackSpace :
-    begin
-     if md.SAdditional <> '' then
-       if mkCtrl in Glwin.ModifiersDown then
-         md.SetSAdditional(glwin, '') else
-         md.SetSAdditional(glwin, Copy(md.SAdditional, 1,Length(md.SAdditional)-1));
-    end;
   CharEscape:
     if id^.userCanCancel then
     begin
