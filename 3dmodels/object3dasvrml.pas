@@ -24,10 +24,45 @@
     Converts models in various formats to one or more
     (static or animation) VRML nodes.)
 
-  Note: for VRML 1.0, remember that you may want to embed returned
-  @link(TVRMLNode) objects inside VRML Separator node before
-  inserting it into some existing VRML scene. }
+  @italic(Notes for implementors of other 3D model formats:)
 
+  @unorderedList(
+    @item(The proper place to "plug" another 3D model format into the engine
+      is in this unit, make your format handled by LoadAsVRML or LoadAsVRMLSequence.
+      This way all you
+      have to do is to implement convertion, in memory, from your 3D model
+      file to a VRML / X3D nodes graph (TVRMLNode instances graph).
+      VRML / X3D are incredibly flexible and have many features, so it should
+      be possible for any 3D format to be convertable to VRML / X3D.
+
+      From this point, just leave to VRML / X3D handling of rendering,
+      bounding volume calculation, and everything else.)
+
+    @item(Remember to add new file format to file filters:
+      possibly LoadAsVRML_FileFilters and LoadAsVRMLSequence_FileFilters.
+      Remember to add extensions of your format twice
+      (once for filter specific to this format, and once for line
+      "All 3D models").)
+
+    @item(Another place to fill is view3dscene MIME database.
+      This is in freedesktop.org MIME database format, will allow us
+      to integrate with GNOME and other desktops nicely etc.
+
+      Simply add appopriate element to ../../view3dscene/desktop/view3dscene.xml.
+      Format is self-explanatory. It's good idea to google first
+      to search for standard MIME type for your model format.
+      If none is found, just use application/x-???, where ??? is some short
+      name for your format.
+
+      After adding to MIME database, you want to also add it to
+      ../../view3dscene/desktop/view3dscene.desktop, to indicate that
+      view3dscene handles this MIME type.)
+
+    @item(You probably also want to add to documentation.
+      At least view3dscene.php "Features" section, and possibly other places
+      if it's really important format.)
+  )
+}
 unit Object3dAsVRML;
 
 interface
@@ -153,6 +188,12 @@ implementation
 uses Object3dGEO, Object3ds, Object3dOBJ, VRMLCameraUtils,
   KambiStringUtils, VRMLAnimation, ColladaToVRML,
   X3DXmlToVRML;
+
+{
+  Note: for VRML 1.0, remember that you may want to embed returned
+  @link(TVRMLNode) objects inside VRML Separator node before
+  inserting it into some existing VRML scene.
+}
 
 function ToVRMLName(const s: string): string;
 const
