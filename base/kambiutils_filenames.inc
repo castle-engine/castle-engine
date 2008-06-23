@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2004, 2007 Michalis Kamburelis.
+  Copyright 2002-2004,2007-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -22,64 +22,86 @@
 
 {$ifdef read_interface}
 
-{ Usuwa z filename ostatnie rozszerzenie (razem z kropka).
-  Jesli plik ma kilka rozszerzen, obcina TYLKO ostatnie.
-  Jesli plik nie mial rozszerzenia, nic nie obcina.
-  Kiedys jako FilenameWithoutExt. }
-function DeleteFileExt(const filename: string): string;
+{ Remove from the FileName the last extension (including the dot).
+  Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
+  this will remove only the last one.
+  Will remove nothing if filename has no extension. }
+function DeleteFileExt(const FileName: string): string;
 
-{ wyciaga z filename nazwe pliku bez dysku, katalogu i ostatniego rozszerzenia }
-function ExtractOnlyFilename(const filename: string): string;
+{ Extracts from FileName the name of file, without directory,
+  without last extension and without any Windows drive letter. }
+function ExtractOnlyFilename(const FileName: string): string;
 
-{ ChangeFilePath zwraca fname ze sciezka ustawiona na NewPath.
-  (newPath musi zawierac koncowy PathDelim) }
-function ChangeFilePath(const fname, NewPath: string): string;
+{ Returns FileName with directory (path) part replaced
+  with given NewPath. NewPath @bold(must) contain trailing PathDelim. }
+function ChangeFilePath(const FileName, NewPath: string): string;
 
-{ podwaja w stringu znaki PathDelim }
+{ Duplicates (makes them double) the PathDelim characters in the string. }
 function DuplicateSlash(const s: string): string;
 
-{ zwraca true jesli c = PathDelim, pod Windows zwraca true takze gdy c = '/'.
-  ( Bo pod Windows '/' nie jest PathDelim ale tak naprawde jest akceptowane przez funkcje
-  WinAPI (wiec w zasadzie przez wszystko) zamiast PathDelim, wiec gdzieniegdzie jest
-  uzywane (takze przeze mnie) zamiast PathDelim - przynajmniej w moim przypadku
-  jest to przyzwyczajenie z Linuxa.)  }
+{ Checks is C valid path delimiter under this platform.
+
+  For all platforms this just compares C with PathDelim,
+  and under Windows additionally accepts also C = '/'.
+  (Since under Windows the Unix-like '/' is not standard PathDelim,
+  but it's accepted by all WinAPI functions and programs,
+  and it's comfortable to use if you're accustomed to Unix.) }
 function IsPathDelim(c: char): boolean;
 
-{ Moje funkcje Incl/ExclPathDelim robia prawie to samo co Include/ExcludeTrailingPathDelimiter
-  a maja mniej meczace nazwy. A wiec, zeby powiedziec to jasno :
-  InclPathDelim jesli s nie zawiera na koncu IsPathDelim to zwraca s + PathDelim,
-  wpp. zwraca s.
-  ExclPathDelim jesli s zawiera na koncu IsPathDelim to zwraca s skrocone o jedna
-  literke, wpp. zwraca s.
+{ These do almost the same as standard Include/ExcludeTrailingPathDelimiter
+  functions, but have shorter names. So InclPathDelim makes sure
+  S has some path delimiter at the end (appends PathDelim if needed),
+  and ExclPathDelim makes sure there's no path delimiter at the end
+  (strips it if needed).
 
-  Pewne roznice z wersjami SysUtils moga byc: te funkcje nie dzialaja na
-  stringach MBCS. Ponadto uzywaja mojej IsPathDelim ktora uwzglednia fakt
-  ze pod Windows '/' jest tak naprawde akceptowalnym path delimitorem. }
+  The difference from Delphi Include/ExcludeTrailingPathDelimiter
+  is that my functions use IsPathDelim, so they take into account
+  the fact that under Windows '/' is also a valid path delimiter.
+  For FPC, default Include/ExcludeTrailingPathDelimiter already
+  take this into account, so my versions are not really useful,
+  they only have shorter names.
+
+  Also, my functions do not handle MBCS strings.
+
+  @groupBegin }
 function InclPathDelim(const s: string): string;
 function ExclPathDelim(const s: string): string;
+{ @groupEnd }
 
-{ fname moze byc bezwzgledne lub wzgledne wzgledem CurrentDir.
-  Zwroci fname wzgledne wzgledem CurrentDir, tzn. odpowiednio zmodyfikuje
-  fname bezwzgledne lub przepisze bez zmian fname wzgledne. }
-function RelativeFilename(const fname: string): string;
+{ Forces FileName to be relative (relative from CurrentDir).
 
-{ fname is absolute filename or relative (with respect to CurrentDir).
-  This function maybe will convert fname to absolute filename and
-  maybe will convert it to relative filename -- whichever gives shorter
-  result, i.e. "nicer to show the user".
-  E.g. if CurrentDir = '/usr/share/' and
-          fname = '/usr/share/some_file'
-       Result will be a relative filename 'some_file'
+  Given FileName may be absolute (then it's directory part will be modified
+  accordingly) or already relative (then it will simply be returned
+  without any changes). }
+function RelativeFilename(const FileName: string): string;
+
+{ Makes FileName relative or absolute, whichever is nicer to show the user.
+
+  Given FileName may be absolute or relative (with respect to CurrentDir).
+  This function maybe will convert FileName to absolute filename and
+  maybe will convert it to relative filename -- whichever will be
+  nicer to show the user.
+
+  It's not guaranteed what exactly this function considers as "nicer for
+  the user". Current implementation simply assumes that if FileName
+  is under current directory, then relative name is nicer,
+  otherwise absolute name is nicer. In other words, it tries to
+  make a relative name but without any leading "..".
+
+  Examples:
+
+@preformatted(
   If CurrentDir = '/usr/share/' and
-          fname = '/lib/bla/bla'
-       Result will be equal to fname '/lib/bla/bla'
+     FileName = '/usr/share/some_file'
+     Result will be a relative filename 'some_file'
   If CurrentDir = '/usr/share/' and
-          fname = '../../lib/bla/bla'
-       Result will be absolute filename '/lib/bla/bla'
-  The exact operations are not specified here. Current implementation
-  returns relative filename if fname is in CurrentDir or subdirectory,
-  else it returns absolute filename. }
-function NiceFileName(const fname: string): string;
+     FileName = '/lib/bla/bla'
+     Result will be equal to FileName '/lib/bla/bla'
+  If CurrentDir = '/usr/share/' and
+     FileName = '../../lib/bla/bla'
+     Result will be absolute filename '/lib/bla/bla'
+) }
+function NiceFileName(const FileName: string): string;
 
 { Check is the given Path absolute.
 
@@ -102,11 +124,11 @@ function IsPathAbsolute(const Path: string): boolean;
   @seealso IsPathAbsolute }
 function IsPathAbsoluteOnDrive(const Path: string): boolean;
 
-{ czy nazwa katalogu to nazwa specjalna ? Np. '.' albo '..'. dirname nie moze
-  byc zadna sciezka ani nic w tym stylu, zadnych ozdobnikow, to jest
-  twarde sprawdzanie czy dirname = '.' lub '..' (plus pewne zabezpieczenia,
-  patrz implementacja; Uzywaj tej f-cji zamiast wykonywac te porownania recznie). }
-function SpecialDirName(const dirname: string): boolean;
+{ Checks is the directory name special, like "." or "..".
+
+  The precise definition of "special" is that you cannot ever create
+  or even have any filenames / directories named like this. }
+function SpecialDirName(const DirectoryName: string): boolean;
 
 { Returns DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName); }
 function AppendToFilename(const FileName, Suffix: string): string;
@@ -125,23 +147,32 @@ function ExpandFilePath(const FilePath: string): string;
 
 {$ifdef read_implementation}
 
-function DeleteFileExt(const filename: string): string;
-var i: integer;
+function DeleteFileExt(const FileName: string): string;
+var
+  I: Integer;
 begin
- for i := Length(filename) downto 1 do
-  if filename[i] = '.' then begin result := Copy(filename, 1, i-1); exit end else
-   if filename[i] = PathDelim then break;
- result := filename;
+  for I := Length(FileName) downto 1 do
+  begin
+    if FileName[I] = '.' then
+    begin
+      Result := Copy(FileName, 1, I - 1);
+      Exit;
+    end else
+    if FileName[I] = PathDelim then
+      Break;
+  end;
+
+  Result := FileName;
 end;
 
-function ExtractOnlyFilename(const filename: string): string;
+function ExtractOnlyFileName(const FileName: string): string;
 begin
- result := DeleteFileExt(ExtractFilename(filename));
+ result := DeleteFileExt(ExtractFileName(FileName));
 end;
 
-function ChangeFilePath(const fname, NewPath: string): string;
+function ChangeFilePath(const FileName, NewPath: string): string;
 begin
- result := NewPath + ExtractFileName(fname);
+ result := NewPath + ExtractFileName(FileName);
 end;
 
 function DuplicateSlash(const s: string): string;
@@ -176,26 +207,26 @@ begin
  Result := Copy(S, 1, L);
 end;
 
-function RelativeFilename(const fname: string): string;
+function RelativeFilename(const FileName: string): string;
 begin
- if IsPathAbsolute(fname) then
+ if IsPathAbsolute(FileName) then
   Result := ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
-    fname) else
+    FileName) else
  { TODO: MSWINDOWS - chyba nie trzeba uwzgledniac tu
-   IsPathAbsoluteOnDrive(fname) ? }
-  Result := fname;
+   IsPathAbsoluteOnDrive(FileName) ? }
+  Result := FileName;
 end;
 
-function NiceFileName(const fname: string): string;
-var AbsoluteFname: string;
+function NiceFileName(const FileName: string): string;
+var AbsoluteFileName: string;
 begin
- AbsoluteFname := ExpandFileName(fname);
+ AbsoluteFileName := ExpandFileName(FileName);
  { It's important that we end InclPathDelim(GetCurrentDir) and
-   ExtractFilePath(AbsoluteFname) always with PathDelim, it makes sure that
+   ExtractFilePath(AbsoluteFileName) always with PathDelim, it makes sure that
    IsPrefix actually checks is one file in subdirectory of another. }
- if IsPrefix( InclPathDelim(GetCurrentDir), ExtractFilePath(AbsoluteFname) ) then
-  Result := RelativeFilename(fname) else
-  Result := AbsoluteFname;
+ if IsPrefix( InclPathDelim(GetCurrentDir), ExtractFilePath(AbsoluteFileName) ) then
+  Result := RelativeFilename(FileName) else
+  Result := AbsoluteFileName;
 end;
 
 function IsPathAbsolute(const Path: string): boolean;
@@ -210,7 +241,7 @@ begin
     {$ifdef MSWINDOWS} or SCharIs(Path, 1, PathDelim) {$endif}
 end;
 
-function SpecialDirName(const dirname: string): boolean;
+function SpecialDirName(const DirectoryName: string): boolean;
 begin
  { Microsoft swego czasu straszyl ze w systemie beda zdefiniowane katalogi ...
      i .... jako katalog-dziadek i pradziadek tak jak obecnie sa .. jako rodzic i
@@ -223,7 +254,7 @@ begin
    Pod linuxem (i prawdopodobnie kazdym innym nie-Windowsem)
    ... i .... to zupelnie legalne nazwy plikow dlatego
    ten check nie moze istniec pod nie-Windowsem. }
- result := ArrayPosStr(dirname,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}]) >= 0;
+ result := ArrayPosStr(DirectoryName,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}]) >= 0;
 end;
 
 function AppendToFilename(const FileName, Suffix: string): string;
