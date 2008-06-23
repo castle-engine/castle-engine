@@ -117,7 +117,7 @@ D   unix/xf86vmode.pas
 D   unix/xlibutils.pas
 D   curve.pas
 D   glw_demo.pas
--   glwindow.pas
+|   glwindow.pas
 D   glwindowrecentmenu.pas
 -   glwininputs.pas
 D   glwinmessages.pas

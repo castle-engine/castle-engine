@@ -22,71 +22,75 @@
 
 { @abstract(TGLWindow is a window with associated OpenGL context.)
 
-  @link(glwm) object (instance of class @link(TGLWindowsManager))
-  is a manager of all active (i.e. visible) @link(TGLWindow) objects.
+  @link(Glwm) object (instance of class @link(TGLWindowsManager))
+  is a manager of all active (that is, visible) @link(TGLWindow) windows.
 
   Using this unit:
 
   @orderedList(
-    @item(Declare and create @link(TGLWindow) object.
+    @item(Declare and create @link(TGLWindow) instance.
       Or simply use unit @link(GLW_Win) (or @link(GLW_Demo) or
       @link(GLW_Navigated)), these units give you already initialized
-      global variable glw :TGLWindow.)
+      instance of TGLWindow class in global variable Glw.)
 
-    @item(Assign glw properties and callbacks like OnDraw, OnResize,
-      Width, Height, Caption. Often you will want to use ParseParameters method
-      to allow user to control your TGLWindow initial settings using
-      command-line options.)
+    @item(Assign Glw properties and callbacks like
+      @link(TGLWindow.OnDraw OnDraw),
+      @link(TGLWindow.OnResize OnResize),
+      @link(TGLWindow.Width Width),
+      @link(TGLWindow.Height Height),
+      @link(TGLWindow.Caption Caption).)
 
-    @item(Call glw.Init, this will actually show the window and it's
-      associated OpenGL context. It also calls EventInit (OnInit callback)
-      and EventResize (OnResize callback).)
+    @item(Call @link(TGLWindow.Init Glw.Init),
+      this will actually show the window and it's
+      associated OpenGL context. It also calls
+      @link(TGLWindow.EventInit EventInit)
+      (@link(TGLWindow.OnInit OnInit) callback)
+      and @link(TGLWindow.EventResize EventResize)
+      (@link(TGLWindow.OnResize OnResize) callback).)
 
-    @item(Call glwm.Loop. This will enter message loop that will call
+    @item(Call @link(TGLWindowsManager.Loop Glwm.Loop).
+      This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
-      (OnDraw, OnKeyDown, OnResize and many more).
-      (and there are some glwm callbacks, like glwm.OnIdle).
+      (OnDraw, OnKeyDown, OnResize, OnIdle and many more).
+      There are also some Glwm callbacks, like
+      @link(TGLWindowsManager.OnIdle Glwm.OnIdle).
 
-      For more advanced use you can use something like
-        while glwm.ProcessMessage do <something>;
-      instead of glwm.Loop.
+      For more advanced needs you can use something like
+        @longCode(#  while Glwm.ProcessMessage do <something>;#)
+      instead of Glwm.Loop.
 
-      You can also call glw.InitLoop, this is a shortcut for
-      glw.Init + glwm.Loop.)
+      You can also call @link(TGLWindow.InitLoop Glw.InitLoop),
+      this is just a shortcut for Glw.Init + Glwm.Loop.)
 
-    @item(glwm.Loop ends when you call glwm.Quit,
-      or when you close last visible window using Close(true).
+    @item(Glwm.Loop ends when you call @link(TGLWindowsManager.Quit Glwm.Quit)
+      or when you close last visible window using @link(TGLWindow.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
       (clicking on "X" button in the frame corner, pressing Alt+F4 or something
       like that). By default, such user action will make window close
       (but you can freely customize what your program does when user
-      tries to close the window using callback OnCloseQuery).)
-
-    @item(Free the TGLWindow object (as always, it's a good idea to encapsulate
-      calls between Create and Free in "try..finally" block).
-      Of course, you don't have to do that if you simply used one of
-      GLW_Xxx units (with global glw variable) in your program.)
+      tries to close the window using callback
+      @link(TGLWindow.OnCloseQuery OnCloseQuery)).)
   )
 
   So the simplest example of using this unit can look like this:
 
-  @longcode(#
-    uses GLWindow, GLW_Win;
+@longcode(#
+  uses GLWindow, GLW_Win;
 
-    procedure Draw(glwin: TGLWindow);
-    begin  ...  end;
+  procedure Draw(Glwin: TGLWindow);
+  begin  ...  end;
 
-    procedure Resize(glwin: TGLWindow);
-    begin  ...  end;
+  procedure Resize(Glwin: TGLWindow);
+  begin  ...  end;
 
-    begin
-     glw.OnResize := Resize;
-     glw.InitLoop('Simplest GLWindow example', Draw);
-    end.
-  #)
+  begin
+   Glw.OnResize := @Resize;
+   Glw.InitLoop('Simplest GLWindow example', @Draw);
+  end.
+#)
 
-  More Object-oriented approach:
+  @italic(More object-oriented approach):
   Instead of assigning callbacks (OnDraw, OnResize etc.) you can
   also derive a new class from TGLWindow and override some of virtual
   methods, like EventDraw, EventResize etc. Every callback OnXxx
@@ -94,40 +98,42 @@
   all EventXxx methods simply call appropriate OnXxx callbacks
   (this way you can use whatever approach you like -- OOP or not-OOP).
 
-  This is a second version of "simplest example" program above,
+  This is a second version of the "simplest example" program above,
   this time using OOP approach:
 
-  @longcode(#
-    uses GLWindow;
+@longcode(#
+  uses GLWindow;
 
-    type
-      TMyWindow = class(TGLWindow)
-        procedure EventDraw; override;
-        procedure EventResize; override;
-      end;
+  type
+    TMyWindow = class(TGLWindow)
+      procedure EventDraw; override;
+      procedure EventResize; override;
+    end;
 
-    procedure TMyWindow.EventDraw;
-    begin  ...  end;
+  procedure TMyWindow.EventDraw;
+  begin  ...  end;
 
-    procedure TMyWindow.EventResize;
-    begin  ...  end;
+  procedure TMyWindow.EventResize;
+  begin  ...  end;
 
-    var glw: TMyWindow;
-    begin
-     glw := TMyWindow.Create;
-     try
-      glw.Caption := 'Simplest GLWindow example using more OOP';
-      glw.InitLoop;
-     finally glw.Free end;
-    end.
-  #)
+  var
+    Glw: TMyWindow;
+  begin
+    Glw := TMyWindow.Create;
+    try
+      Glw.Caption := 'Simplest GLWindow example using more OOP';
+      Glw.InitLoop;
+    finally Glw.Free end;
+  end.
+#)
 
   The non-OOP approach has one advantage: you can easily switch all callbacks
   to some other set of callbacks using TGLWindowCallbacks,
-  Get/SetCallbacksState. Using these functions I implemented unit
+  TGLWindow.GetCallbacksState, TGLWindow.SetCallbacksState.
+  Using these functions I implemented unit
   @link(GLWinModes) and then, on top of this, I implemented some very
-  handy things like modal Message Boxes (unit @link(GLWinMessages))
-  and progress bar (unit @link(ProgressGL)). These units give me some typical
+  handy things like modal message boxes (unit @link(GLWinMessages))
+  and progress bar (unit @link(ProgressGL)). These units give you some typical
   GUI capabilities, and they are in pure OpenGL.
 
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
@@ -139,87 +145,59 @@
   GLWinModes). TODO: I shall do some virtual methods in TGLWindow
   to make this easy.
 
-  pl:
-  Unit zostal wykonany na klasie, ale program uzywajacy tego modulu nie potrzebuje
-  dbac o rozne tego typu rzeczy. W szczegolnosci, wszystkie rejestrowane
-  funkcje NIE SA procedurami "by object" - sa normalnymi globalnymi funkcjami.
-  Klasa TGLWindow zostala napisana jako klasa aby wygodnie gromadzic mase
-  rzeczy; chociaz moze byc potraktowana jako zalazek jakiejs hierarchii
-  obiektowej (np. patrz dziedziczaca on niej klasa TGLWindowDemo,
-  wirtualne procedury EventXxx) to mozna tez uzywac jej w zupelnie
-  nieobiektowym programie, ktory nie definiuje zadnych wlasnych klas
-  i nie uzywa jako callbackow zadnych metod.
+  Random features list:
 
-  Nazwy wlasciwosci i metod sa krzyzowka nazw znanych z gluta, Delphi i moich
-  wlasnych.
+  @unorderedList(
 
-  Prace nad GLWindow zaczete 20 lipca 2002. Zaprojektowany jako lepsza alternatywa
-  dla myOpenGL / myGlutGL itp. Od poczatku zrobiony aby kompilowac sie i dzialac
-  nie tylko pod Delphi/Kylix ale takze pod FPC. Later: now it's only for FPC,
-  I don't care in this unit about Delphi compatibility anymore.
+    @item(TGLWindowsManager.ProcessMessage method.
+      This allows you to reimplement
+      event loop handling, which is crucial for implementing things
+      like @link(MessageInputQuery) function that does modal GUI dialog box.)
 
-  Najwazniejsze przewagi nad glutem :
-    - jest metoda ProcessMessage ktora pozwala napisac wlasna wersje Loop
-    - jest mechanizm sprawdzania up / down klawiszy, kilka klawiszy
-      moze byc wcisnietych na raz itp.
-    - jest netoda FlushRedisplay - patrz jej opis po wyjasnienie co ona robi
-      i kiedy jest naprawde potrzebna.
-    - sa klasy fontow ktore opakowuja fonty glut'a (patrz GLUTFonts),
-      fonty zainstalowane pod windowsem (OpenGLWinFonts) lub X-windowsami
-      (OpenGLX11Fonts) i fonty zapisane statycznie w kodzie programu
-      (patrz OpenGLTTFonts, OpenGLBmpFonts)
-    - glutMainLoop to procedura bez powrotu. Wszystkie finalizacje trzeba
-      robic rejestrujac wyjscie programu w libc. Moje glwm.Loop wraca
-      gdy zamkniesz wszystkie okna.
-    - poniewaz ten unit zostal napisany w ObjectPascalu, wszystkie awaryjne
-      sytuacje zalatwiamy wyjatkami. A wyjatki zawsze w razie potrzeby
-      mozesz przechwycic itp.
-    - jest zaimplementowany Frame Per Seconds counter (frame-time i real-time,
-      patrz opis odpowiednich metod)
-    - menu under Windows and GTK is implemented as menu bar (always visible)
-    - no i pare rodzynek nie zaslugujacych na osobny punkcik :
-       . lista aktywnych okien w glwm.Active
-       . automatyczne robienie glFlush / SwapBuffers po OnDraw
-       . specjalna klasa BreakGLWinEvent(CodeBreaker) pozwala elegancko
-           zakonczyc obsluge aktualnego zdarzenia GLWindow w dowolnym
-           miejscu kodu (choc nie nalezy tego uzywac zbyt czesto !)
-       . w tym module zaimplementowalem dwie podklasy TGLWindow o dodatkowej
-         funkcjonalnosci :
-         TGLWindowDemo - okno implementujace przestawianie sie w trakcie
-           dzialania programu miedzy fullscreen a windowed,
-           FPS automatycznie pokazywane w Caption okienka.
-         TGLWindowNavigated - okno poslugujace sie MatruxNavigatorami
-           w MatrixNavigation, w ten sposob mamy juz gotowy interfejs pozwalajacy
-           userowi chodzi po dowolnej scenie jak w DOOMie albo obracac
-           jakis model na srodku okienka.
+    @item(TGLWindow.KeysDown to easily and reliably check which keys are pressed.)
 
-  Mamy tez wlasne mozliwosci VideoChange zmieniania rozmiaru ekranu,
-  pod Windowsem uzywamy ChangeDisplaySettings, pod UNIXem
-  rozszerzen z libXxf86vm (zrobione 16.02.2003).
-  Mozna tez probowac wymuszac pewnych BitDepth roznych buforow
-  (color buffer (possibly with alpha channel), depth, stencil, accumulation).
+    @item(Frames per second counter, see
+      @link(TGLWindow.FpsActive FpsActive),
+      @link(TGLWindow.FpsFrameTime FpsFrameTime),
+      @link(TGLWindow.FpsRealTime FpsRealTime) and
+      other FpsXxx properties and methods in TGLWindow class.)
 
-  2/3/2004:
-  You can attach a menu to a window. Menu structure is constructed using
-  classes in glwindowmenu.inc file. Then you have to assign such menu structure
-  to TGLWindow.MainMenu property. When GLWindow is implemented on top
-  of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
-  EventMenuCommand (OnMenuCommand) when user clicks some menu item.
-  Other implementations (XLIB for now) ignore MainMenu.
+    @item(A menu bar under WinAPI and GTK backends.
 
-  See @code(kambi_vrml_game_engine/opengl/examples/menu_test.pasprogram)
-  for an example how to use menu.
+      You can attach a menu to a window. Menu structure is constructed using
+      various descendants of TMenuEntry class.
+      Then you have to assign such menu structure
+      to TGLWindow.MainMenu property. When GLWindow is implemented on top
+      of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
+      TGLWindow.EventMenuCommand (TGLWindow.OnMenuCommand) when user clicks some menu item.
+      Other implementations (XLIB for now) ignore MainMenu.
 
-  4/2004:
-  You can use modal dialogs for things such as file selection.
-  GTK implementation will use GTK dialogs, WinAPI implementation
-  will use Windows dialog boxes, XLib implementation will fall back
-  on GLWinMessages text input.
+      See @code(kambi_vrml_game_engine/opengl/examples/menu_test.pasprogram)
+      for an example how to use menu.)
 
-  FileDialog (for opening and saving files) is implemented.
-  25/5/2004: ColorDialog (for choosing RGB colors) implemented.
-  Probably more such things will be added in the future
-  (DirectoryDialog ?).
+    @item(Changing screen resolution and bit depth,
+      see TGLWindowsManager.VideoChange.
+
+      Also you can request various OpenGL buffers: color buffer with alpha
+      channel (@link(TGLWindow.AlphaBits AlphaBits)),
+      stencil buffer (@link(TGLWindow.StencilBufferBits StencilBufferBits)),
+      double buffer (@link(TGLWindow.DoubleBuffer DoubleBuffer)), accumulation buffer
+      (@link(TGLWindow.AccumBufferBits AccumBufferBits)),
+      multisampling (full-screen antialiasing) buffers (@link(TGLWindow.MultiSampling MultiSampling))?
+      )
+
+    @item(You can use native modal dialogs for things such as file selection.
+      GTK implementation will use GTK dialogs, WinAPI implementation
+      will use Windows dialog boxes, XLib implementation will fall back
+      on GLWinMessages text input.
+
+      See TGLWindow.FileDialog (for opening and saving files) and
+      TGLWindow.ColorDialog (for choosing RGB colors).)
+
+    @item(TGLWindow.ParseParameters method allows you to easily initialize TGLWindow
+      properties like initial size and position using command-line
+      parameters like @code(@--geometry WIDTHxHEIGHT), @code(@--display) etc.)
+  )
 }
 
 unit GLWindow;
@@ -275,6 +253,8 @@ unit GLWindow;
       do them in GTK_1, and I don't really care since GTK_2 version
       is completely stable now). They are simply removed when Caption
       is displayed.
+    - File filters are not implemented. This is fixed in GTK_2 by
+      using newer GtkFileChooser.
 
     GLWINDOW_GTK_2:
     This is now stable and tested and is much better than GTK_1.
@@ -327,9 +307,9 @@ unit GLWindow;
     Known problems:
     (they are specific to GLWINDOW_GLUT and will not be fixed.
     Just use other GLWINDOW_xxx backend if you don't want these problems):
-    - Lack of glwm.ProcessMesssages (although freeglut allows me to fix it,
+    - Lack of Glwm.ProcessMesssages (although freeglut allows me to fix it,
       maybe I'll do it someday)
-    - glwm.Loop does never return (because it must be implemented as a
+    - Glwm.Loop does never return (because it must be implemented as a
       single call to glutMainLoop)
     - Key up / down (with K_xxx constants) are rather poorly simulated.
     - FlushRedisplay always redraws the window
@@ -406,12 +386,12 @@ unit GLWindow;
     module.
   - Call all TGLWindow.DoXxx functions at appropriate places from your
     implementation.
-    You can call all DoIdle and DoTimer for all glwm.Active[] windows
-    using glwm.DoActiveWindowsIdle/Timer (this will give usually inefficient
+    You can call all DoIdle and DoTimer for all Glwm.Active[] windows
+    using Glwm.DoActiveWindowsIdle/Timer (this will give usually inefficient
     but working implementation)
   - Call TGLWindowsManager.DoSelfIdle and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
-    TGLWindowsManager is glwm.
+    TGLWindowsManager is Glwm.
   Some important things that can be easily forgotten:
   - Remember that probably you will have to call ReleaseAllKeysAndMouse
     when user switches to another window or activates MainMenu.
@@ -566,14 +546,6 @@ unit GLWindow;
     MaxWidth/Height (Maybe these properties should be removed ?
       They are made for symmetry with MinWidth/Height. Are they really useful ?)
   - with GTK 2:
-    - Migrate GtkFileSelection to GtkFileChooser.
-
-      Also provide some way to specify code some filter (at least
-      some lists of masks of files to initially display,
-      e.g. open command of view3dscene should only display files
-      *.wrl, *.3ds, *.obj, *.geo, *.iv), do it portably and also
-      for Windows, as Windows dialog also allows such filters.
-
     - Implement better fullscreen toggle now (that doesn't need
       recreating window).
       Update docs about capabilities of GTK_2 implementation.
@@ -587,7 +559,6 @@ unit GLWindow;
   - napisac jakies programy ktore sprawdzilyby ze
     DepthBufferBits, AlphaBits
     dzialaja, i sprawdzic je pod wszystkimi implementacjami
-    check sgk_shadows under windows (both GLUT and WINAPI and GTK impl)
   - Width, Height, Left, Top zaimplementowac tak zeby przeniesc je
     do sekcji "mozesz nimi pozniej manipulowac" ?
   - zrobic implementacje przez SDL ?
@@ -872,7 +843,7 @@ type
 
     { Konkretne implementacje nie robia wlasnej wersji TGLWindow.Init,
       robia InitImplDepend -- tam sie inicjuja + musza wywolac
-      glwm.ActiveAdd(Self) w dogodnej chwili.
+      Glwm.ActiveAdd(Self) w dogodnej chwili.
 
       Here's a list of properties that should be made "visible" to the user
       in InitImplDepend:
@@ -1241,9 +1212,9 @@ type
     procedure EventTimer; virtual;
     procedure EventMenuCommand(Item: TMenuItem); virtual;
 
-    { w glwm.ProcessMessage wykonywana jest bardzo wazna rzecz zaoszczedzajaca
+    { w Glwm.ProcessMessage wykonywana jest bardzo wazna rzecz zaoszczedzajaca
       cykle procesora : program ktory nie ma zadnego idle ani timer zarejestrowanego
-      ani nie zostalo wywolane glwm.Quit ma prawo "zawisnac" na oczekiwanie
+      ani nie zostalo wywolane Glwm.Quit ma prawo "zawisnac" na oczekiwanie
       message'a od winsystemu.
 
       Aby takie cos dzialalo musi byc sposob aby uzyskac od okna informacje
@@ -1308,12 +1279,12 @@ type
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
     { ColorBits : sprobuje ustawic takie bits per pixel tylko dla danego okna.
-      Jesli ColorBits = 0 w czasie Init to uzyje glwm.VideoColorBits
+      Jesli ColorBits = 0 w czasie Init to uzyje Glwm.VideoColorBits
       (chociaz one tez moga byc = 0; wtedy wezmie defaultowe ColorBits jakie
       da nam Windows). Tak czy siak, po zakonczeniu Init ColorBits powiedza
       nam jakie ColorBits otrzymalismy.
       Aby naprawde zmienic ColorBits z duza szansa uzywaj raczej
-      Glwm.VideoColorBits i glwm.VideoChange.
+      Glwm.VideoColorBits i Glwm.VideoChange.
 
       TODO: uzywanie tej wlasciwosci jest deprecated. Jest ona non-cross-platform,
       interfejs nie czyni zadnych gwarancji ze rzeczywiscie dostaniemy
@@ -1819,22 +1790,22 @@ type
     { @groupEnd }
 
     { property OnIdle i OnTimer beda zachodzily dla wszystkich okien
-      w glwm.Active[] w momencie gdy zajdzie zdarzenie obiektu glwm -
+      w Glwm.Active[] w momencie gdy zajdzie zdarzenie obiektu Glwm -
       OnIdle lub OnTimer. Tzn. nie zrozumcie mnie zle - zadna kolejnosc
-      zdarzen OnIdli glwm i roznych okien nie jest gwarantowana i beda
+      zdarzen OnIdli Glwm i roznych okien nie jest gwarantowana i beda
       nawet mogly sie przeplatac - ale poza tym OnIdle i OnTimer beda
       wywolywane wtedy gdy logika powiedzialaby ze moze byc wywolane
-      glwm.OnIdle lub OnTimer, odpowiednio.
+      Glwm.OnIdle lub OnTimer, odpowiednio.
 
       Te zdarzenia sa tu przedstawione bo mimo ze OnIdle / OnTimer
       sa zdarzeniami niezwiazanymi z konkretnym okienkiem to jednak
       sa wykorzystywane najczesciej wlasnie aby iterowac po wszystkich /
-      niektorych okiekach wsrod glwm.Active[] i cos w nich robic,
+      niektorych okiekach wsrod Glwm.Active[] i cos w nich robic,
       chociazby sprawdzac ich KeysDown[]. W tej sytuacji jest dobrym
       pomyslem aby robic te zdarzenia w callbacku specyficznym
-      dla danego obiektu a nie dla calego glwm - w ten sposob ulozenie
+      dla danego obiektu a nie dla calego Glwm - w ten sposob ulozenie
       danych w obiektach odpowiada rzeczywistym celom do jakiego sa
-      uzywane - OnIdle glwm powinno sie zajmowac tylko sprawami ogolnymi,
+      uzywane - OnIdle Glwm powinno sie zajmowac tylko sprawami ogolnymi,
       OnIdle w jakims konkretnym okienku - tylko sprawami tego okienka.
 
       Zachowanie takiej spojnosci nie jest oczywiscie wymagane ale
@@ -2002,7 +1973,7 @@ type
         @item(
           if this was the only open TGLWindow window
           and QuitWhenLastWindowClosed = true then
-          this calls glwm.Quit.)
+          this calls Glwm.Quit.)
       )
 
       Note that often there's no need to call Close explicitly in your program,
@@ -2210,7 +2181,7 @@ type
 
     { ------------------------------------------------------------------------
       gotowe funkcje ktore realizuja "uproszczony scenariusz",
-      same inicjuja typowe wartosci, wywoluja Init a potem glwm.Loop; }
+      same inicjuja typowe wartosci, wywoluja Init a potem Glwm.Loop; }
 
     procedure InitLoop; overload;
     procedure InitLoop(const ACaption: string; AOnDraw: TDrawFunc); overload;
@@ -2289,7 +2260,7 @@ type
 
     { About all dialogs:
       - Behaviour of callbacks:
-        callbacks of glwm and callbacks of other TGLWindow MAY be called while
+        callbacks of Glwm and callbacks of other TGLWindow MAY be called while
         the dialog is open. Callbacks of THIS object (EventXxx, OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
@@ -2390,7 +2361,7 @@ type
         Automatycznie wlacza tez FpsActive i co jakies kilkaset milisekund
         uaktualnia tytul okienka poprzez FpsToCaption. (Juz poprawione -
         to jest robione w EventIdle, dziala niezaleznie od OnTimer okienka, od
-        glwm.OnTimer i glwm.TimerMilisec.)
+        Glwm.OnTimer i Glwm.TimerMilisec.)
         (wykonuje to tylko jesli ustawisz FpsShowOnCaption = true).)
     )
 
@@ -2624,7 +2595,7 @@ type
     procedure PostRedisplay;
   end;
 
-  { The only instance of this class should be glwm.
+  { The only instance of this class should be Glwm.
     Don't create any other objects of class TGLWindowsManager, there's no
     point in doing that.
     This object traces information about all visible instances of TGLWindow
@@ -2694,7 +2665,7 @@ type
 
         Note: it is NOT guaranteed that we are inside Loop method
         when calling this function, i.e. it may be the case that noone ever
-        called glwm.Loop (e.g. in @code(kambi_lines) game, where everything is done
+        called Glwm.Loop (e.g. in @code(kambi_lines) game, where everything is done
         using while ProcessMessages do ...), but still it must be valid to call
         Quit and QuitWhenNoWindowsActive in such situation.
         Also it must be valid to call Quit and QuitWhenNoWindowsActive more
@@ -2764,7 +2735,7 @@ type
     { VideoReset przywraca domyslne ustawienia ekranu (tzn. nie robi
       nic jesli nigdy nie wywolales TryVideoChange z rezultatem true,
       wpp przywraca domyslne ustawienia). Jest wywolywane automatycznie w
-      glwm.Destroy a wiec w finalization tego unitu (a wiec nie troszcz
+      Glwm.Destroy a wiec w finalization tego unitu (a wiec nie troszcz
       sie o finalizacje wywolania TryVideoChange). }
     procedure VideoReset;
 
@@ -2828,7 +2799,7 @@ type
       Aplikacja chcaca cos robiæ w oczekiwaniu na zajscie warunku BB
       powinna robia tak :
 
-      while not BB do glwm.ProcessMessages;
+      while not BB do Glwm.ProcessMessages;
 
       W GLWindow, inaczej niz w jakims wiekszym systemie jak np. VCL czy WinAPI,
       programista ma prosta i pelna kontrole nad programem, wiêc mo¿na bez problemu
@@ -2841,7 +2812,7 @@ type
       nale¿aloby napisaæ pêtlê postaci
 
       while not BB do
-       if not glwm.ProcessMessage then break;
+       if not Glwm.ProcessMessage then break;
 
       Co mozna zakladac lub nie o dzialaniu petli ProcessGLWinMessages ?
        - jezeli windManager zasypuje nam message'ami moze sie okazac
@@ -2937,7 +2908,7 @@ type
 
       Note specific to glut-based implementation (GLWINDOW_GLUT):
       with glut this method (after closing all Windows) calls Halt,
-      since this is the only way to exit from glwm.Loop (that has to be
+      since this is the only way to exit from Glwm.Loop (that has to be
       implemented as glutMainLoop). }
     procedure Quit;
 
@@ -2966,7 +2937,7 @@ var
     This will be handled in initialization / finalization of this module.
     Many things in this unit, also in TGLWindow class implementation,
     depend on having this variable present all the time. }
-  glwm: TGLWindowsManager;
+  Glwm: TGLWindowsManager;
 
 const
   DefaultCallbacksState: TGLWindowCallbacks =
@@ -3076,10 +3047,10 @@ begin
     it will be slightly smaller (menu bar takes some space).
   }
   if FFullscreen and
-    ((not between(glwm.ScreenWidth, minWidth, maxWidth)) or
-     (not between(glwm.ScreenHeight, minHeight, maxHeight)) or
+    ((not between(Glwm.ScreenWidth, minWidth, maxWidth)) or
+     (not between(Glwm.ScreenHeight, minHeight, maxHeight)) or
      ((ResizeAllowed = raNotAllowed) and
-       ((glwm.ScreenWidth <> Width) or (glwm.ScreenHeight <> Height)) )
+       ((Glwm.ScreenWidth <> Width) or (Glwm.ScreenHeight <> Height)) )
     ) then
    FFullscreen := false;
 
@@ -3087,18 +3058,18 @@ begin
   begin
    fleft := 0;
    ftop := 0;
-   fwidth := glwm.ScreenWidth;
-   fheight := glwm.ScreenHeight;
+   fwidth := Glwm.ScreenWidth;
+   fheight := Glwm.ScreenHeight;
   end else
   begin
-   if Width  = GLWindowDefaultSize then FWidth  := glwm.ScreenWidth  * 4 div 5;
-   if Height = GLWindowDefaultSize then FHeight := glwm.ScreenHeight * 4 div 5;
+   if Width  = GLWindowDefaultSize then FWidth  := Glwm.ScreenWidth  * 4 div 5;
+   if Height = GLWindowDefaultSize then FHeight := Glwm.ScreenHeight * 4 div 5;
 
    Clamp(fwidth, minWidth, maxWidth);
    Clamp(fheight, minHeight, maxHeight);
 
-   if left = GLWindowPositionCenter then fleft := (glwm.ScreenWidth-width) div 2;
-   if top  = GLWindowPositionCenter then ftop := (glwm.ScreenHeight-height) div 2;
+   if left = GLWindowPositionCenter then fleft := (Glwm.ScreenWidth-width) div 2;
+   if top  = GLWindowPositionCenter then ftop := (Glwm.ScreenHeight-height) div 2;
   end;
 
   { reset some window state variables }
@@ -3132,7 +3103,7 @@ begin
   { call first EventInit and EventResize. Zwroc uwage ze te DoResize i DoInit
     MUSZA byc wykonane na samym koncu procedury Init - jak juz wszystko inne
     zostalo wykonane. Wszystko po to ze juz w pierwszym OnInit lub OnResize
-    moze zostac wywolane glwm.ProcessMessages np. w wyniku wywolania w OnInit
+    moze zostac wywolane Glwm.ProcessMessages np. w wyniku wywolania w OnInit
     GLWinMessages.MessageOk. }
   EventInitCalled := true;
   EventInit;
@@ -3190,7 +3161,7 @@ begin
     method raised an exception EGLContextNotPossible. Then this method, Close,
     is called, but Self is not on Active[] list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
-  glwm.ActiveRemove(Self, QuitWhenLastWindowClosed);
+  Glwm.ActiveRemove(Self, QuitWhenLastWindowClosed);
 
   { dopiero tutaj rzucamy wyjatek. Zawsze bedziemy probowac wykonac cala
     powyzsza procedure, w szczegolnosci cale CloseImplDepened,
@@ -3795,10 +3766,10 @@ var ProcData: POptionProcData absolute Data;
     begin
      if xoffPlus then
       ProcData^.glwin.Left := parXoff else
-      ProcData^.glwin.Left := glwm.ScreenWidth-parXoff-parWidth;
+      ProcData^.glwin.Left := Glwm.ScreenWidth-parXoff-parWidth;
      if yoffPlus then
       ProcData^.glwin.Top := parYoff else
-      ProcData^.glwin.Top := glwm.ScreenHeight-parYoff-parHeight;
+      ProcData^.glwin.Top := Glwm.ScreenHeight-parYoff-parHeight;
     end;
 
    except
@@ -3828,10 +3799,10 @@ var ProcData: POptionProcData absolute Data;
     if p = 0 then
      raise EInvalidParams.Create(
        'Invalid --fullscreen-custom parameter - format is not WIDTHxHEIGHT');
-    glwm.VideoResizeWidth := StrToInt(Copy(option, 1, p-1));
-    glwm.VideoResizeHeight := StrToInt(SEnding(option, p+1));
-    glwm.VideoResize := true;
-    glwm.VideoChange(true);
+    Glwm.VideoResizeWidth := StrToInt(Copy(option, 1, p-1));
+    Glwm.VideoResizeHeight := StrToInt(SEnding(option, p+1));
+    Glwm.VideoResize := true;
+    Glwm.VideoChange(true);
    except
     on E: EConvertError do
      raise EInvalidParams.Create('Invalid --fullscreen-custom parameter : '+E.Message);
@@ -4207,8 +4178,8 @@ begin
  {ponizej udalo mi sie zaimplementowac cos jak timer, a jednak nie uzylem
   zadnego callbacka, w szczegolnosci OnTimer okienka ! A wiec sukces -
   ten timer moze sobie dzialac w sposob zupelnie przezroczysty dla okienka,
-  ktore moze swobodnie modyfikowac swoje OnTimer, glwm.OnTimer,
-  glwm.TimerMilisec. }
+  ktore moze swobodnie modyfikowac swoje OnTimer, Glwm.OnTimer,
+  Glwm.TimerMilisec. }
  if FpsShowOnCaption and
     ((lastFPSOutputTick = 0) or
      (TimeTickDiff(lastFPSOutputTick, GetTickCount) >= FpsOutputMilisec)) then
@@ -4631,9 +4602,9 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
- glwm := TGLWindowsManager.Create;
+ Glwm := TGLWindowsManager.Create;
  GLWindowMenu_Init;
 finalization
  GLWindowMenu_Fini;
- FreeAndNil(glwm);
+ FreeAndNil(Glwm);
 end.
