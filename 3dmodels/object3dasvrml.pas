@@ -56,9 +56,13 @@
 
       After adding to MIME database, you want to also add it to
       ../../view3dscene/desktop/view3dscene.desktop, to indicate that
-      view3dscene handles this MIME type.)
+      view3dscene handles this MIME type.
 
-    @item(You probably also want to add to documentation.
+      Finally, also add this to ../../view3dscene/desktop/Makefile
+      in "install_thumbnailers" target, so that GNOME nautilus thumbnailers
+      for this MIME types will be installed.)
+
+    @item(You probably also want to add something to the documentation.
       At least view3dscene.php "Features" section, and possibly other places
       if it's really important format.)
   )
