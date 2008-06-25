@@ -212,6 +212,8 @@ private
     not critical, so I load it dynamically.) }
   gtk_window_set_icon_name: procedure (
     window: PGtkWindow; const name: PGChar); cdecl;
+  gtk_window_set_default_icon_name: procedure (
+    const name: PGChar); cdecl;
 
   LibGtk: TDynLib;
   {$endif GLWINDOW_GTK_2}
@@ -1803,6 +1805,7 @@ begin
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
   gtk_window_set_icon_name := nil;
+  gtk_window_set_default_icon_name := nil;
 
   LibGtk := TDynLib.Load(gtklib, false);
   if LibGtk <> nil then
@@ -1811,6 +1814,7 @@ begin
     Pointer(gtk_file_chooser_get_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_get_do_overwrite_confirmation');
     Pointer(gtk_file_chooser_set_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_set_do_overwrite_confirmation');
     Pointer(gtk_window_set_icon_name) := LibGtk.Symbol('gtk_window_set_icon_name');
+    Pointer(gtk_window_set_default_icon_name) := LibGtk.Symbol('gtk_window_set_default_icon_name');
   end;
 
 {$endif GLWINDOW_GTK_2}
