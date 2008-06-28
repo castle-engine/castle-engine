@@ -25,13 +25,25 @@ uses Images, ImagesCache;
 
 type
   { Simple video loader. For now, the only "movie format" it can load
-    is just a sequence of image files. }
+    is just a sequence of image files.
+
+    Note that some properties and methods of this class may look familiar
+    to properties of TVRMLGLAnimation. And indeed they are familiar
+    and work in an analogous way. Since both of these classes implement
+    some sort of animation loading and playing, it's most sensible that
+    some ideas find use in both of them. For example the idea of
+    LoadFromFile / checking Loaded / Close. For example the idea that
+    the programmer interface is mainly through ImageFromTime
+    (like TVRMLGLAnimation.SceneFromTime). For example the way
+    TimeLoop and TimeBackwards properties work. }
   TVideo = class
   private
     FItems: array of TImage;
     function GetItems(Index: Integer): TImage;
     FCache: TImagesCache;
     FLoaded: boolean;
+    FTimeLoop: boolean;
+    FTimeBackwards: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -72,11 +84,39 @@ type
       before loading anything, and the Cache instance must remain constant
       between loading and closing the video file. }
     property Cache: TImagesCache read FCache write FCache;
+
+    { @abstract(Should the video be played in a loop?)
+
+      If yes, then IndexFromTime and ImageFromTime will return information
+      that causes the video to be played in an infinite loop.
+      This cooperates with TimeBackwards:
+      If TimeBackwards is also @true, then each loop step will play
+      video once forward, and once backward --- infinitely.
+
+      It's Ok to change the value of this property at any time
+      (even when video is not yet loaded), since this doesn't really
+      cause any internal recalculation. It only affects what
+      *FromTime methods return. }
+    property TimeLoop: boolean read FTimeLoop write FTimeLoop default false;
+
+    { @abstract(Should the video be played backwards after playing forward?)
+
+      This cooperates with TimeLoop. If this is @true and TimeLoop = @false,
+      video will be played once forward, once backward, and then stop.
+      If this is @true and TimeLoop = also @true, then the video
+      will be played forward, then backward, infinitely.
+
+      It's Ok to change the value of this property at any time
+      (even when video is not yet loaded), since this doesn't really
+      cause any internal recalculation. It only affects what
+      *FromTime methods return. }
+    property TimeBackwards: boolean
+      read FTimeBackwards write FTimeBackwards default false;
   end;
 
 implementation
 
-uses SysUtils, Math, KambiStringUtils;
+uses KambiUtils, SysUtils, Math, KambiStringUtils;
 
 const
   FramesPerSecond = 25.0;
@@ -106,14 +146,37 @@ begin
 end;
 
 function TVideo.IndexFromTime(const Time: Single): Integer;
+var
+  DivResult: SmallInt;
+  ModResult: Word;
 begin
   Assert(Loaded);
-  if Time < 0 then
-    Result := 0 else
+
+  Result := Floor(Time * FramesPerSecond);
+
+  DivUnsignedMod(Result, Count, DivResult, ModResult);
+
+  if TimeLoop then
   begin
-    Result := Floor(Time * FramesPerSecond);
-    if Result >= Count then
-      Result := Count - 1;
+    if TimeBackwards and Odd(DivResult) then
+      Result := High(FItems) - ModResult else
+      Result := ModResult;
+  end else
+  begin
+    if TimeBackwards then
+    begin
+      if (DivResult < 0) or (DivResult > 1) then
+        Result := 0 else
+      if DivResult = 1 then
+        Result := High(FItems) - ModResult;
+        { else DivResult = 0, so Result is already correct }
+    end else
+    begin
+      if DivResult < 0 then
+        Result := 0 else
+      if DivResult > 0 then
+        Result := High(FItems);
+    end;
   end;
 end;
 

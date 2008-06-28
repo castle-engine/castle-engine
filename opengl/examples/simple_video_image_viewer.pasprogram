@@ -112,6 +112,8 @@ begin
     20: Glwin.Close;
     110: TimePlaying := not TimePlaying;
     120: WorldTime := 0;
+    130: Video.TimeLoop := not Video.TimeLoop;
+    140: Video.TimeBackwards := not Video.TimeBackwards;
   end;
 end;
 
@@ -128,7 +130,12 @@ begin
   M := TMenu.Create('_Playback');
     M.Append(TMenuItemChecked.Create('_Playing / Paused', 110, CtrlP,
       TimePlaying, true));
-    M.Append(TMenuItem.Create('_Rewing to Beginning',     120, K_Home));
+    M.Append(TMenuItem.Create('_Rewind to Beginning',     120, K_Home));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItemChecked.Create('_Loop',             130,
+      Video.TimeLoop, true));
+    M.Append(TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
+      Video.TimeBackwards, true));
     Result.Append(M);
 end;
 
