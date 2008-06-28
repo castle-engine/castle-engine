@@ -50,12 +50,27 @@ type
 
     { Loaded video properties.
       Use these only when @link(Loaded) is @true.
+
+      Time is supposed to be in seconds. (Actually, we don't care;
+      but when the movie file says to play "25 frames per second", then
+      we will make 25 frames per this Time unit. So you probably
+      want to count the Time in seconds too.)
+
       @groupBegin }
     function Count: Integer;
     property Items [Index: Integer]: TImage read GetItems;
     function IndexFromTime(const Time: Single): Integer;
     function ImageFromTime(const Time: Single): TImage;
     { @groupEnd }
+
+    { Duration of the video. In seconds (or, more precisely, in the
+      same time units as for ImageFromTime and other methods).
+
+      Note that this doesn't count the "backwards" running time,
+      so it ignores TimeBackwards and TimeLoop values.
+
+      Use this only when @link(Loaded). }
+    function TimeDuration: Single;
 
     { Loads video from file.
 
@@ -86,7 +101,17 @@ type
           recognize filename with %d pattern. If it contains %d pattern,
           then we try to load image sequence starting from counter 1.
           If not, we just load a single image (and treat it as a movie with only
-          one frame).)
+          one frame).
+
+          Note that this allows you to have alpha channel for the video.
+          Since we just load the sequence of images, they can have
+          alpha channel just like any still image (e.g. PNG) can have it.
+          So your animated texture of fire / smoke
+          etc. will be rendered will all the features of alpha channel
+          (blending or alha testing, depending on alpha channel type).
+          I don't know if any video file format supports any kind of
+          alpha channel, so using image sequence may be actually your
+          only choice for videos with alpha channel.)
       )
 
       We load images using the @link(Cache), you must assign it before using
@@ -220,6 +245,13 @@ end;
 function TVideo.ImageFromTime(const Time: Single): TImage;
 begin
   Result := FItems[IndexFromTime(Time)];
+end;
+
+function TVideo.TimeDuration: Single;
+begin
+  { Use Count, not High(FItems) (Count = High(FItems) + 1).
+    Reason: we want the last frame to be treated as well as the others. }
+  Result := Count / FramesPerSecond;
 end;
 
 procedure TVideo.Close;

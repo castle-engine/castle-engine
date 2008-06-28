@@ -45,6 +45,9 @@ var
   StatusFont: TGLBitmapFont;
 
 procedure Draw(Glwin: TGLWindow);
+const
+  TimeBarHeight = 10;
+  TimeBarMargin = 2;
 
   procedure DrawStatus(Data: Pointer);
   var
@@ -55,7 +58,8 @@ procedure Draw(Glwin: TGLWindow);
     if not TimePlaying then
       S += ' (paused)';
     glColorv(Yellow3Single);
-    StatusFont.PrintStrings(S, 0, 10, Glw.Height - StatusFont.RowHeight - 10);
+    StatusFont.PrintStrings(S, 0, 10,
+      Glw.Height - StatusFont.RowHeight - TimeBarHeight - 4);
   end;
 
 begin
@@ -64,7 +68,20 @@ begin
   glLoadIdentity();
   glRasterPos2i(0, 0);
   if Video.Loaded then
+  begin
     ImageDraw(Video.ImageFromTime(WorldTime));
+
+    { draw time of the video bar }
+    glColorv(Black4Single);
+    glRectf(0, Glwin.Height - TimeBarHeight, Glwin.Width, Glwin.Height);
+    glColorv(Vector4Single(0.5, 0.5, 0.5, 1));
+    glRectf(TimeBarMargin, Glwin.Height - TimeBarHeight + TimeBarMargin,
+      MapRange(
+        Video.IndexFromTime(WorldTime),
+        0, Video.Count - 1,
+        TimeBarMargin, Glwin.Width - TimeBarMargin),
+      Glwin.Height - TimeBarMargin);
+  end;
 
   DrawStatus(nil);
 end;
