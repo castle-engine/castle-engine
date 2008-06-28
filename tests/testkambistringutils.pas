@@ -37,6 +37,7 @@ type
     procedure TestIntToStr2;
     procedure TestIntToStrThousandSep;
     procedure TestCompressWhiteSpace;
+    procedure TestFormatIndexedName;
   end;
 
 implementation
@@ -177,6 +178,20 @@ begin
   Assert(SCompressWhiteSpace('     ') = ' ');
   Assert(SCompressWhiteSpace(' blah blah ') = ' blah blah ');
   Assert(SCompressWhiteSpace('   blah  ' + CharTab + 'blah ' + NL) = ' blah blah ');
+end;
+
+procedure TTestKambiStringUtils.TestFormatIndexedName;
+var
+  ReplacementsDone: Cardinal;
+begin
+  Assert(FormatIndexedName('', 0, ReplacementsDone) = '');
+  Assert(FormatIndexedName('a', 0, ReplacementsDone) = 'a');
+  Assert(FormatIndexedName('a%', 0, ReplacementsDone) = 'a%');
+  Assert(FormatIndexedName('%a%', 66, ReplacementsDone) = '%a%');
+  Assert(FormatIndexedName('%d%', 66, ReplacementsDone) = '66%');
+  Assert(FormatIndexedName('%%%', 66, ReplacementsDone) = '%%');
+  Assert(FormatIndexedName('%%number%d%d.again%d', 66, ReplacementsDone) = '%number6666.again66');
+  Assert(FormatIndexedName('%%number%0d%2d.again%4d', 66, ReplacementsDone) = '%number6666.again0066');
 end;
 
 initialization

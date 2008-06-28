@@ -583,6 +583,35 @@ function SPercentReplace(const InitialFormat: string;
   IgnoreCase: boolean = false): string; overload;
 { @groupEnd }
 
+{ Replace %d in the NamePattern with Index.
+
+  This is something like a more specialized Format (sprintf for you, C folks),
+  working similar to SPercentReplace.
+
+  @unorderedList(
+    @item(%d is replaced with Index.
+
+      You can insert a non-negative number between % and d, to pad
+      the counter with zeros to desired length. For example, with Counter = 2,
+      %d is replaced with just "2", %2d is replaced with "02",
+      %4d is replaced with "0002".)
+
+    @item(%% is replaced with single percent char %.)
+
+    @item(Everything else is just copied to resulting string.
+      Not recognized %-patterns are also just copied.
+      Much like SPercentReplace with ErrorOnUnknownPercentFormat = false
+      (since FormatIndexedName main use is to replace end-user
+      supplied filenames on command-line, it tries to be tolerant to errors).)
+  )
+
+  @groupBegin }
+function FormatIndexedName(const NamePattern: string;
+  const Index: Integer; out ReplacementsDone: Cardinal): string;
+function FormatIndexedName(const NamePattern: string;
+  const Index: Integer): string;
+{ @groupEnd }
+
 function AnsiUpperCaseChar(C: char): char;
 function AnsiLowerCaseChar(C: char): char;
 
@@ -1583,72 +1612,74 @@ function SPercentReplace(const InitialFormat: string;
   IgnoreCase: boolean): string;
 
   function ReplaceWithC(c: char): Integer;
-  var i: Integer;
+  var
+    I: Integer;
   begin
-   if IgnoreCase then
-   begin
-    for i := 0 to High(Replaces) do
-     if AnsiSameText(c, Replaces[i].c) then begin result := i; Exit end;
-   end else
-   begin
-    for i := 0 to High(Replaces) do
-     if c = Replaces[i].c then begin result := i; Exit end;
-   end;
-   result := -1;
+    if IgnoreCase then
+    begin
+      for i := 0 to High(Replaces) do
+        if AnsiSameText(c, Replaces[i].c) then begin result := i; Exit end;
+    end else
+    begin
+      for i := 0 to High(Replaces) do
+        if c = Replaces[i].c then begin result := i; Exit end;
+    end;
+    result := -1;
   end;
 
   procedure UnknownPercentFormat(const WrongSequence: string);
   begin
-   raise EUnknownPercentFormat.Create('Unknown format pattern in format "'
-     +InitialFormat+'", wrong sequence is : ' +WrongSequence);
+    raise EUnknownPercentFormat.Create('Unknown format pattern in format "'
+      +InitialFormat+'", wrong sequence is : ' +WrongSequence);
   end;
 
-var p, ReplNum: Integer;
-    Format: string;
+var
+  P, ReplNum: Integer;
+  Format: string;
 begin
- { Result zawiera czesciowy wynik. Od Format bedziemy odcinac zrobione juz kawalki.
-   Bedziemy caly czas doklejac kolejne wyniki do Result (bedziemy starali sie,
-   dla szybkosci, doklejac mozliwie duze kawalki do Result na raz, np. nie chcemy
-   przepisywac do result po jednym znaku). }
- result := '';
- Format := InitialFormat;
- ReplacementsDone := 0;
+  { Result zawiera czesciowy wynik. Od Format bedziemy odcinac zrobione juz kawalki.
+    Bedziemy caly czas doklejac kolejne wyniki do Result (bedziemy starali sie,
+    dla szybkosci, doklejac mozliwie duze kawalki do Result na raz, np. nie chcemy
+    przepisywac do Result po jednym znaku). }
+  Result := '';
+  Format := InitialFormat;
+  ReplacementsDone := 0;
 
- while Format <> '' do
- begin
-  p := Pos(PercentChar, Format);
-  if p = 0 then begin result := result + Format; Exit end;
-
-  result := result + Copy(Format, 1, p-1);
-  if p+1 <= Length(Format) then
+  while Format <> '' do
   begin
-   { zwieksz result o element wynikajacy z formatu Format[p+1] }
-   if Format[p+1] = PercentChar then
-    result := result + PercentChar else
-   begin
-    ReplNum := ReplaceWithC(Format[p+1]);
-    if ReplNum = -1 then
+    P := Pos(PercentChar, Format);
+    if P = 0 then begin Result := Result + Format; Exit end;
+
+    Result := Result + Copy(Format, 1, P - 1);
+    if P + 1 <= Length(Format) then
     begin
-     if ErrorOnUnknownPercentFormat then
-      UnknownPercentFormat('"'+PercentChar+Format[p+1]+'"');
-     result := result +PercentChar +Format[p+1];
+      { zwieksz Result o element wynikajacy z formatu Format[p+1] }
+      if Format[P + 1] = PercentChar then
+        Result := Result + PercentChar else
+      begin
+        ReplNum := ReplaceWithC(Format[P + 1]);
+        if ReplNum = -1 then
+        begin
+          if ErrorOnUnknownPercentFormat then
+            UnknownPercentFormat('"'+PercentChar+Format[P + 1]+'"');
+          Result := Result + PercentChar + Format[P + 1];
+        end else
+        begin
+          Result := Result + Replaces[ReplNum].s;
+          Inc(ReplacementsDone);
+        end;
+      end;
+      { obetnij wykonana czesc z Format }
+      Delete(Format, 1, P + 1);
     end else
     begin
-     result := result +Replaces[ReplNum].s;
-     Inc(ReplacementsDone);
+      { mamy PercentChar na koncu stringa }
+      if ErrorOnUnknownPercentFormat then
+       UnknownPercentFormat(PercentChar+' at the end of the format string');
+      Result := Result + PercentChar;
+      Exit;
     end;
-   end;
-   { obetnij wykonana czesc z Format }
-   Delete(Format, 1, p+1);
-  end else
-  begin
-   { mamy PercentChar na koncu stringa }
-   if ErrorOnUnknownPercentFormat then
-    UnknownPercentFormat(PercentChar+' at the end of the format string');
-   result := result + PercentChar;
-   Exit;
   end;
- end;
 end;
 
 function SPercentReplace(const InitialFormat: string;
@@ -1662,6 +1693,82 @@ begin
   Result := SPercentReplace(InitialFormat, Replaces, ReplacementsDone,
     ErrorOnUnknownPercentFormat, PercentChar, IgnoreCase);
   { returned ReplacementsDone will simply be ignored }
+end;
+
+function FormatIndexedName(const NamePattern: string;
+  const Index: Integer; out ReplacementsDone: Cardinal): string;
+const
+  PercentChar = '%';
+var
+  StartP, P, MinLength: Integer;
+  Format: string;
+begin
+  { Result zawiera czesciowy wynik. Od Format bedziemy odcinac zrobione juz kawalki.
+    Bedziemy caly czas doklejac kolejne wyniki do Result (bedziemy starali sie,
+    dla szybkosci, doklejac mozliwie duze kawalki do Result na raz, np. nie chcemy
+    przepisywac do Result po jednym znaku). }
+  Result := '';
+  Format := NamePattern;
+  ReplacementsDone := 0;
+
+  while Format <> '' do
+  begin
+    P := Pos(PercentChar, Format);
+    if P = 0 then begin Result := Result + Format; Exit end;
+
+    Result := Result + Copy(Format, 1, P - 1);
+    if P + 1 <= Length(Format) then
+    begin
+      { zwieksz Result o element wynikajacy z formatu Format[P + 1] }
+      if Format[P + 1] = PercentChar then
+        Result := Result + PercentChar else
+      if Format[P + 1] = 'd' then
+      begin
+        Result := Result + IntToStr(Index);
+        Inc(ReplacementsDone);
+      end else
+      if Format[P + 1] in ['0'..'9'] then
+      begin
+        Inc(P);
+        StartP := P;
+        while SCharIs(Format, P, ['0'..'9']) do Inc(P);
+        if SCharIs(Format, P, 'd') then
+        begin
+          { valid % + number + d sequence, do the replace }
+          MinLength := StrToInt(Copy(Format, StartP, P - StartP));
+          Result := Result + IntToStrZPad(Index, MinLength);
+          Inc(ReplacementsDone);
+        end else
+        begin
+          { invalid %-pattern, just copy it (including leading PercentChar
+            and following character <> 'd') }
+          Result := Result + Copy(Format, StartP - 1, P - StartP + 2);
+        end;
+        { decrement P just so that Delete(Format, ...) below will work Ok }
+        Dec(P);
+      end else
+      begin
+        { unknown %-pattern, just copy it }
+        Result := Result + PercentChar + Format[P + 1];
+      end;
+      { obetnij wykonana czesc z Format }
+      Delete(Format, 1, P + 1);
+    end else
+    begin
+      { mamy PercentChar na koncu stringa }
+      Result := Result + PercentChar;
+      Exit;
+    end;
+  end;
+end;
+
+function FormatIndexedName(const NamePattern: string;
+  const Index: Integer): string;
+var
+  ReplacementsDone: Cardinal;
+begin
+  Result := FormatIndexedName(NamePattern, Index, ReplacementsDone);
+  { simple ignore ReplacementsDone value }
 end;
 
 function AnsiUpperCaseChar(C: char): char;

@@ -1,0 +1,161 @@
+{
+  Copyright 2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+{ Simple example of loading a video file and playing it in OpenGL
+  window. Also handles normal image files, since we can load all image
+  formats to TVideo by just treating them as movies with 1 frame. }
+program simple_image_viewer;
+
+{$apptype GUI}
+
+uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
+  ImagesCache, Videos, KambiStringUtils, GLWinMessages,
+  BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
+  KambiGLUtils, VectorMath;
+
+type
+  TWorldTime = Float;
+
+var
+  Video: TVideo;
+  VideoFileName: string;
+
+  WorldTime: TWorldTime;
+  TimePlaying: boolean = true;
+
+  StatusFont: TGLBitmapFont;
+
+procedure Draw(Glwin: TGLWindow);
+
+  procedure DrawStatus(Data: Pointer);
+  var
+    S: string;
+  begin
+    glTranslatef(5, 5, 0);
+    S := Format('World time: %f', [WorldTime]);
+    if not TimePlaying then
+      S += ' (paused)';
+    glColorv(Yellow3Single);
+    StatusFont.PrintStrings(S, 0, 10, Glw.Height - StatusFont.RowHeight - 10);
+  end;
+
+begin
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  glLoadIdentity();
+  glRasterPos2i(0, 0);
+  if Video.Loaded then
+    ImageDraw(Video.ImageFromTime(WorldTime));
+
+  DrawStatus(nil);
+end;
+
+procedure Idle(Glwin: TGLWindow);
+begin
+  if TimePlaying then
+    WorldTime += Glwin.IdleCompSpeed / 50;
+end;
+
+procedure LoadVideo(const NewVideoFileName: string);
+begin
+  VideoFileName := NewVideoFileName;
+  try
+    Video.LoadFromFile(VideoFileName);
+  except
+    on E: Exception do
+      MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
+        E.Message, taLeft);
+  end;
+end;
+
+procedure Init(Glwin: TGLWindow);
+begin
+  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+
+  if Parameters.High = 1 then
+    LoadVideo(Parameters[1]);
+end;
+
+procedure Close(Glwin: TGLWindow);
+begin
+  FreeAndNil(StatusFont);
+end;
+
+procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
+var
+  S: string;
+begin
+  case MenuItem.IntData of
+    10:
+      begin
+        S := ExtractFilePath(VideoFileName);
+        if Glwin.FileDialog('Open file', S, true) then
+          LoadVideo(S);
+      end;
+    20: Glwin.Close;
+    110: TimePlaying := not TimePlaying;
+    120: WorldTime := 0;
+  end;
+end;
+
+function CreateMainMenu: TMenu;
+var
+  M: TMenu;
+begin
+  Result := TMenu.Create('Main menu');
+  M := TMenu.Create('_File');
+    M.Append(TMenuItem.Create('_Open ...',   10, CtrlO));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Exit',       20, CharEscape));
+    Result.Append(M);
+  M := TMenu.Create('_Playback');
+    M.Append(TMenuItemChecked.Create('_Playing / Paused', 110, CtrlP,
+      TimePlaying, true));
+    M.Append(TMenuItem.Create('_Rewing to Beginning',     120, K_Home));
+    Result.Append(M);
+end;
+
+var
+  Cache: TImagesCache;
+begin
+  try
+    Cache := TImagesCache.Create;
+    Video := TVideo.Create;
+    Video.Cache := Cache;
+
+    { We will actually handle 1st param in Init. }
+    Parameters.CheckHighAtMost(1);
+
+    Glw.SetDemoOptions(K_F11, #0, true);
+    Glw.AutoRedisplay := true;
+    Glw.MainMenu := CreateMainMenu;
+    Glw.OnMenuCommand := @MenuCommand;
+    Glw.OnInit := @Init;
+    Glw.OnClose := @Close;
+    Glw.OnDraw := @Draw;
+    Glw.OnIdle := @Idle;
+    Glw.OnResize := @Resize2D;
+
+    Glw.InitLoop;
+  finally
+    FreeAndNil(Video);
+    FreeAndNil(Cache);
+  end;
+end.
