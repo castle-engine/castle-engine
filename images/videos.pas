@@ -59,16 +59,38 @@ type
 
     { Loads video from file.
 
-      For now, this can load only a sequence of images with a filename
-      like image%d.png.
+      Supported video formats:
 
-      More precisely: we use FormatIndexedName to
-      recognize filename with %d pattern. If it contains %d pattern,
-      then we try to load image sequence starting from counter 1.
-      If not, we just load a single image (and treat it as a movie with only
-      one frame).
+      @unorderedList(
 
-      We load images using the @link(Cache), you must assign it. }
+        @item(We recognize video filenames by extension, and then try
+          to load them through ffmpeg. So ffmpeg must be available
+          on $PATH for this. See view3dscene docs for some links.
+
+          Internally, for now we just use ffmpeg to decompose the video to
+          single images, and then proceed to load this image sequence.
+          So this takes some time and drains memory for longer movies,
+          and it's not supposed to be really used to load longer movies.
+
+          Of course, this may get improved (and some simple video formats
+          may be handled without ffmpeg dependency) in the future,
+          if the need arises. For now, it's enough for me --- all I want
+          is to load some simple texture movies (like smoke or fire
+          or dense fog animations) to use as billboards in games.
+          For such short movies, loading time and memory use are acceptable.)
+
+        @item(We can also load a sequence of images with a filename
+          like image%d.png.
+
+          More precisely: we use FormatIndexedName to
+          recognize filename with %d pattern. If it contains %d pattern,
+          then we try to load image sequence starting from counter 1.
+          If not, we just load a single image (and treat it as a movie with only
+          one frame).)
+      )
+
+      We load images using the @link(Cache), you must assign it before using
+      this method. }
     procedure LoadFromFile(const FileName: string);
 
     { This releases all resources allocared by Load (or LoadFromFile).
@@ -114,12 +136,27 @@ type
       read FTimeBackwards write FTimeBackwards default false;
   end;
 
+{ Does filename extension Ext looks like a video file extension
+  that can be handled (encoded or decoded) by ffmpeg?
+
+  Ext is an extension with leading dot, just like returned
+  by ExtractFileExt.
+
+  FfmpegOutput = @true means that you want to encode this video
+  (use this as output of ffmpeg). FfmpegOutput = @false means you
+  want to decode the video, that is use this as an input to ffmpeg. }
+function FfmpegVideoFileExtension(const Ext: string;
+  FfmpegOutput: boolean): boolean;
+
 implementation
 
-uses KambiUtils, SysUtils, Math, KambiStringUtils;
+uses KambiUtils, SysUtils, Math, KambiStringUtils, DataErrors,
+  KambiFilesUtils, EnumerateFiles;
 
 const
   FramesPerSecond = 25.0;
+
+{ TVideo --------------------------------------------------------------------- }
 
 constructor TVideo.Create;
 begin
@@ -196,45 +233,138 @@ begin
 end;
 
 procedure TVideo.LoadFromFile(const FileName: string);
-var
-  Index, ReplacementsDone: Cardinal;
-  S: string;
-  NewItem: TImage;
+
+  procedure LoadFromImages(const FileName: string;
+    RemoveLoadedTempImages: boolean);
+  var
+    Index, ReplacementsDone: Cardinal;
+    S: string;
+    NewItem: TImage;
+  begin
+    FormatIndexedName(FileName, 0, ReplacementsDone);
+    if ReplacementsDone > 0 then
+    begin
+      Index := 1;
+      S := FormatIndexedName(FileName, Index);
+      while FileExists(S) do
+      begin
+        { Remember that Cache.LoadImage_IncReference may raise an exception
+          for invalid / not existing / not readable image filenames.
+          So don't increase FItems before NewItem is successfully loaded. }
+        NewItem := Cache.LoadImage_IncReference(
+          { Cache.LoadImage_IncReference requires absolute expanded filename }
+          ExpandFileName(S));
+        SetLength(FItems, Length(FItems) + 1);
+        FItems[High(FItems)] := NewItem;
+
+        if RemoveLoadedTempImages then
+        begin
+          if not DeleteFile(S) then
+            DataNonFatalError(Format('Cannot delete temporary file "%s"', [S]));
+        end;
+
+        Inc(Index);
+        S := FormatIndexedName(FileName, Index);
+      end;
+      if Length(FItems) = 0 then
+        raise Exception.CreateFmt('First video image "%s" not found, cannot load the video',
+          [S]);
+    end else
+    begin
+      NewItem := Cache.LoadImage_IncReference(
+        { Cache.LoadImage_IncReference requires absolute expanded filename }
+        ExpandFileName(FileName));
+      SetLength(FItems, 1);
+      FItems[0] := NewItem;
+
+      if RemoveLoadedTempImages then
+      begin
+        if not DeleteFile(FileName) then
+          DataNonFatalError(Format('Cannot delete temporary file "%s"', [FileName]));
+      end;
+    end;
+  end;
+
+  procedure LoadFromFfmpeg(const FileName: string);
+  var
+    TemporaryImagesPrefix, TemporaryImagesPattern: string;
+    FileRec: TSearchRec;
+    SearchError: Integer;
+    Executable: string;
+  begin
+    Executable := FileSearch(
+      {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
+      {$ifdef UNIX} 'ffmpeg' {$endif}
+      , GetEnvironmentVariable('PATH'));
+
+    if Executable = '' then
+    begin
+      DataNonFatalError('You must have "ffmpeg" program from ' +
+        '[http://ffmpeg.mplayerhq.hu/] installed and available on $PATH to be able to ' +
+        'load movie files');
+    end else
+    begin
+      { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
+
+      TemporaryImagesPrefix := GetTempFileName('', ProgramName) + '_' +
+        { Although GetTempFileName should add some randomization here,
+          there's no guarentee. And we really need randomization ---
+          we load ffmpeg output using image %d pattern, so we don't want to
+          accidentaly pick up other images in the temporary directory. }
+        IntToStr(Random(MaxInt)) + '_';
+
+      { Check is it really Ok. }
+      SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
+        FileRec);
+      try
+        if SearchError = 0 then
+          raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+            [TemporaryImagesPrefix, FileRec.Name]);
+      finally FindClose(FileRec) end;
+
+      TemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
+
+      { ffmpeg call will output some things on stdout anyway.
+        So it's Ok that we also output something, stdout is required
+        by ffmpeg anyway... }
+
+      Writeln(Output, 'FFMpeg found, executing...');
+      Writeln(Output, Executable + ' -i "' + FileName +
+        '" -y -sameq -f image2 "' + TemporaryImagesPattern + '"');
+
+      ExecuteProcess(Executable,
+        [ '-i', FileName, '-y', '-sameq', '-f', 'image2', TemporaryImagesPattern ]);
+
+      LoadFromImages(TemporaryImagesPattern, true);
+    end;
+  end;
+
 begin
   Close;
 
-  FormatIndexedName(FileName, 0, ReplacementsDone);
-  if ReplacementsDone > 0 then
-  begin
-    Index := 1;
-    S := FormatIndexedName(FileName, Index);
-    while FileExists(S) do
-    begin
-      { Remember that Cache.LoadImage_IncReference may raise an exception
-        for invalid / not existing / not readable image filenames.
-        So don't increase FItems before NewItem is successfully loaded. }
-      NewItem := Cache.LoadImage_IncReference(
-        { Cache.LoadImage_IncReference requires absolute expanded filename }
-        ExpandFileName(S));
-      SetLength(FItems, Length(FItems) + 1);
-      FItems[High(FItems)] := NewItem;
-
-      Inc(Index);
-      S := FormatIndexedName(FileName, Index);
-    end;
-    if Length(FItems) = 0 then
-      raise Exception.CreateFmt('First video image "%s" not found, cannot load the video',
-        [S]);
-  end else
-  begin
-    NewItem := Cache.LoadImage_IncReference(
-      { Cache.LoadImage_IncReference requires absolute expanded filename }
-      ExpandFileName(FileName));
-    SetLength(FItems, 1);
-    FItems[0] := NewItem;
-  end;
+  if FfmpegVideoFileExtension(ExtractFileExt(FileName), true) then
+    LoadFromFfmpeg(FileName) else
+    LoadFromImages(FileName, false);
 
   FLoaded := true;
+end;
+
+{ non-object routines -------------------------------------------------------- }
+
+function FfmpegVideoFileExtension(const Ext: string;
+  FfmpegOutput: boolean): boolean;
+begin
+  { For now we ignore FfmpegOutput, all formats below are good
+    for both input and output. (Actually, file extension specifies only
+    "container" data type, not actual encoding, so there's no guarentee,
+    but potentially it's all possible.) See "ffmpeg -formats". }
+  Result :=
+    SameText(Ext, '.avi') or
+    SameText(Ext, '.mpg') or
+    SameText(Ext, '.dvd') or
+    SameText(Ext, '.ogg') or
+    SameText(Ext, '.mov') or
+    SameText(Ext, '.swf');
 end;
 
 end.

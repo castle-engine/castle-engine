@@ -23,7 +23,9 @@
   formats to TVideo by just treating them as movies with 1 frame. }
 program simple_image_viewer;
 
-{$apptype GUI}
+{ Console, not GUI, since loading files through ffmpeg will output some
+  info on stdout anyway. }
+{$apptype CONSOLE}
 
 uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
@@ -78,6 +80,11 @@ begin
   VideoFileName := NewVideoFileName;
   try
     Video.LoadFromFile(VideoFileName);
+    { TODO: this doesn't work like it should, since the time spent in
+      open dialog is added to WorldTime immediately in next Idle.
+      So after opening a file with menu item, WorldTime will get
+      somewhat > 0 anyway. }
+    WorldTime := 0;
   except
     on E: Exception do
       MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
