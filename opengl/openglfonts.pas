@@ -147,7 +147,7 @@ type
       W ten sposob mozesz np. obliczyc pozycje jaka miala na ekranie
       pierwsza / ostatnia ze zlamanych linii (to ktora z tych wartosci bylaby
       dla ciebie nieznana zalezy od tego ktora z tych wartosci podales,
-      czyli od RasterPositionsFirst).  }
+      czyli od RasterPositionsFirst). }
     function PrintBrokenString(const s: string;
       MaxLineWidth, RasterX0, RasterY0: Integer;
       RasterPositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;

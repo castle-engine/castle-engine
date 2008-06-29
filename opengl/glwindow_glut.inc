@@ -22,7 +22,7 @@
 
 {$ifdef read_tglwindow_interface}
 private
-  keysTimeout: array[TKey] of byte;
+  keysTimeout: array [TKey] of byte;
   glutHwnd: integer;
   function GetLeft: integer;
   function GetTop: integer;

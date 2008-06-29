@@ -152,7 +152,7 @@ begin
   VK_MULTIPLY: Result := K_Numpad_Multiply;
   VK_DIVIDE: Result := K_Numpad_Divide;
   VK_OEM_MINUS: Result := K_Minus;
-  VK_OEM_PLUS: Result := K_Equal;
+  VK_OEM_PLUS: Result := K_Plus;
 
   Ord('0') .. Ord('9'): Result := K_0  + VirtualKey - Ord('0');
   Ord('A') .. Ord('Z'): Result := K_A  + VirtualKey - Ord('A');

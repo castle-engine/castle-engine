@@ -21,7 +21,9 @@
 }
 
 { Example program using GLWindow.
-  Displays many OnXxx events as they happen.
+  Displays many OnXxx events as they happen, shows KeysDown and CharactersDown.
+  So it allows you to "see" how TGLWindow events happen.
+
   Also a demo of TimeMessages unit. }
 
 program gl_win_events;
@@ -29,51 +31,86 @@ program gl_win_events;
 {$apptype GUI}
 
 uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLExt, TimeMessages, GLWindow,
-  GLW_demo, Keys, KambiStringUtils;
+  GLW_demo, Keys, KambiStringUtils,
+  OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
+  Classes;
 
-var TimeMsg: TTimeMessagesManager;
+var
+  TimeMsg: TTimeMessagesManager;
+  Font: TGLBitmapFont;
 
 procedure Init(glwin: TGLWindow);
 begin
- TimeMsg := TTimeMessagesManager.Create(glw, hpMiddle, vpUp, 0);
- TimeMsg.MaxMessagesCount := 15;
- TimeMsg.MessageDuration := 20000;
- TimeMsg.Show('Init message');
+  TimeMsg := TTimeMessagesManager.Create(glw, hpMiddle, vpUp, 0);
+  TimeMsg.MaxMessagesCount := 15;
+  TimeMsg.MessageDuration := 20000;
+  TimeMsg.Show('Init message');
+
+  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 end;
 
 procedure Close(glwin: TGLWindow);
 begin
- FreeAndNil(TimeMsg);
+  FreeAndNil(TimeMsg);
+  FreeAndNil(Font);
 end;
 
 procedure Resize(glwin: TGLWindow);
 begin
- Resize2D(glwin);
- TimeMsg.Show(Format('Resize message : new size %d %d (pos %d, %d)',
-   [glwin.Width, glwin.Height, Glwin.Left, Glwin.Top]));
+  Resize2D(glwin);
+  TimeMsg.Show(Format('Resize message : new size %d %d (pos %d, %d)',
+    [glwin.Width, glwin.Height, Glwin.Left, Glwin.Top]));
 end;
 
 procedure BeforeDraw(glwin: TGLWindow);
 begin
- { Part of functionality of OnDraw moved to BeforeDraw.
-   In this program, glWinEvents, there is no point in doing that.
-   But I wanted just to show that BeforeDraw really works. }
- glClear(GL_COLOR_BUFFER_BIT);
+  { Part of functionality of OnDraw moved to BeforeDraw.
+    In this program, glWinEvents, there is no point in doing that.
+    But I wanted just to show that BeforeDraw really works. }
+  glClear(GL_COLOR_BUFFER_BIT);
 end;
 
 procedure Draw(glwin: TGLWindow);
+var
+  C: Char;
+  Key: TKey;
+  S: string;
+const
+  Margin = 20;
 begin
- TimeMsg.Draw2d(glwin.Width, glwin.Height, glwin.Width, glwin.Height);
+  TimeMsg.Draw2d(glwin.Width, glwin.Height, glwin.Width, glwin.Height);
+  
+  glColor3f(0.5, 0.5, 0.5);
+
+  S := '';
+  for C := Low(C) to High(C) do
+    if Glwin.CharactersDown[C] then
+    begin
+      if S <> '' then S += ', ';
+      S += CharToNiceStr(C);
+    end;
+  S := 'Characters pressed: [' + S + ']';
+  Font.PrintBrokenString(S, Glwin.Width - Margin * 2, Margin, 100, false, 0);
+
+  S := '';
+  for Key := Low(Key) to High(Key) do
+    if Glwin.KeysDown[Key] then
+    begin
+      if S <> '' then S += ', ';
+      S += KeyToStr(Key);
+    end;
+  S := 'Keys pressed: [' + S + ']';
+  Font.PrintBrokenString(S, Glwin.Width - Margin * 2, Margin, 200, false, 0);
 end;
 
 procedure Idle(glwin: TGLWindow);
 begin
- TimeMsg.Idle;
+  TimeMsg.Idle;
 end;
 
 procedure Timer(glwin: TGLWindow);
 begin
- TimeMsg.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
+  TimeMsg.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);
@@ -91,78 +128,78 @@ begin
   end; {}
 
   TimeMsg.Show(Format('KeyDown message : key %s, char %s (ord %d)',
-    [KeyToStr(key), DescribeKey(c), Ord(c)]));
+    [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
 end;
 
 procedure KeyUp(glwin: TGLWindow; key: TKey);
 begin
- TimeMsg.Show(Format('KeyUp message : key %s', [KeyToStr(key)]));
+  TimeMsg.Show(Format('KeyUp message : key %s', [KeyToStr(key)]));
 end;
 
 function MouseButtonToStr(btn: TMouseButton): string;
 begin
- case btn of
-  mbLeft: result := 'left';
-  mbMiddle: result := 'middle';
-  mbRight: result := 'right';
- end;
+  case btn of
+    mbLeft: result := 'left';
+    mbMiddle: result := 'middle';
+    mbRight: result := 'right';
+  end;
 end;
 
 procedure MouseDown(glwin: TGLWindow; btn: TMouseButton);
 begin
- TimeMsg.Show(Format('Mouse Down message : %s (at %d,%d)',
-   [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
+  TimeMsg.Show(Format('Mouse Down message : %s (at %d,%d)',
+    [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
 end;
 
 procedure MouseUp(glwin: TGLWindow; btn: TMouseButton);
 begin
- TimeMsg.Show(Format('Mouse Up message : %s (at %d,%d)',
-   [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
+  TimeMsg.Show(Format('Mouse Up message : %s (at %d,%d)',
+    [MouseButtonToStr(btn), glwin.MouseX, glwin.MouseY]));
 end;
 
 procedure MouseMove(glwin: TGLWindow; newX, newY: integer);
 begin
- TimeMsg.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
-   [glwin.MouseX, glwin.MouseY, newX, newY]));
+  TimeMsg.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
+    [glwin.MouseX, glwin.MouseY, newX, newY]));
 end;
 
 var
   M: TMenu;
 begin
- glw.ParseParameters;
+  Glw.ParseParameters;
 
- glw.OnInit := @Init;
- glw.OnClose := @Close;
- glw.OnResize := @Resize;
- glw.OnBeforeDraw := @BeforeDraw;
- glw.OnDraw := @Draw;
+  Glw.OnInit := @Init;
+  Glw.OnClose := @Close;
+  Glw.OnResize := @Resize;
+  Glw.OnBeforeDraw := @BeforeDraw;
+  Glw.OnDraw := @Draw;
 
- glw.OnKeyDown := @KeyDown;
- glw.OnKeyUp := @KeyUp;
+  Glw.OnKeyDown := @KeyDown;
+  Glw.OnKeyUp := @KeyUp;
 
- glw.OnMouseDown := @MouseDown;
- glw.OnMouseMove := @MouseMove;
- glw.OnMouseUp := @MouseUp;
+  Glw.OnMouseDown := @MouseDown;
+  Glw.OnMouseMove := @MouseMove;
+  Glw.OnMouseUp := @MouseUp;
 
- glw.OnIdle := @Idle;
- glwm.TimerMilisec := 5000;
- glw.OnTimer := @Timer;
+  Glw.OnIdle := @Idle;
+  Glwm.TimerMilisec := 5000;
+  Glw.OnTimer := @Timer;
 
- {testing:
- Writeln('I''m trying to get window size ', glw.Width, ',', glw.Height, '...');
- }
- glw.MainMenu := TMenu.Create('Test menu');
- M := TMenu.Create('Menu 1');
-   M.Append(TMenuItem.Create('Menu Item 1', 0));
-   M.Append(TMenuItem.Create('Menu Item 2', 1));
-   glw.MainMenu.Append(M);
- M := TMenu.Create('Menu 2');
-   M.Append(TMenuItem.Create('Menu Item 3', 3));
-   M.Append(TMenuItem.Create('Menu Item 4', 4));
-   glw.MainMenu.Append(M);
- glw.MainMenu.Append(TMenuItem.Create('Menu Item 5', 5));
+  {testing:
+  Writeln('I''m trying to get window size ', Glw.Width, ',', Glw.Height, '...');
+  }
+  Glw.MainMenu := TMenu.Create('Test menu');
+  M := TMenu.Create('Menu 1');
+    M.Append(TMenuItem.Create('Menu Item 1', 0));
+    M.Append(TMenuItem.Create('Menu Item 2', 1));
+    Glw.MainMenu.Append(M);
+  M := TMenu.Create('Menu 2');
+    M.Append(TMenuItem.Create('Menu Item 3', 3));
+    M.Append(TMenuItem.Create('Menu Item 4', 4));
+    Glw.MainMenu.Append(M);
+  Glw.MainMenu.Append(TMenuItem.Create('Menu Item 5', 5));
 
- //glw.ResizeAllowed := raNotAllowed; // just for testing
+  //Glw.ResizeAllowed := raNotAllowed; // just for testing
 
- glw.InitLoop;
+  Glw.InitLoop;
 end.

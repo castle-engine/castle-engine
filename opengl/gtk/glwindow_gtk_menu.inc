@@ -113,9 +113,6 @@ procedure TGLWindow.init_window_menu_bar;
     Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
     properties. }
   procedure InstallGtkAccelerator(Item: PGtkMenuItem; Key: TKey; CharKey: char);
-  {$ifndef GLWINDOW_GTK_2}
-  const GDK_KEY_Plus = GDK_KEY_Plus_Key;
-  {$endif}
   var gdk_keyval: GUint;
       modifier_type: TGdkModifierType;
   begin

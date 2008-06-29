@@ -1,9 +1,9 @@
 { Kambi: This file's contents are based on lcl/interfaces/gtk/gtkkeysyms.inc
   from Lazarus (from CVS at 2005-01-23).
-  
-  They define under GTK 1 GDK_KEY_xxx constants equal to 
+
+  They define under GTK 1 GDK_KEY_xxx constants equal to
   appropriate GDK_xxx constants. Why this is needed ?
-  Well, that's because GTK 2 bindings name all key constants as 
+  Well, that's because GTK 2 bindings name all key constants as
   GDK_KEY_ instead of just GDK_. Why ? Because otherwise we would
   have conflicting identifiers in Pascal GTK 2 bindings,
   beause in C headers there are different constants there
@@ -330,7 +330,7 @@ const
   GDK_KEY_parenleft =                     GDK_parenleft;
   GDK_KEY_parenright =                    GDK_parenright;
   GDK_KEY_asterisk =                      GDK_asterisk;
-  GDK_KEY_plus_key =                      GDK_plus_key;
+  GDK_KEY_plus =                          GDK_plus_key;
   GDK_KEY_comma =                         GDK_comma;
   GDK_KEY_minus =                         GDK_minus;
   GDK_KEY_period =                        GDK_period;

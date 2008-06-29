@@ -369,6 +369,7 @@ begin
   GDK_KEY_Slash: Result := K_Slash;
   GDK_KEY_Grave: Result := K_BackQuote;
   GDK_KEY_Minus: Result := K_Minus;
+  GDK_KEY_Plus: Result := K_Plus;
   GDK_KEY_Equal: Result := K_Equal;
   GDK_KEY_BackSlash: Result := K_BackSlash;
 

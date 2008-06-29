@@ -526,7 +526,7 @@ function TMenuItem.KeyString(out S: string): boolean;
 begin
  if CharKey <> #0 then
  begin
-  S := DescribeKey(CharKey);
+  S := CharToNiceStr(CharKey);
   Result := true;
  end else
  if Key <> K_None then

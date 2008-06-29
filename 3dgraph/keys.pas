@@ -76,6 +76,9 @@ type
   TKeysBytes = array[TKey]of Byte;
   PKeysBytes = ^TKeysBytes;
 
+  TCharactersBooleans = array [Char] of Boolean;
+  PCharactersBooleans = ^TCharactersBooleans;
+
 const
   { K_None is a very special value of type TKey. It means "no key",
     and is generally useful in similar situations when "nil" value
@@ -108,6 +111,7 @@ const
   K_Shift = 16;
   K_Ctrl = 17;
   K_Alt = 18;
+  K_Plus = 19;
 
   K_Escape = Ord(CharEscape); //< = 27
   K_Space = Ord(' '); //< 32
@@ -303,6 +307,7 @@ begin
   K_Slash: Result := 'Slash';
   K_BackQuote: Result := 'Backquote';
   K_Minus: Result := 'Minus';
+  K_Plus : Result := 'Plus';
   K_Equal: Result := 'Equal';
   K_BackSlash: Result := 'Backslash';
 

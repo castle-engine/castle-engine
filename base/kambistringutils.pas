@@ -760,7 +760,15 @@ const
   CharEscape = #27;
   CharDelete = #127;
 
-function DescribeKey(c: char): string;
+{ Return a nice very short description of the character.
+
+  For normal readable characters just returns them, for special
+  characters returns short string like "Ctrl+something" or "Escape".
+
+  The returned string doesn't contain any quotes around, doesn't
+  contain any word merely stating "character" (for example argument 'c' just
+  generates 'c', not 'character "c"'). }
+function CharToNiceStr(c: char): string;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -2063,7 +2071,7 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
-function DescribeKey(c: char): string;
+function CharToNiceStr(c: char): string;
 
   function DescribeCtrlKey(c: char): string;
   begin result := 'Ctrl+'+Chr(Ord(c)-1+Ord('a')) end;

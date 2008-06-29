@@ -56,21 +56,35 @@ type
 
   { An input shortcut represents a keyboard and/or mouse shortcut
     for some command. Up to two key shortcuts may be assigned to a single
-    item, and one mouse shortcut. }
+    item, and one mouse shortcut, and one character shortcut.
+
+    Normal "key shortcut" is identified by Keys.TKey value.
+
+    "Character shortcut" differs from "key shortcut" because it's identified
+    by produced character. We don't deal here how this character is produced
+    (for example, character "X" may produced on normal systems
+    by Shift + "x" or by pressing "x" while "caps lock" is on;
+    but this is not dealt with in this unit (it's usually provided
+    by operating system / GUI toolkit to GLWindow unit),
+    we just get characters passed to TMatrixNavigator.KeyDown
+    and such methods.) }
   TInputShortcut = class
   private
     FKey1: TKey;
     FKey2: TKey;
+    FCharacter: Char;
     FMouseButtonUse: boolean;
     FMouseButton: TMouseButton;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
+    procedure SetCharacter(const Value: Char);
     procedure SetMouseButtonUse(const Value: boolean);
     procedure SetMouseButton(const Value: TMouseButton);
 
     FDefaultKey1: TKey;
     FDefaultKey2: TKey;
+    FDefaultCharacter: Char;
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TMouseButton;
 
@@ -82,7 +96,7 @@ type
       as the default shortcuts (so they will be used in subsequent
       MakeDefault) and they are also the initial values for Key1, Key2 etc.
       properties. }
-    constructor Create(AKey1: TKey; AKey2: TKey;
+    constructor Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
       AMouseButtonUse: boolean;
       AMouseButton: TMouseButton);
 
@@ -92,6 +106,10 @@ type
     property Key1: TKey read FKey1 write SetKey1;
     property Key2: TKey read FKey2 write SetKey2;
     { @groupEnd }
+
+    { Character shortcut for given command. You can set this to #0
+      to indicate that no character shortcut is assigned. }
+    property Character: Char read FCharacter write SetCharacter;
 
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
@@ -111,6 +129,8 @@ type
       @groupBegin }
     property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
     property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
+    property DefaultCharacter: Char
+      read FDefaultCharacter write FDefaultCharacter;
     property DefaultMouseButtonUse: boolean
       read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TMouseButton
@@ -123,13 +143,14 @@ type
     procedure AssignFromDefault(Source: TInputShortcut);
 
     { This copies Source properties to this object.
-      It always copies "current" properties (Key1, Key2, MouseButtonUse,
-      MouseButton), and optionally (if CopyDefaults) also copies
-      the DefaultXxx properties. }
+      It always copies "current" properties (Key1, Key2, Character,
+      MouseButtonUse, MouseButton), and optionally (if CopyDefaults)
+      also copies the DefaultXxx properties. }
     procedure Assign(Source: TInputShortcut; CopyDefaults: boolean);
 
-    { This sets both keys to K_None and MouseButtonUse to @false,
-      effectively making this input shortcut impossible to enter by the user. }
+    { This sets both keys to K_None, Character to #0 and MouseButtonUse
+      to @false, effectively making this input shortcut impossible
+      to enter by the user. }
     procedure MakeClear;
 
     { Given a set of currently pressed keys and mouse buttons,
@@ -140,40 +161,45 @@ type
       pointed to by KeysDown pointer will never be modified;
       KeysDown is a pointer only to allow you to pass @nil here).
       Note that we assume that KeysDown behave like TGLWindow.KeysDown
-      property, i.e. KeysDown[K_None] is always @false. }
+      property, i.e. KeysDown[K_None] is always @false.
+
+      Analogously, you can pass @nil as CharactersDown. }
     function IsPressed(KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons): boolean;
 
-    { Check does given Key correspond to this input shortcut.
-      If Key = K_None, result is always @false. }
-    function IsKey(Key: TKey): boolean;
+    { Check does given Key or ACharacter correspond to this input shortcut.
+      If Key = K_None and ACharacter = #0, result is always @false. }
+    function IsKey(Key: TKey; ACharacter: Char): boolean;
 
     { Check does given mouse button correspond to this input shortcut.
       In practice, just checks MouseButtonUse and if @true, compares
       AMouseButton with MouseButton. }
     function IsMouseButton(AMouseButton: TMouseButton): boolean;
 
-    { Check does given key (if not MouseEvent) or mouse button (if MouseEvent)
+    { Check does given key/character (if not MouseEvent)
+      or mouse button (if MouseEvent)
       correspond to this input shortcut.
 
       Basically, this is a "dispatcher" that simply calls IsKey or
-      IsMouseButton method. Depending on the MouseEvent value, one
-      of the other parameters (Key or AMouseButton) is simply ignored.
+      IsMouseButton method. Depending on the MouseEvent value,
+      some of the other parameters (Key/ACharacter or AMouseButton) are
+      simply ignored.
 
       This is often comfortable method if you want to squeeze calling
       IsKey and IsMouseButton into one procedure
       in the implementation --- see e.g. TMatrixWalker.EventDown. }
     function IsEvent(MouseEvent: boolean; Key: TKey;
+      ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
 
     { Describe this input shortcut. If it's not active at all
-      (i.e. both keys are K_None and MouseButtonUse is @false),
-      we will use NoneString. }
+      (like after MakeClear), we will use NoneString. }
     function Description(const NoneString: string): string;
 
-    { If assigned, this will be called always right after the key/mouse
+    { If assigned, this will be called always right after the key/character/mouse
       shortcut value changed. Note that this is called only when
-      the "current" values (Key1, Key2, MouseButtonUse, MouseButton)
+      the "current" values (Key1, Key2, Character, MouseButtonUse, MouseButton)
       changed, and it's not called when just the DefaultXxx values changed. }
     property OnChanged: TInputShortcutChangedFunc
       read FOnChanged write FOnChanged;
@@ -317,10 +343,15 @@ type
       @param(KeysDown What keys are pressed currently ?
         You pass here a pointer to a boolean table indicating
         which keys are currently pressed. Or you can pass @nil
-        here if you don't know it. Just like for @link(KeyDown) merhod.)
+        here if you don't know it. Just like for @link(KeyDown) method.)
+
+      @param(CharactersDown What character codes are pressed currently ?
+        Analogous to KeysDown, you can pass here a pointer or @nil.)
 
       @param(MousePressed Which mouse buttons are currently pressed ?) }
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+    procedure Idle(const CompSpeed: Single;
+      KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); virtual; abstract;
   end;
 
@@ -350,6 +381,7 @@ type
     FInput_StopRotating: TInputShortcut;
 
     function EventDown(MouseEvent: boolean; Key: TKey;
+      ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
@@ -358,7 +390,9 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+    procedure Idle(const CompSpeed: Single;
+      KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
     function MouseDown(Button: TMouseButton): boolean; override;
@@ -523,6 +557,7 @@ type
     procedure Jump;
 
     function EventDown(MouseEvent: boolean; Key: TKey;
+      ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
 
     { Private things related to frustum ---------------------------- }
@@ -589,7 +624,9 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationOnlyMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+    procedure Idle(const CompSpeed: Single;
+      KeysDown: PKeysBooleans;
+      CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
     function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
 
@@ -1273,16 +1310,17 @@ const
 
 implementation
 
-uses Math;
+uses Math, KambiStringUtils;
 
 { TInputShortcut ------------------------------------------------------------- }
 
-constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey;
+constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
   AMouseButtonUse: boolean; AMouseButton: TMouseButton);
 begin
   inherited Create;
   FDefaultKey1 := AKey1;
   FDefaultKey2 := AKey2;
+  FDefaultCharacter := ACharacter;
   FDefaultMouseButtonUse := AMouseButtonUse;
   FDefaultMouseButton := AMouseButton;
   MakeDefault;
@@ -1297,28 +1335,34 @@ procedure TInputShortcut.AssignFromDefault(Source: TInputShortcut);
 begin
   FKey1 := Source.DefaultKey1;
   FKey2 := Source.DefaultKey2;
+  FCharacter := Source.DefaultCharacter;
   FMouseButtonUse := Source.DefaultMouseButtonUse;
   FMouseButton := Source.DefaultMouseButton;
 
   { I don't set here properties, but directly set FXxx fields,
-    so that I call Changed only once. }
+    so that I can call Changed only once. }
   Changed;
 end;
 
 procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
 begin
-  DefaultKey1 := Source.DefaultKey1;
-  DefaultKey2 := Source.DefaultKey2;
-  DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
-  DefaultMouseButton := Source.DefaultMouseButton;
+  if CopyDefaults then
+  begin
+    DefaultKey1 := Source.DefaultKey1;
+    DefaultKey2 := Source.DefaultKey2;
+    DefaultCharacter := Source.DefaultCharacter;
+    DefaultMouseButtonUse := Source.DefaultMouseButtonUse;
+    DefaultMouseButton := Source.DefaultMouseButton;
+  end;
 
   FKey1 := Source.Key1;
   FKey2 := Source.Key2;
+  FCharacter := Source.Character;
   FMouseButtonUse := Source.MouseButtonUse;
   FMouseButton := Source.MouseButton;
 
   { I don't set here properties, but directly set FXxx fields,
-    so that I call Changed only once. }
+    so that I can call Changed only once. }
   Changed;
 end;
 
@@ -1326,24 +1370,29 @@ procedure TInputShortcut.MakeClear;
 begin
   FKey1 := K_None;
   FKey2 := K_None;
+  FCharacter := #0;
   FMouseButtonUse := false;
 
   { I don't set here properties, but directly set FXxx fields,
-    so that I call Changed only once. }
+    so that I can call Changed only once. }
   Changed;
 end;
 
 function TInputShortcut.IsPressed(KeysDown: PKeysBooleans;
+  CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons): boolean;
 begin
   Result :=
     ( (KeysDown <> nil) and (KeysDown^[Key1] or KeysDown^[Key2]) ) or
+    ( (CharactersDown <> nil ) and (CharactersDown^[Character]) ) or
     ( MouseButtonUse and (MouseButton in MousePressed) );
 end;
 
-function TInputShortcut.IsKey(Key: TKey): boolean;
+function TInputShortcut.IsKey(Key: TKey; ACharacter: Char): boolean;
 begin
-  Result := (Key <> K_None) and ( (Key = Key1) or (Key = Key2) );
+  Result :=
+    ( (Key <> K_None) and ( (Key = Key1) or (Key = Key2) ) ) or
+    ( (Character <> #0) and (Character = ACharacter) );
 end;
 
 function TInputShortcut.IsMouseButton(AMouseButton: TMouseButton): boolean;
@@ -1352,11 +1401,12 @@ begin
 end;
 
 function TInputShortcut.IsEvent(MouseEvent: boolean; Key: TKey;
+  ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
   if MouseEvent then
     Result := IsMouseButton(AMouseButton) else
-    Result := IsKey(Key);
+    Result := IsKey(Key, ACharacter);
 end;
 
 function TInputShortcut.Description(const NoneString: string): string;
@@ -1375,6 +1425,12 @@ begin
     if Key1 <> K_None then
       Result += Format('key "%s"', [KeyToStr(Key1)]) else
       Result += Format('key "%s"', [KeyToStr(Key2)]);
+  end;
+
+  if Character <> #0 then
+  begin
+    if Result <> '' then Result += ' or ';
+    Result += Format('char "%s"', [CharToNiceStr(Character)]);
   end;
 
   if MouseButtonUse then
@@ -1402,6 +1458,12 @@ end;
 procedure TInputShortcut.SetKey2(const Value: TKey);
 begin
   FKey2 := Value;
+  Changed;
+end;
+
+procedure TInputShortcut.SetCharacter(const Value: Char);
+begin
+  FCharacter := Value;
   Changed;
 end;
 
@@ -1466,14 +1528,18 @@ begin
     for B := false to true do
     begin
       FInputs_Move[I, B] := TInputShortcut.Create(DefaultInputs_Move[I, B],
-        K_None, false, mbLeft);
+        K_None, #0, false, mbLeft);
       FInputs_Rotate[I, B] := TInputShortcut.Create(DefaultInputs_Rotate[I, B],
-        K_None, false, mbLeft);
+        K_None, #0, false, mbLeft);
     end;
-  FInput_ScaleLarger := TInputShortcut.Create(K_Numpad_Plus, K_None, false, mbLeft);
-  FInput_ScaleSmaller := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
-  FInput_Home := TInputShortcut.Create(K_Home, K_None, false, mbLeft);
-  FInput_StopRotating := TInputShortcut.Create(K_Space, K_None, true, mbLeft);
+
+  { For scale larger/smaller we use also character codes +/-, as numpad
+    may be hard to reach on some keyboards (e.g. on laptops). }
+  FInput_ScaleLarger  := TInputShortcut.Create(K_Numpad_Plus , K_None, '+', false, mbLeft);
+  FInput_ScaleSmaller := TInputShortcut.Create(K_Numpad_Minus, K_None, '-', false, mbLeft);
+
+  FInput_Home         := TInputShortcut.Create(K_Home        , K_None, #0 , false, mbLeft);
+  FInput_StopRotating := TInputShortcut.Create(K_Space       , K_None, #0 , true , mbLeft);
 end;
 
 destructor TMatrixExaminer.Destroy;
@@ -1511,7 +1577,9 @@ begin
  result := MultMatrices(result, RotationMatrixDeg(RotationsAngle[2], Vector3Single(0, 0, 1)));
 end;
 
-procedure TMatrixExaminer.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+procedure TMatrixExaminer.Idle(const CompSpeed: Single;
+  KeysDown: PKeysBooleans;
+  CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons);
 var i: integer;
     move_change, rot_speed_change, scale_change: Single;
@@ -1533,15 +1601,17 @@ begin
     move_change := CompSpeed else
     move_change := Box3dAvgSize(ModelBox) * CompSpeed;
   rot_speed_change := 5 * CompSpeed;
-  scale_change := 1.1; { nie mnoz tego razy compSpeed - scale_change bedzie uzywane do mnozenia }
+
+  { we will apply CompSpeed to scale_change later }
+  scale_change := 1.5;
 
   if ModsDown = [mkCtrl] then
   begin
     for i := 0 to 2 do
     begin
-      if Inputs_Move[i, true ].IsPressed(KeysDown, MousePressed) then
+      if Inputs_Move[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
         Move(i, +move_change);
-      if Inputs_Move[i, false].IsPressed(KeysDown, MousePressed) then
+      if Inputs_Move[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
         Move(i, -move_change);
     end;
   end else
@@ -1549,17 +1619,17 @@ begin
   begin
     for i := 0 to 2 do
     begin
-      if Inputs_Rotate[i, true ].IsPressed(KeysDown, MousePressed) then
+      if Inputs_Rotate[i, true ].IsPressed(KeysDown, CharactersDown, MousePressed) then
         Rotate(i, +rot_speed_change);
-      if Inputs_Rotate[i, false].IsPressed(KeysDown, MousePressed) then
+      if Inputs_Rotate[i, false].IsPressed(KeysDown, CharactersDown, MousePressed) then
         Rotate(i, -rot_speed_change);
     end;
   end;
 
-  if Input_ScaleLarger.IsPressed(KeysDown, MousePressed) then
-    Scale(scale_change);
-  if Input_ScaleSmaller.IsPressed(KeysDown, MousePressed) then
-    Scale(1 / scale_change);
+  if Input_ScaleLarger.IsPressed(KeysDown, CharactersDown, MousePressed) then
+    Scale(Power(scale_change, CompSpeed));
+  if Input_ScaleSmaller.IsPressed(KeysDown, CharactersDown, MousePressed) then
+    Scale(Power(1 / scale_change, CompSpeed));
 end;
 
 procedure TMatrixExaminer.StopRotating;
@@ -1618,14 +1688,15 @@ begin
 end;
 
 function TMatrixExaminer.EventDown(MouseEvent: boolean; Key: TKey;
+  ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if Input_StopRotating.IsEvent(MouseEvent, Key, AMouseButton) then
+  if Input_StopRotating.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     StopRotating;
     Result := true;
   end else
-  if Input_Home.IsEvent(MouseEvent, Key, AMouseButton) then
+  if Input_Home.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     Home;
     Result := true;
@@ -1641,7 +1712,7 @@ begin
 
   if ModifiersDown(KeysDown) <> [] then Exit;
 
-  Result := EventDown(false, Key, mbLeft);
+  Result := EventDown(false, Key, C, mbLeft);
 end;
 
 function TMatrixExaminer.MouseDown(Button: TMouseButton): boolean;
@@ -1649,7 +1720,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := EventDown(true, K_None, Button);
+  Result := EventDown(true, K_None, #0, Button);
 end;
 
 function TMatrixExaminer.MouseMove(OldX, OldY, NewX, NewY: Integer;
@@ -1789,21 +1860,25 @@ begin
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
 
-  FInput_Forward      := TInputShortcut.Create(K_Up          , K_None, false, mbLeft);
-  FInput_Backward     := TInputShortcut.Create(K_Down        , K_None, false, mbLeft);
-  FInput_LeftRot      := TInputShortcut.Create(K_Left        , K_None, false, mbLeft);
-  FInput_RightRot     := TInputShortcut.Create(K_Right       , K_None, false, mbLeft);
-  FInput_LeftStrafe   := TInputShortcut.Create(K_Comma       , K_None, false, mbLeft);
-  FInput_RightStrafe  := TInputShortcut.Create(K_Period      , K_None, false, mbLeft);
-  FInput_UpRotate     := TInputShortcut.Create(K_PageUp      , K_None, false, mbLeft);
-  FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, false, mbLeft);
-  FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, false, mbRight);
-  FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, false, mbLeft);
-  FInput_GravityUp    := TInputShortcut.Create(K_Home        , K_None, false, mbLeft);
-  FInput_MoveSpeedInc := TInputShortcut.Create(K_Numpad_Plus , K_None, false, mbLeft);
-  FInput_MoveSpeedDec := TInputShortcut.Create(K_Numpad_Minus, K_None, false, mbLeft);
-  FInput_Jump         := TInputShortcut.Create(K_A           , K_None, false, mbRight);
-  FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, false, mbLeft);
+  FInput_Forward      := TInputShortcut.Create(K_Up          , K_None, #0, false, mbLeft);
+  FInput_Backward     := TInputShortcut.Create(K_Down        , K_None, #0, false, mbLeft);
+  FInput_LeftRot      := TInputShortcut.Create(K_Left        , K_None, #0, false, mbLeft);
+  FInput_RightRot     := TInputShortcut.Create(K_Right       , K_None, #0, false, mbLeft);
+  FInput_LeftStrafe   := TInputShortcut.Create(K_Comma       , K_None, #0, false, mbLeft);
+  FInput_RightStrafe  := TInputShortcut.Create(K_Period      , K_None, #0, false, mbLeft);
+  FInput_UpRotate     := TInputShortcut.Create(K_PageUp      , K_None, #0, false, mbLeft);
+  FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, #0, false, mbLeft);
+  FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, #0, false, mbRight);
+  FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, #0, false, mbLeft);
+  FInput_GravityUp    := TInputShortcut.Create(K_Home        , K_None, #0, false, mbLeft);
+
+  { For move speed inc/dev we use also character codes +/-, as numpad
+    may be hard to reach on some keyboards (e.g. on laptops). }
+  FInput_MoveSpeedInc := TInputShortcut.Create(K_Numpad_Plus , K_None, '+', false, mbLeft);
+  FInput_MoveSpeedDec := TInputShortcut.Create(K_Numpad_Minus, K_None, '-', false, mbLeft);
+
+  FInput_Jump         := TInputShortcut.Create(K_A           , K_None, #0, false, mbRight);
+  FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, #0, false, mbLeft);
 
   FProjectionMatrix := IdentityMatrix4Single;
 end;
@@ -2037,7 +2112,9 @@ begin
   MatrixChanged;
 end;
 
-procedure TMatrixWalker.Idle(const CompSpeed: Single; KeysDown: PKeysBooleans;
+procedure TMatrixWalker.Idle(const CompSpeed: Single;
+  KeysDown: PKeysBooleans;
+  CharactersDown: PCharactersBooleans;
   const MousePressed: TMouseButtons);
 
   { Like Move, but you pass here final ProposedNewPos }
@@ -2147,14 +2224,14 @@ var
     Uzyj SpeedScale aby skalowac szybkosc obracania sie, tzn. defaltowa
     szybkosc obracania sie = 1.0 }
   begin
-    if Input_RightRot.IsPressed(KeysDown, MousePressed) then
+    if Input_RightRot.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
-    if Input_LeftRot.IsPressed(KeysDown, MousePressed) then
+    if Input_LeftRot.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
 
-    if Input_UpRotate.IsPressed(KeysDown, MousePressed) then
+    if Input_UpRotate.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateVertical(+RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
-    if Input_DownRotate.IsPressed(KeysDown, MousePressed) then
+    if Input_DownRotate.IsPressed(KeysDown, CharactersDown, MousePressed) then
       RotateVertical(-RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
   end;
 
@@ -2719,25 +2796,25 @@ begin
   HeadBobbingAlreadyDone := false;
   MoveHorizontalDone := false;
 
-  FIsCrouching := Input_Crouch.IsPressed(KeysDown, MousePressed);
+  FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
 
   if (not CheckModsDown) or (ModsDown = []) then
   begin
     CheckRotates(1.0);
 
-    if Input_Forward.IsPressed(KeysDown, MousePressed) then
+    if Input_Forward.IsPressed(KeysDown, CharactersDown, MousePressed) then
       MoveHorizontal;
-    if Input_Backward.IsPressed(KeysDown, MousePressed) then
+    if Input_Backward.IsPressed(KeysDown, CharactersDown, MousePressed) then
       MoveHorizontal(-1);
 
-    if Input_RightStrafe.IsPressed(KeysDown, MousePressed) then
+    if Input_RightStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
     begin
       RotateHorizontalForStrafeMove(-90);
       MoveHorizontal;
       RotateHorizontalForStrafeMove(90);
     end;
 
-    if Input_LeftStrafe.IsPressed(KeysDown, MousePressed) then
+    if Input_LeftStrafe.IsPressed(KeysDown, CharactersDown, MousePressed) then
     begin
       RotateHorizontalForStrafeMove(90);
       MoveHorizontal;
@@ -2751,9 +2828,9 @@ begin
       But this is not good, because when PreferGravityUp, we want to move
       along the GravityUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromGravityUp). }
-    if Input_UpMove.IsPressed(KeysDown, MousePressed) then
+    if Input_UpMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
       MoveVertical( 1);
-    if Input_DownMove.IsPressed(KeysDown, MousePressed) then
+    if Input_DownMove.IsPressed(KeysDown, CharactersDown, MousePressed) then
       MoveVertical(-1);
 
     { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
@@ -2770,14 +2847,14 @@ begin
       So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
       Easy!
     }
-    if Input_MoveSpeedInc.IsPressed(KeysDown, MousePressed) then
+    if Input_MoveSpeedInc.IsPressed(KeysDown, CharactersDown, MousePressed) then
     begin
       FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
       FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
       MatrixChanged;
     end;
 
-    if Input_MoveSpeedDec.IsPressed(KeysDown, MousePressed) then
+    if Input_MoveSpeedDec.IsPressed(KeysDown, CharactersDown, MousePressed) then
     begin
       FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
       FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
@@ -2850,14 +2927,15 @@ begin
 end;
 
 function TMatrixWalker.EventDown(MouseEvent: boolean; Key: TKey;
+  ACharacter: Char;
   AMouseButton: TMouseButton): boolean;
 begin
-  if Input_GravityUp.IsEvent(MouseEvent, Key, AMouseButton) then
+  if Input_GravityUp.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     CameraUp := GravityUp;
     Result := true;
   end else
-  if Input_Jump.IsEvent(MouseEvent, Key, AMouseButton) then
+  if Input_Jump.IsEvent(MouseEvent, Key, ACharacter, AMouseButton) then
   begin
     Jump;
     Result := true;
@@ -2872,7 +2950,7 @@ begin
 
   if CheckModsDown and (ModifiersDown(KeysDown) <> []) then Exit;
 
-  Result := EventDown(false, Key, mbLeft);
+  Result := EventDown(false, Key, C, mbLeft);
 end;
 
 function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
@@ -2880,7 +2958,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := EventDown(true, K_None, Button);
+  Result := EventDown(true, K_None, #0, Button);
 end;
 
 procedure TMatrixWalker.Init(
