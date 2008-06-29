@@ -17,5 +17,5 @@ DEF ShadowCasterNav_Matrix MatrixTransform {
 
   Translation { translation 11025.0751953125 9071.5078125 3306.531494140625 }
 
-  WWWInline { name "/win/3dmodels/blender/parallels/parallels.wrl" }
+  WWWInline { name "parallels.wrl" }
 }
