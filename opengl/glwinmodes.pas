@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -248,9 +248,13 @@ type
           chcial odmalowac okienko).)
 
         @item(
-          One more note --- ModeGLEnter nie moze byc uzyte na Closed okienku,
+          ModeGLEnter nie moze byc uzyte na Closed okienku,
           oczywiscie. Wiec dla bezpiecznstwa jest w nim robiony
           Check(not glwin.Closed, ...).)
+
+        @item(
+          We call IgnoreNextIdleSpeed at the end, when closing our mode,
+          see TGLWindow.IgnoreNextIdleSpeed for comments why this is needed.)
       ) }
     constructor Create(AGLWindow: TGLWindow; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
@@ -528,6 +532,8 @@ begin
          glwin.EventMouseDown(btn);
 
    glwin.PostRedisplay;
+
+   Glwin.IgnoreNextIdleSpeed;
  end;
 
  inherited;

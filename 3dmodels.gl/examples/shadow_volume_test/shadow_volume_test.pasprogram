@@ -492,7 +492,7 @@ begin
     FirstIdle := false;
   end;
 
-  ShadowCasterNav.Idle(glwin.FpsCompSpeed, @Glwin.KeysDown, Glwin.MousePressed);
+  ShadowCasterNav.Idle(glwin.IdleSpeed, @Glwin.KeysDown, Glwin.MousePressed);
 end;
 
 procedure KeyDown(glwin: TGLWindow; key: TKey; c: char);

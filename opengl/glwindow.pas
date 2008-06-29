@@ -1107,10 +1107,11 @@ type
     FFpsActive: boolean;
     procedure SetFPSActive(value: boolean);
 
-    FFpsCompSpeed: Single;
-    FIdleCompSpeed: Single;
+    FDrawSpeed: Single;
+    FIdleSpeed: Single;
 
-    LastIdleStartTimeInited: boolean;
+    DoIgnoreNextIdleSpeed: boolean;
+
     LastIdleStartTime: TKamTimerResult;
 
     {rzeczy do implementacji pomiaru Frames Per Sec}
@@ -1591,7 +1592,7 @@ type
       to be done from time to time right before OnDraw and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnDraw because this would cause a sudden big change in
-      FpsFrameTime value (and FpsCompSpeed). So you can avoid this by putting
+      FpsFrameTime value (and DrawSpeed). So you can avoid this by putting
       this in OnBeforeDraw. Of course, using OnBeforeDraw also means that the
       program will not always be time-based. By using OnBeforeDraw instead
       of OnDraw you're breaking the rules that are designed to make time-based
@@ -1605,11 +1606,11 @@ type
       This means that a call to Scene.Render inside OnDraw takes sometimes
       much more time than it usually does. This gives some unpleasant effect
       because when the user views the scene using "Examine" mode
-      then after pressing "g" FpsCompSpeed is (for only one short moment !)
+      then after pressing "g" DrawSpeed is (for only one short moment !)
       very big. And this means that after pressing "g" user sees 1. first,
       it takes some time to regenerate the model 2. second, after regenerating
       the model there is a sudden jump in the amount the object is rotated
-      (because FpsCompSpeed is big). And the second thing is bad.
+      (because DrawSpeed is big). And the second thing is bad.
       It can avoided by putting Scene.PrepareRender(true) after OnKeyDown,
       OnMouseDown etc. But the simplest (and more elegant) way
       is to put Scene.PrepareRender(true) only in OnBeforeDraw. }
@@ -2120,7 +2121,8 @@ type
     procedure FpsReset;
     property FpsSecondsToAutoReset: Cardinal
         read FFpsSecondsToAutoReset
-       write FFpsSecondsToAutoReset; { =6 }
+       write FFpsSecondsToAutoReset default 6;
+
     { Reset timera nie jest takim zupelnym resetem. Zeby wykres pomiaru FramesPerSec
       byl wykresem ciaglym, bez naglych dzikich skokow / spadkow powodowanych
       kompletnymi resetami co 5 sekund, reset tak naprawde dziala tak ze zachowuje
@@ -2133,51 +2135,70 @@ type
       takiej chwili ze pomiar bedzie jakis zupelnie "dziki". }
     property FpsHoldsAfterReset: DWORD
         read FFpsHoldsAfterReset
-       write FFpsHoldsAfterReset; { =1000 }
+       write FFpsHoldsAfterReset default 1000;
 
-    { Zwraca ile czasu trwalo wyrenderowanie ostatniej ramki,
-      przy ustaleniu ze zwraca 1.0 gdy wyrenderowanie ostatniej ramki
-      trwalo 1/50 sekundy (czyli wtedy gdy FpsFrameTime ale mierzone
-      w sposob bardzo chwilowy - na podstawie tylko ostatniej ramki,
-      bo chcemy by pomiar FpsCompSpeed byl dobry jak najszybciej -
-      zwrociloby 50).
-      Dla dwa razy szybszego komputera (chwilowe FpsFrameTime = 100)
-      FpsCompSpeed = 0.5,
-      dla dwa razy wolniejszego FpsCompSpeed = 2.0, i tak dalej
-      - FpsCompSpeed jest odwrotnie proporcjonalne do "chwilowego FpsFrameTime".
+    { @abstract(How much time it took to render last frame?)
 
-      FpsCompSpeed just measures how much rendering last frame lasted.
-      In other words, this is the amount the time that elapsed
-      during rendering of last frame, where "50" is equivalent to "1 second".
+      This returns the time of last EventDraw (that by default just calls
+      OnDraw callback).
+      The time is in seconds, 1.0 = 1 second. In other words, if FpsFrameTime
+      would be measured only based on the last frame time and
+      FpsFrameTime = 1.0 then DrawSpeed is 1.0. (In reality,
+      FpsFrameTime is measured a little better, to average the time
+      of a couple of last frames).
 
-      Uzyteczne do robienia czegos time-based, przede wszystkim w OnIdle.
-      (Zmiana wszystkich zmiennych w OnIdle powinna byc time-based,
-      tzn. jesli chcesz zeby jakas zmienna zmniejszyla sie w ciagu
-      np. sekundy o 1.0, bez wzgledu na to jak szybki jest komputer
-      na ktorym pracuje nasz program, to musisz zrobic time-based,
-      czyli cos w rodzaju
-        Zmienna += 1/50 * FpsCompSpeed
-      Wszystko przez to ze OnIdle moze byc wywolywane z rozna czestotliowiscia,
-      w zaleznosci od szybkosci komputera na ktorym jestesmy (i aktualnej
-      szybkosci tego co renderujemy - latwe do renderowania sceny
-      dadza nam czestsze wywolania EventDraw a wiec i EventIdle).
+      So for two times faster computer DrawSpeed is = 0.5,
+      for two times slower DrawSpeed = 2.0. This is useful for doing
+      time-based rendering, when you want to scale some changes
+      by computer speed, to get perceived animation speed the same on every
+      computer, regardless of computer's speed. Although remember this measures
+      only EventDraw (OnDraw) speed, so if you do anything else
+      taking some time (e.g. you perform some calculations during OnIdle)
+      you're probably much safer to use IdleSpeed.
 
-      Uwaga: moze to nie dzialac tak dobrze dla programow z
-      AutoRedisplay = false, ktore maja "niestabilna" szybkosc renderowania
-      klatek. W szczegolnosci w przypadku takich programow uwazaj
-      na pierwsza klatke, ktora czesto powoduje konstrukcje jakichs
-      display list i w rezultacie trwa nieproporcjonalnie dlugo w porownaniu
-      do nastepnych klatek (tutaj wlasnie przydaje sie wywolanie metod
-      w rodzaju TVRMLFlatSceneGL.PrepareRender w OnInit or OnBeforeDraw).
-    }
-    property FpsCompSpeed: Single read FFpsCompSpeed;
+      Note that this if you have "unstable" rendering times (for example,
+      some OnDraw calls will do something costly like implicitly
+      preparing VRML models on first Render) then DrawSpeed value will
+      also raise suddenly on such frames. That's why you should do
+      any potentially lengthy operations, like preparing VRML scene,
+      in OnBeforeDraw, that is not taken into account when calculating
+      DrawSpeed. }
+    property DrawSpeed: Single read FDrawSpeed;
 
-    { This is like FpsCompSpeed, but calculated as a time between
-      start of previous Idle event and start of last (current) Idle event.
-      As such, if your Idle takes a lot of time (i.e. rendering speed
-      is not your only problem), then you may prefer to use this.
-      But note that you should sanely use this only within Idle event. }
-    property IdleCompSpeed: Single read FIdleCompSpeed;
+    { @abstract(How much time passed since last EventIdle (OnIdle) call?)
+
+      The time is in seconds, 1.0 = 1 second.
+      For two times faster computer IdleSpeed = 0.5,
+      for two times slower IdleSpeed = 2.0. This is useful for doing
+      time-based rendering, when you want to scale some changes
+      by computer speed, to get perceived animation speed the same on every
+      computer, regardless of computer's speed.
+
+      This is like DrawSpeed, but calculated as a time between
+      start of previous Idle event and start of current Idle event.
+      So this really measures your whole loop time (unlike DrawSpeed
+      that measures only EventDraw (OnDraw) speed).
+
+      You can sanely use this only within EventIdle (OnIdle). }
+    property IdleSpeed: Single read FIdleSpeed;
+
+    { Forces IdleSpeed within the next EventIdle (onIdle) call to be
+      equal to 0.0.
+
+      This is useful if you just came back from some lenghty
+      state, like a GUI dialog box (like TGLWindow.FileDialog or modal boxes
+      in GLWinMessages --- but actually all our stuff already calls this
+      as needed, TGLMode takes care of this). IdleSpeed would be ridicoulously
+      long in such case (if our loop is totally stopped) or not relevant
+      (if we do our loop, but with totally different callbacks, like
+      GLWinMessages). Instead, it's most sensible in such case to fake
+      that IdleSpeed is 0.0, so things such as AnimationTime and WorldTime
+      should not advance wildly just because we did GUI box.
+
+      This forces the IdleSpeed to zero only once, that is only on the
+      next EventIdle (OnIdle). Following EventIdle (OnIdle) will have
+      IdleSpeed as usual (unless you call IgnoreNextIdleSpeed again, of course). }
+    procedure IgnoreNextIdleSpeed;
 
     { ------------------------------------------------------------------------
       gotowe funkcje ktore realizuja "uproszczony scenariusz",
@@ -2446,7 +2467,7 @@ type
         W metodach Event Idle/KeyPress, w AllowsProcessMessageSuspend
         zajmujemy sie wywolywaniem odpowiednich metod z Navigator, o ile
         tylko Navigator <> nil i UseNavigator = true.
-        Oh, and we use IdleCompSpeed for navigator.)
+        Oh, and we use IdleSpeed for navigator.)
       @item(
         Metoda PostRedisplayOnMatrixChanged nie jest tu nigdzie uzywana ale mozesz
         ja podac jako TMatrixChangedFunc przy tworzeniu Navigatora. Wywoluje
@@ -3406,13 +3427,20 @@ begin
 end;
 
 procedure TGLWindow.DoIdle;
+var
+  NewLastIdleStartTime: TKamTimerResult;
 begin
-  { update FIdleCompSpeed, LastIdleStartTimeInited, LastIdleStartTime }
-  if LastIdleStartTimeInited then
-    FIdleCompSpeed := ((KamTimer - LastIdleStartTime) / KamTimerFrequency) * 50 else
-    FIdleCompSpeed := 1.0; { just init IdleCompSpeed to some sensible default }
-  LastIdleStartTime := KamTimer;
-  LastIdleStartTimeInited := true;
+  { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }
+  NewLastIdleStartTime := KamTimer;
+
+  if DoIgnoreNextIdleSpeed then
+  begin
+    FIdleSpeed := 0.0;
+    DoIgnoreNextIdleSpeed := false;
+  end else
+    FIdleSpeed := ((NewLastIdleStartTime - LastIdleStartTime) / KamTimerFrequency);
+
+  LastIdleStartTime := NewLastIdleStartTime;
 
   MakeCurrent;
   EventIdle;
@@ -4002,9 +4030,25 @@ begin
  if value then
  begin
   FpsReset;
-  FFpsCompSpeed := 1.0; { just init FpsCompSpeed to some sensible default }
-  FIdleCompSpeed := 1.0; { just init IdleCompSpeed to some sensible default }
+
+  { Just init DrawSpeed, IdleSpeed to some sensible defaults.
+    Rendering time 30 frames per second seems sensible default for 3D game
+    right?
+
+    For IdleSpeed this is actually not essential, since we call
+    IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
+    try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
+    here some predictable value. }
+  FDrawSpeed := 1 / 30;
+  FIdleSpeed := 1 / 30;
+
+  IgnoreNextIdleSpeed;
  end;
+end;
+
+procedure TGLWindow.IgnoreNextIdleSpeed;
+begin
+  DoIgnoreNextIdleSpeed := true;
 end;
 
 procedure TGLWindow.Fps_RenderStart;
@@ -4020,11 +4064,8 @@ begin
  if not FpsActive then exit;
 
  { ((KamTimer-Fps_RenderStartTime)/KamTimerFrequency) = jaka czesc sekundy
-   renderowala sie ostatnia klatka. Zeby byl zgodni z poprzednia definicja
-   FpsCompSpeed, jezeli klatka sie renderowala 1/50 sekundy to
-   ma byc FpsCompSpeed 1, i wyliczamy wartosc FpsCompSpeed przymujac ze
-   te dwie liczby sa proporcjonalne. }
- FFpsCompSpeed := ((KamTimer - Fps_RenderStartTime) / KamTimerFrequency) * 50;
+   renderowala sie ostatnia klatka. }
+ FDrawSpeed := (KamTimer - Fps_RenderStartTime) / KamTimerFrequency;
 
  NowTick := GetTickCount;
  if ((NowTick-Fps_FirstTimeTick) div 1000) >= FpsSecondsToAutoReset then
@@ -4287,7 +4328,7 @@ procedure TGLWindowNavigated.EventIdle;
 begin
   if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
     TMatrixNavigatorWithIdle(Navigator).Idle(
-      IdleCompSpeed, @KeysDown, MousePressed);
+      IdleSpeed, @KeysDown, MousePressed);
   inherited;
 end;
 

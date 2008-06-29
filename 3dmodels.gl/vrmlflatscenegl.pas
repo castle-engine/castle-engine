@@ -626,7 +626,7 @@ type
       have to prepare display lists that will be reused in next Render calls.
       This may cause a strange behavior of the program: rendering of the
       first frame takes unusually long time (which confuses user, and
-      also makes things like TGLWindow.FpsCompSpeed strange for a short
+      also makes things like TGLWindow.DrawSpeed strange for a short
       time). So calling this procedure may be desirable.
       You may want to show to user that "now we're preparing
       the VRML scene --- please wait".

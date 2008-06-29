@@ -89,7 +89,7 @@ end;
 procedure Idle(Glwin: TGLWindow);
 begin
   if TimePlaying then
-    WorldTime += Glwin.IdleCompSpeed / 50;
+    WorldTime += Glwin.IdleSpeed;
 end;
 
 procedure LoadVideo(const NewVideoFileName: string);
@@ -97,10 +97,6 @@ begin
   VideoFileName := NewVideoFileName;
   try
     Video.LoadFromFile(VideoFileName);
-    { TODO: this doesn't work like it should, since the time spent in
-      open dialog is added to WorldTime immediately in next Idle.
-      So after opening a file with menu item, WorldTime will get
-      somewhat > 0 anyway. }
     WorldTime := 0;
   except
     on E: Exception do

@@ -1305,6 +1305,10 @@ begin
    only the predefined ones. }
  Struct.Flags := CC_FULLOPEN or CC_RGBINIT;
 
+{ TODO:
+ Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  not needed here? check. }
+
  Result := ChooseColor(@Struct);
 
  if Result then

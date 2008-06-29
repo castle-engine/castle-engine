@@ -1500,7 +1500,7 @@ end;
 
 procedure TGLMenu.Idle(const CompSpeed: Single);
 begin
-  MenuAnimation += 0.01 * CompSpeed;
+  MenuAnimation += 0.5 * CompSpeed;
   MenuAnimation := Frac(MenuAnimation);
   SomethingChanged;
 end;

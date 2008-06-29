@@ -311,8 +311,8 @@ type
       other tasks (falling down due to gravity in Walker mode,
       rotating model in Examine mode, and many more).
 
-      @param(CompSpeed Should be calculated like TGLWindow.IdleCompSpeed,
-        and usually it's in fact just taken from Glwin.IdleCompSpeed.)
+      @param(CompSpeed Should be calculated like TGLWindow.IdleSpeed,
+        and usually it's in fact just taken from Glwin.IdleSpeed.)
 
       @param(KeysDown What keys are pressed currently ?
         You pass here a pointer to a boolean table indicating
@@ -731,9 +731,9 @@ type
       the moving speed.
 
       More precisely: each horizontal move in Idle moves by distance
-      VectorLen(CameraDir) * MoveXxxSpeed * CompSpeed.
-      So in 1 CompSpeed unit (which is 1/50 of second if it came from
-      normal TGLWindow.IdleCompSpeed), we move by VectorLen(CameraDir) * MoveXxxSpeed.
+      VectorLen(CameraDir) * MoveXxxSpeed * CompSpeed * 50.
+      So in 1/50 CompSpeed unit (which is 1/50 of second if it came from
+      normal TGLWindow.IdleSpeed), we move by VectorLen(CameraDir) * MoveXxxSpeed.
       So we move 50 * VectorLen(CameraDir) * MoveXxxSpeed units per second.
 
       When setting CameraDir, CameraUp will always be automatically
@@ -1525,14 +1525,14 @@ begin
      (RotationsSpeed[1] <> 0) or
      (RotationsSpeed[2] <> 0) then
   begin
-    for i := 0 to 2 do RotationsAngle[i] += RotationsSpeed[i]* CompSpeed;
+    for i := 0 to 2 do RotationsAngle[i] += RotationsSpeed[i]* CompSpeed * 50;
     MatrixChanged;
   end;
 
   if IsEmptyBox3d(ModelBox) then
-    move_change := 0.02 * CompSpeed else
-    move_change := Box3dAvgSize(ModelBox) * 0.02 * CompSpeed;
-  rot_speed_change := 0.1 * CompSpeed;
+    move_change := CompSpeed else
+    move_change := Box3dAvgSize(ModelBox) * CompSpeed;
+  rot_speed_change := 5 * CompSpeed;
   scale_change := 1.1; { nie mnoz tego razy compSpeed - scale_change bedzie uzywane do mnozenia }
 
   if ModsDown = [mkCtrl] then
@@ -2099,7 +2099,7 @@ var
     { Update HeadBobbingPosition }
     if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
     begin
-      HeadBobbingPosition += CompSpeed / HeadBobbingDistance;
+      HeadBobbingPosition += CompSpeed * 50 / HeadBobbingDistance;
       HeadBobbingAlreadyDone := true;
     end;
 
@@ -2110,7 +2110,7 @@ var
       Direction := CameraDir;
 
     Move(VectorScale(Direction,
-      MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
+      MoveHorizontalSpeed * CompSpeed * 50 * Multiply * AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -2120,7 +2120,7 @@ var
       Move(VectorScale(PreferredUpVector,
         { VectorLen(CameraDir) / VectorLen(PreferredUpVector) * }
         Sqrt(VectorLenSqr(CameraDir) / VectorLenSqr(PreferredUpVector)) *
-        MoveVerticalSpeed * CompSpeed * Multiply), false);
+        MoveVerticalSpeed * CompSpeed * 50 * Multiply), false);
     end;
 
   begin
@@ -2148,14 +2148,14 @@ var
     szybkosc obracania sie = 1.0 }
   begin
     if Input_RightRot.IsPressed(KeysDown, MousePressed) then
-      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * SpeedScale);
+      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
     if Input_LeftRot.IsPressed(KeysDown, MousePressed) then
-      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * SpeedScale);
+      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * 50 * SpeedScale);
 
     if Input_UpRotate.IsPressed(KeysDown, MousePressed) then
-      RotateVertical(+RotationVerticalSpeed * CompSpeed * SpeedScale);
+      RotateVertical(+RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
     if Input_DownRotate.IsPressed(KeysDown, MousePressed) then
-      RotateVertical(-RotationVerticalSpeed * CompSpeed * SpeedScale);
+      RotateVertical(-RotationVerticalSpeed * CompSpeed * 50 * SpeedScale);
   end;
 
   { Things related to gravity --- jumping, taking into account
@@ -2177,7 +2177,7 @@ var
           1. update FJumpHeight and FJumpPower and move CameraPos
           2. or set FIsJumping to false when jump ends }
 
-        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed;
+        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed * 50;
         FJumpHeight += ThisJumpHeight;
 
         if FJumpHeight > MaxJumpDistance then
@@ -2192,7 +2192,7 @@ var
             reach MaxJumpDistance. And we want for every jump to
             sooner or later reach MaxJumpDistance.
 
-            FJumpPower *= Power(0.95, CompSpeed);
+            FJumpPower *= Power(0.95, CompSpeed * 50);
 
             So the line above is commented out, and jumping is done with
             constant speed FJumpPower. So every jump sooner or later reaches
@@ -2226,7 +2226,7 @@ var
           we need actual values. }
         GrowingVectorLength := Min(
           { TODO --- use CameraPreferredHeight here ? }
-          VectorLen(CameraDir) * GrowingSpeed * CompSpeed,
+          VectorLen(CameraDir) * GrowingSpeed * CompSpeed * 50,
           RealCameraPreferredHeight - Sqrt(SqrHeightAboveTheGround));
 
         Move(VectorAdjustToLength(GravityUp, GrowingVectorLength), true);
@@ -2329,7 +2329,7 @@ var
         This means that I should limit myself to not fall down
         below RealCameraPreferredHeight. And that's what I'm doing. }
       SqrFallingDownVectorLength :=
-        VectorLenSqr(CameraDir) * Sqr(FFallingDownSpeed * CompSpeed);
+        VectorLenSqr(CameraDir) * Sqr(FFallingDownSpeed * CompSpeed * 50);
       if IsAboveTheGround then
         MinTo1st(SqrFallingDownVectorLength,
           Sqr(Sqrt(SqrHeightAboveTheGround) - RealCameraPreferredHeight));
@@ -2429,7 +2429,11 @@ var
                Maybe in the future I'll workaround it differently.
                One idea is that FFallingDownSpeed should be made smaller if the
                falled down distance is small. Or just don't call GravityIdle after the first
-               model load, to avoid using large CompSpeed ? }
+               model load, to avoid using large CompSpeed ?
+
+               LATER NOTE: note that the (2.) problem above may be non-existing
+               now, since we use IdleSpeed and we have IgnoreNextIdleSpeed to
+               set IdleSpeed to zero in such cases. }
           if FallingDownEffect and
              (FFallingDownSpeed > FallingDownStartSpeed * 3) then
           begin
@@ -2438,27 +2442,27 @@ var
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
               RotateAroundGravityUp(Fde_RotateHorizontal *
-                Fde_HorizontalRotateDeviation * CompSpeed);
+                Fde_HorizontalRotateDeviation * CompSpeed * 50);
             end;
 
             if Fde_CameraUpRotate < 0 then
-              Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
+              Fde_CameraUpRotate -= Fde_VerticalRotateDeviation * CompSpeed * 50 else
             if Fde_CameraUpRotate > 0 then
-              Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed else
+              Fde_CameraUpRotate += Fde_VerticalRotateDeviation * CompSpeed * 50 else
               Fde_CameraUpRotate := RandomPlusMinus *
-                                    Fde_VerticalRotateDeviation * CompSpeed;
+                                    Fde_VerticalRotateDeviation * CompSpeed * 50;
 
             MatrixChanged;
           end;
 
-          { Note that when changing FFallingDownSpeed below I'm using CompSpeed.
+          { Note that when changing FFallingDownSpeed below I'm using CompSpeed * 50.
             And also above when using FFallingDownSpeed, I multipled
-            FFallingDownSpeed * CompSpeed. This is correct:
+            FFallingDownSpeed * CompSpeed * 50. This is correct:
             - changing position based on FallingDownSpeed is a "velocity"
             - changing FallingDownSpeed below is "acceleration"
             And both acceleration and velocity must be time-based. }
           if FallingDownSpeedIncrease <> 1.0 then
-            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed);
+            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed * 50);
         end;
       end else
         FIsFallingDown := false;
@@ -2484,7 +2488,7 @@ var
           any interesting visual effect (and the only reason for
           CameraUpRotate is a visual effect)... }
         Change := Trunc(Abs(Fde_CameraUpRotate) / 360.0) * 360.0 +
-          Fde_VerticalRotateNormalization * CompSpeed;
+          Fde_VerticalRotateNormalization * CompSpeed * 50;
 
         if Fde_CameraUpRotate < 0 then
           Fde_CameraUpRotate := Min(Fde_CameraUpRotate + Change, 0.0) else
@@ -2511,7 +2515,7 @@ var
         Exit;
       end;
 
-      AngleRotate := 0.1 * CompSpeed;
+      AngleRotate := 0.1 * CompSpeed * 50;
       MinTo1st(AngleRotate, Abs(Angle - HalfPi));
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
@@ -2572,13 +2576,13 @@ var
         begin
           if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
             HeadBobbingPosition +=
-              Min(HeadBobbingGoingDownSpeed * CompSpeed,
+              Min(HeadBobbingGoingDownSpeed * CompSpeed * 50,
                 1 - FracHeadBobbingPosition);
         end else
         begin
           if FracHeadBobbingPosition > SingleEqualityEpsilon then
             HeadBobbingPosition -=
-              Min(HeadBobbingGoingDownSpeed * CompSpeed,
+              Min(HeadBobbingGoingDownSpeed * CompSpeed * 50,
                 FracHeadBobbingPosition);
         end;
       end;
@@ -2692,7 +2696,7 @@ var
 
         AngleRadBetweenTarget :=
           AngleRadBetweenVectors(TargetCameraUp, FCameraUp);
-        AngleRadBetweenTargetChange := 0.01 * CompSpeed;
+        AngleRadBetweenTargetChange := 0.01 * CompSpeed * 50;
         if AngleRadBetweenTarget > AngleRadBetweenTargetChange then
         begin
           NewCameraUp := FCameraUp;
@@ -2741,9 +2745,9 @@ begin
     end;
 
     { A simple implementation of Input_UpMove was
-        RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed); RotateVertical(-90)
+        RotateVertical(90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(-90)
       Similarly, simple implementation of Input_DownMove was
-        RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed); RotateVertical(90)
+        RotateVertical(-90); Move(MoveVerticalSpeed * CompSpeed * 50); RotateVertical(90)
       But this is not good, because when PreferGravityUp, we want to move
       along the GravityUp. (Also later note: RotateVertical is now bounded by
       MinAngleRadFromGravityUp). }
@@ -2757,26 +2761,26 @@ begin
       wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
       Move*Speed ?.
 
-      How to apply CompSpeed here ?
-      I can't just ignore CompSpeed, but I can't also write
-        FMoveHorizontalSpeed *= 1.1 * CompSpeed;
+      How to apply CompSpeed * 50 here ?
+      I can't just ignore CompSpeed * 50, but I can't also write
+        FMoveHorizontalSpeed *= 1.1 * CompSpeed * 50;
       What I want is such (pl: ci±g³a) function that e.g.
         F(FMoveHorizontalSpeed, 2) = F(F(FMoveHorizontalSpeed, 1), 1)
-      I.e. CompSpeed = 2 should work just like doing the same change twice.
-      So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed)
+      I.e. CompSpeed * 50 = 2 should work just like doing the same change twice.
+      So F is FMoveHorizontalSpeed * Power(1.1, CompSpeed * 50)
       Easy!
     }
     if Input_MoveSpeedInc.IsPressed(KeysDown, MousePressed) then
     begin
-      FMoveHorizontalSpeed *= Power(1.1, CompSpeed);
-      FMoveVerticalSpeed *= Power(1.1, CompSpeed);
+      FMoveHorizontalSpeed *= Power(1.1, CompSpeed * 50);
+      FMoveVerticalSpeed *= Power(1.1, CompSpeed * 50);
       MatrixChanged;
     end;
 
     if Input_MoveSpeedDec.IsPressed(KeysDown, MousePressed) then
     begin
-      FMoveHorizontalSpeed /= Power(1.1, CompSpeed);
-      FMoveVerticalSpeed /= Power(1.1, CompSpeed);
+      FMoveHorizontalSpeed /= Power(1.1, CompSpeed * 50);
+      FMoveVerticalSpeed /= Power(1.1, CompSpeed * 50);
       MatrixChanged;
     end;
   end else

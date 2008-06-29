@@ -38,8 +38,9 @@ type
     FOnGLContextInit: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
-    LastIdleStartTimeInited: boolean;
     LastIdleStartTime: TKamTimerResult;
+
+    DoIgnoreNextIdleSpeed: boolean;
   protected
     procedure DestroyHandle; override;
 
@@ -118,6 +119,8 @@ type
       will be destroyed. }
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
+
+    procedure IgnoreNextIdleSpeed;
   end;
 
 procedure Register;
@@ -138,6 +141,7 @@ begin
   inherited;
   UseNavigator := true;
   OwnsNavigator := false;
+  IgnoreNextIdleSpeed;
 end;
 
 destructor TKamOpenGLControl.Destroy;
@@ -384,21 +388,29 @@ end;
 
 procedure TKamOpenGLControl.NavigatorIdle;
 var
-  FIdleCompSpeed: Single;
-  NewLastIdleStartTime: TKamTimerFrequency;
+  FIdleSpeed: Single;
+  NewLastIdleStartTime: TKamTimerResult;
 begin
-  { update FIdleCompSpeed, LastIdleStartTimeInited, LastIdleStartTime }
+  { update FIdleSpeed, DoIgnoreNextIdleSpeed, LastIdleStartTime }
   NewLastIdleStartTime := KamTimer;
-  if LastIdleStartTimeInited then
-    FIdleCompSpeed:= ((NewLastIdleStartTime - LastIdleStartTime) /
-      KamTimerFrequency) * 50 else
-    FIdleCompSpeed:= 1.0; { just init IdleCompSpeed to some sensible default }
+
+  if DoIgnoreNextIdleSpeed then
+  begin
+    FIdleSpeed := 0.0;
+    DoIgnoreNextIdleSpeed := false;
+  end else
+    FIdleSpeed := ((NewLastIdleStartTime - LastIdleStartTime) / KamTimerFrequency);
+
   LastIdleStartTime := NewLastIdleStartTime;
-  LastIdleStartTimeInited := true;
 
   if ReallyUseNavigator and (Navigator is TMatrixNavigatorWithIdle) then
-    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleCompSpeed, @KeysDown,
+    TMatrixNavigatorWithIdle(Navigator).Idle(FIdleSpeed, @KeysDown,
       MousePressed);
+end;
+
+procedure TKamOpenGLControl.IgnoreNextIdleSpeed;
+begin
+  DoIgnoreNextIdleSpeed := true;
 end;
 
 function TKamOpenGLControl.NavExaminer: TMatrixExaminer;
