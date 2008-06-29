@@ -724,9 +724,15 @@ type
       read FAllowSlowerRotations write FAllowSlowerRotations
       default true;
 
-    { If @true then all keys work only when no modifiers are pressed,
-      and additionally when Ctrl is pressed (and AllowSlowerRotations) then
-      rotation keys work 10x slower.
+    { @abstract(Do we check what key modifiers are pressed and do something
+      differently based on it?)
+
+      If @true then all keys work only when no modifiers or only shift are
+      pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
+      rotation keys work 10x slower. Other keys with other modifiers
+      don't work. We allow shift, because to press character "+" on non-numpad
+      keyboard (useful on laptops, where numpad is difficult) you
+      probably need to press shift.
 
       If @false then all keys work as usual, no matter what
       modifiers are pressed. And rotation keys never work 10x slower
@@ -2798,7 +2804,8 @@ begin
 
   FIsCrouching := Input_Crouch.IsPressed(KeysDown, CharactersDown, MousePressed);
 
-  if (not CheckModsDown) or (ModsDown = []) then
+  if (not CheckModsDown) or
+     (ModsDown - [mkShift] = []) then
   begin
     CheckRotates(1.0);
 
@@ -2948,9 +2955,11 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if CheckModsDown and (ModifiersDown(KeysDown) <> []) then Exit;
-
-  Result := EventDown(false, Key, C, mbLeft);
+  if (not CheckModsDown) or
+     (ModifiersDown(KeysDown) - [mkShift] = []) then
+  begin
+    Result := EventDown(false, Key, C, mbLeft);
+  end;
 end;
 
 function TMatrixWalker.MouseDown(Button: TMouseButton): boolean;
