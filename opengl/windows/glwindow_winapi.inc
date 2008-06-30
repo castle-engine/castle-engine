@@ -1287,8 +1287,10 @@ function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
    Result[2] := GetBValue(Value)/High(Byte);
   end;
 
-var Struct: TChooseColor;
-    CustomColors: array[0..15]of TColorRef;
+var
+  Struct: TChooseColor;
+  CustomColors: array[0..15]of TColorRef;
+  Mode: TGLModeFrozenScreen;
 begin
  { init CustomColors to all blacks; TODO: I should use a static table for this
    (and put a comment in GLWindow to say that custom colors are preserved in win dialog) }
@@ -1305,11 +1307,10 @@ begin
    only the predefined ones. }
  Struct.Flags := CC_FULLOPEN or CC_RGBINIT;
 
-{ TODO:
  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
-  not needed here? check. }
-
- Result := ChooseColor(@Struct);
+ try
+   Result := ChooseColor(@Struct);
+ finally Mode.Free end;
 
  if Result then
   Color := ColorRefToVector3Single(Struct.rgbResult);
