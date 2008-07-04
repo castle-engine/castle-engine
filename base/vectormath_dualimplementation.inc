@@ -1573,10 +1573,10 @@ end;
 {
 nie moze byc w dual implementation, potrzebujemy tego pod Delphi.
 
-function BWColorValue(const v: TYPE_VECTOR3): TYPE_SCALAR;
+function GrayscaleValue(const v: TYPE_VECTOR3): TYPE_SCALAR;
 begin
- result := BWColorValuesFloat[0]*v[0]+
-         BWColorValuesFloat[1]*v[1]+
-         BWColorValuesFloat[2]*v[2];
+ result := GrayscaleValuesFloat[0]*v[0]+
+           GrayscaleValuesFloat[1]*v[1]+
+           GrayscaleValuesFloat[2]*v[2];
 end;
 }

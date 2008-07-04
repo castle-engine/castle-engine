@@ -118,7 +118,7 @@ var
     function ProcStrokeAttr(const S, ColorKey, WidthKey: string): string;
     var
       Width: Float;
-      BWCol: TVector3Byte;
+      Color: TVector3Byte;
       Strs: TStringList;
       WidthUnits: string;
     begin
@@ -131,15 +131,15 @@ var
         Strs.DelimitedText := S;
 
         if (Strs.Values[ColorKey] <> '') and
-           HexToCol(Strs.Values[ColorKey], BWCol) then
+           HexToCol(Strs.Values[ColorKey], Color) then
         begin
-          BWCol := BWColor(BWCol);
-          Strs.Values[ColorKey] := ColToHex(BWCol);
+          GrayscaleTo1st(Color);
+          Strs.Values[ColorKey] := ColToHex(Color);
 
           if (WidthKey <> '') and (Strs.Values[WidthKey] <> '') then
           begin
             SplitWidth(Strs.Values[WidthKey], Width, WidthUnits);
-            Width := MapRange(BWCol[0]/255, 0, 1,
+            Width := MapRange(Color[0]/255, 0, 1,
               Width * (1 - WidthScale),
               Width * (1 + WidthScale));
             Strs.Values[WidthKey] := JoinWidth(Width, WidthUnits);

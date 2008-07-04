@@ -1746,43 +1746,52 @@ function LookDirMatrix(const Eye, Dir, Up: TVector3Double): TMatrix4Single; over
 
 {$endif not DELPHI}
 
-{ BWColor ----------------------------------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
+{ @section(Grayscale convertion stuff) }
 
-{ ponizej : wagi do zamieniana koloru na black&white.
-  Kolory szare to takie ktore maja red = green = blue. Chcac wiec uczynic kolor
-  szarym ustawiamy jego red := green := blue := G, gdzie G moze byc
-  (najprosciej) srednia red, green, blue (red+green+blue/3, czyli waga 0.33 przy
-  kazdym komponencie). Ale tak naprawde lepszy wizualnie jest efekt jesli ustawimy
-  poszczegolnym komponentom rozne wagi. Ponizej sa wlasnie te wagi.
-  Wzialem je z manuala libpng, tam pisze skad oni je wzieli.
-
-  Element 0 to waga Red, 1 to waga Green, 2 to waga Blue. RGB.
-  Wagi w wersji byte powinny byc uzyte w taki sposob :
-  (r*BWColorValuesByte[0] +
-   g*BWColorValuesByte[1] +
-   b*BWColorValuesByte[2]) div 256. Elementy BWColorValueByte[] sa zadeklarowane
-   jako Word zeby automatycznie wymusic konwersje skladowych r, g, b z bajtow na Word
-   (bo wynik mnozenia dwoch elementow byte moze byc w zakresie Word;
-    ogolnie 54*r +183*g +19*b = maksymalnie 256 * 255 a wiec zmiesci sie w Wordzie).
-}
 const
-  BWColorValuesFloat : array[0..2]of Float = (0.212671, 0.715160, 0.072169);
-  BWColorValuesByte : array[0..2]of Word = (54, 183, 19);
+  { Weights to change RGB color to grayscale.
 
-{ konwersja koloru na black&white (red , green, blue :=
-  odpowiednio wazona srednia_arytm(red, green, blue), patrz BWColorValues) }
-function BWColorValue(const v: TVector3Single): Single; overload;
-function BWColorValue(const v: TVector3Double): Double; overload;
-function BWColorValue(const v: TVector3Byte): Byte; overload;
+    Explanation: Grayscale color is just a color with red = green = blue.
+    So the simplest convertion of RGB to grayscale is just to set
+    all three R, G, B components to the average (R + G + B) / 3.
+    But, since human eye is most sensitive to green, then to red,
+    and least sensitive to blue, it's better to calculate this
+    with some non-uniform weights. GrayscaleValuesXxx constants specify
+    these weights.
 
-procedure BWColor3SinglevTo1st(v: PVector3Single);
-procedure BWColor3BytevTo1st(v: PVector3Byte);
+    Taken from libpng manual (so there for further references).
 
-procedure BWColorTo1st(var v: TVector3Byte); overload;
+    For GrayscaleByte, they should be used like
 
-function BWColor(const v: TVector3Single): TVector3Single; overload;
-function BWColor(const v: TVector4Single): Tvector4Single; overload;
-function BWColor(const v: TVector3Byte): TVector3Byte; overload;
+  @longCode(#
+    (R * GrayscaleValuesByte[0] +
+     G * GrayscaleValuesByte[1] +
+     G * GrayscaleValuesByte[2]) div 256
+  #)
+
+    GrayscaleValuesByte[] are declared as Word type to force implicit convertion
+    in above expression from Byte to Word, since you have to use Word range
+    to temporarily hold Byte * Byte multiplication in expression above.
+
+    @groupBegin }
+  GrayscaleValuesFloat: array [0..2] of Float = (0.212671, 0.715160, 0.072169);
+  GrayscaleValuesByte: array [0..2] of Word = (54, 183, 19);
+  { @groupEnd }
+
+{ Calculate color intensity, as for converting color to grayscale. }
+function GrayscaleValue(const v: TVector3Single): Single; overload;
+function GrayscaleValue(const v: TVector3Double): Double; overload;
+function GrayscaleValue(const v: TVector3Byte): Byte; overload;
+
+procedure Grayscale3SinglevTo1st(v: PVector3Single);
+procedure Grayscale3BytevTo1st(v: PVector3Byte);
+
+procedure GrayscaleTo1st(var v: TVector3Byte); overload;
+
+function Grayscale(const v: TVector3Single): TVector3Single; overload;
+function Grayscale(const v: TVector4Single): Tvector4Single; overload;
+function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 
 { color changing ------------------------------------------------------------ }
 
@@ -1802,11 +1811,11 @@ type
 function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
 function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
 
-{ This is the same as BWColor }
+{ This is the same as Grayscale }
 function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
 
-{ This the same as BWColor and then invert colors
+{ This the same as Grayscale and then invert colors
   (i.e., Red := 1.0-Red, Green := 1.0-Green etc.) }
 function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
 function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
@@ -3113,66 +3122,66 @@ end;
 
 {$endif not DELPHI}
 
-{ BWColor ------------------------------------------------------------------ }
+{ Grayscale ------------------------------------------------------------------ }
 
-function BWColorValue(const v: TVector3Single): Single;
+function GrayscaleValue(const v: TVector3Single): Single;
 begin
- result := BWColorValuesFloat[0]*v[0]+
-           BWColorValuesFloat[1]*v[1]+
-           BWColorValuesFloat[2]*v[2];
+ result := GrayscaleValuesFloat[0]*v[0]+
+           GrayscaleValuesFloat[1]*v[1]+
+           GrayscaleValuesFloat[2]*v[2];
 end;
 
-function BWColorValue(const v: TVector3Double): Double;
+function GrayscaleValue(const v: TVector3Double): Double;
 begin
- result := BWColorValuesFloat[0]*v[0]+
-           BWColorValuesFloat[1]*v[1]+
-           BWColorValuesFloat[2]*v[2];
+ result := GrayscaleValuesFloat[0]*v[0]+
+           GrayscaleValuesFloat[1]*v[1]+
+           GrayscaleValuesFloat[2]*v[2];
 end;
 
-function BWColorValue(const v: TVector3Byte): Byte;
+function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
- result := (BWColorValuesByte[0]*v[0]+
-            BWColorValuesByte[1]*v[1]+
-            BWColorValuesByte[2]*v[2]) div 256;
+ result := (GrayscaleValuesByte[0]*v[0]+
+            GrayscaleValuesByte[1]*v[1]+
+            GrayscaleValuesByte[2]*v[2]) div 256;
 end;
 
-procedure BWColor3SinglevTo1st(v: PVector3Single);
+procedure Grayscale3SinglevTo1st(v: PVector3Single);
 begin
- v^[0] := BWColorValue(v^);
+ v^[0] := GrayscaleValue(v^);
  v^[1] := v^[0];
  v^[2] := v^[0];
 end;
 
-procedure BWColor3BytevTo1st(v: PVector3Byte);
+procedure Grayscale3BytevTo1st(v: PVector3Byte);
 begin
- v^[0] := BWColorValue(v^);
+ v^[0] := GrayscaleValue(v^);
  v^[1] := v^[0];
  v^[2] := v^[0];
 end;
 
-procedure BWColorTo1st(var v: TVector3Byte);
+procedure GrayscaleTo1st(var v: TVector3Byte);
 begin
- v[0] := BWColorValue(v);
+ v[0] := GrayscaleValue(v);
  v[1] := v[0];
  v[2] := v[0];
 end;
 
-function BWColor(const v: TVector3Single): TVector3Single;
+function Grayscale(const v: TVector3Single): TVector3Single;
 begin
  result := v;
- BWColor3SinglevTo1st(@result);
+ Grayscale3SinglevTo1st(@result);
 end;
 
-function BWColor(const v: TVector4Single): TVector4Single;
+function Grayscale(const v: TVector4Single): TVector4Single;
 begin
  result := v;
- BWColor3SinglevTo1st(@result);
+ Grayscale3SinglevTo1st(@result);
 end;
 
-function BWColor(const v: TVector3Byte): TVector3Byte;
+function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
  result := v;
- BWColor3BytevTo1st(@result);
+ Grayscale3BytevTo1st(@result);
 end;
 
 { color changing ------------------------------------------------------------ }
@@ -3192,21 +3201,21 @@ begin
 end;
 
 function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
-begin Result := BWColor(Color) end;
+begin Result := Grayscale(Color) end;
 
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
-begin Result := BWColor(Color) end;
+begin Result := Grayscale(Color) end;
 
 function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
 begin
- Result[0] := 1-BWColorValue(Color);
+ Result[0] := 1-GrayscaleValue(Color);
  Result[1] := Result[0];
  Result[2] := Result[0];
 end;
 
 function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
 begin
- Result[0] := 255-BWColorValue(Color);
+ Result[0] := 255-GrayscaleValue(Color);
  Result[1] := Result[0];
  Result[2] := Result[0];
 end;
@@ -3218,7 +3227,7 @@ var i: integer;
 begin
  for i := 0 to 2 do
   if i = COL_MOD_CONVERT_NUM then
-   Result[i] := BWColorValue(Color) else
+   Result[i] := GrayscaleValue(Color) else
    Result[i] := 0;
 end;}
 

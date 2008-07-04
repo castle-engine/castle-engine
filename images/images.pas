@@ -450,7 +450,7 @@ type
                   (0.33, 0.33, 0.33))
           is a simple conversion to grayscale (actually incorrect, even if often
           visually acceptable; actually instead of 0.33 one has to use
-          BWColorFloat/ByteValues, this is already implemented
+          GrayscaleFloat/ByteValues, this is already implemented
           in ImageTransformColorsTo1st function)
 
       Note: it's often more optimal to hard-code necessary color transformations
@@ -1965,7 +1965,7 @@ begin
     pGrayscale := Result.GrayscalePixels;
     for i := 1 to Width * Height do
     begin
-      pGrayscale^ := BWColorValue(pRGB^);
+      pGrayscale^ := GrayscaleValue(pRGB^);
       Inc(pRGB);
       Inc(pGrayscale);
     end;

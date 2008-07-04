@@ -31,7 +31,7 @@
   Sa w tym pliku problemy z eleganckim zapisaniem wszystkiego:
   - definicje funkcji konstruktorow typow musza byc tutaj powtorzone
     (bo nie mozna przeciazac zmiennych funkcyjnych,
-    wiec sztuczka jakiej uzylem zeby eksportowac np. BWColor3fvTo1st
+    wiec sztuczka jakiej uzylem zeby eksportowac np. Grayscale3fvTo1st
     z VectorMath nie moze byc zawsze uzyta)
   - jezeli kiedys pod jakas implementacja OpenGL'a beda inne definicje
     typow TGLfloat itp. to trzeba bedzie zmienic nie tylko definicje
@@ -353,11 +353,11 @@ const
   Triangle3d: function(const t: TTriangle3Single): TTriangle3Double =
     {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Triangle3Double;
 
-  BWColor3fvTo1st: procedure(v: PVector3Single) =
-    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.BWColor3SinglevTo1st;
+  Grayscale3fvTo1st: procedure(v: PVector3Single) =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Grayscale3SinglevTo1st;
 
-  BWColor3ubvTo1st: procedure(v: PVector3Byte) =
-    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.BWColor3BytevTo1st;
+  Grayscale3ubvTo1st: procedure(v: PVector3Byte) =
+    {$ifdef FPC_OBJFPC} @ {$endif} VectorMath.Grayscale3BytevTo1st;
 
 {$endif}
 
