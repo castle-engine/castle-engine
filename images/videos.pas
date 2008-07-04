@@ -56,6 +56,10 @@ type
       we will make 25 frames per this Time unit. So you probably
       want to count the Time in seconds too.)
 
+      @link(Count) is always >= 1 when the video is loaded.
+      That is, we don't allow videos with zero frames (I don't
+      know if any movie format allows this.)
+
       @groupBegin }
     function Count: Integer;
     property Items [Index: Integer]: TImage read GetItems;
