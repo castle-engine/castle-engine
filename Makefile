@@ -187,6 +187,7 @@ EXAMPLES_BASE_NAMES := \
   base/examples/demo_textreader \
   base/examples/test_platform_specific_utils \
   base/examples/kambi_calc \
+  base/tools/svg_grayscale \
   images/examples/image_convert \
   images/tools/image_to_pas \
   opengl/examples/gl_win_events \
@@ -199,6 +200,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/shading_langs/shading_langs_demo \
   opengl/examples/demo_matrix_navigation \
   opengl/examples/fog_coord \
+  opengl/examples/simple_video_image_viewer \
   3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
   3dmodels/examples/test_blender_exported_hierarchy \
