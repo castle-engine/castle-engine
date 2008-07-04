@@ -84,10 +84,13 @@ implementation
 uses SysUtils;
 
 const
+  { Polish "czynnik" (= argument of multiplication operators (*, /, ^ etc.)
+    translated to English as "factor", I'm not sure what's the pricice
+    English word for this. }
   SErrRightParenExpected = 'right paren ")" expected';
-  SErrWrongCzynnik = 'wrong czynnik (expected variable, constant, "-", "(" or function name)';
+  SErrWrongCzynnik = 'wrong factor (expected variable, constant, "-", "(" or function name)';
   SErrKoniecExpected = 'end of expression expected, but "%s" found';
-  SErrOperRelacExpected = 'operator relacyjny (>, <, >=, <=, = or <>) expected';
+  SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
   SErrRightQarenExpected = 'right paren "]" expected';
 
 function ParseMathExpr(const S: string): TMathExpr;
@@ -121,7 +124,9 @@ var Lexer: TMathLexer;
 
   procedure checkTokenIs(tok: TToken; const errString: string);
   begin
-   if Lexer.token <> tok then raise EMathParserError.Create(Lexer, errString);
+   if Lexer.token <> tok then
+     raise EMathParserError.Create(Lexer, errString +
+       ', but got ' + Lexer.TokenDescription);
   end;
 
   function skladnik: TMathExpr; forward;
@@ -203,7 +208,8 @@ var Lexer: TMathLexer;
          result := TMathFunction.Create(fk, fparams);
         finally fparams.free end;
        end;
-     else raise EMathParserError.Create(Lexer, SErrWrongCzynnik);
+     else raise EMathParserError.Create(Lexer, SErrWrongCzynnik +
+       ', but got ' + Lexer.TokenDescription);
     end;
    except result.free; raise end;
   end;
