@@ -24,8 +24,32 @@ interface
 uses Images, ImagesCache;
 
 type
-  { Simple video loader. For now, the only "movie format" it can load
-    is just a sequence of image files.
+  { Video.
+
+    It can load movie from a sequence of image files.
+    With the help of ffmpeg, it can also load any normal movie file format,
+    like avi (compressed by anything ffmpeg can handle), OggTheora and
+    many others. ffmpeg really handles probably everything you will
+    ever want.
+
+    Video is stored simply as a sequence of loaded images in memory.
+    This is not good for a real movies, so don't even try to open
+    any real, 2 hour, full dvd resolution movie --- loading will
+    take hours and you will clog your memory. This class is @italic(not)
+    supposed to be used in a real movie player.
+
+    However, this simple storage is perfect to load a short movie
+    for some effect in a game, for example a simple movie with flames
+    or smoke to be shown as texture in your 3D game.
+    Memory and loading time is acceptable then,
+    and you want to prepare all your textures before the game starts anyway
+    (for a 3D game, there's no time to decode some movie format while
+    playing...).
+
+    See example program
+    @code(kambi_vrml_game_engine/opengl/examples/simple_video_image_viewer.pasprogram)
+    in our engine for example of a simple movie player implemented on top
+    of this class.
 
     Note that some properties and methods of this class may look familiar
     to properties of TVRMLGLAnimation. And indeed they are familiar
@@ -44,6 +68,7 @@ type
     FLoaded: boolean;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
+    FFramesPerSecond: Single;
   public
     constructor Create;
     destructor Destroy; override;
@@ -63,6 +88,8 @@ type
       @groupBegin }
     function Count: Integer;
     property Items [Index: Integer]: TImage read GetItems;
+    function Width: Cardinal;
+    function Height: Cardinal;
     function IndexFromTime(const Time: Single): Integer;
     function ImageFromTime(const Time: Single): TImage;
     { @groupEnd }
@@ -75,6 +102,14 @@ type
 
       Use this only when @link(Loaded). }
     function TimeDuration: Single;
+
+    { Number of frames per second for this video.
+
+      For formats with varying frame-rate (although we do not support
+      any such format right now), this will be just average frame-rate.
+      The idea is that this property is just to show the user, so (s)he
+      can judge the quality of the video. }
+    property FramesPerSecond: Single read FFramesPerSecond;
 
     { Loads video from file.
 
@@ -182,15 +217,14 @@ implementation
 uses KambiUtils, SysUtils, Math, KambiStringUtils, DataErrors,
   KambiFilesUtils, EnumerateFiles;
 
-const
-  FramesPerSecond = 25.0;
-
 { TVideo --------------------------------------------------------------------- }
 
 constructor TVideo.Create;
 begin
   inherited;
   FLoaded := false;
+  { This is just constant for now }
+  FFramesPerSecond := 25.0;
 end;
 
 destructor TVideo.Destroy;
@@ -335,7 +369,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
 
     if Executable = '' then
     begin
-      DataNonFatalError('You must have "ffmpeg" program from ' +
+      raise Exception.Create('You must have "ffmpeg" program from ' +
         '[http://ffmpeg.mplayerhq.hu/] installed and available on $PATH to be able to ' +
         'load movie files');
     end else
@@ -383,6 +417,18 @@ begin
     LoadFromImages(FileName, false);
 
   FLoaded := true;
+end;
+
+function TVideo.Width: Cardinal;
+begin
+  Assert(Loaded);
+  Result := Items[0].Width;
+end;
+
+function TVideo.Height: Cardinal;
+begin
+  Assert(Loaded);
+  Result := Items[0].Height;
 end;
 
 { non-object routines -------------------------------------------------------- }

@@ -21,7 +21,7 @@
 { Simple example of loading a video file and playing it in OpenGL
   window. Also handles normal image files, since we can load all image
   formats to TVideo by just treating them as movies with 1 frame. }
-program simple_image_viewer;
+program simple_image_viewersimple_video_image_viewer;
 
 { Console, not GUI, since loading files through ffmpeg will output some
   info on stdout anyway. }
@@ -30,7 +30,7 @@ program simple_image_viewer;
 uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
-  KambiGLUtils, VectorMath;
+  KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL;
 
 type
   TWorldTime = Float;
@@ -44,6 +44,8 @@ var
 
   StatusFont: TGLBitmapFont;
 
+  MenuEdit: TMenu;
+
 procedure Draw(Glwin: TGLWindow);
 const
   TimeBarHeight = 10;
@@ -52,14 +54,29 @@ const
   procedure DrawStatus(Data: Pointer);
   var
     S: string;
+    Strs: TStringList;
   begin
     glTranslatef(5, 5, 0);
-    S := Format('World time: %f', [WorldTime]);
-    if not TimePlaying then
-      S += ' (paused)';
-    glColorv(Yellow3Single);
-    StatusFont.PrintStrings(S, 0, 10,
-      Glw.Height - StatusFont.RowHeight - TimeBarHeight - 4);
+    Strs := TStringList.Create;
+    try
+      S := Format('World time: %f', [WorldTime]);
+      if not TimePlaying then
+        S += ' (paused)';
+      Strs.Append(S);
+
+      if Video.Loaded then
+      begin
+        Strs.Append(Format('File name: %s', [VideoFileName]));
+        Strs.Append(Format('Size: %d x %d', [Video.Width, Video.Height]));
+        Strs.Append(Format('Time: %f seconds (%d frames, with %f frames per second)',
+          [Video.TimeDuration, Video.Count, Video.FramesPerSecond]));
+      end else
+        Strs.Append('Video not loaded');
+
+      glColorv(Yellow3Single);
+      StatusFont.PrintStrings(Strs, 0, 10,
+        Glw.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight - 4);
+    finally FreeAndNil(Strs) end;
   end;
 
 begin
@@ -98,6 +115,7 @@ begin
   try
     Video.LoadFromFile(VideoFileName);
     WorldTime := 0;
+    MenuEdit.Enabled := Video.Loaded;
   except
     on E: Exception do
       MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
@@ -108,6 +126,9 @@ end;
 procedure Init(Glwin: TGLWindow);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+
+  ProgressGLInterface.Window := Glw;
+  Progress.UserInterface := ProgressGLInterface;
 
   if Parameters.High = 1 then
     LoadVideo(Parameters[1]);
@@ -121,6 +142,7 @@ end;
 procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
 var
   S: string;
+  I: Integer;
 begin
   case MenuItem.IntData of
     10:
@@ -134,6 +156,45 @@ begin
     120: WorldTime := 0;
     130: Video.TimeLoop := not Video.TimeLoop;
     140: Video.TimeBackwards := not Video.TimeBackwards;
+
+    { Editing operations.
+      Should be implemented nicer, as a single procedure with
+      TImageFunction callback... too lazy to do this now. }
+
+    410: begin
+           Assert(Video.Loaded);
+           Progress.Init(Video.Count, 'Grayscale');
+           try
+             for I := 0 to Video.Count - 1 do
+               Video.Items[I].Grayscale;
+           finally Progress.Fini end;
+         end;
+    420..422:
+         begin
+           Assert(Video.Loaded);
+           Progress.Init(Video.Count, 'Convert to single channel');
+           try
+             for I := 0 to Video.Count - 1 do
+               Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
+           finally Progress.Fini end;
+         end;
+    430..432:
+         begin
+           Assert(Video.Loaded);
+           Progress.Init(Video.Count, 'Strip to single channel');
+           try
+             for I := 0 to Video.Count - 1 do
+               Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
+           finally Progress.Fini end;
+         end;
+    440: begin
+           Assert(Video.Loaded);
+           Progress.Init(Video.Count, 'Flip horizontal');
+           try
+             for I := 0 to Video.Count - 1 do
+               Video.Items[I].FlipHorizontal;
+           finally Progress.Fini end;
+         end;
   end;
 end;
 
@@ -156,6 +217,21 @@ begin
       Video.TimeLoop, true));
     M.Append(TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
       Video.TimeBackwards, true));
+    Result.Append(M);
+  M := TMenu.Create('_Edit');
+    MenuEdit := M;
+    MenuEdit.Enabled := false;
+    M.Append(TMenuItem.Create('_Grayscale',                          410));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Convert to _red channel',             420));
+    M.Append(TMenuItem.Create('Convert to gr_een channel',           421));
+    M.Append(TMenuItem.Create('Convert to _blue channel',            422));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Strip to red channel',                430));
+    M.Append(TMenuItem.Create('Strip to green channel',              431));
+    M.Append(TMenuItem.Create('Strip to blue channel',               432));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('_Mirror horizontally',                440));
     Result.Append(M);
 end;
 
