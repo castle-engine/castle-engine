@@ -45,6 +45,7 @@ var
   StatusFont: TGLBitmapFont;
 
   MenuEdit: TMenu;
+  MenuTimeBackwards: TMenuItemChecked;
 
 procedure Draw(Glwin: TGLWindow);
 const
@@ -166,7 +167,10 @@ begin
            Progress.Init(Video.Count, 'Grayscale');
            try
              for I := 0 to Video.Count - 1 do
+             begin
                Video.Items[I].Grayscale;
+               Progress.Step;
+             end;
            finally Progress.Fini end;
          end;
     420..422:
@@ -175,7 +179,10 @@ begin
            Progress.Init(Video.Count, 'Convert to single channel');
            try
              for I := 0 to Video.Count - 1 do
+             begin
                Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
+               Progress.Step;
+             end;
            finally Progress.Fini end;
          end;
     430..432:
@@ -184,7 +191,10 @@ begin
            Progress.Init(Video.Count, 'Strip to single channel');
            try
              for I := 0 to Video.Count - 1 do
+             begin
                Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
+               Progress.Step;
+             end;
            finally Progress.Fini end;
          end;
     440: begin
@@ -192,8 +202,18 @@ begin
            Progress.Init(Video.Count, 'Flip horizontal');
            try
              for I := 0 to Video.Count - 1 do
+             begin
                Video.Items[I].FlipHorizontal;
+               Progress.Step;
+             end;
            finally Progress.Fini end;
+         end;
+
+    450: begin
+           Video.MixWithSelfBackwards('Making video loop seamless');
+           { MixWithSelfBackwards changes TimeBackwards, we have to reflect
+             this in our menu item. }
+           MenuTimeBackwards.Checked := Video.TimeBackwards;
          end;
   end;
 end;
@@ -215,12 +235,15 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItemChecked.Create('_Loop',             130,
       Video.TimeLoop, true));
-    M.Append(TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
-      Video.TimeBackwards, true));
+    MenuTimeBackwards := TMenuItemChecked.Create('_Play Backwards after Playing Forward', 140,
+      Video.TimeBackwards, true);
+    M.Append(MenuTimeBackwards);
     Result.Append(M);
   M := TMenu.Create('_Edit');
     MenuEdit := M;
     MenuEdit.Enabled := false;
+    M.Append(TMenuItem.Create('_Mix with self backwards (makes video loop seamless)', 450));
+    M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Grayscale',                          410));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Convert to _red channel',             420));
@@ -231,7 +254,7 @@ begin
     M.Append(TMenuItem.Create('Strip to green channel',              431));
     M.Append(TMenuItem.Create('Strip to blue channel',               432));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Mirror horizontally',                440));
+    M.Append(TMenuItem.Create('Mirror horizontally',                440));
     Result.Append(M);
 end;
 

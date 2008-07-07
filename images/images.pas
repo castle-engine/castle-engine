@@ -216,6 +216,10 @@ type
     Possibly I will use it in more routines in the future. }
   EImagePosOutOfRange = class(Exception);
 
+  EImageLerpError = class(Exception);
+  EImageLerpInvalidClasses = class(EImageLerpError);
+  EImageLerpDifferentSizes = class(EImageLerpError);
+
   { TImage is an abstract class representing image as a simple array of pixels.
     RawPixels is a pointer to Width * Height of values of some
     type, let's call it TPixel. TPixel specifies the color of the pixel
@@ -269,6 +273,16 @@ type
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
     FRawPixels: Pointer;
+
+    { Check that both images have the same sizes and Second image class
+      descends from First image class. If not, raise appropriate ELerpXxx
+      exceptions.
+
+      Some implementation of TRGBImage.LerpWith may require
+      other checks (since LerpWith may be sometimes allowed between unequal
+      classes), so this doesn't have to be used by all TRGBImage.LerpWith
+      implementations (although it's comfortable for simple implementations). }
+    procedure LerpSimpleCheckConditions(SecondImage: TImage);
   public
     { Constructor without parameters creates image with Width = Height = 0
       and RawPixels = nil, so IsNull will return false.
@@ -598,6 +612,32 @@ type
     function AlphaChannelType(
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
+
+    { Makes linear interpolation of colors from this image and the SecondImage.
+      Intuitively, every pixel in new image is set to
+
+@preformatted(
+  (1 - Value) * Self[pixel] + Value * SecondImage[pixel]
+)
+
+      Both images need to have the exact same size.
+      If they are not, EImageLerpDifferentSizes is raised.
+
+      Not all TImage combinations are allowed. Every subclass is required
+      to override this to at least handle Lerp between itself.
+      That is, TRGBImage.Lerp has to handle Lerp with other TRGBImage,
+      TAlphaImage.Lerp has to handle Lerp with other TAlphaImage etc.
+      Other combinations may be permitted, if useful and implemented.
+      EImageLerpInvalidClasses is raised if given class combinations are
+      not allowed.
+
+      In this class, this simply always raises EImageLerpInvalidClasses.
+
+      @raises(EImageLerpDifferentSizes When SecondImage size differs
+        from this image.)
+      @raises(EImageLerpInvalidClasses When Lerp between this TImage
+        descendant class and SecondImage class is not implemented.) }
+    procedure LerpWith(const Value: Single; SecondImage: TImage); virtual;
   end;
 
 { TImageClass and arrays of TImageClasses ----------------------------- }
@@ -737,6 +777,8 @@ type
       ReplaceBlackImage in the areas where MapImage is black. }
     constructor CreateCombined(const MapImage: TRGBImage;
       var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
+
+    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
   TAlphaImage = class(TImage)
@@ -777,6 +819,8 @@ type
     function AlphaChannelType(
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
+
+    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
   { Color is encoded as 3 mantisas + 1 exponent,
@@ -825,6 +869,8 @@ type
       So e.g. Exp = 1/2.2 gives commonly used gamma correction. }
     procedure ExpColors(const Exp: Single);
     {$endif}
+
+    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
   { Color is a simple Byte value.
@@ -854,6 +900,8 @@ type
       This is done by simple bitshift, so you can be sure that all
       components are < 2^7 after this. }
     procedure HalfColors;
+
+    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
   end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
@@ -1728,6 +1776,23 @@ begin
   Result := atNone;
 end;
 
+procedure TImage.LerpSimpleCheckConditions(SecondImage: TImage);
+begin
+  if (Width <> SecondImage.Width) or
+     (Height <> SecondImage.Height) then
+    raise EImageLerpDifferentSizes.CreateFmt('Linear interpolation not possible, images have different sizes: first has %d x %d, second has %d x %d',
+      [Width, Height, SecondImage.Width, SecondImage.Height]);
+
+  if not (SecondImage is Self.ClassType) then
+    raise EImageLerpInvalidClasses.CreateFmt('Linear interpolation between %s and %s class not possible',
+      [ClassName, SecondImage.ClassName]);
+end;
+
+procedure TImage.LerpWith(const Value: Single; SecondImage: TImage);
+begin
+  raise EImageLerpInvalidClasses.Create('Linear interpolation (TImage.LerpWith) not possible with the base TImage class');
+end;
+
 { TImageClass and arrays of TImageClasses ----------------------------- }
 
 function InImageClasses(ImageClass: TImageClass;
@@ -1994,6 +2059,24 @@ begin
  end;
 end;
 
+procedure TRGBImage.LerpWith(const Value: Single; SecondImage: TImage);
+var
+  SelfPtr: PVector3Byte;
+  SecondPtr: PVector3Byte;
+  I: Cardinal;
+begin
+  LerpSimpleCheckConditions(SecondImage);
+
+  SelfPtr := RGBPixels;
+  SecondPtr := TRGBImage(SecondImage).RGBPixels;
+  for I := 1 to Width * Height do
+  begin
+    SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
+    Inc(SelfPtr);
+    Inc(SecondPtr);
+  end;
+end;
+
 { TAlphaImage ------------------------------------------------------------ }
 
 function TAlphaImage.GetAlphaPixels: PVector4Byte;
@@ -2152,6 +2235,24 @@ begin
   Result := atSimpleYesNo;
 end;
 
+procedure TAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
+var
+  SelfPtr: PVector4Byte;
+  SecondPtr: PVector4Byte;
+  I: Cardinal;
+begin
+  LerpSimpleCheckConditions(SecondImage);
+
+  SelfPtr := AlphaPixels;
+  SecondPtr := TAlphaImage(SecondImage).AlphaPixels;
+  for I := 1 to Width * Height do
+  begin
+    SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
+    Inc(SelfPtr);
+    Inc(SecondPtr);
+  end;
+end;
+
 { TRGBEImage ------------------------------------------------------------ }
 
 function TRGBEImage.GetRGBEPixels: PVector4Byte;
@@ -2238,6 +2339,26 @@ begin
 end;
 {$endif}
 
+procedure TRGBEImage.LerpWith(const Value: Single; SecondImage: TImage);
+var
+  SelfPtr: PVector4Byte;
+  SecondPtr: PVector4Byte;
+  I: Cardinal;
+begin
+  LerpSimpleCheckConditions(SecondImage);
+
+  SelfPtr := RGBEPixels;
+  SecondPtr := TRGBEImage(SecondImage).RGBEPixels;
+  for I := 1 to Width * Height do
+  begin
+    SelfPtr^ := Vector3ToRGBE(Lerp(Value,
+      VectorRGBETo3Single(SelfPtr^),
+      VectorRGBETo3Single(SecondPtr^)));
+    Inc(SelfPtr);
+    Inc(SecondPtr);
+  end;
+end;
+
 { TGrayscaleImage ------------------------------------------------------------ }
 
 function TGrayscaleImage.GetGrayscalePixels: PByte;
@@ -2285,6 +2406,24 @@ begin
   begin
     P^ := P^ shr 1;
     Inc(P);
+  end;
+end;
+
+procedure TGrayscaleImage.LerpWith(const Value: Single; SecondImage: TImage);
+var
+  SelfPtr: PByte;
+  SecondPtr: PByte;
+  I: Cardinal;
+begin
+  LerpSimpleCheckConditions(SecondImage);
+
+  SelfPtr := GrayscalePixels;
+  SecondPtr := TGrayscaleImage(SecondImage).GrayscalePixels;
+  for I := 1 to Width * Height do
+  begin
+    SelfPtr^ := Clamped(Round(Lerp(Value, SelfPtr^, SecondPtr^)), 0, High(Byte));
+    Inc(SelfPtr);
+    Inc(SecondPtr);
   end;
 end;
 

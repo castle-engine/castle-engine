@@ -198,6 +198,29 @@ type
       *FromTime methods return. }
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
+
+    { Make the video seamless when played in a loop.
+
+      This edits the loaded video, such that every frame becomes a mix
+      between itself and the corresponding frame from the second half
+      of the video. This forces any
+      movie to become seamless when played in a loop.
+
+      After this, the movie frames count is halved and TimeBackwards
+      is set to @true. This is to conserve memory (and running time of
+      this function), since there's no point in keeping both halves of the
+      movie anymore --- they are identical (except reversed in time)
+      after such operation.
+
+      @italic(Unfortunately, this doesn't look perfect, human eye can easily
+      notice the extreme time points (in the middle and at the end),
+      when objects in the video reverse their directions etc.
+      So the video is seamless, and it's a better trick than just setting
+      TimeBackwards := true, but it still doesn't really look good.)
+
+      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
+      from ProgressUnit to indicate progress of operation. }
+    procedure MixWithSelfBackwards(const ProgressTitle: string);
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -215,7 +238,7 @@ function FfmpegVideoFileExtension(const Ext: string;
 implementation
 
 uses KambiUtils, SysUtils, Math, KambiStringUtils, DataErrors,
-  KambiFilesUtils, EnumerateFiles;
+  KambiFilesUtils, EnumerateFiles, ProgressUnit;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -429,6 +452,43 @@ function TVideo.Height: Cardinal;
 begin
   Assert(Loaded);
   Result := Items[0].Height;
+end;
+
+procedure TVideo.MixWithSelfBackwards(const ProgressTitle: string);
+var
+  I, NewCount: Integer;
+begin
+  Assert(Loaded);
+
+  { TODO: this is not good for the cache, if the image is referenced
+    more than one time than you will modify all occurences.
+    Some MakeUnique method for TImagesCache needed.
+    Also, simple_video_image_viewer.pasprogram should use it too
+    before editing. }
+
+  if ProgressTitle <> '' then
+    Progress.Init((Count div 2) * 2, ProgressTitle);
+  try
+
+    for I := 0 to Count div 2 do
+    begin
+      Items[I].LerpWith(0.5, Items[Count - 1 - I]);
+      if ProgressTitle <> '' then Progress.Step;
+    end;
+
+    { shrink count to half }
+    NewCount := (Count div 2) + (Count mod 2);
+    for I := NewCount to Count - 1 do
+    begin
+      Cache.LoadImage_DecReference(FItems[I]);
+      if ProgressTitle <> '' then Progress.Step;
+    end;
+    SetLength(FItems, NewCount);
+
+    TimeBackwards := true;
+  finally
+    if ProgressTitle <> '' then Progress.Fini;
+  end;
 end;
 
 { non-object routines -------------------------------------------------------- }
