@@ -713,6 +713,8 @@ function VectorAverage(const V: TVector3Double): Double; overload;
 
 { Lerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
   Zwraca (1-a)*V1 + a*V2 (no, troche inaczej zapisane dla szybkosci). }
+function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
+function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
 function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single; overload;
 function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single; overload;
@@ -2370,6 +2372,21 @@ end;
 {$endif not DELPHI}
 
 { some math on vectors ------------------------------------------------------- }
+
+function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte;
+begin
+  Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
+  Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
+  Result[2] := Clamped(Round(V1[2] + A * (V2[2] - V1[2])), 0, High(Byte));
+end;
+
+function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte;
+begin
+  Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
+  Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
+  Result[2] := Clamped(Round(V1[2] + A * (V2[2] - V1[2])), 0, High(Byte));
+  Result[3] := Clamped(Round(V1[3] + A * (V2[3] - V1[3])), 0, High(Byte));
+end;
 
 function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single;
 begin
