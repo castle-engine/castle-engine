@@ -137,18 +137,18 @@ type
       @item(For frRootNode, you @italic(may) get nasty effects including crashes
         if you will use this in a wrong way.)
 
-      @item(For frTextureImageInNodes, frBackgroundImageInNodes and TrianglesList,
+      @item(For frTextureDataInNodes, frBackgroundImageInNodes and TrianglesList,
         if you will free them unnecessarily
         (i.e. you will use it after you freed it), it will be automatically
         recreated on next use. So everything will work correctly, but you
         will experience unnecessary slowdown if we will need to recreate
         exactly the same resource over and over again.)
 
-      @item(For frTextureImageInNodes, frBackgroundImageInNodes and frRootNode, note that
+      @item(For frTextureDataInNodes, frBackgroundImageInNodes and frRootNode, note that
         freeing these resources too eagerly may make image cache
         (see ImagesCache) less effective. In normal circumstances,
         if you will use the same cache instance throughout the program,
-        loaded images are reused. If you free frTextureImageInNodes or frRootNode
+        loaded images are reused. If you free frTextureDataInNodes or frRootNode
         too early, you may remove them from the cache too early, and lose
         a chance to reuse them. So you may cause unnecessary slowdown
         of preparing models, e.g. inside PrepareRender.)
@@ -172,30 +172,30 @@ type
       TVRMLFlatSceneGL.PrepareRender or such. }
     frRootNode,
 
-    { Unloads the texture images allocated in VRML texture nodes.
+    { Unloads the texture images/videos allocated in VRML texture nodes.
 
       It's useful if you know that you already prepared everything
       that needed the texture images, and you will not need texture images
       later. For TVRMLFlatSceneGL this means that you use Optimization
       method other than roNone,
       and you already did PrepareRender (so textures are already loaded to OpenGL),
-      and your code will not access TextureImage anymore.
+      and your code will not access TextureImage / TextureVideo anymore.
       This is commonly @true for various games.
 
       Then you can call this to free some resources.
 
-      Note that if you made an accident and you will use TextureImage
-      after FreeResources, then you will get no crash,
+      Note that if you made an accident and you will use some TextureImage or
+      TextureVideo after FreeResources, then you will get no crash,
       but texture image will be simply reloaded. So you may experience
       slowdown if you inappropriately use this feature.
 
       Oh, and note that if frRootNode and OwnsRootNode, then this is not
       necessary (as freeing RootNode also frees texture nodes, along with
       their texture). }
-    frTextureImageInNodes,
+    frTextureDataInNodes,
 
     { Unloads the background images allocated in VRML Background nodes.
-      The same comments as for frTextureImageInNodes apply. }
+      The same comments as for frTextureDataInNodes apply. }
     frBackgroundImageInNodes,
 
     { Free triangle list created by TrianglesList(false) call.
@@ -301,7 +301,7 @@ type
 
     procedure CalculateIfNeededManifoldAndBorderEdges;
 
-    procedure FreeResources_UnloadTextureImage(Node: TVRMLNode);
+    procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -1574,7 +1574,7 @@ begin
   Include(Validities, fvManifoldAndBorderEdges);
 end;
 
-procedure TVRMLFlatScene.FreeResources_UnloadTextureImage(Node: TVRMLNode);
+procedure TVRMLFlatScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
 begin
   (Node as TVRMLTextureNode).IsTextureLoaded := false;
 end;
@@ -1592,9 +1592,9 @@ begin
     RootNode := nil;
   end;
 
-  if (frTextureImageInNodes in Resources) and (RootNode <> nil) then
+  if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
     RootNode.EnumerateNodes(TVRMLTextureNode,
-      @FreeResources_UnloadTextureImage, false);
+      @FreeResources_UnloadTextureData, false);
 
   if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
     RootNode.EnumerateNodes(TNodeBackground,

@@ -1246,7 +1246,7 @@ begin
 
       So we have to guarantee, *now*, that freeing RootNode is safe ---
       no dangling references to Renderer.Cache. }
-    FreeResources([frTextureImageInNodes, frBackgroundImageInNodes]);
+    FreeResources([frTextureDataInNodes, frBackgroundImageInNodes]);
 
     FreeAndNil(Renderer);
   end;
@@ -1659,7 +1659,7 @@ begin
 
     Note that this looks at nodes, calling
     State.LastNodes.Material.AllMaterialsTransparent, looking
-    at TextureNode.TextureImage etc.
+    at TextureNode.TextureImage / TextureVidep etc.
     So it's important to initialize ShapeStatesUseBlending before
     user has any chance to do FreeResources or to free RootNode
     (see TVRMLFlatScene.RootNode docs).

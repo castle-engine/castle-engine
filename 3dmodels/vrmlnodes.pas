@@ -280,7 +280,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3d, Images, TTFontsTypes, BackgroundBase, VRMLErrors,
-  ImagesCache, KambiInterfaces;
+  ImagesCache, KambiInterfaces, Videos;
 
 {$define read_interface}
 

@@ -1303,7 +1303,7 @@ type
           as State.Texture),)
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some image
-          (check TextureNode.IsTextureImage))
+          (check TextureNode.IsTextureImage or TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
       TextureNode: TVRMLTextureNode;

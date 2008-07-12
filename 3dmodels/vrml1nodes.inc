@@ -433,15 +433,11 @@
       lub inlined (pole image). Pierwszenstwo ma tekstura z pliku,
       jesli filename = '' (lub wystapi jakis blad przy ladowaniu z filename
       ale VRMLNonFatalError to zignoruje) to zostanie uzyta tekstura inline.
-      Jezeli nie ma tekstury inline i nie ma prawidlowego filename to tekstura
-      zostanie zaladowana jako ImageNone. To ostatnie stwierdzenie ma
-      znaczenie: mowi ono ze IsTextureImage znaczy co innego niz
-      IsTextureLoaded.
 
-      BTW, in VRML 1.0 taki node z IsTextureLoaded = true i
+      BTW, in VRML 1.0 node z IsTextureLoaded = true i
       IsTextureImage = false tez ma swoje znaczenie:
       oznacza "wylacz aktywna teksture". }
-    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
+    procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
@@ -1542,11 +1538,10 @@ begin
   result := 'Texture2';
 end;
 
-function TNodeTexture2.LoadTextureImage(out CacheUsed: boolean): TImage;
+procedure TNodeTexture2.LoadTextureData(out CacheUsed: boolean);
 var
   FullUrl: string;
 begin
-  Result := nil;
   CacheUsed := false;
   FTextureUsedFullUrl := '';
 
@@ -1554,7 +1549,7 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromWWWBasePath(FdFilename.Value);
-    Result := ImagesCache.LoadImage_IncReference(FullUrl);
+    FTextureImage := ImagesCache.LoadImage_IncReference(FullUrl);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;
@@ -1570,7 +1565,7 @@ begin
   { Still not loaded (so FdFilename.Value is '' or LoadImage raised exception) ?
     So try to use inlined texture. }
   if not FdImage.Value.IsNull then
-    Result := FdImage.Value.MakeCopy;
+    FTextureImage := FdImage.Value.MakeCopy;
 end;
 
 function TNodeTexture2.TextureDescription: string;

@@ -35,98 +35,142 @@
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
   TVRMLTextureNode = class(TNodeX3DTextureNode)
   private
-    { This is always <> nil.
-      We use only IsNull to indicate whether we have or have not a texture here. }
+    { Together we call FTextureImage and FTextureVideo as "texture data". }
+
+    { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
+      and it was loaded to an image (not video).
+
+      Note that this may still have zero size (IsNull = @true),
+      IsTextureImage checks this also. }
     FTextureImage: TImage;
+
+    { Analogous to FTextureImage, this is the loaded video file.
+      Assigned here, should always have TVideo.Loaded = @true. }
+    FTextureVideo: TVideo;
+
     { Non-nil only if FTextureImage should be freed using
-      TextureImageUsedCache.LoadImage_DecReference. }
+      TextureImageUsedCache.LoadImage_DecReference.
+      FTextureVideo doesn't need it, it should always have
+      it's own Cache property set to this. }
     TextureImageUsedCache: TImagesCache;
+
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
 
     FImagesCache: TImagesCache;
 
-    procedure FreeAndNilTextureImage;
+    procedure FreeAndNilTextureData;
   protected
-    { This loads actual image. It must return newly created TImage
-      instance if texture could be loaded, or nil if no texture could
-      be loaded. You do not care in this method about things like
+    { This loads texture data, actual image of video file.
+
+      It should set either FTextureImage or FTextureVideo to something non-nil
+      (don't care here about the previous value of these fields --- it's for
+      sure @nil). If you leave them as @nil, this means that loading failed
+      (and VRMLNonFatalError or DataNonFatalError don't cause an exception,
+      so we can ignore this).
+
+      You do not care in this method about things like
       IsImageLoaded --- this method should just always,
-      unconditionally, make everything it can do to load texture.
+      unconditionally, make everything it can do to load texture data from
+      file(s).
 
-      You can use VRMLNonFatalError inside, so we're prepared
-      that this may even exit with exception (since VRMLNonFatalError
-      can raise exception).
+      You can use VRMLNonFatalError or DataNonFatalError inside,
+      so we're prepared that this may even exit with exception
+      (since VRML/DataNonFatalError can raise exception).
 
-      You have to return TRGBImage or TAlphaImage here, see TextureImage docs.
+      If you set FTextureImage, you have to set it to TRGBImage or TAlphaImage,
+      see TextureImage docs.
 
       Set CacheUsed here. @true means you loaded the image using ImagesCache.
+      For FTextureVideo you should also set it's Cache property to ImagesCache.
 
       Also, set FTextureUsedFullUrl here.
 
       In this class, this simply produces VRMLNonFatalError with
       "not implemented" message and returns @nil. It's not declared
-      as abstract, because there are classes descending from this,
-      like MovieTexture, and we want to at least be able to parse them
+      as abstract, because there may be classes descending from this,
+      and we want to at least be able to parse them
       and then ignore (while not overriden abstract method would cause
       simple crashes). }
-    function LoadTextureImage(out CacheUsed: boolean): TImage; virtual;
+    procedure LoadTextureData(out CacheUsed: boolean); virtual;
     FTextureUsedFullUrl: string;
   public
     constructor Create(const ANodeName: string;
       const AWWWBasePath: string); override;
     destructor Destroy; override;
 
-    { Texture image, inline or loaded from URL.
-      First call to TextureImage will automatically
-      load the texture, so in simple situations you really
-      don't need to do anything. Just use TextureImage when you want,
-      and things will just work.
+    { TextureImage and TextureVideo contain actual texture data.
+      TextureImage may come from inline VRML texture or could be loaded
+      from file (including from some URL), this doesn't concern you here.
 
-      Be sure to set ImagesCache before loading the texture.
-      TODO: allow ImagesCache to be @nil.
+      Calls to TextureImage, TextureVideo, IsTextureImage, IsTextureVideo
+      will automatically load the data, so in simple situations you really
+      don't need to do anything. Just check and use them when you want,
+      and things will just work. See IsTextureLoaded for more control
+      about loading / unloading.
 
-      This is never @nil. If the texture is not available for any reason,
-      it's indicated by TextureImage.IsNull. IsTextureImage is a shortcut
-      for "not TextureImage.IsNull" (so note that calling IsTextureImage also
-      may cause texture load).
+      Be sure to set ImagesCache before loading the texture data.
 
-      IsTextureLoaded says whether the texture is already loaded.
+      Note that either one of TextureImage or TextureVideo may be @nil,
+      if the other one is loaded. Or when loading failed with non-fatal
+      error (reported by VRMLNonFatalError and eventually DataNonFatalError).
+      IsTextureImage checks that TextureImage is non-nil (so it's successfully
+      loaded) and additionally that texture size is not zero.
+      Similar for IsTextureVideo.
+
+      TextureImage class is always in (TRGBImage, TAlphaImage)
+      simply because only these formats are accepted by KambiGLUtils.
+      TODO: this is not nice, we do not want any OpenGL dependency in this unit,
+      even such "ideological" one.
+
+      @groupBegin }
+    function TextureImage: TImage;
+    function IsTextureImage: boolean;
+    function TextureVideo: TVideo;
+    function IsTextureVideo: boolean;
+    { @groupEnd }
+
+    { This says whether the texture data is already loaded.
       Since the texture will be loaded automatically, you're usually
       not interested in this property. You can read it to e.g. predict
-      if next TextureImage call may take a long time. (You know that
-      if IsTextureLoaded = @true then TextureImage just returns ready
-      image instantly).
+      if next TextureImage / TextureVideo call may take a long time.
+      (You know that if IsTextureLoaded = @true then TextureImage
+      just returns ready image instantly).
 
       You can also set IsTextureLoaded.
       Setting to @true means that you request the texture to be loaded @italic(now),
       if it's not loaded already. Setting to @false may be useful if you want
       to release resources (e.g. when you want to keep TNodeTexture instance
-      loaded but you know that you will not need TextureImage anymore).
+      loaded but you know that you will not need
+      TextureImage / TextureVideo anymore).
       You can also set it to @false and then back to @true if you want to
       request reloading the texture from URL (e.g. if you suspect that
       the URL contents changed).
 
-      Note that separate IsTextureLoaded and IsTextureImage state
-      means that if the texture loading will fail (e.g.
-      "texture file foo.png does not exist"), it will be reported
-      to VRMLNonFatalError only once, not at every TextureImage call.
-      This is obviously important if you use VRMLNonFatalError to report
-      warnings for user.
-
-      TextureImage class is always in (TRGBImage, TAlphaImage)
-      simply because only these formats are accepted by KambiGLUtils.
-      TODO: this is not nice, we do not want any OpenGL dependency in this unit,
-      even such "ideological" one. }
-    function TextureImage: TImage;
-    function IsTextureImage: boolean;
+      Note that IsTextureLoaded is set to @true, even if actual loading
+      failed. You still have to check afterwards IsTextureImage and
+      IsTextureVideo to know if loading was actually successfull.
+      This is deliberate --- it means that each call to TextureImage etc.
+      will not unnecessarily read the disk (or even connect to internet)
+      when the file does not exist. Also, the loading errors reported
+      by VRML/DataNonFatalError will not be repeated --- they will
+      occur only once, when IsTextureLoaded changes from @false to @true. }
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
+
+    { TImagesCache instance used to load images and videos.
+      Be sure to set ImagesCache before loading the texture.
+      TODO: allow ImagesCache to be @nil. }
     property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
 
-    { Krotki opis tego jak zdefiniowana jest tekstura. none jesli nie
-      zdefiniowana, jakie jest filename, jakie jest inline. NIE okresla
-      jak i jaka tekstura jest zaladowana.
+    { Short description how texture is defined, is it inline or loaded
+      from URL, is it video of simple image texture.
+      "none" if it's not defined at all.
+
+      This doesn't specify what texture is actually loaded
+      (besides from which URL it was loaded, if any).
+      The idea is that calling this doesn't cause automatic
+      loading of the texture data.
 
       In this class, simply returns NodeTypeName and informs it's
       not implemented. You most definitely
@@ -168,7 +212,7 @@
 
   TNodeImageTexture = class(TNodeX3DTexture2DNode, INodeX3DUrlObject)
   protected
-    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
+    procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -183,6 +227,8 @@
   end;
 
   TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
+  protected
+    procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -229,6 +275,8 @@
     { Event: SFBool, out } { }
     private FEventisPaused: TVRMLEvent;
     public property EventisPaused: TVRMLEvent read FEventisPaused;
+
+    function TextureDescription: string; override;
   end;
 
   TNodeMultiTexture = class(TNodeX3DTextureNode)
@@ -284,7 +332,7 @@
 
   TNodePixelTexture = class(TNodeX3DTexture2DNode)
   protected
-    function LoadTextureImage(out CacheUsed: boolean): TImage; override;
+    procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -422,25 +470,29 @@ constructor TVRMLTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-  FTextureImage := TRGBImage.Create;
   TextureImageUsedCache := nil;
   FIsTextureLoaded := false;
 end;
 
 destructor TVRMLTextureNode.Destroy;
 begin
-  FreeAndNilTextureImage;
+  FreeAndNilTextureData;
   inherited;
 end;
 
-procedure TVRMLTextureNode.FreeAndNilTextureImage;
+procedure TVRMLTextureNode.FreeAndNilTextureData;
 begin
-  if TextureImageUsedCache <> nil then
+  if FTextureImage <> nil then
   begin
-    TextureImageUsedCache.LoadImage_DecReference(FTextureImage);
-    TextureImageUsedCache := nil;
-  end else
-    FreeAndNil(FTextureImage);
+    if TextureImageUsedCache <> nil then
+    begin
+      TextureImageUsedCache.LoadImage_DecReference(FTextureImage);
+      TextureImageUsedCache := nil;
+    end else
+      FreeAndNil(FTextureImage);
+  end;
+
+  FreeAndNil(FTextureVideo);
 end;
 
 function TVRMLTextureNode.TextureImage: TImage;
@@ -451,6 +503,26 @@ begin
   Result := FTextureImage;
 end;
 
+function TVRMLTextureNode.IsTextureImage: boolean;
+begin
+  Result := (TextureImage <> nil) and (not TextureImage.IsNull);
+end;
+
+function TVRMLTextureNode.TextureVideo: TVideo;
+begin
+  { Setting IsTextureLoaded property will initialize FTextureVideo. }
+  IsTextureLoaded := true;
+
+  Result := FTextureVideo;
+end;
+
+function TVRMLTextureNode.IsTextureVideo: boolean;
+begin
+  Result := (TextureVideo <> nil) and
+    (TextureVideo.Width <> 0) and
+    (TextureVideo.Height <> 0);
+end;
+
 procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
 
   procedure DoLoadTexture;
@@ -459,30 +531,11 @@ procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
   begin
     Assert(ImagesCache <> nil, 'ImagesCache must be set before loading the texture');
 
-    FreeAndNilTextureImage;
+    FreeAndNilTextureData;
 
-    try
-      FTextureImage := LoadTextureImage(UsedCache);
-      if UsedCache then
-        TextureImageUsedCache := ImagesCache;
-    except
-      { Even if LoadTextureImage exits with exception, FTextureImage should
-        always remain non-nil.
-        This is all because I just changed Images unit interface to class-like
-        and I want to do minimal changes to VRMLNodes unit to not break
-        anything. TODO -- this will be solved better in the future, by simply
-        allowing TextureImage to be nil at any time. }
-      FTextureImage := TRGBImage.Create;
-      raise;
-    end;
-
-    { LoadTextureImage may raise exception, or it may return @nil in case of
-      trouble (this depends on VRMLNonFatalError, so we can't assume anything).
-      In case it returned nil, comments above still apply:
-      FTextureImage must not be nil. }
-
-    if FTextureImage = nil then
-      FTextureImage := TRGBImage.Create;
+    LoadTextureData(UsedCache);
+    if UsedCache then
+      TextureImageUsedCache := ImagesCache;
   end;
 
 begin
@@ -495,22 +548,15 @@ begin
     end else
     begin
       { unload the texture }
-      FreeAndNilTextureImage;
-      FTextureImage := TRGBImage.Create;
+      FreeAndNilTextureData;
     end;
 
     FIsTextureLoaded := Value;
   end;
 end;
 
-function TVRMLTextureNode.IsTextureImage: boolean;
+procedure TVRMLTextureNode.LoadTextureData(out CacheUsed: boolean);
 begin
-  result := not TextureImage.IsNull;
-end;
-
-function TVRMLTextureNode.LoadTextureImage(out CacheUsed: boolean): TImage;
-begin
-  Result := nil;
   CacheUsed := false;
   FTextureUsedFullUrl := '';
 
@@ -591,12 +637,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeImageTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
+procedure TNodeImageTexture.LoadTextureData(out CacheUsed: boolean);
 var
   I: Integer;
   FullUrl: string;
 begin
-  Result := nil;
   CacheUsed := false;
   FTextureUsedFullUrl := '';
 
@@ -604,7 +649,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      Result := ImagesCache.LoadImage_IncReference(FullUrl);
+      FTextureImage := ImagesCache.LoadImage_IncReference(FullUrl);
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       Break;
@@ -622,7 +667,7 @@ end;
 function TNodeImageTexture.TextureDescription: string;
 begin
   if TextureUsedFullUrl <> '' then
-    Result := 'file "' + TextureUsedFullUrl + '"' else
+    Result := 'image from file "' + TextureUsedFullUrl + '"' else
     Result := 'none';
 end;
 
@@ -693,6 +738,52 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeMovieTexture.LoadTextureData(out CacheUsed: boolean);
+var
+  I: Integer;
+  FullUrl: string;
+begin
+  CacheUsed := true;
+  FTextureUsedFullUrl := '';
+
+  for I := 0 to FdUrl.Count - 1 do
+  begin
+    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    try
+      FTextureVideo := TVideo.Create;
+      FTextureVideo.Cache := ImagesCache;
+
+      try
+        FTextureVideo.LoadFromFile(FullUrl);
+      except
+        { If loading causes an exception, just set FTextureVideo to @nil.
+          We don't want to keep FTextureVideo assigned but not loaded. }
+        FreeAndNil(FTextureVideo);
+        raise;
+      end;
+
+      { it loading succeded, set CacheUsed and others and break. }
+      CacheUsed := true;
+      FTextureUsedFullUrl := FullUrl;
+      Break;
+    except
+      on E: Exception do
+        { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
+          (chociaz nie musi) }
+        VRMLNonFatalError('Exception ' + E.ClassName +
+          ' occured when trying to load ' +
+          'video from filename "' + FullUrl + '" : ' + E.Message);
+    end;
+  end;
+end;
+
+function TNodeMovieTexture.TextureDescription: string;
+begin
+  if TextureUsedFullUrl <> '' then
+    Result := 'video from file "' + TextureUsedFullUrl + '"' else
+    Result := 'none';
 end;
 
 constructor TNodeMultiTexture.Create(const ANodeName: string;
@@ -827,19 +918,18 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodePixelTexture.LoadTextureImage(out CacheUsed: boolean): TImage;
+procedure TNodePixelTexture.LoadTextureData(out CacheUsed: boolean);
 begin
-  Result := nil;
   CacheUsed := false;
 
   if not FdImage.Value.IsNull then
-    Result := FdImage.Value.MakeCopy;
+    FTextureImage := FdImage.Value.MakeCopy;
 end;
 
 function TNodePixelTexture.TextureDescription: string;
 begin
   if not FdImage.Value.IsNull then
-    result := Format('inlined (width = %d; height = %d; with alpha = %s)',
+    result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width, FdImage.Value.Height,
         BoolToStr[FdImage.Value is TAlphaImage] ]) else
     result := 'none';
