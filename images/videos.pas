@@ -159,6 +159,12 @@ type
       this method. }
     procedure LoadFromFile(const FileName: string);
 
+    { Save video to file (or image sequence).
+
+      Handled formats: just like LoadFromFile. Also, just like LoadFromFile,
+      we need ffmpeg on $PATH to save to any single-file movie format. }
+    procedure SaveToFile(const FileName: string);
+
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
 
@@ -461,6 +467,121 @@ begin
     LoadFromImages(FileName, false);
 
   FLoaded := true;
+end;
+
+procedure TVideo.SaveToFile(const FileName: string);
+
+  procedure SaveToImages(const FileName: string);
+  var
+    Index, ReplacementsDone: Cardinal;
+    S: string;
+  begin
+    FormatIndexedName(FileName, 0, ReplacementsDone);
+    if ReplacementsDone > 0 then
+    begin
+      { Note that Index is 1-based, that's how %d works for LoadFromFile
+        and ffmpeg, so also here. }
+      for Index := 1 to Count do
+      begin
+        S := FormatIndexedName(FileName, Index);
+        SaveImage(FItems[Index - 1], S);
+      end;
+    end else
+    begin
+      { single image file --- suitable only if video has exactly one frame }
+      if Count <> 1 then
+        raise Exception.CreateFmt('Single image filename detected ("%s"), but saved video doesn''t have exactly one frame (it has %d frames). Cannot save',
+          [FileName, Count]);
+
+      SaveImage(FItems[0], FileName);
+    end;
+  end;
+
+  procedure RemoveTemporaryImages(const FileName: string);
+  var
+    Index, ReplacementsDone: Cardinal;
+    S: string;
+  begin
+    Write(Output, 'Removing temporary image files "', FileName, '" ...');
+    FormatIndexedName(FileName, 0, ReplacementsDone);
+    if ReplacementsDone > 0 then
+    begin
+      for Index := 1 to Count do
+      begin
+        S := FormatIndexedName(FileName, Index);
+        if not DeleteFile(S) then
+          DataNonFatalError(Format('Cannot delete temporary file "%s"', [S]));
+      end;
+    end else
+    begin
+      if not DeleteFile(FileName) then
+        DataNonFatalError(Format('Cannot delete temporary file "%s"', [FileName]));
+    end;
+    Writeln('done.');
+  end;
+
+  procedure SaveToFfmpeg(const FileName: string);
+  var
+    TemporaryImagesPrefix, TemporaryImagesPattern: string;
+    FileRec: TSearchRec;
+    SearchError: Integer;
+    Executable: string;
+  begin
+    Executable := FileSearch(
+      {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
+      {$ifdef UNIX} 'ffmpeg' {$endif}
+      , GetEnvironmentVariable('PATH'));
+
+    if Executable = '' then
+    begin
+      raise Exception.Create('You must have "ffmpeg" program from ' +
+        '[http://ffmpeg.mplayerhq.hu/] installed and available on $PATH to be able to ' +
+        'save movie files');
+    end else
+    begin
+      { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
+
+      TemporaryImagesPrefix := GetTempFileName('', ProgramName) + '_' +
+        { Although GetTempFileName should add some randomization here,
+          there's no guarentee. And we really need randomization ---
+          we pass to ffmpeg input using image %d pattern, so we don't want to
+          accidentaly pick up other images in the temporary directory. }
+        IntToStr(Random(MaxInt)) + '_';
+
+      { Check is it really Ok. }
+      SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
+        FileRec);
+      try
+        if SearchError = 0 then
+          raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+            [TemporaryImagesPrefix, FileRec.Name]);
+      finally FindClose(FileRec) end;
+
+      TemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
+
+      SaveToImages(TemporaryImagesPattern);
+
+      { ffmpeg call will output some things on stdout anyway.
+        So it's Ok that we also output something, stdout is required
+        by ffmpeg anyway... }
+
+      Writeln(Output, 'FFMpeg found, executing...');
+      Writeln(Output, Executable + ' -f image2 -i "' + TemporaryImagesPattern +
+        '" -y -sameq "' + FileName + '"');
+
+      ExecuteProcess(Executable,
+        ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-sameq', FileName]);
+
+      RemoveTemporaryImages(TemporaryImagesPattern);
+    end;
+  end;
+
+begin
+  Assert(Loaded);
+
+  if FfmpegVideoFileExtension(ExtractFileExt(FileName), false) then
+    SaveToFfmpeg(FileName) else
+    SaveToImages(FileName);
 end;
 
 function TVideo.Width: Cardinal;

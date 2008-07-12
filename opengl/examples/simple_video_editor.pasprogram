@@ -47,7 +47,7 @@ var
 
   MenuEdit: TMenu;
   MenuTimeBackwards: TMenuItemChecked;
-  MenuRevert: TMenuItem;
+  MenuRevert, MenuSave: TMenuItem;
 
 procedure Draw(Glwin: TGLWindow);
 const
@@ -120,9 +120,22 @@ begin
     WorldTime := 0;
     MenuEdit.Enabled := Video.Loaded;
     MenuRevert.Enabled := Video.Loaded;
+    MenuSave.Enabled := Video.Loaded;
   except
     on E: Exception do
       MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
+        E.Message, taLeft);
+  end;
+end;
+
+procedure SaveVideo(const NewVideoFileName: string);
+begin
+  try
+    Video.SaveToFile(NewVideoFileName);
+    VideoFileName := NewVideoFileName;
+  except
+    on E: Exception do
+      MessageOk(Glw, 'Saving of "' + NewVideoFileName + '" failed:' + NL +
         E.Message, taLeft);
   end;
 end;
@@ -155,6 +168,12 @@ begin
         S := ExtractFilePath(VideoFileName);
         if Glwin.FileDialog('Open file', S, true) then
           LoadVideo(S);
+      end;
+    13:
+      begin
+        S := VideoFileName;
+        if Glwin.FileDialog('Save to file', S, false) then
+          SaveVideo(S);
       end;
     15:
       begin
@@ -244,6 +263,9 @@ begin
   M := TMenu.Create('_File');
     M.Append(TMenuItem.Create('_Open ...',   10, CtrlO));
     M.Append(TMenuSeparator.Create);
+    MenuSave := TMenuItem.Create('_Save As ...',  13);
+    MenuSave.Enabled := false;
+    M.Append(MenuSave);
     MenuRevert := TMenuItem.Create('_Revert',     15);
     MenuRevert.Enabled := false;
     M.Append(MenuRevert);
