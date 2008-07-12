@@ -147,6 +147,7 @@ procedure MenuCommand(Glwin: TGLWindow; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
+  FadeFrames: Cardinal;
 begin
   case MenuItem.IntData of
     10:
@@ -217,8 +218,17 @@ begin
            finally Progress.Fini end;
          end;
 
+    445: begin
+           FadeFrames := Min(10, Video.Count div 2);
+           if MessageInputQueryCardinal(Glwin,
+             'How many frames to use for fading?', FadeFrames, taLeft) then
+           begin
+             Video.FadeWithSelf(FadeFrames, 'Fade with self');
+           end;
+         end;
+
     450: begin
-           Video.MixWithSelfBackwards('Making video loop seamless');
+           Video.MixWithSelfBackwards('Mix with self backwards');
            { MixWithSelfBackwards changes TimeBackwards, we have to reflect
              this in our menu item. }
            MenuTimeBackwards.Checked := Video.TimeBackwards;
@@ -254,19 +264,20 @@ begin
   M := TMenu.Create('_Edit');
     MenuEdit := M;
     MenuEdit.Enabled := false;
-    M.Append(TMenuItem.Create('_Mix with self backwards (makes video loop seamless)', 450));
+    M.Append(TMenuItem.Create('_Fade with Self (Makes Video Loop Seamless) ...', 445));
+    M.Append(TMenuItem.Create('_Mix with Self Backwards (Makes Video Loop Seamless)', 450));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Grayscale',                          410));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Convert to _red channel',             420));
-    M.Append(TMenuItem.Create('Convert to gr_een channel',           421));
-    M.Append(TMenuItem.Create('Convert to _blue channel',            422));
+    M.Append(TMenuItem.Create('Convert to _Red Channel',             420));
+    M.Append(TMenuItem.Create('Convert to Gr_een Channel',           421));
+    M.Append(TMenuItem.Create('Convert to _Blue Channel',            422));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Strip to red channel',                430));
-    M.Append(TMenuItem.Create('Strip to green channel',              431));
-    M.Append(TMenuItem.Create('Strip to blue channel',               432));
+    M.Append(TMenuItem.Create('Strip to Red Channel',                430));
+    M.Append(TMenuItem.Create('Strip to Green Channel',              431));
+    M.Append(TMenuItem.Create('Strip to Blue Channel',               432));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Mirror horizontally',                440));
+    M.Append(TMenuItem.Create('Mirror Horizontally',                440));
     Result.Append(M);
 end;
 

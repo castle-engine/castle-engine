@@ -21,9 +21,11 @@ unit Videos;
 
 interface
 
-uses Images, ImagesCache;
+uses SysUtils, Images, ImagesCache;
 
 type
+  EInvalidFadeFrames = class(Exception);
+
   { Video.
 
     It can load movie from a sequence of image files.
@@ -199,7 +201,8 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
 
-    { Make the video seamless when played in a loop.
+    { Mix the video with itself played backwards,
+      to force the video to play seamless in a loop.
 
       This edits the loaded video, such that every frame becomes a mix
       between itself and the corresponding frame from the second half
@@ -221,6 +224,24 @@ type
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from ProgressUnit to indicate progress of operation. }
     procedure MixWithSelfBackwards(const ProgressTitle: string);
+
+    { Edit the video beginning to fade with the video ending,
+      thus forcing the video to play seamless in a loop.
+
+      The idea is to take out last FadeFrames from the video
+      (FadeFrames must be >= 0 and <= Count div 2). And then mix
+      the beginning of the video, such that the beginning FadeFrames
+      frames gradually fade from the original end of video to original
+      begin of the video.
+
+      Video must be loaded when using this.
+
+      If ProgressTitle <> '' this will call Progress.Init/Step/Fini
+      from ProgressUnit to indicate progress of operation.
+
+      @raises(EInvalidFadeFrames When FadeFrames is wrong.) }
+    procedure FadeWithSelf(FadeFrames: Cardinal;
+      const ProgressTitle: string);
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -237,7 +258,7 @@ function FfmpegVideoFileExtension(const Ext: string;
 
 implementation
 
-uses KambiUtils, SysUtils, Math, KambiStringUtils, DataErrors,
+uses KambiUtils, Math, KambiStringUtils, DataErrors,
   KambiFilesUtils, EnumerateFiles, ProgressUnit;
 
 { TVideo --------------------------------------------------------------------- }
@@ -486,6 +507,39 @@ begin
     SetLength(FItems, NewCount);
 
     TimeBackwards := true;
+  finally
+    if ProgressTitle <> '' then Progress.Fini;
+  end;
+end;
+
+procedure TVideo.FadeWithSelf(FadeFrames: Cardinal;
+  const ProgressTitle: string);
+var
+  I, NewCount: Integer;
+begin
+  Assert(Loaded);
+
+  if FadeFrames > Cardinal(Count) div 2 then
+    raise EInvalidFadeFrames.CreateFmt('FadeFrames for FadeWithSelf too large: are %d, but frames count div 2 = %s',
+      [FadeFrames, Count div 2]);
+
+  if ProgressTitle <> '' then
+    Progress.Init(FadeFrames * 2, ProgressTitle);
+  try
+    for I := 0 to FadeFrames - 1 do
+    begin
+      Items[I].LerpWith(1 - I / FadeFrames, Items[Count - FadeFrames + I]);
+      if ProgressTitle <> '' then Progress.Step;
+    end;
+
+    NewCount := Count - FadeFrames;
+    for I := NewCount to Count - 1 do
+    begin
+      Cache.LoadImage_DecReference(FItems[I]);
+      if ProgressTitle <> '' then Progress.Step;
+    end;
+    SetLength(FItems, NewCount);
+
   finally
     if ProgressTitle <> '' then Progress.Fini;
   end;
