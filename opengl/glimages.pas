@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -123,7 +123,7 @@ unit GLImages;
 
 interface
 
-uses GL, GLU, GLExt, Images, VectorMath, KambiGLUtils;
+uses GL, GLU, GLExt, Images, VectorMath, KambiGLUtils, Videos;
 
 const
   { All routines in this unit that take TImage paramater
@@ -347,6 +347,49 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TImage;
 function LoadGLTextureModulated(const Image: TImage;
   MinFilter, MagFilter, WrapS, WrapT: TGLenum;
   ColorModulatorByte: TColorModulatorByteFunc): TGLuint;
+
+type
+  { Sequence of OpenGL textures to be played as a video. }
+  TGLVideo = class
+  private
+    FItems: array of TGLuint;
+    FCount: Integer;
+    FTimeLoop: boolean;
+    FTimeBackwards: boolean;
+    FFramesPerSecond: Single;
+  public
+    { Constructor that initializes video from TVideo class.
+
+      TVideo passed here must be already @link(TVideo.Loaded Loaded).
+
+      Note that this class doesn't descend
+      or keep reference to TVideo instance. The idea is that after
+      creating TGLVideo instance, you can often free original TVideo
+      instance (if you care only about playing the movie). This can
+      conserve memory greatly, as TVideo keeps all frames in the memory,
+      and so is rather memory-costly.
+      (Actually, TGLVideo itself may eat a lot of texture memory,
+      so be careful with large videos anyway.) }
+    constructor Create(Video: TVideo;
+      MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+      ColorModulatorByte: TColorModulatorByteFunc = nil);
+
+    destructor Destroy; override;
+
+    property Count: Integer read FCount;
+    function IndexFromTime(const Time: Single): Integer;
+    function GLTextureFromTime(const Time: Single): TGLuint;
+
+    { See TVideo.FramesPerSecond. }
+    property FramesPerSecond: Single read FFramesPerSecond;
+
+    { See TVideo.TimeLoop. }
+    property TimeLoop: boolean read FTimeLoop write FTimeLoop;
+
+    { See TVideo.TimeBackwards. }
+    property TimeBackwards: boolean
+      read FTimeBackwards write FTimeBackwards;
+  end;
 
 implementation
 
@@ -717,6 +760,49 @@ begin
   finally ImageModul.Free; end;
  end else
   Result := LoadGLTexture(Image, MinFilter, MagFilter, WrapS, WrapT);
+end;
+
+{ TGLVideo ------------------------------------------------------------------- }
+
+constructor TGLVideo.Create(Video: TVideo;
+  MinFilter, MagFilter, WrapS, WrapT: TGLenum;
+  ColorModulatorByte: TColorModulatorByteFunc = nil);
+var
+  I: Integer;
+begin
+  inherited Create;
+
+  Check(Video.Loaded, 'Video must be loaded before using TGLVideo.Create');
+
+  FCount := Video.Count;
+
+  SetLength(FItems, Count);
+  for I := 0 to High(FItems) do
+    FItems[I] := LoadGLTextureModulated(Video.Items[I],
+      MinFilter, MagFilter, WrapS, WrapT, ColorModulatorByte);
+
+  FTimeLoop := Video.TimeLoop;
+  FTimeBackwards := Video.TimeBackwards;
+  FFramesPerSecond := Video.FramesPerSecond;
+end;
+
+destructor TGLVideo.Destroy;
+begin
+  if Count > 0 then
+    glDeleteTextures(Count, @FItems[0]);
+
+  inherited;
+end;
+
+function TGLVideo.IndexFromTime(const Time: Single): Integer;
+begin
+  Result := TVideo.FrameIndexFromTime(Time, Count, FramesPerSecond,
+    TimeLoop, TimeBackwards);
+end;
+
+function TGLVideo.GLTextureFromTime(const Time: Single): TGLuint;
+begin
+  Result := FItems[IndexFromTime(Time)];
 end;
 
 end.

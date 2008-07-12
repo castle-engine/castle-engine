@@ -248,6 +248,30 @@ type
       @raises(EInvalidFadeFrames When FadeFrames is wrong.) }
     procedure FadeWithSelf(FadeFrames: Cardinal;
       const ProgressTitle: string);
+
+    { Similar to IndexFromTime, this is a class method that calculates
+      frame index using the same algorithm. (Actually, IndexFromTime
+      just calls this, but this is implementation detail...).
+
+      The idea is that you can reuse the same algorithm in cases when
+      you somehow have the video data but do not have an instance
+      of TVideo class.
+
+      In particular, this public for TGLVideo.IndexFromTime,
+      TGLVideo.GLTextureFromTime methods. }
+    class function FrameIndexFromTime(const Time: Single;
+      const ACount: Integer;
+      const AFramesPerSecond: Single;
+      const ATimeLoop, ATimeBackwards: boolean): Integer;
+
+    { Alpha channel type of loaded video.
+      See TImage.AlphaChannelType for precise meaning of this.
+
+      Currently based on the first video image, so it's fast although
+      in some cases possibly inaccurate. }
+    function AlphaChannelType(
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannelType;
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -295,21 +319,22 @@ begin
   Result := FItems[Index];
 end;
 
-function TVideo.IndexFromTime(const Time: Single): Integer;
+class function TVideo.FrameIndexFromTime(const Time: Single;
+  const ACount: Integer;
+  const AFramesPerSecond: Single;
+  const ATimeLoop, ATimeBackwards: boolean): Integer;
 var
   DivResult: SmallInt;
   ModResult: Word;
 begin
-  Assert(Loaded);
+  Result := Floor(Time * AFramesPerSecond);
 
-  Result := Floor(Time * FramesPerSecond);
-
-  DivUnsignedMod(Result, Count, DivResult, ModResult);
+  DivUnsignedMod(Result, ACount, DivResult, ModResult);
 
   if TimeLoop then
   begin
     if TimeBackwards and Odd(DivResult) then
-      Result := High(FItems) - ModResult else
+      Result := Count - 1 - ModResult else
       Result := ModResult;
   end else
   begin
@@ -318,16 +343,23 @@ begin
       if (DivResult < 0) or (DivResult > 1) then
         Result := 0 else
       if DivResult = 1 then
-        Result := High(FItems) - ModResult;
+        Result := Count - 1 - ModResult;
         { else DivResult = 0, so Result is already correct }
     end else
     begin
       if DivResult < 0 then
         Result := 0 else
       if DivResult > 0 then
-        Result := High(FItems);
+        Result := Count - 1;
     end;
   end;
+end;
+
+function TVideo.IndexFromTime(const Time: Single): Integer;
+begin
+  Assert(Loaded);
+  Result := FrameIndexFromTime(Time, Count, FramesPerSecond,
+    TimeLoop, TimeBackwards);
 end;
 
 function TVideo.ImageFromTime(const Time: Single): TImage;
@@ -664,6 +696,14 @@ begin
   finally
     if ProgressTitle <> '' then Progress.Fini;
   end;
+end;
+
+function TVideo.AlphaChannelType(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannelType;
+begin
+  Assert(Loaded);
+  Result := Items[0].AlphaChannelType(AlphaTolerance, WrongPixelsTolerance);
 end;
 
 { non-object routines -------------------------------------------------------- }

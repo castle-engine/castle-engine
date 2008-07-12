@@ -335,7 +335,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, ImagesCache, GLShaders;
+  VRMLErrors, ImagesCache, GLShaders, GLImages, Videos;
 
 {$define read_interface}
 
@@ -717,7 +717,7 @@ type
           should be done one day.)
         @item(For each texture, there must always be the same
           normalMap and heightMap
-          (since we store it in the same textureReference).)
+          (since we store it in the same TTextureImageReference).)
       )
       See other TODOs in this file.
     }
@@ -766,7 +766,7 @@ type
     Instance: TGLOutlineFont;
   end;
 
-  TTextureCache = record
+  TTextureImageCache = record
     FullUrl: string;
     Node: TVRMLTextureNode;
     MinFilter: TGLint;
@@ -783,14 +783,41 @@ type
       so it's done only once and kept in the cache, just like GLName. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTextureCache = ^TTextureCache;
+  PTextureImageCache = ^TTextureImageCache;
 
-  TDynArrayItem_2 = TTextureCache;
-  PDynArrayItem_2 = PTextureCache;
+  TDynArrayItem_2 = TTextureImageCache;
+  PDynArrayItem_2 = PTextureImageCache;
   {$define DYNARRAY_2_IS_STRUCT}
   {$define DYNARRAY_2_IS_INIT_FINI_TYPE}
   {$I dynarray_2.inc}
-  TDynTextureCacheArray = class(TDynArray_2)
+  TDynTextureImageCacheArray = class(TDynArray_2)
+  end;
+
+  TTextureVideoCache = record
+    FullUrl: string;
+    Node: TVRMLTextureNode;
+    MinFilter: TGLint;
+    MagFilter: TGLint;
+    WrapS: TGLenum;
+    WrapT: TGLenum;
+    ColorModulator: TColorModulatorByteFunc;
+    References: Cardinal;
+    GLVideo: TGLVideo;
+    { This is the saved result of TVideo.AlphaChannelType.
+
+      Detecting AlphaChannelType is a little time-consuming
+      (iteration over all pixels is needed),
+      so it's done only once and kept in the cache. }
+    AlphaChannelType: TAlphaChannelType;
+  end;
+  PTextureVideoCache = ^TTextureVideoCache;
+
+  TDynArrayItem_7 = TTextureVideoCache;
+  PDynArrayItem_7 = PTextureVideoCache;
+  {$define DYNARRAY_7_IS_STRUCT}
+  {$define DYNARRAY_7_IS_INIT_FINI_TYPE}
+  {$I dynarray_7.inc}
+  TDynTextureVideoCacheArray = class(TDynArray_7)
   end;
 
   { Note that Attributes and State are owned by this record
@@ -865,14 +892,15 @@ type
   TVRMLOpenGLRendererContextCache = class(TImagesCache)
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
-    TexturesCaches: TDynTextureCacheArray;
+    TextureImageCaches: TDynTextureImageCacheArray;
+    TextureVideoCaches: TDynTextureVideoCacheArray;
     ShapeStateCaches: TDynShapeStateCacheArray;
     ShapeStateNoTransformCaches: TDynShapeStateCacheArray;
     RenderBeginCaches: TDynRenderBeginEndCacheArray;
     RenderEndCaches: TDynRenderBeginEndCacheArray;
     GLSLProgramCaches: TDynGLSLProgramCacheArray;
 
-    function Texture_IncReference(
+    function TextureImage_IncReference(
       const TextureImage: TImage;
       const TextureFullUrl: string;
       const TextureNode: TVRMLTextureNode;
@@ -881,8 +909,20 @@ type
       const TextureColorModulator: TColorModulatorByteFunc;
       out AlphaChannelType: TAlphaChannelType): TGLuint;
 
-    procedure Texture_DecReference(
+    procedure TextureImage_DecReference(
       const TextureGLName: TGLuint);
+
+    function TextureVideo_IncReference(
+      const TextureVideo: TVideo;
+      const TextureFullUrl: string;
+      const TextureNode: TVRMLTextureNode;
+      const TextureMinFilter, TextureMagFilter: TGLint;
+      const TextureWrapS, TextureWrapT: TGLenum;
+      const TextureColorModulator: TColorModulatorByteFunc;
+      out AlphaChannelType: TAlphaChannelType): TGLVideo;
+
+    procedure TextureVideo_DecReference(
+      const TextureVideo: TGLVideo);
 
     function FogParametersEqual(
       FogNode1: TNodeFog; const FogDistanceScaling1: Single;
@@ -980,25 +1020,47 @@ type
       const GLList: TGLuint);
   end;
 
-  TTextureReference = record
-    TextureNode: TVRMLTextureNode;
-    TextureGL: TGLuint;
-    TextureNormalMap, TextureHeightMap: TGLuint;
-    TexHeightMapScale: Single;
+  TTextureImageReference = record
+    Node: TVRMLTextureNode;
+    GLName: TGLuint;
+    NormalMap, HeightMap: TGLuint;
+    HeightMapScale: Single;
     { This is the saved result of TImage.AlphaChannelType. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTextureReference = ^TTextureReference;
+  PTextureImageReference = ^TTextureImageReference;
 
-  TDynArrayItem_1 = TTextureReference;
-  PDynArrayItem_1 = PTextureReference;
+  TDynArrayItem_1 = TTextureImageReference;
+  PDynArrayItem_1 = PTextureImageReference;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
-  TDynTextureReferenceArray = class(TDynArray_1)
+  TDynTextureImageReferenceArray = class(TDynArray_1)
   public
-    { szuka rekordu z danym TextureNode.
-      Zwraca jego indeks lub -1 jesli nie znajdzie. }
-    function TextureNodeIndex(TexNode: TVRMLTextureNode): integer;
+    { Looks for item with given ANode.
+      Returns -1 if not found. }
+    function TextureNodeIndex(ANode: TVRMLTextureNode): integer;
+  end;
+
+  TTextureVideoReference = record
+    Node: TVRMLTextureNode;
+    GLVideo: TGLVideo;
+    { For now, I don't support movie textures with bump mapping.
+    NormalMap, HeightMap: TGLuint;
+    HeightMapScale: Single; }
+    { This is the saved result of TVideo.AlphaChannelType. }
+    AlphaChannelType: TAlphaChannelType;
+  end;
+  PTextureVideoReference = ^TTextureVideoReference;
+
+  TDynArrayItem_8 = TTextureVideoReference;
+  PDynArrayItem_8 = PTextureVideoReference;
+  {$define DYNARRAY_8_IS_STRUCT}
+  {$I dynarray_8.inc}
+  TDynTextureVideoReferenceArray = class(TDynArray_8)
+  public
+    { Looks for item with given ANode.
+      Returns -1 if not found. }
+    function TextureNodeIndex(ANode: TVRMLTextureNode): integer;
   end;
 
   TGLSLProgramReference = record
@@ -1071,7 +1133,8 @@ type
 
     BmGLSLAttribObjectSpaceToTangent: array[boolean] of TGLSLAttribute;
 
-    TextureReferences: TDynTextureReferenceArray;
+    TextureImageReferences: TDynTextureImageReferenceArray;
+    TextureVideoReferences: TDynTextureVideoReferenceArray;
     GLSLProgramReferences: TDynGLSLProgramReferenceArray;
 
     { To which fonts we made a reference in the cache ? }
@@ -1368,7 +1431,7 @@ function WorldTimeWatchersExist: boolean;
 implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
-  KambiStringUtils, GLVersionUnit, GLImages, KambiLog, KambiClassUtils,
+  KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
   VRMLGeometry;
 
 {$define read_implementation}
@@ -1378,6 +1441,8 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I dynarray_4.inc}
 {$I dynarray_5.inc}
 {$I dynarray_6.inc}
+{$I dynarray_7.inc}
+{$I dynarray_8.inc}
 
 {$I openglmac.inc}
 
@@ -1442,7 +1507,8 @@ end;
 constructor TVRMLOpenGLRendererContextCache.Create;
 begin
   inherited;
-  TexturesCaches := TDynTextureCacheArray.Create;
+  TextureImageCaches := TDynTextureImageCacheArray.Create;
+  TextureVideoCaches := TDynTextureVideoCacheArray.Create;
   ShapeStateCaches := TDynShapeStateCacheArray.Create;
   ShapeStateNoTransformCaches := TDynShapeStateCacheArray.Create;
   RenderBeginCaches := TDynRenderBeginEndCacheArray.Create;
@@ -1467,11 +1533,18 @@ begin
           ' when freeing TVRMLOpenGLRendererContextCache');
       end;
 
-  if TexturesCaches <> nil then
+  if TextureImageCaches <> nil then
   begin
-    Assert(TexturesCaches.Count = 0, 'Some references to textures still exist' +
+    Assert(TextureImageCaches.Count = 0, 'Some references to texture images still exist' +
       ' when freeing TVRMLOpenGLRendererContextCache');
-    FreeAndNil(TexturesCaches);
+    FreeAndNil(TextureImageCaches);
+  end;
+
+  if TextureVideoCaches <> nil then
+  begin
+    Assert(TextureVideoCaches.Count = 0, 'Some references to texture videos still exist' +
+      ' when freeing TVRMLOpenGLRendererContextCache');
+    FreeAndNil(TextureVideoCaches);
   end;
 
   if ShapeStateCaches <> nil then
@@ -1537,7 +1610,7 @@ begin
   {$endif}
 end;
 
-function TVRMLOpenGLRendererContextCache.Texture_IncReference(
+function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TImage;
   const TextureFullUrl: string;
   const TextureNode: TVRMLTextureNode;
@@ -1547,11 +1620,11 @@ function TVRMLOpenGLRendererContextCache.Texture_IncReference(
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureCache;
+  TextureCached: PTextureImageCache;
 begin
-  for I := 0 to TexturesCaches.High do
+  for I := 0 to TextureImageCaches.High do
   begin
-    TextureCached := TexturesCaches.Pointers[I];
+    TextureCached := TextureImageCaches.Pointers[I];
 
     { Once I had an idea to make here comparison with
       TextureImage = TextureCached^.Image. Since we have ImagesCache,
@@ -1593,16 +1666,16 @@ begin
     end;
   end;
 
-  { Initialize Result first, before calling TexturesCaches.IncLength.
+  { Initialize Result first, before calling TextureImageCaches.IncLength.
     That's because in case LoadGLTextureModulated raises exception,
     we don't want to add texture to cache (because caller would have
-    no way to call Texture_DecReference later). }
+    no way to call TextureImage_DecReference later). }
   Result := LoadGLTextureModulated(
     TextureImage, TextureMinFilter, TextureMagFilter,
     TextureWrapS, TextureWrapT, TextureColorModulator);
 
-  TexturesCaches.IncLength;
-  TextureCached := TexturesCaches.Pointers[TexturesCaches.High];
+  TextureImageCaches.IncLength;
+  TextureCached := TextureImageCaches.Pointers[TextureImageCaches.High];
   TextureCached^.FullUrl := TextureFullUrl;
   TextureCached^.Node := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
@@ -1627,30 +1700,125 @@ begin
   {$endif}
 end;
 
-procedure TVRMLOpenGLRendererContextCache.Texture_DecReference(
+procedure TVRMLOpenGLRendererContextCache.TextureImage_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
 begin
-  for I := 0 to TexturesCaches.High do
-    if TexturesCaches.Items[I].GLName = TextureGLName then
+  for I := 0 to TextureImageCaches.High do
+    if TextureImageCaches.Items[I].GLName = TextureGLName then
     begin
-      Dec(TexturesCaches.Items[I].References);
+      Dec(TextureImageCaches.Items[I].References);
       {$ifdef DEBUG_VRML_RENDERER_CACHE}
-      Writeln('-- : ', TexturesCaches.Items[I].FullUrl, ' : ',
-        TexturesCaches.Items[I].References);
+      Writeln('-- : ', TextureImageCaches.Items[I].FullUrl, ' : ',
+                       TextureImageCaches.Items[I].References);
       {$endif}
-      if TexturesCaches.Items[I].References = 0 then
+      if TextureImageCaches.Items[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TexturesCaches.Items[I].GLName));
-        TexturesCaches.Delete(I, 1);
+        glDeleteTextures(1, @(TextureImageCaches.Items[I].GLName));
+        TextureImageCaches.Delete(I, 1);
       end;
       Exit;
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLOpenGLRendererContextCache.Texture_DecReference: no reference ' +
+    'TVRMLOpenGLRendererContextCache.TextureImage_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
+end;
+
+function TVRMLOpenGLRendererContextCache.TextureVideo_IncReference(
+  const TextureVideo: TVideo;
+  const TextureFullUrl: string;
+  const TextureNode: TVRMLTextureNode;
+  const TextureMinFilter, TextureMagFilter: TGLint;
+  const TextureWrapS, TextureWrapT: TGLenum;
+  const TextureColorModulator: TColorModulatorByteFunc;
+  out AlphaChannelType: TAlphaChannelType): TGLVideo;
+var
+  I: Integer;
+  TextureCached: PTextureVideoCache;
+begin
+  for I := 0 to TextureVideoCaches.High do
+  begin
+    TextureCached := TextureVideoCaches.Pointers[I];
+
+    if ( ( (TextureFullUrl <> '') and
+           (TextureCached^.FullUrl = TextureFullUrl) ) or
+         (TextureCached^.Node = TextureNode) ) and
+       (TextureCached^.MinFilter = TextureMinFilter) and
+       (TextureCached^.MagFilter = TextureMagFilter) and
+       (TextureCached^.WrapS = TextureWrapS) and
+       (TextureCached^.WrapT = TextureWrapT) and
+       ({$ifndef FPC_OBJFPC} @ {$endif} TextureCached^.ColorModulator =
+        {$ifndef FPC_OBJFPC} @ {$endif} TextureColorModulator) then
+    begin
+      Inc(TextureCached^.References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('++ : ', TextureFullUrl, ' : ', TextureCached^.References);
+      {$endif}
+      AlphaChannelType := TextureCached^.AlphaChannelType;
+      Exit(TextureCached^.GLVideo);
+    end;
+  end;
+
+  { Initialize Result first, before calling TextureVideoCaches.IncLength.
+    That's because in case TGLVideo.Create raises exception,
+    we don't want to add texture to cache (because caller would have
+    no way to call TextureVideo_DecReference later). }
+  Result := TGLVideo.Create(
+    TextureVideo, TextureMinFilter, TextureMagFilter,
+    TextureWrapS, TextureWrapT, TextureColorModulator);
+
+  TextureVideoCaches.IncLength;
+  TextureCached := TextureVideoCaches.Pointers[TextureVideoCaches.High];
+  TextureCached^.FullUrl := TextureFullUrl;
+  TextureCached^.Node := TextureNode;
+  TextureCached^.MinFilter := TextureMinFilter;
+  TextureCached^.MagFilter := TextureMagFilter;
+  TextureCached^.WrapS := TextureWrapS;
+  TextureCached^.WrapT := TextureWrapT;
+  TextureCached^.ColorModulator := TextureColorModulator;
+  TextureCached^.References := 1;
+  TextureCached^.GLVideo := Result;
+
+  { calculate and save AlphaChannelType in the cache }
+  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(5, 0.1);
+  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+    WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
+      ' detected as simple yes/no alpha channel: ' +
+      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+
+  AlphaChannelType := TextureCached^.AlphaChannelType;
+
+  {$ifdef DEBUG_VRML_RENDERER_CACHE}
+  Writeln('++ : ', TextureFullUrl, ' : ', 1);
+  {$endif}
+end;
+
+procedure TVRMLOpenGLRendererContextCache.TextureVideo_DecReference(
+  const TextureVideo: TGLVideo);
+var
+  I: Integer;
+begin
+  for I := 0 to TextureVideoCaches.High do
+    if TextureVideoCaches.Items[I].GLVideo = TextureVideo then
+    begin
+      Dec(TextureVideoCaches.Items[I].References);
+      {$ifdef DEBUG_VRML_RENDERER_CACHE}
+      Writeln('-- : ', TextureVideoCaches.Items[I].FullUrl, ' : ',
+                       TextureVideoCaches.Items[I].References);
+      {$endif}
+      if TextureVideoCaches.Items[I].References = 0 then
+      begin
+        FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
+        TextureVideoCaches.Delete(I, 1);
+      end;
+      Exit;
+    end;
+
+  raise EInternalError.CreateFmt(
+    'TVRMLOpenGLRendererContextCache.TextureVideo_DecReference: no reference ' +
+    'found to texture %s', [PointerToStr(TextureVideo)]);
 end;
 
 function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
@@ -2414,17 +2582,27 @@ begin
     Result := Color;
 end;
 
-{ TDynTextureReferenceArray ---------------------------------------------------- }
+{ TDynTextureImageReferenceArray --------------------------------------------- }
 
-function TDynTextureReferenceArray.TextureNodeIndex(
-  TexNode: TVRMLTextureNode): integer;
+function TDynTextureImageReferenceArray.TextureNodeIndex(
+  ANode: TVRMLTextureNode): integer;
 begin
- for result := 0 to Count-1 do
-  if Items[result].TextureNode = TexNode then exit;
- result := -1;
+  for result := 0 to Count - 1 do
+    if Items[result].Node = ANode then exit;
+  result := -1;
 end;
 
-{ TDynGLSLProgramReferenceArray ---------------------------------------------------- }
+{ TDynTextureVideoReferenceArray --------------------------------------------- }
+
+function TDynTextureVideoReferenceArray.TextureNodeIndex(
+  ANode: TVRMLTextureNode): integer;
+begin
+  for result := 0 to Count - 1 do
+    if Items[result].Node = ANode then exit;
+  result := -1;
+end;
+
+{ TDynGLSLProgramReferenceArray ---------------------------------------------- }
 
 function TDynGLSLProgramReferenceArray.ProgramNodeIndex(
   ProgramNode: TNodeComposedShader): Integer;
@@ -2455,7 +2633,8 @@ begin
   BmSteepParallaxMapping := true;
 
   FAttributes := AttributesClass.Create;
-  TextureReferences := TDynTextureReferenceArray.Create;
+  TextureImageReferences := TDynTextureImageReferenceArray.Create;
+  TextureVideoReferences := TDynTextureVideoReferenceArray.Create;
   GLSLProgramReferences := TDynGLSLProgramReferenceArray.Create;
 
   OwnsCache := ACache = nil;
@@ -2467,7 +2646,8 @@ end;
 destructor TVRMLOpenGLRenderer.Destroy;
 begin
   UnprepareAll;
-  FreeAndNil(TextureReferences);
+  FreeAndNil(TextureImageReferences);
+  FreeAndNil(TextureVideoReferences);
   FreeAndNil(GLSLProgramReferences);
   FreeAndNil(FAttributes);
 
@@ -2667,7 +2847,8 @@ const
     GL_CLAMP_TO_EDGE,
     GL_REPEAT);
 var
-  TextureReference: TTextureReference;
+  TextureImageReference: TTextureImageReference;
+  TextureVideoReference: TTextureVideoReference;
   TextureNode: TVRMLTextureNode;
   FontStyle: TNodeFontStyle_2;
   HeightMapGrayscale: TGrayscaleImage;
@@ -2730,13 +2911,14 @@ begin
  TextureNode := State.Texture;
  if (not Attributes.PureGeometry) and
     (TextureNode <> nil) and
-    (TextureReferences.TextureNodeIndex(TextureNode) = -1) then
+    (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) then
+    { TODO: movie }
  begin
   TextureNode.ImagesCache := Cache;
   if TextureNode.IsTextureImage then
   begin
-   TextureReference.TextureNode := TextureNode;
-   TextureReference.TextureGL := Cache.Texture_IncReference(
+   TextureImageReference.Node := TextureNode;
+   TextureImageReference.GLName := Cache.TextureImage_IncReference(
      TextureNode.TextureImage,
      TextureNode.TextureUsedFullUrl,
      TextureNode,
@@ -2746,8 +2928,8 @@ begin
      TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte,
      { This way, our AlphaChannelType is calculated (or taken from cache)
-       by Texture_IncReference }
-     TextureReference.AlphaChannelType);
+       by TextureImage_IncReference }
+     TextureImageReference.AlphaChannelType);
 
    { TODO: for now, bump mapping is used only if the node has normal texture
      too. It should be possible to use bump mapping even if the node is colored
@@ -2755,9 +2937,9 @@ begin
      texture coords etc.).
 
      TODO: Also, now for each texture, there must always be the same bump map
-     (since we store it in the same textureReference }
+     (since we store it in the same TextureImageReference }
 
-   TextureReference.TextureNormalMap := 0;
+   TextureImageReference.NormalMap := 0;
    if (BumpMappingMethod <> bmNone) and
       (State.ParentShape <> nil) and
       (State.ParentShape.NormalMap <> nil) then
@@ -2766,7 +2948,7 @@ begin
      if State.ParentShape.NormalMap.IsTextureImage then
      begin
        { TODO: normal map textures should be shared by Cache }
-       TextureReference.TextureNormalMap := LoadGLTexture(
+       TextureImageReference.NormalMap := LoadGLTexture(
          State.ParentShape.NormalMap.TextureImage,
          GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
          TextureRepeatToGL[TextureNode.RepeatS],
@@ -2774,7 +2956,7 @@ begin
      end;
    end;
 
-   TextureReference.TextureHeightMap := 0;
+   TextureImageReference.HeightMap := 0;
    if (BumpMappingMethod <> bmNone) and
       (State.ParentShape <> nil) and
       (State.ParentShape.HeightMap <> nil) then
@@ -2797,12 +2979,12 @@ begin
 
        if HeightMapGrayscale <> nil then
        try
-         TextureReference.TextureHeightMap :=
+         TextureImageReference.HeightMap :=
            LoadGLTexture(HeightMapGrayscale,
              GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR,
              TextureRepeatToGL[TextureNode.RepeatS],
              TextureRepeatToGL[TextureNode.RepeatT]);
-         TextureReference.TexHeightMapScale :=
+         TextureImageReference.HeightMapScale :=
            State.ParentShape.HeightMapScale;
        finally
          if HeightMapGrayscale <> OriginalTexture then
@@ -2811,15 +2993,15 @@ begin
      end;
    end;
 
-   TextureReferences.AppendItem(TextureReference);
+   TextureImageReferences.AppendItem(TextureImageReference);
 
-   { Note: do PrepareBumpMapping *after* TextureReferences.AppendItem.
+   { Note: do PrepareBumpMapping *after* TextureImageReferences.AppendItem.
      This way in case of errors (some GLSL errors on current OpenGL ?)
      we exit with nice state, able to free this texture reference later. }
 
-   if TextureReference.TextureNormalMap <> 0 then
+   if TextureImageReference.NormalMap <> 0 then
      PrepareBumpMapping(
-       (TextureReference.TextureHeightMap <> 0) and
+       (TextureImageReference.HeightMap <> 0) and
        (BumpMappingMethod >= bmGLSLParallax));
   end;
  end;
@@ -2838,12 +3020,19 @@ begin
  {niszczymy teksture}
  if Node is TVRMLTextureNode then
  begin
-  i := TextureReferences.TextureNodeIndex(TVRMLTextureNode(Node));
-  if i >= 0 then
-  begin
-   Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
-   TextureReferences.Delete(i, 1);
-  end;
+   i := TextureImageReferences.TextureNodeIndex(TVRMLTextureNode(Node));
+   if i >= 0 then
+   begin
+     Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
+     TextureImageReferences.Delete(i, 1);
+   end;
+
+   i := TextureVideoReferences.TextureNodeIndex(TVRMLTextureNode(Node));
+   if i >= 0 then
+   begin
+     Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
+     TextureVideoReferences.Delete(i, 1);
+   end;
  end;
 
   { unprepare GLSLProgram }
@@ -2885,9 +3074,13 @@ begin
         end;
 
   {niszcz wszystkie tekstury}
-  for i := 0 to TextureReferences.Count-1 do
-    Cache.Texture_DecReference(TextureReferences.Items[i].TextureGL);
-  TextureReferences.SetLength(0);
+  for i := 0 to TextureImageReferences.Count-1 do
+    Cache.TextureImage_DecReference(TextureImageReferences.Items[i].GLName);
+  TextureImageReferences.SetLength(0);
+
+  for i := 0 to TextureVideoReferences.Count-1 do
+    Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
+  TextureVideoReferences.SetLength(0);
 
   { unprepare all GLSLPrograms }
   for i := 0 to GLSLProgramReferences.Count - 1 do
@@ -3042,14 +3235,20 @@ function TVRMLOpenGLRenderer.PreparedTextureAlphaChannelType(
   TextureNode: TVRMLTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
 var
-  TextureReferencesIndex: Integer;
+  Index: Integer;
 begin
-  TextureReferencesIndex := TextureReferences.TextureNodeIndex(
-    TextureNode);
+  Index := TextureImageReferences.TextureNodeIndex(TextureNode);
+  Result := Index <> -1;
 
-  Result := TextureReferencesIndex <> -1;
   if Result then
-    AlphaChannelType := TextureReferences.Items[TextureReferencesIndex].AlphaChannelType;
+    AlphaChannelType := TextureImageReferences.Items[Index].AlphaChannelType else
+  begin
+    Index := TextureVideoReferences.TextureNodeIndex(TextureNode);
+    Result := Index <> -1;
+
+    if Result then
+      AlphaChannelType := TextureVideoReferences.Items[Index].AlphaChannelType;
+  end;
 end;
 
 { Render ---------------------------------------------------------------------- }
@@ -3358,13 +3557,13 @@ var
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
       glBindTexture(GL_TEXTURE_2D,
-        TextureReferences.Items[TextureReferencesIndex].TextureGL);
+        TextureImageReferences.Items[TextureReferencesIndex].GLName);
     end;
 
   var
     AlphaTest: boolean;
     IndexedFaceRenderer: TIndexedFaceSetRenderer;
-    TexReference: PTextureReference;
+    TexReference: PTextureImageReference;
   begin
     if Attributes.PureGeometry then
     begin
@@ -3415,15 +3614,16 @@ var
        TextureNode.IsTextureImage and
        Attributes.EnableTextures and
        NodeTextured(Node) then
+       { TODO: movie }
     begin
-      TextureReferencesIndex := TextureReferences.TextureNodeIndex(
+      TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
         TextureNode);
       Assert(TextureReferencesIndex <> -1,
         'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
         'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
         'You must call TVRMLOpenGLRenderer.Prepare first');
 
-      TexReference := TextureReferences.Pointers[TextureReferencesIndex];
+      TexReference := TextureImageReferences.Pointers[TextureReferencesIndex];
 
       AlphaTest := TexReference^.AlphaChannelType = atSimpleYesNo;
 
@@ -3431,18 +3631,18 @@ var
          IndexedRenderer.BumpMappingAllowed and
          (BumpMappingMethod <> bmNone) then
       begin
-        if TexReference^.TextureNormalMap <> 0 then
+        if TexReference^.NormalMap <> 0 then
         begin
           IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
           Assert(IndexedRenderer is TIndexedFaceSetRenderer,
             'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
           IndexedFaceRenderer := TIndexedFaceSetRenderer(IndexedRenderer);
           IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
-          IndexedFaceRenderer.TexOriginal := TexReference^.TextureGL;
+          IndexedFaceRenderer.TexOriginal := TexReference^.GLName;
           IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
-          IndexedFaceRenderer.TexNormalMap := TexReference^.TextureNormalMap;
-          IndexedFaceRenderer.TexHeightMap := TexReference^.TextureHeightMap;
-          IndexedFaceRenderer.TexHeightMapScale := TexReference^.TexHeightMapScale;
+          IndexedFaceRenderer.TexNormalMap := TexReference^.NormalMap;
+          IndexedFaceRenderer.TexHeightMap := TexReference^.HeightMap;
+          IndexedFaceRenderer.TexHeightMapScale := TexReference^.HeightMapScale;
           { use parallax only if the model actually has heightMap }
           if (IndexedFaceRenderer.TexHeightMap = 0) and
              (IndexedRenderer.BumpMappingMethod >= bmGLSLParallax) then
