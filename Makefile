@@ -200,7 +200,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/shading_langs/shading_langs_demo \
   opengl/examples/demo_matrix_navigation \
   opengl/examples/fog_coord \
-  opengl/examples/simple_video_image_viewer \
+  opengl/examples/simple_video_editor \
   3dgraph/examples/draw_space_filling_curve \
   3dmodels/examples/many2vrml \
   3dmodels/examples/test_blender_exported_hierarchy \

@@ -19,9 +19,10 @@
 }
 
 { Simple example of loading a video file and playing it in OpenGL
-  window. Also handles normal image files, since we can load all image
+  window, with some simple editing features.
+  Also handles normal image files, since we can load all image
   formats to TVideo by just treating them as movies with 1 frame. }
-program simple_image_viewersimple_video_image_viewer;
+program simple_video_editor;
 
 { Console, not GUI, since loading files through ffmpeg will output some
   info on stdout anyway. }
@@ -46,6 +47,7 @@ var
 
   MenuEdit: TMenu;
   MenuTimeBackwards: TMenuItemChecked;
+  MenuRevert: TMenuItem;
 
 procedure Draw(Glwin: TGLWindow);
 const
@@ -112,11 +114,12 @@ end;
 
 procedure LoadVideo(const NewVideoFileName: string);
 begin
-  VideoFileName := NewVideoFileName;
   try
-    Video.LoadFromFile(VideoFileName);
+    Video.LoadFromFile(NewVideoFileName);
+    VideoFileName := NewVideoFileName;
     WorldTime := 0;
     MenuEdit.Enabled := Video.Loaded;
+    MenuRevert.Enabled := Video.Loaded;
   except
     on E: Exception do
       MessageOk(Glw, 'Loading of "' + VideoFileName + '" failed:' + NL +
@@ -151,6 +154,11 @@ begin
         S := ExtractFilePath(VideoFileName);
         if Glwin.FileDialog('Open file', S, true) then
           LoadVideo(S);
+      end;
+    15:
+      begin
+        if Video.Loaded then
+          LoadVideo(VideoFileName);
       end;
     20: Glwin.Close;
     110: TimePlaying := not TimePlaying;
@@ -225,6 +233,10 @@ begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_File');
     M.Append(TMenuItem.Create('_Open ...',   10, CtrlO));
+    M.Append(TMenuSeparator.Create);
+    MenuRevert := TMenuItem.Create('_Revert',     15);
+    MenuRevert.Enabled := false;
+    M.Append(MenuRevert);
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',       20, CharEscape));
     Result.Append(M);
