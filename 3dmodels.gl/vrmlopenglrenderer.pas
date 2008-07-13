@@ -1398,11 +1398,12 @@ procedure SetWorldTime(const Value: TWorldTime);
 
 { This is a world time, it is passed to GLSL shaders that define
   a float/double/time uniform with a special name @code(kambi_time).
+  It's also used to play videos in MovieTexture nodes.
 
   @italic(Note that this is, for now, somewhat "hacky" feature.)
   In the future interface of this may change, and implementation
   will certainly change: special uniform name will be removed from
-  the implementation, and the same effect will be available by routing
+  the GLSL implementation, and the same effect will be available by routing
   VRML TimeSensor to one of ComposedShader fields. This will allow
   VRML authors to achieve the same effect by standard VRML methods.
 
@@ -2911,10 +2912,11 @@ begin
  TextureNode := State.Texture;
  if (not Attributes.PureGeometry) and
     (TextureNode <> nil) and
-    (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) then
-    { TODO: movie }
+    (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
+    (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
   TextureNode.ImagesCache := Cache;
+
   if TextureNode.IsTextureImage then
   begin
    TextureImageReference.Node := TextureNode;
@@ -3003,6 +3005,24 @@ begin
      PrepareBumpMapping(
        (TextureImageReference.HeightMap <> 0) and
        (BumpMappingMethod >= bmGLSLParallax));
+  end else
+  if TextureNode.IsTextureVideo then
+  begin
+   TextureVideoReference.Node := TextureNode;
+   TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
+     TextureNode.TextureVideo,
+     TextureNode.TextureUsedFullUrl,
+     TextureNode,
+     Attributes.TextureMinFilter,
+     Attributes.TextureMagFilter,
+     TextureRepeatToGL[TextureNode.RepeatS],
+     TextureRepeatToGL[TextureNode.RepeatT],
+     Attributes.ColorModulatorByte,
+     { This way, our AlphaChannelType is calculated (or taken from cache)
+       by TextureVideo_IncReference }
+     TextureVideoReference.AlphaChannelType);
+
+   TextureVideoReferences.AppendItem(TextureVideoReference);
   end;
  end;
 
@@ -3546,24 +3566,24 @@ var
   end;
 
   procedure InitTextures;
-  var
-    TextureReferencesIndex: Integer;
-    TextureNode: TVRMLTextureNode;
 
-    procedure EnableClassicTexturing;
+    procedure EnableClassicTexturing(GLTexture: TGLuint);
     begin
       ActiveTexture(0);
       glEnable(GL_TEXTURE_2D);
       glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-      glBindTexture(GL_TEXTURE_2D,
-        TextureImageReferences.Items[TextureReferencesIndex].GLName);
+      glBindTexture(GL_TEXTURE_2D, GLTexture);
     end;
 
   var
     AlphaTest: boolean;
     IndexedFaceRenderer: TIndexedFaceSetRenderer;
-    TexReference: PTextureImageReference;
+    TextureReferencesIndex: Integer;
+    TextureNode: TVRMLTextureNode;
+    Success: boolean;
+    TexImageReference: PTextureImageReference;
+    TexVideoReference: PTextureVideoReference;
   begin
     if Attributes.PureGeometry then
     begin
@@ -3610,50 +3630,76 @@ var
     TextureNode := nil;
     {$endif}
 
+    Success := false;
+
     if (TextureNode <> nil) and
-       TextureNode.IsTextureImage and
        Attributes.EnableTextures and
        NodeTextured(Node) then
-       { TODO: movie }
     begin
-      TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
-        TextureNode);
-      Assert(TextureReferencesIndex <> -1,
-        'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
-        'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
-        'You must call TVRMLOpenGLRenderer.Prepare first');
-
-      TexReference := TextureImageReferences.Pointers[TextureReferencesIndex];
-
-      AlphaTest := TexReference^.AlphaChannelType = atSimpleYesNo;
-
-      if (IndexedRenderer <> nil) and
-         IndexedRenderer.BumpMappingAllowed and
-         (BumpMappingMethod <> bmNone) then
+      if TextureNode.IsTextureImage then
       begin
-        if TexReference^.NormalMap <> 0 then
-        begin
-          IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
-          Assert(IndexedRenderer is TIndexedFaceSetRenderer,
-            'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
-          IndexedFaceRenderer := TIndexedFaceSetRenderer(IndexedRenderer);
-          IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
-          IndexedFaceRenderer.TexOriginal := TexReference^.GLName;
-          IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
-          IndexedFaceRenderer.TexNormalMap := TexReference^.NormalMap;
-          IndexedFaceRenderer.TexHeightMap := TexReference^.HeightMap;
-          IndexedFaceRenderer.TexHeightMapScale := TexReference^.HeightMapScale;
-          { use parallax only if the model actually has heightMap }
-          if (IndexedFaceRenderer.TexHeightMap = 0) and
-             (IndexedRenderer.BumpMappingMethod >= bmGLSLParallax) then
-            IndexedRenderer.BumpMappingMethod := bmGLSLNormal;
-        end else
-          EnableClassicTexturing;
-      end else
-        EnableClassicTexturing;
+        TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
+          TextureNode);
+        Assert(TextureReferencesIndex <> -1,
+          'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
+          'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
+          'You must call TVRMLOpenGLRenderer.Prepare first');
 
-      Render_TexCoordsNeeded := true;
-    end else
+        TexImageReference := TextureImageReferences.Pointers[
+          TextureReferencesIndex];
+
+        AlphaTest := TexImageReference^.AlphaChannelType = atSimpleYesNo;
+
+        if (IndexedRenderer <> nil) and
+           IndexedRenderer.BumpMappingAllowed and
+           (BumpMappingMethod <> bmNone) then
+        begin
+          if TexImageReference^.NormalMap <> 0 then
+          begin
+            IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
+            Assert(IndexedRenderer is TIndexedFaceSetRenderer,
+              'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
+            IndexedFaceRenderer := TIndexedFaceSetRenderer(IndexedRenderer);
+            IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
+            IndexedFaceRenderer.TexOriginal := TexImageReference^.GLName;
+            IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
+            IndexedFaceRenderer.TexNormalMap := TexImageReference^.NormalMap;
+            IndexedFaceRenderer.TexHeightMap := TexImageReference^.HeightMap;
+            IndexedFaceRenderer.TexHeightMapScale := TexImageReference^.HeightMapScale;
+            { use parallax only if the model actually has heightMap }
+            if (IndexedFaceRenderer.TexHeightMap = 0) and
+               (IndexedRenderer.BumpMappingMethod >= bmGLSLParallax) then
+              IndexedRenderer.BumpMappingMethod := bmGLSLNormal;
+          end else
+            EnableClassicTexturing(TexImageReference^.GLName);
+        end else
+          EnableClassicTexturing(TexImageReference^.GLName);
+
+        Render_TexCoordsNeeded := true;
+        Success := true;
+      end else
+      if TextureNode.IsTextureVideo then
+      begin
+        TextureReferencesIndex := TextureVideoReferences.TextureNodeIndex(
+          TextureNode);
+        Assert(TextureReferencesIndex <> -1,
+          'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
+          'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
+          'You must call TVRMLOpenGLRenderer.Prepare first');
+
+        TexVideoReference := TextureVideoReferences.Pointers[TextureReferencesIndex];
+
+        AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
+
+        EnableClassicTexturing(
+          TexVideoReference^.GLVideo.GLTextureFromTime(WorldTime));
+
+        Render_TexCoordsNeeded := true;
+        Success := true;
+      end;
+    end;
+
+    if not Success then
     begin
       ActiveTexture(0);
       glDisable(GL_TEXTURE_2D);

@@ -331,26 +331,26 @@ begin
 
   DivUnsignedMod(Result, ACount, DivResult, ModResult);
 
-  if TimeLoop then
+  if ATimeLoop then
   begin
-    if TimeBackwards and Odd(DivResult) then
-      Result := Count - 1 - ModResult else
+    if ATimeBackwards and Odd(DivResult) then
+      Result := ACount - 1 - ModResult else
       Result := ModResult;
   end else
   begin
-    if TimeBackwards then
+    if ATimeBackwards then
     begin
       if (DivResult < 0) or (DivResult > 1) then
         Result := 0 else
       if DivResult = 1 then
-        Result := Count - 1 - ModResult;
+        Result := ACount - 1 - ModResult;
         { else DivResult = 0, so Result is already correct }
     end else
     begin
       if DivResult < 0 then
         Result := 0 else
       if DivResult > 0 then
-        Result := Count - 1;
+        Result := ACount - 1;
     end;
   end;
 end;
