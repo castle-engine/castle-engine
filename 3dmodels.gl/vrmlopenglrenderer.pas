@@ -1043,7 +1043,7 @@ type
   end;
 
   TTextureVideoReference = record
-    Node: TVRMLTextureNode;
+    Node: TNodeMovieTexture;
     GLVideo: TGLVideo;
     { For now, I don't support movie textures with bump mapping.
     NormalMap, HeightMap: TGLuint;
@@ -1537,15 +1537,58 @@ begin
   Result := FWorldTime;
 end;
 
-{ TimeIncrease = 0.0 here means "TimeIncrease is unknown",
+{ Internal procedure that handles WorldTime changes.
+
+  TimeIncrease = 0.0 here means "TimeIncrease is unknown",
   this can happen only when were called by ResetWorldTime.
-  In other circumstances, TimeIncrease is > 0. }
+  In other circumstances, TimeIncrease is > 0.
+
+  References: see X3D specification "Time" component,
+  8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
+  cycleInterval, loop properties. Why currently this is applied
+  only to MovieTexture, the implementation here should be perfectly fine
+  for any X3DTimeDependentNode (and will be used for TimeSensor and others
+  when implemented). }
 procedure InternalSetWorldTime(const NewValue, TimeIncrease: TKamTime;
   out SomethingChanged: boolean);
 var
+  MovieTexture: TNodeMovieTexture;
+
+{ $define LOG_TIME_DEPENDENT_NODES}
+
+  { Increase MovieTexture.ElapsedTime, taking care of
+    MovieTexture.CycleInterval and looping.
+    StopOnNonLoopedEnd says what to do if ElapsedTime passed
+    CycleInterval and not looping. }
+  procedure IncreaseElapsedTime(const Increase: TKamTime;
+    StopOnNonLoopedEnd: boolean);
+  begin
+    MovieTexture.ElapsedTime := MovieTexture.ElapsedTime + Increase;
+    if MovieTexture.ElapsedTime > MovieTexture.CycleInterval then
+    begin
+      if MovieTexture.CycleInterval <> 0 then
+      begin
+        if MovieTexture.FdLoop.Value then
+        begin
+          MovieTexture.ElapsedTime :=
+            FloatModulo(MovieTexture.ElapsedTime, MovieTexture.CycleInterval);
+        end else
+        if StopOnNonLoopedEnd then
+          MovieTexture.IsActive := false;
+      end else
+      begin
+        { for cycleInterval = 0 this always remains 0 }
+        MovieTexture.ElapsedTime := 0;
+
+        if (not MovieTexture.FdLoop.Value) and StopOnNonLoopedEnd then
+          MovieTexture.IsActive := false;
+      end;
+    end;
+  end;
+
+var
   I: Integer;
   Prog: TGLSLProgram;
-  MovieTexture: TNodeMovieTexture;
 begin
   SomethingChanged := false;
 
@@ -1562,23 +1605,84 @@ begin
     if TimeDependentNodes.Items[I] is TNodeMovieTexture then
     begin
       MovieTexture := TimeDependentNodes.Items[I] as TNodeMovieTexture;
-      SomethingChanged := SomethingChanged or MovieTexture.IsActive;
+
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s',
+          [ MovieTexture.NodeTypeName,
+            BoolToStr[MovieTexture.IsActive],
+            BoolToStr[MovieTexture.IsPaused]]));
+      {$endif}
 
       if not MovieTexture.IsActive then
       begin
-        { TODO: Dummy simple implementation }
-        MovieTexture.IsActive := true;
+        if (NewValue >= MovieTexture.FdStartTime.Value) and
+           ( (NewValue < MovieTexture.FdStopTime.Value) or
+             { stopTime is ignored if it's <= startTime }
+             (MovieTexture.FdStopTime.Value <= MovieTexture.FdStartTime.Value) ) and
+           { avoid starting the movie if it should be stopped according
+             to loop and cycleInterval }
+           not ( (NewValue - MovieTexture.FdStartTime.Value >
+                 MovieTexture.CycleInterval) and
+                 (not MovieTexture.FdLoop.Value) ) then
+        begin
+          MovieTexture.IsActive := true;
+          MovieTexture.IsPaused := false;
+          MovieTexture.ElapsedTime := 0;
+          { Do not advance by TimeIncrease (time from last WorldTime),
+            advance only by the time passed since startTime. }
+          IncreaseElapsedTime(NewValue - MovieTexture.FdStartTime.Value, true);
+          SomethingChanged := true;
+        end;
+      end else
+      if MovieTexture.IsPaused then
+      begin
+        if (NewValue >= MovieTexture.FdResumeTime.Value) and
+           (MovieTexture.FdResumeTime.Value > MovieTexture.FdPauseTime.Value) then
+        begin
+          MovieTexture.IsPaused := false;
+          { Advance only by the time passed since resumeTime. }
+          IncreaseElapsedTime(NewValue - MovieTexture.FdResumeTime.Value, true);
+          SomethingChanged := true;
+        end;
       end else
       begin
-      end;
-      { TODO: Dummy simple implementation }
-      if TimeIncrease = 0 then
-        MovieTexture.ElapsedTime := 0 else
-        MovieTexture.ElapsedTime := MovieTexture.ElapsedTime + TimeIncrease;
+        SomethingChanged := true;
 
-      { set SomethingChanged to true if MovieTexture was active before
-        or after WorldTime change. }
-      SomethingChanged := SomethingChanged or MovieTexture.IsActive;
+        if (NewValue >= MovieTexture.FdStopTime.Value) and
+           { stopTime is ignored if it's <= startTime }
+           (MovieTexture.FdStopTime.Value > MovieTexture.FdStartTime.Value) then
+        begin
+          MovieTexture.IsActive := false;
+          { advance only to the stopTime }
+          if TimeIncrease <> 0 then
+            IncreaseElapsedTime(TimeIncrease -
+              (NewValue - MovieTexture.FdStopTime.Value), false);
+        end else
+        if (NewValue >= MovieTexture.FdPauseTime.Value) and
+           (MovieTexture.FdPauseTime.Value > MovieTexture.FdResumeTime.Value) then
+        begin
+          MovieTexture.IsPaused := true;
+          { advance only to the pauseTime }
+          if TimeIncrease <> 0 then
+            IncreaseElapsedTime(TimeIncrease -
+              (NewValue - MovieTexture.FdPauseTime.Value), false);
+        end else
+        begin
+          { active and not paused movie }
+          if TimeIncrease = 0 then
+            MovieTexture.ElapsedTime := 0 else
+            IncreaseElapsedTime(TimeIncrease, true);
+        end;
+      end;
+
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
+          [ MovieTexture.NodeTypeName,
+            BoolToStr[MovieTexture.IsActive],
+            BoolToStr[MovieTexture.IsPaused]]));
+      {$endif}
     end else
       raise EInternalError.Create('for now, only TNodeMovieTexture and TGLSLProgram should be present in TimeDependentNodes');
   end;
@@ -3127,12 +3231,13 @@ begin
   end else
   if TextureNode.IsTextureVideo then
   begin
-   TextureVideoReference.Node := TextureNode;
+   TextureVideoReference.Node :=
+     { Only TNodeMovieTexture can have IsTextureVideo }
+     TextureNode as TNodeMovieTexture;
    TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
      TextureNode.TextureVideo,
      TextureNode.TextureUsedFullUrl,
-     { Only TNodeMovieTexture can have IsTextureVideo }
-     TextureNode as TNodeMovieTexture,
+     TextureVideoReference.Node,
      Attributes.TextureMinFilter,
      Attributes.TextureMagFilter,
      TextureRepeatToGL[TextureNode.RepeatS],
@@ -3815,7 +3920,8 @@ var
         AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
 
         EnableClassicTexturing(
-          TexVideoReference^.GLVideo.GLTextureFromTime(WorldTime));
+          TexVideoReference^.GLVideo.GLTextureFromTime(
+            TexVideoReference^.Node.ElapsedTime));
 
         Render_TexCoordsNeeded := true;
         Success := true;

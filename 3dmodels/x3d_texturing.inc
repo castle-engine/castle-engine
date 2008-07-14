@@ -289,6 +289,7 @@
 
       @groupBegin }
     IsActive: boolean;
+    IsPaused: boolean;
     ElapsedTime: TKamTime;
     { @groupEnd }
 

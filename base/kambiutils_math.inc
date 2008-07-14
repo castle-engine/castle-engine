@@ -385,6 +385,20 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
   (without floating-point help). }
 function CeilDiv(const A, B: Cardinal): Cardinal;
 
+{ Calculate integer division and modulo on two float arguments.
+  Current implementation assumes that A >= 0 and B > 0
+  (so Result is always >= 0).
+
+  Tries to secure against floating point imprecision.
+  It's always guaranteed that Remainder >= 0 and <= B (and usually should be
+  < B, but this cannot be guaranteed). }
+procedure FloatDivMod(const A, B: Double;
+  out DivResult: Integer; out Remainder: Double);
+
+{ Calculate float modulo of division on two float arguments.
+  See FloatDivMod for more comments. }
+function FloatModulo(const A, B: Double): Double;
+
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
 procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
@@ -722,6 +736,38 @@ begin
   if ModResult = 0 then
     Result := DivResult else
     Result := DivResult + 1;
+end;
+
+procedure FloatDivMod(const A, B: Double;
+  out DivResult: Integer; out Remainder: Double);
+begin
+  DivResult := Trunc(A / B);
+  Remainder := A - B * DivResult;
+  { Now the tricks to make this (somewhat) more numerically stable,
+    i.e. resistant to tricky cases without unprecise floating-point
+    calculation. }
+  if Remainder < 0 then
+    Remainder := 0 else
+  if Remainder >= B then
+  begin
+    Remainder -= B;
+    Inc(DivResult);
+
+    { Mathematically, we could do above two lines in a loop
+      "while Remainder >= A", but this could loop (practically)
+      forever for very small (or zero) B.
+
+      Instead we just clamp Remainder to [0, B] once again,the hard way. }
+
+    Clamp(Remainder, 0, B);
+  end;
+end;
+
+function FloatModulo(const A, B: Double): Double;
+var
+  DivResult: Integer;
+begin
+  FloatDivMod(A, B, DivResult, Result);
 end;
 
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double);
