@@ -796,7 +796,16 @@ type
 
   TTextureVideoCache = record
     FullUrl: string;
-    Node: TNodeMovieTexture;
+
+    { This is only the first TNodeMovieTexture node, that initiated this
+      TTextureVideoCache item. Note that many TNodeMovieTexture nodes
+      may correspond to a single TTextureVideoCache (since TTextureVideoCache
+      only tries to share TGLVideo between them, they don't have to share
+      other fields like current time etc.). So this may help during
+      _IncReference, but nothing more --- it's *not* an exhaustive list
+      of MovieTexture nodes related to this video texture! }
+    InitialNode: TNodeMovieTexture;
+
     MinFilter: TGLint;
     MagFilter: TGLint;
     WrapS: TGLenum;
@@ -1608,10 +1617,12 @@ begin
 
       {$ifdef LOG_TIME_DEPENDENT_NODES}
       if Log then
-        WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s',
+        WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
           [ MovieTexture.NodeTypeName,
             BoolToStr[MovieTexture.IsActive],
-            BoolToStr[MovieTexture.IsPaused]]));
+            BoolToStr[MovieTexture.IsPaused],
+            BoolToStr[MovieTexture.FdLoop.Value]
+            ]));
       {$endif}
 
       if not MovieTexture.IsActive then
@@ -1965,7 +1976,7 @@ begin
 
     if ( ( (TextureFullUrl <> '') and
            (TextureCached^.FullUrl = TextureFullUrl) ) or
-         (TextureCached^.Node = TextureNode) ) and
+         (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
@@ -1993,7 +2004,7 @@ begin
   TextureVideoCaches.IncLength;
   TextureCached := TextureVideoCaches.Pointers[TextureVideoCaches.High];
   TextureCached^.FullUrl := TextureFullUrl;
-  TextureCached^.Node := TextureNode;
+  TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
   TextureCached^.WrapS := TextureWrapS;
@@ -2001,8 +2012,6 @@ begin
   TextureCached^.ColorModulator := TextureColorModulator;
   TextureCached^.References := 1;
   TextureCached^.GLVideo := Result;
-
-  TimeDependentNodes.Add(TextureNode);
 
   { calculate and save AlphaChannelType in the cache }
   TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(5, 0.1);
@@ -2033,7 +2042,6 @@ begin
       {$endif}
       if TextureVideoCaches.Items[I].References = 0 then
       begin
-        TimeDependentNodes.Delete(TextureVideoCaches.Items[I].Node);
         FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
         TextureVideoCaches.Delete(I, 1);
       end;
@@ -3248,6 +3256,7 @@ begin
      TextureVideoReference.AlphaChannelType);
 
    TextureVideoReferences.AppendItem(TextureVideoReference);
+   TimeDependentNodes.Add(TextureNode);
   end;
  end;
 
@@ -3277,6 +3286,7 @@ begin
    begin
      Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
      TextureVideoReferences.Delete(i, 1);
+     TimeDependentNodes.Delete(Node);
    end;
  end;
 
@@ -3324,7 +3334,10 @@ begin
   TextureImageReferences.SetLength(0);
 
   for i := 0 to TextureVideoReferences.Count-1 do
+  begin
     Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
+    TimeDependentNodes.Delete(TextureVideoReferences.Items[I].Node);
+  end;
   TextureVideoReferences.SetLength(0);
 
   { unprepare all GLSLPrograms }
