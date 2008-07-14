@@ -227,6 +227,8 @@
   end;
 
   TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
+  private
+    FCycleInterval: TKamTime;
   protected
     procedure LoadTextureData(out CacheUsed: boolean); override;
   public
@@ -277,6 +279,30 @@
     public property EventisPaused: TVRMLEvent read FEventisPaused;
 
     function TextureDescription: string; override;
+
+    { These describe current state of this TNodeMovieTexture,
+      see X3D specification about "Time" component.
+
+      In the future, they will be something more complex then simple
+      fields, and their setting will cause appropriate events to
+      be generated.
+
+      @groupBegin }
+    IsActive: boolean;
+    ElapsedTime: TKamTime;
+    { @groupEnd }
+
+    { Cycle interval for this time-dependent node,
+      initialized from loaded video length.
+      So it's automatically initialized when you call IsTextureVideo,
+      TextureVideo methods.
+
+      This is not reset when video is freed (like when you set
+      IsTextureLoaded to @false, maybe implicitly by calling
+      TVRMLFlatScene.FreeResources with frTextureDataInNodes).
+      This way this is available even you freed the texture video data to
+      save memory. }
+    property CycleInterval: TKamTime read FCycleInterval;
   end;
 
   TNodeMultiTexture = class(TNodeX3DTextureNode)
@@ -767,6 +793,7 @@ begin
       { it loading succeded, set CacheUsed and others and break. }
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
+      FCycleInterval := FTextureVideo.TimeDuration;
       Break;
     except
       on E: Exception do

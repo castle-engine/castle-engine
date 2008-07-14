@@ -33,14 +33,11 @@ uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL;
 
-type
-  TWorldTime = Float;
-
 var
   Video: TVideo;
   VideoFileName: string;
 
-  WorldTime: TWorldTime;
+  WorldTime: TKamTime;
   TimePlaying: boolean = true;
 
   StatusFont: TGLBitmapFont;

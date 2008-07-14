@@ -34,6 +34,41 @@ uses
   {$endif}
   SysUtils, KambiUtils, Math;
 
+type
+  { Time in seconds. This is used throughout my engine to represent time
+    as a floating-point value with good accuracy in seconds.
+    In particular, for VRML / X3D time-dependent nodes.
+
+    Implementation notes, about the choice of precision:
+
+    @unorderedList(
+      @item("Single" precision is sometimes @italic(not) enough for this.
+        Proof: open rotate.kanim (from kambi_vrml_test_suite).
+        Change "on display" time pass to 1000, wait a couple seconds
+        (world time will reach a couple of thousands),
+        change "on display" time pass back to 1.
+        Result: with time as Single, animation becomes jagged.
+        Reason: the precision loss of Single time, and the fact that
+        Draw is not called all the time (because AutoRedisplay is false,
+        and model is in Examine mode and is still (not rotating)),
+        so incrementation steps of AnimationTime are very very small.
+
+        Setting AutoRedisplay to true workarounds the problem too, but that's
+        1. unacceptable to eat 100% CPU without a reason for utility like
+        view3dscene 2. that's asking for trouble, after all even with
+        AutoRedisplay = true the precision loss is there, it's just not
+        noticeable... using better precision feels much safer.)
+
+      @item(For X3D, SFTime has "Double" precision.
+        Also "The Castle" and "The Rift" prooved it's enough in practice.
+
+        I could have choosen Extended here,
+        but for X3D sake (to avoid unnecessary floating-point convertions
+        all around), let's stick to Double for now.)
+    )
+  }
+  TKamTime = Double;
+
 procedure Delay(MiliSec: Word); {nie robiac Process messages}
 
 type

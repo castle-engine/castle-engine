@@ -335,7 +335,8 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, ImagesCache, GLShaders, GLImages, Videos;
+  VRMLErrors, ImagesCache, GLShaders, GLImages, Videos,
+  KambiTimeUtils;
 
 {$define read_interface}
 
@@ -795,7 +796,7 @@ type
 
   TTextureVideoCache = record
     FullUrl: string;
-    Node: TVRMLTextureNode;
+    Node: TNodeMovieTexture;
     MinFilter: TGLint;
     MagFilter: TGLint;
     WrapS: TGLenum;
@@ -915,7 +916,7 @@ type
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
       const TextureFullUrl: string;
-      const TextureNode: TVRMLTextureNode;
+      const TextureNode: TNodeMovieTexture;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrapS, TextureWrapT: TGLenum;
       const TextureColorModulator: TColorModulatorByteFunc;
@@ -1386,23 +1387,18 @@ const
   bmMultiTexAll = [bmMultiTexDotNotNormalized, bmMultiTexDotNormalized];
   bmGLSLAll = [bmGLSLNormal, bmGLSLParallax];
 
-type
-  { World time, used for animations.
+{ This is a world time, that is passed to time-dependent nodes.
+  See X3D specification "Time" component about time-dependent nodes.
+  In short, this "drives" the time passed to TimeSensor, MovieTexture
+  and AudioClip. See SetWorldTime for changing this.
 
-    "Single" type is sometimes *not* enough for this.
-    See view3dscene comments for TAnimationTime. }
-  TWorldTime = Float;
-
-function GetWorldTime: TWorldTime;
-procedure SetWorldTime(const Value: TWorldTime);
-
-{ This is a world time, it is passed to GLSL shaders that define
+  Also, as an extension in our engine,
+  it is passed to GLSL shaders that define
   a float/double/time uniform with a special name @code(kambi_time).
-  It's also used to play videos in MovieTexture nodes.
-
-  @italic(Note that this is, for now, somewhat "hacky" feature.)
-  In the future interface of this may change, and implementation
-  will certainly change: special uniform name will be removed from
+  In other words, GLSL shader nodes for now behave a little like
+  time-dependent nodes. That's bacause TimeSensor, routes and events are
+  not implemented yet... so we just "feed" GLSL shaders directly.
+  In the future special uniform name will be removed from
   the GLSL implementation, and the same effect will be available by routing
   VRML TimeSensor to one of ComposedShader fields. This will allow
   VRML authors to achieve the same effect by standard VRML methods.
@@ -1413,19 +1409,64 @@ procedure SetWorldTime(const Value: TWorldTime);
   time-dependent shaders.
 
   Note that for now this is a global property that controls
-  time for all GLSL shaders used in all your VRML models.
+  time for all time-dependent nodes used in all your VRML models.
   This will most probably change to something more flexible in the future
   (although greater care will have to be taken then when sharing the
-  GLSL shader among many VRML models).
+  nodes, videos in MovieTexture and GLSL shader among many VRML models).
 
   Default value is 0.0 (zero). }
-property WorldTime: TWorldTime read GetWorldTime write SetWorldTime;
+function WorldTime: TKamTime;
 
-{ This tells us whether some GLSL shaders actually used
-  the WorldTime feature. If true, then you probably want to post redisplay
-  always after changing WorldTime (see TGLWindow.PostRedisplay or even
-  TGLWindow.AutoRedisplay), since possibly shaders look different now. }
-function WorldTimeWatchersExist: boolean;
+{ This changes world time, see WorldTime.
+  It is crucial that you call this continously to have some VRML
+  time-dependent features working, like MovieTexture and time for GLSL shaders.
+  See WorldTime for details what is affected by this.
+
+  This causes time to be passed to appropriate time-dependent nodes,
+  events will be called etc. (TODO: actually, events are not implemented yet,
+  but when they are --- this will work.)
+
+  SetWorldTime and IncreaseWorldTime do exactly the same, the difference is
+  only that for IncreaseWorldTime you specify increase in the time
+  (that is, NewTime = WorldTime + TimeIncrease). Use whichever version
+  is more handy.
+
+  Following X3D specification, time should only grow. So NewValue should
+  be > WorldTime (or TimeIncrease > 0).
+  Otherwise we ignore this call (with SomethingChanged = always @false).
+  For resetting the time (when you don't necessarily want to grow WorldTime)
+  see ResetWorldTime.
+
+  SomethingChanged is set if some time-dependent node was active between
+  old WorldTime and new WorldTime. The idea is that you can use
+  SomethingChanged to decide whether the scene needs to be renderer once again.
+  When SomethingChanged = @false, you know that nothing actually happened
+  and there's no need to render again.
+  If @true, then you probably want to do something like post redisplay
+  (see TGLWindow.PostRedisplay).
+
+  @groupBegin }
+procedure SetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean);
+procedure IncreaseWorldTime(const TimeIncrease: TKamTime;
+  out SomethingChanged: boolean);
+{ @groupEnd }
+
+{ Set WorldTime to arbitrary value.
+
+  You should only use this when you loaded new VRML model.
+
+  Unlike SetWorldTime and IncreaseWorldTime, this doesn't require that
+  WorldTime grows. It still does some time-dependent events work,
+  although some time-dependent nodes may be just unconditionally reset
+  by this to starting value (as they keep local time, and so require
+  TimeIncrease notion, without it we can only reset them).
+
+  @groupBegin }
+procedure ResetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean); overload;
+procedure ResetWorldTime(const NewValue: TKamTime); overload;
+{ @groupEnd }
 
 {$undef read_interface}
 
@@ -1452,18 +1493,33 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 { WorldTime and related -------------------------------------------------- }
 
 type
-  TObjectsListItem_1 = TGLSLProgram;
+  TObjectsListItem_1 = TObject;
   {$define read_interface}
   {$I objectslist_1.inc}
   {$undef read_interface}
-
 type
-  TGLSLProgramsList = TObjectsList_1;
+  TObjectsList = TObjectsList_1;
+
+  { List of existing nodes that depend on time.
+
+    In the future, this is supposed to contain only TVRMLNode descendants
+    that implement INodeX3DTimeDependentNode interface,
+    and @bold(all) such nodes. So it will descend from TVRMLNodesList.
+
+    For now, since events/routes are not supported, this contains
+    only TNodeMovieTexture nodes (they implement INodeX3DTimeDependentNode)
+    and TGLSLProgram instances that have uniform with SUniformTimeName.
+
+    Don't place duplicates here --- for time-dependent nodes they could
+    be then incremented many times during single SetWorldTime, so their
+    local time would grow too fast. }
+  TTimeDependentNodesList = class(TObjectsList)
+  end;
 
 const
   { If a GLSL shader in X3D will have uniform with this name
     (and of type SFFloat or SFDouble or SFTime)
-    then we will use this to pass AnimationTime to the shader.
+    then we will use this to pass WorldTime to the shader.
 
     TODO: this is a hack, in the future this will be removed and
     the feature will be available using standard VRML
@@ -1473,32 +1529,92 @@ const
   SUniformTimeName = 'kambi_time';
 
 var
-  WorldTimeWatchers: TGLSLProgramsList;
-  FWorldTime: TWorldTime = 0.0;
+  TimeDependentNodes: TTimeDependentNodesList;
+  FWorldTime: TKamTime = 0.0;
 
-function GetWorldTime: TWorldTime;
+function WorldTime: TKamTime;
 begin
   Result := FWorldTime;
 end;
 
-procedure SetWorldTime(const Value: TWorldTime);
+{ TimeIncrease = 0.0 here means "TimeIncrease is unknown",
+  this can happen only when were called by ResetWorldTime.
+  In other circumstances, TimeIncrease is > 0. }
+procedure InternalSetWorldTime(const NewValue, TimeIncrease: TKamTime;
+  out SomethingChanged: boolean);
 var
   I: Integer;
   Prog: TGLSLProgram;
+  MovieTexture: TNodeMovieTexture;
 begin
-  FWorldTime := Value;
-  for I := 0 to WorldTimeWatchers.Count - 1 do
+  SomethingChanged := false;
+
+  for I := 0 to TimeDependentNodes.Count - 1 do
   begin
-    Prog := WorldTimeWatchers.Items[I];
-    Prog.Enable;
-    Prog.SetUniform(SUniformTimeName, FWorldTime);
-    Prog.Disable;
+    if TimeDependentNodes.Items[I] is TGLSLProgram then
+    begin
+      Prog := TimeDependentNodes.Items[I] as TGLSLProgram;
+      Prog.Enable;
+      Prog.SetUniform(SUniformTimeName, NewValue);
+      Prog.Disable;
+      SomethingChanged := true;
+    end else
+    if TimeDependentNodes.Items[I] is TNodeMovieTexture then
+    begin
+      MovieTexture := TimeDependentNodes.Items[I] as TNodeMovieTexture;
+      SomethingChanged := SomethingChanged or MovieTexture.IsActive;
+
+      if not MovieTexture.IsActive then
+      begin
+        { TODO: Dummy simple implementation }
+        MovieTexture.IsActive := true;
+      end else
+      begin
+      end;
+      { TODO: Dummy simple implementation }
+      if TimeIncrease = 0 then
+        MovieTexture.ElapsedTime := 0 else
+        MovieTexture.ElapsedTime := MovieTexture.ElapsedTime + TimeIncrease;
+
+      { set SomethingChanged to true if MovieTexture was active before
+        or after WorldTime change. }
+      SomethingChanged := SomethingChanged or MovieTexture.IsActive;
+    end else
+      raise EInternalError.Create('for now, only TNodeMovieTexture and TGLSLProgram should be present in TimeDependentNodes');
   end;
+
+  FWorldTime := NewValue;
 end;
 
-function WorldTimeWatchersExist: boolean;
+procedure SetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean);
+var
+  TimeIncrease: TKamTime;
 begin
-  Result := WorldTimeWatchers.Count <> 0;
+  TimeIncrease := NewValue - FWorldTime;
+  if TimeIncrease > 0 then
+    InternalSetWorldTime(NewValue, TimeIncrease, SomethingChanged);
+end;
+
+procedure IncreaseWorldTime(const TimeIncrease: TKamTime;
+  out SomethingChanged: boolean);
+begin
+  if TimeIncrease > 0 then
+    InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease, SomethingChanged);
+end;
+
+procedure ResetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean);
+begin
+  InternalSetWorldTime(NewValue, 0, SomethingChanged);
+end;
+
+procedure ResetWorldTime(const NewValue: TKamTime);
+var
+  SomethingChanged: boolean;
+begin
+  ResetWorldTime(NewValue, SomethingChanged);
+  { just ignore SomethingChanged }
 end;
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
@@ -1730,7 +1846,7 @@ end;
 function TVRMLOpenGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
-  const TextureNode: TVRMLTextureNode;
+  const TextureNode: TNodeMovieTexture;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrapS, TextureWrapT: TGLenum;
   const TextureColorModulator: TColorModulatorByteFunc;
@@ -1782,6 +1898,8 @@ begin
   TextureCached^.References := 1;
   TextureCached^.GLVideo := Result;
 
+  TimeDependentNodes.Add(TextureNode);
+
   { calculate and save AlphaChannelType in the cache }
   TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(5, 0.1);
   if Log and (TextureCached^.AlphaChannelType <> atNone)  then
@@ -1811,6 +1929,7 @@ begin
       {$endif}
       if TextureVideoCaches.Items[I].References = 0 then
       begin
+        TimeDependentNodes.Delete(TextureVideoCaches.Items[I].Node);
         FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
         TextureVideoCaches.Delete(I, 1);
       end;
@@ -1914,7 +2033,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
               if UniformField.Name = SUniformTimeName then
               begin
                 GLSLProgram.SetUniform(UniformField.Name, WorldTime);
-                WorldTimeWatchers.Add(GLSLProgram);
+                TimeDependentNodes.Add(GLSLProgram);
               end else
                 GLSLProgram.SetUniform(UniformField.Name, TSFFloat(UniformField).Value);
             end else
@@ -1924,7 +2043,7 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
               if UniformField.Name = SUniformTimeName then
               begin
                 GLSLProgram.SetUniform(UniformField.Name, WorldTime);
-                WorldTimeWatchers.Add(GLSLProgram);
+                TimeDependentNodes.Add(GLSLProgram);
               end else
                 GLSLProgram.SetUniform(UniformField.Name, TSFDouble(UniformField).Value);
             end else
@@ -2024,7 +2143,7 @@ begin
       {$endif}
       if GLSLProgramCache^.References = 0 then
       begin
-        WorldTimeWatchers.Delete(GLSLProgramCache^.GLSLProgram);
+        TimeDependentNodes.Delete(GLSLProgramCache^.GLSLProgram);
         FreeAndNil(GLSLProgramCache^.GLSLProgram);
         GLSLProgramCaches.Delete(I, 1);
       end;
@@ -3012,7 +3131,8 @@ begin
    TextureVideoReference.GLVideo := Cache.TextureVideo_IncReference(
      TextureNode.TextureVideo,
      TextureNode.TextureUsedFullUrl,
-     TextureNode,
+     { Only TNodeMovieTexture can have IsTextureVideo }
+     TextureNode as TNodeMovieTexture,
      Attributes.TextureMinFilter,
      Attributes.TextureMagFilter,
      TextureRepeatToGL[TextureNode.RepeatS],
@@ -3636,6 +3756,9 @@ var
        Attributes.EnableTextures and
        NodeTextured(Node) then
     begin
+      { TODO: don't call IsTextureImage, IsTextureVideo here --- this
+        causes reloading images/videos, nullifying FreeTextureData
+        purpose! }
       if TextureNode.IsTextureImage then
       begin
         TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
@@ -3898,7 +4021,7 @@ begin
 end;
 
 initialization
-  WorldTimeWatchers := TGLSLProgramsList.Create;
+  TimeDependentNodes := TTimeDependentNodesList.Create;
 finalization
-  FreeAndNil(WorldTimeWatchers);
+  FreeAndNil(TimeDependentNodes);
 end.
