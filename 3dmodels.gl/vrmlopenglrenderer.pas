@@ -3809,7 +3809,8 @@ var
 
       if IndexedRenderer <> nil then
         IndexedRenderer.CalculateRender_Normals;
-    end;
+    end else
+      IndexedRenderer := nil;
   end;
 
   procedure InitTextures;
