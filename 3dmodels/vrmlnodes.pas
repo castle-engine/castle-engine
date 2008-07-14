@@ -585,8 +585,8 @@ type
   TEnumerateChildrenFunction =
     procedure (Node, Child: TVRMLNode) of object;
 
-  TEnumerateRemoveNodesFunction =
-    procedure (ParentNode, Node: TVRMLNode; var RemoveNode: boolean) of object;
+  TEnumerateReplaceNodesFunction =
+    procedure (ParentNode: TVRMLNode; var Node: TVRMLNode) of object;
 
   TNewTriangleProc = procedure (const Tri: TTriangle3Single;
     State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
@@ -1366,8 +1366,8 @@ type
       Children internally, e.g. *Inline nodes. }
     class function ChildrenSaveToStream: boolean; virtual;
 
-    { This enumerates all children nodes (recursively),
-      allowing you to decide for each node to remove it.
+    { Enumerates all children nodes (recursively),
+      allowing you to decide for each node to replace or remove it.
 
       So this is something like EnumerateNodes,
       except that it allows you to remove the nodes. It always
@@ -1375,20 +1375,21 @@ type
       Switch node children, not only the chosen one).
 
       Note that (unlike regular EnumerateNodes) @bold(this doesn't
-      report Self to Func !). Which is natural, since this removes
+      report Self to Func !). Which is natural, since this may remove
       nodes by normal RemoveChild calls, so it needs to know ParentNode
       of the removed node.
 
       For each node Func will be called, with ParentNode and Node set.
-      Func will get RemoveNode boolean value initially set to @false.
-      If you change this to @true, the node will be removed.
+      If you change the Node to something else, then the old node will
+      be removed and new Node inserted in the same place.
+      If new Node is @nil, then only the old node will be removed.
 
       Nodes are traversed in depth-first search. Node is first reported
-      to Func, and then (if it's not removed) we descend into this Node.
+      to Func, and then (if it's not replaced) we descend into this Node.
 
       @returns The number of removed nodes. }
-    function EnumerateRemoveChildren(
-      Func: TEnumerateRemoveNodesFunction): Cardinal;
+    function EnumerateReplaceChildren(
+      Func: TEnumerateReplaceNodesFunction): Cardinal;
 
     { Removes all children (and their children, recursively) with
       node names matchig Wildcard. You can use * and ? special chars
@@ -1698,7 +1699,9 @@ type
       could break reference-counting of nodes by ParentFields). }
     property Items: TVRMLNodesList read FItems;
 
-    procedure AddItem(Node: TVRMLNode);
+    procedure AddItem(Node: TVRMLNode); overload;
+    procedure AddItem(Position: Integer; Node: TVRMLNode); overload;
+
     procedure RemoveItem(Index: Integer);
     { Remove child with given Index, and return it, @italic(never freeing it).
       This is analogous to TVRMLNode.ExtractChild, see there for more
@@ -4124,13 +4127,13 @@ begin
   Result := true;
 end;
 
-function TVRMLNode.EnumerateRemoveChildren(
-  Func: TEnumerateRemoveNodesFunction): Cardinal;
+function TVRMLNode.EnumerateReplaceChildren(
+  Func: TEnumerateReplaceNodesFunction): Cardinal;
 var
   I, J: Integer;
   SF: TSFNode;
   MF: TMFNode;
-  RemoveNode: boolean;
+  NewNode: TVRMLNode;
 begin
   { I don't use EnumerateNodes since I have to enumerate them myself,
     since they may be removed during enumeration.
@@ -4142,15 +4145,20 @@ begin
   I := 0;
   while I < ChildrenCount do
   begin
-    RemoveNode := false;
-    Func(Self, Children[I], RemoveNode);
-    if RemoveNode then
+    NewNode := Children[I];
+    Func(Self, NewNode);
+    if NewNode <> Children[I] then
     begin
       RemoveChild(I);
       Inc(Result);
+      if NewNode <> nil then
+      begin
+        AddChild(I, NewNode);
+        Inc(I);
+      end;
     end else
     begin
-      Result += Children[I].EnumerateRemoveChildren(Func);
+      Result += Children[I].EnumerateReplaceChildren(Func);
       Inc(I);
     end;
   end;
@@ -4162,15 +4170,15 @@ begin
       SF := TSFNode(Fields[I]);
       if SF.Value <> nil then
       begin
-        RemoveNode := false;
-        Func(Self, SF.Value, RemoveNode);
-        if RemoveNode then
+        NewNode := SF.Value;
+        Func(Self, NewNode);
+        if NewNode <> SF.Value then
         begin
-          SF.Value := nil;
+          SF.Value := NewNode;
           Inc(Result);
         end else
         begin
-          Result += SF.Value.EnumerateRemoveChildren(Func);
+          Result += SF.Value.EnumerateReplaceChildren(Func);
         end;
       end;
     end else
@@ -4180,15 +4188,20 @@ begin
       J := 0;
       while J < MF.Items.Count do
       begin
-        RemoveNode := false;
-        Func(Self, MF.Items[J], RemoveNode);
-        if RemoveNode then
+        NewNode := MF.Items[J];
+        Func(Self, NewNode);
+        if NewNode <> MF.Items[J] then
         begin
           MF.RemoveItem(J);
           Inc(Result);
+          if NewNode <> nil then
+          begin
+            MF.AddItem(J, NewNode);
+            Inc(J);
+          end;
         end else
         begin
-          Result += MF.Items[J].EnumerateRemoveChildren(Func);
+          Result += MF.Items[J].EnumerateReplaceChildren(Func);
           Inc(J);
         end;
       end;
@@ -4200,13 +4213,14 @@ end;
     TRemoveChildrenWithMatchingNameHelper = class
       Wildcard: string;
       IgnoreCase: boolean;
-      procedure DoIt(ParentNode, Node: TVRMLNode; var RemoveNode: boolean);
+      procedure DoIt(ParentNode: TVRMLNode; var Node: TVRMLNode);
     end;
 
   procedure TRemoveChildrenWithMatchingNameHelper.DoIt(
-    ParentNode, Node: TVRMLNode; var RemoveNode: boolean);
+    ParentNode: TVRMLNode; var Node: TVRMLNode);
   begin
-    RemoveNode := IsWild(Node.NodeName, Wildcard, IgnoreCase);
+    if IsWild(Node.NodeName, Wildcard, IgnoreCase) then
+      Node := nil;
   end;
 
 function TVRMLNode.RemoveChildrenWithMatchingName(
@@ -4218,7 +4232,7 @@ begin
   try
     Helper.Wildcard := Wildcard;
     Helper.IgnoreCase := IgnoreCase;
-    Result := EnumerateRemoveChildren(@Helper.DoIt);
+    Result := EnumerateReplaceChildren(@Helper.DoIt);
   finally FreeAndNil(Helper) end;
 end;
 
@@ -4710,6 +4724,12 @@ end;
 procedure TMFNode.AddItem(Node: TVRMLNode);
 begin
   Items.Add(Node);
+  Node.AddParentField(Self);
+end;
+
+procedure TMFNode.AddItem(Position: Integer; Node: TVRMLNode);
+begin
+  Items.Insert(Position, Node);
   Node.AddParentField(Self);
 end;
 
