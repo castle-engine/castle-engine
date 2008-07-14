@@ -172,6 +172,25 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  TNodeKambiInline = class(TNodeInline)
+  private
+    { This is internal only for DoReplaceNodes, initialized in AfterLoadInlined. }
+    ReplaceCount: Integer;
+    procedure DoReplaceNodes(ParentNode: TVRMLNode; var Node: TVRMLNode);
+  protected
+    procedure AfterLoadInlined; override;
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdreplaceNames: TMFString;
+    public property FdreplaceNames: TMFString read FFdreplaceNames;
+
+    private FFdreplaceNodes: TMFNode;
+    public property FdreplaceNodes: TMFNode read FFdreplaceNodes;
+  end;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -413,6 +432,71 @@ begin
   Fields.Add(FFdblendMode);
 end;
 
+constructor TNodeKambiInline.Create(const ANodeName: string; const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdreplaceNames := TMFString.Create('replaceNames', []);
+  Fields.Add(FFdreplaceNames);
+
+  FFdreplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TVRMLNode]);
+  Fields.Add(FFdreplaceNodes);
+end;
+
+class function TNodeKambiInline.ClassNodeTypeName: string;
+begin
+  Result := 'KambiInline';
+end;
+
+class function TNodeKambiInline.URNMatching(const URN: string): boolean;
+begin
+  { Don't call "inherited URNMatching(URN)", since we don't want to
+    "intercept" URNs that should indicate standard Inline node. }
+  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeKambiInline.AfterLoadInlined;
+var
+  I: Integer;
+begin
+  ReplaceCount := Min(FdreplaceNames.Count, FdreplaceNodes.Count);
+  if (FdreplaceNames.Count <> ReplaceCount) or
+     (FdreplaceNodes.Count <> ReplaceCount) then
+    VRMLNonFatalError('replaceNames and replaceNodes for KambiInline node should have the same number of items');
+
+  { After successfull loading, there's always exactly one child. }
+  Assert(ChildrenCount = 1);
+
+  { First, a special case when Children[0] node has the required name.
+    Needs to be checked explicitly, EnumerateReplaceNodes cannot check this. }
+  for I := 0 to ReplaceCount - 1 do
+    { Ignore empty names, since VRML node cannot have empty name
+      (it's only our implementation detail that we mark "noname" as empty name) }
+    if (FdReplaceNames.Items.Items[I] <> '') and
+       (FdReplaceNames.Items.Items[I] = Children[0].NodeName) then
+    begin
+      RemoveChild(0);
+      AddChild(0, FdReplaceNodes.Items[I]);
+      Exit;
+    end;
+
+  Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
+end;
+
+procedure TNodeKambiInline.DoReplaceNodes(ParentNode: TVRMLNode;
+  var Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  for I := 0 to ReplaceCount - 1 do
+    if (FdReplaceNames.Items.Items[I] <> '') and
+       (FdReplaceNames.Items.Items[I] = Node.NodeName) then
+    begin
+      Node := FdReplaceNodes.Items[I];
+      Exit;
+    end;
+end;
+
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
@@ -420,7 +504,8 @@ begin
     TNodeKambiHeadLight,
     TNodeText3D,
     TNodeBlendMode,
-    TNodeKambiAppearance
+    TNodeKambiAppearance,
+    TNodeKambiInline
   ]);
 end;
 

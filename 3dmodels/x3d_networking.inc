@@ -54,6 +54,11 @@
     IVRMLInlineNode)
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
+    { You can override this to do anything after the Inline children were
+      loaded. It's called only after actual loading occured, e.g. it's not
+      called when LoadInlined was called on the already-loaded node with
+      CanReload = @false. }
+    procedure AfterLoadInlined; virtual;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -243,7 +248,15 @@ begin
   end;
 
   if NewNode <> nil then
+  begin
     AddChild(NewNode);
+    AfterLoadInlined;
+  end;
+end;
+
+procedure TNodeInline.AfterLoadInlined;
+begin
+  { Nothing to do in this class. }
 end;
 
 procedure TNodeInline.BeforeTraverse(var State: TVRMLGraphTraverseState);
