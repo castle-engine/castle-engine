@@ -228,7 +228,7 @@
 
   TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
   private
-    FCycleInterval: TKamTime;
+    FDuration: TKamTime;
   protected
     procedure LoadTextureData(out CacheUsed: boolean); override;
   public
@@ -293,17 +293,25 @@
     ElapsedTime: TKamTime;
     { @groupEnd }
 
-    { Cycle interval for this time-dependent node,
-      initialized from loaded video length.
+    { Duration and cycle interval for this time-dependent node.
+      Duration is initialized from loaded video length (default is -1).
       So it's automatically initialized when you call IsTextureVideo,
       TextureVideo methods.
 
-      This is not reset when video is freed (like when you set
+      cycleInterval is just duration scaled by 1/Abs(speed),
+      like required by X3D spec.
+
+      Duration (and so, also cycleInterval) is not reset when video
+      is freed (like when you set
       IsTextureLoaded to @false, maybe implicitly by calling
       TVRMLFlatScene.FreeResources with frTextureDataInNodes).
       This way this is available even you freed the texture video data to
-      save memory. }
-    property CycleInterval: TKamTime read FCycleInterval;
+      save memory.
+
+      @groupBegin }
+    property Duration: TKamTime read FDuration;
+    function CycleInterval: TKamTime;
+    { @groupEnd }
   end;
 
   TNodeMultiTexture = class(TNodeX3DTextureNode)
@@ -744,6 +752,8 @@ begin
 
   FEventisPaused := TVRMLEvent.Create('isPaused', TSFBool, false);
   Events.Add(FEventisPaused);
+
+  FDuration := -1;
 end;
 
 class function TNodeMovieTexture.ClassNodeTypeName: string;
@@ -794,7 +804,7 @@ begin
       { it loading succeded, set CacheUsed and others and break. }
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
-      FCycleInterval := FTextureVideo.TimeDuration;
+      FDuration := FTextureVideo.TimeDuration;
       Break;
     except
       on E: Exception do
@@ -805,6 +815,13 @@ begin
           'video from filename "' + FullUrl + '" : ' + E.Message);
     end;
   end;
+end;
+
+function TNodeMovieTexture.CycleInterval: TKamTime;
+begin
+  if FdSpeed.Value <> 0 then
+    Result := Duration / Abs(FdSpeed.Value) else
+    Result := 0;
 end;
 
 function TNodeMovieTexture.TextureDescription: string;

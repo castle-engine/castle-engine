@@ -3831,6 +3831,7 @@ var
     Success: boolean;
     TexImageReference: PTextureImageReference;
     TexVideoReference: PTextureVideoReference;
+    VideoTime: TKamTime;
   begin
     if Attributes.PureGeometry then
     begin
@@ -3941,9 +3942,13 @@ var
 
         AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
 
+        VideoTime := TexVideoReference^.Node.ElapsedTime *
+                     TexVideoReference^.Node.FdSpeed.Value;
+        if TexVideoReference^.Node.FdSpeed.Value < 0 then
+          VideoTime := TexVideoReference^.Node.Duration + VideoTime;
+
         EnableClassicTexturing(
-          TexVideoReference^.GLVideo.GLTextureFromTime(
-            TexVideoReference^.Node.ElapsedTime));
+          TexVideoReference^.GLVideo.GLTextureFromTime(VideoTime));
 
         Render_TexCoordsNeeded := true;
         Success := true;
