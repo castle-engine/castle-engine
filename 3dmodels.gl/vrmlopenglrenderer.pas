@@ -1625,6 +1625,15 @@ begin
             ]));
       {$endif}
 
+      { For ResetWorldTime, set time-dependent node properties to default
+        (like after TNodeMovieTexture creation) at the beginning. }
+      if TimeIncrease = 0 then
+      begin
+        MovieTexture.IsActive := false;
+        MovieTexture.IsPaused := false;
+        MovieTexture.ElapsedTime := 0;
+      end;
+
       if not MovieTexture.IsActive then
       begin
         if (NewValue >= MovieTexture.FdStartTime.Value) and
