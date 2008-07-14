@@ -48,20 +48,20 @@
       Assigned here, should always have TVideo.Loaded = @true. }
     FTextureVideo: TVideo;
 
-    { Non-nil only if FTextureImage should be freed using
-      TextureImageUsedCache.LoadImage_DecReference.
-      FTextureVideo doesn't need it, it should always have
-      it's own Cache property set to this. }
-    TextureImageUsedCache: TImagesCache;
+    { Non-nil only if FTextureImage or FTextueVideo should be freed using
+      TextureDataUsedCache (LoadImage_DecReference or Video_DecReference).
+      Also loaded FTextureVideo should always have it's own Cache property set
+      to this. }
+    TextureDataUsedCache: TImagesVideosCache;
 
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
 
-    FImagesCache: TImagesCache;
+    FImagesVideosCache: TImagesVideosCache;
 
     procedure FreeAndNilTextureData;
   protected
-    { This loads texture data, actual image of video file.
+    { This loads texture data, actual image or video file.
 
       It should set either FTextureImage or FTextureVideo to something non-nil
       (don't care here about the previous value of these fields --- it's for
@@ -81,8 +81,9 @@
       If you set FTextureImage, you have to set it to TRGBImage or TAlphaImage,
       see TextureImage docs.
 
-      Set CacheUsed here. @true means you loaded the image using ImagesCache.
-      For FTextureVideo you should also set it's Cache property to ImagesCache.
+      Set CacheUsed here. @true means you loaded the data using ImagesVideosCache.
+      For FTextureVideo, it's Cache property should also be set to
+      ImagesVideosCache, this happens automatically in Video_IncReference.
 
       Also, set FTextureUsedFullUrl here.
 
@@ -109,7 +110,7 @@
       and things will just work. See IsTextureLoaded for more control
       about loading / unloading.
 
-      Be sure to set ImagesCache before loading the texture data.
+      Be sure to set ImagesVideosCache before loading the texture data.
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed with non-fatal
@@ -119,7 +120,7 @@
       Similar for IsTextureVideo.
 
       TextureImage class is always in (TRGBImage, TAlphaImage)
-      simply because only these formats are accepted by KambiGLUtils.
+      simply because only these formats are accepted by GLImages.
       TODO: this is not nice, we do not want any OpenGL dependency in this unit,
       even such "ideological" one.
 
@@ -158,10 +159,11 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    { TImagesCache instance used to load images and videos.
-      Be sure to set ImagesCache before loading the texture.
-      TODO: allow ImagesCache to be @nil. }
-    property ImagesCache: TImagesCache read FImagesCache write FImagesCache;
+    { TImagesVideosCache instance used to load images and videos.
+      Be sure to set ImagesVideosCache before loading the texture.
+      TODO: allow ImagesVideosCache to be @nil. }
+    property ImagesVideosCache: TImagesVideosCache
+      read FImagesVideosCache write FImagesVideosCache;
 
     { Short description how texture is defined, is it inline or loaded
       from URL, is it video of simple image texture.
@@ -180,9 +182,10 @@
     function RepeatS: boolean; virtual; abstract;
     function RepeatT: boolean; virtual; abstract;
 
-    { Once the image is loaded, this is set to the URL that was used to load
-      this image, or '' if no URL was used. No URL was used may mean that
-      no image was valid, or inlined image was used.
+    { Once the texture data (image or video) is loaded,
+      this is set to the URL that was used to load,
+      or '' if no URL was used. "No URL was used" may mean that
+      no URL was valid, or inlined image was used.
 
       This is always a full, expanded (i.e. not relative) URL. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
@@ -505,7 +508,7 @@ constructor TVRMLTextureNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
   inherited;
-  TextureImageUsedCache := nil;
+  TextureDataUsedCache := nil;
   FIsTextureLoaded := false;
 end;
 
@@ -519,15 +522,23 @@ procedure TVRMLTextureNode.FreeAndNilTextureData;
 begin
   if FTextureImage <> nil then
   begin
-    if TextureImageUsedCache <> nil then
+    if TextureDataUsedCache <> nil then
     begin
-      TextureImageUsedCache.LoadImage_DecReference(FTextureImage);
-      TextureImageUsedCache := nil;
+      TextureDataUsedCache.LoadImage_DecReference(FTextureImage);
+      TextureDataUsedCache := nil;
     end else
       FreeAndNil(FTextureImage);
   end;
 
-  FreeAndNil(FTextureVideo);
+  if FTextureVideo <> nil then
+  begin
+    if TextureDataUsedCache <> nil then
+    begin
+      TextureDataUsedCache.Video_DecReference(FTextureVideo);
+      TextureDataUsedCache := nil;
+    end else
+      FreeAndNil(FTextureVideo);
+  end;
 end;
 
 function TVRMLTextureNode.TextureImage: TImage;
@@ -564,13 +575,13 @@ procedure TVRMLTextureNode.SetIsTextureLoaded(Value: boolean);
   var
     UsedCache: boolean;
   begin
-    Assert(ImagesCache <> nil, 'ImagesCache must be set before loading the texture');
+    Assert(ImagesVideosCache <> nil, 'ImagesVideosCache must be set before loading the texture');
 
     FreeAndNilTextureData;
 
     LoadTextureData(UsedCache);
     if UsedCache then
-      TextureImageUsedCache := ImagesCache;
+      TextureDataUsedCache := ImagesVideosCache;
   end;
 
 begin
@@ -684,7 +695,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      FTextureImage := ImagesCache.LoadImage_IncReference(FullUrl);
+      FTextureImage := ImagesVideosCache.LoadImage_IncReference(FullUrl);
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       Break;
@@ -789,17 +800,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      FTextureVideo := TVideo.Create;
-      FTextureVideo.Cache := ImagesCache;
-
-      try
-        FTextureVideo.LoadFromFile(FullUrl);
-      except
-        { If loading causes an exception, just set FTextureVideo to @nil.
-          We don't want to keep FTextureVideo assigned but not loaded. }
-        FreeAndNil(FTextureVideo);
-        raise;
-      end;
+      FTextureVideo := ImagesVideosCache.Video_IncReference(FullUrl);
 
       { it loading succeded, set CacheUsed and others and break. }
       CacheUsed := true;

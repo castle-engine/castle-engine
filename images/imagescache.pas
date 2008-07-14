@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ TImagesCache class. }
+{ TImagesCache class --- a cache for loading images. }
 unit ImagesCache;
 
 interface

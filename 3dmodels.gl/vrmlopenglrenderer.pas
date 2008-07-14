@@ -335,7 +335,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLU, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3d, OpenGLTTFonts, Images,
   OpenGLFonts, KambiGLUtils, VRMLLightSetGL, TTFontsTypes,
-  VRMLErrors, ImagesCache, GLShaders, GLImages, Videos,
+  VRMLErrors, VideosCache, GLShaders, GLImages, Videos,
   KambiTimeUtils;
 
 {$define read_interface}
@@ -899,7 +899,7 @@ type
     Instance of this class is tied to particular OpenGL context if and only if
     there are some TVRMLOpenGLRenderer instances using this cache and
     tied to that OpenGL context. }
-  TVRMLOpenGLRendererContextCache = class(TImagesCache)
+  TVRMLOpenGLRendererContextCache = class(TImagesVideosCache)
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TDynTextureImageCacheArray;
@@ -3155,7 +3155,7 @@ begin
     (TextureImageReferences.TextureNodeIndex(TextureNode) = -1) and
     (TextureVideoReferences.TextureNodeIndex(TextureNode) = -1) then
  begin
-  TextureNode.ImagesCache := Cache;
+  TextureNode.ImagesVideosCache := Cache;
 
   if TextureNode.IsTextureImage then
   begin
@@ -3186,7 +3186,7 @@ begin
       (State.ParentShape <> nil) and
       (State.ParentShape.NormalMap <> nil) then
    begin
-     State.ParentShape.NormalMap.ImagesCache := Cache;
+     State.ParentShape.NormalMap.ImagesVideosCache := Cache;
      if State.ParentShape.NormalMap.IsTextureImage then
      begin
        { TODO: normal map textures should be shared by Cache }
@@ -3203,7 +3203,7 @@ begin
       (State.ParentShape <> nil) and
       (State.ParentShape.HeightMap <> nil) then
    begin
-     State.ParentShape.HeightMap.ImagesCache := Cache;
+     State.ParentShape.HeightMap.ImagesVideosCache := Cache;
      if State.ParentShape.HeightMap.IsTextureImage then
      begin
        { TODO: height map textures should be shared by Cache }
