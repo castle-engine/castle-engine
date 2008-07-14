@@ -1375,7 +1375,7 @@ type
           (passed to @link(Prepare) method along with some state,
           as State.Texture),)
         @item(Attributes.PureGeometry = @false,)
-        @item(and node must have some image
+        @item(and node must have some texture data
           (check TextureNode.IsTextureImage or TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
@@ -3884,18 +3884,19 @@ var
        Attributes.EnableTextures and
        NodeTextured(Node) then
     begin
-      { TODO: don't call IsTextureImage, IsTextureVideo here --- this
-        causes reloading images/videos, nullifying FreeTextureData
-        purpose! }
-      if TextureNode.IsTextureImage then
-      begin
-        TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
-          TextureNode);
-        Assert(TextureReferencesIndex <> -1,
-          'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
-          'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
-          'You must call TVRMLOpenGLRenderer.Prepare first');
+      { Note: don't call IsTextureImage, IsTextureVideo here --- this
+        would causes reloading images/videos, nullifying
+        TVRMLFlatScene.FreeResouces([frTextureDataInNodes]) purpose.
 
+        Actually, it would be safe to call this for non-MovieTexture nodes,
+        as they should be prepared to display lists before doing
+        FreeResources. But for MovieTexture nodes it's forbidden,
+        as it's called at every frame render. }
+
+      TextureReferencesIndex := TextureImageReferences.TextureNodeIndex(
+        TextureNode);
+      if TextureReferencesIndex <> -1 then
+      begin
         TexImageReference := TextureImageReferences.Pointers[
           TextureReferencesIndex];
 
@@ -3929,29 +3930,26 @@ var
         Render_TexCoordsNeeded := true;
         Success := true;
       end else
-      if TextureNode.IsTextureVideo then
       begin
         TextureReferencesIndex := TextureVideoReferences.TextureNodeIndex(
           TextureNode);
-        Assert(TextureReferencesIndex <> -1,
-          'You''re calling TVRMLOpenGLRenderer.Render with a State ' +
-          'that was not passed to TVRMLOpenGLRenderer.Prepare. ' +
-          'You must call TVRMLOpenGLRenderer.Prepare first');
+        if TextureReferencesIndex <> -1 then
+        begin
+          TexVideoReference := TextureVideoReferences.Pointers[TextureReferencesIndex];
 
-        TexVideoReference := TextureVideoReferences.Pointers[TextureReferencesIndex];
+          AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
 
-        AlphaTest := TexVideoReference^.AlphaChannelType = atSimpleYesNo;
+          VideoTime := TexVideoReference^.Node.ElapsedTime *
+                       TexVideoReference^.Node.FdSpeed.Value;
+          if TexVideoReference^.Node.FdSpeed.Value < 0 then
+            VideoTime := TexVideoReference^.Node.Duration + VideoTime;
 
-        VideoTime := TexVideoReference^.Node.ElapsedTime *
-                     TexVideoReference^.Node.FdSpeed.Value;
-        if TexVideoReference^.Node.FdSpeed.Value < 0 then
-          VideoTime := TexVideoReference^.Node.Duration + VideoTime;
+          EnableClassicTexturing(
+            TexVideoReference^.GLVideo.GLTextureFromTime(VideoTime));
 
-        EnableClassicTexturing(
-          TexVideoReference^.GLVideo.GLTextureFromTime(VideoTime));
-
-        Render_TexCoordsNeeded := true;
-        Success := true;
+          Render_TexCoordsNeeded := true;
+          Success := true;
+        end;
       end;
     end;
 
