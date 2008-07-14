@@ -35,16 +35,16 @@ type
   TVRMLShapeStateValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere);
+    svBoundingSphere, svEnableDisplayList);
 
   { This class represents a pair of objects: @link(GeometryNode) and
     @link(State). It allows to perform some operations that need
     to know both things.
 
-    This class caches results of methods [Local]BoundingBox,
-    VerticesCount and TrianglesCount. This means that things work fast,
-    but this also means that you must manually call
-    @link(Changed)
+    This class caches results of methods LocalBoundingBox, BoundingBox,
+    and most others (see TVRMLShapeStateValidities for hints).
+    This means that things work fast, but this also means that
+    you must manually call @link(Changed)
     when you changed some properties of GeometryNode or contents of State.
 
     But note that you can't change GeometryNode or State to different
@@ -66,6 +66,7 @@ type
     FState: TVRMLGraphTraverseState;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
+    FEnableDisplayList: boolean;
 
     procedure ValidateBoundingSphere;
   public
@@ -96,6 +97,16 @@ type
       if Box is empty. }
     function BoundingSphereCenter: TVector3Single;
     function BoundingSphereRadiusSqr: Single;
+
+    { This is an information for the TVRMLFlatSceneGL renderer
+      whether this can be stored in a display list.
+
+      If @false then rendering of this shapestate cannot be stored
+      inside a display list, it must be passed to TVRMLOpenGLRenderer
+      in each frame. This is basically a hack to render some nodes that
+      change too dynamically to store them in display list.
+      For now, it's forced to @false on nodes using MovieTexture. }
+    function EnableDisplayList: boolean;
 
     { This is exactly equivalent to getting
       @link(BoundingSphereCenter) and @link(BoundingSphereRadiusSqr)
@@ -202,6 +213,13 @@ begin
   PRECALC_VALUE_RETURN
  end;
 end;
+
+function TVRMLShapeState.EnableDisplayList: boolean;
+{$define PRECALC_VALUE_ENUM := svEnableDisplayList}
+{$define PRECALC_VALUE := FEnableDisplayList}
+{$define PRECALC_VALUE_CALCULATE :=
+  (not (State.Texture is TNodeMovieTexture))}
+PRECALC_VALUE_RETURN
 
 procedure TVRMLShapeState.Changed;
 begin

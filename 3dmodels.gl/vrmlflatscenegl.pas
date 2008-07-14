@@ -1792,12 +1792,18 @@ var
 begin
   Renderer.Prepare(ShapeStates[ShapeStateNum].State);
 
-  if not Renderer.Cache.ShapeState_IncReference_Existing(
-    Attributes,
-    ShapeStates[ShapeStateNum].GeometryNode,
-    ShapeStates[ShapeStateNum].State,
-    FogNode, FogDistanceScaling,
-    SSSX_DisplayLists.Items[ShapeStateNum]) then
+  { We check EnableDisplayList, not only to avoid creating display list
+    when not needed, but also to cache EnableDisplayList result
+    inside TVRMLShapeState --- otherwise after FreeResources([frRootNode])
+    calling EnableDisplayList would be dangerous. }
+
+  if ShapeStates[ShapeStateNum].EnableDisplayList and
+     (not Renderer.Cache.ShapeState_IncReference_Existing(
+       Attributes,
+       ShapeStates[ShapeStateNum].GeometryNode,
+       ShapeStates[ShapeStateNum].State,
+       FogNode, FogDistanceScaling,
+       SSSX_DisplayLists.Items[ShapeStateNum])) then
   begin
     SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSS_PrepareShapeState');
@@ -1835,9 +1841,16 @@ end;
 procedure TVRMLFlatSceneGL.SSS_RenderShapeState(
   ShapeStateNum: Integer);
 begin
-  if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
-    SSS_PrepareShapeState(ShapeStateNum);
-  glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+  if ShapeStates[ShapeStateNum].EnableDisplayList then
+  begin
+    if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+      SSS_PrepareShapeState(ShapeStateNum);
+    glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+  end else
+  begin
+    Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    RenderShapeStateSimple(ShapeStateNum);
+  end;
 end;
 
 procedure TVRMLFlatSceneGL.SSSNT_PrepareShapeState(
@@ -1848,12 +1861,13 @@ var
 begin
   Renderer.Prepare(ShapeStates[ShapeStateNum].State);
 
-  if not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
-    Attributes,
-    ShapeStates[ShapeStateNum].GeometryNode,
-    ShapeStates[ShapeStateNum].State,
-    FogNode, FogDistanceScaling,
-    SSSX_DisplayLists.Items[ShapeStateNum]) then
+  if ShapeStates[ShapeStateNum].EnableDisplayList and
+     (not Renderer.Cache.ShapeStateNoTransform_IncReference_Existing(
+       Attributes,
+       ShapeStates[ShapeStateNum].GeometryNode,
+       ShapeStates[ShapeStateNum].State,
+       FogNode, FogDistanceScaling,
+       SSSX_DisplayLists.Items[ShapeStateNum])) then
   begin
     SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
       'TVRMLFlatSceneGL.SSSNT_PrepareShapeState');
@@ -1893,18 +1907,25 @@ end;
 procedure TVRMLFlatSceneGL.SSSNT_RenderShapeState(
   ShapeStateNum: Integer);
 begin
-  if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
-    SSSNT_PrepareShapeState(ShapeStateNum);
+  if ShapeStates[ShapeStateNum].EnableDisplayList then
+  begin
+    if SSSX_DisplayLists.Items[ShapeStateNum] = 0 then
+      SSSNT_PrepareShapeState(ShapeStateNum);
 
-  Renderer.RenderShapeStateBegin(
-    ShapeStates[ShapeStateNum].GeometryNode,
-    ShapeStates[ShapeStateNum].State);
-  try
-    glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
-  finally
-    Renderer.RenderShapeStateEnd(
+    Renderer.RenderShapeStateBegin(
       ShapeStates[ShapeStateNum].GeometryNode,
       ShapeStates[ShapeStateNum].State);
+    try
+      glCallList(SSSX_DisplayLists.Items[ShapeStateNum]);
+    finally
+      Renderer.RenderShapeStateEnd(
+        ShapeStates[ShapeStateNum].GeometryNode,
+        ShapeStates[ShapeStateNum].State);
+    end;
+  end else
+  begin
+    Assert(SSSX_DisplayLists.Items[ShapeStateNum] = 0);
+    RenderShapeStateSimple(ShapeStateNum);
   end;
 end;
 

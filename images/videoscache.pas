@@ -111,7 +111,7 @@ uses SysUtils, KambiStringUtils;
 {$define read_implementation}
 {$I dynarray_1.inc}
 
-{$define DEBUG_CACHE}
+{ $define DEBUG_CACHE}
 
 constructor TImagesVideosCache.Create;
 begin

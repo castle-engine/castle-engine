@@ -36,6 +36,13 @@ type
       of the @link(TVRMLFlatSceneGL.Render) method with a parameter <> @nil.
       That's because the scene will always be rendered fully to OpenGL.
 
+      Also, this is not good if some parts of the scene cannot be put
+      on display list. This concerns things with TVRMLShapeState.EnableDisplayList
+      = @false, which currently means only MovieTexture nodes.
+      TODO: we should fallback to roSeparateShapeStates automatically in such
+      cases. For now, this will result in MovieTexture nodes being static
+      (i.e. movie will not play).
+
       If the scene is static but user usually only looks at some small
       part of it, then building octree for the scene and using
       roSeparateShapeStates and @link(TVRMLFlatSceneGL.RenderFrustumOctree)
