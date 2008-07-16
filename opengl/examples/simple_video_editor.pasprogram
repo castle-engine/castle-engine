@@ -31,7 +31,8 @@ program simple_video_editor;
 uses KambiUtils, SysUtils, GLWindow, GLW_Demo, GL, GLU, GLExt, GLImages,
   ImagesCache, Videos, KambiStringUtils, GLWinMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
-  KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL;
+  KambiGLUtils, VectorMath, Classes, ProgressUnit, ProgressGL,
+  KambiTimeUtils;
 
 var
   Video: TVideo;

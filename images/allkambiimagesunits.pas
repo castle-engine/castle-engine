@@ -16,7 +16,9 @@ uses
   kambipasjpeg_error_mgrs,
   kambipasjpeg_stream_mgrs,
   kambipng,
-  kambipngutils
+  kambipngutils,
+  videos,
+  videoscache
   ;
 
 implementation

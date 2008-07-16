@@ -109,6 +109,8 @@ D   kambipasjpeg.pas
 D   kambipasjpeg_stream_mgrs.pas
 -   kambipng.pas
 D   kambipngutils.pas
+D   videos.pas
+D   videoscache.pas
 
   opengl/
 D   windows/glwindowwinapimenu.pas
