@@ -97,12 +97,16 @@ type
       FrontFaceCcw says what is "front face".
 
       You can set these only in your constructor.
+      By default, both are false, unless the Geometry is of
+      X3DComposedGeometryNode type, then we use X3DComposedGeometryNode
+      solid/ccw fields. So for X3DComposedGeometryNode it's already handled
+      here -- it's set, and handled during Render.
 
       (In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
       However, in some subclasses, FrontFaceCcw is also used to denote
       "from which side of the face user-supplied normals point".
-      So  FrontFaceCcw says from which face side normals in VRML file point out,
-      and which faces should be culled if CullBackFaces.
+      So FrontFaceCcw says from which face side normals in VRML file point out,
+      and which faces should be culled if CullBackFaces.)
 
       Note that we *do not* implement these by glFrontFace, we do a little
       more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
@@ -333,6 +337,12 @@ begin
   FState := Renderer.Render_State;
   FGeometry := Renderer.Render_Node;
   FAttributes := Renderer.Attributes;
+
+  if Geometry is TNodeX3DComposedGeometryNode then
+  begin
+    CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
+    FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+  end;
 end;
 
 procedure TVRMLMeshRenderer.DoBeforeGLVertex(const Vert: TVector3Single);

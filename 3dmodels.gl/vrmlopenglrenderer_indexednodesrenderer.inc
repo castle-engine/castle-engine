@@ -1345,8 +1345,6 @@ begin
 
   MaterialBinding := BIND_DEFAULT;
 
-  FrontFaceCcw := ANode.FdCcw.Value;
-  CullBackFaces := ANode.FdSolid.Value;
   CreaseAngle := ANode.FdCreaseAngle.Value;
   FaceConvex := ANode.FdConvex.Value;
 
