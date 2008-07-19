@@ -379,12 +379,17 @@ var MatPerPart: boolean;
    if MatPerPart then Renderer.Render_BindMaterial_1(MatNum);
   end;
 
-{$define DetailX:=(State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailY:=(State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailZ:=(State.LastNodes.KambiTriangulation.RectDivisions)}
-
-var x1, y1, z1, x2, y2, z2: TGLfloat;
+var
+  x1, y1, z1, x2, y2, z2: TGLfloat;
+  DetailX, DetailY, DetailZ: Cardinal;
 begin
+ { Currently, all three Detail* used are always equal.
+   Although the code is written to support different Detail* values,
+   just in case in the future it will be useful. }
+ DetailX := State.LastNodes.KambiTriangulation.RectDivisions;
+ DetailY := DetailX;
+ DetailZ := DetailX;
+ 
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
@@ -417,10 +422,6 @@ begin
  DrawGLPlaneSpecialTex(x1, y1, x2, y2, z1, 2, DetailX, DetailY, false, 1, 0, 0, 1, true);
  PartMat(0);
  DrawGLPlaneSpecialTex(x1, y1, x2, y2, z2, 2, DetailX, DetailY, true,  0, 0, 1, 1, true);
-
- {$undef DetailX}
- {$undef DetailY}
- {$undef DetailZ}
 end;
 
 procedure TCube_1Renderer.DoRender;
