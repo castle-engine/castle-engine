@@ -24,8 +24,6 @@
     (so using GLU utils is not possible, or DrawGLPlane...,
     or text display lists... this will be difficult to implement
     without wasting resources)
-  - should use CullBackFaces mechanism from TVRMLMeshRenderer
-    to cull back faces.
 }
 
 type
@@ -401,6 +399,10 @@ begin
   nie gwarantuje jak beda nakladane wspolrzedne tekstury.
   To co jest ponizej to po prostu implementacja drawGLBox z tymi dodatkami.}
 
+ { Thanks to using ConstCoordGivesNormal1 parameter, we generate correct
+   normals pointing out from CCW. Also, they point outside, so we can
+   do back-face culling with "solid" X3D field. }
+
  PartMat(2);
  DrawGLPlaneSpecialTex(y1, z1, y2, z2, x1, 0, DetailY, DetailZ, false, 0, 0, 1, 1, false);
  PartMat(3);
@@ -437,11 +439,8 @@ begin
 
   Node := Geometry as TNodeBox;
 
-  { TODO: render it such that outside is always CCW (maybe it's already done?),
-    then this can be uncommented:
   CullBackFaces := Node.FdSolid.Value;
   FrontFaceCcw := true;
-  }
 end;
 
 procedure TBoxRenderer.DoRender;
