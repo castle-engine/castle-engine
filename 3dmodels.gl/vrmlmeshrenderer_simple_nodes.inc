@@ -53,6 +53,8 @@ type
   TText3DRenderer = class(TAbstractTextRenderer)
   protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TAbstractBoxRenderer = class(TVRMLMeshRenderer)
@@ -313,6 +315,19 @@ begin
   RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
 end;
 
+constructor TText3DRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeText3D;
+begin
+  inherited;
+
+  Node := Geometry as TNodeText3D;
+
+  CullBackFaces := Node.FdSolid.Value;
+  { We don't set here FrontFaceCcw, it doesn't matter, we will
+    set glCullFace ourselves anyway. }
+end;
+
 procedure TText3DRenderer.DoRender;
 var
   Size, Spacing: Single;
@@ -342,19 +357,8 @@ begin
       Node.FontStyle.Italic].Instance;
   end;
 
-  if Node.FdSolid.Value then
-  begin
-    glPushAttrib(GL_POLYGON_BIT);
-    glEnable(GL_CULL_FACE);
-  end;
-
   RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
     Node.FdDepth.Value, Node.FdSolid.Value);
-
-  if Node.FdSolid.Value then
-  begin
-    glPopAttrib;
-  end;
 end;
 
 { Box ------------------------------------------------------------------------ }
