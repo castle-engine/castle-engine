@@ -70,6 +70,8 @@ type
   TBoxRenderer = class(TAbstractBoxRenderer)
   protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   { Common class for quadric rendering, with some helper methods/properties. }
@@ -101,6 +103,8 @@ type
   TCone_2Renderer = class(TConeRenderer)
   protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TCylinderRenderer = class(TQuadricRenderer)
@@ -118,6 +122,8 @@ type
   TCylinder_2Renderer = class(TCylinderRenderer)
   protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TSphereRenderer = class(TQuadricRenderer)
@@ -134,6 +140,8 @@ type
   TSphere_2Renderer = class(TSphereRenderer)
   protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
 { Text ----------------------------------------------------------------------- }
@@ -312,6 +320,8 @@ begin
       Node.FontStyle.Italic].Instance;
   end;
 
+  { TODO: this also has "solid" field, use! }
+
   RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
 end;
 
@@ -380,7 +390,7 @@ begin
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
-  Renderer.Render_BindMaterial_1(0); {use first material fot the whole cube}
+  Renderer.Render_BindMaterial_1(0); {use first material for the whole cube}
 
  x2 := SizeX / 2; x1 := -x2;
  y2 := SizeY / 2; y1 := -y2;
@@ -419,6 +429,21 @@ begin
   RenderBox(Node.FdWidth.Value, Node.FdHeight.Value, Node.FdDepth.Value);
 end;
 
+constructor TBoxRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeBox;
+begin
+  inherited;
+
+  Node := Geometry as TNodeBox;
+
+  { TODO: render it such that outside is always CCW (maybe it's already done?),
+    then this can be uncommented:
+  CullBackFaces := Node.FdSolid.Value;
+  FrontFaceCcw := true;
+  }
+end;
+
 procedure TBoxRenderer.DoRender;
 var
   Node: TNodeBox;
@@ -439,14 +464,35 @@ end;
 procedure TQuadricRenderer.RenderBottomDisk(
   q: PGLuQuadric; radius: TGLdouble);
 begin
-  if Renderer.Render_TexCoordsNeeded then
-  begin
-    glPushMatrix;
+  { The rotation is needed
+    - for proper texture coordinates (these are actually only needed
+      when Renderer.Render_TexCoordsNeeded)
+    - also, so that "solid" field makes outside visible, inside invisible.
+      (only when "solid" = @true).
+
+    So we could avoid this glPushMatrix and glRotate in special cases,
+    but it's not worth the trouble. (and in 99% cases solid = TRUE).
+  }
+
+  glPushMatrix;
     glRotatef(180, 1, 0, 0);
-  end;
-  gluDisk(q, 0, radius, QuadricSlices, 1);
-  if Renderer.Render_TexCoordsNeeded then glPopMatrix;
+    gluDisk(q, 0, radius, QuadricSlices, 1);
+  glPopMatrix;
 end;
+
+{ For all quadrics with "solid" field:
+
+  OpenGL quadrics documentation (e.g.
+  [http://glprogramming.com/red/chapter11.html]) says that
+  - the polygons are drawn in a counterclockwise fashion with
+    respect to their normals
+  - orientation is either GLU_OUTSIDE (the default) or GLU_INSIDE,
+    which controls the direction in which normals are pointing.
+    (we always use GLU_OUTSIDE).
+
+  This means that to implement "solid" field, we just set
+  CullBackFaces and FrontFaceCcw to true, and everything will work Ok!
+}
 
 { Cone ----------------------------------------------------------------------- }
 
@@ -489,6 +535,18 @@ begin
     Node.FdHeight.Value,
     Node.FdParts.Flags[CONE_PARTS_SIDES],
     Node.FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+constructor TCone_2Renderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeCone_2;
+begin
+  inherited;
+
+  Node := Geometry as TNodeCone_2;
+
+  CullBackFaces := Node.FdSolid.Value;
+  FrontFaceCcw := true;
 end;
 
 procedure TCone_2Renderer.DoRender;
@@ -559,6 +617,18 @@ begin
     Node.FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
+constructor TCylinder_2Renderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeCylinder_2;
+begin
+  inherited;
+
+  Node := Geometry as TNodeCylinder_2;
+
+  CullBackFaces := Node.FdSolid.Value;
+  FrontFaceCcw := true;
+end;
+
 procedure TCylinder_2Renderer.DoRender;
 var
   Node: TNodeCylinder_2;
@@ -604,6 +674,18 @@ var
 begin
   Node := Geometry as TNodeSphere_1;
   RenderSphere(Node.FdRadius.Value);
+end;
+
+constructor TSphere_2Renderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeSphere_2;
+begin
+  inherited;
+
+  Node := Geometry as TNodeSphere_2;
+
+  CullBackFaces := Node.FdSolid.Value;
+  FrontFaceCcw := true;
 end;
 
 procedure TSphere_2Renderer.DoRender;
