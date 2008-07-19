@@ -138,36 +138,12 @@ type
       pointing from CCW. }
     CcwNormal: TDynVector3SingleArray;
 
-    { This will actually be modified and used
-      by TIndexedFaces_Or_TrianglesRenderer, see there for comments.
-      For other classes, this should't be important.
-      Yes, it's a little unclean to declare it here. }
-    FrontFaceCcw: boolean;
-
     procedure RenderVertex(indexNum: integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   end;
 
-  TIndexedFaces_Or_TrianglesRenderer = class(TGeneralIndexedRenderer)
-  public
-    procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
-
-    { Set these in descendant's constructor. }
-    { FrontFaceCcw declared in TGeneralIndexedRenderer, but documented here:
-
-      FrontFaceCcw says from which face side normals in VRML file point out,
-      and which faces should be culled if CullBackFaces.
-
-      Note that we *do not* implement these by glFrontFace, we do a little
-      more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
-      for explanation (hint: plane mirrors). }
-
-    CullBackFaces: boolean;
-  end;
-
-  TIndexedFaceSetRenderer = class(TIndexedFaces_Or_TrianglesRenderer)
+  TIndexedFaceSetRenderer = class(TGeneralIndexedRenderer)
   private
     Render_GeneratedNormals: TDynVector3SingleArray;
 
@@ -225,7 +201,7 @@ type
     procedure SetLitColor(const AColor: TVector3Single);
   end;
 
-  TIndexedTriangleMesh_1Renderer = class(TIndexedFaces_Or_TrianglesRenderer)
+  TIndexedTriangleMesh_1Renderer = class(TGeneralIndexedRenderer)
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedTriangleMesh_1);
@@ -631,45 +607,6 @@ begin
     imUseSpecifiedPerFaceIndexed:
       Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber]);
   end;
-end;
-
-{ TIndexedFaces_Or_TrianglesRenderer -------------------------------------------- }
-
-procedure TIndexedFaces_Or_TrianglesRenderer.RenderCoordinateBegin;
-begin
-  inherited;
-  glPushAttrib(GL_POLYGON_BIT);
-
-  { If vertex ordering is consistent and object is SOLID than we use OpenGL's
-    backface culling.
-
-    In theory, we should check viewer position to know
-    whether to cull outside or inside polygons because if the viewer is inside
-    the object we should cull outside polygons. But luckily for us (because
-    it's extremely difficult to decide whether a point in space is
-    inside or outside such solid object) VRML 1.0 specification states clearly
-    that if an object is SOLID we can assume that the viewer is ALWAYS OUTSIDE
-    OF IT. So we cull faces inside.
-
-    If FrontFaceCcw then we have to cull CW faces.
-    But note that we do not want to call OpenGL glFrontFace
-    (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
-    glCullFace. Since we assume that front = always CCW, so we know how to call
-    glCullFace.
-  }
-  if CullBackFaces then
-  begin
-    glEnable(GL_CULL_FACE);
-    if FrontFaceCcw then
-      glCullFace(GL_BACK) else
-      glCullFace(GL_FRONT);
-  end;
-end;
-
-procedure TIndexedFaces_Or_TrianglesRenderer.RenderCoordinateEnd;
-begin
-  glPopAttrib;
-  inherited;
 end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }

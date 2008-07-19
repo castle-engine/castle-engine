@@ -44,7 +44,7 @@
     this is internal for VRMLOpenGLRenderer, it still must be implemented
     and documented cleanly.
 
-  - In the future, this may be abstracted from OpenGL and uses as a basis
+  - In the future, this may be abstracted from OpenGL and used as a basis
     also for TVRMLGeometryNode.Triangulate methods implementation.
 }
 
@@ -90,10 +90,41 @@ type
       Set this @italic(in constructor) (not later) to true when you're in
       subclass able to do bump mapping. }
     BumpMappingAllowed: boolean;
+
+    { CullBackFaces says if we should enable back-face culling.
+      If @true, then in our Render, we will do glEnable(GL_CULL_FACE),
+      and set glCullFace such that front face will be visible.
+      FrontFaceCcw says what is "front face".
+
+      You can set these only in your constructor.
+
+      (In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
+      However, in some subclasses, FrontFaceCcw is also used to denote
+      "from which side of the face user-supplied normals point".
+      So  FrontFaceCcw says from which face side normals in VRML file point out,
+      and which faces should be culled if CullBackFaces.
+
+      Note that we *do not* implement these by glFrontFace, we do a little
+      more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
+      for explanation (hint: plane mirrors).
+
+      You can call glCullFace in Render if you want to change which
+      faces are culled (ccw or cw) in the middle of rendering. We are inside
+      glPushAttrib(GL_POLYGON_BIT) anyway, so glCullFace changes are protected.
+
+      @groupBegin }
+    CullBackFaces: boolean;
+    FrontFaceCcw: boolean;
+    { @groupEnd }
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
     { Do the actual render of the whole geometry.
+      Don't override this, this only sets some common things
+      (like CullBackFaces) and calls DoRender. }
+    procedure Render;
+
+    { Render the whole geometry.
 
       For some details what is, and what is not yet set in OpenGL
       before this, you have to see TVRMLOpenGLRender.RenderShapeState
@@ -102,7 +133,7 @@ type
       For now, see comments at the beginning of
       vrmlopenglrenderer_render_specificnodes.inc
       for general direction what can and what can not be used here. }
-    procedure Render; virtual; abstract;
+    procedure DoRender; virtual; abstract;
 
     { Initialized in our constructor to bmNone.
       Renderer will set this to Renderer.BumpMappingMethod
@@ -111,19 +142,19 @@ type
   end;
 
   TPointSet_1Renderer = class(TVRMLMeshRenderer)
-    procedure Render; override;
+    procedure DoRender; override;
   end;
 
   TPointSet_2Renderer = class(TVRMLMeshRenderer)
-    procedure Render; override;
+    procedure DoRender; override;
   end;
 
   TElevationGridRenderer = class(TVRMLMeshRenderer)
-    procedure Render; override;
+    procedure DoRender; override;
   end;
 
   TExtrusionRenderer = class(TVRMLMeshRenderer)
-    procedure Render; override;
+    procedure DoRender; override;
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
@@ -184,7 +215,7 @@ type
       to various methods taking an index, like RenderVertex. }
     function CoordCount: Integer;
 
-    procedure Render; override;
+    procedure DoRender; override;
 
     { Override these to plug your rendering algorithm.
       See the description of this class @className for usage overview
@@ -375,9 +406,40 @@ begin
   glArrayElement(ith);
 end;
 
+procedure TVRMLMeshRenderer.Render;
+begin
+  if CullBackFaces then
+  begin
+    glPushAttrib(GL_POLYGON_BIT);
+
+    { If vertex ordering is consistent and object is SOLID than we use OpenGL's
+      backface culling.
+
+      If FrontFaceCcw then we have to cull CW faces.
+      But note that we do not want to call OpenGL glFrontFace
+      (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
+      glCullFace. Since we assume that front = always CCW, so we know how to call
+      glCullFace.
+    }
+    glEnable(GL_CULL_FACE);
+    if FrontFaceCcw then
+      glCullFace(GL_BACK) else
+      glCullFace(GL_FRONT);
+  end;
+
+  try
+    DoRender;
+  finally
+
+    if CullBackFaces then
+      glPopAttrib;
+
+  end;
+end;
+
 { TPointSet_1Renderer -------------------------------------------------------- }
 
-procedure TPointSet_1Renderer.Render;
+procedure TPointSet_1Renderer.DoRender;
 var
   i, BeginIndex, numPoints: integer;
   Node: TNodePointSet_1;
@@ -407,7 +469,7 @@ end;
 
 { TPointSet_2Renderer -------------------------------------------------------- }
 
-procedure TPointSet_2Renderer.Render;
+procedure TPointSet_2Renderer.DoRender;
 var
   Node: TNodePointSet_2;
 
@@ -473,7 +535,7 @@ end;
 
 { TElevationGridRenderer --------------------------------------------------------- }
 
-procedure TElevationGridRenderer.Render;
+procedure TElevationGridRenderer.DoRender;
 var
   Node: TNodeElevationGrid;
   { Just shortcuts for appropriate Node fields. }
@@ -794,7 +856,7 @@ begin
   end;
 end;
 
-procedure TExtrusionRenderer.Render;
+procedure TExtrusionRenderer.DoRender;
 var
   Node: TNodeExtrusion;
   TexCapsTranslation, TexCapsScale: Single;
@@ -1145,7 +1207,7 @@ end;
 
 { TAbstractCoordinateRenderer ------------------------------------------------ }
 
-procedure TAbstractCoordinateRenderer.Render;
+procedure TAbstractCoordinateRenderer.DoRender;
 var
   { This is used only by LockArraysBegin and LockArraysEnd. }
   UseLockArrays: boolean;
