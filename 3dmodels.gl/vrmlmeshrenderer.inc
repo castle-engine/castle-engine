@@ -116,13 +116,6 @@ type
     CullBackFaces: boolean;
     FrontFaceCcw: boolean;
     { @groupEnd }
-  public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
-
-    { Do the actual render of the whole geometry.
-      Don't override this, this only sets some common things
-      (like CullBackFaces) and calls DoRender. }
-    procedure Render;
 
     { Render the whole geometry.
 
@@ -134,6 +127,13 @@ type
       vrmlopenglrenderer_render_specificnodes.inc
       for general direction what can and what can not be used here. }
     procedure DoRender; virtual; abstract;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+
+    { Do the actual render of the whole geometry.
+      Don't override this, this only sets some common things
+      (like CullBackFaces) and calls DoRender. }
+    procedure Render;
 
     { Initialized in our constructor to bmNone.
       Renderer will set this to Renderer.BumpMappingMethod
@@ -142,18 +142,24 @@ type
   end;
 
   TPointSet_1Renderer = class(TVRMLMeshRenderer)
+  protected
     procedure DoRender; override;
   end;
 
   TPointSet_2Renderer = class(TVRMLMeshRenderer)
+  protected
     procedure DoRender; override;
   end;
 
   TElevationGridRenderer = class(TVRMLMeshRenderer)
+  protected
     procedure DoRender; override;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TExtrusionRenderer = class(TVRMLMeshRenderer)
+  protected
     procedure DoRender; override;
   end;
 
@@ -535,6 +541,29 @@ end;
 
 { TElevationGridRenderer --------------------------------------------------------- }
 
+constructor TElevationGridRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeElevationGrid;
+begin
+  inherited;
+
+  Node := Geometry as TNodeElevationGrid;
+
+  { About normals orientation, ccw and solid fields:
+
+    See Extrusion implementation for general notes.
+    In short, ccw only says which side is visible(if solid)/lighted
+    (if one-sided lighting). We always want to generate normals from
+    CCW, and avoid calling glFrontFace.
+
+    Spec says that xSpacing and zSpacing should always be > 0,
+    so always up (where height points to) is visible when ccw = TRUE
+    and solid = TRUE. So flipping ccw simply culls the other face. }
+
+  CullBackFaces := Node.FdSolid.Value;
+  FrontFaceCcw := Node.FdCcw.Value;
+end;
+
 procedure TElevationGridRenderer.DoRender;
 var
   Node: TNodeElevationGrid;
@@ -682,6 +711,16 @@ var
       begin
         VRMLNonFatalError(SNotEnoughNormals);
         GenerateNormals;
+      end else
+      begin
+        { Then user-supplied normals point from CW.
+          But we want them from CCW... so we have to copy and negate them. }
+        if not FrontFaceCcw then
+        begin
+          Normal := TDynVector3SingleArray.CreateCopy(Normal);
+          Normal.Negate;
+          NormalGenerated := true;
+        end;
       end;
     end else
       GenerateNormals;
@@ -732,32 +771,10 @@ begin
       (TNodeTextureCoordinate(Node.FdTexCoord.Value).FdPoint.Count >=
         XDimension * ZDimension);
 
-    glPushAttrib(
-      GL_LIGHTING_BIT { for shade model } or
-      GL_POLYGON_BIT { for glFrontFace and GL_CULL_FACE });
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
 
       if not NormalPerVertex then
         glShadeModel(GL_FLAT);
-
-      if Node.FdSolid.Value then
-      begin
-        { About normals orientation, ccw and solid fields:
-
-          See Extrusion implementation for general notes.
-          In short, ccw only says which side is visible(if solid)/lighted
-          (if one-sided lighting). We always want to generate normals from
-          CCW, and avoid calling glFrontFace.
-
-          Spec says that xSpacing and zSpacing should always be > 0,
-          so always up (where height points to) is visible when ccw = TRUE
-          and solid = TRUE. So flipping ccw simply culls the other face. }
-
-        if Node.FdCcw.Value then
-          glCullFace(GL_BACK) else
-          glCullFace(GL_FRONT);
-
-        glEnable(GL_CULL_FACE);
-      end;
 
       for I := 1 to XDimension - 1 do
       begin

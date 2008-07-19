@@ -385,6 +385,7 @@ type
   PArray_Vector3Single = PInfiniteArray_1;
   TDynVector3SingleArray = class(TDynArray_1)
     procedure AssignNegated(Source: TDynVector3SingleArray);
+    procedure Negate;
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -2049,10 +2050,15 @@ uses Math, KambiStringUtils;
 { TDynVector3SingleArray ----------------------------------------------------- }
 
 procedure TDynVector3SingleArray.AssignNegated(Source: TDynVector3SingleArray);
+begin
+  Assign(Source);
+  Negate;
+end;
+
+procedure TDynVector3SingleArray.Negate;
 var
   I: Integer;
 begin
-  Assign(Source);
   for I := 0 to Count - 1 do
     VectorNegateTo1st(Items[I]);
 end;

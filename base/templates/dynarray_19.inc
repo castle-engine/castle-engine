@@ -134,6 +134,7 @@
 
     constructor Create; overload;
     constructor Create(InitialLength: Integer); overload;
+    constructor CreateCopy(Source: TDynArray_19);
 
     { This is a comfortable Items property, that allows you to both read and
       write items in this array.
@@ -273,6 +274,12 @@ end;
 constructor TDynArray_19.Create(InitialLength: Integer);
 begin
  inherited Create(SizeOf(TDynArrayItem_19), InitialLength);
+end;
+
+constructor TDynArray_19.CreateCopy(Source: TDynArray_19);
+begin
+  Create;
+  Assign(Source);
 end;
 
 function TDynArray_19.GetItems:
