@@ -18,69 +18,125 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ Notki do wyswietlania poszczegolnych node'ow :
-
-  - Aktualny bound material jest niezdefiniowany na wejsciu dla node'ow VRMLa 1.0.
-    So before you actually render anything for OpenGL, you must call
-    Render_BindMaterial_1 at least once.
-    Nie wolno tutaj wywolywac glMaterial lub glColor - tym zajmie sie
-    Render_BindMaterial_1.
-
-  - Tekstura wszystko co nalezy zrobic w shape'ach z tekstura to
-    wygenerowac odpowiednie texCoordy na vertexach. Jezeli
-    not Render_TexCoordsNeeded to mozna nie generowac texCoordow.
-    (bo to znaczy ze tekstura jest i tak disabled)
-    Nie wolno zmieniac tutaj bind tekstury czy texture matrix czy
-    texture enabled.
-
-  - Wszystkie wywolania ladujace poszczegolne vertexy OpenGL'owi
-    musza byc robione przez DoGLVertex lub DoGLArrayElement.
-    TODO: AsciiText, Cone, Cube, Cylinder, Sphere - nie uzywaja
-    DoBeforeGLVertex w tej chwili, a powinny.
+{
+  TODO:
+  - should render all vertexes by DoGLVertex or DoGLArrayElement,
+    (so using GLU utils is not possible, or DrawGLPlane...,
+    or text display lists... this will be difficult to implement
+    without wasting resources)
+  - should use CullBackFaces mechanism from TVRMLMeshRenderer
+    to cull back faces.
 }
 
-{$ifdef read_interface}
+type
+  TAbstractTextRenderer = class(TVRMLMeshRenderer)
+  protected
+    procedure RenderText(
+      const Size, Spacing: Single;
+      const Justify: TVRMLFontJustify;
+      const Strings: TDynStringArray;
+      CurrentFont: TGLOutlineFont;
+      const Depth: Single;
+      const MarkFrontFaces: boolean);
+  end;
 
-procedure Text_Render(
-  const Size, Spacing: Single;
-  const Justify: TVRMLFontJustify;
-  const Strings: TDynStringArray;
-  CurrentFont: TGLOutlineFont;
-  const Depth: Single;
-  const MarkFrontFaces: boolean);
-procedure RenderAsciiText(Node: TNodeAsciiText_1);
-procedure RenderText(Node: TNodeText);
-procedure RenderText3D(Node: TNodeText3D);
+  TAsciiTextRenderer = class(TAbstractTextRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-procedure RenderBottomDisk(q: PGLuQuadric; radius: TGLdouble);
+  TTextRenderer = class(TAbstractTextRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-procedure Cone_Render(
-  const BottomRadius, Height: Single;
-  const Side, Bottom: boolean);
-procedure RenderCone_1(Node: TNodeCone_1);
-procedure RenderCone_2(Node: TNodeCone_2);
+  TText3DRenderer = class(TAbstractTextRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-procedure Box_Render(const SizeX, SizeY, SizeZ: Single);
-procedure RenderCube_1(Node: TNodeCube_1);
-procedure RenderBox(Node: TNodeBox);
+  TAbstractBoxRenderer = class(TVRMLMeshRenderer)
+  protected
+    procedure RenderBox(const SizeX, SizeY, SizeZ: Single);
+  end;
 
-procedure Cylinder_Render(
-  const Height, Radius: Single;
-  const Bottom, Side, Top: boolean);
-procedure RenderCylinder_1(Node: TNodeCylinder_1);
-procedure RenderCylinder_2(Node: TNodeCylinder_2);
+  TCube_1Renderer = class(TAbstractBoxRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-procedure Sphere_Render(const Radius: Single);
-procedure RenderSphere_1(Node: TNodeSphere_1);
-procedure RenderSphere_2(Node: TNodeSphere_2);
+  TBoxRenderer = class(TAbstractBoxRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-{$endif read_interface}
+  { Common class for quadric rendering, with some helper methods/properties. }
+  TQuadricRenderer = class(TVRMLMeshRenderer)
+  private
+    FQuadricSlices, FQuadricStacks: Cardinal;
+  protected
+    { Render GLU disk using quadric Q. The disk will have texture applied
+      in a way appropriate for bottom disk of VRML's cylinder and cone. }
+    procedure RenderBottomDisk(q: PGLuQuadric; radius: TGLdouble);
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    property QuadricSlices: Cardinal read FQuadricSlices;
+    property QuadricStacks: Cardinal read FQuadricStacks;
+  end;
 
-{$ifdef read_implementation}
+  TConeRenderer = class(TQuadricRenderer)
+  protected
+    procedure RenderCone(
+      const BottomRadius, Height: Single;
+      const Side, Bottom: boolean);
+  end;
 
-{ AsciiText ------------------------------------------------------------------ }
+  TCone_1Renderer = class(TConeRenderer)
+  protected
+    procedure DoRender; override;
+  end;
 
-procedure TVRMLOpenGLRenderer.Text_Render(
+  TCone_2Renderer = class(TConeRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
+  TCylinderRenderer = class(TQuadricRenderer)
+  protected
+    procedure RenderCylinder(
+      const Height, Radius: Single;
+      const Bottom, Side, Top: boolean);
+  end;
+
+  TCylinder_1Renderer = class(TCylinderRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
+  TCylinder_2Renderer = class(TCylinderRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
+  TSphereRenderer = class(TQuadricRenderer)
+  protected
+    procedure RenderSphere(
+      const Radius: Single);
+  end;
+
+  TSphere_1Renderer = class(TSphereRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
+  TSphere_2Renderer = class(TSphereRenderer)
+  protected
+    procedure DoRender; override;
+  end;
+
+{ Text ----------------------------------------------------------------------- }
+
+procedure TAbstractTextRenderer.RenderText(
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const Strings: TDynStringArray;
@@ -113,7 +169,7 @@ begin
     Use width for VRML 1.0. }
   XScale := YScale;
 
-  Render_BindMaterial_1(0);
+  Renderer.Render_BindMaterial_1(0);
 
   glPushMatrix;
     glScalef(1, YScale, 1);
@@ -140,7 +196,7 @@ begin
 
         { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
           popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-        if Render_TexCoordsNeeded then
+        if Renderer.Render_TexCoordsNeeded then
           CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
           CurrentFont.PrintAndMove(Strings[i]);
       glPopMatrix;
@@ -170,7 +226,7 @@ begin
 
           { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
             popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-          if Render_TexCoordsNeeded then
+          if Renderer.Render_TexCoordsNeeded then
             CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
             CurrentFont.PrintAndMove(Strings[i]);
         glPopMatrix;
@@ -196,7 +252,7 @@ begin
 
             { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
               popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-            if Render_TexCoordsNeeded then
+            if Renderer.Render_TexCoordsNeeded then
               CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
               CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
           glPopMatrix;
@@ -208,31 +264,38 @@ begin
   glPopMatrix;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderAsciiText(Node: TNodeAsciiText_1);
+procedure TAsciiTextRenderer.DoRender;
+var
+  Node: TNodeAsciiText_1;
 begin
-  Text_Render(
-    Render_State.LastNodes.FontStyle.FdSize.Value,
+  Node := Geometry as TNodeAsciiText_1;
+
+  RenderText(
+    State.LastNodes.FontStyle.FdSize.Value,
     Node.FdSpacing.Value,
     Node.Justify,
     Node.FdString.Items,
-    Cache.Fonts[
-      Render_State.LastNodes.FontStyle.Family,
-      Render_State.LastNodes.FontStyle.Bold,
-      Render_State.LastNodes.FontStyle.Italic].Instance, 0, false);
+    Renderer.Cache.Fonts[
+      State.LastNodes.FontStyle.Family,
+      State.LastNodes.FontStyle.Bold,
+      State.LastNodes.FontStyle.Italic].Instance, 0, false);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderText(Node: TNodeText);
+procedure TTextRenderer.DoRender;
 var
+  Node: TNodeText;
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
   CurrentFont: TGLOutlineFont;
 begin
+  Node := Geometry as TNodeText;
+
   if Node.FontStyle = nil then
   begin
     Size := TNodeFontStyle_2.DefaultSize;
     Spacing := TNodeFontStyle_2.DefaultSpacing;
     Justify := TNodeFontStyle_2.DefaultJustify;
-    CurrentFont := Cache.Fonts[
+    CurrentFont := Renderer.Cache.Fonts[
       TNodeFontStyle_2.DefaultFamily,
       TNodeFontStyle_2.DefaultBold,
       TNodeFontStyle_2.DefaultItalic].Instance;
@@ -241,27 +304,30 @@ begin
     Size := Node.FontStyle.FdSize.Value;
     Spacing := Node.FontStyle.FdSpacing.Value;
     Justify := Node.FontStyle.Justify;
-    CurrentFont := Cache.Fonts[
+    CurrentFont := Renderer.Cache.Fonts[
       Node.FontStyle.Family,
       Node.FontStyle.Bold,
       Node.FontStyle.Italic].Instance;
   end;
 
-  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
+  RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderText3D(Node: TNodeText3D);
+procedure TText3DRenderer.DoRender;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
   CurrentFont: TGLOutlineFont;
+  Node: TNodeText3D;
 begin
+  Node := Geometry as TNodeText3D;
+
   if Node.FontStyle = nil then
   begin
     Size := TNodeFontStyle_2.DefaultSize;
     Spacing := TNodeFontStyle_2.DefaultSpacing;
     Justify := TNodeFontStyle_2.DefaultJustify;
-    CurrentFont := Cache.Fonts[
+    CurrentFont := Renderer.Cache.Fonts[
       TNodeFontStyle_2.DefaultFamily,
       TNodeFontStyle_2.DefaultBold,
       TNodeFontStyle_2.DefaultItalic].Instance;
@@ -270,7 +336,7 @@ begin
     Size := Node.FontStyle.FdSize.Value;
     Spacing := Node.FontStyle.FdSpacing.Value;
     Justify := Node.FontStyle.Justify;
-    CurrentFont := Cache.Fonts[
+    CurrentFont := Renderer.Cache.Fonts[
       Node.FontStyle.Family,
       Node.FontStyle.Bold,
       Node.FontStyle.Italic].Instance;
@@ -282,7 +348,7 @@ begin
     glEnable(GL_CULL_FACE);
   end;
 
-  Text_Render(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
+  RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
     Node.FdDepth.Value, Node.FdSolid.Value);
 
   if Node.FdSolid.Value then
@@ -291,101 +357,33 @@ begin
   end;
 end;
 
-{ Cone ----------------------------------------------------------------------- }
+{ Box ------------------------------------------------------------------------ }
 
-{ just a shortcuts for names often used in this file }
-{$define QUADRIC_SLICES:=(Render_State.LastNodes.KambiTriangulation.QuadricSlices)}
-{$define QUADRIC_STACKS:=(Render_State.LastNodes.KambiTriangulation.QuadricStacks)}
-{$define RECT_DIVISIONS:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
-
-procedure TVRMLOpenGLRenderer.RenderBottomDisk(
-  q: PGLuQuadric; radius: TGLdouble);
-{ Render glu disk using quadric q. The disk will have texture applied
-  in a way appropriate for bottom disk of VRML's cylinder and cone. }
-begin
- if Render_TexCoordsNeeded then
- begin
-  glPushMatrix;
-  glRotatef(180, 1, 0, 0);
- end;
- gluDisk(q, 0, radius, QUADRIC_SLICES, 1);
- if Render_TexCoordsNeeded then glPopMatrix;
-end;
-
-procedure TVRMLOpenGLRenderer.Cone_Render(
-  const BottomRadius, Height: Single;
-  const Side, Bottom: boolean);
-var q: PGLUQuadric;
-begin
- {cone uses its own normals and we apply texture according to VRML specification.
-  Cone uses only material 0 or materials 0 and 1.}
-
- Render_BindMaterial_1(0);
-
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
-   Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
- try
-  glPushMatrix;
-  glRotatef(-90, 1, 0, 0);
-  glTranslatef(0, 0, -Height/2);
-  if Side then
-   gluCylinder(q, BottomRadius, 0, Height, QUADRIC_SLICES, QUADRIC_STACKS);
-  if Bottom then
-  begin
-   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
-     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial_1(1);
-   RenderBottomDisk(q, BottomRadius);
-  end;
-  glPopMatrix;
- finally gluDeleteQuadric(q) end;
-end;
-
-procedure TVRMLOpenGLRenderer.RenderCone_1(Node: TNodeCone_1);
-begin
-  Cone_Render(
-    Node.FdBottomRadius.Value,
-    Node.FdHeight.Value,
-    Node.FdParts.Flags[CONE_PARTS_SIDES],
-    Node.FdParts.Flags[CONE_PARTS_BOTTOM]);
-end;
-
-procedure TVRMLOpenGLRenderer.RenderCone_2(Node: TNodeCone_2);
-begin
-  Cone_Render(
-    Node.FdBottomRadius.Value,
-    Node.FdHeight.Value,
-    Node.FdSide.Value,
-    Node.FdBottom.Value);
-end;
-
-{ Box ---------------------------------------------------------------------- }
-
-procedure TVRMLOpenGLRenderer.Box_Render(const SizeX, SizeY, SizeZ: Single);
+procedure TAbstractBoxRenderer.RenderBox(const SizeX, SizeY, SizeZ: Single);
 var MatPerPart: boolean;
 
   procedure PartMat(MatNum: integer);
   begin
-   if MatPerPart then Render_BindMaterial_1(MatNum);
+   if MatPerPart then Renderer.Render_BindMaterial_1(MatNum);
   end;
 
-{$define DetailX:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailY:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
-{$define DetailZ:=(Render_State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailX:=(State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailY:=(State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define DetailZ:=(State.LastNodes.KambiTriangulation.RectDivisions)}
 
 var x1, y1, z1, x2, y2, z2: TGLfloat;
 begin
- MatPerPart := Render_State.LastNodes.MaterialBinding.FdValue.Value in [
+ MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then
-  Render_BindMaterial_1(0); {use first material fot the whole cube}
+  Renderer.Render_BindMaterial_1(0); {use first material fot the whole cube}
 
  x2 := SizeX / 2; x1 := -x2;
  y2 := SizeY / 2; y1 := -y2;
  z2 := SizeZ / 2; z1 := -z2;
 
  {Do narysowania Cube swietnie nadawalaby sie procedura KambiGLUtils.drawGLBox -
-  tyle ze ona nie pozwala mi zrobic Render_BindMaterial_1 przed kazda sciana i
+  tyle ze ona nie pozwala mi zrobic Renderer.Render_BindMaterial_1 przed kazda sciana i
   nie gwarantuje jak beda nakladane wspolrzedne tekstury.
   To co jest ponizej to po prostu implementacja drawGLBox z tymi dodatkami.}
 
@@ -409,19 +407,101 @@ begin
  {$undef DetailZ}
 end;
 
-procedure TVRMLOpenGLRenderer.RenderCube_1(Node: TNodeCube_1);
+procedure TCube_1Renderer.DoRender;
+var
+  Node: TNodeCube_1;
 begin
-  Box_Render(Node.FdWidth.Value, Node.FdHeight.Value, Node.FdDepth.Value);
+  Node := Geometry as TNodeCube_1;
+  RenderBox(Node.FdWidth.Value, Node.FdHeight.Value, Node.FdDepth.Value);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderBox(Node: TNodeBox);
+procedure TBoxRenderer.DoRender;
+var
+  Node: TNodeBox;
 begin
-  Box_Render(Node.FdSize.Value[0], Node.FdSize.Value[1], Node.FdSize.Value[2]);
+  Node := Geometry as TNodeBox;
+  RenderBox(Node.FdSize.Value[0], Node.FdSize.Value[1], Node.FdSize.Value[2]);
 end;
 
-{ Cylinder ------------------------------------------------------------------ }
+{ TQuadricRenderer ----------------------------------------------------------- }
 
-procedure TVRMLOpenGLRenderer.Cylinder_Render(
+constructor TQuadricRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+  FQuadricSlices := State.LastNodes.KambiTriangulation.QuadricSlices;
+  FQuadricStacks := State.LastNodes.KambiTriangulation.QuadricStacks;
+end;
+
+procedure TQuadricRenderer.RenderBottomDisk(
+  q: PGLuQuadric; radius: TGLdouble);
+begin
+  if Renderer.Render_TexCoordsNeeded then
+  begin
+    glPushMatrix;
+    glRotatef(180, 1, 0, 0);
+  end;
+  gluDisk(q, 0, radius, QuadricSlices, 1);
+  if Renderer.Render_TexCoordsNeeded then glPopMatrix;
+end;
+
+{ Cone ----------------------------------------------------------------------- }
+
+procedure TConeRenderer.RenderCone(
+  const BottomRadius, Height: Single;
+  const Side, Bottom: boolean);
+var q: PGLUQuadric;
+begin
+ {cone uses its own normals and we apply texture according to VRML specification.
+  Cone uses only material 0 or materials 0 and 1.}
+
+ Renderer.Render_BindMaterial_1(0);
+
+ q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
+   Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
+ try
+  glPushMatrix;
+  glRotatef(-90, 1, 0, 0);
+  glTranslatef(0, 0, -Height/2);
+  if Side then
+   gluCylinder(q, BottomRadius, 0, Height, QuadricSlices, QuadricStacks);
+  if Bottom then
+  begin
+   if State.LastNodes.MaterialBinding.FdValue.Value in
+     [BIND_PER_PART, BIND_PER_PART_INDEXED] then
+    Renderer.Render_BindMaterial_1(1);
+   RenderBottomDisk(q, BottomRadius);
+  end;
+  glPopMatrix;
+ finally gluDeleteQuadric(q) end;
+end;
+
+procedure TCone_1Renderer.DoRender;
+var
+  Node: TNodeCone_1;
+begin
+  Node := Geometry as TNodeCone_1;
+  RenderCone(
+    Node.FdBottomRadius.Value,
+    Node.FdHeight.Value,
+    Node.FdParts.Flags[CONE_PARTS_SIDES],
+    Node.FdParts.Flags[CONE_PARTS_BOTTOM]);
+end;
+
+procedure TCone_2Renderer.DoRender;
+var
+  Node: TNodeCone_2;
+begin
+  Node := Geometry as TNodeCone_2;
+  RenderCone(
+    Node.FdBottomRadius.Value,
+    Node.FdHeight.Value,
+    Node.FdSide.Value,
+    Node.FdBottom.Value);
+end;
+
+{ Cylinder ------------------------------------------------------------------- }
+
+procedure TCylinderRenderer.RenderCylinder(
   const Height, Radius: Single;
   const Bottom, Side, Top: boolean);
 var q: PGLUQuadric;
@@ -429,9 +509,9 @@ begin
  {cylinder uses its own normals and we apply texture according to VRML
   specification. Cylinder uses only material 0 or materials 0, 1, 2}
 
- Render_BindMaterial_1(0);
+ Renderer.Render_BindMaterial_1(0);
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
+ q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
   glPushMatrix;
@@ -439,32 +519,35 @@ begin
   glTranslatef(0, 0, -Height/2);
   if Side then
    gluCylinder(q, Radius, Radius, Height,
-     QUADRIC_SLICES, QUADRIC_STACKS);
+     QuadricSlices, QuadricStacks);
 
   if Bottom then
   begin
-   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
+   if State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial_1(2);
+    Renderer.Render_BindMaterial_1(2);
    RenderBottomDisk(q, Radius);
   end;
 
   if Top then
   begin
-   if Render_State.LastNodes.MaterialBinding.FdValue.Value in
+   if State.LastNodes.MaterialBinding.FdValue.Value in
        [BIND_PER_PART, BIND_PER_PART_INDEXED] then
-    Render_BindMaterial_1(1);
+    Renderer.Render_BindMaterial_1(1);
    glTranslatef(0, 0, Height);
-   gluDisk(q, 0, Radius, QUADRIC_SLICES, 1);
+   gluDisk(q, 0, Radius, QuadricSlices, 1);
   end;
 
   glPopMatrix;
  finally gluDeleteQuadric(q) end;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderCylinder_1(Node: TNodeCylinder_1);
+procedure TCylinder_1Renderer.DoRender;
+var
+  Node: TNodeCylinder_1;
 begin
-  Cylinder_Render(
+  Node := Geometry as TNodeCylinder_1;
+  RenderCylinder(
     Node.FdHeight.Value,
     Node.FdRadius.Value,
     Node.FdParts.Flags[CYLINDER_PARTS_BOTTOM],
@@ -472,9 +555,12 @@ begin
     Node.FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderCylinder_2(Node: TNodeCylinder_2);
+procedure TCylinder_2Renderer.DoRender;
+var
+  Node: TNodeCylinder_2;
 begin
-  Cylinder_Render(
+  Node := Geometry as TNodeCylinder_2;
+  RenderCylinder(
     Node.FdHeight.Value,
     Node.FdRadius.Value,
     Node.FdBottom.Value,
@@ -482,44 +568,44 @@ begin
     Node.FdTop.Value);
 end;
 
-{ Sphere ---------------------------------------------------------------------- }
+{ Sphere --------------------------------------------------------------------- }
 
-procedure TVRMLOpenGLRenderer.Sphere_Render(const Radius: Single);
+procedure TSphereRenderer.RenderSphere(const Radius: Single);
 var q: PGLUQuadric;
 begin
  {whole sphere uses materail num 0 and his own normals and we apply
   texture according to VRML specification}
 
- Render_BindMaterial_1(0);
+ Renderer.Render_BindMaterial_1(0);
 
- if Render_TexCoordsNeeded then
+ if Renderer.Render_TexCoordsNeeded then
  begin
   {we have to rotate the sphere to get tex coords as specified by VRML}
   glPushMatrix;
   glRotatef(-90, 1, 0, 0);
  end;
 
- q := NewGLUQuadric(Ord(Render_TexCoordsNeeded),
+ q := NewGLUQuadric(Ord(Renderer.Render_TexCoordsNeeded),
    Attributes.SmoothNormalsGLU, GLU_OUTSIDE, GLU_FILL);
  try
-  gluSphere(q, Radius, QUADRIC_SLICES, QUADRIC_STACKS);
+  gluSphere(q, Radius, QuadricSlices, QuadricStacks);
  finally gluDeleteQuadric(q) end;
 
- if Render_TexCoordsNeeded then glPopMatrix;
+ if Renderer.Render_TexCoordsNeeded then glPopMatrix;
 end;
 
-procedure TVRMLOpenGLRenderer.RenderSphere_1(Node: TNodeSphere_1);
+procedure TSphere_1Renderer.DoRender;
+var
+  Node: TNodeSphere_1;
 begin
-  Sphere_Render(Node.FdRadius.Value);
+  Node := Geometry as TNodeSphere_1;
+  RenderSphere(Node.FdRadius.Value);
 end;
 
-procedure TVRMLOpenGLRenderer.RenderSphere_2(Node: TNodeSphere_2);
+procedure TSphere_2Renderer.DoRender;
+var
+  Node: TNodeSphere_2;
 begin
-  Sphere_Render(Node.FdRadius.Value);
+  Node := Geometry as TNodeSphere_2;
+  RenderSphere(Node.FdRadius.Value);
 end;
-
-{$undef QUADRIC_SLICES}
-{$undef QUADRIC_STACKS}
-{$undef RECT_DIVISIONS}
-
-{$endif read_implementation}

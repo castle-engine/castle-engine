@@ -1186,8 +1186,6 @@ type
     { czy Render node'ow musi generowac tex coords ? }
     Render_TexCoordsNeeded: boolean;
 
-    {$I vrmlopenglrenderer_render_specificnodes.inc}
-
     { ----------------------------------------------------------------- }
 
     {$ifdef USE_VRML_NODES_TRIANGULATION}
@@ -1498,6 +1496,7 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I openglmac.inc}
 
 {$I vrmlmeshrenderer.inc}
+{$I vrmlmeshrenderer_simple_nodes.inc}
 
 { WorldTime and related -------------------------------------------------- }
 
@@ -3524,7 +3523,6 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 {$I vrmlopenglrenderer_render_materials.inc}
-{$I vrmlopenglrenderer_render_specificnodes.inc}
 
 procedure TVRMLOpenGLRenderer.ActiveTexture(TextureUnit: Cardinal);
 begin
@@ -3799,6 +3797,28 @@ var
     if (Node is TNodeQuadSet) or
        (Node is TNodeIndexedQuadSet) then
       ExposedMeshRenderer := TQuadSetRenderer.Create(Self) else
+    if Node is TNodeAsciiText_1 then
+      ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
+    if Node is TNodeText then
+      ExposedMeshRenderer := TTextRenderer.Create(Self) else
+    if Node is TNodeText3D then
+      ExposedMeshRenderer := TText3DRenderer.Create(Self) else
+    if Node is TNodeCone_1 then
+      ExposedMeshRenderer := TCone_1Renderer.Create(Self) else
+    if Node is TNodeCone_2 then
+      ExposedMeshRenderer := TCone_2Renderer.Create(Self) else
+    if Node is TNodeCube_1 then
+      ExposedMeshRenderer := TCube_1Renderer.Create(Self) else
+    if Node is TNodeBox then
+      ExposedMeshRenderer := TBoxRenderer.Create(Self) else
+    if Node is TNodeCylinder_1 then
+      ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
+    if Node is TNodeCylinder_2 then
+      ExposedMeshRenderer := TCylinder_2Renderer.Create(Self) else
+    if Node is TNodeSphere_1 then
+      ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
+    if Node is TNodeSphere_2 then
+      ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
       ExposedMeshRenderer := nil;
 
     if MeshRenderer <> nil then
@@ -4030,28 +4050,6 @@ begin
 
         if MeshRenderer <> nil then
           MeshRenderer.Render else
-        if Node is TNodeAsciiText_1 then
-          RenderAsciiText(TNodeAsciiText_1(Node)) else
-        if Node is TNodeText then
-          RenderText(TNodeText(Node)) else
-        if Node is TNodeText3D then
-          RenderText3D(TNodeText3D(Node)) else
-        if Node is TNodeCone_1 then
-          RenderCone_1(TNodeCone_1(Node)) else
-        if Node is TNodeCone_2 then
-          RenderCone_2(TNodeCone_2(Node)) else
-        if Node is TNodeCube_1 then
-          RenderCube_1(TNodeCube_1(Node)) else
-        if Node is TNodeBox then
-          RenderBox(TNodeBox(Node)) else
-        if Node is TNodeCylinder_1 then
-          RenderCylinder_1(TNodeCylinder_1(Node)) else
-        if Node is TNodeCylinder_2 then
-          RenderCylinder_2(TNodeCylinder_2(Node)) else
-        if Node is TNodeSphere_1 then
-          RenderSphere_1(TNodeSphere_1(Node)) else
-        if Node is TNodeSphere_2 then
-          RenderSphere_2(TNodeSphere_2(Node)) else
           VRMLNonFatalError(
             'Rendering of node kind "' + Node.NodeTypeName + '" not implemented');
 

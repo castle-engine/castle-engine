@@ -108,9 +108,11 @@ type
       more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
       for explanation (hint: plane mirrors).
 
-      You can call glCullFace in Render if you want to change which
+      If CullBackFaces = @true, then you can call glCullFace
+      in Render if you want to change which
       faces are culled (ccw or cw) in the middle of rendering. We are inside
-      glPushAttrib(GL_POLYGON_BIT) anyway, so glCullFace changes are protected.
+      glPushAttrib(GL_POLYGON_BIT) anyway (if CullBackFaces),
+      so glCullFace changes are protected.
 
       @groupBegin }
     CullBackFaces: boolean;
@@ -122,6 +124,18 @@ type
       For some details what is, and what is not yet set in OpenGL
       before this, you have to see TVRMLOpenGLRender.RenderShapeState
       implementation.
+
+      Material for VRML 1.0: currently bound material is undefined
+      So for VRML 1.0, before you actually render anything for OpenGL,
+      you must call Render_BindMaterial_1 at least once.
+      You cannot call glMaterial or glColor here --- this is the task of
+      Render_BindMaterial_1.
+
+      Texture: you only have to generate texture coordinates in descendants.
+      If not Render_TexCoordsNeeded, you don't have to (but you can,
+      although they will be unused) generate texture coords.
+      Do not change here the bound texture or operate on texture matrix
+      or texture enabled state.
 
       For now, see comments at the beginning of
       vrmlopenglrenderer_render_specificnodes.inc
