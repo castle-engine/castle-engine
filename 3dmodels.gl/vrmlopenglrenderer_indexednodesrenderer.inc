@@ -1150,9 +1150,7 @@ begin
   CoordIndex := ANode.FdCoordIndex;
   Coord := ANode.Coord;
   TexCoordIndex := ANode.FdTexCoordIndex;
-  if (ANode.FdTexCoord.Value <> nil) and
-     (ANode.FdTexCoord.Value is TNodeTextureCoordinate) then
-    TexCoord := TNodeTextureCoordinate(ANode.FdTexCoord.Value).FdPoint;
+  TexCoord := ANode.TexCoord;
   NormalIndex := ANode.FdNormalIndex;
   if (ANode.FdNormal.Value <> nil) and
      (ANode.FdNormal.Value is TNodeNormal) then

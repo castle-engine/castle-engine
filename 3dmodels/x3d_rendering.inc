@@ -68,6 +68,10 @@
       specifies Coordinate node. Otherwise returns @nil. }
     function Coord: TMFVec3f;
 
+    { Returns texCoord.point field, assuming that texCoord is set and
+      specifies TextureCoordinate node. Otherwise returns @nil. }
+    function TexCoord: TMFVec2f;
+
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
@@ -424,6 +428,14 @@ begin
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
     Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.TexCoord: TMFVec2f;
+begin
+  if (FdTexCoord.Value <> nil) and
+     (FdTexCoord.Value is TNodeTextureCoordinate) then
+    Result := TNodeTextureCoordinate(FdTexCoord.Value).FdPoint else
     Result := nil;
 end;
 

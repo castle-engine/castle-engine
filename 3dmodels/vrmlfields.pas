@@ -1227,7 +1227,7 @@ type
 
     class function VRMLTypeName: string; override;
 
-    { This accesses Items[], always checking for range errors.
+    { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
       and both will produce clear VRMLNonFatalError. }
     property ItemsSafe[Index: Integer]: LongInt
@@ -1339,6 +1339,8 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Single;
+    function GetItemsSafe(Index: Integer): TVector2Single;
+    procedure SetItemsSafe(Index: Integer; const Value: TVector2Single);
   protected
     function RawItemToString(ItemNum: integer): string; override;
   public
@@ -1357,6 +1359,12 @@ type
     procedure AssignValue(Source: TVRMLField); override;
 
     class function VRMLTypeName: string; override;
+
+    { Access Items[] checking for range errors.
+      In case of errors, Get will return zero vector, Set will do nothing,
+      and both will produce clear VRMLNonFatalError. }
+    property ItemsSafe[Index: Integer]: TVector2Single
+      read GetItemsSafe write SetItemsSafe;
   end;
 
   TMFVec3f = class(TVRMLSimpleMultField)
@@ -1384,7 +1392,7 @@ type
 
     class function VRMLTypeName: string; override;
 
-    { This accesses to Items[], and always checks for range errors.
+    { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
       and both will produce clear VRMLNonFatalError. }
     property ItemsSafe[Index: Integer]: TVector3Single
@@ -3954,6 +3962,25 @@ end;
 class function TMFVec2f.VRMLTypeName: string;
 begin
   Result := 'MFVec2f';
+end;
+
+function TMFVec2f.GetItemsSafe(Index: Integer): TVector2Single;
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Result := Items.Items[Index] else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+    Result := ZeroVector2Single;
+  end;
+end;
+
+procedure TMFVec2f.SetItemsSafe(Index: Integer; const Value: TVector2Single);
+begin
+  if (Index >= 0) and (Index < Items.Count) then
+    Items.Items[Index] := Value else
+  begin
+    VRMLNonFatalError(Format('Invalid index for VRML field %s: index is %d, but we have only %d items', [VRMLTypeName, Index, Count]));
+  end;
 end;
 
 { TMFVec3f ------------------------------------------------------------------- }
