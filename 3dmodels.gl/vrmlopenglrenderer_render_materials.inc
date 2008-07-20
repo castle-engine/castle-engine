@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -240,8 +240,7 @@ begin
   end;
 end;
 
-{ Binds current VRML 2.0 Material.
- }
+{ Binds current VRML 2.0 Material. }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
   Material: TNodeMaterial_2;
@@ -285,4 +284,37 @@ begin
       1,
       false);
   end;
+end;
+
+{ Sets current VRML 2.0 color. Should only be called for VRML 2.0
+  nodes, for which you called Render_BindMaterial_2.
+
+  This sets the RGB part of the unlit color,
+  and the RGB part of diffuseColor of lit material.
+  This is good for VRML 2.0 nodes that use colors to either
+  set precalculated color (when unlit, i.e. material is NULL)
+  or to change diffuseColor (when lit, see specification "lighting equaltions",
+  term O_Drgb).
+
+  Actually, setting the lit material color is not done if not NodeLit
+  (no point in wasting 1 OpenGL call if material will never be used). }
+procedure TVRMLOpenGLRenderer.SetColor_2(const Color: TVector3Single);
+begin
+  { We use Material_BoundOpacity since we do not want to change
+    material opacity here, only it's RGB part. }
+
+  if Attributes.PureGeometry or
+     (not Attributes.ControlMaterials) then
+    Exit;
+
+  glColorv(Vector4f(Attributes.ColorModulated(Color),
+    Material_BoundOpacity));
+
+  { TODO: use material from color for such color?
+    will this fix castle/data/creatures/spider/ slowness and memory use? }
+
+  if NodeLit(Render_Node) then
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
+      Vector4f(Attributes.ColorModulated(Color),
+      Material_BoundOpacity));
 end;

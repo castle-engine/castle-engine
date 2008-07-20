@@ -420,8 +420,44 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+  { Enhances TAbstractMatTexCoordinateRenderer with the ability to handle
+    per-face or per-vertex VRML >= 2.0 colors.
+
+    - Usage: set Color, ColorPerVertex and ColorIndex.
+
+      If Color = @nil, this class will not do anything.
+      Otherwise, colors will be used.
+
+      ColorPerVertex specifies per-vertex or per-face.
+      Just like for VRML 1.0, the same restrictions apply:
+      - if you want per-face to work, then RenderCoordsRange must
+        correspond to a single face.
+      - if you want per-vertex to work, you must use smooth shading.
+
+      ColorIndex: if set, then vertex IndexNum or face number will
+      index ColorIndex, and then ColorIndex indexes Color items.
+      Otherwise, for vertex we use CoordIndex (instead of ColorIndex)
+      and for face we'll use just face number.
+
+    Everything related to setting VRML 2.0
+    material should be set in Render_MaterialsBegin, and everything
+    related to VRML 2.0 colors is handled in this class.
+    So in summary, this class takes care of everything related to
+    materials / colors. }
+  TAbstractColMatTexCoordinateRenderer = class(TAbstractMatTexCoordinateRenderer)
+  protected
+    Color: TMFVec3f;
+    ColorPerVertex: boolean;
+    ColorIndex: TMFLong;
+
+    procedure RenderVertex(IndexNum: integer); override;
+    procedure RenderCoordsRange(
+      const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  end;
+
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
-  TTriangleSetRenderer = class(TAbstractTexCoordinateRenderer)
+  TTriangleSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
   public
@@ -429,7 +465,7 @@ type
   end;
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
-  TTriangleFanSetRenderer = class(TAbstractTexCoordinateRenderer)
+  TTriangleFanSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
@@ -443,7 +479,7 @@ type
 
     TODO: Inventor's IndexedTriangleMesh_1 should also be
     renderer by this, obsoleting TIndexedTriangleMesh_1Renderer. }
-  TTriangleStripSetRenderer = class(TAbstractTexCoordinateRenderer)
+  TTriangleStripSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
@@ -454,7 +490,7 @@ type
   end;
 
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
-  TQuadSetRenderer = class(TAbstractTexCoordinateRenderer)
+  TQuadSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
   public
@@ -1845,6 +1881,36 @@ begin
   end;
 end;
 
+{ TAbstractColMatTexCoordinateRenderer --------------------------------------- }
+
+procedure TAbstractColMatTexCoordinateRenderer.RenderVertex(IndexNum: integer);
+begin
+  { Implement different color per vertex here. }
+  if (Color <> nil) and ColorPerVertex then
+  begin
+    if ColorIndex.Count <> 0 then
+      Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
+      Renderer.SetColor_2(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]);
+  end;
+
+  inherited;
+end;
+
+procedure TAbstractColMatTexCoordinateRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+begin
+  inherited;
+
+  { Implement different color per face here. }
+  if (Color <> nil) and (not ColorPerVertex) then
+  begin
+    if ColorIndex.Count <> 0 then
+      Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
+      Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
+  end;
+end;
+
 { TTriangleSetRenderer ------------------------------------------------------- }
 
 constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
@@ -1853,10 +1919,16 @@ begin
 
   Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
+  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  { According to X3D spec, "the value of the colorPerVertex field
+    is ignored and always treated as TRUE" }
+  ColorPerVertex := true;
+
   if Geometry is TNodeIndexedTriangleSet then
   begin
     CoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
+    ColorIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
   end;
 end;
 
@@ -1895,10 +1967,16 @@ begin
 
   Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
+  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  { According to X3D spec, "the value of the colorPerVertex field
+    is ignored and always treated as TRUE" }
+  ColorPerVertex := true;
+
   if Geometry is TNodeIndexedTriangleFanSet then
   begin
     CoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
+    ColorIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
   end;
 end;
 
@@ -1978,10 +2056,16 @@ begin
 
   Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
+  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  { According to X3D spec, "the value of the colorPerVertex field
+    is ignored and always treated as TRUE" }
+  ColorPerVertex := true;
+
   if Geometry is TNodeIndexedTriangleStripSet then
   begin
     CoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
+    ColorIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
   end;
 end;
 
@@ -2068,10 +2152,16 @@ begin
 
   Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
+  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
+  { According to X3D spec, "the value of the colorPerVertex field
+    is ignored and always treated as TRUE" }
+  ColorPerVertex := true;
+
   if Geometry is TNodeIndexedQuadSet then
   begin
     CoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
+    ColorIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
   end;
 end;
 

@@ -72,6 +72,10 @@
       specifies TextureCoordinate node. Otherwise returns @nil. }
     function TexCoord: TMFVec2f;
 
+    { Returns color.point field, assuming that color is set and
+      specifies Color node. Otherwise returns @nil. }
+    function Color: TMFVec3f;
+
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
@@ -183,6 +187,10 @@
     { Returns coord.point field, assuming that coord is set and
       specifies Coordinate node. Otherwise returns @nil. }
     function Coord: TMFVec3f;
+
+    { Returns color.point field, assuming that color is set and
+      specifies Color node. Otherwise returns @nil. }
+    function Color: TMFVec3f;
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -323,6 +331,10 @@
     { Returns coord.point field, assuming that coord is set and
       specifies Coordinate node. Otherwise returns @nil. }
     function Coord: TMFVec3f;
+
+    { Returns color.point field, assuming that color is set and
+      specifies Color node. Otherwise returns @nil. }
+    function Color: TMFVec3f;
   end;
 
   TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
@@ -436,6 +448,14 @@ begin
   if (FdTexCoord.Value <> nil) and
      (FdTexCoord.Value is TNodeTextureCoordinate) then
     Result := TNodeTextureCoordinate(FdTexCoord.Value).FdPoint else
+    Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.Color: TMFVec3f;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColor) then
+    Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
 end;
 
@@ -644,6 +664,14 @@ begin
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
     Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
+function TNodeIndexedLineSet_2.Color: TMFVec3f;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColor) then
+    Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
 end;
 
@@ -863,6 +891,14 @@ begin
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
     Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
+function TNodePointSet_2.Color: TMFVec3f;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColor) then
+    Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
 end;
 

@@ -1179,6 +1179,7 @@ type
       const UnLitColor: TVector3Single;
       const ShininessExp, Opacity: Single;
       const FogImmune: boolean);
+    procedure SetColor_2(const Color: TVector3Single);
 
     { Judge whether the node can be lit. }
     function NodeLit(Node: TVRMLGeometryNode): boolean;
