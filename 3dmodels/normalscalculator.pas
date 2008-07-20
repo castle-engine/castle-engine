@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2005 Michalis Kamburelis.
+  Copyright 2003-2005,2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -108,17 +108,6 @@ type
   {$I DynArray_1.inc}
   type TDynFaceArray = TDynArray_1;
 
-type
-  TArray_TDynIntegerArray = packed array[0..MaxInt div SizeOf(Pointer) -1]of TDynIntegerArray;
-  PArray_TDynIntegerArray = ^TArray_TDynIntegerArray;
-
-procedure VectorsNegate(Vectors: TDynVector3SingleArray);
-var i: integer;
-begin
- for i := 0 to Vectors.Count-1 do
-  Vectors.Items[i] := VectorNegate(Vectors.Items[i]);
-end;
-
 function CreateNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   CreaseAngleRad: Single;
@@ -133,7 +122,7 @@ var
     w calym tym module zachowac mozliwie sensownie) to dany vertex moze
     byc wiecej niz jeden raz na jednym faces - to nic, w tej tablicy
     bedzie odpowiednie face wymienione tylko raz. }
-  verticesFaces: PArray_TDynIntegerArray;
+  verticesFaces: array of TDynIntegerArray;
 
   normals: TDynVector3SingleArray absolute result;
 
@@ -153,19 +142,25 @@ var
     thisFace^.StartIndex := i;
     while (i < coordIndex.Count) and (coordIndex[i] >= 0) do
     begin
-     {gdybysmy chcieli tu kasowac nieprawidlowe indeksy to moglibysmy tu robic
-        if (coordIndex[i] >= vertices.Count) then coordIndex.Delete(i, 1);
-      Nie robie tego bo takie kasowanie zlych indeksow np. w nodzie IndexedFaceSet
-        wymagaloby tez kasowania odpowiednich indeksow textureCoord, normal
-        i material. Wiec nie mozemy takiego poprawiania robic tutaj - tutaj
-        musimy zakladac ze JUZ wszystko jest OK.
-      Jeszcze jedno : w poprawnych faces nie wystepuje dwa razy ten sam vertex.
-        Wiec test ponizej na IndexOf(thisFaceNum) nie bylby potrzebny.
-        Ale my staramy sie zeby ta procedura zachowywala sie choc troche
-        sensownie nawet dla nieprawidlowych faces. }
-     if verticesFaces^[coordIndex[i]].IndexOf(thisFaceNum) = -1 then
-      verticesFaces^[coordIndex[i]].AppendItem(thisFaceNum);
-     Inc(i);
+      { Two tests below secure us from invalid coordIndex values:
+        1. of course, each coordIndex[] value must be within range.
+        2. in a correct face, each vertex may occur at most once.
+
+        We have to deal with VRML data supplied by user here,
+        so we have to secure against invalid values here.
+
+        Note that we cannot remove wrong indexes here
+        (like coordIndex.Delete(i, 1)). While tempting, removing
+        bad indexes is not so easy: for example in IndexedFaceSet
+        we would have to remove also appropriate textureCoord, normal
+        and material indexes. Moreover, I decided that my engine doesn't
+        ever change VRML data implicitly (even when this data is clearly
+        incorrect...). So we cannot do such things. }
+
+      if (coordIndex[i] < Vertices.Count) and
+         (VerticesFaces[coordIndex[i]].IndexOf(thisFaceNum) = -1) then
+        VerticesFaces[coordIndex[i]].AppendItem(thisFaceNum);
+      Inc(i);
     end;
 
     { licz thisFace.IndicesCount
@@ -176,7 +171,8 @@ var
     thisFace^.Normal := IndexedPolygonNormal(
       @(coordIndex.Items[thisFace^.StartIndex]),
       thisFace^.IndicesCount,
-      Vertices.ItemsArray, Vector3Single(0, 0, 1));
+      Vertices.ItemsArray, Vertices.Count,
+      Vector3Single(0, 0, 1));
 
     { przejdz do nastepnej sciany (omin ujemny indeks na ktorym stoimy;
       ew. przejdz z coordIndex.Count do coordIndex.Count+1, co niczemu nie szkodzi) }
@@ -242,7 +238,7 @@ var
       handledFaces: TDynBooleanArray;
       Normal: TVector3Single;
   begin
-   thisVertexFaces := verticesFaces^[vertexNum];
+   thisVertexFaces := verticesFaces[vertexNum];
 
    smoothFaces := nil;
    handledFaces := nil;
@@ -289,16 +285,17 @@ begin
 
  CosCreaseAngle := Cos(CreaseAngleRad);
 
+ SetLength(verticesFaces, vertices.Count);
+
  normals := nil;
- verticesFaces := nil;
  faces := nil;
 
  try
   try
    { zainicjuj verticesFaces i faces }
-   verticesFaces := GetClearMem(SizeOf(Pointer) * vertices.Count);
+
    for i := 0 to vertices.Count-1 do
-    verticesFaces^[i] := TDynIntegerArray.Create;
+    verticesFaces[i] := TDynIntegerArray.Create;
    faces := TDynFaceArray.Create;
 
    { przegladnij coordIndex i skompletuj zawartosc tablic faces i verticesFaces }
@@ -311,15 +308,11 @@ begin
    { for each vertex, calculate all his normals (on all his faces) }
    for i := 0 to vertices.Count-1 do CalculateVertexNormals(i);
 
-   if not FromCCW then VectorsNegate(result);
+   if not FromCCW then Result.Negate;
   finally
 
    { free verticesFaces and faces }
-   if verticesFaces <> nil then
-   begin
-    for i := 0 to vertices.Count-1 do verticesFaces^[i].Free;
-    FreeMem(verticesFaces);
-   end;
+   for i := 0 to vertices.Count-1 do verticesFaces[i].Free;
    faces.Free;
   end;
 
@@ -348,7 +341,8 @@ begin
     FaceNormal := IndexedPolygonNormal(
       @(coordIndex.Items[StartIndex]),
       i-StartIndex,
-      Vertices.ItemsArray, Vector3Single(0, 0, 0));
+      Vertices.ItemsArray, Vertices.Count,
+      Vector3Single(0, 0, 0));
     {dodaj FaceNormal do normali wszystkich punktow tej face}
     for j := StartIndex to i-1 do
       VectorAddTo1st(VertNormals.Items[coordIndex.Items[j]], FaceNormal);
@@ -363,7 +357,7 @@ begin
     if coordIndex.Items[i] >= 0 then
      result.Items[i] := VertNormals.Items[coordIndex.Items[i]];
 
-   if not FromCCW then VectorsNegate(result);
+   if not FromCCW then result.Negate;
   finally vertNormals.Free end;
 
  except FreeAndNil(result); raise end;
@@ -386,13 +380,14 @@ begin
    FaceNormal := IndexedPolygonNormal(
      @(coordIndex.Items[StartIndex]),
      i-startIndex,
-     Vertices.ItemsArray, Vector3Single(0, 0, 0));
+     Vertices.ItemsArray, Vertices.Count,
+     Vector3Single(0, 0, 0));
    for j := StartIndex to i-1 do result.Items[j] := FaceNormal;
 
    Inc(i);
   end;
 
-  if not FromCCW then VectorsNegate(result);
+  if not FromCCW then result.Negate;
  except FreeAndNil(result); raise end;
 end;
 

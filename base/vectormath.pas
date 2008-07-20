@@ -481,6 +481,9 @@ type
   TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
 
 const
+  ZeroVector2Single: TVector2Single = (0, 0);
+  ZeroVector2Double: TVector2Double = (0, 0);
+
   ZeroVector3Single: TVector3Single = (0, 0, 0);
   ZeroVector3Double: TVector3Double = (0, 0, 0);
 
@@ -1515,13 +1518,22 @@ function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
   const Ray0, RayVector: TVector3Double): boolean; overload;
 
-{ liczy znormalizowany normal dla polygonu zlozonego z uporzadkowanych
-  punktow Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
-  Zwraca normal wychodzacy z CCW. Jezeli polygon jest zdegenerowany
-  (nie wyznacza plaszczyzny, w szczegolnosci jezeli IndicesCount < 3)
-  to zwraca ResultForIncorrectPoly. }
-function IndexedPolygonNormal(Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PArray_Vector3Single; const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+{ Calculates normalized normal vector for polygon composed from
+  indexed vertices. Polygon is defines as vertices
+  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+  Returns normal pointing from CCW.
+
+  It's secured against invalid indexes on Indices list (that's the only
+  reason why it takes VertsCount parameter, after all): they are ignored.
+
+  If the polygon is degenerated, that is it doesn't determine a plane in
+  3D plane (this includes, but is not limited, to cases when there are
+  less than 3 valid points, like when IndicesCount < 3)
+  then it returns ResultForIncorrectPoly. }
+function IndexedPolygonNormal(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PArray_Vector3Single; VertsCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
 
 { dla zadanego polygonu 2d, ktory nie musi byc convex i moze byc kawalkami
   zdegenerowany (= niektore trojki jego wierzcholkow daja zdegenerowane
@@ -2644,40 +2656,63 @@ begin
  result := TriangleNormal(Tri);
 end;
 
-function IndexedPolygonNormal(Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PArray_Vector3Single; const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+function IndexedPolygonNormal(
+  Indices: PArray_Longint; IndicesCount: integer;
+  Verts: PArray_Vector3Single; VertsCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
 var Tri: TTriangle3Single;
     i: integer;
 begin
- { Jak widac liczymy wektor normalny face jako srednia z wektorow normalnych
-   wszystkch niezdegenerowanych trojkatow ktore tworza ten face.
+  { We calculate normal vector as an average of normal vectors of
+    polygon's triangles. Not taking into account invalid Indices
+    (pointing beyond the VertsCount range) and degenerated triangles.
 
-   To zajmuje nam troszeczke czasu (zaden problem jezeli wrzucamy sie na
-   display liste) ale pozwoli nam na wygenerowanie lepszych normali gdy
-   zadany polygon tak naprawde nie bedzie plaski lub gdy ew. niektore jego
-   trojkaty beda zdegenerowane. }
+    This isn't the fastest method possible, but it's safest.
+    It works Ok even if the polygon isn't precisely planar, or has
+    some degenerate triangles. }
 
- FillChar(result, SizeOf(result), 0); { result := Vector3Single(0, 0, 0); }
+  Result := ZeroVector3Single;
 
- if IndicesCount = 0 then Exit(ResultForIncorrectPoly);
+  I := 0;
 
- Tri[0] := Verts^[Indices^[0]];
- for i := 0 to IndicesCount-2-1 do
- begin
-  Tri[1] := Verts^[Indices^[1+i]];
-  Tri[2] := Verts^[Indices^[2+i]];
+  while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
+  { This secures us against polygons with no valid Indices[].
+    (including case when IndicesCount = 0). }
+  if I >= IndicesCount then
+    Exit(ResultForIncorrectPoly);
+  Tri[0] := Verts^[Indices^[I]];
+
+  repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+  if I >= IndicesCount then
+    Exit(ResultForIncorrectPoly);
+  Tri[1] := Verts^[Indices^[I]];
+
+  repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+  if I >= IndicesCount then
+    Exit(ResultForIncorrectPoly);
+  Tri[2] := Verts^[Indices^[I]];
+
   if IsValidTriangle(Tri) then
-   VectorAddTo1st(result, TriangleNormal(Tri) );
- end;
+    VectorAddTo1st(result, TriangleNormal(Tri) );
 
- { result to teraz suma ilus wektorow. Kazdy skladowy wektor
-     ma w niej rowny udzial bo je normalizowalem.
-   Jezeli Normal = (0, 0, 0) to znaczy ze wszystkie trojkaty polygonu byly
-     zdegenerowane, wiec nie jestesmy w stanie wyliczyc zadnego sensownego
-     wektora normalnego. }
- if VectorsEqual(result, Vector3Single(0, 0, 0)) then
-  result := ResultForIncorrectPoly else
-  NormalizeTo1st(result);
+  repeat
+    { find next valid point, which makes another triangle of polygon }
+
+    repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
+    if I >= IndicesCount then
+      Break;
+    Tri[1] := Tri[2];
+    Tri[2] := Verts^[Indices^[I]];
+  until false;
+
+  { result to teraz suma ilus wektorow. Kazdy skladowy wektor
+      ma w niej rowny udzial bo je normalizowalem.
+    Jezeli Normal = (0, 0, 0) to znaczy ze wszystkie trojkaty polygonu byly
+      zdegenerowane, wiec nie jestesmy w stanie wyliczyc zadnego sensownego
+      wektora normalnego. }
+  if IsZeroVector(Result) then
+    Result := ResultForIncorrectPoly else
+    NormalizeTo1st(Result);
 end;
 
 function IsPolygon2dCCW(Verts: PArray_Vector2Single; const VertsCount: Integer): Single;
