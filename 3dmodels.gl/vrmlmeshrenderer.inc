@@ -146,6 +146,11 @@ type
       for general direction what can and what can not be used here. }
     procedure DoRender; virtual; abstract;
   public
+    { Constructor.
+
+      For descendants implementors:
+      Don't do any OpenGL state changes here (initialization of OpenGL state
+      should go to Render, for example RenderCoordinateBegin). }
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
     { Do the actual render of the whole geometry.

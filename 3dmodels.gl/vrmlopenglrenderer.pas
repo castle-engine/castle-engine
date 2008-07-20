@@ -1497,6 +1497,8 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I openglmac.inc}
 
 {$I vrmlmeshrenderer.inc}
+{$I vrmlmeshrenderer_x3d_rendering.inc}
+{$I vrmlmeshrenderer_x3d_geometry3d.inc}
 {$I vrmlmeshrenderer_simple_nodes.inc}
 
 { WorldTime and related -------------------------------------------------- }
@@ -3827,9 +3829,6 @@ var
       if MeshRenderer is TGeneralIndexedRenderer then
         IndexedRenderer := TGeneralIndexedRenderer(MeshRenderer) else
         IndexedRenderer := nil;
-
-      if IndexedRenderer <> nil then
-        IndexedRenderer.CalculateRender_Normals;
     end else
       IndexedRenderer := nil;
   end;
