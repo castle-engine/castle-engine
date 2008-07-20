@@ -21,9 +21,6 @@
 type
   TRenderIndexedNormals = (inOverall, inGenerate, inUseSpecifiedPerVertex,
     inUseSpecifiedPerVertexIndexed);
-  TRenderIndexedMaterials = (imOverall,
-    imUseSpecifiedPerVertex, imUseSpecifiedPerVertexIndexed,
-    imUseSpecifiedPerFace, imUseSpecifiedPerFaceIndexed);
 
   { This is class used as a base to render various indexed nodes:
     IndexedFaceSet (both for VRML 1.0 and 2.0), IndexedTriangleMesh,
@@ -47,22 +44,10 @@ type
 
         If Render_Normals <> inGenerate then we handle everything
         related to normals in this class.)
-
-      @item(
-        Do not call Renderer.Render_BindMaterial_1
-        in descendants. Everything related to materials is already
-        handled in this class.
-
-        Actually, for VRML 2.0 you can do what you want with
-        material, because Render_BindMaterial_1 calls are ignored
-        and material should be set anyway in Render_MaterialsBegin.
-        See SetColor and SetLitColor methods for example how to set
-        material/color in the middle of rendering, for VRML 2.0 shapes.)
-    ) }
-  TGeneralIndexedRenderer = class(TAbstractTextureCoordinateRenderer)
+    )
+  }
+  TGeneralIndexedRenderer = class(TAbstractMatTexCoordinateRenderer)
   private
-    Render_Materials: TRenderIndexedMaterials;
-
     { Returns normal vector for given vertex, identified by IndexNum
       (IndexNum has the same meaning as for RenderVertex).
 
@@ -103,10 +88,6 @@ type
       Also NormalBinding is ignored in this case. }
     NormalIndex: TMFLong;
     StoredNormal: TMFVec3f;
-    { You can leave MaterialIndex as nil if you are sure that
-      MaterialBinding will not be any _INDEXED value. }
-    MaterialIndex: TMFLong;
-    MaterialBinding: Integer;
     NormalBinding: Integer;
 
     { Will be set to StoredNormal or it's inverted version, to keep
@@ -114,8 +95,6 @@ type
     CcwNormal: TDynVector3SingleArray;
 
     procedure RenderVertex(IndexNum: Integer); override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: integer); override;
   end;
 
   TIndexedFaceSetRenderer = class(TGeneralIndexedRenderer)
@@ -237,11 +216,7 @@ begin
 end;
 
 procedure TGeneralIndexedRenderer.RenderVertex(IndexNum: Integer);
-var
-  VertexNum: integer;
 begin
-  VertexNum := CoordIndex.Items.Items[indexNum];
-
   { If case of other Render_Normals, this will be handled elsewhere:
     - inOverall is handled in NormalsBegin
     - inGenerate is handled in RenderVertex/Face as appropriate in descendants
@@ -253,13 +228,6 @@ begin
       Render_Normals, we do it more directly. But the result is the same
       as if we had used GetNormal. }
     glNormalv(CcwNormal.Items[NormalIndex.Items.Items[indexNum]]);
-  end;
-
-  case Render_Materials of
-    imUseSpecifiedPerVertex:
-      Renderer.Render_BindMaterial_1(VertexNum);
-    imUseSpecifiedPerVertexIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[indexNum]);
   end;
 
   inherited;
@@ -316,12 +284,6 @@ end;
 
 procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
 
-  function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
-  begin
-   result:=(MFIndexes.Count > 0) and
-           (not ((MFIndexes.Count = 1) and (MFIndexes.Items.Items[0] = -1)));
-  end;
-
   procedure NormalsBegin;
   begin
     if StoredNormal <> nil then
@@ -347,62 +309,8 @@ procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
    end;
   end;
 
-  procedure MaterialsBegin;
-  { setup Render_Materials variable }
-  begin
-   Render_Materials := imOverall;
-   case MaterialBinding of
-    {BIND_OVERALL, BIND_DEFAULT: take default imOverall}
-    BIND_PER_VERTEX: Render_Materials := imUseSpecifiedPerVertex;
-    BIND_PER_VERTEX_INDEXED:
-      if IndexListNotEmpty(MaterialIndex) then
-       Render_Materials := imUseSpecifiedPerVertexIndexed;
-    BIND_PER_PART, BIND_PER_FACE: Render_Materials := imUseSpecifiedPerFace;
-    BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if IndexListNotEmpty(MaterialIndex) then
-       Render_Materials := imUseSpecifiedPerFaceIndexed;
-   end;
-
-   if GLVersion.IsMesa and (GLVersion.MesaMajor < 6) and
-     (Render_Materials in
-       [imUseSpecifiedPerVertex, imUseSpecifiedPerVertexIndexed]) then
-   begin
-     { With older Mesa (confirmed that the bug is with 5.1 and is not with
-       6.4.2) when you use BindMaterial_1 inside
-       TGeneralIndexedRenderer.RenderVertex it causes later
-       glPopAttrib (in RenderEnd) to crash with SIGSEGV.
-       gdb backtrace starts with
-
-       (gdb) bt
-       #0  0xa7a1639c in _mesa_PopAttrib ()
-          from /home/michal/installed/mesa/5.1/lib/libGL.so.1
-       #1  0x081e1418 in TVRMLOPENGLRENDERER__RENDEREND (this=0xa71af3c0)
-           at VRMLOpenGLRenderer.pas:1905
-       #2  0x081445f3 in TVRMLFLATSCENEGL__RENDERENDSIMPLE (this=0xa70b6060)
-           at VRMLFlatSceneGL.pas:1073
-       #3  0x08144b32 in TVRMLFLATSCENEGL__SSSX_PREPAREEND (this=0xa70b6060)
-           at VRMLFlatSceneGL.pas:1229
-
-       Easy test for it: run `view3dscene materials.wrl' with
-       materials.wrl from VRML 1.0 demos from
-       [http://vrmlengine.sourceforge.net/kambi_vrml_test_suite.php].
-
-       So I'm workaround this below by just using imOverall for old Mesa
-       versions. This causes incorrect rendering result, but at least
-       it works and often looks "sensible".
-     }
-     Render_Materials := imOverall;
-   end;
-
-   { TODO: we handle all material bindings, but we handle BIND_PER_PART
-     and BIND_PER_PART_INDEXED wrong for IndexedLineSet. }
-
-   if Render_Materials = imOverall then Renderer.Render_BindMaterial_1(0);
-  end;
-
 begin
   inherited;
-  MaterialsBegin;
   NormalsBegin;
 end;
 
@@ -422,18 +330,6 @@ end;
 procedure TGeneralIndexedRenderer.RenderCoordinate;
 begin
   RenderCoordsRanges;
-end;
-
-procedure TGeneralIndexedRenderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
-begin
-  case Render_Materials of
-    imUseSpecifiedPerFace:
-      Renderer.Render_BindMaterial_1(RangeNumber);
-    imUseSpecifiedPerFaceIndexed:
-      Renderer.Render_BindMaterial_1(MaterialIndex.Items.Items[RangeNumber]);
-  end;
 end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
@@ -1119,9 +1015,9 @@ begin
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-  MaterialIndex := ANode.FdMaterialIndex;
-
   NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+
+  MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
   SH := State.LastNodes.ShapeHints;
@@ -1167,8 +1063,6 @@ begin
       NormalBinding := BIND_PER_FACE_INDEXED else
       NormalBinding := BIND_PER_FACE;
   end;
-
-  MaterialBinding := BIND_DEFAULT;
 
   CreaseAngle := ANode.FdCreaseAngle.Value;
   FaceConvex := ANode.FdConvex.Value;
@@ -1243,9 +1137,10 @@ begin
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-  MaterialIndex := ANode.FdMaterialIndex;
 
   NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+
+  MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
   SH := State.LastNodes.ShapeHints;
@@ -1342,9 +1237,10 @@ begin
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-  MaterialIndex := ANode.FdMaterialIndex;
 
   NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+
+  MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 end;
 
@@ -1358,8 +1254,6 @@ begin
 
   CoordIndex := ANode.FdCoordIndex;
   Coord := ANode.Coord;
-
-  MaterialBinding := BIND_DEFAULT;
 
   if (ANode.FdColor.Value <> nil) and
      (ANode.FdColor.Value is TNodeColor) then
