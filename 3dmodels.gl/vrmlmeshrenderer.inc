@@ -286,6 +286,74 @@ type
     { @groupEnd }
   end;
 
+  { Enhances TAbstractCoordinateRenderer with the ability to handle
+    texture coordinate generation.
+
+    Usage:
+
+    - Set TexCoord, if available. When TexCoord = @nil,
+      then we'll generate default texture coordinates,
+      following VRML 2.0 / X3D IndexedFaceSet default texture coord algorithm.
+
+      (X3D spec doesn't say what happens for nodes like
+      IndexedTriangleSet when texture is specified (in Appearance.texture)
+      but texture coords are not present.
+      For now, we just generate texture coords for them just like for
+      IndexedFaceSet.)
+
+    - Set TexCoordIndex, if available. This works just like CoordIndex:
+
+      If @nil, then RenderVertex (and all other
+      routines taking some index) will just directly index TexCoord
+      (this is useful for non-indexed geometry, like TriangleSet
+      instead of IndexedTriangleSet). Otherwise, they will index TexCoordIndex,
+      and then TexCoordIndex provides index to TexCoord.
+
+      TODO: this must be done to allow TexCoordIndex = nil, currently
+      it must be non-nil for all textured nodes.
+
+    This class takes care to generate tex coords, or use supplied
+    TexCoord and TexCoordIndex. Assuming texture coordinates
+    will be wanted at all (Renderer.Render_TexCoordsNeeded).
+    So you do not have to generate any texture coordinates (call glTexCoord etc.)
+    in descendants. Everything related to textures is already
+    handled in this class.
+
+    (The only exception to above, when you need to generate some
+    texture coords, is when you allow bump mapping, that is
+    you set BumpMappingAllowed := true for your TAbstractTextureCoordinateRenderer
+    descendant. See IndexedFaceSet implementation for now what must
+    be done then, and see implementation of this class to see what
+    is different when BumpMappingMethod <> bmNone.
+
+    GetTextureCoord may be useful in descendants in this case.) }
+  TAbstractTextureCoordinateRenderer = class(TAbstractCoordinateRenderer)
+  private
+    Render_UseTextureCoordIndex: boolean;
+
+    { Used only by TextureBegin/End }
+    TextureGenerated: boolean;
+    { Set only if TextureGenerated, these are vectors used to generate
+      texture coords from local (object space) vertex positions. }
+    STextureGen, TTextureGen: TVector4f;
+  protected
+    TexCoord: TMFVec2f;
+    TexCoordIndex: TMFLong;
+
+    { Return texture coordinate for given vertex, identified by IndexNum
+      (IndexNum has the same meaning as for RenderVertex).
+
+      Returns @false if no texture coords are available.
+
+      This should work in all cases when we actually render some texture. }
+    function GetTextureCoord(IndexNum: integer; out Tex: TVector2Single): boolean;
+
+    procedure RenderVertex(IndexNum: Integer); override;
+
+    procedure RenderCoordinateBegin; override;
+    procedure RenderCoordinateEnd; override;
+  end;
+
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetRenderer = class(TAbstractCoordinateRenderer)
   protected
@@ -1389,6 +1457,187 @@ begin
     Inc(RangeNumber);
     BeginIndex := EndIndex + 1;
   end;
+end;
+
+{ TAbstractTextureCoordinateRenderer ----------------------------------------- }
+
+{ TODO:
+  - cleanup this implementation, and take TexCoordIndex = nil into account.
+  - maybe move NodeTextured here now? We can query created mesh renderer
+    before calling it's render!
+}
+
+procedure TAbstractTextureCoordinateRenderer.RenderCoordinateBegin;
+
+  procedure GenerateDefaultTextureCoordinates;
+  var
+    LocalBBox: TBox3d;
+    LocalBBoxSize: TVector3Single;
+
+    procedure SetupCoordGen(out Gen: TVector4f;
+      const Coord: integer; const GenStart, GenEnd: TGLfloat);
+
+    { We want to map float from range
+        LocalBBox[0, Coord]...LocalBBox[0, Coord] + LocalBBoxSize[Coord]
+      to
+        GenStart...GenEnd.
+
+      For a 3D point V let's define S1 as
+	S1 = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
+      and so S1 is in 0..1 range, now
+	S = S1 * (GenEnd - GenStart) + GenStart
+      and so S is in GenStart...GenEnd range, like we wanted.
+
+      It remains to rewrite this to a form that we can pass to OpenGL
+      glTexGenfv(..., GL_OBJECT_PLANE, ...).
+
+        S = V[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+	   - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+	   + GenStart
+
+      Simple check: for GenStart = 0, GenEnd = 1 this simplifies to
+        S = V[Coord] / LocalBBoxSize[Coord] -
+	    LocalBBox[0, Coord] / LocalBBoxSize[Coord]
+          = (V[Coord] - LocalBBox[0, Coord]) / LocalBBoxSize[Coord]
+          = S1
+    }
+
+    begin
+      FillChar(Gen, SizeOf(Gen), 0);
+      Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
+      Gen[3] :=
+        - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+        + GenStart;
+    end;
+
+  var
+    SCoord, TCoord, C1, C2: integer;
+  begin
+    LocalBBox := Geometry.LocalBoundingBox(State);
+
+    { Calculate SCoord and TCoord. Following VRML spec:
+      SCoord is the coord where LocalBBoxSize is largest,
+      TCoord is the second-to-largest (and if some sizes are equal,
+      then X is more important than Y than Z). }
+    LocalBBoxSize := Box3dSizes(LocalBBox);
+    SCoord := MaxVectorCoord(LocalBBoxSize);
+    RestOf3dCoords(SCoord, C1, C2);
+    if localBboxSize[C1] >= LocalBBoxSize[C2] then
+      TCoord := C1 else
+      TCoord := C2;
+
+    { Calculate STextureGen, TTextureGen. }
+    SetupCoordGen(STextureGen, SCoord, 0, 1);
+    SetupCoordGen(TTextureGen, TCoord, 0, LocalBBoxSize[TCoord] / LocalBBoxSize[SCoord]);
+
+    { Setup OpenGL to generate tex coords automatically }
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGenv(GL_S, GL_OBJECT_PLANE, STextureGen);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGenv(GL_T, GL_OBJECT_PLANE, TTextureGen);
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    TextureGenerated := true;
+  end;
+
+begin
+  inherited;
+
+  Render_UseTextureCoordIndex := false;
+  TextureGenerated := false;
+  if Renderer.Render_TexCoordsNeeded then
+  begin
+    if TexCoord <> nil then
+    begin
+      if TexCoordIndex.Count >= CoordIndex.Count then
+	Render_UseTextureCoordIndex := true else
+      begin
+	{ If TexCoord <> nil but TexCoordIndex is empty then
+	  - VRML 2.0 spec says that coordIndex is used
+	    to index texture coordinates.
+	  - VRML 1.0 spec says that in this case default texture
+	    coordinates should be generated (that's because for
+	    VRML 1.0 there is always some TexCoord <> nil,
+	    so it cannot be used to produce different behavior). }
+	if State.ParentShape <> nil then
+	begin
+	  { When BumpMappingMethod <> bmNone, texture coords will be
+	    explicitly taken at each vertex using GetTextureCoord.
+	    This glTexCoordPointer would only collide with this. }
+	  if BumpMappingMethod = bmNone then
+	  begin
+	    glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
+	    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	  end;
+	end else
+	  GenerateDefaultTextureCoordinates;
+      end;
+    end else
+      GenerateDefaultTextureCoordinates;
+  end;
+end;
+
+procedure TAbstractTextureCoordinateRenderer.RenderCoordinateEnd;
+begin
+  if TextureGenerated then
+  begin
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+  end;
+
+  inherited;
+end;
+
+function TAbstractTextureCoordinateRenderer.GetTextureCoord(
+  IndexNum: integer; out Tex: TVector2Single): boolean;
+var
+  Vertex: TVector3Single;
+begin
+  { The logic of this is synchronized with
+    TAbstractTextureCoordinateRenderer.RenderCoordinateBegin and
+    RenderVertex logic. Ideally, this should calculate the
+    same texture coordinate that is effectively used by OpenGL. }
+  if Render_UseTextureCoordIndex then
+  begin
+    Result := true;
+    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[IndexNum]];
+  end else
+  if (Renderer.Render_TexCoordsNeeded) and
+     (TexCoord <> nil) and
+     (TexCoordIndex.Count < CoordIndex.Count) and
+     (State.ParentShape <> nil) then
+  begin
+    Result := true;
+    { TextureBegin sets in this case
+        glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
+      which means that CoordIndex will be used just like TexCoordIndex. }
+    Tex := TexCoord.Items.Items[CoordIndex.Items.Items[IndexNum]];
+  end else
+  if TextureGenerated then
+  begin
+    { Calculate texture coordinates just like OpenGL }
+    Vertex := GetVertex(IndexNum);
+    Tex[0] := VectorDotProduct(Vertex, STextureGen);
+    Tex[1] := VectorDotProduct(Vertex, TTextureGen);
+  end else
+    Result := false;
+end;
+
+procedure TAbstractTextureCoordinateRenderer.RenderVertex(indexNum: integer);
+begin
+  { Don't pass glTexCoordv here if BumpMappingMethod <> bmNone,
+    then we'll handle passing texture coords appropriately
+    ourselves. }
+  if Render_UseTextureCoordIndex and (BumpMappingMethod = bmNone) then
+  begin
+    { We could use GetTextureCoord(IndexNum) here,
+      but since we already checked Render_UseTextureCoordIndex,
+      we do it more directly. But the result is the same as if we had used
+      GetTextureCoord. }
+    glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[IndexNum]]);
+  end;
+
+  inherited;
 end;
 
 { TTriangleSetRenderer ------------------------------------------------------- }

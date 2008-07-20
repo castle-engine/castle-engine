@@ -58,38 +58,21 @@ type
         and material should be set anyway in Render_MaterialsBegin.
         See SetColor and SetLitColor methods for example how to set
         material/color in the middle of rendering, for VRML 2.0 shapes.)
-
-      @item(
-        Do not generate any texture coordinates (call glTexCoord etc.)
-        in descendants. Everything related to textures is already
-        handled in this class.)
     ) }
-  TGeneralIndexedRenderer = class(TAbstractCoordinateRenderer)
+  TGeneralIndexedRenderer = class(TAbstractTextureCoordinateRenderer)
   private
-    Render_UseTextureCoordIndex: boolean;
     Render_Materials: TRenderIndexedMaterials;
 
-    { Return texture coordinate for given vertex, identified by IndexNum
+    { Returns normal vector for given vertex, identified by IndexNum
       (IndexNum has the same meaning as for RenderVertex).
 
-      Returns @false if no texture coords are available.
-
-      This tries to work in all cases when we actually render some texture,
-      but in practice doesn't work (yet) in all cases: when texture coords
-      are generated, it returns @false. (that's because we used OpenGL to
-      generate them). }
-    function GetTextureCoord(IndexNum: integer; out Tex: TVector2Single): boolean;
-
-    { Pretty much analogous to GetTextureCoord. Returns normal always from
+      Returns normal always from
       CCW (just like we pass to OpenGL always CCW normals, since we always
       assume front face = CCW).
 
       Override this in descendants only to handle
       Render_Normals = inGenerate case. }
     procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
-
-    { Used only by TextureBegin/End }
-    TextureGenerated: boolean;
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordinateBegin; override;
@@ -114,14 +97,6 @@ type
       be equal --- this may be useful for various optimization purposes. }
     NormalsFlat: boolean;
 
-    { You can leave TexCoordIndex as nil only if you are
-      sure that Renderer.Render_TexCoordsNeeded will be @false.
-      One way to ensure this is to modify NodeTextured function. }
-    TexCoordIndex: TMFLong;
-    { You can leave TexCoord as nil.
-      If Renderer.Render_TexCoordsNeeded will be @true then
-      the default texture coordinates will be generated in this case. }
-    TexCoord: TMFVec2f;
     { You can leave NormalIndex and Normal as nil.
       Then Render_Normals will for sure be inGenerate,
       and it's up to you how to make the normals.
@@ -138,7 +113,7 @@ type
       pointing from CCW. }
     CcwNormal: TDynVector3SingleArray;
 
-    procedure RenderVertex(indexNum: integer); override;
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: integer); override;
   end;
@@ -153,7 +128,7 @@ type
 
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
-    procedure RenderVertex(indexNum: integer); override;
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
@@ -187,7 +162,7 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedFaceSet_2);
 
-    procedure RenderVertex(indexNum: integer); override;
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
@@ -235,7 +210,7 @@ type
     procedure SetColor(const AColor: TVector3Single);
 
     procedure RenderCoordinateBegin; override;
-    procedure RenderVertex(indexNum: integer); override;
+    procedure RenderVertex(IndexNum: Integer); override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
@@ -245,35 +220,6 @@ type
 constructor TGeneralIndexedRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
-end;
-
-function TGeneralIndexedRenderer.GetTextureCoord(
-  IndexNum: integer; out Tex: TVector2Single): boolean;
-begin
-  { The logic of this is synchronized with TextureBegin and
-    RenderVertex logic. Ideally, this should calculate the
-    same texture coordinate that is effectively used by OpenGL. }
-  if Render_UseTextureCoordIndex then
-  begin
-    Result := true;
-    Tex := TexCoord.Items.Items[TexCoordIndex.Items.Items[IndexNum]];
-  end else
-  if (Renderer.Render_TexCoordsNeeded) and
-     (TexCoord <> nil) and
-     (TexCoordIndex.Count < CoordIndex.Count) and
-     (State.ParentShape <> nil) then
-  begin
-    Result := true;
-    { TextureBegin sets in this case
-        glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
-      which means that CoordIndex will be used just like TexCoordIndex. }
-    Tex := TexCoord.Items.Items[CoordIndex.Items.Items[IndexNum]];
-  end else
-    { TODO: we fail to handle cases when texture coord in automatically
-      generated, see cases when GenerateDefaultTextureCoordinates is called by
-      TextureBegin. For now, we return @false for them --- instead, we should
-      calculate and return texture coordinates ourself. }
-    Result := false;
 end;
 
 procedure TGeneralIndexedRenderer.GetNormal(
@@ -290,23 +236,11 @@ begin
   end;
 end;
 
-procedure TGeneralIndexedRenderer.RenderVertex(indexNum: integer);
+procedure TGeneralIndexedRenderer.RenderVertex(IndexNum: Integer);
 var
   VertexNum: integer;
 begin
   VertexNum := CoordIndex.Items.Items[indexNum];
-
-  { Don't pass glTexCoordv here if BumpMappingMethod <> bmNone,
-    then we'll handle passing texture coords appropriately
-    ourselves. }
-  if Render_UseTextureCoordIndex and (BumpMappingMethod = bmNone) then
-  begin
-    { We could use GetTextureCoord(IndexNum) here,
-      but since we already checked Render_UseTextureCoordIndex,
-      we do it more directly. But the result is the same as if we had used
-      GetTextureCoord. }
-    glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[indexNum]]);
-  end;
 
   { If case of other Render_Normals, this will be handled elsewhere:
     - inOverall is handled in NormalsBegin
@@ -381,102 +315,6 @@ begin
 end;
 
 procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
-
-  { setup texture-related things }
-  procedure TextureBegin;
-
-    procedure GenerateDefaultTextureCoordinates;
-    var localBBox: TBox3d;
-        localBBoxSize: TVector3f;
-
-      procedure SetupCoordGen(out gen: TVector4f;
-        const coord: integer; const genStart, genEnd: TGLfloat);
-      {chcemy mapowac localBBox[0, coord]...localBBox[0, coord]+localBBoxSize[coord]
-                   na genStart...genEnd.
-        czyli mamy dla punktu v[0..2] :
-          s1 = (v[coord] - localBBox[0, coord]) / localBBoxSize[coord]
-        i mamy s1 w zakresie 0..1, teraz
-          s = s1 * (genEnd-genStart) + genStart
-        i mamy to co chcemy - s przedziale genStart...genEnd.
-       Sprowadzajac to do postaci ktora trzeba podac OpenGL'owi :
-         s = v[coord] * (genEnd-genStart) / localBBoxSize[coord]
-             - localBBox[0, coord] * (genEnd-genStart) / localBBoxSize[coord]
-             + genStart
-       Proste sprawdzenie :
-         dla genStart, End = 0, 1 mamy
-         s = v[coord] / localBBoxSize[coord] -
-             localBBox[0, coord] / localBBoxSize[coord] =
-             (v[coord] - localBBox[0, coord]) / localBBoxSize[coord] = s1
-      }
-      begin
-        FillChar(gen, SizeOf(gen), 0);
-        gen[coord]:=(genEnd-genStart) / localBBoxSize[coord];
-        gen[3] := -localBBox[0, coord] * (genEnd-genStart) /
-          localBBoxSize[coord] + genStart;
-      end;
-
-    var
-      s_gen, t_gen: TVector4f;
-      SCoord, TCoord, c1, c2: integer;
-    begin
-      localBBox := Geometry.LocalBoundingBox(State);
-
-      {oblicz rozmiary localBBox. SCoord to wspolrzedna na ktorej rozmiar jest
-       najwiekszy, TCoord to druga wspolrzedna (gdyby jakies wspolrzedne
-       byly rowne, X jest wazniejsze od Y a to jest wazniejsze od Z).}
-      localBBoxSize := Box3dSizes(localBBox);
-      SCoord := MaxVectorCoord(localBBoxSize);
-      RestOf3dCoords(SCoord, c1, c2);
-      if localBboxSize[c1] >= localBBoxSize[c2] then TCoord := c1 else TCoord := c2;
-
-      {ustaw s_gen i t_gen - parametry do generowania tekstur}
-      SetupCoordGen(s_gen, SCoord, 0, 1);
-      SetupCoordGen(t_gen, TCoord, 0, localBBoxSize[TCoord]/localBBoxSize[SCoord]);
-
-      {setup generating tex coords automatically}
-      glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-      glTexGenfv(GL_S, GL_OBJECT_PLANE, @s_gen);
-      glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-      glTexGenfv(GL_T, GL_OBJECT_PLANE, @t_gen);
-      glEnable(GL_TEXTURE_GEN_S);
-      glEnable(GL_TEXTURE_GEN_T);
-      TextureGenerated := true;
-    end;
-
-  begin
-    Render_UseTextureCoordIndex := false;
-    TextureGenerated := false;
-    if Renderer.Render_TexCoordsNeeded then
-    begin
-      if TexCoord <> nil then
-      begin
-        if TexCoordIndex.Count >= CoordIndex.Count then
-          Render_UseTextureCoordIndex := true else
-        begin
-          { If TexCoord <> nil but TexCoordIndex is empty then
-            - VRML 2.0 spec says that coordIndex is used
-              to index texture coordinates.
-            - VRML 1.0 spec says that in this case default texture
-              coordinates should be generated (that's because for
-              VRML 1.0 there is always some TexCoord <> nil,
-              so it cannot be used to produce different behavior). }
-          if State.ParentShape <> nil then
-          begin
-            { When BumpMappingMethod <> bmNone, texture coords will be
-              explicitly taken at each vertex using GetTextureCoord.
-              This glTexCoordPointer would only collide with this. }
-            if BumpMappingMethod = bmNone then
-            begin
-              glTexCoordPointer(2, GL_FLOAT, 0, TexCoord.Items.Items);
-              glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            end;
-          end else
-            GenerateDefaultTextureCoordinates;
-        end;
-      end else
-        GenerateDefaultTextureCoordinates;
-    end;
-  end;
 
   function IndexListNotEmpty(MFIndexes: TMFLong): boolean;
   begin
@@ -564,21 +402,11 @@ procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
 
 begin
   inherited;
-  TextureBegin;
   MaterialsBegin;
   NormalsBegin;
 end;
 
 procedure TGeneralIndexedRenderer.RenderCoordinateEnd;
-
-  procedure TextureEnd;
-  begin
-    if TextureGenerated then
-    begin
-      glDisable(GL_TEXTURE_GEN_S);
-      glDisable(GL_TEXTURE_GEN_T);
-    end;
-  end;
 
   procedure NormalsEnd;
   begin
@@ -588,7 +416,6 @@ procedure TGeneralIndexedRenderer.RenderCoordinateEnd;
 
 begin
   NormalsEnd;
-  TextureEnd;
   inherited;
 end;
 
@@ -625,7 +452,7 @@ begin
     inherited;
 end;
 
-procedure TIndexedFaceSetRenderer.RenderVertex(indexNum: integer);
+procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
   var

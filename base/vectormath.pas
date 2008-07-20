@@ -902,11 +902,21 @@ function VectorProduct(const v1, v2: TVector3Double): TVector3Double; overload;
 function VectorProduct(const v1, v2: TVector3Single): TVector3Single; overload;
 
 { Dot product (aka scalar product) of two vectors.
+
+  Overloaded versions that take as one argument 3-component vector and
+  as the second argument 4-component vector: they simply behave like
+  the missing 4th component would be equal 1.0. This is useful when
+  V1 is a 3D point and V2 is something like plane equation.
+
   @groupBegin }
 function VectorDotProduct(const v1, v2: TVector3Single): Single; overload;
 function VectorDotProduct(const v1, v2: TVector3Double): Double; overload;
+
 function VectorDotProduct(const v1, v2: TVector4Single): Single; overload;
 function VectorDotProduct(const v1, v2: TVector4Double): Double; overload;
+
+function VectorDotProduct(const v1: TVector3Single; const v2: TVector4Single): Single; overload;
+function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): Double; overload;
 { @groupEnd }
 
 { mnozy dwa wektory na zasadzie mnozenia odpowiadajacych sobie pozycji,
