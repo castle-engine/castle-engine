@@ -3753,8 +3753,6 @@ end;
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
-var
-  IndexedRenderer: TGeneralIndexedRenderer;
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
   begin
@@ -3823,14 +3821,6 @@ var
     if Node is TNodeSphere_2 then
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
       ExposedMeshRenderer := nil;
-
-    if MeshRenderer <> nil then
-    begin
-      if MeshRenderer is TGeneralIndexedRenderer then
-        IndexedRenderer := TGeneralIndexedRenderer(MeshRenderer) else
-        IndexedRenderer := nil;
-    end else
-      IndexedRenderer := nil;
   end;
 
   procedure InitTextures;
@@ -3923,16 +3913,16 @@ var
 
         AlphaTest := TexImageReference^.AlphaChannelType = atSimpleYesNo;
 
-        if (IndexedRenderer <> nil) and
-           IndexedRenderer.BumpMappingAllowed and
+        if (MeshRenderer <> nil) and
+           MeshRenderer.BumpMappingAllowed and
            (BumpMappingMethod <> bmNone) then
         begin
           if TexImageReference^.NormalMap <> 0 then
           begin
-            IndexedRenderer.BumpMappingMethod := BumpMappingMethod;
-            Assert(IndexedRenderer is TIndexedFaceSetRenderer,
+            MeshRenderer.BumpMappingMethod := BumpMappingMethod;
+            Assert(MeshRenderer is TIndexedFaceSetRenderer,
               'We assumed that only TIndexedFaceSetRenderer may actually have BumpMappingMethod <> bmNone');
-            IndexedFaceRenderer := TIndexedFaceSetRenderer(IndexedRenderer);
+            IndexedFaceRenderer := TIndexedFaceSetRenderer(MeshRenderer);
             IndexedFaceRenderer.TexNormalizationCube := TexNormalizationCube;
             IndexedFaceRenderer.TexOriginal := TexImageReference^.GLName;
             IndexedFaceRenderer.TexOriginalAlpha := AlphaTest;
@@ -3941,8 +3931,8 @@ var
             IndexedFaceRenderer.TexHeightMapScale := TexImageReference^.HeightMapScale;
             { use parallax only if the model actually has heightMap }
             if (IndexedFaceRenderer.TexHeightMap = 0) and
-               (IndexedRenderer.BumpMappingMethod >= bmGLSLParallax) then
-              IndexedRenderer.BumpMappingMethod := bmGLSLNormal;
+               (MeshRenderer.BumpMappingMethod >= bmGLSLParallax) then
+              MeshRenderer.BumpMappingMethod := bmGLSLNormal;
           end else
             EnableClassicTexturing(TexImageReference^.GLName);
         end else

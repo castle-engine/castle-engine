@@ -19,88 +19,17 @@
 }
 
 type
-  TNormalsImplementation = (niOverall, niGenerate,
-    niPerVertexCoordIndexed,
-    niPerVertexNormalIndexed);
-
-  { This is class used as a base to render various indexed nodes:
-    IndexedFaceSet (both for VRML 1.0 and 2.0), IndexedTriangleMesh,
-    IndexedLineSet (both for VRML 1.0 and 2.0).
-
-    This is a descendant of TAbstractCoordinateRenderer
-    that must always have CoordIndex assigned (it's always indexed).
-
-    What you have to do to implement a descendant ?
-
-    @unorderedList(
-      @item(
-        You have to override RenderCoordsRange where you will render
-        your face by calling RenderVertex to render vertexes.)
-
-      @item(
-        If and only if NorImplementation = niGenerate
-        you have to make appropriate glNormal calls.
-        Normals should always point from CCW (you *do not* check here FrontFaceCcw
-        field, as we *do not* call glFrontFace anywhere).
-
-        If NorImplementation <> niGenerate then we handle everything
-        related to normals in this class.)
-    )
-  }
-  TGeneralIndexedRenderer = class(TAbstractColMatTexCoordinateRenderer)
-  protected
-    { This is calculated in AfterConstruction. So your constructor
-      must fill NormalIndex, NormalBinding etc. to make calculation
-      of this possible. It's calculated in AfterConstruction (not waiting
-      for RenderCoordinateBegin) because NodeLit uses this. }
-    NorImplementation: TNormalsImplementation;
-
-    procedure AfterConstruction; override;
-
-    { Returns normal vector for given vertex, identified by IndexNum
-      (IndexNum has the same meaning as for RenderVertex).
-
-      Returns normal always from
-      CCW (just like we pass to OpenGL always CCW normals, since we always
-      assume front face = CCW).
-
-      Override this in descendants only to handle
-      NorImplementation = niGenerate case. }
-    procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
-
-    procedure RenderCoordinate; override;
-    procedure RenderCoordinateBegin; override;
-    procedure RenderCoordinateEnd; override;
-
-    { Only if NorImplementation = niGenerate, you can set this in descendants
-      in RenderCoordinateBegin (after inherited).
-      If @true, then it's guaranteed that normals for the same face will
-      be equal --- this may be useful for various optimization purposes. }
-    NormalsFlat: boolean;
-
-    { You can leave NormalIndex and Normal as nil.
-      Then NorImplementation will for sure be niGenerate,
-      and it's up to you how to make the normals.
-      Also NormalBinding is ignored in this case. }
-    NormalIndex: TMFLong;
-    StoredNormal: TMFVec3f;
-    NormalBinding: Integer;
-
-    { Will be set to StoredNormal or it's inverted version, to keep
-      pointing from CCW. }
-    CcwNormal: TDynVector3SingleArray;
-
-    procedure RenderVertex(IndexNum: Integer); override;
-  end;
-
-  TIndexedFaceSetRenderer = class(TGeneralIndexedRenderer)
+  TIndexedFaceSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   private
     Render_GeneratedNormals: TDynVector3SingleArray;
-
+    { Helpers for bump mapping }
+    HasTangentVectors: boolean;
+    STangent, TTangent: TVector3Single;
+    LightPositionObjectSpace: TVector3Single;
+  protected
     procedure GetNormal(IndexNum: integer; out N: TVector3Single); override;
-  public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
+    procedure RenderCoordinate; override;
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
     procedure RenderVertex(IndexNum: Integer); override;
@@ -110,16 +39,13 @@ type
     { Set these in descendant's constructor. }
     CreaseAngle: Single;
     FaceConvex: boolean;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
 
     { These must be set by Renderer if BumpMappingMethod <> bmNone }
     TexOriginal, TexNormalMap, TexHeightMap, TexNormalizationCube: TGLuint;
     TexOriginalAlpha: boolean;
     TexHeightMapScale: Single;
-
-    { Helpers for bump mapping }
-    HasTangentVectors: boolean;
-    STangent, TTangent: TVector3Single;
-    LightPositionObjectSpace: TVector3Single;
   end;
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
@@ -134,16 +60,19 @@ type
       ANode: TNodeIndexedFaceSet_2);
   end;
 
-  TIndexedTriangleMesh_1Renderer = class(TGeneralIndexedRenderer)
+  TIndexedTriangleMesh_1Renderer = class(TAbstractNorColMatTexCoordinateRenderer)
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedTriangleMesh_1);
+  protected
+    procedure RenderCoordinate; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
 
-  TIndexedLineSetRenderer = class(TGeneralIndexedRenderer)
-  public
+  TIndexedLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  protected
+    procedure RenderCoordinate; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
@@ -158,132 +87,9 @@ type
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer;
       ANode: TNodeIndexedLineSet_2);
-
+  protected
     procedure RenderCoordinateBegin; override;
   end;
-
-{ TGeneralIndexedRenderer ----------------------------------------------------- }
-
-procedure TGeneralIndexedRenderer.AfterConstruction;
-begin
-  { TODO: not all normal bindings are supported,
-    we Generate Normals if normalBinding is not supported.
-    Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
-
-  NorImplementation := niGenerate;
-  NormalsFlat := false;
-
-  if (StoredNormal = nil) or (NormalIndex = nil) then
-    Exit;
-
-  case NormalBinding of
-    BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
-      begin
-        NorImplementation := niPerVertexNormalIndexed;
-        NormalsFlat := false;
-      end;
-    BIND_PER_VERTEX:
-      begin
-        NorImplementation := niPerVertexCoordIndexed;
-        NormalsFlat := false;
-      end;
-    BIND_OVERALL:
-      if StoredNormal.Count > 0 then
-      begin
-        NorImplementation := niOverall;
-        NormalsFlat := true;
-      end;
-  end;
-
-  { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
-    node Normal (albo wrecz nie bylo zadnego takiego node'a w pliku, czyli
-    LastNormal to DefaultNormalNode sceny) to bedziemy generowac normale.
-
-    Jezeli juz bylismy ustawieni na generowanie normali albo jezeli to jest
-    pusty indexed node (tzn. nie podaje zadnych faces - co jest przeciez
-    dopuszczalne) to ta instrukcja nie spowoduje zadnego efektu (a wiec
-    tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
-    normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
-    zostanie mimo wszystko dobrze odczytany i wyswietlony. }
-  if StoredNormal.Count = 0 then
-  begin
-    NorImplementation := niGenerate;
-    NormalsFlat := false;
-  end;
-end;
-
-procedure TGeneralIndexedRenderer.GetNormal(
-  IndexNum: integer; out N: TVector3Single);
-begin
-  case NorImplementation of
-    niOverall: N := CcwNormal.Items[0];
-    niPerVertexCoordIndexed:
-      N := CcwNormal.Items[CoordIndex.Items.Items[IndexNum]];
-    niPerVertexNormalIndexed:
-      N := CcwNormal.Items[NormalIndex.Items.Items[indexNum]];
-    else
-      raise EInternalError.Create('GetNormal: NorImplementation ?');
-  end;
-end;
-
-procedure TGeneralIndexedRenderer.RenderVertex(IndexNum: Integer);
-begin
-  { If case of other NorImplementation, this will be handled elsewhere:
-    - niOverall is handled in RenderCoordinateBegin
-    - niGenerate is handled in RenderVertex/CoordRange as appropriate in descendants
-    - inPerVertexCoordIndexed is also set up in RenderCoordinateBegin,
-      so glDrawElement will magically do this. }
-  if NorImplementation = niPerVertexNormalIndexed then
-  begin
-    { We could use GetNormal(IndexNum) here, but since we already checked
-      NorImplementation, we do it more directly. But the result is the same
-      as if we had used GetNormal. }
-    glNormalv(CcwNormal.Items[NormalIndex.Items.Items[indexNum]]);
-  end;
-
-  inherited;
-end;
-
-procedure TGeneralIndexedRenderer.RenderCoordinateBegin;
-begin
-  inherited;
-
-  if StoredNormal <> nil then
-  begin
-    if FrontFaceCcw then
-      CcwNormal := StoredNormal.Items else
-    begin
-      CcwNormal := TDynVector3SingleArray.Create;
-      CcwNormal.AssignNegated(StoredNormal.Items);
-    end;
-  end;
-
-  { podejmij pewna inicjalizacje juz PO ustaleniu NorImplementation }
-  case NorImplementation of
-    niOverall: glNormalv(CcwNormal.Items[0]);
-    niPerVertexCoordIndexed:
-      begin
-        {w tym przypadku mozemy uzyc vertex array dla normali bo
-         indeks vertexu = indeks normala}
-        glNormalPointer(GL_FLOAT, 0, CcwNormal.Items);
-        glEnableClientState(GL_NORMAL_ARRAY);
-      end;
-  end;
-end;
-
-procedure TGeneralIndexedRenderer.RenderCoordinateEnd;
-begin
-  if (StoredNormal <> nil) and (not FrontFaceCcw) then
-    FreeAndNil(CcwNormal);
-
-  inherited;
-end;
-
-procedure TGeneralIndexedRenderer.RenderCoordinate;
-begin
-  RenderCoordsRanges;
-end;
 
 { TIndexedFaceSetRenderer -------------------------------------------------- }
 
@@ -299,6 +105,11 @@ begin
   if NorImplementation = niGenerate then
     N := Render_GeneratedNormals.Items[IndexNum] else
     inherited;
+end;
+
+procedure TIndexedFaceSetRenderer.RenderCoordinate;
+begin
+  RenderCoordsRanges;
 end;
 
 procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
@@ -1060,6 +871,11 @@ begin
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 end;
 
+procedure TIndexedTriangleMesh_1Renderer.RenderCoordinate;
+begin
+  RenderCoordsRanges;
+end;
+
 procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
@@ -1128,6 +944,11 @@ begin
   glEnd;
 end;
 
+procedure TIndexedLineSetRenderer.RenderCoordinate;
+begin
+  RenderCoordsRanges;
+end;
+
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
 
 constructor TIndexedLineSet_1Renderer.Create(
@@ -1188,4 +1009,3 @@ begin
   end;
 end;
 
-{ eof --------------------------------------------------------------------------- }
