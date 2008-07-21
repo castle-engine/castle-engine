@@ -69,8 +69,9 @@ type
   { }
   TDynArrayBase = class
   private
-    FCapacity, FLength, FAllowedCapacityOverflow: integer;
-    ItemSize: integer;
+    FLength: Integer;
+    FCapacity, FAllowedCapacityOverflow: Cardinal;
+    ItemSize: Cardinal;
 
     { This is the buffer used by SwapItems, allocated for ItemSize bytes
       in constructor, freed in desctructor. This way SwapItems doesn't
@@ -78,7 +79,7 @@ type
       speed of memory manager. }
     SwapItemsBuf: Pointer;
 
-    procedure SetAllowedCapacityOverflow(Value: integer);
+    procedure SetAllowedCapacityOverflow(Value: Cardinal);
   protected
     { @noAutoLinkHere }
     A: pointer;
@@ -135,21 +136,25 @@ type
       (pozyteczna instrukcja jest wiec AllowedCapacityOverflow := 0;
       mozesz jej uzyc gdy juz wiesz ze tablica nie bedzie wiecej resizowana
       aby nie marnowac ani bajta pamieci.) }
-    property AllowedCapacityOverflow: integer read FAllowedCapacityOverflow
+    property AllowedCapacityOverflow: Cardinal read FAllowedCapacityOverflow
       write SetAllowedCapacityOverflow default 4;
-    property Capacity: integer read FCapacity;
+    property Capacity: Cardinal read FCapacity;
 
     procedure SetLength(NewLength: Integer); virtual;
     procedure IncLength;
     procedure DecLength;
     procedure ChangeLength(LenChange: Integer);
 
-    { Count = Length. High = Length-1 (always, even when Length = 0 -> High is -1) }
+    { Count = Length. High = Length-1 (always, even when Length = 0 -> High is -1)
+
+      Note: Length, Count are declared as Integer only to avoid
+      range errors on constructs like "Count - 1" (typical in for clauses),
+      but actually it's always unsigned. }
     property Length: Integer read FLength write SetLength;
     property Count: Integer read FLength write SetLength;
     function High: Integer;
 
-    procedure SwapItems(Index1, Index2: integer);
+    procedure SwapItems(Index1, Index2: Cardinal);
 
     { Fill all memory in array. }
     procedure FillChar(FillValue: byte);
@@ -276,13 +281,13 @@ end;
 
 function TDynArrayBase.High: Integer; begin result := Length-1 end;
 
-procedure TDynArrayBase.SetAllowedCapacityOverflow(Value: integer);
-var NewCapacity: integer;
+procedure TDynArrayBase.SetAllowedCapacityOverflow(Value: Cardinal);
+var NewCapacity: Cardinal;
 begin
- if (Capacity-Length) > Value then
+ if Capacity - Cardinal(Length) > Value then
  begin
-  NewCapacity := Length+Value;
-  ReallocMem(A, NewCapacity*ItemSize);
+  NewCapacity := Cardinal(Length) + Value;
+  ReallocMem(A, NewCapacity * ItemSize);
   FCapacity := NewCapacity;
  end;
  FAllowedCapacityOverflow := Value;
@@ -290,22 +295,22 @@ end;
 
 procedure TDynArrayBase.SetLengthNoInitFini(NewLength: Integer);
 
-  procedure ReallocCapacity(NewCapacity: integer);
+  procedure ReallocCapacity(NewCapacity: Cardinal);
   begin
-   ReallocMem(A, NewCapacity*ItemSize);
+   ReallocMem(A, NewCapacity * ItemSize);
    FCapacity := NewCapacity;
   end;
 
 begin
  if NewLength > Length then
  begin
-  if NewLength > Capacity then
-   ReallocCapacity(NewLength+AllowedCapacityOverflow);
+  if Cardinal(NewLength) > Capacity then
+   ReallocCapacity(Cardinal(NewLength) + AllowedCapacityOverflow);
    { else no need to do any memory reallocation }
  end else
  if NewLength < Length then
  begin
-  if (Capacity-NewLength) > AllowedCapacityOverflow then
+  if Capacity - Cardinal(NewLength) > AllowedCapacityOverflow then
    ReallocCapacity(NewLength);
  end;
 
@@ -326,12 +331,12 @@ begin ChangeLength(-1) end;
 procedure TDynArrayBase.ChangeLength(LenChange: Integer);
 begin SetLength(Length+LenChange) end;
 
-procedure TDynArrayBase.SwapItems(Index1, Index2: integer);
+procedure TDynArrayBase.SwapItems(Index1, Index2: Cardinal);
 var p1, p2: PByte;
 begin
  {$I norqcheckbegin.inc}
- p1 := Pointer(TPointerSInt(A) + Index1*ItemSize);
- p2 := Pointer(TPointerSInt(A) + Index2*ItemSize);
+ PtrUInt(p1) := PtrUInt(A) + Index1 * ItemSize;
+ PtrUInt(p2) := PtrUInt(A) + Index2 * ItemSize;
  {$I norqcheckend.inc}
  move(p1^, SwapItemsBuf^, ItemSize);
  move(p2^, p1^, ItemSize);
@@ -340,7 +345,7 @@ end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
 begin
- System.FillChar(A^, ItemSize * Length, FillValue);
+ System.FillChar(A^, ItemSize * Cardinal(Length), FillValue);
 end;
 
 procedure TDynArrayBase.Reverse;

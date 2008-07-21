@@ -80,21 +80,26 @@ function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
 
 {$ifdef DELPHI}
 { Compatibility with FPC }
-procedure FillDWord(var X; Count: PtrInt; Value: DWord); 
+procedure FillDWord(var X; Count: PtrInt; Value: DWord);
 {$endif}
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{$Include NoRQCheckBegin.inc}
+{$include norqcheckbegin.inc}
 function PointerAdd(p: pointer; Add: integer): pointer;
 { Ten kod moze powodowac falszywe alarmy co do rangeChecking / arith. overflow,
   dlatego powinien dzialac z R-,Q- }
+var
+  { TPointerSInt aliases for pointer types, to allow for
+    addition on them with Add (signed) without any warnings. }
+  ResultInt: TPointerSInt absolute Result;
+  PInt: TPointerSInt absolute P;
 begin
- TPointerSInt(result) := TPointerSInt(p)+Add;
+  ResultInt := PInt + Add;
 end;
-{$Include NoRQCheckEnd.inc}
+{$include norqcheckend.inc}
 
 {$ifdef DELPHI}
 function GetMem(Size: integer): pointer;
@@ -173,7 +178,7 @@ function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
 var i: Integer;
     P: PWord;
 begin
- { TODO -- optimize this by using IsMemDWordFilled with 
+ { TODO -- optimize this by using IsMemDWordFilled with
    Value = Value or (Value shl 16). }
  P := @Data;
  for i := 1 to Size do

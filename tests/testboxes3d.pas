@@ -111,7 +111,7 @@ end;
 procedure TTestBoxes3d.TestIsBox3dTriangleCollision;
 
   procedure RandomTrianglesTest(
-    const XRandomness, YRandomness, ZRandomness: Cardinal);
+    const XRandomness, YRandomness, ZRandomness: Integer);
   var
     Triangle: TTriangle3Single;
     Box: TBox3d;
@@ -468,6 +468,8 @@ var
 const
   A = 1.980401039123535;
 begin
+  EqualityEpsilon := 1e-5;
+
   Box[0][0] := -7.721179485321045;
   Box[0][1] := -3.115305423736572;
   Box[0][2] := 26.886024475097656;

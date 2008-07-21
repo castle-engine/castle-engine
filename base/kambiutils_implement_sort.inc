@@ -4,8 +4,13 @@
     L: Pointer; LIndex: Integer;
     R: Pointer; RIndex: Integer);
   { Simple sort by choosing }
-  var NowIndex: Integer;
-      MinPtr, NowPtr, Temp: Pointer;
+  var
+    NowIndex: Integer;
+    MinPtr, NowPtr, Temp: Pointer;
+    { TPointerSInt aliases for pointer types, to allow for
+      addition on them with ArrStride (signed) without any warnings. }
+    NowPtrInt: TPointerSInt absolute NowPtr;
+    LInt: TPointerSInt absolute L;
   begin
    Temp := GetMem(ArrRecordSize);
    try
@@ -15,7 +20,7 @@
      NowPtr := L;
      for NowIndex := LIndex + 1 to RIndex do
      begin
-      TPointerSInt(NowPtr) := TPointerSInt(NowPtr) + ArrStride;
+      NowPtrInt := NowPtrInt + ArrStride;
       if IsSmallerFunc(NowPtr, MinPtr
         {$ifndef SORT_BY_OBJECT},IsSmallerFuncData{$endif}) then
        MinPtr := NowPtr;
@@ -26,7 +31,7 @@
      Move(MinPtr^, L^, ArrRecordSize);
      Move(Temp^, MinPtr^, ArrRecordSize);
 
-     TPointerSInt(L) := TPointerSInt(L) + ArrStride;
+     LInt := LInt + ArrStride;
      Inc(LIndex);
     end;
    finally FreeMem(Temp) end;
@@ -37,6 +42,10 @@
     R: Pointer; RIndex: Integer);
   var
     I, J: Pointer;
+    { TPointerSInt aliases for pointer types, to allow for
+      addition on them with ArrStride (signed) without any warnings. }
+    IInt: TPointerSInt absolute I;
+    JInt: TPointerSInt absolute J;
     IIndex, JIndex: Integer;
     Temp, Middle: Pointer;
   begin
@@ -67,14 +76,14 @@
      while IsSmallerFunc(I, Middle {$ifndef SORT_BY_OBJECT},IsSmallerFuncData{$endif}) do
      begin
       { next i }
-      TPointerSInt(I) := TPointerSInt(I) + ArrStride;
+      IInt := IInt + ArrStride;
       Inc(IIndex);
      end;
 
      while IsSmallerFunc(Middle, J {$ifndef SORT_BY_OBJECT},IsSmallerFuncData{$endif}) do
      begin
       { previous j }
-      TPointerSInt(J) := TPointerSInt(J) - ArrStride;
+      JInt := JInt - ArrStride;
       Dec(JIndex);
      end;
 
@@ -86,11 +95,11 @@
       Move(Temp^, J^, ArrRecordSize);  { Arr[j]:=temp }
 
       { next i }
-      TPointerSInt(I) := TPointerSInt(I) + ArrStride;
+      IInt := IInt + ArrStride;
       Inc(IIndex);
 
       { previous j }
-      TPointerSInt(J) := TPointerSInt(J) - ArrStride;
+      JInt := JInt - ArrStride;
       Dec(JIndex);
      end;
     until IIndex > JIndex;
