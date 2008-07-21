@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2007 Michalis Kamburelis.
+  Copyright 2001-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -713,7 +713,7 @@ procedure IdleMessg(glwin: TGLWindow);
 
   function Faktor: Single;
   begin
-   result := 4.0 * glwin.IdleSpeed;
+   result := 200.0 * glwin.IdleSpeed;
    if mkCtrl in Glwin.ModifiersDown then result *= 6;
   end;
 
