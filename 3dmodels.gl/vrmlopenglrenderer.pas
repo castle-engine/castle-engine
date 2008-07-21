@@ -3522,7 +3522,6 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
-{$I vrmlopenglrenderer_indexednodesrenderer.inc}
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 {$I vrmlopenglrenderer_render_materials.inc}

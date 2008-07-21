@@ -73,6 +73,37 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
+  TIndexedTriangleMesh_1Renderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedTriangleMesh_1);
+  protected
+    procedure RenderCoordinate; override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  end;
+
+  TIndexedLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  protected
+    procedure RenderCoordinate; override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  end;
+
+  TIndexedLineSet_1Renderer = class(TIndexedLineSetRenderer)
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedLineSet_1);
+  end;
+
+  TIndexedLineSet_2Renderer = class(TIndexedLineSetRenderer)
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer;
+      ANode: TNodeIndexedLineSet_2);
+  protected
+    procedure RenderCoordinateBegin; override;
+  end;
+
 { TPointSet_1Renderer -------------------------------------------------------- }
 
 procedure TPointSet_1Renderer.DoRender;
@@ -450,3 +481,176 @@ begin
     end;
   glEnd();
 end;
+
+{ TIndexedTriangleMesh_1Renderer --------------------------------------------- }
+
+constructor TIndexedTriangleMesh_1Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedTriangleMesh_1);
+var
+  SH: TNodeShapeHints;
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := State.LastNodes.Coordinate3.FdPoint;
+  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+  NormalIndex := ANode.FdNormalIndex;
+  StoredNormal := State.LastNodes.Normal.FdVector;
+
+  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+
+  MaterialIndex := ANode.FdMaterialIndex;
+  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+
+  SH := State.LastNodes.ShapeHints;
+
+  { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
+    (a autorzy VRMLi w ogole nie powinni podawac normali jesli
+    nie podadza vertexOrdering innego niz UNKNOWN) }
+  FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+
+  CullBackFaces :=
+    (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
+    (SH.FdShapeType.Value = SHTYPE_SOLID);
+end;
+
+procedure TIndexedTriangleMesh_1Renderer.RenderCoordinate;
+begin
+  RenderCoordsRanges;
+end;
+
+procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+
+{ TODO: this is just a copy of TTriangleStripSetRenderer.RenderCoordsRange,
+  and should be deleted (once all our ancestors functionality will be
+  moved to TTriangleStripSetRenderer and TAbstractCoordinateRenderer. }
+
+  procedure DoNormal(const v1, v2, v3: integer);
+  begin
+    if NorImplementation = niGenerate then
+    begin
+      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+      glNormalv(TriangleNormal(
+        GetVertex(V1),
+        GetVertex(V2),
+        GetVertex(V3)));
+    end;
+  end;
+
+var
+  NormalOrder: boolean;
+begin
+  inherited;
+
+  if BeginIndex + 2 < EndIndex then
+  begin
+    { TODO: for now we always generate flat normals }
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
+
+      glBegin(GL_TRIANGLE_STRIP);
+
+      RenderVertex(BeginIndex);
+      RenderVertex(BeginIndex + 1);
+
+      NormalOrder := true;
+
+      while BeginIndex + 2 < EndIndex do
+      begin
+        if NormalOrder then
+          DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+          DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+        RenderVertex(BeginIndex + 2);
+        Inc(BeginIndex);
+        NormalOrder := not NormalOrder;
+      end;
+
+      glEnd;
+
+    glPopAttrib();
+  end;
+end;
+
+{ TIndexedLineSetRenderer -------------------------------------------------- }
+
+procedure TIndexedLineSetRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var i: integer;
+begin
+  inherited;
+
+  glBegin(GL_LINE_STRIP);
+  for i := BeginIndex to endIndex - 1 do RenderVertex(i);
+  glEnd;
+end;
+
+procedure TIndexedLineSetRenderer.RenderCoordinate;
+begin
+  RenderCoordsRanges;
+end;
+
+{ TIndexedLineSet_1Renderer -------------------------------------------------- }
+
+constructor TIndexedLineSet_1Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedLineSet_1);
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := State.LastNodes.Coordinate3.FdPoint;
+  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+  NormalIndex := ANode.FdNormalIndex;
+  StoredNormal := State.LastNodes.Normal.FdVector;
+
+  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+
+  MaterialIndex := ANode.FdMaterialIndex;
+  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+end;
+
+{ TIndexedLineSet_2Renderer -------------------------------------------------- }
+
+constructor TIndexedLineSet_2Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer;
+  ANode: TNodeIndexedLineSet_2);
+begin
+  inherited Create(ARenderer);
+
+  CoordIndex := ANode.FdCoordIndex;
+  Coord := ANode.Coord;
+
+  Color := ANode.Color;
+  ColorPerVertex := ANode.FdColorPerVertex.Value;
+  ColorIndex := ANode.FdColorIndex;
+end;
+
+procedure TIndexedLineSet_2Renderer.RenderCoordinateBegin;
+var
+  Material: TNodeMaterial_2;
+begin
+  inherited;
+
+  { Implement "one color for the whole lineset" case here.
+
+    IndexedLineSet color may come from various places:
+    1. Color node, for each vertex or polyline, if it's not NULL
+    2. Material.emissiveColor, for whole line
+    3. If no material, we use default White3Single, for whole line
+       (following general spec remark at Material node that
+       Material = NULL makes unlit white color) }
+  if Color = nil then
+  begin
+    Material := State.ParentShape.Material;
+    if Material <> nil then
+      Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+      Renderer.SetColor_2(White3Single);
+  end;
+end;
+
