@@ -122,7 +122,8 @@ begin
 
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so we correct it now. }
-  if not Attributes.PureGeometry then
+  if (not Attributes.PureGeometry) and
+     Attributes.ControlMaterials then
     with State.LastNodes.Material do
       glColorv(Vector4f(Attributes.ColorModulated(
         DiffuseColor3Single(0)), Opacity(0)));
@@ -139,13 +140,6 @@ end;
 procedure TPointSet_2Renderer.DoRender;
 var
   Node: TNodePointSet_2;
-
-  procedure SetColor(const Color: TVector3Single);
-  begin
-    if not Attributes.PureGeometry then
-      glColorv(Attributes.ColorModulated(Color));
-  end;
-
 var
   Coord: TMFVec3f;
   Color: TMFColor;
@@ -184,8 +178,8 @@ begin
     begin
       Material := State.ParentShape.Material;
       if Material <> nil then
-        SetColor(Material.FdEmissiveColor.Value) else
-        SetColor(White3Single);
+        Renderer.SetColor_2(Material.FdEmissiveColor.Value) else
+        Renderer.SetColor_2(White3Single);
     end;
 
     glBegin(GL_POINTS);
@@ -193,7 +187,7 @@ begin
       for I := 0 to Coord.Count - 1 do
       begin
         if Color <> nil then
-          SetColor(Color.Items.Items[I]);
+          Renderer.SetColor_2(Color.Items.Items[I]);
         DoGLVertex(Coord.Items.Items[i]);
       end;
     finally glEnd end;
