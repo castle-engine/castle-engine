@@ -443,9 +443,7 @@ type
       for the whole geometry. }
     niOverall,
     { Each vertex has it's normal vector, IndexNum specifies direct index
-      to Normals.
-
-      TODO: for Triangle/Quad sets, implemented but untested yet! }
+      to Normals. }
     niPerVertexNonIndexed,
     { Each vertex has it's normal vector, IndexNum specifies index to
       CoordIndex and this is an index to Normals. }
@@ -517,14 +515,17 @@ type
       NorImplementation = niNone case. }
     procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
 
+    { If @true, then it's guaranteed that normals for the same face will
+      be equal. This may be useful for various optimization purposes.
+
+      Override this in descendants only to handle
+      NorImplementation = niNone case. The implementation in this class
+      just derives it from NorImplementation, and for niNone answers @false
+      (safer answer). }
+    function NormalsFlat: boolean; virtual;
+
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
-
-    { Only if NorImplementation = niNone, you can set this in descendants
-      (at any time, in constructor or RenderCoordinateBegin, but not later).
-      If @true, then it's guaranteed that normals for the same face will
-      be equal --- this may be useful for various optimization purposes. }
-    NormalsFlat: boolean;
 
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
@@ -1183,7 +1184,6 @@ begin
     Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
 
   Result := niNone;
-  NormalsFlat := false;
 
   if (Normals = nil) or (NormalIndex = nil) then
     Exit;
@@ -1191,22 +1191,13 @@ begin
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
       if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
-      begin
         Result := niPerVertexNormalIndexed;
-        NormalsFlat := false;
-      end;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
-      begin
         Result := niPerVertexCoordIndexed;
-        NormalsFlat := false;
-      end;
     BIND_OVERALL:
       if Normals.Count > 0 then
-      begin
         Result := niOverall;
-        NormalsFlat := true;
-      end;
   end;
 
   { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
@@ -1220,10 +1211,7 @@ begin
     normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
     zostanie mimo wszystko dobrze odczytany i wyswietlony. }
   if Normals.Count = 0 then
-  begin
     Result := niNone;
-    NormalsFlat := false;
-  end;
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.GetNormal(
@@ -1241,6 +1229,11 @@ begin
     else
       raise EInternalError.Create('GetNormal: NorImplementation ?');
   end;
+end;
+
+function TAbstractNorColMatTexCoordinateRenderer.NormalsFlat: boolean;
+begin
+  Result := NorImplementation in [niOverall];
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
