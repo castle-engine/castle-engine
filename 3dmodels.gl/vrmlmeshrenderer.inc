@@ -268,6 +268,8 @@ type
 
     { The number of current range, equal to RangeNumber passed to
       RenderCoordsRange. Read this only while in RenderCoordsRange.
+      In fact, this is just set by RenderCoordsRange in this class
+      (so call @code(inherited) first when overriding it).
 
       It's comfortable e.g. when you need RangeNumber inside RenderVertex,
       and you know that RenderVertex will be called only from
@@ -423,9 +425,10 @@ type
         correspond to a single face.
       - if you want per-vertex to work, you must use smooth shading.
 
-      ColorIndex: if set, then vertex IndexNum or face number will
+      ColorIndex: if set and non-empty, then vertex IndexNum or face number will
       index ColorIndex, and then ColorIndex indexes Color items.
-      Otherwise, for vertex we use CoordIndex (instead of ColorIndex)
+      Otherwise, for vertex we use CoordIndex (if assigned, otherwise it directly
+      accesses colors)
       and for face we'll use just face number.
 
     Everything related to setting VRML 2.0
@@ -815,7 +818,7 @@ procedure TAbstractCoordinateRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 begin
-  { nothing to do in this class }
+  FCurrentRangeNumber := RangeNumber;
 end;
 
 procedure TAbstractCoordinateRenderer.RenderCoordsRanges;
@@ -832,7 +835,6 @@ begin
     while (EndIndex < CoordIndex.Count) and
           (CoordIndex.Items.Items[EndIndex] >= 0) do
       Inc(EndIndex);
-    FCurrentRangeNumber := RangeNumber;
     RenderCoordsRange(RangeNumber, BeginIndex, EndIndex);
     Inc(RangeNumber);
     BeginIndex := EndIndex + 1;
@@ -1171,9 +1173,11 @@ begin
   { Implement different color per vertex here. }
   if (Color <> nil) and ColorPerVertex then
   begin
-    if ColorIndex.Count <> 0 then
+    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
       Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]]) else
-      Renderer.SetColor_2(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]);
+    if CoordIndex <> nil then
+      Renderer.SetColor_2(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]]) else
+      Renderer.SetColor_2(Color.ItemsSafe[IndexNum]);
   end;
 
   inherited;
@@ -1188,7 +1192,7 @@ begin
   { Implement different color per face here. }
   if (Color <> nil) and (not ColorPerVertex) then
   begin
-    if ColorIndex.Count <> 0 then
+    if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
       Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
       Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
   end;

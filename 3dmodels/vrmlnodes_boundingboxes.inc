@@ -359,7 +359,14 @@ begin
     Coord.Items.Count, 0);
 end;
 
-{ Indexed nodes -------------------------------------------------------- }
+{ TVRMLIndexedNode_1 --------------------------------------------------------- }
+
+function TVRMLIndexedNode_1.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result := IndexedCoords_LocalBoundingBox(State,
+    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
+end;
 
 function TVRMLIndexedNode_1.BoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
@@ -368,11 +375,31 @@ begin
     State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
 end;
 
+{ TNodeIndexedFaceSet_2 ------------------------------------------------------ }
+
+function TNodeIndexedFaceSet_2.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdCoordIndex) else
+    Result := EmptyBox3d;
+end;
+
 function TNodeIndexedFaceSet_2.BoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   if Coord <> nil then
     Result := IndexedCoords_BoundingBox(State, Coord, FdCoordIndex) else
+    Result := EmptyBox3d;
+end;
+
+{ TNode[Indexed]LineSet_2 ---------------------------------------------------- }
+
+function TNodeIndexedLineSet_2.LocalBoundingBox(
+  State: TVRMLGraphTraverseState): TBox3d;
+begin
+  if Coord <> nil then
+    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdCoordIndex) else
     Result := EmptyBox3d;
 end;
 
@@ -384,26 +411,19 @@ begin
     Result := EmptyBox3d;
 end;
 
-function TVRMLIndexedNode_1.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  Result := IndexedCoords_LocalBoundingBox(State,
-    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
-end;
-
-function TNodeIndexedFaceSet_2.LocalBoundingBox(
+function TNodeLineSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdCoordIndex) else
+    Result := Coords_LocalBoundingBox(State, Coord) else
     Result := EmptyBox3d;
 end;
 
-function TNodeIndexedLineSet_2.LocalBoundingBox(
+function TNodeLineSet.BoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
 begin
   if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdCoordIndex) else
+    Result := Coords_BoundingBox(State, Coord) else
     Result := EmptyBox3d;
 end;
 
@@ -511,7 +531,7 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-{ TNodeIndexedTriangleSet ---------------------------------------------------- }
+{ TNode[Indexed]TriangleSet -------------------------------------------------- }
 
 function TNodeIndexedTriangleSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
@@ -545,7 +565,7 @@ begin
     Result := EmptyBox3d;
 end;
 
-{ TNodeIndexedTriangleFanSet ------------------------------------------------- }
+{ TNode[Indexed]TriangleFanSet ----------------------------------------------- }
 
 function TNodeIndexedTriangleFanSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
@@ -579,7 +599,7 @@ begin
     Result := EmptyBox3d;
 end;
 
-{ TNodeIndexedTriangleStripSet ------------------------------------------------- }
+{ TNode[Indexed]TriangleStripSet --------------------------------------------- }
 
 function TNodeIndexedTriangleStripSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;
@@ -613,7 +633,7 @@ begin
     Result := EmptyBox3d;
 end;
 
-{ TNodeIndexedQuadSet ---------------------------------------------------- }
+{ TNode[Indexed]QuadSet ------------------------------------------------------ }
 
 function TNodeIndexedQuadSet.LocalBoundingBox(
   State: TVRMLGraphTraverseState): TBox3d;

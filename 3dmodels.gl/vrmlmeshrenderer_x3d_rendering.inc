@@ -83,23 +83,25 @@ type
       BeginIndex, EndIndex: Integer); override;
   end;
 
-  TIndexedLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
+  { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
+    LineSet (VRML >= 2.0, although specification only since X3D). }
+  TLineSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
   end;
 
-  TIndexedLineSet_1Renderer = class(TIndexedLineSetRenderer)
+  { Renderer for VRML <= 1.0 TNodeIndexedLineSet_1 }
+  TIndexedLineSet_1Renderer = class(TLineSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeIndexedLineSet_1);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
-  TIndexedLineSet_2Renderer = class(TIndexedLineSetRenderer)
+  { Renderer for VRML >= 2.0 TNodeIndexedLineSet_2 and X3D TNodeLineSet. }
+  TLineSet_2Renderer = class(TLineSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeIndexedLineSet_2);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -574,7 +576,7 @@ end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }
 
-procedure TIndexedLineSetRenderer.RenderCoordsRange(
+procedure TLineSetRenderer.RenderCoordsRange(
   const RangeNumber: Cardinal;
   BeginIndex, EndIndex: Integer);
 var i: integer;
@@ -586,29 +588,56 @@ begin
   glEnd;
 end;
 
-procedure TIndexedLineSetRenderer.RenderCoordinate;
+procedure TLineSetRenderer.RenderCoordinate;
+var
+  VertexCount: TDynLongIntArray;
+  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  RenderCoordsRanges;
+  if CoordIndex <> nil then
+    RenderCoordsRanges else
+  begin
+    Assert(Geometry is TNodeLineSet);
+    VertexCount := (Geometry as TNodeLineSet).FdVertexCount.Items;
+    EndIndex := 0;
+    for RangeNumber := 0 to VertexCount.Count - 1 do
+    begin
+      BeginIndex := EndIndex;
+      EndIndex := BeginIndex + VertexCount.Items[RangeNumber];
+      { Note that EndIndex *may* be equal to CoordCount,
+        as EndIndex is not taken into account by RenderCoordsRange. }
+      if EndIndex > CoordCount then
+      begin
+        VRMLNonFatalError('Too much lines (not enough coordinates) in ' + Geometry.NodeTypeName);
+        Break;
+      end;
+      if EndIndex - BeginIndex >= 2 then
+        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
+        VRMLNonFatalError('Vertex count is less than 2 in ' + Geometry.NodeTypeName);
+    end;
+  end;
 end;
 
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
 
 constructor TIndexedLineSet_1Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeIndexedLineSet_1);
+  ARenderer: TVRMLOpenGLRenderer);
+var
+  Node: TNodeIndexedLineSet_1;
 begin
   inherited Create(ARenderer);
 
-  CoordIndex := ANode.FdCoordIndex;
+  Node := Geometry as TNodeIndexedLineSet_1;
+
+  CoordIndex := Node.FdCoordIndex;
   Coord := State.LastNodes.Coordinate3.FdPoint;
 
-  TexCoordIndex := ANode.FdTextureCoordIndex;
+  TexCoordIndex := Node.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
-  MaterialIndex := ANode.FdMaterialIndex;
+  MaterialIndex := Node.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
-  NormalIndex := ANode.FdNormalIndex;
+  NormalIndex := Node.FdNormalIndex;
   Normals := State.LastNodes.Normal.FdVector.Items;
   NormalsCcw :=
     State.LastNodes.ShapeHints.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
@@ -616,23 +645,39 @@ begin
     State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
-{ TIndexedLineSet_2Renderer -------------------------------------------------- }
+{ TLineSet_2Renderer --------------------------------------------------------- }
 
-constructor TIndexedLineSet_2Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeIndexedLineSet_2);
+constructor TLineSet_2Renderer.Create(
+  ARenderer: TVRMLOpenGLRenderer);
+var
+  NodeLS: TNodeLineSet;
+  NodeILS: TNodeIndexedLineSet_2;
 begin
   inherited Create(ARenderer);
 
-  CoordIndex := ANode.FdCoordIndex;
-  Coord := ANode.Coord;
+  if Geometry is TNodeIndexedLineSet_2 then
+  begin
+    NodeILS := Geometry as TNodeIndexedLineSet_2;
 
-  Color := ANode.Color;
-  ColorPerVertex := ANode.FdColorPerVertex.Value;
-  ColorIndex := ANode.FdColorIndex;
+    CoordIndex := NodeILS.FdCoordIndex;
+    Coord := NodeILS.Coord;
+
+    Color := NodeILS.Color;
+    ColorPerVertex := NodeILS.FdColorPerVertex.Value;
+    ColorIndex := NodeILS.FdColorIndex;
+  end else
+  begin
+    Assert(Geometry is TNodeLineSet);
+    NodeLS := Geometry as TNodeLineSet;
+
+    Coord := NodeLS.Coord;
+
+    Color := NodeLS.Color;
+    ColorPerVertex := true; { always true for LineSet }
+  end;
 end;
 
-procedure TIndexedLineSet_2Renderer.RenderCoordinateBegin;
+procedure TLineSet_2Renderer.RenderCoordinateBegin;
 var
   Material: TNodeMaterial_2;
 begin

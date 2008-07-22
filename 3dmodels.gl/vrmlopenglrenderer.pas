@@ -3774,9 +3774,10 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     if Node is TNodeIndexedFaceSet_2 then
       ExposedMeshRenderer := TIndexedFaceSet_2Renderer.Create(Self, TNodeIndexedFaceSet_2(Node)) else
     if Node is TNodeIndexedLineSet_1 then
-      ExposedMeshRenderer := TIndexedLineSet_1Renderer.Create(Self, TNodeIndexedLineSet_1(Node)) else
-    if Node is TNodeIndexedLineSet_2 then
-      ExposedMeshRenderer := TIndexedLineSet_2Renderer.Create(Self, TNodeIndexedLineSet_2(Node)) else
+      ExposedMeshRenderer := TIndexedLineSet_1Renderer.Create(Self) else
+    if (Node is TNodeIndexedLineSet_2) or
+       (Node is TNodeLineSet) then
+      ExposedMeshRenderer := TLineSet_2Renderer.Create(Self) else
     if Node is TNodePointSet_1 then
       ExposedMeshRenderer := TPointSet_1Renderer.Create(Self) else
     if Node is TNodePointSet_2 then

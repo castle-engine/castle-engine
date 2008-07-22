@@ -287,7 +287,19 @@
     private FFdvertexCount: TMFInt32;
     public property FdvertexCount: TMFInt32 read FFdvertexCount;
 
-    GeometryNotImplemented
+    { Returns coord.point field, assuming that coord is set and
+      specifies Coordinate node. Otherwise returns @nil. }
+    function Coord: TMFVec3f;
+
+    { Returns color.point field, assuming that color is set and
+      specifies Color node. Otherwise returns @nil. }
+    function Color: TMFVec3f;
+
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeNormal = class(TNodeX3DNormalNode)
@@ -480,7 +492,7 @@ begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNodeNormal) then
     Result := TNodeNormal(FdNormal.Value).FdVector.Items else
-    Result := nil;  
+    Result := nil;
 end;
 
 constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
@@ -839,8 +851,21 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeLineSet}
-GeometryNotImplemented
+function TNodeLineSet.Coord: TMFVec3f;
+begin
+  if (FdCoord.Value <> nil) and
+     (FdCoord.Value is TNodeCoordinate) then
+    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
+    Result := nil;
+end;
+
+function TNodeLineSet.Color: TMFVec3f;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColor) then
+    Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
+end;
 
 constructor TNodeNormal.Create(const ANodeName: string;
   const AWWWBasePath: string);

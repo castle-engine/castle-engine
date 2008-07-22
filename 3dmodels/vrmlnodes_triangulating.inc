@@ -471,21 +471,31 @@ end;
 procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
+  { No triangles }
 end;
 
 procedure TNodeIndexedLineSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
+  { No triangles }
+end;
+
+procedure TNodeLineSet.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+begin
+  { No triangles }
 end;
 
 procedure TNodePointSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
+  { No triangles }
 end;
 
 procedure TNodePointSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
+  { No triangles }
 end;
 
 procedure Sphere_LocalTriangulate(

@@ -267,7 +267,19 @@ begin
   result := 0;
 end;
 
+function TNodeLineSet.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  result := 0;
+end;
+
 function TNodeIndexedLineSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  if Coord <> nil then
+    Result := Coord.Count else
+    Result := 0;
+end;
+
+function TNodeLineSet.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   if Coord <> nil then
     Result := Coord.Count else
