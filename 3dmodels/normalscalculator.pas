@@ -40,12 +40,12 @@ interface
 
 uses SysUtils, KambiUtils, VectorMath;
 
-{ coordIndex to lista indeksow vertexow. Kazdy indeks okresla vertex
+{ CoordIndex to lista indeksow vertexow. Kazdy indeks okresla vertex
   o takim numerze z vertices, indeksy < 0 wyznaczaja poczatek kolejnej
-  face. Innymi slowy, coordIndex ma taki format jak pole coordIndex node'a
+  face. Innymi slowy, CoordIndex ma taki format jak pole CoordIndex node'a
   VRML'a IndexedFaceSet.
 
-  Vertices i coordIndex beda tylko czytane, nie beda poprawiane.
+  Vertices i CoordIndex beda tylko czytane, nie beda poprawiane.
   Poprawnosc indeksow jest WYMAGANA (aby kazdy indeks byl < Vertices.Count),
   poprawnosc faces (zeby byly convex, nie podawaly tych samych indeksow dwa
   razy itp.) jest w tej chwili ZALECANA. To znaczy sprobujemy zrobic cos
@@ -53,8 +53,8 @@ uses SysUtils, KambiUtils, VectorMath;
   renderowania te faces beda poprawnie ztesselowane) a na ile to wyjdzie -
   - trudno powiedziec. Na pewno bedzie sie mozna czasem przyczepic.
 
-  Zwraca tablice wektorow ktora ma tyle elementow co coordIndex.
-  Jej wartosci dla nieujemnych indeksow coordIndex to normal dla tego
+  Zwraca tablice wektorow ktora ma tyle elementow co CoordIndex.
+  Jej wartosci dla nieujemnych indeksow CoordIndex to normal dla tego
   vertexa na tej face. Jaj wartosci dla ujemnych indeksow sa niezdefiniowane.
   FromCCW kontroluje czy normale wychodza z CCW : true to wychodza z CCW,
   false to wychodza z CW.
@@ -69,29 +69,45 @@ uses SysUtils, KambiUtils, VectorMath;
   smooth na 2 pozostalych. Albo np. na 2, 1, 1 (czyli dwie sciany smoothed
   ze soba, dwie pozostale flat).
 
-  Note that when creaseAngleRad >= Pi, this will be equivalent to
-  CreateSmoothNormals (in fact, it will call CreateSmoothNormals,
-  because CreateSmoothNormals works faster).
+  Note that when creaseAngleRad >= Pi, you wil be better off
+  using CreateSmoothNormals. This will work faster, and return shorter
+  normals array (so it's also more memory-efficient).
 
   (Pamietaj zwolnic pozniej zwrocony obiekt przez Free.) }
-function CreateNormals(coordIndex: TDynLongintArray;
+function CreateNormals(CoordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   creaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ j.w. ale normale beda zawsze smoothed (jakby creaseAngle bylo nieskonczone) }
-function CreateSmoothNormals(coordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
+{ Calculate perfectly smooth per-vertex normals.
+
+  Note that the result is not a compatible replacement for CreateNormals,
+  as we generate Vertices.Count normals (since each vertex has it's own
+  normal). }
+function CreateSmoothNormals(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
 { Calculate flat per-face normals.
 
-  Note that the result is not compatible with CreateNormals and CreateSmoothNormals,
+  Note that the result is not a compatible replacement for CreateNormals,
   as it's length is the number of @italic(faces). For each face, a single
   normal is stored, so this is most sensible compact representation.
-  Using something larger, would a waste of memory and time. }
+  Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+
+{ Calculate always smooth normals per-vertex, for triangle set.
+  Assuming CoordIndex is given like for X3D IndexedTriangleSet,
+  so every three indexes on CoordIndex indicate
+  a separate triangle (with excessive indexes silently ignored).
+
+  This generates Vertices.Count normal vectors in result.
+  You should access these normal vectors just like Vertices,
+  i.e. they are indexed by CoordIndex. }
+function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
 implementation
@@ -113,7 +129,7 @@ type
   {$I DynArray_1.inc}
   type TDynFaceArray = TDynArray_1;
 
-function CreateNormals(coordIndex: TDynLongintArray;
+function CreateNormals(CoordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   CreaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
@@ -138,33 +154,33 @@ var
       i, thisFaceNum: integer;
   begin
    i := 0;
-   while i < coordIndex.Count do
+   while i < CoordIndex.Count do
    begin
     thisFaceNum := faces.Length;
     faces.IncLength;
     thisFace := faces.Pointers[thisFaceNum];
 
     thisFace^.StartIndex := i;
-    while (i < coordIndex.Count) and (coordIndex[i] >= 0) do
+    while (i < CoordIndex.Count) and (CoordIndex[i] >= 0) do
     begin
-      { Two tests below secure us from invalid coordIndex values:
-        1. of course, each coordIndex[] value must be within range.
+      { Two tests below secure us from invalid CoordIndex values:
+        1. of course, each CoordIndex[] value must be within range.
         2. in a correct face, each vertex may occur at most once.
 
         We have to deal with VRML data supplied by user here,
         so we have to secure against invalid values here.
 
         Note that we cannot remove wrong indexes here
-        (like coordIndex.Delete(i, 1)). While tempting, removing
+        (like CoordIndex.Delete(i, 1)). While tempting, removing
         bad indexes is not so easy: for example in IndexedFaceSet
         we would have to remove also appropriate textureCoord, normal
         and material indexes. Moreover, I decided that my engine doesn't
         ever change VRML data implicitly (even when this data is clearly
         incorrect...). So we cannot do such things. }
 
-      if (coordIndex[i] < Vertices.Count) and
-         (VerticesFaces[coordIndex[i]].IndexOf(thisFaceNum) = -1) then
-        VerticesFaces[coordIndex[i]].AppendItem(thisFaceNum);
+      if (CoordIndex[i] < Vertices.Count) and
+         (VerticesFaces[CoordIndex[i]].IndexOf(thisFaceNum) = -1) then
+        VerticesFaces[CoordIndex[i]].AppendItem(thisFaceNum);
       Inc(i);
     end;
 
@@ -174,13 +190,13 @@ var
 
     { licz thisFace.Normal }
     thisFace^.Normal := IndexedPolygonNormal(
-      @(coordIndex.Items[thisFace^.StartIndex]),
+      @(CoordIndex.Items[thisFace^.StartIndex]),
       thisFace^.IndicesCount,
       Vertices.ItemsArray, Vertices.Count,
       Vector3Single(0, 0, 1));
 
     { przejdz do nastepnej sciany (omin ujemny indeks na ktorym stoimy;
-      ew. przejdz z coordIndex.Count do coordIndex.Count+1, co niczemu nie szkodzi) }
+      ew. przejdz z CoordIndex.Count do CoordIndex.Count+1, co niczemu nie szkodzi) }
     Inc(i);
    end;
   end;
@@ -188,7 +204,7 @@ var
   procedure SetNormal(vertexNum: integer; const face: TFace; const Normal: TVector3Single);
   { ustaw normal w tablicy normals dla sciany face i vertexu numer vertexNum
       (vertexNum to indeks do tablicy vertices, czyli to samo co elementy
-      coordIndex).
+      CoordIndex).
     Poniewaz staramy sie zachowywac sensownie nawet dla nieprawidlowych faces
       wiec zakladamy tu ze dany vertex moze byc w jednej scianie wiecej niz jeden
       raz i ustawiamy normal dla wszystkich wystapien tego vertexa w tej face.
@@ -199,7 +215,7 @@ var
   begin
    vertFound := false;
    for i := face.StartIndex to face.StartIndex +face.IndicesCount -1 do
-    if coordIndex.Items[i] = vertexNum then
+    if CoordIndex.Items[i] = vertexNum then
     begin
      vertFound := true; { vertFound := true, ale to nic, szukamy dalej }
      normals.Items[i] := Normal;
@@ -285,9 +301,6 @@ var
 
 var i: integer;
 begin
- if CreaseAngleRad >= Pi then
-   Exit(CreateSmoothNormals(coordIndex, vertices, FromCCW));
-
  CosCreaseAngle := Cos(CreaseAngleRad);
 
  SetLength(verticesFaces, vertices.Count);
@@ -303,12 +316,12 @@ begin
     verticesFaces[i] := TDynIntegerArray.Create;
    faces := TDynFaceArray.Create;
 
-   { przegladnij coordIndex i skompletuj zawartosc tablic faces i verticesFaces }
+   { przegladnij CoordIndex i skompletuj zawartosc tablic faces i verticesFaces }
    CalculateFacesAndVerticesFaces;
 
-   { teraz zainicjuj normals, bo coordIndex.Items.Length zostalo juz ustalone
-     i w coordIndex nie bedziemy wprowadzac wiecej zmian }
-   normals := TDynVector3SingleArray.Create(coordIndex.Length);
+   { teraz zainicjuj normals, bo CoordIndex.Items.Length zostalo juz ustalone
+     i w CoordIndex nie bedziemy wprowadzac wiecej zmian }
+   normals := TDynVector3SingleArray.Create(CoordIndex.Length);
 
    { for each vertex, calculate all his normals (on all his faces) }
    for i := 0 to vertices.Count-1 do CalculateVertexNormals(i);
@@ -324,69 +337,60 @@ begin
  except FreeAndNil(normals); raise end;
 end;
 
-function CreateSmoothNormals(coordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
+function CreateSmoothNormals(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
-var VertNormals: TDynVector3SingleArray;
-    i, j, StartIndex: integer;
-    FaceNormal: TVector3Single;
+var
+  I, J, StartIndex: integer;
+  FaceNormal: TVector3Single;
 begin
- result := TDynVector3SingleArray.Create(coordIndex.Length);
- try
-
-  VertNormals := TDynVector3SingleArray.Create(Vertices.Length);
+  Result := TDynVector3SingleArray.Create(Vertices.Length);
   try
-   VertNormals.FillChar(0);
+    Result.FillChar(0);
 
-   i := 0;
-   while i < coordIndex.Count do
-   begin
-    StartIndex := i;
-    while (i < coordIndex.Count) and (coordIndex.Items[i] >= 0) do Inc(i);
-    FaceNormal := IndexedPolygonNormal(
-      @(coordIndex.Items[StartIndex]),
-      i-StartIndex,
-      Vertices.ItemsArray, Vertices.Count,
-      Vector3Single(0, 0, 0));
-    {dodaj FaceNormal do normali wszystkich punktow tej face}
-    for j := StartIndex to i-1 do
-      VectorAddTo1st(VertNormals.Items[coordIndex.Items[j]], FaceNormal);
+    I := 0;
+    while I < CoordIndex.Count do
+    begin
+      StartIndex := I;
+      while (I < CoordIndex.Count) and (CoordIndex.Items[I] >= 0) do Inc(I);
+      FaceNormal := IndexedPolygonNormal(
+        @(CoordIndex.Items[StartIndex]),
+        I - StartIndex,
+        Vertices.ItemsArray, Vertices.Count,
+        Vector3Single(0, 0, 0));
+      { add FaceNormal to all vertices belonging to this face }
+      for J := StartIndex to I - 1 do
+        VectorAddTo1st(Result.Items[CoordIndex.Items[J]], FaceNormal);
 
-    Inc(i);
-   end;
+      Inc(I);
+    end;
 
-   for i := 0 to VertNormals.Count-1 do
-     NormalizeTo1st(VertNormals.Items[i]);
+    for I := 0 to Result.Count - 1 do
+      NormalizeTo1st(Result.Items[I]);
 
-   for i := 0 to coordIndex.Count-1 do
-    if coordIndex.Items[i] >= 0 then
-     result.Items[i] := VertNormals.Items[coordIndex.Items[i]];
-
-   if not FromCCW then result.Negate;
-  finally vertNormals.Free end;
-
- except FreeAndNil(result); raise end;
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
 end;
 
-function CreateFlatNormals(coordIndex: TDynLongintArray;
+function CreateFlatNormals(CoordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 var
   i, StartIndex: integer;
   FaceNumber: Integer;
 begin
-  { coordIndex.Length is just a maximum length, we will shrink it later. }
-  result := TDynVector3SingleArray.Create(coordIndex.Length);
+  { CoordIndex.Length is just a maximum length, we will shrink it later. }
+  result := TDynVector3SingleArray.Create(CoordIndex.Length);
   try
     FaceNumber := 0;
 
     i := 0;
-    while i < coordIndex.Count do
+    while i < CoordIndex.Count do
     begin
       StartIndex := i;
-      while (i < coordIndex.Count) and (coordIndex.Items[i] >= 0) do Inc(i);
+      while (i < CoordIndex.Count) and (CoordIndex.Items[i] >= 0) do Inc(i);
       Result.Items[FaceNumber] := IndexedPolygonNormal(
-        @(coordIndex.Items[StartIndex]),
+        @(CoordIndex.Items[StartIndex]),
         i - startIndex,
         Vertices.ItemsArray, Vertices.Count,
         Vector3Single(0, 0, 0));
@@ -399,6 +403,39 @@ begin
 
     if not FromCCW then result.Negate;
   except FreeAndNil(result); raise end;
+end;
+
+function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+var
+  I: integer;
+  FaceNormal: TVector3Single;
+begin
+  Result := TDynVector3SingleArray.Create(Vertices.Length);
+  try
+    Result.FillChar(0);
+
+    I := 0;
+    while I + 2 < CoordIndex.Count do
+    begin
+      FaceNormal := TriangleNormal(
+        Vertices.Items[CoordIndex.Items[I    ]],
+        Vertices.Items[CoordIndex.Items[I + 1]],
+        Vertices.Items[CoordIndex.Items[I + 2]]);
+
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I    ]], FaceNormal);
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 1]], FaceNormal);
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 2]], FaceNormal);
+
+      I += 3;
+    end;
+
+    for I := 0 to Result.Count - 1 do
+      NormalizeTo1st(Result.Items[I]);
+
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
 end;
 
 end.

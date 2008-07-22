@@ -33,7 +33,7 @@ type
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
-  TTriangleSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
+  TTriangleSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
   public
@@ -215,12 +215,63 @@ begin
     TexCoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
   end;
+
+  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  if Normals <> nil then
+  begin
+    { FrontFaceCcw is already filled by ancestor }
+    NormalsCcw := FrontFaceCcw;
+
+    { For both TriangleSet and IndexedTriangleSet, if normals are supplied
+      then they are per-vertex (ignoring normalPerVertex), as far as I understand
+      X3D spec. }
+    if Geometry is TNodeIndexedTriangleSet then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
+  end else
+  begin
+    if (Geometry is TNodeIndexedTriangleSet) and
+       TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
+    begin
+      Normals := CreateSmoothNormalsTriangleSet(CoordIndex.Items,
+        Coord.Items, true);
+      NormalsFree := true;
+      NormalsCcw := true;
+      NorImplementation := niPerVertexCoordIndexed;
+    end else
+    begin
+      { In this case, per-face normals are generated (for non-indexed
+        TriangleSet normals are always generated per-face, since they
+        cannot share vertex indexes anyway).
+        We generate them on the fly in this case, this will be faster. }
+      NorImplementation := niNone;
+    end;
+  end;
 end;
 
 procedure TTriangleSetRenderer.RenderCoordinate;
 var
   I: Integer;
+  ForceFlatShading: boolean;
 begin
+  { About shading:
+    - we have to use smooth shading if we have colors
+      (colors are always per vertex for triangle sets).
+    - we have to use smooth shading if we have normals per vertex
+    - if we have normals per face, smooth shading is still Ok
+      (since each face has separate RenderVertex calls).
+
+    So always smooth shading is actually Ok.
+    Only for the sake of optimization we can force flat shading
+    in allowed cases. }
+  ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+
+  if ForceFlatShading then
+  begin
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
+  end;
+
   I := 0;
   glBegin(GL_TRIANGLES);
     { X3D spec says "If the Coordinate node does not contain
@@ -229,11 +280,13 @@ begin
       So we silently ignore any vertices above multiple of 3. }
     while I + 2 < CoordCount do
     begin
-      { TODO: for now, we always generate flat normals }
-      glNormalv(TriangleNormal(
-        GetVertex(I    ),
-        GetVertex(I + 1),
-        GetVertex(I + 2)));
+      if NorImplementation = niNone then
+      begin
+        glNormalv(TriangleNormal(
+          GetVertex(I    ),
+          GetVertex(I + 1),
+          GetVertex(I + 2)));
+      end;
 
       RenderVertex(I    );
       RenderVertex(I + 1);
@@ -242,6 +295,11 @@ begin
       I += 3;
     end;
   glEnd();
+
+  if ForceFlatShading then
+  begin
+    glPopAttrib;
+  end;
 end;
 
 { TTriangleFanSetRenderer ---------------------------------------------------- }

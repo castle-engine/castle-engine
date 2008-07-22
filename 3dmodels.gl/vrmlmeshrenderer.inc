@@ -507,6 +507,8 @@ type
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
     CcwNormals: TDynVector3SingleArray;
+  public
+    destructor Destroy; override;
   protected
     { This is calculated in constructor. Unlike similar TexImplementation,
       MatImplementation (which are calculated only in RenderCoordsBegin).
@@ -552,6 +554,10 @@ type
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
     NormalsCcw: boolean;
+    { If @true, our destructor will free Normals.
+      This is comfortable if you auto-generated Normals.
+      Default @false. }
+    NormalsFree: boolean;
 
     procedure RenderVertex(IndexNum: Integer); override;
   end;
@@ -1199,6 +1205,13 @@ begin
 end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }
+
+destructor TAbstractNorColMatTexCoordinateRenderer.Destroy;
+begin
+  if NormalsFree then
+    FreeAndNil(Normals);
+  inherited;
+end;
 
 function TAbstractNorColMatTexCoordinateRenderer.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
