@@ -229,23 +229,21 @@ begin
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
+  if (Geometry is TNodeIndexedTriangleSet) and
+     TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
   begin
-    if (Geometry is TNodeIndexedTriangleSet) and
-       TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
-    begin
-      Normals := CreateSmoothNormalsTriangleSet(CoordIndex.Items,
-        Coord.Items, true);
-      NormalsFree := true;
-      NormalsCcw := true;
-      NorImplementation := niPerVertexCoordIndexed;
-    end else
-    begin
-      { In this case, per-face normals are generated (for non-indexed
-        TriangleSet normals are always generated per-face, since they
-        cannot share vertex indexes anyway).
-        We generate them on the fly in this case, this will be faster. }
-      NorImplementation := niNone;
-    end;
+    Normals := CreateSmoothNormalsTriangleSet(CoordIndex.Items,
+      Coord.Items, true);
+    NormalsFree := true;
+    NormalsCcw := true;
+    NorImplementation := niPerVertexCoordIndexed;
+  end else
+  begin
+    { In this case, per-face normals are generated (for non-indexed
+      TriangleSet normals are always generated per-face, since they
+      cannot share vertex indexes anyway).
+      We generate them on the fly in this case, this will be faster. }
+    NorImplementation := niNone;
   end;
 end;
 
