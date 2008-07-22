@@ -79,13 +79,18 @@ function CreateNormals(coordIndex: TDynLongintArray;
   creaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ j.w. ale normale beda zawsze flat }
-function CreateFlatNormals(coordIndex: TDynLongintArray;
+{ j.w. ale normale beda zawsze smoothed (jakby creaseAngle bylo nieskonczone) }
+function CreateSmoothNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ j.w. ale normale beda zawsze smoothed (jakby creaseAngle bylo nieskonczone) }
-function CreateSmoothNormals(coordIndex: TDynLongintArray;
+{ Calculate flat per-face normals.
+
+  Note that the result is not compatible with CreateNormals and CreateSmoothNormals,
+  as it's length is the number of @italic(faces). For each face, a single
+  normal is stored, so this is most sensible compact representation.
+  Using something larger, would a waste of memory and time. }
+function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
@@ -366,29 +371,34 @@ end;
 function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
-var i, j, StartIndex: integer;
-    faceNormal: TVector3Single;
+var
+  i, StartIndex: integer;
+  FaceNumber: Integer;
 begin
- result := TDynVector3SingleArray.Create(coordIndex.Length);
- try
+  { coordIndex.Length is just a maximum length, we will shrink it later. }
+  result := TDynVector3SingleArray.Create(coordIndex.Length);
+  try
+    FaceNumber := 0;
 
-  i := 0;
-  while i < coordIndex.Count do
-  begin
-   StartIndex := i;
-   while (i < coordIndex.Count) and (coordIndex.Items[i] >= 0) do Inc(i);
-   FaceNormal := IndexedPolygonNormal(
-     @(coordIndex.Items[StartIndex]),
-     i-startIndex,
-     Vertices.ItemsArray, Vertices.Count,
-     Vector3Single(0, 0, 0));
-   for j := StartIndex to i-1 do result.Items[j] := FaceNormal;
+    i := 0;
+    while i < coordIndex.Count do
+    begin
+      StartIndex := i;
+      while (i < coordIndex.Count) and (coordIndex.Items[i] >= 0) do Inc(i);
+      Result.Items[FaceNumber] := IndexedPolygonNormal(
+        @(coordIndex.Items[StartIndex]),
+        i - startIndex,
+        Vertices.ItemsArray, Vertices.Count,
+        Vector3Single(0, 0, 0));
+      Inc(FaceNumber);
 
-   Inc(i);
-  end;
+      Inc(i);
+    end;
 
-  if not FromCCW then result.Negate;
- except FreeAndNil(result); raise end;
+    Result.Length := FaceNumber;
+
+    if not FromCCW then result.Negate;
+  except FreeAndNil(result); raise end;
 end;
 
 end.

@@ -188,6 +188,8 @@ type
       RenderCoordinateBegin call) and client attribs are popped.
   }
   TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
+  private
+    FCurrentRangeNumber: Cardinal;
   protected
     { Coordinates, usually taken from (coord as Coordinate).points field.
       If @nil then nothing will be rendered. }
@@ -263,6 +265,14 @@ type
       BeginIndex, EndIndex: Integer); virtual;
     procedure RenderCoordsRanges;
     { @groupEnd }
+
+    { The number of current range, equal to RangeNumber passed to
+      RenderCoordsRange. Read this only while in RenderCoordsRange.
+
+      It's comfortable e.g. when you need RangeNumber inside RenderVertex,
+      and you know that RenderVertex will be called only from
+      RenderCoordsRange. }
+    property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
   end;
 
   TTextureCoordsImplementation = (
@@ -450,7 +460,11 @@ type
     niPerVertexCoordIndexed,
     { Each vertex has it's normal vector, IndexNum specifies index to
       NormalIndex and this is an index to Normals. }
-    niPerVertexNormalIndexed);
+    niPerVertexNormalIndexed,
+    { Face number is the index to Normals. }
+    niPerFace,
+    { Face number is the index to NormalIndex, and this indexes Normals. }
+    niPerFaceNormalIndexed);
 
   { Enhances TAbstractColMatTexCoordinateRenderer with the ability
     to use normals, both taken from user data (that is, stored in VRML file)
@@ -505,7 +519,9 @@ type
       NormalBinding: Integer): TNormalsImplementation;
 
     { Returns normal vector for given vertex, identified by IndexNum
-      (IndexNum has the same meaning as for RenderVertex).
+      (IndexNum has the same meaning as for RenderVertex) and FaceNumber
+      (since normals may be available per-face, we need to know face number
+      as well as vertex number).
 
       Returns normal always from
       CCW (just like we pass to OpenGL always CCW normals, since we always
@@ -513,7 +529,8 @@ type
 
       Override this in descendants only to handle
       NorImplementation = niNone case. }
-    procedure GetNormal(IndexNum: integer; out N: TVector3Single); virtual;
+    procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
+      out N: TVector3Single); virtual;
 
     { If @true, then it's guaranteed that normals for the same face will
       be equal. This may be useful for various optimization purposes.
@@ -526,6 +543,8 @@ type
 
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
+    procedure RenderCoordsRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
 
     NormalIndex: TMFLong;
     Normals: TDynVector3SingleArray;
@@ -813,6 +832,7 @@ begin
     while (EndIndex < CoordIndex.Count) and
           (CoordIndex.Items.Items[EndIndex] >= 0) do
       Inc(EndIndex);
+    FCurrentRangeNumber := RangeNumber;
     RenderCoordsRange(RangeNumber, BeginIndex, EndIndex);
     Inc(RangeNumber);
     BeginIndex := EndIndex + 1;
@@ -1179,10 +1199,6 @@ end;
 function TAbstractNorColMatTexCoordinateRenderer.
   NorImplementationFromVRML1Binding(NormalBinding: Integer): TNormalsImplementation;
 begin
-  { TODO: not all normal bindings are supported,
-    we Generate Normals if normalBinding is not supported.
-    Nie zrobione : PER_PART, PER_PART_INDEXED, PER_FACE, PER_FACE_INDEXED }
-
   Result := niNone;
 
   if (Normals = nil) or (NormalIndex = nil) then
@@ -1190,7 +1206,7 @@ begin
 
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >=0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >= 0) then
         Result := niPerVertexNormalIndexed;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
@@ -1198,6 +1214,11 @@ begin
     BIND_OVERALL:
       if Normals.Count > 0 then
         Result := niOverall;
+    BIND_PER_PART, BIND_PER_FACE:
+      Result := niPerFace;
+    BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >= 0) then
+        Result := niPerFaceNormalIndexed;
   end;
 
   { ponizsza instrukcja ma taki efekt : jezeli nie bylo zadnych normali w ostatnim
@@ -1215,7 +1236,7 @@ begin
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.GetNormal(
-  IndexNum: integer; out N: TVector3Single);
+  IndexNum: Integer; RangeNumber: Integer; out N: TVector3Single);
 begin
   case NorImplementation of
     niOverall:
@@ -1225,7 +1246,11 @@ begin
     niPerVertexCoordIndexed:
       N := CcwNormals.Items[CoordIndex.Items.Items[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormals.Items[NormalIndex.Items.Items[indexNum]];
+      N := CcwNormals.Items[NormalIndex.Items.Items[IndexNum]];
+    niPerFace:
+      N := CcwNormals.Items[RangeNumber];
+    niPerFaceNormalIndexed:
+      N := CcwNormals.Items[NormalIndex.Items.Items[RangeNumber]];
     else
       raise EInternalError.Create('GetNormal: NorImplementation ?');
   end;
@@ -1233,7 +1258,7 @@ end;
 
 function TAbstractNorColMatTexCoordinateRenderer.NormalsFlat: boolean;
 begin
-  Result := NorImplementation in [niOverall];
+  Result := NorImplementation in [niOverall, niPerFace, niPerFaceNormalIndexed];
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderVertex(IndexNum: Integer);
@@ -1298,4 +1323,18 @@ begin
     FreeAndNil(CcwNormals);
 
   inherited;
+end;
+
+procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordsRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+begin
+  inherited;
+
+  case NorImplementation of
+    niPerFace:
+      glNormalv(CcwNormals.Items[RangeNumber]);
+    niPerFaceNormalIndexed:
+      glNormalv(CcwNormals.Items[NormalIndex.Items.Items[RangeNumber]]);
+  end;
 end;
