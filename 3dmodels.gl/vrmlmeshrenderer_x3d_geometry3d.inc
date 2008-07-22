@@ -1446,11 +1446,6 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
-  NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := State.LastNodes.Normal.FdVector;
-  NorImplementation := NorImplementationFromVRML1Binding(
-    State.LastNodes.NormalBinding.FdValue.Value);
-
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
@@ -1467,6 +1462,12 @@ begin
 
   CreaseAngle := SH.FdCreaseAngle.Value;
   FaceConvex := SH.FdFaceType.Value = FACETYPE_CONVEX;
+
+  NormalIndex := ANode.FdNormalIndex;
+  Normals := State.LastNodes.Normal.FdVector.Items;
+  NormalsCcw := FrontFaceCcw;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }
@@ -1482,9 +1483,12 @@ begin
   TexCoordIndex := ANode.FdTexCoordIndex;
   TexCoord := ANode.TexCoord;
 
-  StoredNormal := ANode.Normal;
-  if StoredNormal <> nil then
+  Normals := ANode.NormalItems;
+  if Normals <> nil then
   begin
+    { FrontFaceCcw is calculated already, TVRMLMeshRenderer.Create
+      initializes it for all X3DComposedGeometryNode from ccw field. }
+    NormalsCcw := FrontFaceCcw;  
     NormalIndex := ANode.FdNormalIndex;
     if ANode.FdNormalPerVertex.Value then
     begin
@@ -1494,7 +1498,7 @@ begin
     end else
     begin
       { This is analogous to VRML 1.0 BIND_PER_FACE_INDEXED / BIND_PER_FACE
-        situation. We should use StoredNormal, but it's not implemented
+        situation. We should use Normals, but it's not implemented
         in TAbstractNor... class, so we just fallback to using
         our own normal generation. Leaving NorImplementation = niNone. }
     end;

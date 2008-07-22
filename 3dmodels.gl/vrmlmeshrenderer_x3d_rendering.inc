@@ -498,11 +498,6 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
-  NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := State.LastNodes.Normal.FdVector;
-  NorImplementation := NorImplementationFromVRML1Binding(
-    State.LastNodes.NormalBinding.FdValue.Value);
-
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
 
@@ -516,6 +511,12 @@ begin
   CullBackFaces :=
     (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
     (SH.FdShapeType.Value = SHTYPE_SOLID);
+
+  NormalIndex := ANode.FdNormalIndex;
+  Normals := State.LastNodes.Normal.FdVector.Items;
+  NormalsCcw := FrontFaceCcw;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
 procedure TIndexedTriangleMesh_1Renderer.RenderCoordinate;
@@ -610,13 +611,15 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
-  NormalIndex := ANode.FdNormalIndex;
-  StoredNormal := State.LastNodes.Normal.FdVector;
-  NorImplementation := NorImplementationFromVRML1Binding(
-    State.LastNodes.NormalBinding.FdValue.Value);
-
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+
+  NormalIndex := ANode.FdNormalIndex;
+  Normals := State.LastNodes.Normal.FdVector.Items;
+  NormalsCcw :=
+    State.LastNodes.ShapeHints.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 end;
 
 { TIndexedLineSet_2Renderer -------------------------------------------------- }

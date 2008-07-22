@@ -102,12 +102,7 @@ type
       solid/ccw fields. So for X3DComposedGeometryNode it's already handled
       here -- it's set, and handled during Render.
 
-      (In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
-      However, note that in subclasses (TAbstractNorColMatTexCoordinateRenderer),
-      FrontFaceCcw is also used to denote
-      "from which side of the face user-supplied normals point".
-      So FrontFaceCcw says from which face side normals in VRML file point out,
-      and which faces should be culled if CullBackFaces.)
+      In this class, FrontFaceCcw is ignored if CullBackFaces = @false.
 
       Note that we *do not* implement these by glFrontFace, we do a little
       more complicated trick, see comments at the beginning of VRMLOpenGLRenderer
@@ -444,19 +439,19 @@ type
     { Do nothing about normals (in TAbstractNorColMatTexCoordinateRenderer)
       class. Passing normals to OpenGL is left for descendants. }
     niNone,
-    { The first item of StoredNormal specifies the one and only normal
+    { The first item of Normals specifies the one and only normal
       for the whole geometry. }
     niOverall,
     { Each vertex has it's normal vector, IndexNum specifies direct index
-      to StoredNormal.
+      to Normals.
 
       TODO: for Triangle/Quad sets, implemented but untested yet! }
     niPerVertexNonIndexed,
     { Each vertex has it's normal vector, IndexNum specifies index to
-      CoordIndex and this is an index to StoredNormal. }
+      CoordIndex and this is an index to Normals. }
     niPerVertexCoordIndexed,
     { Each vertex has it's normal vector, IndexNum specifies index to
-      NormalIndex and this is an index to StoredNormal. }
+      NormalIndex and this is an index to Normals. }
     niPerVertexNormalIndexed);
 
   { Enhances TAbstractColMatTexCoordinateRenderer with the ability
@@ -470,11 +465,12 @@ type
       this class does nothing and it's your responsibility to generate
       and use normal vectors. See TNormalsImplementation for other meanings,
       and which properties from
-        StoredNormal
+        Normals
+        NormalsCcw (should always be set when setting Normals)
         NormalIndex
       you also have to assign to make them work.
 
-      For VRML 1.0, you most definitely want to set both StoredNormal
+      For VRML 1.0, you most definitely want to set both Normals
       and NormalIndex and then call NorImplementation :=
       NorImplementationFromVRML1Binding. This should take care of
       VRML 1.0 needs completely.
@@ -490,17 +486,12 @@ type
       If NorImplementation <> niNone then we handle everything
       related to normals in this class.
 
-    Note that PerVertexXxx normals require smooth shading to work Ok.
-
-    Note that we use FrontFaceCcw value for additional information:
-    it specifies whether StoredNormal has normals pointing from CCW
-    (true) or CW (false).
-  }
+    Note that PerVertexXxx normals require smooth shading to work Ok. }
   TAbstractNorColMatTexCoordinateRenderer = class(TAbstractColMatTexCoordinateRenderer)
   private
-    { Will be set to StoredNormal or it's inverted version, to keep
+    { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
-    CcwNormal: TDynVector3SingleArray;
+    CcwNormals: TDynVector3SingleArray;
   protected
     { This is calculated in constructor. Unlike similar TexImplementation,
       MatImplementation (which are calculated only in RenderCoordsBegin).
@@ -536,7 +527,8 @@ type
     NormalsFlat: boolean;
 
     NormalIndex: TMFLong;
-    StoredNormal: TMFVec3f;
+    Normals: TDynVector3SingleArray;
+    NormalsCcw: boolean;
 
     procedure RenderVertex(IndexNum: Integer); override;
   end;
@@ -1193,7 +1185,7 @@ begin
   Result := niNone;
   NormalsFlat := false;
 
-  if (StoredNormal = nil) or (NormalIndex = nil) then
+  if (Normals = nil) or (NormalIndex = nil) then
     Exit;
 
   case NormalBinding of
@@ -1210,7 +1202,7 @@ begin
         NormalsFlat := false;
       end;
     BIND_OVERALL:
-      if StoredNormal.Count > 0 then
+      if Normals.Count > 0 then
       begin
         Result := niOverall;
         NormalsFlat := true;
@@ -1227,7 +1219,7 @@ begin
     tez niczemu nie zaszkodzi). Wpp. (jezeli nie mielismy generowac
     normali i node niepusty) ta instrukcja sprawi ze taki niepoprawny VRML
     zostanie mimo wszystko dobrze odczytany i wyswietlony. }
-  if StoredNormal.Count = 0 then
+  if Normals.Count = 0 then
   begin
     Result := niNone;
     NormalsFlat := false;
@@ -1239,13 +1231,13 @@ procedure TAbstractNorColMatTexCoordinateRenderer.GetNormal(
 begin
   case NorImplementation of
     niOverall:
-      N := CcwNormal.Items[0];
+      N := CcwNormals.Items[0];
     niPerVertexNonIndexed:
-      N := CcwNormal.Items[IndexNum];
+      N := CcwNormals.Items[IndexNum];
     niPerVertexCoordIndexed:
-      N := CcwNormal.Items[CoordIndex.Items.Items[IndexNum]];
+      N := CcwNormals.Items[CoordIndex.Items.Items[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormal.Items[NormalIndex.Items.Items[indexNum]];
+      N := CcwNormals.Items[NormalIndex.Items.Items[indexNum]];
     else
       raise EInternalError.Create('GetNormal: NorImplementation ?');
   end;
@@ -1265,12 +1257,12 @@ begin
     { We could use GetNormal(IndexNum) here, but since we already checked
       NorImplementation, we do it more directly. But the result is the same
       as if we had used GetNormal. }
-    glNormalv(CcwNormal.Items[NormalIndex.Items.Items[IndexNum]]);
+    glNormalv(CcwNormals.Items[NormalIndex.Items.Items[IndexNum]]);
   end;
 
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex <> nil) then
   begin
-    glNormalv(CcwNormal.Items[IndexNum]);
+    glNormalv(CcwNormals.Items[IndexNum]);
   end;
 
   inherited;
@@ -1280,13 +1272,13 @@ procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  if StoredNormal <> nil then
+  if Normals <> nil then
   begin
-    if FrontFaceCcw then
-      CcwNormal := StoredNormal.Items else
+    if NormalsCcw then
+      CcwNormals := Normals else
     begin
-      CcwNormal := TDynVector3SingleArray.Create;
-      CcwNormal.AssignNegated(StoredNormal.Items);
+      CcwNormals := TDynVector3SingleArray.Create;
+      CcwNormals.AssignNegated(Normals);
     end;
   end;
 
@@ -1298,19 +1290,19 @@ begin
       we can use glNormalPointer. This is true in two cases:
       - there is no coordIndex, and normal vectors are not indexed
       - there is coordIndex, and normal vectors are indexed by coordIndex }
-    glNormalPointer(GL_FLOAT, 0, CcwNormal.Items);
+    glNormalPointer(GL_FLOAT, 0, CcwNormals.Items);
     glEnableClientState(GL_NORMAL_ARRAY);
   end else
   if NorImplementation = niOverall then
   begin
-    glNormalv(CcwNormal.Items[0]);
+    glNormalv(CcwNormals.Items[0]);
   end;
 end;
 
 procedure TAbstractNorColMatTexCoordinateRenderer.RenderCoordinateEnd;
 begin
-  if (StoredNormal <> nil) and (not FrontFaceCcw) then
-    FreeAndNil(CcwNormal);
+  if (Normals <> nil) and (not NormalsCcw) then
+    FreeAndNil(CcwNormals);
 
   inherited;
 end;

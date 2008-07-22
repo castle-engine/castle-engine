@@ -80,6 +80,10 @@
       and specified Normal node. Otherwise returns @nil. }
     function Normal: TMFVec3f;
 
+    { Returns normal.vector, assuming that "normal" field is set
+      and specified Normal node, as TDynVector3Single. Otherwise returns @nil. }
+    function NormalItems: TDynVector3SingleArray;
+
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
@@ -469,6 +473,14 @@ begin
      (FdNormal.Value is TNodeNormal) then
     Result := TNodeNormal(FdNormal.Value).FdVector else
     Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.NormalItems: TDynVector3SingleArray;
+begin
+  if (FdNormal.Value <> nil) and
+     (FdNormal.Value is TNodeNormal) then
+    Result := TNodeNormal(FdNormal.Value).FdVector.Items else
+    Result := nil;  
 end;
 
 constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;
