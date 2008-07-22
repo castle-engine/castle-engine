@@ -110,6 +110,18 @@ function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
+{ Calculate always smooth normals per-vertex, for quad set.
+  Assuming CoordIndex is given like for X3D IndexedQuadSet,
+  so every four indexes on CoordIndex indicate
+  a separate quad (with excessive indexes silently ignored).
+
+  This generates Vertices.Count normal vectors in result.
+  You should access these normal vectors just like Vertices,
+  i.e. they are indexed by CoordIndex. }
+function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+
 implementation
 
 {$define read_interface}
@@ -429,6 +441,46 @@ begin
       VectorAddTo1st(Result.Items[CoordIndex.Items[I + 2]], FaceNormal);
 
       I += 3;
+    end;
+
+    for I := 0 to Result.Count - 1 do
+      NormalizeTo1st(Result.Items[I]);
+
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
+end;
+
+function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+var
+  I: integer;
+  FaceNormal: TVector3Single;
+begin
+  Result := TDynVector3SingleArray.Create(Vertices.Length);
+  try
+    Result.FillChar(0);
+
+    I := 0;
+    while I + 3 < CoordIndex.Count do
+    begin
+      { Normal is average of normals of two triangles. }
+      FaceNormal := Normalized(VectorAdd(
+        TriangleNormal(
+          Vertices.Items[CoordIndex.Items[I    ]],
+          Vertices.Items[CoordIndex.Items[I + 1]],
+          Vertices.Items[CoordIndex.Items[I + 2]]),
+        TriangleNormal(
+          Vertices.Items[CoordIndex.Items[I    ]],
+          Vertices.Items[CoordIndex.Items[I + 2]],
+          Vertices.Items[CoordIndex.Items[I + 3]])));
+
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I    ]], FaceNormal);
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 1]], FaceNormal);
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 2]], FaceNormal);
+      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 3]], FaceNormal);
+
+      I += 4;
     end;
 
     for I := 0 to Result.Count - 1 do

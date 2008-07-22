@@ -66,7 +66,7 @@ type
   end;
 
   { Renderer for X3D IndexedQuadSet and QuadSet nodes. }
-  TQuadSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
+  TQuadSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
   public
@@ -263,7 +263,6 @@ begin
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
-
   if ForceFlatShading then
   begin
     glPushAttrib(GL_LIGHTING_BIT { for shade model });
@@ -504,25 +503,75 @@ begin
     TexCoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
   end;
+
+  { Normals are done exactly like for [Indexed]TriangleSet, except
+    we have quads now. }
+
+  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  if Normals <> nil then
+  begin
+    { FrontFaceCcw is already filled by ancestor }
+    NormalsCcw := FrontFaceCcw;
+
+    { For both QuadSet and IndexedQuadSet, if normals are supplied
+      then they are per-vertex (ignoring normalPerVertex),
+      as far as I understand X3D spec. }
+    if Geometry is TNodeIndexedQuadSet then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
+  end else
+  if (Geometry is TNodeIndexedQuadSet) and
+     TNodeIndexedQuadSet(Geometry).FdNormalPerVertex.Value then
+  begin
+    Normals := CreateSmoothNormalsQuadSet(CoordIndex.Items,
+      Coord.Items, true);
+    NormalsFree := true;
+    NormalsCcw := true;
+    NorImplementation := niPerVertexCoordIndexed;
+  end else
+  begin
+    { In this case, per-face normals are generated (for non-indexed
+      QuadSet normals are always generated per-face, since they
+      cannot share vertex indexes anyway).
+      We generate them on the fly in this case, this will be faster. }
+    NorImplementation := niNone;
+  end;
 end;
 
 procedure TQuadSetRenderer.RenderCoordinate;
 var
   I: Integer;
-  Normal: TVector3Single;
+  ForceFlatShading: boolean;
 begin
+  { About shading:
+    - we have to use smooth shading if we have colors
+      (colors are always per vertex for quad sets).
+    - we have to use smooth shading if we have normals per vertex
+    - if we have normals per face, smooth shading is still Ok
+      (since each face has separate RenderVertex calls).
+
+    So always smooth shading is actually Ok.
+    Only for the sake of optimization we can force flat shading
+    in allowed cases. }
+  ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+  if ForceFlatShading then
+  begin
+    glPushAttrib(GL_LIGHTING_BIT { for shade model });
+    glShadeModel(GL_FLAT);
+  end;
+
   I := 0;
   glBegin(GL_QUADS);
     { X3D spec says to silently ignore any vertices above multiple of 4. }
     while I + 3 < CoordCount do
     begin
-      { Normal is average of normals of two triangles. }
-      Normal := VectorAdd(
-        TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
-        TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3)));
-
-      { TODO: for now, we always generate flat normals }
-      glNormalv(Normal);
+      if NorImplementation = niNone then
+      begin
+        { Normal is average of normals of two triangles. }
+        glNormalv(VectorAdd(
+          TriangleNormal(GetVertex(I    ), GetVertex(I + 1), GetVertex(I + 2)),
+          TriangleNormal(GetVertex(I    ), GetVertex(I + 2), GetVertex(I + 3))));
+      end;
 
       RenderVertex(I    );
       RenderVertex(I + 1);
@@ -532,6 +581,11 @@ begin
       I += 4;
     end;
   glEnd();
+
+  if ForceFlatShading then
+  begin
+    glPopAttrib;
+  end;
 end;
 
 { TIndexedTriangleMesh_1Renderer --------------------------------------------- }
