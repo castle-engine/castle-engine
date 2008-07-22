@@ -245,13 +245,7 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
-end;
 
-procedure TTriangleSetRenderer.RenderCoordinate;
-var
-  I: Integer;
-  ForceFlatShading: boolean;
-begin
   { About shading:
     - we have to use smooth shading if we have colors
       (colors are always per vertex for triangle sets).
@@ -263,12 +257,12 @@ begin
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
-  if ForceFlatShading then
-  begin
-    glPushAttrib(GL_LIGHTING_BIT { for shade model });
-    glShadeModel(GL_FLAT);
-  end;
+end;
 
+procedure TTriangleSetRenderer.RenderCoordinate;
+var
+  I: Integer;
+begin
   I := 0;
   glBegin(GL_TRIANGLES);
     { X3D spec says "If the Coordinate node does not contain
@@ -292,11 +286,6 @@ begin
       I += 3;
     end;
   glEnd();
-
-  if ForceFlatShading then
-  begin
-    glPopAttrib;
-  end;
 end;
 
 { TTriangleFanSetRenderer ---------------------------------------------------- }
@@ -536,13 +525,7 @@ begin
       We generate them on the fly in this case, this will be faster. }
     NorImplementation := niNone;
   end;
-end;
 
-procedure TQuadSetRenderer.RenderCoordinate;
-var
-  I: Integer;
-  ForceFlatShading: boolean;
-begin
   { About shading:
     - we have to use smooth shading if we have colors
       (colors are always per vertex for quad sets).
@@ -554,12 +537,12 @@ begin
     Only for the sake of optimization we can force flat shading
     in allowed cases. }
   ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
-  if ForceFlatShading then
-  begin
-    glPushAttrib(GL_LIGHTING_BIT { for shade model });
-    glShadeModel(GL_FLAT);
-  end;
+end;
 
+procedure TQuadSetRenderer.RenderCoordinate;
+var
+  I: Integer;
+begin
   I := 0;
   glBegin(GL_QUADS);
     { X3D spec says to silently ignore any vertices above multiple of 4. }
@@ -581,11 +564,6 @@ begin
       I += 4;
     end;
   glEnd();
-
-  if ForceFlatShading then
-  begin
-    glPopAttrib;
-  end;
 end;
 
 { TIndexedTriangleMesh_1Renderer --------------------------------------------- }

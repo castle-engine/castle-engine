@@ -119,6 +119,9 @@ type
     FrontFaceCcw: boolean;
     { @groupEnd }
 
+    { This causes the whole Render to be done with flat shading set. }
+    ForceFlatShading: boolean;
+
     { Render the whole geometry.
 
       For some details what is, and what is not yet set in OpenGL
@@ -672,33 +675,47 @@ begin
 end;
 
 procedure TVRMLMeshRenderer.Render;
+var
+  PushedAttribs: TGLbitfield;
 begin
+  PushedAttribs := 0;
+
   if CullBackFaces then
-  begin
-    glPushAttrib(GL_POLYGON_BIT);
+    PushedAttribs := PushedAttribs or GL_POLYGON_BIT;
+  if ForceFlatShading then
+    PushedAttribs := PushedAttribs or GL_LIGHTING_BIT { for shade model };
 
-    { If vertex ordering is consistent and object is SOLID than we use OpenGL's
-      backface culling.
-
-      If FrontFaceCcw then we have to cull CW faces.
-      But note that we do not want to call OpenGL glFrontFace
-      (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
-      glCullFace. Since we assume that front = always CCW, so we know how to call
-      glCullFace.
-    }
-    glEnable(GL_CULL_FACE);
-    if FrontFaceCcw then
-      glCullFace(GL_BACK) else
-      glCullFace(GL_FRONT);
-  end;
+  if PushedAttribs <> 0 then
+    glPushAttrib(PushedAttribs);
 
   try
-    DoRender;
-  finally
-
     if CullBackFaces then
-      glPopAttrib;
+    begin
+      { If vertex ordering is consistent and object is SOLID than we use OpenGL's
+        backface culling.
 
+        If FrontFaceCcw then we have to cull CW faces.
+        But note that we do not want to call OpenGL glFrontFace
+        (see VRMLOpenGLRenderer comments for reasons), so instead of it we switch
+        glCullFace. Since we assume that front = always CCW, so we know how to call
+        glCullFace.
+      }
+      glEnable(GL_CULL_FACE);
+      if FrontFaceCcw then
+        glCullFace(GL_BACK) else
+        glCullFace(GL_FRONT);
+    end;
+
+    if ForceFlatShading then
+    begin
+      glShadeModel(GL_FLAT);
+    end;
+
+    DoRender;
+
+  finally
+    if PushedAttribs <> 0 then
+      glPopAttrib;
   end;
 end;
 
