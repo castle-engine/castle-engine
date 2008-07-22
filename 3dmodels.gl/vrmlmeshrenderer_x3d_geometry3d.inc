@@ -770,7 +770,7 @@ end;
 procedure TIndexedFaceSetRenderer.GetNormal(
   IndexNum: integer; out N: TVector3Single);
 begin
-  if NorImplementation = niGenerate then
+  if NorImplementation = niNone then
     N := Render_GeneratedNormals.Items[IndexNum] else
     inherited;
 end;
@@ -953,9 +953,9 @@ procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
   end;
 
 begin
-  { For NorImplementation = niGenerate and NormalsFlat, we'll handle this
+  { For NorImplementation = niNone and NormalsFlat, we'll handle this
     in RenderCoordsRange. }
-  if (NorImplementation = niGenerate) and (not NormalsFlat) then
+  if (NorImplementation = niNone) and (not NormalsFlat) then
     glNormalv(Render_GeneratedNormals.Items[indexNum]);
 
   if BumpMappingMethod <> bmNone then
@@ -1120,7 +1120,7 @@ begin
     end;
   end;
 
-  if NorImplementation = niGenerate then
+  if NorImplementation = niNone then
   begin
     { I could just do normal CreateNormals for all CreaseAngle values,
       so the test for "CreaseAngle <> 0" is not really required below.
@@ -1346,7 +1346,7 @@ procedure TIndexedFaceSetRenderer.RenderCoordsRange(
 begin
   inherited;
 
-  if (NorImplementation = niGenerate) and NormalsFlat then
+  if (NorImplementation = niNone) and NormalsFlat then
     glNormalv(Render_GeneratedNormals.Items[BeginIndex]);
 
   CalculateTangentVectors;
@@ -1445,9 +1445,11 @@ begin
   Coord := State.LastNodes.Coordinate3.FdPoint;
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
@@ -1479,21 +1481,23 @@ begin
   Coord := ANode.Coord;
   TexCoordIndex := ANode.FdTexCoordIndex;
   TexCoord := ANode.TexCoord;
-  NormalIndex := ANode.FdNormalIndex;
-  if (ANode.FdNormal.Value <> nil) and
-     (ANode.FdNormal.Value is TNodeNormal) then
-    StoredNormal := TNodeNormal(ANode.FdNormal.Value).FdVector;
 
-  if ANode.FdNormalPerVertex.Value then
+  StoredNormal := ANode.Normal;
+  if StoredNormal <> nil then
   begin
-    if NormalIndex.Count > 0 then
-      NormalBinding := BIND_PER_VERTEX_INDEXED else
-      NormalBinding := BIND_PER_VERTEX;
-  end else
-  begin
-    if NormalIndex.Count > 0 then
-      NormalBinding := BIND_PER_FACE_INDEXED else
-      NormalBinding := BIND_PER_FACE;
+    NormalIndex := ANode.FdNormalIndex;
+    if ANode.FdNormalPerVertex.Value then
+    begin
+      if NormalIndex.Count > 0 then
+        NorImplementation := niPerVertexNormalIndexed else
+        NorImplementation := niPerVertexCoordIndexed;
+    end else
+    begin
+      { This is analogous to VRML 1.0 BIND_PER_FACE_INDEXED / BIND_PER_FACE
+        situation. We should use StoredNormal, but it's not implemented
+        in TAbstractNor... class, so we just fallback to using
+        our own normal generation. Leaving NorImplementation = niNone. }
+    end;
   end;
 
   CreaseAngle := ANode.FdCreaseAngle.Value;

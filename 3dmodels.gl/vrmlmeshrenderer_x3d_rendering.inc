@@ -494,12 +494,14 @@ begin
 
   CoordIndex := ANode.FdCoordIndex;
   Coord := State.LastNodes.Coordinate3.FdPoint;
+
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-
-  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
@@ -531,7 +533,7 @@ procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    if NorImplementation = niGenerate then
+    if NorImplementation = niNone then
     begin
       { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
       glNormalv(TriangleNormal(
@@ -604,12 +606,14 @@ begin
 
   CoordIndex := ANode.FdCoordIndex;
   Coord := State.LastNodes.Coordinate3.FdPoint;
+
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+
   NormalIndex := ANode.FdNormalIndex;
   StoredNormal := State.LastNodes.Normal.FdVector;
-
-  NormalBinding := State.LastNodes.NormalBinding.FdValue.Value;
+  NorImplementation := NorImplementationFromVRML1Binding(
+    State.LastNodes.NormalBinding.FdValue.Value);
 
   MaterialIndex := ANode.FdMaterialIndex;
   MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;

@@ -54,7 +54,7 @@ begin
       { VRML 1.0 specification states that lines normals aren't generated
         --- instead, lines are drawn unlit when there are no normals specified. }
       ( (Node is TNodeIndexedLineSet_1) and
-        ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niGenerate) ) or
+        ((MeshRenderer as TIndexedLineSet_1Renderer).NorImplementation = niNone) ) or
       { VRML 2.0 specification says that IndexedLineSet should always be unlit. }
       (Node is TNodeIndexedLineSet_2)
     );

@@ -76,6 +76,10 @@
       specifies Color node. Otherwise returns @nil. }
     function Color: TMFVec3f;
 
+    { Returns normal.vector, assuming that "normal" field is set
+      and specified Normal node. Otherwise returns @nil. }
+    function Normal: TMFVec3f;
+
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
@@ -456,6 +460,14 @@ begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
+end;
+
+function TNodeX3DComposedGeometryNode.Normal: TMFVec3f;
+begin
+  if (FdNormal.Value <> nil) and
+     (FdNormal.Value is TNodeNormal) then
+    Result := TNodeNormal(FdNormal.Value).FdVector else
     Result := nil;
 end;
 
