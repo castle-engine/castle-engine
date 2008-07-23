@@ -362,7 +362,7 @@ begin
   begin
     ForceFlatShading := false;
     if NorImplementation = niNone then
-      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+      WarningShadingProblems(true, false);
   end;
 end;
 
@@ -504,7 +504,7 @@ begin
   begin
     ForceFlatShading := false;
     if NorImplementation = niNone then
-      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+      WarningShadingProblems(true, false);
   end;
 end;
 

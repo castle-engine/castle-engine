@@ -144,6 +144,9 @@ type
       vrmlopenglrenderer_render_specificnodes.inc
       for general direction what can and what can not be used here. }
     procedure DoRender; virtual; abstract;
+
+    procedure WarningShadingProblems(
+      const ColorPerVertex, NormalPerVertex: boolean);
   public
     { Constructor.
 
@@ -717,6 +720,17 @@ begin
     if PushedAttribs <> 0 then
       glPopAttrib;
   end;
+end;
+
+procedure TVRMLMeshRenderer.WarningShadingProblems(
+  const ColorPerVertex, NormalPerVertex: boolean);
+const
+  SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
+begin
+  VRMLNonFatalError(Format(
+    'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
+    [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
+      Geometry.NodeTypeName]));
 end;
 
 { TAbstractCoordinateRenderer ------------------------------------------------ }

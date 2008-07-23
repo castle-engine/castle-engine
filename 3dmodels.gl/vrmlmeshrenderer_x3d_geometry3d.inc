@@ -271,7 +271,14 @@ var
 var
   TexCoordUseful: boolean;
 
-  procedure TextureCoord(const I, J: Integer);
+  Normal: TDynVector3SingleArray;
+  NormalPerVertex: boolean;
+  NormalGenerated: boolean;
+
+  ColorPerVertex: boolean;
+  Color: TMFVec3f;
+
+  procedure Vertex(const I, J: Integer; const V: TVector3Single);
   begin
     if Renderer.Render_TexCoordsNeeded then
     begin
@@ -282,17 +289,14 @@ var
         glTexCoord2f(I / (XDimension - 1),
                      J / (ZDimension - 1));
     end;
-  end;
 
-var
-  Normal: TDynVector3SingleArray;
-  NormalPerVertex: boolean;
-  NormalGenerated: boolean;
-
-  procedure VertexNormal(const I, J: Integer);
-  begin
     if NormalPerVertex then
       glNormalv(Normal.Items[I + J * XDimension]);
+
+    if (Color <> nil) and ColorPerVertex then
+      Renderer.SetColor_2(Color.ItemsSafe[I + J * XDimension]);
+
+    DoGLVertex(V);
   end;
 
 var
@@ -302,6 +306,8 @@ begin
   Node := Geometry as TNodeElevationGrid;
   XDimension := Node.FdXDimension.Value;
   ZDimension := Node.FdZDimension.Value;
+  ColorPerVertex := Node.FdColorPerVertex.Value;
+  Color := Node.Color;
 
   if Node.IsNotEmpty then
   begin
@@ -315,8 +321,27 @@ begin
 
     glPushAttrib(GL_LIGHTING_BIT { for shade model });
 
-      if not NormalPerVertex then
-        glShadeModel(GL_FLAT);
+      { Shading: unfortunately, since vertices are shared across quads,
+        colorPerVertex and normalPerVertex collide if they have different
+        values. true value on any field requires smooth shading,
+        while false requires flat shading...
+
+        Current approach: if Color <> nil, then ColorPerVertex decides
+        about the shading (since it's usually more noticeable,
+        and if the node is unlit it is the only thing noticeable).
+        Otherwise NormalPerVertex decides. }
+
+      if Color <> nil then
+      begin
+        if not ColorPerVertex then
+          glShadeModel(GL_FLAT);
+        if ColorPerVertex <> NormalPerVertex then
+          WarningShadingProblems(ColorPerVertex, NormalPerVertex);
+      end else
+      begin
+        if not NormalPerVertex then
+          glShadeModel(GL_FLAT);
+      end;
 
       for I := 1 to XDimension - 1 do
       begin
@@ -334,13 +359,8 @@ begin
           { Vertices are ordered such that face is CCW from up (i.e.
             looking from positive Y axis). }
 
-          TextureCoord(I, 0);
-          VertexNormal(I, 0);
-          DoGLVertex(Last2);
-
-          TextureCoord(I - 1, 0);
-          VertexNormal(I - 1, 0);
-          DoGLVertex(Last1);
+          Vertex(I    , 0, Last2);
+          Vertex(I - 1, 0, Last1);
 
           for J := 1 to ZDimension - 1 do
           begin
@@ -352,15 +372,15 @@ begin
             Next2[2] := Next1[2];
 
             if not NormalPerVertex then
-              glNormalv(Normal.Items[I - 1 + (J - 1) * (XDimension - 1)]);
+              glNormalv(Normal.Items[
+                I - 1 + (J - 1) * (XDimension - 1)]);
 
-            TextureCoord(I, J);
-            VertexNormal(I, J);
-            DoGLVertex(Next2);
+            if (Color <> nil) and not ColorPerVertex then
+              Renderer.SetColor_2(Color.ItemsSafe[
+                I - 1 + (J - 1) * (XDimension - 1)]);
 
-            TextureCoord(I - 1, J);
-            VertexNormal(I - 1, J);
-            DoGLVertex(Next1);
+            Vertex(I    , J, Next2);
+            Vertex(I - 1, J, Next1);
 
             Last1 := Next1;
             Last2 := Next2;

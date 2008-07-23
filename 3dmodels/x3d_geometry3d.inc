@@ -170,6 +170,10 @@
       have any vertices/triangles etc. }
     function IsNotEmpty: boolean;
 
+    { Returns color.point field, assuming that color is set and
+      specifies Color node. Otherwise returns @nil. }
+    function Color: TMFVec3f;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
@@ -569,6 +573,14 @@ begin
     (FdXSpacing.Value > 0) and
     (FdZSpacing.Value > 0) and
     (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
+end;
+
+function TNodeElevationGrid.Color: TMFVec3f;
+begin
+  if (FdColor.Value <> nil) and
+     (FdColor.Value is TNodeColor) then
+    Result := TNodeColor(FdColor.Value).FdColor else
+    Result := nil;
 end;
 
 constructor TNodeExtrusion.Create(const ANodeName: string;
