@@ -357,13 +357,13 @@ begin
 
     Which means that colors mixed with per-face normals simply don't work.
     Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
-  if NorImplementation = niNone then
+  if (NorImplementation = niNone) and (Color = nil) then
+    ForceFlatShading := true else
   begin
-    ForceFlatShading := true;
-    if Color <> nil then
-      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
-  end else
     ForceFlatShading := false;
+    if NorImplementation = niNone then
+      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+  end;
 end;
 
 procedure TTriangleFanSetRenderer.RenderCoordinate;
@@ -499,13 +499,13 @@ begin
 
     Which means that colors mixed with per-face normals simply don't work.
     Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
-  if NorImplementation = niNone then
+  if (NorImplementation = niNone) and (Color = nil) then
+    ForceFlatShading := true else
   begin
-    ForceFlatShading := true;
-    if Color <> nil then
-      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
-  end else
     ForceFlatShading := false;
+    if NorImplementation = niNone then
+      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+  end;
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordinate;
