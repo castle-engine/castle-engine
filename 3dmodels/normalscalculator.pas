@@ -114,6 +114,18 @@ function CreateSmoothNormalsTriangleFanSet(
   Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
+{ Calculate always smooth normals per-vertex, for triangle strip set.
+  Assuming CoordIndex or StripCount (exactly one of them must be assigned)
+  is given like for X3D triangle strip set.
+
+  This generates Vertices.Count normal vectors in result.
+  You should access these normal vectors just like Vertices,
+  i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
+function CreateSmoothNormalsTriangleStripSet(
+  CoordIndex: TDynLongintArray; StripCount: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+
 { Calculate always smooth normals per-vertex, for quad set.
   Assuming CoordIndex is given like for X3D IndexedQuadSet,
   so every four indexes on CoordIndex indicate
@@ -533,10 +545,88 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function CreateSmoothNormalsTriangleStripSet(CoordIndex: TDynLongintArray;
+function CreateSmoothNormalsTriangleStripSet(
+  CoordIndex: TDynLongintArray; StripCount: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
+
+  procedure HandlePart(BeginIndex, EndIndex: Integer);
+
+    procedure Triangle(Index0, Index1, Index2: Integer);
+    var
+      FaceNormal: TVector3Single;
+    begin
+      if CoordIndex <> nil then
+      begin
+        Index0 := CoordIndex.Items[Index0];
+        Index1 := CoordIndex.Items[Index1];
+        Index2 := CoordIndex.Items[Index2];
+      end;
+
+      FaceNormal := TriangleNormal(
+        Vertices.Items[Index0],
+        Vertices.Items[Index1],
+        Vertices.Items[Index2]);
+
+      VectorAddTo1st(Result.Items[Index0], FaceNormal);
+      VectorAddTo1st(Result.Items[Index1], FaceNormal);
+      VectorAddTo1st(Result.Items[Index2], FaceNormal);
+    end;
+
+  var
+    NormalOrder: boolean;
+  begin
+    NormalOrder := true;
+
+    while BeginIndex + 2 < EndIndex do
+    begin
+      if NormalOrder then
+        Triangle(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+        Triangle(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+      Inc(BeginIndex);
+      NormalOrder := not NormalOrder;
+    end;
+  end;
+
+var
+  BeginIndex, EndIndex, RangeNumber: Integer;
 begin
+  Result := TDynVector3SingleArray.Create(Vertices.Length);
+  try
+    Result.FillChar(0);
+
+    if CoordIndex <> nil then
+    begin
+      BeginIndex := 0;
+      while BeginIndex < CoordIndex.Count do
+      begin
+        EndIndex := BeginIndex;
+        while (EndIndex < CoordIndex.Count) and
+              (CoordIndex.Items[EndIndex] >= 0) do
+          Inc(EndIndex);
+        HandlePart(BeginIndex, EndIndex);
+        BeginIndex := EndIndex + 1;
+      end;
+    end else
+    begin
+      Assert(StripCount <> nil);
+      EndIndex := 0;
+      for RangeNumber := 0 to StripCount.Count - 1 do
+      begin
+        BeginIndex := EndIndex;
+        EndIndex := BeginIndex + StripCount.Items[RangeNumber];
+        { Note that EndIndex *may* be equal to Vertices.Count,
+          as EndIndex is not taken into account by HandlePart. }
+        if EndIndex > Vertices.Count then
+          Break;
+        HandlePart(BeginIndex, EndIndex);
+      end;
+    end;
+
+    Result.Normalize;
+
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
 end;
 
 function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;

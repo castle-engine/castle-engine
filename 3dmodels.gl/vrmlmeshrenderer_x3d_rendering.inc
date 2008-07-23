@@ -55,7 +55,7 @@ type
 
     TODO: Inventor's IndexedTriangleMesh_1 should also be
     renderer by this, obsoleting TIndexedTriangleMesh_1Renderer. }
-  TTriangleStripSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
+  TTriangleStripSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
@@ -355,10 +355,8 @@ begin
       (as vertexes are shared between triangles; so in smooth shading,
       face normals will be incorrectly distributed among vertexes).
 
-    Which means that colors
-    So always smooth shading is actually Ok.
-    Only for the sake of optimization we can force flat shading
-    in allowed cases. }
+    Which means that colors mixed with per-face normals simply don't work.
+    Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
   if NorImplementation = niNone then
   begin
     ForceFlatShading := true;
@@ -435,6 +433,8 @@ end;
 { TTriangleStripSetRenderer -------------------------------------------------- }
 
 constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  StripCount, CoordIndexArray: TDynLongIntArray;
 begin
   inherited;
 
@@ -451,6 +451,61 @@ begin
     TexCoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
   end;
+
+  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  if Normals <> nil then
+  begin
+    { FrontFaceCcw is already filled by ancestor }
+    NormalsCcw := FrontFaceCcw;
+
+    { For both TriangleStripSet and IndexedTriangleStripSet, if normals are supplied
+      then they are per-vertex (ignoring normalPerVertex), as far as I understand
+      X3D spec. }
+    if Geometry is TNodeIndexedTriangleStripSet then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
+  end else
+  if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  begin
+    if Geometry is TNodeTriangleStripSet then
+    begin
+      CoordIndexArray := nil;
+      StripCount := TNodeTriangleStripSet(Geometry).FdStripCount.Items;
+    end else
+    begin
+      Assert(CoordIndex <> nil);
+      CoordIndexArray := CoordIndex.Items;
+      StripCount := nil;
+    end;
+    Normals := CreateSmoothNormalsTriangleStripSet(CoordIndexArray,
+      StripCount, Coord.Items, true);
+    NormalsFree := true;
+    NormalsCcw := true;
+    NorImplementation := niPerVertexCoordIndexed;
+  end else
+  begin
+    { In this case, per-face normals are generated.
+      We generate them on the fly in this case, this will be faster. }
+    NorImplementation := niNone;
+  end;
+
+  { About shading:
+    - we have to use smooth shading if we have colors
+      (colors are always per vertex for triangle sets).
+    - we have to use smooth shading if we have normals per vertex
+    - if we have normals per face, smooth shading is NOT correct
+      (as vertexes are shared between triangles; so in smooth shading,
+      face normals will be incorrectly distributed among vertexes).
+
+    Which means that colors mixed with per-face normals simply don't work.
+    Documented on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]. }
+  if NorImplementation = niNone then
+  begin
+    ForceFlatShading := true;
+    if Color <> nil then
+      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+  end else
+    ForceFlatShading := false;
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordinate;
@@ -487,11 +542,9 @@ procedure TTriangleStripSetRenderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-    glNormalv(TriangleNormal(
-      GetVertex(V1),
-      GetVertex(V2),
-      GetVertex(V3)));
+    if NorImplementation = niNone then
+      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
   end;
 
 var
@@ -501,30 +554,24 @@ begin
 
   if BeginIndex + 2 < EndIndex then
   begin
-    { TODO: for now we always generate flat normals }
-    glPushAttrib(GL_LIGHTING_BIT { for shade model });
-    glShadeModel(GL_FLAT);
+    glBegin(GL_TRIANGLE_STRIP);
 
-      glBegin(GL_TRIANGLE_STRIP);
+    RenderVertex(BeginIndex);
+    RenderVertex(BeginIndex + 1);
 
-      RenderVertex(BeginIndex);
-      RenderVertex(BeginIndex + 1);
+    NormalOrder := true;
 
-      NormalOrder := true;
+    while BeginIndex + 2 < EndIndex do
+    begin
+      if NormalOrder then
+        DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+        DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+      RenderVertex(BeginIndex + 2);
+      Inc(BeginIndex);
+      NormalOrder := not NormalOrder;
+    end;
 
-      while BeginIndex + 2 < EndIndex do
-      begin
-        if NormalOrder then
-          DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
-          DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-        RenderVertex(BeginIndex + 2);
-        Inc(BeginIndex);
-        NormalOrder := not NormalOrder;
-      end;
-
-      glEnd;
-
-    glPopAttrib();
+    glEnd;
   end;
 end;
 
