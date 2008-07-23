@@ -41,7 +41,7 @@ type
   end;
 
   { Renderer for X3D IndexedTriangleFanSet and TriangleFanSet node. }
-  TTriangleFanSetRenderer = class(TAbstractColMatTexCoordinateRenderer)
+  TTriangleFanSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordsRange(
@@ -291,6 +291,8 @@ end;
 { TTriangleFanSetRenderer ---------------------------------------------------- }
 
 constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+var
+  FanCount, CoordIndexArray: TDynLongIntArray;
 begin
   inherited;
 
@@ -307,6 +309,63 @@ begin
     TexCoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
   end;
+
+  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  if Normals <> nil then
+  begin
+    { FrontFaceCcw is already filled by ancestor }
+    NormalsCcw := FrontFaceCcw;
+
+    { For both TriangleFanSet and IndexedTriangleFanSet, if normals are supplied
+      then they are per-vertex (ignoring normalPerVertex), as far as I understand
+      X3D spec. }
+    if Geometry is TNodeIndexedTriangleFanSet then
+      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexNonIndexed;
+  end else
+  if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  begin
+    if Geometry is TNodeTriangleFanSet then
+    begin
+      CoordIndexArray := nil;
+      FanCount := TNodeTriangleFanSet(Geometry).FdFanCount.Items;
+    end else
+    begin
+      Assert(CoordIndex <> nil);
+      CoordIndexArray := CoordIndex.Items;
+      FanCount := nil;
+    end;
+    Normals := CreateSmoothNormalsTriangleFanSet(CoordIndexArray,
+      FanCount, Coord.Items, true);
+    NormalsFree := true;
+    NormalsCcw := true;
+    NorImplementation := niPerVertexCoordIndexed;
+  end else
+  begin
+    { In this case, per-face normals are generated.
+      We generate them on the fly in this case, this will be faster. }
+    NorImplementation := niNone;
+  end;
+
+  { About shading:
+    - we have to use smooth shading if we have colors
+      (colors are always per vertex for triangle sets).
+    - we have to use smooth shading if we have normals per vertex
+    - if we have normals per face, smooth shading is NOT correct
+      (as vertexes are shared between triangles; so in smooth shading,
+      face normals will be incorrectly distributed among vertexes).
+
+    Which means that colors
+    So always smooth shading is actually Ok.
+    Only for the sake of optimization we can force flat shading
+    in allowed cases. }
+  if NorImplementation = niNone then
+  begin
+    ForceFlatShading := true;
+    if Color <> nil then
+      VRMLNonFatalError(Format('Per-vertex colors and per-face normals used in the same node %s. Shading results may be incorrect', [Geometry.NodeTypeName]));
+  end else
+    ForceFlatShading := false;
 end;
 
 procedure TTriangleFanSetRenderer.RenderCoordinate;
@@ -343,37 +402,33 @@ procedure TTriangleFanSetRenderer.RenderCoordsRange(
 
   procedure DoNormal(const v1, v2, v3: integer);
   begin
-    { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-    glNormalv(TriangleNormal(
-      GetVertex(V1),
-      GetVertex(V2),
-      GetVertex(V3)));
+    if NorImplementation = niNone then
+      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
+      glNormalv(TriangleNormal(GetVertex(V1), GetVertex(V2), GetVertex(V3)));
   end;
 
+var
+  FirstIndex: Integer;
 begin
   inherited;
 
   if BeginIndex + 2 < EndIndex then
   begin
-    { TODO: for now we always generate flat normals }
-    glPushAttrib(GL_LIGHTING_BIT { for shade model });
-    glShadeModel(GL_FLAT);
+    glBegin(GL_TRIANGLE_FAN);
 
-      glBegin(GL_TRIANGLE_FAN);
+    FirstIndex := BeginIndex;
 
-      RenderVertex(BeginIndex);
-      RenderVertex(BeginIndex + 1);
+    RenderVertex(BeginIndex);
+    RenderVertex(BeginIndex + 1);
 
-      while BeginIndex + 2 < EndIndex do
-      begin
-        DoNormal(BeginIndex, BeginIndex + 1, BeginIndex + 2);
-        RenderVertex(BeginIndex + 2);
-        Inc(BeginIndex);
-      end;
+    while BeginIndex + 2 < EndIndex do
+    begin
+      DoNormal(FirstIndex, BeginIndex + 1, BeginIndex + 2);
+      RenderVertex(BeginIndex + 2);
+      Inc(BeginIndex);
+    end;
 
-      glEnd;
-
-    glPopAttrib();
+    glEnd;
   end;
 end;
 

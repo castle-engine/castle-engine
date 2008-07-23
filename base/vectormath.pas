@@ -385,7 +385,10 @@ type
   PArray_Vector3Single = PInfiniteArray_1;
   TDynVector3SingleArray = class(TDynArray_1)
     procedure AssignNegated(Source: TDynVector3SingleArray);
+    { Negate all items. }
     procedure Negate;
+    { Normalize all items. Zero vectors are left as zero. }
+    procedure Normalize;
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -2083,6 +2086,14 @@ var
 begin
   for I := 0 to Count - 1 do
     VectorNegateTo1st(Items[I]);
+end;
+
+procedure TDynVector3SingleArray.Normalize;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    NormalizeTo1st(Items[I]);
 end;
 
 { TDynVector2SingleArray ----------------------------------------------------- }

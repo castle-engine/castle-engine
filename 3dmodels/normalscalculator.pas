@@ -18,68 +18,60 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(Ten modul to miejsce dla funkcji ktore obliczaja wektory normalne -
-  przede wszystkim dla CreateNormals ktora liczy wektory
-  normalne robiac je miejscami smooth (a miejscami zostawiajac flat)
-  w zaleznosci od creaseAngle.)
+{ @abstract(Calculating normal vectors for various 3D objects,
+  with appropriate smoothing.)
 
-  Aczkolwiek niniejszy modul zostal stworzony przede wszystkim
-  na uslugi VRMLNodes to jednak nie uzywa zadnych modulow zwiazanych
-  specyficznie z VRMLem i mozna go uzyc gdziekolwiek bedzie potrzebny.
-
-  (planowalem uzyc go dla modeli 3ds'ow, GEO i OBJ'ow ale kiedy zrobilem
-  konwertowanie w pamieci 3ds, obj, geo -> vrml okazalo sie to juz
-  niepotrzebne : wystarczy ze w VRML'u bedziemy generowac normale
-  i ladowac pliki przez LoadAsVRML i w rezultacie 3ds'y, obj i geo
-  tez beda mialy normale generowane kodem z ponizszego modulu)
-}
-
+  This is developed for VRML / X3D geometric primitives,
+  although it's not coupled with any VRML stuff.
+  So it can be used in other situations too. }
 unit NormalsCalculator;
 
 interface
 
 uses SysUtils, KambiUtils, VectorMath;
 
-{ CoordIndex to lista indeksow vertexow. Kazdy indeks okresla vertex
-  o takim numerze z vertices, indeksy < 0 wyznaczaja poczatek kolejnej
-  face. Innymi slowy, CoordIndex ma taki format jak pole CoordIndex node'a
-  VRML'a IndexedFaceSet.
+{ Calculate normal vectors for indexed faces, smoothing them according
+  to CreaseAngleRad.
 
-  Vertices i CoordIndex beda tylko czytane, nie beda poprawiane.
-  Poprawnosc indeksow jest WYMAGANA (aby kazdy indeks byl < Vertices.Count),
-  poprawnosc faces (zeby byly convex, nie podawaly tych samych indeksow dwa
-  razy itp.) jest w tej chwili ZALECANA. To znaczy sprobujemy zrobic cos
-  sensownego dla nieprawidlowych faces (bedziemy zakladac ze te podczas
-  renderowania te faces beda poprawnie ztesselowane) a na ile to wyjdzie -
-  - trudno powiedziec. Na pewno bedzie sie mozna czasem przyczepic.
+  CoordIndex are indexes to Vertices. Indexes < 0 are used to separate
+  faces. So this works just like VRML IndexedFaceSet.coordIndex.
 
-  Zwraca tablice wektorow ktora ma tyle elementow co CoordIndex.
-  Jej wartosci dla nieujemnych indeksow CoordIndex to normal dla tego
-  vertexa na tej face. Jaj wartosci dla ujemnych indeksow sa niezdefiniowane.
-  FromCCW kontroluje czy normale wychodza z CCW : true to wychodza z CCW,
-  false to wychodza z CW.
+  It's smart and ignores incorrect indexes (outside Vertices range),
+  and incorrect faces triangles (see IndexedPolygonNormal).
+  It's guaranteed to work Ok for convex faces, although for non-convex faces
+  results are also acceptable (as results of IndexedPolygonNormal
+  should be acceptable for even non-convex faces).
 
-  Liczy normale uzywajac creaseAngleRad (w radianach).
-  Wszystkie normale sa znormalizowane. Grupa scian zlaczona jednym vertexem
-  bedzie miala na tym vertexie jeden normal jezeli kat miedzy plaszczyznami
-  miedzy kazda para scian w tej grupie bedzie < creaseAngle. To znaczy
-  jezeli vertex styka sie z ilomas scianami to podzielimy te
-  sciany na kilka grup i niezaleznie zrobimy smooth na tych grupach -
-  np. gdy vertex styka sie z 4 scianami mozemy zrobic smooth na 2 i inny
-  smooth na 2 pozostalych. Albo np. na 2, 1, 1 (czyli dwie sciany smoothed
-  ze soba, dwie pozostale flat).
+  Returns a list of normalized vectors. This has the same length
+  as CoordIndex, and should be accessed in the same way.
+  This way you (may) have different normal vector values for each
+  vertex on each face, so it's most flexible.
+  (For negative indexes in CoordIndex, corresponding value in result
+  is undefined.)
 
-  Note that when creaseAngleRad >= Pi, you wil be better off
-  using CreateSmoothNormals. This will work faster, and return shorter
-  normals array (so it's also more memory-efficient).
+  Remember it's your responsibility to free result of this function
+  at some point.
 
-  (Pamietaj zwolnic pozniej zwrocony obiekt przez Free.) }
+  @param(FromCCW Specifies whether we should generate normals
+    pointing from CCW (counter-clockwise) or CW.)
+
+  @param(CreaseAngleRad Specifies in radians what is the acceptable
+    angle for smoothing adjacent faces. More precisely, we calculate
+    for each vertex it's neighbor faces normals. Then we divide these
+    faces into groups, such that each group has faces that have normals
+    within CreaseAngleRad range, and this group results in one smoothed
+    normal. For example, it's possible for a vertex shared by 4 faces
+    to be smoothed on first two faces and last two faces separately.
+
+    Note that when creaseAngleRad >= Pi, you wil be better off
+    using CreateSmoothNormals. This will work faster, and return shorter
+    normals array (so it's also more memory-efficient).) }
 function CreateNormals(CoordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   creaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ Calculate perfectly smooth per-vertex normals.
+{ Calculate perfectly smooth per-vertex normals for indexed faces.
 
   Note that the result is not a compatible replacement for CreateNormals,
   as we generate Vertices.Count normals (since each vertex has it's own
@@ -88,11 +80,11 @@ function CreateSmoothNormals(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ Calculate flat per-face normals.
+{ Calculate flat per-face normals for indexed faces.
 
   Note that the result is not a compatible replacement for CreateNormals,
   as it's length is the number of @italic(faces). For each face, a single
-  normal is stored, so this is most sensible compact representation.
+  normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
@@ -107,6 +99,18 @@ function CreateFlatNormals(coordIndex: TDynLongintArray;
   You should access these normal vectors just like Vertices,
   i.e. they are indexed by CoordIndex. }
 function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+
+{ Calculate always smooth normals per-vertex, for triangle fan set.
+  Assuming CoordIndex or FanCount (exactly one of them must be assigned)
+  is given like for X3D triangle fan set.
+
+  This generates Vertices.Count normal vectors in result.
+  You should access these normal vectors just like Vertices,
+  i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
+function CreateSmoothNormalsTriangleFanSet(
+  CoordIndex: TDynLongintArray; FanCount: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
@@ -377,8 +381,7 @@ begin
       Inc(I);
     end;
 
-    for I := 0 to Result.Count - 1 do
-      NormalizeTo1st(Result.Items[I]);
+    Result.Normalize;
 
     if not FromCCW then Result.Negate;
   except FreeAndNil(Result); raise end;
@@ -443,11 +446,97 @@ begin
       I += 3;
     end;
 
-    for I := 0 to Result.Count - 1 do
-      NormalizeTo1st(Result.Items[I]);
+    Result.Normalize;
 
     if not FromCCW then Result.Negate;
   except FreeAndNil(Result); raise end;
+end;
+
+function CreateSmoothNormalsTriangleFanSet(
+  CoordIndex: TDynLongintArray; FanCount: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+
+  procedure HandlePart(BeginIndex, EndIndex: Integer);
+
+    procedure Triangle(Index0, Index1, Index2: Integer);
+    var
+      FaceNormal: TVector3Single;
+    begin
+      if CoordIndex <> nil then
+      begin
+        Index0 := CoordIndex.Items[Index0];
+        Index1 := CoordIndex.Items[Index1];
+        Index2 := CoordIndex.Items[Index2];
+      end;
+
+      FaceNormal := TriangleNormal(
+        Vertices.Items[Index0],
+        Vertices.Items[Index1],
+        Vertices.Items[Index2]);
+
+      VectorAddTo1st(Result.Items[Index0], FaceNormal);
+      VectorAddTo1st(Result.Items[Index1], FaceNormal);
+      VectorAddTo1st(Result.Items[Index2], FaceNormal);
+    end;
+
+  var
+    FirstIndex: Integer;
+  begin
+    FirstIndex := BeginIndex;
+
+    while BeginIndex + 2 < EndIndex do
+    begin
+      Triangle(FirstIndex, BeginIndex + 1, BeginIndex + 2);
+      Inc(BeginIndex);
+    end;
+  end;
+
+var
+  BeginIndex, EndIndex, RangeNumber: Integer;
+begin
+  Result := TDynVector3SingleArray.Create(Vertices.Length);
+  try
+    Result.FillChar(0);
+
+    if CoordIndex <> nil then
+    begin
+      BeginIndex := 0;
+      while BeginIndex < CoordIndex.Count do
+      begin
+        EndIndex := BeginIndex;
+        while (EndIndex < CoordIndex.Count) and
+              (CoordIndex.Items[EndIndex] >= 0) do
+          Inc(EndIndex);
+        HandlePart(BeginIndex, EndIndex);
+        BeginIndex := EndIndex + 1;
+      end;
+    end else
+    begin
+      Assert(FanCount <> nil);
+      EndIndex := 0;
+      for RangeNumber := 0 to FanCount.Count - 1 do
+      begin
+        BeginIndex := EndIndex;
+        EndIndex := BeginIndex + FanCount.Items[RangeNumber];
+        { Note that EndIndex *may* be equal to Vertices.Count,
+          as EndIndex is not taken into account by HandlePart. }
+        if EndIndex > Vertices.Count then
+          Break;
+        HandlePart(BeginIndex, EndIndex);
+      end;
+    end;
+
+    Result.Normalize;
+
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
+end;
+
+function CreateSmoothNormalsTriangleStripSet(CoordIndex: TDynLongintArray;
+  Vertices: TDynVector3SingleArray;
+  FromCCW: boolean): TDynVector3SingleArray;
+begin
 end;
 
 function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
@@ -483,8 +572,7 @@ begin
       I += 4;
     end;
 
-    for I := 0 to Result.Count - 1 do
-      NormalizeTo1st(Result.Items[I]);
+    Result.Normalize;
 
     if not FromCCW then Result.Negate;
   except FreeAndNil(Result); raise end;
