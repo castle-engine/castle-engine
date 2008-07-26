@@ -30,6 +30,8 @@ type
   TPointSet_2Renderer = class(TVRMLMeshRenderer)
   protected
     procedure DoRender; override;
+  public
+    function NeedsSetColor_2: boolean; override;
   end;
 
   { Renderer for X3D IndexedTriangleSet and TriangleSet nodes. }
@@ -102,6 +104,7 @@ type
   TLineSet_2Renderer = class(TLineSetRenderer)
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    function NeedsSetColor_2: boolean; override;
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -194,6 +197,11 @@ begin
       end;
     finally glEnd end;
   end;
+end;
+
+function TPointSet_2Renderer.NeedsSetColor_2: boolean;
+begin
+  Result := true;
 end;
 
 { TTriangleSetRenderer ------------------------------------------------------- }
@@ -890,3 +898,9 @@ begin
   end;
 end;
 
+function TLineSet_2Renderer.NeedsSetColor_2: boolean;
+begin
+  if Color = nil then
+    Result := true else
+    Result := inherited NeedsSetColor_2;
+end;

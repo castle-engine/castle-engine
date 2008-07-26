@@ -28,6 +28,7 @@ type
     procedure DoRender; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
+    function NeedsSetColor_2: boolean; override;
   end;
 
   TExtrusionRenderer = class(TVRMLMeshRenderer)
@@ -392,6 +393,11 @@ begin
     if NormalGenerated then
       FreeAndNil(Normal);
   end;
+end;
+
+function TElevationGridRenderer.NeedsSetColor_2: boolean;
+begin
+  Result := (Geometry as TNodeElevationGrid).Color <> nil;
 end;
 
 { TExtrusionRenderer --------------------------------------------------------- }

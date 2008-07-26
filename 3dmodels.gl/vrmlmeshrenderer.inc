@@ -164,6 +164,13 @@ type
       Renderer will set this to Renderer.BumpMappingMethod
       only if bump mapping should be used and BumpMappingAllowed. }
     BumpMappingMethod: TBumpMappingMethod;
+
+    { @abstract(Will rendering of this node possibly call Renderer.SetColor_2?)
+
+      In this class, returns @false, set to @true in descendants to allow
+      Renderer.MaterialsBegin do some preparations of you later plan to call
+      SetColor_2. }
+    function NeedsSetColor_2: boolean; virtual;
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
@@ -452,6 +459,8 @@ type
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
+
+    function NeedsSetColor_2: boolean; override;
   end;
 
   TNormalsImplementation = (
@@ -731,6 +740,11 @@ begin
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
     [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
       Geometry.NodeTypeName]));
+end;
+
+function TVRMLMeshRenderer.NeedsSetColor_2: boolean;
+begin
+  Result := false;
 end;
 
 { TAbstractCoordinateRenderer ------------------------------------------------ }
@@ -1233,6 +1247,11 @@ begin
       Renderer.SetColor_2(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]]) else
       Renderer.SetColor_2(Color.ItemsSafe[RangeNumber]);
   end;
+end;
+
+function TAbstractColMatTexCoordinateRenderer.NeedsSetColor_2: boolean;
+begin
+  Result := Color <> nil;
 end;
 
 { TAbstractNorColMatTexCoordinateRenderer ----------------------------------------------------- }

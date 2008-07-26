@@ -93,6 +93,12 @@ begin
       Render_Material_LastFogImmune := false;
     end;
   end;
+
+  if MaterialFromColorEnabled then
+  begin
+    glDisable(GL_COLOR_MATERIAL);
+    MaterialFromColorEnabled := false;
+  end;
 end;
 
 procedure TVRMLOpenGLRenderer.Render_Material(
@@ -246,6 +252,7 @@ end;
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_2;
 var
   Material: TNodeMaterial_2;
+  IsNodeLit: boolean;
 begin
   Assert(not (Render_Node is TVRMLGeometryNode_1));
 
@@ -258,10 +265,12 @@ begin
 
   Material := Render_State.ParentShape.Material;
 
+  IsNodeLit := NodeLit(Render_Node);
+
   if Material <> nil then
   begin
     Render_Material(
-      NodeLit(Render_Node),
+      IsNodeLit,
       VectorScale(Material.FdDiffuseColor.Value,
         Material.FdAmbientIntensity.Value),
       Material.FdDiffuseColor.Value,
@@ -285,6 +294,28 @@ begin
       0,
       1,
       false);
+  end;
+
+  { MaterialFromColorEnabled should be enabled only below and disabled
+    back by MaterialsEnd, so it should be always @false here. }
+  Assert(not MaterialFromColorEnabled);
+  if (MeshRenderer <> nil) and
+     MeshRenderer.NeedsSetColor_2 and
+     IsNodeLit then
+  begin
+    { For lit nodes, we want to set both unlit glColor and lit glMaterial
+      in SetColor_2.
+
+      Using GL_COLOR_MATERIAL is the best way to do this, this also works
+      much faster and more memory-efficient (AFAIK, OpenGL is prepared
+      to handle different glColor-per-vertex efficiently, but changing
+      whole glMaterial-per-vertex is not efficient (as glColor is pushed
+      with vertex data into the pipeline, while changing material settings
+      requires flushing part of current pipeline)). }
+
+    glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+    MaterialFromColorEnabled := true;
   end;
 end;
 
@@ -311,12 +342,4 @@ begin
 
   glColorv(Vector4f(Attributes.ColorModulated(Color),
     Material_BoundOpacity));
-
-  { TODO: use material from color for such color?
-    will this fix castle/data/creatures/spider/ slowness and memory use? }
-
-  if NodeLit(Render_Node) then
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE,
-      Vector4f(Attributes.ColorModulated(Color),
-      Material_BoundOpacity));
 end;
