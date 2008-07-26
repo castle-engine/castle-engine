@@ -64,9 +64,8 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    { Returns coord.point field, assuming that coord is set and
-      specifies Coordinate node. Otherwise returns @nil. }
-    function Coord: TMFVec3f;
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
 
     { Returns texCoord.point field, assuming that texCoord is set and
       specifies TextureCoordinate node. Otherwise returns @nil. }
@@ -83,8 +82,6 @@
     { Returns normal.vector, assuming that "normal" field is set
       and specified Normal node, as TDynVector3Single. Otherwise returns @nil. }
     function NormalItems: TDynVector3SingleArray;
-
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
@@ -186,15 +183,12 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
 
-    { Returns coord.point field, assuming that coord is set and
-      specifies Coordinate node. Otherwise returns @nil. }
-    function Coord: TMFVec3f;
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
+    function CoordIndex: TMFLong; override;
 
     { Returns color.point field, assuming that color is set and
       specifies Color node. Otherwise returns @nil. }
@@ -216,8 +210,8 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordIndex: TMFLong; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -237,8 +231,8 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordIndex: TMFLong; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -258,8 +252,8 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordIndex: TMFLong; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -287,18 +281,18 @@
     private FFdvertexCount: TMFInt32;
     public property FdvertexCount: TMFInt32 read FFdvertexCount;
 
-    { Returns coord.point field, assuming that coord is set and
-      specifies Coordinate node. Otherwise returns @nil. }
-    function Coord: TMFVec3f;
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
+
+    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
 
     { Returns color.point field, assuming that color is set and
       specifies Color node. Otherwise returns @nil. }
     function Color: TMFVec3f;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
@@ -343,14 +337,11 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
 
-    { Returns coord.point field, assuming that coord is set and
-      specifies Coordinate node. Otherwise returns @nil. }
-    function Coord: TMFVec3f;
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
 
     { Returns color.point field, assuming that color is set and
       specifies Color node. Otherwise returns @nil. }
@@ -368,8 +359,10 @@
     private FFdfanCount: TMFInt32;
     public property FdfanCount: TMFInt32 read FFdfanCount;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -382,8 +375,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -399,8 +390,10 @@
     private FFdstripCount: TMFInt32;
     public property FdstripCount: TMFInt32 read FFdstripCount;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -455,12 +448,14 @@ begin
   Fields.Add(FFdsolid);
 end;
 
-function TNodeX3DComposedGeometryNode.Coord: TMFVec3f;
+function TNodeX3DComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
 begin
+  Result := true;
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
-    Result := nil;
+    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+    ACoord := nil;
 end;
 
 function TNodeX3DComposedGeometryNode.TexCoord: TMFVec2f;
@@ -695,12 +690,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
-function TNodeIndexedLineSet_2.Coord: TMFVec3f;
+function TNodeIndexedLineSet_2.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
 begin
+  Result := true;
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
-    Result := nil;
+    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+    ACoord := nil;
 end;
 
 function TNodeIndexedLineSet_2.Color: TMFVec3f;
@@ -709,6 +706,11 @@ begin
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
+end;
+
+function TNodeIndexedLineSet_2.CoordIndex: TMFLong;
+begin
+  Result := FdCoordIndex;
 end;
 
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
@@ -744,6 +746,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeIndexedTriangleFanSet.CoordIndex: TMFLong;
+begin
+  Result := FdIndex;
+end;
+
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -777,6 +784,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TNodeIndexedTriangleSet.CoordIndex: TMFLong;
+begin
+  Result := FdIndex;
+end;
+
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -808,6 +820,11 @@ class function TNodeIndexedTriangleStripSet.URNMatching(const URN: string): bool
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeIndexedTriangleStripSet.CoordIndex: TMFLong;
+begin
+  Result := FdIndex;
 end;
 
 constructor TNodeLineSet.Create(const ANodeName: string;
@@ -851,12 +868,14 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeLineSet.Coord: TMFVec3f;
+function TNodeLineSet.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
 begin
+  Result := true;
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
-    Result := nil;
+    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+    ACoord := nil;
 end;
 
 function TNodeLineSet.Color: TMFVec3f;
@@ -865,6 +884,18 @@ begin
      (FdColor.Value is TNodeColor) then
     Result := TNodeColor(FdColor.Value).FdColor else
     Result := nil;
+end;
+
+function TNodeLineSet.CoordRangesCounts(
+  out RangeCount: TDynLongIntArray;
+  out SRanges, SRangeName: string;
+  out RangeMinimumCount: Cardinal): boolean;
+begin
+  RangeCount := FdVertexCount.Items;
+  SRanges := 'lines';
+  SRangeName := 'Vertex count';
+  RangeMinimumCount := 2;
+  Result := true;
 end;
 
 constructor TNodeNormal.Create(const ANodeName: string;
@@ -935,12 +966,14 @@ begin
   Result := VerMajor >= 2;
 end;
 
-function TNodePointSet_2.Coord: TMFVec3f;
+function TNodePointSet_2.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
 begin
+  Result := true;
   if (FdCoord.Value <> nil) and
      (FdCoord.Value is TNodeCoordinate) then
-    Result := TNodeCoordinate(FdCoord.Value).FdPoint else
-    Result := nil;
+    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+    ACoord := nil;
 end;
 
 function TNodePointSet_2.Color: TMFVec3f;
@@ -978,6 +1011,18 @@ class function TNodeTriangleFanSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeTriangleFanSet.CoordRangesCounts(
+  out RangeCount: TDynLongIntArray;
+  out SRanges, SRangeName: string;
+  out RangeMinimumCount: Cardinal): boolean;
+begin
+  RangeCount := FdFanCount.Items;
+  SRanges := 'fans';
+  SRangeName := 'Fan count';
+  RangeMinimumCount := 3;
+  Result := true;
 end;
 
 constructor TNodeTriangleSet.Create(const ANodeName: string;
@@ -1032,6 +1077,18 @@ class function TNodeTriangleStripSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeTriangleStripSet.CoordRangesCounts(
+  out RangeCount: TDynLongIntArray;
+  out SRanges, SRangeName: string;
+  out RangeMinimumCount: Cardinal): boolean;
+begin
+  RangeCount := FdStripCount.Items;
+  SRanges := 'strips';
+  SRangeName := 'Strip count';
+  RangeMinimumCount := 3;
+  Result := true;
 end;
 
 procedure RegisterRenderingNodes;

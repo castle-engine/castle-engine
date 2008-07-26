@@ -1747,6 +1747,9 @@ type
 
 { TVRMLGeometryNode ---------------------------------------------------- }
 
+  TCoordRangeHandler = procedure (const RangeNumber: Cardinal;
+    BeginIndex, EndIndex: Integer) of object;
+
   { Geometry nodes are the only nodes that produces some visible results
     during rendering. Much of the VRML language is just
     a method of describing properties how geometry nodes are displayed
@@ -1797,7 +1800,12 @@ type
       LocalBoundingBox liczy BoundingBox jakby Transform = IdentityMatrix,
       czyli liczy bounding box wzgledem lokalnego ukladu node'a.
 
-      W tej klasie LocalBoundingBox jest liczone jako BoundingBox ktore
+      For nodes based on coordinates (when @link(Coord) returns @true),
+      LocalBoundingBox and BoundingBox
+      already have optimal and correct implementation in this class.
+
+      For other nodes, w tej klasie LocalBoundingBox jest liczone jako
+      BoundingBox ktore
       dostaje specjalnie spreparowane State z Transform = zawsze Identity.
       Jest to poprawna metoda realizacji LocalBoundingBox'a natomiast
       nieco nieoptymalna czasowo : bedzie wykonywanych wiele mnozen przez
@@ -1845,8 +1853,11 @@ type
       przypadku TriangulateFace ma prawo pousuwac trojkaty zdegenerowane
       do punktu). Generalnie nie polegaj na TrianglesCount jako na dokladnej
       wartosci --- raczej jako na przyblizeniu ktore zazwyczaj bedzie bardzo
-      bardzo dokladne. }
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual; abstract;
+      bardzo dokladne.
+
+      For coordinate-based nodes (when @link(Coord) returns @true),
+      VerticesCount is already implemented in this class. }
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual; abstract;
 
     { triangulate node = call NewTriangleProc for each triangle this node
@@ -1880,6 +1891,64 @@ type
       NewTriangleProc: TNewTriangleProc);
     procedure LocalTriangulate(State: TVRMLGraphTraverseState;
       OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
+
+    { Return node's list of coordinates. Returns @false if node is
+      not based on coordinates. Returns @true and sets ACoord
+      if the node is based on coordinated. Even when returns @true,
+      it can set ACoord = @nil, which means that node is based on
+      coordinates but they are empty right now (so for example
+      bounding box may be considered empty).
+
+      In base TVRMLGeometryNode class this always returns @false.
+
+      Override this for descendants that have some kind of "coord" field,
+      then this should return @true and set ACoord to coord.point field,
+      assuming that coord is set and specifies Coordinate node.
+      Otherwise should return @true and set ACoord = @nil.
+
+      For VRML 1.0, coord may be taken from State, that's why we have to
+      pass current traverse state here. }
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; virtual;
+
+    { Node's list of coordinate indexes.
+
+      In base TVRMLGeometryNode class this always returns @nil.
+
+      Override this for descendants that have some kind of "coordIndex"
+      or "index" field used to index @link(Coord) array. }
+    function CoordIndex: TMFLong; virtual;
+
+    { Returns an information how to split @link(Coord) array into ranges.
+
+      When CoordIndex = @nil, then if the node's @link(Coord) array
+      can be divided into some "ranges", we will use this information.
+      This is used (and should be overridden) for X3D non-indexed nodes,
+      like fanCount or stripCount or vertexCount.
+
+      What precisely is a "range of coordinates" is not specified
+      here. It may be a line stip, or one triangle strip, etc. ---
+      depending on the descendant.
+
+      Returns @true is this is available. In this case, RangeCount must
+      be set to something <> nil, and the rest of returned variables
+      are mainly to generate proper warnings by MakeCoordRanges. }
+    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; virtual;
+
+    { Splits @link(Coord) array into ranges.
+
+      If CoordIndex is assigned, then a "range of coordinates" is
+      just a range of non-negative indexes within CoordIndex.
+      Otherwise (when CoordIndex = @nil), CoordRangesCounts must
+      return @true and we will use RangeCount to split coordinates.
+
+      Call this only for nodes with coordinates, that is only when
+      @link(Coord) returns @true. }
+    procedure MakeCoordRanges(
+      State: TVRMLGraphTraverseState;
+      CoordRangeHandler: TCoordRangeHandler);
   end;
 
 { IVRMLInlineNode --------------------------------------------------------- }
@@ -4881,6 +4950,84 @@ begin
   inherited;
 
   DefaultContainerField := 'geometry';
+end;
+
+function TVRMLGeometryNode.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := false;
+end;
+
+function TVRMLGeometryNode.CoordIndex: TMFLong;
+begin
+  Result := nil;
+end;
+
+function TVRMLGeometryNode.CoordRangesCounts(
+  out RangeCount: TDynLongIntArray;
+  out SRanges, SRangeName: string;
+  out RangeMinimumCount: Cardinal): boolean;
+begin
+  Result := false;
+end;
+
+procedure TVRMLGeometryNode.MakeCoordRanges(
+  State: TVRMLGraphTraverseState;
+  CoordRangeHandler: TCoordRangeHandler);
+var
+  BeginIndex, EndIndex: Integer;
+  RangeNumber: Cardinal;
+  RangeCount: TDynLongIntArray;
+  SRanges, SRangeName: string;
+  RangeMinimumCount: Cardinal;
+  C: TMFVec3f;
+begin
+  if not Coord(State, C) then
+    raise EInternalError.CreateFmt('%s.MakeCoordRanges: only for Coord-based nodes',
+      [ClassName]);
+
+  if C = nil then
+    Exit;
+
+  if CoordIndex <> nil then
+  begin
+    BeginIndex := 0;
+    RangeNumber := 0;
+    while BeginIndex < CoordIndex.Count do
+    begin
+      EndIndex := BeginIndex;
+      while (EndIndex < CoordIndex.Count) and
+            (CoordIndex.Items.Items[EndIndex] >= 0) do
+        Inc(EndIndex);
+      CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
+      Inc(RangeNumber);
+      BeginIndex := EndIndex + 1;
+    end;
+  end else
+  begin
+    if not CoordRangesCounts(RangeCount, SRanges, SRangeName,
+      RangeMinimumCount) then
+      raise EInternalError.CreateFmt('%s.MakeCoordRanges: either CoordIndex or CoordRangesCounts must be defined to split coordinates', [ClassName]);
+    EndIndex := 0;
+    if RangeCount.Count > 0 then
+      for RangeNumber := 0 to RangeCount.Count - 1 do
+      begin
+        BeginIndex := EndIndex;
+        EndIndex := BeginIndex + RangeCount.Items[RangeNumber];
+        { Note that EndIndex *may* be equal to C.Count,
+          as EndIndex is not taken into account by CoordRangeHandler. }
+        if EndIndex > C.Count then
+        begin
+          VRMLNonFatalError(Format('Too much %s (not enough coordinates) in %s',
+            [SRanges, NodeTypeName]));
+          Break;
+        end;
+        if Cardinal(EndIndex - BeginIndex) >= RangeMinimumCount then
+          CoordRangeHandler(RangeNumber, BeginIndex, EndIndex) else
+          VRMLNonFatalError(Format('%s is less than %d in %s',
+            [SRangeName, RangeMinimumCount, NodeTypeName]));
+      end;
+  end;
 end;
 
 { TVRMLUnknownNode ---------------------------------------------------------------- }

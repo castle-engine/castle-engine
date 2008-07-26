@@ -21,6 +21,20 @@
 { implementacja metod VerticesCount i TrianglesCount dla specyficznych
   potomkow TVRMLGeometryNode }
 
+function TVRMLGeometryNode.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  C: TMFVec3f;
+begin
+  if Coord(State, C) then
+  begin
+    if C <> nil then
+      Result := C.Count else
+      Result := 0;
+  end else
+    raise EInternalError.Create('TVRMLGeometryNode.VerticesCount not overridden, and node not coordinate-based');
+end;
+
 { just a shortcuts for names often used in this file }
 {$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.QuadricSlices)}
 {$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
@@ -210,11 +224,6 @@ begin
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
-function TVRMLIndexedNode_1.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  Result := State.LastNodes.Coordinate3.FdPoint.Count;
-end;
-
 function IndexedPolygons_TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   CoordIndex: TMFLong; Coord: TMFVec3f): Cardinal;
@@ -239,22 +248,23 @@ begin
 end;
 
 function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
+  Check( Coord(State, ACoord),
+    'TNodeIndexed_Faces_Or_Triangles_1: Coord should always be true');
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, State.LastNodes.Coordinate3.FdPoint);
+    FdCoordIndex, ACoord);
 end;
 
 function TNodeIndexedFaceSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
+  Check( Coord(State, ACoord),
+    'TNodeIndexedFaceSet_2: Coord should always be true');
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, Coord);
-end;
-
-function TNodeIndexedFaceSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
+    FdCoordIndex, ACoord);
 end;
 
 function TNodeIndexedLineSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
@@ -272,20 +282,6 @@ begin
   result := 0;
 end;
 
-function TNodeIndexedLineSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
-end;
-
-function TNodeLineSet.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
-end;
-
 function TNodePointSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
 begin
   result := 0;
@@ -301,13 +297,6 @@ var dummy, numPoints: integer;
 begin
  CalculateRange(State.LastNodes.Coordinate3, dummy, numPoints);
  result := numPoints;
-end;
-
-function TNodePointSet_2.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
 end;
 
 function Sphere_TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
@@ -397,19 +386,15 @@ end;
 
 { X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
 
-function TNodeX3DComposedGeometryNode.VerticesCount(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-begin
-  if Coord <> nil then
-    Result := Coord.Count else
-    Result := 0;
-end;
-
 function TNodeIndexedTriangleSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
-    Result := FdIndex.Count div 3 else
+  Check( Coord(State, ACoord),
+    'TNodeIndexedTriangleSet: Coord should always be true');
+  if ACoord <> nil then
+    Result := CoordIndex.Count div 3 else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
       So we don't worry about this case. }
@@ -418,22 +403,34 @@ end;
 
 function TNodeTriangleSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
-    Result := Coord.Count div 3 else
+  Check( Coord(State, ACoord),
+    'TNodeTriangleSet: Coord should always be true');
+  if ACoord <> nil then
+    Result := ACoord.Count div 3 else
     Result := 0;
 end;
 
 function TNodeIndexedTriangleFanSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, Coord);
+  Check( Coord(State, ACoord),
+    'TNodeIndexedTriangleFanSet: Coord should always be true');
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, ACoord);
 end;
 
 function TNodeTriangleFanSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
+  Check( Coord(State, ACoord),
+    'TNodeTriangleFanSet: Coord should always be true');
+  if ACoord <> nil then
     { For each fan, add it's count - 2. }
     Result := FdFanCount.Items.Sum - FdFanCount.Items.Count * 2 else
     Result := 0;
@@ -441,14 +438,22 @@ end;
 
 function TNodeIndexedTriangleStripSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, Coord);
+  Check( Coord(State, ACoord),
+    'TNodeIndexedTriangleStripSet: Coord should always be true');
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, ACoord);
 end;
 
 function TNodeTriangleStripSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
+  Check( Coord(State, ACoord),
+    'TNodeTriangleStripSet: Coord should always be true');
+  if ACoord <> nil then
     { For each strip, add it's count - 2. }
     Result := FdStripCount.Items.Sum - FdStripCount.Items.Count * 2 else
     Result := 0;
@@ -456,8 +461,12 @@ end;
 
 function TNodeIndexedQuadSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
+  Check( Coord(State, ACoord),
+    'TNodeIndexedQuadSet: Coord should always be true');
+  if ACoord <> nil then
     Result := 2 * (FdIndex.Count div 4) else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
@@ -467,8 +476,12 @@ end;
 
 function TNodeQuadSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+var
+  ACoord: TMFVec3f;
 begin
-  if Coord <> nil then
-    Result := 2 * (Coord.Count div 4) else
+  Check( Coord(State, ACoord),
+    'TNodeQuadSet: Coord should always be true');
+  if ACoord <> nil then
+    Result := 2 * (ACoord.Count div 4) else
     Result := 0;
 end;

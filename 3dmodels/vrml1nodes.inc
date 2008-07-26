@@ -153,9 +153,9 @@
     private FFdTextureCoordIndex: TMFLong;
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
+    function CoordIndex: TMFLong; override;
   end;
 
   { wspolny rodzic dla IndexedFaceSet i IndexedTriangleMesh }
@@ -193,7 +193,6 @@
     procedure CalculateRange(LastCoordinate3: TNodeCoordinate3;
       out startIndex, numPoints: integer);
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -1010,6 +1009,18 @@ begin
   FFdtextureCoordIndex := TMFLong.Create('textureCoordIndex', [-1]);
   FFdtextureCoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdtextureCoordIndex);
+end;
+
+function TVRMLIndexedNode_1.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  ACoord := State.LastNodes.Coordinate3.FdPoint;
+end;
+
+function TVRMLIndexedNode_1.CoordIndex: TMFLong;
+begin
+  Result := FdCoordIndex;
 end;
 
 class function TNodeIndexedFaceSet_1.ClassNodeTypeName: string;

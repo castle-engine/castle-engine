@@ -120,8 +120,8 @@
     private FFdindex: TMFInt32;
     public property Fdindex: TMFInt32 read FFdindex;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function CoordIndex: TMFLong; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -134,8 +134,6 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -338,6 +336,11 @@ class function TNodeIndexedQuadSet.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TNodeIndexedQuadSet.CoordIndex: TMFLong;
+begin
+  Result := FdIndex;
 end;
 
 constructor TNodeQuadSet.Create(const ANodeName: string;

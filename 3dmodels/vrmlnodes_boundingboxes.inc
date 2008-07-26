@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -21,21 +21,141 @@
 { VRMLNodes_BoundingBoxes, czyli implementacja metod BoundingBox
   dla node'ow wywodzacych sie od TVRMLGeometryNode. }
 
+{ ----------------------------------------------------------------------------
+  Bounding box utilities for nodes with explicit Coordinates (indexed and not).
+
+  Note that we have two separate implementations for local and non-local
+  bounding box, that is we do not depend on TVRMLGeometryNode methods
+  to automatically calculate one using the other:
+
+  - Calculating LocalBoundingBox explicitly is faster than
+    calculating non-local bbox with dummy identity matrix
+    (like TVRMLGeometryNode.LocalBoundingBox does).
+
+  - Calculating BoundingBox explicitly results in better (more tighter)
+    bbox than using LocalBoundingBox and transforming it.
+}
+
+type
+  TGI_BBox_Calculator = class
+  private
+    Coord: TMFVec3f;
+    CoordIndex: TMFLong;
+    function GetVertexFromIndex(index: integer): TVector3Single;
+    function GetIndex(indexNum: integer): integer;
+  end;
+
+function TGI_BBox_Calculator.GetVertexFromIndex(index: integer): TVector3Single;
+begin
+  { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
+    pytalo o indeksy ujemne. }
+  if Index < Coord.Count then
+    Result := Coord.Items.Items[Index] else
+  begin
+    VRMLNonFatalError(Format('Wrong vertex index in indexed node ' +
+      '(not enouch points in Coordinate node defined: ' +
+      'index is %d, we have only %d vertices)',
+      [Index, Coord.Count]));
+    Result := ZeroVector3Single;
+  end;
+end;
+
+function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;
+begin
+  { nie musimy sprawdzac czy indexNum jest dobry -
+    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
+    0..VertIndices.Count-1 }
+  Result := CoordIndex.Items.Items[IndexNum];
+end;
+
+function IndexedCoords_BoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+var
+  Calculator: TGI_BBox_Calculator;
+begin
+  Calculator := TGI_BBox_Calculator.Create;
+  try
+    Calculator.Coord := Coord;
+    Calculator.CoordIndex := CoordIndex;
+    Result := CalculateBoundingBoxFromIndices(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
+      CoordIndex.Count,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
+      State.Transform);
+  finally Calculator.Free end;
+end;
+
+function IndexedCoords_LocalBoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
+var
+  Calculator: TGI_BBox_Calculator;
+begin
+  Calculator := TGI_BBox_Calculator.Create;
+  try
+    Calculator.Coord := Coord;
+    Calculator.CoordIndex := CoordIndex;
+    Result := CalculateBoundingBoxFromIndices(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
+      CoordIndex.Count,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
+  finally Calculator.Free end;
+end;
+
+function Coords_BoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f): TBox3d;
+begin
+  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
+    Coord.Items.Count, 0, State.Transform);
+end;
+
+function Coords_LocalBoundingBox(State: TVRMLGraphTraverseState;
+  Coord: TMFVec3f): TBox3d;
+begin
+  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
+    Coord.Items.Count, 0);
+end;
+
 { TVRMLGeometryNode --------------------------------------------------------- }
 
 function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+var
+  C: TMFVec3f;
 begin
-  Result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
+  if Coord(State, C) then
+  begin
+    if C <> nil then
+    begin
+      if CoordIndex <> nil then
+        Result := IndexedCoords_BoundingBox(State, C, CoordIndex) else
+        Result := Coords_BoundingBox(State, C);
+    end else
+      Result := EmptyBox3d;
+  end else
+    Result := BoundingBoxTransform(LocalBoundingBox(State), State.Transform);
 end;
 
 function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var NewState: TVRMLGraphTraverseState;
+var
+  NewState: TVRMLGraphTraverseState;
+  C: TMFVec3f;
 begin
- NewState := TVRMLGraphTraverseState.CreateCopy(State);
- try
-  NewState.Transform := IdentityMatrix4Single;
-  result := BoundingBox(NewState);
- finally NewState.Free end;
+  if Coord(State, C) then
+  begin
+    if C <> nil then
+    begin
+      if CoordIndex <> nil then
+        Result := IndexedCoords_LocalBoundingBox(State, C, CoordIndex) else
+        Result := Coords_LocalBoundingBox(State, C);
+    end else
+      Result := EmptyBox3d;
+  end else
+  begin
+    NewState := TVRMLGraphTraverseState.CreateCopy(State);
+    try
+      NewState.Transform := IdentityMatrix4Single;
+      result := BoundingBox(NewState);
+    finally NewState.Free end;
+  end;
 end;
 
 { ------------------------------------------------------------------------ }
@@ -265,214 +385,6 @@ begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-{ ----------------------------------------------------------------------------
-  Bounding box utilities for nodes with explicit Coordinates (indexed and not).
-
-  Note that we have two separate implementations for local and non-local
-  bounding box, that is we do not depend on TVRMLGeometryNode methods
-  to automatically calculate one using the other:
-
-  - Calculating LocalBoundingBox explicitly is faster than
-    calculating non-local bbox with dummy identity matrix
-    (like TVRMLGeometryNode.LocalBoundingBox does).
-
-  - Calculating BoundingBox explicitly results in better (more tighter)
-    bbox than using LocalBoundingBox and transforming it.
-}
-
-type
-  TGI_BBox_Calculator = class
-  private
-    Coord: TMFVec3f;
-    CoordIndex: TMFLong;
-    function GetVertexFromIndex(index: integer): TVector3Single;
-    function GetIndex(indexNum: integer): integer;
-  end;
-
-function TGI_BBox_Calculator.GetVertexFromIndex(index: integer): TVector3Single;
-begin
-  { na pewno index >= 0, CalculateBoundingBoxFromIndices nie bedzie
-    pytalo o indeksy ujemne. }
-  if Index < Coord.Count then
-    Result := Coord.Items.Items[Index] else
-  begin
-    VRMLNonFatalError(Format('Wrong vertex index in indexed node ' +
-      '(not enouch points in Coordinate node defined: ' +
-      'index is %d, we have only %d vertices)',
-      [Index, Coord.Count]));
-    Result := ZeroVector3Single;
-  end;
-end;
-
-function TGI_BBox_Calculator.GetIndex(IndexNum: integer): integer;
-begin
-  { nie musimy sprawdzac czy indexNum jest dobry -
-    CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy spomiedzy
-    0..VertIndices.Count-1 }
-  Result := CoordIndex.Items.Items[IndexNum];
-end;
-
-function IndexedCoords_BoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
-var
-  Calculator: TGI_BBox_Calculator;
-begin
-  Calculator := TGI_BBox_Calculator.Create;
-  try
-    Calculator.Coord := Coord;
-    Calculator.CoordIndex := CoordIndex;
-    Result := CalculateBoundingBoxFromIndices(
-      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
-      CoordIndex.Count,
-      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
-      State.Transform);
-  finally Calculator.Free end;
-end;
-
-function IndexedCoords_LocalBoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f; CoordIndex: TMFLong): TBox3d;
-var
-  Calculator: TGI_BBox_Calculator;
-begin
-  Calculator := TGI_BBox_Calculator.Create;
-  try
-    Calculator.Coord := Coord;
-    Calculator.CoordIndex := CoordIndex;
-    Result := CalculateBoundingBoxFromIndices(
-      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
-      CoordIndex.Count,
-      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
-  finally Calculator.Free end;
-end;
-
-function Coords_BoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f): TBox3d;
-begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
-    Coord.Items.Count, 0, State.Transform);
-end;
-
-function Coords_LocalBoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f): TBox3d;
-begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
-    Coord.Items.Count, 0);
-end;
-
-{ TVRMLIndexedNode_1 --------------------------------------------------------- }
-
-function TVRMLIndexedNode_1.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  Result := IndexedCoords_LocalBoundingBox(State,
-    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
-end;
-
-function TVRMLIndexedNode_1.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  Result := IndexedCoords_BoundingBox(State,
-    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex);
-end;
-
-{ TNodeIndexedFaceSet_2 ------------------------------------------------------ }
-
-function TNodeIndexedFaceSet_2.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdCoordIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedFaceSet_2.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdCoordIndex) else
-    Result := EmptyBox3d;
-end;
-
-{ TNode[Indexed]LineSet_2 ---------------------------------------------------- }
-
-function TNodeIndexedLineSet_2.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdCoordIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedLineSet_2.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdCoordIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeLineSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_LocalBoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeLineSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_BoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-{ TNodePointSet ------------------------------------------------------------- }
-
-type
-  TPS_BBox_Calculator = class
-    Coord: TMFVec3f;
-    indexOffset: integer;
-    PMatrix: PMatrix4Single;
-    function GetVertex(i: integer): TVector3Single;
-  end;
-
-  function TPS_BBox_Calculator.GetVertex(i: integer): TVector3Single;
-  begin
-    Result := MultMatrixPoint(PMatrix^, Coord.Items.Items[i+indexOffset])
-  end;
-
-function PointSet_BoundingBox(State: TVRMLGraphTraverseState;
-  Coord: TMFVec3f; StartIndex, NumPoints: Integer): TBox3d;
-var
-  Calculator: TPS_BBox_Calculator;
-begin
-  Calculator := TPS_BBox_Calculator.Create;
-  try
-    Calculator.Coord := Coord;
-    Calculator.IndexOffset := StartIndex;
-    Calculator.PMatrix := @State.Transform;
-    Result := CalculateBoundingBox(
-      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertex, NumPoints);
-  finally Calculator.Free end;
-end;
-
-function TNodePointSet_1.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-var
-  StartIndex, NumPoints: integer;
-begin
-  CalculateRange(State.LastNodes.Coordinate3, StartIndex, NumPoints);
-  Result := PointSet_BoundingBox(State,
-    State.LastNodes.Coordinate3.FdPoint, StartIndex, NumPoints);
-end;
-
-function TNodePointSet_2.BoundingBox(State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := PointSet_BoundingBox(State, Coord, 0, Coord.Count) else
-    Result := EmptyBox3d;
-end;
-
 { TNodeElevationGrid --------------------------------------------------------- }
 
 function TNodeElevationGrid.LocalBoundingBox(
@@ -529,142 +441,6 @@ begin
       end;
     end;
   finally FreeAndNil(E) end;
-end;
-
-{ TNode[Indexed]TriangleSet -------------------------------------------------- }
-
-function TNodeIndexedTriangleSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedTriangleSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_LocalBoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_BoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-{ TNode[Indexed]TriangleFanSet ----------------------------------------------- }
-
-function TNodeIndexedTriangleFanSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedTriangleFanSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleFanSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_LocalBoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleFanSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_BoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-{ TNode[Indexed]TriangleStripSet --------------------------------------------- }
-
-function TNodeIndexedTriangleStripSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedTriangleStripSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleStripSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_LocalBoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeTriangleStripSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_BoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-{ TNode[Indexed]QuadSet ------------------------------------------------------ }
-
-function TNodeIndexedQuadSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_LocalBoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeIndexedQuadSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := IndexedCoords_BoundingBox(State, Coord, FdIndex) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeQuadSet.LocalBoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_LocalBoundingBox(State, Coord) else
-    Result := EmptyBox3d;
-end;
-
-function TNodeQuadSet.BoundingBox(
-  State: TVRMLGraphTraverseState): TBox3d;
-begin
-  if Coord <> nil then
-    Result := Coords_BoundingBox(State, Coord) else
-    Result := EmptyBox3d;
 end;
 
 { eof ------------------------------------------------------------------------ }

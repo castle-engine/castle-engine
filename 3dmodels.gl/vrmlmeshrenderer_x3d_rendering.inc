@@ -210,7 +210,6 @@ constructor TTriangleSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
 
-  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -219,7 +218,6 @@ begin
 
   if Geometry is TNodeIndexedTriangleSet then
   begin
-    CoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
   end;
@@ -304,7 +302,6 @@ var
 begin
   inherited;
 
-  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -313,7 +310,6 @@ begin
 
   if Geometry is TNodeIndexedTriangleFanSet then
   begin
-    CoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
   end;
@@ -375,31 +371,8 @@ begin
 end;
 
 procedure TTriangleFanSetRenderer.RenderCoordinate;
-var
-  FanCount: TDynLongIntArray;
-  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  if CoordIndex <> nil then
-    RenderCoordsRanges else
-  begin
-    FanCount := (Geometry as TNodeTriangleFanSet).FdFanCount.Items;
-    EndIndex := 0;
-    for RangeNumber := 0 to FanCount.Count - 1 do
-    begin
-      BeginIndex := EndIndex;
-      EndIndex := BeginIndex + FanCount.Items[RangeNumber];
-      { Note that EndIndex *may* be equal to CoordCount,
-        as EndIndex is not taken into account by RenderCoordsRange. }
-      if EndIndex > CoordCount then
-      begin
-        VRMLNonFatalError('Too much fans (not enough coordinates) in ' + Geometry.NodeTypeName);
-        Break;
-      end;
-      if EndIndex - BeginIndex >= 3 then
-        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
-        VRMLNonFatalError('Fan count is less than 3 in ' + Geometry.NodeTypeName);
-    end;
-  end;
+  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
 
 procedure TTriangleFanSetRenderer.RenderCoordsRange(
@@ -446,7 +419,6 @@ var
 begin
   inherited;
 
-  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -455,7 +427,6 @@ begin
 
   if Geometry is TNodeIndexedTriangleStripSet then
   begin
-    CoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
   end;
@@ -517,31 +488,8 @@ begin
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordinate;
-var
-  StripCount: TDynLongIntArray;
-  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  if CoordIndex <> nil then
-    RenderCoordsRanges else
-  begin
-    StripCount := (Geometry as TNodeTriangleStripSet).FdStripCount.Items;
-    EndIndex := 0;
-    for RangeNumber := 0 to StripCount.Count - 1 do
-    begin
-      BeginIndex := EndIndex;
-      EndIndex := BeginIndex + StripCount.Items[RangeNumber];
-      { Note that EndIndex *may* be equal to CoordCount,
-        as EndIndex is not taken into account by RenderCoordsRange. }
-      if EndIndex > CoordCount then
-      begin
-        VRMLNonFatalError('Too much strips (not enough coordinates) in ' + Geometry.NodeTypeName);
-        Break;
-      end;
-      if EndIndex - BeginIndex >= 3 then
-        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
-        VRMLNonFatalError('Strip count is less than 3 in ' + Geometry.NodeTypeName);
-    end;
-  end;
+  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
 
 procedure TTriangleStripSetRenderer.RenderCoordsRange(
@@ -589,7 +537,6 @@ constructor TQuadSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
 begin
   inherited;
 
-  Coord := (Geometry as TNodeX3DComposedGeometryNode).Coord;
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
   { According to X3D spec, "the value of the colorPerVertex field
@@ -598,7 +545,6 @@ begin
 
   if Geometry is TNodeIndexedQuadSet then
   begin
-    CoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
     TexCoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
     ColorIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
   end;
@@ -686,9 +632,6 @@ var
 begin
   inherited Create(ARenderer);
 
-  CoordIndex := ANode.FdCoordIndex;
-  Coord := State.LastNodes.Coordinate3.FdPoint;
-
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
@@ -715,7 +658,7 @@ end;
 
 procedure TIndexedTriangleMesh_1Renderer.RenderCoordinate;
 begin
-  RenderCoordsRanges;
+  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
 
 procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
@@ -787,32 +730,8 @@ begin
 end;
 
 procedure TLineSetRenderer.RenderCoordinate;
-var
-  VertexCount: TDynLongIntArray;
-  RangeNumber, BeginIndex, EndIndex: Integer;
 begin
-  if CoordIndex <> nil then
-    RenderCoordsRanges else
-  begin
-    Assert(Geometry is TNodeLineSet);
-    VertexCount := (Geometry as TNodeLineSet).FdVertexCount.Items;
-    EndIndex := 0;
-    for RangeNumber := 0 to VertexCount.Count - 1 do
-    begin
-      BeginIndex := EndIndex;
-      EndIndex := BeginIndex + VertexCount.Items[RangeNumber];
-      { Note that EndIndex *may* be equal to CoordCount,
-        as EndIndex is not taken into account by RenderCoordsRange. }
-      if EndIndex > CoordCount then
-      begin
-        VRMLNonFatalError('Too much lines (not enough coordinates) in ' + Geometry.NodeTypeName);
-        Break;
-      end;
-      if EndIndex - BeginIndex >= 2 then
-        RenderCoordsRange(RangeNumber, BeginIndex, EndIndex) else
-        VRMLNonFatalError('Vertex count is less than 2 in ' + Geometry.NodeTypeName);
-    end;
-  end;
+  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
 
 { TIndexedLineSet_1Renderer -------------------------------------------------- }
@@ -825,9 +744,6 @@ begin
   inherited Create(ARenderer);
 
   Node := Geometry as TNodeIndexedLineSet_1;
-
-  CoordIndex := Node.FdCoordIndex;
-  Coord := State.LastNodes.Coordinate3.FdPoint;
 
   TexCoordIndex := Node.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
@@ -857,9 +773,6 @@ begin
   begin
     NodeILS := Geometry as TNodeIndexedLineSet_2;
 
-    CoordIndex := NodeILS.FdCoordIndex;
-    Coord := NodeILS.Coord;
-
     Color := NodeILS.Color;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
     ColorIndex := NodeILS.FdColorIndex;
@@ -867,8 +780,6 @@ begin
   begin
     Assert(Geometry is TNodeLineSet);
     NodeLS := Geometry as TNodeLineSet;
-
-    Coord := NodeLS.Coord;
 
     Color := NodeLS.Color;
     ColorPerVertex := true; { always true for LineSet }

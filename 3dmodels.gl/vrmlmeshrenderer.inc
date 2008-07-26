@@ -176,10 +176,13 @@ type
   { Base abstract class for rendering nodes with explicit "coord" field.
     (Both IndexedXxx and not indexed).
 
-    Usage:
-    - You must set Coord field in constructor, or (if Coord = @nil)
-      nothing will be rendered.
+    Geometry must be based on coordinates when using this,
+    that is TVRMLGeometryNode.Coord returns @true.
+    In our constructor we initialize Coord and CoordIndex
+    from Geometry, using TVRMLGeometryNode.Coord and TVRMLGeometryNode.CoordIndex
+    values. If Coord will be @nil, nothing will be rendered.
 
+    Usage:
     - Don't override Render --- this is already overridden here
       to do everything necessary. Instead, override
         RenderCoordinate
@@ -203,19 +206,21 @@ type
   TAbstractCoordinateRenderer = class(TVRMLMeshRenderer)
   private
     FCurrentRangeNumber: Cardinal;
+    FCoord: TMFVec3f;
+    FCoordIndex: TMFLong;
   protected
-    { Coordinates, usually taken from (coord as Coordinate).points field.
+    { Coordinates, taken from Geometry.Coord.
+      Usually coming from (coord as Coordinate).points field.
       If @nil then nothing will be rendered. }
-    Coord: TMFVec3f;
+    property Coord: TMFVec3f read FCoord;
 
-    { Coordinate index. Set this in descendant's constructor if it's
-      indexed geometry.
+    { Coordinate index, taken from Geometry.CoordIndex.
 
       If @nil, then RenderVertex (and all other
       routines taking some index) will just directly index Coord
       (this is useful for non-indexed geometry, like TriangleSet
       instead of IndexedTriangleSet). }
-    CoordIndex: TMFLong;
+    property CoordIndex: TMFLong read FCoordIndex;
 
     { Use this in descendants as analogy of glVertex / glDrawElement.
       This sends vertex to OpenGL (using TVRMLMeshRenderer.DoGLDrawElement,
@@ -249,35 +254,23 @@ type
     procedure RenderCoordinateEnd; virtual;
     { @groupEnd }
 
-    { RenderCoordsRanges iterates over CoordIndex, passing each
-      range of non-negative indexes to RenderCoordsRange.
-
-      You can use this only when CoordIndex <> nil, and it's
-      sensible only when VRML specification says that coordIndex
-      may be negative to separate some various-length parts of the
-      coordinates. The most typical example of this is IndexedFaceSet,
-      where each "range of non-negative indexes" is simply a polygon.
+    { RenderCoordsRange is supposed to render one coordinate range.
+      This is not called, not used, anywhere in this base
+      TAbstractCoordinateRenderer class.
+      In descendants, it may be useful to use this, like
+      Geometry.MakeCoordRanges(State, @RenderCoordsRange).
 
       RenderCoordsRange is supposed to render the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
-      BeginIndex and EndIndex are indexes to CoordIndex array.
-      It's guaranteed that all indexes between
-      BeginIndex and EndIndex - 1 are non-negative, and they are surrounded
-      by negative or by the ends of CoordIndex array.
-      In other words, RenderCoordsRange always gets indexes specifying
-      a complete face in the sense of IndexedFaceSet and similar
-      nodes.
+      BeginIndex and EndIndex are indexes to CoordIndex array,
+      if CoordIndex is assigned, or just indexes to Coord.
 
       As always, it's your responsibility to call appropriate glBegin / glEnd
       around RenderVertex calls --- maybe within each RenderCoordsRange,
-      maybe the whole RenderCoordsRanges call is within such glbegin/end.
-
-      @groupBegin }
+      maybe the whole Geometry.MakeCoordRanges call is within such glbegin/end. }
     procedure RenderCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); virtual;
-    procedure RenderCoordsRanges;
-    { @groupEnd }
 
     { The number of current range, equal to RangeNumber passed to
       RenderCoordsRange. Read this only while in RenderCoordsRange.
@@ -288,6 +281,8 @@ type
       and you know that RenderVertex will be called only from
       RenderCoordsRange. }
     property CurrentRangeNumber: Cardinal read FCurrentRangeNumber;
+  public
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TTextureCoordsImplementation = (
@@ -749,6 +744,14 @@ end;
 
 { TAbstractCoordinateRenderer ------------------------------------------------ }
 
+constructor TAbstractCoordinateRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+begin
+  inherited;
+  Check(Geometry.Coord(State, FCoord),
+    'TAbstractCoordinateRenderer is only for coordinate-based nodes');
+  FCoordIndex := Geometry.CoordIndex;
+end;
+
 procedure TAbstractCoordinateRenderer.DoRender;
 var
   { This is used only by LockArraysBegin and LockArraysEnd. }
@@ -870,26 +873,6 @@ procedure TAbstractCoordinateRenderer.RenderCoordsRange(
   BeginIndex, EndIndex: Integer);
 begin
   FCurrentRangeNumber := RangeNumber;
-end;
-
-procedure TAbstractCoordinateRenderer.RenderCoordsRanges;
-var
-  BeginIndex, EndIndex: integer;
-  RangeNumber: Cardinal;
-begin
-  Assert(CoordIndex <> nil);
-  BeginIndex := 0;
-  RangeNumber := 0;
-  while BeginIndex < CoordIndex.Count do
-  begin
-    EndIndex := BeginIndex;
-    while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[EndIndex] >= 0) do
-      Inc(EndIndex);
-    RenderCoordsRange(RangeNumber, BeginIndex, EndIndex);
-    Inc(RangeNumber);
-    BeginIndex := EndIndex + 1;
-  end;
 end;
 
 { TAbstractTexCoordinateRenderer ----------------------------------------- }

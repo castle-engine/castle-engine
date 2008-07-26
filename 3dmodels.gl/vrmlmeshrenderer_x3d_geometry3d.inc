@@ -800,7 +800,7 @@ end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordinate;
 begin
-  RenderCoordsRanges;
+  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
 end;
 
 procedure TIndexedFaceSetRenderer.RenderVertex(IndexNum: Integer);
@@ -1463,8 +1463,6 @@ var
 begin
   inherited Create(ARenderer);
 
-  CoordIndex := ANode.FdCoordIndex;
-  Coord := State.LastNodes.Coordinate3.FdPoint;
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
 
@@ -1501,8 +1499,6 @@ constructor TIndexedFaceSet_2Renderer.Create(
 begin
   inherited Create(ARenderer);
 
-  CoordIndex := ANode.FdCoordIndex;
-  Coord := ANode.Coord;
   TexCoordIndex := ANode.FdTexCoordIndex;
   TexCoord := ANode.TexCoord;
 

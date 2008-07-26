@@ -290,9 +290,8 @@
     class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
       override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function CoordIndex: TMFLong; override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -747,6 +746,11 @@ end;
 class function TNodeIndexedFaceSet_2.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
 begin
   Result := VerMajor >= 2;
+end;
+
+function TNodeIndexedFaceSet_2.CoordIndex: TMFLong;
+begin
+  Result := FdCoordIndex;
 end;
 
 constructor TNodeSphere_2.Create(const ANodeName: string;
