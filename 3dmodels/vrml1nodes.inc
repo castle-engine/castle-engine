@@ -193,6 +193,9 @@
     procedure CalculateRange(LastCoordinate3: TNodeCoordinate3;
       out startIndex, numPoints: integer);
 
+    function Coord(State: TVRMLGraphTraverseState;
+      out ACoord: TMFVec3f): boolean; override;
+
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -1074,6 +1077,13 @@ begin
     end else
       numPoints := LastCoordinate3.FdPoint.Count - startIndex;
   end;
+end;
+
+function TNodePointSet_1.Coord(State: TVRMLGraphTraverseState;
+  out ACoord: TMFVec3f): boolean;
+begin
+  Result := true;
+  ACoord := State.LastNodes.Coordinate3.FdPoint;
 end;
 
 constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: string);
