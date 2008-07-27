@@ -1803,6 +1803,7 @@ type
       For nodes based on coordinates (when @link(Coord) returns @true),
       LocalBoundingBox and BoundingBox
       already have optimal and correct implementation in this class.
+      Using Coord and CoordIndex, no other information is needed.
 
       For other nodes, w tej klasie LocalBoundingBox jest liczone jako
       BoundingBox ktore
@@ -1856,7 +1857,8 @@ type
       bardzo dokladne.
 
       For coordinate-based nodes (when @link(Coord) returns @true),
-      VerticesCount is already implemented in this class. }
+      VerticesCount is already implemented in this class.
+      Using Coord method, no other information is needed. }
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual; abstract;
 
