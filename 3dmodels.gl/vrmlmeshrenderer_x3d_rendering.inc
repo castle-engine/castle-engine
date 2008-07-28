@@ -297,8 +297,6 @@ end;
 { TTriangleFanSetRenderer ---------------------------------------------------- }
 
 constructor TTriangleFanSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
-var
-  FanCount, CoordIndexArray: TDynLongIntArray;
 begin
   inherited;
 
@@ -329,18 +327,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    if Geometry is TNodeTriangleFanSet then
-    begin
-      CoordIndexArray := nil;
-      FanCount := TNodeTriangleFanSet(Geometry).FdFanCount.Items;
-    end else
-    begin
-      Assert(CoordIndex <> nil);
-      CoordIndexArray := CoordIndex.Items;
-      FanCount := nil;
-    end;
-    Normals := CreateSmoothNormalsTriangleFanSet(CoordIndexArray,
-      FanCount, Coord.Items, true);
+    Normals := CreateSmoothNormalsTriangleFanSet(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
@@ -414,8 +401,6 @@ end;
 { TTriangleStripSetRenderer -------------------------------------------------- }
 
 constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
-var
-  StripCount, CoordIndexArray: TDynLongIntArray;
 begin
   inherited;
 
@@ -446,18 +431,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    if Geometry is TNodeTriangleStripSet then
-    begin
-      CoordIndexArray := nil;
-      StripCount := TNodeTriangleStripSet(Geometry).FdStripCount.Items;
-    end else
-    begin
-      Assert(CoordIndex <> nil);
-      CoordIndexArray := CoordIndex.Items;
-      StripCount := nil;
-    end;
-    Normals := CreateSmoothNormalsTriangleStripSet(CoordIndexArray,
-      StripCount, Coord.Items, true);
+    Normals := CreateSmoothNormalsTriangleStripSet(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;

@@ -248,23 +248,15 @@ begin
 end;
 
 function TNodeIndexed_Faces_Or_Triangles_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexed_Faces_Or_Triangles_1: Coord should always be true');
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, ACoord);
+    FdCoordIndex, Coordinates(State));
 end;
 
 function TNodeIndexedFaceSet_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexedFaceSet_2: Coord should always be true');
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, ACoord);
+    FdCoordIndex, Coordinates(State));
 end;
 
 function TNodeIndexedLineSet_1.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
@@ -388,12 +380,8 @@ end;
 
 function TNodeIndexedTriangleSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexedTriangleSet: Coord should always be true');
-  if ACoord <> nil then
+  if Coordinates(State) <> nil then
     Result := CoordIndex.Count div 3 else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
@@ -406,8 +394,7 @@ function TNodeTriangleSet.TrianglesCount(
 var
   ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeTriangleSet: Coord should always be true');
+  ACoord := Coordinates(State);
   if ACoord <> nil then
     Result := ACoord.Count div 3 else
     Result := 0;
@@ -415,22 +402,15 @@ end;
 
 function TNodeIndexedTriangleFanSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexedTriangleFanSet: Coord should always be true');
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, ACoord);
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+    FdIndex, Coordinates(State));
 end;
 
 function TNodeTriangleFanSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeTriangleFanSet: Coord should always be true');
-  if ACoord <> nil then
+  if Coordinates(State) <> nil then
     { For each fan, add it's count - 2. }
     Result := FdFanCount.Items.Sum - FdFanCount.Items.Count * 2 else
     Result := 0;
@@ -438,22 +418,15 @@ end;
 
 function TNodeIndexedTriangleStripSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexedTriangleStripSet: Coord should always be true');
-  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate, FdIndex, ACoord);
+  Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
+    FdIndex, Coordinates(State));
 end;
 
 function TNodeTriangleStripSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeTriangleStripSet: Coord should always be true');
-  if ACoord <> nil then
+  if Coordinates(State) <> nil then
     { For each strip, add it's count - 2. }
     Result := FdStripCount.Items.Sum - FdStripCount.Items.Count * 2 else
     Result := 0;
@@ -461,12 +434,8 @@ end;
 
 function TNodeIndexedQuadSet.TrianglesCount(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
-var
-  ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeIndexedQuadSet: Coord should always be true');
-  if ACoord <> nil then
+  if Coordinates(State) <> nil then
     Result := 2 * (FdIndex.Count div 4) else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
@@ -479,8 +448,7 @@ function TNodeQuadSet.TrianglesCount(
 var
   ACoord: TMFVec3f;
 begin
-  Check( Coord(State, ACoord),
-    'TNodeQuadSet: Coord should always be true');
+  ACoord := Coordinates(State);
   if ACoord <> nil then
     Result := 2 * (ACoord.Count div 4) else
     Result := 0;

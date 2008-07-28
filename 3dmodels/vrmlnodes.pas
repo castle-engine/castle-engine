@@ -1750,6 +1750,8 @@ type
   TCoordRangeHandler = procedure (const RangeNumber: Cardinal;
     BeginIndex, EndIndex: Integer) of object;
 
+  ENotCoordinateBasedNode = class(EVRMLError);
+
   { Geometry nodes are the only nodes that produces some visible results
     during rendering. Much of the VRML language is just
     a method of describing properties how geometry nodes are displayed
@@ -1912,6 +1914,19 @@ type
       pass current traverse state here. }
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; virtual;
+
+    { Return node's list of coordinates, raising exception if node
+      is not based on coordinates.
+
+      This is just like the @link(Coord) method,
+      except it simply returns the coordinates, not the boolean result.
+      If virtual @link(Coord) returns @false (indicating the node
+      is not coordinate-based) this raises ENotCoordinateBasedNode.
+
+      @raises(ENotCoordinateBasedNode If node is not coordinate-based,
+        that is @link(Coord) returns false.)
+    }
+    function Coordinates(State: TVRMLGraphTraverseState): TMFVec3f;
 
     { Node's list of coordinate indexes.
 
@@ -4960,6 +4975,13 @@ begin
   Result := false;
 end;
 
+function TVRMLGeometryNode.Coordinates(State: TVRMLGraphTraverseState): TMFVec3f;
+begin
+  if not Coord(State, Result) then
+    raise ENotCoordinateBasedNode.CreateFmt('Node %s is not a coordinate-based node',
+      [NodeTypeName]);
+end;
+
 function TVRMLGeometryNode.CoordIndex: TMFLong;
 begin
   Result := nil;
@@ -4984,9 +5006,7 @@ var
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
 begin
-  if not Coord(State, C) then
-    raise EInternalError.CreateFmt('%s.MakeCoordRanges: only for Coord-based nodes',
-      [ClassName]);
+  C := Coordinates(State);
 
   if C = nil then
     Exit;

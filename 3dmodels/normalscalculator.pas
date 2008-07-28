@@ -22,13 +22,13 @@
   with appropriate smoothing.)
 
   This is developed for VRML / X3D geometric primitives,
-  although it's not coupled with any VRML stuff.
+  although some parts are not coupled with VRML stuff.
   So it can be used in other situations too. }
 unit NormalsCalculator;
 
 interface
 
-uses SysUtils, KambiUtils, VectorMath;
+uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
 
 { Calculate normal vectors for indexed faces, smoothing them according
   to CreaseAngleRad.
@@ -103,27 +103,37 @@ function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
 { Calculate always smooth normals per-vertex, for triangle fan set.
-  Assuming CoordIndex or FanCount (exactly one of them must be assigned)
-  is given like for X3D triangle fan set.
+
+  Uses TriangleFanSet node, this must be a coordinate-based node
+  representing [Indexed]TriangleFanSet X3D nodes.
+  Although we do not explicitly require it to be of TNodeIndexedTriangleFanSet
+  or TNodeTriangleFanSet classes, it must have Coord returning true
+  and MakeCoordRanges working (so either CoordIndex or CoordRangesCounts
+  must return something useful).
 
   This generates Vertices.Count normal vectors in result.
   You should access these normal vectors just like Vertices,
   i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
 function CreateSmoothNormalsTriangleFanSet(
-  CoordIndex: TDynLongintArray; FanCount: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
+  TriangleFanSet: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
   FromCCW: boolean): TDynVector3SingleArray;
 
 { Calculate always smooth normals per-vertex, for triangle strip set.
-  Assuming CoordIndex or StripCount (exactly one of them must be assigned)
-  is given like for X3D triangle strip set.
+
+  Uses TriangleStripSet node, this must be a coordinate-based node
+  representing [Indexed]TriangleStripSet X3D nodes.
+  Although we do not explicitly require it to be of TNodeIndexedTriangleStripSet
+  or TNodeTriangleStripSet classes, it must have Coord returning true
+  and MakeCoordRanges working (so either CoordIndex or CoordRangesCounts
+  must return something useful).
 
   This generates Vertices.Count normal vectors in result.
   You should access these normal vectors just like Vertices,
   i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
 function CreateSmoothNormalsTriangleStripSet(
-  CoordIndex: TDynLongintArray; StripCount: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
+  TriangleStripSet: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
   FromCCW: boolean): TDynVector3SingleArray;
 
 { Calculate always smooth normals per-vertex, for quad set.
@@ -139,6 +149,8 @@ function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
 implementation
+
+uses VRMLFields;
 
 {$define read_interface}
 {$define read_implementation}
@@ -464,170 +476,148 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function CreateSmoothNormalsTriangleFanSet(
-  CoordIndex: TDynLongintArray; FanCount: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
+{ TCoordinateNodeNormalsCalculator ------------------------------------------- }
 
-  procedure HandlePart(BeginIndex, EndIndex: Integer);
+type
+  TCoordinateNodeNormalsCalculator = class
+  public
+    Normals: TDynVector3SingleArray;
+    CoordIndex: TDynLongIntArray;
+    Coord: TDynVector3SingleArray;
 
     procedure Triangle(Index0, Index1, Index2: Integer);
-    var
-      FaceNormal: TVector3Single;
-    begin
-      if CoordIndex <> nil then
-      begin
-        Index0 := CoordIndex.Items[Index0];
-        Index1 := CoordIndex.Items[Index1];
-        Index2 := CoordIndex.Items[Index2];
-      end;
 
-      FaceNormal := TriangleNormal(
-        Vertices.Items[Index0],
-        Vertices.Items[Index1],
-        Vertices.Items[Index2]);
-
-      VectorAddTo1st(Result.Items[Index0], FaceNormal);
-      VectorAddTo1st(Result.Items[Index1], FaceNormal);
-      VectorAddTo1st(Result.Items[Index2], FaceNormal);
-    end;
-
-  var
-    FirstIndex: Integer;
-  begin
-    FirstIndex := BeginIndex;
-
-    while BeginIndex + 2 < EndIndex do
-    begin
-      Triangle(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-      Inc(BeginIndex);
-    end;
+    { This should be overridden to call Triangle procedure. }
+    procedure HandleCoordRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); virtual; abstract;
   end;
 
+  TCoordinateNodeNormalsCalculatorClass = class of TCoordinateNodeNormalsCalculator;
+
+procedure TCoordinateNodeNormalsCalculator.Triangle(
+  Index0, Index1, Index2: Integer);
 var
-  BeginIndex, EndIndex, RangeNumber: Integer;
+  FaceNormal: TVector3Single;
 begin
-  Result := TDynVector3SingleArray.Create(Vertices.Length);
+  if CoordIndex <> nil then
+  begin
+    Index0 := CoordIndex.Items[Index0];
+    Index1 := CoordIndex.Items[Index1];
+    Index2 := CoordIndex.Items[Index2];
+  end;
+
+  FaceNormal := TriangleNormal(
+    Coord.Items[Index0],
+    Coord.Items[Index1],
+    Coord.Items[Index2]);
+
+  VectorAddTo1st(Normals.Items[Index0], FaceNormal);
+  VectorAddTo1st(Normals.Items[Index1], FaceNormal);
+  VectorAddTo1st(Normals.Items[Index2], FaceNormal);
+end;
+
+function CreateSmoothCoordinateNodeNormals(
+  Node: TVRMLGeometryNode;
+  CalculatorClass: TCoordinateNodeNormalsCalculatorClass;
+  State: TVRMLGraphTraverseState;
+  FromCCW: boolean): TDynVector3SingleArray;
+var
+  Calculator: TCoordinateNodeNormalsCalculator;
+  C: TMFVec3f;
+begin
+  C := Node.Coordinates(State);
+
+  { Node coordinate-based, but specified with empty coord }
+  if C = nil then Exit(nil);
+
+  Result := TDynVector3SingleArray.Create(C.Count);
   try
     Result.FillChar(0);
 
-    if CoordIndex <> nil then
-    begin
-      BeginIndex := 0;
-      while BeginIndex < CoordIndex.Count do
-      begin
-        EndIndex := BeginIndex;
-        while (EndIndex < CoordIndex.Count) and
-              (CoordIndex.Items[EndIndex] >= 0) do
-          Inc(EndIndex);
-        HandlePart(BeginIndex, EndIndex);
-        BeginIndex := EndIndex + 1;
-      end;
-    end else
-    begin
-      Assert(FanCount <> nil);
-      EndIndex := 0;
-      for RangeNumber := 0 to FanCount.Count - 1 do
-      begin
-        BeginIndex := EndIndex;
-        EndIndex := BeginIndex + FanCount.Items[RangeNumber];
-        { Note that EndIndex *may* be equal to Vertices.Count,
-          as EndIndex is not taken into account by HandlePart. }
-        if EndIndex > Vertices.Count then
-          Break;
-        HandlePart(BeginIndex, EndIndex);
-      end;
-    end;
+    Calculator := CalculatorClass.Create;
+    try
+      Calculator.Coord := C.Items;
+      if Node.CoordIndex <> nil then
+        Calculator.CoordIndex := Node.CoordIndex.Items else
+        Calculator.CoordIndex := nil;
+      Calculator.Normals := Result;
+      Node.MakeCoordRanges(State, @Calculator.HandleCoordRange);
+    finally FreeAndNil(Calculator) end;
 
     Result.Normalize;
-
     if not FromCCW then Result.Negate;
+
   except FreeAndNil(Result); raise end;
+end;
+
+{ TTriangleFanSetNormalsCalculator ------------------------------------------- }
+
+type
+  TTriangleFanSetNormalsCalculator = class(TCoordinateNodeNormalsCalculator)
+    procedure HandleCoordRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  end;
+
+procedure TTriangleFanSetNormalsCalculator.HandleCoordRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  FirstIndex: Integer;
+begin
+  FirstIndex := BeginIndex;
+
+  while BeginIndex + 2 < EndIndex do
+  begin
+    Triangle(FirstIndex, BeginIndex + 1, BeginIndex + 2);
+    Inc(BeginIndex);
+  end;
+end;
+
+function CreateSmoothNormalsTriangleFanSet(
+  TriangleFanSet: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
+  FromCCW: boolean): TDynVector3SingleArray;
+begin
+  Result := CreateSmoothCoordinateNodeNormals(
+    TriangleFanSet, TTriangleFanSetNormalsCalculator, State, FromCCW);
+end;
+
+{ TTriangleStripSetNormalsCalculator ----------------------------------------- }
+
+type
+  TTriangleStripSetNormalsCalculator = class(TCoordinateNodeNormalsCalculator)
+    procedure HandleCoordRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer); override;
+  end;
+
+procedure TTriangleStripSetNormalsCalculator.HandleCoordRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
+var
+  NormalOrder: boolean;
+begin
+  NormalOrder := true;
+
+  while BeginIndex + 2 < EndIndex do
+  begin
+    if NormalOrder then
+      Triangle(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
+      Triangle(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
+    Inc(BeginIndex);
+    NormalOrder := not NormalOrder;
+  end;
 end;
 
 function CreateSmoothNormalsTriangleStripSet(
-  CoordIndex: TDynLongintArray; StripCount: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
+  TriangleStripSet: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
   FromCCW: boolean): TDynVector3SingleArray;
-
-  procedure HandlePart(BeginIndex, EndIndex: Integer);
-
-    procedure Triangle(Index0, Index1, Index2: Integer);
-    var
-      FaceNormal: TVector3Single;
-    begin
-      if CoordIndex <> nil then
-      begin
-        Index0 := CoordIndex.Items[Index0];
-        Index1 := CoordIndex.Items[Index1];
-        Index2 := CoordIndex.Items[Index2];
-      end;
-
-      FaceNormal := TriangleNormal(
-        Vertices.Items[Index0],
-        Vertices.Items[Index1],
-        Vertices.Items[Index2]);
-
-      VectorAddTo1st(Result.Items[Index0], FaceNormal);
-      VectorAddTo1st(Result.Items[Index1], FaceNormal);
-      VectorAddTo1st(Result.Items[Index2], FaceNormal);
-    end;
-
-  var
-    NormalOrder: boolean;
-  begin
-    NormalOrder := true;
-
-    while BeginIndex + 2 < EndIndex do
-    begin
-      if NormalOrder then
-        Triangle(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
-        Triangle(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-      Inc(BeginIndex);
-      NormalOrder := not NormalOrder;
-    end;
-  end;
-
-var
-  BeginIndex, EndIndex, RangeNumber: Integer;
 begin
-  Result := TDynVector3SingleArray.Create(Vertices.Length);
-  try
-    Result.FillChar(0);
-
-    if CoordIndex <> nil then
-    begin
-      BeginIndex := 0;
-      while BeginIndex < CoordIndex.Count do
-      begin
-        EndIndex := BeginIndex;
-        while (EndIndex < CoordIndex.Count) and
-              (CoordIndex.Items[EndIndex] >= 0) do
-          Inc(EndIndex);
-        HandlePart(BeginIndex, EndIndex);
-        BeginIndex := EndIndex + 1;
-      end;
-    end else
-    begin
-      Assert(StripCount <> nil);
-      EndIndex := 0;
-      for RangeNumber := 0 to StripCount.Count - 1 do
-      begin
-        BeginIndex := EndIndex;
-        EndIndex := BeginIndex + StripCount.Items[RangeNumber];
-        { Note that EndIndex *may* be equal to Vertices.Count,
-          as EndIndex is not taken into account by HandlePart. }
-        if EndIndex > Vertices.Count then
-          Break;
-        HandlePart(BeginIndex, EndIndex);
-      end;
-    end;
-
-    Result.Normalize;
-
-    if not FromCCW then Result.Negate;
-  except FreeAndNil(Result); raise end;
+  Result := CreateSmoothCoordinateNodeNormals(
+    TriangleStripSet, TTriangleStripSetNormalsCalculator, State, FromCCW);
 end;
+
+{ CreateSmoothNormalsQuadSet ------------------------------------------------- }
 
 function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
