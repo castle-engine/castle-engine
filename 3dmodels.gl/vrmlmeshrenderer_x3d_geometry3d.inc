@@ -1153,7 +1153,7 @@ begin
   begin
     if CreaseAngle >= Pi then
     begin
-      Normals := CreateSmoothNormals(CoordIndex.Items, Coord.Items, true);
+      Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
       NorImplementation := niPerVertexCoordIndexed;
     end else
     begin

@@ -1750,6 +1750,9 @@ type
   TCoordRangeHandler = procedure (const RangeNumber: Cardinal;
     BeginIndex, EndIndex: Integer) of object;
 
+  TIndexedPolygonHandler = procedure (const Indexes: array of Cardinal)
+    of object;
+
   ENotCoordinateBasedNode = class(EVRMLError);
 
   { Geometry nodes are the only nodes that produces some visible results
@@ -1966,6 +1969,24 @@ type
     procedure MakeCoordRanges(
       State: TVRMLGraphTraverseState;
       CoordRangeHandler: TCoordRangeHandler);
+
+    { Splits coordinate-based node into polygons.
+      The idea is that this can be usable for both NormalsCalculator
+      (used by the renderer) and implementation of LocalTriangulate
+      (and so Triangulate) methods.
+
+      Indexes in PolygonHandler point to CoordIndex, if assigned,
+      or directly to Coord. The ordering of generated polygons is correct,
+      so what pointed CCW in the node field, will still point CCW
+      according to generated PolygonHandler indexes.
+
+      In this class this does nothing. Some, but not all, coordinate-based
+      nodes (the ones when @link(Coord) returns @true) override this.
+      So currently, whether this is implemented is coordinated with
+      NormalsCalculator and LocalTriangulate internal needs. }
+    procedure CoordPolygons(
+      State: TVRMLGraphTraverseState;
+      PolygonHandler: TIndexedPolygonHandler); virtual;
   end;
 
 { IVRMLInlineNode --------------------------------------------------------- }
@@ -2828,6 +2849,7 @@ uses
 {$I vrmlnodes_boundingboxes.inc}
 {$I vrmlnodes_verticesandtrianglescounting.inc}
 {$I vrmlnodes_triangulating.inc}
+{$I vrmlnodes_coordpolygons.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
@@ -5050,6 +5072,13 @@ begin
             [SRangeName, RangeMinimumCount, NodeTypeName]));
       end;
   end;
+end;
+
+procedure TVRMLGeometryNode.CoordPolygons(
+  State: TVRMLGraphTraverseState;
+  PolygonHandler: TIndexedPolygonHandler);
+begin
+  { Nothing to do in this class. }
 end;
 
 { TVRMLUnknownNode ---------------------------------------------------------------- }

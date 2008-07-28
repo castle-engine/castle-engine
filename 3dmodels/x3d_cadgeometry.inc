@@ -122,6 +122,10 @@
 
     function CoordIndex: TMFLong; override;
 
+    procedure CoordPolygons(
+      State: TVRMLGraphTraverseState;
+      PolygonHandler: TIndexedPolygonHandler); override;
+
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
@@ -133,6 +137,10 @@
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    procedure CoordPolygons(
+      State: TVRMLGraphTraverseState;
+      PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;

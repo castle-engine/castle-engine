@@ -71,15 +71,6 @@ function CreateNormals(CoordIndex: TDynLongintArray;
   creaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ Calculate perfectly smooth per-vertex normals for indexed faces.
-
-  Note that the result is not a compatible replacement for CreateNormals,
-  as we generate Vertices.Count normals (since each vertex has it's own
-  normal). }
-function CreateSmoothNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
-
 { Calculate flat per-face normals for indexed faces.
 
   Note that the result is not a compatible replacement for CreateNormals,
@@ -90,62 +81,20 @@ function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
-{ Calculate always smooth normals per-vertex, for triangle set.
-  Assuming CoordIndex is given like for X3D IndexedTriangleSet,
-  so every three indexes on CoordIndex indicate
-  a separate triangle (with excessive indexes silently ignored).
+{ Calculate always smooth normals per-vertex, for VRML coordinate-based
+  node. We use TVRMLGeometryNode.CoordPolygons for this, so the node class
+  must implement it.
 
-  This generates Vertices.Count normal vectors in result.
-  You should access these normal vectors just like Vertices,
-  i.e. they are indexed by CoordIndex. }
-function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
+  Note that the result is not a compatible replacement for CreateNormals,
+  as this generates Coordinates.Count normal vectors in result.
+  You should access these normal vectors just like Node.Coordinates,
+  i.e. they are indexed by Node.CoordIndex if Node.CoordIndex <> nil.
 
-{ Calculate always smooth normals per-vertex, for triangle fan set.
-
-  Uses TriangleFanSet node, this must be a coordinate-based node
-  representing [Indexed]TriangleFanSet X3D nodes.
-  Although we do not explicitly require it to be of TNodeIndexedTriangleFanSet
-  or TNodeTriangleFanSet classes, it must have Coord returning true
-  and MakeCoordRanges working (so either CoordIndex or CoordRangesCounts
-  must return something useful).
-
-  This generates Vertices.Count normal vectors in result.
-  You should access these normal vectors just like Vertices,
-  i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
-function CreateSmoothNormalsTriangleFanSet(
-  TriangleFanSet: TVRMLGeometryNode;
+  If Node.Coordinates is @nil (which means that node is coordinate-based,
+  but "coord" field is not present), we return @nil. }
+function CreateSmoothNormalsCoordinateNode(
+  Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
-
-{ Calculate always smooth normals per-vertex, for triangle strip set.
-
-  Uses TriangleStripSet node, this must be a coordinate-based node
-  representing [Indexed]TriangleStripSet X3D nodes.
-  Although we do not explicitly require it to be of TNodeIndexedTriangleStripSet
-  or TNodeTriangleStripSet classes, it must have Coord returning true
-  and MakeCoordRanges working (so either CoordIndex or CoordRangesCounts
-  must return something useful).
-
-  This generates Vertices.Count normal vectors in result.
-  You should access these normal vectors just like Vertices,
-  i.e. they are indexed by CoordIndex if CoordIndex <> nil. }
-function CreateSmoothNormalsTriangleStripSet(
-  TriangleStripSet: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
-
-{ Calculate always smooth normals per-vertex, for quad set.
-  Assuming CoordIndex is given like for X3D IndexedQuadSet,
-  so every four indexes on CoordIndex indicate
-  a separate quad (with excessive indexes silently ignored).
-
-  This generates Vertices.Count normal vectors in result.
-  You should access these normal vectors just like Vertices,
-  i.e. they are indexed by CoordIndex. }
-function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
 
 implementation
@@ -377,40 +326,6 @@ begin
  except FreeAndNil(normals); raise end;
 end;
 
-function CreateSmoothNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
-var
-  I, J, StartIndex: integer;
-  FaceNormal: TVector3Single;
-begin
-  Result := TDynVector3SingleArray.Create(Vertices.Length);
-  try
-    Result.FillChar(0);
-
-    I := 0;
-    while I < CoordIndex.Count do
-    begin
-      StartIndex := I;
-      while (I < CoordIndex.Count) and (CoordIndex.Items[I] >= 0) do Inc(I);
-      FaceNormal := IndexedPolygonNormal(
-        @(CoordIndex.Items[StartIndex]),
-        I - StartIndex,
-        Vertices.ItemsArray, Vertices.Count,
-        Vector3Single(0, 0, 0));
-      { add FaceNormal to all vertices belonging to this face }
-      for J := StartIndex to I - 1 do
-        VectorAddTo1st(Result.Items[CoordIndex.Items[J]], FaceNormal);
-
-      Inc(I);
-    end;
-
-    Result.Normalize;
-
-    if not FromCCW then Result.Negate;
-  except FreeAndNil(Result); raise end;
-end;
-
 function CreateFlatNormals(CoordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
   FromCCW: boolean): TDynVector3SingleArray;
@@ -444,85 +359,53 @@ begin
   except FreeAndNil(result); raise end;
 end;
 
-function CreateSmoothNormalsTriangleSet(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
-var
-  I: integer;
-  FaceNormal: TVector3Single;
-begin
-  Result := TDynVector3SingleArray.Create(Vertices.Length);
-  try
-    Result.FillChar(0);
-
-    I := 0;
-    while I + 2 < CoordIndex.Count do
-    begin
-      FaceNormal := TriangleNormal(
-        Vertices.Items[CoordIndex.Items[I    ]],
-        Vertices.Items[CoordIndex.Items[I + 1]],
-        Vertices.Items[CoordIndex.Items[I + 2]]);
-
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I    ]], FaceNormal);
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 1]], FaceNormal);
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 2]], FaceNormal);
-
-      I += 3;
-    end;
-
-    Result.Normalize;
-
-    if not FromCCW then Result.Negate;
-  except FreeAndNil(Result); raise end;
-end;
-
-{ TCoordinateNodeNormalsCalculator ------------------------------------------- }
+{ CreateSmoothNormalsCoordinateNode ------------------------------------------ }
 
 type
-  TCoordinateNodeNormalsCalculator = class
+  TCoordinateNormalsCalculator = class
   public
     Normals: TDynVector3SingleArray;
     CoordIndex: TDynLongIntArray;
     Coord: TDynVector3SingleArray;
 
-    procedure Triangle(Index0, Index1, Index2: Integer);
-
-    { This should be overridden to call Triangle procedure. }
-    procedure HandleCoordRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: Integer); virtual; abstract;
+    procedure Polygon(const Indexes: array of Cardinal);
   end;
 
-  TCoordinateNodeNormalsCalculatorClass = class of TCoordinateNodeNormalsCalculator;
-
-procedure TCoordinateNodeNormalsCalculator.Triangle(
-  Index0, Index1, Index2: Integer);
+procedure TCoordinateNormalsCalculator.Polygon(
+  const Indexes: array of Cardinal);
 var
   FaceNormal: TVector3Single;
+  { DirectIndexes is LongInt, not Cardinal array, since we cannot
+    guarantee that CoordIndex items are >= 0. }
+  DirectIndexes: array of LongInt;
+  I: Integer;
 begin
+  SetLength(DirectIndexes, Length(Indexes));
   if CoordIndex <> nil then
   begin
-    Index0 := CoordIndex.Items[Index0];
-    Index1 := CoordIndex.Items[Index1];
-    Index2 := CoordIndex.Items[Index2];
+    for I := 0 to Length(Indexes) - 1 do
+      DirectIndexes[I] := CoordIndex.Items[Indexes[I]];
+  end else
+  begin
+    for I := 0 to Length(Indexes) - 1 do
+      DirectIndexes[I] := Indexes[I];
   end;
 
-  FaceNormal := TriangleNormal(
-    Coord.Items[Index0],
-    Coord.Items[Index1],
-    Coord.Items[Index2]);
+  FaceNormal := IndexedPolygonNormal(
+    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    Coord.ItemsArray, Coord.Count,
+    Vector3Single(0, 0, 0));
 
-  VectorAddTo1st(Normals.Items[Index0], FaceNormal);
-  VectorAddTo1st(Normals.Items[Index1], FaceNormal);
-  VectorAddTo1st(Normals.Items[Index2], FaceNormal);
+  for I := 0 to Length(Indexes) - 1 do
+    VectorAddTo1st(Normals.Items[DirectIndexes[I]], FaceNormal);
 end;
 
-function CreateSmoothCoordinateNodeNormals(
+function CreateSmoothNormalsCoordinateNode(
   Node: TVRMLGeometryNode;
-  CalculatorClass: TCoordinateNodeNormalsCalculatorClass;
   State: TVRMLGraphTraverseState;
   FromCCW: boolean): TDynVector3SingleArray;
 var
-  Calculator: TCoordinateNodeNormalsCalculator;
+  Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
 begin
   C := Node.Coordinates(State);
@@ -534,127 +417,19 @@ begin
   try
     Result.FillChar(0);
 
-    Calculator := CalculatorClass.Create;
+    Calculator := TCoordinateNormalsCalculator.Create;
     try
       Calculator.Coord := C.Items;
       if Node.CoordIndex <> nil then
         Calculator.CoordIndex := Node.CoordIndex.Items else
         Calculator.CoordIndex := nil;
       Calculator.Normals := Result;
-      Node.MakeCoordRanges(State, @Calculator.HandleCoordRange);
+      Node.CoordPolygons(State, @Calculator.Polygon);
     finally FreeAndNil(Calculator) end;
 
     Result.Normalize;
     if not FromCCW then Result.Negate;
 
-  except FreeAndNil(Result); raise end;
-end;
-
-{ TTriangleFanSetNormalsCalculator ------------------------------------------- }
-
-type
-  TTriangleFanSetNormalsCalculator = class(TCoordinateNodeNormalsCalculator)
-    procedure HandleCoordRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: Integer); override;
-  end;
-
-procedure TTriangleFanSetNormalsCalculator.HandleCoordRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
-var
-  FirstIndex: Integer;
-begin
-  FirstIndex := BeginIndex;
-
-  while BeginIndex + 2 < EndIndex do
-  begin
-    Triangle(FirstIndex, BeginIndex + 1, BeginIndex + 2);
-    Inc(BeginIndex);
-  end;
-end;
-
-function CreateSmoothNormalsTriangleFanSet(
-  TriangleFanSet: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
-begin
-  Result := CreateSmoothCoordinateNodeNormals(
-    TriangleFanSet, TTriangleFanSetNormalsCalculator, State, FromCCW);
-end;
-
-{ TTriangleStripSetNormalsCalculator ----------------------------------------- }
-
-type
-  TTriangleStripSetNormalsCalculator = class(TCoordinateNodeNormalsCalculator)
-    procedure HandleCoordRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: Integer); override;
-  end;
-
-procedure TTriangleStripSetNormalsCalculator.HandleCoordRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
-var
-  NormalOrder: boolean;
-begin
-  NormalOrder := true;
-
-  while BeginIndex + 2 < EndIndex do
-  begin
-    if NormalOrder then
-      Triangle(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
-      Triangle(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-    Inc(BeginIndex);
-    NormalOrder := not NormalOrder;
-  end;
-end;
-
-function CreateSmoothNormalsTriangleStripSet(
-  TriangleStripSet: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
-begin
-  Result := CreateSmoothCoordinateNodeNormals(
-    TriangleStripSet, TTriangleStripSetNormalsCalculator, State, FromCCW);
-end;
-
-{ CreateSmoothNormalsQuadSet ------------------------------------------------- }
-
-function CreateSmoothNormalsQuadSet(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
-var
-  I: integer;
-  FaceNormal: TVector3Single;
-begin
-  Result := TDynVector3SingleArray.Create(Vertices.Length);
-  try
-    Result.FillChar(0);
-
-    I := 0;
-    while I + 3 < CoordIndex.Count do
-    begin
-      { Normal is average of normals of two triangles. }
-      FaceNormal := Normalized(VectorAdd(
-        TriangleNormal(
-          Vertices.Items[CoordIndex.Items[I    ]],
-          Vertices.Items[CoordIndex.Items[I + 1]],
-          Vertices.Items[CoordIndex.Items[I + 2]]),
-        TriangleNormal(
-          Vertices.Items[CoordIndex.Items[I    ]],
-          Vertices.Items[CoordIndex.Items[I + 2]],
-          Vertices.Items[CoordIndex.Items[I + 3]])));
-
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I    ]], FaceNormal);
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 1]], FaceNormal);
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 2]], FaceNormal);
-      VectorAddTo1st(Result.Items[CoordIndex.Items[I + 3]], FaceNormal);
-
-      I += 4;
-    end;
-
-    Result.Normalize;
-
-    if not FromCCW then Result.Negate;
   except FreeAndNil(Result); raise end;
 end;
 

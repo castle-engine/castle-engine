@@ -166,6 +166,10 @@
   TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    procedure CoordPolygons(
+      State: TVRMLGraphTraverseState;
+      PolygonHandler: TIndexedPolygonHandler); override;
   end;
 
   TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)

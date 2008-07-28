@@ -238,8 +238,7 @@ begin
   if (Geometry is TNodeIndexedTriangleSet) and
      TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := CreateSmoothNormalsTriangleSet(CoordIndex.Items,
-      Coord.Items, true);
+    Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
@@ -327,7 +326,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := CreateSmoothNormalsTriangleFanSet(Geometry, State, true);
+    Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
@@ -431,7 +430,7 @@ begin
   end else
   if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := CreateSmoothNormalsTriangleStripSet(Geometry, State, true);
+    Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;
@@ -542,8 +541,7 @@ begin
   if (Geometry is TNodeIndexedQuadSet) and
      TNodeIndexedQuadSet(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := CreateSmoothNormalsQuadSet(CoordIndex.Items,
-      Coord.Items, true);
+    Normals := CreateSmoothNormalsCoordinateNode(Geometry, State, true);
     NormalsFree := true;
     NormalsCcw := true;
     NorImplementation := niPerVertexCoordIndexed;

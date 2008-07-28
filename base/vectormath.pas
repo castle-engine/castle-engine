@@ -1530,7 +1530,7 @@ function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double
   reason why it takes VertsCount parameter, after all): they are ignored.
 
   If the polygon is degenerated, that is it doesn't determine a plane in
-  3D plane (this includes, but is not limited, to cases when there are
+  3D space (this includes, but is not limited, to cases when there are
   less than 3 valid points, like when IndicesCount < 3)
   then it returns ResultForIncorrectPoly. }
 function IndexedPolygonNormal(
