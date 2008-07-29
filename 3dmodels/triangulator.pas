@@ -28,7 +28,7 @@ interface
 uses SysUtils, VectorMath, KambiUtils;
 
 type
-  TTriangulatorProc = procedure(const Tri: TVector3Longint; Data: Pointer);
+  TTriangulatorProc = procedure(const Tri: TVector3Longint) of object;
 
 { Triangulate potentially non-convex face.
 
@@ -78,39 +78,30 @@ type
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
-  TriangulatorProcData: Pointer; AddToIndices: Longint); overload;
+  AddToIndices: Longint); overload;
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
-  TriangulatorProcData: Pointer; AddToIndices: Longint); overload;
+  AddToIndices: Longint); overload;
 { @groupEnd }
 
-{ Triangulate convex polygon or triangle strip.
+{ Triangulate convex polygon.
 
-  These perform very easy triangulation. They have deliberately
-  similar interface to TriangulateFace, so they can be used as drop-in
+  This performs very easy triangulation. It has deliberately
+  similar interface to TriangulateFace, so it can be used as drop-in
   replacements for TriangulateFace, when you know that your face is
-  convex or you're dealing with triangle strip.
+  convex.
 
-  Note that they don't even need to know FaceIndices or Vertices,
+  Note that it doesn't even need to know FaceIndices or Vertices,
   it's enough to know FaceIndicesCount.
 
-  They also guarantee consequent triangles orientation, like TriangulateFace.
-  In case of triangle strip orientation of the first three vertices
-  matters, just like for OpenGL triangle strip primitive.
+  This also guarantees consequent triangles orientation, like TriangulateFace.
 
-  @seeAlso TriangulateFace
-
-  @groupBegin }
+  @seeAlso TriangulateFace }
 procedure TriangulateConvexFace(FaceIndicesCount: integer;
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
+  TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
-
-procedure TriangulateTriangleStrip(IndicesCount: integer;
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
-  AddToIndices: Longint);
-{ @groupEnd }
 
 implementation
 
@@ -120,7 +111,7 @@ begin
  TriangulatorProc(Vector3Longint(
    p0+AddToIndices,
    p1+AddToIndices,
-   p2+AddToIndices), TriangulatorProcData);
+   p2+AddToIndices));
 end;}
 
 { TriangulateFace ------------------------------------------------------------ }
@@ -137,7 +128,7 @@ end;}
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
-  TriangulatorProcData: Pointer; AddToIndices: Longint);
+  AddToIndices: Longint);
 
   DEFINE_NEW_TRIANGLE_PROC
 
@@ -262,7 +253,7 @@ end;
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
-  TriangulatorProcData: Pointer; AddToIndices: Longint);
+  AddToIndices: Longint);
 var
   G: TVerticesGenerator;
 begin
@@ -270,14 +261,14 @@ begin
   try
     G.Vertices := Vertices;
     TriangulateFace(FaceIndices, FaceIndicesCount,
-      @G.Generate, TriangulatorProc, TriangulatorProcData, AddToIndices);
+      @G.Generate, TriangulatorProc, AddToIndices);
   finally FreeAndNil(G); end;
 end;
 
 { proste Triangulate ---------------------------------------------------------- }
 
 procedure TriangulateConvexFace(FaceIndicesCount: integer;
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
+  TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
   DEFINE_NEW_TRIANGLE_PROC
 var
@@ -285,23 +276,6 @@ var
 begin
   for I := 0 to FaceIndicesCount - 3 do
     NewTriangle(0, I + 1, I + 2);
-end;
-
-procedure TriangulateTriangleStrip(IndicesCount: integer;
-  TriangulatorProc: TTriangulatorProc; TriangulatorProcData: Pointer;
-  AddToIndices: Longint);
-  DEFINE_NEW_TRIANGLE_PROC
-var i: integer;
-begin
- for i := 0 to IndicesCount-3 do
- begin
-  { musimy odwracac kolejnosc pierwszych dwoch vertexow trojkata
-    zeby wszystkie trojkaty w TriangleStrip mialy konsekwentna orientacje.
-    (podobnie jak OpenGL odwraca TRIANGLE_STRIP) }
-  if Odd(i) then
-   NewTriangle(i+1, i  , i+2) else
-   NewTriangle(i  , i+1, i+2);
- end;
 end;
 
 end.

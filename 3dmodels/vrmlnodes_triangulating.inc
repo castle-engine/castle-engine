@@ -335,138 +335,115 @@ begin
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
-type
-  TNewTriData = record
-    State: TVRMLGraphTraverseState;
-    GeometryNode: TVRMLGeometryNode;
-    MatNum: integer;
-    Vertices: PArray_Vector3Single;
-    FaceIndices: PArray_Longint;
-    NewTriangleProc: TNewTriangleProc;
-    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
-  end;
-  PNewTriData = ^TNewTriData;
+{ IndexedFaceSet ------------------------------------------------------------- }
 
-procedure NewTriangleOfFaceSet(const TriIndices: TVector3Longint; Data: Pointer);
+type
+  TIndexedFaceSetTriangulator = class
+    { This is passed all the way, from IndexedFaceSet_LocalTriangulate
+      down to TriangleIndexes. }
+    Geometry: TVRMLGeometryNode;
+    State: TVRMLGraphTraverseState;
+    NewTriangleProc: TNewTriangleProc;
+    Coord: TDynVector3SingleArray;
+
+    { This is passed from IndexedFaceSet_LocalTriangulate to HandleCoordRange. }
+    { VRML1MaterialBinding should be one of BIND_xxx constants,
+      VRML1MaterialIndex may be nil if VRML1MaterialBinding is not
+      anything _INDEXED. }
+    VRML1MaterialBinding: Integer;
+    VRML1MaterialIndex: TMFLong;
+    CoordIndex: TMFLong;
+    FacesConvex: boolean;
+
+    procedure HandleCoordRange(const RangeNumber: Cardinal;
+      BeginIndex, EndIndex: Integer);
+
+    { This is passed from HandleCoordRange to TriangleIndexes. }
+    VRML1MaterialNumber: Integer;
+    FaceIndices: PArray_Longint;
+    FaceCoordIndexBegin, FaceCoordIndexEnd: Integer;
+
+    procedure TriangleIndexes(const TriIndices: TVector3Longint);
+  end;
+
+procedure TIndexedFaceSetTriangulator.TriangleIndexes(
+  const TriIndices: TVector3Longint);
 var
   Tri: TTriangle3Single;
 begin
-  with PNewTriData(Data)^ do
-  begin
-    Tri[0] := Vertices^[FaceIndices^[TriIndices[0]]];
-    Tri[1] := Vertices^[FaceIndices^[TriIndices[1]]];
-    Tri[2] := Vertices^[FaceIndices^[TriIndices[2]]];
-    NewTriangleProc(Tri, State, GeometryNode, MatNum,
-      FaceCoordIndexBegin, FaceCoordIndexEnd);
-  end;
+  Tri[0] := Coord.Items[FaceIndices^[TriIndices[0]]];
+  Tri[1] := Coord.Items[FaceIndices^[TriIndices[1]]];
+  Tri[2] := Coord.Items[FaceIndices^[TriIndices[2]]];
+  NewTriangleProc(Tri, State, Geometry, VRML1MaterialNumber,
+    FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-{ For IndexedTriangleMesh pass TriangleMesh = @true,
-  FacesConvex doesn't matter in this case.
-
-  MaterialBinding should be one of BIND_xxx constants,
-  MaterialIndex may be nil if MaterialBinding is not
-  anything _INDEXED. }
-procedure IndexedPolygons_LocalTriangulate(
-  Self: TVRMLGeometryNode;
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  NewTriangleProc: TNewTriangleProc;
-  Coord: TMFVec3f; CoordIndex: TMFLong;
-  TriangleMesh, FacesConvex: boolean;
-  MaterialBinding: Integer;
-  MaterialIndex: TMFLong);
-
-  procedure Triangulate_Face(startIndex, endIndex, faceMatNum: integer);
-  var
-    NewTriData: TNewTriData;
-  begin
-    NewTriData.State := State;
-    NewTriData.GeometryNode := Self;
-    NewTriData.MatNum := faceMatNum;
-    NewTriData.Vertices := Coord.Items.ItemsArray;
-    newTriData.FaceIndices := PArray_Longint(CoordIndex.Items.Pointers[StartIndex]);
-    NewTriData.NewTriangleProc := NewTriangleProc;
-    NewTriData.FaceCoordIndexBegin := startIndex;
-    NewTriData.FaceCoordIndexEnd := endIndex;
-
-    if not TriangleMesh then
-    begin
-      if FacesConvex then
-        TriangulateConvexFace(EndIndex-StartIndex,
-          @NewTriangleOfFaceSet, @NewTriData, 0) else
-        TriangulateFace(NewTriData.FaceIndices, EndIndex-StartIndex,
-          NewTriData.Vertices, @NewTriangleOfFaceSet, @NewTriData, 0);
-    end else
-    begin
-      TriangulateTriangleStrip(EndIndex-StartIndex,
-        @NewTriangleOfFaceSet, @NewTriData, 0);
-    end;
-  end;
-
-var
-  startIndex, endIndex, faceNumber, faceMatNum: integer;
+procedure TIndexedFaceSetTriangulator.HandleCoordRange(
+  const RangeNumber: Cardinal;
+  BeginIndex, EndIndex: Integer);
 begin
-  startIndex := 0;
-  faceNumber := 0;
-  while startIndex < CoordIndex.Count do
-  begin
-    endIndex := startIndex;
-    while (endIndex < CoordIndex.Count) and
-          (CoordIndex.Items.Items[endIndex] <> -1) do
-      Inc(endIndex);
+  FaceIndices := PArray_Longint(CoordIndex.Items.Pointers[BeginIndex]);
+  FaceCoordIndexBegin := BeginIndex;
+  FaceCoordIndexEnd := EndIndex;
 
-    case MaterialBinding of
-      BIND_DEFAULT, BIND_OVERALL: faceMatNum := 0;
-      BIND_PER_PART, BIND_PER_FACE: faceMatNum := faceNumber;
-      BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-        faceMatNum := MaterialIndex.Items.Items[faceNumber];
-      { TODO: we don't support here materials per vertex or per vertex indexed }
-      else faceMatNum := 0;
-    end;
-    Triangulate_Face(startIndex, endIndex, faceMatNum);
-    Inc(faceNumber);
-    startIndex := endIndex+1;
+  case VRML1MaterialBinding of
+    BIND_DEFAULT, BIND_OVERALL:
+      VRML1MaterialNumber := 0;
+    BIND_PER_PART, BIND_PER_FACE:
+      VRML1MaterialNumber := RangeNumber;
+    BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
+      VRML1MaterialNumber := VRML1MaterialIndex.Items.Items[RangeNumber];
+    { TODO: we don't support here materials per vertex or per vertex indexed }
+    else VRML1MaterialNumber := 0;
   end;
+
+  if FacesConvex then
+    TriangulateConvexFace(EndIndex - BeginIndex,
+      @TriangleIndexes, 0) else
+    TriangulateFace(FaceIndices, EndIndex - BeginIndex,
+      Coord.ItemsArray, @TriangleIndexes, 0);
 end;
 
 procedure TNodeIndexedFaceSet_1.LocalTriangulate(
   State: TVRMLGraphTraverseState; OverTriangulate: boolean;
   NewTriangleProc: TNewTriangleProc);
+var
+  Triangulator: TIndexedFaceSetTriangulator;
 begin
-  IndexedPolygons_LocalTriangulate(Self,
-    State, OverTriangulate, NewTriangleProc,
-    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex,
-    false,
-    State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_CONVEX,
-    State.LastNodes.MaterialBinding.FdValue.Value,
-    FdMaterialIndex);
-end;
-
-procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(
-  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  NewTriangleProc: TNewTriangleProc);
-begin
-  IndexedPolygons_LocalTriangulate(Self,
-    State, OverTriangulate, NewTriangleProc,
-    State.LastNodes.Coordinate3.FdPoint, FdCoordIndex,
-    true,
-    State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_CONVEX,
-    State.LastNodes.MaterialBinding.FdValue.Value,
-    FdMaterialIndex);
+  Triangulator := TIndexedFaceSetTriangulator.Create;
+  try
+    Triangulator.Geometry := Self;
+    Triangulator.State := State;
+    Triangulator.NewTriangleProc := NewTriangleProc;
+    Triangulator.Coord := State.LastNodes.Coordinate3.FdPoint.Items;
+    Triangulator.CoordIndex := FdCoordIndex;
+    Triangulator.VRML1MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+    Triangulator.VRML1MaterialIndex := FdMaterialIndex;
+    Triangulator.FacesConvex := State.LastNodes.ShapeHints.FdFaceType.Value = FACETYPE_CONVEX;
+    MakeCoordRanges(State, @Triangulator.HandleCoordRange);
+  finally FreeAndNil(Triangulator) end;
 end;
 
 procedure TNodeIndexedFaceSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  Triangulator: TIndexedFaceSetTriangulator;
 begin
-  if (FdCoord.Value <> nil) and (FdCoord.Value is TNodeCoordinate) then
-    IndexedPolygons_LocalTriangulate(Self,
-      State, OverTriangulate, NewTriangleProc,
-      TNodeCoordinate(FdCoord.Value).FdPoint, FdCoordIndex,
-      false,
-      FdConvex.Value,
-      BIND_DEFAULT { For VRML 2.0 we will ignore material number anyway },
-      nil);
+  Triangulator := TIndexedFaceSetTriangulator.Create;
+  try
+    Triangulator.Geometry := Self;
+    Triangulator.State := State;
+    Triangulator.NewTriangleProc := NewTriangleProc;
+    Triangulator.Coord := Coordinates(State).Items;
+    Triangulator.CoordIndex := FdCoordIndex;
+    Triangulator.VRML1MaterialBinding := BIND_DEFAULT;
+    Triangulator.VRML1MaterialIndex := nil;
+    Triangulator.FacesConvex := FdConvex.Value;
+    MakeCoordRanges(State, @Triangulator.HandleCoordRange);
+  finally FreeAndNil(Triangulator) end;
 end;
+
+{ Others --------------------------------------------------------------------- }
 
 procedure TNodeIndexedLineSet_1.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
@@ -657,25 +634,23 @@ end;
 { TNodeExtrusion --------------------------------------------------------- }
 
 type
-  TExtrusionTriangleProcData = record
+  TExtrusionTriangleTriangulator = class
     Node: TNodeExtrusion;
     State: TVRMLGraphTraverseState;
     NewTriangleProc: TNewTriangleProc;
     TransformCap: TMatrix4Single;
-  end;
-  PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
 
-procedure ExtrusionCapTriangle(const Tri: TVector3Longint;
-  Data: Pointer);
-begin
-  with PExtrusionTriangleProcData(Data)^ do
-  begin
-    NewTriangleProc(Triangle3Single(
-      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[0])),
-      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[1])),
-      MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
-      State, Node, 0, -1, -1);
+    procedure ExtrusionCapTriangle(const Tri: TVector3Longint);
   end;
+
+procedure TExtrusionTriangleTriangulator.ExtrusionCapTriangle(
+  const Tri: TVector3Longint);
+begin
+  NewTriangleProc(Triangle3Single(
+    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[0])),
+    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[1])),
+    MultMatrixPoint(TransformCap, Node.CrossSection3D(Tri[2]))),
+    State, Node, 0, -1, -1);
 end;
 
 procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
@@ -683,23 +658,25 @@ procedure TNodeExtrusion.LocalTriangulate(State: TVRMLGraphTraverseState;
 
   procedure DrawCap(const TransformCap: TMatrix4Single);
   var
-    TriangleProcData: TExtrusionTriangleProcData;
+    Triangulator: TExtrusionTriangleTriangulator;
   begin
-    TriangleProcData.Node := Self;
-    TriangleProcData.State := State;
-    TriangleProcData.NewTriangleProc := NewTriangleProc;
-    TriangleProcData.TransformCap := TransformCap;
+    Triangulator := TExtrusionTriangleTriangulator.Create;
+    try
+      Triangulator.Node := Self;
+      Triangulator.State := State;
+      Triangulator.NewTriangleProc := NewTriangleProc;
+      Triangulator.TransformCap := TransformCap;
 
-    if FdConvex.Value then
-    begin
-      TriangulateConvexFace(FdCrossSection.Count,
-        @ExtrusionCapTriangle, @TriangleProcData, 0);
-    end else
-    begin
-      TriangulateFace(nil, FdCrossSection.Count,
-        @CrossSection3D, @ExtrusionCapTriangle,
-        @TriangleProcData, 0);
-    end;
+      if FdConvex.Value then
+      begin
+        TriangulateConvexFace(FdCrossSection.Count,
+          @Triangulator.ExtrusionCapTriangle, 0);
+      end else
+      begin
+        TriangulateFace(nil, FdCrossSection.Count,
+          @CrossSection3D, @Triangulator.ExtrusionCapTriangle, 0);
+      end;
+    finally FreeAndNil(Triangulator) end;
   end;
 
 type
@@ -804,52 +781,170 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-{ X3D [Indexed] Triangle/Quad Set/Strip/Fan ---------------------------------- }
+{ TCoordinateTriangulator ---------------------------------------------------- }
+
+type
+  { Base class for triangulating VRML nodes using "coord" field.
+    Somewhat analogous to TAbstractCoordinateRenderer, except
+    TAbstractCoordinateRenderer does OpenGL rendering and this is for
+    OpenGL-independent triangulating. }
+  TCoordinateTriangulator = class
+    Geometry: TVRMLGeometryNode;
+    State: TVRMLGraphTraverseState;
+
+    VRML1MaterialBinding: Integer;
+    VRML1MaterialIndex: TMFLong;
+
+    { Coord is always non-nil here. }
+    Coord: TDynVector3SingleArray;
+    CoordIndex: TDynLongIntArray;
+
+    NewTriangleProc: TNewTriangleProc;
+
+    procedure Polygon(const Indexes: array of Cardinal);
+  end;
+
+procedure TCoordinateTriangulator.Polygon(const Indexes: array of Cardinal);
+var
+  VRML1MaterialNumber: Integer;
+  RangeNumber: Cardinal;
+  I: Integer;
+  Triangle: TTriangle3Single;
+
+  function Index(I: Integer): Integer;
+  begin
+    if CoordIndex <> nil then
+      Result := CoordIndex.Items[I] else
+      Result := I;
+  end;
+
+begin
+  { TODO: dummy value. Matters only for Inventor IndexedTriangleMesh anyway. }
+  RangeNumber := 0;
+
+  case VRML1MaterialBinding of
+    BIND_DEFAULT, BIND_OVERALL:
+      VRML1MaterialNumber := 0;
+    BIND_PER_PART, BIND_PER_FACE:
+      VRML1MaterialNumber := RangeNumber;
+    BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
+      VRML1MaterialNumber := VRML1MaterialIndex.Items.Items[RangeNumber];
+    { TODO: we don't support here materials per vertex or per vertex indexed }
+    else VRML1MaterialNumber := 0;
+  end;
+
+  { Now triangulate a simple (convex) polygon to triangles.
+    I could call TriangulateConvexFace, but doing it directly is actually
+    simpler. }
+
+  if High(Indexes) >= 2 then
+  begin
+    Triangle[0] := Coord.Items[Index(Indexes[0])];
+    Triangle[1] := Coord.Items[Index(Indexes[1])];
+    Triangle[2] := Coord.Items[Index(Indexes[2])];
+    NewTriangleProc(Triangle, State, Geometry, VRML1MaterialNumber, -1, -1);
+    I := 3;
+    while I <= High(Indexes) do
+    begin
+      Triangle[1] := Triangle[2];
+      Triangle[2] := Coord.Items[Indexes[Index(I)]];
+      NewTriangleProc(Triangle, State, Geometry, VRML1MaterialNumber, -1, -1);
+      Inc(I);
+    end;
+  end;
+end;
+
+{ Implements LocalTriangulate method for coordinate-based nodes,
+  using node's CoordPolygons method. }
+procedure LocalTriangulateCoordPolygons(
+  Geometry: TVRMLGeometryNode;
+  State: TVRMLGraphTraverseState;
+  VRML1MaterialBinding: Integer;
+  VRML1MaterialIndex: TMFLong;
+  NewTriangleProc: TNewTriangleProc);
+var
+  Triangulator: TCoordinateTriangulator;
+begin
+  if Geometry.Coordinates(State) = nil then Exit;
+
+  Triangulator := TCoordinateTriangulator.Create;
+  try
+    Triangulator.Geometry := Geometry;
+    Triangulator.State := State;
+    Triangulator.VRML1MaterialBinding := VRML1MaterialBinding;
+    Triangulator.VRML1MaterialIndex := VRML1MaterialIndex;
+    Triangulator.NewTriangleProc := NewTriangleProc;
+
+    Triangulator.Coord := Geometry.Coordinates(State).Items;
+    if Geometry.CoordIndex <> nil then
+      Triangulator.CoordIndex := Geometry.CoordIndex.Items else
+      Triangulator.CoordIndex := nil;
+
+    Geometry.CoordPolygons(State, @Triangulator.Polygon);
+  finally FreeAndNil(Triangulator) end;
+end;
+
+procedure TNodeIndexedTriangleMesh_1.LocalTriangulate(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  NewTriangleProc: TNewTriangleProc);
+begin
+  LocalTriangulateCoordPolygons(Self, State,
+    State.LastNodes.MaterialBinding.FdValue.Value, FdMaterialIndex,
+    NewTriangleProc);
+end;
 
 procedure TNodeIndexedTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleFanSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeTriangleStripSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeIndexedQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
 procedure TNodeQuadSet.LocalTriangulate(State: TVRMLGraphTraverseState;
   OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
 begin
-  { TODO }
+  LocalTriangulateCoordPolygons(Self, State,
+    BIND_DEFAULT, nil, NewTriangleProc);
 end;

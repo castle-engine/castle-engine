@@ -47,6 +47,8 @@ type
     HasTangentVectors: boolean;
     STangent, TTangent: TVector3Single;
     LightPositionObjectSpace: TVector3Single;
+
+    procedure Render_Triangulated(const TriIndices: TVector3Longint);
   protected
     procedure RenderCoordinate; override;
     procedure RenderCoordinateBegin; override;
@@ -401,42 +403,37 @@ end;
 { TExtrusionRenderer --------------------------------------------------------- }
 
 type
-  TExtrusionTriangleProcData = record
+  TExtrusionTriangleTriangulator = class
     Node: TNodeExtrusion;
     Render_TexCoordsNeeded: boolean;
     TexCapsTranslation: Single;
     TexCapsScale: Single;
-  end;
-  PExtrusionTriangleProcData = ^TExtrusionTriangleProcData;
 
-procedure ExtrusionCapTriangle(const Tri: TVector3Longint;
-  TriangleProcData: Pointer);
-var
-  Data: PExtrusionTriangleProcData absolute TriangleProcData;
+    procedure ExtrusionCapTriangle(const Tri: TVector3Longint);
+  end;
+
+procedure TExtrusionTriangleTriangulator.ExtrusionCapTriangle(
+  const Tri: TVector3Longint);
 
   procedure CapTexCoord(Index: Integer);
   begin
-    with Data^ do
-      if Render_TexCoordsNeeded then
-      begin
-        glTexCoord2f(
-          (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
-          * TexCapsScale,
-          (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
-          * TexCapsScale);
-      end;
+    if Render_TexCoordsNeeded then
+    begin
+      glTexCoord2f(
+        (Node.FdCrossSection.Items.Items[Index][0] + TexCapsTranslation)
+        * TexCapsScale,
+        (Node.FdCrossSection.Items.Items[Index][1] + TexCapsTranslation)
+        * TexCapsScale);
+    end;
   end;
 
 begin
-  with Data^ do
-  begin
-    CapTexCoord(Tri[0]);
-    glVertexv(Node.CrossSection3D(Tri[0]));
-    CapTexCoord(Tri[1]);
-    glVertexv(Node.CrossSection3D(Tri[1]));
-    CapTexCoord(Tri[2]);
-    glVertexv(Node.CrossSection3D(Tri[2]));
-  end;
+  CapTexCoord(Tri[0]);
+  glVertexv(Node.CrossSection3D(Tri[0]));
+  CapTexCoord(Tri[1]);
+  glVertexv(Node.CrossSection3D(Tri[1]));
+  CapTexCoord(Tri[2]);
+  glVertexv(Node.CrossSection3D(Tri[2]));
 end;
 
 procedure TExtrusionRenderer.DoRender;
@@ -472,7 +469,7 @@ var
     end;
 
   var
-    TriangleProcData: TExtrusionTriangleProcData;
+    Triangulator: TExtrusionTriangleTriangulator;
   begin
     if Node.FdConvex.Value then
     begin
@@ -481,16 +478,18 @@ var
       DrawConvexCap;
     end else
     begin
-      TriangleProcData.Node := Node;
-      TriangleProcData.TexCapsTranslation := TexCapsTranslation;
-      TriangleProcData.TexCapsScale := TexCapsScale;
-      TriangleProcData.Render_TexCoordsNeeded := Renderer.Render_TexCoordsNeeded;
+      Triangulator := TExtrusionTriangleTriangulator.Create;
+      try
+        Triangulator.Node := Node;
+        Triangulator.TexCapsTranslation := TexCapsTranslation;
+        Triangulator.TexCapsScale := TexCapsScale;
+        Triangulator.Render_TexCoordsNeeded := Renderer.Render_TexCoordsNeeded;
 
-      glBegin(GL_TRIANGLES);
-        TriangulateFace(nil, Node.FdCrossSection.Count,
-          @Node.CrossSection3D, @ExtrusionCapTriangle,
-          @TriangleProcData, 0);
-      glEnd();
+        glBegin(GL_TRIANGLES);
+          TriangulateFace(nil, Node.FdCrossSection.Count,
+            @Node.CrossSection3D, @Triangulator.ExtrusionCapTriangle, 0);
+        glEnd();
+      finally FreeAndNil(Triangulator) end;
     end;
   end;
 
@@ -1228,11 +1227,12 @@ begin
   inherited;
 end;
 
-procedure Render_Triangulated(const TriIndices: TVector3Longint; Data: Pointer);
+procedure TIndexedFaceSetRenderer.Render_Triangulated(
+  const TriIndices: TVector3Longint);
 begin
- TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[0]);
- TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[1]);
- TIndexedFaceSetRenderer(Data).RenderVertex(TriIndices[2]);
+  RenderVertex(TriIndices[0]);
+  RenderVertex(TriIndices[1]);
+  RenderVertex(TriIndices[2]);
 end;
 
 procedure TIndexedFaceSetRenderer.RenderCoordsRange(
@@ -1376,7 +1376,7 @@ begin
   glBegin(GL_TRIANGLES);
   TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
     EndIndex-BeginIndex, Coord.Items.ItemsArray,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, BeginIndex);
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, BeginIndex);
   glEnd;
  end else
  begin
@@ -1402,7 +1402,7 @@ begin
 
   glBegin(GL_TRIANGLES);
   TriangulateConvexFace(EndIndex-BeginIndex,
-    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, Self, BeginIndex);
+    {$ifdef FPC_OBJFPC} @ {$endif} Render_Triangulated, BeginIndex);
   glEnd;
 
   {$else DARWIN}
