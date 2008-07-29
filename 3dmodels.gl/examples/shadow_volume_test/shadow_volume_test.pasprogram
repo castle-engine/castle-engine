@@ -521,7 +521,7 @@ procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
   end;
 
 var
-  NodeMatrix: TNodeMatrixTransform;
+  NodeMatrix: TNodeMatrixTransform_1;
 begin
   case MenuItem.IntData of
     Ord(Low(TShadowsImplementation)) ..
@@ -544,7 +544,7 @@ begin
       end;
     20:
       begin
-        NodeMatrix := TNodeMatrixTransform.Create('ShadowCasterNav_Matrix', '');
+        NodeMatrix := TNodeMatrixTransform_1.Create('ShadowCasterNav_Matrix', '');
         try
           NodeMatrix.FdMatrix.Value := ShadowCasterNav.Matrix;
           SavetoVRMLFile(NodeMatrix, StdOutStream, '');
