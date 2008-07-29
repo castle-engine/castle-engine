@@ -62,6 +62,12 @@
     private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
+    private FFdrender: TSFBool;
+    { This is an extension from Avalon, see
+      [http://instant-reality.com/documentation/nodetype/ChildGroup/].
+      We simply ignore it for now. }
+    public property Fdrender: TSFBool read FFdrender;
+
     function ChildrenField: TMFNode; override;
   end;
 
@@ -321,6 +327,9 @@ begin
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdrender := TSFBool.Create('render', true);
+  Fields.Add(FFdrender);
 
   DefaultContainerField := 'children';
 end;

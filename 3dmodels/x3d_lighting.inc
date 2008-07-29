@@ -44,6 +44,11 @@
 
     private FFdKambiShadowsMain: TSFBool;
     public property FdKambiShadowsMain: TSFBool read FFdKambiShadowsMain;
+
+    private FFdshowProxyGeometry: TSFBool;
+    { showProxyGeometry field is an Avalon extension, see
+      [http://instant-reality.com/documentation/nodetype/Light/]. }
+    public property FdshowProxyGeometry: TSFBool read FFdshowProxyGeometry;
   end;
 
   { This is the base class for all VRML / X3D light nodes.
@@ -191,6 +196,9 @@ begin
 
   FFdkambiShadowsMain := TSFBool.Create('kambiShadowsMain', false);
   Fields.Add(FFdkambiShadowsMain);
+
+  FFdshowProxyGeometry := TSFBool.Create('showProxyGeometry', false);
+  Fields.Add(FFdshowProxyGeometry);
 
   DefaultContainerField := 'children';
 end;

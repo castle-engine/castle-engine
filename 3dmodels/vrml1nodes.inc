@@ -553,7 +553,8 @@
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
   end;
 
-  TNodeMatrixTransform = class(TVRMLTransformationNode)
+  { This is VRML 1.0 MatrixTransform node. }
+  TNodeMatrixTransform_1 = class(TVRMLTransformationNode)
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
 
@@ -577,6 +578,9 @@
       from specification: extracting some features from arbitrary given
       4x4 matrix is very difficult. }
     function AverageScaleTransform: Single; override;
+
+    class function ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+      override;
   end;
 
   TNodeRotation = class(TVRMLTransformationNode)
@@ -1785,7 +1789,7 @@ begin
     true, 1, 0, 1000);
 end;
 
-constructor TNodeMatrixTransform.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TNodeMatrixTransform_1.Create(const ANodeName: string; const AWWWBasePath: string);
 begin
   inherited;
 
@@ -1793,21 +1797,26 @@ begin
   Fields.Add(FFdmatrix);
 end;
 
-class function TNodeMatrixTransform.ClassNodeTypeName: string;
+class function TNodeMatrixTransform_1.ClassNodeTypeName: string;
 begin
  result := 'MatrixTransform';
 end;
 
-procedure TNodeMatrixTransform.Transformation(
+procedure TNodeMatrixTransform_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   Matrix := FdMatrix.Value;
   InvertedMatrix := IdentityMatrix4Single;
 end;
 
-function TNodeMatrixTransform.AverageScaleTransform: Single;
+function TNodeMatrixTransform_1.AverageScaleTransform: Single;
 begin
   Result := FdMatrix.AverageScaleTransform;
+end;
+
+class function TNodeMatrixTransform_1.ForVRMLVersion(const VerMajor, VerMinor: Integer): boolean;
+begin
+  Result := VerMajor <= 1;
 end;
 
 constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: string);
@@ -2422,7 +2431,7 @@ begin
     TNodeMaterialBinding, TNodeNormalBinding, TNodeTexture2,
     TNodeTexture2Transform,
     TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform, TNodeRotation,
+    TNodeMatrixTransform_1, TNodeRotation,
     TNodeScale, TNodeTransform_1,
     TNodeTranslation,
     TNodeOrthographicCamera, TNodePerspectiveCamera,

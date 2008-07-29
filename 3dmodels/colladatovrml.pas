@@ -1026,21 +1026,8 @@ var
       end;
   end;
 
-  { Read <matrix> element, add appropriate VRML MatrixTransform to ParentGroup node. }
-  procedure ReadMatrix(ParentGroup: TNodeX3DGroupingNode;
-    MatrixElement: TDOMElement); overload;
-  var
-    M: TNodeMatrixTransform;
-  begin
-    { We have to use VRML 1.0 to express matrix transform. }
-    M := TNodeMatrixTransform.Create('', WWWBasePath);
-    ParentGroup.FdChildren.AddItem(M);
-
-    M.FdMatrix.Value := ReadMatrix(MatrixElement);
-  end;
-
-  { Read <lookat> element, add appropriate VRML MatrixTransform to ParentGroup node. }
-  procedure ReadLookAt(ParentGroup: TNodeX3DGroupingNode; MatrixElement: TDOMElement);
+  { Read <lookat> element, return appropriate matrix. }
+  function ReadLookAt(MatrixElement: TDOMElement): TMatrix4Single;
   var
     SeekPos: Integer;
     Content: string;
@@ -1065,13 +1052,8 @@ var
     end;
 
   var
-    M: TNodeMatrixTransform;
     Eye, Center, Up: TVector3Single;
   begin
-    { We have to use VRML 1.0 to express matrix transform. }
-    M := TNodeMatrixTransform.Create('', WWWBasePath);
-    ParentGroup.FdChildren.AddItem(M);
-
     Content := DOMGetTextData(MatrixElement);
 
     SeekPos := 1;
@@ -1079,7 +1061,7 @@ var
     if ReadVector(Eye) and
        ReadVector(Center) and
        ReadVector(Up) then
-      M.FdMatrix.Value := LookAtMatrix(Eye, Center, Up);
+      Result := LookAtMatrix(Eye, Center, Up);
   end;
 
   { Read <node> element, add it to ParentGroup. }
@@ -1193,8 +1175,7 @@ var
       ControllerIndex: Integer;
       Controller: TColladaController;
       Shape: TNodeShape;
-      Group: TNodeGroup_2;
-      M: TNodeMatrixTransform;
+      Group: TNodeX3DGroupingNode;
       GeometryIndex: Integer;
     begin
       if DOMGetAttribute(InstantiatingElement, 'url', ControllerId) and
@@ -1217,16 +1198,15 @@ var
               '<geometry> element "%s"', [Controller.Source]));
           end else
           begin
-            Group := TNodeGroup_2.Create('', WWWBasePath);
-            ParentGroup.FdChildren.AddItem(Group);
-
-            if not Controller.BoundShapeMatrixIdentity then
+            if Controller.BoundShapeMatrixIdentity then
             begin
-              { We have to use VRML 1.0 to express matrix transform. }
-              M := TNodeMatrixTransform.Create('', WWWBasePath);
-              Group.FdChildren.AddItem(M);
-              M.FdMatrix.Value := Controller.BoundShapeMatrix;
+              Group := TNodeGroup_2.Create('', WWWBasePath);
+            end else
+            begin
+              Group := TNodeMatrixTransform_2.Create('', WWWBasePath);
+              TNodeMatrixTransform_2(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
+            ParentGroup.FdChildren.AddItem(Group);
 
             Shape := TNodeShape.Create('', WWWBasePath);
             Group.FdChildren.AddItem(Shape);
@@ -1240,7 +1220,8 @@ var
     end;
 
   var
-    NodeTransform: TNodeTransform_2;
+    { This is either TNodeTransform_2 or TNodeMatrixTransform_2. }
+    NodeTransform: TNodeX3DGroupingNode;
 
     { Create new Transform node, place it as a child of current Transform node
       and switch current Transform node to the new one.
@@ -1248,8 +1229,10 @@ var
       The idea is that each
       Collada transformation creates new nested VRML Transform node
       (since Collada transformations may represent any transformation,
-      not necessarily representable by a single VRML Transform node).  }
-    procedure NestedTransform;
+      not necessarily representable by a single VRML Transform node).
+
+      Returns NodeTransform, typecasted to TNodeTransform_2, for your comfort. }
+    function NestedTransform: TNodeTransform_2;
     var
       NewNodeTransform: TNodeTransform_2;
     begin
@@ -1257,6 +1240,18 @@ var
       NodeTransform.FdChildren.AddItem(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
+      Result := NewNodeTransform;
+    end;
+
+    function NestedMatrixTransform: TNodeMatrixTransform_2;
+    var
+      NewNodeTransform: TNodeMatrixTransform_2;
+    begin
+      NewNodeTransform := TNodeMatrixTransform_2.Create('', WWWBasePath);
+      NodeTransform.FdChildren.AddItem(NewNodeTransform);
+
+      NodeTransform := NewNodeTransform;
+      Result := NewNodeTransform;
     end;
 
   var
@@ -1295,17 +1290,14 @@ var
           ChildElement := ChildNode as TDOMElement;
           if ChildElement.TagName = 'matrix' then
           begin
-            { In this case, I simply add VRML 1.0 MatrixTransform to current
-              NodeTransform }
-            ReadMatrix(NodeTransform, ChildElement);
+            NestedMatrixTransform.FdMatrix.Value := ReadMatrix(ChildElement);
           end else
           if ChildElement.TagName = 'rotate' then
           begin
             V4 := Vector4SingleFromStr(DOMGetTextData(ChildElement));
             if V4[3] <> 0.0 then
             begin
-              NestedTransform;
-              NodeTransform.FdRotation.ValueDeg := V4;
+              NestedTransform.FdRotation.ValueDeg := V4;
             end;
           end else
           if ChildElement.TagName = 'scale' then
@@ -1313,15 +1305,12 @@ var
             V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
             if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
             begin
-              NestedTransform;
-              NodeTransform.FdScale.Value := V3;
+              NestedTransform.FdScale.Value := V3;
             end;
           end else
           if ChildElement.TagName = 'lookat' then
           begin
-            { In this case, I simply add VRML 1.0 MatrixTransform to current
-              NodeTransform }
-            ReadLookAt(NodeTransform, ChildElement);
+            NestedMatrixTransform.FdMatrix.Value := ReadLookAt(ChildElement);
           end else
           if ChildElement.TagName = 'skew' then
           begin
@@ -1332,8 +1321,7 @@ var
             V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
             if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
             begin
-              NestedTransform;
-              NodeTransform.FdTranslation.Value := V3;
+              NestedTransform.FdTranslation.Value := V3;
             end;
           end;
         end;

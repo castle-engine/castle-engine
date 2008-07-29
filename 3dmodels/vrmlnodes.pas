@@ -2050,6 +2050,7 @@ type
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
+{$I vrml_avalon_nodes.inc}
 
 { TVRMLUnknownNode --------------------------------------------------- }
 
@@ -2890,6 +2891,7 @@ uses
 {$I vrmlinventornodes.inc}
 {$I vrml97nodes.inc}
 {$I vrmlkambinodes.inc}
+{$I vrml_avalon_nodes.inc}
 
 resourcestring
   SExpectedInterfaceDeclaration =
@@ -6746,6 +6748,7 @@ initialization
   RegisterVRML1Nodes;
   RegisterVRML97Nodes;
   RegisterKambiNodes;
+  RegisterAvalonNodes;
 
   { X3D components registration : }
 
