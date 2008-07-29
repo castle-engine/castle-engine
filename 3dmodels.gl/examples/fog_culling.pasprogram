@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -176,7 +176,7 @@ begin
     'models' + PathDelim + 'fog_culling_final.wrl', true),
     true, roSeparateShapeStates);
 
-  Writeln(Scene.Info(true, true));
+  Writeln(Scene.Info(true, true, true));
 
   { build octrees }
   Progress.UserInterface := ProgressConsoleInterface;

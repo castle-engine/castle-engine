@@ -113,6 +113,8 @@ type
 
     function GetBackgroundSkySphereRadius: Single;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
+
+    function InfoBoundingBoxSum: string;
   public
     { Constructor. }
     constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
@@ -402,7 +404,10 @@ type
 
     { Returns some textual info about this animation.
       Similar to TVRMLFlatSceneGL.Info. }
-    function Info(InfoTriVertCounts: boolean): string;
+    function Info(
+      ATriangleVerticesCounts,
+      ABoundingBox,
+      AManifoldAndBorderEdges: boolean): string;
 
     { Write contents of all VRML "Info" nodes.
       Also write how many Info nodes there are in the scene.
@@ -1212,9 +1217,44 @@ begin
   ValidBoundingBoxSum := false;
 end;
 
-function TVRMLGLAnimation.Info(InfoTriVertCounts: boolean): string;
+function TVRMLGLAnimation.InfoBoundingBoxSum: string;
+var
+  BBox: TBox3d;
 begin
-  Result := FirstScene.Info(InfoTriVertCounts, false);
+  BBox := BoundingBoxSum;
+  Result := 'Bounding box (of the whole animation) : ' + Box3dToNiceStr(BBox);
+  if not IsEmptyBox3d(BBox) then
+  begin
+    Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
+  end;
+  Result += NL;
+end;
+
+function TVRMLGLAnimation.Info(
+  ATriangleVerticesCounts,
+  ABoundingBox,
+  AManifoldAndBorderEdges: boolean): string;
+begin
+  Result := '';
+
+  if ATriangleVerticesCounts then
+  begin
+    Result += FirstScene.InfoTriangleVerticesCounts;
+  end;
+
+  if ABoundingBox then
+  begin
+    if Result <> '' then Result += NL;
+    { We do not call FirstScene.InfoBoundingBox here, instead we want
+      to get full bounding box of the animation. }
+    Result += InfoBoundingBoxSum;
+  end;
+
+  if AManifoldAndBorderEdges then
+  begin
+    if Result <> '' then Result += NL;
+    Result += FirstScene.InfoManifoldAndBorderEdges;
+  end;
 end;
 
 procedure TVRMLGLAnimation.WritelnInfoNodes;

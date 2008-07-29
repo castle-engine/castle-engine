@@ -215,7 +215,16 @@ type
       after FreeResources, then you will get no crash,
       but TrianglesList(true) will be regenerated. So you may experience
       slowdown if you inappropriately use this feature. }
-    frTrianglesListOverTriangulate);
+    frTrianglesListOverTriangulate,
+
+    { Free edges lists in ManifoldEdges and BorderEdges.
+
+      Frees memory, but next call to ManifoldEdges and BorderEdges will
+      need to calculate them again (or you will need to call
+      TVRMLFlatScene.ShareManifoldAndBorderEdges again).
+      Note that using this scene as shadow caster for shadow volumes algorithm
+      requires ManifoldEdges and BorderEdges. }
+    frManifoldAndBorderEdges);
 
   TVRMLSceneFreeResources = set of TVRMLSceneFreeResource;
 
@@ -371,8 +380,21 @@ type
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
-      Last line also ends with KambiUtils.NL. }
-    function Info(InfoTriVertCounts, InfoBoundingBox: boolean): string;
+      Last line also ends with KambiUtils.NL.
+
+      Note that AManifoldAndBorderEdges = @true will require calculation
+      of ManifoldEdges and BorderEdges (if they weren't calculated already).
+      If you don't want to actually use them (if you wanted only to
+      report them to user), then you may free them (freeing some memory)
+      with @code(FreeResources([frManifoldAndBorderEdges])). }
+    function Info(
+      ATriangleVerticesCounts,
+      ABoundingBox,
+      AManifoldAndBorderEdges: boolean): string;
+
+    function InfoTriangleVerticesCounts: string;
+    function InfoBoundingBox: string;
+    function InfoManifoldAndBorderEdges: string;
 
     { Write contents of all VRML "Info" nodes.
       Also write how many Info nodes there are in the scene. }
@@ -988,37 +1010,63 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function TVRMLFlatScene.Info(
-  InfoTriVertCounts, InfoBoundingBox: boolean): string;
+function TVRMLFlatScene.InfoTriangleVerticesCounts: string;
+begin
+  if (VerticesCount(false) = VerticesCount(true)) and
+     (TrianglesCount(false) = TrianglesCount(true)) then
+    Result := Format(SSceneInfoTriVertCounts_Same,
+      [TrianglesCount(false), VerticesCount(false)]) + NL else
+  begin
+    Result :=
+      Format(SSceneInfoTriVertCounts_1,
+        [TrianglesCount(false), VerticesCount(false)]) + NL +
+      Format(SSceneInfoTriVertCounts_2,
+        [TrianglesCount(true), VerticesCount(true)]) + NL;
+  end;
+end;
+
+function TVRMLFlatScene.InfoBoundingBox: string;
 var
   BBox: TBox3d;
 begin
+  BBox := BoundingBox;
+  Result := 'Bounding box : ' + Box3dToNiceStr(BBox);
+  if not IsEmptyBox3d(BBox) then
+  begin
+    Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
+  end;
+  Result += NL;
+end;
+
+function TVRMLFlatScene.InfoManifoldAndBorderEdges: string;
+begin
+  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Note that for some algorithms, like shadow volumes, perfect manifold (that is, no border edges) works best.',
+    [ ManifoldEdges.Count,
+      BorderEdges.Count ]) + NL;
+end;
+
+function TVRMLFlatScene.Info(
+  ATriangleVerticesCounts,
+  ABoundingBox,
+  AManifoldAndBorderEdges: boolean): string;
+begin
   Result := '';
 
-  if InfoTriVertCounts then
+  if ATriangleVerticesCounts then
   begin
-    if (VerticesCount(false) = VerticesCount(true)) and
-       (TrianglesCount(false) = TrianglesCount(true)) then
-      Result += Format(SSceneInfoTriVertCounts_Same,
-        [TrianglesCount(false), VerticesCount(false)]) + NL else
-    begin
-      Result +=
-        Format(SSceneInfoTriVertCounts_1,
-          [TrianglesCount(false), VerticesCount(false)]) + NL +
-        Format(SSceneInfoTriVertCounts_2,
-          [TrianglesCount(true), VerticesCount(true)]) + NL;
-    end;
+    Result += InfoTriangleVerticesCounts;
   end;
 
-  if InfoBoundingBox then
+  if ABoundingBox then
   begin
-    BBox := BoundingBox;
-    Result += 'Bounding box : ' + Box3dToNiceStr(BBox);
-    if not IsEmptyBox3d(BBox) then
-    begin
-      Result += ', average size : ' + FloatToNiceStr(Box3dAvgSize(BBox));
-    end;
-    Result += NL;
+    if Result <> '' then Result += NL;
+    Result += InfoBoundingBox;
+  end;
+
+  if AManifoldAndBorderEdges then
+  begin
+    if Result <> '' then Result += NL;
+    Result += InfoManifoldAndBorderEdges;
   end;
 end;
 
@@ -1610,6 +1658,20 @@ begin
   begin
     Exclude(Validities, fvTrianglesListOverTriangulate);
     FreeAndNil(FTrianglesList[true]);
+  end;
+
+  if frManifoldAndBorderEdges in Resources then
+  begin
+    Exclude(Validities, fvManifoldAndBorderEdges);
+    if FOwnsManifoldAndBorderEdges then
+    begin
+      FreeAndNil(FManifoldEdges);
+      FreeAndNil(FBorderEdges);
+    end else
+    begin
+      FManifoldEdges := nil;
+      FBorderEdges := nil;
+    end;
   end;
 end;
 
