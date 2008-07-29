@@ -72,14 +72,12 @@ type
 
   TIndexedFaceSet_1Renderer = class(TIndexedFaceSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeIndexedFaceSet_1);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
   TIndexedFaceSet_2Renderer = class(TIndexedFaceSetRenderer)
   public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeIndexedFaceSet_2);
+    constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
 { TElevationGridRenderer --------------------------------------------------------- }
@@ -1456,12 +1454,14 @@ end;
 { TIndexedFaceSet_1Renderer -------------------------------------------------- }
 
 constructor TIndexedFaceSet_1Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeIndexedFaceSet_1);
+  ARenderer: TVRMLOpenGLRenderer);
 var
   SH: TNodeShapeHints;
+  ANode: TNodeIndexedFaceSet_1;
 begin
   inherited Create(ARenderer);
+
+  ANode := Geometry as TNodeIndexedFaceSet_1;
 
   TexCoordIndex := ANode.FdTextureCoordIndex;
   TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
@@ -1494,10 +1494,13 @@ end;
 { TIndexedFaceSet_2Renderer -------------------------------------------------- }
 
 constructor TIndexedFaceSet_2Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeIndexedFaceSet_2);
+  ARenderer: TVRMLOpenGLRenderer);
+var
+  ANode: TNodeIndexedFaceSet_2;
 begin
   inherited Create(ARenderer);
+
+  ANode := Geometry as TNodeIndexedFaceSet_2;
 
   TexCoordIndex := ANode.FdTexCoordIndex;
   TexCoord := ANode.TexCoord;

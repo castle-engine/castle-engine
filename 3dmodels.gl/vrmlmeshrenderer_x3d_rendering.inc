@@ -53,10 +53,11 @@ type
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
   end;
 
-  { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet node.
+  { Renderer for X3D IndexedTriangleStripSet and TriangleStripSet nodes.
 
-    TODO: Inventor's IndexedTriangleMesh_1 should also be
-    renderer by this, obsoleting TIndexedTriangleMesh_1Renderer. }
+    Also for Inventor 1.0 IndexedTriangleMesh (since this is almost
+    the same thing as IndexedTriangleStripSet, only defined more in
+    Inventor/VRML 1.0 conventions). }
   TTriangleStripSetRenderer = class(TAbstractNorColMatTexCoordinateRenderer)
   protected
     procedure RenderCoordinate; override;
@@ -73,16 +74,6 @@ type
     procedure RenderCoordinate; override;
   public
     constructor Create(ARenderer: TVRMLOpenGLRenderer);
-  end;
-
-  TIndexedTriangleMesh_1Renderer = class(TAbstractNorColMatTexCoordinateRenderer)
-  public
-    constructor Create(ARenderer: TVRMLOpenGLRenderer;
-      ANode: TNodeIndexedTriangleMesh_1);
-  protected
-    procedure RenderCoordinate; override;
-    procedure RenderCoordsRange(const RangeNumber: Cardinal;
-      BeginIndex, EndIndex: Integer); override;
   end;
 
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
@@ -400,8 +391,52 @@ end;
 { TTriangleStripSetRenderer -------------------------------------------------- }
 
 constructor TTriangleStripSetRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
+
+  procedure CreateForIndexedTriangleMesh_1;
+  var
+    SH: TNodeShapeHints;
+    ANode: TNodeIndexedTriangleMesh_1;
+  begin
+    ANode := Geometry as TNodeIndexedTriangleMesh_1;
+
+    TexCoordIndex := ANode.FdTextureCoordIndex;
+    TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
+
+    MaterialIndex := ANode.FdMaterialIndex;
+    MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+
+    SH := State.LastNodes.ShapeHints;
+
+    { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
+      (a autorzy VRMLi w ogole nie powinni podawac normali jesli
+      nie podadza vertexOrdering innego niz UNKNOWN) }
+    FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
+
+    CullBackFaces :=
+      (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
+      (SH.FdShapeType.Value = SHTYPE_SOLID);
+
+    NormalIndex := ANode.FdNormalIndex;
+    Normals := State.LastNodes.Normal.FdVector.Items;
+    NormalsCcw := FrontFaceCcw;
+    NorImplementation := NorImplementationFromVRML1Binding(
+      State.LastNodes.NormalBinding.FdValue.Value);
+
+    { When generating, we always generate flat normals for IndexedTriangleMesh
+      (I don't know if I should use anything like "creaseAngle"?) }
+    ForceFlatShading := (NorImplementation = niNone) or NormalsFlat;
+  end;
+
 begin
   inherited;
+
+  if Geometry is TNodeIndexedTriangleMesh_1 then
+  begin
+    CreateForIndexedTriangleMesh_1;
+    Exit;
+  end;
+
+  { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
   TexCoord := (Geometry as TNodeX3DComposedGeometryNode).TexCoord;
   Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
@@ -592,99 +627,6 @@ begin
       I += 4;
     end;
   glEnd();
-end;
-
-{ TIndexedTriangleMesh_1Renderer --------------------------------------------- }
-
-constructor TIndexedTriangleMesh_1Renderer.Create(
-  ARenderer: TVRMLOpenGLRenderer;
-  ANode: TNodeIndexedTriangleMesh_1);
-var
-  SH: TNodeShapeHints;
-begin
-  inherited Create(ARenderer);
-
-  TexCoordIndex := ANode.FdTextureCoordIndex;
-  TexCoord := State.LastNodes.TextureCoordinate2.FdPoint;
-
-  MaterialIndex := ANode.FdMaterialIndex;
-  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
-
-  SH := State.LastNodes.ShapeHints;
-
-  { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
-    (a autorzy VRMLi w ogole nie powinni podawac normali jesli
-    nie podadza vertexOrdering innego niz UNKNOWN) }
-  FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
-
-  CullBackFaces :=
-    (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
-    (SH.FdShapeType.Value = SHTYPE_SOLID);
-
-  NormalIndex := ANode.FdNormalIndex;
-  Normals := State.LastNodes.Normal.FdVector.Items;
-  NormalsCcw := FrontFaceCcw;
-  NorImplementation := NorImplementationFromVRML1Binding(
-    State.LastNodes.NormalBinding.FdValue.Value);
-end;
-
-procedure TIndexedTriangleMesh_1Renderer.RenderCoordinate;
-begin
-  Geometry.MakeCoordRanges(State, @RenderCoordsRange);
-end;
-
-procedure TIndexedTriangleMesh_1Renderer.RenderCoordsRange(
-  const RangeNumber: Cardinal;
-  BeginIndex, EndIndex: Integer);
-
-{ TODO: this is just a copy of TTriangleStripSetRenderer.RenderCoordsRange,
-  and should be deleted (once all our ancestors functionality will be
-  moved to TTriangleStripSetRenderer and TAbstractCoordinateRenderer. }
-
-  procedure DoNormal(const v1, v2, v3: integer);
-  begin
-    if NorImplementation = niNone then
-    begin
-      { We always pass to OpenGL normals from CCW, so TriangleNormal is Ok. }
-      glNormalv(TriangleNormal(
-        GetVertex(V1),
-        GetVertex(V2),
-        GetVertex(V3)));
-    end;
-  end;
-
-var
-  NormalOrder: boolean;
-begin
-  inherited;
-
-  if BeginIndex + 2 < EndIndex then
-  begin
-    { TODO: for now we always generate flat normals }
-    glPushAttrib(GL_LIGHTING_BIT { for shade model });
-    glShadeModel(GL_FLAT);
-
-      glBegin(GL_TRIANGLE_STRIP);
-
-      RenderVertex(BeginIndex);
-      RenderVertex(BeginIndex + 1);
-
-      NormalOrder := true;
-
-      while BeginIndex + 2 < EndIndex do
-      begin
-        if NormalOrder then
-          DoNormal(BeginIndex    , BeginIndex + 1, BeginIndex + 2) else
-          DoNormal(BeginIndex + 1, BeginIndex    , BeginIndex + 2);
-        RenderVertex(BeginIndex + 2);
-        Inc(BeginIndex);
-        NormalOrder := not NormalOrder;
-      end;
-
-      glEnd;
-
-    glPopAttrib();
-  end;
 end;
 
 { TIndexedLineSetRenderer -------------------------------------------------- }

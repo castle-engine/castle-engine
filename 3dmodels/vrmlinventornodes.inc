@@ -25,6 +25,10 @@
   TNodeIndexedTriangleMesh_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
     class function ClassNodeTypeName: string; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
+
+    procedure CoordPolygons(
+      State: TVRMLGraphTraverseState;
+      PolygonHandler: TIndexedPolygonHandler); override;
   end;
 
   { RotationXYZ node from Inventor. It's not in VRML 1.0 spec.
