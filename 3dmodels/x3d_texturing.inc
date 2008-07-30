@@ -29,6 +29,8 @@
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
   end;
 
+  TNodeTextureProperties = class;
+
   { Common texture node for all VRML / X3D texture nodes.
 
     For X3D, this descends from X3DTextureNode and is an ancestor
@@ -189,6 +191,10 @@
 
       This is always a full, expanded (i.e. not relative) URL. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
+
+    { Returns TextureProperties node, if this node has some "textureProperties"
+      field and it specifies TextureProperties node. Otherwise returns @nil. }
+    function TextureProperties: TNodeTextureProperties; virtual;
   end;
 
   TNodeX3DTexture2DNode = class(TVRMLTextureNode)
@@ -206,6 +212,8 @@
 
     function RepeatS: boolean; override;
     function RepeatT: boolean; override;
+
+    function TextureProperties: TNodeTextureProperties; override;
   end;
 
   TNodeX3DTextureTransformNode = class(TNodeX3DAppearanceChildNode)
@@ -614,6 +622,11 @@ begin
   Result := Format('Texture type "%s" (not implemented)', [NodeTypeName]);
 end;
 
+function TVRMLTextureNode.TextureProperties: TNodeTextureProperties;
+begin
+  Result := nil;
+end;
+
 { TNodeX3DTexture2DNode ------------------------------------------------------ }
 
 constructor TNodeX3DTexture2DNode.Create(const ANodeName: string;
@@ -642,6 +655,14 @@ end;
 function TNodeX3DTexture2DNode.RepeatT: boolean;
 begin
   Result := FdRepeatT.Value;
+end;
+
+function TNodeX3DTexture2DNode.TextureProperties: TNodeTextureProperties;
+begin
+  if (FdTextureProperties.Value <> nil) and
+     (FdTextureProperties.Value is TNodeTextureProperties) then
+    Result := TNodeTextureProperties(FdTextureProperties.Value) else
+    Result := nil;
 end;
 
 constructor TNodeX3DTextureTransformNode.Create(const ANodeName: string;

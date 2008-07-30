@@ -656,7 +656,10 @@ type
       read FLastGLFreeTexture write SetLastGLFreeTexture default -1;
     { @groupEnd }
 
-    { ponizsze parametry kontroluja min i mag filter dla tekstur.
+    { Default minification and magnification filters for textures.
+      These can be overridden on a per-texture basis in VRML / X3D files
+      by X3D TextureProperties node (see X3D specification).
+
       @groupBegin }
     property TextureMinFilter: TGLint
       read FTextureMinFilter write SetTextureMinFilter default GL_LINEAR_MIPMAP_LINEAR;
@@ -769,7 +772,15 @@ type
 
   TTextureImageCache = record
     FullUrl: string;
-    Node: TVRMLTextureNode;
+
+    { This is only the first TVRMLTextureNode node, that initiated this
+      TTextureImageCache item. Note that many TVRMLTextureNode nodes
+      may correspond to a single TTextureImageCache (since TTextureImageCache
+      only tries to share GLName between them). So this may help during
+      _IncReference, but nothing more --- it's *not* an exhaustive list
+      of texture nodes related to this video texture! }
+    InitialNode: TVRMLTextureNode;
+
     MinFilter: TGLint;
     MagFilter: TGLint;
     WrapS: TGLenum;
@@ -1894,7 +1905,7 @@ begin
 
     if ( ( (TextureFullUrl <> '') and
            (TextureCached^.FullUrl = TextureFullUrl) ) or
-         (TextureCached^.Node = TextureNode) ) and
+         (TextureCached^.InitialNode = TextureNode) ) and
        (TextureCached^.MinFilter = TextureMinFilter) and
        (TextureCached^.MagFilter = TextureMagFilter) and
        (TextureCached^.WrapS = TextureWrapS) and
@@ -1922,7 +1933,7 @@ begin
   TextureImageCaches.IncLength;
   TextureCached := TextureImageCaches.Pointers[TextureImageCaches.High];
   TextureCached^.FullUrl := TextureFullUrl;
-  TextureCached^.Node := TextureNode;
+  TextureCached^.InitialNode := TextureNode;
   TextureCached^.MinFilter := TextureMinFilter;
   TextureCached^.MagFilter := TextureMagFilter;
   TextureCached^.WrapS := TextureWrapS;
@@ -3081,6 +3092,58 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
     end;
   end;
 
+  function StrToMinFilter(S: string): TGLint;
+  begin
+    S := UpperCase(S);
+
+    if S = 'AVG_PIXEL' then Result := GL_LINEAR else
+    if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := GL_LINEAR_MIPMAP_LINEAR else
+    if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := GL_LINEAR_MIPMAP_NEAREST else
+    if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := GL_NEAREST_MIPMAP_LINEAR else
+    if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := GL_NEAREST_MIPMAP_NEAREST else
+    if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
+
+    if S = 'DEFAULT' then Result := Attributes.TextureMinFilter else
+
+    if S = 'FASTEST' then Result := GL_NEAREST else
+    if S = 'NICEST' then Result := GL_LINEAR_MIPMAP_LINEAR else
+
+    if S = 'NEAREST' then
+    begin
+      VRMLNonFatalError(Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      Result := GL_NEAREST;
+    end else
+
+    begin
+      Result := Attributes.TextureMinFilter;
+      VRMLNonFatalError(Format('Unknown texture minification filter "%s"', [S]));
+    end;
+  end;
+
+  function StrToMagFilter(S: string): TGLint;
+  begin
+    S := UpperCase(S);
+
+    if S = 'AVG_PIXEL' then Result := GL_LINEAR else
+    if S = 'NEAREST_PIXEL' then Result := GL_NEAREST else
+
+    if S = 'DEFAULT' then Result := Attributes.TextureMagFilter else
+
+    if S = 'FASTEST' then Result := GL_NEAREST else
+    if S = 'NICEST' then Result := GL_LINEAR else
+
+    if S = 'NEAREST' then
+    begin
+      VRMLNonFatalError(Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      Result := GL_NEAREST;
+    end else
+
+    begin
+      Result := Attributes.TextureMagFilter;
+      VRMLNonFatalError(Format('Unknown texture minification filter "%s"', [S]));
+    end;
+  end;
+
 const
   TextureRepeatToGL: array[boolean]of TGLenum = (
     { GL_CLAMP is useless if VRML doesn't allow to control texture border color,
@@ -3098,6 +3161,8 @@ var
   FontStyle: TNodeFontStyle_2;
   HeightMapGrayscale: TGrayscaleImage;
   OriginalTexture: TImage;
+  TextureProperties: TNodeTextureProperties;
+  MinFilter, MagFilter: TGLint;
 begin
  { przygotuj font }
  if State.ParentShape = nil then
@@ -3161,6 +3226,18 @@ begin
  begin
   TextureNode.ImagesVideosCache := Cache;
 
+  { calculate MinFilter, MagFilter }
+  TextureProperties := TextureNode.TextureProperties;
+  if TextureProperties <> nil then
+  begin
+    MinFilter := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
+    MagFilter := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+  end else
+  begin
+    MinFilter := Attributes.TextureMinFilter;
+    MagFilter := Attributes.TextureMagFilter;
+  end;
+
   if TextureNode.IsTextureImage then
   begin
    TextureImageReference.Node := TextureNode;
@@ -3168,8 +3245,8 @@ begin
      TextureNode.TextureImage,
      TextureNode.TextureUsedFullUrl,
      TextureNode,
-     Attributes.TextureMinFilter,
-     Attributes.TextureMagFilter,
+     MinFilter,
+     MagFilter,
      TextureRepeatToGL[TextureNode.RepeatS],
      TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte,
@@ -3259,8 +3336,8 @@ begin
      TextureNode.TextureVideo,
      TextureNode.TextureUsedFullUrl,
      TextureVideoReference.Node,
-     Attributes.TextureMinFilter,
-     Attributes.TextureMagFilter,
+     MinFilter,
+     MagFilter,
      TextureRepeatToGL[TextureNode.RepeatS],
      TextureRepeatToGL[TextureNode.RepeatT],
      Attributes.ColorModulatorByte,
