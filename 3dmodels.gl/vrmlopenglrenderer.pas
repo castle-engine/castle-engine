@@ -91,8 +91,8 @@
     )
 
     @item(
-      potem wywoluj RenderShapeState(Node, State)
-      aby renderowac pary Node+State.
+      potem wywoluj RenderShapeState(Geometry, State)
+      aby renderowac pary Geometry+State.
       Jak juz powiedzialem, kazda podawana teraz para musiala wystapic
       wczesniej w wywolaniu Prepare.
 
@@ -1160,8 +1160,8 @@ type
     ExposedMeshRenderer: TObject;
 
     { kopie aktualnego State i Node na czas Render }
-    Render_State: TVRMLGraphTraverseState;
-    Render_Node: TVRMLGeometryNode;
+    CurrentState: TVRMLGraphTraverseState;
+    CurrentGeometry: TVRMLGeometryNode;
 
     { te zmienne sa wewnetrzne dla funkcji MeterialsBegin/End, BindMaterial }
     Render_Material_ForcedLightDisable: boolean;
@@ -1272,14 +1272,14 @@ type
       const FogDistanceScaling: Single);
     procedure RenderEnd;
 
-    procedure RenderShapeStateBegin(Node: TVRMLGeometryNode;
+    procedure RenderShapeStateBegin(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateNoTransform(Node: TVRMLGeometryNode;
+    procedure RenderShapeStateNoTransform(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
-    procedure RenderShapeStateEnd(Node: TVRMLGeometryNode;
+    procedure RenderShapeStateEnd(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
-    procedure RenderShapeState(Node: TVRMLGeometryNode;
+    procedure RenderShapeState(Geometry: TVRMLGeometryNode;
       State: TVRMLGraphTraverseState);
 
     { This checks Attributes (mainly Attributes.BumpMappingMaximum) and OpenGL
@@ -3698,7 +3698,7 @@ end;
 {$endif USE_VRML_NODES_TRIANGULATION}
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateBegin(
-  Node: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 var
   TextureTransform: TNodeTextureTransform;
@@ -3752,7 +3752,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
-  Node: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 
   function NodeTextured(Node: TVRMLGeometryNode): boolean;
@@ -3762,65 +3762,65 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       (Node is TNodeIndexedLineSet_2));
   end;
 
-  { If current Node should be rendered using one of TVRMLMeshRenderer
+  { If CurrentGeometry should be rendered using one of TVRMLMeshRenderer
     classes, then create appropriate MeshRenderer. Takes care
     of initializing MeshRenderer, so you have to call only
     MeshRenderer.Render.
     Otherwise, MeshRenderer is set to @nil. }
   procedure InitMeshRenderer;
   begin
-    if Node is TNodeIndexedTriangleMesh_1 then
+    if CurrentGeometry is TNodeIndexedTriangleMesh_1 then
       ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
-    if Node is TNodeIndexedFaceSet_1 then
+    if CurrentGeometry is TNodeIndexedFaceSet_1 then
       ExposedMeshRenderer := TIndexedFaceSet_1Renderer.Create(Self) else
-    if Node is TNodeIndexedFaceSet_2 then
+    if CurrentGeometry is TNodeIndexedFaceSet_2 then
       ExposedMeshRenderer := TIndexedFaceSet_2Renderer.Create(Self) else
-    if Node is TNodeIndexedLineSet_1 then
+    if CurrentGeometry is TNodeIndexedLineSet_1 then
       ExposedMeshRenderer := TIndexedLineSet_1Renderer.Create(Self) else
-    if (Node is TNodeIndexedLineSet_2) or
-       (Node is TNodeLineSet) then
+    if (CurrentGeometry is TNodeIndexedLineSet_2) or
+       (CurrentGeometry is TNodeLineSet) then
       ExposedMeshRenderer := TLineSet_2Renderer.Create(Self) else
-    if Node is TNodePointSet_1 then
+    if CurrentGeometry is TNodePointSet_1 then
       ExposedMeshRenderer := TPointSet_1Renderer.Create(Self) else
-    if Node is TNodePointSet_2 then
+    if CurrentGeometry is TNodePointSet_2 then
       ExposedMeshRenderer := TPointSet_2Renderer.Create(Self) else
-    if Node is TNodeElevationGrid then
+    if CurrentGeometry is TNodeElevationGrid then
       ExposedMeshRenderer := TElevationGridRenderer.Create(Self) else
-    if Node is TNodeExtrusion then
+    if CurrentGeometry is TNodeExtrusion then
       ExposedMeshRenderer := TExtrusionRenderer.Create(Self) else
-    if (Node is TNodeTriangleSet) or
-       (Node is TNodeIndexedTriangleSet) then
+    if (CurrentGeometry is TNodeTriangleSet) or
+       (CurrentGeometry is TNodeIndexedTriangleSet) then
       ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else
-    if (Node is TNodeTriangleFanSet) or
-       (Node is TNodeIndexedTriangleFanSet) then
+    if (CurrentGeometry is TNodeTriangleFanSet) or
+       (CurrentGeometry is TNodeIndexedTriangleFanSet) then
       ExposedMeshRenderer := TTriangleFanSetRenderer.Create(Self) else
-    if (Node is TNodeTriangleStripSet) or
-       (Node is TNodeIndexedTriangleStripSet) then
+    if (CurrentGeometry is TNodeTriangleStripSet) or
+       (CurrentGeometry is TNodeIndexedTriangleStripSet) then
       ExposedMeshRenderer := TTriangleStripSetRenderer.Create(Self) else
-    if (Node is TNodeQuadSet) or
-       (Node is TNodeIndexedQuadSet) then
+    if (CurrentGeometry is TNodeQuadSet) or
+       (CurrentGeometry is TNodeIndexedQuadSet) then
       ExposedMeshRenderer := TQuadSetRenderer.Create(Self) else
-    if Node is TNodeAsciiText_1 then
+    if CurrentGeometry is TNodeAsciiText_1 then
       ExposedMeshRenderer := TAsciiTextRenderer.Create(Self) else
-    if Node is TNodeText then
+    if CurrentGeometry is TNodeText then
       ExposedMeshRenderer := TTextRenderer.Create(Self) else
-    if Node is TNodeText3D then
+    if CurrentGeometry is TNodeText3D then
       ExposedMeshRenderer := TText3DRenderer.Create(Self) else
-    if Node is TNodeCone_1 then
+    if CurrentGeometry is TNodeCone_1 then
       ExposedMeshRenderer := TCone_1Renderer.Create(Self) else
-    if Node is TNodeCone_2 then
+    if CurrentGeometry is TNodeCone_2 then
       ExposedMeshRenderer := TCone_2Renderer.Create(Self) else
-    if Node is TNodeCube_1 then
+    if CurrentGeometry is TNodeCube_1 then
       ExposedMeshRenderer := TCube_1Renderer.Create(Self) else
-    if Node is TNodeBox then
+    if CurrentGeometry is TNodeBox then
       ExposedMeshRenderer := TBoxRenderer.Create(Self) else
-    if Node is TNodeCylinder_1 then
+    if CurrentGeometry is TNodeCylinder_1 then
       ExposedMeshRenderer := TCylinder_1Renderer.Create(Self) else
-    if Node is TNodeCylinder_2 then
+    if CurrentGeometry is TNodeCylinder_2 then
       ExposedMeshRenderer := TCylinder_2Renderer.Create(Self) else
-    if Node is TNodeSphere_1 then
+    if CurrentGeometry is TNodeSphere_1 then
       ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
-    if Node is TNodeSphere_2 then
+    if CurrentGeometry is TNodeSphere_2 then
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
       ExposedMeshRenderer := nil;
   end;
@@ -3895,7 +3895,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
 
     if (TextureNode <> nil) and
        Attributes.EnableTextures and
-       NodeTextured(Node) then
+       NodeTextured(CurrentGeometry) then
     begin
       { Note: don't call IsTextureImage, IsTextureVideo here --- this
         would causes reloading images/videos, nullifying
@@ -4018,42 +4018,62 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
   end;
 
 begin
-  {zrob nasze kopie}
-  Render_State := State;
-  Render_Node := Node;
+  { make a copy to our class fields }
+  CurrentState := State;
 
-  RenderShadersBegin;
+  { Node class, like TNodeTeapot must be mentioned here explicitly,
+    to use it's Proxy, for now. This is to allow nodes with a Proxy
+    still be rendered using direct specialized method, if available.
+    This may be improved in the future, if the Proxy mechanism will
+    get used by more nodes. }
+  if Geometry is TNodeTeapot then
+    CurrentGeometry := Geometry.Proxy else
+    CurrentGeometry := Geometry;
   try
-    InitMeshRenderer;
+    RenderShadersBegin;
     try
-      InitTextures;
-
-      Render_MaterialsBegin;
+      InitMeshRenderer;
       try
-        {$ifdef USE_VRML_NODES_TRIANGULATION}
+        InitTextures;
 
-        { alternatywny prosty rendering przez LocalTriangulate, only to test
-          LocalTriangulate. We should use here OverTriagulate = true (but it's not
-          impl yet because I don't need it anywhere (well, I would use it here
-          but this is just some testing code)) }
-        Node.LocalTriangulate(State, false, @DrawTriangle);
+        Render_MaterialsBegin;
+        try
+          {$ifdef USE_VRML_NODES_TRIANGULATION}
 
-        {$else}
+          { alternatywny prosty rendering przez LocalTriangulate, only to test
+            LocalTriangulate. We should use here OverTriagulate = true (but it's not
+            impl yet because I don't need it anywhere (well, I would use it here
+            but this is just some testing code)) }
+          CurrentGeometry.LocalTriangulate(State, false, @DrawTriangle);
 
-        if MeshRenderer <> nil then
-          MeshRenderer.Render else
-          VRMLNonFatalError(
-            'Rendering of node kind "' + Node.NodeTypeName + '" not implemented');
+          {$else}
 
-        {$endif USE_VRML_NODES_TRIANGULATION}
+          if MeshRenderer <> nil then
+            MeshRenderer.Render else
+            VRMLNonFatalError(
+              { We display for user Geometry.NodeTypeName,
+                although actually it's CurrentGeometry.NodeTypeName
+                that cannot be rendered. Internally, this is different
+                only when we know that original Geometry cannot be directly
+                renderer, so it's al Ok. }
+              'Rendering of node kind "' + Geometry.NodeTypeName + '" not implemented');
 
-      finally Render_MaterialsEnd end;
-    finally FreeAndNil(ExposedMeshRenderer); end;
-  finally RenderShadersEnd; end;
+          {$endif USE_VRML_NODES_TRIANGULATION}
+
+        finally Render_MaterialsEnd end;
+      finally FreeAndNil(ExposedMeshRenderer); end;
+    finally RenderShadersEnd; end;
+  finally
+    if CurrentGeometry <> Geometry then
+      FreeAndNil(CurrentGeometry);
+    { Just for safety, force them @nil now }
+    CurrentGeometry := nil;
+    CurrentState := nil;
+  end;
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeStateEnd(
-  Node: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
   if (State.ParentShape = nil { VRML 1.0, always some texture transform }) or
@@ -4071,14 +4091,14 @@ begin
 end;
 
 procedure TVRMLOpenGLRenderer.RenderShapeState(
-  Node: TVRMLGeometryNode;
+  Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState);
 begin
-  RenderShapeStateBegin(Node, State);
+  RenderShapeStateBegin(Geometry, State);
   try
-    RenderShapeStateNoTransform(Node, State);
+    RenderShapeStateNoTransform(Geometry, State);
   finally
-    RenderShapeStateEnd(Node, State);
+    RenderShapeStateEnd(Geometry, State);
   end;
 end;
 

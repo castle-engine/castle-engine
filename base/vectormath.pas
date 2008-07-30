@@ -389,6 +389,8 @@ type
     procedure Negate;
     { Normalize all items. Zero vectors are left as zero. }
     procedure Normalize;
+    { Multiply each item, component-wise, with V. }
+    procedure MultiplyComponents(const V: TVector3Single);
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -925,21 +927,24 @@ function VectorDotProduct(const v1: TVector3Single; const v2: TVector4Single): S
 function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): Double; overload;
 { @groupEnd }
 
-{ mnozy dwa wektory na zasadzie mnozenia odpowiadajacych sobie pozycji,
-  tzn. dla wektorow i elementowych result[j] := v1[j] * v2[j]
-  dla wszystkich j = 1..i. }
-function VectorMultEachPos(const v1, v2: TVector3Single): TVector3Single; overload;
-function VectorMultEachPos(const v1, v2: TVector3Double): TVector3Double; overload;
-procedure VectorMultEachPosTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
-procedure VectorMultEachPosTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
+{ Multiplies two vectors component-wise.
+
+  That is, Result[I] := V1[I] * V2[I] for each I.
+
+  @groupBegin }
+function VectorMultiplyComponents(const v1, v2: TVector3Single): TVector3Single; overload;
+function VectorMultiplyComponents(const v1, v2: TVector3Double): TVector3Double; overload;
+procedure VectorMultiplyComponentsTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
+procedure VectorMultiplyComponentsTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
+{ @groupEnd }
 
 { kazda skladowa zostanie podniesiona do potegi Exp.
   Warunki jak dla Math.Power(), tzn. jesli ktoras skladowa <0 i Exp <> 0 to
   wyjatek EInvalidArgument (wersja To1st zostawi swoj argument w niezdef. stanie) }
-function VectorExpEachPos(const v: TVector3Single; const Exp: Single): TVector3Single; overload;
-function VectorExpEachPos(const v: TVector3Double; const Exp: Double): TVector3Double; overload;
-procedure VectorExpEachPosTo1st(var v: TVector3Single; const Exp: Single); overload;
-procedure VectorExpEachPosTo1st(var v: TVector3Double; const Exp: Double); overload;
+function VectorExpComponents(const v: TVector3Single; const Exp: Single): TVector3Single; overload;
+function VectorExpComponents(const v: TVector3Double; const Exp: Double): TVector3Double; overload;
+procedure VectorExpComponentsTo1st(var v: TVector3Single; const Exp: Single); overload;
+procedure VectorExpComponentsTo1st(var v: TVector3Double; const Exp: Double); overload;
 
 { zwraca cosinus kata pomiedzy wektorami. EVectorMathInvalidOp if v1 or v2
   = (0, 0, 0).
@@ -2094,6 +2099,14 @@ var
 begin
   for I := 0 to Count - 1 do
     NormalizeTo1st(Items[I]);
+end;
+
+procedure TDynVector3SingleArray.MultiplyComponents(const V: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    VectorMultiplyComponentsTo1st(Items[I], V);
 end;
 
 { TDynVector2SingleArray ----------------------------------------------------- }

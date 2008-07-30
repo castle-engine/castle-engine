@@ -69,7 +69,7 @@ begin
   Render_Material_BoundMatNum := -1; { no material is bound now }
   Render_Material_LastFogImmune := false;
 
-  if not (Render_Node is TVRMLGeometryNode_1) then
+  if not (CurrentGeometry is TVRMLGeometryNode_1) then
     Render_BindMaterial_2;
 end;
 
@@ -195,20 +195,20 @@ begin
 end;
 
 { Sets current OpenGL material and color properties for material
-  number MatNum from Render_State.LastNodes.Material.
-  This is ignored when Render_Node is not TVRMLGeometryNode_1
+  number MatNum from CurrentState.LastNodes.Material.
+  This is ignored when CurrentGeometry is not TVRMLGeometryNode_1
   (then VRML 2.0 approach to materials should be used). }
 procedure TVRMLOpenGLRenderer.Render_BindMaterial_1(MatNum: Integer);
 var
   UnlitColor: TVector3Single;
 begin
-  if (not (Render_Node is TVRMLGeometryNode_1)) or
+  if (not (CurrentGeometry is TVRMLGeometryNode_1)) or
      (MatNum = Render_Material_BoundMatNum) then
     Exit;
 
   Render_Material_BoundMatNum := MatNum;
 
-  with Render_State.LastNodes.Material do
+  with CurrentState.LastNodes.Material do
   begin
     { Usually, UnlitColor should be from EmissiveColor3Single.
 
@@ -227,7 +227,7 @@ begin
       Admittedly, I'm doing it all by just guessing what user may want...
       VRML 1.0 spec doesn't specify here what should really be done, i.e. what
       unlit color should be used. }
-    if (Render_Node is TNodeIndexedLineSet_1) and (not OnlyEmissiveMaterial) then
+    if (CurrentGeometry is TNodeIndexedLineSet_1) and (not OnlyEmissiveMaterial) then
       UnlitColor := DiffuseColor3Single(MatNum) else
       UnlitColor := EmissiveColor3Single(MatNum);
 
@@ -236,7 +236,7 @@ begin
         and we should treat EmissiveColor as precalculated color.
         So we can turn lighting off to improve speed (in fact, we are supposed
         to do that). }
-      (not OnlyEmissiveMaterial) and NodeLit(Render_Node),
+      (not OnlyEmissiveMaterial) and NodeLit(CurrentGeometry),
       AmbientColor3Single(MatNum),
       DiffuseColor3Single(MatNum),
       SpecularColor3Single(MatNum),
@@ -254,18 +254,18 @@ var
   Material: TNodeMaterial_2;
   IsNodeLit: boolean;
 begin
-  Assert(not (Render_Node is TVRMLGeometryNode_1));
+  Assert(not (CurrentGeometry is TVRMLGeometryNode_1));
 
-  if Render_State.ParentShape = nil then
+  if CurrentState.ParentShape = nil then
   begin
-    VRMLNonFatalError('VRML node "' + Render_Node.NodeTypeName +
+    VRMLNonFatalError('VRML node "' + CurrentGeometry.NodeTypeName +
       '" can be specified only in a "geometry" field of "Shape" node');
     Exit;
   end;
 
-  Material := Render_State.ParentShape.Material;
+  Material := CurrentState.ParentShape.Material;
 
-  IsNodeLit := NodeLit(Render_Node);
+  IsNodeLit := NodeLit(CurrentGeometry);
 
   if Material <> nil then
   begin

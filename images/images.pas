@@ -2333,7 +2333,7 @@ begin
  pRGBE := RGBEPixels;
  for i := 1 to Width * Height do
  begin
-  pRGBE^:=Vector3ToRGBE( VectorExpEachPos( VectorRGBETo3Single(pRGBE^), Exp) );
+  pRGBE^:=Vector3ToRGBE( VectorExpComponents( VectorRGBETo3Single(pRGBE^), Exp) );
   Inc(pRGBE);
  end;
 end;

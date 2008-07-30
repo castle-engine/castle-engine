@@ -168,14 +168,14 @@ begin
  result := v1[0]*v2[0]+ v1[1]*v2[1]+ v1[2]*v2[2]+       v2[3];
 end;
 
-function VectorMultEachPos(const v1, v2: TYPE_VECTOR3): TYPE_VECTOR3;
+function VectorMultiplyComponents(const v1, v2: TYPE_VECTOR3): TYPE_VECTOR3;
 begin
  result[0] := v1[0] * v2[0];
  result[1] := v1[1] * v2[1];
  result[2] := v1[2] * v2[2];
 end;
 
-procedure VectorMultEachPosTo1st(var v1: TYPE_VECTOR3; const v2: TYPE_VECTOR3);
+procedure VectorMultiplyComponentsTo1st(var v1: TYPE_VECTOR3; const v2: TYPE_VECTOR3);
 begin
  v1[0] *= v2[0];
  v1[1] *= v2[1];

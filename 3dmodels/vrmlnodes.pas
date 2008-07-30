@@ -1799,81 +1799,120 @@ type
       for all X3D nodes descending from TVRMLGeometryNode. }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
-    { BoundingBox oblicza BoundingBox geometry node'a VRMLa ktory podczas
-      trawersowania grafu VRML'a ma stan State.
+    { Calculate bounding box of this geometry node.
+      They require State of this node during VRML traverse state --- this
+      is mainly for VRML 1.0 nodes, that depend on such state.
 
-      LocalBoundingBox liczy BoundingBox jakby Transform = IdentityMatrix,
-      czyli liczy bounding box wzgledem lokalnego ukladu node'a.
+      LocalBoundingBox gives a bounding box ignoring current transformation
+      (or, equivalently, assuming like Transform = IdentityMatrix).
+      Normal BoundingBox gives a bounding box taking current transformation
+      into account.
 
-      For nodes based on coordinates (when @link(Coord) returns @true),
-      LocalBoundingBox and BoundingBox
-      already have optimal and correct implementation in this class.
-      Using Coord and CoordIndex, no other information is needed.
+      @italic(Notes for descendants implementors:)
 
-      For other nodes, w tej klasie LocalBoundingBox jest liczone jako
-      BoundingBox ktore
-      dostaje specjalnie spreparowane State z Transform = zawsze Identity.
-      Jest to poprawna metoda realizacji LocalBoundingBox'a natomiast
-      nieco nieoptymalna czasowo : bedzie wykonywanych wiele mnozen przez
-      macierz o ktorej wiadomo ze jest Identity. Wiec w podklasach mozesz
-      pokrywac ta metode aby liczyc LocalBoundingBox'a w szybszy sposob.
+      The default implementations of these methods in TVRMLGeometryNode
+      try to be smart and cover all common bases, so that you have to do
+      as little work as possible to implement working descendant.
 
-      Zwracam uwage ze odwrotny pomysl --- realizacja BoundingBox'a przez
-      LocalBoundingBox'a (transformujac wyliczony LocalBoundingBox przez
-      State.Transform) nie jest juz tak dobrym pomyslem --- mozemy w rezultacie
-      otrzymac o wiele za duze BoundingBox'y.
+      @orderedList(
+        @item(
+          For nodes based on coordinates (when @link(Coord) returns @true),
+          LocalBoundingBox and BoundingBox
+          already have optimal and correct implementation in this class.
+          Using Coord and CoordIndex, no other information is needed.)
 
-      Tym niemniej miejscami zamierzam tak liczyc BoundingBox'a --- np. dla sfery.
-      Wiec w tej klasie BoundingBox jest zaimplementowany wlasnie jako
-      LocalBoundingBox transformowany o State.Transform.
+        @item(
+          For other nodes, we check @link(Proxy) result. If it returns
+          non-nil, we will use it to calculate bounding boxes,
+          local and not local.
 
-      W kazdej podklasie powinienes pokryc przynajmniej jedna z tych metod
-      --- jak to napisalem powyzej, jezeli nie pokryjesz BoundingBox'a to byc
-      moze otrzymany BoundingBox bedzie nieco za duze (co jest w sumie
-      dopuszczalne, ale nie do przesady), jezeli nie pokryjesz LocalBoundingBox
-      --- to LocalBoundingBox nie bedzie liczony tak szybko jak moglby byc.
-      Najlepiej wiec byloby gdybys pokrywal obie te metody. }
+          So for nodes with @link(Proxy) overridden, you don't have
+          to implement bounding box calculation, instead a @link(Proxy)
+          will be used. This will work Ok if @link(Proxy) node will
+          have bounding box calculation implemented (this includes
+          even the case when the proxy itself will delegate the work to
+          another @link(Proxy)).
+
+          You can always override these methods, if you don't want
+          to use proxy (for example, maybe there exists much faster
+          method to calculate bounding box, or maybe tighter
+          bounding box may be calculated directly).)
+
+        @item(
+          For other nodes (not coordinate-based and without a proxy):
+
+          The default implementation of LocalBoundingBox just calls
+          BoundingBox with a specially modified State, such that
+          Transform is identity.
+
+          The default implementation of BoundingBox, in turn, just calls
+          LocalBoundingBox and transforms this bounding box.
+
+          So the default implementations call each other, and will loop
+          infinitely... But if you override any one of them
+          (local or not local), the other one will magically work.
+
+          Note that the default implementation of LocalBoundingBox
+          may be non-optimal as far as time is concerned,
+          as we'll do useless multiplications by identity matrix.
+          And the default implementation of BoundingBox may generate
+          non-optimal bounding box, more direct approach (transforming
+          each vertex) may give much tightier bounding box.
+
+          So you only have to override one method --- although if you
+          want the best implementation, fastest and with the best tight
+          bounding boxes, you may need to override both of them for some nodes.)
+      )
+
+      @groupBegin }
     function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; virtual;
+    { @groupEnd }
 
-    { kazda podklasa TVRMLGeometryNode musi pokrywac i implementowac te metody.
+    { Calculate vertex and triangles count of this node.
 
-      Te metody zwracaja ilosc trojkatow jaka definiuje [Local]Triangulate
-      (z takimi samymi parametrami State i OverTriangulate)
-      dla tego node'a i ilosc roznych vertexow jakie sa uzywane w tych
-      trojkatach (chociaz nie wykonuje w tym celu zadnych porownan miedzy
-      zdefiniowanymi punktami w node'ach i definiujac nieporzadnie node'y
-      (np. podajac dwa razy ten sam punkt w Coordinate3) mozesz latwo to
-      oszukac). (acha, dla PointSet naturalnie nie ma zadnych trojkatow
-      ale VerticesCount to ciagle liczba vertexow, mimo ze nie sa uzywane
-      w zadnych trojkatach).
+      They require State of this node during VRML traverse state --- this
+      is mainly for VRML 1.0 nodes, that depend on such state.
+      OverTriangulate has the same meaning as for Triangulate.
 
-      State chwilowo nie jest nigdzie uzywany w TrianglesCount,
-      ale jestem gotowy gdyby w przyszlosci jakis node tego potrzebowal
-      (bo w sumie nie byloby w tym nic wyjatkowego, tzn. nie byloby to
-      nic co w modelu VRMLu jaki tu zaimplementowalem musialbym gdziekolwiek
-      traktowac jako jakis wyjatek)
+      Vertices count calculates number of different vertexes in this node.
+      That is, it doesn't eliminate doubles in cases like Coordinate node
+      with multiple points the same. But if some face is known to use
+      twice the same vertex index, then this counts like a single vertex.
+      The idea is that this indicates rendering speed.
 
-      Uwaga --- gdy przychodzi do TrianglesCount moze sie okazac ze Triangulate
-      zwrocilo inna ilosc trojkatow gdy niektore face byly non-convex (bo w tym
-      przypadku TriangulateFace ma prawo pousuwac trojkaty zdegenerowane
-      do punktu). Generalnie nie polegaj na TrianglesCount jako na dokladnej
-      wartosci --- raczej jako na przyblizeniu ktore zazwyczaj bedzie bardzo
-      bardzo dokladne.
+      For triangles count, the returned value may be different then
+      actual if some faces were non-convex. Things like TriangulateFace
+      may remove degenerate triangles, so actual number of triangles may
+      be slightly less. So don't depend on TrianglesCount as a precise
+      measure --- but it's a good fast measure of complexity of given
+      node, how fast it will be rendered, used with collision detection etc.
+
+      @italic(Notes for descendants implementors:)
 
       For coordinate-based nodes (when @link(Coord) returns @true),
       VerticesCount is already implemented in this class.
-      Using Coord method, no other information is needed. }
+      Using Coord method, no other information is needed.
+
+      For other nodes, the default implementation of
+      both VerticesCount and TrianglesCount in this TVRMLGeometryNode
+      class will use @link(Proxy) to do the work.
+      You should override these methods if Proxy is not available,
+      or some faster approach is possible.
+
+      @groupBegin }
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual; abstract;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; virtual;
+    { @groupEnd }
 
-    { triangulate node = call NewTriangleProc for each triangle this node
-      defines. NewTriangleProc will be called with (Tri, State, Node) where
-      Tri will be new triangle,  and State will always be State podany tutaj
-      parametrem and Node will always be Self.
+    { Triangulate node, calling NewTriangleProc for each triangle this node
+      defines. NewTriangleProc will be called with (Triangle, State, Node) where
+      Triangle will be the new triangle, State will always be the
+      State given here and Node will always be Self.
 
-      LocalTriangulate robi to samo ale nie uwzglednia State.Transform.
-      W podklasach trzeba zdefiniowac tylko LocalTriangulate.
+      The difference between LocalTriangulate and Triangulate is just like
+      between LocalBoundingBox and BoundingBox: "local" version ignored
+      transformation (stored in State.Transform), while Triangulate not.
 
       Jezeli OverTriangulate = false to [Local]Triangulate generuje tylko tyle
       trojkatow zeby doskonale odzwierciedlac ksztalt node'a. W przypadku
@@ -1893,11 +1932,24 @@ type
       Do czego to sie moze przydac ? Gdy uzywasz cieniowania Gourauda (albo
       jeszcze gorzej, cieniowania plaskiego) jedynym remedium zeby renderowac
       rozblyski na srodku duzych powierzchni jest wlasnie rozbijac te powierzchnie
-      na duzo trojkatow. }
+      na duzo trojkatow.
+
+      @italic(Notes for descendants implementors:)
+
+      Default implementation of LocalTriangulate in this class uses
+      @link(Proxy), if it's non-nil. You have to override this if
+      @link(Proxy) is not available, or if you want to plug some more optimal
+      method.
+
+      Triangulate is always implemented by simply calling LocalTriangulate
+      and transforming each triangle.
+
+      @groupBegin }
     procedure Triangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
       NewTriangleProc: TNewTriangleProc);
     procedure LocalTriangulate(State: TVRMLGraphTraverseState;
-      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual; abstract;
+      OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); virtual;
+    { @groupEnd }
 
     { Return node's list of coordinates. Returns @false if node is
       not based on coordinates. Returns @true and sets ACoord
@@ -1987,6 +2039,21 @@ type
     procedure CoordPolygons(
       State: TVRMLGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
+
+    { Converts this node to another node class that may be better supported.
+
+      Typically, converts some complex geometry node (like
+      Extrusion or Teapot) into more common node like IndexedFaceSet
+      or IndexedTriangleSet. Then many methods may try to use
+      this converted node by default, so it will act like a "proxy"
+      instead of actual node. In all cases, it should always
+      be possible to write an optimized method specially for given node
+      (i.e., not using Proxy), but the Proxy way may act as
+      a working and easy fallback.
+
+      In the base TVRMLGeometryNode class, returns @nil indicating
+      that no conversion it known. }
+    function Proxy: TVRMLGeometryNode; virtual;
   end;
 
 { IVRMLInlineNode --------------------------------------------------------- }
@@ -5081,6 +5148,11 @@ procedure TVRMLGeometryNode.CoordPolygons(
   PolygonHandler: TIndexedPolygonHandler);
 begin
   { Nothing to do in this class. }
+end;
+
+function TVRMLGeometryNode.Proxy: TVRMLGeometryNode;
+begin
+  Result := nil;
 end;
 
 { TVRMLUnknownNode ---------------------------------------------------------------- }

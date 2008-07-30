@@ -43,6 +43,23 @@
     private FFdmatrix: TSFMatrix4f;
     public property Fdmatrix: TSFMatrix4f read FFdmatrix;
   end;
+
+  TNodeTeapot = class(TNodeX3DGeometryNode)
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdsize: TSFVec3f;
+    public property Fdsize: TSFVec3f read FFdsize;
+
+    private FFdsolid: TSFBool;
+    public property Fdsolid: TSFBool read FFdsolid;
+
+    function Proxy: TVRMLGeometryNode; override;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -106,10 +123,77 @@ begin
     true, 2, 0, 1000);
 end;
 
+constructor TNodeTeapot.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdsize := TSFVec3f.Create('size', Vector3Single(3, 3, 3));
+  FFdsize.Exposed := false;
+  Fields.Add(FFdsize);
+
+  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid.Exposed := false;
+  Fields.Add(FFdsolid);
+end;
+
+class function TNodeTeapot.ClassNodeTypeName: string;
+begin
+  Result := 'Teapot';
+end;
+
+function TNodeTeapot.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeTeapot.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
+function TNodeTeapot.Proxy: TVRMLGeometryNode;
+const
+  TeapotCoord {$I teapot_data/teapot_coord.inc};
+  TeapotCoordIndex {$I teapot_data/teapot_coord_index.inc};
+var
+  CoordNode: TNodeCoordinate;
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
+begin
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  try
+    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    IFS.FdCoord.Value := CoordNode;
+    CoordNode.FdPoint.Items.AssignArray(TeapotCoord);
+
+    { Scale Coords according to "size" field.
+      Assumes that original coords are good for default size (3, 3, 3). }
+    if not FdSize.EqualsDefaultValue then
+    begin
+      CoordNode.FdPoint.Items.MultiplyComponents(
+        VectorScale(FdSize.Value, 1/3));
+    end;
+
+    IFS.FdCoordIndex.Items.AssignArray(TeapotCoordIndex);
+
+    IFS.FdSolid.Value := FdSolid.Value;
+
+    { Set CreaseAngle to anything larger than Pi, to make this completely
+      smooth later using fast CreateSmoothNormalsCoordinateNode routine. }
+    IFS.FdCreaseAngle.Value := 4;
+  except FreeAndNil(Result); raise end;
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeMatrixTransform_2
+    TNodeMatrixTransform_2,
+    TNodeTeapot
   ]);
 end;
 {$endif read_implementation}

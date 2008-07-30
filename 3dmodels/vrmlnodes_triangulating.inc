@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2006 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ TVRMLGeometryNode.Triangulate ktore dziala wywolujac LocalTriangulate
+{ TVRMLGeometryNode.Triangulate (calls LocalTriangulate)
   -----------------------------------------------------------------------------}
 
 { just a shortcuts for names often used in this file }
@@ -61,6 +61,58 @@ begin
   LocalTriangulate(State, OverTriangulate,
     {$ifdef FPC_OBJFPC} @ {$endif} tr.LocalNewTriangle);
  finally tr.Free end;
+end;
+
+{ TVRMLGeometryNode.LocalTriangulate (using Proxy)
+  ---------------------------------------------------------------------------- }
+
+type
+  TProxyRedirect = class
+    NewTriangle: TNewTriangleProc;
+    SourceGeometry: TVRMLGeometryNode;
+    procedure Triangle(const Triangle: TTriangle3Single;
+      State: TVRMLGraphTraverseState;
+      GeometryNode: TVRMLGeometryNode;
+      const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+  end;
+
+procedure TProxyRedirect.Triangle(const Triangle: TTriangle3Single;
+  State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
+  const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
+begin
+  { We have to change GeometryNode to SourceGeometry
+    (otherwise NewTriangle callback would receive a reference
+    to temporary instance of Proxy, which would be very wrong
+    --- for example, such triangle information could get stored in
+    VRML triangle octree, and then used when picking with mouse).
+
+    Also, since SourceGeometry has probably different idea of what
+    is "face" etc., MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd
+    are reset to standard values. }
+
+  NewTriangle(Triangle, State, SourceGeometry, 0, -1, -1);
+end;
+
+procedure TVRMLGeometryNode.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  P: TVRMLGeometryNode;
+  ProxyRedirect: TProxyRedirect;
+begin
+  P := Proxy;
+  if P <> nil then
+  begin
+    ProxyRedirect := TProxyRedirect.Create;
+    try
+      ProxyRedirect.SourceGeometry := Self;
+      ProxyRedirect.NewTriangle := NewTriangleProc;
+      P.LocalTriangulate(State, OverTriangulate, @ProxyRedirect.Triangle);
+    finally
+      FreeAndNil(ProxyRedirect);
+      FreeAndNil(P);
+    end;
+  end else
+    raise EInternalError.Create('TVRMLGeometryNode.TrianglesCount not overridden, and node without a Proxy');
 end;
 
 { pomocnicze procedury LocalTriangulate* dla jakichs tworow geometrycznych
@@ -948,3 +1000,4 @@ begin
   LocalTriangulateCoordPolygons(Self, State,
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
+

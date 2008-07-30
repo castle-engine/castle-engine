@@ -579,8 +579,8 @@ begin
   inherited Create;
 
   FRenderer := ARenderer;
-  FState := Renderer.Render_State;
-  FGeometry := Renderer.Render_Node;
+  FState := Renderer.CurrentState;
+  FGeometry := Renderer.CurrentGeometry;
   FAttributes := Renderer.Attributes;
 
   if Geometry is TNodeX3DComposedGeometryNode then
