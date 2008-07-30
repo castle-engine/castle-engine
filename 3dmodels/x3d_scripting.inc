@@ -79,6 +79,8 @@ begin
     so it's not by accident) allows here all access types,
     including inputOutput. }
   HasInterfaceDeclarations := AllAccessTypes;
+
+  CDataAllowed := true;
 end;
 
 class function TNodeScript.ClassNodeTypeName: string;

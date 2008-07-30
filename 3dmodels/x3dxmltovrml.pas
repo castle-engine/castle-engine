@@ -413,9 +413,33 @@ const
       finally FreeAndNil(I) end;
     end;
 
+    procedure ParseXMLCdata;
+    var
+      I: TXMLCDataIterator;
+    begin
+      Node.CDataExists := false;
+      Node.CData := '';
+
+      I := TXMLCDataIterator.Create(Element);
+      try
+        if I.GetNext then
+        begin
+          Node.CDataExists := true;
+          if not Node.CDataAllowed then
+            VRMLNonFatalError(Format('VRML / X3D node %s doesn''t allow CDATA section, but it''s specified',
+              [Node.NodeTypeName]));
+          { append all CData sections to Node.CData }
+          repeat
+            Node.CData := Node.CData + I.Current;
+          until not I.GetNext;
+        end;
+      finally FreeAndNil(I) end;
+    end;
+
   begin
     ParseXMLAttributes;
     ParseXMLChildrenNodes;
+    ParseXMLCdata;
   end;
 
   (*

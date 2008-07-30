@@ -150,6 +150,35 @@ end;
     property Current: TDOMElement read FCurrent;
   end;
 
+  { Iterate over all CDATA nodes of given XML element.
+
+    Simple usage:
+
+@longCode(#
+var
+  I: TXMLCDataIterator;
+begin
+  I := TXMLCDataIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#) }
+  TXMLCDataIterator = class
+  private
+    ChildNodes: TDOMNodeList;
+    ChildIndex: Integer;
+    FCurrent: string;
+  public
+    constructor Create(ParentElement: TDOMElement);
+    destructor Destroy; override;
+    function GetNext: boolean;
+    property Current: string read FCurrent;
+  end;
+
 implementation
 
 uses KambiUtils;
@@ -328,6 +357,45 @@ begin
       begin
         Result := true;
         FCurrent := ChildNode as TDOMElement;
+        Break;
+      end;
+    end;
+  until false;
+end;
+
+{ TXMLCDataIterator -------------------------------------------------------- }
+
+constructor TXMLCDataIterator.Create(ParentElement: TDOMElement);
+begin
+  inherited Create;
+  ChildNodes := ParentElement.ChildNodes;
+  ChildIndex := -1;
+end;
+
+destructor TXMLCDataIterator.Destroy;
+begin
+  ChildNodes.Release;
+  inherited;
+end;
+
+function TXMLCDataIterator.GetNext: boolean;
+var
+  ChildNode: TDOMNode;
+begin
+  repeat
+    Inc(ChildIndex);
+
+    if ChildIndex >= Integer(ChildNodes.Count) then
+    begin
+      Result := false;
+      Break;
+    end else
+    begin
+      ChildNode := ChildNodes[ChildIndex];
+      if ChildNode.NodeType = CDATA_SECTION_NODE then
+      begin
+        Result := true;
+        FCurrent := (ChildNode as TDOMCDataSection).Data;
         Break;
       end;
     end;

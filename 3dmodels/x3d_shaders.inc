@@ -148,11 +148,12 @@
     private FFdtype: TSFString;
     public property Fdtype: TSFString read FFdtype;
 
-    { Load shader code from node's URL field.
+    { Load shader code from node's URLs (or CDATA).
 
-      Will return '' if no valid URLs (assuming that VRMLNonFatalError will not raise
-      an exception; if VRMLNonFatalError will raise exception, then this will propagate
-      this exception).
+      Will return '' if no valid URLs and no CDATA present.
+      (assuming that VRMLNonFatalError will not raise
+      an exception; if VRMLNonFatalError will raise exception,
+      then this will propagate this exception).
 
       Sets UsedFullUrl. }
     function LoadContents: string;
@@ -358,6 +359,7 @@ begin
   { X3D specification comment: [URI] }
 
   HasInterfaceDeclarations := AllAccessTypes;
+  CDataAllowed := true;
 end;
 
 class function TNodePackagedShader.ClassNodeTypeName: string;
@@ -422,6 +424,8 @@ begin
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'parts';
+
+  CDataAllowed := true;
 end;
 
 class function TNodeShaderPart.ClassNodeTypeName: string;
@@ -443,7 +447,7 @@ begin
     try
       Result := FileToString(PathFromWWWBasePath(FullUrl));
       FUsedFullUrl := FullUrl;
-      Break;
+      Exit;
     except
       on E: Exception do
         { pamietajmy ze VRMLNonFatalError moze spowodowac rzucenie wyjatku
@@ -452,6 +456,12 @@ begin
           ' occured when trying to load '+
           'shader file from URL "' + FullUrl + ' : ' + E.Message);
     end;
+  end;
+
+  if CDataExists then
+  begin
+    Result := CData;
+    FUsedFullUrl := '#CDATA';
   end;
 end;
 
@@ -486,6 +496,7 @@ begin
   DefaultContainerField := 'programs';
 
   HasInterfaceDeclarations := AllAccessTypes;
+  CDataAllowed := true;
 end;
 
 class function TNodeShaderProgram.ClassNodeTypeName: string;

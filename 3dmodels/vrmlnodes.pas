@@ -648,6 +648,9 @@ type
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
+    FCDataAllowed: boolean;
+    FCDataExists: boolean;
+    FCData: string;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1517,6 +1520,28 @@ type
 
     property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
       read FInterfaceDeclarations;
+    { @groupEnd }
+
+    { Does this node allow CDATA section when encoded in XML.
+      See X3D XML encoding specification about
+      "Encapsulating Script node code", instantreality also uses
+      CDATA to encode shader source code within XML file and this
+      seems sensible (following the intention of the spec?).
+
+      This is only used to produce eventual warnings when CDATA is
+      encountered. Whether or not CDataAllowed is @true, we will parse
+      CDATA anyway into @link(CData) value.
+
+      This should be set in descendants constructor. }
+    property CDataAllowed: boolean read FCDataAllowed write FCDataAllowed;
+
+    { CDATA section when this node is encoded in XML.
+      See X3D XML encoding specification.
+      When CDataExists = @false, CData is always empty.
+
+      @groupBegin }
+    property CDataExists: boolean read FCDataExists write FCDataExists;
+    property CData: string read FCData write FCData;
     { @groupEnd }
   end;
 
@@ -3511,6 +3536,10 @@ var
   Handled: boolean;
 begin
   RemoveAllChildren;
+
+  { In classic VRML encoding, CDATA never exists. }
+  CDataExists := false;
+  CData := '';
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;
