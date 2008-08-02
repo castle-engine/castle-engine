@@ -2727,6 +2727,9 @@ begin
       Break;
     Tri[1] := Tri[2];
     Tri[2] := Verts^[Indices^[I]];
+
+    if IsValidTriangle(Tri) then
+      VectorAddTo1st(result, TriangleNormal(Tri) );
   until false;
 
   { result to teraz suma ilus wektorow. Kazdy skladowy wektor
