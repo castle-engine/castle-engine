@@ -303,30 +303,40 @@ end;
 function TNodeFontStyle_2.Justify: TVRMLFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
+var
+  J: string;
 begin
   if FdJustify.Items.Count = 0 then
     Result := fjBegin else
   begin
-    if (FdJustify.Items[0] = 'BEGIN') or
-       (FdJustify.Items[0] = 'FIRST') then
+    { Some X3D models use lowercase names, like [http://instant-reality.com/]
+      test models. }
+    J := UpperCase(FdJustify.Items[0]);
+    if J <> FdJustify.Items[0] then
+      VRMLNonFatalError(Format(
+        'Font justify value "%s" should be specified in uppercase',
+        [ FdJustify.Items[0] ]));
+
+    if (J = 'BEGIN') or
+       (J = 'FIRST') then
       Result := fjBegin else
-    if FdJustify.Items[0] = 'MIDDLE' then
+    if J = 'MIDDLE' then
       Result := fjMiddle else
-    if FdJustify.Items[0] = 'END' then
+    if J = 'END' then
       Result := fjEnd else
 
     { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
-    if FdJustify.Items[0] = 'LEFT' then
+    if J = 'LEFT' then
     begin
       VRMLNonFatalError(Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
       Result := fjBegin;
     end else
-    if FdJustify.Items[0] = 'CENTER' then
+    if J = 'CENTER' then
     begin
       VRMLNonFatalError(Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
       Result := fjMiddle;
     end else
-    if FdJustify.Items[0] = 'RIGHT' then
+    if J = 'RIGHT' then
     begin
       VRMLNonFatalError(Format(SJustifyObsolete, ['RIGHT', 'END']));
       Result := fjEnd;
