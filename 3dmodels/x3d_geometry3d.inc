@@ -805,7 +805,7 @@ var
   CoordNode: TNodeCoordinate;
   TexCoordNode: TNodeTextureCoordinate;
   Transform: TMatrix4Single;
-  I, J, Len: Integer;
+  I, J, Len, SidesCount: Integer;
   LastY, LastZ: TVector3Single;
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
@@ -816,13 +816,15 @@ begin
     try
       E.Node := Self;
 
+      { calculate SidesCount = number of verts on sides, often used number }
+      SidesCount := (E.High + 1) * FdCrossSection.Count;
+
       { Fill CoordNode }
 
       CoordNode := TNodeCoordinate.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
 
-      CoordNode.FdPoint.Items.Length :=
-        (E.High + 1) * FdCrossSection.Count;
+      CoordNode.FdPoint.Items.Length := SidesCount;
 
       for I := 0 to E.High do
       begin
@@ -839,7 +841,7 @@ begin
       TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
       IFS.FdTexCoord.Value := TexCoordNode;
 
-      Len := (E.High + 1) * FdCrossSection.Count;
+      Len := SidesCount;
       if FdBeginCap.Value or FdEndCap.Value then
         Len += FdCrossSection.Count;
       TexCoordNode.FdPoint.Items.Length := Len;
@@ -880,7 +882,7 @@ begin
         for I := 0 to FdCrossSection.Count - 1 do
         begin
           TexCoordNode.FdPoint.Items.Items[
-            (E.High + 1) * FdCrossSection.Count + I] :=
+            SidesCount + I] :=
             VectorScale(VectorAdd(
               FdCrossSection.Items.Items[I],
               Vector2Single(TexCapsTranslation, TexCapsTranslation)),
@@ -928,14 +930,14 @@ begin
         { "downto" order, to match the ordering of sides, this makes
           things such a "solid TRUE" work Ok. }
         for J := FdCrossSection.Count - 1 downto 0 do
-          NextIndex(0, J, true, (E.High + 1) * FdCrossSection.Count + J);
+          NextIndex(0, J, true, SidesCount + J);
         NextIndexFaceDelimiter;
       end;
 
       if FdEndCap.Value then
       begin
         for J := 0 to FdCrossSection.Count - 1 do
-          NextIndex(E.High, J, true, (E.High + 1) * FdCrossSection.Count + J);
+          NextIndex(E.High, J, true, SidesCount + J);
         NextIndexFaceDelimiter;
       end;
 
