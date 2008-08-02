@@ -1866,6 +1866,11 @@ begin
   {$endif}
 end;
 
+const
+  { Parameters for AlphaChannelType to detect textures alpha channel }
+  AlphaTolerance = 5;
+  AlphaWrongPixelsTolerance = 0.01;
+
 function TVRMLOpenGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TImage;
   const TextureFullUrl: string;
@@ -1943,7 +1948,8 @@ begin
   TextureCached^.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelType(5, 0.1);
+  TextureCached^.AlphaChannelType := TextureImage.AlphaChannelType(
+    AlphaTolerance, AlphaWrongPixelsTolerance);
   if Log and (TextureCached^.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
       ' detected as simple yes/no alpha channel: ' +
@@ -2038,7 +2044,8 @@ begin
   TextureCached^.GLVideo := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(5, 0.1);
+  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelType(
+    AlphaTolerance, AlphaWrongPixelsTolerance);
   if Log and (TextureCached^.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
       ' detected as simple yes/no alpha channel: ' +
