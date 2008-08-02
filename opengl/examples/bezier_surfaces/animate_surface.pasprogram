@@ -1,0 +1,205 @@
+{
+  Copyright 2006-2008 Michalis Kamburelis.
+
+  This file is part of "Kambi VRML game engine".
+
+  "Kambi VRML game engine" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "Kambi VRML game engine"; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+  ----------------------------------------------------------------------------
+}
+
+{ Animate between two Bezier surfaces.
+  Test on sample_data/*.animation files. }
+program animate_surface;
+
+uses MatrixNavigation, GLW_Navigated, Surfaces, GLWindow, GL, GLU, VectorMath,
+  KambiGLUtils, Curve, BezierCurve, Boxes3d, SysUtils, KambiUtils, Keys,
+  KambiStringUtils, Math, GLWinMessages, KambiFilesUtils;
+
+var
+  Surface1, Surface2: TSurface;
+  SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
+  F: TGLfloat = 0.0;
+  FUp: boolean = true;
+
+procedure CameraHome;
+begin
+  Glw.NavWalker.Init(Box3d(Vector3Single(0, 0, -1),
+                           Vector3Single(1, 1,  1)), 0.0);
+end;
+
+procedure CameraScene;
+begin
+  Glw.NavWalker.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0.0, 0.0);
+end;
+
+procedure SurfacesLoad(const FileName: string);
+var
+  N: Cardinal;
+  F: TextFile;
+
+  procedure Load(Surface: TSurface);
+  var
+    I, J: Integer;
+    MyCurve: TRationalBezierCurve;
+    V: TVector3Single;
+  begin
+    for I := 0 to N - 1 do
+    begin
+      MyCurve := TRationalBezierCurve.Create(Surface.XBegin, Surface.XEnd);
+      for J := 0 to N - 1 do
+      begin
+        Read(F, V[0], V[1], V[2]);
+        MyCurve.ControlPoints.AppendItem(V);
+        MyCurve.Weights.AppendItem(1.0);
+      end;
+      Readln(F);
+      MyCurve.UpdateControlPoints;
+      Surface.Curves.Add(MyCurve);
+    end;
+  end;
+
+begin
+  Surface1 := TSurface.Create(0, 1, 0, 1);
+  Surface2 := TSurface.Create(0, 1, 0, 1);
+
+  SafeReset(F, FileName, true);
+  try
+    Readln(F, SurfacePos[0], SurfacePos[1], SurfacePos[2],
+              SurfaceDir[0], SurfaceDir[1], SurfaceDir[2],
+              SurfaceUp [0], SurfaceUp [1], SurfaceUp [2]);
+    Readln(F, N);
+    Load(Surface1);
+    Load(Surface2);
+  finally CloseFile(F) end;
+
+  CameraScene;
+end;
+
+procedure Draw(glwin: TGLWindow);
+const
+  SurfaceXSegments = 20;
+  SurfaceYSegments = 20;
+var
+  Surface: TSurface;
+  I, J: Integer;
+  C1, C2, MyCurve: TRationalBezierCurve;
+begin
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  glLoadMatrix(Glw.Navigator.Matrix);
+
+  glColorv(White3Single);
+
+  Surface := TSurface.Create(
+    Surface1.XBegin, Surface1.XEnd,
+    Surface1.YBegin, Surface1.YEnd);
+  try
+    for I := 0 to Surface1.Curves.High do
+    begin
+      C1 := Surface1.Curves.Items[I] as TRationalBezierCurve;
+      C2 := Surface2.Curves.Items[I] as TRationalBezierCurve;
+      MyCurve := TRationalBezierCurve.Create(C1.TBegin, C1.TEnd);
+      for J := 0 to C1.ControlPoints.High do
+      begin
+        MyCurve.ControlPoints.AppendItem(
+          Lerp(F, C1.ControlPoints.Items[J],
+                  C2.ControlPoints.Items[J]));
+        MyCurve.Weights.AppendItem(1.0);
+      end;
+      MyCurve.UpdateControlPoints;
+      Surface.Curves.Add(MyCurve);
+    end;
+
+    Surface.Render(SurfaceXSegments, SurfaceYSegments);
+  finally FreeAndNil(Surface) end;
+end;
+
+procedure Init(glwin: TGLWindow);
+begin
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_COLOR_MATERIAL);
+  glShadeModel(GL_FLAT);
+end;
+
+procedure Resize(glwin: TGLWindow);
+begin
+  glViewport(0, 0, glwin.Width, glwin.Height);
+  ProjectionGLPerspective(30, glwin.Width/glwin.Height, 0.1, 100);
+end;
+
+procedure Idle(Glwin: TGLWindow);
+begin
+  if FUp then
+  begin
+    F += 0.01 * Glwin.IdleSpeed * 50;
+    if F >= 1.0 then
+    begin
+      F := 1.0;
+      FUp := false;
+    end;
+  end else
+  begin
+    F -= 0.01 * Glwin.IdleSpeed * 50;
+    if F <= 0.0 then
+    begin
+      F := 0.0;
+      FUp := true;
+    end;
+  end;
+end;
+
+procedure KeyDown(Glwin: TGLWindow; Key: TKey; C: char);
+begin
+  case C of
+    'c': begin
+           Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
+             [ Glw.NavWalker.CameraPos[0],
+               Glw.NavWalker.CameraPos[1],
+               Glw.NavWalker.CameraPos[2],
+               Glw.NavWalker.CameraDir[0],
+               Glw.NavWalker.CameraDir[1],
+               Glw.NavWalker.CameraDir[2],
+               Glw.NavWalker.CameraUp[0],
+               Glw.NavWalker.CameraUp[1],
+               Glw.NavWalker.CameraUp[2] ]));
+         end;
+    'h': CameraHome;
+    's': CameraScene;
+  end;
+end;
+
+begin
+  Glw.Navigator := TMatrixWalker.Create(@Glw.PostRedisplayOnMatrixChanged);
+  Glw.NavWalker.PreferGravityUpForRotations := false;
+  Glw.NavWalker.PreferGravityUpForMoving := false;
+
+  SurfacesLoad(Parameters[1]);
+  try
+    Glw.OnInit := @Init;
+    Glw.OnResize := @Resize;
+    Glw.OnIdle := @Idle;
+    Glw.OnDraw := @Draw;
+    Glw.OnKeyDown := @KeyDown;
+
+    Glw.AutoRedisplay := true;
+
+    Glw.InitLoop;
+  finally
+    FreeAndNil(Surface1);
+    FreeAndNil(Surface2);
+  end;
+end.
