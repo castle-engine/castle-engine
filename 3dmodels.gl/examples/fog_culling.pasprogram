@@ -176,7 +176,7 @@ begin
     'models' + PathDelim + 'fog_culling_final.wrl', true),
     true, roSeparateShapeStates);
 
-  Writeln(Scene.Info(true, true, true));
+  Writeln(Scene.Info(true, true, false));
 
   { build octrees }
   Progress.UserInterface := ProgressConsoleInterface;

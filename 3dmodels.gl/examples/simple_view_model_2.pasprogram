@@ -129,7 +129,7 @@ begin
   Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(Parameters[1], true),
     true, {roSceneAsAWhole}roSeparateShapeStates);
 
-  Writeln(Scene.Info(true, true, true));
+  Writeln(Scene.Info(true, true, false));
 
   { Uncomment this to get some info about scene nodes:
   for i := 0 to Scene.ShapeStates.Count-1 do
