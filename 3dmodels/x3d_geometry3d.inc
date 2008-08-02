@@ -739,6 +739,14 @@ function TNodeExtrusion.Proxy: TVRMLGeometryNode;
     approach would remember these coordinates. Proxy approach provides
     this automatically, saving coordinates inside Coordinate node,
     for both normals calculation and rendering.
+
+  - A little ease of implementation: 230 lines of Proxy approach
+    versus 390 lines of TExtrusionRenderer. And remember that
+    actually handling creaseAngle would complicate TExtrusionRenderer
+    even more (that's why I didn't dare to do it...), and that
+    Proxy approach could also be used to implement things like
+    bounding box and triangulate eventually (although for now we use
+    our optimized methods).
 }
 
 var
@@ -746,9 +754,17 @@ var
   Index: Integer;
   E: TVRMLExtrusion;
 
-  procedure NextIndex(SpineIndex, CrossSectionIndex: Integer);
+  procedure NextIndex(SpineIndex, CrossSectionIndex: Integer;
+    SpecialTex: boolean; SpecialTexIndex: Integer);
   begin
+    if SpecialTex then
+      IFS.FdTexCoordIndex.Items.Items[Index] := SpecialTexIndex else
+      IFS.FdTexCoordIndex.Items.Items[Index] :=
+        SpineIndex * FdCrossSection.Count + CrossSectionIndex;
+
     { For closed spine and/or crossSection, specify the same indexes.
+      For coordIndex (for texCoordIndex, this is not correct, texture
+      may have a seam there).
       This will allow the correct smoothing between spine/crossSection
       edges when calculating normal vectors. }
 
@@ -762,14 +778,37 @@ var
 
     IFS.FdCoordIndex.Items.Items[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
+
     Inc(Index);
+  end;
+
+  procedure NextIndexFaceDelimiter;
+  begin
+    IFS.FdCoordIndex.Items.Items[Index] := -1;
+    IFS.FdTexCoordIndex.Items.Items[Index] := -1;
+    Inc(Index);
+  end;
+
+  function SideTexCoord(SpineIndex, CrossSectionIndex: Integer): TVector2Single;
+  begin
+    { Check ranges, to avoid dividing by zero (eventually the
+      corresponding coord is set to a predictable zero :) ). }
+    if FdCrossSection.Count > 1 then
+      Result[0] := CrossSectionIndex / (FdCrossSection.Count - 1) else
+      Result[0] := 0;
+    if E.High > 0 then
+      Result[1] := SpineIndex / E.High else
+      Result[1] := 0;
   end;
 
 var
   CoordNode: TNodeCoordinate;
+  TexCoordNode: TNodeTextureCoordinate;
   Transform: TMatrix4Single;
-  I, J: Integer;
+  I, J, Len: Integer;
   LastY, LastZ: TVector3Single;
+  TexCapsMin, TexCapsMax: TVector2Single;
+  TexCapsTranslation, TexCapsScale: Single;
 begin
   IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
   try
@@ -777,10 +816,10 @@ begin
     try
       E.Node := Self;
 
+      { Fill CoordNode }
+
       CoordNode := TNodeCoordinate.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
-
-      { Fill CoordNode }
 
       CoordNode.FdPoint.Items.Length :=
         (E.High + 1) * FdCrossSection.Count;
@@ -795,9 +834,70 @@ begin
         end;
       end;
 
-      { Fill CoordIndex }
+      { Fill TexCoordNode }
 
-      IFS.FdCoordIndex.Items.Length := 5 * E.High * (FdCrossSection.Count - 1);
+      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      IFS.FdTexCoord.Value := TexCoordNode;
+
+      Len := (E.High + 1) * FdCrossSection.Count;
+      if FdBeginCap.Value or FdEndCap.Value then
+        Len += FdCrossSection.Count;
+      TexCoordNode.FdPoint.Items.Length := Len;
+
+      for I := 0 to E.High do
+        for J := 0 to FdCrossSection.Count - 1 do
+          TexCoordNode.FdPoint.Items.Items[I * FdCrossSection.Count + J] :=
+            SideTexCoord(I, J);
+
+      { calculate TexCapsTranslation, TexCapsScale }
+      if FdBeginCap.Value or FdEndCap.Value then
+      begin
+        TexCapsTranslation := 0;
+        TexCapsScale := 1;
+        if FdCrossSection.Items.MinMax(TexCapsMin, TexCapsMax) then
+        begin
+          if TexCapsMax[0] - TexCapsMin[0] >=
+             TexCapsMax[1] - TexCapsMin[1] then
+          begin
+            if not IsZero(TexCapsMax[0] - TexCapsMin[0]) then
+            begin
+              { scale such that U is along the X of cap.
+                Coord calculation will go like
+                  u := (x - TexCapsMin[0]) / (TexCapsMax[0] - TexCapsMin[0]) }
+              TexCapsTranslation := -TexCapsMin[0];
+              TexCapsScale := 1 /  (TexCapsMax[0] - TexCapsMin[0]);
+            end;
+          end else
+          begin
+            if not IsZero(TexCapsMax[1] - TexCapsMin[1]) then
+            begin
+              TexCapsTranslation := -TexCapsMin[1];
+              TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);
+            end;
+          end;
+        end;
+
+        for I := 0 to FdCrossSection.Count - 1 do
+        begin
+          TexCoordNode.FdPoint.Items.Items[
+            (E.High + 1) * FdCrossSection.Count + I] :=
+            VectorScale(VectorAdd(
+              FdCrossSection.Items.Items[I],
+              Vector2Single(TexCapsTranslation, TexCapsTranslation)),
+              TexCapsScale);
+        end;
+      end;
+
+      { Fill CoordIndex and TexCoordIndex }
+
+      Len := 5 * E.High * (FdCrossSection.Count - 1);
+      if FdBeginCap.Value then
+        Len += FdCrossSection.Count + 1;
+      if FdEndCap  .Value then
+        Len += FdCrossSection.Count + 1;
+      IFS.FdCoordIndex.Items.Length := Len;
+      IFS.FdTexCoordIndex.Items.Length := Len;
+
       Index := 0;
 
       for I := 1 to E.High do
@@ -815,14 +915,28 @@ begin
 
             So below we produce the same order. }
 
-          NextIndex(I - 1, J - 1);
-          NextIndex(I - 1, J    );
-          NextIndex(I    , J    );
-          NextIndex(I    , J - 1);
-
-          IFS.FdCoordIndex.Items.Items[Index] := -1;
-          Inc(Index);
+          NextIndex(I - 1, J - 1, false, 0);
+          NextIndex(I - 1, J    , false, 0);
+          NextIndex(I    , J    , false, 0);
+          NextIndex(I    , J - 1, false, 0);
+          NextIndexFaceDelimiter;
         end;
+      end;
+
+      if FdBeginCap.Value then
+      begin
+        { "downto" order, to match the ordering of sides, this makes
+          things such a "solid TRUE" work Ok. }
+        for J := FdCrossSection.Count - 1 downto 0 do
+          NextIndex(0, J, true, (E.High + 1) * FdCrossSection.Count + J);
+        NextIndexFaceDelimiter;
+      end;
+
+      if FdEndCap.Value then
+      begin
+        for J := 0 to FdCrossSection.Count - 1 do
+          NextIndex(E.High, J, true, (E.High + 1) * FdCrossSection.Count + J);
+        NextIndexFaceDelimiter;
       end;
 
       { Check that we actually filled all indexes we planned }
@@ -833,6 +947,7 @@ begin
     IFS.FdSolid.Value := FdSolid.Value;
     IFS.FdCcw.Value := FdCcw.Value;
     IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
+    IFS.FdConvex.Value := FdConvex.Value;
   except FreeAndNil(Result); raise end;
 end;
 

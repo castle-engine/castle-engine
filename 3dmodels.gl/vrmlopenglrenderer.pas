@@ -4110,7 +4110,8 @@ begin
     still be rendered using direct specialized method, if available.
     This may be improved in the future, if the Proxy mechanism will
     get used by more nodes. }
-  if Geometry is TNodeTeapot then
+  if (Geometry is TNodeTeapot) or
+     (Geometry is TNodeExtrusion) then
     CurrentGeometry := Geometry.Proxy else
     CurrentGeometry := Geometry;
   try
