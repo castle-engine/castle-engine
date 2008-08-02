@@ -952,13 +952,26 @@ var NodeLastNodesIndex, i: integer;
 begin
  NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
- {ignore this Changed if node is not in our VRML graph (or is in the inactive
-    part) and is not one of StateDefaultNodes nodes.
-  Note : zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
-    przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
-    pola node'a nie mogla zmienic jego wlasnego stanu active/inactive. }
+ { Ignore this ChangedFields call if node is not in our VRML graph.
+
+   We check both active and inactive VRML graph parts.
+   Note that nodes from inactive
+   parts may influence us, for example VRML 2.0 Material is inside
+   Appearance inside Shape node, and doesn't get enumarated as
+   DirectEnumerateAll. Maybe definition of "active" will be more precise
+   one day, and I fix DirectEnumerateAll everywhere, then this can be
+   tightened.
+
+   Exception is for StateDefaultNodes nodes (they are not present in RootNode
+   graph, but influence us).
+
+   Old note when only active part was checked  :
+   zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
+   przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
+   pola node'a nie mogla zmienic jego wlasnego stanu active/inactive. }
+
  if (RootNode = nil) or
-    ( (not RootNode.IsNodePresent(Node, true)) and
+    ( (not RootNode.IsNodePresent(Node, false)) and
       ((NodeLastNodesIndex = -1) or
         (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
     ) then
@@ -971,6 +984,14 @@ begin
   for i := 0 to ShapeStates.Count-1 do
    if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
     ChangedShapeStateFields(i);
+ end else
+ if Node is TNodeMaterial_2 then
+ begin
+   { VRML 2.0 Material affects only shapes where it's
+     placed inside Appearance.material field. }
+   for I := 0 to ShapeStates.Count - 1 do
+     if ShapeStates[I].State.ParentShape.Material = Node then
+       ChangedShapeStateFields(I);
  end else
  if (Node is TVRMLLightNode) then
  begin
