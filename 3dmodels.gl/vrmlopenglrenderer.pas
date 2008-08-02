@@ -3870,8 +3870,6 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       ExposedMeshRenderer := TPointSet_2Renderer.Create(Self) else
     if CurrentGeometry is TNodeElevationGrid then
       ExposedMeshRenderer := TElevationGridRenderer.Create(Self) else
-    if CurrentGeometry is TNodeExtrusion then
-      ExposedMeshRenderer := TExtrusionRenderer.Create(Self) else
     if (CurrentGeometry is TNodeTriangleSet) or
        (CurrentGeometry is TNodeIndexedTriangleSet) then
       ExposedMeshRenderer := TTriangleSetRenderer.Create(Self) else
