@@ -864,6 +864,7 @@ const
       ComponentLevel: Integer;
     begin
       Head := DOMGetChildElement(X3DHeaderElement, 'head', false);
+      if Head = nil then Exit;
 
       I := TXMLElementIterator.Create(Head);
       try
