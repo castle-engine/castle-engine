@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -1531,6 +1531,8 @@ var
   B: boolean;
 begin
   inherited;
+  
+  FMouseNavigation := true;
 
   FScaleFactor := 1;
   FModelBox := EmptyBox3d;
