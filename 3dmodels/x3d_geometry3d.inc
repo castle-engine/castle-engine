@@ -752,12 +752,9 @@ var
       This will allow the correct smoothing between spine/crossSection
       edges when calculating normal vectors. }
 
-{ TODO: uncomment this too, make
-  view3dscene ~/3dmodels/x3d/www.web3d.org/x3d/content/examples/Basic/StudentProjects/DirtBike.wrl
-  test working. }
-{    if (SpineIndex = FdSpine.Items.High) and
-       E.SpineClosed then
-      SpineIndex := 0;}
+   if (SpineIndex = FdSpine.Items.High) and
+       E.BeginEndCapsMatching then
+      SpineIndex := 0;
 
     if (CrossSectionIndex = FdCrossSection.Items.High) and
        E.CrossSectionClosed then

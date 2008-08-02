@@ -43,6 +43,7 @@ type
     FHigh: Integer;
     FNode: TNodeExtrusion;
     FSpineClosed, FCrossSectionClosed: boolean;
+    FBeginEndCapsMatching: boolean;
     procedure SetNode(Value: TNodeExtrusion);
   public
     constructor Create;
@@ -60,9 +61,24 @@ type
 
     { Same thing as @link(TNodeExtrusion.SpineClosed Node.SpineClosed) and
       @link(TNodeExtrusion.CrossSectionClosed Node.CrossSectionClosed),
-      just calculated once (when setting Node) for speed. }
+      just calculated once (when setting Node) for speed.
+
+      @groupBegin }
     property SpineClosed: boolean read FSpineClosed;
     property CrossSectionClosed: boolean read FCrossSectionClosed;
+    { @groupEnd }
+
+    { Are begin and end caps at the same place.
+
+      This is a stronger condition
+      than just a SpineClosed: whole SpineTransformTo1st must be
+      guaranteed the same at the beginning and end. The Extrusion rules are such
+      that closed spine -> always produces the same automatic orientation
+      calculated at the beginning and end (X, Y, Z vectors in
+      TVRMLExtrusion.SpineTransformTo1st implementation). But we also
+      have to compare Orientation and Scale factors --- only when they
+      also match, the caps match. }
+    property BeginEndCapsMatching: boolean read FBeginEndCapsMatching;
 
     { If Spine > 0, LastY and LastZ must contain what was set here by calling
       SpineTransformTo1st(Spine - 1, LastY, LastZ). }
@@ -87,6 +103,9 @@ begin
 end;
 
 procedure TVRMLExtrusion.SetNode(Value: TNodeExtrusion);
+var
+  BeginOrientation, EndOrientation: TVector4Single;
+  BeginScale, EndScale: TVector2Single;
 begin
   FNode := Value;
 
@@ -125,6 +144,18 @@ begin
 
   FSpineClosed := Node.SpineClosed;
   FCrossSectionClosed := Node.CrossSectionClosed;
+
+  if SpineClosed then
+  begin
+    SpineScaleTo1st(0, BeginScale);
+    SpineScaleTo1st(High, EndScale);
+    SpineOrientationTo1st(0, BeginOrientation);
+    SpineOrientationTo1st(High, EndOrientation);
+    FBeginEndCapsMatching :=
+      VectorsPerfectlyEqual(BeginOrientation, EndOrientation) and
+      VectorsPerfectlyEqual(BeginScale, EndScale);
+  end else
+    FBeginEndCapsMatching := false;
 end;
 
 procedure TVRMLExtrusion.SpineScaleTo1st(Spine: Cardinal;
