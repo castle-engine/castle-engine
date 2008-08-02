@@ -187,6 +187,7 @@ begin
   Glw.NavWalker.PreferGravityUpForRotations := false;
   Glw.NavWalker.PreferGravityUpForMoving := false;
 
+  Parameters.CheckHigh(1);
   SurfacesLoad(Parameters[1]);
   try
     Glw.OnInit := @Init;

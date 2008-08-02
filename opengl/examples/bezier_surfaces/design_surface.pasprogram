@@ -304,12 +304,12 @@ procedure Idle(glwin: TGLWindow);
 begin
   if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
   begin
-    if Glwin.KeysDown[K_Numpad_8] then Move(1, +1);
-    if Glwin.KeysDown[K_Numpad_2] then Move(1, -1);
-    if Glwin.KeysDown[K_Numpad_4] then Move(0, -1);
-    if Glwin.KeysDown[K_Numpad_6] then Move(0, +1);
-    if Glwin.KeysDown[K_Numpad_9] then Move(2, +1);
-    if Glwin.KeysDown[K_Numpad_3] then Move(2, -1);
+    if Glwin.CharactersDown['8'] then Move(1, +1);
+    if Glwin.CharactersDown['2'] then Move(1, -1);
+    if Glwin.CharactersDown['4'] then Move(0, -1);
+    if Glwin.CharactersDown['6'] then Move(0, +1);
+    if Glwin.CharactersDown['9'] then Move(2, +1);
+    if Glwin.CharactersDown['3'] then Move(2, -1);
   end;
 end;
 
@@ -628,6 +628,9 @@ begin
   Glw.Navigator := TMatrixExaminer.Create(@Dummy.MatrixChanged);
   Glw.NavExaminer.Init(Box3d(Vector3Single(0, 0, -1),
                              Vector3Single(1, 1,  1)));
+  { conflicts with our MouseDown / MouseMove }
+  Glw.NavExaminer.MouseNavigation := false;
+  Glw.NavExaminer.Input_StopRotating.MouseButtonUse := false;
 
   Glw.OnInit := @Init;
   Glw.OnClose := @Close;

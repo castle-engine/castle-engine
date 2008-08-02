@@ -383,6 +383,8 @@ type
     function EventDown(MouseEvent: boolean; Key: TKey;
       ACharacter: Char;
       AMouseButton: TMouseButton): boolean;
+
+    FMouseNavigation: boolean;
   public
     constructor Create(const AOnMatrixChanged: TMatrixNavigatorNotifyFunc);
       override;
@@ -487,6 +489,9 @@ type
     property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
     property Input_Home: TInputShortcut read FInput_Home;
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
+
+    property MouseNavigation: boolean
+      read FMouseNavigation write FMouseNavigation default true;
   end;
 
   TMatrixWalker = class;
@@ -1786,7 +1791,7 @@ begin
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     do nothing. }
-  if MousePressed = [] then Exit;
+  if (MousePressed = []) or (not MouseNavigation) then Exit;
 
   ModsDown := ModifiersDown(KeysDown) * [mkShift, mkCtrl];
 

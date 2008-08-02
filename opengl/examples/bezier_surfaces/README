@@ -17,9 +17,11 @@ Keys and mouse commands not available from the menu:
                                        translation and scale
 
 - Left mouse button click: select closest point (closest to the clicked
-  place).
+  place). You can also select point using the keys (AWSD, see menu),
+  but usually mouse is more comfortable.
 
-- Numpad digits 28 46 93 move the currently selected point along one of
+- Digits 28 46 93 (on numpad or not, to support laptops where numpad is
+  difficult) move the currently selected point along one of
   the basic axes (X, Y or Z). Usually it's more comfortable to use
   mouse dragging for this, see below...
 
@@ -41,3 +43,7 @@ TODO:
   You have to modify TSurface.Render to keep track of CurveNext
   (in addition to CurvePrev and CurveNext) to be able to calculate
   normal vectors averaged between all adjacent faces.
+
+- Glw.NavExaminer.MouseNavigation is just turned off, to allow editing
+  with mouse. Some better UI would be useful, to keep mouse navigation
+  and at the same time allow mouse editing.
