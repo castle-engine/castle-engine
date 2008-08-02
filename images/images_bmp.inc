@@ -46,7 +46,7 @@ type
   TArray_RGBQuad = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
   PArray_RGBQuad = ^TArray_RGBQuad;
 
-  TRGB_BMP24 = packed record b, g,r: byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
+  TRGB_BMP24 = packed record b, g, r: byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
   PRGB_BMP24 = ^TRGB_BMP24;
   TArray_RGB_BMP24 = array[0..MaxInt div SizeOf(TRGB_BMP24)-1] of TRGB_BMP24;
   PArray_RGB_BMP24 = ^TArray_RGB_BMP24;
@@ -57,7 +57,8 @@ const
   BI_RLE4 = 2;
   BI_BITFIELDS = 3;
 
-function LoadBMP(Stream: TStream): TRGBImage;
+function LoadAnyBMP(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
@@ -73,7 +74,7 @@ var fhead: TBitmapFileHeader;
    rgb3[2] := palette^[paletteIndex].blue;
   end;
 
-  procedure WriteRow(rgbrow: PArray_Vector3Byte; bmprow: PByteArray);
+  procedure WriteRow(Row: Pointer; bmprow: PByteArray);
   { przepisz wiersz bitmapy bmprow na wiersz strukturek TVector3Byte. }
 
     function FiveBitsToByte(fivebits: Word): byte;
@@ -83,7 +84,10 @@ var fhead: TBitmapFileHeader;
      result := fivebits*255 div 31;
     end;
 
-  var bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
+  var
+    bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
+    rgbrow: PArray_Vector3Byte absolute Row;
+    rgbarow: PArray_Vector4Byte absolute Row;
   begin
    bmpi := 0;
    rgbi := 0;
@@ -122,13 +126,24 @@ var fhead: TBitmapFileHeader;
         rgbrow^[rgbi, 1] := PArray_RGB_BMP24(bmprow)^[rgbi].g;
         rgbrow^[rgbi, 2] := PArray_RGB_BMP24(bmprow)^[rgbi].b;
        end;
-    32: ;
+    32:for rgbi := 0 to ihead.biWidth-1 do
+       begin
+         { We know that for 32, we have TAlphaImage, so we use rgbarow }
+         Assert(Result is TAlphaImage);
+
+         rgbarow^[rgbi, 0] := PArray_RGBQuad(bmprow)^[rgbi].red;
+         rgbarow^[rgbi, 1] := PArray_RGBQuad(bmprow)^[rgbi].green;
+         rgbarow^[rgbi, 2] := PArray_RGBQuad(bmprow)^[rgbi].blue;
+         { At least GIMP treats the 4th component as alpha value. }
+         rgbarow^[rgbi, 3] := PArray_RGBQuad(bmprow)^[rgbi].reserved;
+       end;
    end;
   end;
 
 var i: integer;
     rowsGoingUp: boolean;
     rowdata: PByteArray;
+    NewResult: TImage;
 begin
  try
   { read and check headers }
@@ -158,9 +173,9 @@ begin
     1: begin PaletteSize := 2; rowLength := DivRoundUp(biWidth, 8) end;
     4: begin PaletteSize := 16; rowLength := DivRoundUp(biWidth, 2) end;
     8: begin PaletteSize := 256; rowLength := biWidth end;
-    16: begin rowLength := biWidth*2 end;
-    24: begin rowLength := biWidth*3 end;
-    32: raise EInvalidBMP.Create('Wrong bitmap : TODO, 32 bit bitmaps not implemented yet');
+    16: begin rowLength := biWidth * 2 end;
+    24: begin rowLength := biWidth * 3 end;
+    32: begin rowLength := biWidth * 4 end;
     else raise EInvalidBMP.Create('Wrong bitmap : biBitCount doesn''t match any allowed value');
    end;
 
@@ -202,7 +217,25 @@ begin
 
      Stream.Position := fhead.bfOffBits;
      rowdata := GetMem(rowLength);
-     Result := TRGBImage.Create(biWidth, biHeight);
+
+     { Behave like FormatRequired = frAny, since this is Ok most the time
+       and allows easy programming later. }
+     if biBitCount = 32 then
+       Result := TAlphaImage.Create(biWidth, biHeight) else
+       Result := TRGBImage.Create(biWidth, biHeight);
+
+     if not ConvertToRequired then
+     begin
+       { If FormatRequired doesn't match, raise error now
+         (no sense in reading the image data). }
+       if (FormatRequired = frWithoutAlpha) and
+          (Result is TAlphaImage) then
+         raise EUnableToLoadImage.Create('Not allowed BMP format: alpha information in BMP is not allowed here');
+
+       if (FormatRequired = frWithAlpha) and
+          (Result is TRGBImage) then
+         raise EUnableToLoadImage.Create('Not allowed BMP format: alpha information in BMP is required here');
+     end;
 
      for i := 0 to biHeight - 1 do
      begin
@@ -212,6 +245,25 @@ begin
       if rowsGoingUp then rownum := i else rownum := biHeight-i-1;
       WriteRow(Result.RowPtr(rownum), rowData);
      end;
+
+     { If FormatRequired doesn't match, convert now
+       (we already checked ConvertToRequired, we know we can convert Ok). }
+     if (FormatRequired = frWithoutAlpha) and
+        (Result is TAlphaImage) then
+     begin
+       NewResult := TAlphaImage(Result).ToRGBImage;
+       FreeAndNil(Result);
+       Result := NewResult;
+     end;
+
+     if (FormatRequired = frWithAlpha) and
+        (Result is TRGBImage) then
+     begin
+       NewResult := TRGBImage(Result).ToAlphaImage_AlphaConst(255);
+       FreeAndNil(Result);
+       Result := NewResult;
+     end;
+
     finally
      FreeMemNiling(pointer(rowdata));
      FreeMemNiling(pointer(palette));
@@ -225,6 +277,11 @@ begin
   on E: EReadError do raise EInvalidBMP.Create('Read error : ' + E.Message);
   on E: ECheckFailed do raise EInvalidBMP.Create('Wrong bitmap : ' + E.Message);
  end;
+end;
+
+function LoadBMP(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnyBMP(Stream, frWithoutAlpha, true) as TRGBImage;
 end;
 
 procedure SaveBMP(const Img: TRGBImage; Stream: TStream);
@@ -281,4 +338,3 @@ begin
   end;
  finally FreeMem(rowdata) end;
 end;
-

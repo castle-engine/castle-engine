@@ -821,6 +821,9 @@ type
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+
+    { Remove alpha channel, creating new TRGBImage. }
+    function ToRGBImage: TRGBImage;
   end;
 
   { Color is encoded as 3 mantisas + 1 exponent,
@@ -1024,6 +1027,9 @@ function LoadAnyPNG(Stream: TStream; FormatRequired: TImageFormatRequirements;
   lub ikAlpha (wtedy zapamieta alpha obrazka w pliku) }
 procedure SaveAnyPNG(const Img: TImage; Stream: TStream; Interlaced: boolean);
 
+function LoadAnyBMP(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
 function LoadAnyGIF(Stream: TStream; FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
@@ -1101,7 +1107,7 @@ const
       ExtsCount: 1; Exts: ('bmp', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadBMP;
       SaveRGB: {$ifdef FPC_OBJFPC} @ {$endif} SaveBMP;
-      Load: nil),
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyBMP),
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       ExtsCount: 1; Exts: ('png', '', '');
@@ -2287,6 +2293,23 @@ begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
     Inc(SecondPtr);
+  end;
+end;
+
+function TAlphaImage.ToRGBImage: TRGBImage;
+var
+  SelfPtr: PVector4Byte;
+  ResultPtr: PVector3Byte;
+  I: Cardinal;
+begin
+  Result := TRGBImage.Create(Width, Height);
+  SelfPtr := AlphaPixels;
+  ResultPtr := Result.RGBPixels;
+  for I := 1 to Width * Height do
+  begin
+    Move(SelfPtr^, ResultPtr^, SizeOf(TVector3Byte));
+    Inc(SelfPtr);
+    Inc(ResultPtr);
   end;
 end;
 
