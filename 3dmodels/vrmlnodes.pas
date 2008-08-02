@@ -5782,7 +5782,8 @@ end;
 
 function ParseVRMLStatements(
   Lexer: TVRMLLexer;
-  const EndToken: TVRMLToken): TVRMLNode; forward;
+  const EndToken: TVRMLToken;
+  ParseX3DHeader: boolean): TVRMLNode; forward;
 
 procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer);
 var
@@ -5819,7 +5820,7 @@ begin
     Lexer.ProtoNameBinding := TStringListCaseSens.Create;
     try
       Lexer.ProtoNameBinding.Assign(OldProtoNameBinding);
-      FNode := ParseVRMLStatements(Lexer, vtCloseCurlyBracket);
+      FNode := ParseVRMLStatements(Lexer, vtCloseCurlyBracket, false);
     finally
       FreeAndNil(Lexer.ProtoNameBinding);
       Lexer.ProtoNameBinding := OldProtoNameBinding;
@@ -6397,7 +6398,8 @@ end;
   or TVRMLRootNode_2 instance. }
 function ParseVRMLStatements(
   Lexer: TVRMLLexer;
-  const EndToken: TVRMLToken): TVRMLNode;
+  const EndToken: TVRMLToken;
+  ParseX3DHeader: boolean): TVRMLNode;
 
   { Create root group node, appropriate for current VRML version in Lexer. }
   function CreateRootNode: TVRMLNode;
@@ -6415,6 +6417,65 @@ function ParseVRMLStatements(
       TVRMLRootNode_2(Result).ForceVersion := true;
       TVRMLRootNode_2(Result).ForceVersionMajor := Lexer.VRMLVerMajor;
       TVRMLRootNode_2(Result).ForceVersionMinor := Lexer.VRMLVerMinor;
+    end;
+  end;
+
+  procedure ParseProfile;
+  begin
+    if Lexer.TokenIsKeyword(vkPROFILE) then
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'X3D profile name');
+      (Result as TVRMLRootNode_2).X3DProfile := Lexer.TokenName;
+
+      Lexer.NextToken;
+    end else
+      { We allow PROFILE to be omitted, which is not really allowed by
+        X3D spec. }
+      VRMLNonFatalError('X3D PROFILE statement missing');
+  end;
+
+  procedure ParseComponents;
+  var
+    Name: string;
+    Level: Integer;
+  begin
+    while Lexer.TokenIsKeyword(vkCOMPONENT) do
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtName, 'X3D component name');
+      Name := Lexer.TokenName;
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtColon);
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtInteger, 'X3D component level');
+      Level := Lexer.TokenInteger;
+      (Result as TVRMLRootNode_2).X3DComponentNames.AppendItem(Name);
+      (Result as TVRMLRootNode_2).X3DComponentLevels.AppendItem(Level);
+
+      Lexer.NextToken;
+    end;
+  end;
+
+  procedure ParseMetas;
+  var
+    Key, Value: string;
+  begin
+    while Lexer.TokenIsKeyword(vkMETA) do
+    begin
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtString, 'X3D meta key');
+      Key := Lexer.TokenString;
+
+      Lexer.NextToken;
+      Lexer.CheckTokenIs(vtString, 'X3D meta value');
+      Value := Lexer.TokenString;
+      (Result as TVRMLRootNode_2).X3DMetaKeys.AppendItem(Key);
+      (Result as TVRMLRootNode_2).X3DMetaValues.AppendItem(Value);
+
+      Lexer.NextToken;
     end;
   end;
 
@@ -6477,7 +6538,7 @@ begin
       to be stored in a root group
     - Finally, ForceVersion mechanism is available for RootGroup to force
       writing of specific VRML version.
-    - And for X3D, TVRMLRootNode_2 will have to be enhanced
+    - And for X3D, TVRMLRootNode_2 has to be enhanced
       to keep other top-level X3D data: profile, components, meta statements.
 
     So now, we simply always create root node by ParseVRMLStatements
@@ -6486,6 +6547,15 @@ begin
 
   Result := CreateRootNode;
   try
+    { Parse X3D "configuration information": profile, component and meta
+      statements here. }
+    if ParseX3DHeader and (Lexer.VRMLVerMajor >= 3) then
+    begin
+      ParseProfile;
+      ParseComponents;
+      ParseMetas;
+    end;
+
     while Lexer.Token <> EndToken do
     begin
       ParseVRMLStatement;
@@ -6498,60 +6568,10 @@ function ParseVRMLFile(Stream: TPeekCharStream;
   ProtoNameBinding: TStringList): TVRMLNode;
 var
   Lexer: TVRMLLexer;
-
-  procedure ParseProfile;
-  begin
-    if Lexer.TokenIsKeyword(vkPROFILE) then
-    begin
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtName, 'X3D profile name');
-      Lexer.NextToken;
-    end else
-      { We allow PROFILE to be omitted, which is not really allowed by
-        X3D spec. }
-      VRMLNonFatalError('X3D PROFILE statement missing');
-  end;
-
-  procedure ParseComponents;
-  begin
-    while Lexer.TokenIsKeyword(vkCOMPONENT) do
-    begin
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtName, 'X3D component name');
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtColon);
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtInteger, 'X3D component level');
-      Lexer.NextToken;
-    end;
-  end;
-
-  procedure ParseMetas;
-  begin
-    while Lexer.TokenIsKeyword(vkMETA) do
-    begin
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtString, 'X3D meta key');
-      Lexer.NextToken;
-      Lexer.CheckTokenIs(vtString, 'X3D meta value');
-      Lexer.NextToken;
-    end;
-  end;
-
 begin
   Lexer := TVRMLLexer.Create(Stream, false, WWWBasePath);
   try
-    { Parse X3D "configuration information": profile, component and meta
-      statements here.
-      TODO: I should save them somewhere, for saving it back to file. }
-    if Lexer.VRMLVerMajor >= 3 then
-    begin
-      ParseProfile;
-      ParseComponents;
-      ParseMetas;
-    end;
-
-    Result := ParseVRMLStatements(Lexer, vtEnd);
+    Result := ParseVRMLStatements(Lexer, vtEnd, true);
     if ProtoNameBinding <> nil then
       ProtoNameBinding.Assign(Lexer.ProtoNameBinding);
   finally
@@ -6644,12 +6664,51 @@ end;
 procedure SaveToVRMLFile(Node: TVRMLNode; Stream: TStream;
   const PrecedingComment: string;
   WriteExpandedPrototype: boolean);
+var
+  SaveProperties: TVRMLSaveToStreamProperties;
+
+  procedure SaveProfile;
+  begin
+    if (Node is TVRMLRootNode_2) and
+       (TVRMLRootNode_2(Node).X3DProfile <> '') then
+      SaveProperties.Writeln('PROFILE ' + TVRMLRootNode_2(Node).X3DProfile + NL) else
+      { Just output some profile, as every X3D file should have this.
+        We actually don't detect for now in any way which profile
+        would be best. }
+      SaveProperties.Writeln('PROFILE Interchange' + NL);
+  end;
+
+  procedure SaveComponents;
+  var
+    I: Integer;
+  begin
+    if Node is TVRMLRootNode_2 then
+      for I := 0 to TVRMLRootNode_2(Node).X3DComponentNames.Count - 1 do
+      begin
+        SaveProperties.Writeln(Format('COMPONENT %s:%d' + NL,
+          [ TVRMLRootNode_2(Node).X3DComponentNames[I],
+            TVRMLRootNode_2(Node).X3DComponentLevels[I] ]));
+      end;
+  end;
+
+  procedure SaveMetas;
+  var
+    I: Integer;
+  begin
+    if Node is TVRMLRootNode_2 then
+      for I := 0 to TVRMLRootNode_2(Node).X3DMetaKeys.Count - 1 do
+      begin
+        SaveProperties.Writeln(Format('META %s %s' + NL,
+          [ StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaKeys[I]),
+            StringToVRMLStringToken(TVRMLRootNode_2(Node).X3DMetaValues[I])]));
+      end;
+  end;
+
 const
   VRML10Header = '#VRML V1.0 ascii';
   VRML20Header = '#VRML V2.0 utf8';
   X3DHeader = '#X3D V%d.%d utf8';
 var
-  SaveProperties: TVRMLSaveToStreamProperties;
   VerMajor, VerMinor, SuggestionPriority: Integer;
   VRMLHeader: string;
 begin
@@ -6685,10 +6744,9 @@ begin
 
     if VerMajor >= 3 then
     begin
-      { Just output some profile, as every X3D file should have this.
-        We actually don't detect for now in any way which profile
-        would be best. }
-      SaveProperties.Writeln('PROFILE Interchange' + NL);
+      SaveProfile;
+      SaveComponents;
+      SaveMetas;
     end;
 
     { Node may be TVRMLRootNode_* here, that's OK,

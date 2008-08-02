@@ -104,7 +104,15 @@
     FForceVersion: boolean;
     FForceVersionMajor: Integer;
     FForceVersionMinor: Integer;
+    FX3DProfile: string;
+    FX3DComponentNames: TDynStringArray;
+    FX3DComponentLevels: TDynLongIntArray;
+    FX3DMetaKeys: TDynStringArray;
+    FX3DMetaValues: TDynStringArray;
   public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     (*Save TVRMLRootNode_* contents to stream.
 
       TVRMLRootNode_* is saved to stream in a special way, so that actually
@@ -121,6 +129,24 @@
     property ForceVersion: boolean read FForceVersion write FForceVersion default false;
     property ForceVersionMajor: Integer read FForceVersionMajor write FForceVersionMajor;
     property ForceVersionMinor: Integer read FForceVersionMinor write FForceVersionMinor;
+    { @groupEnd }
+
+    { If this is the root of X3D file, and profile was specified
+      (it always should), this is it. }
+    property X3DProfile: string read FX3DProfile write FX3DProfile;
+
+    { If this is the root of X3D file, these are specified components
+      and their levels. Lengths of these arrays must always be equal.
+      @groupBegin }
+    property X3DComponentNames: TDynStringArray read FX3DComponentNames;
+    property X3DComponentLevels: TDynLongIntArray read FX3DComponentLevels;
+    { @groupEnd }
+
+    { If this is the root of X3D file, these are specified meta keys
+      and their values. Lengths of these arrays must always be equal.
+      @groupBegin }
+    property X3DMetaKeys: TDynStringArray read FX3DMetaKeys;
+    property X3DMetaValues: TDynStringArray read FX3DMetaValues;
     { @groupEnd }
 
     function SuggestedVRMLVersion(
@@ -378,6 +404,25 @@ begin
   { Since VRML 2.0 }
   AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
     true, 2, 0, 1000);
+end;
+
+constructor TVRMLRootNode_2.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+  FX3DComponentNames := TDynStringArray.Create;
+  FX3DComponentLevels := TDynLongIntArray.Create;
+  FX3DMetaKeys := TDynStringArray.Create;
+  FX3DMetaValues := TDynStringArray.Create;
+end;
+
+destructor TVRMLRootNode_2.Destroy;
+begin
+  FreeAndNil(FX3DComponentNames);
+  FreeAndNil(FX3DComponentLevels);
+  FreeAndNil(FX3DMetaKeys);
+  FreeAndNil(FX3DMetaValues);
+  inherited;
 end;
 
 procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);

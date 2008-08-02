@@ -71,7 +71,9 @@ const
   function ParseNode(Element: TDOMElement;
     out ContainerField: string;
     NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
-  function ParseVRMLStatements(Element: TDOMElement): TVRMLNode; forward;
+  function ParseVRMLStatements(Element: TDOMElement;
+    ParseX3DHeader: boolean;
+    X3DHeaderElement: TDOMElement): TVRMLNode; forward;
   procedure ParsePrototype(Proto: TVRMLPrototype; Element: TDOMElement); forward;
   procedure ParseExternalPrototype(Proto: TVRMLExternalPrototype;
     Element: TDOMElement); forward;
@@ -779,7 +781,7 @@ const
       ProtoNameBinding := TStringListCaseSens.Create;
       try
         ProtoNameBinding.Assign(OldProtoNameBinding);
-        Proto.Node := ParseVRMLStatements(E);
+        Proto.Node := ParseVRMLStatements(E, false, nil);
       finally
         FreeAndNil(ProtoNameBinding);
         ProtoNameBinding := OldProtoNameBinding;
@@ -826,7 +828,9 @@ const
     Returns a single VRML node. If there was exactly one statement
     and it was a node statement, returns this node. Otherwise,
     returns everything read wrapped in artifical TVRMLRootNode_2 instance. }
-  function ParseVRMLStatements(Element: TDOMElement): TVRMLNode;
+  function ParseVRMLStatements(Element: TDOMElement;
+    ParseX3DHeader: boolean;
+    X3DHeaderElement: TDOMElement): TVRMLNode;
 
     { Create root group node. }
     function CreateRootNode: TVRMLNode;
@@ -835,6 +839,61 @@ const
       TVRMLRootNode_2(Result).ForceVersion := true;
       TVRMLRootNode_2(Result).ForceVersionMajor := VRMLVerMajor;
       TVRMLRootNode_2(Result).ForceVersionMinor := VRMLVerMinor;
+    end;
+
+    procedure ParseProfile;
+    var
+      Profile: string;
+    begin
+      { parse "profile" attribute }
+      if DOMGetAttribute(X3DHeaderElement, 'profile', Profile) then
+      begin
+        (Result as TVRMLRootNode_2).X3DProfile := Profile;
+      end else
+        { We allow PROFILE to be omitted.
+          Actually, we do not use profile for anything right now. }
+        VRMLNonFatalError('X3D "profile" attribute missing');
+    end;
+
+    procedure ParseComponentsAndMetas;
+    var
+      Head: TDOMElement;
+      I: TXMLElementIterator;
+      MetaName, MetaContent: string;
+      ComponentName: string;
+      ComponentLevel: Integer;
+    begin
+      Head := DOMGetChildElement(X3DHeaderElement, 'head', false);
+
+      I := TXMLElementIterator.Create(Head);
+      try
+        while I.GetNext do
+        begin
+          if I.Current.TagName = 'meta' then
+          begin
+            MetaName := '';
+            MetaContent := '';
+            DOMGetAttribute(I.Current, 'name', MetaName);
+            DOMGetAttribute(I.Current, 'content', MetaContent);
+            (Result as TVRMLRootNode_2).X3DMetaKeys.AppendItem(MetaName);
+            (Result as TVRMLRootNode_2).X3DMetaValues.AppendItem(MetaContent);
+          end else
+          if I.Current.TagName = 'component' then
+          begin
+            if DOMGetAttribute(I.Current, 'name', ComponentName) then
+            begin
+              if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
+                ComponentLevel := 1;
+              (Result as TVRMLRootNode_2).X3DComponentNames.AppendItem(ComponentName);
+              (Result as TVRMLRootNode_2).X3DComponentLevels.AppendItem(ComponentLevel);
+            end else
+              VRMLNonFatalError(Format('X3D XML: <component> element without required "name" attribute',
+                [I.Current.TagName]));
+          end else
+            VRMLNonFatalError(Format('X3D XML: unrecognized element "%s" in <head>',
+              [I.Current.TagName]));
+        end;
+      finally FreeAndNil(I) end;
     end;
 
     procedure ParseVRMLStatement(Element: TDOMElement);
@@ -888,6 +947,12 @@ const
   begin
     Result := CreateRootNode;
     try
+      if ParseX3DHeader then
+      begin
+        ParseProfile;
+        ParseComponentsAndMetas;
+      end;
+
       I := TXMLElementIterator.Create(Element);
       try
         while I.GetNext do
@@ -905,7 +970,7 @@ var
   { Eventually used to decompress gzip file. }
   Stream: TStream;
 
-  Profile, Version: string;
+  Version: string;
 begin
   WWWBasePath := ExtractFilePath(ExpandFileName(FileName));
 
@@ -944,14 +1009,8 @@ begin
         VRMLNonFatalError(Format('Missing X3D version number, assuming %d.%d', [VRMLVerMajor, VRMLVerMinor]));
       end;
 
-      { parse "profile" attribute }
-      if not DOMGetAttribute(Doc.DocumentElement, 'profile', Profile) then
-        { We allow PROFILE to be omitted.
-          Actually, we do not use profile for anything right now. }
-        VRMLNonFatalError('X3D "profile" attribute missing');
-
       SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
-      Result := ParseVRMLStatements(SceneElement);
+      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement);
     finally FreeAndNil(Doc) end;
   finally
     FreeAndNil(NodeNameBinding);
