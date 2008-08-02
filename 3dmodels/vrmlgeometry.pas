@@ -23,10 +23,8 @@
 
   For some geometry nodes, calculating their vertices (and other properties)
   is non-trivial enough to be separated into a unit. We want to reuse
-  this by VRMLOpenGLRenderer (file
-  ../3dmodels.gl/vrmlopenglrenderer_render_specificnodes.inc)
-  and by BoundingBox calculation (file vrmlnodes_boundingboxes.inc),
-  and possibly more in the future.
+  this by VRMLOpenGLRenderer, and by TVRMLGeometryNode.BoundingBox calculation,
+  and by TVRMLGeometryNode.Triangulate etc.
 
   Normal users of our engine should not use this unit directly
   (it's functionality is indirectly available to you when rendering,
@@ -44,6 +42,7 @@ type
   private
     FHigh: Integer;
     FNode: TNodeExtrusion;
+    FSpineClosed, FCrossSectionClosed: boolean;
     procedure SetNode(Value: TNodeExtrusion);
   public
     constructor Create;
@@ -58,6 +57,12 @@ type
       You can safely ask SpineXxxTransform about various values between
       0..High. }
     property High: Integer read FHigh;
+
+    { Same thing as @link(TNodeExtrusion.SpineClosed Node.SpineClosed) and
+      @link(TNodeExtrusion.CrossSectionClosed Node.CrossSectionClosed),
+      just calculated once (when setting Node) for speed. }
+    property SpineClosed: boolean read FSpineClosed;
+    property CrossSectionClosed: boolean read FCrossSectionClosed;
 
     { If Spine > 0, LastY and LastZ must contain what was set here by calling
       SpineTransformTo1st(Spine - 1, LastY, LastZ). }
@@ -117,6 +122,9 @@ begin
       VRMLNonFatalError('Extrusion has more orientations than 1, but not as much as spines. ' +
         'We''ll use only the first orientation.');
   end;
+
+  FSpineClosed := Node.SpineClosed;
+  FCrossSectionClosed := Node.CrossSectionClosed;
 end;
 
 procedure TVRMLExtrusion.SpineScaleTo1st(Spine: Cardinal;
@@ -148,13 +156,6 @@ procedure TVRMLExtrusion.SpineTransformTo1st(Spine: Cardinal;
   out Transform: TMatrix4Single);
 var
   SpinePoints: TDynVector3SingleArray;
-
-  { Check is spine closed. }
-  function Closed: boolean;
-  begin
-    Result := VectorsPerfectlyEqual(
-      SpinePoints.Items[High], SpinePoints.Items[0]);
-  end;
 
   { Calculate Z by searching for the first non-colinear three spine
     points. @false if not found. }
@@ -286,7 +287,7 @@ begin
   end else
   if Spine = 0 then
   begin
-    if Closed then
+    if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
       Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]);
@@ -301,7 +302,7 @@ begin
   end else
   if Integer(Spine) = High then
   begin
-    if Closed then
+    if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
       Y := VectorSubtract(SpinePoints.Items[High], SpinePoints.Items[High - 1]);
@@ -313,7 +314,7 @@ begin
     end;
   end else
   begin
-    { Note that I avoided wasting time on checking Closed
+    { Note that I avoided wasting time on checking SpineClosed
       in this case, and that's good. This is the most common case
       for this routine. }
 

@@ -239,7 +239,18 @@
       (that's how Extrusion is defined in VRML / X3D). }
     function CrossSection3D(Index: integer): TVector3Single;
 
+    { Check is spine closed. This happens when "spine" field is non-empty
+      and it's first and last points are equal. }
+    function SpineClosed: boolean;
+
+    { Check is crossSection closed. This happens when "crossSection"
+      field is non-empty and it's first and last points are equal. }
+    function CrossSectionClosed: boolean;
+
+    function Proxy: TVRMLGeometryNode; override;
+
     function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function BoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
     procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
@@ -675,6 +686,157 @@ begin
   Result[0] := FdCrossSection.Items.Items[Index][0];
   Result[1] := 0;
   Result[2] := FdCrossSection.Items.Items[Index][1];
+end;
+
+function TNodeExtrusion.SpineClosed: boolean;
+var
+  SpinePoints: TDynVector3SingleArray;
+begin
+  SpinePoints := FdSpine.Items;
+  Result := (SpinePoints.Count <> 0) and
+    VectorsPerfectlyEqual(SpinePoints.Items[SpinePoints.High],
+                          SpinePoints.Items[0]);
+end;
+
+function TNodeExtrusion.CrossSectionClosed: boolean;
+var
+  CrossSectionPoints: TDynVector2SingleArray;
+begin
+  CrossSectionPoints := FdCrossSection.Items;
+  Result := (CrossSectionPoints.Count <> 0) and
+    VectorsPerfectlyEqual(CrossSectionPoints.Items[CrossSectionPoints.High],
+                          CrossSectionPoints.Items[0]);
+end;
+
+function TNodeExtrusion.Proxy: TVRMLGeometryNode;
+
+{ Some of the things that are non-optimal when you will render
+  Extrusion using this Proxy instead of directly rendering node:
+
+  - In specialized Extrusion rendering, you now that sides are
+    composed of quads, and so you can use QUAD_STRIP to render them.
+    This allows vertices sharing. IndexedFaceSet uses vertex arrays,
+    that also provides sharing but may be slightly worse.
+
+  - In specialized Extrusion rendering, you know that sides' quads
+    are convex. There's never any need to triangulate them carefully.
+    For IndexedFaceSet, when caps may be non-convex, you have to set
+    convex field to false, so sides will be unnecessarily triangulated
+    with the slower algorithm.
+
+  You gain:
+
+  - creaseAngle support, which is really the crucial point why
+    I'm implementing this. I already have a specialized Extrusion
+    rendering, but adding there creaseAngle support is a major pain.
+
+    You would have to calculate all coordinates first, and then calculate
+    their normal vectors using a specialized routine like CreateNormals
+    that knows about Extrusion connectivity. This is painful to implement,
+    and naive implementation would even suffer from a slowdown not present
+    in Proxy approach: calculating all coordinates two times (before
+    calculating normals, and later for actual rendering). Sure, smarter
+    approach would remember these coordinates. Proxy approach provides
+    this automatically, saving coordinates inside Coordinate node,
+    for both normals calculation and rendering.
+}
+
+var
+  IFS: TNodeIndexedFaceSet_2 absolute Result;
+  Index: Integer;
+  E: TVRMLExtrusion;
+
+  procedure NextIndex(SpineIndex, CrossSectionIndex: Integer);
+  begin
+    { For closed spine and/or crossSection, specify the same indexes.
+      This will allow the correct smoothing between spine/crossSection
+      edges when calculating normal vectors. }
+
+{ TODO: uncomment this too, make
+  view3dscene ~/3dmodels/x3d/www.web3d.org/x3d/content/examples/Basic/StudentProjects/DirtBike.wrl
+  test working. }
+{    if (SpineIndex = FdSpine.Items.High) and
+       E.SpineClosed then
+      SpineIndex := 0;}
+
+    if (CrossSectionIndex = FdCrossSection.Items.High) and
+       E.CrossSectionClosed then
+      CrossSectionIndex := 0;
+
+    IFS.FdCoordIndex.Items.Items[Index] :=
+      SpineIndex * FdCrossSection.Count + CrossSectionIndex;
+    Inc(Index);
+  end;
+
+var
+  CoordNode: TNodeCoordinate;
+  Transform: TMatrix4Single;
+  I, J: Integer;
+  LastY, LastZ: TVector3Single;
+begin
+  IFS := TNodeIndexedFaceSet_2.Create(NodeName, WWWBasePath);
+  try
+    E := TVRMLExtrusion.Create;
+    try
+      E.Node := Self;
+
+      CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+      IFS.FdCoord.Value := CoordNode;
+
+      { Fill CoordNode }
+
+      CoordNode.FdPoint.Items.Length :=
+        (E.High + 1) * FdCrossSection.Count;
+
+      for I := 0 to E.High do
+      begin
+        E.SpineTransformTo1st(I, LastY, LastZ, Transform);
+        for J := 0 to FdCrossSection.Count - 1 do
+        begin
+          CoordNode.FdPoint.Items.Items[I * FdCrossSection.Count + J] :=
+            MultMatrixPoint(Transform, CrossSection3D(J));
+        end;
+      end;
+
+      { Fill CoordIndex }
+
+      IFS.FdCoordIndex.Items.Length := 5 * E.High * (FdCrossSection.Count - 1);
+      Index := 0;
+
+      for I := 1 to E.High do
+      begin
+        for J := 1 to FdCrossSection.Count - 1 do
+        begin
+          { The VRML / X3D specifications say that ordering of sides
+            should be
+              spine[0](crossSection[0], crossSection[1])
+              spine[1](crossSection[1], crossSection[0])
+            This is important, because we want faces to be ordered just
+            like the specification requires. This makes using "ccw"
+            and "solid" fields predictable for VRML author, since he
+            knows which side will be CCW and which CW.
+
+            So below we produce the same order. }
+
+          NextIndex(I - 1, J - 1);
+          NextIndex(I - 1, J    );
+          NextIndex(I    , J    );
+          NextIndex(I    , J - 1);
+
+          IFS.FdCoordIndex.Items.Items[Index] := -1;
+          Inc(Index);
+        end;
+      end;
+
+      { Check that we actually filled all indexes we planned }
+      Assert(Index = IFS.FdCoordIndex.Items.Count);
+
+    finally FreeAndNil(E) end;
+
+    IFS.FdSolid.Value := FdSolid.Value;
+    IFS.FdCcw.Value := FdCcw.Value;
+    IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
+  except FreeAndNil(Result); raise end;
 end;
 
 constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
