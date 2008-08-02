@@ -904,6 +904,24 @@ type
       of VRML hierarchy. }
     procedure FreeRemovingFromAllParents;
 
+    { Free if this node is not referenced by any VRML 1.0 parent node
+      or VRML 2.0 SFNode or MFNode fields. This is a safe way of removing
+      a node that may, but doesn't have to, be part of VRML graph.
+      The idea is that if node is a part of the graph,
+      we will do nothing (assuming you have
+      a reference to the entine graph somewhere), otherwise node is
+      considered unused and freed.
+
+      For safety, I advice to usually set reference to @nil after calling
+      FreeIfUnused, like
+
+@longCode(#
+  Child.FreeIfUnused;
+  Child := nil;
+#)
+       }
+    procedure FreeIfUnused;
+
     { AllowedChildren okresla jakie dzieci moga byc dziecmi tego node'a.
       Warunek ten bedzie sprawdzany w AddChild wiec nigdy nie uda ci sie dodac
       node'a ktory nie jest tutaj dozwolony.
@@ -3249,6 +3267,18 @@ begin
   inherited;
 end;
 
+procedure TVRMLNode.FreeIfUnused;
+begin
+  if (FParentNodes.Count = 0) and
+     (FParentFields.Count = 0) then
+  begin
+    { This is written as "Self.Destroy" to actually do the desctruction,
+      freeing memory etc. If I would just call it "Destroy", it would
+      perform what destructor does but leaving object instance unfreed. }
+    Self.Destroy;
+  end;
+end;
+
 procedure TVRMLNode.AddChild(Index: Integer; child: TVRMLNode);
 begin
  Check( {is child allowed in AllowedChildren ?} AllowedChildren,
@@ -3270,9 +3300,7 @@ begin
   OldChild := FChildren[i];
   FChildren.Delete(i);
   OldChild.FParentNodes.Delete(Self);
-  if (OldChild.FParentNodes.Count = 0) and
-     (OldChild.FParentFields.Count = 0) then
-    OldChild.Free;
+  OldChild.FreeIfUnused;
 end;
 
 function TVRMLNode.ExtractChild(I: Integer): TVRMLNode;
@@ -3282,11 +3310,7 @@ begin
   Result.FParentNodes.Delete(Self);
 
   { RemoveChild now does
-
-  if (Result.FParentNodes.Count = 0) and
-     (Result.FParentFields.Count = 0) then
-    Result.Free;
-
+      OldChild.FreeIfUnused;
     but ExtractChild doesn't do it. }
 end;
 
@@ -3306,9 +3330,7 @@ begin
     FChildren[I] := Value;
 
     OldChild.FParentNodes.Delete(Self);
-    if (OldChild.FParentNodes.Count = 0) and
-       (OldChild.FParentFields.Count = 0) then
-      OldChild.Free;
+    OldChild.FreeIfUnused;
 
     Value.FParentNodes.Add(Self);
   end;
@@ -4211,15 +4233,7 @@ end;
 procedure TVRMLNode.RemoveParentField(Field: TVRMLField);
 begin
   Check(FParentFields.Delete(Field), 'RemoveParentField: parent not found');
-
-  if (FParentFields.Count = 0) and
-     (FParentNodes.Count = 0) then
-  begin
-    { This is written as "Self.Destroy" to actually do the desctruction,
-      freeing memory etc. If I would just call it "Destroy", it would
-      perform what destructor does but leaving object instance unfreed. }
-    Self.Destroy;
-  end;
+  FreeIfUnused;
 end;
 
 procedure TVRMLNode.AddParentField(Field: TVRMLField);

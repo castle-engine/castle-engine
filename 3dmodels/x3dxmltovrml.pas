@@ -259,7 +259,8 @@ const
             MF.WarningIfChildNotAllowed(Child);
           end else
           begin
-            FreeAndNil(Child);
+            Child.FreeIfUnused;
+            Child := nil;
             VRMLNonFatalError('X3D field "' + Field.Name + '" is not SFNode or MFNode, but a node value (XML element) is specified');
           end;
         end;
@@ -398,7 +399,8 @@ const
                   MF.WarningIfChildNotAllowed(Child);
                 end else
                 begin
-                  FreeAndNil(Child);
+                  Child.FreeIfUnused;
+                  Child := nil;
                   VRMLNonFatalError('X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
                 end;
               end else
@@ -406,7 +408,8 @@ const
                 try
                   VRMLNonFatalError('Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + Node.NodeTypeName + '"');
                 finally
-                  FreeAndNil(Child);
+                  Child.FreeIfUnused;
+                  Child := nil;
                 end;
               end;
             end;
