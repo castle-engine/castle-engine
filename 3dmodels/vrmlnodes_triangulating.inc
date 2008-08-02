@@ -481,6 +481,8 @@ procedure TNodeIndexedFaceSet_2.LocalTriangulate(State: TVRMLGraphTraverseState;
 var
   Triangulator: TIndexedFaceSetTriangulator;
 begin
+  if Coordinates(State) = nil then Exit;
+
   Triangulator := TIndexedFaceSetTriangulator.Create;
   try
     Triangulator.Geometry := Self;

@@ -754,6 +754,8 @@ begin
     default creaseAngle = 0, so NormalsFlat = true optimizations may be
     often applicable). }
 
+  if Coord = nil then Exit;
+
   if Renderer.Attributes.SmoothShading and (CreaseAngle <> 0) then
   begin
     if CreaseAngle >= Pi then
