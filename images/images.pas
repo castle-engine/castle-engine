@@ -972,6 +972,10 @@ function LoadPPM(Stream: TStream): TRGBImage;
 function LoadIPL(Stream: TStream): TRGBImage;
 function LoadGIF(Stream: TStream): TRGBImage;
 function LoadTGA(Stream: TStream): TRGBImage;
+function LoadSGI(Stream: TStream): TRGBImage;
+function LoadTIFF(Stream: TStream): TRGBImage;
+function LoadJP2(Stream: TStream): TRGBImage;
+function LoadEXR(Stream: TStream): TRGBImage;
 
 { ------------------------------------------------------------------------------
 
@@ -1026,11 +1030,24 @@ function LoadAnyGIF(Stream: TStream; FormatRequired: TImageFormatRequirements;
 function LoadAnyTGA(Stream: TStream; FormatRequired: TImageFormatRequirements;
   ConvertToRequired: boolean): TImage;
 
+function LoadAnySGI(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
+function LoadAnyTIFF(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
+function LoadAnyJP2(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
+function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+
 { File formats managing ----------------------------------------------------- }
 
 type
   { }
-  TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE, ifGIF, ifTGA);
+  TImageFormat = (ifBMP, ifPNG, ifJPEG, ifPCX, ifPPM, ifIPL, ifRGBE,
+    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR);
   TImageFormats = set of TImageFormat;
   TRGBImageLoadFunc = function (Stream: TStream): TRGBImage;
   TRGBImageSaveFunc = procedure (const Img: TRGBImage; Stream: TStream);
@@ -1128,7 +1145,27 @@ const
       ExtsCount: 1; Exts: ('tga', '', '');
       LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTGA;
       SaveRGB: nil;
-      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA)
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTGA),
+    ( FormatName: 'SGI image';
+      ExtsCount: 1; Exts: ('sgi', '', '');
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadSGI;
+      SaveRGB: nil;
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnySGI),
+    ( FormatName: 'TIFF image';
+      ExtsCount: 1; Exts: ('tif', '', '');
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadTIFF;
+      SaveRGB: nil;
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyTIFF),
+    ( FormatName: 'JP2 image';
+      ExtsCount: 1; Exts: ('jp2', '', '');
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadJP2;
+      SaveRGB: nil;
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyJP2),
+    ( FormatName: 'EXR image';
+      ExtsCount: 1; Exts: ('exr', '', '');
+      LoadRGB: {$ifdef FPC_OBJFPC} @ {$endif} LoadEXR;
+      SaveRGB: nil;
+      Load: {$ifdef FPC_OBJFPC} @ {$endif} LoadAnyEXR)
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;

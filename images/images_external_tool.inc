@@ -158,3 +158,51 @@ begin
   Result := LoadAnyImageExternalTool(
     Stream, FormatRequired, ConvertToRequired, 'tga');
 end;
+
+function LoadSGI(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnySGI(Stream, frWithoutAlpha, true) as TRGBImage;
+end;
+
+function LoadAnySGI(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  Result := LoadAnyImageExternalTool(
+    Stream, FormatRequired, ConvertToRequired, 'sgi');
+end;
+
+function LoadTIFF(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnyTIFF(Stream, frWithoutAlpha, true) as TRGBImage;
+end;
+
+function LoadAnyTIFF(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  Result := LoadAnyImageExternalTool(
+    Stream, FormatRequired, ConvertToRequired, 'tiff');
+end;
+
+function LoadJP2(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnyJP2(Stream, frWithoutAlpha, true) as TRGBImage;
+end;
+
+function LoadAnyJP2(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  Result := LoadAnyImageExternalTool(
+    Stream, FormatRequired, ConvertToRequired, 'jp2');
+end;
+
+function LoadEXR(Stream: TStream): TRGBImage;
+begin
+  Result := LoadAnyEXR(Stream, frWithoutAlpha, true) as TRGBImage;
+end;
+
+function LoadAnyEXR(Stream: TStream; FormatRequired: TImageFormatRequirements;
+  ConvertToRequired: boolean): TImage;
+begin
+  Result := LoadAnyImageExternalTool(
+    Stream, FormatRequired, ConvertToRequired, 'exr');
+end;
