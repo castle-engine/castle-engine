@@ -341,13 +341,32 @@ procedure TVRMLViewpointNode.GetCameraVectors(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
   CamPos := Position.Value;
+
   if FdDirection.Items.Length > 0 then
-    CamDir := FdDirection.Items.Items[0] else
+  begin
+    CamDir := FdDirection.Items.Items[0];
+    if IsZeroVector(CamDir) then
+    begin
+      VRMLNonFatalError('Viewpoint "direction" must not be zero, assuming defaults');
+      CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
+    end;
+  end else
     CamDir := FdOrientation.RotatedPoint( StdVRMLCamDir );
+
   if FdUp.Items.Length > 0 then
-    CamUp := FdUp.Items.Items[0] else
+  begin
+    CamUp := FdUp.Items.Items[0];
+    if IsZeroVector(CamUp) then
+    begin
+      VRMLNonFatalError('Viewpoint "up" must not be zero, assuming defaults');
+      CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+    end;
+  end else
     CamUp := FdOrientation.RotatedPoint( StdVRMLCamUp );
+
   GravityUp := FdGravityUp.Value;
+  if IsZeroVector(GravityUp) then
+    GravityUp := StdVRMLGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
     uzylismy FdOrientation.RotatedPoint( StdVRMLCamDir/Up ) i wiemy ze CamDir/Up
