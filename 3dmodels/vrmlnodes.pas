@@ -6426,10 +6426,11 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
   end;
 
 begin
-  SaveProperties.WritelnIndent('ROUTE ');
+  SaveProperties.WriteIndent('ROUTE ');
   WriteEnding(SourceNode, SourceExposedField, SourceEvent, 'source');
   SaveProperties.Write(' TO ');
   WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
+  SaveProperties.Writeln;
 end;
 
 procedure TVRMLRoute.DestructionNotification(Node: TVRMLNode);
