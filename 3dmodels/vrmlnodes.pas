@@ -4338,6 +4338,19 @@ begin
     { If this is an expanded prototype, than delegate writing to the
       PrototypeInstanceSourceNode. }
     PrototypeInstanceSourceNode.SaveToStream(SaveProperties);
+
+    { What to do about
+        Bind(SaveProperties.NodeNameBinding)
+      called from PrototypeInstanceSourceNode.SaveToStream ?
+      This means that PrototypeInstanceSourceNode (TVRMLPrototypeNode)
+      is bound to given name.
+      But when reading, we bound Self node (the actual expanded proto)
+      to the same name.
+      Routes when saving check this (to make sure correct names are bound).
+      So we bind again Self, instead of PrototypeInstanceSourceNode,
+      to this name. }
+
+    Bind(SaveProperties.NodeNameBinding);
   end else
   if SaveProperties.NodeNameBinding.IndexOfObject(Self) >= 0 then
   begin
@@ -5841,7 +5854,7 @@ begin
       begin
         OurField := Fields[OurFieldIndex];
 
-        { Note that if OurField.IsClause, then InstantceField will have
+        { Note that if OurField.IsClause, then InstanceField will have
           OurField.IsClauseName assigned.
 
           This means that the prototype (current Prototype) is expanded
@@ -5872,7 +5885,10 @@ begin
 
     Also, above ExposedFieldReferencesEvent is used only to avoid
     warnings... while in fact, it should have some effect on the field value
-    and associations with event. }
+    and associations with event.
+
+    file:///home/michalis/doc/web3d.org/vrml_97/ISO-IEC-14772-VRML97/part1/concepts.html#4.8.3
+  }
 end;
 
 function TVRMLPrototypeNode.Instantiate: TVRMLNode;
@@ -6621,7 +6637,7 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 
 begin
   SaveProperties.WriteIndent('ROUTE ');
-  WriteEnding(SourceNode, SourceExposedField, SourceEvent, 'source');
+  WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );
   SaveProperties.Write(' TO ');
   WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
   SaveProperties.Writeln;
@@ -6767,7 +6783,7 @@ function ParseNode(Lexer: TVRMLLexer;
       declarations, so it can be some pretty specific hack just to
       fix this...).
 
-      For now, NilIfUnresovedUSE successfully changes there special
+      For now, NilIfUnresolvedUSE successfully changes there special
       cycles in Script into mere VRMLNonFatalError, so they don't stop
       us from reading the rest of VRML file. And since we don't handle
       any scripting, this is not a problem in practice. But some day it'll
