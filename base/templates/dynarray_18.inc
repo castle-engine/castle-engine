@@ -218,6 +218,10 @@
 
     { Searches for and deletes all items equal to Value. }
     procedure DeleteAllEqual(const Value: TDynArrayItem_18);
+
+    { If the Item is not already present in the array (checked like IndexOf)
+      then add this item (like by AppendItem). }
+    procedure AddIfNotExists(const Item: TDynArrayItem_18);
     {$endif}
 
     { Just like Delete from Pascal's RTL on strings:
@@ -463,6 +467,15 @@ begin
       Delete(I, 1) else
       Inc(I);
   end;
+end;
+
+procedure TDynArray_18.AddIfNotExists(const Item: TDynArrayItem_18);
+var
+  I: Integer;
+begin
+  I := IndexOf(Item);
+  if I = -1 then
+    AppendItem(Item);
 end;
 {$endif}
 
