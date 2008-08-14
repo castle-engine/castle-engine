@@ -77,6 +77,10 @@
       These shortcuts just create temporary appropriate TVRMLField instance,
       and call Send(TVRMLField) method.
 
+      The temporary field instance has Name initialized from this event Name,
+      to ease debugging (you can see e.g. by Logger node the originating
+      event name then).
+
       @groupBegin }
     procedure Send(const Value: LongInt);
     procedure Send(const Value: boolean);
@@ -160,8 +164,8 @@ var
   Field: TVRMLField;
 begin
   if FieldClass = TSFInt32 then
-    Field := TSFInt32.Create('', Value) else
-    Field := TSFLong.Create('', Value);
+    Field := TSFInt32.Create(Name, Value) else
+    Field := TSFLong.Create(Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -171,7 +175,7 @@ procedure TVRMLEvent.Send(const Value: boolean);
 var
   Field: TVRMLField;
 begin
-  Field := TSFBool.Create('', Value);
+  Field := TSFBool.Create(Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -181,7 +185,7 @@ procedure TVRMLEvent.Send(const Value: string);
 var
   Field: TVRMLField;
 begin
-  Field := TSFString.Create('', Value);
+  Field := TSFString.Create(Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;

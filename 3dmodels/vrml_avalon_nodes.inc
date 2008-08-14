@@ -60,6 +60,34 @@
 
     function Proxy: TVRMLGeometryNode; override;
   end;
+
+  TNodeLogger = class(TNodeX3DChildNode)
+  private
+    WriteStream: TStream;
+    OwnsWriteStream: boolean;
+    WriteStreamInitialized: boolean;
+    procedure EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdlevel: TSFInt32;
+    public property Fdlevel: TSFInt32 read FFdlevel;
+
+    private FFdlogFile: TSFString;
+    public property FdlogFile: TSFString read FFdlogFile;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    { Event: XFAny, in } { }
+    private FEventwrite: TVRMLEvent;
+    public property Eventwrite: TVRMLEvent read FEventwrite;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -189,11 +217,160 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+constructor TNodeLogger.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdlevel := TSFInt32.Create('level', 1);
+  Fields.Add(FFdlevel);
+
+  FFdlogFile := TSFString.Create('logFile', '');
+  FFdlogFile.Exposed := false;
+  Fields.Add(FFdlogFile);
+
+  FFdenabled := TSFBool.Create('enabled', true);
+  Fields.Add(FFdenabled);
+
+  FEventwrite := TVRMLEvent.Create('write', TVRMLField, true);
+  Events.Add(FEventwrite);
+  FEventwrite.OnReceive.AppendItem(@EventWriteReceive);
+end;
+
+destructor TNodeLogger.Destroy;
+begin
+  if WriteStreamInitialized then
+  begin
+    if OwnsWriteStream then
+      FreeAndNil(WriteStream);
+  end;
+
+  inherited;
+end;
+
+procedure TNodeLogger.EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
+
+  procedure StdOutNotAvail;
+  begin
+    VRMLNonFatalError(
+      'Logger node wants to write on standard output, but it seems that stdout (standard output) ' +
+      'is not available. Under Windows you should explicitly ' +
+      'redirect program''s stdout to make it available, e.g. ' +
+      'run "' + ProgramName + ' > ' + ProgramName + '.log".');
+  end;
+
+  procedure WritelnLogMessage;
+  var
+    S: string;
+    SaveProperties: TVRMLSaveToStreamProperties;
+  begin
+    S := Format('Logger "%s": received "%s" (%s), on %s.',
+      [NodeName, Value.Name, Value.VRMLTypeName, DateTimeToAtStr(Now)]);
+
+    if FdLevel.Value = 1 then
+    begin
+      WritelnStr(WriteStream, S);
+    end else
+    begin
+      Assert(FdLevel.Value >= 2);
+      WriteStr(WriteStream, S + ' Value: ');
+
+      SaveProperties := TVRMLSaveToStreamProperties.Create(WriteStream);
+      try
+        { Just use X3D 3.2 format. }
+        SaveProperties.VerMajor := 3;
+        SaveProperties.VerMinor := 2;
+
+        Value.FieldSaveToStream(SaveProperties, true);
+      finally FreeAndNil(SaveProperties) end;
+    end;
+  end;
+
+begin
+  if FdEnabled.Value and (Fdlevel.Value > 0) then
+  begin
+    { First reception of "write" event causes initialization of
+      WriteStream, based on logFile field value. This is Ok, since
+      logFile is not exposed, so it cannot change after the file is loaded. }
+    if not WriteStreamInitialized then
+    begin
+      Assert(WriteStream = nil);
+
+      WriteStreamInitialized := true;
+
+      if FdLogFile.Value <> '' then
+      begin
+        WriteStream := TFileStream.Create(
+          FNameAutoInc(ProgramName + '_logger_' +
+            ExtractOnlyFileName(FdLogFile.Value) + '_%d.log'), fmCreate);
+        OwnsWriteStream := true;
+      end else
+      begin
+        WriteStream := StdOutStream;
+        OwnsWriteStream := false;
+        if WriteStream = nil then
+        begin
+          { report stdout not available, leave WriteStream = nil and
+            WriteStreamInitialized = true. This way we will not try to
+            reinit this again. }
+          StdOutNotAvail;
+          Exit;
+        end;
+      end;
+    end;
+
+    if WriteStream <> nil then
+    begin
+      try
+        WritelnLogMessage;
+      except
+        on E: EWriteError do
+        begin
+          if not OwnsWriteStream then
+          begin
+            { This means that we have stdout, and it just failed...
+              This is possible on Windows.
+
+              Ideally, check for "StdOutStream = nil" should be all that is needed,
+              and wrapping WritelnStr inside try...except should not be needed.
+              But... see StdOutStream comments: you cannot
+              depend on the fact that "StdOutStream <> nil means that stdout
+              is actually available (because user redirected stdout etc.). }
+            StdOutNotAvail;
+          end else
+            raise;
+        end;
+      end;
+    end;
+  end;
+end;
+
+class function TNodeLogger.ClassNodeTypeName: string;
+begin
+  Result := 'Logger';
+end;
+
+function TNodeLogger.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeLogger.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeMatrixTransform_2,
-    TNodeTeapot
+    TNodeTeapot,
+    TNodeLogger
   ]);
 end;
 {$endif read_implementation}

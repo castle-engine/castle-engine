@@ -6586,7 +6586,9 @@ begin
 
     if (SourceEvent <> nil) and
        (DestinationEvent <> nil) and
-       (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
+       (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
+       { destination field can be XFAny (for Logger.write) as an exception. }
+       (not (DestinationEvent.FieldClass = TVRMLField)) then
       raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
         [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
           DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
@@ -7231,24 +7233,25 @@ begin
   try
     SaveProperties.WriteExpandedPrototype := WriteExpandedPrototype;
 
-    if Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
+    if not Node.SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority) then
     begin
-      if VerMajor <= 1 then
-        VRMLHeader := VRML10Header else
-      if VerMajor = 2 then
-        VRMLHeader := VRML20Header else
-      if VerMajor >= 3 then
-        VRMLHeader := Format(X3DHeader, [VerMajor, VerMinor]) else
-    end else
-    begin
-      { If nothing is suggested, we use X3D 3.2 header. Reason:
+      { If nothing is suggested, we use X3D 3.2. Reason:
         - For now, SuggestedVRMLVersion doesn't check IsClause.
           But if IsClause is present anywhere, then this must use VRML >= 2.0
           features ("IS" is keyword only in VRML >= 2.0,
           it will not be understood in VRML 1.0).
         - Besides, we should promote newer VRML standard. }
-      VRMLHeader := Format(X3DHeader, [3, 2]);
+
+      VerMajor := 3;
+      VerMinor := 2;
     end;
+
+    if VerMajor <= 1 then
+      VRMLHeader := VRML10Header else
+    if VerMajor = 2 then
+      VRMLHeader := VRML20Header else
+    if VerMajor >= 3 then
+      VRMLHeader := Format(X3DHeader, [VerMajor, VerMinor]);
 
     SaveProperties.VerMajor := VerMajor;
     SaveProperties.VerMinor := VerMinor;
