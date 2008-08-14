@@ -448,6 +448,25 @@ type
       remain as they were). }
     procedure AssignValue(Source: TVRMLField); virtual;
 
+    { Set field's default value from the current value.
+
+      Note that for now this doesn't guarantee that every possible field's value
+      can be stored as default value. In case of trouble, it will silently
+      record "no default is known" information, so e.g. EqualsDefaultValue
+      will always return @false.
+      Our default value mechanisms are sometimes
+      limited, not every value can be a default value. For example,
+      for multiple-valued nodes, we usually cannot save arrays longer than
+      one as default value. This is not a problem, since X3D specification
+      doesn't specify too long default values. But it may be a problem
+      for prototypes, since then user can assign any value as default value.
+      May be corrected in the future.
+
+      @raises(EVRMLFieldAssignFromIsClause
+        Raised if IsClause = @true. This prevents assignment,
+        since it means that we have no defined value.) }
+    procedure AssignDefaultValueFromValue; virtual;
+
     { Assigns value to this node calculated from linear interpolation
       between two given nodes Value1, Value2. Just like other lerp
       functions in our units (like @link(VectorMath.Lerp)).
@@ -711,8 +730,10 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -742,11 +763,14 @@ type
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -784,6 +808,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -813,6 +838,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -878,11 +904,14 @@ type
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -895,6 +924,8 @@ type
   TSFMatrix3f = class(TVRMLSingleField)
   private
     FValue: TMatrix3Single;
+    DefaultValue: TMatrix3Single;
+    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
@@ -904,14 +935,15 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
+    function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
     function CanAssignLerp: boolean; override;
-
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -919,6 +951,8 @@ type
   TSFMatrix3d = class(TVRMLSingleField)
   private
     FValue: TMatrix3Double;
+    DefaultValue: TMatrix3Double;
+    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
@@ -928,6 +962,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
+    function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
@@ -935,6 +970,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -942,6 +978,8 @@ type
   TSFMatrix4f = class(TVRMLSingleField)
   private
     FValue: TMatrix4Single;
+    DefaultValue: TMatrix4Single;
+    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
@@ -951,6 +989,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
+    function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
@@ -958,6 +997,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     { Return average scale for current matrix Value.
 
@@ -979,6 +1019,8 @@ type
   TSFMatrix4d = class(TVRMLSingleField)
   private
     FValue: TMatrix4Double;
+    DefaultValue: TMatrix4Double;
+    DefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
@@ -988,6 +1030,7 @@ type
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
 
+    function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
@@ -995,6 +1038,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1041,6 +1085,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1057,11 +1102,14 @@ type
     DefaultValueExists: boolean;
 
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1087,6 +1135,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1112,6 +1161,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1142,6 +1192,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1172,6 +1223,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1197,6 +1249,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1221,6 +1274,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1261,8 +1315,10 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1293,8 +1349,10 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
 
@@ -1330,6 +1388,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1354,6 +1413,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1378,6 +1438,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1402,6 +1463,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1428,6 +1490,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
 
@@ -1460,6 +1523,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
 
@@ -1495,6 +1559,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1523,6 +1588,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1547,6 +1613,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1571,6 +1638,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1596,6 +1664,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1621,6 +1690,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1646,6 +1716,7 @@ type
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -1670,8 +1741,10 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
@@ -2006,6 +2079,14 @@ begin
   FIsClause := false;
 end;
 
+procedure TVRMLField.AssignDefaultValueFromValue;
+begin
+  if IsClause then
+    raise EVRMLFieldAssignFromIsClause.CreateFmt('Cannot assign from VRML field ' +
+      '%s (%s) to default value because it has an IS "%s" clause',
+      [Name, VRMLTypeName, IsClauseName]);
+end;
+
 procedure TVRMLField.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
 begin
   { do nothing, CanAssignLerp is false }
@@ -2284,8 +2365,7 @@ begin
   inherited Create(AName);
 
   Value := AValue;
-  DefaultValue := AValue;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFBool.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2369,6 +2449,13 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFBool.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
 class function TSFBool.VRMLTypeName: string;
 begin
   Result := 'SFBool';
@@ -2393,9 +2480,8 @@ begin
   inherited Create(AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
-  Value := AValue;
-  DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
-  DefaultValueExists := true;
+  Value := AValue; { Set property, zeby SetValue moglo ew. zmienic Value }
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFFloat.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2458,6 +2544,13 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFFloat.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
 class function TSFFloat.VRMLTypeName: string;
 begin
   Result := 'SFFloat';
@@ -2470,8 +2563,7 @@ begin
   inherited Create(AName);
 
   Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFDouble.SetValue(const AValue: Double);
@@ -2535,6 +2627,13 @@ begin
     Value := TSFDouble(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TSFDouble.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 class function TSFDouble.VRMLTypeName: string;
@@ -2767,9 +2866,8 @@ begin
   inherited Create(AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
-  Value := AValue;
-  DefaultValue := Value; { DefaultValue := Value, nie AValue, zeby SetValue moglo ew. zmienic Value }
-  DefaultValueExists := true;
+  Value := AValue; { Set using property, zeby SetValue moglo ew. zmienic Value }
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFLong.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2826,6 +2924,13 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFLong.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
 class function TSFLong.VRMLTypeName: string;
 begin
   Result := 'SFLong';
@@ -2846,6 +2951,7 @@ constructor TSF_CLASS.Create(const AName: string; const AValue: TSF_STATIC_ITEM)
 begin
   inherited Create(AName);
   FValue := AValue;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -2913,6 +3019,20 @@ begin
     FValue := TSF_CLASS(Source).FValue;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+function TSF_CLASS.EqualsDefaultValue: boolean;
+begin
+  Result := (not IsClause) and
+    DefaultValueExists and
+    MatricesPerfectlyEqual(DefaultValue, Value);
+end;
+
+procedure TSF_CLASS.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 }
 
@@ -3000,9 +3120,7 @@ begin
   Axis := AnAxis;
   RotationRad := ARotationRad;
 
-  DefaultAxis := Axis;
-  DefaultRotationRad := RotationRad;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFRotation.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -3109,6 +3227,14 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFRotation.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultAxis := Axis;
+  DefaultRotationRad := RotationRad;
+  DefaultValueExists := true;
+end;
+
 class function TSFRotation.VRMLTypeName: string;
 begin
   Result := 'SFRotation';
@@ -3121,8 +3247,7 @@ begin
   inherited Create(AName);
 
   Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSFString.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -3175,6 +3300,13 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFString.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
 class function TSFString.VRMLTypeName: string;
 begin
   Result := 'SFString';
@@ -3189,8 +3321,7 @@ begin
   inherited Create(AName);
 
   Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 procedure TSF_CLASS.Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean);
@@ -3250,6 +3381,13 @@ begin
     Value := TSF_CLASS(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TSF_CLASS.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 }
 
@@ -3494,8 +3632,7 @@ begin
   fEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, fEnumNames);
   Value := AValue;
-  DefaultValue := Value;
-  DefaultValueExists := true;
+  AssignDefaultValueFromValue;
 end;
 
 destructor TSFEnum.Destroy;
@@ -3567,6 +3704,13 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
+procedure TSFEnum.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
+end;
+
 class function TSFEnum.VRMLTypeName: string;
 begin
   Result := 'SFEnum';
@@ -3596,16 +3740,7 @@ begin
 
   Items.AppendArray(InitialContent);
 
-  (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
-     jesli DefaultValuesCount = 1 *)
-  case High(InitialContent) + 1 of
-    0: DefaultValuesCount := 0;
-    1: begin
-         DefaultValuesCount := 1;
-         DefaultValue := InitialContent[0];
-       end;
-    else DefaultValuesCount := -1;
-  end;
+  AssignDefaultValueFromValue;
 end;
 
 constructor TMF_CLASS.CreateUndefined(const AName: string);
@@ -3645,6 +3780,22 @@ begin
     Items.Assign(TMF_CLASS(Source).Items);
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TMF_CLASS.AssignDefaultValueFromValue;
+begin
+  inherited;
+
+  (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
+     jesli DefaultValuesCount = 1 *)
+  case Items.Count of
+    0: DefaultValuesCount := 0;
+    1: begin
+         DefaultValuesCount := 1;
+         DefaultValue := Items.Items[0];
+       end;
+    else DefaultValuesCount := -1;
+  end;
 end;
 }
 

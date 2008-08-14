@@ -1662,18 +1662,18 @@ type
     constructor CreateUndefined(const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       const AnAllowedChildren: array of TVRMLNodeClass;
-      ADefaultValue: TVRMLNode = nil); overload;
+      AValue: TVRMLNode = nil); overload;
     { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
       Note that we copy the contents of AnAllowedChildren, not the
       reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AnAllowedChildren: TVRMLNodeClassesList;
-      ADefaultValue: TVRMLNode = nil); overload;
+      AValue: TVRMLNode = nil); overload;
     { Constructor that initializes AllowedChildren to all
       classes implementing AllowedChildrenInterface. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       AllowedChildrenInterface: TGUID;
-      ADefaultValue: TVRMLNode = nil); overload;
+      AValue: TVRMLNode = nil); overload;
     destructor Destroy; override;
 
     { This says that all children are allowed, regardless of
@@ -1716,11 +1716,14 @@ type
 
     property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
+
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     property ParentNode: TVRMLNode read FParentNode;
 
@@ -4843,7 +4846,7 @@ end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   const AnAllowedChildren: array of TVRMLNodeClass;
-  ADefaultValue: TVRMLNode);
+  AValue: TVRMLNode);
 begin
   inherited Create(AName);
   FParentNode := AParentNode;
@@ -4851,15 +4854,15 @@ begin
   FAllowedChildren.AssignArray(AnAllowedChildren);
   FAllowedChildrenAll := false;
 
-  DefaultValueExists := true;
-  DefaultValue := ADefaultValue;
+  Value := AValue;
+  AssignDefaultValueFromValue;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   AnAllowedChildren: TVRMLNodeClassesList;
-  ADefaultValue: TVRMLNode);
+  AValue: TVRMLNode);
 begin
-  Create(AParentNode, AName, [], ADefaultValue);
+  Create(AParentNode, AName, [], AValue);
 
   FAllowedChildren.Assign(AnAllowedChildren);
   FAllowedChildrenAll := false;
@@ -4867,7 +4870,7 @@ end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   AllowedChildrenInterface: TGUID;
-  ADefaultValue: TVRMLNode);
+  AValue: TVRMLNode);
 var
   AllowedChildren: TVRMLNodeClassesList;
 begin
@@ -4880,7 +4883,7 @@ begin
   AllowedChildren := TVRMLNodeClassesList.Create;
   AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
   try
-    Create(AParentNode, AName, AllowedChildren, ADefaultValue);
+    Create(AParentNode, AName, AllowedChildren, AValue);
   finally FreeAndNil(AllowedChildren) end;
 end;
 
@@ -4990,6 +4993,13 @@ begin
     Value := TSFNode(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TSFNode.AssignDefaultValueFromValue;
+begin
+  inherited;
+  DefaultValue := Value;
+  DefaultValueExists := true;
 end;
 
 procedure TSFNode.SetValue(AValue: TVRMLNode);
@@ -5687,15 +5697,9 @@ begin
         examples (open and save it back e.g. in view3dscene).
 
         So to make it work right, we have to set DefaultValue for our
-        fields, so that EqualsDefaultValue will work Ok when saving to file. }
-
-      { TODO: it would be nice to call now F.AssignDefaultValueFromValue;
-        For now, special code for SFNode: }
-      if F is TSFNode then
-      begin
-        TSFNode(F).DefaultValue := TSFNode(F).Value;
-        TSFNode(F).DefaultValueExists := true;
-      end;
+        fields, in particular for TSFNode and TMFNode fields.
+        So that EqualsDefaultValue will work Ok when saving to file. }
+      F.AssignDefaultValueFromValue;
 
       Fields.Add(F);
     end else
