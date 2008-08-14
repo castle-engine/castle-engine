@@ -6357,8 +6357,8 @@ begin
      (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
   begin
     VRMLNonFatalError(Format('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-      [ SourceEvent     .Name, SourceEvent     .FieldClass.ClassName,
-        DestinationEvent.Name, DestinationEvent.FieldClass.ClassName ]));
+      [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
+        DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]));
     UnsetEnding(Node, ExposedField, Event);
   end;
 end;
