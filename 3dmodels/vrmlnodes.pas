@@ -2636,8 +2636,6 @@ type
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
-  EVRMLRouteSaveError = class(EVRMLError);
-
   TVRMLRoute = class(TVRMLFileItem)
   private
     FSourceNode: TVRMLNode;
@@ -2704,11 +2702,11 @@ type
 
     { Save a ROUTE to VRML file.
 
-      @raises(EVRMLRouteSaveError When route cannot be saved.
-        This can happen when SourceNode or SourceEvent
-        or DestinationNode or DestinationEvent are @nil.
-        Also, if SourceNode and DestinationNode are without a name,
-        or the name is not currently bound in SaveProperties.NodeNameBinding.)
+      Will generate VRMLNonFatalError when route cannot be saved.
+      This can happen when SourceNode or SourceEvent
+      or DestinationNode or DestinationEvent are @nil.
+      Also, if SourceNode and DestinationNode are without a name,
+      or the name is not currently bound in SaveProperties.NodeNameBinding.
     }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
   end;
@@ -6594,7 +6592,12 @@ begin
     true);
 end;
 
+type
+  EVRMLRouteSaveError = class(EVRMLError);
+
 procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+var
+  Output: string;
 
   procedure WriteEnding(Node: TVRMLNode; ExposedField: TVRMLField;
     Event: TVRMLEvent; const S: string);
@@ -6603,7 +6606,7 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
   begin
     { Check Node }
     if Node = nil then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned', [S]);
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
     if Node.NodeName = '' then
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
@@ -6615,8 +6618,7 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
         [S, Node.NodeName]);
 
-    SaveProperties.Write(Node.NodeName);
-    SaveProperties.Write('.');
+    Output += Node.NodeName + '.';
 
     { Check Event }
     if Event = nil then
@@ -6627,21 +6629,28 @@ procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
     begin
       if Event.Name = '' then
         raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
-      SaveProperties.Write(Event.Name);
+      Output += Event.Name;
     end else
     begin
       if ExposedField.Name = '' then
         raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s exposed field not named', [S]);
-      SaveProperties.Write(ExposedField.Name);
+      Output += ExposedField.Name;
     end;
   end;
 
 begin
-  SaveProperties.WriteIndent('ROUTE ');
-  WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );
-  SaveProperties.Write(' TO ');
-  WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
-  SaveProperties.Writeln;
+  try
+    Output := 'ROUTE ';
+    WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );
+    Output += ' TO ';
+    WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
+    SaveProperties.Writeln(Output);
+  except
+    on E: EVRMLRouteSaveError do
+    begin
+      VRMLNonFatalError(E.Message);
+    end;
+  end;
 end;
 
 procedure TVRMLRoute.DestructionNotification(Node: TVRMLNode);
