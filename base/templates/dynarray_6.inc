@@ -86,8 +86,10 @@
   Also, this automatically defines DYNARRAY_6_USE_EQUALITY_OP.
 
   Additionally, define DYNARRAY_6_IS_FUNCTION_METHOD for method ("of object")
-  pointers. Turns out that this is needed, since FPC (not tested with
-  Delphi) doesn't compare method pointers with normal "=" operator.
+  pointers. Turns out that this is needed, since comparing method
+  pointers with normal "=" operator compares only code pointer
+  (done by FPC for Delphi compatibility, according to
+  [http://bugs.freepascal.org/view.php?id=11868]).
 }
 
 {$ifdef read_interface}
