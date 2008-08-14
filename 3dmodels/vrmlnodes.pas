@@ -603,6 +603,19 @@ type
 
   TVRMLInterfaceDeclarationsList = class;
 
+  TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
+
+  TDynArrayItem_2 = TNodeDestructionNotification;
+  PDynArrayItem_2 = ^TNodeDestructionNotification;
+  {$define DYNARRAY_2_IS_FUNCTION}
+  {$define DYNARRAY_2_USE_EQUALITY}
+  {$I dynarray_2.inc}
+  TDynNodeDestructionNotificationArray = class(TDynArray_2)
+  public
+    { This calls all functions (all Items) passing them Node parameter. }
+    procedure ExecuteAll(Node: TVRMLNode);
+  end;
+
   { Basic VRML node interface class, all other interfaces for VRML nodes descend
     from this. }
   IVRMLNode = interface
@@ -651,6 +664,7 @@ type
     FCDataAllowed: boolean;
     FCDataExists: boolean;
     FCData: string;
+    FDestructionNotifications: TDynNodeDestructionNotificationArray;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1558,6 +1572,11 @@ type
     property CDataExists: boolean read FCDataExists write FCDataExists;
     property CData: string read FCData write FCData;
     { @groupEnd }
+
+    { Functions registered here will be called when this TVRMLNode descendant
+      will be destroyed. }
+    property DestructionNotifications: TDynNodeDestructionNotificationArray
+      read FDestructionNotifications;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -2541,19 +2560,81 @@ type
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
+  EVRMLRouteSaveError = class(EVRMLError);
+
   TVRMLRoute = class(TVRMLFileItem)
+  private
+    FSourceNode: TVRMLNode;
+    FSourceExposedField: TVRMLField;
+    FSourceEvent: TVRMLEvent;
+
+    FDestinationNode: TVRMLNode;
+    FDestinationExposedField: TVRMLField;
+    FDestinationEvent: TVRMLEvent;
+
+    procedure DestructionNotification(Node: TVRMLNode);
+
+    procedure UnsetEnding(
+      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent);
+
+    procedure SetEnding(const NodeName, FieldOrEventName: string;
+      NodeNameBinding: TStringList;
+      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      const DestEnding: boolean);
   public
-    SourceNodeName, SourceFieldName: string;
-    DestinationNodeName, DestinationFieldName: string;
+    destructor Destroy; override;
+
+    { Source event properties. Either all three are @nil, or:
+
+      @unorderedList(
+        @item(SourceEvent is assigned, meaning is self-explanatory.)
+
+        @item(SourceNode must also be assigned and
+          this must be the node enclosing SourceEvent. That is, the node that
+          has SourceEvent as one of explicit (on TVRMLNode.Events list) or
+          implicit (exposed by some field) event.)
+
+        @item(If this event is exposed by some field, then SourceExposedField
+          is also assigned. Otherwise SourceExposedField is @nil.)
+      )
+
+      @groupBegin }
+    property SourceNode: TVRMLNode read FSourceNode;
+    property SourceExposedField: TVRMLField read FSourceExposedField;
+    property SourceEvent: TVRMLEvent read FSourceEvent;
+    { @groupEnd }
+
+    { Destination event properties.
+      Analogous to SourceEvent, SourceExposedField, SourceNode.
+
+      @groupBegin }
+    property DestinationNode: TVRMLNode read FDestinationNode;
+    property DestinationExposedField: TVRMLField read FDestinationExposedField;
+    property DestinationEvent: TVRMLEvent read FDestinationEvent;
+    { @groupEnd }
+
+    procedure SetSource(
+      const SourceNodeName, SourceFieldOrEventName: string;
+      NodeNameBinding: TStringList);
+
+    procedure SetDestination(
+      const DestinationNodeName, DestinationFieldOrEventName: string;
+      NodeNameBinding: TStringList);
 
     { Parses the route statement.
       Implementation should be able to safely assume that current token
       is ROUTE. }
     procedure Parse(Lexer: TVRMLLexer);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+    { Save a ROUTE to VRML file.
 
-    function Description: string;
+      @raises(EVRMLRouteSaveError When route cannot be saved.
+        This can happen when SourceNode or SourceEvent
+        or DestinationNode or DestinationEvent are @nil.
+        Also, if SourceNode and DestinationNode are without a name,
+        or the name is not currently bound in SaveProperties.NodeNameBinding.)
+    }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
   end;
 
   TObjectsListItem_5 = TVRMLRoute;
@@ -2877,25 +2958,12 @@ const
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
 
 type
-  TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
-
-  TDynArrayItem_2 = TNodeDestructionNotification;
-  PDynArrayItem_2 = ^TNodeDestructionNotification;
-  {$define DYNARRAY_2_IS_FUNCTION}
-  {$define DYNARRAY_2_USE_EQUALITY}
-  {$I dynarray_2.inc}
-  TDynNodeDestructionNotificationArray = class(TDynArray_2)
-  public
-    { This calls all functions (all Items) passing them Node parameter. }
-    procedure ExecuteAll(Node: TVRMLNode);
-  end;
-
   { List to keep node names while parsing VRML file.
     This assumes that all strings are node names and their Objects[]
     are TVRMLNode instances with given names.
 
     The only advantage of using this is that it registers and unregisters
-    itself for NodeDestructionNotifications, so if any node may be
+    itself for AnyNodeDestructionNotifications, so if any node may be
     destroyed during parsing, it will also be removed from this list. }
   TNodeNameBinding = class(TStringListCaseSens)
   private
@@ -2908,7 +2976,7 @@ type
 var
   { Functions registered here will be called when any TVRMLNode descendant
     will be destroyed. }
-  NodeDestructionNotifications: TDynNodeDestructionNotificationArray;
+  AnyNodeDestructionNotifications: TDynNodeDestructionNotificationArray;
 
 {$undef read_interface}
 
@@ -3247,11 +3315,19 @@ begin
 
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
+
+  FDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
 end;
 
 destructor TVRMLNode.Destroy;
 begin
-  NodeDestructionNotifications.ExecuteAll(Self);
+  AnyNodeDestructionNotifications.ExecuteAll(Self);
+
+  if DestructionNotifications <> nil then
+  begin
+    DestructionNotifications.ExecuteAll(Self);
+    FreeAndNil(FDestructionNotifications);
+  end;
 
   FreeWithContentsAndNil(FInterfaceDeclarations);
 
@@ -6161,7 +6237,22 @@ end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
+destructor TVRMLRoute.Destroy;
+begin
+  { We have to unset, to call
+    DestructionNotifications.DeleteFirstEqual(...) on our nodes before
+    we get destroyed. Otherwise nodes would have invalid references
+    on DestructionNotifications list. }
+
+  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent);
+  UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent);
+  inherited;
+end;
+
 procedure TVRMLRoute.Parse(Lexer: TVRMLLexer);
+var
+  SourceNodeName, SourceEventName: string;
+  DestinationNodeName, DestinationEventName: string;
 begin
   { We don't use NextTokenForceVTName here, as then the dot "."
     is treated like part the VRML name. So this assumes that VRML node names
@@ -6176,7 +6267,7 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML field/event name');
-  SourceFieldName := Lexer.TokenName;
+  SourceEventName := Lexer.TokenName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIsKeyword(vkTO);
@@ -6190,27 +6281,164 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'VRML field/event name');
-  DestinationFieldName := Lexer.TokenName;
+  DestinationEventName := Lexer.TokenName;
 
   Lexer.NextToken;
 
-{ While this was good for debugging, and it's true, it causes too many
-  messages usually for fields with ROUTEs... it's better to ignore
-  it silently. }
-{  VRMLNonFatalError('TODO: VRML routes are parsed but ignored for now, ' +
-    'so route ' + Description + ' is ignored');}
+  SetSource     (SourceNodeName     , SourceEventName     , Lexer.NodeNameBinding);
+  SetDestination(DestinationNodeName, DestinationEventName, Lexer.NodeNameBinding);
+end;
+
+procedure TVRMLRoute.UnsetEnding(
+  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent);
+begin
+  if Node <> nil then
+  begin
+    Node.DestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+    Node := nil;
+  end;
+  ExposedField := nil;
+  Event := nil;
+end;
+
+procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
+  NodeNameBinding: TStringList;
+  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  const DestEnding: boolean);
+const
+  DestEndingNames: array [boolean] of string =
+  ('source', 'destination');
+var
+  Index: Integer;
+  FieldOrEvent: TVRMLFieldOrEvent;
+begin
+  UnsetEnding(Node, ExposedField, Event);
+
+  Index := NodeNameBinding.IndexOf(NodeName);
+  if Index = -1 then
+  begin
+    UnsetEnding(Node, ExposedField, Event);
+    VRMLNonFatalError(Format('Route %s node name "%s" not found',
+      [ DestEndingNames[DestEnding], NodeName ]));
+    Exit;
+  end;
+
+  Node := NodeNameBinding.Objects[Index] as TVRMLNode;
+  Node.DestructionNotifications.AppendItem(@DestructionNotification);
+
+  FieldOrEvent := Node.FieldOrEvent(FieldOrEventName, true);
+  if FieldOrEvent = nil then
+  begin
+    UnsetEnding(Node, ExposedField, Event);
+    VRMLNonFatalError(Format('Route %s field/event name "%s" (for node "%s") not found',
+      [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]));
+    Exit;
+  end;
+
+  if FieldOrEvent is TVRMLField then
+  begin
+    ExposedField := TVRMLField(FieldOrEvent);
+    if not ExposedField.Exposed then
+    begin
+      UnsetEnding(Node, ExposedField, Event);
+      VRMLNonFatalError(Format('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
+        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]));
+      Exit;
+    end;
+    Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
+  end else
+  begin
+    Assert(FieldOrEvent is TVRMLEvent);
+    Event := TVRMLEvent(FieldOrEvent);
+  end;
+
+  if (SourceEvent <> nil) and
+     (DestinationEvent <> nil) and
+     (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
+  begin
+    VRMLNonFatalError(Format('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
+      [ SourceEvent     .Name, SourceEvent     .FieldClass.ClassName,
+        DestinationEvent.Name, DestinationEvent.FieldClass.ClassName ]));
+    UnsetEnding(Node, ExposedField, Event);
+  end;
+end;
+
+procedure TVRMLRoute.SetSource(
+  const SourceNodeName, SourceFieldOrEventName: string;
+  NodeNameBinding: TStringList);
+begin
+  SetEnding(SourceNodeName, SourceFieldOrEventName,
+    NodeNameBinding,
+    FSourceNode, FSourceExposedField, FSourceEvent,
+    false);
+end;
+
+procedure TVRMLRoute.SetDestination(
+  const DestinationNodeName, DestinationFieldOrEventName: string;
+  NodeNameBinding: TStringList);
+begin
+  SetEnding(DestinationNodeName, DestinationFieldOrEventName,
+    NodeNameBinding,
+    FDestinationNode, FDestinationExposedField, FDestinationEvent,
+    true);
 end;
 
 procedure TVRMLRoute.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+
+  procedure WriteEnding(Node: TVRMLNode; ExposedField: TVRMLField;
+    Event: TVRMLEvent; const S: string);
+  var
+    Index: Integer;
+  begin
+    { Check Node }
+    if Node = nil then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned', [S]);
+    if Node.NodeName = '' then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
+
+    Index := SaveProperties.NodeNameBinding.IndexOf(Node.NodeName);
+    if Index = -1 then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
+        [S, Node.NodeName]);
+    if SaveProperties.NodeNameBinding.Objects[Index] <> Node then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
+        [S, Node.NodeName]);
+
+    SaveProperties.Write(Node.NodeName);
+    SaveProperties.Write('.');
+
+    { Check Event }
+    if Event = nil then
+      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
+
+    { Check ExposedField }
+    if ExposedField = nil then
+    begin
+      if Event.Name = '' then
+        raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
+      SaveProperties.Write(Event.Name);
+    end else
+    begin
+      if ExposedField.Name = '' then
+        raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s exposed field not named', [S]);
+      SaveProperties.Write(ExposedField.Name);
+    end;
+  end;
+
 begin
-  SaveProperties.WritelnIndent(Format('ROUTE %s.%s TO %s.%s',
-    [SourceNodeName, SourceFieldName, DestinationNodeName, DestinationFieldName]));
+  SaveProperties.WritelnIndent('ROUTE ');
+  WriteEnding(SourceNode, SourceExposedField, SourceEvent, 'source');
+  SaveProperties.Write(' TO ');
+  WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
 end;
 
-function TVRMLRoute.Description: string;
+procedure TVRMLRoute.DestructionNotification(Node: TVRMLNode);
 begin
-  Result := Format('%s.%s -> %s.%s', [SourceNodeName, SourceFieldName,
-    DestinationNodeName, DestinationFieldName]);
+  if Node = FSourceNode then
+    UnsetEnding(FSourceNode, FSourceExposedField, FSourceEvent);
+
+  if Node = FDestinationNode then
+    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent);
 end;
 
 { global procedures ---------------------------------------------------------- }
@@ -6903,12 +7131,12 @@ end;
 constructor TNodeNameBinding.Create;
 begin
   inherited;
-  NodeDestructionNotifications.AppendItem(@DestructionNotification);
+  AnyNodeDestructionNotifications.AppendItem(@DestructionNotification);
 end;
 
 destructor TNodeNameBinding.Destroy;
 begin
-  NodeDestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+  AnyNodeDestructionNotifications.DeleteFirstEqual(@DestructionNotification);
   inherited;
 end;
 
@@ -6924,7 +7152,7 @@ end;
 { unit init/fini ------------------------------------------------------------ }
 
 initialization
-  NodeDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
+  AnyNodeDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
 
   VRMLFieldsManager.RegisterClasses([TSFNode, TMFNode]);
 
@@ -6974,5 +7202,5 @@ initialization
   RegisterParticleSystemsNodes;
 finalization
   FreeAndNil(NodesManager);
-  FreeAndNil(NodeDestructionNotifications);
+  FreeAndNil(AnyNodeDestructionNotifications);
 end.

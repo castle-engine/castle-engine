@@ -95,11 +95,17 @@ const
       end;
     end;
 
+  var
+    SourceNodeName, SourceEventName: string;
+    DestinationNodeName, DestinationEventName: string;
   begin
-    Route.SourceNodeName := RequiredAttrib('fromNode');
-    Route.SourceFieldName := RequiredAttrib('fromField');
-    Route.DestinationNodeName := RequiredAttrib('toNode');
-    Route.DestinationFieldName := RequiredAttrib('toField');
+    SourceNodeName := RequiredAttrib('fromNode');
+    SourceEventName := RequiredAttrib('fromField');
+    DestinationNodeName := RequiredAttrib('toNode');
+    DestinationEventName := RequiredAttrib('toField');
+
+    Route.SetSource     (SourceNodeName     , SourceEventName     , NodeNameBinding);
+    Route.SetDestination(DestinationNodeName, DestinationEventName, NodeNameBinding);
   end;
 
   procedure ParseFieldValueFromAttribute(Field: TVRMLField;
