@@ -32,15 +32,16 @@ type
 
     { This is really large test that reads and writes various VRML files
       and checks whether the generated VRML file is the same.
-      It checks "the same" by looking comparing sequence of VRMLLexer
+      It checks "the same" by comparing sequence of VRMLLexer
       tokens for them.
 
-      So this checks both reading and writing of VRML files.
+      Note that this is not guaranteed to pass for every file,
+      since writing is allowed to change some things.
+      But we test only on subset of VRML files that are known to pass this.
 
-      Deactivated... it can't check like this, lexer tokens may be
-      different due to the order of fields.
+      So this checks both reading and writing of VRML files.
     }
-    { procedure TestParseSaveToFile; } { }
+    procedure TestParseSaveToFile;
 
     procedure TestUniqueFields;
     procedure TestInterfaceSupports;
@@ -106,7 +107,6 @@ end;
 
 { TVRMLTokenInfo and TDynVRMLTokenInfoArray ---------------------------------- }
 
-(*
 type
   TVRMLTokenInfo = record
     Token: TVRMLToken;
@@ -142,8 +142,8 @@ procedure TDynVRMLTokenInfoArray.AssertEqual(
     const
       VRMLTokenNames: array[TVRMLToken]of string = (
         'keyword', 'name',
-        '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."',
-        'float', 'integer', 'string', 'end of file');
+        '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
+        'float', 'integer', 'string', 'end of stream');
     begin
       Result := VRMLTokenNames[T.Token];
       case T.Token of
@@ -246,9 +246,8 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
   end;
 
 begin
-  TestReadWrite('../../kambi_vrml_test_suite/vrml_2/proto_nested.wrl');
+  TestReadWrite('../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv');
 end;
-*)
 
 procedure TTestVRMLNodes.TestInterfaceSupports;
 var
@@ -382,7 +381,7 @@ begin
     TNodeMaterialBinding, TNodeNormalBinding,
     TNodeTexture2Transform,
     TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform, TNodeRotation,
+    TNodeMatrixTransform_1, TNodeRotation,
     TNodeScale, TNodeTransform_1,
     TNodeTranslation,
     TNodeOrthographicCamera, TNodePerspectiveCamera,
