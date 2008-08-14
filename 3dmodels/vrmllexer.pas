@@ -1045,7 +1045,7 @@ procedure TVRMLLexer.CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
 begin
   if not ( (Token = vtKeyword) and (TokenKeyword = Keyword) ) then
     raise EVRMLParserError.Create(Self,
-      Format('Expected keyword "%s", got %s', [VRMLKeywords[TokenKeyword],
+      Format('Expected keyword "%s", got %s', [VRMLKeywords[Keyword],
         DescribeToken]));
 end;
 
