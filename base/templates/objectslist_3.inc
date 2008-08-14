@@ -106,7 +106,6 @@
       TODO: untested yet! }
     procedure Assign(Source: TObjectsList_3);
 
-    { TODO: untested yet! }
     function Equals(SecondValue: TObjectsList_3): boolean;
 
     { dodawanie ---------------------------------------- }

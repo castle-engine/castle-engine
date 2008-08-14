@@ -1752,7 +1752,6 @@ type
     Just like SFNode, it's defined in this unit, as it uses TVRMLNode.
     Note that items of MFNode @italic(cannot) be nil (i.e. VRML doesn't
     allow to use NULL inside MFNode), contrary to SFNode.
-    Default value of MFNode field is always "0 items".
 
     Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
     Reasons ? 1. We don't want to use TDynArray descendant.
@@ -1768,6 +1767,8 @@ type
   TMFNode = class(TVRMLMultField)
   private
     FItems: TVRMLNodesList;
+    FDefaultItems: TVRMLNodesList;
+    FDefaultValueExists: boolean;
     FParentNode: TVRMLNode;
     FAllowedChildren: TVRMLNodeClassesList;
     FAllowedChildrenAll: boolean;
@@ -1803,7 +1804,7 @@ type
     property AllowedChildrenAll: boolean
       read FAllowedChildrenAll write FAllowedChildrenAll;
 
-    { Lists items of this fields.
+    { Lists items of this field.
 
       Do not modify this list explicitly. Use only methods in this class
       like AddItem (they take care of calling appropriate
@@ -1831,8 +1832,10 @@ type
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
+
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignDefaultValueFromValue; override;
 
     property ParentNode: TVRMLNode read FParentNode;
 
@@ -1853,6 +1856,24 @@ type
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
     function ChildAllowed(Child: TVRMLNode): boolean;
+
+    { Lists default items of this field.
+
+      Do not modify this list explicitly. Use only methods in this class
+      like AssignDefaultItems (they take care of calling appropriate
+      AddParentField / RemoveParentField, otherwise you
+      could break reference-counting of nodes by ParentFields). }
+    property DefaultItems: TVRMLNodesList read FDefaultItems;
+
+    { Operate on DefaultItems, just like analogous AssignItems and
+      ClearItems.
+      @groupBegin }
+    procedure AssignDefaultItems(SourceItems: TVRMLNodesList);
+    procedure ClearDefaultItems;
+    { @groupEnd }
+
+    property DefaultValueExists: boolean
+      read FDefaultValueExists write FDefaultValueExists default false;
   end;
 
 { Specific VRML nodes from specifications, part 1 -------------------------- }
@@ -5049,6 +5070,9 @@ begin
 
   FAllowedChildren := TVRMLNodeClassesList.Create;
   FAllowedChildrenAll := true;
+
+  FDefaultItems := TVRMLNodesList.Create;
+  FDefaultValueExists := false;
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
@@ -5059,6 +5083,11 @@ begin
 
   FAllowedChildren.AssignArray(AnAllowedChildren);
   FAllowedChildrenAll := false;
+
+  { In the future, this constructor may also allow setting DefaultItems
+    from parameters. For now, this is not needed anywhere.
+    We assume DefaultItems = [] if you used this constructor. }
+  DefaultValueExists := true;
 end;
 
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
@@ -5085,7 +5114,9 @@ end;
 destructor TMFNode.Destroy;
 begin
   ClearItems;
+  ClearDefaultItems;
   FreeAndNil(FItems);
+  FreeAndNil(FDefaultItems);
   FreeAndNil(FAllowedChildren);
   inherited;
 end;
@@ -5169,6 +5200,15 @@ begin
   FItems.Count := 0;
 end;
 
+procedure TMFNode.ClearDefaultItems;
+var
+  I: Integer;
+begin
+  for I := 0 to FDefaultItems.Count - 1 do
+    FDefaultItems[I].RemoveParentField(Self);
+  FDefaultItems.Count := 0;
+end;
+
 procedure TMFNode.AssignItems(SourceItems: TVRMLNodesList);
 var
   I: Integer;
@@ -5179,6 +5219,18 @@ begin
 
   for I := 0 to Count - 1 do
     Items[I].AddParentField(Self);
+end;
+
+procedure TMFNode.AssignDefaultItems(SourceItems: TVRMLNodesList);
+var
+  I: Integer;
+begin
+  ClearDefaultItems;
+
+  DefaultItems.Assign(SourceItems);
+
+  for I := 0 to DefaultItems.Count - 1 do
+    DefaultItems[I].AddParentField(Self);
 end;
 
 function TMFNode.ChildAllowed(Child: TVRMLNode): boolean;
@@ -5243,7 +5295,8 @@ end;
 
 function TMFNode.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and (Count = 0);
+  Result := (not IsClause) and DefaultValueExists and
+    DefaultItems.Equals(Items);
 end;
 
 function TMFNode.Equals(SecondValue: TVRMLField;
@@ -5259,6 +5312,8 @@ begin
   if Source is TMFNode then
   begin
     AssignItems(TMFNode(Source).Items);
+    AssignDefaultItems(TMFNode(Source).DefaultItems);
+    DefaultValueExists := TMFNode(Source).DefaultValueExists;
     VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
@@ -5272,6 +5327,13 @@ begin
     AssignItems(TMFNode(Source).Items);
   end else
     AssignValueRaiseInvalidClass(Source);
+end;
+
+procedure TMFNode.AssignDefaultValueFromValue;
+begin
+  inherited;
+  AssignDefaultItems(Items);
+  DefaultValueExists := true;
 end;
 
 class function TMFNode.VRMLTypeName: string;
