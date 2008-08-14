@@ -2649,7 +2649,8 @@ type
     procedure DestructionNotification(Node: TVRMLNode);
 
     procedure UnsetEnding(
-      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent);
+      var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
       NodeNameBinding: TStringList;
@@ -6460,7 +6461,7 @@ begin
     we get destroyed. Otherwise nodes would have invalid references
     on DestructionNotifications list. }
 
-  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent);
+  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     );
   UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent);
   inherited;
 end;
@@ -6506,11 +6507,13 @@ begin
 end;
 
 procedure TVRMLRoute.UnsetEnding(
-  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent);
+  var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  RemoveFromDestructionNotification: boolean);
 begin
   if Node <> nil then
   begin
-    Node.DestructionNotifications.DeleteFirstEqual(@DestructionNotification);
+    if RemoveFromDestructionNotification then
+      Node.DestructionNotifications.DeleteFirstEqual(@DestructionNotification);
     Node := nil;
   end;
   ExposedField := nil;
@@ -6660,11 +6663,20 @@ end;
 
 procedure TVRMLRoute.DestructionNotification(Node: TVRMLNode);
 begin
+  { UnsetEnding is called with RemoveFromDestructionNotification = false.
+    Reason:
+    1. Removing from DestructionNotification is not needed,
+       since the Node is destroyed anyway, along with it's
+       DestructionNotification list.
+    2. Moreover, right now we probably iterate over DestructionNotification,
+       so removing items from it is very bad idea (indexes shift,
+       pointers change if reallocation occurs). }
+
   if Node = FSourceNode then
-    UnsetEnding(FSourceNode, FSourceExposedField, FSourceEvent);
+    UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false);
 
   if Node = FDestinationNode then
-    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent);
+    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, false);
 end;
 
 { global procedures ---------------------------------------------------------- }
