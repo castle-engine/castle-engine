@@ -84,6 +84,10 @@
   This is required, because (in Delphi syntax mode at least) we have
   to write some things differently.
   Also, this automatically defines DYNARRAY_12_USE_EQUALITY_OP.
+
+  Additionally, define DYNARRAY_12_IS_FUNCTION_METHOD for method ("of object")
+  pointers. Turns out that this is needed, since FPC (not tested with
+  Delphi) doesn't compare method pointers with normal "=" operator.
 }
 
 {$ifdef read_interface}
@@ -381,17 +385,22 @@ end;
 
 function TDynArray_12.EqualItems(const Item1, Item2: TDynArrayItem_12): boolean;
 begin
- {$ifdef DYNARRAY_12_USE_EQUALITY_OP}
- Result := (
-   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_12_IS_FUNCTION} @ {$endif} {$endif} Item1 =
-   {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_12_IS_FUNCTION} @ {$endif} {$endif} Item2);
- {$else}
-   {$ifdef DYNARRAY_12_USE_EQUALITY_COMPAREMEM}
-   result := CompareMem(@Item1, @Item2, SizeOf(TDynArrayItem_12));
-   {$else}
-   Error: one of the DYNARRAY_USE_EQUALITY_* must be defined.
-   {$endif}
- {$endif}
+  Result :=
+    {$ifdef DYNARRAY_12_IS_FUNCTION_METHOD}
+      (TMethod(Item1).Code = TMethod(Item2).Code) and
+      (TMethod(Item1).Data = TMethod(Item2).Data);
+    {$else DYNARRAY_12_IS_FUNCTION_METHOD}
+      {$ifdef DYNARRAY_12_USE_EQUALITY_OP}
+        ({$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_12_IS_FUNCTION} @ {$endif} {$endif} Item1 =
+         {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_12_IS_FUNCTION} @ {$endif} {$endif} Item2);
+      {$else}
+        {$ifdef DYNARRAY_12_USE_EQUALITY_COMPAREMEM}
+        CompareMem(@Item1, @Item2, SizeOf(TDynArrayItem_12));
+        {$else}
+        Error: one of the DYNARRAY_USE_EQUALITY_* must be defined.
+        {$endif}
+      {$endif}
+    {$endif DYNARRAY_12_IS_FUNCTION_METHOD}
 end;
 
 function TDynArray_12.Equal(DynArr: TDynArray_12): boolean;

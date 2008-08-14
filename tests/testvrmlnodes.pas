@@ -49,6 +49,8 @@ type
     procedure TestContainerFieldList;
     procedure TestContainerFieldGeometry;
     procedure TestGeometryNodesImplemented;
+    procedure TestDestructionNotification;
+
   private
     procedure DummyTriangleProc(const Tri: TTriangle3Single;
       State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
@@ -899,6 +901,43 @@ begin
       finally FreeAndNil(N) end;
     end;
   finally FreeAndNil(State) end;
+end;
+
+type
+  TMyObject = class
+    procedure Foo(Node: TVRMLNode);
+  end;
+
+procedure TMyObject.Foo(Node: TVRMLNode);
+begin
+end;
+
+procedure TTestVRMLNodes.TestDestructionNotification;
+var
+  A: TDynNodeDestructionNotificationArray;
+  M1, M2, M3: TMyObject;
+begin
+  A := TDynNodeDestructionNotificationArray.Create;
+  M1 := TMyObject.Create;
+  M2 := TMyObject.Create;
+  M3 := TMyObject.Create;
+  try
+    A.AppendItem(@M1.Foo);
+    A.AppendItem(@M2.Foo);
+    A.AppendItem(@M3.Foo);
+    Assert(A.IndexOf(@M1.Foo) = 0);
+    Assert(A.IndexOf(@M2.Foo) = 1);
+    Assert(A.IndexOf(@M3.Foo) = 2);
+    A.DeleteFirstEqual(@M2.Foo);
+    Assert(A.IndexOf(@M1.Foo) = 0);
+    Assert(A.IndexOf(@M2.Foo) = -1);
+    Assert(A.IndexOf(@M3.Foo) = 1);
+  finally
+    FreeAndNil(A);
+    FreeAndNil(M1);
+    FreeAndNil(M2);
+    FreeAndNil(M3);
+  end;
 end;
 
 initialization

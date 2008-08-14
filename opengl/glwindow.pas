@@ -3052,7 +3052,7 @@ procedure TDynGLWindowFuncArray.ExecuteAll(glwin: TGLwindow);
 var i: integer;
 begin
  for i := 0 to Length-1 do
-  if @Items[i] <> nil then
+  if {$ifndef FPC_OBJFPC} @ {$endif} Items[i] <> nil then
   begin
    {$I glwindow_eventoncallbegin.inc}
    Items[i](glwin);

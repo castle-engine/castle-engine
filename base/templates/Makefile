@@ -1,5 +1,5 @@
 #
-#  Copyright 2002-2004 Michalis Kamburelis.
+#  Copyright 2002-2008 Michalis Kamburelis.
 #
 #  This file is part of "Kambi's base Pascal units".
 #
@@ -69,6 +69,7 @@ dynarray_%.inc: ../dynarray.inc
 	  -e 's/\bDYNARRAY_USE_EQUALITY\b/DYNARRAY_'$*'_USE_EQUALITY/ig' \
 	  -e 's/\bDYNARRAY_USE_EQUALITY_COMPAREMEM\b/DYNARRAY_'$*'_USE_EQUALITY_COMPAREMEM/ig' \
 	  -e 's/\bDYNARRAY_IS_FUNCTION\b/DYNARRAY_'$*'_IS_FUNCTION/ig' \
+	  -e 's/\bDYNARRAY_IS_FUNCTION_METHOD\b/DYNARRAY_'$*'_IS_FUNCTION_METHOD/ig' \
 	  -e 's/\bDYNARRAY_USE_PLUSMINUS_OP\b/DYNARRAY_'$*'_USE_PLUSMINUS_OP/ig' \
 	  $@
 

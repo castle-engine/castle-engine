@@ -608,6 +608,7 @@ type
   TDynArrayItem_2 = TNodeDestructionNotification;
   PDynArrayItem_2 = ^TNodeDestructionNotification;
   {$define DYNARRAY_2_IS_FUNCTION}
+  {$define DYNARRAY_2_IS_FUNCTION_METHOD}
   {$define DYNARRAY_2_USE_EQUALITY}
   {$I dynarray_2.inc}
   TDynNodeDestructionNotificationArray = class(TDynArray_2)
