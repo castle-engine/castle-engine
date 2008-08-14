@@ -1057,7 +1057,10 @@ type
     function GetValueDeg: TVector4Single;
     procedure SetValueDeg(const AValue: TVector4Single);
   public
-    constructor Create(const AName: string; const AnAxis: TVector3Single; const ARotationRad: Single);
+    constructor Create(const AName: string;
+      const AnAxis: TVector3Single; const ARotationRad: Single); overload;
+    constructor Create(const AName: string;
+      const AValue: TVector4Single); overload;
 
     Axis: TVector3Single;
     RotationRad: Single;
@@ -3138,6 +3141,19 @@ begin
 
   Axis := AnAxis;
   RotationRad := ARotationRad;
+
+  AssignDefaultValueFromValue;
+end;
+
+constructor TSFRotation.Create(const AName: string;
+  const AValue: TVector4Single);
+var
+  AnAxis: TVector3Single absolute AValue;
+begin
+  inherited Create(AName);
+
+  Axis := AnAxis;
+  RotationRad := AValue[3];
 
   AssignDefaultValueFromValue;
 end;

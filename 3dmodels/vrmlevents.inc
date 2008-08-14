@@ -224,6 +224,8 @@ var
 begin
   if FieldClass = TSFColorRGBA then
     Field := TSFColorRGBA.Create(Name, Value) else
+  if FieldClass = TSFRotation then
+    Field := TSFRotation.Create(Name, Value) else
     Field := TSFVec4f.Create(Name, Value);
   try
     Send(Field);

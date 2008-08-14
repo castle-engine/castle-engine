@@ -401,7 +401,11 @@ begin
       MultipleInterpolatorFieldTypePostprocess
     end;
   end;
-  EventValue_Changed.Send(OutputValue);
+  try
+    EventValue_Changed.Send(OutputValue);
+  finally
+    FreeAndNil(OutputValue);
+  end;
 end;}
 
 constructor TNodeX3DInterpolatorNode.Create(const ANodeName: string;
@@ -488,6 +492,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeColorInterpolator.ClassNodeTypeName: string;
@@ -530,6 +536,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
@@ -572,6 +580,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeCoordinateInterpolator2D.ClassNodeTypeName: string;
@@ -653,6 +663,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeNormalInterpolator.ClassNodeTypeName: string;
@@ -695,6 +707,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
@@ -737,6 +751,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodePositionInterpolator.ClassNodeTypeName: string;
@@ -779,6 +795,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodePositionInterpolator2D.ClassNodeTypeName: string;
@@ -819,6 +837,8 @@ begin
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
+
+  EventSet_Fraction.OnReceive.AppendItem(@EventSet_FractionReceive);
 end;
 
 class function TNodeScalarInterpolator.ClassNodeTypeName: string;
