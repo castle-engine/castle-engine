@@ -85,6 +85,9 @@ private
 
   FBorderWidth: Cardinal;
 
+  { If > 0, you cannot recreate menu. }
+  MenuRecreateForbidden: Integer;
+
   procedure UpdateCursor;
 public
 
@@ -683,9 +686,9 @@ function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
   Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
 { This is called when user switches to another window. }
 SIGNAL_WINDOW_BEGIN
- ReleaseAllKeysAndMouse;
- { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := false;
+  ReleaseAllKeysAndMouse;
+  { for the sake of gtk, I can't tell that I "handled" this in any way }
+  Result := false;
 SIGNAL_WINDOW_END;
 
 { TGLWindow ------------------------------------------------------------ }
@@ -772,13 +775,16 @@ end;
 
 procedure TGLWindow.MainMenuChangedImplDepend;
 begin
- { According to GTK docs (at gtk_container_remove),
-   the simplest way to remove window_menu_bar from window_vbox is to simply
-   do gtk_widget_destroy on window_menu_bar.
-   This will take care of removing window_menu_bar appropriately. }
- gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
+  if MenuRecreateForbidden = 0 then
+  begin
+    { According to GTK docs (at gtk_container_remove),
+      the simplest way to remove window_menu_bar from window_vbox is to simply
+      do gtk_widget_destroy on window_menu_bar.
+      This will take care of removing window_menu_bar appropriately. }
+    gtk_widget_destroy(GTK_WIDGET(window_menu_bar));
 
- init_window_menu_bar;
+    init_window_menu_bar;
+  end;
 end;
 
 procedure TGLWindow.SwapBuffers;

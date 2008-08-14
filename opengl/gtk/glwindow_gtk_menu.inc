@@ -38,8 +38,18 @@ function gtk_check_menu_item_get_draw_as_radio(
 
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
+var
+  Glwin: TGLWindow absolute UserData;
 begin
-  TGLWindow(UserData).ReleaseAllKeysAndMouse;
+  { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
+    comments. }
+  Inc(Glwin.MenuRecreateForbidden);
+  try
+    Glwin.ReleaseAllKeysAndMouse;
+  finally
+    Dec(Glwin.MenuRecreateForbidden);
+  end;
+
   Result := false;
 end;
 
@@ -53,11 +63,37 @@ end;
   In this case key up is just passed to our WindowGtk.
   But this is of course only a special case, in general
   we still must take care ourselves to call ReleaseAllKeysAndMouse
-  when needed. That's why proc below is needed. }
+  when needed. That's why proc below is needed.
+
+  Note that we use MenuRecreateForbidden here, to prevent modification
+  of menu from within ReleaseAllKeysAndMouse. Reason: menu recreate actually
+  destroys and recreates GTK resources for this menu, and this causes
+  GTK to SEGFAULT right after calling this callback.
+  Not surprising --- we just destroyed the very resource that received focus...
+
+  Menu recreate calls could happen when some KeyUp
+  message will cause e.g. SetStandardGLWindowState. For example,
+  this happens in view3dscene when KeyUp may produce message to KeySensor about
+  key release, and this may produce ChangedAll on VRML scene, which produces
+  ProgressGL run...
+
+  MenuRecreateForbidden is not an ideal solution, menu should be eventually
+  recreated at some later point, TODO... For now this works Ok,
+  as SetStandardGLWindowState only changes Enabled to false and later back
+  to true, so actually recreating menu is not needed. }
+
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
+var
+  Glwin: TGLWindow absolute UserData;
 begin
-  TGLWindow(UserData).ReleaseAllKeysAndMouse;
+  Inc(Glwin.MenuRecreateForbidden);
+  try
+    Glwin.ReleaseAllKeysAndMouse;
+  finally
+    Dec(Glwin.MenuRecreateForbidden);
+  end;
+
   Result := false;
 end;
 

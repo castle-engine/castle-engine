@@ -201,6 +201,7 @@ EXAMPLES_BASE_NAMES := \
   opengl/examples/demo_matrix_navigation \
   opengl/examples/fog_coord \
   opengl/examples/simple_video_editor \
+  opengl/examples/test_menu_change_from_keyup \
   opengl/examples/bezier_surfaces/animate_surface \
   opengl/examples/bezier_surfaces/design_surface \
   3dgraph/examples/draw_space_filling_curve \
