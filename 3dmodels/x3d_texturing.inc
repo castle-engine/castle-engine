@@ -240,10 +240,14 @@
   TNodeMovieTexture = class(TNodeX3DTexture2DNode, INodeX3DSoundSourceNode, INodeX3DUrlObject)
   private
     FDuration: TKamTime;
+    FTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    function CycleInterval: TKamTime;
   protected
     procedure LoadTextureData(out CacheUsed: boolean); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -291,25 +295,15 @@
 
     function TextureDescription: string; override;
 
-    { These describe current state of this TNodeMovieTexture,
-      see X3D specification about "Time" component.
+    property TimeDependentNodeHandler: TTimeDependentNodeHandler
+      read FTimeDependentNodeHandler;
 
-      In the future, they will be something more complex then simple
-      fields, and their setting will cause appropriate events to
-      be generated.
-
-      @groupBegin }
-    IsActive: boolean;
-    IsPaused: boolean;
-    ElapsedTime: TKamTime;
-    { @groupEnd }
-
-    { Duration and cycle interval for this time-dependent node.
+    { Duration for this time-dependent node.
       Duration is initialized from loaded video length (default is -1).
       So it's automatically initialized when you call IsTextureVideo,
       TextureVideo methods.
 
-      cycleInterval is just duration scaled by 1/Abs(speed),
+      cycleInterval is just set to duration scaled by 1/Abs(speed),
       like required by X3D spec.
 
       Duration (and so, also cycleInterval) is not reset when video
@@ -317,12 +311,8 @@
       IsTextureLoaded to @false, maybe implicitly by calling
       TVRMLFlatScene.FreeResources with frTextureDataInNodes).
       This way this is available even you freed the texture video data to
-      save memory.
-
-      @groupBegin }
+      save memory. }
     property Duration: TKamTime read FDuration;
-    function CycleInterval: TKamTime;
-    { @groupEnd }
   end;
 
   TNodeMultiTexture = class(TNodeX3DTextureNode)
@@ -786,6 +776,24 @@ begin
   Events.Add(FEventisPaused);
 
   FDuration := -1;
+
+  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
+  FTimeDependentNodeHandler.Node := Self;
+  FTimeDependentNodeHandler.Fdloop := Fdloop;
+  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
+  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
+  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
+  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  FTimeDependentNodeHandler.EventisActive:= EventisActive;
+  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
+  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
+  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+end;
+
+destructor TNodeMovieTexture.Destroy;
+begin
+  FreeAndNil(FTimeDependentNodeHandler);
+  inherited;
 end;
 
 class function TNodeMovieTexture.ClassNodeTypeName: string;
@@ -827,6 +835,7 @@ begin
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
+      EventDuration_Changed.Send(FDuration);
       Break;
     except
       on E: Exception do

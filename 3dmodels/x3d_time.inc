@@ -63,6 +63,48 @@
     public property EventisPaused: TVRMLEvent read FEventisPaused;
   end;
 
+  TTimeFunction = function: TKamTime of object;
+
+  { Common helper for all X3DTimeDependentNode descedants.
+    This includes things descending from class TNodeX3DTimeDependentNode,
+    and from interface INodeX3DTimeDependentNode. }
+  TTimeDependentNodeHandler = class
+  private
+    FIsActive: boolean;
+    FIsPaused: boolean;
+    FElapsedTime: TKamTime;
+    procedure SetIsActive(const Value: boolean);
+    procedure SetIsPaused(const Value: boolean);
+    procedure SetElapsedTime(const Value: TKamTime);
+  public
+    Node: TVRMLNode;
+
+    { These describe current state of this TimeDependentNode,
+      see X3D specification about "Time" component.
+
+      Their setting causes appropriate events to be generated.
+
+      @groupBegin }
+    property IsActive: boolean read FIsActive write SetIsActive;
+    property IsPaused: boolean read FIsPaused write SetIsPaused;
+    property ElapsedTime: TKamTime read FElapsedTime write SetElapsedTime;
+    { @groupEnd }
+
+    { Cycle interval for this time-dependent node. }
+    OnCycleInterval: TTimeFunction;
+    function CycleInterval: TKamTime;
+
+    Fdloop: TSFBool;
+    FdpauseTime: TSFTime;
+    FdresumeTime: TSFTime;
+    FdstartTime: TSFTime;
+    FdstopTime: TSFTime;
+
+    EventelapsedTime: TVRMLEvent;
+    EventisActive: TVRMLEvent;
+    EventisPaused: TVRMLEvent;
+  end;
+
   TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -127,6 +169,39 @@ begin
   Events.Add(FEventisPaused);
 
   DefaultContainerField := 'children';
+end;
+
+procedure TTimeDependentNodeHandler.SetIsActive(const Value: boolean);
+begin
+  if Value <> FIsActive then
+  begin
+    FIsActive := Value;
+    EventIsActive.Send(Value);
+  end;
+end;
+
+procedure TTimeDependentNodeHandler.SetIsPaused(const Value: boolean);
+begin
+  if Value <> FIsPaused then
+  begin
+    FIsPaused := Value;
+    EventIsPaused.Send(Value);
+  end;
+end;
+
+procedure TTimeDependentNodeHandler.SetElapsedTime(const Value: TKamTime);
+begin
+  if Value <> FElapsedTime then
+  begin
+    FElapsedTime := Value;
+    EventElapsedTime.Send(Value);
+  end;
+end;
+
+function TTimeDependentNodeHandler.CycleInterval: TKamTime;
+begin
+  Assert(Assigned(OnCycleInterval));
+  Result := OnCycleInterval();
 end;
 
 constructor TNodeTimeSensor.Create(const ANodeName: string;
