@@ -5985,6 +5985,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
           and this in turn will be eventually copied to fields inside
           the prototype expansion. }
         FieldsAssignValue(NodeExternalPrototype.Fields[I], F, false);
+        NodeExternalPrototype.Fields[I].Exposed := F.Exposed;
       end else
         VRMLNonFatalError(Format(
           'Error when expanding external prototype "%s": ' +
