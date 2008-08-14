@@ -616,7 +616,7 @@ type
     Like @code(Fields.Add(TSFFloat.Create('width', 2, true))).
     Also, you should define FdXxx properties that allow fast,
     comfortable and type-secure way to retrieve and set these fields. }
-  TVRMLNode = class(TNonRefCountedInterfacedObject, IVRMLNode)
+  TVRMLNode = class(TVRMLFileItem, IVRMLNode)
   private
     fNodeName: string;
     FWWWBasePath: string;
@@ -715,7 +715,7 @@ type
 
       This should be overriden to parse special features within particular
       nodes. While generally VRML is very clean and there's no need to
-      override this, there are two uses of this already:
+      override this, there's one use for this currently:
 
       @orderedList(
         @item(Since we handle a couple of VRML flavors (at least
@@ -729,19 +729,16 @@ type
           "hints" field is not exposed in TNodeShapeHints interface,
           so everything is clean in the interface, and under the hood
           TNodeShapeHints can "magically" handle "hints" field for Inventor.)
+      )
 
-        @item(VRML 2.0 Script node has special features (interface declarations),
-          not present in other nodes. They have to be parsed and stored
-          in TNodeScript properties.
-
-          Same situation for some shader-related nodes like ComposedShader.))
 
       When overriding, always check inherited result first, and exit if
       inherited handled successfully.
       Otherwise either read your stuff and return @true
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
-    function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; virtual;
+    function ParseNodeBodyElement(Lexer: TVRMLLexer;
+      const APositionInParent: Integer): boolean; virtual;
 
     (* This will be called by SaveToStream within { }.
        Usually you want to save here what you read in your overridden
@@ -1248,7 +1245,7 @@ type
     (*Save node to stream. This saves everything, including node name,
       node type, then node contents within { }.
 
-      We use NodeNameBinding, pretty much like when parsing.
+      We use SaveProperties.NodeNameBinding, pretty much like when parsing.
       If a node name is already bound with this node, then we know
       we have to write only USE ... statement. Otherwise we write
       full node contents, with eventual DEF ... statement.
@@ -1257,7 +1254,7 @@ type
       we don't write our Children. Currently this is used by various inline
       nodes (WWWInline, Inline, etc.).
     *)
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); virtual;
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { szuka tej klasy node'a (rzeczywistej koncowej klasy, z ClassType) w
       TraverseStateLastNodesClasses. Zwraca indeks lub -1 jesli nie znalazl. }
@@ -2250,7 +2247,7 @@ type
     the information is contained within FieldOrEvent
     instance, like Name, field class type, out or in (in case of event),
     exposed or not (in case of field), IsClause and IsClauseName. }
-  TVRMLInterfaceDeclaration = class
+  TVRMLInterfaceDeclaration = class(TVRMLFileItem)
   private
     FFieldOrEvent: TVRMLFieldOrEvent;
 
@@ -2287,9 +2284,25 @@ type
     { Save this interface declaration to stream.
       This assumes that it starts at the beginning of the line,
       and at the end always writes NL, so at the end it's also
-      at the beginning of some line. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      at the beginning of some line.
+
+      @param(FieldValue If @true then we will always save
+        Field value or IS clause to stream, along with this interface
+        decl (if this interface declaration has the Field set).
+        Otherwise, field's value will not be saved, only IS clause
+        if present.)
+    }
+    procedure IDeclSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
       FieldValue: boolean);
+
+    { Save this interface declaration to stream.
+
+      Saves with field value, just by calling
+      IDeclSaveToStream(SaveProperties, true).
+
+      @seealso IDeclSaveToStream }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+      override;
 
     { Returns access type, corresponding to current @link(Event)
       and @link(Field) values.
@@ -2426,7 +2439,7 @@ type
     function Instantiate: TVRMLNode;
   end;
 
-  TVRMLPrototypeBase = class
+  TVRMLPrototypeBase = class(TVRMLFileItem)
   private
     FName: string;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
@@ -2453,9 +2466,6 @@ type
 
     { Parse prototype, and add it to Lexer.ProtoNameBinding by @link(Bind). }
     procedure Parse(Lexer: TVRMLLexer); virtual; abstract;
-
-    { Save prototype description to a stream. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); virtual; abstract;
 
     { Add Self (at least Name must be initialized) to prototypes namespace. }
     procedure Bind(ProtoNameBinding: TStringList);
@@ -2531,7 +2541,7 @@ type
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
-  TVRMLRoute = class
+  TVRMLRoute = class(TVRMLFileItem)
   public
     SourceNodeName, SourceFieldName: string;
     DestinationNodeName, DestinationFieldName: string;
@@ -2541,7 +2551,7 @@ type
       is ROUTE. }
     procedure Parse(Lexer: TVRMLLexer);
 
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     function Description: string;
   end;
@@ -3556,6 +3566,8 @@ end;
 procedure TVRMLNode.Parse(Lexer: TVRMLLexer);
 var
   Handled: boolean;
+  Position: Integer;
+  ChildNode: TVRMLNode;
 begin
   RemoveAllChildren;
 
@@ -3563,11 +3575,13 @@ begin
   CDataExists := false;
   CData := '';
 
+  Position := 0;
+
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;
   while Lexer.Token <> vtCloseCurlyBracket do
   begin
-    Handled := ParseNodeBodyElement(Lexer);
+    Handled := ParseNodeBodyElement(Lexer, Position);
 
     { VRML 1.0 children nodes are handled as a last resort here
       (that's also why they can't be inside our ParseNodeBodyElement).
@@ -3577,7 +3591,11 @@ begin
     if not Handled then
     begin
       if ParsingAllowedChildren then
-        AddChild(ParseNode(Lexer)) else
+      begin
+        ChildNode := ParseNode(Lexer);
+        ChildNode.PositionInParent := Position;
+        AddChild(ChildNode);
+      end else
       begin
         raise EVRMLParserError.Create(Lexer,
           Format('Invalid VRML node content (unknown or not allowed' +
@@ -3585,13 +3603,16 @@ begin
             [NodeTypeName, Lexer.DescribeToken]));
       end;
     end;
+
+    Inc(Position);
   end;
   Lexer.NextToken;
 
   FWWWBasePath := Lexer.WWWBasePath;
 end;
 
-function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
+function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
+  const APositionInParent: Integer): boolean;
 
   procedure ParseExtensibilityFields;
 
@@ -3697,6 +3718,7 @@ begin
         Lexer.NextToken;
 
       Fields[I].Parse(Lexer, true);
+      Fields[I].PositionInParent := APositionInParent;
     end else
     begin
       Event := AnyEvent(Lexer.TokenName,
@@ -3710,6 +3732,7 @@ begin
         Result := true;
         Lexer.NextToken;
         Event.Parse(Lexer);
+        Event.PositionInParent := APositionInParent;
       end else
       if Lexer.TokenName = 'fields' then
       begin
@@ -3735,6 +3758,7 @@ begin
     IDecl := TVRMLInterfaceDeclaration.Create;
     InterfaceDeclarations.Add(IDecl);
     IDecl.Parse(Lexer, true, true);
+    IDecl.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
   begin
@@ -3743,6 +3767,7 @@ begin
     Proto := TVRMLPrototype.Create;
     Prototypes.Add(Proto);
     Proto.Parse(Lexer);
+    Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
   begin
@@ -3751,6 +3776,7 @@ begin
     Proto := TVRMLExternalPrototype.Create;
     Prototypes.Add(Proto);
     Proto.Parse(Lexer);
+    Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkROUTE) then
   begin
@@ -3759,6 +3785,7 @@ begin
     Route := TVRMLRoute.Create;
     Routes.Add(Route);
     Route.Parse(Lexer);
+    Route.PositionInParent := APositionInParent;
   end;
 end;
 
@@ -4121,63 +4148,35 @@ procedure TVRMLNode.SaveContentsToStream(
   SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
+  FileItems: TVRMLFileItemsList;
 begin
-  if HasInterfaceDeclarations <> [] then
-  begin
-    for I := 0 to InterfaceDeclarations.Count - 1 do
-      InterfaceDeclarations[I].SaveToStream(SaveProperties, true);
-  end;
-
-  (*Write all prototypes at the beginning. Prototype cannot depend
-    on whatever is defined by children nodes (in particular, since
-    prototypes have separate DEF / USE namespace), so it's safe to just
-    write here all prototypes (in the same order as they were found
-    in the file).
-
-    TODO: that's not true in case prototype name will be redefined.
-    Consider
-      PROTO Whatever [ ] { ... some proto contents... }
-      Whatever { }
-      PROTO Whatever [ ] { ... other proto contents... }
-      Whatever { }
-    ... so prototype definitions must be mixed with node/field children
-    declarations. (In VRML 2.0, proto can only between two field definitions...
-    still, what if both these are SFNode/MFNode fields ?)
-
-    Testcase: kambi_vrml_test_suite/vrml_2/proto_ultra_simple.wrl,
-    MySphere proto is redefined there. Writing it back doesn't make
-    the same VRML file...
-  *)
-  for I := 0 to Prototypes.Count - 1 do
-    Prototypes[I].SaveToStream(SaveProperties);
-
-  for i := 0 to Fields.Count - 1 do
-    Fields[i].SaveToStream(SaveProperties);
-
-  if ChildrenSaveToStream then
-    for i := 0 to ChildrenCount - 1 do
-      Children[i].SaveToStream(SaveProperties);
-
-  for I := 0 to Events.Count - 1 do
-    if Events[I].IsClause then
+  FileItems := TVRMLFileItemsList.Create;
+  try
+    if HasInterfaceDeclarations <> [] then
     begin
-      SaveProperties.WriteIndent(
-        Events[I].NameForVersion(SaveProperties) + ' ');
-      Events[I].SaveToStream(SaveProperties);
-      SaveProperties.Writeln;
+      for I := 0 to InterfaceDeclarations.Count - 1 do
+        FileItems.Add(InterfaceDeclarations[I]);
     end;
 
-  (*Write all routes at the end. Routes depend on node names defined,
-    and nothing depends on nodes... so it's safe to write routes here.
+    for I := 0 to Prototypes.Count - 1 do
+      FileItems.Add(Prototypes[I]);
 
-    TODO: this is bad, in case some node name is redefined, like
-      DEF NodeName Whatever { }
-      ROUTE NodeName.xxx TO yyy.zzz
-      DEF NodeName SomethingElse { }
-    so the order of ROUTE should be preserved within order of nodes...
-  *)
-  for I := 0 to Routes.Count - 1 do
-    Routes[I].SaveToStream(SaveProperties);
+    for I := 0 to Fields.Count - 1 do
+      FileItems.Add(Fields[I]);
+
+    if ChildrenSaveToStream then
+      for I := 0 to ChildrenCount - 1 do
+        FileItems.Add(Children[I]);
+
+    for I := 0 to Events.Count - 1 do
+      if Events[I].IsClause then
+        FileItems.Add(Events[I]);
+
+    for I := 0 to Routes.Count - 1 do
+      FileItems.Add(Routes[I]);
+
+    FileItems.SaveToStream(SaveProperties);
+  finally FreeAndNil(FileItems) end;
 end;
 
 procedure TVRMLNode.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
@@ -5345,7 +5344,7 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.SaveToStream(
+procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
   SaveProperties: TVRMLSaveToStreamProperties;
   FieldValue: boolean);
 
@@ -5366,9 +5365,9 @@ begin
     if Event.InEvent then
       SaveProperties.WriteIndent(ATName(atInputOnly) + ' ') else
       SaveProperties.WriteIndent(ATName(atOutputOnly) + ' ');
-    SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ' + Event.Name + ' ');
+    SaveProperties.Write(Event.FieldClass.VRMLTypeName + ' ');
+    SaveProperties.DiscardNextIndent;
     Event.SaveToStream(SaveProperties);
-    SaveProperties.Writeln;
   end else
   begin
     if Field.Exposed then
@@ -5384,7 +5383,7 @@ begin
         In this case, we want it to start on the same line, so indent must
         be discarded. }
       SaveProperties.DiscardNextIndent;
-      Field.SaveToStream(SaveProperties, true);
+      Field.FieldSaveToStream(SaveProperties, true);
       { In this case, SaveProperties.Writeln will be done by Field.SaveToStream.
         (we pass SaveWhenDefault anyway, so we can be sure that
         this newline will be done). }
@@ -5393,6 +5392,12 @@ begin
       SaveProperties.Writeln(Field.Name);
     end;
   end;
+end;
+
+procedure TVRMLInterfaceDeclaration.SaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  IDeclSaveToStream(SaveProperties, true);
 end;
 
 function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
@@ -5779,7 +5784,7 @@ begin
   SaveProperties.IncIndent;
   for I := 0 to InterfaceDeclarations.Count - 1 do
   begin
-    InterfaceDeclarations.Items[I].SaveToStream(
+    InterfaceDeclarations.Items[I].IDeclSaveToStream(
       SaveProperties, not ExternalProto);
   end;
   SaveProperties.DecIndent;
@@ -6414,6 +6419,8 @@ function ParseVRMLStatements(
   Lexer: TVRMLLexer;
   const EndToken: TVRMLToken;
   ParseX3DHeader: boolean): TVRMLNode;
+var
+  PositionInParent: Integer;
 
   { Create root group node, appropriate for current VRML version in Lexer. }
   function CreateRootNode: TVRMLNode;
@@ -6502,6 +6509,7 @@ function ParseVRMLStatements(
       Route := TVRMLRoute.Create;
       Result.Routes.Add(Route);
       Route.Parse(Lexer);
+      Route.PositionInParent := PositionInParent;
     end;
 
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
@@ -6514,6 +6522,7 @@ function ParseVRMLStatements(
         Proto := TVRMLExternalPrototype.Create;
       Result.Prototypes.Add(Proto);
       Proto.Parse(Lexer);
+      Proto.PositionInParent := PositionInParent;
     end;
 
     procedure ParseNodeInternal;
@@ -6521,6 +6530,7 @@ function ParseVRMLStatements(
       NewNode: TVRMLNode;
     begin
       NewNode := ParseNode(Lexer);
+      NewNode.PositionInParent := PositionInParent;
       Result.SmartAddChild(NewNode);
     end;
 
@@ -6570,9 +6580,12 @@ begin
       ParseMetas;
     end;
 
+    PositionInParent := 0;
+
     while Lexer.Token <> EndToken do
     begin
       ParseVRMLStatement;
+      Inc(PositionInParent);
     end;
   except FreeAndNil(Result); raise end;
 end;

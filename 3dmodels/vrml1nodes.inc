@@ -517,7 +517,8 @@
 
   TNodeShapeHints = class(TNodeX3DChildNode)
   private
-    function ParseNodeBodyElement(Lexer: TVRMLLexer): boolean; override;
+    function ParseNodeBodyElement(Lexer: TVRMLLexer;
+      const APositionInParent: Integer): boolean; override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -1727,7 +1728,8 @@ begin
   result := 'ShapeHints';
 end;
 
-function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer): boolean;
+function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer;
+  const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
 begin
@@ -2165,19 +2167,25 @@ end;
 procedure TVRMLRootNode_1.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
+  FileItems: TVRMLFileItemsList;
 begin
   { Special things for TVRMLRootNode_1 saving:
     NodeName is ignored (should be '').
     Fields are ignored (should never have any meaning). }
 
-  for I := 0 to Prototypes.Count - 1 do
-    Prototypes[I].SaveToStream(SaveProperties);
+  FileItems := TVRMLFileItemsList.Create;
+  try
+    for I := 0 to Prototypes.Count - 1 do
+      FileItems.Add(Prototypes[I]);
 
-  for i := 0 to ChildrenCount - 1 do
-    Children[i].SaveToStream(SaveProperties);
+    for i := 0 to ChildrenCount - 1 do
+      FileItems.Add(Children[i]);
 
-  for I := 0 to Routes.Count - 1 do
-    Routes[I].SaveToStream(SaveProperties);
+    for I := 0 to Routes.Count - 1 do
+      FileItems.Add(Routes[I]);
+
+    FileItems.SaveToStream(SaveProperties);
+  finally FreeAndNil(FileItems) end;
 end;
 
 function TVRMLRootNode_1.SuggestedVRMLVersion(

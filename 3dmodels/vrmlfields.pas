@@ -25,7 +25,7 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils;
+  Images, KambiStringUtils, KambiInterfaces;
 
 {$define read_interface}
 
@@ -80,8 +80,69 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
 
+  { Base class for any item within VRML file: a node, a field, a route,
+    a prototype etc. We need a common base class for all such things
+    to store PositionInParent.
+
+    About ancestry: TVRMLFieldOrEvent make use of Assign mechanism
+    and so need to descend from TPersistent. TVRMLNode make use
+    of interfaces and so must descend from something like
+    TNonRefCountedInterfacedXxx. These are the only reasons, for now,
+    why this descends from TNonRefCountedInterfacedPersistent. }
+  TVRMLFileItem = class(TNonRefCountedInterfacedPersistent)
+  private
+    FPositionInParent: Integer;
+  public
+    constructor Create;
+
+    { Position of this VRML item within parent VRML node, for saving
+      the VRML graph to file. Default value -1 means "undefined".
+
+      For normal usage and processing of VRML graph, this is totally not needed.
+      This position doesn't dictate actual meaning of VRML graph.
+      If you're looking to change order of nodes, you probably want
+      to rather look at something like ReplaceItems within TMFNode or such.
+
+      This field is purely a hint when encoding VRML file how to order
+      VRML items (nodes, fields, routes, protos) within parent node
+      or the VRML file. Reason: VRML allows non-unique node names.
+      Each DEF XXX overrides all previous ("previous" in lexical sense,
+      i.e. normal order of tokens in the file) DEF XXX with the same XXX,
+      thus hiding previous node name "XXX".
+      This means that when saving VRML file we have to be very careful
+      about the order of items, such that e.g. all routes are specified
+      when appropriate node names are bound.
+
+      This is a relative position, relative to other PositionInParent
+      value of other TVRMLFileItem items. So it's not necessary
+      to keep all PositionInParent different or successive within some
+      parent. When saving, we will sort everything according to
+      PositionInParent.
+
+      See e.g. ../../kambi_vrml_test_suite/x3d/tricky_def_use.x3dv
+      for tests of some tricky layout. When reading such file we have
+      to record PositionInParent to be able to save such file correctly. }
+    property PositionInParent: Integer
+      read FPositionInParent write FPositionInParent default -1;
+
+    { Save to stream in VRML classic encoding. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+      virtual; abstract;
+  end;
+
+  TObjectsListItem_4 = TVRMLFileItem;
+  {$I objectslist_4.inc}
+  TVRMLFileItemsList = class(TObjectsList_4)
+  private
+    function IsSmallerPositionInParent(const A, B: TVRMLFileItem): boolean;
+  public
+    procedure SortPositionInParent;
+    { Sort all items by PositionInParent and then save them all to stream. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+  end;
+
   { Common class for VRML field or event. }
-  TVRMLFieldOrEvent = class(TPersistent)
+  TVRMLFieldOrEvent = class(TVRMLFileItem)
   private
     FIsClause: boolean;
     FIsClauseName: string;
@@ -194,10 +255,10 @@ type
   protected
 
     { Save field value to a stream. Must be overriden for each specific
-      field. SaveToStream writes Indent, Name, ' ', then calls SaveToStreamValue,
-      then writes @link(NL).
+      field. FieldSaveToStream and SaveToStream write Indent, Name, ' ',
+      then call this SaveToStreamValue, then write @link(NL).
 
-      Note that SaveToStream in this class
+      Note that FieldSaveToStream and SaveToStream in this class
       already takes care of IsClause. If IsClause, it will do
       everything, and not call SaveToStreamValue. So when overriding
       SaveToStreamValue, you can safely assume that IsClause is @false. }
@@ -273,7 +334,7 @@ type
 
     { Save the field to the stream.
       If the current field value equals default value and
-      SaveWhenDefault is @false (default) then the field will not be saved.
+      FieldSaveWhenDefault is @false (default) then the field will not be saved.
       Otherwise field name, current value / "IS" clause will be saved.
 
       This writes multiple lines, first line will start with Indent,
@@ -287,8 +348,18 @@ type
       see there. It can be ignored, and in fact it is ignored by all
       TVRMLField descendants defined in this unit (it's used only
       by TSFNode and TMFNode). }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-      SaveWhenDefault: boolean = false);
+    procedure FieldSaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
+      FieldSaveWhenDefault: boolean = false);
+
+    { Save the field to the stream.
+
+      This simply calls FieldSaveToStream(SaveProperties),
+      so it doesn't actually save anything if field value is defined
+      and equals default value.
+
+      See FieldSaveToStream for more comments and when you need control over
+      FieldSaveWhenDefault behavior. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
 
     { zwraca zawsze false w tej klasie. Mozesz to przedefiniowac w podklasach
       aby SaveToStream nie zapisywalo do strumienia pol o wartosci domyslnej.
@@ -1636,6 +1707,7 @@ uses Math, VRMLErrors;
 {$define read_implementation}
 {$I objectslist_1.inc}
 {$I objectslist_2.inc}
+{$I objectslist_4.inc}
 
 {$I vrmlevents.inc}
 
@@ -1705,6 +1777,37 @@ end;
 procedure TVRMLSaveToStreamProperties.DiscardNextIndent;
 begin
   DoDiscardNextIndent := true;
+end;
+
+{ TVRMLFileItem -------------------------------------------------------------- }
+
+constructor TVRMLFileItem.Create;
+begin
+  inherited;
+  FPositionInParent := -1;
+end;
+
+{ TVRMLFileItemsList --------------------------------------------------------- }
+
+function TVRMLFileItemsList.IsSmallerPositionInParent(
+  const A, B: TVRMLFileItem): boolean;
+begin
+  Result := A.PositionInParent < B.PositionInParent;
+end;
+
+procedure TVRMLFileItemsList.SortPositionInParent;
+begin
+  Sort(@IsSmallerPositionInParent);
+end;
+
+procedure TVRMLFileItemsList.SaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties);
+var
+  I: Integer;
+begin
+  SortPositionInParent;
+  for I := 0 to Count - 1 do
+    Items[I].SaveToStream(SaveProperties);
 end;
 
 { TVRMLFieldOrEvent ---------------------------------------------------------- }
@@ -1824,12 +1927,13 @@ begin
   end;
 end;
 
-procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties;
-  SaveWhenDefault: boolean);
+procedure TVRMLField.FieldSaveToStream(
+  SaveProperties: TVRMLSaveToStreamProperties;
+  FieldSaveWhenDefault: boolean);
 var
   N: string;
 begin
-  if SaveWhenDefault or (not EqualsDefaultValue) then
+  if FieldSaveWhenDefault or (not EqualsDefaultValue) then
   begin
     N := NameForVersion(SaveProperties);
     if N <> '' then
@@ -1842,6 +1946,11 @@ begin
       SaveToStreamValue(SaveProperties);
     SaveProperties.Writeln;
   end;
+end;
+
+procedure TVRMLField.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+begin
+  FieldSaveToStream(SaveProperties);
 end;
 
 function TVRMLField.EqualsDefaultValue: boolean;

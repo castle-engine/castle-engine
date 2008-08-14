@@ -43,8 +43,8 @@
       in VRML nodeBodyStatement. }
     procedure Parse(Lexer: TVRMLLexer);
 
-    { Writes (optional) "IS" clause of the event. }
-    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
+    { Write event name, and (if present) "IS" clause of the event. }
+    procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
   end;
 
   TObjectsListItem_3 = TVRMLEvent;
@@ -76,8 +76,10 @@ end;
 
 procedure TVRMLEvent.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 begin
+  SaveProperties.WriteIndent(NameForVersion(SaveProperties) + ' ');
   if IsClause then
     SaveProperties.Write('IS ' + IsClauseName);
+  SaveProperties.Writeln;
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }

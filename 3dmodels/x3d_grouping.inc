@@ -428,6 +428,7 @@ end;
 procedure TVRMLRootNode_2.SaveToStream(SaveProperties: TVRMLSaveToStreamProperties);
 var
   I: integer;
+  FileItems: TVRMLFileItemsList;
 begin
   { Special things for TVRMLRootNode_2 saving:
     NodeName is ignored (should be '').
@@ -435,14 +436,19 @@ begin
     nodes, without writing field name "children [" "]").
     Other fields are ignored (should never have any meaning). }
 
-  for I := 0 to Prototypes.Count - 1 do
-    Prototypes[I].SaveToStream(SaveProperties);
+  FileItems := TVRMLFileItemsList.Create;
+  try
+    for I := 0 to Prototypes.Count - 1 do
+      FileItems.Add(Prototypes[I]);
 
-  for i := 0 to FdChildren.Count - 1 do
-    FdChildren.Items[I].SaveToStream(SaveProperties);
+    for i := 0 to FdChildren.Count - 1 do
+      FileItems.Add(FdChildren.Items[I]);
 
-  for I := 0 to Routes.Count - 1 do
-    Routes[I].SaveToStream(SaveProperties);
+    for I := 0 to Routes.Count - 1 do
+      FileItems.Add(Routes[I]);
+
+    FileItems.SaveToStream(SaveProperties);
+  finally FreeAndNil(FileItems) end;
 end;
 
 function TVRMLRootNode_2.SuggestedVRMLVersion(
