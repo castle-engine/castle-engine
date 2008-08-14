@@ -2651,12 +2651,15 @@ type
 
     procedure UnsetEnding(
       var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+      const DestEnding: boolean;
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
       NodeNameBinding: TStringList;
       var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
       const DestEnding: boolean);
+
+    procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     destructor Destroy; override;
 
@@ -6462,8 +6465,8 @@ begin
     we get destroyed. Otherwise nodes would have invalid references
     on DestructionNotifications list. }
 
-  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     );
-  UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent);
+  UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false);
+  UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, true);
   inherited;
 end;
 
@@ -6509,8 +6512,12 @@ end;
 
 procedure TVRMLRoute.UnsetEnding(
   var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
+  const DestEnding: boolean;
   RemoveFromDestructionNotification: boolean);
 begin
+  if (Event <> nil) and (not DestEnding) then
+    Event.OnReceive.DeleteFirstEqual(@EventReceive);
+
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
@@ -6519,6 +6526,13 @@ begin
   end;
   ExposedField := nil;
   Event := nil;
+end;
+
+procedure TVRMLRoute.EventReceive(Event: TVRMLEvent; Value: TVRMLField);
+begin
+  Assert(Event = SourceEvent);
+  if DestinationEvent <> nil then
+    DestinationEvent.Send(Value);
 end;
 
 type
@@ -6535,7 +6549,7 @@ var
   Index: Integer;
   FieldOrEvent: TVRMLFieldOrEvent;
 begin
-  UnsetEnding(Node, ExposedField, Event);
+  UnsetEnding(Node, ExposedField, Event, DestEnding);
 
   try
 
@@ -6565,6 +6579,11 @@ begin
       Event := TVRMLEvent(FieldOrEvent);
     end;
 
+    if Event.InEvent <> DestEnding then
+      raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event, and destination (%s, type %s) can only be output event',
+        [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
+          DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
+
     if (SourceEvent <> nil) and
        (DestinationEvent <> nil) and
        (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
@@ -6572,10 +6591,12 @@ begin
         [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
           DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
 
+    if (Event <> nil) and (not DestEnding) then
+      Event.OnReceive.AppendItem(@EventReceive);
   except
     on E: ERouteSetEndingError do
     begin
-      UnsetEnding(Node, ExposedField, Event);
+      UnsetEnding(Node, ExposedField, Event, DestEnding);
       VRMLNonFatalError(E.Message);
     end;
   end;
@@ -6674,10 +6695,10 @@ begin
        pointers change if reallocation occurs). }
 
   if Node = FSourceNode then
-    UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false);
+    UnsetEnding(FSourceNode     , FSourceExposedField     , FSourceEvent     , false, false);
 
   if Node = FDestinationNode then
-    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, false);
+    UnsetEnding(FDestinationNode, FDestinationExposedField, FDestinationEvent, true , false);
 end;
 
 { global procedures ---------------------------------------------------------- }

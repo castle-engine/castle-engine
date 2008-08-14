@@ -252,6 +252,8 @@ type
 
     FExposedEvents: array [boolean] of TVRMLEvent;
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
+
+    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField);
   protected
 
     { Save field value to a stream. Must be overriden for each specific
@@ -1965,6 +1967,20 @@ begin
   Result := FExposedEvents[InEvent];
 end;
 
+procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField);
+begin
+  Assert(Exposed);
+  Assert(Event = FExposedEvents[true]);
+  Assert(Value is ClassType);
+
+  { This is trivial handling of exposed events: just set our value,
+    and call out event. }
+
+  AssignValue(Value);
+
+  FExposedEvents[false].Send(Value);
+end;
+
 const
   SetPrefix = 'set_';
   ChangedSuffix = '_changed';
@@ -1992,8 +2008,11 @@ begin
             SetPrefix + FAlternativeNames[I], I);
         end;
 
+      FExposedEvents[true].OnReceive.AppendItem(@ExposedEventReceive);
     end else
     begin
+      FExposedEvents[true].OnReceive.DeleteFirstEqual(@ExposedEventReceive);
+
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);
     end;

@@ -314,7 +314,7 @@ type
 
         (Contents of table passed here will never be modified anyway.
         This is a pointer only so that you can simply pass @nil here.)) *)
-    function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; virtual;
+    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; virtual;
 
     (*Handle mouse down event.
 
@@ -396,7 +396,7 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
-    function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
+    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
     function MouseDown(Button: TMouseButton): boolean; override;
 
     { Mose move event.
@@ -633,7 +633,7 @@ type
       KeysDown: PKeysBooleans;
       CharactersDown: PCharactersBooleans;
       const MousePressed: TMouseButtons); override;
-    function KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean; override;
+    function KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     OnMoveAllowed: TMoveAllowedFunc;
@@ -1504,7 +1504,7 @@ begin
  OnMatrixChanged := AOnMatrixChanged;
 end;
 
-function TMatrixNavigator.KeyDown(key: TKey; c: char;
+function TMatrixNavigator.KeyDown(Key: TKey; C: char;
   KeysDown: PKeysBooleans): boolean;
 begin
   Result := false;
@@ -1717,7 +1717,7 @@ begin
     Result := false;
 end;
 
-function TMatrixExaminer.KeyDown(key: TKey; c: char;
+function TMatrixExaminer.KeyDown(Key: TKey; C: char;
   KeysDown: PKeysBooleans): boolean;
 begin
   Result := inherited;
@@ -2957,7 +2957,7 @@ begin
     Result := false;
 end;
 
-function TMatrixWalker.KeyDown(key: TKey; c: char; KeysDown: PKeysBooleans): boolean;
+function TMatrixWalker.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans): boolean;
 begin
   Result := inherited;
   if Result then Exit;

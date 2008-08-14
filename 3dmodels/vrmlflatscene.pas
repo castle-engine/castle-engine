@@ -25,8 +25,10 @@ unit VRMLFlatScene;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree;
+  SysUtils, Classes, VectorMath, Boxes3d,
+  VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
+  VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree,
+  Keys;
 
 {$define read_interface}
 
@@ -312,6 +314,18 @@ type
 
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
+
+    FProcessEvents: boolean;
+    procedure SetProcessEvents(const Value: boolean);
+
+    { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
+    KeySensorNodes: TVRMLNodesList;
+
+    procedure CollectNodesForEvents;
+    procedure Collect_KeySensor(Node: TVRMLNode);
+    procedure Collect_ChangedFields(Node: TVRMLNode);
+
+    procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -710,6 +724,36 @@ type
     { Frees some scene resources, to conserve memory.
       See TVRMLSceneFreeResources documentation. }
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
+
+    { Should the VRML event mechanism work.
+
+      If @true, then we will implement whole VRML event mechanism here,
+      as expected from a VRML browser. Events will be send and received
+      through routes, time dependent nodes (X3DTimeDependentNode,
+      like TimeSensor) will be activated and updated from WorldTime time
+      property (TODO), KeyDown, KeyUp and other methods will activate
+      key/mouse sensor nodes (TODO), in the future scripts
+      will also work (TODO), etc.
+
+      Appropriate ChangedXxx, like ChangedAll, will be automatically called
+      when necessary. TODO: some notification is needed when ChangedAll
+      is called, or other ChangedXxx. E.g. view3dscene needs to know
+      about such things.
+
+      In other words, this makes the scene fully animated and interacting
+      with the user (provided you will call KeyDown etc. methods when
+      necessary).
+
+      If @false, this all doesn't work, which makes the scene mostly
+      static. TODO: how MovieTexture will work? Right now, it works,
+      but it seems that it shouldn't without ProcessEvents. Unless
+      we'll make an exception.
+    }
+    property ProcessEvents: boolean
+      read FProcessEvents write SetProcessEvents default false;
+
+    procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
+    procedure KeyUp(Key: TKey);
   end;
 
 var
@@ -730,7 +774,7 @@ var
 
 implementation
 
-uses VRMLFields, VRMLCameraUtils;
+uses VRMLCameraUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -767,6 +811,9 @@ end;
 
 destructor TVRMLFlatScene.Destroy;
 begin
+  { This also frees related lists, like KeySensorNodes }
+  ProcessEvents := false;
+
  FreeAndNil(FTrianglesList[false]);
  FreeAndNil(FTrianglesList[true]);
 
@@ -937,6 +984,9 @@ begin
       finally InitialState.Free end;
 
       UpdateVRML2ActiveLights;
+
+      if ProcessEvents then
+        CollectNodesForEvents;
     end;
   finally FreeAndNil(ChangedAll_TraversedLights) end;
 end;
@@ -1686,6 +1736,140 @@ begin
     begin
       FManifoldEdges := nil;
       FBorderEdges := nil;
+    end;
+  end;
+end;
+
+procedure TVRMLFlatScene.Collect_KeySensor(Node: TVRMLNode);
+begin
+  Assert(Node is TNodeKeySensor);
+  KeySensorNodes.Add(Node);
+end;
+
+procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);
+begin
+  { TODO: ChangedFields would be nice here, but we can call only
+    ChangedAll since Node is unknown. }
+  ChangedAll;
+end;
+
+procedure TVRMLFlatScene.Collect_ChangedFields(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  for I := 0 to Node.Fields.Count - 1 do
+    if Node.Fields[I].Exposed then
+    begin
+      Node.Fields[I].ExposedEvents[false].OnReceive.AddIfNotExists(@EventChanged);
+
+      { TODO: this is not nice, as we never remove EventChanged from
+        events OnReceive list. We should remove then when ProcessEvents
+        becomes @false (including on destroy of TVRMLFlatScene).
+        Also when RootNode changes, we shoudn't be tied to old events...
+
+        AddIfNotExists at least prevents us from registering EventChanged
+        multiple times (when ChangedAll, and so CollectNodesForEvents,
+        is called multiple times).
+
+        This will be a problem if a VRML scene will be heavily processed
+        by our own routines (including destroying of RootNode or
+        other nodes), and at the same time ProcessEvents = @true.
+        This will not work nicely, document? }
+    end;
+end;
+
+procedure TVRMLFlatScene.CollectNodesForEvents;
+begin
+  KeySensorNodes.Clear;
+  RootNode.EnumerateNodes(TNodeKeySensor, @Collect_KeySensor, false);
+  RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
+end;
+
+procedure TVRMLFlatScene.SetProcessEvents(const Value: boolean);
+begin
+  if FProcessEvents <> Value then
+  begin
+    if Value then
+    begin
+      KeySensorNodes := TVRMLNodesList.Create;
+      CollectNodesForEvents;
+    end else
+    begin
+      FreeAndNil(KeySensorNodes);
+    end;
+    FProcessEvents := Value;
+  end;
+end;
+
+{ Convert TKey to VRML "action" key code.
+  As defined by X3D KeySensor node specification. }
+function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
+begin
+  Result := true;
+  case Key of
+    K_F1 .. K_F12 : ActionKey := Key - K_F1 + 1;
+    K_Home     : ActionKey := 13;
+    K_End      : ActionKey := 14;
+    K_PageUp   : ActionKey := 15;
+    K_PageDown : ActionKey := 16;
+    K_Up       : ActionKey := 17;
+    K_Down     : ActionKey := 18;
+    K_Left     : ActionKey := 19;
+    K_Right    : ActionKey := 20;
+    else Result := false;
+  end;
+end;
+
+procedure TVRMLFlatScene.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
+var
+  I: Integer;
+  KeySensor: TNodeKeySensor;
+  ActionKey: Integer;
+begin
+  if ProcessEvents then
+  begin
+    for I := 0 to KeySensorNodes.Count - 1 do
+    begin
+      KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
+      if KeySensor.FdEnabled.Value then
+      begin
+        KeySensor.EventIsActive.Send(true);
+        if KeyToActionKey(Key, ActionKey) then
+          KeySensor.EventActionKeyPress.Send(ActionKey);
+        KeySensor.EventKeyPress.Send(C);
+        case Key of
+          K_Alt: KeySensor.EventAltKey.Send(true);
+          K_Ctrl: KeySensor.EventControlKey.Send(true);
+          K_Shift: KeySensor.EventShiftKey.Send(true);
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TVRMLFlatScene.KeyUp(Key: TKey);
+var
+  I: Integer;
+  KeySensor: TNodeKeySensor;
+  ActionKey: Integer;
+begin
+  if ProcessEvents then
+  begin
+    for I := 0 to KeySensorNodes.Count - 1 do
+    begin
+      KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
+      if KeySensor.FdEnabled.Value then
+      begin
+        KeySensor.EventIsActive.Send(false);
+        if KeyToActionKey(Key, ActionKey) then
+          KeySensor.EventActionKeyRelease.Send(ActionKey);
+        { TODO: KeySensor.EventKeyRelease.Send(C) would be nice here }
+        case Key of
+          K_Alt: KeySensor.EventAltKey.Send(false);
+          K_Ctrl: KeySensor.EventControlKey.Send(false);
+          K_Shift: KeySensor.EventShiftKey.Send(false);
+        end;
+      end;
     end;
   end;
 end;

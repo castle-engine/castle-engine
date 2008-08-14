@@ -21,18 +21,31 @@
 
 {$ifdef read_interface}
 
-  { VRML event.
+  { VRML event. }
+  TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField) of object;
 
-    This is really dummy thing for now, used only to parse and store
-    parsed events information.
-    We don't do nothing more with VRML events for now... }
+  TDynArrayItem_1 = TVRMLEventReceive;
+  PDynArrayItem_1 = ^TVRMLEventReceive;
+  {$define DYNARRAY_1_IS_FUNCTION}
+  {$define DYNARRAY_1_IS_FUNCTION_METHOD}
+  {$define DYNARRAY_1_USE_EQUALITY}
+  {$I dynarray_1.inc}
+  TDynVRMLEventReceiveArray = class(TDynArray_1)
+  public
+    { This calls all functions (all Items) passing them
+      (Event, Value) parameters. }
+    procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField);
+  end;
+
   TVRMLEvent = class(TVRMLFieldOrEvent)
   private
     FFieldClass: TVRMLFieldClass;
     FInEvent: boolean;
+    FOnReceive: TDynVRMLEventReceiveArray;
   public
     constructor Create(const AName: string;
       const AFieldClass: TVRMLFieldClass; const AInEvent: boolean);
+    destructor Destroy; override;
 
     property FieldClass: TVRMLFieldClass read FFieldClass;
 
@@ -45,6 +58,38 @@
 
     { Write event name, and (if present) "IS" clause of the event. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+
+    { Send a value to event. For input fields, this is used by routes, scripts
+      etc. to send an event to a field. For output fields, this is used by
+      node itself to send event to routes, scripts etc.
+
+      Field must be non-nil, of class FieldClass, and must have a value
+      (that is, Field.IsClause must be @false).
+
+      The Field instance doesn't become owned in any way by the TVRMLEvent.
+      That is, it's the caller responsibility to free the Field instance
+      at any comfortable time, possibly right after calling Send. }
+    procedure Send(Field: TVRMLField);
+
+    { Send a value to event.
+
+      See the @link(Send(TVRMLField)) method.
+      These shortcuts just create temporary appropriate TVRMLField instance,
+      and call Send(TVRMLField) method.
+
+      @groupBegin }
+    procedure Send(const Value: LongInt);
+    procedure Send(const Value: boolean);
+    procedure Send(const Value: string);
+    { @groupEnd }
+
+    { Notifications about receiving an item. For input fields,
+      these are used by node itself to listen to events send to it.
+      For output fields, these are used by routes, scripts to listen
+      to events occuring.
+
+      All callbacks here are simply called by @link(Send) method. }
+    property OnReceive: TDynVRMLEventReceiveArray read FOnReceive;
   end;
 
   TObjectsListItem_3 = TVRMLEvent;
@@ -58,6 +103,19 @@
 
 {$ifdef read_implementation}
 {$I objectslist_3.inc}
+{$I dynarray_1.inc}
+
+{ TDynVRMLEventReceiveArray -------------------------------------------------- }
+
+procedure TDynVRMLEventReceiveArray.ExecuteAll(Event: TVRMLEvent; Value: TVRMLField);
+var
+  I: Integer;
+begin
+  for I := 0 to Length - 1 do
+    Items[I](Event, Value);
+end;
+
+{ TVRMLEvent ----------------------------------------------------------------- }
 
 constructor TVRMLEvent.Create(
   const AName: string; const AFieldClass: TVRMLFieldClass;
@@ -67,6 +125,13 @@ begin
   FName := AName;
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
+  FOnReceive := TDynVRMLEventReceiveArray.Create;
+end;
+
+destructor TVRMLEvent.Destroy;
+begin
+  FreeAndNil(FOnReceive);
+  inherited;
 end;
 
 procedure TVRMLEvent.Parse(Lexer: TVRMLLexer);
@@ -80,6 +145,46 @@ begin
   if IsClause then
     SaveProperties.Write('IS ' + IsClauseName);
   SaveProperties.Writeln;
+end;
+
+procedure TVRMLEvent.Send(Field: TVRMLField);
+begin
+  Assert(Field <> nil);
+  Assert(Field is FieldClass);
+  Assert(not Field.IsClause);
+  FOnReceive.ExecuteAll(Self, Field);
+end;
+
+procedure TVRMLEvent.Send(const Value: LongInt);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFInt32 then
+    Field := TSFInt32.Create('', Value) else
+    Field := TSFLong.Create('', Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: boolean);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFBool.Create('', Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: string);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFString.Create('', Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }

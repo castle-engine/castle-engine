@@ -2577,7 +2577,7 @@ type
     procedure PostRedisplayOnMatrixChanged(ChangedNavigator: TMatrixNavigator);
 
     procedure EventInit; override;
-    procedure EventKeyDown(key: TKey; c: char); override;
+    procedure EventKeyDown(Key: TKey; C: char); override;
     procedure EventIdle; override;
     procedure EventMouseDown(Button: TMouseButton); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
@@ -4420,7 +4420,7 @@ begin
   inherited;
 end;
 
-procedure TGLWindowNavigated.EventKeyDown(key: TKey; c: char);
+procedure TGLWindowNavigated.EventKeyDown(Key: TKey; C: char);
 begin
  if not (ReallyUseNavigator and Navigator.KeyDown(Key, c, @KeysDown)) then
   inherited;
