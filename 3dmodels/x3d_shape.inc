@@ -88,6 +88,9 @@
   end;
 
   TNodeAppearance = class(TNodeX3DAppearanceNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -485,6 +488,35 @@ begin
       Result := nil;
   end else
     Result := nil;
+end;
+
+procedure TNodeAppearance.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  if FFdfillProperties.CurrentChildAllowed and
+    (FFdfillProperties.Value <> nil) then
+    Func(Self, FFdfillProperties.Value);
+
+  if FFdlineProperties.CurrentChildAllowed and
+    (FFdlineProperties.Value <> nil) then
+    Func(Self, FFdlineProperties.Value);
+
+  if FFdmaterial.CurrentChildAllowed and
+    (FFdmaterial.Value <> nil) then
+    Func(Self, FFdmaterial.Value);
+
+  for I := 0 to FFdshaders.Count - 1 do
+    Func(Self, FFdshaders.Items[I]);
+
+  if FFdtexture.CurrentChildAllowed and
+    (FFdtexture.Value <> nil) then
+    Func(Self, FFdtexture.Value);
+
+  if FFdtextureTransform.CurrentChildAllowed and
+    (FFdtextureTransform.Value <> nil) then
+    Func(Self, FFdtextureTransform.Value);
 end;
 
 constructor TNodeFillProperties.Create(const ANodeName: string;

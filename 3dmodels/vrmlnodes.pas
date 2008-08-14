@@ -670,9 +670,11 @@ type
     fParsingAllowedChildren: boolean;
 
     { This enumerates all active child nodes of given node.
-      "Active nodes" means that only the visible (or affecting
-      the visible) parts are enumerated --- e.g. from Switch
+
+      "Active nodes" are the ones affecting current VRML graph look
+      or collisions, e.g. from Switch
       node only one child will be enumerated.
+      See @link(Traverse) for more precise definition.
 
       "Direct" means that this enumerates only direct
       descendants, i.e. this is not recursive.
@@ -1081,11 +1083,20 @@ type
       stalej wartosci NodeTypeName). }
     class function ClassNodeTypeName: string; virtual;
 
-    { Traverse enumerates all nodes of VRML graph that are active
-      for our hierarchy. "Active nodes" means that only the visible (or affecting
-      the visible) parts are enumerated --- e.g. from Switch node only one
-      child will be enumerated. For all nodes of NodeClass TraversingFunc
-      will be called. Traverse not only enumerates these
+    { Traverse enumerates all nodes of VRML graph that are active,
+
+      An "active" part of the VRML graph are the nodes that actually
+      change what the VRML file represents, in terms of geometry,
+      collision detection etc. For example, the Switch node has only
+      one child usually active. Nodes that merely influence
+      the active graph by some events and routes do not have to be
+      active (these nodes may change what the VRML file actually represents,
+      but only by changing other nodes).
+
+      For all nodes of NodeClass TraversingFunc
+      will be called.
+
+      Traverse not only enumerates these
       nodes, it also collects all state (transformation, etc ---
       see TVRMLGraphTraverseState) that affects how given node should
       be presented.
@@ -1099,7 +1110,7 @@ type
       For the root node (the one where you called Traverse without
       specifying initial TraversingInfo), ParentInfo is simply @nil.
 
-      Schemat dzialania Traverse :
+      The scheme of how Traverse works:
 
 @preformatted(
   BeforeTraverse;
@@ -1140,7 +1151,7 @@ type
       This enumerates both VRML 1.0 @link(Children) as well as
       nodes in TSFNode and TMFNode fields.
       If OnlyActive then it will enumerate only active parts
-      of the graph (as defined by @link(DirectEnumerateActive)),
+      of the graph ("active" as defined by @link(Traverse)),
       so it will work as a simpler version of Traverse
       (simpler, because it doesn't track any state).
       If not OnlyActive then it will simply enumerate all nodes.
@@ -1173,7 +1184,7 @@ type
     { TryFindNodeByName and TryFindNode seek for a node with
       given class (and node name, in case of TryFindNodeByName).
       If OnlyActive then they seek among only active nodes
-      (as defined by DirectEnumerateActive), otherwise all nodes.
+      ("active" as defined by @link(Traverse)), otherwise all nodes.
 
       These functions are quite like EnumerateNodes, except
       they stop at the first occurence and return it.
@@ -1225,8 +1236,8 @@ type
       In other words, this is similar to TryNodeByName or NodeByName,
       but it goes "upward" in graph hierarchy. Note that this
       never restricts itself only to "active" graph part
-      (see DirectEnumerateActive and OnlyActive param of various
-      methods) because you really can't detect what is the "active"
+      ("active" as defined by @link(Traverse))
+      because you really can't detect what is the "active"
       part of the graph when going upward.
 
       @groupBegin }
@@ -1243,13 +1254,18 @@ type
     function TryFindDirectParentByName(const FindName: string): TVRMLNode;
 
     { sprawdza czy istnieje w grafie VRML'a zaczepionym w danym punkcie
-      node Node. Znaczenie OnlyActive jak zwykle. }
+      node Node.
+
+      If OnlyActive, then only active parts are searched
+      ("active" as defined by @link(Traverse)). }
     function IsNodePresent(Node: TVRMLNode; OnlyActive: boolean): boolean;
 
     { policz ile jest node'ow danej klasy.
       Uzywajac np. TVRMLLightNode mozesz
       sprawdzic czy na scenie zostalo zdefiniowane jakiekolwiek swiato.
-      Parametr countOnlyActiveNodes ma znaczenie jak zwykle.
+
+      If CountOnlyActiveNodes, then only active parts are searched
+      ("active" as defined by @link(Traverse)).
 
       This traverses both VRML 1.0 children nodes and VRML 2.0 nodes
       inside SFNode and MFNode fields. }
@@ -1692,6 +1708,9 @@ type
       a node that you want to assign as Value to this field,
       otherwise VRMLNonFatalError message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
+
+    function ChildAllowed(Child: TVRMLNode): boolean;
+    function CurrentChildAllowed: boolean;
   end;
 
   { MFNode VRML field.
@@ -1798,6 +1817,8 @@ type
       a node that you want to add (e.g. by AddItem) to this field,
       otherwise VRMLNonFatalError message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
+
+    function ChildAllowed(Child: TVRMLNode): boolean;
   end;
 
 { Specific VRML nodes from specifications, part 1 -------------------------- }
@@ -4831,6 +4852,18 @@ begin
   inherited;
 end;
 
+function TSFNode.ChildAllowed(Child: TVRMLNode): boolean;
+begin
+  Result := (Child = nil) or
+    AllowedChildrenAll or
+    (FAllowedChildren.IndexOfAnyAncestor(Child) <> -1);
+end;
+
+function TSFNode.CurrentChildAllowed: boolean;
+begin
+  Result := ChildAllowed(Value);
+end;
+
 procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
 
   procedure ChildNotAllowed;
@@ -4845,8 +4878,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
   end;
 
 begin
-  if (not AllowedChildrenAll) and
-     (FAllowedChildren.IndexOfAnyAncestor(Child) = -1) then
+  if not ChildAllowed(Child) then
     ChildNotAllowed;
 end;
 
@@ -5076,6 +5108,13 @@ begin
     Items[I].AddParentField(Self);
 end;
 
+function TMFNode.ChildAllowed(Child: TVRMLNode): boolean;
+begin
+  Result := (Child = nil) or
+    AllowedChildrenAll or
+    (FAllowedChildren.IndexOfAnyAncestor(Child) <> -1);
+end;
+
 procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
 
   procedure ChildNotAllowed;
@@ -5090,8 +5129,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
   end;
 
 begin
-  if (not AllowedChildrenAll) and
-     (FAllowedChildren.IndexOfAnyAncestor(Child) = -1) then
+  if not ChildAllowed(Child) then
     ChildNotAllowed;
 end;
 
