@@ -398,9 +398,9 @@ const
           end else
           begin
             Child := ParseNode(I.Current, ContainerField, true);
-            Child.PositionInParent := PositionInParent;
             if Child <> nil then
             begin
+              Child.PositionInParent := PositionInParent;
               FieldIndex := Node.Fields.IndexOf(ContainerField);
               if FieldIndex >= 0 then
               begin
