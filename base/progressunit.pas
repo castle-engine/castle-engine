@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2006 Michalis Kamburelis.
+  Copyright 2002-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -118,12 +118,15 @@ type
     FUpdateTicks: TMilisecTime;
 
     FMax, FPosition: Cardinal;
-    { Was OnProgressUpdate called (since last Init ?)
-      Meaningless (undefined) if not Active. }
-    WasUpdateCalled: boolean;
-    { Variables below meaningfull only if Active and WasUpdateCalled }
+    { Variables below meaningfull only if Active.
+
+      When UserInterfaceDelayed, this is the time and position (always 0)
+      of the TProgress.Init call.
+      When not UserInterfaceDelayed, this is the time and position
+      of the last TProgress.Init or TProgress.Update call. }
     LastUpdatePos: Cardinal;
     LastUpdateTick: TMilisecTime;
+    UserInterfaceDelayed: boolean;
 
     FTitle: string;
     FActive: boolean;
@@ -169,14 +172,35 @@ type
       Else it returns just Title. }
     function TitleWithPosition(const AddDots: boolean): string;
 
-    { You can call Init only when Active = false.
+    { Start the progress bar.
+      You can call Init only when Active = false.
       Init initializes Max, Title, sets Position to 0 and changes
       Active to true.
 
       UserInterface must be initialized (non-nil) when calling
       Init, and you cannot change UserInterface when progress is Active
-      (i.e. before you call Fini). }
-    procedure Init(AMax: Cardinal; const ATitle: string);
+      (i.e. before you call Fini).
+
+      If DelayUserInterface is set to @true, a very useful optimization
+      is performed: TProgress.Init will not
+      immediately result in TProgressUserInterface.Init call.
+      Instead, actual initialization of the interface will be delayed
+      until some TProgress.Update, when UpdateTicks time will pass.
+
+      The advantage of DelayUserInterface is that if
+      an operation will take a very short time, we will not waste
+      time on possibly lengthy initialization of the progress bar
+      interface. For example, ProgressGL has to capture OpenGL screen
+      at the initialization, which takes a noticeable fraction of second
+      by itself. So it's not sensible to init ProgressGL if an entire
+      operation between Progress.Init and Fini will take only 0.001 of second..
+
+      The only downside of DelayUserInterface is that it's not applicable
+      to an operations with very few steps (e.g. 1) that may take a long time.
+      If a time between Init and the first Update or Fini is really large,
+      the progress bar will not be visible. }
+    procedure Init(AMax: Cardinal; const ATitle: string;
+      const DelayUserInterface: boolean = false);
 
     { Step increments Position by StepSize.
       Use only when Active (i.e. between Init .. Fini calls).
@@ -190,8 +214,7 @@ type
 
       (this is usefull when given Max was only an approximation of needed
       steps). }
-    procedure Step(StepSize: Cardinal); overload;
-    procedure Step; {StepSize = 1} overload;
+    procedure Step(StepSize: Cardinal = 1);
 
     { You can call Fini only when Active = true.
       Fini changes Active to false.
@@ -243,7 +266,8 @@ begin
     Result := Title;
 end;
 
-procedure TProgress.Init(AMax: Cardinal; const ATitle: string);
+procedure TProgress.Init(AMax: Cardinal; const ATitle: string;
+  const DelayUserInterface: boolean);
 begin
  Check(not Active, 'TProgress.Init error: progress is already active');
  FActive := true;
@@ -252,25 +276,47 @@ begin
    'TProgress.Init error: UserInterface not initialized');
 
  FPosition := 0;
- { zabezpieczamy sie przed podaniem nieprawidlowej wartosci dla Max -
-   - w razie wartosci ujemnej lub =0 (to drugie moze sie rzeczywiscie czasem
-   zdarzyc - np. w budowaniu octree gdy scena nie ma trojkatow) Max bedzie =1,
-   i zaraz na koncu Init wywolamy Step. }
- FMax := KambiUtils.Max(AMax, 1);
- FTitle := ATitle;
- WasUpdateCalled := false;
 
+ { Max(AMax, 1) secures us against AMax <= 0 values.
+
+   (Otherwise, it would have to be secured at many places when calling
+   Progress.Init, as sometimes AMax <= 0 values values can naturally
+   occur. Consider e.g. building octree, when the VRML scene turns out
+   to be empty.)
+
+   The idea is that AMax <= 0 means that actually operation is already
+   finished. So we'll set Max to 1 (to allow UserInterface to display it,
+   since user interface can display only Max >= 1 values)
+   and we'll do Step(1) immediately at the end of TProgress.Init,
+   to show to user that operation is already done. }
+ FMax := KambiUtils.Max(AMax, 1);
+
+ FTitle := ATitle;
+
+ { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
+   just like calling UserInterface.Update. }
+ LastUpdatePos := FPosition;
+ LastUpdateTick := GetTickCount;
+
+ UserInterfaceDelayed := DelayUserInterface;
+
+ if not UserInterfaceDelayed then
  try
    UserInterface.Init(Self);
+ except
+   { In case of problems within UserInterface.Init, call Fini
+     to change our state to not Active. }
+   Fini;
+   raise;
+ end;
 
-   { to znaczy ze Max bylo sztucznie poprawione na 1 (bo bylo <=0).
-     Wiec wywolaj teraz Step zeby progress zostal pokazany jako zakonczony.
-     No bo jezeli Max <=0 to tak naprawde o to chodzi - progress jest zakonczony
-     od razu w chwili rozpoczecia) }
+ { This means that AMax < Max(AMax, 1), in other words: AMax <= 0.
+   Then show to user that this operation actually finished. }
+ try
    if AMax < Max then Step;
  except
-   { In case of problems within UserInterface.Init, call UserInterface.Fini
-     and change our state to not Active. }
+   { In case of problems within UserInterface.Init, call Fini
+     to change our state to not Active. }
    Fini;
    raise;
  end;
@@ -282,13 +328,22 @@ begin
 
  FPosition := FPosition + StepSize;
  if Position > Max then FPosition := Max;
- if ( (not WasUpdateCalled) or
-      ( ((Position-LastUpdatePos)/Max > 1/UpdatePart) and
-        (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks)
-      )
-    ) then
+
+ if UserInterfaceDelayed then
  begin
-  WasUpdateCalled := true;
+   { Either actually init user interface, or resign from calling
+     UserInterface.Update. }
+   if TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks then
+   begin
+     UserInterface.Init(Self);
+     UserInterfaceDelayed := false;
+   end else
+     Exit;
+ end;
+
+ if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
+    (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks) then
+ begin
   LastUpdatePos := FPosition;
   LastUpdateTick := GetTickCount;
   UserInterface.Update(Self);
@@ -299,22 +354,22 @@ begin
  end;
 end;
 
-procedure TProgress.Step;
-begin Step(1) end;
-
 procedure TProgress.Fini;
 begin
  Check(Active, 'TProgress.Fini error: progress is not active');
  FActive := false;
 
- { update to reflect the current state of Position, if needed.
-   Note that this does NOT mean that at the end Position is = Max.
-   Noone ever guarantees that -- you can call Fini before Position
-   reaches Max. }
- if WasUpdateCalled and (LastUpdatePos < Position) then
-  UserInterface.Update(Self);
+ if not UserInterfaceDelayed then
+ begin
+   { update to reflect the current state of Position, if needed.
+     Note that this does NOT mean that at the end Position is = Max.
+     Noone ever guarantees that -- you can call Fini before Position
+     reaches Max. }
+   if LastUpdatePos < Position then
+     UserInterface.Update(Self);
 
- UserInterface.Fini(Self);
+   UserInterface.Fini(Self);
+ end;
 end;
 
 constructor TProgress.Create;

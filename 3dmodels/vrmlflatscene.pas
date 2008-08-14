@@ -1226,7 +1226,7 @@ begin
   try
    if ProgressTitle <> '' then
    begin
-    Progress.Init(TrianglesCount(false), ProgressTitle);
+    Progress.Init(TrianglesCount(false), ProgressTitle, true);
     try
      TriangleOctreeToAdd := result;
      FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
@@ -1261,7 +1261,7 @@ begin
 
   if ProgressTitle <> '' then
   begin
-   Progress.Init(ShapeStates.Count, ProgressTitle);
+   Progress.Init(ShapeStates.Count, ProgressTitle, true);
    try
     for i := 0 to ShapeStates.Count - 1 do
     begin
