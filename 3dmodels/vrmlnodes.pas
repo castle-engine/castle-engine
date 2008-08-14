@@ -6510,6 +6510,9 @@ begin
   Event := nil;
 end;
 
+type
+  ERouteSetEndingError = class(EVRMLError);
+
 procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
   NodeNameBinding: TStringList;
   var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
@@ -6523,52 +6526,47 @@ var
 begin
   UnsetEnding(Node, ExposedField, Event);
 
-  Index := NodeNameBinding.IndexOf(NodeName);
-  if Index = -1 then
-  begin
-    UnsetEnding(Node, ExposedField, Event);
-    VRMLNonFatalError(Format('Route %s node name "%s" not found',
-      [ DestEndingNames[DestEnding], NodeName ]));
-    Exit;
-  end;
+  try
 
-  Node := NodeNameBinding.Objects[Index] as TVRMLNode;
-  Node.DestructionNotifications.AppendItem(@DestructionNotification);
+    Index := NodeNameBinding.IndexOf(NodeName);
+    if Index = -1 then
+      raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
+        [ DestEndingNames[DestEnding], NodeName ]);
 
-  FieldOrEvent := Node.FieldOrEvent(FieldOrEventName, true);
-  if FieldOrEvent = nil then
-  begin
-    UnsetEnding(Node, ExposedField, Event);
-    VRMLNonFatalError(Format('Route %s field/event name "%s" (for node "%s") not found',
-      [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]));
-    Exit;
-  end;
+    Node := NodeNameBinding.Objects[Index] as TVRMLNode;
+    Node.DestructionNotifications.AppendItem(@DestructionNotification);
 
-  if FieldOrEvent is TVRMLField then
-  begin
-    ExposedField := TVRMLField(FieldOrEvent);
-    if not ExposedField.Exposed then
+    FieldOrEvent := Node.FieldOrEvent(FieldOrEventName, true);
+    if FieldOrEvent = nil then
+      raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
+        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.NodeTypeName ]);
+
+    if FieldOrEvent is TVRMLField then
+    begin
+      ExposedField := TVRMLField(FieldOrEvent);
+      if not ExposedField.Exposed then
+        raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
+          [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]);
+      Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
+    end else
+    begin
+      Assert(FieldOrEvent is TVRMLEvent);
+      Event := TVRMLEvent(FieldOrEvent);
+    end;
+
+    if (SourceEvent <> nil) and
+       (DestinationEvent <> nil) and
+       (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
+      raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
+        [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
+          DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
+
+  except
+    on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, ExposedField, Event);
-      VRMLNonFatalError(Format('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
-        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName ]));
-      Exit;
+      VRMLNonFatalError(E.Message);
     end;
-    Event := TVRMLField(FieldOrEvent).ExposedEvents[DestEnding];
-  end else
-  begin
-    Assert(FieldOrEvent is TVRMLEvent);
-    Event := TVRMLEvent(FieldOrEvent);
-  end;
-
-  if (SourceEvent <> nil) and
-     (DestinationEvent <> nil) and
-     (SourceEvent.FieldClass <> DestinationEvent.FieldClass) then
-  begin
-    VRMLNonFatalError(Format('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-      [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
-        DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]));
-    UnsetEnding(Node, ExposedField, Event);
   end;
 end;
 
