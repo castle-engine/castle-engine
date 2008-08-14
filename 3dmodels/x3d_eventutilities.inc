@@ -45,6 +45,8 @@
   end;
 
   TNodeBooleanFilter = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -86,6 +88,8 @@
   end;
 
   TNodeBooleanToggle = class(TNodeX3DChildNode)
+  private
+    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -102,6 +106,8 @@
   end;
 
   TNodeBooleanTrigger = class(TNodeX3DTriggerNode)
+  private
+    procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -135,6 +141,8 @@
   end;
 
   TNodeIntegerTrigger = class(TNodeX3DTriggerNode)
+  private
+    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -210,6 +218,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
+  FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
 
   FEventinputFalse := TVRMLEvent.Create('inputFalse', TSFBool, false);
   Events.Add(FEventinputFalse);
@@ -221,6 +230,17 @@ begin
   Events.Add(FEventinputTrue);
 
   DefaultContainerField := 'children';
+end;
+
+procedure TNodeBooleanFilter.EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
+var
+  B: boolean;
+begin
+  B := (Value as TSFBool).Value;
+  if B then
+    EventInputTrue.Send(B) else
+    EventInputFalse.Send(B);
+  EventInputNegate.Send(not B);
 end;
 
 class function TNodeBooleanFilter.ClassNodeTypeName: string;
@@ -282,11 +302,21 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
+  FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
 
   FFdtoggle := TSFBool.Create('toggle', false);
   Fields.Add(FFdtoggle);
 
   DefaultContainerField := 'children';
+end;
+
+procedure TNodeBooleanToggle.EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
+var
+  B: boolean;
+begin
+  B := (Value as TSFBool).Value;
+  if B then
+    FdToggle.ExposedEvents[true].Send(not FdToggle.Value);
 end;
 
 class function TNodeBooleanToggle.ClassNodeTypeName: string;
@@ -315,11 +345,17 @@ begin
 
   FEventset_triggerTime := TVRMLEvent.Create('set_triggerTime', TSFTime, true);
   Events.Add(FEventset_triggerTime);
+  FEventset_triggerTime.OnReceive.AppendItem(@EventSet_triggerTimeReceive);
 
   FEventtriggerTrue := TVRMLEvent.Create('triggerTrue', TSFBool, false);
   Events.Add(FEventtriggerTrue);
 
   DefaultContainerField := 'children';
+end;
+
+procedure TNodeBooleanTrigger.EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField);
+begin
+  EventTriggerTrue.Send(true);
 end;
 
 class function TNodeBooleanTrigger.ClassNodeTypeName: string;
@@ -382,6 +418,7 @@ begin
 
   FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
+  FEventset_boolean.OnReceive.AppendItem(@EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
@@ -393,6 +430,11 @@ begin
   Events.Add(FEventtriggerValue);
 
   DefaultContainerField := 'children';
+end;
+
+procedure TNodeIntegerTrigger.EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField);
+begin
+  EventtriggerValue.Send(FdintegerKey.Value);
 end;
 
 class function TNodeIntegerTrigger.ClassNodeTypeName: string;
