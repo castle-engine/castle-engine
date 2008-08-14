@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2005,2007 Michalis Kamburelis.
+  Copyright 2004-2008 Michalis Kamburelis.
 
   This file is part of test_kambi_units.
 
@@ -29,6 +29,8 @@ type
   TTestDynArrays = class(TTestCase)
     procedure TestDynArrays;
     procedure TestVectorMathDynArrays;
+    procedure TestDynArraysAssign;
+    procedure TestDynArraysAssignLerp;
   end;
 
 implementation
@@ -137,6 +139,65 @@ begin
     Assert(not VectorsPerfectlyEqual(vecs.Items[0], vecs.Items[1]));
     Assert(not VectorsPerfectlyEqual(vecs.Items[2], vecs.Items[1]));
   finally FreeAndNil(vecs) end;
+end;
+
+procedure TTestDynArrays.TestDynArraysAssign;
+var
+  V1, V2: TDynVector3SingleArray;
+begin
+  V1 := TDynVector3SingleArray.Create;
+  V2 := TDynVector3SingleArray.Create;
+  try
+    V1.AppendItem(Vector3Single(1.0, 2.0, 3.0));
+    V1.AppendItem(Vector3Single(4.0, 5.0, 6.0));
+    V1.AppendItem(Vector3Single(7.0, 8.0, 9.0));
+
+    V2.AppendItem(Vector3Single(6.0, 6.0, 6.0));
+    V2.AppendDynArray(V1);
+    V2.AppendItem(Vector3Single(6.0, 6.0, 6.0));
+
+    Assert(VectorsPerfectlyEqual(V1.Items[0], V2.Items[1]));
+    Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[2]));
+    Assert(VectorsPerfectlyEqual(V1.Items[2], V2.Items[3]));
+
+    V2.AppendDynArray(V1, 1, 1);
+    Assert(V2.Count = 6);
+    Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[5]));
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+  end;
+end;
+
+procedure TTestDynArrays.TestDynArraysAssignLerp;
+var
+  V1, V2, V3: TDynVector3SingleArray;
+begin
+  V1 := TDynVector3SingleArray.Create;
+  V2 := TDynVector3SingleArray.Create;
+  V3 := TDynVector3SingleArray.Create;
+  try
+    V1.AppendItem(Vector3Single(1.0, 2.0, 3.0));
+    V1.AppendItem(Vector3Single(4.0, 5.0, 6.0));
+
+    V2.AppendItem(Vector3Single(7.0, 8.0, 9.0));
+    V2.AppendItem(Vector3Single(11.0, 12.0, 13.0));
+    V2.AppendItem(Vector3Single(17.0, 18.0, 19.0));
+
+    V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
+    Assert(V3.Count = 2);
+
+    Assert(VectorsPerfectlyEqual(V3.Items[0], Lerp(0.2,
+      Vector3Single(1.0, 2.0, 3.0),
+      Vector3Single(11.0, 12.0, 13.0))));
+    Assert(VectorsPerfectlyEqual(V3.Items[1], Lerp(0.2,
+      Vector3Single(4.0, 5.0, 6.0),
+      Vector3Single(17.0, 18.0, 19.0))));
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+  end;
 end;
 
 initialization

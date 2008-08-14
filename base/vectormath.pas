@@ -391,6 +391,17 @@ type
     procedure Normalize;
     { Multiply each item, component-wise, with V. }
     procedure MultiplyComponents(const V: TVector3Single);
+
+    { Assign linear interpolation between two other vector arrays.
+      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
+      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
+      like normal Lerp functions.
+
+      It's Ok for both V1 and V2 to be the same objects.
+      But their ranges should not overlap, for future optimizations
+      (although it's Ok for current implementation). }
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
   end;
 
   TDynArrayItem_2 = TVector2Single;
@@ -404,6 +415,11 @@ type
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
     function MinMax(out Min, Max: TVector2Single): boolean;
+
+    { Assign linear interpolation between two other vector arrays.
+      @seealso TDynVector3SingleArray.AssignLerp }
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TDynVector2SingleArray; Index1, Index2, ACount: Integer);
   end;
 
   TDynArrayItem_5 = TVector4Single;
@@ -491,6 +507,9 @@ const
 
   ZeroVector3Single: TVector3Single = (0, 0, 0);
   ZeroVector3Double: TVector3Double = (0, 0, 0);
+
+  ZeroVector4Single: TVector4Single = (0, 0, 0, 0);
+  ZeroVector4Double: TVector4Double = (0, 0, 0, 0);
 
   ZeroMatrix2Single: TMatrix2Single =   ((0, 0), (0, 0));
   ZeroMatrix2Double: TMatrix2Double =   ((0, 0), (0, 0));
@@ -720,8 +739,10 @@ procedure SwapValues(var V1, V2: TVector4Double); overload;
 function VectorAverage(const V: TVector3Single): Single; overload;
 function VectorAverage(const V: TVector3Double): Double; overload;
 
-{ Lerp to nowa nazwa (z troche inaczej wyrazonym interfejsem) na Mix2Vectors.
-  Zwraca (1-a)*V1 + a*V2 (no, troche inaczej zapisane dla szybkosci). }
+{ Linear interpolation between two vector values.
+  Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
+  So A = 0 gives V1, A = 1 gives V2, and values between and around are
+  interpolated. }
 function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
 function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
@@ -2109,6 +2130,16 @@ begin
     VectorMultiplyComponentsTo1st(Items[I], V);
 end;
 
+procedure TDynVector3SingleArray.AssignLerp(const Fraction: Single;
+  V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+end;
+
 { TDynVector2SingleArray ----------------------------------------------------- }
 
 function TDynVector2SingleArray.MinMax(out Min, Max: TVector2Single): boolean;
@@ -2129,6 +2160,16 @@ begin
       if Items[I][1] > Max[1] then Max[1] := Items[I][1];
     end;
   end;
+end;
+
+procedure TDynVector2SingleArray.AssignLerp(const Fraction: Single;
+  V1, V2: TDynVector2SingleArray; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
 { FloatsEqual ------------------------------------------------------------- }

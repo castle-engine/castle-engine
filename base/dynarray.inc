@@ -175,9 +175,12 @@
 
     { AppendItem = IncLength and set last element to Item }
     procedure AppendItem(const Item: TDynArrayItem);
+
     procedure AppendArray(const NewItems: array of TDynArrayItem); overload;
     procedure AppendArray(const NewItems: array of TDynArrayItem; NewItemsAddCount: integer); overload;
-    procedure AppendDynArray(Arr: TDynArray);
+
+    procedure AppendDynArray(Arr: TDynArray); overload;
+    procedure AppendDynArray(Arr: TDynArray; Index, ACount: Integer); overload;
 
     { Copies contents of Source to this object.
 
@@ -344,27 +347,47 @@ end;
 
 procedure TDynArray.AppendArray(const NewItems: array of TDynArrayItem;
   NewItemsAddCount: integer);
-var i, OldLen: integer;
+var
+  OldLength: Integer;
+{$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
+  I: Integer;
+{$endif}
 begin
- OldLen := Length;
- SetLength(Length + NewItemsAddCount);
- for i := 0 to NewItemsAddCount-1 do
-  Items[OldLen+i] := NewItems[i];
+  OldLength := Length;
+  SetLength(Length + NewItemsAddCount);
+{$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
+  { We're copying one-by-one, so that Initialize/Finalize
+   of items is properly called. }
+  for i := 0 to NewItemsAddCount - 1 do
+    Items[OldLength + i] := NewItems[i];
+{$else}
+  { In this case we can copy memory fast, using Move }
+  System.Move(
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_IS_FUNCTION} @ {$endif} {$endif} NewItems[0],
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_IS_FUNCTION} @ {$endif} {$endif} Items[OldLength],
+    NewItemsAddCount * SizeOf(TDynArrayItem));
+{$endif}
 end;
 
 procedure TDynArray.AppendArray(const NewItems: array of TDynArrayItem);
 begin
- AppendArray(NewItems, System.High(NewItems)+1);
+  AppendArray(NewItems, System.High(NewItems)+1);
 end;
 
 procedure TDynArray.AppendDynArray(Arr: TDynArray);
 begin
- AppendArray(Arr.ItemsArray^, Arr.Count);
+  AppendArray(Arr.ItemsArray^, Arr.Count);
+end;
+
+procedure TDynArray.AppendDynArray(Arr: TDynArray; Index, ACount: Integer);
+begin
+  AppendArray(PInfiniteArray(@Arr.Items[Index])^, ACount);
 end;
 
 procedure TDynArray.Assign(Source: TDynArray);
 {$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
-var i: Integer;
+var
+  i: Integer;
 {$endif}
 begin
  Length := Source.Length;

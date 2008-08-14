@@ -175,9 +175,12 @@
 
     { AppendItem = IncLength and set last element to Item }
     procedure AppendItem(const Item: TDynArrayItem_19);
+
     procedure AppendArray(const NewItems: array of TDynArrayItem_19); overload;
     procedure AppendArray(const NewItems: array of TDynArrayItem_19; NewItemsAddCount: integer); overload;
-    procedure AppendDynArray(Arr: TDynArray_19);
+
+    procedure AppendDynArray(Arr: TDynArray_19); overload;
+    procedure AppendDynArray(Arr: TDynArray_19; Index, ACount: Integer); overload;
 
     { Copies contents of Source to this object.
 
@@ -344,27 +347,47 @@ end;
 
 procedure TDynArray_19.AppendArray(const NewItems: array of TDynArrayItem_19;
   NewItemsAddCount: integer);
-var i, OldLen: integer;
+var
+  OldLength: Integer;
+{$ifdef DYNARRAY_19_IS_INIT_FINI_TYPE}
+  I: Integer;
+{$endif}
 begin
- OldLen := Length;
- SetLength(Length + NewItemsAddCount);
- for i := 0 to NewItemsAddCount-1 do
-  Items[OldLen+i] := NewItems[i];
+  OldLength := Length;
+  SetLength(Length + NewItemsAddCount);
+{$ifdef DYNARRAY_19_IS_INIT_FINI_TYPE}
+  { We're copying one-by-one, so that Initialize/Finalize
+   of items is properly called. }
+  for i := 0 to NewItemsAddCount - 1 do
+    Items[OldLength + i] := NewItems[i];
+{$else}
+  { In this case we can copy memory fast, using Move }
+  System.Move(
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} {$endif} NewItems[0],
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_19_IS_FUNCTION} @ {$endif} {$endif} Items[OldLength],
+    NewItemsAddCount * SizeOf(TDynArrayItem_19));
+{$endif}
 end;
 
 procedure TDynArray_19.AppendArray(const NewItems: array of TDynArrayItem_19);
 begin
- AppendArray(NewItems, System.High(NewItems)+1);
+  AppendArray(NewItems, System.High(NewItems)+1);
 end;
 
 procedure TDynArray_19.AppendDynArray(Arr: TDynArray_19);
 begin
- AppendArray(Arr.ItemsArray^, Arr.Count);
+  AppendArray(Arr.ItemsArray^, Arr.Count);
+end;
+
+procedure TDynArray_19.AppendDynArray(Arr: TDynArray_19; Index, ACount: Integer);
+begin
+  AppendArray(PInfiniteArray_19(@Arr.Items[Index])^, ACount);
 end;
 
 procedure TDynArray_19.Assign(Source: TDynArray_19);
 {$ifdef DYNARRAY_19_IS_INIT_FINI_TYPE}
-var i: Integer;
+var
+  i: Integer;
 {$endif}
 begin
  Length := Source.Length;

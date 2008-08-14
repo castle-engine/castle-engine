@@ -85,6 +85,11 @@
     procedure Send(const Value: LongInt);
     procedure Send(const Value: boolean);
     procedure Send(const Value: string);
+    procedure Send(const Value: TVector2Single);
+    procedure Send(const Value: TVector3Single);
+    procedure Send(const Value: TVector4Single);
+    procedure Send(const Value: Single);
+    procedure Send(const Value: Double);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -186,6 +191,62 @@ var
   Field: TVRMLField;
 begin
   Field := TSFString.Create(Name, Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector2Single);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFVec2f.Create(Name, Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector3Single);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFColor then
+    Field := TSFColor.Create(Name, Value) else
+    Field := TSFVec3f.Create(Name, Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: TVector4Single);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFColorRGBA then
+    Field := TSFColorRGBA.Create(Name, Value) else
+    Field := TSFVec4f.Create(Name, Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: Single);
+var
+  Field: TVRMLField;
+begin
+  Field := TSFFloat.Create(Name, Value);
+  try
+    Send(Field);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: Double);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFTime then
+    Field := TSFTime.Create(Name, Value) else
+    Field := TSFDouble.Create(Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;

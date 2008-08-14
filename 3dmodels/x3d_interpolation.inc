@@ -20,6 +20,22 @@
 
 {$ifdef read_interface}
   TNodeX3DInterpolatorNode = class(TNodeX3DChildNode)
+  protected
+    { Find a range within "key" field corresponding to given Fraction.
+      Returns the index of @bold(right) range delimiter.
+      So for normal ranges (between two values of "key" field) it's
+      always between 1 and FdKey.Count - 1. Result 0 indicates we're
+      before the left limit, and result equal FdKey.Count indicates
+      we're after right limit.
+
+      Result is always between 0 and FdKey.Count.
+
+      Output T is the value between 0..1 indicating where within
+      the range we are. It's undefined when Result is 0 or Key.Count
+      (indicating we're outside limits).
+
+      Call this only when FdKey.Count > 0. }
+    function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -32,6 +48,8 @@
   end;
 
   TNodeColorInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -48,6 +66,8 @@
   end;
 
   TNodeCoordinateInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -64,6 +84,8 @@
   end;
 
   TNodeCoordinateInterpolator2D = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -103,6 +125,8 @@
   end;
 
   TNodeNormalInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -119,6 +143,8 @@
   end;
 
   TNodeOrientationInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -135,6 +161,8 @@
   end;
 
   TNodePositionInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -151,6 +179,8 @@
   end;
 
   TNodePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -167,6 +197,8 @@
   end;
 
   TNodeScalarInterpolator = class(TNodeX3DInterpolatorNode)
+  private
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -279,6 +311,99 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{$define SingleInterpolator :=
+
+  function KeyValue(Index: Integer): SingleInterpolatorType;
+  begin
+    if Index < FdKeyValue.Items.Count then
+      Result := FdKeyValue.Items.Items[Index] else
+      Result := SingleInterpolatorDefault;
+  end;
+
+var
+  T: Single;
+  OutputValue: SingleInterpolatorType;
+  KeyCount, Range: Integer;
+begin
+  KeyCount := FdKey.Items.Count;
+  if KeyCount = 0 then
+  begin
+    OutputValue := KeyValue(0);
+  end else
+  begin
+    Range := KeyRange((Value as TSFFloat).Value, T);
+    if Range = 0 then
+      OutputValue := KeyValue(0) else
+    if Range = KeyCount then
+      OutputValue := KeyValue(KeyCount - 1) else
+      OutputValue := Lerp(T, KeyValue(Range - 1), KeyValue(Range));
+  end;
+  EventValue_Changed.Send(OutputValue);
+end;}
+
+{$define MultipleInterpolator :=
+var
+  KeyCount: Integer;
+
+  function KeyValue(Index: Integer): MultipleInterpolatorFieldType;
+  var
+    FrameValues: Integer;
+  begin
+    FrameValues := FdKeyValue.Items.Count div KeyCount;
+    Result := MultipleInterpolatorFieldType.CreateUndefined('');
+
+    if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
+    begin
+      Result.Items.AppendDynArray(FdKeyValue.Items, Index * FrameValues, FrameValues);
+    end else
+      VRMLNonFatalError(Format('Not enough keyValue items for %s interpolator',
+        [NodeTypeName]));
+  end;
+
+  // This actually knows that Index2 = Index1 + 1, but assumes only
+  // Index2 > Index1
+  function KeyValueLerp(const T: Single;
+    Index1, Index2: Integer): MultipleInterpolatorFieldType;
+  var
+    FrameValues: Integer;
+  begin
+    FrameValues := FdKeyValue.Items.Count div KeyCount;
+    Result := MultipleInterpolatorFieldType.CreateUndefined('');
+
+    if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
+    begin
+      Result.Items.AssignLerp(T, FdKeyValue.Items, FdKeyValue.Items,
+        Index1 * FrameValues, Index2 * FrameValues, FrameValues);
+    end else
+      VRMLNonFatalError(Format('Not enough keyValue items for %s interpolator',
+        [NodeTypeName]));
+  end;
+
+var
+  T: Single;
+  OutputValue: MultipleInterpolatorFieldType;
+  Range: Integer;
+begin
+  KeyCount := FdKey.Items.Count;
+  if KeyCount = 0 then
+  begin
+    OutputValue := KeyValue(0);
+  end else
+  begin
+    Range := KeyRange((Value as TSFFloat).Value, T);
+    if Range = 0 then
+      OutputValue := KeyValue(0) else
+    if Range = KeyCount then
+      OutputValue := KeyValue(KeyCount - 1) else
+    begin
+      OutputValue := KeyValueLerp(T, Range - 1, Range);
+      MultipleInterpolatorFieldTypePostprocess
+    end;
+  end;
+  EventValue_Changed.Send(OutputValue);
+end;}
+
 constructor TNodeX3DInterpolatorNode.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -292,6 +417,62 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
+end;
+
+function TNodeX3DInterpolatorNode.KeyRange(
+  const Fraction: Single; out T: Single): Integer;
+var
+  Key: TDynSingleArray;
+  A, B: Integer;
+begin
+  Key := FdKey.Items;
+  Assert(Key.Count > 0);
+
+  if Fraction <= Key.Items[0] then
+    Result := 0 else
+  if Fraction >= Key.Items[Key.High] then
+    Result := Key.Count else
+  begin
+    { Then for sure we're between two Key values.
+      Note that we know that Key.Count > 1 (otherwise, Key.First = Key.Last
+      so one of <= or >= comparisons above would occur). }
+    Assert(Key.Count > 1);
+
+    { Always A < B.
+      We're considering range from Key[A] to Key[B].
+
+      Remember that we cannot actually depend on the fact that
+      Key values are non-decreasing. They should be non-decreasing,
+      and we have to output correct result only when they are non-decreasing,
+      but we also have to terminate (with any result) in any situation.
+      Reason: Key values are supplied in X3D file, so they may be broken
+      in every possible way. }
+
+    A := 0;
+    B := Key.High;
+    while B - A > 1 do
+    begin
+      Result := (A + B) div 2;
+      { A < B => (A + B) < 2B => (A + B) div 2 < B => Result < B.
+        Also, Result > A (the only way how Result could be = A
+        would be when B = A + 1, but we eliminated this case by "while"
+        condition".
+
+        This is good, it means A < Result < B, so Result is good candidate
+        for next A or B, it will for sure shorten the distance
+        between A and B. }
+      Assert(A < Result);
+      Assert(Result < B);
+      if Fraction <= Key[Result] then
+        B := Result else
+        A := Result;
+    end;
+    Result := B;
+
+    if Key[B] > Key[A] then
+      T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
+      T := 0;
+  end;
 end;
 
 constructor TNodeColorInterpolator.Create(const ANodeName: string;
@@ -330,6 +511,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeColorInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define SingleInterpolatorType := TVector3Single}
+{$define SingleInterpolatorDefault := ZeroVector3Single}
+SingleInterpolator
+
 constructor TNodeCoordinateInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -366,6 +553,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeCoordinateInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define MultipleInterpolatorFieldType := TMFVec3f}
+{$define MultipleInterpolatorFieldTypePostprocess := }
+MultipleInterpolator
+
 constructor TNodeCoordinateInterpolator2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -399,6 +592,12 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+procedure TNodeCoordinateInterpolator2D.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define MultipleInterpolatorFieldType := TMFVec2f}
+{$define MultipleInterpolatorFieldTypePostprocess := }
+MultipleInterpolator
 
 constructor TNodeEaseInEaseOut.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -477,6 +676,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeNormalInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define MultipleInterpolatorFieldType := TMFVec3f}
+{$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
+MultipleInterpolator
+
 constructor TNodeOrientationInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -512,6 +717,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define SingleInterpolatorType := TVector4Single}
+{$define SingleInterpolatorDefault := ZeroVector4Single}
+SingleInterpolator
 
 constructor TNodePositionInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -549,6 +760,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodePositionInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define SingleInterpolatorType := TVector3Single}
+{$define SingleInterpolatorDefault := ZeroVector3Single}
+SingleInterpolator
+
 constructor TNodePositionInterpolator2D.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -582,6 +799,12 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+procedure TNodePositionInterpolator2D.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define SingleInterpolatorType := TVector2Single}
+{$define SingleInterpolatorDefault := ZeroVector2Single}
+SingleInterpolator
 
 constructor TNodeScalarInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
@@ -618,6 +841,12 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
+
+procedure TNodeScalarInterpolator.EventSet_FractionReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+{$define SingleInterpolatorType := Single}
+{$define SingleInterpolatorDefault := 0}
+SingleInterpolator
 
 constructor TNodeSplinePositionInterpolator.Create(const ANodeName: string;
   const AWWWBasePath: string);
