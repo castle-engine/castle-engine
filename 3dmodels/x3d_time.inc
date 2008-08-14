@@ -106,8 +106,14 @@
   end;
 
   TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
+  private
+    FTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    function CycleInterval: TKamTime;
+    procedure EventElapsedTimeReceive(Event: TVRMLEvent; Value: TVRMLField);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    destructor Destroy; override;
+
     class function ClassNodeTypeName: string; override;
     function SuggestedVRMLVersion(
       out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
@@ -130,6 +136,9 @@
 
     private FFdenabled: TSFBool;
     public property Fdenabled: TSFBool read FFdenabled;
+
+    property TimeDependentNodeHandler: TTimeDependentNodeHandler
+      read FTimeDependentNodeHandler;
   end;
 
 {$endif read_interface}
@@ -226,6 +235,32 @@ begin
   Fields.Add(FFdenabled);
 
   DefaultContainerField := 'children';
+
+  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
+  FTimeDependentNodeHandler.Node := Self;
+  FTimeDependentNodeHandler.Fdloop := Fdloop;
+  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
+  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
+  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
+  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  FTimeDependentNodeHandler.EventisActive:= EventisActive;
+  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
+  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
+  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+
+  { TODO: for now, elapsedTime is simply passed to set_fraction event. }
+  EventelapsedTime.OnReceive.AppendItem(@EventElapsedTimeReceive);
+end;
+
+destructor TNodeTimeSensor.Destroy;
+begin
+  FreeAndNil(FTimeDependentNodeHandler);
+  inherited;
+end;
+
+function TNodeTimeSensor.CycleInterval: TKamTime;
+begin
+  Result := FdCycleInterval.Value;
 end;
 
 class function TNodeTimeSensor.ClassNodeTypeName: string;
@@ -247,6 +282,14 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TNodeTimeSensor.EventElapsedTimeReceive(
+  Event: TVRMLEvent; Value: TVRMLField);
+begin
+  { TODO: for now, elapsedTime/CycleInterval is simply passed to set_fraction event. }
+  FEventfraction_changed.Send(
+    Single((Value as TSFTime).Value / CycleInterval));
 end;
 
 procedure RegisterTimeNodes;

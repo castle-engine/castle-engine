@@ -325,10 +325,11 @@ type
     procedure SetProcessEvents(const Value: boolean);
 
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
-    KeySensorNodes: TVRMLNodesList;
+    KeySensorNodes, TimeSensorNodes: TVRMLNodesList;
 
     procedure CollectNodesForEvents;
     procedure Collect_KeySensor(Node: TVRMLNode);
+    procedure Collect_TimeSensor(Node: TVRMLNode);
     procedure Collect_ChangedFields(Node: TVRMLNode);
 
     procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField);
@@ -796,7 +797,7 @@ var
 
 implementation
 
-uses VRMLCameraUtils;
+uses VRMLCameraUtils, TimeSensorHack;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1774,6 +1775,12 @@ begin
   KeySensorNodes.Add(Node);
 end;
 
+procedure TVRMLFlatScene.Collect_TimeSensor(Node: TVRMLNode);
+begin
+  Assert(Node is TNodeTimeSensor);
+  TimeSensorNodes.Add(Node);
+end;
+
 procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);
 begin
   { TODO: ChangedFields would be nice here, but we can call only
@@ -1810,6 +1817,11 @@ procedure TVRMLFlatScene.CollectNodesForEvents;
 begin
   KeySensorNodes.Clear;
   RootNode.EnumerateNodes(TNodeKeySensor, @Collect_KeySensor, false);
+
+  TimeSensorNodes.Clear;
+  RootNode.EnumerateNodes(TNodeTimeSensor, @Collect_TimeSensor, false);
+  TimeSensorHack.TimeSensorNodes := Self.TimeSensorNodes;
+
   RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
 end;
 
@@ -1820,10 +1832,13 @@ begin
     if Value then
     begin
       KeySensorNodes := TVRMLNodesList.Create;
+      TimeSensorNodes := TVRMLNodesList.Create;
       CollectNodesForEvents;
     end else
     begin
       FreeAndNil(KeySensorNodes);
+      FreeAndNil(TimeSensorNodes);
+      TimeSensorHack.TimeSensorNodes := nil;
     end;
     FProcessEvents := Value;
   end;

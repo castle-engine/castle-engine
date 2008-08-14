@@ -1495,7 +1495,7 @@ implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
-  VRMLGeometry;
+  VRMLGeometry, TimeSensorHack;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1575,39 +1575,130 @@ end;
   when implemented). }
 procedure InternalSetWorldTime(const NewValue, TimeIncrease: TKamTime;
   out SomethingChanged: boolean);
-var
-  TimeHandler: TTimeDependentNodeHandler;
 
-{ $define LOG_TIME_DEPENDENT_NODES}
+  procedure DoTimeHandler(TimeHandler: TTimeDependentNodeHandler);
 
-  { Increase TimeHandler.ElapsedTime, taking care of
-    TimeHandler.CycleInterval and looping.
-    StopOnNonLoopedEnd says what to do if ElapsedTime passed
-    CycleInterval and not looping. }
-  procedure IncreaseElapsedTime(const Increase: TKamTime;
-    StopOnNonLoopedEnd: boolean);
-  begin
-    TimeHandler.ElapsedTime := TimeHandler.ElapsedTime + Increase;
-    if TimeHandler.ElapsedTime > TimeHandler.CycleInterval then
+    { $define LOG_TIME_DEPENDENT_NODES}
+
+    { Increase TimeHandler.ElapsedTime, taking care of
+      TimeHandler.CycleInterval and looping.
+      StopOnNonLoopedEnd says what to do if ElapsedTime passed
+      CycleInterval and not looping. }
+    procedure IncreaseElapsedTime(const Increase: TKamTime;
+      StopOnNonLoopedEnd: boolean);
     begin
-      if TimeHandler.CycleInterval <> 0 then
+      TimeHandler.ElapsedTime := TimeHandler.ElapsedTime + Increase;
+      if TimeHandler.ElapsedTime > TimeHandler.CycleInterval then
       begin
-        if TimeHandler.FdLoop.Value then
+        if TimeHandler.CycleInterval <> 0 then
         begin
-          TimeHandler.ElapsedTime :=
-            FloatModulo(TimeHandler.ElapsedTime, TimeHandler.CycleInterval);
+          if TimeHandler.FdLoop.Value then
+          begin
+            TimeHandler.ElapsedTime :=
+              FloatModulo(TimeHandler.ElapsedTime, TimeHandler.CycleInterval);
+          end else
+          if StopOnNonLoopedEnd then
+            TimeHandler.IsActive := false;
         end else
-        if StopOnNonLoopedEnd then
-          TimeHandler.IsActive := false;
-      end else
-      begin
-        { for cycleInterval = 0 this always remains 0 }
-        TimeHandler.ElapsedTime := 0;
+        begin
+          { for cycleInterval = 0 this always remains 0 }
+          TimeHandler.ElapsedTime := 0;
 
-        if (not TimeHandler.FdLoop.Value) and StopOnNonLoopedEnd then
-          TimeHandler.IsActive := false;
+          if (not TimeHandler.FdLoop.Value) and StopOnNonLoopedEnd then
+            TimeHandler.IsActive := false;
+        end;
       end;
     end;
+
+  begin
+    {$ifdef LOG_TIME_DEPENDENT_NODES}
+    if Log then
+      WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
+        [ TimeHandler.Node.NodeTypeName,
+          BoolToStr[TimeHandler.IsActive],
+          BoolToStr[TimeHandler.IsPaused],
+          BoolToStr[TimeHandler.FdLoop.Value]
+          ]));
+    {$endif}
+
+    { For ResetWorldTime, set time-dependent node properties to default
+      (like after TNodeTimeHandler creation) at the beginning. }
+    if TimeIncrease = 0 then
+    begin
+      TimeHandler.IsActive := false;
+      TimeHandler.IsPaused := false;
+      TimeHandler.ElapsedTime := 0;
+    end;
+
+    if not TimeHandler.IsActive then
+    begin
+      if (NewValue >= TimeHandler.FdStartTime.Value) and
+         ( (NewValue < TimeHandler.FdStopTime.Value) or
+           { stopTime is ignored if it's <= startTime }
+           (TimeHandler.FdStopTime.Value <= TimeHandler.FdStartTime.Value) ) and
+         { avoid starting the movie if it should be stopped according
+           to loop and cycleInterval }
+         not ( (NewValue - TimeHandler.FdStartTime.Value >
+               TimeHandler.CycleInterval) and
+               (not TimeHandler.FdLoop.Value) ) then
+      begin
+        TimeHandler.IsActive := true;
+        TimeHandler.IsPaused := false;
+        TimeHandler.ElapsedTime := 0;
+        { Do not advance by TimeIncrease (time from last WorldTime),
+          advance only by the time passed since startTime. }
+        IncreaseElapsedTime(NewValue - TimeHandler.FdStartTime.Value, true);
+        SomethingChanged := true;
+      end;
+    end else
+    if TimeHandler.IsPaused then
+    begin
+      if (NewValue >= TimeHandler.FdResumeTime.Value) and
+         (TimeHandler.FdResumeTime.Value > TimeHandler.FdPauseTime.Value) then
+      begin
+        TimeHandler.IsPaused := false;
+        { Advance only by the time passed since resumeTime. }
+        IncreaseElapsedTime(NewValue - TimeHandler.FdResumeTime.Value, true);
+        SomethingChanged := true;
+      end;
+    end else
+    begin
+      SomethingChanged := true;
+
+      if (NewValue >= TimeHandler.FdStopTime.Value) and
+         { stopTime is ignored if it's <= startTime }
+         (TimeHandler.FdStopTime.Value > TimeHandler.FdStartTime.Value) then
+      begin
+        TimeHandler.IsActive := false;
+        { advance only to the stopTime }
+        if TimeIncrease <> 0 then
+          IncreaseElapsedTime(TimeIncrease -
+            (NewValue - TimeHandler.FdStopTime.Value), false);
+      end else
+      if (NewValue >= TimeHandler.FdPauseTime.Value) and
+         (TimeHandler.FdPauseTime.Value > TimeHandler.FdResumeTime.Value) then
+      begin
+        TimeHandler.IsPaused := true;
+        { advance only to the pauseTime }
+        if TimeIncrease <> 0 then
+          IncreaseElapsedTime(TimeIncrease -
+            (NewValue - TimeHandler.FdPauseTime.Value), false);
+      end else
+      begin
+        { active and not paused movie }
+        if TimeIncrease = 0 then
+          TimeHandler.ElapsedTime := 0 else
+          IncreaseElapsedTime(TimeIncrease, true);
+      end;
+    end;
+
+    {$ifdef LOG_TIME_DEPENDENT_NODES}
+    if Log then
+      WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
+        [ TimeHandler.Node.NodeTypeName,
+          BoolToStr[TimeHandler.IsActive],
+          BoolToStr[TimeHandler.IsPaused]]));
+    {$endif}
   end;
 
 var
@@ -1628,100 +1719,16 @@ begin
     end else
     if TimeDependentNodes.Items[I] is TNodeMovieTexture then
     begin
-      TimeHandler := (TimeDependentNodes.Items[I] as TNodeMovieTexture).
-        TimeDependentNodeHandler;
-
-      {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
-          [ TimeHandler.Node.NodeTypeName,
-            BoolToStr[TimeHandler.IsActive],
-            BoolToStr[TimeHandler.IsPaused],
-            BoolToStr[TimeHandler.FdLoop.Value]
-            ]));
-      {$endif}
-
-      { For ResetWorldTime, set time-dependent node properties to default
-        (like after TNodeTimeHandler creation) at the beginning. }
-      if TimeIncrease = 0 then
-      begin
-        TimeHandler.IsActive := false;
-        TimeHandler.IsPaused := false;
-        TimeHandler.ElapsedTime := 0;
-      end;
-
-      if not TimeHandler.IsActive then
-      begin
-        if (NewValue >= TimeHandler.FdStartTime.Value) and
-           ( (NewValue < TimeHandler.FdStopTime.Value) or
-             { stopTime is ignored if it's <= startTime }
-             (TimeHandler.FdStopTime.Value <= TimeHandler.FdStartTime.Value) ) and
-           { avoid starting the movie if it should be stopped according
-             to loop and cycleInterval }
-           not ( (NewValue - TimeHandler.FdStartTime.Value >
-                 TimeHandler.CycleInterval) and
-                 (not TimeHandler.FdLoop.Value) ) then
-        begin
-          TimeHandler.IsActive := true;
-          TimeHandler.IsPaused := false;
-          TimeHandler.ElapsedTime := 0;
-          { Do not advance by TimeIncrease (time from last WorldTime),
-            advance only by the time passed since startTime. }
-          IncreaseElapsedTime(NewValue - TimeHandler.FdStartTime.Value, true);
-          SomethingChanged := true;
-        end;
-      end else
-      if TimeHandler.IsPaused then
-      begin
-        if (NewValue >= TimeHandler.FdResumeTime.Value) and
-           (TimeHandler.FdResumeTime.Value > TimeHandler.FdPauseTime.Value) then
-        begin
-          TimeHandler.IsPaused := false;
-          { Advance only by the time passed since resumeTime. }
-          IncreaseElapsedTime(NewValue - TimeHandler.FdResumeTime.Value, true);
-          SomethingChanged := true;
-        end;
-      end else
-      begin
-        SomethingChanged := true;
-
-        if (NewValue >= TimeHandler.FdStopTime.Value) and
-           { stopTime is ignored if it's <= startTime }
-           (TimeHandler.FdStopTime.Value > TimeHandler.FdStartTime.Value) then
-        begin
-          TimeHandler.IsActive := false;
-          { advance only to the stopTime }
-          if TimeIncrease <> 0 then
-            IncreaseElapsedTime(TimeIncrease -
-              (NewValue - TimeHandler.FdStopTime.Value), false);
-        end else
-        if (NewValue >= TimeHandler.FdPauseTime.Value) and
-           (TimeHandler.FdPauseTime.Value > TimeHandler.FdResumeTime.Value) then
-        begin
-          TimeHandler.IsPaused := true;
-          { advance only to the pauseTime }
-          if TimeIncrease <> 0 then
-            IncreaseElapsedTime(TimeIncrease -
-              (NewValue - TimeHandler.FdPauseTime.Value), false);
-        end else
-        begin
-          { active and not paused movie }
-          if TimeIncrease = 0 then
-            TimeHandler.ElapsedTime := 0 else
-            IncreaseElapsedTime(TimeIncrease, true);
-        end;
-      end;
-
-      {$ifdef LOG_TIME_DEPENDENT_NODES}
-      if Log then
-        WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
-          [ TimeHandler.Node.NodeTypeName,
-            BoolToStr[TimeHandler.IsActive],
-            BoolToStr[TimeHandler.IsPaused]]));
-      {$endif}
+      DoTimeHandler((TimeDependentNodes.Items[I] as TNodeMovieTexture).
+        TimeDependentNodeHandler);
     end else
       raise EInternalError.Create('for now, only TNodeMovieTexture and TGLSLProgram should be present in TimeDependentNodes');
   end;
+
+  if TimeSensorNodes <> nil then
+    for I := 0 to TimeSensorNodes.Count - 1 do
+      DoTimeHandler((TimeSensorNodes.Items[I] as TNodeTimeSensor).
+          TimeDependentNodeHandler);
 
   FWorldTime := NewValue;
 end;
