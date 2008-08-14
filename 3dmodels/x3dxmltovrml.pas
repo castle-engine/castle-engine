@@ -268,7 +268,8 @@ const
     finally FreeAndNil(I) end;
   end;
 
-  procedure ParseISStatement(Node: TVRMLNode; ISElement: TDOMElement);
+  procedure ParseISStatement(Node: TVRMLNode; ISElement: TDOMElement;
+    var PositionInParent: Integer);
   var
     I: TXMLElementIterator;
     NodeField, ProtoField: string;
@@ -284,6 +285,8 @@ const
           begin
             NodeFieldOrEvent.IsClause := true;
             NodeFieldOrEvent.IsClauseName := ProtoField;
+            NodeFieldOrEvent.PositionInParent := PositionInParent;
+            Inc(PositionInParent);
           end else
             VRMLNonFatalError(Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
         end;
@@ -295,6 +298,8 @@ const
     parser. }
   procedure ParseNodeBody(Node: TVRMLNode;
     Element: TDOMElement);
+  var
+    PositionInParent: Integer;
 
     procedure ParseXMLAttributes;
     var
@@ -319,6 +324,8 @@ const
         if Index >= 0 then
         begin
           ParseFieldValueFromAttribute(Node.Fields[Index], Attr.Value);
+          Node.Fields[Index].PositionInParent := PositionInParent;
+          Inc(PositionInParent);
         end else
           VRMLNonFatalError('Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + Node.NodeTypeName + '"');
       end;
@@ -344,22 +351,25 @@ const
           if I.Current.TagName = 'ROUTE' then
           begin
             Route := TVRMLRoute.Create;
+            Route.PositionInParent := PositionInParent;
             Node.Routes.Add(Route);
             ParseRoute(Route, I.Current);
           end else
           if I.Current.TagName = 'IS' then
           begin
-            ParseISStatement(Node, I.Current);
+            ParseISStatement(Node, I.Current, PositionInParent);
           end else
           if I.Current.TagName = 'ProtoDeclare' then
           begin
             Proto := TVRMLPrototype.Create;
+            Proto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(Proto);
             ParsePrototype(Proto, I.Current);
           end else
           if I.Current.TagName = 'ExternProtoDeclare' then
           begin
             ExternProto := TVRMLExternalPrototype.Create;
+            ExternProto.PositionInParent := PositionInParent;
             Node.Prototypes.Add(ExternProto);
             ParseExternalPrototype(ExternProto, I.Current);
           end else
@@ -368,6 +378,7 @@ const
             IDecl := TVRMLInterfaceDeclaration.Create;
             try
               ParseInterfaceDeclaration(IDecl, I.Current, true);
+              IDecl.PositionInParent := PositionInParent;
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
                 Node.InterfaceDeclarations.Add(IDecl) else
               begin
@@ -381,6 +392,7 @@ const
           end else
           begin
             Child := ParseNode(I.Current, ContainerField, true);
+            Child.PositionInParent := PositionInParent;
             if Child <> nil then
             begin
               FieldIndex := Node.Fields.IndexOf(ContainerField);
@@ -389,12 +401,31 @@ const
                 if Node.Fields[FieldIndex] is TSFNode then
                 begin
                   SF := Node.Fields[FieldIndex] as TSFNode;
+                  { Although field doesn't have a set position in XML X3D
+                    encoding, when saving later in classic encoding we
+                    need some order of fields. This is yet another problem
+                    with non-unique names, something defined in XML X3D
+                    may be not possible to save in other encoding:
+
+                    <Group>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                      <Shape> ... <Appearance DEF="XXX" ....> </Shape>
+                      <ROUTE ... using "XXX" name ...>
+                    </Group>
+
+                    This is uneasy to save in classic encoding, since
+                    you cannot insert ROUTE in the middle of "children"
+                    field of Group node in classic encoding.
+                  }
+                  Node.Fields[FieldIndex].PositionInParent := PositionInParent;
                   SF.Value := Child;
                   SF.WarningIfChildNotAllowed(Child);
                 end else
                 if Node.Fields[FieldIndex] is TMFNode then
                 begin
                   MF := Node.Fields[FieldIndex] as TMFNode;
+                  Node.Fields[FieldIndex].PositionInParent := PositionInParent;
                   MF.AddItem(Child);
                   MF.WarningIfChildNotAllowed(Child);
                 end else
@@ -414,6 +445,7 @@ const
               end;
             end;
           end;
+          Inc(PositionInParent);
         end;
       finally FreeAndNil(I) end;
     end;
@@ -442,6 +474,10 @@ const
     end;
 
   begin
+    PositionInParent := 0;
+    { The order below is important: first parse XML attributes,
+      then elements, since VRML DEF mechanism says that DEF order
+      is significant. }
     ParseXMLAttributes;
     ParseXMLChildrenNodes;
     ParseXMLCdata;
@@ -489,6 +525,7 @@ const
       FieldActualValue, FieldName: string;
       FieldIndex: Integer;
       ExplicitContainerField: string;
+      PositionInParent: Integer;
     begin
       NodeTypeName := Element.TagName;
 
@@ -510,6 +547,8 @@ const
         { parse field values from <fieldValue> elements }
         ProtoIter := TXMLElementIterator.Create(Element);
         try
+          PositionInParent := 0;
+
           while ProtoIter.GetNext do
           begin
             if ProtoIter.Current.TagName = 'fieldValue' then
@@ -530,14 +569,18 @@ const
               if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
                 ParseFieldValueFromAttribute(Result.Fields[FieldIndex], FieldActualValue) else
                 ParseFieldValueFromElement(Result.Fields[FieldIndex], ProtoIter.Current);
+
+              Result.Fields[FieldIndex].PositionInParent := PositionInParent;
             end else
             if ProtoIter.Current.TagName = 'IS' then
             begin
-              ParseISStatement(Result, ProtoIter.Current);
+              ParseISStatement(Result, ProtoIter.Current, PositionInParent);
             end else
             begin
               VRMLNonFatalError(Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
             end;
+
+            Inc(PositionInParent);
           end;
         finally FreeAndNil(ProtoIter) end;
 
@@ -834,6 +877,8 @@ const
   function ParseVRMLStatements(Element: TDOMElement;
     ParseX3DHeader: boolean;
     X3DHeaderElement: TDOMElement): TVRMLNode;
+  var
+    PositionInParent: Integer;
 
     { Create root group node. }
     function CreateRootNode: TVRMLNode;
@@ -907,6 +952,7 @@ const
         Route: TVRMLRoute;
       begin
         Route := TVRMLRoute.Create;
+        Route.PositionInParent := PositionInParent;
         Result.Routes.Add(Route);
         ParseRoute(Route, Element);
       end;
@@ -921,6 +967,8 @@ const
           Proto := TVRMLPrototype.Create else
           Proto := TVRMLExternalPrototype.Create;
 
+        Proto.PositionInParent := PositionInParent;
+
         Result.Prototypes.Add(Proto);
 
         if Proto is TVRMLPrototype then
@@ -934,6 +982,7 @@ const
         ContainerFieldDummy: string;
       begin
         NewNode := ParseNode(Element, ContainerFieldDummy, false);
+        NewNode.PositionInParent := PositionInParent;
         Result.SmartAddChild(NewNode);
       end;
 
@@ -959,9 +1008,12 @@ const
 
       I := TXMLElementIterator.Create(Element);
       try
+        PositionInParent := 0;
+
         while I.GetNext do
         begin
           ParseVRMLStatement(I.Current);
+          Inc(PositionInParent);
         end;
       finally FreeAndNil(I) end;
     except FreeAndNil(Result); raise end;
