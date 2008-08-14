@@ -1634,7 +1634,7 @@ type
   { SFNode VRML field.
     It's defined in this unit, not in VRMLFields, since it uses
     TVRMLNode definition. NULL value of the field is indicated by
-    Value field = nil. This field has always the same default value: NULL.
+    Value field = nil.
 
     Note that we store AllowedChildren list, which is a list of
     classes allowed as a Value (also nil is always allowed).
@@ -1651,21 +1651,29 @@ type
     FAllowedChildrenAll: boolean;
     FAllowedChildren: TVRMLNodeClassesList;
     procedure SetValue(AValue: TVRMLNode);
+
+    FDefaultValue: TVRMLNode;
+    FDefaultValueExists: boolean;
+    procedure SetDefaultValue(ADefaultValue: TVRMLNode);
+    procedure SetDefaultValueExists(AValue: boolean);
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
     constructor CreateUndefined(const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      const AnAllowedChildren: array of TVRMLNodeClass); overload;
+      const AnAllowedChildren: array of TVRMLNodeClass;
+      ADefaultValue: TVRMLNode = nil); overload;
     { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
       Note that we copy the contents of AnAllowedChildren, not the
       reference. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AnAllowedChildren: TVRMLNodeClassesList); overload;
+      AnAllowedChildren: TVRMLNodeClassesList;
+      ADefaultValue: TVRMLNode = nil); overload;
     { Constructor that initializes AllowedChildren to all
       classes implementing AllowedChildrenInterface. }
     constructor Create(AParentNode: TVRMLNode; const AName: string;
-      AllowedChildrenInterface: TGUID); overload;
+      AllowedChildrenInterface: TGUID;
+      ADefaultValue: TVRMLNode = nil); overload;
     destructor Destroy; override;
 
     { This says that all children are allowed, regardless of
@@ -1682,6 +1690,29 @@ type
       to @true then if you consciously want to turn this check off. }
     property AllowedChildrenAll: boolean
       read FAllowedChildrenAll write FAllowedChildrenAll;
+
+    { DefaultValue of SFNode field.
+
+      While X3D specification says for all SFNode fields that their
+      default value is NULL, this is not necessarily true for PROTO
+      SFNode fiels. So we have to take into account that any DefaultValue
+      is possible.
+
+      Note that this doesn't have to be @nil, but will be irrelevant
+      if not DefaultValueExists. (Once I had an idea to automatically
+      set DefaultValue to @nil when DefaultValueExists is set to @false,
+      but this was uncomfortable (like "what to do when DefaultValue
+      is assigned non-nil when DefaultValueExists is false?").)
+
+      Freeing of this is automatically managed, just like the normal
+      @link(Value) property. This means that you can simply set
+      DefaultValue to @nil or some existing node, and eventual memory
+      deallocation of previous DefaultValue node (if unused) will happen
+      automatically. }
+    property DefaultValue: TVRMLNode
+      read FDefaultValue write SetDefaultValue;
+    property DefaultValueExists: boolean
+      read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TVRMLNode read FValue write SetValue;
     procedure Parse(Lexer: TVRMLLexer; IsClauseAllowed: boolean); override;
@@ -4805,29 +4836,38 @@ begin
 
   FAllowedChildren := TVRMLNodeClassesList.Create;
   FAllowedChildrenAll := true;
+
+  FDefaultValue := nil;
+  FDefaultValueExists := false;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  const AnAllowedChildren: array of TVRMLNodeClass);
+  const AnAllowedChildren: array of TVRMLNodeClass;
+  ADefaultValue: TVRMLNode);
 begin
   inherited Create(AName);
   FParentNode := AParentNode;
 
   FAllowedChildren.AssignArray(AnAllowedChildren);
   FAllowedChildrenAll := false;
+
+  DefaultValueExists := true;
+  DefaultValue := ADefaultValue;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AnAllowedChildren: TVRMLNodeClassesList);
+  AnAllowedChildren: TVRMLNodeClassesList;
+  ADefaultValue: TVRMLNode);
 begin
-  Create(AParentNode, AName, []);
+  Create(AParentNode, AName, [], ADefaultValue);
 
   FAllowedChildren.Assign(AnAllowedChildren);
   FAllowedChildrenAll := false;
 end;
 
 constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
-  AllowedChildrenInterface: TGUID);
+  AllowedChildrenInterface: TGUID;
+  ADefaultValue: TVRMLNode);
 var
   AllowedChildren: TVRMLNodeClassesList;
 begin
@@ -4840,7 +4880,7 @@ begin
   AllowedChildren := TVRMLNodeClassesList.Create;
   AllowedChildren.AddRegisteredImplementing(AllowedChildrenInterface);
   try
-    Create(AParentNode, AName, AllowedChildren);
+    Create(AParentNode, AName, AllowedChildren, ADefaultValue);
   finally FreeAndNil(AllowedChildren) end;
 end;
 
@@ -4848,6 +4888,8 @@ destructor TSFNode.Destroy;
 begin
   { To delete Self from Value.FParentFields, and eventually free Value. }
   Value := nil;
+  { To delete Self from DefaultValue.FParentFields, and eventually free DefaultValue. }
+  DefaultValue := nil;
   FreeAndNil(FAllowedChildren);
   inherited;
 end;
@@ -4915,7 +4957,7 @@ end;
 
 function TSFNode.EqualsDefaultValue: boolean;
 begin
-  Result := (not IsClause) and (Value = nil);
+  Result := (not IsClause) and DefaultValueExists and (Value = DefaultValue);
 end;
 
 function TSFNode.Equals(SecondValue: TVRMLField;
@@ -4932,7 +4974,9 @@ begin
   begin
     { Assign using Value property, so that FParentFields will get
       correctly updated. }
-    Value  := TSFNode(Source).Value;
+    Value              := TSFNode(Source).Value;
+    DefaultValue       := TSFNode(Source).DefaultValue;
+    DefaultValueExists := TSFNode(Source).DefaultValueExists;
     VRMLFieldAssignCommon(TVRMLField(Source));
   end else
     inherited;
@@ -4960,6 +5004,25 @@ begin
     if AValue <> nil then
       FValue.AddParentField(Self);
   end;
+end;
+
+procedure TSFNode.SetDefaultValue(ADefaultValue: TVRMLNode);
+begin
+  if FDefaultValue <> ADefaultValue then
+  begin
+    if FDefaultValue <> nil then
+      FDefaultValue.RemoveParentField(Self);
+
+    FDefaultValue := ADefaultValue;
+
+    if ADefaultValue <> nil then
+      FDefaultValue.AddParentField(Self);
+  end;
+end;
+
+procedure TSFNode.SetDefaultValueExists(AValue: boolean);
+begin
+  FDefaultValueExists := AValue;
 end;
 
 class function TSFNode.VRMLTypeName: string;
@@ -5607,6 +5670,34 @@ begin
       { F := copy of I.Field }
       F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(I.Field.Name);
       F.Assign(I.Field);
+
+      { CreateUndefined creates field without any default value,
+        so it will always get saved later to file.
+
+        But this is not nice: for non-node fields, it merely makes
+        resulting file longer. For node fields (SFNode and MFNode)
+        this means that node value will be written to file. But this
+        is bad, since this means that node contents will have to duplicated,
+        if node is not named or it's name is unbound now (e.g. overridden
+        by other node name) (otherwise "USE Xxx" could be used, which
+        is acceptable).
+
+        See ../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv
+        and tricky_def_use.x3dv for
+        examples (open and save it back e.g. in view3dscene).
+
+        So to make it work right, we have to set DefaultValue for our
+        fields, so that EqualsDefaultValue will work Ok when saving to file. }
+
+      { TODO: it would be nice to call now F.AssignDefaultValueFromValue;
+        For now, special code for SFNode: }
+      if F is TSFNode then
+      begin
+        TSFNode(F).DefaultValue := TSFNode(F).Value;
+        TSFNode(F).DefaultValueExists := true;
+        Writeln('proto SFNode DefaultValue : ', PointerToStr(TSFNode(F).DefaultValue));
+      end;
+
       Fields.Add(F);
     end else
     if I.Event <> nil then
