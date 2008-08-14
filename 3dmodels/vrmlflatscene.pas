@@ -230,6 +230,10 @@ type
 
   TVRMLSceneFreeResources = set of TVRMLSceneFreeResource;
 
+  TVRMLFlatScene = class;
+
+  TVRMLFlatSceneNotification = procedure (Scene: TVRMLFlatScene) of object;
+
   { This class represents a VRML scene (that is, graph of VRML nodes
     rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
     objects. The basic idea is to "have" at the same time hierarchical
@@ -315,6 +319,8 @@ type
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
+    FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLFlatSceneNotification;
+
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
 
@@ -390,6 +396,22 @@ type
     procedure ChangedAll; virtual;
     procedure ChangedShapeStateFields(ShapeStateNum: Integer); virtual;
     procedure ChangedFields(Node: TVRMLNode);
+    { @groupEnd }
+
+    { Notification when ChangedAll is called. This is sometimes
+      useful, since ChangedAll may be called from various places
+      (like from internal events mechanism, if ProcessEvents is @true).
+      And sometimes you have to react to ChangedAll, since it
+      traverses the VRML graph again,
+      recalculating State values... so the old States are not
+      correct anymore. Unfortunately, this means that some things
+      become invalid and have to recalculated, like triangle octree.
+
+      @groupBegin }
+    property OnBeforeChangedAll: TVRMLFlatSceneNotification
+      read FOnBeforeChangedAll write FOnBeforeChangedAll;
+    property OnAfterChangedAll: TVRMLFlatSceneNotification
+      read FOnAfterChangedAll write FOnAfterChangedAll;
     { @groupEnd }
 
     { Returns short information about the scene.
@@ -732,7 +754,7 @@ type
       through routes, time dependent nodes (X3DTimeDependentNode,
       like TimeSensor) will be activated and updated from WorldTime time
       property (TODO), KeyDown, KeyUp and other methods will activate
-      key/mouse sensor nodes (TODO), in the future scripts
+      key/mouse sensor nodes, in the future scripts
       will also work (TODO), etc.
 
       Appropriate ChangedXxx, like ChangedAll, will be automatically called
@@ -970,6 +992,9 @@ begin
   { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
     (and removed from Validities) on any ChangedXxx call. }
 
+  if Assigned(OnBeforeChangedAll) then
+    OnBeforeChangedAll(Self);
+
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     ShapeStates.FreeContents;
@@ -989,6 +1014,9 @@ begin
         CollectNodesForEvents;
     end;
   finally FreeAndNil(ChangedAll_TraversedLights) end;
+
+  if Assigned(OnAfterChangedAll) then
+    OnAfterChangedAll(Self);
 end;
 
 procedure TVRMLFlatScene.ChangedShapeStateFields(ShapeStateNum: integer);
