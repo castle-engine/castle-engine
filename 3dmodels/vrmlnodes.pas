@@ -5695,7 +5695,6 @@ begin
       begin
         TSFNode(F).DefaultValue := TSFNode(F).Value;
         TSFNode(F).DefaultValueExists := true;
-        Writeln('proto SFNode DefaultValue : ', PointerToStr(TSFNode(F).DefaultValue));
       end;
 
       Fields.Add(F);
