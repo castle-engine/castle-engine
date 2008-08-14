@@ -5965,35 +5965,42 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
     NodeExternalPrototype := TVRMLPrototypeNode.CreatePrototypeNode(NodeName,
       WWWBasePath, Proto.ReferencedPrototype);
-
-    for FieldIndex := 0 to Fields.Count - 1 do
-    begin
-      F := Fields[FieldIndex];
-      I := NodeExternalPrototype.Fields.IndexOf(F.Name);
-      if I <> -1 then
+    try
+      for FieldIndex := 0 to Fields.Count - 1 do
       begin
-        { In case of type mismatch, FieldsAssignValue will make nice
-          VRMLNonFatalError.
+        F := Fields[FieldIndex];
+        I := NodeExternalPrototype.Fields.IndexOf(F.Name);
+        if I <> -1 then
+        begin
+          { In case of type mismatch, FieldsAssignValue will make nice
+            VRMLNonFatalError.
 
-          Note that if F.IsClause, then F.IsClauseName will be copied.
-          That's OK. This means that external prototype is expanded within
-          other (more outside, non-external) prototype. So F.IsClauseName
-          refers to this outside prototype. So F.IsClauseName should
-          be copied to NodeExternalPrototype.Fields[I].IsClauseName,
-          and this in turn will be eventually copied to fields inside
-          the prototype expansion. }
-        FieldsAssignValue(NodeExternalPrototype.Fields[I], F, false);
-        NodeExternalPrototype.Fields[I].Exposed := F.Exposed;
-      end else
-        VRMLNonFatalError(Format(
-          'Error when expanding external prototype "%s": ' +
-          'prototype implementation doesn''t have field "%s"',
-          [Proto.Name, F.Name]));
+            Note that if F.IsClause, then F.IsClauseName will be copied.
+            That's OK. This means that external prototype is expanded within
+            other (more outside, non-external) prototype. So F.IsClauseName
+            refers to this outside prototype. So F.IsClauseName should
+            be copied to NodeExternalPrototype.Fields[I].IsClauseName,
+            and this in turn will be eventually copied to fields inside
+            the prototype expansion. }
+          FieldsAssignValue(NodeExternalPrototype.Fields[I], F, false);
+          NodeExternalPrototype.Fields[I].Exposed := F.Exposed;
+        end else
+          VRMLNonFatalError(Format(
+            'Error when expanding external prototype "%s": ' +
+            'prototype implementation doesn''t have field "%s"',
+            [Proto.Name, F.Name]));
+      end;
+
+      { TODO: I should probably copy events somehow too }
+
+      Result := NodeExternalPrototype.Instantiate;
+    except
+      { In case of exceptions, NodeExternalPrototype is to be freed.
+        (In case of no exception, NodeExternalPrototype will also be
+        freed, by FreeAndNil(Result.FPrototypeInstanceSourceNode)). }
+      FreeAndNil(NodeExternalPrototype);
+      raise;
     end;
-
-    { TODO: I should probably copy events somehow too }
-
-    Result := NodeExternalPrototype.Instantiate;
 
     { We use NodeExternalPrototype to instantiate, but then we want
       Result.FPrototypeInstanceSourceNode to be Self. }
