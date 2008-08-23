@@ -3,7 +3,7 @@
   <Package Version="3">
     <Name Value="kambi_glwindow"/>
     <CompilerOptions>
-      <Version Value="5"/>
+      <Version Value="8"/>
       <SearchPaths>
         <IncludeFiles Value="../../opengl/unix/;../../opengl/gtk/"/>
         <OtherUnitFiles Value="../../opengl/"/>
@@ -38,6 +38,8 @@
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CustomOptions Value="-Sh
+"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>

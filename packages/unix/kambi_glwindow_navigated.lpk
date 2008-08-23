@@ -3,11 +3,18 @@
   <Package Version="3">
     <Name Value="kambi_glwindow_navigated"/>
     <CompilerOptions>
-      <Version Value="5"/>
+      <Version Value="8"/>
       <SearchPaths>
         <OtherUnitFiles Value="../../opengl/"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <IncludeAssertionCode Value="True"/>
+          <CStyleMacros Value="True"/>
+          <UseAnsiStrings Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
       <CodeGeneration>
         <Checks>
           <IOChecks Value="True"/>
@@ -26,6 +33,7 @@
         </Debugging>
       </Linking>
       <Other>
+        <CustomOptions Value="-Sh"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>

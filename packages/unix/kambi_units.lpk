@@ -4,7 +4,7 @@
     <Name Value="kambi_units"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
-      <Version Value="5"/>
+      <Version Value="8"/>
       <SearchPaths>
         <IncludeFiles Value="../../base/templates/;../../base/unix/;../../base/;../../opengl/;../../audio/"/>
         <OtherUnitFiles Value="../../base/;../../3dgraph/;../../3dmodels/;../../3dmodels.gl/;../../images/;../../fonts/;../../opengl/;../../opengl/unix/;../../audio/;../../net/"/>
@@ -12,6 +12,7 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
+          <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
           <UseAnsiStrings Value="True"/>
         </SyntaxOptions>
@@ -38,6 +39,8 @@
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CustomOptions Value="-Sh
+"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
