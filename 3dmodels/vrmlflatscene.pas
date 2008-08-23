@@ -483,13 +483,18 @@ type
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode;
 
-    { Creates triangle octree and inits it with our BoundingBox
+    { Create octree containing all triangles from our scene.
+      Creates triangle-based octree, inits it with our BoundingBox
       and adds all triangles from our ShapeStates.
-      (generated using  GeometryNode.Triangulate(State, false, ...)
-      (note : OverTriangulate = false because it's not
-      necessary for collision detection))
+      Triangles are generated using calls like
+      @code(GeometryNode.Triangulate(State, false, ...)).
+      Note that OverTriangulate parameter for Triangulate call above is @false:
+      it shouldn't be needed to have octree with over-triangulate
+      (over-triangulate is for rendering with Gouraud shading).
 
-      If ProgressTitle <> '' then it uses Progress while building octree.
+      If ProgressTitle <> '' (and progress is not active already,
+      so we avoid starting "progress bar within progress bar")
+      then it uses @link(Progress) while building octree.
 
       Remember that such octree has a reference to Shape nodes
       inside RootNode vrml tree and to State objects inside
@@ -511,10 +516,13 @@ type
       const ProgressTitle: string): TVRMLTriangleOctree; overload;
     { @groupEnd }
 
-    { Creates shapestate octree and inits it with our BoundingBox
+    { Create octree containing all shape+states from our scene.
+      Creates shape+state octree and inits it with our BoundingBox
       and adds all our ShapeStates.
 
-      If ProgressTitle <> '' then it uses Progress while building octree.
+      If ProgressTitle <> '' (and progress is not active already,
+      so we avoid starting "progress bar within progress bar")
+      then it uses @link(Progress) while building octree.
 
       Remember that such octree has a reference to our ShapeStates list.
       So you must not use this octree after freeing this object.
@@ -1225,7 +1233,7 @@ begin
  try
   result.OctreeItems.AllowedCapacityOverflow := TrianglesCount(false);
   try
-   if ProgressTitle <> '' then
+   if (ProgressTitle <> '') and (not Progress.Active) then
    begin
     Progress.Init(TrianglesCount(false), ProgressTitle, true);
     try
@@ -1260,7 +1268,7 @@ begin
    BoundingBox, ShapeStates);
  try
 
-  if ProgressTitle <> '' then
+  if (ProgressTitle <> '') and (not Progress.Active) then
   begin
    Progress.Init(ShapeStates.Count, ProgressTitle, true);
    try
