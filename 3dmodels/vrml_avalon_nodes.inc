@@ -264,7 +264,7 @@ procedure TNodeLogger.EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
     S: string;
     SaveProperties: TVRMLSaveToStreamProperties;
   begin
-    S := Format('Logger "%s": received "%s" (%s), on %s.',
+    S := Format('Logger "%s": received field "%s" (%s), on %s.',
       [NodeName, Value.Name, Value.VRMLTypeName, DateTimeToAtStr(Now)]);
 
     if FdLevel.Value = 1 then
@@ -273,6 +273,14 @@ procedure TNodeLogger.EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
     end else
     begin
       Assert(FdLevel.Value >= 2);
+
+      if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
+      begin
+        S += Format(' Sending node: "%s" (%s).',
+          [(Value.ParentNode as TVRMLNode).NodeName,
+           (Value.ParentNode as TVRMLNode).NodeTypeName]);
+      end;
+
       WriteStr(WriteStream, S + ' Value: ');
 
       SaveProperties := TVRMLSaveToStreamProperties.Create(WriteStream);
