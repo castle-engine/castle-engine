@@ -379,7 +379,7 @@ type
 implementation
 
 uses ProgressUnit, ALUtils,
-  KambiFilesUtils, DOM, XMLRead, KambiXMLUtils,
+  KambiFilesUtils, DOM, KambiXMLRead, KambiXMLUtils,
   SoundFile, VorbisFile, KambiStringUtils, KambiTimeUtils, KambiLog;
 
 {$define read_implementation}

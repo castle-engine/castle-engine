@@ -32,7 +32,7 @@ function LoadX3DXmlAsVRML(const FileName: string;
 
 implementation
 
-uses SysUtils, DOM, XMLRead, KambiUtils, KambiXMLUtils, Classes,
+uses SysUtils, DOM, KambiXMLRead, KambiUtils, KambiXMLUtils, Classes,
   VRMLLexer, VRMLErrors, VRMLFields, KambiZStream,
   KambiClassUtils, KambiStringUtils;
 

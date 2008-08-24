@@ -49,7 +49,7 @@ function LoadColladaAsVRML(const FileName: string): TVRMLNode;
 implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
-  DOM, XMLRead, KambiXMLUtils, DataErrors, Classes, KambiClassUtils;
+  DOM, KambiXMLRead, KambiXMLUtils, DataErrors, Classes, KambiClassUtils;
 
 {$define read_interface}
 {$define read_implementation}

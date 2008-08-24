@@ -51,7 +51,7 @@
 
 program svg_grayscale;
 
-uses SysUtils, DOM, XMLRead, NoIndentXMLWrite, KambiStringUtils, VectorMath,
+uses SysUtils, DOM, KambiXMLRead, NoIndentXMLWrite, KambiStringUtils, VectorMath,
   StrUtils, KambiXMLUtils, Classes, KambiUtils;
 
 var
