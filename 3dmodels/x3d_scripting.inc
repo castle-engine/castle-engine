@@ -52,7 +52,7 @@ constructor TNodeX3DScriptNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
@@ -64,11 +64,11 @@ constructor TNodeScript.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddirectOutput := TSFBool.Create('directOutput', false);
+  FFddirectOutput := TSFBool.Create(Self, 'directOutput', false);
   FFddirectOutput.Exposed := false;
   Fields.Add(FFddirectOutput);
 
-  FFdmustEvaluate := TSFBool.Create('mustEvaluate', false);
+  FFdmustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
   FFdmustEvaluate.Exposed := false;
   Fields.Add(FFdmustEvaluate);
 

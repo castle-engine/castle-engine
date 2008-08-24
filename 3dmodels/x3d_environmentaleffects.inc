@@ -250,23 +250,23 @@ constructor TNodeX3DBackgroundNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdgroundAngle := TMFFloat.Create('groundAngle', []);
+  FFdgroundAngle := TMFFloat.Create(Self, 'groundAngle', []);
   Fields.Add(FFdgroundAngle);
   { X3D specification comment: [0,Pi/2] }
 
-  FFdgroundColor := TMFColor.Create('groundColor', []);
+  FFdgroundColor := TMFColor.Create(Self, 'groundColor', []);
   Fields.Add(FFdgroundColor);
   { X3D specification comment: [0,1] }
 
-  FFdskyAngle := TMFFloat.Create('skyAngle', []);
+  FFdskyAngle := TMFFloat.Create(Self, 'skyAngle', []);
   Fields.Add(FFdskyAngle);
   { X3D specification comment: [0,Pi] }
 
-  FFdskyColor := TMFColor.Create('skyColor', Vector3Single(0, 0, 0));
+  FFdskyColor := TMFColor.Create(Self, 'skyColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdskyColor);
   { X3D specification comment: [0,1] }
 
-  FFdtransparency := TSFFloat.Create('transparency', 0);
+  FFdtransparency := TSFFloat.Create(Self, 'transparency', 0);
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 
@@ -278,27 +278,27 @@ constructor TNodeBackground.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbackUrl := TMFString.Create('backUrl', []);
+  FFdbackUrl := TMFString.Create(Self, 'backUrl', []);
   Fields.Add(FFdbackUrl);
   { X3D specification comment: [URI] }
 
-  FFdbottomUrl := TMFString.Create('bottomUrl', []);
+  FFdbottomUrl := TMFString.Create(Self, 'bottomUrl', []);
   Fields.Add(FFdbottomUrl);
   { X3D specification comment: [URI] }
 
-  FFdfrontUrl := TMFString.Create('frontUrl', []);
+  FFdfrontUrl := TMFString.Create(Self, 'frontUrl', []);
   Fields.Add(FFdfrontUrl);
   { X3D specification comment: [URI] }
 
-  FFdleftUrl := TMFString.Create('leftUrl', []);
+  FFdleftUrl := TMFString.Create(Self, 'leftUrl', []);
   Fields.Add(FFdleftUrl);
   { X3D specification comment: [URI] }
 
-  FFdrightUrl := TMFString.Create('rightUrl', []);
+  FFdrightUrl := TMFString.Create(Self, 'rightUrl', []);
   Fields.Add(FFdrightUrl);
   { X3D specification comment: [URI] }
 
-  FFdtopUrl := TMFString.Create('topUrl', []);
+  FFdtopUrl := TMFString.Create(Self, 'topUrl', []);
   Fields.Add(FFdtopUrl);
   { X3D specification comment: [URI] }
 
@@ -426,25 +426,25 @@ constructor TNodeFog.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
-  FFdfogType := TSFString.Create('fogType', 'LINEAR');
+  FFdfogType := TSFString.Create(Self, 'fogType', 'LINEAR');
   Fields.Add(FFdfogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
-  FFdvisibilityRange := TSFFloat.Create('visibilityRange', 0);
+  FFdvisibilityRange := TSFFloat.Create(Self, 'visibilityRange', 0);
   Fields.Add(FFdvisibilityRange);
   { X3D specification comment: [0,Inf) }
 
-  FFdvolumetric := TSFBool.Create('volumetric', false);
+  FFdvolumetric := TSFBool.Create(Self, 'volumetric', false);
   Fields.Add(FFdvolumetric);
 
-  FFdvolumetricDirection := TSFVec3f.Create('volumetricDirection', Vector3Single(0, -1, 0));
+  FFdvolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3Single(0, -1, 0));
   Fields.Add(FFdvolumetricDirection);
 
-  FFdvolumetricVisibilityStart := TSFFloat.Create('volumetricVisibilityStart', 0);
+  FFdvolumetricVisibilityStart := TSFFloat.Create(Self, 'volumetricVisibilityStart', 0);
   Fields.Add(FFdvolumetricVisibilityStart);
 
   FFdalternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
@@ -486,7 +486,7 @@ constructor TNodeFogCoordinate.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddepth := TMFFloat.Create('depth', []);
+  FFddepth := TMFFloat.Create(Self, 'depth', []);
   Fields.Add(FFddepth);
   { X3D specification comment: [0,1] }
 
@@ -517,18 +517,18 @@ constructor TNodeLocalFog.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
-  FFdfogType := TSFString.Create('fogType', 'LINEAR');
+  FFdfogType := TSFString.Create(Self, 'fogType', 'LINEAR');
   Fields.Add(FFdfogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
-  FFdvisibilityRange := TSFFloat.Create('visibilityRange', 0);
+  FFdvisibilityRange := TSFFloat.Create(Self, 'visibilityRange', 0);
   Fields.Add(FFdvisibilityRange);
   { X3D specification comment: [0,-Inf) }
 

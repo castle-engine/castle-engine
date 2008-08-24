@@ -43,7 +43,8 @@
     FInEvent: boolean;
     FOnReceive: TDynVRMLEventReceiveArray;
   public
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const AFieldClass: TVRMLFieldClass; const AInEvent: boolean);
     destructor Destroy; override;
 
@@ -126,12 +127,14 @@ end;
 
 { TVRMLEvent ----------------------------------------------------------------- }
 
-constructor TVRMLEvent.Create(
+constructor TVRMLEvent.Create(AParentNode: TVRMLFileItem;
   const AName: string; const AFieldClass: TVRMLFieldClass;
   const AInEvent: boolean);
 begin
   inherited Create;
   FName := AName;
+  FParentNode := AParentNode;
+
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
   FOnReceive := TDynVRMLEventReceiveArray.Create;
@@ -169,8 +172,8 @@ var
   Field: TVRMLField;
 begin
   if FieldClass = TSFInt32 then
-    Field := TSFInt32.Create(Name, Value) else
-    Field := TSFLong.Create(Name, Value);
+    Field := TSFInt32.Create(ParentNode, Name, Value) else
+    Field := TSFLong.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -180,7 +183,7 @@ procedure TVRMLEvent.Send(const Value: boolean);
 var
   Field: TVRMLField;
 begin
-  Field := TSFBool.Create(Name, Value);
+  Field := TSFBool.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -190,7 +193,7 @@ procedure TVRMLEvent.Send(const Value: string);
 var
   Field: TVRMLField;
 begin
-  Field := TSFString.Create(Name, Value);
+  Field := TSFString.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -200,7 +203,7 @@ procedure TVRMLEvent.Send(const Value: TVector2Single);
 var
   Field: TVRMLField;
 begin
-  Field := TSFVec2f.Create(Name, Value);
+  Field := TSFVec2f.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -211,8 +214,8 @@ var
   Field: TVRMLField;
 begin
   if FieldClass = TSFColor then
-    Field := TSFColor.Create(Name, Value) else
-    Field := TSFVec3f.Create(Name, Value);
+    Field := TSFColor.Create(ParentNode, Name, Value) else
+    Field := TSFVec3f.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -223,10 +226,10 @@ var
   Field: TVRMLField;
 begin
   if FieldClass = TSFColorRGBA then
-    Field := TSFColorRGBA.Create(Name, Value) else
+    Field := TSFColorRGBA.Create(ParentNode, Name, Value) else
   if FieldClass = TSFRotation then
-    Field := TSFRotation.Create(Name, Value) else
-    Field := TSFVec4f.Create(Name, Value);
+    Field := TSFRotation.Create(ParentNode, Name, Value) else
+    Field := TSFVec4f.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -236,7 +239,7 @@ procedure TVRMLEvent.Send(const Value: Single);
 var
   Field: TVRMLField;
 begin
-  Field := TSFFloat.Create(Name, Value);
+  Field := TSFFloat.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;
@@ -247,8 +250,8 @@ var
   Field: TVRMLField;
 begin
   if FieldClass = TSFTime then
-    Field := TSFTime.Create(Name, Value) else
-    Field := TSFDouble.Create(Name, Value);
+    Field := TSFTime.Create(ParentNode, Name, Value) else
+    Field := TSFDouble.Create(ParentNode, Name, Value);
   try
     Send(Field);
   finally FreeAndNil(Field) end;

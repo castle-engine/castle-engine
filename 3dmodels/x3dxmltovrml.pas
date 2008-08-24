@@ -740,10 +740,10 @@ const
     { we know everything now to create Event/Field instance }
     case AccessType of
       atInputOnly, atOutputOnly:
-        I.FieldOrEvent := TVRMLEvent.Create(Name, FieldType, AccessType = atInputOnly);
+        I.FieldOrEvent := TVRMLEvent.Create(nil, Name, FieldType, AccessType = atInputOnly);
       atInitializeOnly, atInputOutput:
         begin
-          I.FieldOrEvent := FieldType.CreateUndefined(Name);
+          I.FieldOrEvent := FieldType.CreateUndefined(nil,Name);
           I.Field.Exposed := AccessType = atInputOutput;
         end;
       else raise EInternalError.Create('AccessType ?');

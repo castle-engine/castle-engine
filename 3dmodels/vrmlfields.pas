@@ -155,6 +155,8 @@ type
       - each VRML major version has exactly one alt name
       - alt name is never '' ('' means that alt name doesn't exist) }
     FAlternativeNames: array [1..3] of string;
+
+    FParentNode: TVRMLFileItem;
   public
     { Name of the field or event.
 
@@ -166,6 +168,14 @@ type
       Name is used for various purposes (like to generate names for
       TVRMLField.ExposedEvents). }
     property Name: string read FName;
+
+    { VRML node containing this field/event.
+      This must always contain an instance
+      of TVRMLNode class (although it cannot be declared such, since VRMLFields
+      unit cannot depend on VRMLNodes interface).
+
+      It may be @nil for special fields/events when parent node is unknown. }
+    property ParentNode: TVRMLFileItem read FParentNode;
 
     { Does the field/event reference other field by "IS" clause.
       This is usually caused by specifying "IS" clause instead
@@ -288,7 +298,8 @@ type
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(const AName: string);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
@@ -307,7 +318,8 @@ type
       TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
-    constructor CreateUndefined(const AName: string); virtual;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); virtual;
 
     destructor Destroy; override;
 
@@ -703,7 +715,8 @@ type
       Remember that arrays AFFlagNames and AFlags
       (AFlags is initial value of Flags) must have equal length.
       Eventually, AFlags may be longer (excessive items will be ignored). }
-    constructor Create(const AName: string; const AFlagNames: array of string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
 
     destructor Destroy; override;
@@ -721,7 +734,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: boolean);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: boolean);
 
     Value: boolean;
 
@@ -752,7 +766,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
 
@@ -785,8 +800,10 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: Single); overload;
-    constructor Create(const AName: string; const AValue: Single;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: Single); overload;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: Single;
       AMustBeNonnegative: boolean); overload;
 
     property Value: Single read FValue write SetValue;
@@ -823,7 +840,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: Double);
 
     property Value: Double read FValue write SetValue;
 
@@ -870,8 +888,10 @@ type
         our Value field)).
         You can pass AValue = nil, then Value will be inited to null image
         TRGBImage.Create.) }
-    constructor Create(const AName: string; const AValue: TImage);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TImage);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     destructor Destroy; override;
 
@@ -894,8 +914,10 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: Longint); overload;
-    constructor Create(const AName: string; const AValue: Longint;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: Longint); overload;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: Longint;
       AMustBeNonnegative: boolean); overload;
 
     property Value: Longint read FValue write SetValue;
@@ -931,7 +953,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TMatrix3Single);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TMatrix3Single);
 
     property Value: TMatrix3Single read FValue write FValue;
 
@@ -958,7 +981,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TMatrix3Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TMatrix3Double);
 
     property Value: TMatrix3Double read FValue write FValue;
 
@@ -985,7 +1009,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TMatrix4Single);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TMatrix4Single);
 
     property Value: TMatrix4Single read FValue write FValue;
 
@@ -1026,7 +1051,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TMatrix4Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TMatrix4Double);
 
     property Value: TMatrix4Double read FValue write FValue;
 
@@ -1057,9 +1083,11 @@ type
     function GetValueDeg: TVector4Single;
     procedure SetValueDeg(const AValue: TVector4Single);
   public
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const AnAxis: TVector3Single; const ARotationRad: Single); overload;
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const AValue: TVector4Single); overload;
 
     Axis: TVector3Single;
@@ -1099,7 +1127,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: string);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: string);
 
     Value: string;
 
@@ -1123,7 +1152,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector2Single);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector2Single);
 
     Value: TVector2Single;
 
@@ -1149,7 +1179,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector3Single);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector3Single);
 
     Value: TVector3Single;
 
@@ -1180,7 +1211,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector4Single);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector4Single);
 
     Value: TVector4Single;
 
@@ -1211,7 +1243,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector2Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector2Double);
 
     Value: TVector2Double;
 
@@ -1237,7 +1270,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector3Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector3Double);
 
     Value: TVector3Double;
 
@@ -1263,7 +1297,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor Create(const AName: string; const AValue: TVector4Double);
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const AValue: TVector4Double);
 
     Value: TVector4Double;
 
@@ -1313,9 +1348,11 @@ type
   public
     function Items: TDynBooleanArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const InitialContent: array of boolean);
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1348,8 +1385,10 @@ type
 
     function Items: TDynLongintArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of Longint);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of Longint);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1382,8 +1421,10 @@ type
   public
     function Items: TDynMatrix3SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TMatrix3Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TMatrix3Single);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1407,8 +1448,10 @@ type
   public
     function Items: TDynMatrix3DoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TMatrix3Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TMatrix3Double);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1432,8 +1475,10 @@ type
   public
     function Items: TDynMatrix4SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TMatrix4Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TMatrix4Single);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1457,8 +1502,10 @@ type
   public
     function Items: TDynMatrix4DoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TMatrix4Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TMatrix4Double);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1484,8 +1531,10 @@ type
   public
     function Items: TDynVector2SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector2Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector2Single);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1517,8 +1566,10 @@ type
   public
     function Items: TDynVector3SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector3Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector3Single);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1553,8 +1604,10 @@ type
   public
     function Items: TDynVector4SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector4Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector4Single);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1582,8 +1635,10 @@ type
   public
     function Items: TDynVector2DoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector2Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector2Double);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1607,8 +1662,10 @@ type
   public
     function Items: TDynVector3DoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector3Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector3Double);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1632,8 +1689,10 @@ type
   public
     function Items: TDynVector4DoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of TVector4Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of TVector4Double);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1657,9 +1716,11 @@ type
   public
     function Items: TDynVector4SingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const InitialContent: array of TVector4Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1683,9 +1744,11 @@ type
   public
     function Items: TDynSingleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const InitialContent: array of Single);
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1709,9 +1772,11 @@ type
   public
     function Items: TDynDoubleArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string;
       const InitialContent: array of Double);
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1740,8 +1805,10 @@ type
   public
     function Items: TDynStringArray;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(const AName: string; const InitialContent: array of string);
-    constructor CreateUndefined(const AName: string); override;
+    constructor Create(AParentNode: TVRMLFileItem;
+      const AName: string; const InitialContent: array of string);
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1943,14 +2010,17 @@ end;
 
 { TVRMLField ------------------------------------------------------------- }
 
-constructor TVRMLField.Create(const AName: string);
+constructor TVRMLField.Create(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
-  CreateUndefined(AName);
+  CreateUndefined(AParentNode, AName);
 end;
 
-constructor TVRMLField.CreateUndefined(const AName: string);
+constructor TVRMLField.CreateUndefined(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
   inherited Create;
+  FParentNode := AParentNode;
   FName := AName;
 
   { Set Exposed to true by the property, to force FExposedEvents initialization }
@@ -1997,9 +2067,11 @@ begin
     FExposed := Value;
     if Exposed then
     begin
-      FExposedEvents[false] := TVRMLEvent.Create(Name + ChangedSuffix,
+      FExposedEvents[false] := TVRMLEvent.Create(ParentNode,
+        Name + ChangedSuffix,
         TVRMLFieldClass(Self.ClassType), false);
-      FExposedEvents[true] := TVRMLEvent.Create(SetPrefix + Name,
+      FExposedEvents[true] := TVRMLEvent.Create(ParentNode,
+        SetPrefix + Name,
         TVRMLFieldClass(Self.ClassType), true);
 
       for I := Low(FAlternativeNames) to High(FAlternativeNames) do
@@ -2217,7 +2289,7 @@ begin result := RawItems.Count end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
 begin
- result := ItemClass.CreateUndefined('');
+ result := ItemClass.CreateUndefined(ParentNode, '');
 end;
 
 procedure TVRMLSimpleMultField.Parse(
@@ -2382,9 +2454,10 @@ end;
 
 { TSFBool -------------------------------------------------------------------- }
 
-constructor TSFBool.Create(const AName: string; const AValue: boolean);
+constructor TSFBool.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: boolean);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -2492,14 +2565,16 @@ begin
   FValue := AValue;
 end;
 
-constructor TSFFloat.Create(const AName: string; const AValue: Single);
+constructor TSFFloat.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: Single);
 begin
-  Create(AName, AValue, false);
+  Create(AParentNode, AName, AValue, false);
 end;
 
-constructor TSFFloat.Create(const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
+constructor TSFFloat.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
   Value := AValue; { Set property, zeby SetValue moglo ew. zmienic Value }
@@ -2580,9 +2655,10 @@ end;
 
 { TSFDouble -------------------------------------------------------------------- }
 
-constructor TSFDouble.Create(const AName: string; const AValue: Double);
+constructor TSFDouble.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: Double);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -2672,9 +2748,10 @@ end;
 
 { TSFImage ------------------------------------------------------------------- }
 
-constructor TSFImage.Create(const AName: string; const AValue: TImage);
+constructor TSFImage.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: TImage);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   if AValue <> nil then
   begin
@@ -2683,7 +2760,8 @@ begin
   end;
 end;
 
-constructor TSFImage.CreateUndefined(const AName: string);
+constructor TSFImage.CreateUndefined(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
   inherited;
 
@@ -2878,14 +2956,16 @@ begin
   FValue := AValue;
 end;
 
-constructor TSFLong.Create(const AName: string; const AValue: Longint);
+constructor TSFLong.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: Longint);
 begin
-  Create(AName, AValue, false);
+  Create(AParentNode, AName, AValue, false);
 end;
 
-constructor TSFLong.Create(const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
+constructor TSFLong.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
   Value := AValue; { Set using property, zeby SetValue moglo ew. zmienic Value }
@@ -2969,9 +3049,10 @@ end;
   Common SF fields based on matrices implementation }
 
 {$define IMPLEMENT_SF_CLASS_USING_MATRICES :=
-constructor TSF_CLASS.Create(const AName: string; const AValue: TSF_STATIC_ITEM);
+constructor TSF_CLASS.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -3134,10 +3215,11 @@ end;
 
 { TSFRotation ---------------------------------------------------------------- }
 
-constructor TSFRotation.Create(const AName: string;
+constructor TSFRotation.Create(AParentNode: TVRMLFileItem;
+  const AName: string;
   const AnAxis: TVector3Single; const ARotationRad: Single);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Axis := AnAxis;
   RotationRad := ARotationRad;
@@ -3145,12 +3227,13 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-constructor TSFRotation.Create(const AName: string;
+constructor TSFRotation.Create(AParentNode: TVRMLFileItem;
+  const AName: string;
   const AValue: TVector4Single);
 var
   AnAxis: TVector3Single absolute AValue;
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Axis := AnAxis;
   RotationRad := AValue[3];
@@ -3277,9 +3360,10 @@ end;
 
 { TSFString ------------------------------------------------------------------ }
 
-constructor TSFString.Create(const AName: string; const AValue: string);
+constructor TSFString.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: string);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3351,9 +3435,10 @@ end;
   Common SF fields based on vectors implementation }
 
 {$define IMPLEMENT_SF_CLASS_USING_VECTORS :=
-constructor TSF_CLASS.Create(const AName: string; const AValue: TSF_STATIC_ITEM);
+constructor TSF_CLASS.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -3514,11 +3599,12 @@ end;
 
 { TSFBitMask ------------------------------------------------------------ }
 
-constructor TSFBitMask.Create(const AName: string; const AFlagNames: array of string;
+constructor TSFBitMask.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
 var i: integer;
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   fFlagNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AFlagNames, fFlagNames);
@@ -3660,9 +3746,10 @@ end;
 
 { TSFEnum ----------------------------------------------------------------- }
 
-constructor TSFEnum.Create(const AName: string; const AEnumNames: array of string; const AValue: integer);
+constructor TSFEnum.Create(AParentNode: TVRMLFileItem;
+  const AName: string; const AEnumNames: array of string; const AValue: integer);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   fEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, fEnumNames);
@@ -3768,17 +3855,19 @@ end;
 {$endif}
 
 {$define IMPLEMENT_MF_CLASS:=
-constructor TMF_CLASS.Create(const AName: string;
+constructor TMF_CLASS.Create(AParentNode: TVRMLFileItem;
+  const AName: string;
   const InitialContent: array of TMF_STATIC_ITEM);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
 
   Items.AppendArray(InitialContent);
 
   AssignDefaultValueFromValue;
 end;
 
-constructor TMF_CLASS.CreateUndefined(const AName: string);
+constructor TMF_CLASS.CreateUndefined(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
   inherited;
 

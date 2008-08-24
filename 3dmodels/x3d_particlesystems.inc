@@ -260,20 +260,20 @@ constructor TNodeX3DParticleEmitterNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdspeed := TSFFloat.Create('speed', 0);
+  FFdspeed := TSFFloat.Create(Self, 'speed', 0);
   Fields.Add(FFdspeed);
   { X3D specification comment: [0,Inf) }
 
-  FFdvariation := TSFFloat.Create('variation', 0.25);
+  FFdvariation := TSFFloat.Create(Self, 'variation', 0.25);
   Fields.Add(FFdvariation);
   { X3D specification comment: [0,Inf) }
 
-  FFdmass := TSFFloat.Create('mass', 0);
+  FFdmass := TSFFloat.Create(Self, 'mass', 0);
   FFdmass.Exposed := false;
   Fields.Add(FFdmass);
   { X3D specification comment: [0,Inf) }
 
-  FFdsurfaceArea := TSFFloat.Create('surfaceArea', 0);
+  FFdsurfaceArea := TSFFloat.Create(Self, 'surfaceArea', 0);
   FFdsurfaceArea.Exposed := false;
   Fields.Add(FFdsurfaceArea);
   { X3D specification comment: [0,Inf) }
@@ -286,7 +286,7 @@ constructor TNodeX3DParticlePhysicsModelNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
   DefaultContainerField := 'physics';
@@ -325,14 +325,14 @@ constructor TNodeConeEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdangle := TSFFloat.Create('angle', Pi/4);
+  FFdangle := TSFFloat.Create(Self, 'angle', Pi/4);
   Fields.Add(FFdangle);
   { X3D specification comment: [0,Pi] }
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
 
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
 end;
 
@@ -360,7 +360,7 @@ constructor TNodeExplosionEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
 end;
 
@@ -388,7 +388,7 @@ constructor TNodeGravityPhysicsModel.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdforce := TSFVec3f.Create('force', Vector3Single(0, -9.8, 0));
+  FFdforce := TSFVec3f.Create(Self, 'force', Vector3Single(0, -9.8, 0));
   Fields.Add(FFdforce);
   { X3D specification comment: (Inf,Inf) }
 end;
@@ -417,36 +417,36 @@ constructor TNodeParticleSystem.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcreateParticles := TSFBool.Create('createParticles', true);
+  FFdcreateParticles := TSFBool.Create(Self, 'createParticles', true);
   Fields.Add(FFdcreateParticles);
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
-  FFdlifetimeVariation := TSFFloat.Create('lifetimeVariation', 0.25);
+  FFdlifetimeVariation := TSFFloat.Create(Self, 'lifetimeVariation', 0.25);
   Fields.Add(FFdlifetimeVariation);
   { X3D specification comment: [0,1] }
 
-  FFdmaxParticles := TSFInt32.Create('maxParticles', 200);
+  FFdmaxParticles := TSFInt32.Create(Self, 'maxParticles', 200);
   Fields.Add(FFdmaxParticles);
   { X3D specification comment: [0,Inf) }
 
-  FFdparticleLifetime := TSFFloat.Create('particleLifetime', 5);
+  FFdparticleLifetime := TSFFloat.Create(Self, 'particleLifetime', 5);
   Fields.Add(FFdparticleLifetime);
   { X3D specification comment: [0,Inf) }
 
-  FFdparticleSize := TSFVec2f.Create('particleSize', Vector2Single(0.02, 0.02));
+  FFdparticleSize := TSFVec2f.Create(Self, 'particleSize', Vector2Single(0.02, 0.02));
   Fields.Add(FFdparticleSize);
   { X3D specification comment: [0,Inf) }
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
   FFdcolorRamp := TSFNode.Create(Self, 'colorRamp', [TNodeX3DColorNode]);
   FFdcolorRamp.Exposed := false;
   Fields.Add(FFdcolorRamp);
 
-  FFdcolorKey := TMFFloat.Create('colorKey', []);
+  FFdcolorKey := TMFFloat.Create(Self, 'colorKey', []);
   FFdcolorKey.Exposed := false;
   Fields.Add(FFdcolorKey);
   { X3D specification comment: [0,Inf) }
@@ -455,7 +455,7 @@ begin
   FFdemitter.Exposed := false;
   Fields.Add(FFdemitter);
 
-  FFdgeometryType := TSFString.Create('geometryType', 'QUAD');
+  FFdgeometryType := TSFString.Create(Self, 'geometryType', 'QUAD');
   FFdgeometryType.Exposed := false;
   Fields.Add(FFdgeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
@@ -468,7 +468,7 @@ begin
   FFdtexCoordRamp.Exposed := false;
   Fields.Add(FFdtexCoordRamp);
 
-  FFdtexCoordKey := TMFFloat.Create('texCoordKey', []);
+  FFdtexCoordKey := TMFFloat.Create(Self, 'texCoordKey', []);
   FFdtexCoordKey.Exposed := false;
   Fields.Add(FFdtexCoordKey);
   { X3D specification comment: [0,Inf) }
@@ -498,10 +498,10 @@ constructor TNodePointEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
 
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 0));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
   Fields.Add(FFdposition);
 end;
 
@@ -529,17 +529,17 @@ constructor TNodePolylineEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  FEventset_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
   FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
   { X3D specification comment: [-1,1] }
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
+  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -569,10 +569,10 @@ constructor TNodeSurfaceEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  FEventset_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
+  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -606,22 +606,22 @@ constructor TNodeVolumeEmitter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_coordinate := TVRMLEvent.Create('set_coordinate', TSFInt32, true);
+  FEventset_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventset_coordinate);
 
   FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
   Fields.Add(FFdcoord);
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 1, 0));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
   Fields.Add(FFddirection);
   { X3D specification comment: [-1,1] }
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', [-1]);
+  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdinternal := TSFBool.Create('internal', true);
+  FFdinternal := TSFBool.Create(Self, 'internal', true);
   FFdinternal.Exposed := false;
   Fields.Add(FFdinternal);
 end;
@@ -650,19 +650,19 @@ constructor TNodeWindPhysicsModel.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, 0));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 0));
   Fields.Add(FFddirection);
   { X3D specification comment: (Inf,Inf) }
 
-  FFdgustiness := TSFFloat.Create('gustiness', 0.1);
+  FFdgustiness := TSFFloat.Create(Self, 'gustiness', 0.1);
   Fields.Add(FFdgustiness);
   { X3D specification comment: [0,Inf) }
 
-  FFdspeed := TSFFloat.Create('speed', 0.1);
+  FFdspeed := TSFFloat.Create(Self, 'speed', 0.1);
   Fields.Add(FFdspeed);
   { X3D specification comment: [0,Inf) }
 
-  FFdturbulence := TSFFloat.Create('turbulence', 0);
+  FFdturbulence := TSFFloat.Create(Self, 'turbulence', 0);
   Fields.Add(FFdturbulence);
   { X3D specification comment: [0,1] }
 end;

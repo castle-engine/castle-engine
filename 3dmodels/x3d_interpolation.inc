@@ -346,12 +346,18 @@ end;}
 var
   KeyCount: Integer;
 
+  // We pass Self as ParentNode to
+  // MultipleInterpolatorFieldType.CreateUndefined.
+  // This is not required, ParentNode could be @nil and everything
+  // will work Ok, but setting ParentNode allows Avalon Logger node
+  // to display "sending node" information, useful for debugging.
+
   function KeyValue(Index: Integer): MultipleInterpolatorFieldType;
   var
     FrameValues: Integer;
   begin
     FrameValues := FdKeyValue.Items.Count div KeyCount;
-    Result := MultipleInterpolatorFieldType.CreateUndefined('');
+    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '');
 
     if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
@@ -369,7 +375,7 @@ var
     FrameValues: Integer;
   begin
     FrameValues := FdKeyValue.Items.Count div KeyCount;
-    Result := MultipleInterpolatorFieldType.CreateUndefined('');
+    Result := MultipleInterpolatorFieldType.CreateUndefined(Self, '');
 
     if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
@@ -413,10 +419,10 @@ constructor TNodeX3DInterpolatorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventset_fraction);
 
-  FFdkey := TMFFloat.Create('key', []);
+  FFdkey := TMFFloat.Create(Self, 'key', []);
   Fields.Add(FFdkey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -484,11 +490,11 @@ constructor TNodeColorInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFColor.Create('keyValue', []);
+  FFdkeyValue := TMFColor.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: [0,1] }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFColor, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFColor, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -528,11 +534,11 @@ constructor TNodeCoordinateInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  FFdkeyValue := TMFVec3f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -572,11 +578,11 @@ constructor TNodeCoordinateInterpolator2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec2f.Create('keyValue', []);
+  FFdkeyValue := TMFVec2f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec2f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec2f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -614,18 +620,18 @@ constructor TNodeEaseInEaseOut.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventset_fraction);
 
-  FFdeaseInEaseOut := TMFVec2f.Create('easeInEaseOut', []);
+  FFdeaseInEaseOut := TMFVec2f.Create(Self, 'easeInEaseOut', []);
   Fields.Add(FFdeaseInEaseOut);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdkey := TMFFloat.Create('key', []);
+  FFdkey := TMFFloat.Create(Self, 'key', []);
   Fields.Add(FFdkey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventmodifiedFraction_changed := TVRMLEvent.Create('modifiedFraction_changed', TSFFloat, false);
+  FEventmodifiedFraction_changed := TVRMLEvent.Create(Self, 'modifiedFraction_changed', TSFFloat, false);
   Events.Add(FEventmodifiedFraction_changed);
 
   DefaultContainerField := 'children';
@@ -655,11 +661,11 @@ constructor TNodeNormalInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  FFdkeyValue := TMFVec3f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TMFVec3f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -699,11 +705,11 @@ constructor TNodeOrientationInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFRotation.Create('keyValue', []);
+  FFdkeyValue := TMFRotation.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -743,11 +749,11 @@ constructor TNodePositionInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  FFdkeyValue := TMFVec3f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -787,11 +793,11 @@ constructor TNodePositionInterpolator2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec2f.Create('keyValue', []);
+  FFdkeyValue := TMFVec2f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -829,11 +835,11 @@ constructor TNodeScalarInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFFloat.Create('keyValue', []);
+  FFdkeyValue := TMFFloat.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -873,21 +879,21 @@ constructor TNodeSplinePositionInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdclosed := TSFBool.Create('closed', false);
+  FFdclosed := TSFBool.Create(Self, 'closed', false);
   Fields.Add(FFdclosed);
 
-  FFdkeyValue := TMFVec3f.Create('keyValue', []);
+  FFdkeyValue := TMFVec3f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdkeyVelocity := TMFVec3f.Create('keyVelocity', []);
+  FFdkeyVelocity := TMFVec3f.Create(Self, 'keyVelocity', []);
   Fields.Add(FFdkeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalizeVelocity := TSFBool.Create('normalizeVelocity', false);
+  FFdnormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdnormalizeVelocity);
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec3f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -917,21 +923,21 @@ constructor TNodeSplinePositionInterpolator2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdclosed := TSFBool.Create('closed', false);
+  FFdclosed := TSFBool.Create(Self, 'closed', false);
   Fields.Add(FFdclosed);
 
-  FFdkeyValue := TMFVec2f.Create('keyValue', []);
+  FFdkeyValue := TMFVec2f.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdkeyVelocity := TMFVec2f.Create('keyVelocity', []);
+  FFdkeyVelocity := TMFVec2f.Create(Self, 'keyVelocity', []);
   Fields.Add(FFdkeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalizeVelocity := TSFBool.Create('normalizeVelocity', false);
+  FFdnormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdnormalizeVelocity);
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFVec2f, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -961,21 +967,21 @@ constructor TNodeSplineScalarInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdclosed := TSFBool.Create('closed', false);
+  FFdclosed := TSFBool.Create(Self, 'closed', false);
   Fields.Add(FFdclosed);
 
-  FFdkeyValue := TMFFloat.Create('keyValue', []);
+  FFdkeyValue := TMFFloat.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdkeyVelocity := TMFFloat.Create('keyVelocity', []);
+  FFdkeyVelocity := TMFFloat.Create(Self, 'keyVelocity', []);
   Fields.Add(FFdkeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalizeVelocity := TSFBool.Create('normalizeVelocity', false);
+  FFdnormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdnormalizeVelocity);
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFFloat, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -1005,14 +1011,14 @@ constructor TNodeSquadOrientationInterpolator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFRotation.Create('keyValue', []);
+  FFdkeyValue := TMFRotation.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalizeVelocity := TSFBool.Create('normalizeVelocity', false);
+  FFdnormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdnormalizeVelocity);
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFRotation, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';

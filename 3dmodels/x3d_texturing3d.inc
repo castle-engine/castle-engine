@@ -137,15 +137,15 @@ constructor TNodeX3DTexture3DNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdrepeatS := TSFBool.Create('repeatS', false);
+  FFdrepeatS := TSFBool.Create(Self, 'repeatS', false);
   FFdrepeatS.Exposed := false;
   Fields.Add(FFdrepeatS);
 
-  FFdrepeatT := TSFBool.Create('repeatT', false);
+  FFdrepeatT := TSFBool.Create(Self, 'repeatT', false);
   FFdrepeatT.Exposed := false;
   Fields.Add(FFdrepeatT);
 
-  FFdrepeatR := TSFBool.Create('repeatR', false);
+  FFdrepeatR := TSFBool.Create(Self, 'repeatR', false);
   FFdrepeatR.Exposed := false;
   Fields.Add(FFdrepeatR);
 
@@ -187,7 +187,7 @@ constructor TNodeImageTexture3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 end;
@@ -216,7 +216,7 @@ constructor TNodePixelTexture3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdimage := TMFInt32.Create('image', [0, 0, 0, 0]);
+  FFdimage := TMFInt32.Create(Self, 'image', [0, 0, 0, 0]);
   Fields.Add(FFdimage);
 end;
 
@@ -244,7 +244,7 @@ constructor TNodeTextureCoordinate3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec3f.Create('point', []);
+  FFdpoint := TMFVec3f.Create(Self, 'point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -273,7 +273,7 @@ constructor TNodeTextureCoordinate4D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec4f.Create('point', []);
+  FFdpoint := TMFVec4f.Create(Self, 'point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -302,7 +302,7 @@ constructor TNodeTextureTransformMatrix3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdmatrix := TSFMatrix4f.Create('matrix', IdentityMatrix4Single);
+  FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -331,19 +331,19 @@ constructor TNodeTextureTransform3D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdscale := TSFVec3f.Create('scale', Vector3Single(1, 1, 1));
+  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
+  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;

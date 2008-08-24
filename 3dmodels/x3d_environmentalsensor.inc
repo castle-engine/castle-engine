@@ -96,18 +96,18 @@ constructor TNodeX3DEnvironmentalSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdsize := TSFVec3f.Create('size', Vector3Single(0, 0, 0));
+  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
   Fields.Add(FFdsize);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEvententerTime := TVRMLEvent.Create('enterTime', TSFTime, false);
+  FEvententerTime := TVRMLEvent.Create(Self, 'enterTime', TSFTime, false);
   Events.Add(FEvententerTime);
 
-  FEventexitTime := TVRMLEvent.Create('exitTime', TSFTime, false);
+  FEventexitTime := TVRMLEvent.Create(Self, 'exitTime', TSFTime, false);
   Events.Add(FEventexitTime);
 
   DefaultContainerField := 'children';
@@ -118,13 +118,13 @@ constructor TNodeProximitySensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventcenterOfRotation_changed := TVRMLEvent.Create('centerOfRotation_changed', TSFVec3f, false);
+  FEventcenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
   Events.Add(FEventcenterOfRotation_changed);
 
-  FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
+  FEventorientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
   Events.Add(FEventorientation_changed);
 
-  FEventposition_changed := TVRMLEvent.Create('position_changed', TSFVec3f, false);
+  FEventposition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
   Events.Add(FEventposition_changed);
 
   DefaultContainerField := 'children';
@@ -159,10 +159,10 @@ begin
   FFdtargetObject := TSFNode.Create(Self, 'targetObject', [TNodeX3DGroupingNode, TNodeX3DShapeNode]);
   Fields.Add(FFdtargetObject);
 
-  FEventorientation_changed := TVRMLEvent.Create('orientation_changed', TSFRotation, false);
+  FEventorientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
   Events.Add(FEventorientation_changed);
 
-  FEventposition_changed := TVRMLEvent.Create('position_changed', TSFVec3f, false);
+  FEventposition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
   Events.Add(FEventposition_changed);
 
   DefaultContainerField := 'children';

@@ -150,27 +150,27 @@ constructor TNodeLayout.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdalign := TMFString.Create('align', ['CENTER','CENTER']);
+  FFdalign := TMFString.Create(Self, 'align', ['CENTER','CENTER']);
   Fields.Add(FFdalign);
   { X3D specification comment: ["LEFT"|"CENTER"|"RIGHT","BOTTOM"|"CENTER"|"TOP"] }
 
-  FFdoffset := TMFFloat.Create('offset', [0,0]);
+  FFdoffset := TMFFloat.Create(Self, 'offset', [0,0]);
   Fields.Add(FFdoffset);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdoffsetUnits := TMFString.Create('offsetUnits', ['WORLD','WORLD']);
+  FFdoffsetUnits := TMFString.Create(Self, 'offsetUnits', ['WORLD','WORLD']);
   Fields.Add(FFdoffsetUnits);
   { X3D specification comment: ["WORLD","FRACTION","PIXEL"] }
 
-  FFdscaleMode := TMFString.Create('scaleMode', ['NONE','NONE']);
+  FFdscaleMode := TMFString.Create(Self, 'scaleMode', ['NONE','NONE']);
   Fields.Add(FFdscaleMode);
   { X3D specification comment: ["NONE","FRACTION","STRETCH","PIXEL"] }
 
-  FFdsize := TMFFloat.Create('size', [1,1]);
+  FFdsize := TMFFloat.Create(Self, 'size', [1,1]);
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
-  FFdsizeUnits := TMFString.Create('sizeUnits', ['WORLD','WORLD']);
+  FFdsizeUnits := TMFString.Create(Self, 'sizeUnits', ['WORLD','WORLD']);
   Fields.Add(FFdsizeUnits);
   { X3D specification comment: ["WORLD","FRACTION","PIXEL"] }
 
@@ -234,10 +234,10 @@ constructor TNodeLayoutLayer.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
+  FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventaddChildren);
 
-  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
+  FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
@@ -271,43 +271,43 @@ constructor TNodeScreenFontStyle.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfamily := TMFString.Create('family', ['SERIF']);
+  FFdfamily := TMFString.Create(Self, 'family', ['SERIF']);
   FFdfamily.Exposed := false;
   Fields.Add(FFdfamily);
 
-  FFdhorizontal := TSFBool.Create('horizontal', true);
+  FFdhorizontal := TSFBool.Create(Self, 'horizontal', true);
   FFdhorizontal.Exposed := false;
   Fields.Add(FFdhorizontal);
 
-  FFdjustify := TMFString.Create('justify', ['BEGIN']);
+  FFdjustify := TMFString.Create(Self, 'justify', ['BEGIN']);
   FFdjustify.Exposed := false;
   Fields.Add(FFdjustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
-  FFdlanguage := TSFString.Create('language', '');
+  FFdlanguage := TSFString.Create(Self, 'language', '');
   FFdlanguage.Exposed := false;
   Fields.Add(FFdlanguage);
 
-  FFdleftToRight := TSFBool.Create('leftToRight', true);
+  FFdleftToRight := TSFBool.Create(Self, 'leftToRight', true);
   FFdleftToRight.Exposed := false;
   Fields.Add(FFdleftToRight);
 
-  FFdpointSize := TSFFloat.Create('pointSize', 12.0);
+  FFdpointSize := TSFFloat.Create(Self, 'pointSize', 12.0);
   FFdpointSize.Exposed := false;
   Fields.Add(FFdpointSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdspacing := TSFFloat.Create('spacing', 1.0);
+  FFdspacing := TSFFloat.Create(Self, 'spacing', 1.0);
   FFdspacing.Exposed := false;
   Fields.Add(FFdspacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdstyle := TSFString.Create('style', 'PLAIN');
+  FFdstyle := TSFString.Create(Self, 'style', 'PLAIN');
   FFdstyle.Exposed := false;
   Fields.Add(FFdstyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
-  FFdtopToBottom := TSFBool.Create('topToBottom', true);
+  FFdtopToBottom := TSFBool.Create(Self, 'topToBottom', true);
   FFdtopToBottom.Exposed := false;
   Fields.Add(FFdtopToBottom);
 end;

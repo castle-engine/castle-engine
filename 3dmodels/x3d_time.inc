@@ -149,32 +149,32 @@ constructor TNodeX3DTimeDependentNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdloop := TSFBool.Create('loop', false);
+  FFdloop := TSFBool.Create(Self, 'loop', false);
   Fields.Add(FFdloop);
 
-  FFdpauseTime := TSFTime.Create('pauseTime', 0);
+  FFdpauseTime := TSFTime.Create(Self, 'pauseTime', 0);
   Fields.Add(FFdpauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdresumeTime := TSFTime.Create('resumeTime', 0);
+  FFdresumeTime := TSFTime.Create(Self, 'resumeTime', 0);
   Fields.Add(FFdresumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstartTime := TSFTime.Create('startTime', 0);
+  FFdstartTime := TSFTime.Create(Self, 'startTime', 0);
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstopTime := TSFTime.Create('stopTime', 0);
+  FFdstopTime := TSFTime.Create(Self, 'stopTime', 0);
   Fields.Add(FFdstopTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventelapsedTime := TVRMLEvent.Create('elapsedTime', TSFTime, false);
+  FEventelapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
   Events.Add(FEventelapsedTime);
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
-  FEventisPaused := TVRMLEvent.Create('isPaused', TSFBool, false);
+  FEventisPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
   Events.Add(FEventisPaused);
 
   DefaultContainerField := 'children';
@@ -218,20 +218,20 @@ constructor TNodeTimeSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcycleInterval := TSFTime.Create('cycleInterval', 1);
+  FFdcycleInterval := TSFTime.Create(Self, 'cycleInterval', 1);
   Fields.Add(FFdcycleInterval);
   { X3D specification comment: (0,Inf) }
 
-  FEventcycleTime := TVRMLEvent.Create('cycleTime', TSFTime, false);
+  FEventcycleTime := TVRMLEvent.Create(Self, 'cycleTime', TSFTime, false);
   Events.Add(FEventcycleTime);
 
-  FEventfraction_changed := TVRMLEvent.Create('fraction_changed', TSFFloat, false);
+  FEventfraction_changed := TVRMLEvent.Create(Self, 'fraction_changed', TSFFloat, false);
   Events.Add(FEventfraction_changed);
 
-  FEventtime := TVRMLEvent.Create('time', TSFTime, false);
+  FEventtime := TVRMLEvent.Create(Self, 'time', TSFTime, false);
   Events.Add(FEventtime);
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
   DefaultContainerField := 'children';

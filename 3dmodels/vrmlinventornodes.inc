@@ -59,10 +59,10 @@ constructor TNodeRotationXYZ.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdaxis := TSFEnum.Create('axis' , ['X', 'Y', 'Z'], 0);
+  FFdaxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
   Fields.Add(FFdaxis);
 
-  FFdangle := TSFFloat.Create('angle', 0);
+  FFdangle := TSFFloat.Create(Self, 'angle', 0);
   Fields.Add(FFdangle);
 end;
 

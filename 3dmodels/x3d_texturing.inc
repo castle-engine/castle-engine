@@ -624,11 +624,11 @@ constructor TNodeX3DTexture2DNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdrepeatS := TSFBool.Create('repeatS', true);
+  FFdrepeatS := TSFBool.Create(Self, 'repeatS', true);
   FFdrepeatS.Exposed := false;
   Fields.Add(FFdrepeatS);
 
-  FFdrepeatT := TSFBool.Create('repeatT', true);
+  FFdrepeatT := TSFBool.Create(Self, 'repeatT', true);
   FFdrepeatT.Exposed := false;
   Fields.Add(FFdrepeatT);
 
@@ -668,7 +668,7 @@ constructor TNodeImageTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 end;
@@ -733,46 +733,46 @@ constructor TNodeMovieTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddescription := TSFString.Create('description', '');
+  FFddescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFddescription);
 
-  FFdloop := TSFBool.Create('loop', false);
+  FFdloop := TSFBool.Create(Self, 'loop', false);
   Fields.Add(FFdloop);
 
-  FFdpauseTime := TSFTime.Create('pauseTime', 0);
+  FFdpauseTime := TSFTime.Create(Self, 'pauseTime', 0);
   Fields.Add(FFdpauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdresumeTime := TSFTime.Create('resumeTime', 0);
+  FFdresumeTime := TSFTime.Create(Self, 'resumeTime', 0);
   Fields.Add(FFdresumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdspeed := TSFFloat.Create('speed', 1.0);
+  FFdspeed := TSFFloat.Create(Self, 'speed', 1.0);
   Fields.Add(FFdspeed);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstartTime := TSFTime.Create('startTime', 0);
+  FFdstartTime := TSFTime.Create(Self, 'startTime', 0);
   Fields.Add(FFdstartTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdstopTime := TSFTime.Create('stopTime', 0);
+  FFdstopTime := TSFTime.Create(Self, 'stopTime', 0);
   Fields.Add(FFdstopTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
+  FEventduration_changed := TVRMLEvent.Create(Self, 'duration_changed', TSFTime, false);
   Events.Add(FEventduration_changed);
 
-  FEventelapsedTime := TVRMLEvent.Create('elapsedTime', TSFTime, false);
+  FEventelapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
   Events.Add(FEventelapsedTime);
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
-  FEventisPaused := TVRMLEvent.Create('isPaused', TSFBool, false);
+  FEventisPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
   Events.Add(FEventisPaused);
 
   FDuration := -1;
@@ -867,21 +867,21 @@ constructor TNodeMultiTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdalpha := TSFFloat.Create('alpha', 1);
+  FFdalpha := TSFFloat.Create(Self, 'alpha', 1);
   Fields.Add(FFdalpha);
   { X3D specification comment: [0,1] }
 
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 
-  FFdfunction := TMFString.Create('function', []);
+  FFdfunction := TMFString.Create(Self, 'function', []);
   Fields.Add(FFdfunction);
 
-  FFdmode := TMFString.Create('mode', []);
+  FFdmode := TMFString.Create(Self, 'mode', []);
   Fields.Add(FFdmode);
 
-  FFdsource := TMFString.Create('source', []);
+  FFdsource := TMFString.Create(Self, 'source', []);
   Fields.Add(FFdsource);
 
   FFdtexture := TMFNode.Create(Self, 'texture', [TNodeX3DTextureNode]);
@@ -968,7 +968,7 @@ constructor TNodePixelTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdimage := TSFImage.Create('image', nil);
+  FFdimage := TSFImage.Create(Self, 'image', nil);
   Fields.Add(FFdimage);
   { X3D specification comment: 0 0 }
 end;
@@ -1016,7 +1016,7 @@ constructor TNodeTextureCoordinate.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec2f.Create('point', []);
+  FFdpoint := TMFVec2f.Create(Self, 'point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -1047,11 +1047,11 @@ constructor TNodeTextureCoordinateGenerator.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdmode := TSFString.Create('mode', 'SPHERE');
+  FFdmode := TSFString.Create(Self, 'mode', 'SPHERE');
   Fields.Add(FFdmode);
   { X3D specification comment: [see Table 18.6] }
 
-  FFdparameter := TMFFloat.Create('parameter', []);
+  FFdparameter := TMFFloat.Create(Self, 'parameter', []);
   Fields.Add(FFdparameter);
   { X3D specification comment: [see Table 18.6] }
 end;
@@ -1080,47 +1080,47 @@ constructor TNodeTextureProperties.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdanisotropicDegree := TSFFloat.Create('anisotropicDegree', 1.0);
+  FFdanisotropicDegree := TSFFloat.Create(Self, 'anisotropicDegree', 1.0);
   Fields.Add(FFdanisotropicDegree);
   { X3D specification comment: [1,Inf) }
 
-  FFdborderColor := TSFColorRGBA.Create('borderColor', Vector4Single(0, 0, 0, 0));
+  FFdborderColor := TSFColorRGBA.Create(Self, 'borderColor', Vector4Single(0, 0, 0, 0));
   Fields.Add(FFdborderColor);
   { X3D specification comment: [0,1] }
 
-  FFdborderWidth := TSFInt32.Create('borderWidth', 0);
+  FFdborderWidth := TSFInt32.Create(Self, 'borderWidth', 0);
   Fields.Add(FFdborderWidth);
   { X3D specification comment: [0,1] }
 
-  FFdboundaryModeS := TSFString.Create('boundaryModeS', 'REPEAT');
+  FFdboundaryModeS := TSFString.Create(Self, 'boundaryModeS', 'REPEAT');
   Fields.Add(FFdboundaryModeS);
   { X3D specification comment: [see Table 18.7] }
 
-  FFdboundaryModeT := TSFString.Create('boundaryModeT', 'REPEAT');
+  FFdboundaryModeT := TSFString.Create(Self, 'boundaryModeT', 'REPEAT');
   Fields.Add(FFdboundaryModeT);
   { X3D specification comment: [see Table 18.7] }
 
-  FFdboundaryModeR := TSFString.Create('boundaryModeR', 'REPEAT');
+  FFdboundaryModeR := TSFString.Create(Self, 'boundaryModeR', 'REPEAT');
   Fields.Add(FFdboundaryModeR);
   { X3D specification comment: [see Table 18.7] }
 
-  FFdmagnificationFilter := TSFString.Create('magnificationFilter', 'FASTEST');
+  FFdmagnificationFilter := TSFString.Create(Self, 'magnificationFilter', 'FASTEST');
   Fields.Add(FFdmagnificationFilter);
   { X3D specification comment: [see Table 18.8] }
 
-  FFdminificationFilter := TSFString.Create('minificationFilter', 'FASTEST');
+  FFdminificationFilter := TSFString.Create(Self, 'minificationFilter', 'FASTEST');
   Fields.Add(FFdminificationFilter);
   { X3D specification comment: [see Table 18.9] }
 
-  FFdtextureCompression := TSFString.Create('textureCompression', 'FASTEST');
+  FFdtextureCompression := TSFString.Create(Self, 'textureCompression', 'FASTEST');
   Fields.Add(FFdtextureCompression);
   { X3D specification comment: [see Table 18.10] }
 
-  FFdtexturePriority := TSFFloat.Create('texturePriority', 0);
+  FFdtexturePriority := TSFFloat.Create(Self, 'texturePriority', 0);
   Fields.Add(FFdtexturePriority);
   { X3D specification comment: [0,1] }
 
-  FFdgenerateMipMaps := TSFBool.Create('generateMipMaps', false);
+  FFdgenerateMipMaps := TSFBool.Create(Self, 'generateMipMaps', false);
   FFdgenerateMipMaps.Exposed := false;
   Fields.Add(FFdgenerateMipMaps);
 
@@ -1153,19 +1153,19 @@ constructor TNodeTextureTransform.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcenter := TSFVec2f.Create('center', Vector2Single(0, 0));
+  FFdcenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdrotation := TSFFloat.Create('rotation', 0);
+  FFdrotation := TSFFloat.Create(Self, 'rotation', 0);
   Fields.Add(FFdrotation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdscale := TSFVec2f.Create('scale', Vector2Single(1, 1));
+  FFdscale := TSFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
   Fields.Add(FFdscale);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdtranslation := TSFVec2f.Create('translation', Vector2Single(0, 0));
+  FFdtranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;

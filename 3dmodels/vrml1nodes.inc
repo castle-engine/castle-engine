@@ -924,16 +924,16 @@ constructor TNodeAsciiText_1.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdstring := TMFString.Create('string', ['']);
+  FFdstring := TMFString.Create(Self, 'string', ['']);
   Fields.Add(FFdstring);
 
-  FFdspacing := TSFFloat.Create('spacing', 1);
+  FFdspacing := TSFFloat.Create(Self, 'spacing', 1);
   Fields.Add(FFdspacing);
 
-  FFdjustification := TSFEnum.Create('justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
+  FFdjustification := TSFEnum.Create(Self, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
   Fields.Add(FFdjustification);
 
-  FFdwidth := TMFFloat.Create('width', [0]);
+  FFdwidth := TMFFloat.Create(Self, 'width', [0]);
   Fields.Add(FFdwidth);
 end;
 
@@ -951,13 +951,13 @@ constructor TNodeCone_1.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  FFdparts := TSFBitMask.Create('parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
+  FFdparts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
   Fields.Add(FFdparts);
 
-  FFdbottomRadius := TSFFloat.Create('bottomRadius', 1, true);
+  FFdbottomRadius := TSFFloat.Create(Self, 'bottomRadius', 1, true);
   Fields.Add(FFdbottomRadius);
 
-  FFdheight := TSFFloat.Create('height', 2, true);
+  FFdheight := TSFFloat.Create(Self, 'height', 2, true);
   Fields.Add(FFdheight);
 end;
 
@@ -970,13 +970,13 @@ constructor TNodeCube_1.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  FFdwidth := TSFFloat.Create('width', 2, true);
+  FFdwidth := TSFFloat.Create(Self, 'width', 2, true);
   Fields.Add(FFdwidth);
 
-  FFdheight := TSFFloat.Create('height', 2, true);
+  FFdheight := TSFFloat.Create(Self, 'height', 2, true);
   Fields.Add(FFdheight);
 
-  FFddepth := TSFFloat.Create('depth', 2, true);
+  FFddepth := TSFFloat.Create(Self, 'depth', 2, true);
   Fields.Add(FFddepth);
 end;
 
@@ -989,13 +989,13 @@ constructor TNodeCylinder_1.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  FFdparts := TSFBitMask.Create('parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
+  FFdparts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
   Fields.Add(FFdparts);
 
-  FFdradius := TSFFloat.Create('radius', 1, true);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1, true);
   Fields.Add(FFdradius);
 
-  FFdheight := TSFFloat.Create('height', 2, true);
+  FFdheight := TSFFloat.Create(Self, 'height', 2, true);
   Fields.Add(FFdheight);
 end;
 
@@ -1008,17 +1008,17 @@ constructor TVRMLIndexedNode_1.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
 
-  FFdcoordIndex := TMFLong.Create('coordIndex', [0]);
+  FFdcoordIndex := TMFLong.Create(Self, 'coordIndex', [0]);
   FFdcoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdcoordIndex);
 
-  FFdmaterialIndex := TMFLong.Create('materialIndex', [-1]);
+  FFdmaterialIndex := TMFLong.Create(Self, 'materialIndex', [-1]);
   Fields.Add(FFdmaterialIndex);
 
-  FFdnormalIndex := TMFLong.Create('normalIndex', [-1]);
+  FFdnormalIndex := TMFLong.Create(Self, 'normalIndex', [-1]);
   Fields.Add(FFdnormalIndex);
 
-  FFdtextureCoordIndex := TMFLong.Create('textureCoordIndex', [-1]);
+  FFdtextureCoordIndex := TMFLong.Create(Self, 'textureCoordIndex', [-1]);
   FFdtextureCoordIndex.SaveToStreamLineUptoNegative := true;
   Fields.Add(FFdtextureCoordIndex);
 end;
@@ -1049,10 +1049,10 @@ constructor TNodePointSet_1.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  FFdstartIndex := TSFLong.Create('startIndex', 0);
+  FFdstartIndex := TSFLong.Create(Self, 'startIndex', 0);
   Fields.Add(FFdstartIndex);
 
-  FFdnumPoints := TSFLong.Create('numPoints', -1);
+  FFdnumPoints := TSFLong.Create(Self, 'numPoints', -1);
   Fields.Add(FFdnumPoints);
 end;
 
@@ -1099,7 +1099,7 @@ constructor TNodeSphere_1.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  FFdradius := TSFFloat.Create('radius', 1, true);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1, true);
   Fields.Add(FFdradius);
 end;
 
@@ -1112,7 +1112,7 @@ constructor TNodeCoordinate3.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdpoint := TMFVec3f.Create('point', [Vector3Single(0, 0, 0)]);
+  FFdpoint := TMFVec3f.Create(Self, 'point', [Vector3Single(0, 0, 0)]);
   Fields.Add(FFdpoint);
 end;
 
@@ -1133,13 +1133,13 @@ constructor TNodeFontStyle_1.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdsize := TSFFloat.Create('size', 10, true);
+  FFdsize := TSFFloat.Create(Self, 'size', 10, true);
   Fields.Add(FFdsize);
 
-  FFdfamily := TSFEnum.Create('family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
+  FFdfamily := TSFEnum.Create(Self, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
   Fields.Add(FFdfamily);
 
-  FFdstyle := TSFBitMask.Create('style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
+  FFdstyle := TSFBitMask.Create(Self, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
   Fields.Add(FFdstyle);
 end;
 
@@ -1185,7 +1185,7 @@ constructor TNodeInfo.Create(const ANodeName: string; const AWWWBasePath: string
 begin
   inherited;
 
-  FFdstring := TSFString.Create('string', '<Undefined info>');
+  FFdstring := TSFString.Create(Self, 'string', '<Undefined info>');
   Fields.Add(FFdstring);
 end;
 
@@ -1206,10 +1206,10 @@ constructor TNodeLOD_1.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  FFdrange := TMFFloat.Create('range',[]);
+  FFdrange := TMFFloat.Create(Self, 'range',[]);
   Fields.Add(FFdrange);
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
 
   fParsingAllowedChildren := true;
@@ -1254,46 +1254,46 @@ constructor TNodeMaterial_1.Create(const ANodeName: string; const AWWWBasePath: 
 begin
   inherited;
 
-  FFdambientColor := TMFColor.Create('ambientColor', [DefaultMaterial_1AmbientColor]);
+  FFdambientColor := TMFColor.Create(Self, 'ambientColor', [DefaultMaterial_1AmbientColor]);
   Fields.Add(FFdambientColor);
 
-  FFddiffuseColor := TMFColor.Create('diffuseColor', [DefaultMaterialDiffuseColor]);
+  FFddiffuseColor := TMFColor.Create(Self, 'diffuseColor', [DefaultMaterialDiffuseColor]);
   Fields.Add(FFddiffuseColor);
 
-  FFdspecularColor := TMFColor.Create('specularColor', [DefaultMaterialSpecularColor]);
+  FFdspecularColor := TMFColor.Create(Self, 'specularColor', [DefaultMaterialSpecularColor]);
   Fields.Add(FFdspecularColor);
 
-  FFdemissiveColor := TMFColor.Create('emissiveColor', [DefaultMaterialEmissiveColor]);
+  FFdemissiveColor := TMFColor.Create(Self, 'emissiveColor', [DefaultMaterialEmissiveColor]);
   Fields.Add(FFdemissiveColor);
 
-  FFdshininess := TMFFloat.Create('shininess', [DefaultMaterialShininess]);
+  FFdshininess := TMFFloat.Create(Self, 'shininess', [DefaultMaterialShininess]);
   Fields.Add(FFdshininess);
 
-  FFdtransparency := TMFFloat.Create('transparency', [DefaultMaterialTransparency]);
+  FFdtransparency := TMFFloat.Create(Self, 'transparency', [DefaultMaterialTransparency]);
   Fields.Add(FFdtransparency);
 
-  FFdmirror := TMFFloat.Create('mirror', [DefaultMaterialMirror]);
+  FFdmirror := TMFFloat.Create(Self, 'mirror', [DefaultMaterialMirror]);
   Fields.Add(FFdmirror);
 
-  FFdreflSpecular := TMFColor.Create('reflSpecular', []);
+  FFdreflSpecular := TMFColor.Create(Self, 'reflSpecular', []);
   Fields.Add(FFdreflSpecular);
 
-  FFdreflDiffuse := TMFColor.Create('reflDiffuse', []);
+  FFdreflDiffuse := TMFColor.Create(Self, 'reflDiffuse', []);
   Fields.Add(FFdreflDiffuse);
 
-  FFdtransSpecular := TMFColor.Create('transSpecular', []);
+  FFdtransSpecular := TMFColor.Create(Self, 'transSpecular', []);
   Fields.Add(FFdtransSpecular);
 
-  FFdtransDiffuse := TMFColor.Create('transDiffuse', []);
+  FFdtransDiffuse := TMFColor.Create(Self, 'transDiffuse', []);
   Fields.Add(FFdtransDiffuse);
 
-  FFdreflSpecularExp := TMFFloat.Create('reflSpecularExp', [DefaultMaterialReflSpecularExp]);
+  FFdreflSpecularExp := TMFFloat.Create(Self, 'reflSpecularExp', [DefaultMaterialReflSpecularExp]);
   Fields.Add(FFdreflSpecularExp);
 
-  FFdtransSpecularExp := TMFFloat.Create('transSpecularExp', [DefaultMaterialTransSpecularExp]);
+  FFdtransSpecularExp := TMFFloat.Create(Self, 'transSpecularExp', [DefaultMaterialTransSpecularExp]);
   Fields.Add(FFdtransSpecularExp);
 
-  FFdfogImmune := TSFBool.Create('fogImmune', false);
+  FFdfogImmune := TSFBool.Create(Self, 'fogImmune', false);
   Fields.Add(FFdfogImmune);
 end;
 
@@ -1502,7 +1502,7 @@ constructor TNodeMaterialBinding.Create(const ANodeName: string; const AWWWBaseP
 begin
   inherited;
 
-  FFdvalue := TSFEnum.Create('value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
+  FFdvalue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
   Fields.Add(FFdvalue);
 end;
 
@@ -1523,7 +1523,7 @@ constructor TNodeNormalBinding.Create(const ANodeName: string; const AWWWBasePat
 begin
   inherited;
 
-  FFdvalue := TSFEnum.Create('value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
+  FFdvalue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
   Fields.Add(FFdvalue);
 end;
 
@@ -1544,22 +1544,22 @@ constructor TNodeTexture2.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  FFdfilename := TSFString.Create('filename', '');
+  FFdfilename := TSFString.Create(Self, 'filename', '');
   Fields.Add(FFdfilename);
 
-  FFdimage := TSFImage.Create('image', nil);
+  FFdimage := TSFImage.Create(Self, 'image', nil);
   Fields.Add(FFdimage);
 
-  FFdwrapS := TSFEnum.Create('wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  FFdwrapS := TSFEnum.Create(Self, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
   Fields.Add(FFdwrapS);
 
-  FFdwrapT := TSFEnum.Create('wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  FFdwrapT := TSFEnum.Create(Self, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
   Fields.Add(FFdwrapT);
 
-  FFdmodel := TSFEnum.Create('model', ['DECAL'], 0);
+  FFdmodel := TSFEnum.Create(Self, 'model', ['DECAL'], 0);
   Fields.Add(FFdmodel);
 
-  FFdblendColor := TSFVec3f.Create('blendColor', Vector3Single(0, 0, 0));
+  FFdblendColor := TSFVec3f.Create(Self, 'blendColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdblendColor);
 end;
 
@@ -1640,16 +1640,16 @@ constructor TNodeTexture2Transform.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  FFdtranslation := TSFVec2f.Create('translation', Vector2Single(0, 0));
+  FFdtranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
   Fields.Add(FFdtranslation);
 
-  FFdrotation := TSFFloat.Create('rotation', 0);
+  FFdrotation := TSFFloat.Create(Self, 'rotation', 0);
   Fields.Add(FFdrotation);
 
-  FFdscaleFactor := TSFVec2f.Create('scaleFactor', Vector2Single(1, 1));
+  FFdscaleFactor := TSFVec2f.Create(Self, 'scaleFactor', Vector2Single(1, 1));
   Fields.Add(FFdscaleFactor);
 
-  FFdcenter := TSFVec2f.Create('center', Vector2Single(0, 0));
+  FFdcenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
   Fields.Add(FFdcenter);
 end;
 
@@ -1688,7 +1688,7 @@ constructor TNodeTextureCoordinate2.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
 
-  FFdpoint := TMFVec2f.Create('point', [Vector2Single(0, 0)]);
+  FFdpoint := TMFVec2f.Create(Self, 'point', [Vector2Single(0, 0)]);
   Fields.Add(FFdpoint);
 end;
 
@@ -1710,16 +1710,16 @@ constructor TNodeShapeHints.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvertexOrdering := TSFEnum.Create('vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
+  FFdvertexOrdering := TSFEnum.Create(Self, 'vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
   Fields.Add(FFdvertexOrdering);
 
-  FFdshapeType := TSFEnum.Create('shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
+  FFdshapeType := TSFEnum.Create(Self, 'shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
   Fields.Add(FFdshapeType);
 
-  FFdfaceType := TSFEnum.Create('faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
+  FFdfaceType := TSFEnum.Create(Self, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
   Fields.Add(FFdfaceType);
 
-  FFdcreaseAngle := TSFFloat.Create('creaseAngle', DefaultVRML1CreaseAngle);
+  FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', DefaultVRML1CreaseAngle);
   Fields.Add(FFdcreaseAngle);
 end;
 
@@ -1742,7 +1742,7 @@ begin
       (Lexer.TokenName = 'hints');
     if Result then
     begin
-      Hints := TSFBitMask.Create('hints',
+      Hints := TSFBitMask.Create(Self, 'hints',
         ['SOLID', 'ORDERED', 'CONVEX'], 'NONE', '',
         [ false,   true,      true]);
       try
@@ -1795,7 +1795,7 @@ constructor TNodeMatrixTransform_1.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  FFdmatrix := TSFMatrix.Create('matrix', IdentityMatrix4Single);
+  FFdmatrix := TSFMatrix.Create(Self, 'matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
 end;
 
@@ -1825,7 +1825,7 @@ constructor TNodeRotation.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
 end;
 
@@ -1852,7 +1852,7 @@ constructor TNodeScale.Create(const ANodeName: string; const AWWWBasePath: strin
 begin
   inherited;
 
-  FFdscaleFactor := TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1));
+  FFdscaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
   Fields.Add(FFdscaleFactor);
 end;
 
@@ -1877,19 +1877,19 @@ constructor TNodeTransform_1.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
+  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
 
-  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
 
-  FFdscaleFactor := TSFVec3f.Create('scaleFactor', Vector3Single(1, 1, 1));
+  FFdscaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
   Fields.Add(FFdscaleFactor);
 
-  FFdscaleOrientation := TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
 end;
 
@@ -1955,7 +1955,7 @@ constructor TNodeTranslation.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
+  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
 end;
 
@@ -1982,19 +1982,19 @@ begin
 
   { Note that the default "position" value for VRML 1.0 is different
     than for VRML >= 2.0 (where is (0, 0, 10)). }
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 1));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 1));
   Fields.Add(FFdposition);
 
-  FFdfocalDistance := TSFFloat.Create('focalDistance', 5, true);
+  FFdfocalDistance := TSFFloat.Create(Self, 'focalDistance', 5, true);
   Fields.Add(FFdfocalDistance);
 
-  FFdheightAngle := TSFFloat.Create('heightAngle', Pi / 4, true);
+  FFdheightAngle := TSFFloat.Create(Self, 'heightAngle', Pi / 4, true);
   Fields.Add(FFdheightAngle);
 
-  FFdnearDistance := TSFFloat.Create('nearDistance', 0);
+  FFdnearDistance := TSFFloat.Create(Self, 'nearDistance', 0);
   Fields.Add(FFdnearDistance);
 
-  FFdfarDistance := TSFFloat.Create('farDistance', 0);
+  FFdfarDistance := TSFFloat.Create(Self, 'farDistance', 0);
   Fields.Add(FFdfarDistance);
 end;
 
@@ -2097,13 +2097,13 @@ begin
   FdLocation.Value := Vector3Single(0, 0, 1);
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
 
-  FFddropOffRate := TSFFloat.Create('dropOffRate', 0);
+  FFddropOffRate := TSFFloat.Create(Self, 'dropOffRate', 0);
   Fields.Add(FFddropOffRate);
 
-  FFdcutOffAngle := TSFFloat.Create('cutOffAngle', Pi / 4);
+  FFdcutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
   Fields.Add(FFdcutOffAngle);
 end;
 
@@ -2230,7 +2230,7 @@ constructor TNodeSeparator.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  FFdrenderCulling := TSFEnum.Create('renderCulling', ['ON', 'OFF', 'AUTO'], 2);
+  FFdrenderCulling := TSFEnum.Create(Self, 'renderCulling', ['ON', 'OFF', 'AUTO'], 2);
   Fields.Add(FFdrenderCulling);
 end;
 
@@ -2243,7 +2243,7 @@ constructor TNodeSwitch_1.Create(const ANodeName: string; const AWWWBasePath: st
 begin
   inherited;
 
-  FFdwhichChild := TSFLong.Create('whichChild', -1);
+  FFdwhichChild := TSFLong.Create(Self, 'whichChild', -1);
   Fields.Add(FFdwhichChild);
   fParsingAllowedChildren := true;
   fAllowedChildren := true;
@@ -2330,13 +2330,13 @@ constructor TNodeWWWAnchor.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFddescription := TSFString.Create('description', '');
+  FFddescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFddescription);
 
-  FFdmap := TSFEnum.Create('map', ['NONE', 'POINT'], 0);
+  FFdmap := TSFEnum.Create(Self, 'map', ['NONE', 'POINT'], 0);
   Fields.Add(FFdmap);
 end;
 
@@ -2349,16 +2349,16 @@ constructor TNodeWWWInline.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(0, 0, 0));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(0, 0, 0));
   Fields.Add(FFdbboxSize);
 
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   Fields.Add(FFdbboxCenter);
 
-  FFdseparate := TSFBool.Create('separate', true);
+  FFdseparate := TSFBool.Create(Self, 'separate', true);
   Fields.Add(FFdseparate);
 
   fParsingAllowedChildren := false;

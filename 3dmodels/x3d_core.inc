@@ -239,13 +239,13 @@ constructor TNodeX3DBindableNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_bind := TVRMLEvent.Create('set_bind', TSFBool, true);
+  FEventset_bind := TVRMLEvent.Create(Self, 'set_bind', TSFBool, true);
   Events.Add(FEventset_bind);
 
-  FEventbindTime := TVRMLEvent.Create('bindTime', TSFTime, false);
+  FEventbindTime := TVRMLEvent.Create(Self, 'bindTime', TSFTime, false);
   Events.Add(FEventbindTime);
 
-  FEventisBound := TVRMLEvent.Create('isBound', TSFBool, false);
+  FEventisBound := TVRMLEvent.Create(Self, 'isBound', TSFBool, false);
   Events.Add(FEventisBound);
 end;
 
@@ -254,10 +254,10 @@ constructor TNodeX3DSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventisActive);
 end;
 
@@ -266,13 +266,13 @@ constructor TNodeMetadataDouble.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdreference := TSFString.Create('reference', '');
+  FFdreference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdreference);
 
-  FFdvalue := TMFDouble.Create('value', []);
+  FFdvalue := TMFDouble.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
 
   DefaultContainerField := 'metadata';
@@ -302,13 +302,13 @@ constructor TNodeMetadataFloat.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdreference := TSFString.Create('reference', '');
+  FFdreference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdreference);
 
-  FFdvalue := TMFFloat.Create('value', []);
+  FFdvalue := TMFFloat.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
 
   DefaultContainerField := 'metadata';
@@ -338,13 +338,13 @@ constructor TNodeMetadataInteger.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdreference := TSFString.Create('reference', '');
+  FFdreference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdreference);
 
-  FFdvalue := TMFInt32.Create('value', []);
+  FFdvalue := TMFInt32.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
 
   DefaultContainerField := 'metadata';
@@ -374,10 +374,10 @@ constructor TNodeMetadataSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdreference := TSFString.Create('reference', '');
+  FFdreference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdreference);
 
   FFdvalue := TMFNode.Create(Self, 'value', INodeX3DMetadataObject);
@@ -410,13 +410,13 @@ constructor TNodeMetadataString.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   Fields.Add(FFdname);
 
-  FFdreference := TSFString.Create('reference', '');
+  FFdreference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdreference);
 
-  FFdvalue := TMFString.Create('value', []);
+  FFdvalue := TMFString.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
 
   DefaultContainerField := 'metadata';
@@ -446,11 +446,11 @@ constructor TNodeWorldInfo.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdinfo := TMFString.Create('info', []);
+  FFdinfo := TMFString.Create(Self, 'info', []);
   FFdinfo.Exposed := false;
   Fields.Add(FFdinfo);
 
-  FFdtitle := TSFString.Create('title', '');
+  FFdtitle := TSFString.Create(Self, 'title', '');
   FFdtitle.Exposed := false;
   Fields.Add(FFdtitle);
 end;

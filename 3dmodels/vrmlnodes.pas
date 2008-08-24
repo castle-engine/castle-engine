@@ -1660,7 +1660,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       const AnAllowedChildren: array of TVRMLNodeClass;
       AValue: TVRMLNode = nil); overload;
@@ -1726,6 +1727,13 @@ type
     procedure AssignValue(Source: TVRMLField); override;
     procedure AssignDefaultValueFromValue; override;
 
+    { VRML node containing this field. May be @nil if unknown, in special
+      cases.
+
+      Note that this property is exactly the same as
+      TVRMLFieldOrEvent.ParentNode,
+      contains always the same value. But this is declared as TVRMLNode,
+      so it's more comfortable. }
     property ParentNode: TVRMLNode read FParentNode;
 
     class function VRMLTypeName: string; override;
@@ -1776,7 +1784,8 @@ type
   protected
     procedure SaveToStreamValue(SaveProperties: TVRMLSaveToStreamProperties); override;
   public
-    constructor CreateUndefined(const AName: string); override;
+    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+      const AName: string); override;
     constructor Create(AParentNode: TVRMLNode; const AName: string;
       const AnAllowedChildren: array of TVRMLNodeClass); overload;
     { Constructor that takes AnAllowedChildren as TVRMNodeClassesList.
@@ -3831,7 +3840,7 @@ function TVRMLNode.ParseNodeBodyElement(Lexer: TVRMLLexer;
   var
     IsAField: TMFString;
   begin
-    IsAField := TMFString.Create('', []);
+    IsAField := TMFString.Create(Self, '', []);
     try
       IsAField.Parse(Lexer, false);
 
@@ -4869,7 +4878,8 @@ end;
 
 { TSFNode --------------------------------------------------------------------- }
 
-constructor TSFNode.CreateUndefined(const AName: string);
+constructor TSFNode.CreateUndefined(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
   inherited;
   Value := nil;
@@ -4885,7 +4895,10 @@ constructor TSFNode.Create(AParentNode: TVRMLNode; const AName: string;
   const AnAllowedChildren: array of TVRMLNodeClass;
   AValue: TVRMLNode);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
+
+  { FParentNode is just a copy of inherited (TVRMLFieldOrEvent) FParentNode,
+    but casted to TVRMLNode }
   FParentNode := AParentNode;
 
   FAllowedChildren.AssignArray(AnAllowedChildren);
@@ -5079,7 +5092,8 @@ end;
 
 { TMFNode -------------------------------------------------------------------- }
 
-constructor TMFNode.CreateUndefined(const AName: string);
+constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
+  const AName: string);
 begin
   inherited;
   FItems := TVRMLNodesList.Create;
@@ -5094,7 +5108,7 @@ end;
 constructor TMFNode.Create(AParentNode: TVRMLNode; const AName: string;
   const AnAllowedChildren: array of TVRMLNodeClass);
 begin
-  inherited Create(AName);
+  inherited Create(AParentNode, AName);
   FParentNode := AParentNode;
 
   FAllowedChildren.AssignArray(AnAllowedChildren);
@@ -5585,10 +5599,10 @@ begin
   { we know everything now to create Event/Field instance }
   case Kind of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TVRMLEvent.Create(Name, FieldType, Kind = atInputOnly);
+      FieldOrEvent := TVRMLEvent.Create(nil, Name, FieldType, Kind = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
-        FieldOrEvent := FieldType.CreateUndefined(Name);
+        FieldOrEvent := FieldType.CreateUndefined(nil, Name);
         Field.Exposed := Kind = atInputOutput;
       end;
     else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
@@ -5756,7 +5770,7 @@ begin
         'Prototype interface field cannot have "IS" clause');
 
       { F := copy of I.Field }
-      F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(I.Field.Name);
+      F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(Self, I.Field.Name);
       F.Assign(I.Field);
 
       { CreateUndefined creates field without any default value,
@@ -5784,7 +5798,8 @@ begin
     if I.Event <> nil then
     begin
       { E := copy of I.Event }
-      E := TVRMLEvent.Create(I.Event.Name, I.Event.FieldClass, I.Event.InEvent);
+      E := TVRMLEvent.Create(Self,
+        I.Event.Name, I.Event.FieldClass, I.Event.InEvent);
       Events.Add(E);
     end else
       raise EInternalError.Create('interface declaration but no Field or Event');
@@ -6182,7 +6197,7 @@ end;
 constructor TVRMLExternalPrototype.Create;
 begin
   inherited;
-  FURLList := TMFString.Create('', []);
+  FURLList := TMFString.Create(nil, '', []);
 end;
 
 destructor TVRMLExternalPrototype.Destroy;

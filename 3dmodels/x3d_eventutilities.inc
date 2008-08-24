@@ -187,16 +187,16 @@ constructor TNodeX3DSequencerNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventnext := TVRMLEvent.Create('next', TSFBool, true);
+  FEventnext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
   Events.Add(FEventnext);
 
-  FEventprevious := TVRMLEvent.Create('previous', TSFBool, true);
+  FEventprevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
   Events.Add(FEventprevious);
 
-  FEventset_fraction := TVRMLEvent.Create('set_fraction', TSFFloat, true);
+  FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventset_fraction);
 
-  FFdkey := TMFFloat.Create('key', []);
+  FFdkey := TMFFloat.Create(Self, 'key', []);
   Fields.Add(FFdkey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -216,17 +216,17 @@ constructor TNodeBooleanFilter.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
+  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
   FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
 
-  FEventinputFalse := TVRMLEvent.Create('inputFalse', TSFBool, false);
+  FEventinputFalse := TVRMLEvent.Create(Self, 'inputFalse', TSFBool, false);
   Events.Add(FEventinputFalse);
 
-  FEventinputNegate := TVRMLEvent.Create('inputNegate', TSFBool, false);
+  FEventinputNegate := TVRMLEvent.Create(Self, 'inputNegate', TSFBool, false);
   Events.Add(FEventinputNegate);
 
-  FEventinputTrue := TVRMLEvent.Create('inputTrue', TSFBool, false);
+  FEventinputTrue := TVRMLEvent.Create(Self, 'inputTrue', TSFBool, false);
   Events.Add(FEventinputTrue);
 
   DefaultContainerField := 'children';
@@ -267,10 +267,10 @@ constructor TNodeBooleanSequencer.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFBool.Create('keyValue', []);
+  FFdkeyValue := TMFBool.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFBool, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFBool, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -300,11 +300,11 @@ constructor TNodeBooleanToggle.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
+  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
   FEventset_boolean.OnReceive.AppendItem(@EventSet_BooleanReceive);
 
-  FFdtoggle := TSFBool.Create('toggle', false);
+  FFdtoggle := TSFBool.Create(Self, 'toggle', false);
   Fields.Add(FFdtoggle);
 
   DefaultContainerField := 'children';
@@ -343,11 +343,11 @@ constructor TNodeBooleanTrigger.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_triggerTime := TVRMLEvent.Create('set_triggerTime', TSFTime, true);
+  FEventset_triggerTime := TVRMLEvent.Create(Self, 'set_triggerTime', TSFTime, true);
   Events.Add(FEventset_triggerTime);
   FEventset_triggerTime.OnReceive.AppendItem(@EventSet_triggerTimeReceive);
 
-  FEventtriggerTrue := TVRMLEvent.Create('triggerTrue', TSFBool, false);
+  FEventtriggerTrue := TVRMLEvent.Create(Self, 'triggerTrue', TSFBool, false);
   Events.Add(FEventtriggerTrue);
 
   DefaultContainerField := 'children';
@@ -382,11 +382,11 @@ constructor TNodeIntegerSequencer.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdkeyValue := TMFInt32.Create('keyValue', []);
+  FFdkeyValue := TMFInt32.Create(Self, 'keyValue', []);
   Fields.Add(FFdkeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create('value_changed', TSFInt32, false);
+  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFInt32, false);
   Events.Add(FEventvalue_changed);
 
   DefaultContainerField := 'children';
@@ -416,17 +416,17 @@ constructor TNodeIntegerTrigger.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
+  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
   FEventset_boolean.OnReceive.AppendItem(@EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
-  FFdintegerKey := TSFInt32.Create('integerKey', 0);
+  FFdintegerKey := TSFInt32.Create(Self, 'integerKey', 0);
   Fields.Add(FFdintegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventtriggerValue := TVRMLEvent.Create('triggerValue', TSFInt32, false);
+  FEventtriggerValue := TVRMLEvent.Create(Self, 'triggerValue', TSFInt32, false);
   Events.Add(FEventtriggerValue);
 
   DefaultContainerField := 'children';
@@ -461,10 +461,10 @@ constructor TNodeTimeTrigger.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create('set_boolean', TSFBool, true);
+  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventset_boolean);
 
-  FEventtriggerTime := TVRMLEvent.Create('triggerTime', TSFTime, false);
+  FEventtriggerTime := TVRMLEvent.Create(Self, 'triggerTime', TSFTime, false);
   Events.Add(FEventtriggerTime);
 
   DefaultContainerField := 'children';

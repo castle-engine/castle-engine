@@ -175,17 +175,17 @@ constructor TNodeArc2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdendAngle := TSFFloat.Create('endAngle', Pi/2);
+  FFdendAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
   FFdendAngle.Exposed := false;
   Fields.Add(FFdendAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1);
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
-  FFdstartAngle := TSFFloat.Create('startAngle', 0);
+  FFdstartAngle := TSFFloat.Create(Self, 'startAngle', 0);
   FFdstartAngle.Exposed := false;
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
@@ -218,26 +218,26 @@ constructor TNodeArcClose2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdclosureType := TSFString.Create('closureType', 'PIE');
+  FFdclosureType := TSFString.Create(Self, 'closureType', 'PIE');
   FFdclosureType.Exposed := false;
   Fields.Add(FFdclosureType);
   { X3D specification comment: ["PIE"|"CHORD"] }
 
-  FFdendAngle := TSFFloat.Create('endAngle', Pi/2);
+  FFdendAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
   FFdendAngle.Exposed := false;
   Fields.Add(FFdendAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1);
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', false);
+  FFdsolid := TSFBool.Create(Self, 'solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdstartAngle := TSFFloat.Create('startAngle', 0);
+  FFdstartAngle := TSFFloat.Create(Self, 'startAngle', 0);
   FFdstartAngle.Exposed := false;
   Fields.Add(FFdstartAngle);
   { X3D specification comment: [-2Pi,2Pi] }
@@ -270,7 +270,7 @@ constructor TNodeCircle2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1);
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
@@ -303,17 +303,17 @@ constructor TNodeDisk2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdinnerRadius := TSFFloat.Create('innerRadius', 0);
+  FFdinnerRadius := TSFFloat.Create(Self, 'innerRadius', 0);
   FFdinnerRadius.Exposed := false;
   Fields.Add(FFdinnerRadius);
   { X3D specification comment: [0,Inf) }
 
-  FFdouterRadius := TSFFloat.Create('outerRadius', 1);
+  FFdouterRadius := TSFFloat.Create(Self, 'outerRadius', 1);
   FFdouterRadius.Exposed := false;
   Fields.Add(FFdouterRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', false);
+  FFdsolid := TSFBool.Create(Self, 'solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -345,7 +345,7 @@ constructor TNodePolyline2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdlineSegments := TMFVec2f.Create('lineSegments', []);
+  FFdlineSegments := TMFVec2f.Create(Self, 'lineSegments', []);
   FFdlineSegments.Exposed := false;
   Fields.Add(FFdlineSegments);
   { X3D specification comment: (-Inf,Inf) }
@@ -382,7 +382,7 @@ constructor TNodePolypoint2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec2f.Create('point', []);
+  FFdpoint := TMFVec2f.Create(Self, 'point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -414,12 +414,12 @@ constructor TNodeRectangle2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdsize := TSFVec2f.Create('size', Vector2Single(2, 2));
+  FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
   FFdsize.Exposed := false;
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', false);
+  FFdsolid := TSFBool.Create(Self, 'solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -451,11 +451,11 @@ constructor TNodeTriangleSet2D.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvertices := TMFVec2f.Create('vertices', []);
+  FFdvertices := TMFVec2f.Create(Self, 'vertices', []);
   Fields.Add(FFdvertices);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', false);
+  FFdsolid := TSFBool.Create(Self, 'solid', false);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;

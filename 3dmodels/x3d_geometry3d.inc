@@ -342,12 +342,12 @@ constructor TNodeBox.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdsize := TSFVec3f.Create('size', Vector3Single(2, 2, 2));
+  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(2, 2, 2));
   FFdsize.Exposed := false;
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -378,25 +378,25 @@ constructor TNodeCone_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbottom := TSFBool.Create('bottom', true);
+  FFdbottom := TSFBool.Create(Self, 'bottom', true);
   FFdbottom.Exposed := false;
   Fields.Add(FFdbottom);
 
-  FFdbottomRadius := TSFFloat.Create('bottomRadius', 1);
+  FFdbottomRadius := TSFFloat.Create(Self, 'bottomRadius', 1);
   FFdbottomRadius.Exposed := false;
   Fields.Add(FFdbottomRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdheight := TSFFloat.Create('height', 2);
+  FFdheight := TSFFloat.Create(Self, 'height', 2);
   FFdheight.Exposed := false;
   Fields.Add(FFdheight);
   { X3D specification comment: (0,Inf) }
 
-  FFdside := TSFBool.Create('side', true);
+  FFdside := TSFBool.Create(Self, 'side', true);
   FFdside.Exposed := false;
   Fields.Add(FFdside);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -432,29 +432,29 @@ constructor TNodeCylinder_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbottom := TSFBool.Create('bottom', true);
+  FFdbottom := TSFBool.Create(Self, 'bottom', true);
   FFdbottom.Exposed := false;
   Fields.Add(FFdbottom);
 
-  FFdheight := TSFFloat.Create('height', 2);
+  FFdheight := TSFFloat.Create(Self, 'height', 2);
   FFdheight.Exposed := false;
   Fields.Add(FFdheight);
   { X3D specification comment: (0,Inf) }
 
-  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1);
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
-  FFdside := TSFBool.Create('side', true);
+  FFdside := TSFBool.Create(Self, 'side', true);
   FFdside.Exposed := false;
   Fields.Add(FFdside);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdtop := TSFBool.Create('top', true);
+  FFdtop := TSFBool.Create(Self, 'top', true);
   FFdtop.Exposed := false;
   Fields.Add(FFdtop);
 end;
@@ -490,7 +490,7 @@ constructor TNodeElevationGrid.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_height := TVRMLEvent.Create('set_height', TMFFloat, true);
+  FEventset_height := TVRMLEvent.Create(Self, 'set_height', TMFFloat, true);
   Events.Add(FEventset_height);
 
   FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
@@ -508,48 +508,48 @@ begin
   FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
 
-  FFdccw := TSFBool.Create('ccw', true);
+  FFdccw := TSFBool.Create(Self, 'ccw', true);
   FFdccw.Exposed := false;
   Fields.Add(FFdccw);
 
-  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', true);
+  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
   FFdcolorPerVertex.Exposed := false;
   Fields.Add(FFdcolorPerVertex);
 
-  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
   FFdcreaseAngle.Exposed := false;
   Fields.Add(FFdcreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdheight := TMFFloat.Create('height', []);
+  FFdheight := TMFFloat.Create(Self, 'height', []);
   FFdheight.Exposed := false;
   Fields.Add(FFdheight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalPerVertex := TSFBool.Create('normalPerVertex', true);
+  FFdnormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
   FFdnormalPerVertex.Exposed := false;
   Fields.Add(FFdnormalPerVertex);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdxDimension := TSFInt32.Create('xDimension', 0);
+  FFdxDimension := TSFInt32.Create(Self, 'xDimension', 0);
   FFdxDimension.Exposed := false;
   Fields.Add(FFdxDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdxSpacing := TSFFloat.Create('xSpacing', 1.0);
+  FFdxSpacing := TSFFloat.Create(Self, 'xSpacing', 1.0);
   FFdxSpacing.Exposed := false;
   Fields.Add(FFdxSpacing);
   { X3D specification comment: (0,Inf) }
 
-  FFdzDimension := TSFInt32.Create('zDimension', 0);
+  FFdzDimension := TSFInt32.Create(Self, 'zDimension', 0);
   FFdzDimension.Exposed := false;
   Fields.Add(FFdzDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdzSpacing := TSFFloat.Create('zSpacing', 1.0);
+  FFdzSpacing := TSFFloat.Create(Self, 'zSpacing', 1.0);
   FFdzSpacing.Exposed := false;
   Fields.Add(FFdzSpacing);
   { X3D specification comment: (0,Inf) }
@@ -602,59 +602,59 @@ constructor TNodeExtrusion.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_crossSection := TVRMLEvent.Create('set_crossSection', TMFVec2f, true);
+  FEventset_crossSection := TVRMLEvent.Create(Self, 'set_crossSection', TMFVec2f, true);
   Events.Add(FEventset_crossSection);
 
-  FEventset_orientation := TVRMLEvent.Create('set_orientation', TMFRotation, true);
+  FEventset_orientation := TVRMLEvent.Create(Self, 'set_orientation', TMFRotation, true);
   Events.Add(FEventset_orientation);
 
-  FEventset_scale := TVRMLEvent.Create('set_scale', TMFVec2f, true);
+  FEventset_scale := TVRMLEvent.Create(Self, 'set_scale', TMFVec2f, true);
   Events.Add(FEventset_scale);
 
-  FEventset_spine := TVRMLEvent.Create('set_spine', TMFVec3f, true);
+  FEventset_spine := TVRMLEvent.Create(Self, 'set_spine', TMFVec3f, true);
   Events.Add(FEventset_spine);
 
-  FFdbeginCap := TSFBool.Create('beginCap', true);
+  FFdbeginCap := TSFBool.Create(Self, 'beginCap', true);
   FFdbeginCap.Exposed := false;
   Fields.Add(FFdbeginCap);
 
-  FFdccw := TSFBool.Create('ccw', true);
+  FFdccw := TSFBool.Create(Self, 'ccw', true);
   FFdccw.Exposed := false;
   Fields.Add(FFdccw);
 
-  FFdconvex := TSFBool.Create('convex', true);
+  FFdconvex := TSFBool.Create(Self, 'convex', true);
   FFdconvex.Exposed := false;
   Fields.Add(FFdconvex);
 
-  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
   FFdcreaseAngle.Exposed := false;
   Fields.Add(FFdcreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdcrossSection := TMFVec2f.Create('crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1),  Vector2Single(-1, -1), Vector2Single(-1, 1), Vector2Single(1, 1) ]);
+  FFdcrossSection := TMFVec2f.Create(Self, 'crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1),  Vector2Single(-1, -1), Vector2Single(-1, 1), Vector2Single(1, 1) ]);
   FFdcrossSection.Exposed := false;
   Fields.Add(FFdcrossSection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdendCap := TSFBool.Create('endCap', true);
+  FFdendCap := TSFBool.Create(Self, 'endCap', true);
   FFdendCap.Exposed := false;
   Fields.Add(FFdendCap);
 
-  FFdorientation := TMFRotation.Create('orientation', [ Vector4Single(0, 0, 1, 0) ]);
+  FFdorientation := TMFRotation.Create(Self, 'orientation', [ Vector4Single(0, 0, 1, 0) ]);
   FFdorientation.Exposed := false;
   Fields.Add(FFdorientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdscale := TMFVec2f.Create('scale', Vector2Single(1, 1));
+  FFdscale := TMFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
   FFdscale.Exposed := false;
   Fields.Add(FFdscale);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 
-  FFdspine := TMFVec3f.Create('spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]);
+  FFdspine := TMFVec3f.Create(Self, 'spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]);
   FFdspine.Exposed := false;
   Fields.Add(FFdspine);
   { X3D specification comment: (-Inf,Inf) }
@@ -958,44 +958,44 @@ constructor TNodeIndexedFaceSet_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_colorIndex := TVRMLEvent.Create('set_colorIndex', TMFInt32, true);
+  FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventset_colorIndex);
 
-  FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
+  FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
 
-  FEventset_normalIndex := TVRMLEvent.Create('set_normalIndex', TMFInt32, true);
+  FEventset_normalIndex := TVRMLEvent.Create(Self, 'set_normalIndex', TMFInt32, true);
   Events.Add(FEventset_normalIndex);
 
-  FEventset_texCoordIndex := TVRMLEvent.Create('set_texCoordIndex', TMFInt32, true);
+  FEventset_texCoordIndex := TVRMLEvent.Create(Self, 'set_texCoordIndex', TMFInt32, true);
   Events.Add(FEventset_texCoordIndex);
 
-  FFdcolorIndex := TMFInt32.Create('colorIndex', []);
+  FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
   FFdcolorIndex.Exposed := false;
   Fields.Add(FFdcolorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdconvex := TSFBool.Create('convex', true);
+  FFdconvex := TSFBool.Create(Self, 'convex', true);
   FFdconvex.Exposed := false;
   Fields.Add(FFdconvex);
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', []);
+  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
   FFdcoordIndex.SaveToStreamLineUptoNegative := true;
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdcreaseAngle := TSFFloat.Create('creaseAngle', 0);
+  FFdcreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
   FFdcreaseAngle.Exposed := false;
   Fields.Add(FFdcreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdnormalIndex := TMFInt32.Create('normalIndex', []);
+  FFdnormalIndex := TMFInt32.Create(Self, 'normalIndex', []);
   FFdnormalIndex.Exposed := false;
   Fields.Add(FFdnormalIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdtexCoordIndex := TMFInt32.Create('texCoordIndex', []);
+  FFdtexCoordIndex := TMFInt32.Create(Self, 'texCoordIndex', []);
   FFdtexCoordIndex.SaveToStreamLineUptoNegative := true;
   FFdtexCoordIndex.Exposed := false;
   Fields.Add(FFdtexCoordIndex);
@@ -1038,12 +1038,12 @@ constructor TNodeSphere_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdradius := TSFFloat.Create('radius', 1);
+  FFdradius := TSFFloat.Create(Self, 'radius', 1);
   FFdradius.Exposed := false;
   Fields.Add(FFdradius);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;

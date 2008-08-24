@@ -95,7 +95,7 @@ constructor TNodeMatrixTransform_2.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
-  FFdmatrix := TSFMatrix4f.Create('matrix', IdentityMatrix4Single);
+  FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
   Fields.Add(FFdmatrix);
 
   DefaultContainerField := 'children';
@@ -156,11 +156,11 @@ constructor TNodeTeapot.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdsize := TSFVec3f.Create('size', Vector3Single(3, 3, 3));
+  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(3, 3, 3));
   FFdsize.Exposed := false;
   Fields.Add(FFdsize);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -222,17 +222,17 @@ constructor TNodeLogger.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdlevel := TSFInt32.Create('level', 1);
+  FFdlevel := TSFInt32.Create(Self, 'level', 1);
   Fields.Add(FFdlevel);
 
-  FFdlogFile := TSFString.Create('logFile', '');
+  FFdlogFile := TSFString.Create(Self, 'logFile', '');
   FFdlogFile.Exposed := false;
   Fields.Add(FFdlogFile);
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
-  FEventwrite := TVRMLEvent.Create('write', TVRMLField, true);
+  FEventwrite := TVRMLEvent.Create(Self, 'write', TVRMLField, true);
   Events.Add(FEventwrite);
   FEventwrite.OnReceive.AppendItem(@EventWriteReceive);
 end;

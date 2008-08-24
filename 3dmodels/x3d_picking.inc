@@ -124,7 +124,7 @@ constructor TNodeX3DPickSensorNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create('objectType', ['ALL']);
+  FFdobjectType := TMFString.Create(Self, 'objectType', ['ALL']);
   Fields.Add(FFdobjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
@@ -139,15 +139,15 @@ begin
   FFdpickTarget := TMFNode.Create(Self, 'pickTarget', [TNodeX3DGroupingNode, TNodeX3DShapeNode, TNodeInline]);
   Fields.Add(FFdpickTarget);
 
-  FEventpickedGeometry := TVRMLEvent.Create('pickedGeometry', TMFNode, false);
+  FEventpickedGeometry := TVRMLEvent.Create(Self, 'pickedGeometry', TMFNode, false);
   Events.Add(FEventpickedGeometry);
 
-  FFdintersectionType := TSFString.Create('intersectionType', 'BOUNDS');
+  FFdintersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
   FFdintersectionType.Exposed := false;
   Fields.Add(FFdintersectionType);
   { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
 
-  FFdsortOrder := TSFString.Create('sortOrder', 'CLOSEST');
+  FFdsortOrder := TSFString.Create(Self, 'sortOrder', 'CLOSEST');
   FFdsortOrder.Exposed := false;
   Fields.Add(FFdsortOrder);
   { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
@@ -160,13 +160,13 @@ constructor TNodeLinePickSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventpickedNormal := TVRMLEvent.Create('pickedNormal', TMFVec3f, false);
+  FEventpickedNormal := TVRMLEvent.Create(Self, 'pickedNormal', TMFVec3f, false);
   Events.Add(FEventpickedNormal);
 
-  FEventpickedPoint := TVRMLEvent.Create('pickedPoint', TMFVec3f, false);
+  FEventpickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
   Events.Add(FEventpickedPoint);
 
-  FEventpickedTextureCoordinate := TVRMLEvent.Create('pickedTextureCoordinate', TMFVec3f, false);
+  FEventpickedTextureCoordinate := TVRMLEvent.Create(Self, 'pickedTextureCoordinate', TMFVec3f, false);
   Events.Add(FEventpickedTextureCoordinate);
 
   DefaultContainerField := 'children';
@@ -196,11 +196,11 @@ constructor TNodePickableGroup.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create('objectType', ['ALL']);
+  FFdobjectType := TMFString.Create(Self, 'objectType', ['ALL']);
   Fields.Add(FFdobjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdpickable := TSFBool.Create('pickable', true);
+  FFdpickable := TSFBool.Create(Self, 'pickable', true);
   Fields.Add(FFdpickable);
 
   DefaultContainerField := 'children';
@@ -230,7 +230,7 @@ constructor TNodePointPickSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventpickedPoint := TVRMLEvent.Create('pickedPoint', TMFVec3f, false);
+  FEventpickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
   Events.Add(FEventpickedPoint);
 
   DefaultContainerField := 'children';

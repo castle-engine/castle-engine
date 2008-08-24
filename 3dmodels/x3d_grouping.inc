@@ -335,26 +335,26 @@ constructor TNodeX3DGroupingNode.Create(
 begin
   inherited;
 
-  FEventaddChildren := TVRMLEvent.Create('addChildren', TMFNode, true);
+  FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventaddChildren);
 
-  FEventremoveChildren := TVRMLEvent.Create('removeChildren', TMFNode, true);
+  FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
   FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
   Fields.Add(FFdchildren);
 
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', ZeroVector3Single);
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
   FFdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
-  FFdrender := TSFBool.Create('render', true);
+  FFdrender := TSFBool.Create(Self, 'render', true);
   Fields.Add(FFdrender);
 
   DefaultContainerField := 'children';
@@ -469,12 +469,12 @@ begin
   FFdchildren.Exposed := false;
   Fields.Add(FFdchildren);
 
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -520,7 +520,7 @@ begin
 
   Fdchildren.AddAlternativeName('choice', 2);
 
-  FFdwhichChoice := TSFInt32.Create('whichChoice', -1);
+  FFdwhichChoice := TSFInt32.Create(Self, 'whichChoice', -1);
   Fields.Add(FFdwhichChoice);
   { X3D specification comment: [-1,Inf) }
 
@@ -568,23 +568,23 @@ constructor TNodeTransform_2.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdrotation := TSFRotation.Create('rotation', Vector3Single(0, 0, 1), 0);
+  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdrotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdscale := TSFVec3f.Create('scale', Vector3Single(1, 1, 1));
+  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
   Fields.Add(FFdscale);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdscaleOrientation := TSFRotation.Create('scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdscaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdtranslation := TSFVec3f.Create('translation', Vector3Single(0, 0, 0));
+  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
   Fields.Add(FFdtranslation);
   { X3D specification comment: (-Inf,Inf) }
 

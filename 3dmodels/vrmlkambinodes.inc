@@ -201,13 +201,13 @@ constructor TNodeKambiTriangulation.Create(const ANodeName: string; const AWWWBa
 begin
   inherited;
 
-  FFdquadricSlices := TSFLong.Create('quadricSlices', TriangulationUseDef);
+  FFdquadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
   Fields.Add(FFdquadricSlices);
 
-  FFdquadricStacks := TSFLong.Create('quadricStacks', TriangulationUseDef);
+  FFdquadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
   Fields.Add(FFdquadricStacks);
 
-  FFdrectDivisions := TSFLong.Create('rectDivisions', TriangulationUseDef);
+  FFdrectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
   Fields.Add(FFdrectDivisions);
 end;
 
@@ -287,25 +287,25 @@ const
 begin
   inherited;
 
-  FFdambientIntensity := TSFFloat.Create('ambientIntensity', HeadLightDefaultAmbientIntensity);
+  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
   Fields.Add(FFdambientIntensity);
 
-  FFdattenuation := TSFVec3f.Create('attenuation', HeadLightDefaultAttenuation);
+  FFdattenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
   Fields.Add(FFdattenuation);
 
-  FFdcolor := TSFColor.Create('color', HeadLightDefaultColor);
+  FFdcolor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
   Fields.Add(FFdcolor);
 
-  FFdintensity := TSFFloat.Create('intensity', HeadLightDefaultIntensity);
+  FFdintensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
   Fields.Add(FFdintensity);
 
-  FFdspot := TSFBool.Create('spot', HeadLightDefaultSpot);
+  FFdspot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
   Fields.Add(FFdspot);
 
-  FFdspotCutOffAngle := TSFFloat.Create('spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
+  FFdspotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
   Fields.Add(FFdspotCutOffAngle);
 
-  FFdspotDropOffRate := TSFFloat.Create('spotDropOffRate', HeadLightDefaultSpotDropOffRate);
+  FFdspotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
   Fields.Add(FFdspotDropOffRate);
 end;
 
@@ -338,22 +338,22 @@ constructor TNodeText3D.Create(const ANodeName: string; const AWWWBasePath: stri
 begin
   inherited;
 
-  FFdstring := TMFString.Create('string', []);
+  FFdstring := TMFString.Create(Self, 'string', []);
   Fields.Add(FFdstring);
 
   FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle_2]);
   Fields.Add(FFdfontStyle);
 
-  FFdlength := TMFFloat.Create('length', []);
+  FFdlength := TMFFloat.Create(Self, 'length', []);
   Fields.Add(FFdlength);
 
-  FFdmaxExtent := TSFFloat.Create('maxExtent', 0.0);
+  FFdmaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
   Fields.Add(FFdmaxExtent);
 
-  FFddepth := TSFFloat.Create('depth', 0.1, true);
+  FFddepth := TSFFloat.Create(Self, 'depth', 0.1, true);
   Fields.Add(FFddepth);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   Fields.Add(FFdsolid);
 end;
 
@@ -388,16 +388,16 @@ constructor TNodeBlendMode.Create(const ANodeName: string; const AWWWBasePath: s
 begin
   inherited;
 
-  FFdsrcFactor := TSFString.Create('srcFactor', 'src_alpha');
+  FFdsrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
   Fields.Add(FFdsrcFactor);
 
-  FFddestFactor := TSFString.Create('destFactor', 'one_minus_src_alpha');
+  FFddestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
   Fields.Add(FFddestFactor);
 
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
   Fields.Add(FFdcolor);
 
-  FFdcolorTransparency := TSFFloat.Create('colorTransparency', 0.0);
+  FFdcolorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
   Fields.Add(FFdcolorTransparency);
 
   DefaultContainerField := 'blendMode';
@@ -425,7 +425,7 @@ begin
   FFdheightMap := TSFNode.Create(Self, 'heightMap', [TNodeX3DTextureNode]);
   Fields.Add(FFdheightMap);
 
-  FFdheightMapScale := TSFFloat.Create('heightMapScale', DefaultHeightMapScale);
+  FFdheightMapScale := TSFFloat.Create(Self, 'heightMapScale', DefaultHeightMapScale);
   Fields.Add(FFdheightMapScale);
 
   FFdblendMode := TSFNode.Create(Self, 'blendMode', [TNodeBlendMode]);
@@ -436,7 +436,7 @@ constructor TNodeKambiInline.Create(const ANodeName: string; const AWWWBasePath:
 begin
   inherited;
 
-  FFdreplaceNames := TMFString.Create('replaceNames', []);
+  FFdreplaceNames := TMFString.Create(Self, 'replaceNames', []);
   Fields.Add(FFdreplaceNames);
 
   FFdreplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TVRMLNode]);

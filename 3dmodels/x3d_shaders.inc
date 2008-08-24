@@ -187,16 +187,16 @@ constructor TNodeX3DShaderNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventactivate := TVRMLEvent.Create('activate', TSFBool, true);
+  FEventactivate := TVRMLEvent.Create(Self, 'activate', TSFBool, true);
   Events.Add(FEventactivate);
 
-  FEventisSelected := TVRMLEvent.Create('isSelected', TSFBool, false);
+  FEventisSelected := TVRMLEvent.Create(Self, 'isSelected', TSFBool, false);
   Events.Add(FEventisSelected);
 
-  FEventisValid := TVRMLEvent.Create('isValid', TSFBool, false);
+  FEventisValid := TVRMLEvent.Create(Self, 'isValid', TSFBool, false);
   Events.Add(FEventisValid);
 
-  FFdlanguage := TSFString.Create('language', '');
+  FFdlanguage := TSFString.Create(Self, 'language', '');
   FFdlanguage.Exposed := false;
   Fields.Add(FFdlanguage);
   { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
@@ -209,7 +209,7 @@ constructor TNodeX3DVertexAttributeNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdname := TSFString.Create('name', '');
+  FFdname := TSFString.Create(Self, 'name', '');
   FFdname.Exposed := false;
   Fields.Add(FFdname);
 
@@ -262,11 +262,11 @@ constructor TNodeFloatVertexAttribute.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvalue := TMFFloat.Create('value', []);
+  FFdvalue := TMFFloat.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnumComponents := TSFInt32.Create('numComponents', 4);
+  FFdnumComponents := TSFInt32.Create(Self, 'numComponents', 4);
   FFdnumComponents.Exposed := false;
   Fields.Add(FFdnumComponents);
   { X3D specification comment: [1..4] }
@@ -296,7 +296,7 @@ constructor TNodeMatrix3VertexAttribute.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvalue := TMFMatrix3f.Create('value', []);
+  FFdvalue := TMFMatrix3f.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -325,7 +325,7 @@ constructor TNodeMatrix4VertexAttribute.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvalue := TMFMatrix4f.Create('value', []);
+  FFdvalue := TMFMatrix4f.Create(Self, 'value', []);
   Fields.Add(FFdvalue);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -354,7 +354,7 @@ constructor TNodePackagedShader.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
@@ -414,11 +414,11 @@ constructor TNodeShaderPart.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FFdtype := TSFString.Create('type', 'VERTEX');
+  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
   FFdtype.Exposed := false;
   Fields.Add(FFdtype);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
@@ -484,11 +484,11 @@ constructor TNodeShaderProgram.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
-  FFdtype := TSFString.Create('type', 'VERTEX');
+  FFdtype := TSFString.Create(Self, 'type', 'VERTEX');
   FFdtype.Exposed := false;
   Fields.Add(FFdtype);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }

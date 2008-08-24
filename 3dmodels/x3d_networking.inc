@@ -126,13 +126,13 @@ constructor TNodeAnchor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddescription := TSFString.Create('description', '');
+  FFddescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFddescription);
 
-  FFdparameter := TMFString.Create('parameter', []);
+  FFdparameter := TMFString.Create(Self, 'parameter', []);
   Fields.Add(FFdparameter);
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [url or urn] }
 
@@ -173,19 +173,19 @@ constructor TNodeInline.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdload := TSFBool.Create('load', true);
+  FFdload := TSFBool.Create(Self, 'load', true);
   Fields.Add(FFdload);
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [url or urn] }
 
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -275,19 +275,19 @@ constructor TNodeLoadSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdtimeOut := TSFTime.Create('timeOut', 0);
+  FFdtimeOut := TSFTime.Create(Self, 'timeOut', 0);
   Fields.Add(FFdtimeOut);
 
   FFdwatchList := TMFNode.Create(Self, 'watchList', INodeX3DUrlObject);
   Fields.Add(FFdwatchList);
 
-  FEventisLoaded := TVRMLEvent.Create('isLoaded', TSFBool, false);
+  FEventisLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);
   Events.Add(FEventisLoaded);
 
-  FEventloadTime := TVRMLEvent.Create('loadTime', TSFTime, false);
+  FEventloadTime := TVRMLEvent.Create(Self, 'loadTime', TSFTime, false);
   Events.Add(FEventloadTime);
 
-  FEventprogress := TVRMLEvent.Create('progress', TSFFloat, false);
+  FEventprogress := TVRMLEvent.Create(Self, 'progress', TSFFloat, false);
   Events.Add(FEventprogress);
 
   DefaultContainerField := 'children';

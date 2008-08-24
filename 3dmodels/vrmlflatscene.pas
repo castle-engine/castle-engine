@@ -1791,9 +1791,15 @@ end;
 
 procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);
 begin
-  { TODO: ChangedFields would be nice here, but we can call only
-    ChangedAll since Node is unknown. }
-  ChangedAll;
+  if Event.ParentNode <> nil then
+    ChangedFields(Event.ParentNode as TVRMLNode) else
+    { Although EventChanged indicates that only some field's value changed,
+      so ChangedFields is most optimal, but without Event.ParentNode
+      we don't know which node actually changed... Calling ChangedAll
+      is the only fallback here. This shouldn't really happen with current
+      code (all normal fields have ParentNode set, and so their ExposedEvents
+      also have ParentNode set). }
+    ChangedAll;
 end;
 
 procedure TVRMLFlatScene.Collect_ChangedFields(Node: TVRMLNode);

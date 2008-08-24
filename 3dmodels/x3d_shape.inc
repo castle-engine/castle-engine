@@ -295,12 +295,12 @@ begin
   FFdgeometry := TSFNode.Create(Self, 'geometry', [TNodeX3DGeometryNode]);
   Fields.Add(FFdgeometry);
 
-  FFdbboxCenter := TSFVec3f.Create('bboxCenter', Vector3Single(0, 0, 0));
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdbboxCenter.Exposed := false;
   Fields.Add(FFdbboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create('bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   Fields.Add(FFdbboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -524,17 +524,17 @@ constructor TNodeFillProperties.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfilled := TSFBool.Create('filled', true);
+  FFdfilled := TSFBool.Create(Self, 'filled', true);
   Fields.Add(FFdfilled);
 
-  FFdhatchColor := TSFColor.Create('hatchColor', Vector3Single(1, 1, 1));
+  FFdhatchColor := TSFColor.Create(Self, 'hatchColor', Vector3Single(1, 1, 1));
   Fields.Add(FFdhatchColor);
   { X3D specification comment: [0,1] }
 
-  FFdhatched := TSFBool.Create('hatched', true);
+  FFdhatched := TSFBool.Create(Self, 'hatched', true);
   Fields.Add(FFdhatched);
 
-  FFdhatchStyle := TSFInt32.Create('hatchStyle', 1);
+  FFdhatchStyle := TSFInt32.Create(Self, 'hatchStyle', 1);
   Fields.Add(FFdhatchStyle);
   { X3D specification comment: [0,Inf) }
 
@@ -565,14 +565,14 @@ constructor TNodeLineProperties.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdapplied := TSFBool.Create('applied', true);
+  FFdapplied := TSFBool.Create(Self, 'applied', true);
   Fields.Add(FFdapplied);
 
-  FFdlinetype := TSFInt32.Create('linetype', 1);
+  FFdlinetype := TSFInt32.Create(Self, 'linetype', 1);
   Fields.Add(FFdlinetype);
   { X3D specification comment: [1,Inf) }
 
-  FFdlinewidthScaleFactor := TSFFloat.Create('linewidthScaleFactor', 0);
+  FFdlinewidthScaleFactor := TSFFloat.Create(Self, 'linewidthScaleFactor', 0);
   Fields.Add(FFdlinewidthScaleFactor);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -603,34 +603,34 @@ constructor TNodeMaterial_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdambientIntensity := TSFFloat.Create('ambientIntensity', DefaultMaterial_2AmbientIntensity);
+  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', DefaultMaterial_2AmbientIntensity);
   Fields.Add(FFdambientIntensity);
   { X3D specification comment: [0,1] }
 
-  FFddiffuseColor := TSFColor.Create('diffuseColor', DefaultMaterialDiffuseColor);
+  FFddiffuseColor := TSFColor.Create(Self, 'diffuseColor', DefaultMaterialDiffuseColor);
   Fields.Add(FFddiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdemissiveColor := TSFColor.Create('emissiveColor', DefaultMaterialEmissiveColor);
+  FFdemissiveColor := TSFColor.Create(Self, 'emissiveColor', DefaultMaterialEmissiveColor);
   Fields.Add(FFdemissiveColor);
   { X3D specification comment: [0,1] }
 
-  FFdshininess := TSFFloat.Create('shininess', DefaultMaterialShininess);
+  FFdshininess := TSFFloat.Create(Self, 'shininess', DefaultMaterialShininess);
   Fields.Add(FFdshininess);
   { X3D specification comment: [0,1] }
 
-  FFdspecularColor := TSFColor.Create('specularColor', DefaultMaterialSpecularColor);
+  FFdspecularColor := TSFColor.Create(Self, 'specularColor', DefaultMaterialSpecularColor);
   Fields.Add(FFdspecularColor);
   { X3D specification comment: [0,1] }
 
-  FFdtransparency := TSFFloat.Create('transparency', DefaultMaterialTransparency);
+  FFdtransparency := TSFFloat.Create(Self, 'transparency', DefaultMaterialTransparency);
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 
-  FFdfogImmune := TSFBool.Create('fogImmune', false);
+  FFdfogImmune := TSFBool.Create(Self, 'fogImmune', false);
   Fields.Add(FFdfogImmune);
 
-  FFdmirror := TSFFloat.Create('mirror', DefaultMaterialMirror);
+  FFdmirror := TSFFloat.Create(Self, 'mirror', DefaultMaterialMirror);
   Fields.Add(FFdmirror);
 end;
 
@@ -702,54 +702,54 @@ constructor TNodeTwoSidedMaterial.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdambientIntensity := TSFFloat.Create('ambientIntensity', 0.2);
+  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0.2);
   Fields.Add(FFdambientIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdbackAmbientIntensity := TSFFloat.Create('backAmbientIntensity', 0.2);
+  FFdbackAmbientIntensity := TSFFloat.Create(Self, 'backAmbientIntensity', 0.2);
   Fields.Add(FFdbackAmbientIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdbackDiffuseColor := TSFColor.Create('backDiffuseColor', Vector3Single(0.8, 0.8, 0.8));
+  FFdbackDiffuseColor := TSFColor.Create(Self, 'backDiffuseColor', Vector3Single(0.8, 0.8, 0.8));
   Fields.Add(FFdbackDiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdbackEmissiveColor := TSFColor.Create('backEmissiveColor', Vector3Single(0, 0, 0));
+  FFdbackEmissiveColor := TSFColor.Create(Self, 'backEmissiveColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdbackEmissiveColor);
   { X3D specification comment: [0,1] }
 
-  FFdbackShininess := TSFFloat.Create('backShininess', 0.2);
+  FFdbackShininess := TSFFloat.Create(Self, 'backShininess', 0.2);
   Fields.Add(FFdbackShininess);
   { X3D specification comment: [0,1] }
 
-  FFdbackSpecularColor := TSFColor.Create('backSpecularColor', Vector3Single(0, 0, 0));
+  FFdbackSpecularColor := TSFColor.Create(Self, 'backSpecularColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdbackSpecularColor);
   { X3D specification comment: [0,1] }
 
-  FFdbackTransparency := TSFFloat.Create('backTransparency', 0);
+  FFdbackTransparency := TSFFloat.Create(Self, 'backTransparency', 0);
   Fields.Add(FFdbackTransparency);
   { X3D specification comment: [0,1] }
 
-  FFddiffuseColor := TSFColor.Create('diffuseColor', Vector3Single(0.8, 0.8, 0.8));
+  FFddiffuseColor := TSFColor.Create(Self, 'diffuseColor', Vector3Single(0.8, 0.8, 0.8));
   Fields.Add(FFddiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdemissiveColor := TSFColor.Create('emissiveColor', Vector3Single(0, 0, 0));
+  FFdemissiveColor := TSFColor.Create(Self, 'emissiveColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdemissiveColor);
   { X3D specification comment: [0,1] }
 
-  FFdshininess := TSFFloat.Create('shininess', 0.2);
+  FFdshininess := TSFFloat.Create(Self, 'shininess', 0.2);
   Fields.Add(FFdshininess);
   { X3D specification comment: [0,1] }
 
-  FFdseparateBackColor := TSFBool.Create('separateBackColor', false);
+  FFdseparateBackColor := TSFBool.Create(Self, 'separateBackColor', false);
   Fields.Add(FFdseparateBackColor);
 
-  FFdspecularColor := TSFColor.Create('specularColor', Vector3Single(0, 0, 0));
+  FFdspecularColor := TSFColor.Create(Self, 'specularColor', Vector3Single(0, 0, 0));
   Fields.Add(FFdspecularColor);
   { X3D specification comment: [0,1] }
 
-  FFdtransparency := TSFFloat.Create('transparency', 0);
+  FFdtransparency := TSFFloat.Create(Self, 'transparency', 0);
   Fields.Add(FFdtransparency);
   { X3D specification comment: [0,1] }
 end;

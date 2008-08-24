@@ -322,17 +322,17 @@ begin
   { In X3D, this is part of X3DViewpointNode.
     In our engine, X3DViewpointNode descends from TVRMLViewpointNode
     inheriting "orientation" field this way. }
-  FFdorientation := TSFRotation.Create('orientation', Vector3Single(0, 0, 1), 0);
+  FFdorientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
   Fields.Add(FFdorientation);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
-  FFddirection := TMFVec3f.Create('direction', []);
+  FFddirection := TMFVec3f.Create(Self, 'direction', []);
   Fields.Add(FFddirection);
 
-  FFdup := TMFVec3f.Create('up', []);
+  FFdup := TMFVec3f.Create(Self, 'up', []);
   Fields.Add(FFdup);
 
-  FFdgravityUp := TSFVec3f.Create('gravityUp', StdVRMLGravityUp);
+  FFdgravityUp := TSFVec3f.Create(Self, 'gravityUp', StdVRMLGravityUp);
   Fields.Add(FFdgravityUp);
 end;
 
@@ -386,17 +386,17 @@ constructor TNodeX3DViewpointNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcenterOfRotation := TSFVec3f.Create('centerOfRotation', Vector3Single(0, 0, 0));
+  FFdcenterOfRotation := TSFVec3f.Create(Self, 'centerOfRotation', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenterOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFddescription := TSFString.Create('description', '');
+  FFddescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFddescription);
 
-  FFdjump := TSFBool.Create('jump', true);
+  FFdjump := TSFBool.Create(Self, 'jump', true);
   Fields.Add(FFdjump);
 
-  FFdretainUserOffsets := TSFBool.Create('retainUserOffsets', false);
+  FFdretainUserOffsets := TSFBool.Create(Self, 'retainUserOffsets', false);
   Fields.Add(FFdretainUserOffsets);
 
   DefaultContainerField := 'children';
@@ -407,7 +407,7 @@ constructor TNodeBillboard.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdaxisOfRotation := TSFVec3f.Create('axisOfRotation', Vector3Single(0, 1, 0));
+  FFdaxisOfRotation := TSFVec3f.Create(Self, 'axisOfRotation', Vector3Single(0, 1, 0));
   Fields.Add(FFdaxisOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -448,17 +448,17 @@ constructor TNodeCollision.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   { In VRML 2.0, Collision didn't descent from X3DSensorName and had
     special field "collide". In X3D, "enabled" is used for the exact
     same purpose. }
   FFdenabled.AddAlternativeName('collide', 2);
   Fields.Add(FFdenabled);
 
-  FEventcollideTime := TVRMLEvent.Create('collideTime', TSFTime, false);
+  FEventcollideTime := TVRMLEvent.Create(Self, 'collideTime', TSFTime, false);
   Events.Add(FEventcollideTime);
 
-  FEventisActive := TVRMLEvent.Create('isActive', TSFBool, false);
+  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventisActive);
 
   FFdproxy := TSFNode.Create(Self, 'proxy', INodeX3DChildNode);
@@ -503,20 +503,20 @@ begin
 
   FdChildren.AddAlternativeName('level', 2);
 
-  FFdcenter := TSFVec3f.Create('center', ZeroVector3Single);
+  FFdcenter := TSFVec3f.Create(Self, 'center', ZeroVector3Single);
   FFdcenter.Exposed := false;
   Fields.Add(FFdcenter);
 
-  FFdrange := TMFFloat.Create('range', []);
+  FFdrange := TMFFloat.Create(Self, 'range', []);
   FFdrange.Exposed := false;
   Fields.Add(FFdrange);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdforceTransitions := TSFBool.Create('forceTransitions', false);
+  FFdforceTransitions := TSFBool.Create(Self, 'forceTransitions', false);
   FFdforceTransitions.Exposed := false;
   Fields.Add(FFdforceTransitions);
 
-  FEventlevel_changed := TVRMLEvent.Create('level_changed', TSFInt32, false);
+  FEventlevel_changed := TVRMLEvent.Create(Self, 'level_changed', TSFInt32, false);
   Events.Add(FEventlevel_changed);
 
   DefaultContainerField := 'children';
@@ -566,34 +566,34 @@ constructor TNodeNavigationInfo.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdavatarSize := TMFFloat.Create('avatarSize', [0.25, 1.6, 0.75]);
+  FFdavatarSize := TMFFloat.Create(Self, 'avatarSize', [0.25, 1.6, 0.75]);
   Fields.Add(FFdavatarSize);
   { X3D specification comment: [0,Inf) }
 
-  FFdheadlight := TSFBool.Create('headlight', true);
+  FFdheadlight := TSFBool.Create(Self, 'headlight', true);
   Fields.Add(FFdheadlight);
 
-  FFdspeed := TSFFloat.Create('speed', 1.0);
+  FFdspeed := TSFFloat.Create(Self, 'speed', 1.0);
   Fields.Add(FFdspeed);
   { X3D specification comment: [0,Inf) }
 
-  FFdtransitionTime := TSFTime.Create('transitionTime', 1.0);
+  FFdtransitionTime := TSFTime.Create(Self, 'transitionTime', 1.0);
   Fields.Add(FFdtransitionTime);
   { X3D specification comment: [0, Inf) }
 
-  FFdtransitionType := TMFString.Create('transitionType', ['LINEAR']);
+  FFdtransitionType := TMFString.Create(Self, 'transitionType', ['LINEAR']);
   Fields.Add(FFdtransitionType);
   { X3D specification comment: ["TELEPORT","LINEAR","ANIMATE",...] }
 
-  FFdtype := TMFString.Create('type', ['EXAMINE', 'ANY']);
+  FFdtype := TMFString.Create(Self, 'type', ['EXAMINE', 'ANY']);
   Fields.Add(FFdtype);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
-  FFdvisibilityLimit := TSFFloat.Create('visibilityLimit', 0.0);
+  FFdvisibilityLimit := TSFFloat.Create(Self, 'visibilityLimit', 0.0);
   Fields.Add(FFdvisibilityLimit);
   { X3D specification comment: [0,Inf) }
 
-  FEventtransitionComplete := TVRMLEvent.Create('transitionComplete', TSFBool, false);
+  FEventtransitionComplete := TVRMLEvent.Create(Self, 'transitionComplete', TSFBool, false);
   Events.Add(FEventtransitionComplete);
 
   DefaultContainerField := 'children';
@@ -625,11 +625,11 @@ constructor TNodeOrthoViewpoint.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfieldOfView := TMFFloat.Create('fieldOfView', [-1, -1, 1, 1]);
+  FFdfieldOfView := TMFFloat.Create(Self, 'fieldOfView', [-1, -1, 1, 1]);
   Fields.Add(FFdfieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 10));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
   Fields.Add(FFdposition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -670,11 +670,11 @@ constructor TNodeViewpoint.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfieldOfView := TSFFloat.Create('fieldOfView', DefaultViewpointFieldOfView);
+  FFdfieldOfView := TSFFloat.Create(Self, 'fieldOfView', DefaultViewpointFieldOfView);
   Fields.Add(FFdfieldOfView);
   { X3D specification comment: (0,Pi) }
 
-  FFdposition := TSFVec3f.Create('position', Vector3Single(0, 0, 10));
+  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
   Fields.Add(FFdposition);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -750,17 +750,17 @@ constructor TNodeViewpointGroup.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create('center', Vector3Single(0, 0, 0));
+  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdcenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DViewpointNode, TNodeViewpointGroup]);
   Fields.Add(FFdchildren);
 
-  FFddisplayed := TSFBool.Create('displayed', true);
+  FFddisplayed := TSFBool.Create(Self, 'displayed', true);
   Fields.Add(FFddisplayed);
 
-  FFdsize := TSFVec3f.Create('size', Vector3Single(0, 0, 0));
+  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
   Fields.Add(FFdsize);
   { X3D specification comment: (-Inf,Inf) }
 

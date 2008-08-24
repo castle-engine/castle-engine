@@ -97,25 +97,25 @@ constructor TNodeKeySensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventactionKeyPress := TVRMLEvent.Create('actionKeyPress', TSFInt32, false);
+  FEventactionKeyPress := TVRMLEvent.Create(Self, 'actionKeyPress', TSFInt32, false);
   Events.Add(FEventactionKeyPress);
 
-  FEventactionKeyRelease := TVRMLEvent.Create('actionKeyRelease', TSFInt32, false);
+  FEventactionKeyRelease := TVRMLEvent.Create(Self, 'actionKeyRelease', TSFInt32, false);
   Events.Add(FEventactionKeyRelease);
 
-  FEventaltKey := TVRMLEvent.Create('altKey', TSFBool, false);
+  FEventaltKey := TVRMLEvent.Create(Self, 'altKey', TSFBool, false);
   Events.Add(FEventaltKey);
 
-  FEventcontrolKey := TVRMLEvent.Create('controlKey', TSFBool, false);
+  FEventcontrolKey := TVRMLEvent.Create(Self, 'controlKey', TSFBool, false);
   Events.Add(FEventcontrolKey);
 
-  FEventkeyPress := TVRMLEvent.Create('keyPress', TSFString, false);
+  FEventkeyPress := TVRMLEvent.Create(Self, 'keyPress', TSFString, false);
   Events.Add(FEventkeyPress);
 
-  FEventkeyRelease := TVRMLEvent.Create('keyRelease', TSFString, false);
+  FEventkeyRelease := TVRMLEvent.Create(Self, 'keyRelease', TSFString, false);
   Events.Add(FEventkeyRelease);
 
-  FEventshiftKey := TVRMLEvent.Create('shiftKey', TSFBool, false);
+  FEventshiftKey := TVRMLEvent.Create(Self, 'shiftKey', TSFBool, false);
   Events.Add(FEventshiftKey);
 
   DefaultContainerField := 'children';
@@ -145,13 +145,13 @@ constructor TNodeStringSensor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddeletionAllowed := TSFBool.Create('deletionAllowed', true);
+  FFddeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
   Fields.Add(FFddeletionAllowed);
 
-  FEvententeredText := TVRMLEvent.Create('enteredText', TSFString, false);
+  FEvententeredText := TVRMLEvent.Create(Self, 'enteredText', TSFString, false);
   Events.Add(FEvententeredText);
 
-  FEventfinalText := TVRMLEvent.Create('finalText', TSFString, false);
+  FEventfinalText := TVRMLEvent.Create(Self, 'finalText', TSFString, false);
   Events.Add(FEventfinalText);
 
   DefaultContainerField := 'children';

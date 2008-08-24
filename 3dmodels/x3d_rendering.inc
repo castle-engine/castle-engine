@@ -455,19 +455,19 @@ begin
   FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
   Fields.Add(FFdtexCoord);
 
-  FFdccw := TSFBool.Create('ccw', true);
+  FFdccw := TSFBool.Create(Self, 'ccw', true);
   FFdccw.Exposed := false;
   Fields.Add(FFdccw);
 
-  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', true);
+  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
   FFdcolorPerVertex.Exposed := false;
   Fields.Add(FFdcolorPerVertex);
 
-  FFdnormalPerVertex := TSFBool.Create('normalPerVertex', true);
+  FFdnormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
   FFdnormalPerVertex.Exposed := false;
   Fields.Add(FFdnormalPerVertex);
 
-  FFdsolid := TSFBool.Create('solid', true);
+  FFdsolid := TSFBool.Create(Self, 'solid', true);
   FFdsolid.Exposed := false;
   Fields.Add(FFdsolid);
 end;
@@ -527,10 +527,10 @@ constructor TNodeClipPlane.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create('enabled', true);
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdenabled);
 
-  FFdplane := TSFVec4f.Create('plane', Vector4Single(0, 1, 0, 0));
+  FFdplane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
   Fields.Add(FFdplane);
   { X3D specification comment: [0,1] }
 
@@ -564,7 +564,7 @@ constructor TNodeColor.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TMFColor.Create('color', []);
+  FFdcolor := TMFColor.Create(Self, 'color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 end;
@@ -595,7 +595,7 @@ constructor TNodeColorRGBA.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdcolor := TMFColorRGBA.Create('color', []);
+  FFdcolor := TMFColorRGBA.Create(Self, 'color', []);
   Fields.Add(FFdcolor);
   { X3D specification comment: [0,1] }
 end;
@@ -624,7 +624,7 @@ constructor TNodeCoordinate.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdpoint := TMFVec3f.Create('point', []);
+  FFdpoint := TMFVec3f.Create(Self, 'point', []);
   Fields.Add(FFdpoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -655,10 +655,10 @@ constructor TNodeIndexedLineSet_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_colorIndex := TVRMLEvent.Create('set_colorIndex', TMFInt32, true);
+  FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventset_colorIndex);
 
-  FEventset_coordIndex := TVRMLEvent.Create('set_coordIndex', TMFInt32, true);
+  FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
 
   FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
@@ -673,16 +673,16 @@ begin
   FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
-  FFdcolorIndex := TMFInt32.Create('colorIndex', []);
+  FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
   FFdcolorIndex.Exposed := false;
   Fields.Add(FFdcolorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdcolorPerVertex := TSFBool.Create('colorPerVertex', true);
+  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
   FFdcolorPerVertex.Exposed := false;
   Fields.Add(FFdcolorPerVertex);
 
-  FFdcoordIndex := TMFInt32.Create('coordIndex', []);
+  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
   FFdcoordIndex.Exposed := false;
   Fields.Add(FFdcoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -742,10 +742,10 @@ constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create('set_index', TMFInt32, true);
+  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
 
-  FFdindex := TMFInt32.Create('index', []);
+  FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -780,10 +780,10 @@ constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create('set_index', TMFInt32, true);
+  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
 
-  FFdindex := TMFInt32.Create('index', []);
+  FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) }
@@ -818,10 +818,10 @@ constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create('set_index', TMFInt32, true);
+  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
 
-  FFdindex := TMFInt32.Create('index', []);
+  FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
   Fields.Add(FFdindex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -868,7 +868,7 @@ begin
   FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
   Fields.Add(FFdfogCoord);
 
-  FFdvertexCount := TMFInt32.Create('vertexCount', []);
+  FFdvertexCount := TMFInt32.Create(Self, 'vertexCount', []);
   Fields.Add(FFdvertexCount);
   { X3D specification comment: [2,Inf) }
 end;
@@ -927,7 +927,7 @@ constructor TNodeNormal.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdvector := TMFVec3f.Create('vector', []);
+  FFdvector := TMFVec3f.Create(Self, 'vector', []);
   Fields.Add(FFdvector);
   { X3D specification comment: [-1,1] }
 
@@ -1013,7 +1013,7 @@ constructor TNodeTriangleFanSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdfanCount := TMFInt32.Create('fanCount', []);
+  FFdfanCount := TMFInt32.Create(Self, 'fanCount', []);
   Fields.Add(FFdfanCount);
   { X3D specification comment: [3,Inf) }
 end;
@@ -1079,7 +1079,7 @@ constructor TNodeTriangleStripSet.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdstripCount := TMFInt32.Create('stripCount', []);
+  FFdstripCount := TMFInt32.Create(Self, 'stripCount', []);
   Fields.Add(FFdstripCount);
   { X3D specification comment: [3,Inf) }
 end;

@@ -113,14 +113,14 @@ constructor TNodeX3DSoundSourceNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddescription := TSFString.Create('description', '');
+  FFddescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFddescription);
 
-  FFdpitch := TSFFloat.Create('pitch', 1.0);
+  FFdpitch := TSFFloat.Create(Self, 'pitch', 1.0);
   Fields.Add(FFdpitch);
   { X3D specification comment: (0,Inf) }
 
-  FEventduration_changed := TVRMLEvent.Create('duration_changed', TSFTime, false);
+  FEventduration_changed := TVRMLEvent.Create(Self, 'duration_changed', TSFTime, false);
   Events.Add(FEventduration_changed);
 
   DefaultContainerField := 'children';
@@ -131,7 +131,7 @@ constructor TNodeAudioClip.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [urn] }
 
@@ -164,42 +164,42 @@ constructor TNodeSound.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, 1));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 1));
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdintensity := TSFFloat.Create('intensity', 1);
+  FFdintensity := TSFFloat.Create(Self, 'intensity', 1);
   Fields.Add(FFdintensity);
   { X3D specification comment: [0,1] }
 
-  FFdlocation := TSFVec3f.Create('location', Vector3Single(0, 0, 0));
+  FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdmaxBack := TSFFloat.Create('maxBack', 10);
+  FFdmaxBack := TSFFloat.Create(Self, 'maxBack', 10);
   Fields.Add(FFdmaxBack);
   { X3D specification comment: [0,Inf) }
 
-  FFdmaxFront := TSFFloat.Create('maxFront', 10);
+  FFdmaxFront := TSFFloat.Create(Self, 'maxFront', 10);
   Fields.Add(FFdmaxFront);
   { X3D specification comment: [0,Inf) }
 
-  FFdminBack := TSFFloat.Create('minBack', 1);
+  FFdminBack := TSFFloat.Create(Self, 'minBack', 1);
   Fields.Add(FFdminBack);
   { X3D specification comment: [0,Inf) }
 
-  FFdminFront := TSFFloat.Create('minFront', 1);
+  FFdminFront := TSFFloat.Create(Self, 'minFront', 1);
   Fields.Add(FFdminFront);
   { X3D specification comment: [0,Inf) }
 
-  FFdpriority := TSFFloat.Create('priority', 0);
+  FFdpriority := TSFFloat.Create(Self, 'priority', 0);
   Fields.Add(FFdpriority);
   { X3D specification comment: [0,1] }
 
   FFdsource := TSFNode.Create(Self, 'source', INodeX3DSoundSourceNode);
   Fields.Add(FFdsource);
 
-  FFdspatialize := TSFBool.Create('spatialize', true);
+  FFdspatialize := TSFBool.Create(Self, 'spatialize', true);
   FFdspatialize.Exposed := false;
   Fields.Add(FFdspatialize);
 

@@ -176,28 +176,28 @@ constructor TNodeX3DLightNode.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdglobal := TSFBool.Create('global', false);
+  FFdglobal := TSFBool.Create(Self, 'global', false);
   Fields.Add(FFdglobal);
 
-  FFdon := TSFBool.Create('on', true);
+  FFdon := TSFBool.Create(Self, 'on', true);
   Fields.Add(FFdon);
 
-  FFdintensity := TSFFloat.Create('intensity', 1);
+  FFdintensity := TSFFloat.Create(Self, 'intensity', 1);
   Fields.Add(FFdintensity);
 
-  FFdcolor := TSFColor.Create('color', Vector3Single(1, 1, 1));
+  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
   Fields.Add(FFdcolor);
 
-  FFdambientIntensity := TSFFloat.Create('ambientIntensity', 0);
+  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0);
   Fields.Add(FFdambientIntensity);
 
-  FFdkambiShadows := TSFBool.Create('kambiShadows', false);
+  FFdkambiShadows := TSFBool.Create(Self, 'kambiShadows', false);
   Fields.Add(FFdkambiShadows);
 
-  FFdkambiShadowsMain := TSFBool.Create('kambiShadowsMain', false);
+  FFdkambiShadowsMain := TSFBool.Create(Self, 'kambiShadowsMain', false);
   Fields.Add(FFdkambiShadowsMain);
 
-  FFdshowProxyGeometry := TSFBool.Create('showProxyGeometry', false);
+  FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
   Fields.Add(FFdshowProxyGeometry);
 
   DefaultContainerField := 'children';
@@ -221,7 +221,7 @@ constructor TVRMLDirectionalLightNode.Create(const ANodeName: string; const AWWW
 begin
   inherited;
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
 end;
 
@@ -243,11 +243,11 @@ constructor TVRMLPositionalLightNode.Create(const ANodeName: string; const AWWWB
 begin
   inherited;
 
-  FFdlocation := TSFVec3f.Create('location', Vector3Single(0, 0, 0));
+  FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
   Fields.Add(FFdlocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdattenuation := TSFVec3f.Create('attenuation', Vector3Single(1, 0, 0));
+  FFdattenuation := TSFVec3f.Create(Self, 'attenuation', Vector3Single(1, 0, 0));
   Fields.Add(FFdattenuation);
   { X3D specification comment: [0,Inf) }
 end;
@@ -344,7 +344,7 @@ constructor TNodePointLight_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdradius := TSFFloat.Create('radius', 100);
+  FFdradius := TSFFloat.Create(Self, 'radius', 100);
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
 
@@ -398,19 +398,19 @@ constructor TNodeSpotLight_2.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdbeamWidth := TSFFloat.Create('beamWidth', Pi / 2);
+  FFdbeamWidth := TSFFloat.Create(Self, 'beamWidth', Pi / 2);
   Fields.Add(FFdbeamWidth);
   { X3D specification comment: (0,Pi/2] }
 
-  FFdcutOffAngle := TSFFloat.Create('cutOffAngle', Pi / 4);
+  FFdcutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
   Fields.Add(FFdcutOffAngle);
   { X3D specification comment: (0,Pi/2] }
 
-  FFddirection := TSFVec3f.Create('direction', Vector3Single(0, 0, -1));
+  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
   Fields.Add(FFddirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdradius := TSFFloat.Create('radius', 100);
+  FFdradius := TSFFloat.Create(Self, 'radius', 100);
   Fields.Add(FFdradius);
   { X3D specification comment: [0,Inf) }
 

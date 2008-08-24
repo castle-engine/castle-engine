@@ -141,11 +141,11 @@ constructor TNodeGeneratedCubeMapTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdupdate := TSFString.Create('update', 'NONE');
+  FFdupdate := TSFString.Create(Self, 'update', 'NONE');
   Fields.Add(FFdupdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdsize := TSFInt32.Create('size', 128);
+  FFdsize := TSFInt32.Create(Self, 'size', 128);
   FFdsize.Exposed := false;
   Fields.Add(FFdsize);
   { X3D specification comment: (0,Inf) }
@@ -179,7 +179,7 @@ constructor TNodeImageCubeMapTexture.Create(const ANodeName: string;
 begin
   inherited;
 
-  FFdurl := TMFString.Create('url', []);
+  FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
   { X3D specification comment: [URI] }
 
