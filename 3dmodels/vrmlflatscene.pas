@@ -320,6 +320,7 @@ type
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
     FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLFlatSceneNotification;
+    FOnChanged: TVRMLFlatSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -414,6 +415,10 @@ type
     property OnAfterChangedAll: TVRMLFlatSceneNotification
       read FOnAfterChangedAll write FOnAfterChangedAll;
     { @groupEnd }
+
+    { Notification when anything changed. }
+    property OnChanged: TVRMLFlatSceneNotification
+      read FOnChanged write FOnChanged;
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
@@ -1026,12 +1031,18 @@ begin
 
   if Assigned(OnAfterChangedAll) then
     OnAfterChangedAll(Self);
+
+  if Assigned(OnChanged) then
+    OnChanged(Self);
 end;
 
 procedure TVRMLFlatScene.ChangedShapeStateFields(ShapeStateNum: integer);
 begin
- Validities := [];
- ShapeStates[ShapeStateNum].Changed;
+  Validities := [];
+  ShapeStates[ShapeStateNum].Changed;
+
+  if Assigned(OnChanged) then
+    OnChanged(Self);
 end;
 
 procedure TVRMLFlatScene.ChangedFields(Node: TVRMLNode);
@@ -1112,11 +1123,17 @@ begin
       if ShapeStates[i].GeometryNode = Node then
         ChangedShapeStateFields(i);
   end else
+  begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
       jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
       co znajduje sie w aktywnej czesci grafu VRMLa pod niniejszym node'm -
       tak sie moglo stac gdy zmienilismy pole Switch.whichChild. ) }
     ChangedAll;
+    Exit;
+  end;
+
+  if Assigned(OnChanged) then
+    OnChanged(Self);
 end;
 
 resourcestring
