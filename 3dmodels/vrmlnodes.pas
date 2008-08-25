@@ -960,7 +960,7 @@ type
       AddChild z niedozwolonym argumentem). W tej chwili oznacza to tylko
       ze nie moze byc ParsingAllowedChildren = true i AllowedChildren = false.
 
-      Note that is some special cases AllowedChildren and
+      Note that in some special cases AllowedChildren and
       ParsingAllowedChildren values may be changed during object lifetime.
       Currently, this may concern TVRMLUnknownNode. }
     property AllowedChildren: boolean read fAllowedChildren default false;
@@ -1470,13 +1470,11 @@ type
         are not part of the transformation hierarchy, but may be referenced
         by ROUTE statements or Script nodes in the prototype definition.)
 
-      We don't really routes or scripts yet, so these nodes are just
-      useless for now... But should become useful at some point.
-
       TODO: memory leaks are known to be possible in some difficult cases
       with PrototypeInstanceHelpers. See e.g.
-      kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak.wrl
-      for simple testcase. Reason: PrototypeInstanceHelpers may contain,
+      ../../../kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak.wrl and
+      ../../../kambi_vrml_test_suite/vrml_2/warnings/errors/proto_leak_2.wrl
+      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
       by DEF statements, links to Self.
       This causes circular dependency (Self is child of some node on
       PrototypeInstanceHelpers, but PrototypeInstanceHelpers will

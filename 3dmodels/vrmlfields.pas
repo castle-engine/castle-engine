@@ -2153,7 +2153,9 @@ begin
 
   { TODO: exposed and AlternativeNames should be copied better,
     to create/free ExposedEvents if needed and to copy FAlternativeNames
-    if needed. }
+    if needed.
+
+    Also, ParentNode should be copied? }
 end;
 
 procedure TVRMLField.AssignValueRaiseInvalidClass(Source: TVRMLField);

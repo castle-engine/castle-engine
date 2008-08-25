@@ -29,13 +29,7 @@ type
   { Base X3D node.
 
     Almost all X3D nodes inherit from this. (Exception:
-    X3DMetadataObject. So you cannot have metadata of metadata of...)
-
-    (TODO: or, at least, they should.
-    Many VRML 1.0 and 2.0 nodes should be upgraded to X3D nodes by making
-    them inherit from this node. For now, this is not done for all nodes,
-    because it would force me to recalculate all FdXxx indexes + 1.
-    I have to figure out better method than these indexes.) }
+    X3DMetadataObject. So you cannot have metadata of metadata of...) }
   TNodeX3DNode = class(TVRMLNode, INodeX3DNode)
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
