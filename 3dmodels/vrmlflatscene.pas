@@ -1035,71 +1035,88 @@ begin
 end;
 
 procedure TVRMLFlatScene.ChangedFields(Node: TVRMLNode);
-var NodeLastNodesIndex, i: integer;
+var
+  NodeLastNodesIndex, i: integer;
+  Coord: TMFVec3f;
 begin
- NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
+  NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
 
- { Ignore this ChangedFields call if node is not in our VRML graph.
-   Or is the inactive part. The definition of "active" part
-   (see e.g. TVRMLNode.Traverse) is exactly such that we can ignore
-   non-active parts here.
+  { Tests: Writeln('ChangedFields ', Node.ClassName, ' (', Node.NodeTypeName, ')'); }
 
-   Exception is for StateDefaultNodes nodes (they are not present in RootNode
-   graph, but influence us).
+  { Ignore this ChangedFields call if node is not in our VRML graph.
+    Or is the inactive part. The definition of "active" part
+    (see e.g. TVRMLNode.Traverse) is exactly such that we can ignore
+    non-active parts here.
 
-   Zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
-   przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
-   pola node'a nie mogla zmienic jego wlasnego stanu active/inactive. }
+    Exception is for StateDefaultNodes nodes (they are not present in RootNode
+    graph, but influence us).
 
- if (RootNode = nil) or
-    ( (not RootNode.IsNodePresent(Node, true)) and
-      ((NodeLastNodesIndex = -1) or
-        (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
-    ) then
-  Exit;
+    Zakladamy tutaj ze IsNodePresent(,true) zwraca stan Node'a zarowno
+    przed modyfkacja pola jak i po - innymi slowy, zakladamy tu ze zmiana
+    pola node'a nie mogla zmienic jego wlasnego stanu active/inactive. }
 
- if NodeLastNodesIndex <> -1 then
- begin
-  { node jest jednym z node'ow Last*. Wiec wplynal tylko na ShapeStates
-    gdzie wystepuje jako Last. }
-  for i := 0 to ShapeStates.Count-1 do
-   if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-    ChangedShapeStateFields(i);
- end else
- if Node is TNodeMaterial_2 then
- begin
-   { VRML 2.0 Material affects only shapes where it's
-     placed inside Appearance.material field. }
-   for I := 0 to ShapeStates.Count - 1 do
-     if ShapeStates[I].State.ParentShape.Material = Node then
-       ChangedShapeStateFields(I);
- end else
- if (Node is TVRMLLightNode) then
- begin
-  { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
-    gdzie wystepuje jako Active.
+  if (RootNode = nil) or
+     ( (not RootNode.IsNodePresent(Node, true)) and
+       ((NodeLastNodesIndex = -1) or
+         (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
+     ) then
+    Exit;
 
-    We use CurrentActiveLights, so possibly VRML2ActiveLights here ---
-    that's OK, they are valid because UpdateVRML2ActiveLights was called
-    when construcing ShapeStates list. }
-  for i := 0 to ShapeStates.Count-1 do
-   if ShapeStates[i].State.CurrentActiveLights.
-        IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
-    ChangedShapeStateFields(i);
- end else
- if (Node is TVRMLGeometryNode) then
- begin
-  { node jest Shape'm. Wiec wplynal tylko na ShapeStates gdzie wystepuje jako
-    GeometryNode. }
-  for i := 0 to ShapeStates.Count-1 do
-   if ShapeStates[i].GeometryNode = Node then
-    ChangedShapeStateFields(i);
- end else
-  { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
-    jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
-    co znajduje sie w aktywnej czesci grafu VRMLa pod niniejszym node'm -
-    tak sie moglo stac gdy zmienilismy pole Switch.whichChild. ) }
-  ChangedAll;
+  if Node is TNodeCoordinate then
+  begin
+    { TNodeCoordinate is special, although it's part of VRML 1.0 state,
+      it can also occur within coordinate-based nodes of VRML >= 2.0.
+      So it affects coordinate-based nodes with this node.
+
+      In fact, code below takes into account both VRML 1.0 and 2.0 situation,
+      that's why it's before "if NodeLastNodesIndex <> -1 then" branch. }
+    for I := 0 to ShapeStates.Count - 1 do
+      if ShapeStates[I].GeometryNode.Coord(ShapeStates[I].State, Coord) and
+         (Coord.ParentNode = Node) then
+        ChangedShapeStateFields(I);
+  end else
+  if NodeLastNodesIndex <> -1 then
+  begin
+    { Node is part of VRML 1.0 state, so it affects ShapeStates where
+      it's present on State.LastNodes list. }
+    for i := 0 to ShapeStates.Count - 1 do
+      if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
+        ChangedShapeStateFields(i);
+  end else
+  if Node is TNodeMaterial_2 then
+  begin
+    { VRML 2.0 Material affects only shapes where it's
+      placed inside Appearance.material field. }
+    for I := 0 to ShapeStates.Count - 1 do
+      if ShapeStates[I].State.ParentShape.Material = Node then
+        ChangedShapeStateFields(I);
+  end else
+  if Node is TVRMLLightNode then
+  begin
+    { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
+      gdzie wystepuje jako Active.
+
+      We use CurrentActiveLights, so possibly VRML2ActiveLights here ---
+      that's OK, they are valid because UpdateVRML2ActiveLights was called
+      when construcing ShapeStates list. }
+    for i := 0 to ShapeStates.Count-1 do
+      if ShapeStates[i].State.CurrentActiveLights.
+           IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
+        ChangedShapeStateFields(i);
+  end else
+  if Node is TVRMLGeometryNode then
+  begin
+    { node jest Shape'm. Wiec wplynal tylko na ShapeStates gdzie wystepuje jako
+      GeometryNode. }
+    for i := 0 to ShapeStates.Count-1 do
+      if ShapeStates[i].GeometryNode = Node then
+        ChangedShapeStateFields(i);
+  end else
+    { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
+      jakos na State nastepujacych po nim node'ow (a moze nawet wplynela na to
+      co znajduje sie w aktywnej czesci grafu VRMLa pod niniejszym node'm -
+      tak sie moglo stac gdy zmienilismy pole Switch.whichChild. ) }
+    ChangedAll;
 end;
 
 resourcestring

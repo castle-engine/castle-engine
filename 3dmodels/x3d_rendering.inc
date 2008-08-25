@@ -31,6 +31,9 @@
   end;
 
   TNodeX3DComposedGeometryNode = class(TNodeX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -512,6 +515,17 @@ begin
      (FdNormal.Value is TNodeNormal) then
     Result := TNodeNormal(FdNormal.Value).FdVector.Items else
     Result := nil;
+end;
+
+procedure TNodeX3DComposedGeometryNode.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  Fdattrib.EnumerateValid(Func);
+  Fdcolor.EnumerateValid(Func);
+  Fdcoord.EnumerateValid(Func);
+  FdfogCoord.EnumerateValid(Func);
+  Fdnormal.EnumerateValid(Func);
+  FdtexCoord.EnumerateValid(Func);
 end;
 
 constructor TNodeX3DCoordinateNode.Create(const ANodeName: string;

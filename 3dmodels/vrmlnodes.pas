@@ -1754,6 +1754,13 @@ type
 
     function ChildAllowed(Child: TVRMLNode): boolean;
     function CurrentChildAllowed: boolean;
+
+    { Calls Func for our @link(Value), assuming it's set (non-nil) and valid
+      (allowed by ChildAllowed).
+
+      The main use for this is to simplify implementation of
+      @link(TVRMLNode.DirectEnumerateActive) overrides in TVRMLNode descendants. }
+    procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 
   { MFNode VRML field.
@@ -1884,6 +1891,13 @@ type
 
     property DefaultValueExists: boolean
       read FDefaultValueExists write FDefaultValueExists default false;
+
+    { Calls Func for all current children that are valid
+      (allowed by ChildAllowed).
+
+      The main use for this is to simplify implementation of
+      @link(TVRMLNode.DirectEnumerateActive) overrides in TVRMLNode descendants. }
+    procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 
 { Specific VRML nodes from specifications, part 1 -------------------------- }
@@ -2098,7 +2112,7 @@ type
 
     { Return node's list of coordinates. Returns @false if node is
       not based on coordinates. Returns @true and sets ACoord
-      if the node is based on coordinated. Even when returns @true,
+      if the node is based on coordinates. Even when returns @true,
       it can set ACoord = @nil, which means that node is based on
       coordinates but they are empty right now (so for example
       bounding box may be considered empty).
@@ -5090,6 +5104,12 @@ begin
   Result := 'SFNode';
 end;
 
+procedure TSFNode.EnumerateValid(Func: TEnumerateChildrenFunction);
+begin
+  if (Value <> nil) and CurrentChildAllowed then
+    Func(ParentNode, Value);
+end;
+
 { TMFNode -------------------------------------------------------------------- }
 
 constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
@@ -5369,6 +5389,15 @@ end;
 class function TMFNode.VRMLTypeName: string;
 begin
   Result := 'MFNode';
+end;
+
+procedure TMFNode.EnumerateValid(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if ChildAllowed(Items[I]) then
+      Func(ParentNode, Items[I]);
 end;
 
 { TVRMLGeometryNode ---------------------------------------------------------- }

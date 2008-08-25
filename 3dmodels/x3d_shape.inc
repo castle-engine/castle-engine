@@ -309,12 +309,18 @@ end;
 procedure TNodeX3DShapeNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
-  if FdGeometry.Value <> nil then
+  { According to VRML spec, when geometry is NULL then object is not
+    drawn so appearance doesn't matter. }
+
+  if FdGeometry.CurrentChildAllowed and
+     (FdGeometry.Value <> nil) then
   begin
-    { According to VRML spec, when geometry is NULL then object is not
-      drawn so appearance doesn't matter. }
-    if FdAppearance.Value <> nil then
-      Func(Self, FdAppearance.Value);
+    FdAppearance.EnumerateValid(Func);
+
+    { We could also do now
+        FdGeometry.EnumerateValid(Func);
+      but actually we already checked conditions, so we can just call Func
+      directly. }
     Func(Self, FdGeometry.Value);
   end;
 end;
@@ -492,31 +498,13 @@ end;
 
 procedure TNodeAppearance.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
 begin
-  if FFdfillProperties.CurrentChildAllowed and
-    (FFdfillProperties.Value <> nil) then
-    Func(Self, FFdfillProperties.Value);
-
-  if FFdlineProperties.CurrentChildAllowed and
-    (FFdlineProperties.Value <> nil) then
-    Func(Self, FFdlineProperties.Value);
-
-  if FFdmaterial.CurrentChildAllowed and
-    (FFdmaterial.Value <> nil) then
-    Func(Self, FFdmaterial.Value);
-
-  for I := 0 to FFdshaders.Count - 1 do
-    Func(Self, FFdshaders.Items[I]);
-
-  if FFdtexture.CurrentChildAllowed and
-    (FFdtexture.Value <> nil) then
-    Func(Self, FFdtexture.Value);
-
-  if FFdtextureTransform.CurrentChildAllowed and
-    (FFdtextureTransform.Value <> nil) then
-    Func(Self, FFdtextureTransform.Value);
+  FFdfillProperties.EnumerateValid(Func);
+  FFdlineProperties.EnumerateValid(Func);
+  FFdmaterial.EnumerateValid(Func);
+  FFdshaders.EnumerateValid(Func);
+  FFdtexture.EnumerateValid(Func);
+  FFdtextureTransform.EnumerateValid(Func);
 end;
 
 constructor TNodeFillProperties.Create(const ANodeName: string;
