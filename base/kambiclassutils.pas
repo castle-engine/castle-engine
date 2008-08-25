@@ -518,7 +518,7 @@ type
       Sometimes it's also more comfortable, and it's a little faster. }
     function ReadChar: Integer; virtual; abstract;
 
-    { Whole PeekChar is not one of EndingChars (and it's not eof)
+    { While PeekChar is not one of EndingChars (and it's not eof)
       it reads chars from stream and appends them to Result.
       This means that Result is guaranteed to not contain any char
       from EndingChars. }
@@ -800,7 +800,7 @@ begin
   if Self <> nil then
   begin
     FreeContents;
-  
+
     { This is written as "Self.Destroy" to actually do the desctruction,
       freeing memory etc. If I would just call it "Destroy", it would
       perform what destructor does but leaving object instance unfreed. }
