@@ -6720,7 +6720,7 @@ begin
     WriteEnding(SourceNode     , SourceExposedField     , SourceEvent     , 'source'     );
     Output += ' TO ';
     WriteEnding(DestinationNode, DestinationExposedField, DestinationEvent, 'destination');
-    SaveProperties.Writeln(Output);
+    SaveProperties.WritelnIndent(Output);
   except
     on E: EVRMLRouteSaveError do
     begin
