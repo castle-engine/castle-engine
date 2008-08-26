@@ -168,6 +168,10 @@ type
       TVRMLFlatSceneGL.PrepareRender), and after that call FreeResources
       with frRootNode.
 
+      Note that event processing is impossible without RootNode nodes and
+      fields and routes, so don't ever use this if you want to set
+      TVRMLFlatScene.ProcessEvents to @true.
+
       Note that if you will try to use a resource that was already freed
       by frRootNode, you may even get segfault (access violation).
       So be really careful, be sure to prepare everything first by
@@ -351,6 +355,8 @@ type
     procedure InternalSetWorldTime(
       const NewValue, TimeIncrease: TKamTime;
       out SomethingChanged: boolean);
+
+    procedure ResetRoutesLastEventTime(Node: TVRMLNode);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -2081,19 +2087,31 @@ procedure TVRMLFlatScene.InternalSetWorldTime(
       CycleInterval and not looping. }
     procedure IncreaseElapsedTime(const Increase: TKamTime;
       StopOnNonLoopedEnd: boolean);
+    var
+      NewElapsedTime: TKamTime;
     begin
-      TimeHandler.ElapsedTime := TimeHandler.ElapsedTime + Increase;
-      if TimeHandler.ElapsedTime > TimeHandler.CycleInterval then
+      { Note that each set of TimeHandler.ElapsedTime may generate events.
+        So we cannot carelessly set TimeHandler.ElapsedTime now,
+        and then correct it if > TimeHandler.CycleInterval, as this would
+        cause double event at the same timestamp. Instead, we have to
+        save it in NewElapsedTime variable. }
+
+      NewElapsedTime := TimeHandler.ElapsedTime + Increase;
+
+      if NewElapsedTime > TimeHandler.CycleInterval then
       begin
         if TimeHandler.CycleInterval <> 0 then
         begin
           if TimeHandler.FdLoop.Value then
           begin
             TimeHandler.ElapsedTime :=
-              FloatModulo(TimeHandler.ElapsedTime, TimeHandler.CycleInterval);
+              FloatModulo(NewElapsedTime, TimeHandler.CycleInterval);
           end else
-          if StopOnNonLoopedEnd then
-            TimeHandler.IsActive := false;
+          begin
+            TimeHandler.ElapsedTime := NewElapsedTime;
+            if StopOnNonLoopedEnd then
+              TimeHandler.IsActive := false;
+          end;
         end else
         begin
           { for cycleInterval = 0 this always remains 0 }
@@ -2102,7 +2120,8 @@ procedure TVRMLFlatScene.InternalSetWorldTime(
           if (not TimeHandler.FdLoop.Value) and StopOnNonLoopedEnd then
             TimeHandler.IsActive := false;
         end;
-      end;
+      end else
+        TimeHandler.ElapsedTime := NewElapsedTime;
     end;
 
   begin
@@ -2234,10 +2253,20 @@ begin
     InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease, SomethingChanged);
 end;
 
+procedure TVRMLFlatScene.ResetRoutesLastEventTime(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  for I := 0 to Node.Routes.Count - 1 do
+    Node.Routes[I].ResetLastEventTime;
+end;
+
 procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime;
   out SomethingChanged: boolean);
 begin
   InternalSetWorldTime(NewValue, 0, SomethingChanged);
+  if RootNode <> nil then
+    RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
 end;
 
 procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime);

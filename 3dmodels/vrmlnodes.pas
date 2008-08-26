@@ -2688,9 +2688,12 @@ type
       var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
+    LastEventTime: TKamTime;
+
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TKamTime);
   public
+    constructor Create;
     destructor Destroy; override;
 
     { Source event properties. Either all three are @nil, or:
@@ -2744,6 +2747,16 @@ type
       or the name is not currently bound in SaveProperties.NodeNameBinding.
     }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+
+    { Clear the memory when the last event passed through this route.
+      Route must remember such thing, to avoid loops in routes.
+      This is following VRML 2.0 / X3D specifications, that explicitly
+      say that only one event per ROUTE per timestamp is allowed.
+
+      Use ResetLastEventTime when you really want to reset this memory.
+      In practice, this should be used only by TVRMLFlatScene.ResetWorldTime
+      implementation. }
+    procedure ResetLastEventTime;
   end;
 
   TObjectsListItem_5 = TVRMLRoute;
@@ -3111,7 +3124,7 @@ uses
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry;
+  VRMLGeometry, KambiLog;
 
 {$define read_implementation}
 
@@ -6515,6 +6528,12 @@ end;
 
 { TVRMLRoute ----------------------------------------------------------------- }
 
+constructor TVRMLRoute.Create;
+begin
+  inherited;
+  ResetLastEventTime;
+end;
+
 destructor TVRMLRoute.Destroy;
 begin
   { We have to unset, to call
@@ -6589,8 +6608,24 @@ procedure TVRMLRoute.EventReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   Assert(Event = SourceEvent);
-  if DestinationEvent <> nil then
-    DestinationEvent.Send(Value, Time);
+
+  { Follow ROUTE only when LastEventTime is older than current Time.
+    This avoids loops in ROUTEs, following VRML / X3D specs. }
+  if Time > LastEventTime then
+  begin
+    LastEventTime := Time;
+    if DestinationEvent <> nil then
+      DestinationEvent.Send(Value, Time);
+  end else
+  if Log then
+    WritelnLog('VRMLRoute', Format(
+      'Route from %s.%s ignored another event at <= timestamp (%f, while last event was on %f). Potential routes loop avoided',
+      [ SourceNode.NodeName, SourceEvent.Name, Time, LastEventTime ]));
+end;
+
+procedure TVRMLRoute.ResetLastEventTime;
+begin
+  LastEventTime := -MaxDouble;
 end;
 
 type
