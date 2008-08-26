@@ -79,14 +79,14 @@
   public
     Node: TVRMLNode;
 
-    WorldTime: TKamTime;
+    CurrentTime: TKamTime;
 
     { These describe current state of this TimeDependentNode,
       see X3D specification about "Time" component.
 
       Their setting causes appropriate events to be generated
-      (with Time = WorldTime, so be sure to update it before changing
-      these properties).
+      (with Time = CurrentTime, so be sure to update it before changing
+      these properties. SetWorldTime automatically does this for you.).
 
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
@@ -107,6 +107,27 @@
     EventelapsedTime: TVRMLEvent;
     EventisActive: TVRMLEvent;
     EventisPaused: TVRMLEvent;
+
+    { Call this when world time increases.
+      This is the most important method of this class, that basically
+      implements time-dependent nodes operations.
+
+      OldValue, NewValue and TimeIncrease must match, as produced
+      by TVRMLFlatScene.SetWorldTime and friends.
+
+      TimeIncrease = 0.0 here means "TimeIncrease is unknown",
+      this can happen only when were called by ResetWorldTime.
+      In other circumstances, TimeIncrease must be > 0.
+
+      References: see X3D specification "Time" component,
+      8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
+      cycleInterval, loop properties.
+
+      @param(SomethingChanged May only be set to @true (this method never
+        sets this to @false), when some state of time-dependent node
+        changed.) }
+    procedure SetWorldTime(const OldValue, NewValue, TimeIncrease: TKamTime;
+      var SomethingChanged: boolean);
   end;
 
   TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
@@ -190,7 +211,7 @@ begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value, WorldTime);
+    EventIsActive.Send(Value, CurrentTime);
   end;
 end;
 
@@ -199,7 +220,7 @@ begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value, WorldTime);
+    EventIsPaused.Send(Value, CurrentTime);
   end;
 end;
 
@@ -208,7 +229,7 @@ begin
   if Value <> FElapsedTime then
   begin
     FElapsedTime := Value;
-    EventElapsedTime.Send(Value, WorldTime);
+    EventElapsedTime.Send(Value, CurrentTime);
   end;
 end;
 
@@ -216,6 +237,148 @@ function TTimeDependentNodeHandler.CycleInterval: TKamTime;
 begin
   Assert(Assigned(OnCycleInterval));
   Result := OnCycleInterval();
+end;
+
+procedure TTimeDependentNodeHandler.SetWorldTime(
+  const OldValue, NewValue, TimeIncrease: TKamTime;
+  var SomethingChanged: boolean);
+
+  { $define LOG_TIME_DEPENDENT_NODES}
+
+  { Increase ElapsedTime, taking care of
+    CycleInterval and looping.
+    StopOnNonLoopedEnd says what to do if ElapsedTime passed
+    CycleInterval and not looping. }
+  procedure IncreaseElapsedTime(const Increase: TKamTime;
+    StopOnNonLoopedEnd: boolean);
+  var
+    NewElapsedTime: TKamTime;
+  begin
+    { Note that each set of ElapsedTime may generate events.
+      So we cannot carelessly set ElapsedTime now,
+      and then correct it if > CycleInterval, as this would
+      cause double event at the same timestamp. Instead, we have to
+      save it in NewElapsedTime variable. }
+
+    NewElapsedTime := ElapsedTime + Increase;
+
+    if NewElapsedTime > CycleInterval then
+    begin
+      if CycleInterval <> 0 then
+      begin
+        if FdLoop.Value then
+        begin
+          ElapsedTime :=
+            FloatModulo(NewElapsedTime, CycleInterval);
+        end else
+        begin
+          ElapsedTime := NewElapsedTime;
+          if StopOnNonLoopedEnd then
+            IsActive := false;
+        end;
+      end else
+      begin
+        { for cycleInterval = 0 this always remains 0 }
+        ElapsedTime := 0;
+
+        if (not FdLoop.Value) and StopOnNonLoopedEnd then
+          IsActive := false;
+      end;
+    end else
+      ElapsedTime := NewElapsedTime;
+  end;
+
+begin
+  {$ifdef LOG_TIME_DEPENDENT_NODES}
+  if Log then
+    WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
+      [ Node.NodeTypeName,
+        BoolToStr[IsActive],
+        BoolToStr[IsPaused],
+        BoolToStr[FdLoop.Value]
+        ]));
+  {$endif}
+
+  CurrentTime := OldValue;
+
+  { For ResetWorldTime, set time-dependent node properties to default
+    (like after TNodeTimeHandler creation) at the beginning. }
+  if TimeIncrease = 0 then
+  begin
+    IsActive := false;
+    IsPaused := false;
+    ElapsedTime := 0;
+  end;
+
+  if not IsActive then
+  begin
+    if (NewValue >= FdStartTime.Value) and
+       ( (NewValue < FdStopTime.Value) or
+         { stopTime is ignored if it's <= startTime }
+         (FdStopTime.Value <= FdStartTime.Value) ) and
+       { avoid starting the movie if it should be stopped according
+         to loop and cycleInterval }
+       not ( (NewValue - FdStartTime.Value >
+             CycleInterval) and
+             (not FdLoop.Value) ) then
+    begin
+      IsActive := true;
+      IsPaused := false;
+      ElapsedTime := 0;
+      { Do not advance by TimeIncrease (time from last WorldTime),
+        advance only by the time passed since startTime. }
+      IncreaseElapsedTime(NewValue - FdStartTime.Value, true);
+      SomethingChanged := true;
+    end;
+  end else
+  if IsPaused then
+  begin
+    if (NewValue >= FdResumeTime.Value) and
+       (FdResumeTime.Value > FdPauseTime.Value) then
+    begin
+      IsPaused := false;
+      { Advance only by the time passed since resumeTime. }
+      IncreaseElapsedTime(NewValue - FdResumeTime.Value, true);
+      SomethingChanged := true;
+    end;
+  end else
+  begin
+    SomethingChanged := true;
+
+    if (NewValue >= FdStopTime.Value) and
+       { stopTime is ignored if it's <= startTime }
+       (FdStopTime.Value > FdStartTime.Value) then
+    begin
+      IsActive := false;
+      { advance only to the stopTime }
+      if TimeIncrease <> 0 then
+        IncreaseElapsedTime(TimeIncrease -
+          (NewValue - FdStopTime.Value), false);
+    end else
+    if (NewValue >= FdPauseTime.Value) and
+       (FdPauseTime.Value > FdResumeTime.Value) then
+    begin
+      IsPaused := true;
+      { advance only to the pauseTime }
+      if TimeIncrease <> 0 then
+        IncreaseElapsedTime(TimeIncrease -
+          (NewValue - FdPauseTime.Value), false);
+    end else
+    begin
+      { active and not paused movie }
+      if TimeIncrease = 0 then
+        ElapsedTime := 0 else
+        IncreaseElapsedTime(TimeIncrease, true);
+    end;
+  end;
+
+  {$ifdef LOG_TIME_DEPENDENT_NODES}
+  if Log then
+    WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
+      [ Node.NodeTypeName,
+        BoolToStr[IsActive],
+        BoolToStr[IsPaused]]));
+  {$endif}
 end;
 
 constructor TNodeTimeSensor.Create(const ANodeName: string;
