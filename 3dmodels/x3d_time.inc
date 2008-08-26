@@ -79,10 +79,14 @@
   public
     Node: TVRMLNode;
 
+    WorldTime: TKamTime;
+
     { These describe current state of this TimeDependentNode,
       see X3D specification about "Time" component.
 
-      Their setting causes appropriate events to be generated.
+      Their setting causes appropriate events to be generated
+      (with Time = WorldTime, so be sure to update it before changing
+      these properties).
 
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
@@ -109,7 +113,8 @@
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     function CycleInterval: TKamTime;
-    procedure EventElapsedTimeReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventElapsedTimeReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -185,7 +190,7 @@ begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value);
+    EventIsActive.Send(Value, WorldTime);
   end;
 end;
 
@@ -194,7 +199,7 @@ begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value);
+    EventIsPaused.Send(Value, WorldTime);
   end;
 end;
 
@@ -203,7 +208,7 @@ begin
   if Value <> FElapsedTime then
   begin
     FElapsedTime := Value;
-    EventElapsedTime.Send(Value);
+    EventElapsedTime.Send(Value, WorldTime);
   end;
 end;
 
@@ -285,11 +290,12 @@ begin
 end;
 
 procedure TNodeTimeSensor.EventElapsedTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   { TODO: for now, elapsedTime/CycleInterval is simply passed to set_fraction event. }
-  FEventfraction_changed.Send(
-    Single((Value as TSFTime).Value / CycleInterval));
+  Eventfraction_changed.Send(
+    Single((Value as TSFTime).Value / CycleInterval), Time);
+  EventTime.Send(Time, Time);
 end;
 
 procedure RegisterTimeNodes;

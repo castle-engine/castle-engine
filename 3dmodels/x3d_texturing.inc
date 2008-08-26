@@ -835,7 +835,7 @@ begin
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
-      EventDuration_Changed.Send(FDuration);
+      EventDuration_Changed.Send(FDuration, 0 { TODO - what WorldTime is now? });
       Break;
     except
       on E: Exception do

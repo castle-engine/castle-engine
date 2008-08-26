@@ -66,7 +66,8 @@
     WriteStream: TStream;
     OwnsWriteStream: boolean;
     WriteStreamInitialized: boolean;
-    procedure EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventWriteReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     destructor Destroy; override;
@@ -248,7 +249,8 @@ begin
   inherited;
 end;
 
-procedure TNodeLogger.EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
+procedure TNodeLogger.EventWriteReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 
   procedure StdOutNotAvail;
   begin
@@ -264,8 +266,8 @@ procedure TNodeLogger.EventWriteReceive(Event: TVRMLEvent; Value: TVRMLField);
     S: string;
     SaveProperties: TVRMLSaveToStreamProperties;
   begin
-    S := Format('Logger "%s": received field "%s" (%s), on %s.',
-      [NodeName, Value.Name, Value.VRMLTypeName, DateTimeToAtStr(Now)]);
+    S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
+      [NodeName, Value.Name, Value.VRMLTypeName, Time]);
 
     if FdLevel.Value = 1 then
     begin

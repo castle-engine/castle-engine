@@ -25,7 +25,7 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils, KambiInterfaces;
+  Images, KambiStringUtils, KambiInterfaces, KambiTimeUtils;
 
 {$define read_interface}
 
@@ -263,7 +263,8 @@ type
     FExposedEvents: array [boolean] of TVRMLEvent;
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
 
-    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   protected
 
     { Save field value to a stream. Must be overriden for each specific
@@ -2040,7 +2041,8 @@ begin
   Result := FExposedEvents[InEvent];
 end;
 
-procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField);
+procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
+  const Time: TKamTime);
 begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
@@ -2051,7 +2053,7 @@ begin
 
   AssignValue(Value);
 
-  FExposedEvents[false].Send(Value);
+  FExposedEvents[false].Send(Value, Time);
 end;
 
 const

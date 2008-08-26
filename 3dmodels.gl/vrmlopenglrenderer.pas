@@ -956,7 +956,8 @@ type
       GLSLProgram: TGLSLProgram; UniformName: string;
       UniformValue: TVRMLField);
 
-    procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
 
     function GLSLProgram_IncReference(
       ProgramNode: TNodeComposedShader): TGLSLProgram;
@@ -1828,7 +1829,7 @@ begin
 end;
 
 procedure TVRMLOpenGLRendererContextCache.EventReceiveGLSLUniform(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 var
   I: Integer;
   GLSLProgramCache: PGLSLProgramCache;

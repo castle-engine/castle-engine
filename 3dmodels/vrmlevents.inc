@@ -22,7 +22,8 @@
 {$ifdef read_interface}
 
   { VRML event. }
-  TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField) of object;
+  TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
+    const Time: TKamTime) of object;
 
   TDynArrayItem_1 = TVRMLEventReceive;
   PDynArrayItem_1 = ^TVRMLEventReceive;
@@ -34,7 +35,8 @@
   public
     { This calls all functions (all Items) passing them
       (Event, Value) parameters. }
-    procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField);
+    procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   end;
 
   TVRMLEvent = class(TVRMLFieldOrEvent)
@@ -70,7 +72,7 @@
       The Field instance doesn't become owned in any way by the TVRMLEvent.
       That is, it's the caller responsibility to free the Field instance
       at any comfortable time, possibly right after calling Send. }
-    procedure Send(Field: TVRMLField);
+    procedure Send(Field: TVRMLField; const Time: TKamTime);
 
     { Send a value to event.
 
@@ -83,14 +85,14 @@
       event name then).
 
       @groupBegin }
-    procedure Send(const Value: LongInt);
-    procedure Send(const Value: boolean);
-    procedure Send(const Value: string);
-    procedure Send(const Value: TVector2Single);
-    procedure Send(const Value: TVector3Single);
-    procedure Send(const Value: TVector4Single);
-    procedure Send(const Value: Single);
-    procedure Send(const Value: Double);
+    procedure Send(const Value: LongInt; const Time: TKamTime);
+    procedure Send(const Value: boolean; const Time: TKamTime);
+    procedure Send(const Value: string; const Time: TKamTime);
+    procedure Send(const Value: TVector2Single; const Time: TKamTime);
+    procedure Send(const Value: TVector3Single; const Time: TKamTime);
+    procedure Send(const Value: TVector4Single; const Time: TKamTime);
+    procedure Send(const Value: Single; const Time: TKamTime);
+    procedure Send(const Value: Double; const Time: TKamTime);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -117,12 +119,13 @@
 
 { TDynVRMLEventReceiveArray -------------------------------------------------- }
 
-procedure TDynVRMLEventReceiveArray.ExecuteAll(Event: TVRMLEvent; Value: TVRMLField);
+procedure TDynVRMLEventReceiveArray.ExecuteAll(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 var
   I: Integer;
 begin
   for I := 0 to Length - 1 do
-    Items[I](Event, Value);
+    Items[I](Event, Value, Time);
 end;
 
 { TVRMLEvent ----------------------------------------------------------------- }
@@ -159,15 +162,15 @@ begin
   SaveProperties.Writeln;
 end;
 
-procedure TVRMLEvent.Send(Field: TVRMLField);
+procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TKamTime);
 begin
   Assert(Field <> nil);
   Assert(Field is FieldClass);
   Assert(not Field.IsClause);
-  FOnReceive.ExecuteAll(Self, Field);
+  FOnReceive.ExecuteAll(Self, Field, Time);
 end;
 
-procedure TVRMLEvent.Send(const Value: LongInt);
+procedure TVRMLEvent.Send(const Value: LongInt; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
@@ -175,41 +178,41 @@ begin
     Field := TSFInt32.Create(ParentNode, Name, Value) else
     Field := TSFLong.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: boolean);
+procedure TVRMLEvent.Send(const Value: boolean; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
   Field := TSFBool.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: string);
+procedure TVRMLEvent.Send(const Value: string; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
   Field := TSFString.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector2Single);
+procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
   Field := TSFVec2f.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector3Single);
+procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
@@ -217,11 +220,11 @@ begin
     Field := TSFColor.Create(ParentNode, Name, Value) else
     Field := TSFVec3f.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector4Single);
+procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
@@ -231,21 +234,21 @@ begin
     Field := TSFRotation.Create(ParentNode, Name, Value) else
     Field := TSFVec4f.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Single);
+procedure TVRMLEvent.Send(const Value: Single; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
   Field := TSFFloat.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Double);
+procedure TVRMLEvent.Send(const Value: Double; const Time: TKamTime);
 var
   Field: TVRMLField;
 begin
@@ -253,7 +256,7 @@ begin
     Field := TSFTime.Create(ParentNode, Name, Value) else
     Field := TSFDouble.Create(ParentNode, Name, Value);
   try
-    Send(Field);
+    Send(Field, Time);
   finally FreeAndNil(Field) end;
 end;
 

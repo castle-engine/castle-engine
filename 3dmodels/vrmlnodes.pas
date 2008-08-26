@@ -2688,7 +2688,8 @@ type
       var Node: TVRMLNode; var ExposedField: TVRMLField; var Event: TVRMLEvent;
       const DestEnding: boolean);
 
-    procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     destructor Destroy; override;
 
@@ -6584,11 +6585,12 @@ begin
   Event := nil;
 end;
 
-procedure TVRMLRoute.EventReceive(Event: TVRMLEvent; Value: TVRMLField);
+procedure TVRMLRoute.EventReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   Assert(Event = SourceEvent);
   if DestinationEvent <> nil then
-    DestinationEvent.Send(Value);
+    DestinationEvent.Send(Value, Time);
 end;
 
 type

@@ -49,7 +49,8 @@
 
   TNodeColorInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -67,7 +68,8 @@
 
   TNodeCoordinateInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -85,7 +87,8 @@
 
   TNodeCoordinateInterpolator2D = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -126,7 +129,8 @@
 
   TNodeNormalInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -144,7 +148,8 @@
 
   TNodeOrientationInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -162,7 +167,8 @@
 
   TNodePositionInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -180,7 +186,8 @@
 
   TNodePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -198,7 +205,8 @@
 
   TNodeScalarInterpolator = class(TNodeX3DInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -339,7 +347,7 @@ begin
       OutputValue := KeyValue(KeyCount - 1) else
       OutputValue := Lerp(T, KeyValue(Range - 1), KeyValue(Range));
   end;
-  EventValue_Changed.Send(OutputValue);
+  EventValue_Changed.Send(OutputValue, Time);
 end;}
 
 {$define MultipleInterpolator :=
@@ -408,7 +416,7 @@ begin
     end;
   end;
   try
-    EventValue_Changed.Send(OutputValue);
+    EventValue_Changed.Send(OutputValue, Time);
   finally
     FreeAndNil(OutputValue);
   end;
@@ -524,7 +532,7 @@ begin
 end;
 
 procedure TNodeColorInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 SingleInterpolator
@@ -568,7 +576,7 @@ begin
 end;
 
 procedure TNodeCoordinateInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
@@ -610,7 +618,7 @@ begin
 end;
 
 procedure TNodeCoordinateInterpolator2D.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define MultipleInterpolatorFieldType := TMFVec2f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
@@ -695,7 +703,7 @@ begin
 end;
 
 procedure TNodeNormalInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
 MultipleInterpolator
@@ -739,7 +747,7 @@ begin
 end;
 
 procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define SingleInterpolatorType := TVector4Single}
 {$define SingleInterpolatorDefault := ZeroVector4Single}
 SingleInterpolator
@@ -783,7 +791,7 @@ begin
 end;
 
 procedure TNodePositionInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 SingleInterpolator
@@ -825,7 +833,7 @@ begin
 end;
 
 procedure TNodePositionInterpolator2D.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define SingleInterpolatorType := TVector2Single}
 {$define SingleInterpolatorDefault := ZeroVector2Single}
 SingleInterpolator
@@ -869,7 +877,7 @@ begin
 end;
 
 procedure TNodeScalarInterpolator.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 {$define SingleInterpolatorType := Single}
 {$define SingleInterpolatorDefault := 0}
 SingleInterpolator

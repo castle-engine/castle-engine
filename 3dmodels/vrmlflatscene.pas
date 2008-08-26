@@ -334,7 +334,8 @@ type
     procedure Collect_MovieTexture(Node: TVRMLNode);
     procedure Collect_ChangedFields(Node: TVRMLNode);
 
-    procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField);
+    procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField;
+      const Time: TKamTime);
 
     FWorldTime: TKamTime;
 
@@ -1913,7 +1914,8 @@ begin
   MovieTextureNodes.AddIfNotExists(Node);
 end;
 
-procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);
+procedure TVRMLFlatScene.EventChanged(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   if Event.ParentNode <> nil then
     ChangedFields(Event.ParentNode as TVRMLNode) else
@@ -2017,14 +2019,14 @@ begin
       KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
       if KeySensor.FdEnabled.Value then
       begin
-        KeySensor.EventIsActive.Send(true);
+        KeySensor.EventIsActive.Send(true, WorldTime);
         if KeyToActionKey(Key, ActionKey) then
-          KeySensor.EventActionKeyPress.Send(ActionKey);
-        KeySensor.EventKeyPress.Send(C);
+          KeySensor.EventActionKeyPress.Send(ActionKey, WorldTime);
+        KeySensor.EventKeyPress.Send(C, WorldTime);
         case Key of
-          K_Alt: KeySensor.EventAltKey.Send(true);
-          K_Ctrl: KeySensor.EventControlKey.Send(true);
-          K_Shift: KeySensor.EventShiftKey.Send(true);
+          K_Alt: KeySensor.EventAltKey.Send(true, WorldTime);
+          K_Ctrl: KeySensor.EventControlKey.Send(true, WorldTime);
+          K_Shift: KeySensor.EventShiftKey.Send(true, WorldTime);
         end;
       end;
     end;
@@ -2044,14 +2046,14 @@ begin
       KeySensor := KeySensorNodes.Items[I] as TNodeKeySensor;
       if KeySensor.FdEnabled.Value then
       begin
-        KeySensor.EventIsActive.Send(false);
+        KeySensor.EventIsActive.Send(false, WorldTime);
         if KeyToActionKey(Key, ActionKey) then
-          KeySensor.EventActionKeyRelease.Send(ActionKey);
-        { TODO: KeySensor.EventKeyRelease.Send(C) would be nice here }
+          KeySensor.EventActionKeyRelease.Send(ActionKey, WorldTime);
+        { TODO: KeySensor.EventKeyRelease.Send(C, WorldTime) would be nice here }
         case Key of
-          K_Alt: KeySensor.EventAltKey.Send(false);
-          K_Ctrl: KeySensor.EventControlKey.Send(false);
-          K_Shift: KeySensor.EventShiftKey.Send(false);
+          K_Alt: KeySensor.EventAltKey.Send(false, WorldTime);
+          K_Ctrl: KeySensor.EventControlKey.Send(false, WorldTime);
+          K_Shift: KeySensor.EventShiftKey.Send(false, WorldTime);
         end;
       end;
     end;
@@ -2113,6 +2115,8 @@ procedure TVRMLFlatScene.InternalSetWorldTime(
           BoolToStr[TimeHandler.FdLoop.Value]
           ]));
     {$endif}
+
+    TimeHandler.WorldTime := WorldTime;
 
     { For ResetWorldTime, set time-dependent node properties to default
       (like after TNodeTimeHandler creation) at the beginning. }
