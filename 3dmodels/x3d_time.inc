@@ -65,9 +65,15 @@
 
   TTimeFunction = function: TKamTime of object;
 
-  { Common helper for all X3DTimeDependentNode descedants.
+  { Common helper for all X3DTimeDependentNode descendants.
     This includes things descending from class TNodeX3DTimeDependentNode,
-    and from interface INodeX3DTimeDependentNode. }
+    and from interface INodeX3DTimeDependentNode.
+
+    It would be cleaner to have Node declared as INodeX3DTimeDependentNode,
+    and have INodeX3DTimeDependentNode contain common fields.
+    Then a lot of fields of this class would not be needed, as they
+    would be accessible as INodeX3DTimeDependentNode fields.
+    TODO: maybe in the future. }
   TTimeDependentNodeHandler = class
   private
     FIsActive: boolean;
