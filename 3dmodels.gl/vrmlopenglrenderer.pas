@@ -3088,7 +3088,6 @@ begin
      TextureVideoReference.AlphaChannelType);
 
    TextureVideoReferences.AppendItem(TextureVideoReference);
-   //TODO? TimeDependentNodes.Add(TextureNode);
   end;
  end;
 
@@ -3118,7 +3117,6 @@ begin
    begin
      Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
      TextureVideoReferences.Delete(i, 1);
-     //TODO? TimeDependentNodes.Delete(Node);
    end;
  end;
 
@@ -3168,7 +3166,6 @@ begin
   for i := 0 to TextureVideoReferences.Count-1 do
   begin
     Cache.TextureVideo_DecReference(TextureVideoReferences.Items[i].GLVideo);
-    //TODO? TimeDependentNodes.Delete(TextureVideoReferences.Items[I].Node);
   end;
   TextureVideoReferences.SetLength(0);
 
