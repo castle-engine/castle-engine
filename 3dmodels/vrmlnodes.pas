@@ -775,6 +775,9 @@ type
       TVRMLUnknownNode may have it's fields set by VRML 1.0 "fields" feature
       (so it's Fields are initialized by parsing it).
 
+      Nodes with HasInterfaceDeclarations have some Fields and Events
+      added when reading node.
+
       All fields on this list are owned by this object. }
     property Fields: TVRMLFieldsList read FFields;
 
@@ -784,25 +787,13 @@ type
 
     { Search by name for given field or event (exposed by some field or not).
 
-      If SearchInterfaceDeclarations, then will also search
-      InterfaceDeclarations, if available (if HasInterfaceDeclarations <> []).
-      For most cases, you want this as @true, since you want to treat
-      InterfaceDeclarations mostly as regular fields/events.
-
       @nil if not found. }
-    function FieldOrEvent(const Name: string;
-      SearchInterfaceDeclarations: boolean): TVRMLFieldOrEvent;
+    function FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
 
-      If SearchInterfaceDeclarations, then will also search
-      InterfaceDeclarations, if available (if HasInterfaceDeclarations <> []).
-      For most cases, you want this as @true, since you want to treat
-      InterfaceDeclarations mostly as regular fields/events.
-
       @nil if not found. }
-    function AnyEvent(const Name: string;
-      SearchInterfaceDeclarations: boolean): TVRMLEvent;
+    function AnyEvent(const Name: string): TVRMLEvent;
 
     { Children property lists children VRML nodes, in the sense of VRML 1.0.
       In VRML 2.0, nodes never have any Children nodes expressed on this
@@ -1543,9 +1534,6 @@ type
 
     { For some special VRML / X3D nodes (like Script, ComposedShader)
       that allow the definition of additional fields/events within.
-      If HasInterfaceDeclarations is not [], then InterfaceDeclarations
-      will be non-nil and parser (classic VRML parser in this unit,
-      X3D XML reader too) will read this from VRML files.
 
       In X3D specification this is marked like
 
@@ -1556,6 +1544,14 @@ type
   fieldType [out]    fieldName
   fieldType []       fieldName    initialValue
 )
+
+      If HasInterfaceDeclarations is not [], then InterfaceDeclarations
+      will be non-nil and parser (classic VRML parser in this unit,
+      X3D XML reader too) will read this from VRML files.
+      Moreover, for each interface declaration, also appropriate field/event
+      will be added to the list of @link(Fields) or @link(Events),
+      so fields/events created by interface declarations will function
+      just like other standard fields everywhere.
 
       @groupBegin }
     property HasInterfaceDeclarations: TVRMLAccessTypes
@@ -2347,7 +2343,8 @@ type
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
 
-  { Interface declaration, used in VRML (exposed) prototypes and scripts.
+  { Interface declaration, used in VRML (exposed) prototypes and
+    for nodes with dynamic fields (Script, ComposedShader).
     See VRML 2.0 spec.
 
     Each interface specification is a field or an event, stored
@@ -2356,7 +2353,8 @@ type
     Field value is not initialized if you passed FieldValue = @false
     to @link(Parse) (although IsClause and IsClauseName will
     always be initialized). FieldValue = @true is used for prototype
-    (not external) declarations and scripts.
+    (not external) declarations and nodes with interface declarations
+    (Script, ComposedShader etc.).
     In the future maybe some property like
     FieldValueInitialized will be exposed here, if needed at some point.
 
@@ -2394,6 +2392,21 @@ type
       at destruction). }
     property FieldOrEvent: TVRMLFieldOrEvent
       read FFieldOrEvent write SetFieldOrEvent;
+
+    { Create a copy of current FieldOrEvent.
+      Sets NewParentNode as Result.ParentNode.
+      Note the new copy will not have ParentIntefaceDeclaration set
+      (as the idea is that you own created copy, not this TVRMLInterfaceDeclaration
+      instance). }
+    function CopyFieldOrEvent(NewParentNode: TVRMLNode): TVRMLFieldOrEvent;
+
+    { Create a copy of current FieldOrEvent, and add it to Node.Fields
+      or Node.Events. }
+    procedure CopyAndAddFieldOrEvent(Node: TVRMLNode);
+
+    { Copies only reference to FieldOrEvent, adding it to Node.Fields
+      or Node.Events. }
+    procedure AddFieldOrEvent(Node: TVRMLNode);
 
     { Return FieldOrEvent casted as appropriate class.
       @nil if such cast is not possible, for example when
@@ -3442,6 +3455,8 @@ begin
 end;
 
 destructor TVRMLNode.Destroy;
+var
+  I: Integer;
 begin
   AnyNodeDestructionNotifications.ExecuteAll(Self);
 
@@ -3450,8 +3465,6 @@ begin
     DestructionNotifications.ExecuteAll(Self);
     FreeAndNil(FDestructionNotifications);
   end;
-
-  FreeWithContentsAndNil(FInterfaceDeclarations);
 
   if FChildren <> nil then RemoveAllChildren;
 
@@ -3465,9 +3478,24 @@ begin
   FreeWithContentsAndNil(FPrototypes);
   FreeWithContentsAndNil(FRoutes);
 
-  FreeWithContentsAndNil(FEvents);
+  { First free Fields and Events, before freeing InterfaceDeclarations.
+    Reason: Fields and Events may contains references to InterfaceDeclarations
+    items (since parsing added them there by IDecl.AddFieldOrEvent(Node)).
+    So these references have to be valid, and omitted by checking
+    ParentInterfaceDeclaration <> nil. }
 
-  FreeWithContentsAndNil(FFields);
+  for I := 0 to FEvents.Count - 1 do
+    if FEvents[I].ParentInterfaceDeclaration = nil then
+      FEvents.FreeAndNil(I);
+  FreeAndNil(FEvents);
+
+  for I := 0 to FFields.Count - 1 do
+    if FFields[I].ParentInterfaceDeclaration = nil then
+      FFields.FreeAndNil(I);
+  FreeAndNil(FFields);
+
+  FreeWithContentsAndNil(FInterfaceDeclarations);
+
   FreeAndNil(FChildren);
   FreeAndNil(FParentNodes);
   FreeAndNil(FParentFields);
@@ -3919,12 +3947,7 @@ begin
       Fields[I].PositionInParent := APositionInParent;
     end else
     begin
-      Event := AnyEvent(Lexer.TokenName,
-        { "IS" clauses for events inside additional InterfaceDeclarations
-          will be specified at that InterfaceDeclaration's time.
-          So TVRMLInterfaceDeclaration.Parse worries about it, not we,
-          so we don't search here inside InterfaceDeclarations. }
-        false);
+      Event := AnyEvent(Lexer.TokenName);
       if Event <> nil then
       begin
         Result := true;
@@ -3957,6 +3980,7 @@ begin
     InterfaceDeclarations.Add(IDecl);
     IDecl.Parse(Lexer, true, true);
     IDecl.PositionInParent := APositionInParent;
+    IDecl.AddFieldOrEvent(Self);
   end else
   if Lexer.TokenIsKeyword(vkPROTO) then
   begin
@@ -4360,14 +4384,20 @@ begin
       FileItems.Add(Prototypes[I]);
 
     for I := 0 to Fields.Count - 1 do
-      FileItems.Add(Fields[I]);
+      { Saving InterfaceDeclarations already handled saving fields
+        with ParentInterfaceDeclaration <> nil, so no need to save them again. }
+      if Fields[I].ParentInterfaceDeclaration = nil then
+        FileItems.Add(Fields[I]);
 
     if ChildrenSaveToStream then
       for I := 0 to ChildrenCount - 1 do
         FileItems.Add(Children[I]);
 
     for I := 0 to Events.Count - 1 do
-      if Events[I].IsClause then
+      if Events[I].IsClause and
+         { Saving InterfaceDeclarations already handled saving events
+           with ParentInterfaceDeclaration <> nil, so no need to save them again. }
+         (Events[I].ParentInterfaceDeclaration = nil) then
         FileItems.Add(Events[I]);
 
     for I := 0 to Routes.Count - 1 do
@@ -4777,8 +4807,7 @@ begin
   finally InitialState.Free end;
 end;
 
-function TVRMLNode.FieldOrEvent(const Name: string;
-  SearchInterfaceDeclarations: boolean): TVRMLFieldOrEvent;
+function TVRMLNode.FieldOrEvent(const Name: string): TVRMLFieldOrEvent;
 var
   I: Integer;
   ResultEvent: TVRMLEvent;
@@ -4802,18 +4831,10 @@ begin
   if I <> -1 then
     Exit(Events[I]);
 
-  if SearchInterfaceDeclarations and (InterfaceDeclarations <> nil) then
-  begin
-    Result := InterfaceDeclarations.TryFindName(Name);
-    if Result <> nil then
-      Exit;
-  end;
-
   Result := nil; { not found }
 end;
 
-function TVRMLNode.AnyEvent(const Name: string;
-  SearchInterfaceDeclarations: boolean): TVRMLEvent;
+function TVRMLNode.AnyEvent(const Name: string): TVRMLEvent;
 var
   I: Integer;
 begin
@@ -4824,13 +4845,6 @@ begin
   I := Events.IndexOf(Name);
   if I <> -1 then
     Exit(Events[I]);
-
-  if SearchInterfaceDeclarations and (InterfaceDeclarations <> nil) then
-  begin
-    Result := InterfaceDeclarations.TryFindEventName(Name);
-    if Result <> nil then
-      Exit;
-  end;
 
   Result := nil; { not found }
 end;
@@ -5676,6 +5690,76 @@ begin
     if IsClauseAllowed then
       Field.ParseIsClause(Lexer);
   end;
+
+  FieldOrEvent.ParentInterfaceDeclaration := Self;
+end;
+
+function TVRMLInterfaceDeclaration.CopyFieldOrEvent(
+  NewParentNode: TVRMLNode): TVRMLFieldOrEvent;
+var
+  F: TVRMLField absolute Result;
+  E: TVRMLEvent absolute Result;
+begin
+  if Field <> nil then
+  begin
+    { F := copy of Field }
+    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode, Field.Name);
+    F.Assign(Field);
+
+    { CreateUndefined creates field without any default value,
+      so it will always get saved later to file.
+
+      But this is not nice: for non-node fields, it merely makes
+      resulting file longer. For node fields (SFNode and MFNode)
+      this means that node value will be written to file. But this
+      is bad, since this means that node contents will have to duplicated,
+      if node is not named or it's name is unbound now (e.g. overridden
+      by other node name) (otherwise "USE Xxx" could be used, which
+      is acceptable).
+
+      See ../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv
+      and tricky_def_use.x3dv for
+      examples (open and save it back e.g. in view3dscene).
+
+      So to make it work right, we have to set DefaultValue for our
+      fields, in particular for TSFNode and TMFNode fields.
+      So that EqualsDefaultValue will work Ok when saving to file. }
+    F.AssignDefaultValueFromValue;
+  end else
+  if Event <> nil then
+  begin
+    { E := copy of Event }
+    E := TVRMLEvent.Create(NewParentNode,
+      Event.Name, Event.FieldClass, Event.InEvent);
+  end else
+    raise EInternalError.Create('interface declaration but no Field or Event');
+
+  Result.ParentInterfaceDeclaration := nil;
+end;
+
+procedure TVRMLInterfaceDeclaration.AddFieldOrEvent(
+  Node: TVRMLNode);
+begin
+  if Field <> nil then
+    Node.Fields.Add(Field) else
+  begin
+    Assert(Event <> nil);
+    Node.Events.Add(Event);
+  end;
+end;
+
+procedure TVRMLInterfaceDeclaration.CopyAndAddFieldOrEvent(
+  Node: TVRMLNode);
+var
+  Copy: TVRMLFieldOrEvent;
+begin
+  Copy := CopyFieldOrEvent(Node);
+  if Copy is TVRMLField then
+    Node.Fields.Add(TVRMLField(Copy)) else
+  begin
+    Assert(Copy is TVRMLEvent);
+    Node.Events.Add(TVRMLEvent(Copy));
+  end;
 end;
 
 procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
@@ -5811,53 +5895,15 @@ constructor TVRMLPrototypeNode.CreatePrototypeNode(
 var
   I: TVRMLInterfaceDeclaration;
   Index: Integer;
-  F: TVRMLField;
-  E: TVRMLEvent;
 begin
   inherited Create(ANodeName, AWWWBasePath);
   FPrototype := APrototype;
   for Index := 0 to Prototype.InterfaceDeclarations.Count - 1 do
   begin
     I := Prototype.InterfaceDeclarations.Items[Index];
-    if I.Field <> nil then
-    begin
-      Check(not I.Field.IsClause,
-        'Prototype interface field cannot have "IS" clause');
-
-      { F := copy of I.Field }
-      F := TVRMLFieldClass(I.Field.ClassType).CreateUndefined(Self, I.Field.Name);
-      F.Assign(I.Field);
-
-      { CreateUndefined creates field without any default value,
-        so it will always get saved later to file.
-
-        But this is not nice: for non-node fields, it merely makes
-        resulting file longer. For node fields (SFNode and MFNode)
-        this means that node value will be written to file. But this
-        is bad, since this means that node contents will have to duplicated,
-        if node is not named or it's name is unbound now (e.g. overridden
-        by other node name) (otherwise "USE Xxx" could be used, which
-        is acceptable).
-
-        See ../../kambi_vrml_test_suite/x3d/proto_sfnode_default.x3dv
-        and tricky_def_use.x3dv for
-        examples (open and save it back e.g. in view3dscene).
-
-        So to make it work right, we have to set DefaultValue for our
-        fields, in particular for TSFNode and TMFNode fields.
-        So that EqualsDefaultValue will work Ok when saving to file. }
-      F.AssignDefaultValueFromValue;
-
-      Fields.Add(F);
-    end else
-    if I.Event <> nil then
-    begin
-      { E := copy of I.Event }
-      E := TVRMLEvent.Create(Self,
-        I.Event.Name, I.Event.FieldClass, I.Event.InEvent);
-      Events.Add(E);
-    end else
-      raise EInternalError.Create('interface declaration but no Field or Event');
+    Check(not I.FieldOrEvent.IsClause,
+      'Prototype interface field/event cannot have "IS" clause');
+    I.CopyAndAddFieldOrEvent(Self);
   end;
 end;
 
@@ -5901,14 +5947,7 @@ procedure TVRMLPrototypeNode.InstantiateReplaceIsClauses(
     in our own exposedFields). }
   function ExposedFieldReferencesEvent(Field: TVRMLField): boolean;
   begin
-    Result := Field.Exposed and (AnyEvent(Field.IsClauseName,
-      { It doesn't matter whether this parameter is false/true.
-        That's because TVRMLPrototypeNode has always HasInterfaceDeclarations
-        = [], in other words when instantiating a prototype you cannot
-        add additional interface decls (like for Script or ComposedShader nodes).
-        For the future, I set this to true, in case it will
-        be possible some day. }
-      true) <> nil);
+    Result := Field.Exposed and (AnyEvent(Field.IsClauseName) <> nil);
   end;
 
 var
@@ -6654,7 +6693,7 @@ begin
     Node := NodeNameBinding.Objects[Index] as TVRMLNode;
     Node.DestructionNotifications.AppendItem(@DestructionNotification);
 
-    FieldOrEvent := Node.FieldOrEvent(FieldOrEventName, true);
+    FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
         [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.NodeTypeName ]);

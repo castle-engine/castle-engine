@@ -157,6 +157,7 @@ type
     FAlternativeNames: array [1..3] of string;
 
     FParentNode: TVRMLFileItem;
+    FParentInterfaceDeclaration: TVRMLFileItem;
   public
     { Name of the field or event.
 
@@ -227,6 +228,15 @@ type
       const VrmlMajorVersion, VrmlMinorVersion: Integer): string; overload;
     function NameForVersion(
       SaveProperties: TVRMLSaveToStreamProperties): string; overload;
+
+    { For fields contained in TVRMLInterfaceDeclaration.
+
+      This should always be @nil (if the field is normal, standard field,
+      not coming from interface declaration in VRML file) or an instance of
+      TVRMLInterfaceDeclaration. (But it cannot be declared such,
+      since TVRMLInterfaceDeclaration is not known in this unit). }
+    property ParentInterfaceDeclaration: TVRMLFileItem
+      read FParentInterfaceDeclaration write FParentInterfaceDeclaration;
   end;
 
   { Base class for all VRML fields.
@@ -2152,6 +2162,8 @@ begin
   FIsClause := Source.IsClause;
   FIsClauseName := Source.IsClauseName;
   FAlternativeNames := Source.FAlternativeNames;
+  FPositionInParent := Source.PositionInParent;
+  FParentInterfaceDeclaration := Source.ParentInterfaceDeclaration;
 
   { TODO: exposed and AlternativeNames should be copied better,
     to create/free ExposedEvents if needed and to copy FAlternativeNames

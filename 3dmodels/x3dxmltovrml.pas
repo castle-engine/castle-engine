@@ -286,7 +286,7 @@ const
       while I.GetNext do
         if ParseConnectElement(I.Current, NodeField, ProtoField) then
         begin
-          NodeFieldOrEvent := Node.FieldOrEvent(NodeField, true);
+          NodeFieldOrEvent := Node.FieldOrEvent(NodeField);
           if NodeFieldOrEvent <> nil then
           begin
             NodeFieldOrEvent.IsClause := true;
@@ -386,7 +386,10 @@ const
               ParseInterfaceDeclaration(IDecl, I.Current, true);
               IDecl.PositionInParent := PositionInParent;
               if IDecl.AccessType in Node.HasInterfaceDeclarations then
-                Node.InterfaceDeclarations.Add(IDecl) else
+              begin
+                Node.InterfaceDeclarations.Add(IDecl);
+                IDecl.AddFieldOrEvent(Node);
+              end else
               begin
                 FreeAndNil(IDecl);
                 VRMLNonFatalError('X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
@@ -767,6 +770,8 @@ const
           else if IsClauseAllowed then I.Field.ParseIsClause(Lexer);
         but for X3D XML encoding this is not needed, see comments above. }
     end;
+
+    I.FieldOrEvent.ParentInterfaceDeclaration := I;
   end;
 
   { Handle sequence of <field> elements.
