@@ -89,6 +89,29 @@
     private FEventwrite: TVRMLEvent;
     public property Eventwrite: TVRMLEvent read FEventwrite;
   end;
+
+  TNodeConverter = class(TNodeX3DChildNode)
+  private
+    procedure EventInReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+  public
+    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    class function ClassNodeTypeName: string; override;
+    function SuggestedVRMLVersion(
+      out VerMajor, VerMinor, SuggestionPriority: Integer): boolean; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdenabled: TSFBool;
+    public property Fdenabled: TSFBool read FFdenabled;
+
+    { Event: XFAny, in } { }
+    private FEventIn: TVRMLEvent;
+    public property EventIn: TVRMLEvent read FEventIn;
+
+    { Event: XFAny, out } { }
+    private FEventOut: TVRMLEvent;
+    public property EventOut: TVRMLEvent read FEventOut;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -375,12 +398,59 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
+constructor TNodeConverter.Create(const ANodeName: string;
+  const AWWWBasePath: string);
+begin
+  inherited;
+
+  FFdenabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdenabled);
+
+  FEventIn := TVRMLEvent.Create(Self, 'in', TVRMLField, true);
+  Events.Add(FEventIn);
+  FEventIn.OnReceive.AppendItem(@EventInReceive);
+
+  FEventOut := TVRMLEvent.Create(Self, 'out', TVRMLField, true);
+  Events.Add(FEventOut);
+end;
+
+procedure TNodeConverter.EventInReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if FdEnabled.Value then
+    { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
+      convert... Convertion must be done along the route, when destination
+      is known. }
+    EventOut.Send(Value, Time);
+end;
+
+class function TNodeConverter.ClassNodeTypeName: string;
+begin
+  Result := 'Converter';
+end;
+
+function TNodeConverter.SuggestedVRMLVersion(
+  out VerMajor, VerMinor, SuggestionPriority: Integer): boolean;
+begin
+  Result := inherited SuggestedVRMLVersion(VerMajor, VerMinor, SuggestionPriority);
+  { Since VRML 2.0 }
+  AndSuggestedVRMLVersion(Result, VerMajor, VerMinor, SuggestionPriority,
+    true, 2, 0, 1000);
+end;
+
+class function TNodeConverter.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNKambiNodes + ClassNodeTypeName);
+end;
+
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TNodeMatrixTransform_2,
     TNodeTeapot,
-    TNodeLogger
+    TNodeLogger,
+    TNodeConverter
   ]);
 end;
 {$endif read_implementation}
