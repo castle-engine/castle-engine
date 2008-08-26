@@ -2373,8 +2373,16 @@ type
     FEvent: TVRMLEvent;
 
     procedure SetFieldOrEvent(const Value: TVRMLFieldOrEvent);
+
+    FParentNode: TVRMLNode;
   public
+    constructor Create(AParentNode: TVRMLNode);
     destructor Destroy; override;
+
+    { Containing node, if any, for this VRML interface declaration.
+      This must also be set to FieldOrEvent.ParentNode created for this
+      interface declaration. }
+    property ParentNode: TVRMLNode read FParentNode;
 
     { Field or event of this interface declaration.
       Is non-nil after parsing.
@@ -3931,7 +3939,7 @@ begin
     { since we're here, HasInterfaceDeclarations is <> [] }
     Assert(InterfaceDeclarations <> nil);
 
-    IDecl := TVRMLInterfaceDeclaration.Create;
+    IDecl := TVRMLInterfaceDeclaration.Create(Self);
     InterfaceDeclarations.Add(IDecl);
     IDecl.Parse(Lexer, true, true);
     IDecl.PositionInParent := APositionInParent;
@@ -5553,6 +5561,12 @@ end;
 
 { TVRMLInterfaceDeclaration -------------------------------------------------- }
 
+constructor TVRMLInterfaceDeclaration.Create(AParentNode: TVRMLNode);
+begin
+  inherited Create;
+  FParentNode := AParentNode;
+end;
+
 destructor TVRMLInterfaceDeclaration.Destroy;
 begin
   FreeAndNil(FFieldOrEvent);
@@ -5626,10 +5640,10 @@ begin
   { we know everything now to create Event/Field instance }
   case Kind of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TVRMLEvent.Create(nil, Name, FieldType, Kind = atInputOnly);
+      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Kind = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
-        FieldOrEvent := FieldType.CreateUndefined(nil, Name);
+        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name);
         Field.Exposed := Kind = atInputOutput;
       end;
     else raise EInternalError.Create('Kind ? in TVRMLInterfaceDeclaration.Parse');
@@ -6086,7 +6100,7 @@ var
 begin
   while Lexer.Token <> vtCloseSqBracket do
   begin
-    I := TVRMLInterfaceDeclaration.Create;
+    I := TVRMLInterfaceDeclaration.Create(nil);
     InterfaceDeclarations.Add(I);
 
     if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(AllAccessTypes)) then

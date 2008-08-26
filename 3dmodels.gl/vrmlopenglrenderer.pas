@@ -949,6 +949,15 @@ type
       FogNode1: TNodeFog; const FogDistanceScaling1: Single;
       FogNode2: TNodeFog; const FogDistanceScaling2: Single): boolean;
 
+    { Set GLSLProgram uniform variable from VRML field value.
+      Uniform name is contained in UniformName. UniformValue indicates
+      uniform type and new value (UniformValue.Name is not used). }
+    procedure SetUniformFromField(
+      GLSLProgram: TGLSLProgram; UniformName: string;
+      UniformValue: TVRMLField);
+
+    procedure EventReceiveGLSLUniform(Event: TVRMLEvent; Value: TVRMLField);
+
     function GLSLProgram_IncReference(
       ProgramNode: TNodeComposedShader): TGLSLProgram;
     procedure GLSLProgram_DecReference(var GLSLProgram: TGLSLProgram);
@@ -1413,39 +1422,20 @@ const
   In short, this "drives" the time passed to TimeSensor, MovieTexture
   and AudioClip. See SetWorldTime for changing this.
 
-  Also, as an extension in our engine,
-  it is passed to GLSL shaders that define
-  a float/double/time uniform with a special name @code(kambi_time).
-  In other words, GLSL shader nodes for now behave a little like
-  time-dependent nodes. That's bacause TimeSensor, routes and events are
-  not implemented yet... so we just "feed" GLSL shaders directly.
-  In the future special uniform name will be removed from
-  the GLSL implementation, and the same effect will be available by routing
-  VRML TimeSensor to one of ComposedShader fields. This will allow
-  VRML authors to achieve the same effect by standard VRML methods.
-
-  For now, since routes and sensors are not handled, this is a quick
-  and dirty and practically working way to pass your animation time
-  to GLSL shaders, allowing an infinite number of interesting
-  time-dependent shaders.
-
   Note that for now this is a global property that controls
   time for all time-dependent nodes used in all your VRML models.
-  This will most probably change to something more flexible in the future
-  (although greater care will have to be taken then when sharing the
-  nodes, videos in MovieTexture and GLSL shader among many VRML models).
+  This will most probably change to something more flexible in the future.
 
   Default value is 0.0 (zero). }
 function WorldTime: TKamTime;
 
 { This changes world time, see WorldTime.
   It is crucial that you call this continously to have some VRML
-  time-dependent features working, like MovieTexture and time for GLSL shaders.
+  time-dependent features working, like TimeSensor and MovieTexture.
   See WorldTime for details what is affected by this.
 
   This causes time to be passed to appropriate time-dependent nodes,
-  events will be called etc. (TODO: actually, events are not implemented yet,
-  but when they are --- this will work.)
+  events will be called etc.
 
   SetWorldTime and IncreaseWorldTime do exactly the same, the difference is
   only that for IncreaseWorldTime you specify increase in the time
@@ -1526,31 +1516,18 @@ type
 
   { List of existing nodes that depend on time.
 
-    In the future, this is supposed to contain only TVRMLNode descendants
+    This is supposed to contain only TVRMLNode descendants
     that implement INodeX3DTimeDependentNode interface,
     and @bold(all) such nodes. So it will descend from TVRMLNodesList.
 
-    For now, since events/routes are not supported, this contains
-    only TNodeMovieTexture nodes (they implement INodeX3DTimeDependentNode)
-    and TGLSLProgram instances that have uniform with SUniformTimeName.
+    For now, this contains
+    only TNodeMovieTexture nodes (they implement INodeX3DTimeDependentNode).
 
     Don't place duplicates here --- for time-dependent nodes they could
     be then incremented many times during single SetWorldTime, so their
     local time would grow too fast. }
   TTimeDependentNodesList = class(TObjectsList)
   end;
-
-const
-  { If a GLSL shader in X3D will have uniform with this name
-    (and of type SFFloat or SFDouble or SFTime)
-    then we will use this to pass WorldTime to the shader.
-
-    TODO: this is a hack, in the future this will be removed and
-    the feature will be available using standard VRML
-    (routing TimeSensor to a ComposedShader field).
-    For now (since events, routing and sensors are not handled)
-    this at least provides this most important variable to the shader. }
-  SUniformTimeName = 'kambi_time';
 
 var
   TimeDependentNodes: TTimeDependentNodesList;
@@ -1703,26 +1680,17 @@ procedure InternalSetWorldTime(const NewValue, TimeIncrease: TKamTime;
 
 var
   I: Integer;
-  Prog: TGLSLProgram;
 begin
   SomethingChanged := false;
 
   for I := 0 to TimeDependentNodes.Count - 1 do
   begin
-    if TimeDependentNodes.Items[I] is TGLSLProgram then
-    begin
-      Prog := TimeDependentNodes.Items[I] as TGLSLProgram;
-      Prog.Enable;
-      Prog.SetUniform(SUniformTimeName, NewValue);
-      Prog.Disable;
-      SomethingChanged := true;
-    end else
     if TimeDependentNodes.Items[I] is TNodeMovieTexture then
     begin
       DoTimeHandler((TimeDependentNodes.Items[I] as TNodeMovieTexture).
         TimeDependentNodeHandler);
     end else
-      raise EInternalError.Create('for now, only TNodeMovieTexture and TGLSLProgram should be present in TimeDependentNodes');
+      raise EInternalError.Create('for now, only TNodeMovieTexture should be present in TimeDependentNodes');
   end;
 
   if TimeSensorNodes <> nil then
@@ -2092,6 +2060,93 @@ begin
     'found to texture %s', [PointerToStr(TextureVideo)]);
 end;
 
+procedure TVRMLOpenGLRendererContextCache.SetUniformFromField(
+  GLSLProgram: TGLSLProgram; UniformName: string;
+  UniformValue: TVRMLField);
+begin
+  { program must be active to set uniform values. }
+  GLSLProgram.Enable;
+
+  try
+    if UniformValue is TSFLong then
+      { Handling of SFLong also takes care of SFInt32. }
+      GLSLProgram.SetUniform(UniformName, TSFLong(UniformValue).Value) else
+    if UniformValue is TSFVec2f then
+      GLSLProgram.SetUniform(UniformName, TSFVec2f(UniformValue).Value) else
+    if UniformValue is TSFVec3f then
+      { Handling of SFVec3f also takes care of SFColor.
+        Although X3D spec says SFColor should go to vec4, not vec3,
+        but this is an error? SFColor has just 3 components... }
+      GLSLProgram.SetUniform(UniformName, TSFVec3f(UniformValue).Value) else
+    if UniformValue is TSFVec4f then
+      GLSLProgram.SetUniform(UniformName, TSFVec4f(UniformValue).Value) else
+    if UniformValue is TSFRotation then
+      GLSLProgram.SetUniform(UniformName, TSFRotation(UniformValue).Value) else
+    if UniformValue is TSFMatrix3f then
+      GLSLProgram.SetUniform(UniformName, TSFMatrix3f(UniformValue).Value) else
+    if UniformValue is TSFMatrix4f then
+      GLSLProgram.SetUniform(UniformName, TSFMatrix4f(UniformValue).Value) else
+    if UniformValue is TSFFloat then
+      GLSLProgram.SetUniform(UniformName, TSFFloat(UniformValue).Value) else
+    if UniformValue is TSFDouble then
+      GLSLProgram.SetUniform(UniformName, TSFDouble(UniformValue).Value) else
+      VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
+
+    { TODO: other field types, full list is in X3D spec in
+      "OpenGL shading language (GLSL) binding" }
+
+  except
+    { X3D spec "OpenGL shading language (GLSL) binding" says
+      "If the name is not available as a uniform variable in the
+      provided shader source, the values of the node shall be ignored"
+      (although it says when talking about "Vertex attributes",
+      seems they mixed attributes and uniforms meaning in spec?).
+
+      So we catch EGLSLUniformNotFound and don't even report it
+      by VRMLNonFatalError. (Still, we report to debug WritelnLog.) }
+    on E: EGLSLUniformNotFound do
+    begin
+      if Log then
+        WritelnLog('GLSL', 'ComposedShader specifies uniform variable ' +
+          'name not found (or not used) in the shader source: ' +
+          E.Message);
+    end;
+  end;
+
+  { TODO: this should restore previously bound program }
+  GLSLProgram.Disable;
+end;
+
+procedure TVRMLOpenGLRendererContextCache.EventReceiveGLSLUniform(
+  Event: TVRMLEvent; Value: TVRMLField);
+var
+  I: Integer;
+  GLSLProgramCache: PGLSLProgramCache;
+begin
+  { We need to find GLSLProgram instance, to know which GLSL program
+    actually has this uniform variable. We can do it: Event.ParentNode
+    should point to appropriate ComposedShader node, so we can find
+    corresponding GLSLProgramCaches item, and this will contain
+    needed GLSLProgram. }
+
+  for I := 0 to GLSLProgramCaches.High do
+  begin
+    GLSLProgramCache := GLSLProgramCaches.Pointers[I];
+
+    if GLSLProgramCache^.ProgramNode = Event.ParentNode then
+    begin
+      { TODO: Event.Name is wrong for exposed events, we should then take
+        underlying field name. }
+      SetUniformFromField(GLSLProgramCache^.GLSLProgram, Event.Name, Value);
+      Exit;
+    end;
+  end;
+
+  VRMLNonFatalError(Format(
+    'INTERNAL ERROR, we can continue but please report a bug: uniform variable "%s" should be set from event now, but it turns out that GLSL program for this event''s ComposedShader node is not in the cache',
+    [Event.Name]));
+end;
+
 function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
   ProgramNode: TNodeComposedShader): TGLSLProgram;
 
@@ -2102,7 +2157,9 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
     Part: TNodeShaderPart;
     Source: String;
     HasAnyShader: boolean;
+    IDecls: TVRMLInterfaceDeclarationsList;
     UniformField: TVRMLField;
+    UniformEvent: TVRMLEvent;
   begin
     HasAnyShader := false;
 
@@ -2145,86 +2202,30 @@ function TVRMLOpenGLRendererContextCache.GLSLProgram_IncReference(
 
     GLSLProgram.Link(true);
 
-    if ProgramNode.InterfaceDeclarations.Count > 0 then
+    IDecls := ProgramNode.InterfaceDeclarations;
+
+    for I := 0 to IDecls.Count - 1 do
     begin
-      { program must be active to set uniform values. }
-      GLSLProgram.Enable;
+      UniformField := IDecls.Items[I].Field;
+      UniformEvent := IDecls.Items[I].Event;
 
-      for I := 0 to ProgramNode.InterfaceDeclarations.Count - 1 do
+      { Set initial value for this GLSL uniform variable,
+        from VRML field or exposedField }
+
+      if UniformField <> nil then
       begin
-        UniformField := ProgramNode.InterfaceDeclarations.Items[I].Field;
-        if UniformField <> nil then
-        begin
-          { Ok, we have a field with a value (interface declarations with
-            fields inside ComposedShader always have a value, we force it
-            when parsing in TNodeComposedShader.ParseNodeBodyElement).
-            So set GLSL uniform variable from this field. }
-
-          try
-            if UniformField is TSFLong then
-              { Handling of SFLong also takes care of SFInt32. }
-              GLSLProgram.SetUniform(UniformField.Name, TSFLong(UniformField).Value) else
-            if UniformField is TSFVec2f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFVec2f(UniformField).Value) else
-            if UniformField is TSFVec3f then
-              { Handling of SFVec3f also takes care of SFColor.
-                Although X3D spec says SFColor should go to vec4, not vec3,
-                but this is an error? SFColor has just 3 components... }
-              GLSLProgram.SetUniform(UniformField.Name, TSFVec3f(UniformField).Value) else
-            if UniformField is TSFVec4f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFVec4f(UniformField).Value) else
-            if UniformField is TSFRotation then
-              GLSLProgram.SetUniform(UniformField.Name, TSFRotation(UniformField).Value) else
-            if UniformField is TSFMatrix3f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFMatrix3f(UniformField).Value) else
-            if UniformField is TSFMatrix4f then
-              GLSLProgram.SetUniform(UniformField.Name, TSFMatrix4f(UniformField).Value) else
-            if UniformField is TSFFloat then
-            begin
-              if UniformField.Name = SUniformTimeName then
-              begin
-                GLSLProgram.SetUniform(UniformField.Name, WorldTime);
-                TimeDependentNodes.Add(GLSLProgram);
-              end else
-                GLSLProgram.SetUniform(UniformField.Name, TSFFloat(UniformField).Value);
-            end else
-            if UniformField is TSFDouble then
-            begin
-              { Handling SFDouble also takes care of it's descendant SFTime }
-              if UniformField.Name = SUniformTimeName then
-              begin
-                GLSLProgram.SetUniform(UniformField.Name, WorldTime);
-                TimeDependentNodes.Add(GLSLProgram);
-              end else
-                GLSLProgram.SetUniform(UniformField.Name, TSFDouble(UniformField).Value);
-            end else
-              VRMLNonFatalError('Setting uniform GLSL variable from X3D field type "' + UniformField.VRMLTypeName + '" not supported');
-
-            { TODO: other field types, full list is in X3D spec in
-              "OpenGL shading language (GLSL) binding" }
-
-          except
-            { X3D spec "OpenGL shading language (GLSL) binding" says
-              "If the name is not available as a uniform variable in the
-              provided shader source, the values of the node shall be ignored"
-              (although it says when talking about "Vertex attributes",
-              seems they mixed attributes and uniforms meaning in spec?).
-
-              So we catch EGLSLUniformNotFound and don't even report it
-              by VRMLNonFatalError. (Still, we report to debug WritelnLog.) }
-            on E: EGLSLUniformNotFound do
-            begin
-              if Log then
-                WritelnLog('GLSL', 'ComposedShader specifies uniform variable ' +
-                  'name not found (or not used) in the shader source: ' +
-                  E.Message);
-            end;
-          end;
-        end;
+        { Ok, we have a field with a value (interface declarations with
+          fields inside ComposedShader always have a value).
+          So set GLSL uniform variable from this field. }
+        SetUniformFromField(GLSLProgram, UniformField.Name, UniformField);
       end;
 
-      { TODO: this should restore previously bound program }
-      GLSLProgram.Disable;
+      { Allow future changing of this GLSL uniform variable,
+        from VRML eventIn or exposedField }
+      if (UniformField <> nil) and UniformField.Exposed then
+        UniformField.ExposedEvents[false].OnReceive.AppendItem(@EventReceiveGLSLUniform) else
+      if (UniformEvent <> nil) and UniformEvent.InEvent then
+        UniformEvent.OnReceive.AppendItem(@EventReceiveGLSLUniform);
     end;
   end;
 
@@ -2279,8 +2280,11 @@ end;
 procedure TVRMLOpenGLRendererContextCache.GLSLProgram_DecReference(
   var GLSLProgram: TGLSLProgram);
 var
-  I: Integer;
+  I, J: Integer;
   GLSLProgramCache: PGLSLProgramCache;
+  IDecls: TVRMLInterfaceDeclarationsList;
+  UniformField: TVRMLField;
+  UniformEvent: TVRMLEvent;
 begin
   for I := 0 to GLSLProgramCaches.High do
   begin
@@ -2294,7 +2298,20 @@ begin
       {$endif}
       if GLSLProgramCache^.References = 0 then
       begin
-        TimeDependentNodes.Delete(GLSLProgramCache^.GLSLProgram);
+        { Remove EventReceiveGLSLUniform callback,
+          reverting the work done in GLSLProgram_IncReference. }
+        IDecls := GLSLProgramCache^.ProgramNode.InterfaceDeclarations;
+        for J := 0 to IDecls.Count - 1 do
+        begin
+          UniformField := IDecls.Items[J].Field;
+          UniformEvent := IDecls.Items[J].Event;
+
+          if (UniformField <> nil) and UniformField.Exposed then
+            UniformField.ExposedEvents[false].OnReceive.DeleteFirstEqual(@EventReceiveGLSLUniform) else
+          if (UniformEvent <> nil) and UniformEvent.InEvent then
+            UniformEvent.OnReceive.DeleteFirstEqual(@EventReceiveGLSLUniform);
+        end;
+
         FreeAndNil(GLSLProgramCache^.GLSLProgram);
         GLSLProgramCaches.Delete(I, 1);
       end;

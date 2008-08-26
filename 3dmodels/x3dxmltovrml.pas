@@ -381,7 +381,7 @@ const
           end else
           if I.Current.TagName = 'field' then
           begin
-            IDecl := TVRMLInterfaceDeclaration.Create;
+            IDecl := TVRMLInterfaceDeclaration.Create(Node);
             try
               ParseInterfaceDeclaration(IDecl, I.Current, true);
               IDecl.PositionInParent := PositionInParent;
@@ -740,10 +740,10 @@ const
     { we know everything now to create Event/Field instance }
     case AccessType of
       atInputOnly, atOutputOnly:
-        I.FieldOrEvent := TVRMLEvent.Create(nil, Name, FieldType, AccessType = atInputOnly);
+        I.FieldOrEvent := TVRMLEvent.Create(I.ParentNode, Name, FieldType, AccessType = atInputOnly);
       atInitializeOnly, atInputOutput:
         begin
-          I.FieldOrEvent := FieldType.CreateUndefined(nil,Name);
+          I.FieldOrEvent := FieldType.CreateUndefined(I.ParentNode, Name);
           I.Field.Exposed := AccessType = atInputOutput;
         end;
       else raise EInternalError.Create('AccessType ?');
@@ -785,7 +785,7 @@ const
       begin
         if Iter.Current.TagName = 'field' then
         begin
-          I := TVRMLInterfaceDeclaration.Create;
+          I := TVRMLInterfaceDeclaration.Create(nil);
           Proto.InterfaceDeclarations.Add(I);
           ParseInterfaceDeclaration(I, Iter.Current, not ExternalProto);
         end else
