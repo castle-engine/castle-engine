@@ -28,7 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3d,
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShapeState, VRMLTriangleOctree, ProgressUnit, VRMLShapeStateOctree,
-  Keys;
+  Keys, KambiTimeUtils;
 
 {$define read_interface}
 
@@ -326,14 +326,30 @@ type
     procedure SetProcessEvents(const Value: boolean);
 
     { This is collected by CollectNodesForEvents. @nil if not ProcessEvents. }
-    KeySensorNodes, TimeSensorNodes: TVRMLNodesList;
+    KeySensorNodes, TimeSensorNodes, MovieTextureNodes: TVRMLNodesList;
 
     procedure CollectNodesForEvents;
     procedure Collect_KeySensor(Node: TVRMLNode);
     procedure Collect_TimeSensor(Node: TVRMLNode);
+    procedure Collect_MovieTexture(Node: TVRMLNode);
     procedure Collect_ChangedFields(Node: TVRMLNode);
 
     procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField);
+
+    FWorldTime: TKamTime;
+
+    { Internal procedure that handles WorldTime changes.
+
+      TimeIncrease = 0.0 here means "TimeIncrease is unknown",
+      this can happen only when were called by ResetWorldTime.
+      In other circumstances, TimeIncrease is > 0.
+
+      References: see X3D specification "Time" component,
+      8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
+      cycleInterval, loop properties. }
+    procedure InternalSetWorldTime(
+      const NewValue, TimeIncrease: TKamTime;
+      out SomethingChanged: boolean);
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -790,6 +806,64 @@ type
 
     procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
     procedure KeyUp(Key: TKey);
+
+    { This is the world time, that is passed to time-dependent nodes.
+      See X3D specification "Time" component about time-dependent nodes.
+      In short, this "drives" the time passed to TimeSensor, MovieTexture
+      and AudioClip. See SetWorldTime for changing this.
+
+      Default value is 0.0 (zero). }
+    function WorldTime: TKamTime;
+
+    { This changes world time, see WorldTime.
+      It is crucial that you call this continously to have some VRML
+      time-dependent features working, like TimeSensor and MovieTexture.
+      See WorldTime for details what is affected by this.
+
+      This causes time to be passed to appropriate time-dependent nodes,
+      events will be called etc.
+
+      SetWorldTime and IncreaseWorldTime do exactly the same, the difference is
+      only that for IncreaseWorldTime you specify increase in the time
+      (that is, NewTime = WorldTime + TimeIncrease). Use whichever version
+      is more handy.
+
+      Following X3D specification, time should only grow. So NewValue should
+      be > WorldTime (or TimeIncrease > 0).
+      Otherwise we ignore this call (with SomethingChanged = always @false).
+      For resetting the time (when you don't necessarily want to grow WorldTime)
+      see ResetWorldTime.
+
+      SomethingChanged is set if some time-dependent node was active between
+      old WorldTime and new WorldTime. The idea is that you can use
+      SomethingChanged to decide whether the scene needs to be renderer once again.
+      When SomethingChanged = @false, you know that nothing actually happened
+      and there's no need to render again.
+      If @true, then you probably want to do something like post redisplay
+      (see TGLWindow.PostRedisplay).
+
+      @groupBegin }
+    procedure SetWorldTime(const NewValue: TKamTime;
+      out SomethingChanged: boolean);
+    procedure IncreaseWorldTime(const TimeIncrease: TKamTime;
+      out SomethingChanged: boolean);
+    { @groupEnd }
+
+    { Set WorldTime to arbitrary value.
+
+      You should only use this when you loaded new VRML model.
+
+      Unlike SetWorldTime and IncreaseWorldTime, this doesn't require that
+      WorldTime grows. It still does some time-dependent events work,
+      although some time-dependent nodes may be just unconditionally reset
+      by this to starting value (as they keep local time, and so require
+      TimeIncrease notion, without it we can only reset them).
+
+      @groupBegin }
+    procedure ResetWorldTime(const NewValue: TKamTime;
+      out SomethingChanged: boolean); overload;
+    procedure ResetWorldTime(const NewValue: TKamTime); overload;
+    { @groupEnd }
   end;
 
 var
@@ -810,7 +884,7 @@ var
 
 implementation
 
-uses VRMLCameraUtils, TimeSensorHack;
+uses VRMLCameraUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1823,6 +1897,12 @@ begin
   TimeSensorNodes.Add(Node);
 end;
 
+procedure TVRMLFlatScene.Collect_MovieTexture(Node: TVRMLNode);
+begin
+  Assert(Node is TNodeMovieTexture);
+  MovieTextureNodes.Add(Node);
+end;
+
 procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);
 begin
   if Event.ParentNode <> nil then
@@ -1868,7 +1948,9 @@ begin
 
   TimeSensorNodes.Clear;
   RootNode.EnumerateNodes(TNodeTimeSensor, @Collect_TimeSensor, false);
-  TimeSensorHack.TimeSensorNodes := Self.TimeSensorNodes;
+
+  MovieTextureNodes.Clear;
+  RootNode.EnumerateNodes(TNodeMovieTexture, @Collect_MovieTexture, false);
 
   RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
 end;
@@ -1881,12 +1963,13 @@ begin
     begin
       KeySensorNodes := TVRMLNodesList.Create;
       TimeSensorNodes := TVRMLNodesList.Create;
+      MovieTextureNodes := TVRMLNodesList.Create;
       CollectNodesForEvents;
     end else
     begin
       FreeAndNil(KeySensorNodes);
       FreeAndNil(TimeSensorNodes);
-      TimeSensorHack.TimeSensorNodes := nil;
+      FreeAndNil(MovieTextureNodes);
     end;
     FProcessEvents := Value;
   end;
@@ -1963,6 +2046,192 @@ begin
       end;
     end;
   end;
+end;
+
+{ WorldTime stuff ------------------------------------------------------------ }
+
+function TVRMLFlatScene.WorldTime: TKamTime;
+begin
+  Result := FWorldTime;
+end;
+
+procedure TVRMLFlatScene.InternalSetWorldTime(
+  const NewValue, TimeIncrease: TKamTime;
+  out SomethingChanged: boolean);
+
+  procedure DoTimeHandler(TimeHandler: TTimeDependentNodeHandler);
+
+    { $define LOG_TIME_DEPENDENT_NODES}
+
+    { Increase TimeHandler.ElapsedTime, taking care of
+      TimeHandler.CycleInterval and looping.
+      StopOnNonLoopedEnd says what to do if ElapsedTime passed
+      CycleInterval and not looping. }
+    procedure IncreaseElapsedTime(const Increase: TKamTime;
+      StopOnNonLoopedEnd: boolean);
+    begin
+      TimeHandler.ElapsedTime := TimeHandler.ElapsedTime + Increase;
+      if TimeHandler.ElapsedTime > TimeHandler.CycleInterval then
+      begin
+        if TimeHandler.CycleInterval <> 0 then
+        begin
+          if TimeHandler.FdLoop.Value then
+          begin
+            TimeHandler.ElapsedTime :=
+              FloatModulo(TimeHandler.ElapsedTime, TimeHandler.CycleInterval);
+          end else
+          if StopOnNonLoopedEnd then
+            TimeHandler.IsActive := false;
+        end else
+        begin
+          { for cycleInterval = 0 this always remains 0 }
+          TimeHandler.ElapsedTime := 0;
+
+          if (not TimeHandler.FdLoop.Value) and StopOnNonLoopedEnd then
+            TimeHandler.IsActive := false;
+        end;
+      end;
+    end;
+
+  begin
+    {$ifdef LOG_TIME_DEPENDENT_NODES}
+    if Log then
+      WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
+        [ TimeHandler.Node.NodeTypeName,
+          BoolToStr[TimeHandler.IsActive],
+          BoolToStr[TimeHandler.IsPaused],
+          BoolToStr[TimeHandler.FdLoop.Value]
+          ]));
+    {$endif}
+
+    { For ResetWorldTime, set time-dependent node properties to default
+      (like after TNodeTimeHandler creation) at the beginning. }
+    if TimeIncrease = 0 then
+    begin
+      TimeHandler.IsActive := false;
+      TimeHandler.IsPaused := false;
+      TimeHandler.ElapsedTime := 0;
+    end;
+
+    if not TimeHandler.IsActive then
+    begin
+      if (NewValue >= TimeHandler.FdStartTime.Value) and
+         ( (NewValue < TimeHandler.FdStopTime.Value) or
+           { stopTime is ignored if it's <= startTime }
+           (TimeHandler.FdStopTime.Value <= TimeHandler.FdStartTime.Value) ) and
+         { avoid starting the movie if it should be stopped according
+           to loop and cycleInterval }
+         not ( (NewValue - TimeHandler.FdStartTime.Value >
+               TimeHandler.CycleInterval) and
+               (not TimeHandler.FdLoop.Value) ) then
+      begin
+        TimeHandler.IsActive := true;
+        TimeHandler.IsPaused := false;
+        TimeHandler.ElapsedTime := 0;
+        { Do not advance by TimeIncrease (time from last WorldTime),
+          advance only by the time passed since startTime. }
+        IncreaseElapsedTime(NewValue - TimeHandler.FdStartTime.Value, true);
+        SomethingChanged := true;
+      end;
+    end else
+    if TimeHandler.IsPaused then
+    begin
+      if (NewValue >= TimeHandler.FdResumeTime.Value) and
+         (TimeHandler.FdResumeTime.Value > TimeHandler.FdPauseTime.Value) then
+      begin
+        TimeHandler.IsPaused := false;
+        { Advance only by the time passed since resumeTime. }
+        IncreaseElapsedTime(NewValue - TimeHandler.FdResumeTime.Value, true);
+        SomethingChanged := true;
+      end;
+    end else
+    begin
+      SomethingChanged := true;
+
+      if (NewValue >= TimeHandler.FdStopTime.Value) and
+         { stopTime is ignored if it's <= startTime }
+         (TimeHandler.FdStopTime.Value > TimeHandler.FdStartTime.Value) then
+      begin
+        TimeHandler.IsActive := false;
+        { advance only to the stopTime }
+        if TimeIncrease <> 0 then
+          IncreaseElapsedTime(TimeIncrease -
+            (NewValue - TimeHandler.FdStopTime.Value), false);
+      end else
+      if (NewValue >= TimeHandler.FdPauseTime.Value) and
+         (TimeHandler.FdPauseTime.Value > TimeHandler.FdResumeTime.Value) then
+      begin
+        TimeHandler.IsPaused := true;
+        { advance only to the pauseTime }
+        if TimeIncrease <> 0 then
+          IncreaseElapsedTime(TimeIncrease -
+            (NewValue - TimeHandler.FdPauseTime.Value), false);
+      end else
+      begin
+        { active and not paused movie }
+        if TimeIncrease = 0 then
+          TimeHandler.ElapsedTime := 0 else
+          IncreaseElapsedTime(TimeIncrease, true);
+      end;
+    end;
+
+    {$ifdef LOG_TIME_DEPENDENT_NODES}
+    if Log then
+      WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
+        [ TimeHandler.Node.NodeTypeName,
+          BoolToStr[TimeHandler.IsActive],
+          BoolToStr[TimeHandler.IsPaused]]));
+    {$endif}
+  end;
+
+var
+  I: Integer;
+begin
+  SomethingChanged := false;
+
+  if ProcessEvents then
+  begin
+    for I := 0 to MovieTextureNodes.Count - 1 do
+      DoTimeHandler((MovieTextureNodes.Items[I] as TNodeMovieTexture).
+        TimeDependentNodeHandler);
+
+    for I := 0 to TimeSensorNodes.Count - 1 do
+      DoTimeHandler((TimeSensorNodes.Items[I] as TNodeTimeSensor).
+        TimeDependentNodeHandler);
+  end;
+
+  FWorldTime := NewValue;
+end;
+
+procedure TVRMLFlatScene.SetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean);
+var
+  TimeIncrease: TKamTime;
+begin
+  TimeIncrease := NewValue - FWorldTime;
+  if TimeIncrease > 0 then
+    InternalSetWorldTime(NewValue, TimeIncrease, SomethingChanged);
+end;
+
+procedure TVRMLFlatScene.IncreaseWorldTime(const TimeIncrease: TKamTime;
+  out SomethingChanged: boolean);
+begin
+  if TimeIncrease > 0 then
+    InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease, SomethingChanged);
+end;
+
+procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime;
+  out SomethingChanged: boolean);
+begin
+  InternalSetWorldTime(NewValue, 0, SomethingChanged);
+end;
+
+procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime);
+var
+  SomethingChanged: boolean;
+begin
+  ResetWorldTime(NewValue, SomethingChanged);
+  { just ignore SomethingChanged }
 end;
 
 initialization
