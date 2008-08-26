@@ -324,7 +324,7 @@ type
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
     FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLFlatSceneNotification;
-    FOnChanged: TVRMLFlatSceneNotification;
+    FOnPostRedisplay: TVRMLFlatSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -353,10 +353,12 @@ type
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
       cycleInterval, loop properties. }
     procedure InternalSetWorldTime(
-      const NewValue, TimeIncrease: TKamTime;
-      out SomethingChanged: boolean);
+      const NewValue, TimeIncrease: TKamTime);
 
     procedure ResetRoutesLastEventTime(Node: TVRMLNode);
+  protected
+    { Call OnPostRedisplay, if assigned. }
+    procedure DoPostRedisplay;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -439,9 +441,9 @@ type
       read FOnAfterChangedAll write FOnAfterChangedAll;
     { @groupEnd }
 
-    { Notification when anything changed. }
-    property OnChanged: TVRMLFlatSceneNotification
-      read FOnChanged write FOnChanged;
+    { Notification when anything changed needing redisplay. }
+    property OnPostRedisplay: TVRMLFlatSceneNotification
+      read FOnPostRedisplay write FOnPostRedisplay;
 
     { Returns short information about the scene.
       This consists of a few lines, separated by KambiUtils.NL.
@@ -837,23 +839,18 @@ type
 
       Following X3D specification, time should only grow. So NewValue should
       be > WorldTime (or TimeIncrease > 0).
-      Otherwise we ignore this call (with SomethingChanged = always @false).
+      Otherwise we ignore this call.
       For resetting the time (when you don't necessarily want to grow WorldTime)
       see ResetWorldTime.
 
-      SomethingChanged is set if some time-dependent node was active between
-      old WorldTime and new WorldTime. The idea is that you can use
-      SomethingChanged to decide whether the scene needs to be renderer once again.
-      When SomethingChanged = @false, you know that nothing actually happened
-      and there's no need to render again.
-      If @true, then you probably want to do something like post redisplay
-      (see TGLWindow.PostRedisplay).
+      If a change of WorldTime will produce some visible change in VRML model
+      (for example, MovieTexture will change, or TimeSensor change will be
+      routed by interpolator to coordinates of some visible node) this
+      will be notified by usual method, that is OnPostRedisplay.
 
       @groupBegin }
-    procedure SetWorldTime(const NewValue: TKamTime;
-      out SomethingChanged: boolean);
-    procedure IncreaseWorldTime(const TimeIncrease: TKamTime;
-      out SomethingChanged: boolean);
+    procedure SetWorldTime(const NewValue: TKamTime);
+    procedure IncreaseWorldTime(const TimeIncrease: TKamTime);
     { @groupEnd }
 
     { Set WorldTime to arbitrary value.
@@ -867,9 +864,7 @@ type
       TimeIncrease notion, without it we can only reset them).
 
       @groupBegin }
-    procedure ResetWorldTime(const NewValue: TKamTime;
-      out SomethingChanged: boolean); overload;
-    procedure ResetWorldTime(const NewValue: TKamTime); overload;
+    procedure ResetWorldTime(const NewValue: TKamTime);
     { @groupEnd }
   end;
 
@@ -1113,17 +1108,14 @@ begin
   if Assigned(OnAfterChangedAll) then
     OnAfterChangedAll(Self);
 
-  if Assigned(OnChanged) then
-    OnChanged(Self);
+  DoPostRedisplay;
 end;
 
 procedure TVRMLFlatScene.ChangedShapeStateFields(ShapeStateNum: integer);
 begin
   Validities := [];
   ShapeStates[ShapeStateNum].Changed;
-
-  if Assigned(OnChanged) then
-    OnChanged(Self);
+  DoPostRedisplay;
 end;
 
 procedure TVRMLFlatScene.ChangedFields(Node: TVRMLNode);
@@ -1154,6 +1146,14 @@ begin
      ) then
     Exit;
 
+  if Node is TNodeComposedShader then
+  begin
+    { Do nothing here, as TVRMLOpenGLRenderer registers and takes care
+      to update shaders' uniform variables. We don't have to do
+      anything here, no need to rebuild/recalculate anything.
+      The only thing that needs to be called is redisplay, by DoPostRedisplay
+      at the end of ChangedFields. }
+  end else
   if Node is TNodeCoordinate then
   begin
     { TNodeCoordinate is special, although it's part of VRML 1.0 state,
@@ -1213,8 +1213,13 @@ begin
     Exit;
   end;
 
-  if Assigned(OnChanged) then
-    OnChanged(Self);
+  DoPostRedisplay;
+end;
+
+procedure TVRMLFlatScene.DoPostRedisplay;
+begin
+  if Assigned(OnPostRedisplay) then
+    OnPostRedisplay(Self);
 end;
 
 resourcestring
@@ -1955,8 +1960,21 @@ begin
         This will be a problem if a VRML scene will be heavily processed
         by our own routines (including destroying of RootNode or
         other nodes), and at the same time ProcessEvents = @true.
-        This will not work nicely, document? }
+        This will not work nicely, document?
+
+        The same problem occurs with Node.Event[I].OnReceive.AddIfNotExists
+        lower. }
     end;
+
+  if Node is TNodeComposedShader then
+  begin
+    { For ComposedShader nodes, we have to watch for changes to
+      inputOnly events too, to call DoPostRedisplay (in ChangedFields)
+      for them. }
+    for I := 0 to Node.Events.Count - 1 do
+      if Node.Events[I].InEvent then
+        Node.Events[I].OnReceive.AddIfNotExists(@EventChanged);
+  end;
 end;
 
 procedure TVRMLFlatScene.CollectNodesForEvents;
@@ -2074,8 +2092,10 @@ begin
 end;
 
 procedure TVRMLFlatScene.InternalSetWorldTime(
-  const NewValue, TimeIncrease: TKamTime;
-  out SomethingChanged: boolean);
+  const NewValue, TimeIncrease: TKamTime);
+
+var
+  SomethingChanged: boolean;
 
   procedure DoTimeHandler(TimeHandler: TTimeDependentNodeHandler);
 
@@ -2220,13 +2240,20 @@ procedure TVRMLFlatScene.InternalSetWorldTime(
 var
   I: Integer;
 begin
-  SomethingChanged := false;
-
   if ProcessEvents then
   begin
+    SomethingChanged := false;
     for I := 0 to MovieTextureNodes.Count - 1 do
       DoTimeHandler((MovieTextureNodes.Items[I] as TNodeMovieTexture).
         TimeDependentNodeHandler);
+
+    { If SomethingChanged on MovieTexture nodes, then we have to redisplay.
+      Note that this is not needed for other time-dependent nodes
+      (like TimeSensor), as they are not visible (and so can influence
+      other nodes only by events, and this will change EventChanged
+      to catch it). }
+    if SomethingChanged then
+      DoPostRedisplay;
 
     for I := 0 to TimeSensorNodes.Count - 1 do
       DoTimeHandler((TimeSensorNodes.Items[I] as TNodeTimeSensor).
@@ -2236,21 +2263,19 @@ begin
   FWorldTime := NewValue;
 end;
 
-procedure TVRMLFlatScene.SetWorldTime(const NewValue: TKamTime;
-  out SomethingChanged: boolean);
+procedure TVRMLFlatScene.SetWorldTime(const NewValue: TKamTime);
 var
   TimeIncrease: TKamTime;
 begin
   TimeIncrease := NewValue - FWorldTime;
   if TimeIncrease > 0 then
-    InternalSetWorldTime(NewValue, TimeIncrease, SomethingChanged);
+    InternalSetWorldTime(NewValue, TimeIncrease);
 end;
 
-procedure TVRMLFlatScene.IncreaseWorldTime(const TimeIncrease: TKamTime;
-  out SomethingChanged: boolean);
+procedure TVRMLFlatScene.IncreaseWorldTime(const TimeIncrease: TKamTime);
 begin
   if TimeIncrease > 0 then
-    InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease, SomethingChanged);
+    InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease);
 end;
 
 procedure TVRMLFlatScene.ResetRoutesLastEventTime(Node: TVRMLNode);
@@ -2261,20 +2286,11 @@ begin
     Node.Routes[I].ResetLastEventTime;
 end;
 
-procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime;
-  out SomethingChanged: boolean);
+procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime);
 begin
-  InternalSetWorldTime(NewValue, 0, SomethingChanged);
+  InternalSetWorldTime(NewValue, 0);
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
-end;
-
-procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime);
-var
-  SomethingChanged: boolean;
-begin
-  ResetWorldTime(NewValue, SomethingChanged);
-  { just ignore SomethingChanged }
 end;
 
 initialization

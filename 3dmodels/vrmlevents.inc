@@ -44,6 +44,7 @@
     FFieldClass: TVRMLFieldClass;
     FInEvent: boolean;
     FOnReceive: TDynVRMLEventReceiveArray;
+    FParentExposedField: TVRMLField;
   public
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -61,6 +62,11 @@
 
     { Write event name, and (if present) "IS" clause of the event. }
     procedure SaveToStream(SaveProperties: TVRMLSaveToStreamProperties); override;
+
+    { If this event is an exposed event belonging to some field,
+      this references parent field. Otherwise it's @nil. }
+    property ParentExposedField: TVRMLField
+      read FParentExposedField write FParentExposedField;
 
     { Send a value to event. For input fields, this is used by routes, scripts
       etc. to send an event to a field. For output fields, this is used by

@@ -1832,8 +1832,13 @@ procedure TVRMLOpenGLRendererContextCache.EventReceiveGLSLUniform(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 var
   I: Integer;
+  UniformName: string;
   GLSLProgramCache: PGLSLProgramCache;
 begin
+  if Event.ParentExposedField = nil then
+    UniformName := Event.Name else
+    UniformName := Event.ParentExposedField.Name;
+
   { We need to find GLSLProgram instance, to know which GLSL program
     actually has this uniform variable. We can do it: Event.ParentNode
     should point to appropriate ComposedShader node, so we can find
@@ -1846,9 +1851,7 @@ begin
 
     if GLSLProgramCache^.ProgramNode = Event.ParentNode then
     begin
-      { TODO: Event.Name is wrong for exposed events, we should then take
-        underlying field name. }
-      SetUniformFromField(GLSLProgramCache^.GLSLProgram, Event.Name, Value);
+      SetUniformFromField(GLSLProgramCache^.GLSLProgram, UniformName, Value);
       Exit;
     end;
   end;

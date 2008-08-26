@@ -2086,6 +2086,9 @@ begin
         SetPrefix + Name,
         TVRMLFieldClass(Self.ClassType), true);
 
+      FExposedEvents[false].ParentExposedField := Self;
+      FExposedEvents[true].ParentExposedField := Self;
+
       for I := Low(FAlternativeNames) to High(FAlternativeNames) do
         if FAlternativeNames[I] <> '' then
         begin
