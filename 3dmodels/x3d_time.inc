@@ -297,11 +297,10 @@ procedure TTimeDependentNodeHandler.SetWorldTime(
 begin
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: before: active %s, paused %s, loop %s',
+    WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        BoolToStr[IsActive],
-        BoolToStr[IsPaused],
-        BoolToStr[FdLoop.Value]
+        OldValue, TimeIncrease, NewValue,
+        BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
 
