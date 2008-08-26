@@ -34,14 +34,6 @@ VRML 97 TODO items:
   Or maybe it should be made a new field of Apperance ?
 
 ----------------------------------------
-- Implement event, routes, scripts. Relevant spec parts:
-  - 4.2.5 Event routing
-  - see 4.10.2, Route semantics
-- 4.5.4 Scripting language protocols
-----------------------------------------
-- Check what nodes are allowed where:
-  - Root nodes shall be children nodes (see 4.6.5, Grouping and children nodes).
-----------------------------------------
 - Resolving url fields (MFString, see 4.5.2, 4.5.3).
   Use Synapse or curl (probably both, by compile-time define;
   make the URL system "pluggable", by default "null" system is plugged
@@ -51,10 +43,19 @@ VRML 97 TODO items:
   network libraries to plug there ..
 
 ----------------------------------------
-- 4.6.7 Sensor nodes
-  ...
-  and further 4.x spec parts, with the exception of 4.8, 4.9, 4.13, 4.14
+4.6.7.2 Environmental sensors
+4.6.7.3 Pointing-device sensors
+4.6.10 Bindable children nodes
 
+- Scripting:
+  - 4.5.4 Scripting language protocols
+  - 4.12 Scripting
+  
+- Redundant routing is ignored. If a VRML file repeats a routing path, the second and subsequent identical routes are ignored. This also applies for routes created dynamically via a scripting language supported by the browser.
+  Currently, we don't honour above. Multiple routes will cause multiplication of sending event.
+  
+- Navigation is performed relative to the Viewpoint's location and does not affect the location and orientation values of a Viewpoint node.
+  This will also allow animating camera move by animating Viewpoint or it's transformation, AFAI understand.
 ------------------------------------------------------------------------------
 
 Partial X3D TODO list:
