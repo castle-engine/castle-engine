@@ -884,7 +884,7 @@ var
 
 implementation
 
-uses VRMLCameraUtils;
+uses VRMLCameraUtils, KambiLog, KambiStringUtils;
 
 {$define read_implementation}
 {$I macprecalcvaluereturn.inc}
@@ -1885,22 +1885,32 @@ begin
   end;
 end;
 
+{ We're using AddIfNotExists, not simple Add, in Collect_ routines
+  below:
+
+  - for time-dependent nodes (TimeSensor, MovieTexture etc.),
+    duplicates would cause time to be then incremented many times
+    during single SetWorldTime, so their local time would grow too fast.
+
+  - for other sensors, events would be passed twice.
+}
+
 procedure TVRMLFlatScene.Collect_KeySensor(Node: TVRMLNode);
 begin
   Assert(Node is TNodeKeySensor);
-  KeySensorNodes.Add(Node);
+  KeySensorNodes.AddIfNotExists(Node);
 end;
 
 procedure TVRMLFlatScene.Collect_TimeSensor(Node: TVRMLNode);
 begin
   Assert(Node is TNodeTimeSensor);
-  TimeSensorNodes.Add(Node);
+  TimeSensorNodes.AddIfNotExists(Node);
 end;
 
 procedure TVRMLFlatScene.Collect_MovieTexture(Node: TVRMLNode);
 begin
   Assert(Node is TNodeMovieTexture);
-  MovieTextureNodes.Add(Node);
+  MovieTextureNodes.AddIfNotExists(Node);
 end;
 
 procedure TVRMLFlatScene.EventChanged(Event: TVRMLEvent; Value: TVRMLField);

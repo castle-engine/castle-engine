@@ -119,6 +119,9 @@
       In other words, AddXxx(...) is always just a shortcut for
       InsertXxx(Count, ...). }
     procedure Add(Item: TObjectsListItem_7);
+
+    procedure AddIfNotExists(Item: TObjectsListItem_7);
+
     procedure AddArray(const A: array of TObjectsListItem_7);
     procedure AddList(List: TObjectsList_7);
 
@@ -363,6 +366,12 @@ end;
 procedure TObjectsList_7.Add(Item: TObjectsListItem_7);
 begin
  Insert(Count, Item);
+end;
+
+procedure TObjectsList_7.AddIfNotExists(Item: TObjectsListItem_7);
+begin
+  if IndexOf(Item) = -1 then
+    Add(Item);
 end;
 
 procedure TObjectsList_7.AddArray(const A: array of TObjectsListItem_7);
