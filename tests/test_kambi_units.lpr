@@ -21,7 +21,7 @@ uses
   TestFNMatch,
   TestVRMLFields,
   TestVRMLNodes,
-  TestVRMLFlatSceneGL,
+  TestVRMLGLScene,
   TestIntRects,
   TestSpaceFillingCurves,
   TestObjectsList,

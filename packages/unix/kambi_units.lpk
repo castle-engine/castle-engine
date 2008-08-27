@@ -95,8 +95,8 @@
         <UnitName Value="Object3dOpenGL"/>
       </Item11>
       <Item12>
-        <Filename Value="../../3dmodels.gl/vrmlflatscenegl.pas"/>
-        <UnitName Value="VRMLFlatSceneGL"/>
+        <Filename Value="../../3dmodels.gl/vrmlglscene.pas"/>
+        <UnitName Value="VRMLGLScene"/>
       </Item12>
       <Item13>
         <Filename Value="../../3dmodels.gl/vrmlglanimation.pas"/>
@@ -179,8 +179,8 @@
         <UnitName Value="VRMLFields"/>
       </Item32>
       <Item33>
-        <Filename Value="../../3dmodels/vrmlflatscene.pas"/>
-        <UnitName Value="VRMLFlatScene"/>
+        <Filename Value="../../3dmodels/vrmlscene.pas"/>
+        <UnitName Value="VRMLScene"/>
       </Item33>
       <Item34>
         <Filename Value="../../3dmodels/vrmlgeometry.pas"/>

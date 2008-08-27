@@ -263,11 +263,11 @@ units are allowed to be used by units in specific group.
     Basically this means that they use units in both @code(opengl)
     and @code(3dmodels) groups.
 
-    First of all, that's VRMLFlatSceneGL unit that provides
+    First of all, that's VRMLGLScene unit that provides
     the most final and complete class for dealing with static VRML models and
     displaying them in OpenGL. And there's VRMLGLAnimation, that
     provides the same thing, but for animations (actually using
-    VRMLFlatSceneGL underneath).
+    VRMLGLScene underneath).
 
     @italic(Uses:) @code(base), @code(images), @code(3dgraph), @code(fonts),
       @code(opengl), @code(3dmodels).)

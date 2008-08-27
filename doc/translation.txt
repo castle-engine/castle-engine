@@ -38,7 +38,7 @@ D   triangulator.pas
 D   vrmlanimation.pas
 D   vrmlerrors.pas
 D   vrmlfields.pas
-D   vrmlflatscene.pas
+D   vrmlscene.pas
 D   vrmllexer.pas
 |   vrmllightmap.pas
 -   vrmllightset.pas
@@ -57,7 +57,7 @@ D   vrmlgeometry.pas
   3dmodels.gl/
 -   backgroundgl.pas
 |   object3dopengl.pas
-D   vrmlflatscenegl.pas
+D   vrmlglscene.pas
 |   vrmllightsetgl.pas
 -   vrmlopenglrenderer.pas
 D   vrmlglanimation.pas

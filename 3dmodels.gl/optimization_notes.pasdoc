@@ -65,7 +65,7 @@ case when you know that user will usually not see the whole scene.
 
     Understanding the term "ShapeState" is important, since this is the basis
     of optimizations outlined below. After loading the VRML model,
-    class @link(TVRMLFlatScene) creates a flat view of this model as a list
+    class @link(TVRMLScene) creates a flat view of this model as a list
     of all ShapeStates that are in the active part of the model.
     I call this a "flat view" of the model because original vrml model
     is an acyclic directed graph (no, it's not a tree since you have
@@ -77,10 +77,10 @@ case when you know that user will usually not see the whole scene.
 
 @orderedList(
   @item(
-    You can use @link(TVRMLFlatSceneGL) with @link(TVRMLFlatSceneGL.Optimization
+    You can use @link(TVRMLGLScene) with @link(TVRMLGLScene.Optimization
     Optimization) = roSeparateShapeStates
     and use it's Render* methods that take into account your visibility
-    frustum (e.g. @link(TVRMLFlatSceneGL.RenderFrustum RenderFrustum))
+    frustum (e.g. @link(TVRMLGLScene.RenderFrustum RenderFrustum))
     or visibility sphere or something like that
     (generally speaking: methods that generate some function
     TestShapeStateVisibility that can quickly decide that some ShapeStates
@@ -115,9 +115,9 @@ case when you know that user will usually not see the whole scene.
     that are possibly visible.
 
     To use this: just build your octree with
-    @link(TVRMLFlatScene.CreateShapeStateOctree) and then render using
-    @link(TVRMLFlatSceneGL.RenderFrustumOctree).
-    @link(TVRMLFlatSceneGL) still (like in approach (1))
+    @link(TVRMLScene.CreateShapeStateOctree) and then render using
+    @link(TVRMLGLScene.RenderFrustumOctree).
+    @link(TVRMLGLScene) still (like in approach (1))
     should be constructed with Optimization = roSeparateShapeStates.
 
     This way I keep using roSeparateShapeStates, so most

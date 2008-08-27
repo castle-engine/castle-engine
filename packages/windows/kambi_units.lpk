@@ -79,8 +79,8 @@
         <UnitName Value="Object3dOpenGL"/>
       </Item10>
       <Item11>
-        <Filename Value="..\..\3dmodels.gl\vrmlflatscenegl.pas"/>
-        <UnitName Value="VRMLFlatSceneGL"/>
+        <Filename Value="..\..\3dmodels.gl\vrmlglscene.pas"/>
+        <UnitName Value="VRMLGLScene"/>
       </Item11>
       <Item12>
         <Filename Value="..\..\3dmodels.gl\vrmlglanimation.pas"/>

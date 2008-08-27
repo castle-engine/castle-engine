@@ -73,8 +73,8 @@
         <UsageCount Value="10"/>
       </Unit3>
       <Unit4>
-        <Filename Value="../../vrmlflatscenegl.pas"/>
-        <UnitName Value="VRMLFlatSceneGL"/>
+        <Filename Value="../../vrmlglscene.pas"/>
+        <UnitName Value="VRMLGLScene"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>

@@ -102,9 +102,9 @@
         <SyntaxHighlighter Value="Text"/>
       </Unit7>
       <Unit8>
-        <Filename Value="testvrmlflatscenegl.pas"/>
+        <Filename Value="testvrmlglscene.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="TestVRMLFlatSceneGL"/>
+        <UnitName Value="TestVRMLGLScene"/>
         <CursorPos X="72" Y="54"/>
         <TopLine Value="32"/>
         <UsageCount Value="32"/>
