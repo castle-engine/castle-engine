@@ -653,12 +653,10 @@ begin
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
     LightSet := TVRMLLightSetGL.Create(
       ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
-    Scene := TVRMLGLScene.Create(
-      ParseVRMLFile(SceneVrmlName, false), true, roSceneAsAWhole);
+    Scene := TVRMLGLScene.Create(SceneVrmlName, roSceneAsAWhole);
     Scene.Attributes.UseLights := true;
     Scene.Attributes.FirstGLFreeLight := 1;
-    ShadowCaster := TVRMLGLScene.Create(
-      ParseVRMLFile(ShadowCasterVrmlName, false), true, roSceneAsAWhole);
+    ShadowCaster := TVRMLGLScene.Create(ShadowCasterVrmlName, roSceneAsAWhole);
     SceneBoundingBox := Box3dSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);
 

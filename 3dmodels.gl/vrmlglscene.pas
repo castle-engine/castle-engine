@@ -582,7 +582,21 @@ type
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
       AOptimization: TGLRendererOptimization;
-      ACache: TVRMLOpenGLRendererContextCache = nil);
+      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
+
+    { The most comfortable constructor, loads the 3D model from given
+      SceneFileName.
+
+      Scene is loaded by LoadAsVRML(SceneFileName, false),
+      so it supports all 3D model formats LoadAsVRML handles
+      (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
+      2nd parameter (AllowStdin) is @false to LoadAsVRML,
+      so special filename "-" is not recognized as "standard input"
+      --- this is the safer default, in case your program wants
+      to use stdin for something else. }
+    constructor Create(const SceneFileName: string;
+      AOptimization: TGLRendererOptimization;
+      ACache: TVRMLOpenGLRendererContextCache = nil); overload;
 
     { A very special constructor, that forces this class to use
       provided AProvidedRenderer.
@@ -1088,7 +1102,8 @@ type
 
 implementation
 
-uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog;
+uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog,
+  Object3dAsVRML;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1211,6 +1226,13 @@ constructor TVRMLGLScene.CreateProvidedRenderer(
   AProvidedRenderer: TVRMLOpenGLRenderer);
 begin
   CommonCreate(ARootNode, AOwnsRootNode, AOptimization, true, AProvidedRenderer);
+end;
+
+constructor TVRMLGLScene.Create(const SceneFileName: string;
+  AOptimization: TGLRendererOptimization;
+  ACache: TVRMLOpenGLRendererContextCache);
+begin
+  Create(LoadAsVRML(SceneFileName, false), true, AOptimization, ACache);
 end;
 
 destructor TVRMLGLScene.Destroy;

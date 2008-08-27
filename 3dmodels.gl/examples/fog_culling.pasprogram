@@ -172,9 +172,8 @@ begin
  try
   VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLGLScene.Create(LoadAsVRML(
-    'models' + PathDelim + 'fog_culling_final.wrl', true),
-    true, roSeparateShapeStates);
+  Scene := TVRMLGLScene.Create(
+    'models' + PathDelim + 'fog_culling_final.wrl', roSeparateShapeStates);
 
   Writeln(Scene.Info(true, true, false));
 

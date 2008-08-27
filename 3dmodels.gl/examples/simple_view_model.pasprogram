@@ -91,8 +91,7 @@ begin
  try
   VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLGLScene.Create(LoadAsVRML(Parameters[1], true),
-    true, roSceneAsAWhole);
+  Scene := TVRMLGLScene.Create(Parameters[1], roSceneAsAWhole);
 
   Writeln(Scene.Info(true, true, false));
 

@@ -205,8 +205,7 @@ begin
     [bmNone] + bmGLSLAll then
     SceneOptimization := roSceneAsAWhole else
     SceneOptimization := roNone;
-  Scene := TVRMLGLScene.Create(LoadAsVRML(FileName, true),
-    true, SceneOptimization);
+  Scene := TVRMLGLScene.Create(FileName, SceneOptimization);
 
   { make octree for RenderFrustumOctree }
   Progress.UserInterface := ProgressNullInterface;

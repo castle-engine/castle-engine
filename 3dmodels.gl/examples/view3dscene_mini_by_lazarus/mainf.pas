@@ -86,9 +86,7 @@ var
 begin
   FreeAndNil(Scene);
 
-  Scene := TVRMLGLScene.Create(
-    LoadAsVRML(FileName, true),
-    true, roSceneAsAWhole);
+  Scene := TVRMLGLScene.Create(FileName, roSceneAsAWhole);
 
   { allow the scene to use it's own lights }
   Scene.Attributes.UseLights := true;
