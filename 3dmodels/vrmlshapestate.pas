@@ -50,11 +50,11 @@ type
     But note that you can't change GeometryNode or State to different
     objects --- they are readonly properties.
 
-    Also note that if you're using @link(TVRMLFlatScene) class
+    Also note that if you're using @link(TVRMLScene) class
     then you don't have to worry about calling @link(Changed)
-    of items in @link(TVRMLFlatScene.ShapeStates).
+    of items in @link(TVRMLScene.ShapeStates).
     All you have to do is to call appropriate @code(Changed*)
-    methods of @link(TVRMLFlatScene). }
+    methods of @link(TVRMLScene). }
   TVRMLShapeState = class
   private
     FLocalBoundingBox: TBox3d;
@@ -98,7 +98,7 @@ type
     function BoundingSphereCenter: TVector3Single;
     function BoundingSphereRadiusSqr: Single;
 
-    { This is an information for the TVRMLFlatSceneGL renderer
+    { This is an information for the TVRMLGLScene renderer
       whether this can be stored in a display list.
 
       If @false then rendering of this shapestate cannot be stored

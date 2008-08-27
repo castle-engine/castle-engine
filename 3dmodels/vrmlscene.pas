@@ -18,9 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(VRML scene as @link(TVRMLFlatScene) class.) }
+{ @abstract(VRML scene as @link(TVRMLScene) class.) }
 
-unit VRMLFlatScene;
+unit VRMLScene;
 
 interface
 
@@ -41,9 +41,9 @@ type
   PArray_Triangle3Single = PInfiniteArray_1;
   TDynTriangle3SingleArray = TDynArray_1;
 
-  { Internal helper type for TVRMLFlatScene.
+  { Internal helper type for TVRMLScene.
     @exclude }
-  TVRMLFlatSceneValidity = (fvBBox,
+  TVRMLSceneValidity = (fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvFog,
@@ -51,30 +51,30 @@ type
     fvManifoldAndBorderEdges);
 
   { @exclude }
-  TVRMLFlatSceneValidities = set of TVRMLFlatSceneValidity;
+  TVRMLSceneValidities = set of TVRMLSceneValidity;
 
   TViewpointFunction = procedure (Node: TVRMLViewpointNode;
     const Transform: TMatrix4Single) of object;
 
   { Scene edge that is between exactly two triangles.
-    It's used by @link(TVRMLFlatScene.ManifoldEdges),
+    It's used by @link(TVRMLScene.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using TVRMLFlatScene.ShareManifoldAndBorderEdges with various scenes from
+      using TVRMLScene.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the first triangle
       (i.e. Triangles[0]). }
     VertexIndex: Cardinal;
 
-    { Indexes to TVRMLFlatScene.Triangles(false) array }
+    { Indexes to TVRMLScene.Triangles(false) array }
     Triangles: array [0..1] of Cardinal;
 
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
       Like said in VertexIndex, keeping here actual vertex info would prevent
-      TVRMLFlatScene.ShareManifoldAndBorderEdges. However, using these when generating
+      TVRMLScene.ShareManifoldAndBorderEdges. However, using these when generating
       makes a great speed-up when generating manifold edges.
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
@@ -91,7 +91,7 @@ type
       implementation code is a little simplified, so I'm keeping this.
       Also, in the future, maybe it will be sensible
       to use this for actual shadow quad rendering, in cases when we know that
-      TVRMLFlatScene.ShareManifoldAndBorderEdges was not used to make it. }
+      TVRMLScene.ShareManifoldAndBorderEdges was not used to make it. }
     V0, V1: TVector3Single;
   end;
   PManifoldEdge = ^TManifoldEdge;
@@ -106,17 +106,17 @@ type
   end;
 
   { Scene edge that has one neighbor, i.e. border edge.
-    It's used by @link(TVRMLFlatScene.BorderEdges),
+    It's used by @link(TVRMLScene.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
     { Index to get vertex of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using TVRMLFlatScene.ShareManifoldAndBorderEdges with various scenes from
+      using TVRMLScene.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
     VertexIndex: Cardinal;
 
-    { Index to TVRMLFlatScene.Triangles(false) array. }
+    { Index to TVRMLScene.Triangles(false) array. }
     TriangleIndex: Cardinal;
   end;
   PBorderEdge = ^TBorderEdge;
@@ -128,12 +128,12 @@ type
   TDynBorderEdgeArray = TDynArray_3;
 
   { These are various features that may be freed by
-    TVRMLFlatScene.FreeResources.
+    TVRMLScene.FreeResources.
 
-    @italic(Warning): This is for experienced usage of TVRMLFlatScene.
+    @italic(Warning): This is for experienced usage of TVRMLScene.
     Everything is explained in detail below, but still  --- if you have some
     doubts, or you just don't observe any memory shortage in your program,
-    it's probably best to not use TVRMLFlatScene.FreeResources.
+    it's probably best to not use TVRMLScene.FreeResources.
 
     @unorderedList(
       @item(For frRootNode, you @italic(may) get nasty effects including crashes
@@ -158,31 +158,31 @@ type
   }
   TVRMLSceneFreeResource = (
     { Free (and set to nil) RootNode of the scene. Works only if
-      TVRMLFlatScene.OwnsRootNode is @true (the general assertion is that
-      TVRMLFlatScene will @italic(never) free RootNode when OwnsRootNode is
+      TVRMLScene.OwnsRootNode is @true (the general assertion is that
+      TVRMLScene will @italic(never) free RootNode when OwnsRootNode is
       @false).
 
       frRootNode allows you to save some memory, but may be quite dangerous.
       You have to be careful then about what methods from the scene you use.
       Usually, you will prepare appropriate things first (usually by
-      TVRMLFlatSceneGL.PrepareRender), and after that call FreeResources
+      TVRMLSceneGL.PrepareRender), and after that call FreeResources
       with frRootNode.
 
       Note that event processing is impossible without RootNode nodes and
       fields and routes, so don't ever use this if you want to set
-      TVRMLFlatScene.ProcessEvents to @true.
+      TVRMLScene.ProcessEvents to @true.
 
       Note that if you will try to use a resource that was already freed
       by frRootNode, you may even get segfault (access violation).
       So be really careful, be sure to prepare everything first by
-      TVRMLFlatSceneGL.PrepareRender or such. }
+      TVRMLSceneGL.PrepareRender or such. }
     frRootNode,
 
     { Unloads the texture images/videos allocated in VRML texture nodes.
 
       It's useful if you know that you already prepared everything
       that needed the texture images, and you will not need texture images
-      later. For TVRMLFlatSceneGL this means that you use Optimization
+      later. For TVRMLGLScene this means that you use Optimization
       method other than roNone,
       and you already did PrepareRender (so textures are already loaded to OpenGL),
       and your code will not access TextureImage / TextureVideo anymore.
@@ -227,24 +227,32 @@ type
 
       Frees memory, but next call to ManifoldEdges and BorderEdges will
       need to calculate them again (or you will need to call
-      TVRMLFlatScene.ShareManifoldAndBorderEdges again).
+      TVRMLScene.ShareManifoldAndBorderEdges again).
       Note that using this scene as shadow caster for shadow volumes algorithm
       requires ManifoldEdges and BorderEdges. }
     frManifoldAndBorderEdges);
 
   TVRMLSceneFreeResources = set of TVRMLSceneFreeResource;
 
-  TVRMLFlatScene = class;
+  TVRMLScene = class;
 
-  TVRMLFlatSceneNotification = procedure (Scene: TVRMLFlatScene) of object;
+  TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
 
-  { This class represents a VRML scene (that is, graph of VRML nodes
-    rooted in RootNode) deconstructed to a list of @link(TVRMLShapeState)
+  { VRML scene, a final class to handle VRML models
+    (with the exception of rendering, which is delegated to descendants,
+    like TVRMLGLScene for OpenGL).
+
+    VRML scene works with a graph of VRML nodes
+    rooted in RootNode. It also deconstructs this graph to a flat list
+    of @link(TVRMLShapeState)
     objects. The basic idea is to "have" at the same time hierarchical
     view of the scene (in @link(RootNode)) and a flattened view of the same scene
     (in @link(ShapeStates) list).
 
-    Note that when you use this class and you dynamically
+    VRML scene also takes care of initiating and managing VRML events
+    and routes mechanism (see ProcessEvents).
+
+    Note that when you use this class and you directly
     change the scene within RootNode, you'll have to use our
     @code(Changed*) methods to notify this class about changes.
     Although whole @link(TVRMLNode) class works very nicely and you
@@ -254,18 +262,24 @@ type
     after changing anything inside @link(RootNode), but you should
     also take a look at other @code(Changed*) methods defined here.
 
-    In exchange, this class provides many functionality and most
-    things work very quickly if the scene is more-or-less static.
+    If the scene is changed by VRML events, all changes are automagically
+    acted upon, so you don't have to do anything. In other words,
+    this class takes care to automatically internally call appropriate @code(Changed*)
+    methods when events change field values and such.
+
+    This class provides many functionality.
+    For more-or-less static scenes, many things are cached and work very
+    quickly.
     E.g. methods LocalBoundingBox, BoundingBox, VerticesCount, TrianglesCount
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
     that scene did not changed much). And the @link(ShapeStates) list
-    is the main trick for various processing of the scene, most important
+    is the main trick for various processing of the scene, most importantly
     it's the main trick to write a flexible OpenGL renderer of the VRML scene.
 
     Also, VRML2ActiveLights are magically updated for all states in
-    ShapeStates list. This is crucial for lights rendering in VRML 2.0. }
-  TVRMLFlatScene = class
+    ShapeStates list. This is crucial for lights rendering in VRML >= 2.0. }
+  TVRMLScene = class
   private
     FOwnsRootNode: boolean;
     FShapeStates: TVRMLShapeStatesList;
@@ -284,7 +298,7 @@ type
     FBoundingBox: TBox3d;
     FVerticesCountNotOver, FVerticesCountOver,
     FTrianglesCountNotOver, FTrianglesCountOver: Cardinal;
-    Validities: TVRMLFlatSceneValidities;
+    Validities: TVRMLSceneValidities;
     function CalculateBoundingBox: TBox3d;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
@@ -323,8 +337,8 @@ type
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
-    FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLFlatSceneNotification;
-    FOnPostRedisplay: TVRMLFlatSceneNotification;
+    FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLSceneNotification;
+    FOnPostRedisplay: TVRMLSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -427,14 +441,14 @@ type
       become invalid and have to recalculated, like triangle octree.
 
       @groupBegin }
-    property OnBeforeChangedAll: TVRMLFlatSceneNotification
+    property OnBeforeChangedAll: TVRMLSceneNotification
       read FOnBeforeChangedAll write FOnBeforeChangedAll;
-    property OnAfterChangedAll: TVRMLFlatSceneNotification
+    property OnAfterChangedAll: TVRMLSceneNotification
       read FOnAfterChangedAll write FOnAfterChangedAll;
     { @groupEnd }
 
     { Notification when anything changed needing redisplay. }
-    property OnPostRedisplay: TVRMLFlatSceneNotification
+    property OnPostRedisplay: TVRMLSceneNotification
       read FOnPostRedisplay write FOnPostRedisplay;
 
     { Returns short information about the scene.
@@ -469,11 +483,11 @@ type
       and even to set RootNode to nil for some time.
 
       This is useful for programs like view3dscene, that want to
-      have one TVRMLFlatScene for all the lifetime and only
+      have one TVRMLScene for all the lifetime and only
       replace RootNode value from time to time.
       This is useful because it allows to change viewed model
       (by changing RootNode) while preserving values of things
-      like Attributes properties in subclass @link(TVRMLFlatSceneGL).
+      like Attributes properties in subclass @link(TVRMLGLScene).
 
       That's why it is possible to change RootNode and it is even
       possible to set it to nil. And when When RootNode = nil everything
@@ -498,7 +512,7 @@ type
       with PrepareRender. So e.g. calling Render or using BoundingBox.
       If all your needs are that simple, then you can use this trick
       to save some memory. This is actually useful when using TVRMLGLAnimation,
-      as it creates a lot of intermediate node structures and TVRMLFlatScene
+      as it creates a lot of intermediate node structures and TVRMLScene
       instances. }
     property RootNode: TVRMLNode read FRootNode write FRootNode;
 
@@ -573,11 +587,11 @@ type
       Also, in some special cases an octree may be constructed in
       some special way (not only using @link(CreateShapeStateOctree)
       or @link(CreateTriangleOctree)) so that it doesn't contain
-      the whole scene from some TVRMLFlatScene object, or it contains
-      the scene from many TVRMLFlatScene objects, or something else.
+      the whole scene from some TVRMLScene object, or it contains
+      the scene from many TVRMLScene objects, or something else.
 
       What I want to say is that it's generally wrong to think of
-      an octree as something that maps 1-1 to some TVRMLFlatScene object.
+      an octree as something that maps 1-1 to some TVRMLScene object.
       Octrees, as implemented here, are a lot more flexible.
 
       That said, it's very often the case that you actually want to
@@ -586,15 +600,15 @@ type
       Properties below make it easier for you.
       Basically you can use them however you like.
       They can simply serve for you as some variables inside
-      TVRMLFlatSceneGL that you can use however you like,
+      TVRMLGLScene that you can use however you like,
       so that you don't have to declare two additional variables
       like SceneTriangleOctree and SceneShapeStateOctree
-      each time you define variable Scene: TVRMLFlatScene.
+      each time you define variable Scene: TVRMLScene.
 
       Also, some methods in this class that take an octree from you
       as a parameter may have some overloaded versions that
       implicitly use octree objects stored in properties below,
-      e.g. see @link(TVRMLFlatSceneGL.RenderFrustumOctree).
+      e.g. see @link(TVRMLGLScene.RenderFrustumOctree).
 
       This class modifies these properties in *only* one case:
       if OwnsDefaultTriangleOctree is true (default value)
@@ -750,7 +764,7 @@ type
     { @groupEnd }
 
     { This allows you to "share" @link(ManifoldEdges) and
-      @link(BorderEdges) values between TVRMLFlatScene instances,
+      @link(BorderEdges) values between TVRMLScene instances,
       to conserve memory and preparation time.
       The values set here will be returned by following ManifoldEdges and
       BorderEdges calls. The values passed here will @italic(not
@@ -861,10 +875,10 @@ type
   end;
 
 var
-  { Starting state nodes for TVRMLFlatScene
+  { Starting state nodes for TVRMLScene
     and descendants when traversing VRML tree.
 
-    It's needed that various TVRMLFlatScene instances use the same
+    It's needed that various TVRMLScene instances use the same
     StateDefaultNodes, because in some cases we assume that nodes
     are equal only when their references are equal
     (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
@@ -891,15 +905,15 @@ uses VRMLCameraUtils;
   maja juz liste swoich Parents; na pewno bedziemy musieli to zrobic
   takze dla wszystkich TVRMLField. I jeszcze trzeba zrobic mechanizm zeby
   node mogl przeslac informacje wyzej, do TVRMLShapeState lub
-  TVRMLFlatScene. Sporo tu do zrobienia - jak tylko mi sie to
+  TVRMLScene. Sporo tu do zrobienia - jak tylko mi sie to
   skrystalizuje zrobie to.
 
   This will be essentially done when events/routes mechanism will be done.
 }
 
-{ TVRMLFlatScene ----------------------------------------------------------- }
+{ TVRMLScene ----------------------------------------------------------- }
 
-constructor TVRMLFlatScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
+constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
 begin
  inherited Create;
  FRootNode := ARootNode;
@@ -913,7 +927,7 @@ begin
  ChangedAll;
 end;
 
-destructor TVRMLFlatScene.Destroy;
+destructor TVRMLScene.Destroy;
 begin
   { This also frees related lists, like KeySensorNodes }
   ProcessEvents := false;
@@ -935,7 +949,7 @@ begin
  inherited;
 end;
 
-function TVRMLFlatScene.CalculateBoundingBox: TBox3d;
+function TVRMLScene.CalculateBoundingBox: TBox3d;
 var i: integer;
 begin
  Result := EmptyBox3d;
@@ -943,7 +957,7 @@ begin
   Box3dSumTo1st(Result, ShapeStates[i].BoundingBox);
 end;
 
-function TVRMLFlatScene.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLScene.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
 var i: integer;
 begin
  Result := 0;
@@ -951,7 +965,7 @@ begin
   Result += ShapeStates[i].VerticesCount(OverTriangulate);
 end;
 
-function TVRMLFlatScene.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLScene.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 var i: integer;
 begin
  Result := 0;
@@ -959,13 +973,13 @@ begin
   Result += ShapeStates[i].TrianglesCount(OverTriangulate);
 end;
 
-function TVRMLFlatScene.BoundingBox: TBox3d;
+function TVRMLScene.BoundingBox: TBox3d;
 {$define PRECALC_VALUE_ENUM := fvBBox}
 {$define PRECALC_VALUE := FBoundingBox}
 {$define PRECALC_VALUE_CALCULATE := CalculateBoundingBox}
 PRECALC_VALUE_RETURN
 
-function TVRMLFlatScene.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
  {$define PRECALC_VALUE_CALCULATE := CalculateVerticesCount(OverTriangulate)}
  if OverTriangulate then
@@ -981,7 +995,7 @@ begin
  end;
 end;
 
-function TVRMLFlatScene.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TVRMLScene.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
  {$define PRECALC_VALUE_CALCULATE := CalculateTrianglesCount(OverTriangulate)}
  if OverTriangulate then
@@ -997,7 +1011,7 @@ begin
  end;
 end;
 
-procedure TVRMLFlatScene.ChangedAll_Traverse(
+procedure TVRMLScene.ChangedAll_Traverse(
   Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
 { This does two things. These two things are independent, but both
   require Traverse to be done, and both have to be done in ChangedAll call...
@@ -1018,7 +1032,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatScene.ChangedAll;
+procedure TVRMLScene.ChangedAll;
 
   procedure UpdateVRML2ActiveLights;
 
@@ -1103,14 +1117,14 @@ begin
   DoPostRedisplay;
 end;
 
-procedure TVRMLFlatScene.ChangedShapeStateFields(ShapeStateNum: integer);
+procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer);
 begin
   Validities := [];
   ShapeStates[ShapeStateNum].Changed;
   DoPostRedisplay;
 end;
 
-procedure TVRMLFlatScene.ChangedFields(Node: TVRMLNode);
+procedure TVRMLScene.ChangedFields(Node: TVRMLNode);
 var
   NodeLastNodesIndex, i: integer;
   Coord: TMFVec3f;
@@ -1208,7 +1222,7 @@ begin
   DoPostRedisplay;
 end;
 
-procedure TVRMLFlatScene.DoPostRedisplay;
+procedure TVRMLScene.DoPostRedisplay;
 begin
   if Assigned(OnPostRedisplay) then
     OnPostRedisplay(Self);
@@ -1224,7 +1238,7 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function TVRMLFlatScene.InfoTriangleVerticesCounts: string;
+function TVRMLScene.InfoTriangleVerticesCounts: string;
 begin
   if (VerticesCount(false) = VerticesCount(true)) and
      (TrianglesCount(false) = TrianglesCount(true)) then
@@ -1239,7 +1253,7 @@ begin
   end;
 end;
 
-function TVRMLFlatScene.InfoBoundingBox: string;
+function TVRMLScene.InfoBoundingBox: string;
 var
   BBox: TBox3d;
 begin
@@ -1252,14 +1266,14 @@ begin
   Result += NL;
 end;
 
-function TVRMLFlatScene.InfoManifoldAndBorderEdges: string;
+function TVRMLScene.InfoManifoldAndBorderEdges: string;
 begin
   Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Note that for some algorithms, like shadow volumes, perfect manifold (that is, no border edges) works best.',
     [ ManifoldEdges.Count,
       BorderEdges.Count ]) + NL;
 end;
 
-function TVRMLFlatScene.Info(
+function TVRMLScene.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
@@ -1295,7 +1309,7 @@ type
    Writeln('Info node : "',(Node as TNodeInfo).FdString.Value, '"')
   end;
 
-procedure TVRMLFlatScene.WritelnInfoNodes;
+procedure TVRMLScene.WritelnInfoNodes;
 var W: TInfoNodeWriter;
 begin
  if RootNode = nil then Exit;
@@ -1310,7 +1324,7 @@ end;
 
 { using triangle octree -------------------------------------------------- }
 
-procedure TVRMLFlatScene.AddTriangleToOctreeProgress(
+procedure TVRMLScene.AddTriangleToOctreeProgress(
   const Triangle: TTriangle3Single;
   State: TVRMLGraphTraverseState; GeometryNode: TVRMLGeometryNode;
   const MatNum, FaceCoordIndexBegin, FaceCoordIndexEnd: integer);
@@ -1320,7 +1334,7 @@ begin
     FaceCoordIndexBegin, FaceCoordIndexEnd);
 end;
 
-function TVRMLFlatScene.CreateTriangleOctree(const ProgressTitle: string):
+function TVRMLScene.CreateTriangleOctree(const ProgressTitle: string):
   TVRMLTriangleOctree;
 begin
  result := CreateTriangleOctree(
@@ -1329,7 +1343,7 @@ begin
    ProgressTitle);
 end;
 
-function TVRMLFlatScene.CreateTriangleOctree(
+function TVRMLScene.CreateTriangleOctree(
   AMaxDepth, AMaxLeafItemsCount: integer;
   const ProgressTitle: string): TVRMLTriangleOctree;
 
@@ -1362,7 +1376,7 @@ end;
 
 { using shapestate octree ---------------------------------------- }
 
-function TVRMLFlatScene.CreateShapeStateOctree(const ProgressTitle: string):
+function TVRMLScene.CreateShapeStateOctree(const ProgressTitle: string):
   TVRMLShapeStateOctree;
 begin
  Result := CreateShapeStateOctree(
@@ -1371,7 +1385,7 @@ begin
    ProgressTitle);
 end;
 
-function TVRMLFlatScene.CreateShapeStateOctree(
+function TVRMLScene.CreateShapeStateOctree(
   AMaxDepth, AMaxLeafItemsCount: integer;
   const ProgressTitle: string): TVRMLShapeStateOctree;
 var i: Integer;
@@ -1417,7 +1431,7 @@ type
       AState.Transform);
   end;
 
-procedure TVRMLFlatScene.EnumerateViewpoints(
+procedure TVRMLScene.EnumerateViewpoints(
   ViewpointFunction: TViewpointFunction);
 var
   InitialState: TVRMLGraphTraverseState;
@@ -1465,7 +1479,7 @@ type
     end;
   end;
 
-function TVRMLFlatScene.GetViewpointCore(
+function TVRMLScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out CamKind: TVRMLCameraKind;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -1505,7 +1519,7 @@ begin
   end;
 end;
 
-function TVRMLFlatScene.GetViewpoint(
+function TVRMLScene.GetViewpoint(
   out CamKind: TVRMLCameraKind;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TVRMLViewpointNode;
@@ -1514,7 +1528,7 @@ begin
     ViewpointDescription);
 end;
 
-function TVRMLFlatScene.GetPerspectiveViewpoint(
+function TVRMLScene.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TVRMLViewpointNode;
 var
@@ -1527,7 +1541,7 @@ end;
 
 { fog ---------------------------------------------------------------------- }
 
-procedure TVRMLFlatScene.ValidateFog;
+procedure TVRMLScene.ValidateFog;
 var
   FogTransform: TMatrix4Single;
   FogAverageScaleTransform: Single;
@@ -1566,13 +1580,13 @@ begin
  finally InitialState.Free end;
 end;
 
-function TVRMLFlatScene.FogNode: TNodeFog;
+function TVRMLScene.FogNode: TNodeFog;
 begin
  if not (fvFog in Validities) then ValidateFog;
  result := FFogNode;
 end;
 
-function TVRMLFlatScene.FogDistanceScaling: Single;
+function TVRMLScene.FogDistanceScaling: Single;
 begin
  if not (fvFog in Validities) then ValidateFog;
  result := FFogDistanceScaling;
@@ -1580,9 +1594,9 @@ end;
 
 { triangles list ------------------------------------------------------------- }
 
-procedure TVRMLFlatScene.ValidateTrianglesList(OverTriangulate: boolean);
+procedure TVRMLScene.ValidateTrianglesList(OverTriangulate: boolean);
 var
-  ValidityValue: TVRMLFlatSceneValidity;
+  ValidityValue: TVRMLSceneValidity;
 begin
   if OverTriangulate then
     ValidityValue := fvTrianglesListOverTriangulate else
@@ -1613,7 +1627,7 @@ type
       TriangleList.AppendItem(Triangle);
   end;
 
-function TVRMLFlatScene.CreateTrianglesList(OverTriangulate: boolean):
+function TVRMLScene.CreateTrianglesList(OverTriangulate: boolean):
   TDynTriangle3SingleArray;
 var
   I: Integer;
@@ -1635,14 +1649,16 @@ begin
   except Result.Free; raise end;
 end;
 
-function TVRMLFlatScene.TrianglesList(OverTriangulate: boolean):
+function TVRMLScene.TrianglesList(OverTriangulate: boolean):
   TDynTriangle3SingleArray;
 begin
   ValidateTrianglesList(OverTriangulate);
   Result := FTrianglesList[OverTriangulate];
 end;
 
-procedure TVRMLFlatScene.CalculateIfNeededManifoldAndBorderEdges;
+{ edges lists ------------------------------------------------------------- }
+
+procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
     FBorderEdges are @nil on enter. }
@@ -1779,19 +1795,19 @@ begin
   end;
 end;
 
-function TVRMLFlatScene.ManifoldEdges: TDynManifoldEdgeArray;
+function TVRMLScene.ManifoldEdges: TDynManifoldEdgeArray;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-function TVRMLFlatScene.BorderEdges: TDynBorderEdgeArray;
+function TVRMLScene.BorderEdges: TDynBorderEdgeArray;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
 end;
 
-procedure TVRMLFlatScene.ShareManifoldAndBorderEdges(
+procedure TVRMLScene.ShareManifoldAndBorderEdges(
   ManifoldShared: TDynManifoldEdgeArray;
   BorderShared: TDynBorderEdgeArray);
 begin
@@ -1836,17 +1852,19 @@ begin
   Include(Validities, fvManifoldAndBorderEdges);
 end;
 
-procedure TVRMLFlatScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
+{ freeing resources ---------------------------------------------------------- }
+
+procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
 begin
   (Node as TVRMLTextureNode).IsTextureLoaded := false;
 end;
 
-procedure TVRMLFlatScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
+procedure TVRMLScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 begin
   (Node as TNodeBackground).BgImagesLoaded := false;
 end;
 
-procedure TVRMLFlatScene.FreeResources(Resources: TVRMLSceneFreeResources);
+procedure TVRMLScene.FreeResources(Resources: TVRMLSceneFreeResources);
 begin
   if (frRootNode in Resources) and OwnsRootNode then
   begin
@@ -1889,6 +1907,8 @@ begin
   end;
 end;
 
+{ events --------------------------------------------------------------------- }
+
 { We're using AddIfNotExists, not simple Add, in Collect_ routines
   below:
 
@@ -1899,25 +1919,25 @@ end;
   - for other sensors, events would be passed twice.
 }
 
-procedure TVRMLFlatScene.Collect_KeySensor(Node: TVRMLNode);
+procedure TVRMLScene.Collect_KeySensor(Node: TVRMLNode);
 begin
   Assert(Node is TNodeKeySensor);
   KeySensorNodes.AddIfNotExists(Node);
 end;
 
-procedure TVRMLFlatScene.Collect_TimeSensor(Node: TVRMLNode);
+procedure TVRMLScene.Collect_TimeSensor(Node: TVRMLNode);
 begin
   Assert(Node is TNodeTimeSensor);
   TimeSensorNodes.AddIfNotExists(Node);
 end;
 
-procedure TVRMLFlatScene.Collect_MovieTexture(Node: TVRMLNode);
+procedure TVRMLScene.Collect_MovieTexture(Node: TVRMLNode);
 begin
   Assert(Node is TNodeMovieTexture);
   MovieTextureNodes.AddIfNotExists(Node);
 end;
 
-procedure TVRMLFlatScene.EventChanged(
+procedure TVRMLScene.EventChanged(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   if Event.ParentNode <> nil then
@@ -1931,7 +1951,7 @@ begin
     ChangedAll;
 end;
 
-procedure TVRMLFlatScene.Collect_ChangedFields(Node: TVRMLNode);
+procedure TVRMLScene.Collect_ChangedFields(Node: TVRMLNode);
 var
   I: Integer;
 begin
@@ -1942,7 +1962,7 @@ begin
 
       { TODO: this is not nice, as we never remove EventChanged from
         events OnReceive list. We should remove then when ProcessEvents
-        becomes @false (including on destroy of TVRMLFlatScene).
+        becomes @false (including on destroy of TVRMLScene).
         Also when RootNode changes, we shoudn't be tied to old events...
 
         AddIfNotExists at least prevents us from registering EventChanged
@@ -1969,7 +1989,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatScene.CollectNodesForEvents;
+procedure TVRMLScene.CollectNodesForEvents;
 begin
   KeySensorNodes.Clear;
   RootNode.EnumerateNodes(TNodeKeySensor, @Collect_KeySensor, false);
@@ -1983,7 +2003,7 @@ begin
   RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
 end;
 
-procedure TVRMLFlatScene.SetProcessEvents(const Value: boolean);
+procedure TVRMLScene.SetProcessEvents(const Value: boolean);
 begin
   if FProcessEvents <> Value then
   begin
@@ -2022,7 +2042,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatScene.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
+procedure TVRMLScene.KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
@@ -2049,7 +2069,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatScene.KeyUp(Key: TKey);
+procedure TVRMLScene.KeyUp(Key: TKey);
 var
   I: Integer;
   KeySensor: TNodeKeySensor;
@@ -2078,7 +2098,7 @@ end;
 
 { WorldTime stuff ------------------------------------------------------------ }
 
-procedure TVRMLFlatScene.InternalSetWorldTime(
+procedure TVRMLScene.InternalSetWorldTime(
   const NewValue, TimeIncrease: TKamTime);
 var
   SomethingChanged: boolean;
@@ -2110,7 +2130,7 @@ begin
   FWorldTime := NewValue;
 end;
 
-procedure TVRMLFlatScene.SetWorldTime(const NewValue: TKamTime);
+procedure TVRMLScene.SetWorldTime(const NewValue: TKamTime);
 var
   TimeIncrease: TKamTime;
 begin
@@ -2119,13 +2139,13 @@ begin
     InternalSetWorldTime(NewValue, TimeIncrease);
 end;
 
-procedure TVRMLFlatScene.IncreaseWorldTime(const TimeIncrease: TKamTime);
+procedure TVRMLScene.IncreaseWorldTime(const TimeIncrease: TKamTime);
 begin
   if TimeIncrease > 0 then
     InternalSetWorldTime(FWorldTime + TimeIncrease, TimeIncrease);
 end;
 
-procedure TVRMLFlatScene.ResetRoutesLastEventTime(Node: TVRMLNode);
+procedure TVRMLScene.ResetRoutesLastEventTime(Node: TVRMLNode);
 var
   I: Integer;
 begin
@@ -2133,7 +2153,7 @@ begin
     Node.Routes[I].ResetLastEventTime;
 end;
 
-procedure TVRMLFlatScene.ResetWorldTime(const NewValue: TKamTime);
+procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
 begin
   InternalSetWorldTime(NewValue, 0);
   if RootNode <> nil then

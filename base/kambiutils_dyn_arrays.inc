@@ -246,7 +246,7 @@ type
   TDynBooleanArray = class(TDynArray_16)
     { SetFalse and SetTrue are trivial methods that set appropriate
       Items[Index] to given value. They are useful methods to pass
-      as callback in some situations (e.g. TVRMLFlatSceneGL.RenderFrustumOctree
+      as callback in some situations (e.g. TVRMLGLScene.RenderFrustumOctree
       passes RenderFrustumOctree_Visible.SetTrue method as callback
       that should mark visible items). }
     procedure SetFalse(Index: Integer);

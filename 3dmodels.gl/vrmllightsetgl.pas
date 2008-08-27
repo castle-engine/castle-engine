@@ -130,7 +130,7 @@ procedure glLightsFromVRML(Lights: TDynActiveLightArray;
    by destructor and CalculateLights and sometimes by setting some properties)
    this object must be used in the same GL context.
    So usually you will find most comfortable to use this object like
-   TVRMLFlatSceneGL: create and destroy it in the main program and
+   TVRMLGLScene: create and destroy it in the main program and
    call CloseGL in the OnClose TGLWindow event (this behaviour ensures that
    Switch-Fullscreen-On/Off in TGLWindowDemo will work correctly).
 *)

@@ -31,12 +31,12 @@ type
   { This class performs various initialization and calculations related
     to shadow volume rendering. It does everything, except the actual
     shadow volume rendering (this is handled elsewhere, for example
-    in TVRMLFlatSceneGL.RenderShadowVolume).
+    in TVRMLGLScene.RenderShadowVolume).
 
     To use this class: call InitGLContext, InitFrustumAndLight,
     InitScene at appropriate moments. Setup your stencil buffer by
     setting StencilSetupKind before InitScene.
-    Pass the instance of this to TVRMLFlatSceneGL.RenderShadowVolume. }
+    Pass the instance of this to TVRMLGLScene.RenderShadowVolume. }
   TShadowVolumesHelper = class
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;

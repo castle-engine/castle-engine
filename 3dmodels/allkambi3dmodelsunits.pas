@@ -26,7 +26,7 @@ uses
   vrmlcamerautils,
   vrmlerrors,
   vrmlfields,
-  vrmlflatscene,
+  vrmlscene,
   vrmlgeometry,
   vrmllexer,
   vrmllightmap,

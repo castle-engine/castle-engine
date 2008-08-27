@@ -110,7 +110,7 @@ function VRML97LightContribution_CameraIndependent(const Light: TActiveLight;
 
 { FogNode jak zwykle moze byc = nil aby powiedziec ze nie uzywamy mgly.
   Jak zwykle mamy tutaj FogDistanceScaling, podobnie jak w
-  TVRMLFlatScene.
+  TVRMLScene.
 
   FogType: Integer musi byc poprzednio wyliczone przez VRML97FogType.
   (to po to zeby VRMLFog() nie musiala za kazdym razem porownywac stringow,

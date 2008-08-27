@@ -36,7 +36,7 @@
   2. shadow caster that casts shadows (on itself and on the scene).
     Ideally, shadow caster should be composed from a number of closed
     manifold parts to make rendering fast (see documentation of
-    TVRMLFlatSceneGL.RenderShadowQuads for description of silhouette optimization
+    TVRMLGLScene.RenderShadowQuads for description of silhouette optimization
     that requires edges to be manifold). When program starts, it tells you
     how many edges in shadow caster were detected to be manifold --- ideally,
     all edges are manifold.
@@ -71,8 +71,8 @@ program shadow_volume_test;
 
 {$apptype CONSOLE}
 
-uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils, VRMLFlatSceneGL,
-  VRMLNodes, MatrixNavigation, VRMLFlatScene, Boxes3d, SysUtils,
+uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils, VRMLGLScene,
+  VRMLNodes, MatrixNavigation, VRMLScene, Boxes3d, SysUtils,
   KambiUtils, VectorMath, VRMLLightSetGL, VRMLFields,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils, VRMLCameraUtils,
   ShadowTests, GLWinMessages, VRMLErrors, ShadowVolumesHelper,
@@ -126,7 +126,7 @@ type
   );
 
 var
-  Scene, ShadowCaster: TVRMLFlatSceneGL;
+  Scene, ShadowCaster: TVRMLGLScene;
   ShadowCasterNav: TMatrixExaminer;
   LightSet: TVRMLLightSetGL;
 
@@ -653,11 +653,11 @@ begin
     VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
     LightSet := TVRMLLightSetGL.Create(
       ParseVRMLFile(LightSetVrmlName, false), true, 0, -1);
-    Scene := TVRMLFlatSceneGL.Create(
+    Scene := TVRMLGLScene.Create(
       ParseVRMLFile(SceneVrmlName, false), true, roSceneAsAWhole);
     Scene.Attributes.UseLights := true;
     Scene.Attributes.FirstGLFreeLight := 1;
-    ShadowCaster := TVRMLFlatSceneGL.Create(
+    ShadowCaster := TVRMLGLScene.Create(
       ParseVRMLFile(ShadowCasterVrmlName, false), true, roSceneAsAWhole);
     SceneBoundingBox := Box3dSum(Scene.BoundingBox,
       ShadowCaster.BoundingBox);

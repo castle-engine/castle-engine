@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2007 Michalis Kamburelis.
+  Copyright 2003-2008 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -18,9 +18,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ @abstract(@link(TVRMLFlatSceneGL) class.) }
+{ @abstract(@link(TVRMLGLScene) class.) }
 
-unit VRMLFlatSceneGL;
+unit VRMLGLScene;
 
 {$I openglmac.inc}
 
@@ -56,7 +56,7 @@ unit VRMLFlatSceneGL;
 
 { With this you can fine-tune performance of RenderFrustumOctree.
   Exactly one of symbols RENDER_FRUSTUM_OCTREE_xxx below must be defined.
-  See implementation of @link(TVRMLFlatSceneGL.RenderFrustumOctree)
+  See implementation of @link(TVRMLGLScene.RenderFrustumOctree)
   to see what each symbol means.
 
   My tests show that RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS
@@ -69,7 +69,7 @@ interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3d, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLFlatScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
+  VRMLScene, VRMLOpenGLRenderer, GL, GLU, GLExt, BackgroundGL, KambiGLUtils,
   VRMLShapeStateOctree, VRMLGLHeadLight, VRMLRendererOptimization,
   ShadowVolumesHelper;
 
@@ -117,7 +117,7 @@ const
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
 type
-  { Internal for TVRMLFlatSceneGL
+  { Internal for TVRMLGLScene
     @exclude }
   TRenderShapeState = procedure(ShapeStateNum: Integer) of object;
   { @exclude }
@@ -126,7 +126,7 @@ type
   TTestShapeStateVisibility = function(ShapeStateNum: Integer): boolean
     of object;
 
-  TVRMLFlatSceneGLsList = class;
+  TVRMLGLScenesList = class;
 
   { Values for TVRMLSceneRenderingAttributes.WireframeEffect.
 
@@ -183,7 +183,7 @@ type
       your model may have textures or shaders.
       There's no way currently to reuse the same display list, while having
       normal model textured/shaded and wireframe not textured/shaded.
-      If you really need this effect, you'll need two TVRMLFlatSceneGL
+      If you really need this effect, you'll need two TVRMLGLScene
       instances with different attributes rendering the same model. }
     weSolidWireframe,
 
@@ -208,7 +208,7 @@ type
   TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
   private
     { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
-    FScenes: TVRMLFlatSceneGLsList;
+    FScenes: TVRMLGLScenesList;
 
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
@@ -329,14 +329,16 @@ type
   TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
   TTransparentGroups = set of TTransparentGroup;
 
-  { Various things that TVRMLFlatSceneGL.PrepareRender may prepare. }
+  { Various things that TVRMLGLScene.PrepareRender may prepare. }
   TPrepareRenderOption = (prBackground, prBoundingBox,
     prTrianglesListNotOverTriangulate,
     prTrianglesListOverTriangulate,
     prManifoldAndBorderEdges);
   TPrepareRenderOptions = set of TPrepareRenderOption;
 
-  { This is a descendant of TVRMLFlatScene that makes it easy to render
+  { VRML OpenGL scene, a final class to handle VRML models (including
+    their rendering in OpenGL).
+    This is a descendant of TVRMLScene that makes it easy to render
     VRML scene into OpenGL. The point is that this class is the final,
     comfortable utility to deal with VRML files when you want to be able
     to render them using OpenGL.
@@ -364,7 +366,7 @@ type
     at least once, you @bold(must) destroy this object or at least call
     it's CloseGL method @bold(before) releasing OpenGL context (that was
     active during Render). }
-  TVRMLFlatSceneGL = class(TVRMLFLatScene)
+  TVRMLGLScene = class(TVRMLScene)
   private
     FOptimization: TGLRendererOptimization;
     Renderer: TVRMLOpenGLRenderer;
@@ -687,9 +689,9 @@ type
       and manage it itself. So you don't have to worry about such things.
       This also means that code using this class doesn't care about
       complexity of using VRMLOpenGLRenderer (and care only about
-      complexity of using this class, TVRMLFlatSceneGL :) ).
+      complexity of using this class, TVRMLGLScene :) ).
 
-      Some additional notes (specific to TVRMLFlatSceneGL.Render,
+      Some additional notes (specific to TVRMLGLScene.Render,
       not to the VRMLOpenGLRenderer):
       @unorderedList(
         @item(
@@ -953,7 +955,7 @@ type
       If there is no "Background" node in VRML scene this function returns nil.
 
       Note: this Background object is managed (automatically created/freed
-      etc.) by this TVRMLFlatSceneGL object but it is NOT used anywhere
+      etc.) by this TVRMLGLScene object but it is NOT used anywhere
       in this class, e.g. Render does not call Background.Render. If you want to
       use this Background somehow, you have to do this yourself.
 
@@ -981,7 +983,7 @@ type
 
       Note for ColorModulatorSingle/Byte properties:
       In addition to effects described at TVRMLOpenGLRenderer,
-      they also affect what the TVRMLFlatSceneGL.Background function returns. }
+      they also affect what the TVRMLGLScene.Background function returns. }
     function Attributes: TVRMLSceneRenderingAttributes;
 
     { Creates a headlight, using (if present) KambiHeadLight node defined
@@ -1047,13 +1049,13 @@ type
       read GetBumpMappingLightDiffuseColor write SetBumpMappingLightDiffuseColor;
   end;
 
-  TObjectsListItem_1 = TVRMLFlatSceneGL;
+  TObjectsListItem_1 = TVRMLGLScene;
   {$I objectslist_1.inc}
-  TVRMLFlatSceneGLsList = class(TObjectsList_1)
+  TVRMLGLScenesList = class(TObjectsList_1)
   private
     { Just call FBackgroundInvalidate or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
-      TVRMLFlatSceneGL are also private and we don't want to expose
+      TVRMLGLScene are also private and we don't want to expose
       them here. }
     procedure FBackgroundInvalidate;
     procedure CloseGLRenderer;
@@ -1063,8 +1065,8 @@ type
   end;
 
 const
-  { Options to pass to TVRMLFlatSceneGL.PrepareRender to make
-    sure that next call to TVRMLFlatSceneGL.RenderShadowVolume
+  { Options to pass to TVRMLGLScene.PrepareRender to make
+    sure that next call to TVRMLGLScene.RenderShadowVolume
     is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
@@ -1155,9 +1157,9 @@ uses VRMLErrors, GLVersionUnit, GLImages, VRMLShapeState, Images, KambiLog;
   - have to add additional param to KamGLEndList.
 }
 
-{ TVRMLFlatSceneGL ------------------------------------------------------------ }
+{ TVRMLGLScene ------------------------------------------------------------ }
 
-procedure TVRMLFlatSceneGL.CommonCreate(
+procedure TVRMLGLScene.CommonCreate(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AOptimization: TGLRendererOptimization;
   AUsingProvidedRenderer: boolean;
@@ -1194,7 +1196,7 @@ begin
   Attributes.FScenes.Add(Self);
 end;
 
-constructor TVRMLFlatSceneGL.Create(
+constructor TVRMLGLScene.Create(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AOptimization: TGLRendererOptimization;
   ACache: TVRMLOpenGLRendererContextCache);
@@ -1203,7 +1205,7 @@ begin
     TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache));
 end;
 
-constructor TVRMLFlatSceneGL.CreateProvidedRenderer(
+constructor TVRMLGLScene.CreateProvidedRenderer(
   ARootNode: TVRMLNode; AOwnsRootNode: boolean;
   AOptimization: TGLRendererOptimization;
   AProvidedRenderer: TVRMLOpenGLRenderer);
@@ -1211,7 +1213,7 @@ begin
   CommonCreate(ARootNode, AOwnsRootNode, AOptimization, true, AProvidedRenderer);
 end;
 
-destructor TVRMLFlatSceneGL.Destroy;
+destructor TVRMLGLScene.Destroy;
 begin
   CloseGL;
 
@@ -1258,7 +1260,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLFlatSceneGL.CloseGLRenderer;
+procedure TVRMLGLScene.CloseGLRenderer;
 { uwazaj - ta funkcja jest wywolywana z ChangedAll, w rezultacie moze
   byc wywolana zanim jeszcze nasz konstruktor w tej klasie zakonczy dzialanie.
   Ponadto jest tez wywolywana w destruktorze a wiec jezeli wyjdziemy z
@@ -1321,24 +1323,24 @@ begin
   if Renderer <> nil then Renderer.UnprepareAll;
 end;
 
-procedure TVRMLFlatSceneGL.CloseGL;
+procedure TVRMLGLScene.CloseGL;
 begin
   CloseGLRenderer;
   FBackgroundInvalidate;
 end;
 
-procedure TVRMLFlatSceneGL.RenderShapeStateSimple(ShapeStateNum: Integer);
+procedure TVRMLGLScene.RenderShapeStateSimple(ShapeStateNum: Integer);
 begin
   Renderer.RenderShapeState(ShapeStates[ShapeStateNum].GeometryNode,
     ShapeStates[ShapeStateNum].State);
 end;
 
-procedure TVRMLFlatSceneGL.RenderBeginSimple;
+procedure TVRMLGLScene.RenderBeginSimple;
 begin
  Renderer.RenderBegin(FogNode, FogDistanceScaling);
 end;
 
-procedure TVRMLFlatSceneGL.RenderEndSimple;
+procedure TVRMLGLScene.RenderEndSimple;
 begin
  Renderer.RenderEnd;
 end;
@@ -1452,7 +1454,7 @@ begin
     end;
 end;
 
-function TVRMLFlatSceneGL.RenderBeginEndToDisplayList: boolean;
+function TVRMLGLScene.RenderBeginEndToDisplayList: boolean;
 begin
   Result := not GLVersion.IsMesa;
 
@@ -1466,7 +1468,7 @@ begin
   }
 end;
 
-procedure TVRMLFlatSceneGL.RenderShapeStatesNoDisplayList(
+procedure TVRMLGLScene.RenderShapeStatesNoDisplayList(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   RenderShapeStateProc: TRenderShapeState;
   RenderBeginProc, RenderEndProc: TObjectProcedure;
@@ -1626,7 +1628,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.CalculateShapeStatesUseBlending(Index: Integer);
+procedure TVRMLGLScene.CalculateShapeStatesUseBlending(Index: Integer);
 var
   M: TNodeMaterial_2;
   Result: boolean;
@@ -1662,7 +1664,7 @@ begin
     at TextureNode.TextureImage / TextureVidep etc.
     So it's important to initialize ShapeStatesUseBlending before
     user has any chance to do FreeResources or to free RootNode
-    (see TVRMLFlatScene.RootNode docs).
+    (see TVRMLScene.RootNode docs).
   }
 
   if State.ParentShape <> nil then
@@ -1684,7 +1686,7 @@ begin
   ShapeStatesUseBlending.Items[Index] := Result;
 end;
 
-procedure TVRMLFlatSceneGL.SSSX_PrepareBegin;
+procedure TVRMLGLScene.SSSX_PrepareBegin;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
@@ -1704,7 +1706,7 @@ begin
     SSSX_RenderBeginDisplayList) then
   begin
     SSSX_RenderBeginDisplayList := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSSX_PrepareBegin');
+      'TVRMLGLScene.SSSX_PrepareBegin');
     try
       glNewList(SSSX_RenderBeginDisplayList, GL_COMPILE);
       try
@@ -1728,7 +1730,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSSX_PrepareEnd;
+procedure TVRMLGLScene.SSSX_PrepareEnd;
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
 begin
@@ -1744,7 +1746,7 @@ begin
     SSSX_RenderEndDisplayList) then
   begin
     SSSX_RenderEndDisplayList := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSSX_PrepareEnd');
+      'TVRMLGLScene.SSSX_PrepareEnd');
     try
       glNewList(SSSX_RenderEndDisplayList, GL_COMPILE);
       try
@@ -1764,7 +1766,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSSX_RenderBegin;
+procedure TVRMLGLScene.SSSX_RenderBegin;
 begin
   if SSSX_RenderBeginDisplayList = 0 then
     SSSX_PrepareBegin;
@@ -1774,7 +1776,7 @@ begin
     RenderBeginSimple;
 end;
 
-procedure TVRMLFlatSceneGL.SSSX_RenderEnd;
+procedure TVRMLGLScene.SSSX_RenderEnd;
 begin
   if SSSX_RenderEndDisplayList = 0 then
     SSSX_PrepareEnd;
@@ -1784,7 +1786,7 @@ begin
     RenderEndSimple;
 end;
 
-procedure TVRMLFlatSceneGL.SSS_PrepareShapeState(
+procedure TVRMLGLScene.SSS_PrepareShapeState(
   ShapeStateNum: Integer);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
@@ -1806,7 +1808,7 @@ begin
        SSSX_DisplayLists.Items[ShapeStateNum])) then
   begin
     SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSS_PrepareShapeState');
+      'TVRMLGLScene.SSS_PrepareShapeState');
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       RenderShapeStateSimple(ShapeStateNum);
@@ -1838,7 +1840,7 @@ begin
   CalculateShapeStatesUseBlending(ShapeStateNum);
 end;
 
-procedure TVRMLFlatSceneGL.SSS_RenderShapeState(
+procedure TVRMLGLScene.SSS_RenderShapeState(
   ShapeStateNum: Integer);
 begin
   if ShapeStates[ShapeStateNum].EnableDisplayList then
@@ -1853,7 +1855,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SSSNT_PrepareShapeState(
+procedure TVRMLGLScene.SSSNT_PrepareShapeState(
   ShapeStateNum: Integer);
 var
   AttributesCopy: TVRMLSceneRenderingAttributes;
@@ -1870,7 +1872,7 @@ begin
        SSSX_DisplayLists.Items[ShapeStateNum])) then
   begin
     SSSX_DisplayLists.Items[ShapeStateNum] := glGenListsCheck(1,
-      'TVRMLFlatSceneGL.SSSNT_PrepareShapeState');
+      'TVRMLGLScene.SSSNT_PrepareShapeState');
     glNewList(SSSX_DisplayLists.Items[ShapeStateNum], GL_COMPILE);
     try
       Renderer.RenderShapeStateNoTransform(
@@ -1904,7 +1906,7 @@ begin
   CalculateShapeStatesUseBlending(ShapeStateNum);
 end;
 
-procedure TVRMLFlatSceneGL.SSSNT_RenderShapeState(
+procedure TVRMLGLScene.SSSNT_RenderShapeState(
   ShapeStateNum: Integer);
 begin
   if ShapeStates[ShapeStateNum].EnableDisplayList then
@@ -1929,7 +1931,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SAAW_Prepare(TransparentGroup: TTransparentGroup);
+procedure TVRMLGLScene.SAAW_Prepare(TransparentGroup: TTransparentGroup);
 var i: Integer;
 begin
   { First prepare all (because I can't later call Renderer.Prepare
@@ -1943,7 +1945,7 @@ begin
   end;
 
   SAAW_DisplayList[TransparentGroup] := glGenListsCheck(1,
-    'TVRMLFlatSceneGL.SAAW_Prepare');
+    'TVRMLGLScene.SAAW_Prepare');
   if RenderBeginEndToDisplayList then
   begin
     glNewList(SAAW_DisplayList[TransparentGroup], GL_COMPILE);
@@ -1981,7 +1983,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.SAAW_Render(TransparentGroup: TTransparentGroup);
+procedure TVRMLGLScene.SAAW_Render(TransparentGroup: TTransparentGroup);
 begin
   if SAAW_DisplayList[TransparentGroup] = 0 then
     SAAW_Prepare(TransparentGroup) else
@@ -2003,7 +2005,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.PrepareRender(
+procedure TVRMLGLScene.PrepareRender(
   TransparentGroups: TTransparentGroups;
   Options: TPrepareRenderOptions);
 var
@@ -2055,7 +2057,7 @@ begin
     ManifoldEdges;
 end;
 
-procedure TVRMLFlatSceneGL.Render(
+procedure TVRMLGLScene.Render(
   TestShapeStateVisibility: TTestShapeStateVisibility;
   TransparentGroup: TTransparentGroup);
 
@@ -2165,7 +2167,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.ChangedAll;
+procedure TVRMLGLScene.ChangedAll;
 begin
   inherited;
 
@@ -2197,7 +2199,7 @@ begin
   ShapeStatesUseBlending.Count := ShapeStates.Count;
 end;
 
-procedure TVRMLFlatSceneGL.ChangedShapeStateFields(ShapeStateNum: integer);
+procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer);
 var
   TG: TTransparentGroup;
 begin
@@ -2257,7 +2259,7 @@ begin
   Result[3] := 0;
 end;
 
-procedure TVRMLFlatSceneGL.RenderAllShadowVolume(
+procedure TVRMLGLScene.RenderAllShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2509,7 +2511,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.RenderSilhouetteShadowVolume(
+procedure TVRMLGLScene.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2825,7 +2827,7 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure TVRMLFlatSceneGL.RenderShadowVolume(
+procedure TVRMLGLScene.RenderShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2839,7 +2841,7 @@ begin
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
 end;
 
-procedure TVRMLFlatSceneGL.RenderShadowVolume(
+procedure TVRMLGLScene.RenderShadowVolume(
   ShadowVolumesHelper: TShadowVolumesHelper;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2855,7 +2857,7 @@ begin
   end;
 end;
 
-procedure TVRMLFlatSceneGL.InitAndRenderShadowVolume(
+procedure TVRMLGLScene.InitAndRenderShadowVolume(
   ShadowVolumesHelper: TShadowVolumesHelper;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2876,7 +2878,7 @@ end;
 
 { RenderFrustum and helpers ---------------------------------------- }
 
-function TVRMLFlatSceneGL.RenderFrustum_TestShapeState(
+function TVRMLGLScene.RenderFrustum_TestShapeState(
   ShapeStateNum: Integer): boolean;
 
 {$ifdef RENDER_FRUSTUM_USES_BOUNDING_SPHERE}
@@ -2902,7 +2904,7 @@ begin
 
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustum(const Frustum: TFrustum;
+procedure TVRMLGLScene.RenderFrustum(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup);
 begin
   RenderFrustum_Frustum := @Frustum;
@@ -2912,13 +2914,13 @@ end;
 
 { RenderFrustumOctree ---------------------------------------- }
 
-function TVRMLFlatSceneGL.RenderFrustumOctree_TestShapeState(
+function TVRMLGLScene.RenderFrustumOctree_TestShapeState(
   ShapeStateNum: Integer): boolean;
 begin
   Result := RenderFrustumOctree_Visible.Items[ShapeStateNum];
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustumOctree_EnumerateOctreeItem(
+procedure TVRMLGLScene.RenderFrustumOctree_EnumerateOctreeItem(
   ShapeStateNum: Integer; CollidesForSure: boolean);
 
 {$ifdef RENDER_FRUSTUM_OCTREE_NO_BONUS_CHECKS}
@@ -2959,7 +2961,7 @@ begin
 
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum;
+procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
   Octree: TVRMLShapeStateOctree;
   TransparentGroup: TTransparentGroup);
 begin
@@ -2976,7 +2978,7 @@ begin
     Render(nil, TransparentGroup);
 end;
 
-procedure TVRMLFlatSceneGL.RenderFrustumOctree(const Frustum: TFrustum;
+procedure TVRMLGLScene.RenderFrustumOctree(const Frustum: TFrustum;
   TransparentGroup: TTransparentGroup);
 begin
   Assert(DefaultShapeStateOctree <> nil);
@@ -2986,19 +2988,19 @@ end;
 
 { Background-related things ---------------------------------------- }
 
-procedure TVRMLFlatSceneGL.FBackgroundInvalidate;
+procedure TVRMLGLScene.FBackgroundInvalidate;
 begin
  FreeAndNil(FBackground);
  FBackgroundValid := false;
 end;
 
-procedure TVRMLFlatSceneGL.SetBackgroundSkySphereRadius(const Value: Single);
+procedure TVRMLGLScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
  FBackgroundInvalidate;
  FBackgroundSkySphereRadius := Value;
 end;
 
-procedure TVRMLFlatSceneGL.PrepareBackground;
+procedure TVRMLGLScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
   InitialState: TVRMLGraphTraverseState;
@@ -3087,18 +3089,18 @@ begin
   finally InitialState.Free end;
 end;
 
-function TVRMLFlatSceneGL.Background: TBackgroundGL;
+function TVRMLGLScene.Background: TBackgroundGL;
 begin
  PrepareBackground;
  result := FBackground;
 end;
 
-function TVRMLFlatSceneGL.Attributes: TVRMLSceneRenderingAttributes;
+function TVRMLGLScene.Attributes: TVRMLSceneRenderingAttributes;
 begin
   Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
 end;
 
-function TVRMLFlatSceneGL.CreateHeadLight: TVRMLGLHeadLight;
+function TVRMLGLScene.CreateHeadLight: TVRMLGLHeadLight;
 var
   HeadLightNode: TNodeKambiHeadLight;
 begin
@@ -3109,17 +3111,17 @@ begin
   Result := TVRMLGLHeadLight.Create(HeadLightNode);
 end;
 
-function TVRMLFlatSceneGL.BumpMappingMethod: TBumpMappingMethod;
+function TVRMLGLScene.BumpMappingMethod: TBumpMappingMethod;
 begin
   Result := Renderer.BumpMappingMethod;
 end;
 
-function TVRMLFlatSceneGL.GetBumpMappingLightPosition: TVector3Single;
+function TVRMLGLScene.GetBumpMappingLightPosition: TVector3Single;
 begin
   Result := Renderer.BumpMappingLightPosition;
 end;
 
-procedure TVRMLFlatSceneGL.SetBumpMappingLightPosition(const Value: TVector3Single);
+procedure TVRMLGLScene.SetBumpMappingLightPosition(const Value: TVector3Single);
 begin
   Renderer.BumpMappingLightPosition := Value;
 
@@ -3131,22 +3133,22 @@ begin
     CloseGLRenderer;
 end;
 
-function TVRMLFlatSceneGL.GetBumpMappingLightAmbientColor: TVector4Single;
+function TVRMLGLScene.GetBumpMappingLightAmbientColor: TVector4Single;
 begin
   Result := Renderer.BumpMappingLightAmbientColor;
 end;
 
-procedure TVRMLFlatSceneGL.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
+procedure TVRMLGLScene.SetBumpMappingLightAmbientColor(const Value: TVector4Single);
 begin
   Renderer.BumpMappingLightAmbientColor := Value;
 end;
 
-function TVRMLFlatSceneGL.GetBumpMappingLightDiffuseColor: TVector4Single;
+function TVRMLGLScene.GetBumpMappingLightDiffuseColor: TVector4Single;
 begin
   Result := Renderer.BumpMappingLightDiffuseColor;
 end;
 
-procedure TVRMLFlatSceneGL.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
+procedure TVRMLGLScene.SetBumpMappingLightDiffuseColor(const Value: TVector4Single);
 begin
   Renderer.BumpMappingLightDiffuseColor := Value;
 end;
@@ -3165,7 +3167,7 @@ begin
   FWireframeWidth := DefaultWireframeWidth;
   FWireframeColor := DefaultWireframeColor;
 
-  FScenes := TVRMLFlatSceneGLsList.Create;
+  FScenes := TVRMLGLScenesList.Create;
 end;
 
 destructor TVRMLSceneRenderingAttributes.Destroy;
@@ -3418,9 +3420,9 @@ begin
   end;
 end;
 
-{ TVRMLFlatSceneGLsList ------------------------------------------------------ }
+{ TVRMLGLScenesList ------------------------------------------------------ }
 
-procedure TVRMLFlatSceneGLsList.CloseGL;
+procedure TVRMLGLScenesList.CloseGL;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -3431,7 +3433,7 @@ begin
      Items[I].CloseGL;
 end;
 
-procedure TVRMLFlatSceneGLsList.FBackgroundInvalidate;
+procedure TVRMLGLScenesList.FBackgroundInvalidate;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -3442,7 +3444,7 @@ begin
      Items[I].FBackgroundInvalidate;
 end;
 
-procedure TVRMLFlatSceneGLsList.CloseGLRenderer;
+procedure TVRMLGLScenesList.CloseGLRenderer;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var

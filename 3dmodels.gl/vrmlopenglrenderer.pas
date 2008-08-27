@@ -106,7 +106,7 @@
       shared (because it doesn't take some transformations into account)).
 
       Make sure that VRML2ActiveLights are properly initialized if you
-      plan to render VRML 2.0 nodes. TVRMLFlatScene and descendants do
+      plan to render VRML 2.0 nodes. TVRMLScene and descendants do
       this for you usually.
     )
 
@@ -216,7 +216,7 @@
       (tzn. kod uzywajacy tego renderera) moze  zechciec ustawic
       te wartosci na cos konkretnego. Manipulujac tymi wartosciami kod
       zewnetrzny moze zaimplementowac obiekty polprzezroczyste uzywajac
-      blending OpenGLa, przykladowo tak robi VRMLFlatSceneGL))
+      blending OpenGLa, przykladowo tak robi VRMLGLScene))
 
     @item(GL_FOG_HINT is also not manipulated by this unit.
       Just like for any other OpenGL program, you may want to set this
@@ -364,9 +364,9 @@ type
       TVRMLOpenGLRenderer.BumpMappingLightPosition: with bmMultiTex*,
       after changing BumpMappingLightPosition you have to render the scene
       using TVRMLOpenGLRenderer again. Which means that display lists
-      built by TVRMLFlatSceneGL cannot be reused.
+      built by TVRMLGLScene cannot be reused.
 
-      If you use TVRMLFlatSceneGL this means that either:
+      If you use TVRMLGLScene this means that either:
 
       @unorderedList(
         @item(You use optimizations with display lists, like roSceneAsAWhole.
@@ -390,7 +390,7 @@ type
       effect, but means that 1 more texture unit is required.
 
       All other comments about bmMultiTexDotNotNormalized apply also here.
-      In particular, if you use TVRMLFlatSceneGL then either
+      In particular, if you use TVRMLGLScene then either
       @orderedList(
         @itemSpacing compact
         @item don't modify BumpMappingLightPosition too often or
@@ -451,7 +451,7 @@ type
 
     They are collected here,
     in a class separate from @link(TVRMLOpenGLRenderer),
-    because various things (like TVRMLFlatSceneGL and TVRMLGLAnimation)
+    because various things (like TVRMLGLScene and TVRMLGLAnimation)
     wrap @link(TVRMLOpenGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
   TVRMLRenderingAttributes = class(TPersistent)
@@ -707,7 +707,7 @@ type
       mappping (that is, you set BumpMappingMaximum to something <> bmNone),
       to actually specify how bumps should appear.
       See TVRMLOpenGLRenderer.BumpMappingLightPosition, or
-      TVRMLFlatSceneGL.BumpMappingLightPosition for more comfortable version.
+      TVRMLGLScene.BumpMappingLightPosition for more comfortable version.
       See also other TVRMLOpenGLRenderer.BumpMappingLightXxx properties,
       like TVRMLOpenGLRenderer.BumpMappingLightDiffuseColor.
 
@@ -973,7 +973,7 @@ type
     procedure Fonts_DecReference(
       fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 
-    { These will be used by TVRMLFlatSceneGL.
+    { These will be used by TVRMLGLScene.
 
       Note that we have two versions of ShapeState_IncReference,
       because if the list will already exist in the cache then we don't want to
@@ -1348,7 +1348,7 @@ type
       --- you have to rebuild them. Reason: to recalculate
       light direction in tangent space.  Which practically means that if you
       want to change BumpMappingLightPosition often, you have to
-      use roNone as Optimization for TVRMLFlatSceneGL.
+      use roNone as Optimization for TVRMLGLScene.
 
       If BumpMappingMethod is in bmGLSLAll, things are better.
       If the bump mapping shader is already prepared, then setting this property
@@ -1364,7 +1364,7 @@ type
 
       When doing bump mapping, we don't use VRML lights. Instead some
       properties of the light are controlled by BumpMappingLightPosition
-      (or TVRMLFlatSceneGL.BumpMappingLightPosition) and attributes like
+      (or TVRMLGLScene.BumpMappingLightPosition) and attributes like
       this one.
 
       Note that whether this is used depends on BumpMappingMethod used
@@ -3717,7 +3717,7 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
     begin
       { Note: don't call IsTextureImage, IsTextureVideo here --- this
         would causes reloading images/videos, nullifying
-        TVRMLFlatScene.FreeResouces([frTextureDataInNodes]) purpose.
+        TVRMLScene.FreeResouces([frTextureDataInNodes]) purpose.
 
         Actually, it would be safe to call this for non-MovieTexture nodes,
         as they should be prepared to display lists before doing

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLFlatSceneGL, MatrixNavigation, KambiGLControl,
+  OpenGLContext, Menus, VRMLGLScene, MatrixNavigation, KambiGLControl,
   Buttons, ExtCtrls, StdCtrls;
 
 type
@@ -59,7 +59,7 @@ type
     procedure GLControlPaint(Sender: TObject);
     procedure GLControlResize(Sender: TObject);
   private
-    Scene: TVRMLFlatSceneGL;
+    Scene: TVRMLGLScene;
     { This is always non-nil. }
     Navigator: TMatrixWalker;
     SceneFileName: string;
@@ -77,7 +77,7 @@ implementation
 
 uses LCLType, VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer,
   GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3dAsVRML,
-  KambiGLUtils, VRMLFlatScene, KambiFilesUtils,
+  KambiGLUtils, VRMLScene, KambiFilesUtils,
   OpenGLInformation;
 
 procedure TMain.OpenScene(const FileName: string);
@@ -86,7 +86,7 @@ var
 begin
   FreeAndNil(Scene);
 
-  Scene := TVRMLFlatSceneGL.Create(
+  Scene := TVRMLGLScene.Create(
     LoadAsVRML(FileName, true),
     true, roSceneAsAWhole);
 

@@ -20,7 +20,7 @@
 
 { @abstract(@link(TVRMLShapeStateOctree) --- octree that provides
   hierarchical view of all ShapeState structures of a given
-  @link(TVRMLFlatScene) object.)
+  @link(TVRMLScene) object.)
 
   Don't confuse it with @link(TVRMLTriangleOctree) from unit
   @link(VRMLTriangleOctree):
@@ -36,7 +36,7 @@
 
   This octree is the key structure to do scene culling
   (e.g. to camera frustum) on a ShapeState-basis, as used
-  by @link(TVRMLFlatSceneGL). }
+  by @link(TVRMLGLScene). }
 
 unit VRMLShapeStateOctree;
 

@@ -451,7 +451,7 @@ type
       to be calculated later (VRML 2 spec says that they affect whole scene,
       based on their radius, and regardless of their position in VRML graph;
       so this is not possible to fill during Traverse call).
-      See how UpdateVRML2ActiveLights in TVRMLFlatScene does this. }
+      See how UpdateVRML2ActiveLights in TVRMLScene does this. }
     VRML1ActiveLights, VRML2ActiveLights: TDynActiveLightArray;
 
     { This returns VRML1ActiveLights or VRML2ActiveLights, based on VRML
@@ -516,12 +516,12 @@ type
 
       Note: while this constructor seems very comfortable, in some cases
       it's not useful, exactly because it frees at the end used StateDefaultNodes.
-      Consider e.g. TVRMLFlatScene, that has to traverse all nodes and
+      Consider e.g. TVRMLScene, that has to traverse all nodes and
       store the traversing result in a flat list: this means that it must
       save various TVRMLGraphTraverseState instances, that may have
       references to nodes from StateDefaultNodes. So it must have independent
       StateDefaultNodes field that "lives" for the whole lifetime
-      of TVRMLFlatScene and is passed to each TVRMLGraphTraverseState.Create call.
+      of TVRMLScene and is passed to each TVRMLGraphTraverseState.Create call.
 
       If you don't understand the note above then don't worry,
       you're probably fine with using this parameter-less constructor :) }
@@ -2767,7 +2767,7 @@ type
       say that only one event per ROUTE per timestamp is allowed.
 
       Use ResetLastEventTime when you really want to reset this memory.
-      In practice, this should be used only by TVRMLFlatScene.ResetWorldTime
+      In practice, this should be used only by TVRMLScene.ResetWorldTime
       implementation. }
     procedure ResetLastEventTime;
   end;

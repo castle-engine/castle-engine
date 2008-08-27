@@ -59,12 +59,12 @@ program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
   KambiFilesUtils, VRMLErrors, KambiStringUtils, Keys;
 
 var
-  Scene: TVRMLFlatSceneGL;
-  SceneForShadow: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
+  SceneForShadow: TVRMLGLScene;
 
   { FileName of currently loaded Scene.
     '' means to load internal cube model. }
@@ -577,11 +577,11 @@ begin
     { use box, just to show anything }
     RootNode := ParseVRMLFileFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
-  Scene := TVRMLFlatSceneGL.Create(RootNode, true, roSceneAsAWhole);
+  Scene := TVRMLGLScene.Create(RootNode, true, roSceneAsAWhole);
   try
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
-    SceneForShadow := TVRMLFlatSceneGL.Create(RootNode, false, roSceneAsAWhole);
+    SceneForShadow := TVRMLGLScene.Create(RootNode, false, roSceneAsAWhole);
     SceneForShadow.Attributes.PureGeometry := true;
 
     { init Glw.Navigator }

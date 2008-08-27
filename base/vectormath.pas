@@ -1853,7 +1853,7 @@ type
   { These types are used in many places, look at
     TVRMLOpenGLRenderer.Attrib_ColorModulatorSingle/Byte,
     TVRMLLightSetGL.ColorModulatorSingle,
-    TVRMLFlatSceneGL.Attrib_ColorModulatorSingle/Byte,
+    TVRMLGLScene.Attrib_ColorModulatorSingle/Byte,
     TBackgroundGL (AColorModulatorSingle/Byte params for constructor),
     Images.ImageModulate }
   TColorModulatorSingleFunc = function (const Color: TVector3Single): TVector3Single;

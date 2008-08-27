@@ -119,7 +119,7 @@
       implements time-dependent nodes operations.
 
       OldValue, NewValue and TimeIncrease must match, as produced
-      by TVRMLFlatScene.SetWorldTime and friends.
+      by TVRMLScene.SetWorldTime and friends.
 
       TimeIncrease = 0.0 here means "TimeIncrease is unknown",
       this can happen only when were called by ResetWorldTime.

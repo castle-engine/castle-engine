@@ -1199,7 +1199,7 @@ function FrustumBox3dCollisionPossible(const Frustum: TFrustum;
 
 { Note: I tried to optimize this function,
   since it's crucial for TOctree.EnumerateCollidingOctreeItems,
-  and this is crucial for TVRMLFlatSceneGL.RenderFrustumOctree,
+  and this is crucial for TVRMLGLScene.RenderFrustumOctree,
   and this is crucial for overall speed of rendering. }
 
 var

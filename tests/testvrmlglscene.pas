@@ -18,7 +18,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-unit TestVRMLFlatSceneGL;
+unit TestVRMLGLScene;
 
 interface
 
@@ -26,18 +26,18 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestVRMLFlatSceneGL = class(TTestCase)
+  TTestVRMLGLScene = class(TTestCase)
   published
-    procedure TestVRMLFlatSceneGL;
+    procedure TestVRMLGLScene;
   end;
 
 implementation
 
-uses VRMLNodes, VRMLFlatScene, VRMLFlatSceneGL, Boxes3d, VectorMath;
+uses VRMLNodes, VRMLScene, VRMLGLScene, Boxes3d, VectorMath;
 
-procedure TTestVRMLFlatSceneGL.TestVRMLFlatSceneGL;
+procedure TTestVRMLGLScene.TestVRMLGLScene;
 
-  procedure EmptySceneAsserts(EmptyScene: TVRMLFlatSceneGL);
+  procedure EmptySceneAsserts(EmptyScene: TVRMLGLScene);
   var
     CamKind: TVRMLCameraKind;
     CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -58,16 +58,16 @@ procedure TTestVRMLFlatSceneGL.TestVRMLFlatSceneGL;
    Assert(EmptyScene.Background = nil);
   end;
 
-var EmptyScene: TVRMLFlatSceneGL;
+var EmptyScene: TVRMLGLScene;
 begin
- EmptyScene := TVRMLFlatSceneGL.Create(nil, true, roSceneAsAWhole);
+ EmptyScene := TVRMLGLScene.Create(nil, true, roSceneAsAWhole);
  try
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
  finally FreeAndNil(EmptyScene) end;
 
- EmptyScene := TVRMLFlatSceneGL.Create(TNodeGroup_1.Create('', ''), true,
+ EmptyScene := TVRMLGLScene.Create(TNodeGroup_1.Create('', ''), true,
    roSceneAsAWhole);
  try
   EmptySceneAsserts(EmptyScene);
@@ -77,5 +77,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVRMLFlatSceneGL);
+ RegisterTest(TTestVRMLGLScene);
 end.

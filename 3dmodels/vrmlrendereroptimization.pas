@@ -1,6 +1,6 @@
 { TGLRendererOptimization type.
 
-  While this is needed by TVRMLFlatSceneGL, it has to be defined in this unit,
+  While this is needed by TVRMLGLScene, it has to be defined in this unit,
   in non-opengl units category, because it's also used by Object3dAsVRML
   and VRML animations reader. }
 unit VRMLRendererOptimization;
@@ -8,7 +8,7 @@ unit VRMLRendererOptimization;
 interface
 
 type
-  { This is used by @link(TVRMLFlatSceneGL.Optimization) to describe
+  { This is used by @link(TVRMLGLScene.Optimization) to describe
     what kind of optimization should be done. }
   TGLRendererOptimization = (
     { No optimization. No OpenGL display lists are constructed.
@@ -17,7 +17,7 @@ type
       as display lists often help a lot.
 
       Use this if you plan to change the scene at runtime a lot
-      (or when you're going to render TVRMLFlatSceneGL object
+      (or when you're going to render TVRMLGLScene object
       very few times, say, only 1-2 frames, in some special situations)
       Then building display lists would be only a waste of time,
       since they would have to be rebuild very often. }
@@ -31,9 +31,9 @@ type
       (or just a large part of it).
 
       Note that this nullifies the purpose of
-      @link(TVRMLFlatSceneGL.RenderFrustum) and
-      @link(TVRMLFlatSceneGL.RenderFrustumOctree) methods. And the purpose
-      of the @link(TVRMLFlatSceneGL.Render) method with a parameter <> @nil.
+      @link(TVRMLGLScene.RenderFrustum) and
+      @link(TVRMLGLScene.RenderFrustumOctree) methods. And the purpose
+      of the @link(TVRMLGLScene.Render) method with a parameter <> @nil.
       That's because the scene will always be rendered fully to OpenGL.
 
       Also, this is not good if some parts of the scene cannot be put
@@ -45,12 +45,12 @@ type
 
       If the scene is static but user usually only looks at some small
       part of it, then building octree for the scene and using
-      roSeparateShapeStates and @link(TVRMLFlatSceneGL.RenderFrustumOctree)
+      roSeparateShapeStates and @link(TVRMLGLScene.RenderFrustumOctree)
       may be better. }
     roSceneAsAWhole,
 
     { Build separate OpenGL display list for each @link(TVRMLShapeState)
-      on list @link(TVRMLFlatScene.ShapeStates). Use this if
+      on list @link(TVRMLScene.ShapeStates). Use this if
 
       @orderedList(
         @item(you will change from time to time only some small parts of
@@ -61,9 +61,9 @@ type
 
         @item(and/or you know that usually user will not see the whole scene,
           only a small part of it.
-          See TestShapeStateVisibility parameter of @link(TVRMLFlatSceneGL.Render)
-          and @link(TVRMLFlatSceneGL.RenderFrustum) and
-          @link(TVRMLFlatSceneGL.RenderFrustumOctree).)
+          See TestShapeStateVisibility parameter of @link(TVRMLGLScene.Render)
+          and @link(TVRMLGLScene.RenderFrustum) and
+          @link(TVRMLGLScene.RenderFrustumOctree).)
 
         @item(
           Another advantage of roSeparateShapeStates is when you use
@@ -192,7 +192,7 @@ var RendererOptimizationPtr: PGLRendererOptimization absolute Data;
 begin
  case OptionNum of
   0: RendererOptimizationPtr^ := RendererOptimizationFromName(Argument, true);
-  else raise EInternalError.Create('VRMLFlatSceneGL.OptionProc: OptionNum');
+  else raise EInternalError.Create('VRMLGLScene.OptionProc: OptionNum');
  end;
 end;
 

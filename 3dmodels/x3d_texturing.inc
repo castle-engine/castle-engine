@@ -309,7 +309,7 @@
       Duration (and so, also cycleInterval) is not reset when video
       is freed (like when you set
       IsTextureLoaded to @false, maybe implicitly by calling
-      TVRMLFlatScene.FreeResources with frTextureDataInNodes).
+      TVRMLScene.FreeResources with frTextureDataInNodes).
       This way this is available even you freed the texture video data to
       save memory. }
     property Duration: TKamTime read FDuration;

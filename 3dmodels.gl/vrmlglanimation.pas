@@ -23,7 +23,7 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLFlatScene, VRMLFlatSceneGL,
+uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3d, KambiClassUtils, VRMLAnimation;
 
 {$define read_interface}
@@ -74,7 +74,7 @@ type
     A special case when you pass only one scene to this class is allowed
     (it may be handy in some situations). This will obviously produce
     just a still result, i.e. resulting TVRMLGLAnimation will be just
-    a wrapper around single TVRMLFlatSceneGL instance.
+    a wrapper around single TVRMLGLScene instance.
 
     All given objects must be "structurally equal"
     --- the same nodes hierarchy, the same names of nodes,
@@ -99,8 +99,8 @@ type
     acceptable solution. }
   TVRMLGLAnimation = class(TVRMLAnimation)
   private
-    FScenes: TVRMLFlatSceneGLsList;
-    function GetScenes(I: Integer): TVRMLFlatSceneGL;
+    FScenes: TVRMLGLScenesList;
+    function GetScenes(I: Integer): TVRMLGLScene;
     Renderer: TVRMLOpenGLRenderer;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
@@ -155,7 +155,7 @@ type
         of time.)
 
       @param(AOptimization
-        This is passed to TVRMLFlatSceneGL constructor, see there for docs.
+        This is passed to TVRMLGLScene constructor, see there for docs.
 
         Note that this class should generally use roSeparateShapeStatesNoTransform
         or roSeparateShapeStates for Optimization, to conserve memory
@@ -240,14 +240,14 @@ type
     { You can read anything from Scenes below. But you cannot set some
       things: don't set their scenes Attributes properties.
       Use only our @link(Attributes). }
-    property Scenes[I: Integer]: TVRMLFlatSceneGL read GetScenes;
+    property Scenes[I: Integer]: TVRMLGLScene read GetScenes;
     function ScenesCount: Integer;
 
     { Just a shortcut for Scenes[0]. }
-    function FirstScene: TVRMLFlatSceneGL;
+    function FirstScene: TVRMLGLScene;
 
     { Just a shortcut for Scenes[ScenesCount - 1]. }
-    function LastScene: TVRMLFlatSceneGL;
+    function LastScene: TVRMLGLScene;
 
     { Prepare all scenes for rendering. This just calls
       PrepareRender(...) for all Scenes.
@@ -259,7 +259,7 @@ type
       (and prepare time) optimization will be used: only the first scene will
       have actually prepared prManifoldAndBorderEdges. The other scenes will
       just share the same ManifoldEdges and BorderEdges instances, by
-      TVRMLFlatScene.ShareManifoldAndBorderEdges method. }
+      TVRMLScene.ShareManifoldAndBorderEdges method. }
     procedure PrepareRender(
       TransparentGroups: TTransparentGroups;
       Options: TPrepareRenderOptions;
@@ -344,7 +344,7 @@ type
           And so on.)
       )
     }
-    function SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+    function SceneFromTime(const Time: Single): TVRMLGLScene;
 
     { See SceneFromTime for description what this property does. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
@@ -398,12 +398,12 @@ type
 
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
-      This calls TVRMLFlatSceneGL.ChangedAll on all Scenes[]
+      This calls TVRMLGLScene.ChangedAll on all Scenes[]
       and invalidates some cached things inside this class. }
     procedure ChangedAll;
 
     { Returns some textual info about this animation.
-      Similar to TVRMLFlatSceneGL.Info. }
+      Similar to TVRMLGLScene.Info. }
     function Info(
       ATriangleVerticesCounts,
       ABoundingBox,
@@ -418,7 +418,7 @@ type
     procedure WritelnInfoNodes;
 
     { Common BackgroundSkySphereRadius of all scenes,
-      see TVRMLFlatSceneGL.BackgroundSkySphereRadius.
+      see TVRMLGLScene.BackgroundSkySphereRadius.
 
       This reads simply FirstScene.BackgroundSkySphereRadius
       and sets BackgroundSkySphereRadius for all scenes.
@@ -429,8 +429,8 @@ type
       Note that there is doesn't really exist a requirement that all
       animation frames have the same BackgroundSkySphereRadius...
       But it's most common. In fact, it all depends on your needs, see
-      TVRMLFlatSceneGL.BackgroundSkySphereRadius used by
-      TVRMLFlatSceneGL.Background. }
+      TVRMLGLScene.BackgroundSkySphereRadius used by
+      TVRMLGLScene.Background. }
     property BackgroundSkySphereRadius: Single
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
@@ -848,9 +848,9 @@ procedure TVRMLGLAnimation.Load(
   end;
 
   function CreateOneScene(Node: TVRMLNode;
-    OwnsRootNode: boolean): TVRMLFlatSceneGL;
+    OwnsRootNode: boolean): TVRMLGLScene;
   begin
-    Result := TVRMLFlatSceneGL.CreateProvidedRenderer(
+    Result := TVRMLGLScene.CreateProvidedRenderer(
       Node, OwnsRootNode, AOptimization, Renderer);
   end;
 
@@ -870,7 +870,7 @@ begin
   for I := 1 to RootNodes.High do
     CheckVRMLModelsStructurallyEqual(RootNodes[0], RootNodes[I]);
 
-  FScenes := TVRMLFlatSceneGLsList.Create;
+  FScenes := TVRMLGLScenesList.Create;
 
   FTimeBegin := ATimes[0];
   FTimeEnd := ATimes[ATimes.High];
@@ -900,7 +900,7 @@ begin
     begin
       { In this case I don't waste memory, and I'm simply reusing
         LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
-        This way I have a series of the same instances of TVRMLFlatSceneGL
+        This way I have a series of the same instances of TVRMLGLScene
         along the way. When freeing FScenes, we will be smart and
         avoid deallocating the same pointer twice. }
       RootNodes.FreeAndNil(I);
@@ -1025,7 +1025,7 @@ begin
   FLoaded := false;
 end;
 
-function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLFlatSceneGL;
+function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLGLScene;
 begin
   Result := FScenes[I];
 end;
@@ -1037,12 +1037,12 @@ begin
     Result := 0;
 end;
 
-function TVRMLGLAnimation.FirstScene: TVRMLFlatSceneGL;
+function TVRMLGLAnimation.FirstScene: TVRMLGLScene;
 begin
   Result := FScenes.First;
 end;
 
-function TVRMLGLAnimation.LastScene: TVRMLFlatSceneGL;
+function TVRMLGLAnimation.LastScene: TVRMLGLScene;
 begin
   Result := FScenes.Last;
 end;
@@ -1104,7 +1104,7 @@ begin
     Result *= 2;
 end;
 
-function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLFlatSceneGL;
+function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLGLScene;
 var
   SceneNumber: Integer;
   DivResult: SmallInt;

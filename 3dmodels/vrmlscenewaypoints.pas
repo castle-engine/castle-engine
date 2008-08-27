@@ -66,7 +66,7 @@ type
       Count of this list is enlarged, if necessary,
       to include all waypoints indicated in the Node.
 
-      If the Node is part of some TVRMLFlatScene instance, remember to call
+      If the Node is part of some TVRMLScene instance, remember to call
       scene's ChangedAll after this. }
     procedure ExtractPositions(Node: TVRMLNode);
   end;
@@ -138,7 +138,7 @@ type
       Count of this list is enlarged, if necessary,
       to include all sectors indicated in the Node.
 
-      If the Node is part of some TVRMLFlatScene instance, remember to call
+      If the Node is part of some TVRMLScene instance, remember to call
       scene's ChangedAll after this. }
     procedure ExtractBoundingBoxes(Node: TVRMLNode);
 

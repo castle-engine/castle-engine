@@ -63,7 +63,7 @@ uses GLWindow, GLW_Navigated, GL, GLU, GLExt, KambiGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit,
   ParseParametersUnit, KambiLog,
   { VRML-related units: }
-  VRMLFlatSceneGL, Object3dAsVRML, ProgressUnit, BackgroundGL,
+  VRMLGLScene, Object3dAsVRML, ProgressUnit, BackgroundGL,
   VRMLOpenGLRenderer, VRMLRendererOptimization;
 
 const
@@ -91,7 +91,7 @@ var
   Examiner: TMatrixExaminer;
   Walker: TMatrixWalker;
 
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
 
   { Vars below for bmEmboss only }
 
@@ -205,7 +205,7 @@ begin
     [bmNone] + bmGLSLAll then
     SceneOptimization := roSceneAsAWhole else
     SceneOptimization := roNone;
-  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(FileName, true),
+  Scene := TVRMLGLScene.Create(LoadAsVRML(FileName, true),
     true, SceneOptimization);
 
   { make octree for RenderFrustumOctree }

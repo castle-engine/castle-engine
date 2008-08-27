@@ -23,7 +23,7 @@ unit ShadowTests;
 
 interface
 
-uses VectorMath, VRMLFlatSceneGL, VRMLFlatScene, KambiUtils, KambiClassUtils;
+uses VectorMath, VRMLGLScene, VRMLScene, KambiUtils, KambiClassUtils;
 
 {$define read_interface}
 
@@ -39,12 +39,12 @@ type
   PArray_Quad4Single = PInfiniteArray_1;
   TDynQuad4SingleArray = TDynArray_1;
 
-{ These things were part of VRMLFlatSceneGL unit once, but I removed them
+{ These things were part of VRMLGLScene unit once, but I removed them
   from there, since I discovered that they are not useful methods of
   implementing shadow volumes.
 
   RenderFrontShadowQuads and RenderBackShadowQuads
-  removed from VRMLFlatSceneGL because:
+  removed from VRMLGLScene because:
   1. We can check front/back using OpenGL as easy
   2. Actually, checking using OpenGL is better because it's more accurate
   3. (not to mention that this renders all edges, not just silhouette edges) }
@@ -73,38 +73,38 @@ type
 
   @groupBegin }
 procedure RenderFrontShadowQuads(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
   SavedShadowQuads: TDynQuad4SingleArray); overload;
 
 procedure RenderBackShadowQuads(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   SavedShadowQuads: TDynQuad4SingleArray); overload;
 
 procedure RenderFrontShadowQuads(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single); overload;
 
-procedure RenderBackShadowQuads(Scene: TVRMLFlatSceneGL); overload;
+procedure RenderBackShadowQuads(Scene: TVRMLGLScene); overload;
 { @groupEnd }
 
 { Render silhouette edges.
   This is actually a modified implementation of
-  TVRMLFlatSceneGL.RenderSilhouetteShadowQuads: instead of rendering
+  TVRMLGLScene.RenderSilhouetteShadowQuads: instead of rendering
   shadow quad for each silhouette edge, the edge is simply rendered
   as OpenGL line. }
 procedure RenderSilhouetteEdges(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 { Render all Scene.BorderEdges as lines. }
 procedure RenderBorderEdges(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const Transform: TMatrix4Single);
 
 {$undef read_interface}
@@ -145,7 +145,7 @@ begin
   Result[3] := 0;
 end;
 
-procedure RenderFrontShadowQuads(Scene: TVRMLFlatSceneGL;
+procedure RenderFrontShadowQuads(Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single;
@@ -281,7 +281,7 @@ begin
 end;
 
 procedure RenderBackShadowQuads(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   SavedShadowQuads: TDynQuad4SingleArray);
 var
   I: Integer;
@@ -302,7 +302,7 @@ var
   DefaultSavedShadowQuads: TDynQuad4SingleArray;
 
 procedure RenderFrontShadowQuads(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const CameraPos: TVector3Single;
   const TrianglesTransform: TMatrix4Single);
@@ -311,13 +311,13 @@ begin
     DefaultSavedShadowQuads);
 end;
 
-procedure RenderBackShadowQuads(Scene: TVRMLFlatSceneGL);
+procedure RenderBackShadowQuads(Scene: TVRMLGLScene);
 begin
   RenderBackShadowQuads(Scene, DefaultSavedShadowQuads);
 end;
 
 procedure RenderSilhouetteEdges(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const LightPos: TVector4Single;
   const Transform: TMatrix4Single);
 
@@ -398,7 +398,7 @@ begin
 end;
 
 procedure RenderBorderEdges(
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   const Transform: TMatrix4Single);
 var
   Triangles: TDynTriangle3SingleArray;

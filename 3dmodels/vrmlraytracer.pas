@@ -192,7 +192,7 @@ type
     for documentation.
 
     Make sure that VRML2ActiveLights are properly initialized if you
-    plan to render VRML 2.0 nodes. TVRMLFlatScene and descendants do
+    plan to render VRML 2.0 nodes. TVRMLScene and descendants do
     this for you usually. }
   TClassicRayTracer = class(TRayTracer)
   public
@@ -206,7 +206,7 @@ type
     { Podaj FogNode <> nil aby miec odpowiednia mgle, zgodnie ze specyfik. VRMLa 97.
       FogDistanceScaling to skalowanie FogNode z transformacji sceny
       VRMLa w miejscu gdzie byl FogNode --- tak samo jak pole
-      TVRMLFlatScene o tej samej naziwe. }
+      TVRMLScene o tej samej naziwe. }
     FogNode: TNodeFog;
     FogDistanceScaling: Single;
   end;

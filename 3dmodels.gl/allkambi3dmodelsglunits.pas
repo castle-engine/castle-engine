@@ -12,7 +12,7 @@ interface
 uses
   backgroundgl,
   object3dopengl,
-  vrmlflatscenegl,
+  vrmlglscene,
   vrmlglanimation,
   vrmlglheadlight,
   vrmllightsetgl,

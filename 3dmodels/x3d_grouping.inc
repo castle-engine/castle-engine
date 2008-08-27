@@ -280,7 +280,7 @@ begin
     correctly...
 
     First approach was to add ParentGroup to TActiveLight
-    and do it as post-processing step, i.e. in TVRMLFlatScene in
+    and do it as post-processing step, i.e. in TVRMLScene in
     UpdateVRML2ActiveLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,

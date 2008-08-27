@@ -50,12 +50,12 @@ program simple_view_model_2;
 
 uses VectorMath, Boxes3d, VRMLNodes, VRMLOpenGLRenderer, GL, GLU, GLExt, GLWindow,
   GLW_Navigated, KambiClassUtils, KambiUtils, SysUtils, Classes, Object3dAsVRML,
-  KambiGLUtils, VRMLFlatScene, VRMLFlatSceneGL, MatrixNavigation,
+  KambiGLUtils, VRMLScene, VRMLGLScene, MatrixNavigation,
   ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLTriangleOctree,
   VRMLErrors;
 
 var
-  Scene: TVRMLFlatSceneGL;
+  Scene: TVRMLGLScene;
   { CameraRadius is needed for collision detection }
   CameraRadius: Single;
 
@@ -126,7 +126,7 @@ begin
  try
   VRMLNonFatalError := @VRMLNonFatalError_WarningWrite;
 
-  Scene := TVRMLFlatSceneGL.Create(LoadAsVRML(Parameters[1], true),
+  Scene := TVRMLGLScene.Create(LoadAsVRML(Parameters[1], true),
     true, {roSceneAsAWhole}roSeparateShapeStates);
 
   Writeln(Scene.Info(true, true, false));
