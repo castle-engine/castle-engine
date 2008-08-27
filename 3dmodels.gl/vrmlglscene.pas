@@ -471,6 +471,19 @@ type
     ShapeStatesUseBlending: TDynBooleanArray;
     procedure CalculateShapeStatesUseBlending(Index: Integer);
 
+    procedure SetOptimization(const Value: TGLRendererOptimization);
+
+    { Create resources (the ones not tied to OpenGL) needed by current
+      Optimization value. }
+    procedure OptimizationCreate;
+
+    { Destroy resources created by OptimizationCreate.
+
+      It must only free resources for current Optimization value
+      (actually, none other should be allocated), currently
+      it just frees resources for all possible Optimization values. }
+    procedure OptimizationDestroy;
+
     { Private things only for RenderFrustum ---------------------- }
 
     RenderFrustum_Frustum: PFrustum;
@@ -814,17 +827,20 @@ type
       This is the only way how you can control internal behavior of this
       class with regards to OpenGL display lists. You have to decide
       which method is best, based on expected usage of this model:
-      Are you going to (often) change the model structure at runtime ?
+      Are you going to (often) change the model structure at runtime?
       Is user going to see the scene usually as a whole, or only small
-      part of it (more precisely, is frustum culling sensible in this case) ?
+      part of it (more precisely, is frustum culling sensible in this case)?
 
       See VRMLRendererOptimization.TGLRendererOptimization
       for discussion about various values you can set here.
 
-      Currently this is read-only after you created @className instance,
-      possibly this will be changed in the future. (But changing
-      this at run-time will remain costly operation anyway.) }
-    property Optimization: TGLRendererOptimization read FOptimization;
+      You can change this property at run-time (that is, after this
+      object is created) but be warned that such change is of course costly
+      operation. Previous optimization resources must be freed,
+      and new resources will have to be created at next Render or
+      PrepareRender call. So don't change it e.g. every rendering frame. }
+    property Optimization: TGLRendererOptimization
+      read FOptimization write SetOptimization;
 
     procedure ChangedAll; override;
     procedure ChangedShapeStateFields(ShapeStateNum: integer); override;
@@ -1186,11 +1202,7 @@ begin
     That's why I have to init them *before* "inherited Create" }
 
   FOptimization := AOptimization;
-
-  case Optimization of
-    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
-      SSSX_DisplayLists := TDynGLuintArray.Create;
-  end;
+  OptimizationCreate;
 
   RenderFrustumOctree_Visible := TDynBooleanArray.Create;
   ShapeStatesUseBlending := TDynBooleanArray.Create;
@@ -1275,11 +1287,50 @@ begin
     FreeAndNil(Renderer);
   end;
 
-  FreeAndNil(SSSX_DisplayLists);
+  OptimizationDestroy;
+
   FreeAndNil(RenderFrustumOctree_Visible);
   FreeAndNil(ShapeStatesUseBlending);
 
   inherited;
+end;
+
+procedure TVRMLGLScene.SetOptimization(const Value: TGLRendererOptimization);
+begin
+  { writeln('optim changes from ', RendererOptimizationNames[FOptimization],
+    ' to ', RendererOptimizationNames[Value]); }
+
+  if Value <> FOptimization then
+  begin
+    CloseGLRenderer;
+    OptimizationDestroy;
+    FOptimization := Value;
+    OptimizationCreate;
+  end;
+end;
+
+procedure TVRMLGLScene.OptimizationCreate;
+begin
+  case Optimization of
+    roSeparateShapeStates, roSeparateShapeStatesNoTransform:
+      begin
+        SSSX_DisplayLists := TDynGLuintArray.Create;
+        { When this is called from constructor, it's before 
+          inherited constructor and ChangedAll, so ShapeStates
+          are not initialized yet. So don't set Count yet
+          (will be set later in ChangedAll). }
+        if ShapeStates <> nil then
+        begin
+          SSSX_DisplayLists.Count := ShapeStates.Count;
+          SSSX_DisplayLists.SetAll(0);
+        end;
+      end;
+  end;
+end;
+
+procedure TVRMLGLScene.OptimizationDestroy;
+begin
+  FreeAndNil(SSSX_DisplayLists);
 end;
 
 procedure TVRMLGLScene.CloseGLRenderer;
@@ -2237,7 +2288,6 @@ begin
       for TG := Low(TG) to High(TG) do
         glFreeDisplayList(SAAW_DisplayList[TG]);
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
-      { TODO -- test this }
       if SSSX_DisplayLists.Items[ShapeStateNum] <> 0 then
       begin
         if Optimization = roSeparateShapeStates then

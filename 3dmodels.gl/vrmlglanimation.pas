@@ -115,6 +115,9 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
 
     function InfoBoundingBoxSum: string;
+
+    FOptimization: TGLRendererOptimization;
+    procedure SetOptimization(const Value: TGLRendererOptimization);
   public
     { Constructor. }
     constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
@@ -125,6 +128,8 @@ type
       You must call this (or some other loading routine like LoadFromFile)
       before you do almost anything with this object.
       Loaded changes to @true after calling this.
+
+      Animation is loaded with current @link(Optimization) value.
 
       @param(RootNodes
         Models describing the "predefined" frames
@@ -154,13 +159,6 @@ type
         both equal, we can simply render the same scene for some period
         of time.)
 
-      @param(AOptimization
-        This is passed to TVRMLGLScene constructor, see there for docs.
-
-        Note that this class should generally use roSeparateShapeStatesNoTransform
-        or roSeparateShapeStates for Optimization, to conserve memory
-        in some common cases. See docs at TGLRendererOptimization type.)
-
       @param(EqualityEpsilon
         This will be used for comparing fields, to decide if two fields
         (and, consequently, nodes) are equal. It will be simply
@@ -181,7 +179,6 @@ type
       AOwnsFirstRootNode: boolean;
       ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
-      AOptimization: TGLRendererOptimization;
       const EqualityEpsilon: Single);
 
     { Load a dumb animation that consists of only one frame (so actually
@@ -199,20 +196,24 @@ type
       but still you want to treat it as TVRMLGLAnimation. }
     procedure LoadStatic(
       RootNode: TVRMLNode;
-      AOwnsRootNode: boolean;
-      AOptimization: TGLRendererOptimization);
+      AOwnsRootNode: boolean);
 
     { This loads TVRMLGLAnimation by loading it's parameters
       (models to use, times to use etc.) from given file.
       File format is described on
       [http://vrmlengine.sourceforge.net/kanim_format.php].
 
+      This changes Optimization, TimeLoop and such,
+      based on their values in Kanim file.
+
       You can change some of the loaded parameters by providing ChangeLoadParameters
       callback (you can provide @nil, if you don't want to change them).
       ChangeLoadParameters callback is the only way to change some animation rendering
-      parameters, like ScenesPerTime and AOptimization
-      --- after LoadFromFile finished, animation is fully loaded and
+      parameters, like ScenesPerTime --- after LoadFromFile finished,
+      animation is fully loaded and
       these parameters cannot be changed anymore.
+      (Optimization may be changed after loading, but still it's more efficient
+      to change it before loading.)
 
       If you need more control than simple ChangeLoadParameters callback,
       you should use something more flexible (and less comfortable to use)
@@ -434,6 +435,25 @@ type
     property BackgroundSkySphereRadius: Single
       read GetBackgroundSkySphereRadius
       write SetBackgroundSkySphereRadius;
+
+    { Optimization of the animation. See TVRMLGLScene.Optimization.
+
+      When animation is @link(Loaded), this is equal to
+      TVRMLGLScene.Optimization of all loaded scenes.
+      That is, all loaded scenes should have the same Optimization, always.
+
+      You can access this even when animation is not @link(Loaded).
+      Note that changing this when animation is @link(Loaded) may be
+      a costly operation, see TVRMLGLScene.Optimization. So don't do it
+      e.g. every frame. And when loading, it's best to set Optimization
+      as desired @italic(before) calling @link(Load) for fasters loading.
+
+      Note that this class should generally use roSeparateShapeStatesNoTransform
+      or roSeparateShapeStates for Optimization, to conserve memory
+      in some common cases. See docs at TGLRendererOptimization type. }
+    property Optimization: TGLRendererOptimization
+      read FOptimization write SetOptimization
+      default roSeparateShapeStatesNoTransform;
   end;
 
   TObjectsListItem_1 = TVRMLGLAnimation;
@@ -464,6 +484,7 @@ constructor TVRMLGLAnimation.Create(ACache: TVRMLOpenGLRendererContextCache);
 begin
   inherited Create;
   Renderer := TVRMLOpenGLRenderer.Create(TVRMLSceneRenderingAttributes, ACache);
+  FOptimization := roSeparateShapeStatesNoTransform;
 end;
 
 destructor TVRMLGLAnimation.Destroy;
@@ -478,7 +499,6 @@ procedure TVRMLGLAnimation.Load(
   AOwnsFirstRootNode: boolean;
   ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
-  AOptimization: TGLRendererOptimization;
   const EqualityEpsilon: Single);
 
   { This will check that Model1 and Model2 are exactly equal,
@@ -851,7 +871,7 @@ procedure TVRMLGLAnimation.Load(
     OwnsRootNode: boolean): TVRMLGLScene;
   begin
     Result := TVRMLGLScene.CreateProvidedRenderer(
-      Node, OwnsRootNode, AOptimization, Renderer);
+      Node, OwnsRootNode, Optimization, Renderer);
   end;
 
 var
@@ -924,8 +944,7 @@ end;
 
 procedure TVRMLGLAnimation.LoadStatic(
   RootNode: TVRMLNode;
-  AOwnsRootNode: boolean;
-  AOptimization: TGLRendererOptimization);
+  AOwnsRootNode: boolean);
 var
   RootNodes: TVRMLNodesList;
   ATimes: TDynSingleArray;
@@ -936,7 +955,7 @@ begin
     try
       RootNodes.Add(RootNode);
       ATimes.AppendItem(0);
-      Load(RootNodes, AOwnsRootNode, ATimes, 1, AOptimization, 0.0);
+      Load(RootNodes, AOwnsRootNode, ATimes, 1, 0.0);
     finally FreeAndNil(ATimes) end;
   finally FreeAndNil(RootNodes) end;
 end;
@@ -948,7 +967,6 @@ var
   ModelFileNames: TDynStringArray;
   Times: TDynSingleArray;
   ScenesPerTime: Cardinal;
-  AOptimization: TGLRendererOptimization;
   EqualityEpsilon: Single;
   ATimeLoop, ATimeBackwards: boolean;
 
@@ -964,10 +982,12 @@ begin
     Times := TDynSingleArray.Create;
 
     LoadFromFileToVars(FileName, ModelFileNames, Times,
-      ScenesPerTime, AOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
+      ScenesPerTime, FOptimization, EqualityEpsilon, ATimeLoop, ATimeBackwards);
 
     if Assigned(ChangeLoadParameters) then
-      ChangeLoadParameters(ScenesPerTime, AOptimization, EqualityEpsilon);
+      { Since the scene is not loaded now, FOptimization can just be changed
+        directly. So we simply pass it as "var" param to ChangeLoadParameters. }
+      ChangeLoadParameters(ScenesPerTime, FOptimization, EqualityEpsilon);
 
     Assert(ModelFileNames.Length = Times.Length);
     Assert(ModelFileNames.Length >= 1);
@@ -984,7 +1004,7 @@ begin
       raise;
     end;
 
-    Load(RootNodes, true, Times, ScenesPerTime, AOptimization, EqualityEpsilon);
+    Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
     TimeLoop := ATimeLoop;
     TimeBackwards := ATimeBackwards;
 
@@ -1273,6 +1293,26 @@ var
 begin
   for I := 0 to FScenes.High do
     FScenes[I].BackgroundSkySphereRadius := Value;
+end;
+
+procedure TVRMLGLAnimation.SetOptimization(const Value: TGLRendererOptimization);
+var
+  I: Integer;
+begin
+  { Although TVRMLGLScene.SetOptimization already compares new value
+    with previous (and ignores setting the same value), we also compare
+    it to avoid potentially length iteration (when FScenes.High,
+    merely iterating may take a (small) time). }
+
+  if Value <> FOptimization then
+  begin
+    FOptimization := Value;
+    if FScenes <> nil then
+    begin
+      for I := 0 to FScenes.High do
+        FScenes[I].Optimization := Value;
+    end;
+  end;
 end;
 
 end.

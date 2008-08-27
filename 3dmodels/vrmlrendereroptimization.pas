@@ -150,6 +150,10 @@ type
 { Parses and removes from Parameters[1]..Parameters.High
   parameter @--renderer-optimization, and sets RendererOptimization
   to the value specified by user.
+
+  Doesn't change RendererOptimization if command-line option not
+  specified.
+
   See view3dscene documentation
   [http://vrmlengine.sourceforge.net/view3dscene.php] for description. }
 procedure RendererOptimizationOptionsParse(
@@ -175,6 +179,12 @@ const
     'scene-as-a-whole',
     'separate-shape-states',
     'separate-shape-states-no-transform' );
+
+  RendererOptimizationNiceNames: array[TGLRendererOptimization] of string =
+  ( 'None',
+    'Scene As a Whole',
+    'Separate Shape-states',
+    'Separate Shape-states, No Transform' );
 
 implementation
 
