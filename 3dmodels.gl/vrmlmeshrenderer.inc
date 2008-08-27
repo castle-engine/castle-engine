@@ -1082,7 +1082,7 @@ begin
 
     case TexImplementation of
       tcTexIndexed:
-        glTexCoordv(TexCoord.Items.Items[TexCoordIndex.Items.Items[IndexNum]]);
+        glTexCoordv(TexCoord.ItemsSafe[TexCoordIndex.Items.Items[IndexNum]]);
       { tcNonGenerated: don't do anything, no texture coords. }
       { tcNonIndexed,
         tcCoordIndexed: glTexCoordPointer takes care of it, will be done when
