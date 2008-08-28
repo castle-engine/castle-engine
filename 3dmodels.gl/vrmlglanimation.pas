@@ -38,20 +38,23 @@ type
     out RootNode: TVRMLNode; out Time: Single) of object;
 
   { This is a "precalculated" animation of VRML model done by
-    interpolating between
-    any number of model states.
+    interpolating between any number of model states.
 
     After constructing an object of this class, you must actually
-    load it's animation by calling Load or LoadFromFile.
+    load it's animation by calling Load or LoadFromFile or LoadFromVRMLEvents
+    etc.
 
-    When loading you must provide one or more VRML models that
-    have exactly the same structure, but possibly different values for
-    various fields.
-    Each scene has an associated position in Time (Time is just a float number).
-    Scenes must be specified in increasing Time order.
-    For example, first object may be a small sphere with blue color, the other
-    object may be a larger sphere with white color, and the simplest
-    times are 0.0 for the 1st scene and 1.0 for the 2nd scene.
+    When loading you must provide one or more VRML models with
+    their associated times. Animation will show a transition from the first
+    model to the last. If models are "structurally equal" then the transition
+    between two successive models will be smooth, otherwise a sudden change
+    will be shown. "Structurally equal" means
+    the same nodes hierarchy, the same names of nodes,
+    the same values of all fields (with the exception of fields
+    that are floating-point based and so can be interpolated, for example
+    SFFloat, SFVec3f and equivalent MFXxx fields).
+    For multi-valued fields (MFXxx) that can be interpolated: note that values
+    of items may differ, but still the counts of items must be equal.
 
     This creates a list of @link(Scenes) such that
     @unorderedList(
@@ -62,11 +65,11 @@ type
         the two surrounding "predefined" by you scenes)
     )
 
-    In effect, the @link(Scenes) is a list of scenes that,
-    when rendered, will display an animation of the 1st object smoothly
-    changing (morphing) into the 2nd object, then to the 3rd and so on,
-    until the last object. In our example,
-    the blue sphere will grow larger and larger and will fade into the white
+    For example, first object may be a small sphere with blue color, the other
+    object may be a larger sphere with white color, and the simplest
+    times are 0.0 for the 1st scene and 1.0 for the 2nd scene.
+    The animation will show the blue sphere growing larger
+    and fading into the white
     color. Of course, any kind of models is allowed --- e.g. it can
     be a walking man at various stages, so in effect you get an animation
     of walking man.
@@ -76,27 +79,11 @@ type
     just a still result, i.e. resulting TVRMLGLAnimation will be just
     a wrapper around single TVRMLGLScene instance.
 
-    All given objects must be "structurally equal"
-    --- the same nodes hierarchy, the same names of nodes,
-    the same values of all fields (with the exception of fields
-    that are interpolated: SFColor, SFFloat, SFMatrix,
-    SFRotation, SFVec2f, SFVec3f and equivalent MFXxx fields).
-    For multi-fields (MFXxx) that can be interpolated: note that values
-    of items may differ, but still the counts of items must be equal.
-
-    Note that this is not the perfect way to design animations ---
-    a much better way would be to write the animation details in VRML
-    file, use a modeller that allows you to design animations and store them
-    in such way in VRML file, and read animations from this VRML file.
-    But this means that many things must be done that currently are not
-    ready --- VRML 2.0 (and X3D) support must be done (they allow to write
-    data about how model should be animated), and Blender exporter to VRML
-    must store Blender animation data in VRML.
-
-    Until the things mentioned above are done, this class allows you
-    to create animations by simply making two or more VRML scenes
-    with various state of the same model. In many cases this should be
-    acceptable solution. }
+    For more information see the "VRML engine documentation",
+    [http://vrmlengine.sourceforge.net/vrml_engine_doc/].
+    Specifically the section
+    "Non-interactive precalculated animation: TVRMLGLAnimation",
+    [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
   TVRMLGLAnimation = class(TVRMLAnimation)
   private
     FScenes: TVRMLGLScenesList;
@@ -172,8 +159,7 @@ type
       Animation is loaded with current @link(Optimization) value.
 
       @param(RootNodes
-        Models describing the "predefined" frames
-        of animation.
+        Models describing the "predefined" frames of animation.
 
         For all nodes except the first: They are @italic(always)
         owned by this class --- that's needed,
