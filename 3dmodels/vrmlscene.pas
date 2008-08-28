@@ -351,6 +351,7 @@ type
     procedure Collect_TimeSensor(Node: TVRMLNode);
     procedure Collect_MovieTexture(Node: TVRMLNode);
     procedure Collect_ChangedFields(Node: TVRMLNode);
+    procedure UnCollect_ChangedFields(Node: TVRMLNode);
 
     procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TKamTime);
@@ -798,26 +799,50 @@ type
       as expected from a VRML browser. Events will be send and received
       through routes, time dependent nodes (X3DTimeDependentNode,
       like TimeSensor) will be activated and updated from WorldTime time
-      property (TODO), KeyDown, KeyUp and other methods will activate
+      property, KeyDown, KeyUp and other methods will activate
       key/mouse sensor nodes, in the future scripts
       will also work (TODO), etc.
 
       Appropriate ChangedXxx, like ChangedAll, will be automatically called
-      when necessary. TODO: some notification is needed when ChangedAll
-      is called, or other ChangedXxx. E.g. view3dscene needs to know
-      about such things.
+      when necessary.
 
       In other words, this makes the scene fully animated and interacting
       with the user (provided you will call KeyDown etc. methods when
       necessary).
 
-      If @false, this all doesn't work, which makes the scene mostly
-      static. TODO: how MovieTexture will work? Right now, it works,
-      but it seems that it shouldn't without ProcessEvents. Unless
-      we'll make an exception.
-    }
+      If @false, this all doesn't work, which makes the scene static. }
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
+
+    { Internally unregister a node from our events processing.
+
+      @italic(You almost never need to call this method) --- this
+      is done automatically for you when ProcessEvents is changed
+      between @true and @false, including when TVRMLScene is destroyed.
+      However, if you process RootNode graph
+      and extract some node from it (that is, delete node from our
+      RootNode graph, but instead of freeing it you insert it
+      into some other VRML graph) you must call it to manually
+      "untie" this node (and all it's children) from this TVRMLScene instance.
+
+      Reason: when ProcessEvents is activated,
+      we register internal callback (EventChanged) to react to event
+      changes by automatically calling appropriate ChangedXxx method.
+      When ProcessEvents is deactivated (including when this TVRMLScene
+      instance is released) we remove this callback. If you add new node
+      to VRML graph, we make sure (in ChangedAll) that this callback
+      is registered for all new nodes. Buf if you deleted a node
+      from our graph, we have no chance to remove this callback...
+      You have to call UnregisterProcessEvents then manually,
+      if you don't want the Node to be "tied" to our TVRMLScene.
+
+      In really really corner cases, when you're not sure whether you
+      this Node with all it's children, you should make sure to call
+      this before calling ChangedAll. This way, this will unregister
+      this Node and all it's children from our event processing,
+      and ChangedAll will re-register again these children which are
+      detected to still be part of our graph. }
+    procedure UnregisterProcessEvents(Node: TVRMLNode);
 
     procedure KeyDown(Key: TKey; C: char; KeysDown: PKeysBooleans);
     procedure KeyUp(Key: TKey);
@@ -900,17 +925,6 @@ uses VRMLCameraUtils;
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
 
-{ TODO - I tu dochodzimy do mechanizmu automatycznego wywolywania odpowiedniego
-  Changed. Byloby to bardzo wygodne, prawda ? Obecnie wszystkie node'y
-  maja juz liste swoich Parents; na pewno bedziemy musieli to zrobic
-  takze dla wszystkich TVRMLField. I jeszcze trzeba zrobic mechanizm zeby
-  node mogl przeslac informacje wyzej, do TVRMLShapeState lub
-  TVRMLScene. Sporo tu do zrobienia - jak tylko mi sie to
-  skrystalizuje zrobie to.
-
-  This will be essentially done when events/routes mechanism will be done.
-}
-
 { TVRMLScene ----------------------------------------------------------- }
 
 constructor TVRMLScene.Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
@@ -929,7 +943,8 @@ end;
 
 destructor TVRMLScene.Destroy;
 begin
-  { This also frees related lists, like KeySensorNodes }
+  { This also frees related lists, like KeySensorNodes,
+    and does UnregisterProcessEvents(RootNode). }
   ProcessEvents := false;
 
  FreeAndNil(FTrianglesList[false]);
@@ -1969,23 +1984,6 @@ begin
     if Node.Fields[I].Exposed then
     begin
       Node.Fields[I].ExposedEvents[false].OnReceive.AddIfNotExists(@EventChanged);
-
-      { TODO: this is not nice, as we never remove EventChanged from
-        events OnReceive list. We should remove then when ProcessEvents
-        becomes @false (including on destroy of TVRMLScene).
-        Also when RootNode changes, we shoudn't be tied to old events...
-
-        AddIfNotExists at least prevents us from registering EventChanged
-        multiple times (when ChangedAll, and so CollectNodesForEvents,
-        is called multiple times).
-
-        This will be a problem if a VRML scene will be heavily processed
-        by our own routines (including destroying of RootNode or
-        other nodes), and at the same time ProcessEvents = @true.
-        This will not work nicely, document?
-
-        The same problem occurs with Node.Event[I].OnReceive.AddIfNotExists
-        lower. }
     end;
 
   if Node is TNodeComposedShader then
@@ -1996,6 +1994,25 @@ begin
     for I := 0 to Node.Events.Count - 1 do
       if Node.Events[I].InEvent then
         Node.Events[I].OnReceive.AddIfNotExists(@EventChanged);
+  end;
+end;
+
+procedure TVRMLScene.UnCollect_ChangedFields(Node: TVRMLNode);
+var
+  I: Integer;
+begin
+  { Remove EventChanged callbacks from our items. }
+  for I := 0 to Node.Fields.Count - 1 do
+    if Node.Fields[I].Exposed then
+    begin
+      Node.Fields[I].ExposedEvents[false].OnReceive.DeleteFirstEqual(@EventChanged);
+    end;
+
+  if Node is TNodeComposedShader then
+  begin
+    for I := 0 to Node.Events.Count - 1 do
+      if Node.Events[I].InEvent then
+        Node.Events[I].OnReceive.DeleteFirstEqual(@EventChanged);
   end;
 end;
 
@@ -2013,6 +2030,11 @@ begin
   RootNode.EnumerateNodes(TVRMLNode, @Collect_ChangedFields, false);
 end;
 
+procedure TVRMLScene.UnregisterProcessEvents(Node: TVRMLNode);
+begin
+  Node.EnumerateNodes(TVRMLNode, @UnCollect_ChangedFields, false);
+end;
+
 procedure TVRMLScene.SetProcessEvents(const Value: boolean);
 begin
   if FProcessEvents <> Value then
@@ -2028,6 +2050,7 @@ begin
       FreeAndNil(KeySensorNodes);
       FreeAndNil(TimeSensorNodes);
       FreeAndNil(MovieTextureNodes);
+      UnregisterProcessEvents(RootNode);
     end;
     FProcessEvents := Value;
   end;
@@ -2165,9 +2188,9 @@ end;
 
 procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
 begin
-  InternalSetWorldTime(NewValue, 0);
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetRoutesLastEventTime, false);
+  InternalSetWorldTime(NewValue, 0);
 end;
 
 initialization
