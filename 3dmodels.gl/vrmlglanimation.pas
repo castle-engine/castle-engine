@@ -29,10 +29,6 @@ uses SysUtils, VRMLNodes, VRMLOpenGLRenderer, VRMLScene, VRMLGLScene,
 {$define read_interface}
 
 type
-  EModelsStructureDifferent = class(Exception)
-    constructor CreateFmt(const S: string; const Args: array of const);
-  end;
-
   TAnimationChangeLoadParametersFunc = procedure (
     var ScenesPerTime: Cardinal;
     var Optimization: TGLRendererOptimization;
@@ -128,6 +124,18 @@ type
     Load_Times: TDynSingleArray;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TVRMLNode; out Time: Single);
+
+    { Helpers for LoadFromVRMLEvents implementation. }
+    LoadFromVRMLEvents_TimeBegin: Single;
+    LoadFromVRMLEvents_Scene: TVRMLScene;
+    LoadFromVRMLEvents_ScenesPerTime: Cardinal;
+    procedure LoadFromVRMLEvents_GetRootNodeWithTime(const Index: Cardinal;
+      out RootNode: TVRMLNode; out Time: Single);
+    procedure LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
+      const Index: Cardinal;
+      out RootNode: TVRMLNode; out Time: Single);
+
+    procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
     { Internal version of @link(Load) routines, feasible to load
       from both ready RootNodes array and to automatically generate RootNodes
@@ -210,11 +218,6 @@ type
         adviced to use here something > 0. Otherwise we could waste
         display list memory (and loading time) for many frames of the
         same node that are in fact equal.)
-
-      @raises(EModelsStructureDifferent
-        When models in RootNode1 and RootNode2 are not structurally equal
-        (see TVRMLGLAnimation comments for the precise meaning of
-        "structurally equal" models).)
     }
     procedure Load(
       RootNodes: TVRMLNodesList;
@@ -222,6 +225,30 @@ type
       ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
+
+    { Load precalculated animation by playing a single VRML file with
+      events (interpolators, TimeSensor and such working).
+      Conceptually, this "records" interactive animation stored in VRML file
+      into TVRMLGLAnimation precalculated animation.
+
+      ATimeBegin, ATimeEnd tell what time slice should be recorded.
+      They will also set @link(TimeBegin) and @link(TimeEnd) properties.
+
+      @param(ScenesPerTime
+        tells with what density should the animation be recorded.
+        See @link(Load) for ScenesPerTime, EqualityEpsilon precise documentation.
+        Note that special value ScenesPerTime = 0 is interpreted here as
+        "record only one, initial frame".)
+
+      @param(ProgressTitle When <> '' we will use Progress.Init, Step, Fini
+        to display nice progress of operation.) }
+    procedure LoadFromVRMLEvents(
+      RootNode: TVRMLNode;
+      AOwnsRootNode: boolean;
+      const ATimeBegin, ATimeEnd: Single;
+      ScenesPerTime: Cardinal;
+      const EqualityEpsilon: Single;
+      const ProgressTitle: string);
 
     { Load a dumb animation that consists of only one frame (so actually
       there's  no animation, everything is static).
@@ -277,8 +304,12 @@ type
 
     property Loaded: boolean read FLoaded;
 
+    { Is the RootNode in first scene owned by this TVRMLGLAnimation instance?
+      If yes, it will be freed at closing the animation.
+      Otherwise, you are responsible for freeing it yourself
+      (but you cannot do this while animation is loaded, anyway). }
     property OwnsFirstRootNode: boolean
-      read FOwnsFirstRootNode;
+      read FOwnsFirstRootNode write SetOwnsFirstRootNode;
 
     { You can read anything from Scenes below. But you cannot set some
       things: don't set their scenes Attributes properties.
@@ -513,6 +544,11 @@ uses Math, VectorMath, VRMLFields,
 {$I objectslist_1.inc}
 
 { EModelsStructureDifferent --------------------------------------------------- }
+
+type
+  EModelsStructureDifferent = class(Exception)
+    constructor CreateFmt(const S: string; const Args: array of const);
+  end;
 
 constructor EModelsStructureDifferent.CreateFmt(const S: string;
   const Args: array of const);
@@ -1037,6 +1073,76 @@ begin
     AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
+procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
+  const Index: Cardinal;
+  out RootNode: TVRMLNode; out Time: Single);
+begin
+  Time := LoadFromVRMLEvents_TimeBegin;
+  if LoadFromVRMLEvents_ScenesPerTime <> 0 then
+    Time += Index / LoadFromVRMLEvents_ScenesPerTime;
+
+  if Index = 0 then
+    LoadFromVRMLEvents_Scene.ResetWorldTime(Time) else
+    LoadFromVRMLEvents_Scene.SetWorldTime(Time);
+
+  RootNode := VRMLNodeDeepCopy(LoadFromVRMLEvents_Scene.RootNode);
+end;
+
+procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
+  const Index: Cardinal;
+  out RootNode: TVRMLNode; out Time: Single);
+begin
+  LoadFromVRMLEvents_GetRootNodeWithTime(Index, RootNode, Time);
+  Progress.Step;
+end;
+
+procedure TVRMLGLAnimation.LoadFromVRMLEvents(
+  RootNode: TVRMLNode;
+  AOwnsRootNode: boolean;
+  const ATimeBegin, ATimeEnd: Single;
+  ScenesPerTime: Cardinal;
+  const EqualityEpsilon: Single;
+  const ProgressTitle: string);
+var
+  Count: Cardinal;
+begin
+  LoadFromVRMLEvents_ScenesPerTime := ScenesPerTime;
+  LoadFromVRMLEvents_TimeBegin := ATimeBegin;
+  LoadFromVRMLEvents_Scene := TVRMLScene.Create(RootNode, AOwnsRootNode);
+  try
+    Count := Max(1, Round((ATimeEnd - ATimeBegin) * ScenesPerTime));
+
+    LoadFromVRMLEvents_Scene.ProcessEvents := true;
+
+    if ProgressTitle <> '' then
+    begin
+      Progress.Init(Count, ProgressTitle);
+      try
+        LoadCore(@LoadFromVRMLEvents_GetRootNodeWithTime_Progress, Count,
+          true, 0, EqualityEpsilon);
+      finally
+        Progress.Fini;
+      end;
+    end else
+    begin
+      LoadCore(@LoadFromVRMLEvents_GetRootNodeWithTime, Count,
+        true, 0, EqualityEpsilon);
+    end;
+
+    { Although LoadCore sets FTimeEnd already, it may be a little
+      smaller than ATimeEnd if ScenesPerTime is very small.
+      Last scene generated by LoadFromVRMLEvents_GetRootNodeWithTime
+      will not necessarily "hit" exactly TimeEnd.
+      In particular, when ScenesPerTime = 0, LoadCore will just set
+      FTimeEnd to TimeBegin...
+
+      Since we guarantee in the interface that FTimeEnd will be exactly
+      equal to ATimeEnd after LoadFromVRMLEvents, we fix it here. }
+
+    FTimeEnd := ATimeEnd;
+  finally FreeAndNil(LoadFromVRMLEvents_Scene) end;
+end;
+
 procedure TVRMLGLAnimation.LoadStatic(
   RootNode: TVRMLNode;
   AOwnsRootNode: boolean);
@@ -1121,16 +1227,22 @@ begin
 
   if FScenes <> nil then
   begin
-    { Now we must note that we may have a sequences of the same scenes
-      on FScenes. So we must deallocate smartly, to avoid deallocating
-      the same pointer more than once. }
-    for I := 0 to FScenes.High - 1 do
+    { Although FScenes.Count should always be > 0 when FScenes allocated,
+      this is a destructor so we must handle various abnormal situations
+      if we exit with exception. }
+    if FScenes.Count <> 0 then
     begin
-      if FScenes[I] = FScenes[I+1] then
-        FScenes[I] := nil { set to nil, just for safety } else
-        FScenes.FreeAndNil(I);
+      { Now we must note that we may have a sequences of the same scenes
+        on FScenes. So we must deallocate smartly, to avoid deallocating
+        the same pointer more than once. }
+      for I := 0 to FScenes.High - 1 do
+      begin
+        if FScenes[I] = FScenes[I+1] then
+          FScenes[I] := nil { set to nil, just for safety } else
+          FScenes.FreeAndNil(I);
+      end;
+      FScenes.FreeAndNil(FScenes.High);
     end;
-    FScenes.FreeAndNil(FScenes.High);
 
     FreeAndNil(FScenes);
   end;
@@ -1406,6 +1518,32 @@ begin
     begin
       for I := 0 to FScenes.High do
         FScenes[I].Optimization := Value;
+    end;
+  end;
+end;
+
+procedure TVRMLGLAnimation.SetOwnsFirstRootNode(const Value: boolean);
+var
+  I: Integer;
+begin
+  if Value <> FOwnsFirstRootNode then
+  begin
+    FOwnsFirstRootNode := Value;
+    if FScenes <> nil then
+    begin
+      Assert(FScenes.Count > 0, 'When the Scenes <> nil, anim is loaded so should always have at least one scene');
+
+      { OwnsFirstRootNode corresponds to FScenes[0].OwnsRootNode.
+        But note that it's allowed to have duplicates of scenes
+        in one consecutive range of FScenes. So we have to iterate over
+        the first FScenes (while they are equal to FScenes[0]). }
+
+      for I := 0 to FScenes.High do
+      begin
+        if FScenes[I] = FScenes[0] then
+          FScenes[I].OwnsRootNode := Value else
+          Break;
+      end;
     end;
   end;
 end;

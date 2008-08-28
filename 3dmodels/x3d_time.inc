@@ -249,24 +249,21 @@ procedure TTimeDependentNodeHandler.SetWorldTime(
   const OldValue, NewValue, TimeIncrease: TKamTime;
   var SomethingChanged: boolean);
 
+var
+  NewIsActive: boolean;
+  NewIsPaused: boolean;
+  NewElapsedTime: TKamTime;
+
   { $define LOG_TIME_DEPENDENT_NODES}
 
-  { Increase ElapsedTime, taking care of
+  { Increase NewElapsedTime, taking care of
     CycleInterval and looping.
-    StopOnNonLoopedEnd says what to do if ElapsedTime passed
+    StopOnNonLoopedEnd says what to do if NewElapsedTime passed
     CycleInterval and not looping. }
   procedure IncreaseElapsedTime(const Increase: TKamTime;
     StopOnNonLoopedEnd: boolean);
-  var
-    NewElapsedTime: TKamTime;
   begin
-    { Note that each set of ElapsedTime may generate events.
-      So we cannot carelessly set ElapsedTime now,
-      and then correct it if > CycleInterval, as this would
-      cause double event at the same timestamp. Instead, we have to
-      save it in NewElapsedTime variable. }
-
-    NewElapsedTime := ElapsedTime + Increase;
+    NewElapsedTime := NewElapsedTime + Increase;
 
     if NewElapsedTime > CycleInterval then
     begin
@@ -274,24 +271,21 @@ procedure TTimeDependentNodeHandler.SetWorldTime(
       begin
         if FdLoop.Value then
         begin
-          ElapsedTime :=
-            FloatModulo(NewElapsedTime, CycleInterval);
+          NewElapsedTime := FloatModulo(NewElapsedTime, CycleInterval);
         end else
         begin
-          ElapsedTime := NewElapsedTime;
           if StopOnNonLoopedEnd then
-            IsActive := false;
+            NewIsActive := false;
         end;
       end else
       begin
         { for cycleInterval = 0 this always remains 0 }
-        ElapsedTime := 0;
+        NewElapsedTime := 0;
 
         if (not FdLoop.Value) and StopOnNonLoopedEnd then
-          IsActive := false;
+          NewIsActive := false;
       end;
-    end else
-      ElapsedTime := NewElapsedTime;
+    end;
   end;
 
 begin
@@ -306,16 +300,32 @@ begin
 
   CurrentTime := OldValue;
 
+  { Note that each set of IsActive, IsPaused, ElapsedTime may generate events.
+    So we cannot carelessly set them many times in this method,
+    as double events are bad (besides possible unneeded overhead with
+    propagating them, route ignore events at the same timestamp,
+    since they may indicate loops in routes).
+
+    Solution: below we will operate on local copies of these variables,
+    like NewIsActive, NewIsPaused etc.
+    Only at the end of this method we will actually set the properties,
+    causing events (if their values changed). }
+
   { For ResetWorldTime, set time-dependent node properties to default
     (like after TNodeTimeHandler creation) at the beginning. }
   if TimeIncrease = 0 then
   begin
-    IsActive := false;
-    IsPaused := false;
-    ElapsedTime := 0;
+    NewIsActive := false;
+    NewIsPaused := false;
+    NewElapsedTime := 0;
+  end else
+  begin
+    NewIsActive := IsActive;
+    NewIsPaused := IsPaused;
+    NewElapsedTime := ElapsedTime;
   end;
 
-  if not IsActive then
+  if not NewIsActive then
   begin
     if (NewValue >= FdStartTime.Value) and
        ( (NewValue < FdStopTime.Value) or
@@ -327,21 +337,21 @@ begin
              CycleInterval) and
              (not FdLoop.Value) ) then
     begin
-      IsActive := true;
-      IsPaused := false;
-      ElapsedTime := 0;
+      NewIsActive := true;
+      NewIsPaused := false;
+      NewElapsedTime := 0;
       { Do not advance by TimeIncrease (time from last WorldTime),
         advance only by the time passed since startTime. }
       IncreaseElapsedTime(NewValue - FdStartTime.Value, true);
       SomethingChanged := true;
     end;
   end else
-  if IsPaused then
+  if NewIsPaused then
   begin
     if (NewValue >= FdResumeTime.Value) and
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
-      IsPaused := false;
+      NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
       IncreaseElapsedTime(NewValue - FdResumeTime.Value, true);
       SomethingChanged := true;
@@ -354,7 +364,7 @@ begin
        { stopTime is ignored if it's <= startTime }
        (FdStopTime.Value > FdStartTime.Value) then
     begin
-      IsActive := false;
+      NewIsActive := false;
       { advance only to the stopTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease -
@@ -363,7 +373,7 @@ begin
     if (NewValue >= FdPauseTime.Value) and
        (FdPauseTime.Value > FdResumeTime.Value) then
     begin
-      IsPaused := true;
+      NewIsPaused := true;
       { advance only to the pauseTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease -
@@ -372,10 +382,46 @@ begin
     begin
       { active and not paused movie }
       if TimeIncrease = 0 then
-        ElapsedTime := 0 else
+        NewElapsedTime := 0 else
         IncreaseElapsedTime(TimeIncrease, true);
     end;
   end;
+
+  { now set actual IsActive, IsPaused, ElapsedTime properties from
+    their NewXxx counterparts. We take care to set them in proper
+    order, to send events in proper order:
+    if you just activated the movie, then isActive should be sent first,
+    before elapsedTime.
+    If the movie was deactivated, then last elapsedTime should be sent last. }
+  if NewIsActive then
+  begin
+    IsActive := NewIsActive;
+    if not NewIsPaused then
+    begin
+      IsPaused := NewIsPaused;
+      ElapsedTime := NewElapsedTime;
+    end else
+    begin
+      ElapsedTime := NewElapsedTime;
+      IsPaused := NewIsPaused;
+    end;
+  end else
+  begin
+    if not NewIsPaused then
+    begin
+      IsPaused := NewIsPaused;
+      ElapsedTime := NewElapsedTime;
+    end else
+    begin
+      ElapsedTime := NewElapsedTime;
+      IsPaused := NewIsPaused;
+    end;
+    IsActive := NewIsActive;
+  end;
+
+  Assert(IsActive = NewIsActive);
+  Assert(IsPaused = NewIsPaused);
+  Assert(ElapsedTime = NewElapsedTime);
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
