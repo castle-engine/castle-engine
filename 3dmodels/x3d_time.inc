@@ -298,7 +298,7 @@ begin
         ]));
   {$endif}
 
-  CurrentTime := OldValue;
+  CurrentTime := NewValue;
 
   { Note that each set of IsActive, IsPaused, ElapsedTime may generate events.
     So we cannot carelessly set them many times in this method,
