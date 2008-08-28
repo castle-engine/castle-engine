@@ -6,7 +6,7 @@ interface
 uses KambiUtils, DOM, VRMLRendererOptimization;
 
 type
-  { The non-OpenGL basis of our animation,
+  { The non-OpenGL basis of our precalculated animation,
     see TVRMLGLAnimation for a descendant of this that you
     most probably want to use. }
   TVRMLAnimation = class
