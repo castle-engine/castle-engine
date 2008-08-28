@@ -38,7 +38,8 @@ type
     var Optimization: TGLRendererOptimization;
     var EqualityEpsilon: Single) of object;
 
-  { This is an animation of VRML model done by interpolating between
+  { This is a "precalculated" animation of VRML model done by
+    interpolating between
     any number of model states.
 
     After constructing an object of this class, you must actually
@@ -465,7 +466,7 @@ type
 implementation
 
 uses Math, VectorMath, VRMLFields,
-  ProgressUnit, Object3dAsVRML;
+  ProgressUnit, Object3dAsVRML, KambiLog;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -876,7 +877,7 @@ procedure TVRMLGLAnimation.Load(
 
 var
   I: Integer;
-  RootNodesEqual: boolean;
+  StructurallyEqual, RootNodesEqual: boolean;
   LastSceneIndex: Integer;
   LastSceneRootNode: TVRMLNode;
   SceneIndex: Integer;
@@ -886,9 +887,6 @@ begin
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
   Assert(RootNodes.Count = ATimes.Count);
-
-  for I := 1 to RootNodes.High do
-    CheckVRMLModelsStructurallyEqual(RootNodes[0], RootNodes[I]);
 
   FScenes := TVRMLGLScenesList.Create;
 
@@ -910,28 +908,55 @@ begin
   begin
     { Now add RootNodes[I] }
 
+    StructurallyEqual := false;
+
+    try
+      CheckVRMLModelsStructurallyEqual(RootNodes[I - 1], RootNodes[I]);
+      StructurallyEqual := true;
+    except
+      on E: EModelsStructureDifferent do
+      begin
+        if Log then
+          WritelnLog('VRMLGLAnimation', Format(
+            'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
+            [I - 1, I]) + E.Message);
+      end;
+    end;
+
     FScenes.Count := FScenes.Count +
       Max(1, Round((ATimes[I] - ATimes[I-1]) * ScenesPerTime));
 
-    { Try to merge it with LastSceneRootNode.
-      Then initialize FScenes[LastSceneIndex + 1 to FScenes.High]. }
-    RootNodesEqual := VRMLModelsMerge(RootNodes[I], LastSceneRootNode);
-    if RootNodesEqual then
+    if StructurallyEqual then
     begin
-      { In this case I don't waste memory, and I'm simply reusing
-        LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
-        This way I have a series of the same instances of TVRMLGLScene
-        along the way. When freeing FScenes, we will be smart and
-        avoid deallocating the same pointer twice. }
-      RootNodes.FreeAndNil(I);
-      for SceneIndex := LastSceneIndex + 1 to FScenes.High do
-        FScenes[SceneIndex] := FScenes[LastSceneIndex];
+      { Try to merge it with LastSceneRootNode.
+        Then initialize FScenes[LastSceneIndex + 1 to FScenes.High]. }
+      RootNodesEqual := VRMLModelsMerge(RootNodes[I], LastSceneRootNode);
+      if RootNodesEqual then
+      begin
+        { In this case I don't waste memory, and I'm simply reusing
+          LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
+          This way I have a series of the same instances of TVRMLGLScene
+          along the way. When freeing FScenes, we will be smart and
+          avoid deallocating the same pointer twice. }
+        RootNodes.FreeAndNil(I);
+        for SceneIndex := LastSceneIndex + 1 to FScenes.High do
+          FScenes[SceneIndex] := FScenes[LastSceneIndex];
+      end else
+      begin
+        for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
+          FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
+            MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
+            LastSceneRootNode, RootNodes[I]), true);
+        FScenes.Last := CreateOneScene(RootNodes[I], true);
+        LastSceneRootNode := RootNodes[I];
+      end;
     end else
     begin
+      { We cannot interpolate between last and new node.
+        So just duplicate last node until FScenes.High, and at FScenes.High
+        insert new node. }
       for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
-        FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
-          MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
-          LastSceneRootNode, RootNodes[I]), true);
+        FScenes[SceneIndex] := FScenes[LastSceneIndex];
       FScenes.Last := CreateOneScene(RootNodes[I], true);
       LastSceneRootNode := RootNodes[I];
     end;
