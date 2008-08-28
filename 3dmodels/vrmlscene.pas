@@ -1189,6 +1189,16 @@ begin
       if ShapeStates[I].State.ParentShape.Material = Node then
         ChangedShapeStateFields(I);
   end else
+  if Node is TNodeX3DTextureCoordinateNode then
+  begin
+    { VRML 2.0 TextureCoordinate affects only shapes where it's
+      placed inside texCoord field. }
+    for I := 0 to ShapeStates.Count - 1 do
+      if (ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode) and
+         (TNodeX3DComposedGeometryNode(ShapeStates[I].GeometryNode).
+           FdTexCoord.Value = Node) then
+        ChangedShapeStateFields(I);
+  end else
   if Node is TVRMLLightNode then
   begin
     { node jest jednym z node'ow Active*. Wiec wplynal tylko na ShapeStates
