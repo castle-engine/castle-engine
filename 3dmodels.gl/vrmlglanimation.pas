@@ -38,6 +38,9 @@ type
     var Optimization: TGLRendererOptimization;
     var EqualityEpsilon: Single) of object;
 
+  TGetRootNodeWithTime = procedure (const Index: Cardinal;
+    out RootNode: TVRMLNode; out Time: Single) of object;
+
   { This is a "precalculated" animation of VRML model done by
     interpolating between
     any number of model states.
@@ -119,6 +122,34 @@ type
 
     FOptimization: TGLRendererOptimization;
     procedure SetOptimization(const Value: TGLRendererOptimization);
+
+    { Helpers for Load implementation. }
+    Load_RootNodes: TVRMLNodesList;
+    Load_Times: TDynSingleArray;
+    procedure Load_GetRootNodeWithTime(const Index: Cardinal;
+      out RootNode: TVRMLNode; out Time: Single);
+  protected
+    { Internal version of @link(Load) routines, feasible to load
+      from both ready RootNodes array and to automatically generate RootNodes
+      on the fly.
+
+      GetRootNodeWithTime will be called with indexes from 0 to RootNodesCount - 1.
+      It's guaranteed that it will be called in this order (from 0 upwards to
+      RootNodesCount - 1) and will be called exactly once for each index.
+      So it's safe to e.g. create RootNode with some costly operation there.
+
+      Note that RootNode passed to GetRootNodeWithTime becomes owned by
+      this class. Well, you can get control over only the first one,
+      by AOwnsFirstRootNode, but you cannot free it anyway while this is loaded.
+
+      See @link(Load) for more information, including the meaning of
+      EqualityEpsilon. }
+    procedure LoadCore(
+      GetRootNodeWithTime: TGetRootNodeWithTime;
+      RootNodesCount: Cardinal;
+      AOwnsFirstRootNode: boolean;
+      ScenesPerTime: Cardinal;
+      const EqualityEpsilon: Single);
   public
     { Constructor. }
     constructor Create(ACache: TVRMLOpenGLRendererContextCache = nil);
@@ -158,7 +189,17 @@ type
         Note that if we will find that some nodes along the way are
         exactly equal, we may drop scenes count between --- because if they are
         both equal, we can simply render the same scene for some period
-        of time.)
+        of time. This is an optimization, and you shouldn't notice it at all,
+        since rendeting will be the same (but less memory-consuming).
+
+        Special value ScenesPerTime = 0 means that you want to have only the
+        RootNodes you explicitly passed in the scene, not more.
+        No more intermediate scenes will ever be created.
+        This creates a trivial animation that suddenly jumps from
+        one RootNode to the next at specified times. It may be useful if you
+        already have generated a lot of RootNodes, densely distributed
+        over time, and you don't need TVRMLGLAnimation to insert any more
+        scenes.)
 
       @param(EqualityEpsilon
         This will be used for comparing fields, to decide if two fields
@@ -495,10 +536,10 @@ begin
   inherited;
 end;
 
-procedure TVRMLGLAnimation.Load(
-  RootNodes: TVRMLNodesList;
+procedure TVRMLGLAnimation.LoadCore(
+  GetRootNodeWithTime: TGetRootNodeWithTime;
+  RootNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
-  ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
   const EqualityEpsilon: Single);
 
@@ -879,19 +920,15 @@ var
   I: Integer;
   StructurallyEqual, RootNodesEqual: boolean;
   LastSceneIndex: Integer;
-  LastSceneRootNode: TVRMLNode;
+  LastSceneRootNode, NewRootNode: TVRMLNode;
+  LastTime, NewTime: Single;
   SceneIndex: Integer;
 begin
   Close;
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
-  Assert(RootNodes.Count = ATimes.Count);
-
   FScenes := TVRMLGLScenesList.Create;
-
-  FTimeBegin := ATimes[0];
-  FTimeEnd := ATimes[ATimes.High];
 
   FTimeLoop := true;
   FTimeBackwards := false;
@@ -899,19 +936,26 @@ begin
   { calculate FScenes contents now }
 
   { RootNodes[0] goes to FScenes[0], that's easy }
-  FScenes.Count := 1;
-  FScenes[0] := CreateOneScene(RootNodes[0], OwnsFirstRootNode);
-  LastSceneIndex := 0;
-  LastSceneRootNode := RootNodes[0];
+  GetRootNodeWithTime(0, NewRootNode, NewTime);
 
-  for I := 1 to RootNodes.High do
+  FScenes.Count := 1;
+  FScenes[0] := CreateOneScene(NewRootNode, OwnsFirstRootNode);
+  LastSceneIndex := 0;
+  LastTime := NewTime;
+  LastSceneRootNode := NewRootNode;
+
+  { calculate TimeBegin at this point }
+  FTimeBegin := NewTime;
+
+  for I := 1 to RootNodesCount - 1 do
   begin
     { Now add RootNodes[I] }
+    GetRootNodeWithTime(I, NewRootNode, NewTime);
 
     StructurallyEqual := false;
 
     try
-      CheckVRMLModelsStructurallyEqual(RootNodes[I - 1], RootNodes[I]);
+      CheckVRMLModelsStructurallyEqual(LastSceneRootNode, NewRootNode);
       StructurallyEqual := true;
     except
       on E: EModelsStructureDifferent do
@@ -924,13 +968,13 @@ begin
     end;
 
     FScenes.Count := FScenes.Count +
-      Max(1, Round((ATimes[I] - ATimes[I-1]) * ScenesPerTime));
+      Max(1, Round((NewTime - LastTime) * ScenesPerTime));
 
     if StructurallyEqual then
     begin
       { Try to merge it with LastSceneRootNode.
         Then initialize FScenes[LastSceneIndex + 1 to FScenes.High]. }
-      RootNodesEqual := VRMLModelsMerge(RootNodes[I], LastSceneRootNode);
+      RootNodesEqual := VRMLModelsMerge(NewRootNode, LastSceneRootNode);
       if RootNodesEqual then
       begin
         { In this case I don't waste memory, and I'm simply reusing
@@ -938,7 +982,7 @@ begin
           This way I have a series of the same instances of TVRMLGLScene
           along the way. When freeing FScenes, we will be smart and
           avoid deallocating the same pointer twice. }
-        RootNodes.FreeAndNil(I);
+        FreeAndNil(NewRootNode);
         for SceneIndex := LastSceneIndex + 1 to FScenes.High do
           FScenes[SceneIndex] := FScenes[LastSceneIndex];
       end else
@@ -946,25 +990,51 @@ begin
         for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
           FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
             MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
-            LastSceneRootNode, RootNodes[I]), true);
-        FScenes.Last := CreateOneScene(RootNodes[I], true);
-        LastSceneRootNode := RootNodes[I];
+            LastSceneRootNode, NewRootNode), true);
+        FScenes.Last := CreateOneScene(NewRootNode, true);
+        LastSceneRootNode := NewRootNode;
       end;
     end else
     begin
       { We cannot interpolate between last and new node.
-        So just duplicate last node until FScenes.High, and at FScenes.High
-        insert new node. }
+        So just duplicate last node until FScenes.High - 1,
+        and at FScenes.High insert new node. }
       for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
         FScenes[SceneIndex] := FScenes[LastSceneIndex];
-      FScenes.Last := CreateOneScene(RootNodes[I], true);
-      LastSceneRootNode := RootNodes[I];
+      FScenes.Last := CreateOneScene(NewRootNode, true);
+      LastSceneRootNode := NewRootNode;
     end;
 
+    LastTime := NewTime;
     LastSceneIndex := FScenes.High;
   end;
 
+  { calculate TimeEnd at this point }
+  FTimeEnd := NewTime;
+
   FLoaded := true;
+end;
+
+procedure TVRMLGLAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
+  out RootNode: TVRMLNode; out Time: Single);
+begin
+  RootNode := Load_RootNodes[Index];
+  Time := Load_Times[Index];
+end;
+
+procedure TVRMLGLAnimation.Load(
+  RootNodes: TVRMLNodesList;
+  AOwnsFirstRootNode: boolean;
+  ATimes: TDynSingleArray;
+  ScenesPerTime: Cardinal;
+  const EqualityEpsilon: Single);
+begin
+  Assert(RootNodes.Count = ATimes.Count);
+  Load_RootNodes := RootNodes;
+  Load_Times := ATimes;
+
+  LoadCore(@Load_GetRootNodeWithTime, RootNodes.Count,
+    AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
 procedure TVRMLGLAnimation.LoadStatic(
