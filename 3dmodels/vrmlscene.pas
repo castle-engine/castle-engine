@@ -337,7 +337,7 @@ type
     procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
 
-    FOnBeforeChangedAll, FOnAfterChangedAll: TVRMLSceneNotification;
+    FOnGeometryChanged: TVRMLSceneNotification;
     FOnPostRedisplay: TVRMLSceneNotification;
 
     FProcessEvents: boolean;
@@ -366,6 +366,9 @@ type
   protected
     { Call OnPostRedisplay, if assigned. }
     procedure DoPostRedisplay;
+
+    { Call OnGeometryChanged, if assigned. }
+    procedure DoGeometryChanged; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -432,21 +435,28 @@ type
     procedure ChangedFields(Node: TVRMLNode);
     { @groupEnd }
 
-    { Notification when ChangedAll is called. This is sometimes
-      useful, since ChangedAll may be called from various places
-      (like from internal events mechanism, if ProcessEvents is @true).
-      And sometimes you have to react to ChangedAll, since it
-      traverses the VRML graph again,
-      recalculating State values... so the old States are not
-      correct anymore. Unfortunately, this means that some things
-      become invalid and have to recalculated, like triangle octree.
+    { Notification when geometry changed, so you may need to rebuild
+      things like an octree. "Geometry changed" means that the positions
+      of triangles changed. This is not send when merely things like
+      material changed.
 
-      @groupBegin }
-    property OnBeforeChangedAll: TVRMLSceneNotification
-      read FOnBeforeChangedAll write FOnBeforeChangedAll;
-    property OnAfterChangedAll: TVRMLSceneNotification
-      read FOnAfterChangedAll write FOnAfterChangedAll;
-    { @groupEnd }
+      This is particularly useful when using ProcessEvents = @true,
+      since then you don't have control over when ChangedXxx are called.
+      (When ProcessEvents = @false, you always call ChangedXxx explicitly
+      and in most cases you already know when the geometry did and when
+      it did not change.)
+
+      In particular, note that every ChangedAll call is guaranteed to send this.
+      ChangedAll must take into account that everything could change.
+      Note that ChangedAll traverses the VRML graph again,
+      recalculating State values... so the old States are not
+      correct anymore. You have to rebuild the octree or your pointers
+      will be bad. (So if you want to ignore OnGeometryChanged calls
+      and keep a temporarily-invalid octree, note that in these cases
+      octree will be really invalid: not only it will not correspond
+      to current geometry, but also the pointers will be invalid.) }
+    property OnGeometryChanged: TVRMLSceneNotification
+      read FOnGeometryChanged write FOnGeometryChanged;
 
     { Notification when anything changed needing redisplay. }
     property OnPostRedisplay: TVRMLSceneNotification
@@ -1103,9 +1113,6 @@ begin
   { TODO: FManifoldEdges and FBorderEdges and triangles lists should be freed
     (and removed from Validities) on any ChangedXxx call. }
 
-  if Assigned(OnBeforeChangedAll) then
-    OnBeforeChangedAll(Self);
-
   ChangedAll_TraversedLights := TDynActiveLightArray.Create;
   try
     ShapeStates.FreeContents;
@@ -1126,9 +1133,7 @@ begin
     end;
   finally FreeAndNil(ChangedAll_TraversedLights) end;
 
-  if Assigned(OnAfterChangedAll) then
-    OnAfterChangedAll(Self);
-
+  DoGeometryChanged;
   DoPostRedisplay;
 end;
 
@@ -1187,6 +1192,10 @@ begin
       if ShapeStates[I].GeometryNode.Coord(ShapeStates[I].State, Coord) and
          (Coord.ParentNode = Node) then
         ChangedShapeStateFields(I);
+
+    { Another special thing about Coordinate node is that it changes
+      actual geometry. }
+    DoGeometryChanged;
   end else
   if NodeLastNodesIndex <> -1 then
   begin
@@ -1234,6 +1243,7 @@ begin
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].GeometryNode = Node then
         ChangedShapeStateFields(i);
+    DoGeometryChanged;
   end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela
@@ -1251,6 +1261,18 @@ procedure TVRMLScene.DoPostRedisplay;
 begin
   if Assigned(OnPostRedisplay) then
     OnPostRedisplay(Self);
+end;
+
+procedure TVRMLScene.DoGeometryChanged;
+begin
+  Validities := Validities - [fvBBox,
+    fvVerticesCountNotOver, fvVerticesCountOver,
+    fvTrianglesCountNotOver, fvTrianglesCountOver,
+    fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
+    fvManifoldAndBorderEdges];
+
+  if Assigned(OnGeometryChanged) then
+    OnGeometryChanged(Self);
 end;
 
 resourcestring

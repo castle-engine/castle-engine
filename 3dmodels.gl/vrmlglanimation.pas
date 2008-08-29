@@ -529,7 +529,45 @@ uses Math, VectorMath, VRMLFields,
 {$define read_implementation}
 {$I objectslist_1.inc}
 
-{ EModelsStructureDifferent --------------------------------------------------- }
+{ TVRMLGLAnimationScene ------------------------------------------------------ }
+
+type
+  TVRMLGLAnimationScene = class(TVRMLGLScene)
+  private
+    FParentAnimation: TVRMLGLAnimation;
+  protected
+    procedure DoGeometryChanged; override;
+  public
+    constructor CreateForAnimation(
+      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      AOptimization: TGLRendererOptimization;
+      AProvidedRenderer: TVRMLOpenGLRenderer;
+      AParentAnimation: TVRMLGLAnimation);
+    property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
+  end;
+
+constructor TVRMLGLAnimationScene.CreateForAnimation(
+  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  AOptimization: TGLRendererOptimization;
+  AProvidedRenderer: TVRMLOpenGLRenderer;
+  AParentAnimation: TVRMLGLAnimation);
+begin
+  { ParentAnimation is used by DoGeometryChanged, which is virtual and
+    called by ChangedAll, which is called by inherited constructor...
+    So ParentAnimation must be set even before inherited constructor. }
+  FParentAnimation := AParentAnimation;
+
+  inherited CreateProvidedRenderer(ARootNode, AOwnsRootNode, AOptimization,
+    AProvidedRenderer);
+end;
+
+procedure TVRMLGLAnimationScene.DoGeometryChanged;
+begin
+  inherited;
+  ParentAnimation.ValidBoundingBoxSum := false;
+end;
+
+{ EModelsStructureDifferent -------------------------------------------------- }
 
 type
   EModelsStructureDifferent = class(Exception)
@@ -932,10 +970,10 @@ procedure TVRMLGLAnimation.LoadCore(
   end;
 
   function CreateOneScene(Node: TVRMLNode;
-    OwnsRootNode: boolean): TVRMLGLScene;
+    OwnsRootNode: boolean): TVRMLGLAnimationScene;
   begin
-    Result := TVRMLGLScene.CreateProvidedRenderer(
-      Node, OwnsRootNode, Optimization, Renderer);
+    Result := TVRMLGLAnimationScene.CreateForAnimation(
+      Node, OwnsRootNode, Optimization, Renderer, Self);
   end;
 
 var
