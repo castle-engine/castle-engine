@@ -94,19 +94,23 @@ type
       in each frame but is transformed differently.
       Or when you have a scene that uses the same ShapeState many times
       but with different transformation.
+      Or when you do animation by VRML / X3D events that change
+      properties of "Transform" node.
       Actually, "transformation" means here everything rendered by
       TVRMLOpenGLRenderer.RenderShapeStateBegin, which includes
       modelview transformation, texture transformation and all lights
       settings.
       In such cases, roSeparateShapeStatesNoTranform will use
-      one display list, where roSeparateShapeStates would use a lot.
+      one display list, where roSeparateShapeStates would use a lot
+      (or require needless recalculation for VRML events).
       What exactly "a lot" means depends on how much frames your
       animation has, how much ShapeState is duplicated etc.
       This can be a @italic(huge memory saving). Also preparing
       scene/animations (in PrepareRender) should be much faster.
 
       This saved me 13 MB memory in "The Castle" (much less than
-      I hoped, honestly, but still something...).
+      I hoped, honestly, but still something...). This greatly boosts
+      performance of VRML animations of Transform nodes.
 
       Where this is worse over roSeparateShapeStates:
       @unorderedList(

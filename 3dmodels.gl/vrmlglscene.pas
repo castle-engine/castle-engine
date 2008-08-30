@@ -843,7 +843,8 @@ type
       read FOptimization write SetOptimization;
 
     procedure ChangedAll; override;
-    procedure ChangedShapeStateFields(ShapeStateNum: integer); override;
+    procedure ChangedShapeStateFields(ShapeStateNum: integer;
+      const TransformOnly: boolean); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm.
@@ -1315,7 +1316,7 @@ begin
     roSeparateShapeStates, roSeparateShapeStatesNoTransform:
       begin
         SSSX_DisplayLists := TDynGLuintArray.Create;
-        { When this is called from constructor, it's before 
+        { When this is called from constructor, it's before
           inherited constructor and ChangedAll, so ShapeStates
           are not initialized yet. So don't set Count yet
           (will be set later in ChangedAll). }
@@ -2272,7 +2273,8 @@ begin
   ShapeStatesUseBlending.Count := ShapeStates.Count;
 end;
 
-procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer);
+procedure TVRMLGLScene.ChangedShapeStateFields(ShapeStateNum: integer;
+  const TransformOnly: boolean);
 var
   TG: TTransparentGroup;
 begin
@@ -2282,6 +2284,17 @@ begin
     sie nie zmienily, tylko ich pola. Zwracam uwage ze w ten sposob gdy
     Optimization = roNone to w tej procedurze nie musimy NIC robic - a wiec
     jest to jakis zysk gdy uzywamy roNone. }
+
+  if (Optimization = roSeparateShapeStatesNoTransform) and TransformOnly then
+  begin
+    { This can be quite crucial optimization for
+      roSeparateShapeStatesNoTransform in some cases, e.g. for VRML files
+      with animations animating Transform.translation/rotation/scale etc.
+      In such cases, roSeparateShapeStatesNoTransform is perfect,
+      as display lists will be used and never need to be rebuild. }
+    { Tests: Writeln('roSeparateShapeStatesNoTransform optimization kicked in!'); }
+    Exit;
+  end;
 
   case Optimization of
     roSceneAsAWhole:

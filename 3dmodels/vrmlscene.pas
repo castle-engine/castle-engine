@@ -415,12 +415,20 @@ type
       This causes recalculation of all things dependent on RootNode.
       It's more optimal to use one of the other Changed* methods, when possible.
 
-      Call ChangedShapeStateFields(ShapeStateNum) if you only changed
+      Call ChangedShapeStateFields(ShapeStateNum, TransformOnly) if you only changed
       values of fields within ShapeList[ShapeStateNum].GeometryNode,
       ShapeList[ShapeStateNum].State.Last* and
       ShapeList[ShapeStateNum].State.Active*. (And you're sure that
       these nodes are not shared by other shape+states using VRML DEF/USE
       mechanism.)
+
+      Set TransformOnly = @true if you know that you changed
+      only the State parts of the associatated ShapeState, and only
+      on Transform-related fields (see EqualsNoTransform).
+      Setting TransformOnly = @true is very beneficial if you
+      use TVRMLGLScene with roSeparateShapeStatesNoTransform.
+
+      Pass TransformOnly = @false if unsure, this is safer.
 
       Call ChangedFields when you only changed field values of given Node.
       This does relatively intelligent discovery of what could be possibly
@@ -447,7 +455,8 @@ type
 
       @groupBegin }
     procedure ChangedAll; virtual;
-    procedure ChangedShapeStateFields(ShapeStateNum: Integer); virtual;
+    procedure ChangedShapeStateFields(ShapeStateNum: Integer;
+      const TransformOnly: boolean); virtual;
     procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
     { @groupEnd }
 
@@ -1153,7 +1162,8 @@ begin
   DoPostRedisplay;
 end;
 
-procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer);
+procedure TVRMLScene.ChangedShapeStateFields(ShapeStateNum: integer;
+  const TransformOnly: boolean);
 begin
   Validities := [];
   ShapeStates[ShapeStateNum].Changed;
@@ -1171,10 +1181,9 @@ begin
     if Node is TVRMLGeometryNode then
     begin
       ShapeStates[TransformChange_ShapeStateNum].State.AssignTransform(State);
-      { TODO: pass "only transform changed" here, such that
-        roSeparateShapeStatesNoTransform
-        will be much more optimized for this case. }
-      ChangedShapeStateFields(TransformChange_ShapeStateNum);
+      { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
+        they don't have Transform compiled in display list. }
+      ChangedShapeStateFields(TransformChange_ShapeStateNum, true);
       Inc(TransformChange_ShapeStateNum);
       TransformChange_AnythingChanged := true;
     end else
@@ -1287,7 +1296,7 @@ begin
     for I := 0 to ShapeStates.Count - 1 do
       if ShapeStates[I].GeometryNode.Coord(ShapeStates[I].State, Coord) and
          (Coord.ParentNode = Node) then
-        ChangedShapeStateFields(I);
+        ChangedShapeStateFields(I, false);
 
     { Another special thing about Coordinate node is that it changes
       actual geometry. }
@@ -1299,7 +1308,7 @@ begin
       it's present on State.LastNodes list. }
     for i := 0 to ShapeStates.Count - 1 do
       if ShapeStates[i].State.LastNodes.Nodes[NodeLastNodesIndex] = Node then
-        ChangedShapeStateFields(i);
+        ChangedShapeStateFields(i, false);
   end else
   if Node is TNodeMaterial_2 then
   begin
@@ -1307,7 +1316,7 @@ begin
       placed inside Appearance.material field. }
     for I := 0 to ShapeStates.Count - 1 do
       if ShapeStates[I].State.ParentShape.Material = Node then
-        ChangedShapeStateFields(I);
+        ChangedShapeStateFields(I, false);
   end else
   if Node is TNodeX3DTextureCoordinateNode then
   begin
@@ -1317,7 +1326,7 @@ begin
       if (ShapeStates[I].GeometryNode is TNodeX3DComposedGeometryNode) and
          (TNodeX3DComposedGeometryNode(ShapeStates[I].GeometryNode).
            FdTexCoord.Value = Node) then
-        ChangedShapeStateFields(I);
+        ChangedShapeStateFields(I, false);
   end else
   if Node is TVRMLLightNode then
   begin
@@ -1330,7 +1339,9 @@ begin
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].State.CurrentActiveLights.
            IndexOfLightNode(TVRMLLightNode(Node)) >= 0 then
-        ChangedShapeStateFields(i);
+        { TransformOnly = @true, suitable for roSeparateShapeStatesNoTransform,
+          they don't have lights compiled in display list. }
+        ChangedShapeStateFields(i, true);
   end else
   if Node is TVRMLGeometryNode then
   begin
@@ -1338,7 +1349,7 @@ begin
       GeometryNode. }
     for i := 0 to ShapeStates.Count-1 do
       if ShapeStates[i].GeometryNode = Node then
-        ChangedShapeStateFields(i);
+        ChangedShapeStateFields(i, false);
     DoGeometryChanged;
   end else
   if (Node is TNodeTransform_2) and
