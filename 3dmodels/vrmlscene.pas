@@ -363,6 +363,16 @@ type
       const NewValue, TimeIncrease: TKamTime);
 
     procedure ResetRoutesLastEventTime(Node: TVRMLNode);
+
+    { Helpers for the case when VRML >= 2.0 Transform changed it's fields. }
+    TransformChange_ShapeStateNum: Cardinal;
+    TransformChange_ChangingNode: TVRMLNode;
+    TransformChange_AnythingChanged: boolean;
+    TransformChange_Inside: boolean;
+    procedure TransformChangeTraverse(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+    procedure TransformChangeTraverseAfter(
+      Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
   protected
     { Call OnPostRedisplay, if assigned. }
     procedure DoPostRedisplay;
@@ -1150,13 +1160,75 @@ begin
   DoPostRedisplay;
 end;
 
+type
+  BreakTransformChangeFailed = class(TCodeBreaker);
+
+procedure TVRMLScene.TransformChangeTraverse(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+begin
+  if TransformChange_Inside then
+  begin
+    if Node is TVRMLGeometryNode then
+    begin
+      ShapeStates[TransformChange_ShapeStateNum].State.AssignTransform(State);
+      { TODO: pass "only transform changed" here, such that
+        roSeparateShapeStatesNoTransform
+        will be much more optimized for this case. }
+      ChangedShapeStateFields(TransformChange_ShapeStateNum);
+      Inc(TransformChange_ShapeStateNum);
+      TransformChange_AnythingChanged := true;
+    end else
+    { X3DBindableNode takes into account Fog, Background, Viewpoint etc. }
+    if ( (Node is TNodeX3DBindableNode) or
+         (Node is TVRMLLightNode) ) and
+       { Actually, for X3DViewpointNode, no need to do anything ---
+         at least for now, since we don't do anything on it's animation
+         (TVRMLScene doesn't do anything with camera). }
+       not (Node is TNodeX3DViewpointNode) then
+    begin
+      raise BreakTransformChangeFailed.Create;
+    end;
+  end else
+  begin
+    if Node is TVRMLGeometryNode then
+    begin
+      Inc(TransformChange_ShapeStateNum);
+    end else
+    if Node = TransformChange_ChangingNode then
+    begin
+      TransformChange_Inside := true;
+    end;
+  end;
+end;
+
+procedure TVRMLScene.TransformChangeTraverseAfter(
+  Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
+begin
+  if Node = TransformChange_ChangingNode then
+  begin
+    TransformChange_Inside := false;
+  end;
+end;
+
 procedure TVRMLScene.ChangedFields(Node: TVRMLNode;
   FieldOrEvent: TVRMLFieldOrEvent);
 var
   NodeLastNodesIndex, i: integer;
   Coord: TMFVec3f;
+  Field: TVRMLField;
+  InitialState: TVRMLGraphTraverseState;
 begin
   NodeLastNodesIndex := Node.TraverseStateLastNodesIndex;
+
+  { calculate Field: either FieldOrEvent, or (if FieldOrEvent is an
+    exposed event) undelying FieldOrEvent.ParentField, or @nil if not possible. }
+  if FieldOrEvent <> nil then
+  begin
+    if FieldOrEvent is TVRMLEvent then
+      Field := TVRMLEvent(FieldOrEvent).ParentExposedField else
+      Field := FieldOrEvent as TVRMLField;
+  end else
+    Field := nil;
 
   { Tests: Writeln('ChangedFields ', Node.ClassName, ' (', Node.NodeTypeName, ')'); }
 
@@ -1178,6 +1250,23 @@ begin
          (StateDefaultNodes.Nodes[NodeLastNodesIndex] <> Node))
      ) then
     Exit;
+
+  { Ignore this ChangedFields call if you're changing some metadata
+    or WorldInfo nodes, since they don't affect actual content. }
+
+  if (Node is TNodeX3DNode) and
+     (TNodeX3DNode(Node).FdMetadata = Field) then
+    Exit;
+
+  if (Node is TNodeMetadataDouble) or
+     (Node is TNodeMetadataFloat) or
+     (Node is TNodeMetadataInteger) or
+     (Node is TNodeMetadataSet) or
+     (Node is TNodeMetadataString) or
+     (Node is TNodeWorldInfo) then
+    Exit;
+
+  { Test other changes: }
 
   if Node is TNodeComposedShader then
   begin
@@ -1251,6 +1340,58 @@ begin
       if ShapeStates[i].GeometryNode = Node then
         ChangedShapeStateFields(i);
     DoGeometryChanged;
+  end else
+  if (Node is TNodeTransform_2) and
+     (TNodeTransform_2(Node).FdChildren <> Field) then
+  begin
+    { In the simple cases, Transform node simply changes
+      TVRMLGraphTraverseState.Transform for children nodes.
+
+      So we have to re-traverse from this Transform node, and change
+      states of affected children. Also, first we have to traverse
+      *to* this Transform node, as we don't know it's initial State...
+      Moreover, Node may be instantiated many times in VRML graph,
+      so we have to Traverse to all it's occurences.
+
+      Besides, while traversing to current transform node, we have to count
+      ShapeStates, to know which ShapeStates will be affected by what
+      state change (as we cannot deduce it from the mere GeometryNode
+      reference, since node may be instantiated many times under
+      different transformation, many times within our changing Transform
+      node, and many times outside of the changing Transform group).
+
+      In more difficult cases, children of this Transform node may
+      be affected in other ways by transformation. For example,
+      Fog and Background nodes are affected by their parents transform.
+      Currently, we cannot account for this, and just raise
+      BreakTransformChangeFailed in this case --- we have to do ChangedAll
+      in such cases.
+    }
+    try
+      InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+      try
+        TransformChange_ShapeStateNum := 0;
+        TransformChange_ChangingNode := Node;
+        TransformChange_AnythingChanged := false;
+        TransformChange_Inside := false;
+
+        RootNode.Traverse(InitialState, TVRMLNode, @TransformChangeTraverse,
+          nil, @TransformChangeTraverseAfter);
+
+        if not TransformChange_AnythingChanged then
+          { No need to do DoGeometryChanged, not even DoPostRedisplay
+            at the end. }
+          Exit;
+
+        DoGeometryChanged;
+      finally InitialState.Free end;
+    except
+      on BreakTransformChangeFailed do
+      begin
+        ChangedAll;
+        Exit;
+      end;
+    end;
   end else
   begin
     { node jest czyms innym; wiec musimy zalozyc ze zmiana jego pol wplynela

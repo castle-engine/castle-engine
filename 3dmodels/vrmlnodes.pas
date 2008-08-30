@@ -496,6 +496,10 @@ type
       VRML 1.0 MatrixTransform along the way). }
     AverageScaleTransform: Single;
 
+    { Copy Transform from Source.Transform. Along with related fields,
+      like InvertedTransform and AverageScaleTransform. }
+    procedure AssignTransform(Source: TVRMLGraphTraverseState);
+
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
       texture transformations don't accumulate like modelview transformations. }
     TextureTransform: TMatrix4Single;
@@ -1111,9 +1115,14 @@ type
   for all children returned by DirectEnumerateActive
     call their Traverse(State)
   AfterTraverse,
+  if Self is NodeClass then TraversingFuncAfter (Self, State)
   dodaj Self do stanu State do LastNode (o ile Self wsrod
     TraverseStateLastNodesClasses)
 )
+
+      Note: I didn't decide yet whether TraversingFuncAfter
+      should be before or after AfterTraverse call. Report if you have
+      any good reason for any setting.
 
       Jezeli zostalo wykonane BeforeTraverse, na pewno zostanie wykonane tez
       AfterTraverse (wywolanie AfterTraverse jest w finally..end).
@@ -1124,7 +1133,8 @@ type
     procedure Traverse(State: TVRMLGraphTraverseState;
       NodeClass: TVRMLNodeClass;
       TraversingFunc: TTraversingFunc;
-      ParentInfo: PTraversingInfo = nil);
+      ParentInfo: PTraversingInfo = nil;
+      TraversingFuncAfter: TTraversingFunc = nil);
 
     { This is like @link(Traverse), but it automatically handles
       creating and destroying of TVRMLGraphTraverseState and it's LastNodes.
@@ -3304,9 +3314,7 @@ constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
 begin
   CommonCreate;
 
-  Transform := Source.Transform;
-  AverageScaleTransform := Source.AverageScaleTransform;
-  InvertedTransform := Source.InvertedTransform;
+  AssignTransform(Source);
 
   TextureTransform := Source.TextureTransform;
   FLastNodes := Source.FLastNodes;
@@ -3315,6 +3323,14 @@ begin
 
   VRML1ActiveLights.AppendDynArray(Source.VRML1ActiveLights);
   VRML2ActiveLights.AppendDynArray(Source.VRML2ActiveLights);
+end;
+
+procedure TVRMLGraphTraverseState.AssignTransform(
+  Source: TVRMLGraphTraverseState);
+begin
+  Transform := Source.Transform;
+  AverageScaleTransform := Source.AverageScaleTransform;
+  InvertedTransform := Source.InvertedTransform;
 end;
 
 constructor TVRMLGraphTraverseState.Create(const ADefaultLastNodes: TTraverseStateLastNodes);
@@ -3709,6 +3725,7 @@ type
     State: TVRMLGraphTraverseState;
     NodeClass: TVRMLNodeClass;
     TraversingFunc: TTraversingFunc;
+    TraversingFuncAfter: TTraversingFunc;
     ParentInfo: PTraversingInfo;
     procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
   end;
@@ -3716,12 +3733,14 @@ type
   procedure TTraverseEnumerator.EnumerateChildrenFunction(
     Node, Child: TVRMLNode);
   begin
-    Child.Traverse(State, NodeClass, TraversingFunc, ParentInfo);
+    Child.Traverse(State, NodeClass, TraversingFunc, ParentInfo,
+      TraversingFuncAfter);
   end;
 
 procedure TVRMLNode.Traverse(State: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass; TraversingFunc: TTraversingFunc;
-  ParentInfo: PTraversingInfo);
+  ParentInfo: PTraversingInfo;
+  TraversingFuncAfter: TTraversingFunc);
 var
   LastNodesIndex: Integer;
   Enumerator: TTraverseEnumerator;
@@ -3741,11 +3760,16 @@ begin
       Enumerator.State := State;
       Enumerator.NodeClass := NodeClass;
       Enumerator.TraversingFunc := TraversingFunc;
+      Enumerator.TraversingFuncAfter := TraversingFuncAfter;
       Enumerator.ParentInfo := @CurrentInfo;
       DirectEnumerateActive(
         {$ifdef FPC_OBJFPC} @ {$endif} Enumerator.EnumerateChildrenFunction);
     finally FreeAndNil(Enumerator) end;
   finally AfterTraverse(State) end;
+
+  if Assigned(TraversingFuncAfter) and
+     (Self is NodeClass) then
+    TraversingFuncAfter(Self, State, ParentInfo);
 
   LastNodesIndex := TraverseStateLastNodesIndex;
   if LastNodesIndex <> -1 then State.FLastNodes.Nodes[LastNodesIndex] := Self;
@@ -4185,23 +4209,25 @@ end;
     raise BreakTryFindNodeState.Create;
   end;
 
-function TVRMLNode.TryFindNodeState(InitialState: TVRMLGraphTraverseState;
+function TVRMLNode.TryFindNodeState(
+  InitialState: TVRMLGraphTraverseState;
   NodeClass: TVRMLNodeClass;
   out Node: TVRMLNode; out State: TVRMLGraphTraverseState): boolean;
-var Obj: TTryFindNodeStateObj;
+var
+  Obj: TTryFindNodeStateObj;
 begin
- Obj := TTryFindNodeStateObj.Create;
- try
+  Obj := TTryFindNodeStateObj.Create;
   try
-   Obj.PNode := @Node;
-   Obj.PState := @State;
-   Traverse(InitialState, NodeClass,
-     {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
-   result := false;
-  except
-   on BreakTryFindNodeState do result := true;
-  end;
- finally Obj.Free end;
+    try
+      Obj.PNode := @Node;
+      Obj.PState := @State;
+      Traverse(InitialState, NodeClass,
+        {$ifdef FPC_OBJFPC} @ {$endif} Obj.TraverseFunc);
+      result := false;
+    except
+      on BreakTryFindNodeState do result := true;
+    end;
+  finally Obj.Free end;
 end;
 
   type
