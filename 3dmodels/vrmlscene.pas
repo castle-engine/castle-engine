@@ -423,6 +423,12 @@ type
       and passing any node is fine here, and we'll try to intelligently
       detect what this change implicates for this VRML scene.
 
+      You can also pass to ChangedFields a field's instance,
+      or field's eventIn or eventOut
+      that you used to change --- this way we know only this field changed.
+      This must belong then to the given Node.
+      Pass FieldOrEvent = @nil if you don't know this, or if many fields changed.
+
       @italic(Descendant implementors notes:) ChangedAll and
       ChangedShapeStateFields are virtual, so of course you can override them
       (remember to always call @code(inherited)). ChangedAll is also
@@ -432,7 +438,7 @@ type
       @groupBegin }
     procedure ChangedAll; virtual;
     procedure ChangedShapeStateFields(ShapeStateNum: Integer); virtual;
-    procedure ChangedFields(Node: TVRMLNode);
+    procedure ChangedFields(Node: TVRMLNode; FieldOrEvent: TVRMLFieldOrEvent);
     { @groupEnd }
 
     { Notification when geometry changed, so you may need to rebuild
@@ -1144,7 +1150,8 @@ begin
   DoPostRedisplay;
 end;
 
-procedure TVRMLScene.ChangedFields(Node: TVRMLNode);
+procedure TVRMLScene.ChangedFields(Node: TVRMLNode;
+  FieldOrEvent: TVRMLFieldOrEvent);
 var
   NodeLastNodesIndex, i: integer;
   Coord: TMFVec3f;
@@ -1988,7 +1995,7 @@ procedure TVRMLScene.EventChanged(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
 begin
   if Event.ParentNode <> nil then
-    ChangedFields(Event.ParentNode as TVRMLNode) else
+    ChangedFields(Event.ParentNode as TVRMLNode, Event) else
     { Although EventChanged indicates that only some field's value changed,
       so ChangedFields is most optimal, but without Event.ParentNode
       we don't know which node actually changed... Calling ChangedAll

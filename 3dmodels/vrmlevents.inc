@@ -99,6 +99,10 @@
     procedure Send(const Value: TVector4Single; const Time: TKamTime);
     procedure Send(const Value: Single; const Time: TKamTime);
     procedure Send(const Value: Double; const Time: TKamTime);
+
+    procedure Send(const Value: array of TVector2Single; const Time: TKamTime);
+    procedure Send(const Value: array of TVector3Single; const Time: TKamTime);
+    procedure Send(const Value: array of TVector4Single; const Time: TKamTime);
     { @groupEnd }
 
     { Notifications about receiving an item. For input fields,
@@ -261,6 +265,42 @@ begin
   if FieldClass = TSFTime then
     Field := TSFTime.Create(ParentNode, Name, Value) else
     Field := TSFDouble.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: array of TVector2Single; const Time: TKamTime);
+var
+  Field: TVRMLField;
+begin
+  Field := TMFVec2f.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: array of TVector3Single; const Time: TKamTime);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFColor then
+    Field := TMFColor.Create(ParentNode, Name, Value) else
+    Field := TMFVec3f.Create(ParentNode, Name, Value);
+  try
+    Send(Field, Time);
+  finally FreeAndNil(Field) end;
+end;
+
+procedure TVRMLEvent.Send(const Value: array of TVector4Single; const Time: TKamTime);
+var
+  Field: TVRMLField;
+begin
+  if FieldClass = TSFColorRGBA then
+    Field := TMFColorRGBA.Create(ParentNode, Name, Value) else
+  if FieldClass = TSFRotation then
+    Field := TMFRotation.Create(ParentNode, Name, Value) else
+    Field := TMFVec4f.Create(ParentNode, Name, Value);
   try
     Send(Field, Time);
   finally FreeAndNil(Field) end;

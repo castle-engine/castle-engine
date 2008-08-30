@@ -431,6 +431,14 @@ type
     property ExposedEvents [InEvent: boolean]: TVRMLEvent
       read GetExposedEvents;
 
+    { Exposed events of this field. @nil if this field is not exposed.
+      EventIn is always equivalent to ExposedEvents[true],
+      EventOut is always equivalent to ExposedEvents[false].
+      @groupBegin }
+    function EventIn: TVRMLEvent;
+    function EventOut: TVRMLEvent;
+    { @groupEnd }
+
     { This returns fieldType as for VRML interface declaration statements. }
     class function VRMLTypeName: string; virtual; abstract;
 
@@ -2049,6 +2057,16 @@ end;
 function TVRMLField.GetExposedEvents(InEvent: boolean): TVRMLEvent;
 begin
   Result := FExposedEvents[InEvent];
+end;
+
+function TVRMLField.EventIn: TVRMLEvent;
+begin
+  Result := FExposedEvents[true];
+end;
+
+function TVRMLField.EventOut: TVRMLEvent;
+begin
+  Result := FExposedEvents[false];
 end;
 
 procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
