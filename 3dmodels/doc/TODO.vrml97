@@ -106,3 +106,6 @@ TNodeX3DGroupingNode.EventAddChildrenReceive implementation.
 test implemented events:
 - IndexedLineSet:set_colorIndex, set_coordIndex
 - IndexedTriangleFanSet,  IndexedTriangleSet, IndexedTriangleStripSet: set_index
+- ElevationGrid: set_height
+- Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
+- IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
