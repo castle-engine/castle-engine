@@ -46,7 +46,6 @@ type
     FOwnsRootNode: boolean;
     FRootNode: TVRMLNode;
     FLights: TDynActiveLightArray;
-    StateDefaultNodes: TTraverseStateLastNodes;
     procedure AddToLights(Node: TVRMLNode; State: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo);
   public
@@ -82,7 +81,7 @@ var InitialState: TVRMLGraphTraverseState;
 begin
  Lights.Length := 0;
 
- InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+ InitialState := TVRMLGraphTraverseState.Create;
  try
    RootNode.Traverse(InitialState, TVRMLLightNode,
      {$ifdef FPC_OBJFPC} @ {$endif} AddToLights);
@@ -95,8 +94,6 @@ begin
  FRootNode := ARootNode;
  FOwnsRootNode := AOwnsRootNode;
 
- TraverseState_CreateNodes(StateDefaultNodes);
-
  FLights := TDynActiveLightArray.Create;
 
  CalculateLights;
@@ -106,7 +103,6 @@ destructor TVRMLLightSet.Destroy;
 begin
  if OwnsRootNode then FreeAndNil(FRootNode);
  FLights.Free;
- TraverseState_FreeAndNilNodes(StateDefaultNodes);
  inherited;
 end;
 

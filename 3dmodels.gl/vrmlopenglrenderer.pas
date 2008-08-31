@@ -1424,7 +1424,7 @@ implementation
 
 uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
   KambiStringUtils, GLVersionUnit, KambiLog, KambiClassUtils,
-  VRMLGeometry;
+  VRMLGeometry, VRMLScene;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -1834,6 +1834,7 @@ var
   I: Integer;
   UniformName: string;
   GLSLProgramCache: PGLSLProgramCache;
+  EventsProcessor: TObject;
 begin
   if Event.ParentExposedField = nil then
     UniformName := Event.Name else
@@ -1852,6 +1853,18 @@ begin
     if GLSLProgramCache^.ProgramNode = Event.ParentNode then
     begin
       SetUniformFromField(GLSLProgramCache^.GLSLProgram, UniformName, Value);
+
+      { Although ExposedEvents implementation already sends notification
+        about changes to ParentEventsProcessor, we can also get here
+        by eventIn invocation (which doesn't trigger
+        ParentEventsProcessor.ChangedFields, since it doesn't change a field...).
+        So we should explicitly do DoPostRedisplay here, to make sure
+        it gets called when uniform changed. }
+
+      EventsProcessor := GLSLProgramCache^.ProgramNode.ParentEventsProcessor;
+      if EventsProcessor <> nil then
+        (EventsProcessor as TVRMLScene).DoPostRedisplay;
+
       Exit;
     end;
   end;

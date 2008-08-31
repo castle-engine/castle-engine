@@ -835,7 +835,9 @@ begin
       CacheUsed := true;
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
-      EventDuration_Changed.Send(FDuration, 0 { TODO - what WorldTime is now? });
+      if ParentEventsProcessor <> nil then
+        EventDuration_Changed.Send(FDuration,
+          (ParentEventsProcessor as TVRMLScene).WorldTime);
       Break;
     except
       on E: Exception do

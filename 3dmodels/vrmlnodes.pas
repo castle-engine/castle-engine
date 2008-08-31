@@ -509,26 +509,19 @@ type
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
     constructor Create(const ADefaultLastNodes: TTraverseStateLastNodes); overload;
 
-    { Standard create, with standard initial LastNodes state.
+    { Standard create, uses global StateDefaultNodes as initial
+      LastNodes state.
 
-      This is equivalent to creating last nodes like
-      @longCode(#  TraverseState_CreateNodes(StateDefaultNodes) #)
-      then creating this object with
-      @longCode(#  Create(StateDefaultNodes) #)
-      When this object will be freed, such implicitly created StateDefaultNodes
-      will be also freed (using TraverseState_FreeAndNilNodes).
+      Using a global StateDefaultNodes is useful, since this way
+      the references to default VRML 1.0 state nodes are always
+      valid (so you can e.g. quickly copy TVRMLGraphTraverseState,
+      and free the previous TVRMLGraphTraverseState instance,
+      and the node references stay the same).
 
-      Note: while this constructor seems very comfortable, in some cases
-      it's not useful, exactly because it frees at the end used StateDefaultNodes.
-      Consider e.g. TVRMLScene, that has to traverse all nodes and
-      store the traversing result in a flat list: this means that it must
-      save various TVRMLGraphTraverseState instances, that may have
-      references to nodes from StateDefaultNodes. So it must have independent
-      StateDefaultNodes field that "lives" for the whole lifetime
-      of TVRMLScene and is passed to each TVRMLGraphTraverseState.Create call.
-
-      If you don't understand the note above then don't worry,
-      you're probably fine with using this parameter-less constructor :) }
+      Also this improves caching in some cases, because sometimes
+      we assume that nodes are equal only when their references are equal
+      (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
+      by ShapeState caching in TVRMLOpenGLRendererContextCache). }
     constructor Create; overload;
 
     destructor Destroy; override;
@@ -670,6 +663,7 @@ type
     FCDataExists: boolean;
     FCData: string;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
+    FParentEventsProcessor: TObject;
   protected
     fAllowedChildren: boolean;
     fParsingAllowedChildren: boolean;
@@ -1598,6 +1592,26 @@ type
       will be destroyed. }
     property DestructionNotifications: TDynNodeDestructionNotificationArray
       read FDestructionNotifications;
+
+    { Events processing object for this node, or @nil if none.
+
+      Currently this must always be an instance of TVRMLScene class
+      (although it cannot be declared as such, since TVRMLScene is not known
+      in this unit). It must have ProcessEvents = @true while it's set
+      as ParentEventsProcessor.
+
+      Note: While it is possble and perfectly fine to have
+      the same VRML node included in more than one TVRMLScene instance,
+      only one of such scenes may have ProcessEvents = @true. Otherwise,
+      some things could get unsynchronized, like WorldTime that is
+      also recorded in TVRMLRoute to avoid loops.
+      So a node may inside at most one TVRMLScene with events processing
+      at the same time. So this simple property is enough (no need to
+      change it to something like TVRMLScenesList). This is also the reason
+      why this shouldn't be treated as a "parent TVRMLScene" for arbritrary
+      purposes, it's only for events processing things! }
+    property ParentEventsProcessor: TObject
+      read FParentEventsProcessor write FParentEventsProcessor;
   end;
 
   TObjectsListItem_3 = TVRMLNode;
@@ -3123,6 +3137,12 @@ var
     will be destroyed. }
   AnyNodeDestructionNotifications: TDynNodeDestructionNotificationArray;
 
+  { Starting state nodes for TVRMLGraphTraverseState.Create.
+
+    This is read-only from outside, initialized and finalized in
+    this unit. }
+  StateDefaultNodes: TTraverseStateLastNodes;
+
 {$undef read_interface}
 
 implementation
@@ -3147,7 +3167,7 @@ uses
 
   Math, Triangulator, Object3dAsVRML, KambiZStream, VRMLCameraUtils,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  VRMLGeometry, KambiLog;
+  VRMLGeometry, KambiLog, VRMLScene;
 
 {$define read_implementation}
 
@@ -3348,15 +3368,7 @@ end;
 
 constructor TVRMLGraphTraverseState.Create;
 begin
-  CommonCreate;
-
-  Transform := IdentityMatrix4Single;
-  AverageScaleTransform := 1.0;
-  InvertedTransform := IdentityMatrix4Single;
-
-  TextureTransform := IdentityMatrix4Single;
-  TraverseState_CreateNodes(FLastNodes);
-  OwnsLastNodes := true;
+  Create(StateDefaultNodes);
 end;
 
 destructor TVRMLGraphTraverseState.Destroy;
@@ -7621,7 +7633,11 @@ initialization
   RegisterPickingNodes;
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
+
+  TraverseState_CreateNodes(StateDefaultNodes);
 finalization
+  TraverseState_FreeAndNilNodes(StateDefaultNodes);
+
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);
 end.

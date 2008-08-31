@@ -353,9 +353,6 @@ type
     procedure Collect_ChangedFields(Node: TVRMLNode);
     procedure UnCollect_ChangedFields(Node: TVRMLNode);
 
-    procedure EventChanged(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TKamTime);
-
     FWorldTime: TKamTime;
 
     { Internal procedure that handles WorldTime changes. }
@@ -373,12 +370,6 @@ type
       Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
     procedure TransformChangeTraverseAfter(
       Node: TVRMLNode; State: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo);
-  protected
-    { Call OnPostRedisplay, if assigned. }
-    procedure DoPostRedisplay;
-
-    { Call OnGeometryChanged, if assigned. }
-    procedure DoGeometryChanged; virtual;
   public
     constructor Create(ARootNode: TVRMLNode; AOwnsRootNode: boolean);
     destructor Destroy; override;
@@ -861,13 +852,13 @@ type
       "untie" this node (and all it's children) from this TVRMLScene instance.
 
       Reason: when ProcessEvents is activated,
-      we register internal callback (EventChanged) to react to event
-      changes by automatically calling appropriate ChangedXxx method.
+      we set Self as node's EventsProcessor to get event
+      changes notifications to ChangedXxx methods.
       When ProcessEvents is deactivated (including when this TVRMLScene
-      instance is released) we remove this callback. If you add new node
-      to VRML graph, we make sure (in ChangedAll) that this callback
-      is registered for all new nodes. Buf if you deleted a node
-      from our graph, we have no chance to remove this callback...
+      instance is released) we revert this. If you add new node
+      to VRML graph, we make sure (in ChangedAll) that EventsProcessor
+      is set correctly for all new nodes. Buf if you deleted a node
+      from our graph, we have no chance to remove this...
       You have to call UnregisterProcessEvents then manually,
       if you don't want the Node to be "tied" to our TVRMLScene.
 
@@ -932,21 +923,13 @@ type
       @groupBegin }
     procedure ResetWorldTime(const NewValue: TKamTime);
     { @groupEnd }
+
+    { Call OnPostRedisplay, if assigned. }
+    procedure DoPostRedisplay;
+
+    { Call OnGeometryChanged, if assigned. }
+    procedure DoGeometryChanged; virtual;
   end;
-
-var
-  { Starting state nodes for TVRMLScene
-    and descendants when traversing VRML tree.
-
-    It's needed that various TVRMLScene instances use the same
-    StateDefaultNodes, because in some cases we assume that nodes
-    are equal only when their references are equal
-    (e.g. TVRMLGraphTraverseState.Equals does this, and this is used
-    by ShapeState caching in TVRMLOpenGLRendererContextCache).
-
-    This is read-only from outside, initialized and finalized in
-    this unit. }
-  StateDefaultNodes: TTraverseStateLastNodes;
 
 {$undef read_interface}
 
@@ -1145,7 +1128,7 @@ begin
 
     if RootNode <> nil then
     begin
-      InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+      InitialState := TVRMLGraphTraverseState.Create;
       try
         RootNode.Traverse(InitialState, TVRMLNode,
           {$ifdef FPC_OBJFPC} @ {$endif} ChangedAll_Traverse);
@@ -1353,7 +1336,9 @@ begin
     DoGeometryChanged;
   end else
   if (Node is TNodeTransform_2) and
-     (TNodeTransform_2(Node).FdChildren <> Field) then
+     (TNodeTransform_2(Node).FdChildren <> Field) and
+     (TNodeTransform_2(Node).EventAddChildren <> FieldOrEvent) and
+     (TNodeTransform_2(Node).EventRemoveChildren <> FieldOrEvent) then
   begin
     { In the simple cases, Transform node simply changes
       TVRMLGraphTraverseState.Transform for children nodes.
@@ -1379,7 +1364,7 @@ begin
       in such cases.
     }
     try
-      InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+      InitialState := TVRMLGraphTraverseState.Create;
       try
         TransformChange_ShapeStateNum := 0;
         TransformChange_ChangingNode := Node;
@@ -1645,7 +1630,7 @@ var
 begin
   if RootNode <> nil then
   begin
-    InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+    InitialState := TVRMLGraphTraverseState.Create;
     try
       Seeker := TViewpointsSeeker.Create;
       try
@@ -1753,7 +1738,7 @@ var
   FogAverageScaleTransform: Single;
   InitialState: TVRMLGraphTraverseState;
 begin
- InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+ InitialState := TVRMLGraphTraverseState.Create;
  try
   if (RootNode <> nil) and
     RootNode.TryFindNodeTransform(InitialState, TNodeFog, TVRMLNode(FFogNode),
@@ -2143,58 +2128,14 @@ begin
   MovieTextureNodes.AddIfNotExists(Node);
 end;
 
-procedure TVRMLScene.EventChanged(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
-begin
-  if Event.ParentNode <> nil then
-    ChangedFields(Event.ParentNode as TVRMLNode, Event) else
-    { Although EventChanged indicates that only some field's value changed,
-      so ChangedFields is most optimal, but without Event.ParentNode
-      we don't know which node actually changed... Calling ChangedAll
-      is the only fallback here. This shouldn't really happen with current
-      code (all normal fields have ParentNode set, and so their ExposedEvents
-      also have ParentNode set). }
-    ChangedAll;
-end;
-
 procedure TVRMLScene.Collect_ChangedFields(Node: TVRMLNode);
-var
-  I: Integer;
 begin
-  for I := 0 to Node.Fields.Count - 1 do
-    if Node.Fields[I].Exposed then
-    begin
-      Node.Fields[I].ExposedEvents[false].OnReceive.AddIfNotExists(@EventChanged);
-    end;
-
-  if Node is TNodeComposedShader then
-  begin
-    { For ComposedShader nodes, we have to watch for changes to
-      inputOnly events too, to call DoPostRedisplay (in ChangedFields)
-      for them. }
-    for I := 0 to Node.Events.Count - 1 do
-      if Node.Events[I].InEvent then
-        Node.Events[I].OnReceive.AddIfNotExists(@EventChanged);
-  end;
+  Node.ParentEventsProcessor := Self;
 end;
 
 procedure TVRMLScene.UnCollect_ChangedFields(Node: TVRMLNode);
-var
-  I: Integer;
 begin
-  { Remove EventChanged callbacks from our items. }
-  for I := 0 to Node.Fields.Count - 1 do
-    if Node.Fields[I].Exposed then
-    begin
-      Node.Fields[I].ExposedEvents[false].OnReceive.DeleteFirstEqual(@EventChanged);
-    end;
-
-  if Node is TNodeComposedShader then
-  begin
-    for I := 0 to Node.Events.Count - 1 do
-      if Node.Events[I].InEvent then
-        Node.Events[I].OnReceive.DeleteFirstEqual(@EventChanged);
-  end;
+  Node.ParentEventsProcessor := nil;
 end;
 
 procedure TVRMLScene.CollectNodesForEvents;
@@ -2374,8 +2315,4 @@ begin
   InternalSetWorldTime(NewValue, 0);
 end;
 
-initialization
-  TraverseState_CreateNodes(StateDefaultNodes);
-finalization
-  TraverseState_FreeAndNilNodes(StateDefaultNodes);
 end.

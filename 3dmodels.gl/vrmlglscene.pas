@@ -3099,7 +3099,7 @@ var
 begin
   if FBackgroundValid then Exit;
 
-  InitialState := TVRMLGraphTraverseState.Create(StateDefaultNodes);
+  InitialState := TVRMLGraphTraverseState.Create;
   try
     if (RootNode <> nil) and
       RootNode.TryFindNodeTransform(InitialState, TNodeBackground,

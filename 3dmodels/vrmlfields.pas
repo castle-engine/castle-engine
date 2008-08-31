@@ -1859,14 +1859,13 @@ type
 
   {$I vrmlevents.inc}
 
-var
-  VRMLFieldsManager: TVRMLFieldsManager;
+function VRMLFieldsManager: TVRMLFieldsManager;
 
 {$undef read_interface}
 
 implementation
 
-uses Math, VRMLErrors;
+uses Math, VRMLErrors, VRMLNodes, VRMLScene;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -2071,6 +2070,8 @@ end;
 
 procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TKamTime);
+var
+  ParNode: TVRMLNode;
 begin
   Assert(Exposed);
   Assert(Event = FExposedEvents[true]);
@@ -2082,6 +2083,15 @@ begin
   AssignValue(Value);
 
   FExposedEvents[false].Send(Value, Time);
+
+  { Also, notify ParentEventProcessor about this change. }
+  if ParentNode <> nil then
+  begin
+    ParNode := ParentNode as TVRMLNode;
+    if ParNode.ParentEventsProcessor <> nil then
+      (ParNode.ParentEventsProcessor as TVRMLScene).
+        ChangedFields(ParNode, Event);
+  end;
 end;
 
 const
@@ -4597,9 +4607,21 @@ begin
     Result := nil;
 end;
 
-initialization
-  VRMLFieldsManager := TVRMLFieldsManager.Create;
+var
+  FVRMLFieldsManager: TVRMLFieldsManager;
 
+function VRMLFieldsManager: TVRMLFieldsManager;
+{ This function automatically creates FVRMLFieldsManager instance.
+  I don't do this in initialization of this unit, since (because
+  of circular uses clauses) VRMLFieldsManager may be referenced
+  before our initialization (e.g. by initialization of VRMLNodes). }
+begin
+  if FVRMLFieldsManager = nil then
+    FVRMLFieldsManager := TVRMLFieldsManager.Create;
+  Result := FVRMLFieldsManager;
+end;
+
+initialization
   VRMLFieldsManager.RegisterClasses([
     TSFBitMask,
     TSFEnum,
@@ -4629,5 +4651,5 @@ initialization
     TSFColorRGBA,TMFColorRGBA
     ]);
 finalization
-  FreeAndNil(VRMLFieldsManager);
+  FreeAndNil(FVRMLFieldsManager);
 end.
