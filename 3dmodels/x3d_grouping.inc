@@ -42,6 +42,11 @@
   end;
 
   TNodeX3DGroupingNode = class(TVRMLGroupingNode, INodeX3DBoundedObject)
+  private
+    procedure EventAddChildrenReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+    procedure EventRemoveChildrenReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
 
@@ -337,9 +342,11 @@ begin
 
   FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventaddChildren);
+  EventaddChildren.OnReceive.AppendItem(@EventAddChildrenReceive);
 
   FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
+  EventRemoveChildren.OnReceive.AppendItem(@EventRemoveChildrenReceive);
 
   FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
   Fields.Add(FFdchildren);
@@ -363,6 +370,49 @@ end;
 function TNodeX3DGroupingNode.ChildrenField: TMFNode;
 begin
   Result := FdChildren;
+end;
+
+procedure TNodeX3DGroupingNode.EventAddChildrenReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+var
+  MF: TMFNode;
+  I: Integer;
+begin
+  MF := Value as TMFNode;
+  for I := 0 to MF.Count - 1 do
+    if FdChildren.Items.IndexOf(MF.Items[I]) = -1 then
+      FdChildren.AddItem(MF.Items[I]);
+
+  { X3D spec says explicitly
+    "A children field is not allowed to contain nodes that are
+    ancestors of the grouping node"
+    so correct X3D file cannot produce cycles. Cycles would be very bad,
+    since
+    - they will make memory leaks (reference count will be > 0 for grouping node)
+    - and, worse, TVRMLNode.Traverse will hang infinitely
+
+    TODO: So invalid VRML file can produce mem leaks and hang the engine... }
+end;
+
+procedure TNodeX3DGroupingNode.EventRemoveChildrenReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+var
+  MF: TMFNode;
+  I: Integer;
+begin
+  MF := Value as TMFNode;
+
+  { Note that X3D specification directly says
+    "A children field is not allowed to directly contain
+    multiple instances of the same node."
+    Thus the question how we should deal with multiple items to remove
+    (use Delete or DeleteAll in implementation below?) doesn't exist.
+
+    Note that I didn't find such notice in VRML 97 specification.
+    This seems to be undefined case in VRML 97? }
+
+  for I := 0 to MF.Count - 1 do
+    FdChildren.Items.Delete(MF.Items[I]);
 end;
 
 constructor TNodeGroup_2.Create(const ANodeName: string; const AWWWBasePath: string);

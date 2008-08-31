@@ -7000,9 +7000,20 @@ function ParseNode(Lexer: TVRMLLexer;
 
       TODO: Which means that this is too easy solution, and ultimately
       Result.Bind should be moved up, or I should invent some other more clever
-      solution for this (I think that this is needed only for Script interface
+      solution for this. I think that this is needed only for Script interface
       declarations, so it can be some pretty specific hack just to
-      fix this...).
+      fix this...
+
+      At least for grouping nodes X3D specification (but not VRML 97,
+      as far as I see) says explicitly
+      "A children field is not allowed to contain nodes that
+      are ancestors of the grouping node"
+      so in case of this particular "children" MFNode field cycles
+      are not possible. In many other cases cycles are not possible,
+      e.g. Appearance cannot create cycles since no Appearance children
+      can be of Appearance type... But generally there is no rule that
+      guarantees "no cycles" in VRML file, as we can see.
+      And events like addChildren can create cycles easily.
 
       For now, NilIfUnresolvedUSE successfully changes there special
       cycles in Script into mere VRMLNonFatalError, so they don't stop

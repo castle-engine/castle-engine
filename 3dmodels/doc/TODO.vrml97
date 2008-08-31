@@ -94,3 +94,11 @@ when saving (e.g. from view3dscene), extension doesn't really matter.
   We save x3d or vrml 1.0/2.0 content, based on what we know about the model.
   There should be a way for user to force some version? Or just warn
   user and eventually change extension?
+
+------------------------------------------------------------------------------
+addChildren/removeChildren test (cannot test now, as nothing can generate
+SFNode/MFNode out events now)
+
+invalid VRML file can produce mem leaks and hang the engine using addChildren
+(e.g. add self as it's own children). See
+TNodeX3DGroupingNode.EventAddChildrenReceive implementation.
