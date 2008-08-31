@@ -102,3 +102,7 @@ SFNode/MFNode out events now)
 invalid VRML file can produce mem leaks and hang the engine using addChildren
 (e.g. add self as it's own children). See
 TNodeX3DGroupingNode.EventAddChildrenReceive implementation.
+
+test implemented events:
+- IndexedLineSet:set_colorIndex, set_coordIndex
+- IndexedTriangleFanSet,  IndexedTriangleSet, IndexedTriangleStripSet: set_index

@@ -147,6 +147,11 @@
   end;
 
   TNodeIndexedLineSet_2 = class(TNodeX3DGeometryNode)
+  private
+    procedure EventSet_ColorIndexReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+    procedure EventSet_CoordIndexReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -199,6 +204,9 @@
   end;
 
   TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
+  private
+    procedure EventSet_IndexReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -224,6 +232,9 @@
   end;
 
   TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
+  private
+    procedure EventSet_IndexReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -249,6 +260,9 @@
   end;
 
   TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
+  private
+    procedure EventSet_IndexReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   public
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
     class function ClassNodeTypeName: string; override;
@@ -671,9 +685,11 @@ begin
 
   FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventset_colorIndex);
+  Eventset_colorIndex.OnReceive.AppendItem(@EventSet_ColorIndexReceive);
 
   FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventset_coordIndex);
+  Eventset_coordIndex.OnReceive.AppendItem(@EventSet_CoordIndexReceive);
 
   FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
   Fields.Add(FFdattrib);
@@ -751,6 +767,22 @@ begin
   Result := FdCoordIndex;
 end;
 
+procedure TNodeIndexedLineSet_2.EventSet_ColorIndexReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  FdColorIndex.Assign(Value);
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdColorIndex);
+end;
+
+procedure TNodeIndexedLineSet_2.EventSet_CoordIndexReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  FdCoordIndex.Assign(Value);
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdCoordIndex);
+end;
+
 constructor TNodeIndexedTriangleFanSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -758,6 +790,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
+  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
@@ -789,6 +822,14 @@ begin
   Result := FdIndex;
 end;
 
+procedure TNodeIndexedTriangleFanSet.EventSet_IndexReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  FdIndex.Assign(Value);
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
+end;
+
 constructor TNodeIndexedTriangleSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -796,6 +837,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
+  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
@@ -827,6 +869,14 @@ begin
   Result := FdIndex;
 end;
 
+procedure TNodeIndexedTriangleSet.EventSet_IndexReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  FdIndex.Assign(Value);
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
+end;
+
 constructor TNodeIndexedTriangleStripSet.Create(const ANodeName: string;
   const AWWWBasePath: string);
 begin
@@ -834,6 +884,7 @@ begin
 
   FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventset_index);
+  Eventset_index.OnReceive.AppendItem(@EventSet_IndexReceive);
 
   FFdindex := TMFInt32.Create(Self, 'index', []);
   FFdindex.Exposed := false;
@@ -863,6 +914,14 @@ end;
 function TNodeIndexedTriangleStripSet.CoordIndex: TMFLong;
 begin
   Result := FdIndex;
+end;
+
+procedure TNodeIndexedTriangleStripSet.EventSet_IndexReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  FdIndex.Assign(Value);
+  if ParentEventsProcessor <> nil then
+    (ParentEventsProcessor as TVRMLScene).ChangedFields(Self, FdIndex);
 end;
 
 constructor TNodeLineSet.Create(const ANodeName: string;
