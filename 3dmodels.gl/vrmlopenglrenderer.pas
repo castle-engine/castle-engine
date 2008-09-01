@@ -1984,6 +1984,7 @@ begin
   Result := TGLSLProgram.Create;
   try
     LoadGLSLProgram(Result, ProgramNode);
+    ProgramNode.EventIsValidSend(true);
   except
     { In case of problems with initializing GLSL program, free the program
       and reraise exception. Caller of GLSLProgram_IncReference will
@@ -1991,6 +1992,7 @@ begin
       and record that this shader program failed to initialize by recording
       GLSLProgram = nil). }
     FreeAndNil(Result);
+    ProgramNode.EventIsValidSend(false);
     raise;
   end;
 
@@ -2720,6 +2722,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           begin
             try
               GLSLProgram := Cache.GLSLProgram_IncReference(ProgramNode);
+              ProgramNode.EventIsSelectedSend(true);
             except
               { EGLSLError catches errors from Cache.GLSLProgram_IncReference,
                 including GLShaders errors like
@@ -2728,6 +2731,7 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
               begin
                 VRMLNonFatalError('Error when initializing GLSL shader : ' + E.Message);
                 GLSLProgram := nil;
+                ProgramNode.EventIsSelectedSend(false);
               end;
             end;
 
@@ -2742,6 +2746,13 @@ procedure TVRMLOpenGLRenderer.Prepare(State: TVRMLGraphTraverseState);
           { Only if successfull, break. }
           if GLSLProgram <> nil then
             Break;
+        end else
+        begin
+          { GLSLShader(I) is nil, so this is not appropriate node class
+            or "language" field was bad.
+            So at least send him "isSelected" = false, if it's X3DShaderNode. }
+          if State.ParentShape.Appearance.FdShaders.Items[I] is TNodeX3DShaderNode then
+            (State.ParentShape.Appearance.FdShaders.Items[I] as TNodeX3DShaderNode).EventIsSelectedSend(false);
         end;
       end;
     end;
