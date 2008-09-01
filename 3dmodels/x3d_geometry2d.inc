@@ -147,7 +147,10 @@
     private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    GeometryNotImplemented
+    function LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d; override;
+    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal; override;
+    procedure LocalTriangulate(State: TVRMLGraphTraverseState; OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc); override;
   end;
 
   TNodeTriangleSet2D = class(TNodeX3DGeometryNode)
@@ -442,9 +445,6 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
-
-{$define TGeometryNotImplemented := TNodeRectangle2D}
-GeometryNotImplemented
 
 constructor TNodeTriangleSet2D.Create(const ANodeName: string;
   const AWWWBasePath: string);

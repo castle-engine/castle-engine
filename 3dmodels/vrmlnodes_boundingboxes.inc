@@ -492,4 +492,12 @@ begin
   finally FreeAndNil(E) end;
 end;
 
+{ ---------------------------------------------------------------------------- }
+
+function TNodeRectangle2D.LocalBoundingBox(State: TVRMLGraphTraverseState): TBox3d;
+begin
+  Result[0] := Vector3Single(-FdSize.Value[0] / 2, -FdSize.Value[1] / 2, 0);
+  Result[1] := Vector3Single( FdSize.Value[1] / 2,  FdSize.Value[1] / 2, 0);
+end;
+
 { eof ------------------------------------------------------------------------ }

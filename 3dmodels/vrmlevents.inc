@@ -112,6 +112,21 @@
 
       All callbacks here are simply called by @link(Send) method. }
     property OnReceive: TDynVRMLEventReceiveArray read FOnReceive;
+
+    { @abstract(Is anything actually listening on this events @link(Send)?)
+
+      Sometimes, even preparing a value to Send is quite time-consuming
+      (example: CoordinateInterpolator, where a long MFVec3f value
+      has to be computer). Then checking SendNeeded is useful:
+      if SendNeeded = @false, you know that there's no point in preparing
+      Value to send, because actually Send will do nothing.
+
+      For example, event out to which no ROUTE is connected, and no Script
+      can listen to it.
+
+      For now, this simply returns whether any OnReceive callback is registered. }
+
+    function SendNeeded: boolean;
   end;
 
   TObjectsListItem_3 = TVRMLEvent;
@@ -304,6 +319,11 @@ begin
   try
     Send(Field, Time);
   finally FreeAndNil(Field) end;
+end;
+
+function TVRMLEvent.SendNeeded: boolean;
+begin
+  Result := OnReceive.Count <> 0;
 end;
 
 { TVRMLEventsList ------------------------------------------------------------ }

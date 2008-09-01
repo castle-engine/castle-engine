@@ -35,7 +35,8 @@ type
       const Strings: TDynStringArray;
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
-      const MarkFrontFaces: boolean);
+      const MarkFrontFaces: boolean;
+      const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
   end;
 
   TAsciiTextRenderer = class(TAbstractTextRenderer)
@@ -150,73 +151,121 @@ procedure TAbstractTextRenderer.RenderText(
   const Strings: TDynStringArray;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
-  const MarkFrontFaces: boolean);
+  const MarkFrontFaces: boolean;
+  const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
+
+var
+  TextWidths: TDynSingleArray;
 
   { StringPos* ignore Size, just assume that CurrentFont has right size. }
-  function StringPosX(i: integer): TGLfloat;
+  function StringPosX(I: Integer): TGLfloat;
   begin
     case Justify of
       fjBegin : Result := 0;
-      fjMiddle: Result := -CurrentFont.TextWidth(Strings[i]) / 2;
-      fjend   : Result := -CurrentFont.TextWidth(Strings[i]);
+      fjMiddle: Result := - TextWidths.Items[I] / 2;
+      fjEnd   : Result := - TextWidths.Items[I];
       else raise EInternalError.Create('Invalid font justify value');
     end;
   end;
 
-  function StringPosY(i: integer): TGLfloat;
+  function StringPosY(I: Integer): TGLfloat;
   begin
-    Result := -i * CurrentFont.RowHeight * Spacing;
+    Result := - I * CurrentFont.RowHeight * Spacing;
   end;
 
 var
   YScale, XScale: TGLfloat;
-  i: integer;
+  MaxTextWidth: Single;
+
+  procedure SendEvents;
+  var
+    LineBounds: TMFVec2f;
+    Time: TKamTime;
+    FinalRowHeight: Single;
+    I: Integer;
+  begin
+    if (EventOrigin <> nil) and
+       (Geometry.ParentEventsProcessor <> nil) then
+    begin
+      { This is all simple, since we ignore topToBottom, leftToRight.
+        Also, we don't honour the rule that the upper line of the text
+        is exactly on Y = 0 (instead, our *row* (which is slightly higher
+        than the upper text line) is on Y = 0, this is documented
+        on [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]
+        by failed NIST test about it.
+
+        So the lacks of current Text rendering implementation
+        make this somewhat simple :) }
+
+      Time := (Geometry.ParentEventsProcessor as TVRMLScene).WorldTime;
+
+      FinalRowHeight := CurrentFont.RowHeight * Spacing * YScale;
+
+      case Justify of
+        fjBegin : EventOrigin.Send(Vector3Single(0                         , -FinalRowHeight, 0), Time);
+        fjMiddle: EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale / 2, -FinalRowHeight, 0), Time);
+        fjEnd   : EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale    , -FinalRowHeight, 0), Time);
+        else raise EInternalError.Create('Invalid font justify value');
+      end;
+
+      if EventLineBounds.SendNeeded then
+      begin
+        LineBounds := TMFVec2f.CreateUndefined(Geometry, EventLineBounds.Name);
+        try
+          LineBounds.Items.Count := TextWidths.Count;
+
+          case Justify of
+            fjBegin :
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.Items[I] := Vector2Single(
+                  TextWidths[I] * XScale, FinalRowHeight);
+            fjMiddle:
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.Items[I] := Vector2Single(
+                  (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
+            fjEnd   :
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.Items[I] := Vector2Single(
+                  MaxTextWidth * XScale, FinalRowHeight);
+            else raise EInternalError.Create('Invalid font justify value');
+          end;
+
+          EventLineBounds.Send(LineBounds, Time);
+        finally FreeAndNil(LineBounds) end;
+      end;
+
+      EventTextBounds.Send(Vector2Single(
+        MaxTextWidth * XScale, FinalRowHeight * Strings.Count), Time);
+    end;
+  end;
+
+var
+  I: Integer;
 begin
   YScale := Size / CurrentFont.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0.
     Use width for VRML 1.0. }
   XScale := YScale;
 
-  Renderer.Render_BindMaterial_1(0);
-
-  glPushMatrix;
-    glScalef(1, YScale, 1);
-
-    if MarkFrontFaces then
+  TextWidths := TDynSingleArray.Create(Strings.Count);
+  try
+    MaxTextWidth := 0;
+    for I := 0 to TextWidths.Count - 1 do
     begin
-      { Outside face is CW now, so cull CCW. CCW = front face
-        (remember, we can't use glFrontFace, we have to work with glCullFace here) }
-      glCullFace(GL_FRONT);
+      TextWidths.Items[I] := CurrentFont.TextWidth(Strings[I]);
+      MaxTo1st(MaxTextWidth, TextWidths.Items[I]);
     end;
 
-    { Normal pointing from CCW. }
-    glNormal3f(0, 0, -1);
+    Renderer.Render_BindMaterial_1(0);
 
-    for I := 0 to Strings.Count - 1 do
-    begin
-      glPushMatrix;
-        glScalef(XScale, 1, 1);
+    glPushMatrix;
+      glScalef(1, YScale, 1);
 
-        { TODO: when using Justify <> fjBegin I should also
-          change texOriginX here, at least for VRML 1.0 --- check
-          for VRML 2.0. }
-        glTranslatef(StringPosX(I), StringPosY(I), 0);
-
-        { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
-          popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
-        if Renderer.Render_TexCoordsNeeded then
-          CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
-          CurrentFont.PrintAndMove(Strings[i]);
-      glPopMatrix;
-    end;
-
-    if Depth <> 0 then
-    begin
       if MarkFrontFaces then
       begin
-        { Outside face is CCW now, so cull CW. CW = back face
+        { Outside face is CW now, so cull CCW. CCW = front face
           (remember, we can't use glFrontFace, we have to work with glCullFace here) }
-        glCullFace(GL_BACK);
+        glCullFace(GL_FRONT);
       end;
 
       { Normal pointing from CCW. }
@@ -230,7 +279,7 @@ begin
           { TODO: when using Justify <> fjBegin I should also
             change texOriginX here, at least for VRML 1.0 --- check
             for VRML 2.0. }
-          glTranslatef(StringPosX(I), StringPosY(I), -Depth);
+          glTranslatef(StringPosX(I), StringPosY(I), 0);
 
           { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
             popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
@@ -240,13 +289,17 @@ begin
         glPopMatrix;
       end;
 
-      { Normals will change during rendering of character extrusions,
-        that's why I render extrusions after rendering all front and back caps.
-        For now, normals for extrusions are suitable only for flat shading,
-        so we set flat shading. }
+      if Depth <> 0 then
+      begin
+        if MarkFrontFaces then
+        begin
+          { Outside face is CCW now, so cull CW. CW = back face
+            (remember, we can't use glFrontFace, we have to work with glCullFace here) }
+          glCullFace(GL_BACK);
+        end;
 
-      glPushAttrib(GL_LIGHTING_BIT);
-        glShadeModel(GL_FLAT);
+        { Normal pointing from CCW. }
+        glNormal3f(0, 0, -1);
 
         for I := 0 to Strings.Count - 1 do
         begin
@@ -261,15 +314,49 @@ begin
             { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
               popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
             if Renderer.Render_TexCoordsNeeded then
-              CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
-              CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
+              CurrentFont.PrintTexturedAndMove(Strings[i], 0, 0) else
+              CurrentFont.PrintAndMove(Strings[i]);
           glPopMatrix;
         end;
 
-      glPopAttrib;
-    end;
+        { Normals will change during rendering of character extrusions,
+          that's why I render extrusions after rendering all front and back caps.
+          For now, normals for extrusions are suitable only for flat shading,
+          so we set flat shading. }
 
-  glPopMatrix;
+        glPushAttrib(GL_LIGHTING_BIT);
+          glShadeModel(GL_FLAT);
+
+          for I := 0 to Strings.Count - 1 do
+          begin
+            glPushMatrix;
+              glScalef(XScale, 1, 1);
+
+              { TODO: when using Justify <> fjBegin I should also
+                change texOriginX here, at least for VRML 1.0 --- check
+                for VRML 2.0. }
+              glTranslatef(StringPosX(I), StringPosY(I), -Depth);
+
+              { uzywamy ponizej print*AndMove bo przeciez za chwile i tak zrobimy
+                popMatrix (wiec po co marnowac jedno miejsce na matrix stack ?) }
+              if Renderer.Render_TexCoordsNeeded then
+                CurrentFont.PrintTexturedExtrusionAndMove(Strings[i], Depth, 0, 0) else
+                CurrentFont.PrintExtrusionAndMove(Strings[i], Depth);
+            glPopMatrix;
+          end;
+
+        glPopAttrib;
+      end;
+
+    glPopMatrix;
+
+    { These events should be generated only when
+      the default values of length and maxExtent are used.
+      For now, we ignore length and maxExtent, so these events are
+      simply always generated. }
+    SendEvents;
+
+  finally FreeAndNil(TextWidths) end;
 end;
 
 procedure TAsciiTextRenderer.DoRender;
@@ -286,7 +373,8 @@ begin
     Renderer.Cache.Fonts[
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
-      State.LastNodes.FontStyle.Italic].Instance, 0, false);
+      State.LastNodes.FontStyle.Italic].Instance, 0, false,
+    nil, nil, nil);
 end;
 
 procedure TTextRenderer.DoRender;
@@ -320,7 +408,9 @@ begin
 
   { TODO: this also has "solid" field, use! }
 
-  RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont, 0, false);
+  RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
+    0, false,
+    Node.EventLineBounds, Node.EventOrigin, Node.EventTextBounds);
 end;
 
 constructor TText3DRenderer.Create(ARenderer: TVRMLOpenGLRenderer);
@@ -366,7 +456,8 @@ begin
   end;
 
   RenderText(Size, Spacing, Justify, Node.FdString.Items, CurrentFont,
-    Node.FdDepth.Value, Node.FdSolid.Value);
+    Node.FdDepth.Value, Node.FdSolid.Value,
+    nil, nil, nil);
 end;
 
 { Box ------------------------------------------------------------------------ }
@@ -389,7 +480,7 @@ begin
  DetailX := State.LastNodes.KambiTriangulation.RectDivisions;
  DetailY := DetailX;
  DetailZ := DetailX;
- 
+
  MatPerPart := State.LastNodes.MaterialBinding.FdValue.Value in [
    BIND_PER_PART, BIND_PER_PART_INDEXED, BIND_PER_FACE, BIND_PER_FACE_INDEXED];
  if not MatPerPart then

@@ -334,6 +334,8 @@ var
   OutputValue: SingleInterpolatorType;
   KeyCount, Range: Integer;
 begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
   KeyCount := FdKey.Items.Count;
   if KeyCount = 0 then
   begin
@@ -399,6 +401,8 @@ var
   OutputValue: MultipleInterpolatorFieldType;
   Range: Integer;
 begin
+  if not EventValue_Changed.SendNeeded then Exit;
+
   KeyCount := FdKey.Items.Count;
   if KeyCount = 0 then
   begin

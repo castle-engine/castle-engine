@@ -1441,6 +1441,7 @@ uses NormalsCalculator, Math, Triangulator, NormalizationCubeMap,
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_rendering.inc}
 {$I vrmlmeshrenderer_x3d_geometry3d.inc}
+{$I vrmlmeshrenderer_x3d_geometry2d.inc}
 {$I vrmlmeshrenderer_simple_nodes.inc}
 
 { TVRMLOpenGLRendererContextCache -------------------------------------------- }
@@ -3653,6 +3654,8 @@ procedure TVRMLOpenGLRenderer.RenderShapeStateNoTransform(
       ExposedMeshRenderer := TSphere_1Renderer.Create(Self) else
     if CurrentGeometry is TNodeSphere_2 then
       ExposedMeshRenderer := TSphere_2Renderer.Create(Self) else
+    if CurrentGeometry is TNodeRectangle2D then
+      ExposedMeshRenderer := TRectangle2DRenderer.Create(Self) else
       ExposedMeshRenderer := nil;
   end;
 

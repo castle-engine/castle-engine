@@ -1003,3 +1003,27 @@ begin
     BIND_DEFAULT, nil, NewTriangleProc);
 end;
 
+{ ---------------------------------------------------------------------------- }
+
+procedure TNodeRectangle2D.LocalTriangulate(State: TVRMLGraphTraverseState;
+  OverTriangulate: boolean; NewTriangleProc: TNewTriangleProc);
+var
+  Triangle: TTriangle3Single;
+  V: TVector3Single;
+begin
+  V[0] := -FdSize.Value[0] / 2;
+  V[1] := -FdSize.Value[1] / 2;
+  V[2] := 0;
+
+  Triangle[0] := V;
+  V[1] := -V[1];
+  Triangle[1] := V;
+  V[0] := -V[0];
+  Triangle[2] := V;
+  NewTriangleProc(Triangle, State, Self, 0, -1, -1);
+
+  Triangle[1] := Triangle[2];
+  V[1] := -V[1];
+  Triangle[2] := V;
+  NewTriangleProc(Triangle, State, Self, 0, -1, -1);
+end;

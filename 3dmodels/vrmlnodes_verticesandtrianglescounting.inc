@@ -478,3 +478,17 @@ begin
     Result := 2 * (ACoord.Count div 4) else
     Result := 0;
 end;
+
+{ ---------------------------------------------------------------------------- }
+
+function TNodeRectangle2D.TrianglesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 2;
+end;
+
+function TNodeRectangle2D.VerticesCount(
+  State: TVRMLGraphTraverseState; OverTriangulate: boolean): Cardinal;
+begin
+  Result := 4;
+end;
