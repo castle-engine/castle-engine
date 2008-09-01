@@ -52,6 +52,11 @@
 
   TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject,
     IVRMLInlineNode)
+  private
+    procedure EventLoadReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+    procedure EventUrlReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
     { You can override this to do anything after the Inline children were
@@ -81,6 +86,7 @@
     class function ChildrenSaveToStream: boolean; override;
 
     procedure LoadInlined(CanReload: boolean);
+    procedure UnLoadInlined;
   end;
 
   TNodeLoadSensor = class(TNodeX3DNetworkSensorNode)
@@ -173,11 +179,29 @@ constructor TNodeInline.Create(const ANodeName: string;
 begin
   inherited;
 
+  { It's safer to register on EventOuts below, because then I already
+    know that exposed eventIn handler set appropriate field value
+    before calling our eventOut handler.
+    In EventIn, you would not really know
+    whether exposed event handler was already done or not (depends
+    on the of calbacks on OnReceive list).
+
+    Even better, I know that notification to ParentEventsProcessor
+    (from exposed eventIn handler)
+    is done *after* running our eventOut handler.
+    This means that ParentEventsProcessor will be notified about
+    changes *after* EventLoadReceive or EventUrlReceive changed the nodes
+    to load/unload, so TVRMLScene.ChangedAll will be called with
+    the *new* graph state, so it will properly update everything to
+    new state. }
+
   FFdload := TSFBool.Create(Self, 'load', true);
   Fields.Add(FFdload);
+  Fdload.EventOut.OnReceive.AppendItem(@EventLoadReceive);
 
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
+  Fdurl.EventOut.OnReceive.AppendItem(@EventUrlReceive);
   { X3D specification comment: [url or urn] }
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -218,6 +242,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TNodeInline.UnLoadInlined;
+begin
+  RemoveAllChildren;
+end;
+
 procedure TNodeInline.LoadInlined(CanReload: boolean);
 var
   I: Integer;
@@ -228,6 +257,8 @@ begin
   begin
     if CanReload then RemoveAllChildren else Exit;
   end;
+
+  if not FdLoad.Value then Exit;
 
   NewNode := nil;
 
@@ -268,6 +299,24 @@ end;
 class function TNodeInline.ChildrenSaveToStream: boolean;
 begin
   Result := false;
+end;
+
+procedure TNodeInline.EventLoadReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if FdLoad.Value then
+    LoadInlined(false) else
+    UnLoadInlined;
+end;
+
+procedure TNodeInline.EventUrlReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if FdLoad.Value then
+  begin
+    UnLoadInlined;
+    LoadInlined(false);
+  end;
 end;
 
 constructor TNodeLoadSensor.Create(const ANodeName: string;

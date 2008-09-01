@@ -2248,6 +2248,11 @@ type
       X3D (actually used also in VRML 97 handling) "Inline.load" fields).
       It simply doesn't do any loading when load = @false.
 
+      Note that this doesn't perform setting the "load" field,
+      or sending any notifications to ParentEventsProcessor
+      about "load" field. It's the caller's job to keep loaded state
+      synchronized with "load" field value.
+
       LoadInlined(false) will be called automatically in BeforeTraverse. }
     procedure LoadInlined(CanReload: boolean);
   end;

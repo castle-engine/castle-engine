@@ -109,3 +109,5 @@ test implemented events:
 - ElevationGrid: set_height
 - Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
+
+- Inline.set_url, InlineLoadControl.set_url
