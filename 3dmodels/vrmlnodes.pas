@@ -2243,6 +2243,11 @@ type
       than: if CanReload = @true Inlined will be freed and loaded again,
       else (if CanReload = @false) nothing will happen.
 
+      Note that this has a really simple support for "load" field
+      (this concerns VRML 97 amendment 1 "InlineLoadControl.load" and
+      X3D (actually used also in VRML 97 handling) "Inline.load" fields).
+      It simply doesn't do any loading when load = @false.
+
       LoadInlined(false) will be called automatically in BeforeTraverse. }
     procedure LoadInlined(CanReload: boolean);
   end;

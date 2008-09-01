@@ -94,6 +94,11 @@
   end;
 
   TNodeInlineLoadControl = class(TVRMLGroupingNode, IVRMLInlineNode)
+  private
+    procedure EventLoadReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+    procedure EventUrlReceive(
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
   protected
     procedure BeforeTraverse(var State: TVRMLGraphTraverseState); override;
   public
@@ -123,6 +128,7 @@
     class function ChildrenSaveToStream: boolean; override;
 
     procedure LoadInlined(CanReload: boolean);
+    procedure UnLoadInlined;
   end;
 
   TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
@@ -418,11 +424,29 @@ constructor TNodeInlineLoadControl.Create(const ANodeName: string; const AWWWBas
 begin
   inherited;
 
+  { It's safer to register on EventOuts below, because then I already
+    know that exposed eventIn handler set appropriate field value
+    before calling our eventOut handler.
+    In EventIn, you would not really know
+    whether exposed event handler was already done or not (depends
+    on the of calbacks on OnReceive list).
+
+    Even better, I know that notification to ParentEventsProcessor
+    (from exposed eventIn handler)
+    is done *after* running our eventOut handler.
+    This means that ParentEventsProcessor will be notified about
+    changes *after* EventLoadReceive or EventUrlReceive changed the nodes
+    to load/unload, so TVRMLScene.ChangedAll will be called with
+    the *new* graph state, so it will properly update everything to
+    new state. }
+
   FFdload := TSFBool.Create(Self, 'load', TRUE);
   Fields.Add(FFdload);
+  Fdload.EventOut.OnReceive.AppendItem(@EventLoadReceive);
 
   FFdurl := TMFString.Create(Self, 'url', []);
   Fields.Add(FFdurl);
+  Fdurl.EventOut.OnReceive.AppendItem(@EventUrlReceive);
 
   FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
   FFdbboxCenter.Exposed := false;
@@ -450,11 +474,17 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
+procedure TNodeInlineLoadControl.UnLoadInlined;
+begin
+  RemoveAllChildren;
+end;
+
 procedure TNodeInlineLoadControl.LoadInlined(CanReload: boolean);
 var
   I: Integer;
   FullUrl: string;
   NewNode: TVRMLNode;
+  ChildrenToSend: TMFNode;
 begin
   { TODO: InlineLoadControl should load it's contents to
     children MFNode, and we should make a way (analogous
@@ -489,13 +519,42 @@ begin
   end;
 
   if NewNode <> nil then
+  begin
     AddChild(NewNode);
+    if EventChildren.SendNeeded and (ParentEventsProcessor <> nil) then
+    begin
+      ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name);
+      try
+        ChildrenToSend.AddItem(NewNode);
+        EventChildren.Send(ChildrenToSend,
+          (ParentEventsProcessor as TVRMLScene).WorldTime);
+      finally FreeAndNil(ChildrenToSend) end;
+    end;
+  end;
 end;
 
 procedure TNodeInlineLoadControl.BeforeTraverse(var State: TVRMLGraphTraverseState);
 begin
   inherited;
   LoadInlined(false);
+end;
+
+procedure TNodeInlineLoadControl.EventLoadReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if FdLoad.Value then
+    LoadInlined(false) else
+    UnLoadInlined;
+end;
+
+procedure TNodeInlineLoadControl.EventUrlReceive(
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+begin
+  if FdLoad.Value then
+  begin
+    UnLoadInlined;
+    LoadInlined(false);
+  end;
 end;
 
 class function TNodeInlineLoadControl.ChildrenSaveToStream: boolean;
