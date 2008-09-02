@@ -45,8 +45,6 @@ VRML 97 TODO items:
 ----------------------------------------
 4.6.7.2 Environmental sensors
 4.6.7.3 Pointing-device sensors
-4.6.10 Bindable children nodes
-
 ------------------------------------------------------------------------------
 - Scripting:
   - 4.5.4 Scripting language protocols
