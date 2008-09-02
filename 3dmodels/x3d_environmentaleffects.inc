@@ -509,10 +509,18 @@ end;
 
 procedure TNodeFog.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TKamTime);
+var
+  Scene: TVRMLScene;
 begin
   if ParentEventsProcessor <> nil then
-    (ParentEventsProcessor as TVRMLScene).
-      FogStack.Set_Bind(Self, (Value as TSFBool).Value);
+  begin
+    Scene := ParentEventsProcessor as TVRMLScene;
+    Scene.FogStack.Set_Bind(Self, (Value as TSFBool).Value);
+    { Fog is something visible, so we must actually redisplay
+      for user to see the new scene. This is not done by Set_Bind method
+      automatically, as this is specific to Fog node. }
+    Scene.DoPostRedisplay;
+  end;
 end;
 
 constructor TNodeFogCoordinate.Create(const ANodeName: string;

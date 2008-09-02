@@ -46,6 +46,8 @@ type
   TVRMLSceneValidity = (fvBBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
+    { fvFog is not used for now, since FogNode is not cached now
+      (doesn't have to be, as it's simple shortcut for FogStack.Top). }
     fvFog,
     fvTrianglesListNotOverTriangulate, fvTrianglesListOverTriangulate,
     fvManifoldAndBorderEdges);
@@ -336,12 +338,6 @@ type
     ChangedAll_TraversedLights: TDynActiveLightArray;
     procedure ChangedAll_Traverse(Node: TVRMLNode; State: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo);
-
-    FFogNode: TNodeFog;
-    FFogDistanceScaling: Single;
-    { calculate FFogNode and FFogDistanceScaling, include fvFog
-      in Validities }
-    procedure ValidateFog;
 
     FBoundingBox: TBox3d;
     FVerticesCountNotOver, FVerticesCountOver,
@@ -770,10 +766,10 @@ type
       that returns only TVRMLViewpointNode. }
     procedure EnumerateViewpoints(ViewpointFunction: TViewpointFunction);
 
-    { Return fog defined by this VRML scene.
+    { Currently bound fog for this scene.
 
-      FogNode returns current Fog node defined by this VRML model,
-      or @nil if not found.
+      FogNode is just a trivial shortcut for FogStack.Top.
+      It returns currently bound Fog node, or @nil if none.
 
       FogDistanceScaling returns scaling of this FogNode, taken
       from the transformation of FogNode in VRML graph.
@@ -781,8 +777,8 @@ type
       by FogDistanceScaling when applying (rendering etc.) this fog node.
       Value of FogDistanceScaling is undefined if FogNode = nil.
 
-      Results of this functions are cached, so you can call them often,
-      and they'll work fast, assuming the scene doesn't change.
+      Currently, FogDistanceScaling is just a trivial shortcut
+      for FogNode.AverageScaleTransform. So it's fast.
 
       @groupBegin }
     function FogNode: TNodeFog;
@@ -1986,55 +1982,41 @@ end;
 
 { fog ---------------------------------------------------------------------- }
 
-procedure TVRMLScene.ValidateFog;
-var
-  FogTransform: TMatrix4Single;
-  FogAverageScaleTransform: Single;
-  InitialState: TVRMLGraphTraverseState;
-begin
- InitialState := TVRMLGraphTraverseState.Create;
- try
-  if (RootNode <> nil) and
-    RootNode.TryFindNodeTransform(InitialState, TNodeFog, TVRMLNode(FFogNode),
-      FogTransform, FogAverageScaleTransform) then
-  begin
-    { TODO: Using FogAverageScaleTransform is a simplification here.
-      If we have non-uniform scaling, then FogAverageScaleTransform (and
-      FogDistanceScaling) shouldn't  be used at all.
-
-      Zamiast FFogDistanceScaling powinnismy
-      sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
-      Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
-      do coordinate space node'u mgly, podobnie jak pozycje kamery,
-      obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
-      bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
-      I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
-      a mniej w drugim. Fajne.
-
-      Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
-      nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
-      przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
-      mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
-      ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
-    }
-    FFogDistanceScaling := FogAverageScaleTransform;
-  end else
-    FFogNode := nil;
-
-  Include(Validities, fvFog);
- finally InitialState.Free end;
-end;
-
 function TVRMLScene.FogNode: TNodeFog;
 begin
- if not (fvFog in Validities) then ValidateFog;
- result := FFogNode;
+  Result := FogStack.Top as TNodeFog;
 end;
 
 function TVRMLScene.FogDistanceScaling: Single;
+var
+  Fog: TNodeFog;
 begin
- if not (fvFog in Validities) then ValidateFog;
- result := FFogDistanceScaling;
+  { TODO: Using FogAverageScaleTransform is a simplification here.
+    If we have non-uniform scaling, then FogAverageScaleTransform (and
+    FogDistanceScaling) shouldn't  be used at all.
+
+    Zamiast FFogDistanceScaling powinnismy
+    sobie tutaj jakos wyliczac transformacje odwrotna do FogTransform.
+    Potem kazdy element ktory bedziemy rysowac najpierw zrzutujemy
+    do coordinate space node'u mgly, podobnie jak pozycje kamery,
+    obliczymy odleglosci tych zrzutowanych punktow i to te odleglosci
+    bedziemy porownywac z FogNode.VisibilityRange. To jest poprawna metoda.
+    I w ten sposob np. mozemy zrobic mgle bardziej gesta w jednym kierunku
+    a mniej w drugim. Fajne.
+
+    Zupelnie nie wiem jak to zrobic w OpenGLu - jego GL_FOG_END (chyba)
+    nie przechodzi takiej transformacji. Wiec w OpenGLu nie zrobie
+    przy pomocy glFog takiej mgly (a przeciez samemu robic mgle nie bedzie
+    mi sie chcialo, nie mowiac juz o tym ze zalezy mi na szybkosci a strace
+    ja jesli bede implementowal rzeczy ktore juz sa w OpenGLu).
+  }
+
+  Fog := FogNode;
+  if Fog <> nil then
+    Result := Fog.AverageScaleTransform else
+    { Result doesn't matter in this case, but should be deterministic,
+      to help caching and comparing fog properties }
+    Result := 0;
 end;
 
 { triangles list ------------------------------------------------------------- }
