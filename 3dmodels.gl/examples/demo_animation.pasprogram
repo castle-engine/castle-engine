@@ -149,9 +149,9 @@ begin
       AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
     end;
 
+    Animation.Optimization := RendererOptimization;
     Animation.Load(AnimRootNodes, true,
-      AnimTimes, ScenesPerTime, RendererOptimization, EqualityEpsilon);
-
+      AnimTimes, ScenesPerTime, EqualityEpsilon);
     Animation.TimeLoop := true;
     Animation.TimeBackwards := true;
   finally
